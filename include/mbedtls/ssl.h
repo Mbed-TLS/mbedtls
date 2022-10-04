@@ -1450,7 +1450,7 @@ struct mbedtls_ssl_config
     const int *MBEDTLS_PRIVATE(sig_hashes);         /*!< allowed signature hashes           */
 #endif
     const uint16_t *MBEDTLS_PRIVATE(sig_algs);      /*!< allowed signature algorithms       */
-#endif
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
     const mbedtls_ecp_group_id *MBEDTLS_PRIVATE(curve_list); /*!< allowed curves             */

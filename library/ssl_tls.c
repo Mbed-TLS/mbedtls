@@ -4822,7 +4822,7 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
             else
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
                 conf->sig_algs = ssl_preset_suiteb_sig_algs;
-#endif
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
             conf->curve_list = NULL;

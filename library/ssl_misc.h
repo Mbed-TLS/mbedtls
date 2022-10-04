@@ -1873,7 +1873,7 @@ int mbedtls_ssl_tls13_fetch_handshake_msg( mbedtls_ssl_context *ssl,
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_process_certificate( mbedtls_ssl_context *ssl );
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
 /*
  * Handler of TLS 1.3 write Certificate message
  */
@@ -1886,7 +1886,7 @@ int mbedtls_ssl_tls13_write_certificate( mbedtls_ssl_context *ssl );
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_write_certificate_verify( mbedtls_ssl_context *ssl );
 
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
 
 /*
  * Generic handler of Certificate Verify
@@ -2063,10 +2063,7 @@ static inline const void *mbedtls_ssl_get_sig_algs(
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 }
 
-
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
 static inline int mbedtls_ssl_sig_alg_is_received( const mbedtls_ssl_context *ssl,
                                                    uint16_t own_sig_alg )
 {
@@ -2081,61 +2078,7 @@ static inline int mbedtls_ssl_sig_alg_is_received( const mbedtls_ssl_context *ss
     }
     return( 0 );
 }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
-static inline int mbedtls_ssl_sig_alg_is_offered( const mbedtls_ssl_context *ssl,
-                                                  uint16_t proposed_sig_alg )
-{
-    const uint16_t *sig_alg = mbedtls_ssl_get_sig_algs( ssl );
-    if( sig_alg == NULL )
-        return( 0 );
-
-    for( ; *sig_alg != MBEDTLS_TLS_SIG_NONE; sig_alg++ )
-    {
-        if( *sig_alg == proposed_sig_alg )
-            return( 1 );
-    }
-    return( 0 );
-}
-
-static inline int mbedtls_ssl_get_pk_type_and_md_alg_from_sig_alg(
-    uint16_t sig_alg, mbedtls_pk_type_t *pk_type, mbedtls_md_type_t *md_alg )
-{
-    *pk_type = mbedtls_ssl_pk_alg_from_sig( sig_alg & 0xff );
-    *md_alg = mbedtls_ssl_md_alg_from_hash( ( sig_alg >> 8 ) & 0xff );
-
-    if( *pk_type != MBEDTLS_PK_NONE && *md_alg != MBEDTLS_MD_NONE )
-        return( 0 );
-
-    switch( sig_alg )
-    {
-#if defined(MBEDTLS_PKCS1_V21)
-#if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
-        case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
-            *md_alg = MBEDTLS_MD_SHA256;
-            *pk_type = MBEDTLS_PK_RSASSA_PSS;
-            break;
-#endif /* MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA  */
-#if defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
-        case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:
-            *md_alg = MBEDTLS_MD_SHA384;
-            *pk_type = MBEDTLS_PK_RSASSA_PSS;
-            break;
-#endif /* MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
-#if defined(MBEDTLS_HAS_ALG_SHA_512_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
-        case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
-            *md_alg = MBEDTLS_MD_SHA512;
-            *pk_type = MBEDTLS_PK_RSASSA_PSS;
-            break;
-#endif /* MBEDTLS_HAS_ALG_SHA_512_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
-#endif /* MBEDTLS_PKCS1_V21 */
-            default:
-                return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
-        }
-        return( 0 );
-}
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 static inline int mbedtls_ssl_tls13_sig_alg_for_cert_verify_is_supported(
                                                     const uint16_t sig_alg )
 {
@@ -2203,7 +2146,63 @@ static inline int mbedtls_ssl_tls13_sig_alg_is_supported(
     return( 1 );
 }
 
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_tls13_check_sig_alg_cert_key_match( uint16_t sig_alg,
+                                                    mbedtls_pk_context *key );
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
+
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+static inline int mbedtls_ssl_sig_alg_is_offered( const mbedtls_ssl_context *ssl,
+                                                  uint16_t proposed_sig_alg )
+{
+    const uint16_t *sig_alg = mbedtls_ssl_get_sig_algs( ssl );
+    if( sig_alg == NULL )
+        return( 0 );
+
+    for( ; *sig_alg != MBEDTLS_TLS_SIG_NONE; sig_alg++ )
+    {
+        if( *sig_alg == proposed_sig_alg )
+            return( 1 );
+    }
+    return( 0 );
+}
+
+static inline int mbedtls_ssl_get_pk_type_and_md_alg_from_sig_alg(
+    uint16_t sig_alg, mbedtls_pk_type_t *pk_type, mbedtls_md_type_t *md_alg )
+{
+    *pk_type = mbedtls_ssl_pk_alg_from_sig( sig_alg & 0xff );
+    *md_alg = mbedtls_ssl_md_alg_from_hash( ( sig_alg >> 8 ) & 0xff );
+
+    if( *pk_type != MBEDTLS_PK_NONE && *md_alg != MBEDTLS_MD_NONE )
+        return( 0 );
+
+    switch( sig_alg )
+    {
+#if defined(MBEDTLS_PKCS1_V21)
+#if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+        case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
+            *md_alg = MBEDTLS_MD_SHA256;
+            *pk_type = MBEDTLS_PK_RSASSA_PSS;
+            break;
+#endif /* MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA  */
+#if defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+        case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:
+            *md_alg = MBEDTLS_MD_SHA384;
+            *pk_type = MBEDTLS_PK_RSASSA_PSS;
+            break;
+#endif /* MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
+#if defined(MBEDTLS_HAS_ALG_SHA_512_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+        case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
+            *md_alg = MBEDTLS_MD_SHA512;
+            *pk_type = MBEDTLS_PK_RSASSA_PSS;
+            break;
+#endif /* MBEDTLS_HAS_ALG_SHA_512_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
+#endif /* MBEDTLS_PKCS1_V21 */
+            default:
+                return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+        }
+        return( 0 );
+}
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 static inline int mbedtls_ssl_tls12_sig_alg_is_supported(
@@ -2281,25 +2280,16 @@ static inline int mbedtls_ssl_sig_alg_is_supported(
     }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
     if( ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 )
     {
        return( mbedtls_ssl_tls13_sig_alg_is_supported( sig_alg ) );
     }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+#endif
     ((void) ssl);
     ((void) sig_alg);
     return( 0 );
 }
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-
-MBEDTLS_CHECK_RETURN_CRITICAL
-int mbedtls_ssl_tls13_check_sig_alg_cert_key_match( uint16_t sig_alg,
-                                                    mbedtls_pk_context *key );
-
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
-
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)

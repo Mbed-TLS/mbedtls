@@ -28,7 +28,7 @@
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
@@ -45,7 +45,7 @@ run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
@@ -62,7 +62,7 @@ run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
@@ -79,7 +79,7 @@ run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_openssl_tls1_3
@@ -97,7 +97,7 @@ run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,secp256r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
@@ -114,7 +114,7 @@ run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
@@ -131,7 +131,7 @@ run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
@@ -148,7 +148,7 @@ run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_openssl_tls1_3
@@ -166,7 +166,7 @@ run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,secp384r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
@@ -183,7 +183,7 @@ run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
@@ -200,7 +200,7 @@ run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
@@ -217,7 +217,7 @@ run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_openssl_tls1_3
@@ -235,7 +235,7 @@ run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,secp521r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,x25519,ecdsa_secp256r1_sha256" \
@@ -252,7 +252,7 @@ run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,x25519,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,x25519,ecdsa_secp384r1_sha384" \
@@ -269,7 +269,7 @@ run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,x25519,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,x25519,ecdsa_secp521r1_sha512" \
@@ -286,7 +286,7 @@ run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,x25519,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_openssl_tls1_3
@@ -304,7 +304,7 @@ run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,x25519,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,x448,ecdsa_secp256r1_sha256" \
@@ -321,7 +321,7 @@ run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,x448,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,x448,ecdsa_secp384r1_sha384" \
@@ -338,7 +338,7 @@ run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,x448,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,x448,ecdsa_secp521r1_sha512" \
@@ -355,7 +355,7 @@ run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,x448,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_openssl_tls1_3
@@ -373,7 +373,7 @@ run_test "TLS 1.3 O->m: AES_128_GCM_SHA256,x448,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,secp256r1,ecdsa_secp256r1_sha256" \
@@ -390,7 +390,7 @@ run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,secp256r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,secp256r1,ecdsa_secp384r1_sha384" \
@@ -407,7 +407,7 @@ run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,secp256r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,secp256r1,ecdsa_secp521r1_sha512" \
@@ -424,7 +424,7 @@ run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,secp256r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_openssl_tls1_3
@@ -442,7 +442,7 @@ run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,secp256r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,secp384r1,ecdsa_secp256r1_sha256" \
@@ -459,7 +459,7 @@ run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,secp384r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,secp384r1,ecdsa_secp384r1_sha384" \
@@ -476,7 +476,7 @@ run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,secp384r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,secp384r1,ecdsa_secp521r1_sha512" \
@@ -493,7 +493,7 @@ run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,secp384r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_openssl_tls1_3
@@ -511,7 +511,7 @@ run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,secp384r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,secp521r1,ecdsa_secp256r1_sha256" \
@@ -528,7 +528,7 @@ run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,secp521r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,secp521r1,ecdsa_secp384r1_sha384" \
@@ -545,7 +545,7 @@ run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,secp521r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,secp521r1,ecdsa_secp521r1_sha512" \
@@ -562,7 +562,7 @@ run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,secp521r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_openssl_tls1_3
@@ -580,7 +580,7 @@ run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,secp521r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,x25519,ecdsa_secp256r1_sha256" \
@@ -597,7 +597,7 @@ run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,x25519,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,x25519,ecdsa_secp384r1_sha384" \
@@ -614,7 +614,7 @@ run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,x25519,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,x25519,ecdsa_secp521r1_sha512" \
@@ -631,7 +631,7 @@ run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,x25519,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_openssl_tls1_3
@@ -649,7 +649,7 @@ run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,x25519,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,x448,ecdsa_secp256r1_sha256" \
@@ -666,7 +666,7 @@ run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,x448,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,x448,ecdsa_secp384r1_sha384" \
@@ -683,7 +683,7 @@ run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,x448,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,x448,ecdsa_secp521r1_sha512" \
@@ -700,7 +700,7 @@ run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,x448,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_openssl_tls1_3
@@ -718,7 +718,7 @@ run_test "TLS 1.3 O->m: AES_256_GCM_SHA384,x448,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
@@ -735,7 +735,7 @@ run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp256r1_sha25
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
@@ -752,7 +752,7 @@ run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp384r1_sha38
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
@@ -769,7 +769,7 @@ run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp521r1_sha51
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_openssl_tls1_3
@@ -787,7 +787,7 @@ run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,secp256r1,rsa_pss_rsae_sha256" 
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
@@ -804,7 +804,7 @@ run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp256r1_sha25
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
@@ -821,7 +821,7 @@ run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp384r1_sha38
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
@@ -838,7 +838,7 @@ run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp521r1_sha51
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_openssl_tls1_3
@@ -856,7 +856,7 @@ run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,secp384r1,rsa_pss_rsae_sha256" 
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
@@ -873,7 +873,7 @@ run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp256r1_sha25
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
@@ -890,7 +890,7 @@ run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp384r1_sha38
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
@@ -907,7 +907,7 @@ run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp521r1_sha51
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_openssl_tls1_3
@@ -925,7 +925,7 @@ run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,secp521r1,rsa_pss_rsae_sha256" 
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp256r1_sha256" \
@@ -942,7 +942,7 @@ run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp256r1_sha256" 
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp384r1_sha384" \
@@ -959,7 +959,7 @@ run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp384r1_sha384" 
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp521r1_sha512" \
@@ -976,7 +976,7 @@ run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp521r1_sha512" 
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_openssl_tls1_3
@@ -994,7 +994,7 @@ run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,x25519,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,x448,ecdsa_secp256r1_sha256" \
@@ -1011,7 +1011,7 @@ run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,x448,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,x448,ecdsa_secp384r1_sha384" \
@@ -1028,7 +1028,7 @@ run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,x448,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,x448,ecdsa_secp521r1_sha512" \
@@ -1045,7 +1045,7 @@ run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,x448,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_openssl_tls1_3
@@ -1063,7 +1063,7 @@ run_test "TLS 1.3 O->m: CHACHA20_POLY1305_SHA256,x448,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
@@ -1080,7 +1080,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
@@ -1097,7 +1097,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
@@ -1114,7 +1114,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_openssl_tls1_3
@@ -1132,7 +1132,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,secp256r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
@@ -1149,7 +1149,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
@@ -1166,7 +1166,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
@@ -1183,7 +1183,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_openssl_tls1_3
@@ -1201,7 +1201,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,secp384r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
@@ -1218,7 +1218,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
@@ -1235,7 +1235,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
@@ -1252,7 +1252,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_openssl_tls1_3
@@ -1270,7 +1270,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,secp521r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,x25519,ecdsa_secp256r1_sha256" \
@@ -1287,7 +1287,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,x25519,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,x25519,ecdsa_secp384r1_sha384" \
@@ -1304,7 +1304,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,x25519,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,x25519,ecdsa_secp521r1_sha512" \
@@ -1321,7 +1321,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,x25519,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_openssl_tls1_3
@@ -1339,7 +1339,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,x25519,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,x448,ecdsa_secp256r1_sha256" \
@@ -1356,7 +1356,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,x448,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,x448,ecdsa_secp384r1_sha384" \
@@ -1373,7 +1373,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,x448,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,x448,ecdsa_secp521r1_sha512" \
@@ -1390,7 +1390,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,x448,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_openssl_tls1_3
@@ -1408,7 +1408,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_SHA256,x448,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
@@ -1425,7 +1425,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
@@ -1442,7 +1442,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
@@ -1459,7 +1459,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_openssl_tls1_3
@@ -1477,7 +1477,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,secp256r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
@@ -1494,7 +1494,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
@@ -1511,7 +1511,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
@@ -1528,7 +1528,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_openssl_tls1_3
@@ -1546,7 +1546,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,secp384r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
@@ -1563,7 +1563,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
@@ -1580,7 +1580,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
@@ -1597,7 +1597,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_openssl_tls1_3
@@ -1615,7 +1615,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,secp521r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,x25519,ecdsa_secp256r1_sha256" \
@@ -1632,7 +1632,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,x25519,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,x25519,ecdsa_secp384r1_sha384" \
@@ -1649,7 +1649,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,x25519,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,x25519,ecdsa_secp521r1_sha512" \
@@ -1666,7 +1666,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,x25519,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_openssl_tls1_3
@@ -1684,7 +1684,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,x25519,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,x448,ecdsa_secp256r1_sha256" \
@@ -1701,7 +1701,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,x448,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,x448,ecdsa_secp384r1_sha384" \
@@ -1718,7 +1718,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,x448,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,x448,ecdsa_secp521r1_sha512" \
@@ -1735,7 +1735,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,x448,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_openssl_tls1_3
@@ -1753,7 +1753,7 @@ run_test "TLS 1.3 O->m: AES_128_CCM_8_SHA256,x448,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -1772,7 +1772,7 @@ run_test "TLS 1.3 G->m: AES_128_GCM_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -1791,7 +1791,7 @@ run_test "TLS 1.3 G->m: AES_128_GCM_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -1810,7 +1810,7 @@ run_test "TLS 1.3 G->m: AES_128_GCM_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_gnutls_tls1_3
@@ -1830,7 +1830,7 @@ run_test "TLS 1.3 G->m: AES_128_GCM_SHA256,secp256r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -1849,7 +1849,7 @@ run_test "TLS 1.3 G->m: AES_128_GCM_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -1868,7 +1868,7 @@ run_test "TLS 1.3 G->m: AES_128_GCM_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -1887,7 +1887,7 @@ run_test "TLS 1.3 G->m: AES_128_GCM_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_gnutls_tls1_3
@@ -1907,7 +1907,7 @@ run_test "TLS 1.3 G->m: AES_128_GCM_SHA256,secp384r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -1926,7 +1926,7 @@ run_test "TLS 1.3 G->m: AES_128_GCM_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -1945,7 +1945,7 @@ run_test "TLS 1.3 G->m: AES_128_GCM_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -1964,7 +1964,7 @@ run_test "TLS 1.3 G->m: AES_128_GCM_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_gnutls_tls1_3
@@ -1984,7 +1984,7 @@ run_test "TLS 1.3 G->m: AES_128_GCM_SHA256,secp521r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2003,7 +2003,7 @@ run_test "TLS 1.3 G->m: AES_128_GCM_SHA256,x25519,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2022,7 +2022,7 @@ run_test "TLS 1.3 G->m: AES_128_GCM_SHA256,x25519,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2041,7 +2041,7 @@ run_test "TLS 1.3 G->m: AES_128_GCM_SHA256,x25519,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_gnutls_tls1_3
@@ -2061,7 +2061,7 @@ run_test "TLS 1.3 G->m: AES_128_GCM_SHA256,x25519,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2080,7 +2080,7 @@ run_test "TLS 1.3 G->m: AES_128_GCM_SHA256,x448,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2099,7 +2099,7 @@ run_test "TLS 1.3 G->m: AES_128_GCM_SHA256,x448,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2118,7 +2118,7 @@ run_test "TLS 1.3 G->m: AES_128_GCM_SHA256,x448,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_gnutls_tls1_3
@@ -2138,7 +2138,7 @@ run_test "TLS 1.3 G->m: AES_128_GCM_SHA256,x448,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2157,7 +2157,7 @@ run_test "TLS 1.3 G->m: AES_256_GCM_SHA384,secp256r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2176,7 +2176,7 @@ run_test "TLS 1.3 G->m: AES_256_GCM_SHA384,secp256r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2195,7 +2195,7 @@ run_test "TLS 1.3 G->m: AES_256_GCM_SHA384,secp256r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_gnutls_tls1_3
@@ -2215,7 +2215,7 @@ run_test "TLS 1.3 G->m: AES_256_GCM_SHA384,secp256r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2234,7 +2234,7 @@ run_test "TLS 1.3 G->m: AES_256_GCM_SHA384,secp384r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2253,7 +2253,7 @@ run_test "TLS 1.3 G->m: AES_256_GCM_SHA384,secp384r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2272,7 +2272,7 @@ run_test "TLS 1.3 G->m: AES_256_GCM_SHA384,secp384r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_gnutls_tls1_3
@@ -2292,7 +2292,7 @@ run_test "TLS 1.3 G->m: AES_256_GCM_SHA384,secp384r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2311,7 +2311,7 @@ run_test "TLS 1.3 G->m: AES_256_GCM_SHA384,secp521r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2330,7 +2330,7 @@ run_test "TLS 1.3 G->m: AES_256_GCM_SHA384,secp521r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2349,7 +2349,7 @@ run_test "TLS 1.3 G->m: AES_256_GCM_SHA384,secp521r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_gnutls_tls1_3
@@ -2369,7 +2369,7 @@ run_test "TLS 1.3 G->m: AES_256_GCM_SHA384,secp521r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2388,7 +2388,7 @@ run_test "TLS 1.3 G->m: AES_256_GCM_SHA384,x25519,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2407,7 +2407,7 @@ run_test "TLS 1.3 G->m: AES_256_GCM_SHA384,x25519,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2426,7 +2426,7 @@ run_test "TLS 1.3 G->m: AES_256_GCM_SHA384,x25519,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_gnutls_tls1_3
@@ -2446,7 +2446,7 @@ run_test "TLS 1.3 G->m: AES_256_GCM_SHA384,x25519,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2465,7 +2465,7 @@ run_test "TLS 1.3 G->m: AES_256_GCM_SHA384,x448,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2484,7 +2484,7 @@ run_test "TLS 1.3 G->m: AES_256_GCM_SHA384,x448,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2503,7 +2503,7 @@ run_test "TLS 1.3 G->m: AES_256_GCM_SHA384,x448,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_gnutls_tls1_3
@@ -2523,7 +2523,7 @@ run_test "TLS 1.3 G->m: AES_256_GCM_SHA384,x448,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2542,7 +2542,7 @@ run_test "TLS 1.3 G->m: CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp256r1_sha25
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2561,7 +2561,7 @@ run_test "TLS 1.3 G->m: CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp384r1_sha38
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2580,7 +2580,7 @@ run_test "TLS 1.3 G->m: CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp521r1_sha51
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_gnutls_tls1_3
@@ -2600,7 +2600,7 @@ run_test "TLS 1.3 G->m: CHACHA20_POLY1305_SHA256,secp256r1,rsa_pss_rsae_sha256" 
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2619,7 +2619,7 @@ run_test "TLS 1.3 G->m: CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp256r1_sha25
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2638,7 +2638,7 @@ run_test "TLS 1.3 G->m: CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp384r1_sha38
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2657,7 +2657,7 @@ run_test "TLS 1.3 G->m: CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp521r1_sha51
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_gnutls_tls1_3
@@ -2677,7 +2677,7 @@ run_test "TLS 1.3 G->m: CHACHA20_POLY1305_SHA256,secp384r1,rsa_pss_rsae_sha256" 
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2696,7 +2696,7 @@ run_test "TLS 1.3 G->m: CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp256r1_sha25
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2715,7 +2715,7 @@ run_test "TLS 1.3 G->m: CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp384r1_sha38
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2734,7 +2734,7 @@ run_test "TLS 1.3 G->m: CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp521r1_sha51
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_gnutls_tls1_3
@@ -2754,7 +2754,7 @@ run_test "TLS 1.3 G->m: CHACHA20_POLY1305_SHA256,secp521r1,rsa_pss_rsae_sha256" 
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2773,7 +2773,7 @@ run_test "TLS 1.3 G->m: CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp256r1_sha256" 
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2792,7 +2792,7 @@ run_test "TLS 1.3 G->m: CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp384r1_sha384" 
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2811,7 +2811,7 @@ run_test "TLS 1.3 G->m: CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp521r1_sha512" 
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_gnutls_tls1_3
@@ -2831,7 +2831,7 @@ run_test "TLS 1.3 G->m: CHACHA20_POLY1305_SHA256,x25519,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2850,7 +2850,7 @@ run_test "TLS 1.3 G->m: CHACHA20_POLY1305_SHA256,x448,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2869,7 +2869,7 @@ run_test "TLS 1.3 G->m: CHACHA20_POLY1305_SHA256,x448,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2888,7 +2888,7 @@ run_test "TLS 1.3 G->m: CHACHA20_POLY1305_SHA256,x448,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_gnutls_tls1_3
@@ -2908,7 +2908,7 @@ run_test "TLS 1.3 G->m: CHACHA20_POLY1305_SHA256,x448,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2927,7 +2927,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2946,7 +2946,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -2965,7 +2965,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_gnutls_tls1_3
@@ -2985,7 +2985,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_SHA256,secp256r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3004,7 +3004,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3023,7 +3023,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3042,7 +3042,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_gnutls_tls1_3
@@ -3062,7 +3062,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_SHA256,secp384r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3081,7 +3081,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3100,7 +3100,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3119,7 +3119,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_gnutls_tls1_3
@@ -3139,7 +3139,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_SHA256,secp521r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3158,7 +3158,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_SHA256,x25519,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3177,7 +3177,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_SHA256,x25519,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3196,7 +3196,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_SHA256,x25519,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_gnutls_tls1_3
@@ -3216,7 +3216,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_SHA256,x25519,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3235,7 +3235,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_SHA256,x448,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3254,7 +3254,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_SHA256,x448,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3273,7 +3273,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_SHA256,x448,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_gnutls_tls1_3
@@ -3293,7 +3293,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_SHA256,x448,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3312,7 +3312,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3331,7 +3331,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3350,7 +3350,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_gnutls_tls1_3
@@ -3370,7 +3370,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_8_SHA256,secp256r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3389,7 +3389,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3408,7 +3408,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3427,7 +3427,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_gnutls_tls1_3
@@ -3447,7 +3447,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_8_SHA256,secp384r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3466,7 +3466,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3485,7 +3485,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3504,7 +3504,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_gnutls_tls1_3
@@ -3524,7 +3524,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_8_SHA256,secp521r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3543,7 +3543,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_8_SHA256,x25519,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3562,7 +3562,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_8_SHA256,x25519,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3581,7 +3581,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_8_SHA256,x25519,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_gnutls_tls1_3
@@ -3601,7 +3601,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_8_SHA256,x25519,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3620,7 +3620,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_8_SHA256,x448,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3639,7 +3639,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_8_SHA256,x448,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -3658,7 +3658,7 @@ run_test "TLS 1.3 G->m: AES_128_CCM_8_SHA256,x448,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_gnutls_tls1_3
@@ -3679,7 +3679,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -3697,7 +3697,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -3715,7 +3715,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -3733,7 +3733,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,secp256r1,rsa_pss_rsae_sha256" \
@@ -3752,7 +3752,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -3770,7 +3770,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -3788,7 +3788,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -3806,7 +3806,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,secp384r1,rsa_pss_rsae_sha256" \
@@ -3825,7 +3825,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -3843,7 +3843,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -3861,7 +3861,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -3879,7 +3879,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,secp521r1,rsa_pss_rsae_sha256" \
@@ -3898,7 +3898,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,x25519,ecdsa_secp256r1_sha256" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -3916,7 +3916,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,x25519,ecdsa_secp384r1_sha384" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -3934,7 +3934,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,x25519,ecdsa_secp521r1_sha512" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -3952,7 +3952,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,x25519,rsa_pss_rsae_sha256" \
@@ -3971,7 +3971,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,x448,ecdsa_secp256r1_sha256" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -3989,7 +3989,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,x448,ecdsa_secp384r1_sha384" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4007,7 +4007,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,x448,ecdsa_secp521r1_sha512" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4025,7 +4025,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: AES_128_GCM_SHA256,x448,rsa_pss_rsae_sha256" \
@@ -4044,7 +4044,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,secp256r1,ecdsa_secp256r1_sha256" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp256r1_sha256 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4062,7 +4062,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,secp256r1,ecdsa_secp384r1_sha384" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp384r1_sha384 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4080,7 +4080,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,secp256r1,ecdsa_secp521r1_sha512" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp521r1_sha512 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4098,7 +4098,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,secp256r1,rsa_pss_rsae_sha256" \
@@ -4117,7 +4117,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,secp384r1,ecdsa_secp256r1_sha256" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp256r1_sha256 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4135,7 +4135,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,secp384r1,ecdsa_secp384r1_sha384" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp384r1_sha384 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4153,7 +4153,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,secp384r1,ecdsa_secp521r1_sha512" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp521r1_sha512 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4171,7 +4171,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,secp384r1,rsa_pss_rsae_sha256" \
@@ -4190,7 +4190,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,secp521r1,ecdsa_secp256r1_sha256" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp256r1_sha256 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4208,7 +4208,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,secp521r1,ecdsa_secp384r1_sha384" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp384r1_sha384 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4226,7 +4226,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,secp521r1,ecdsa_secp521r1_sha512" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp521r1_sha512 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4244,7 +4244,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,secp521r1,rsa_pss_rsae_sha256" \
@@ -4263,7 +4263,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,x25519,ecdsa_secp256r1_sha256" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp256r1_sha256 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4281,7 +4281,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,x25519,ecdsa_secp384r1_sha384" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp384r1_sha384 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4299,7 +4299,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,x25519,ecdsa_secp521r1_sha512" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp521r1_sha512 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4317,7 +4317,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,x25519,rsa_pss_rsae_sha256" \
@@ -4336,7 +4336,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,x448,ecdsa_secp256r1_sha256" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp256r1_sha256 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4354,7 +4354,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,x448,ecdsa_secp384r1_sha384" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp384r1_sha384 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4372,7 +4372,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,x448,ecdsa_secp521r1_sha512" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp521r1_sha512 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4390,7 +4390,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: AES_256_GCM_SHA384,x448,rsa_pss_rsae_sha256" \
@@ -4409,7 +4409,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4427,7 +4427,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4445,7 +4445,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4463,7 +4463,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,secp256r1,rsa_pss_rsae_sha256" \
@@ -4482,7 +4482,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4500,7 +4500,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4518,7 +4518,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4536,7 +4536,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,secp384r1,rsa_pss_rsae_sha256" \
@@ -4555,7 +4555,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4573,7 +4573,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4591,7 +4591,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4609,7 +4609,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,secp521r1,rsa_pss_rsae_sha256" \
@@ -4628,7 +4628,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp256r1_sha256" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4646,7 +4646,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp384r1_sha384" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4664,7 +4664,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp521r1_sha512" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4682,7 +4682,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,x25519,rsa_pss_rsae_sha256" \
@@ -4701,7 +4701,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,x448,ecdsa_secp256r1_sha256" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4719,7 +4719,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,x448,ecdsa_secp384r1_sha384" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4737,7 +4737,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,x448,ecdsa_secp521r1_sha512" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4755,7 +4755,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: CHACHA20_POLY1305_SHA256,x448,rsa_pss_rsae_sha256" \
@@ -4774,7 +4774,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4792,7 +4792,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4810,7 +4810,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4828,7 +4828,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,secp256r1,rsa_pss_rsae_sha256" \
@@ -4847,7 +4847,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4865,7 +4865,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4883,7 +4883,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4901,7 +4901,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,secp384r1,rsa_pss_rsae_sha256" \
@@ -4920,7 +4920,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4938,7 +4938,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4956,7 +4956,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -4974,7 +4974,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,secp521r1,rsa_pss_rsae_sha256" \
@@ -4993,7 +4993,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,x25519,ecdsa_secp256r1_sha256" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -5011,7 +5011,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,x25519,ecdsa_secp384r1_sha384" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -5029,7 +5029,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,x25519,ecdsa_secp521r1_sha512" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -5047,7 +5047,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,x25519,rsa_pss_rsae_sha256" \
@@ -5066,7 +5066,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,x448,ecdsa_secp256r1_sha256" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -5084,7 +5084,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,x448,ecdsa_secp384r1_sha384" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -5102,7 +5102,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,x448,ecdsa_secp521r1_sha512" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -5120,7 +5120,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: AES_128_CCM_SHA256,x448,rsa_pss_rsae_sha256" \
@@ -5139,7 +5139,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -5157,7 +5157,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -5175,7 +5175,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -5193,7 +5193,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,secp256r1,rsa_pss_rsae_sha256" \
@@ -5212,7 +5212,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -5230,7 +5230,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -5248,7 +5248,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -5266,7 +5266,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,secp384r1,rsa_pss_rsae_sha256" \
@@ -5285,7 +5285,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -5303,7 +5303,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -5321,7 +5321,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -5339,7 +5339,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,secp521r1,rsa_pss_rsae_sha256" \
@@ -5358,7 +5358,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,x25519,ecdsa_secp256r1_sha256" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -5376,7 +5376,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,x25519,ecdsa_secp384r1_sha384" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -5394,7 +5394,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,x25519,ecdsa_secp521r1_sha512" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -5412,7 +5412,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,x25519,rsa_pss_rsae_sha256" \
@@ -5431,7 +5431,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,x448,ecdsa_secp256r1_sha256" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -5449,7 +5449,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,x448,ecdsa_secp384r1_sha384" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -5467,7 +5467,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,x448,ecdsa_secp521r1_sha512" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -5485,7 +5485,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: AES_128_CCM_8_SHA256,x448,rsa_pss_rsae_sha256" \
@@ -5506,7 +5506,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+GROUP-SECP256R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -5526,7 +5526,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP384R1-SHA384:+GROUP-SECP256R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -5546,7 +5546,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP521R1-SHA512:+GROUP-SECP256R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -5566,7 +5566,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,secp256r1,rsa_pss_rsae_sha256" \
@@ -5587,7 +5587,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+GROUP-SECP384R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -5607,7 +5607,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP384R1-SHA384:+GROUP-SECP384R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -5627,7 +5627,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP521R1-SHA512:+GROUP-SECP384R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -5647,7 +5647,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,secp384r1,rsa_pss_rsae_sha256" \
@@ -5668,7 +5668,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+GROUP-SECP521R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -5688,7 +5688,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP384R1-SHA384:+GROUP-SECP521R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -5708,7 +5708,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP521R1-SHA512:+GROUP-SECP521R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -5728,7 +5728,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,secp521r1,rsa_pss_rsae_sha256" \
@@ -5749,7 +5749,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,x25519,ecdsa_secp256r1_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+GROUP-X25519:+VERS-TLS1.3:%NO_TICKETS" \
@@ -5769,7 +5769,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,x25519,ecdsa_secp384r1_sha384" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP384R1-SHA384:+GROUP-X25519:+VERS-TLS1.3:%NO_TICKETS" \
@@ -5789,7 +5789,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,x25519,ecdsa_secp521r1_sha512" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP521R1-SHA512:+GROUP-X25519:+VERS-TLS1.3:%NO_TICKETS" \
@@ -5809,7 +5809,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,x25519,rsa_pss_rsae_sha256" \
@@ -5830,7 +5830,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,x448,ecdsa_secp256r1_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+GROUP-X448:+VERS-TLS1.3:%NO_TICKETS" \
@@ -5850,7 +5850,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,x448,ecdsa_secp384r1_sha384" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP384R1-SHA384:+GROUP-X448:+VERS-TLS1.3:%NO_TICKETS" \
@@ -5870,7 +5870,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,x448,ecdsa_secp521r1_sha512" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP521R1-SHA512:+GROUP-X448:+VERS-TLS1.3:%NO_TICKETS" \
@@ -5890,7 +5890,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,x448,rsa_pss_rsae_sha256" \
@@ -5911,7 +5911,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_256_GCM_SHA384,secp256r1,ecdsa_secp256r1_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AES-256-GCM:+SHA384:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+GROUP-SECP256R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -5931,7 +5931,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_256_GCM_SHA384,secp256r1,ecdsa_secp384r1_sha384" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AES-256-GCM:+SHA384:+AEAD:+SIGN-ECDSA-SECP384R1-SHA384:+GROUP-SECP256R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -5951,7 +5951,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_256_GCM_SHA384,secp256r1,ecdsa_secp521r1_sha512" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AES-256-GCM:+SHA384:+AEAD:+SIGN-ECDSA-SECP521R1-SHA512:+GROUP-SECP256R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -5971,7 +5971,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: AES_256_GCM_SHA384,secp256r1,rsa_pss_rsae_sha256" \
@@ -5992,7 +5992,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_256_GCM_SHA384,secp384r1,ecdsa_secp256r1_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AES-256-GCM:+SHA384:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+GROUP-SECP384R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6012,7 +6012,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_256_GCM_SHA384,secp384r1,ecdsa_secp384r1_sha384" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AES-256-GCM:+SHA384:+AEAD:+SIGN-ECDSA-SECP384R1-SHA384:+GROUP-SECP384R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6032,7 +6032,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_256_GCM_SHA384,secp384r1,ecdsa_secp521r1_sha512" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AES-256-GCM:+SHA384:+AEAD:+SIGN-ECDSA-SECP521R1-SHA512:+GROUP-SECP384R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6052,7 +6052,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: AES_256_GCM_SHA384,secp384r1,rsa_pss_rsae_sha256" \
@@ -6073,7 +6073,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_256_GCM_SHA384,secp521r1,ecdsa_secp256r1_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AES-256-GCM:+SHA384:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+GROUP-SECP521R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6093,7 +6093,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_256_GCM_SHA384,secp521r1,ecdsa_secp384r1_sha384" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AES-256-GCM:+SHA384:+AEAD:+SIGN-ECDSA-SECP384R1-SHA384:+GROUP-SECP521R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6113,7 +6113,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_256_GCM_SHA384,secp521r1,ecdsa_secp521r1_sha512" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AES-256-GCM:+SHA384:+AEAD:+SIGN-ECDSA-SECP521R1-SHA512:+GROUP-SECP521R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6133,7 +6133,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: AES_256_GCM_SHA384,secp521r1,rsa_pss_rsae_sha256" \
@@ -6154,7 +6154,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_256_GCM_SHA384,x25519,ecdsa_secp256r1_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AES-256-GCM:+SHA384:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+GROUP-X25519:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6174,7 +6174,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_256_GCM_SHA384,x25519,ecdsa_secp384r1_sha384" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AES-256-GCM:+SHA384:+AEAD:+SIGN-ECDSA-SECP384R1-SHA384:+GROUP-X25519:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6194,7 +6194,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_256_GCM_SHA384,x25519,ecdsa_secp521r1_sha512" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AES-256-GCM:+SHA384:+AEAD:+SIGN-ECDSA-SECP521R1-SHA512:+GROUP-X25519:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6214,7 +6214,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: AES_256_GCM_SHA384,x25519,rsa_pss_rsae_sha256" \
@@ -6235,7 +6235,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_256_GCM_SHA384,x448,ecdsa_secp256r1_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AES-256-GCM:+SHA384:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+GROUP-X448:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6255,7 +6255,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_256_GCM_SHA384,x448,ecdsa_secp384r1_sha384" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AES-256-GCM:+SHA384:+AEAD:+SIGN-ECDSA-SECP384R1-SHA384:+GROUP-X448:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6275,7 +6275,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_256_GCM_SHA384,x448,ecdsa_secp521r1_sha512" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AES-256-GCM:+SHA384:+AEAD:+SIGN-ECDSA-SECP521R1-SHA512:+GROUP-X448:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6295,7 +6295,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: AES_256_GCM_SHA384,x448,rsa_pss_rsae_sha256" \
@@ -6316,7 +6316,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CHACHA20-POLY1305:+SHA256:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+GROUP-SECP256R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6336,7 +6336,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+CHACHA20-POLY1305:+SHA256:+AEAD:+SIGN-ECDSA-SECP384R1-SHA384:+GROUP-SECP256R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6356,7 +6356,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+CHACHA20-POLY1305:+SHA256:+AEAD:+SIGN-ECDSA-SECP521R1-SHA512:+GROUP-SECP256R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6376,7 +6376,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: CHACHA20_POLY1305_SHA256,secp256r1,rsa_pss_rsae_sha256" \
@@ -6397,7 +6397,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CHACHA20-POLY1305:+SHA256:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+GROUP-SECP384R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6417,7 +6417,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+CHACHA20-POLY1305:+SHA256:+AEAD:+SIGN-ECDSA-SECP384R1-SHA384:+GROUP-SECP384R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6437,7 +6437,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+CHACHA20-POLY1305:+SHA256:+AEAD:+SIGN-ECDSA-SECP521R1-SHA512:+GROUP-SECP384R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6457,7 +6457,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: CHACHA20_POLY1305_SHA256,secp384r1,rsa_pss_rsae_sha256" \
@@ -6478,7 +6478,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CHACHA20-POLY1305:+SHA256:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+GROUP-SECP521R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6498,7 +6498,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+CHACHA20-POLY1305:+SHA256:+AEAD:+SIGN-ECDSA-SECP384R1-SHA384:+GROUP-SECP521R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6518,7 +6518,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+CHACHA20-POLY1305:+SHA256:+AEAD:+SIGN-ECDSA-SECP521R1-SHA512:+GROUP-SECP521R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6538,7 +6538,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: CHACHA20_POLY1305_SHA256,secp521r1,rsa_pss_rsae_sha256" \
@@ -6559,7 +6559,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp256r1_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CHACHA20-POLY1305:+SHA256:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+GROUP-X25519:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6579,7 +6579,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp384r1_sha384" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+CHACHA20-POLY1305:+SHA256:+AEAD:+SIGN-ECDSA-SECP384R1-SHA384:+GROUP-X25519:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6599,7 +6599,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp521r1_sha512" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+CHACHA20-POLY1305:+SHA256:+AEAD:+SIGN-ECDSA-SECP521R1-SHA512:+GROUP-X25519:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6619,7 +6619,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: CHACHA20_POLY1305_SHA256,x25519,rsa_pss_rsae_sha256" \
@@ -6640,7 +6640,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: CHACHA20_POLY1305_SHA256,x448,ecdsa_secp256r1_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CHACHA20-POLY1305:+SHA256:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+GROUP-X448:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6660,7 +6660,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: CHACHA20_POLY1305_SHA256,x448,ecdsa_secp384r1_sha384" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+CHACHA20-POLY1305:+SHA256:+AEAD:+SIGN-ECDSA-SECP384R1-SHA384:+GROUP-X448:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6680,7 +6680,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: CHACHA20_POLY1305_SHA256,x448,ecdsa_secp521r1_sha512" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+CHACHA20-POLY1305:+SHA256:+AEAD:+SIGN-ECDSA-SECP521R1-SHA512:+GROUP-X448:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6700,7 +6700,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: CHACHA20_POLY1305_SHA256,x448,rsa_pss_rsae_sha256" \
@@ -6721,7 +6721,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AES-128-CCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+GROUP-SECP256R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6741,7 +6741,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AES-128-CCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP384R1-SHA384:+GROUP-SECP256R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6761,7 +6761,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AES-128-CCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP521R1-SHA512:+GROUP-SECP256R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6781,7 +6781,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: AES_128_CCM_SHA256,secp256r1,rsa_pss_rsae_sha256" \
@@ -6802,7 +6802,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AES-128-CCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+GROUP-SECP384R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6822,7 +6822,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AES-128-CCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP384R1-SHA384:+GROUP-SECP384R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6842,7 +6842,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AES-128-CCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP521R1-SHA512:+GROUP-SECP384R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6862,7 +6862,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: AES_128_CCM_SHA256,secp384r1,rsa_pss_rsae_sha256" \
@@ -6883,7 +6883,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AES-128-CCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+GROUP-SECP521R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6903,7 +6903,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AES-128-CCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP384R1-SHA384:+GROUP-SECP521R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6923,7 +6923,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AES-128-CCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP521R1-SHA512:+GROUP-SECP521R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6943,7 +6943,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: AES_128_CCM_SHA256,secp521r1,rsa_pss_rsae_sha256" \
@@ -6964,7 +6964,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_SHA256,x25519,ecdsa_secp256r1_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AES-128-CCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+GROUP-X25519:+VERS-TLS1.3:%NO_TICKETS" \
@@ -6984,7 +6984,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_SHA256,x25519,ecdsa_secp384r1_sha384" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AES-128-CCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP384R1-SHA384:+GROUP-X25519:+VERS-TLS1.3:%NO_TICKETS" \
@@ -7004,7 +7004,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_SHA256,x25519,ecdsa_secp521r1_sha512" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AES-128-CCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP521R1-SHA512:+GROUP-X25519:+VERS-TLS1.3:%NO_TICKETS" \
@@ -7024,7 +7024,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: AES_128_CCM_SHA256,x25519,rsa_pss_rsae_sha256" \
@@ -7045,7 +7045,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_SHA256,x448,ecdsa_secp256r1_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AES-128-CCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+GROUP-X448:+VERS-TLS1.3:%NO_TICKETS" \
@@ -7065,7 +7065,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_SHA256,x448,ecdsa_secp384r1_sha384" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AES-128-CCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP384R1-SHA384:+GROUP-X448:+VERS-TLS1.3:%NO_TICKETS" \
@@ -7085,7 +7085,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_SHA256,x448,ecdsa_secp521r1_sha512" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AES-128-CCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP521R1-SHA512:+GROUP-X448:+VERS-TLS1.3:%NO_TICKETS" \
@@ -7105,7 +7105,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: AES_128_CCM_SHA256,x448,rsa_pss_rsae_sha256" \
@@ -7126,7 +7126,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AES-128-CCM-8:+SHA256:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+GROUP-SECP256R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -7146,7 +7146,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AES-128-CCM-8:+SHA256:+AEAD:+SIGN-ECDSA-SECP384R1-SHA384:+GROUP-SECP256R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -7166,7 +7166,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AES-128-CCM-8:+SHA256:+AEAD:+SIGN-ECDSA-SECP521R1-SHA512:+GROUP-SECP256R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -7186,7 +7186,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: AES_128_CCM_8_SHA256,secp256r1,rsa_pss_rsae_sha256" \
@@ -7207,7 +7207,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AES-128-CCM-8:+SHA256:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+GROUP-SECP384R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -7227,7 +7227,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AES-128-CCM-8:+SHA256:+AEAD:+SIGN-ECDSA-SECP384R1-SHA384:+GROUP-SECP384R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -7247,7 +7247,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AES-128-CCM-8:+SHA256:+AEAD:+SIGN-ECDSA-SECP521R1-SHA512:+GROUP-SECP384R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -7267,7 +7267,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: AES_128_CCM_8_SHA256,secp384r1,rsa_pss_rsae_sha256" \
@@ -7288,7 +7288,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AES-128-CCM-8:+SHA256:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+GROUP-SECP521R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -7308,7 +7308,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AES-128-CCM-8:+SHA256:+AEAD:+SIGN-ECDSA-SECP384R1-SHA384:+GROUP-SECP521R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -7328,7 +7328,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AES-128-CCM-8:+SHA256:+AEAD:+SIGN-ECDSA-SECP521R1-SHA512:+GROUP-SECP521R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -7348,7 +7348,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: AES_128_CCM_8_SHA256,secp521r1,rsa_pss_rsae_sha256" \
@@ -7369,7 +7369,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_8_SHA256,x25519,ecdsa_secp256r1_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AES-128-CCM-8:+SHA256:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+GROUP-X25519:+VERS-TLS1.3:%NO_TICKETS" \
@@ -7389,7 +7389,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_8_SHA256,x25519,ecdsa_secp384r1_sha384" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AES-128-CCM-8:+SHA256:+AEAD:+SIGN-ECDSA-SECP384R1-SHA384:+GROUP-X25519:+VERS-TLS1.3:%NO_TICKETS" \
@@ -7409,7 +7409,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_8_SHA256,x25519,ecdsa_secp521r1_sha512" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AES-128-CCM-8:+SHA256:+AEAD:+SIGN-ECDSA-SECP521R1-SHA512:+GROUP-X25519:+VERS-TLS1.3:%NO_TICKETS" \
@@ -7429,7 +7429,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: AES_128_CCM_8_SHA256,x25519,rsa_pss_rsae_sha256" \
@@ -7450,7 +7450,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_8_SHA256,x448,ecdsa_secp256r1_sha256" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AES-128-CCM-8:+SHA256:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+GROUP-X448:+VERS-TLS1.3:%NO_TICKETS" \
@@ -7470,7 +7470,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_8_SHA256,x448,ecdsa_secp384r1_sha384" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AES-128-CCM-8:+SHA256:+AEAD:+SIGN-ECDSA-SECP384R1-SHA384:+GROUP-X448:+VERS-TLS1.3:%NO_TICKETS" \
@@ -7490,7 +7490,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: AES_128_CCM_8_SHA256,x448,ecdsa_secp521r1_sha512" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AES-128-CCM-8:+SHA256:+AEAD:+SIGN-ECDSA-SECP521R1-SHA512:+GROUP-X448:+VERS-TLS1.3:%NO_TICKETS" \
@@ -7510,7 +7510,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: AES_128_CCM_8_SHA256,x448,rsa_pss_rsae_sha256" \
@@ -7528,12 +7528,12 @@ run_test "TLS 1.3 m->G: AES_128_CCM_8_SHA256,x448,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -7554,12 +7554,12 @@ run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp256r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -7580,12 +7580,12 @@ run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp256r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -7606,13 +7606,13 @@ run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,secp256r1,rsa_pss_rsae_sha256" \
@@ -7634,12 +7634,12 @@ run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,secp256r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -7660,12 +7660,12 @@ run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp384r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -7686,12 +7686,12 @@ run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp384r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -7712,13 +7712,13 @@ run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,secp384r1,rsa_pss_rsae_sha256" \
@@ -7740,12 +7740,12 @@ run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,secp384r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -7766,12 +7766,12 @@ run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp521r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -7792,12 +7792,12 @@ run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp521r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -7818,13 +7818,13 @@ run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,secp521r1,rsa_pss_rsae_sha256" \
@@ -7846,12 +7846,12 @@ run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,secp521r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,x25519,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=x25519 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -7872,12 +7872,12 @@ run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,x25519,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,x25519,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=x25519 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -7898,12 +7898,12 @@ run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,x25519,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,x25519,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=x25519 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -7924,13 +7924,13 @@ run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,x25519,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,x25519,rsa_pss_rsae_sha256" \
@@ -7952,12 +7952,12 @@ run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,x25519,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,x448,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=x448 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -7978,12 +7978,12 @@ run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,x448,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,x448,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=x448 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8004,12 +8004,12 @@ run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,x448,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,x448,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=x448 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8030,13 +8030,13 @@ run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,x448,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,x448,rsa_pss_rsae_sha256" \
@@ -8058,12 +8058,12 @@ run_test "TLS 1.3 m->m: AES_128_GCM_SHA256,x448,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,secp256r1,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8084,12 +8084,12 @@ run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,secp256r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,secp256r1,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp384r1_sha384 curves=secp256r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8110,12 +8110,12 @@ run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,secp256r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,secp256r1,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp521r1_sha512 curves=secp256r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8136,13 +8136,13 @@ run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,secp256r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,secp256r1,rsa_pss_rsae_sha256" \
@@ -8164,12 +8164,12 @@ run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,secp256r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,secp384r1,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8190,12 +8190,12 @@ run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,secp384r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,secp384r1,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp384r1_sha384 curves=secp384r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8216,12 +8216,12 @@ run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,secp384r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,secp384r1,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp521r1_sha512 curves=secp384r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8242,13 +8242,13 @@ run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,secp384r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,secp384r1,rsa_pss_rsae_sha256" \
@@ -8270,12 +8270,12 @@ run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,secp384r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,secp521r1,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8296,12 +8296,12 @@ run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,secp521r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,secp521r1,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp384r1_sha384 curves=secp521r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8322,12 +8322,12 @@ run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,secp521r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,secp521r1,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp521r1_sha512 curves=secp521r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8348,13 +8348,13 @@ run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,secp521r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,secp521r1,rsa_pss_rsae_sha256" \
@@ -8376,12 +8376,12 @@ run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,secp521r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,x25519,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp256r1_sha256 curves=x25519 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8402,12 +8402,12 @@ run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,x25519,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,x25519,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp384r1_sha384 curves=x25519 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8428,12 +8428,12 @@ run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,x25519,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,x25519,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp521r1_sha512 curves=x25519 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8454,13 +8454,13 @@ run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,x25519,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,x25519,rsa_pss_rsae_sha256" \
@@ -8482,12 +8482,12 @@ run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,x25519,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,x448,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp256r1_sha256 curves=x448 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8508,12 +8508,12 @@ run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,x448,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,x448,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp384r1_sha384 curves=x448 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8534,12 +8534,12 @@ run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,x448,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,x448,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp521r1_sha512 curves=x448 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8560,13 +8560,13 @@ run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,x448,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,x448,rsa_pss_rsae_sha256" \
@@ -8588,12 +8588,12 @@ run_test "TLS 1.3 m->m: AES_256_GCM_SHA384,x448,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8614,12 +8614,12 @@ run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp256r1_sha25
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp256r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8640,12 +8640,12 @@ run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp384r1_sha38
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp256r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8666,13 +8666,13 @@ run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp521r1_sha51
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,secp256r1,rsa_pss_rsae_sha256" \
@@ -8694,12 +8694,12 @@ run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,secp256r1,rsa_pss_rsae_sha256" 
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8720,12 +8720,12 @@ run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp256r1_sha25
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp384r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8746,12 +8746,12 @@ run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp384r1_sha38
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp384r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8772,13 +8772,13 @@ run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp521r1_sha51
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,secp384r1,rsa_pss_rsae_sha256" \
@@ -8800,12 +8800,12 @@ run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,secp384r1,rsa_pss_rsae_sha256" 
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8826,12 +8826,12 @@ run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp256r1_sha25
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp521r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8852,12 +8852,12 @@ run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp384r1_sha38
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp521r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8878,13 +8878,13 @@ run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp521r1_sha51
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,secp521r1,rsa_pss_rsae_sha256" \
@@ -8906,12 +8906,12 @@ run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,secp521r1,rsa_pss_rsae_sha256" 
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=x25519 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8932,12 +8932,12 @@ run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp256r1_sha256" 
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=x25519 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8958,12 +8958,12 @@ run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp384r1_sha384" 
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=x25519 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -8984,13 +8984,13 @@ run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp521r1_sha512" 
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,x25519,rsa_pss_rsae_sha256" \
@@ -9012,12 +9012,12 @@ run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,x25519,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,x448,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=x448 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9038,12 +9038,12 @@ run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,x448,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,x448,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=x448 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9064,12 +9064,12 @@ run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,x448,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,x448,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=x448 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9090,13 +9090,13 @@ run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,x448,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,x448,rsa_pss_rsae_sha256" \
@@ -9118,12 +9118,12 @@ run_test "TLS 1.3 m->m: CHACHA20_POLY1305_SHA256,x448,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9144,12 +9144,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp256r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9170,12 +9170,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp256r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9196,13 +9196,13 @@ run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,secp256r1,rsa_pss_rsae_sha256" \
@@ -9224,12 +9224,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,secp256r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9250,12 +9250,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp384r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9276,12 +9276,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp384r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9302,13 +9302,13 @@ run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,secp384r1,rsa_pss_rsae_sha256" \
@@ -9330,12 +9330,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,secp384r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9356,12 +9356,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp521r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9382,12 +9382,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp521r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9408,13 +9408,13 @@ run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,secp521r1,rsa_pss_rsae_sha256" \
@@ -9436,12 +9436,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,secp521r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,x25519,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=x25519 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9462,12 +9462,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,x25519,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,x25519,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=x25519 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9488,12 +9488,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,x25519,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,x25519,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=x25519 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9514,13 +9514,13 @@ run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,x25519,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,x25519,rsa_pss_rsae_sha256" \
@@ -9542,12 +9542,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,x25519,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,x448,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=x448 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9568,12 +9568,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,x448,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,x448,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=x448 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9594,12 +9594,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,x448,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,x448,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=x448 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9620,13 +9620,13 @@ run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,x448,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,x448,rsa_pss_rsae_sha256" \
@@ -9648,12 +9648,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_SHA256,x448,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9674,12 +9674,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp256r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9700,12 +9700,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp256r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9726,13 +9726,13 @@ run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,secp256r1,rsa_pss_rsae_sha256" \
@@ -9754,12 +9754,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,secp256r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9780,12 +9780,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp384r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9806,12 +9806,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp384r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9832,13 +9832,13 @@ run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,secp384r1,rsa_pss_rsae_sha256" \
@@ -9860,12 +9860,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,secp384r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9886,12 +9886,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp521r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9912,12 +9912,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp521r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9938,13 +9938,13 @@ run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,secp521r1,rsa_pss_rsae_sha256" \
@@ -9966,12 +9966,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,secp521r1,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,x25519,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=x25519 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -9992,12 +9992,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,x25519,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,x25519,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=x25519 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -10018,12 +10018,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,x25519,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,x25519,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=x25519 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -10044,13 +10044,13 @@ run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,x25519,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,x25519,rsa_pss_rsae_sha256" \
@@ -10072,12 +10072,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,x25519,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,x448,ecdsa_secp256r1_sha256" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=x448 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -10098,12 +10098,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,x448,ecdsa_secp256r1_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,x448,ecdsa_secp384r1_sha384" \
          "$P_SRV crt_file=data_files/ecdsa_secp384r1.crt key_file=data_files/ecdsa_secp384r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=x448 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -10124,12 +10124,12 @@ run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,x448,ecdsa_secp384r1_sha384" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,x448,ecdsa_secp521r1_sha512" \
          "$P_SRV crt_file=data_files/ecdsa_secp521r1.crt key_file=data_files/ecdsa_secp521r1.key debug_level=4 force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=x448 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -10150,13 +10150,13 @@ run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,x448,ecdsa_secp521r1_sha512" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,x448,rsa_pss_rsae_sha256" \
@@ -10178,7 +10178,7 @@ run_test "TLS 1.3 m->m: AES_128_CCM_8_SHA256,x448,rsa_pss_rsae_sha256" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: HRR secp256r1 -> secp384r1" \
@@ -10193,7 +10193,7 @@ run_test "TLS 1.3 O->m: HRR secp256r1 -> secp384r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: HRR secp256r1 -> secp521r1" \
@@ -10208,7 +10208,7 @@ run_test "TLS 1.3 O->m: HRR secp256r1 -> secp521r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: HRR secp256r1 -> x25519" \
@@ -10223,7 +10223,7 @@ run_test "TLS 1.3 O->m: HRR secp256r1 -> x25519" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: HRR secp256r1 -> x448" \
@@ -10238,7 +10238,7 @@ run_test "TLS 1.3 O->m: HRR secp256r1 -> x448" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: HRR secp384r1 -> secp256r1" \
@@ -10253,7 +10253,7 @@ run_test "TLS 1.3 O->m: HRR secp384r1 -> secp256r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: HRR secp384r1 -> secp521r1" \
@@ -10268,7 +10268,7 @@ run_test "TLS 1.3 O->m: HRR secp384r1 -> secp521r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: HRR secp384r1 -> x25519" \
@@ -10283,7 +10283,7 @@ run_test "TLS 1.3 O->m: HRR secp384r1 -> x25519" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: HRR secp384r1 -> x448" \
@@ -10298,7 +10298,7 @@ run_test "TLS 1.3 O->m: HRR secp384r1 -> x448" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: HRR secp521r1 -> secp256r1" \
@@ -10313,7 +10313,7 @@ run_test "TLS 1.3 O->m: HRR secp521r1 -> secp256r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: HRR secp521r1 -> secp384r1" \
@@ -10328,7 +10328,7 @@ run_test "TLS 1.3 O->m: HRR secp521r1 -> secp384r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: HRR secp521r1 -> x25519" \
@@ -10343,7 +10343,7 @@ run_test "TLS 1.3 O->m: HRR secp521r1 -> x25519" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: HRR secp521r1 -> x448" \
@@ -10358,7 +10358,7 @@ run_test "TLS 1.3 O->m: HRR secp521r1 -> x448" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: HRR x25519 -> secp256r1" \
@@ -10373,7 +10373,7 @@ run_test "TLS 1.3 O->m: HRR x25519 -> secp256r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: HRR x25519 -> secp384r1" \
@@ -10388,7 +10388,7 @@ run_test "TLS 1.3 O->m: HRR x25519 -> secp384r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: HRR x25519 -> secp521r1" \
@@ -10403,7 +10403,7 @@ run_test "TLS 1.3 O->m: HRR x25519 -> secp521r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: HRR x25519 -> x448" \
@@ -10418,7 +10418,7 @@ run_test "TLS 1.3 O->m: HRR x25519 -> x448" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: HRR x448 -> secp256r1" \
@@ -10433,7 +10433,7 @@ run_test "TLS 1.3 O->m: HRR x448 -> secp256r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: HRR x448 -> secp384r1" \
@@ -10448,7 +10448,7 @@ run_test "TLS 1.3 O->m: HRR x448 -> secp384r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: HRR x448 -> secp521r1" \
@@ -10463,7 +10463,7 @@ run_test "TLS 1.3 O->m: HRR x448 -> secp521r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_openssl_tls1_3
 run_test "TLS 1.3 O->m: HRR x448 -> x25519" \
@@ -10478,7 +10478,7 @@ run_test "TLS 1.3 O->m: HRR x448 -> x25519" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -10495,7 +10495,7 @@ run_test "TLS 1.3 G->m: HRR secp256r1 -> secp384r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -10512,7 +10512,7 @@ run_test "TLS 1.3 G->m: HRR secp256r1 -> secp521r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -10529,7 +10529,7 @@ run_test "TLS 1.3 G->m: HRR secp256r1 -> x25519" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -10546,7 +10546,7 @@ run_test "TLS 1.3 G->m: HRR secp256r1 -> x448" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -10563,7 +10563,7 @@ run_test "TLS 1.3 G->m: HRR secp384r1 -> secp256r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -10580,7 +10580,7 @@ run_test "TLS 1.3 G->m: HRR secp384r1 -> secp521r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -10597,7 +10597,7 @@ run_test "TLS 1.3 G->m: HRR secp384r1 -> x25519" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -10614,7 +10614,7 @@ run_test "TLS 1.3 G->m: HRR secp384r1 -> x448" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -10631,7 +10631,7 @@ run_test "TLS 1.3 G->m: HRR secp521r1 -> secp256r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -10648,7 +10648,7 @@ run_test "TLS 1.3 G->m: HRR secp521r1 -> secp384r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -10665,7 +10665,7 @@ run_test "TLS 1.3 G->m: HRR secp521r1 -> x25519" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -10682,7 +10682,7 @@ run_test "TLS 1.3 G->m: HRR secp521r1 -> x448" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -10699,7 +10699,7 @@ run_test "TLS 1.3 G->m: HRR x25519 -> secp256r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -10716,7 +10716,7 @@ run_test "TLS 1.3 G->m: HRR x25519 -> secp384r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -10733,7 +10733,7 @@ run_test "TLS 1.3 G->m: HRR x25519 -> secp521r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -10750,7 +10750,7 @@ run_test "TLS 1.3 G->m: HRR x25519 -> x448" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -10767,7 +10767,7 @@ run_test "TLS 1.3 G->m: HRR x448 -> secp256r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -10784,7 +10784,7 @@ run_test "TLS 1.3 G->m: HRR x448 -> secp384r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -10801,7 +10801,7 @@ run_test "TLS 1.3 G->m: HRR x448 -> secp521r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -10819,7 +10819,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: HRR secp256r1 -> secp384r1" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -10837,7 +10837,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: HRR secp256r1 -> secp521r1" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -10855,7 +10855,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: HRR secp256r1 -> x25519" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -10873,7 +10873,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: HRR secp256r1 -> x448" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -10891,7 +10891,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: HRR secp384r1 -> secp256r1" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -10909,7 +10909,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: HRR secp384r1 -> secp521r1" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -10927,7 +10927,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: HRR secp384r1 -> x25519" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -10945,7 +10945,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: HRR secp384r1 -> x448" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -10963,7 +10963,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: HRR secp521r1 -> secp256r1" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -10981,7 +10981,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: HRR secp521r1 -> secp384r1" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -10999,7 +10999,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: HRR secp521r1 -> x25519" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -11017,7 +11017,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: HRR secp521r1 -> x448" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -11035,7 +11035,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: HRR x25519 -> secp256r1" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -11053,7 +11053,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: HRR x25519 -> secp384r1" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -11071,7 +11071,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: HRR x25519 -> secp521r1" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -11089,7 +11089,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: HRR x25519 -> x448" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -11107,7 +11107,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: HRR x448 -> secp256r1" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -11125,7 +11125,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: HRR x448 -> secp384r1" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -11143,7 +11143,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: HRR x448 -> secp521r1" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -11161,7 +11161,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: HRR x448 -> x25519" \
          "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
@@ -11181,7 +11181,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: HRR secp256r1 -> secp384r1" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+MAC-ALL:+SIGN-ALL:+GROUP-SECP384R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -11201,7 +11201,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: HRR secp256r1 -> secp521r1" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+MAC-ALL:+SIGN-ALL:+GROUP-SECP521R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -11221,7 +11221,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: HRR secp256r1 -> x25519" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+MAC-ALL:+SIGN-ALL:+GROUP-X25519:+VERS-TLS1.3:%NO_TICKETS" \
@@ -11241,7 +11241,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: HRR secp256r1 -> x448" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+MAC-ALL:+SIGN-ALL:+GROUP-X448:+VERS-TLS1.3:%NO_TICKETS" \
@@ -11261,7 +11261,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: HRR secp384r1 -> secp256r1" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+MAC-ALL:+SIGN-ALL:+GROUP-SECP256R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -11281,7 +11281,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: HRR secp384r1 -> secp521r1" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+MAC-ALL:+SIGN-ALL:+GROUP-SECP521R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -11301,7 +11301,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: HRR secp384r1 -> x25519" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+MAC-ALL:+SIGN-ALL:+GROUP-X25519:+VERS-TLS1.3:%NO_TICKETS" \
@@ -11321,7 +11321,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: HRR secp384r1 -> x448" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+MAC-ALL:+SIGN-ALL:+GROUP-X448:+VERS-TLS1.3:%NO_TICKETS" \
@@ -11341,7 +11341,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: HRR secp521r1 -> secp256r1" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+MAC-ALL:+SIGN-ALL:+GROUP-SECP256R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -11361,7 +11361,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: HRR secp521r1 -> secp384r1" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+MAC-ALL:+SIGN-ALL:+GROUP-SECP384R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -11381,7 +11381,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: HRR secp521r1 -> x25519" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+MAC-ALL:+SIGN-ALL:+GROUP-X25519:+VERS-TLS1.3:%NO_TICKETS" \
@@ -11401,7 +11401,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: HRR secp521r1 -> x448" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+MAC-ALL:+SIGN-ALL:+GROUP-X448:+VERS-TLS1.3:%NO_TICKETS" \
@@ -11421,7 +11421,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: HRR x25519 -> secp256r1" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+MAC-ALL:+SIGN-ALL:+GROUP-SECP256R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -11441,7 +11441,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: HRR x25519 -> secp384r1" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+MAC-ALL:+SIGN-ALL:+GROUP-SECP384R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -11461,7 +11461,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: HRR x25519 -> secp521r1" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+MAC-ALL:+SIGN-ALL:+GROUP-SECP521R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -11481,7 +11481,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: HRR x25519 -> x448" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+MAC-ALL:+SIGN-ALL:+GROUP-X448:+VERS-TLS1.3:%NO_TICKETS" \
@@ -11501,7 +11501,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: HRR x448 -> secp256r1" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+MAC-ALL:+SIGN-ALL:+GROUP-SECP256R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -11521,7 +11521,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: HRR x448 -> secp384r1" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+MAC-ALL:+SIGN-ALL:+GROUP-SECP384R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -11541,7 +11541,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: HRR x448 -> secp521r1" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+MAC-ALL:+SIGN-ALL:+GROUP-SECP521R1:+VERS-TLS1.3:%NO_TICKETS" \
@@ -11561,7 +11561,7 @@ requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: HRR x448 -> x25519" \
          "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+MAC-ALL:+SIGN-ALL:+GROUP-X25519:+VERS-TLS1.3:%NO_TICKETS" \
@@ -11578,12 +11578,12 @@ run_test "TLS 1.3 m->G: HRR x448 -> x25519" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: HRR secp256r1 -> secp384r1" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -11603,12 +11603,12 @@ run_test "TLS 1.3 m->m: HRR secp256r1 -> secp384r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: HRR secp256r1 -> secp521r1" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -11628,12 +11628,12 @@ run_test "TLS 1.3 m->m: HRR secp256r1 -> secp521r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: HRR secp256r1 -> x25519" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=x25519 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -11653,12 +11653,12 @@ run_test "TLS 1.3 m->m: HRR secp256r1 -> x25519" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: HRR secp256r1 -> x448" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=x448 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -11678,12 +11678,12 @@ run_test "TLS 1.3 m->m: HRR secp256r1 -> x448" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: HRR secp384r1 -> secp256r1" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -11703,12 +11703,12 @@ run_test "TLS 1.3 m->m: HRR secp384r1 -> secp256r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: HRR secp384r1 -> secp521r1" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -11728,12 +11728,12 @@ run_test "TLS 1.3 m->m: HRR secp384r1 -> secp521r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: HRR secp384r1 -> x25519" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=x25519 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -11753,12 +11753,12 @@ run_test "TLS 1.3 m->m: HRR secp384r1 -> x25519" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: HRR secp384r1 -> x448" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=x448 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -11778,12 +11778,12 @@ run_test "TLS 1.3 m->m: HRR secp384r1 -> x448" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: HRR secp521r1 -> secp256r1" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -11803,12 +11803,12 @@ run_test "TLS 1.3 m->m: HRR secp521r1 -> secp256r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: HRR secp521r1 -> secp384r1" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -11828,12 +11828,12 @@ run_test "TLS 1.3 m->m: HRR secp521r1 -> secp384r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: HRR secp521r1 -> x25519" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=x25519 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -11853,12 +11853,12 @@ run_test "TLS 1.3 m->m: HRR secp521r1 -> x25519" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: HRR secp521r1 -> x448" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=x448 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -11878,12 +11878,12 @@ run_test "TLS 1.3 m->m: HRR secp521r1 -> x448" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: HRR x25519 -> secp256r1" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -11903,12 +11903,12 @@ run_test "TLS 1.3 m->m: HRR x25519 -> secp256r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: HRR x25519 -> secp384r1" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -11928,12 +11928,12 @@ run_test "TLS 1.3 m->m: HRR x25519 -> secp384r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: HRR x25519 -> secp521r1" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -11953,12 +11953,12 @@ run_test "TLS 1.3 m->m: HRR x25519 -> secp521r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: HRR x25519 -> x448" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=x448 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -11978,12 +11978,12 @@ run_test "TLS 1.3 m->m: HRR x25519 -> x448" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: HRR x448 -> secp256r1" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -12003,12 +12003,12 @@ run_test "TLS 1.3 m->m: HRR x448 -> secp256r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: HRR x448 -> secp384r1" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -12028,12 +12028,12 @@ run_test "TLS 1.3 m->m: HRR x448 -> secp384r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: HRR x448 -> secp521r1" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \
@@ -12053,12 +12053,12 @@ run_test "TLS 1.3 m->m: HRR x448 -> secp521r1" \
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_key_exchange_with_cert_in_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->m: HRR x448 -> x25519" \
          "$P_SRV crt_file=data_files/ecdsa_secp256r1.crt key_file=data_files/ecdsa_secp256r1.key debug_level=4 sig_algs=ecdsa_secp256r1_sha256 curves=x25519 force_version=tls13 tls13_kex_modes=ephemeral cookies=0 tickets=0" \

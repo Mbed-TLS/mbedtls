@@ -28,7 +28,7 @@ import subprocess
 import sys
 import traceback
 
-class Colors:
+class Colors: # pylint: disable=too-few-public-methods
     """Minimalistic support for colored output.
 Each field of an object of this class is either None if colored output
 is not possible or not desired, or a pair of strings (start, stop) such
@@ -39,6 +39,7 @@ stop switches the text color back to the default."""
     bold_red = None
     bold_green = None
     def __init__(self, options=None):
+        """Initialize color profile according to passed options."""
         if not options or options.color in ['no', 'never']:
             want_color = False
         elif options.color in ['yes', 'always']:
@@ -56,7 +57,7 @@ NO_COLORS = Colors(None)
 
 def log_line(text, prefix='depends.py:', suffix='', color=None):
     """Print a status message."""
-    if color != None:
+    if color is not None:
         prefix = color[0] + prefix
         suffix = suffix + color[1]
     sys.stderr.write(prefix + ' ' + text + suffix + '\n')
@@ -86,13 +87,34 @@ Remove the backup file if it was saved earlier."""
         shutil.copy(options.config_backup, options.config)
 
 def run_config_pl(options, args):
-    """Run scripts/config.pl with the specified arguments."""
-    cmd = ['scripts/config.pl']
+    """Run scripts/config.py with the specified arguments."""
+    cmd = ['scripts/config.py']
     if options.config != 'include/mbedtls/mbedtls_config.h':
         cmd += ['--file', options.config]
     cmd += args
     log_command(cmd)
     subprocess.check_call(cmd)
+
+def set_reference_config(options):
+    """Change the library configuration file (mbedtls_config.h) to the reference state.
+The reference state is the one from which the tested configurations are
+derived."""
+    # Turn off memory management options that are not relevant to
+    # the tests and slow them down.
+    run_config_pl(options, ['full'])
+    run_config_pl(options, ['unset', 'MBEDTLS_MEMORY_BACKTRACE'])
+    run_config_pl(options, ['unset', 'MBEDTLS_MEMORY_BUFFER_ALLOC_C'])
+    run_config_pl(options, ['unset', 'MBEDTLS_MEMORY_DEBUG'])
+
+def collect_config_symbols(options):
+    """Read the list of settings from mbedtls_config.h.
+Return them in a generator."""
+    with open(options.config, encoding="utf-8") as config_file:
+        rx = re.compile(r'\s*(?://\s*)?#define\s+(\w+)\s*(?:$|/[/*])')
+        for line in config_file:
+            m = re.match(rx, line)
+            if m:
+                yield m.group(1)
 
 class Job:
     """A job builds the library in a specific configuration and runs some tests."""
@@ -122,21 +144,10 @@ If what is False, announce that the job has failed.'''
         else:
             log_line('starting ' + self.name)
 
-    def set_reference_config(self, options):
-        """Change the library configuration file (mbedtls_config.h) to the reference state.
-    The reference state is the one from which the tested configurations are
-    derived."""
-        # Turn off memory management options that are not relevant to
-        # the tests and slow them down.
-        run_config_pl(options, ['full'])
-        run_config_pl(options, ['unset', 'MBEDTLS_MEMORY_BACKTRACE'])
-        run_config_pl(options, ['unset', 'MBEDTLS_MEMORY_BUFFER_ALLOC_C'])
-        run_config_pl(options, ['unset', 'MBEDTLS_MEMORY_DEBUG'])
-
     def configure(self, options):
         '''Set library configuration options as required for the job.
 config_file_name indicates which file to modify.'''
-        self.set_reference_config(options)
+        set_reference_config(options)
         for key, value in sorted(self.config_settings.items()):
             if value is True:
                 args = ['set', key]
@@ -267,11 +278,7 @@ An option O is turned off if config_settings[O] is False."""
         for dep in reverse_dependencies.get(key, []):
             config_settings[dep] = False
 
-class Domain:
-    """A domain is a set of jobs that all relate to a particular configuration aspect."""
-    pass
-
-class ExclusiveDomain(Domain):
+class ExclusiveDomain: # pylint: disable=too-few-public-methods
     """A domain consisting of a set of conceptually-equivalent settings.
 Establish a list of configuration symbols. For each symbol, run a test job
 with this symbol set and the others unset, and a test job with this symbol
@@ -301,7 +308,7 @@ would match this regular expression."""
                 job = Job(description, config_settings, commands)
                 self.jobs.append(job)
 
-class ComplementaryDomain:
+class ComplementaryDomain: # pylint: disable=too-few-public-methods
     """A domain consisting of a set of loosely-related settings.
 Establish a list of configuration symbols. For each symbol, run a test job
 with this symbol unset."""
@@ -317,28 +324,18 @@ Each job runs the specified commands."""
             job = Job(description, config_settings, commands)
             self.jobs.append(job)
 
-class CipherInfo:
+class CipherInfo: # pylint: disable=too-few-public-methods
     """Collect data about cipher.h."""
-    def __init__(self, options):
+    def __init__(self):
         self.base_symbols = set()
-        with open('include/mbedtls/cipher.h') as fh:
+        with open('include/mbedtls/cipher.h', encoding="utf-8") as fh:
             for line in fh:
                 m = re.match(r' *MBEDTLS_CIPHER_ID_(\w+),', line)
                 if m and m.group(1) not in ['NONE', 'NULL', '3DES']:
                     self.base_symbols.add('MBEDTLS_' + m.group(1) + '_C')
 
 class DomainData:
-    """Collect data about the library."""
-    def collect_config_symbols(self, options):
-        """Read the list of settings from mbedtls_config.h.
-Return them in a generator."""
-        with open(options.config) as config_file:
-            rx = re.compile(r'\s*(?://\s*)?#define\s+(\w+)\s*(?:$|/[/*])')
-            for line in config_file:
-                m = re.match(rx, line)
-                if m:
-                    yield m.group(1)
-
+    """A container for domains and jobs, used to structurize testing."""
     def config_symbols_matching(self, regexp):
         """List the mbedtls_config.h settings matching regexp."""
         return [symbol for symbol in self.all_config_symbols
@@ -348,7 +345,7 @@ Return them in a generator."""
         """Gather data about the library and establish a list of domains to test."""
         build_command = [options.make_command, 'CFLAGS=-Werror']
         build_and_test = [build_command, [options.make_command, 'test']]
-        self.all_config_symbols = set(self.collect_config_symbols(options))
+        self.all_config_symbols = set(collect_config_symbols(options))
         # Find hash modules by name.
         hash_symbols = self.config_symbols_matching(r'MBEDTLS_(MD|RIPEMD|SHA)[0-9]+_C\Z')
         # Find elliptic curve enabling macros by name.
@@ -359,7 +356,7 @@ Return them in a generator."""
         # and padding modes are exercised separately) information by parsing
         # cipher.h, as the information is not readily available in mbedtls_config.h.
 
-        cipher_info = CipherInfo(options)
+        cipher_info = CipherInfo()
         # Find block cipher chaining and padding mode enabling macros by name.
         cipher_chaining_symbols = self.config_symbols_matching(r'MBEDTLS_CIPHER_MODE_\w+\Z')
         cipher_padding_symbols = self.config_symbols_matching(r'MBEDTLS_CIPHER_PADDING_\w+\Z')
@@ -377,7 +374,8 @@ Return them in a generator."""
             # hash which is obsolete. Run the test suites. Exclude
             # SHA512 and SHA256, as these are tested with SHA384 and SHA224.
             'hashes': ExclusiveDomain(hash_symbols, build_and_test,
-                                      exclude=r'MBEDTLS_(MD|RIPEMD|SHA1_|SHA256_|SHA512_)|!MBEDTLS_(SHA256_|SHA512_)'),
+                                      exclude=r'MBEDTLS_(MD|RIPEMD|SHA1_|SHA256_|SHA512_)\
+                                                |!MBEDTLS_(SHA256_|SHA512_)'),
             # Key exchange types. Only build the library and the sample
             # programs.
             'kex': ExclusiveDomain(key_exchange_symbols,
@@ -413,7 +411,7 @@ def run(options, job, colors=NO_COLORS):
     job.announce(colors, success)
     return success
 
-def main(options, domain_data):
+def run_tests(options, domain_data):
     """Run the desired jobs.
 domain_data should be a DomainData instance that describes the available
 domains and jobs.
@@ -453,8 +451,7 @@ Run the jobs listed in options.domains."""
     else:
         return True
 
-
-if __name__ == '__main__':
+def main():
     try:
         parser = argparse.ArgumentParser(description=__doc__)
         parser.add_argument('--color', metavar='WHEN',
@@ -482,22 +479,24 @@ if __name__ == '__main__':
                             help='Command to run instead of make (e.g. gmake)',
                             action='store', default='make')
         parser.add_argument('domains', metavar='DOMAIN', nargs='*',
-                            help='The domain(s) to test (default: all). This can be also a list of jobs to run.',
+                            help='The domain(s) to test (default: all). This can \
+                                  be also a list of jobs to run.',
                             default=True)
         options = parser.parse_args()
         os.chdir(options.directory)
         domain_data = DomainData(options)
-        if options.domains == True:
+        if options.domains is True:
             options.domains = sorted(domain_data.domains.keys())
         if options.list:
-            for what in options.list:
-                for key in sorted(getattr(domain_data, what).keys()):
-                    print(key)
-            exit(0)
+            for arg in options.list:
+                for domain_name in sorted(getattr(domain_data, arg).keys()):
+                    print(domain_name)
+            sys.exit(0)
         else:
-            sys.exit(0 if main(options, domain_data) else 1)
-    except SystemExit:
-        raise
-    except:
+            sys.exit(0 if run_tests(options, domain_data) else 1)
+    except Exception: # pylint: disable=broad-except
         traceback.print_exc()
-        exit(3)
+        sys.exit(3)
+
+if __name__ == '__main__':
+    main()

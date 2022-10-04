@@ -233,17 +233,17 @@ exclusive_groups = {
     'MBEDTLS_SHA224_C': ['MBEDTLS_SHA256_C'],
     'MBEDTLS_SHA384_C': ['MBEDTLS_SHA512_C'],
     'MBEDTLS_ECP_DP_CURVE448_ENABLED': ['!MBEDTLS_ECDSA_C',
-                                '!MBEDTLS_ECDSA_DETERMINISTIC',
-                                '!MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED',
-                                '!MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED',
-                                '!MBEDTLS_ECJPAKE_C',
-                                '!MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED'],
+                                        '!MBEDTLS_ECDSA_DETERMINISTIC',
+                                        '!MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED',
+                                        '!MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED',
+                                        '!MBEDTLS_ECJPAKE_C',
+                                        '!MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED'],
     'MBEDTLS_ECP_DP_CURVE25519_ENABLED': ['!MBEDTLS_ECDSA_C',
-                                '!MBEDTLS_ECDSA_DETERMINISTIC',
-                                '!MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED',
-                                '!MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED',
-                                '!MBEDTLS_ECJPAKE_C',
-                                '!MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED'],
+                                          '!MBEDTLS_ECDSA_DETERMINISTIC',
+                                          '!MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED',
+                                          '!MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED',
+                                          '!MBEDTLS_ECJPAKE_C',
+                                          '!MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED'],
     'MBEDTLS_ARIA_C': ['!MBEDTLS_CMAC_C'],
     'MBEDTLS_CAMELLIA_C': ['!MBEDTLS_CMAC_C'],
     'MBEDTLS_CHACHA20_C': ['!MBEDTLS_CMAC_C', '!MBEDTLS_CCM_C', '!MBEDTLS_GCM_C'],
@@ -255,7 +255,7 @@ defines to be altered. """
     for dep in exclusive_groups.get(symbol, []):
         unset = dep.startswith('!')
         if unset:
-            dep=dep[1:]
+            dep = dep[1:]
         config_settings[dep] = not unset
 
 def turn_off_dependencies(config_settings):

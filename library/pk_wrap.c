@@ -19,6 +19,8 @@
 
 #include "common.h"
 
+#include "mbedtls/platform_util.h"
+
 #if defined(MBEDTLS_PK_C)
 #include "pk_wrap.h"
 #include "mbedtls/error.h"
@@ -26,39 +28,34 @@
 /* Even if RSA not activated, for the sake of RSA-alt */
 #include "mbedtls/rsa.h"
 
-#include <string.h>
-
 #if defined(MBEDTLS_ECP_C)
 #include "mbedtls/ecp.h"
-#endif
-
-#if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECP_C)
-#include "pkwrite.h"
 #endif
 
 #if defined(MBEDTLS_ECDSA_C)
 #include "mbedtls/ecdsa.h"
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-#include "mbedtls/asn1write.h"
-#endif
-
-#if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
-#include "mbedtls/platform_util.h"
+#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PSA_CRYPTO_C)
+#include "pkwrite.h"
 #endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
-#include "mbedtls/asn1.h"
 #include "hash_info.h"
+
+#if defined(MBEDTLS_ECDSA_C)
+#include "mbedtls/asn1write.h"
+#include "mbedtls/asn1.h"
 #endif
+#endif  /* MBEDTLS_USE_PSA_CRYPTO */
 
 #include "mbedtls/platform.h"
 
 #include <limits.h>
 #include <stdint.h>
+#include <string.h>
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 int mbedtls_pk_error_from_psa(psa_status_t status)

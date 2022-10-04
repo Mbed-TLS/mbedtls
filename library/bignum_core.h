@@ -7,15 +7,17 @@
  *  or the legacy bignum interface (bignum.h).
  *
  * This module is about processing non-negative integers with a fixed upper
- * bound that's of the form 2^#biL-1. Many operations treat these numbers
- * as the principal representation of a number modulo 2^#biL or a smaller
- * bound.
+ * bound that's of the form 2^n-1 where n is a multiple of #biL.
+ * These can be thought of integers written in base 2^#biL with a fixed
+ * number of digits. Digits in this base are called *limbs*.
+ * Many operations treat these numbers as the principal representation of
+ * a number modulo 2^n or a smaller bound.
  *
  * The functions in this module obey the following conventions unless
  * explicitly indicated otherwise:
  *
  * - **Overflow**: some functions indicate overflow from the range
- *   [0, 2^#biL-1] by returning carry parameters, while others operate
+ *   [0, 2^n-1] by returning carry parameters, while others operate
  *   modulo and so cannot overflow. This should be clear from the function
  *   documentation.
  * - **Bignum parameters**: Bignums are passed as pointers to an array of

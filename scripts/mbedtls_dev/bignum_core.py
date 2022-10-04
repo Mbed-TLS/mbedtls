@@ -15,12 +15,11 @@
 # limitations under the License.
 
 from abc import ABCMeta
-from typing import Iterator
+from typing import Iterator, List
 
 from . import test_case
 from . import test_data_generation
 from . import bignum_common
-
 
 class BignumCoreTarget(test_data_generation.BaseTarget, metaclass=ABCMeta):
     #pylint: disable=abstract-method
@@ -111,3 +110,74 @@ class BignumCoreSub(BignumCoreOperation):
             result_8 = bound_8 + self.int_a - self.int_b
             carry = 1
         return "\"{:x}\":\"{:x}\":{}".format(result_4, result_8, carry)
+
+
+class BignumCoreMLA(BignumCoreOperation):
+    """Test cases for fixed-size multiply accumulate."""
+    count = 0
+    test_function = "mpi_core_mla"
+    test_name = "mbedtls_mpi_core_mla"
+    unique_combinations_only = False
+
+    input_values = [
+        "0", "1", "fffe", "ffffffff", "100000000", "20000000000000",
+        "ffffffffffffffff", "10000000000000000", "1234567890abcdef0",
+        "fffffffffffffffffefefefefefefefe",
+        "100000000000000000000000000000000",
+        "1234567890abcdef01234567890abcdef0",
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "1234567890abcdef01234567890abcdef01234567890abcdef01234567890abcdef0",
+        (
+            "4df72d07b4b71c8dacb6cffa954f8d88254b6277099308baf003fab73227f"
+            "34029643b5a263f66e0d3c3fa297ef71755efd53b8fb6cb812c6bbf7bcf17"
+            "9298bd9947c4c8b14324140a2c0f5fad7958a69050a987a6096e9f055fb38"
+            "edf0c5889eca4a0cfa99b45fbdeee4c696b328ddceae4723945901ec02507"
+            "6b12b"
+        )
+    ] # type: List[str]
+    input_scalars = [
+        "0", "3", "fe", "ff", "ffff", "10000", "ffffffff", "100000000",
+        "7f7f7f7f7f7f7f7f", "8000000000000000", "fffffffffffffffe"
+    ] # type: List[str]
+
+    def __init__(self, val_a: str, val_b: str, val_s: str) -> None:
+        super().__init__(val_a, val_b)
+        self.arg_scalar = val_s
+        self.int_scalar = bignum_common.hex_to_int(val_s)
+        if bignum_common.limbs_mpi4(self.int_scalar) > 1:
+            self.dependencies = ["MBEDTLS_HAVE_INT64"]
+
+    def arguments(self) -> List[str]:
+        return [
+            bignum_common.quote_str(self.arg_a),
+            bignum_common.quote_str(self.arg_b),
+            bignum_common.quote_str(self.arg_scalar),
+            self.result()
+        ]
+
+    def description(self) -> str:
+        """Override and add the additional scalar."""
+        if not self.case_description:
+            self.case_description = "0x{} + 0x{} * 0x{}".format(
+                self.arg_a, self.arg_b, self.arg_scalar
+            )
+        return super().description()
+
+    def result(self) -> str:
+        result = self.int_a + (self.int_b * self.int_scalar)
+        bound_val = max(self.int_a, self.int_b)
+        bound_4 = bignum_common.bound_mpi4(bound_val)
+        bound_8 = bignum_common.bound_mpi8(bound_val)
+        carry_4, remainder_4 = divmod(result, bound_4)
+        carry_8, remainder_8 = divmod(result, bound_8)
+        return "\"{:x}\":\"{:x}\":\"{:x}\":\"{:x}\"".format(
+            remainder_4, carry_4, remainder_8, carry_8
+        )
+
+    @classmethod
+    def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
+        """Override for additional scalar input."""
+        for a_value, b_value in cls.get_value_pairs():
+            for s_value in cls.input_scalars:
+                cur_op = cls(a_value, b_value, s_value)
+                yield cur_op.create_test_case()

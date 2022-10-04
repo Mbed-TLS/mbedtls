@@ -1777,6 +1777,11 @@ component_build_key_exchanges () {
     tests/scripts/key-exchanges.pl
 }
 
+component_test_depends () {
+    msg "test/build: depends.py (gcc)" # ~ 15 min
+    tests/scripts/depends.py
+}
+
 component_test_make_cxx () {
     msg "build: Unix make, full, gcc + g++"
     scripts/config.py full

@@ -22,6 +22,21 @@ from typing import Iterator, List, Tuple, TypeVar
 
 T = TypeVar('T') #pylint: disable=invalid-name
 
+def invmod(a: int, n: int) -> int:
+    """Return inverse of a to modulo n.
+
+    Equivalent to pow(a, -1, n) in Python 3.8+. Implementation is equivalent
+    to long_invmod() in CPython.
+    """
+    b, c = 1, 0
+    while n:
+        q, r = divmod(a, n)
+        a, b, c, n = n, c, b - q*c, r
+    # at this point a is the gcd of the original inputs
+    if a == 1:
+        return b
+    raise ValueError("Not invertible")
+
 def hex_to_int(val: str) -> int:
     return int(val, 16) if val else 0
 

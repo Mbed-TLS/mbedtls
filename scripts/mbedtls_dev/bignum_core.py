@@ -14,8 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import random
+
 from abc import ABCMeta
-from typing import Iterator, List, Tuple
+from typing import Dict, Iterator, List, Tuple
 
 from . import test_case
 from . import test_data_generation
@@ -605,7 +607,99 @@ class BignumCoreMontmul(BignumCoreTarget):
             cur_op = cls(a, b, n, case_description="replay")
             cur_op.set_limbs(limbs_an4, limbs_b4, limbs_an8, limbs_b8)
             yield cur_op.create_test_case()
-        # Test cases generated randomly
+        # Random test cases can be generated using mpi_modmul_case_generate()
+        # Uses a mixture of primes and odd numbers as N, with four randomly
+        # generated cases for each N.
         for a, b, n, description in cls.random_test_cases:
             cur_op = cls(a, b, n, case_description=description)
             yield cur_op.create_test_case()
+
+
+def mpi_modmul_case_generate() -> None:
+    """Generate valid inputs for montmul tests using moduli.
+
+    For each modulus, generates random values for A and B and simple descriptions
+    for the test case.
+    """
+    moduli = [
+        ("3", ""), ("7", ""), ("B", ""), ("29", ""), ("FF", ""),
+        ("101", ""), ("38B", ""), ("8003", ""), ("10001", ""),
+        ("7F7F7", ""), ("800009", ""), ("100002B", ""), ("37EEE9D", ""),
+        ("8000000B", ""), ("8CD626B9", ""), ("10000000F", ""),
+        ("174876E7E9", "is prime (dec) 99999999977"),
+        ("8000000017", ""), ("864CB9076D", ""), ("F7F7F7F7F7", ""),
+        ("1000000000F", ""), ("800000000005", ""), ("800795D9BA47", ""),
+        ("1000000000015", ""), ("100000000000051", ""), ("ABCDEF0123456789", ""),
+        (
+            "25A55A46E5DA99C71C7",
+            "is the 3rd repunit prime (dec) 11111111111111111111111"
+        ),
+        ("314DC643FB763F2B8C0E2DE00879", "is (dec)99999999977^3"),
+        ("47BF19662275FA2F6845C74942ED1D852E521", "is (dec) 99999999977^4"),
+        (
+            "97EDD86E4B5C4592C6D32064AC55C888A7245F07CA3CC455E07C931",
+            "is (dec) 99999999977^6"
+        ),
+        (
+            "DD15FE80B731872AC104DB37832F7E75A244AA2631BC87885B861E8F20375499",
+            "is (dec) 99999999977^7"
+        ),
+        (
+            "141B8EBD9009F84C241879A1F680FACCED355DA36C498F73E96E880CF78EA5F96146380E41",
+            "is (dec) 99999999977^8"
+        ),
+        (
+            (
+                "2A94608DE88B6D5E9F8920F5ABB06B24CC35AE1FBACC87D075C621C3E283"
+                "3EC902713E40F51E3B3C214EDFABC451"
+            ),
+            "is (dec) 99999999977^10"
+        ),
+        (
+            "8335616AED761F1F7F44E6BD49E807B82E3BF2BF11BFA6AF813C808DBF33DBFA11"
+            "DABD6E6144BEF37C6800000000000000000000000000000000051",
+            "is prime, (dec) 10^143 + 3^4"
+        )
+    ] # type: List[Tuple[str, str]]
+    primes = [
+        "3", "7", "B", "29", "101", "38B", "8003", "10001", "800009",
+        "100002B", "37EEE9D", "8000000B", "8CD626B9",
+        # From here they require > 1 4-byte MPI
+        "10000000F", "174876E7E9", "8000000017", "864CB9076D", "1000000000F",
+        "800000000005", "800795D9BA47", "1000000000015", "100000000000051",
+        # From here they require > 1 8-byte MPI
+        "25A55A46E5DA99C71C7",      # this is 11111111111111111111111 decimal
+        # 10^143 + 3^4: (which is prime)
+        # 100000000000000000000000000000000000000000000000000000000000000000000000000000
+        # 000000000000000000000000000000000000000000000000000000000000000081
+        (
+            "8335616AED761F1F7F44E6BD49E807B82E3BF2BF11BFA6AF813C808DBF33DBFA11"
+            "DABD6E6144BEF37C6800000000000000000000000000000000051"
+        )
+    ] # type: List[str]
+    generated_inputs = []
+    for mod, description in moduli:
+        n = bignum_common.hex_to_int(mod)
+        mod_read = "{:x}".format(n)
+        if mod_read != mod.lower():
+            raise ValueError("Read modulus not equal to input.")
+        case_count = 3 if n < 5 else 4
+        cases = {} # type: Dict[int, int]
+        i = 0
+        while i < case_count:
+            a = random.randint(1, n)
+            b = random.randint(1, n)
+            if cases.get(a) == b:
+                continue
+            cases[a] = b
+            if description:
+                out_description = "0x{} {}".format(mod_read, description)
+            elif i == 0 and len(mod) > 1 and mod in primes:
+                out_description = "(0x{} is prime)"
+            else:
+                out_description = ""
+            generated_inputs.append(
+                ("{:x}".format(a), "{:x}".format(b), mod, out_description)
+            )
+            i += 1
+    print(generated_inputs)

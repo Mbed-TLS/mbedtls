@@ -2006,6 +2006,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
     size_t bufsize, nbits;
     mbedtls_mpi_uint ei, mm, state;
     mbedtls_mpi RR, T, W[ ( 1 << MBEDTLS_MPI_WINDOW_SIZE ) + 1 ], WW, Apos;
+    const size_t w_count = sizeof( W ) / sizeof( W[0] );
     int neg;
 
     MPI_VALIDATE_RET( X != NULL );
@@ -2057,7 +2058,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
      * lookup. From this point on we need to use the table entry in each
      * calculation, this makes it safe to use simple assignment.
      */
-    const size_t x_index = sizeof( W ) / sizeof( W[0] ) - 1;
+    const size_t x_index = w_count - 1;
     W[x_index] = *X;
 
     /*
@@ -2168,7 +2169,8 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
             /*
              * out of window, square W[x_index]
              */
-            mpi_montmul( &W[x_index], &W[x_index], N, mm, &T );
+            MBEDTLS_MPI_CHK( mpi_select( &WW, W, w_count, x_index ) );
+            mpi_montmul( &W[x_index], &WW, N, mm, &T );
             continue;
         }
 
@@ -2186,12 +2188,15 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
              * W[x_index] = W[x_index]^wsize R^-1 mod N
              */
             for( i = 0; i < wsize; i++ )
-                mpi_montmul( &W[x_index], &W[x_index], N, mm, &T );
+            {
+                MBEDTLS_MPI_CHK( mpi_select( &WW, W, w_count, x_index ) );
+                mpi_montmul( &W[x_index], &WW, N, mm, &T );
+            }
 
             /*
              * W[x_index] = W[x_index] * W[wbits] R^-1 mod N
              */
-            MBEDTLS_MPI_CHK( mpi_select( &WW, W, (size_t) 1 << wsize, wbits ) );
+            MBEDTLS_MPI_CHK( mpi_select( &WW, W, w_count, wbits ) );
             mpi_montmul( &W[x_index], &WW, N, mm, &T );
 
             state--;
@@ -2205,12 +2210,16 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
      */
     for( i = 0; i < nbits; i++ )
     {
-        mpi_montmul( &W[x_index], &W[x_index], N, mm, &T );
+        MBEDTLS_MPI_CHK( mpi_select( &WW, W, w_count, x_index ) );
+        mpi_montmul( &W[x_index], &WW, N, mm, &T );
 
         wbits <<= 1;
 
         if( ( wbits & ( one << wsize ) ) != 0 )
-            mpi_montmul( &W[x_index], &W[1], N, mm, &T );
+        {
+            MBEDTLS_MPI_CHK( mpi_select( &WW, W, w_count, 1 ) );
+            mpi_montmul( &W[x_index], &WW, N, mm, &T );
+        }
     }
 
     /*

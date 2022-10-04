@@ -357,7 +357,8 @@ class MbedTLSBase(TLSProgram):
 
     def pre_checks(self):
         ret = ['requires_config_enabled MBEDTLS_DEBUG_C',
-               'requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3']
+               'requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3',
+               'requires_key_exchange_with_cert_in_tls13_enabled']
 
         if self._compat_mode:
             ret += ['requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE']

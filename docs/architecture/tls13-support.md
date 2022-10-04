@@ -141,10 +141,33 @@ Support description
   | MBEDTLS_USE_PSA_CRYPTO                   | yes     |
 
   (1) These options must remain in their default state of enabled.
-  (2) Key exchange configuration options for TLS 1.3 will likely to be
-      organized around the notion of key exchange mode along the line
-      of the MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE/PSK/PSK_EPHEMERAL/EPHEMERAL
-      runtime configuration macros.
+  (2) See the TLS 1.3 specific build options section below.
+
+- TLS 1.3 specific build options:
+
+  - MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE enables the support for middlebox
+    compatibility mode as defined in section D.4 of RFC 8446.
+
+  - MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED enables the
+    support of the ephemeral key exchange mode. If it is the only key exchange
+    mode enabled, the TLS 1.3 implementation does not contain any code related
+    to PSK based key exchange. The ephemeral key exchange mode requires at least
+    one of the key exchange protocol allowed by the TLS 1.3 specification, the
+    parsing and validation of x509 certificates and at least one signature
+    algorithm allowed by the TLS 1.3 specification for signature computing and
+    verification.
+
+  - MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED enables the support for
+    the PSK key exchange mode as defined by RFC 8446. If it is the only key
+    exchange mode enabled, the TLS 1.3 implementation does not contain any code
+    related to key exchange protocols, certificates and signatures.
+
+  - MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED enables the support
+    for the PSK ephemeral key exchange mode. If it is the only key exchange
+    mode enabled, the TLS 1.3 implementation does not contain any code
+    related to certificates and signatures. The PSK ephemeral key exchange
+    mode requirss at least one of the key exchange protocol allowed by the
+    TLS 1.3 specification.
 
 
 Prototype upstreaming status

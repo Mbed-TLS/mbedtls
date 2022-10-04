@@ -3665,7 +3665,7 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
         mbedtls_free( handshake->psk );
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-#endif
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && \
     defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
@@ -4895,7 +4895,7 @@ void mbedtls_ssl_config_free( mbedtls_ssl_config *conf )
         conf->psk_identity = NULL;
         conf->psk_identity_len = 0;
     }
-#endif
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     ssl_key_cert_free( conf->key_cert );

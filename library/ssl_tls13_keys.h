@@ -691,7 +691,7 @@ int mbedtls_ssl_tls13_compute_handshake_transform( mbedtls_ssl_context *ssl );
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_compute_application_transform( mbedtls_ssl_context *ssl );
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
 /**
  * \brief Export TLS 1.3 PSK from handshake context
  *
@@ -707,7 +707,7 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_export_handshake_psk( mbedtls_ssl_context *ssl,
                                             unsigned char **psk,
                                             size_t *psk_len );
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+#endif
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 

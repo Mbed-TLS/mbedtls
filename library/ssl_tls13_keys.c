@@ -1067,7 +1067,7 @@ int mbedtls_ssl_tls13_key_schedule_stage_early( mbedtls_ssl_context *ssl )
     }
 
     hash_alg = mbedtls_hash_info_psa_from_md( handshake->ciphersuite_info->mac );
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
     if( mbedtls_ssl_tls13_key_exchange_mode_with_psk( ssl ) )
     {
         ret = mbedtls_ssl_tls13_export_handshake_psk( ssl, &psk, &psk_len );
@@ -1083,7 +1083,7 @@ int mbedtls_ssl_tls13_key_schedule_stage_early( mbedtls_ssl_context *ssl )
     ret = mbedtls_ssl_tls13_evolve_secret( hash_alg, NULL, psk, psk_len,
                                            handshake->tls13_master_secrets.early );
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && \
-    defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
     mbedtls_free( (void*)psk );
 #endif
     if( ret != 0 )
@@ -1614,7 +1614,7 @@ cleanup:
     return( ret );
 }
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
 int mbedtls_ssl_tls13_export_handshake_psk( mbedtls_ssl_context *ssl,
                                             unsigned char **psk,
                                             size_t *psk_len )
@@ -1655,7 +1655,7 @@ int mbedtls_ssl_tls13_export_handshake_psk( mbedtls_ssl_context *ssl,
     return( 0 );
 #endif /* !MBEDTLS_USE_PSA_CRYPTO */
 }
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED */
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 

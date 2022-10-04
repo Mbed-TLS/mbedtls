@@ -77,10 +77,14 @@ class OperationCommon:
             combined to produce pairs of values.
         input_cases: List of tuples containing pairs of test case inputs. This
             can be used to implement specific pairs of inputs.
+        unique_combinations_only: Boolean to select if test case combinations
+            must be unique. If True, only A,B or B,A would be included as a test
+            case. If False, both A,B and B,A would be included.
     """
     symbol = ""
     input_values = [] # type: List[str]
     input_cases = [] # type: List[Tuple[str, str]]
+    unique_combinations_only = True
 
     def __init__(self, val_a: str, val_b: str) -> None:
         self.arg_a = val_a
@@ -107,5 +111,12 @@ class OperationCommon:
         Combinations are first generated from all input values, and then
         specific cases provided.
         """
-        yield from combination_pairs(cls.input_values)
+        if cls.unique_combinations_only:
+            yield from combination_pairs(cls.input_values)
+        else:
+            yield from (
+                (a, b)
+                for a in cls.input_values
+                for b in cls.input_values
+            )
         yield from cls.input_cases

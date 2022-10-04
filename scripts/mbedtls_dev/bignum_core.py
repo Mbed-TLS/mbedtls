@@ -97,6 +97,7 @@ class BignumCoreSub(BignumCoreOperation):
     symbol = "-"
     test_function = "mpi_core_sub"
     test_name = "mbedtls_mpi_core_sub"
+    unique_combinations_only = False
 
     def result(self) -> str:
         if self.int_a >= self.int_b:

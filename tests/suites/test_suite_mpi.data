@@ -723,9 +723,6 @@ mpi_mod_raw_cond_assign:"00000000FFFFFFFF55555555AAAAAAAA":"FEDCBA9876543210FEDC
 mbedtls_mpi_mod_raw_cond_swap: same value
 mpi_mod_raw_cond_swap:"FFFFFFFF":"FFFFFFFF":4:0
 
-mbedtls_mpi_mod_raw_cond_swap: same value
-mpi_mod_raw_cond_swap:"FFFFFFFF":"FFFFFFFF":4:0
-
 mbedtls_mpi_mod_raw_cond_swap: 1 limb
 mpi_mod_raw_cond_swap:"FFFFFFFF":"11111111":4:0
 

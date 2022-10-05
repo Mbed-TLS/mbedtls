@@ -269,8 +269,7 @@ int main( void )
 #define USAGE_CURVES ""
 #endif
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
-    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 #define USAGE_SIG_ALGS \
     "    sig_algs=a,b,c,d      default: \"default\" (library default)\n"  \
     "                          example: \"ecdsa_secp256r1_sha256,ecdsa_secp384r1_sha384\"\n"
@@ -719,10 +718,9 @@ int main( int argc, char *argv[] )
     mbedtls_net_context server_fd;
     io_ctx_t io_ctx;
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
-    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     uint16_t sig_alg_list[SIG_ALG_LIST_SIZE];
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+#endif
 
     unsigned char buf[MAX_REQUEST_SIZE + 1];
 
@@ -1165,11 +1163,10 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "curves" ) == 0 )
             opt.curves = q;
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
-    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
         else if( strcmp( p, "sig_algs" ) == 0 )
             opt.sig_algs = q;
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+#endif
         else if( strcmp( p, "etm" ) == 0 )
         {
             switch( atoi( q ) )
@@ -1572,8 +1569,7 @@ int main( int argc, char *argv[] )
     }
 #endif /* MBEDTLS_ECP_C */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
-    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     if( opt.sig_algs != NULL )
     {
         p = (char *) opt.sig_algs;
@@ -1672,7 +1668,7 @@ int main( int argc, char *argv[] )
 
         sig_alg_list[i] = MBEDTLS_TLS1_3_SIG_NONE;
     }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_SSL_ALPN)
     if( opt.alpn_string != NULL )

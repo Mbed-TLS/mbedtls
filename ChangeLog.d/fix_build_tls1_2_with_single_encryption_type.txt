@@ -1,0 +1,3 @@
+Bugfix
+    * Fix bugs to enable TLS 1.2 builds with
+      single encryption type + tests

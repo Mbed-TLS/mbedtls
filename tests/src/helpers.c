@@ -354,7 +354,7 @@ int mbedtls_test_read_mpi_core( mbedtls_mpi_uint **pX, size_t *plimbs,
     if( *pX != NULL )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
-    *plimbs = ( input->len + sizeof( **pX ) - 1 ) / sizeof( **pX );
+    *plimbs = CHARS_TO_LIMBS( input->len );
     if( *plimbs == 0 )
         return( 0 );
     *pX = mbedtls_calloc( *plimbs, sizeof( **pX ) );

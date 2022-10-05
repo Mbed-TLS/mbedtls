@@ -1253,6 +1253,8 @@ int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
     psa_algorithm_t const hash_alg = mbedtls_hash_info_psa_from_md(
                                         handshake->ciphersuite_info->mac );
+    unsigned char *shared_secret = NULL;
+    size_t shared_secret_len = 0;
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED)
     /*
@@ -1267,17 +1269,28 @@ int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_ECDH_C)
         /* Compute ECDH shared secret. */
             psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+            psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+            status = psa_get_key_attributes( handshake->ecdh_psa_privkey,
+                                             &key_attributes );
+            if( status != PSA_SUCCESS )
+                ret = psa_ssl_status_to_mbedtls( status );
+
+            shared_secret_len = PSA_BITS_TO_BYTES(
+                                    psa_get_key_bits( &key_attributes ) );
+            shared_secret = mbedtls_calloc( 1, shared_secret_len );
+            if( shared_secret == NULL )
+                return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
 
             status = psa_raw_key_agreement(
                          PSA_ALG_ECDH, handshake->ecdh_psa_privkey,
                          handshake->ecdh_psa_peerkey, handshake->ecdh_psa_peerkey_len,
-                         handshake->premaster, sizeof( handshake->premaster ),
-                         &handshake->pmslen );
+                         shared_secret, shared_secret_len, &shared_secret_len );
             if( status != PSA_SUCCESS )
             {
                 ret = psa_ssl_status_to_mbedtls( status );
                 MBEDTLS_SSL_DEBUG_RET( 1, "psa_raw_key_agreement", ret );
-                return( ret );
+                goto cleanup;
             }
 
             status = psa_destroy_key( handshake->ecdh_psa_privkey );
@@ -1285,7 +1298,7 @@ int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
             {
                 ret = psa_ssl_status_to_mbedtls( status );
                 MBEDTLS_SSL_DEBUG_RET( 1, "psa_destroy_key", ret );
-                return( ret );
+                goto cleanup;
             }
 
             handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
@@ -1306,22 +1319,26 @@ int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
      */
     ret = mbedtls_ssl_tls13_evolve_secret( hash_alg,
                                            handshake->tls13_master_secrets.early,
-                                           handshake->premaster, handshake->pmslen,
+                                           shared_secret, shared_secret_len,
                                            handshake->tls13_master_secrets.handshake );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_evolve_secret", ret );
-        return( ret );
+        goto cleanup;
     }
 
     MBEDTLS_SSL_DEBUG_BUF( 4, "Handshake secret",
                            handshake->tls13_master_secrets.handshake,
                            PSA_HASH_LENGTH( hash_alg ) );
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED)
-    mbedtls_platform_zeroize( handshake->premaster, sizeof( handshake->premaster ) );
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED */
-    return( 0 );
+cleanup:
+    if( shared_secret != NULL )
+    {
+         mbedtls_platform_zeroize( shared_secret, shared_secret_len );
+         mbedtls_free( shared_secret );
+    }
+
+    return( ret );
 }
 
 /* Generate application traffic keys since any records following a 1-RTT Finished message

@@ -600,8 +600,6 @@ struct mbedtls_ssl_handshake_params
     size_t ecrs_n;                      /*!< place for saving a length      */
 #endif
 
-    size_t pmslen;                      /*!<  premaster length        */
-
     mbedtls_ssl_ciphersuite_t const *ciphersuite_info;
 
     void (*update_checksum)(mbedtls_ssl_context *, const unsigned char *, size_t);
@@ -853,8 +851,11 @@ struct mbedtls_ssl_handshake_params
     unsigned char randbytes[MBEDTLS_CLIENT_HELLO_RANDOM_LEN +
                             MBEDTLS_SERVER_HELLO_RANDOM_LEN];
                                         /*!<  random bytes            */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     unsigned char premaster[MBEDTLS_PREMASTER_SIZE];
                                         /*!<  premaster secret        */
+    size_t pmslen;                      /*!<  premaster length        */
+#endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     int extensions_present;             /*!< extension presence; Each bitfield

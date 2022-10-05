@@ -110,6 +110,8 @@ void ecjpake_invalid_param( )
     mbedtls_md_type_t valid_md = MBEDTLS_MD_SHA256;
     mbedtls_ecp_group_id valid_group = MBEDTLS_ECP_DP_SECP256R1;
 
+    mbedtls_ecjpake_init( &ctx );
+
     TEST_INVALID_PARAM( mbedtls_ecjpake_init( NULL ) );
     TEST_VALID_PARAM( mbedtls_ecjpake_free( NULL ) );
 

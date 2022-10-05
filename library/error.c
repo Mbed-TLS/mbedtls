@@ -25,11 +25,7 @@
 
 #if defined(MBEDTLS_ERROR_C)
 
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
-#define mbedtls_snprintf snprintf
-#endif
 
 #include <stdio.h>
 #include <string.h>
@@ -166,9 +162,7 @@
 #include "mbedtls/pkcs5.h"
 #endif
 
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#endif
 
 #if defined(MBEDTLS_POLY1305_C)
 #include "mbedtls/poly1305.h"

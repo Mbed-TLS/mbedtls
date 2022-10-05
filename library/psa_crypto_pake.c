@@ -522,44 +522,29 @@ psa_status_t psa_pake_output( psa_pake_operation_t *operation,
         }
 
         /*
-         * Steps sequences are stored as:
-         * struct {
-         *     opaque point <1..2^8-1>;
-         * } ECPoint;
+         * mbedtls_ecjpake_write_round_xxx() outputs thing in the format
+         * defined by draft-cragie-tls-ecjpake-01 section 7. The summary is
+         * that the data for each step is prepended with a length byte, and
+         * then they're concatenated. Additionally, the server's second round
+         * output is prepended with a 3-bytes ECParameters structure.
          *
-         * Where byte 0 stores the ECPoint curve point length.
-         *
-         * The sequence length is equal to:
-         * - data length extracted from byte 0
-         * - byte 0 size (1)
+         * In PSA, we output each step separately, and don't prepend the
+         * output with a length byte, even less a curve identifier, as that
+         * information is already available.
          */
         if( operation->state == PSA_PAKE_OUTPUT_X2S &&
-            operation->sequence == PSA_PAKE_X1_STEP_KEY_SHARE )
+            operation->sequence == PSA_PAKE_X1_STEP_KEY_SHARE &&
+            operation->role == PSA_PAKE_ROLE_SERVER )
         {
-            if( operation->role == PSA_PAKE_ROLE_SERVER )
-                /*
-                 * The X2S KEY SHARE Server steps sequence is stored as:
-                 * struct {
-                 *     ECPoint X;
-                 *    opaque r <1..2^8-1>;
-                 * } ECSchnorrZKP;
-                 *
-                 * And MbedTLS uses a 3 bytes Ephemeral public key ECPoint,
-                 * so byte 3 stores the r Schnorr signature length.
-                 *
-                 * The sequence length is equal to:
-                 * - curve storage size (3)
-                 * - data length extracted from byte 3
-                 * - byte 3 size (1)
-                 */
-                length = 3 + operation->buffer[3] + 1;
-            else
-                length = operation->buffer[0] + 1;
+            /* Skip ECParameters, with is 3 bytes (RFC 8422) */
+            operation->buffer_offset += 3;
         }
-        else
-            length = operation->buffer[operation->buffer_offset] + 1;
 
-        if( length > operation->buffer_length )
+        /* Read the length byte then move past it to the data */
+        length = operation->buffer[operation->buffer_offset];
+        operation->buffer_offset += 1;
+
+        if( operation->buffer_offset + length > operation->buffer_length )
             return( PSA_ERROR_DATA_CORRUPT );
 
         if( output_size < length )
@@ -569,7 +554,7 @@ psa_status_t psa_pake_output( psa_pake_operation_t *operation,
         }
 
         memcpy( output,
-                operation->buffer +  operation->buffer_offset,
+                operation->buffer + operation->buffer_offset,
                 length );
         *output_length = length;
 
@@ -709,7 +694,35 @@ psa_status_t psa_pake_input( psa_pake_operation_t *operation,
                 return( PSA_ERROR_BAD_STATE );
         }
 
-        /* Copy input to local buffer */
+        /*
+         * Copy input to local buffer and format it as the Mbed TLS API
+         * expects, i.e. as defined by draft-cragie-tls-ecjpake-01 section 7.
+         * The summary is that the data for each step is prepended with a
+         * length byte, and then they're concatenated. Additionally, the
+         * server's second round output is prepended with a 3-bytes
+         * ECParameters structure - which means we have to prepend that when
+         * we're a client.
+         */
+        if( operation->state == PSA_PAKE_INPUT_X4S &&
+            operation->sequence == PSA_PAKE_X1_STEP_KEY_SHARE &&
+            operation->role == PSA_PAKE_ROLE_CLIENT )
+        {
+            /* We only support secp256r1. */
+            /* This is the ECParameters structure defined by RFC 8422. */
+            unsigned char ecparameters[3] = {
+                3, /* named_curve */
+                0, 23 /* secp256r1 */
+            };
+            memcpy( operation->buffer + operation->buffer_length,
+                    ecparameters, sizeof( ecparameters ) );
+            operation->buffer_length += sizeof( ecparameters );
+        }
+
+        /* Write the length byte */
+        operation->buffer[operation->buffer_length] = input_length;
+        operation->buffer_length += 1;
+
+        /* Finally copy the data */
         memcpy( operation->buffer + operation->buffer_length,
                 input, input_length );
         operation->buffer_length += input_length;

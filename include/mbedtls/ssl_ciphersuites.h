@@ -292,6 +292,11 @@ typedef enum {
 #define MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED
 #endif
 
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED) || \
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
+#define MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED
+#endif
+
 /* Key exchanges allowing client certificate requests */
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)           ||       \
     defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)       ||       \

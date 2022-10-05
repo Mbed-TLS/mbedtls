@@ -38,9 +38,6 @@
 #define MBEDTLS_SSL_TLS1_3_LABEL( name, string )       \
     .name = string,
 
-#define TLS1_3_EVOLVE_INPUT_SIZE ( PSA_HASH_MAX_SIZE > PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE ) ? \
-                                     PSA_HASH_MAX_SIZE : PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE
-
 struct mbedtls_ssl_tls13_labels_struct const mbedtls_ssl_tls13_labels =
 {
     /* This seems to work in C, despite the string literal being one
@@ -334,9 +331,12 @@ int mbedtls_ssl_tls13_evolve_secret(
     int ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t abort_status = PSA_ERROR_CORRUPTION_DETECTED;
-    size_t hlen, ilen;
+    size_t hlen;
     unsigned char tmp_secret[ PSA_MAC_MAX_SIZE ] = { 0 };
-    unsigned char tmp_input [ TLS1_3_EVOLVE_INPUT_SIZE ] = { 0 };
+    const unsigned char all_zeroes_input[ MBEDTLS_TLS1_3_MD_MAX_SIZE ] = { 0 };
+    const unsigned char *l_input = NULL;
+    size_t l_input_len;
+
     psa_key_derivation_operation_t operation =
         PSA_KEY_DERIVATION_OPERATION_INIT;
 
@@ -364,12 +364,13 @@ int mbedtls_ssl_tls13_evolve_secret(
 
     if( input != NULL && input_len != 0 )
     {
-        memcpy( tmp_input, input, input_len );
-        ilen = input_len;
+        l_input = input;
+        l_input_len = input_len;
     }
     else
     {
-        ilen = hlen;
+        l_input = all_zeroes_input;
+        l_input_len = hlen;
     }
 
     status = psa_key_derivation_setup( &operation,
@@ -388,8 +389,7 @@ int mbedtls_ssl_tls13_evolve_secret(
 
     status = psa_key_derivation_input_bytes( &operation,
                                              PSA_KEY_DERIVATION_INPUT_SECRET,
-                                             tmp_input,
-                                             ilen );
+                                             l_input, l_input_len );
 
     if( status != PSA_SUCCESS )
          goto cleanup;
@@ -406,7 +406,6 @@ int mbedtls_ssl_tls13_evolve_secret(
     status = ( status == PSA_SUCCESS ? abort_status : status );
     ret = ( ret == 0 ? psa_ssl_status_to_mbedtls ( status ) : ret );
     mbedtls_platform_zeroize( tmp_secret, sizeof(tmp_secret) );
-    mbedtls_platform_zeroize( tmp_input,  sizeof(tmp_input)  );
     return( ret );
 }
 

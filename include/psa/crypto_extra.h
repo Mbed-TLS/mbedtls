@@ -1909,7 +1909,7 @@ static inline void psa_pake_cs_set_hash( psa_pake_cipher_suite_t *cipher_suite,
 /* Note: the format for mbedtls_ecjpake_read/write function has an extra
  * length byte for each step, plus an extra 3 bytes for ECParameters in the
  * server's 2nd round. */
-#define PSA_PAKE_BUFFER_SIZE ( ( 3 + 1 + 65 + 1 + 65 + 1 + 32 ) * 2 )
+#define MBEDTLS_PSA_PAKE_BUFFER_SIZE ( ( 3 + 1 + 65 + 1 + 65 + 1 + 32 ) * 2 )
 #endif
 
 struct psa_pake_operation_s
@@ -1922,7 +1922,7 @@ struct psa_pake_operation_s
     unsigned int MBEDTLS_PRIVATE(output_step);
     mbedtls_svc_key_id_t MBEDTLS_PRIVATE(password);
     psa_pake_role_t MBEDTLS_PRIVATE(role);
-    uint8_t MBEDTLS_PRIVATE(buffer[PSA_PAKE_BUFFER_SIZE]);
+    uint8_t MBEDTLS_PRIVATE(buffer[MBEDTLS_PSA_PAKE_BUFFER_SIZE]);
     size_t MBEDTLS_PRIVATE(buffer_length);
     size_t MBEDTLS_PRIVATE(buffer_offset);
 #endif

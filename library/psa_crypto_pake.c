@@ -230,7 +230,7 @@ psa_status_t psa_pake_setup( psa_pake_operation_t *operation,
         operation->input_step = PSA_PAKE_STEP_X1_X2;
         operation->output_step = PSA_PAKE_STEP_X1_X2;
 
-        mbedtls_platform_zeroize( operation->buffer, PSA_PAKE_BUFFER_SIZE );
+        mbedtls_platform_zeroize( operation->buffer, MBEDTLS_PSA_PAKE_BUFFER_SIZE );
         operation->buffer_length = 0;
         operation->buffer_offset = 0;
 
@@ -491,7 +491,7 @@ psa_status_t psa_pake_output( psa_pake_operation_t *operation,
         {
             ret = mbedtls_ecjpake_write_round_one( &operation->ctx.ecjpake,
                                                    operation->buffer,
-                                                   PSA_PAKE_BUFFER_SIZE,
+                                                   MBEDTLS_PSA_PAKE_BUFFER_SIZE,
                                                    &operation->buffer_length,
                                                    mbedtls_psa_get_random,
                                                    MBEDTLS_PSA_RANDOM_STATE );
@@ -508,7 +508,7 @@ psa_status_t psa_pake_output( psa_pake_operation_t *operation,
         {
             ret = mbedtls_ecjpake_write_round_two( &operation->ctx.ecjpake,
                                                    operation->buffer,
-                                                   PSA_PAKE_BUFFER_SIZE,
+                                                   MBEDTLS_PSA_PAKE_BUFFER_SIZE,
                                                    &operation->buffer_length,
                                                    mbedtls_psa_get_random,
                                                    MBEDTLS_PSA_RANDOM_STATE );
@@ -566,7 +566,7 @@ psa_status_t psa_pake_output( psa_pake_operation_t *operation,
             ( operation->state == PSA_PAKE_OUTPUT_X2S &&
               operation->sequence == PSA_PAKE_X1_STEP_ZK_PROOF ) )
         {
-            mbedtls_platform_zeroize( operation->buffer, PSA_PAKE_BUFFER_SIZE );
+            mbedtls_platform_zeroize( operation->buffer, MBEDTLS_PSA_PAKE_BUFFER_SIZE );
             operation->buffer_length = 0;
             operation->buffer_offset = 0;
 
@@ -660,7 +660,7 @@ psa_status_t psa_pake_input( psa_pake_operation_t *operation,
             operation->sequence = PSA_PAKE_X1_STEP_KEY_SHARE;
         }
 
-        buffer_remain = PSA_PAKE_BUFFER_SIZE - operation->buffer_length;
+        buffer_remain = MBEDTLS_PSA_PAKE_BUFFER_SIZE - operation->buffer_length;
 
         if( input_length == 0 ||
             input_length > buffer_remain )
@@ -735,7 +735,7 @@ psa_status_t psa_pake_input( psa_pake_operation_t *operation,
                                                   operation->buffer,
                                                   operation->buffer_length );
 
-            mbedtls_platform_zeroize( operation->buffer, PSA_PAKE_BUFFER_SIZE );
+            mbedtls_platform_zeroize( operation->buffer, MBEDTLS_PSA_PAKE_BUFFER_SIZE );
             operation->buffer_length = 0;
 
             if( ret != 0 )
@@ -751,7 +751,7 @@ psa_status_t psa_pake_input( psa_pake_operation_t *operation,
                                                   operation->buffer,
                                                   operation->buffer_length );
 
-            mbedtls_platform_zeroize( operation->buffer, PSA_PAKE_BUFFER_SIZE );
+            mbedtls_platform_zeroize( operation->buffer, MBEDTLS_PSA_PAKE_BUFFER_SIZE );
             operation->buffer_length = 0;
 
             if( ret != 0 )
@@ -797,7 +797,7 @@ psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
     {
         ret = mbedtls_ecjpake_write_shared_key( &operation->ctx.ecjpake,
                                                 operation->buffer,
-                                                PSA_PAKE_BUFFER_SIZE,
+                                                MBEDTLS_PSA_PAKE_BUFFER_SIZE,
                                                 &operation->buffer_length,
                                                 mbedtls_psa_get_random,
                                                 MBEDTLS_PSA_RANDOM_STATE );
@@ -812,7 +812,7 @@ psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
                                                  operation->buffer,
                                                  operation->buffer_length );
 
-        mbedtls_platform_zeroize( operation->buffer, PSA_PAKE_BUFFER_SIZE );
+        mbedtls_platform_zeroize( operation->buffer, MBEDTLS_PSA_PAKE_BUFFER_SIZE );
 
         psa_pake_abort( operation );
 
@@ -837,7 +837,7 @@ psa_status_t psa_pake_abort(psa_pake_operation_t * operation)
         operation->output_step = PSA_PAKE_STEP_INVALID;
         operation->password = MBEDTLS_SVC_KEY_ID_INIT;
         operation->role = PSA_PAKE_ROLE_NONE;
-        mbedtls_platform_zeroize( operation->buffer, PSA_PAKE_BUFFER_SIZE );
+        mbedtls_platform_zeroize( operation->buffer, MBEDTLS_PSA_PAKE_BUFFER_SIZE );
         operation->buffer_length = 0;
         operation->buffer_offset = 0;
         mbedtls_ecjpake_free( &operation->ctx.ecjpake );

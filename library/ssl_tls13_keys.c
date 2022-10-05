@@ -1250,9 +1250,6 @@ exit:
 int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED) && defined(MBEDTLS_ECDH_C)
-    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED && MBEDTLS_ECDH_C */
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
     psa_algorithm_t const hash_alg = mbedtls_hash_info_psa_from_md(
                                         handshake->ciphersuite_info->mac );
@@ -1269,27 +1266,29 @@ int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
         {
 #if defined(MBEDTLS_ECDH_C)
         /* Compute ECDH shared secret. */
-        status = psa_raw_key_agreement(
-                    PSA_ALG_ECDH, handshake->ecdh_psa_privkey,
-                    handshake->ecdh_psa_peerkey, handshake->ecdh_psa_peerkey_len,
-                    handshake->premaster, sizeof( handshake->premaster ),
-                    &handshake->pmslen );
-        if( status != PSA_SUCCESS )
-        {
-            ret = psa_ssl_status_to_mbedtls( status );
-            MBEDTLS_SSL_DEBUG_RET( 1, "psa_raw_key_agreement", ret );
-            return( ret );
-        }
+            psa_status_t status = PSA_ERROR_GENERIC_ERROR;
 
-        status = psa_destroy_key( handshake->ecdh_psa_privkey );
-        if( status != PSA_SUCCESS )
-        {
-            ret = psa_ssl_status_to_mbedtls( status );
-            MBEDTLS_SSL_DEBUG_RET( 1, "psa_destroy_key", ret );
-            return( ret );
-        }
+            status = psa_raw_key_agreement(
+                         PSA_ALG_ECDH, handshake->ecdh_psa_privkey,
+                         handshake->ecdh_psa_peerkey, handshake->ecdh_psa_peerkey_len,
+                         handshake->premaster, sizeof( handshake->premaster ),
+                         &handshake->pmslen );
+            if( status != PSA_SUCCESS )
+            {
+                ret = psa_ssl_status_to_mbedtls( status );
+                MBEDTLS_SSL_DEBUG_RET( 1, "psa_raw_key_agreement", ret );
+                return( ret );
+            }
 
-        handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+            status = psa_destroy_key( handshake->ecdh_psa_privkey );
+            if( status != PSA_SUCCESS )
+            {
+                ret = psa_ssl_status_to_mbedtls( status );
+                MBEDTLS_SSL_DEBUG_RET( 1, "psa_destroy_key", ret );
+                return( ret );
+            }
+
+            handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
 #endif /* MBEDTLS_ECDH_C */
         }
         else if( mbedtls_ssl_tls13_named_group_is_dhe( handshake->offered_group_id ) )

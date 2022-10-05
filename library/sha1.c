@@ -32,9 +32,7 @@
 
 #include <string.h>
 
-#if defined(MBEDTLS_SELF_TEST)
 #include "mbedtls/platform.h"
-#endif /* MBEDTLS_SELF_TEST */
 
 #define SHA1_VALIDATE_RET(cond)                             \
     MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA1_BAD_INPUT_DATA )

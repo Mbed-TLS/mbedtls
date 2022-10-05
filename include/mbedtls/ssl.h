@@ -1393,7 +1393,7 @@ struct mbedtls_ssl_config
     void *MBEDTLS_PRIVATE(p_vrfy);                   /*!< context for X.509 verify calllback */
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
 #if defined(MBEDTLS_SSL_SRV_C)
     /** Callback to retrieve PSK key from identity                          */
     int (*MBEDTLS_PRIVATE(f_psk))(void *, mbedtls_ssl_context *, const unsigned char *, size_t);
@@ -1463,7 +1463,7 @@ struct mbedtls_ssl_config
     mbedtls_mpi MBEDTLS_PRIVATE(dhm_G);              /*!< generator for DHM                  */
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_svc_key_id_t MBEDTLS_PRIVATE(psk_opaque); /*!< PSA key slot holding opaque PSK. This field
@@ -1494,7 +1494,7 @@ struct mbedtls_ssl_config
                                      *   Its value is non-zero if and only if
                                      *   \c psk is not \c NULL or \c psk_opaque
                                      *   is not \c 0. */
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
 
 #if defined(MBEDTLS_SSL_ALPN)
     const char **MBEDTLS_PRIVATE(alpn_list);         /*!< ordered list of protocols          */
@@ -3296,7 +3296,7 @@ int mbedtls_ssl_conf_own_cert( mbedtls_ssl_config *conf,
                               mbedtls_pk_context *pk_key );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
 /**
  * \brief          Configure pre-shared keys (PSKs) and their
  *                 identities to be used in PSK-based ciphersuites.
@@ -3465,7 +3465,7 @@ void mbedtls_ssl_conf_psk_cb( mbedtls_ssl_config *conf,
                                   size_t),
                      void *p_psk );
 #endif /* MBEDTLS_SSL_SRV_C */
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
 /**

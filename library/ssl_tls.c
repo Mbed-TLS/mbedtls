@@ -1599,7 +1599,7 @@ int mbedtls_ssl_set_hs_ecjpake_password( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
 int mbedtls_ssl_conf_has_static_psk( mbedtls_ssl_config const *conf )
 {
     if( conf->psk_identity     == NULL ||
@@ -1842,7 +1842,7 @@ void mbedtls_ssl_conf_psk_cb( mbedtls_ssl_config *conf,
 }
 #endif /* MBEDTLS_SSL_SRV_C */
 
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 static mbedtls_ssl_mode_t mbedtls_ssl_get_base_mode(
@@ -3645,7 +3645,7 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
     mbedtls_free( (void *) handshake->curves );
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( ! mbedtls_svc_key_id_is_null( ssl->handshake->psk_opaque ) )
     {
@@ -3665,7 +3665,7 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
         mbedtls_free( handshake->psk );
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && \
     defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
@@ -4873,7 +4873,7 @@ void mbedtls_ssl_config_free( mbedtls_ssl_config *conf )
     mbedtls_mpi_free( &conf->dhm_G );
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( ! mbedtls_svc_key_id_is_null( conf->psk_opaque ) )
     {
@@ -4895,7 +4895,7 @@ void mbedtls_ssl_config_free( mbedtls_ssl_config *conf )
         conf->psk_identity = NULL;
         conf->psk_identity_len = 0;
     }
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     ssl_key_cert_free( conf->key_cert );

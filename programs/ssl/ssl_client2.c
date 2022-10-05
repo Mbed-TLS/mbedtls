@@ -173,7 +173,7 @@ int main( void )
 #define USAGE_CID ""
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
 #define USAGE_PSK_RAW                                               \
     "    psk=%%s              default: \"\" (disabled)\n"     \
     "                          The PSK values are in hex, without 0x.\n" \
@@ -195,7 +195,7 @@ int main( void )
 #define USAGE_PSK USAGE_PSK_RAW USAGE_PSK_SLOT
 #else
 #define USAGE_PSK ""
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
 
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
 #define USAGE_CA_CALLBACK                       \
@@ -724,7 +724,7 @@ int main( int argc, char *argv[] )
 
     unsigned char buf[MAX_REQUEST_SIZE + 1];
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
     unsigned char psk[MBEDTLS_PSK_MAX_LEN];
     size_t psk_len = 0;
 #endif
@@ -756,7 +756,7 @@ int main( int argc, char *argv[] )
     const char *pers = "ssl_client2";
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
     mbedtls_svc_key_id_t slot = MBEDTLS_SVC_KEY_ID_INIT;
     psa_algorithm_t alg = 0;
     psa_key_attributes_t key_attributes;
@@ -1403,7 +1403,7 @@ int main( int argc, char *argv[] )
     mbedtls_debug_set_threshold( opt.debug_level );
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
     /*
      * Unhexify the pre-shared key if any is given
      */
@@ -1416,7 +1416,7 @@ int main( int argc, char *argv[] )
             goto exit;
         }
     }
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( opt.psk_opaque != 0 )
@@ -1475,7 +1475,7 @@ int main( int argc, char *argv[] )
         }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-#if defined (MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined (MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
         if( opt.psk_opaque != 0 )
         {
             /* Determine KDF algorithm the opaque PSK will be used in. */
@@ -1486,7 +1486,7 @@ int main( int argc, char *argv[] )
 #endif /* MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
                 alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_256);
         }
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     }
 
@@ -2027,7 +2027,7 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_conf_sig_algs( &conf, sig_alg_list );
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( opt.psk_opaque != 0 )
     {
@@ -2065,7 +2065,7 @@ int main( int argc, char *argv[] )
             goto exit;
         }
     }
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
 
     if( opt.min_version != DFL_MIN_VERSION )
         mbedtls_ssl_conf_min_tls_version( &conf, opt.min_version );
@@ -3195,7 +3195,7 @@ exit:
 #endif
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED) && \
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED) && \
     defined(MBEDTLS_USE_PSA_CRYPTO)
     if( opt.psk_opaque != 0 )
     {
@@ -3214,7 +3214,7 @@ exit:
                 ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
         }
     }
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED &&
+#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED &&
           MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)

@@ -675,7 +675,7 @@ struct mbedtls_ssl_handshake_params
     const mbedtls_ecp_curve_info **curves;      /*!<  Supported elliptic curves */
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_svc_key_id_t psk_opaque;            /*!< Opaque PSK from the callback   */
     uint8_t psk_opaque_is_internal;
@@ -684,7 +684,7 @@ struct mbedtls_ssl_handshake_params
     size_t psk_len;                     /*!<  Length of PSK from callback   */
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     uint16_t    selected_identity;
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
 
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
     mbedtls_x509_crt_restart_ctx ecrs_ctx;  /*!< restart context            */
@@ -1366,12 +1366,13 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl,
                                       mbedtls_key_exchange_type_t key_ex );
 #endif /* !MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
 #if defined(MBEDTLS_SSL_CLI_C)
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_conf_has_static_psk( mbedtls_ssl_config const *conf );
 #endif
-
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 /**
  * Get the first defined opaque PSK by order of precedence:
@@ -1424,7 +1425,7 @@ static inline int mbedtls_ssl_get_psk( const mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
 
 #if defined(MBEDTLS_PK_C)
 unsigned char mbedtls_ssl_sig_from_pk( mbedtls_pk_context *pk );

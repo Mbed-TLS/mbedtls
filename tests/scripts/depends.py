@@ -281,32 +281,28 @@ An option O is turned off if config_settings[O] is False."""
 class ExclusiveDomain: # pylint: disable=too-few-public-methods
     """A domain consisting of a set of conceptually-equivalent settings.
 Establish a list of configuration symbols. For each symbol, run a test job
-with this symbol set and the others unset, and a test job with this symbol
-unset and the others set."""
+with this symbol set and the others unset."""
     def __init__(self, symbols, commands, exclude=None):
         """Build a domain for the specified list of configuration symbols.
-The domain contains two sets of jobs: jobs that enable one of the elements
-of symbols and disable the others, and jobs that disable one of the elements
-of symbols and enable the others.
+The domain contains a set of jobs that enable one of the elements
+of symbols and disable the others.
 Each job runs the specified commands.
 If exclude is a regular expression, skip generated jobs whose description
 would match this regular expression."""
         self.jobs = []
-        for invert in [False, True]:
-            base_config_settings = {}
-            for symbol in symbols:
-                base_config_settings[symbol] = invert
-            for symbol in symbols:
-                description = '!' + symbol if invert else symbol
-                if exclude and re.match(exclude, description):
-                    continue
-                config_settings = base_config_settings.copy()
-                config_settings[symbol] = not invert
-                if not invert:
-                    handle_exclusive_groups(config_settings, symbol)
-                turn_off_dependencies(config_settings)
-                job = Job(description, config_settings, commands)
-                self.jobs.append(job)
+        base_config_settings = {}
+        for symbol in symbols:
+            base_config_settings[symbol] = False
+        for symbol in symbols:
+            description = symbol
+            if exclude and re.match(exclude, description):
+                continue
+            config_settings = base_config_settings.copy()
+            config_settings[symbol] = True
+            handle_exclusive_groups(config_settings, symbol)
+            turn_off_dependencies(config_settings)
+            job = Job(description, config_settings, commands)
+            self.jobs.append(job)
 
 class ComplementaryDomain: # pylint: disable=too-few-public-methods
     """A domain consisting of a set of loosely-related settings.

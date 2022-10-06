@@ -714,11 +714,13 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
 #endif
         list = ssl->conf->key_cert;
 
+    int pk_alg_none = 0;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if( pk_alg == PSA_ALG_NONE )
+    pk_alg_none = ( pk_alg == PSA_ALG_NONE );
 #else
-    if( pk_alg == MBEDTLS_PK_NONE )
+    pk_alg_none = ( pk_alg == MBEDTLS_PK_NONE );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
+    if( pk_alg_none )
         return( 0 );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite requires certificate" ) );
@@ -735,18 +737,21 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_CRT( 3, "candidate certificate chain, certificate",
                           cur->cert );
 
+        int key_type_mismatch = 0;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
-        if( ( ssl->conf->f_async_sign_start == NULL &&
-              ssl->conf->f_async_decrypt_start == NULL &&
-              ! mbedtls_pk_can_do_ext( cur->key, pk_alg, pk_usage ) ) ||
-            ! mbedtls_pk_can_do_ext( &cur->cert->pk, pk_alg, pk_usage ) )
+        key_type_mismatch = ( ( ssl->conf->f_async_sign_start == NULL &&
+                    ssl->conf->f_async_decrypt_start == NULL &&
+                    ! mbedtls_pk_can_do_ext( cur->key, pk_alg, pk_usage ) ) ||
+                ! mbedtls_pk_can_do_ext( &cur->cert->pk, pk_alg, pk_usage ) );
 #else
-        if( ! mbedtls_pk_can_do_ext( cur->key, pk_alg, pk_usage ) )
+        key_type_mismatch = (
+                ! mbedtls_pk_can_do_ext( cur->key, pk_alg, pk_usage ) );
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 #else
-        if( ! mbedtls_pk_can_do( &cur->cert->pk, pk_alg ) )
+        key_type_mismatch = ( ! mbedtls_pk_can_do( &cur->cert->pk, pk_alg ) );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
+        if( key_type_mismatch )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "certificate mismatch: key type" ) );
             continue;
@@ -923,6 +928,8 @@ static int ssl_parse_client_hello( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse client hello" ) );
 
+    int renegotiating;
+
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
 read_record_header:
 #endif
@@ -931,9 +938,11 @@ read_record_header:
      * otherwise read it ourselves manually in order to support SSLv2
      * ClientHello, which doesn't use the same record layer format.
      */
+    renegotiating = 0;
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if( ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE )
+    renegotiating = ( ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE );
 #endif
+    if( !renegotiating )
     {
         if( ( ret = mbedtls_ssl_fetch_input( ssl, 5 ) ) != 0 )
         {

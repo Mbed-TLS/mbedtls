@@ -591,7 +591,6 @@ psa_status_t psa_pake_input( psa_pake_operation_t *operation,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    size_t buffer_remain;
 
     if( operation->alg == PSA_ALG_NONE ||
         operation->state == PSA_PAKE_STATE_INVALID )
@@ -621,6 +620,11 @@ psa_status_t psa_pake_input( psa_pake_operation_t *operation,
         if( step != PSA_PAKE_STEP_KEY_SHARE &&
             step != PSA_PAKE_STEP_ZK_PUBLIC &&
             step != PSA_PAKE_STEP_ZK_PROOF )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+
+        const psa_pake_primitive_t prim = PSA_PAKE_PRIMITIVE(
+                PSA_PAKE_PRIMITIVE_TYPE_ECC, PSA_ECC_FAMILY_SECP_R1, 256 );
+        if( input_length > PSA_PAKE_INPUT_SIZE( PSA_ALG_JPAKE, prim, step ) )
             return( PSA_ERROR_INVALID_ARGUMENT );
 
         if( operation->state == PSA_PAKE_STATE_SETUP )
@@ -658,15 +662,6 @@ psa_status_t psa_pake_input( psa_pake_operation_t *operation,
             }
 
             operation->sequence = PSA_PAKE_X1_STEP_KEY_SHARE;
-        }
-
-        buffer_remain = MBEDTLS_PSA_PAKE_BUFFER_SIZE - operation->buffer_length;
-
-        if( input_length == 0 ||
-            input_length > buffer_remain )
-        {
-            psa_pake_abort( operation );
-            return( PSA_ERROR_INSUFFICIENT_MEMORY );
         }
 
         /* Check if step matches current sequence */
@@ -719,7 +714,7 @@ psa_status_t psa_pake_input( psa_pake_operation_t *operation,
         }
 
         /* Write the length byte */
-        operation->buffer[operation->buffer_length] = input_length;
+        operation->buffer[operation->buffer_length] = (uint8_t) input_length;
         operation->buffer_length += 1;
 
         /* Finally copy the data */

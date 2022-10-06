@@ -430,6 +430,31 @@ mpi_core_fill_random:42:0:-5:0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
 # BEGIN MERGE SLOT 1
 
+Base test mbedtls_mpi_core_exp_mod #1
+mpi_core_exp_mod:"17":"0d":"1d":"18"
+
+Test mbedtls_mpi_core_exp_mod: 0 (1 limb) ^ 0 (1 limb) mod 9
+mpi_core_exp_mod:"00":"00":"09":"01"
+
+Test mbedtls_mpi_core_exp_mod: 0 (1 limb) ^ 1 mod 9
+mpi_core_exp_mod:"00":"01":"09":"00"
+
+Test mbedtls_mpi_core_exp_mod: 0 (1 limb) ^ 2 mod 9
+mpi_core_exp_mod:"00":"02":"09":"00"
+
+Test mbedtls_mpi_core_exp_mod: 1 ^ 0 (1 limb) mod 9
+mpi_core_exp_mod:"01":"00":"09":"01"
+
+Test mbedtls_mpi_core_exp_mod: 4 ^ 0 (1 limb) mod 9
+mpi_core_exp_mod:"04":"00":"09":"01"
+
+Test mbedtls_mpi_core_exp_mod: 10 ^ 0 (1 limb) mod 9
+mpi_core_exp_mod:"0a":"00":"09":"01"
+
+Test mbedtls_mpi_core_exp_mod #1
+depends_on:MPI_MAX_BITS_LARGER_THAN_792
+mpi_core_exp_mod:"00000000000000000000000000109fe45714866e56fdd4ad9b6b686df27224afb7868cf4f0cbb794526932853cbf0beea61594166654d13cd9fe0d9da594a97ee20230f12fb5434de73fb4f8102725a01622b31b1ea42e3a265019039ac1df31869bd97930d792fb72cdaa971d8a8015af":"33ae3764fd06a00cdc3cba5c45dc79a9edb4e67e4d057cc74139d531c25190d111775fc4a0f4439b8b1930bbd766e7b46f170601f316c8a18ff8d5cb5ca5581f168345d101edb462b7d93b7c520ccb8fb276b447a63d869203cc11f67a1122dc4da034218de85e39":"011a9351d2d32ccd568e75bf8b4ebbb2a36be691b55832edac662ff79803df8af525fba453068be16ac3920bcc1b468f8f7fe786e0fa4ecbabcad31e5e3b05def802eb8600deaf11ef452487db878df20a80606e4bb6a163b83895d034cc8b53dbcd005be42ffdd2ce99bed06089a0b79d":"0037880b547b41bda303bddda307eefe24b4aedf076c9b814b903aaf328a10825c7e259a20afc6b70b487bb21a6d32d0ee98a0b9f42ff812c901e2f79237fe3e00856992dd69d93ebc0664c75863829621751b0ac35a8ae8a0965841607d3099b8e0ed24442749ba09acbcb165598dcd40"
+
 # END MERGE SLOT 1
 
 # BEGIN MERGE SLOT 2

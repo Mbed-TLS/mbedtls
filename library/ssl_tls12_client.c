@@ -2471,9 +2471,11 @@ start_processing:
 
         if( ret != 0 )
         {
+            int send_alert_msg = 1;
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
-            if( ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
+            send_alert_msg = ( ret != MBEDTLS_ERR_ECP_IN_PROGRESS );
 #endif
+            if( send_alert_msg )
                 mbedtls_ssl_send_alert_message(
                     ssl,
                     MBEDTLS_SSL_ALERT_LEVEL_FATAL,

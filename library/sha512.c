@@ -418,9 +418,11 @@ int mbedtls_sha512_finish_ret( mbedtls_sha512_context *ctx,
     sha512_put_uint64_be( ctx->state[4], output, 32 );
     sha512_put_uint64_be( ctx->state[5], output, 40 );
 
+    int truncated = 0;
 #if !defined(MBEDTLS_SHA512_NO_SHA384)
-    if( ctx->is384 == 0 )
+    truncated = ctx->is384;
 #endif
+    if( !truncated )
     {
         sha512_put_uint64_be( ctx->state[6], output, 48 );
         sha512_put_uint64_be( ctx->state[7], output, 56 );

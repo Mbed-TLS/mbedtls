@@ -1182,7 +1182,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_USE_PSA_CRYPTO */
+/* BEGIN_CASE depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PK_WRITE_C */
 void pk_psa_sign(int parameter_arg,
                  int psa_type_arg, int expected_bits_arg)
 {

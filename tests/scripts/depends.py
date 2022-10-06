@@ -278,7 +278,13 @@ An option O is turned off if config_settings[O] is False."""
         for dep in REVERSE_DEPENDENCIES.get(key, []):
             config_settings[dep] = False
 
-class ExclusiveDomain: # pylint: disable=too-few-public-methods
+class BaseDomain: # pylint: disable=too-few-public-methods, unused-argument
+    """A base class for all domains."""
+    def __init__(self, symbols, commands, exclude):
+        """Initialize the jobs container"""
+        self.jobs = []
+
+class ExclusiveDomain(BaseDomain): # pylint: disable=too-few-public-methods
     """A domain consisting of a set of conceptually-equivalent settings.
 Establish a list of configuration symbols. For each symbol, run a test job
 with this symbol set and the others unset."""
@@ -289,7 +295,7 @@ of symbols and disable the others.
 Each job runs the specified commands.
 If exclude is a regular expression, skip generated jobs whose description
 would match this regular expression."""
-        self.jobs = []
+        super().__init__(symbols, commands, exclude)
         base_config_settings = {}
         for symbol in symbols:
             base_config_settings[symbol] = False
@@ -304,21 +310,28 @@ would match this regular expression."""
             job = Job(description, config_settings, commands)
             self.jobs.append(job)
 
-class ComplementaryDomain: # pylint: disable=too-few-public-methods
+class ComplementaryDomain(BaseDomain): # pylint: disable=too-few-public-methods
     """A domain consisting of a set of loosely-related settings.
 Establish a list of configuration symbols. For each symbol, run a test job
 with this symbol unset."""
-    def __init__(self, symbols, commands):
+    def __init__(self, symbols, commands, exclude=None):
         """Build a domain for the specified list of configuration symbols.
 Each job in the domain disables one of the specified symbols.
 Each job runs the specified commands."""
-        self.jobs = []
+        super().__init__(symbols, commands, exclude)
         for symbol in symbols:
             description = '!' + symbol
+            if exclude and re.match(exclude, description):
+                continue
             config_settings = {symbol: False}
             turn_off_dependencies(config_settings)
             job = Job(description, config_settings, commands)
             self.jobs.append(job)
+
+class DualDomain(ExclusiveDomain, ComplementaryDomain): # pylint: disable=too-few-public-methods
+    """A domain that contains both the ExclusiveDomain and BaseDomain tests"""
+    def __init__(self, symbols, commands, exclude=None):
+        super().__init__(symbols=symbols, commands=commands, exclude=exclude)
 
 class CipherInfo: # pylint: disable=too-few-public-methods
     """Collect data about cipher.h."""
@@ -369,9 +382,9 @@ class DomainData:
             # Hash algorithms. Exclude configurations with only one
             # hash which is obsolete. Run the test suites. Exclude
             # SHA512 and SHA256, as these are tested with SHA384 and SHA224.
-            'hashes': ExclusiveDomain(hash_symbols, build_and_test,
-                                      exclude=r'MBEDTLS_(MD|RIPEMD|SHA1_|SHA256_|SHA512_)\
-                                                |!MBEDTLS_(SHA256_|SHA512_)'),
+            'hashes': DualDomain(hash_symbols, build_and_test,
+                                 exclude=r'MBEDTLS_(MD|RIPEMD|SHA1_|SHA256_|SHA512_)' \
+                                          '|!MBEDTLS_(SHA256_|SHA512_)'),
             # Key exchange types. Only build the library and the sample
             # programs.
             'kex': ExclusiveDomain(key_exchange_symbols,

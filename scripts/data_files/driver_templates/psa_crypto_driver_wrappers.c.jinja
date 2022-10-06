@@ -1616,22 +1616,6 @@ psa_status_t psa_driver_wrapper_aead_decrypt(
     }
 }
 
-psa_status_t psa_driver_get_tag_len( psa_aead_operation_t *operation,
-                                     uint8_t *tag_len )
-{
-    if( operation == NULL || tag_len == NULL )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
-#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-#if defined(PSA_CRYPTO_DRIVER_TEST)
-    *tag_len = operation->ctx.transparent_test_driver_ctx.tag_length;
-    return ( PSA_SUCCESS );
-#endif
-#endif
-    *tag_len = operation->ctx.mbedtls_ctx.tag_length;
-    return ( PSA_SUCCESS );
-}
-
 psa_status_t psa_driver_wrapper_aead_encrypt_setup(
    psa_aead_operation_t *operation,
    const psa_key_attributes_t *attributes,

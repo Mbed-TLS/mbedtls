@@ -3711,11 +3711,7 @@ exit:
 
 static psa_status_t psa_validate_tag_length( psa_aead_operation_t *operation,
                                              psa_algorithm_t alg ) {
-    uint8_t tag_len = 0;
-    if( psa_driver_get_tag_len( operation, &tag_len ) != PSA_SUCCESS )
-    {
-        return( PSA_ERROR_INVALID_ARGUMENT );
-    }
+    const uint8_t tag_len = PSA_ALG_AEAD_GET_TAG_LENGTH( alg );
 
     switch( PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg, 0 ) )
     {

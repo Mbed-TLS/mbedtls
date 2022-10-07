@@ -409,6 +409,11 @@ void mbedtls_lmots_public_free( mbedtls_lmots_public_t *ctx )
 int mbedtls_lmots_import_public_key( mbedtls_lmots_public_t *ctx,
                                  const unsigned char *key, size_t key_len )
 {
+    if( key_len < MBEDTLS_LMOTS_SIG_TYPE_OFFSET + MBEDTLS_LMOTS_TYPE_LEN )
+    {
+        return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
+    }
+
     ctx->params.type =
         mbedtls_lms_network_bytes_to_unsigned_int( MBEDTLS_LMOTS_TYPE_LEN,
                 key + MBEDTLS_LMOTS_SIG_TYPE_OFFSET );

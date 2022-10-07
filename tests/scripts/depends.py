@@ -105,6 +105,7 @@ derived."""
     run_config_pl(options, ['unset', 'MBEDTLS_MEMORY_BACKTRACE'])
     run_config_pl(options, ['unset', 'MBEDTLS_MEMORY_BUFFER_ALLOC_C'])
     run_config_pl(options, ['unset', 'MBEDTLS_MEMORY_DEBUG'])
+    run_config_pl(options, ['unset', 'MBEDTLS_TEST_HOOKS'])
 
 def collect_config_symbols(options):
     """Read the list of settings from mbedtls_config.h.

@@ -185,7 +185,8 @@ int mbedtls_lmots_calculate_public_key_candidate( const mbedtls_lmots_parameters
  * \return         \c 0 on successful verification.
  * \return         A non-zero error code on failure.
  */
-int mbedtls_lmots_verify( mbedtls_lmots_public_t *ctx, const unsigned char *msg,
+int mbedtls_lmots_verify( const mbedtls_lmots_public_t *ctx,
+                          const unsigned char *msg,
                           size_t msg_size, const unsigned char *sig,
                           size_t sig_size );
 
@@ -208,7 +209,7 @@ void mbedtls_lmots_init_private( mbedtls_lmots_private_t *ctx );
 void mbedtls_lmots_free_private( mbedtls_lmots_private_t *ctx );
 
 /**
- * \brief                    This function generates an LMOTS private key, and
+ * \brief                    This function calculates an LMOTS private key, and
  *                           stores in into an LMOTS context.
  *
  * \warning                  This function is **not intended for use in
@@ -252,7 +253,7 @@ int mbedtls_lmots_generate_private_key( mbedtls_lmots_private_t *ctx,
  * \return         A non-zero error code on failure.
  */
 int mbedtls_lmots_calculate_public_key( mbedtls_lmots_public_t *ctx,
-                                        mbedtls_lmots_private_t *priv_ctx );
+                                        const mbedtls_lmots_private_t *priv_ctx );
 
 
 /**
@@ -274,7 +275,7 @@ int mbedtls_lmots_calculate_public_key( mbedtls_lmots_public_t *ctx,
  * \return         \c 0 on success.
  * \return         A non-zero error code on failure.
  */
-int mbedtls_lmots_export_public_key( mbedtls_lmots_public_t *ctx,
+int mbedtls_lmots_export_public_key( const mbedtls_lmots_public_t *ctx,
                                      unsigned char *key, size_t key_size,
                                      size_t *key_len );
 /**

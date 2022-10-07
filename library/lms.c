@@ -418,7 +418,7 @@ int mbedtls_lms_verify( const mbedtls_lms_public_t *ctx,
  *                      because the merkle tree root is 1-indexed, the 0
  *                      index tree node is never used.
  */
-static int calculate_merkle_tree( mbedtls_lms_private_t *ctx,
+static int calculate_merkle_tree( const mbedtls_lms_private_t *ctx,
                                   unsigned char *tree )
 {
     unsigned int priv_key_idx;
@@ -533,7 +533,7 @@ int mbedtls_lms_generate_private_key( mbedtls_lms_private_t *ctx,
                                       mbedtls_lms_algorithm_type_t type,
                                       mbedtls_lmots_algorithm_type_t otstype,
                                       int (*f_rng)(void *, unsigned char *, size_t),
-                                      void* p_rng, unsigned char *seed,
+                                      void* p_rng, const unsigned char *seed,
                                       size_t seed_size )
 {
     unsigned int idx = 0;
@@ -621,7 +621,7 @@ exit:
 }
 
 int mbedtls_lms_calculate_public_key( mbedtls_lms_public_t *ctx,
-                                      mbedtls_lms_private_t *priv_ctx )
+                                      const mbedtls_lms_private_t *priv_ctx )
 {
     unsigned char tree[MERKLE_TREE_NODE_AM_MAX][MBEDTLS_LMS_M_NODE_BYTES_MAX];
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -662,7 +662,7 @@ int mbedtls_lms_calculate_public_key( mbedtls_lms_public_t *ctx,
 }
 
 
-int mbedtls_lms_export_public_key( mbedtls_lms_public_t *ctx,
+int mbedtls_lms_export_public_key( const mbedtls_lms_public_t *ctx,
                                    unsigned char *key,
                                    size_t key_size, size_t *key_len )
 {
@@ -700,8 +700,9 @@ int mbedtls_lms_export_public_key( mbedtls_lms_public_t *ctx,
 
 int mbedtls_lms_sign( mbedtls_lms_private_t *ctx,
                       int (*f_rng)(void *, unsigned char *, size_t),
-                      void* p_rng, unsigned char *msg, unsigned int msg_size,
-                      unsigned char *sig, size_t sig_size, size_t *sig_len )
+                      void* p_rng, const unsigned char *msg,
+                      unsigned int msg_size, unsigned char *sig, size_t sig_size,
+                      size_t *sig_len )
 {
     uint32_t q_leaf_identifier;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;

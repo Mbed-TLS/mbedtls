@@ -521,9 +521,9 @@ int mbedtls_lmots_calculate_public_key_candidate( const mbedtls_lmots_parameters
     return( 0 );
 }
 
-int mbedtls_lmots_verify( mbedtls_lmots_public_t *ctx, const unsigned char *msg,
-                          size_t msg_size, const unsigned char *sig,
-                          size_t sig_size )
+int mbedtls_lmots_verify( const mbedtls_lmots_public_t *ctx,
+                          const unsigned char *msg, size_t msg_size,
+                          const unsigned char *sig, size_t sig_size )
 {
     unsigned char Kc_public_key_candidate[MBEDTLS_LMOTS_N_HASH_LEN_MAX];
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -684,7 +684,7 @@ exit:
 }
 
 int mbedtls_lmots_calculate_public_key( mbedtls_lmots_public_t *ctx,
-                                        mbedtls_lmots_private_t *priv_ctx )
+                                        const mbedtls_lmots_private_t *priv_ctx )
 {
     unsigned char y_hashed_digits[MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT_MAX][MBEDTLS_LMOTS_N_HASH_LEN_MAX];
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -720,7 +720,7 @@ int mbedtls_lmots_calculate_public_key( mbedtls_lmots_public_t *ctx,
 }
 
 
-int mbedtls_lmots_export_public_key( mbedtls_lmots_public_t *ctx,
+int mbedtls_lmots_export_public_key( const mbedtls_lmots_public_t *ctx,
                                      unsigned char *key, size_t key_size,
                                      size_t *key_len )
 {

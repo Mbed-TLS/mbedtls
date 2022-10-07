@@ -275,6 +275,33 @@ int mbedtls_lms_import_public_key( mbedtls_lms_public_t *ctx,
                                    const unsigned char *key, size_t key_size );
 
 /**
+ * \brief                    This function exports an LMS public key from a
+ *                           LMS public context that already contains a public
+ *                           key.
+ *
+ * \note                     Before this function is called, the context must
+ *                           have been initialized and the context must contain
+ *                           a public key.
+ *
+ * \note                     See IETF RFC8554 for details of the encoding of
+ *                           this public key.
+ *
+ * \param ctx                The initialized LMS public context that contains
+ *                           the public key.
+ * \param key                The buffer into which the key will be output. Must
+ *                           be at least #MBEDTLS_LMS_PUBLIC_KEY_LEN in size.
+ * \param key_size           The size of the key buffer.
+ * \param key_len            If not NULL, will be written with the size of the
+ *                           key.
+ *
+ * \return         \c 0 on success.
+ * \return         A non-zero error code on failure.
+ */
+int mbedtls_lms_export_public_key( const mbedtls_lms_public_t *ctx,
+                                   unsigned char *key, size_t key_size,
+                                   size_t *key_len );
+
+/**
  * \brief                    This function verifies a LMS signature, using a
  *                           LMS context that contains a public key.
  *
@@ -364,33 +391,6 @@ int mbedtls_lms_generate_private_key( mbedtls_lms_private_t *ctx,
  */
 int mbedtls_lms_calculate_public_key( mbedtls_lms_public_t *ctx,
                                       const mbedtls_lms_private_t *priv_ctx );
-
-/**
- * \brief                    This function exports an LMS public key from a
- *                           LMS public context that already contains a public
- *                           key.
- *
- * \note                     Before this function is called, the context must
- *                           have been initialized and the context must contain
- *                           a public key.
- *
- * \note                     See IETF RFC8554 for details of the encoding of
- *                           this public key.
- *
- * \param ctx                The initialized LMS public context that contains
- *                           the public key.
- * \param key                The buffer into which the key will be output. Must
- *                           be at least #MBEDTLS_LMS_PUBLIC_KEY_LEN in size.
- * \param key_size           The size of the key buffer.
- * \param key_len            If not NULL, will be written with the size of the
- *                           key.
- *
- * \return         \c 0 on success.
- * \return         A non-zero error code on failure.
- */
-int mbedtls_lms_export_public_key( const mbedtls_lms_public_t *ctx,
-                                   unsigned char *key, size_t key_size,
-                                   size_t *key_len );
 
 /**
  * \brief                    This function creates a LMS signature, using a

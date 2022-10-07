@@ -128,6 +128,29 @@ int mbedtls_lmots_import_public_key( mbedtls_lmots_public_t *ctx,
                                      const unsigned char *key, size_t key_size );
 
 /**
+ * \brief                    This function exports an LMOTS public key from a
+ *                           LMOTS context that already contains a public key.
+ *
+ * \note                     Before this function is called, the context must
+ *                           have been initialized and the context must contain
+ *                           a public key.
+ *
+ * \note                     See IETF RFC8554 for details of the encoding of
+ *                           this public key.
+ *
+ * \param ctx                The initialized LMOTS context that contains the
+ *                           publc key.
+ * \param key                The buffer into which the key will be output. Must
+ *                           be at least #MBEDTLS_LMOTS_PUBLIC_KEY_LEN in size.
+ *
+ * \return         \c 0 on success.
+ * \return         A non-zero error code on failure.
+ */
+int mbedtls_lmots_export_public_key( const mbedtls_lmots_public_t *ctx,
+                                     unsigned char *key, size_t key_size,
+                                     size_t *key_len );
+
+/**
  * \brief                    This function creates a candidate public key from
  *                           an LMOTS signature. This can then be compared to
  *                           the real public key to determine the validity of
@@ -255,29 +278,6 @@ int mbedtls_lmots_generate_private_key( mbedtls_lmots_private_t *ctx,
 int mbedtls_lmots_calculate_public_key( mbedtls_lmots_public_t *ctx,
                                         const mbedtls_lmots_private_t *priv_ctx );
 
-
-/**
- * \brief                    This function exports an LMOTS public key from a
- *                           LMOTS context that already contains a public key.
- *
- * \note                     Before this function is called, the context must
- *                           have been initialized and the context must contain
- *                           a public key.
- *
- * \note                     See IETF RFC8554 for details of the encoding of
- *                           this public key.
- *
- * \param ctx                The initialized LMOTS context that contains the
- *                           publc key.
- * \param key                The buffer into which the key will be output. Must
- *                           be at least #MBEDTLS_LMOTS_PUBLIC_KEY_LEN in size.
- *
- * \return         \c 0 on success.
- * \return         A non-zero error code on failure.
- */
-int mbedtls_lmots_export_public_key( const mbedtls_lmots_public_t *ctx,
-                                     unsigned char *key, size_t key_size,
-                                     size_t *key_len );
 /**
  * \brief                    This function creates a LMOTS signature, using a
  *                           LMOTS context that contains a private key.

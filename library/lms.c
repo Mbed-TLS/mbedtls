@@ -267,6 +267,41 @@ int mbedtls_lms_import_public_key( mbedtls_lms_public_t *ctx,
     return( 0 );
 }
 
+int mbedtls_lms_export_public_key( const mbedtls_lms_public_t *ctx,
+                                   unsigned char *key,
+                                   size_t key_size, size_t *key_len )
+{
+    if( key_size < MBEDTLS_LMS_PUBLIC_KEY_LEN(ctx->params.type) )
+    {
+        return( MBEDTLS_ERR_LMS_BUFFER_TOO_SMALL );
+    }
+
+    if( ! ctx->have_public_key )
+    {
+        return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
+    }
+
+    mbedtls_lms_unsigned_int_to_network_bytes(
+            ctx->params.type,
+            MBEDTLS_LMS_TYPE_LEN, key + PUBLIC_KEY_TYPE_OFFSET );
+    mbedtls_lms_unsigned_int_to_network_bytes( ctx->params.otstype,
+                                   MBEDTLS_LMOTS_TYPE_LEN,
+                                   key + PUBLIC_KEY_OTSTYPE_OFFSET );
+    memcpy( key + PUBLIC_KEY_I_KEY_ID_OFFSET,
+            ctx->params.I_key_identifier,
+            MBEDTLS_LMOTS_I_KEY_ID_LEN );
+    memcpy( key +PUBLIC_KEY_ROOT_NODE_OFFSET,
+            ctx->T_1_pub_key,
+            MBEDTLS_LMS_M_NODE_BYTES(ctx->params.type) );
+
+    if( key_len != NULL )
+    {
+        *key_len = MBEDTLS_LMS_PUBLIC_KEY_LEN(ctx->params.type);
+    }
+
+    return( 0 );
+}
+
 int mbedtls_lms_verify( const mbedtls_lms_public_t *ctx,
                         const unsigned char *msg, size_t msg_size,
                         const unsigned char *sig, size_t sig_size )
@@ -651,42 +686,6 @@ int mbedtls_lms_calculate_public_key( mbedtls_lms_public_t *ctx,
             MBEDTLS_LMS_M_NODE_BYTES(ctx->params.type) );
 
     ctx->have_public_key = 1;
-
-    return( 0 );
-}
-
-
-int mbedtls_lms_export_public_key( const mbedtls_lms_public_t *ctx,
-                                   unsigned char *key,
-                                   size_t key_size, size_t *key_len )
-{
-    if( key_size < MBEDTLS_LMS_PUBLIC_KEY_LEN(ctx->params.type) )
-    {
-        return( MBEDTLS_ERR_LMS_BUFFER_TOO_SMALL );
-    }
-
-    if( ! ctx->have_public_key )
-    {
-        return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
-    }
-
-    mbedtls_lms_unsigned_int_to_network_bytes(
-            ctx->params.type,
-            MBEDTLS_LMS_TYPE_LEN, key + PUBLIC_KEY_TYPE_OFFSET );
-    mbedtls_lms_unsigned_int_to_network_bytes( ctx->params.otstype,
-                                   MBEDTLS_LMOTS_TYPE_LEN,
-                                   key + PUBLIC_KEY_OTSTYPE_OFFSET );
-    memcpy( key + PUBLIC_KEY_I_KEY_ID_OFFSET,
-            ctx->params.I_key_identifier,
-            MBEDTLS_LMOTS_I_KEY_ID_LEN );
-    memcpy( key +PUBLIC_KEY_ROOT_NODE_OFFSET,
-            ctx->T_1_pub_key,
-            MBEDTLS_LMS_M_NODE_BYTES(ctx->params.type) );
-
-    if( key_len != NULL )
-    {
-        *key_len = MBEDTLS_LMS_PUBLIC_KEY_LEN(ctx->params.type);
-    }
 
     return( 0 );
 }

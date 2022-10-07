@@ -2485,7 +2485,7 @@
  *
  * Uncomment to enable the LMS signature algorithm and private key operations.
  */
-// #define MBEDTLS_LMS_PRIVATE
+//#define MBEDTLS_LMS_PRIVATE
 
 /**
  * \def MBEDTLS_NIST_KW_C

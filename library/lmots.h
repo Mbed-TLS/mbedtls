@@ -189,7 +189,7 @@ int mbedtls_lmots_verify( mbedtls_lmots_public_t *ctx, const unsigned char *msg,
                           size_t msg_size, const unsigned char *sig,
                           size_t sig_size );
 
-#ifdef MBEDTLS_LMS_PRIVATE
+#if defined(MBEDTLS_LMS_PRIVATE)
 
 /**
  * \brief                    This function initializes a private LMOTS context
@@ -310,7 +310,7 @@ int mbedtls_lmots_sign( mbedtls_lmots_private_t *ctx,
                         void *p_rng, const unsigned char *msg, size_t msg_size,
                         unsigned char *sig, size_t sig_size, size_t* sig_len );
 
-#endif /* MBEDTLS_LMS_PRIVATE */
+#endif /* defined(MBEDTLS_LMS_PRIVATE) */
 
 #ifdef __cplusplus
 }

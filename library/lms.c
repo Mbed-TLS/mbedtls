@@ -32,7 +32,7 @@
 
 #include "common.h"
 
-#ifdef MBEDTLS_LMS_C
+#if defined(MBEDTLS_LMS_C)
 
 #include <string.h>
 
@@ -402,7 +402,7 @@ int mbedtls_lms_verify( const mbedtls_lms_public_t *ctx,
     return( 0 );
 }
 
-#ifdef MBEDTLS_LMS_PRIVATE
+#if defined(MBEDTLS_LMS_PRIVATE)
 
 /* Calculate a full merkle tree based on a private key. This function
  * implements RFC8554 section 5.3, and is used to generate a public key (as the
@@ -773,5 +773,5 @@ int mbedtls_lms_sign( mbedtls_lms_private_t *ctx,
     return( 0 );
 }
 
-#endif /* MBEDTLS_LMS_PRIVATE */
-#endif /* MBEDTLS_LMS_C */
+#endif /* defined(MBEDTLS_LMS_PRIVATE) */
+#endif /* defined(MBEDTLS_LMS_C) */

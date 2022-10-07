@@ -24,11 +24,11 @@ int check_lmots_private_key_for_leak(unsigned char * sig)
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_LMS_C:MBEDTLS_LMS_PRIVATE:MBEDTLS_PSA_CRYPTO_C
+ * depends_on:MBEDTLS_LMS_C
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_LMS_PRIVATE */
 void lmots_sign_verify_test ( data_t *msg, data_t *key_id, int leaf_id,
                               data_t *seed )
 {
@@ -52,7 +52,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_LMS_PRIVATE */
 void lmots_sign_verify_null_msg_test ( data_t *key_id, int leaf_id, data_t *seed )
 {
     mbedtls_lmots_public_t pub_ctx;
@@ -92,7 +92,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_LMS_PRIVATE */
 void lmots_import_export_test (  data_t * pub_key )
 {
     mbedtls_lmots_public_t ctx;
@@ -113,7 +113,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_LMS_PRIVATE */
 void lmots_reuse_test ( data_t *msg, data_t *key_id, int leaf_id, data_t *seed )
 {
     mbedtls_lmots_private_t ctx;

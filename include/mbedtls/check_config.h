@@ -354,8 +354,8 @@
 #endif
 
 #if defined(MBEDTLS_LMS_C) &&                                          \
-    ( !defined(MBEDTLS_PSA_CRYPTO_C) )
-#error "MBEDTLS_LMS_C requires MBEDTLS_PSA_CRYPTO_C"
+    ( !defined(MBEDTLS_PSA_CRYPTO_C) && !defined(PSA_WANT_ALG_SHA256) )
+#error "MBEDTLS_LMS_C requires MBEDTLS_PSA_CRYPTO_C and PSA_WANT_ALG_SHA256"
 #endif
 
 #if defined(MBEDTLS_LMS_PRIVATE) &&                                    \

@@ -4,11 +4,11 @@
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_LMS_C:MBEDTLS_LMS_PRIVATE:MBEDTLS_PSA_CRYPTO_C
+ * depends_on:MBEDTLS_LMS_C
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_LMS_PRIVATE */
 void lms_sign_verify_test ( data_t *msg, data_t *seed )
 {
     mbedtls_lms_public_t pub_ctx;
@@ -44,7 +44,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_LMS_PRIVATE */
 void lms_sign_verify_null_msg_test( data_t *seed )
 {
     mbedtls_lms_public_t pub_ctx;
@@ -97,7 +97,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_LMS_PRIVATE */
 void lms_import_export_test (  data_t * pub_key )
 {
     mbedtls_lms_public_t ctx;

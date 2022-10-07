@@ -152,13 +152,12 @@ static int create_digit_array_with_checksum( const mbedtls_lmots_parameters_t *p
                                              const unsigned char *C_random_value,
                                              unsigned char *out )
 {
-    psa_hash_operation_t op;
-    psa_status_t status;
+    psa_hash_operation_t op = PSA_HASH_OPERATION_INIT;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t output_hash_len;
     unsigned short checksum;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    op = psa_hash_operation_init( );
     status = psa_hash_setup( &op, PSA_ALG_SHA_256 );
     ret = mbedtls_lms_error_from_psa( status );
     if( ret != 0 )
@@ -250,13 +249,11 @@ static int hash_digit_array( const mbedtls_lmots_parameters_t *params,
     unsigned char j_hash_idx_bytes[J_HASH_IDX_LEN];
     unsigned int j_hash_idx_min;
     unsigned int j_hash_idx_max;
-    psa_hash_operation_t op;
-    psa_status_t status;
+    psa_hash_operation_t op = PSA_HASH_OPERATION_INIT;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t output_hash_len;
     unsigned char tmp_hash[MBEDTLS_LMOTS_N_HASH_LEN_MAX];
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
-    op = psa_hash_operation_init( );
 
     for ( i_digit_idx = 0;
           i_digit_idx < MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT(params->type);
@@ -361,12 +358,11 @@ static int public_key_from_hashed_digit_array( const mbedtls_lmots_parameters_t 
                                                const unsigned char *y_hashed_digits,
                                                unsigned char *pub_key )
 {
-    psa_hash_operation_t op;
-    psa_status_t status;
+    psa_hash_operation_t op = PSA_HASH_OPERATION_INIT;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t output_hash_len;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    op = psa_hash_operation_init( );
     status = psa_hash_setup( &op, PSA_ALG_SHA_256 );
     ret = mbedtls_lms_error_from_psa( status );
     if( ret != 0 )
@@ -587,8 +583,8 @@ int mbedtls_lmots_generate_private_key( mbedtls_lmots_private_t *ctx,
                                         const unsigned char *seed,
                                         size_t seed_size )
 {
-    psa_hash_operation_t op;
-    psa_status_t status;
+    psa_hash_operation_t op = PSA_HASH_OPERATION_INIT;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t output_hash_len;
     unsigned int i_digit_idx;
     unsigned char i_digit_idx_bytes[2];
@@ -604,8 +600,6 @@ int mbedtls_lmots_generate_private_key( mbedtls_lmots_private_t *ctx,
     {
         return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
-
-    op = psa_hash_operation_init( );
 
     ctx->params.type = type;
 

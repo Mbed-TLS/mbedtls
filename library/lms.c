@@ -107,7 +107,7 @@ static int create_merkle_leaf_value( const mbedtls_lms_parameters_t *params,
                                      unsigned char *out )
 {
     psa_hash_operation_t op;
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t output_hash_len;
     unsigned char r_node_idx_bytes[4];
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -182,7 +182,7 @@ static int create_merkle_internal_value( const mbedtls_lms_parameters_t *params,
                                          unsigned char *out )
 {
     psa_hash_operation_t op;
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t output_hash_len;
     unsigned char r_node_idx_bytes[4];
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;

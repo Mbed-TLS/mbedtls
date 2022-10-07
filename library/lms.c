@@ -235,9 +235,9 @@ int mbedtls_lms_import_public_key( mbedtls_lms_public_t *ctx,
     mbedtls_lms_algorithm_type_t type;
     mbedtls_lmots_algorithm_type_t otstype;
 
-    if( key_size < MBEDTLS_LMS_PUBLIC_KEY_LEN(ctx->params.type) )
+    if( key_size != MBEDTLS_LMS_PUBLIC_KEY_LEN(ctx->params.type) )
     {
-        return( MBEDTLS_ERR_LMS_BUFFER_TOO_SMALL );
+        return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
     type = mbedtls_lms_network_bytes_to_unsigned_int( MBEDTLS_LMS_TYPE_LEN,

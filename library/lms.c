@@ -545,9 +545,13 @@ int mbedtls_lms_generate_private_key( mbedtls_lms_private_t *ctx,
     ctx->params.type = type;
     ctx->params.otstype = otstype;
 
-    f_rng( p_rng,
-           ctx->params.I_key_identifier,
-           MBEDTLS_LMOTS_I_KEY_ID_LEN );
+    ret = f_rng( p_rng,
+                 ctx->params.I_key_identifier,
+                 MBEDTLS_LMOTS_I_KEY_ID_LEN );
+    if( ret != 0 )
+    {
+        goto exit;
+    }
 
     ctx->ots_private_keys = mbedtls_calloc( ( size_t )MERKLE_TREE_LEAF_NODE_AM(ctx->params.type),
                                             sizeof( *ctx->ots_private_keys ) );

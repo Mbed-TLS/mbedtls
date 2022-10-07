@@ -516,7 +516,7 @@ int mbedtls_x509_crt_parse_der_with_ext_cb( mbedtls_x509_crt *chain,
  *                 mbedtls_x509_crt_init().
  * \param buf      The address of the readable buffer holding the DER encoded
  *                 certificate to use. On success, this buffer must be
- *                 retained and not be changed for the liftetime of the
+ *                 retained and not be changed for the lifetime of the
  *                 CRT chain \p chain, that is, until \p chain is destroyed
  *                 through a call to mbedtls_x509_crt_free().
  * \param buflen   The size in Bytes of \p buf.

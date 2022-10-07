@@ -162,7 +162,9 @@
 #include "mbedtls/pkcs5.h"
 #endif
 
+#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
+#endif
 
 #if defined(MBEDTLS_POLY1305_C)
 #include "mbedtls/poly1305.h"

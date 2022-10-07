@@ -396,14 +396,14 @@ int mbedtls_lms_error_from_psa( psa_status_t status )
     }
 }
 
-void mbedtls_lmots_init_public( mbedtls_lmots_public_t *ctx )
+void mbedtls_lmots_public_init( mbedtls_lmots_public_t *ctx )
 {
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_lmots_public_t  ) ) ;
+    mbedtls_platform_zeroize( ctx, sizeof( *ctx ) ) ;
 }
 
-void mbedtls_lmots_free_public( mbedtls_lmots_public_t *ctx )
+void mbedtls_lmots_public_free( mbedtls_lmots_public_t *ctx )
 {
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_lmots_public_t  ) ) ;
+    mbedtls_platform_zeroize( ctx, sizeof( *ctx ) ) ;
 }
 
 int mbedtls_lmots_import_public_key( mbedtls_lmots_public_t *ctx,
@@ -540,14 +540,14 @@ int mbedtls_lmots_verify( const mbedtls_lmots_public_t *ctx,
 
 #if defined(MBEDTLS_LMS_PRIVATE)
 
-void mbedtls_lmots_init_private( mbedtls_lmots_private_t *ctx )
+void mbedtls_lmots_private_init( mbedtls_lmots_private_t *ctx )
 {
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_lmots_private_t  ) ) ;
+    mbedtls_platform_zeroize( ctx, sizeof( *ctx ) ) ;
 }
 
-void mbedtls_lmots_free_private( mbedtls_lmots_private_t *ctx )
+void mbedtls_lmots_private_free( mbedtls_lmots_private_t *ctx )
 {
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_lmots_private_t  ) ) ;
+    mbedtls_platform_zeroize( ctx, sizeof( *ctx ) ) ;
 }
 
 int mbedtls_lmots_generate_private_key( mbedtls_lmots_private_t *ctx,

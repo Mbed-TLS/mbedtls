@@ -16,8 +16,8 @@ void lms_sign_verify_test ( data_t *msg, data_t *seed )
     unsigned char sig[MBEDTLS_LMS_SIG_LEN(MBEDTLS_LMS_SHA256_M32_H10, MBEDTLS_LMOTS_SHA256_N32_W8)];
     int rc;
 
-    mbedtls_lms_init_public( &pub_ctx );
-    mbedtls_lms_init_private( &priv_ctx );
+    mbedtls_lms_public_init( &pub_ctx );
+    mbedtls_lms_private_init( &priv_ctx );
 
     /* Allocation failure isn't a test failure, since it likely just means
      * there's not enough memory to run the test.
@@ -39,8 +39,8 @@ void lms_sign_verify_test ( data_t *msg, data_t *seed )
                                      sizeof( sig ) ) == 0 );
 
 exit:
-    mbedtls_lms_free_public( &pub_ctx );
-    mbedtls_lms_free_private( &priv_ctx );
+    mbedtls_lms_public_free( &pub_ctx );
+    mbedtls_lms_private_free( &priv_ctx );
 }
 /* END_CASE */
 
@@ -52,8 +52,8 @@ void lms_sign_verify_null_msg_test( data_t *seed )
     unsigned char sig[MBEDTLS_LMS_SIG_LEN(MBEDTLS_LMS_SHA256_M32_H10, MBEDTLS_LMOTS_SHA256_N32_W8)];
     int rc;
 
-    mbedtls_lms_init_public( &pub_ctx );
-    mbedtls_lms_init_private( &priv_ctx );
+    mbedtls_lms_public_init( &pub_ctx );
+    mbedtls_lms_private_init( &priv_ctx );
 
     /* Allocation failure isn't a test failure, since it likely just means
      * there's not enough memory to run the test.
@@ -75,8 +75,8 @@ void lms_sign_verify_null_msg_test( data_t *seed )
                                      sizeof( sig ) ) == 0 );
 
 exit:
-    mbedtls_lms_free_public( &pub_ctx );
-    mbedtls_lms_free_private( &priv_ctx );
+    mbedtls_lms_public_free( &pub_ctx );
+    mbedtls_lms_private_free( &priv_ctx );
 }
 /* END_CASE */
 
@@ -86,14 +86,14 @@ void lms_verify_test ( data_t * msg, data_t * sig, data_t * pub_key,
 {
     mbedtls_lms_public_t ctx;
 
-    mbedtls_lms_init_public( &ctx);
+    mbedtls_lms_public_init( &ctx);
 
     mbedtls_lms_import_public_key( &ctx, pub_key->x, pub_key->len );
 
     TEST_ASSERT( mbedtls_lms_verify( &ctx, msg->x, msg->len, sig->x, sig->len ) == expected_rc );
 
 exit:
-    mbedtls_lms_free_public( &ctx );
+    mbedtls_lms_public_free( &ctx );
 }
 /* END_CASE */
 
@@ -103,7 +103,7 @@ void lms_import_export_test (  data_t * pub_key )
     mbedtls_lms_public_t ctx;
     uint8_t exported_pub_key[MBEDTLS_LMS_PUBLIC_KEY_LEN(MBEDTLS_LMS_SHA256_M32_H10)];
 
-    mbedtls_lms_init_public(&ctx);
+    mbedtls_lms_public_init(&ctx);
     TEST_ASSERT( mbedtls_lms_import_public_key( &ctx, pub_key->x, pub_key->len ) == 0 );
     TEST_ASSERT( mbedtls_lms_export_public_key( &ctx, exported_pub_key,
                                                 sizeof(exported_pub_key), NULL ) == 0 );
@@ -112,7 +112,7 @@ void lms_import_export_test (  data_t * pub_key )
                     exported_pub_key, MBEDTLS_LMS_PUBLIC_KEY_LEN(MBEDTLS_LMS_SHA256_M32_H10) );
 
 exit:
-    mbedtls_lms_free_public( &ctx );
+    mbedtls_lms_public_free( &ctx );
 }
 /* END_CASE */
 

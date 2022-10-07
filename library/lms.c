@@ -219,14 +219,14 @@ exit:
     return( mbedtls_lms_error_from_psa( status ) );
 }
 
-void mbedtls_lms_init_public( mbedtls_lms_public_t *ctx )
+void mbedtls_lms_public_init( mbedtls_lms_public_t *ctx )
 {
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_lms_public_t ) ) ;
+    mbedtls_platform_zeroize( ctx, sizeof( *ctx ) ) ;
 }
 
-void mbedtls_lms_free_public( mbedtls_lms_public_t *ctx )
+void mbedtls_lms_public_free( mbedtls_lms_public_t *ctx )
 {
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_lms_public_t ) );
+    mbedtls_platform_zeroize( ctx, sizeof( *ctx ) );
 }
 
 int mbedtls_lms_import_public_key( mbedtls_lms_public_t *ctx,
@@ -489,12 +489,12 @@ static int get_merkle_path( mbedtls_lms_private_t *ctx,
     return( 0 );
 }
 
-void mbedtls_lms_init_private( mbedtls_lms_private_t *ctx )
+void mbedtls_lms_private_init( mbedtls_lms_private_t *ctx )
 {
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_lms_private_t ) ) ;
+    mbedtls_platform_zeroize( ctx, sizeof( *ctx ) ) ;
 }
 
-void mbedtls_lms_free_private( mbedtls_lms_private_t *ctx )
+void mbedtls_lms_private_free( mbedtls_lms_private_t *ctx )
 {
     unsigned int idx;
 
@@ -502,15 +502,15 @@ void mbedtls_lms_free_private( mbedtls_lms_private_t *ctx )
     {
         for( idx = 0; idx < MERKLE_TREE_LEAF_NODE_AM(ctx->params.type); idx++ )
         {
-            mbedtls_lmots_free_private( &ctx->ots_private_keys[idx] );
-            mbedtls_lmots_free_public( &ctx->ots_public_keys[idx] );
+            mbedtls_lmots_private_free( &ctx->ots_private_keys[idx] );
+            mbedtls_lmots_public_free( &ctx->ots_public_keys[idx] );
         }
 
         mbedtls_free( ctx->ots_private_keys );
         mbedtls_free( ctx->ots_public_keys );
     }
 
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_lms_private_t ) );
+    mbedtls_platform_zeroize( ctx, sizeof( *ctx ) );
 }
 
 
@@ -565,8 +565,8 @@ int mbedtls_lms_generate_private_key( mbedtls_lms_private_t *ctx,
 
     for( idx = 0; idx < MERKLE_TREE_LEAF_NODE_AM(ctx->params.type); idx++ )
     {
-        mbedtls_lmots_init_private( &ctx->ots_private_keys[idx] );
-        mbedtls_lmots_init_public( &ctx->ots_public_keys[idx] );
+        mbedtls_lmots_private_init( &ctx->ots_private_keys[idx] );
+        mbedtls_lmots_public_init( &ctx->ots_public_keys[idx] );
     }
 
 
@@ -593,8 +593,8 @@ exit:
     {
         for ( free_idx = 0; free_idx < idx; free_idx++ )
         {
-            mbedtls_lmots_free_private( &ctx->ots_private_keys[free_idx] );
-            mbedtls_lmots_free_public( &ctx->ots_public_keys[free_idx] );
+            mbedtls_lmots_private_free( &ctx->ots_private_keys[free_idx] );
+            mbedtls_lmots_public_free( &ctx->ots_public_keys[free_idx] );
         }
 
         mbedtls_free( ctx->ots_private_keys );

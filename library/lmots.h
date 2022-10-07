@@ -96,7 +96,7 @@ int mbedtls_lms_error_from_psa( psa_status_t status );
  * \param ctx                The uninitialized LMOTS context that will then be
  *                           initialized.
  */
-void mbedtls_lmots_init_public( mbedtls_lmots_public_t *ctx );
+void mbedtls_lmots_public_init( mbedtls_lmots_public_t *ctx );
 
 /**
  * \brief                    This function uninitializes a public LMOTS context
@@ -104,7 +104,7 @@ void mbedtls_lmots_init_public( mbedtls_lmots_public_t *ctx );
  * \param ctx                The initialized LMOTS context that will then be
  *                           uninitialized.
  */
-void mbedtls_lmots_free_public( mbedtls_lmots_public_t *ctx );
+void mbedtls_lmots_public_free( mbedtls_lmots_public_t *ctx );
 
 /**
  * \brief                    This function imports an LMOTS public key into a
@@ -198,7 +198,7 @@ int mbedtls_lmots_verify( const mbedtls_lmots_public_t *ctx,
  * \param ctx                The uninitialized LMOTS context that will then be
  *                           initialized.
  */
-void mbedtls_lmots_init_private( mbedtls_lmots_private_t *ctx );
+void mbedtls_lmots_private_init( mbedtls_lmots_private_t *ctx );
 
 /**
  * \brief                    This function uninitializes a private LMOTS context
@@ -206,7 +206,7 @@ void mbedtls_lmots_init_private( mbedtls_lmots_private_t *ctx );
  * \param ctx                The initialized LMOTS context that will then be
  *                           uninitialized.
  */
-void mbedtls_lmots_free_private( mbedtls_lmots_private_t *ctx );
+void mbedtls_lmots_private_free( mbedtls_lmots_private_t *ctx );
 
 /**
  * \brief                    This function calculates an LMOTS private key, and

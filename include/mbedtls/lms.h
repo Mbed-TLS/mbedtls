@@ -242,7 +242,7 @@ typedef struct {
  * \param ctx                The uninitialized LMS context that will then be
  *                           initialized.
  */
-void mbedtls_lms_init_public( mbedtls_lms_public_t *ctx );
+void mbedtls_lms_public_init( mbedtls_lms_public_t *ctx );
 
 /**
  * \brief                    This function uninitializes an LMS public context
@@ -250,7 +250,7 @@ void mbedtls_lms_init_public( mbedtls_lms_public_t *ctx );
  * \param ctx                The initialized LMS context that will then be
  *                           uninitialized.
  */
-void mbedtls_lms_free_public( mbedtls_lms_public_t *ctx );
+void mbedtls_lms_public_free( mbedtls_lms_public_t *ctx );
 
 /**
  * \brief                    This function imports an LMS public key into a
@@ -304,7 +304,7 @@ int mbedtls_lms_verify( const mbedtls_lms_public_t *ctx,
  *
  * \param ctx                The uninitialized LMS private context that will
  *                           then be initialized. */
-void mbedtls_lms_init_private( mbedtls_lms_private_t *ctx );
+void mbedtls_lms_private_init( mbedtls_lms_private_t *ctx );
 
 /**
  * \brief                    This function uninitializes an LMS private context
@@ -312,7 +312,7 @@ void mbedtls_lms_init_private( mbedtls_lms_private_t *ctx );
  * \param ctx                The initialized LMS private context that will then
  *                           be uninitialized.
  */
-void mbedtls_lms_free_private( mbedtls_lms_private_t *ctx );
+void mbedtls_lms_private_free( mbedtls_lms_private_t *ctx );
 
 /**
  * \brief                    This function generates an LMS private key, and

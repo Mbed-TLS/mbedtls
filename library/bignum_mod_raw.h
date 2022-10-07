@@ -85,7 +85,8 @@ int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *A,
  *                \p X (m->rep.mont.rr) will be set to point to it.
  * \param[in] A   The address of the MPI. It must have at least as many limbs as
  *                specified in \p limbs)
- * \param limbs   The length in size_t limbs for mpi provided in \p A.
+ * \param limbs   The length in size_t limbs for mpi provided in \p A. Maximum
+ *                allowed value is (MBEDTLS_MPI_MAX_LIMBS / 2) - 2.
  * 
  * \return        0 if successful. 
  * \return        #MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED if \p limbs isn't

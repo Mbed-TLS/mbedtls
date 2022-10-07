@@ -506,8 +506,11 @@ void mbedtls_lms_private_free( mbedtls_lms_private_t *ctx )
             mbedtls_lmots_public_free( &ctx->ots_public_keys[idx] );
         }
 
-        mbedtls_free( ctx->ots_private_keys );
-        mbedtls_free( ctx->ots_public_keys );
+        if( ctx->ots_private_keys != NULL )
+            mbedtls_free( ctx->ots_private_keys );
+
+        if( ctx->ots_public_keys != NULL )
+            mbedtls_free( ctx->ots_public_keys );
     }
 
     mbedtls_platform_zeroize( ctx, sizeof( *ctx ) );
@@ -522,7 +525,6 @@ int mbedtls_lms_generate_private_key( mbedtls_lms_private_t *ctx,
                                       size_t seed_size )
 {
     unsigned int idx = 0;
-    unsigned int free_idx = 0;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     if( type != MBEDTLS_LMS_SHA256_M32_H10 )
@@ -548,7 +550,7 @@ int mbedtls_lms_generate_private_key( mbedtls_lms_private_t *ctx,
            MBEDTLS_LMOTS_I_KEY_ID_LEN );
 
     ctx->ots_private_keys = mbedtls_calloc( ( size_t )MERKLE_TREE_LEAF_NODE_AM(ctx->params.type),
-                                            sizeof( mbedtls_lmots_private_t ) );
+                                            sizeof( *ctx->ots_private_keys ) );
     if( ctx->ots_private_keys == NULL )
     {
         ret = MBEDTLS_ERR_LMS_ALLOC_FAILED;
@@ -556,12 +558,24 @@ int mbedtls_lms_generate_private_key( mbedtls_lms_private_t *ctx,
     }
 
     ctx->ots_public_keys = mbedtls_calloc( ( size_t )MERKLE_TREE_LEAF_NODE_AM(ctx->params.type),
-                                           sizeof( mbedtls_lmots_public_t ) );
+                                           sizeof( *ctx->ots_public_keys ) );
     if( ctx->ots_public_keys == NULL )
     {
+        /* Free just the ots private keys (since they've been allocated at this
+         * point) so that we can pass the context to lms_private_free (which
+         * will not try to free the private keys since have_private_key is not
+         * set.
+         */
+        mbedtls_free(ctx->ots_private_keys);
+        ctx->ots_private_keys = NULL;
         ret = MBEDTLS_ERR_LMS_ALLOC_FAILED;
         goto exit;
     }
+
+    /* Now that all the allocation has succeeded we set have_private_key, since
+     * that causes lms_private_free to free the ots keys.
+     */
+    ctx->have_private_key = 1;
 
     for( idx = 0; idx < MERKLE_TREE_LEAF_NODE_AM(ctx->params.type); idx++ )
     {
@@ -586,23 +600,14 @@ int mbedtls_lms_generate_private_key( mbedtls_lms_private_t *ctx,
     }
 
     ctx->q_next_usable_key = 0;
-    ctx->have_private_key = 1;
 
 exit:
     if( ret != 0 )
     {
-        for ( free_idx = 0; free_idx < idx; free_idx++ )
-        {
-            mbedtls_lmots_private_free( &ctx->ots_private_keys[free_idx] );
-            mbedtls_lmots_public_free( &ctx->ots_public_keys[free_idx] );
-        }
-
-        mbedtls_free( ctx->ots_private_keys );
-        mbedtls_free( ctx->ots_public_keys );
-        return( ret );
+        mbedtls_lms_private_free(ctx);
     }
 
-    return( 0 );
+    return( ret );
 }
 
 int mbedtls_lms_calculate_public_key( mbedtls_lms_public_t *ctx,

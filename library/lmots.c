@@ -156,46 +156,38 @@ static int create_digit_array_with_checksum( const mbedtls_lmots_parameters_t *p
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t output_hash_len;
     unsigned short checksum;
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     status = psa_hash_setup( &op, PSA_ALG_SHA_256 );
-    ret = mbedtls_lms_error_from_psa( status );
-    if( ret != 0 )
+    if( status != PSA_SUCCESS )
         goto exit;
 
     status = psa_hash_update( &op, params->I_key_identifier,
                               MBEDTLS_LMOTS_I_KEY_ID_LEN );
-    ret = mbedtls_lms_error_from_psa( status );
-    if( ret != 0 )
+    if( status != PSA_SUCCESS )
         goto exit;
 
     status = psa_hash_update( &op, params->q_leaf_identifier,
                               MBEDTLS_LMOTS_Q_LEAF_ID_LEN );
-    ret = mbedtls_lms_error_from_psa( status );
-    if( ret != 0 )
+    if( status != PSA_SUCCESS )
         goto exit;
 
     status = psa_hash_update( &op, D_MESSAGE_CONSTANT_BYTES, D_CONST_LEN );
-    ret = mbedtls_lms_error_from_psa( status );
-    if( ret != 0 )
+    if( status != PSA_SUCCESS )
         goto exit;
 
     status = psa_hash_update( &op, C_random_value,
                               MBEDTLS_LMOTS_C_RANDOM_VALUE_LEN(params->type) );
-    ret = mbedtls_lms_error_from_psa( status );
-    if( ret != 0 )
+    if( status != PSA_SUCCESS )
         goto exit;
 
     status = psa_hash_update( &op, msg, msg_len );
-    ret = mbedtls_lms_error_from_psa( status );
-    if( ret != 0 )
+    if( status != PSA_SUCCESS )
         goto exit;
 
     status = psa_hash_finish( &op, out,
                               MBEDTLS_LMOTS_N_HASH_LEN(params->type),
                               &output_hash_len );
-    ret = mbedtls_lms_error_from_psa( status );
-    if( ret != 0 )
+    if( status != PSA_SUCCESS )
         goto exit;
 
     checksum = lmots_checksum_calculate( params, out );
@@ -205,7 +197,7 @@ static int create_digit_array_with_checksum( const mbedtls_lmots_parameters_t *p
 exit:
     psa_hash_abort( &op );
 
-    return( ret );
+    return( mbedtls_lms_error_from_psa( status ) );
 }
 
 /* Hash each element of the string of digits (+ checksum), producing a hash
@@ -253,7 +245,6 @@ static int hash_digit_array( const mbedtls_lmots_parameters_t *params,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t output_hash_len;
     unsigned char tmp_hash[MBEDTLS_LMOTS_N_HASH_LEN_MAX];
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     for ( i_digit_idx = 0;
           i_digit_idx < MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT(params->type);
@@ -274,50 +265,43 @@ static int hash_digit_array( const mbedtls_lmots_parameters_t *params,
               j_hash_idx++ )
         {
             status = psa_hash_setup( &op, PSA_ALG_SHA_256 );
-            ret = mbedtls_lms_error_from_psa( status );
-            if( ret != 0 )
+            if( status != PSA_SUCCESS )
                 goto exit;
 
             status = psa_hash_update( &op,
                                       params->I_key_identifier,
                                       MBEDTLS_LMOTS_I_KEY_ID_LEN );
-            ret = mbedtls_lms_error_from_psa( status );
-            if( ret != 0 )
+            if( status != PSA_SUCCESS )
                 goto exit;
 
             status = psa_hash_update( &op,
                                       params->q_leaf_identifier,
                                       MBEDTLS_LMOTS_Q_LEAF_ID_LEN );
-            ret = mbedtls_lms_error_from_psa( status );
-            if( ret != 0 )
+            if( status != PSA_SUCCESS )
                 goto exit;
 
             mbedtls_lms_unsigned_int_to_network_bytes( i_digit_idx,
                                                        I_DIGIT_IDX_LEN,
                                                        i_digit_idx_bytes );
             status = psa_hash_update( &op, i_digit_idx_bytes, I_DIGIT_IDX_LEN );
-            ret = mbedtls_lms_error_from_psa( status );
-            if( ret != 0 )
+            if( status != PSA_SUCCESS )
                 goto exit;
 
             mbedtls_lms_unsigned_int_to_network_bytes( j_hash_idx,
                                                        J_HASH_IDX_LEN,
                                                        j_hash_idx_bytes );
             status = psa_hash_update( &op, j_hash_idx_bytes, J_HASH_IDX_LEN );
-            ret = mbedtls_lms_error_from_psa( status );
-            if( ret != 0 )
+            if( status != PSA_SUCCESS )
                 goto exit;
 
             status = psa_hash_update( &op, tmp_hash,
                                       MBEDTLS_LMOTS_N_HASH_LEN(params->type) );
-            ret = mbedtls_lms_error_from_psa( status );
-            if( ret != 0 )
+            if( status != PSA_SUCCESS )
                 goto exit;
 
             status = psa_hash_finish( &op, tmp_hash, sizeof( tmp_hash ),
                                       &output_hash_len );
-            ret = mbedtls_lms_error_from_psa( status );
-            if( ret != 0 )
+            if( status != PSA_SUCCESS )
                 goto exit;
 
             psa_hash_abort( &op );
@@ -328,15 +312,10 @@ static int hash_digit_array( const mbedtls_lmots_parameters_t *params,
     }
 
 exit:
-    if( ret != 0 )
-    {
-        psa_hash_abort( &op );
-        return( ret );
-    }
-
+    psa_hash_abort( &op );
     mbedtls_platform_zeroize( tmp_hash, sizeof( tmp_hash ) );
 
-    return ret;
+    return( mbedtls_lms_error_from_psa( status ) );
 }
 
 /* Combine the hashes of the digit array into a public key. This is used in
@@ -361,46 +340,41 @@ static int public_key_from_hashed_digit_array( const mbedtls_lmots_parameters_t 
     psa_hash_operation_t op = PSA_HASH_OPERATION_INIT;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t output_hash_len;
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     status = psa_hash_setup( &op, PSA_ALG_SHA_256 );
-    ret = mbedtls_lms_error_from_psa( status );
-    if( ret != 0 )
+    if( status != PSA_SUCCESS )
         goto exit;
 
     status = psa_hash_update( &op,
                               params->I_key_identifier,
                               MBEDTLS_LMOTS_I_KEY_ID_LEN );
-    ret = mbedtls_lms_error_from_psa( status );
-    if( ret != 0 )
+    if( status != PSA_SUCCESS )
         goto exit;
 
     status = psa_hash_update( &op, params->q_leaf_identifier,
                               MBEDTLS_LMOTS_Q_LEAF_ID_LEN );
-    ret = mbedtls_lms_error_from_psa( status );
-    if( ret != 0 )
+    if( status != PSA_SUCCESS )
         goto exit;
 
     status = psa_hash_update( &op, D_PUBLIC_CONSTANT_BYTES, D_CONST_LEN );
-    ret = mbedtls_lms_error_from_psa( status );
-    if( ret != 0 )
+    if( status != PSA_SUCCESS )
         goto exit;
 
     status = psa_hash_update( &op, y_hashed_digits,
                               MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT(params->type) *
                               MBEDTLS_LMOTS_N_HASH_LEN(params->type) );
-    ret = mbedtls_lms_error_from_psa( status );
-    if( ret != 0 )
+    if( status != PSA_SUCCESS )
         goto exit;
 
     status = psa_hash_finish( &op, pub_key,
                               MBEDTLS_LMOTS_N_HASH_LEN(params->type),
                               &output_hash_len );
-    ret = mbedtls_lms_error_from_psa( status );
+    if( status != PSA_SUCCESS )
 
 exit:
     psa_hash_abort( &op );
-    return( ret );
+
+    return( mbedtls_lms_error_from_psa( status ) );
 }
 
 int mbedtls_lms_error_from_psa( psa_status_t status )
@@ -589,7 +563,6 @@ int mbedtls_lmots_generate_private_key( mbedtls_lmots_private_t *ctx,
     unsigned int i_digit_idx;
     unsigned char i_digit_idx_bytes[2];
     unsigned char const_bytes[1];
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     if( ctx->have_private_key )
     {
@@ -619,47 +592,40 @@ int mbedtls_lmots_generate_private_key( mbedtls_lmots_private_t *ctx,
           i_digit_idx++ )
     {
         status = psa_hash_setup( &op, PSA_ALG_SHA_256 );
-        ret = mbedtls_lms_error_from_psa( status );
-        if( ret != 0 )
+        if( status != PSA_SUCCESS )
             goto exit;
 
-        ret = psa_hash_update( &op,
+        status = psa_hash_update( &op,
                                ctx->params.I_key_identifier,
                                sizeof( ctx->params.I_key_identifier ) );
-        ret = mbedtls_lms_error_from_psa( status );
-        if( ret )
+        if( status != PSA_SUCCESS )
             goto exit;
 
         status = psa_hash_update( &op,
                                   ctx->params.q_leaf_identifier,
                                   MBEDTLS_LMOTS_Q_LEAF_ID_LEN );
-        ret = mbedtls_lms_error_from_psa( status );
-        if( ret )
+        if( status != PSA_SUCCESS )
             goto exit;
 
         mbedtls_lms_unsigned_int_to_network_bytes( i_digit_idx, I_DIGIT_IDX_LEN,
                                                    i_digit_idx_bytes );
         status = psa_hash_update( &op, i_digit_idx_bytes, I_DIGIT_IDX_LEN );
-        ret = mbedtls_lms_error_from_psa( status );
-        if( ret )
+        if( status != PSA_SUCCESS )
             goto exit;
 
         status = psa_hash_update( &op, const_bytes, sizeof( const_bytes ) );
-        ret = mbedtls_lms_error_from_psa( status );
-        if( ret )
+        if( status != PSA_SUCCESS )
             goto exit;
 
         status = psa_hash_update( &op, seed, seed_size );
-        ret = mbedtls_lms_error_from_psa( status );
-        if( ret )
+        if( status != PSA_SUCCESS )
             goto exit;
 
         status = psa_hash_finish( &op,
                                   ctx->private_key[i_digit_idx],
                                   MBEDTLS_LMOTS_N_HASH_LEN(ctx->params.type),
                                   &output_hash_len );
-        ret = mbedtls_lms_error_from_psa( status );
-        if( ret )
+        if( status != PSA_SUCCESS )
             goto exit;
 
         psa_hash_abort( &op );
@@ -668,13 +634,9 @@ int mbedtls_lmots_generate_private_key( mbedtls_lmots_private_t *ctx,
     ctx->have_private_key = 1;
 
 exit:
-    if( ret != 0 )
-    {
-        psa_hash_abort( &op );
-        return( ret );
-    }
+    psa_hash_abort( &op );
 
-    return ret;
+    return ( mbedtls_lms_error_from_psa( status ) );
 }
 
 int mbedtls_lmots_calculate_public_key( mbedtls_lmots_public_t *ctx,

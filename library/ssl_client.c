@@ -843,6 +843,32 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
         }
     }
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
+    defined(MBEDTLS_SSL_SESSION_TICKETS) && \
+    defined(MBEDTLS_HAVE_TIME)
+    /* Check if a tls13 ticket has been configured. */
+    if( ssl->session_negotiate->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 &&
+        ssl->session_negotiate != NULL &&
+        ssl->session_negotiate->ticket != NULL )
+    {
+        mbedtls_time_t now = mbedtls_time( NULL );
+        if( ssl->session_negotiate->ticket_received > now ||
+            (uint64_t)( now - ssl->session_negotiate->ticket_received )
+                    > ssl->session_negotiate->ticket_lifetime )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "ticket expired" ) );
+            mbedtls_platform_zeroize( ssl->session_negotiate->ticket,
+                                      ssl->session_negotiate->ticket_len );
+            mbedtls_free( ssl->session_negotiate->ticket );
+            ssl->session_negotiate->ticket = NULL;
+            ssl->session_negotiate->ticket_len = 0;
+        }
+
+    }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 &&
+          MBEDTLS_SSL_SESSION_TICKETS &&
+          MBEDTLS_HAVE_TIME */
+
     return( 0 );
 }
 

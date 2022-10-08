@@ -583,10 +583,10 @@ cleanup:
 
 /* BEGIN MERGE SLOT 1 */
 
-static size_t mpi_exp_mod_get_window_size( size_t Ebits )
+static size_t exp_mod_get_window_size( size_t Ebits )
 {
     size_t wsize = ( Ebits > 671 ) ? 6 : ( Ebits > 239 ) ? 5 :
-                   ( Ebits >  79 ) ? 4 : ( Ebits >  23 ) ? 3 : 1;
+                   ( Ebits >  79 ) ? 4 : 1;
 
 #if( MBEDTLS_MPI_WINDOW_SIZE < 6 )
     if( wsize > MBEDTLS_MPI_WINDOW_SIZE )
@@ -618,7 +618,7 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
     mm = mbedtls_mpi_core_montmul_init( N ); /* Compute Montgomery constant */
     E += E_len;               /* Skip to end of exponent buffer */
 
-    wsize = mpi_exp_mod_get_window_size( E_len * biL );
+    wsize = exp_mod_get_window_size( E_len * biL );
     welem = ( (size_t) 1 ) << wsize;
 
     /* Allocate memory pool and set pointers to parts of it */

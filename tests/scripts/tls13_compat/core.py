@@ -252,3 +252,126 @@ class OpenSSLCli(OpenSSLBase):
                 '-CAfile {cafile}'.format(cafile=CERTIFICATES[self._cert_sig_algs[0]].cafile))
         return ret
 
+
+class GnuTLSBase(TLSProgram):
+    """
+    Generate base test commands for GnuTLS.
+    """
+    PROG_NAME = 'GnuTLS'
+    SUPPORT_KEX_MODES = [KexMode.ephemeral_all, KexMode.all]
+
+    CIPHER_SUITE = {
+        'TLS_AES_256_GCM_SHA384': [
+            'AES-256-GCM',
+            'SHA384',
+            'AEAD'],
+        'TLS_AES_128_GCM_SHA256': [
+            'AES-128-GCM',
+            'SHA256',
+            'AEAD'],
+        'TLS_CHACHA20_POLY1305_SHA256': [
+            'CHACHA20-POLY1305',
+            'SHA256',
+            'AEAD'],
+        'TLS_AES_128_CCM_SHA256': [
+            'AES-128-CCM',
+            'SHA256',
+            'AEAD'],
+        'TLS_AES_128_CCM_8_SHA256': [
+            'AES-128-CCM-8',
+            'SHA256',
+            'AEAD']}
+
+    SIGNATURE_ALGORITHM = {
+        'ecdsa_secp256r1_sha256': ['SIGN-ECDSA-SECP256R1-SHA256'],
+        'ecdsa_secp521r1_sha512': ['SIGN-ECDSA-SECP521R1-SHA512'],
+        'ecdsa_secp384r1_sha384': ['SIGN-ECDSA-SECP384R1-SHA384'],
+        'rsa_pss_rsae_sha256': ['SIGN-RSA-PSS-RSAE-SHA256']}
+
+    NAMED_GROUP = {
+        'secp256r1': ['GROUP-SECP256R1'],
+        'secp384r1': ['GROUP-SECP384R1'],
+        'secp521r1': ['GROUP-SECP521R1'],
+        'x25519': ['GROUP-X25519'],
+        'x448': ['GROUP-X448'],
+    }
+
+    def pre_checks(self):
+        return ["requires_gnutls_tls1_3",
+                "requires_gnutls_next_no_ticket",
+                "requires_gnutls_next_disable_tls13_compat", ]
+
+    def cmd(self):
+        ret = super().cmd()
+
+        priority_string_list = []
+
+        def update_priority_string_list(items, map_table):
+            for item in items:
+                for i in map_table[item]:
+                    if i not in priority_string_list:
+                        yield i
+
+        if self._ciphers:
+            priority_string_list.extend(update_priority_string_list(
+                self._ciphers, self.CIPHER_SUITE))
+        else:
+            priority_string_list.extend(['CIPHER-ALL', 'MAC-ALL'])
+
+        if self._sig_algs:
+            signature_algorithms = set(self._sig_algs + self._cert_sig_algs)
+            priority_string_list.extend(update_priority_string_list(
+                signature_algorithms, self.SIGNATURE_ALGORITHM))
+        else:
+            priority_string_list.append('SIGN-ALL')
+
+        if self._named_groups:
+            priority_string_list.extend(update_priority_string_list(
+                self._named_groups, self.NAMED_GROUP))
+        else:
+            priority_string_list.append('GROUP-ALL')
+
+        priority_string_list = ['NONE'] + \
+            priority_string_list + ['VERS-TLS1.3']
+
+        priority_string = ':+'.join(priority_string_list)
+        priority_string += ':%NO_TICKETS'
+
+        if not self._compat_mode:
+            priority_string += [':%DISABLE_TLS13_COMPAT_MODE']
+
+        ret += ['--priority={priority_string}'.format(
+            priority_string=priority_string)]
+        return ret
+
+
+class GnuTLSServ(GnuTLSBase):
+    """
+    Generate test commands for GnuTLS server.
+    """
+
+    def pre_cmd(self):
+        ret = ['$G_NEXT_SRV_NO_CERT', '--http',
+               '--disable-client-cert', '--debug=4']
+
+        for _, cert, key in map(lambda sig_alg: CERTIFICATES[sig_alg], self._cert_sig_algs):
+            ret += ['--x509certfile {cert} --x509keyfile {key}'.format(
+                cert=cert, key=key)]
+        return ret
+
+    def post_checks(self, *args, **kwargs):
+        return ['-c "HTTP/1.0 200 OK"']
+
+
+class GnuTLSCli(GnuTLSBase):
+    """
+    Generate test commands for GnuTLS client.
+    """
+
+    def pre_cmd(self):
+        ret = ['$G_NEXT_CLI_NO_CERT', '--debug=4', '--single-key-share']
+        if self._cert_sig_algs:
+            ret.append(
+                '--x509cafile {cafile}'.format(cafile=CERTIFICATES[self._cert_sig_algs[0]].cafile))
+        return ret
+

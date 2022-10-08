@@ -375,3 +375,125 @@ class GnuTLSCli(GnuTLSBase):
                 '--x509cafile {cafile}'.format(cafile=CERTIFICATES[self._cert_sig_algs[0]].cafile))
         return ret
 
+
+class MbedTLSBase(TLSProgram):
+    """
+    Generate base test commands for mbedTLS.
+    """
+
+    PROG_NAME = 'mbedTLS'
+
+    CIPHER_SUITE = {
+        'TLS_AES_256_GCM_SHA384': 'TLS1-3-AES-256-GCM-SHA384',
+        'TLS_AES_128_GCM_SHA256': 'TLS1-3-AES-128-GCM-SHA256',
+        'TLS_CHACHA20_POLY1305_SHA256': 'TLS1-3-CHACHA20-POLY1305-SHA256',
+        'TLS_AES_128_CCM_SHA256': 'TLS1-3-AES-128-CCM-SHA256',
+        'TLS_AES_128_CCM_8_SHA256': 'TLS1-3-AES-128-CCM-8-SHA256'}
+
+    def cmd(self):
+        ret = super().cmd()
+        ret += ['debug_level=4']
+
+        if self._ciphers:
+            ciphers = ','.join(
+                map(lambda cipher: self.CIPHER_SUITE[cipher], self._ciphers))
+            ret += ["force_ciphersuite={ciphers}".format(ciphers=ciphers)]
+
+        if self._sig_algs + self._cert_sig_algs:
+            ret += ['sig_algs={sig_algs}'.format(
+                sig_algs=','.join(set(self._sig_algs + self._cert_sig_algs)))]
+
+        if self._named_groups:
+            named_groups = ','.join(self._named_groups)
+            ret += ["curves={named_groups}".format(named_groups=named_groups)]
+        ret += ['force_version=tls13']
+        return ret
+
+    def pre_checks(self):
+        ret = ['requires_config_enabled MBEDTLS_DEBUG_C',
+               'requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED']
+
+        if self._compat_mode:
+            ret += ['requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE']
+
+        if 'rsa_pss_rsae_sha256' in self._sig_algs + self._cert_sig_algs:
+            ret.append(
+                'requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT')
+        return ret
+
+
+class MbedTLSServ(MbedTLSBase):
+    """
+    Generate test commands for mbedTLS server.
+    """
+
+    def cmd(self):
+        ret = super().cmd()
+        ret += ['tls13_kex_modes=ephemeral cookies=0 tickets=0']
+        return ret
+
+    def pre_checks(self):
+        return ['requires_config_enabled MBEDTLS_SSL_SRV_C'] + super().pre_checks()
+
+    def post_checks(self, *args, **kwargs):
+        check_strings = ["Protocol is TLSv1.3"]
+        if self._ciphers:
+            check_strings.append(
+                "server hello, chosen ciphersuite: {} ( id={:04d} )".format(
+                    self.CIPHER_SUITE[self._ciphers[0]],
+                    CIPHER_SUITE_IANA_VALUE[self._ciphers[0]]))
+        if self._sig_algs:
+            check_strings.append(
+                "received signature algorithm: 0x{:x}".format(
+                    SIG_ALG_IANA_VALUE[self._sig_algs[0]]))
+
+        for named_group in self._named_groups:
+            check_strings += ['got named group: {named_group}({iana_value:04x})'.format(
+                named_group=named_group,
+                iana_value=NAMED_GROUP_IANA_VALUE[named_group])]
+
+        check_strings.append("Certificate verification was skipped")
+        return ['-s "{}"'.format(i) for i in check_strings]
+
+    def pre_cmd(self):
+        ret = ['$P_SRV']
+        for _, cert, key in map(lambda sig_alg: CERTIFICATES[sig_alg], self._cert_sig_algs):
+            ret += ['crt_file={cert} key_file={key}'.format(
+                cert=cert, key=key)]
+        return ret
+
+
+class MbedTLSCli(MbedTLSBase):
+    """
+    Generate test commands for mbedTLS client.
+    """
+
+    def pre_cmd(self):
+        ret = ['$P_CLI']
+        if self._cert_sig_algs:
+            ret.append('ca_file={cafile}'.format(
+                cafile=CERTIFICATES[self._cert_sig_algs[0]].cafile))
+        return ret
+
+    def pre_checks(self):
+        return ['requires_config_enabled MBEDTLS_SSL_CLI_C'] + super().pre_checks()
+
+    def post_checks(self, *args, **kwargs):
+        check_strings = ["Protocol is TLSv1.3"]
+        if self._ciphers:
+            check_strings.append(
+                "server hello, chosen ciphersuite: ( {:04x} ) - {}".format(
+                    CIPHER_SUITE_IANA_VALUE[self._ciphers[0]],
+                    self.CIPHER_SUITE[self._ciphers[0]]))
+        if self._sig_algs:
+            check_strings.append(
+                "Certificate Verify: Signature algorithm ( {:04x} )".format(
+                    SIG_ALG_IANA_VALUE[self._sig_algs[0]]))
+
+        for named_group in self._named_groups:
+            check_strings += ['NamedGroup: {named_group} ( {iana_value:x} )'.format(
+                named_group=named_group,
+                iana_value=NAMED_GROUP_IANA_VALUE[named_group])]
+
+        check_strings.append("Verifying peer X.509 certificate... ok")
+        return ['-c "{}"'.format(i) for i in check_strings]

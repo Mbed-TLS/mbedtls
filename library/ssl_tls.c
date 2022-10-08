@@ -297,14 +297,15 @@ int mbedtls_ssl_session_copy( mbedtls_ssl_session *dst,
     }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
 
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    if( src->hostname != NULL )
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && defined(MBEDTLS_SSL_CLI_C)
+    if( src->endpoint == MBEDTLS_SSL_IS_CLIENT && src->hostname != NULL )
     {
         dst->hostname = mbedtls_calloc( 1, src->hostname_len );
         if( dst->hostname == NULL )
             return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
 
         memcpy( dst->hostname, src->hostname, src->hostname_len );
+        dst->hostname_len = src->hostname_len;
     }
 #endif
 
@@ -1945,6 +1946,7 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
 /* Serialization of TLS 1.3 sessions:
  *
  *     struct {
+ *       opaque hostname<1..2^16-1>;
  *       uint64 ticket_received;
  *       uint32 ticket_lifetime;
  *       opaque ticket<1..2^16-1>;
@@ -1956,7 +1958,7 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
  *       uint32 ticket_age_add;
  *       uint8 ticket_flags;
  *       opaque resumption_key<0..255>;
- *       opaque hostname<1..2^8-1>;
+ *
  *       select ( endpoint ) {
  *            case client: ClientOnlyData;
  *            case server: uint64 start_time;
@@ -2021,13 +2023,13 @@ static int ssl_tls13_session_save( const mbedtls_ssl_session *session,
     memcpy( p, session->resumption_key, session->resumption_key_len );
     p += session->resumption_key_len;
 
-    p[0] = session->hostname_len;
-    p++;
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && defined(MBEDTLS_SSL_CLI_C)
-    if( session->endpoint == MBEDTLS_SSL_IS_CLIENT &&
-        session->hostname_len > 0 &&
-        session->hostname != NULL )
+    if( session->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
+        p[0] = session->hostname_len;
+        p++;
+        if ( session->hostname_len > 0 &&
+             session->hostname != NULL )
         /* save host name */
         memcpy( p, session->hostname, session->hostname_len );
         p += session->hostname_len;
@@ -2096,8 +2098,11 @@ static int ssl_tls13_session_load( mbedtls_ssl_session *session,
     if( session->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
         /* load host name */
+        if( end - p < 1 )
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
         session->hostname_len = p[0];
         p += 1;
+
         if( end - p < session->hostname_len )
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
         if( session->hostname_len > 0 )

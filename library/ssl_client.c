@@ -848,6 +848,7 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
     defined(MBEDTLS_HAVE_TIME)
     /* Check if a tls13 ticket has been configured. */
     if( ssl->session_negotiate->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 &&
+        ssl->handshake->resume != 0 &&
         ssl->session_negotiate != NULL &&
         ssl->session_negotiate->ticket != NULL )
     {

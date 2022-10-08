@@ -668,19 +668,17 @@ static int ssl_tls13_write_psk_key_exchange_modes_ext( mbedtls_ssl_context *ssl,
 static psa_algorithm_t ssl_tls13_ciphersuite_to_alg( mbedtls_ssl_context *ssl,
                                                      int ciphersuite )
 {
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info = NULL;
+    ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( ciphersuite );
 
-    psa_algorithm_t psa_alg;
-    if( mbedtls_ssl_tls13_ciphersuite_to_alg(
-                    ssl, ciphersuite, &psa_alg ) != 0 )
+    if( mbedtls_ssl_validate_ciphersuite(
+                        ssl, ciphersuite_info,
+                        MBEDTLS_SSL_VERSION_TLS1_3,
+                        MBEDTLS_SSL_VERSION_TLS1_3 ) == 0 )
     {
-        /* ciphersuite is `ssl->session_negotiate->ciphersuite` or
-         * PSA_ALG_SHA256, both are validated before writting pre_shared_key.
-         */
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "should never happen" ) );
-        return( PSA_ALG_NONE );
+        return( mbedtls_psa_translate_md( ciphersuite_info->mac ) );
     }
-
-    return( psa_alg );
+    return( PSA_ALG_NONE );
 }
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)

@@ -265,3 +265,80 @@ class PSKMbedTLSCli(MbedTLSCli):
                         get_check_char(i == expected_kex_mode), i.name))
         return ret
 
+
+PSK_SERVER_CLASSES = [PSKMbedTLSServ, PSKGnuTLSServ, PSKOpenSSLServ]
+PSK_CLIENT_CLASSES = [PSKOpenSSLCli, PSKGnuTLSCli, PSKMbedTLSCli]
+
+
+def generate_psk_ephemeral_test(client=None, server=None, client_named_group=None,
+                                server_named_group=None):
+    """
+    Generate Hello Retry Request test case with `ssl-opt.sh` format.
+    """
+    if not issubclass(server, MbedTLSBase) and not issubclass(client, MbedTLSBase):
+        return None
+
+    # Skip GnuTLS server test. For time being, it always fail and report
+    # `No supported cipher suites have been found.`
+    if issubclass(server, PSKGnuTLSServ):
+        return None
+
+    server_object = server(named_group=server_named_group,
+                           kex_mode=KexMode.psk_ephemeral)
+    client_object = client(named_group=client_named_group,
+                           kex_mode=KexMode.psk_ephemeral)
+    if client_named_group != server_named_group:
+        # HRR will be triggered in this case.
+        name = 'TLS 1.3 {client[0]}->{server[0]}: psk_ephemeral HRR ' \
+            '{c_named_group}->{s_named_group}'.format(
+                client=client.PROG_NAME, server=server.PROG_NAME, c_named_group=client_named_group,
+                s_named_group=server_named_group)
+        client_object.add_named_groups(server_named_group)
+    else:
+        name = 'TLS 1.3 {client[0]}->{server[0]}: ' \
+               'psk_ephemeral group({c_named_group}) check, good'.format(
+                   client=client.PROG_NAME, server=server.PROG_NAME,
+                   c_named_group=client_named_group)
+
+    cmd = ['run_test "{}"'.format(name),
+           '"{}"'.format(' '.join(server_object.cmd())),
+           '"{}"'.format(' '.join(client_object.cmd())),
+           '0']
+
+    if issubclass(server, MbedTLSBase):
+        cmd.append('-s "write selected_group: {named_group}"'.format(
+            named_group=server_named_group))
+
+        if client_named_group != server_named_group:
+            cmd.append(
+                '-s "HRR selected_group: {:s}"'.format(server_named_group))
+
+    if issubclass(client, MbedTLSBase):
+        if client_named_group != server_named_group:
+            cmd.append('-c "received HelloRetryRequest message"')
+
+    cmd += server_object.post_checks(expected_kex_mode=KexMode.psk_ephemeral)
+    cmd += client_object.post_checks()
+
+    prefix = ' \\\n' + (' '*9)
+    cmd = prefix.join(cmd)
+
+    return '\n'.join(server_object.pre_checks() +
+                     client_object.pre_checks() +
+                     [cmd])
+
+
+def generate_all_psk_ephemeral_group_tests():
+    """
+        Generate psk named_groups compat tests
+    """
+    for client, server, client_named_group, server_named_group in \
+        itertools.product(PSK_CLIENT_CLASSES,
+                          PSK_SERVER_CLASSES,
+                          NAMED_GROUP_IANA_VALUE.keys(),
+                          NAMED_GROUP_IANA_VALUE.keys()):
+
+        yield generate_psk_ephemeral_test(client=client, server=server,
+                                          client_named_group=client_named_group,
+                                          server_named_group=server_named_group)
+

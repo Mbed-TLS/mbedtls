@@ -186,10 +186,10 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
     if( now < session->start )
     {
         MBEDTLS_SSL_DEBUG_MSG(
-            3, ( "Ticket expired: start is in future "
-                    "( now=%" MBEDTLS_PRINTF_LONGLONG
-                    ", start=%" MBEDTLS_PRINTF_LONGLONG " )",
-                    (long long)now, (long long)session->start ) );
+            3, ( "Ticket expired: Invalid ticket start time "
+                     "( now=%" MBEDTLS_PRINTF_LONGLONG
+                     ", start=%" MBEDTLS_PRINTF_LONGLONG " )",
+                 (long long)now, (long long)session->start ) );
         goto exit;
     }
 

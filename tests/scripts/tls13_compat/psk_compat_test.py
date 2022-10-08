@@ -134,3 +134,134 @@ class PSKGnuTLSServ(GnuTLSServ):
         return KexMode(list(filter(lambda a: a != 0, [common_kex_mode & i for i in (
             KexMode.psk_ephemeral, KexMode.psk, KexMode.ephemeral, )]))[0])
 
+
+def mbedtls_get_kex_config_option(kex_mode):
+    ret = []
+    for kex in (KexMode.psk, KexMode.psk_ephemeral, KexMode.ephemeral):
+        if kex & kex_mode:
+            ret += ['MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_{}_ENABLED'.format(
+                kex.name.upper())]
+    return ret
+
+
+class PSKMbedTLSServ(MbedTLSServ):
+    """
+    Generate PSK test command for MbedTLS server
+    """
+
+    def cmd(self):
+
+        ret = super().pre_cmd() + ['force_version=tls13', 'debug_level=5']
+        if self._kex_mode:
+            ret.append('tls13_kex_modes={}'.format(self._kex_mode.name))
+
+        ret.append('$(get_srv_psk_list)')
+
+        if self._named_groups:
+            named_groups = ','.join(self._named_groups)
+            ret += ["curves={named_groups}".format(named_groups=named_groups)]
+        return ret
+
+    def pre_checks(self):
+        configs = ['MBEDTLS_SSL_PROTO_TLS1_3',
+                   'MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE', 'MBEDTLS_SSL_SRV_C', 'MBEDTLS_DEBUG_C']
+        configs += mbedtls_get_kex_config_option(self._kex_mode)
+
+        return ['requires_config_enabled {}'.format(i) for i in configs]
+
+    def post_checks(self, *args, **kwargs):
+        expected_kex_mode = kwargs.get('expected_kex_mode', None)
+        client_kex_mode = kwargs.get('client_kex_mode', None)
+
+        def get_check_char(arg):
+            return 's' if arg else 'S'
+        if client_kex_mode:
+            ret = [
+                '-{} "found psk key exchange modes extension"'.format(
+                    get_check_char(client_kex_mode & KexMode.psk_all)),
+                '-{} "found pre_shared_key extension"'.format(
+                    get_check_char(client_kex_mode & KexMode.psk_all)),
+                '-{} "Found PSK_EPHEMERAL KEX MODE"'.format(
+                    get_check_char(client_kex_mode & KexMode.psk_ephemeral)),
+                '-{} "Found PSK KEX MODE"'.format(
+                    get_check_char(client_kex_mode & KexMode.psk))
+            ]
+        else:
+            ret = []
+        if expected_kex_mode is not None:
+            assert isinstance(expected_kex_mode, KexMode) and expected_kex_mode in (
+                KexMode.psk, KexMode.psk_ephemeral, KexMode.ephemeral), expected_kex_mode
+
+            for i in (KexMode.psk, KexMode.psk_ephemeral, KexMode.ephemeral):
+                ret.append(
+                    '-{} "key exchange mode: {}$"'.format(
+                        get_check_char(i == expected_kex_mode), i.name))
+        return ret
+
+    def select_expected_kex_mode(self, peer_kex_mode):
+        common_kex_mode = KexMode(self._kex_mode & peer_kex_mode)
+        return KexMode(list(filter(lambda a: a != 0, [common_kex_mode & i for i in (
+            KexMode.psk_ephemeral, KexMode.ephemeral, KexMode.psk)]))[0])
+
+
+class PSKMbedTLSCli(MbedTLSCli):
+    """
+    Generate PSK test command for MbedTLS client
+    """
+
+    def cmd(self):
+        identity, psk = list(self._psk_identities)[0]
+
+        ret = super().pre_cmd() + ['debug_level=5']
+
+        if self._kex_mode:
+            if self._kex_mode & KexMode.ephemeral == 0:
+                ret.append('force_version=tls13')
+            ret.append('tls13_kex_modes={}'.format(self._kex_mode.name))
+        else:
+            self._kex_mode = KexMode.all
+
+        ret.append('psk_identity={} psk={}'.format(identity, psk))
+
+        if self._named_groups:
+            named_groups = ','.join(self._named_groups)
+            ret += ["curves={named_groups}".format(named_groups=named_groups)]
+
+        return ret
+
+    def pre_checks(self):
+        configs = ['MBEDTLS_SSL_PROTO_TLS1_3',
+                   'MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE', 'MBEDTLS_SSL_CLI_C', 'MBEDTLS_DEBUG_C']
+        configs += mbedtls_get_kex_config_option(self._kex_mode)
+
+        return ['requires_config_enabled {}'.format(i) for i in configs]
+
+    def post_checks(self, *args, **kwargs):
+        expected_kex_mode = kwargs.get('expected_kex_mode', None)
+        client_kex_mode = kwargs.get('client_kex_mode', None)
+
+        def get_check_char(arg):
+            return 'c' if arg else 'C'
+        if client_kex_mode:
+            ret = [
+                '-{} "found psk key exchange modes extension"'.format(
+                    get_check_char(client_kex_mode & KexMode.psk_all)),
+                '-{} "found pre_shared_key extension"'.format(
+                    get_check_char(client_kex_mode & KexMode.psk_all)),
+                '-{} "Found PSK_EPHEMERAL KEX MODE"'.format(
+                    get_check_char(client_kex_mode & KexMode.psk_ephemeral)),
+                '-{} "Found PSK KEX MODE"'.format(
+                    get_check_char(client_kex_mode & KexMode.psk))
+            ]
+        else:
+            ret = []
+        if expected_kex_mode is not None:
+            assert isinstance(expected_kex_mode, KexMode) and expected_kex_mode in (
+                KexMode.psk, KexMode.psk_ephemeral, KexMode.ephemeral), expected_kex_mode
+
+            for i in (KexMode.psk, KexMode.psk_ephemeral, KexMode.ephemeral):
+                ret.append(
+                    '-{} "key exchange mode: {}$"'.format(
+                        get_check_char(i == expected_kex_mode), i.name))
+        return ret
+

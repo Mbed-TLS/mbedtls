@@ -166,3 +166,89 @@ class TLSProgram:
     def pre_cmd(self):
         return ['false']
 
+
+class OpenSSLBase(TLSProgram):
+    """
+    Generate base test commands for OpenSSL.
+    """
+    PROG_NAME = 'OpenSSL'
+    NAMED_GROUP = {
+        'secp256r1': 'P-256',
+        'secp384r1': 'P-384',
+        'secp521r1': 'P-521',
+        'x25519': 'X25519',
+        'x448': 'X448',
+    }
+
+    SUPPORT_KEX_MODES = [KexMode.ephemeral_all, KexMode.all]
+
+    def get_ciphersuite(self):
+        ret = []
+        if self._ciphers:
+            ciphersuites = ':'.join(self._ciphers)
+            ret += ["-ciphersuites {ciphersuites}".format(
+                ciphersuites=ciphersuites)]
+        return ret
+
+    def get_sig_algs(self):
+        ret = []
+        if self._sig_algs:
+            signature_algorithms = set(self._sig_algs + self._cert_sig_algs)
+            signature_algorithms = ':'.join(signature_algorithms)
+            ret += ["-sigalgs {signature_algorithms}".format(
+                signature_algorithms=signature_algorithms)]
+        return ret
+
+    def get_name_groups(self):
+        ret = []
+        if self._named_groups:
+            named_groups = ':'.join(
+                map(lambda named_group: self.NAMED_GROUP[named_group], self._named_groups))
+            ret += ["-groups {named_groups}".format(named_groups=named_groups)]
+        return ret
+
+    def cmd(self):
+        ret = super().cmd()
+
+        ret += self.get_ciphersuite() + self.get_sig_algs() + self.get_name_groups()
+        if not self._compat_mode:
+            ret += ['-no_middlebox']
+        ret += ['-msg -tls1_3']
+        return ret
+
+    def pre_checks(self):
+        return ["requires_openssl_tls1_3"]
+
+
+class OpenSSLServ(OpenSSLBase):
+    """
+    Generate test commands for OpenSSL server.
+    """
+
+    def cmd(self):
+        ret = super().cmd()
+        ret += ['-num_tickets 0 -no_resume_ephemeral -no_cache']
+        return ret
+
+    def post_checks(self, *args, **kwargs):
+        return ['-c "HTTP/1.0 200 ok"']
+
+    def pre_cmd(self):
+        ret = ['$O_NEXT_SRV_NO_CERT']
+        for _, cert, key in map(lambda sig_alg: CERTIFICATES[sig_alg], self._cert_sig_algs):
+            ret += ['-cert {cert} -key {key}'.format(cert=cert, key=key)]
+        return ret
+
+
+class OpenSSLCli(OpenSSLBase):
+    """
+    Generate test commands for OpenSSL client.
+    """
+
+    def pre_cmd(self):
+        ret = ['$O_NEXT_CLI_NO_CERT']
+        if self._cert_sig_algs:
+            ret.append(
+                '-CAfile {cafile}'.format(cafile=CERTIFICATES[self._cert_sig_algs[0]].cafile))
+        return ret
+

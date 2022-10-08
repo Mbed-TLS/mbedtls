@@ -1353,12 +1353,9 @@ int report_cid_usage( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
-    defined(MBEDTLS_SSL_SESSION_TICKETS) && \
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && \
     defined(MBEDTLS_HAVE_TIME)
-/* Functions for session ticket tests
- *
- */
+/* Functions for session ticket tests */
 int dummy_ticket_write( void *p_ticket, const mbedtls_ssl_session *session,
                         unsigned char *start, const unsigned char *end,
                         size_t *tlen, uint32_t *ticket_lifetime )
@@ -1403,6 +1400,7 @@ int dummy_ticket_parse( void *p_ticket, mbedtls_ssl_session *session,
             return( MBEDTLS_ERR_SSL_INVALID_MAC );
         case 2:
             return( MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED );
+#if defined(MBEDTLS_HAVE_TIME)
         case 3:
             session->start = mbedtls_time( NULL ) + 10;
             break;
@@ -1414,16 +1412,18 @@ int dummy_ticket_parse( void *p_ticket, mbedtls_ssl_session *session,
             break;
         case 6:
             session->start = mbedtls_time( NULL );
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
             session->ticket_age_add -= 1000;
+#endif
             break;
+#endif
         default:
             break;
     }
 
     return( ret );
 }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 &&
-          MBEDTLS_SSL_SESSION_TICKETS &&
+#endif /* MBEDTLS_SSL_SESSION_TICKETS &&
           MBEDTLS_HAVE_TIME */
 
 int main( int argc, char *argv[] )
@@ -3001,9 +3001,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     if( opt.tickets != MBEDTLS_SSL_SESSION_TICKETS_DISABLED )
     {
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
-    defined(MBEDTLS_SSL_SESSION_TICKETS) && \
-    defined(MBEDTLS_HAVE_TIME)
+#if defined(MBEDTLS_HAVE_TIME)
         if( opt.dummy_ticket )
         {
             mbedtls_ssl_conf_session_tickets_cb( &conf,
@@ -3012,9 +3010,7 @@ int main( int argc, char *argv[] )
                     NULL );
         }
         else
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 &&
-          MBEDTLS_SSL_SESSION_TICKETS &&
-          MBEDTLS_HAVE_TIME */
+#endif /* MBEDTLS_HAVE_TIME */
         {
             if( ( ret = mbedtls_ssl_ticket_setup( &ticket_ctx,
                             rng_get, &rng,

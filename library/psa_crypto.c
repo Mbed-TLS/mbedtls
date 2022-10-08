@@ -3787,6 +3787,9 @@ static psa_status_t psa_aead_setup( psa_aead_operation_t *operation,
         .core = slot->attr
     };
 
+    if( ( status = psa_validate_tag_length( alg ) ) != PSA_SUCCESS )
+        goto exit;
+
     if( is_encrypt )
         status = psa_driver_wrapper_aead_encrypt_setup( operation,
                                                         &attributes,
@@ -3800,9 +3803,6 @@ static psa_status_t psa_aead_setup( psa_aead_operation_t *operation,
                                                         slot->key.bytes,
                                                         alg );
     if( status != PSA_SUCCESS )
-        goto exit;
-
-    if( ( status = psa_validate_tag_length( alg ) ) != PSA_SUCCESS )
         goto exit;
 
     operation->key_type = psa_get_key_type( &attributes );

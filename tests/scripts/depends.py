@@ -17,9 +17,53 @@
 #
 # This file is part of Mbed TLS (https://tls.mbed.org)
 
-"""Test Mbed TLS with a subset of algorithms.
 """
+Test Mbed TLS with a subset of algorithms.
 
+This script can be divided into several steps:
+
+First, include/mbedtls/mbedtls_config.h or a different config file passed
+in the arguments is parsed to extract any configuration options (collect_config_symbols).
+
+Then, test domains (groups of jobs, tests) are built based on predefined data
+collected in the DomainData class. Here, each domain has five major traits:
+- domain name, can be used to run only specific tests via commandline;
+- configuration building method, described in detail below;
+- list of symbols passed to the configuration building method;
+- commands to be run on each job (only build, build and test, or any other custom);
+- optional list of symbols to be excluded from testing.
+
+The configuration building method can be one of the three following:
+
+- ComplementaryDomain - build a job for each passed symbol by disabling a single
+  symbol and its reverse dependencies (defined in REVERSE_DEPENDENCIES);
+
+- ExclusiveDomain - build a job where, for each passed symbol, only this particular
+  one is defined and other symbols from the list are unset. For each job look for
+  any non-standard symbols to set/unset in EXCLUSIVE_GROUPS. These are usually not
+  direct dependencies, but rather non-trivial results of other configs missing. Then
+  look for any unset symbols and handle their reverse dependencies.
+  Examples of EXCLUSIVE_GROUPS usage:
+  - MBEDTLS_SHA224 job turns off all hashes except SHA224, however, when investigating
+    reverse dependencies, SHA256 is found to depend on SHA224, so it is disabled,
+    and then SHA224 is found to depend on SHA256, so it is also disabled. To handle
+    this, there's a field in EXCLUSIVE_GROUPS that states that in a SHA224 test SHA256
+    should also be enabled before processing reverse dependencies:
+    'MBEDTLS_SHA224_C': ['MBEDTLS_SHA256_C']
+  - MBEDTLS_SHA512_C job turns off all hashes except SHA512. MBEDTLS_SSL_COOKIE_C
+    requires either SHA256 or SHA384 to work, so it also has to be disabled.
+    This is not a dependency on SHA512_C, but a result of an exclusive domain
+    config building method. Relevant field:
+    'MBEDTLS_SHA512_C': ['!MBEDTLS_SSL_COOKIE_C'],
+
+- DualDomain - combination of the two above - both complementary and exclusive domain
+  job generation code will be run. Currently only used for hashes.
+
+Lastly, the collected jobs are executed and (optionally) tested, with
+error reporting and coloring as configured in options. Each test starts with
+a full config without a couple of slowing down or unnecessary options
+(see set_reference_config), then the specific job config is derived.
+"""
 import argparse
 import os
 import re
@@ -239,7 +283,7 @@ REVERSE_DEPENDENCIES = {
 }
 
 # If an option is tested in an exclusive test, alter the following defines.
-# These are not neccesarily dependencies, but just minimal required changes
+# These are not necessarily dependencies, but just minimal required changes
 # if a given define is the only one enabled from an exclusive group.
 EXCLUSIVE_GROUPS = {
     'MBEDTLS_SHA224_C': ['MBEDTLS_SHA256_C'],
@@ -464,7 +508,14 @@ Run the jobs listed in options.domains."""
 
 def main():
     try:
-        parser = argparse.ArgumentParser(description=__doc__)
+        parser = argparse.ArgumentParser(
+            formatter_class=argparse.RawDescriptionHelpFormatter,
+            description=
+            "Test Mbed TLS with a subset of algorithms.\n\n"
+            "Example usage:\n"
+            r"./tests/scripts/depends.py \!MBEDTLS_SHA1_C MBEDTLS_SHA224_C""\n"
+            "./tests/scripts/depends.py MBEDTLS_AES_C hashes\n"
+            "./tests/scripts/depends.py cipher_id cipher_chaining\n")
         parser.add_argument('--color', metavar='WHEN',
                             help='Colorize the output (always/auto/never)',
                             choices=['always', 'auto', 'never'], default='auto')

@@ -441,28 +441,28 @@ mpi_lsb:"24":2
 Base test mbedtls_mpi_lsb #4
 mpi_lsb:"2000":13
 
-Base test mbedtls_mpi_bitlen #1
+Test mbedtls_mpi_bitlen 764-bit
 mpi_bitlen:"941379d00fed1491fe15df284dfde4a142f68aa8d412023195cee66883e6290ffe703f4ea5963bf212713cee46b107c09182b5edcd955adac418bf4918e2889af48e1099d513830cec85c26ac1e158b52620e33ba8692f893efbb2f958b4424":764
 
-Base test mbedtls_mpi_bitlen #2
+Test mbedtls_mpi_bitlen 0x18
 mpi_bitlen:"18":5
 
-Base test mbedtls_mpi_bitlen #3
+Test mbedtls_mpi_bitlen 0x01
 mpi_bitlen:"1":1
 
-Base test mbedtls_mpi_bitlen #4
+Test mbedtls_mpi_bitlen 0x0f
 mpi_bitlen:"f":4
 
-Base test mbedtls_mpi_bitlen #5
+Test mbedtls_mpi_bitlen 0x10
 mpi_bitlen:"10":5
 
-Base test mbedtls_mpi_bitlen #6
+Test mbedtls_mpi_bitlen 0x0a
 mpi_bitlen:"a":4
 
-Base test mbedtls_mpi_bitlen: 0 (null)
+Test mbedtls_mpi_bitlen: 0 (null)
 mpi_bitlen:"":0
 
-Base test mbedtls_mpi_bitlen: 0 (1 limb)
+Test mbedtls_mpi_bitlen: 0 (1 limb)
 mpi_bitlen:"0":0
 
 Base test mbedtls_mpi_cmp_int #1

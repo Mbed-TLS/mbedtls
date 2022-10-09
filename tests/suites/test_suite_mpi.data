@@ -447,6 +447,12 @@ mpi_bitlen:"941379d00fed1491fe15df284dfde4a142f68aa8d412023195cee66883e6290ffe70
 Test mbedtls_mpi_bitlen 0x18
 mpi_bitlen:"18":5
 
+Test mbedtls_mpi_bitlen 0x18 with leading 0 limb(s)
+mpi_bitlen:"00000000000000018":5
+
+Test mbedtls_mpi_bitlen 0x18 << 64
+mpi_bitlen:"180000000000000000":69
+
 Test mbedtls_mpi_bitlen 0x01
 mpi_bitlen:"1":1
 
@@ -464,6 +470,9 @@ mpi_bitlen:"":0
 
 Test mbedtls_mpi_bitlen: 0 (1 limb)
 mpi_bitlen:"0":0
+
+Test mbedtls_mpi_bitlen: -0x18
+mpi_bitlen:"-18":5
 
 Base test mbedtls_mpi_cmp_int #1
 mpi_cmp_int:693:693:0

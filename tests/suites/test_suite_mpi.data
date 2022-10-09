@@ -595,13 +595,13 @@ Test mbedtls_mpi_cmp_mpi: large negative < 0 (1 limb)
 mpi_cmp_mpi:"-1230000000000000000":"0":-1
 
 mbedtls_mpi_core_lt_ct: x=y (1 limb)
-mpi_core_lt_ct:"02B5":"02B5":0
+mpi_core_lt_ct:"2B5":"2B5":0
 
 mbedtls_mpi_core_lt_ct: x>y (1 limb)
-mpi_core_lt_ct:"02B5":"02B4":0
+mpi_core_lt_ct:"2B5":"2B4":0
 
 mbedtls_mpi_core_lt_ct: x<y (1 limb)
-mpi_core_lt_ct:"02B5":"02B6":1
+mpi_core_lt_ct:"2B5":"2B6":1
 
 mbedtls_mpi_core_lt_ct: x=y (0 limbs)
 mpi_core_lt_ct:"":"":0
@@ -667,7 +667,7 @@ mbedtls_mpi_core_lt_ct: x<y (32 bit y, first bytes equal)
 mpi_core_lt_ct:"000000FF":"FFFFFFFF":1
 
 mbedtls_mpi_core_lt_ct: x<y, zero vs non-zero MS limb
-mpi_core_lt_ct:"00FFFFFFFFFFFFFFFF":"01FFFFFFFFFFFFFFFF":1
+mpi_core_lt_ct:"0FFFFFFFFFFFFFFFF":"1FFFFFFFFFFFFFFFF":1
 
 mbedtls_mpi_core_lt_ct: x>y, equal MS limbs
 mpi_core_lt_ct:"EEFFFFFFFFFFFFFFFF":"EEFFFFFFFFFFFFFFF1":0

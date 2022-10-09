@@ -728,7 +728,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mpi_core_lt_ct( data_t * input_X, data_t * input_Y, int exp_ret )
+void mpi_core_lt_ct( char *input_X, char *input_Y, int exp_ret )
 {
     mbedtls_mpi_uint *X = NULL;
     size_t X_limbs;

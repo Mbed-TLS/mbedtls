@@ -2201,6 +2201,10 @@ static inline int mbedtls_ssl_tls13_sig_alg_is_supported(
     return( 1 );
 }
 
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+int mbedtls_ssl_session_set_hostname( mbedtls_ssl_session *ssl,
+                                      const char *hostname );
+#endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)

@@ -2484,39 +2484,6 @@ int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname )
 
     return( 0 );
 }
-
-int mbedtls_ssl_reset_hostname( mbedtls_ssl_context *ssl,
-                                const char *hostname,
-                                const char *rec_hostname )
-{
-    /* Initialize to suppress unnecessary compiler warning */
-    size_t rec_hostname_len = 0;
-
-    if( hostname == NULL || rec_hostname == NULL )
-        return( 0 );
-
-    rec_hostname_len = strlen( rec_hostname );
-    if( rec_hostname_len > MBEDTLS_SSL_MAX_HOST_NAME_LEN )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-
-    if( rec_hostname_len == strlen( hostname ) &&
-        memcmp( hostname, rec_hostname, rec_hostname_len ) == 0 )
-        return( 0 );
-
-    if( ssl->hostname != NULL )
-    {
-        mbedtls_platform_zeroize( ssl->hostname, strlen( ssl->hostname ) );
-        mbedtls_free( ssl->hostname );
-        ssl->hostname = NULL;
-        ssl->hostname = mbedtls_calloc( 1, rec_hostname_len + 1 );
-        if( ssl->hostname == NULL )
-            return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
-        memcpy( ssl->hostname, rec_hostname, rec_hostname_len );
-        ssl->hostname[rec_hostname_len] = '\0';
-    }
-
-    return( 0 );
-}
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)

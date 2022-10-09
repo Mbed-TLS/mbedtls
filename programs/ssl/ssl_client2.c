@@ -3119,10 +3119,10 @@ reconnect:
         }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-        if( ( ret = mbedtls_ssl_reset_hostname( &ssl, opt.server_name,
+        if( ( ret = mbedtls_ssl_set_hostname( &ssl,
                                                 opt.reco_server_name ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_reset_hostname returned %d\n\n",
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hostname returned %d\n\n",
                             ret );
             goto exit;
         }

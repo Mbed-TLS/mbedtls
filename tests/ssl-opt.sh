@@ -12909,7 +12909,7 @@ run_test    "TLS 1.3: NewSessionTicket: servername negative check, m->m" \
             -c "got new session ticket." \
             -c "Saving session for reuse... ok" \
             -c "Reconnecting with saved session" \
-            -c "hostname mismatch the session ticker, should not resume"    \
+            -c "hostname mismatch the session ticket, should not resume"    \
             -s "=> write NewSessionTicket msg" \
             -s "server state: MBEDTLS_SSL_NEW_SESSION_TICKET" \
             -s "server state: MBEDTLS_SSL_NEW_SESSION_TICKET_FLUSH"

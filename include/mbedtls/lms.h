@@ -228,9 +228,15 @@ typedef struct {
     uint32_t MBEDTLS_PRIVATE(q_next_usable_key); /*!< The index of the next OTS key that has not
                                                       been used. */
     mbedtls_lmots_private_t *MBEDTLS_PRIVATE(ots_private_keys); /*!< The private key material. One OTS key
-                                                              for each leaf node in the Merkle tree. */
+                                                              for each leaf node in the Merkle tree. NULL
+                                                              when have_private_key is 0 and non-NULL otherwise.
+                                                              is 2^MBEDTLS_LMS_H_TREE_HEIGHT(type) in length. */
     mbedtls_lmots_public_t *MBEDTLS_PRIVATE(ots_public_keys); /*!< The OTS key public keys, used to
-                                                                   build the Merkle tree. */
+                                                                   build the Merkle tree. NULL
+                                                                   when have_private_key is 0 and
+                                                                   non-NULL otherwise.
+                                                                   Is 2^MBEDTLS_LMS_H_TREE_HEIGHT(type)
+                                                                   in length. */
     unsigned char MBEDTLS_PRIVATE(have_private_key); /*!< Whether the context contains a private key.
                                                      Boolean values only. */
 } mbedtls_lms_private_t;

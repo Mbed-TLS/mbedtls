@@ -58,6 +58,13 @@
 #include "mbedtls/bignum.h"
 #endif
 
+/** The type of test case arguments that contain binary data. */
+typedef struct data_tag
+{
+    uint8_t *   x;
+    uint32_t    len;
+} data_t;
+
 typedef enum
 {
     MBEDTLS_TEST_RESULT_SUCCESS = 0,
@@ -379,7 +386,6 @@ void mbedtls_test_err_add_check( int high, int low,
  *
  * \return \c 0 on success, an \c MBEDTLS_ERR_MPI_xxx error code otherwise.
  */
-/* Since the library has exactly the desired behavior, this is trivial. */
 int mbedtls_test_read_mpi( mbedtls_mpi *X, const char *s );
 #endif /* MBEDTLS_BIGNUM_C */
 

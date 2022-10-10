@@ -902,7 +902,6 @@ void mpi_mod_raw_cond_assign( data_t * input_X,
                               int input_len,
                               int is_fail )
 {
-    #define MAX_LEN 64
     mbedtls_mpi_uint *X = NULL;
     mbedtls_mpi_uint *Y = NULL;
     mbedtls_mpi_uint *buff_m = NULL;

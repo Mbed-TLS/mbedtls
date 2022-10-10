@@ -1154,7 +1154,7 @@ do_run_test_once() {
 
     if [ -n "$PXY_CMD" ]; then
         kill $PXY_PID >/dev/null 2>&1
-        wait $PXY_PID
+        wait $PXY_PID >> $PXY_OUT 2>&1
     fi
 }
 

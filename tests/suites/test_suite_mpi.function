@@ -766,8 +766,7 @@ exit:
 /* BEGIN_CASE */
 void mpi_core_cond_assign( data_t * input_X,
                            data_t * input_Y,
-                           int input_len,
-                           int is_fail )
+                           int input_len )
 {
     mbedtls_mpi_uint *X = NULL;
     mbedtls_mpi_uint *Y = NULL;
@@ -776,6 +775,7 @@ void mpi_core_cond_assign( data_t * input_X,
     size_t limbs = limbs_X;
     size_t copy_limbs = CHARS_TO_LIMBS( input_len );
     size_t len = limbs * sizeof( mbedtls_mpi_uint );
+    size_t copy_len = copy_limbs * sizeof( mbedtls_mpi_uint );
 
     TEST_EQUAL( limbs_X, limbs_Y );
     TEST_ASSERT( copy_limbs <= limbs );
@@ -809,8 +809,13 @@ void mpi_core_cond_assign( data_t * input_X,
     TEST_CF_PUBLIC( X, len );
     TEST_CF_PUBLIC( Y, len );
 
-    if( is_fail )
+    /* Check if the given length is copied even it is smaller
+       than the length of the given MPIs. */
+    if( copy_limbs != limbs )
+    {
+        ASSERT_COMPARE( X, copy_len, Y, copy_len );
         TEST_ASSERT( memcmp( X, Y, len ) != 0 );
+    }
     else
         ASSERT_COMPARE( X, len, Y, len );
 
@@ -823,8 +828,7 @@ exit:
 /* BEGIN_CASE */
 void mpi_core_cond_swap( data_t * input_X,
                          data_t * input_Y,
-                         int input_len,
-                         int is_fail )
+                         int input_len )
 {
     mbedtls_mpi_uint *tmp_X = NULL;
     mbedtls_mpi_uint *tmp_Y = NULL;
@@ -835,6 +839,7 @@ void mpi_core_cond_swap( data_t * input_X,
     size_t limbs = limbs_X;
     size_t copy_limbs = CHARS_TO_LIMBS( input_len );
     size_t len = limbs * sizeof( mbedtls_mpi_uint );
+    size_t copy_len = copy_limbs * sizeof( mbedtls_mpi_uint );
 
     TEST_EQUAL( limbs_X, limbs_Y );
     TEST_ASSERT( copy_limbs <= limbs );
@@ -875,8 +880,12 @@ void mpi_core_cond_swap( data_t * input_X,
     TEST_CF_PUBLIC( X, len );
     TEST_CF_PUBLIC( Y, len );
 
-    if( is_fail )
+    /* Check if the given length is copied even it is smaller
+       than the length of the given MPIs. */
+    if( copy_limbs != limbs )
     {
+        ASSERT_COMPARE( X, copy_len, tmp_Y, copy_len );
+        ASSERT_COMPARE( Y, copy_len, tmp_X, copy_len );
         TEST_ASSERT( memcmp( X, tmp_X, len ) != 0 );
         TEST_ASSERT( memcmp( X, tmp_Y, len ) != 0 );
         TEST_ASSERT( memcmp( Y, tmp_X, len ) != 0 );
@@ -899,8 +908,7 @@ exit:
 /* BEGIN_CASE */
 void mpi_mod_raw_cond_assign( data_t * input_X,
                               data_t * input_Y,
-                              int input_len,
-                              int is_fail )
+                              int input_len )
 {
     mbedtls_mpi_uint *X = NULL;
     mbedtls_mpi_uint *Y = NULL;
@@ -911,6 +919,7 @@ void mpi_mod_raw_cond_assign( data_t * input_X,
     size_t limbs = limbs_X;
     size_t copy_limbs = CHARS_TO_LIMBS( input_len );
     size_t len = limbs * sizeof( mbedtls_mpi_uint );
+    size_t copy_len = copy_limbs * sizeof( mbedtls_mpi_uint );
 
     TEST_EQUAL( limbs_X, limbs_Y );
     TEST_ASSERT( copy_limbs <= limbs );
@@ -954,8 +963,13 @@ void mpi_mod_raw_cond_assign( data_t * input_X,
     TEST_CF_PUBLIC( X, len );
     TEST_CF_PUBLIC( Y, len );
 
-    if( is_fail )
+    /* Check if the given length is copied even it is smaller
+       than the length of the given MPIs. */
+    if( copy_limbs != limbs )
+    {
+        ASSERT_COMPARE( X, copy_len, Y, copy_len );
         TEST_ASSERT( memcmp( X, Y, len ) != 0 );
+    }
     else
         ASSERT_COMPARE( X, len, Y, len );
 
@@ -971,8 +985,7 @@ exit:
 /* BEGIN_CASE */
 void mpi_mod_raw_cond_swap( data_t * input_X,
                             data_t * input_Y,
-                            int input_len,
-                            int is_fail )
+                            int input_len )
 {
     mbedtls_mpi_uint *tmp_X = NULL;
     mbedtls_mpi_uint *tmp_Y = NULL;
@@ -985,6 +998,7 @@ void mpi_mod_raw_cond_swap( data_t * input_X,
     size_t limbs = limbs_X;
     size_t copy_limbs = CHARS_TO_LIMBS( input_len );
     size_t len = limbs * sizeof( mbedtls_mpi_uint );
+    size_t copy_len = copy_limbs * sizeof( mbedtls_mpi_uint );
 
     TEST_EQUAL( limbs_X, limbs_Y );
     TEST_ASSERT( copy_limbs <= limbs );
@@ -1031,8 +1045,12 @@ void mpi_mod_raw_cond_swap( data_t * input_X,
     TEST_CF_PUBLIC( X, len );
     TEST_CF_PUBLIC( Y, len );
 
-    if( is_fail )
+    /* Check if the given length is copied even it is smaller
+       than the length of the given MPIs. */
+    if( copy_limbs != limbs )
     {
+        ASSERT_COMPARE( X, copy_len, tmp_Y, copy_len );
+        ASSERT_COMPARE( Y, copy_len, tmp_X, copy_len );
         TEST_ASSERT( memcmp( X, tmp_X, len ) != 0 );
         TEST_ASSERT( memcmp( X, tmp_Y, len ) != 0 );
         TEST_ASSERT( memcmp( Y, tmp_X, len ) != 0 );

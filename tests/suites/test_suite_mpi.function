@@ -2173,14 +2173,14 @@ exit:
 
 /* BEGIN_CASE */
 void mpi_get_montgomery_constant_unsafe( char * input_N,
-                                        char * input_rr )
+                                         char * input_rr )
 {
     
-    mbedtls_mpi N, RR;
-    const mbedtls_mpi_uint *rr = NULL;
+    mbedtls_mpi N, RR, RR2;
 
     mbedtls_mpi_init( &N );
     mbedtls_mpi_init( &RR );
+    mbedtls_mpi_init( &RR2 );
 
     /* Read inputs */
     TEST_EQUAL( 0, mbedtls_test_read_mpi( &N, input_N ) );
@@ -2190,26 +2190,20 @@ void mpi_get_montgomery_constant_unsafe( char * input_N,
     TEST_EQUAL( 1, N.s );
     TEST_EQUAL( 1, RR.s );
 
-    /* Expect failure with invalid inputs */
-    TEST_EQUAL( MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED,
-                mbedtls_mpi_set_montgomery_constant_unsafe( &rr, NULL, N.n ) );
-
-    TEST_EQUAL( MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED,
-               mbedtls_mpi_set_montgomery_constant_unsafe( &rr, N.p, 0 ) );
-
-    /* Test valid input */
-    TEST_EQUAL( 0, mbedtls_mpi_set_montgomery_constant_unsafe( &rr, N.p, N.n ) );
+    /* Test valid inputs */
+    TEST_EQUAL( 0, mbedtls_mpi_get_montgomery_constant_unsafe( &RR2, &N ) );
 
     /* rr is updated to a valid pointer */
-    TEST_ASSERT( rr != NULL ); 
+    TEST_ASSERT( RR2.p != NULL ); 
 
     /* Calculated rr matches expected value */
     size_t bytes = RR.n * sizeof(mbedtls_mpi_uint);
-    ASSERT_COMPARE( rr, bytes, RR.p, bytes );
+    ASSERT_COMPARE( RR2.p, bytes, RR.p, bytes );
 
 exit:
     mbedtls_mpi_free( &N );
     mbedtls_mpi_free( &RR );
+    mbedtls_mpi_free( &RR2 );
 }
 /* END_CASE */
 

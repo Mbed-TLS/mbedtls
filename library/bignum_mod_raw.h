@@ -76,26 +76,6 @@ int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *A,
                                unsigned char *output,
                                size_t output_length );
 
-/**
- * \brief Calculate and set initialisation value for fast Montgomery modular
- *        multiplication.
- * 
- * \param[out] X  A pointer to the result of the calculation.
- *                The output will be written to freshly allocated memory and the 
- *                \p X (m->rep.mont.rr) will be set to point to it.
- * \param[in] A   The address of the MPI. It must have at least as many limbs as
- *                specified in \p limbs)
- * \param limbs   The length in size_t limbs for mpi provided in \p A. Maximum
- *                allowed value is (MBEDTLS_MPI_MAX_LIMBS / 2) - 2.
- * 
- * \return        0 if successful. 
- * \return        #MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED if \p limbs isn't
- *                large enough to hold the value of \p A or \p A is NULL.
- */
-int mbedtls_mpi_set_montgomery_constant_unsafe( const mbedtls_mpi_uint **X,
-                                                const mbedtls_mpi_uint *A,
-                                                size_t limbs );
-
 /** Convert from internal to public (little endian) data presentation
  *
  * \param X      The address of the MPI.

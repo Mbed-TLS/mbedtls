@@ -290,4 +290,18 @@ void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
                                const mbedtls_mpi_uint *N, size_t AN_limbs,
                                mbedtls_mpi_uint mm, mbedtls_mpi_uint *T );
 
+/**
+ * \brief Calculate the Montgomery constant squared
+ * 
+ * \param[out] X  A pointer to the result of the calculation.
+ * \param[in]  N  Little-endian presentation of the modulus. This must have
+ *                at least one limb.
+ * 
+ * \return        0 if successful. 
+ * \return        #MBEDTLS_ERR_MPI_ALLOC_FAILED if there is not enough space
+ *                to store the value of montgomery constant squared
+ * \return        #MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED if other checks fail.
+ */
+int mbedtls_mpi_get_montgomery_constant_unsafe( mbedtls_mpi *X, mbedtls_mpi const *N );
+
 #endif /* MBEDTLS_BIGNUM_CORE_H */

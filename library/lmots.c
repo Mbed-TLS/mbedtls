@@ -60,9 +60,6 @@
 #define J_HASH_IDX_LEN         (1)
 #define D_CONST_LEN            (2)
 
-/* Currently only defined for SHA256, 32 is the max hash output size */
-#define C_RANDOM_VALUE_LEN_MAX (MBEDTLS_LMOTS_N_HASH_LEN_MAX)
-
 #define DIGIT_MAX_VALUE        ((1u << W_WINTERNITZ_PARAMETER) - 1u)
 
 #define D_CONST_LEN            (2)
@@ -731,7 +728,7 @@ int mbedtls_lmots_sign( mbedtls_lmots_private_t *ctx,
      * key.
      */
     unsigned char tmp_sig[MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT_MAX][MBEDTLS_LMOTS_N_HASH_LEN_MAX];
-    unsigned char tmp_c_random[C_RANDOM_VALUE_LEN_MAX];
+    unsigned char tmp_c_random[MBEDTLS_LMOTS_N_HASH_LEN_MAX];
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     if( msg == NULL && msg_size != 0 )

@@ -777,7 +777,7 @@ void mpi_core_cond_assign( data_t * input_X,
     size_t copy_limbs = CHARS_TO_LIMBS( input_len );
     size_t len = limbs * sizeof( mbedtls_mpi_uint );
 
-    TEST_ASSERT( limbs_X == limbs_Y );
+    TEST_EQUAL( limbs_X, limbs_Y );
     TEST_ASSERT( copy_limbs <= limbs );
 
     ASSERT_ALLOC( X, len );
@@ -836,7 +836,7 @@ void mpi_core_cond_swap( data_t * input_X,
     size_t copy_limbs = CHARS_TO_LIMBS( input_len );
     size_t len = limbs * sizeof( mbedtls_mpi_uint );
 
-    TEST_ASSERT( limbs_X == limbs_Y );
+    TEST_EQUAL( limbs_X, limbs_Y );
     TEST_ASSERT( copy_limbs <= limbs );
 
     ASSERT_ALLOC( tmp_X, len );
@@ -912,7 +912,7 @@ void mpi_mod_raw_cond_assign( data_t * input_X,
     size_t copy_limbs = CHARS_TO_LIMBS( input_len );
     size_t len = limbs * sizeof( mbedtls_mpi_uint );
 
-    TEST_ASSERT( limbs_X == limbs_Y );
+    TEST_EQUAL( limbs_X, limbs_Y );
     TEST_ASSERT( copy_limbs <= limbs );
 
     ASSERT_ALLOC( X, len );
@@ -986,7 +986,7 @@ void mpi_mod_raw_cond_swap( data_t * input_X,
     size_t copy_limbs = CHARS_TO_LIMBS( input_len );
     size_t len = limbs * sizeof( mbedtls_mpi_uint );
 
-    TEST_ASSERT( limbs_X == limbs_Y );
+    TEST_EQUAL( limbs_X, limbs_Y );
     TEST_ASSERT( copy_limbs <= limbs );
 
     ASSERT_ALLOC( tmp_X, len );

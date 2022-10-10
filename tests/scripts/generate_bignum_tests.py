@@ -31,7 +31,7 @@ following:
         function.
   - arguments(): a method to generate the list of arguments required for the
         test_function.
-  - generate_function_test(): a method to generate TestCases for the function.
+  - generate_function_tests(): a method to generate TestCases for the function.
         This should create instances of the class with required input data, and
         call `.create_test_case()` to yield the TestCase.
 

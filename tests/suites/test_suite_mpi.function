@@ -728,38 +728,29 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mpi_core_lt_ct( data_t * input_X, data_t * input_Y, int input_ret )
+void mpi_core_lt_ct( data_t * input_X, data_t * input_Y, int exp_ret )
 {
-    #define MAX_LEN 64
-    mbedtls_mpi_uint X[MAX_LEN];
-    mbedtls_mpi_uint Y[MAX_LEN];
-    unsigned exp_ret = input_ret;
-    unsigned ret;
-    size_t len = CHARS_TO_LIMBS(
-                    input_X->len > input_Y->len ? input_X->len : input_Y->len );
+    mbedtls_mpi_uint *X = NULL;
+    size_t X_limbs;
+    mbedtls_mpi_uint *Y = NULL;
+    size_t Y_limbs;
+    int ret;
 
-    TEST_LE_U( len, MAX_LEN );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &X, &X_limbs, input_X ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &Y, &Y_limbs, input_Y ) );
 
-    TEST_ASSERT( mbedtls_mpi_core_read_be( X, len, input_X->x, input_X->len )
-                 == 0 );
-    TEST_ASSERT( mbedtls_mpi_core_read_be( Y, len, input_Y->x, input_Y->len )
-                 == 0 );
+    /* We need two same-length limb arrays */
+    TEST_EQUAL( X_limbs, Y_limbs );
 
-    TEST_CF_SECRET( X, len * sizeof( mbedtls_mpi_uint ) );
-    TEST_CF_SECRET( Y, len * sizeof( mbedtls_mpi_uint ) );
+    TEST_CF_SECRET( X, X_limbs * sizeof( mbedtls_mpi_uint ) );
+    TEST_CF_SECRET( Y, X_limbs * sizeof( mbedtls_mpi_uint ) );
 
-    ret = mbedtls_mpi_core_lt_ct( X, Y, len );
-
-    TEST_CF_PUBLIC( X, len * sizeof( mbedtls_mpi_uint ) );
-    TEST_CF_PUBLIC( Y, len * sizeof( mbedtls_mpi_uint ) );
-    TEST_CF_PUBLIC( &ret, sizeof( ret ) );
-
+    ret = mbedtls_mpi_core_lt_ct( X, Y, X_limbs );
     TEST_EQUAL( ret, exp_ret );
 
 exit:
-    ;
-
-    #undef MAX_LEN
+    mbedtls_free( X );
+    mbedtls_free( Y );
 }
 /* END_CASE */
 

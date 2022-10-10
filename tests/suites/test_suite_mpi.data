@@ -607,10 +607,10 @@ mbedtls_mpi_core_lt_ct: x=y (0 limbs)
 mpi_core_lt_ct:"":"":0
 
 mbedtls_mpi_core_lt_ct: x>y (63 bit x, y first byte greater)
-mpi_core_lt_ct:"7FFFFFFFFFFFFFFF":"FF":0
+mpi_core_lt_ct:"7FFFFFFFFFFFFFFF":"00000000000000FF":0
 
 mbedtls_mpi_core_lt_ct: x<y (63 bit y, x first byte greater)
-mpi_core_lt_ct:"FF":"7FFFFFFFFFFFFFFF":1
+mpi_core_lt_ct:"00000000000000FF":"7FFFFFFFFFFFFFFF":1
 
 mbedtls_mpi_core_lt_ct: x>y (64 bit x, y=x-1)
 mpi_core_lt_ct:"8000000000000000":"7FFFFFFFFFFFFFFF":0
@@ -619,28 +619,28 @@ mbedtls_mpi_core_lt_ct: x<y (64 bit y, x=y-1)
 mpi_core_lt_ct:"7FFFFFFFFFFFFFFF":"8000000000000000":1
 
 mbedtls_mpi_core_lt_ct: x>y (64 bit x, y=1)
-mpi_core_lt_ct:"8000000000000000":"01":0
+mpi_core_lt_ct:"8000000000000000":"0000000000000001":0
 
 mbedtls_mpi_core_lt_ct: x<y (64 bit y, x=1)
-mpi_core_lt_ct:"01":"8000000000000000":1
+mpi_core_lt_ct:"0000000000000001":"8000000000000000":1
 
 mbedtls_mpi_core_lt_ct: x>y (64 bit x, y=0)
-mpi_core_lt_ct:"8000000000000000":"00":0
+mpi_core_lt_ct:"8000000000000000":"0000000000000000":0
 
 mbedtls_mpi_core_lt_ct: x<y (64 bit y, x=0)
-mpi_core_lt_ct:"00":"8000000000000000":1
+mpi_core_lt_ct:"0000000000000000":"8000000000000000":1
 
 mbedtls_mpi_core_lt_ct: x>y (64 bit x, first bytes equal)
-mpi_core_lt_ct:"FFFFFFFFFFFFFFFF":"FF":0
+mpi_core_lt_ct:"FFFFFFFFFFFFFFFF":"00000000000000FF":0
 
 mbedtls_mpi_core_lt_ct: x<y (64 bit y, first bytes equal)
-mpi_core_lt_ct:"FF":"FFFFFFFFFFFFFFFF":1
+mpi_core_lt_ct:"00000000000000FF":"FFFFFFFFFFFFFFFF":1
 
 mbedtls_mpi_core_lt_ct: x>y (31 bit x, y first byte greater)
-mpi_core_lt_ct:"7FFFFFFF":"FF":0
+mpi_core_lt_ct:"7FFFFFFF":"000000FF":0
 
 mbedtls_mpi_core_lt_ct: x<y (31 bit y, x first byte greater)
-mpi_core_lt_ct:"FF":"7FFFFFFF":1
+mpi_core_lt_ct:"000000FF":"7FFFFFFF":1
 
 mbedtls_mpi_core_lt_ct: x>y (32 bit x, y=x-1)
 mpi_core_lt_ct:"80000000":"7FFFFFFF":0
@@ -649,22 +649,22 @@ mbedtls_mpi_core_lt_ct: x<y (32 bit y, x=y-1)
 mpi_core_lt_ct:"7FFFFFFF":"80000000":1
 
 mbedtls_mpi_core_lt_ct: x>y (32 bit x, y=1)
-mpi_core_lt_ct:"80000000":"01":0
+mpi_core_lt_ct:"80000000":"00000001":0
 
 mbedtls_mpi_core_lt_ct: x<y (32 bit y, x=1)
-mpi_core_lt_ct:"01":"80000000":1
+mpi_core_lt_ct:"00000001":"80000000":1
 
 mbedtls_mpi_core_lt_ct: x>y (32 bit x, y=0)
-mpi_core_lt_ct:"80000000":"00":0
+mpi_core_lt_ct:"80000000":"00000000":0
 
 mbedtls_mpi_core_lt_ct: x<y (32 bit y, x=0)
-mpi_core_lt_ct:"00":"80000000":1
+mpi_core_lt_ct:"00000000":"80000000":1
 
 mbedtls_mpi_core_lt_ct: x>y (32 bit x, first bytes equal)
-mpi_core_lt_ct:"FFFFFFFF":"FF":0
+mpi_core_lt_ct:"FFFFFFFF":"000000FF":0
 
 mbedtls_mpi_core_lt_ct: x<y (32 bit y, first bytes equal)
-mpi_core_lt_ct:"FF":"FFFFFFFF":1
+mpi_core_lt_ct:"000000FF":"FFFFFFFF":1
 
 mbedtls_mpi_core_lt_ct: x<y, zero vs non-zero MS limb
 mpi_core_lt_ct:"00FFFFFFFFFFFFFFFF":"01FFFFFFFFFFFFFFFF":1

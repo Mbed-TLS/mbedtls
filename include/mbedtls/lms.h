@@ -347,7 +347,8 @@ void mbedtls_lms_private_free( mbedtls_lms_private_t *ctx );
  *
  * \warning                  This function is **not intended for use in
  *                           production**, due to as-yet unsolved problems with
- *                           handling stateful keys.
+ *                           handling stateful keys. The API for this function
+ *                           may change considerably in future versions.
  *
  * \note                     The seed must have at least 256 bits of entropy.
  *
@@ -398,7 +399,8 @@ int mbedtls_lms_calculate_public_key( mbedtls_lms_public_t *ctx,
  *
  * \warning                  This function is **not intended for use in
  *                           production**, due to as-yet unsolved problems with
- *                           handling stateful keys.
+ *                           handling stateful keys. The API for this function
+ *                           may change considerably in future versions.
  *
  * \note                     Before this function is called, the context must
  *                           have been initialized and must contain a private

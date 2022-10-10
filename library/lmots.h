@@ -190,7 +190,8 @@ int mbedtls_lmots_calculate_public_key_candidate( const mbedtls_lmots_parameters
  *
  * \warning                  This function is **not intended for use in
  *                           production**, due to as-yet unsolved problems with
- *                           handling stateful keys.
+ *                           handling stateful keys. The API for this function
+ *                           may change considerably in future versions.
  *
  * \note                     Before this function is called, the context must
  *                           have been initialized and must contain a public key
@@ -237,7 +238,8 @@ void mbedtls_lmots_private_free( mbedtls_lmots_private_t *ctx );
  *
  * \warning                  This function is **not intended for use in
  *                           production**, due to as-yet unsolved problems with
- *                           handling stateful keys.
+ *                           handling stateful keys. The API for this function
+ *                           may change considerably in future versions.
  *
  * \note                     The seed must have at least 256 bits of entropy.
  *

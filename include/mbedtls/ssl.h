@@ -1202,7 +1202,6 @@ struct mbedtls_ssl_session
 
     uint8_t MBEDTLS_PRIVATE(endpoint);          /*!< 0: client, 1: server */
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    size_t MBEDTLS_PRIVATE(hostname_len);            /*!< host_name length */
     char *MBEDTLS_PRIVATE(hostname);             /*!< host name binded with tickets */
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */

@@ -713,6 +713,51 @@ static int ssl_generate_random( mbedtls_ssl_context *ssl )
                             MBEDTLS_CLIENT_HELLO_RANDOM_LEN - gmt_unix_time_len );
     return( ret );
 }
+
+static int ssl_session_set_hostname( mbedtls_ssl_session *session,
+                                     const char *hostname )
+{
+    /* Initialize to suppress unnecessary compiler warning */
+    size_t hostname_len = 0;
+
+    /* Check if new hostname is valid before
+     * making any change to current one */
+    if( hostname != NULL )
+    {
+        hostname_len = strlen( hostname );
+
+        if( hostname_len > MBEDTLS_SSL_MAX_HOST_NAME_LEN )
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    /* Now it's clear that we will overwrite the old hostname,
+     * so we can free it safely */
+
+    if( session->hostname != NULL )
+    {
+        mbedtls_platform_zeroize( session->hostname,
+                                  strlen( session->hostname ) );
+        mbedtls_free( session->hostname );
+    }
+
+    /* Passing NULL as hostname shall clear the old one */
+
+    if( hostname == NULL )
+    {
+        session->hostname = NULL;
+    }
+    else
+    {
+        session->hostname = mbedtls_calloc( 1, hostname_len + 1 );
+        if( session->hostname == NULL )
+            return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+
+        memcpy( session->hostname, hostname, hostname_len );
+    }
+
+    return( 0 );
+}
+
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
 {
@@ -876,7 +921,12 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
     {
         if( ssl->hostname != NULL && ssl->session_negotiate->hostname != NULL )
         {
-            if( strcmp( ssl->hostname, ssl->session_negotiate->hostname ) )
+            size_t hostname_len = strlen( ssl->hostname );
+            size_t negotiate_hostname_len =
+             strlen( ssl->session_negotiate->hostname );
+            if( hostname_len != negotiate_hostname_len || \
+                strncmp( ssl->hostname, ssl->session_negotiate->hostname,
+                         hostname_len ) )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1,
                 ( "hostname mismatch the session ticket, should not resume " ) );
@@ -892,8 +942,8 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
     }
     else
     {
-        mbedtls_ssl_session_set_hostname( ssl->session_negotiate,
-                                          ssl->hostname );
+        ssl_session_set_hostname( ssl->session_negotiate,
+                                  ssl->hostname );
     }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 &&
           MBEDTLS_SSL_SERVER_NAME_INDICATION */

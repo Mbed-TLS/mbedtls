@@ -2171,6 +2171,48 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void mpi_get_montgomery_constant_unsafe( char * input_N,
+                                        char * input_rr )
+{
+    
+    mbedtls_mpi N, RR;
+    const mbedtls_mpi_uint *rr = NULL;
+
+    mbedtls_mpi_init( &N );
+    mbedtls_mpi_init( &RR );
+
+    /* Read inputs */
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &N, input_N ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &RR, input_rr ) );
+
+    /* All of the inputs are +ve (or zero) */
+    TEST_EQUAL( 1, N.s );
+    TEST_EQUAL( 1, RR.s );
+
+    /* Expect failure with invalid inputs */
+    TEST_EQUAL( MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED,
+                mbedtls_mpi_set_montgomery_constant_unsafe( &rr, NULL, N.n ) );
+
+    TEST_EQUAL( MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED,
+               mbedtls_mpi_set_montgomery_constant_unsafe( &rr, N.p, 0 ) );
+
+    /* Test valid input */
+    TEST_EQUAL( 0, mbedtls_mpi_set_montgomery_constant_unsafe( &rr, N.p, N.n ) );
+
+    /* rr is updated to a valid pointer */
+    TEST_ASSERT( rr != NULL ); 
+
+    /* Calculated rr matches expected value */
+    size_t bytes = RR.n * sizeof(mbedtls_mpi_uint);
+    ASSERT_COMPARE( rr, bytes, RR.p, bytes );
+
+exit:
+    mbedtls_mpi_free( &N );
+    mbedtls_mpi_free( &RR );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void mpi_selftest(  )
 {

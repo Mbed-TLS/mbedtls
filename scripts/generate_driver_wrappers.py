@@ -170,7 +170,6 @@ def trace_exception(e: Exception, file=sys.stderr) -> None:
 def main() -> int:
     """
     Main with command line arguments.
-    returns 1 when read_driver_descriptions returns False
     """
     def_arg_mbedtls_root = build_tree.guess_mbedtls_root()
 

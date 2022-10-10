@@ -1902,6 +1902,39 @@ mpi_random_fail:2:"01":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 MPI random bad arguments: min > N = 1, 0 limb in upper bound
 mpi_random_fail:2:"000000000000000001":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
+mbedtls_mpi_get_montgomery_constant_unsafe_neg
+mpi_get_montgomery_constant_unsafe_neg:
+
+mbedtls_mpi_get_montgomery_constant_unsafe #1
+mpi_get_montgomery_constant_unsafe:"f":"1":"1"
+
+mbedtls_mpi_get_montgomery_constant_unsafe #2
+mpi_get_montgomery_constant_unsafe:"fd":"ec":"24"
+
+mbedtls_mpi_get_montgomery_constant_unsafe #3
+mpi_get_montgomery_constant_unsafe:"eeff99aa37":"a23bd6a686":"a23bd6a686"
+
+mbedtls_mpi_get_montgomery_constant_unsafe #4
+mpi_get_montgomery_constant_unsafe:"eeff99aa11":"3308cb71":"3308cb71"
+
+mbedtls_mpi_get_montgomery_constant_unsafe #5
+mpi_get_montgomery_constant_unsafe:"800000000005":"6400000000":"6400000000"
+
+mbedtls_mpi_get_montgomery_constant_unsafe #6
+mpi_get_montgomery_constant_unsafe:"7fffffffffffffff":"4":"4"
+
+mbedtls_mpi_get_montgomery_constant_unsafe #7
+mpi_get_montgomery_constant_unsafe:"80fe000a10000001":"5dbc6e833bad575a":"5dbc6e833bad575a"
+
+mbedtls_mpi_get_montgomery_constant_unsafe #8
+mpi_get_montgomery_constant_unsafe:"25a55a46e5da99c71c7":"11637ce1347edeaf669":"1e455bf7451c05bc711"
+
+mbedtls_mpi_get_montgomery_constant_unsafe #9
+mpi_get_montgomery_constant_unsafe:"314dc643fb763f2b8c0e2de00879":"1058ad82120c3a10196bb36229c1":"1058ad82120c3a10196bb36229c1"
+
+mbedtls_mpi_get_montgomery_constant_unsafe #10
+mpi_get_montgomery_constant_unsafe:"8335616aed761f1f7f44e6bd49e807b82e3bf2bf11bfa6af813c808dbf33dbfa11dabd6e6144bef37c6800000000000000000000000000000000051":"78a9f16233856e722242e964006ed8666bfe8e55ea736ea86ce7aa71511e36d9ea1509ad5d821f7777e4a2d885924d15cc11e2ccd85eba69ab04989":"5c9d20a5636b6d7abdec003c1ad87e7c88ebf7238a5d85800d3bc214512cd6269558728307ae94eb389e2ccd85eba69ab0493e8277211ce1be22db"
+
 MPI Selftest
 depends_on:MBEDTLS_SELF_TEST
 mpi_selftest:

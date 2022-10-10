@@ -79,12 +79,63 @@ void lmots_verify_test ( data_t *msg, data_t *sig, data_t *pub_key,
                           int expected_rc )
 {
     mbedtls_lmots_public_t ctx;
+    unsigned int size;
+    unsigned char *tmp_sig = NULL;
 
     mbedtls_lmots_public_init( &ctx );
 
-    mbedtls_lmots_import_public_key( &ctx, pub_key->x, pub_key->len );
+    TEST_EQUAL(mbedtls_lmots_import_public_key( &ctx, pub_key->x, pub_key->len ), 0);
 
-    TEST_ASSERT(mbedtls_lmots_verify( &ctx, msg->x, msg->len, sig->x, sig->len ) == expected_rc );
+    TEST_EQUAL(mbedtls_lmots_verify( &ctx, msg->x, msg->len, sig->x, sig->len ), expected_rc);
+
+    /* Test negative cases if the input data is valid */
+    if( expected_rc == 0 )
+    {
+        /* Altering first message byte must cause verification failure */
+        msg->x[0] ^= 1;
+        TEST_EQUAL(mbedtls_lmots_verify( &ctx, msg->x, msg->len, sig->x, sig->len ),
+                   MBEDTLS_ERR_LMS_VERIFY_FAILED);
+        msg->x[0] ^= 1;
+
+        /* Altering last message byte must cause verification failure */
+        msg->x[msg->len - 1] ^= 1;
+        TEST_EQUAL(mbedtls_lmots_verify( &ctx, msg->x, msg->len, sig->x, sig->len ),
+                   MBEDTLS_ERR_LMS_VERIFY_FAILED);
+        msg->x[msg->len - 1] ^= 1;
+
+        /* Altering first signature byte must cause verification failure */
+        sig->x[0] ^= 1;
+        TEST_EQUAL(mbedtls_lmots_verify( &ctx, msg->x, msg->len, sig->x, sig->len ),
+                   MBEDTLS_ERR_LMS_VERIFY_FAILED);
+        sig->x[0] ^= 1;
+
+        /* Altering first signature byte must cause verification failure */
+        sig->x[0] ^= 1;
+        TEST_EQUAL(mbedtls_lmots_verify( &ctx, msg->x, msg->len, sig->x, sig->len ),
+                   MBEDTLS_ERR_LMS_VERIFY_FAILED);
+        sig->x[0] ^= 1;
+
+        /* Altering last signature byte must cause verification failure */
+        sig->x[sig->len - 1] ^= 1;
+        TEST_EQUAL(mbedtls_lmots_verify( &ctx, msg->x, msg->len, sig->x, sig->len ),
+                   MBEDTLS_ERR_LMS_VERIFY_FAILED);
+        sig->x[sig->len - 1] ^= 1;
+
+        /* Signatures of all sizes must not verify, whether shorter or longer */
+        for( size = 0; size < sig->len; size++ ) {
+            if( size == sig->len )
+                continue;
+
+            ASSERT_ALLOC( tmp_sig, size );
+            if( tmp_sig != NULL )
+                memcpy( tmp_sig, sig->x, MIN(size, sig->len) );
+
+            TEST_EQUAL(mbedtls_lmots_verify( &ctx, msg->x, msg->len, tmp_sig, size ),
+                       MBEDTLS_ERR_LMS_VERIFY_FAILED);
+            mbedtls_free( tmp_sig );
+            tmp_sig = NULL;
+        }
+    }
 
 exit:
     mbedtls_lmots_public_free( &ctx );

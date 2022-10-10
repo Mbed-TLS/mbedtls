@@ -221,7 +221,7 @@ exit:
 
 void mbedtls_lms_public_init( mbedtls_lms_public_t *ctx )
 {
-    mbedtls_platform_zeroize( ctx, sizeof( *ctx ) ) ;
+    memset( ctx, 0, sizeof( *ctx ) ) ;
 }
 
 void mbedtls_lms_public_free( mbedtls_lms_public_t *ctx )
@@ -526,7 +526,7 @@ static int get_merkle_path( mbedtls_lms_private_t *ctx,
 
 void mbedtls_lms_private_init( mbedtls_lms_private_t *ctx )
 {
-    mbedtls_platform_zeroize( ctx, sizeof( *ctx ) ) ;
+    memset( ctx, 0, sizeof( *ctx ) ) ;
 }
 
 void mbedtls_lms_private_free( mbedtls_lms_private_t *ctx )

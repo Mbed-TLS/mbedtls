@@ -395,7 +395,7 @@ int mbedtls_lms_error_from_psa( psa_status_t status )
 
 void mbedtls_lmots_public_init( mbedtls_lmots_public_t *ctx )
 {
-    mbedtls_platform_zeroize( ctx, sizeof( *ctx ) ) ;
+    memset( ctx, 0, sizeof( *ctx ) ) ;
 }
 
 void mbedtls_lmots_public_free( mbedtls_lmots_public_t *ctx )
@@ -581,7 +581,7 @@ int mbedtls_lmots_verify( const mbedtls_lmots_public_t *ctx,
 
 void mbedtls_lmots_private_init( mbedtls_lmots_private_t *ctx )
 {
-    mbedtls_platform_zeroize( ctx, sizeof( *ctx ) ) ;
+    memset( ctx, 0, sizeof( *ctx ) ) ;
 }
 
 void mbedtls_lmots_private_free( mbedtls_lmots_private_t *ctx )

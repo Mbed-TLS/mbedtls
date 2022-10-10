@@ -167,6 +167,9 @@ void mbedtls_mpi_core_cond_assign( mbedtls_mpi_uint *X,
                                    size_t limbs,
                                    unsigned char assign )
 {
+    if( X == A )
+        return;
+
     mbedtls_ct_mpi_uint_cond_assign( limbs, X, A, assign );
 }
 
@@ -175,6 +178,9 @@ void mbedtls_mpi_core_cond_swap( mbedtls_mpi_uint *X,
                                  size_t limbs,
                                  unsigned char swap )
 {
+    if( X == Y )
+        return;
+
     /* all-bits 1 if swap is 1, all-bits 0 if swap is 0 */
     mbedtls_mpi_uint limb_mask = mbedtls_ct_mpi_uint_mask( swap );
 

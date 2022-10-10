@@ -491,7 +491,7 @@ static int calculate_merkle_tree( const mbedtls_lms_private_t *ctx,
  *
  *  leaf_node_id        Which leaf node to calculate the path from.
  *
- *  tree                The output path, which is H hash outputs.
+ *  path                The output path, which is H hash outputs.
  */
 static int get_merkle_path( mbedtls_lms_private_t *ctx,
                             unsigned int leaf_node_id,

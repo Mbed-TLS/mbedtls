@@ -186,8 +186,7 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
     if( now < session->start )
     {
         MBEDTLS_SSL_DEBUG_MSG(
-            3, ( "Ticket expired: Invalid ticket start time "
-                     "( now=%" MBEDTLS_PRINTF_LONGLONG
+            3, ( "Invalid ticket start time ( now=%" MBEDTLS_PRINTF_LONGLONG
                      ", start=%" MBEDTLS_PRINTF_LONGLONG " )",
                  (long long)now, (long long)session->start ) );
         goto exit;
@@ -209,7 +208,7 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
     if( age_in_s > 604800 )
     {
         MBEDTLS_SSL_DEBUG_MSG(
-            3, ( "Ticket expired: Ticket age exceed limitation ticket_age=%lu",
+            3, ( "Ticket age exceed limitation ticket_age=%lu",
                  (long unsigned int)age_in_s ) );
         goto exit;
     }
@@ -232,8 +231,8 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
         age_diff_in_ms > MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE )
     {
         MBEDTLS_SSL_DEBUG_MSG(
-            3, ( "Ticket expired: Ticket age outside tolerance window "
-                     "( diff=%d )", (int)age_diff_in_ms ) );
+            3, ( "Ticket age outside tolerance window ( diff=%d )",
+                 (int)age_diff_in_ms ) );
         goto exit;
     }
 

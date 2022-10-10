@@ -106,7 +106,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHAN
                              MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test "TLS 1.3 m->m: Multiple PSKs: authentication failed" \
+run_test "TLS 1.3 m->m: Session resumption failure, ticket authentication failed." \
          "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=8 dummy_ticket=1" \
          "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
          0 \
@@ -117,9 +117,9 @@ run_test "TLS 1.3 m->m: Multiple PSKs: authentication failed" \
          -S "key exchange mode: psk$" \
          -s "ticket is not authentic" \
          -S "ticket is expired" \
-         -S "Ticket expired: Invalid ticket start time" \
-         -S "Ticket expired: Ticket age exceed limitation" \
-         -S "Ticket expired: Ticket age outside tolerance window"
+         -S "Invalid ticket start time" \
+         -S "Ticket age exceed limitation" \
+         -S "Ticket age outside tolerance window"
 
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME
@@ -127,7 +127,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHAN
                              MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test "TLS 1.3 m->m: Multiple PSKs: ticket expired, m->m" \
+run_test "TLS 1.3 m->m: Session resumption failure, ticket expired." \
          "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=8 dummy_ticket=2" \
          "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
          0 \
@@ -138,9 +138,9 @@ run_test "TLS 1.3 m->m: Multiple PSKs: ticket expired, m->m" \
          -S "key exchange mode: psk$" \
          -S "ticket is not authentic" \
          -s "ticket is expired" \
-         -S "Ticket expired: Invalid ticket start time" \
-         -S "Ticket expired: Ticket age exceed limitation" \
-         -S "Ticket expired: Ticket age outside tolerance window"
+         -S "Invalid ticket start time" \
+         -S "Ticket age exceed limitation" \
+         -S "Ticket age outside tolerance window"
 
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME
@@ -148,7 +148,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHAN
                              MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test "TLS 1.3 m->m: Multiple PSKs: Invalid start time check, m->m" \
+run_test "TLS 1.3 m->m: Session resumption failure, invalid start time." \
          "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=8 dummy_ticket=3" \
          "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
          0 \
@@ -159,9 +159,9 @@ run_test "TLS 1.3 m->m: Multiple PSKs: Invalid start time check, m->m" \
          -S "key exchange mode: psk$" \
          -S "ticket is not authentic" \
          -S "ticket is expired" \
-         -s "Ticket expired: Invalid ticket start time" \
-         -S "Ticket expired: Ticket age exceed limitation" \
-         -S "Ticket expired: Ticket age outside tolerance window"
+         -s "Invalid ticket start time" \
+         -S "Ticket age exceed limitation" \
+         -S "Ticket age outside tolerance window"
 
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME
@@ -169,7 +169,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHAN
                              MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test "TLS 1.3 m->m: Multiple PSKs: Max age check, m->m" \
+run_test "TLS 1.3 m->m: Session resumption failure, ticket expired. too old" \
          "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=8 dummy_ticket=4" \
          "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
          0 \
@@ -180,9 +180,9 @@ run_test "TLS 1.3 m->m: Multiple PSKs: Max age check, m->m" \
          -S "key exchange mode: psk$" \
          -S "ticket is not authentic" \
          -S "ticket is expired" \
-         -S "Ticket expired: Invalid ticket start time" \
-         -s "Ticket expired: Ticket age exceed limitation" \
-         -S "Ticket expired: Ticket age outside tolerance window"
+         -S "Invalid ticket start time" \
+         -s "Ticket age exceed limitation" \
+         -S "Ticket age outside tolerance window"
 
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME
@@ -190,7 +190,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHAN
                              MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test "TLS 1.3 m->m: Multiple PSKs: Tolerance window bottom check." \
+run_test "TLS 1.3 m->m: Session resumption failure, age outside tolerance window, too young." \
          "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=8 dummy_ticket=5" \
          "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
          0 \
@@ -201,9 +201,9 @@ run_test "TLS 1.3 m->m: Multiple PSKs: Tolerance window bottom check." \
          -S "key exchange mode: psk$" \
          -S "ticket is not authentic" \
          -S "ticket is expired" \
-         -S "Ticket expired: Invalid ticket start time" \
-         -S "Ticket expired: Ticket age exceed limitation" \
-         -s "Ticket expired: Ticket age outside tolerance window"
+         -S "Invalid ticket start time" \
+         -S "Ticket age exceed limitation" \
+         -s "Ticket age outside tolerance window"
 
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
                              MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME
@@ -211,7 +211,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHAN
                              MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test "TLS 1.3 m->m: Multiple PSKs: Tolerance window top check." \
+run_test "TLS 1.3 m->m: Session resumption failure, age outside tolerance window, too old." \
          "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=8 dummy_ticket=6" \
          "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
          0 \
@@ -222,9 +222,9 @@ run_test "TLS 1.3 m->m: Multiple PSKs: Tolerance window top check." \
          -S "key exchange mode: psk$" \
          -S "ticket is not authentic" \
          -S "ticket is expired" \
-         -S "Ticket expired: Invalid ticket start time" \
-         -S "Ticket expired: Ticket age exceed limitation" \
-         -s "Ticket expired: Ticket age outside tolerance window"
+         -S "Invalid ticket start time" \
+         -S "Ticket age exceed limitation" \
+         -s "Ticket age outside tolerance window"
 
 requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C

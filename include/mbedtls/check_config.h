@@ -812,6 +812,11 @@
 #error "MBEDTLS_SSL_TICKET_C defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_SSL_TICKET_C) && \
+    !( defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C) || defined(MBEDTLS_CHACHAPOLY_C) )
+#error "MBEDTLS_SSL_TICKET_C defined, but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING) && \
     !defined(MBEDTLS_SSL_PROTO_SSL3) && !defined(MBEDTLS_SSL_PROTO_TLS1)
 #error "MBEDTLS_SSL_CBC_RECORD_SPLITTING defined, but not all prerequisites"
@@ -924,11 +929,6 @@
 
 #if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH) && ( !defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH) )
 #error "MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_SSL_SESSION_TICKETS) && \
-    !( defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C) || defined(MBEDTLS_CHACHAPOLY_C) )
-#error "MBEDTLS_SSL_SESSION_TICKETS defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION) && !( defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C) || defined(MBEDTLS_CHACHAPOLY_C) )

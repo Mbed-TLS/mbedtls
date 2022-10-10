@@ -552,6 +552,11 @@ int mbedtls_lmots_verify( const mbedtls_lmots_public_t *ctx,
         return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
+    if( sig_size < MBEDTLS_LMOTS_SIG_TYPE_OFFSET + MBEDTLS_LMOTS_TYPE_LEN )
+    {
+        return( MBEDTLS_ERR_LMS_VERIFY_FAILED );
+    }
+
     if( mbedtls_lms_network_bytes_to_unsigned_int( MBEDTLS_LMOTS_TYPE_LEN,
          sig + MBEDTLS_LMOTS_SIG_TYPE_OFFSET ) != MBEDTLS_LMOTS_SHA256_N32_W8 )
     {

@@ -1289,7 +1289,7 @@ component_test_tls1_2_default_stream_cipher_only () {
     scripts/config.py set MBEDTLS_CIPHER_NULL_CIPHER
     # Modules that depend on AEAD
     scripts/config.py unset MBEDTLS_SSL_CONTEXT_SERIALIZATION
-    scripts/config.py unset MBEDTLS_SSL_SESSION_TICKETS
+    scripts/config.py unset MBEDTLS_SSL_TICKET_C
 
     make
 
@@ -1315,7 +1315,7 @@ component_test_tls1_2_default_stream_cipher_only_use_psa () {
     scripts/config.py set MBEDTLS_CIPHER_NULL_CIPHER
     # Modules that depend on AEAD
     scripts/config.py unset MBEDTLS_SSL_CONTEXT_SERIALIZATION
-    scripts/config.py unset MBEDTLS_SSL_SESSION_TICKETS
+    scripts/config.py unset MBEDTLS_SSL_TICKET_C
 
     make
 
@@ -1340,7 +1340,7 @@ component_test_tls1_2_default_cbc_legacy_cipher_only () {
     scripts/config.py unset MBEDTLS_CIPHER_NULL_CIPHER
     # Modules that depend on AEAD
     scripts/config.py unset MBEDTLS_SSL_CONTEXT_SERIALIZATION
-    scripts/config.py unset MBEDTLS_SSL_SESSION_TICKETS
+    scripts/config.py unset MBEDTLS_SSL_TICKET_C
 
     make
 
@@ -1367,7 +1367,7 @@ component_test_tls1_2_deafult_cbc_legacy_cipher_only_use_psa () {
     scripts/config.py unset MBEDTLS_CIPHER_NULL_CIPHER
     # Modules that depend on AEAD
     scripts/config.py unset MBEDTLS_SSL_CONTEXT_SERIALIZATION
-    scripts/config.py unset MBEDTLS_SSL_SESSION_TICKETS
+    scripts/config.py unset MBEDTLS_SSL_TICKET_C
 
     make
 
@@ -1393,7 +1393,7 @@ component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only () {
     scripts/config.py unset MBEDTLS_CIPHER_NULL_CIPHER
     # Modules that depend on AEAD
     scripts/config.py unset MBEDTLS_SSL_CONTEXT_SERIALIZATION
-    scripts/config.py unset MBEDTLS_SSL_SESSION_TICKETS
+    scripts/config.py unset MBEDTLS_SSL_TICKET_C
 
     make
 
@@ -1420,7 +1420,7 @@ component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only_use_psa () {
     scripts/config.py unset MBEDTLS_CIPHER_NULL_CIPHER
     # Modules that depend on AEAD
     scripts/config.py unset MBEDTLS_SSL_CONTEXT_SERIALIZATION
-    scripts/config.py unset MBEDTLS_SSL_SESSION_TICKETS
+    scripts/config.py unset MBEDTLS_SSL_TICKET_C
 
     make
 

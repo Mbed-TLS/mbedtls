@@ -1703,8 +1703,6 @@
  * tickets, including authenticated encryption and key management. Example
  * callbacks are provided by MBEDTLS_SSL_TICKET_C.
  *
- * Requires: MBEDTLS_GCM_C or MBEDTLS_CCM_C or MBEDTLS_CHACHAPOLY_C
- *
  * Comment this macro to disable support for SSL session tickets
  */
 #define MBEDTLS_SSL_SESSION_TICKETS
@@ -3056,7 +3054,8 @@
  * Module:  library/ssl_ticket.c
  * Caller:
  *
- * Requires: MBEDTLS_CIPHER_C || MBEDTLS_USE_PSA_CRYPTO
+ * Requires: (MBEDTLS_CIPHER_C || MBEDTLS_USE_PSA_CRYPTO) &&
+ *           (MBEDTLS_GCM_C || MBEDTLS_CCM_C || MBEDTLS_CHACHAPOLY_C)
  */
 #define MBEDTLS_SSL_TICKET_C
 

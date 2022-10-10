@@ -40,7 +40,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     mbedtls_ssl_config conf;
     mbedtls_ctr_drbg_context ctr_drbg;
     mbedtls_entropy_context entropy;
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
     mbedtls_ssl_ticket_context ticket_ctx;
 #endif
     unsigned char buf[4096];
@@ -80,7 +80,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     mbedtls_ssl_config_init( &conf );
     mbedtls_ctr_drbg_init( &ctr_drbg );
     mbedtls_entropy_init( &entropy );
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
     mbedtls_ssl_ticket_init( &ticket_ctx );
 #endif
 
@@ -110,7 +110,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
         mbedtls_ssl_conf_alpn_protocols( &conf, alpn_list );
     }
 #endif
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
     if( options & 0x4 )
     {
         if( mbedtls_ssl_ticket_setup( &ticket_ctx,
@@ -172,7 +172,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     }
 
 exit:
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
     mbedtls_ssl_ticket_free( &ticket_ctx );
 #endif
     mbedtls_entropy_free( &entropy );

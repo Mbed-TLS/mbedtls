@@ -322,11 +322,6 @@ int mbedtls_lms_verify( const mbedtls_lms_public_t *ctx,
         return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
-    if( sig_size != MBEDTLS_LMS_SIG_LEN(ctx->params.type, ctx->params.otstype) )
-    {
-        return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
-    }
-
     if( ctx->params.type
         != MBEDTLS_LMS_SHA256_M32_H10 )
     {
@@ -339,9 +334,24 @@ int mbedtls_lms_verify( const mbedtls_lms_public_t *ctx,
         return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
+    if( sig_size != MBEDTLS_LMS_SIG_LEN(ctx->params.type, ctx->params.otstype) )
+    {
+        return( MBEDTLS_ERR_LMS_VERIFY_FAILED );
+    }
+
+    if( sig_size < SIG_OTS_SIG_OFFSET + MBEDTLS_LMOTS_TYPE_LEN )
+    {
+        return( MBEDTLS_ERR_LMS_VERIFY_FAILED );
+    }
+
     if( mbedtls_lms_network_bytes_to_unsigned_int( MBEDTLS_LMOTS_TYPE_LEN,
             sig + SIG_OTS_SIG_OFFSET + MBEDTLS_LMOTS_SIG_TYPE_OFFSET )
         != MBEDTLS_LMOTS_SHA256_N32_W8 )
+    {
+        return( MBEDTLS_ERR_LMS_VERIFY_FAILED );
+    }
+
+    if( sig_size < SIG_TYPE_OFFSET(ctx->params.otstype) + MBEDTLS_LMS_TYPE_LEN )
     {
         return( MBEDTLS_ERR_LMS_VERIFY_FAILED );
     }
@@ -376,7 +386,7 @@ int mbedtls_lms_verify( const mbedtls_lms_public_t *ctx,
             sizeof( Kc_candidate_ots_pub_key ), NULL );
     if( ret != 0 )
     {
-        return( ret );
+        return( MBEDTLS_ERR_LMS_VERIFY_FAILED );
     }
 
     create_merkle_leaf_value(

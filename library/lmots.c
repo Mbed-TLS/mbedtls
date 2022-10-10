@@ -565,7 +565,7 @@ int mbedtls_lmots_verify( const mbedtls_lmots_public_t *ctx,
                                                         NULL );
     if( ret )
     {
-        return( ret );
+        return( MBEDTLS_ERR_LMS_VERIFY_FAILED );
     }
 
     if( memcmp( &Kc_public_key_candidate, ctx->public_key,

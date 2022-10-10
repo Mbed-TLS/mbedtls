@@ -1,3 +1,4 @@
 Bugfix
-    * Fix bugs to enable TLS 1.2 builds with
-      single encryption type + tests
+    * Fix bugs and missing dependencies when
+      building and testing configurations with
+      only one encryption type enabled in TLS 1.2.

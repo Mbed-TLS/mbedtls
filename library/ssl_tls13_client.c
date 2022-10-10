@@ -837,7 +837,7 @@ static int ssl_tls13_write_binder( mbedtls_ssl_context *ssl,
     /* Get current state of handshake transcript. */
     ret = mbedtls_ssl_get_handshake_transcript(
             ssl, mbedtls_hash_info_md_from_psa( hash_alg ),
-            transcript, MBEDTLS_MD_MAX_SIZE, &transcript_len );
+            transcript, sizeof( transcript ), &transcript_len );
     if( ret != 0 )
         return( ret );
 
@@ -853,7 +853,7 @@ static int ssl_tls13_write_binder( mbedtls_ssl_context *ssl,
 
     *out_len = 1 + binder_len;
 
-    return( ret );
+    return( 0 );
 }
 
 /*
@@ -918,12 +918,11 @@ int mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
     if( ssl_tls13_ticket_get_identity(
             ssl, &hash_alg, &identity, &identity_len ) == 0 )
     {
-
 #if defined(MBEDTLS_HAVE_TIME)
-        uint32_t obfuscated_ticket_age = 0;
         mbedtls_time_t now = mbedtls_time( NULL );
         mbedtls_ssl_session *session = ssl->session_negotiate;
-        obfuscated_ticket_age = (uint32_t)( now - session->ticket_received );
+        uint32_t obfuscated_ticket_age =
+                                (uint32_t)( now - session->ticket_received );
 
         obfuscated_ticket_age *= 1000;
         obfuscated_ticket_age += session->ticket_age_add;
@@ -963,7 +962,7 @@ int mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
 
     /* Take into account the two bytes for the length of the binders. */
     l_binders_len += 2;
-    /* Check if there are enough space for binders */
+    /* Check if there is enough space for binders */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, l_binders_len );
 
     /*
@@ -1105,11 +1104,12 @@ static int ssl_tls13_parse_server_pre_shared_key_ext( mbedtls_ssl_context *ssl,
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_set_hs_psk", ret );
+        return( ret );
     }
-    else
-        ssl->handshake->extensions_present |= MBEDTLS_SSL_EXT_PRE_SHARED_KEY;
 
-    return( ret );
+    ssl->handshake->extensions_present |= MBEDTLS_SSL_EXT_PRE_SHARED_KEY;
+
+    return( 0 );
 }
 
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */

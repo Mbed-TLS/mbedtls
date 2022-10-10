@@ -1353,8 +1353,7 @@ int report_cid_usage( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS) && \
-    defined(MBEDTLS_HAVE_TIME)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_HAVE_TIME)
 /* Functions for session ticket tests */
 int dummy_ticket_write( void *p_ticket, const mbedtls_ssl_session *session,
                         unsigned char *start, const unsigned char *end,
@@ -1400,7 +1399,6 @@ int dummy_ticket_parse( void *p_ticket, mbedtls_ssl_session *session,
             return( MBEDTLS_ERR_SSL_INVALID_MAC );
         case 2:
             return( MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED );
-#if defined(MBEDTLS_HAVE_TIME)
         case 3:
             session->start = mbedtls_time( NULL ) + 10;
             break;
@@ -1416,15 +1414,13 @@ int dummy_ticket_parse( void *p_ticket, mbedtls_ssl_session *session,
             session->ticket_age_add -= 1000;
 #endif
             break;
-#endif
         default:
             break;
     }
 
     return( ret );
 }
-#endif /* MBEDTLS_SSL_SESSION_TICKETS &&
-          MBEDTLS_HAVE_TIME */
+#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_HAVE_TIME */
 
 int main( int argc, char *argv[] )
 {

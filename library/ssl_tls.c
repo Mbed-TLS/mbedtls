@@ -1361,7 +1361,6 @@ void mbedtls_ssl_conf_session_cache( mbedtls_ssl_config *conf,
 int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session *session )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
 
     if( ssl == NULL ||
         session == NULL ||
@@ -1374,15 +1373,22 @@ int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session
     if( ssl->handshake->resume == 1 )
         return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
 
-    ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( session->ciphersuite );
-    if( mbedtls_ssl_validate_ciphersuite( ssl, ciphersuite_info,
-                                          session->tls_version,
-                                          session->tls_version ) != 0 )
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    if( session->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 4, ( "%d is not a valid ciphersuite.",
-                                    session->ciphersuite ) );
-        return( MBEDTLS_ERR_SSL_INVALID_MAC );
+        const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
+                    mbedtls_ssl_ciphersuite_from_id( session->ciphersuite );
+
+        if( mbedtls_ssl_validate_ciphersuite(
+                ssl, ciphersuite_info, MBEDTLS_SSL_VERSION_TLS1_3,
+                MBEDTLS_SSL_VERSION_TLS1_3 ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 4, ( "%d is not a valid TLS 1.3 ciphersuite.",
+                                        session->ciphersuite ) );
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+        }
     }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
     if( ( ret = mbedtls_ssl_session_copy( ssl->session_negotiate,
                                           session ) ) != 0 )

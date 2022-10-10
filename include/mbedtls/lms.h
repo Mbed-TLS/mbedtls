@@ -181,7 +181,7 @@ typedef struct {
 
 /** LMS public context structure.
  *
- *A LMS public key is the hash output that is the root of the merkle tree, and
+ *A LMS public key is the hash output that is the root of the Merkle tree, and
  * the applicable parameter set
  *
  * The context must be initialized before it is used. A public key must either
@@ -200,7 +200,7 @@ typedef struct {
 typedef struct {
     mbedtls_lms_parameters_t MBEDTLS_PRIVATE(params);
     unsigned char MBEDTLS_PRIVATE(T_1_pub_key)[MBEDTLS_LMS_M_NODE_BYTES_MAX]; /*!< The public key, in
-                                                     the form of the merkle tree root node. */
+                                                     the form of the Merkle tree root node. */
     unsigned char MBEDTLS_PRIVATE(have_public_key); /*!< Whether the context contains a public key.
                                                      Boolean values only. */
 } mbedtls_lms_public_t;
@@ -228,9 +228,9 @@ typedef struct {
     uint32_t MBEDTLS_PRIVATE(q_next_usable_key); /*!< The index of the next OTS key that has not
                                                       been used. */
     mbedtls_lmots_private_t *MBEDTLS_PRIVATE(ots_private_keys); /*!< The private key material. One OTS key
-                                                              for each leaf node in the merkle tree. */
+                                                              for each leaf node in the Merkle tree. */
     mbedtls_lmots_public_t *MBEDTLS_PRIVATE(ots_public_keys); /*!< The OTS key public keys, used to
-                                                                   build the merkle tree. */
+                                                                   build the Merkle tree. */
     unsigned char MBEDTLS_PRIVATE(have_private_key); /*!< Whether the context contains a private key.
                                                      Boolean values only. */
 } mbedtls_lms_private_t;

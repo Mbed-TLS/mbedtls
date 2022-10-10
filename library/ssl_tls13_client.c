@@ -681,7 +681,8 @@ static psa_algorithm_t ssl_tls13_get_ciphersuite_hash_alg( int ciphersuite )
 static int ssl_tls13_has_configured_ticket( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_session *session = ssl->session_negotiate;
-    return( session != NULL && session->ticket != NULL );
+    return( ssl->handshake->resume &&
+            session != NULL && session->ticket != NULL );
 }
 
 MBEDTLS_CHECK_RETURN_CRITICAL

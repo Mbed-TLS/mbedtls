@@ -92,7 +92,7 @@ unsigned int mbedtls_lms_network_bytes_to_unsigned_int( size_t len,
         val |= ( ( unsigned int )bytes[idx] ) << (8 * ( len - 1 - idx ) );
     }
 
-    return val;
+    return ( val );
 }
 
 /* Calculate the checksum digits that are appended to the end of the LMOTS digit
@@ -117,7 +117,7 @@ static unsigned short lmots_checksum_calculate( const mbedtls_lmots_parameters_t
         sum += DIGIT_MAX_VALUE - digest[idx];
     }
 
-    return sum;
+    return ( sum );
 }
 
 /* Create the string of digest digits (in the base determined by the Winternitz

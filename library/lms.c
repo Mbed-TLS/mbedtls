@@ -736,7 +736,7 @@ int mbedtls_lms_sign( mbedtls_lms_private_t *ctx,
     if ( MBEDTLS_LMS_SIG_LEN(ctx->params.type, ctx->params.otstype)
          < SIG_OTS_SIG_OFFSET )
     {
-        return MBEDTLS_ERR_LMS_BAD_INPUT_DATA;
+        return ( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
     ret = mbedtls_lmots_sign( &ctx->ots_private_keys[q_leaf_identifier],

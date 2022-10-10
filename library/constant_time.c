@@ -708,7 +708,8 @@ int mbedtls_mpi_safe_cond_swap( mbedtls_mpi *X,
                                 mbedtls_mpi *Y,
                                 unsigned char swap )
 {
-    int ret, s;
+    int ret = 0;
+    int s;
     MPI_VALIDATE_RET( X != NULL );
     MPI_VALIDATE_RET( Y != NULL );
 

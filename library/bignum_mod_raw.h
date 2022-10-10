@@ -102,6 +102,8 @@ int mbedtls_mpi_set_montgomery_constant_unsafe( const mbedtls_mpi_uint **X,
  * \param m      The address of a modulus.
  *
  * \return       \c 0 if successful.
+ * \return        #MBEDTLS_ERR_MPI_ALLOC_FAILED if there is not enough memory to
+ *                allocate a temporary buffer(dependant on \p m->limbs)
  */
 
 int mbedtls_mpi_mod_raw_from_mont_rep( mbedtls_mpi_uint *X,
@@ -113,6 +115,8 @@ int mbedtls_mpi_mod_raw_from_mont_rep( mbedtls_mpi_uint *X,
  * \param m      The address of a modulus.
  *
  * \return       \c 0 if successful.
+ * \return       #MBEDTLS_ERR_MPI_ALLOC_FAILED if there is not enough memory to
+ *               allocate a temporary buffer(dependant on \p m->limbs)
  */
 int mbedtls_mpi_mod_raw_to_mont_rep( mbedtls_mpi_uint *X,
                                      const mbedtls_mpi_mod_modulus *m );

@@ -133,23 +133,31 @@ cleanup:
 int mbedtls_mpi_mod_raw_from_mont_rep( mbedtls_mpi_uint *X,
                                        const mbedtls_mpi_mod_modulus *m )
 {
-    mbedtls_mpi_uint one = 1;
-    mbedtls_mpi T;
-    mbedtls_mpi_init( &T );
+    const mbedtls_mpi_uint one = 1;
+    const size_t t_sz = ( m->limbs * 2 ) + 1;
+    mbedtls_mpi_uint *t;
+
+    if( ( t = (mbedtls_mpi_uint*)mbedtls_calloc( t_sz, ciL ) ) == NULL )
+        return( MBEDTLS_ERR_MPI_ALLOC_FAILED );
     mbedtls_mpi_core_montmul( X, X, &one, 1, m->p, m->limbs,
-                              m->rep.mont.mm, T.p );
-    mbedtls_mpi_free( &T );
+                              m->rep.mont.mm, t );
+    mbedtls_platform_zeroize( t, t_sz * ciL );
+    mbedtls_free( t );
     return( 0 );
 }
 
 int mbedtls_mpi_mod_raw_to_mont_rep( mbedtls_mpi_uint *X,
                                      const mbedtls_mpi_mod_modulus *m )
 {
-    mbedtls_mpi T;
-    mbedtls_mpi_init( &T );
-    mbedtls_mpi_core_montmul( X, X, m->rep.mont.rr, 1, m->p, m->limbs,
-                              m->rep.mont.mm, T.p );
-    mbedtls_mpi_free( &T );
+    mbedtls_mpi_uint *t;
+    const size_t t_sz = ( m->limbs * 2 ) + 1;
+
+    if( ( t = (mbedtls_mpi_uint*)mbedtls_calloc( t_sz, ciL ) ) == NULL )
+        return( MBEDTLS_ERR_MPI_ALLOC_FAILED );
+    mbedtls_mpi_core_montmul( X, X, m->rep.mont.rr, m->limbs, m->p, m->limbs,
+                              m->rep.mont.mm, t );
+    mbedtls_platform_zeroize( t, t_sz * ciL );
+    mbedtls_free( t );
     return( 0 );
 }
 

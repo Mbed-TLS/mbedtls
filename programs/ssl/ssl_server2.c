@@ -3013,7 +3013,9 @@ int main( int argc, char *argv[] )
                             opt.ticket_aead,
                             opt.ticket_timeout ) ) != 0 )
             {
-                mbedtls_printf( " failed\n  ! mbedtls_ssl_ticket_setup returned %d\n\n", ret );
+                mbedtls_printf(
+                    " failed\n  ! mbedtls_ssl_ticket_setup returned %d\n\n",
+                    ret );
                 goto exit;
             }
 

@@ -677,7 +677,6 @@ static psa_algorithm_t ssl_tls13_get_ciphersuite_hash_alg( int ciphersuite )
 }
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-
 static int ssl_tls13_has_configured_ticket( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_session *session = ssl->session_negotiate;
@@ -720,7 +719,6 @@ static int ssl_tls13_ticket_get_psk( mbedtls_ssl_context *ssl,
 
     return( 0 );
 }
-
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
 static int ssl_tls13_has_configured_psk( const mbedtls_ssl_config *conf )

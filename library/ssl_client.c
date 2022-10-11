@@ -713,26 +713,29 @@ static int ssl_generate_random( mbedtls_ssl_context *ssl )
                             MBEDTLS_CLIENT_HELLO_RANDOM_LEN - gmt_unix_time_len );
     return( ret );
 }
-
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
 {
     int ret;
     size_t session_id_len;
+    mbedtls_ssl_session *session_negotiate = ssl->session_negotiate;
+
+    if( session_negotiate == NULL )
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
     defined(MBEDTLS_SSL_SESSION_TICKETS) && \
     defined(MBEDTLS_HAVE_TIME)
+
     /* Check if a tls13 ticket has been configured. */
-    if( ssl->session_negotiate->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 &&
-        ssl->handshake->resume != 0 &&
-        ssl->session_negotiate != NULL &&
-        ssl->session_negotiate->ticket != NULL )
+    if( ssl->handshake->resume != 0 &&
+        session_negotiate->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 &&
+        session_negotiate->ticket != NULL )
     {
         mbedtls_time_t now = mbedtls_time( NULL );
-        if( ssl->session_negotiate->ticket_received > now ||
-            (uint64_t)( now - ssl->session_negotiate->ticket_received )
-                    > ssl->session_negotiate->ticket_lifetime )
+        uint64_t age = (uint64_t)( now - session_negotiate->ticket_received );
+        if( session_negotiate->ticket_received > now ||
+            age > session_negotiate->ticket_lifetime )
         {
             /* Without valid ticket, disable session resumption.*/
             MBEDTLS_SSL_DEBUG_MSG(
@@ -761,7 +764,7 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
     {
         if( ssl->handshake->resume )
         {
-             ssl->tls_version = ssl->session_negotiate->tls_version;
+             ssl->tls_version = session_negotiate->tls_version;
              ssl->handshake->min_tls_version = ssl->tls_version;
         }
         else
@@ -795,7 +798,7 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
      * to zero, except in the case of a TLS 1.2 session renegotiation or
      * session resumption.
      */
-    session_id_len = ssl->session_negotiate->id_len;
+    session_id_len = session_negotiate->id_len;
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_2 )
@@ -818,8 +821,8 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
         if( ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE )
 #endif
         {
-            if( ( ssl->session_negotiate->ticket != NULL ) &&
-                ( ssl->session_negotiate->ticket_len != 0 ) )
+            if( ( session_negotiate->ticket != NULL ) &&
+                ( session_negotiate->ticket_len != 0 ) )
             {
                 session_id_len = 32;
             }
@@ -851,13 +854,13 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
     }
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
 
-    if( session_id_len != ssl->session_negotiate->id_len )
+    if( session_id_len != session_negotiate->id_len )
     {
-        ssl->session_negotiate->id_len = session_id_len;
+        session_negotiate->id_len = session_id_len;
         if( session_id_len > 0 )
         {
             ret = ssl->conf->f_rng( ssl->conf->p_rng,
-                                    ssl->session_negotiate->id,
+                                    session_negotiate->id,
                                     session_id_len );
             if( ret != 0 )
             {
@@ -869,7 +872,6 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
 
     return( 0 );
 }
-
 /*
  * Write ClientHello handshake message.
  * Handler for MBEDTLS_SSL_CLIENT_HELLO

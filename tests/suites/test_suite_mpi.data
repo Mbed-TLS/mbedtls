@@ -441,29 +441,65 @@ mpi_lsb:"24":2
 Base test mbedtls_mpi_lsb #4
 mpi_lsb:"2000":13
 
-Base test mbedtls_mpi_bitlen #1
+Test mbedtls_mpi_core_bitlen 764-bit
+mpi_core_bitlen:"941379d00fed1491fe15df284dfde4a142f68aa8d412023195cee66883e6290ffe703f4ea5963bf212713cee46b107c09182b5edcd955adac418bf4918e2889af48e1099d513830cec85c26ac1e158b52620e33ba8692f893efbb2f958b4424":764
+
+Test mbedtls_mpi_core_bitlen 0x18
+mpi_core_bitlen:"18":5
+
+Test mbedtls_mpi_core_bitlen 0x18 with leading 0 limb(s)
+mpi_core_bitlen:"00000000000000018":5
+
+Test mbedtls_mpi_core_bitlen 0x18 << 64
+mpi_core_bitlen:"180000000000000000":69
+
+Test mbedtls_mpi_core_bitlen 0x01
+mpi_core_bitlen:"1":1
+
+Test mbedtls_mpi_core_bitlen 0x0f
+mpi_core_bitlen:"f":4
+
+Test mbedtls_mpi_core_bitlen 0x10
+mpi_core_bitlen:"10":5
+
+Test mbedtls_mpi_core_bitlen 0x0a
+mpi_core_bitlen:"a":4
+
+Test mbedtls_mpi_core_bitlen: 0 (1 limb)
+mpi_core_bitlen:"0":0
+
+Test mbedtls_mpi_bitlen 764-bit
 mpi_bitlen:"941379d00fed1491fe15df284dfde4a142f68aa8d412023195cee66883e6290ffe703f4ea5963bf212713cee46b107c09182b5edcd955adac418bf4918e2889af48e1099d513830cec85c26ac1e158b52620e33ba8692f893efbb2f958b4424":764
 
-Base test mbedtls_mpi_bitlen #2
+Test mbedtls_mpi_bitlen 0x18
 mpi_bitlen:"18":5
 
-Base test mbedtls_mpi_bitlen #3
+Test mbedtls_mpi_bitlen 0x18 with leading 0 limb(s)
+mpi_bitlen:"00000000000000018":5
+
+Test mbedtls_mpi_bitlen 0x18 << 64
+mpi_bitlen:"180000000000000000":69
+
+Test mbedtls_mpi_bitlen 0x01
 mpi_bitlen:"1":1
 
-Base test mbedtls_mpi_bitlen #4
+Test mbedtls_mpi_bitlen 0x0f
 mpi_bitlen:"f":4
 
-Base test mbedtls_mpi_bitlen #5
+Test mbedtls_mpi_bitlen 0x10
 mpi_bitlen:"10":5
 
-Base test mbedtls_mpi_bitlen #6
+Test mbedtls_mpi_bitlen 0x0a
 mpi_bitlen:"a":4
 
-Base test mbedtls_mpi_bitlen: 0 (null)
+Test mbedtls_mpi_bitlen: 0 (null)
 mpi_bitlen:"":0
 
-Base test mbedtls_mpi_bitlen: 0 (1 limb)
+Test mbedtls_mpi_bitlen: 0 (1 limb)
 mpi_bitlen:"0":0
+
+Test mbedtls_mpi_bitlen: -0x18
+mpi_bitlen:"-18":5
 
 Base test mbedtls_mpi_cmp_int #1
 mpi_cmp_int:693:693:0
@@ -595,13 +631,13 @@ Test mbedtls_mpi_cmp_mpi: large negative < 0 (1 limb)
 mpi_cmp_mpi:"-1230000000000000000":"0":-1
 
 mbedtls_mpi_core_lt_ct: x=y (1 limb)
-mpi_core_lt_ct:"02B5":"02B5":0
+mpi_core_lt_ct:"2B5":"2B5":0
 
 mbedtls_mpi_core_lt_ct: x>y (1 limb)
-mpi_core_lt_ct:"02B5":"02B4":0
+mpi_core_lt_ct:"2B5":"2B4":0
 
 mbedtls_mpi_core_lt_ct: x<y (1 limb)
-mpi_core_lt_ct:"02B5":"02B6":1
+mpi_core_lt_ct:"2B5":"2B6":1
 
 mbedtls_mpi_core_lt_ct: x=y (0 limbs)
 mpi_core_lt_ct:"":"":0
@@ -667,7 +703,7 @@ mbedtls_mpi_core_lt_ct: x<y (32 bit y, first bytes equal)
 mpi_core_lt_ct:"000000FF":"FFFFFFFF":1
 
 mbedtls_mpi_core_lt_ct: x<y, zero vs non-zero MS limb
-mpi_core_lt_ct:"00FFFFFFFFFFFFFFFF":"01FFFFFFFFFFFFFFFF":1
+mpi_core_lt_ct:"0FFFFFFFFFFFFFFFF":"1FFFFFFFFFFFFFFFF":1
 
 mbedtls_mpi_core_lt_ct: x>y, equal MS limbs
 mpi_core_lt_ct:"EEFFFFFFFFFFFFFFFF":"EEFFFFFFFFFFFFFFF1":0

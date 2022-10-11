@@ -298,12 +298,13 @@ void mbedtls_test_err_add_check( int high, int low,
  *                      of limbs is 0.
  * \param[out] plimbs   The address where the number of limbs will be stored.
  * \param[in] input     The test argument to read.
- *                      It is interpreted as a big-endian integer in base 256.
+ *                      It is interpreted as a hexadecimal representation
+ *                      of a non-negative integer.
  *
  * \return \c 0 on success, an \c MBEDTLS_ERR_MPI_xxx error code otherwise.
  */
 int mbedtls_test_read_mpi_core( mbedtls_mpi_uint **pX, size_t *plimbs,
-                                const data_t *input );
+                                const char *input );
 
 /** Read an MPI from a hexadecimal string.
  *

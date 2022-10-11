@@ -348,19 +348,46 @@ void mbedtls_test_err_add_check( int high, int low,
 #include "bignum_core.h"
 
 int mbedtls_test_read_mpi_core( mbedtls_mpi_uint **pX, size_t *plimbs,
-                                const data_t *input )
+                                const char *input )
 {
     /* Sanity check */
     if( *pX != NULL )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
-    *plimbs = CHARS_TO_LIMBS( input->len );
+    size_t hex_len = strlen( input );
+    size_t byte_len = ( hex_len + 1 ) / 2;
+    *plimbs = CHARS_TO_LIMBS( byte_len );
     if( *plimbs == 0 )
         return( 0 );
+
     *pX = mbedtls_calloc( *plimbs, sizeof( **pX ) );
     if( *pX == NULL )
         return( MBEDTLS_ERR_MPI_ALLOC_FAILED );
-    return( mbedtls_mpi_core_read_be( *pX, *plimbs, input->x, input->len ) );
+
+    unsigned char *byte_start = ( unsigned char * ) *pX;
+    if( byte_len % sizeof( mbedtls_mpi_uint ) != 0 )
+    {
+        byte_start += sizeof( mbedtls_mpi_uint ) - byte_len % sizeof( mbedtls_mpi_uint );
+    }
+    if( ( hex_len & 1 ) != 0 )
+    {
+        /* mbedtls_test_unhexify wants an even number of hex digits */
+        TEST_ASSERT( ascii2uc( *input, byte_start ) == 0 );
+        ++byte_start;
+        ++input;
+        --byte_len;
+    }
+    TEST_ASSERT( mbedtls_test_unhexify( byte_start,
+                                        byte_len,
+                                        input,
+                                        &byte_len ) == 0 );
+
+    mbedtls_mpi_core_bigendian_to_host( *pX, *plimbs );
+    return( 0 );
+
+exit:
+    mbedtls_free( *pX );
+    return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 }
 
 int mbedtls_test_read_mpi( mbedtls_mpi *X, const char *s )

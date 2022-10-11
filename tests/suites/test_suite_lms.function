@@ -155,9 +155,9 @@ void lms_import_export_test (  data_t * pub_key )
     uint8_t exported_pub_key[MBEDTLS_LMS_PUBLIC_KEY_LEN(MBEDTLS_LMS_SHA256_M32_H10)];
 
     mbedtls_lms_public_init(&ctx);
-    TEST_ASSERT( mbedtls_lms_import_public_key( &ctx, pub_key->x, pub_key->len ) == 0 );
-    TEST_ASSERT( mbedtls_lms_export_public_key( &ctx, exported_pub_key,
-                                                sizeof(exported_pub_key), NULL ) == 0 );
+    TEST_EQUAL( mbedtls_lms_import_public_key( &ctx, pub_key->x, pub_key->len ), 0 );
+    TEST_EQUAL( mbedtls_lms_export_public_key( &ctx, exported_pub_key,
+                                                sizeof(exported_pub_key), NULL ), 0 );
 
     ASSERT_COMPARE( pub_key->x, MBEDTLS_LMS_PUBLIC_KEY_LEN(MBEDTLS_LMS_SHA256_M32_H10),
                     exported_pub_key, MBEDTLS_LMS_PUBLIC_KEY_LEN(MBEDTLS_LMS_SHA256_M32_H10) );

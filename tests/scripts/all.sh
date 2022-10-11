@@ -2110,6 +2110,136 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
     fi
 }
 
+# This should gradually evolve into something similar to
+# component_test_psa_crypto_config_accel_hash_use_psa:
+#
+# - disabling CIPHER_C;
+# - getting similar feature+testing coverage as with Cipher and built-in algs;
+# - in particular, enabling TLS and running ssl-opt.sh and compat.sh.
+#
+# Reaching that point is the goal of this EPIC:
+# https://github.com/orgs/Mbed-TLS/projects/1#column-19075367
+component_test_psa_crypto_config_accel_cipher_aead_use_psa () {
+    msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated cipher+aead and USE_PSA"
+
+    # Configure and build libtestdriver1
+    # ----------------------------------
+
+    # cipher algorithms
+    loc_accel_list="ALG_CTR ALG_CFB ALG_OFB ALG_CBC_NO_PADDING ALG_CBC_PKCS7 ALG_XTS"
+    # aead algorithms
+    loc_accel_list="$loc_accel_list ALG_GCM ALG_CCM ALG_CHACHA20_POLY1305"
+    # cipher key types
+    loc_accel_list="$loc_accel_list KEY_TYPE_AES KEY_TYPE_ARIA KEY_TYPE_CAMELLIA KEY_TYPE_CHACHA20 KEY_TYPE_DES"
+
+    # build the driver library: libtestdriver1
+    loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
+    make -C tests libtestdriver1.a CFLAGS="$ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
+
+    # Configure and build the main libraries
+    # --------------------------------------
+
+    # start with config full for maximum coverage (also enables USE_PSA)
+    scripts/config.py full
+    # enable support for drivers and configuring PSA-only algorithms
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+
+    # disable built-in block cipher chaining modes
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CFB
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CTR
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_OFB
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
+
+    # disable built-in block padding modes
+    scripts/config.py unset MBEDTLS_CIPHER_PADDING_PKCS7
+    scripts/config.py unset MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
+    scripts/config.py unset MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
+    scripts/config.py unset MBEDTLS_CIPHER_PADDING_ZEROS
+
+    # disable built-in AEAD modules
+    scripts/config.py unset MBEDTLS_CCM_C
+    scripts/config.py unset MBEDTLS_GCM_C
+    scripts/config.py unset MBEDTLS_POLY1305_C
+    scripts/config.py unset MBEDTLS_CHACHAPOLY_C
+
+    # disable built-in cipher primitives
+    scripts/config.py unset MBEDTLS_AES_C
+    scripts/config.py unset MBEDTLS_ARIA_C
+    scripts/config.py unset MBEDTLS_CAMELLIA_C
+    scripts/config.py unset MBEDTLS_CHACHA20_C
+    scripts/config.py unset MBEDTLS_DES_C
+
+    # There is no intended accelerator support for ALG STREAM_CIPHER and
+    # ALG_ECB_NO_PADDING. Therefore, asking for them in the build implies the
+    # inclusion of the Mbed TLS cipher operations. As we want to test here with
+    # cipher operations solely supported by accelerators, disable those
+    # PSA configuration options.
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_CMAC
+
+    # depends on AES_C, will be fixed in the RNG EPIC:
+    # https://github.com/orgs/Mbed-TLS/projects/1#column-19083975
+    scripts/config.py unset MBEDTLS_CTR_DRBG_C
+
+    # disable CIPHER_C and things that depend on it,
+    # see component_test_full_no_cipher
+    #
+    # Note: can't actually do that for now, as PSA_CRYPTO depends on it,
+    # and we obviously need PSA for driver support, so keep Cipher until
+    # this is sorted out.
+    ##scripts/config.py unset MBEDTLS_CIPHER_C # task #6317
+    # direct dependencies
+    scripts/config.py unset MBEDTLS_CMAC_C # also depends on AES_C
+    scripts/config.py unset MBEDTLS_NIST_KW_C # task #6336
+    scripts/config.py unset MBEDTLS_PKCS12_C # task #6320
+    scripts/config.py unset MBEDTLS_PKCS5_C # task #6321
+    scripts/config.py unset MBEDTLS_SSL_TLS_C # task #6322
+    scripts/config.py unset MBEDTLS_SSL_TICKET_C # task #6322
+    # indirect dependencies
+    scripts/config.py unset MBEDTLS_SSL_CLI_C # SSL_TLS_C
+    scripts/config.py unset MBEDTLS_SSL_CONTEXT_SERIALIZATION # SSL_TLS_C
+    scripts/config.py unset MBEDTLS_SSL_DTLS_ANTI_REPLAY # SSL_TLS_C
+    scripts/config.py unset MBEDTLS_SSL_DTLS_CONNECTION_ID # SSL_TLS_C
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3 # SSL_TLS_C
+    scripts/config.py unset MBEDTLS_SSL_SRV_C # SSL_TLS_C
+
+    # build the library and tests, linking with libtestdriver1
+    loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
+    make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
+
+    # There's a risk of something getting re-enabled via config_psa.h;
+    # make sure it did not happen.
+    # AEADs
+    not grep mbedtls_ccm library/ccm.o
+    not grep mbedtls_gcm library/gcm.o
+    not grep mbedtls_chachapoly library/chachapoly.o
+    # cipher primitives (inc. chaining modes)
+    not grep mbedtls_aes library/aes.o
+    not grep mbedtls_aria library/aria.o
+    not grep mbedtls_camellia library/camellia.o
+    not grep mbedtls_chacha20 library/chacha20.o
+    not grep mbedtls_des library/des.o
+    # the cipher abstraction layer (inc. chaining & padding modes)
+    ##not grep mbedtls_cipher library/cipher.o # task #6317
+
+    # Run tests
+    # ---------
+
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated cipher+aead and USE_PSA"
+    make test
+
+    ### task #6323
+    ##msg "test: ssl-opt.sh, MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash and USE_PSA"
+    ##tests/ssl-opt.sh
+
+    ### task #6324
+    ##msg "test: compat.sh, MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash and USE_PSA"
+    ##tests/compat.sh
+}
+
 component_test_psa_crypto_config_accel_cipher () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated cipher"
 

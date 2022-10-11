@@ -208,7 +208,7 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
     if( age_in_s > 604800 )
     {
         MBEDTLS_SSL_DEBUG_MSG(
-            3, ( "Ticket age exceed limitation ticket_age=%lu",
+            3, ( "Ticket age exceeds limitation ticket_age=%lu",
                  (long unsigned int)age_in_s ) );
         goto exit;
     }

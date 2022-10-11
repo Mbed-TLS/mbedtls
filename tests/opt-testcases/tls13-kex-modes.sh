@@ -118,7 +118,7 @@ run_test "TLS 1.3 m->m: Session resumption failure, ticket authentication failed
          -s "ticket is not authentic" \
          -S "ticket is expired" \
          -S "Invalid ticket start time" \
-         -S "Ticket age exceed limitation" \
+         -S "Ticket age exceeds limitation" \
          -S "Ticket age outside tolerance window"
 
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
@@ -139,7 +139,7 @@ run_test "TLS 1.3 m->m: Session resumption failure, ticket expired." \
          -S "ticket is not authentic" \
          -s "ticket is expired" \
          -S "Invalid ticket start time" \
-         -S "Ticket age exceed limitation" \
+         -S "Ticket age exceeds limitation" \
          -S "Ticket age outside tolerance window"
 
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
@@ -160,7 +160,7 @@ run_test "TLS 1.3 m->m: Session resumption failure, invalid start time." \
          -S "ticket is not authentic" \
          -S "ticket is expired" \
          -s "Invalid ticket start time" \
-         -S "Ticket age exceed limitation" \
+         -S "Ticket age exceeds limitation" \
          -S "Ticket age outside tolerance window"
 
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
@@ -181,7 +181,7 @@ run_test "TLS 1.3 m->m: Session resumption failure, ticket expired. too old" \
          -S "ticket is not authentic" \
          -S "ticket is expired" \
          -S "Invalid ticket start time" \
-         -s "Ticket age exceed limitation" \
+         -s "Ticket age exceeds limitation" \
          -S "Ticket age outside tolerance window"
 
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
@@ -202,7 +202,7 @@ run_test "TLS 1.3 m->m: Session resumption failure, age outside tolerance window
          -S "ticket is not authentic" \
          -S "ticket is expired" \
          -S "Invalid ticket start time" \
-         -S "Ticket age exceed limitation" \
+         -S "Ticket age exceeds limitation" \
          -s "Ticket age outside tolerance window"
 
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
@@ -223,7 +223,7 @@ run_test "TLS 1.3 m->m: Session resumption failure, age outside tolerance window
          -S "ticket is not authentic" \
          -S "ticket is expired" \
          -S "Invalid ticket start time" \
-         -S "Ticket age exceed limitation" \
+         -S "Ticket age exceeds limitation" \
          -s "Ticket age outside tolerance window"
 
 requires_gnutls_tls1_3

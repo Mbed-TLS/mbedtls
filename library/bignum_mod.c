@@ -77,6 +77,9 @@ void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m )
     switch( m->int_rep )
     {
         case MBEDTLS_MPI_MOD_REP_MONTGOMERY:
+            mbedtls_platform_zeroize( (mbedtls_mpi_uint *) m->rep.mont.rr,
+                                      m->limbs );
+            mbedtls_free( (mbedtls_mpi_uint *)m->rep.mont.rr );
             m->rep.mont.rr = NULL;
             m->rep.mont.mm = 0; break;
         case MBEDTLS_MPI_MOD_REP_OPT_RED:
@@ -91,6 +94,38 @@ void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m )
     m->bits = 0;
     m->ext_rep = MBEDTLS_MPI_MOD_EXT_REP_INVALID;
     m->int_rep = MBEDTLS_MPI_MOD_REP_INVALID;
+}
+
+static int set_mont_const_square( const mbedtls_mpi_uint **X,
+                                  const mbedtls_mpi_uint *A,
+                                  size_t limbs )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_mpi N;
+    mbedtls_mpi RR;
+
+    mbedtls_mpi_init( &N );
+    mbedtls_mpi_init( &RR );
+
+    if ( A == NULL || limbs == 0 || limbs >= ( MBEDTLS_MPI_MAX_LIMBS / 2 ) - 2 )
+        goto cleanup;
+
+    if ( !mbedtls_mpi_grow( &N,  limbs ))
+        memcpy( N.p, A, sizeof(mbedtls_mpi_uint) *  limbs );
+    else
+        goto cleanup;
+
+    mbedtls_mpi_core_get_mont_r2_unsafe(&RR, &N);
+
+    *X = RR.p;
+    RR.p = NULL;
+    ret = 0;
+
+cleanup:
+    mbedtls_mpi_free(&N);
+    mbedtls_mpi_free(&RR);
+    ret = ( ret != 0 ) ? MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED : 0;
+    return( ret );
 }
 
 int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
@@ -120,8 +155,9 @@ int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
     {
         case MBEDTLS_MPI_MOD_REP_MONTGOMERY:
             m->int_rep = int_rep;
-            m->rep.mont.rr = NULL;
-            m->rep.mont.mm = 0; break;
+            m->rep.mont.mm = mbedtls_mpi_core_montmul_init( m->p );
+            set_mont_const_square( &m->rep.mont.rr, m->p, m->limbs );
+            break;
         case MBEDTLS_MPI_MOD_REP_OPT_RED:
             m->int_rep = int_rep;
             m->rep.ored = NULL;

@@ -283,7 +283,7 @@ int main( void )
 #else
 #define USAGE_CA_CALLBACK ""
 #endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
 #define USAGE_TICKETS                                       \
     "    tickets=%%d          default: 1 (enabled)\n"       \
     "    ticket_rotate=%%d    default: 0 (disabled)\n"      \
@@ -291,7 +291,7 @@ int main( void )
     "    ticket_aead=%%s      default: \"AES-256-GCM\"\n"
 #else
 #define USAGE_TICKETS ""
-#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_TICKET_C */
 
 #define USAGE_EAP_TLS                                       \
     "    eap_tls=%%d          default: 0 (disabled)\n"
@@ -1406,7 +1406,7 @@ int main( int argc, char *argv[] )
 #endif
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
     mbedtls_ssl_ticket_context ticket_ctx;
-#endif
+#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_TICKET_C */
 #if defined(SNI_OPTION)
     sni_entry *sni_info = NULL;
 #endif

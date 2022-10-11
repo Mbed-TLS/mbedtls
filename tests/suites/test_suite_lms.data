@@ -179,5 +179,9 @@ lms_verify_test:"bfff9cd687351db88a98c71fd2f9b927a0ee600130a112533b791041d30cb91
 LMS import/export test
 # This test uses a randomly generated LMS public key. It imports the key, and
 # then exports it, and verifies that the exported key is identical to the
-# original key.
-lms_import_export_test:"00000006000000046B0927585C8547228D495361D73B970C287A2254BF8F1B170E55ACC9520A56CE5D2C711B6617718B49247D28CCC6D11D"
+# original key. It also tests handling of too-small key export buffers.
+lms_import_export_test:"0000000600000004d96bb26744d99ef624e32161c36d3d6efcdd0484e2b17a6dd183125be4b1af1cda931a91a3acb1151877c174f7943fd9":0
+
+LMS import/export negative test #1
+# This test uses the randomly generated LMS public key 
+lms_import_export_test:"0000000600000004d96bb26744d99ef624e32161c36d3d6efcdd0484e2b17a6dd183125be4b1af1cda931a91a3acb1151877c174f7943fd9":0

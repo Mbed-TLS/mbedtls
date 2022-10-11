@@ -714,50 +714,6 @@ static int ssl_generate_random( mbedtls_ssl_context *ssl )
     return( ret );
 }
 
-static int ssl_session_set_hostname( mbedtls_ssl_session *session,
-                                     const char *hostname )
-{
-    /* Initialize to suppress unnecessary compiler warning */
-    size_t hostname_len = 0;
-
-    /* Check if new hostname is valid before
-     * making any change to current one */
-    if( hostname != NULL )
-    {
-        hostname_len = strlen( hostname );
-
-        if( hostname_len > MBEDTLS_SSL_MAX_HOST_NAME_LEN )
-            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-    }
-
-    /* Now it's clear that we will overwrite the old hostname,
-     * so we can free it safely */
-
-    if( session->hostname != NULL )
-    {
-        mbedtls_platform_zeroize( session->hostname,
-                                  strlen( session->hostname ) );
-        mbedtls_free( session->hostname );
-    }
-
-    /* Passing NULL as hostname shall clear the old one */
-
-    if( hostname == NULL )
-    {
-        session->hostname = NULL;
-    }
-    else
-    {
-        session->hostname = mbedtls_calloc( 1, hostname_len + 1 );
-        if( session->hostname == NULL )
-            return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
-
-        memcpy( session->hostname, hostname, hostname_len );
-    }
-
-    return( 0 );
-}
-
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
 {
@@ -917,34 +873,33 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
     defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    if( ssl->handshake->resume )
+    if( ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_3  &&
+        ssl->handshake->resume )
     {
-        if( ssl->hostname != NULL && ssl->session_negotiate->hostname != NULL )
+        int hostname_mismatch = 0;
+        if( ssl->session_negotiate->hostname != NULL )
         {
-            size_t hostname_len = strlen( ssl->hostname );
-            size_t negotiate_hostname_len =
-             strlen( ssl->session_negotiate->hostname );
-            if( hostname_len != negotiate_hostname_len || \
-                strncmp( ssl->hostname, ssl->session_negotiate->hostname,
-                         hostname_len ) )
+            if( ssl->hostname != NULL )
             {
-                MBEDTLS_SSL_DEBUG_MSG( 1,
-                ( "hostname mismatch the session ticket, should not resume " ) );
-                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+                if( strcmp( ssl->hostname, ssl->session_negotiate->hostname) )
+                    hostname_mismatch = 1;
             }
+            else
+                hostname_mismatch = 1;
         }
-        else if( ssl->session_negotiate->hostname != NULL )
+        else
+            hostname_mismatch = ssl->hostname != NULL;
+
+        if( hostname_mismatch )
         {
-                MBEDTLS_SSL_DEBUG_MSG( 1,
-                ( "hostname missed, should not resume " ) );
-                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            MBEDTLS_SSL_DEBUG_MSG( 1,
+            ( "hostname mismatch the session ticket, should not resume " ) );
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
         }
     }
     else
-    {
-        ssl_session_set_hostname( ssl->session_negotiate,
-                                  ssl->hostname );
-    }
+        mbedtls_ssl_session_set_hostname( ssl->session_negotiate,
+                                          ssl->hostname );
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 &&
           MBEDTLS_SSL_SERVER_NAME_INDICATION */
 

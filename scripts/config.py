@@ -7,6 +7,9 @@ Basic usage, to read the Mbed TLS or Mbed Crypto configuration:
     if 'MBEDTLS_RSA_C' in config: print('RSA is enabled')
 """
 
+# Note that the version of this script in the mbedtls-2.28 branch must remain
+# compatible with Python 3.4.
+
 ## Copyright The Mbed TLS Contributors
 ## SPDX-License-Identifier: Apache-2.0
 ##

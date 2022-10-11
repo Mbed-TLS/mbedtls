@@ -1572,11 +1572,11 @@ component_build_crypto_light () {
   scripts/config.py unset MBEDTLS_PEM_WRITE_C
   scripts/config.py unset MBEDTLS_PKCS12_C
   scripts/config.py unset MBEDTLS_PKCS5_C
-  # MBEDTLS_PK_WRITE_C is actually currently needed for RSA key export,
-  # but build_info.h will reenable it.
+  # MBEDTLS_PK_PARSE_C and MBEDTLS_PK_WRITE_C are actually currently needed
+  # in PSA code to work with RSA keys. We don't require users to set those:
+  # they will be reenabled in build_info.h.
+  scripts/config.py unset MBEDTLS_PK_PARSE_C
   scripts/config.py unset MBEDTLS_PK_WRITE_C
-  # At this time, we can't unset MBEDTLS_PK_PARSE_C, because it's needed
-  # for RSA in PSA (see https://github.com/Mbed-TLS/mbedtls/issues/6408).
   make CFLAGS='-O1 -Werror' all test
   are_empty_libraries library/libmbedx509.* library/libmbedtls.*
 }

@@ -49,7 +49,7 @@ int main( void )
 #include "mbedtls/ssl_cache.h"
 #endif
 
-#if defined(MBEDTLS_SSL_TICKET_C)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
 #include "mbedtls/ssl_ticket.h"
 #endif
 
@@ -284,7 +284,7 @@ int main( void )
 #else
 #define USAGE_CA_CALLBACK ""
 #endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
 #define USAGE_TICKETS                                       \
     "    tickets=%%d          default: 1 (enabled)\n"       \
     "    ticket_rotate=%%d    default: 0 (disabled)\n"      \
@@ -292,7 +292,7 @@ int main( void )
     "    ticket_aead=%%s      default: \"AES-256-GCM\"\n"
 #else
 #define USAGE_TICKETS ""
-#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_TICKET_C */
 
 #define USAGE_EAP_TLS                                       \
     "    eap_tls=%%d          default: 0 (disabled)\n"
@@ -1477,9 +1477,9 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_context cache;
 #endif
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
     mbedtls_ssl_ticket_context ticket_ctx;
-#endif
+#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_TICKET_C */
 #if defined(SNI_OPTION)
     sni_entry *sni_info = NULL;
 #endif
@@ -1568,7 +1568,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_init( &cache );
 #endif
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
     mbedtls_ssl_ticket_init( &ticket_ctx );
 #endif
 #if defined(MBEDTLS_SSL_ALPN)
@@ -2994,7 +2994,7 @@ int main( int argc, char *argv[] )
                                    mbedtls_ssl_cache_set );
 #endif
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
     if( opt.tickets != MBEDTLS_SSL_SESSION_TICKETS_DISABLED )
     {
 #if defined(MBEDTLS_HAVE_TIME)
@@ -4305,7 +4305,7 @@ exit:
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_free( &cache );
 #endif
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
     mbedtls_ssl_ticket_free( &ticket_ctx );
 #endif
 #if defined(MBEDTLS_SSL_COOKIE_C)

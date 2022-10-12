@@ -213,7 +213,7 @@ signed char mbedtls_ct_base64_dec_value( unsigned char c );
 
 #endif /* MBEDTLS_BASE64_C */
 
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 
 /** Conditional memcpy without branches.
  *
@@ -321,7 +321,7 @@ int mbedtls_ct_hmac( mbedtls_md_context_t *ctx,
                      unsigned char *output );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-#endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 
 #if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)
 

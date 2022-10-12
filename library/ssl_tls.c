@@ -258,9 +258,12 @@ int mbedtls_ssl_session_copy( mbedtls_ssl_session *dst,
     defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     if( src->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
+        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         dst->hostname = NULL;
-        return mbedtls_ssl_session_set_hostname( dst,
-                                                 src->hostname );
+        ret = mbedtls_ssl_session_set_hostname( dst,
+                                                src->hostname );
+        if( ret != 0)
+            return ret;
     }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SERVER_NAME_INDICATION */
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */

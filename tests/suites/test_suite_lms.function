@@ -157,7 +157,8 @@ void lms_import_export_test (  data_t * pub_key, int expected_import_rc )
     unsigned char *exported_pub_key = NULL;
 
     mbedtls_lms_public_init(&ctx);
-    TEST_EQUAL( mbedtls_lms_import_public_key( &ctx, pub_key->x, pub_key->len ), 0 );
+    TEST_EQUAL( mbedtls_lms_import_public_key( &ctx, pub_key->x, pub_key->len ),
+                expected_import_rc );
 
     if( expected_import_rc == 0 )
     {

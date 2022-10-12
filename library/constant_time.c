@@ -81,7 +81,7 @@ unsigned mbedtls_ct_uint_mask( unsigned value )
 #endif
 }
 
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
+#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
 
 size_t mbedtls_ct_size_mask( size_t value )
 {
@@ -97,7 +97,7 @@ size_t mbedtls_ct_size_mask( size_t value )
 #endif
 }
 
-#endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
+#endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
 
 #if defined(MBEDTLS_BIGNUM_C)
 
@@ -404,8 +404,7 @@ static void mbedtls_ct_mem_move_to_left( void *start,
 
 #endif /* MBEDTLS_PKCS1_V15 && MBEDTLS_RSA_C && ! MBEDTLS_RSA_ALT */
 
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
-
+#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
 void mbedtls_ct_memcpy_if_eq( unsigned char *dest,
                               const unsigned char *src,
                               size_t len,
@@ -527,7 +526,7 @@ cleanup:
     return( ret );
 }
 
-#endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
+#endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
 
 #if defined(MBEDTLS_BIGNUM_C)
 

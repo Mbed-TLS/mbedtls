@@ -6595,6 +6595,7 @@ run_test    "Per-version suites: TLS 1.1" \
 
 requires_config_enabled MBEDTLS_CAMELLIA_C
 requires_config_enabled MBEDTLS_AES_C
+requires_config_enabled MBEDTLS_GCM_C
 run_test    "Per-version suites: TLS 1.2" \
             "$P_SRV version_suites=TLS-RSA-WITH-CAMELLIA-128-CBC-SHA,TLS-RSA-WITH-AES-256-CBC-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
             "$P_CLI force_version=tls12" \

@@ -603,7 +603,9 @@ int mbedtls_lms_generate_private_key( mbedtls_lms_private_t *ctx,
         goto exit;
     }
 
-    ctx->ots_private_keys = mbedtls_calloc( MERKLE_TREE_LEAF_NODE_AM(ctx->params.type),
+    /* Requires a cast to size_t to avoid an implicit cast warning on certain
+     * platforms (particularly Windows) */
+    ctx->ots_private_keys = mbedtls_calloc( ( size_t )MERKLE_TREE_LEAF_NODE_AM(ctx->params.type),
                                             sizeof( *ctx->ots_private_keys ) );
     if( ctx->ots_private_keys == NULL )
     {
@@ -611,7 +613,9 @@ int mbedtls_lms_generate_private_key( mbedtls_lms_private_t *ctx,
         goto exit;
     }
 
-    ctx->ots_public_keys = mbedtls_calloc( MERKLE_TREE_LEAF_NODE_AM(ctx->params.type),
+    /* Requires a cast to size_t to avoid an implicit cast warning on certain
+     * platforms (particularly Windows) */
+    ctx->ots_public_keys = mbedtls_calloc( ( size_t )MERKLE_TREE_LEAF_NODE_AM(ctx->params.type),
                                            sizeof( *ctx->ots_public_keys ) );
     if( ctx->ots_public_keys == NULL )
     {

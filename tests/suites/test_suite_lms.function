@@ -14,7 +14,6 @@ void lms_sign_verify_test ( data_t *msg, data_t *seed )
     mbedtls_lms_public_t pub_ctx;
     mbedtls_lms_private_t priv_ctx;
     unsigned char sig[MBEDTLS_LMS_SIG_LEN(MBEDTLS_LMS_SHA256_M32_H10, MBEDTLS_LMOTS_SHA256_N32_W8)];
-    int rc;
 
     mbedtls_lms_public_init( &pub_ctx );
     mbedtls_lms_private_init( &priv_ctx );
@@ -22,12 +21,10 @@ void lms_sign_verify_test ( data_t *msg, data_t *seed )
     /* Allocation failure isn't a test failure, since it likely just means
      * there's not enough memory to run the test.
      */
-    rc = mbedtls_lms_generate_private_key( &priv_ctx, MBEDTLS_LMS_SHA256_M32_H10,
+    TEST_EQUAL( mbedtls_lms_generate_private_key( &priv_ctx, MBEDTLS_LMS_SHA256_M32_H10,
                                            MBEDTLS_LMOTS_SHA256_N32_W8,
                                            mbedtls_test_rnd_std_rand, NULL,
-                                           seed->x, seed->len );
-    TEST_ASSUME( rc != MBEDTLS_ERR_LMS_ALLOC_FAILED );
-    TEST_EQUAL( rc, 0 );
+                                           seed->x, seed->len ), 0 );
 
     TEST_EQUAL( mbedtls_lms_calculate_public_key( &pub_ctx, &priv_ctx ), 0 );
 
@@ -50,7 +47,6 @@ void lms_sign_verify_null_msg_test( data_t *seed )
     mbedtls_lms_public_t pub_ctx;
     mbedtls_lms_private_t priv_ctx;
     unsigned char sig[MBEDTLS_LMS_SIG_LEN(MBEDTLS_LMS_SHA256_M32_H10, MBEDTLS_LMOTS_SHA256_N32_W8)];
-    int rc;
 
     mbedtls_lms_public_init( &pub_ctx );
     mbedtls_lms_private_init( &priv_ctx );
@@ -58,12 +54,10 @@ void lms_sign_verify_null_msg_test( data_t *seed )
     /* Allocation failure isn't a test failure, since it likely just means
      * there's not enough memory to run the test.
      */
-    rc = mbedtls_lms_generate_private_key( &priv_ctx, MBEDTLS_LMS_SHA256_M32_H10,
+    TEST_EQUAL( mbedtls_lms_generate_private_key( &priv_ctx, MBEDTLS_LMS_SHA256_M32_H10,
                                            MBEDTLS_LMOTS_SHA256_N32_W8,
                                            mbedtls_test_rnd_std_rand, NULL,
-                                           seed->x, seed->len );
-    TEST_ASSUME( rc != MBEDTLS_ERR_LMS_ALLOC_FAILED );
-    TEST_EQUAL( rc, 0 );
+                                           seed->x, seed->len ), 0 );
 
     TEST_EQUAL( mbedtls_lms_calculate_public_key( &pub_ctx, &priv_ctx ), 0 );
 

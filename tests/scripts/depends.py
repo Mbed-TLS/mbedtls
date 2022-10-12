@@ -223,13 +223,6 @@ and subsequent commands are tests that cannot run if the build failed).'''
             built = True
         return success
 
-# SSL/TLS versions up to 1.1 and corresponding options. These require
-# both MD5 and SHA-1.
-SSL_PRE_1_2_DEPENDENCIES = ['MBEDTLS_SSL_CBC_RECORD_SPLITTING',
-                            'MBEDTLS_SSL_PROTO_SSL3',
-                            'MBEDTLS_SSL_PROTO_TLS1',
-                            'MBEDTLS_SSL_PROTO_TLS1_1']
-
 # If the configuration option A requires B, make sure that
 # B in REVERSE_DEPENDENCIES[A].
 # All the information here should be contained in check_config.h. This
@@ -251,7 +244,6 @@ REVERSE_DEPENDENCIES = {
                       'MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED',
                       'MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED'],
     'MBEDTLS_ECP_DP_SECP256R1_ENABLED': ['MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED'],
-    'MBEDTLS_MD5_C': SSL_PRE_1_2_DEPENDENCIES,
     'MBEDTLS_PKCS1_V21': ['MBEDTLS_X509_RSASSA_PSS_SUPPORT'],
     'MBEDTLS_PKCS1_V15': ['MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED',
                           'MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED',
@@ -263,7 +255,6 @@ REVERSE_DEPENDENCIES = {
                       'MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED',
                       'MBEDTLS_KEY_EXCHANGE_RSA_ENABLED',
                       'MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED'],
-    'MBEDTLS_SHA1_C': SSL_PRE_1_2_DEPENDENCIES,
     'MBEDTLS_SHA256_C': ['MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED',
                          'MBEDTLS_ENTROPY_FORCE_SHA256',
                          'MBEDTLS_SHA224_C',

@@ -108,10 +108,12 @@ class OperationCommon:
         self.int_b = hex_to_int(val_b)
 
     def arguments(self) -> List[str]:
-        return [quote_str(self.arg_a), quote_str(self.arg_b), self.result()]
+        return [
+            quote_str(self.arg_a), quote_str(self.arg_b)
+        ] + self.result()
 
     @abstractmethod
-    def result(self) -> str:
+    def result(self) -> List[str]:
         """Get the result of the operation.
 
         This could be calculated during initialization and stored as `_result`

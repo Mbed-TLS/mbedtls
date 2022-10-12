@@ -57,7 +57,7 @@ of BaseTarget in test_data_generation.py.
 import sys
 
 from abc import ABCMeta
-from typing import Iterator
+from typing import Iterator, List
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import test_case
@@ -144,8 +144,8 @@ class BignumCmp(BignumOperation):
         self._result = int(self.int_a > self.int_b) - int(self.int_a < self.int_b)
         self.symbol = ["<", "==", ">"][self._result + 1]
 
-    def result(self) -> str:
-        return str(self._result)
+    def result(self) -> List[str]:
+        return [str(self._result)]
 
 
 class BignumCmpAbs(BignumCmp):
@@ -171,8 +171,8 @@ class BignumAdd(BignumOperation):
         ]
     )
 
-    def result(self) -> str:
-        return bignum_common.quote_str("{:x}").format(self.int_a + self.int_b)
+    def result(self) -> List[str]:
+        return [bignum_common.quote_str("{:x}").format(self.int_a + self.int_b)]
 
 
 if __name__ == '__main__':

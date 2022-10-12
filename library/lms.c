@@ -516,7 +516,7 @@ static int get_merkle_path( mbedtls_lms_private_t *ctx,
     ret = calculate_merkle_tree( ctx, ( unsigned char * )tree );
     if( ret != 0 )
     {
-        return( ret );
+        goto exit;
     }
 
     for( height = 0; height < MBEDTLS_LMS_H_TREE_HEIGHT(ctx->params.type);
@@ -531,7 +531,12 @@ static int get_merkle_path( mbedtls_lms_private_t *ctx,
         curr_node_id >>=1;
     }
 
-    return( 0 );
+    ret = 0;
+
+exit:
+    mbedtls_platform_zeroize( tree, sizeof( tree ) );
+
+    return( ret );
 }
 
 void mbedtls_lms_private_init( mbedtls_lms_private_t *ctx )
@@ -688,7 +693,7 @@ int mbedtls_lms_calculate_public_key( mbedtls_lms_public_t *ctx,
     ret = calculate_merkle_tree( priv_ctx, ( unsigned char * )tree );
     if( ret != 0 )
     {
-        return( ret );
+        goto exit;
     }
 
     /* Root node is always at position 1, due to 1-based indexing */
@@ -697,7 +702,12 @@ int mbedtls_lms_calculate_public_key( mbedtls_lms_public_t *ctx,
 
     ctx->have_public_key = 1;
 
-    return( 0 );
+    ret = 0;
+
+exit:
+    mbedtls_platform_zeroize( tree, sizeof( tree ) );
+
+    return( ret );
 }
 
 

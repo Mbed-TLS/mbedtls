@@ -700,7 +700,7 @@ int mbedtls_lmots_calculate_public_key( mbedtls_lmots_public_t *ctx,
                             NULL, ( unsigned char * )y_hashed_digits );
     if( ret )
     {
-        return( ret );
+        goto exit;
     }
 
     ret = public_key_from_hashed_digit_array( &priv_ctx->params,
@@ -708,13 +708,16 @@ int mbedtls_lmots_calculate_public_key( mbedtls_lmots_public_t *ctx,
                                               ctx->public_key );
     if( ret )
     {
-        return( ret );
+        goto exit;
     }
 
     memcpy( &ctx->params, &priv_ctx->params,
             sizeof( ctx->params ) );
 
     ctx->have_public_key = 1;
+
+exit:
+    mbedtls_platform_zeroize( y_hashed_digits, sizeof( y_hashed_digits ) );
 
     return( ret );
 }
@@ -765,14 +768,14 @@ int mbedtls_lmots_sign( mbedtls_lmots_private_t *ctx,
                                             tmp_digit_array );
     if( ret )
     {
-        return( ret );
+        goto exit;
     }
 
     ret = hash_digit_array( &ctx->params, ( unsigned char * )ctx->private_key,
                             NULL, tmp_digit_array, ( unsigned char * )tmp_sig );
     if( ret )
     {
-        return( ret );
+        goto exit;
     }
 
     mbedtls_lms_unsigned_int_to_network_bytes( ctx->params.type,
@@ -810,7 +813,13 @@ int mbedtls_lmots_sign( mbedtls_lmots_private_t *ctx,
         *sig_len = MBEDTLS_LMOTS_SIG_LEN(ctx->params.type);
     }
 
-    return( 0 );
+    ret = 0;
+
+exit:
+    mbedtls_platform_zeroize( tmp_digit_array, sizeof( tmp_digit_array ) );
+    mbedtls_platform_zeroize( tmp_sig, sizeof( tmp_sig ) );
+
+    return ( ret );
 }
 
 #endif /* defined(MBEDTLS_LMS_PRIVATE) */

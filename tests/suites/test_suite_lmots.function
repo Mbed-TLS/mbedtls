@@ -211,7 +211,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_LMS_PRIVATE */
 void lmots_signature_leak_test ( data_t *msg, data_t *key_id, int leaf_id,
                                  data_t *seed )
 {

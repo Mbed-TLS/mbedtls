@@ -146,20 +146,41 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void lmots_import_export_test (  data_t * pub_key )
+void lmots_import_export_test (  data_t * pub_key, int expected_import_rc )
 {
     mbedtls_lmots_public_t ctx;
-    uint8_t exported_pub_key[MBEDTLS_LMOTS_PUBLIC_KEY_LEN(MBEDTLS_LMOTS_SHA256_N32_W8)];
-    size_t exported_pub_key_len;
+    unsigned char *exported_pub_key = NULL;
+    size_t exported_pub_key_buf_size;
+    size_t exported_pub_key_size;
 
     mbedtls_lmots_public_init( &ctx );
-    TEST_EQUAL( mbedtls_lmots_import_public_key( &ctx, pub_key->x, pub_key->len ), 0 );
-    TEST_EQUAL( mbedtls_lmots_export_public_key( &ctx, exported_pub_key,
-                                                 sizeof( exported_pub_key ),
-                                                 &exported_pub_key_len ), 0 );
+    TEST_EQUAL( mbedtls_lmots_import_public_key( &ctx, pub_key->x, pub_key->len ),
+                expected_import_rc );
 
-    ASSERT_COMPARE( pub_key->x, pub_key->len,
-                    exported_pub_key, exported_pub_key_len );
+    if( expected_import_rc == 0 )
+    {
+        exported_pub_key_buf_size = MBEDTLS_LMOTS_PUBLIC_KEY_LEN(MBEDTLS_LMOTS_SHA256_N32_W8);
+        ASSERT_ALLOC( exported_pub_key, exported_pub_key_buf_size );
+
+        TEST_EQUAL( mbedtls_lmots_export_public_key( &ctx, exported_pub_key,
+                                                   exported_pub_key_buf_size,
+                                                   &exported_pub_key_size ), 0 );
+
+        TEST_EQUAL( exported_pub_key_buf_size, exported_pub_key_size );
+        ASSERT_COMPARE( pub_key->x, MBEDTLS_LMOTS_PUBLIC_KEY_LEN(MBEDTLS_LMOTS_SHA256_N32_W8),
+                        exported_pub_key, MBEDTLS_LMOTS_PUBLIC_KEY_LEN(MBEDTLS_LMOTS_SHA256_N32_W8) );
+        mbedtls_free(exported_pub_key);
+        exported_pub_key = NULL;
+
+        /* Export into too-small buffer should fail */
+        exported_pub_key_buf_size = MBEDTLS_LMOTS_PUBLIC_KEY_LEN(MBEDTLS_LMOTS_SHA256_N32_W8) - 1;
+        ASSERT_ALLOC( exported_pub_key, exported_pub_key_buf_size);
+        TEST_EQUAL( mbedtls_lmots_export_public_key( &ctx, exported_pub_key,
+                                                   exported_pub_key_buf_size, NULL ),
+                    MBEDTLS_ERR_LMS_BUFFER_TOO_SMALL );
+        mbedtls_free(exported_pub_key);
+        exported_pub_key = NULL;
+    }
 
 exit:
     mbedtls_lmots_public_free( &ctx );

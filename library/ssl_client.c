@@ -885,9 +885,9 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
 
         if( hostname_mismatch )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1,
-                ( "hostname mismatch the session ticket,"
-                  " should not resume " ) );
+            MBEDTLS_SSL_DEBUG_MSG(
+                1, ( "Hostname mismatch the session ticket, "
+                     "disable session resumption." ) );
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
         }
     }

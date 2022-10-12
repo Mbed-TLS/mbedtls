@@ -4651,7 +4651,9 @@ int mbedtls_ssl_handshake( mbedtls_ssl_context *ssl );
  */
 static inline int mbedtls_ssl_is_handshake_over( mbedtls_ssl_context *ssl )
 {
-    return( ssl->MBEDTLS_PRIVATE( state ) == MBEDTLS_SSL_HANDSHAKE_OVER );
+    return( ssl->MBEDTLS_PRIVATE( state ) == MBEDTLS_SSL_HANDSHAKE_OVER ||
+            ssl->MBEDTLS_PRIVATE( state ) == MBEDTLS_SSL_NEW_SESSION_TICKET ||
+            ssl->MBEDTLS_PRIVATE( state ) == MBEDTLS_SSL_NEW_SESSION_TICKET_FLUSH);
 }
 
 /**

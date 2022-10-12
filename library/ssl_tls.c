@@ -8862,7 +8862,7 @@ int mbedtls_ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
     defined(MBEDTLS_SSL_SESSION_TICKETS) && \
     defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && \
-    defined(MBEDTLS_SSL_TLS_C)
+    defined(MBEDTLS_SSL_CLI_C)
 int mbedtls_ssl_session_set_hostname( mbedtls_ssl_session *session,
                                       const char *hostname )
 {
@@ -8907,6 +8907,6 @@ int mbedtls_ssl_session_set_hostname( mbedtls_ssl_session *session,
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 &&
           MBEDTLS_SSL_SESSION_TICKETS &&
           MBEDTLS_SSL_SERVER_NAME_INDICATION &&
-          MBEDTLS_SSL_TLS_C */
+          MBEDTLS_SSL_CLI_C */
 
 #endif /* MBEDTLS_SSL_TLS_C */

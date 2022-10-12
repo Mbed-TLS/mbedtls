@@ -1188,6 +1188,10 @@ struct mbedtls_ssl_session
     uint8_t MBEDTLS_PRIVATE(resumption_key_len);            /*!< resumption_key length */
     unsigned char MBEDTLS_PRIVATE(resumption_key)[MBEDTLS_SSL_TLS1_3_TICKET_RESUMPTION_KEY_LEN];
 
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && defined(MBEDTLS_SSL_CLI_C)
+    char *MBEDTLS_PRIVATE(hostname);             /*!< host name binded with tickets */
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION && MBEDTLS_SSL_CLI_C */
+
 #if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_CLI_C)
     mbedtls_time_t MBEDTLS_PRIVATE(ticket_received);        /*!< time ticket was received */
 #endif /* MBEDTLS_HAVE_TIME && MBEDTLS_SSL_CLI_C */
@@ -1201,10 +1205,6 @@ struct mbedtls_ssl_session
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     mbedtls_ssl_tls13_application_secrets MBEDTLS_PRIVATE(app_secrets);
 
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && \
-    defined(MBEDTLS_SSL_SESSION_TICKETS)
-    char *MBEDTLS_PRIVATE(hostname);             /*!< host name binded with tickets */
-#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION && MBEDTLS_SSL_SESSION_TICKETS */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 };
 

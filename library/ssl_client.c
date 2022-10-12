@@ -880,8 +880,10 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
         int hostname_mismatch = ssl->hostname != NULL ||
                                 ssl->session_negotiate->hostname != NULL;
         if( ssl->hostname != NULL && ssl->session_negotiate->hostname != NULL )
+        {
             hostname_mismatch = strcmp(
                 ssl->hostname, ssl->session_negotiate->hostname ) != 0;
+        }
 
         if( hostname_mismatch )
         {

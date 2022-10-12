@@ -245,8 +245,25 @@ int mbedtls_ssl_session_copy( mbedtls_ssl_session *dst,
     memcpy( dst, src, sizeof( mbedtls_ssl_session ) );
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
-    dst->ticket = NULL;
+    if( src->ticket != NULL )
+    {
+        dst->ticket = mbedtls_calloc( 1, src->ticket_len );
+        if( dst->ticket == NULL )
+            return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+
+        memcpy( dst->ticket, src->ticket, src->ticket_len );
+    }
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
+    defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    if( src->endpoint == MBEDTLS_SSL_IS_CLIENT )
+    {
+        dst->hostname = NULL;
+        return mbedtls_ssl_session_set_hostname( dst,
+                                                 src->hostname );
+    }
 #endif
+#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 
@@ -285,27 +302,6 @@ int mbedtls_ssl_session_copy( mbedtls_ssl_session *dst,
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
-
-#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
-    if( src->ticket != NULL )
-    {
-        dst->ticket = mbedtls_calloc( 1, src->ticket_len );
-        if( dst->ticket == NULL )
-            return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
-
-        memcpy( dst->ticket, src->ticket, src->ticket_len );
-    }
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
-    defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    if( src->endpoint == MBEDTLS_SSL_IS_CLIENT )
-    {
-        dst->hostname = NULL;
-        return mbedtls_ssl_session_set_hostname( dst,
-                                                 src->hostname );
-    }
-#endif
-#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
 
     return( 0 );
 }

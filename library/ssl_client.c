@@ -872,6 +872,7 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
     }
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
+    defined(MBEDTLS_SSL_SESSION_TICKETS) && \
     defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     if( ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_3  &&
         ssl->handshake->resume )
@@ -885,14 +886,18 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
         if( hostname_mismatch )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1,
-            ( "hostname mismatch the session ticket, should not resume " ) );
+                ( "hostname mismatch the session ticket,"
+                  " should not resume " ) );
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
         }
     }
     else
-        mbedtls_ssl_session_set_hostname( ssl->session_negotiate,
-                                          ssl->hostname );
+    {
+        return mbedtls_ssl_session_set_hostname( ssl->session_negotiate,
+                                                 ssl->hostname );
+    }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 &&
+          MBEDTLS_SSL_SESSION_TICKETS &&
           MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
     return( 0 );

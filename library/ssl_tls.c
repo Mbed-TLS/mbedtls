@@ -298,13 +298,14 @@ int mbedtls_ssl_session_copy( mbedtls_ssl_session *dst,
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
+    defined(MBEDTLS_SSL_SESSION_TICKETS) && \
     defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && \
     defined(MBEDTLS_SSL_CLI_C)
     if( src->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
         dst->hostname = NULL;
-        mbedtls_ssl_session_set_hostname( dst,
-                                          src->hostname );
+        return mbedtls_ssl_session_set_hostname( dst,
+                                                 src->hostname );
     }
 #endif
 
@@ -1973,6 +1974,7 @@ static int ssl_tls13_session_save( const mbedtls_ssl_session *session,
 {
     unsigned char *p = buf;
 #if defined(MBEDTLS_SSL_CLI_C) && \
+    defined(MBEDTLS_SSL_SESSION_TICKETS) && \
     defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     size_t hostname_len = ( session->hostname == NULL ) ?
                             0 : strlen( session->hostname );
@@ -1995,7 +1997,8 @@ static int ssl_tls13_session_save( const mbedtls_ssl_session *session,
 #if defined(MBEDTLS_SSL_CLI_C)
     if( session->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && \
+    defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
         needed +=  2                        /* hostname_len */
                + hostname_len;              /* hostname */
 #endif
@@ -2026,7 +2029,9 @@ static int ssl_tls13_session_save( const mbedtls_ssl_session *session,
     memcpy( p, session->resumption_key, session->resumption_key_len );
     p += session->resumption_key_len;
 
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && defined(MBEDTLS_SSL_CLI_C)
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && \
+    defined(MBEDTLS_SSL_SESSION_TICKETS) && \
+    defined(MBEDTLS_SSL_CLI_C)
     if( session->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
         MBEDTLS_PUT_UINT16_BE( hostname_len, p, 0 );
@@ -2039,7 +2044,9 @@ static int ssl_tls13_session_save( const mbedtls_ssl_session *session,
             p += hostname_len;
         }
     }
-#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION && MBEDTLS_SSL_CLI_C */
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION &&
+          MBEDTLS_SSL_SESSION_TICKETS &&
+          MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
     if( session->endpoint == MBEDTLS_SSL_IS_SERVER )
@@ -2099,7 +2106,9 @@ static int ssl_tls13_session_load( mbedtls_ssl_session *session,
     memcpy( session->resumption_key, p, session->resumption_key_len );
     p += session->resumption_key_len;
 
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && defined(MBEDTLS_SSL_CLI_C)
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && \
+    defined(MBEDTLS_SSL_SESSION_TICKETS) && \
+    defined(MBEDTLS_SSL_CLI_C)
     if( session->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
         size_t hostname_len;
@@ -2120,7 +2129,9 @@ static int ssl_tls13_session_load( mbedtls_ssl_session *session,
             p += hostname_len;
         }
     }
-#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION && MBEDTLS_SSL_CLI_C */
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION &&
+          MBEDTLS_SSL_SESSION_TICKETS &&
+          MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
     if( session->endpoint == MBEDTLS_SSL_IS_SERVER )
@@ -8862,6 +8873,7 @@ int mbedtls_ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_ALPN */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
+    defined(MBEDTLS_SSL_SESSION_TICKETS) && \
     defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
 int mbedtls_ssl_session_set_hostname( mbedtls_ssl_session *session,
                                       const char *hostname )
@@ -8904,6 +8916,8 @@ int mbedtls_ssl_session_set_hostname( mbedtls_ssl_session *session,
 
     return( 0 );
 }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SERVER_NAME_INDICATION */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 &&
+          MBEDTLS_SSL_SESSION_TICKETS &&
+          MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
 #endif /* MBEDTLS_SSL_TLS_C */

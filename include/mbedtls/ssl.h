@@ -1204,8 +1204,7 @@ struct mbedtls_ssl_session
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     mbedtls_ssl_tls13_application_secrets MBEDTLS_PRIVATE(app_secrets);
-
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+#endif
 };
 
 /*

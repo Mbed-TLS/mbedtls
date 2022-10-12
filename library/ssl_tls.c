@@ -262,7 +262,7 @@ int mbedtls_ssl_session_copy( mbedtls_ssl_session *dst,
         return mbedtls_ssl_session_set_hostname( dst,
                                                  src->hostname );
     }
-#endif
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SERVER_NAME_INDICATION */
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -2021,8 +2021,6 @@ static int ssl_tls13_session_save( const mbedtls_ssl_session *session,
     p += 9;
     memcpy( p, session->resumption_key, session->resumption_key_len );
     p += session->resumption_key_len;
-
-
 
 #if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
     if( session->endpoint == MBEDTLS_SSL_IS_SERVER )

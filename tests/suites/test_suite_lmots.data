@@ -107,6 +107,33 @@ LMOTS key import / export test
 # buffer is too small.
 lmots_import_export_test:"0000000447cc5b29dd0cecd01c382434a6d1686400000001f337dde97685d008a4440b59550277390018d3f1d485fa4b8c91796032de494b":0
 
+LMOTS key import too large key test
+# This test uses the valid public key for hsslms interop test 1, add an extra
+# byte, and then imports it. This should fail.
+lmots_import_export_test:"0000000447cc5b29dd0cecd01c382434a6d1686400000001f337dde97685d008a4440b59550277390018d3f1d485fa4b8c91796032de494b00":MBEDTLS_ERR_LMS_BAD_INPUT_DATA
+
+LMOTS key import too small key test
+# This test uses the valid public key for hsslms interop test 1, removes a byte,
+# and then imports it. This should fail.
+lmots_import_export_test:"0000000447cc5b29dd0cecd01c382434a6d1686400000001f337dde97685d008a4440b59550277390018d3f1d485fa4b8c91796032de49":MBEDTLS_ERR_LMS_BAD_INPUT_DATA
+
+LMOTS key import no type test
+# This test uses the valid public key for hsslms interop test 1, cuts it down so
+# it's smaller than the LMOTS type offset, and imports it. This should fail, and
+# not attempt to read invalidly outside the buffer.
+lmots_import_export_test:"000000":MBEDTLS_ERR_LMS_BAD_INPUT_DATA
+
+LMOTS key import invalid type test #1
+# This test uses the valid public key for hsslms interop test 1, alters the
+# LMOTS type to 0x3, and imports it. This should fail.
+lmots_import_export_test:"0000000347cc5b29dd0cecd01c382434a6d1686400000001f337dde97685d008a4440b59550277390018d3f1d485fa4b8c91796032de494b":MBEDTLS_ERR_LMS_BAD_INPUT_DATA
+
+LMOTS key import invalid type test #2
+# This test uses the valid public key for hsslms interop test 1, alters the
+# LMOTS type to 0x5, and imports it. This should fail, and not attempt to read
+# invalidly outside the buffer.
+lmots_import_export_test:"0000000547cc5b29dd0cecd01c382434a6d1686400000001f337dde97685d008a4440b59550277390018d3f1d485fa4b8c91796032de494b":MBEDTLS_ERR_LMS_BAD_INPUT_DATA
+
 LMOTS key reuse test
 # This test uses a fixed message, and then generates a private key, signs the
 # message, and then attempts to sign the message again. The second signature

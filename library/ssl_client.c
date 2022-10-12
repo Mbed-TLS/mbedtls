@@ -878,11 +878,11 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
         ssl->handshake->resume )
     {
         int hostname_mismatch = ssl->hostname != NULL ||
-                                ssl->session_negotiate->hostname != NULL;
-        if( ssl->hostname != NULL && ssl->session_negotiate->hostname != NULL )
+                                session_negotiate->hostname != NULL;
+        if( ssl->hostname != NULL && session_negotiate->hostname != NULL )
         {
             hostname_mismatch = strcmp(
-                ssl->hostname, ssl->session_negotiate->hostname ) != 0;
+                ssl->hostname, session_negotiate->hostname ) != 0;
         }
 
         if( hostname_mismatch )
@@ -895,7 +895,7 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
     }
     else
     {
-        return mbedtls_ssl_session_set_hostname( ssl->session_negotiate,
+        return mbedtls_ssl_session_set_hostname( session_negotiate,
                                                  ssl->hostname );
     }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 &&

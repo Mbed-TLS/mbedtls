@@ -19,7 +19,7 @@ Documentation
 
 The main Mbed TLS documentation is available via [ReadTheDocs](https://mbed-tls.readthedocs.io/).
 
-Documentation for the PSA Crypto interface is available [on GitHub](https://armmbed.github.io/mbed-crypto/psa/#application-programming-interface).
+Documentation for the PSA Cryptography API is available [on GitHub](https://armmbed.github.io/mbed-crypto/psa/#application-programming-interface).
 
 To generate a local copy of the library documentation in HTML format, tailored to your compile-time configuration:
 

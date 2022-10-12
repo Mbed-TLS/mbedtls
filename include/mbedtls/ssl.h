@@ -2322,7 +2322,7 @@ int mbedtls_ssl_check_record( mbedtls_ssl_context const *ssl,
  *                 here, except if using an event-driven style.
  *
  * \note           See also the "DTLS tutorial" article in our knowledge base.
- *                 https://tls.mbed.org/kb/how-to/dtls-tutorial
+ *                 https://mbed-tls.readthedocs.io/en/latest/kb/how-to/dtls-tutorial
  */
 void mbedtls_ssl_set_timer_cb( mbedtls_ssl_context *ssl,
                                void *p_timer,

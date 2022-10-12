@@ -181,7 +181,7 @@ Coding rules checklist for TLS 1.3
 The following coding rules are aimed to be a checklist for TLS 1.3 upstreaming
 work to reduce review rounds and the number of comments in each round. They
 come along (do NOT replace) the project coding rules
-(https://tls.mbed.org/kb/development/mbedtls-coding-standards). They have been
+(https://mbed-tls.readthedocs.io/en/latest/kb/development/mbedtls-coding-standards). They have been
 established and discussed following the review of #4882 that was the
 PR upstreaming the first part of TLS 1.3 ClientHello writing code.
 

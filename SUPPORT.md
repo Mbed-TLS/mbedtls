@@ -2,7 +2,7 @@
 
 Here are some useful sources of information about using Mbed TLS:
 
-- [ReadTheDocs](https://tls.mbed.org/kb);
+- [ReadTheDocs](https://mbed-tls.readthedocs.io/);
 - API documentation, see the [Documentation section of the
   README](README.md#License);
 - the `docs` directory in the source tree;

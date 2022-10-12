@@ -76,7 +76,7 @@ exit:
 
 /* BEGIN_CASE */
 void lmots_verify_test ( data_t *msg, data_t *sig, data_t *pub_key,
-                          int expected_rc )
+                         int expected_rc )
 {
     mbedtls_lmots_public_t ctx;
     unsigned int size;
@@ -91,17 +91,20 @@ void lmots_verify_test ( data_t *msg, data_t *sig, data_t *pub_key,
     /* Test negative cases if the input data is valid */
     if( expected_rc == 0 )
     {
-        /* Altering first message byte must cause verification failure */
-        msg->x[0] ^= 1;
-        TEST_EQUAL(mbedtls_lmots_verify( &ctx, msg->x, msg->len, sig->x, sig->len ),
-                   MBEDTLS_ERR_LMS_VERIFY_FAILED);
-        msg->x[0] ^= 1;
+        if( msg->len >= 1 )
+        {
+            /* Altering first message byte must cause verification failure */
+            msg->x[0] ^= 1;
+            TEST_EQUAL(mbedtls_lmots_verify( &ctx, msg->x, msg->len, sig->x, sig->len ),
+                       MBEDTLS_ERR_LMS_VERIFY_FAILED);
+            msg->x[0] ^= 1;
 
-        /* Altering last message byte must cause verification failure */
-        msg->x[msg->len - 1] ^= 1;
-        TEST_EQUAL(mbedtls_lmots_verify( &ctx, msg->x, msg->len, sig->x, sig->len ),
-                   MBEDTLS_ERR_LMS_VERIFY_FAILED);
-        msg->x[msg->len - 1] ^= 1;
+            /* Altering last message byte must cause verification failure */
+            msg->x[msg->len - 1] ^= 1;
+            TEST_EQUAL(mbedtls_lmots_verify( &ctx, msg->x, msg->len, sig->x, sig->len ),
+                       MBEDTLS_ERR_LMS_VERIFY_FAILED);
+            msg->x[msg->len - 1] ^= 1;
+        }
 
         /* Altering first signature byte must cause verification failure */
         sig->x[0] ^= 1;

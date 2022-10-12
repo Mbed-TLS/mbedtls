@@ -131,6 +131,33 @@ mpi_core_io_le:"0941379d00fed1491fe15df284dfde4a142f68aa8d412023195cee66883e6290
 Test mbedtls_mpi_core_io_le #21 (Buffer and limbs fit, input unaligned, odd number of limbs)
 mpi_core_io_le:"de4a142f68aa8d412023195cee66883e6290ffe703f4ea5963bf212713cee46b107c09182b5edcd955adac418bf4918e2889af48e1099d513830cec85c26ac1e158b52620e33ba8692f893efbb2f958b442400":82:21:0:0
 
+Test mbedtls_mpi_core_bitlen 764-bit
+mpi_core_bitlen:"941379d00fed1491fe15df284dfde4a142f68aa8d412023195cee66883e6290ffe703f4ea5963bf212713cee46b107c09182b5edcd955adac418bf4918e2889af48e1099d513830cec85c26ac1e158b52620e33ba8692f893efbb2f958b4424":764
+
+Test mbedtls_mpi_core_bitlen 0x18
+mpi_core_bitlen:"18":5
+
+Test mbedtls_mpi_core_bitlen 0x18 with leading 0 limb(s)
+mpi_core_bitlen:"00000000000000018":5
+
+Test mbedtls_mpi_core_bitlen 0x18 << 64
+mpi_core_bitlen:"180000000000000000":69
+
+Test mbedtls_mpi_core_bitlen 0x01
+mpi_core_bitlen:"1":1
+
+Test mbedtls_mpi_core_bitlen 0x0f
+mpi_core_bitlen:"f":4
+
+Test mbedtls_mpi_core_bitlen 0x10
+mpi_core_bitlen:"10":5
+
+Test mbedtls_mpi_core_bitlen 0x0a
+mpi_core_bitlen:"a":4
+
+Test mbedtls_mpi_core_bitlen: 0 (1 limb)
+mpi_core_bitlen:"0":0
+
 mbedtls_mpi_core_lt_ct: x=y (1 limb)
 mpi_core_lt_ct:"2B5":"2B5":0
 

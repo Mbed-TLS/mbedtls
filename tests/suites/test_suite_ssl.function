@@ -873,9 +873,9 @@ int mbedtls_endpoint_certificate_init( mbedtls_endpoint *ep, int pk_alg,
     }
 
     cert = &( ep->cert );
-    cert->ca_cert = mbedtls_calloc( 1, sizeof(mbedtls_x509_crt) );
-    cert->cert = mbedtls_calloc( 1, sizeof(mbedtls_x509_crt) );
-    cert->pkey = mbedtls_calloc( 1, sizeof(mbedtls_pk_context) );
+    ASSERT_ALLOC( cert->ca_cert, sizeof(mbedtls_x509_crt) );
+    ASSERT_ALLOC( cert->cert, sizeof(mbedtls_x509_crt) );
+    ASSERT_ALLOC( cert->pkey, sizeof(mbedtls_pk_context) );
 
     mbedtls_x509_crt_init( cert->ca_cert );
     mbedtls_x509_crt_init( cert->cert );

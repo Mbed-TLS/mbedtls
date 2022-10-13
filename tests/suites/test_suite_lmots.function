@@ -142,6 +142,8 @@ void lmots_verify_test ( data_t *msg, data_t *sig, data_t *pub_key,
     }
 
 exit:
+    if( tmp_sig != NULL )
+        mbedtls_free( tmp_sig );
     mbedtls_lmots_public_free( &ctx );
 }
 /* END_CASE */

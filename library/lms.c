@@ -44,15 +44,7 @@
 #include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
 
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
-#include <stdlib.h>
-#include <stdio.h>
-#define mbedtls_printf printf
-#define mbedtls_calloc calloc
-#define mbedtls_free   free
-#endif
 
 #define SIG_Q_LEAF_ID_OFFSET     (0)
 #define SIG_OTS_SIG_OFFSET       (SIG_Q_LEAF_ID_OFFSET + \

@@ -411,7 +411,7 @@ void gcm_encrypt_and_verify_no_ad_no_cipher( int cipher_id,
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:NOT_DEFINED */
+/* BEGIN_CASE */
 void gcm_invalid_param( )
 {
     mbedtls_gcm_context ctx;

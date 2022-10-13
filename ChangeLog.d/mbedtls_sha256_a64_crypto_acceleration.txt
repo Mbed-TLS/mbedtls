@@ -1,2 +1,0 @@
-Features
-   * A64 SHA-2 crypto extension support for SHA-256

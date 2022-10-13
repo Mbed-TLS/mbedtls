@@ -1,0 +1,5 @@
+Features
+   * make: enable building unversioned shared library, with e.g.:
+     "SHARED=1 SOEXT_TLS=so SOEXT_X509=so SOEXT_CRYPTO=so make lib"
+     resulting in library names like "libmbedtls.so" rather than
+     "libmbedcrypto.so.11".

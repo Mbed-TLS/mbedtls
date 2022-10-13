@@ -4,8 +4,8 @@ TLS 1.3 support
 Overview
 --------
 
-Mbed TLS provides a minimum viable implementation of the TLS 1.3 protocol
-defined in the "MVP definition" section below. The TLS 1.3 support enablement
+Mbed TLS provides a partial implementation of the TLS 1.3 protocol defined in
+the "Support description" section below. The TLS 1.3 support enablement
 is controlled by the MBEDTLS_SSL_PROTO_TLS1_3 configuration option.
 
 The development of the TLS 1.3 protocol is based on the TLS 1.3 prototype
@@ -16,37 +16,21 @@ development branch into the prototype. The section "Prototype upstreaming
 status" below describes what remains to be upstreamed.
 
 
-MVP definition
---------------
+Support description
+-------------------
 
 - Overview
 
-  - The TLS 1.3 MVP implements only the client side of the protocol.
+  - Mbed TLS implements both the client and the server side of the TLS 1.3
+    protocol.
 
-  - The TLS 1.3 MVP supports ECDHE key establishment.
+  - Mbed TLS supports ECDHE key establishment.
 
-  - The TLS 1.3 MVP does not support DHE key establishment.
+  - Mbed TLS does not support DHE key establishment.
 
-  - The TLS 1.3 MVP does not support pre-shared keys, including any form of
+  - Mbed TLS does not support pre-shared keys, including any form of
     session resumption. This implies that it does not support sending early
     data (0-RTT data).
-
-  - The TLS 1.3 MVP supports the authentication of the server by the client
-    but does not support authentication of the client by the server. In terms
-    of TLS 1.3 authentication messages, this means that the TLS 1.3 MVP
-    supports the processing of the Certificate and CertificateVerify messages
-    but not of the CertificateRequest message.
-
-  - The TLS 1.3 MVP does not support the handling of server HelloRetryRequest
-    message. In practice, this means that the handshake will fail if the MVP
-    does not provide in its ClientHello the shared secret associated to the
-    group selected by the server for key establishement. For more information,
-    see the comment associated to the `key_share` extension below.
-
-  - If the TLS 1.3 MVP receives a HelloRetryRequest or a CertificateRequest
-    message, it aborts the handshake with an handshake_failure closure alert
-    and the `mbedtls_ssl_handshake()` returns in error with the
-    `MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE` error code.
 
 - Supported cipher suites: depends on the library configuration. Potentially
   all of them:
@@ -55,94 +39,72 @@ MVP definition
 
 - Supported ClientHello extensions:
 
-  | Extension                    |   MVP   | Prototype (1) |
-  | ---------------------------- | ------- | ------------- |
-  | server_name                  | YES     | YES           |
-  | max_fragment_length          | no      | YES           |
-  | status_request               | no      | no            |
-  | supported_groups             | YES     | YES           |
-  | signature_algorithms         | YES     | YES           |
-  | use_srtp                     | no      | no            |
-  | heartbeat                    | no      | no            |
-  | apln                         | no      | YES           |
-  | signed_certificate_timestamp | no      | no            |
-  | client_certificate_type      | no      | no            |
-  | server_certificate_type      | no      | no            |
-  | padding                      | no      | no            |
-  | key_share                    | YES (2) | YES           |
-  | pre_shared_key               | no      | YES           |
-  | psk_key_exchange_modes       | no      | YES           |
-  | early_data                   | no      | YES           |
-  | cookie                       | no      | YES           |
-  | supported_versions           | YES (3) | YES           |
-  | certificate_authorities      | no      | no            |
-  | post_handshake_auth          | no      | no            |
-  | signature_algorithms_cert    | no      | no            |
+  | Extension                    | Support |
+  | ---------------------------- | ------- |
+  | server_name                  | YES     |
+  | max_fragment_length          | no      |
+  | status_request               | no      |
+  | supported_groups             | YES     |
+  | signature_algorithms         | YES     |
+  | use_srtp                     | no      |
+  | heartbeat                    | no      |
+  | apln                         | YES     |
+  | signed_certificate_timestamp | no      |
+  | client_certificate_type      | no      |
+  | server_certificate_type      | no      |
+  | padding                      | no      |
+  | key_share                    | YES     |
+  | pre_shared_key               | no      |
+  | psk_key_exchange_modes       | no      |
+  | early_data                   | no      |
+  | cookie                       | no      |
+  | supported_versions           | YES     |
+  | certificate_authorities      | no      |
+  | post_handshake_auth          | no      |
+  | signature_algorithms_cert    | no      |
 
-  (1) This is just for comparison.
-
-  (2) The MVP sends only one shared secret corresponding to the configured
-      preferred group. This could end up with connection failure if the
-      server does not support our preferred curve, as the MVP does not implement
-      HelloRetryRequest. The preferred group is the group of the first curve in
-      the list of allowed curves as defined by the configuration. The allowed
-      curves are by default ordered as follows: `x25519`, `secp256r1`,
-      `secp384r1` and finally `secp521r1`. Note that, in the absence of an
-      application profile standard specifying otherwise, section 9.1 of the
-      specification rather promotes curve `secp256r1` to be supported over
-      curve `x25519`. The MVP would, however, rather keep the preference order
-      currently promoted by Mbed TLS as this applies to TLS 1.2 as well, and
-      changing the order only for TLS1.3 would be potentially difficult.
-      In the unlikely event a server does not support curve `x25519` but does
-      support curve `secp256r1`, curve `secp256r1` can be set as the preferred
-      curve through the `mbedtls_ssl_conf_curves()` API.
-
-  (3) The MVP proposes only TLS 1.3 and does not support version negotiation.
-      Out-of-protocol fallback is supported though if the Mbed TLS library
-      has been built to support both TLS 1.3 and TLS 1.2: just set the
-      maximum of the minor version of the SSL configuration to
-      MBEDTLS_SSL_MINOR_VERSION_3 (`mbedtls_ssl_conf_min_version()` API) and
-      re-initiate a server handshake.
 
 - Supported groups: depends on the library configuration.
-  Potentially all ECDHE groups but x448:
-  secp256r1, x25519, secp384r1 and secp521r1.
+  Potentially all ECDHE groups:
+  secp256r1, x25519, secp384r1, x448 and secp521r1.
 
   Finite field groups (DHE) are not supported.
 
 - Supported signature algorithms (both for certificates and CertificateVerify):
   depends on the library configuration.
   Potentially:
-  rsa_pkcs1_sha256, rsa_pss_rsae_sha256, ecdsa_secp256r1_sha256,
-  ecdsa_secp384r1_sha384 and ecdsa_secp521r1_sha512.
+  ecdsa_secp256r1_sha256, ecdsa_secp384r1_sha384, ecdsa_secp521r1_sha512,
+  rsa_pkcs1_sha256, rsa_pkcs1_sha384, rsa_pkcs1_sha512, rsa_pss_rsae_sha256,
+  rsa_pss_rsae_sha384 and rsa_pss_rsae_sha512.
 
   Note that in absence of an application profile standard specifying otherwise
-  the three first ones in the list above are mandatory (see section 9.1 of the
-  specification).
+  rsa_pkcs1_sha256, rsa_pss_rsae_sha256 and ecdsa_secp256r1_sha256 are
+  mandatory (see section 9.1 of the specification).
 
 - Supported versions:
 
-  - TLS 1.2 and TLS 1.3 but version negotiation is not supported.
+  - TLS 1.2 and TLS 1.3 with version negotiation on the client side, not server
+    side.
 
-  - TLS 1.3 cannot be enabled in the build (MBEDTLS_SSL_PROTO_TLS1_3
-    configuration option) without TLS 1.2 (MBEDTLS_SSL_PROTO_TLS1_2 configuration
-    option).
-
-  - TLS 1.2 can be enabled in the build independently of TLS 1.3.
+  - TLS 1.2 and TLS 1.3 can be enabled in the build independently of each
+    other.
 
   - If both TLS 1.3 and TLS 1.2 are enabled at build time, only one of them can
-    be configured at runtime via `mbedtls_ssl_conf_{min,max}_version`. Otherwise,
-    `mbedtls_ssl_setup` will raise `MBEDTLS_ERR_SSL_BAD_CONFIG` error.
+    be configured at runtime via `mbedtls_ssl_conf_{min,max}_tls_version` for a
+    server endpoint. Otherwise, `mbedtls_ssl_setup` will raise
+    `MBEDTLS_ERR_SSL_BAD_CONFIG` error.
 
 - Compatibility with existing SSL/TLS build options:
 
-  The TLS 1.3 MVP is compatible with all TLS 1.2 configuration options in the
-  sense that when enabling the TLS 1.3 MVP in the library there is no need to
-  modify the configuration for TLS 1.2. The MBEDTLS_USE_PSA_CRYPTO configuration
-  option is an exception though, the TLS 1.3 MVP is not compatible with it.
+  The TLS 1.3 implementation is compatible with nearly all TLS 1.2
+  configuration options in the sense that when enabling TLS 1.3 in the library
+  there is rarely any need to modify the configuration from that used for
+  TLS 1.2. There are two exceptions though: the TLS 1.3 implementation requires
+  MBEDTLS_PSA_CRYPTO_C and MBEDTLS_SSL_KEEP_PEER_CERTIFICATE, so these options
+  must be enabled.
 
-  Mbed TLS SSL/TLS related features are not supported or not applicable to the
-  TLS 1.3 MVP:
+  Most of the Mbed TLS SSL/TLS related options are not supported or not
+  applicable to the TLS 1.3 implementation:
 
   | Mbed TLS configuration option            | Support |
   | ---------------------------------------- | ------- |
@@ -152,13 +114,12 @@ MVP definition
   | MBEDTLS_SSL_DEBUG_ALL                    | no      |
   | MBEDTLS_SSL_ENCRYPT_THEN_MAC             | n/a     |
   | MBEDTLS_SSL_EXTENDED_MASTER_SECRET       | n/a     |
-  | MBEDTLS_SSL_KEEP_PEER_CERTIFICATE        | no      |
+  | MBEDTLS_SSL_KEEP_PEER_CERTIFICATE        | no (1)  |
   | MBEDTLS_SSL_RENEGOTIATION                | n/a     |
   | MBEDTLS_SSL_MAX_FRAGMENT_LENGTH          | no      |
   |                                          |         |
   | MBEDTLS_SSL_SESSION_TICKETS              | no      |
-  | MBEDTLS_SSL_EXPORT_KEYS                  | no (1)  |
-  | MBEDTLS_SSL_SERVER_NAME_INDICATION       | no      |
+  | MBEDTLS_SSL_SERVER_NAME_INDICATION       | yes     |
   | MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH       | no      |
   |                                          |         |
   | MBEDTLS_ECP_RESTARTABLE                  | no      |
@@ -176,35 +137,20 @@ MVP definition
   | MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED    | n/a     |
   | MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED     | n/a     |
   |                                          |         |
-  | MBEDTLS_USE_PSA_CRYPTO                   | no      |
+  | MBEDTLS_PSA_CRYPTO_C                     | no (1)  |
+  | MBEDTLS_USE_PSA_CRYPTO                   | yes     |
 
-  (1) Some support has already been upstreamed but it is incomplete.
+  (1) These options must remain in their default state of enabled.
   (2) Key exchange configuration options for TLS 1.3 will likely to be
       organized around the notion of key exchange mode along the line
       of the MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE/PSK/PSK_EPHEMERAL/EPHEMERAL
       runtime configuration macros.
 
-- Quality considerations
-  - Standard Mbed TLS review bar
-  - Interoperability testing with OpenSSL and GnuTLS. Test with all the
-    cipher suites and signature algorithms supported by OpenSSL/GnuTLS server.
-  - Negative testing against OpenSSL/GnuTLS servers with which the
-    handshake fails due to incompatibility with the capabilities of the
-    MVP: TLS 1.2 or 1.1 server, server sending an HelloRetryRequest message in
-    response to the MVP ClientHello, server sending a CertificateRequest
-    message ...
-
 
 Prototype upstreaming status
 ----------------------------
 
-The following summarizes which parts of the TLS 1.3 prototype remain to be
-upstreamed:
-
-- Ephemeral only handshake on client side: client authentication,
-  HelloRetryRequest support, version negotiation.
-
-- Ephemeral only handshake server side.
+The following parts of the TLS 1.3 prototype remain to be upstreamed:
 
 - Pre-shared keys, session resumption and 0-RTT data (both client and server
   side).
@@ -409,3 +355,101 @@ General coding rules:
                                      buf_len );
     ```
     even if it fits.
+
+
+Overview of handshake code organization
+---------------------------------------
+
+The TLS 1.3 handshake protocol is implemented as a state machine. The
+functions `mbedtls_ssl_tls13_handshake_{client,server}_step` are the top level
+functions of that implementation. They are implemented as a switch over all the
+possible states of the state machine.
+
+Most of the states are either dedicated to the processing or writing of an
+handshake message.
+
+The implementation does not go systematically through all states as this would
+result in too many checks of whether something needs to be done or not in a
+given state to be duplicated across several state handlers. For example, on
+client side, the states related to certificate parsing and validation are
+bypassed if the handshake is based on a pre-shared key and thus does not
+involve certificates.
+
+On the contrary, the implementation goes systematically though some states
+even if they could be bypassed if it helps in minimizing when and where inbound
+and outbound keys are updated. The `MBEDTLS_SSL_CLIENT_CERTIFICATE` state on
+client side is a example of that.
+
+The names of the handlers processing/writing an handshake message are
+prefixed with `(mbedtls_)ssl_tls13_{process,write}`. To ease the maintenance and
+reduce the risk of bugs, the code of the message processing and writing
+handlers is split into a sequence of stages.
+
+The sending of data to the peer only occurs in `mbedtls_ssl_handshake_step`
+between the calls to the handlers and as a consequence handlers do not have to
+care about the MBEDTLS_ERR_SSL_WANT_WRITE error code. Furthermore, all pending
+data are flushed before to call the next handler. That way, handlers do not
+have to worry about pending data when changing outbound keys.
+
+### Message processing handlers
+For message processing handlers, the stages are:
+
+* coordination stage: check if the state should be bypassed. This stage is
+optional. The check is either purely based on the reading of the value of some
+fields of the SSL context or based on the reading of the type of the next
+message. The latter occurs when it is not known what the next handshake message
+will be, an example of that on client side being if we are going to receive a
+CertificateRequest message or not. The intent is, apart from the next record
+reading to not modify the SSL context as this stage may be repeated if the
+next handshake message has not been received yet.
+
+* fetching stage: at this stage we are sure of the type of the handshake
+message we must receive next and we try to fetch it. If we did not go through
+a coordination stage involving the next record type reading, the next
+handshake message may not have been received yet, the handler returns with
+`MBEDTLS_ERR_SSL_WANT_READ` without changing the current state and it will be
+called again later.
+
+* pre-processing stage: prepare the SSL context for the message parsing. This
+stage is optional. Any processing that must be done before the parsing of the
+message or that can be done to simplify the parsing code. Some simple and
+partial parsing of the handshake message may append at that stage like in the
+ServerHello message pre-processing.
+
+* parsing stage: parse the message and restrict as much as possible any
+update of the SSL context. The idea of the pre-processing/parsing/post-processing
+organization is to concentrate solely on the parsing in the parsing function to
+reduce the size of its code and to simplify it.
+
+* post-processing stage: following the parsing, further update of the SSL
+context to prepare for the next incoming and outgoing messages. This stage is
+optional. For example, secret and key computations occur at this stage, as well
+as handshake messages checksum update.
+
+* state change: the state change is done in the main state handler to ease the
+navigation of the state machine transitions.
+
+
+### Message writing handlers
+For message writing handlers, the stages are:
+
+* coordination stage: check if the state should be bypassed. This stage is
+optional. The check is based on the value of some fields of the SSL context.
+
+* preparation stage: prepare for the message writing. This stage is optional.
+Any processing that must be done before the writing of the message or that can
+be done to simplify the writing code.
+
+* writing stage: write the message and restrict as much as possible any update
+of the SSL context. The idea of the preparation/writing/finalization
+organization is to concentrate solely on the writing in the writing function to
+reduce the size of its code and simplify it.
+
+* finalization stage: following the writing, further update of the SSL
+context to prepare for the next incoming and outgoing messages. This stage is
+optional. For example, handshake secret and key computation occur at that
+stage (ServerHello writing finalization), switching to handshake keys for
+outbound message on server side as well.
+
+* state change: the state change is done in the main state handler to ease
+the navigation of the state machine transitions.

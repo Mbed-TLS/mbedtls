@@ -1,0 +1,2 @@
+Changes
+   * Add the ability to query PSA_WANT_xxx macros to query_compile_time_config

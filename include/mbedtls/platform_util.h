@@ -122,7 +122,7 @@ MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
  *
  * This macro has an empty expansion. It exists for documentation purposes:
  * a #MBEDTLS_CHECK_RETURN_OPTIONAL annotation indicates that the function
- * has been analyzed for return-check usefuless, whereas the lack of
+ * has been analyzed for return-check usefulness, whereas the lack of
  * an annotation indicates that the function has not been analyzed and its
  * return-check usefulness is unknown.
  */

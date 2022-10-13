@@ -49,7 +49,7 @@ int main( void )
 #include "mbedtls/ssl_cache.h"
 #endif
 
-#if defined(MBEDTLS_SSL_TICKET_C)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
 #include "mbedtls/ssl_ticket.h"
 #endif
 
@@ -116,9 +116,11 @@ int main( void )
 #define DFL_CID_VALUE_RENEGO    NULL
 #define DFL_AUTH_MODE           -1
 #define DFL_CERT_REQ_CA_LIST    MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED
+#define DFL_CERT_REQ_DN_HINT    0
 #define DFL_MFL_CODE            MBEDTLS_SSL_MAX_FRAG_LEN_NONE
 #define DFL_TRUNC_HMAC          -1
 #define DFL_TICKETS             MBEDTLS_SSL_SESSION_TICKETS_ENABLED
+#define DFL_DUMMY_TICKET        0
 #define DFL_TICKET_ROTATE       0
 #define DFL_TICKET_TIMEOUT      86400
 #define DFL_TICKET_AEAD         MBEDTLS_CIPHER_AES_256_GCM
@@ -151,6 +153,7 @@ int main( void )
 #define DFL_USE_SRTP            0
 #define DFL_SRTP_FORCE_PROFILE  0
 #define DFL_SRTP_SUPPORT_MKI    0
+#define DFL_KEY_OPAQUE_ALG      "none"
 
 #define LONG_RESPONSE "<p>01-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n" \
     "02-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n"  \
@@ -281,7 +284,7 @@ int main( void )
 #else
 #define USAGE_CA_CALLBACK ""
 #endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
 #define USAGE_TICKETS                                       \
     "    tickets=%%d          default: 1 (enabled)\n"       \
     "    ticket_rotate=%%d    default: 0 (disabled)\n"      \
@@ -289,7 +292,7 @@ int main( void )
     "    ticket_aead=%%s      default: \"AES-256-GCM\"\n"
 #else
 #define USAGE_TICKETS ""
-#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_TICKET_C */
 
 #define USAGE_EAP_TLS                                       \
     "    eap_tls=%%d          default: 0 (disabled)\n"
@@ -455,10 +458,24 @@ int main( void )
 #define USAGE_SERIALIZATION ""
 #endif
 
+#define USAGE_KEY_OPAQUE_ALGS \
+    "    key_opaque_algs=%%s  Allowed opaque key 1 algorithms.\n"                      \
+    "                        comma-separated pair of values among the following:\n"    \
+    "                        rsa-sign-pkcs1, rsa-sign-pss, rsa-sign-pss-sha256,\n"     \
+    "                        rsa-sign-pss-sha384, rsa-sign-pss-sha512, rsa-decrypt,\n" \
+    "                        ecdsa-sign, ecdh, none (only acceptable for\n"            \
+    "                        the second value).\n"                                     \
+    "    key_opaque_algs2=%%s Allowed opaque key 2 algorithms.\n"                      \
+    "                        comma-separated pair of values among the following:\n"    \
+    "                        rsa-sign-pkcs1, rsa-sign-pss, rsa-sign-pss-sha256,\n"     \
+    "                        rsa-sign-pss-sha384, rsa-sign-pss-sha512, rsa-decrypt,\n" \
+    "                        ecdsa-sign, ecdh, none (only acceptable for\n"            \
+    "                        the second value).\n"
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #define USAGE_TLS1_3_KEY_EXCHANGE_MODES \
     "    tls13_kex_modes=%%s   default: all\n"     \
-    "                          options: psk, psk_ephemeral, ephemeral, ephemeral_all, psk_all, all\n"
+    "                          options: psk, psk_ephemeral, psk_all, ephemeral,\n"  \
+    "                                   ephemeral_all, all, psk_or_ephemeral\n"
 #else
 #define USAGE_TLS1_3_KEY_EXCHANGE_MODES ""
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
@@ -494,6 +511,7 @@ int main( void )
     "                        options: none, optional, required\n" \
     "    cert_req_ca_list=%%d default: 1 (send ca list)\n"  \
     "                        options: 1 (send ca list), 0 (don't send)\n" \
+    "                                 2 (send conf dn hint), 3 (send hs dn hint)\n" \
     USAGE_IO                                                \
     USAGE_KEY_OPAQUE                                        \
     "\n"                                                    \
@@ -519,6 +537,7 @@ int main( void )
     USAGE_ETM                                               \
     USAGE_CURVES                                            \
     USAGE_SIG_ALGS                                          \
+    USAGE_KEY_OPAQUE_ALGS                                   \
     "\n"
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
@@ -616,9 +635,11 @@ struct options
     int allow_sha1;             /* flag for SHA-1 support                   */
     int auth_mode;              /* verify mode for connection               */
     int cert_req_ca_list;       /* should we send the CA list?              */
+    int cert_req_dn_hint;       /* mode to set DN hints for CA list to send */
     unsigned char mfl_code;     /* code for maximum fragment length         */
     int trunc_hmac;             /* accept truncated hmac?                   */
     int tickets;                /* enable / disable session tickets         */
+    int dummy_ticket;           /* enable / disable dummy ticket generator  */
     int ticket_rotate;          /* session ticket rotate (code coverage)    */
     int ticket_timeout;         /* session ticket lifetime                  */
     int ticket_aead;            /* session ticket protection                */
@@ -638,7 +659,7 @@ struct options
     int anti_replay;            /* Use anti-replay for DTLS? -1 for default */
     uint32_t hs_to_min;         /* Initial value of DTLS handshake timer    */
     uint32_t hs_to_max;         /* Max value of DTLS handshake timer        */
-    int dtls_mtu;               /* UDP Maximum tranport unit for DTLS       */
+    int dtls_mtu;               /* UDP Maximum transport unit for DTLS       */
     int dgram_packing;          /* allow/forbid datagram packing            */
     int badmac_limit;           /* Limit of records with bad MAC            */
     int eap_tls;                /* derive EAP-TLS keying material?          */
@@ -659,6 +680,10 @@ struct options
     int use_srtp;               /* Support SRTP                             */
     int force_srtp_profile;     /* SRTP protection profile to use or all    */
     int support_mki;            /* The dtls mki mki support                 */
+    const char *key1_opaque_alg1; /* Allowed opaque key 1 alg 1            */
+    const char *key1_opaque_alg2; /* Allowed opaque key 1 alg 2            */
+    const char *key2_opaque_alg1; /* Allowed opaque key 2 alg 1            */
+    const char *key2_opaque_alg2; /* Allowed opaque key 2 alg 2            */
 } opt;
 
 #include "ssl_test_common_source.c"
@@ -679,7 +704,7 @@ static int get_auth_mode( const char *s )
 }
 
 /*
- * Used by sni_parse and psk_parse to handle coma-separated lists
+ * Used by sni_parse and psk_parse to handle comma-separated lists
  */
 #define GET_ITEM( dst )         \
     do                          \
@@ -1328,6 +1353,75 @@ int report_cid_usage( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_HAVE_TIME)
+/* Functions for session ticket tests */
+int dummy_ticket_write( void *p_ticket, const mbedtls_ssl_session *session,
+                        unsigned char *start, const unsigned char *end,
+                        size_t *tlen, uint32_t *ticket_lifetime )
+{
+    int ret;
+    unsigned char *p = start;
+    size_t clear_len;
+    ((void) p_ticket);
+
+    if( end - p < 4 )
+    {
+        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+    }
+    *((uint32_t *)p) = 7 * 24 * 3600;
+    *ticket_lifetime = 7 * 24 * 3600;
+    p += 4;
+
+    /* Dump session state */
+    if( ( ret = mbedtls_ssl_session_save( session, p, end - p,
+                                          &clear_len ) ) != 0 )
+    {
+         return( ret );
+    }
+
+    *tlen = 4 + clear_len;
+
+    return( 0 );
+}
+
+int dummy_ticket_parse( void *p_ticket, mbedtls_ssl_session *session,
+                        unsigned char *buf, size_t len )
+{
+    int ret;
+    ((void) p_ticket);
+
+    if( ( ret = mbedtls_ssl_session_load( session, buf + 4, len - 4 ) ) != 0 )
+        return( ret );
+
+    switch( opt.dummy_ticket % 7 )
+    {
+        case 1:
+            return( MBEDTLS_ERR_SSL_INVALID_MAC );
+        case 2:
+            return( MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED );
+        case 3:
+            session->start = mbedtls_time( NULL ) + 10;
+            break;
+        case 4:
+            session->start = mbedtls_time( NULL ) - 10 - 7 * 24 * 3600;
+            break;
+        case 5:
+            session->start = mbedtls_time( NULL ) - 10;
+            break;
+        case 6:
+            session->start = mbedtls_time( NULL );
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+            session->ticket_age_add -= 1000;
+#endif
+            break;
+        default:
+            break;
+    }
+
+    return( ret );
+}
+#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_HAVE_TIME */
+
 int main( int argc, char *argv[] )
 {
     int ret = 0, len, written, frags, exchanges_left;
@@ -1383,9 +1477,9 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_context cache;
 #endif
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
     mbedtls_ssl_ticket_context ticket_ctx;
-#endif
+#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_TICKET_C */
 #if defined(SNI_OPTION)
     sni_entry *sni_info = NULL;
 #endif
@@ -1474,7 +1568,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_init( &cache );
 #endif
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
     mbedtls_ssl_ticket_init( &ticket_ctx );
 #endif
 #if defined(MBEDTLS_SSL_ALPN)
@@ -1580,9 +1674,11 @@ int main( int argc, char *argv[] )
     opt.allow_sha1          = DFL_SHA1;
     opt.auth_mode           = DFL_AUTH_MODE;
     opt.cert_req_ca_list    = DFL_CERT_REQ_CA_LIST;
+    opt.cert_req_dn_hint    = DFL_CERT_REQ_DN_HINT;
     opt.mfl_code            = DFL_MFL_CODE;
     opt.trunc_hmac          = DFL_TRUNC_HMAC;
     opt.tickets             = DFL_TICKETS;
+    opt.dummy_ticket        = DFL_DUMMY_TICKET;
     opt.ticket_rotate       = DFL_TICKET_ROTATE;
     opt.ticket_timeout      = DFL_TICKET_TIMEOUT;
     opt.ticket_aead         = DFL_TICKET_AEAD;
@@ -1615,6 +1711,10 @@ int main( int argc, char *argv[] )
     opt.use_srtp            = DFL_USE_SRTP;
     opt.force_srtp_profile  = DFL_SRTP_FORCE_PROFILE;
     opt.support_mki         = DFL_SRTP_SUPPORT_MKI;
+    opt.key1_opaque_alg1   = DFL_KEY_OPAQUE_ALG;
+    opt.key1_opaque_alg2   = DFL_KEY_OPAQUE_ALG;
+    opt.key2_opaque_alg1   = DFL_KEY_OPAQUE_ALG;
+    opt.key2_opaque_alg2   = DFL_KEY_OPAQUE_ALG;
 
     for( i = 1; i < argc; i++ )
     {
@@ -1834,6 +1934,16 @@ int main( int argc, char *argv[] )
                 opt.tls13_kex_modes = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL;
             else if( strcmp( q, "all" ) == 0 )
                 opt.tls13_kex_modes = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_ALL;
+            /* The purpose of `psk_or_ephemeral` is to improve test coverage. That
+             * is not recommended in practice.
+             * `psk_or_ephemeral` exists in theory, we need this mode to test if
+             * this setting work correctly. With this key exchange setting, server
+             * should always perform `ephemeral` handshake. `psk` or `psk_ephermal`
+             * is not expected.
+             */
+            else if( strcmp( q, "psk_or_ephemeral" ) == 0 )
+                opt.tls13_kex_modes = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK |
+                                      MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL ;
             else goto usage;
         }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
@@ -1902,8 +2012,13 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "cert_req_ca_list" ) == 0 )
         {
             opt.cert_req_ca_list = atoi( q );
-            if( opt.cert_req_ca_list < 0 || opt.cert_req_ca_list > 1 )
+            if( opt.cert_req_ca_list < 0 || opt.cert_req_ca_list > 3 )
                 goto usage;
+            if( opt.cert_req_ca_list > 1 )
+            {
+                opt.cert_req_dn_hint = opt.cert_req_ca_list;
+                opt.cert_req_ca_list = MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED;
+            }
         }
         else if( strcmp( p, "max_frag_len" ) == 0 )
         {
@@ -1956,7 +2071,13 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "tickets" ) == 0 )
         {
             opt.tickets = atoi( q );
-            if( opt.tickets < 0 || opt.tickets > 1 )
+            if( opt.tickets < 0 )
+                goto usage;
+        }
+        else if( strcmp( p, "dummy_ticket" ) == 0 )
+        {
+            opt.dummy_ticket = atoi( q );
+            if( opt.dummy_ticket < 0 )
                 goto usage;
         }
         else if( strcmp( p, "ticket_rotate" ) == 0 )
@@ -2088,6 +2209,18 @@ int main( int argc, char *argv[] )
         {
             opt.support_mki = atoi( q );
         }
+        else if( strcmp( p, "key_opaque_algs" ) == 0 )
+        {
+            if( key_opaque_alg_parse( q, &opt.key1_opaque_alg1,
+                                         &opt.key1_opaque_alg2 ) != 0 )
+                goto usage;
+        }
+        else if( strcmp( p, "key_opaque_algs2" ) == 0 )
+        {
+            if( key_opaque_alg_parse( q, &opt.key2_opaque_alg1,
+                                         &opt.key2_opaque_alg2 ) != 0 )
+                goto usage;
+        }
         else
             goto usage;
     }
@@ -2207,23 +2340,12 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
         if( opt.psk_opaque != 0 || opt.psk_list_opaque != 0 )
         {
-            /* Ensure that the chosen ciphersuite is PSK-only; we must know
-             * the ciphersuite in advance to set the correct policy for the
-             * PSK key slot. This limitation might go away in the future. */
-            if( ciphersuite_info->key_exchange != MBEDTLS_KEY_EXCHANGE_PSK ||
-                opt.min_version != MBEDTLS_SSL_VERSION_TLS1_2 )
-            {
-                mbedtls_printf( "opaque PSKs are only supported in conjunction with forcing TLS 1.2 and a PSK-only ciphersuite through the 'force_ciphersuite' option.\n" );
-                ret = 2;
-                goto usage;
-            }
-
             /* Determine KDF algorithm the opaque PSK will be used in. */
-#if defined(MBEDTLS_SHA384_C)
+#if defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
             if( ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
                 alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_384);
             else
-#endif /* MBEDTLS_SHA384_C */
+#endif /* MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
                 alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_256);
         }
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
@@ -2348,7 +2470,19 @@ int main( int argc, char *argv[] )
             if( *p == ',' )
                 *p++ = '\0';
 
-            if( strcmp( q, "ecdsa_secp256r1_sha256" ) == 0 )
+            if( strcmp( q, "rsa_pkcs1_sha256" ) == 0 )
+            {
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256;
+            }
+            else if( strcmp( q, "rsa_pkcs1_sha384" ) == 0 )
+            {
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384;
+            }
+            else if( strcmp( q, "rsa_pkcs1_sha512" ) == 0 )
+            {
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512;
+            }
+            else if( strcmp( q, "ecdsa_secp256r1_sha256" ) == 0 )
             {
                 sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256;
             }
@@ -2360,14 +2494,51 @@ int main( int argc, char *argv[] )
             {
                 sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512;
             }
+            else if( strcmp( q, "rsa_pss_rsae_sha256" ) == 0 )
+            {
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256;
+            }
+            else if( strcmp( q, "rsa_pss_rsae_sha384" ) == 0 )
+            {
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384;
+            }
+            else if( strcmp( q, "rsa_pss_rsae_sha512" ) == 0 )
+            {
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512;
+            }
+            else if( strcmp( q, "ed25519" ) == 0 )
+            {
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_ED25519;
+            }
+            else if( strcmp( q, "ed448" ) == 0 )
+            {
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_ED448;
+            }
+            else if( strcmp( q, "rsa_pss_pss_sha256" ) == 0 )
+            {
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_RSA_PSS_PSS_SHA256;
+            }
+            else if( strcmp( q, "rsa_pss_pss_sha384" ) == 0 )
+            {
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_RSA_PSS_PSS_SHA384;
+            }
+            else if( strcmp( q, "rsa_pss_pss_sha512" ) == 0 )
+            {
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_RSA_PSS_PSS_SHA512;
+            }
+            else if( strcmp( q, "rsa_pkcs1_sha1" ) == 0 )
+            {
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA1;
+            }
+            else if( strcmp( q, "ecdsa_sha1" ) == 0 )
+            {
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_ECDSA_SHA1;
+            }
             else
             {
-                mbedtls_printf( "unknown signature algorithm %s\n", q );
-                mbedtls_printf( "supported signature algorithms: " );
-                mbedtls_printf( "ecdsa_secp256r1_sha256 " );
-                mbedtls_printf( "ecdsa_secp384r1_sha384 " );
-                mbedtls_printf( "ecdsa_secp521r1_sha512 " );
-                mbedtls_printf( "\n" );
+                ret = -1;
+                mbedtls_printf( "unknown signature algorithm \"%s\"\n", q );
+                mbedtls_print_supported_sig_algs();
                 goto exit;
             }
         }
@@ -2575,26 +2746,44 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( opt.key_opaque != 0 )
     {
-        if ( mbedtls_pk_get_type( &pkey ) == MBEDTLS_PK_ECKEY ||
-             mbedtls_pk_get_type( &pkey ) == MBEDTLS_PK_RSA )
+        psa_algorithm_t psa_alg, psa_alg2 = PSA_ALG_NONE;
+        psa_key_usage_t psa_usage = 0;
+
+        if( key_opaque_set_alg_usage( opt.key1_opaque_alg1,
+                                      opt.key1_opaque_alg2,
+                                      &psa_alg, &psa_alg2,
+                                      &psa_usage,
+                                      mbedtls_pk_get_type( &pkey ) ) == 0 )
         {
-            if( ( ret = mbedtls_pk_wrap_as_opaque( &pkey, &key_slot,
-                                                PSA_ALG_ANY_HASH ) ) != 0 )
+            ret = mbedtls_pk_wrap_as_opaque( &pkey, &key_slot,
+                                             psa_alg, psa_usage, psa_alg2 );
+
+            if( ret != 0 )
             {
                 mbedtls_printf( " failed\n  !  "
-                                "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", (unsigned int)  -ret );
+                                "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n",
+                                (unsigned int)  -ret );
                 goto exit;
             }
         }
 
-        if ( mbedtls_pk_get_type( &pkey2 ) == MBEDTLS_PK_ECKEY ||
-             mbedtls_pk_get_type( &pkey2 ) == MBEDTLS_PK_RSA )
+        psa_alg = PSA_ALG_NONE; psa_alg2 = PSA_ALG_NONE;
+        psa_usage = 0;
+
+        if( key_opaque_set_alg_usage( opt.key2_opaque_alg1,
+                                      opt.key2_opaque_alg2,
+                                      &psa_alg, &psa_alg2,
+                                      &psa_usage,
+                                      mbedtls_pk_get_type( &pkey2 ) ) == 0 )
         {
-            if( ( ret = mbedtls_pk_wrap_as_opaque( &pkey2, &key_slot2,
-                                                PSA_ALG_ANY_HASH ) ) != 0 )
+            ret = mbedtls_pk_wrap_as_opaque( &pkey2, &key_slot2,
+                                             psa_alg, psa_usage, psa_alg2 );
+
+            if( ret != 0 )
             {
                 mbedtls_printf( " failed\n  !  "
-                                "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", (unsigned int)  -ret );
+                                "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n",
+                                (unsigned int)  -ret );
                 goto exit;
             }
         }
@@ -2655,6 +2844,7 @@ int main( int argc, char *argv[] )
     }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     /* The default algorithms profile disables SHA-1, but our tests still
        rely on it heavily. Hence we allow it here. A real-world server
        should use the default profile unless there is a good reason not to. */
@@ -2664,6 +2854,7 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_conf_cert_profile( &conf, &crt_profile_for_test );
         mbedtls_ssl_conf_sig_algs( &conf, ssl_sig_algs_for_test );
     }
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     if( opt.auth_mode != DFL_AUTH_MODE )
@@ -2671,6 +2862,16 @@ int main( int argc, char *argv[] )
 
     if( opt.cert_req_ca_list != DFL_CERT_REQ_CA_LIST )
         mbedtls_ssl_conf_cert_req_ca_list( &conf, opt.cert_req_ca_list );
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED)
+    /* exercise setting DN hints for server certificate request
+     * (Intended for use where the client cert expected has been signed by
+     *  a specific CA which is an intermediate in a CA chain, not the root) */
+    if( opt.cert_req_dn_hint == 2 && key_cert_init2 )
+        mbedtls_ssl_conf_dn_hints( &conf, &srvcert2 );
+#endif
+#endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( opt.hs_to_min != DFL_HS_TO_MIN || opt.hs_to_max != DFL_HS_TO_MAX )
@@ -2793,23 +2994,40 @@ int main( int argc, char *argv[] )
                                    mbedtls_ssl_cache_set );
 #endif
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    if( opt.tickets == MBEDTLS_SSL_SESSION_TICKETS_ENABLED )
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
+    if( opt.tickets != MBEDTLS_SSL_SESSION_TICKETS_DISABLED )
     {
-        if( ( ret = mbedtls_ssl_ticket_setup( &ticket_ctx,
-                        rng_get, &rng,
-                        opt.ticket_aead,
-                        opt.ticket_timeout ) ) != 0 )
+#if defined(MBEDTLS_HAVE_TIME)
+        if( opt.dummy_ticket )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_ticket_setup returned %d\n\n", ret );
-            goto exit;
+            mbedtls_ssl_conf_session_tickets_cb( &conf,
+                    dummy_ticket_write,
+                    dummy_ticket_parse,
+                    NULL );
+        }
+        else
+#endif /* MBEDTLS_HAVE_TIME */
+        {
+            if( ( ret = mbedtls_ssl_ticket_setup( &ticket_ctx,
+                            rng_get, &rng,
+                            opt.ticket_aead,
+                            opt.ticket_timeout ) ) != 0 )
+            {
+                mbedtls_printf(
+                    " failed\n  ! mbedtls_ssl_ticket_setup returned %d\n\n",
+                    ret );
+                goto exit;
+            }
+
+            mbedtls_ssl_conf_session_tickets_cb( &conf,
+                    mbedtls_ssl_ticket_write,
+                    mbedtls_ssl_ticket_parse,
+                    &ticket_ctx );
         }
 
-        mbedtls_ssl_conf_session_tickets_cb( &conf,
-                mbedtls_ssl_ticket_write,
-                mbedtls_ssl_ticket_parse,
-                &ticket_ctx );
-
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+        mbedtls_ssl_conf_new_session_tickets( &conf, opt.tickets );
+#endif
         /* exercise manual ticket rotation (not required for typical use)
          * (used for external synchronization of session ticket encryption keys)
          */
@@ -3270,6 +3488,20 @@ reset:
             goto exit;
         }
     }
+#endif
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+#if defined(MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED)
+    /* exercise setting DN hints for server certificate request
+     * (Intended for use where the client cert expected has been signed by
+     *  a specific CA which is an intermediate in a CA chain, not the root)
+     * (Additionally, the CA choice would typically be influenced by SNI
+     *  if being set per-handshake using mbedtls_ssl_set_hs_dn_hints()) */
+    if( opt.cert_req_dn_hint == 3 && key_cert_init2 )
+        mbedtls_ssl_set_hs_dn_hints( &ssl, &srvcert2 );
+#endif
+#endif
 #endif
 
     mbedtls_printf( " ok\n" );
@@ -4073,7 +4305,7 @@ exit:
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_free( &cache );
 #endif
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
     mbedtls_ssl_ticket_free( &ticket_ctx );
 #endif
 #if defined(MBEDTLS_SSL_COOKIE_C)
@@ -4191,11 +4423,6 @@ exit:
     if( opt.query_config_mode == DFL_QUERY_CONFIG_MODE )
     {
         mbedtls_printf( " done.\n" );
-
-#if defined(_WIN32)
-        mbedtls_printf( "  + Press Enter to exit this program.\n" );
-        fflush( stdout ); getchar();
-#endif
     }
 
     // Shell can not handle large exit numbers -> 1 for errors

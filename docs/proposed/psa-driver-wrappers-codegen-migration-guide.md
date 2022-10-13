@@ -21,7 +21,7 @@ Python3 and Jinja2 rev 2.10.1
 
 ### What's critical for a migrating user
 
-The Driver Wrapper auto generation project is designed to use a python templating library ( Jinja2 ) to render templates based on drivers that are defined using a Driver descrioption JSON file(s).
+The Driver Wrapper auto generation project is designed to use a python templating library ( Jinja2 ) to render templates based on drivers that are defined using a Driver description JSON file(s).
 
 While that is the larger goal, for version 1.0 here's what's changed
 

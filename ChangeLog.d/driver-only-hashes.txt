@@ -1,0 +1,20 @@
+Features
+   * Some crypto modules that previously depended on MD or a low-level hash
+     module, either unconditionally (RSA, PK, PKCS5, PKCS12, EC J-PAKE), or
+     for some features (PEM for encrypted files), are now able to use PSA
+     Crypto instead when the legacy API is not available. This means it is
+     now possible to use all features from those modules in configurations
+     where the built-in implementations of hashes are excluded and the hashes
+     are only provided by PSA drivers. In these configurations, you need to
+     call `psa_crypto_init()` before you call any function from those
+     modules; this is not required in configurations where the built-in
+     implementation is still available. Note that some crypto modules and
+     features still depend on the built-in implementation of hashes:
+     MBEDTLS_HKDF_C (but the PSA HKDF function do not depend on it),
+     MBEDTLS_ENTROPY_C, MBEDTLS_HMAC_DRBG_C and MBEDTLS_ECDSA_DETERMINISTIC.
+     In particular, for now, compiling without built-in hashes requires use
+     of MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG.
+   * When MBEDTLS_USE_PSA_CRYPTO is enabled, X.509, TLS 1.2 and TLS 1.3 no
+     longer depend on MD. This means it is now possible to use them in
+     configurations where the built-in implementations of hashes are excluded
+     and the hashes are only provided by PSA drivers.

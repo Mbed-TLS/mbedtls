@@ -4046,7 +4046,9 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
     const unsigned char * const end = buf + len;
     size_t session_len;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     tls_prf_fn prf_func = NULL;
+#endif
 
     /*
      * The context should have been freshly setup or reset.
@@ -4132,6 +4134,7 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
     ssl->transform_out = ssl->transform;
     ssl->transform_negotiate = NULL;
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     prf_func = ssl_tls12prf_from_cs( ssl->session->ciphersuite );
     if( prf_func == NULL )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
@@ -4139,7 +4142,7 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
     /* Read random bytes and populate structure */
     if( (size_t)( end - p ) < sizeof( ssl->transform->randbytes ) )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+
     ret = ssl_tls12_populate_transform( ssl->transform,
                   ssl->session->ciphersuite,
                   ssl->session->master,

@@ -73,7 +73,6 @@ psa_status_t mbedtls_test_transparent_aead_encrypt(
                 additional_data, additional_data_length,
                 plaintext, plaintext_length,
                 ciphertext, ciphertext_size, ciphertext_length );
-    }
 #else
         (void) attributes;
         (void) key_buffer;
@@ -132,7 +131,6 @@ psa_status_t mbedtls_test_transparent_aead_decrypt(
                 additional_data, additional_data_length,
                 ciphertext, ciphertext_length,
                 plaintext, plaintext_size, plaintext_length );
-    }
 #else
         (void) attributes;
         (void) key_buffer;

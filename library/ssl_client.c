@@ -707,6 +707,7 @@ static int ssl_generate_random( mbedtls_ssl_context *ssl )
                             MBEDTLS_CLIENT_HELLO_RANDOM_LEN - gmt_unix_time_len );
     return( ret );
 }
+
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
 {
@@ -863,6 +864,37 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
             }
         }
     }
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
+    defined(MBEDTLS_SSL_SESSION_TICKETS) && \
+    defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    if( ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_3  &&
+        ssl->handshake->resume )
+    {
+        int hostname_mismatch = ssl->hostname != NULL ||
+                                session_negotiate->hostname != NULL;
+        if( ssl->hostname != NULL && session_negotiate->hostname != NULL )
+        {
+            hostname_mismatch = strcmp(
+                ssl->hostname, session_negotiate->hostname ) != 0;
+        }
+
+        if( hostname_mismatch )
+        {
+            MBEDTLS_SSL_DEBUG_MSG(
+                1, ( "Hostname mismatch the session ticket, "
+                     "disable session resumption." ) );
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+        }
+    }
+    else
+    {
+        return mbedtls_ssl_session_set_hostname( session_negotiate,
+                                                 ssl->hostname );
+    }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 &&
+          MBEDTLS_SSL_SESSION_TICKETS &&
+          MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
     return( 0 );
 }

@@ -2494,4 +2494,13 @@ int mbedtls_ssl_tls13_write_binders_of_pre_shared_key_ext(
     unsigned char *buf, unsigned char *end );
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
+    defined(MBEDTLS_SSL_SESSION_TICKETS) && \
+    defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && \
+    defined(MBEDTLS_SSL_CLI_C)
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_session_set_hostname( mbedtls_ssl_session *session,
+                                      const char *hostname );
+#endif
+
 #endif /* ssl_misc.h */

@@ -295,7 +295,8 @@ EXCLUSIVE_GROUPS = {
     'MBEDTLS_ARIA_C': ['!MBEDTLS_CMAC_C'],
     'MBEDTLS_CAMELLIA_C': ['!MBEDTLS_CMAC_C'],
     'MBEDTLS_CHACHA20_C': ['!MBEDTLS_CMAC_C', '!MBEDTLS_CCM_C', '!MBEDTLS_GCM_C'],
-    'MBEDTLS_DES_C': ['!MBEDTLS_CCM_C', '!MBEDTLS_GCM_C'],
+    'MBEDTLS_DES_C': ['!MBEDTLS_CCM_C', '!MBEDTLS_GCM_C', '!MBEDTLS_SSL_TICKET_C',
+                      '!MBEDTLS_SSL_CONTEXT_SERIALIZATION'],
 }
 def handle_exclusive_groups(config_settings, symbol):
     """For every symbol tested in an exclusive group check if there are other

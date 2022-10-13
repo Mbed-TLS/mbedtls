@@ -21,7 +21,8 @@ LMOTS hsslms interop test #1
 # This test uses the same OTS key as the LMS hsslms interop test 1 (leaf 0 of
 # the LMS key), and the same message.
 #
-# To reproduce the signature:
+# To produce another signature with this message and key (note that the actual
+# signature bytes will differ due to randomization):
 # pip3 install --user hsslms==0.1.2
 #
 # from hsslms import LMS_Priv, LM_OTS_Priv, LMS_ALGORITHM_TYPE, LMOTS_ALGORITHM_TYPE
@@ -45,7 +46,8 @@ LMOTS hsslms interop test #2
 # This test uses the same OTS key as the LMS hsslms interop test 2 (leaf 1 of
 # the LMS key), and the same message.
 #
-# To reproduce the signature:
+# To produce another signature with this message and key (note that the actual
+# signature bytes will differ due to randomization):
 # pip3 install --user hsslms==0.1.2
 #
 # from hsslms import LMS_Priv, LM_OTS_Priv, LMS_ALGORITHM_TYPE, LMOTS_ALGORITHM_TYPE
@@ -67,7 +69,8 @@ LMOTS hsslms interop NULL-message test
 # providing direct access to the underlying OTS signature scheme. The private
 # key is stored in data_files/lms_hsslms_sha256_m32_h5_lmots_sha256_n32_w8.prv.
 #
-# To reproduce the signature:
+# To produce another signature with this message and key (note that the actual
+# signature bytes will differ due to randomization):
 # pip3 install --user hsslms==0.1.2
 #
 # from hsslms import LMS_Priv, LM_OTS_Priv, LMS_ALGORITHM_TYPE, LMOTS_ALGORITHM_TYPE
@@ -85,7 +88,7 @@ lmots_verify_test:"":"00000004862327ead0b0eee8bde100614b3369e183f97812c13f0979f7
 
 LMOTS hash-sigs interop negative test (altered random value)
 # This test uses the valid signature from hsslms interop test 1, and then
-# permutes the random value (C) of the signature, and is expected to fail to
+# alters the random value (C) of the signature, and is expected to fail to
 # verify.
 lmots_verify_test:"60da1a17c88c59da8a730e6ca8effd37":"000000041bb462a8f59a277c1706ab69b1a40b0d56a3ffe1ddf0dfa890096c7a9c48b360e1e8f7abe4dc1950c4a64545ce6c0fe2a34477ec40f56db4eec37c1a2168e3059d4338a4eb368a64be5f98b5452f2c2fad23dcac585f5fe308bfc3df0b5cbc6cf3545236ed6c5a863e677521b5b5cee0aa1e755c3bbf5fb7326fac1a88cb12dd7f8d68ebe8bad07195a12fa11299073731e67f2452009252c595fc7d9285b90aaa912eb6cf0b5debc0996ca55ad5186702b244a616c4b9e0ceeea229e1e821c1ab0db906ce87640d128f1d8c4742d9baf340a8030df726a99a9b97f139ec57d8d87efdfca235f12de64e0a993804b95227cdfd26220a84502e350faaf5f91f3f49610eda211f9409005679e32068def22a2dcce3d226d0f68c4abc727b90d9c01daa05db24d7c0c9e9e48202e3420992ba78c36bc21c45cdf218801dc7053e3cbf39c141784e7a861671588622d540187912234ce628ea9cbd1800d215641163c762d2fd9194fa54bd9b46c83754579476398a5c2fece4642f1ee286a4e9a310b5e23088c75a68b123044c1c365c8b53fe9f895fa5d76fe1277c7c0f2a39f5b233f7d2acd5358feec2255feadb1c2513c4351c9bd1afe22d159f2d392c83bf7ec26b59e78330cd346adb85ef62fee3da63150ab5e0d7ce5d0ef353895360017faf3f35aca2cf3b8eda65389e2ba86f78ebfbe73382dfe9002331f24e96e1a6e56e7cc99ee848b82ad1ade3229e9e28168acfa8c059ed03028e8c872e72ff4cf8a50b84ade908ecf229a26ff1007c476d1aa376323fc567c9471085336496b231b5245a43c6c86c6a71c1b1fb4bd87c2d0b026bff55de121620a089ed9ade51c3bd91c703844c180ef9ad0ab550b9560ba9f1452463ce20987a402213ca5c16c927a0a85091dd74fbee22cac6b1afbc7e7dec229325c25ea3b3cc5a1c48c80665f9903e482b143f7cd051bdb990355f79c62553453c72ccbcc578df77069a7b0cf6fdc6853ec2f96fb7cc100216ae1b17aa20782fb0cd0f261b76a48b5d6f7bb48fa5f78c02a11ee81a8c0c81183910af770f2e907ebd5b2dc3a2b83529f62da074ca73c434f8f30b68a5dfee740f78d2c13b53c904e46dddf723923bfbffa437a4130c8c9b6d79a57db1c408b9c023f80fb3d766cb915e722f3b3152625d77bce3ca0c01e77f3750d7d1bef1ddda8b9b4233b09c89abe5913db50847a7ea219c3f406aa4cf41b6310bafa99a7b14f94b8ccd4dc7edb1a1e963ce26a53f3be71b4151ce5fae10ca30055e754880680e38cf2f21251f229341f7af9536360a428c2593c43fd2ae471bc1fa2b45ad55742a2f12f31eed6cb67945a898650c13650c4cffeecba8655f87e49ce921ced7ab00cf54eedf0c70e5c6cfa7f006763f0ac14d80cfb1662321cdccca8b1adf426eb9ca16ef2b978bb9ac229131fa5c1266a4980449c324ebdd8bcc98916089ee0b6966da7dc25350bdc758431884359d02f5fa567b39f49a6e410da2d0363944a090926308ed0ce7d565e6c4585ea010bc38ef1c976ae16ec1fbe6fb9d4d50e49a7be8273d2d56bf4e72acbadd90d5f8dee0":"0000000447cc5b29dd0cecd01c382434a6d1686400000000761e8e577fb4d12058806fc7bdaaef0ba64e454dc59b0230a77b43bbd83dc8c6":MBEDTLS_ERR_LMS_VERIFY_FAILED
 

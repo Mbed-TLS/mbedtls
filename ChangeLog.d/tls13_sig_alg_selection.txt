@@ -1,0 +1,3 @@
+Features
+   * Add support for opaque keys as the private keys associated to certificates
+     for authentication in TLS 1.3.

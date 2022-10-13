@@ -84,7 +84,6 @@ static int calloc_self_test( int verbose )
     void *empty2 = mbedtls_calloc( 0, 1 );
     void *buffer1 = mbedtls_calloc( 1, 1 );
     void *buffer2 = mbedtls_calloc( 1, 1 );
-    uintptr_t old_buffer1;
 
     if( empty1 == NULL && empty2 == NULL )
     {
@@ -126,7 +125,6 @@ static int calloc_self_test( int verbose )
             mbedtls_printf( "  CALLOC(1): passed\n" );
     }
 
-    old_buffer1 = (uintptr_t) buffer1;
     mbedtls_free( buffer1 );
     buffer1 = mbedtls_calloc( 1, 1 );
     if( buffer1 == NULL )
@@ -138,9 +136,7 @@ static int calloc_self_test( int verbose )
     else
     {
         if( verbose )
-            mbedtls_printf( "  CALLOC(1 again): passed (%s address)\n",
-                            (uintptr_t) old_buffer1 == (uintptr_t) buffer1 ?
-                            "same" : "different" );
+            mbedtls_printf( "  CALLOC(1 again): passed\n" );
     }
 
     if( verbose )
@@ -537,10 +533,6 @@ int main( int argc, char *argv[] )
         {
             mbedtls_printf( "  [ All tests PASS ]\n\n" );
         }
-#if defined(_WIN32)
-        mbedtls_printf( "  Press Enter to exit this program.\n" );
-        fflush( stdout ); getchar();
-#endif
     }
 
     if( suites_failed > 0)

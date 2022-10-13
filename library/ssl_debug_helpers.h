@@ -41,6 +41,8 @@ const char *mbedtls_ssl_key_export_type_str( mbedtls_ssl_key_export_type in );
 
 const char *mbedtls_ssl_sig_alg_to_str( uint16_t in );
 
+const char *mbedtls_ssl_named_group_to_str( uint16_t in );
+
 #endif /* MBEDTLS_DEBUG_C */
 
 #endif /* SSL_DEBUG_HELPERS_H */

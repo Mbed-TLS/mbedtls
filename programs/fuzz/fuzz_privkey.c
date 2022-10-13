@@ -11,12 +11,12 @@
 //4 Kb should be enough for every bug ;-)
 #define MAX_LEN 0x1000
 
-#if defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_CTR_DRBG_C)
+#if defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_CTR_DRBG_C) && defined(MBEDTLS_ENTROPY_C)
 const char *pers = "fuzz_privkey";
-#endif // MBEDTLS_PK_PARSE_C && MBEDTLS_CTR_DRBG_C
+#endif // MBEDTLS_PK_PARSE_C && MBEDTLS_CTR_DRBG_C && MBEDTLS_ENTROPY_C
 
 int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
-#if defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_CTR_DRBG_C)
+#if defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_CTR_DRBG_C) && defined(MBEDTLS_ENTROPY_C)
     int ret;
     mbedtls_pk_context pk;
     mbedtls_ctr_drbg_context ctr_drbg;
@@ -88,7 +88,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
 #else
     (void) Data;
     (void) Size;
-#endif // MBEDTLS_PK_PARSE_C && MBEDTLS_CTR_DRBG_C
+#endif // MBEDTLS_PK_PARSE_C && MBEDTLS_CTR_DRBG_C && MBEDTLS_ENTROPY_C
 
     return 0;
 }

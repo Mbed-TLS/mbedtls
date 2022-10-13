@@ -1,0 +1,5 @@
+Bugfix
+   * Fix handling of broken symlinks when loading certificates using
+     mbedtls_x509_crt_parse_path(). Instead of returning an error as soon as a
+     broken link is encountered, skip the broken link and continue parsing
+     other certificate files. Contributed by Eduardo Silva in #2602.

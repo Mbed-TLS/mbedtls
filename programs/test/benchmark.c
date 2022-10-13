@@ -179,7 +179,7 @@ do {                                                                    \
  *
  * This computes the maximum length of a title +3, because we appends "/s" and
  * want at least one space. (If the value is too small, the only consequence
- * is poor alignement.) */
+ * is poor alignment.) */
 #define TITLE_SPACE 17
 
 #define MEMORY_MEASURE_INIT                                             \
@@ -1278,11 +1278,6 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     mbedtls_memory_buffer_alloc_free();
-#endif
-
-#if defined(_WIN32)
-    mbedtls_printf( "  Press Enter to exit this program.\n" );
-    fflush( stdout ); getchar();
 #endif
 
     mbedtls_exit( 0 );

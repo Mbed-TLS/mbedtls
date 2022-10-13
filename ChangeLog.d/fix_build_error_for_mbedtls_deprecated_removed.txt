@@ -1,0 +1,3 @@
+Bugfix
+    * Fix build error due to missing prototype
+      warning when MBEDTLS_DEPRECATED_REMOVED is enabled

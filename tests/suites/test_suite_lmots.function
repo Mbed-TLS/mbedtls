@@ -24,7 +24,7 @@ exit:
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_LMS_C:PSA_WANT_ALG_SHA_256
+ * depends_on:MBEDTLS_LMS_C
  * END_DEPENDENCIES
  */
 

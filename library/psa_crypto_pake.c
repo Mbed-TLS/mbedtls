@@ -629,7 +629,7 @@ static psa_status_t psa_pake_input_internal(
 
         const psa_pake_primitive_t prim = PSA_PAKE_PRIMITIVE(
                 PSA_PAKE_PRIMITIVE_TYPE_ECC, PSA_ECC_FAMILY_SECP_R1, 256 );
-        if( input_length > PSA_PAKE_INPUT_SIZE( PSA_ALG_JPAKE, prim, step ) )
+        if( input_length > (size_t) PSA_PAKE_INPUT_SIZE( PSA_ALG_JPAKE, prim, step ) )
             return( PSA_ERROR_INVALID_ARGUMENT );
 
         if( operation->state == PSA_PAKE_STATE_SETUP )

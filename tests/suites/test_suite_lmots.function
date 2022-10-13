@@ -184,6 +184,8 @@ void lmots_import_export_test (  data_t * pub_key, int expected_import_rc )
         TEST_EQUAL( mbedtls_lmots_export_public_key( &ctx, exported_pub_key,
                                                    exported_pub_key_buf_size, NULL ),
                     0 );
+        ASSERT_COMPARE( pub_key->x, pub_key->len,
+                        exported_pub_key, exported_pub_key_size );
         mbedtls_free(exported_pub_key);
         exported_pub_key = NULL;
     }

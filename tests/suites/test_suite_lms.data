@@ -19,7 +19,7 @@ LMS pyhsslms interop test #1
 # and the public key before including them in a the test data.
 #
 # To reproduce the signature:
-# * sudo pip3 install pyhsslms
+# * pip3 install --user pyhsslms
 # * cp data_files/lms_pyhsslms_sha256_m32_h5_lmots_sha256_n32_w8_prv tmp/lms.prv
 # * <Save message in binary format>
 # * hsslms sign tmp/lms.prv message.bin
@@ -44,7 +44,7 @@ LMS pyhsslms interop test #2
 # and the public key before including them in a the test data.
 #
 # To reproduce the signature:
-# * sudo pip3 install pyhsslms
+# * pip3 install --user pyhsslms
 # * cp data_files/lms_pyhsslms_sha256_m32_h5_lmots_sha256_n32_w8_prv tmp/lms.prv
 # * <Save message in binary format>
 # * hsslms sign tmp/lms.prv message.bin (incorrect signature using leaf node 0)
@@ -71,7 +71,7 @@ LMS pyhsslms interop NULL-message test
 # signature and the public key before including them in a the test data.
 #
 # To reproduce the signature:
-# * sudo pip3 install pyhsslms
+# * pip3 install --user pyhsslms
 # * cp data_files/lms_pyhsslms_sha256_m32_h5_lmots_sha256_n32_w8.prv tmp/lms.prv
 # * touch message.bin (create empty message file)
 # * hsslms sign tmp/lms.prv message.bin (incorrect signature using leaf node 0)
@@ -152,7 +152,7 @@ LMS hsslms interop test #1
 # data_files/lms_hsslms_sha256_m32_h5_lmots_sha256_n32_w8.prv
 #
 # To reproduce the signature:
-# sudo pip3 install hsslms==0.1.2
+# pip3 install --user hsslms==0.1.2
 #
 # from hsslms import LMS_Priv, LMS_ALGORITHM_TYPE, LMOTS_ALGORITHM_TYPE
 # import pickle
@@ -174,7 +174,7 @@ LMS hsslms interop test #2
 # data_files/lms_hsslms_sha256_m32_h5_lmots_sha256_n32_w8.prv
 #
 # To reproduce the signature:
-# sudo pip3 install hsslms==0.1.2
+# pip3 install --user hsslms==0.1.2
 #
 # from hsslms import LMS_Priv, LMS_ALGORITHM_TYPE, LMOTS_ALGORITHM_TYPE
 # import pickle

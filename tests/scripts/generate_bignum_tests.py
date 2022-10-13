@@ -57,7 +57,7 @@ of BaseTarget in test_data_generation.py.
 import sys
 
 from abc import ABCMeta
-from typing import Iterator, List
+from typing import Iterator, List, Tuple
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import test_case
@@ -298,6 +298,107 @@ class BignumAddInt(BignumAdd):
 
     def arguments(self) -> List[str]:
         return [bignum_common.quote_str(self.arg_a), str(self.int_b)] + self.result()
+
+
+class BignumSub(BignumOperation):
+    """Test cases for bignum value subtraction."""
+    count = 0
+    symbol = "-"
+    test_function = "mpi_sub_mpi"
+    test_name = "MPI sub"
+    input_values = ["", "0", "1", "-1"]
+    input_cases = [
+        ("5", "7"), ("5", "-7"), ("-5", "7"), ("-5", "-7"),
+        (
+            (
+                "cb50e82a8583f44ee0025942e7362991b24e12663a0ddc234a57b0f7b4ff7b025bf5a670"
+                "7dedc2898e70b739042c95a996283dffdf67558768784553c61e302e8812bc90f0bb0696"
+                "870cfb910b560cefed8d99bbf7a00b31ccdbd56f3594e5a653cfd127d2167b13119e5c45"
+                "c3f76b4e3d904a9bc0cbb43c33aa7f23b"
+            ), (
+                "4df72d07b4b71c8dacb6cffa954f8d88254b6277099308baf003fab73227f34029643b5a"
+                "263f66e0d3c3fa297ef71755efd53b8fb6cb812c6bbf7bcf179298bd9947c4c8b1432414"
+                "0a2c0f5fad7958a69050a987a6096e9f055fb38edf0c5889eca4a0cfa99b45fbdeee4c69"
+                "6b328ddceae4723945901ec025076b12b"
+            )
+        ), (
+            (
+                "1f55332c3a48b910f9942f6c914e58bef37a47ee45cb164a5b6b8d1006bf59a059c21449"
+                "939ebebfdf517d2e1dbac88010d7b1f141e997bd6801ddaec9d05910f4f2de2b2c4d714e"
+                "2c14a72fc7f17aa428d59c531627f09"
+            ), (
+                "941379d00fed1491dec0abfc13b52b9049625b3c42c3a972a2549e7a3e1b12c5a304b23e"
+                "9ed6e251b8af28a4b3124900b23138bfafda925ab3410d57d6f8f0dd8c8c32eb0b4329fb"
+                "f792e43f9593e766fa0c3c0be077b4e5162616a6428c51b"
+            )
+        )
+    ]
+    unique_combinations_only = False
+
+    def result(self) -> List[str]:
+        return ["\"{:x}\"".format(self.int_a - self.int_b)]
+
+    @classmethod
+    def get_value_pairs(cls) -> Iterator[Tuple[str, str]]:
+        for a, b in super().get_value_pairs():
+            int_a = int(a, 16) if a else 0
+            int_b = int(b, 16) if b else 0
+            if not (abs(int_a) == abs(int_b) and int_a < 0 and int_b < 0):
+                yield a, b
+
+
+class BignumSubAbs(BignumSub):
+    """Test cases for bignum value subtraction."""
+    count = 0
+    test_function = "mpi_sub_abs"
+    test_name = "MPI sub (abs)"
+    input_values = [] # type: List[str]
+    input_cases = [
+        ("5", "7"), ("5", "-7"), ("-5", "7"), ("-5", "-7"),
+        ("7", "5"), ("7", "-5"), ("-7", "5"), ("-7", "-5"),
+        ("5", "123456789abcdef01"), ("5", "-123456789abcdef01"),
+        ("-5", "123456789abcdef01"), ("-5", "-123456789abcdef01"),
+        ("FFFFFFFFFF", "01"), ("FFFFFFFFF0", "01"),
+        ("FF00000000", "0F00000000"), ("FF00000000", "0F00000001")
+    ]
+
+    def result(self) -> List[str]:
+        result = abs(self.int_a) - abs(self.int_b)
+        ret = "0"
+        if result < 0:
+            result = 0
+            ret = "MBEDTLS_ERR_MPI_NEGATIVE_VALUE"
+        return ["\"{:x}\"".format(result), ret]
+
+
+class BignumSubInt(BignumSub):
+    """Test cases for bignum value subtraction with int."""
+    count = 0
+    test_function = "mpi_sub_int"
+    test_name = "MPI sub (int)"
+    input_values = [] # type: List[str]
+    input_cases = [
+        (
+            "10cc4ebcb68cbdaa438b80692d9e586b384ae3e1fa33f3db5962d394bec17fd92ad4189",
+            "-9871232"
+        ), (
+            "10cc4ebcb68cbdaa438b80692d9e586b384ae3e1fa33f3db5962d394bec17fd92ad4189",
+            "9871232"
+        ), ("", "0"), ("", "1"), ("", "-1")]
+
+    def __init__(self, val_a: str, val_b: str) -> None:
+        # Read val_b as decimal string
+        val_b = "{:x}".format(int(val_b))
+        super().__init__(val_a, val_b)
+
+    def arguments(self) -> List[str]:
+        return [bignum_common.quote_str(self.arg_a), str(self.int_b)] + self.result()
+
+    @classmethod
+    def get_value_pairs(cls) -> Iterator[Tuple[str, str]]:
+        for a, b in super().get_value_pairs():
+            if b and int(b, 16) < 0xFFFFFFFF:
+                yield (a, b)
 
 
 if __name__ == '__main__':

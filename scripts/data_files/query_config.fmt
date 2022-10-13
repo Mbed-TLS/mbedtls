@@ -30,8 +30,12 @@
 
 /*
  * Include all the headers with public APIs in case they define a macro to its
- * default value when that configuration is not set in the mbedtls_config.h.
+ * default value when that configuration is not set in mbedtls_config.h, or
+ * for PSA_WANT macros, in case they're auto-defined based on mbedtls_config.h
+ * rather than defined directly in crypto_config.h.
  */
+#include "psa/crypto.h"
+
 #include "mbedtls/aes.h"
 #include "mbedtls/aria.h"
 #include "mbedtls/asn1.h"

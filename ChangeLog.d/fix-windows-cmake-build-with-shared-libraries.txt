@@ -1,3 +1,0 @@
-Bugfix
-   * Fix compilation on Windows when building shared library, by setting
-     library search path to CMAKE_CURRENT_BINARY_DIR.

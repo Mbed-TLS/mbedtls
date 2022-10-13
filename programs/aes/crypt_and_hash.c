@@ -137,11 +137,6 @@ int main( int argc, char *argv[] )
             list++;
         }
 
-#if defined(_WIN32)
-        mbedtls_printf( "\n  Press Enter to exit this program.\n" );
-        fflush( stdout ); getchar();
-#endif
-
         goto exit;
     }
 
@@ -170,6 +165,10 @@ int main( int argc, char *argv[] )
         mbedtls_fprintf( stderr, "fopen(%s,wb+) failed\n", argv[3] );
         goto exit;
     }
+
+    /* Ensure no stdio buffering of secrets, as such buffers cannot be wiped. */
+    mbedtls_setbuf( fin, NULL );
+    mbedtls_setbuf( fout, NULL );
 
     /*
      * Read the Cipher and MD from the command line

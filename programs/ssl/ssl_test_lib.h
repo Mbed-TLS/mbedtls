@@ -34,6 +34,7 @@
 #define mbedtls_printf     printf
 #define mbedtls_fprintf    fprintf
 #define mbedtls_snprintf   snprintf
+#define mbedtls_setbuf     setbuf
 #define mbedtls_exit            exit
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
@@ -221,6 +222,48 @@ void rng_free( rng_context_t *rng );
  */
 int rng_get( void *p_rng, unsigned char *output, size_t output_len );
 
+/** Parse command-line option: key_opaque_algs
+ *
+ *
+ * \param arg           String value of key_opaque_algs
+ *                      Coma-separated pair of values among the following:
+ *                      - "rsa-sign-pkcs1"
+ *                      - "rsa-sign-pss"
+ *                      - "rsa-decrypt"
+ *                      - "ecdsa-sign"
+ *                      - "ecdh"
+ *                      - "none" (only acceptable for the second value).
+ * \param alg1          Address of pointer to alg #1
+ * \param alg2          Address of pointer to alg #2
+ *
+ * \return              \c 0 on success.
+ * \return              \c 1 on parse failure.
+ */
+int key_opaque_alg_parse( const char *arg, const char **alg1, const char **alg2 );
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+/** Parse given opaque key algorithms to obtain psa algs and usage
+ *  that will be passed to mbedtls_pk_wrap_as_opaque().
+ *
+ *
+ * \param alg1          input string opaque key algorithm #1
+ * \param alg2          input string opaque key algorithm #2
+ * \param psa_alg1      output PSA algorithm #1
+ * \param psa_alg2      output PSA algorithm #2
+ * \param usage         output key usage
+ * \param key_type      key type used to set default psa algorithm/usage
+ *                      when alg1 in "none"
+ *
+ * \return              \c 0 on success.
+ * \return              \c 1 on parse failure.
+ */
+int key_opaque_set_alg_usage( const char *alg1, const char *alg2,
+                              psa_algorithm_t *psa_alg1,
+                              psa_algorithm_t *psa_alg2,
+                              psa_key_usage_t *usage,
+                              mbedtls_pk_type_t key_type );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 /* The test implementation of the PSA external RNG is insecure. When
  * MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG is enabled, before using any PSA crypto
@@ -236,7 +279,7 @@ int ca_callback( void *data, mbedtls_x509_crt const *child,
 
 /*
  * Test recv/send functions that make sure each try returns
- * WANT_READ/WANT_WRITE at least once before sucesseding
+ * WANT_READ/WANT_WRITE at least once before succeeding
  */
 int delayed_recv( void *ctx, unsigned char *buf, size_t len );
 int delayed_send( void *ctx, const unsigned char *buf, size_t len );

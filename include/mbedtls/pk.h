@@ -216,32 +216,6 @@ typedef struct
 typedef void mbedtls_pk_restart_ctx;
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
-#if defined(MBEDTLS_RSA_C)
-/**
- * Quick access to an RSA context inside a PK context.
- *
- * \warning You must make sure the PK context actually holds an RSA context
- * before using this function!
- */
-static inline mbedtls_rsa_context *mbedtls_pk_rsa( const mbedtls_pk_context pk )
-{
-    return( (mbedtls_rsa_context *) (pk).MBEDTLS_PRIVATE(pk_ctx) );
-}
-#endif /* MBEDTLS_RSA_C */
-
-#if defined(MBEDTLS_ECP_C)
-/**
- * Quick access to an EC context inside a PK context.
- *
- * \warning You must make sure the PK context actually holds an EC context
- * before using this function!
- */
-static inline mbedtls_ecp_keypair *mbedtls_pk_ec( const mbedtls_pk_context pk )
-{
-    return( (mbedtls_ecp_keypair *) (pk).MBEDTLS_PRIVATE(pk_ctx) );
-}
-#endif /* MBEDTLS_ECP_C */
-
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /**
  * \brief           Types for RSA-alt abstraction
@@ -410,6 +384,38 @@ static inline size_t mbedtls_pk_get_len( const mbedtls_pk_context *ctx )
  *                  cleared with mbedtls_pk_free().
  */
 int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type );
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+/**
+ * \brief           Tell if context can do the operation given by PSA algorithm
+ *
+ * \param ctx       The context to query. It must have been initialized.
+ * \param alg       PSA algorithm to check against, the following are allowed:
+ *                  PSA_ALG_RSA_PKCS1V15_SIGN(hash),
+ *                  PSA_ALG_RSA_PSS(hash),
+ *                  PSA_ALG_RSA_PKCS1V15_CRYPT,
+ *                  PSA_ALG_ECDSA(hash),
+ *                  PSA_ALG_ECDH, where hash is a specific hash.
+ * \param usage  PSA usage flag to check against, must be composed of:
+ *                  PSA_KEY_USAGE_SIGN_HASH
+ *                  PSA_KEY_USAGE_DECRYPT
+ *                  PSA_KEY_USAGE_DERIVE.
+ *                  Context key must match all passed usage flags.
+ *
+ * \warning         Since the set of allowed algorithms and usage flags may be
+ *                  expanded in the future, the return value \c 0 should not
+ *                  be taken in account for non-allowed algorithms and usage
+ *                  flags.
+ *
+ * \return          1 if the context can do operations on the given type.
+ * \return          0 if the context cannot do the operations on the given
+ *                  type, for non-allowed algorithms and usage flags, or
+ *                  for a context that has been initialized but not set up
+ *                  or that has been cleared with mbedtls_pk_free().
+ */
+int mbedtls_pk_can_do_ext( const mbedtls_pk_context *ctx, psa_algorithm_t alg,
+                           psa_key_usage_t usage );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /**
  * \brief           Verify signature (including padding if relevant).
@@ -703,6 +709,55 @@ const char * mbedtls_pk_get_name( const mbedtls_pk_context *ctx );
  */
 mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx );
 
+#if defined(MBEDTLS_RSA_C)
+/**
+ * Quick access to an RSA context inside a PK context.
+ *
+ * \warning This function can only be used when the type of the context, as
+ * returned by mbedtls_pk_get_type(), is #MBEDTLS_PK_RSA.
+ * Ensuring that is the caller's responsibility.
+ * Alternatively, you can check whether this function returns NULL.
+ *
+ * \return The internal RSA context held by the PK context, or NULL.
+ */
+static inline mbedtls_rsa_context *mbedtls_pk_rsa( const mbedtls_pk_context pk )
+{
+    switch( mbedtls_pk_get_type( &pk ) )
+    {
+        case MBEDTLS_PK_RSA:
+            return( (mbedtls_rsa_context *) (pk).MBEDTLS_PRIVATE(pk_ctx) );
+        default:
+            return( NULL );
+    }
+}
+#endif /* MBEDTLS_RSA_C */
+
+#if defined(MBEDTLS_ECP_C)
+/**
+ * Quick access to an EC context inside a PK context.
+ *
+ * \warning This function can only be used when the type of the context, as
+ * returned by mbedtls_pk_get_type(), is #MBEDTLS_PK_ECKEY,
+ * #MBEDTLS_PK_ECKEY_DH, or #MBEDTLS_PK_ECDSA.
+ * Ensuring that is the caller's responsibility.
+ * Alternatively, you can check whether this function returns NULL.
+ *
+ * \return The internal EC context held by the PK context, or NULL.
+ */
+static inline mbedtls_ecp_keypair *mbedtls_pk_ec( const mbedtls_pk_context pk )
+{
+    switch( mbedtls_pk_get_type( &pk ) )
+    {
+        case MBEDTLS_PK_ECKEY:
+        case MBEDTLS_PK_ECKEY_DH:
+        case MBEDTLS_PK_ECDSA:
+            return( (mbedtls_ecp_keypair *) (pk).MBEDTLS_PRIVATE(pk_ctx) );
+        default:
+            return( NULL );
+    }
+}
+#endif /* MBEDTLS_ECP_C */
+
 #if defined(MBEDTLS_PK_PARSE_C)
 /** \ingroup pk_module */
 /**
@@ -922,28 +977,24 @@ int mbedtls_pk_load_file( const char *path, unsigned char **buf, size_t *n );
  * \warning         This is a temporary utility function for tests. It might
  *                  change or be removed at any time without notice.
  *
- * \note            ECDSA & RSA keys are supported.
- *                  For both key types, signing with the specified hash
- *                  is the only allowed use of that key with PK API.
- *                  The RSA key supports RSA-PSS signing with the specified
- *                  hash with the PK EXT API.
- *                  In addition, the ECDSA key is also allowed for ECDH key
- *                  agreement derivation operation using the PSA API.
- *
  * \param pk        Input: the EC or RSA key to import to a PSA key.
  *                  Output: a PK context wrapping that PSA key.
  * \param key       Output: a PSA key identifier.
  *                  It's the caller's responsibility to call
  *                  psa_destroy_key() on that key identifier after calling
  *                  mbedtls_pk_free() on the PK context.
- * \param hash_alg  The hash algorithm to allow for use with that key.
+ * \param alg       The algorithm to allow for use with that key.
+ * \param usage     The usage to allow for use with that key.
+ * \param alg2      The secondary algorithm to allow for use with that key.
  *
  * \return          \c 0 if successful.
  * \return          An Mbed TLS error code otherwise.
  */
 int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
                                mbedtls_svc_key_id_t *key,
-                               psa_algorithm_t hash_alg );
+                               psa_algorithm_t alg,
+                               psa_key_usage_t usage,
+                               psa_algorithm_t alg2 );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #ifdef __cplusplus

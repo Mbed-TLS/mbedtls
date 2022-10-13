@@ -1,0 +1,4 @@
+Bugfix
+    * Fix mbedtls_ctr_drbg_free() on an initialized but unseeded context. When
+      MBEDTLS_AES_ALT is enabled, it could call mbedtls_aes_free() on an
+      uninitialized context.

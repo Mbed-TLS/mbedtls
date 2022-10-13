@@ -3,6 +3,8 @@
 #include "mbedtls/pem.h"
 #include "mbedtls/des.h"
 #include "mbedtls/aes.h"
+#include "mbedtls/legacy_or_psa.h"
+
 /* END_HEADER */
 
 /* BEGIN_CASE depends_on:MBEDTLS_PEM_WRITE_C */
@@ -32,7 +34,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_AES_C:MBEDTLS_DES_C:MBEDTLS_MD5_C:MBEDTLS_CIPHER_MODE_CBC */
+/* BEGIN_CASE depends_on:MBEDTLS_PEM_PARSE_C */
 void mbedtls_pem_read_buffer( char *header, char *footer, char *data,
                               char *pwd, int res, data_t *out )
 {

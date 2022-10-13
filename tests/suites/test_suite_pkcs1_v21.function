@@ -1,10 +1,10 @@
 /* BEGIN_HEADER */
 #include "mbedtls/rsa.h"
-#include "mbedtls/md.h"
+#include "mbedtls/legacy_or_psa.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_PKCS1_V21:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
+ * depends_on:MBEDTLS_PKCS1_V21:MBEDTLS_RSA_C
  * END_DEPENDENCIES
  */
 
@@ -118,12 +118,10 @@ exit:
 /* BEGIN_CASE */
 void pkcs1_rsassa_pss_sign( int mod, data_t * input_P, data_t * input_Q,
                             data_t * input_N, data_t * input_E, int digest,
-                            int hash, data_t * message_str, data_t * rnd_buf,
+                            int hash, data_t * hash_digest, data_t * rnd_buf,
                             data_t * result_str, int fixed_salt_length,
                             int result )
 {
-    unsigned char hash_result[MBEDTLS_MD_MAX_SIZE];
-    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( digest );
     unsigned char output[512];
     mbedtls_rsa_context ctx;
     mbedtls_test_rnd_buf_info info;
@@ -140,7 +138,6 @@ void pkcs1_rsassa_pss_sign( int mod, data_t * input_P, data_t * input_Q,
     TEST_ASSERT( mbedtls_rsa_set_padding( &ctx,
                                           MBEDTLS_RSA_PKCS_V21, hash ) == 0 );
 
-    memset( hash_result, 0x00, sizeof( hash_result ) );
     memset( output, 0x00, sizeof( output ) );
 
     TEST_ASSERT( mbedtls_mpi_read_binary( &P, input_P->x, input_P->len ) == 0 );
@@ -153,15 +150,11 @@ void pkcs1_rsassa_pss_sign( int mod, data_t * input_P, data_t * input_Q,
     TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 
-    if( md_info != NULL )
-        TEST_ASSERT( mbedtls_md( md_info, message_str->x, message_str->len, hash_result ) == 0 );
-
     if (fixed_salt_length == MBEDTLS_RSA_SALT_LEN_ANY)
     {
         TEST_ASSERT( mbedtls_rsa_pkcs1_sign(
                          &ctx, &mbedtls_test_rnd_buffer_rand, &info,
-                         digest, mbedtls_md_get_size( md_info ), hash_result,
-                         output ) == result );
+                         digest, hash_digest->len, hash_digest->x, output ) == result );
         if( result == 0 )
         {
             ASSERT_COMPARE( output, ctx.len, result_str->x, result_str->len );
@@ -173,7 +166,7 @@ void pkcs1_rsassa_pss_sign( int mod, data_t * input_P, data_t * input_Q,
 
     TEST_ASSERT( mbedtls_rsa_rsassa_pss_sign_ext(
                      &ctx, &mbedtls_test_rnd_buffer_rand, &info,
-                     digest, mbedtls_md_get_size( md_info ), hash_result,
+                     digest, hash_digest->len, hash_digest->x,
                      fixed_salt_length, output ) == result );
     if( result == 0 )
     {
@@ -189,11 +182,9 @@ exit:
 
 /* BEGIN_CASE */
 void pkcs1_rsassa_pss_verify( int mod, data_t * input_N, data_t * input_E,
-                              int digest, int hash, data_t * message_str,
+                              int digest, int hash, data_t * hash_digest,
                               char * salt, data_t * result_str, int result )
 {
-    unsigned char hash_result[MBEDTLS_MD_MAX_SIZE];
-    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( digest );
     mbedtls_rsa_context ctx;
     mbedtls_mpi N, E;
     ((void) salt);
@@ -202,7 +193,6 @@ void pkcs1_rsassa_pss_verify( int mod, data_t * input_N, data_t * input_E,
     mbedtls_rsa_init( &ctx );
     TEST_ASSERT( mbedtls_rsa_set_padding( &ctx,
                                           MBEDTLS_RSA_PKCS_V21, hash ) == 0 );
-    memset( hash_result, 0x00, sizeof( hash_result ) );
 
     TEST_ASSERT( mbedtls_mpi_read_binary( &N, input_N->x, input_N->len ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_binary( &E, input_E->x, input_E->len ) == 0 );
@@ -212,10 +202,7 @@ void pkcs1_rsassa_pss_verify( int mod, data_t * input_N, data_t * input_E,
     TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx ) == 0 );
 
 
-    if( md_info != NULL )
-        TEST_ASSERT( mbedtls_md( md_info, message_str->x, message_str->len, hash_result ) == 0 );
-
-    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, digest, mbedtls_md_get_size( md_info ), hash_result, result_str->x ) == result );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, digest, hash_digest->len, hash_digest->x, result_str->x ) == result );
 
 exit:
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &E );
@@ -227,20 +214,17 @@ exit:
 void pkcs1_rsassa_pss_verify_ext( int mod, data_t * input_N, data_t * input_E,
                                   int msg_digest_id, int ctx_hash,
                                   int mgf_hash, int salt_len,
-                                  data_t * message_str,
+                                  data_t * hash_digest,
                                   data_t * result_str, int result_simple,
                                   int result_full )
 {
-    unsigned char hash_result[MBEDTLS_MD_MAX_SIZE];
     mbedtls_rsa_context ctx;
-    size_t hash_len;
     mbedtls_mpi N, E;
 
     mbedtls_mpi_init( &N ); mbedtls_mpi_init( &E );
     mbedtls_rsa_init( &ctx );
     TEST_ASSERT( mbedtls_rsa_set_padding( &ctx,
                                           MBEDTLS_RSA_PKCS_V21, ctx_hash ) == 0 );
-    memset( hash_result, 0x00, sizeof( hash_result ) );
 
     TEST_ASSERT( mbedtls_mpi_read_binary( &N, input_N->x, input_N->len ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_binary( &E, input_E->x, input_E->len ) == 0 );
@@ -250,27 +234,12 @@ void pkcs1_rsassa_pss_verify_ext( int mod, data_t * input_N, data_t * input_E,
     TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx ) == 0 );
 
 
-    if( msg_digest_id != MBEDTLS_MD_NONE )
-    {
-        const mbedtls_md_info_t *md_info =
-            mbedtls_md_info_from_type( msg_digest_id );
-        TEST_ASSERT( mbedtls_md( md_info,
-                                 message_str->x, message_str->len,
-                                 hash_result ) == 0 );
-        hash_len = mbedtls_md_get_size( md_info );
-    }
-    else
-    {
-        memcpy( hash_result, message_str->x, message_str->len );
-        hash_len = message_str->len;
-    }
-
     TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, msg_digest_id,
-                                           hash_len, hash_result,
+                                           hash_digest->len, hash_digest->x,
                                            result_str->x ) == result_simple );
 
-    TEST_ASSERT( mbedtls_rsa_rsassa_pss_verify_ext( &ctx, msg_digest_id, hash_len,
-                                                    hash_result, mgf_hash, salt_len,
+    TEST_ASSERT( mbedtls_rsa_rsassa_pss_verify_ext( &ctx, msg_digest_id, hash_digest->len,
+                                                    hash_digest->x, mgf_hash, salt_len,
                                                     result_str->x ) == result_full );
 
 exit:

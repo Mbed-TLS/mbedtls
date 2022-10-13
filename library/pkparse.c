@@ -56,12 +56,6 @@
 #define mbedtls_free       free
 #endif
 
-/* Parameter validation macros based on platform_util.h */
-#define PK_VALIDATE_RET( cond )    \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_PK_BAD_INPUT_DATA )
-#define PK_VALIDATE( cond )        \
-    MBEDTLS_INTERNAL_VALIDATE( cond )
-
 #if defined(MBEDTLS_FS_IO)
 /*
  * Load all data from a file into a given buffer.
@@ -75,12 +69,11 @@ int mbedtls_pk_load_file( const char *path, unsigned char **buf, size_t *n )
     FILE *f;
     long size;
 
-    PK_VALIDATE_RET( path != NULL );
-    PK_VALIDATE_RET( buf != NULL );
-    PK_VALIDATE_RET( n != NULL );
-
     if( ( f = fopen( path, "rb" ) ) == NULL )
         return( MBEDTLS_ERR_PK_FILE_IO_ERROR );
+
+    /* Ensure no stdio buffering of secrets, as such buffers cannot be wiped. */
+    mbedtls_setbuf( f, NULL );
 
     fseek( f, 0, SEEK_END );
     if( ( size = ftell( f ) ) == -1 )
@@ -130,9 +123,6 @@ int mbedtls_pk_parse_keyfile( mbedtls_pk_context *ctx,
     size_t n;
     unsigned char *buf;
 
-    PK_VALIDATE_RET( ctx != NULL );
-    PK_VALIDATE_RET( path != NULL );
-
     if( ( ret = mbedtls_pk_load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
@@ -156,9 +146,6 @@ int mbedtls_pk_parse_public_keyfile( mbedtls_pk_context *ctx, const char *path )
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t n;
     unsigned char *buf;
-
-    PK_VALIDATE_RET( ctx != NULL );
-    PK_VALIDATE_RET( path != NULL );
 
     if( ( ret = mbedtls_pk_load_file( path, &buf, &n ) ) != 0 )
         return( ret );
@@ -475,7 +462,7 @@ static int pk_use_ecparams( const mbedtls_asn1_buf *params, mbedtls_ecp_group *g
     }
 
     /*
-     * grp may already be initilialized; if so, make sure IDs match
+     * grp may already be initialized; if so, make sure IDs match
      */
     if( grp->id != MBEDTLS_ECP_DP_NONE && grp->id != grp_id )
         return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT );
@@ -616,11 +603,6 @@ int mbedtls_pk_parse_subpubkey( unsigned char **p, const unsigned char *end,
     mbedtls_asn1_buf alg_params;
     mbedtls_pk_type_t pk_alg = MBEDTLS_PK_NONE;
     const mbedtls_pk_info_t *pk_info;
-
-    PK_VALIDATE_RET( p != NULL );
-    PK_VALIDATE_RET( *p != NULL );
-    PK_VALIDATE_RET( end != NULL );
-    PK_VALIDATE_RET( pk != NULL );
 
     if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
                     MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
@@ -808,7 +790,7 @@ static int pk_parse_key_pkcs1_der( mbedtls_rsa_context *rsa,
        goto cleanup;
 
 #else
-    /* Verify existance of the CRT params */
+    /* Verify existence of the CRT params */
     if( ( ret = asn1_get_nonzero_mpi( &p, end, &T ) ) != 0 ||
         ( ret = asn1_get_nonzero_mpi( &p, end, &T ) ) != 0 ||
         ( ret = asn1_get_nonzero_mpi( &p, end, &T ) ) != 0 )
@@ -866,7 +848,7 @@ static int pk_parse_key_sec1_der( mbedtls_ecp_keypair *eck,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     int version, pubkey_done;
     size_t len;
-    mbedtls_asn1_buf params;
+    mbedtls_asn1_buf params = { 0, 0, NULL };
     unsigned char *p = (unsigned char *) key;
     unsigned char *end = p + keylen;
     unsigned char *end2;
@@ -1214,10 +1196,8 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
     mbedtls_pem_context pem;
 #endif
 
-    PK_VALIDATE_RET( pk != NULL );
     if( keylen == 0 )
         return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT );
-    PK_VALIDATE_RET( key != NULL );
 
 #if defined(MBEDTLS_PEM_PARSE_C)
    mbedtls_pem_init( &pem );
@@ -1433,10 +1413,8 @@ int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
     mbedtls_pem_context pem;
 #endif
 
-    PK_VALIDATE_RET( ctx != NULL );
     if( keylen == 0 )
         return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT );
-    PK_VALIDATE_RET( key != NULL || keylen == 0 );
 
 #if defined(MBEDTLS_PEM_PARSE_C)
     mbedtls_pem_init( &pem );
@@ -1454,10 +1432,16 @@ int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
     {
         p = pem.buf;
         if( ( pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == NULL )
+        {
+            mbedtls_pem_free( &pem );
             return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
+        }
 
         if( ( ret = mbedtls_pk_setup( ctx, pk_info ) ) != 0 )
+        {
+            mbedtls_pem_free( &pem );
             return( ret );
+        }
 
         if ( ( ret = pk_get_rsapubkey( &p, p + pem.buflen, mbedtls_pk_rsa( *ctx ) ) ) != 0 )
             mbedtls_pk_free( ctx );

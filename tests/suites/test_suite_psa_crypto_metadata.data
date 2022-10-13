@@ -270,6 +270,22 @@ Key derivation: HKDF using SHA-384
 depends_on:PSA_WANT_ALG_HKDF:PSA_WANT_ALG_SHA_384
 key_derivation_algorithm:PSA_ALG_HKDF( PSA_ALG_SHA_384 ):ALG_IS_HKDF
 
+Key derivation: HKDF-Extract using SHA-256
+depends_on:PSA_WANT_ALG_HKDF_EXTRACT:PSA_WANT_ALG_SHA_256
+key_derivation_algorithm:PSA_ALG_HKDF_EXTRACT( PSA_ALG_SHA_256 ):ALG_IS_HKDF_EXTRACT
+
+Key derivation: HKDF-Extract using SHA-384
+depends_on:PSA_WANT_ALG_HKDF_EXTRACT:PSA_WANT_ALG_SHA_384
+key_derivation_algorithm:PSA_ALG_HKDF_EXTRACT( PSA_ALG_SHA_384 ):ALG_IS_HKDF_EXTRACT
+
+Key derivation: HKDF-Expand using SHA-256
+depends_on:PSA_WANT_ALG_HKDF_EXPAND:PSA_WANT_ALG_SHA_256
+key_derivation_algorithm:PSA_ALG_HKDF_EXPAND( PSA_ALG_SHA_256 ):ALG_IS_HKDF_EXPAND
+
+Key derivation: HKDF-Expand using SHA-384
+depends_on:PSA_WANT_ALG_HKDF_EXPAND:PSA_WANT_ALG_SHA_384
+key_derivation_algorithm:PSA_ALG_HKDF_EXPAND( PSA_ALG_SHA_384 ):ALG_IS_HKDF_EXPAND
+
 Key derivation: TLS 1.2 PRF using SHA-256
 depends_on:PSA_WANT_ALG_SHA_256:PSA_WANT_ALG_TLS12_PRF
 key_derivation_algorithm:PSA_ALG_TLS12_PRF( PSA_ALG_SHA_256 ):ALG_IS_TLS12_PRF

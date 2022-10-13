@@ -267,6 +267,25 @@ mbedtls_x509_time;
 int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn );
 
 /**
+ * \brief          Return the next relative DN in an X509 name.
+ *
+ * \note           Intended use is to compare function result to dn->next
+ *                 in order to detect boundaries of multi-valued RDNs.
+ *
+ * \param dn       Current node in the X509 name
+ *
+ * \return         Pointer to the first attribute-value pair of the
+ *                 next RDN in sequence, or NULL if end is reached.
+ */
+static inline mbedtls_x509_name * mbedtls_x509_dn_get_next(
+    mbedtls_x509_name * dn )
+{
+    while( dn->MBEDTLS_PRIVATE(next_merged) && dn->next != NULL )
+        dn = dn->next;
+    return( dn->next );
+}
+
+/**
  * \brief          Store the certificate serial in printable form into buf;
  *                 no more than size characters will be written.
  *

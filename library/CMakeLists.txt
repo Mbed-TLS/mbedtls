@@ -18,6 +18,9 @@ set(src_crypto
     asn1write.c
     base64.c
     bignum.c
+    bignum_core.c
+    bignum_mod.c
+    bignum_mod_raw.c
     camellia.c
     ccm.c
     chacha20.c
@@ -38,6 +41,7 @@ set(src_crypto
     entropy_poll.c
     error.c
     gcm.c
+    hash_info.c
     hkdf.c
     hmac_drbg.c
     md.c
@@ -66,6 +70,7 @@ set(src_crypto
     psa_crypto_ecp.c
     psa_crypto_hash.c
     psa_crypto_mac.c
+    psa_crypto_pake.c
     psa_crypto_rsa.c
     psa_crypto_se.c
     psa_crypto_slot_management.c
@@ -188,6 +193,18 @@ if(CMAKE_COMPILER_IS_CLANG)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmissing-declarations -Wmissing-prototypes -Wdocumentation -Wno-documentation-deprecated-sync -Wunreachable-code")
 endif(CMAKE_COMPILER_IS_CLANG)
 
+if(CMAKE_COMPILER_IS_MSVC)
+    option(MSVC_STATIC_RUNTIME "Build the libraries with /MT compiler flag" OFF)
+    if(MSVC_STATIC_RUNTIME)
+        foreach(flag_var
+            CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
+            CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO
+            CMAKE_C_FLAGS_CHECK)
+            string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+        endforeach(flag_var)
+    endif()
+endif()
+
 if(WIN32)
     set(libs ${libs} ws2_32)
 endif(WIN32)
@@ -263,7 +280,7 @@ endif(USE_STATIC_MBEDTLS_LIBRARY)
 if(USE_SHARED_MBEDTLS_LIBRARY)
     set(CMAKE_LIBRARY_PATH ${CMAKE_CURRENT_BINARY_DIR})
     add_library(${mbedcrypto_target} SHARED ${src_crypto})
-    set_target_properties(${mbedcrypto_target} PROPERTIES VERSION 3.1.0 SOVERSION 11)
+    set_target_properties(${mbedcrypto_target} PROPERTIES VERSION 3.2.1 SOVERSION 12)
     target_link_libraries(${mbedcrypto_target} PUBLIC ${libs})
 
     if(TARGET everest)
@@ -271,15 +288,16 @@ if(USE_SHARED_MBEDTLS_LIBRARY)
     endif()
 
     add_library(${mbedx509_target} SHARED ${src_x509})
-    set_target_properties(${mbedx509_target} PROPERTIES VERSION 3.1.0 SOVERSION 4)
+    set_target_properties(${mbedx509_target} PROPERTIES VERSION 3.2.1 SOVERSION 4)
     target_link_libraries(${mbedx509_target} PUBLIC ${libs} ${mbedcrypto_target})
 
     add_library(${mbedtls_target} SHARED ${src_tls})
-    set_target_properties(${mbedtls_target} PROPERTIES VERSION 3.1.0 SOVERSION 17)
+    set_target_properties(${mbedtls_target} PROPERTIES VERSION 3.2.1 SOVERSION 18)
     target_link_libraries(${mbedtls_target} PUBLIC ${libs} ${mbedx509_target})
 endif(USE_SHARED_MBEDTLS_LIBRARY)
 
 foreach(target IN LISTS target_libraries)
+    add_library(MbedTLS::${target} ALIAS ${target})  # add_subdirectory support
     # Include public header files from /include and other directories
     # declared by /3rdparty/**/CMakeLists.txt. Include private header files
     # from /library and others declared by /3rdparty/**/CMakeLists.txt.
@@ -292,7 +310,9 @@ foreach(target IN LISTS target_libraries)
     install(
         TARGETS ${target}
         EXPORT MbedTLSTargets
-        DESTINATION ${LIB_INSTALL_DIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 endforeach(target)
 

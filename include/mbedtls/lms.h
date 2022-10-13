@@ -379,14 +379,14 @@ int mbedtls_lms_generate_private_key( mbedtls_lms_private_t *ctx,
                                       size_t seed_size );
 
 /**
- * \brief                    This function generates an LMS public key from a
+ * \brief                    This function calculates an LMS public key from a
  *                           LMS context that already contains a private key.
  *
  * \note                     Before this function is called, the context must
  *                           have been initialized and the context must contain
  *                           a private key.
  *
- * \param ctx                The initialized LMS public context to generate the key
+ * \param ctx                The initialized LMS public context to calculate the key
  *                           from and store it into.
  *
  * \param priv_ctx           The LMS private context to read the private key

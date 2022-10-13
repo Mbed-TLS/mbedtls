@@ -113,12 +113,6 @@ void lmots_verify_test ( data_t *msg, data_t *sig, data_t *pub_key,
                    MBEDTLS_ERR_LMS_VERIFY_FAILED);
         sig->x[0] ^= 1;
 
-        /* Altering first signature byte must cause verification failure */
-        sig->x[0] ^= 1;
-        TEST_EQUAL(mbedtls_lmots_verify( &ctx, msg->x, msg->len, sig->x, sig->len ),
-                   MBEDTLS_ERR_LMS_VERIFY_FAILED);
-        sig->x[0] ^= 1;
-
         /* Altering last signature byte must cause verification failure */
         sig->x[sig->len - 1] ^= 1;
         TEST_EQUAL(mbedtls_lmots_verify( &ctx, msg->x, msg->len, sig->x, sig->len ),

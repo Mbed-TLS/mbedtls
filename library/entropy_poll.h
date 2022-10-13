@@ -59,6 +59,15 @@ int mbedtls_hardware_poll( void *data,
                            unsigned char *output, size_t len, size_t *olen );
 #endif
 
+
+#if defined(MBEDTLS_ENTROPY_PSA)
+/**
+ * \brief           Entropy poll callback for a PSA crypto driver sources
+ */
+int mbedtls_psa_entropy_poll( void *data, unsigned char *output, size_t len,
+                           size_t *olen );
+#endif
+
 #if defined(MBEDTLS_ENTROPY_NV_SEED)
 /**
  * \brief           Entropy poll callback for a non-volatile seed file

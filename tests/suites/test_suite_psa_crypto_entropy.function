@@ -6,6 +6,7 @@
 
 #include "mbedtls/entropy.h"
 #include "entropy_poll.h"
+#include "test/drivers/entropy.h"
 
 /* Calculating the minimum allowed entropy size in bytes */
 #define MBEDTLS_PSA_INJECT_ENTROPY_MIN_SIZE MAX(MBEDTLS_ENTROPY_MIN_PLATFORM, MBEDTLS_ENTROPY_BLOCK_SIZE)
@@ -190,6 +191,35 @@ void run_entropy_inject_with_crypto_init( )
     TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
 exit:
     remove_seed_file( );
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_PSA:PSA_CRYPTO_DRIVER_TEST */
+void validate_get_entropy_driver_without_entropy( )
+{
+    psa_status_t status;
+    uint8_t buf[32];
+    size_t outlen = 0;
+
+    status = psa_crypto_init( );
+    PSA_ASSERT( status );
+
+    mbedtls_test_set_insecure_psa_crypto_entropy( 32 * 8, 1 );
+    status = mbedtls_psa_entropy_poll(NULL, buf, 32, &outlen);
+    TEST_EQUAL( status, 0 );
+    TEST_EQUAL( outlen, 32 );
+
+    mbedtls_test_set_insecure_psa_crypto_entropy( 7 * 8, 2 );
+    status = mbedtls_psa_entropy_poll(NULL, buf, 32, &outlen);
+    TEST_EQUAL( status, 0 );
+    TEST_EQUAL( outlen, 7 );
+
+    status = mbedtls_psa_entropy_poll(NULL, buf, 32, &outlen);
+    TEST_EQUAL( status, MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
+    TEST_EQUAL( outlen, 0 );
+
+exit:
     PSA_DONE( );
 }
 /* END_CASE */

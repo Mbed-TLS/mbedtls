@@ -178,6 +178,15 @@ void lmots_import_export_test (  data_t * pub_key, int expected_import_rc )
                     MBEDTLS_ERR_LMS_BUFFER_TOO_SMALL );
         mbedtls_free(exported_pub_key);
         exported_pub_key = NULL;
+
+        /* Export into too-large buffer should succeed */
+        exported_pub_key_buf_size = MBEDTLS_LMOTS_PUBLIC_KEY_LEN(MBEDTLS_LMOTS_SHA256_N32_W8) + 1;
+        ASSERT_ALLOC( exported_pub_key, exported_pub_key_buf_size);
+        TEST_EQUAL( mbedtls_lmots_export_public_key( &ctx, exported_pub_key,
+                                                   exported_pub_key_buf_size, NULL ),
+                    0 );
+        mbedtls_free(exported_pub_key);
+        exported_pub_key = NULL;
     }
 
 exit:

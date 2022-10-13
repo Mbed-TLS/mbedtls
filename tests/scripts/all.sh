@@ -2370,6 +2370,7 @@ component_test_check_params_without_platform () {
     scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
     scripts/config.py unset MBEDTLS_PLATFORM_PRINTF_ALT
     scripts/config.py unset MBEDTLS_PLATFORM_SNPRINTF_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_VSNPRINTF_ALT
     scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
     scripts/config.py unset MBEDTLS_PLATFORM_C
     make CC=gcc CFLAGS='-Werror -O1' all test
@@ -2395,6 +2396,7 @@ component_test_no_platform () {
     scripts/config.py unset MBEDTLS_PLATFORM_PRINTF_ALT
     scripts/config.py unset MBEDTLS_PLATFORM_FPRINTF_ALT
     scripts/config.py unset MBEDTLS_PLATFORM_SNPRINTF_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_VSNPRINTF_ALT
     scripts/config.py unset MBEDTLS_PLATFORM_TIME_ALT
     scripts/config.py unset MBEDTLS_PLATFORM_EXIT_ALT
     scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT

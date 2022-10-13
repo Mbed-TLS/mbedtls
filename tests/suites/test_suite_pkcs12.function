@@ -23,7 +23,6 @@ void pkcs12_derive_key( int md_type, int key_size_arg,
                         data_t* expected_output, int expected_status )
 
 {
-   int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
    unsigned char *output_data = NULL;
 
    unsigned char *password = NULL;
@@ -44,15 +43,15 @@ void pkcs12_derive_key( int md_type, int key_size_arg,
 
    ASSERT_ALLOC( output_data, key_size );
 
-   ret = mbedtls_pkcs12_derivation( output_data,
-                                    key_size,
-                                    password,
-                                    password_len,
-                                    salt,
-                                    salt_len,
-                                    md_type,
-                                    MBEDTLS_PKCS12_DERIVE_KEY,
-                                    iterations );
+   int ret = mbedtls_pkcs12_derivation( output_data,
+                                        key_size,
+                                        password,
+                                        password_len,
+                                        salt,
+                                        salt_len,
+                                        md_type,
+                                        MBEDTLS_PKCS12_DERIVE_KEY,
+                                        iterations );
 
    TEST_EQUAL( ret, expected_status );
 

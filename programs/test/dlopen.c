@@ -23,17 +23,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
-#include <stdio.h>
-#include <stdlib.h>
-#define mbedtls_fprintf    fprintf
-#define mbedtls_printf     printf
-#define mbedtls_exit       exit
-#define MBEDTLS_EXIT_SUCCESS EXIT_SUCCESS
-#define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
-#endif
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #include "mbedtls/x509_crt.h"

@@ -32,20 +32,7 @@
 
 #include <stdlib.h>
 
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
-#include <stdio.h>
-#define mbedtls_fprintf    fprintf
-#define mbedtls_snprintf   snprintf
-#define mbedtls_calloc     calloc
-#define mbedtls_free       free
-#define mbedtls_exit       exit
-#define mbedtls_time       time
-#define mbedtls_time_t     time_t
-#define MBEDTLS_EXIT_SUCCESS EXIT_SUCCESS
-#define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
-#endif
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
 #include "mbedtls/memory_buffer_alloc.h"

@@ -25,12 +25,7 @@
 
 #include "query_config.h"
 
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
-#include <stdio.h>
-#define mbedtls_printf printf
-#endif /* MBEDTLS_PLATFORM_C */
 
 /*
  * Include all the headers with public APIs in case they define a macro to its

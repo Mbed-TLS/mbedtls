@@ -26,22 +26,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
-#include <stdio.h>
-#include <stdlib.h>
-#define mbedtls_calloc     calloc
-#define mbedtls_free       free
-#define mbedtls_time       time
-#define mbedtls_time_t     time_t
-#define mbedtls_printf     printf
-#define mbedtls_fprintf    fprintf
-#define mbedtls_snprintf   snprintf
-#define mbedtls_exit            exit
-#define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
-#define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
-#endif
 
 #undef HAVE_RNG
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) &&         \

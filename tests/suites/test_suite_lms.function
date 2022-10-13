@@ -138,8 +138,7 @@ void lms_verify_test ( data_t * msg, data_t * sig, data_t * pub_key,
     }
 
 exit:
-    if( tmp_sig != NULL )
-        mbedtls_free( tmp_sig );
+    mbedtls_free( tmp_sig );
     mbedtls_lms_public_free( &ctx );
 }
 /* END_CASE */
@@ -192,8 +191,7 @@ void lms_import_export_test (  data_t * pub_key, int expected_import_rc )
     }
 
 exit:
-    if( exported_pub_key != NULL )
-        mbedtls_free( exported_pub_key );
+    mbedtls_free( exported_pub_key );
     mbedtls_lms_public_free( &ctx );
 }
 /* END_CASE */

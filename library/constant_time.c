@@ -81,7 +81,7 @@ unsigned mbedtls_ct_uint_mask( unsigned value )
 #endif
 }
 
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 
 size_t mbedtls_ct_size_mask( size_t value )
 {
@@ -97,7 +97,7 @@ size_t mbedtls_ct_size_mask( size_t value )
 #endif
 }
 
-#endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 
 #if defined(MBEDTLS_BIGNUM_C)
 
@@ -272,7 +272,7 @@ unsigned mbedtls_ct_uint_if( unsigned condition,
  * \note if1 and if0 must be either 1 or -1, otherwise the result
  *       is undefined.
  *
- * \param condition     Condition to test.
+ * \param condition     Condition to test; must be either 0 or 1.
  * \param if1           The first sign; must be either +1 or -1.
  * \param if0           The second sign; must be either +1 or -1.
  *
@@ -404,7 +404,7 @@ static void mbedtls_ct_mem_move_to_left( void *start,
 
 #endif /* MBEDTLS_PKCS1_V15 && MBEDTLS_RSA_C && ! MBEDTLS_RSA_ALT */
 
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 
 void mbedtls_ct_memcpy_if_eq( unsigned char *dest,
                               const unsigned char *src,
@@ -514,6 +514,12 @@ int mbedtls_ct_hmac( mbedtls_svc_key_id_t key,
     PSA_CHK( psa_hash_update( &operation, add_data, add_data_len ) );
     PSA_CHK( psa_hash_update( &operation, data, min_data_len ) );
 
+    /* Fill the hash buffer in advance with something that is
+     * not a valid hash (barring an attack on the hash and
+     * deliberately-crafted input), in case the caller doesn't
+     * check the return status properly. */
+    memset( output, '!', hash_size );
+
     /* For each possible length, compute the hash up to that point */
     for( offset = min_data_len; offset <= max_data_len; offset++ )
     {
@@ -609,6 +615,12 @@ int mbedtls_ct_hmac( mbedtls_md_context_t *ctx,
     MD_CHK( mbedtls_md_update( ctx, add_data, add_data_len ) );
     MD_CHK( mbedtls_md_update( ctx, data, min_data_len ) );
 
+    /* Fill the hash buffer in advance with something that is
+     * not a valid hash (barring an attack on the hash and
+     * deliberately-crafted input), in case the caller doesn't
+     * check the return status properly. */
+    memset( output, '!', hash_size );
+
     /* For each possible length, compute the hash up to that point */
     for( offset = min_data_len; offset <= max_data_len; offset++ )
     {
@@ -642,7 +654,7 @@ cleanup:
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-#endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 
 #if defined(MBEDTLS_BIGNUM_C)
 
@@ -690,7 +702,7 @@ cleanup:
 /*
  * Conditionally swap X and Y, without leaking information
  * about whether the swap was made or not.
- * Here it is not ok to simply swap the pointers, which whould lead to
+ * Here it is not ok to simply swap the pointers, which would lead to
  * different memory access patterns when X and Y are used afterwards.
  */
 int mbedtls_mpi_safe_cond_swap( mbedtls_mpi *X,
@@ -726,6 +738,50 @@ int mbedtls_mpi_safe_cond_swap( mbedtls_mpi *X,
     }
 
 cleanup:
+    return( ret );
+}
+
+/*
+ * Compare unsigned values in constant time
+ */
+unsigned mbedtls_mpi_core_lt_ct( const mbedtls_mpi_uint *A,
+                                 const mbedtls_mpi_uint *B,
+                                 size_t limbs )
+{
+    unsigned ret, cond, done;
+
+    /* The value of any of these variables is either 0 or 1 for the rest of
+     * their scope. */
+    ret = cond = done = 0;
+
+    for( size_t i = limbs; i > 0; i-- )
+    {
+        /*
+         * If B[i - 1] < A[i - 1] then A < B is false and the result must
+         * remain 0.
+         *
+         * Again even if we can make a decision, we just mark the result and
+         * the fact that we are done and continue looping.
+         */
+        cond = mbedtls_ct_mpi_uint_lt( B[i - 1], A[i - 1] );
+        done |= cond;
+
+        /*
+         * If A[i - 1] < B[i - 1] then A < B is true.
+         *
+         * Again even if we can make a decision, we just mark the result and
+         * the fact that we are done and continue looping.
+         */
+        cond = mbedtls_ct_mpi_uint_lt( A[i - 1], B[i - 1] );
+        ret |= cond & ( 1 - done );
+        done |= cond;
+    }
+
+    /*
+     * If all the limbs were equal, then the numbers are equal, A < B is false
+     * and leaving the result 0 is correct.
+     */
+
     return( ret );
 }
 

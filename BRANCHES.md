@@ -12,11 +12,6 @@ At any point in time, we have a number of maintained branches, currently consist
 - One or more long-time support (LTS) branches: these only get bug fixes and
   security fixes. Currently, the only supported LTS branch is:
   [`mbedtls-2.28`](https://github.com/Mbed-TLS/mbedtls/tree/mbedtls-2.28).
-- For a short time we also have the previous LTS, which has recently ended its
-  support period,
-  [`mbedtls-2.16`](https://github.com/Mbed-TLS/mbedtls/tree/mbedtls-2.16).
-  This branch will move into the `archive` namespace around the time of
-  the next release.
 
 We retain a number of historical branches, whose names are prefixed by `archive/`,
 such as [`archive/mbedtls-2.7`](https://github.com/Mbed-TLS/mbedtls/tree/archive/mbedtls-2.7).
@@ -28,13 +23,21 @@ the API of 3.(x+1) is backward compatible with 3.x). We only break API
 compatibility on major version changes (e.g. from 3.x to 4.0). We also maintain
 ABI compatibility within LTS branches; see the next section for details.
 
-## Backwards Compatibility
+## Backwards Compatibility for application code
 
 We maintain API compatibility in released versions of Mbed TLS. If you have
 code that's working and secure with Mbed TLS x.y.z and does not rely on
 undocumented features, then you should be able to re-compile it without
 modification with any later release x.y'.z' with the same major version
 number, and your code will still build, be secure, and work.
+
+Note that this guarantee only applies if you either use the default
+compile-time configuration (`mbedtls/mbedtls_config.h`) or the same modified
+compile-time configuration. Changing compile-time configuration options can
+result in an incompatible API or ABI, although features will generally not
+affect unrelated features (for example, enabling or disabling a
+cryptographic algorithm does not break code that does not use that
+algorithm).
 
 Note that new releases of Mbed TLS may extend the API. Here are some
 examples of changes that are common in minor releases of Mbed TLS, and are
@@ -56,6 +59,25 @@ relying on something that became insecure in the meantime (for example,
 crypto that was found to be weak) may need to be changed. In case security
 comes in conflict with backwards compatibility, we will put security first,
 but always attempt to provide a compatibility option.
+
+## Backward compatibility for the key store
+
+We maintain backward compatibility with previous versions of the
+PSA Crypto persistent storage since Mbed TLS 2.25.0, provided that the
+storage backend (PSA ITS implementation) is configured in a compatible way.
+We intend to maintain this backward compatibility throughout a major version
+of Mbed TLS (for example, all Mbed TLS 3.y versions will be able to read
+keys written under any Mbed TLS 3.x with x <= y).
+
+Mbed TLS 3.x can also read keys written by Mbed TLS 2.25.0 through 2.28.x
+LTS, but future major version upgrades (for example from 2.28.x/3.x to 4.y)
+may require the use of an upgrade tool.
+
+Note that this guarantee does not currently fully extend to drivers, which
+are an experimental feature. We intend to maintain compatibility with the
+basic use of drivers from Mbed TLS 2.28.0 onwards, even if driver APIs
+change. However, for more experimental parts of the driver interface, such
+as the use of driver state, we do not yet guarantee backward compatibility.
 
 ## Long-time support branches
 

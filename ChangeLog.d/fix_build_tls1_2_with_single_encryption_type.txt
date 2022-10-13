@@ -1,0 +1,4 @@
+Bugfix
+    * Fix bugs and missing dependencies when
+      building and testing configurations with
+      only one encryption type enabled in TLS 1.2.

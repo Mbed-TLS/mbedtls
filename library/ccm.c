@@ -99,7 +99,7 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
 
 #define CCM_STATE__CLEAR                0
 #define CCM_STATE__STARTED              (1 << 0)
-#define CCM_STATE__LENGHTS_SET          (1 << 1)
+#define CCM_STATE__LENGTHS_SET          (1 << 1)
 #define CCM_STATE__AUTH_DATA_STARTED    (1 << 2)
 #define CCM_STATE__AUTH_DATA_FINISHED   (1 << 3)
 #define CCM_STATE__ERROR                (1 << 4)
@@ -147,7 +147,7 @@ static int ccm_calculate_first_block_if_ready(mbedtls_ccm_context *ctx)
     /* length calulcation can be done only after both
      * mbedtls_ccm_starts() and mbedtls_ccm_set_lengths() have been executed
      */
-    if( !(ctx->state & CCM_STATE__STARTED) || !(ctx->state & CCM_STATE__LENGHTS_SET) )
+    if( !(ctx->state & CCM_STATE__STARTED) || !(ctx->state & CCM_STATE__LENGTHS_SET) )
         return 0;
 
     /* CCM expects non-empty tag.
@@ -260,7 +260,7 @@ int mbedtls_ccm_set_lengths( mbedtls_ccm_context *ctx,
     ctx->tag_len = tag_len;
     ctx->processed = 0;
 
-    ctx->state |= CCM_STATE__LENGHTS_SET;
+    ctx->state |= CCM_STATE__LENGTHS_SET;
     return ccm_calculate_first_block_if_ready(ctx);
 }
 

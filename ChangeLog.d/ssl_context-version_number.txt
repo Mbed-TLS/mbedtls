@@ -1,3 +1,0 @@
-Features
-   * Add a function to access the protocol version from an SSL context in a
-     form that's easy to compare. Fixes #5407.

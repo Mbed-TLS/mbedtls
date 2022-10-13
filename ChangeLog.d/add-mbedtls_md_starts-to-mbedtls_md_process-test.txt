@@ -1,3 +1,0 @@
-Bugfix
-   * Fix API violation in mbedtls_md_process() test by adding a call to
-     mbedtls_md_starts(). Fixes #2227.

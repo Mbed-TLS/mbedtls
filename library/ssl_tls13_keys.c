@@ -27,6 +27,7 @@
 #include "mbedtls/hkdf.h"
 #include "mbedtls/debug.h"
 #include "mbedtls/error.h"
+#include "mbedtls/platform.h"
 
 #include "ssl_misc.h"
 #include "ssl_tls13_keys.h"
@@ -136,182 +137,6 @@ static void ssl_tls13_hkdf_encode_label(
     *dst_len = total_hkdf_lbl_len;
 }
 
-MBEDTLS_STATIC_TESTABLE
-psa_status_t mbedtls_psa_hkdf_extract( psa_algorithm_t hash_alg,
-                                       const unsigned char *salt, size_t salt_len,
-                                       const unsigned char *ikm, size_t ikm_len,
-                                       unsigned char *prk, size_t prk_size,
-                                       size_t *prk_len )
-{
-    unsigned char null_salt[PSA_MAC_MAX_SIZE] = { '\0' };
-    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
-    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_status_t destroy_status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_algorithm_t alg = PSA_ALG_HMAC( hash_alg );
-
-    if( salt == NULL || salt_len == 0 )
-    {
-        size_t hash_len;
-
-        if( salt_len != 0 )
-        {
-            return( PSA_ERROR_INVALID_ARGUMENT );
-        }
-
-        hash_len = PSA_HASH_LENGTH( alg );
-
-        if( hash_len == 0 )
-        {
-            return( PSA_ERROR_INVALID_ARGUMENT );
-        }
-
-        /* salt_len <= sizeof( salt ) because
-           PSA_HASH_LENGTH( alg ) <= PSA_MAC_MAX_SIZE. */
-        salt = null_salt;
-        salt_len = hash_len;
-    }
-
-    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_MESSAGE );
-    psa_set_key_algorithm( &attributes, alg );
-    psa_set_key_type( &attributes, PSA_KEY_TYPE_HMAC );
-
-    status = psa_import_key( &attributes, salt, salt_len, &key );
-    if( status != PSA_SUCCESS )
-    {
-        goto cleanup;
-    }
-
-    status = psa_mac_compute( key, alg, ikm, ikm_len, prk, prk_size, prk_len );
-
-cleanup:
-    destroy_status = psa_destroy_key( key );
-
-    return( ( status == PSA_SUCCESS ) ? destroy_status : status );
-}
-
-MBEDTLS_STATIC_TESTABLE
-psa_status_t mbedtls_psa_hkdf_expand( psa_algorithm_t hash_alg,
-                                      const unsigned char *prk, size_t prk_len,
-                                      const unsigned char *info, size_t info_len,
-                                      unsigned char *okm, size_t okm_len )
-{
-    size_t hash_len;
-    size_t where = 0;
-    size_t n;
-    size_t t_len = 0;
-    size_t i;
-    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
-    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_status_t destroy_status = PSA_ERROR_CORRUPTION_DETECTED;
-    unsigned char t[PSA_MAC_MAX_SIZE];
-    psa_algorithm_t alg = PSA_ALG_HMAC( hash_alg );
-
-    if( okm == NULL )
-    {
-        return( PSA_ERROR_INVALID_ARGUMENT );
-    }
-
-    hash_len = PSA_HASH_LENGTH( alg );
-
-    if( prk_len < hash_len || hash_len == 0 )
-    {
-        return( PSA_ERROR_INVALID_ARGUMENT );
-    }
-
-    if( info == NULL )
-    {
-        info = (const unsigned char *) "";
-        info_len = 0;
-    }
-
-    n = okm_len / hash_len;
-
-    if( okm_len % hash_len != 0 )
-    {
-        n++;
-    }
-
-    /*
-     * Per RFC 5869 Section 2.3, okm_len must not exceed
-     * 255 times the hash length
-     */
-    if( n > 255 )
-    {
-        return( PSA_ERROR_INVALID_ARGUMENT );
-    }
-
-    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_MESSAGE );
-    psa_set_key_algorithm( &attributes, alg );
-    psa_set_key_type( &attributes, PSA_KEY_TYPE_HMAC );
-
-    status = psa_import_key( &attributes, prk, prk_len, &key );
-    if( status != PSA_SUCCESS )
-    {
-        goto cleanup;
-    }
-
-    memset( t, 0, hash_len );
-
-    /*
-     * Compute T = T(1) | T(2) | T(3) | ... | T(N)
-     * Where T(N) is defined in RFC 5869 Section 2.3
-     */
-    for( i = 1; i <= n; i++ )
-    {
-        size_t num_to_copy;
-        unsigned char c = i & 0xff;
-        size_t len;
-
-        status = psa_mac_sign_setup( &operation, key, alg );
-        if( status != PSA_SUCCESS )
-        {
-            goto cleanup;
-        }
-
-        status = psa_mac_update( &operation, t, t_len );
-        if( status != PSA_SUCCESS )
-        {
-            goto cleanup;
-        }
-
-        status = psa_mac_update( &operation, info, info_len );
-        if( status != PSA_SUCCESS )
-        {
-            goto cleanup;
-        }
-
-        /* The constant concatenated to the end of each T(n) is a single octet. */
-        status = psa_mac_update( &operation, &c, 1 );
-        if( status != PSA_SUCCESS )
-        {
-            goto cleanup;
-        }
-
-        status = psa_mac_sign_finish( &operation, t, PSA_MAC_MAX_SIZE, &len );
-        if( status != PSA_SUCCESS )
-        {
-            goto cleanup;
-        }
-
-        num_to_copy = i != n ? hash_len : okm_len - where;
-        memcpy( okm + where, t, num_to_copy );
-        where += hash_len;
-        t_len = hash_len;
-    }
-
-cleanup:
-    if( status != PSA_SUCCESS )
-        psa_mac_abort( &operation );
-    destroy_status = psa_destroy_key( key );
-
-    mbedtls_platform_zeroize( t, sizeof( t ) );
-
-    return( ( status == PSA_SUCCESS ) ? destroy_status : status );
-}
-
 int mbedtls_ssl_tls13_hkdf_expand_label(
                      psa_algorithm_t hash_alg,
                      const unsigned char *secret, size_t secret_len,
@@ -320,7 +145,11 @@ int mbedtls_ssl_tls13_hkdf_expand_label(
                      unsigned char *buf, size_t buf_len )
 {
     unsigned char hkdf_label[ SSL_TLS1_3_KEY_SCHEDULE_MAX_HKDF_LABEL_LEN ];
-    size_t hkdf_label_len;
+    size_t hkdf_label_len = 0;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t abort_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_derivation_operation_t operation =
+        PSA_KEY_DERIVATION_OPERATION_INIT;
 
     if( label_len > MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_LABEL_LEN )
     {
@@ -351,11 +180,39 @@ int mbedtls_ssl_tls13_hkdf_expand_label(
                                  hkdf_label,
                                  &hkdf_label_len );
 
-    return( psa_ssl_status_to_mbedtls(
-                mbedtls_psa_hkdf_expand( hash_alg,
-                                         secret, secret_len,
-                                         hkdf_label, hkdf_label_len,
-                                         buf, buf_len ) ) );
+    status = psa_key_derivation_setup( &operation, PSA_ALG_HKDF_EXPAND( hash_alg ) );
+
+    if( status != PSA_SUCCESS )
+         goto cleanup;
+
+    status = psa_key_derivation_input_bytes( &operation,
+                                             PSA_KEY_DERIVATION_INPUT_SECRET,
+                                             secret,
+                                             secret_len );
+
+    if( status != PSA_SUCCESS )
+         goto cleanup;
+
+    status = psa_key_derivation_input_bytes( &operation,
+                                             PSA_KEY_DERIVATION_INPUT_INFO,
+                                             hkdf_label,
+                                             hkdf_label_len );
+
+    if( status != PSA_SUCCESS )
+         goto cleanup;
+
+    status = psa_key_derivation_output_bytes( &operation,
+                                              buf,
+                                              buf_len );
+
+    if( status != PSA_SUCCESS )
+         goto cleanup;
+
+cleanup:
+    abort_status = psa_key_derivation_abort( &operation );
+    status = ( status == PSA_SUCCESS ? abort_status : status );
+    mbedtls_platform_zeroize( hkdf_label, hkdf_label_len );
+    return( psa_ssl_status_to_mbedtls ( status ) );
 }
 
 /*
@@ -472,10 +329,13 @@ int mbedtls_ssl_tls13_evolve_secret(
                    unsigned char *secret_new )
 {
     int ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t abort_status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t hlen, ilen;
     unsigned char tmp_secret[ PSA_MAC_MAX_SIZE ] = { 0 };
     unsigned char tmp_input [ MBEDTLS_ECP_MAX_BYTES ] = { 0 };
-    size_t secret_len;
+    psa_key_derivation_operation_t operation =
+        PSA_KEY_DERIVATION_OPERATION_INIT;
 
     if( ! PSA_ALG_IS_HASH( hash_alg ) )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
@@ -497,7 +357,9 @@ int mbedtls_ssl_tls13_evolve_secret(
             goto cleanup;
     }
 
-    if( input != NULL )
+    ret = 0;
+
+    if( input != NULL && input_len != 0 )
     {
         memcpy( tmp_input, input, input_len );
         ilen = input_len;
@@ -507,17 +369,39 @@ int mbedtls_ssl_tls13_evolve_secret(
         ilen = hlen;
     }
 
-    /* HKDF-Extract takes a salt and input key material.
-     * The salt is the old secret, and the input key material
-     * is the input secret (PSK / ECDHE). */
-    ret = psa_ssl_status_to_mbedtls(
-            mbedtls_psa_hkdf_extract( hash_alg,
-                                      tmp_secret, hlen,
-                                      tmp_input, ilen,
-                                      secret_new, hlen, &secret_len ) );
+    status = psa_key_derivation_setup( &operation,
+                                       PSA_ALG_HKDF_EXTRACT( hash_alg ) );
+
+    if( status != PSA_SUCCESS )
+         goto cleanup;
+
+    status = psa_key_derivation_input_bytes( &operation,
+                                             PSA_KEY_DERIVATION_INPUT_SALT,
+                                             tmp_secret,
+                                             hlen );
+
+    if( status != PSA_SUCCESS )
+         goto cleanup;
+
+    status = psa_key_derivation_input_bytes( &operation,
+                                             PSA_KEY_DERIVATION_INPUT_SECRET,
+                                             tmp_input,
+                                             ilen );
+
+    if( status != PSA_SUCCESS )
+         goto cleanup;
+
+    status = psa_key_derivation_output_bytes( &operation,
+                                              secret_new,
+                                              PSA_HASH_LENGTH( hash_alg ) );
+
+    if( status != PSA_SUCCESS )
+         goto cleanup;
 
  cleanup:
-
+    abort_status = psa_key_derivation_abort( &operation );
+    status = ( status == PSA_SUCCESS ? abort_status : status );
+    ret = ( ret == 0 ? psa_ssl_status_to_mbedtls ( status ) : ret );
     mbedtls_platform_zeroize( tmp_secret, sizeof(tmp_secret) );
     mbedtls_platform_zeroize( tmp_input,  sizeof(tmp_input)  );
     return( ret );
@@ -738,7 +622,7 @@ int mbedtls_ssl_tls13_key_schedule_stage_application( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
-    psa_algorithm_t const hash_alg = mbedtls_psa_translate_md(
+    psa_algorithm_t const hash_alg = mbedtls_hash_info_psa_from_md(
                                         handshake->ciphersuite_info->mac );
 
     /*
@@ -760,6 +644,7 @@ int mbedtls_ssl_tls13_key_schedule_stage_application( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_calc_finished_core( psa_algorithm_t hash_alg,
                                          unsigned char const *base_key,
                                          unsigned char const *transcript,
@@ -849,7 +734,7 @@ int mbedtls_ssl_tls13_calculate_verify_data( mbedtls_ssl_context* ssl,
 
     mbedtls_md_type_t const md_type = ssl->handshake->ciphersuite_info->mac;
 
-    psa_algorithm_t hash_alg = mbedtls_psa_translate_md(
+    psa_algorithm_t hash_alg = mbedtls_hash_info_psa_from_md(
                                     ssl->handshake->ciphersuite_info->mac );
     size_t const hash_len = PSA_HASH_LENGTH( hash_alg );
 
@@ -940,6 +825,9 @@ int mbedtls_ssl_tls13_create_psk_binder( mbedtls_ssl_context *ssl,
         goto exit;
     }
 
+    MBEDTLS_SSL_DEBUG_BUF( 4, "mbedtls_ssl_tls13_create_psk_binder",
+                           early_secret, hash_len ) ;
+
     if( psk_type == MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION )
     {
         ret = mbedtls_ssl_tls13_derive_secret( hash_alg,
@@ -992,8 +880,8 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
 {
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
     int ret;
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
     mbedtls_cipher_info_t const *cipher_info;
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
     unsigned char const *key_enc;
     unsigned char const *iv_enc;
@@ -1021,6 +909,7 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
     cipher_info = mbedtls_cipher_info_from_type( ciphersuite_info->cipher );
     if( cipher_info == NULL )
     {
@@ -1029,7 +918,6 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
-#if !defined(MBEDTLS_USE_PSA_CRYPTO)
     /*
      * Setup cipher contexts in target transform
      */
@@ -1109,7 +997,7 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
     transform->tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
 
     /* We add the true record content type (1 Byte) to the plaintext and
-     * then pad to the configured granularity. The mimimum length of the
+     * then pad to the configured granularity. The minimum length of the
      * type-extended and padded plaintext is therefore the padding
      * granularity. */
     transform->minlen =
@@ -1119,7 +1007,7 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
     /*
      * Setup psa keys and alg
      */
-    if( ( status = mbedtls_ssl_cipher_to_psa( cipher_info->type,
+    if( ( status = mbedtls_ssl_cipher_to_psa( ciphersuite_info->cipher,
                                  transform->taglen,
                                  &alg,
                                  &key_type,
@@ -1167,6 +1055,8 @@ int mbedtls_ssl_tls13_key_schedule_stage_early( mbedtls_ssl_context *ssl )
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_algorithm_t hash_alg;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+    unsigned char *psk = NULL;
+    size_t psk_len = 0;
 
     if( handshake->ciphersuite_info == NULL )
     {
@@ -1174,17 +1064,65 @@ int mbedtls_ssl_tls13_key_schedule_stage_early( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-    hash_alg = mbedtls_psa_translate_md( handshake->ciphersuite_info->mac );
+    hash_alg = mbedtls_hash_info_psa_from_md( handshake->ciphersuite_info->mac );
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+    if( mbedtls_ssl_tls13_key_exchange_mode_with_psk( ssl ) )
+    {
+        ret = mbedtls_ssl_tls13_export_handshake_psk( ssl, &psk, &psk_len );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_export_handshake_psk",
+                                   ret );
+            return( ret );
+        }
+    }
+#endif
 
-    ret = mbedtls_ssl_tls13_evolve_secret( hash_alg, NULL, NULL, 0,
+    ret = mbedtls_ssl_tls13_evolve_secret( hash_alg, NULL, psk, psk_len,
                                            handshake->tls13_master_secrets.early );
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && \
+    defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+    mbedtls_free( (void*)psk );
+#endif
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_evolve_secret", ret );
         return( ret );
     }
 
+    MBEDTLS_SSL_DEBUG_BUF( 4, "mbedtls_ssl_tls13_key_schedule_stage_early",
+                           handshake->tls13_master_secrets.early,
+                           PSA_HASH_LENGTH( hash_alg ) );
     return( 0 );
+}
+
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int mbedtls_ssl_tls13_get_cipher_key_info(
+                    const mbedtls_ssl_ciphersuite_t *ciphersuite_info,
+                    size_t *key_len, size_t *iv_len )
+{
+    psa_key_type_t key_type;
+    psa_algorithm_t alg;
+    size_t taglen;
+    size_t key_bits;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    if( ciphersuite_info->flags & MBEDTLS_CIPHERSUITE_SHORT_TAG )
+        taglen = 8;
+    else
+        taglen = 16;
+
+    status = mbedtls_ssl_cipher_to_psa( ciphersuite_info->cipher, taglen,
+                                        &alg, &key_type, &key_bits );
+    if( status != PSA_SUCCESS )
+        return psa_ssl_status_to_mbedtls( status );
+
+    *key_len = PSA_BITS_TO_BYTES( key_bits );
+
+    /* TLS 1.3 only have AEAD ciphers, IV length is unconditionally 12 bytes */
+    *iv_len = 12;
+
+    return 0;
 }
 
 /* mbedtls_ssl_tls13_generate_handshake_keys() generates keys necessary for
@@ -1202,7 +1140,6 @@ int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
     unsigned char transcript[MBEDTLS_TLS1_3_MD_MAX_SIZE];
     size_t transcript_len;
 
-    mbedtls_cipher_info_t const *cipher_info;
     size_t key_len, iv_len;
 
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
@@ -1211,13 +1148,17 @@ int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_tls13_generate_handshake_keys" ) );
 
-    cipher_info = mbedtls_cipher_info_from_type( ciphersuite_info->cipher );
-    key_len = cipher_info->key_bitlen >> 3;
-    iv_len = cipher_info->iv_size;
+    ret = mbedtls_ssl_tls13_get_cipher_key_info( ciphersuite_info,
+                                                 &key_len, &iv_len );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_get_cipher_key_info", ret );
+        return ret;
+    }
 
     md_type = ciphersuite_info->mac;
 
-    hash_alg = mbedtls_psa_translate_md( ciphersuite_info->mac );
+    hash_alg = mbedtls_hash_info_psa_from_md( ciphersuite_info->mac );
     hash_len = PSA_HASH_LENGTH( hash_alg );
 
     ret = mbedtls_ssl_get_handshake_transcript( ssl, md_type,
@@ -1311,7 +1252,7 @@ int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED && MBEDTLS_ECDH_C */
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
-    psa_algorithm_t const hash_alg = mbedtls_psa_translate_md(
+    psa_algorithm_t const hash_alg = mbedtls_hash_info_psa_from_md(
                                         handshake->ciphersuite_info->mac );
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED)
@@ -1320,7 +1261,7 @@ int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
      * client_handshake_traffic_secret and server_handshake_traffic_secret
      * are derived in the handshake secret derivation stage.
      */
-    if( mbedtls_ssl_tls13_ephemeral_enabled( ssl ) )
+    if( mbedtls_ssl_tls13_key_exchange_mode_with_ephemeral( ssl ) )
     {
         if( mbedtls_ssl_tls13_named_group_is_ecdhe( handshake->offered_group_id ) )
         {
@@ -1407,24 +1348,26 @@ int mbedtls_ssl_tls13_generate_application_keys(
     size_t hash_len;
 
     /* Variables relating to the cipher for the chosen ciphersuite. */
-    mbedtls_cipher_info_t const *cipher_info;
     size_t key_len, iv_len;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> derive application traffic keys" ) );
 
     /* Extract basic information about hash and ciphersuite */
 
-    cipher_info = mbedtls_cipher_info_from_type(
-                                  handshake->ciphersuite_info->cipher );
-    key_len = cipher_info->key_bitlen / 8;
-    iv_len = cipher_info->iv_size;
+    ret = mbedtls_ssl_tls13_get_cipher_key_info( handshake->ciphersuite_info,
+                                                 &key_len, &iv_len );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_get_cipher_key_info", ret );
+        goto cleanup;
+    }
 
     md_type = handshake->ciphersuite_info->mac;
 
-    hash_alg = mbedtls_psa_translate_md( handshake->ciphersuite_info->mac );
+    hash_alg = mbedtls_hash_info_psa_from_md( handshake->ciphersuite_info->mac );
     hash_len = PSA_HASH_LENGTH( hash_alg );
 
-    /* Compute current handshake transcript. It's the caller's responsiblity
+    /* Compute current handshake transcript. It's the caller's responsibility
      * to call this at the right time, that is, after the ServerFinished. */
 
     ret = mbedtls_ssl_get_handshake_transcript( ssl, md_type,
@@ -1439,9 +1382,6 @@ int mbedtls_ssl_tls13_generate_application_keys(
                                    handshake->tls13_master_secrets.app,
                                    transcript, transcript_len,
                                    app_secrets );
-    /* Erase master secrets */
-    mbedtls_platform_zeroize( &ssl->handshake->tls13_master_secrets,
-                              sizeof( ssl->handshake->tls13_master_secrets ) );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1,
@@ -1506,8 +1446,200 @@ int mbedtls_ssl_tls13_generate_application_keys(
     /* randbytes is not used again */
     mbedtls_platform_zeroize( ssl->handshake->randbytes,
                               sizeof( ssl->handshake->randbytes ) );
+
     mbedtls_platform_zeroize( transcript, sizeof( transcript ) );
     return( ret );
 }
 
+int mbedtls_ssl_tls13_compute_handshake_transform( mbedtls_ssl_context *ssl )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_ssl_key_set traffic_keys;
+    mbedtls_ssl_transform *transform_handshake = NULL;
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+
+    /* Compute handshake secret */
+    ret = mbedtls_ssl_tls13_key_schedule_stage_handshake( ssl );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_derive_master_secret", ret );
+        goto cleanup;
+    }
+
+    /* Next evolution in key schedule: Establish handshake secret and
+     * key material. */
+    ret = mbedtls_ssl_tls13_generate_handshake_keys( ssl, &traffic_keys );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_generate_handshake_keys",
+                               ret );
+        goto cleanup;
+    }
+
+    transform_handshake = mbedtls_calloc( 1, sizeof( mbedtls_ssl_transform ) );
+    if( transform_handshake == NULL )
+    {
+        ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
+        goto cleanup;
+    }
+
+    ret = mbedtls_ssl_tls13_populate_transform(
+                                        transform_handshake,
+                                        ssl->conf->endpoint,
+                                        ssl->session_negotiate->ciphersuite,
+                                        &traffic_keys,
+                                        ssl );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_populate_transform", ret );
+        goto cleanup;
+    }
+    handshake->transform_handshake = transform_handshake;
+
+cleanup:
+    mbedtls_platform_zeroize( &traffic_keys, sizeof( traffic_keys ) );
+    if( ret != 0 )
+        mbedtls_free( transform_handshake );
+
+    return( ret );
+}
+
+int mbedtls_ssl_tls13_compute_resumption_master_secret( mbedtls_ssl_context *ssl )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_md_type_t md_type;
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+    unsigned char transcript[MBEDTLS_TLS1_3_MD_MAX_SIZE];
+    size_t transcript_len;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2,
+        ( "=> mbedtls_ssl_tls13_compute_resumption_master_secret" ) );
+
+    md_type = handshake->ciphersuite_info->mac;
+
+    ret = mbedtls_ssl_get_handshake_transcript( ssl, md_type,
+                                                transcript, sizeof( transcript ),
+                                                &transcript_len );
+    if( ret != 0 )
+        return( ret );
+
+    ret = mbedtls_ssl_tls13_derive_resumption_master_secret(
+                              mbedtls_psa_translate_md( md_type ),
+                              handshake->tls13_master_secrets.app,
+                              transcript, transcript_len,
+                              &ssl->session_negotiate->app_secrets );
+    if( ret != 0 )
+        return( ret );
+
+    /* Erase master secrets */
+    mbedtls_platform_zeroize( &handshake->tls13_master_secrets,
+                              sizeof( handshake->tls13_master_secrets ) );
+
+    MBEDTLS_SSL_DEBUG_BUF( 4, "Resumption master secret",
+             ssl->session_negotiate->app_secrets.resumption_master_secret,
+             PSA_HASH_LENGTH( mbedtls_psa_translate_md( md_type ) ) ) ;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2,
+        ( "<= mbedtls_ssl_tls13_compute_resumption_master_secret" ) );
+    return( 0 );
+}
+
+int mbedtls_ssl_tls13_compute_application_transform( mbedtls_ssl_context *ssl )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_ssl_key_set traffic_keys;
+    mbedtls_ssl_transform *transform_application = NULL;
+
+    ret = mbedtls_ssl_tls13_key_schedule_stage_application( ssl );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1,
+           "mbedtls_ssl_tls13_key_schedule_stage_application", ret );
+        goto cleanup;
+    }
+
+    ret = mbedtls_ssl_tls13_generate_application_keys( ssl, &traffic_keys );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1,
+            "mbedtls_ssl_tls13_generate_application_keys", ret );
+        goto cleanup;
+    }
+
+    transform_application =
+        mbedtls_calloc( 1, sizeof( mbedtls_ssl_transform ) );
+    if( transform_application == NULL )
+    {
+        ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
+        goto cleanup;
+    }
+
+    ret = mbedtls_ssl_tls13_populate_transform(
+                                    transform_application,
+                                    ssl->conf->endpoint,
+                                    ssl->session_negotiate->ciphersuite,
+                                    &traffic_keys,
+                                    ssl );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_populate_transform", ret );
+        goto cleanup;
+    }
+
+    ssl->transform_application = transform_application;
+
+cleanup:
+
+    mbedtls_platform_zeroize( &traffic_keys, sizeof( traffic_keys ) );
+    if( ret != 0 )
+    {
+        mbedtls_free( transform_application );
+    }
+    return( ret );
+}
+
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+int mbedtls_ssl_tls13_export_handshake_psk( mbedtls_ssl_context *ssl,
+                                            unsigned char **psk,
+                                            size_t *psk_len )
+{
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    *psk_len = 0;
+    *psk = NULL;
+
+    if( mbedtls_svc_key_id_is_null( ssl->handshake->psk_opaque ) )
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+
+    status = psa_get_key_attributes( ssl->handshake->psk_opaque, &key_attributes );
+    if( status != PSA_SUCCESS )
+        return( psa_ssl_status_to_mbedtls( status ) );
+
+    *psk_len = PSA_BITS_TO_BYTES( psa_get_key_bits( &key_attributes ) );
+    *psk = mbedtls_calloc( 1, *psk_len );
+    if( *psk == NULL )
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+
+    status = psa_export_key( ssl->handshake->psk_opaque,
+                             (uint8_t *)*psk, *psk_len, psk_len );
+    if( status != PSA_SUCCESS )
+    {
+        mbedtls_free( (void *)*psk );
+        *psk = NULL;
+        return( psa_ssl_status_to_mbedtls( status ) );
+    }
+    return( 0 );
+#else
+    *psk = ssl->handshake->psk;
+    *psk_len = ssl->handshake->psk_len;
+    if( *psk == NULL )
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    return( 0 );
+#endif /* !MBEDTLS_USE_PSA_CRYPTO */
+}
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+

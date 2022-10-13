@@ -150,7 +150,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
 #else /* MBEDTLS_ERROR_C */
 
 /*
- * Provide an non-function in case MBEDTLS_ERROR_C is not defined
+ * Provide a dummy implementation when MBEDTLS_ERROR_C is not defined
  */
 void mbedtls_strerror( int ret, char *buf, size_t buflen )
 {

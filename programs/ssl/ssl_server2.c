@@ -2859,7 +2859,7 @@ int main( int argc, char *argv[] )
     if( opt.cert_req_ca_list != DFL_CERT_REQ_CA_LIST )
         mbedtls_ssl_conf_cert_req_ca_list( &conf, opt.cert_req_ca_list );
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED)
     /* exercise setting DN hints for server certificate request
      * (Intended for use where the client cert expected has been signed by
      *  a specific CA which is an intermediate in a CA chain, not the root) */
@@ -3486,7 +3486,7 @@ reset:
 #endif
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED)
     /* exercise setting DN hints for server certificate request
      * (Intended for use where the client cert expected has been signed by
      *  a specific CA which is an intermediate in a CA chain, not the root)

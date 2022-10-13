@@ -357,6 +357,7 @@ class Algorithm:
         'HKDF': AlgorithmCategory.KEY_DERIVATION,
         'TLS12_PRF': AlgorithmCategory.KEY_DERIVATION,
         'TLS12_PSK_TO_MS': AlgorithmCategory.KEY_DERIVATION,
+        'TLS12_ECJPAKE_TO_PMS': AlgorithmCategory.KEY_DERIVATION,
         'PBKDF': AlgorithmCategory.KEY_DERIVATION,
         'ECDH': AlgorithmCategory.KEY_AGREEMENT,
         'FFDH': AlgorithmCategory.KEY_AGREEMENT,

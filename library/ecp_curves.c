@@ -26,7 +26,7 @@
 #include "mbedtls/error.h"
 
 #include "bn_mul.h"
-#include "bignum_internal.h"
+#include "bignum_core.h"
 #include "ecp_invasive.h"
 
 #include <string.h>
@@ -4737,6 +4737,8 @@ int mbedtls_ecp_group_load( mbedtls_ecp_group *grp, mbedtls_ecp_group_id id )
     ECP_VALIDATE_RET( grp != NULL );
     mbedtls_ecp_group_free( grp );
 
+    mbedtls_ecp_group_init( grp );
+
     grp->id = id;
 
     switch( id )
@@ -4966,9 +4968,6 @@ static inline void sub32( uint32_t *dst, uint32_t src, signed char *carry )
 
 #define ADD( j )    add32( &cur, A( j ), &c );
 #define SUB( j )    sub32( &cur, A( j ), &c );
-
-#define ciL    (sizeof(mbedtls_mpi_uint))         /* chars in limb  */
-#define biL    (ciL << 3)                         /* bits  in limb  */
 
 /*
  * Helpers for the main 'loop'

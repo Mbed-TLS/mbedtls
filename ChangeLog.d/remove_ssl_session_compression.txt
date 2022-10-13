@@ -1,0 +1,5 @@
+Removals
+   * Remove compression property from SSL session struct.
+     MBEDTLS_SSL_COMPRESS_NULL is now the only supported
+     compression option and can be used for compatibility
+     reasons. Changes requested in #4223.

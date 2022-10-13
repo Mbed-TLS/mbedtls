@@ -156,7 +156,7 @@ static psa_status_t aead_prepare( const char *info,
         return( PSA_ERROR_INVALID_ARGUMENT );
     }
 
-    /* Prepare key attibutes */
+    /* Prepare key attributes */
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT );
     psa_set_key_algorithm( &attributes, *alg );

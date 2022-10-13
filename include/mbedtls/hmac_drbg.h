@@ -204,7 +204,7 @@ int mbedtls_hmac_drbg_seed( mbedtls_hmac_drbg_context *ctx,
                     size_t len );
 
 /**
- * \brief               Initilisation of simpified HMAC_DRBG (never reseeds).
+ * \brief               Initialisation of simplified HMAC_DRBG (never reseeds).
  *
  * This function is meant for use in algorithms that need a pseudorandom
  * input such as deterministic ECDSA.

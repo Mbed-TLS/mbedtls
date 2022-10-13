@@ -44,8 +44,9 @@ class Requirements:
         """Adjust a requirement to the minimum specified version."""
         # allow inheritance #pylint: disable=no-self-use
         # If a requirement specifies a minimum version, impose that version.
-        req = re.sub(r'>=|~=', r'==', req)
-        return req
+        split_req = req.split(';', 1)
+        split_req[0] = re.sub(r'>=|~=', r'==', split_req[0])
+        return ';'.join(split_req)
 
     def add_file(self, filename: str) -> None:
         """Add requirements from the specified file.

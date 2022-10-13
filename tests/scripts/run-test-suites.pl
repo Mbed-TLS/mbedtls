@@ -74,7 +74,7 @@ $ENV{'DYLD_LIBRARY_PATH'} = '../library';
 
 my $prefix = $^O eq "MSWin32" ? '' : './';
 
-my ($failed_suites, $total_tests_run, $failed, $suite_cases_passed,
+my (@failed_suites, $total_tests_run, $failed, $suite_cases_passed,
     $suite_cases_failed, $suite_cases_skipped, $total_cases_passed,
     $total_cases_failed, $total_cases_skipped );
 my $suites_skipped = 0;
@@ -112,7 +112,7 @@ for my $suite (@suites)
             pad_print_center( 72, '-', "End $suite" );
         }
     } else {
-        $failed_suites++;
+        push @failed_suites, $suite;
         print "FAIL\n";
         if( $verbose ) {
             pad_print_center( 72, '-', "Begin $suite" );
@@ -139,11 +139,16 @@ for my $suite (@suites)
 }
 
 print "-" x 72, "\n";
-print $failed_suites ? "FAILED" : "PASSED";
+print @failed_suites ? "FAILED" : "PASSED";
 printf( " (%d suites, %d tests run%s)\n",
         scalar(@suites) - $suites_skipped,
         $total_tests_run,
         $suites_skipped ? ", $suites_skipped suites skipped" : "" );
+
+if( $verbose && @failed_suites ) {
+    # the output can be very long, so provide a summary of which suites failed
+    print "      failed suites : @failed_suites\n";
+}
 
 if( $verbose > 1 ) {
     print "  test cases passed :", $total_cases_passed, "\n";
@@ -159,5 +164,5 @@ if( $verbose > 1 ) {
     }
 }
 
-exit( $failed_suites ? 1 : 0 );
+exit( @failed_suites ? 1 : 0 );
 

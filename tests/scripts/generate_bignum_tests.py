@@ -132,12 +132,14 @@ class BignumCmp(BignumOperation):
     count = 0
     test_function = "mpi_cmp_mpi"
     test_name = "MPI compare"
+    input_values = [
+        "", "0", "2", "-2", "-3", "-7b", "7b", "0000000000000000123",
+        "-0000000000000000123", "2b5", "-1230000000000000000", "1230000000000000000"
+    ]
     input_cases = [
-        ("-2", "-3"),
-        ("-2", "-2"),
-        ("2b4", "2b5"),
-        ("2b5", "2b6")
-        ]
+        ("2b5", "2b4"), ("2b5", "2b6"), ("-2", "-1"), ("-2", "1c67967269c6")
+    ]
+    unique_combinations_only = False
 
     def __init__(self, val_a, val_b) -> None:
         super().__init__(val_a, val_b)
@@ -153,9 +155,33 @@ class BignumCmpAbs(BignumCmp):
     count = 0
     test_function = "mpi_cmp_abs"
     test_name = "MPI compare (abs)"
+    input_values = ["", "0", "-2", "2", "-3", "2b5"]
+    input_cases = [("2b5", "2b4"), ("2b5", "2b6"), ("-2", "-1"), ("-2", "1")]
 
     def __init__(self, val_a, val_b) -> None:
         super().__init__(val_a.strip("-"), val_b.strip("-"))
+        self.arg_a = val_a
+        self.arg_b = val_b
+
+
+class BignumCmpInt(BignumCmp):
+    """Test cases for bignum value comparison with int."""
+    count = 0
+    test_function = "mpi_cmp_int"
+    test_name = "MPI compare (int)"
+    input_values = [] # type: List[str]
+    input_cases = [
+        ("693", "693"), ("693", "692"), ("693", "694"), ("-2", "-2"), ("-2", "-3"), ("-2", "-1")
+    ]
+
+    def __init__(self, val_a: str, val_b: str) -> None:
+        # Read val_a and val_b as decimal strings
+        val_a = "{:x}".format(int(val_a))
+        val_b = "{:x}".format(int(val_b))
+        super().__init__(val_a, val_b)
+
+    def arguments(self) -> List[str]:
+        return [str(self.int_a), str(self.int_b)] + self.result()
 
 
 class BignumAdd(BignumOperation):

@@ -11,12 +11,13 @@ int check_lmots_private_key_for_leak(unsigned char * sig)
          idx < MBEDTLS_LMOTS_SIG_LEN(MBEDTLS_LMOTS_SHA256_N32_W8);
          idx++ )
     {
-        if( sig[idx] != 0x7E ) {
-            return 1;
-        }
+        TEST_EQUAL( sig[idx], 0x7E );
     }
 
-    return 0;
+    return( 0 );
+
+exit:
+    return( -1 );
 }
 #endif /* defined(MBEDTLS_TEST_HOOKS) */
 

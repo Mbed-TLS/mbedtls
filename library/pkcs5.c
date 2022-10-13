@@ -42,12 +42,7 @@
 
 #include <string.h>
 
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
-#include <stdio.h>
-#define mbedtls_printf printf
-#endif
 
 #include "hash_info.h"
 #include "mbedtls/psa_util.h"

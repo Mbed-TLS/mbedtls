@@ -26,13 +26,7 @@
 
 #include <string.h>
 
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
-#include <stdlib.h>
-#define mbedtls_calloc    calloc
-#define mbedtls_free       free
-#endif
 
 int mbedtls_asn1_write_len( unsigned char **p, const unsigned char *start, size_t len )
 {

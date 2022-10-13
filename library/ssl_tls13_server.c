@@ -34,13 +34,7 @@
 #include "mbedtls/ecp.h"
 #endif /* MBEDTLS_ECP_C */
 
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
-#include <stdlib.h>
-#define mbedtls_calloc    calloc
-#define mbedtls_free       free
-#endif /* MBEDTLS_PLATFORM_C */
 
 #include "ssl_misc.h"
 #include "ssl_tls13_keys.h"

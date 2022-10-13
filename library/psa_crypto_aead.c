@@ -27,10 +27,6 @@
 
 #include <string.h>
 #include "mbedtls/platform.h"
-#if !defined(MBEDTLS_PLATFORM_C)
-#define mbedtls_calloc calloc
-#define mbedtls_free   free
-#endif
 
 #include "mbedtls/ccm.h"
 #include "mbedtls/chachapoly.h"

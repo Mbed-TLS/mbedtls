@@ -27,15 +27,7 @@
 
 #include <assert.h>
 
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
-#include <stdlib.h>
-#include <stdio.h>
-#define mbedtls_calloc    calloc
-#define mbedtls_free      free
-#define mbedtls_printf    printf
-#endif /* !MBEDTLS_PLATFORM_C */
 
 #include "mbedtls/ssl.h"
 #include "ssl_client.h"

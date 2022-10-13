@@ -523,6 +523,20 @@
 #error "MBEDTLS_PLATFORM_SNPRINTF_MACRO and MBEDTLS_PLATFORM_STD_SNPRINTF/MBEDTLS_PLATFORM_SNPRINTF_ALT cannot be defined simultaneously"
 #endif
 
+#if defined(MBEDTLS_PLATFORM_VSNPRINTF_ALT) && !defined(MBEDTLS_PLATFORM_C)
+#error "MBEDTLS_PLATFORM_VSNPRINTF_ALT defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PLATFORM_VSNPRINTF_MACRO) && !defined(MBEDTLS_PLATFORM_C)
+#error "MBEDTLS_PLATFORM_VSNPRINTF_MACRO defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PLATFORM_VSNPRINTF_MACRO) &&\
+    ( defined(MBEDTLS_PLATFORM_STD_VSNPRINTF) ||\
+        defined(MBEDTLS_PLATFORM_VSNPRINTF_ALT) )
+#error "MBEDTLS_PLATFORM_VSNPRINTF_MACRO and MBEDTLS_PLATFORM_STD_VSNPRINTF/MBEDTLS_PLATFORM_VSNPRINTF_ALT cannot be defined simultaneously"
+#endif
+
 #if defined(MBEDTLS_PLATFORM_STD_MEM_HDR) &&\
     !defined(MBEDTLS_PLATFORM_NO_STD_FUNCTIONS)
 #error "MBEDTLS_PLATFORM_STD_MEM_HDR defined, but not all prerequisites"

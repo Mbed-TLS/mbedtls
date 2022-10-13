@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate library/psa_crypto_driver_wrappers.c
 
-   This module is invoked by the build sripts to auto generate the
+   This module is invoked by the build scripts to auto generate the
    psa_crypto_driver_wrappers.c based on template files in
    script/data_files/driver_templates/.
 """

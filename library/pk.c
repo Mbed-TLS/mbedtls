@@ -24,6 +24,8 @@
 #include "pk_wrap.h"
 #include "pkwrite.h"
 
+#include "hash_info.h"
+
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
@@ -44,19 +46,11 @@
 #include <limits.h>
 #include <stdint.h>
 
-/* Parameter validation macros based on platform_util.h */
-#define PK_VALIDATE_RET( cond )    \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_PK_BAD_INPUT_DATA )
-#define PK_VALIDATE( cond )        \
-    MBEDTLS_INTERNAL_VALIDATE( cond )
-
 /*
  * Initialise a mbedtls_pk_context
  */
 void mbedtls_pk_init( mbedtls_pk_context *ctx )
 {
-    PK_VALIDATE( ctx != NULL );
-
     ctx->pk_info = NULL;
     ctx->pk_ctx = NULL;
 }
@@ -81,7 +75,6 @@ void mbedtls_pk_free( mbedtls_pk_context *ctx )
  */
 void mbedtls_pk_restart_init( mbedtls_pk_restart_ctx *ctx )
 {
-    PK_VALIDATE( ctx != NULL );
     ctx->pk_info = NULL;
     ctx->rs_ctx = NULL;
 }
@@ -135,7 +128,6 @@ const mbedtls_pk_info_t * mbedtls_pk_info_from_type( mbedtls_pk_type_t pk_type )
  */
 int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info )
 {
-    PK_VALIDATE_RET( ctx != NULL );
     if( info == NULL || ctx->pk_info != NULL )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
@@ -198,7 +190,6 @@ int mbedtls_pk_setup_rsa_alt( mbedtls_pk_context *ctx, void * key,
     mbedtls_rsa_alt_context *rsa_alt;
     const mbedtls_pk_info_t *info = &mbedtls_rsa_alt_info;
 
-    PK_VALIDATE_RET( ctx != NULL );
     if( ctx->pk_info != NULL )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
@@ -232,20 +223,140 @@ int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type )
     return( ctx->pk_info->can_do( type ) );
 }
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+/*
+ * Tell if a PK can do the operations of the given PSA algorithm
+ */
+int mbedtls_pk_can_do_ext( const mbedtls_pk_context *ctx, psa_algorithm_t alg,
+                           psa_key_usage_t usage )
+{
+    psa_key_usage_t key_usage;
+
+    /* A context with null pk_info is not set up yet and can't do anything.
+     * For backward compatibility, also accept NULL instead of a context
+     * pointer. */
+    if( ctx == NULL || ctx->pk_info == NULL )
+        return( 0 );
+
+    /* Filter out non allowed algorithms */
+    if( PSA_ALG_IS_ECDSA( alg ) == 0 &&
+        PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) == 0 &&
+        PSA_ALG_IS_RSA_PSS( alg ) == 0 &&
+        alg != PSA_ALG_RSA_PKCS1V15_CRYPT &&
+        PSA_ALG_IS_ECDH( alg ) == 0 )
+        return( 0 );
+
+    /* Filter out non allowed usage flags */
+    if( usage == 0 ||
+        ( usage & ~( PSA_KEY_USAGE_SIGN_HASH |
+                     PSA_KEY_USAGE_DECRYPT |
+                     PSA_KEY_USAGE_DERIVE ) ) != 0 )
+        return( 0 );
+
+    /* Wildcard hash is not allowed */
+    if( PSA_ALG_IS_SIGN_HASH( alg ) &&
+        PSA_ALG_SIGN_GET_HASH( alg ) == PSA_ALG_ANY_HASH )
+        return( 0 );
+
+    if( mbedtls_pk_get_type( ctx ) != MBEDTLS_PK_OPAQUE )
+    {
+        mbedtls_pk_type_t type;
+
+        if( PSA_ALG_IS_ECDSA( alg ) || PSA_ALG_IS_ECDH( alg ) )
+            type = MBEDTLS_PK_ECKEY;
+        else if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) ||
+                 alg == PSA_ALG_RSA_PKCS1V15_CRYPT )
+            type = MBEDTLS_PK_RSA;
+        else if( PSA_ALG_IS_RSA_PSS( alg ) )
+            type = MBEDTLS_PK_RSASSA_PSS;
+        else
+            return( 0 );
+
+        if( ctx->pk_info->can_do( type ) == 0 )
+            return( 0 );
+
+        switch( type )
+        {
+            case MBEDTLS_PK_ECKEY:
+                key_usage = PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_DERIVE;
+                break;
+            case MBEDTLS_PK_RSA:
+            case MBEDTLS_PK_RSASSA_PSS:
+                key_usage = PSA_KEY_USAGE_SIGN_HASH |
+                            PSA_KEY_USAGE_SIGN_MESSAGE |
+                            PSA_KEY_USAGE_DECRYPT;
+                break;
+            default:
+                /* Should never happen */
+                return( 0 );
+        }
+
+        return( ( key_usage & usage ) == usage );
+    }
+
+    const mbedtls_svc_key_id_t *key = (const mbedtls_svc_key_id_t *) ctx->pk_ctx;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_algorithm_t key_alg, key_alg2;
+    psa_status_t status;
+
+    status = psa_get_key_attributes( *key, &attributes );
+    if( status != PSA_SUCCESS )
+        return( 0 );
+
+    key_alg = psa_get_key_algorithm( &attributes );
+    key_alg2 = psa_get_key_enrollment_algorithm( &attributes );
+    key_usage = psa_get_key_usage_flags( &attributes );
+    psa_reset_key_attributes( &attributes );
+
+    if( ( key_usage & usage ) != usage )
+        return( 0 );
+
+    /*
+     * Common case: the key alg or alg2 only allows alg.
+     * This will match PSA_ALG_RSA_PKCS1V15_CRYPT & PSA_ALG_IS_ECDH
+     * directly.
+     * This would also match ECDSA/RSA_PKCS1V15_SIGN/RSA_PSS with
+     * a fixed hash on key_alg/key_alg2.
+     */
+    if( alg == key_alg || alg == key_alg2 )
+            return( 1 );
+
+    /*
+     * If key_alg or key_alg2 is a hash-and-sign with a wildcard for the hash,
+     * and alg is the same hash-and-sign family with any hash,
+     * then alg is compliant with this key alg
+     */
+    if( PSA_ALG_IS_SIGN_HASH( alg ) )
+    {
+
+        if( PSA_ALG_IS_SIGN_HASH( key_alg ) &&
+            PSA_ALG_SIGN_GET_HASH( key_alg ) == PSA_ALG_ANY_HASH &&
+            ( alg & ~PSA_ALG_HASH_MASK ) == ( key_alg & ~PSA_ALG_HASH_MASK ) )
+            return( 1 );
+
+        if( PSA_ALG_IS_SIGN_HASH( key_alg2 ) &&
+            PSA_ALG_SIGN_GET_HASH( key_alg2 ) == PSA_ALG_ANY_HASH &&
+            ( alg & ~PSA_ALG_HASH_MASK ) == ( key_alg2 & ~PSA_ALG_HASH_MASK ) )
+            return( 1 );
+    }
+
+    return( 0 );
+}
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 /*
  * Helper for mbedtls_pk_sign and mbedtls_pk_verify
  */
 static inline int pk_hashlen_helper( mbedtls_md_type_t md_alg, size_t *hash_len )
 {
-    const mbedtls_md_info_t *md_info;
-
     if( *hash_len != 0 )
         return( 0 );
 
-    if( ( md_info = mbedtls_md_info_from_type( md_alg ) ) == NULL )
+    *hash_len = mbedtls_hash_info_get_size( md_alg );
+
+    if( *hash_len == 0 )
         return( -1 );
 
-    *hash_len = mbedtls_md_get_size( md_info );
     return( 0 );
 }
 
@@ -282,10 +393,8 @@ int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
                const unsigned char *sig, size_t sig_len,
                mbedtls_pk_restart_ctx *rs_ctx )
 {
-    PK_VALIDATE_RET( ctx != NULL );
-    PK_VALIDATE_RET( ( md_alg == MBEDTLS_MD_NONE && hash_len == 0 ) ||
-                     hash != NULL );
-    PK_VALIDATE_RET( sig != NULL );
+    if( ( md_alg != MBEDTLS_MD_NONE || hash_len != 0 ) && hash == NULL )
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
 
     if( ctx->pk_info == NULL ||
         pk_hashlen_helper( md_alg, &hash_len ) != 0 )
@@ -340,10 +449,8 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
                    const unsigned char *hash, size_t hash_len,
                    const unsigned char *sig, size_t sig_len )
 {
-    PK_VALIDATE_RET( ctx != NULL );
-    PK_VALIDATE_RET( ( md_alg == MBEDTLS_MD_NONE && hash_len == 0 ) ||
-                     hash != NULL );
-    PK_VALIDATE_RET( sig != NULL );
+    if( ( md_alg != MBEDTLS_MD_NONE || hash_len != 0 ) && hash == NULL )
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
 
     if( ctx->pk_info == NULL )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
@@ -387,7 +494,7 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
         psa_status_t status = PSA_ERROR_DATA_CORRUPT;
         psa_status_t destruction_status = PSA_ERROR_DATA_CORRUPT;
 
-        psa_algorithm_t psa_md_alg = mbedtls_psa_translate_md( md_alg );
+        psa_algorithm_t psa_md_alg = mbedtls_hash_info_psa_from_md( md_alg );
         mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
         psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
         psa_algorithm_t psa_sig_alg =
@@ -466,13 +573,10 @@ int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
              mbedtls_pk_restart_ctx *rs_ctx )
 {
-    PK_VALIDATE_RET( ctx != NULL );
-    PK_VALIDATE_RET( ( md_alg == MBEDTLS_MD_NONE && hash_len == 0 ) ||
-                     hash != NULL );
-    PK_VALIDATE_RET( sig != NULL );
+    if( ( md_alg != MBEDTLS_MD_NONE || hash_len != 0 ) && hash == NULL )
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
 
-    if( ctx->pk_info == NULL ||
-        pk_hashlen_helper( md_alg, &hash_len ) != 0 )
+    if( ctx->pk_info == NULL || pk_hashlen_helper( md_alg, &hash_len ) != 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
@@ -552,7 +656,7 @@ int mbedtls_pk_sign_ext( mbedtls_pk_type_t pk_type,
     }
 
 #if defined(MBEDTLS_RSA_C)
-    psa_md_alg = mbedtls_psa_translate_md( md_alg );
+    psa_md_alg = mbedtls_hash_info_psa_from_md( md_alg );
     if( psa_md_alg == 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
@@ -585,11 +689,6 @@ int mbedtls_pk_decrypt( mbedtls_pk_context *ctx,
                 unsigned char *output, size_t *olen, size_t osize,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
-    PK_VALIDATE_RET( ctx != NULL );
-    PK_VALIDATE_RET( input != NULL || ilen == 0 );
-    PK_VALIDATE_RET( output != NULL || osize == 0 );
-    PK_VALIDATE_RET( olen != NULL );
-
     if( ctx->pk_info == NULL )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
@@ -608,11 +707,6 @@ int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
                 unsigned char *output, size_t *olen, size_t osize,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
-    PK_VALIDATE_RET( ctx != NULL );
-    PK_VALIDATE_RET( input != NULL || ilen == 0 );
-    PK_VALIDATE_RET( output != NULL || osize == 0 );
-    PK_VALIDATE_RET( olen != NULL );
-
     if( ctx->pk_info == NULL )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
@@ -631,9 +725,6 @@ int mbedtls_pk_check_pair( const mbedtls_pk_context *pub,
                            int (*f_rng)(void *, unsigned char *, size_t),
                            void *p_rng )
 {
-    PK_VALIDATE_RET( pub != NULL );
-    PK_VALIDATE_RET( prv != NULL );
-
     if( pub->pk_info == NULL ||
         prv->pk_info == NULL )
     {
@@ -678,7 +769,6 @@ size_t mbedtls_pk_get_bitlen( const mbedtls_pk_context *ctx )
  */
 int mbedtls_pk_debug( const mbedtls_pk_context *ctx, mbedtls_pk_debug_item *items )
 {
-    PK_VALIDATE_RET( ctx != NULL );
     if( ctx->pk_info == NULL )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
@@ -720,12 +810,16 @@ mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx )
  */
 int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
                                mbedtls_svc_key_id_t *key,
-                               psa_algorithm_t hash_alg )
+                               psa_algorithm_t alg,
+                               psa_key_usage_t usage,
+                               psa_algorithm_t alg2 )
 {
 #if !defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_RSA_C)
     ((void) pk);
     ((void) key);
-    ((void) hash_alg);
+    ((void) alg);
+    ((void) usage);
+    ((void) alg2);
 #else
 #if defined(MBEDTLS_ECP_C)
     if( mbedtls_pk_get_type( pk ) == MBEDTLS_PK_ECKEY )
@@ -752,10 +846,10 @@ int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
         /* prepare the key attributes */
         psa_set_key_type( &attributes, key_type );
         psa_set_key_bits( &attributes, bits );
-        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH |
-                                              PSA_KEY_USAGE_DERIVE);
-        psa_set_key_algorithm( &attributes, PSA_ALG_ECDSA( hash_alg ) );
-        psa_set_key_enrollment_algorithm( &attributes, PSA_ALG_ECDH );
+        psa_set_key_usage_flags( &attributes, usage );
+        psa_set_key_algorithm( &attributes, alg );
+        if( alg2 != PSA_ALG_NONE )
+            psa_set_key_enrollment_algorithm( &attributes, alg2 );
 
         /* import private key into PSA */
         status = psa_import_key( &attributes, d, d_len, key );
@@ -786,11 +880,10 @@ int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
         /* prepare the key attributes */
         psa_set_key_type( &attributes, PSA_KEY_TYPE_RSA_KEY_PAIR );
         psa_set_key_bits( &attributes, mbedtls_pk_get_bitlen( pk ) );
-        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH );
-        psa_set_key_algorithm( &attributes,
-                               PSA_ALG_RSA_PKCS1V15_SIGN( hash_alg ) );
-        psa_set_key_enrollment_algorithm( &attributes,
-                                          PSA_ALG_RSA_PSS( hash_alg ) );
+        psa_set_key_usage_flags( &attributes, usage );
+        psa_set_key_algorithm( &attributes, alg );
+        if( alg2 != PSA_ALG_NONE )
+            psa_set_key_enrollment_algorithm( &attributes, alg2 );
 
         /* import private key into PSA */
         status = psa_import_key( &attributes,

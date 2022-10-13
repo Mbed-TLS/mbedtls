@@ -19,8 +19,6 @@ Making a Contribution
 1. Write a test which shows that the bug was fixed or that the feature works as expected.
 1. Send a pull request (PR) and work with us until it gets merged and published. Contributions may need some modifications, so a few rounds of review and fixing may be necessary. We will include your name in the ChangeLog :)
 1. For quick merging, the contribution should be short, and concentrated on a single feature or topic. The larger the contribution is, the longer it would take to review it and merge it.
-1. All new files should include the [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html) standard license header where possible.
-1. Ensure that each commit has at least one `Signed-off-by:` line from the committer. If anyone else contributes to the commit, they should also add their own `Signed-off-by:` line. By adding this line, contributor(s) certify that the contribution is made under the terms of the [Developer Certificate of Origin](dco.txt). The contribution licensing is described in the [License section of the README](README.md#License).
 
 Backwards Compatibility
 -----------------------
@@ -79,3 +77,12 @@ Mbed TLS is well documented, but if you think documentation is needed, speak out
 1. If needed, a Readme file is advised.
 1. If a [Knowledge Base (KB)](https://tls.mbed.org/kb) article should be added, write this as a comment in the PR description.
 1. A [ChangeLog](https://github.com/Mbed-TLS/mbedtls/blob/development/ChangeLog.d/00README.md) entry should be added for this contribution.
+
+License and Copyright
+---------------------
+
+All new files should include the [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html) standard license header where possible. For licensing details, please see the [License section of the README](README.md#License).
+
+The copyright on contributions is retained by the original authors of the code. Where possible for new files, this should be noted in a comment at the top of the file in the form: "Copyright The Mbed TLS Contributors".
+
+When contributing code to us, the committer and all authors are required to make the submission under the terms of the [Developer Certificate of Origin](dco.txt), confirming that the code submitted can (legally) become part of the project, and be subject to the same Apache 2.0 license. This is done by including the standard Git `Signed-off-by:` line in every commit message. If more than one person contributed to the commit, they should also add their own `Signed-off-by:` line.

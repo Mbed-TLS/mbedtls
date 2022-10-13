@@ -1,0 +1,5 @@
+API changes
+   * Add an ad-hoc key derivation function handling ECJPAKE to PMS
+     calculation that can be used to derive the session secret in TLS 1.2,
+     as described in draft-cragie-tls-ecjpake-01. This can be achieved by
+     using PSA_ALG_TLS12_ECJPAKE_TO_PMS as the key derivation algorithm.

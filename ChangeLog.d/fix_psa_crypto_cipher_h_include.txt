@@ -1,0 +1,4 @@
+Bugfix
+   * Use double quotes to include private header file psa_crypto_cipher.h.
+     Fixes 'file not found with <angled> include' error
+     when building with Xcode.

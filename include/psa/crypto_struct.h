@@ -181,7 +181,9 @@ static inline struct psa_aead_operation_s psa_aead_operation_init( void )
     return( v );
 }
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND)
 typedef struct
 {
     uint8_t *MBEDTLS_PRIVATE(info);
@@ -197,7 +199,15 @@ typedef struct
     uint8_t MBEDTLS_PRIVATE(prk)[PSA_HASH_MAX_SIZE];
     struct psa_mac_operation_s MBEDTLS_PRIVATE(hmac);
 } psa_hkdf_key_derivation_t;
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF ||
+          MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT ||
+          MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS)
+typedef struct
+{
+    uint8_t MBEDTLS_PRIVATE(data)[PSA_TLS12_ECJPAKE_TO_PMS_DATA_SIZE];
+} psa_tls12_ecjpake_to_pms_t;
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS */
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
@@ -254,12 +264,17 @@ struct psa_key_derivation_s
     {
         /* Make the union non-empty even with no supported algorithms. */
         uint8_t MBEDTLS_PRIVATE(dummy);
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND)
         psa_hkdf_key_derivation_t MBEDTLS_PRIVATE(hkdf);
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
         psa_tls12_prf_key_derivation_t MBEDTLS_PRIVATE(tls12_prf);
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS)
+        psa_tls12_ecjpake_to_pms_t MBEDTLS_PRIVATE(tls12_ecjpake_to_pms);
 #endif
     } MBEDTLS_PRIVATE(ctx);
 };
@@ -462,7 +477,7 @@ static inline void psa_set_key_type( psa_key_attributes_t *attributes,
     }
     else
     {
-        /* Call the bigger function to free the old domain paramteres.
+        /* Call the bigger function to free the old domain parameters.
          * Ignore any errors which may arise due to type requiring
          * non-default domain parameters, since this function can't
          * report errors. */

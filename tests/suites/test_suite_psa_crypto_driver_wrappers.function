@@ -995,7 +995,7 @@ void cipher_entry_points( int alg_arg, int key_type_arg,
     /*
      * Test encrypt failure
      * First test that if we don't force a driver error, encryption is
-     * successfull, then force driver error.
+     * successful, then force driver error.
      */
     status = psa_cipher_encrypt(
         key, alg, input->x, input->len,

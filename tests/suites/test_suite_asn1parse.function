@@ -779,7 +779,7 @@ void free_named_data_list( int length )
     for( i = 0; i < length; i++ )
     {
         mbedtls_asn1_named_data *new = NULL;
-        ASSERT_ALLOC( new, sizeof( mbedtls_asn1_named_data ) );
+        ASSERT_ALLOC( new, 1 );
         new->next = head;
         head = new;
     }

@@ -34,14 +34,15 @@
 #include "bignum_mod.h"
 
 /**
- * \brief   Perform a safe conditional copy of MPI which doesn't reveal whether
- *          the condition was true or not.
+ * \brief   Perform a safe conditional copy of an MPI which doesn't reveal
+ *          whether the assignment was done or not.
  *
  * The size to copy is determined by \p N.
  *
- * \param[out] X        The address of the first MPI. This must be initialized.
- *                      Must have enough limbs to store the full value of \p A.
- * \param[in]  A        The address of the second MPI. This must be initialized.
+ * \param[out] X        The address of the destination MPI.
+ *                      This must be initialized. Must have enough limbs to
+ *                      store the full value of \p A.
+ * \param[in]  A        The address of the source MPI. This must be initialized.
  * \param[in]  N        The address of the modulus related to \p X and \p A.
  * \param      assign   The condition deciding whether to perform the
  *                      assignment or not. Must be either 0 or 1:
@@ -53,7 +54,7 @@
  *
  * \warning        If \p assign is neither 0 nor 1, the result of this function
  *                 is indeterminate, and the resulting value in \p X might be
- *                 neither its original value nor the value in \p B.
+ *                 neither its original value nor the value in \p A.
  */
 void mbedtls_mpi_mod_raw_cond_assign( mbedtls_mpi_uint *X,
                                       const mbedtls_mpi_uint *A,
@@ -61,8 +62,8 @@ void mbedtls_mpi_mod_raw_cond_assign( mbedtls_mpi_uint *X,
                                       unsigned char assign );
 
 /**
- * \brief   Perform a safe conditional swap of MPI which doesn't reveal whether
- *          the condition was true or not.
+ * \brief   Perform a safe conditional swap of two MPIs which doesn't reveal
+ *          whether the swap was done or not.
  *
  * The size to swap is determined by \p N.
  *

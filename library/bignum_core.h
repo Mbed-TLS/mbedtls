@@ -75,12 +75,13 @@ void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *A,
                                          size_t A_limbs );
 
 /**
- * \brief   Perform a safe conditional copy of MPI which doesn't reveal whether
- *          the condition was true or not.
+ * \brief   Perform a safe conditional copy of an MPI which doesn't reveal
+ *          whether assignment was done or not.
  *
- * \param[out] X        The address of the first MPI. This must be initialized.
- *                      Must have enough limbs to store the full value of \p A.
- * \param[in]  A        The address of the second MPI. This must be initialized.
+ * \param[out] X        The address of the destination MPI.
+ *                      This must be initialized. Must have enough limbs to
+ *                      store the full value of \p A.
+ * \param[in]  A        The address of the source MPI. This must be initialized.
  * \param      limbs    The number of limbs of \p A.
  * \param      assign   The condition deciding whether to perform the
  *                      assignment or not. Must be either 0 or 1:
@@ -92,7 +93,7 @@ void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *A,
  *
  * \warning        If \p assign is neither 0 nor 1, the result of this function
  *                 is indeterminate, and the resulting value in \p X might be
- *                 neither its original value nor the value in \p Y.
+ *                 neither its original value nor the value in \p A.
  */
 void mbedtls_mpi_core_cond_assign( mbedtls_mpi_uint *X,
                                    const mbedtls_mpi_uint *A,
@@ -100,8 +101,8 @@ void mbedtls_mpi_core_cond_assign( mbedtls_mpi_uint *X,
                                    unsigned char assign );
 
 /**
- * \brief   Perform a safe conditional swap of MPI which doesn't reveal whether
- *          the condition was true or not.
+ * \brief   Perform a safe conditional swap of two MPIs which doesn't reveal
+ *          whether the swap was done or not.
  *
  * \param[in,out] X         The address of the first MPI.
  *                          This must be initialized.

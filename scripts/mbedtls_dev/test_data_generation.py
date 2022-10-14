@@ -29,6 +29,7 @@ import re
 from abc import ABCMeta, abstractmethod
 from typing import Callable, Dict, Iterable, Iterator, List, Type, TypeVar
 
+from mbedtls_dev import build_tree
 from mbedtls_dev import test_case
 
 T = TypeVar('T') #pylint: disable=invalid-name
@@ -182,6 +183,12 @@ def main(args, description: str, generator_class: Type[TestGenerator] = TestGene
                         help='List available targets and exit')
     parser.add_argument('targets', nargs='*', metavar='TARGET',
                         help='Target file to generate (default: all; "-": none)')
+
+    # Change to the mbedtls root, to keep things simple.
+    # Note that if any command line options refer to paths, they need to
+    # be adjusted first.
+    build_tree.chdir_to_root()
+
     options = parser.parse_args(args)
     generator = generator_class(options)
     if options.list:

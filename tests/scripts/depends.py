@@ -143,8 +143,7 @@ def set_reference_config(options):
     """Change the library configuration file (mbedtls_config.h) to the reference state.
 The reference state is the one from which the tested configurations are
 derived."""
-    # Turn off memory management options that are not relevant to
-    # the tests and slow them down.
+    # Turn off options that are not relevant to the tests and slow them down.
     run_config_pl(options, ['full'])
     run_config_pl(options, ['unset', 'MBEDTLS_MEMORY_BACKTRACE'])
     run_config_pl(options, ['unset', 'MBEDTLS_MEMORY_BUFFER_ALLOC_C'])
@@ -190,8 +189,7 @@ If what is False, announce that the job has failed.'''
             log_line('starting ' + self.name)
 
     def configure(self, options):
-        '''Set library configuration options as required for the job.
-config_file_name indicates which file to modify.'''
+        '''Set library configuration options as required for the job.'''
         set_reference_config(options)
         for key, value in sorted(self.config_settings.items()):
             if value is True:
@@ -277,7 +275,7 @@ REVERSE_DEPENDENCIES = {
 # These are not necessarily dependencies, but just minimal required changes
 # if a given define is the only one enabled from an exclusive group.
 EXCLUSIVE_GROUPS = {
-    'MBEDTLS_SHA224_C': ['MBEDTLS_SHA256_C'],
+    'MBEDTLS_SHA256_C': ['MBEDTLS_SHA224_C'],
     'MBEDTLS_SHA384_C': ['MBEDTLS_SHA512_C'],
     'MBEDTLS_SHA512_C': ['!MBEDTLS_SSL_COOKIE_C'],
     'MBEDTLS_ECP_DP_CURVE448_ENABLED': ['!MBEDTLS_ECDSA_C',
@@ -351,7 +349,9 @@ would match this regular expression."""
 class ComplementaryDomain(BaseDomain): # pylint: disable=too-few-public-methods
     """A domain consisting of a set of loosely-related settings.
 Establish a list of configuration symbols. For each symbol, run a test job
-with this symbol unset."""
+with this symbol unset.
+If exclude is a regular expression, skip generated jobs whose description
+would match this regular expression."""
     def __init__(self, symbols, commands, exclude=None):
         """Build a domain for the specified list of configuration symbols.
 Each job in the domain disables one of the specified symbols.
@@ -367,9 +367,12 @@ Each job runs the specified commands."""
             self.jobs.append(job)
 
 class DualDomain(ExclusiveDomain, ComplementaryDomain): # pylint: disable=too-few-public-methods
-    """A domain that contains both the ExclusiveDomain and BaseDomain tests"""
+    """A domain that contains both the ExclusiveDomain and BaseDomain tests.
+Both parent class __init__ calls are performed in any order and 
+each call adds respective jobs. The job array initialization is done once in
+BaseDomain, before the parent __init__ calls."""
     def __init__(self, symbols, commands, exclude=None):
-        super().__init__(symbols=symbols, commands=commands, exclude=exclude)
+        super().__init__(symbols, commands, exclude)
 
 class CipherInfo: # pylint: disable=too-few-public-methods
     """Collect data about cipher.h."""
@@ -402,7 +405,6 @@ class DomainData:
         # Find cipher IDs (block permutations and stream ciphers --- chaining
         # and padding modes are exercised separately) information by parsing
         # cipher.h, as the information is not readily available in mbedtls_config.h.
-
         cipher_info = CipherInfo()
         # Find block cipher chaining and padding mode enabling macros by name.
         cipher_chaining_symbols = self.config_symbols_matching(r'MBEDTLS_CIPHER_MODE_\w+\Z')
@@ -417,12 +419,15 @@ class DomainData:
                                               build_and_test),
             # Elliptic curves. Run the test suites.
             'curves': ExclusiveDomain(curve_symbols, build_and_test),
-            # Hash algorithms. Exclude configurations with only one
-            # hash which is obsolete. Run the test suites. Exclude
-            # SHA512 and SHA256, as these are tested with SHA384 and SHA224.
+            # Hash algorithms. Exclude three groups:
+            # - Exclusive domain of MD, RIPEMD, SHA1 (obsolete);
+            # - Exclusive domain of SHA224 (tested with and depends on SHA256);
+            # - Complementary domain of SHA224 and SHA384 - tested with and depend
+            #       on SHA256 and SHA512, respectively.
             'hashes': DualDomain(hash_symbols, build_and_test,
-                                 exclude=r'MBEDTLS_(MD|RIPEMD|SHA1_|SHA256_|SHA512_)' \
-                                          '|!MBEDTLS_(SHA256_|SHA512_)'),
+                                 exclude=r'MBEDTLS_(MD|RIPEMD|SHA1_)' \
+                                          '|MBEDTLS_SHA224_'\
+                                          '|!MBEDTLS_(SHA224_|SHA384_)'),
             # Key exchange types. Only build the library and the sample
             # programs.
             'kex': ExclusiveDomain(key_exchange_symbols,

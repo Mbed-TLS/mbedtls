@@ -257,8 +257,7 @@ REVERSE_DEPENDENCIES = {
                          'MBEDTLS_ENTROPY_FORCE_SHA256',
                          'MBEDTLS_SHA224_C',
                          'MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT',
-                         'MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY',
-                         'MBEDTLS_SSL_PROTO_TLS1_3'],
+                         'MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY'],
     'MBEDTLS_SHA512_C': ['MBEDTLS_SHA384_C',
                          'MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT',
                          'MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY'],
@@ -267,7 +266,6 @@ REVERSE_DEPENDENCIES = {
                          'MBEDTLS_SHA256_C',
                          'MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT',
                          'MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY'],
-    'MBEDTLS_SHA384_C': ['MBEDTLS_SSL_PROTO_TLS1_3'],
     'MBEDTLS_X509_RSASSA_PSS_SUPPORT': []
 }
 
@@ -277,7 +275,7 @@ REVERSE_DEPENDENCIES = {
 EXCLUSIVE_GROUPS = {
     'MBEDTLS_SHA256_C': ['MBEDTLS_SHA224_C'],
     'MBEDTLS_SHA384_C': ['MBEDTLS_SHA512_C'],
-    'MBEDTLS_SHA512_C': ['!MBEDTLS_SSL_COOKIE_C'],
+    'MBEDTLS_SHA512_C': ['!MBEDTLS_SSL_COOKIE_C', '!MBEDTLS_SSL_PROTO_TLS1_3'],
     'MBEDTLS_ECP_DP_CURVE448_ENABLED': ['!MBEDTLS_ECDSA_C',
                                         '!MBEDTLS_ECDSA_DETERMINISTIC',
                                         '!MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED',
@@ -368,11 +366,9 @@ Each job runs the specified commands."""
 
 class DualDomain(ExclusiveDomain, ComplementaryDomain): # pylint: disable=too-few-public-methods
     """A domain that contains both the ExclusiveDomain and BaseDomain tests.
-Both parent class __init__ calls are performed in any order and 
+Both parent class __init__ calls are performed in any order and
 each call adds respective jobs. The job array initialization is done once in
 BaseDomain, before the parent __init__ calls."""
-    def __init__(self, symbols, commands, exclude=None):
-        super().__init__(symbols, commands, exclude)
 
 class CipherInfo: # pylint: disable=too-few-public-methods
     """Collect data about cipher.h."""

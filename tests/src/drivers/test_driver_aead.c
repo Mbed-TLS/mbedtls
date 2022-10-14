@@ -25,6 +25,10 @@
 
 #include "test/drivers/aead.h"
 
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
+#include "libtestdriver1/library/psa_crypto_aead.h"
+#endif
+
 mbedtls_test_driver_aead_hooks_t
     mbedtls_test_driver_aead_hooks = MBEDTLS_TEST_DRIVER_AEAD_INIT;
 
@@ -46,7 +50,18 @@ psa_status_t mbedtls_test_transparent_aead_encrypt(
     }
     else
     {
-#if defined(MBEDTLS_PSA_BUILTIN_AEAD)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_AEAD)
+        mbedtls_test_driver_aead_hooks.driver_status =
+            libtestdriver1_mbedtls_psa_aead_encrypt(
+                (const libtestdriver1_psa_key_attributes_t *)attributes,
+                key_buffer, key_buffer_size,
+                alg,
+                nonce, nonce_length,
+                additional_data, additional_data_length,
+                plaintext, plaintext_length,
+                ciphertext, ciphertext_size, ciphertext_length );
+#elif defined(MBEDTLS_PSA_BUILTIN_AEAD)
         mbedtls_test_driver_aead_hooks.driver_status =
             mbedtls_psa_aead_encrypt(
                 attributes, key_buffer, key_buffer_size,
@@ -94,7 +109,18 @@ psa_status_t mbedtls_test_transparent_aead_decrypt(
     }
     else
     {
-#if defined(MBEDTLS_PSA_BUILTIN_AEAD)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_AEAD)
+        mbedtls_test_driver_aead_hooks.driver_status =
+            libtestdriver1_mbedtls_psa_aead_decrypt(
+                (const libtestdriver1_psa_key_attributes_t *)attributes,
+                key_buffer, key_buffer_size,
+                alg,
+                nonce, nonce_length,
+                additional_data, additional_data_length,
+                ciphertext, ciphertext_length,
+                plaintext, plaintext_size, plaintext_length );
+#elif defined(MBEDTLS_PSA_BUILTIN_AEAD)
         mbedtls_test_driver_aead_hooks.driver_status =
             mbedtls_psa_aead_decrypt(
                 attributes, key_buffer, key_buffer_size,
@@ -139,7 +165,14 @@ psa_status_t mbedtls_test_transparent_aead_encrypt_setup(
     }
     else
     {
-#if defined(MBEDTLS_PSA_BUILTIN_AEAD)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_AEAD)
+        mbedtls_test_driver_aead_hooks.driver_status =
+            libtestdriver1_mbedtls_psa_aead_encrypt_setup( operation,
+                (const libtestdriver1_psa_key_attributes_t *)attributes,
+                key_buffer,
+                key_buffer_size, alg );
+#elif defined(MBEDTLS_PSA_BUILTIN_AEAD)
         mbedtls_test_driver_aead_hooks.driver_status =
             mbedtls_psa_aead_encrypt_setup( operation, attributes, key_buffer,
                                             key_buffer_size, alg );
@@ -171,7 +204,13 @@ psa_status_t mbedtls_test_transparent_aead_decrypt_setup(
     }
     else
     {
-#if defined(MBEDTLS_PSA_BUILTIN_AEAD)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_AEAD)
+        mbedtls_test_driver_aead_hooks.driver_status =
+            libtestdriver1_mbedtls_psa_aead_decrypt_setup( operation,
+                (const libtestdriver1_psa_key_attributes_t *)attributes,
+                key_buffer, key_buffer_size, alg );
+#elif defined(MBEDTLS_PSA_BUILTIN_AEAD)
         mbedtls_test_driver_aead_hooks.driver_status =
             mbedtls_psa_aead_decrypt_setup( operation, attributes, key_buffer,
                                             key_buffer_size, alg );
@@ -202,7 +241,11 @@ psa_status_t mbedtls_test_transparent_aead_set_nonce(
     }
     else
     {
-#if defined(MBEDTLS_PSA_BUILTIN_AEAD)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_AEAD)
+        mbedtls_test_driver_aead_hooks.driver_status =
+            libtestdriver1_mbedtls_psa_aead_set_nonce( operation, nonce, nonce_length );
+#elif defined(MBEDTLS_PSA_BUILTIN_AEAD)
         mbedtls_test_driver_aead_hooks.driver_status =
             mbedtls_psa_aead_set_nonce( operation, nonce, nonce_length );
 #else
@@ -230,7 +273,12 @@ psa_status_t mbedtls_test_transparent_aead_set_lengths(
     }
     else
     {
-#if defined(MBEDTLS_PSA_BUILTIN_AEAD)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_AEAD)
+        mbedtls_test_driver_aead_hooks.driver_status =
+            libtestdriver1_mbedtls_psa_aead_set_lengths( operation, ad_length,
+                                          plaintext_length );
+#elif defined(MBEDTLS_PSA_BUILTIN_AEAD)
         mbedtls_test_driver_aead_hooks.driver_status =
             mbedtls_psa_aead_set_lengths( operation, ad_length,
                                           plaintext_length );
@@ -259,7 +307,11 @@ psa_status_t mbedtls_test_transparent_aead_update_ad(
     }
     else
     {
-#if defined(MBEDTLS_PSA_BUILTIN_AEAD)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_AEAD)
+        mbedtls_test_driver_aead_hooks.driver_status =
+            libtestdriver1_mbedtls_psa_aead_update_ad( operation, input, input_length );
+#elif defined(MBEDTLS_PSA_BUILTIN_AEAD)
         mbedtls_test_driver_aead_hooks.driver_status =
             mbedtls_psa_aead_update_ad( operation, input, input_length );
 #else
@@ -290,7 +342,13 @@ psa_status_t mbedtls_test_transparent_aead_update(
     }
     else
     {
-#if defined(MBEDTLS_PSA_BUILTIN_AEAD)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_AEAD)
+        mbedtls_test_driver_aead_hooks.driver_status =
+            libtestdriver1_mbedtls_psa_aead_update( operation, input,
+                                    input_length, output,
+                                    output_size, output_length );
+#elif defined(MBEDTLS_PSA_BUILTIN_AEAD)
         mbedtls_test_driver_aead_hooks.driver_status =
             mbedtls_psa_aead_update( operation, input, input_length, output,
                                     output_size, output_length );
@@ -326,7 +384,13 @@ psa_status_t mbedtls_test_transparent_aead_finish(
     }
     else
     {
-#if defined(MBEDTLS_PSA_BUILTIN_AEAD)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_AEAD)
+        mbedtls_test_driver_aead_hooks.driver_status =
+            libtestdriver1_mbedtls_psa_aead_finish( operation, ciphertext,
+                                     ciphertext_size, ciphertext_length,
+                                     tag, tag_size, tag_length );
+#elif defined(MBEDTLS_PSA_BUILTIN_AEAD)
         mbedtls_test_driver_aead_hooks.driver_status =
             mbedtls_psa_aead_finish( operation, ciphertext, ciphertext_size,
                                      ciphertext_length, tag, tag_size,
@@ -364,9 +428,19 @@ psa_status_t mbedtls_test_transparent_aead_verify(
     else
     {
        uint8_t check_tag[PSA_AEAD_TAG_MAX_SIZE];
-       size_t check_tag_length;
+       size_t check_tag_length = 0;
 
-#if defined(MBEDTLS_PSA_BUILTIN_AEAD)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_AEAD)
+        mbedtls_test_driver_aead_hooks.driver_status =
+            libtestdriver1_mbedtls_psa_aead_finish( operation,
+                                   plaintext,
+                                   plaintext_size,
+                                   plaintext_length,
+                                   check_tag,
+                                   sizeof( check_tag ),
+                                   &check_tag_length );
+#elif defined(MBEDTLS_PSA_BUILTIN_AEAD)
        mbedtls_test_driver_aead_hooks.driver_status =
           mbedtls_psa_aead_finish( operation,
                                    plaintext,
@@ -410,7 +484,11 @@ psa_status_t mbedtls_test_transparent_aead_abort(
     }
     else
     {
-#if defined(MBEDTLS_PSA_BUILTIN_AEAD)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_AEAD)
+        mbedtls_test_driver_aead_hooks.driver_status =
+            libtestdriver1_mbedtls_psa_aead_abort( operation );
+#elif defined(MBEDTLS_PSA_BUILTIN_AEAD)
         mbedtls_test_driver_aead_hooks.driver_status =
             mbedtls_psa_aead_abort( operation );
 #else

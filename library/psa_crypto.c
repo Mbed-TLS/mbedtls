@@ -3705,39 +3705,34 @@ exit:
     return( status );
 }
 
-static psa_status_t psa_validate_tag_length( psa_aead_operation_t *operation,
-                                             psa_algorithm_t alg ) {
-    uint8_t tag_len = 0;
-    if( psa_driver_get_tag_len( operation, &tag_len ) != PSA_SUCCESS )
-    {
-        return( PSA_ERROR_INVALID_ARGUMENT );
-    }
+static psa_status_t psa_validate_tag_length( psa_algorithm_t alg ) {
+    const uint8_t tag_len = PSA_ALG_AEAD_GET_TAG_LENGTH( alg );
 
     switch( PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg, 0 ) )
     {
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
+#if defined(PSA_WANT_ALG_CCM)
         case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, 0 ):
             /* CCM allows the following tag lengths: 4, 6, 8, 10, 12, 14, 16.*/
             if( tag_len < 4 || tag_len > 16 || tag_len % 2 )
                 return( PSA_ERROR_INVALID_ARGUMENT );
             break;
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
+#endif /* PSA_WANT_ALG_CCM */
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
+#if defined(PSA_WANT_ALG_GCM)
         case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_GCM, 0 ):
             /* GCM allows the following tag lengths: 4, 8, 12, 13, 14, 15, 16. */
             if( tag_len != 4 && tag_len != 8 && ( tag_len < 12 || tag_len > 16 ) )
                 return( PSA_ERROR_INVALID_ARGUMENT );
             break;
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
+#endif /* PSA_WANT_ALG_GCM */
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
+#if defined(PSA_WANT_ALG_CHACHA20_POLY1305)
         case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CHACHA20_POLY1305, 0 ):
             /* We only support the default tag length. */
             if( tag_len != 16 )
                 return( PSA_ERROR_INVALID_ARGUMENT );
             break;
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
+#endif /* PSA_WANT_ALG_CHACHA20_POLY1305 */
 
         default:
             (void) tag_len;
@@ -3788,6 +3783,9 @@ static psa_status_t psa_aead_setup( psa_aead_operation_t *operation,
         .core = slot->attr
     };
 
+    if( ( status = psa_validate_tag_length( alg ) ) != PSA_SUCCESS )
+        goto exit;
+
     if( is_encrypt )
         status = psa_driver_wrapper_aead_encrypt_setup( operation,
                                                         &attributes,
@@ -3801,9 +3799,6 @@ static psa_status_t psa_aead_setup( psa_aead_operation_t *operation,
                                                         slot->key.bytes,
                                                         alg );
     if( status != PSA_SUCCESS )
-        goto exit;
-
-    if( ( status = psa_validate_tag_length( operation, alg ) ) != PSA_SUCCESS )
         goto exit;
 
     operation->key_type = psa_get_key_type( &attributes );

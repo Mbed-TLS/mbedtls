@@ -45,7 +45,6 @@ static psa_status_t psa_aead_setup(
     size_t key_bits;
     const mbedtls_cipher_info_t *cipher_info;
     mbedtls_cipher_id_t cipher_id;
-    size_t full_tag_length = 0;
 
     ( void ) key_buffer_size;
 
@@ -62,7 +61,6 @@ static psa_status_t psa_aead_setup(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
         case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, 0 ):
             operation->alg = PSA_ALG_CCM;
-            full_tag_length = 16;
             /* CCM allows the following tag lengths: 4, 6, 8, 10, 12, 14, 16.
              * The call to mbedtls_ccm_encrypt_and_tag or
              * mbedtls_ccm_auth_decrypt will validate the tag length. */
@@ -81,7 +79,6 @@ static psa_status_t psa_aead_setup(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
         case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_GCM, 0 ):
             operation->alg = PSA_ALG_GCM;
-            full_tag_length = 16;
             /* GCM allows the following tag lengths: 4, 8, 12, 13, 14, 15, 16.
              * The call to mbedtls_gcm_crypt_and_tag or
              * mbedtls_gcm_auth_decrypt will validate the tag length. */
@@ -100,7 +97,6 @@ static psa_status_t psa_aead_setup(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
         case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CHACHA20_POLY1305, 0 ):
             operation->alg = PSA_ALG_CHACHA20_POLY1305;
-            full_tag_length = 16;
             /* We only support the default tag length. */
             if( alg != PSA_ALG_CHACHA20_POLY1305 )
                 return( PSA_ERROR_NOT_SUPPORTED );
@@ -120,16 +116,9 @@ static psa_status_t psa_aead_setup(
             return( PSA_ERROR_NOT_SUPPORTED );
     }
 
-    if( PSA_AEAD_TAG_LENGTH( attributes->core.type,
-                             key_bits, alg )
-        > full_tag_length )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
     operation->key_type = psa_get_key_type( attributes );
 
-    operation->tag_length = PSA_AEAD_TAG_LENGTH( operation->key_type,
-                                                 key_bits,
-                                                 alg );
+    operation->tag_length = PSA_ALG_AEAD_GET_TAG_LENGTH( alg );
 
     return( PSA_SUCCESS );
 }

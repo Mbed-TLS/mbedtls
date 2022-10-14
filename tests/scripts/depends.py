@@ -273,34 +273,36 @@ REVERSE_DEPENDENCIES = {
 # These are not necessarily dependencies, but just minimal required changes
 # if a given define is the only one enabled from an exclusive group.
 EXCLUSIVE_GROUPS = {
-    'MBEDTLS_SHA256_C': ['MBEDTLS_SHA224_C'],
-    'MBEDTLS_SHA384_C': ['MBEDTLS_SHA512_C'],
-    'MBEDTLS_SHA512_C': ['!MBEDTLS_SSL_COOKIE_C', '!MBEDTLS_SSL_PROTO_TLS1_3'],
-    'MBEDTLS_ECP_DP_CURVE448_ENABLED': ['!MBEDTLS_ECDSA_C',
-                                        '!MBEDTLS_ECDSA_DETERMINISTIC',
-                                        '!MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED',
-                                        '!MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED',
-                                        '!MBEDTLS_ECJPAKE_C',
-                                        '!MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED'],
-    'MBEDTLS_ECP_DP_CURVE25519_ENABLED': ['!MBEDTLS_ECDSA_C',
-                                          '!MBEDTLS_ECDSA_DETERMINISTIC',
-                                          '!MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED',
-                                          '!MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED',
-                                          '!MBEDTLS_ECJPAKE_C',
-                                          '!MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED'],
-    'MBEDTLS_ARIA_C': ['!MBEDTLS_CMAC_C'],
-    'MBEDTLS_CAMELLIA_C': ['!MBEDTLS_CMAC_C'],
-    'MBEDTLS_CHACHA20_C': ['!MBEDTLS_CMAC_C', '!MBEDTLS_CCM_C', '!MBEDTLS_GCM_C'],
-    'MBEDTLS_DES_C': ['!MBEDTLS_CCM_C', '!MBEDTLS_GCM_C', '!MBEDTLS_SSL_TICKET_C',
-                      '!MBEDTLS_SSL_CONTEXT_SERIALIZATION'],
+    'MBEDTLS_SHA256_C': ['+MBEDTLS_SHA224_C'],
+    'MBEDTLS_SHA384_C': ['+MBEDTLS_SHA512_C'],
+    'MBEDTLS_SHA512_C': ['-MBEDTLS_SSL_COOKIE_C',
+                         '-MBEDTLS_SSL_PROTO_TLS1_3'],
+    'MBEDTLS_ECP_DP_CURVE448_ENABLED': ['-MBEDTLS_ECDSA_C',
+                                        '-MBEDTLS_ECDSA_DETERMINISTIC',
+                                        '-MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED',
+                                        '-MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED',
+                                        '-MBEDTLS_ECJPAKE_C',
+                                        '-MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED'],
+    'MBEDTLS_ECP_DP_CURVE25519_ENABLED': ['-MBEDTLS_ECDSA_C',
+                                          '-MBEDTLS_ECDSA_DETERMINISTIC',
+                                          '-MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED',
+                                          '-MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED',
+                                          '-MBEDTLS_ECJPAKE_C',
+                                          '-MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED'],
+    'MBEDTLS_ARIA_C': ['-MBEDTLS_CMAC_C'],
+    'MBEDTLS_CAMELLIA_C': ['-MBEDTLS_CMAC_C'],
+    'MBEDTLS_CHACHA20_C': ['-MBEDTLS_CMAC_C', '-MBEDTLS_CCM_C', '-MBEDTLS_GCM_C'],
+    'MBEDTLS_DES_C': ['-MBEDTLS_CCM_C',
+                      '-MBEDTLS_GCM_C',
+                      '-MBEDTLS_SSL_TICKET_C',
+                      '-MBEDTLS_SSL_CONTEXT_SERIALIZATION'],
 }
 def handle_exclusive_groups(config_settings, symbol):
     """For every symbol tested in an exclusive group check if there are other
 defines to be altered. """
     for dep in EXCLUSIVE_GROUPS.get(symbol, []):
-        unset = dep.startswith('!')
-        if unset:
-            dep = dep[1:]
+        unset = dep.startswith('-')
+        dep = dep[1:]
         config_settings[dep] = not unset
 
 def turn_off_dependencies(config_settings):

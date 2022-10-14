@@ -43,8 +43,8 @@
  *   Temporaries come last.
  * - **Aliasing**: in general, output bignums may be aliased to one or more
  *   inputs. As an exception, parameters that are documented as a modulus value
- *   may not be aliased to an output. Temporaries may not be aliased to
- *   any other parameter.
+ *   may not be aliased to an output. Outputs may not be aliased to one another.
+ *   Temporaries may not be aliased to any other parameter.
  * - **Overlap**: apart from aliasing of limb array pointers (where two
  *   arguments are equal pointers), overlap is not supported and may result
  *   in undefined behavior.

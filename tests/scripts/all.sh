@@ -2770,7 +2770,6 @@ component_test_aes_fewer_tables_and_rom_tables () {
 component_test_ctr_drbg_aes_256_sha_256 () {
     msg "build: full + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
     scripts/config.py full
-    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.py set MBEDTLS_ENTROPY_FORCE_SHA256
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
@@ -2782,7 +2781,6 @@ component_test_ctr_drbg_aes_256_sha_256 () {
 component_test_ctr_drbg_aes_128_sha_512 () {
     msg "build: full + MBEDTLS_CTR_DRBG_USE_128_BIT_KEY (ASan build)"
     scripts/config.py full
-    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.py set MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
@@ -2794,7 +2792,6 @@ component_test_ctr_drbg_aes_128_sha_512 () {
 component_test_ctr_drbg_aes_128_sha_256 () {
     msg "build: full + MBEDTLS_CTR_DRBG_USE_128_BIT_KEY + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
     scripts/config.py full
-    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.py set MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
     scripts/config.py set MBEDTLS_ENTROPY_FORCE_SHA256
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .

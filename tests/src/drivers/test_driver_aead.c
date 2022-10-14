@@ -28,6 +28,10 @@
 
 #include "test/drivers/aead.h"
 
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
+#include "libtestdriver1/library/psa_crypto_aead.h"
+#endif
+
 mbedtls_test_driver_aead_hooks_t
     mbedtls_test_driver_aead_hooks = MBEDTLS_TEST_DRIVER_AEAD_INIT;
 
@@ -49,6 +53,18 @@ psa_status_t mbedtls_test_transparent_aead_encrypt(
     }
     else
     {
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_AEAD)
+        mbedtls_test_driver_aead_hooks.driver_status =
+            libtestdriver1_mbedtls_psa_aead_encrypt(
+                (const libtestdriver1_psa_key_attributes_t *)attributes,
+                key_buffer, key_buffer_size,
+                alg,
+                nonce, nonce_length,
+                additional_data, additional_data_length,
+                plaintext, plaintext_length,
+                ciphertext, ciphertext_size, ciphertext_length );
+#elif defined(MBEDTLS_PSA_BUILTIN_AEAD)
         mbedtls_test_driver_aead_hooks.driver_status =
             mbedtls_psa_aead_encrypt(
                 attributes, key_buffer, key_buffer_size,
@@ -57,8 +73,23 @@ psa_status_t mbedtls_test_transparent_aead_encrypt(
                 additional_data, additional_data_length,
                 plaintext, plaintext_length,
                 ciphertext, ciphertext_size, ciphertext_length );
+#else
+        (void) attributes;
+        (void) key_buffer;
+        (void) key_buffer_size;
+        (void) alg;
+        (void) nonce;
+        (void) nonce_length;
+        (void) additional_data;
+        (void) additional_data_length;
+        (void) plaintext;
+        (void) plaintext_length;
+        (void) ciphertext;
+        (void) ciphertext_size;
+        (void) ciphertext_length;
+        mbedtls_test_driver_aead_hooks.driver_status = PSA_ERROR_NOT_SUPPORTED;
+#endif
     }
-
     return( mbedtls_test_driver_aead_hooks.driver_status );
 }
 
@@ -80,6 +111,18 @@ psa_status_t mbedtls_test_transparent_aead_decrypt(
     }
     else
     {
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_AEAD)
+        mbedtls_test_driver_aead_hooks.driver_status =
+            libtestdriver1_mbedtls_psa_aead_decrypt(
+                (const libtestdriver1_psa_key_attributes_t *)attributes,
+                key_buffer, key_buffer_size,
+                alg,
+                nonce, nonce_length,
+                additional_data, additional_data_length,
+                ciphertext, ciphertext_length,
+                plaintext, plaintext_size, plaintext_length );
+#elif defined(MBEDTLS_PSA_BUILTIN_AEAD)
         mbedtls_test_driver_aead_hooks.driver_status =
             mbedtls_psa_aead_decrypt(
                 attributes, key_buffer, key_buffer_size,
@@ -88,8 +131,23 @@ psa_status_t mbedtls_test_transparent_aead_decrypt(
                 additional_data, additional_data_length,
                 ciphertext, ciphertext_length,
                 plaintext, plaintext_size, plaintext_length );
+#else
+        (void) attributes;
+        (void) key_buffer;
+        (void) key_buffer_size;
+        (void) alg;
+        (void) nonce;
+        (void) nonce_length;
+        (void) additional_data;
+        (void) additional_data_length;
+        (void) ciphertext;
+        (void) ciphertext_length;
+        (void) plaintext;
+        (void) plaintext_size;
+        (void) plaintext_length;
+        mbedtls_test_driver_aead_hooks.driver_status = PSA_ERROR_NOT_SUPPORTED;
+#endif
     }
-
     return( mbedtls_test_driver_aead_hooks.driver_status );
 }
 

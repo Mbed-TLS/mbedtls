@@ -353,6 +353,16 @@
 #error "MBEDTLS_MD_C defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_LMS_C) &&                                          \
+    ! ( defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_SHA_256) )
+#error "MBEDTLS_LMS_C requires MBEDTLS_PSA_CRYPTO_C and PSA_WANT_ALG_SHA_256"
+#endif
+
+#if defined(MBEDTLS_LMS_PRIVATE) &&                                    \
+    ( !defined(MBEDTLS_LMS_C) )
+#error "MBEDTLS_LMS_PRIVATE requires MBEDTLS_LMS_C"
+#endif
+
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) &&                          \
     ( !defined(MBEDTLS_PLATFORM_C) || !defined(MBEDTLS_PLATFORM_MEMORY) )
 #error "MBEDTLS_MEMORY_BUFFER_ALLOC_C defined, but not all prerequisites"

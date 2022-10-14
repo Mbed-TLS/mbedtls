@@ -2522,6 +2522,26 @@ component_test_no_platform () {
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -Os' test
 }
 
+component_test_platform_macros_without_module () {
+    msg "build: with platform macros without platform.c"
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_PLATFORM_C
+    scripts/config.py unset MBEDTLS_PLATFORM_MEMORY
+    scripts/config.py unset MBEDTLS_PLATFORM_PRINTF_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_FPRINTF_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_SNPRINTF_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_VSNPRINTF_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_TIME_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_EXIT_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_SETBUF_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
+    scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
+    make CFLAGS="$ASAN_CFLAGS -DMBEDTLS_TEST_PLATFORM_MACROS -DMBEDTLS_USER_CONFIG_FILE='\"../tests/configs/user-config-for-test.h\"' -O2" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: with platform macros and platform.c"
+    make test
+}
+
 component_test_platform_macros_with_module () {
     msg "build: with platform macros and platform.c"
     scripts/config.py full

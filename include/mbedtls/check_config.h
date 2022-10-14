@@ -464,22 +464,12 @@
 #endif
 
 #if defined(MBEDTLS_PLATFORM_FREE_MACRO) &&\
-    ( !defined(MBEDTLS_PLATFORM_C) || !defined(MBEDTLS_PLATFORM_MEMORY) )
-#error "MBEDTLS_PLATFORM_FREE_MACRO defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_PLATFORM_FREE_MACRO) &&\
     defined(MBEDTLS_PLATFORM_STD_FREE)
 #error "MBEDTLS_PLATFORM_FREE_MACRO and MBEDTLS_PLATFORM_STD_FREE cannot be defined simultaneously"
 #endif
 
 #if defined(MBEDTLS_PLATFORM_FREE_MACRO) && !defined(MBEDTLS_PLATFORM_CALLOC_MACRO)
 #error "MBEDTLS_PLATFORM_CALLOC_MACRO must be defined if MBEDTLS_PLATFORM_FREE_MACRO is"
-#endif
-
-#if defined(MBEDTLS_PLATFORM_CALLOC_MACRO) &&\
-    ( !defined(MBEDTLS_PLATFORM_C) || !defined(MBEDTLS_PLATFORM_MEMORY) )
-#error "MBEDTLS_PLATFORM_CALLOC_MACRO defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_PLATFORM_CALLOC_MACRO) &&\

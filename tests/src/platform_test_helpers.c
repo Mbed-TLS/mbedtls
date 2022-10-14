@@ -22,4 +22,26 @@
 #include <test/macros.h>
 #include <test/platform.h>
 
+#if defined(MBEDTLS_TEST_PLATFORM_MACROS)
+
+mbedtls_test_platform_function_counters_t mbedtls_test_platform_macro_counters;
+
+void mbedtls_test_reset_platform_macro_counters( void )
+{
+    memset( &mbedtls_test_platform_macro_counters,
+            0, sizeof( mbedtls_test_platform_macro_counters ) );
+}
+
+void *mbedtls_test_platform_calloc_macro( size_t nbmem, size_t size )
+{
+    ++mbedtls_test_platform_macro_counters.calloc;
+    return( calloc( nbmem, size ) );
+}
+
+void mbedtls_test_platform_free_macro( void* ptr )
+{
+    ++mbedtls_test_platform_macro_counters.free;
+    free( ptr );
+}
+
 #endif /* MBEDTLS_TEST_PLATFORM_MACROS */

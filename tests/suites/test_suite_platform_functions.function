@@ -1,0 +1,55 @@
+/* BEGIN_HEADER */
+#include <stdlib.h>
+#include <mbedtls/platform.h>
+#include "test/platform.h"
+
+#if defined(MBEDTLS_TEST_PLATFORM_MACROS)
+/* Test that the calloc/free wrappers are called when expected. */
+static void test_memory_wrappers(
+    mbedtls_test_platform_function_counters_t* counters )
+{
+    mbedtls_test_platform_function_counters_t actual = *counters;
+
+    void *ptr = NULL;
+#if defined(MBEDTLS_BIGNUM_C)
+    mbedtls_mpi A;
+    mbedtls_mpi_init( &A );
+#endif
+
+    ++actual.calloc;
+    ptr = mbedtls_calloc( 1, 1 );
+    TEST_EQUAL( actual.calloc, counters->calloc );
+
+    ++actual.free;
+    mbedtls_free( ptr );
+    ptr = NULL;
+    TEST_EQUAL( actual.free, counters->free );
+
+#if defined(MBEDTLS_BIGNUM_C)
+    ++actual.calloc;
+    TEST_EQUAL( mbedtls_mpi_grow( &A, 1 ), 0 );
+    TEST_EQUAL( actual.calloc, counters->calloc );
+
+    ++actual.free;
+    mbedtls_mpi_free( &A );
+    ptr = NULL;
+    TEST_EQUAL( actual.free, counters->free );
+#endif /* MBEDTLS_BIGNUM_C */
+
+exit:
+    mbedtls_free( ptr );
+#if defined(MBEDTLS_BIGNUM_C)
+    mbedtls_mpi_free( &A );
+#endif
+}
+#endif
+
+/* END_HEADER */
+
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_PLATFORM_MACROS */
+void memory_macros( )
+{
+    test_memory_wrappers( &mbedtls_test_platform_macro_counters );
+    goto exit;
+}
+/* END_CASE */

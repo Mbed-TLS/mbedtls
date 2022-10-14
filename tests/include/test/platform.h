@@ -21,4 +21,35 @@
 #ifndef MBEDTLS_TEST_PLATFORM_H
 #define MBEDTLS_TEST_PLATFORM_H
 
+/** Counters keeping track of how many times each platform function was
+ * called. It's up to the implementation of the platform function to
+ * update an instance of this structure. */
+typedef struct
+{
+    size_t calloc;              /*!< mbedtls_calloc */
+    size_t free;                /*!< mbedtls_free */
+} mbedtls_test_platform_function_counters_t;
+
+#if defined(MBEDTLS_TEST_PLATFORM_MACROS)
+/* This macro should be set via tests/configs/user-config-for-test.h, which
+ * sets each mbedtls_test_platform_xxx_macro functions defined here as
+ * implementations of the corresponding platform abstraction. */
+
+/** Counters keeping track of how many times the platform functions were
+ * called. They are reset at the beginning of each test case. */
+extern mbedtls_test_platform_function_counters_t mbedtls_test_platform_macro_counters;
+
+/** Reset ::mbedtls_test_platform_macro_counters to zero. */
+void mbedtls_test_reset_platform_macro_counters( void );
+
+/** An implementation of mbedtls_calloc() that updates
+ * ::mbedtls_test_platform_macro_counters. */
+void *mbedtls_test_platform_calloc_macro( size_t nbmem, size_t size );
+
+/** An implementation of mbedtls_free() that updates
+ * ::mbedtls_test_platform_macro_counters. */
+void mbedtls_test_platform_free_macro( void* ptr );
+
+#endif /* MBEDTLS_TEST_PLATFORM_MACROS */
+
 #endif /* MBEDTLS_TEST_PLATFORM_H */

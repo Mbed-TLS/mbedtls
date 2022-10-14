@@ -2522,6 +2522,15 @@ component_test_no_platform () {
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -Os' test
 }
 
+component_test_platform_macros_with_module () {
+    msg "build: with platform macros and platform.c"
+    scripts/config.py full
+    make CFLAGS="$ASAN_CFLAGS -DMBEDTLS_TEST_PLATFORM_MACROS -DMBEDTLS_USER_CONFIG_FILE='\"../tests/configs/user-config-for-test.h\"' -O2" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: with platform macros and platform.c"
+    make test
+}
+
 component_build_no_std_function () {
     # catch compile bugs in _uninit functions
     msg "build: full config with NO_STD_FUNCTION, make, gcc" # ~ 30s
@@ -2702,18 +2711,6 @@ component_test_no_date_time () {
     make
 
     msg "test: !MBEDTLS_HAVE_TIME_DATE - main suites"
-    make test
-}
-
-component_test_platform_calloc_macro () {
-    msg "build: MBEDTLS_PLATFORM_{CALLOC/FREE}_MACRO enabled (ASan build)"
-    scripts/config.py set MBEDTLS_PLATFORM_MEMORY
-    scripts/config.py set MBEDTLS_PLATFORM_CALLOC_MACRO calloc
-    scripts/config.py set MBEDTLS_PLATFORM_FREE_MACRO   free
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make
-
-    msg "test: MBEDTLS_PLATFORM_{CALLOC/FREE}_MACRO enabled (ASan build)"
     make test
 }
 

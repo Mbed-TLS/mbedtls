@@ -3,12 +3,52 @@
 #include <mbedtls/platform.h>
 #include "test/platform.h"
 
-#if defined(MBEDTLS_TEST_PLATFORM_MACROS)
+#if defined(MBEDTLS_PLATFORM_MEMORY) &&             \
+    !( defined(MBEDTLS_PLATFORM_CALLOC_MACRO) &&    \
+       defined(MBEDTLS_PLATFORM_FREE_MACRO) )
+/* Abbreviation for the availability of mbedtls_platform_set_calloc_free() */
+#define MBEDTLS_TEST_PLATFORM_MEMORY_VARIABLES
+#endif
+
+#if defined(MBEDTLS_TEST_PLATFORM_MEMORY_VARIABLES)
+static mbedtls_test_platform_function_counters_t variable_counters;
+#endif
+
+#if defined(MBEDTLS_TEST_PLATFORM_MEMORY_VARIABLES)
+void * counting_calloc( size_t nmemb, size_t size )
+{
+    ++variable_counters.calloc;
+    return( MBEDTLS_PLATFORM_STD_CALLOC( nmemb, size ) );
+}
+
+void counting_free( void * ptr )
+{
+    ++variable_counters.free;
+    MBEDTLS_PLATFORM_STD_FREE( ptr );
+}
+#endif
+
+
+
+#if defined(MBEDTLS_TEST_PLATFORM_MACROS) ||            \
+    defined(MBEDTLS_TEST_PLATFORM_MEMORY_VARIABLES)
 /* Test that the calloc/free wrappers are called when expected. */
 static void test_memory_wrappers(
     mbedtls_test_platform_function_counters_t* counters )
 {
-    mbedtls_test_platform_function_counters_t actual = *counters;
+    mbedtls_test_platform_function_counters_t actual;
+    memset( &actual, 0, sizeof( actual ) );
+    if( counters == NULL )
+    {
+        /* We're just going through the motions. Make the counter checks
+         * in this function always pass. */
+        counters = &actual;
+    }
+    else
+    {
+        actual.calloc = counters->calloc;
+        actual.free = counters->free;
+    }
 
     void *ptr = NULL;
 #if defined(MBEDTLS_BIGNUM_C)
@@ -51,5 +91,32 @@ void memory_macros( )
 {
     test_memory_wrappers( &mbedtls_test_platform_macro_counters );
     goto exit;
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_PLATFORM_MEMORY_VARIABLES */
+void memory_variables( )
+{
+    /* Check that our custom functions are invoked when set. */
+    mbedtls_platform_set_calloc_free( counting_calloc, counting_free );
+    variable_counters.calloc = 0;
+    variable_counters.free = 0;
+    test_memory_wrappers( &variable_counters );
+
+    /* Reset the default functions and check that our custom functions
+     * are no longer invoked. */
+    mbedtls_platform_set_calloc_free( MBEDTLS_PLATFORM_STD_CALLOC,
+                                      MBEDTLS_PLATFORM_STD_FREE );
+    variable_counters.calloc = 0;
+    variable_counters.free = 0;
+    test_memory_wrappers( NULL );
+    TEST_EQUAL( variable_counters.calloc, 0 );
+    TEST_EQUAL( variable_counters.free, 0 );
+
+exit:
+    mbedtls_platform_set_calloc_free( MBEDTLS_PLATFORM_STD_CALLOC,
+                                      MBEDTLS_PLATFORM_STD_FREE );
+    variable_counters.calloc = 0;
+    variable_counters.free = 0;
 }
 /* END_CASE */

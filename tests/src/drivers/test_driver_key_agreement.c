@@ -58,7 +58,7 @@ psa_status_t mbedtls_test_transparent_key_agreement(
         return( PSA_SUCCESS );
     }
 
-    return( psa_key_agreement_raw_builtin( 
+    return( psa_key_agreement_raw_builtin(
                 attributes,
                 key_buffer,
                 key_buffer_size,

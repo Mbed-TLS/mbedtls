@@ -548,7 +548,7 @@ psa_status_t psa_verify_hash_builtin(
 psa_status_t psa_validate_unstructured_key_bit_size( psa_key_type_t type,
                                                      size_t bits );
 
-/** Perform a key agreement and return the raw shared secret, using 
+/** Perform a key agreement and return the raw shared secret, using
     built-in raw key agreement functions.
  *
  * \note The signature of this function is that of a PSA driver
@@ -556,24 +556,24 @@ psa_status_t psa_validate_unstructured_key_bit_size( psa_key_type_t type,
  *       entry point as defined in the PSA driver interface specification for
  *       transparent drivers.
  *
- * \param[in]  attributes               The attributes of the key to use for
- *                                      the operation.
- * \param[in]  key_buffer               The buffer containing the private key
- *                                      context.
- * \param[in]  key_buffer_size          Size of the \p key_buffer buffer in
- *                                      bytes.
- * \param[in]  alg                      A key agreement algorithm that is
- *                                      compatible with the type of the key.
- * \param[in]  peer_key                 The buffer containing the key context
- *                                      of the peer's public key.
- * \param[in]  peer_key_length          Size of the \p peer_key buffer in 
- *                                      bytes.
- * \param[out] shared_secret            The buffer to which the shared secret
- *                                      is to be written.
- * \param[in]  shared_secret_size       Size of the \p shared_secret buffer in
- *                                      bytes.
- * \param[out] shared_secret_length     On success, the number of bytes that
- *                                      make up the returned shared secret.
+ * \param[in]  attributes           The attributes of the key to use for the
+ *                                  operation.
+ * \param[in]  key_buffer           The buffer containing the private key
+ *                                  context.
+ * \param[in]  key_buffer_size      Size of the \p key_buffer buffer in
+ *                                  bytes.
+ * \param[in]  alg                  A key agreement algorithm that is
+ *                                  compatible with the type of the key.
+ * \param[in]  peer_key             The buffer containing the key context
+ *                                  of the peer's public key.
+ * \param[in]  peer_key_length      Size of the \p peer_key buffer in
+ *                                  bytes.
+ * \param[out] shared_secret        The buffer to which the shared secret
+ *                                  is to be written.
+ * \param[in]  shared_secret_size   Size of the \p shared_secret buffer in
+ *                                  bytes.
+ * \param[out] shared_secret_length On success, the number of bytes that make
+ *                                  up the returned shared secret.
  * \retval #PSA_SUCCESS
  *         Success. Shared secret successfully calculated.
  * \retval #PSA_ERROR_INVALID_HANDLE
@@ -594,7 +594,7 @@ psa_status_t psa_validate_unstructured_key_bit_size( psa_key_type_t type,
  * \retval #PSA_ERROR_STORAGE_FAILURE
  * \retval #PSA_ERROR_BAD_STATE
  */
-psa_status_t psa_key_agreement_raw_builtin( 
+psa_status_t psa_key_agreement_raw_builtin(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
     size_t key_buffer_size,
@@ -604,5 +604,5 @@ psa_status_t psa_key_agreement_raw_builtin(
     uint8_t *shared_secret,
     size_t shared_secret_size,
     size_t *shared_secret_length );
-                   
+
 #endif /* PSA_CRYPTO_CORE_H */

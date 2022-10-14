@@ -38,7 +38,7 @@
 #define MBEDTLS_SSL_TLS1_3_LABEL( name, string )       \
     .name = string,
 
-#define TLS1_3_EVOLVE_INPUT_SIZE (PSA_HASH_MAX_SIZE > PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE)? \
+#define TLS1_3_EVOLVE_INPUT_SIZE ( PSA_HASH_MAX_SIZE > PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE ) ? \
                                      PSA_HASH_MAX_SIZE : PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE
 
 struct mbedtls_ssl_tls13_labels_struct const mbedtls_ssl_tls13_labels =

@@ -7,7 +7,7 @@ We gratefully accept bug reports and contributions from the community. There are
 
 Coding Standards
 ----------------
-- We would ask that contributions conform to [our coding standards](https://tls.mbed.org/kb/development/mbedtls-coding-standards), and that contributions are fully tested before submission, as mentioned in the [Tests](#tests) and [Continuous Integration](#continuous-integration-tests) sections.
+- We would ask that contributions conform to [our coding standards](https://mbed-tls.readthedocs.io/en/latest/kb/development/mbedtls-coding-standards/), and that contributions are fully tested before submission, as mentioned in the [Tests](#tests) and [Continuous Integration](#continuous-integration-tests) sections.
 - The code should be written in a clean and readable style.
 - The code should be written in a portable generic way, that will benefit the whole community, and not only your own needs.
 - The code should be secure, and will be reviewed from a security point of view as well.
@@ -56,7 +56,7 @@ As mentioned, tests that show the correctness of the feature or bug fix should b
 
 Mbed TLS includes a comprehensive set of test suites in the `tests/` directory that are dynamically generated to produce the actual test source files (e.g. `test_suite_mpi.c`). These files are generated from a `function file` (e.g. `suites/test_suite_mpi.function`) and a `data file` (e.g. `suites/test_suite_mpi.data`). The function file contains the test functions. The data file contains the test cases, specified as parameters that will be passed to the test function.
 
-[A Knowledge Base article describing how to add additional tests is available on the Mbed TLS website](https://tls.mbed.org/kb/development/test_suites).
+[A Knowledge Base article describing how to add additional tests is available on the Mbed TLS website](https://mbed-tls.readthedocs.io/en/latest/kb/development/test_suites/).
 
 A test script `tests/scripts/basic-build-test.sh` is available to show test coverage of the library. New code contributions should provide a similar level of code coverage to that which already exists for the library.
 
@@ -75,7 +75,7 @@ Mbed TLS is well documented, but if you think documentation is needed, speak out
 1. All interfaces should be documented through Doxygen. New APIs should introduce Doxygen documentation.
 1. Complex parts in the code should include comments.
 1. If needed, a Readme file is advised.
-1. If a [Knowledge Base (KB)](https://tls.mbed.org/kb) article should be added, write this as a comment in the PR description.
+1. If a [Knowledge Base (KB)](https://mbed-tls.readthedocs.io/en/latest/kb/) article should be added, write this as a comment in the PR description.
 1. A [ChangeLog](https://github.com/Mbed-TLS/mbedtls/blob/development/ChangeLog.d/00README.md) entry should be added for this contribution.
 
 License and Copyright

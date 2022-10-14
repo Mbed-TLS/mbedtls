@@ -17,7 +17,9 @@ We provide some non-standard configurations focused on specific use cases in the
 Documentation
 -------------
 
-Documentation for the Mbed TLS interfaces in the default library configuration is available as part of the [Mbed TLS documentation](https://tls.mbed.org/api/).
+The main Mbed TLS documentation is available via [ReadTheDocs](https://mbed-tls.readthedocs.io/).
+
+Documentation for the PSA Cryptography API is available [on GitHub](https://armmbed.github.io/mbed-crypto/psa/#application-programming-interface).
 
 To generate a local copy of the library documentation in HTML format, tailored to your compile-time configuration:
 
@@ -103,9 +105,9 @@ Setting the variable `SHARED` in your environment will build shared libraries in
 
 Please note that setting `CFLAGS` overrides its default value of `-O2` and setting `WARNING_CFLAGS` overrides its default value (starting with `-Wall -Wextra`), so if you just want to add some warning options to the default ones, you can do so by setting `CFLAGS=-O2 -Werror` for example. Setting `WARNING_CFLAGS` is useful when you want to get rid of its default content (for example because your compiler doesn't accept `-Wall` as an option). Directory-specific options cannot be overridden from the command line.
 
-Depending on your platform, you might run into some issues. Please check the Makefiles in `library/`, `programs/` and `tests/` for options to manually add or remove for specific platforms. You can also check [the Mbed TLS Knowledge Base](https://tls.mbed.org/kb) for articles on your platform or issue.
+Depending on your platform, you might run into some issues. Please check the Makefiles in `library/`, `programs/` and `tests/` for options to manually add or remove for specific platforms. You can also check [the Mbed TLS Knowledge Base](https://mbed-tls.readthedocs.io/en/latest/kb/) for articles on your platform or issue.
 
-In case you find that you need to do something else as well, please let us know what, so we can add it to the [Mbed TLS Knowledge Base](https://tls.mbed.org/kb).
+In case you find that you need to do something else as well, please let us know what, so we can add it to the [Mbed TLS Knowledge Base](https://mbed-tls.readthedocs.io/en/latest/kb/).
 
 ### CMake
 
@@ -248,9 +250,9 @@ Porting Mbed TLS
 
 Mbed TLS can be ported to many different architectures, OS's and platforms. Before starting a port, you may find the following Knowledge Base articles useful:
 
--   [Porting Mbed TLS to a new environment or OS](https://tls.mbed.org/kb/how-to/how-do-i-port-mbed-tls-to-a-new-environment-OS)
--   [What external dependencies does Mbed TLS rely on?](https://tls.mbed.org/kb/development/what-external-dependencies-does-mbedtls-rely-on)
--   [How do I configure Mbed TLS](https://tls.mbed.org/kb/compiling-and-building/how-do-i-configure-mbedtls)
+-   [Porting Mbed TLS to a new environment or OS](https://mbed-tls.readthedocs.io/en/latest/kb/how-to/how-do-i-port-mbed-tls-to-a-new-environment-OS/)
+-   [What external dependencies does Mbed TLS rely on?](https://mbed-tls.readthedocs.io/en/latest/kb/development/what-external-dependencies-does-mbedtls-rely-on/)
+-   [How do I configure Mbed TLS](https://mbed-tls.readthedocs.io/en/latest/kb/compiling-and-building/how-do-i-configure-mbedtls/)
 
 Mbed TLS is mostly written in portable C99; however, it has a few platform requirements that go beyond the standard, but are met by most modern architectures:
 

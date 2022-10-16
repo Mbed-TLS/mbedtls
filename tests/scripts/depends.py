@@ -130,7 +130,7 @@ Remove the backup file if it was saved earlier."""
     else:
         shutil.copy(options.config_backup, options.config)
 
-def run_config_pl(options, args):
+def run_config_py(options, args):
     """Run scripts/config.py with the specified arguments."""
     cmd = ['scripts/config.py']
     if options.config != 'include/mbedtls/mbedtls_config.h':
@@ -144,11 +144,11 @@ def set_reference_config(options):
 The reference state is the one from which the tested configurations are
 derived."""
     # Turn off options that are not relevant to the tests and slow them down.
-    run_config_pl(options, ['full'])
-    run_config_pl(options, ['unset', 'MBEDTLS_MEMORY_BACKTRACE'])
-    run_config_pl(options, ['unset', 'MBEDTLS_MEMORY_BUFFER_ALLOC_C'])
-    run_config_pl(options, ['unset', 'MBEDTLS_MEMORY_DEBUG'])
-    run_config_pl(options, ['unset', 'MBEDTLS_TEST_HOOKS'])
+    run_config_py(options, ['full'])
+    run_config_py(options, ['unset', 'MBEDTLS_MEMORY_BACKTRACE'])
+    run_config_py(options, ['unset', 'MBEDTLS_MEMORY_BUFFER_ALLOC_C'])
+    run_config_py(options, ['unset', 'MBEDTLS_MEMORY_DEBUG'])
+    run_config_py(options, ['unset', 'MBEDTLS_TEST_HOOKS'])
 
 def collect_config_symbols(options):
     """Read the list of settings from mbedtls_config.h.
@@ -198,7 +198,7 @@ If what is False, announce that the job has failed.'''
                 args = ['unset', key]
             else:
                 args = ['set', key, value]
-            run_config_pl(options, args)
+            run_config_py(options, args)
 
     def test(self, options):
         '''Run the job's build and test commands.

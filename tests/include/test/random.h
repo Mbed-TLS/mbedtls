@@ -51,13 +51,10 @@ typedef struct {
 } mbedtls_test_rnd_pseudo_info;
 
 /**
- * This function just returns data from rand().
- * Although predictable and often similar on multiple
- * runs, this does not result in identical random on
- * each run. So do not use this if the results of a
- * test depend on the random data that is generated.
+ * This function just runs mbedtls_test_rnd_pseudo_rand() using the global
+ * state.
  *
- * rng_state shall be NULL.
+ * \p rng_state shall be \c NULL.
  */
 int mbedtls_test_rnd_std_rand(void *rng_state,
                               unsigned char *output,
@@ -89,12 +86,23 @@ int mbedtls_test_rnd_buffer_rand(void *rng_state,
                                  size_t len);
 
 /**
+ * This function resets the global state of the pseudo random generator.
+ *
+ * For more info see the documentation of mbedtls_test_rnd_pseudo_rand().
+ */
+void mbedtls_test_rnd_pseudo_reset_state(void);
+
+/**
  * This function returns random based on a pseudo random function.
  * This means the results should be identical on all systems.
  * Pseudo random is based on the XTEA encryption algorithm to
  * generate pseudorandom.
  *
- * \p rng_state shall be a pointer to a #mbedtls_test_rnd_pseudo_info structure.
+ * \p rng_state shall be a pointer to a #mbedtls_test_rnd_pseudo_info structure
+ *              or \c NULL to use the global state.
+ *
+ * \note When using the global state, it must be reset before the first use
+ *       with the function mbedtls_test_rnd_pseudo_reset_state().
  */
 int mbedtls_test_rnd_pseudo_rand(void *rng_state,
                                  unsigned char *output,

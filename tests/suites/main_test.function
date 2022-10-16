@@ -167,6 +167,8 @@ int dispatch_test(size_t func_idx, void **params)
             mbedtls_test_enable_insecure_external_rng();
             #endif
 
+            mbedtls_test_rnd_pseudo_reset_state();
+
             fp(params);
 
             #if defined(MBEDTLS_TEST_MUTEX_USAGE)

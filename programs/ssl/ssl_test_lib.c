@@ -59,15 +59,12 @@ mbedtls_time_t dummy_constant_time(mbedtls_time_t *time)
 #if !defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG)
 static int dummy_entropy(void *data, unsigned char *output, size_t len)
 {
-    size_t i;
     int ret;
     (void) data;
 
     ret = mbedtls_entropy_func(data, output, len);
-    for (i = 0; i < len; i++) {
-        //replace result with pseudo random
-        output[i] = (unsigned char) rand();
-    }
+    //replace result with constant data
+    memset(&output, 0x00, len);
     return ret;
 }
 #endif
@@ -113,11 +110,6 @@ int rng_seed(rng_context_t *rng, int reproducible, const char *pers)
 #else /* !MBEDTLS_TEST_USE_PSA_CRYPTO_RNG */
     int (*f_entropy)(void *, unsigned char *, size_t) =
         (reproducible ? dummy_entropy : mbedtls_entropy_func);
-
-    if (reproducible) {
-        srand(1);
-    }
-
 #if defined(MBEDTLS_CTR_DRBG_C)
     int ret = mbedtls_ctr_drbg_seed(&rng->drbg,
                                     f_entropy, &rng->entropy,

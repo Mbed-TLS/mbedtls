@@ -29,17 +29,8 @@ typedef struct log_pattern {
     size_t counter;
 } log_pattern;
 
-#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
-static int rng_seed = 0xBEEF;
-static int rng_get(void *p_rng, unsigned char *output, size_t output_len)
-{
-    (void) p_rng;
-    for (size_t i = 0; i < output_len; i++) {
-        output[i] = rand();
-    }
-
-    return 0;
-}
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+static mbedtls_test_rnd_pseudo_info rng_state;
 #endif
 
 /*
@@ -100,9 +91,8 @@ typedef struct handshake_test_options {
 
 void init_handshake_options(handshake_test_options *opts)
 {
-#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
-    srand(rng_seed);
-    rng_seed += 0xD0;
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    memset(&rng_state, 0x00, sizeof(rng_state));
 #endif
     opts->cipher = "";
     opts->client_min_version = MBEDTLS_SSL_VERSION_UNKNOWN;
@@ -1004,7 +994,7 @@ int mbedtls_endpoint_init(mbedtls_endpoint *ep, int endpoint_type,
 
     mbedtls_ssl_init(&(ep->ssl));
     mbedtls_ssl_config_init(&(ep->conf));
-    mbedtls_ssl_conf_rng(&(ep->conf), rng_get, NULL);
+    mbedtls_ssl_conf_rng(&(ep->conf), mbedtls_test_rnd_pseudo_rand, &rng_state);
 
     TEST_ASSERT(mbedtls_ssl_conf_get_user_data_p(&ep->conf) == NULL);
     TEST_EQUAL(mbedtls_ssl_conf_get_user_data_n(&ep->conf), 0);

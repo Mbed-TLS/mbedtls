@@ -38,8 +38,8 @@
 #include <string.h>
 
 /*
- * If DTLS is in use, then at least one of SHA-1, SHA-256, SHA-512 is
- * available. Try SHA-256 first, 512 wastes resources
+ * If DTLS is in use, then at least one of SHA-1, SHA-256, SHA-384 is
+ * available. Try SHA-256 first, 384 wastes resources
  */
 #if defined(MBEDTLS_HAS_ALG_SHA_224_VIA_LOWLEVEL_OR_PSA)
 #define COOKIE_MD           MBEDTLS_MD_SHA224

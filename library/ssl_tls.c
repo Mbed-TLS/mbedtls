@@ -604,6 +604,12 @@ static void ssl_update_checksum_start( mbedtls_ssl_context *ssl,
     mbedtls_sha512_update( &ssl->handshake->fin_sha384, buf, len );
 #endif
 #endif
+#if !defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA) && \
+    !defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+    (void) ssl;
+    (void) buf;
+    (void) len;
+#endif
 }
 
 #if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
@@ -5165,6 +5171,10 @@ int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
         goto exit;
 
 exit:
+#if !defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA) && \
+    !defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+    (void) ssl;
+#endif
     return( psa_ssl_status_to_mbedtls( status ) );
 }
 #else /* MBEDTLS_USE_PSA_CRYPTO */
@@ -5437,6 +5447,8 @@ static psa_status_t setup_psa_key_derivation( psa_key_derivation_operation_t* de
     return( PSA_SUCCESS );
 }
 
+#if defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA) || \
+    defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int tls_prf_generic( mbedtls_md_type_t md_type,
                             const unsigned char *secret, size_t slen,
@@ -5511,7 +5523,7 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
 
     return( 0 );
 }
-
+#endif
 #else /* MBEDTLS_USE_PSA_CRYPTO */
 
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -5917,7 +5929,10 @@ int mbedtls_ssl_set_calc_verify_md( mbedtls_ssl_context *ssl, int md )
         default:
             return( -1 );
     }
-
+#if !defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA) && \
+    !defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+    (void) ssl;
+#endif
     return( 0 );
 }
 
@@ -7436,8 +7451,6 @@ exit:
  * Helper to get TLS 1.2 PRF from ciphersuite
  * (Duplicates bits of logic from ssl_set_handshake_prfs().)
  */
-#if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA) || \
-    defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
 static tls_prf_fn ssl_tls12prf_from_cs( int ciphersuite_id )
 {
     const mbedtls_ssl_ciphersuite_t * const ciphersuite_info =
@@ -7457,10 +7470,9 @@ static tls_prf_fn ssl_tls12prf_from_cs( int ciphersuite_id )
     !defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
     (void) ciphersuite_info;
 #endif
+
     return( NULL );
 }
-#endif /* MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA ||
-          MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
 #endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
 
 static mbedtls_tls_prf_types tls_prf_get_type( mbedtls_ssl_tls_prf_cb *tls_prf )

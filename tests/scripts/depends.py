@@ -464,14 +464,14 @@ def run_tests(options, domain_data):
     """Run the desired jobs.
 domain_data should be a DomainData instance that describes the available
 domains and jobs.
-Run the jobs listed in options.domains."""
+Run the jobs listed in options.tasks."""
     if not hasattr(options, 'config_backup'):
         options.config_backup = options.config + '.bak'
     colors = Colors(options)
     jobs = []
     failures = []
     successes = []
-    for name in options.domains:
+    for name in options.tasks:
         jobs += domain_data.get_jobs(name)
     backup_config(options)
     try:
@@ -534,15 +534,14 @@ def main():
         parser.add_argument('--make-command', metavar='CMD',
                             help='Command to run instead of make (e.g. gmake)',
                             action='store', default='make')
-        parser.add_argument('domains', metavar='DOMAIN', nargs='*',
-                            help='The domain(s) to test (default: all). This can \
-                                  be also a list of jobs to run.',
+        parser.add_argument('tasks', metavar='TASKS', nargs='*',
+                            help='The domain(s) or job(s) to test (default: all).',
                             default=True)
         options = parser.parse_args()
         os.chdir(options.directory)
         domain_data = DomainData(options)
-        if options.domains is True:
-            options.domains = sorted(domain_data.domains.keys())
+        if options.tasks is True:
+            options.tasks = sorted(domain_data.domains.keys())
         if options.list:
             for arg in options.list:
                 for domain_name in sorted(getattr(domain_data, arg).keys()):

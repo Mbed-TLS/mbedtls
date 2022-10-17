@@ -79,11 +79,13 @@ class BignumCoreOperationArchSplit(BignumCoreOperation):
 
     def __init__(self, val_a: str, val_b: str, bits_in_limb: int) -> None:
         super().__init__(val_a, val_b)
+        bound_val = max(self.int_a, self.int_b)
         self.bits_in_limb = bits_in_limb
+        self.bound = bignum_common.bound_mpi(bound_val, self.bits_in_limb)
         if self.bits_in_limb == 32:
             self.dependencies = ["MBEDTLS_HAVE_INT32"]
         elif self.bits_in_limb == 64:
-            self.dependencies = ["MBEDTLS_HAVE_INT64"]
+            self.dependencies = ["MBDTLS_HAVE_INT64"]
 
     @classmethod
     def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
@@ -100,10 +102,8 @@ class BignumCoreAddIf(BignumCoreOperationArchSplit):
 
     def result(self) -> List[str]:
         result = self.int_a + self.int_b
-        bound_val = max(self.int_a, self.int_b)
 
-        bound = bignum_common.bound_mpi(bound_val, self.bits_in_limb)
-        carry, result = divmod(result, bound)
+        carry, result = divmod(result, self.bound)
 
         return [
             "\"{:x}\"".format(result),

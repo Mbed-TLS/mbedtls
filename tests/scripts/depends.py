@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2018, Arm Limited, All Rights Reserved.
+# Copyright (c) 2022, Arm Limited, All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -27,7 +27,7 @@ in the arguments is parsed to extract any configuration options (collect_config_
 
 Then, test domains (groups of jobs, tests) are built based on predefined data
 collected in the DomainData class. Here, each domain has five major traits:
-- domain name, can be used to run only specific tests via commandline;
+- domain name, can be used to run only specific tests via command-line;
 - configuration building method, described in detail below;
 - list of symbols passed to the configuration building method;
 - commands to be run on each job (only build, build and test, or any other custom);
@@ -44,17 +44,17 @@ The configuration building method can be one of the three following:
   direct dependencies, but rather non-trivial results of other configs missing. Then
   look for any unset symbols and handle their reverse dependencies.
   Examples of EXCLUSIVE_GROUPS usage:
-  - MBEDTLS_SHA224 job turns off all hashes except SHA224, however, when investigating
-    reverse dependencies, SHA256 is found to depend on SHA224, so it is disabled,
-    and then SHA224 is found to depend on SHA256, so it is also disabled. To handle
-    this, there's a field in EXCLUSIVE_GROUPS that states that in a SHA224 test SHA256
+  - MBEDTLS_SHA256 job turns off all hashes except SHA256, however, when investigating
+    reverse dependencies, SHA224 is found to depend on SHA256, so it is disabled,
+    and then SHA256 is found to depend on SHA224, so it is also disabled. To handle
+    this, there's a field in EXCLUSIVE_GROUPS that states that in a SHA256 test SHA224
     should also be enabled before processing reverse dependencies:
-    'MBEDTLS_SHA224_C': ['MBEDTLS_SHA256_C']
+    'MBEDTLS_SHA256_C': ['+MBEDTLS_SHA224_C']
   - MBEDTLS_SHA512_C job turns off all hashes except SHA512. MBEDTLS_SSL_COOKIE_C
     requires either SHA256 or SHA384 to work, so it also has to be disabled.
     This is not a dependency on SHA512_C, but a result of an exclusive domain
     config building method. Relevant field:
-    'MBEDTLS_SHA512_C': ['!MBEDTLS_SSL_COOKIE_C'],
+    'MBEDTLS_SHA512_C': ['-MBEDTLS_SSL_COOKIE_C'],
 
 - DualDomain - combination of the two above - both complementary and exclusive domain
   job generation code will be run. Currently only used for hashes.
@@ -507,7 +507,7 @@ def main():
             description=
             "Test Mbed TLS with a subset of algorithms.\n\n"
             "Example usage:\n"
-            r"./tests/scripts/depends.py \!MBEDTLS_SHA1_C MBEDTLS_SHA224_C""\n"
+            r"./tests/scripts/depends.py \!MBEDTLS_SHA1_C MBEDTLS_SHA256_C""\n"
             "./tests/scripts/depends.py MBEDTLS_AES_C hashes\n"
             "./tests/scripts/depends.py cipher_id cipher_chaining\n")
         parser.add_argument('--color', metavar='WHEN',

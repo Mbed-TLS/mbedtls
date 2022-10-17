@@ -175,12 +175,12 @@ void mpi_write_string( char * input_A, int radix_X, char * input_X,
                        int buf_size, int ret )
 {
     mbedtls_mpi A;
-    char str[1000];
-    char *x_off;
-    size_t olen, n;
+    char *str = NULL;
+    char *str2 = NULL;
+    size_t olen;
 
     mbedtls_mpi_init( &A );
-    memset( str, '!', sizeof( str ) );
+    ASSERT_ALLOC( str, buf_size );
 
     TEST_EQUAL( mbedtls_mpi_read_string( &A, 16, input_A ), 0 );
     TEST_EQUAL( sign_is_valid( &A ), 1 );
@@ -190,26 +190,17 @@ void mpi_write_string( char * input_A, int radix_X, char * input_X,
     {
         TEST_EQUAL( str[olen - 1], 0 );
         ASSERT_COMPARE( str, olen, input_X, strlen( input_X ) + 1 );
-        // With a small buffer and radix < 16, the overwrite check may
-        // be invalid. In this case, check the remaining n characters
-        // match the last n characters of input_X.
-        n = buf_size - olen;
-        if( radix_X < 16 && n < strlen( input_X ) )
-        {
-            x_off = input_X + strlen( input_X ) - n;
-            TEST_EQUAL( strncmp( str + olen, x_off, n ), 0 );
-        }
-        else
-        {
-            TEST_EQUAL( str[olen], '!' );
-        }
     }
-    else if ( ret == MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL )
+    else if( ret == MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL )
     {
-        TEST_EQUAL( mbedtls_mpi_write_string( &A, radix_X, str, olen, &olen ), 0 );
+        // Test that write succeeds with olen sized buffer
+        ASSERT_ALLOC( str2, olen );
+        TEST_EQUAL( mbedtls_mpi_write_string( &A, radix_X, str2, olen, &olen ), 0 );
     }
 exit:
     mbedtls_mpi_free( &A );
+    mbedtls_free( str );
+    mbedtls_free( str2 );
 }
 /* END_CASE */
 

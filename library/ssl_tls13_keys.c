@@ -1304,9 +1304,9 @@ int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
             handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
 #endif /* MBEDTLS_ECDH_C */
         }
-        else if( mbedtls_ssl_tls13_named_group_is_dhe( handshake->offered_group_id ) )
+        else
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "DHE not supported." ) );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Group not supported." ) );
             return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
         }
     }

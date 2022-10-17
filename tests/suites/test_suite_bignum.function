@@ -188,7 +188,8 @@ void mpi_write_string( char * input_A, int radix_X, char * input_X,
 
     if( ret == 0 )
     {
-        TEST_EQUAL( strcmp( str, input_X ), 0 );
+        TEST_EQUAL( str[olen - 1], 0 );
+        ASSERT_COMPARE( str, olen, input_X, strlen( input_X ) + 1 );
         // With a small buffer and radix < 16, the overwrite check may
         // be invalid. In this case, check the remaining n characters
         // match the last n characters of input_X.
@@ -202,6 +203,10 @@ void mpi_write_string( char * input_A, int radix_X, char * input_X,
         {
             TEST_EQUAL( str[olen], '!' );
         }
+    }
+    else if ( ret == MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL )
+    {
+        TEST_EQUAL( mbedtls_mpi_write_string( &A, radix_X, str, olen, &olen ), 0 );
     }
 exit:
     mbedtls_mpi_free( &A );

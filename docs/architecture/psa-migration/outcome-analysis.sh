@@ -48,6 +48,8 @@ IGNORE="md mdx shax" # accelerated
 IGNORE="$IGNORE entropy hmac_drbg random" # disabled (ext. RNG)
 IGNORE="$IGNORE psa_crypto_init" # needs internal RNG
 IGNORE="$IGNORE hkdf" # disabled
+# Compare only "reference vs driver" or also "before vs after"?
+BEFORE_AFTER=1 # 0 or 1
 # ----- END edit this -----
 
 set -eu
@@ -63,26 +65,28 @@ record() {
     make check
 }
 
-# save current HEAD
-HEAD=$(git branch --show-current)
+if [ "$BEFORE_AFTER" -eq 1 ]; then
+    # save current HEAD
+    HEAD=$(git branch --show-current)
 
-# get the numbers before this PR for default and full
-cleanup
-git checkout $(git merge-base HEAD development)
-record "before-default"
+    # get the numbers before this PR for default and full
+    cleanup
+    git checkout $(git merge-base HEAD development)
+    record "before-default"
 
-cleanup
-scripts/config.py full
-record "before-full"
+    cleanup
+    scripts/config.py full
+    record "before-full"
 
-# get the numbers now for default and full
-cleanup
-git checkout $HEAD
-record "after-default"
+    # get the numbers now for default and full
+    cleanup
+    git checkout $HEAD
+    record "after-default"
 
-cleanup
-scripts/config.py full
-record "after-full"
+    cleanup
+    scripts/config.py full
+    record "after-full"
+fi
 
 # get the numbers now for driver-only and reference
 cleanup
@@ -147,6 +151,8 @@ compare_builds () {
 }
 
 populate_suites
-compare_builds before-default after-default
-compare_builds before-full after-full
+if [ "$BEFORE_AFTER" -eq 1 ]; then
+    compare_builds before-default after-default
+    compare_builds before-full after-full
+fi
 compare_builds reference drivers

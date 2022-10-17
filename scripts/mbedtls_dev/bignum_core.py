@@ -72,6 +72,24 @@ class BignumCoreOperation(bignum_common.OperationCommon, BignumCoreTarget, metac
             yield cls(a_value, b_value).create_test_case()
 
 
+class BignumCoreOperationArchSplit(BignumCoreOperation):
+    #pylint: disable=abstract-method
+    """Common features for bignum core operations where the result depends on
+    the limb size."""
+
+    def __init__(self, val_a: str, val_b: str, bits_in_limb: int) -> None:
+        super().__init__(val_a, val_b)
+        self.bits_in_limb = bits_in_limb
+        if self.bits_in_limb == 32:
+            self.dependencies = ["MBEDTLS_HAVE_INT32"]
+        elif self.bits_in_limb == 64:
+            self.dependencies = ["MBEDTLS_HAVE_INT64"]
+
+    @classmethod
+    def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
+        for a_value, b_value in cls.get_value_pairs():
+            yield cls(a_value, b_value, 32).create_test_case()
+            yield cls(a_value, b_value, 64).create_test_case()
 
 class BignumCoreAddIf(BignumCoreOperation):
     """Test cases for bignum core add if."""

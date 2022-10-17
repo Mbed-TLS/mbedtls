@@ -41,7 +41,8 @@
 
 #if !defined(unix) && !defined(__unix__) && !defined(__unix) && \
     !defined(__APPLE__) && !defined(_WIN32) && !defined(__QNXNTO__) && \
-    !defined(__HAIKU__) && !defined(__midipix__)
+    !defined(__HAIKU__) && !defined(__midipix__) && \
+    !defined(__vita__)
 #error "Platform entropy sources only work on Unix and Windows, see MBEDTLS_NO_PLATFORM_ENTROPY in mbedtls_config.h"
 #endif
 
@@ -154,6 +155,29 @@ static int sysctl_arnd_wrapper( unsigned char *buf, size_t buflen )
 #endif /* KERN_ARND */
 #endif /* __FreeBSD__ || __NetBSD__ */
 
+/*
+ * PSVita provides getentropy(), with 256b max per call.
+ *
+ */
+#if defined(__vita__)
+#include <unistd.h>
+
+static int vita_getentropy_wrapper( unsigned char *buf, size_t buflen )
+{
+    size_t len;
+
+    while( buflen > 0 )
+    {
+        len = buflen > 256 ? 256 : buflen;
+        if( getentropy(buf, len) == -1 )
+            return( -1 );
+        buflen -= len;
+        buf += len;
+    }
+    return( 0 );
+}
+#endif /* __vita__ */
+
 #include <stdio.h>
 
 int mbedtls_platform_entropy_poll( void *data,
@@ -182,6 +206,13 @@ int mbedtls_platform_entropy_poll( void *data,
     ((void) file);
     ((void) read_len);
     if( sysctl_arnd_wrapper( output, len ) == -1 )
+        return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
+    *olen = len;
+    return( 0 );
+#elif defined(__vita__)
+    ((void) file);
+    ((void) read_len);
+    if( vita_getentropy_wrapper( output, len ) == -1 )
         return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
     *olen = len;
     return( 0 );

@@ -819,21 +819,21 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C */
-void mbedtls_x509_get_name( char * hex_name, int exp_ret )
+void mbedtls_x509_get_name( char * rdn_sequence, int exp_ret )
 {
     unsigned char *name;
     unsigned char *p;
     size_t name_len;
     mbedtls_x509_name head;
     mbedtls_x509_name *allocated, *prev;
-    int res;
+    int ret;
 
-    name = mbedtls_test_unhexify_alloc( hex_name, &name_len );
+    name = mbedtls_test_unhexify_alloc( rdn_sequence, &name_len );
     p = name;
 
-    res = mbedtls_x509_get_name( &p, ( name + name_len ), &head );
+    ret = mbedtls_x509_get_name( &p, ( name + name_len ), &head );
 
-    if( res == 0 )
+    if( ret == 0 )
     {
         allocated = head.next;
         head.next = NULL;
@@ -848,7 +848,7 @@ void mbedtls_x509_get_name( char * hex_name, int exp_ret )
         }
     }
 
-    TEST_ASSERT( res == exp_ret );
+    TEST_ASSERT( ret == exp_ret );
 
     mbedtls_free( name );
 }

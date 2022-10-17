@@ -200,7 +200,7 @@ void mpi_write_string( char * input_A, int radix_X, char * input_X,
         }
         else
         {
-            TEST_EQUAL( str[olen] == '!', 1 );
+            TEST_EQUAL( str[olen], '!' );
         }
     }
 exit:

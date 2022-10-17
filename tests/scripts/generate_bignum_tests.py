@@ -192,7 +192,7 @@ class BignumReadWrite(BignumTarget, metaclass=ABCMeta):
     """
     radix_input_values = {
         10: [
-            "0", "1", "", "-0", "128", "-23", "-023", "056", "a28", "28a",
+            "0", "1", "", "128", "-23", "056", "a28", "28a", "9876543210",
             (
                 "56125680981752282334141896320372489490613963693556392520816"
                 "01789211135060411169768270549831951204904051669882782929207"
@@ -201,7 +201,7 @@ class BignumReadWrite(BignumTarget, metaclass=ABCMeta):
             )
         ],
         16: [
-            "0", "1", "", "-0", "80", "-17", "-017", "038", "a28", "28a",
+            "0", "1", "", "80", "-17", "038", "a28", "28a", "fedcba9876543210",
             (
                 "0941379d00fed1491fe15df284dfde4a142f68aa8d412023195cee66883"
                 "e6290ffe703f4ea5963bf212713cee46b107c09182b5edcd955adac418b"
@@ -209,7 +209,8 @@ class BignumReadWrite(BignumTarget, metaclass=ABCMeta):
                 "3efbb2f958b4424"
             )
         ],
-        15: ["1d", "1f"],
+        2:  ["", "10"],
+        15: ["1e", "1f", "edcba9876543210"],
         17: ["38"],
         19: ["a28"]
     } # type: Dict[int, List[str]]
@@ -342,6 +343,11 @@ class BignumReadString(BignumReadWrite):
             bignum_common.quote_str(self.val_x.upper()),
             self.return_value
         ]
+
+    @classmethod
+    def additional_test_cases(cls) -> Iterator[test_case.TestCase]:
+        for radix, value in [(10, "-0"), (10, "-023"), (16, "-0"), (16, "-017")]:
+            yield cls(value, radix).create_test_case()
 
 
 class BignumWriteString(BignumReadWrite):

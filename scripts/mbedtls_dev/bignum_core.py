@@ -91,7 +91,7 @@ class BignumCoreOperationArchSplit(BignumCoreOperation):
             yield cls(a_value, b_value, 32).create_test_case()
             yield cls(a_value, b_value, 64).create_test_case()
 
-class BignumCoreAddIf(BignumCoreOperation):
+class BignumCoreAddIf(BignumCoreOperationArchSplit):
     """Test cases for bignum core add if."""
     count = 0
     symbol = "+"
@@ -99,17 +99,15 @@ class BignumCoreAddIf(BignumCoreOperation):
     test_name = "mbedtls_mpi_core_add_if"
 
     def result(self) -> List[str]:
-        tmp = self.int_a + self.int_b
+        result = self.int_a + self.int_b
         bound_val = max(self.int_a, self.int_b)
-        bound_4 = bignum_common.bound_mpi(bound_val, 32)
-        bound_8 = bignum_common.bound_mpi(bound_val, 64)
-        carry_4, remainder_4 = divmod(tmp, bound_4)
-        carry_8, remainder_8 = divmod(tmp, bound_8)
+
+        bound = bignum_common.bound_mpi(bound_val, self.bits_in_limb)
+        carry, result = divmod(result, bound)
+
         return [
-            "\"{:x}\"".format(remainder_4),
-            str(carry_4),
-            "\"{:x}\"".format(remainder_8),
-            str(carry_8)
+            "\"{:x}\"".format(result),
+            str(carry)
         ]
 
 

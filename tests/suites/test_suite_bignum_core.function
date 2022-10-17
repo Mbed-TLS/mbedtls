@@ -340,10 +340,9 @@ exit:
 
 /* BEGIN_CASE */
 void mpi_core_add_if( char * input_A, char * input_B,
-                      char * input_S4, int carry4,
-                      char * input_S8, int carry8 )
+                      char * input_S, int carry )
 {
-    mbedtls_mpi S4, S8, A, B;
+    mbedtls_mpi S, A, B;
     mbedtls_mpi_uint *a = NULL; /* first value to add */
     mbedtls_mpi_uint *b = NULL; /* second value to add */
     mbedtls_mpi_uint *sum = NULL;
@@ -351,28 +350,20 @@ void mpi_core_add_if( char * input_A, char * input_B,
 
     mbedtls_mpi_init( &A );
     mbedtls_mpi_init( &B );
-    mbedtls_mpi_init( &S4 );
-    mbedtls_mpi_init( &S8 );
+    mbedtls_mpi_init( &S );
 
     TEST_EQUAL( 0, mbedtls_test_read_mpi( &A, input_A ) );
     TEST_EQUAL( 0, mbedtls_test_read_mpi( &B, input_B ) );
-    TEST_EQUAL( 0, mbedtls_test_read_mpi( &S4, input_S4 ) );
-    TEST_EQUAL( 0, mbedtls_test_read_mpi( &S8, input_S8 ) );
-
-    /* We only need to work with one of (S4, carry4) or (S8, carry8) depending
-     * on sizeof(mbedtls_mpi_uint)
-     */
-    mbedtls_mpi *X = ( sizeof(mbedtls_mpi_uint) == 4 ) ? &S4 : &S8;
-    mbedtls_mpi_uint carry = ( sizeof(mbedtls_mpi_uint) == 4 ) ? carry4 : carry8;
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &S, input_S ) );
 
     /* All of the inputs are +ve (or zero) */
     TEST_EQUAL( 1, A.s );
     TEST_EQUAL( 1, B.s );
-    TEST_EQUAL( 1, X->s );
+    TEST_EQUAL( 1, S.s );
 
     /* Test cases are such that A <= B, so #limbs should be <= */
     TEST_LE_U( A.n, B.n );
-    TEST_LE_U( X->n, B.n );
+    TEST_LE_U( S.n, B.n );
 
     /* Now let's get arrays of mbedtls_mpi_uints, rather than MPI structures */
 
@@ -400,7 +391,7 @@ void mpi_core_add_if( char * input_A, char * input_B,
      */
     memcpy( a, A.p, A.n * sizeof(mbedtls_mpi_uint) );
     memcpy( b, B.p, B.n * sizeof(mbedtls_mpi_uint) );
-    memcpy( sum, X->p, X->n * sizeof(mbedtls_mpi_uint) );
+    memcpy( sum, S.p, S.n * sizeof(mbedtls_mpi_uint) );
 
     /* The test cases have a <= b to avoid repetition, so we test a + b then,
      * if a != b, b + a. If a == b, we can test when a and b are aliased */
@@ -448,8 +439,7 @@ exit:
     mbedtls_free( sum );
     mbedtls_free( d );
 
-    mbedtls_mpi_free( &S4 );
-    mbedtls_mpi_free( &S8 );
+    mbedtls_mpi_free( &S );
     mbedtls_mpi_free( &A );
     mbedtls_mpi_free( &B );
 }

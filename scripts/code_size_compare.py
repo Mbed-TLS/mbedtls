@@ -33,7 +33,9 @@ import sys
 class CodeSizeComparison:
     """Compare code size between two Git revisions."""
 
-    def __init__(self, old_revision, new_revision, result_dir):
+    def __init__(self, old_revision, new_revision, result_dir,
+                 #pylint: disable=too-many-arguments
+                 config=None, symbols=False, buildtag=None):
         """
         old_revision: revision to compare against
         new_revision:
@@ -50,11 +52,25 @@ class CodeSizeComparison:
         self.new_rev = new_revision
         self.git_command = "git"
         self.make_command = "make"
+        self.symbols = symbols
+        self.config = config
+        self.buildtag = buildtag
+        self.git_worktrees = []
+
+    def __del__(self):
+        for git_worktree_path in self.git_worktrees:
+            self._remove_worktree(git_worktree_path)
 
     @staticmethod
     def check_repo_path():
         if not all(os.path.isdir(d) for d in ["include", "library", "tests"]):
             raise Exception("Must be run from Mbed TLS root")
+
+    def get_file_stem(self, revision):
+        if self.buildtag:
+            return revision + "_" + self.buildtag
+        else:
+            return revision
 
     @staticmethod
     def validate_revision(revision):
@@ -77,11 +93,19 @@ class CodeSizeComparison:
                  git_worktree_path, revision], cwd=self.repo_path,
                 stderr=subprocess.STDOUT
             )
+
+            self.git_worktrees.append(git_worktree_path)
+
         return git_worktree_path
 
     def _build_libraries(self, git_worktree_path):
         """Build libraries in the specified worktree."""
 
+        if self.config:
+            subprocess.check_output(
+                ["./scripts/config.py", self.config],
+                cwd=git_worktree_path, stderr=subprocess.STDOUT
+            )
         my_environment = os.environ.copy()
         subprocess.check_output(
             [self.make_command, "-j", "lib"], env=my_environment,
@@ -89,9 +113,9 @@ class CodeSizeComparison:
         )
 
     def _gen_code_size_csv(self, revision, git_worktree_path):
-        """Generate code size csv file."""
+        """Generate compilation-unit level code size csv file."""
 
-        csv_fname = revision + ".csv"
+        csv_fname = self.get_file_stem(revision) + ".csv"
         if revision == "current":
             print("Measuring code size in current work directory.")
         else:
@@ -104,6 +128,40 @@ class CodeSizeComparison:
         for line in size_text.splitlines()[1:]:
             data = line.split()
             csv_file.write("{}, {}\n".format(data[5], data[3]))
+
+    def _gen_code_size_csv_details(self, revision, git_worktree_path):
+        """Generate symbol-level code size csv file"""
+
+        csv_fname = self.get_file_stem(revision) + "_symbols.csv"
+        if revision == "current":
+            print("Measuring code size in current work directory.")
+        else:
+            print("Measuring code size for", revision)
+        result = subprocess.check_output(
+            ["nm library/*.a --size-sort"], cwd=git_worktree_path, shell=True
+        )
+        size_text = result.decode()
+        csv_file = open(os.path.join(self.csv_dir, csv_fname), "w")
+
+        cur_obj = None
+
+        for line in size_text.splitlines()[1:]:
+
+            # nm output groups symbols by object file and prefixes
+            # the corresponding list with "OBJFILE.o"
+            if len(line) > 3 and line[-3:] == ".o:":
+                cur_obj = line[:-1]
+            if cur_obj is None:
+                continue
+
+            # nm output format: size, type, name
+            data = line.split()
+
+            if len(data) < 3:
+                continue
+
+            csv_file.write("{size:<20} {symbol:<50} {objfile:<20} {ty}\n".format(
+                objfile=cur_obj+",", symbol=data[2]+",", size=data[0]+",", ty=data[1]))
 
     def _remove_worktree(self, git_worktree_path):
         """Remove temporary worktree."""
@@ -119,7 +177,8 @@ class CodeSizeComparison:
         """Generate code size csv file for the specified git revision."""
 
         # Check if the corresponding record exists
-        csv_fname = revision + ".csv"
+        csv_fname = self.get_file_stem(revision) + ".csv"
+
         if (revision != "current") and \
            os.path.exists(os.path.join(self.csv_dir, csv_fname)):
             print("Code size csv file for", revision, "already exists.")
@@ -127,35 +186,38 @@ class CodeSizeComparison:
             git_worktree_path = self._create_git_worktree(revision)
             self._build_libraries(git_worktree_path)
             self._gen_code_size_csv(revision, git_worktree_path)
-            self._remove_worktree(git_worktree_path)
+            if self.symbols:
+                self._gen_code_size_csv_details(revision, git_worktree_path)
 
     def compare_code_size(self):
         """Generate results of the size changes between two revisions,
         old and new. Measured code size results of these two revisions
         must be available."""
 
-        old_file = open(os.path.join(self.csv_dir, self.old_rev + ".csv"), "r")
-        new_file = open(os.path.join(self.csv_dir, self.new_rev + ".csv"), "r")
-        res_file = open(os.path.join(self.result_dir, "compare-" + self.old_rev
-                                     + "-" + self.new_rev + ".csv"), "w")
+        def parse_csv_as_dict(f):
+            result = {}
+            for line in f.readlines()[1:]:
+                cols = line.split(", ")
+                fname = cols[0]
+                size = int(cols[1])
+                result[fname] = size
+            return result
+
+        def get_stem_and_file(rev):
+            stem = self.get_file_stem(rev)
+            f = open(os.path.join(self.csv_dir, stem + ".csv"), "r")
+            return stem, f
+
+        old_stem, old_file = get_stem_and_file(self.old_rev)
+        new_stem, new_file = get_stem_and_file(self.new_rev)
+        res_file = open(os.path.join(self.result_dir, "compare-" + old_stem
+                                     + "-" + new_stem + ".csv"), "w")
 
         res_file.write("file_name, this_size, old_size, change, change %\n")
         print("Generating comparison results.")
 
-        old_ds = {}
-        for line in old_file.readlines()[1:]:
-            cols = line.split(", ")
-            fname = cols[0]
-            size = int(cols[1])
-            if size != 0:
-                old_ds[fname] = size
-
-        new_ds = {}
-        for line in new_file.readlines()[1:]:
-            cols = line.split(", ")
-            fname = cols[0]
-            size = int(cols[1])
-            new_ds[fname] = size
+        old_ds = parse_csv_as_dict(old_file)
+        new_ds = parse_csv_as_dict(new_file)
 
         for fname in new_ds:
             this_size = new_ds[fname]
@@ -201,6 +263,22 @@ def main():
         help="new revision for comparison, default is the current work \
               directory, including uncommitted changes."
     )
+    parser.add_argument(
+        "-s", "--symbols", default=False, action="store_true",
+        help="emit code size statistics per symbol"
+    )
+
+    parser.add_argument(
+        "-c", "--config", type=str, default=None,
+        help="config to use for measurements; must be a valid argument to ./scripts/config.py"
+    )
+
+    parser.add_argument(
+        "-t", "--tag", type=str, default=None,
+        help="a string to attach to the emitted CSV file(s) indicating " +
+        "the build type (e.g. CC, CFLAGS, Config)"
+    )
+
     comp_args = parser.parse_args()
 
     if os.path.isfile(comp_args.result_dir):
@@ -217,7 +295,10 @@ def main():
         new_revision = "current"
 
     result_dir = comp_args.result_dir
-    size_compare = CodeSizeComparison(old_revision, new_revision, result_dir)
+    size_compare = CodeSizeComparison(old_revision, new_revision, result_dir,
+                                      config=comp_args.config,
+                                      symbols=comp_args.symbols,
+                                      buildtag=comp_args.tag)
     return_code = size_compare.get_comparision_results()
     sys.exit(return_code)
 

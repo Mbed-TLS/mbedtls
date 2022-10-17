@@ -6655,9 +6655,9 @@ run_test    "keyUsage cli: DigitalSignature, RSA: fail, soft" \
             -c "Ciphersuite is TLS-" \
             -c "! Usage does not match the keyUsage extension"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_openssl_tls1_3
-requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_key_exchange_with_cert_in_tls13_enabled
 run_test    "keyUsage cli 1.3: DigitalSignature+KeyEncipherment, RSA: OK" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server2.key \
@@ -6668,9 +6668,9 @@ run_test    "keyUsage cli 1.3: DigitalSignature+KeyEncipherment, RSA: OK" \
             -C "Processing of the Certificate handshake message failed" \
             -c "Ciphersuite is"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_openssl_tls1_3
-requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_key_exchange_with_cert_in_tls13_enabled
 run_test    "keyUsage cli 1.3: KeyEncipherment, RSA: fail" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server2.key \
@@ -6681,9 +6681,9 @@ run_test    "keyUsage cli 1.3: KeyEncipherment, RSA: fail" \
             -c "Processing of the Certificate handshake message failed" \
             -C "Ciphersuite is"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_openssl_tls1_3
-requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_key_exchange_with_cert_in_tls13_enabled
 run_test    "keyUsage cli 1.3: KeyAgreement, RSA: fail" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server2.key \
@@ -6694,9 +6694,9 @@ run_test    "keyUsage cli 1.3: KeyAgreement, RSA: fail" \
             -c "Processing of the Certificate handshake message failed" \
             -C "Ciphersuite is"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_openssl_tls1_3
-requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_key_exchange_with_cert_in_tls13_enabled
 run_test    "keyUsage cli 1.3: DigitalSignature, ECDSA: OK" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server5.key \
@@ -6707,9 +6707,9 @@ run_test    "keyUsage cli 1.3: DigitalSignature, ECDSA: OK" \
             -C "Processing of the Certificate handshake message failed" \
             -c "Ciphersuite is"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_openssl_tls1_3
-requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_key_exchange_with_cert_in_tls13_enabled
 run_test    "keyUsage cli 1.3: KeyEncipherment, ECDSA: fail" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server5.key \
@@ -6720,9 +6720,9 @@ run_test    "keyUsage cli 1.3: KeyEncipherment, ECDSA: fail" \
             -c "Processing of the Certificate handshake message failed" \
             -C "Ciphersuite is"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_openssl_tls1_3
-requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_key_exchange_with_cert_in_tls13_enabled
 run_test    "keyUsage cli 1.3: KeyAgreement, ECDSA: fail" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server5.key \
@@ -6783,12 +6783,11 @@ run_test    "keyUsage cli-auth: ECDSA, KeyAgreement: fail (soft)" \
             -s "bad certificate (usage extensions)" \
             -S "Processing of the Certificate handshake message failed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_openssl_tls1_3
-requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_key_exchange_with_cert_in_tls13_enabled
 run_test    "keyUsage cli-auth 1.3: RSA, DigitalSignature: OK" \
-            "$P_SRV debug_level=1 auth_mode=optional" \
+            "$P_SRV debug_level=1 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key data_files/server2.key \
              -cert data_files/server2.ku-ds.crt" \
             0 \
@@ -6796,24 +6795,22 @@ run_test    "keyUsage cli-auth 1.3: RSA, DigitalSignature: OK" \
             -S "bad certificate (usage extensions)" \
             -S "Processing of the Certificate handshake message failed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_openssl_tls1_3
-requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_key_exchange_with_cert_in_tls13_enabled
 run_test    "keyUsage cli-auth 1.3: RSA, KeyEncipherment: fail (soft)" \
-            "$P_SRV debug_level=1 auth_mode=optional" \
+            "$P_SRV debug_level=1 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key data_files/server2.key \
              -cert data_files/server2.ku-ke.crt" \
             0 \
             -s "bad certificate (usage extensions)" \
             -S "Processing of the Certificate handshake message failed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_openssl_tls1_3
-requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_key_exchange_with_cert_in_tls13_enabled
 run_test    "keyUsage cli-auth 1.3: ECDSA, DigitalSignature: OK" \
-            "$P_SRV debug_level=1 auth_mode=optional" \
+            "$P_SRV debug_level=1 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key data_files/server5.key \
              -cert data_files/server5.ku-ds.crt" \
             0 \
@@ -6821,12 +6818,11 @@ run_test    "keyUsage cli-auth 1.3: ECDSA, DigitalSignature: OK" \
             -S "bad certificate (usage extensions)" \
             -S "Processing of the Certificate handshake message failed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_openssl_tls1_3
-requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_key_exchange_with_cert_in_tls13_enabled
 run_test    "keyUsage cli-auth 1.3: ECDSA, KeyAgreement: fail (soft)" \
-            "$P_SRV debug_level=1 auth_mode=optional" \
+            "$P_SRV debug_level=1 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key data_files/server5.key \
              -cert data_files/server5.ku-ka.crt" \
             0 \
@@ -6905,9 +6901,9 @@ run_test    "extKeyUsage cli: codeSign -> fail" \
             -c "Processing of the Certificate handshake message failed" \
             -C "Ciphersuite is TLS-"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_openssl_tls1_3
-requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_key_exchange_with_cert_in_tls13_enabled
 run_test    "extKeyUsage cli 1.3: serverAuth -> OK" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server5.key \
@@ -6918,9 +6914,9 @@ run_test    "extKeyUsage cli 1.3: serverAuth -> OK" \
             -C "Processing of the Certificate handshake message failed" \
             -c "Ciphersuite is"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_openssl_tls1_3
-requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_key_exchange_with_cert_in_tls13_enabled
 run_test    "extKeyUsage cli 1.3: serverAuth,clientAuth -> OK" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server5.key \
@@ -6931,9 +6927,9 @@ run_test    "extKeyUsage cli 1.3: serverAuth,clientAuth -> OK" \
             -C "Processing of the Certificate handshake message failed" \
             -c "Ciphersuite is"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_openssl_tls1_3
-requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_key_exchange_with_cert_in_tls13_enabled
 run_test    "extKeyUsage cli 1.3: codeSign,anyEKU -> OK" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server5.key \
@@ -6944,9 +6940,9 @@ run_test    "extKeyUsage cli 1.3: codeSign,anyEKU -> OK" \
             -C "Processing of the Certificate handshake message failed" \
             -c "Ciphersuite is"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_openssl_tls1_3
-requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_key_exchange_with_cert_in_tls13_enabled
 run_test    "extKeyUsage cli 1.3: codeSign -> fail" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server5.key \
@@ -7004,48 +7000,44 @@ run_test    "extKeyUsage cli-auth: codeSign -> fail (hard)" \
             -s "bad certificate (usage extensions)" \
             -s "Processing of the Certificate handshake message failed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_openssl_tls1_3
-requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_key_exchange_with_cert_in_tls13_enabled
 run_test    "extKeyUsage cli-auth 1.3: clientAuth -> OK" \
-            "$P_SRV debug_level=1 auth_mode=optional" \
+            "$P_SRV debug_level=1 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key data_files/server5.key \
              -cert data_files/server5.eku-cli.crt" \
             0 \
             -S "bad certificate (usage extensions)" \
             -S "Processing of the Certificate handshake message failed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_openssl_tls1_3
-requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_key_exchange_with_cert_in_tls13_enabled
 run_test    "extKeyUsage cli-auth 1.3: serverAuth,clientAuth -> OK" \
-            "$P_SRV debug_level=1 auth_mode=optional" \
+            "$P_SRV debug_level=1 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key data_files/server5.key \
              -cert data_files/server5.eku-srv_cli.crt" \
             0 \
             -S "bad certificate (usage extensions)" \
             -S "Processing of the Certificate handshake message failed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_openssl_tls1_3
-requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_key_exchange_with_cert_in_tls13_enabled
 run_test    "extKeyUsage cli-auth 1.3: codeSign,anyEKU -> OK" \
-            "$P_SRV debug_level=1 auth_mode=optional" \
+            "$P_SRV debug_level=1 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key data_files/server5.key \
              -cert data_files/server5.eku-cs_any.crt" \
             0 \
             -S "bad certificate (usage extensions)" \
             -S "Processing of the Certificate handshake message failed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_openssl_tls1_3
-requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_key_exchange_with_cert_in_tls13_enabled
 run_test    "extKeyUsage cli-auth 1.3: codeSign -> fail (soft)" \
-            "$P_SRV debug_level=1 auth_mode=optional" \
+            "$P_SRV debug_level=1 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key data_files/server5.key \
              -cert data_files/server5.eku-cs.crt" \
             0 \

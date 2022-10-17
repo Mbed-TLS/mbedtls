@@ -193,6 +193,7 @@ void lmots_import_export_test (  data_t * pub_key, int expected_import_rc )
 
 exit:
     mbedtls_lmots_public_free( &ctx );
+    mbedtls_free( exported_pub_key );
 }
 /* END_CASE */
 

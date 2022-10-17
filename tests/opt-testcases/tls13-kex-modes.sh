@@ -2792,7 +2792,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3: m->O: psk/ephemeral_all, fail - no common kex mode" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203" \
-            "$P_CLI debug_level=4 sig_algs=ecdsa_secp256r1_sha256 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             1 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2830,7 +2830,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3: m->O: psk_all/ephemeral_all, good" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203" \
-            "$P_CLI debug_level=4 sig_algs=ecdsa_secp256r1_sha256 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2869,7 +2869,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3: m->O: psk_ephemeral/ephemeral_all, good" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203" \
-            "$P_CLI debug_level=4 sig_algs=ecdsa_secp256r1_sha256 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \

@@ -264,49 +264,42 @@ class BignumReadWrite(BignumTarget, metaclass=ABCMeta):
             tmp_components.append("zero")
         return " ".join(tmp_components)
 
-    def convert_radix(self, val: str, in_radix: int, out_radix: int) -> str:
-        """Convert a string between radices.
+    def str_to_int(self, val: str, radix: int) -> int:
+        """Convert a string representation to int.
 
         Sets return_value when radix is out of the supported range (2 to 16),
         or when an invalid character is read.
         """
-        digits = "0123456789abcdef"
-        sign = ""
-        if max(out_radix, in_radix) > 16 or min(out_radix, in_radix) < 2:
+        if radix > 16 or radix < 2:
+            self.return_value = "MBEDTLS_ERR_MPI_BAD_INPUT_DATA"
+        try:
+            return int(val, radix) if val != "" else 0
+        except ValueError:
+            self.return_value = "MBEDTLS_ERR_MPI_INVALID_CHARACTER"
+            return 0
+
+    def int_to_str(self, val: int, radix: int) -> str:
+        """Convert an integer to its string representation.
+
+        Sets return_value when radix is out of the supported range (2 to 16).
+        """
+        if radix > 16 or radix < 2:
             self.return_value = "MBEDTLS_ERR_MPI_BAD_INPUT_DATA"
             return ""
-        if val == "" and out_radix == 16:
-            return ""
 
-        if val.startswith("-"):
-            val = val[1:]
-            sign = "-"
-        for char in val:
-            if char not in digits[:in_radix]:
-                self.return_value = "MBEDTLS_ERR_MPI_INVALID_CHARACTER"
-                return ""
+        sign = "" if val >= 0 else "-"
+        val = abs(val)
+        ret_digits = [] # type: List[str]
 
-        int_val = abs(int(val, in_radix)) if val != "" else 0
-        if int_val == 0:
-            sign = ""
-        # Convert value to output radix
-        # Use string formatting for hex and dec
-        if out_radix == 16:
-            ret = "{:x}".format(int_val)
-            # Add zero if hex value is odd number of digits
-            ret = "{}{}{}".format(sign, "0" if len(ret) % 2 else "", ret)
-        elif out_radix == 10:
-            ret = "{}{}".format(sign, int_val)
-        elif int_val == 0:
-            ret = "0"
-        else:
-            # For other radices, create list of digits and join
-            ret_digits = [] # type: List[str]
-            while int_val:
-                ret_digits.insert(0, digits[int_val % out_radix])
-                int_val //= out_radix
-            ret = "{}{}".format(sign, "".join(ret_digits))
-        return ret
+        while val:
+            ret_digits.insert(0, "0123456789abcdef"[val % radix])
+            val //= radix
+        if not ret_digits:
+            ret_digits.insert(0, "0")
+        if radix == 16 and len(ret_digits) % 2:
+            ret_digits.insert(0, "0")
+
+        return "{}{}".format(sign, "".join(ret_digits))
 
     @classmethod
     def additional_test_cases(cls) -> Iterator[test_case.TestCase]:
@@ -334,7 +327,8 @@ class BignumReadString(BignumReadWrite):
 
     def __init__(self, val_a: str, radix: int, case_description: str = "") -> None:
         super().__init__(val_a, radix, case_description)
-        self.val_x = self.convert_radix(val_a, self.radix, 16)
+        int_x = self.str_to_int(val_a, self.radix)
+        self.val_x = self.int_to_str(int_x, 16)
 
     def arguments(self) -> List[str]:
         return [
@@ -359,13 +353,13 @@ class BignumWriteString(BignumReadWrite):
     def __init__(self, val_a: str, radix: int, case_description: str = "",
                  undersize_buffer: bool = False):
         super().__init__(val_a, radix, case_description)
-        self.val_x = self.convert_radix(val_a, 16, self.radix)
-
-        # Set the buffer size for the output value
-        if self.val_x == "":
+        if val_a == "" and radix == 16:
+            self.val_x = ""
             self.buf_size = self.min_buf_size(1)
         else:
-            self.buf_size = self.min_buf_size(int(self.val_x, self.radix))
+            int_x = self.str_to_int(val_a, 16)
+            self.val_x = self.int_to_str(int_x, radix)
+            self.buf_size = self.min_buf_size(int_x)
 
         if undersize_buffer:
             self.buf_size -= 1

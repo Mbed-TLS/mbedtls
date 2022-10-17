@@ -618,6 +618,86 @@ class BignumMulInt(BignumMul):
                 yield (a, b)
 
 
+class BignumDiv(BignumOperation):
+    """Test cases for bignum value division."""
+    count = 0
+    symbol = "/"
+    test_function = "mpi_div_mpi"
+    test_name = "MPI div"
+    input_values = ["", "0", "7", "3e8"]
+    input_cases = [
+        ("3e8", "d"), ("3e8", "-d"), ("", "1"), ("", "-1"), ("309", "7"),
+        (
+            "9e22d6da18a33d1ef28d2a82242b3f6e9c9742f63e5d440f58a190bfaf23a7866e67589adb80",
+            "22"
+        ), (
+            (
+                "503ae899d35ae5b7706b067aed7cb2952da37a5d4ad58f05f69abe14e8aaae88eab2baed"
+                "858177cb4595c0edc92e5ac13c2bba2bfa23276dd023e9e52f547d4c9edb138d86aad329"
+                "d7afb01e15eab7281e181cb249fc91bf09d621d86561301edda156f80e3bbff853a31285"
+                "2fe9e3d0541cb86801390aff1dc3c05bcb592c266f625b70e419b4c7e7e85399bb06c0e5"
+                "0b099b4292f9eaff4d869681faa1f745b5fcb3349ed93c572739a31dcf76b43370cf9f86"
+                "cc54e982dfac9467bde915c697e60554e0d698be6bb2dd1f8bc64659f6baee7641b51f4b"
+                "5ed7010c04600fcd382db84a93fe3d4d86e86a459c6cebb5a"
+            ), (
+                "2f77b94b179d4a51360f04fa56e2c0784ce3b8a742280b016904896a5605fbe9e0f0683f"
+                "82c439d979ab14e11b34e05ae96232b18fb2e0d1319f4942732d7eadf92ae90cb8c68ec8"
+                "ece154d334f553564b6f6db185b33b8d3635598c3d128acde8bbb7b13697e48d1a542e5f"
+                "9168d2d83a8dd05ae1eaf2451"
+            )
+        )
+    ]
+    unique_combinations_only = False
+
+    def description(self) -> str:
+        if not self.case_description and self.int_b == 0:
+            self.case_description = "(division by zero)"
+        return super().description()
+
+    def result(self) -> List[str]:
+        if self.int_b == 0:
+            quot, rem = 0, 0
+            ret = "MBEDTLS_ERR_MPI_DIVISION_BY_ZERO"
+        else:
+            quot, rem = divmod(self.int_a, self.int_b)
+            # Python will return a remainder with the same sign as divisor
+            if rem < 0:
+                rem -= self.int_b
+                quot += 1
+            ret = "0"
+        return [
+            "\"{:x}\"".format(quot) if quot else "\"\"",
+            "\"{:x}\"".format(rem) if rem else "\"\"",
+            ret
+        ]
+
+
+class BignumDivInt(BignumDiv):
+    """Test cases for bignum value division with int divisor."""
+    count = 0
+    test_function = "mpi_div_int"
+    test_name = "MPI div (int)"
+    input_values = [] # type: List[str]
+    input_cases = [
+        ("3e8", "13"), ("3e8", "0"), ("3e8", "-13"), ("", "0"), ("00", "0"), ("", "1"),
+        (
+            "9e22d6da18a33d1ef28d2a82242b3f6e9c9742f63e5d440f58a190bfaf23a7866e67589adb80",
+            "34"
+        ), (
+            "9e22d6da18a33d1ef28d2a82242b3f6e9c9742f63e5d440f58a190bfaf23a7866e67589adb80",
+            "-34"
+        )
+    ]
+
+    def __init__(self, val_a: str, val_b: str) -> None:
+        # Read val_b as decimal string
+        val_b = "{:x}".format(int(val_b))
+        super().__init__(val_a, val_b)
+
+    def arguments(self) -> List[str]:
+        return [bignum_common.quote_str(self.arg_a), str(self.int_b)] + self.result()
+
+
 if __name__ == '__main__':
     # Use the section of the docstring relevant to the CLI as description
     test_data_generation.main(sys.argv[1:], "\n".join(__doc__.splitlines()[:4]))

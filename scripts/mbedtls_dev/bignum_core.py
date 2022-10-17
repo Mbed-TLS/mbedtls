@@ -61,8 +61,8 @@ class BignumCoreOperation(bignum_common.OperationCommon, BignumCoreTarget, metac
         generated to provide some context to the test case.
         """
         if not self.case_description:
-            self.case_description = "{} {} {}".format(
-                self.arg_a, self.symbol, self.arg_b
+            self.case_description = "{:x} {} {:x}".format(
+                self.int_a, self.symbol, self.int_b
             )
         return super().description()
 
@@ -82,10 +82,20 @@ class BignumCoreOperationArchSplit(BignumCoreOperation):
         bound_val = max(self.int_a, self.int_b)
         self.bits_in_limb = bits_in_limb
         self.bound = bignum_common.bound_mpi(bound_val, self.bits_in_limb)
+        limbs =  bignum_common.limbs_mpi(bound_val, self.bits_in_limb)
+        byte_len = limbs*self.bits_in_limb//8
+        self.hex_digits = 2*byte_len
         if self.bits_in_limb == 32:
             self.dependencies = ["MBEDTLS_HAVE_INT32"]
         elif self.bits_in_limb == 64:
-            self.dependencies = ["MBDTLS_HAVE_INT64"]
+            self.dependencies = ["MBEDTLS_HAVE_INT64"]
+        else:
+            raise ValueError("Invalid number of bits in limb!")
+        self.arg_a = self.arg_a.zfill(self.hex_digits)
+        self.arg_b = self.arg_b.zfill(self.hex_digits)
+
+    def pad_to_limbs(self, val) -> str:
+        return "{:x}".format(val).zfill(self.hex_digits)
 
     @classmethod
     def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
@@ -106,10 +116,9 @@ class BignumCoreAddIf(BignumCoreOperationArchSplit):
         carry, result = divmod(result, self.bound)
 
         return [
-            "\"{:x}\"".format(result),
+            bignum_common.quote_str(self.pad_to_limbs(result)),
             str(carry)
         ]
-
 
 class BignumCoreSub(BignumCoreOperation):
     """Test cases for bignum core sub."""

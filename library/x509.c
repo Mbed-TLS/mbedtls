@@ -469,7 +469,7 @@ static int x509_get_attr_type_value( unsigned char **p,
  * same set so that they are "merged" together in the functions that consume
  * this list, eg mbedtls_x509_dn_gets().
  *
- * On success, this function allocates a linked list starting at cur->next
+ * On success, this function may allocate a linked list starting at cur->next
  * that must later be free'd by the caller using mbedtls_free(). In error
  * cases, this function frees all allocated memory internally and the caller
  * has no freeing responsibilities.

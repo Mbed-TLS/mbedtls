@@ -811,7 +811,7 @@ void mpi_core_cond_assign( data_t * input_X,
 
     /* Check if the given length is copied even it is smaller
        than the bytesgth of the given MPIs. */
-    if( copy_limbs != limbs )
+    if( copy_limbs < limbs )
     {
         ASSERT_COMPARE( X, copy_bytes, Y, copy_bytes );
         TEST_ASSERT( memcmp( X, Y, bytes ) != 0 );
@@ -882,7 +882,7 @@ void mpi_core_cond_swap( data_t * input_X,
 
     /* Check if the given length is copied even it is smaller
        than the length of the given MPIs. */
-    if( copy_limbs != limbs )
+    if( copy_limbs < limbs )
     {
         ASSERT_COMPARE( X, copy_bytes, tmp_Y, copy_bytes );
         ASSERT_COMPARE( Y, copy_bytes, tmp_X, copy_bytes );
@@ -965,7 +965,7 @@ void mpi_mod_raw_cond_assign( data_t * input_X,
 
     /* Check if the given length is copied even it is smaller
        than the length of the given MPIs. */
-    if( copy_limbs != limbs )
+    if( copy_limbs <limbs )
     {
         ASSERT_COMPARE( X, copy_bytes, Y, copy_bytes );
         TEST_ASSERT( memcmp( X, Y, bytes ) != 0 );
@@ -1047,7 +1047,7 @@ void mpi_mod_raw_cond_swap( data_t * input_X,
 
     /* Check if the given length is copied even it is smaller
        than the length of the given MPIs. */
-    if( copy_limbs != limbs )
+    if( copy_limbs < limbs )
     {
         ASSERT_COMPARE( X, copy_bytes, tmp_Y, copy_bytes );
         ASSERT_COMPARE( Y, copy_bytes, tmp_X, copy_bytes );

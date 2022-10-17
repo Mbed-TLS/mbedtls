@@ -145,9 +145,6 @@ The reference state is the one from which the tested configurations are
 derived."""
     # Turn off options that are not relevant to the tests and slow them down.
     run_config_py(options, ['full'])
-    run_config_py(options, ['unset', 'MBEDTLS_MEMORY_BACKTRACE'])
-    run_config_py(options, ['unset', 'MBEDTLS_MEMORY_BUFFER_ALLOC_C'])
-    run_config_py(options, ['unset', 'MBEDTLS_MEMORY_DEBUG'])
     run_config_py(options, ['unset', 'MBEDTLS_TEST_HOOKS'])
 
 def collect_config_symbols(options):

@@ -210,6 +210,7 @@ static int ssl_tls13_reset_key_share( mbedtls_ssl_context *ssl )
 /*
  * Functions for writing key_share extension.
  */
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_get_default_group_id( mbedtls_ssl_context *ssl,
                                            uint16_t *group_id )
@@ -364,7 +365,7 @@ cleanup:
 
     return( ret );
 }
-
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED */
 
 /*
  * ssl_tls13_parse_hrr_key_share_ext()
@@ -1142,6 +1143,7 @@ int mbedtls_ssl_tls13_write_client_hello_exts( mbedtls_ssl_context *ssl,
         return( ret );
     p += ext_len;
 
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
     if( mbedtls_ssl_conf_tls13_some_ephemeral_enabled( ssl ) )
     {
         ret = ssl_tls13_write_key_share_ext( ssl, p, end, &ext_len );
@@ -1149,6 +1151,7 @@ int mbedtls_ssl_tls13_write_client_hello_exts( mbedtls_ssl_context *ssl,
             return( ret );
         p += ext_len;
     }
+#endif
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
     /* For PSK-based key exchange we need the pre_shared_key extension

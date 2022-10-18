@@ -3027,6 +3027,7 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
             ret = ssl_tls13_handshake_wrapup( ssl );
             break;
 
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
         case MBEDTLS_SSL_CLIENT_CERTIFICATE:
             ret = mbedtls_ssl_tls13_process_certificate( ssl );
             if( ret == 0 )
@@ -3053,6 +3054,7 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
                     ssl, MBEDTLS_SSL_CLIENT_FINISHED );
             }
             break;
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
         case MBEDTLS_SSL_NEW_SESSION_TICKET:

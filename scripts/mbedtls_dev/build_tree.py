@@ -25,6 +25,13 @@ def looks_like_mbedtls_root(path: str) -> bool:
     return all(os.path.isdir(os.path.join(path, subdir))
                for subdir in ['include', 'library', 'programs', 'tests'])
 
+def check_repo_path():
+    """
+    Check that the current working directory is the project root, and throw
+    an exception if not.
+    """
+    if not all(os.path.isdir(d) for d in ["include", "library", "tests"]):
+        raise Exception("This script must be run from Mbed TLS root")
 
 def chdir_to_root() -> None:
     """Detect the root of the Mbed TLS source tree and change to it.

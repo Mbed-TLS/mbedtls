@@ -6,7 +6,7 @@ generate only the specified files.
 
 Class structure:
 
-Child classes of test_generation.BaseTarget (file targets) represent an output
+Child classes of test_data_generation.BaseTarget (file targets) represent an output
 file. These indicate where test cases will be written to, for all subclasses of
 this target. Multiple file targets should not reuse a `target_basename`.
 
@@ -36,7 +36,7 @@ following:
         call `.create_test_case()` to yield the TestCase.
 
 Additional details and other attributes/methods are given in the documentation
-of BaseTarget in test_generation.py.
+of BaseTarget in test_data_generation.py.
 """
 
 # Copyright The Mbed TLS Contributors
@@ -63,7 +63,7 @@ from typing import Iterator, List, Tuple, TypeVar
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import test_case
-from mbedtls_dev import test_generation
+from mbedtls_dev import test_data_generation
 
 T = TypeVar('T') #pylint: disable=invalid-name
 
@@ -74,18 +74,16 @@ def quote_str(val) -> str:
     return "\"{}\"".format(val)
 
 def combination_pairs(values: List[T]) -> List[Tuple[T, T]]:
-    """Return all pair combinations from input values.
-
-    The return value is cast, as older versions of mypy are unable to derive
-    the specific type returned by itertools.combinations_with_replacement.
-    """
+    """Return all pair combinations from input values."""
+    # The return value is cast, as older versions of mypy are unable to derive
+    # the specific type returned by itertools.combinations_with_replacement.
     return typing.cast(
         List[Tuple[T, T]],
         list(itertools.combinations_with_replacement(values, 2))
     )
 
 
-class BignumTarget(test_generation.BaseTarget, metaclass=ABCMeta):
+class BignumTarget(test_data_generation.BaseTarget, metaclass=ABCMeta):
     #pylint: disable=abstract-method
     """Target for bignum (mpi) test case generation."""
     target_basename = 'test_suite_mpi.generated'
@@ -235,4 +233,4 @@ class BignumAdd(BignumOperation):
 
 if __name__ == '__main__':
     # Use the section of the docstring relevant to the CLI as description
-    test_generation.main(sys.argv[1:], "\n".join(__doc__.splitlines()[:4]))
+    test_data_generation.main(sys.argv[1:], "\n".join(__doc__.splitlines()[:4]))

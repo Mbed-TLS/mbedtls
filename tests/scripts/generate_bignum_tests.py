@@ -753,6 +753,139 @@ class BignumModInt(BignumMod):
                 yield (a, b)
 
 
+class BignumExpMod(BignumTarget):
+    """Test cases for bignum exponentiation mod N."""
+    count = 0
+    test_function = "mpi_exp_mod"
+    test_name = "MPI exp mod"
+    input_cases = [
+        ("17", "d", "1d"), ("17", "d", "1e"), ("17", "d", ""), ("17", "d", "-1d"),
+        ("-17", "d", "1d"), ("17", "-d", "1d"), ("-17", "-d", "1d"), ("", "", "09"),
+        ("", "00", "09"), ("", "01", "09"), ("", "02", "09"), ("00", "", "09"),
+        ("00", "00", "09"), ("00", "01", "09"), ("00", "02", "09"), ("01", "", "09"),
+        ("04", "", "09"), ("0a", "", "09"), ("01", "00", "09"), ("04", "00", "09"),
+        ("0a", "00", "09"), ("-2540be400", "2540be400", "1869f"),
+        (
+            (
+                "109fe45714866e56fdd4ad9b6b686df27224afb7868cf4f0cbb794526932853cbf0beea6"
+                "1594166654d13cd9fe0d9da594a97ee20230f12fb5434de73fb4f8102725a01622b31b1e"
+                "a42e3a265019039ac1df31869bd97930d792fb72cdaa971d8a8015af"
+            ), (
+                "33ae3764fd06a00cdc3cba5c45dc79a9edb4e67e4d057cc74139d531c25190d111775fc4"
+                "a0f4439b8b1930bbd766e7b46f170601f316c8a18ff8d5cb5ca5581f168345d101edb462"
+                "b7d93b7c520ccb8fb276b447a63d869203cc11f67a1122dc4da034218de85e39"
+            ), (
+                "11a9351d2d32ccd568e75bf8b4ebbb2a36be691b55832edac662ff79803df8af525fba45"
+                "3068be16ac3920bcc1b468f8f7fe786e0fa4ecbabcad31e5e3b05def802eb8600deaf11e"
+                "f452487db878df20a80606e4bb6a163b83895d034cc8b53dbcd005be42ffdd2ce99bed06"
+                "089a0b79d"
+            )
+        ), (
+            (
+                "-9f13012cd92aa72fb86ac8879d2fde4f7fd661aaae43a00971f081cc60ca277059d5c37"
+                "e89652e2af2585d281d66ef6a9d38a117e9608e9e7574cd142dc55278838a2161dd56db9"
+                "470d4c1da2d5df15a908ee2eb886aaa890f23be16de59386663a12f1afbb325431a3e835"
+                "e3fd89b98b96a6f77382f458ef9a37e1f84a03045c8676ab55291a94c2228ea15448ee96"
+                "b626b998"
+            ), (
+                "40a54d1b9e86789f06d9607fb158672d64867665c73ee9abb545fc7a785634b354c7bae5"
+                "b962ce8040cf45f2c1f3d3659b2ee5ede17534c8fc2ec85c815e8df1fe7048d12c90ee31"
+                "b88a68a081f17f0d8ce5f4030521e9400083bcea73a429031d4ca7949c2000d597088e0c"
+                "39a6014d8bf962b73bb2e8083bd0390a4e00b9b3"
+            ), (
+                "eeaf0ab9adb38dd69c33f80afa8fc5e86072618775ff3c0b9ea2314c9c256576d674df74"
+                "96ea81d3383b4813d692c6e0e0d5d8e250b98be48e495c1d6089dad15dc7d7b46154d6b6"
+                "ce8ef4ad69b15d4982559b297bcf1885c529f566660e57ec68edbc3c05726cc02fd4cbf4"
+                "976eaa9afd5138fe8376435b9fc61d2fc0eb06e3"
+            )
+        )
+    ]
+
+    def __init__(self, val_a: str, val_e: str, val_n: str) -> None:
+        self.arg_a = val_a
+        self.arg_e = val_e
+        self.arg_b = val_e
+        self.arg_n = val_n
+        self.int_a = bignum_common.hex_to_int(val_a)
+        self.int_e = bignum_common.hex_to_int(val_e)
+        self.int_n = bignum_common.hex_to_int(val_n)
+        if self.int_a.bit_length() > 792:
+            self.dependencies = ["MPI_MAX_BITS_LARGER_THAN_792"]
+
+    def arguments(self) -> List[str]:
+        return [
+            bignum_common.quote_str(self.arg_a), bignum_common.quote_str(self.arg_e),
+            bignum_common.quote_str(self.arg_n)
+        ] + self.result()
+
+    def description(self) -> str:
+        if not self.case_description:
+            if self.int_n == 0:
+                self.case_description = "(N = 0)"
+            elif self.int_n < 0:
+                self.case_description = "(negative N)"
+            elif self.int_n % 2 == 0:
+                self.case_description = "(even N)"
+            elif self.int_e < 0:
+                self.case_description = "(negative exponent)"
+            elif self.int_a < 0:
+                self.case_description = "(negative base)"
+            else:
+                self.case_description = "{:x} ^ {:x} mod {:x}".format(
+                    self.int_a, self.int_e, self.int_n
+                )
+        return super().description()
+
+    def result(self) -> List[str]:
+        if self.int_n <= 0 or self.int_n % 2 == 0 or self.int_e < 0:
+            ret = "MBEDTLS_ERR_MPI_BAD_INPUT_DATA"
+            val = 0
+        else:
+            ret = "0"
+            val = pow(self.int_a, self.int_e, self.int_n)
+        return ["\"{:x}\"".format(val), ret]
+
+    @classmethod
+    def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
+        for a_value, e_value, n_value in cls.input_cases:
+            yield cls(a_value, e_value, n_value).create_test_case()
+
+
+class BignumExpModSize(BignumTarget):
+    """Test case for bignum exponentiation mod N, from input sizes."""
+    count = 0
+    test_function = "mpi_exp_mod_size"
+    test_name = "MPI exp mod (by size)"
+    input_cases = [
+        ("2", "MBEDTLS_MPI_MAX_SIZE", "10"), ("2", "MBEDTLS_MPI_MAX_SIZE + 1", "10"),
+        ("2", "2", "MBEDTLS_MPI_MAX_SIZE"), ("2", "2", "MBEDTLS_MPI_MAX_SIZE + 1"),
+        ("2", "MBEDTLS_MPI_MAX_SIZE", "MBEDTLS_MPI_MAX_SIZE"),
+        ("2", "MBEDTLS_MPI_MAX_SIZE + 1", "MBEDTLS_MPI_MAX_SIZE + 1")
+    ]
+
+    def __init__(self, size_a: str, size_e: str, size_n: str) -> None:
+        self.arg_a = size_a
+        self.arg_e = size_e
+        self.arg_n = size_n
+        self.arg_rr = ""
+
+    def arguments(self) -> List[str]:
+        return [
+            self.arg_a, self.arg_e, self.arg_n, bignum_common.quote_str(self.arg_rr)
+        ] + self.result()
+
+    def result(self) -> List[str]:
+        if "MBEDTLS_MPI_MAX_SIZE +" in "".join((self.arg_e, self.arg_n)):
+            return ["MBEDTLS_ERR_MPI_BAD_INPUT_DATA"]
+        else:
+            return ["0"]
+
+    @classmethod
+    def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
+        for size_a, size_e, size_n in cls.input_cases:
+            yield cls(size_a, size_e, size_n).create_test_case()
+
+
 if __name__ == '__main__':
     # Use the section of the docstring relevant to the CLI as description
     test_data_generation.main(sys.argv[1:], "\n".join(__doc__.splitlines()[:4]))

@@ -698,6 +698,61 @@ class BignumDivInt(BignumDiv):
         return [bignum_common.quote_str(self.arg_a), str(self.int_b)] + self.result()
 
 
+class BignumMod(BignumOperation):
+    """Test cases for bignum value modulo."""
+    count = 0
+    symbol = "mod"
+    test_function = "mpi_mod_mpi"
+    test_name = "MPI mod"
+    input_values = ["", "-d", "d", "3e8", "-3e8"]
+    input_cases = [("3e8", "0"), ("", "1"), ("", "-1")]
+
+    def description(self) -> str:
+        if not self.case_description and self.int_b == 0:
+            self.case_description = "(division by zero)"
+        elif not self.case_description and self.int_b < 0:
+            self.case_description = "(negative mod)"
+        return super().description()
+
+    def result(self) -> List[str]:
+        remainder = 0
+        if self.int_b == 0:
+            ret = "MBEDTLS_ERR_MPI_DIVISION_BY_ZERO"
+        elif self.int_b < 0:
+            ret = "MBEDTLS_ERR_MPI_NEGATIVE_VALUE"
+        else:
+            remainder = self.int_a % self.int_b
+            ret = "0"
+        return ["\"{:x}\"".format(remainder), ret]
+
+
+class BignumModInt(BignumMod):
+    """Test cases for bignum value modulo with int modulus."""
+    count = 0
+    test_function = "mpi_mod_int"
+    test_name = "MPI mod (int)"
+    input_values = [] # type: List[str]
+    input_cases = [
+        ("3e8", "d"), ("3e8", ""), ("3e8", "0"), ("-3e8", "d"), ("3e8", "-d"),
+        ("-3e8", "-d"), ("3e8", "1"), ("3e9", "2"), ("3e8", "2"), ("", "1"),
+        ("", "2"), ("", "-1"), ("", "-2")
+    ]
+
+    def arguments(self) -> List[str]:
+        return [bignum_common.quote_str(self.arg_a), str(self.int_b)] + self.result()
+
+    def result(self) -> List[str]:
+        rem, ret = super().result()
+        rem = rem.replace("\"", "")
+        return [str(int(rem, 16)), ret]
+
+    @classmethod
+    def get_value_pairs(cls) -> Iterator[Tuple[str, str]]:
+        for a, b in super().get_value_pairs():
+            if b and abs(int(b, 16)) < 0xFFFFFFFF:
+                yield (a, b)
+
+
 if __name__ == '__main__':
     # Use the section of the docstring relevant to the CLI as description
     test_data_generation.main(sys.argv[1:], "\n".join(__doc__.splitlines()[:4]))

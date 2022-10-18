@@ -147,7 +147,11 @@ compare_builds () {
             failed="$failed $suite"
         fi
     done
-    printf "suites with less coverage: %s\n" "$failed"
+    if [ -z "$failed" ]; then
+        printf "No coverage gap found.\n"
+    else
+        printf "Suites with less coverage:%s\n" "$failed"
+    fi
 }
 
 populate_suites

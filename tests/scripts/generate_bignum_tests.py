@@ -886,6 +886,49 @@ class BignumExpModSize(BignumTarget):
             yield cls(size_a, size_e, size_n).create_test_case()
 
 
+class BignumInvMod(BignumOperation):
+    """Test cases for bignum inverse modulo."""
+    count = 0
+    symbol = "^-1 mod"
+    test_function = "mpi_inv_mod"
+    test_name = "MPI inv mod"
+    input_values = [] # type: List[str]
+    input_cases = [
+        ("3", "b"), ("3", ""), ("3", "0"), ("3", "-b"), ("2", "4"), ("3", "1"),
+        ("", "11"), ("00", "11"),
+        (
+            "aa4df5cb14b4c31237f98bd1faf527c283c2d0f3eec89718664ba33f9762907c",
+            "fffbbd660b94412ae61ead9c2906a344116e316a256fd387874c6c675b1d587d"
+        )
+    ]
+
+    def description(self) -> str:
+        if not self.case_description:
+            if self.arg_b == "":
+                self.case_description = "(mod null)"
+            elif self.int_b == 0:
+                self.case_description = "(mod 0)"
+            elif self.int_b < 0:
+                self.case_description = "(mod negative)"
+            elif self.arg_a == "":
+                self.case_description = "0 (null) ^-1"
+        return super().description()
+
+    def result(self) -> List[str]:
+        result = 0
+        ret = "0"
+        if self.int_b <= 1:
+            ret = "MBEDTLS_ERR_MPI_BAD_INPUT_DATA"
+        else:
+            try:
+                result = bignum_common.invmod(self.int_a, self.int_b)
+            except ValueError:
+                ret = "MBEDTLS_ERR_MPI_NOT_ACCEPTABLE"
+        if result < 0:
+            result += self.int_b
+        return ["\"{:x}\"".format(result), ret]
+
+
 if __name__ == '__main__':
     # Use the section of the docstring relevant to the CLI as description
     test_data_generation.main(sys.argv[1:], "\n".join(__doc__.splitlines()[:4]))

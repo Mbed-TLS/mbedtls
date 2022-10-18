@@ -706,33 +706,6 @@ mpi_gcd:"136154c5dee27c04d296c5e29a32ad9fb923d66f5ce20ecab875aff2a8de964e668cc3e
 Test GCD: 0 < A = B
 mpi_gcd:"109fe45714866e56fdd4ad9b6b686df27224afb7868cf4f0cbb794526932853cbf0beea61594166654d13cd9fe0d9da594a97ee20230f12fb5434de73fb4f8102725a01622b31b1ea42e3a265019039ac1df31869bd97930d792fb72cdaa971d8a8015af":"109fe45714866e56fdd4ad9b6b686df27224afb7868cf4f0cbb794526932853cbf0beea61594166654d13cd9fe0d9da594a97ee20230f12fb5434de73fb4f8102725a01622b31b1ea42e3a265019039ac1df31869bd97930d792fb72cdaa971d8a8015af":"109fe45714866e56fdd4ad9b6b686df27224afb7868cf4f0cbb794526932853cbf0beea61594166654d13cd9fe0d9da594a97ee20230f12fb5434de73fb4f8102725a01622b31b1ea42e3a265019039ac1df31869bd97930d792fb72cdaa971d8a8015af"
 
-Base test mbedtls_mpi_inv_mod #1
-mpi_inv_mod:"3":"b":"4":0
-
-Test mbedtls_mpi_inv_mod: mod 0 (null)
-mpi_inv_mod:"3":"":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
-
-Test mbedtls_mpi_inv_mod: mod 0 (1 limb)
-mpi_inv_mod:"3":"0":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
-
-Test mbedtls_mpi_inv_mod: mod negative
-mpi_inv_mod:"3":"-b":"4":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
-
-Test mbedtls_mpi_inv_mod: 2^-1 mod 4
-mpi_inv_mod:"2":"4":"0":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
-
-Test mbedtls_mpi_inv_mod: mod 1
-mpi_inv_mod:"3":"1":"0":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
-
-Test mbedtls_mpi_inv_mod: 0 (null) ^-1
-mpi_inv_mod:"":"11":"":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
-
-Test mbedtls_mpi_inv_mod: 0 (1 limb) ^-1
-mpi_inv_mod:"00":"11":"":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
-
-Test mbedtls_mpi_inv_mod #1
-mpi_inv_mod:"aa4df5cb14b4c31237f98bd1faf527c283c2d0f3eec89718664ba33f9762907c":"fffbbd660b94412ae61ead9c2906a344116e316a256fd387874c6c675b1d587d":"8d6a5c1d7adeae3e94b9bcd2c47e0d46e778bc8804a2cc25c02d775dc3d05b0c":0
-
 Base test mbedtls_mpi_is_prime #1
 depends_on:MBEDTLS_GENPRIME
 mpi_is_prime:"0":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE

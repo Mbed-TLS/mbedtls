@@ -352,6 +352,58 @@ class BignumCmpInt(BignumCmp):
         return [str(self.int_a), str(self.int_b)] + self.result()
 
 
+class BignumLtCt(BignumOperation):
+    """Test cases for bignum constant time less than."""
+    count = 0
+    test_function = "mpi_lt_mpi_ct"
+    test_name = "MPI LT CT"
+    input_cases_sized = [
+        (1, "2B5", 1, "2B5"), (1, "2B5", 1, "2B4"), (1, "2B5", 1, "2B6"),
+        (1, "-2", 1, "-2"), (1, "-2", 1, "-3"), (1, "-2", 1, "-1"), (1, "-3", 1, "2"),
+        (1, "2", 1, "-3"), (2, "-2", 2, "1C67967269C6"), (3, "2B5", 2, "2B5"),
+        (3, "2B5", 4, "2B5"), (0, "", 0, ""), (2, "7FFFFFFFFFFFFFFF", 2, "FF"),
+        (2, "8000000000000000", 2, "7FFFFFFFFFFFFFFF"), (2, "8000000000000000", 2, "1"),
+        (2, "8000000000000000", 2, "0"), (2, "FFFFFFFFFFFFFFFF", 2, "FF"),
+        (1, "7FFFFFFF", 1, "FF"), (1, "80000000", 1, "7FFFFFFF"), (1, "80000000", 1, "1"),
+        (1, "80000000", 1, "0"), (1, "FFFFFFFF", 1, "FF"),
+        (2, "0FFFFFFFFFFFFFFFF", 2, "1FFFFFFFFFFFFFFFF"),
+        (2, "-EEFFFFFFFFFFFFFFF1", 2, "-EEFFFFFFFFFFFFFFFF"),
+        (2, "EEFFFFFFFFFFFFFFFF", 2, "EEFFFFFFFFFFFFFFFF"),
+        (2, "-EEFFFFFFFFFFFFFFFF", 2, "EEFFFFFFFFFFFFFFFF"),
+        (2, "11FFFFFFFFFFFFFFFF", 2, "FF1111111111111111"),
+        (2, "FF1111111111111111", 2, "11FFFFFFFFFFFFFFFF"),
+        (2, "-11FFFFFFFFFFFFFFFF", 2, "-FF1111111111111111"),
+        (2, "-FF1111111111111111", 2, "-11FFFFFFFFFFFFFFFF")
+    ]
+    error_ret = "0"
+
+    def __init__(self, size_a: int, val_a: str, size_b: int, val_b: str) -> None:
+        super().__init__(val_a, val_b)
+        self.size_a = size_a
+        self.size_b = size_b
+        self._result = int(self.int_a < self.int_b)
+        self.symbol = [">=", "<"][self._result]
+        if self.size_a != self.size_b:
+            self.error_ret = "MBEDTLS_ERR_MPI_BAD_INPUT_DATA"
+            self.case_description = "({} is longer in storage)".format(
+                "X" if self.size_a > self.size_b else "Y"
+            )
+
+    def arguments(self) -> List[str]:
+        return [
+            str(self.size_a), bignum_common.quote_str(self.arg_a),
+            str(self.size_b), bignum_common.quote_str(self.arg_b)
+        ] + self.result()
+
+    def result(self) -> List[str]:
+        return [str(self._result), self.error_ret]
+
+    @classmethod
+    def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
+        for size_a, val_a, size_b, val_b in cls.input_cases_sized:
+            yield cls(size_a, val_a, size_b, val_b).create_test_case()
+
+
 class BignumAdd(BignumOperation):
     """Test cases for bignum value addition."""
     count = 0

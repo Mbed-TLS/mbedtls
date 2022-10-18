@@ -1,6 +1,7 @@
 /* BEGIN_HEADER */
 #include "mbedtls/debug.h"
 #include "string.h"
+#include "mbedtls/legacy_or_psa.h"
 
 struct buffer_data
 {

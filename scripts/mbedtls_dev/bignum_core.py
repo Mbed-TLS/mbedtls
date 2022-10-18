@@ -387,7 +387,7 @@ class BignumCoreMontmul(BignumCoreTarget):
             "DD15FE80B731872AC104DB37832F7E75A244AA2631BC87885B861E8F20375499",
             (
                 "0xDD15FE80B731872AC104DB37832F7E75A244AA2631BC87885B861E8F20375499"
-                "is (dec) 99999999977^7"
+                " is (dec) 99999999977^7"
             )
         ),
         (

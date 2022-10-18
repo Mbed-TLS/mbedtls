@@ -121,57 +121,6 @@ mpi_read_file:"data_files/mpi_too_big":"":MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL
 Base test mbedtls_mpi_write_file #1
 mpi_write_file:"941379d00fed1491fe15df284dfde4a142f68aa8d412023195cee66883e6290ffe703f4ea5963bf212713cee46b107c09182b5edcd955adac418bf4918e2889af48e1099d513830cec85c26ac1e158b52620e33ba8692f893efbb2f958b4424":"data_files/mpi_write"
 
-Test mbedtls_mpi_lsb: 0 (null)
-mpi_lsb:"":0
-
-Test mbedtls_mpi_lsb: 0 (1 limb)
-mpi_lsb:"0":0
-
-Base test mbedtls_mpi_lsb #1
-mpi_lsb:"941379d00fed1491fe15df284dfde4a142f68aa8d412023195cee66883e6290ffe703f4ea5963bf212713cee46b107c09182b5edcd955adac418bf4918e2889af48e1099d513830cec85c26ac1e158b52620e33ba8692f893efbb2f958b4424":2
-
-Base test mbedtls_mpi_lsb #2
-mpi_lsb:"18":3
-
-Base test mbedtls_mpi_lsb #3
-mpi_lsb:"24":2
-
-Base test mbedtls_mpi_lsb #4
-mpi_lsb:"2000":13
-
-Test mbedtls_mpi_bitlen 764-bit
-mpi_bitlen:"941379d00fed1491fe15df284dfde4a142f68aa8d412023195cee66883e6290ffe703f4ea5963bf212713cee46b107c09182b5edcd955adac418bf4918e2889af48e1099d513830cec85c26ac1e158b52620e33ba8692f893efbb2f958b4424":764
-
-Test mbedtls_mpi_bitlen 0x18
-mpi_bitlen:"18":5
-
-Test mbedtls_mpi_bitlen 0x18 with leading 0 limb(s)
-mpi_bitlen:"00000000000000018":5
-
-Test mbedtls_mpi_bitlen 0x18 << 64
-mpi_bitlen:"180000000000000000":69
-
-Test mbedtls_mpi_bitlen 0x01
-mpi_bitlen:"1":1
-
-Test mbedtls_mpi_bitlen 0x0f
-mpi_bitlen:"f":4
-
-Test mbedtls_mpi_bitlen 0x10
-mpi_bitlen:"10":5
-
-Test mbedtls_mpi_bitlen 0x0a
-mpi_bitlen:"a":4
-
-Test mbedtls_mpi_bitlen: 0 (null)
-mpi_bitlen:"":0
-
-Test mbedtls_mpi_bitlen: 0 (1 limb)
-mpi_bitlen:"0":0
-
-Test mbedtls_mpi_bitlen: -0x18
-mpi_bitlen:"-18":5
-
 Base test mbedtls_mpi_lt_mpi_ct #1
 mpi_lt_mpi_ct:1:"2B5":1:"2B5":0:0
 
@@ -751,51 +700,6 @@ mpi_gen_prime:1024:MBEDTLS_MPI_GEN_PRIME_FLAG_LOW_ERR:0
 Test mbedtls_mpi_gen_prime standard RSA #2 (lower error rate)
 depends_on:MBEDTLS_GENPRIME
 mpi_gen_prime:1536:MBEDTLS_MPI_GEN_PRIME_FLAG_LOW_ERR:0
-
-Test bit getting (Value bit 25)
-mpi_get_bit:"2faa127":25:1
-
-Test bit getting (Larger but same limb)
-mpi_get_bit:"2faa127":26:0
-
-Test bit getting (Larger and non-existing limb)
-mpi_get_bit:"2faa127":500:0
-
-Test bit getting in 0 (null)
-mpi_get_bit:"":500:0
-
-Test bit getting (Value bit 24)
-mpi_get_bit:"2faa127":24:0
-
-Test bit getting (Value bit 23)
-mpi_get_bit:"2faa127":23:1
-
-Test bit set (Change existing value with a 1)
-mpi_set_bit:"2faa127":24:1:"3faa127":0
-
-Test bit set (Change existing value with a 0)
-mpi_set_bit:"2faa127":25:0:"faa127":0
-
-Test bit set (Add above existing limbs with a 0)
-mpi_set_bit:"2faa127":80:0:"2faa127":0
-
-Test bit set (Add above existing limbs with a 1)
-mpi_set_bit:"2faa127":80:1:"100000000000002faa127":0
-
-Test bit set (Add to 0 (null) with a 0)
-mpi_set_bit:"":65:0:"":0
-
-Test bit set (Add to 0 (null) with a 1)
-mpi_set_bit:"":65:1:"020000000000000000":0
-
-Test bit set (Bit index larger than 31 with a 0)
-mpi_set_bit:"FFFFFFFFFFFFFFFF":32:0:"FFFFFFFEFFFFFFFF":0
-
-Test bit set (Bit index larger than 31 with a 1)
-mpi_set_bit:"00":32:1:"0100000000":0
-
-Test bit set (Invalid bit value)
-mpi_set_bit:"00":5:2:"00":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
 Fill random: 0 bytes
 mpi_fill_random:0:0:0:0

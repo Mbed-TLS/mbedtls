@@ -128,6 +128,126 @@ class BignumOperation(bignum_common.OperationCommon, BignumTarget, metaclass=ABC
             yield cls(a_value, b_value).create_test_case()
 
 
+class BignumBitGet(BignumTarget):
+    """Test cases for bignum get bit function."""
+    count = 0
+    test_function = "mpi_get_bit"
+    test_name = "MPI get bit"
+    input_cases = [
+        ("2faa127", 25), ("2faa127", 26), ("2faa127", 500), ("", 500),
+        ("2faa127", 24), ("2faa127", 23)
+    ]
+
+    def __init__(self, input_a: str, position: int) -> None:
+        self.arg_a = input_a
+        self.int_a = bignum_common.hex_to_int(input_a)
+        self.position = position
+
+    def arguments(self) -> List[str]:
+        return [
+            bignum_common.quote_str(self.arg_a), str(self.position),
+            str((self.int_a >> self.position) & 1)
+        ]
+
+    @classmethod
+    def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
+        for input_a, position in cls.input_cases:
+            yield cls(input_a, position).create_test_case()
+
+
+class BignumBitSet(BignumTarget):
+    """Test cases for bignum set bit function."""
+    count = 0
+    test_function = "mpi_set_bit"
+    test_name = "MPI set bit"
+    input_cases = [
+        ("2faa127", 24, 1), ("2faa127", 25, 0), ("2faa127", 80, 0),
+        ("2faa127", 80, 1), ("", 65, 0), ("", 65, 1),
+        ("FFFFFFFFFFFFFFFF", 32, 0), ("00", 32, 1), ("00", 5, 2)
+    ]
+
+    def __init__(self, input_a: str, position: int, value: int) -> None:
+        self.arg_a = input_a
+        self.int_a = bignum_common.hex_to_int(input_a)
+        self.position = position
+        self.value = value
+
+    def arguments(self) -> List[str]:
+        return [
+            bignum_common.quote_str(self.arg_a), str(self.position), str(self.value)
+        ] + self.result()
+
+    def result(self) -> List[str]:
+        res, ret = 0, "0"
+        if self.value == 1:
+            res = self.int_a | (1 << self.position)
+        elif self.value == 0:
+            res = ~((~self.int_a) | (1 << self.position))
+        else:
+            ret = "MBEDTLS_ERR_MPI_BAD_INPUT_DATA"
+        return ["\"{:x}\"".format(res), ret]
+
+    @classmethod
+    def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
+        for input_a, position, value in cls.input_cases:
+            yield cls(input_a, position, value).create_test_case()
+
+
+class BignumLSB(BignumTarget):
+    """Test cases for bignum lsb function."""
+    count = 0
+    test_function = "mpi_lsb"
+    test_name = "MPI LSB"
+    input_values = [
+        "", "0",
+        (
+            "941379d00fed1491fe15df284dfde4a142f68aa8d412023195cee66883e6290ffe703f4ea596"
+            "3bf212713cee46b107c09182b5edcd955adac418bf4918e2889af48e1099d513830cec85c26a"
+            "c1e158b52620e33ba8692f893efbb2f958b4424"
+        ), "18", "24", "2000"
+    ]
+
+    def __init__(self, input_a: str) -> None:
+        self.arg_a = input_a
+        self.int_a = bignum_common.hex_to_int(input_a)
+        if input_a == "":
+            self.case_description = "0 (null)"
+        elif self.int_a == 0:
+            self.case_description = "0 (1 limb)"
+
+    def arguments(self) -> List[str]:
+        return [bignum_common.quote_str(self.arg_a)] + self.result()
+
+    def result(self) -> List[str]:
+        lsb = (self.int_a & -self.int_a).bit_length()
+        if lsb > 0:
+            lsb -= 1
+        return [str(lsb)]
+
+    @classmethod
+    def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
+        for input_a in cls.input_values:
+            yield cls(input_a).create_test_case()
+
+
+class BignumBitlen(BignumLSB):
+    """Test cases for bignum bitlen function."""
+    count = 0
+    test_function = "mpi_bitlen"
+    test_name = "MPI bitlen"
+    input_values = [
+        "18", "00000000000000018", "180000000000000000", "1", "f", "10", "a", "", "0", "-18",
+        (
+            "941379d00fed1491fe15df284dfde4a142f68aa8d412023195cee66883e6290ffe703f4ea596"
+            "3bf212713cee46b107c09182b5edcd955adac418bf4918e2889af48e1099d513830cec85c26a"
+            "c1e158b52620e33ba8692f893efbb2f958b4424"
+        )
+    ]
+
+    def result(self) -> List[str]:
+        return [str(self.int_a.bit_length())]
+
+
 class BignumShiftL(BignumOperation):
     """Test cases for bignum left shift tests."""
     count = 0

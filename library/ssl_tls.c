@@ -6504,6 +6504,8 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
  * Helper to get TLS 1.2 PRF from ciphersuite
  * (Duplicates bits of logic from ssl_set_handshake_prfs().)
  */
+#if defined(MBEDTLS_SHA256_C) || \
+    (defined(MBEDTLS_SHA512_C) && !defined(MBEDTLS_SHA512_NO_SHA384))
 typedef int (*tls_prf_fn)( const unsigned char *secret, size_t slen,
                            const char *label,
                            const unsigned char *random, size_t rlen,
@@ -6516,11 +6518,23 @@ static tls_prf_fn ssl_tls12prf_from_cs( int ciphersuite_id )
 
     if( ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
         return( tls_prf_sha384 );
-#else
-    (void) ciphersuite_id;
+    else
 #endif
-    return( tls_prf_sha256 );
+#if defined(MBEDTLS_SHA256_C)
+    {
+        if( ciphersuite_info != NULL && ciphersuite_info->mac == MBEDTLS_MD_SHA256 )
+            return( tls_prf_sha256 );
+    }
+#endif
+#if !defined(MBEDTLS_SHA256_C) && \
+    (!defined(MBEDTLS_SHA512_C) || defined(MBEDTLS_SHA512_NO_SHA384))
+    (void) ciphersuite_info;
+#endif
+    return( NULL );
 }
+
+#endif /* MBEDTLS_SHA256_C ||
+          (MBEDTLS_SHA512_C && !MBEDTLS_SHA512_NO_SHA384) */
 
 /*
  * Deserialize context, see mbedtls_ssl_context_save() for format.
@@ -6537,6 +6551,7 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
     const unsigned char * const end = buf + len;
     size_t session_len;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    tls_prf_fn prf_func = NULL;
 
     /*
      * The context should have been freshly setup or reset.
@@ -6624,6 +6639,10 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
     ssl->transform_out = ssl->transform;
     ssl->transform_negotiate = NULL;
 
+    prf_func = ssl_tls12prf_from_cs( ssl->session->ciphersuite );
+    if( prf_func == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
     /* Read random bytes and populate structure */
     if( (size_t)( end - p ) < sizeof( ssl->transform->randbytes ) )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
@@ -6642,7 +6661,7 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_ZLIB_SUPPORT)
                   ssl->session->compression,
 #endif
-                  ssl_tls12prf_from_cs( ssl->session->ciphersuite ),
+                  prf_func,
                   p, /* currently pointing to randbytes */
                   MBEDTLS_SSL_MINOR_VERSION_3, /* (D)TLS 1.2 is forced */
                   ssl->conf->endpoint,

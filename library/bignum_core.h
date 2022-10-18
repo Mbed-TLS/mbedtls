@@ -470,4 +470,28 @@ void mbedtls_mpi_core_ct_uint_table_lookup( mbedtls_mpi_uint *dest,
                                             size_t count,
                                             size_t index );
 
+/**
+ * \brief          Fill an integer with a number of random bytes.
+ *
+ * \param X        The destination MPI.
+ * \param X_limbs  The number of limbs of \p X.
+ * \param bytes    The number of random bytes to generate.
+ * \param f_rng    The RNG function to use. This must not be \c NULL.
+ * \param p_rng    The RNG parameter to be passed to \p f_rng. This may be
+ *                 \c NULL if \p f_rng doesn't need a context argument.
+ *
+ * \return         \c 0 if successful.
+ * \return         #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p X does not have
+ *                 enough room for \p bytes bytes.
+ * \return         A negative error code on RNG failure.
+ *
+ * \note           The bytes obtained from the RNG are interpreted
+ *                 as a big-endian representation of an MPI; this can
+ *                 be relevant in applications like deterministic ECDSA.
+ */
+int mbedtls_mpi_core_fill_random( mbedtls_mpi_uint *X, size_t X_limbs,
+                                  size_t bytes,
+                                  int (*f_rng)(void *, unsigned char *, size_t),
+                                  void *p_rng );
+
 #endif /* MBEDTLS_BIGNUM_CORE_H */

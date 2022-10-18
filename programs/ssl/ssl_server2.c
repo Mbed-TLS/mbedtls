@@ -1029,14 +1029,6 @@ typedef enum
     ASYNC_OP_SIGN,
     ASYNC_OP_DECRYPT,
 } ssl_async_operation_type_t;
-/* Note that the enum above and the array below need to be kept in sync!
- * `ssl_async_operation_names[op]` is the name of op for each value `op`
- * of type `ssl_async_operation_type_t`. */
-static const char *const ssl_async_operation_names[] =
-{
-    "sign",
-    "decrypt",
-};
 
 typedef struct
 {
@@ -1047,6 +1039,17 @@ typedef struct
     size_t input_len;
     unsigned remaining_delay;
 } ssl_async_operation_context_t;
+
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+
+/* Note that ssl_async_operation_type_t and the array below need to be kept in sync!
+ * `ssl_async_operation_names[op]` is the name of op for each value `op`
+ * of type `ssl_async_operation_type_t`. */
+static const char *const ssl_async_operation_names[] =
+{
+    "sign",
+    "decrypt",
+};
 
 static int ssl_async_start( mbedtls_ssl_context *ssl,
                             mbedtls_x509_crt *cert,
@@ -1199,6 +1202,7 @@ static void ssl_async_cancel( mbedtls_ssl_context *ssl )
     mbedtls_printf( "Async cancel callback.\n" );
     mbedtls_free( ctx );
 }
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -1322,10 +1326,10 @@ int main( int argc, char *argv[] )
     psa_key_id_t key_slot2 = 0; /* invalid key slot */
 #endif
     int key_cert_init = 0, key_cert_init2 = 0;
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     ssl_async_key_context_t ssl_async_keys;
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
     mbedtls_dhm_context dhm;
 #endif
@@ -1410,9 +1414,9 @@ int main( int argc, char *argv[] )
     mbedtls_pk_init( &pkey );
     mbedtls_x509_crt_init( &srvcert2 );
     mbedtls_pk_init( &pkey2 );
+#endif
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     memset( &ssl_async_keys, 0, sizeof( ssl_async_keys ) );
-#endif
 #endif
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
     mbedtls_dhm_init( &dhm );

@@ -3057,10 +3057,6 @@ run_test    "TLS 1.3: m->O: ephemeral/all, good" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -allow_no_dhe_kex" \
             "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
             0 \
-            -c "=> write client hello" \
-            -c "skip psk_key_exchange_modes extension" \
-            -c "<= write client hello" \
-            -c "found key_shares extension" \
             -c "Selected key exchange mode: ephemeral" \
             -c "HTTP/1.0 200 ok"
 
@@ -3074,10 +3070,6 @@ run_test    "TLS 1.3: m->O: ephemeral/ephemeral_all, good" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203" \
             "$P_CLI debug_level=4 sig_algs=ecdsa_secp256r1_sha256 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
             0 \
-            -c "=> write client hello" \
-            -c "skip psk_key_exchange_modes extension" \
-            -c "<= write client hello" \
-            -c "found key_shares extension" \
             -c "Selected key exchange mode: ephemeral" \
             -c "HTTP/1.0 200 ok"
 
@@ -3295,10 +3287,6 @@ run_test    "TLS 1.3: m->G: ephemeral/all, good" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+CIPHER-ALL --pskpasswd=data_files/simplepass.psk" \
             "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
             0 \
-            -c "=> write client hello" \
-            -c "skip psk_key_exchange_modes extension" \
-            -s "Not sending extension (PSK Key Exchange Modes/45)" \
-            -c "<= write client hello" \
             -c "Selected key exchange mode: ephemeral" \
             -c "HTTP/1.0 200 OK"
 
@@ -3312,10 +3300,6 @@ run_test    "TLS 1.3: m->G: ephemeral/ephemeral_all, good" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+CIPHER-ALL --pskpasswd=data_files/simplepass.psk" \
             "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
             0 \
-            -c "=> write client hello" \
-            -c "skip psk_key_exchange_modes extension" \
-            -s "Not sending extension (PSK Key Exchange Modes/45)" \
-            -c "<= write client hello" \
             -c "Selected key exchange mode: ephemeral" \
             -c "HTTP/1.0 200 OK"
 

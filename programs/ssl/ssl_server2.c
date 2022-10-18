@@ -1301,7 +1301,8 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_cookie_ctx cookie_ctx;
 #endif
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
+    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     mbedtls_x509_crt_profile crt_profile_for_test = mbedtls_x509_crt_profile_default;
 #endif
     rng_context_t rng;

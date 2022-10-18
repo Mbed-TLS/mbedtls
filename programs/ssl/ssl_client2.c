@@ -527,7 +527,7 @@ struct options
 
 #include "ssl_test_common_source.c"
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 static unsigned char peer_crt_info[1024];
 
 /*
@@ -559,7 +559,7 @@ static int my_verify( void *data, mbedtls_x509_crt *crt,
 
     return( 0 );
 }
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 int report_cid_usage( mbedtls_ssl_context *ssl,
@@ -689,7 +689,7 @@ int main( int argc, char *argv[] )
     psa_status_t status;
 #endif
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     mbedtls_x509_crt_profile crt_profile_for_test = mbedtls_x509_crt_profile_default;
 #endif
     rng_context_t rng;
@@ -702,7 +702,9 @@ int main( int argc, char *argv[] )
     mbedtls_timing_delay_context timer;
 #endif
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     uint32_t flags;
+#endif
     mbedtls_x509_crt cacert;
     mbedtls_x509_crt clicert;
     mbedtls_pk_context pkey;
@@ -2022,7 +2024,8 @@ int main( int argc, char *argv[] )
     }
 #endif
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
+    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     if( opt.context_crt_cb == 1 )
         mbedtls_ssl_set_verify( &ssl, my_verify, NULL );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
@@ -2325,7 +2328,8 @@ int main( int argc, char *argv[] )
         }
     }
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
+    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     /*
      * 5. Verify the server certificate
      */
@@ -2347,7 +2351,7 @@ int main( int argc, char *argv[] )
 
     mbedtls_printf( "  . Peer certificate information    ...\n" );
     mbedtls_printf( "%s\n", peer_crt_info );
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     ret = report_cid_usage( &ssl, "initial handshake" );
@@ -2675,9 +2679,10 @@ send_request:
         mbedtls_printf( "  . Restarting connection from same port..." );
         fflush( stdout );
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
+    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
         memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
         if( ( ret = mbedtls_ssl_session_reset( &ssl ) ) != 0 )
         {
@@ -2911,9 +2916,10 @@ reconnect:
 
         mbedtls_printf( "  . Reconnecting with saved session..." );
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
+    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
         memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
         if( ( ret = mbedtls_ssl_session_reset( &ssl ) ) != 0 )
         {

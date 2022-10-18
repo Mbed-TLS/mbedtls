@@ -54,6 +54,7 @@ of BaseTarget in test_data_generation.py.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import math
 import sys
 
 from abc import ABCMeta
@@ -931,6 +932,199 @@ class BignumExpModSize(BignumTarget):
     def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
         for size_a, size_e, size_n in cls.input_cases:
             yield cls(size_a, size_e, size_n).create_test_case()
+
+
+class BignumGCD(BignumOperation):
+    """Test cases for bignum gcd tests."""
+    count = 0
+    symbol = ","
+    test_function = "mpi_gcd"
+    test_name = "MPI GCD"
+    input_values = [
+        "", "00", "03", "06",
+        (
+            "109fe45714866e56fdd4ad9b6b686df27224afb7868cf4f0cbb794526932853cbf0beea615941666"
+            "54d13cd9fe0d9da594a97ee20230f12fb5434de73fb4f8102725a01622b31b1ea42e3a265019039a"
+            "c1df31869bd97930d792fb72cdaa971d8a8015af"
+        )
+    ]
+    input_cases = [
+        ("2b5", "261"), ("6e4", "364"), ("2dcdb10b", "2050d306"),
+        (
+            (
+                "109fe45714866e56fdd4ad9b6b686df27224afb7868cf4f0cbb794526932853cbf0beea6159"
+                "4166654d13cd9fe0d9da594a97ee20230f12fb5434de73fb4f8102725a01622b31b1ea42e3a"
+                "265019039ac1df31869bd97930d792fb72cdaa971d8a8015af"
+            ),
+            (
+                "33ae3764fd06a00cdc3cba5c45dc79a9edb4e67e4d057cc74139d531c25190d111775fc4a0f"
+                "4439b8b1930bbd766e7b46f170601f316c8a18ff8d5cb5ca5581f168345d101edb462b7d93b"
+                "7c520ccb8fb276b447a63d869203cc11f67a1122dc4da034218de85e39"
+            ),
+        ), (
+            (
+                "33ae3764fd06a00cdc3cba5c45dc79a9edb4e67e4d057cc74139d531c25190d111775fc4a0f"
+                "4439b8b1930bbd766e7b46f170601f316c8a18ff8d5cb5ca5581f168345d101edb462b7d93b"
+                "7c520ccb8fb276b447a63d869203cc11f67a1122dc4da034218de85e39"
+            ),
+            (
+                "109fe45714866e56fdd4ad9b6b686df27224afb7868cf4f0cbb794526932853cbf0beea6159"
+                "4166654d13cd9fe0d9da594a97ee20230f12fb5434de73fb4f8102725a01622b31b1ea42e3a"
+                "265019039ac1df31869bd97930d792fb72cdaa971d8a8015af"
+            ),
+        ), (
+            (
+                "109fe45714866e56fdd4ad9b6b686df27224afb7868cf4f0cbb794526932853cbf0beea6159"
+                "4166654d13cd9fe0d9da594a97ee20230f12fb5434de73fb4f8102725a01622b31b1ea42e3a"
+                "265019039ac1df31869bd97930d792fb72cdaa971d8a8015af"
+            ),
+            (
+                "-33ae3764fd06a00cdc3cba5c45dc79a9edb4e67e4d057cc74139d531c25190d111775fc4a0"
+                "f4439b8b1930bbd766e7b46f170601f316c8a18ff8d5cb5ca5581f168345d101edb462b7d93"
+                "b7c520ccb8fb276b447a63d869203cc11f67a1122dc4da034218de85e39"
+            ),
+        ), (
+            (
+                "-109fe45714866e56fdd4ad9b6b686df27224afb7868cf4f0cbb794526932853cbf0beea615"
+                "94166654d13cd9fe0d9da594a97ee20230f12fb5434de73fb4f8102725a01622b31b1ea42e3"
+                "a265019039ac1df31869bd97930d792fb72cdaa971d8a8015af"
+            ),
+            (
+                "33ae3764fd06a00cdc3cba5c45dc79a9edb4e67e4d057cc74139d531c25190d111775fc4a0f"
+                "4439b8b1930bbd766e7b46f170601f316c8a18ff8d5cb5ca5581f168345d101edb462b7d93b"
+                "7c520ccb8fb276b447a63d869203cc11f67a1122dc4da034218de85e39"
+            ),
+        ), (
+            (
+                "-109fe45714866e56fdd4ad9b6b686df27224afb7868cf4f0cbb794526932853cbf0beea615"
+                "94166654d13cd9fe0d9da594a97ee20230f12fb5434de73fb4f8102725a01622b31b1ea42e3"
+                "a265019039ac1df31869bd97930d792fb72cdaa971d8a8015af"
+            ),
+            (
+                "-33ae3764fd06a00cdc3cba5c45dc79a9edb4e67e4d057cc74139d531c25190d111775fc4a0"
+                "f4439b8b1930bbd766e7b46f170601f316c8a18ff8d5cb5ca5581f168345d101edb462b7d93"
+                "b7c520ccb8fb276b447a63d869203cc11f67a1122dc4da034218de85e39"
+            ),
+        ), (
+            (
+                "213fc8ae290cdcadfba95b36d6d0dbe4e4495f6f0d19e9e1976f28a4d2650a797e17dd4c2b2"
+                "82ccca9a279b3fc1b3b4b2952fdc40461e25f6a869bce7f69f0204e4b402c4566363d485c74"
+                "4ca032073583be630d37b2f261af25f6e59b552e3b15002b5e"
+            ),
+            (
+                "675c6ec9fa0d4019b87974b88bb8f353db69ccfc9a0af98e8273aa6384a321a222eebf8941e"
+                "8873716326177aecdcf68de2e0c03e62d91431ff1ab96b94ab03e2d068ba203db68c56fb276"
+                "f8a419971f64ed688f4c7b0d24079823ecf42245b89b4068431bd0bc72"
+            ),
+        ), (
+            (
+                "675c6ec9fa0d4019b87974b88bb8f353db69ccfc9a0af98e8273aa6384a321a222eebf8941e"
+                "8873716326177aecdcf68de2e0c03e62d91431ff1ab96b94ab03e2d068ba203db68c56fb276"
+                "f8a419971f64ed688f4c7b0d24079823ecf42245b89b4068431bd0bc72"
+            ),
+            (
+                "213fc8ae290cdcadfba95b36d6d0dbe4e4495f6f0d19e9e1976f28a4d2650a797e17dd4c2b2"
+                "82ccca9a279b3fc1b3b4b2952fdc40461e25f6a869bce7f69f0204e4b402c4566363d485c74"
+                "4ca032073583be630d37b2f261af25f6e59b552e3b15002b5e"
+            ),
+        ), (
+            (
+                "31dfad053d934b04f97e08d2423949d7566e0f2693a6ded26326bcf73b978fb63d23cbf240b"
+                "c4332fe73b68dfa28d8f0bdfc7ca60692d38f1fc9e9b5bf1ee8307570e0426819515bec8aae"
+                "72f04b0ad0459d9493d38c6b9286b8f25868ffc5589f80410d"
+            ),
+            (
+                "9b0aa62ef713e02694b62f14d1956cfdc91eb37ae7107655c3ad7f9546f4b27334661f4de2d"
+                "ccad2a14b92338634b71d4d451205d94459e4afea816215f0085d4389d17305c91d28278bb2"
+                "74f62662af17641cd6f2b893b60b6435e36e336894e8e09c64a9b91aab"
+            ),
+        ), (
+            (
+                "9b0aa62ef713e02694b62f14d1956cfdc91eb37ae7107655c3ad7f9546f4b27334661f4de2d"
+                "ccad2a14b92338634b71d4d451205d94459e4afea816215f0085d4389d17305c91d28278bb2"
+                "74f62662af17641cd6f2b893b60b6435e36e336894e8e09c64a9b91aab"
+            ),
+            (
+                "31dfad053d934b04f97e08d2423949d7566e0f2693a6ded26326bcf73b978fb63d23cbf240b"
+                "c4332fe73b68dfa28d8f0bdfc7ca60692d38f1fc9e9b5bf1ee8307570e0426819515bec8aae"
+                "72f04b0ad0459d9493d38c6b9286b8f25868ffc5589f80410d"
+            ),
+        ), (
+            (
+                "427f915c5219b95bf752b66dada1b7c9c892bede1a33d3c32ede5149a4ca14f2fc2fba98565"
+                "059995344f367f836769652a5fb8808c3c4bed50d379cfed3e0409c9680588acc6c7a90b8e8"
+                "9940640e6b077cc61a6f65e4c35e4bedcb36aa5c762a0056bc"
+            ),
+            (
+                "ceb8dd93f41a803370f2e9711771e6a7b6d399f93415f31d04e754c70946434445dd7f1283d"
+                "10e6e2c64c2ef5d9b9ed1bc5c1807cc5b22863fe3572d7295607c5a0d174407b6d18adf64ed"
+                "f148332e3ec9dad11e98f61a480f3047d9e8448b713680d08637a178e4"
+            ),
+        ), (
+            (
+                "ceb8dd93f41a803370f2e9711771e6a7b6d399f93415f31d04e754c70946434445dd7f1283d"
+                "10e6e2c64c2ef5d9b9ed1bc5c1807cc5b22863fe3572d7295607c5a0d174407b6d18adf64ed"
+                "f148332e3ec9dad11e98f61a480f3047d9e8448b713680d08637a178e4"
+            ),
+            (
+                "427f915c5219b95bf752b66dada1b7c9c892bede1a33d3c32ede5149a4ca14f2fc2fba98565"
+                "059995344f367f836769652a5fb8808c3c4bed50d379cfed3e0409c9680588acc6c7a90b8e8"
+                "9940640e6b077cc61a6f65e4c35e4bedcb36aa5c762a0056bc"
+            ),
+        ), (
+            (
+                "63bf5a0a7b269609f2fc11a4847293aeacdc1e4d274dbda4c64d79ee772f1f6c7a4797e4817"
+                "88665fce76d1bf451b1e17bf8f94c0d25a71e3f93d36b7e3dd060eae1c084d032a2b7d9155c"
+                "e5e09615a08b3b2927a718d7250d71e4b0d1ff8ab13f00821a"
+            ),
+            (
+                "136154c5dee27c04d296c5e29a32ad9fb923d66f5ce20ecab875aff2a8de964e668cc3e9bc5"
+                "b995a5429724670c696e3a9a8a240bb288b3c95fd502c42be010ba8713a2e60b923a504f176"
+                "4e9ec4cc55e2ec839ade571276c16c86bc6dc66d129d1c138c953723556"
+            ),
+        ), (
+            (
+                "136154c5dee27c04d296c5e29a32ad9fb923d66f5ce20ecab875aff2a8de964e668cc3e9bc5"
+                "b995a5429724670c696e3a9a8a240bb288b3c95fd502c42be010ba8713a2e60b923a504f176"
+                "4e9ec4cc55e2ec839ade571276c16c86bc6dc66d129d1c138c953723556"
+            ),
+            (
+                "63bf5a0a7b269609f2fc11a4847293aeacdc1e4d274dbda4c64d79ee772f1f6c7a4797e4817"
+                "88665fce76d1bf451b1e17bf8f94c0d25a71e3f93d36b7e3dd060eae1c084d032a2b7d9155c"
+                "e5e09615a08b3b2927a718d7250d71e4b0d1ff8ab13f00821a"
+            ),
+        )
+    ]
+    unique_combinations_only = False
+
+    def __init__(self, val_a: str, val_b: str) -> None:
+        super().__init__(val_a, val_b)
+        self.gcd = math.gcd(self.int_a, self.int_b)
+
+    def description(self) -> str:
+        if not self.case_description and len(self.arg_a) + len(self.arg_b) > 20:
+            lt = self.int_a < self.int_b
+            if self.int_a == self.int_b:
+                tmp = "A == B < 0" if self.int_a < 0 else "0 < A == B"
+            elif self.int_a < 0 and self.int_b < 0:
+                tmp = "A < B < 0" if lt else "B < A < 0"
+            elif self.int_a > 0 and self.int_b > 0:
+                tmp = "0 < A < B" if lt else "0 < B < A"
+            elif self.int_a == 0:
+                tmp = "0 == A < B" if lt else "B < 0 == A"
+            elif self.int_b == 0:
+                tmp = "A < 0 == B" if lt else "0 == B < A"
+            else:
+                tmp = "A < 0 < B" if lt else "B < 0 < A"
+            self.case_description = "gcd={}, {}".format(self.gcd, tmp)
+        return super().description()
+
+    @staticmethod
+    def value_description(val: str) -> str:
+        return val if val else "0 (null)"
+
+    def result(self) -> List[str]:
+        return ["\"{:x}\"".format(self.gcd)]
 
 
 class BignumInvMod(BignumOperation):

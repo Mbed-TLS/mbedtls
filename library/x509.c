@@ -494,13 +494,8 @@ int mbedtls_x509_get_name( unsigned char **p, const unsigned char *end,
     }
 
 error:
-    prev = NULL;
-
     /* Skip the first element as we did not allocate it */
     allocated = head->next;
-
-    /* Make sure we cannot be followed along this list */
-    head->next = NULL;
 
     while( allocated != NULL )
     {

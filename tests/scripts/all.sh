@@ -2063,11 +2063,16 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash and USE_PSA"
     make test
 
-    msg "test: ssl-opt.sh, MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash and USE_PSA"
-    tests/ssl-opt.sh
+    # hidden option: when running outcome-analysis.sh, we can skip this
+    if [ "${SKIP_SSL_OPT_COMPAT_SH-unset}" = "unset" ]; then
+        msg "test: ssl-opt.sh, MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash and USE_PSA"
+        tests/ssl-opt.sh
 
-    msg "test: compat.sh, MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash and USE_PSA"
-    tests/compat.sh
+        msg "test: compat.sh, MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash and USE_PSA"
+        tests/compat.sh
+    else
+        echo "skip sh scripts"
+    fi
 }
 
 component_test_psa_crypto_config_accel_cipher () {

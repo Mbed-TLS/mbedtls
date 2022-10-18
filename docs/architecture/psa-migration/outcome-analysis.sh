@@ -95,6 +95,7 @@ record "reference"
 
 cleanup
 export MBEDTLS_TEST_OUTCOME_FILE="$PWD/outcome-drivers.csv"
+export SKIP_SSL_OPT_COMPAT_SH=1
 tests/scripts/all.sh -k test_psa_crypto_config_accel_hash_use_psa
 
 # analysis

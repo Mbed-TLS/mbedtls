@@ -116,7 +116,7 @@ int main( void )
 #define GET_REQUEST "GET %s HTTP/1.0\r\nExtra-header: "
 #define GET_REQUEST_END "\r\n\r\n"
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 #define USAGE_CONTEXT_CRT_CB \
     "    context_crt_cb=%%d   This determines whether the CRT verification callback is bound\n" \
     "                        to the SSL configuration of the SSL context.\n" \
@@ -125,8 +125,8 @@ int main( void )
     "                        - 1: Use CRT callback bound to SSL context\n"
 #else
 #define USAGE_CONTEXT_CRT_CB ""
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 #if defined(MBEDTLS_FS_IO)
 #define USAGE_IO \
     "    ca_file=%%s          The single file containing the top-level CA(s) you fully trust\n" \
@@ -144,10 +144,10 @@ int main( void )
 #define USAGE_IO \
     "    No file operations available (MBEDTLS_FS_IO not defined)\n"
 #endif /* MBEDTLS_FS_IO */
-#else /* MBEDTLS_X509_CRT_PARSE_C */
+#else /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 #define USAGE_IO ""
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_X509_CRT_PARSE_C)
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 #define USAGE_KEY_OPAQUE \
     "    key_opaque=%%d       Handle your private key as if it were opaque\n" \
     "                        default: 0 (disabled)\n"
@@ -689,9 +689,6 @@ int main( int argc, char *argv[] )
     psa_status_t status;
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-    mbedtls_x509_crt_profile crt_profile_for_test = mbedtls_x509_crt_profile_default;
-#endif
     rng_context_t rng;
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
@@ -701,17 +698,16 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_TIMING_C)
     mbedtls_timing_delay_context timer;
 #endif
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     uint32_t flags;
-#endif
     mbedtls_x509_crt cacert;
     mbedtls_x509_crt clicert;
     mbedtls_pk_context pkey;
+    mbedtls_x509_crt_profile crt_profile_for_test = mbedtls_x509_crt_profile_default;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_key_id_t key_slot = 0; /* invalid key slot */
 #endif
-#endif  /* MBEDTLS_X509_CRT_PARSE_C */
+#endif  /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
     char *p, *q;
     const int *list;
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
@@ -754,7 +750,7 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_config_init( &conf );
     memset( &saved_session, 0, sizeof( mbedtls_ssl_session ) );
     rng_init( &rng );
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     mbedtls_x509_crt_init( &cacert );
     mbedtls_x509_crt_init( &clicert );
     mbedtls_pk_init( &pkey );
@@ -948,7 +944,7 @@ int main( int argc, char *argv[] )
             opt.key_file = q;
         else if( strcmp( p, "key_pwd" ) == 0 )
             opt.key_pwd = q;
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
         else if( strcmp( p, "key_opaque" ) == 0 )
             opt.key_opaque = atoi( q );
 #endif
@@ -1544,7 +1540,7 @@ int main( int argc, char *argv[] )
         goto exit;
     mbedtls_printf( " ok\n" );
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     /*
      * 1.1. Load the trusted CA
      */
@@ -1673,7 +1669,7 @@ int main( int argc, char *argv[] )
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     mbedtls_printf( " ok (key type: %s)\n", mbedtls_pk_get_name( &pkey ) );
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
     /*
      * 2. Start the connection
@@ -1725,7 +1721,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     /* The default algorithms profile disables SHA-1, but our tests still
        rely on it heavily. */
     if( opt.allow_sha1 > 0 )
@@ -1739,7 +1735,7 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_conf_verify( &conf, my_verify, NULL );
 
     memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     if( opt.cid_enabled == 1 || opt.cid_enabled_renego == 1 )
@@ -1910,7 +1906,7 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_conf_renegotiation( &conf, opt.renegotiation );
 #endif
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     if( strcmp( opt.ca_path, "none" ) != 0 &&
         strcmp( opt.ca_file, "none" ) != 0 )
     {
@@ -1931,7 +1927,7 @@ int main( int argc, char *argv[] )
             goto exit;
         }
     }
-#endif  /* MBEDTLS_X509_CRT_PARSE_C */
+#endif  /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_ECP_C)
     if( opt.curves != NULL &&
@@ -2001,7 +1997,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     if( ( ret = mbedtls_ssl_set_hostname( &ssl, opt.server_name ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hostname returned %d\n\n",
@@ -2024,11 +2020,10 @@ int main( int argc, char *argv[] )
     }
 #endif
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
-    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     if( opt.context_crt_cb == 1 )
         mbedtls_ssl_set_verify( &ssl, my_verify, NULL );
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
     io_ctx.ssl = &ssl;
     io_ctx.net = &server_fd;
@@ -2328,8 +2323,7 @@ int main( int argc, char *argv[] )
         }
     }
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
-    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     /*
      * 5. Verify the server certificate
      */
@@ -2351,7 +2345,7 @@ int main( int argc, char *argv[] )
 
     mbedtls_printf( "  . Peer certificate information    ...\n" );
     mbedtls_printf( "%s\n", peer_crt_info );
-#endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     ret = report_cid_usage( &ssl, "initial handshake" );
@@ -2679,10 +2673,9 @@ send_request:
         mbedtls_printf( "  . Restarting connection from same port..." );
         fflush( stdout );
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
-    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
         memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
-#endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
         if( ( ret = mbedtls_ssl_session_reset( &ssl ) ) != 0 )
         {
@@ -2916,10 +2909,9 @@ reconnect:
 
         mbedtls_printf( "  . Reconnecting with saved session..." );
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
-    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
         memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
-#endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
         if( ( ret = mbedtls_ssl_session_reset( &ssl ) ) != 0 )
         {
@@ -3013,14 +3005,14 @@ exit:
     mbedtls_free( context_buf );
 #endif
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     mbedtls_x509_crt_free( &clicert );
     mbedtls_x509_crt_free( &cacert );
     mbedtls_pk_free( &pkey );
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_destroy_key( key_slot );
 #endif
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED) && \
     defined(MBEDTLS_USE_PSA_CRYPTO)

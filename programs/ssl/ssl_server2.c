@@ -168,7 +168,7 @@ int main( void )
  */
 #define DFL_IO_BUF_LEN      200
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 #if defined(MBEDTLS_FS_IO)
 #define USAGE_IO \
     "    ca_file=%%s          The single file containing the top-level CA(s) you fully trust\n" \
@@ -199,8 +199,8 @@ int main( void )
 #endif /* MBEDTLS_FS_IO */
 #else
 #define USAGE_IO ""
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_X509_CRT_PARSE_C)
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 #define USAGE_KEY_OPAQUE \
     "    key_opaque=%%d       Handle your private keys as if they were opaque\n" \
     "                        default: 0 (disabled)\n"
@@ -1300,11 +1300,6 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_COOKIE_C)
     mbedtls_ssl_cookie_ctx cookie_ctx;
 #endif
-
-#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
-    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-    mbedtls_x509_crt_profile crt_profile_for_test = mbedtls_x509_crt_profile_default;
-#endif
     rng_context_t rng;
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
@@ -1314,13 +1309,14 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     unsigned char renego_period[8] = { 0 };
 #endif
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     uint32_t flags;
     mbedtls_x509_crt cacert;
     mbedtls_x509_crt srvcert;
     mbedtls_pk_context pkey;
     mbedtls_x509_crt srvcert2;
     mbedtls_pk_context pkey2;
+    mbedtls_x509_crt_profile crt_profile_for_test = mbedtls_x509_crt_profile_default;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_key_id_t key_slot = 0; /* invalid key slot */
     psa_key_id_t key_slot2 = 0; /* invalid key slot */
@@ -1329,7 +1325,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     ssl_async_key_context_t ssl_async_keys;
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
     mbedtls_dhm_context dhm;
 #endif
@@ -1408,7 +1404,7 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_config_init( &conf );
     rng_init( &rng );
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     mbedtls_x509_crt_init( &cacert );
     mbedtls_x509_crt_init( &srvcert );
     mbedtls_pk_init( &pkey );
@@ -1627,7 +1623,7 @@ int main( int argc, char *argv[] )
             opt.key_file = q;
         else if( strcmp( p, "key_pwd" ) == 0 )
             opt.key_pwd = q;
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
         else if( strcmp( p, "key_opaque" ) == 0 )
             opt.key_opaque = atoi( q );
 #endif
@@ -2347,7 +2343,7 @@ int main( int argc, char *argv[] )
         goto exit;
     mbedtls_printf( " ok\n" );
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     /*
      * 1.1. Load the trusted CA
      */
@@ -2543,7 +2539,7 @@ int main( int argc, char *argv[] )
 #endif /* MBEDTLS_CERTS_C */
 
     mbedtls_printf( " ok (key types: %s - %s)\n", mbedtls_pk_get_name( &pkey ), mbedtls_pk_get_name( &pkey2 ) );
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
     if( opt.dhm_file != NULL )
@@ -2612,7 +2608,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     /* The default algorithms profile disables SHA-1, but our tests still
        rely on it heavily. Hence we allow it here. A real-world server
        should use the default profile unless there is a good reason not to. */
@@ -2622,7 +2618,7 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_conf_cert_profile( &conf, &crt_profile_for_test );
         mbedtls_ssl_conf_sig_hashes( &conf, ssl_sig_hashes_for_test );
     }
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
     if( opt.auth_mode != DFL_AUTH_MODE )
         mbedtls_ssl_conf_authmode( &conf, opt.auth_mode );
@@ -2876,7 +2872,7 @@ int main( int argc, char *argv[] )
     }
 #endif
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     if( strcmp( opt.ca_path, "none" ) != 0 &&
         strcmp( opt.ca_file, "none" ) != 0 )
     {
@@ -2965,7 +2961,7 @@ int main( int argc, char *argv[] )
                                            &ssl_async_keys );
     }
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(SNI_OPTION)
     if( opt.sni != NULL )
@@ -3215,8 +3211,6 @@ reset:
     }
 #endif
 
-    mbedtls_printf( " ok\n" );
-
     /*
      * 4. Handshake
      */
@@ -3261,7 +3255,7 @@ handshake:
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_handshake returned -0x%x\n\n", (unsigned int) -ret );
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
         if( ret == MBEDTLS_ERR_X509_CERT_VERIFY_FAILED )
         {
             char vrfy_buf[512];
@@ -3307,7 +3301,7 @@ handshake:
     }
 #endif
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     /*
      * 5. Verify the client certificate
      */
@@ -3335,7 +3329,7 @@ handshake:
                        mbedtls_ssl_get_peer_cert( &ssl ) );
         mbedtls_printf( "%s\n", crt_buf );
     }
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
     if( opt.eap_tls != 0 )
@@ -4031,7 +4025,7 @@ exit:
         mbedtls_printf( "Failed to list of opaque PSKs - error was %d\n", ret );
 #endif
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     mbedtls_x509_crt_free( &cacert );
     mbedtls_x509_crt_free( &srvcert );
     mbedtls_pk_free( &pkey );

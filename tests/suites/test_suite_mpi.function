@@ -810,7 +810,7 @@ void mpi_core_cond_assign( data_t * input_X,
     TEST_CF_PUBLIC( Y, bytes );
 
     /* Check if the given length is copied even it is smaller
-       than the bytesgth of the given MPIs. */
+       than the length of the given MPIs. */
     if( copy_limbs < limbs )
     {
         ASSERT_COMPARE( X, copy_bytes, Y, copy_bytes );

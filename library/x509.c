@@ -552,7 +552,7 @@ error:
 
     mbedtls_platform_zeroize( head, sizeof( *head ) );
 
-    return ret;
+    return( ret );
 }
 
 static int x509_parse_int( unsigned char **p, size_t n, int *res )

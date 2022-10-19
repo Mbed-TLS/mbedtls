@@ -728,11 +728,6 @@ static int ssl_tls13_ticket_get_psk( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
-static int ssl_tls13_has_configured_psk( const mbedtls_ssl_config *conf )
-{
-    return( conf->psk != NULL && conf->psk_identity != NULL );
-}
-
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_psk_get_identity( mbedtls_ssl_context *ssl,
                                        psa_algorithm_t *hash_alg,
@@ -740,7 +735,7 @@ static int ssl_tls13_psk_get_identity( mbedtls_ssl_context *ssl,
                                        size_t *identity_len )
 {
 
-    if( !ssl_tls13_has_configured_psk( ssl->conf ) )
+    if( !mbedtls_ssl_conf_has_static_psk( ssl->conf ) )
         return( -1 );
 
     *hash_alg = PSA_ALG_SHA_256;
@@ -756,7 +751,7 @@ static int ssl_tls13_psk_get_psk( mbedtls_ssl_context *ssl,
                                   size_t *psk_len )
 {
 
-    if( !ssl_tls13_has_configured_psk( ssl->conf ) )
+    if( !mbedtls_ssl_conf_has_static_psk( ssl->conf ) )
         return( -1 );
 
     *hash_alg = PSA_ALG_SHA_256;
@@ -775,7 +770,7 @@ static int ssl_tls13_get_configured_psk_count( mbedtls_ssl_context *ssl )
         configured_psk_count++;
     }
 #endif
-    if( ssl_tls13_has_configured_psk( ssl->conf ) )
+    if( mbedtls_ssl_conf_has_static_psk( ssl->conf ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "PSK is configured" ) );
         configured_psk_count++;
@@ -1094,7 +1089,7 @@ static int ssl_tls13_parse_server_pre_shared_key_ext( mbedtls_ssl_context *ssl,
     }
     else
 #endif
-    if( ssl_tls13_has_configured_psk( ssl->conf ) )
+    if( mbedtls_ssl_conf_has_static_psk( ssl->conf ) )
     {
         ret = ssl_tls13_psk_get_psk( ssl, &hash_alg, &psk, &psk_len );
     }

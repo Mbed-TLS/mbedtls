@@ -1366,7 +1366,8 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl,
                                       mbedtls_key_exchange_type_t key_ex );
 #endif /* !MBEDTLS_USE_PSA_CRYPTO */
-#if defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_PROTO_TLS1_2)
+
+#if defined(MBEDTLS_SSL_CLI_C)
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_conf_has_static_psk( mbedtls_ssl_config const *conf );
 #endif

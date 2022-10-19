@@ -47,7 +47,7 @@ reference_config () {
 IGNORE="md mdx shax" # accelerated
 IGNORE="$IGNORE entropy hmac_drbg random" # disabled (ext. RNG)
 IGNORE="$IGNORE psa_crypto_init" # needs internal RNG
-IGNORE="$IGNORE hkdf" # disabled
+IGNORE="$IGNORE hkdf" # disabled in the all.sh component tested
 # Compare only "reference vs driver" or also "before vs after"?
 BEFORE_AFTER=1 # 0 or 1
 # ----- END edit this -----

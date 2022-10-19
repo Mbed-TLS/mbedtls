@@ -2043,7 +2043,7 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
     # Also unset MD_C and things that depend on it;
     # see component_test_crypto_full_no_md.
     scripts/config.py unset MBEDTLS_MD_C
-    scripts/config.py unset MBEDTLS_HKDF_C
+    scripts/config.py unset MBEDTLS_HKDF_C # has independent PSA implementation
     scripts/config.py unset MBEDTLS_HMAC_DRBG_C
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
@@ -2071,7 +2071,7 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
         msg "test: compat.sh, MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash and USE_PSA"
         tests/compat.sh
     else
-        echo "skip sh scripts"
+        echo "skip ssl-opt.sh and compat.sh"
     fi
 }
 

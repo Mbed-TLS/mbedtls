@@ -209,4 +209,88 @@
 #define MBEDTLS_HAS_ALG_SHA_512_VIA_MD_OR_PSA_BASED_ON_USE_PSA
 #endif
 
+/* Ciphers and cipher chaining using low-level or PSA based on availability */
+#if defined(MBEDTLS_AES_C) || \
+    ( defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_KEY_TYPE_AES) )
+#define MBEDTLS_HAS_ALG_AES_VIA_LOWLEVEL_OR_PSA
+#endif
+
+#if defined(MBEDTLS_ARIA_C) || \
+    ( defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_KEY_TYPE_ARIA) )
+#define MBEDTLS_HAS_ALG_ARIA_VIA_LOWLEVEL_OR_PSA
+#endif
+
+#if defined(MBEDTLS_CAMELLIA_C) || \
+    ( defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_KEY_TYPE_CAMELLIA) )
+#define MBEDTLS_HAS_ALG_CAMELLIA_VIA_LOWLEVEL_OR_PSA
+#endif
+
+#if defined(MBEDTLS_CIPHER_MODE_CBC) || \
+    ( defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_CBC_NO_PADDING) )
+#define MBEDTLS_HAS_ALG_CBC_VIA_LOWLEVEL_OR_PSA
+#endif
+
+/* Ciphers using Mbed TLS ciphers or PSA based on availability */
+#if ( defined(MBEDTLS_CIPHER_C) && defined(MBEDTLS_AES_C) ) || \
+    ( !defined(MBEDTLS_CIPHER_C) && \
+        defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_KEY_TYPE_AES) )
+#define MBEDTLS_HAS_ALG_AES_VIA_CIPHER_OR_PSA
+#endif
+
+#if ( defined(MBEDTLS_CIPHER_C) && defined(MBEDTLS_ARIA_C) ) || \
+    ( !defined(MBEDTLS_CIPHER_C) && \
+        defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_KEY_TYPE_ARIA) )
+#define MBEDTLS_HAS_ALG_ARIA_VIA_CIPHER_OR_PSA
+#endif
+
+#if ( defined(MBEDTLS_CIPHER_C) && defined(MBEDTLS_CAMELLIA_C) ) || \
+    ( !defined(MBEDTLS_CIPHER_C) && \
+        defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_KEY_TYPE_CAMELLIA) )
+#define MBEDTLS_HAS_ALG_CAMELLIA_VIA_CIPHER_OR_PSA
+#endif
+
+/* Ciphers, chaining and modes using MbedTLS ciphers or PSA
+ * based on MBEDTLS_USE_PSA_CRYPTO */
+#if ( !defined(MBEDTLS_USE_PSA_CRYPTO) && \
+        defined(MBEDTLS_CIPHER_C) && defined(MBEDTLS_AES_C) ) || \
+    ( defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_AES) )
+#define MBEDTLS_HAS_ALG_AES_VIA_CIPHER_OR_PSA_BASED_ON_USE_PSA
+#endif
+
+#if ( !defined(MBEDTLS_USE_PSA_CRYPTO) && \
+        defined(MBEDTLS_CIPHER_C) && defined(MBEDTLS_ARIA_C) ) || \
+    ( defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_ARIA) )
+#define MBEDTLS_HAS_ALG_ARIA_VIA_CIPHER_OR_PSA_BASED_ON_USE_PSA
+#endif
+
+#if ( !defined(MBEDTLS_USE_PSA_CRYPTO) && \
+        defined(MBEDTLS_CIPHER_C) && defined(MBEDTLS_CAMELLIA_C) ) || \
+    ( defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_KEY_TYPE_CAMELLIA) )
+#define MBEDTLS_HAS_ALG_CAMELLIA_VIA_CIPHER_OR_PSA_BASED_ON_USE_PSA
+#endif
+
+#if ( !defined(MBEDTLS_USE_PSA_CRYPTO) && \
+        defined(MBEDTLS_CIPHER_C) && defined(MBEDTLS_CCM_C) ) || \
+    ( defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CCM) )
+#define MBEDTLS_HAS_ALG_CCM_VIA_CIPHER_OR_PSA_BASED_ON_USE_PSA
+#endif
+
+#if ( !defined(MBEDTLS_USE_PSA_CRYPTO) && \
+        defined(MBEDTLS_CIPHER_C) && defined(MBEDTLS_GCM_C) ) || \
+    ( defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_GCM) )
+#define MBEDTLS_HAS_ALG_GCM_VIA_CIPHER_OR_PSA_BASED_ON_USE_PSA
+#endif
+
+#if ( !defined(MBEDTLS_USE_PSA_CRYPTO) && \
+        defined(MBEDTLS_CIPHER_C) && defined(MBEDTLS_CHACHAPOLY_C) ) || \
+    ( defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CHACHA20_POLY1305) )
+#define MBEDTLS_HAS_ALG_CHACHAPOLY_VIA_CIPHER_OR_PSA_BASED_ON_USE_PSA
+#endif
+
+#if ( !defined(MBEDTLS_USE_PSA_CRYPTO) && \
+        defined(MBEDTLS_CIPHER_C) && defined(MBEDTLS_CIPHER_MODE_CBC) ) || \
+    ( defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_CBC_NO_PADDING) )
+#define MBEDTLS_HAS_ALG_CBC_VIA_CIPHER_OR_PSA_BASED_ON_USE_PSA
+#endif
+
 #endif /* MBEDTLS_OR_PSA_HELPERS_H */

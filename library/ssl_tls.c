@@ -1654,6 +1654,7 @@ static int ssl_conf_set_psk_identity( mbedtls_ssl_config *conf,
 {
     /* Identity len will be encoded on two bytes */
     if( psk_identity               == NULL ||
+        psk_identity_len           == 0    ||
         ( psk_identity_len >> 16 ) != 0    ||
         psk_identity_len > MBEDTLS_SSL_OUT_CONTENT_LEN )
     {

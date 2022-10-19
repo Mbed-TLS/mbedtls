@@ -43,31 +43,18 @@ def hex_to_int(val: str) -> int:
 def quote_str(val) -> str:
     return "\"{}\"".format(val)
 
-def bound_mpi8(val: int) -> int:
-    """First number exceeding 8-byte limbs needed for given input value."""
-    return bound_mpi8_limbs(limbs_mpi8(val))
+def bound_mpi(val: int, bits_in_limb: int) -> int:
+    """First number exceeding number of limbs needed for given input value."""
+    return bound_mpi_limbs(limbs_mpi(val, bits_in_limb), bits_in_limb)
 
-def bound_mpi4(val: int) -> int:
-    """First number exceeding 4-byte limbs needed for given input value."""
-    return bound_mpi4_limbs(limbs_mpi4(val))
-
-def bound_mpi8_limbs(limbs: int) -> int:
-    """First number exceeding maximum of given 8-byte limbs."""
-    bits = 64 * limbs
+def bound_mpi_limbs(limbs: int, bits_in_limb: int) -> int:
+    """First number exceeding maximum of given number of limbs."""
+    bits = bits_in_limb * limbs
     return 1 << bits
 
-def bound_mpi4_limbs(limbs: int) -> int:
-    """First number exceeding maximum of given 4-byte limbs."""
-    bits = 32 * limbs
-    return 1 << bits
-
-def limbs_mpi8(val: int) -> int:
-    """Return the number of 8-byte limbs required to store value."""
-    return (val.bit_length() + 63) // 64
-
-def limbs_mpi4(val: int) -> int:
-    """Return the number of 4-byte limbs required to store value."""
-    return (val.bit_length() + 31) // 32
+def limbs_mpi(val: int, bits_in_limb: int) -> int:
+    """Return the number of limbs required to store value."""
+    return (val.bit_length() + bits_in_limb - 1) // bits_in_limb
 
 def combination_pairs(values: List[T]) -> List[Tuple[T, T]]:
     """Return all pair combinations from input values.

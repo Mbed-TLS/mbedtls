@@ -25,6 +25,7 @@
 
 #include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
+#include "constant_time_internal.h"
 
 #include "mbedtls/platform.h"
 
@@ -150,6 +151,36 @@ void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *A,
         tmp             = mpi_bigendian_to_host( *cur_limb_left );
         *cur_limb_left  = mpi_bigendian_to_host( *cur_limb_right );
         *cur_limb_right = tmp;
+    }
+}
+
+void mbedtls_mpi_core_cond_assign( mbedtls_mpi_uint *X,
+                                   const mbedtls_mpi_uint *A,
+                                   size_t limbs,
+                                   unsigned char assign )
+{
+    if( X == A )
+        return;
+
+    mbedtls_ct_mpi_uint_cond_assign( limbs, X, A, assign );
+}
+
+void mbedtls_mpi_core_cond_swap( mbedtls_mpi_uint *X,
+                                 mbedtls_mpi_uint *Y,
+                                 size_t limbs,
+                                 unsigned char swap )
+{
+    if( X == Y )
+        return;
+
+    /* all-bits 1 if swap is 1, all-bits 0 if swap is 0 */
+    mbedtls_mpi_uint limb_mask = mbedtls_ct_mpi_uint_mask( swap );
+
+    for( size_t i = 0; i < limbs; i++ )
+    {
+        mbedtls_mpi_uint tmp = X[i];
+        X[i] = ( X[i] & ~limb_mask ) | ( Y[i] & limb_mask );
+        Y[i] = ( Y[i] & ~limb_mask ) | (  tmp & limb_mask );
     }
 }
 

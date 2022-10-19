@@ -17,13 +17,26 @@ void mpi_mod_setup( int ext_rep, int int_rep, int iret )
     #define MLIMBS 8
     mbedtls_mpi_uint mp[MLIMBS];
     mbedtls_mpi_mod_modulus m;
+    const size_t mp_size = sizeof(mbedtls_mpi_uint);
+    mbedtls_mpi_uint * rr;
     int ret;
 
-    memset( mp, 0xFF, sizeof(mp) );
+    memset( mp, 0xFF, mp_size );
 
     mbedtls_mpi_mod_modulus_init( &m );
     ret = mbedtls_mpi_mod_modulus_setup( &m, mp, MLIMBS, ext_rep, int_rep );
     TEST_EQUAL( ret, iret );
+
+    /* Only test if the constants have been set-up  */
+    if ( ret == 0 && int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY )
+    {
+        /* Test that the consts have been calculated */
+        TEST_ASSERT( m.rep.mont.rr != NULL );
+        TEST_ASSERT( m.rep.mont.mm != 0 );
+
+        /* Keep a copy of the memory location used to store Montgomery const */
+        rr = (mbedtls_mpi_uint *)m.rep.mont.rr;
+    }
 
     /* Address sanitiser should catch if we try to free mp */
     mbedtls_mpi_mod_modulus_free( &m );
@@ -31,6 +44,21 @@ void mpi_mod_setup( int ext_rep, int int_rep, int iret )
     /* Make sure that the modulus doesn't have reference to mp anymore */
     TEST_ASSERT( m.p != mp );
 
+    /* Only test if the constants have been set-up  */
+    if ( ret == 0 && int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY )
+    {
+        /* Reuse the allocated buffer for a zeroization check */
+        memset( mp, 0x00, mp_size );
+
+        /* Verify the data and pointers allocated have been properly wiped */
+        TEST_ASSERT( m.rep.mont.rr == NULL );
+        TEST_ASSERT( m.rep.mont.mm == 0 );
+
+        /* mbedtls_mpi_mod_modulus_free() has set the
+         * (mbedtls_mpi_uint *)m.rep.mont.rr -> NULL.
+         * Verify that the actual data have been zeroed */
+        ASSERT_COMPARE( rr, mp_size, &mp, mp_size );
+    }
 exit:
     /* It should be safe to call an mbedtls free several times */
     mbedtls_mpi_mod_modulus_free( &m );

@@ -319,8 +319,8 @@ static int exercise_signature_key( mbedtls_svc_key_id_t key,
         /* If the policy allows signing with any hash, just pick one. */
         if( PSA_ALG_IS_SIGN_HASH( alg ) && hash_alg == PSA_ALG_ANY_HASH )
         {
-    #if defined(KNOWN_MBEDTLS_SUPPORTED_HASH_ALG)
-            hash_alg = KNOWN_MBEDTLS_SUPPORTED_HASH_ALG;
+    #if defined(KNOWN_SUPPORTED_HASH_ALG)
+            hash_alg = KNOWN_SUPPORTED_HASH_ALG;
             alg ^= PSA_ALG_ANY_HASH ^ hash_alg;
     #else
             TEST_ASSERT( ! "No hash algorithm for hash-and-sign testing" );

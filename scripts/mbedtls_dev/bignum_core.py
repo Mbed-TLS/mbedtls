@@ -692,8 +692,6 @@ def mpi_modmul_case_generate() -> None:
     for mod, description in moduli:
         n = bignum_common.hex_to_int(mod)
         mod_read = "{:x}".format(n)
-        if mod_read != mod.lower():
-            raise ValueError("Read modulus not equal to input.")
         case_count = 3 if n < 5 else 4
         cases = {} # type: Dict[int, int]
         i = 0

@@ -824,7 +824,7 @@ void mbedtls_x509_get_name( char * rdn_sequence, int exp_ret )
     unsigned char *name;
     unsigned char *p;
     size_t name_len;
-    mbedtls_x509_name head;
+    mbedtls_x509_name head = { 0 };
     mbedtls_x509_name *allocated, *prev;
     int ret;
 
@@ -832,12 +832,9 @@ void mbedtls_x509_get_name( char * rdn_sequence, int exp_ret )
     p = name;
 
     ret = mbedtls_x509_get_name( &p, ( name + name_len ), &head );
-
     if( ret == 0 )
     {
         allocated = head.next;
-        head.next = NULL;
-        prev = NULL;
 
         while( allocated != NULL )
         {
@@ -848,7 +845,7 @@ void mbedtls_x509_get_name( char * rdn_sequence, int exp_ret )
         }
     }
 
-    TEST_ASSERT( ret == exp_ret );
+    TEST_EQUAL( ret, exp_ret );
 
     mbedtls_free( name );
 }

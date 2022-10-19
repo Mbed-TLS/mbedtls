@@ -6,6 +6,14 @@
  *  modules should use the high-level modular bignum interface (bignum_mod.h)
  *  or the legacy bignum interface (bignum.h).
  *
+ * This is a low-level interface to operations on integers modulo which
+ * has no protection against passing invalid arguments such as arrays of
+ * the wrong size. The functions in bignum_mod.h provide a higher-level
+ * interface that includes protections against accidental misuse, at the
+ * expense of code size and sometimes more cumbersome memory management.
+ */
+
+/*
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *

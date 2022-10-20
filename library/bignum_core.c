@@ -516,8 +516,6 @@ int mbedtls_mpi_core_get_mont_R2_unsafe( mbedtls_mpi *X,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    if ( X == NULL || N == NULL ) goto cleanup;
-
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( X, 1 ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( X, N->n * 2 * biL ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( X, X, N ) );

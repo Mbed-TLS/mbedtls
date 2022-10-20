@@ -426,8 +426,7 @@ void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
  *                to store the value of Montgomery constant squared.
  * \return        #MBEDTLS_ERR_MPI_DIVISION_BY_ZERO if \p N modulus is zero.
  * \return        #MBEDTLS_ERR_MPI_NEGATIVE_VALUE if \p N modulus is negative.
- * \return        #MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED \p N, \p X are NULL
- *                or other operations fail.
+ * \return        #MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED if other operations fail.
  */
 int mbedtls_mpi_core_get_mont_R2_unsafe( mbedtls_mpi *X,
                                          mbedtls_mpi const *N );

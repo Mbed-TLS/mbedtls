@@ -4,7 +4,6 @@
 #include "mbedtls/entropy.h"
 #include "constant_time_internal.h"
 #include "test/constant_flow.h"
-#include "mbedtls/error.h"
 
 #if MBEDTLS_MPI_MAX_BITS > 792
 #define MPI_MAX_BITS_LARGER_THAN_792
@@ -1423,13 +1422,6 @@ void mpi_core_get_mont_R2_unsafe_neg(  )
     mbedtls_mpi_init( &N );
     mbedtls_mpi_init( &RR );
     const char * n = "7ffffffffffffff1";
-
-    /* Test for NULL input pointers */
-    TEST_EQUAL( MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED,
-               mbedtls_mpi_core_get_mont_R2_unsafe( NULL, &N ) );
-
-    TEST_EQUAL( MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED,
-               mbedtls_mpi_core_get_mont_R2_unsafe( &RR, NULL ) );
 
     /* Test for zero divisor */
     TEST_EQUAL( MBEDTLS_ERR_MPI_DIVISION_BY_ZERO,

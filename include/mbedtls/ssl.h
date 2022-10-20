@@ -332,9 +332,6 @@
 #define MBEDTLS_SSL_EARLY_DATA_DISABLED        0
 #define MBEDTLS_SSL_EARLY_DATA_ENABLED         1
 
-#define MBEDTLS_SSL_EARLY_DATA_OFF        0
-#define MBEDTLS_SSL_EARLY_DATA_ON         1
-
 #define MBEDTLS_SSL_DTLS_SRTP_MKI_UNSUPPORTED    0
 #define MBEDTLS_SSL_DTLS_SRTP_MKI_SUPPORTED      1
 
@@ -1921,8 +1918,8 @@ void mbedtls_ssl_conf_authmode( mbedtls_ssl_config *conf, int authmode );
 * \brief          Set the early_data mode
 *                 Default: disabled on server and client
 *
-* \param ssl     SSL context
-* \param early_data can be:
+* \param conf     The SSL configuration to use.
+* \param early_data_enabled can be:
 *
 *  MBEDTLS_SSL_EARLY_DATA_DISABLED:  early data functionality will not be used
 *                        (default on server)
@@ -1934,9 +1931,6 @@ void mbedtls_ssl_conf_authmode( mbedtls_ssl_config *conf, int authmode );
 *                        lack of replay protection of the early data application
 *                        payloads.
 *
-* \param max_early_data  Max number of bytes allowed for early data (server only).
-* \param early_data_callback Callback function when early data is received (server
-*                            only).
 */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_EARLY_DATA)
 void mbedtls_ssl_conf_early_data( mbedtls_ssl_config *conf,

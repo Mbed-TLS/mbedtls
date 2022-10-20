@@ -1635,8 +1635,11 @@
 /**
 * \def MBEDTLS_SSL_EARLY_DATA
 *
-* Allows to add functionality for TLS/DTLS 1.3 early data.
+* Enable support for RFC 8446 TLS 1.3 early data.
 *
+* Requires: MBEDTLS_SSL_PROTO_TLS1_3
+*
+* Comment this to disable support for early data.
 */
 //#define MBEDTLS_SSL_EARLY_DATA
 

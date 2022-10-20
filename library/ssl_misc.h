@@ -243,9 +243,6 @@
 /* Maximum size in bytes of list in supported elliptic curve ext., RFC 4492 */
 #define MBEDTLS_SSL_MAX_CURVE_LIST_LEN         65535
 
-/* Maximum amount of early data to buffer on the server. */
-#define MBEDTLS_SSL_MAX_EARLY_DATA             1024
-
 #define MBEDTLS_RECEIVED_SIG_ALGS_SIZE         20
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)

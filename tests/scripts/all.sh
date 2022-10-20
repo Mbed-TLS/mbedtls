@@ -802,6 +802,87 @@ is_cc_target_aarch64() {
     esac
 }
 
+is_cc_support_sha512_a64() {
+    local cc=${1:-cc}
+
+    # SHA512 instruction is for aarch64
+    is_cc_target_aarch64 "${cc}" || return 1
+
+    local major
+    major=$(${cc} -dumpversion | cut -d '.' -f 1)
+
+    # Check the compiler's version depending on its type (GCC/Clang)
+    case $(${cc} --version 2>&1) in
+        *gcc*|*cc*)
+            if [ "${major}" -lt "8" ]; then
+                false
+            else
+                true
+            fi
+            ;;
+        *clang*)
+            if [ "${major}" -lt "7" ]; then
+                false
+            else
+                true
+            fi
+            ;;
+        *) false;;
+    esac
+}
+
+# Version compare based on 'sort -V'
+# In:
+#   * $1 first version
+#   * $2 second version
+# Out:
+#   'eq' if $1 and $2 are equal
+#   'lt' if $1 is less than $2
+#   'gt' if $1 is greater than $2
+version_compare() {
+    local v1=${1}
+    local v2=${2}
+
+    if [ "${v1}" = "${v2}" ]; then
+        echo "eq"
+    else
+        [[ $(echo -e "${v1}\n${v2}" | sort -V | head -n1) == "${v1}" ]] && echo "lt" || echo "gt"
+    fi
+}
+
+# Get the -march switch for sha256/512 acceleration
+get_cc_march_sha256_512 () {
+    local cc=${1:-cc}
+    local cflag=""
+
+    # check if sha3 feature should be enabled
+    if is_cc_support_sha512_a64 ${cc}; then
+        case $(${cc} --version 2>&1) in
+            *clang*)
+                local v1="$(${cc} -dumpversion)"
+                local v2="13.0.0"
+                [ "$(version_compare ${v1} ${v2})" == "gt" ] && \
+                    cflag="-march=armv8.2-a+sha3"
+                ;;
+            *gcc*|*cc*)
+                cflag="-march=armv8.2-a+sha3"
+                ;;
+        esac
+    fi
+
+    # check if crypto feature should be enabled
+    if is_cc_target_aarch64 ${cc}; then
+        # crypto feature should be supported on all aarch64 (armv8-a)
+        if [ -z "${cflag}" ]; then
+            cflag="-march=armv8-a+crypto"
+        else
+            cflag+="+crypto"
+        fi
+    fi
+
+    echo "${cflag}"
+}
+
 
 
 ################################################################

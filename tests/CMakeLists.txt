@@ -68,6 +68,8 @@ if(GEN_FILES)
             --directory ${CMAKE_CURRENT_BINARY_DIR}/suites
         DEPENDS
             ${CMAKE_CURRENT_SOURCE_DIR}/../tests/scripts/generate_bignum_tests.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/bignum_common.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/bignum_core.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/test_case.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/test_data_generation.py
     )

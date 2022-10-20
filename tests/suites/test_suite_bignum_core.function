@@ -383,7 +383,7 @@ void mpi_core_add_if( char * input_A, char * input_B,
 
         /* cond = 0 => X unchanged, no carry */
         memcpy( X, B, bytes );
-        TEST_EQUAL( 0, mbedtls_mpi_core_add_if( X, B, limbs, 0 ) );
+        TEST_EQUAL( 0, mbedtls_mpi_core_add_if( X, X, limbs, 0 ) );
         ASSERT_COMPARE( X, bytes, B, bytes );
 
         /* cond = 1 => correct result and carry */

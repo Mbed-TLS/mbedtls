@@ -793,6 +793,15 @@ pre_generate_files() {
     fi
 }
 
+is_cc_target_aarch64() {
+    local cc=${1:-cc}
+    local target=$(${cc} -dumpmachine)
+    case ${target} in
+        *aarch64*) true;;
+        *) false;;
+    esac
+}
+
 
 
 ################################################################

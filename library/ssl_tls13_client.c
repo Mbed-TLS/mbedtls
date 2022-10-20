@@ -736,7 +736,7 @@ static int ssl_tls13_psk_get_identity( mbedtls_ssl_context *ssl,
                                        size_t *identity_len )
 {
 
-    if( !mbedtls_ssl_conf_has_static_psk( ssl->conf ) )
+    if( ! mbedtls_ssl_conf_has_static_psk( ssl->conf ) )
         return( -1 );
 
     *hash_alg = PSA_ALG_SHA_256;
@@ -752,7 +752,7 @@ static int ssl_tls13_psk_get_psk( mbedtls_ssl_context *ssl,
                                   size_t *psk_len )
 {
 
-    if( !mbedtls_ssl_conf_has_static_psk( ssl->conf ) )
+    if( ! mbedtls_ssl_conf_has_static_psk( ssl->conf ) )
         return( -1 );
 
     *hash_alg = PSA_ALG_SHA_256;

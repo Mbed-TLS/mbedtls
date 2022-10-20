@@ -147,6 +147,9 @@ void mpi_mod_raw_cond_assign( char * input_X,
 
     mbedtls_mpi_mod_raw_cond_assign( X, Y, &m, 0 );
 
+    TEST_CF_PUBLIC( X, bytes );
+    TEST_CF_PUBLIC( Y, bytes );
+
     TEST_ASSERT( memcmp( X, Y, bytes ) != 0 );
 
     /* condition is true */
@@ -154,6 +157,9 @@ void mpi_mod_raw_cond_assign( char * input_X,
     TEST_CF_SECRET( Y, bytes );
 
     mbedtls_mpi_mod_raw_cond_assign( X, Y, &m, 1 );
+
+    TEST_CF_PUBLIC( X, bytes );
+    TEST_CF_PUBLIC( Y, bytes );
 
     /* Check if the given length is copied even it is smaller
        than the length of the given MPIs. */
@@ -220,6 +226,9 @@ void mpi_mod_raw_cond_swap( char * input_X,
 
     mbedtls_mpi_mod_raw_cond_swap( X, Y, &m, 0 );
 
+    TEST_CF_PUBLIC( X, bytes );
+    TEST_CF_PUBLIC( Y, bytes );
+
     ASSERT_COMPARE( X, bytes, tmp_X, bytes );
     ASSERT_COMPARE( Y, bytes, tmp_Y, bytes );
 
@@ -228,6 +237,9 @@ void mpi_mod_raw_cond_swap( char * input_X,
     TEST_CF_SECRET( Y, bytes );
 
     mbedtls_mpi_mod_raw_cond_swap( X, Y, &m, 1 );
+
+    TEST_CF_PUBLIC( X, bytes );
+    TEST_CF_PUBLIC( Y, bytes );
 
     /* Check if the given length is copied even it is smaller
        than the length of the given MPIs. */

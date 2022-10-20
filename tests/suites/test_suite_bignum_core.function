@@ -371,6 +371,9 @@ void mpi_core_cond_assign( char * input_X,
 
     mbedtls_mpi_core_cond_assign( X, Y, copy_limbs, 0 );
 
+    TEST_CF_PUBLIC( X, bytes );
+    TEST_CF_PUBLIC( Y, bytes );
+
     TEST_ASSERT( memcmp( X, Y, bytes ) != 0 );
 
     /* condition is true */
@@ -379,10 +382,16 @@ void mpi_core_cond_assign( char * input_X,
 
     mbedtls_mpi_core_cond_assign( X, Y, copy_limbs, 1 );
 
+    TEST_CF_PUBLIC( X, bytes );
+    TEST_CF_PUBLIC( Y, bytes );
+
     /* Check if the given length is copied even it is smaller
        than the length of the given MPIs. */
     if( copy_limbs < limbs )
     {
+        TEST_CF_PUBLIC( X, bytes );
+        TEST_CF_PUBLIC( Y, bytes );
+
         ASSERT_COMPARE( X, copy_bytes, Y, copy_bytes );
         TEST_ASSERT( memcmp( X, Y, bytes ) != 0 );
     }
@@ -430,6 +439,9 @@ void mpi_core_cond_swap( char * input_X,
 
     mbedtls_mpi_core_cond_swap( X, Y, copy_limbs, 0 );
 
+    TEST_CF_PUBLIC( X, bytes );
+    TEST_CF_PUBLIC( Y, bytes );
+
     ASSERT_COMPARE( X, bytes, tmp_X, bytes );
     ASSERT_COMPARE( Y, bytes, tmp_Y, bytes );
 
@@ -438,6 +450,9 @@ void mpi_core_cond_swap( char * input_X,
     TEST_CF_SECRET( Y, bytes );
 
     mbedtls_mpi_core_cond_swap( X, Y, copy_limbs, 1 );
+
+    TEST_CF_PUBLIC( X, bytes );
+    TEST_CF_PUBLIC( Y, bytes );
 
     /* Check if the given length is copied even it is smaller
        than the length of the given MPIs. */

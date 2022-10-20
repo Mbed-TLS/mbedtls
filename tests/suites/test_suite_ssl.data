@@ -98,63 +98,61 @@ Test moving clients handshake to state: CLIENT_HELLO
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_CLIENT_HELLO:1
 
 Test moving clients handshake to state: SERVER_HELLO
-depends_on:MBEDTLS_ECP_C
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_SERVER_HELLO:1
 
 Test moving clients handshake to state: SERVER_CERTIFICATE
-depends_on:MBEDTLS_ECP_C
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_SERVER_CERTIFICATE:1
 
 Test moving clients handshake to state: SERVER_KEY_EXCHANGE
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_SERVER_KEY_EXCHANGE:1
 
 Test moving clients handshake to state: CERTIFICATE_REQUEST
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_CERTIFICATE_REQUEST:1
 
 Test moving clients handshake to state: SERVER_HELLO_DONE
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_SERVER_HELLO_DONE:1
 
 Test moving clients handshake to state: CLIENT_CERTIFICATE
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_CLIENT_CERTIFICATE:1
 
 Test moving clients handshake to state: CLIENT_KEY_EXCHANGE
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_CLIENT_KEY_EXCHANGE:1
 
 Test moving clients handshake to state: CERTIFICATE_VERIFY
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_CERTIFICATE_VERIFY:1
 
 Test moving clients handshake to state: CLIENT_CHANGE_CIPHER_SPEC
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC:1
 
 Test moving clients handshake to state: CLIENT_FINISHED
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_CLIENT_FINISHED:1
 
 Test moving clients handshake to state: SERVER_CHANGE_CIPHER_SPEC
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC:1
 
 Test moving clients handshake to state: SERVER_FINISHED
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_SERVER_FINISHED:1
 
 Test moving clients handshake to state: FLUSH_BUFFERS
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_FLUSH_BUFFERS:1
 
 Test moving clients handshake to state: HANDSHAKE_WRAPUP
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_HANDSHAKE_WRAPUP:1
 
 Test moving clients handshake to state: HANDSHAKE_OVER
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_HANDSHAKE_OVER:1
 
 Test moving servers handshake to state: HELLO_REQUEST
@@ -164,63 +162,61 @@ Test moving servers handshake to state: CLIENT_HELLO
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_CLIENT_HELLO:1
 
 Test moving servers handshake to state: SERVER_HELLO
-depends_on:MBEDTLS_ECP_C
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_SERVER_HELLO:1
 
 Test moving servers handshake to state: SERVER_CERTIFICATE
-depends_on:MBEDTLS_ECP_C
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_SERVER_CERTIFICATE:1
 
 Test moving servers handshake to state: SERVER_KEY_EXCHANGE
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_SERVER_KEY_EXCHANGE:1
 
 Test moving servers handshake to state: CERTIFICATE_REQUEST
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_CERTIFICATE_REQUEST:1
 
 Test moving servers handshake to state: SERVER_HELLO_DONE
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_SERVER_HELLO_DONE:1
 
 Test moving servers handshake to state: CLIENT_CERTIFICATE
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_CLIENT_CERTIFICATE:1
 
 Test moving servers handshake to state: CLIENT_KEY_EXCHANGE
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_CLIENT_KEY_EXCHANGE:1
 
 Test moving servers handshake to state: CERTIFICATE_VERIFY
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_CERTIFICATE_VERIFY:1
 
 Test moving servers handshake to state: CLIENT_CHANGE_CIPHER_SPEC
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC:1
 
 Test moving servers handshake to state: CLIENT_FINISHED
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_CLIENT_FINISHED:1
 
 Test moving servers handshake to state: SERVER_CHANGE_CIPHER_SPEC
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC:1
 
 Test moving servers handshake to state: SERVER_FINISHED
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_SERVER_FINISHED:1
 
 Test moving servers handshake to state: FLUSH_BUFFERS
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_FLUSH_BUFFERS:1
 
 Test moving servers handshake to state: HANDSHAKE_WRAPUP
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_HANDSHAKE_WRAPUP:1
 
 Test moving servers handshake to state: HANDSHAKE_OVER
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_HANDSHAKE_OVER:1
 
 Negative test moving clients ssl to state: VERIFY_REQUEST_SENT
@@ -344,43 +340,41 @@ depends_on:MBEDTLS_SSL_PROTO_TLS1_1:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_SSL_PROTO_TL
 handshake_version:0:TEST_SSL_MINOR_VERSION_NONE:MBEDTLS_SSL_MINOR_VERSION_1:MBEDTLS_SSL_MINOR_VERSION_2:TEST_SSL_MINOR_VERSION_NONE:TEST_SSL_MINOR_VERSION_NONE
 
 Sending app data via TLS, MFL=512 without fragmentation
-depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 app_data_tls:MBEDTLS_SSL_MAX_FRAG_LEN_512:400:512:1:1
 
 Sending app data via TLS, MFL=512 with fragmentation
-depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 app_data_tls:MBEDTLS_SSL_MAX_FRAG_LEN_512:513:1536:2:3
 
 Sending app data via TLS, MFL=1024 without fragmentation
-depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 app_data_tls:MBEDTLS_SSL_MAX_FRAG_LEN_1024:1000:1024:1:1
 
 Sending app data via TLS, MFL=1024 with fragmentation
-depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 app_data_tls:MBEDTLS_SSL_MAX_FRAG_LEN_1024:1025:5120:2:5
 
 Sending app data via TLS, MFL=2048 without fragmentation
-depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 app_data_tls:MBEDTLS_SSL_MAX_FRAG_LEN_2048:2000:2048:1:1
 
 Sending app data via TLS, MFL=2048 with fragmentation
-depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 app_data_tls:MBEDTLS_SSL_MAX_FRAG_LEN_2048:2049:8192:2:4
 
 Sending app data via TLS, MFL=4096 without fragmentation
-depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 app_data_tls:MBEDTLS_SSL_MAX_FRAG_LEN_4096:4000:4096:1:1
 
 Sending app data via TLS, MFL=4096 with fragmentation
-depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH:MBEDTLS_ECP_C
+depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 app_data_tls:MBEDTLS_SSL_MAX_FRAG_LEN_4096:4097:12288:2:3
 
 Sending app data via TLS without MFL and without fragmentation
-depends_on:MBEDTLS_ECP_C
 app_data_tls:MBEDTLS_SSL_MAX_FRAG_LEN_NONE:16001:16384:1:1
 
 Sending app data via TLS without MFL and with fragmentation
-depends_on:MBEDTLS_ECP_C
 app_data_tls:MBEDTLS_SSL_MAX_FRAG_LEN_NONE:16385:100000:2:7
 
 Sending app data via DTLS, MFL=512 without fragmentation

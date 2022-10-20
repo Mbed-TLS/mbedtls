@@ -1080,6 +1080,14 @@ cleanup:
 
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
 
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+void mbedtls_ssl_conf_early_data( mbedtls_ssl_config *conf,
+                                  int early_data_enabled )
+{
+    conf->early_data_enabled = early_data;
+}
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
 /*
  *
  * STATE HANDLING: Incoming Finished message.

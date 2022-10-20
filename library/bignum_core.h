@@ -413,11 +413,12 @@ void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
                                mbedtls_mpi_uint mm, mbedtls_mpi_uint *T );
 
 /**
- * \brief Calculate initialisation value for fast Montgomery modular
- *        multiplication
+ * \brief Calculate the square of the Montgomery constant. (Needed
+ *        for conversion and operations in Montgomery form.)
  *
  * \param[out] X  A pointer to the result of the calculation of
- *                Montgomery const 2^{2*n*biL} mod N.
+ *                the square of the Montgomery constant:
+ *                2^{2*n*biL} mod N.
  * \param[in]  N  Little-endian presentation of the modulus, which must be odd.
  *
  * \return        0 if successful.

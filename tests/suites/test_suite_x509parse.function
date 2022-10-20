@@ -824,9 +824,11 @@ void mbedtls_x509_get_name( char * rdn_sequence, int exp_ret )
     unsigned char *name;
     unsigned char *p;
     size_t name_len;
-    mbedtls_x509_name head = { 0 };
+    mbedtls_x509_name head;
     mbedtls_x509_name *allocated, *prev;
     int ret;
+
+    memset( &head, 0, sizeof( head ) );
 
     name = mbedtls_test_unhexify_alloc( rdn_sequence, &name_len );
     p = name;

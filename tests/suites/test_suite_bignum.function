@@ -1417,7 +1417,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mpi_get_montgomery_constant_unsafe_neg(  )
+void mpi_core_get_mont_R2_unsafe_neg(  )
 {
     mbedtls_mpi N, RR;
     mbedtls_mpi_init( &N );
@@ -1426,20 +1426,20 @@ void mpi_get_montgomery_constant_unsafe_neg(  )
 
     /* Test for NULL input pointers */
     TEST_EQUAL( MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED,
-               mbedtls_mpi_get_montgomery_constant_unsafe( NULL, &N ) );
+               mbedtls_mpi_core_get_mont_R2_unsafe( NULL, &N ) );
 
     TEST_EQUAL( MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED,
-               mbedtls_mpi_get_montgomery_constant_unsafe( &RR, NULL ) );
+               mbedtls_mpi_core_get_mont_R2_unsafe( &RR, NULL ) );
 
     /* Test for zero divisor */
     TEST_EQUAL( MBEDTLS_ERR_MPI_DIVISION_BY_ZERO,
-               mbedtls_mpi_get_montgomery_constant_unsafe( &RR, &N ) );
+               mbedtls_mpi_core_get_mont_R2_unsafe( &RR, &N ) );
 
     /* Test for negative input */
     TEST_EQUAL( 0, mbedtls_test_read_mpi( &N, n ) );
     N.s = -1;
     TEST_EQUAL( MBEDTLS_ERR_MPI_NEGATIVE_VALUE,
-               mbedtls_mpi_get_montgomery_constant_unsafe( &RR, &N ) );
+               mbedtls_mpi_core_get_mont_R2_unsafe( &RR, &N ) );
     N.s = 1;
 
 exit:
@@ -1449,9 +1449,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mpi_get_montgomery_constant_unsafe( char * input_N,
-                                         char * input_RR_X4,
-                                         char * input_RR_X8 )
+void mpi_core_get_mont_R2_unsafe( char * input_N,
+                                  char * input_RR_X4,
+                                  char * input_RR_X8 )
 {
     mbedtls_mpi N, RR, RR_REF;
 
@@ -1471,7 +1471,7 @@ void mpi_get_montgomery_constant_unsafe( char * input_N,
     TEST_EQUAL( 1, sign_is_valid(&RR_REF));
 
     /* Test valid input */
-    TEST_EQUAL( 0, mbedtls_mpi_get_montgomery_constant_unsafe( &RR, &N ) );
+    TEST_EQUAL( 0, mbedtls_mpi_core_get_mont_R2_unsafe( &RR, &N ) );
 
     /* Test that the moduli is odd */
     TEST_EQUAL(N.p[0] ^ 1, N.p[0] - 1);

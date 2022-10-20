@@ -428,7 +428,7 @@ void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
  * \return        #MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED \p N, \p X are NULL
  *                or other operations fail.
  */
-int mbedtls_mpi_get_montgomery_constant_unsafe( mbedtls_mpi *X,
-                                                mbedtls_mpi const *N );
+int mbedtls_mpi_core_get_mont_R2_unsafe( mbedtls_mpi *X,
+                                         mbedtls_mpi const *N );
 
 #endif /* MBEDTLS_BIGNUM_CORE_H */

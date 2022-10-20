@@ -82,9 +82,9 @@ class BignumCoreOperationArchSplit(BignumCoreOperation):
         bound_val = max(self.int_a, self.int_b)
         self.bits_in_limb = bits_in_limb
         self.bound = bignum_common.bound_mpi(bound_val, self.bits_in_limb)
-        limbs =  bignum_common.limbs_mpi(bound_val, self.bits_in_limb)
-        byte_len = limbs*self.bits_in_limb//8
-        self.hex_digits = 2*byte_len
+        limbs = bignum_common.limbs_mpi(bound_val, self.bits_in_limb)
+        byte_len = limbs * self.bits_in_limb // 8
+        self.hex_digits = 2 * byte_len
         if self.bits_in_limb == 32:
             self.dependencies = ["MBEDTLS_HAVE_INT32"]
         elif self.bits_in_limb == 64:

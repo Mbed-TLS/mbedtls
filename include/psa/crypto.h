@@ -853,10 +853,6 @@ psa_status_t psa_export_public_key(mbedtls_svc_key_id_t key,
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
  */
 psa_status_t psa_hash_compute(psa_algorithm_t alg,
                               const uint8_t *input,
@@ -888,10 +884,6 @@ psa_status_t psa_hash_compute(psa_algorithm_t alg,
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
  */
 psa_status_t psa_hash_compare(psa_algorithm_t alg,
                               const uint8_t *input,
@@ -982,10 +974,7 @@ static psa_hash_operation_t psa_hash_operation_init(void);
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be inactive), or
- *         the library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
+ *         The operation state is not valid (it must be inactive).
  */
 psa_status_t psa_hash_setup(psa_hash_operation_t *operation,
                             psa_algorithm_t alg);
@@ -1008,10 +997,7 @@ psa_status_t psa_hash_setup(psa_hash_operation_t *operation,
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be active), or
- *         the library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
+ *         The operation state is not valid (it must be active).
  */
 psa_status_t psa_hash_update(psa_hash_operation_t *operation,
                              const uint8_t *input,
@@ -1054,10 +1040,7 @@ psa_status_t psa_hash_update(psa_hash_operation_t *operation,
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be active), or
- *         the library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
+ *         The operation state is not valid (it must be active).
  */
 psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
                              uint8_t *hash,
@@ -1095,10 +1078,7 @@ psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be active), or
- *         the library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
+ *         The operation state is not valid (it must be active).
  */
 psa_status_t psa_hash_verify(psa_hash_operation_t *operation,
                              const uint8_t *hash,
@@ -1124,10 +1104,6 @@ psa_status_t psa_hash_verify(psa_hash_operation_t *operation,
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
  */
 psa_status_t psa_hash_abort(psa_hash_operation_t *operation);
 
@@ -1153,10 +1129,7 @@ psa_status_t psa_hash_abort(psa_hash_operation_t *operation);
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_BAD_STATE
  *         The \p source_operation state is not valid (it must be active), or
- *         the \p target_operation state is not valid (it must be inactive), or
- *         the library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
+ *         the \p target_operation state is not valid (it must be inactive).
  */
 psa_status_t psa_hash_clone(const psa_hash_operation_t *source_operation,
                             psa_hash_operation_t *target_operation);

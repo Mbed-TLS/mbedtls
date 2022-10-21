@@ -21,6 +21,7 @@
 #else
 #define TEST_DRIVER_LOCATION 0x7fffff
 #endif
+#include "mbedtls/legacy_or_psa.h"
 
 /* If this comes up, it's a bug in the test code or in the test data. */
 #define UNUSED 0xdeadbeef
@@ -7797,7 +7798,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS:MBEDTLS_SHA256_C */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_SHA_256:MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
 void derive_ecjpake_to_pms( data_t *input, int expected_input_status_arg,
                             int derivation_step,
                             int capacity, int expected_capacity_status_arg,

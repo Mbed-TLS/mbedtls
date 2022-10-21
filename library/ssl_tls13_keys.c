@@ -38,6 +38,9 @@
 #define MBEDTLS_SSL_TLS1_3_LABEL( name, string )       \
     .name = string,
 
+#define TLS1_3_EVOLVE_INPUT_SIZE ( PSA_HASH_MAX_SIZE > PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE ) ? \
+                                     PSA_HASH_MAX_SIZE : PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE
+
 struct mbedtls_ssl_tls13_labels_struct const mbedtls_ssl_tls13_labels =
 {
     /* This seems to work in C, despite the string literal being one
@@ -333,7 +336,7 @@ int mbedtls_ssl_tls13_evolve_secret(
     psa_status_t abort_status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t hlen, ilen;
     unsigned char tmp_secret[ PSA_MAC_MAX_SIZE ] = { 0 };
-    unsigned char tmp_input [ MBEDTLS_ECP_MAX_BYTES ] = { 0 };
+    unsigned char tmp_input [ TLS1_3_EVOLVE_INPUT_SIZE ] = { 0 };
     psa_key_derivation_operation_t operation =
         PSA_KEY_DERIVATION_OPERATION_INIT;
 

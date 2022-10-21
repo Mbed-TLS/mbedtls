@@ -196,8 +196,6 @@ static inline void psa_clear_key_slot_number(
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
  */
 psa_status_t mbedtls_psa_register_se_key(
     const psa_key_attributes_t *attributes);
@@ -1358,8 +1356,6 @@ static psa_pake_operation_t psa_pake_operation_init( void );
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid, or
  *         the library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
  */
 psa_status_t psa_pake_setup( psa_pake_operation_t *operation,
                              const psa_pake_cipher_suite_t *cipher_suite );
@@ -1406,8 +1402,6 @@ psa_status_t psa_pake_setup( psa_pake_operation_t *operation,
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (it must have been set up.), or
  *         the library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
  */
 psa_status_t psa_pake_set_password_key( psa_pake_operation_t *operation,
                                         mbedtls_svc_key_id_t password );
@@ -1446,8 +1440,6 @@ psa_status_t psa_pake_set_password_key( psa_pake_operation_t *operation,
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid, or
  *         the library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
  */
 psa_status_t psa_pake_set_user( psa_pake_operation_t *operation,
                                 const uint8_t *user_id,
@@ -1488,8 +1480,6 @@ psa_status_t psa_pake_set_user( psa_pake_operation_t *operation,
  *         Calling psa_pake_set_peer() is invalid with the \p operation's
  *         algorithm, the operation state is not valid, or the library has not
  *         been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
  */
 psa_status_t psa_pake_set_peer( psa_pake_operation_t *operation,
                                 const uint8_t *peer_id,
@@ -1530,8 +1520,6 @@ psa_status_t psa_pake_set_peer( psa_pake_operation_t *operation,
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid, or
  *         the library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
  */
 psa_status_t psa_pake_set_role( psa_pake_operation_t *operation,
                                 psa_pake_role_t role );
@@ -1588,8 +1576,6 @@ psa_status_t psa_pake_set_role( psa_pake_operation_t *operation,
  *         up, and this call must conform to the algorithm's requirements
  *         for ordering of input and output steps), or
  *         the library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
  */
 psa_status_t psa_pake_output( psa_pake_operation_t *operation,
                               psa_pake_step_t step,
@@ -1643,8 +1629,6 @@ psa_status_t psa_pake_output( psa_pake_operation_t *operation,
  *         up, and this call must conform to the algorithm's requirements
  *         for ordering of input and output steps), or
  *         the library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
  */
 psa_status_t psa_pake_input( psa_pake_operation_t *operation,
                              psa_pake_step_t step,
@@ -1706,8 +1690,6 @@ psa_status_t psa_pake_input( psa_pake_operation_t *operation,
  *         the #PSA_KEY_DERIVATION_INPUT_SECRET step. This can happen if the
  *         step is out of order or the application has done this step already
  *         and it may not be repeated.
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
  */
 psa_status_t psa_pake_get_implicit_key( psa_pake_operation_t *operation,
                                         psa_key_derivation_operation_t *output );
@@ -1733,8 +1715,6 @@ psa_status_t psa_pake_get_implicit_key( psa_pake_operation_t *operation,
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
  */
 psa_status_t psa_pake_abort( psa_pake_operation_t * operation );
 

@@ -154,7 +154,7 @@ Support description
     related to key exchange protocols, certificates and signatures.
 
   - MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED enables the
-    support of the ephemeral key exchange mode. If it is the only key exchange
+    support for the ephemeral key exchange mode. If it is the only key exchange
     mode enabled, the TLS 1.3 implementation does not contain any code related
     to PSK based key exchange. The ephemeral key exchange mode requires at least
     one of the key exchange protocol allowed by the TLS 1.3 specification, the

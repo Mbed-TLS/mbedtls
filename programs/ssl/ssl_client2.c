@@ -26,7 +26,6 @@
 #endif /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #if defined(MBEDTLS_VERSION_C)
-#include "mbedtls/build_info.h"
 #include "mbedtls/version.h"
 #endif /* MBEDTLS_VERSION_C */
 
@@ -1003,9 +1002,11 @@ int main( int argc, char *argv[] )
         {
             if( strcmp( q, "1" ) == 0 )
             {
+                char version_str[10];
+                memset( version_str, 0, 10 );
+                mbedtls_version_get_string( version_str );
                 mbedtls_printf( "build version: %s (build %u)\n",
-                                MBEDTLS_VERSION_STRING,
-                                mbedtls_version_get_number() );
+                                version_str, mbedtls_version_get_number() );
                 goto exit;
             }
         }
@@ -1721,6 +1722,14 @@ int main( int argc, char *argv[] )
         }
     }
 #endif /* MBEDTLS_SSL_ALPN */
+
+#if defined(MBEDTLS_VERSION_C)
+    char version_str[10];
+    memset( version_str, 0, 10 );
+    mbedtls_version_get_string( version_str );
+    mbedtls_printf( "build version: %s (build %u)\n",
+                    version_str, mbedtls_version_get_number() );
+#endif /* MBEDTLS_VERSION_C */
 
     /*
      * 0. Initialize the RNG and the session data
@@ -2479,11 +2488,6 @@ int main( int argc, char *argv[] )
                             (unsigned) session_data_len );
         }
     }
-
-#if defined(MBEDTLS_VERSION_C)
-    mbedtls_printf( "build version: %s (build %u)\n",
-                    MBEDTLS_VERSION_STRING, mbedtls_version_get_number() );
-#endif /* MBEDTLS_VERSION_C */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     /*

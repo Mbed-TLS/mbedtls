@@ -1097,7 +1097,7 @@ exit:
     mbedtls_cipher_free( &ctx );
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_TEST_DEPRECATED)
     PSA_DONE( );
-#endif /* MBEDTLS_USE_PSA_CRYPTO && defined(MBEDTLS_TEST_DEPRECATED */
+#endif /* MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_TEST_DEPRECATED */
 }
 /* END_CASE */
 

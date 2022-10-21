@@ -262,7 +262,7 @@ int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *A,
                                unsigned char *output,
                                size_t output_length );
 
-/** \brief              Shift a machine integer right by a number of bits.
+/** \brief              Shift an MPI right in place by a number of bits.
  *
  *                      Shifting by more bits than there are bit positions
  *                      in \p X is valid and results in setting \p X to 0.

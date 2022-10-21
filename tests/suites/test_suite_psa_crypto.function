@@ -2548,7 +2548,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void hash_operation_init( )
+void hash_operation_init( int lib_init )
 {
     const uint8_t input[1] = { 0 };
     /* Test each valid way of initializing the object, except for `= {0}`, as
@@ -2558,8 +2558,10 @@ void hash_operation_init( )
     psa_hash_operation_t func = psa_hash_operation_init( );
     psa_hash_operation_t init = PSA_HASH_OPERATION_INIT;
     psa_hash_operation_t zero;
-
     memset( &zero, 0, sizeof( zero ) );
+
+    if( lib_init )
+        PSA_INIT( );
 
     /* A freshly-initialized hash operation should not be usable. */
     TEST_EQUAL( psa_hash_update( &func, input, sizeof( input ) ),
@@ -2573,6 +2575,10 @@ void hash_operation_init( )
     PSA_ASSERT( psa_hash_abort( &func ) );
     PSA_ASSERT( psa_hash_abort( &init ) );
     PSA_ASSERT( psa_hash_abort( &zero ) );
+
+exit:
+    if( lib_init )
+        PSA_DONE( );
 }
 /* END_CASE */
 
@@ -2813,7 +2819,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:PSA_WANT_ALG_SHA_256 */
-void hash_bad_order( )
+void hash_bad_order( int lib_init )
 {
     psa_algorithm_t alg = PSA_ALG_SHA_256;
     unsigned char input[] = "";
@@ -2826,7 +2832,8 @@ void hash_bad_order( )
     size_t hash_len;
     psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
 
-    PSA_ASSERT( psa_crypto_init( ) );
+    if( lib_init )
+        PSA_ASSERT( psa_crypto_init( ) );
 
     /* Call setup twice in a row. */
     PSA_ASSERT( psa_hash_setup( &operation, alg ) );
@@ -2912,7 +2919,8 @@ void hash_bad_order( )
     PSA_ASSERT( psa_hash_abort( &operation ) );
 
 exit:
-    PSA_DONE( );
+    if( lib_init )
+        PSA_DONE( );
 }
 /* END_CASE */
 

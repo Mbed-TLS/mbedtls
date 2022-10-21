@@ -1445,8 +1445,11 @@ Copy fail: AES, across locations (unsupported) in attributes
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES:PSA_CRYPTO_DRIVER_TEST
 copy_fail:PSA_KEY_USAGE_COPY | PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_EXPORT:PSA_ALG_CTR:0:PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(PSA_KEY_PERSISTENCE_VOLATILE, TEST_DRIVER_LOCATION):PSA_KEY_TYPE_AES:"404142434445464748494a4b4c4d4e4f":PSA_KEY_TYPE_AES:0:PSA_KEY_USAGE_COPY | PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_EXPORT:PSA_ALG_CTR:0:1:PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(PSA_KEY_PERSISTENCE_VOLATILE, 0):PSA_ERROR_NOT_SUPPORTED
 
-Hash operation object initializers zero properly
-hash_operation_init:
+Hash operation object initializers zero properly (without psa_crypto_init)
+hash_operation_init:0
+
+Hash operation object initializers zero properly (with psa_crypto_init)
+hash_operation_init:1
 
 PSA hash setup: good, SHA-1
 depends_on:PSA_WANT_ALG_SHA_1
@@ -1488,8 +1491,11 @@ PSA hash setup: bad (not a hash algorithm)
 depends_on:PSA_WANT_ALG_HMAC:PSA_WANT_ALG_SHA_256
 hash_setup:PSA_ALG_HMAC(PSA_ALG_SHA_256):PSA_ERROR_INVALID_ARGUMENT
 
-PSA hash: bad order function calls
-hash_bad_order:
+PSA hash: bad order function calls (without psa_crypto_init)
+hash_bad_order:0
+
+PSA hash: bad order function calls (with psa_crypto_init)
+hash_bad_order:1
 
 PSA hash verify: bad arguments
 hash_verify_bad_args:

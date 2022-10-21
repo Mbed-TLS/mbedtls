@@ -981,7 +981,11 @@ component_check_changelog () {
 
 component_check_names () {
     msg "Check: declared and exported names (builds the library)" # < 3s
-    tests/scripts/check_names.py -v
+    SHA_CFLAGS=$(get_cc_march_sha256_512)
+    CFLAGS="$SHA_CFLAGS" tests/scripts/check_names.py -v
+}
+support_check_names () {
+    ! is_cc_target_aarch64 || is_cc_support_sha512_a64
 }
 
 component_check_test_cases () {

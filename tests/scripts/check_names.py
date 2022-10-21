@@ -644,6 +644,7 @@ class CodeParser():
             )
             my_environment = os.environ.copy()
             my_environment["CFLAGS"] = "-fno-asynchronous-unwind-tables"
+            my_environment["CFLAGS"] += " " + (os.environ.get('CFLAGS') or "")
             # Run make clean separately to lib to prevent unwanted behavior when
             # make is invoked with parallelism.
             subprocess.run(

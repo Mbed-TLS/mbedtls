@@ -1554,7 +1554,7 @@ component_build_crypto_full () {
   are_empty_libraries library/libmbedx509.* library/libmbedtls.*
 }
 
-component_build_crypto_light () {
+component_test_crypto_for_psa_service () {
   msg "build: make, config for PSA crypto service"
   scripts/config.py crypto
   scripts/config.py set MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER

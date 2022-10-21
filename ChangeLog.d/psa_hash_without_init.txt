@@ -1,0 +1,4 @@
+Features
+   * Document that PSA hash operations don't require psa_crypto_init(). This
+     has always been possible, but was not previously explicitly stated. This
+     does not necessarily apply to a PSA crypto service built on Mbed TLS.

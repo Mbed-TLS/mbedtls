@@ -70,8 +70,8 @@ from mbedtls_dev import bignum_core # pylint: disable=unused-import
 
 class BignumTarget(test_data_generation.BaseTarget, metaclass=ABCMeta):
     #pylint: disable=abstract-method
-    """Target for bignum (mpi) test case generation."""
-    target_basename = 'test_suite_mpi.generated'
+    """Target for bignum (legacy) test case generation."""
+    target_basename = 'test_suite_bignum.generated'
 
 
 class BignumOperation(bignum_common.OperationCommon, BignumTarget, metaclass=ABCMeta):

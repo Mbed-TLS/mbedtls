@@ -171,7 +171,7 @@ int mbedtls_x509write_crt_set_basic_constraints( mbedtls_x509write_cert *ctx,
                              is_ca, buf + sizeof(buf) - len, len ) );
 }
 
-#if defined(MBEDTLS_SHA1_C)
+#if defined(MBEDTLS_SHA1_C) //notPSA
 static int mbedtls_x509write_crt_set_key_identifier( mbedtls_x509write_cert *ctx,
                                               int is_ca,
                                               unsigned char tag )

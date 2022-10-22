@@ -473,7 +473,7 @@ typedef int  mbedtls_ssl_tls_prf_cb( const unsigned char *secret, size_t slen,
 
 /* Which algorithms are supported for the running handshake hash,
  * and through what interface? */
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_SHA256_C) //notPSA
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #define MBEDTLS_SSL_FIN_SHA256_PSA
 #else
@@ -481,7 +481,7 @@ typedef int  mbedtls_ssl_tls_prf_cb( const unsigned char *secret, size_t slen,
 #include "mbedtls/sha256.h"
 #endif
 #endif
-#if defined(MBEDTLS_SHA384_C)
+#if defined(MBEDTLS_SHA384_C) //notPSA
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #define MBEDTLS_SSL_FIN_SHA384_PSA
 #else

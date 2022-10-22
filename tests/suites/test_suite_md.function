@@ -8,31 +8,23 @@
  */
 
 /* BEGIN_CASE */
-void mbedtls_md_process(  )
+void md_list(  )
 {
     const int *md_type_ptr;
     const mbedtls_md_info_t *info;
     mbedtls_md_context_t ctx;
-    unsigned char buf[150];
+    unsigned char output[MBEDTLS_MD_MAX_SIZE];
 
     mbedtls_md_init( &ctx );
-    memset( buf, 0, sizeof( buf ) );
 
-    /*
-     * Very minimal testing of mbedtls_md_process, just make sure the various
-     * xxx_process_wrap() function pointers are valid. (Testing that they
-     * indeed do the right thing would require messing with the internal
-     * state of the underlying mbedtls_md/sha context.)
-     *
-     * Also tests that mbedtls_md_list() only returns valid MDs.
-     */
+    /* Test that all elements of mbedtls_md_list() are valid. */
     for( md_type_ptr = mbedtls_md_list(); *md_type_ptr != 0; md_type_ptr++ )
     {
         info = mbedtls_md_info_from_type( *md_type_ptr );
         TEST_ASSERT( info != NULL );
         TEST_ASSERT( mbedtls_md_setup( &ctx, info, 0 ) == 0 );
         TEST_ASSERT( mbedtls_md_starts( &ctx ) == 0 );
-        TEST_ASSERT( mbedtls_md_process( &ctx, buf ) == 0 );
+        TEST_ASSERT( mbedtls_md_finish( &ctx, output ) == 0 );
         mbedtls_md_free( &ctx );
     }
 
@@ -96,9 +88,6 @@ void md_null_args(  )
 
     TEST_ASSERT( mbedtls_md_hmac( NULL, buf, 1, buf, 1, buf )
                  == MBEDTLS_ERR_MD_BAD_INPUT_DATA );
-
-    TEST_ASSERT( mbedtls_md_process( NULL, buf ) == MBEDTLS_ERR_MD_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_md_process( &ctx, buf ) == MBEDTLS_ERR_MD_BAD_INPUT_DATA );
 
     /* Ok, this is not NULL arg but NULL return... */
     TEST_ASSERT( mbedtls_md_info_from_type( MBEDTLS_MD_NONE ) == NULL );

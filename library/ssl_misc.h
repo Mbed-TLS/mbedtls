@@ -40,14 +40,6 @@
 #include "mbedtls/sha1.h"
 #endif
 
-#if defined(MBEDTLS_SHA256_C)
-#include "mbedtls/sha256.h"
-#endif
-
-#if defined(MBEDTLS_SHA512_C)
-#include "mbedtls/sha512.h"
-#endif
-
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 #include "mbedtls/ecjpake.h"
 #endif
@@ -487,6 +479,25 @@ typedef int  mbedtls_ssl_tls_prf_cb( const unsigned char *secret, size_t slen,
 #define MBEDTLS_SSL_MAX_IV_LENGTH    16
 #define MBEDTLS_SSL_MAX_KEY_LENGTH   32
 
+/* Which algorithms are supported for the running handshake hash,
+ * and through what interface? */
+#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#define MBEDTLS_SSL_FIN_SHA256_PSA
+#else
+#define MBEDTLS_SSL_FIN_SHA256_LEGACY
+#include "mbedtls/sha256.h"
+#endif
+#endif
+#if defined(MBEDTLS_SHA384_C)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#define MBEDTLS_SSL_FIN_SHA384_PSA
+#else
+#define MBEDTLS_SSL_FIN_SHA384_LEGACY
+#include "mbedtls/sha512.h"
+#endif
+#endif
+
 /**
  * \brief   The data structure holding the cryptographic material (key and IV)
  *          used for record protection in TLS 1.3.
@@ -776,19 +787,17 @@ struct mbedtls_ssl_handshake_params
     /*
      * Checksum contexts
      */
-#if defined(MBEDTLS_SHA256_C)
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_SSL_FIN_SHA256_PSA)
     psa_hash_operation_t fin_sha256_psa;
-#else
+#endif
+#if defined(MBEDTLS_SSL_FIN_SHA256_LEGACY)
     mbedtls_sha256_context fin_sha256;
 #endif
-#endif
-#if defined(MBEDTLS_SHA384_C)
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_SSL_FIN_SHA384_PSA)
     psa_hash_operation_t fin_sha384_psa;
-#else
-    mbedtls_sha512_context fin_sha512;
 #endif
+#if defined(MBEDTLS_SSL_FIN_SHA384_LEGACY)
+    mbedtls_sha512_context fin_sha512;
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)

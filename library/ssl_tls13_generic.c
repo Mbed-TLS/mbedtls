@@ -1388,34 +1388,38 @@ int mbedtls_ssl_reset_transcript_for_hrr( mbedtls_ssl_context *ssl )
 
     if( ciphersuite_info->mac == MBEDTLS_MD_SHA256 )
     {
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_SSL_FIN_SHA256_PSA) || defined(MBEDTLS_SSL_FIN_SHA256_LEGACY)
         MBEDTLS_SSL_DEBUG_BUF( 4, "Truncated SHA-256 handshake transcript",
                                hash_transcript, hash_len );
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#endif
+#if defined(MBEDTLS_SSL_FIN_SHA256_PSA)
         psa_hash_abort( &ssl->handshake->fin_sha256_psa );
         psa_hash_setup( &ssl->handshake->fin_sha256_psa, PSA_ALG_SHA_256 );
-#else
+#endif
+#if defined(MBEDTLS_SSL_FIN_SHA256_LEGACY)
         mbedtls_sha256_starts( &ssl->handshake->fin_sha256, 0 );
 #endif
-#endif /* MBEDTLS_SHA256_C */
     }
     else if( ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
     {
-#if defined(MBEDTLS_SHA384_C)
+#if defined(MBEDTLS_SSL_FIN_SHA384_PSA) || defined(MBEDTLS_SSL_FIN_SHA384_LEGACY)
         MBEDTLS_SSL_DEBUG_BUF( 4, "Truncated SHA-384 handshake transcript",
                                hash_transcript, hash_len );
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#endif
+#if defined(MBEDTLS_SSL_FIN_SHA384_PSA)
         psa_hash_abort( &ssl->handshake->fin_sha384_psa );
         psa_hash_setup( &ssl->handshake->fin_sha384_psa, PSA_ALG_SHA_384 );
-#else
+#endif
+#if defined(MBEDTLS_SSL_FIN_SHA384_LEGACY)
         mbedtls_sha512_starts( &ssl->handshake->fin_sha512, 1 );
 #endif
-#endif /* MBEDTLS_SHA384_C */
     }
 
-#if defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA384_C)
+#if ( defined(MBEDTLS_SSL_FIN_SHA256_PSA) ||    \
+      defined(MBEDTLS_SSL_FIN_SHA256_LEGACY) || \
+      defined(MBEDTLS_SSL_FIN_SHA384_PSA) ||    \
+      defined(MBEDTLS_SSL_FIN_SHA384_LEGACY) )
+
     ssl->handshake->update_checksum( ssl, hash_transcript, hash_len );
 #endif /* MBEDTLS_SHA256_C || MBEDTLS_SHA384_C */
 

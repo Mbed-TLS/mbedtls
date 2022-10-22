@@ -424,10 +424,11 @@ static int tls_prf_sha256( const unsigned char *secret, size_t slen,
                            const char *label,
                            const unsigned char *random, size_t rlen,
                            unsigned char *dstbuf, size_t dlen );
+#endif
+#if defined(MBEDTLS_SSL_FIN_SHA256_PSA) || defined(MBEDTLS_SSL_FIN_SHA256_LEGACY)
 static void ssl_calc_verify_tls_sha256( const mbedtls_ssl_context *,unsigned char*, size_t * );
 static void ssl_calc_finished_tls_sha256( mbedtls_ssl_context *,unsigned char *, int );
-
-#endif /* MBEDTLS_SHA256_C */
+#endif
 
 #if defined(MBEDTLS_SHA384_C)
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -435,10 +436,11 @@ static int tls_prf_sha384( const unsigned char *secret, size_t slen,
                            const char *label,
                            const unsigned char *random, size_t rlen,
                            unsigned char *dstbuf, size_t dlen );
-
+#endif
+#if defined(MBEDTLS_SSL_FIN_SHA384_PSA) || defined(MBEDTLS_SSL_FIN_SHA384_LEGACY)
 static void ssl_calc_verify_tls_sha384( const mbedtls_ssl_context *, unsigned char*, size_t * );
 static void ssl_calc_finished_tls_sha384( mbedtls_ssl_context *, unsigned char *, int );
-#endif /* MBEDTLS_SHA384_C */
+#endif
 
 static size_t ssl_session_save_tls12( const mbedtls_ssl_session *session,
                                       unsigned char *buf,
@@ -451,13 +453,13 @@ static int ssl_session_load_tls12( mbedtls_ssl_session *session,
 
 static void ssl_update_checksum_start( mbedtls_ssl_context *, const unsigned char *, size_t );
 
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_SSL_FIN_SHA256_PSA) || defined(MBEDTLS_SSL_FIN_SHA256_LEGACY)
 static void ssl_update_checksum_sha256( mbedtls_ssl_context *, const unsigned char *, size_t );
-#endif /* MBEDTLS_SHA256_C */
+#endif
 
-#if defined(MBEDTLS_SHA384_C)
+#if defined(MBEDTLS_SSL_FIN_SHA384_PSA) || defined(MBEDTLS_SSL_FIN_SHA384_LEGACY)
 static void ssl_update_checksum_sha384( mbedtls_ssl_context *, const unsigned char *, size_t );
-#endif /* MBEDTLS_SHA384_C */
+#endif
 
 int  mbedtls_ssl_tls_prf( const mbedtls_tls_prf_types prf,
                           const unsigned char *secret, size_t slen,
@@ -516,12 +518,12 @@ void mbedtls_ssl_optimize_checksum( mbedtls_ssl_context *ssl,
 {
     ((void) ciphersuite_info);
 
-#if defined(MBEDTLS_SHA384_C)
+#if defined(MBEDTLS_SSL_FIN_SHA384_PSA) || defined(MBEDTLS_SSL_FIN_SHA384_LEGACY)
     if( ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
         ssl->handshake->update_checksum = ssl_update_checksum_sha384;
     else
 #endif
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_SSL_FIN_SHA256_PSA) || defined(MBEDTLS_SSL_FIN_SHA256_LEGACY)
     if( ciphersuite_info->mac != MBEDTLS_MD_SHA384 )
         ssl->handshake->update_checksum = ssl_update_checksum_sha256;
     else
@@ -559,48 +561,44 @@ void mbedtls_ssl_add_hs_msg_to_checksum( mbedtls_ssl_context *ssl,
 void mbedtls_ssl_reset_checksum( mbedtls_ssl_context *ssl )
 {
     ((void) ssl);
-#if defined(MBEDTLS_SHA256_C)
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_SSL_FIN_SHA256_PSA)
     psa_hash_abort( &ssl->handshake->fin_sha256_psa );
     psa_hash_setup( &ssl->handshake->fin_sha256_psa, PSA_ALG_SHA_256 );
-#else
+#endif
+#if defined(MBEDTLS_SSL_FIN_SHA256_LEGACY)
     mbedtls_sha256_starts( &ssl->handshake->fin_sha256, 0 );
 #endif
-#endif
-#if defined(MBEDTLS_SHA384_C)
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_SSL_FIN_SHA384_PSA)
     psa_hash_abort( &ssl->handshake->fin_sha384_psa );
     psa_hash_setup( &ssl->handshake->fin_sha384_psa, PSA_ALG_SHA_384 );
-#else
-    mbedtls_sha512_starts( &ssl->handshake->fin_sha512, 1 );
 #endif
+#if defined(MBEDTLS_SSL_FIN_SHA384_LEGACY)
+    mbedtls_sha512_starts( &ssl->handshake->fin_sha512, 1 );
 #endif
 }
 
 static void ssl_update_checksum_start( mbedtls_ssl_context *ssl,
                                        const unsigned char *buf, size_t len )
 {
-#if defined(MBEDTLS_SHA256_C)
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_SSL_FIN_SHA256_PSA)
     psa_hash_update( &ssl->handshake->fin_sha256_psa, buf, len );
-#else
+#endif
+#if defined(MBEDTLS_SSL_FIN_SHA256_LEGACY)
     mbedtls_sha256_update( &ssl->handshake->fin_sha256, buf, len );
 #endif
-#endif
-#if defined(MBEDTLS_SHA384_C)
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_SSL_FIN_SHA384_PSA)
     psa_hash_update( &ssl->handshake->fin_sha384_psa, buf, len );
-#else
-    mbedtls_sha512_update( &ssl->handshake->fin_sha512, buf, len );
 #endif
+#if defined(MBEDTLS_SSL_FIN_SHA384_LEGACY)
+    mbedtls_sha512_update( &ssl->handshake->fin_sha512, buf, len );
 #endif
 }
 
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_SSL_FIN_SHA256_PSA) || defined(MBEDTLS_SSL_FIN_SHA256_LEGACY)
 static void ssl_update_checksum_sha256( mbedtls_ssl_context *ssl,
                                         const unsigned char *buf, size_t len )
 {
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_SSL_FIN_SHA256_PSA)
     psa_hash_update( &ssl->handshake->fin_sha256_psa, buf, len );
 #else
     mbedtls_sha256_update( &ssl->handshake->fin_sha256, buf, len );
@@ -608,11 +606,11 @@ static void ssl_update_checksum_sha256( mbedtls_ssl_context *ssl,
 }
 #endif
 
-#if defined(MBEDTLS_SHA384_C)
+#if defined(MBEDTLS_SSL_FIN_SHA384_PSA) || defined(MBEDTLS_SSL_FIN_SHA384_LEGACY)
 static void ssl_update_checksum_sha384( mbedtls_ssl_context *ssl,
                                         const unsigned char *buf, size_t len )
 {
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_SSL_FIN_SHA384_PSA)
     psa_hash_update( &ssl->handshake->fin_sha384_psa, buf, len );
 #else
     mbedtls_sha512_update( &ssl->handshake->fin_sha512, buf, len );
@@ -624,23 +622,21 @@ static void ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
 {
     memset( handshake, 0, sizeof( mbedtls_ssl_handshake_params ) );
 
-#if defined(MBEDTLS_SHA256_C)
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_SSL_FIN_SHA256_PSA)
     handshake->fin_sha256_psa = psa_hash_operation_init();
     psa_hash_setup( &handshake->fin_sha256_psa, PSA_ALG_SHA_256 );
-#else
+#endif
+#if defined(MBEDTLS_SSL_FIN_SHA256_LEGACY)
     mbedtls_sha256_init(   &handshake->fin_sha256    );
     mbedtls_sha256_starts( &handshake->fin_sha256, 0 );
 #endif
-#endif
-#if defined(MBEDTLS_SHA384_C)
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_SSL_FIN_SHA384_PSA)
     handshake->fin_sha384_psa = psa_hash_operation_init();
     psa_hash_setup( &handshake->fin_sha384_psa, PSA_ALG_SHA_384 );
-#else
+#endif
+#if defined(MBEDTLS_SSL_FIN_SHA384_LEGACY)
     mbedtls_sha512_init(   &handshake->fin_sha512    );
     mbedtls_sha512_starts( &handshake->fin_sha512, 1 );
-#endif
 #endif
 
     handshake->update_checksum = ssl_update_checksum_start;
@@ -3266,19 +3262,17 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
     }
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
-#if defined(MBEDTLS_SHA256_C)
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_SSL_FIN_SHA256_PSA)
     psa_hash_abort( &handshake->fin_sha256_psa );
-#else
+#endif
+#if defined(MBEDTLS_SSL_FIN_SHA256_LEGACY)
     mbedtls_sha256_free(   &handshake->fin_sha256    );
 #endif
-#endif
-#if defined(MBEDTLS_SHA384_C)
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_SSL_FIN_SHA384_PSA)
     psa_hash_abort( &handshake->fin_sha384_psa );
-#else
-    mbedtls_sha512_free(   &handshake->fin_sha512    );
 #endif
+#if defined(MBEDTLS_SSL_FIN_SHA384_LEGACY)
+    mbedtls_sha512_free(   &handshake->fin_sha512    );
 #endif
 
 #if defined(MBEDTLS_DHM_C)
@@ -4769,7 +4763,7 @@ int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_SSL_FIN_SHA256_PSA) || defined(MBEDTLS_SSL_FIN_SHA384_PSA)
 int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
                                           const mbedtls_md_type_t md,
                                           unsigned char *dst,
@@ -4784,13 +4778,13 @@ int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
 
     switch( md )
     {
-#if defined(MBEDTLS_SHA384_C)
+#if defined(MBEDTLS_SSL_FIN_SHA384_PSA)
     case MBEDTLS_MD_SHA384:
         hash_operation_to_clone = &ssl->handshake->fin_sha384_psa;
         break;
 #endif
 
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_SSL_FIN_SHA256_PSA)
     case MBEDTLS_MD_SHA256:
         hash_operation_to_clone = &ssl->handshake->fin_sha256_psa;
         break;
@@ -4811,9 +4805,9 @@ int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
 exit:
     return( psa_ssl_status_to_mbedtls( status ) );
 }
-#else /* MBEDTLS_USE_PSA_CRYPTO */
+#else /* hash transcript through PSA */
 
-#if defined(MBEDTLS_SHA384_C)
+#if defined(MBEDTLS_SSL_FIN_SHA384_LEGACY)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_get_handshake_transcript_sha384( mbedtls_ssl_context *ssl,
                                                 unsigned char *dst,
@@ -4842,9 +4836,9 @@ exit:
     mbedtls_sha512_free( &sha512 );
     return( ret );
 }
-#endif /* MBEDTLS_SHA384_C */
+#endif /* MBEDTLS_SSL_FIN_SHA384_LEGACY */
 
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_SSL_FIN_SHA256_LEGACY)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_get_handshake_transcript_sha256( mbedtls_ssl_context *ssl,
                                                 unsigned char *dst,
@@ -4873,7 +4867,7 @@ exit:
     mbedtls_sha256_free( &sha256 );
     return( ret );
 }
-#endif /* MBEDTLS_SHA256_C */
+#endif /* MBEDTLS_SSL_FIN_SHA256_LEGACY */
 
 int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
                                           const mbedtls_md_type_t md,
@@ -4884,15 +4878,15 @@ int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
     switch( md )
     {
 
-#if defined(MBEDTLS_SHA384_C)
+#if defined(MBEDTLS_SSL_FIN_SHA384_LEGACY)
     case MBEDTLS_MD_SHA384:
         return( ssl_get_handshake_transcript_sha384( ssl, dst, dst_len, olen ) );
-#endif /* MBEDTLS_SHA384_C */
+#endif
 
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_SSL_FIN_SHA256_LEGACY)
     case MBEDTLS_MD_SHA256:
         return( ssl_get_handshake_transcript_sha256( ssl, dst, dst_len, olen ) );
-#endif /* MBEDTLS_SHA256_C */
+#endif
 
     default:
         break;
@@ -4900,7 +4894,7 @@ int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 }
 
-#endif /* !MBEDTLS_USE_PSA_CRYPTO */
+#endif /* hash transcript through legacy */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /* mbedtls_ssl_parse_sig_alg_ext()
@@ -5287,7 +5281,7 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_set_handshake_prfs( mbedtls_ssl_handshake_params *handshake,
                                    mbedtls_md_type_t hash )
 {
-#if defined(MBEDTLS_SHA384_C)
+#if defined(MBEDTLS_SSL_FIN_SHA384_PSA) || defined(MBEDTLS_SSL_FIN_SHA384_LEGACY)
     if( hash == MBEDTLS_MD_SHA384 )
     {
         handshake->tls_prf = tls_prf_sha384;
@@ -5296,7 +5290,7 @@ static int ssl_set_handshake_prfs( mbedtls_ssl_handshake_params *handshake,
     }
     else
 #endif
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_SSL_FIN_SHA256_PSA) || defined(MBEDTLS_SSL_FIN_SHA256_LEGACY)
     {
         (void) hash;
         handshake->tls_prf = tls_prf_sha256;
@@ -5548,12 +5542,12 @@ int mbedtls_ssl_set_calc_verify_md( mbedtls_ssl_context *ssl, int md )
 {
     switch( md )
     {
-#if defined(MBEDTLS_SHA384_C)
+#if defined(MBEDTLS_SSL_FIN_SHA384_PSA) || defined(MBEDTLS_SSL_FIN_SHA384_LEGACY)
         case MBEDTLS_SSL_HASH_SHA384:
             ssl->handshake->calc_verify = ssl_calc_verify_tls_sha384;
             break;
 #endif
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_SSL_FIN_SHA256_PSA) || defined(MBEDTLS_SSL_FIN_SHA256_LEGACY)
         case MBEDTLS_SSL_HASH_SHA256:
             ssl->handshake->calc_verify = ssl_calc_verify_tls_sha256;
             break;
@@ -5565,12 +5559,12 @@ int mbedtls_ssl_set_calc_verify_md( mbedtls_ssl_context *ssl, int md )
     return( 0 );
 }
 
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_SSL_FIN_SHA256_PSA) || defined(MBEDTLS_SSL_FIN_SHA256_LEGACY)
 void ssl_calc_verify_tls_sha256( const mbedtls_ssl_context *ssl,
                                  unsigned char *hash,
                                  size_t *hlen )
 {
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_SSL_FIN_SHA256_PSA)
     size_t hash_size;
     psa_status_t status;
     psa_hash_operation_t sha256_psa = psa_hash_operation_init();
@@ -5609,17 +5603,17 @@ void ssl_calc_verify_tls_sha256( const mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
 
     mbedtls_sha256_free( &sha256 );
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* !MBEDTLS_SSL_FIN_SHA256_PSA */
     return;
 }
-#endif /* MBEDTLS_SHA256_C */
+#endif /* MBEDTLS_SSL_FIN_SHA256_PSA || MBEDTLS_SSL_FIN_SHA256_LEGACY */
 
-#if defined(MBEDTLS_SHA384_C)
+#if defined(MBEDTLS_SSL_FIN_SHA384_PSA) || defined(MBEDTLS_SSL_FIN_SHA384_LEGACY)
 void ssl_calc_verify_tls_sha384( const mbedtls_ssl_context *ssl,
                                  unsigned char *hash,
                                  size_t *hlen )
 {
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_SSL_FIN_SHA384_PSA)
     size_t hash_size;
     psa_status_t status;
     psa_hash_operation_t sha384_psa = psa_hash_operation_init();
@@ -5658,10 +5652,10 @@ void ssl_calc_verify_tls_sha384( const mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
 
     mbedtls_sha512_free( &sha512 );
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* !MBEDTLS_SSL_FIN_SHA384_PSA */
     return;
 }
-#endif /* MBEDTLS_SHA384_C */
+#endif /* MBEDTLS_SSL_FIN_SHA384_PSA || MBEDTLS_SSL_FIN_SHA384_LEGACY */
 
 #if !defined(MBEDTLS_USE_PSA_CRYPTO) &&                      \
     defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
@@ -6626,14 +6620,14 @@ exit:
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_SSL_FIN_SHA256_PSA) || defined(MBEDTLS_SSL_FIN_SHA256_LEGACY)
 static void ssl_calc_finished_tls_sha256(
                 mbedtls_ssl_context *ssl, unsigned char *buf, int from )
 {
     int len = 12;
     const char *sender;
     unsigned char padbuf[32];
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_SSL_FIN_SHA256_PSA)
     size_t hash_size;
     psa_hash_operation_t sha256_psa = PSA_HASH_OPERATION_INIT;
     psa_status_t status;
@@ -6649,7 +6643,7 @@ static void ssl_calc_finished_tls_sha256(
              ? "client finished"
              : "server finished";
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_SSL_FIN_SHA256_PSA)
     sha256_psa = psa_hash_operation_init();
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc PSA finished tls sha256" ) );
@@ -6689,7 +6683,7 @@ static void ssl_calc_finished_tls_sha256(
 
     mbedtls_sha256_finish( &sha256, padbuf );
     mbedtls_sha256_free( &sha256 );
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* !MBEDTLS_SSL_FIN_SHA256_PSA */
 
     ssl->handshake->tls_prf( session->master, 48, sender,
                              padbuf, 32, buf, len );
@@ -6700,11 +6694,10 @@ static void ssl_calc_finished_tls_sha256(
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
-#endif /* MBEDTLS_SHA256_C */
+#endif /* MBEDTLS_SSL_FIN_SHA256_PSA || MBEDTLS_SSL_FIN_SHA256_LEGACY */
 
 
-#if defined(MBEDTLS_SHA384_C)
-
+#if defined(MBEDTLS_SSL_FIN_SHA384_PSA) || defined(MBEDTLS_SSL_FIN_SHA384_LEGACY)
 static void ssl_calc_finished_tls_sha384(
                 mbedtls_ssl_context *ssl, unsigned char *buf, int from )
 {
@@ -6727,7 +6720,7 @@ static void ssl_calc_finished_tls_sha384(
                 ? "client finished"
                 : "server finished";
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_SSL_FIN_SHA384_PSA)
     sha384_psa = psa_hash_operation_init();
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc PSA finished tls sha384" ) );
@@ -6766,7 +6759,7 @@ static void ssl_calc_finished_tls_sha384(
     mbedtls_sha512_finish( &sha512, padbuf );
 
     mbedtls_sha512_free( &sha512 );
-#endif
+#endif /* !MBEDTLS_SSL_FIN_SHA384_PSA */
 
     ssl->handshake->tls_prf( session->master, 48, sender,
                              padbuf, 48, buf, len );
@@ -6777,7 +6770,7 @@ static void ssl_calc_finished_tls_sha384(
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
-#endif /* MBEDTLS_SHA384_C */
+#endif /* MBEDTLS_SSL_FIN_SHA384_PSA || MBEDTLS_SSL_FIN_SHA384_LEGACY */
 
 void mbedtls_ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl )
 {

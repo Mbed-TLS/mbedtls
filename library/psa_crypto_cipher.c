@@ -571,7 +571,9 @@ psa_status_t mbedtls_psa_cipher_decrypt(
 
     accumulated_length = olength;
 
-    status = mbedtls_psa_cipher_finish( &operation, output + accumulated_length,
+    status = mbedtls_psa_cipher_finish( &operation,
+                                        ( output == NULL ? NULL :
+                                          output + accumulated_length ),
                                         output_size - accumulated_length,
                                         &olength );
     if( status != PSA_SUCCESS )

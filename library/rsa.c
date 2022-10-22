@@ -2454,7 +2454,8 @@ int mbedtls_rsa_self_test( int verbose )
     if( verbose != 0 )
         mbedtls_printf( "  PKCS#1 data sign  : " );
 
-    if( mbedtls_sha1( rsa_plaintext, PT_LEN, sha1sum ) != 0 )
+    if( mbedtls_md( mbedtls_md_info_from_type( MBEDTLS_MD_SHA1 ),
+                    rsa_plaintext, PT_LEN, sha1sum ) != 0 )
     {
         if( verbose != 0 )
             mbedtls_printf( "failed\n" );

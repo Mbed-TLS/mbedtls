@@ -44,7 +44,7 @@
 #include <stdio.h>
 #endif
 
-#if defined(MBEDTLS_MD5_C)
+#if defined(MBEDTLS_MD_CAN_MD5)
 const mbedtls_md_info_t mbedtls_md5_info = {
     "MD5",
     MBEDTLS_MD_MD5,
@@ -53,7 +53,7 @@ const mbedtls_md_info_t mbedtls_md5_info = {
 };
 #endif
 
-#if defined(MBEDTLS_RIPEMD160_C)
+#if defined(MBEDTLS_MD_CAN_RIPEMD160)
 const mbedtls_md_info_t mbedtls_ripemd160_info = {
     "RIPEMD160",
     MBEDTLS_MD_RIPEMD160,
@@ -62,7 +62,7 @@ const mbedtls_md_info_t mbedtls_ripemd160_info = {
 };
 #endif
 
-#if defined(MBEDTLS_SHA1_C)
+#if defined(MBEDTLS_MD_CAN_SHA1)
 const mbedtls_md_info_t mbedtls_sha1_info = {
     "SHA1",
     MBEDTLS_MD_SHA1,
@@ -71,7 +71,7 @@ const mbedtls_md_info_t mbedtls_sha1_info = {
 };
 #endif
 
-#if defined(MBEDTLS_SHA224_C)
+#if defined(MBEDTLS_MD_CAN_SHA224)
 const mbedtls_md_info_t mbedtls_sha224_info = {
     "SHA224",
     MBEDTLS_MD_SHA224,
@@ -80,7 +80,7 @@ const mbedtls_md_info_t mbedtls_sha224_info = {
 };
 #endif
 
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_MD_CAN_SHA256)
 const mbedtls_md_info_t mbedtls_sha256_info = {
     "SHA256",
     MBEDTLS_MD_SHA256,
@@ -89,7 +89,7 @@ const mbedtls_md_info_t mbedtls_sha256_info = {
 };
 #endif
 
-#if defined(MBEDTLS_SHA384_C)
+#if defined(MBEDTLS_MD_CAN_SHA384)
 const mbedtls_md_info_t mbedtls_sha384_info = {
     "SHA384",
     MBEDTLS_MD_SHA384,
@@ -98,7 +98,7 @@ const mbedtls_md_info_t mbedtls_sha384_info = {
 };
 #endif
 
-#if defined(MBEDTLS_SHA512_C)
+#if defined(MBEDTLS_MD_CAN_SHA512)
 const mbedtls_md_info_t mbedtls_sha512_info = {
     "SHA512",
     MBEDTLS_MD_SHA512,
@@ -113,30 +113,30 @@ const mbedtls_md_info_t mbedtls_sha512_info = {
 #if defined(MBEDTLS_MD_C)
 static const int supported_digests[] = {
 
-#if defined(MBEDTLS_SHA512_C)
+#if defined(MBEDTLS_MD_CAN_SHA512)
     MBEDTLS_MD_SHA512,
 #endif
 
-#if defined(MBEDTLS_SHA384_C)
+#if defined(MBEDTLS_MD_CAN_SHA384)
     MBEDTLS_MD_SHA384,
 #endif
 
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_MD_CAN_SHA256)
     MBEDTLS_MD_SHA256,
 #endif
-#if defined(MBEDTLS_SHA224_C)
+#if defined(MBEDTLS_MD_CAN_SHA224)
     MBEDTLS_MD_SHA224,
 #endif
 
-#if defined(MBEDTLS_SHA1_C)
+#if defined(MBEDTLS_MD_CAN_SHA1)
     MBEDTLS_MD_SHA1,
 #endif
 
-#if defined(MBEDTLS_RIPEMD160_C)
+#if defined(MBEDTLS_MD_CAN_RIPEMD160)
     MBEDTLS_MD_RIPEMD160,
 #endif
 
-#if defined(MBEDTLS_MD5_C)
+#if defined(MBEDTLS_MD_CAN_MD5)
     MBEDTLS_MD_MD5,
 #endif
 
@@ -157,37 +157,37 @@ const mbedtls_md_info_t *mbedtls_md_info_from_string(const char *md_name)
     }
 
     /* Get the appropriate digest information */
-#if defined(MBEDTLS_MD5_C)
+#if defined(MBEDTLS_MD_CAN_MD5)
     if (!strcmp("MD5", md_name)) {
         return mbedtls_md_info_from_type(MBEDTLS_MD_MD5);
     }
 #endif
-#if defined(MBEDTLS_RIPEMD160_C)
+#if defined(MBEDTLS_MD_CAN_RIPEMD160)
     if (!strcmp("RIPEMD160", md_name)) {
         return mbedtls_md_info_from_type(MBEDTLS_MD_RIPEMD160);
     }
 #endif
-#if defined(MBEDTLS_SHA1_C)
+#if defined(MBEDTLS_MD_CAN_SHA1)
     if (!strcmp("SHA1", md_name) || !strcmp("SHA", md_name)) {
         return mbedtls_md_info_from_type(MBEDTLS_MD_SHA1);
     }
 #endif
-#if defined(MBEDTLS_SHA224_C)
+#if defined(MBEDTLS_MD_CAN_SHA224)
     if (!strcmp("SHA224", md_name)) {
         return mbedtls_md_info_from_type(MBEDTLS_MD_SHA224);
     }
 #endif
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_MD_CAN_SHA256)
     if (!strcmp("SHA256", md_name)) {
         return mbedtls_md_info_from_type(MBEDTLS_MD_SHA256);
     }
 #endif
-#if defined(MBEDTLS_SHA384_C)
+#if defined(MBEDTLS_MD_CAN_SHA384)
     if (!strcmp("SHA384", md_name)) {
         return mbedtls_md_info_from_type(MBEDTLS_MD_SHA384);
     }
 #endif
-#if defined(MBEDTLS_SHA512_C)
+#if defined(MBEDTLS_MD_CAN_SHA512)
     if (!strcmp("SHA512", md_name)) {
         return mbedtls_md_info_from_type(MBEDTLS_MD_SHA512);
     }
@@ -199,31 +199,31 @@ const mbedtls_md_info_t *mbedtls_md_info_from_string(const char *md_name)
 const mbedtls_md_info_t *mbedtls_md_info_from_type(mbedtls_md_type_t md_type)
 {
     switch (md_type) {
-#if defined(MBEDTLS_MD5_C)
+#if defined(MBEDTLS_MD_CAN_MD5)
         case MBEDTLS_MD_MD5:
             return &mbedtls_md5_info;
 #endif
-#if defined(MBEDTLS_RIPEMD160_C)
+#if defined(MBEDTLS_MD_CAN_RIPEMD160)
         case MBEDTLS_MD_RIPEMD160:
             return &mbedtls_ripemd160_info;
 #endif
-#if defined(MBEDTLS_SHA1_C)
+#if defined(MBEDTLS_MD_CAN_SHA1)
         case MBEDTLS_MD_SHA1:
             return &mbedtls_sha1_info;
 #endif
-#if defined(MBEDTLS_SHA224_C)
+#if defined(MBEDTLS_MD_CAN_SHA224)
         case MBEDTLS_MD_SHA224:
             return &mbedtls_sha224_info;
 #endif
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_MD_CAN_SHA256)
         case MBEDTLS_MD_SHA256:
             return &mbedtls_sha256_info;
 #endif
-#if defined(MBEDTLS_SHA384_C)
+#if defined(MBEDTLS_MD_CAN_SHA384)
         case MBEDTLS_MD_SHA384:
             return &mbedtls_sha384_info;
 #endif
-#if defined(MBEDTLS_SHA512_C)
+#if defined(MBEDTLS_MD_CAN_SHA512)
         case MBEDTLS_MD_SHA512:
             return &mbedtls_sha512_info;
 #endif

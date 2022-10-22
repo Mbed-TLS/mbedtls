@@ -2,6 +2,10 @@
 #include "mbedtls/pk.h"
 #include "mbedtls/pem.h"
 #include "mbedtls/oid.h"
+
+#if defined(MBEDTLS_MD5_C) //notPSA
+#define MBEDTLS_PEM_PARSE_ENCRYPTED_MD5
+#endif
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

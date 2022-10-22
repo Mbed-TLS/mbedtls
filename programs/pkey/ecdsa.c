@@ -54,11 +54,11 @@
 #define ECPARAMS    mbedtls_ecp_curve_list()->grp_id
 #endif
 
-#if !defined(MBEDTLS_ECDSA_C) || !defined(MBEDTLS_SHA256_C) || \
+#if !defined(MBEDTLS_ECDSA_C) || !defined(MBEDTLS_MD_CAN_SHA256) || \
     !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C)
 int main( void )
 {
-    mbedtls_printf("MBEDTLS_ECDSA_C and/or MBEDTLS_SHA256_C and/or "
+    mbedtls_printf("MBEDTLS_ECDSA_C and/or MBEDTLS_MD_CAN_SHA256 and/or "
            "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C not defined\n");
     mbedtls_exit( 0 );
 }

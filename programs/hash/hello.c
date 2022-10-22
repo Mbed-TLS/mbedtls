@@ -30,14 +30,14 @@
 #define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
 #endif
 
-#if defined(MBEDTLS_MD5_C)
+#if defined(MBEDTLS_MD_CAN_MD5)
 #include "mbedtls/md5.h"
 #endif
 
-#if !defined(MBEDTLS_MD5_C)
+#if !defined(MBEDTLS_MD_CAN_MD5)
 int main( void )
 {
-    mbedtls_printf("MBEDTLS_MD5_C not defined.\n");
+    mbedtls_printf("MBEDTLS_MD_CAN_MD5 not defined.\n");
     mbedtls_exit( 0 );
 }
 #else
@@ -61,4 +61,4 @@ int main( void )
 
     mbedtls_exit( MBEDTLS_EXIT_SUCCESS );
 }
-#endif /* MBEDTLS_MD5_C */
+#endif /* MBEDTLS_MD_CAN_MD5 */

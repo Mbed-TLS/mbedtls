@@ -299,7 +299,7 @@ cleanup:
 
 #if defined(MBEDTLS_SELF_TEST)
 
-#if !defined(MBEDTLS_SHA1_C)
+#if !defined(MBEDTLS_MD_CAN_SHA1)
 int mbedtls_pkcs5_self_test( int verbose )
 {
     if( verbose != 0 )
@@ -413,7 +413,7 @@ exit:
 
     return( ret );
 }
-#endif /* MBEDTLS_SHA1_C */
+#endif /* MBEDTLS_MD_CAN_SHA1 */
 
 #endif /* MBEDTLS_SELF_TEST */
 

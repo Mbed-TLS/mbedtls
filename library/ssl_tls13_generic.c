@@ -1421,7 +1421,7 @@ int mbedtls_ssl_reset_transcript_for_hrr( mbedtls_ssl_context *ssl )
       defined(MBEDTLS_SSL_FIN_SHA384_LEGACY) )
 
     ssl->handshake->update_checksum( ssl, hash_transcript, hash_len );
-#endif /* MBEDTLS_SHA256_C || MBEDTLS_SHA384_C */
+#endif /* MBEDTLS_MD_CAN_SHA256 || MBEDTLS_MD_CAN_SHA384 */
 
     return( ret );
 }

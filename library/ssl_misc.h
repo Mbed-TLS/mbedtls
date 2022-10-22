@@ -167,9 +167,9 @@
 
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 /* Ciphersuites using HMAC */
-#if defined(MBEDTLS_SHA384_C)
+#if defined(MBEDTLS_MD_CAN_SHA384)
 #define MBEDTLS_SSL_MAC_ADD                 48  /* SHA-384 used for HMAC */
-#elif defined(MBEDTLS_SHA256_C)
+#elif defined(MBEDTLS_MD_CAN_SHA256)
 #define MBEDTLS_SSL_MAC_ADD                 32  /* SHA-256 used for HMAC */
 #else
 #define MBEDTLS_SSL_MAC_ADD                 20  /* SHA-1   used for HMAC */
@@ -2069,24 +2069,24 @@ static inline int mbedtls_ssl_tls13_get_pk_type_and_md_alg_from_sig_alg(
     switch( sig_alg )
     {
 #if defined(MBEDTLS_PKCS1_V21)
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_MD_CAN_SHA256)
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
             *md_alg = MBEDTLS_MD_SHA256;
             *pk_type = MBEDTLS_PK_RSASSA_PSS;
             break;
-#endif /* MBEDTLS_SHA256_C  */
-#if defined(MBEDTLS_SHA384_C)
+#endif /* MBEDTLS_MD_CAN_SHA256  */
+#if defined(MBEDTLS_MD_CAN_SHA384)
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:
             *md_alg = MBEDTLS_MD_SHA384;
             *pk_type = MBEDTLS_PK_RSASSA_PSS;
             break;
-#endif /* MBEDTLS_SHA384_C */
-#if defined(MBEDTLS_SHA512_C)
+#endif /* MBEDTLS_MD_CAN_SHA384 */
+#if defined(MBEDTLS_MD_CAN_SHA512)
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
             *md_alg = MBEDTLS_MD_SHA512;
             *pk_type = MBEDTLS_PK_RSASSA_PSS;
             break;
-#endif /* MBEDTLS_SHA512_C */
+#endif /* MBEDTLS_MD_CAN_SHA512 */
 #endif /* MBEDTLS_PKCS1_V21 */
             default:
                 return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
@@ -2101,33 +2101,33 @@ static inline int mbedtls_ssl_tls13_sig_alg_for_cert_verify_is_supported(
     switch( sig_alg )
     {
 #if defined(MBEDTLS_ECDSA_C)
-#if defined(MBEDTLS_SHA256_C) && defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+#if defined(MBEDTLS_MD_CAN_SHA256) && defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
         case MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256:
             break;
-#endif /* MBEDTLS_SHA256_C && MBEDTLS_ECP_DP_SECP256R1_ENABLED */
-#if defined(MBEDTLS_SHA384_C) && defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+#endif /* MBEDTLS_MD_CAN_SHA256 && MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+#if defined(MBEDTLS_MD_CAN_SHA384) && defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
         case MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384:
             break;
-#endif /* MBEDTLS_SHA384_C && MBEDTLS_ECP_DP_SECP384R1_ENABLED */
-#if defined(MBEDTLS_SHA512_C) && defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+#endif /* MBEDTLS_MD_CAN_SHA384 && MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+#if defined(MBEDTLS_MD_CAN_SHA512) && defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
         case MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512:
             break;
-#endif /* MBEDTLS_SHA512_C && MBEDTLS_ECP_DP_SECP521R1_ENABLED */
+#endif /* MBEDTLS_MD_CAN_SHA512 && MBEDTLS_ECP_DP_SECP521R1_ENABLED */
 #endif /* MBEDTLS_ECDSA_C */
 
 #if defined(MBEDTLS_PKCS1_V21)
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_MD_CAN_SHA256)
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
             break;
-#endif /* MBEDTLS_SHA256_C  */
-#if defined(MBEDTLS_SHA384_C)
+#endif /* MBEDTLS_MD_CAN_SHA256  */
+#if defined(MBEDTLS_MD_CAN_SHA384)
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:
             break;
-#endif /* MBEDTLS_SHA384_C */
-#if defined(MBEDTLS_SHA512_C)
+#endif /* MBEDTLS_MD_CAN_SHA384 */
+#if defined(MBEDTLS_MD_CAN_SHA512)
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
             break;
-#endif /* MBEDTLS_SHA512_C */
+#endif /* MBEDTLS_MD_CAN_SHA512 */
 #endif /* MBEDTLS_PKCS1_V21 */
         default:
             return( 0 );
@@ -2142,18 +2142,18 @@ static inline int mbedtls_ssl_tls13_sig_alg_is_supported(
     switch( sig_alg )
     {
 #if defined(MBEDTLS_PKCS1_V15)
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_MD_CAN_SHA256)
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256:
             break;
-#endif /* MBEDTLS_SHA256_C */
-#if defined(MBEDTLS_SHA384_C)
+#endif /* MBEDTLS_MD_CAN_SHA256 */
+#if defined(MBEDTLS_MD_CAN_SHA384)
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384:
             break;
-#endif /* MBEDTLS_SHA384_C */
-#if defined(MBEDTLS_SHA512_C)
+#endif /* MBEDTLS_MD_CAN_SHA384 */
+#if defined(MBEDTLS_MD_CAN_SHA512)
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512:
             break;
-#endif /* MBEDTLS_SHA512_C */
+#endif /* MBEDTLS_MD_CAN_SHA512 */
 #endif /* MBEDTLS_PKCS1_V15 */
         default:
             return( mbedtls_ssl_tls13_sig_alg_for_cert_verify_is_supported(
@@ -2174,32 +2174,32 @@ static inline int mbedtls_ssl_tls12_sig_alg_is_supported(
 
     switch( hash )
     {
-#if defined(MBEDTLS_MD5_C)
+#if defined(MBEDTLS_MD_CAN_MD5)
         case MBEDTLS_SSL_HASH_MD5:
             break;
 #endif
 
-#if defined(MBEDTLS_SHA1_C)
+#if defined(MBEDTLS_MD_CAN_SHA1)
         case MBEDTLS_SSL_HASH_SHA1:
             break;
 #endif
 
-#if defined(MBEDTLS_SHA224_C)
+#if defined(MBEDTLS_MD_CAN_SHA224)
         case MBEDTLS_SSL_HASH_SHA224:
             break;
 #endif
 
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_MD_CAN_SHA256)
         case MBEDTLS_SSL_HASH_SHA256:
             break;
 #endif
 
-#if defined(MBEDTLS_SHA384_C)
+#if defined(MBEDTLS_MD_CAN_SHA384)
         case MBEDTLS_SSL_HASH_SHA384:
             break;
 #endif
 
-#if defined(MBEDTLS_SHA512_C)
+#if defined(MBEDTLS_MD_CAN_SHA512)
         case MBEDTLS_SSL_HASH_SHA512:
             break;
 #endif

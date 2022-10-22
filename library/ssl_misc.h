@@ -32,14 +32,6 @@
 #include "mbedtls/psa_util.h"
 #endif
 
-#if defined(MBEDTLS_MD5_C)
-#include "mbedtls/md5.h"
-#endif
-
-#if defined(MBEDTLS_SHA1_C)
-#include "mbedtls/sha1.h"
-#endif
-
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 #include "mbedtls/ecjpake.h"
 #endif

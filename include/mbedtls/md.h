@@ -32,6 +32,91 @@
 #include "mbedtls/build_info.h"
 #include "mbedtls/platform_util.h"
 
+#if defined(MBEDTLS_MD_LIGHT)
+
+/*
+ * - MBEDTLS_MD_CAN_xxx is defined if the md module can perform xxx.
+ * - MBEDTLS_MD_xxx_VIA_PSA is defined if the md module performs xxx via PSA.
+ * - MBEDTLS_MD_SOME_PSA is defined if at least one algorithm is performed
+ *   via PSA.
+ * - MBEDTLS_MD_SOME_LEGACY is defined if at least one algorithm is performed
+ *   via a direct legacy call.
+ *
+ * The md module performs an algorithm via PSA if there is a PSA hash
+ * accelerator, and makes a direct legacy call otherwise.
+ */
+
+/* PSA accelerated implementations */
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_PSA_ACCEL_ALG_MD5)
+#define MBEDTLS_MD_CAN_MD5
+#define MBEDTLS_MD_MD5_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA_1)
+#define MBEDTLS_MD_CAN_SHA1
+#define MBEDTLS_MD_SHA1_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA_224)
+#define MBEDTLS_MD_CAN_SHA224
+#define MBEDTLS_MD_SHA224_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA_256)
+#define MBEDTLS_MD_CAN_SHA256
+#define MBEDTLS_MD_SHA256_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA_384)
+#define MBEDTLS_MD_CAN_SHA384
+#define MBEDTLS_MD_SHA384_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SHA_512)
+#define MBEDTLS_MD_CAN_SHA512
+#define MBEDTLS_MD_SHA512_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_RIPEMD160)
+#define MBEDTLS_MD_CAN_RIPEMD160
+#define MBEDTLS_MD_RIPEMD160_VIA_PSA
+#define MBEDTLS_MD_SOME_PSA
+#endif
+#endif /* MBEDTLS_PSA_CRYPTO_C */
+
+/* Built-in implementations */
+#if defined(MBEDTLS_MD5_C)
+#define MBEDTLS_MD_CAN_MD5
+#define MBEDTLS_MD_SOME_LEGACY
+#endif
+#if defined(MBEDTLS_SHA1_C)
+#define MBEDTLS_MD_CAN_SHA1
+#define MBEDTLS_MD_SOME_LEGACY
+#endif
+#if defined(MBEDTLS_SHA224_C)
+#define MBEDTLS_MD_CAN_SHA224
+#define MBEDTLS_MD_SOME_LEGACY
+#endif
+#if defined(MBEDTLS_SHA256_C)
+#define MBEDTLS_MD_CAN_SHA256
+#define MBEDTLS_MD_SOME_LEGACY
+#endif
+#if defined(MBEDTLS_SHA384_C)
+#define MBEDTLS_MD_CAN_SHA384
+#define MBEDTLS_MD_SOME_LEGACY
+#endif
+#if defined(MBEDTLS_SHA512_C)
+#define MBEDTLS_MD_CAN_SHA512
+#define MBEDTLS_MD_SOME_LEGACY
+#endif
+#if defined(MBEDTLS_RIPEMD160_C)
+#define MBEDTLS_MD_CAN_RIPEMD160
+#define MBEDTLS_MD_SOME_LEGACY
+#endif
+
+#endif /* MBEDTLS_MD_LIGHT */
+
 /** The selected feature is not available. */
 #define MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE                -0x5080
 /** Bad input parameters to function. */

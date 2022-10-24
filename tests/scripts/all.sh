@@ -1777,6 +1777,41 @@ component_build_key_exchanges () {
     tests/scripts/key-exchanges.pl
 }
 
+component_test_depends_py_cipher_id () {
+    msg "test/build: depends.py cipher_id (gcc)"
+    tests/scripts/depends.py cipher_id
+}
+
+component_test_depends_py_cipher_chaining () {
+    msg "test/build: depends.py cipher_chaining (gcc)"
+    tests/scripts/depends.py cipher_chaining
+}
+
+component_test_depends_py_cipher_padding () {
+    msg "test/build: depends.py cipher_padding (gcc)"
+    tests/scripts/depends.py cipher_padding
+}
+
+component_test_depends_py_curves () {
+    msg "test/build: depends.py curves (gcc)"
+    tests/scripts/depends.py curves
+}
+
+component_test_depends_py_hashes () {
+    msg "test/build: depends.py hashes (gcc)"
+    tests/scripts/depends.py hashes
+}
+
+component_test_depends_py_kex () {
+    msg "test/build: depends.py kex (gcc)"
+    tests/scripts/depends.py kex
+}
+
+component_test_depends_py_pkalgs () {
+    msg "test/build: depends.py pkalgs (gcc)"
+    tests/scripts/depends.py pkalgs
+}
+
 component_test_make_cxx () {
     msg "build: Unix make, full, gcc + g++"
     scripts/config.py full
@@ -2043,7 +2078,7 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
     # Also unset MD_C and things that depend on it;
     # see component_test_crypto_full_no_md.
     scripts/config.py unset MBEDTLS_MD_C
-    scripts/config.py unset MBEDTLS_HKDF_C
+    scripts/config.py unset MBEDTLS_HKDF_C # has independent PSA implementation
     scripts/config.py unset MBEDTLS_HMAC_DRBG_C
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
@@ -2063,11 +2098,16 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash and USE_PSA"
     make test
 
-    msg "test: ssl-opt.sh, MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash and USE_PSA"
-    tests/ssl-opt.sh
+    # hidden option: when running outcome-analysis.sh, we can skip this
+    if [ "${SKIP_SSL_OPT_COMPAT_SH-unset}" = "unset" ]; then
+        msg "test: ssl-opt.sh, MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash and USE_PSA"
+        tests/ssl-opt.sh
 
-    msg "test: compat.sh, MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash and USE_PSA"
-    tests/compat.sh
+        msg "test: compat.sh, MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash and USE_PSA"
+        tests/compat.sh
+    else
+        echo "skip ssl-opt.sh and compat.sh"
+    fi
 }
 
 component_test_psa_crypto_config_accel_cipher () {

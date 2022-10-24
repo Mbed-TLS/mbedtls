@@ -6,6 +6,61 @@
  *  modules should use the high-level modular bignum interface (bignum_mod.h)
  *  or the legacy bignum interface (bignum.h).
  *
+ * This module is about processing non-negative integers with a fixed upper
+ * bound that's of the form 2^n-1 where n is a multiple of #biL.
+ * These can be thought of integers written in base 2^#biL with a fixed
+ * number of digits. Digits in this base are called *limbs*.
+ * Many operations treat these numbers as the principal representation of
+ * a number modulo 2^n or a smaller bound.
+ *
+ * The functions in this module obey the following conventions unless
+ * explicitly indicated otherwise:
+ *
+ * - **Overflow**: some functions indicate overflow from the range
+ *   [0, 2^n-1] by returning carry parameters, while others operate
+ *   modulo and so cannot overflow. This should be clear from the function
+ *   documentation.
+ * - **Bignum parameters**: Bignums are passed as pointers to an array of
+ *   limbs. A limb has the type #mbedtls_mpi_uint. Unless otherwise specified:
+ *     - Bignum parameters called \p A, \p B, ... are inputs, and are
+ *       not modified by the function.
+ *     - For operations modulo some number, the modulus is called \p N
+ *       and is input-only.
+ *     - Bignum parameters called \p X, \p Y are outputs or input-output.
+ *       The initial content of output-only parameters is ignored.
+ *     - Some functions use different names that reflect traditional
+ *       naming of operands of certain operations (e.g.
+ *       divisor/dividend/quotient/remainder).
+ *     - \p T is a temporary storage area. The initial content of such
+ *       parameter is ignored and the final content is unspecified.
+ * - **Bignum sizes**: bignum sizes are always expressed in limbs.
+ *   Most functions work on bignums of a given size and take a single
+ *   \p limbs parameter that applies to all parameters that are limb arrays.
+ *   All bignum sizes must be at least 1 and must be significantly less than
+ *   #SIZE_MAX. The behavior if a size is 0 is undefined. The behavior if the
+ *   total size of all parameters overflows #SIZE_MAX is undefined.
+ * - **Parameter ordering**: for bignum parameters, outputs come before inputs.
+ *   Temporaries come last.
+ * - **Aliasing**: in general, output bignums may be aliased to one or more
+ *   inputs. As an exception, parameters that are documented as a modulus value
+ *   may not be aliased to an output. Outputs may not be aliased to one another.
+ *   Temporaries may not be aliased to any other parameter.
+ * - **Overlap**: apart from aliasing of limb array pointers (where two
+ *   arguments are equal pointers), overlap is not supported and may result
+ *   in undefined behavior.
+ * - **Error handling**: This is a low-level module. Functions generally do not
+ *   try to protect against invalid arguments such as nonsensical sizes or
+ *   null pointers. Note that some functions that operate on bignums of
+ *   different sizes have constraints about their size, and violating those
+ *   constraints may lead to buffer overflows.
+ * - **Modular representatives**: functions that operate modulo \p N expect
+ *   all modular inputs to be in the range [0, \p N - 1] and guarantee outputs
+ *   in the range [0, \p N - 1]. If an input is out of range, outputs are
+ *   fully unspecified, though bignum values out of range should not cause
+ *   buffer overflows (beware that this is not extensively tested).
+ */
+
+/*
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -31,9 +86,9 @@
 #include "mbedtls/bignum.h"
 #endif
 
-#define ciL    ( sizeof(mbedtls_mpi_uint) )   /* chars in limb  */
-#define biL    ( ciL << 3 )                   /* bits  in limb  */
-#define biH    ( ciL << 2 )                   /* half limb size */
+#define ciL    ( sizeof(mbedtls_mpi_uint) )   /** chars in limb  */
+#define biL    ( ciL << 3 )                   /** bits  in limb  */
+#define biH    ( ciL << 2 )                   /** half limb size */
 
 /*
  * Convert between bits/chars and number of limbs
@@ -73,6 +128,58 @@ size_t mbedtls_mpi_core_bitlen( const mbedtls_mpi_uint *A, size_t A_limbs );
  */
 void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *A,
                                          size_t A_limbs );
+
+/**
+ * \brief   Perform a safe conditional copy of an MPI which doesn't reveal
+ *          whether assignment was done or not.
+ *
+ * \param[out] X        The address of the destination MPI.
+ *                      This must be initialized. Must have enough limbs to
+ *                      store the full value of \p A.
+ * \param[in]  A        The address of the source MPI. This must be initialized.
+ * \param      limbs    The number of limbs of \p A.
+ * \param      assign   The condition deciding whether to perform the
+ *                      assignment or not. Must be either 0 or 1:
+ *                      * \c 1: Perform the assignment `X = A`.
+ *                      * \c 0: Keep the original value of \p X.
+ *
+ * \note           This function avoids leaking any information about whether
+ *                 the assignment was done or not.
+ *
+ * \warning        If \p assign is neither 0 nor 1, the result of this function
+ *                 is indeterminate, and the resulting value in \p X might be
+ *                 neither its original value nor the value in \p A.
+ */
+void mbedtls_mpi_core_cond_assign( mbedtls_mpi_uint *X,
+                                   const mbedtls_mpi_uint *A,
+                                   size_t limbs,
+                                   unsigned char assign );
+
+/**
+ * \brief   Perform a safe conditional swap of two MPIs which doesn't reveal
+ *          whether the swap was done or not.
+ *
+ * \param[in,out] X         The address of the first MPI.
+ *                          This must be initialized.
+ * \param[in,out] Y         The address of the second MPI.
+ *                          This must be initialized.
+ * \param         limbs     The number of limbs of \p X and \p Y.
+ * \param         swap      The condition deciding whether to perform
+ *                          the swap or not. Must be either 0 or 1:
+ *                          * \c 1: Swap the values of \p X and \p Y.
+ *                          * \c 0: Keep the original values of \p X and \p Y.
+ *
+ * \note           This function avoids leaking any information about whether
+ *                 the swap was done or not.
+ *
+ * \warning        If \p swap is neither 0 nor 1, the result of this function
+ *                 is indeterminate, and both \p X and \p Y might end up with
+ *                 values different to either of the original ones.
+ */
+void mbedtls_mpi_core_cond_swap( mbedtls_mpi_uint *X,
+                                 mbedtls_mpi_uint *Y,
+                                 size_t limbs,
+                                 unsigned char swap );
 
 /** Import X from unsigned binary data, little-endian.
  *

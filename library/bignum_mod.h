@@ -1,6 +1,10 @@
 /**
  *  Modular bignum functions
  *
+ * This module implements operations on integers modulo some fixed modulus.
+ */
+
+/*
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *

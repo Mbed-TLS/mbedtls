@@ -604,6 +604,12 @@ static void ssl_update_checksum_start( mbedtls_ssl_context *ssl,
     mbedtls_sha512_update( &ssl->handshake->fin_sha384, buf, len );
 #endif
 #endif
+#if !defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA) && \
+    !defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+    (void) ssl;
+    (void) buf;
+    (void) len;
+#endif
 }
 
 #if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
@@ -4046,6 +4052,9 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
     const unsigned char * const end = buf + len;
     size_t session_len;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    tls_prf_fn prf_func = NULL;
+#endif
 
     /*
      * The context should have been freshly setup or reset.
@@ -4131,17 +4140,22 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
     ssl->transform_out = ssl->transform;
     ssl->transform_negotiate = NULL;
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    prf_func = ssl_tls12prf_from_cs( ssl->session->ciphersuite );
+    if( prf_func == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
     /* Read random bytes and populate structure */
     if( (size_t)( end - p ) < sizeof( ssl->transform->randbytes ) )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+
     ret = ssl_tls12_populate_transform( ssl->transform,
                   ssl->session->ciphersuite,
                   ssl->session->master,
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM)
                   ssl->session->encrypt_then_mac,
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM */
-                  ssl_tls12prf_from_cs( ssl->session->ciphersuite ),
+                  prf_func,
                   p, /* currently pointing to randbytes */
                   MBEDTLS_SSL_VERSION_TLS1_2, /* (D)TLS 1.2 is forced */
                   ssl->conf->endpoint,
@@ -5157,6 +5171,10 @@ int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
         goto exit;
 
 exit:
+#if !defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA) && \
+    !defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+    (void) ssl;
+#endif
     return( psa_ssl_status_to_mbedtls( status ) );
 }
 #else /* MBEDTLS_USE_PSA_CRYPTO */
@@ -5429,6 +5447,8 @@ static psa_status_t setup_psa_key_derivation( psa_key_derivation_operation_t* de
     return( PSA_SUCCESS );
 }
 
+#if defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA) || \
+    defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int tls_prf_generic( mbedtls_md_type_t md_type,
                             const unsigned char *secret, size_t slen,
@@ -5503,7 +5523,7 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
 
     return( 0 );
 }
-
+#endif
 #else /* MBEDTLS_USE_PSA_CRYPTO */
 
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -5909,7 +5929,10 @@ int mbedtls_ssl_set_calc_verify_md( mbedtls_ssl_context *ssl, int md )
         default:
             return( -1 );
     }
-
+#if !defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA) && \
+    !defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+    (void) ssl;
+#endif
     return( 0 );
 }
 
@@ -7430,16 +7453,25 @@ exit:
  */
 static tls_prf_fn ssl_tls12prf_from_cs( int ciphersuite_id )
 {
-#if defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
     const mbedtls_ssl_ciphersuite_t * const ciphersuite_info =
-         mbedtls_ssl_ciphersuite_from_id( ciphersuite_id );
-
+             mbedtls_ssl_ciphersuite_from_id( ciphersuite_id );
+#if defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
     if( ciphersuite_info != NULL && ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
         return( tls_prf_sha384 );
-#else
-    (void) ciphersuite_id;
+    else
 #endif
-    return( tls_prf_sha256 );
+#if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+    {
+        if( ciphersuite_info != NULL && ciphersuite_info->mac == MBEDTLS_MD_SHA256 )
+            return( tls_prf_sha256 );
+    }
+#endif
+#if !defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA) && \
+    !defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+    (void) ciphersuite_info;
+#endif
+
+    return( NULL );
 }
 #endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
 

@@ -1665,15 +1665,15 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
         /*
-            * The next two sizes are the minimum and maximum values of
-            * data_len over all padlen values.
-            *
-            * They're independent of padlen, since we previously did
-            * data_len -= padlen.
-            *
-            * Note that max_len + maclen is never more than the buffer
-            * length, as we previously did in_msglen -= maclen too.
-            */
+        * The next two sizes are the minimum and maximum values of
+        * data_len over all padlen values.
+        *
+        * They're independent of padlen, since we previously did
+        * data_len -= padlen.
+        *
+        * Note that max_len + maclen is never more than the buffer
+        * length, as we previously did in_msglen -= maclen too.
+        */
         const size_t max_len = rec->data_len + padlen;
         const size_t min_len = ( max_len > 256 ) ? max_len - 256 : 0;
 

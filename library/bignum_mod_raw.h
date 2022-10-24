@@ -6,6 +6,14 @@
  *  modules should use the high-level modular bignum interface (bignum_mod.h)
  *  or the legacy bignum interface (bignum.h).
  *
+ * This is a low-level interface to operations on integers modulo which
+ * has no protection against passing invalid arguments such as arrays of
+ * the wrong size. The functions in bignum_mod.h provide a higher-level
+ * interface that includes protections against accidental misuse, at the
+ * expense of code size and sometimes more cumbersome memory management.
+ */
+
+/*
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -32,6 +40,60 @@
 #endif
 
 #include "bignum_mod.h"
+
+/**
+ * \brief   Perform a safe conditional copy of an MPI which doesn't reveal
+ *          whether the assignment was done or not.
+ *
+ * The size to copy is determined by \p N.
+ *
+ * \param[out] X        The address of the destination MPI.
+ *                      This must be initialized. Must have enough limbs to
+ *                      store the full value of \p A.
+ * \param[in]  A        The address of the source MPI. This must be initialized.
+ * \param[in]  N        The address of the modulus related to \p X and \p A.
+ * \param      assign   The condition deciding whether to perform the
+ *                      assignment or not. Must be either 0 or 1:
+ *                      * \c 1: Perform the assignment `X = A`.
+ *                      * \c 0: Keep the original value of \p X.
+ *
+ * \note           This function avoids leaking any information about whether
+ *                 the assignment was done or not.
+ *
+ * \warning        If \p assign is neither 0 nor 1, the result of this function
+ *                 is indeterminate, and the resulting value in \p X might be
+ *                 neither its original value nor the value in \p A.
+ */
+void mbedtls_mpi_mod_raw_cond_assign( mbedtls_mpi_uint *X,
+                                      const mbedtls_mpi_uint *A,
+                                      const mbedtls_mpi_mod_modulus *N,
+                                      unsigned char assign );
+
+/**
+ * \brief   Perform a safe conditional swap of two MPIs which doesn't reveal
+ *          whether the swap was done or not.
+ *
+ * The size to swap is determined by \p N.
+ *
+ * \param[in,out] X     The address of the first MPI. This must be initialized.
+ * \param[in,out] Y     The address of the second MPI. This must be initialized.
+ * \param[in]     N     The address of the modulus related to \p X and \p Y.
+ * \param         swap  The condition deciding whether to perform
+ *                      the swap or not. Must be either 0 or 1:
+ *                      * \c 1: Swap the values of \p X and \p Y.
+ *                      * \c 0: Keep the original values of \p X and \p Y.
+ *
+ * \note           This function avoids leaking any information about whether
+ *                 the swap was done or not.
+ *
+ * \warning        If \p swap is neither 0 nor 1, the result of this function
+ *                 is indeterminate, and both \p X and \p Y might end up with
+ *                 values different to either of the original ones.
+ */
+void mbedtls_mpi_mod_raw_cond_swap( mbedtls_mpi_uint *X,
+                                    mbedtls_mpi_uint *Y,
+                                    const mbedtls_mpi_mod_modulus *N,
+                                    unsigned char swap );
 
 /** Import X from unsigned binary data.
  *

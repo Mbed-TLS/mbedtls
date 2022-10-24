@@ -379,6 +379,7 @@ static int ssl_tls13_parse_hrr_key_share_ext( mbedtls_ssl_context *ssl,
                                               const unsigned char *buf,
                                               const unsigned char *end )
 {
+#if defined(MBEDTLS_ECDH_C)
     const mbedtls_ecp_curve_info *curve_info = NULL;
     const unsigned char *p = buf;
     int selected_group;
@@ -435,6 +436,12 @@ static int ssl_tls13_parse_hrr_key_share_ext( mbedtls_ssl_context *ssl,
     ssl->handshake->offered_group_id = selected_group;
 
     return( 0 );
+#else
+    (void) ssl;
+    (void) buf;
+    (void) end;
+    return( MBEDTLS_ERR_SSL_BAD_CONFIG );
+#endif
 }
 
 /*

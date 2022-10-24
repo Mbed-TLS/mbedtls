@@ -1374,6 +1374,41 @@ cleanup:
 
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
 
+/* Early Data Extension
+ *
+ * struct {} Empty;
+ *
+ * struct {
+ *   select ( Handshake.msg_type ) {
+ *     case new_session_ticket:   uint32 max_early_data_size;
+ *     case client_hello:         Empty;
+ *     case encrypted_extensions: Empty;
+ *   };
+ * } EarlyDataIndication;
+ */
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+int mbedtls_ssl_tls13_write_early_data_ext( mbedtls_ssl_context *ssl,
+                                            unsigned char *buf,
+                                            const unsigned char *end,
+                                            size_t *out_len )
+{
+    unsigned char *p = buf;
+    *out_len = 0;
+    ((void) ssl);
+
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 4 );
+    MBEDTLS_SSL_DEBUG_MSG(
+            3, ( "client hello, adding early_data extension" ) );
+
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_EARLY_DATA, p, 0 );
+    /* Write length of the early data indication extension */
+    MBEDTLS_PUT_UINT16_BE( 0, p, 2 );
+
+    *out_len = 4;
+    return( 0 );
+}
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
 /* Reset SSL context and update hash for handling HRR.
  *
  * Replace Transcript-Hash(X) by

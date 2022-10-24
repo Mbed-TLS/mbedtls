@@ -24,6 +24,7 @@
 
 /* Enable TLS 1.3 and core 1.3 features */
 #define MBEDTLS_SSL_PROTO_TLS1_3
+#define MBEDTLS_SSL_EARLY_DATA
 #define MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 
 /* Disable TLS 1.2 and 1.2-specific features */

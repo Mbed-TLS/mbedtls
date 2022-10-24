@@ -344,6 +344,14 @@ int main( void )
 #define USAGE_SERIALIZATION ""
 #endif
 
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+#define USAGE_EARLY_DATA \
+    "    early_data=%%d        default: 0 (disabled)\n"      \
+    "                        options: 0 (disabled), 1 (enabled)\n"
+#else
+#define USAGE_EARLY_DATA ""
+#endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_PROTO_TLS1_3 */
+
 #define USAGE_KEY_OPAQUE_ALGS \
     "    key_opaque_algs=%%s  Allowed opaque key algorithms.\n"                      \
     "                        comma-separated pair of values among the following:\n"    \
@@ -533,6 +541,7 @@ struct options
                                  * after renegotiation                      */
     int reproducible;           /* make communication reproducible          */
     int skip_close_notify;      /* skip sending the close_notify alert      */
+    int early_data;             /* support for early data                   */
     int query_config_mode;      /* whether to read config                   */
     int use_srtp;               /* Support SRTP                             */
     int force_srtp_profile;     /* SRTP protection profile to use or all    */
@@ -1189,7 +1198,24 @@ int main( int argc, char *argv[] )
                 default: goto usage;
             }
         }
+
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+        else if( strcmp( p, "early_data" ) == 0 )
+        {
+            switch( atoi( q ) )
+            {
+                case 0:
+                    opt.early_data = MBEDTLS_SSL_EARLY_DATA_DISABLED;
+                    break;
+                case 1:
+                    opt.early_data = MBEDTLS_SSL_EARLY_DATA_ENABLED;
+                    break;
+                default: goto usage;
+            }
+        }
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
         else if( strcmp( p, "tls13_kex_modes" ) == 0 )
         {
             if( strcmp( q, "psk" ) == 0 )
@@ -2091,6 +2117,10 @@ int main( int argc, char *argv[] )
     if( opt.max_version != DFL_MAX_VERSION )
         mbedtls_ssl_conf_max_tls_version( &conf, opt.max_version );
 
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    mbedtls_ssl_tls13_conf_early_data( &conf, opt.early_data );
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
     if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned -0x%x\n\n",
@@ -2466,6 +2496,12 @@ int main( int argc, char *argv[] )
                             (unsigned) session_data_len );
         }
     }
+
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
+    /* TODO: We can log the actual early data status after we define
+     * the API mbedtls_ssl_get_early_data_status.
+     */
+#endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
     /*
@@ -3176,6 +3212,12 @@ reconnect:
         }
 
         mbedtls_printf( " ok\n" );
+
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
+        /* TODO: We can log the actual early data status when reconnect
+         * after we define the API mbedtls_ssl_get_early_data_status.
+         */
+#endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_CLI_C */
 
         goto send_request;
     }

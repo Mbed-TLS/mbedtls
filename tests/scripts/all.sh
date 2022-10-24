@@ -1664,7 +1664,7 @@ component_test_full_cmake_clang () {
     programs/test/cpp_dummy_build
 
     msg "test: psa_constant_names (full config, clang)" # ~ 1s
-    tests/scripts/test_psa_constant_names.py
+    CC=clang CFLAGS="$SHA_CFLAGS" tests/scripts/test_psa_constant_names.py
 
     msg "test: ssl-opt.sh default, ECJPAKE, SSL async (full config)" # ~ 1s
     tests/ssl-opt.sh -f 'Default\|ECJPAKE\|SSL async private'

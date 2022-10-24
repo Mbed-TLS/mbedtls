@@ -40,6 +40,6 @@ for compiler in clang gcc; do
     run_in_docker -e OSSL_NO_DTLS=1 tests/compat.sh
     run_in_docker tests/ssl-opt.sh -e '\(DTLS\|SCSV\).*openssl'
     run_in_docker tests/scripts/test-ref-configs.pl
-    run_in_docker tests/scripts/curves.pl
-    run_in_docker tests/scripts/key-exchanges.pl
+    run_in_docker tests/scripts/depends.py curves
+    run_in_docker tests/scripts/depends.py kex
 done

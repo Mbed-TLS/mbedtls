@@ -512,7 +512,7 @@ void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
 }
 
 int mbedtls_mpi_core_get_mont_R2_unsafe( mbedtls_mpi *X,
-                                         mbedtls_mpi const *N )
+                                         const mbedtls_mpi *N )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 

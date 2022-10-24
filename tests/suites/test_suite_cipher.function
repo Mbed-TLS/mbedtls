@@ -116,7 +116,7 @@ static int cipher_reset_key( mbedtls_cipher_context_t *ctx, int cipher_id,
     mbedtls_cipher_free( ctx );
     mbedtls_cipher_init( ctx );
 
-#if !defined(MBEDTLS_USE_PSA_CRYPO) || !defined(MBEDTLS_TEST_DEPRECATED)
+#if !defined(MBEDTLS_USE_PSA_CRYPTO) || !defined(MBEDTLS_TEST_DEPRECATED)
     (void) use_psa;
     (void) tag_len;
 #else
@@ -1067,7 +1067,7 @@ void test_vec_crypt( int cipher_id, int operation, data_t *key,
     memset( output, 0x00, sizeof( output ) );
 
     /* Prepare context */
-#if !defined(MBEDTLS_USE_PSA_CRYPO) || !defined(MBEDTLS_TEST_DEPRECATED)
+#if !defined(MBEDTLS_USE_PSA_CRYPTO) || !defined(MBEDTLS_TEST_DEPRECATED)
     (void) use_psa;
 #else
     if( use_psa == 1 )
@@ -1095,9 +1095,9 @@ void test_vec_crypt( int cipher_id, int operation, data_t *key,
 
 exit:
     mbedtls_cipher_free( &ctx );
-#if defined(MBEDTLS_USE_PSA_CRYPO) && defined(MBEDTLS_TEST_DEPRECATED)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_TEST_DEPRECATED)
     PSA_DONE( );
-#endif /* MBEDTLS_USE_PSA_CRYPTO && defined(MBEDTLS_TEST_DEPRECATED */
+#endif /* MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_TEST_DEPRECATED */
 }
 /* END_CASE */
 

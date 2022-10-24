@@ -427,7 +427,7 @@ void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
  * \return        #MBEDTLS_ERR_MPI_DIVISION_BY_ZERO if \p N modulus is zero.
  * \return        #MBEDTLS_ERR_MPI_NEGATIVE_VALUE if \p N modulus is negative.
  */
-int mbedtls_mpi_core_get_mont_R2_unsafe( mbedtls_mpi *X,
+int mbedtls_mpi_core_get_mont_r2_unsafe( mbedtls_mpi *X,
                                          const mbedtls_mpi *N );
 
 #endif /* MBEDTLS_BIGNUM_CORE_H */

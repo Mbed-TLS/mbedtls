@@ -511,7 +511,7 @@ void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
     mbedtls_ct_mpi_uint_cond_assign( AN_limbs, X, T, (unsigned char) ( carry ^ borrow ) );
 }
 
-int mbedtls_mpi_core_get_mont_R2_unsafe( mbedtls_mpi *X,
+int mbedtls_mpi_core_get_mont_r2_unsafe( mbedtls_mpi *X,
                                          const mbedtls_mpi *N )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;

@@ -806,6 +806,19 @@
 #endif /* !MBEDTLS_USE_PSA_CRYPTO */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
+#if !( defined(MBEDTLS_ECDH_C) && defined(MBEDTLS_X509_CRT_PARSE_C) && \
+       ( defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_PKCS1_V21) ) )
+#error "MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED defined, but not all prerequisites"
+#endif
+#endif
+
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED)
+#if !( defined(MBEDTLS_ECDH_C) )
+#error "MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED defined, but not all prerequisites"
+#endif
+#endif
+
 /*
  * The current implementation of TLS 1.3 requires MBEDTLS_SSL_KEEP_PEER_CERTIFICATE.
  */

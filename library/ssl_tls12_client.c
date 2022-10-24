@@ -49,27 +49,6 @@
 
 #include "hash_info.h"
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
-int mbedtls_ssl_conf_has_static_psk( mbedtls_ssl_config const *conf )
-{
-    if( conf->psk_identity     == NULL ||
-        conf->psk_identity_len == 0     )
-    {
-        return( 0 );
-    }
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if( ! mbedtls_svc_key_id_is_null( conf->psk_opaque ) )
-        return( 1 );
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
-    if( conf->psk != NULL && conf->psk_len != 0 )
-        return( 1 );
-
-    return( 0 );
-}
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
-
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_write_renegotiation_ext( mbedtls_ssl_context *ssl,

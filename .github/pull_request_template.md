@@ -17,6 +17,10 @@ Changes do not have to be backported if:
 Yes | NO  
 Which branch?
 
+## Requires ChangeLog entry
+
+YES | NO - if no, why not?
+
 ## Migrations
 If there is any API change, what's the incentive and logic for it.
 

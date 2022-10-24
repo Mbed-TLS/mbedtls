@@ -74,23 +74,23 @@ def analyze_driver_vs_reference(outcomes, components, ignored_tests):
         # Skip ignored test suites
         test_suit = key.split(';')[0] # retrieve test suit name
         test_suit = test_suit.split('.')[0] # retrieve main part of test suit name
-        if(test_suit in ignored_tests):
+        if test_suit in ignored_tests:
             continue
         # Continue if test was not executed by any component
         hits = outcomes[key].hits() if key in outcomes else 0
-        if(hits == 0):
+        if hits == 0:
             continue
         # Search for tests that run in reference component and not in driver component
         driver_test_passed = False
         reference_test_passed = False
         for entry in outcomes[key].successes:
-            if(driver_component in entry):
+            if driver_component in entry:
                 driver_test_passed = True
-            if(reference_component in entry):
+            if reference_component in entry:
                 reference_test_passed = True
-        #if(driver_test_passed == True and reference_test_passed == False):
+        #if(driver_test_passed is True and reference_test_passed is False):
         #    print('{}: driver: passed; reference: skipped'.format(key))
-        if(driver_test_passed == False and reference_test_passed == True):
+        if(driver_test_passed is False and reference_test_passed is True):
             print('{}: driver: skipped/failed; reference: passed'.format(key))
             result = False
     return result
@@ -126,7 +126,7 @@ def do_analyze_coverage(outcome_file):
     """Perform coverage analyze."""
     outcomes = read_outcome_file(outcome_file)
     results = analyze_outcomes(outcomes)
-    return (True if results.error_count == 0 else False)
+    return results.error_count == 0
 
 def do_analyze_driver_vs_reference(outcome_file, components, ignored_tests):
     """Perform driver vs reference analyze."""
@@ -143,27 +143,31 @@ def main():
         parser.add_argument('outcomes', metavar='OUTCOMES.CSV',
                             help='Outcome file to analyze')
         parser.add_argument('--task', default='analyze_coverage',
-                            help='Analyze to be done: analyze_coverage or analyze_driver_vs_reference')
+                            help='Analyze to be done: analyze_coverage or '
+                            'analyze_driver_vs_reference')
         parser.add_argument('--components',
-                            help='List of test components to compare. Must be exactly 2 in valid order: driver,reference. '
+                            help='List of test components to compare. '
+                            'Must be exactly 2 in valid order: driver,reference. '
                             'Apply only for analyze_driver_vs_reference task.')
         parser.add_argument('--ignore',
-                            help='List of test suits to ignore. Apply only for analyze_driver_vs_reference task.')
+                            help='List of test suits to ignore. '
+                            'Apply only for analyze_driver_vs_reference task.')
         options = parser.parse_args()
 
         result = False
 
-        if(options.task == 'analyze_coverage'):
+        if options.task == 'analyze_coverage':
             result = do_analyze_coverage(options.outcomes)
-        elif(options.task == 'analyze_driver_vs_reference'):
+        elif options.task == 'analyze_driver_vs_reference':
             components_list = options.components.split(',')
             ignored_tests_list = options.ignore.split(',')
             ignored_tests_list = ['test_suite_' + x for x in ignored_tests_list]
-            result = do_analyze_driver_vs_reference(options.outcomes, components_list, ignored_tests_list)
+            result = do_analyze_driver_vs_reference(options.outcomes,
+                                                    components_list, ignored_tests_list)
         else:
             print('Error: Unknown task: {}'.format(options.task))
 
-        if(result == False):
+        if result is False:
             sys.exit(1)
         print("SUCCESS :-)")
     except Exception: # pylint: disable=broad-except

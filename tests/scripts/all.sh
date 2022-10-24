@@ -2123,6 +2123,8 @@ component_test_psa_crypto_config_reference_hash_use_psa() {
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
 
+    make
+
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG without accelerated hash and USE_PSA"
     make test
 

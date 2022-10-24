@@ -140,9 +140,9 @@ def do_analyze_driver_vs_reference(outcome_file, components, ignored_tests):
 def main():
     try:
         parser = argparse.ArgumentParser(description=__doc__)
-        parser.add_argument('--outcomes', metavar='OUTCOMES.CSV',
+        parser.add_argument('outcomes', metavar='OUTCOMES.CSV',
                             help='Outcome file to analyze')
-        parser.add_argument('--task',
+        parser.add_argument('--task', default='analyze_coverage',
                             help='Analyze to be done: analyze_coverage or analyze_driver_vs_reference')
         parser.add_argument('--components',
                             help='List of test components to compare. Must be exactly 2 in valid order: driver,reference. '

@@ -863,25 +863,6 @@ check_cc_version() {
     fi
 }
 
-# Version compare based on 'sort -V'
-# In:
-#   * $1 first version
-#   * $2 second version
-# Out:
-#   'eq' if $1 and $2 are equal
-#   'lt' if $1 is less than $2
-#   'gt' if $1 is greater than $2
-version_compare() {
-    local v1=${1}
-    local v2=${2}
-
-    if [ "${v1}" = "${v2}" ]; then
-        echo "eq"
-    else
-        [[ $(echo -e "${v1}\n${v2}" | sort -V | head -n1) == "${v1}" ]] && echo "lt" || echo "gt"
-    fi
-}
-
 # Get the -march switch for sha256/512 acceleration
 get_cc_march_sha256_512 () {
     local cc=${1:-cc}
@@ -889,17 +870,7 @@ get_cc_march_sha256_512 () {
 
     # check if sha3 feature should be enabled
     if is_cc_support_sha512_a64 ${cc}; then
-        case $(${cc} --version 2>&1) in
-            *clang*)
-                local v1="$(${cc} -dumpversion)"
-                local v2="13.0.0"
-                [ "$(version_compare ${v1} ${v2})" == "gt" ] && \
-                    cflag="-march=armv8.2-a+sha3"
-                ;;
-            *gcc*|*cc*)
-                cflag="-march=armv8.2-a+sha3"
-                ;;
-        esac
+        cflag="-march=armv8.2-a+sha3"
     fi
 
     # check if crypto feature should be enabled

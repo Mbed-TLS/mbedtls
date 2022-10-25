@@ -1454,6 +1454,7 @@ static int ssl_parse_client_hello( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse client hello" ) );
 
+    int renegotiating = 0;
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
 read_record_header:
 #endif
@@ -1463,8 +1464,10 @@ read_record_header:
      * ClientHello, which doesn't use the same record layer format.
      */
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if( ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE )
+    if( ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE )
+        renegotiating = 1;
 #endif
+    if( !renegotiating )
     {
         if( ( ret = mbedtls_ssl_fetch_input( ssl, 5 ) ) != 0 )
         {
@@ -1477,9 +1480,12 @@ read_record_header:
     buf = ssl->in_hdr;
 
 #if defined(MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO)
+    int is_dtls = 0;
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_STREAM )
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+        is_dtls = 1;
 #endif
+    if( !is_dtls )
         if( ( buf[0] & 0x80 ) != 0 )
             return( ssl_parse_client_hello_v2( ssl ) );
 #endif

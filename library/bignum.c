@@ -771,42 +771,9 @@ cleanup:
  */
 int mbedtls_mpi_shift_r( mbedtls_mpi *X, size_t count )
 {
-    size_t i, v0, v1;
-    mbedtls_mpi_uint r0 = 0, r1;
     MPI_VALIDATE_RET( X != NULL );
-
-    v0 = count /  biL;
-    v1 = count & (biL - 1);
-
-    if( v0 > X->n || ( v0 == X->n && v1 > 0 ) )
-        return mbedtls_mpi_lset( X, 0 );
-
-    /*
-     * shift by count / limb_size
-     */
-    if( v0 > 0 )
-    {
-        for( i = 0; i < X->n - v0; i++ )
-            X->p[i] = X->p[i + v0];
-
-        for( ; i < X->n; i++ )
-            X->p[i] = 0;
-    }
-
-    /*
-     * shift by count % limb_size
-     */
-    if( v1 > 0 )
-    {
-        for( i = X->n; i > 0; i-- )
-        {
-            r1 = X->p[i - 1] << (biL - v1);
-            X->p[i - 1] >>= v1;
-            X->p[i - 1] |= r0;
-            r0 = r1;
-        }
-    }
-
+    if( X->n != 0 )
+        mbedtls_mpi_core_shift_r( X->p, X->n, count );
     return( 0 );
 }
 

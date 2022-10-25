@@ -1564,7 +1564,7 @@ component_test_crypto_for_psa_service () {
   # System stuff
   scripts/config.py unset MBEDTLS_ERROR_C
   scripts/config.py unset MBEDTLS_TIMING_C
-  scripts/config.py unset MBEDTLS_VERSION_FEATURES_C
+  scripts/config.py unset MBEDTLS_VERSION_FEATURES
   # Crypto stuff with no PSA interface
   scripts/config.py unset MBEDTLS_BASE64_C
   scripts/config.py unset MBEDTLS_NIST_KW_C

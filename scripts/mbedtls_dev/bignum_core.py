@@ -144,12 +144,12 @@ class BignumCoreOperationArchSplit(BignumCoreOperation):
             yield cls(a_value, b_value, 32).create_test_case()
             yield cls(a_value, b_value, 64).create_test_case()
 
-class BignumCoreAddIf(BignumCoreOperationArchSplit):
-    """Test cases for bignum core add if."""
+class BignumCoreAddAndAddIf(BignumCoreOperationArchSplit):
+    """Test cases for bignum core add and add-if."""
     count = 0
     symbol = "+"
-    test_function = "mpi_core_add_if"
-    test_name = "mbedtls_mpi_core_add_if"
+    test_function = "mpi_core_add_and_add_if"
+    test_name = "mpi_core_add_and_add_if"
 
     def result(self) -> List[str]:
         result = self.int_a + self.int_b

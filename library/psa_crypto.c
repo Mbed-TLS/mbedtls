@@ -484,6 +484,7 @@ psa_status_t psa_validate_unstructured_key_bit_size( psa_key_type_t type,
 }
 
 /** Check whether a given key type is valid for use with a given MAC algorithm
+ *  (and that the given algorithm is a supported MAC algorithm).
  *
  * Upon successful return of this function, the behavior of #PSA_MAC_LENGTH
  * when called with the validated \p algorithm and \p key_type is well-defined.
@@ -495,19 +496,33 @@ psa_status_t psa_validate_unstructured_key_bit_size( psa_key_type_t type,
  * \retval #PSA_SUCCESS
  *         The \p key_type is valid for use with the \p algorithm
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The \p key_type is not valid for use with the \p algorithm
+ *         The \p key_type is not valid for use with the \p algorithm,
+ *         of the \p algorithm is not a supported MAC algorithm.
  */
 MBEDTLS_STATIC_TESTABLE psa_status_t psa_mac_key_can_do(
     psa_algorithm_t algorithm,
     psa_key_type_t key_type )
 {
+#if defined(PSA_WANT_ALG_HMAC)
     if( PSA_ALG_IS_HMAC( algorithm ) )
     {
         if( key_type == PSA_KEY_TYPE_HMAC )
             return( PSA_SUCCESS );
     }
+#endif
 
-    if( PSA_ALG_IS_BLOCK_CIPHER_MAC( algorithm ) )
+    /* Not using PSA_ALG_IS_BLOCK_CIPHER_MAC(), but instead enumerating
+     * algorithms, so that we can check the algorithm is supported. */
+    int is_block_cipher_mac = 0;
+#if defined(PSA_WANT_ALG_CMAC)
+    if( PSA_ALG_FULL_LENGTH_MAC( algorithm ) == PSA_ALG_CMAC )
+        is_block_cipher_mac = 1;
+#endif
+#if defined(PSA_WANT_ALG_CBC_MAC)
+    if( PSA_ALG_FULL_LENGTH_MAC( algorithm ) == PSA_ALG_CBC_MAC )
+        is_block_cipher_mac = 1;
+#endif
+    if( is_block_cipher_mac )
     {
         /* Check that we're calling PSA_BLOCK_CIPHER_BLOCK_LENGTH with a cipher
          * key. */

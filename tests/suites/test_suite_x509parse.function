@@ -11,6 +11,8 @@
 #include "mbedtls/pk.h"
 #include "string.h"
 
+#include "x509_invasive.h"
+
 #if MBEDTLS_X509_MAX_INTERMEDIATE_CA > 19
 #error "The value of MBEDTLS_X509_MAX_INTERMEDIATE_C is larger \
     than the current threshold 19. To test larger values, please \
@@ -433,6 +435,19 @@ void x509_accessor_ext_types(int ext_type, int has_ext_type)
     TEST_ASSERT(mbedtls_x509_crt_has_ext_type(&crt, has_ext_type) == expected_result);
 
     mbedtls_x509_crt_free(&crt);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_TEST_HOOKS */
+void x509_crt_parse_cn_inet_pton(const char *cn, data_t *exp, int ref_ret)
+{
+    uint32_t addr[4];
+    size_t addrlen = mbedtls_x509_crt_parse_cn_inet_pton(cn, addr);
+    TEST_EQUAL(addrlen, (size_t) ref_ret);
+
+    if (addrlen) {
+        ASSERT_COMPARE(exp->x, exp->len, addr, addrlen);
+    }
 }
 /* END_CASE */
 

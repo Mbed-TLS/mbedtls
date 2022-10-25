@@ -674,11 +674,13 @@ static int ssl_tls13_write_server_pre_shared_key_ext( mbedtls_ssl_context *ssl,
 
     *olen = 0;
 
+    int not_using_psk = 0;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if( mbedtls_svc_key_id_is_null( ssl->handshake->psk_opaque ) )
+    not_using_psk = ( mbedtls_svc_key_id_is_null( ssl->handshake->psk_opaque ) );
 #else
-    if( ssl->handshake->psk == NULL )
+    not_using_psk = ( ssl->handshake->psk == NULL );
 #endif
+    if( not_using_psk )
     {
         /* We shouldn't have called this extension writer unless we've
          * chosen to use a PSK. */

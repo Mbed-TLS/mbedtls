@@ -2279,12 +2279,14 @@ cleanup:
         mbedtls_free( T );
     }
 
-    /* don't free R while in progress in case R == P */
-#if defined(MBEDTLS_ECP_RESTARTABLE)
-    if( ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
-#endif
     /* prevent caller from using invalid value */
-    if( ret != 0 )
+    int should_free_R = ( ret != 0 );
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    /* don't free R while in progress in case R == P */
+    if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+        should_free_R = 0;
+#endif
+    if( should_free_R )
         mbedtls_ecp_point_free( R );
 
     ECP_RS_LEAVE( rsm );
@@ -2529,10 +2531,12 @@ static int ecp_mul_restartable_internal( mbedtls_ecp_group *grp, mbedtls_ecp_poi
         MBEDTLS_MPI_CHK( mbedtls_internal_ecp_init( grp ) );
 #endif /* MBEDTLS_ECP_INTERNAL_ALT */
 
+    int restarting = 0;
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-    /* skip argument check when restarting */
-    if( rs_ctx == NULL || rs_ctx->rsm == NULL )
+    restarting = ( rs_ctx != NULL && rs_ctx->rsm != NULL );
 #endif
+    /* skip argument check when restarting */
+    if( !restarting )
     {
         /* check_privkey is free */
         MBEDTLS_ECP_BUDGET( MBEDTLS_ECP_OPS_CHK );

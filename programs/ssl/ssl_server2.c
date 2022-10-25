@@ -2613,15 +2613,17 @@ int main( int argc, char *argv[] )
             if( ret != 0 )
                 break;
         }
-        if( ret == 0 )
 #endif /* MBEDTLS_PEM_PARSE_C */
-        for( i = 0; mbedtls_test_cas_der[i] != NULL; i++ )
+        if( ret == 0 )
         {
-            ret = mbedtls_x509_crt_parse_der( &cacert,
-                         (const unsigned char *) mbedtls_test_cas_der[i],
-                         mbedtls_test_cas_der_len[i] );
-            if( ret != 0 )
-                break;
+            for( i = 0; mbedtls_test_cas_der[i] != NULL; i++ )
+            {
+                ret = mbedtls_x509_crt_parse_der( &cacert,
+                             (const unsigned char *) mbedtls_test_cas_der[i],
+                             mbedtls_test_cas_der_len[i] );
+                if( ret != 0 )
+                    break;
+            }
         }
     }
     if( ret < 0 )

@@ -1676,19 +1676,22 @@ component_test_crypto_for_psa_service () {
   # System stuff
   scripts/config.py unset MBEDTLS_ERROR_C
   scripts/config.py unset MBEDTLS_TIMING_C
-  scripts/config.py unset MBEDTLS_VERSION_FEATURES_C
+  scripts/config.py unset MBEDTLS_VERSION_FEATURES
   # Crypto stuff with no PSA interface
   scripts/config.py unset MBEDTLS_BASE64_C
+  scripts/config.py unset MBEDTLS_BLOWFISH_C
+  # Keep MBEDTLS_CIPHER_C because psa_crypto_cipher, CCM and GCM need it.
+  # Keep MBEDTLS_MD_C because RSA and ECDSA need it, also HMAC_DRBG which
+  # is needed for deterministic ECDSA.
+  scripts/config.py unset MBEDTLS_ECJPAKE_C
+  scripts/config.py unset MBEDTLS_HKDF_C # PSA's HKDF is independent
   scripts/config.py unset MBEDTLS_NIST_KW_C
   scripts/config.py unset MBEDTLS_PEM_PARSE_C
   scripts/config.py unset MBEDTLS_PEM_WRITE_C
   scripts/config.py unset MBEDTLS_PKCS12_C
   scripts/config.py unset MBEDTLS_PKCS5_C
-  # MBEDTLS_PK_WRITE_C is actually currently needed for RSA key export,
-  # but build_info.h will reenable it.
-  scripts/config.py unset MBEDTLS_PK_WRITE_C
-  # At this time, we can't unset MBEDTLS_PK_PARSE_C, because it's needed
-  # for RSA in PSA (see https://github.com/Mbed-TLS/mbedtls/issues/6408).
+  # We keep MBEDTLS_PK_{,PARSE,WRITE}_C because PSA with RSA needs it.
+  scripts/config.py unset MBEDTLS_XTEA_C
   make CFLAGS='-O1 -Werror' all test
   are_empty_libraries library/libmbedx509.* library/libmbedtls.*
 }

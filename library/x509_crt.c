@@ -49,6 +49,7 @@
 #include "mbedtls/psa_util.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 #include "hash_info.h"
+#include "x509_invasive.h"
 
 #include "mbedtls/platform.h"
 
@@ -2656,7 +2657,8 @@ static int x509_inet_pton_ipv4(const char *src, void *dst)
 
 #endif /* AF_INET6 */
 
-static size_t x509_cn_inet_pton(const char *cn, void *dst)
+MBEDTLS_STATIC_TESTABLE
+size_t mbedtls_x509_crt_parse_cn_inet_pton(const char *cn, void *dst)
 {
     return strchr(cn, ':') == NULL
             ? x509_inet_pton_ipv4(cn, dst) == 0 ? 4 : 0
@@ -2687,7 +2689,7 @@ static int x509_crt_check_san_ip(const mbedtls_x509_sequence *san,
                                  const char *cn, size_t cn_len)
 {
     uint32_t ip[4];
-    cn_len = x509_cn_inet_pton(cn, ip);
+    cn_len = mbedtls_x509_crt_parse_cn_inet_pton(cn, ip);
     if (cn_len == 0) {
         return -1;
     }

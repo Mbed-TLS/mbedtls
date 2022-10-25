@@ -1501,8 +1501,8 @@ struct mbedtls_ssl_config
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     int MBEDTLS_PRIVATE(early_data_enabled);     /*!< Early data enablement:
-                                     *   - MBEDTLS_SSL_EARLY_DATA_DISABLED,
-                                     *   - MBEDTLS_SSL_EARLY_DATA_ENABLED */
+                                                  *   - MBEDTLS_SSL_EARLY_DATA_DISABLED,
+                                                  *   - MBEDTLS_SSL_EARLY_DATA_ENABLED */
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #if defined(MBEDTLS_SSL_ALPN)
@@ -1914,6 +1914,7 @@ void mbedtls_ssl_conf_transport( mbedtls_ssl_config *conf, int transport );
  */
 void mbedtls_ssl_conf_authmode( mbedtls_ssl_config *conf, int authmode );
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_EARLY_DATA)
 /**
 * \brief    Set the early data mode
 *           Default: disabled on server and client
@@ -1933,7 +1934,6 @@ void mbedtls_ssl_conf_authmode( mbedtls_ssl_config *conf, int authmode );
 * \warning This interface is experimental and may change without notice.
 *
 */
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_EARLY_DATA)
 void mbedtls_ssl_tls13_conf_early_data( mbedtls_ssl_config *conf,
                                   int early_data_enabled );
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_EARLY_DATA */

@@ -2560,7 +2560,87 @@ find_parent:
  * provided by headers included (or not) via __has_include() above. */
 #ifndef AF_INET6
 
-#define x509_cn_inet_pton(cn, dst) (0)
+/* definition located further below to possibly reduce compiler inlining */
+static int x509_inet_pton_ipv4(const char *src, void *dst);
+
+#define li_cton(c, n) \
+    (((n) = (c) - '0') <= 9 || (((n) = ((c)&0xdf) - 'A') <= 5 ? ((n) += 10) : 0))
+
+static int x509_inet_pton_ipv6(const char *src, void *dst)
+{
+    const unsigned char *v = (const unsigned char *) src;
+    int i = 0, j, dc = -1;
+    uint16_t addr[8];
+    do {
+        /* note: allows excess leading 0's, e.g. 1:0002:3:... */
+        uint16_t x = j = 0;
+        for (uint8_t n; j < 4 && li_cton(*v, n); x <<= 4, x |= n, ++v, ++j) {
+            ;
+        }
+        if (j != 0) {
+            addr[i++] = (x << 8) | (x >> 8);     /* htons(x) */
+            if (*v == '\0') {
+                break;
+            } else if (*v == '.' && (i != 0 || dc != -1) && (i < 7) &&
+                       /* walk back to prior ':', then parse as IPv4-mapped */
+                       (*--v == ':' || *--v == ':' ||
+                        *--v == ':' || *--v == ':') &&
+                       x509_inet_pton_ipv4((const char *) ++v, addr + --i) == 0) {
+                i += 2;
+                v = (const unsigned char *) "";
+                break;
+            } else if (*v != ':') {
+                return -1;
+            }
+        } else {
+            if (dc != -1 || *v != ':' || ((dc = i) == 0 && *++v != ':')) {
+                return -1;
+            }
+            if (v[1] == '\0') {
+                ++v;
+                break;
+            }
+        }
+        ++v;
+    } while (i < 8);
+    if ((dc != -1 ? i > 6 : i != 8) || *v != '\0') {
+        return -1;
+    }
+
+    if (dc != -1) {
+        i -= dc;
+        j = 8 - i - dc;
+        if (i) {
+            memmove(addr + dc + j, addr + dc, i * sizeof(*addr));
+        }
+        memset(addr + dc, 0, j * sizeof(*addr));
+    }
+    memcpy(dst, addr, sizeof(addr));
+    return 0;
+}
+
+static int x509_inet_pton_ipv4(const char *src, void *dst)
+{
+    /* note: allows leading 0's, e.g. 000.000.000.000 */
+    const unsigned char *v = (const unsigned char *) src;
+    uint8_t *res = (uint8_t *) dst;
+    uint8_t d1, d2, d3, i = 0;
+    int ii;
+    const uint8_t tens[] = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90 };
+    do {
+        if ((d1 = *(uint8_t *)  v - '0') > 9) {
+            break;
+        } else if ((d2 = *(uint8_t *) ++v - '0') > 9) {
+            *res++ = d1;
+        } else if ((d3 = *(uint8_t *) ++v - '0') > 9) {
+            *res++ = tens[d1] + d2;
+        } else if ((ii = (d1 < 2 ? d1 == 1 ? 100 : 0 : d1 == 2 ? 200 : 999)
+                         + tens[d2] + d3) < 256) {
+            *res++ = (uint8_t) ii, ++v;
+        }
+    } while (++i < 4 && *v++ == '.');
+    return i == 4 && *v == '\0' ? 0 : -1;
+}
 
 #else
 

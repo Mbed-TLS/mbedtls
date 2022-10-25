@@ -714,13 +714,13 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
 #endif
         list = ssl->conf->key_cert;
 
-    int pk_alg_none = 0;
+    int pk_alg_is_none = 0;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    pk_alg_none = ( pk_alg == PSA_ALG_NONE );
+    pk_alg_is_none = ( pk_alg == PSA_ALG_NONE );
 #else
-    pk_alg_none = ( pk_alg == MBEDTLS_PK_NONE );
+    pk_alg_is_none = ( pk_alg == MBEDTLS_PK_NONE );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-    if( pk_alg_none )
+    if( pk_alg_is_none )
         return( 0 );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite requires certificate" ) );
@@ -737,21 +737,21 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_CRT( 3, "candidate certificate chain, certificate",
                           cur->cert );
 
-        int key_type_mismatch = 0;
+        int key_type_matches = 0;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
-        key_type_mismatch = ( ( ssl->conf->f_async_sign_start == NULL &&
-                    ssl->conf->f_async_decrypt_start == NULL &&
-                    ! mbedtls_pk_can_do_ext( cur->key, pk_alg, pk_usage ) ) ||
-                ! mbedtls_pk_can_do_ext( &cur->cert->pk, pk_alg, pk_usage ) );
+        key_type_matches = ( ( ssl->conf->f_async_sign_start != NULL ||
+                    ssl->conf->f_async_decrypt_start != NULL ||
+                    mbedtls_pk_can_do_ext( cur->key, pk_alg, pk_usage ) ) &&
+                mbedtls_pk_can_do_ext( &cur->cert->pk, pk_alg, pk_usage ) );
 #else
-        key_type_mismatch = (
-                ! mbedtls_pk_can_do_ext( cur->key, pk_alg, pk_usage ) );
+        key_type_matches = (
+                mbedtls_pk_can_do_ext( cur->key, pk_alg, pk_usage ) );
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 #else
-        key_type_mismatch = ( ! mbedtls_pk_can_do( &cur->cert->pk, pk_alg ) );
+        key_type_matches = mbedtls_pk_can_do( &cur->cert->pk, pk_alg );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-        if( key_type_mismatch )
+        if( !key_type_matches )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "certificate mismatch: key type" ) );
             continue;

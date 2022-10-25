@@ -1,0 +1,4 @@
+Bugfix
+   * Fix checks on PK in check_config.h for builds with PSA and RSA. This does
+     not change which builds actually work, only moving a link-time error to
+     an early check.

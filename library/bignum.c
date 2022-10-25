@@ -895,7 +895,7 @@ int mbedtls_mpi_add_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
 
     mbedtls_mpi_uint *p = X->p;
 
-    mbedtls_mpi_uint c = mbedtls_mpi_core_add( p, p, B->p, j);
+    mbedtls_mpi_uint c = mbedtls_mpi_core_add( p, p, B->p, j );
 
     p += j;
 

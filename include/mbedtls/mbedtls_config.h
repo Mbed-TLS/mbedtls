@@ -1640,6 +1640,10 @@
 * Requires: MBEDTLS_SSL_PROTO_TLS1_3
 *
 * Comment this to disable support for early data.
+*
+* This feature is experimental, not completed and thus not ready for
+* production.
+*
 */
 //#define MBEDTLS_SSL_EARLY_DATA
 

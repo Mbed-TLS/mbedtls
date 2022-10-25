@@ -1,6 +1,5 @@
 /* BEGIN_HEADER */
 #include "mbedtls/bignum.h"
-#include "bignum_core.h"
 #include "mbedtls/entropy.h"
 #include "constant_time_internal.h"
 #include "test/constant_flow.h"
@@ -1412,75 +1411,6 @@ void mpi_random_fail( int min, data_t *bound_bytes, int expected_ret )
 exit:
     mbedtls_mpi_free( &upper_bound );
     mbedtls_mpi_free( &result );
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void mpi_core_get_mont_r2_unsafe_neg(  )
-{
-    mbedtls_mpi N, RR;
-    mbedtls_mpi_init( &N );
-    mbedtls_mpi_init( &RR );
-    const char * n = "7ffffffffffffff1";
-
-    /* Test for zero divisor */
-    TEST_EQUAL( MBEDTLS_ERR_MPI_DIVISION_BY_ZERO,
-               mbedtls_mpi_core_get_mont_r2_unsafe( &RR, &N ) );
-
-    /* Test for negative input */
-    TEST_EQUAL( 0, mbedtls_test_read_mpi( &N, n ) );
-    N.s = -1;
-    TEST_EQUAL( MBEDTLS_ERR_MPI_NEGATIVE_VALUE,
-               mbedtls_mpi_core_get_mont_r2_unsafe( &RR, &N ) );
-    N.s = 1;
-
-exit:
-    mbedtls_mpi_free( &N );
-    mbedtls_mpi_free( &RR );
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void mpi_core_get_mont_r2_unsafe( char * input_N,
-                                  char * input_RR_X4,
-                                  char * input_RR_X8 )
-{
-    mbedtls_mpi N, RR, RR_REF;
-
-    /* Select the appropriate output */
-    char * input_rr = ( sizeof(mbedtls_mpi_uint) == 4 ) ? input_RR_X4: input_RR_X8;
-
-    mbedtls_mpi_init( &N );
-    mbedtls_mpi_init( &RR );
-    mbedtls_mpi_init( &RR_REF );
-
-    /* Read inputs */
-    TEST_EQUAL( 0, mbedtls_test_read_mpi( &N, input_N ) );
-    TEST_EQUAL( 0, mbedtls_test_read_mpi( &RR_REF, input_rr ) );
-
-    /* All of the inputs are +ve (or zero) */
-    TEST_EQUAL( 1, sign_is_valid( &N ) );
-    TEST_EQUAL( 1, sign_is_valid( &RR_REF ) );
-
-    /* Test valid input */
-    TEST_EQUAL( 0, mbedtls_mpi_core_get_mont_r2_unsafe( &RR, &N ) );
-
-    /* Test that the moduli is odd */
-    TEST_EQUAL( N.p[0] ^ 1, N.p[0] - 1 );
-
-   /* Output is +ve (or zero) */
-    TEST_EQUAL( 1, sign_is_valid( &RR ) );
-
-    /* rr is updated to a valid pointer */
-    TEST_ASSERT( RR.p != NULL );
-
-    /* Calculated rr matches expected value */
-    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &RR, &RR_REF ) == 0 );
-
-exit:
-    mbedtls_mpi_free( &N );
-    mbedtls_mpi_free( &RR );
-    mbedtls_mpi_free( &RR_REF );
 }
 /* END_CASE */
 

@@ -1567,6 +1567,8 @@ component_test_crypto_for_psa_service () {
   scripts/config.py unset MBEDTLS_VERSION_FEATURES
   # Crypto stuff with no PSA interface
   scripts/config.py unset MBEDTLS_BASE64_C
+  # Keep MBEDTLS_CIPHER_C because psa_crypto_cipher, CCM and GCM need it.
+  # Keep MBEDTLS_MD_C because deterministic ECDSA needs it for HMAC_DRBG.
   scripts/config.py unset MBEDTLS_NIST_KW_C
   scripts/config.py unset MBEDTLS_PEM_PARSE_C
   scripts/config.py unset MBEDTLS_PEM_WRITE_C

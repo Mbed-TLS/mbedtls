@@ -794,7 +794,8 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
      */
         int renegotiating = 0;
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
-        renegotiating = ( ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE );
+        if( ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE )
+            renegotiating = 1;
 #endif
         if( !renegotiating )
         {

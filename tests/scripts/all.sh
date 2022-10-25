@@ -1575,6 +1575,7 @@ component_test_crypto_for_psa_service () {
   # MBEDTLS_PK_PARSE_C and MBEDTLS_PK_WRITE_C are actually currently needed
   # in PSA code to work with RSA keys. We don't require users to set those:
   # they will be reenabled in build_info.h.
+  scripts/config.py unset MBEDTLS_PK_C
   scripts/config.py unset MBEDTLS_PK_PARSE_C
   scripts/config.py unset MBEDTLS_PK_WRITE_C
   make CFLAGS='-O1 -Werror' all test

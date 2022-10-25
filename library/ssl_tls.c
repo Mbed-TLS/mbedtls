@@ -6515,14 +6515,17 @@ static tls_prf_fn ssl_tls12prf_from_cs( int ciphersuite_id )
     const mbedtls_ssl_ciphersuite_t * const ciphersuite_info =
          mbedtls_ssl_ciphersuite_from_id( ciphersuite_id );
 
-    #if defined(MBEDTLS_SHA512_C) && !defined(MBEDTLS_SHA512_NO_SHA384)
+    if( ciphersuite_info == NULL )
+        return( NULL );
+
+#if defined(MBEDTLS_SHA512_C) && !defined(MBEDTLS_SHA512_NO_SHA384)
     if( ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
         return( tls_prf_sha384 );
     else
 #endif
 #if defined(MBEDTLS_SHA256_C)
     {
-        if( ciphersuite_info != NULL && ciphersuite_info->mac == MBEDTLS_MD_SHA256 )
+        if( ciphersuite_info->mac == MBEDTLS_MD_SHA256 )
             return( tls_prf_sha256 );
     }
 #endif

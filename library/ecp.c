@@ -2287,12 +2287,12 @@ cleanup:
         mbedtls_free( T );
     }
 
-    int should_free_R = 0;
     /* prevent caller from using invalid value */
-    should_free_R = ( ret != 0 );
+    int should_free_R = ( ret != 0 );
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     /* don't free R while in progress in case R == P */
-    should_free_R = should_free_R && ( ret != MBEDTLS_ERR_ECP_IN_PROGRESS );
+    if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+        should_free_R = 0;
 #endif
     if( should_free_R )
         mbedtls_ecp_point_free( R );

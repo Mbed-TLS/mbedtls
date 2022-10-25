@@ -1500,9 +1500,9 @@ struct mbedtls_ssl_config
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    int early_data_enabled;     /*!< Early data indication:
-                        *   - MBEDTLS_SSL_EARLY_DATA_DISABLED,
-                        *   - MBEDTLS_SSL_EARLY_DATA_ENABLED */
+    int MBEDTLS_PRIVATE(early_data_enabled);     /*!< Early data enablement:
+                                     *   - MBEDTLS_SSL_EARLY_DATA_DISABLED,
+                                     *   - MBEDTLS_SSL_EARLY_DATA_ENABLED */
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #if defined(MBEDTLS_SSL_ALPN)
@@ -1915,15 +1915,14 @@ void mbedtls_ssl_conf_transport( mbedtls_ssl_config *conf, int transport );
 void mbedtls_ssl_conf_authmode( mbedtls_ssl_config *conf, int authmode );
 
 /**
-* \brief          Set the early_data mode
-*                 Default: disabled on server and client
+* \brief    Set the early data mode
+*           Default: disabled on server and client
 *
-* \param conf     The SSL configuration to use.
+* \param conf   The SSL configuration to use.
 * \param early_data_enabled can be:
 *
-*  MBEDTLS_SSL_EARLY_DATA_DISABLED:  early data functionality will not be used
-*                        (default on server)
-*                        (default on client)
+*  MBEDTLS_SSL_EARLY_DATA_DISABLED:  early data functionality is disabled
+*                                    This is the default on client and server.
 *
 *  MBEDTLS_SSL_EARLY_DATA_ENABLED:  early data functionality is enabled and
 *                        may be negotiated in the handshake. Application using
@@ -1931,9 +1930,11 @@ void mbedtls_ssl_conf_authmode( mbedtls_ssl_config *conf, int authmode );
 *                        lack of replay protection of the early data application
 *                        payloads.
 *
+* \warning This interface is experimental and may change without notice.
+*
 */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_EARLY_DATA)
-void mbedtls_ssl_conf_early_data( mbedtls_ssl_config *conf,
+void mbedtls_ssl_tls13_conf_early_data( mbedtls_ssl_config *conf,
                                   int early_data_enabled );
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_EARLY_DATA */
 

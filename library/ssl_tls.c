@@ -1425,6 +1425,14 @@ void mbedtls_ssl_conf_tls13_key_exchange_modes( mbedtls_ssl_config *conf,
 {
     conf->tls13_kex_modes = kex_modes & MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_ALL;
 }
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+void mbedtls_ssl_tls13_conf_early_data( mbedtls_ssl_config *conf,
+                                  int early_data_enabled )
+{
+    conf->early_data_enabled = early_data_enabled;
+}
+#endif /* MBEDTLS_SSL_EARLY_DATA */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)

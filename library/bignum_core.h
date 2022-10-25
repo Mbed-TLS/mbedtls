@@ -282,7 +282,7 @@ void mbedtls_mpi_core_shift_r( mbedtls_mpi_uint *X, size_t limbs,
  *
  * Calculates `A + B` where `A` and `B` have the same size.
  *
- * This function operates modulo 2^(biL*limbs) and returns the carry
+ * This function operates modulo `2^(biL*limbs)` and returns the carry
  * (1 if there was a wraparound, and 0 otherwise).
  *
  * \p X may be aliased to \p A or \p B.

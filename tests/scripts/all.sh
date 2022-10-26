@@ -1666,6 +1666,36 @@ component_build_crypto_full () {
   are_empty_libraries library/libmbedx509.* library/libmbedtls.*
 }
 
+component_test_crypto_for_psa_service () {
+  msg "build: make, config for PSA crypto service"
+  scripts/config.py crypto
+  scripts/config.py set MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
+  # Disable things that are not needed for just cryptography, to
+  # reach a configuration that would be typical for a PSA cryptography
+  # service providing all implemented PSA algorithms.
+  # System stuff
+  scripts/config.py unset MBEDTLS_ERROR_C
+  scripts/config.py unset MBEDTLS_TIMING_C
+  scripts/config.py unset MBEDTLS_VERSION_FEATURES
+  # Crypto stuff with no PSA interface
+  scripts/config.py unset MBEDTLS_BASE64_C
+  scripts/config.py unset MBEDTLS_BLOWFISH_C
+  # Keep MBEDTLS_CIPHER_C because psa_crypto_cipher, CCM and GCM need it.
+  # Keep MBEDTLS_MD_C because RSA and ECDSA need it, also HMAC_DRBG which
+  # is needed for deterministic ECDSA.
+  scripts/config.py unset MBEDTLS_ECJPAKE_C
+  scripts/config.py unset MBEDTLS_HKDF_C # PSA's HKDF is independent
+  scripts/config.py unset MBEDTLS_NIST_KW_C
+  scripts/config.py unset MBEDTLS_PEM_PARSE_C
+  scripts/config.py unset MBEDTLS_PEM_WRITE_C
+  scripts/config.py unset MBEDTLS_PKCS12_C
+  scripts/config.py unset MBEDTLS_PKCS5_C
+  # We keep MBEDTLS_PK_{,PARSE,WRITE}_C because PSA with RSA needs it.
+  scripts/config.py unset MBEDTLS_XTEA_C
+  make CFLAGS='-O1 -Werror' all test
+  are_empty_libraries library/libmbedx509.* library/libmbedtls.*
+}
+
 component_build_crypto_baremetal () {
   msg "build: make, crypto only, baremetal config"
   scripts/config.py crypto_baremetal

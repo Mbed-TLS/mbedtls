@@ -1533,6 +1533,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
         unsigned int extension_type;
         size_t extension_data_len;
         const unsigned char *extension_data_end;
+        uint32_t allowd_extensions = MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_CH;
 
         /* RFC 8446, section 4.2.11
          *
@@ -1558,9 +1559,14 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_CHK_BUF_READ_PTR(p, extensions_end, extension_data_len);
         extension_data_end = p + extension_data_len;
 
+        if (ssl->handshake->hello_retry_request_count > 0) {
+            /* Forbid early data extension in 2nd ClientHello */
+            allowd_extensions &= ~MBEDTLS_SSL_EXT_MASK(EARLY_DATA);
+        }
+
         ret = mbedtls_ssl_tls13_check_received_extension(
             ssl, MBEDTLS_SSL_HS_CLIENT_HELLO, extension_type,
-            MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_CH);
+            allowd_extensions);
         if (ret != 0) {
             return ret;
         }

@@ -2,6 +2,8 @@
  *  Macros to express dependencies for code and tests that may use either the
  *  legacy API or PSA in various builds; mostly for internal use.
  *
+ */
+/*
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *

@@ -1428,7 +1428,7 @@ void mbedtls_ssl_conf_tls13_key_exchange_modes( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 void mbedtls_ssl_tls13_conf_early_data( mbedtls_ssl_config *conf,
-                                  int early_data_enabled )
+                                        int early_data_enabled )
 {
     conf->early_data_enabled = early_data_enabled;
 }

@@ -435,9 +435,12 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
 
     unsigned char *cur = add_data;
 
+    int is_tls13 = 0;
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
-    if( minor_ver != MBEDTLS_SSL_MINOR_VERSION_4 )
+    if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+        is_tls13 = 1;
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+    if( !is_tls13 )
     {
         ((void) minor_ver);
         memcpy( cur, rec->ctr, sizeof( rec->ctr ) );

@@ -112,7 +112,7 @@ If a mechanism requires new functions, they should follow the design guidelines 
 
 Functions that are part of the current or upcoming API are declared in `include/psa/crypto.h`, apart from structure accessors defined in `include/psa/crypto_struct.h`. Functions that have output buffers have associated sufficient-output-size macros in `include/psa/crypto_sizes.h`.
 
-Constants (algorithm identifiers, key type identifiers, etc.) and associated desctructor macros (e.g. `PSA_IS_xxx()`) are defined in `include/psa/crypto_values.h`.
+Constants (algorithm identifiers, key type identifiers, etc.) and associated destructor macros (e.g. `PSA_IS_xxx()`) are defined in `include/psa/crypto_values.h`.
 
 Functions and macros that are not intended for standardization, or that are at a stage where the draft standard might still evolve significantly, are declared in `include/psa/crypto_extra.h`.
 

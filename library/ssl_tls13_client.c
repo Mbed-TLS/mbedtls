@@ -1183,11 +1183,11 @@ int mbedtls_ssl_tls13_write_client_hello_exts( mbedtls_ssl_context *ssl,
             return( ret );
         p += ext_len;
 
-        /* Initializes the status to `indication sent`. It will be updated to
-         * `accepted` or `rejected` depending on whether the EncryptedExtension
-         * message will contain an early data indication extension or not.
+        /* Initializes the status to `rejected`. It will be updated to
+         * `accepted` if the EncryptedExtension message contain an early data
+         * indication extension.
          */
-        ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_INDICATION_SENT;
+        ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED;
     }
     else
     {

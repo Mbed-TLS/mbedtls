@@ -69,6 +69,44 @@ class BignumCoreShiftR(BignumCoreTarget, metaclass=ABCMeta):
             for count in counts:
                 yield cls(input_hex, descr, count).create_test_case()
 
+class BignumCoreCTLookup(BignumCoreTarget, metaclass=ABCMeta):
+    """Test cases for mbedtls_mpi_core_ct_uint_table_lookup()."""
+    count = 0
+    test_function = "mpi_core_ct_uint_table_lookup"
+    test_name = "Constant time MPI table lookup"
+
+    bitsizes = [
+            (32, "One limb"),
+            (192, "Smallest curve sized"),
+            (512, "Largest curve sized"),
+            (2048, "Small FF/RSA sized"),
+            (4096, "Large FF/RSA sized"),
+            ]
+
+    window_sizes = [ 0, 1, 2, 3, 4, 5, 6 ]
+
+    def __init__(self,
+                 bitsize: int, descr: str, window_size: int) -> None:
+        self.bitsize = bitsize
+        self.bitsize_description = descr
+        self.window_size = window_size
+
+    def arguments(self) -> List[str]:
+        return [str(self.bitsize), str(self.window_size)]
+
+    def description(self) -> str:
+        return '{} - {} MPI with {} bit window'.format(
+                BignumCoreCTLookup.test_name,
+                self.bitsize_description,
+                self.window_size
+                )
+
+    @classmethod
+    def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
+        for bitsize, bitsize_description in cls.bitsizes:
+            for window_size in cls.window_sizes:
+                yield (cls(bitsize, bitsize_description, window_size)
+                       .create_test_case())
 
 class BignumCoreOperation(bignum_common.OperationCommon, BignumCoreTarget, metaclass=ABCMeta):
     #pylint: disable=abstract-method

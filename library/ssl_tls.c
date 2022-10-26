@@ -5269,6 +5269,13 @@ int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA*/
 
     default:
+#if !defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA) && \
+    !defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+    (void) ssl;
+    (void) dst;
+    (void) dst_len;
+    (void) olen;
+#endif
         break;
     }
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
@@ -5455,8 +5462,8 @@ static psa_status_t setup_psa_key_derivation( psa_key_derivation_operation_t* de
     return( PSA_SUCCESS );
 }
 
-#if defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA) || \
-    defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+#if defined(PSA_WANT_ALG_SHA_384) || \
+    defined(PSA_WANT_ALG_SHA_256)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int tls_prf_generic( mbedtls_md_type_t md_type,
                             const unsigned char *secret, size_t slen,
@@ -5531,9 +5538,12 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
 
     return( 0 );
 }
-#endif
+#endif /* PSA_WANT_ALG_SHA_256 || PSA_WANT_ALG_SHA_384 */
 #else /* MBEDTLS_USE_PSA_CRYPTO */
 
+#if defined(MBEDTLS_MD_C) &&       \
+    ( defined(MBEDTLS_SHA256_C) || \
+      defined(MBEDTLS_SHA384_C) )
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int tls_prf_generic( mbedtls_md_type_t md_type,
                             const unsigned char *secret, size_t slen,
@@ -5624,6 +5634,7 @@ exit:
 
     return( ret );
 }
+#endif /* MBEDTLS_MD_C && ( MBEDTLS_SHA256_C || MBEDTLS_SHA384_C ) */
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)

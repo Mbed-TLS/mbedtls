@@ -867,8 +867,7 @@ int mbedtls_mpi_cmp_int( const mbedtls_mpi *X, mbedtls_mpi_sint z )
 int mbedtls_mpi_add_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t i, j;
-    mbedtls_mpi_uint *o, *p, c, tmp;
+    size_t j;
     MPI_VALIDATE_RET( X != NULL );
     MPI_VALIDATE_RET( A != NULL );
     MPI_VALIDATE_RET( B != NULL );
@@ -882,7 +881,7 @@ int mbedtls_mpi_add_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
         MBEDTLS_MPI_CHK( mbedtls_mpi_copy( X, A ) );
 
     /*
-     * X should always be positive as a result of unsigned additions.
+     * X must always be positive as a result of unsigned additions.
      */
     X->s = 1;
 
@@ -892,27 +891,25 @@ int mbedtls_mpi_add_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, j ) );
 
-    o = B->p; p = X->p; c = 0;
+    /* j is the number of non-zero limbs of B. Add those to X. */
 
-    /*
-     * tmp is used because it might happen that p == o
-     */
-    for( i = 0; i < j; i++, o++, p++ )
-    {
-        tmp= *o;
-        *p +=  c; c  = ( *p <  c );
-        *p += tmp; c += ( *p < tmp );
-    }
+    mbedtls_mpi_uint *p = X->p;
+
+    mbedtls_mpi_uint c = mbedtls_mpi_core_add( p, p, B->p, j );
+
+    p += j;
+
+    /* Now propagate any carry */
 
     while( c != 0 )
     {
-        if( i >= X->n )
+        if( j >= X->n )
         {
-            MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, i + 1 ) );
-            p = X->p + i;
+            MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, j + 1 ) );
+            p = X->p + j;
         }
 
-        *p += c; c = ( *p < c ); i++; p++;
+        *p += c; c = ( *p < c ); j++; p++;
     }
 
 cleanup:

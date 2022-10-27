@@ -5,6 +5,154 @@
 #include "constant_time_internal.h"
 #include "test/constant_flow.h"
 
+/** Verifies mbedtls_mpi_core_add().
+ *
+ * \param[in] A       Little-endian presentation of the left operand.
+ * \param[in] B       Little-endian presentation of the right operand.
+ * \param limbs       Number of limbs in each MPI (\p A, \p B, \p S and \p X).
+ * \param[in] S       Little-endian presentation of the expected sum.
+ * \param carry       Expected carry from the addition.
+ * \param[in,out] X   Temporary storage to be used for results.
+ *
+ * \return  1 if mbedtls_mpi_core_add() passes this test, otherwise 0.
+ */
+static int mpi_core_verify_add( mbedtls_mpi_uint *A,
+                                mbedtls_mpi_uint *B,
+                                size_t limbs,
+                                mbedtls_mpi_uint *S,
+                                int carry,
+                                mbedtls_mpi_uint *X )
+{
+    int ret = 0;
+
+    size_t bytes = limbs * sizeof( *A );
+
+    /* The test cases have A <= B to avoid repetition, so we test A + B then,
+     * if A != B, B + A. If A == B, we can test when A and B are aliased */
+
+    /* A + B */
+
+    /* A + B => correct result and carry */
+    TEST_EQUAL( carry, mbedtls_mpi_core_add( X, A, B, limbs ) );
+    ASSERT_COMPARE( X, bytes, S, bytes );
+
+    /* A + B; alias output and first operand => correct result and carry */
+    memcpy( X, A, bytes );
+    TEST_EQUAL( carry, mbedtls_mpi_core_add( X, X, B, limbs ) );
+    ASSERT_COMPARE( X, bytes, S, bytes );
+
+    /* A + B; alias output and second operand => correct result and carry */
+    memcpy( X, B, bytes );
+    TEST_EQUAL( carry, mbedtls_mpi_core_add( X, A, X, limbs ) );
+    ASSERT_COMPARE( X, bytes, S, bytes );
+
+    if ( memcmp( A, B, bytes ) == 0 )
+    {
+        /* A == B, so test where A and B are aliased */
+
+        /* A + A => correct result and carry */
+        TEST_EQUAL( carry, mbedtls_mpi_core_add( X, A, A, limbs ) );
+        ASSERT_COMPARE( X, bytes, S, bytes );
+
+        /* A + A, output aliased to both operands => correct result and carry */
+        memcpy( X, A, bytes );
+        TEST_EQUAL( carry, mbedtls_mpi_core_add( X, X, X, limbs ) );
+        ASSERT_COMPARE( X, bytes, S, bytes );
+    }
+    else
+    {
+        /* A != B, so test B + A */
+
+        /* B + A => correct result and carry */
+        TEST_EQUAL( carry, mbedtls_mpi_core_add( X, B, A, limbs ) );
+        ASSERT_COMPARE( X, bytes, S, bytes );
+
+        /* B + A; alias output and first operand => correct result and carry */
+        memcpy( X, B, bytes );
+        TEST_EQUAL( carry, mbedtls_mpi_core_add( X, X, A, limbs ) );
+        ASSERT_COMPARE( X, bytes, S, bytes );
+
+        /* B + A; alias output and second operand => correct result and carry */
+        memcpy( X, A, bytes );
+        TEST_EQUAL( carry, mbedtls_mpi_core_add( X, B, X, limbs ) );
+        ASSERT_COMPARE( X, bytes, S, bytes );
+    }
+
+    ret = 1;
+
+exit:
+    return ret;
+}
+
+/** Verifies mbedtls_mpi_core_add_if().
+ *
+ * \param[in] A       Little-endian presentation of the left operand.
+ * \param[in] B       Little-endian presentation of the right operand.
+ * \param limbs       Number of limbs in each MPI (\p A, \p B, \p S and \p X).
+ * \param[in] S       Little-endian presentation of the expected sum.
+ * \param carry       Expected carry from the addition.
+ * \param[in,out] X   Temporary storage to be used for results.
+ *
+ * \return  1 if mbedtls_mpi_core_add_if() passes this test, otherwise 0.
+ */
+static int mpi_core_verify_add_if( mbedtls_mpi_uint *A,
+                                   mbedtls_mpi_uint *B,
+                                   size_t limbs,
+                                   mbedtls_mpi_uint *S,
+                                   int carry,
+                                   mbedtls_mpi_uint *X )
+{
+    int ret = 0;
+
+    size_t bytes = limbs * sizeof( *A );
+
+    /* The test cases have A <= B to avoid repetition, so we test A + B then,
+     * if A != B, B + A. If A == B, we can test when A and B are aliased */
+
+    /* A + B */
+
+    /* cond = 0 => X unchanged, no carry */
+    memcpy( X, A, bytes );
+    TEST_EQUAL( 0, mbedtls_mpi_core_add_if( X, B, limbs, 0 ) );
+    ASSERT_COMPARE( X, bytes, A, bytes );
+
+    /* cond = 1 => correct result and carry */
+    TEST_EQUAL( carry, mbedtls_mpi_core_add_if( X, B, limbs, 1 ) );
+    ASSERT_COMPARE( X, bytes, S, bytes );
+
+    if ( memcmp( A, B, bytes ) == 0 )
+    {
+        /* A == B, so test where A and B are aliased */
+
+        /* cond = 0 => X unchanged, no carry */
+        memcpy( X, B, bytes );
+        TEST_EQUAL( 0, mbedtls_mpi_core_add_if( X, X, limbs, 0 ) );
+        ASSERT_COMPARE( X, bytes, B, bytes );
+
+        /* cond = 1 => correct result and carry */
+        TEST_EQUAL( carry, mbedtls_mpi_core_add_if( X, X, limbs, 1 ) );
+        ASSERT_COMPARE( X, bytes, S, bytes );
+    }
+    else
+    {
+        /* A != B, so test B + A */
+
+        /* cond = 0 => d unchanged, no carry */
+        memcpy( X, B, bytes );
+        TEST_EQUAL( 0, mbedtls_mpi_core_add_if( X, A, limbs, 0 ) );
+        ASSERT_COMPARE( X, bytes, B, bytes );
+
+        /* cond = 1 => correct result and carry */
+        TEST_EQUAL( carry, mbedtls_mpi_core_add_if( X, A, limbs, 1 ) );
+        ASSERT_COMPARE( X, bytes, S, bytes );
+    }
+
+    ret = 1;
+
+exit:
+    return ret;
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -359,70 +507,28 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mpi_core_add_if( char * input_A, char * input_B,
-                      char * input_S, int carry )
+void mpi_core_add_and_add_if( char * input_A, char * input_B,
+                              char * input_S, int carry )
 {
     mbedtls_mpi_uint *A = NULL; /* first value to add */
-    size_t A_limbs;
     mbedtls_mpi_uint *B = NULL; /* second value to add */
-    size_t B_limbs;
     mbedtls_mpi_uint *S = NULL; /* expected result */
-    size_t S_limbs;
     mbedtls_mpi_uint *X = NULL; /* destination - the in/out first operand */
-    size_t X_limbs;
+    size_t A_limbs, B_limbs, S_limbs;
 
     TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &A, &A_limbs, input_A ) );
     TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &B, &B_limbs, input_B ) );
     TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &S, &S_limbs, input_S ) );
-    X_limbs = S_limbs;
-    ASSERT_ALLOC( X, X_limbs );
 
-    /* add_if expects all operands to be the same length */
+    /* add and add_if expect all operands to be the same length */
     TEST_EQUAL( A_limbs, B_limbs );
     TEST_EQUAL( A_limbs, S_limbs );
+
     size_t limbs = A_limbs;
-    size_t bytes = limbs * sizeof( *A );
+    ASSERT_ALLOC( X, limbs );
 
-    /* The test cases have A <= B to avoid repetition, so we test A + B then,
-     * if A != B, B + A. If A == B, we can test when A and B are aliased */
-
-    /* A + B */
-
-    /* cond = 0 => X unchanged, no carry */
-    memcpy( X, A, bytes );
-    TEST_EQUAL( 0, mbedtls_mpi_core_add_if( X, B, limbs, 0 ) );
-    ASSERT_COMPARE( X, bytes, A, bytes );
-
-    /* cond = 1 => correct result and carry */
-    TEST_EQUAL( carry, mbedtls_mpi_core_add_if( X, B, limbs, 1 ) );
-    ASSERT_COMPARE( X, bytes, S, bytes );
-
-    if ( memcmp( A, B, bytes ) == 0 )
-    {
-        /* A == B, so test where A and B are aliased */
-
-        /* cond = 0 => X unchanged, no carry */
-        memcpy( X, B, bytes );
-        TEST_EQUAL( 0, mbedtls_mpi_core_add_if( X, X, limbs, 0 ) );
-        ASSERT_COMPARE( X, bytes, B, bytes );
-
-        /* cond = 1 => correct result and carry */
-        TEST_EQUAL( carry, mbedtls_mpi_core_add_if( X, X, limbs, 1 ) );
-        ASSERT_COMPARE( X, bytes, S, bytes );
-    }
-    else
-    {
-        /* A != B, so test B + A */
-
-        /* cond = 0 => d unchanged, no carry */
-        memcpy( X, B, bytes );
-        TEST_EQUAL( 0, mbedtls_mpi_core_add_if( X, A, limbs, 0 ) );
-        ASSERT_COMPARE( X, bytes, B, bytes );
-
-        /* cond = 1 => correct result and carry */
-        TEST_EQUAL( carry, mbedtls_mpi_core_add_if( X, A, limbs, 1 ) );
-        ASSERT_COMPARE( X, bytes, S, bytes );
-    }
+    TEST_ASSERT( mpi_core_verify_add( A, B, limbs, S, carry, X ) );
+    TEST_ASSERT( mpi_core_verify_add_if( A, B, limbs, S, carry, X ) );
 
 exit:
     mbedtls_free( A );

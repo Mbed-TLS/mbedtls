@@ -278,6 +278,28 @@ void mbedtls_mpi_core_shift_r( mbedtls_mpi_uint *X, size_t limbs,
                                size_t count );
 
 /**
+ * \brief Add two fixed-size large unsigned integers, returning the carry.
+ *
+ * Calculates `A + B` where `A` and `B` have the same size.
+ *
+ * This function operates modulo `2^(biL*limbs)` and returns the carry
+ * (1 if there was a wraparound, and 0 otherwise).
+ *
+ * \p X may be aliased to \p A or \p B.
+ *
+ * \param[out] X    The result of the addition.
+ * \param[in] A     Little-endian presentation of the left operand.
+ * \param[in] B     Little-endian presentation of the right operand.
+ * \param limbs     Number of limbs of \p X, \p A and \p B.
+ *
+ * \return          1 if `A + B >= 2^(biL*limbs)`, 0 otherwise.
+ */
+mbedtls_mpi_uint mbedtls_mpi_core_add( mbedtls_mpi_uint *X,
+                                       const mbedtls_mpi_uint *A,
+                                       const mbedtls_mpi_uint *B,
+                                       size_t limbs );
+
+/**
  * \brief Conditional addition of two fixed-size large unsigned integers,
  *        returning the carry.
  *

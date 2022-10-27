@@ -2041,6 +2041,9 @@ component_test_psa_crypto_config_accel_hash () {
     make test
 }
 
+# Note that component_test_psa_crypto_config_reference_hash_use_psa
+# is related to this component and both components need to be kept in sync.
+# For details please see comments for component_test_psa_crypto_config_reference_hash_use_psa.
 component_test_psa_crypto_config_accel_hash_use_psa () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash and USE_PSA"
 
@@ -2105,6 +2108,10 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
     tests/compat.sh
 }
 
+# This component provides reference configuration for test_psa_crypto_config_accel_hash_use_psa
+# without accelerated hash. The outcome from both components are used by the analyze_outcomes.py
+# script to find regression in test coverage when accelerated hash is used (tests and ssl-opt).
+# Both components need to be kept in sync.
 component_test_psa_crypto_config_reference_hash_use_psa() {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG without accelerated hash and USE_PSA"
     # start with full

@@ -25,10 +25,6 @@
 #include "test/psa_crypto_helpers.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */
 
-#if defined(MBEDTLS_VERSION_C)
-#include "mbedtls/version.h"
-#endif /* MBEDTLS_VERSION_C */
-
 #if defined(MBEDTLS_SSL_TEST_IMPOSSIBLE)
 int main( void )
 {
@@ -364,14 +360,6 @@ int main( void )
 #define USAGE_TLS1_3_KEY_EXCHANGE_MODES ""
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
-#if defined(MBEDTLS_VERSION_C)
-#define USAGE_BUILD_VERSION                                 \
-    "    build_version=%%d    default: none (disabled)\n"   \
-    "                        option: 1 (print the build version only a stop)\n"
-#else
-#define USAGE_BUILD_VERSION ""
-#endif /* MBEDTLS_VERSION_C */
-
 /* USAGE is arbitrarily split to stay under the portable string literal
  * length limit: 4095 bytes in C99. */
 #define USAGE1 \
@@ -387,8 +375,9 @@ int main( void )
     "                        application data message is sent followed by\n" \
     "                        a second non-empty message before attempting\n" \
     "                        to read a response from the server\n"           \
-    USAGE_BUILD_VERSION                                     \
     "    debug_level=%%d      default: 0 (disabled)\n"             \
+    "    build_version=%%d    default: none (disabled)\n"                     \
+    "                        option: 1 (print build version only and stop)\n" \
     "    nbio=%%d             default: 0 (blocking I/O)\n"         \
     "                        options: 1 (non-blocking), 2 (added delays)\n"   \
     "    event=%%d            default: 0 (loop)\n"                            \
@@ -995,20 +984,16 @@ int main( int argc, char *argv[] )
             if( opt.debug_level < 0 || opt.debug_level > 65535 )
                 goto usage;
         }
-#if defined(MBEDTLS_VERSION_C)
         else if( strcmp( p, "build_version" ) == 0 )
         {
             if( strcmp( q, "1" ) == 0 )
             {
-                char version_str[10];
-                memset( version_str, 0, 10 );
-                mbedtls_version_get_string( version_str );
-                mbedtls_printf( "build version: %s (build %u)\n",
-                                version_str, mbedtls_version_get_number() );
+                mbedtls_printf( "build version: %s (build %d)\n",
+                                MBEDTLS_VERSION_STRING_FULL,
+                                MBEDTLS_VERSION_NUMBER );
                 goto exit;
             }
         }
-#endif /* MBEDTLS_VERSION_C */
         else if( strcmp( p, "context_crt_cb" ) == 0 )
         {
             opt.context_crt_cb = atoi( q );
@@ -1721,13 +1706,8 @@ int main( int argc, char *argv[] )
     }
 #endif /* MBEDTLS_SSL_ALPN */
 
-#if defined(MBEDTLS_VERSION_C)
-    char version_str[10];
-    memset( version_str, 0, 10 );
-    mbedtls_version_get_string( version_str );
-    mbedtls_printf( "build version: %s (build %u)\n",
-                    version_str, mbedtls_version_get_number() );
-#endif /* MBEDTLS_VERSION_C */
+    mbedtls_printf( "build version: %s (build %d)\n",
+                    MBEDTLS_VERSION_STRING_FULL, MBEDTLS_VERSION_NUMBER );
 
     /*
      * 0. Initialize the RNG and the session data

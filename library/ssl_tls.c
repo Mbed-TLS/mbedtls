@@ -168,7 +168,7 @@ int mbedtls_ssl_get_peer_cid( mbedtls_ssl_context *ssl,
     *enabled = MBEDTLS_SSL_CID_DISABLED;
 
     if( ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM ||
-        ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER  )
+        mbedtls_ssl_is_handshake_over( ssl ) == 0 )
     {
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
@@ -3602,7 +3602,7 @@ int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl )
     if( ssl            == NULL                       ||
         ssl->conf      == NULL                       ||
         ssl->handshake == NULL                       ||
-        ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER  )
+        mbedtls_ssl_is_handshake_over( ssl ) == 1 )
     {
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
@@ -3706,7 +3706,7 @@ int mbedtls_ssl_handshake( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> handshake" ) );
 
     /* Main handshake loop */
-    while( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER  )
+    while( mbedtls_ssl_is_handshake_over( ssl ) == 0 )
     {
         ret = mbedtls_ssl_handshake_step( ssl );
 
@@ -3807,7 +3807,7 @@ int mbedtls_ssl_renegotiate( mbedtls_ssl_context *ssl )
     /* On server, just send the request */
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
     {
-        if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER  )
+        if( mbedtls_ssl_is_handshake_over( ssl ) == 0 )
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
         ssl->renego_status = MBEDTLS_SSL_RENEGOTIATION_PENDING;
@@ -3827,7 +3827,7 @@ int mbedtls_ssl_renegotiate( mbedtls_ssl_context *ssl )
      */
     if( ssl->renego_status != MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS )
     {
-        if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER  )
+        if( mbedtls_ssl_is_handshake_over( ssl ) == 0 )
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
         if( ( ret = mbedtls_ssl_start_renegotiation( ssl ) ) != 0 )
@@ -4130,7 +4130,7 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
      * (only DTLS) but are currently used to simplify the implementation.
      */
     /* The initial handshake must be over */
-    if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER  )
+    if( mbedtls_ssl_is_handshake_over( ssl ) == 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Initial handshake isn't over" ) );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );

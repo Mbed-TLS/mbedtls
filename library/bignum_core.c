@@ -557,9 +557,8 @@ void mbedtls_mpi_core_ct_uint_table_lookup( mbedtls_mpi_uint *dest,
 /* Fill X with n_bytes random bytes.
  * X must already have room for those bytes.
  * The ordering of the bytes returned from the RNG is suitable for
- * deterministic ECDSA (see RFC 6979 §3.3 and mbedtls_mpi_core_random()).
- * The size and sign of X are unchanged.
- * n_bytes must not be 0.
+ * deterministic ECDSA (see RFC 6979 §3.3 and the specification of
+ * mbedtls_mpi_core_random()).
  */
 int mbedtls_mpi_core_fill_random(
     mbedtls_mpi_uint *X, size_t X_limbs,

@@ -18,7 +18,6 @@ void mpi_mod_setup( int ext_rep, int int_rep, int iret )
     mbedtls_mpi_uint mp[MLIMBS];
     mbedtls_mpi_mod_modulus m;
     const size_t mp_size = sizeof(mbedtls_mpi_uint);
-    mbedtls_mpi_uint * rr;
     int ret;
 
     memset( mp, 0xFF, mp_size );
@@ -34,8 +33,6 @@ void mpi_mod_setup( int ext_rep, int int_rep, int iret )
         TEST_ASSERT( m.rep.mont.rr != NULL );
         TEST_ASSERT( m.rep.mont.mm != 0 );
 
-        /* Keep a copy of the memory location used to store Montgomery const */
-        rr = (mbedtls_mpi_uint *)m.rep.mont.rr;
     }
 
     /* Address sanitiser should catch if we try to free mp */
@@ -54,10 +51,6 @@ void mpi_mod_setup( int ext_rep, int int_rep, int iret )
         TEST_ASSERT( m.rep.mont.rr == NULL );
         TEST_ASSERT( m.rep.mont.mm == 0 );
 
-        /* mbedtls_mpi_mod_modulus_free() has set the
-         * (mbedtls_mpi_uint *)m.rep.mont.rr -> NULL.
-         * Verify that the actual data have been zeroed */
-        ASSERT_COMPARE( rr, mp_size, &mp, mp_size );
     }
 exit:
     /* It should be safe to call an mbedtls free several times */

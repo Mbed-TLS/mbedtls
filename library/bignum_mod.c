@@ -81,7 +81,8 @@ void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m )
                                       m->limbs );
             mbedtls_free( (mbedtls_mpi_uint *)m->rep.mont.rr );
             m->rep.mont.rr = NULL;
-            m->rep.mont.mm = 0; break;
+            m->rep.mont.mm = 0;
+            break;
         case MBEDTLS_MPI_MOD_REP_OPT_RED:
             mbedtls_free( m->rep.ored );
             break;
@@ -110,10 +111,10 @@ static int set_mont_const_square( const mbedtls_mpi_uint **X,
     if ( A == NULL || limbs == 0 || limbs >= ( MBEDTLS_MPI_MAX_LIMBS / 2 ) - 2 )
         goto cleanup;
 
-    if ( !mbedtls_mpi_grow( &N,  limbs ))
-        memcpy( N.p, A, sizeof(mbedtls_mpi_uint) *  limbs );
-    else
+    if ( mbedtls_mpi_grow( &N,  limbs ))
         goto cleanup;
+
+    memcpy( N.p, A, sizeof(mbedtls_mpi_uint) *  limbs );
 
     mbedtls_mpi_core_get_mont_r2_unsafe(&RR, &N);
 

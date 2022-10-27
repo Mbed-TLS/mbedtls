@@ -4131,8 +4131,8 @@ int mbedtls_ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
     ssl->alpn_chosen = NULL;
 #endif
 
-    int free_cli_id = 1;
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) && defined(MBEDTLS_SSL_SRV_C)
+    int free_cli_id = 1;
 #if defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE)
     if( partial != 0 )
         free_cli_id = 0;

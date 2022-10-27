@@ -137,7 +137,7 @@ def get_c_expression_values(
                                 universal_newlines=True)
         cc_is_msvc = 'Microsoft (R) C/C++' in proc.communicate()[1]
 
-        cflags = os.getenv('CFLAGS', '')
+        cflags = os.getenv('CFLAGS', None)
         cmd += [cflags] if cflags else []
 
         cmd += ['-I' + dir for dir in include_path]

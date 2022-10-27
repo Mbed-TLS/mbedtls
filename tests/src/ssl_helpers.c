@@ -22,6 +22,7 @@
 
 #include <test/ssl_helpers.h>
 
+#if defined(MBEDTLS_SSL_TLS_C)
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 static int rng_seed = 0xBEEF;
 static int rng_get(void *p_rng, unsigned char *output, size_t output_len)
@@ -268,12 +269,6 @@ int mbedtls_test_ssl_buffer_get(mbedtls_test_ssl_buffer *buf,
 
     return output_len;
 }
-
-/*
- * Errors used in the message transport mock tests
- */
- #define MBEDTLS_TEST_ERROR_ARG_NULL -11
- #define MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED -44
 
 /*
  * Setup and free functions for the message metadata queue.
@@ -2446,3 +2441,4 @@ int tweak_tls13_certificate_msg_vector_len(
     return 0;
 }
 #endif /* MBEDTLS_TEST_HOOKS */
+#endif /* MBEDTLS_SSL_TLS_C */

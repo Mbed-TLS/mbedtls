@@ -5,7 +5,6 @@
 #include <mbedtls/pk.h>
 #include <ssl_tls13_keys.h>
 #include <ssl_tls13_invasive.h>
-#include "test/certs.h"
 #include <test/ssl_helpers.h>
 
 #include <mbedtls/legacy_or_psa.h>

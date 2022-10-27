@@ -134,6 +134,7 @@ void mpi_mod_raw_cond_assign( data_t * input_X,
     ASSERT_ALLOC( Y, limbs );
 
     ASSERT_ALLOC( buff_m, limbs );
+    memset( buff_m, 0xFF, copy_bytes );
     TEST_ASSERT( mbedtls_mpi_mod_modulus_setup(
                         &m, buff_m, copy_limbs,
                         MBEDTLS_MPI_MOD_EXT_REP_BE,
@@ -214,6 +215,7 @@ void mpi_mod_raw_cond_swap( data_t * input_X,
     ASSERT_ALLOC( tmp_Y, limbs );
 
     ASSERT_ALLOC( buff_m, copy_limbs );
+    memset( buff_m, 0xFF, copy_bytes );
     TEST_ASSERT( mbedtls_mpi_mod_modulus_setup(
                         &m, buff_m, copy_limbs,
                         MBEDTLS_MPI_MOD_EXT_REP_BE,

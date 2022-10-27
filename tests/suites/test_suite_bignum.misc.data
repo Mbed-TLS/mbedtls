@@ -580,48 +580,6 @@ mpi_shrink:4:1:0:1
 Shrink 0 limbs in a buffer of size 4 to 0 yielding 1
 mpi_shrink:4:0:0:1
 
-Test mbedtls_mpi_shift_l #1
-mpi_shift_l:"40":1:"80"
-
-Test mbedtls_mpi_shift_l #2
-mpi_shift_l:"1946e2958a85d8863ae21f4904fcc49478412534ed53eaf321f63f2a2227a3c63acbf50b6305595f90cfa8327f6db80d986fe96080bcbb5df1bdbe9b74fb8dedf2bddb3f8215b54dffd66409323bcc473e45a8fe9d08e77a511698b5dad0416305db7fcf":37:"328dc52b150bb10c75c43e9209f98928f0824a69daa7d5e643ec7e54444f478c7597ea16c60ab2bf219f5064fedb701b30dfd2c1017976bbe37b7d36e9f71bdbe57bb67f042b6a9bffacc8126477988e7c8b51fd3a11cef4a22d316bb5a082c60bb6ff9e000000000"
-
-Test mbedtls_mpi_shift_l: 0 (null) <<= 0
-mpi_shift_l:"":0:"0"
-
-Test mbedtls_mpi_shift_l: 0 (null) <<= 1
-mpi_shift_l:"":1:"0"
-
-Test mbedtls_mpi_shift_l: 0 (null) <<= 64
-mpi_shift_l:"":64:"0"
-
-Test mbedtls_mpi_shift_r #1
-mpi_shift_r:"80":1:"40"
-
-Test mbedtls_mpi_shift_r #2
-mpi_shift_r:"4a36ce2a2eba161116629d6196efb17ee4f01ef753cd32b9e952d4d69e4b2401e85e0c3ba0ea761f44e312db10209fb6b38963c9c0302dc67b1b531c32301d8d341968c734387ef8bc2496051e0bb530975839852d8dd15684788f9dca62cb0c372ac51":45:"251b6715175d0b088b314eb0cb77d8bf72780f7ba9e6995cf4a96a6b4f259200f42f061dd0753b0fa271896d88104fdb59c4b1e4e01816e33d8da98e19180ec69a0cb4639a1c3f7c5e124b028f05da984bac1cc296c6e8ab423c47cee531"
-
-Test mbedtls_mpi_shift_r #4 [#1]
-mpi_shift_r:"FFFFFFFFFFFFFFFF":63:"01"
-
-Test mbedtls_mpi_shift_r #4 [#2]
-mpi_shift_r:"FFFFFFFFFFFFFFFF":64:"00"
-
-Test mbedtls_mpi_shift_r #6
-mpi_shift_r:"FFFFFFFFFFFFFFFF":65:"00"
-
-Test mbedtls_mpi_shift_r #7
-mpi_shift_r:"FFFFFFFFFFFFFFFF":128:"00"
-
-Test mbedtls_mpi_shift_r: 0 (null) >>= 0
-mpi_shift_r:"":0:"0"
-
-Test mbedtls_mpi_shift_r: 0 (null) >>= 1
-mpi_shift_r:"":1:"0"
-
-Test mbedtls_mpi_shift_r: 0 (null) >>= 64
-mpi_shift_r:"":64:"0"
-
 Base test GCD #1
 mpi_gcd:"2b5":"261":"15"
 

@@ -127,6 +127,53 @@ class BignumOperation(bignum_common.OperationCommon, BignumTarget, metaclass=ABC
             yield cls(a_value, b_value).create_test_case()
 
 
+class BignumShiftL(BignumOperation):
+    """Test cases for bignum left shift tests."""
+    count = 0
+    symbol = "<<"
+    test_function = "mpi_shift_l"
+    test_name = "MPI shift L"
+    input_values = [] # type: List[str]
+    input_cases = [
+        ("40", "1"), ("", "0"), ("", "1"), ("", "40"),
+        (
+            (
+                "1946e2958a85d8863ae21f4904fcc49478412534ed53eaf321f63f2a2227a3c63acbf50b"
+                "6305595f90cfa8327f6db80d986fe96080bcbb5df1bdbe9b74fb8dedf2bddb3f8215b54d"
+                "ffd66409323bcc473e45a8fe9d08e77a511698b5dad0416305db7fcf"
+            ), "25"
+        )
+    ]
+
+    def arguments(self) -> List[str]:
+        return [bignum_common.quote_str(self.arg_a), str(self.int_b)] + self.result()
+
+    def result(self) -> List[str]:
+        return ["\"{:x}\"".format(self.int_a << self.int_b)]
+
+
+class BignumShiftR(BignumShiftL):
+    """Test cases for bignum right shift tests."""
+    count = 0
+    symbol = ">>"
+    test_function = "mpi_shift_r"
+    test_name = "MPI shift R"
+    input_cases = [
+        ("80", "1"), ("", "0"), ("", "1"), ("", "40"), ("FFFFFFFFFFFFFFFF", "80"),
+        ("FFFFFFFFFFFFFFFF", "3F"), ("FFFFFFFFFFFFFFFF", "40"), ("FFFFFFFFFFFFFFFF", "41"),
+        (
+            (
+                "4a36ce2a2eba161116629d6196efb17ee4f01ef753cd32b9e952d4d69e4b2401e85e0c3b"
+                "a0ea761f44e312db10209fb6b38963c9c0302dc67b1b531c32301d8d341968c734387ef8"
+                "bc2496051e0bb530975839852d8dd15684788f9dca62cb0c372ac51"
+            ), "2D"
+        )
+    ]
+
+    def result(self) -> List[str]:
+        return ["\"{:x}\"".format(self.int_a >> self.int_b)]
+
+
 class BignumCmp(BignumOperation):
     """Test cases for bignum value comparison."""
     count = 0

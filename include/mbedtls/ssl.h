@@ -329,6 +329,9 @@
 #define MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED       1
 #define MBEDTLS_SSL_CERT_REQ_CA_LIST_DISABLED      0
 
+#define MBEDTLS_SSL_EARLY_DATA_DISABLED        0
+#define MBEDTLS_SSL_EARLY_DATA_ENABLED         1
+
 #define MBEDTLS_SSL_DTLS_SRTP_MKI_UNSUPPORTED    0
 #define MBEDTLS_SSL_DTLS_SRTP_MKI_SUPPORTED      1
 
@@ -1496,6 +1499,12 @@ struct mbedtls_ssl_config
                                      *   is not \c 0. */
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
 
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    int MBEDTLS_PRIVATE(early_data_enabled);     /*!< Early data enablement:
+                                                  *   - MBEDTLS_SSL_EARLY_DATA_DISABLED,
+                                                  *   - MBEDTLS_SSL_EARLY_DATA_ENABLED */
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
 #if defined(MBEDTLS_SSL_ALPN)
     const char **MBEDTLS_PRIVATE(alpn_list);         /*!< ordered list of protocols          */
 #endif
@@ -1904,6 +1913,30 @@ void mbedtls_ssl_conf_transport( mbedtls_ssl_config *conf, int transport );
  * against the "triple handshake" attack even before it was found.
  */
 void mbedtls_ssl_conf_authmode( mbedtls_ssl_config *conf, int authmode );
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_EARLY_DATA)
+/**
+* \brief    Set the early data mode
+*           Default: disabled on server and client
+*
+* \param conf   The SSL configuration to use.
+* \param early_data_enabled can be:
+*
+*  MBEDTLS_SSL_EARLY_DATA_DISABLED:  early data functionality is disabled
+*                                    This is the default on client and server.
+*
+*  MBEDTLS_SSL_EARLY_DATA_ENABLED:  early data functionality is enabled and
+*                        may be negotiated in the handshake. Application using
+*                        early data functionality needs to be aware of the
+*                        lack of replay protection of the early data application
+*                        payloads.
+*
+* \warning This interface is experimental and may change without notice.
+*
+*/
+void mbedtls_ssl_tls13_conf_early_data( mbedtls_ssl_config *conf,
+                                        int early_data_enabled );
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_EARLY_DATA */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**

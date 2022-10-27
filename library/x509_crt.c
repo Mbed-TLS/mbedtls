@@ -1258,9 +1258,12 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
         }
     }
 
+    int extensions_allowed = 1;
 #if !defined(MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3)
-    if( crt->version == 3 )
+    if( crt->version != 3 )
+        extensions_allowed = 0;
 #endif
+    if( extensions_allowed )
     {
         ret = x509_get_crt_ext( &p, end, crt, cb, p_ctx );
         if( ret != 0 )

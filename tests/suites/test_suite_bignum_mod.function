@@ -17,10 +17,9 @@ void mpi_mod_setup( int ext_rep, int int_rep, int iret )
     #define MLIMBS 8
     mbedtls_mpi_uint mp[MLIMBS];
     mbedtls_mpi_mod_modulus m;
-    const size_t mp_size = sizeof(mbedtls_mpi_uint);
     int ret;
 
-    memset( mp, 0xFF, mp_size );
+    memset( mp, 0xFF, sizeof(mp) );
 
     mbedtls_mpi_mod_modulus_init( &m );
     ret = mbedtls_mpi_mod_modulus_setup( &m, mp, MLIMBS, ext_rep, int_rep );
@@ -44,13 +43,9 @@ void mpi_mod_setup( int ext_rep, int int_rep, int iret )
     /* Only test if the constants have been set-up  */
     if ( ret == 0 && int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY )
     {
-        /* Reuse the allocated buffer for a zeroization check */
-        memset( mp, 0x00, mp_size );
-
         /* Verify the data and pointers allocated have been properly wiped */
         TEST_ASSERT( m.rep.mont.rr == NULL );
         TEST_ASSERT( m.rep.mont.mm == 0 );
-
     }
 exit:
     /* It should be safe to call an mbedtls free several times */

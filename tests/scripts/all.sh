@@ -200,7 +200,6 @@ pre_initialize_variables () {
             *' function'*)
                 if ! support_$component; then continue; fi;;
         esac
-        if ! check_cc_version $component; then continue; fi
         SUPPORTED_COMPONENTS="$SUPPORTED_COMPONENTS $component"
     done
 }
@@ -832,58 +831,83 @@ is_cc_support_sha512_a64() {
     esac
 }
 
-check_cc_version() {
-    local component=$1
-
-    # These components don't need to be checked:
-    #   - build_arm{cc|_xxx} don't use gcc/clang
-    #   - build_module_alt and test_psa_crypto_config_accel_hash_use_psa
-    #     enable full config but unset MBEDTLS_SHA{512/256}_USE_A64_CRYPTO_*
-    if [[ "$component" =~ ^build_arm.*$ ]] || \
-       [[ "$component" == "build_module_alt" ]] || \
-       [[ "$component" == "test_psa_crypto_config_accel_hash_use_psa" ]]; then
-        return 0
-    fi
-
-    # Get the content of the component
-    local content
-    content=$(type "component_$component")
-    # Search for 'scripts/config.{py|pl} xxx{full|baremetal}xxx' pattern,
-    # it will enable MBEDTLS_SHA{512/256}_USE_A64_CRYPTO_*
-    config_full=$(echo -e "$content" | sed -n '/^\s*scripts\/config\.p[yl]\s.*\(full\|baremetal\)\w*;/p')
-    if [ -n "$config_full" ]; then
-        # These components enables MBEDTLS_SHA{512/256}_USE_A64_CRYPTO_*
-        # Check if the required cc version is configured
-        local cc=$(echo -e "$content" | sed -n 's/^.*CC=\(gcc\|clang\).*$/\1/p' | head -n1)
-        # if the target of $cc is not aarch64, it doesn't matter;
-        # else the version of $cc should support sha512 instructions (sha3 feature)
-        ! is_cc_target_aarch64 "$cc" || is_cc_support_sha512_a64 "$cc"
-    else
-        true
-    fi
-}
-
-# Get the -march switch for sha256/512 acceleration
-get_cc_march_sha256_512 () {
+# Call this function before building to check if the dependencies of some enabled
+# configurations are met.
+prebuild_check_cc_version() {
     local cc=${1:-cc}
-    local cflag=""
+    local config_file=${2:-}
 
-    # check if sha3 feature should be enabled
-    if is_cc_support_sha512_a64 ${cc}; then
-        cflag="-march=armv8.2-a+sha3"
-    fi
+    local opt=""
+    [ -f "$config_file" ] && opt="-f $config_file"
 
-    # check if crypto feature should be enabled
-    if is_cc_target_aarch64 ${cc}; then
-        # crypto feature should be supported on all aarch64 (armv8-a)
-        if [ -z "${cflag}" ]; then
-            cflag="-march=armv8-a+crypto"
-        else
-            cflag+="+crypto"
+    # This is for aarch64 target only
+    if is_cc_target_aarch64 "$cc"; then
+        # Check cc version for MBEDTLS_SHA512_USE_A64_CRYPTO_*
+        if scripts/config.py $opt get MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT || \
+           scripts/config.py $opt get MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY; then
+            # Check if the compiler supports SHA512 instructions, based on version
+            if ! is_cc_support_sha512_a64 "$cc"; then
+                echo "CC($cc) don't support building with MBEDTLS_SHA512_USE_A64_CRYPTO_*"
+                report_failed_command="prebuild_check_cc_version $*"
+                return 1
+            fi
         fi
     fi
 
-    echo "${cflag}"
+    return 0
+}
+
+get_cc_march_sha256() {
+    local march=${1:-}
+    if [ -z "${march}" ]; then
+        echo "-march=armv8-a+crypto"
+    else
+        echo "${march}+crypto"
+    fi
+}
+
+get_cc_march_sha512() {
+    local march=${1:-}
+    if [ -z "${march}" ]; then
+        echo "-march=armv8.2-a+sha3"
+    else
+        echo "${march}+sha3"
+    fi
+}
+
+get_cc_march_sha256_512() {
+    local march=${1:-}
+    march="$(get_cc_march_sha512 "$march")"
+    march="$(get_cc_march_sha256 "$march")"
+    echo "$march"
+}
+
+prebuild_get_extra_cflags() {
+    local cc=${1:-cc}
+    local config_file=${2:-}
+    local cflags=()
+
+    local opt
+    [ -f "$config_file" ] && opt="-f $config_file"
+
+    # Add -march for MBEDTLS_SHA{512/256}_USE_A64_CRYPTO_*
+    # This is for aarch64 target only
+    if is_cc_target_aarch64 "$cc"; then
+        local march=""
+        if scripts/config.py ${opt:-} get MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT || \
+           scripts/config.py ${opt:-} get MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY; then
+            # Enable 'sha3' feature for supporting SHA512 instructions
+            march=$(get_cc_march_sha512 "$march")
+        fi
+        if scripts/config.py ${opt:-} get MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT || \
+           scripts/config.py ${opt:-} get MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY; then
+            # Enable 'crypto' feature for supporting SHA256 instructions
+            march=$(get_cc_march_sha256 "$march")
+        fi
+        cflags+=("$march")
+    fi
+
+    echo "${cflags[@]}"
 }
 
 
@@ -952,8 +976,7 @@ component_check_changelog () {
 
 component_check_names () {
     msg "Check: declared and exported names (builds the library)" # < 3s
-    SHA_CFLAGS=$(get_cc_march_sha256_512)
-    CFLAGS="$SHA_CFLAGS" tests/scripts/check_names.py -v
+    CFLAGS="$(get_cc_march_sha256_512)" tests/scripts/check_names.py -v
 }
 support_check_names () {
     ! is_cc_target_aarch64 || is_cc_support_sha512_a64
@@ -1048,8 +1071,10 @@ component_test_psa_crypto_key_id_encodes_owner () {
     msg "build: full config + PSA_CRYPTO_KEY_ID_ENCODES_OWNER, cmake, gcc, ASan"
     scripts/config.py full
     scripts/config.py set MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
-    SHA_CFLAGS=$(get_cc_march_sha256_512 "gcc")
-    CC=gcc CFLAGS="$SHA_CFLAGS" cmake -D CMAKE_BUILD_TYPE:String=Asan .
+
+    prebuild_check_cc_version "gcc"
+
+    CC=gcc CFLAGS="$(prebuild_get_extra_cflags "gcc")" cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: full config - USE_PSA_CRYPTO + PSA_CRYPTO_KEY_ID_ENCODES_OWNER, cmake, gcc, ASan"

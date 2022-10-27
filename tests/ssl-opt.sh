@@ -11139,8 +11139,8 @@ not_with_valgrind # risk of non-mbedtls peer timing out
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS proxy: 3d, gnutls server, fragmentation, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
-            "$G_NEXT_SRV -u --mtu 512" \
-            "$P_CLI dgram_packing=0 dtls=1 hs_timeout=500-60000 nbio=2" \
+            "$G_NEXT_SRV -u --mtu 512 -d 10" \
+            "$P_CLI dgram_packing=0 dtls=1 hs_timeout=500-60000 nbio=2 debug_level=5" \
             0 \
             -s "Extra-header:" \
             -c "Extra-header:"

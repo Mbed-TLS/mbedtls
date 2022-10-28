@@ -38,6 +38,9 @@
  *  - The RFC specifies the Signed Data type can contain
  *    certificate-revocation lists (crls). This implementation has no support
  *    for crls so it is assumed to be an empty list.
+ *  - The RFC allows for SignerInfo structure to optionally contain
+ *    unauthenticatedAttributes and authenticatedAttributes. In Mbed TLS it is
+ *    assumed these fields are empty.
  */
 
 #ifndef MBEDTLS_PKCS7_H

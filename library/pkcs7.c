@@ -126,6 +126,7 @@ static int pkcs7_get_content_info_type( unsigned char **p, unsigned char *end,
     pkcs7->tag = MBEDTLS_ASN1_OID;
     pkcs7->len = len;
     pkcs7->p = *p;
+    *p += len;
 
 out:
     return( ret );
@@ -197,8 +198,7 @@ static int pkcs7_get_certificates( unsigned char **p, unsigned char *end,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len1 = 0;
     size_t len2 = 0;
-    unsigned char *end_set, *end_cert;
-    unsigned char *start = *p;
+    unsigned char *end_set, *end_cert, *start;
 
     if( ( ret = mbedtls_asn1_get_tag( p, end, &len1, MBEDTLS_ASN1_CONSTRUCTED
                     | MBEDTLS_ASN1_CONTEXT_SPECIFIC ) ) != 0 )
@@ -235,7 +235,7 @@ static int pkcs7_get_certificates( unsigned char **p, unsigned char *end,
     }
 
     *p = start;
-    if( ( ret = mbedtls_x509_crt_parse( certs, *p, len1 ) ) < 0 )
+    if( ( ret = mbedtls_x509_crt_parse_der( certs, *p, len1 ) ) < 0 )
     {
         ret = MBEDTLS_ERR_PKCS7_INVALID_CERT;
         goto out;
@@ -289,6 +289,8 @@ out:
  *              [1] IMPLICIT Attributes OPTIONAL,
  * Returns 0 if the signerInfo is valid.
  * Return negative error code for failure.
+ * Structure must not contain vales for authenticatedAttributes
+ * and unauthenticatedAttributes.
  **/
 static int pkcs7_get_signer_info( unsigned char **p, unsigned char *end,
                                   mbedtls_pkcs7_signer_info *signer )
@@ -334,6 +336,8 @@ static int pkcs7_get_signer_info( unsigned char **p, unsigned char *end,
     ret = pkcs7_get_digest_algorithm( p, end_signer, &signer->alg_identifier );
     if( ret != 0 )
         goto out;
+
+    /* Asssume authenticatedAttributes is nonexistent */
 
     ret = pkcs7_get_digest_algorithm( p, end_signer, &signer->sig_alg_identifier );
     if( ret != 0 )
@@ -510,8 +514,6 @@ static int pkcs7_get_signed_data( unsigned char *buf, size_t buflen,
         goto out;
     }
 
-    p = p + signed_data->content.oid.len;
-
     /* Look for certificates, there may or may not be any */
     mbedtls_x509_crt_init( &signed_data->certs );
     ret = pkcs7_get_certificates( &p, end_set, &signed_data->certs );
@@ -548,7 +550,7 @@ out:
 int mbedtls_pkcs7_parse_der( mbedtls_pkcs7 *pkcs7, const unsigned char *buf,
                              const size_t buflen )
 {
-    unsigned char *start;
+    unsigned char *p;
     unsigned char *end;
     size_t len = 0;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -561,17 +563,17 @@ int mbedtls_pkcs7_parse_der( mbedtls_pkcs7 *pkcs7, const unsigned char *buf,
     }
 
     /* make an internal copy of the buffer for parsing */
-    pkcs7->raw.p = start = mbedtls_calloc( 1, buflen );
+    pkcs7->raw.p = p = mbedtls_calloc( 1, buflen );
     if( pkcs7->raw.p == NULL )
     {
         ret = MBEDTLS_ERR_PKCS7_ALLOC_FAILED;
         goto out;
     }
-    memcpy( start, buf, buflen );
+    memcpy( p, buf, buflen );
     pkcs7->raw.len = buflen;
-    end = start + buflen;
+    end = p + buflen;
 
-    ret = pkcs7_get_content_info_type( &start, end, &pkcs7->content_type_oid );
+    ret = pkcs7_get_content_info_type( &p, end, &pkcs7->content_type_oid );
     if( ret != 0 )
     {
         len = buflen;
@@ -596,14 +598,13 @@ int mbedtls_pkcs7_parse_der( mbedtls_pkcs7 *pkcs7, const unsigned char *buf,
     }
 
     isoidset = 1;
-    start = start + pkcs7->content_type_oid.len;
 
-    ret = pkcs7_get_next_content_len( &start, end, &len );
+    ret = pkcs7_get_next_content_len( &p, end, &len );
     if( ret != 0 )
         goto out;
 
 try_data:
-    ret = pkcs7_get_signed_data( start, len, &pkcs7->signed_data );
+    ret = pkcs7_get_signed_data( p, len, &pkcs7->signed_data );
     if ( ret != 0 )
         goto out;
 

@@ -681,7 +681,6 @@ void ecdsa_verify( int grp_id, char * x, char * y, char * r, char * s, data_t * 
 {
     mbedtls_ecdsa_context ctx;
     mbedtls_mpi sig_r, sig_s;
-    const mbedtls_ecp_curve_info *curve_info;
 
     mbedtls_ecdsa_init( &ctx );
     mbedtls_mpi_init( &sig_r );

@@ -623,12 +623,12 @@ out:
     return( ret );
 }
 
-int mbedtls_pkcs7_signed_data_verify( mbedtls_pkcs7 *pkcs7,
-                                      const mbedtls_x509_crt *cert,
-                                      const unsigned char *data,
-                                      size_t datalen )
+static int mbedtls_pkcs7_data_or_hash_verify( mbedtls_pkcs7 *pkcs7,
+                                             const mbedtls_x509_crt *cert,
+                                             const unsigned char *data,
+                                             size_t datalen,
+                                             const int is_data_hash )
 {
-
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *hash;
     mbedtls_pk_context pk_cxt = cert->pk;
@@ -638,6 +638,14 @@ int mbedtls_pkcs7_signed_data_verify( mbedtls_pkcs7 *pkcs7,
 
     if( pkcs7->signed_data.no_of_signers == 0 )
     {
+        ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+        goto out;
+    }
+
+    if( mbedtls_x509_time_is_past( &cert->valid_to ) ||
+        mbedtls_x509_time_is_future( &cert->valid_from ))
+    {
+        printf("EXPRED\n");
         ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
         goto out;
     }
@@ -676,8 +684,17 @@ int mbedtls_pkcs7_signed_data_verify( mbedtls_pkcs7 *pkcs7,
             ret = MBEDTLS_ERR_PKCS7_ALLOC_FAILED;
             goto out;
         }
-
-        ret = mbedtls_md( md_info, data, datalen, hash );
+        if( is_data_hash )
+        {
+            if( datalen != mbedtls_md_get_size( md_info ))
+                ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+            else
+                memcpy(hash, data, datalen);
+        }
+        else
+        {
+            ret = mbedtls_md( md_info, data, datalen, hash );
+        }
         if( ret != 0 )
         {
             ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
@@ -688,7 +705,6 @@ int mbedtls_pkcs7_signed_data_verify( mbedtls_pkcs7 *pkcs7,
         ret = mbedtls_pk_verify( &pk_cxt, md_alg, hash,
                                  mbedtls_md_get_size( md_info ),
                                  signer->sig.p, signer->sig.len );
-
         mbedtls_free( hash );
 
         if( ret == 0 )
@@ -698,59 +714,20 @@ int mbedtls_pkcs7_signed_data_verify( mbedtls_pkcs7 *pkcs7,
 out:
     return( ret );
 }
+int mbedtls_pkcs7_signed_data_verify( mbedtls_pkcs7 *pkcs7,
+                                      const mbedtls_x509_crt *cert,
+                                      const unsigned char *data,
+                                      size_t datalen )
+{
+    return( mbedtls_pkcs7_data_or_hash_verify( pkcs7, cert, data, datalen, 0 ) );
+}
 
 int mbedtls_pkcs7_signed_hash_verify( mbedtls_pkcs7 *pkcs7,
                                       const mbedtls_x509_crt *cert,
                                       const unsigned char *hash,
                                       size_t hashlen )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    const mbedtls_md_info_t *md_info;
-    mbedtls_md_type_t md_alg;
-    mbedtls_pk_context pk_cxt;
-    mbedtls_pkcs7_signer_info *signer;
-
-    pk_cxt = cert->pk;
-
-    if( pkcs7->signed_data.no_of_signers == 0 )
-    {
-        ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
-        goto out;
-    }
-
-    signer = &pkcs7->signed_data.signers;
-    for( signer = &pkcs7->signed_data.signers; signer; signer = signer->next )
-    {
-        ret = mbedtls_oid_get_md_alg( &signer->alg_identifier, &md_alg );
-        if( ret != 0 )
-        {
-            ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
-            continue;
-        }
-
-        md_info = mbedtls_md_info_from_type( md_alg );
-        if( md_info == NULL )
-        {
-            ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
-            continue;
-        }
-
-        if( hashlen != mbedtls_md_get_size( md_info ) )
-        {
-            ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
-            signer = signer->next;
-            continue;
-        }
-
-        ret = mbedtls_pk_verify( &pk_cxt, md_alg, hash, hashlen,
-                                 pkcs7->signed_data.signers.sig.p,
-                                 pkcs7->signed_data.signers.sig.len );
-        if( ret == 0 )
-            break;
-    }
-
-out:
-    return( ret );
+    return( mbedtls_pkcs7_data_or_hash_verify( pkcs7, cert, hash, hashlen, 1 ) );
 }
 
 /*

@@ -3184,11 +3184,58 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
         goto exit;
     }
 
+    /* Is the algorithm valid? */
     if( ! PSA_ALG_IS_CIPHER( alg ) )
     {
         status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;
     }
+
+    printf("\npsa_cipher_setup\n");
+
+    /* Is the algorithm supported? */
+    status = PSA_ERROR_NOT_SUPPORTED;
+#if defined(PSA_WANT_ALG_CBC_NO_PADDING)
+    if( alg == PSA_ALG_CBC_NO_PADDING )
+        status = PSA_SUCCESS;
+#endif
+#if defined(PSA_WANT_ALG_CBC_PKCS7)
+    if( alg == PSA_ALG_CBC_PKCS7 )
+        status = PSA_SUCCESS;
+#endif
+#if defined(PSA_WANT_ALG_CCM_STAR_NO_TAG)
+    if( alg == PSA_ALG_CCM_STAR_NO_TAG )
+        status = PSA_SUCCESS;
+#endif
+#if defined(PSA_WANT_ALG_CFB)
+    if( alg == PSA_ALG_CFB )
+        status = PSA_SUCCESS;
+#endif
+#if defined(PSA_WANT_ALG_CTR)
+    if( alg == PSA_ALG_CTR )
+        status = PSA_SUCCESS;
+#endif
+#if defined(PSA_WANT_ALG_ECB_NO_PADDING)
+    if( alg == PSA_ALG_ECB_NO_PADDING )
+        status = PSA_SUCCESS;
+#endif
+#if defined(PSA_WANT_ALG_OFB)
+    if( alg == PSA_ALG_OFB )
+        status = PSA_SUCCESS;
+#endif
+#if defined(PSA_WANT_ALG_STREAM_CIPHER)
+    if( alg == PSA_ALG_STREAM_CIPHER )
+    {
+        printf( "\n!!!\n" );
+        status = PSA_SUCCESS;
+    }
+#endif
+#if defined(PSA_WANT_ALG_XTS)
+    if( alg == PSA_ALG_XTS )
+        status = PSA_SUCCESS;
+#endif
+    if( status != PSA_SUCCESS )
+        goto exit;
 
     status = psa_get_and_lock_key_slot_with_policy( key, &slot, usage, alg );
     if( status != PSA_SUCCESS )

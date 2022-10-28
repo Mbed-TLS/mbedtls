@@ -452,6 +452,7 @@ void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
 int mbedtls_mpi_core_get_mont_r2_unsafe( mbedtls_mpi *X,
                                          const mbedtls_mpi *N );
 
+#if defined(MBEDTLS_TEST_HOOKS)
 /**
  * Copy an MPI from a table without leaking the index.
  *
@@ -469,6 +470,7 @@ void mbedtls_mpi_core_ct_uint_table_lookup( mbedtls_mpi_uint *dest,
                                             size_t limbs,
                                             size_t count,
                                             size_t index );
+#endif /* MBEDTLS_TEST_HOOKS */
 
 /**
  * \brief          Fill an integer with a number of random bytes.

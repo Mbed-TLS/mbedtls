@@ -540,6 +540,7 @@ cleanup:
     return( ret );
 }
 
+MBEDTLS_STATIC_TESTABLE
 void mbedtls_mpi_core_ct_uint_table_lookup( mbedtls_mpi_uint *dest,
                                             const mbedtls_mpi_uint *table,
                                             size_t limbs,

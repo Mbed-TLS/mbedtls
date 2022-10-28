@@ -13018,7 +13018,7 @@ requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
 run_test    "TLS 1.3: NewSessionTicket: servername negative check, m->m" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=4 \
             sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
-            "$P_CLI debug_level=4 server_name=localhost rec_server_name=remote reco_mode=1 reconnect=1" \
+            "$P_CLI debug_level=4 server_name=localhost reco_server_name=remote reco_mode=1 reconnect=1" \
             1 \
             -c "Protocol is TLSv1.3" \
             -c "got new session ticket." \

@@ -2108,6 +2108,96 @@ cleanup:
 
 }
 
+/*
+ * Handler for MBEDTLS_SSL_END_OF_EARLY_DATA
+ *
+ * RFC 8446:
+ *
+ * If the server sent an "early_data" extension in the EncryptedExtensions
+ * message, the client MUST send an EndOfEarlyData message after receiving
+ * the server Finished.
+ *
+ * If the server does not send an "early_data" extension
+ * in EncryptedExtensions, then the client MUST NOT send
+ * an EndOfEarlyData message.
+ */
+
+/* Write end of early data message
+ * struct {} EndOfEarlyData;
+ */
+
+#define SSL_END_OF_EARLY_DATA_WRITE 0
+#define SSL_END_OF_EARLY_DATA_SKIP  1
+
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_write_end_of_early_data_coordinate(
+    mbedtls_ssl_context *ssl)
+{
+    ((void) ssl);
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED) {
+        return SSL_END_OF_EARLY_DATA_WRITE;
+    } else if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED) {
+        MBEDTLS_SSL_DEBUG_MSG(4, ("skip EndOfEarlyData, server rejected"));
+        return SSL_END_OF_EARLY_DATA_SKIP;
+    } else {
+        MBEDTLS_SSL_DEBUG_MSG(4, ("skip write EndOfEarlyData"));
+    }
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
+    return SSL_END_OF_EARLY_DATA_SKIP;
+}
+
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_finalize_write_end_of_early_data(
+    mbedtls_ssl_context *ssl)
+{
+#if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
+    mbedtls_ssl_handshake_set_state(
+        ssl, MBEDTLS_SSL_CLIENT_CCS_AFTER_SERVER_FINISHED);
+#else
+    mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE);
+#endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
+
+    return 0;
+}
+
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_write_end_of_early_data(mbedtls_ssl_context *ssl)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    MBEDTLS_SSL_DEBUG_MSG(2, ("=> write EndOfEarlyData"));
+
+    MBEDTLS_SSL_PROC_CHK_NEG(
+        ssl_tls13_write_end_of_early_data_coordinate(ssl));
+    if (ret == SSL_END_OF_EARLY_DATA_WRITE) {
+        unsigned char *buf = NULL;
+        size_t buf_len;
+
+        MBEDTLS_SSL_DEBUG_MSG(2, ("Client write EndOfEarlyData"));
+
+        MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_start_handshake_msg(ssl,
+                                                             MBEDTLS_SSL_HS_END_OF_EARLY_DATA, &buf,
+                                                             &buf_len));
+
+        mbedtls_ssl_add_hs_hdr_to_checksum(
+            ssl, MBEDTLS_SSL_HS_END_OF_EARLY_DATA, 0);
+
+        MBEDTLS_SSL_PROC_CHK(
+            mbedtls_ssl_finish_handshake_msg(ssl, buf_len, 0));
+    }
+
+    /* Update state */
+    MBEDTLS_SSL_PROC_CHK(
+        ssl_tls13_finalize_write_end_of_early_data(ssl));
+
+cleanup:
+
+    MBEDTLS_SSL_DEBUG_MSG(2, ("<= write EndOfEarlyData"));
+    return ret;
+}
+
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
 /*
  * STATE HANDLING: CertificateRequest
@@ -2367,13 +2457,7 @@ static int ssl_tls13_process_server_finished(mbedtls_ssl_context *ssl)
         return ret;
     }
 
-#if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
-    mbedtls_ssl_handshake_set_state(
-        ssl,
-        MBEDTLS_SSL_CLIENT_CCS_AFTER_SERVER_FINISHED);
-#else
-    mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE);
-#endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
+    mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_END_OF_EARLY_DATA);
 
     return 0;
 }
@@ -2787,6 +2871,10 @@ int mbedtls_ssl_tls13_handshake_client_step(mbedtls_ssl_context *ssl)
 
         case MBEDTLS_SSL_SERVER_FINISHED:
             ret = ssl_tls13_process_server_finished(ssl);
+            break;
+
+        case MBEDTLS_SSL_END_OF_EARLY_DATA:
+            ret = ssl_tls13_write_end_of_early_data(ssl);
             break;
 
         case MBEDTLS_SSL_CLIENT_CERTIFICATE:

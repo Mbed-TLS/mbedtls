@@ -2431,7 +2431,10 @@ static int ssl_tls13_certificate_request_coordinate( mbedtls_ssl_context *ssl )
     authmode = ssl->conf->authmode;
 
     if( authmode == MBEDTLS_SSL_VERIFY_NONE )
+    {
+        ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_SKIP_VERIFY;
         return( SSL_CERTIFICATE_REQUEST_SKIP );
+    }
 
     ssl->handshake->certificate_request_sent = 1;
 

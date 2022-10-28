@@ -966,12 +966,23 @@ void mpi_core_ct_uint_table_lookup( int bitlen, int window_size )
 
     for( size_t i = 0; i < count; i++ )
     {
+        /*
+         * We shouldn't leak anything through timing.
+         * We need to set these in every loop as we need to make the loop
+         * variable public for the loop head and comparison macros make the
+         * rest public automatically.
+         */
+        TEST_CF_SECRET( &i, sizeof( i ) );
+        TEST_CF_SECRET( dest, limbs * sizeof( mbedtls_mpi_uint ) );
+        TEST_CF_SECRET( table, count * limbs * sizeof( mbedtls_mpi_uint ) );
+
         memset( dest, 0x00, limbs * sizeof( *dest ) );
         mbedtls_mpi_core_ct_uint_table_lookup( dest, table, limbs, count, i );
 
         mbedtls_mpi_uint *current = table + i * limbs;
         ASSERT_COMPARE( dest, limbs * sizeof( *dest ),
                         current, limbs * sizeof( *current ) );
+        TEST_CF_PUBLIC( &i, sizeof( i ) );
     }
 
 exit:

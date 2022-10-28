@@ -141,8 +141,20 @@ int mbedtls_mpi_mod_modulus_setup(mbedtls_mpi_mod_modulus *N,
                                   size_t p_limbs,
                                   mbedtls_mpi_mod_rep_selector int_rep)
 {
-    int ret = 0;
+    int ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+    size_t zero_c;
 
+    for (zero_c = 0; zero_c < p_limbs; zero_c++) {
+        if (p[zero_c] != (mbedtls_mpi_uint) 0) {
+            break;
+        }
+    }
+
+    if (zero_c == p_limbs) {
+        goto exit;
+    }
+
+    ret = 0;
     N->p = p;
     N->limbs = p_limbs;
     N->bits = mbedtls_mpi_core_bitlen(p, p_limbs);

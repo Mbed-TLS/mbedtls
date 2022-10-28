@@ -62,9 +62,16 @@ void mpi_mod_setup(int int_rep, int iret)
     mbedtls_mpi_mod_modulus m;
     int ret;
 
-    memset(mp, 0xFF, sizeof(mp));
+    memset(mp, 0x00, sizeof(mp));
 
     mbedtls_mpi_mod_modulus_init(&m);
+
+    /* Test failure with an invalid (zero) modulus */
+    TEST_EQUAL(MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+               mbedtls_mpi_mod_modulus_setup(&m, mp, MLIMBS, int_rep));
+
+    /* Test with valid modulus */
+    memset(mp, 0xFF, sizeof(mp));
     ret = mbedtls_mpi_mod_modulus_setup(&m, mp, MLIMBS, int_rep);
     TEST_EQUAL(ret, iret);
 

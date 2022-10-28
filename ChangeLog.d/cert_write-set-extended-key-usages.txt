@@ -1,0 +1,4 @@
+Features
+   * cert_write: support for setting extended key usage attributes.
+   * cert_write: support for writing certificate files in either PEM
+     or DER format.

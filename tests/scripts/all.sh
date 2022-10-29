@@ -3248,8 +3248,8 @@ component_test_tls13_only () {
     msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3, without MBEDTLS_SSL_PROTO_TLS1_2"
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
-    msg "test_suite_ssl: TLS 1.3 only, all key exchange modes enabled"
-    cd tests; ./test_suite_ssl; cd ..
+    msg "test: TLS 1.3 only, all key exchange modes enabled"
+    make test
 
     msg "ssl-opt.sh: TLS 1.3 only, all key exchange modes enabled"
     tests/ssl-opt.sh
@@ -3332,18 +3332,6 @@ component_test_tls13_only_ephemeral_all () {
 
     msg "ssl-opt.sh: TLS 1.3 only, ephemeral and PSK ephemeral key exchange modes"
     tests/ssl-opt.sh
-}
-
-component_test_tls13_only_with_hooks () {
-    msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3 and MBEDTLS_TEST_HOOKS, without MBEDTLS_SSL_PROTO_TLS1_2"
-    scripts/config.py set MBEDTLS_TEST_HOOKS
-    make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
-
-    msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, without MBEDTLS_SSL_PROTO_TLS1_2"
-    if_build_succeeded make test
-
-    msg "ssl-opt.sh (TLS 1.3)"
-    if_build_succeeded tests/ssl-opt.sh
 }
 
 component_test_tls13 () {

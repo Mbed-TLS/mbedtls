@@ -3341,46 +3341,6 @@ component_test_tls13_no_compatibility_mode () {
     tests/ssl-opt.sh
 }
 
-component_test_tls13_with_padding () {
-    msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, with padding"
-    scripts/config.py set MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py set MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-    scripts/config.py set MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY 16
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make
-    msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, with padding"
-    make test
-    msg "ssl-opt.sh (TLS 1.3 with padding)"
-    tests/ssl-opt.sh
-}
-
-component_test_tls13_with_ecp_restartable () {
-    msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, with ecp_restartable"
-    scripts/config.py set MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py set MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-    scripts/config.py set MBEDTLS_ECP_RESTARTABLE
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make
-    msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, with ecp_restartable"
-    make test
-    msg "ssl-opt.sh (TLS 1.3 with ecp_restartable)"
-    tests/ssl-opt.sh
-}
-
-component_test_tls13_with_everest () {
-    msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, with Everest"
-    scripts/config.py set MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py set MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-    scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
-    scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make
-    msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, with Everest"
-    make test
-    msg "ssl-opt.sh (TLS 1.3 with everest)"
-    tests/ssl-opt.sh
-}
-
 component_build_mingw () {
     msg "build: Windows cross build - mingw64, make (Link Library)" # ~ 30s
     make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 lib programs

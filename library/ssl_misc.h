@@ -103,11 +103,12 @@
 #define MBEDTLS_SSL_EXT_SIG_ALG_CERT                ( 1 << 20 )
 #define MBEDTLS_SSL_EXT_KEY_SHARE                   ( 1 << 21 )
 
-/* For request messages, we should just ignore unrecognized extension when
- * parsing messages. For response messages, we should not ignore unrecognized
- * extension when parsing messages. Request messages include ClientHello,
- * Certificate and NewSessionTicket. Response messages include ServerHello,
- * EncryptExtensions, Certificate and HelloRetryRequest.
+/* In messages containing extension requests, we should ignore unrecognized
+ * extensions. In messages containing extension responses, unrecognized
+ * extensions should result in handshake abortion. Messages containing
+ * extension requests include ClientHello, CertificateRequest and
+ * NewSessionTicket. Messages containing extension responses include
+ * ServerHello, HelloRetryRequest, EncryptedExtensions and Certificate.
  *
  * RFC 8446 section 4.1.3
  *
@@ -1932,13 +1933,14 @@ static inline int mbedtls_ssl_tls13_some_psk_enabled( mbedtls_ssl_context *ssl )
 uint32_t mbedtls_tls13_get_extension_mask( unsigned int extension_type );
 
 MBEDTLS_CHECK_RETURN_CRITICAL
-int mbedtls_tls13_check_received_extensions( mbedtls_ssl_context *ssl,
-                                             int hs_msg_type,
-                                             uint32_t extension_type,
-                                             uint32_t allowed_mask );
+int mbedtls_ssl_tls13_check_received_extension(
+        mbedtls_ssl_context *ssl,
+        int hs_msg_type,
+        unsigned int received_extension_type,
+        uint32_t hs_msg_allowed_extensions_mask );
 
-static inline void mbedtls_tls13_set_sent_ext_mask( mbedtls_ssl_context *ssl,
-                                                    uint16_t extension_type )
+static inline void mbedtls_ssl_tls13_set_hs_sent_ext_mask(
+                       mbedtls_ssl_context *ssl, unsigned int extension_type )
 {
     ssl->handshake->sent_extensions |=
         mbedtls_tls13_get_extension_mask( extension_type );

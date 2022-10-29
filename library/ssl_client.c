@@ -107,8 +107,7 @@ static int ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
     *olen = hostname_len + 9;
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    mbedtls_tls13_set_sent_ext_mask( ssl,
-                                     MBEDTLS_TLS_EXT_SERVERNAME );
+    mbedtls_ssl_tls13_set_hs_sent_ext_mask( ssl, MBEDTLS_TLS_EXT_SERVERNAME );
     MBEDTLS_SSL_DEBUG_MSG(
         4, ( "sent %s extension",
              mbedtls_tls13_get_extension_name(
@@ -186,8 +185,7 @@ static int ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_PUT_UINT16_BE( *out_len - 4, buf, 2 );
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    mbedtls_tls13_set_sent_ext_mask( ssl,
-                                     MBEDTLS_TLS_EXT_ALPN );
+    mbedtls_ssl_tls13_set_hs_sent_ext_mask( ssl, MBEDTLS_TLS_EXT_ALPN );
     MBEDTLS_SSL_DEBUG_MSG(
         4, ( "sent %s extension",
              mbedtls_tls13_get_extension_name(
@@ -312,8 +310,7 @@ static int ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
     *out_len = p - buf;
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    mbedtls_tls13_set_sent_ext_mask( ssl,
-                                     MBEDTLS_TLS_EXT_SUPPORTED_GROUPS );
+    mbedtls_ssl_tls13_set_hs_sent_ext_mask( ssl, MBEDTLS_TLS_EXT_SUPPORTED_GROUPS );
     MBEDTLS_SSL_DEBUG_MSG( 4, ( "sent %s extension",
                                 mbedtls_tls13_get_extension_name(
                                     MBEDTLS_TLS_EXT_SUPPORTED_GROUPS ) ) );

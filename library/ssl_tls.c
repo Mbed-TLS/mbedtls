@@ -8713,8 +8713,7 @@ int mbedtls_ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
     *out_len = p - buf;
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    mbedtls_tls13_set_sent_ext_mask( ssl,
-                                     MBEDTLS_TLS_EXT_SIG_ALG );
+    mbedtls_ssl_tls13_set_hs_sent_ext_mask( ssl, MBEDTLS_TLS_EXT_SIG_ALG );
     MBEDTLS_SSL_DEBUG_MSG(
         4, ( "sent %s extension",
              mbedtls_tls13_get_extension_name(

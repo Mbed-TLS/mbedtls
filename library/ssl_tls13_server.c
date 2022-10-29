@@ -1239,6 +1239,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     const unsigned char *cipher_suites_end;
     size_t extensions_len;
     const unsigned char *extensions_end;
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
     int hrr_required = 0;
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
@@ -1304,7 +1305,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, random bytes",
                            p, MBEDTLS_CLIENT_HELLO_RANDOM_LEN );
 
-    memcpy( &ssl->handshake->randbytes[0], p, MBEDTLS_CLIENT_HELLO_RANDOM_LEN );
+    memcpy( &handshake->randbytes[0], p, MBEDTLS_CLIENT_HELLO_RANDOM_LEN );
     p += MBEDTLS_CLIENT_HELLO_RANDOM_LEN;
 
     /* ...
@@ -1374,13 +1375,13 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
             continue;
 
         ssl->session_negotiate->ciphersuite = cipher_suite;
-        ssl->handshake->ciphersuite_info = ciphersuite_info;
+        handshake->ciphersuite_info = ciphersuite_info;
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "selected ciphersuite: %04x - %s",
                                     cipher_suite,
                                     ciphersuite_info->name ) );
     }
 
-    if( ssl->handshake->ciphersuite_info == NULL )
+    if( handshake->ciphersuite_info == NULL )
     {
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
                                       MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
@@ -1416,7 +1417,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello extensions", p, extensions_len );
 
-    ssl->handshake->received_extensions = MBEDTLS_SSL_EXT_NONE;
+    handshake->received_extensions = MBEDTLS_SSL_EXT_NONE;
 
     while( p < extensions_end )
     {
@@ -1431,8 +1432,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
          * Servers MUST check that it is the last extension and otherwise fail
          * the handshake with an "illegal_parameter" alert.
          */
-        if( ssl->handshake->received_extensions &
-            mbedtls_tls13_get_extension_mask( MBEDTLS_TLS_EXT_PRE_SHARED_KEY ) )
+        if( handshake->received_extensions & MBEDTLS_SSL_EXT_PRE_SHARED_KEY )
         {
             MBEDTLS_SSL_DEBUG_MSG(
                 3, ( "pre_shared_key is not last extension." ) );
@@ -1450,7 +1450,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, extension_data_len );
         extension_data_end = p + extension_data_len;
 
-        ret = mbedtls_tls13_check_received_extensions(
+        ret = mbedtls_ssl_tls13_check_received_extension(
                   ssl, MBEDTLS_SSL_HS_CLIENT_HELLO, extension_type,
                   MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_CH );
         if( ret != 0 )
@@ -1554,13 +1554,13 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
 
             case MBEDTLS_TLS_EXT_PRE_SHARED_KEY:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found pre_shared_key extension" ) );
-                if( ( ssl->handshake->received_extensions &
+                if( ( handshake->received_extensions &
                       MBEDTLS_SSL_EXT_PSK_KEY_EXCHANGE_MODES ) == 0 )
                 {
                     MBEDTLS_SSL_PEND_FATAL_ALERT(
                         MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
-                        MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-                    return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+                        MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+                    return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
                 }
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
                 /* Delay processing of the PSK identity once we have
@@ -1614,7 +1614,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     }
 
     MBEDTLS_SSL_TLS1_3_PRINT_EXTS(
-        3, MBEDTLS_SSL_HS_CLIENT_HELLO, ssl->handshake->received_extensions );
+        3, MBEDTLS_SSL_HS_CLIENT_HELLO, handshake->received_extensions );
 
     mbedtls_ssl_add_hs_hdr_to_checksum( ssl,
                                         MBEDTLS_SSL_HS_CLIENT_HELLO,
@@ -1628,10 +1628,9 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     /* If we've settled on a PSK-based exchange, parse PSK identity ext */
     if( mbedtls_ssl_tls13_some_psk_enabled( ssl ) &&
         mbedtls_ssl_conf_tls13_some_psk_enabled( ssl ) &&
-        ( ssl->handshake->received_extensions &
-          MBEDTLS_SSL_EXT_PRE_SHARED_KEY ) )
+        ( handshake->received_extensions & MBEDTLS_SSL_EXT_PRE_SHARED_KEY ) )
     {
-        ssl->handshake->update_checksum( ssl, buf,
+        handshake->update_checksum( ssl, buf,
                                          pre_shared_key_ext - buf );
         ret = ssl_tls13_parse_pre_shared_key_ext( ssl,
                                                   pre_shared_key_ext,
@@ -1640,8 +1639,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
                                                   cipher_suites_end );
         if( ret == MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY )
         {
-            ssl->handshake->received_extensions &=
-                                ~MBEDTLS_SSL_EXT_PRE_SHARED_KEY;
+            handshake->received_extensions &= ~MBEDTLS_SSL_EXT_PRE_SHARED_KEY;
         }
         else if( ret != 0 )
         {
@@ -1653,14 +1651,14 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     else
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED */
     {
-        ssl->handshake->update_checksum( ssl, buf, p - buf );
+        handshake->update_checksum( ssl, buf, p - buf );
     }
 
     ret = ssl_tls13_determine_key_exchange_mode( ssl );
     if( ret < 0 )
         return( ret );
 
-    mbedtls_ssl_optimize_checksum( ssl, ssl->handshake->ciphersuite_info );
+    mbedtls_ssl_optimize_checksum( ssl, handshake->ciphersuite_info );
 
     return( hrr_required ? SSL_CLIENT_HELLO_HRR_REQUIRED : SSL_CLIENT_HELLO_OK );
 }

@@ -1533,11 +1533,14 @@ component_test_psa_collect_statuses () {
 component_test_full_cmake_clang () {
     msg "build: cmake, full config, clang" # ~ 50s
     scripts/config.py full
-    CC=clang cmake -D CMAKE_BUILD_TYPE:String=Release -D ENABLE_TESTING=On .
+    CC=clang CXX=clang cmake -D CMAKE_BUILD_TYPE:String=Release -D ENABLE_TESTING=On -D TEST_CPP=1 .
     make
 
     msg "test: main suites (full config, clang)" # ~ 5s
     make test
+
+    msg "test: cpp_dummy_build (full config, clang)" # ~ 1s
+    programs/test/cpp_dummy_build
 
     msg "test: psa_constant_names (full config, clang)" # ~ 1s
     tests/scripts/test_psa_constant_names.py
@@ -1754,15 +1757,6 @@ component_test_depends_pkalgs_psa () {
 component_build_key_exchanges () {
     msg "test/build: key-exchanges (gcc)" # ~ 1 min
     tests/scripts/key-exchanges.pl
-}
-
-component_test_make_cxx () {
-    msg "build: Unix make, full, gcc + g++"
-    scripts/config.py full
-    make TEST_CPP=1 lib programs
-
-    msg "test: cpp_dummy_build"
-    programs/test/cpp_dummy_build
 }
 
 component_test_no_use_psa_crypto_full_cmake_asan() {

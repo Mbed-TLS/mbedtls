@@ -5299,7 +5299,7 @@ static int ssl_tls13_check_new_session_ticket( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "NewSessionTicket received" ) );
     mbedtls_ssl_handshake_set_state( ssl,
-                                     MBEDTLS_SSL_NEW_SESSION_TICKET );
+                                     MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET );
 
     return( MBEDTLS_ERR_SSL_WANT_READ );
 }

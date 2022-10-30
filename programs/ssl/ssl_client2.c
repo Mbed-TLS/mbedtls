@@ -2241,7 +2241,7 @@ int main( int argc, char *argv[] )
                         "to an appropriate value.\n"
                     "    Alternatively, you may want to use "
                         "auth_mode=optional for testing purposes if "
-                        "server is not TLS 1.3.\n"
+                        "not using TLS 1.3.\n"
                     "    For TLS 1.3 server, try `ca_path=/etc/ssl/certs/`"
                         "or other folder that has root certificates\n" );
             mbedtls_printf( "\n" );

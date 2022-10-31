@@ -949,9 +949,9 @@ void mpi_core_ct_uint_table_lookup( int bitlen, int window_size )
     size_t count = ( (size_t) 1 ) << window_size;
 
     mbedtls_mpi_uint *table = NULL;
-    ASSERT_ALLOC( table, limbs * count );
-
     mbedtls_mpi_uint *dest = NULL;
+
+    ASSERT_ALLOC( table, limbs * count );
     ASSERT_ALLOC( dest, limbs );
 
     /*
@@ -986,6 +986,7 @@ void mpi_core_ct_uint_table_lookup( int bitlen, int window_size )
     }
 
 exit:
-    ;
+    mbedtls_free(table);
+    mbedtls_free(dest);
 }
 /* END_CASE */

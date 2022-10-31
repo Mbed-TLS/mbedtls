@@ -2832,6 +2832,8 @@ static int ssl_tls13_write_new_session_ticket_body( mbedtls_ssl_context *ssl,
      * Note: We currently don't have any extensions.
      * Set length to zero.
      */
+    ssl->handshake->sent_extensions = MBEDTLS_SSL_EXT_MASK_NONE;
+
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
     MBEDTLS_PUT_UINT16_BE( 0, p, 0 );
     p += 2;

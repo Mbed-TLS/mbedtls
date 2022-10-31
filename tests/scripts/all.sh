@@ -1921,75 +1921,162 @@ support_build_baremetal () {
 }
 
 # depends.py family of tests
+support_test_depends_py_test(){
+    ! is_cc_target_aarch64 || is_cc_support_sha512_a64
+}
 component_test_depends_py_cipher_id () {
     msg "test/build: depends.py cipher_id (gcc)"
+    if is_cc_target_aarch64; then
+        export CFLAGS="$(get_cc_march_sha256_512)"
+    fi
     tests/scripts/depends.py cipher_id --unset-use-psa
+}
+support_test_depends_py_cipher_id (){
+    support_test_depends_py_test
 }
 
 component_test_depends_py_cipher_chaining () {
     msg "test/build: depends.py cipher_chaining (gcc)"
+    if is_cc_target_aarch64; then
+        export CFLAGS="$(get_cc_march_sha256_512)"
+    fi
     tests/scripts/depends.py cipher_chaining --unset-use-psa
+}
+support_test_depends_py_cipher_chaining (){
+    support_test_depends_py_test
 }
 
 component_test_depends_py_cipher_padding () {
     msg "test/build: depends.py cipher_padding (gcc)"
+    if is_cc_target_aarch64; then
+        export CFLAGS="$(get_cc_march_sha256_512)"
+    fi
     tests/scripts/depends.py cipher_padding --unset-use-psa
+}
+support_test_depends_py_cipher_padding (){
+    support_test_depends_py_test
 }
 
 component_test_depends_py_curves () {
     msg "test/build: depends.py curves (gcc)"
+    if is_cc_target_aarch64; then
+        export CFLAGS="$(get_cc_march_sha256_512)"
+    fi
     tests/scripts/depends.py curves --unset-use-psa
+}
+support_test_depends_py_curves (){
+    support_test_depends_py_test
 }
 
 component_test_depends_py_hashes () {
     msg "test/build: depends.py hashes (gcc)"
+    if is_cc_target_aarch64; then
+        export CFLAGS="$(get_cc_march_sha256_512)"
+    fi
     tests/scripts/depends.py hashes --unset-use-psa
+}
+support_test_depends_py_hashes (){
+    support_test_depends_py_test
 }
 
 component_test_depends_py_kex () {
     msg "test/build: depends.py kex (gcc)"
+    if is_cc_target_aarch64; then
+        export CFLAGS="$(get_cc_march_sha256_512)"
+    fi
     tests/scripts/depends.py kex --unset-use-psa
+}
+support_test_depends_py_kex (){
+    support_test_depends_py_test
 }
 
 component_test_depends_py_pkalgs () {
     msg "test/build: depends.py pkalgs (gcc)"
+    if is_cc_target_aarch64; then
+        export CFLAGS="$(get_cc_march_sha256_512)"
+    fi
     tests/scripts/depends.py pkalgs --unset-use-psa
+}
+support_test_depends_py_pkalgs (){
+    support_test_depends_py_test
 }
 
 # PSA equivalents of the depends.py tests
 component_test_depends_py_cipher_id_psa () {
     msg "test/build: depends.py cipher_id (gcc) with MBEDTLS_USE_PSA_CRYPTO defined"
+    if is_cc_target_aarch64; then
+        export CFLAGS="$(get_cc_march_sha256_512)"
+    fi
     tests/scripts/depends.py cipher_id
+}
+support_test_depends_py_cipher_id_psa (){
+    support_test_depends_py_test
 }
 
 component_test_depends_py_cipher_chaining_psa () {
     msg "test/build: depends.py cipher_chaining (gcc) with MBEDTLS_USE_PSA_CRYPTO defined"
+    if is_cc_target_aarch64; then
+        export CFLAGS="$(get_cc_march_sha256_512)"
+    fi
     tests/scripts/depends.py cipher_chaining
+}
+support_test_depends_py_cipher_chaining_psa (){
+    support_test_depends_py_test
 }
 
 component_test_depends_py_cipher_padding_psa () {
     msg "test/build: depends.py cipher_padding (gcc) with MBEDTLS_USE_PSA_CRYPTO defined"
+    if is_cc_target_aarch64; then
+        export CFLAGS="$(get_cc_march_sha256_512)"
+    fi
     tests/scripts/depends.py cipher_padding
+}
+support_test_depends_py_cipher_padding_psa (){
+    support_test_depends_py_test
 }
 
 component_test_depends_py_curves_psa () {
     msg "test/build: depends.py curves (gcc) with MBEDTLS_USE_PSA_CRYPTO defined"
+    if is_cc_target_aarch64; then
+        export CFLAGS="$(get_cc_march_sha256_512)"
+    fi
     tests/scripts/depends.py curves
+}
+support_test_depends_py_curves_psa (){
+    support_test_depends_py_test
 }
 
 component_test_depends_py_hashes_psa () {
     msg "test/build: depends.py hashes (gcc) with MBEDTLS_USE_PSA_CRYPTO defined"
+    if is_cc_target_aarch64; then
+        export CFLAGS="$(get_cc_march_sha256_512)"
+    fi
     tests/scripts/depends.py hashes
+}
+support_test_depends_py_hashes_psa (){
+    support_test_depends_py_test
 }
 
 component_test_depends_py_kex_psa () {
     msg "test/build: depends.py kex (gcc) with MBEDTLS_USE_PSA_CRYPTO defined"
+    if is_cc_target_aarch64; then
+        export CFLAGS="$(get_cc_march_sha256_512)"
+    fi
     tests/scripts/depends.py kex
+}
+support_test_depends_py_kex_psa (){
+    support_test_depends_py_test
 }
 
 component_test_depends_py_pkalgs_psa () {
     msg "test/build: depends.py pkalgs (gcc) with MBEDTLS_USE_PSA_CRYPTO defined"
+    if is_cc_target_aarch64; then
+        export CFLAGS="$(get_cc_march_sha256_512)"
+    fi
     tests/scripts/depends.py pkalgs
+}
+support_test_depends_py_pkalgs_psa (){
+    support_test_depends_py_test
 }
 
 component_build_module_alt () {

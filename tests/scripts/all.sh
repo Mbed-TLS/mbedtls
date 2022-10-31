@@ -204,6 +204,48 @@ pre_initialize_variables () {
     done
 }
 
+add_to_group ()
+{
+    if [[ -v groups["$1"] ]]; then
+        groups["$1"]="${groups["$1"]} $2"
+    else
+        groups["$1"]="$2"
+    fi
+}
+
+# List all components, one group per line.
+# Within a line, component names are separated by spaces.
+# Each group is sized to take no longer than the longest single component,
+# based on extremely crude estimates of the duration of components.
+# Within a group, all the components have the same support requirement.
+list_all_groups ()
+{
+    typeset -A groups
+    typeset c
+
+    for c in $ALL_COMPONENTS; do
+        # If $c is not supported everywhere, run it on its own.
+        # We could be more clever and try to group components that are
+        # available on the same platforms, but given that support is defined
+        # by running code, it would be difficult to arrange.
+        if typeset -F "support_$c" >/dev/null; then
+            add_to_group "$c" "$c"
+            continue
+        fi
+        # Group components together on a thematic basis, based on
+        # component names, mostly guided by prefixes. Make exceptions
+        # for some known long components which will run on their own.
+        case "$c" in
+            check_*) add_to_group _check "$c"; continue;;
+        esac
+
+        # As a last resort, run the component on its own.
+        add_to_group "$c" "$c"
+    done
+
+    printf '%s\n' "${groups[@]}" | LC_ALL=C sort
+}
+
 # Test whether the component $1 is included in the command line patterns.
 is_component_included()
 {
@@ -235,6 +277,7 @@ Examples:
 Special options:
   -h|--help             Print this help and exit.
   --list-all-components List all available test components and exit.
+  --list-all-groups     List all available test components in groups and exit.
   --list-components     List components supported on this platform and exit.
 
 General options:
@@ -437,6 +480,7 @@ pre_parse_command_line () {
             --help|-h) usage; exit;;
             --keep-going|-k) KEEP_GOING=1;;
             --list-all-components) printf '%s\n' $ALL_COMPONENTS; exit;;
+            --list-all-groups) list_all_groups; exit;;
             --list-components) printf '%s\n' $SUPPORTED_COMPONENTS; exit;;
             --memory|-m) MEMORY=1;;
             --no-append-outcome) append_outcome=0;;

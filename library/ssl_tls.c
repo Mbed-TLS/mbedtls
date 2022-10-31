@@ -1030,7 +1030,7 @@ static int ssl_conf_check(const mbedtls_ssl_context *ssl)
         ssl->conf->authmode == MBEDTLS_SSL_VERIFY_OPTIONAL )
     {
         MBEDTLS_SSL_DEBUG_MSG(
-            1, ( "Optional verfiy auth mode "
+            1, ( "Optional verify auth mode "
                  "is not available for TLS 1.3 client" ) );
         return( MBEDTLS_ERR_SSL_BAD_CONFIG );
     }

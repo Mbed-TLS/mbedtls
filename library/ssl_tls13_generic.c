@@ -508,7 +508,7 @@ int mbedtls_ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, certificate_list_end, extensions_len );
 
         extensions_end = p + extensions_len;
-        handshake->received_extensions = MBEDTLS_SSL_EXT_NONE;
+        handshake->received_extensions = MBEDTLS_SSL_EXT_MASK_NONE;
 
         while( p < extensions_end )
         {
@@ -537,18 +537,16 @@ int mbedtls_ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
             switch( extension_type )
             {
                 default:
-                    MBEDTLS_SSL_DEBUG_MSG( 3,
-                        ( "Certificate: received %s(%u) extension ( ignored )",
-                        mbedtls_tls13_get_extension_name( extension_type ),
-                        extension_type ) );
+                    MBEDTLS_SSL_PRINT_EXT_TYPE(
+                        3, MBEDTLS_SSL_HS_CERTIFICATE,
+                        extension_type, "( ignored )" );
                     break;
             }
 
             p += extension_data_len;
         }
 
-        MBEDTLS_SSL_TLS1_3_PRINT_EXTS(
-            3, MBEDTLS_SSL_HS_CERTIFICATE, handshake->received_extensions );
+        MBEDTLS_SSL_PRINT_RECEIVED_EXTS( 3, MBEDTLS_SSL_HS_CERTIFICATE );
     }
 
 exit:

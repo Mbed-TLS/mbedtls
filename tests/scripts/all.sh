@@ -1280,7 +1280,7 @@ component_test_crypto_full_no_cipher () {
     make test
 }
 
-component_test_tls1_2_default_stream_cipher_only () {
+component_test_tls12_default_stream_cipher_only () {
     msg "build: default with only stream cipher"
 
     # Disable AEAD (controlled by the presence of one of GCM_C, CCM_C, CHACHAPOLY_C
@@ -1305,7 +1305,7 @@ component_test_tls1_2_default_stream_cipher_only () {
     # Not running ssl-opt.sh because most tests require a non-NULL ciphersuite.
 }
 
-component_test_tls1_2_default_stream_cipher_only_use_psa () {
+component_test_tls12_default_stream_cipher_only_use_psa () {
     msg "build: default with only stream cipher use psa"
 
     scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
@@ -1331,7 +1331,7 @@ component_test_tls1_2_default_stream_cipher_only_use_psa () {
     # Not running ssl-opt.sh because most tests require a non-NULL ciphersuite.
 }
 
-component_test_tls1_2_default_cbc_legacy_cipher_only () {
+component_test_tls12_default_cbc_legacy_cipher_only () {
     msg "build: default with only CBC-legacy cipher"
 
     # Disable AEAD (controlled by the presence of one of GCM_C, CCM_C, CHACHAPOLY_C)
@@ -1357,7 +1357,7 @@ component_test_tls1_2_default_cbc_legacy_cipher_only () {
     tests/ssl-opt.sh -f "TLS 1.2"
 }
 
-component_test_tls1_2_deafult_cbc_legacy_cipher_only_use_psa () {
+component_test_tls12_deafult_cbc_legacy_cipher_only_use_psa () {
     msg "build: default with only CBC-legacy cipher use psa"
 
     scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
@@ -1384,7 +1384,7 @@ component_test_tls1_2_deafult_cbc_legacy_cipher_only_use_psa () {
     tests/ssl-opt.sh -f "TLS 1.2"
 }
 
-component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only () {
+component_test_tls12_default_cbc_legacy_cbc_etm_cipher_only () {
     msg "build: default with only CBC-legacy and CBC-EtM ciphers"
 
     # Disable AEAD (controlled by the presence of one of GCM_C, CCM_C, CHACHAPOLY_C)
@@ -1410,7 +1410,7 @@ component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only () {
     tests/ssl-opt.sh -f "TLS 1.2"
 }
 
-component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only_use_psa () {
+component_test_tls12_default_cbc_legacy_cbc_etm_cipher_only_use_psa () {
     msg "build: default with only CBC-legacy and CBC-EtM ciphers use psa"
 
     scripts/config.py set MBEDTLS_USE_PSA_CRYPTO

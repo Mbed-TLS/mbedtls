@@ -2184,7 +2184,7 @@ static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, extensions_len );
     extensions_end = p + extensions_len;
 
-    handshake->received_extensions = MBEDTLS_SSL_EXT_NONE;
+    handshake->received_extensions = MBEDTLS_SSL_EXT_MASK_NONE;
 
     while( p < extensions_end )
     {
@@ -2217,19 +2217,16 @@ static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
                 break;
 
             default:
-                MBEDTLS_SSL_DEBUG_MSG( 3,
-                    ( "certificate request: received %s(%u) extension ( ignored )",
-                      mbedtls_tls13_get_extension_name( extension_type ),
-                      extension_type ) );
+                MBEDTLS_SSL_PRINT_EXT_TYPE(
+                    3, MBEDTLS_SSL_HS_CERTIFICATE_REQUEST,
+                    extension_type, "( ignored )" );
                 break;
         }
 
         p += extension_data_len;
     }
 
-    MBEDTLS_SSL_TLS1_3_PRINT_EXTS( 3,
-                                   MBEDTLS_SSL_HS_CERTIFICATE_REQUEST,
-                                   handshake->received_extensions );
+    MBEDTLS_SSL_PRINT_RECEIVED_EXTS( 3, MBEDTLS_SSL_HS_CERTIFICATE_REQUEST );
 
     /* Check that we consumed all the message. */
     if( p != end )
@@ -2243,7 +2240,7 @@ static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
      *
      * The "signature_algorithms" extension MUST be specified
      */
-    if( ( handshake->received_extensions & MBEDTLS_SSL_EXT_SIG_ALG ) == 0 )
+    if( ( handshake->received_extensions & MBEDTLS_SSL_EXT_MASK( SIG_ALG ) ) == 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3,
             ( "no signature algorithms extension found" ) );

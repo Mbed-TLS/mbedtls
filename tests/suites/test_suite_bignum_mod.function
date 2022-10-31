@@ -25,12 +25,28 @@ void mpi_mod_setup( int ext_rep, int int_rep, int iret )
     ret = mbedtls_mpi_mod_modulus_setup( &m, mp, MLIMBS, ext_rep, int_rep );
     TEST_EQUAL( ret, iret );
 
+    /* Only test if the constants have been set-up  */
+    if ( ret == 0 && int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY )
+    {
+        /* Test that the consts have been calculated */
+        TEST_ASSERT( m.rep.mont.rr != NULL );
+        TEST_ASSERT( m.rep.mont.mm != 0 );
+
+    }
+
     /* Address sanitiser should catch if we try to free mp */
     mbedtls_mpi_mod_modulus_free( &m );
 
     /* Make sure that the modulus doesn't have reference to mp anymore */
     TEST_ASSERT( m.p != mp );
 
+    /* Only test if the constants have been set-up  */
+    if ( ret == 0 && int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY )
+    {
+        /* Verify the data and pointers allocated have been properly wiped */
+        TEST_ASSERT( m.rep.mont.rr == NULL );
+        TEST_ASSERT( m.rep.mont.mm == 0 );
+    }
 exit:
     /* It should be safe to call an mbedtls free several times */
     mbedtls_mpi_mod_modulus_free( &m );

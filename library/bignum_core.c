@@ -541,16 +541,15 @@ cleanup:
 }
 
 void mbedtls_mpi_core_ct_uint_table_lookup( mbedtls_mpi_uint *dest,
-                                        const mbedtls_mpi_uint *table,
-                                        size_t limbs,
-                                        size_t count,
-                                        size_t index )
+                                            const mbedtls_mpi_uint *table,
+                                            size_t limbs,
+                                            size_t count,
+                                            size_t index )
 {
-    for( size_t i = 0; i < count; i++ )
+    for( size_t i = 0; i < count; i++, table += limbs )
     {
         unsigned char assign = mbedtls_ct_size_bool_eq( i, index );
-        const mbedtls_mpi_uint *current = table + i * limbs;
-        mbedtls_mpi_core_cond_assign( dest, current, limbs, assign );
+        mbedtls_mpi_core_cond_assign( dest, table, limbs, assign );
     }
 }
 

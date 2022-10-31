@@ -71,7 +71,6 @@ class BignumCoreShiftR(BignumCoreTarget, metaclass=ABCMeta):
 
 class BignumCoreCTLookup(BignumCoreTarget, metaclass=ABCMeta):
     """Test cases for mbedtls_mpi_core_ct_uint_table_lookup()."""
-    count = 0
     test_function = "mpi_core_ct_uint_table_lookup"
     test_name = "Constant time MPI table lookup"
 

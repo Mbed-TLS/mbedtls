@@ -204,6 +204,11 @@ pre_initialize_variables () {
     done
 }
 
+# add_to_group GROUP_NAME COMPONENT_NAME
+# Naming conventions:
+# * GROUP_NAME=COMPONENT_NAME to run the component on its own.
+# * GROUP_NAME=_PREFIX to group all components with the same prefix.
+# * GROUP_NAME=_PREFIX_MISC to group some components with the same prefix.
 add_to_group ()
 {
     if [[ -v groups["$1"] ]]; then
@@ -232,11 +237,66 @@ list_all_groups ()
             add_to_group "$c" "$c"
             continue
         fi
+
+        # Identify long components, which should run on their own.
+        case "$c" in
+            test_depend*|\
+            test_ref_configs|\
+            test_*msan*|\
+            test_*valgrind*)
+                add_to_group "$c" "$c"
+                continue;;
+        esac
+        case "$(declare -f "component_$c")" in
+            # Anything that runs a full compat.sh.
+            # Not all components that run a full ssl-opt.sh are long:
+            # ssl-opt.sh has a lot of automatic dependency detection,
+            # so in a reduced configuration, it might run a very small
+            # number of test cases.
+            *compat.sh$'\n')
+                add_to_group "$c" "$c"
+                continue;;
+        esac
+
         # Group components together on a thematic basis, based on
         # component names, mostly guided by prefixes. Make exceptions
         # for some known long components which will run on their own.
         case "$c" in
             check_*) add_to_group _check "$c"; continue;;
+            build_arm_none_*) add_to_group _build_arm_none "$c"; continue;;
+            build_arm_linux_*) add_to_group _build_arm_linux "$c"; continue;;
+            build_no_*) add_to_group _build_no "$c"; continue;;
+            build_psa_accel_*) add_to_group _build_psa_accel "$c"; continue;;
+            build_*) add_to_group _build_misc "$c"; continue;;
+            test_*deprecated*) add_to_group _test_deprecated "$c"; continue;;
+            test_*shared*) add_to_group _test_misc "$c"; continue;;
+            test_aes_*) add_to_group _test_aes "$c"; continue;;
+            test_cmake_*) add_to_group _test_cmake "$c"; continue;;
+            test_crypto_*) add_to_group _test_crypto "$c"; continue;;
+            test_ctr_drbg_*) add_to_group _test_ctr_drbg "$c"; continue;;
+            test_everest*) add_to_group _test_everest "$c"; continue;;
+            test_full_no_*) add_to_group _test_no "$c"; continue;;
+            test_have_*) add_to_group _test_misc "$c"; continue;;
+            test_malloc_*) add_to_group _test_misc "$c"; continue;;
+            test_min_*) add_to_group _test_ssl_misc "$c"; continue;;
+            test_no_*drbg*) add_to_group _test_no_drbg "$c"; continue;;
+            test_no_renego*) add_to_group "$c" "$c"; continue;;
+            test_no_use_psa_crypto_full_cmake_asan) add_to_group "$c" "$c"; continue;;
+            test_no_x509_info) add_to_group "$c" "$c"; continue;;
+            test_no_*) add_to_group _test_no "$c"; continue;;
+            test_platform_*) add_to_group _test_misc "$c"; continue;;
+            test_psa_crypto_config_accel_hash_use_psa) add_to_group "$c" "$c"; continue;;
+            test_psa_crypto_config_accel_*) add_to_group _test_psa_crypto_config_accel "$c"; continue;;
+            test_psa_*) add_to_group _test_psa "$c"; continue;;
+            test_rsa_*) add_to_group _test_misc "$c"; continue;;
+            test_se_*) add_to_group _test_misc "$c"; continue;;
+            test_small_*) add_to_group _test_ssl_misc "$c"; continue;;
+            test_ssl_alloc_*) add_to_group _test_ssl_misc "$c"; continue;;
+            test_tls12_*stream*) add_to_group _test_tls12_stream "$c"; continue;;
+            test_tls13_*psk*) add_to_group _test_tls13_psk "$c"; continue;;
+            test_when_*) add_to_group _test_ssl_misc "$c"; continue;;
+            test_zeroize*) add_to_group _test_misc "$c"; continue;;
+            test_zlib*) add_to_group _test_zlib "$c"; continue;;
         esac
 
         # As a last resort, run the component on its own.

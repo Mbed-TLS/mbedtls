@@ -75,33 +75,46 @@
 #define MBEDTLS_SSL_RENEGOTIATION_PENDING       3   /* Requested (server only) */
 
 /*
- * Mask of TLS 1.3 handshake extensions used in extensions_present
- * of mbedtls_ssl_handshake_params.
+ * Inernal identity of handshake extensions
  */
-#define MBEDTLS_SSL_EXT_NONE                        0
+#define MBEDTLS_SSL_EXT_ID_UNRECOGNIZED                0
+#define MBEDTLS_SSL_EXT_ID_SERVERNAME                  1
+#define MBEDTLS_SSL_EXT_ID_SERVERNAME_HOSTNAME         1
+#define MBEDTLS_SSL_EXT_ID_MAX_FRAGMENT_LENGTH         2
+#define MBEDTLS_SSL_EXT_ID_STATUS_REQUEST              3
+#define MBEDTLS_SSL_EXT_ID_SUPPORTED_GROUPS            4
+#define MBEDTLS_SSL_EXT_ID_SUPPORTED_ELLIPTIC_CURVES   4
+#define MBEDTLS_SSL_EXT_ID_SIG_ALG                     5
+#define MBEDTLS_SSL_EXT_ID_USE_SRTP                    6
+#define MBEDTLS_SSL_EXT_ID_HEARTBEAT                   7
+#define MBEDTLS_SSL_EXT_ID_ALPN                        8
+#define MBEDTLS_SSL_EXT_ID_SCT                         9
+#define MBEDTLS_SSL_EXT_ID_CLI_CERT_TYPE              10
+#define MBEDTLS_SSL_EXT_ID_SERV_CERT_TYPE             11
+#define MBEDTLS_SSL_EXT_ID_PADDING                    12
+#define MBEDTLS_SSL_EXT_ID_PRE_SHARED_KEY             13
+#define MBEDTLS_SSL_EXT_ID_EARLY_DATA                 14
+#define MBEDTLS_SSL_EXT_ID_SUPPORTED_VERSIONS         15
+#define MBEDTLS_SSL_EXT_ID_COOKIE                     16
+#define MBEDTLS_SSL_EXT_ID_PSK_KEY_EXCHANGE_MODES     17
+#define MBEDTLS_SSL_EXT_ID_CERT_AUTH                  18
+#define MBEDTLS_SSL_EXT_ID_OID_FILTERS                19
+#define MBEDTLS_SSL_EXT_ID_POST_HANDSHAKE_AUTH        20
+#define MBEDTLS_SSL_EXT_ID_SIG_ALG_CERT               21
+#define MBEDTLS_SSL_EXT_ID_KEY_SHARE                  22
+#define MBEDTLS_SSL_EXT_ID_TRUNCATED_HMAC             23
+#define MBEDTLS_SSL_EXT_ID_SUPPORTED_POINT_FORMATS    24
+#define MBEDTLS_SSL_EXT_ID_ENCRYPT_THEN_MAC           25
+#define MBEDTLS_SSL_EXT_ID_EXTENDED_MASTER_SECRET     26
+#define MBEDTLS_SSL_EXT_ID_SESSION_TICKET             27
 
-#define MBEDTLS_SSL_EXT_SERVERNAME                  ( 1 <<  0 )
-#define MBEDTLS_SSL_EXT_MAX_FRAGMENT_LENGTH         ( 1 <<  1 )
-#define MBEDTLS_SSL_EXT_STATUS_REQUEST              ( 1 <<  2 )
-#define MBEDTLS_SSL_EXT_SUPPORTED_GROUPS            ( 1 <<  3 )
-#define MBEDTLS_SSL_EXT_SIG_ALG                     ( 1 <<  4 )
-#define MBEDTLS_SSL_EXT_USE_SRTP                    ( 1 <<  5 )
-#define MBEDTLS_SSL_EXT_HEARTBEAT                   ( 1 <<  6 )
-#define MBEDTLS_SSL_EXT_ALPN                        ( 1 <<  7 )
-#define MBEDTLS_SSL_EXT_SCT                         ( 1 <<  8 )
-#define MBEDTLS_SSL_EXT_CLI_CERT_TYPE               ( 1 <<  9 )
-#define MBEDTLS_SSL_EXT_SERV_CERT_TYPE              ( 1 << 10 )
-#define MBEDTLS_SSL_EXT_PADDING                     ( 1 << 11 )
-#define MBEDTLS_SSL_EXT_PRE_SHARED_KEY              ( 1 << 12 )
-#define MBEDTLS_SSL_EXT_EARLY_DATA                  ( 1 << 13 )
-#define MBEDTLS_SSL_EXT_SUPPORTED_VERSIONS          ( 1 << 14 )
-#define MBEDTLS_SSL_EXT_COOKIE                      ( 1 << 15 )
-#define MBEDTLS_SSL_EXT_PSK_KEY_EXCHANGE_MODES      ( 1 << 16 )
-#define MBEDTLS_SSL_EXT_CERT_AUTH                   ( 1 << 17 )
-#define MBEDTLS_SSL_EXT_OID_FILTERS                 ( 1 << 18 )
-#define MBEDTLS_SSL_EXT_POST_HANDSHAKE_AUTH         ( 1 << 19 )
-#define MBEDTLS_SSL_EXT_SIG_ALG_CERT                ( 1 << 20 )
-#define MBEDTLS_SSL_EXT_KEY_SHARE                   ( 1 << 21 )
+/* Utility for translating IANA extension type. */
+uint32_t mbedtls_ssl_get_extension_id( unsigned int extension_type );
+uint32_t mbedtls_ssl_get_extension_mask( unsigned int extension_type );
+/* Macros used to define mask constants */
+#define MBEDTLS_SSL_EXT_MASK( id )       ( 1ULL << ( MBEDTLS_SSL_EXT_ID_##id ) )
+/* Reset value of extension mask */
+#define MBEDTLS_SSL_EXT_MASK_NONE                                              0
 
 /* In messages containing extension requests, we should ignore unrecognized
  * extensions. In messages containing extension responses, unrecognized
@@ -1930,8 +1943,6 @@ static inline int mbedtls_ssl_tls13_some_psk_enabled( mbedtls_ssl_context *ssl )
  * Helper functions for extensions checking and convert.
  */
 
-uint32_t mbedtls_tls13_get_extension_mask( unsigned int extension_type );
-
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_check_received_extension(
         mbedtls_ssl_context *ssl,
@@ -1943,7 +1954,7 @@ static inline void mbedtls_ssl_tls13_set_hs_sent_ext_mask(
                        mbedtls_ssl_context *ssl, unsigned int extension_type )
 {
     ssl->handshake->sent_extensions |=
-        mbedtls_tls13_get_extension_mask( extension_type );
+        mbedtls_ssl_get_extension_mask( extension_type );
 }
 
 /*

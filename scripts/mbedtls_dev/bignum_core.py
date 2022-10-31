@@ -76,14 +76,14 @@ class BignumCoreCTLookup(BignumCoreTarget, metaclass=ABCMeta):
     test_name = "Constant time MPI table lookup"
 
     bitsizes = [
-            (32, "One limb"),
-            (192, "Smallest curve sized"),
-            (512, "Largest curve sized"),
-            (2048, "Small FF/RSA sized"),
-            (4096, "Large FF/RSA sized"),
-            ]
+        (32, "One limb"),
+        (192, "Smallest curve sized"),
+        (512, "Largest curve sized"),
+        (2048, "Small FF/RSA sized"),
+        (4096, "Large FF/RSA sized"),
+        ]
 
-    window_sizes = [ 0, 1, 2, 3, 4, 5, 6 ]
+    window_sizes = [0, 1, 2, 3, 4, 5, 6]
 
     def __init__(self,
                  bitsize: int, descr: str, window_size: int) -> None:
@@ -96,10 +96,10 @@ class BignumCoreCTLookup(BignumCoreTarget, metaclass=ABCMeta):
 
     def description(self) -> str:
         return '{} - {} MPI with {} bit window'.format(
-                BignumCoreCTLookup.test_name,
-                self.bitsize_description,
-                self.window_size
-                )
+            BignumCoreCTLookup.test_name,
+            self.bitsize_description,
+            self.window_size
+            )
 
     @classmethod
     def generate_function_tests(cls) -> Iterator[test_case.TestCase]:

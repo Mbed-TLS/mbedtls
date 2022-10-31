@@ -887,6 +887,8 @@ static int ssl_tls13_write_certificate_body( mbedtls_ssl_context *ssl,
 
     *out_len = p - buf;
 
+    MBEDTLS_SSL_PRINT_SENT_EXTS( 3, MBEDTLS_SSL_HS_CERTIFICATE );
+
     return( 0 );
 }
 

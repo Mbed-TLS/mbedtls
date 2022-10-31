@@ -89,12 +89,10 @@ static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
     }
 
     *out_len = 5 + versions_len;
+
     mbedtls_ssl_tls13_set_hs_sent_ext_mask(
         ssl, MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS );
-    MBEDTLS_SSL_DEBUG_MSG(
-        4, ( "sent %s extension",
-             mbedtls_tls13_get_extension_name(
-                 MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS ) ) );
+
     return( 0 );
 }
 
@@ -366,11 +364,6 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, key_share extension", buf, *out_len );
 
     mbedtls_ssl_tls13_set_hs_sent_ext_mask( ssl, MBEDTLS_TLS_EXT_KEY_SHARE );
-    MBEDTLS_SSL_DEBUG_MSG(
-        4, ( "sent %s extension",
-
-             mbedtls_tls13_get_extension_name(
-                 MBEDTLS_TLS_EXT_KEY_SHARE ) ) );
 
 cleanup:
 
@@ -610,12 +603,8 @@ static int ssl_tls13_write_cookie_ext( mbedtls_ssl_context *ssl,
 
     *out_len = handshake->hrr_cookie_len + 6;
 
-
     mbedtls_ssl_tls13_set_hs_sent_ext_mask( ssl, MBEDTLS_TLS_EXT_COOKIE );
-    MBEDTLS_SSL_DEBUG_MSG(
-        4, ( "sent %s extension",
-             mbedtls_tls13_get_extension_name(
-                 MBEDTLS_TLS_EXT_COOKIE ) ) );
+
     return( 0 );
 }
 
@@ -688,10 +677,7 @@ static int ssl_tls13_write_psk_key_exchange_modes_ext( mbedtls_ssl_context *ssl,
 
     mbedtls_ssl_tls13_set_hs_sent_ext_mask(
         ssl, MBEDTLS_TLS_EXT_PSK_KEY_EXCHANGE_MODES );
-    MBEDTLS_SSL_DEBUG_MSG(
-        4, ( "sent %s extension",
-             mbedtls_tls13_get_extension_name(
-                 MBEDTLS_TLS_EXT_PSK_KEY_EXCHANGE_MODES ) ) );
+
     return ( 0 );
 }
 
@@ -1059,10 +1045,6 @@ int mbedtls_ssl_tls13_write_binders_of_pre_shared_key_ext(
 
     mbedtls_ssl_tls13_set_hs_sent_ext_mask(
         ssl, MBEDTLS_TLS_EXT_PRE_SHARED_KEY );
-    MBEDTLS_SSL_DEBUG_MSG(
-        4, ( "sent %s extension",
-             mbedtls_tls13_get_extension_name(
-                 MBEDTLS_TLS_EXT_PRE_SHARED_KEY ) ) );
 
     return( 0 );
 }

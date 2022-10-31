@@ -2128,6 +2128,10 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "server hello", buf, *out_len );
 
+    MBEDTLS_SSL_PRINT_SENT_EXTS(
+        3, is_hrr ? MBEDTLS_SSL_TLS1_3_HS_HELLO_RETRY_REQUEST :
+                    MBEDTLS_SSL_HS_SERVER_HELLO );
+
     return( ret );
 }
 
@@ -2312,6 +2316,8 @@ static int ssl_tls13_write_encrypted_extensions_body( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_BUF( 4, "encrypted extensions", buf, *out_len );
 
+    MBEDTLS_SSL_PRINT_SENT_EXTS( 3, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS );
+
     return( 0 );
 }
 
@@ -2440,6 +2446,8 @@ static int ssl_tls13_write_certificate_request_body( mbedtls_ssl_context *ssl,
     MBEDTLS_PUT_UINT16_BE( p - p_extensions_len - 2, p_extensions_len, 0 );
 
     *out_len = p - buf;
+
+    MBEDTLS_SSL_PRINT_SENT_EXTS( 3, MBEDTLS_SSL_HS_CERTIFICATE_REQUEST );
 
     return( 0 );
 }
@@ -2833,6 +2841,8 @@ static int ssl_tls13_write_new_session_ticket_body( mbedtls_ssl_context *ssl,
     *out_len = p - buf;
     MBEDTLS_SSL_DEBUG_BUF( 4, "ticket", buf, *out_len );
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write new session ticket" ) );
+
+    MBEDTLS_SSL_PRINT_SENT_EXTS( 3, MBEDTLS_SSL_HS_NEW_SESSION_TICKET );
 
     return( 0 );
 }

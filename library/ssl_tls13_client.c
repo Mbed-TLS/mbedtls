@@ -1395,7 +1395,7 @@ static int ssl_tls13_preprocess_server_hello( mbedtls_ssl_context *ssl,
     ssl->session_negotiate->tls_version = ssl->tls_version;
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
-    handshake->received_extensions = MBEDTLS_SSL_EXT_NONE;
+    handshake->received_extensions = MBEDTLS_SSL_EXT_MASK_NONE;
 
     ret = ssl_server_hello_is_hrr( ssl, buf, end );
     switch( ret )
@@ -1506,6 +1506,8 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
     int fatal_alert = 0;
     uint32_t allowed_extensions_mask;
+    int hs_msg_type = is_hrr ? MBEDTLS_SSL_TLS1_3_HS_HELLO_RETRY_REQUEST :
+                               MBEDTLS_SSL_HS_SERVER_HELLO;
 
     /*
      * Check there is space for minimal fields
@@ -1648,7 +1650,7 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "server hello extensions", p, extensions_len );
 
-    handshake->received_extensions = MBEDTLS_SSL_EXT_NONE;
+    handshake->received_extensions = MBEDTLS_SSL_EXT_MASK_NONE;
     allowed_extensions_mask = is_hrr ?
                                   MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_HRR :
                                   MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_SH;
@@ -1668,11 +1670,7 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
         extension_data_end = p + extension_data_len;
 
         ret = mbedtls_ssl_tls13_check_received_extension(
-                  ssl,
-                  is_hrr ?
-                      -MBEDTLS_SSL_HS_SERVER_HELLO : MBEDTLS_SSL_HS_SERVER_HELLO,
-                  extension_type,
-                  allowed_extensions_mask );
+                  ssl, hs_msg_type, extension_type, allowed_extensions_mask );
         if( ret != 0 )
             return( ret );
 
@@ -1744,9 +1742,7 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
         p += extension_data_len;
     }
 
-    MBEDTLS_SSL_TLS1_3_PRINT_EXTS(
-        3, is_hrr ? -MBEDTLS_SSL_HS_SERVER_HELLO : MBEDTLS_SSL_HS_SERVER_HELLO,
-        handshake->received_extensions );
+    MBEDTLS_SSL_PRINT_RECEIVED_EXTS( 3, hs_msg_type );
 
 cleanup:
 
@@ -1797,20 +1793,20 @@ static int ssl_tls13_postprocess_server_hello( mbedtls_ssl_context *ssl )
      *    exchange mode is EPHEMERAL-only.
      */
     switch( handshake->received_extensions &
-            ( MBEDTLS_SSL_EXT_PRE_SHARED_KEY | MBEDTLS_SSL_EXT_KEY_SHARE ) )
+            ( MBEDTLS_SSL_EXT_MASK( PRE_SHARED_KEY ) | MBEDTLS_SSL_EXT_MASK( KEY_SHARE ) ) )
     {
         /* Only the pre_shared_key extension was received */
-        case MBEDTLS_SSL_EXT_PRE_SHARED_KEY:
+        case MBEDTLS_SSL_EXT_MASK( PRE_SHARED_KEY ):
             handshake->key_exchange_mode = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK;
             break;
 
         /* Only the key_share extension was received */
-        case MBEDTLS_SSL_EXT_KEY_SHARE:
+        case MBEDTLS_SSL_EXT_MASK( KEY_SHARE ):
             handshake->key_exchange_mode = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL;
             break;
 
         /* Both the pre_shared_key and key_share extensions were received */
-        case ( MBEDTLS_SSL_EXT_PRE_SHARED_KEY | MBEDTLS_SSL_EXT_KEY_SHARE ):
+        case ( MBEDTLS_SSL_EXT_MASK( PRE_SHARED_KEY ) | MBEDTLS_SSL_EXT_MASK( KEY_SHARE ) ):
             handshake->key_exchange_mode = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL;
             break;
 

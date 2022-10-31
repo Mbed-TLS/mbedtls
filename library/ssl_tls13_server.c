@@ -2001,6 +2001,7 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
     size_t output_len;
 
     *out_len = 0;
+    ssl->handshake->sent_extensions = MBEDTLS_SSL_EXT_MASK_NONE;
 
     /* ...
      * ProtocolVersion legacy_version = 0x0303; // TLS 1.2

@@ -466,3 +466,40 @@ exit:
     mbedtls_ecdsa_free( &ctx );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void ecdsa_verify( int grp_id, char * x, char * y, char * r, char * s, data_t * content, int expected )
+{
+    mbedtls_ecdsa_context ctx;
+    mbedtls_mpi sig_r, sig_s;
+
+    mbedtls_ecdsa_init( &ctx );
+    mbedtls_mpi_init( &sig_r );
+    mbedtls_mpi_init( &sig_s );
+
+    /* Prepare ECP group context */
+    TEST_EQUAL( mbedtls_ecp_group_load( &ctx.grp, grp_id ), 0 );
+
+    /* Prepare public key */
+    TEST_EQUAL( mbedtls_test_read_mpi( &ctx.Q.X, x ), 0 );
+    TEST_EQUAL( mbedtls_test_read_mpi( &ctx.Q.Y, y ), 0 );
+    TEST_EQUAL( mbedtls_mpi_lset( &ctx.Q.Z, 1 ), 0 );
+
+    /* Prepare signature R & S */
+    TEST_EQUAL( mbedtls_test_read_mpi( &sig_r, r ), 0 );
+    TEST_EQUAL( mbedtls_test_read_mpi( &sig_s, s ), 0 );
+
+    /* Test whether public key has expected validity */
+    TEST_EQUAL( mbedtls_ecp_check_pubkey( &ctx.grp, &ctx.Q ),
+        expected == MBEDTLS_ERR_ECP_INVALID_KEY ? MBEDTLS_ERR_ECP_INVALID_KEY : 0 );
+
+    /* Verification */
+    int result = mbedtls_ecdsa_verify( &ctx.grp, content->x, content->len, &ctx.Q, &sig_r, &sig_s );
+
+    TEST_EQUAL( result, expected );
+exit:
+    mbedtls_ecdsa_free( &ctx );
+    mbedtls_mpi_free( &sig_r );
+    mbedtls_mpi_free( &sig_s );
+}
+/* END_CASE */

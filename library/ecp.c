@@ -2662,14 +2662,17 @@ static int mbedtls_ecp_mul_shortcuts( mbedtls_ecp_group *grp,
 
     if( mbedtls_mpi_cmp_int( m, 0 ) == 0 )
     {
+        MBEDTLS_MPI_CHK( mbedtls_ecp_check_pubkey( grp, P ) );
         MBEDTLS_MPI_CHK( mbedtls_ecp_set_zero( R ) );
     }
     else if( mbedtls_mpi_cmp_int( m, 1 ) == 0 )
     {
+        MBEDTLS_MPI_CHK( mbedtls_ecp_check_pubkey( grp, P ) );
         MBEDTLS_MPI_CHK( mbedtls_ecp_copy( R, P ) );
     }
     else if( mbedtls_mpi_cmp_int( m, -1 ) == 0 )
     {
+        MBEDTLS_MPI_CHK( mbedtls_ecp_check_pubkey( grp, P ) );
         MBEDTLS_MPI_CHK( mbedtls_ecp_copy( R, P ) );
         MPI_ECP_NEG( &R->Y );
     }

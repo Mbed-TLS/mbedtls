@@ -564,7 +564,7 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     /* Keeping track of the included extensions */
-    handshake->sent_extensions = MBEDTLS_SSL_EXT_NONE;
+    handshake->sent_extensions = MBEDTLS_SSL_EXT_MASK_NONE;
 #endif
 
     /* First write extensions, then the total length */

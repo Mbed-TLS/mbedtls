@@ -134,76 +134,83 @@ uint32_t mbedtls_ssl_get_extension_mask( unsigned int extension_type );
  * not specified for the message in which it appears, it MUST abort the handshake
  * with an "illegal_parameter" alert.
  */
-#define MBEDTLS_SSL_EXT_UNRECOGNIZED                ( 1U << 31 )
+
+/* Extensions that not recognized by TLS 1.3 */
+#define MBEDTLS_SSL_TLS1_3_EXT_MASK_UNREOGNIZED                                \
+            ( MBEDTLS_SSL_EXT_MASK( SUPPORTED_POINT_FORMATS )                | \
+              MBEDTLS_SSL_EXT_MASK( ENCRYPT_THEN_MAC )                       | \
+              MBEDTLS_SSL_EXT_MASK( EXTENDED_MASTER_SECRET )                 | \
+              MBEDTLS_SSL_EXT_MASK( SESSION_TICKET )                         | \
+              MBEDTLS_SSL_EXT_MASK( UNRECOGNIZED ) )
 
 /* RFC 8446 section 4.2. Allowed extensions for ClienHello */
 #define MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_CH                                  \
-            ( MBEDTLS_SSL_EXT_SERVERNAME                                     | \
-              MBEDTLS_SSL_EXT_MAX_FRAGMENT_LENGTH                            | \
-              MBEDTLS_SSL_EXT_STATUS_REQUEST                                 | \
-              MBEDTLS_SSL_EXT_SUPPORTED_GROUPS                               | \
-              MBEDTLS_SSL_EXT_SIG_ALG                                        | \
-              MBEDTLS_SSL_EXT_USE_SRTP                                       | \
-              MBEDTLS_SSL_EXT_HEARTBEAT                                      | \
-              MBEDTLS_SSL_EXT_ALPN                                           | \
-              MBEDTLS_SSL_EXT_SCT                                            | \
-              MBEDTLS_SSL_EXT_CLI_CERT_TYPE                                  | \
-              MBEDTLS_SSL_EXT_SERV_CERT_TYPE                                 | \
-              MBEDTLS_SSL_EXT_PADDING                                        | \
-              MBEDTLS_SSL_EXT_KEY_SHARE                                      | \
-              MBEDTLS_SSL_EXT_PRE_SHARED_KEY                                 | \
-              MBEDTLS_SSL_EXT_PSK_KEY_EXCHANGE_MODES                         | \
-              MBEDTLS_SSL_EXT_EARLY_DATA                                     | \
-              MBEDTLS_SSL_EXT_COOKIE                                         | \
-              MBEDTLS_SSL_EXT_SUPPORTED_VERSIONS                             | \
-              MBEDTLS_SSL_EXT_CERT_AUTH                                      | \
-              MBEDTLS_SSL_EXT_POST_HANDSHAKE_AUTH                            | \
-              MBEDTLS_SSL_EXT_SIG_ALG_CERT                                   | \
-              MBEDTLS_SSL_EXT_UNRECOGNIZED )
+            ( MBEDTLS_SSL_EXT_MASK( SERVERNAME )                             | \
+              MBEDTLS_SSL_EXT_MASK( MAX_FRAGMENT_LENGTH )                    | \
+              MBEDTLS_SSL_EXT_MASK( STATUS_REQUEST )                         | \
+              MBEDTLS_SSL_EXT_MASK( SUPPORTED_GROUPS )                       | \
+              MBEDTLS_SSL_EXT_MASK( SIG_ALG )                                | \
+              MBEDTLS_SSL_EXT_MASK( USE_SRTP )                               | \
+              MBEDTLS_SSL_EXT_MASK( HEARTBEAT )                              | \
+              MBEDTLS_SSL_EXT_MASK( ALPN )                                   | \
+              MBEDTLS_SSL_EXT_MASK( SCT )                                    | \
+              MBEDTLS_SSL_EXT_MASK( CLI_CERT_TYPE )                          | \
+              MBEDTLS_SSL_EXT_MASK( SERV_CERT_TYPE )                         | \
+              MBEDTLS_SSL_EXT_MASK( PADDING )                                | \
+              MBEDTLS_SSL_EXT_MASK( KEY_SHARE )                              | \
+              MBEDTLS_SSL_EXT_MASK( PRE_SHARED_KEY )                         | \
+              MBEDTLS_SSL_EXT_MASK( PSK_KEY_EXCHANGE_MODES )                 | \
+              MBEDTLS_SSL_EXT_MASK( EARLY_DATA )                             | \
+              MBEDTLS_SSL_EXT_MASK( COOKIE )                                 | \
+              MBEDTLS_SSL_EXT_MASK( SUPPORTED_VERSIONS )                     | \
+              MBEDTLS_SSL_EXT_MASK( CERT_AUTH )                              | \
+              MBEDTLS_SSL_EXT_MASK( POST_HANDSHAKE_AUTH )                    | \
+              MBEDTLS_SSL_EXT_MASK( SIG_ALG_CERT )                           | \
+              MBEDTLS_SSL_TLS1_3_EXT_MASK_UNREOGNIZED )
 
 /* RFC 8446 section 4.2. Allowed extensions for EncryptedExtensions */
 #define MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_EE                                  \
-            ( MBEDTLS_SSL_EXT_SERVERNAME                                     | \
-              MBEDTLS_SSL_EXT_MAX_FRAGMENT_LENGTH                            | \
-              MBEDTLS_SSL_EXT_SUPPORTED_GROUPS                               | \
-              MBEDTLS_SSL_EXT_USE_SRTP                                       | \
-              MBEDTLS_SSL_EXT_HEARTBEAT                                      | \
-              MBEDTLS_SSL_EXT_ALPN                                           | \
-              MBEDTLS_SSL_EXT_CLI_CERT_TYPE                                  | \
-              MBEDTLS_SSL_EXT_SERV_CERT_TYPE                                 | \
-              MBEDTLS_SSL_EXT_EARLY_DATA )
+            ( MBEDTLS_SSL_EXT_MASK( SERVERNAME )                             | \
+              MBEDTLS_SSL_EXT_MASK( MAX_FRAGMENT_LENGTH )                    | \
+              MBEDTLS_SSL_EXT_MASK( SUPPORTED_GROUPS )                       | \
+              MBEDTLS_SSL_EXT_MASK( USE_SRTP )                               | \
+              MBEDTLS_SSL_EXT_MASK( HEARTBEAT )                              | \
+              MBEDTLS_SSL_EXT_MASK( ALPN )                                   | \
+              MBEDTLS_SSL_EXT_MASK( CLI_CERT_TYPE )                          | \
+              MBEDTLS_SSL_EXT_MASK( SERV_CERT_TYPE )                         | \
+              MBEDTLS_SSL_EXT_MASK( EARLY_DATA ) )
 
 /* RFC 8446 section 4.2. Allowed extensions for CertificateRequest */
 #define MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_CR                                  \
-            ( MBEDTLS_SSL_EXT_STATUS_REQUEST                                 | \
-              MBEDTLS_SSL_EXT_SIG_ALG                                        | \
-              MBEDTLS_SSL_EXT_SCT                                            | \
-              MBEDTLS_SSL_EXT_CERT_AUTH                                      | \
-              MBEDTLS_SSL_EXT_OID_FILTERS                                    | \
-              MBEDTLS_SSL_EXT_SIG_ALG_CERT                                   | \
-              MBEDTLS_SSL_EXT_UNRECOGNIZED )
+            ( MBEDTLS_SSL_EXT_MASK( STATUS_REQUEST )                         | \
+              MBEDTLS_SSL_EXT_MASK( SIG_ALG )                                | \
+              MBEDTLS_SSL_EXT_MASK( SCT )                                    | \
+              MBEDTLS_SSL_EXT_MASK( CERT_AUTH )                              | \
+              MBEDTLS_SSL_EXT_MASK( OID_FILTERS )                            | \
+              MBEDTLS_SSL_EXT_MASK( SIG_ALG_CERT )                           | \
+              MBEDTLS_SSL_TLS1_3_EXT_MASK_UNREOGNIZED )
 
 /* RFC 8446 section 4.2. Allowed extensions for Certificate */
 #define MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_CT                                  \
-            ( MBEDTLS_SSL_EXT_STATUS_REQUEST                                 | \
-              MBEDTLS_SSL_EXT_SCT )
+            ( MBEDTLS_SSL_EXT_MASK( STATUS_REQUEST )                         | \
+              MBEDTLS_SSL_EXT_MASK( SCT ) )
 
 /* RFC 8446 section 4.2. Allowed extensions for ServerHello */
 #define MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_SH                                  \
-            ( MBEDTLS_SSL_EXT_KEY_SHARE                                      | \
-              MBEDTLS_SSL_EXT_PRE_SHARED_KEY                                 | \
-              MBEDTLS_SSL_EXT_SUPPORTED_VERSIONS )
+            ( MBEDTLS_SSL_EXT_MASK( KEY_SHARE )                              | \
+              MBEDTLS_SSL_EXT_MASK( PRE_SHARED_KEY )                         | \
+              MBEDTLS_SSL_EXT_MASK( SUPPORTED_VERSIONS ) )
 
 /* RFC 8446 section 4.2. Allowed extensions for HelloRetryRequest */
 #define MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_HRR                                 \
-            ( MBEDTLS_SSL_EXT_KEY_SHARE                                      | \
-              MBEDTLS_SSL_EXT_COOKIE                                         | \
-              MBEDTLS_SSL_EXT_SUPPORTED_VERSIONS )
+            ( MBEDTLS_SSL_EXT_MASK( KEY_SHARE )                              | \
+              MBEDTLS_SSL_EXT_MASK( COOKIE )                                 | \
+              MBEDTLS_SSL_EXT_MASK( SUPPORTED_VERSIONS ) )
 
 /* RFC 8446 section 4.2. Allowed extensions for NewSessionTicket */
 #define MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_NST                                 \
-            ( MBEDTLS_SSL_EXT_EARLY_DATA                                     | \
-              MBEDTLS_SSL_EXT_UNRECOGNIZED )
+            ( MBEDTLS_SSL_EXT_MASK( EARLY_DATA )                             | \
+              MBEDTLS_SSL_TLS1_3_EXT_MASK_UNREOGNIZED )
 
 /*
  * Helper macros for function call with return check.

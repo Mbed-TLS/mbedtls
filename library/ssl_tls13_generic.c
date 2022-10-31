@@ -1685,28 +1685,22 @@ void mbedtls_ssl_tls13_print_extensions( const mbedtls_ssl_context *ssl,
  * with an "illegal_parameter" alert.
  *
  */
-
 int mbedtls_ssl_tls13_check_received_extension(
         mbedtls_ssl_context *ssl,
         int hs_msg_type,
         unsigned int received_extension_type,
         uint32_t hs_msg_allowed_extensions_mask )
 {
-#if defined(MBEDTLS_DEBUG_C)
-    const char *hs_msg_name = ssl_tls13_get_hs_msg_name( hs_msg_type );
-#endif
-    uint32_t extension_mask = mbedtls_tls13_get_extension_mask( received_extension_type );
+    uint32_t extension_mask = mbedtls_ssl_get_extension_mask(
+                                  received_extension_type );
 
-    MBEDTLS_SSL_DEBUG_MSG( 3,
-                ( "%s : received %s(%x) extension",
-                  hs_msg_name,
-                  mbedtls_tls13_get_extension_name( received_extension_type ),
-                  (unsigned int)received_extension_type ) );
+    MBEDTLS_SSL_PRINT_EXT_TYPE(
+        3, hs_msg_type, received_extension_type, "received" );
 
     if( ( extension_mask & hs_msg_allowed_extensions_mask ) == 0 )
     {
-        MBEDTLS_SSL_DEBUG_MSG(
-            3, ( "%s : forbidden extension received.", hs_msg_name ) );
+        MBEDTLS_SSL_PRINT_EXT_TYPE(
+            3, hs_msg_type, received_extension_type, "is illegal" );
         MBEDTLS_SSL_PEND_FATAL_ALERT(
             MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
             MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
@@ -1721,7 +1715,7 @@ int mbedtls_ssl_tls13_check_received_extension(
     switch( hs_msg_type )
     {
         case MBEDTLS_SSL_HS_SERVER_HELLO:
-        case -MBEDTLS_SSL_HS_SERVER_HELLO: // HRR does not have IANA value.
+        case MBEDTLS_SSL_TLS1_3_HS_HELLO_RETRY_REQUEST:
         case MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS:
         case MBEDTLS_SSL_HS_CERTIFICATE:
             /* Check if the received extension is sent by peer message.*/
@@ -1732,8 +1726,8 @@ int mbedtls_ssl_tls13_check_received_extension(
             return( 0 );
     }
 
-    MBEDTLS_SSL_DEBUG_MSG(
-            3, ( "%s : unexpected extension received.", hs_msg_name ) );
+    MBEDTLS_SSL_PRINT_EXT_TYPE(
+            3, hs_msg_type, received_extension_type, "is unsupported" );
     MBEDTLS_SSL_PEND_FATAL_ALERT(
         MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT,
         MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION );
@@ -1741,3 +1735,4 @@ int mbedtls_ssl_tls13_check_received_extension(
 }
 
 #endif /* MBEDTLS_SSL_TLS_C && MBEDTLS_SSL_PROTO_TLS1_3 */
+

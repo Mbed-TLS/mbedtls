@@ -630,15 +630,14 @@ static int mbedtls_pkcs7_data_or_hash_verify( mbedtls_pkcs7 *pkcs7,
 
     if( pkcs7->signed_data.no_of_signers == 0 )
     {
-        ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+        ret = MBEDTLS_ERR_PKCS7_INVALID_CERT;
         goto out;
     }
 
     if( mbedtls_x509_time_is_past( &cert->valid_to ) ||
         mbedtls_x509_time_is_future( &cert->valid_from ))
     {
-        printf("EXPRED\n");
-        ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+        ret = MBEDTLS_ERR_PKCS7_CERT_DATE_INVALID;
         goto out;
     }
 

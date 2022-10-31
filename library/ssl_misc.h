@@ -989,8 +989,6 @@ struct mbedtls_ssl_handshake_params
     mbedtls_ssl_tls13_handshake_secrets tls13_hs_secrets;
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    mbedtls_ssl_tls13_early_secrets early_secrets;
-
     int early_data;     /*!< Early data indication:
                          * 0  -- MBEDTLS_SSL_EARLY_DATA_DISABLED (for no early data), and
                          * 1  -- MBEDTLS_SSL_EARLY_DATA_ENABLED (for use early data)

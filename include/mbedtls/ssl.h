@@ -1793,7 +1793,7 @@ struct mbedtls_ssl_context
 
 #if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
     /*
-     * early data request state
+     * early data request status
      */
     int MBEDTLS_PRIVATE(early_data_status);
 #endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_CLI_C */

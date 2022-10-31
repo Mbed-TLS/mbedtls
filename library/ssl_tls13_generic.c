@@ -1376,8 +1376,6 @@ cleanup:
 
 /* Early Data Extension
  *
- * struct {} Empty;
- *
  * struct {
  *   select ( Handshake.msg_type ) {
  *     case new_session_ticket:   uint32 max_early_data_size;

@@ -7,10 +7,10 @@ Quick Checklist for PR contributors
 -----------------------------------
 More details on all of these points may be found in the sections below.
 
-- [Sign-off](#license-and-copyright): all commits must be signed off
-- [Tests](#tests): please ensure the PR includes adequate tests
-- [Changelog](#documentation): if needed, please provide a changelog entry
-- [Backports](#long-term-support-branches): provide a backport if needed (it's fine to wait until the main PR is accepted)
+- [Sign-off](#license-and-copyright): all commits must be signed off.
+- [Tests](#tests): please ensure the PR includes adequate tests.
+- [Changelog](#documentation): if needed, please provide a changelog entry.
+- [Backports](#long-term-support-branches): provide a backport if needed (it's fine to wait until the main PR is accepted).
 
 Coding Standards
 ----------------

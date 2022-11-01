@@ -158,17 +158,21 @@ int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *A,
 /**
  * \brief Perform a known-size modular addition.
  *
- * Calculate A + B mod N.
+ * Calculate `A + B modulo N` where \p A, \p B, and \p N have the same size.
  *
- * \param[out] X        The result of the modular addition.
- * \param[in] A         The left operand. This must be smaller than \p N.
- * \param[in] B         The right operand. This must be smaller than \p N.
- * \param[in] N         The modulus.
- * \param n             Number of limbs of \p X, \p A, \p B and \p N.
+ * \param[out] X    The result of the modular addition.
+ * \param[in] A     Little-endian presentation of the left operand. This
+ *                  must be smaller than \p N.
+ * \param[in] B     Little-endian presentation of the right operand. This
+ *                  must be smaller than \p N.
+ * \param[in] N     Little-endian presentation of the modulus.
+ * \param limbs     Number of limbs of \p X, \p A, \p B and \p N.
  */
-void MPI_CORE(add_mod)( mbedtls_mpi_uint *X, mbedtls_mpi_uint const *A,
-                        mbedtls_mpi_uint const *B, const mbedtls_mpi_uint *N,
-                        size_t n );
+void mbedtls_mpi_mod_raw_add( mbedtls_mpi_uint *X,
+                              mbedtls_mpi_uint const *A,
+                              mbedtls_mpi_uint const *B,
+                              const mbedtls_mpi_uint *N,
+                              size_t limbs );
 /* END MERGE SLOT 5 */
 
 /* BEGIN MERGE SLOT 6 */

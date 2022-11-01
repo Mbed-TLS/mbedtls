@@ -1,6 +1,7 @@
 Contributing
 ============
-We gratefully accept bug reports and contributions from the community.
+We gratefully accept bug reports and contributions from the community. All PRs are reviewed by the project team / community, and may need some modifications to
+be accepted.
 
 Quick Checklist for PR contributors
 -----------------------------------

@@ -163,25 +163,29 @@ int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *A,
 /* END MERGE SLOT 6 */
 
 /* BEGIN MERGE SLOT 7 */
-/** Convert from internal to public (little endian) data presentation
+/** Convert an MPI into Montgomery form.
  *
  * \param X      The address of the MPI.
- * \param m      The address of a modulus.
+ *               Must have the same number of limbs as \p m.
+ * \param m      The address of the modulus, which gives the size of
+ *               the base `R` = 2^(biL*m->limbs).
  *
  * \return       \c 0 if successful.
  */
-int mbedtls_mpi_mod_raw_conv_inv( mbedtls_mpi_uint *X,
-                                  const mbedtls_mpi_mod_modulus *modulus );
+int mbedtls_mpi_mod_raw_to_mont_rep( mbedtls_mpi_uint *X,
+                                     const mbedtls_mpi_mod_modulus *m );
 
-/** Convert from public (little endian) to internal data presentation.
+/** Convert an MPI back from Montgomery representation.
  *
  * \param X      The address of the MPI.
- * \param m      The address of a modulus.
+ *               Must have the same number of limbs as \p m.
+ * \param m      The address of the modulus, which gives the size of
+ *               the base `R`= 2^(biL*m->limbs).
  *
  * \return       \c 0 if successful.
  */
-int mbedtls_mpi_mod_raw_conv_fwd( mbedtls_mpi_uint *X,
-                                  const mbedtls_mpi_mod_modulus *modulus );
+int mbedtls_mpi_mod_raw_from_mont_rep( mbedtls_mpi_uint *X,
+                                       const mbedtls_mpi_mod_modulus *m );
 /* END MERGE SLOT 7 */
 
 /* BEGIN MERGE SLOT 8 */

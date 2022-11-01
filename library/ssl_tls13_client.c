@@ -694,6 +694,14 @@ static psa_algorithm_t ssl_tls13_get_ciphersuite_hash_alg( int ciphersuite )
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_has_configured_ticket( mbedtls_ssl_context *ssl )
+{
+    mbedtls_ssl_session *session = ssl->session_negotiate;
+    return( ssl->handshake->resume &&
+            session != NULL && session->ticket != NULL );
+}
+
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_ticket_get_identity( mbedtls_ssl_context *ssl,
                                           psa_algorithm_t *hash_alg,
                                           const unsigned char **identity,
@@ -701,7 +709,7 @@ static int ssl_tls13_ticket_get_identity( mbedtls_ssl_context *ssl,
 {
     mbedtls_ssl_session *session = ssl->session_negotiate;
 
-    if( !mbedtls_ssl_tls13_has_configured_ticket( ssl ) )
+    if( !ssl_tls13_has_configured_ticket( ssl ) )
         return( -1 );
 
     *hash_alg = ssl_tls13_get_ciphersuite_hash_alg( session->ciphersuite );
@@ -719,7 +727,7 @@ static int ssl_tls13_ticket_get_psk( mbedtls_ssl_context *ssl,
 
     mbedtls_ssl_session *session = ssl->session_negotiate;
 
-    if( !mbedtls_ssl_tls13_has_configured_ticket( ssl ) )
+    if( !ssl_tls13_has_configured_ticket( ssl ) )
         return( -1 );
 
     *hash_alg = ssl_tls13_get_ciphersuite_hash_alg( session->ciphersuite );
@@ -766,7 +774,7 @@ static int ssl_tls13_get_configured_psk_count( mbedtls_ssl_context *ssl )
 {
     int configured_psk_count = 0;
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    if( mbedtls_ssl_tls13_has_configured_ticket( ssl ) )
+    if( ssl_tls13_has_configured_ticket( ssl ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "Ticket is configured" ) );
         configured_psk_count++;
@@ -1087,7 +1095,7 @@ static int ssl_tls13_parse_server_pre_shared_key_ext( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     if( selected_identity == 0 &&
-        mbedtls_ssl_tls13_has_configured_ticket( ssl ) )
+        ssl_tls13_has_configured_ticket( ssl ) )
     {
         ret = ssl_tls13_ticket_get_psk( ssl, &hash_alg, &psk, &psk_len );
     }
@@ -1157,7 +1165,7 @@ int mbedtls_ssl_tls13_write_client_hello_exts( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     if( mbedtls_ssl_conf_tls13_some_psk_enabled( ssl ) &&
         ( mbedtls_ssl_conf_has_static_psk( ssl->conf ) == 1 ||
-          mbedtls_ssl_tls13_has_configured_ticket( ssl ) ) &&
+          ssl_tls13_has_configured_ticket( ssl ) ) &&
         ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED )
     {
         ret = mbedtls_ssl_tls13_write_early_data_ext( ssl, p, end, &ext_len );

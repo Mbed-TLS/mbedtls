@@ -1487,11 +1487,6 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl,
 #endif /* !MBEDTLS_USE_PSA_CRYPTO */
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
-#if defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_SESSION_TICKETS)
-MBEDTLS_CHECK_RETURN_CRITICAL
-int mbedtls_ssl_tls13_has_configured_ticket( mbedtls_ssl_context *ssl );
-#endif
-
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
 #if defined(MBEDTLS_SSL_CLI_C)
 MBEDTLS_CHECK_RETURN_CRITICAL

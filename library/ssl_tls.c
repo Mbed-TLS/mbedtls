@@ -1872,15 +1872,6 @@ int mbedtls_ssl_set_hs_ecjpake_password( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-int mbedtls_ssl_tls13_has_configured_ticket( mbedtls_ssl_context *ssl )
-{
-    mbedtls_ssl_session *session = ssl->session_negotiate;
-    return( ssl->handshake->resume &&
-            session != NULL && session->ticket != NULL );
-}
-#endif
-
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
 int mbedtls_ssl_conf_has_static_psk( mbedtls_ssl_config const *conf )
 {

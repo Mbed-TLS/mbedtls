@@ -140,6 +140,11 @@ class OperationCommon:
 # END MERGE SLOT 4
 
 # BEGIN MERGE SLOT 5
+def grow_mpi(val: int, limbs: int, bits_in_limb: int) -> str:
+    """Return zero-padded hex representation of `val` requiring `limbs` limbs."""
+    limbs -= limbs_mpi(val, bits_in_limb) if val else 1
+    return "{}{:x}".format("0" * (limbs * bits_in_limb // 4), val)
+
 def moduli_case_generate() -> None:
     """Generate random valid inputs for tests using moduli.
 

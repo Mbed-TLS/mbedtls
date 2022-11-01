@@ -211,7 +211,7 @@ pre_initialize_variables () {
 # * GROUP_NAME=_PREFIX_MISC to group some components with the same prefix.
 add_to_group ()
 {
-    if [[ -v groups["$1"] ]]; then
+    if [[ -n "${groups["$1"]-}" ]]; then
         groups["$1"]="${groups["$1"]} $2"
     else
         groups["$1"]="$2"

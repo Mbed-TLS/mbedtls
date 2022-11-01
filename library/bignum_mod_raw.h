@@ -155,7 +155,20 @@ int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *A,
 /* END MERGE SLOT 4 */
 
 /* BEGIN MERGE SLOT 5 */
-
+/**
+ * \brief Perform a known-size modular addition.
+ *
+ * Calculate A + B mod N.
+ *
+ * \param[out] X        The result of the modular addition.
+ * \param[in] A         The left operand. This must be smaller than \p N.
+ * \param[in] B         The right operand. This must be smaller than \p N.
+ * \param[in] N         The modulus.
+ * \param n             Number of limbs of \p X, \p A, \p B and \p N.
+ */
+void MPI_CORE(add_mod)( mbedtls_mpi_uint *X, mbedtls_mpi_uint const *A,
+                        mbedtls_mpi_uint const *B, const mbedtls_mpi_uint *N,
+                        size_t n );
 /* END MERGE SLOT 5 */
 
 /* BEGIN MERGE SLOT 6 */

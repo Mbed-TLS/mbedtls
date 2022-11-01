@@ -119,7 +119,18 @@ int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *A,
 /* END MERGE SLOT 4 */
 
 /* BEGIN MERGE SLOT 5 */
-
+void MPI_CORE(add_mod)( mbedtls_mpi_uint *X,
+                        mbedtls_mpi_uint const *A,
+                        mbedtls_mpi_uint const *B,
+                        const mbedtls_mpi_uint *N,
+                        size_t n )
+{
+    size_t carry, borrow = 0, fixup;
+    carry  = mbedtls_mpi_core_add( X, A, B, n );
+    borrow = mbedtls_mpi_core_sub( X, X, N, n);
+    fixup  = ( carry < borrow );
+    (void) mbedtls_mpi_core_add_if( X, N, n, fixup );
+}
 /* END MERGE SLOT 5 */
 
 /* BEGIN MERGE SLOT 6 */

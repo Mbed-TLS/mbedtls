@@ -907,7 +907,7 @@ prebuild_get_extra_cflags() {
         cflags+=("$march")
     fi
 
-    echo "${cflags[@]}"
+    echo "${cflags[@]:-}"
 }
 
 

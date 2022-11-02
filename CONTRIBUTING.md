@@ -1,9 +1,16 @@
 Contributing
 ============
-We gratefully accept bug reports and contributions from the community. There are some requirements we need to fulfill in order to be able to integrate contributions:
+We gratefully accept bug reports and contributions from the community. All PRs are reviewed by the project team / community, and may need some modifications to
+be accepted.
 
- - As with any open source project, contributions will be reviewed by the project team and community and may need some modifications to be accepted.
- - The contribution should not break API or ABI, unless there is a real justification for that. If there is an API change, the contribution, if accepted, will be merged only when there will be a major release.
+Quick Checklist for PR contributors
+-----------------------------------
+More details on all of these points may be found in the sections below.
+
+- [Sign-off](#license-and-copyright): all commits must be signed off.
+- [Tests](#tests): please ensure the PR includes adequate tests.
+- [Changelog](#documentation): if needed, please provide a changelog entry.
+- [Backports](#long-term-support-branches): provide a backport if needed (it's fine to wait until the main PR is accepted).
 
 Coding Standards
 ----------------
@@ -25,7 +32,7 @@ Backwards Compatibility
 
 The project aims to minimise the impact on users upgrading to newer versions of the library and it should not be necessary for a user to make any changes to their own code to work with a newer version of the library. Unless the user has made an active decision to use newer features, a newer generation of the library or a change has been necessary due to a security issue or other significant software defect, no modifications to their own code should be necessary. To achieve this, API compatibility is maintained between different versions of Mbed TLS on the main development branch and in LTS (Long Term Support) branches, as described in [BRANCHES.md](BRANCHES.md).
 
-To minimise such disruption to users, where a change to the interface is required, all changes to the ABI or API, even on the main development branch where new features are added, need to be justifiable by either being a significant enhancement, new feature or bug fix which is best resolved by an interface change.
+To minimise such disruption to users, where a change to the interface is required, all changes to the ABI or API, even on the main development branch where new features are added, need to be justifiable by either being a significant enhancement, new feature or bug fix which is best resolved by an interface change. If there is an API change, the contribution, if accepted, will be merged only when there will be a major release.
 
 Where changes to an existing interface are necessary, functions in the public interface which need to be changed, are marked as 'deprecated'. This is done with the preprocessor symbols `MBEDTLS_DEPRECATED_WARNING` and `MBEDTLS_DEPRECATED_REMOVED`. Then, a new function with a new name but similar if not identical behaviour to the original function containing the necessary changes should be created alongside the existing deprecated function.
 

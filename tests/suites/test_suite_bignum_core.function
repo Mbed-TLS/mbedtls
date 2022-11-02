@@ -941,3 +941,54 @@ exit:
     mbedtls_mpi_free( &RR_REF );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_core_ct_uint_table_lookup( int bitlen, int window_size )
+{
+    size_t limbs = BITS_TO_LIMBS( bitlen );
+    size_t count = ( (size_t) 1 ) << window_size;
+
+    mbedtls_mpi_uint *table = NULL;
+    mbedtls_mpi_uint *dest = NULL;
+
+    ASSERT_ALLOC( table, limbs * count );
+    ASSERT_ALLOC( dest, limbs );
+
+    /*
+     * Fill the table with a unique counter so that differences are easily
+     * detected. (And have their relationship to the index relatively non-trivial just
+     * to be sure.)
+     */
+    for( size_t i = 0; i < count * limbs; i++ )
+    {
+        table[i] = ~i - 1;
+    }
+
+    for( size_t i = 0; i < count; i++ )
+    {
+        mbedtls_mpi_uint *current = table + i * limbs;
+        memset( dest, 0x00, limbs * sizeof( *dest ) );
+
+        /*
+         * We shouldn't leak anything through timing.
+         * We need to set these in every loop as we need to make the loop
+         * variable public for the loop head and the buffers for comparison.
+         */
+        TEST_CF_SECRET( &i, sizeof( i ) );
+        TEST_CF_SECRET( dest, limbs * sizeof( *dest ) );
+        TEST_CF_SECRET( table, count * limbs * sizeof( *table ) );
+
+        mbedtls_mpi_core_ct_uint_table_lookup( dest, table, limbs, count, i );
+
+        TEST_CF_PUBLIC( dest, limbs * sizeof( *dest ) );
+        TEST_CF_PUBLIC( table, count * limbs * sizeof( *table ) );
+        ASSERT_COMPARE( dest, limbs * sizeof( *dest ),
+                        current, limbs * sizeof( *current ) );
+        TEST_CF_PUBLIC( &i, sizeof( i ) );
+    }
+
+exit:
+    mbedtls_free(table);
+    mbedtls_free(dest);
+}
+/* END_CASE */

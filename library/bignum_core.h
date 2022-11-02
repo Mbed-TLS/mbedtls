@@ -452,4 +452,22 @@ void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
 int mbedtls_mpi_core_get_mont_r2_unsafe( mbedtls_mpi *X,
                                          const mbedtls_mpi *N );
 
+/**
+ * Copy an MPI from a table without leaking the index.
+ *
+ * \param dest              The destination buffer. This must point to a writable
+ *                          buffer of at least \p limbs limbs.
+ * \param table             The address of the table. This must point to a readable
+ *                          array of \p count elements of \p limbs limbs each.
+ * \param limbs             The number of limbs in each table entry.
+ * \param count             The number of entries in \p table.
+ * \param index             The (secret) table index to look up. This must be in the
+ *                          range `0 .. count-1`.
+ */
+void mbedtls_mpi_core_ct_uint_table_lookup( mbedtls_mpi_uint *dest,
+                                            const mbedtls_mpi_uint *table,
+                                            size_t limbs,
+                                            size_t count,
+                                            size_t index );
+
 #endif /* MBEDTLS_BIGNUM_CORE_H */

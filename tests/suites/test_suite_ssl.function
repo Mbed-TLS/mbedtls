@@ -17,6 +17,11 @@
 #include <constant_time_internal.h>
 #include <test/constant_flow.h>
 
+#if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED) || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) || \
+    defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
+#define MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
+#endif
 enum {
 #define MBEDTLS_SSL_TLS1_3_LABEL(name, string)   \
     tls13_label_ ## name,
@@ -5129,7 +5134,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_ECP_C */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_ECP_C:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY */
 void app_data_tls(int mfl, int cli_msg_len, int srv_msg_len,
                   int expected_cli_fragments,
                   int expected_srv_fragments)

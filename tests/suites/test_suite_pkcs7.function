@@ -150,7 +150,7 @@ void pkcs7_verify_multiple_signers( char *pkcs7_file, char *crt1, char *crt2, ch
     res = stat( filetobesigned, &st );
     TEST_ASSERT( res == 0 );
 
-    file = fopen( filetobesigned, "r" );
+    file = fopen( filetobesigned, "rb" );
     TEST_ASSERT( file != NULL );
 
     datalen = st.st_size;

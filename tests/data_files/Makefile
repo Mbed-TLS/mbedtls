@@ -1136,6 +1136,14 @@ pkcs7_test_cert_1 = pkcs7-rsa-sha256-1.crt
 pkcs7_test_cert_2 = pkcs7-rsa-sha256-2.crt
 pkcs7_test_file = pkcs7_data.bin
 
+$(pkcs7_test_file):
+	echo -e "Hello\xd" > $@
+all_final += $(pkcs7_test_file)
+
+pkcs7_data_1.bin:
+	echo -e "2\xd" > $@
+all_final += pkcs7_data_1.bin
+
 # Generate signing cert
 pkcs7-rsa-sha256-1.crt:
 	$(OPENSSL) req -x509 -subj="/C=NL/O=PKCS7/CN=PKCS7 Cert 1" -sha256 -nodes -days 365  -newkey rsa:2048 -keyout pkcs7-rsa-sha256-1.key -out pkcs7-rsa-sha256-1.crt

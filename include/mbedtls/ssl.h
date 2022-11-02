@@ -802,9 +802,10 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
 #endif
 
 #if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
-#define MBEDTLS_SSL_EARLY_DATA_NOT_SENT       0
-#define MBEDTLS_SSL_EARLY_DATA_REJECTED       1
-#define MBEDTLS_SSL_EARLY_DATA_ACCEPTED       2
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN   0
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT  1
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED  2
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED  3
 #endif
 /**
  * \brief          Callback type: server-side session cache getter

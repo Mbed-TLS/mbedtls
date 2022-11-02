@@ -1176,7 +1176,7 @@ int mbedtls_ssl_tls13_write_client_hello_exts( mbedtls_ssl_context *ssl,
         ssl->handshake->early_data = MBEDTLS_SSL_EARLY_DATA_ON;
         /* We're using rejected once we send the EarlyData extension,
            and change it to accepted upon receipt of the server extension. */
-        ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_REJECTED;
+        ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED;
     }
     else
     {

@@ -1766,16 +1766,16 @@ MPI random in range: 1..12
 mpi_random_many:1:"0c":1000
 
 MPI random in range: 1..255
-mpi_random_many:1:"ff":100
+mpi_random_many:1:"ff":200
 
 MPI random in range: 1..256
-mpi_random_many:1:"0100":100
+mpi_random_many:1:"0100":200
 
 MPI random in range: 1..257
-mpi_random_many:1:"0101":100
+mpi_random_many:1:"0101":200
 
 MPI random in range: 1..272
-mpi_random_many:1:"0110":100
+mpi_random_many:1:"0110":200
 
 MPI random in range: 1..2^64-1
 mpi_random_many:1:"ffffffffffffffff":100

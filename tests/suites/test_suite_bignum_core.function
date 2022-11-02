@@ -992,3 +992,56 @@ exit:
     mbedtls_free(dest);
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_core_fill_random( int wanted_bytes_arg, int extra_rng_bytes,
+                           int extra_limbs, int before, int expected_ret )
+{
+    size_t wanted_bytes = wanted_bytes_arg;
+    mbedtls_mpi_uint *X = NULL;
+    size_t X_limbs = CHARS_TO_LIMBS( wanted_bytes ) + extra_limbs;
+    size_t rng_bytes = wanted_bytes + extra_rng_bytes;
+    unsigned char *rnd_data = NULL;
+    mbedtls_test_rnd_buf_info rnd_info = {NULL, rng_bytes, NULL, NULL};
+    int ret;
+
+    /* Prepare an RNG with known output, limited to rng_bytes. */
+    ASSERT_ALLOC( rnd_data, rng_bytes );
+    TEST_EQUAL( 0, mbedtls_test_rnd_std_rand( NULL, rnd_data, rng_bytes ) );
+    rnd_info.buf = rnd_data;
+
+    /* Allocate an MPI with room for wanted_bytes plus extra_limbs.
+     * extra_limbs may be negative but the total limb count must be positive.
+     * Fill the MPI with the byte value in before. */
+    TEST_LE_U( 1, X_limbs );
+    ASSERT_ALLOC( X, X_limbs );
+    memset( X, before, X_limbs * sizeof( *X ) );
+
+    ret = mbedtls_mpi_core_fill_random( X, X_limbs, wanted_bytes,
+                                        mbedtls_test_rnd_buffer_rand,
+                                        &rnd_info );
+    TEST_EQUAL( expected_ret, ret );
+
+    if( expected_ret == 0 )
+    {
+        /* mbedtls_mpi_core_fill_random is documented to use bytes from the
+         * RNG as a big-endian representation of the number. We used an RNG
+         * with known output, so check that the output contains the
+         * expected value. Bytes above wanted_bytes must be zero. */
+        for( size_t i = 0; i < wanted_bytes; i++ )
+        {
+            mbedtls_test_set_step( i );
+            TEST_EQUAL( GET_BYTE( X, i ), rnd_data[wanted_bytes - 1 - i] );
+        }
+        for( size_t i = wanted_bytes; i < X_limbs * ciL; i++ )
+        {
+            mbedtls_test_set_step( i );
+            TEST_EQUAL( GET_BYTE( X, i ), 0 );
+        }
+    }
+
+exit:
+    mbedtls_free( rnd_data );
+    mbedtls_free( X );
+}
+/* END_CASE */

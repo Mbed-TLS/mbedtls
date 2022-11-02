@@ -122,12 +122,7 @@ Features
      and hmac_demo.c, which use PSA and the md/cipher interfaces side
      by side in order to illustrate how the operation is performed in PSA.
      Addresses #5208.
-   * Brought in PSA code gen driver list JSON,
-     auto generated templating support for key management, 
-     transparent and opaque keys ( import/export/copy ), iincluded some 
-     general JSON validation, and more specifically for the given entry points.
-     Addresses ver 1.1 of #5137
-
+     
 Security
    * Zeroize dynamically-allocated buffers used by the PSA Crypto key storage
      module before freeing them. These buffers contain secret key material, and

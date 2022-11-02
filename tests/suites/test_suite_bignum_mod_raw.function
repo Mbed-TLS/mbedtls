@@ -279,6 +279,7 @@ exit:
     mbedtls_mpi_mod_modulus_free( &m );
     mbedtls_free( buff_m );
 }
+/* END_CASE */
 
 /* BEGIN MERGE SLOT 1 */
 
@@ -319,4 +320,3 @@ exit:
 /* BEGIN MERGE SLOT 10 */
 
 /* END MERGE SLOT 10 */
-/* END_CASE */

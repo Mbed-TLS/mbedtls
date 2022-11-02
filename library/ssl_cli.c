@@ -1089,11 +1089,6 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
      * RFC 5077 section 3.4: "When presenting a ticket, the client MAY
      * generate and include a Session ID in the TLS ClientHello."
      */
-    renegotiating = 0;
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if( ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE )
-        renegotiating = 1;
-#endif
     if( !renegotiating )
     {
         if( ssl->session_negotiate->ticket != NULL &&
@@ -1209,11 +1204,6 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     /*
      * Add TLS_EMPTY_RENEGOTIATION_INFO_SCSV
      */
-    renegotiating = 0;
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if( ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE )
-        renegotiating = 1;
-#endif
     if( !renegotiating )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "adding EMPTY_RENEGOTIATION_INFO_SCSV" ) );

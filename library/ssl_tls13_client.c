@@ -693,7 +693,6 @@ static psa_algorithm_t ssl_tls13_get_ciphersuite_hash_alg( int ciphersuite )
 }
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_has_configured_ticket( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_session *session = ssl->session_negotiate;
@@ -1094,8 +1093,7 @@ static int ssl_tls13_parse_server_pre_shared_key_ext( mbedtls_ssl_context *ssl,
     }
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    if( selected_identity == 0 &&
-        ssl_tls13_has_configured_ticket( ssl ) )
+    if( selected_identity == 0 && ssl_tls13_has_configured_ticket( ssl ) )
     {
         ret = ssl_tls13_ticket_get_psk( ssl, &hash_alg, &psk, &psk_len );
     }
@@ -1174,8 +1172,8 @@ int mbedtls_ssl_tls13_write_client_hello_exts( mbedtls_ssl_context *ssl,
         p += ext_len;
 
         ssl->handshake->early_data = MBEDTLS_SSL_EARLY_DATA_ON;
-        /* We're using rejected once we send the EarlyData extension,
-           and change it to accepted upon receipt of the server extension. */
+        /* Initializes the status to `rejected`. Changes it to `accepted`
+         * when `early_data` is received in EncryptedExtesion. */
         ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED;
     }
     else

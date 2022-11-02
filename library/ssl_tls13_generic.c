@@ -1374,11 +1374,11 @@ cleanup:
 
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
 
-/* Early Data Extension
+/* Early Data Indication Extension
  *
  * struct {
  *   select ( Handshake.msg_type ) {
- *     case new_session_ticket:   uint32 max_early_data_size;
+ *     ...
  *     case client_hello:         Empty;
  *     case encrypted_extensions: Empty;
  *   };
@@ -1399,7 +1399,6 @@ int mbedtls_ssl_tls13_write_early_data_ext( mbedtls_ssl_context *ssl,
             3, ( "client hello, adding early_data extension" ) );
 
     MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_EARLY_DATA, p, 0 );
-    /* Write length of the early data indication extension */
     MBEDTLS_PUT_UINT16_BE( 0, p, 2 );
 
     *out_len = 4;

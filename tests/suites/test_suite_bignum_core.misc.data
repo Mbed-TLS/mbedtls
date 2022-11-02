@@ -430,3 +430,83 @@ mpi_core_fill_random:42:0:-1:0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
 Fill random core: 42 bytes, 5 missing limbs
 mpi_core_fill_random:42:0:-5:0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+BEGIN MERGE SLOT 1
+depends_on:MBEDTLS_BIGNUM_MERGE
+mpi_core_io_null
+
+END MERGE SLOT 1
+depends_on:MBEDTLS_BIGNUM_MERGE
+mpi_core_io_null
+
+BEGIN MERGE SLOT 2
+depends_on:MBEDTLS_BIGNUM_MERGE
+mpi_core_io_null
+
+END MERGE SLOT 2
+depends_on:MBEDTLS_BIGNUM_MERGE
+mpi_core_io_null
+
+BEGIN MERGE SLOT 3
+depends_on:MBEDTLS_BIGNUM_MERGE
+mpi_core_io_null
+
+END MERGE SLOT 3
+depends_on:MBEDTLS_BIGNUM_MERGE
+mpi_core_io_null
+
+BEGIN MERGE SLOT 4
+depends_on:MBEDTLS_BIGNUM_MERGE
+mpi_core_io_null
+
+END MERGE SLOT 4
+depends_on:MBEDTLS_BIGNUM_MERGE
+mpi_core_io_null
+
+BEGIN MERGE SLOT 5
+depends_on:MBEDTLS_BIGNUM_MERGE
+mpi_core_io_null
+
+END MERGE SLOT 5
+depends_on:MBEDTLS_BIGNUM_MERGE
+mpi_core_io_null
+
+BEGIN MERGE SLOT 6
+depends_on:MBEDTLS_BIGNUM_MERGE
+mpi_core_io_null
+
+END MERGE SLOT 6
+depends_on:MBEDTLS_BIGNUM_MERGE
+mpi_core_io_null
+
+BEGIN MERGE SLOT 7
+depends_on:MBEDTLS_BIGNUM_MERGE
+mpi_core_io_null
+
+END MERGE SLOT 7
+depends_on:MBEDTLS_BIGNUM_MERGE
+mpi_core_io_null
+
+BEGIN MERGE SLOT 8
+depends_on:MBEDTLS_BIGNUM_MERGE
+mpi_core_io_null
+
+END MERGE SLOT 8
+depends_on:MBEDTLS_BIGNUM_MERGE
+mpi_core_io_null
+
+BEGIN MERGE SLOT 9
+depends_on:MBEDTLS_BIGNUM_MERGE
+mpi_core_io_null
+
+END MERGE SLOT 9
+depends_on:MBEDTLS_BIGNUM_MERGE
+mpi_core_io_null
+
+BEGIN MERGE SLOT 10
+depends_on:MBEDTLS_BIGNUM_MERGE
+mpi_core_io_null
+
+END MERGE SLOT 10
+depends_on:MBEDTLS_BIGNUM_MERGE
+mpi_core_io_null

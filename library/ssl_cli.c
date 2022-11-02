@@ -3454,20 +3454,18 @@ start_processing:
         if( ( ret = mbedtls_pk_verify_restartable( peer_pk,
                         md_alg, hash, hashlen, p, sig_len, rs_ctx ) ) != 0 )
         {
-            int send_alert_msg = 1;
-#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
-            send_alert_msg = ( ret != MBEDTLS_ERR_ECP_IN_PROGRESS );
-#endif
-            if( send_alert_msg )
-                mbedtls_ssl_send_alert_message(
-                    ssl,
-                    MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                    MBEDTLS_SSL_ALERT_MSG_DECRYPT_ERROR );
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_verify", ret );
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
             if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
-                ret = MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_verify", ret );
+                return( MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS );
+            }
 #endif
+            mbedtls_ssl_send_alert_message(
+                ssl,
+                MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                MBEDTLS_SSL_ALERT_MSG_DECRYPT_ERROR );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_verify", ret );
             return( ret );
         }
 

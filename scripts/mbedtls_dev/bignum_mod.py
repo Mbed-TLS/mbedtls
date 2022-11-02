@@ -14,13 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import random
-
 from abc import ABCMeta
-from typing import Dict, Iterator, List, Tuple
 
 from . import test_data_generation
-from . import bignum_common
 
 class BignumCoreTarget(test_data_generation.BaseTarget, metaclass=ABCMeta):
     #pylint: disable=abstract-method
@@ -66,4 +62,3 @@ class BignumCoreTarget(test_data_generation.BaseTarget, metaclass=ABCMeta):
 # BEGIN MERGE SLOT 10
 
 # END MERGE SLOT 10
-

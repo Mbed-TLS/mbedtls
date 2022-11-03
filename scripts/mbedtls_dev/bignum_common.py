@@ -19,6 +19,7 @@ import typing
 
 from abc import abstractmethod
 from typing import Iterator, List, Tuple, TypeVar
+from . import test_case
 
 T = TypeVar('T') #pylint: disable=invalid-name
 
@@ -93,6 +94,7 @@ class OperationCommon:
         self.arg_b = val_b
         self.int_a = hex_to_int(val_a)
         self.int_b = hex_to_int(val_b)
+        self.arch_specific()
 
     def arguments(self) -> List[str]:
         return [
@@ -150,6 +152,53 @@ class OperationCommon:
 # END MERGE SLOT 6
 
 # BEGIN MERGE SLOT 7
+    def arch_specific(self):
+        """ Placeholder for architecture specific patching
+        """
+        pass
+
+def multiarch(class_override):
+    """ Decorator to enable automatic test cast generation for x64, x32.
+
+        It should be applied to the classes which inherit from
+        bignum_common.OperationCommon, Bignum[MODULE_NAME]Target
+    """
+
+    def arch_split_override(cls)-> None:
+        bound_val = max(cls.int_a, cls.int_b)
+        limbs = limbs_mpi(bound_val, cls.bits_in_limb)
+        byte_len = limbs * cls.bits_in_limb // 8
+        hex_digits = 2 * byte_len
+
+        if cls.bits_in_limb == 32:
+            dependencies = ["MBEDTLS_HAVE_INT32"]
+        elif cls.bits_in_limb == 64:
+            dependencies = ["MBEDTLS_HAVE_INT64"]
+        else:
+            raise ValueError("Invalid number of bits in limb!")
+
+        # Set the target class instance properties
+        cls.dependencies = dependencies
+        cls.hex_digits = hex_digits
+        cls.bound = bound_mpi(bound_val, cls.bits_in_limb)
+        cls.arg_a = cls.arg_a.zfill(hex_digits)
+        cls.arg_b = cls.arg_b.zfill(hex_digits)
+
+    def pad_to_limbs_override(cls, val) -> str:
+        return "{:x}".format(val).zfill(cls.hex_digits)
+
+    def generate_function_tests_override(cls) -> Iterator[test_case.TestCase]:
+        for a_value, b_value in cls.get_value_pairs():
+            yield cls(a_value, b_value, 32).create_test_case()
+            yield cls(a_value, b_value, 64).create_test_case()
+
+    setattr(class_override, 'arch_specific', arch_split_override)
+    setattr(class_override, 'pad_to_limbs', pad_to_limbs_override)
+    setattr(class_override,
+            'generate_function_tests',
+            classmethod(generate_function_tests_override))
+
+    return class_override
 
 # END MERGE SLOT 7
 

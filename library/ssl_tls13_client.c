@@ -700,6 +700,18 @@ static int ssl_tls13_has_configured_ticket( mbedtls_ssl_context *ssl )
             session != NULL && session->ticket != NULL );
 }
 
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+static int ssl_tls13_early_data_ticket_verify( mbedtls_ssl_context *ssl )
+{
+    mbedtls_ssl_session *session = ssl->session_negotiate;
+    return( ssl->handshake->resume &&
+            session != NULL && session->ticket != NULL &&
+            session->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 &&
+            mbedtls_ssl_tls13_cipher_suite_is_offered(
+                ssl, session->ciphersuite ) );
+}
+#endif
+
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_ticket_get_identity( mbedtls_ssl_context *ssl,
                                           psa_algorithm_t *hash_alg,
@@ -1162,8 +1174,11 @@ int mbedtls_ssl_tls13_write_client_hello_exts( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     if( mbedtls_ssl_conf_tls13_some_psk_enabled( ssl ) &&
-        ( mbedtls_ssl_conf_has_static_psk( ssl->conf ) == 1 ||
-          ssl_tls13_has_configured_ticket( ssl ) ) &&
+        ( mbedtls_ssl_conf_has_static_psk( ssl->conf ) == 1
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+          || ssl_tls13_early_data_ticket_verify( ssl )
+#endif
+        ) &&
         ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED )
     {
         ret = mbedtls_ssl_tls13_write_early_data_ext( ssl, p, end, &ext_len );

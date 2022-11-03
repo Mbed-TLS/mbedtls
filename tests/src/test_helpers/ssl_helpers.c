@@ -196,7 +196,7 @@ int mbedtls_test_ssl_buffer_put(mbedtls_test_ssl_buffer *buf,
     }
 
     buf->content_length += input_len;
-    return input_len;
+    return (input_len > INT_MAX) ? INT_MAX : (int) input_len;
 }
 
 int mbedtls_test_ssl_buffer_get(mbedtls_test_ssl_buffer *buf,
@@ -230,7 +230,7 @@ int mbedtls_test_ssl_buffer_get(mbedtls_test_ssl_buffer *buf,
     buf->content_length -= output_len;
     buf->start = (buf->start + output_len) % buf->capacity;
 
-    return output_len;
+    return (output_len > INT_MAX) ? INT_MAX : (int) output_len;
 }
 
 int mbedtls_test_ssl_message_queue_setup(mbedtls_test_ssl_message_queue *queue,
@@ -241,7 +241,7 @@ int mbedtls_test_ssl_message_queue_setup(mbedtls_test_ssl_message_queue *queue,
         return MBEDTLS_ERR_SSL_ALLOC_FAILED;
     }
 
-    queue->capacity = capacity;
+    queue->capacity = (capacity > INT_MAX) ? INT_MAX : (int) capacity;
     queue->pos = 0;
     queue->num = 0;
 
@@ -276,7 +276,7 @@ int mbedtls_test_ssl_message_queue_push_info(
     place = (queue->pos + queue->num) % queue->capacity;
     queue->messages[place] = len;
     queue->num++;
-    return len;
+    return (len > INT_MAX) ? INT_MAX : (int) len;
 }
 
 int mbedtls_test_ssl_message_queue_pop_info(
@@ -299,7 +299,8 @@ int mbedtls_test_ssl_message_queue_pop_info(
         queue->pos += queue->capacity;
     }
 
-    return (message_length > buf_len) ? buf_len : message_length;
+    return (message_length > INT_MAX && buf_len > INT_MAX) ? INT_MAX :
+           (message_length > buf_len) ? (int) buf_len : (int) message_length;
 }
 
 /*
@@ -569,7 +570,7 @@ int mbedtls_test_mock_tcp_recv_msg(void *ctx, unsigned char *buf,
     }
     mbedtls_test_ssl_message_queue_pop_info(queue, buf_len);
 
-    return msg_len;
+    return (msg_len > INT_MAX) ? INT_MAX : (int) msg_len;
 }
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
@@ -1151,13 +1152,21 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
     CHK(mbedtls_cipher_setkey(&t_in->cipher_ctx_enc, key0,
-                              keylen << 3, MBEDTLS_ENCRYPT) == 0);
+                              (keylen << 3 > INT_MAX) ? INT_MAX : (int) keylen << 3,
+                              MBEDTLS_ENCRYPT)
+        == 0);
     CHK(mbedtls_cipher_setkey(&t_in->cipher_ctx_dec, key1,
-                              keylen << 3, MBEDTLS_DECRYPT) == 0);
+                              (keylen << 3 > INT_MAX) ? INT_MAX : (int) keylen << 3,
+                              MBEDTLS_DECRYPT)
+        == 0);
     CHK(mbedtls_cipher_setkey(&t_out->cipher_ctx_enc, key1,
-                              keylen << 3, MBEDTLS_ENCRYPT) == 0);
+                              (keylen << 3 > INT_MAX) ? INT_MAX : (int) keylen << 3,
+                              MBEDTLS_ENCRYPT)
+        == 0);
     CHK(mbedtls_cipher_setkey(&t_out->cipher_ctx_dec, key0,
-                              keylen << 3, MBEDTLS_DECRYPT) == 0);
+                              (keylen << 3 > INT_MAX) ? INT_MAX : (int) keylen << 3,
+                              MBEDTLS_DECRYPT)
+        == 0);
 #endif
 
     /* Setup MAC contexts */
@@ -1344,12 +1353,12 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
     /* Add CID */
     memcpy(&t_in->in_cid,  cid0, cid0_len);
     memcpy(&t_in->out_cid, cid1, cid1_len);
-    t_in->in_cid_len = cid0_len;
-    t_in->out_cid_len = cid1_len;
+    t_in->in_cid_len = (uint8_t) cid0_len;
+    t_in->out_cid_len = (uint8_t) cid1_len;
     memcpy(&t_out->in_cid,  cid1, cid1_len);
     memcpy(&t_out->out_cid, cid0, cid0_len);
-    t_out->in_cid_len = cid1_len;
-    t_out->out_cid_len = cid0_len;
+    t_out->in_cid_len = (uint8_t) cid1_len;
+    t_out->out_cid_len = (uint8_t) cid0_len;
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -2169,7 +2178,7 @@ int tweak_tls13_certificate_msg_vector_len(
             /* Invalid certificate request context length.
              */
             *p_certificate_request_context_len =
-                certificate_request_context_len + 1;
+                (unsigned char) certificate_request_context_len + 1;
             reset_chk_buf_ptr_args(args);
             break;
 

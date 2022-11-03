@@ -998,9 +998,12 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_NO_RNG );
     }
 
+    int renegotiating = 0;
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if( ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE )
+    if( ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE )
+        renegotiating = 1;
 #endif
+    if( !renegotiating )
     {
         ssl->major_ver = ssl->conf->min_major_ver;
         ssl->minor_ver = ssl->conf->min_minor_ver;
@@ -1086,9 +1089,12 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
      * RFC 5077 section 3.4: "When presenting a ticket, the client MAY
      * generate and include a Session ID in the TLS ClientHello."
      */
+    renegotiating = 0;
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if( ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE )
+    if( ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE )
+        renegotiating = 1;
 #endif
+    if( !renegotiating )
     {
         if( ssl->session_negotiate->ticket != NULL &&
                 ssl->session_negotiate->ticket_len != 0 )
@@ -1203,9 +1209,12 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     /*
      * Add TLS_EMPTY_RENEGOTIATION_INFO_SCSV
      */
+    renegotiating = 0;
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if( ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE )
+    if( ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE )
+        renegotiating = 1;
 #endif
+    if( !renegotiating )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "adding EMPTY_RENEGOTIATION_INFO_SCSV" ) );
         MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
@@ -2235,20 +2244,23 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
      */
     comp = buf[37 + n];
 
+    int bad_comp = 0;
 #if defined(MBEDTLS_ZLIB_SUPPORT)
     /* See comments in ssl_write_client_hello() */
+    accept_comp = 1;
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
         accept_comp = 0;
-    else
 #endif
-        accept_comp = 1;
 
     if( comp != MBEDTLS_SSL_COMPRESS_NULL &&
         ( comp != MBEDTLS_SSL_COMPRESS_DEFLATE || accept_comp == 0 ) )
+        bad_comp = 1;
 #else /* MBEDTLS_ZLIB_SUPPORT */
     if( comp != MBEDTLS_SSL_COMPRESS_NULL )
+        bad_comp = 1;
 #endif/* MBEDTLS_ZLIB_SUPPORT */
+    if( bad_comp )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,
             ( "server hello, bad compression: %d", comp ) );
@@ -2692,12 +2704,16 @@ static int ssl_check_server_ecdh_params( const mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDH curve: %s", curve_info->name ) );
 
+    int bad_params = 0;
 #if defined(MBEDTLS_ECP_C)
     if( mbedtls_ssl_check_curve( ssl, grp_id ) != 0 )
+        bad_params = 1;
 #else
     if( ssl->handshake->ecdh_ctx.grp.nbits < 163 ||
         ssl->handshake->ecdh_ctx.grp.nbits > 521 )
+        bad_params = 1;
 #endif
+    if( bad_params )
         return( -1 );
 
     MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx,
@@ -3451,9 +3467,11 @@ start_processing:
         if( ( ret = mbedtls_pk_verify_restartable( peer_pk,
                         md_alg, hash, hashlen, p, sig_len, rs_ctx ) ) != 0 )
         {
+            int send_alert_msg = 1;
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
-            if( ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
+            send_alert_msg = ( ret != MBEDTLS_ERR_ECP_IN_PROGRESS );
 #endif
+            if( send_alert_msg )
                 mbedtls_ssl_send_alert_message(
                     ssl,
                     MBEDTLS_SSL_ALERT_LEVEL_FATAL,

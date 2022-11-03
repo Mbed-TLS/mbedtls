@@ -2048,9 +2048,13 @@ static int ecp_mul_comb_core( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R
         i = d;
         MBEDTLS_MPI_CHK( ecp_select_comb( grp, R, T, T_size, x[i] ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &R->Z, 1 ) );
+
+        int have_rng = 1;
 #if defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
-        if( f_rng != 0 )
+        if( f_rng == 0 )
+            have_rng = 0;
 #endif
+        if( have_rng )
             MBEDTLS_MPI_CHK( ecp_randomize_jac( grp, R, f_rng, p_rng ) );
     }
 
@@ -2184,9 +2188,12 @@ final_norm:
      *
      * Avoid the leak by randomizing coordinates before we normalize them.
      */
+    int have_rng = 1;
 #if defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
-    if( f_rng != 0 )
+    if( f_rng == 0 )
+        have_rng = 0;
 #endif
+    if( have_rng )
         MBEDTLS_MPI_CHK( ecp_randomize_jac( grp, RR, f_rng, p_rng ) );
 
     MBEDTLS_MPI_CHK( ecp_normalize_jac( grp, RR ) );
@@ -2395,12 +2402,14 @@ cleanup:
         mbedtls_free( T );
     }
 
-    /* don't free R while in progress in case R == P */
-#if defined(MBEDTLS_ECP_RESTARTABLE)
-    if( ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
-#endif
     /* prevent caller from using invalid value */
-    if( ret != 0 )
+    int should_free_R = ( ret != 0 );
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    /* don't free R while in progress in case R == P */
+    if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+        should_free_R = 0;
+#endif
+    if( should_free_R )
         mbedtls_ecp_point_free( R );
 
     ECP_RS_LEAVE( rsm );
@@ -2588,9 +2597,12 @@ static int ecp_mul_mxz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     MOD_ADD( RP.X );
 
     /* Randomize coordinates of the starting point */
+    int have_rng = 1;
 #if defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
-    if( f_rng != NULL )
+    if( f_rng == NULL )
+        have_rng = 0;
 #endif
+    if( have_rng )
         MBEDTLS_MPI_CHK( ecp_randomize_mxz( grp, &RP, f_rng, p_rng ) );
 
     /* Loop invariant: R = result so far, RP = R + P */
@@ -2623,9 +2635,12 @@ static int ecp_mul_mxz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
      *
      * Avoid the leak by randomizing coordinates before we normalize them.
      */
+    have_rng = 1;
 #if defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
-    if( f_rng != NULL )
+    if( f_rng == NULL )
+        have_rng = 0;
 #endif
+    if( have_rng )
         MBEDTLS_MPI_CHK( ecp_randomize_mxz( grp, R, f_rng, p_rng ) );
 
     MBEDTLS_MPI_CHK( ecp_normalize_mxz( grp, R ) );
@@ -2672,10 +2687,12 @@ int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         MBEDTLS_MPI_CHK( mbedtls_internal_ecp_init( grp ) );
 #endif /* MBEDTLS_ECP_INTERNAL_ALT */
 
+    int restarting = 0;
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-    /* skip argument check when restarting */
-    if( rs_ctx == NULL || rs_ctx->rsm == NULL )
+    restarting = ( rs_ctx != NULL && rs_ctx->rsm != NULL );
 #endif
+    /* skip argument check when restarting */
+    if( !restarting )
     {
         /* check_privkey is free */
         MBEDTLS_ECP_BUDGET( MBEDTLS_ECP_OPS_CHK );

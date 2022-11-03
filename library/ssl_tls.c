@@ -981,6 +981,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     int psa_fallthrough;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
+    int do_mbedtls_cipher_setup;
     unsigned char keyblk[256];
     unsigned char *key1;
     unsigned char *key2;
@@ -1359,6 +1360,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
     }
 #endif
 
+    do_mbedtls_cipher_setup = 1;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 
     /* Only use PSA-based ciphers for TLS-1.2.
@@ -1394,15 +1396,18 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
     psa_fallthrough = 1;
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-    if( psa_fallthrough == 1 )
+    if( psa_fallthrough == 0 )
+        do_mbedtls_cipher_setup = 0;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-    if( ( ret = mbedtls_cipher_setup( &transform->cipher_ctx_enc,
-                                 cipher_info ) ) != 0 )
+    if( do_mbedtls_cipher_setup &&
+            ( ret = mbedtls_cipher_setup( &transform->cipher_ctx_enc,
+                                          cipher_info ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setup", ret );
         goto end;
     }
 
+    do_mbedtls_cipher_setup = 1;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     /* Only use PSA-based ciphers for TLS-1.2.
      * That's relevant at least for TLS-1.0, where
@@ -1437,10 +1442,12 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
     psa_fallthrough = 1;
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-    if( psa_fallthrough == 1 )
+    if( psa_fallthrough == 0 )
+        do_mbedtls_cipher_setup = 0;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-    if( ( ret = mbedtls_cipher_setup( &transform->cipher_ctx_dec,
-                                 cipher_info ) ) != 0 )
+    if( do_mbedtls_cipher_setup &&
+            ( ret = mbedtls_cipher_setup( &transform->cipher_ctx_dec,
+                                          cipher_info ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setup", ret );
         goto end;
@@ -4085,9 +4092,12 @@ int mbedtls_ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
 
     memset( ssl->out_buf, 0, out_buf_len );
 
+    int clear_in_buf = 1;
 #if defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE) && defined(MBEDTLS_SSL_SRV_C)
-    if( partial == 0 )
+    if( partial != 0 )
+        clear_in_buf = 0;
 #endif /* MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE && MBEDTLS_SSL_SRV_C */
+    if( clear_in_buf )
     {
         ssl->in_left = 0;
         memset( ssl->in_buf, 0, in_buf_len );
@@ -4124,9 +4134,12 @@ int mbedtls_ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) && defined(MBEDTLS_SSL_SRV_C)
+    int free_cli_id = 1;
 #if defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE)
-    if( partial == 0 )
+    if( partial != 0 )
+        free_cli_id = 0;
 #endif
+    if( free_cli_id )
     {
         mbedtls_free( ssl->cli_id );
         ssl->cli_id = NULL;

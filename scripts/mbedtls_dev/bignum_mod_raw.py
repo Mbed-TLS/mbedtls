@@ -18,7 +18,7 @@ from abc import ABCMeta
 
 from . import test_data_generation
 
-class BignumCoreTarget(test_data_generation.BaseTarget, metaclass=ABCMeta):
+class BignumModRawTarget(test_data_generation.BaseTarget, metaclass=ABCMeta):
     #pylint: disable=abstract-method
     """Target for bignum mod_raw test case generation."""
     target_basename = 'test_suite_bignum_mod_raw.generated'

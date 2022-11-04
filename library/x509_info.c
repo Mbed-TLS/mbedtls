@@ -923,6 +923,7 @@ int mbedtls_x509_serial_gets( char *buf, size_t size, const mbedtls_x509_buf *se
     }
 }
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 #if defined(MBEDTLS_X509_REMOVE_INFO)
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -951,5 +952,6 @@ int mbedtls_x509_key_size_helper( char *buf, size_t buf_size, const char *name )
     return( 0 );
   #endif
 }
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 #endif /* MBEDTLS_X509_USE_C */

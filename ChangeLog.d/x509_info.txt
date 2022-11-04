@@ -1,0 +1,7 @@
+Features
+   * Reduce code size and improve performance by replacing use of
+     MBEDTLS_X509_SAFE_SNPRINTF and simple snprintf() with memcpy()
+   * Collect MBEDTLS_X509_REMOVE_INFO code into library/x509_info.c
+New deprecations
+   * Deprecate now-unused mbedtls_x509_key_size_helper()
+   * Deprecate now-unused macro MBEDTLS_X509_SAFE_SNPRINTF()

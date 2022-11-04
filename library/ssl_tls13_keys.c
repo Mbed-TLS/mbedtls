@@ -1081,6 +1081,156 @@ static int ssl_tls13_get_cipher_key_info(
     return 0;
 }
 
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+/* ssl_tls13_generate_early_keys() generates keys necessary for protecting
+ * the early app data messages described in section 7  RFC 8446. */
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_generate_early_keys( mbedtls_ssl_context *ssl,
+                                          mbedtls_ssl_key_set *traffic_keys )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    mbedtls_md_type_t md_type;
+
+    psa_algorithm_t hash_alg;
+    size_t hash_len;
+
+    unsigned char transcript[MBEDTLS_TLS1_3_MD_MAX_SIZE];
+    size_t transcript_len;
+
+    size_t key_len, iv_len;
+
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info = handshake->ciphersuite_info;
+    mbedtls_ssl_tls13_early_secrets *tls13_early_secrets = &handshake->tls13_early_secrets;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> ssl_tls13_generate_early_keys" ) );
+
+    ret = ssl_tls13_get_cipher_key_info( ciphersuite_info, &key_len, &iv_len );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_get_cipher_key_info", ret );
+        return ret;
+    }
+
+    md_type = ciphersuite_info->mac;
+
+    hash_alg = mbedtls_hash_info_psa_from_md( ciphersuite_info->mac );
+    hash_len = PSA_HASH_LENGTH( hash_alg );
+
+    ret = mbedtls_ssl_get_handshake_transcript( ssl, md_type,
+                                                transcript,
+                                                sizeof( transcript ),
+                                                &transcript_len );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1,
+                               "mbedtls_ssl_get_handshake_transcript",
+                               ret );
+        return( ret );
+    }
+
+    ret = mbedtls_ssl_tls13_derive_early_secrets( hash_alg,
+                                    handshake->tls13_master_secrets.early,
+                                    transcript, transcript_len, tls13_early_secrets );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET(
+            1, "mbedtls_ssl_tls13_derive_early_secrets", ret );
+        return( ret );
+    }
+
+    MBEDTLS_SSL_DEBUG_BUF(
+        4, "Client early traffic secret",
+                    tls13_early_secrets->client_early_traffic_secret,
+                    hash_len );
+
+    /*
+     * Export client handshake traffic secret
+     */
+    if( ssl->f_export_keys != NULL )
+    {
+        ssl->f_export_keys( ssl->p_export_keys,
+                MBEDTLS_SSL_KEY_EXPORT_TLS1_3_CLIENT_EARLY_SECRET,
+                tls13_early_secrets->client_early_traffic_secret,
+                hash_len,
+                handshake->randbytes,
+                handshake->randbytes + MBEDTLS_CLIENT_HELLO_RANDOM_LEN,
+                MBEDTLS_SSL_TLS_PRF_NONE /* TODO: FIX! */ );
+    }
+
+    ret = mbedtls_ssl_tls13_make_traffic_keys( hash_alg,
+                            tls13_early_secrets->client_early_traffic_secret,
+                            tls13_early_secrets->client_early_traffic_secret,
+                            hash_len, key_len, iv_len, traffic_keys );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_make_traffic_keys", ret );
+        goto exit;
+    }
+
+    MBEDTLS_SSL_DEBUG_BUF( 5, "client_handshake write_key",
+                           traffic_keys->client_write_key,
+                           traffic_keys->key_len);
+
+    MBEDTLS_SSL_DEBUG_BUF( 5, "client_handshake write_iv",
+                           traffic_keys->client_write_iv,
+                           traffic_keys->iv_len);
+
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= ssl_tls13_generate_early_keys" ) );
+
+exit:
+
+    return( ret );
+}
+
+int mbedtls_ssl_tls13_compute_early_transform( mbedtls_ssl_context *ssl )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_ssl_key_set traffic_keys;
+    mbedtls_ssl_transform *transform_earlydata = NULL;
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+
+    /* Next evolution in key schedule: Establish early_data secret and
+     * key material. */
+    ret = ssl_tls13_generate_early_keys( ssl, &traffic_keys );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_generate_early_keys",
+                               ret );
+        goto cleanup;
+    }
+
+    transform_earlydata = mbedtls_calloc( 1, sizeof( mbedtls_ssl_transform ) );
+    if( transform_earlydata == NULL )
+    {
+        ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
+        goto cleanup;
+    }
+
+    ret = mbedtls_ssl_tls13_populate_transform(
+                                        transform_earlydata,
+                                        ssl->conf->endpoint,
+                                        ssl->session_negotiate->ciphersuite,
+                                        &traffic_keys,
+                                        ssl );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_populate_transform", ret );
+        goto cleanup;
+    }
+    handshake->transform_earlydata = transform_earlydata;
+
+cleanup:
+    mbedtls_platform_zeroize( &traffic_keys, sizeof( traffic_keys ) );
+    if( ret != 0 )
+        mbedtls_free( transform_earlydata );
+
+    return( ret );
+}
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
 int mbedtls_ssl_tls13_key_schedule_stage_early( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;

@@ -62,7 +62,7 @@
 #define PSA_WANT_ALG_CHACHA20_POLY1305          1
 #define PSA_WANT_ALG_CTR                        1
 #define PSA_WANT_ALG_DETERMINISTIC_ECDSA        1
-#define PSA_WANT_ALG_ECB_NO_PADDING             1
+//#define PSA_WANT_ALG_ECB_NO_PADDING             1
 #define PSA_WANT_ALG_ECDH                       1
 #define PSA_WANT_ALG_ECDSA                      1
 #define PSA_WANT_ALG_JPAKE                      1
@@ -86,7 +86,7 @@
 #define PSA_WANT_ALG_SHA_256                    1
 #define PSA_WANT_ALG_SHA_384                    1
 #define PSA_WANT_ALG_SHA_512                    1
-#define PSA_WANT_ALG_STREAM_CIPHER              1
+//#define PSA_WANT_ALG_STREAM_CIPHER              1
 #define PSA_WANT_ALG_TLS12_PRF                  1
 #define PSA_WANT_ALG_TLS12_PSK_TO_MS            1
 #define PSA_WANT_ALG_TLS12_ECJPAKE_TO_PMS       1

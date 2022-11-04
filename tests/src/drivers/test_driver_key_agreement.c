@@ -19,15 +19,22 @@
 
 #include <test/helpers.h>
 
+#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS) && defined(PSA_CRYPTO_DRIVER_TEST)
+
 #include "psa/crypto.h"
 #include "psa_crypto_core.h"
+#include "psa_crypto_ecp.h"
 
 #include "test/drivers/key_agreement.h"
 #include "test/drivers/test_driver.h"
 
 #include <string.h>
+#include <stdio.h>
 
-#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS) && defined(PSA_CRYPTO_DRIVER_TEST)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
+#include "libtestdriver1/include/psa/crypto.h"
+#include "libtestdriver1/library/psa_crypto_ecp.h"
+#endif
 
 mbedtls_test_driver_key_agreement_hooks_t
     mbedtls_test_driver_key_agreement_hooks = MBEDTLS_TEST_DRIVER_KEY_AGREEMENT_INIT;
@@ -58,16 +65,30 @@ psa_status_t mbedtls_test_transparent_key_agreement(
         return( PSA_SUCCESS );
     }
 
-    return( psa_key_agreement_raw_builtin(
+    if( PSA_ALG_IS_ECDH(alg) )
+    {
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    (LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_ALG_ECDH)
+        return( libtestdriver1_mbedtls_psa_key_agreement_ecdh(
+                    (const libtestdriver1_psa_key_attributes_t *) attributes,
+                    key_buffer, key_buffer_size,
+                    alg, peer_key, peer_key_length,
+                    shared_secret, shared_secret_size,
+                    shared_secret_length ) );
+#elif defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
+        return( mbedtls_psa_key_agreement_ecdh(
                 attributes,
-                key_buffer,
-                key_buffer_size,
-                alg,
-                peer_key,
-                peer_key_length,
-                shared_secret,
-                shared_secret_size,
+                key_buffer, key_buffer_size,
+                alg, peer_key, peer_key_length,
+                shared_secret, shared_secret_size,
                 shared_secret_length ) );
+#endif   
+    }
+    else
+    {
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+
 }
 
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */

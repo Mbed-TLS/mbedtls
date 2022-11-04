@@ -5735,62 +5735,6 @@ psa_status_t psa_key_derivation_input_key(
 /****************************************************************/
 /* Key agreement */
 /****************************************************************/
-
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
-static psa_status_t psa_key_agreement_ecdh( const uint8_t *peer_key,
-                                            size_t peer_key_length,
-                                            const mbedtls_ecp_keypair *our_key,
-                                            uint8_t *shared_secret,
-                                            size_t shared_secret_size,
-                                            size_t *shared_secret_length )
-{
-    mbedtls_ecp_keypair *their_key = NULL;
-    mbedtls_ecdh_context ecdh;
-    psa_status_t status;
-    size_t bits = 0;
-    psa_ecc_family_t curve = mbedtls_ecc_group_to_psa( our_key->grp.id, &bits );
-    mbedtls_ecdh_init( &ecdh );
-
-    status = mbedtls_psa_ecp_load_representation(
-                 PSA_KEY_TYPE_ECC_PUBLIC_KEY(curve),
-                 bits,
-                 peer_key,
-                 peer_key_length,
-                 &their_key );
-    if( status != PSA_SUCCESS )
-        goto exit;
-
-    status = mbedtls_to_psa_error(
-        mbedtls_ecdh_get_params( &ecdh, their_key, MBEDTLS_ECDH_THEIRS ) );
-    if( status != PSA_SUCCESS )
-        goto exit;
-    status = mbedtls_to_psa_error(
-        mbedtls_ecdh_get_params( &ecdh, our_key, MBEDTLS_ECDH_OURS ) );
-    if( status != PSA_SUCCESS )
-        goto exit;
-
-    status = mbedtls_to_psa_error(
-        mbedtls_ecdh_calc_secret( &ecdh,
-                                  shared_secret_length,
-                                  shared_secret, shared_secret_size,
-                                  mbedtls_psa_get_random,
-                                  MBEDTLS_PSA_RANDOM_STATE ) );
-    if( status != PSA_SUCCESS )
-        goto exit;
-    if( PSA_BITS_TO_BYTES( bits ) != *shared_secret_length )
-        status = PSA_ERROR_CORRUPTION_DETECTED;
-
-exit:
-    if( status != PSA_SUCCESS )
-        mbedtls_platform_zeroize( shared_secret, shared_secret_size );
-    mbedtls_ecdh_free( &ecdh );
-    mbedtls_ecp_keypair_free( their_key );
-    mbedtls_free( their_key );
-
-    return( status );
-}
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_ECDH */
-
 #define PSA_KEY_AGREEMENT_MAX_SHARED_SECRET_SIZE MBEDTLS_ECP_MAX_BYTES
 
 psa_status_t psa_key_agreement_raw_builtin( const psa_key_attributes_t *attributes,
@@ -5807,24 +5751,12 @@ psa_status_t psa_key_agreement_raw_builtin( const psa_key_attributes_t *attribut
     {
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
         case PSA_ALG_ECDH:
-            if( ! PSA_KEY_TYPE_IS_ECC_KEY_PAIR( attributes->core.type ) )
-                return( PSA_ERROR_INVALID_ARGUMENT );
-            mbedtls_ecp_keypair *ecp = NULL;
-            psa_status_t status = mbedtls_psa_ecp_load_representation(
-                                      attributes->core.type,
-                                      attributes->core.bits,
-                                      key_buffer,
-                                      key_buffer_size,
-                                      &ecp );
-            if( status != PSA_SUCCESS )
-                return( status );
-            status = psa_key_agreement_ecdh( peer_key, peer_key_length,
-                                             ecp,
-                                             shared_secret, shared_secret_size,
-                                             shared_secret_length );
-            mbedtls_ecp_keypair_free( ecp );
-            mbedtls_free( ecp );
-            return( status );
+            return( mbedtls_psa_key_agreement_ecdh( attributes, key_buffer,
+                                                   key_buffer_size, alg,
+                                                   peer_key, peer_key_length,
+                                                   shared_secret,
+                                                   shared_secret_size,
+                                                   shared_secret_length ) );
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_ECDH */
         default:
             (void) attributes;

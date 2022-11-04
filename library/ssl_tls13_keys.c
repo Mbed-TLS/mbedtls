@@ -1052,6 +1052,35 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
     return( 0 );
 }
 
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_get_cipher_key_info(
+                    const mbedtls_ssl_ciphersuite_t *ciphersuite_info,
+                    size_t *key_len, size_t *iv_len )
+{
+    psa_key_type_t key_type;
+    psa_algorithm_t alg;
+    size_t taglen;
+    size_t key_bits;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    if( ciphersuite_info->flags & MBEDTLS_CIPHERSUITE_SHORT_TAG )
+        taglen = 8;
+    else
+        taglen = 16;
+
+    status = mbedtls_ssl_cipher_to_psa( ciphersuite_info->cipher, taglen,
+                                        &alg, &key_type, &key_bits );
+    if( status != PSA_SUCCESS )
+        return psa_ssl_status_to_mbedtls( status );
+
+    *key_len = PSA_BITS_TO_BYTES( key_bits );
+
+    /* TLS 1.3 only have AEAD ciphers, IV length is unconditionally 12 bytes */
+    *iv_len = 12;
+
+    return 0;
+}
+
 int mbedtls_ssl_tls13_key_schedule_stage_early( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -1098,35 +1127,6 @@ int mbedtls_ssl_tls13_key_schedule_stage_early( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
-MBEDTLS_CHECK_RETURN_CRITICAL
-static int mbedtls_ssl_tls13_get_cipher_key_info(
-                    const mbedtls_ssl_ciphersuite_t *ciphersuite_info,
-                    size_t *key_len, size_t *iv_len )
-{
-    psa_key_type_t key_type;
-    psa_algorithm_t alg;
-    size_t taglen;
-    size_t key_bits;
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-
-    if( ciphersuite_info->flags & MBEDTLS_CIPHERSUITE_SHORT_TAG )
-        taglen = 8;
-    else
-        taglen = 16;
-
-    status = mbedtls_ssl_cipher_to_psa( ciphersuite_info->cipher, taglen,
-                                        &alg, &key_type, &key_bits );
-    if( status != PSA_SUCCESS )
-        return psa_ssl_status_to_mbedtls( status );
-
-    *key_len = PSA_BITS_TO_BYTES( key_bits );
-
-    /* TLS 1.3 only have AEAD ciphers, IV length is unconditionally 12 bytes */
-    *iv_len = 12;
-
-    return 0;
-}
-
 /* mbedtls_ssl_tls13_generate_handshake_keys() generates keys necessary for
  * protecting the handshake messages, as described in Section 7 of TLS 1.3. */
 int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
@@ -1150,11 +1150,11 @@ int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_tls13_generate_handshake_keys" ) );
 
-    ret = mbedtls_ssl_tls13_get_cipher_key_info( ciphersuite_info,
+    ret = ssl_tls13_get_cipher_key_info( ciphersuite_info,
                                                  &key_len, &iv_len );
     if( ret != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_get_cipher_key_info", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_get_cipher_key_info", ret );
         return ret;
     }
 
@@ -1370,11 +1370,11 @@ int mbedtls_ssl_tls13_generate_application_keys(
 
     /* Extract basic information about hash and ciphersuite */
 
-    ret = mbedtls_ssl_tls13_get_cipher_key_info( handshake->ciphersuite_info,
+    ret = ssl_tls13_get_cipher_key_info( handshake->ciphersuite_info,
                                                  &key_len, &iv_len );
     if( ret != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_get_cipher_key_info", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_get_cipher_key_info", ret );
         goto cleanup;
     }
 

@@ -701,7 +701,7 @@ static int ssl_tls13_has_configured_ticket( mbedtls_ssl_context *ssl )
 }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-static int ssl_tls13_early_data_ticket_verify( mbedtls_ssl_context *ssl )
+static int ssl_tls13_early_data_has_valid_ticket( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_session *session = ssl->session_negotiate;
     return( ssl->handshake->resume &&
@@ -1176,7 +1176,7 @@ int mbedtls_ssl_tls13_write_client_hello_exts( mbedtls_ssl_context *ssl,
     if( mbedtls_ssl_conf_tls13_some_psk_enabled( ssl ) &&
         ( mbedtls_ssl_conf_has_static_psk( ssl->conf ) == 1
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-          || ssl_tls13_early_data_ticket_verify( ssl )
+          || ssl_tls13_early_data_has_valid_ticket( ssl )
 #endif
         ) &&
         ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED )

@@ -1664,6 +1664,8 @@
 *           MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED or
 *           MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 *
+* Requires: MBEDTLS_SSL_MAX_EARLY_DATA_SIZE >= 0
+*
 * Comment this to disable support for early data. If MBEDTLS_SSL_PROTO_TLS1_3
 * is not enabled, this option does not have any effect on the build.
 *
@@ -1672,6 +1674,19 @@
 *
 */
 //#define MBEDTLS_SSL_EARLY_DATA
+
+/**
+ * \def MBEDTLS_SSL_MAX_EARLY_DATA_SIZE
+ *
+ * The maximium amount of 0-RTT data(RFC8446 section 4.6.1).
+ * It only works when MBEDTLS_SSL_EARLY_DATA is enabled and MUST be in range
+ * 1...UINT32_MAX
+ *
+ * This feature is experimental, not completed and thus not ready for
+ * production.
+ *
+ */
+#define MBEDTLS_SSL_MAX_EARLY_DATA_SIZE        1024
 
 /**
  * \def MBEDTLS_SSL_PROTO_DTLS

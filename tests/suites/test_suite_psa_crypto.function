@@ -718,6 +718,15 @@ static void ecjpake_do_round( psa_algorithm_t alg, unsigned int primitive,
         PSA_PAKE_OUTPUT_SIZE(alg, primitive, PSA_PAKE_STEP_KEY_SHARE) +
         PSA_PAKE_OUTPUT_SIZE(alg, primitive, PSA_PAKE_STEP_ZK_PUBLIC) +
         PSA_PAKE_OUTPUT_SIZE(alg, primitive, PSA_PAKE_STEP_ZK_PROOF)) * 2;
+    /* The output should be exactly this size according to the spec */
+    const size_t expected_size_key_share =
+        PSA_PAKE_OUTPUT_SIZE(alg, primitive, PSA_PAKE_STEP_KEY_SHARE);
+    /* The output should be exactly this size according to the spec */
+    const size_t expected_size_zk_public =
+        PSA_PAKE_OUTPUT_SIZE(alg, primitive, PSA_PAKE_STEP_ZK_PUBLIC);
+    /* The output can be smaller: the spec allows stripping leading zeroes */
+    const size_t max_expected_size_zk_proof =
+        PSA_PAKE_OUTPUT_SIZE(alg, primitive, PSA_PAKE_STEP_ZK_PROOF);
     size_t buffer0_off = 0;
     size_t buffer1_off = 0;
     size_t s_g1_len, s_g2_len, s_a_len;
@@ -745,31 +754,37 @@ static void ecjpake_do_round( psa_algorithm_t alg, unsigned int primitive,
             PSA_ASSERT( psa_pake_output( server, PSA_PAKE_STEP_KEY_SHARE,
                                          buffer0 + buffer0_off,
                                          512 - buffer0_off, &s_g1_len ) );
+            TEST_EQUAL( s_g1_len, expected_size_key_share );
             s_g1_off = buffer0_off;
             buffer0_off += s_g1_len;
             PSA_ASSERT( psa_pake_output( server, PSA_PAKE_STEP_ZK_PUBLIC,
                                          buffer0 + buffer0_off,
                                          512 - buffer0_off, &s_x1_pk_len ) );
+            TEST_EQUAL( s_x1_pk_len, expected_size_zk_public );
             s_x1_pk_off = buffer0_off;
             buffer0_off += s_x1_pk_len;
             PSA_ASSERT( psa_pake_output( server, PSA_PAKE_STEP_ZK_PROOF,
                                          buffer0 + buffer0_off,
                                          512 - buffer0_off, &s_x1_pr_len ) );
+            TEST_LE_U( s_x1_pr_len, max_expected_size_zk_proof );
             s_x1_pr_off = buffer0_off;
             buffer0_off += s_x1_pr_len;
             PSA_ASSERT( psa_pake_output( server, PSA_PAKE_STEP_KEY_SHARE,
                                          buffer0 + buffer0_off,
                                          512 - buffer0_off, &s_g2_len ) );
+            TEST_EQUAL( s_g2_len, expected_size_key_share );
             s_g2_off = buffer0_off;
             buffer0_off += s_g2_len;
             PSA_ASSERT( psa_pake_output( server, PSA_PAKE_STEP_ZK_PUBLIC,
                                          buffer0 + buffer0_off,
                                          512 - buffer0_off, &s_x2_pk_len ) );
+            TEST_EQUAL( s_x2_pk_len, expected_size_zk_public );
             s_x2_pk_off = buffer0_off;
             buffer0_off += s_x2_pk_len;
             PSA_ASSERT( psa_pake_output( server, PSA_PAKE_STEP_ZK_PROOF,
                                          buffer0 + buffer0_off,
                                          512 - buffer0_off, &s_x2_pr_len ) );
+            TEST_LE_U( s_x2_pr_len, max_expected_size_zk_proof );
             s_x2_pr_off = buffer0_off;
             buffer0_off += s_x2_pr_len;
 
@@ -877,31 +892,37 @@ static void ecjpake_do_round( psa_algorithm_t alg, unsigned int primitive,
             PSA_ASSERT( psa_pake_output( client, PSA_PAKE_STEP_KEY_SHARE,
                                          buffer1 + buffer1_off,
                                          512 - buffer1_off, &c_g1_len ) );
+            TEST_EQUAL( c_g1_len, expected_size_key_share );
             c_g1_off = buffer1_off;
             buffer1_off += c_g1_len;
             PSA_ASSERT( psa_pake_output( client, PSA_PAKE_STEP_ZK_PUBLIC,
                                          buffer1 + buffer1_off,
                                          512 - buffer1_off, &c_x1_pk_len ) );
+            TEST_EQUAL( c_x1_pk_len, expected_size_zk_public );
             c_x1_pk_off = buffer1_off;
             buffer1_off += c_x1_pk_len;
             PSA_ASSERT( psa_pake_output( client, PSA_PAKE_STEP_ZK_PROOF,
                                          buffer1 + buffer1_off,
                                          512 - buffer1_off, &c_x1_pr_len ) );
+            TEST_LE_U( c_x1_pr_len, max_expected_size_zk_proof );
             c_x1_pr_off = buffer1_off;
             buffer1_off += c_x1_pr_len;
             PSA_ASSERT( psa_pake_output( client, PSA_PAKE_STEP_KEY_SHARE,
                                          buffer1 + buffer1_off,
                                          512 - buffer1_off, &c_g2_len ) );
+            TEST_EQUAL( c_g2_len, expected_size_key_share );
             c_g2_off = buffer1_off;
             buffer1_off += c_g2_len;
             PSA_ASSERT( psa_pake_output( client, PSA_PAKE_STEP_ZK_PUBLIC,
                                          buffer1 + buffer1_off,
                                          512 - buffer1_off, &c_x2_pk_len ) );
+            TEST_EQUAL( c_x2_pk_len, expected_size_zk_public );
             c_x2_pk_off = buffer1_off;
             buffer1_off += c_x2_pk_len;
             PSA_ASSERT( psa_pake_output( client, PSA_PAKE_STEP_ZK_PROOF,
                                          buffer1 + buffer1_off,
                                          512 - buffer1_off, &c_x2_pr_len ) );
+            TEST_LE_U( c_x2_pr_len, max_expected_size_zk_proof );
             c_x2_pr_off = buffer1_off;
             buffer1_off += c_x2_pr_len;
 
@@ -1083,16 +1104,19 @@ static void ecjpake_do_round( psa_algorithm_t alg, unsigned int primitive,
             PSA_ASSERT( psa_pake_output( server, PSA_PAKE_STEP_KEY_SHARE,
                                          buffer0 + buffer0_off,
                                          512 - buffer0_off, &s_a_len ) );
+            TEST_EQUAL( s_a_len, expected_size_key_share );
             s_a_off = buffer0_off;
             buffer0_off += s_a_len;
             PSA_ASSERT( psa_pake_output( server, PSA_PAKE_STEP_ZK_PUBLIC,
                                          buffer0 + buffer0_off,
                                          512 - buffer0_off, &s_x2s_pk_len ) );
+            TEST_EQUAL( s_x2s_pk_len, expected_size_zk_public );
             s_x2s_pk_off = buffer0_off;
             buffer0_off += s_x2s_pk_len;
             PSA_ASSERT( psa_pake_output( server, PSA_PAKE_STEP_ZK_PROOF,
                                          buffer0 + buffer0_off,
                                          512 - buffer0_off, &s_x2s_pr_len ) );
+            TEST_LE_U( s_x2s_pr_len, max_expected_size_zk_proof );
             s_x2s_pr_off = buffer0_off;
             buffer0_off += s_x2s_pr_len;
 
@@ -1154,16 +1178,19 @@ static void ecjpake_do_round( psa_algorithm_t alg, unsigned int primitive,
             PSA_ASSERT( psa_pake_output( client, PSA_PAKE_STEP_KEY_SHARE,
                                          buffer1 + buffer1_off,
                                          512 - buffer1_off, &c_a_len ) );
+            TEST_EQUAL( c_a_len, expected_size_key_share );
             c_a_off = buffer1_off;
             buffer1_off += c_a_len;
             PSA_ASSERT( psa_pake_output( client, PSA_PAKE_STEP_ZK_PUBLIC,
                                          buffer1 + buffer1_off,
                                          512 - buffer1_off, &c_x2s_pk_len ) );
+            TEST_EQUAL( c_x2s_pk_len, expected_size_zk_public );
             c_x2s_pk_off = buffer1_off;
             buffer1_off += c_x2s_pk_len;
             PSA_ASSERT( psa_pake_output( client, PSA_PAKE_STEP_ZK_PROOF,
                                          buffer1 + buffer1_off,
                                          512 - buffer1_off, &c_x2s_pr_len ) );
+            TEST_LE_U( c_x2s_pr_len, max_expected_size_zk_proof );
             c_x2s_pr_off = buffer1_off;
             buffer1_off += c_x2s_pr_len;
 
@@ -8713,7 +8740,9 @@ void ecjpake_setup( int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
 {
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
     psa_pake_operation_t operation = psa_pake_operation_init();
+    psa_pake_operation_t op_copy = psa_pake_operation_init();
     psa_algorithm_t alg = alg_arg;
+    psa_pake_primitive_t primitive = primitive_arg;
     psa_key_type_t key_type_pw = key_type_pw_arg;
     psa_key_usage_t key_usage_pw = key_usage_pw_arg;
     psa_algorithm_t hash_alg = hash_arg;
@@ -8731,9 +8760,9 @@ void ecjpake_setup( int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
 
     PSA_INIT( );
 
-    ASSERT_ALLOC( output_buffer,
-                  PSA_PAKE_OUTPUT_SIZE(alg, primitive_arg,
-                                       PSA_PAKE_STEP_KEY_SHARE) );
+    size_t buf_size = PSA_PAKE_OUTPUT_SIZE(alg, primitive_arg,
+                                       PSA_PAKE_STEP_KEY_SHARE);
+    ASSERT_ALLOC( output_buffer, buf_size );
 
     if( pw_data->len > 0 )
     {
@@ -8745,7 +8774,7 @@ void ecjpake_setup( int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
     }
 
     psa_pake_cs_set_algorithm( &cipher_suite, alg );
-    psa_pake_cs_set_primitive( &cipher_suite, primitive_arg );
+    psa_pake_cs_set_primitive( &cipher_suite, primitive );
     psa_pake_cs_set_hash( &cipher_suite, hash_alg );
 
     PSA_ASSERT( psa_pake_abort( &operation ) );
@@ -8799,54 +8828,71 @@ void ecjpake_setup( int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
     TEST_EQUAL( psa_pake_set_peer( &operation, unsupported_id, 4 ),
                 PSA_ERROR_NOT_SUPPORTED );
 
+    const size_t size_key_share = PSA_PAKE_INPUT_SIZE( alg, primitive,
+                                                PSA_PAKE_STEP_KEY_SHARE );
+    const size_t size_zk_public = PSA_PAKE_INPUT_SIZE( alg, primitive,
+                                                PSA_PAKE_STEP_ZK_PUBLIC );
+    const size_t size_zk_proof = PSA_PAKE_INPUT_SIZE( alg, primitive,
+                                                PSA_PAKE_STEP_ZK_PROOF );
+
     /* First round */
     if( input_first )
     {
-        /* Invalid parameters */
-        TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_ZK_PROOF,
+        /* Invalid parameters (input) */
+        op_copy = operation;
+        TEST_EQUAL( psa_pake_input( &op_copy, PSA_PAKE_STEP_ZK_PROOF,
                                     NULL, 0 ),
                     PSA_ERROR_INVALID_ARGUMENT );
-        TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_ZK_PROOF + 10,
-                                    output_buffer, 66 ),
+        /* Invalid parameters (step) */
+        op_copy = operation;
+        TEST_EQUAL( psa_pake_input( &op_copy, PSA_PAKE_STEP_ZK_PROOF + 10,
+                                    output_buffer, size_zk_proof ),
                     PSA_ERROR_INVALID_ARGUMENT );
         /* Invalid first step */
-        TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_ZK_PROOF,
-                                    output_buffer, 66 ),
+        op_copy = operation;
+        TEST_EQUAL( psa_pake_input( &op_copy, PSA_PAKE_STEP_ZK_PROOF,
+                                    output_buffer, size_zk_proof ),
                     PSA_ERROR_BAD_STATE );
 
+        /* Possibly valid */
         TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_KEY_SHARE,
-                                    output_buffer, 66 ),
+                                    output_buffer, size_key_share ),
                     expected_status_input_output);
 
         if( expected_status_input_output == PSA_SUCCESS )
         {
             /* Buffer too large */
             TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_ZK_PUBLIC,
-                                    output_buffer, 512 ),
-                        PSA_ERROR_INSUFFICIENT_MEMORY );
+                                    output_buffer, size_zk_public + 1 ),
+                        PSA_ERROR_INVALID_ARGUMENT );
 
-            /* The operation should be aborted at this point */
+            /* The operation's state should be invalidated at this point */
             TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_ZK_PUBLIC,
-                                        output_buffer, 66 ),
+                                        output_buffer, size_zk_public ),
                         PSA_ERROR_BAD_STATE );
         }
     }
     else
     {
-        /* Invalid parameters */
-        TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_ZK_PROOF,
+        /* Invalid parameters (output) */
+        op_copy = operation;
+        TEST_EQUAL( psa_pake_output( &op_copy, PSA_PAKE_STEP_ZK_PROOF,
                                      NULL, 0, NULL ),
                     PSA_ERROR_INVALID_ARGUMENT );
-        TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_ZK_PROOF + 10,
-                                     output_buffer, 512, &output_len ),
+        op_copy = operation;
+        /* Invalid parameters (step) */
+        TEST_EQUAL( psa_pake_output( &op_copy, PSA_PAKE_STEP_ZK_PROOF + 10,
+                                     output_buffer, buf_size, &output_len ),
                     PSA_ERROR_INVALID_ARGUMENT );
         /* Invalid first step */
-        TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_ZK_PROOF,
-                                     output_buffer, 512, &output_len ),
+        op_copy = operation;
+        TEST_EQUAL( psa_pake_output( &op_copy, PSA_PAKE_STEP_ZK_PROOF,
+                                     output_buffer, buf_size, &output_len ),
                     PSA_ERROR_BAD_STATE );
 
+        /* Possibly valid */
         TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_KEY_SHARE,
-                                     output_buffer, 512, &output_len ),
+                                     output_buffer, buf_size, &output_len ),
                     expected_status_input_output );
 
         if( expected_status_input_output == PSA_SUCCESS )
@@ -8855,12 +8901,12 @@ void ecjpake_setup( int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
 
             /* Buffer too small */
             TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_ZK_PUBLIC,
-                                         output_buffer, 5, &output_len ),
+                                         output_buffer, size_zk_public - 1, &output_len ),
                         PSA_ERROR_BUFFER_TOO_SMALL );
 
-            /* The operation should be aborted at this point */
+            /* The operation's state should be invalidated at this point */
             TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_ZK_PUBLIC,
-                                         output_buffer, 512, &output_len ),
+                                         output_buffer, buf_size, &output_len ),
                         PSA_ERROR_BAD_STATE );
         }
     }
@@ -9007,5 +9053,49 @@ exit:
     psa_pake_abort( &server );
     psa_pake_abort( &client );
     PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ecjpake_size_macros( )
+{
+    const psa_algorithm_t alg = PSA_ALG_JPAKE;
+    const size_t bits = 256;
+    const psa_pake_primitive_t prim = PSA_PAKE_PRIMITIVE(
+            PSA_PAKE_PRIMITIVE_TYPE_ECC, PSA_ECC_FAMILY_SECP_R1, bits );
+    const psa_key_type_t key_type = PSA_KEY_TYPE_ECC_KEY_PAIR(
+            PSA_ECC_FAMILY_SECP_R1 );
+
+    // https://armmbed.github.io/mbed-crypto/1.1_PAKE_Extension.0-bet.0/html/pake.html#pake-step-types
+    /* The output for KEY_SHARE and ZK_PUBLIC is the same as a public key */
+    TEST_EQUAL( PSA_PAKE_OUTPUT_SIZE(alg, prim, PSA_PAKE_STEP_KEY_SHARE),
+                PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE( key_type, bits ) );
+    TEST_EQUAL( PSA_PAKE_OUTPUT_SIZE(alg, prim, PSA_PAKE_STEP_ZK_PUBLIC),
+                PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE( key_type, bits ) );
+    /* The output for ZK_PROOF is the same bitsize as the curve */
+    TEST_EQUAL( PSA_PAKE_OUTPUT_SIZE(alg, prim, PSA_PAKE_STEP_ZK_PROOF),
+                PSA_BITS_TO_BYTES( bits ) );
+
+    /* Input sizes are the same as output sizes */
+    TEST_EQUAL( PSA_PAKE_OUTPUT_SIZE(alg, prim, PSA_PAKE_STEP_KEY_SHARE),
+                PSA_PAKE_INPUT_SIZE(alg, prim, PSA_PAKE_STEP_KEY_SHARE) );
+    TEST_EQUAL( PSA_PAKE_OUTPUT_SIZE(alg, prim, PSA_PAKE_STEP_ZK_PUBLIC),
+                PSA_PAKE_INPUT_SIZE(alg, prim, PSA_PAKE_STEP_ZK_PUBLIC) );
+    TEST_EQUAL( PSA_PAKE_OUTPUT_SIZE(alg, prim, PSA_PAKE_STEP_ZK_PROOF),
+                PSA_PAKE_INPUT_SIZE(alg, prim, PSA_PAKE_STEP_ZK_PROOF) );
+
+    /* These inequalities will always hold even when other PAKEs are added */
+    TEST_LE_U( PSA_PAKE_OUTPUT_SIZE(alg, prim, PSA_PAKE_STEP_KEY_SHARE),
+               PSA_PAKE_OUTPUT_MAX_SIZE );
+    TEST_LE_U( PSA_PAKE_OUTPUT_SIZE(alg, prim, PSA_PAKE_STEP_ZK_PUBLIC),
+               PSA_PAKE_OUTPUT_MAX_SIZE );
+    TEST_LE_U( PSA_PAKE_OUTPUT_SIZE(alg, prim, PSA_PAKE_STEP_ZK_PROOF),
+               PSA_PAKE_OUTPUT_MAX_SIZE );
+    TEST_LE_U( PSA_PAKE_INPUT_SIZE(alg, prim, PSA_PAKE_STEP_KEY_SHARE),
+               PSA_PAKE_INPUT_MAX_SIZE );
+    TEST_LE_U( PSA_PAKE_INPUT_SIZE(alg, prim, PSA_PAKE_STEP_ZK_PUBLIC),
+               PSA_PAKE_INPUT_MAX_SIZE );
+    TEST_LE_U( PSA_PAKE_INPUT_SIZE(alg, prim, PSA_PAKE_STEP_ZK_PROOF),
+               PSA_PAKE_INPUT_MAX_SIZE );
 }
 /* END_CASE */

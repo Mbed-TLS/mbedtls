@@ -66,7 +66,7 @@ from mbedtls_dev import bignum_common
 # Import modules containing additional test classes
 # Test function classes in these modules will be registered by
 # the framework
-from mbedtls_dev import bignum_core # pylint: disable=unused-import
+from mbedtls_dev import bignum_core, bignum_mod_raw # pylint: disable=unused-import
 
 class BignumTarget(test_data_generation.BaseTarget, metaclass=ABCMeta):
     #pylint: disable=abstract-method

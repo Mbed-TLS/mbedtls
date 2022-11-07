@@ -353,6 +353,16 @@
 #error "MBEDTLS_MD_C defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_LMS_C) &&                                          \
+    ! ( defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_SHA_256) )
+#error "MBEDTLS_LMS_C requires MBEDTLS_PSA_CRYPTO_C and PSA_WANT_ALG_SHA_256"
+#endif
+
+#if defined(MBEDTLS_LMS_PRIVATE) &&                                    \
+    ( !defined(MBEDTLS_LMS_C) )
+#error "MBEDTLS_LMS_PRIVATE requires MBEDTLS_LMS_C"
+#endif
+
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) &&                          \
     ( !defined(MBEDTLS_PLATFORM_C) || !defined(MBEDTLS_PLATFORM_MEMORY) )
 #error "MBEDTLS_MEMORY_BUFFER_ALLOC_C defined, but not all prerequisites"
@@ -796,6 +806,19 @@
 #endif /* !MBEDTLS_USE_PSA_CRYPTO */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
+#if !( defined(MBEDTLS_ECDH_C) && defined(MBEDTLS_X509_CRT_PARSE_C) && \
+       ( defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_PKCS1_V21) ) )
+#error "MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED defined, but not all prerequisites"
+#endif
+#endif
+
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED)
+#if !( defined(MBEDTLS_ECDH_C) )
+#error "MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED defined, but not all prerequisites"
+#endif
+#endif
+
 /*
  * The current implementation of TLS 1.3 requires MBEDTLS_SSL_KEEP_PEER_CERTIFICATE.
  */
@@ -817,6 +840,13 @@
       defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) )
 #error "One or more versions of the TLS protocol are enabled " \
         "but no key exchange methods defined with MBEDTLS_KEY_EXCHANGE_xxxx"
+#endif
+
+/* Early data requires PSK related mode defined */
+#if defined(MBEDTLS_SSL_EARLY_DATA) && \
+        ( !defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED) && \
+          !defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED))
+#error "MBEDTLS_SSL_EARLY_DATA  defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)     && \

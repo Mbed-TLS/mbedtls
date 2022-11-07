@@ -33,6 +33,22 @@
 #include "bignum_mod.h"
 #include "constant_time_internal.h"
 
+void mbedtls_mpi_mod_raw_cond_assign( mbedtls_mpi_uint *X,
+                                      const mbedtls_mpi_uint *A,
+                                      const mbedtls_mpi_mod_modulus *N,
+                                      unsigned char assign )
+{
+    mbedtls_mpi_core_cond_assign( X, A, N->limbs, assign );
+}
+
+void mbedtls_mpi_mod_raw_cond_swap( mbedtls_mpi_uint *X,
+                                    mbedtls_mpi_uint *Y,
+                                    const mbedtls_mpi_mod_modulus *N,
+                                    unsigned char swap )
+{
+    mbedtls_mpi_core_cond_swap( X, Y, N->limbs, swap );
+}
+
 int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,
                               const mbedtls_mpi_mod_modulus *m,
                               const unsigned char *input,
@@ -85,5 +101,45 @@ int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *A,
             return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
     }
 }
+
+/* BEGIN MERGE SLOT 1 */
+
+/* END MERGE SLOT 1 */
+
+/* BEGIN MERGE SLOT 2 */
+
+/* END MERGE SLOT 2 */
+
+/* BEGIN MERGE SLOT 3 */
+
+/* END MERGE SLOT 3 */
+
+/* BEGIN MERGE SLOT 4 */
+
+/* END MERGE SLOT 4 */
+
+/* BEGIN MERGE SLOT 5 */
+
+/* END MERGE SLOT 5 */
+
+/* BEGIN MERGE SLOT 6 */
+
+/* END MERGE SLOT 6 */
+
+/* BEGIN MERGE SLOT 7 */
+
+/* END MERGE SLOT 7 */
+
+/* BEGIN MERGE SLOT 8 */
+
+/* END MERGE SLOT 8 */
+
+/* BEGIN MERGE SLOT 9 */
+
+/* END MERGE SLOT 9 */
+
+/* BEGIN MERGE SLOT 10 */
+
+/* END MERGE SLOT 10 */
 
 #endif /* MBEDTLS_BIGNUM_C */

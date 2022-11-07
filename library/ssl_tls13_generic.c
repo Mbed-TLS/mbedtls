@@ -83,7 +83,7 @@ cleanup:
     return( ret );
 }
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
 /*
  * STATE HANDLING: Read CertificateVerify
  */
@@ -285,12 +285,12 @@ error:
     return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
 
 }
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
 
 int mbedtls_ssl_tls13_process_certificate_verify( mbedtls_ssl_context *ssl )
 {
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char verify_buffer[SSL_VERIFY_STRUCT_MAX_SIZE];
     size_t verify_buffer_len;
@@ -348,7 +348,7 @@ cleanup:
     ((void) ssl);
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
 }
 
 /*
@@ -357,7 +357,7 @@ cleanup:
  *
  */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
 /*
  * Structure of Certificate message:
@@ -534,9 +534,9 @@ int mbedtls_ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
     return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
 }
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
-#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
 /* Validate certificate chain sent by the server. */
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -727,14 +727,14 @@ static int ssl_tls13_validate_certificate( mbedtls_ssl_context *ssl )
     return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
 }
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
-#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
 
 int mbedtls_ssl_tls13_process_certificate( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
 
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
     unsigned char *buf;
     size_t buf_len;
 
@@ -752,12 +752,12 @@ int mbedtls_ssl_tls13_process_certificate( mbedtls_ssl_context *ssl )
                                         buf, buf_len );
 
 cleanup:
-#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate" ) );
     return( ret );
 }
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
 /*
  *  enum {
  *        X509(0),
@@ -1078,7 +1078,7 @@ cleanup:
     return( ret );
 }
 
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
 
 /*
  *

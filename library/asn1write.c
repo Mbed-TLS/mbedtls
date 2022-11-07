@@ -72,9 +72,11 @@ int mbedtls_asn1_write_len( unsigned char **p, const unsigned char *start, size_
         return( 4 );
     }
 
+    int len_is_valid = 1;
 #if SIZE_MAX > 0xFFFFFFFF
-    if( len <= 0xFFFFFFFF )
+    len_is_valid = ( len <= 0xFFFFFFFF );
 #endif
+    if( len_is_valid )
     {
         if( *p - start < 5 )
             return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
@@ -87,9 +89,7 @@ int mbedtls_asn1_write_len( unsigned char **p, const unsigned char *start, size_
         return( 5 );
     }
 
-#if SIZE_MAX > 0xFFFFFFFF
     return( MBEDTLS_ERR_ASN1_INVALID_LENGTH );
-#endif
 }
 
 int mbedtls_asn1_write_tag( unsigned char **p, const unsigned char *start, unsigned char tag )

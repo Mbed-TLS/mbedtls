@@ -1130,7 +1130,7 @@
  *
  * Enable support for PKCS#1 v1.5 encoding.
  *
- * Requires: MBEDTLS_MD_C, MBEDTLS_RSA_C
+ * Requires: MBEDTLS_RSA_C
  *
  * This enables support for PKCS#1 v1.5 operations.
  */
@@ -1553,6 +1553,47 @@
 //#define MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 
 /**
+ * \def MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
+ *
+ * Enable TLS 1.3 PSK key exchange mode.
+ *
+ * Comment to disable support for the PSK key exchange mode in TLS 1.3. If
+ * MBEDTLS_SSL_PROTO_TLS1_3 is not enabled, this option does not have any
+ * effect on the build.
+ *
+ */
+#define MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
+
+/**
+ * \def MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+ *
+ * Enable TLS 1.3 ephemeral key exchange mode.
+ *
+ * Requires: MBEDTLS_ECDH_C, MBEDTLS_X509_CRT_PARSE_C, MBEDTLS_ECDSA_C or
+ *           MBEDTLS_PKCS1_V21
+ *
+ * Comment to disable support for the ephemeral key exchange mode in TLS 1.3.
+ * If MBEDTLS_SSL_PROTO_TLS1_3 is not enabled, this option does not have any
+ * effect on the build.
+ *
+ */
+#define MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+
+/**
+ * \def MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+ *
+ * Enable TLS 1.3 PSK ephemeral key exchange mode.
+ *
+ * Requires: MBEDTLS_ECDH_C
+ *
+ * Comment to disable support for the PSK ephemeral key exchange mode in
+ * TLS 1.3. If MBEDTLS_SSL_PROTO_TLS1_3 is not enabled, this option does not
+ * have any effect on the build.
+ *
+ */
+#define MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+
+/**
  * \def MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE
  *
  * Maximum time difference in milliseconds tolerated between the age of a
@@ -1590,6 +1631,23 @@
  *
  */
 #define MBEDTLS_SSL_TLS1_3_DEFAULT_NEW_SESSION_TICKETS 1
+
+/**
+* \def MBEDTLS_SSL_EARLY_DATA
+*
+* Enable support for RFC 8446 TLS 1.3 early data.
+*
+* Requires: MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED or
+*           MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+*
+* Comment this to disable support for early data. If MBEDTLS_SSL_PROTO_TLS1_3
+* is not enabled, this option does not have any effect on the build.
+*
+* This feature is experimental, not completed and thus not ready for
+* production.
+*
+*/
+//#define MBEDTLS_SSL_EARLY_DATA
 
 /**
  * \def MBEDTLS_SSL_PROTO_DTLS
@@ -2462,6 +2520,32 @@
 #define MBEDTLS_HMAC_DRBG_C
 
 /**
+ * \def MBEDTLS_LMS_C
+ *
+ * Enable the LMS stateful-hash asymmetric signature algorithm.
+ *
+ * Module:  library/lms.c
+ * Caller:
+ *
+ * Requires: MBEDTLS_PSA_CRYPTO_C
+ *
+ * Uncomment to enable the LMS verification algorithm and public key operations.
+ */
+#define MBEDTLS_LMS_C
+
+/**
+ * \def MBEDTLS_LMS_PRIVATE
+ *
+ * Enable LMS private-key operations and signing code. Functions enabled by this
+ * option are experimental, and should not be used in production.
+ *
+ * Requires: MBEDTLS_LMS_C
+ *
+ * Uncomment to enable the LMS signature algorithm and private key operations.
+ */
+//#define MBEDTLS_LMS_PRIVATE
+
+/**
  * \def MBEDTLS_NIST_KW_C
  *
  * Enable the Key Wrapping mode for 128-bit block ciphers,
@@ -2554,7 +2638,7 @@
  *
  * \note See also our Knowledge Base article about porting to a new
  * environment:
- * https://tls.mbed.org/kb/how-to/how-do-i-port-mbed-tls-to-a-new-environment-OS
+ * https://mbed-tls.readthedocs.io/en/latest/kb/how-to/how-do-i-port-mbed-tls-to-a-new-environment-OS
  *
  * Module:  library/net_sockets.c
  *
@@ -3111,7 +3195,7 @@
  * contexts are not shared between threads. If you do intend to use contexts
  * between threads, you will need to enable this layer to prevent race
  * conditions. See also our Knowledge Base article about threading:
- * https://tls.mbed.org/kb/development/thread-safety-and-multi-threading
+ * https://mbed-tls.readthedocs.io/en/latest/kb/development/thread-safety-and-multi-threading
  *
  * Module:  library/threading.c
  *
@@ -3143,7 +3227,7 @@
  *
  * \note See also our Knowledge Base article about porting to a new
  * environment:
- * https://tls.mbed.org/kb/how-to/how-do-i-port-mbed-tls-to-a-new-environment-OS
+ * https://mbed-tls.readthedocs.io/en/latest/kb/how-to/how-do-i-port-mbed-tls-to-a-new-environment-OS
  *
  * Module:  library/timing.c
  */

@@ -28,9 +28,12 @@ Support description
 
   - Mbed TLS does not support DHE key establishment.
 
-  - Mbed TLS does not support pre-shared keys, including any form of
-    session resumption. This implies that it does not support sending early
-    data (0-RTT data).
+  - Mbed TLS supports pre-shared keys for key establishment, pre-shared keys
+    provisioned externally as well as provisioned via the ticket mechanism.
+
+  - Mbed TLS supports session resumption via the ticket mechanism.
+
+  - Mbed TLS does not support sending or receiving early data (0-RTT data).
 
 - Supported cipher suites: depends on the library configuration. Potentially
   all of them:
@@ -54,8 +57,8 @@ Support description
   | server_certificate_type      | no      |
   | padding                      | no      |
   | key_share                    | YES     |
-  | pre_shared_key               | no      |
-  | psk_key_exchange_modes       | no      |
+  | pre_shared_key               | YES     |
+  | psk_key_exchange_modes       | YES     |
   | early_data                   | no      |
   | cookie                       | no      |
   | supported_versions           | YES     |
@@ -118,7 +121,7 @@ Support description
   | MBEDTLS_SSL_RENEGOTIATION                | n/a     |
   | MBEDTLS_SSL_MAX_FRAGMENT_LENGTH          | no      |
   |                                          |         |
-  | MBEDTLS_SSL_SESSION_TICKETS              | no      |
+  | MBEDTLS_SSL_SESSION_TICKETS              | yes     |
   | MBEDTLS_SSL_SERVER_NAME_INDICATION       | yes     |
   | MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH       | no      |
   |                                          |         |
@@ -141,10 +144,33 @@ Support description
   | MBEDTLS_USE_PSA_CRYPTO                   | yes     |
 
   (1) These options must remain in their default state of enabled.
-  (2) Key exchange configuration options for TLS 1.3 will likely to be
-      organized around the notion of key exchange mode along the line
-      of the MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE/PSK/PSK_EPHEMERAL/EPHEMERAL
-      runtime configuration macros.
+  (2) See the TLS 1.3 specific build options section below.
+
+- TLS 1.3 specific build options:
+
+  - MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE enables the support for middlebox
+    compatibility mode as defined in section D.4 of RFC 8446.
+
+  - MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED enables the support for
+    the PSK key exchange mode as defined by RFC 8446. If it is the only key
+    exchange mode enabled, the TLS 1.3 implementation does not contain any code
+    related to key exchange protocols, certificates and signatures.
+
+  - MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED enables the
+    support for the ephemeral key exchange mode. If it is the only key exchange
+    mode enabled, the TLS 1.3 implementation does not contain any code related
+    to PSK based key exchange. The ephemeral key exchange mode requires at least
+    one of the key exchange protocol allowed by the TLS 1.3 specification, the
+    parsing and validation of x509 certificates and at least one signature
+    algorithm allowed by the TLS 1.3 specification for signature computing and
+    verification.
+
+  - MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED enables the
+    support for the PSK ephemeral key exchange mode. If it is the only key
+    exchange mode enabled, the TLS 1.3 implementation does not contain any code
+    related to certificates and signatures. The PSK ephemeral key exchange
+    mode requires at least one of the key exchange protocol allowed by the
+    TLS 1.3 specification.
 
 
 Prototype upstreaming status
@@ -152,8 +178,7 @@ Prototype upstreaming status
 
 The following parts of the TLS 1.3 prototype remain to be upstreamed:
 
-- Pre-shared keys, session resumption and 0-RTT data (both client and server
-  side).
+- Sending (client) and receiving (server) early data (0-RTT data).
 
 - New TLS Message Processing Stack (MPS)
 
@@ -181,7 +206,7 @@ Coding rules checklist for TLS 1.3
 The following coding rules are aimed to be a checklist for TLS 1.3 upstreaming
 work to reduce review rounds and the number of comments in each round. They
 come along (do NOT replace) the project coding rules
-(https://tls.mbed.org/kb/development/mbedtls-coding-standards). They have been
+(https://mbed-tls.readthedocs.io/en/latest/kb/development/mbedtls-coding-standards). They have been
 established and discussed following the review of #4882 that was the
 PR upstreaming the first part of TLS 1.3 ClientHello writing code.
 

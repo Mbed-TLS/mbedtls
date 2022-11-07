@@ -59,7 +59,7 @@ static const mbedtls_ssl_ciphersuite_t *ssl_tls13_validate_peer_ciphersuite(
     return( ciphersuite_info );
 }
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
 /* From RFC 8446:
  *
  *   enum { psk_ke(0), psk_dhe_ke(1), (255) } PskKeyExchangeMode;
@@ -674,11 +674,13 @@ static int ssl_tls13_write_server_pre_shared_key_ext( mbedtls_ssl_context *ssl,
 
     *olen = 0;
 
+    int not_using_psk = 0;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if( mbedtls_svc_key_id_is_null( ssl->handshake->psk_opaque ) )
+    not_using_psk = ( mbedtls_svc_key_id_is_null( ssl->handshake->psk_opaque ) );
 #else
-    if( ssl->handshake->psk == NULL )
+    not_using_psk = ( ssl->handshake->psk == NULL );
 #endif
+    if( not_using_psk )
     {
         /* We shouldn't have called this extension writer unless we've
          * chosen to use a PSK. */
@@ -701,7 +703,7 @@ static int ssl_tls13_write_server_pre_shared_key_ext( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED */
 
 /* From RFC 8446:
  *   struct {
@@ -993,7 +995,7 @@ static int ssl_tls13_client_hello_has_exts_for_ephemeral_key_exchange(
                 MBEDTLS_SSL_EXT_SIG_ALG ) );
 }
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_client_hello_has_exts_for_psk_key_exchange(
                mbedtls_ssl_context *ssl )
@@ -1015,7 +1017,7 @@ static int ssl_tls13_client_hello_has_exts_for_psk_ephemeral_key_exchange(
                 MBEDTLS_SSL_EXT_PRE_SHARED_KEY          |
                 MBEDTLS_SSL_EXT_PSK_KEY_EXCHANGE_MODES ) );
 }
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED */
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_check_ephemeral_key_exchange( mbedtls_ssl_context *ssl )
@@ -1027,7 +1029,7 @@ static int ssl_tls13_check_ephemeral_key_exchange( mbedtls_ssl_context *ssl )
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_check_psk_key_exchange( mbedtls_ssl_context *ssl )
 {
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
     return( mbedtls_ssl_conf_tls13_psk_enabled( ssl ) &&
             mbedtls_ssl_tls13_psk_enabled( ssl ) &&
             ssl_tls13_client_hello_has_exts_for_psk_key_exchange( ssl ) );
@@ -1040,7 +1042,7 @@ static int ssl_tls13_check_psk_key_exchange( mbedtls_ssl_context *ssl )
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_check_psk_ephemeral_key_exchange( mbedtls_ssl_context *ssl )
 {
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
     return( mbedtls_ssl_conf_tls13_psk_ephemeral_enabled( ssl ) &&
             mbedtls_ssl_tls13_psk_ephemeral_enabled( ssl ) &&
             ssl_tls13_client_hello_has_exts_for_psk_ephemeral_key_exchange( ssl ) );
@@ -1104,7 +1106,7 @@ static int ssl_tls13_determine_key_exchange_mode( mbedtls_ssl_context *ssl )
 }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && \
-    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 static psa_algorithm_t ssl_tls13_iana_sig_alg_to_psa_alg( uint16_t sig_alg )
@@ -1229,7 +1231,7 @@ static int ssl_tls13_pick_key_cert( mbedtls_ssl_context *ssl )
     return( -1 );
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C &&
-          MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+          MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
 
 /*
  *
@@ -1289,11 +1291,11 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     const unsigned char *extensions_end;
     int hrr_required = 0;
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
     const unsigned char *cipher_suites;
     const unsigned char *pre_shared_key_ext = NULL;
     const unsigned char *pre_shared_key_ext_end = NULL;
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+#endif
 
     ssl->handshake->extensions_present = MBEDTLS_SSL_EXT_NONE;
 
@@ -1400,7 +1402,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     * with CipherSuite defined as:
     * uint8 CipherSuite[2];
     */
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
     cipher_suites = p;
 #endif
     cipher_suites_end = p + cipher_suites_len;
@@ -1581,7 +1583,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
                 ssl->handshake->extensions_present |= MBEDTLS_SSL_EXT_SUPPORTED_VERSIONS;
                 break;
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
             case MBEDTLS_TLS_EXT_PSK_KEY_EXCHANGE_MODES:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found psk key exchange modes extension" ) );
 
@@ -1596,7 +1598,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
 
                 ssl->handshake->extensions_present |= MBEDTLS_SSL_EXT_PSK_KEY_EXCHANGE_MODES;
                 break;
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+#endif
 
             case MBEDTLS_TLS_EXT_PRE_SHARED_KEY:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found pre_shared_key extension" ) );
@@ -1608,14 +1610,14 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
                         MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
                     return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
                 }
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
                 /* Delay processing of the PSK identity once we have
                  * found out which algorithms to use. We keep a pointer
                  * to the buffer and the size for later processing.
                  */
                 pre_shared_key_ext = p;
                 pre_shared_key_ext_end = extension_data_end;
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+#endif
                 ssl->handshake->extensions_present |= MBEDTLS_SSL_EXT_PRE_SHARED_KEY;
                 break;
 
@@ -1634,7 +1636,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
                 break;
 #endif /* MBEDTLS_SSL_ALPN */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
             case MBEDTLS_TLS_EXT_SIG_ALG:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found signature_algorithms extension" ) );
 
@@ -1649,7 +1651,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
                 }
                 ssl->handshake->extensions_present |= MBEDTLS_SSL_EXT_SIG_ALG;
                 break;
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
 
             default:
                 MBEDTLS_SSL_DEBUG_MSG( 3,
@@ -1669,7 +1671,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
                                         MBEDTLS_SSL_HS_CLIENT_HELLO,
                                         p - buf );
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
     /* Update checksum with either
      * - The entire content of the CH message, if no PSK extension is present
      * - The content up to but excluding the PSK extension, if present.
@@ -1698,7 +1700,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
         }
     }
     else
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED */
     {
         ssl->handshake->update_checksum( ssl, buf, p - buf );
     }
@@ -2154,7 +2156,7 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
         p += output_len;
     }
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
     if( !is_hrr && mbedtls_ssl_tls13_key_exchange_mode_with_psk( ssl ) )
     {
         ret = ssl_tls13_write_server_pre_shared_key_ext( ssl, p, end, &output_len );
@@ -2166,7 +2168,7 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
         }
         p += output_len;
     }
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+#endif
 
     MBEDTLS_PUT_UINT16_BE( p - p_extensions_len - 2, p_extensions_len, 0 );
 
@@ -2390,7 +2392,7 @@ static int ssl_tls13_write_encrypted_extensions( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_finish_handshake_msg(
                               ssl, buf_len, msg_len ) );
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
     if( mbedtls_ssl_tls13_key_exchange_mode_with_psk( ssl ) )
         mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_FINISHED );
     else
@@ -2405,7 +2407,7 @@ cleanup:
     return( ret );
 }
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
 #define SSL_CERTIFICATE_REQUEST_SEND_REQUEST 0
 #define SSL_CERTIFICATE_REQUEST_SKIP         1
 /* Coordination:
@@ -2429,7 +2431,10 @@ static int ssl_tls13_certificate_request_coordinate( mbedtls_ssl_context *ssl )
     authmode = ssl->conf->authmode;
 
     if( authmode == MBEDTLS_SSL_VERIFY_NONE )
+    {
+        ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_SKIP_VERIFY;
         return( SSL_CERTIFICATE_REQUEST_SKIP );
+    }
 
     ssl->handshake->certificate_request_sent = 1;
 
@@ -2573,7 +2578,7 @@ static int ssl_tls13_write_certificate_verify( mbedtls_ssl_context *ssl )
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_FINISHED );
     return( 0 );
 }
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
 
 /*
  * Handler for MBEDTLS_SSL_SERVER_FINISHED
@@ -2984,7 +2989,7 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
             }
             break;
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
         case MBEDTLS_SSL_CERTIFICATE_REQUEST:
             ret = ssl_tls13_write_certificate_request( ssl );
             break;
@@ -2996,7 +3001,7 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
         case MBEDTLS_SSL_CERTIFICATE_VERIFY:
             ret = ssl_tls13_write_certificate_verify( ssl );
             break;
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
 
         /*
          * Injection of dummy-CCS's for middlebox compatibility
@@ -3027,6 +3032,7 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
             ret = ssl_tls13_handshake_wrapup( ssl );
             break;
 
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
         case MBEDTLS_SSL_CLIENT_CERTIFICATE:
             ret = mbedtls_ssl_tls13_process_certificate( ssl );
             if( ret == 0 )
@@ -3053,6 +3059,7 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
                     ssl, MBEDTLS_SSL_CLIENT_FINISHED );
             }
             break;
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
         case MBEDTLS_SSL_NEW_SESSION_TICKET:

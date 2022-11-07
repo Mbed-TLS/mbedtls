@@ -1715,30 +1715,39 @@ depends_on:MBEDTLS_AES_C
 mbedtls_ccm_incomplete_update_overflow:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_DECRYPT:"d32088d50df9aba14d9022c870a0cb85":"4b10788c1a03bca656f04f1f98":"e16c69861efc206e85aab1255e":"0eff7d7bcceb873c3203a8df74f4e91b04bd607ec11202f96cfeb99f5bcdb7aa"
 
 CCM encrypt, instant finish NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
 mbedtls_ccm_instant_finish:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:"d32088d50df9aba14d9022c870a0cb85":"4b10788c1a03bca656f04f1f98"
 
 CCM decrypt, instant finish NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
 mbedtls_ccm_instant_finish:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:"d32088d50df9aba14d9022c870a0cb85":"4b10788c1a03bca656f04f1f98"
 
 CCM* encrypt, instant finish NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
 mbedtls_ccm_instant_finish:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_ENCRYPT:"d32088d50df9aba14d9022c870a0cb85":"4b10788c1a03bca656f04f1f98"
 
 CCM* decrypt, instant finish NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
 mbedtls_ccm_instant_finish:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_DECRYPT:"d32088d50df9aba14d9022c870a0cb85":"4b10788c1a03bca656f04f1f98"
 
 CCM encrypt, instant finish AES-128 (P=0, N=13, A=0, T=16)
+depends_on:MBEDTLS_AES_C
 mbedtls_ccm_instant_finish:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:"54caf96ef6d448734700aadab50faf7a":"a3803e752ae849c910d8da36af"
 
 CCM decrypt, instant finish AES-128 (P=0, N=13, A=0, T=16)
+depends_on:MBEDTLS_AES_C
 mbedtls_ccm_instant_finish:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:"54caf96ef6d448734700aadab50faf7a":"a3803e752ae849c910d8da36af"
 
 CCM* encrypt, instant finish AES-128 (P=0, N=13, A=0, T=16)
+depends_on:MBEDTLS_AES_C
 mbedtls_ccm_instant_finish:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_ENCRYPT:"54caf96ef6d448734700aadab50faf7a":"a3803e752ae849c910d8da36af"
 
 CCM* decrypt, instant finish AES-128 (P=0, N=13, A=0, T=16)
+depends_on:MBEDTLS_AES_C
 mbedtls_ccm_instant_finish:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_DECRYPT:"54caf96ef6d448734700aadab50faf7a":"a3803e752ae849c910d8da36af"
 
 CCM pass unexpected auth data, NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
 mbedtls_ccm_unexpected_ad::MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:"d32088d50df9aba14d9022c870a0cb85":"e16c69861efc206e85aab1255e":"0eff7d7bcceb873c3203a8df74f4e91b04bd607ec11202f96cfeb99f5bcdb7aa"
 
 CCM encrypt, unexpected ciphertext/plaintext data, NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)

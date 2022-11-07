@@ -109,6 +109,8 @@ OBJS_CRYPTO= \
 	     hash_info.o \
 	     hkdf.o \
 	     hmac_drbg.o \
+	     lmots.o \
+	     lms.o \
 	     md.o \
 	     md5.o \
 	     memory_buffer_alloc.o \
@@ -197,6 +199,7 @@ all: shared static
 endif
 
 static: libmbedcrypto.a libmbedx509.a libmbedtls.a
+	cd ../tests && echo "This is a seedfile that contains 64 bytes (65 on Windows)......" > seedfile
 
 shared: libmbedcrypto.$(DLEXT) libmbedx509.$(DLEXT) libmbedtls.$(DLEXT)
 

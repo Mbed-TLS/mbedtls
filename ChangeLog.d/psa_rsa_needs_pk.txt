@@ -1,0 +1,5 @@
+Bugfix
+   * Fix build failure with MBEDTLS_RSA_C and MBEDTLS_PSA_CRYPTO_C but not
+     MBEDTLS_USE_PSA_CRYPTO or MBEDTLS_PK_WRITE_C. Fixes #6408.
+   * Fix build failure with MBEDTLS_RSA_C and MBEDTLS_PSA_CRYPTO_C but not
+     MBEDTLS_PK_PARSE_C. Fixes #6409.

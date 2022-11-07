@@ -1,7 +1,10 @@
 /**
  *  Macros to express dependencies for code and tests that may use either the
- *  legacy API or PSA in various builds; mostly for internal use.
- *
+ *  legacy API or PSA in various builds. This whole header file is currently
+ *  for internal use only and both the header file and the macros it defines
+ *  may change or be removed without notice.
+ */
+/*
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *

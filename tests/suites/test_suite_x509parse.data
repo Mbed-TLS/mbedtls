@@ -415,6 +415,46 @@ mbedtls_x509_dn_get_next:"C=NL, O=PolarSSL, CN=PolarSSL Server 1":0x03:"C":1:"C=
 X509 Get Next DN #4 Consecutive Multivalue RDNs
 mbedtls_x509_dn_get_next:"C=NL, O=PolarSSL, title=Example, CN=PolarSSL Server 1":0x05:"C title":2:"C=NL + O=PolarSSL, title=Example + CN=PolarSSL Server 1"
 
+# Parse the following valid DN:
+#
+# 31 0B <- Set of
+#     30 09 <- Sequence of
+#         06 03 55 04 06 <- OID 2.5.4.6 countryName (C)
+#         13 02 4E 4C <- PrintableString "NL"
+# 31 11 <- Set of
+#     30 0F <- Sequence of
+#         06 03 55 04 0A <- OID 2.5.4.10 organizationName (O)
+#         0C 08 50 6F 6C 61 72 53 53 4C <- UTF8String "PolarSSL"
+# 31 19 <- Set of
+#     30 17 <- Sequence of
+#         06 03 55 04 03 <- OID 2.5.4.3 commonName (CN)
+#         0C 10 50 6F 6C 61 72 53 53 4C 20 54 65 73 74 20 43 41 <- UTF8String "PolarSSL Test CA"
+#
+X509 Get Name Valid DN
+mbedtls_x509_get_name:"310B3009060355040613024E4C3111300F060355040A0C08506F6C617253534C3119301706035504030C10506F6C617253534C2054657374204341":0
+
+# Parse the following corrupted DN:
+#
+# 31 0B <- Set of
+#     30 09 <- Sequence of
+#         06 03 55 04 06 <- OID 2.5.4.6 countryName (C)
+#         13 02 4E 4C <- PrintableString "NL"
+# 31 11 <- Set of
+#     30 0F <- Sequence of
+#         06 03 55 04 0A <- OID 2.5.4.10 organizationName (O)
+#         0C 08 50 6F 6C 61 72 53 53 4C <- UTF8String "PolarSSL"
+# 30 19 <- Sequence of (corrupted)
+#     30 17 <- Sequence of
+#         06 03 55 04 03 <- OID 2.5.4.3 commonName (CN)
+#         0C 10 50 6F 6C 61 72 53 53 4C 20 54 65 73 74 20 43 41 <- UTF8String "PolarSSL Test CA"
+#
+# The third 'Set of' is corrupted to instead be a 'Sequence of', causing an
+# error and forcing mbedtls_x509_get_name() to clean up the names it has
+# already allocated.
+#
+X509 Get Name Corrupted DN Mem Leak
+mbedtls_x509_get_name:"310B3009060355040613024E4C3111300F060355040A0C08506F6C617253534C3019301706035504030C10506F6C617253534C2054657374204341":MBEDTLS_ERR_X509_INVALID_NAME + MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+
 X509 Time Expired #1
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_HAVE_TIME_DATE:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA
 mbedtls_x509_time_is_past:"data_files/server1.crt":"valid_from":1

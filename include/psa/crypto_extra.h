@@ -1765,9 +1765,9 @@ psa_status_t psa_pake_abort( psa_pake_operation_t * operation );
       primitive == PSA_PAKE_PRIMITIVE(PSA_PAKE_PRIMITIVE_TYPE_ECC,      \
                                       PSA_ECC_FAMILY_SECP_R1, 256) ?    \
       (                                                                 \
-        output_step == PSA_PAKE_STEP_KEY_SHARE ? 69 :                   \
-        output_step == PSA_PAKE_STEP_ZK_PUBLIC ? 66 :                   \
-        33                                                              \
+        output_step == PSA_PAKE_STEP_KEY_SHARE ? 65 :                   \
+        output_step == PSA_PAKE_STEP_ZK_PUBLIC ? 65 :                   \
+        32                                                              \
       ) :                                                               \
       0 )
 
@@ -1795,9 +1795,9 @@ psa_status_t psa_pake_abort( psa_pake_operation_t * operation );
       primitive == PSA_PAKE_PRIMITIVE(PSA_PAKE_PRIMITIVE_TYPE_ECC,      \
                                       PSA_ECC_FAMILY_SECP_R1, 256) ?    \
       (                                                                 \
-        input_step == PSA_PAKE_STEP_KEY_SHARE ? 69 :                    \
-        input_step == PSA_PAKE_STEP_ZK_PUBLIC ? 66 :                    \
-        33                                                              \
+        input_step == PSA_PAKE_STEP_KEY_SHARE ? 65 :                    \
+        input_step == PSA_PAKE_STEP_ZK_PUBLIC ? 65 :                    \
+        32                                                              \
       ) :                                                               \
       0 )
 
@@ -1808,7 +1808,7 @@ psa_status_t psa_pake_abort( psa_pake_operation_t * operation );
  *
  * See also #PSA_PAKE_OUTPUT_SIZE(\p alg, \p primitive, \p step).
  */
-#define PSA_PAKE_OUTPUT_MAX_SIZE 69
+#define PSA_PAKE_OUTPUT_MAX_SIZE 65
 
 /** Input buffer size for psa_pake_input() for any of the supported PAKE
  * algorithm and primitive suites and input step.
@@ -1817,7 +1817,7 @@ psa_status_t psa_pake_abort( psa_pake_operation_t * operation );
  *
  * See also #PSA_PAKE_INPUT_SIZE(\p alg, \p primitive, \p step).
  */
-#define PSA_PAKE_INPUT_MAX_SIZE 69
+#define PSA_PAKE_INPUT_MAX_SIZE 65
 
 /** Returns a suitable initializer for a PAKE cipher suite object of type
  * psa_pake_cipher_suite_t.
@@ -1906,7 +1906,10 @@ static inline void psa_pake_cs_set_hash( psa_pake_cipher_suite_t *cipher_suite,
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
 #include <mbedtls/ecjpake.h>
-#define PSA_PAKE_BUFFER_SIZE ( ( 69 + 66 + 33 ) * 2 )
+/* Note: the format for mbedtls_ecjpake_read/write function has an extra
+ * length byte for each step, plus an extra 3 bytes for ECParameters in the
+ * server's 2nd round. */
+#define MBEDTLS_PSA_PAKE_BUFFER_SIZE ( ( 3 + 1 + 65 + 1 + 65 + 1 + 32 ) * 2 )
 #endif
 
 struct psa_pake_operation_s
@@ -1919,7 +1922,7 @@ struct psa_pake_operation_s
     unsigned int MBEDTLS_PRIVATE(output_step);
     mbedtls_svc_key_id_t MBEDTLS_PRIVATE(password);
     psa_pake_role_t MBEDTLS_PRIVATE(role);
-    uint8_t MBEDTLS_PRIVATE(buffer[PSA_PAKE_BUFFER_SIZE]);
+    uint8_t MBEDTLS_PRIVATE(buffer[MBEDTLS_PSA_PAKE_BUFFER_SIZE]);
     size_t MBEDTLS_PRIVATE(buffer_length);
     size_t MBEDTLS_PRIVATE(buffer_offset);
 #endif

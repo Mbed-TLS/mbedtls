@@ -1,0 +1,4 @@
+Bugfix
+    * Fix memory leak in ssl_parse_certificate_request() caused by
+      mbedtls_x509_get_name() not freeing allocated objects in case of error.
+      Change mbedtls_x509_get_name() to clean up allocated objects on error.

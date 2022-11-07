@@ -468,8 +468,9 @@ cleanup:
 /****************************************************************/
 /* ECDH Key Agreement */
 /****************************************************************/
+
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
-psa_status_t mbedtls_psa_key_agreement_ecdh( 
+psa_status_t mbedtls_psa_key_agreement_ecdh(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg, const uint8_t *peer_key, size_t peer_key_length,

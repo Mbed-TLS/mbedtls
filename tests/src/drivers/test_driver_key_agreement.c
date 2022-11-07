@@ -82,7 +82,7 @@ psa_status_t mbedtls_test_transparent_key_agreement(
                 alg, peer_key, peer_key_length,
                 shared_secret, shared_secret_size,
                 shared_secret_length ) );
-#endif   
+#endif
     }
     else
     {

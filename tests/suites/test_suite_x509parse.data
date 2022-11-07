@@ -3101,6 +3101,14 @@ X509 File parse (Algorithm Params Tag mismatch)
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
 x509parse_crt_file:"data_files/parse_input/cli-rsa-sha256-badalg.crt.der":MBEDTLS_ERR_X509_SIG_MISMATCH
 
+X509 File parse (does not conform to RFC 5480 / RFC 5758 - AlgorithmIdentifier's parameters field is present, mbedTLS generated before bugfix, OK)
+depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
+x509parse_crt_file:"data_files/parse_input/server5-non-compliant.crt":0
+
+X509 File parse (conforms to RFC 5480 / RFC 5758 - AlgorithmIdentifier's parameters field must be absent for ECDSA)
+depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
+x509parse_crt_file:"data_files/parse_input/server5.crt":0
+
 X509 Get time (UTC no issues)
 depends_on:MBEDTLS_X509_USE_C
 x509_get_time:MBEDTLS_ASN1_UTC_TIME:"500101000000Z":0:1950:1:1:0:0:0

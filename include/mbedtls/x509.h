@@ -478,7 +478,8 @@ int mbedtls_x509_write_names(unsigned char **p, unsigned char *start,
                              mbedtls_asn1_named_data *first);
 int mbedtls_x509_write_sig(unsigned char **p, unsigned char *start,
                            const char *oid, size_t oid_len,
-                           unsigned char *sig, size_t size);
+                           unsigned char *sig, size_t size,
+                           mbedtls_pk_type_t pk_alg);
 int mbedtls_x509_get_ns_cert_type(unsigned char **p,
                                   const unsigned char *end,
                                   unsigned char *ns_cert_type);

@@ -1395,7 +1395,7 @@ all_final += server5-badsign.crt
 
 # The use of 'Server 1' in the DN is intentional here, as the DN is hardcoded in the x509_write test suite.'
 server5.req.ku.sha1: server5.key
-	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< key_usage=digital_signature,non_repudiation subject_name="C=NL,O=PolarSSL,CN=PolarSSL Server 1" md=SHA1
+	$(OPENSSL) req -key $< -out $@ -new -nodes -subj "/C=NL/O=PolarSSL/CN=PolarSSL Server 1" -sha1 -addext keyUsage=digitalSignature,nonRepudiation
 all_final += server5.req.ku.sha1
 
 # server6*

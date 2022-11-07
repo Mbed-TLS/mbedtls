@@ -2060,7 +2060,7 @@ static int is_compression_ok( mbedtls_ssl_context *ssl, unsigned char comp )
     int accept_comp = 1;
 
     /* Suppress warnings in some configurations */
-    ( void )ssl;
+    (void) ssl;
 #if defined(MBEDTLS_ZLIB_SUPPORT)
     /* See comments in ssl_write_client_hello() */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -2254,7 +2254,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
      */
     comp = buf[37 + n];
 
-    if( !is_compression_ok(ssl, comp) )
+    if( !is_compression_ok( ssl, comp ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,
             ( "server hello, bad compression: %d", comp ) );

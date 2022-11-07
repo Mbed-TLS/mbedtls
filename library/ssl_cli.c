@@ -2055,6 +2055,29 @@ static int ssl_parse_hello_verify_request( mbedtls_ssl_context *ssl )
 }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
+static int is_compression_ok( mbedtls_ssl_context *ssl, unsigned char comp )
+{
+    int accept_comp = 1;
+
+    /* Suppress warnings in some configurations */
+    ( void )ssl;
+#if defined(MBEDTLS_ZLIB_SUPPORT)
+    /* See comments in ssl_write_client_hello() */
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+        accept_comp = 0;
+#endif
+
+    if( comp != MBEDTLS_SSL_COMPRESS_NULL &&
+        comp != MBEDTLS_SSL_COMPRESS_DEFLATE )
+        accept_comp = 0;
+#else /* MBEDTLS_ZLIB_SUPPORT */
+    if( comp != MBEDTLS_SSL_COMPRESS_NULL )
+        accept_comp = 0;
+#endif/* MBEDTLS_ZLIB_SUPPORT */
+    return accept_comp;
+}
+
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 {
@@ -2063,9 +2086,6 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     size_t ext_len;
     unsigned char *buf, *ext;
     unsigned char comp;
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-    int accept_comp;
-#endif
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     int renegotiation_info_seen = 0;
 #endif
@@ -2234,23 +2254,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
      */
     comp = buf[37 + n];
 
-    int bad_comp = 0;
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-    /* See comments in ssl_write_client_hello() */
-    accept_comp = 1;
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-        accept_comp = 0;
-#endif
-
-    if( comp != MBEDTLS_SSL_COMPRESS_NULL &&
-        ( comp != MBEDTLS_SSL_COMPRESS_DEFLATE || accept_comp == 0 ) )
-        bad_comp = 1;
-#else /* MBEDTLS_ZLIB_SUPPORT */
-    if( comp != MBEDTLS_SSL_COMPRESS_NULL )
-        bad_comp = 1;
-#endif/* MBEDTLS_ZLIB_SUPPORT */
-    if( bad_comp )
+    if( !is_compression_ok(ssl, comp) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,
             ( "server hello, bad compression: %d", comp ) );

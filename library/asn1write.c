@@ -217,11 +217,11 @@ int mbedtls_asn1_write_algorithm_identifier_ext(unsigned char **p, unsigned char
 
     MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(p, start, len));
     MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_tag(p, start,
-                                                    MBEDTLS_ASN1_CONSTRUCTED |
-                                                    MBEDTLS_ASN1_SEQUENCE));
+                                                     MBEDTLS_ASN1_CONSTRUCTED |
+                                                     MBEDTLS_ASN1_SEQUENCE));
 
     return (int) len;
- }
+}
 
 int mbedtls_asn1_write_bool(unsigned char **p, unsigned char *start, int boolean)
 {

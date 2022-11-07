@@ -451,6 +451,10 @@ class BignumModRawOperation(bignum_common.OperationCommon, BignumModRawTarget, m
         self.arg_n = modulus
         self.int_n = bignum_common.hex_to_int(modulus)
         self.mod_desc = mod_desc
+        self.limbs = bignum_common.limbs_mpi(self.int_n, 32)
+
+        self.arg_a = bignum_common.grow_mpi(self.int_a, self.limbs, 32)
+        self.arg_b = bignum_common.grow_mpi(self.int_b, self.limbs, 32)
 
     def description(self) -> str:
         """Generate a description for the test case.
@@ -488,8 +492,7 @@ class BignumModRawAdd(BignumModRawOperation):
 
     def result(self) -> List[str]:
         result = (self.int_a + self.int_b) % self.int_n
-        limbs = bignum_common.limbs_mpi(self.int_n, 32)
-        return [bignum_common.quote_str(bignum_common.grow_mpi(result, limbs, 32))]
+        return [bignum_common.quote_str(bignum_common.grow_mpi(result, self.limbs, 32))]
 
 # END MERGE SLOT 5
 

@@ -2055,9 +2055,9 @@ static int ssl_parse_hello_verify_request( mbedtls_ssl_context *ssl )
 }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-static int is_compression_ok( mbedtls_ssl_context *ssl, unsigned char comp )
+static int is_compression_bad( mbedtls_ssl_context *ssl, unsigned char comp )
 {
-    int accept_comp = 1;
+    int bad_comp = 0;
 
     /* Suppress warnings in some configurations */
     (void) ssl;
@@ -2065,17 +2065,17 @@ static int is_compression_ok( mbedtls_ssl_context *ssl, unsigned char comp )
     /* See comments in ssl_write_client_hello() */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-        accept_comp = 0;
+        bad_comp = 1;
 #endif
 
     if( comp != MBEDTLS_SSL_COMPRESS_NULL &&
         comp != MBEDTLS_SSL_COMPRESS_DEFLATE )
-        accept_comp = 0;
+        bad_comp = 1;
 #else /* MBEDTLS_ZLIB_SUPPORT */
     if( comp != MBEDTLS_SSL_COMPRESS_NULL )
-        accept_comp = 0;
+        bad_comp = 1;
 #endif/* MBEDTLS_ZLIB_SUPPORT */
-    return accept_comp;
+    return bad_comp;
 }
 
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -2254,7 +2254,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
      */
     comp = buf[37 + n];
 
-    if( !is_compression_ok( ssl, comp ) )
+    if( is_compression_bad( ssl, comp ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,
             ( "server hello, bad compression: %d", comp ) );

@@ -1024,6 +1024,16 @@ is_gnutls() {
     esac
 }
 
+# Generate random psk_list argument for ssl_server2
+get_srv_psk_list ()
+{
+    case $(( TESTS % 3 )) in
+        0) echo "psk_list=abc,dead,def,beef,Client_identity,6162636465666768696a6b6c6d6e6f70";;
+        1) echo "psk_list=abc,dead,Client_identity,6162636465666768696a6b6c6d6e6f70,def,beef";;
+        2) echo "psk_list=Client_identity,6162636465666768696a6b6c6d6e6f70,abc,dead,def,beef";;
+    esac
+}
+
 # Determine what calc_verify trace is to be expected, if any.
 #
 # calc_verify is only called for two things: to calculate the

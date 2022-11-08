@@ -33,6 +33,11 @@
 
 const char *mbedtls_ssl_states_str( mbedtls_ssl_states in );
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+const char *mbedtls_ssl_ticket_flags_str( mbedtls_ssl_ticket_flags in );
+#endif /* defined(MBEDTLS_SSL_PROTO_TLS1_3) &&
+          defined(MBEDTLS_SSL_SESSION_TICKETS) */
+
 const char *mbedtls_ssl_protocol_version_str( mbedtls_ssl_protocol_version in );
 
 const char *mbedtls_tls_prf_types_str( mbedtls_tls_prf_types in );

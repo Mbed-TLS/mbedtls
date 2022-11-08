@@ -991,13 +991,6 @@ struct mbedtls_ssl_handshake_params
     } tls13_master_secrets;
 
     mbedtls_ssl_tls13_handshake_secrets tls13_hs_secrets;
-
-#if defined(MBEDTLS_SSL_EARLY_DATA)
-    int early_data;     /*!< Early data indication:
-                         * 0  -- MBEDTLS_SSL_EARLY_DATA_DISABLED (for no early data), and
-                         * 1  -- MBEDTLS_SSL_EARLY_DATA_ENABLED (for use early data)
-                         */
-#endif /* MBEDTLS_SSL_EARLY_DATA */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)

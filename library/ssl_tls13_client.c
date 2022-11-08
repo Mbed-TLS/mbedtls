@@ -705,8 +705,8 @@ static int ssl_tls13_early_data_has_valid_ticket( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_session *session = ssl->session_negotiate;
     return( ssl->handshake->resume &&
-            session != NULL && session->ticket != NULL &&
             session->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 &&
+            ( session->ticket_flags & MBEDTLS_SSL_TICKET_ALLOW_EARLY_DATA ) &&
             mbedtls_ssl_tls13_cipher_suite_is_offered(
                 ssl, session->ciphersuite ) );
 }
@@ -1174,11 +1174,7 @@ int mbedtls_ssl_tls13_write_client_hello_exts( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     if( mbedtls_ssl_conf_tls13_some_psk_enabled( ssl ) &&
-        ( mbedtls_ssl_conf_has_static_psk( ssl->conf ) == 1
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-          || ssl_tls13_early_data_has_valid_ticket( ssl )
-#endif
-        ) &&
+        ssl_tls13_early_data_has_valid_ticket( ssl ) &&
         ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED )
     {
         ret = mbedtls_ssl_tls13_write_early_data_ext( ssl, p, end, &ext_len );
@@ -1186,15 +1182,14 @@ int mbedtls_ssl_tls13_write_client_hello_exts( mbedtls_ssl_context *ssl,
             return( ret );
         p += ext_len;
 
-        ssl->handshake->early_data = MBEDTLS_SSL_EARLY_DATA_ON;
-        /* Initializes the status to `rejected`. Changes it to `accepted`
+        /* Initializes the status to `indication sent`. Changes it to `accepted`
          * when `early_data` is received in EncryptedExtesion. */
-        ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED;
+        ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_INDICATION_SENT;
     }
     else
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write early_data extension" ) );
-        ssl->handshake->early_data = MBEDTLS_SSL_EARLY_DATA_OFF;
+        ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT;
     }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
@@ -2543,6 +2538,13 @@ static int ssl_tls13_parse_new_session_ticket_exts( mbedtls_ssl_context *ssl,
 
         switch( extension_type )
         {
+            case MBEDTLS_TLS_EXT_EARLY_DATA:
+                MBEDTLS_SSL_DEBUG_MSG( 4, ( "early_data extension received" ) );
+                if( extension_data_len == 4 && ssl->session != NULL)
+                    ssl->session->ticket_flags |=
+                            MBEDTLS_SSL_TICKET_ALLOW_EARLY_DATA;
+                break;
+
             default:
                 MBEDTLS_SSL_PRINT_EXT(
                     3, MBEDTLS_SSL_HS_NEW_SESSION_TICKET,

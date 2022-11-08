@@ -34,9 +34,7 @@ The project aims to minimise the impact on users upgrading to newer versions of 
 
 To minimise such disruption to users, where a change to the interface is required, all changes to the ABI or API, even on the main development branch where new features are added, need to be justifiable by either being a significant enhancement, new feature or bug fix which is best resolved by an interface change. If there is an API change, the contribution, if accepted, will be merged only when there will be a major release.
 
-Where changes to an existing interface are necessary, functions in the public interface which need to be changed are marked as 'deprecated'. If there is a strong reason to replace an existing function with one that has a slightly different interface (different prototype, or different documented behavior), create a new function with a new name with the desired interface. Keep the old function, but mark it as deprecated.
-
-No changes are permitted to the definition of functions in the public interface which will change the API. Instead the interface can only be changed by its extension. As described above, if a function needs to be changed, a new function needs to be created alongside it, with a new name, and whatever change is necessary, such as a new parameter or the addition of a return value.
+No changes are permitted to the definition of functions in the public interface which will change the API. Instead the interface can only be changed by its extension. Where changes to an existing interface are necessary, functions in the public interface which need to be changed are marked as 'deprecated'. If there is a strong reason to replace an existing function with one that has a slightly different interface (different prototype, or different documented behavior), create a new function with a new name with the desired interface. Keep the old function, but mark it as deprecated.
 
 Periodically, the library will remove deprecated functions from the library which will be a breaking change in the API, but such changes will be made only in a planned, structured way that gives sufficient notice to users of the library.
 

@@ -64,7 +64,7 @@
  * The naming scheme for these macros is:
  *      MBEDTLS_HAS_feature_VIA_legacy_OR_PSA(_condition)
  * where:
- * - feature is expressed the same way as in PSA_WANT macros, for example:
+ * - feature is expressed the same way as in PSA_WANT_xxx macros, for example:
  *   KEY_TYPE_AES, ALG_SHA_256, ECC_SECP_R1_256;
  * - legacy is either LOWLEVEL or the name of the layer: MD, CIPHER;
  * - condition is omitted if it's based on availability, else it's

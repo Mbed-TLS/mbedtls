@@ -275,7 +275,7 @@ psa_status_t psa_driver_wrapper_sign_hash(
                     alg, hash, hash_length,
                     signature, signature_size, signature_length ) );
     }
-#endif /* PSA_CRYPTO_SE_C */
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_location_t location =
@@ -359,7 +359,7 @@ psa_status_t psa_driver_wrapper_verify_hash(
                     alg, hash, hash_length,
                     signature, signature_length ) );
     }
-#endif /* PSA_CRYPTO_SE_C */
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_location_t location =
@@ -579,7 +579,7 @@ psa_status_t psa_driver_wrapper_import_key(
 
         return( PSA_SUCCESS );
     }
-#endif /* PSA_CRYPTO_SE_C */
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
     switch( location )
     {
@@ -641,7 +641,7 @@ psa_status_t psa_driver_wrapper_export_key(
                      *( (psa_key_slot_number_t *)key_buffer ),
                      data, data_size, data_length ) );
     }
-#endif /* PSA_CRYPTO_SE_C */
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
     switch( location )
     {

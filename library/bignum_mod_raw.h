@@ -170,8 +170,8 @@ int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *A,
  * \param[in] N     The address of the modulus.
  */
 void mbedtls_mpi_mod_raw_add( mbedtls_mpi_uint *X,
-                              mbedtls_mpi_uint const *A,
-                              mbedtls_mpi_uint const *B,
+                              const mbedtls_mpi_uint *A,
+                              const mbedtls_mpi_uint *B,
                               const mbedtls_mpi_mod_modulus *N );
 /* END MERGE SLOT 5 */
 

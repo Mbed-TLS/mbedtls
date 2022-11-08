@@ -700,6 +700,8 @@ static int ssl_tls13_write_server_pre_shared_key_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG( 4, ( "sent selected_identity: %u",
                                 ssl->handshake->selected_identity ) );
 
+    mbedtls_ssl_tls13_set_hs_sent_ext_mask( ssl, MBEDTLS_TLS_EXT_PRE_SHARED_KEY );
+
     return( 0 );
 }
 
@@ -1812,6 +1814,9 @@ static int ssl_tls13_write_server_hello_supported_versions_ext(
 
     *out_len = 6;
 
+    mbedtls_ssl_tls13_set_hs_sent_ext_mask(
+        ssl, MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS );
+
     return( 0 );
 }
 
@@ -1918,6 +1923,8 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
 
     *out_len = p - buf;
 
+    mbedtls_ssl_tls13_set_hs_sent_ext_mask( ssl, MBEDTLS_TLS_EXT_KEY_SHARE );
+
     return( 0 );
 }
 
@@ -1981,6 +1988,8 @@ static int ssl_tls13_write_hrr_key_share_ext( mbedtls_ssl_context *ssl,
             selected_group ) );
 
     *out_len = 6;
+
+    mbedtls_ssl_tls13_set_hs_sent_ext_mask( ssl, MBEDTLS_TLS_EXT_KEY_SHARE );
 
     return( 0 );
 }

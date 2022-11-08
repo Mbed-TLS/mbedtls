@@ -144,6 +144,7 @@ uint32_t mbedtls_ssl_get_extension_mask( unsigned int extension_type );
               MBEDTLS_SSL_EXT_MASK( ENCRYPT_THEN_MAC )                       | \
               MBEDTLS_SSL_EXT_MASK( EXTENDED_MASTER_SECRET )                 | \
               MBEDTLS_SSL_EXT_MASK( SESSION_TICKET )                         | \
+              MBEDTLS_SSL_EXT_MASK( TRUNCATED_HMAC )                         | \
               MBEDTLS_SSL_EXT_MASK( UNRECOGNIZED ) )
 
 /* RFC 8446 section 4.2. Allowed extensions for ClienHello */

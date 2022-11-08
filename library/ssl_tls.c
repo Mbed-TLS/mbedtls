@@ -9155,6 +9155,11 @@ int mbedtls_ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
     p[6] = MBEDTLS_BYTE_0( protocol_name_len );
 
     memcpy( p + 7, ssl->alpn_chosen, protocol_name_len );
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    mbedtls_ssl_tls13_set_hs_sent_ext_mask( ssl, MBEDTLS_TLS_EXT_ALPN );
+#endif
+
     return ( 0 );
 }
 #endif /* MBEDTLS_SSL_ALPN */

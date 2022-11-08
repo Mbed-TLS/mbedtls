@@ -110,16 +110,20 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mpi_mod_raw_cond_assign( data_t * input_X,
-                              data_t * input_Y,
+void mpi_mod_raw_cond_assign( char * input_X,
+                              char * input_Y,
                               int input_bytes )
 {
     mbedtls_mpi_uint *X = NULL;
     mbedtls_mpi_uint *Y = NULL;
     mbedtls_mpi_uint *buff_m = NULL;
     mbedtls_mpi_mod_modulus m;
-    size_t limbs_X = CHARS_TO_LIMBS( input_X->len );
-    size_t limbs_Y = CHARS_TO_LIMBS( input_Y->len );
+    size_t limbs_X;
+    size_t limbs_Y;
+
+    TEST_EQUAL( mbedtls_test_read_mpi_core( &X, &limbs_X, input_X ), 0 );
+    TEST_EQUAL( mbedtls_test_read_mpi_core( &Y, &limbs_Y, input_Y ), 0 );
+
     size_t limbs = limbs_X;
     size_t copy_limbs = CHARS_TO_LIMBS( input_bytes );
     size_t bytes = limbs * sizeof( mbedtls_mpi_uint );
@@ -130,24 +134,12 @@ void mpi_mod_raw_cond_assign( data_t * input_X,
     TEST_EQUAL( limbs_X, limbs_Y );
     TEST_ASSERT( copy_limbs <= limbs );
 
-    ASSERT_ALLOC( X, limbs );
-    ASSERT_ALLOC( Y, limbs );
-
-    ASSERT_ALLOC( buff_m, limbs );
-    memset( buff_m, 0xFF, copy_bytes );
-    TEST_ASSERT( mbedtls_mpi_mod_modulus_setup(
+    ASSERT_ALLOC( buff_m, copy_limbs );
+    memset( buff_m, 0xFF, copy_limbs );
+    TEST_EQUAL( mbedtls_mpi_mod_modulus_setup(
                         &m, buff_m, copy_limbs,
                         MBEDTLS_MPI_MOD_EXT_REP_BE,
-                        MBEDTLS_MPI_MOD_REP_MONTGOMERY )
-                 == 0 );
-
-    TEST_ASSERT( mbedtls_mpi_core_read_be( X, limbs,
-                                           input_X->x, input_X->len )
-                 == 0 );
-
-    TEST_ASSERT( mbedtls_mpi_core_read_be( Y, limbs,
-                                           input_Y->x, input_Y->len )
-                 == 0 );
+                        MBEDTLS_MPI_MOD_REP_MONTGOMERY ), 0 );
 
     /* condition is false */
     TEST_CF_SECRET( X, bytes );
@@ -189,8 +181,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mpi_mod_raw_cond_swap( data_t * input_X,
-                            data_t * input_Y,
+void mpi_mod_raw_cond_swap( char * input_X,
+                            char * input_Y,
                             int input_bytes )
 {
     mbedtls_mpi_uint *tmp_X = NULL;
@@ -199,8 +191,12 @@ void mpi_mod_raw_cond_swap( data_t * input_X,
     mbedtls_mpi_uint *Y = NULL;
     mbedtls_mpi_uint *buff_m = NULL;
     mbedtls_mpi_mod_modulus m;
-    size_t limbs_X = CHARS_TO_LIMBS( input_X->len );
-    size_t limbs_Y = CHARS_TO_LIMBS( input_Y->len );
+    size_t limbs_X;
+    size_t limbs_Y;
+
+    TEST_EQUAL( mbedtls_test_read_mpi_core( &tmp_X, &limbs_X, input_X ), 0 );
+    TEST_EQUAL( mbedtls_test_read_mpi_core( &tmp_Y, &limbs_Y, input_Y ), 0 );
+
     size_t limbs = limbs_X;
     size_t copy_limbs = CHARS_TO_LIMBS( input_bytes );
     size_t bytes = limbs * sizeof( mbedtls_mpi_uint );
@@ -211,24 +207,16 @@ void mpi_mod_raw_cond_swap( data_t * input_X,
     TEST_EQUAL( limbs_X, limbs_Y );
     TEST_ASSERT( copy_limbs <= limbs );
 
-    ASSERT_ALLOC( tmp_X, limbs );
-    ASSERT_ALLOC( tmp_Y, limbs );
-
     ASSERT_ALLOC( buff_m, copy_limbs );
-    memset( buff_m, 0xFF, copy_bytes );
-    TEST_ASSERT( mbedtls_mpi_mod_modulus_setup(
+    memset( buff_m, 0xFF, copy_limbs );
+    TEST_EQUAL( mbedtls_mpi_mod_modulus_setup(
                         &m, buff_m, copy_limbs,
                         MBEDTLS_MPI_MOD_EXT_REP_BE,
-                        MBEDTLS_MPI_MOD_REP_MONTGOMERY )
-                 == 0 );
+                        MBEDTLS_MPI_MOD_REP_MONTGOMERY ), 0 );
 
-    TEST_ASSERT( mbedtls_mpi_core_read_be( tmp_X, limbs, input_X->x, input_X->len )
-                 == 0 );
     ASSERT_ALLOC( X, limbs );
     memcpy( X, tmp_X, bytes );
 
-    TEST_ASSERT( mbedtls_mpi_core_read_be( tmp_Y, limbs, input_Y->x, input_Y->len )
-                 == 0 );
     ASSERT_ALLOC( Y, bytes );
     memcpy( Y, tmp_Y, bytes );
 

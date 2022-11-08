@@ -82,6 +82,16 @@ psa_status_t mbedtls_test_transparent_key_agreement(
                 alg, peer_key, peer_key_length,
                 shared_secret, shared_secret_size,
                 shared_secret_length ) );
+#else
+        (void) attributes;
+        (void) key_buffer;
+        (void) key_buffer_size;
+        (void) peer_key;
+        (void) peer_key_length;
+        (void) shared_secret;
+        (void) shared_secret_size;
+        (void) shared_secret_length;
+        return( PSA_ERROR_NOT_SUPPORTED );
 #endif
     }
     else

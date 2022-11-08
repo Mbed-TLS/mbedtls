@@ -2687,7 +2687,7 @@ static int ssl_check_server_ecdh_params( const mbedtls_ssl_context *ssl )
     grp_id = ssl->handshake->ecdh_ctx.grp.id;
 #else
     grp_id = ssl->handshake->ecdh_ctx.grp_id;
-#endif
+#endif /* MBEDTLS_ECDH_LEGACY_CONTEXT */
 
     curve_info = mbedtls_ecp_curve_info_from_grp_id( grp_id );
     if( curve_info == NULL )
@@ -2705,7 +2705,7 @@ static int ssl_check_server_ecdh_params( const mbedtls_ssl_context *ssl )
     if( ssl->handshake->ecdh_ctx.grp.nbits < 163 ||
         ssl->handshake->ecdh_ctx.grp.nbits > 521 )
         return( -1 );
-#endif
+#endif /* MBEDTLS_ECP_C */
 
     MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx,
                             MBEDTLS_DEBUG_ECDH_QP );
@@ -3453,7 +3453,7 @@ start_processing:
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
         if( ssl->handshake->ecrs_enabled )
             rs_ctx = &ssl->handshake->ecrs_ctx.pk;
-#endif
+#endif /* MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED */
 
         if( ( ret = mbedtls_pk_verify_restartable( peer_pk,
                         md_alg, hash, hashlen, p, sig_len, rs_ctx ) ) != 0 )
@@ -3464,7 +3464,7 @@ start_processing:
                 MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_verify", ret );
                 return( MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS );
             }
-#endif
+#endif /* MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED */
             mbedtls_ssl_send_alert_message(
                 ssl,
                 MBEDTLS_SSL_ALERT_LEVEL_FATAL,

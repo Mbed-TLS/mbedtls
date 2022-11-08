@@ -743,7 +743,7 @@ void free_named_data_null( )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:!MBEDTLS_DEPRECATED_REMOVED */
+/* BEGIN_CASE depends_on:!MBEDTLS_DEPRECATED_REMOVED:!MBEDTLS_DEPRECATED_WARNING */
 void free_named_data( int with_oid, int with_val, int with_next )
 {
     mbedtls_asn1_named_data next =

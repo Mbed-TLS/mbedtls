@@ -546,7 +546,8 @@ int mbedtls_ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
             p += extension_data_len;
         }
 
-        MBEDTLS_SSL_PRINT_RECEIVED_EXTS( 3, MBEDTLS_SSL_HS_CERTIFICATE );
+        MBEDTLS_SSL_PRINT_EXTS( 3, MBEDTLS_SSL_HS_CERTIFICATE,
+                                ssl->handshake->received_extensions );
     }
 
 exit:
@@ -885,7 +886,8 @@ static int ssl_tls13_write_certificate_body( mbedtls_ssl_context *ssl,
 
     *out_len = p - buf;
 
-    MBEDTLS_SSL_PRINT_SENT_EXTS( 3, MBEDTLS_SSL_HS_CERTIFICATE );
+    MBEDTLS_SSL_PRINT_EXTS(
+        3, MBEDTLS_SSL_HS_CERTIFICATE, ssl->handshake->sent_extensions );
 
     return( 0 );
 }

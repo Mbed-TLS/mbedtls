@@ -754,7 +754,7 @@ void mbedtls_ssl_print_extensions( const mbedtls_ssl_context *ssl,
     {
         mbedtls_ssl_print_extension(
             ssl, level, file, line, hs_msg_type, extension_type_table[i],
-            extensions_mask & ( 1 << i ) ? "was" : "was not", extra );
+            extensions_mask & ( 1 << i ) ? "exists" : "does not exists", extra );
     }
 }
 

@@ -1742,7 +1742,8 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
         p += extension_data_len;
     }
 
-    MBEDTLS_SSL_PRINT_RECEIVED_EXTS( 3, hs_msg_type );
+    MBEDTLS_SSL_PRINT_EXTS(
+        3, hs_msg_type, ssl->handshake->received_extensions );
 
 cleanup:
 
@@ -2034,7 +2035,8 @@ static int ssl_tls13_parse_encrypted_extensions( mbedtls_ssl_context *ssl,
         p += extension_data_len;
     }
 
-    MBEDTLS_SSL_PRINT_RECEIVED_EXTS( 3, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS );
+    MBEDTLS_SSL_PRINT_EXTS( 3, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS,
+                            ssl->handshake->received_extensions );
 
     /* Check that we consumed all the message. */
     if( p != end )
@@ -2222,7 +2224,8 @@ static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
         p += extension_data_len;
     }
 
-    MBEDTLS_SSL_PRINT_RECEIVED_EXTS( 3, MBEDTLS_SSL_HS_CERTIFICATE_REQUEST );
+    MBEDTLS_SSL_PRINT_EXTS( 3, MBEDTLS_SSL_HS_CERTIFICATE_REQUEST,
+                            ssl->handshake->received_extensions );
 
     /* Check that we consumed all the message. */
     if( p != end )
@@ -2513,7 +2516,8 @@ static int ssl_tls13_parse_new_session_ticket_exts( mbedtls_ssl_context *ssl,
         p +=  extension_data_len;
     }
 
-    MBEDTLS_SSL_PRINT_RECEIVED_EXTS( 3, MBEDTLS_SSL_HS_NEW_SESSION_TICKET );
+    MBEDTLS_SSL_PRINT_EXTS( 3, MBEDTLS_SSL_HS_NEW_SESSION_TICKET,
+                            ssl->handshake->received_extensions );
 
     return( 0 );
 }

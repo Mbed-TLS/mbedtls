@@ -1623,7 +1623,8 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
         p += extension_data_len;
     }
 
-    MBEDTLS_SSL_PRINT_RECEIVED_EXTS( 3, MBEDTLS_SSL_HS_CLIENT_HELLO );
+    MBEDTLS_SSL_PRINT_EXTS( 3, MBEDTLS_SSL_HS_CLIENT_HELLO,
+                            ssl->handshake->received_extensions );
 
     mbedtls_ssl_add_hs_hdr_to_checksum( ssl,
                                         MBEDTLS_SSL_HS_CLIENT_HELLO,
@@ -2145,9 +2146,10 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "server hello", buf, *out_len );
 
-    MBEDTLS_SSL_PRINT_SENT_EXTS(
+    MBEDTLS_SSL_PRINT_EXTS(
         3, is_hrr ? MBEDTLS_SSL_TLS1_3_HS_HELLO_RETRY_REQUEST :
-                    MBEDTLS_SSL_HS_SERVER_HELLO );
+                    MBEDTLS_SSL_HS_SERVER_HELLO,
+        ssl->handshake->sent_extensions );
 
     return( ret );
 }
@@ -2333,7 +2335,8 @@ static int ssl_tls13_write_encrypted_extensions_body( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_BUF( 4, "encrypted extensions", buf, *out_len );
 
-    MBEDTLS_SSL_PRINT_SENT_EXTS( 3, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS );
+    MBEDTLS_SSL_PRINT_EXTS(
+        3, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS, ssl->handshake->sent_extensions );
 
     return( 0 );
 }
@@ -2464,7 +2467,8 @@ static int ssl_tls13_write_certificate_request_body( mbedtls_ssl_context *ssl,
 
     *out_len = p - buf;
 
-    MBEDTLS_SSL_PRINT_SENT_EXTS( 3, MBEDTLS_SSL_HS_CERTIFICATE_REQUEST );
+    MBEDTLS_SSL_PRINT_EXTS(
+        3, MBEDTLS_SSL_HS_CERTIFICATE_REQUEST, ssl->handshake->sent_extensions );
 
     return( 0 );
 }
@@ -2861,7 +2865,8 @@ static int ssl_tls13_write_new_session_ticket_body( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_BUF( 4, "ticket", buf, *out_len );
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write new session ticket" ) );
 
-    MBEDTLS_SSL_PRINT_SENT_EXTS( 3, MBEDTLS_SSL_HS_NEW_SESSION_TICKET );
+    MBEDTLS_SSL_PRINT_EXTS(
+        3, MBEDTLS_SSL_HS_NEW_SESSION_TICKET, ssl->handshake->sent_extensions );
 
     return( 0 );
 }

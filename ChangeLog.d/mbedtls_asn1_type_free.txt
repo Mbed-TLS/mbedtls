@@ -1,0 +1,6 @@
+Features
+   * Shared code to free x509 structs like mbedtls_x509_named_data
+New deprecations
+   * Deprecate mbedtls_asn1_free_named_data().
+     Use mbedtls_asn1_free_named_data_list()
+     or mbedtls_asn1_free_named_data_list_shallow()

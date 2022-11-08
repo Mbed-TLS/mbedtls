@@ -735,7 +735,7 @@ void find_named_data( data_t *oid0, data_t *oid1, data_t *oid2, data_t *oid3,
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:!MBEDTLS_DEPRECATED_REMOVED:!MBEDTLS_DEPRECATED_WARNING */
 void free_named_data_null( )
 {
     mbedtls_asn1_free_named_data( NULL );
@@ -743,7 +743,7 @@ void free_named_data_null( )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:!MBEDTLS_DEPRECATED_REMOVED:!MBEDTLS_DEPRECATED_WARNING */
 void free_named_data( int with_oid, int with_val, int with_next )
 {
     mbedtls_asn1_named_data next =

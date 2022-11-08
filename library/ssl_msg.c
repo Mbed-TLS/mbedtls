@@ -1797,8 +1797,7 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
 
     if( ssl->f_recv == NULL && ssl->f_recv_timeout == NULL )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Bad usage of mbedtls_ssl_set_bio() "
-                            "or mbedtls_ssl_set_bio()" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Bad usage of mbedtls_ssl_set_bio() " ) );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
@@ -2013,8 +2012,7 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
 
     if( ssl->f_send == NULL )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Bad usage of mbedtls_ssl_set_bio() "
-                            "or mbedtls_ssl_set_bio()" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Bad usage of mbedtls_ssl_set_bio() " ) );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 

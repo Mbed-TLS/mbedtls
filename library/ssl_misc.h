@@ -78,7 +78,7 @@
 #define MBEDTLS_SSL_TLS1_3_HS_HELLO_RETRY_REQUEST ( -MBEDTLS_SSL_HS_SERVER_HELLO )
 
 /*
- * Inernal identity of handshake extensions
+ * Internal identity of handshake extensions
  */
 #define MBEDTLS_SSL_EXT_ID_UNRECOGNIZED                0
 #define MBEDTLS_SSL_EXT_ID_SERVERNAME                  1
@@ -138,8 +138,8 @@ uint32_t mbedtls_ssl_get_extension_mask( unsigned int extension_type );
  * with an "illegal_parameter" alert.
  */
 
-/* Extensions that not recognized by TLS 1.3 */
-#define MBEDTLS_SSL_TLS1_3_EXT_MASK_UNREOGNIZED                                \
+/* Extensions that are not recognized by TLS 1.3 */
+#define MBEDTLS_SSL_TLS1_3_EXT_MASK_UNRECOGNIZED                               \
             ( MBEDTLS_SSL_EXT_MASK( SUPPORTED_POINT_FORMATS )                | \
               MBEDTLS_SSL_EXT_MASK( ENCRYPT_THEN_MAC )                       | \
               MBEDTLS_SSL_EXT_MASK( EXTENDED_MASTER_SECRET )                 | \
@@ -169,7 +169,7 @@ uint32_t mbedtls_ssl_get_extension_mask( unsigned int extension_type );
               MBEDTLS_SSL_EXT_MASK( CERT_AUTH )                              | \
               MBEDTLS_SSL_EXT_MASK( POST_HANDSHAKE_AUTH )                    | \
               MBEDTLS_SSL_EXT_MASK( SIG_ALG_CERT )                           | \
-              MBEDTLS_SSL_TLS1_3_EXT_MASK_UNREOGNIZED )
+              MBEDTLS_SSL_TLS1_3_EXT_MASK_UNRECOGNIZED )
 
 /* RFC 8446 section 4.2. Allowed extensions for EncryptedExtensions */
 #define MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_EE                                  \
@@ -191,7 +191,7 @@ uint32_t mbedtls_ssl_get_extension_mask( unsigned int extension_type );
               MBEDTLS_SSL_EXT_MASK( CERT_AUTH )                              | \
               MBEDTLS_SSL_EXT_MASK( OID_FILTERS )                            | \
               MBEDTLS_SSL_EXT_MASK( SIG_ALG_CERT )                           | \
-              MBEDTLS_SSL_TLS1_3_EXT_MASK_UNREOGNIZED )
+              MBEDTLS_SSL_TLS1_3_EXT_MASK_UNRECOGNIZED )
 
 /* RFC 8446 section 4.2. Allowed extensions for Certificate */
 #define MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_CT                                  \
@@ -213,7 +213,7 @@ uint32_t mbedtls_ssl_get_extension_mask( unsigned int extension_type );
 /* RFC 8446 section 4.2. Allowed extensions for NewSessionTicket */
 #define MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_NST                                 \
             ( MBEDTLS_SSL_EXT_MASK( EARLY_DATA )                             | \
-              MBEDTLS_SSL_TLS1_3_EXT_MASK_UNREOGNIZED )
+              MBEDTLS_SSL_TLS1_3_EXT_MASK_UNRECOGNIZED )
 
 /*
  * Helper macros for function call with return check.
@@ -1950,7 +1950,7 @@ static inline int mbedtls_ssl_tls13_some_psk_enabled( mbedtls_ssl_context *ssl )
           MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED */
 
 /*
- * Helper functions for extensions checking and convert.
+ * Helper functions for extensions checking.
  */
 
 MBEDTLS_CHECK_RETURN_CRITICAL

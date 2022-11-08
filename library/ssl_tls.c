@@ -618,7 +618,7 @@ uint32_t mbedtls_ssl_get_extension_mask( unsigned int extension_type )
 
 #if defined(MBEDTLS_DEBUG_C)
 static const char *extension_name_table[] = {
-    [MBEDTLS_SSL_EXT_ID_UNRECOGNIZED] = "unreognized",
+    [MBEDTLS_SSL_EXT_ID_UNRECOGNIZED] = "unrecognized",
     [MBEDTLS_SSL_EXT_ID_SERVERNAME] = "server_name",
     [MBEDTLS_SSL_EXT_ID_MAX_FRAGMENT_LENGTH] = "max_fragment_length",
     [MBEDTLS_SSL_EXT_ID_STATUS_REQUEST] = "status_request",
@@ -648,7 +648,7 @@ static const char *extension_name_table[] = {
     [MBEDTLS_SSL_EXT_ID_SESSION_TICKET] = "session_ticket"
 };
 
-static unsigned int extension_type_tbl[]={
+static unsigned int extension_type_table[]={
     [MBEDTLS_SSL_EXT_ID_UNRECOGNIZED] = 0xff,
     [MBEDTLS_SSL_EXT_ID_SERVERNAME] = MBEDTLS_TLS_EXT_SERVERNAME,
     [MBEDTLS_SSL_EXT_ID_MAX_FRAGMENT_LENGTH] = MBEDTLS_TLS_EXT_MAX_FRAGMENT_LENGTH,
@@ -755,7 +755,7 @@ void mbedtls_ssl_print_extensions( const mbedtls_ssl_context *ssl,
          i++ )
     {
         mbedtls_ssl_print_extension_type(
-            ssl, level, file, line, hs_msg_type, extension_type_tbl[i],
+            ssl, level, file, line, hs_msg_type, extension_type_table[i],
             extensions_mask & ( 1 << i ) ? "was" : "was not", extra );
     }
 }

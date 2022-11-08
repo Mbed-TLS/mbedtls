@@ -1447,8 +1447,8 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
                 3, ( "pre_shared_key is not last extension." ) );
             MBEDTLS_SSL_PEND_FATAL_ALERT(
                 MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
-                MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-            return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+                MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+            return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
         }
 
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, 4 );

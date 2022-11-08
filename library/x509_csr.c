@@ -375,9 +375,6 @@ void mbedtls_x509_csr_init( mbedtls_x509_csr *csr )
  */
 void mbedtls_x509_csr_free( mbedtls_x509_csr *csr )
 {
-    mbedtls_x509_name *name_cur;
-    mbedtls_x509_name *name_prv;
-
     if( csr == NULL )
         return;
 
@@ -387,14 +384,7 @@ void mbedtls_x509_csr_free( mbedtls_x509_csr *csr )
     mbedtls_free( csr->sig_opts );
 #endif
 
-    name_cur = csr->subject.next;
-    while( name_cur != NULL )
-    {
-        name_prv = name_cur;
-        name_cur = name_cur->next;
-        mbedtls_platform_zeroize( name_prv, sizeof( mbedtls_x509_name ) );
-        mbedtls_free( name_prv );
-    }
+    mbedtls_asn1_free_named_data_list_shallow( csr->subject.next );
 
     if( csr->raw.p != NULL )
     {

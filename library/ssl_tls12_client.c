@@ -2680,7 +2680,6 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
     {
         unsigned char *p = dn + i + 2;
         mbedtls_x509_name name;
-        mbedtls_x509_name *name_cur, *name_prv;
         size_t asn1_len;
         char s[MBEDTLS_X509_MAX_DN_NAME_SIZE];
         memset( &name, 0, sizeof( name ) );
@@ -2700,14 +2699,7 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 3,
             ( "DN hint: %.*s",
               mbedtls_x509_dn_gets( s, sizeof(s), &name ), s ) );
-        name_cur = name.next;
-        while( name_cur != NULL )
-        {
-            name_prv = name_cur;
-            name_cur = name_cur->next;
-            mbedtls_platform_zeroize( name_prv, sizeof( mbedtls_x509_name ) );
-            mbedtls_free( name_prv );
-        }
+        mbedtls_asn1_free_named_data_list_shallow( name.next );
     }
 #endif
 

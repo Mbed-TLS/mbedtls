@@ -825,7 +825,6 @@ void mbedtls_x509_get_name( char * rdn_sequence, int exp_ret )
     unsigned char *p;
     size_t name_len;
     mbedtls_x509_name head;
-    mbedtls_x509_name *allocated, *prev;
     int ret;
 
     memset( &head, 0, sizeof( head ) );
@@ -835,17 +834,7 @@ void mbedtls_x509_get_name( char * rdn_sequence, int exp_ret )
 
     ret = mbedtls_x509_get_name( &p, ( name + name_len ), &head );
     if( ret == 0 )
-    {
-        allocated = head.next;
-
-        while( allocated != NULL )
-        {
-            prev = allocated;
-            allocated = allocated->next;
-
-            mbedtls_free( prev );
-        }
-    }
+        mbedtls_asn1_free_named_data_list_shallow( head.next );
 
     TEST_EQUAL( ret, exp_ret );
 
@@ -859,7 +848,7 @@ void mbedtls_x509_dn_get_next( char * name_str, int next_merged, char * expected
     int ret = 0, i;
     size_t len = 0, out_size;
     mbedtls_asn1_named_data *names = NULL;
-    mbedtls_x509_name parsed, *parsed_cur, *parsed_prv;
+    mbedtls_x509_name parsed, *parsed_cur;
     // Size of buf is maximum required for test cases
     unsigned char buf[80], *out = NULL, *c;
     const char *short_name;
@@ -913,14 +902,7 @@ void mbedtls_x509_dn_get_next( char * name_str, int next_merged, char * expected
 exit:
     mbedtls_free( out );
     mbedtls_asn1_free_named_data_list( &names );
-
-    parsed_cur = parsed.next;
-    while( parsed_cur != 0 )
-    {
-        parsed_prv = parsed_cur;
-        parsed_cur = parsed_cur->next;
-        mbedtls_free( parsed_prv );
-    }
+    mbedtls_asn1_free_named_data_list_shallow( parsed.next );
 }
 /* END_CASE */
 

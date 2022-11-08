@@ -608,18 +608,23 @@ Find named data: first match
 find_named_data:"414141":"414141":"434343":"444444":"414141":0:0
 
 Free named data: null pointer
+depends_on:MBEDTLS_TEST_DEPRECATED
 free_named_data_null:
 
 Free named data: all null
+depends_on:MBEDTLS_TEST_DEPRECATED
 free_named_data:0:0:0
 
 Free named data: with oid
+depends_on:MBEDTLS_TEST_DEPRECATED
 free_named_data:1:0:0
 
 Free named data: with val
+depends_on:MBEDTLS_TEST_DEPRECATED
 free_named_data:0:1:0
 
 Free named data: with next
+depends_on:MBEDTLS_TEST_DEPRECATED
 free_named_data:0:0:1
 
 Free named data list (empty)

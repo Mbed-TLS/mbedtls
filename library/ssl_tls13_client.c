@@ -2025,7 +2025,7 @@ static int ssl_tls13_parse_encrypted_extensions( mbedtls_ssl_context *ssl,
                 break;
 #endif /* MBEDTLS_SSL_ALPN */
             default:
-                MBEDTLS_SSL_PRINT_EXT_TYPE(
+                MBEDTLS_SSL_PRINT_EXT(
                     3, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS,
                     extension_type, "( ignored )" );
                 break;
@@ -2213,7 +2213,7 @@ static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
                 break;
 
             default:
-                MBEDTLS_SSL_PRINT_EXT_TYPE(
+                MBEDTLS_SSL_PRINT_EXT(
                     3, MBEDTLS_SSL_HS_CERTIFICATE_REQUEST,
                     extension_type, "( ignored )" );
                 break;
@@ -2504,7 +2504,7 @@ static int ssl_tls13_parse_new_session_ticket_exts( mbedtls_ssl_context *ssl,
         switch( extension_type )
         {
             default:
-                MBEDTLS_SSL_PRINT_EXT_TYPE(
+                MBEDTLS_SSL_PRINT_EXT(
                     3, MBEDTLS_SSL_HS_NEW_SESSION_TICKET,
                     extension_type, "( ignored )" );
                 break;

@@ -537,7 +537,7 @@ int mbedtls_ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
             switch( extension_type )
             {
                 default:
-                    MBEDTLS_SSL_PRINT_EXT_TYPE(
+                    MBEDTLS_SSL_PRINT_EXT(
                         3, MBEDTLS_SSL_HS_CERTIFICATE,
                         extension_type, "( ignored )" );
                     break;
@@ -1545,12 +1545,12 @@ int mbedtls_ssl_tls13_check_received_extension(
     uint32_t extension_mask = mbedtls_ssl_get_extension_mask(
                                   received_extension_type );
 
-    MBEDTLS_SSL_PRINT_EXT_TYPE(
+    MBEDTLS_SSL_PRINT_EXT(
         3, hs_msg_type, received_extension_type, "received" );
 
     if( ( extension_mask & hs_msg_allowed_extensions_mask ) == 0 )
     {
-        MBEDTLS_SSL_PRINT_EXT_TYPE(
+        MBEDTLS_SSL_PRINT_EXT(
             3, hs_msg_type, received_extension_type, "is illegal" );
         MBEDTLS_SSL_PEND_FATAL_ALERT(
             MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
@@ -1577,7 +1577,7 @@ int mbedtls_ssl_tls13_check_received_extension(
             return( 0 );
     }
 
-    MBEDTLS_SSL_PRINT_EXT_TYPE(
+    MBEDTLS_SSL_PRINT_EXT(
             3, hs_msg_type, received_extension_type, "is unsupported" );
     MBEDTLS_SSL_PEND_FATAL_ALERT(
         MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT,

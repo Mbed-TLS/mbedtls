@@ -704,15 +704,13 @@ static const char *ssl_tls13_get_hs_msg_name( int hs_msg_type )
         case MBEDTLS_SSL_HS_CERTIFICATE_REQUEST:
             return( "CertificateRequest" );
     }
-    return( NULL );
+    return( "Unknown" );
 }
 
-void mbedtls_ssl_print_extension_type( const mbedtls_ssl_context *ssl,
-                                       int level, const char *file, int line,
-                                       int hs_msg_type,
-                                       unsigned int extension_type,
-                                       const char *extra_msg0,
-                                       const char *extra_msg1 )
+void mbedtls_ssl_print_extension( const mbedtls_ssl_context *ssl,
+                                  int level, const char *file, int line,
+                                  int hs_msg_type, unsigned int extension_type,
+                                  const char *extra_msg0, const char *extra_msg1 )
 {
     const char *extra_msg;
     if( extra_msg0 && extra_msg1 )
@@ -754,7 +752,7 @@ void mbedtls_ssl_print_extensions( const mbedtls_ssl_context *ssl,
          i < sizeof( extension_name_table ) / sizeof( extension_name_table[0] );
          i++ )
     {
-        mbedtls_ssl_print_extension_type(
+        mbedtls_ssl_print_extension(
             ssl, level, file, line, hs_msg_type, extension_type_table[i],
             extensions_mask & ( 1 << i ) ? "was" : "was not", extra );
     }

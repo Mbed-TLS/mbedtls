@@ -1614,7 +1614,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
 
             default:
-                MBEDTLS_SSL_PRINT_EXT_TYPE(
+                MBEDTLS_SSL_PRINT_EXT(
                     3, MBEDTLS_SSL_HS_CLIENT_HELLO,
                     extension_type, "( ignored )" );
                 break;

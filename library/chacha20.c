@@ -315,7 +315,7 @@ int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
 }
 
 static int chacha20_crypt( int is_xchacha20, const unsigned char key[32],
-                            const unsigned char nonce[12],
+                            const unsigned char *nonce,
                             uint32_t counter,
                             size_t data_len,
                             const unsigned char* input,

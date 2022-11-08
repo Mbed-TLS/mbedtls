@@ -170,6 +170,35 @@ int mbedtls_chachapoly_starts( mbedtls_chachapoly_context *ctx,
                                mbedtls_chachapoly_mode_t mode );
 
 /**
+ * \brief           This function starts a XChaCha20-Poly1305 encryption or
+ *                  decryption operation.
+ *
+ * \warning         You must never use the same nonce twice with the same key.
+ *                  This would void any confidentiality and authenticity
+ *                  guarantees for the messages encrypted with the same nonce
+ *                  and key.
+ *
+ * \note            If the context is being used for AAD only (no data to
+ *                  encrypt or decrypt) then \p mode can be set to any value.
+ *
+ * \warning         Decryption with the piecewise API is discouraged, see the
+ *                  warning on \c mbedtls_chachapoly_init().
+ *
+ * \param ctx       The ChaCha20-Poly1305 context. This must be initialized
+ *                  and bound to a key.
+ * \param nonce     The nonce/IV to use for the message.
+ *                  This must be a readable buffer of length \c 24 Bytes.
+ * \param mode      The operation to perform: #MBEDTLS_CHACHAPOLY_ENCRYPT or
+ *                  #MBEDTLS_CHACHAPOLY_DECRYPT (discouraged, see warning).
+ *
+ * \return          \c 0 on success.
+ * \return          A negative error code on failure.
+ */
+int mbedtls_xchachapoly_starts( mbedtls_chachapoly_context *ctx,
+                               const unsigned char nonce[24],
+                               mbedtls_chachapoly_mode_t mode );
+
+/**
  * \brief           This function feeds additional data to be authenticated
  *                  into an ongoing ChaCha20-Poly1305 operation.
  *
@@ -306,6 +335,44 @@ int mbedtls_chachapoly_encrypt_and_tag( mbedtls_chachapoly_context *ctx,
                                         unsigned char tag[16] );
 
 /**
+ * \brief           This function performs a complete XChaCha20-Poly1305
+ *                  authenticated encryption with the previously-set key.
+ *
+ * \note            Before using this function, you must set the key with
+ *                  \c mbedtls_chachapoly_setkey().
+ *
+ * \warning         You must never use the same nonce twice with the same key.
+ *                  This would void any confidentiality and authenticity
+ *                  guarantees for the messages encrypted with the same nonce
+ *                  and key.
+ *
+ * \param ctx       The ChaCha20-Poly1305 context to use (holds the key).
+ *                  This must be initialized.
+ * \param length    The length (in bytes) of the data to encrypt or decrypt.
+ * \param nonce     The 192-bit (24 bytes) nonce/IV to use.
+ * \param aad       The buffer containing the additional authenticated
+ *                  data (AAD). This pointer can be \c NULL if `aad_len == 0`.
+ * \param aad_len   The length (in bytes) of the AAD data to process.
+ * \param input     The buffer containing the data to encrypt or decrypt.
+ *                  This pointer can be \c NULL if `ilen == 0`.
+ * \param output    The buffer to where the encrypted or decrypted data
+ *                  is written. This pointer can be \c NULL if `ilen == 0`.
+ * \param tag       The buffer to where the computed 128-bit (16 bytes) MAC
+ *                  is written. This must not be \c NULL.
+ *
+ * \return          \c 0 on success.
+ * \return          A negative error code on failure.
+ */
+int mbedtls_xchachapoly_encrypt_and_tag( mbedtls_chachapoly_context *ctx,
+                                        size_t length,
+                                        const unsigned char nonce[24],
+                                        const unsigned char *aad,
+                                        size_t aad_len,
+                                        const unsigned char *input,
+                                        unsigned char *output,
+                                        unsigned char tag[16] );
+
+/**
  * \brief           This function performs a complete ChaCha20-Poly1305
  *                  authenticated decryption with the previously-set key.
  *
@@ -333,6 +400,40 @@ int mbedtls_chachapoly_encrypt_and_tag( mbedtls_chachapoly_context *ctx,
 int mbedtls_chachapoly_auth_decrypt( mbedtls_chachapoly_context *ctx,
                                      size_t length,
                                      const unsigned char nonce[12],
+                                     const unsigned char *aad,
+                                     size_t aad_len,
+                                     const unsigned char tag[16],
+                                     const unsigned char *input,
+                                     unsigned char *output );
+
+/**
+ * \brief           This function performs a complete XChaCha20-Poly1305
+ *                  authenticated decryption with the previously-set key.
+ *
+ * \note            Before using this function, you must set the key with
+ *                  \c mbedtls_chachapoly_setkey().
+ *
+ * \param ctx       The ChaCha20-Poly1305 context to use (holds the key).
+ * \param length    The length (in Bytes) of the data to decrypt.
+ * \param nonce     The \c 192 Bit (\c 24 bytes) nonce/IV to use.
+ * \param aad       The buffer containing the additional authenticated data (AAD).
+ *                  This pointer can be \c NULL if `aad_len == 0`.
+ * \param aad_len   The length (in bytes) of the AAD data to process.
+ * \param tag       The buffer holding the authentication tag.
+ *                  This must be a readable buffer of length \c 16 Bytes.
+ * \param input     The buffer containing the data to decrypt.
+ *                  This pointer can be \c NULL if `ilen == 0`.
+ * \param output    The buffer to where the decrypted data is written.
+ *                  This pointer can be \c NULL if `ilen == 0`.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_CHACHAPOLY_AUTH_FAILED
+ *                  if the data was not authentic.
+ * \return          Another negative error code on other kinds of failure.
+ */
+int mbedtls_xchachapoly_auth_decrypt( mbedtls_chachapoly_context *ctx,
+                                     size_t length,
+                                     const unsigned char nonce[24],
                                      const unsigned char *aad,
                                      size_t aad_len,
                                      const unsigned char tag[16],

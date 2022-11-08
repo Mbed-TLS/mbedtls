@@ -344,9 +344,9 @@ void mpi_mod_raw_add( char * input_A, char * input_B,
         mbedtls_mpi_mod_raw_add( X, A, A, &m );
         ASSERT_COMPARE( X, bytes, S, bytes );
 
-        /* A + A, alias X to A => Correct result */
+        /* A + A: X, A, B all aliased together => Correct result */
         memcpy( X, A, bytes );
-        mbedtls_mpi_mod_raw_add( X, A, A, &m );
+        mbedtls_mpi_mod_raw_add( X, X, X, &m );
         ASSERT_COMPARE( X, bytes, S, bytes );
     }
     else

@@ -268,6 +268,14 @@ int mbedtls_xchacha20_crypt( const unsigned char key[32],
  * \return          \c 1 on failure.
  */
 int mbedtls_chacha20_self_test( int verbose );
+
+/**
+ * \brief           The XChaCha20 checkup routine.
+ *
+ * \return          \c 0 on success.
+ * \return          \c 1 on failure.
+ */
+int mbedtls_xchacha20_self_test( int verbose );
 #endif /* MBEDTLS_SELF_TEST */
 
 #ifdef __cplusplus

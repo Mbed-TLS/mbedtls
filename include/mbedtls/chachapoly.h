@@ -454,6 +454,14 @@ int mbedtls_xchachapoly_auth_decrypt( mbedtls_chachapoly_context *ctx,
  * \return          \c 1 on failure.
  */
 int mbedtls_chachapoly_self_test( int verbose );
+
+/**
+ * \brief           The XChaCha20-Poly1305 checkup routine.
+ *
+ * \return          \c 0 on success.
+ * \return          \c 1 on failure.
+ */
+int mbedtls_xchachapoly_self_test( int verbose );
 #endif /* MBEDTLS_SELF_TEST */
 
 #ifdef __cplusplus

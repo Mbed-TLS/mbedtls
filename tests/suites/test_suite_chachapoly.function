@@ -164,5 +164,6 @@ exit:
 void chachapoly_selftest()
 {
     TEST_ASSERT( mbedtls_chachapoly_self_test( 1 ) == 0 );
+    TEST_ASSERT( mbedtls_xchachapoly_self_test( 1 ) == 0 );
 }
 /* END_CASE */

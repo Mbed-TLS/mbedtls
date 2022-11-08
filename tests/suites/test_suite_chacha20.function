@@ -81,5 +81,6 @@ void chacha20_crypt( int is_xchacha20,
 void chacha20_self_test()
 {
     TEST_ASSERT( mbedtls_chacha20_self_test( 1 ) == 0 );
+    TEST_ASSERT( mbedtls_xchacha20_self_test( 1 ) == 0 );
 }
 /* END_CASE */

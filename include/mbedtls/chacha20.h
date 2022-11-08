@@ -129,6 +129,7 @@ int mbedtls_chacha20_starts( mbedtls_chacha20_context* ctx,
                              const unsigned char nonce[12],
                              uint32_t counter );
 
+#if !defined(MBEDTLS_CHACHA20_ALT)
 /**
  * \brief           This function sets the nonce and initial counter value. XChaCha20 variant.
  *
@@ -151,6 +152,7 @@ int mbedtls_chacha20_starts( mbedtls_chacha20_context* ctx,
 int mbedtls_xchacha20_starts( mbedtls_chacha20_context* ctx,
                              const unsigned char nonce[24],
                              uint32_t counter );
+ #endif /* MBEDTLS_CHACHA20_ALT */
 
 /**
  * \brief           This function encrypts or decrypts data.
@@ -221,6 +223,7 @@ int mbedtls_chacha20_crypt( const unsigned char key[32],
                             const unsigned char* input,
                             unsigned char* output );
 
+#if !defined(MBEDTLS_CHACHA20_ALT)
 /**
  * \brief           This function encrypts or decrypts data with XChaCha20 and
  *                  the given key and nonce.
@@ -255,6 +258,7 @@ int mbedtls_xchacha20_crypt( const unsigned char key[32],
                             size_t size,
                             const unsigned char* input,
                             unsigned char* output );
+#endif /* MBEDTLS_CHACHA20_ALT */
 
 #if defined(MBEDTLS_SELF_TEST)
 /**

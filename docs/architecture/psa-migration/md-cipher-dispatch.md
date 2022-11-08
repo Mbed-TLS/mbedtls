@@ -148,3 +148,67 @@ Generally speaking, modules in the mixed domain:
 * must call PSA if called by a module in the PSA domain;
 * must not call PSA (or must have a fallback) if their caller is not in the PSA domain and the PSA call is not guaranteed to work.
 
+#### Non-support guarantees: requirements
+
+Generally speaking, just because some feature is not enabled in `mbedtls_config.h` or `psa_config.h` doesn't guarantee that it won't be enabled in the build. We can enable additional features through `build_info.h`.
+
+If `PSA_WANT_xxx` is disabled, this should guarantee that attempting xxx through the PSA API will fail. This is generally guaranteed by the test suite `test_suite_psa_crypto_not_supported` with automatically enumerated test cases, so it would be inconvenient to carve out an exception.
+
+### Technical requirements
+
+Based on the preceding analysis, the core of the problem is: for code in the mixed domain (see [“Classification of callers”](#classification-of-callers)), how do we handle a cryptographic mechanisms? This has several related subproblems:
+
+* How the mechanism is encoded (e.g. `mbedtls_md_type_t` vs `const *mbedtls_md_info_t` vs `psa_algorithm_t` for hashes).
+* How to decide whether a specific algorithm or key type is supported (eventually based on `MBEDTLS_xxx_C` vs `PSA_WANT_xxx`).
+* How to obtain metadata about algorithms (e.g. hash/MAC/tag size, key size).
+* How to perform the operation (context type, which functions to call).
+
+We need a way to decide this based on the available information:
+
+* Who's the ultimate caller — see [indirect knowledge](#indirect-knowledge) — which is not actually available.
+* Some parameter indicating which algorithm to use.
+* The available cryptographic implementations, based on preprocessor symbols (`MBEDTLS_xxx_C`, `PSA_WANT_xxx`, `MBEDTLS_PSA_ACCEL_xxx`, etc.).
+* Possibly additional runtime state (for example, we might check whether `psa_crypto_init` has been called).
+
+And we need to take care of the [the cases where PSA is not possible](#why-psa-is-not-always-possible): either make sure the current behavior is preserved, or (where allowed by backward compatibility) document a behavior change and, preferably, a workaround.
+
+### Working through an example
+
+Let us work through the example of RSA-PSS which calculates a hash, as in [see issue \#6497](https://github.com/Mbed-TLS/mbedtls/issues/6497).
+
+RSA is in the [mixed domain](#classification-of-callers). So:
+
+* When called from `psa_sign_hash` and other PSA functions, it must call the PSA hash accelerator if there is one.
+* When called from user code, it must call the built-in hash implementation if PSA is not available.
+
+RSA knows which hash algorithm to use based on a parameter of type `mbedtls_md_type_t`. (More generally, all mixed-domain modules that take an algorithm specification as a parameter take it via a numerical type, except HMAC\_DRBG and HKDF which take a `const mbedtls_md_info_t*` instead, and CMAC which takes a `const mbedtls_cipher_info_t *`.)
+
+#### Double encoding solution
+
+A natural solution is to double up the encoding of hashes in `mbedtls_md_type_t`. Pass `MBEDTLS_MD_SHA256` and `md` will dispatch to the legacy code, pass a new constant `MBEDTLS_MD_SHA256_USE_PSA` and `md` will dispatch through PSA.
+
+This maximally preserves backward compatibility, but then no non-PSA code benefits from PSA accelerators, and there's little potential for removing the software implementation.
+
+#### Compile-time availability determination
+
+Can we determine how to dispatch at compile time?
+
+The following combinations of compile-time support are possible:
+
+* `MBEDTLS_PSA_CRYPTO_CLIENT`. Then calling PSA may or may not be desirable for performance. There are plausible use cases where only the server has access to an accelerator so it's best to call the server, and plausible use cases where calling the server has overhead that negates the savings from using acceleration, if there are savings at all. In any case, calling PSA only works if the connection to the server has been established, meaning `psa_crypto_init` has been called successfully. In the rest of this case enumeration, assume `MBEDTLS_PSA_CRYPTO_CLIENT` is disabled.
+* No PSA accelerator. Then just call `mbedtls_sha256`, it's all there is, and it doesn't matter (from an API perspective) exactly what call chain leads to it.
+* PSA accelerator, no software implementation. Then we might as well call the accelerator, unless it's important that the call fails. At the time of writing, I can't think of a case where we would want to guarantee that if `MBEDTLS_xxx_C` is not enabled, but xxx is enabled through PSA, then a request to use algorithm xxx through some legacy interface must fail.
+* Both PSA acceleration and the built-in implementation. In this case, we would prefer PSA for the acceleration, but we can only do this if the accelerator driver is working. For hashes, it's enough to assume the driver is initialized, and in Mbed TLS 3.3 we've [required hash drivers to work without initialization](https://github.com/Mbed-TLS/mbedtls/pull/6470). For ciphers, this is more complicated because the cipher functions require the keystore, and plausibly a cipher accelerator might want entropy (for side channel countermeasures) which might not be available at boot time.
+
+Note that it's a bit tricky to determine which algorithms are available. In the case where there is a PSA accelerator but no software implementation, we don't want the preprocessor symbols to indicate that the algorithm is available through the legacy domain, only through the PSA domain. What does this mean for the interfaces in the mixed domain? They can't guarantee the availability of the algorithm, but they must try if requested.
+
+TODO: so in this approach, how exactly do you know whether RSA-PSS-somehash is possible through `mbedtls_rsa_xxx`?
+
+#### Runtime availability determination
+
+Can we have a way to determine which interface to use for a particular cryptographic mechanism at run time? Schematically:
+```
+enum {PSA, LEGACY} where_to_dispatch(algorithm_encoding alg);
+```
+In many cases this would be a constant based on [compile-time availability determination](#compile-time-availability-determination). In the case where both a PSA accelerator and a legacy implementation are available, this function can, for example, check the initialization status of the PSA subsystem.
+

@@ -1,0 +1,5 @@
+Bugfix
+   * Fix a bug in which mbedtls_x509_crt_info() would produce non-printable
+     bytes when parsing certificates containing a binary RFC 4108
+     HardwareModuleName as a Subject Alternative Name extension. Hardware
+     serial numbers are now rendered in hex format. Fixes #6262.

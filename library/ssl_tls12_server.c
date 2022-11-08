@@ -2531,10 +2531,15 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
         if( ! mbedtls_ssl_sig_alg_is_supported( ssl, *sig_alg ) )
             continue;
 
-        MBEDTLS_PUT_UINT16_BE( *sig_alg, p, sa_len );
+        /* Write elements at offsets starting from 1 (offset 0 is for the
+         * length). Thus the offset of each element is the length of the
+         * partial list including that element. */
         sa_len += 2;
+        MBEDTLS_PUT_UINT16_BE( *sig_alg, p, sa_len );
+
     }
 
+    /* Fill in list length. */
     MBEDTLS_PUT_UINT16_BE( sa_len, p, 0 );
     sa_len += 2;
     p += sa_len;

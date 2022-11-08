@@ -846,7 +846,8 @@ class NameChecker():
             self.parse_result["enum_consts"]
             }
         typo_exclusion = re.compile(r"XXX|__|_$|^MBEDTLS_.*CONFIG_FILE$|"
-                                    r"MBEDTLS_TEST_LIBTESTDRIVER*")
+                                    r"MBEDTLS_TEST_LIBTESTDRIVER*|"
+                                    r"PSA_CRYPTO_DRIVER_TEST")
 
         for name_match in self.parse_result["mbed_psa_words"]:
             found = name_match.name in all_caps_names

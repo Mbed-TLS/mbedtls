@@ -331,6 +331,44 @@ exit:
     mbedtls_mpi_free( &X );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_mod_raw_from_mont_rep( char * input_N, char * input_A, char * input_X )
+{
+    mbedtls_mpi N, A, X;
+    mbedtls_mpi_mod_modulus m;
+
+    mbedtls_mpi_init( &N );
+    mbedtls_mpi_init( &A );
+    mbedtls_mpi_init( &X );
+
+    /* Read inputs */
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &N, input_N ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &A, input_A ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &X, input_X ) );
+
+    /* All of the inputs are +ve (or zero) */
+    TEST_EQUAL( 1, X.s );
+    TEST_EQUAL( 1, A.s );
+
+    mbedtls_mpi_mod_modulus_init( &m );
+    TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N.p, N.n, MBEDTLS_MPI_MOD_EXT_REP_BE, MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
+
+    TEST_EQUAL(0, mbedtls_mpi_mod_raw_from_mont_rep( A.p ,&m ) );
+
+    /* Calculated matches expected value */
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &A, &X ) == 0 );
+
+   /* Output is +ve (or zero) */
+    TEST_EQUAL( 1, A.s );
+
+exit:
+    mbedtls_mpi_mod_modulus_free( &m );
+    mbedtls_mpi_free( &N );
+    mbedtls_mpi_free( &A );
+    mbedtls_mpi_free( &X );
+}
+/* END_CASE */
 /* END MERGE SLOT 7 */
 
 /* BEGIN MERGE SLOT 8 */

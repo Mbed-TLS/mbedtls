@@ -68,13 +68,13 @@ from mbedtls_dev import bignum_common
 # the framework
 from mbedtls_dev import bignum_core # pylint: disable=unused-import
 
-class BignumTarget(test_data_generation.BaseTarget, metaclass=ABCMeta):
-    #pylint: disable=abstract-method
+class BignumTarget(test_data_generation.BaseTarget):
     """Target for bignum (legacy) test case generation."""
     target_basename = 'test_suite_bignum.generated'
 
 
-class BignumOperation(bignum_common.OperationCommon, BignumTarget, metaclass=ABCMeta):
+class BignumOperation(bignum_common.OperationCommon, BignumTarget,
+                      metaclass=ABCMeta):
     #pylint: disable=abstract-method
     """Common features for bignum operations in legacy tests."""
     input_values = [

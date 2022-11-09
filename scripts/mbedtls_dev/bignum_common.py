@@ -20,6 +20,8 @@ import typing
 from abc import abstractmethod
 from typing import Iterator, List, Tuple, TypeVar
 
+from . import test_data_generation
+
 T = TypeVar('T') #pylint: disable=invalid-name
 
 def invmod(a: int, n: int) -> int:
@@ -67,8 +69,7 @@ def combination_pairs(values: List[T]) -> List[Tuple[T, T]]:
         list(itertools.combinations_with_replacement(values, 2))
     )
 
-
-class OperationCommon:
+class OperationCommon(test_data_generation.BaseTest):
     """Common features for bignum binary operations.
 
     This adds functionality common in binary operation tests.

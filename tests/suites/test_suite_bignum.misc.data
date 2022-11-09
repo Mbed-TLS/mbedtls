@@ -1205,40 +1205,56 @@ Test mbedtls_mpi_mod_mpi: 0 (null) % -1
 mpi_mod_mpi:"":"-1":"":MBEDTLS_ERR_MPI_NEGATIVE_VALUE
 
 Base test mbedtls_mpi_mod_int #1
-mpi_mod_int:"3e8":13:12:0
+mpi_mod_int:"3e8":"d":"c":0
 
 Base test mbedtls_mpi_mod_int #2 (Divide by zero)
-mpi_mod_int:"3e8":0:0:MBEDTLS_ERR_MPI_DIVISION_BY_ZERO
+mpi_mod_int:"3e8":"0":"0":MBEDTLS_ERR_MPI_DIVISION_BY_ZERO
 
 Base test mbedtls_mpi_mod_int #3
-mpi_mod_int:"-3e8":13:1:0
+mpi_mod_int:"-3e8":"d":"1":0
 
 Base test mbedtls_mpi_mod_int #4 (Negative modulo)
-mpi_mod_int:"3e8":-13:0:MBEDTLS_ERR_MPI_NEGATIVE_VALUE
+mpi_mod_int:"3e8":"-d":"0":MBEDTLS_ERR_MPI_NEGATIVE_VALUE
 
 Base test mbedtls_mpi_mod_int #5 (Negative modulo)
-mpi_mod_int:"-3e8":-13:0:MBEDTLS_ERR_MPI_NEGATIVE_VALUE
+mpi_mod_int:"-3e8":"-d":"0":MBEDTLS_ERR_MPI_NEGATIVE_VALUE
 
 Base test mbedtls_mpi_mod_int #6 (By 1)
-mpi_mod_int:"3e8":1:0:0
+mpi_mod_int:"3e8":"1":"0":0
 
 Base test mbedtls_mpi_mod_int #7 (By 2)
-mpi_mod_int:"3e9":2:1:0
+mpi_mod_int:"3e9":"2":"1":0
 
 Base test mbedtls_mpi_mod_int #8 (By 2)
-mpi_mod_int:"3e8":2:0:0
+mpi_mod_int:"3e8":"2":"0":0
 
 Test mbedtls_mpi_mod_int: 0 (null) % 1
-mpi_mod_int:"":1:0:0
+mpi_mod_int:"":"1":"0":0
 
 Test mbedtls_mpi_mod_int: 0 (null) % 2
-mpi_mod_int:"":2:0:0
+mpi_mod_int:"":"2":"0":0
 
 Test mbedtls_mpi_mod_int: 0 (null) % -1
-mpi_mod_int:"":-1:0:MBEDTLS_ERR_MPI_NEGATIVE_VALUE
+mpi_mod_int:"":"-1":"0":MBEDTLS_ERR_MPI_NEGATIVE_VALUE
 
 Test mbedtls_mpi_mod_int: 0 (null) % -2
-mpi_mod_int:"":-2:0:MBEDTLS_ERR_MPI_NEGATIVE_VALUE
+mpi_mod_int:"":"-2":"0":MBEDTLS_ERR_MPI_NEGATIVE_VALUE
+
+# CURRENTLY FAILS
+#Test mbedtls_mpi_mod_int: 230772460340063000000100500000300000010 % 5178236083361335880 -> 3386266129388798810
+#depends_on:MBEDTLS_HAVE_INT64
+#mpi_mod_int:"AD9D28BF6C4E98FDF156BF0980CEE30A":"47DCCA4847DCCA48":"2EFE6F1A7D28035A":0
+
+Test mbedtls_mpi_mod_mpi: 230772460340063000000100500000300000010 % 5178236083361335880 -> 3386266129388798810
+mpi_mod_mpi:"AD9D28BF6C4E98FDF156BF0980CEE30A":"47DCCA4847DCCA48":"2EFE6F1A7D28035A":0
+
+# CURRENTLY FAILS WHEN MPIS ARE 32-BIT: WHEN FIXED, REMOVE "depends_on" LINE
+Test mbedtls_mpi_mod_int: 230772460340063000000100500000300000010 % 1205652040 -> 3644370
+depends_on:MBEDTLS_HAVE_INT64
+mpi_mod_int:"AD9D28BF6C4E98FDF156BF0980CEE30A":"47DCCA48":"379BD2":0
+
+Test mbedtls_mpi_mod_mpi: 230772460340063000000100500000300000010 % 1205652040 -> 3644370
+mpi_mod_mpi:"AD9D28BF6C4E98FDF156BF0980CEE30A":"47DCCA48":"379BD2":0
 
 Base test mbedtls_mpi_exp_mod #1
 mpi_exp_mod:"17":"d":"1d":"18":0

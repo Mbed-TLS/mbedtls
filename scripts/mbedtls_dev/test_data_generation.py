@@ -117,6 +117,7 @@ class BaseTest(metaclass=ABCMeta):
 
 
 class BaseTarget:
+    #pylint: disable=too-few-public-methods
     """Base target for test case generation.
 
     Child classes of this class represent an output file, and can be referred
@@ -141,6 +142,7 @@ class BaseTarget:
         will yield test cases from all classes derived from X.
         """
         if issubclass(cls, BaseTest) and not inspect.isabstract(cls):
+            #pylint: disable=no-member
             yield from cls.generate_function_tests()
         for subclass in sorted(cls.__subclasses__(), key=lambda c: c.__name__):
             yield from subclass.generate_tests()

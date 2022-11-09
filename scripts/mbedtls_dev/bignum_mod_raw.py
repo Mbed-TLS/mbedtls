@@ -21,8 +21,8 @@ from . import test_case
 from . import test_data_generation
 from . import bignum_common
 
-class BignumModRawTarget(test_data_generation.BaseTarget, metaclass=ABCMeta):
-    #pylint: disable=abstract-method
+class BignumModRawTarget(test_data_generation.BaseTarget):
+    #pylint: disable=abstract-method, too-few-public-methods
     """Target for bignum mod_raw test case generation."""
     target_basename = 'test_suite_bignum_mod_raw.generated'
 

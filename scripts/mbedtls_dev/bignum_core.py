@@ -16,20 +16,19 @@
 
 import random
 
-from abc import ABCMeta
 from typing import Dict, Iterator, List, Tuple
 
 from . import test_case
 from . import test_data_generation
 from . import bignum_common
 
-class BignumCoreTarget(test_data_generation.BaseTarget, metaclass=ABCMeta):
-    #pylint: disable=abstract-method
+class BignumCoreTarget(test_data_generation.BaseTarget):
+    #pylint: disable=abstract-method, too-few-public-methods
     """Target for bignum core test case generation."""
     target_basename = 'test_suite_bignum_core.generated'
 
 
-class BignumCoreShiftR(BignumCoreTarget, metaclass=ABCMeta):
+class BignumCoreShiftR(BignumCoreTarget, test_data_generation.BaseTest):
     """Test cases for mbedtls_bignum_core_shift_r()."""
     count = 0
     test_function = "mpi_core_shift_r"
@@ -69,7 +68,7 @@ class BignumCoreShiftR(BignumCoreTarget, metaclass=ABCMeta):
             for count in counts:
                 yield cls(input_hex, descr, count).create_test_case()
 
-class BignumCoreCTLookup(BignumCoreTarget, metaclass=ABCMeta):
+class BignumCoreCTLookup(BignumCoreTarget, test_data_generation.BaseTest):
     """Test cases for mbedtls_mpi_core_ct_uint_table_lookup()."""
     test_function = "mpi_core_ct_uint_table_lookup"
     test_name = "Constant time MPI table lookup"
@@ -107,7 +106,8 @@ class BignumCoreCTLookup(BignumCoreTarget, metaclass=ABCMeta):
                 yield (cls(bitsize, bitsize_description, window_size)
                        .create_test_case())
 
-class BignumCoreOperation(bignum_common.OperationCommon, BignumCoreTarget, metaclass=ABCMeta):
+class BignumCoreOperation(BignumCoreTarget, bignum_common.OperationCommon,
+                          metaclass=ABCMeta):
     #pylint: disable=abstract-method
     """Common features for bignum core operations."""
     input_values = [
@@ -297,7 +297,7 @@ class BignumCoreMLA(BignumCoreOperation):
                 yield cur_op.create_test_case()
 
 
-class BignumCoreMontmul(BignumCoreTarget):
+class BignumCoreMontmul(BignumCoreTarget, test_data_generation.BaseTest):
     """Test cases for Montgomery multiplication."""
     count = 0
     test_function = "mpi_core_montmul"

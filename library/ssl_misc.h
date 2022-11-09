@@ -77,10 +77,6 @@
 /* Faked handshake message identity for HelloRetryRequest. */
 #define MBEDTLS_SSL_TLS1_3_HS_HELLO_RETRY_REQUEST ( -MBEDTLS_SSL_HS_SERVER_HELLO )
 
-/* Early data indication sent or not */
-#define MBEDTLS_SSL_EARLY_DATA_OFF        0
-#define MBEDTLS_SSL_EARLY_DATA_ON         1
-
 /*
  * Internal identity of handshake extensions
  */

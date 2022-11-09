@@ -1182,8 +1182,10 @@ int mbedtls_ssl_tls13_write_client_hello_exts( mbedtls_ssl_context *ssl,
             return( ret );
         p += ext_len;
 
-        /* Initializes the status to `indication sent`. Changes it to `accepted`
-         * when `early_data` is received in EncryptedExtesion. */
+        /* Initializes the status to `indication sent`. It will be updated to
+         * `accepted` or `rejected` depend on whether the EncryptedExtension
+         * message will contain an early data indication extension or not.
+         */
         ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_INDICATION_SENT;
     }
     else
@@ -2540,7 +2542,7 @@ static int ssl_tls13_parse_new_session_ticket_exts( mbedtls_ssl_context *ssl,
         {
             case MBEDTLS_TLS_EXT_EARLY_DATA:
                 MBEDTLS_SSL_DEBUG_MSG( 4, ( "early_data extension received" ) );
-                if( extension_data_len == 4 && ssl->session != NULL)
+                if( extension_data_len == 4 && ssl->session != NULL )
                     ssl->session->ticket_flags |=
                             MBEDTLS_SSL_TICKET_ALLOW_EARLY_DATA;
                 break;

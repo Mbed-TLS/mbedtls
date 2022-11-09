@@ -126,10 +126,12 @@ class BignumModRawAdd(BignumModRawOperation):
         # Test data is valid for both 32 and 64 bit limbs
         super().__init__(val_n, val_a, val_b, bits_in_limb=32)
         self.mod_desc = mod_desc
-        self.limbs = bignum_common.limbs_mpi(self.int_n, 32)
 
-        self.arg_a = bignum_common.grow_mpi(self.int_a, self.limbs, 32)
-        self.arg_b = bignum_common.grow_mpi(self.int_b, self.limbs, 32)
+    def arguments(self) -> List[str]:
+        return [bignum_common.quote_str(n) for n in (self.hex_a,
+                                                     self.hex_b,
+                                                     self.hex_n,
+                                                     self.hex_x)]
 
     def description(self) -> str:
         """Generate a description for the test case."""
@@ -138,12 +140,16 @@ class BignumModRawAdd(BignumModRawOperation):
         ).strip()
         return super().description()
 
-    def arguments(self) -> List[str]:
-        return [
-            bignum_common.quote_str(self.arg_a),
-            bignum_common.quote_str(self.arg_b),
-            bignum_common.quote_str(self.arg_n),
-        ] + self.result()
+    def result(self) -> List[str]:
+        return [bignum_common.quote_str(self.hex_x)]
+
+    @property
+    def x(self) -> int: # pylint: disable=invalid-name
+        return (self.int_a + self.int_b) % self.int_n
+
+    @property
+    def hex_x(self) -> str:
+        return "{:x}".format(self.x).zfill(self.hex_digits)
 
     @classmethod
     def generate_function_tests(cls) -> Iterator[test_case.TestCase]:

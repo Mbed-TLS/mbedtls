@@ -357,8 +357,12 @@ int mbedtls_test_read_mpi_core( mbedtls_mpi_uint **pX, size_t *plimbs,
     size_t hex_len = strlen( input );
     size_t byte_len = ( hex_len + 1 ) / 2;
     *plimbs = CHARS_TO_LIMBS( byte_len );
+
+    /* A core bignum is not allowed to be empty. Forbid it as test data,
+     * this way static analyzers have a chance of knowing we don't expect
+     * the bignum functions to support empty inputs. */
     if( *plimbs == 0 )
-        return( 0 );
+        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
     *pX = mbedtls_calloc( *plimbs, sizeof( **pX ) );
     if( *pX == NULL )

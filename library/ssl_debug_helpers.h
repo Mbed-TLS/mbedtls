@@ -55,9 +55,9 @@ void mbedtls_ssl_print_extension( const mbedtls_ssl_context *ssl,
                                   int hs_msg_type, unsigned int extension_type,
                                   const char *extra_msg0, const char *extra_msg1 );
 
-#define MBEDTLS_SSL_PRINT_EXTS( level, hs_msg_type, extension_mask )            \
+#define MBEDTLS_SSL_PRINT_EXTS( level, hs_msg_type, extensions_mask )            \
             mbedtls_ssl_print_extensions( ssl, level, __FILE__, __LINE__,       \
-                                          hs_msg_type, extension_mask, NULL )
+                                          hs_msg_type, extensions_mask, NULL )
 
 #define MBEDTLS_SSL_PRINT_EXT( level, hs_msg_type, extension_type, extra )      \
             mbedtls_ssl_print_extension( ssl, level, __FILE__, __LINE__,        \

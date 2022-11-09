@@ -547,7 +547,7 @@ int mbedtls_ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
         }
 
         MBEDTLS_SSL_PRINT_EXTS( 3, MBEDTLS_SSL_HS_CERTIFICATE,
-                                ssl->handshake->received_extensions );
+                                handshake->received_extensions );
     }
 
 exit:

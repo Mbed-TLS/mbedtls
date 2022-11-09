@@ -1624,7 +1624,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     }
 
     MBEDTLS_SSL_PRINT_EXTS( 3, MBEDTLS_SSL_HS_CLIENT_HELLO,
-                            ssl->handshake->received_extensions );
+                            handshake->received_extensions );
 
     mbedtls_ssl_add_hs_hdr_to_checksum( ssl,
                                         MBEDTLS_SSL_HS_CLIENT_HELLO,

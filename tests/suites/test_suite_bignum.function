@@ -13,10 +13,21 @@
  * constructing the value. */
 static int sign_is_valid( const mbedtls_mpi *X )
 {
+    /* Only +1 and -1 are valid sign bits, not e.g. 0 */
     if( X->s != 1 && X->s != -1 )
-        return( 0 ); // invalid sign bit, e.g. 0
-    if( mbedtls_mpi_bitlen( X ) == 0 && X->s != 1 )
-        return( 0 ); // negative zero
+        return( 0 );
+
+    /* The value 0 must be represented with the sign +1. A "negative zero"
+     * with s=-1 is an invalid representation. Forbid that. As an exception,
+     * we sometimes test the robustness of library functions when given
+     * a negative zero input. If a test case has a negative zero as input,
+     * we don't mind if the function has a negative zero output. */
+    if( ! mbedtls_test_case_uses_negative_0 &&
+        mbedtls_mpi_bitlen( X ) == 0 && X->s != 1 )
+    {
+        return( 0 );
+    }
+
     return( 1 );
 }
 

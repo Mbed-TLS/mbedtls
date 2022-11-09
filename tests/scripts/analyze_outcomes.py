@@ -63,7 +63,7 @@ def analyze_coverage(results, outcomes):
 def analyze_driver_vs_reference(outcomes, components, ignored_tests):
     """Check that all tests executed in the reference component are also
     executed in the corresponding driver component.
-    Skip test suits provided in ignored_tests list.
+    Skip test suites provided in ignored_tests list.
     """
     driver_component = components[0]
     reference_component = components[1]
@@ -72,9 +72,9 @@ def analyze_driver_vs_reference(outcomes, components, ignored_tests):
 
     for key in available:
         # Skip ignored test suites
-        test_suit = key.split(';')[0] # retrieve test suit name
-        test_suit = test_suit.split('.')[0] # retrieve main part of test suit name
-        if test_suit in ignored_tests:
+        test_suite = key.split(';')[0] # retrieve test suit name
+        test_suite = test_suite.split('.')[0] # retrieve main part of test suit name
+        if test_suite in ignored_tests:
             continue
         # Continue if test was not executed by any component
         hits = outcomes[key].hits() if key in outcomes else 0
@@ -88,8 +88,6 @@ def analyze_driver_vs_reference(outcomes, components, ignored_tests):
                 driver_test_passed = True
             if reference_component in entry:
                 reference_test_passed = True
-        #if(driver_test_passed is True and reference_test_passed is False):
-        #    print('{}: driver: passed; reference: skipped'.format(key))
         if(driver_test_passed is False and reference_test_passed is True):
             print('{}: driver: skipped/failed; reference: passed'.format(key))
             result = False
@@ -123,7 +121,7 @@ by a semicolon.
     return outcomes
 
 def do_analyze_coverage(outcome_file, args):
-    """Perform coverage analyze."""
+    """Perform coverage analysis."""
     del args # unused
     outcomes = read_outcome_file(outcome_file)
     results = analyze_outcomes(outcomes)
@@ -141,7 +139,7 @@ def do_analyze_driver_vs_reference(outcome_file, args):
     outcomes = read_outcome_file(outcome_file)
     return analyze_driver_vs_reference(outcomes, components, ignored_tests)
 
-# List of tasks with function that can handle this task and additional arguments if required
+# List of tasks with a function that can handle this task and additional arguments if required
 # pylint: disable=line-too-long
 TASKS = {
     'analyze_coverage':                 {
@@ -161,7 +159,7 @@ def main():
         parser.add_argument('outcomes', metavar='OUTCOMES.CSV',
                             help='Outcome file to analyze')
         parser.add_argument('--task', default='all',
-                            help='Analyze to be done: all or analyze_coverage or '
+                            help='Analysis to be done: all or analyze_coverage or '
                             'analyze_driver_vs_reference_hash')
         options = parser.parse_args()
 

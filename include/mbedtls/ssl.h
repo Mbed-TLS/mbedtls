@@ -802,6 +802,15 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
 #endif
 
 #if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
+/* Define the status of early data.
+ * MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN : Initilized.
+ * MBEDTLS_SSL_EARLY_DATA_STATUS_INDICATION_SENT: Have sent early data
+ *  indication in client hello successfully.
+ * MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT: Have sent client hello without
+ *  data indication.
+ * MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED: Server side reject the early data.
+ * MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED: Server side accept the early data.
+ */
 #define MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN           0
 #define MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT          1
 #define MBEDTLS_SSL_EARLY_DATA_STATUS_INDICATION_SENT   2

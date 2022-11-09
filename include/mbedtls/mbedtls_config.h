@@ -1637,7 +1637,8 @@
 *
 * Enable support for RFC 8446 TLS 1.3 early data.
 *
-* Requires: MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED or
+* Requires: MBEDTLS_SSL_SESSION_TICKETS and either
+*           MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED or
 *           MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 *
 * Comment this to disable support for early data. If MBEDTLS_SSL_PROTO_TLS1_3

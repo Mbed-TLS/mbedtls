@@ -60,13 +60,11 @@ def analyze_coverage(results, outcomes):
             # fixed this branch to have full coverage of test cases.
             results.warning('Test case not executed: {}', key)
 
-def analyze_driver_vs_reference(outcomes, components, ignored_tests):
+def analyze_driver_vs_reference(outcomes, component_ref,component_driver, ignored_tests):
     """Check that all tests executed in the reference component are also
     executed in the corresponding driver component.
     Skip test suites provided in ignored_tests list.
     """
-    driver_component = components[0]
-    reference_component = components[1]
     available = check_test_cases.collect_available_test_cases()
     result = True
 
@@ -84,9 +82,9 @@ def analyze_driver_vs_reference(outcomes, components, ignored_tests):
         driver_test_passed = False
         reference_test_passed = False
         for entry in outcomes[key].successes:
-            if driver_component in entry:
+            if component_driver in entry:
                 driver_test_passed = True
-            if reference_component in entry:
+            if component_ref in entry:
                 reference_test_passed = True
         if(driver_test_passed is False and reference_test_passed is True):
             print('{}: driver: skipped/failed; reference: passed'.format(key))
@@ -129,18 +127,14 @@ def do_analyze_coverage(outcome_file, args):
 
 def do_analyze_driver_vs_reference(outcome_file, args):
     """Perform driver vs reference analyze."""
-    components = args['components'].split(',')
     ignored_tests = args['ignored'].split(',')
     ignored_tests = ['test_suite_' + x for x in ignored_tests]
-    # We need exactly 2 components to analyze (first driver and second reference)
-    if(len(components) != 2 or "accel" not in components[0] or "reference" not in components[1]):
-        print('Error: Wrong component list. Exactly 2 components are required (driver,reference). ')
-        return False
+
     outcomes = read_outcome_file(outcome_file)
-    return analyze_driver_vs_reference(outcomes, components, ignored_tests)
+    return analyze_driver_vs_reference(outcomes, args['component_ref'],
+                                       args['component_driver'], ignored_tests)
 
 # List of tasks with a function that can handle this task and additional arguments if required
-# pylint: disable=line-too-long
 TASKS = {
     'analyze_coverage':                 {
         'test_function': do_analyze_coverage,
@@ -148,10 +142,10 @@ TASKS = {
     'analyze_driver_vs_reference_hash': {
         'test_function': do_analyze_driver_vs_reference,
         'args': {
-            'components': 'test_psa_crypto_config_accel_hash_use_psa,test_psa_crypto_config_reference_hash_use_psa',
+            'component_ref': 'test_psa_crypto_config_reference_hash_use_psa',
+            'component_driver': 'test_psa_crypto_config_accel_hash_use_psa',
             'ignored': 'md,mdx,shax,entropy,hmac_drbg,random,psa_crypto_init,hkdf'}}
 }
-# pylint: enable=line-too-long
 
 def main():
     try:

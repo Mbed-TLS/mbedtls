@@ -1641,7 +1641,10 @@
 *           MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 *
 * Comment this to disable support for early data. If MBEDTLS_SSL_PROTO_TLS1_3
-* is not enabled, this option does not have any effect on the build.
+* is not enabled or both MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED and
+* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED are disabled or
+* MBEDTLS_SSL_SESSION_TICKETS is not enabled, this option does not have any
+* effect on the build.
 *
 * This feature is experimental, not completed and thus not ready for
 * production.

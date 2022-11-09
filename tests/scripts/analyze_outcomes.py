@@ -144,7 +144,7 @@ TASKS = {
             'component_ref': 'test_psa_crypto_config_reference_hash_use_psa',
             'component_driver': 'test_psa_crypto_config_accel_hash_use_psa',
             'ignored_suites': ['shax','mdx', # the software implementations that are being excluded
-                               'md'  # the legacy abstraction layer that's being excluded
+                               'md',  # the legacy abstraction layer that's being excluded
                                'entropy','hmac_drbg','random', # temporary limitation (see RNG EPIC)
                                'psa_crypto_init', # doesn't work with external RNG
                                'hkdf', # legacy still depends on MD, but there's a PSA interface that doesn't
@@ -157,24 +157,38 @@ def main():
         parser = argparse.ArgumentParser(description=__doc__)
         parser.add_argument('outcomes', metavar='OUTCOMES.CSV',
                             help='Outcome file to analyze')
-        parser.add_argument('--task', default='all',
-                            help='Analysis to be done: all or analyze_coverage or '
-                            'analyze_driver_vs_reference_hash')
+        parser.add_argument('task', default='all',
+                            help='Analysis to be done. By default, run all tasks. '
+                                 'With one or more TASK, run only those. '
+                                 'TASK can be the name of a single task or '
+                                 'coma-separated list of tasks. ')
+        parser.add_argument('--list', action='store_true',
+                            help='List all available tasks and exit.')
         options = parser.parse_args()
+
+        if options.list:
+            for task in TASKS:
+                print(task)
+            sys.exit(0)
 
         result = True
 
+        tasks = []
         if options.task == 'all':
             for task in TASKS:
+                tasks.append(task)
+        else:
+            tasks = options.task.split(',')
+
+        for task in tasks:
+            if task not in TASKS:
+                print('Error: invalid task: {}'.format(task))
+                sys.exit(1)
+
+        for task in TASKS:
+            if task in tasks:
                 if not TASKS[task]['test_function'](options.outcomes, TASKS[task]['args']):
                     result = False
-        elif options.task in TASKS:
-            if not TASKS[options.task]['test_function'](options.outcomes,
-                                                        TASKS[options.task]['args']):
-                result = False
-        else:
-            print('Error: Unknown task: {}'.format(options.task))
-            result = False
 
         if result is False:
             sys.exit(1)

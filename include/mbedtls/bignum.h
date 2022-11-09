@@ -188,9 +188,27 @@ extern "C" {
  */
 typedef struct mbedtls_mpi
 {
-    int MBEDTLS_PRIVATE(s);              /*!<  Sign: -1 if the mpi is negative, 1 otherwise */
-    size_t MBEDTLS_PRIVATE(n);           /*!<  total # of limbs  */
-    mbedtls_mpi_uint *MBEDTLS_PRIVATE(p);          /*!<  pointer to limbs  */
+    /** Sign: -1 if the mpi is negative, 1 otherwise.
+     *
+     * The number 0 must be represented with `s = +1`. Although many library
+     * functions treat all-limbs-zero as equivalent to a valid representation
+     * of 0 regardless of the sign bit, there are exceptions, so bignum
+     * functions and external callers must always set \c s to +1 for the
+     * number zero.
+     *
+     * Note that this implies that calloc() or `... = {0}` does not create
+     * a valid MPI representation. You must call mbedtls_mpi_init().
+     */
+    int MBEDTLS_PRIVATE(s);
+
+    /** Total number of limbs in \c p.  */
+    size_t MBEDTLS_PRIVATE(n);
+
+    /** Pointer to limbs.
+     *
+     * This may be \c NULL if \c n is 0.
+     */
+    mbedtls_mpi_uint *MBEDTLS_PRIVATE(p);
 }
 mbedtls_mpi;
 

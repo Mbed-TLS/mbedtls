@@ -54,7 +54,6 @@ of BaseTarget in test_data_generation.py.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import itertools
 import sys
 import typing
 
@@ -75,13 +74,7 @@ def quote_str(val) -> str:
 
 def combination_pairs(values: List[T]) -> List[Tuple[T, T]]:
     """Return all pair combinations from input values."""
-    # The return value is cast, as older versions of mypy are unable to derive
-    # the specific type returned by itertools.combinations_with_replacement.
-    return typing.cast(
-        List[Tuple[T, T]],
-        list(itertools.combinations_with_replacement(values, 2))
-    )
-
+    return [(x, y) for x in values for y in values]
 
 class BignumTarget(test_data_generation.BaseTarget, metaclass=ABCMeta):
     #pylint: disable=abstract-method

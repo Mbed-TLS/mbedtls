@@ -24,118 +24,220 @@ mbedtls_mpi_add_mpi:"":"1230000000000000000":"1230000000000000000"
 MPI add #8 0 (null) + large negative
 mbedtls_mpi_add_mpi:"":"-1230000000000000000":"-1230000000000000000"
 
-MPI add #9 0 (1 limb) + 0 (1 limb)
+MPI add #9 0 (1 limb) + 0 (null)
+mbedtls_mpi_add_mpi:"0":"":"0"
+
+MPI add #10 0 (1 limb) + 0 (1 limb)
 mbedtls_mpi_add_mpi:"0":"0":"0"
 
-MPI add #10 0 (1 limb) + positive
+MPI add #11 0 (1 limb) + positive
 mbedtls_mpi_add_mpi:"0":"7b":"7b"
 
-MPI add #11 0 (1 limb) + negative
+MPI add #12 0 (1 limb) + negative
 mbedtls_mpi_add_mpi:"0":"-7b":"-7b"
 
-MPI add #12 0 (1 limb) + positive with leading zero limb
+MPI add #13 0 (1 limb) + positive with leading zero limb
 mbedtls_mpi_add_mpi:"0":"0000000000000000123":"123"
 
-MPI add #13 0 (1 limb) + negative with leading zero limb
+MPI add #14 0 (1 limb) + negative with leading zero limb
 mbedtls_mpi_add_mpi:"0":"-0000000000000000123":"-123"
 
-MPI add #14 0 (1 limb) + large positive
+MPI add #15 0 (1 limb) + large positive
 mbedtls_mpi_add_mpi:"0":"1230000000000000000":"1230000000000000000"
 
-MPI add #15 0 (1 limb) + large negative
+MPI add #16 0 (1 limb) + large negative
 mbedtls_mpi_add_mpi:"0":"-1230000000000000000":"-1230000000000000000"
 
-MPI add #16 positive + positive
+MPI add #17 positive + 0 (null)
+mbedtls_mpi_add_mpi:"7b":"":"7b"
+
+MPI add #18 positive + 0 (1 limb)
+mbedtls_mpi_add_mpi:"7b":"0":"7b"
+
+MPI add #19 positive + positive
 mbedtls_mpi_add_mpi:"7b":"7b":"f6"
 
-MPI add #17 positive + negative
+MPI add #20 positive + negative
 mbedtls_mpi_add_mpi:"7b":"-7b":"0"
 
-MPI add #18 positive + positive with leading zero limb
+MPI add #21 positive + positive with leading zero limb
 mbedtls_mpi_add_mpi:"7b":"0000000000000000123":"19e"
 
-MPI add #19 positive + negative with leading zero limb
+MPI add #22 positive + negative with leading zero limb
 mbedtls_mpi_add_mpi:"7b":"-0000000000000000123":"-a8"
 
-MPI add #20 positive + large positive
+MPI add #23 positive + large positive
 mbedtls_mpi_add_mpi:"7b":"1230000000000000000":"123000000000000007b"
 
-MPI add #21 positive + large negative
+MPI add #24 positive + large negative
 mbedtls_mpi_add_mpi:"7b":"-1230000000000000000":"-122ffffffffffffff85"
 
-MPI add #22 negative + negative
+MPI add #25 negative + 0 (null)
+mbedtls_mpi_add_mpi:"-7b":"":"-7b"
+
+MPI add #26 negative + 0 (1 limb)
+mbedtls_mpi_add_mpi:"-7b":"0":"-7b"
+
+MPI add #27 negative + positive
+mbedtls_mpi_add_mpi:"-7b":"7b":"0"
+
+MPI add #28 negative + negative
 mbedtls_mpi_add_mpi:"-7b":"-7b":"-f6"
 
-MPI add #23 negative + positive with leading zero limb
+MPI add #29 negative + positive with leading zero limb
 mbedtls_mpi_add_mpi:"-7b":"0000000000000000123":"a8"
 
-MPI add #24 negative + negative with leading zero limb
+MPI add #30 negative + negative with leading zero limb
 mbedtls_mpi_add_mpi:"-7b":"-0000000000000000123":"-19e"
 
-MPI add #25 negative + large positive
+MPI add #31 negative + large positive
 mbedtls_mpi_add_mpi:"-7b":"1230000000000000000":"122ffffffffffffff85"
 
-MPI add #26 negative + large negative
+MPI add #32 negative + large negative
 mbedtls_mpi_add_mpi:"-7b":"-1230000000000000000":"-123000000000000007b"
 
-MPI add #27 positive with leading zero limb + positive with leading zero limb
+MPI add #33 positive with leading zero limb + 0 (null)
+mbedtls_mpi_add_mpi:"0000000000000000123":"":"123"
+
+MPI add #34 positive with leading zero limb + 0 (1 limb)
+mbedtls_mpi_add_mpi:"0000000000000000123":"0":"123"
+
+MPI add #35 positive with leading zero limb + positive
+mbedtls_mpi_add_mpi:"0000000000000000123":"7b":"19e"
+
+MPI add #36 positive with leading zero limb + negative
+mbedtls_mpi_add_mpi:"0000000000000000123":"-7b":"a8"
+
+MPI add #37 positive with leading zero limb + positive with leading zero limb
 mbedtls_mpi_add_mpi:"0000000000000000123":"0000000000000000123":"246"
 
-MPI add #28 positive with leading zero limb + negative with leading zero limb
+MPI add #38 positive with leading zero limb + negative with leading zero limb
 mbedtls_mpi_add_mpi:"0000000000000000123":"-0000000000000000123":"0"
 
-MPI add #29 positive with leading zero limb + large positive
+MPI add #39 positive with leading zero limb + large positive
 mbedtls_mpi_add_mpi:"0000000000000000123":"1230000000000000000":"1230000000000000123"
 
-MPI add #30 positive with leading zero limb + large negative
+MPI add #40 positive with leading zero limb + large negative
 mbedtls_mpi_add_mpi:"0000000000000000123":"-1230000000000000000":"-122fffffffffffffedd"
 
-MPI add #31 negative with leading zero limb + negative with leading zero limb
+MPI add #41 negative with leading zero limb + 0 (null)
+mbedtls_mpi_add_mpi:"-0000000000000000123":"":"-123"
+
+MPI add #42 negative with leading zero limb + 0 (1 limb)
+mbedtls_mpi_add_mpi:"-0000000000000000123":"0":"-123"
+
+MPI add #43 negative with leading zero limb + positive
+mbedtls_mpi_add_mpi:"-0000000000000000123":"7b":"-a8"
+
+MPI add #44 negative with leading zero limb + negative
+mbedtls_mpi_add_mpi:"-0000000000000000123":"-7b":"-19e"
+
+MPI add #45 negative with leading zero limb + positive with leading zero limb
+mbedtls_mpi_add_mpi:"-0000000000000000123":"0000000000000000123":"0"
+
+MPI add #46 negative with leading zero limb + negative with leading zero limb
 mbedtls_mpi_add_mpi:"-0000000000000000123":"-0000000000000000123":"-246"
 
-MPI add #32 negative with leading zero limb + large positive
+MPI add #47 negative with leading zero limb + large positive
 mbedtls_mpi_add_mpi:"-0000000000000000123":"1230000000000000000":"122fffffffffffffedd"
 
-MPI add #33 negative with leading zero limb + large negative
+MPI add #48 negative with leading zero limb + large negative
 mbedtls_mpi_add_mpi:"-0000000000000000123":"-1230000000000000000":"-1230000000000000123"
 
-MPI add #34 large positive + large positive
+MPI add #49 large positive + 0 (null)
+mbedtls_mpi_add_mpi:"1230000000000000000":"":"1230000000000000000"
+
+MPI add #50 large positive + 0 (1 limb)
+mbedtls_mpi_add_mpi:"1230000000000000000":"0":"1230000000000000000"
+
+MPI add #51 large positive + positive
+mbedtls_mpi_add_mpi:"1230000000000000000":"7b":"123000000000000007b"
+
+MPI add #52 large positive + negative
+mbedtls_mpi_add_mpi:"1230000000000000000":"-7b":"122ffffffffffffff85"
+
+MPI add #53 large positive + positive with leading zero limb
+mbedtls_mpi_add_mpi:"1230000000000000000":"0000000000000000123":"1230000000000000123"
+
+MPI add #54 large positive + negative with leading zero limb
+mbedtls_mpi_add_mpi:"1230000000000000000":"-0000000000000000123":"122fffffffffffffedd"
+
+MPI add #55 large positive + large positive
 mbedtls_mpi_add_mpi:"1230000000000000000":"1230000000000000000":"2460000000000000000"
 
-MPI add #35 large positive + large negative
+MPI add #56 large positive + large negative
 mbedtls_mpi_add_mpi:"1230000000000000000":"-1230000000000000000":"0"
 
-MPI add #36 large negative + large negative
+MPI add #57 large negative + 0 (null)
+mbedtls_mpi_add_mpi:"-1230000000000000000":"":"-1230000000000000000"
+
+MPI add #58 large negative + 0 (1 limb)
+mbedtls_mpi_add_mpi:"-1230000000000000000":"0":"-1230000000000000000"
+
+MPI add #59 large negative + positive
+mbedtls_mpi_add_mpi:"-1230000000000000000":"7b":"-122ffffffffffffff85"
+
+MPI add #60 large negative + negative
+mbedtls_mpi_add_mpi:"-1230000000000000000":"-7b":"-123000000000000007b"
+
+MPI add #61 large negative + positive with leading zero limb
+mbedtls_mpi_add_mpi:"-1230000000000000000":"0000000000000000123":"-122fffffffffffffedd"
+
+MPI add #62 large negative + negative with leading zero limb
+mbedtls_mpi_add_mpi:"-1230000000000000000":"-0000000000000000123":"-1230000000000000123"
+
+MPI add #63 large negative + large positive
+mbedtls_mpi_add_mpi:"-1230000000000000000":"1230000000000000000":"0"
+
+MPI add #64 large negative + large negative
 mbedtls_mpi_add_mpi:"-1230000000000000000":"-1230000000000000000":"-2460000000000000000"
 
-MPI add #37 large positive + large positive
+MPI add #65 large positive + large positive
 mbedtls_mpi_add_mpi:"1c67967269c6":"1c67967269c6":"38cf2ce4d38c"
 
-MPI add #38 large positive + positive
+MPI add #66 large positive + positive
 mbedtls_mpi_add_mpi:"1c67967269c6":"9cde3":"1c67967c37a9"
 
-MPI add #39 large positive + large negative
+MPI add #67 large positive + large negative
 mbedtls_mpi_add_mpi:"1c67967269c6":"-1c67967269c6":"0"
 
-MPI add #40 large positive + negative
+MPI add #68 large positive + negative
 mbedtls_mpi_add_mpi:"1c67967269c6":"-9cde3":"1c6796689be3"
 
-MPI add #41 positive + positive
+MPI add #69 positive + large positive
+mbedtls_mpi_add_mpi:"9cde3":"1c67967269c6":"1c67967c37a9"
+
+MPI add #70 positive + positive
 mbedtls_mpi_add_mpi:"9cde3":"9cde3":"139bc6"
 
-MPI add #42 positive + large negative
+MPI add #71 positive + large negative
 mbedtls_mpi_add_mpi:"9cde3":"-1c67967269c6":"-1c6796689be3"
 
-MPI add #43 positive + negative
+MPI add #72 positive + negative
 mbedtls_mpi_add_mpi:"9cde3":"-9cde3":"0"
 
-MPI add #44 large negative + large negative
+MPI add #73 large negative + large positive
+mbedtls_mpi_add_mpi:"-1c67967269c6":"1c67967269c6":"0"
+
+MPI add #74 large negative + positive
+mbedtls_mpi_add_mpi:"-1c67967269c6":"9cde3":"-1c6796689be3"
+
+MPI add #75 large negative + large negative
 mbedtls_mpi_add_mpi:"-1c67967269c6":"-1c67967269c6":"-38cf2ce4d38c"
 
-MPI add #45 large negative + negative
+MPI add #76 large negative + negative
 mbedtls_mpi_add_mpi:"-1c67967269c6":"-9cde3":"-1c67967c37a9"
 
-MPI add #46 negative + negative
+MPI add #77 negative + large positive
+mbedtls_mpi_add_mpi:"-9cde3":"1c67967269c6":"1c6796689be3"
+
+MPI add #78 negative + positive
+mbedtls_mpi_add_mpi:"-9cde3":"9cde3":"0"
+
+MPI add #79 negative + large negative
+mbedtls_mpi_add_mpi:"-9cde3":"-1c67967269c6":"-1c67967c37a9"
+
+MPI add #80 negative + negative
 mbedtls_mpi_add_mpi:"-9cde3":"-9cde3":"-139bc6"
 
 MPI compare #1 0 (null) == 0 (null)
@@ -162,100 +264,184 @@ mbedtls_mpi_cmp_mpi:"":"1230000000000000000":-1
 MPI compare #8 0 (null) > large negative
 mbedtls_mpi_cmp_mpi:"":"-1230000000000000000":1
 
-MPI compare #9 0 (1 limb) == 0 (1 limb)
+MPI compare #9 0 (1 limb) == 0 (null)
+mbedtls_mpi_cmp_mpi:"0":"":0
+
+MPI compare #10 0 (1 limb) == 0 (1 limb)
 mbedtls_mpi_cmp_mpi:"0":"0":0
 
-MPI compare #10 0 (1 limb) < positive
+MPI compare #11 0 (1 limb) < positive
 mbedtls_mpi_cmp_mpi:"0":"7b":-1
 
-MPI compare #11 0 (1 limb) > negative
+MPI compare #12 0 (1 limb) > negative
 mbedtls_mpi_cmp_mpi:"0":"-7b":1
 
-MPI compare #12 0 (1 limb) < positive with leading zero limb
+MPI compare #13 0 (1 limb) < positive with leading zero limb
 mbedtls_mpi_cmp_mpi:"0":"0000000000000000123":-1
 
-MPI compare #13 0 (1 limb) > negative with leading zero limb
+MPI compare #14 0 (1 limb) > negative with leading zero limb
 mbedtls_mpi_cmp_mpi:"0":"-0000000000000000123":1
 
-MPI compare #14 0 (1 limb) < large positive
+MPI compare #15 0 (1 limb) < large positive
 mbedtls_mpi_cmp_mpi:"0":"1230000000000000000":-1
 
-MPI compare #15 0 (1 limb) > large negative
+MPI compare #16 0 (1 limb) > large negative
 mbedtls_mpi_cmp_mpi:"0":"-1230000000000000000":1
 
-MPI compare #16 positive == positive
+MPI compare #17 positive > 0 (null)
+mbedtls_mpi_cmp_mpi:"7b":"":1
+
+MPI compare #18 positive > 0 (1 limb)
+mbedtls_mpi_cmp_mpi:"7b":"0":1
+
+MPI compare #19 positive == positive
 mbedtls_mpi_cmp_mpi:"7b":"7b":0
 
-MPI compare #17 positive > negative
+MPI compare #20 positive > negative
 mbedtls_mpi_cmp_mpi:"7b":"-7b":1
 
-MPI compare #18 positive < positive with leading zero limb
+MPI compare #21 positive < positive with leading zero limb
 mbedtls_mpi_cmp_mpi:"7b":"0000000000000000123":-1
 
-MPI compare #19 positive > negative with leading zero limb
+MPI compare #22 positive > negative with leading zero limb
 mbedtls_mpi_cmp_mpi:"7b":"-0000000000000000123":1
 
-MPI compare #20 positive < large positive
+MPI compare #23 positive < large positive
 mbedtls_mpi_cmp_mpi:"7b":"1230000000000000000":-1
 
-MPI compare #21 positive > large negative
+MPI compare #24 positive > large negative
 mbedtls_mpi_cmp_mpi:"7b":"-1230000000000000000":1
 
-MPI compare #22 negative == negative
+MPI compare #25 negative < 0 (null)
+mbedtls_mpi_cmp_mpi:"-7b":"":-1
+
+MPI compare #26 negative < 0 (1 limb)
+mbedtls_mpi_cmp_mpi:"-7b":"0":-1
+
+MPI compare #27 negative < positive
+mbedtls_mpi_cmp_mpi:"-7b":"7b":-1
+
+MPI compare #28 negative == negative
 mbedtls_mpi_cmp_mpi:"-7b":"-7b":0
 
-MPI compare #23 negative < positive with leading zero limb
+MPI compare #29 negative < positive with leading zero limb
 mbedtls_mpi_cmp_mpi:"-7b":"0000000000000000123":-1
 
-MPI compare #24 negative > negative with leading zero limb
+MPI compare #30 negative > negative with leading zero limb
 mbedtls_mpi_cmp_mpi:"-7b":"-0000000000000000123":1
 
-MPI compare #25 negative < large positive
+MPI compare #31 negative < large positive
 mbedtls_mpi_cmp_mpi:"-7b":"1230000000000000000":-1
 
-MPI compare #26 negative > large negative
+MPI compare #32 negative > large negative
 mbedtls_mpi_cmp_mpi:"-7b":"-1230000000000000000":1
 
-MPI compare #27 positive with leading zero limb == positive with leading zero limb
+MPI compare #33 positive with leading zero limb > 0 (null)
+mbedtls_mpi_cmp_mpi:"0000000000000000123":"":1
+
+MPI compare #34 positive with leading zero limb > 0 (1 limb)
+mbedtls_mpi_cmp_mpi:"0000000000000000123":"0":1
+
+MPI compare #35 positive with leading zero limb > positive
+mbedtls_mpi_cmp_mpi:"0000000000000000123":"7b":1
+
+MPI compare #36 positive with leading zero limb > negative
+mbedtls_mpi_cmp_mpi:"0000000000000000123":"-7b":1
+
+MPI compare #37 positive with leading zero limb == positive with leading zero limb
 mbedtls_mpi_cmp_mpi:"0000000000000000123":"0000000000000000123":0
 
-MPI compare #28 positive with leading zero limb > negative with leading zero limb
+MPI compare #38 positive with leading zero limb > negative with leading zero limb
 mbedtls_mpi_cmp_mpi:"0000000000000000123":"-0000000000000000123":1
 
-MPI compare #29 positive with leading zero limb < large positive
+MPI compare #39 positive with leading zero limb < large positive
 mbedtls_mpi_cmp_mpi:"0000000000000000123":"1230000000000000000":-1
 
-MPI compare #30 positive with leading zero limb > large negative
+MPI compare #40 positive with leading zero limb > large negative
 mbedtls_mpi_cmp_mpi:"0000000000000000123":"-1230000000000000000":1
 
-MPI compare #31 negative with leading zero limb == negative with leading zero limb
+MPI compare #41 negative with leading zero limb < 0 (null)
+mbedtls_mpi_cmp_mpi:"-0000000000000000123":"":-1
+
+MPI compare #42 negative with leading zero limb < 0 (1 limb)
+mbedtls_mpi_cmp_mpi:"-0000000000000000123":"0":-1
+
+MPI compare #43 negative with leading zero limb < positive
+mbedtls_mpi_cmp_mpi:"-0000000000000000123":"7b":-1
+
+MPI compare #44 negative with leading zero limb < negative
+mbedtls_mpi_cmp_mpi:"-0000000000000000123":"-7b":-1
+
+MPI compare #45 negative with leading zero limb < positive with leading zero limb
+mbedtls_mpi_cmp_mpi:"-0000000000000000123":"0000000000000000123":-1
+
+MPI compare #46 negative with leading zero limb == negative with leading zero limb
 mbedtls_mpi_cmp_mpi:"-0000000000000000123":"-0000000000000000123":0
 
-MPI compare #32 negative with leading zero limb < large positive
+MPI compare #47 negative with leading zero limb < large positive
 mbedtls_mpi_cmp_mpi:"-0000000000000000123":"1230000000000000000":-1
 
-MPI compare #33 negative with leading zero limb > large negative
+MPI compare #48 negative with leading zero limb > large negative
 mbedtls_mpi_cmp_mpi:"-0000000000000000123":"-1230000000000000000":1
 
-MPI compare #34 large positive == large positive
+MPI compare #49 large positive > 0 (null)
+mbedtls_mpi_cmp_mpi:"1230000000000000000":"":1
+
+MPI compare #50 large positive > 0 (1 limb)
+mbedtls_mpi_cmp_mpi:"1230000000000000000":"0":1
+
+MPI compare #51 large positive > positive
+mbedtls_mpi_cmp_mpi:"1230000000000000000":"7b":1
+
+MPI compare #52 large positive > negative
+mbedtls_mpi_cmp_mpi:"1230000000000000000":"-7b":1
+
+MPI compare #53 large positive > positive with leading zero limb
+mbedtls_mpi_cmp_mpi:"1230000000000000000":"0000000000000000123":1
+
+MPI compare #54 large positive > negative with leading zero limb
+mbedtls_mpi_cmp_mpi:"1230000000000000000":"-0000000000000000123":1
+
+MPI compare #55 large positive == large positive
 mbedtls_mpi_cmp_mpi:"1230000000000000000":"1230000000000000000":0
 
-MPI compare #35 large positive > large negative
+MPI compare #56 large positive > large negative
 mbedtls_mpi_cmp_mpi:"1230000000000000000":"-1230000000000000000":1
 
-MPI compare #36 large negative == large negative
+MPI compare #57 large negative < 0 (null)
+mbedtls_mpi_cmp_mpi:"-1230000000000000000":"":-1
+
+MPI compare #58 large negative < 0 (1 limb)
+mbedtls_mpi_cmp_mpi:"-1230000000000000000":"0":-1
+
+MPI compare #59 large negative < positive
+mbedtls_mpi_cmp_mpi:"-1230000000000000000":"7b":-1
+
+MPI compare #60 large negative < negative
+mbedtls_mpi_cmp_mpi:"-1230000000000000000":"-7b":-1
+
+MPI compare #61 large negative < positive with leading zero limb
+mbedtls_mpi_cmp_mpi:"-1230000000000000000":"0000000000000000123":-1
+
+MPI compare #62 large negative < negative with leading zero limb
+mbedtls_mpi_cmp_mpi:"-1230000000000000000":"-0000000000000000123":-1
+
+MPI compare #63 large negative < large positive
+mbedtls_mpi_cmp_mpi:"-1230000000000000000":"1230000000000000000":-1
+
+MPI compare #64 large negative == large negative
 mbedtls_mpi_cmp_mpi:"-1230000000000000000":"-1230000000000000000":0
 
-MPI compare #37 negative > negative
+MPI compare #65 negative > negative
 mbedtls_mpi_cmp_mpi:"-2":"-3":1
 
-MPI compare #38 negative == negative
+MPI compare #66 negative == negative
 mbedtls_mpi_cmp_mpi:"-2":"-2":0
 
-MPI compare #39 positive < positive
+MPI compare #67 positive < positive
 mbedtls_mpi_cmp_mpi:"2b4":"2b5":-1
 
-MPI compare #40 positive < positive
+MPI compare #68 positive < positive
 mbedtls_mpi_cmp_mpi:"2b5":"2b6":-1
 
 MPI compare (abs) #1 0 (null) == 0 (null)
@@ -282,100 +468,184 @@ mbedtls_mpi_cmp_abs:"":"1230000000000000000":-1
 MPI compare (abs) #8 0 (null) < large positive
 mbedtls_mpi_cmp_abs:"":"1230000000000000000":-1
 
-MPI compare (abs) #9 0 (1 limb) == 0 (1 limb)
-mbedtls_mpi_cmp_abs:"0":"0":0
+MPI compare (abs) #9 0 (1 limb) == 0 (null)
+mbedtls_mpi_cmp_abs:"0":"":0
 
-MPI compare (abs) #10 0 (1 limb) < positive
-mbedtls_mpi_cmp_abs:"0":"7b":-1
+MPI compare (abs) #10 0 (1 limb) == 0 (1 limb)
+mbedtls_mpi_cmp_abs:"0":"0":0
 
 MPI compare (abs) #11 0 (1 limb) < positive
 mbedtls_mpi_cmp_abs:"0":"7b":-1
 
-MPI compare (abs) #12 0 (1 limb) < positive with leading zero limb
-mbedtls_mpi_cmp_abs:"0":"0000000000000000123":-1
+MPI compare (abs) #12 0 (1 limb) < positive
+mbedtls_mpi_cmp_abs:"0":"7b":-1
 
 MPI compare (abs) #13 0 (1 limb) < positive with leading zero limb
 mbedtls_mpi_cmp_abs:"0":"0000000000000000123":-1
 
-MPI compare (abs) #14 0 (1 limb) < large positive
-mbedtls_mpi_cmp_abs:"0":"1230000000000000000":-1
+MPI compare (abs) #14 0 (1 limb) < positive with leading zero limb
+mbedtls_mpi_cmp_abs:"0":"0000000000000000123":-1
 
 MPI compare (abs) #15 0 (1 limb) < large positive
 mbedtls_mpi_cmp_abs:"0":"1230000000000000000":-1
 
-MPI compare (abs) #16 positive == positive
+MPI compare (abs) #16 0 (1 limb) < large positive
+mbedtls_mpi_cmp_abs:"0":"1230000000000000000":-1
+
+MPI compare (abs) #17 positive > 0 (null)
+mbedtls_mpi_cmp_abs:"7b":"":1
+
+MPI compare (abs) #18 positive > 0 (1 limb)
+mbedtls_mpi_cmp_abs:"7b":"0":1
+
+MPI compare (abs) #19 positive == positive
 mbedtls_mpi_cmp_abs:"7b":"7b":0
 
-MPI compare (abs) #17 positive == positive
+MPI compare (abs) #20 positive == positive
 mbedtls_mpi_cmp_abs:"7b":"7b":0
 
-MPI compare (abs) #18 positive < positive with leading zero limb
+MPI compare (abs) #21 positive < positive with leading zero limb
 mbedtls_mpi_cmp_abs:"7b":"0000000000000000123":-1
 
-MPI compare (abs) #19 positive < positive with leading zero limb
+MPI compare (abs) #22 positive < positive with leading zero limb
 mbedtls_mpi_cmp_abs:"7b":"0000000000000000123":-1
 
-MPI compare (abs) #20 positive < large positive
+MPI compare (abs) #23 positive < large positive
 mbedtls_mpi_cmp_abs:"7b":"1230000000000000000":-1
 
-MPI compare (abs) #21 positive < large positive
+MPI compare (abs) #24 positive < large positive
 mbedtls_mpi_cmp_abs:"7b":"1230000000000000000":-1
 
-MPI compare (abs) #22 positive == positive
+MPI compare (abs) #25 positive > 0 (null)
+mbedtls_mpi_cmp_abs:"7b":"":1
+
+MPI compare (abs) #26 positive > 0 (1 limb)
+mbedtls_mpi_cmp_abs:"7b":"0":1
+
+MPI compare (abs) #27 positive == positive
 mbedtls_mpi_cmp_abs:"7b":"7b":0
 
-MPI compare (abs) #23 positive < positive with leading zero limb
+MPI compare (abs) #28 positive == positive
+mbedtls_mpi_cmp_abs:"7b":"7b":0
+
+MPI compare (abs) #29 positive < positive with leading zero limb
 mbedtls_mpi_cmp_abs:"7b":"0000000000000000123":-1
 
-MPI compare (abs) #24 positive < positive with leading zero limb
+MPI compare (abs) #30 positive < positive with leading zero limb
 mbedtls_mpi_cmp_abs:"7b":"0000000000000000123":-1
 
-MPI compare (abs) #25 positive < large positive
+MPI compare (abs) #31 positive < large positive
 mbedtls_mpi_cmp_abs:"7b":"1230000000000000000":-1
 
-MPI compare (abs) #26 positive < large positive
+MPI compare (abs) #32 positive < large positive
 mbedtls_mpi_cmp_abs:"7b":"1230000000000000000":-1
 
-MPI compare (abs) #27 positive with leading zero limb == positive with leading zero limb
+MPI compare (abs) #33 positive with leading zero limb > 0 (null)
+mbedtls_mpi_cmp_abs:"0000000000000000123":"":1
+
+MPI compare (abs) #34 positive with leading zero limb > 0 (1 limb)
+mbedtls_mpi_cmp_abs:"0000000000000000123":"0":1
+
+MPI compare (abs) #35 positive with leading zero limb > positive
+mbedtls_mpi_cmp_abs:"0000000000000000123":"7b":1
+
+MPI compare (abs) #36 positive with leading zero limb > positive
+mbedtls_mpi_cmp_abs:"0000000000000000123":"7b":1
+
+MPI compare (abs) #37 positive with leading zero limb == positive with leading zero limb
 mbedtls_mpi_cmp_abs:"0000000000000000123":"0000000000000000123":0
 
-MPI compare (abs) #28 positive with leading zero limb == positive with leading zero limb
+MPI compare (abs) #38 positive with leading zero limb == positive with leading zero limb
 mbedtls_mpi_cmp_abs:"0000000000000000123":"0000000000000000123":0
 
-MPI compare (abs) #29 positive with leading zero limb < large positive
+MPI compare (abs) #39 positive with leading zero limb < large positive
 mbedtls_mpi_cmp_abs:"0000000000000000123":"1230000000000000000":-1
 
-MPI compare (abs) #30 positive with leading zero limb < large positive
+MPI compare (abs) #40 positive with leading zero limb < large positive
 mbedtls_mpi_cmp_abs:"0000000000000000123":"1230000000000000000":-1
 
-MPI compare (abs) #31 positive with leading zero limb == positive with leading zero limb
+MPI compare (abs) #41 positive with leading zero limb > 0 (null)
+mbedtls_mpi_cmp_abs:"0000000000000000123":"":1
+
+MPI compare (abs) #42 positive with leading zero limb > 0 (1 limb)
+mbedtls_mpi_cmp_abs:"0000000000000000123":"0":1
+
+MPI compare (abs) #43 positive with leading zero limb > positive
+mbedtls_mpi_cmp_abs:"0000000000000000123":"7b":1
+
+MPI compare (abs) #44 positive with leading zero limb > positive
+mbedtls_mpi_cmp_abs:"0000000000000000123":"7b":1
+
+MPI compare (abs) #45 positive with leading zero limb == positive with leading zero limb
 mbedtls_mpi_cmp_abs:"0000000000000000123":"0000000000000000123":0
 
-MPI compare (abs) #32 positive with leading zero limb < large positive
+MPI compare (abs) #46 positive with leading zero limb == positive with leading zero limb
+mbedtls_mpi_cmp_abs:"0000000000000000123":"0000000000000000123":0
+
+MPI compare (abs) #47 positive with leading zero limb < large positive
 mbedtls_mpi_cmp_abs:"0000000000000000123":"1230000000000000000":-1
 
-MPI compare (abs) #33 positive with leading zero limb < large positive
+MPI compare (abs) #48 positive with leading zero limb < large positive
 mbedtls_mpi_cmp_abs:"0000000000000000123":"1230000000000000000":-1
 
-MPI compare (abs) #34 large positive == large positive
+MPI compare (abs) #49 large positive > 0 (null)
+mbedtls_mpi_cmp_abs:"1230000000000000000":"":1
+
+MPI compare (abs) #50 large positive > 0 (1 limb)
+mbedtls_mpi_cmp_abs:"1230000000000000000":"0":1
+
+MPI compare (abs) #51 large positive > positive
+mbedtls_mpi_cmp_abs:"1230000000000000000":"7b":1
+
+MPI compare (abs) #52 large positive > positive
+mbedtls_mpi_cmp_abs:"1230000000000000000":"7b":1
+
+MPI compare (abs) #53 large positive > positive with leading zero limb
+mbedtls_mpi_cmp_abs:"1230000000000000000":"0000000000000000123":1
+
+MPI compare (abs) #54 large positive > positive with leading zero limb
+mbedtls_mpi_cmp_abs:"1230000000000000000":"0000000000000000123":1
+
+MPI compare (abs) #55 large positive == large positive
 mbedtls_mpi_cmp_abs:"1230000000000000000":"1230000000000000000":0
 
-MPI compare (abs) #35 large positive == large positive
+MPI compare (abs) #56 large positive == large positive
 mbedtls_mpi_cmp_abs:"1230000000000000000":"1230000000000000000":0
 
-MPI compare (abs) #36 large positive == large positive
+MPI compare (abs) #57 large positive > 0 (null)
+mbedtls_mpi_cmp_abs:"1230000000000000000":"":1
+
+MPI compare (abs) #58 large positive > 0 (1 limb)
+mbedtls_mpi_cmp_abs:"1230000000000000000":"0":1
+
+MPI compare (abs) #59 large positive > positive
+mbedtls_mpi_cmp_abs:"1230000000000000000":"7b":1
+
+MPI compare (abs) #60 large positive > positive
+mbedtls_mpi_cmp_abs:"1230000000000000000":"7b":1
+
+MPI compare (abs) #61 large positive > positive with leading zero limb
+mbedtls_mpi_cmp_abs:"1230000000000000000":"0000000000000000123":1
+
+MPI compare (abs) #62 large positive > positive with leading zero limb
+mbedtls_mpi_cmp_abs:"1230000000000000000":"0000000000000000123":1
+
+MPI compare (abs) #63 large positive == large positive
 mbedtls_mpi_cmp_abs:"1230000000000000000":"1230000000000000000":0
 
-MPI compare (abs) #37 positive < positive
+MPI compare (abs) #64 large positive == large positive
+mbedtls_mpi_cmp_abs:"1230000000000000000":"1230000000000000000":0
+
+MPI compare (abs) #65 positive < positive
 mbedtls_mpi_cmp_abs:"2":"3":-1
 
-MPI compare (abs) #38 positive == positive
+MPI compare (abs) #66 positive == positive
 mbedtls_mpi_cmp_abs:"2":"2":0
 
-MPI compare (abs) #39 positive < positive
+MPI compare (abs) #67 positive < positive
 mbedtls_mpi_cmp_abs:"2b4":"2b5":-1
 
-MPI compare (abs) #40 positive < positive
+MPI compare (abs) #68 positive < positive
 mbedtls_mpi_cmp_abs:"2b5":"2b6":-1
 
 # End of automatically generated file.

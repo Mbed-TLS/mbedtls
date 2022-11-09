@@ -122,7 +122,95 @@ class BignumModRawOperationArchSplit(BignumModRawOperation):
 # END MERGE SLOT 6
 
 # BEGIN MERGE SLOT 7
+class BignumModRawConvertToMont(BignumModRawOperationArchSplit):
+    """ Test cases for mpi_mod_raw_to_mont_rep(). """
 
+    test_function = "mpi_mod_raw_to_mont_rep"
+    test_name = "Convert into Mont: "
+
+    test_data_moduli = ["b",
+                        "fd",
+                        "eeff99aa37",
+                        "eeff99aa11",
+                        "800000000005",
+                        "7fffffffffffffff",
+                        "80fe000a10000001",
+                        "25a55a46e5da99c71c7",
+                        "1058ad82120c3a10196bb36229c1",
+                        "7e35b84cb19ea5bc57ec37f5e431462fa962d98c1e63738d4657f"
+                        "18ad6532e6adc3eafe67f1e5fa262af94cee8d3e7268593942a2a"
+                        "98df75154f8c914a282f8b",
+                        "8335616aed761f1f7f44e6bd49e807b82e3bf2bf11bfa63",
+                        "ffcece570f2f991013f26dd5b03c4c5b65f97be5905f36cb4664f"
+                        "2c78ff80aa8135a4aaf57ccb8a0aca2f394909a74cef1ef6758a6"
+                        "4d11e2c149c393659d124bfc94196f0ce88f7d7d567efa5a649e2"
+                        "deefaa6e10fdc3deac60d606bf63fc540ac95294347031aefd73d"
+                        "6a9ee10188aaeb7a90d920894553cb196881691cadc51808715a0"
+                        "7e8b24fcb1a63df047c7cdf084dd177ba368c806f3d51ddb5d389"
+                        "8c863e687ecaf7d649a57a46264a582f94d3c8f2edaf59f77a7f6"
+                        "bdaf83c991e8f06abe220ec8507386fce8c3da84c6c3903ab8f3a"
+                        "d4630a204196a7dbcbd9bcca4e40ec5cc5c09938d49f5e1e6181d"
+                        "b8896f33bb12e6ef73f12ec5c5ea7a8a337"
+                        ]
+
+    test_input_numbers = ["0",
+                          "1",
+                          "97",
+                          "f5",
+                          "6f5c3",
+                          "745bfe50f7",
+                          "ffa1f9924123",
+                          "334a8b983c79bd",
+                          "5b84f632b58f3461",
+                          "19acd15bc38008e1",
+                          "ffffffffffffffff",
+                          "54ce6a6bb8247fa0427cfc75a6b0599",
+                          "fecafe8eca052f154ce6a6bb8247fa019558bfeecce9bb9",
+                          "a87d7a56fa4bfdc7da42ef798b9cf6843d4c54794698cb14d72"
+                          "851dec9586a319f4bb6d5695acbd7c92e7a42a5ede6972adcbc"
+                          "f68425265887f2d721f462b7f1b91531bac29fa648facb8e3c6"
+                          "1bd5ae42d5a59ba1c89a95897bfe541a8ce1d633b98f379c481"
+                          "6f25e21f6ac49286b261adb4b78274fe5f61c187581f213e84b"
+                          "2a821e341ef956ecd5de89e6c1a35418cd74a549379d2d4594a"
+                          "577543147f8e35b3514e62cf3e89d1156cdc91ab5f4c928fbd6"
+                          "9148c35df5962fed381f4d8a62852a36823d5425f7487c13a12"
+                          "523473fb823aa9d6ea5f42e794e15f2c1a8785cf6b7d51a4617"
+                          "947fb3baf674f74a673cf1d38126983a19ed52c7439fab42c2185"
+                          ]
+
+    descr_tpl = '{} #{} N: \"{}\" A: \"{}\".'
+
+    def result(self) -> List[str]:
+        return [self.hex_x]
+
+    def arguments(self) -> List[str]:
+        return [bignum_common.quote_str(n) for n in [self.hex_n,
+                                                     self.hex_a,
+                                                     self.hex_x]]
+
+    def description(self) -> str:
+        return self.descr_tpl.format(self.test_name,
+                                     self.count,
+                                     self.int_n,
+                                     self.int_a)
+
+    @classmethod
+    def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
+        for bil in [32, 64]:
+            for n in cls.test_data_moduli:
+                for i in cls.test_input_numbers:
+                    # Skip invalid combinations where A.limbs > N.limbs
+                    if bignum_common.hex_to_int(i) > bignum_common.hex_to_int(n):
+                        continue
+                    yield cls(n, i, bits_in_limb=bil).create_test_case()
+
+    @property
+    def x(self) -> int: # pylint: disable=invalid-name
+        return (self.int_a * self.r) % self.int_n
+
+    @property
+    def hex_x(self) -> str:
+        return "{:x}".format(self.x).zfill(self.hex_digits)
 # END MERGE SLOT 7
 
 # BEGIN MERGE SLOT 8

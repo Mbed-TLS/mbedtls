@@ -802,15 +802,6 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
 #endif
 
 #if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
-/* Define the status of early data.
- * MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN : Initilized.
- * MBEDTLS_SSL_EARLY_DATA_STATUS_INDICATION_SENT: Have sent early data
- *  indication in client hello successfully.
- * MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT: Have sent client hello without
- *  data indication.
- * MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED: Server side reject the early data.
- * MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED: Server side accept the early data.
- */
 #define MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN           0
 #define MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT          1
 #define MBEDTLS_SSL_EARLY_DATA_STATUS_INDICATION_SENT   2
@@ -822,8 +813,8 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
 
 typedef uint8_t mbedtls_ssl_tls13_ticket_flags;
 #define MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_PSK_RESUMPTION              ( 1u << 0 )
-#define MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_PSK_EPHEMERAL_RESUMPTION    ( 1u << 2 )
-#define MBEDTLS_SSL_TLS1_3_TICKET_HAS_EARLY_DATA_INDACTION          ( 1u << 3 )
+#define MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_PSK_EPHEMERAL_RESUMPTION    ( 1u << 1 )
+#define MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA                  ( 1u << 2 )
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */
 /**

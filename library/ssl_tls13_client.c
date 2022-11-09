@@ -707,7 +707,7 @@ static int ssl_tls13_early_data_has_valid_ticket( mbedtls_ssl_context *ssl )
     return( ssl->handshake->resume &&
             session->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 &&
             ( session->ticket_flags &
-              MBEDTLS_SSL_TLS1_3_TICKET_HAS_EARLY_DATA_INDACTION ) &&
+              MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA ) &&
             mbedtls_ssl_tls13_cipher_suite_is_offered(
                 ssl, session->ciphersuite ) );
 }
@@ -1184,7 +1184,7 @@ int mbedtls_ssl_tls13_write_client_hello_exts( mbedtls_ssl_context *ssl,
         p += ext_len;
 
         /* Initializes the status to `indication sent`. It will be updated to
-         * `accepted` or `rejected` depend on whether the EncryptedExtension
+         * `accepted` or `rejected` depending on whether the EncryptedExtension
          * message will contain an early data indication extension or not.
          */
         ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_INDICATION_SENT;
@@ -2553,7 +2553,7 @@ static int ssl_tls13_parse_new_session_ticket_exts( mbedtls_ssl_context *ssl,
                 if( ssl->session != NULL )
                 {
                     ssl->session->ticket_flags |=
-                            MBEDTLS_SSL_TLS1_3_TICKET_HAS_EARLY_DATA_INDACTION;
+                            MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA;
                 }
                 break;
 

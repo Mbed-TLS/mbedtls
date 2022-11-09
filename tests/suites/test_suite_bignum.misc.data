@@ -1141,6 +1141,18 @@ mbedtls_mpi_div_mpi:"":"1":"":"":0
 Test mbedtls_mpi_div_mpi: 0 (null) / -1
 mbedtls_mpi_div_mpi:"":"-1":"":"":0
 
+Test mbedtls_mpi_div_mpi: -0 (null) / 1
+mbedtls_mpi_div_mpi:"-":"1":"":"":0
+
+Test mbedtls_mpi_div_mpi: -0 (null) / -1
+mbedtls_mpi_div_mpi:"-":"-1":"":"":0
+
+Test mbedtls_mpi_div_mpi: -0 (null) / 42
+mbedtls_mpi_div_mpi:"-":"2a":"":"":0
+
+Test mbedtls_mpi_div_mpi: -0 (null) / -42
+mbedtls_mpi_div_mpi:"-":"-2a":"":"":0
+
 Test mbedtls_mpi_div_mpi #1
 mbedtls_mpi_div_mpi:"9e22d6da18a33d1ef28d2a82242b3f6e9c9742f63e5d440f58a190bfaf23a7866e67589adb80":"22":"4a6abf75b13dc268ea9cc8b5b6aaf0ac85ecd437a4e0987fb13cf8d2acc57c0306c738c1583":"1a":0
 
@@ -1200,6 +1212,18 @@ mbedtls_mpi_mod_mpi:"":"1":"":0
 
 Test mbedtls_mpi_mod_mpi: 0 (null) % -1
 mbedtls_mpi_mod_mpi:"":"-1":"":MBEDTLS_ERR_MPI_NEGATIVE_VALUE
+
+Test mbedtls_mpi_mod_mpi: -0 (null) % 1
+mbedtls_mpi_mod_mpi:"-":"1":"":0
+
+Test mbedtls_mpi_mod_mpi: -0 (null) % -1
+mbedtls_mpi_mod_mpi:"-":"-1":"":MBEDTLS_ERR_MPI_NEGATIVE_VALUE
+
+Test mbedtls_mpi_mod_mpi: -0 (null) % 42
+mbedtls_mpi_mod_mpi:"-":"2a":"":0
+
+Test mbedtls_mpi_mod_mpi: -0 (null) % -42
+mbedtls_mpi_mod_mpi:"-":"-2a":"":MBEDTLS_ERR_MPI_NEGATIVE_VALUE
 
 Base test mbedtls_mpi_mod_int #1
 mbedtls_mpi_mod_int:"3e8":13:12:0

@@ -20,6 +20,7 @@ import typing
 from abc import abstractmethod
 from typing import Iterator, List, Tuple, TypeVar
 
+from . import test_case
 from . import test_data_generation
 
 T = TypeVar('T') #pylint: disable=invalid-name
@@ -125,6 +126,11 @@ class OperationCommon(test_data_generation.BaseTest):
                 for b in cls.input_values
             )
         yield from cls.input_cases
+
+    @classmethod
+    def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
+        for a_value, b_value in cls.get_value_pairs():
+            yield cls(a_value, b_value).create_test_case()
 
 # BEGIN MERGE SLOT 1
 

@@ -618,7 +618,7 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
     E += E_len;               /* Skip to end of exponent buffer */
 
     wsize = mpi_exp_mod_get_window_size( E_len * biL );
-    welem = 1 << wsize;
+    welem = ( (size_t) 1 ) << wsize;
 
     /* Allocate memory pool and set pointers to parts of it */
     const size_t table_limbs   = welem * n;
@@ -663,8 +663,8 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
     memcpy( X, Wtbl, n * ciL );
 
     size_t limb_bits_remaining = 0;
-    mbedtls_mpi_uint window = 0;
-    size_t window_bits = 0, cur_limb;
+    mbedtls_mpi_uint cur_limb, window = 0;
+    size_t window_bits = 0;
     while( 1 )
     {
         size_t window_bits_missing = wsize - window_bits;

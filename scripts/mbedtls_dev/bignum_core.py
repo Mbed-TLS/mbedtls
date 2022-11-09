@@ -106,75 +106,41 @@ class BignumCoreCTLookup(BignumCoreTarget, test_data_generation.BaseTest):
                 yield (cls(bitsize, bitsize_description, window_size)
                        .create_test_case())
 
-class BignumCoreOperation(BignumCoreTarget, bignum_common.OperationCommon,
-                          metaclass=ABCMeta):
+INPUT_VALUES = [
+    "0", "1", "3", "f", "fe", "ff", "100", "ff00", "fffe", "ffff", "10000",
+    "fffffffe", "ffffffff", "100000000", "1f7f7f7f7f7f7f",
+    "8000000000000000", "fefefefefefefefe", "fffffffffffffffe",
+    "ffffffffffffffff", "10000000000000000", "1234567890abcdef0",
+    "fffffffffffffffffefefefefefefefe", "fffffffffffffffffffffffffffffffe",
+    "ffffffffffffffffffffffffffffffff", "100000000000000000000000000000000",
+    "1234567890abcdef01234567890abcdef0",
+    "fffffffffffffffffffffffffffffffffffffffffffffffffefefefefefefefe",
+    "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe",
+    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "10000000000000000000000000000000000000000000000000000000000000000",
+    "1234567890abcdef01234567890abcdef01234567890abcdef01234567890abcdef0",
+    (
+        "4df72d07b4b71c8dacb6cffa954f8d88254b6277099308baf003fab73227f34029"
+        "643b5a263f66e0d3c3fa297ef71755efd53b8fb6cb812c6bbf7bcf179298bd9947"
+        "c4c8b14324140a2c0f5fad7958a69050a987a6096e9f055fb38edf0c5889eca4a0"
+        "cfa99b45fbdeee4c696b328ddceae4723945901ec025076b12b"
+    )
+]
+
+
+class BignumCoreOperation(BignumCoreTarget, bignum_common.OperationCommon):
     #pylint: disable=abstract-method
     """Common features for bignum core operations."""
-    input_values = [
-        "0", "1", "3", "f", "fe", "ff", "100", "ff00", "fffe", "ffff", "10000",
-        "fffffffe", "ffffffff", "100000000", "1f7f7f7f7f7f7f",
-        "8000000000000000", "fefefefefefefefe", "fffffffffffffffe",
-        "ffffffffffffffff", "10000000000000000", "1234567890abcdef0",
-        "fffffffffffffffffefefefefefefefe", "fffffffffffffffffffffffffffffffe",
-        "ffffffffffffffffffffffffffffffff", "100000000000000000000000000000000",
-        "1234567890abcdef01234567890abcdef0",
-        "fffffffffffffffffffffffffffffffffffffffffffffffffefefefefefefefe",
-        "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe",
-        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        "10000000000000000000000000000000000000000000000000000000000000000",
-        "1234567890abcdef01234567890abcdef01234567890abcdef01234567890abcdef0",
-        (
-            "4df72d07b4b71c8dacb6cffa954f8d88254b6277099308baf003fab73227f34029"
-            "643b5a263f66e0d3c3fa297ef71755efd53b8fb6cb812c6bbf7bcf179298bd9947"
-            "c4c8b14324140a2c0f5fad7958a69050a987a6096e9f055fb38edf0c5889eca4a0"
-            "cfa99b45fbdeee4c696b328ddceae4723945901ec025076b12b"
-        )
-    ]
-
-    def description(self) -> str:
-        """Generate a description for the test case.
-
-        If not set, case_description uses the form A `symbol` B, where symbol
-        is used to represent the operation. Descriptions of each value are
-        generated to provide some context to the test case.
-        """
-        if not self.case_description:
-            self.case_description = "{:x} {} {:x}".format(
-                self.int_a, self.symbol, self.int_b
-            )
-        return super().description()
+    input_values = INPUT_VALUES
 
 
-class BignumCoreOperationArchSplit(BignumCoreOperation):
+class BignumCoreOperationArchSplit(BignumCoreTarget,
+                                   bignum_common.OperationCommonArchSplit):
     #pylint: disable=abstract-method
     """Common features for bignum core operations where the result depends on
     the limb size."""
+    input_values = INPUT_VALUES
 
-    def __init__(self, val_a: str, val_b: str, bits_in_limb: int) -> None:
-        super().__init__(val_a, val_b)
-        bound_val = max(self.int_a, self.int_b)
-        self.bits_in_limb = bits_in_limb
-        self.bound = bignum_common.bound_mpi(bound_val, self.bits_in_limb)
-        limbs = bignum_common.limbs_mpi(bound_val, self.bits_in_limb)
-        byte_len = limbs * self.bits_in_limb // 8
-        self.hex_digits = 2 * byte_len
-        if self.bits_in_limb == 32:
-            self.dependencies = ["MBEDTLS_HAVE_INT32"]
-        elif self.bits_in_limb == 64:
-            self.dependencies = ["MBEDTLS_HAVE_INT64"]
-        else:
-            raise ValueError("Invalid number of bits in limb!")
-        self.arg_a = self.arg_a.zfill(self.hex_digits)
-        self.arg_b = self.arg_b.zfill(self.hex_digits)
-
-    def pad_to_limbs(self, val) -> str:
-        return "{:x}".format(val).zfill(self.hex_digits)
-
-    @classmethod
-    def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
-        for a_value, b_value in cls.get_value_pairs():
-            yield cls(a_value, b_value, 32).create_test_case()
-            yield cls(a_value, b_value, 64).create_test_case()
 
 class BignumCoreAddAndAddIf(BignumCoreOperationArchSplit):
     """Test cases for bignum core add and add-if."""

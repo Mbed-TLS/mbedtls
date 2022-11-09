@@ -67,7 +67,13 @@ from mbedtls_dev import test_data_generation
 T = TypeVar('T') #pylint: disable=invalid-name
 
 def hex_to_int(val: str) -> int:
-    return int(val, 16) if val else 0
+    """Implement the syntax accepted by mbedtls_test_read_mpi().
+
+    This is a superset of what is accepted by mbedtls_test_read_mpi_core().
+    """
+    if val == '' or val == '-':
+        return 0
+    return int(val, 16)
 
 def quote_str(val) -> str:
     return "\"{}\"".format(val)
@@ -98,7 +104,8 @@ class BignumOperation(BignumTarget, metaclass=ABCMeta):
     """
     symbol = ""
     input_values = [
-        "", "0", "7b", "-7b",
+        "", "0", "-", "-0",
+        "7b", "-7b",
         "0000000000000000123", "-0000000000000000123",
         "1230000000000000000", "-1230000000000000000"
     ] # type: List[str]
@@ -113,6 +120,10 @@ class BignumOperation(BignumTarget, metaclass=ABCMeta):
     def arguments(self) -> List[str]:
         return [quote_str(self.arg_a), quote_str(self.arg_b), self.result()]
 
+    def description_suffix(self) -> str:
+        """Text to add at the end of the test case description."""
+        return ""
+
     def description(self) -> str:
         """Generate a description for the test case.
 
@@ -126,6 +137,9 @@ class BignumOperation(BignumTarget, metaclass=ABCMeta):
                 self.symbol,
                 self.value_description(self.arg_b)
             )
+            description_suffix = self.description_suffix()
+            if description_suffix:
+                self.case_description += " " + description_suffix
         return super().description()
 
     @abstractmethod
@@ -146,6 +160,8 @@ class BignumOperation(BignumTarget, metaclass=ABCMeta):
         """
         if val == "":
             return "0 (null)"
+        if val == "-":
+            return "negative 0 (null)"
         if val == "0":
             return "0 (1 limb)"
 
@@ -221,8 +237,21 @@ class BignumAdd(BignumOperation):
         ]
     )
 
+    def __init__(self, val_a: str, val_b: str) -> None:
+        super().__init__(val_a, val_b)
+        self._result = self.int_a + self.int_b
+
+    def description_suffix(self) -> str:
+        if (self.int_a >= 0 and self.int_b >= 0):
+            return "" # obviously positive result or 0
+        if (self.int_a <= 0 and self.int_b <= 0):
+            return "" # obviously negative result or 0
+        # The sign of the result is not obvious, so indicate it
+        return ", result{}0".format('>' if self._result > 0 else
+                                    '<' if self._result < 0 else '=')
+
     def result(self) -> str:
-        return quote_str("{:x}".format(self.int_a + self.int_b))
+        return quote_str("{:x}".format(self._result))
 
 if __name__ == '__main__':
     # Use the section of the docstring relevant to the CLI as description

@@ -211,6 +211,37 @@ class BignumModRawConvertToMont(BignumModRawOperationArchSplit):
     @property
     def hex_x(self) -> str:
         return "{:x}".format(self.x).zfill(self.hex_digits)
+
+class BignumModRawConvertFromMont(BignumModRawConvertToMont):
+    """ Test cases for mpi_mod_raw_from_mont_rep(). """
+
+    test_function = "mpi_mod_raw_from_mont_rep"
+    test_name = "Convert from Mont: "
+
+    test_input_numbers = ["0",
+                          "1",
+                          "3ca",
+                          "539ed428",
+                          "7dfe5c6beb35a2d6",
+                          "dca8de1c2adfc6d7aafb9b48e",
+                          "a7d17b6c4be72f3d5c16bf9c1af6fc933",
+                          "2fec97beec546f9553142ed52f147845463f579",
+                          "378dc83b8bc5a7b62cba495af4919578dce6d4f175cadc4f",
+                          "b6415f2a1a8e48a518345db11f56db3829c8f2c6415ab4a395a"
+                          "b3ac2ea4cbef4af86eb18a84eb6ded4c6ecbfc4b59c2879a675"
+                          "487f687adea9d197a84a5242a5cf6125ce19a6ad2e7341f1c57"
+                          "d43ea4f4c852a51cb63dabcd1c9de2b827a3146a3d175b35bea"
+                          "41ae75d2a286a3e9d43623152ac513dcdea1d72a7da846a8ab3"
+                          "58d9be4926c79cfb287cf1cf25b689de3b912176be5dcaf4d4c"
+                          "6e7cb839a4a3243a6c47c1e2c99d65c59d6fa3672575c2f1ca8"
+                          "de6a32e854ec9d8ec635c96af7679fce26d7d159e4a9da3bd74"
+                          "e1272c376cd926d74fe3fb164a5935cff3d5cdb92b35fe2cea32"
+                          "138a7e6bfbc319ebd1725dacb9a359cbf693f2ecb785efb9d627"
+                         ]
+
+    @property
+    def x(self): # pylint: disable=invalid-name
+        return (self.int_a * self.r_inv) % self.int_n
 # END MERGE SLOT 7
 
 # BEGIN MERGE SLOT 8

@@ -57,15 +57,8 @@ def limbs_mpi(val: int, bits_in_limb: int) -> int:
     return (val.bit_length() + bits_in_limb - 1) // bits_in_limb
 
 def combination_pairs(values: List[T]) -> List[Tuple[T, T]]:
-    """Return all pair combinations from input values.
-
-    The return value is cast, as older versions of mypy are unable to derive
-    the specific type returned by itertools.combinations_with_replacement.
-    """
-    return typing.cast(
-        List[Tuple[T, T]],
-        list(itertools.combinations_with_replacement(values, 2))
-    )
+    """Return all pair combinations from input values."""
+    return [(x, y) for x in values for y in values]
 
 
 class OperationCommon:

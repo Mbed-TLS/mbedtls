@@ -706,7 +706,8 @@ static int ssl_tls13_early_data_has_valid_ticket( mbedtls_ssl_context *ssl )
     mbedtls_ssl_session *session = ssl->session_negotiate;
     return( ssl->handshake->resume &&
             session->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 &&
-            ( session->ticket_flags & MBEDTLS_SSL_TICKET_ALLOW_EARLY_DATA ) &&
+            ( session->ticket_flags &
+              MBEDTLS_SSL_TLS1_3_TICKET_HAS_EARLY_DATA_INDACTION ) &&
             mbedtls_ssl_tls13_cipher_suite_is_offered(
                 ssl, session->ciphersuite ) );
 }
@@ -2552,7 +2553,7 @@ static int ssl_tls13_parse_new_session_ticket_exts( mbedtls_ssl_context *ssl,
                 if( ssl->session != NULL )
                 {
                     ssl->session->ticket_flags |=
-                            MBEDTLS_SSL_TICKET_ALLOW_EARLY_DATA;
+                            MBEDTLS_SSL_TLS1_3_TICKET_HAS_EARLY_DATA_INDACTION;
                 }
                 break;
 

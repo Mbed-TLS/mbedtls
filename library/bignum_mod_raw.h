@@ -144,6 +144,26 @@ int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *A,
 
 /* BEGIN MERGE SLOT 2 */
 
+/** \brief  Perform a subtraction of two MPIs and return the modulus
+ *          of the result.
+ *
+ * The size of the operation is determined by \p N.
+ *
+ * \param[out] X        The address of the result MPI.
+ *                      This must be initialized. Must have enough limbs to
+ *                      store the full value of the result.
+ * \param[in]  A        The address of the first MPI. This must be initialized.
+ * \param[in]  B        The address of the second MPI. This must be initialized.
+ * \param[in]  N        The address of the modulus. Use to perform a modulu
+ *                      operation on the result of the subtraction.
+ *
+ *  \note Both \p A and \p B must be smaller than the modulus \p N.
+ */
+void mbedtls_mpi_mod_raw_sub( mbedtls_mpi_uint *X,
+                              const mbedtls_mpi_uint *A,
+                              const mbedtls_mpi_uint *B,
+                              const mbedtls_mpi_mod_modulus *N );
+
 /* END MERGE SLOT 2 */
 
 /* BEGIN MERGE SLOT 3 */

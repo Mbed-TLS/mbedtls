@@ -132,6 +132,7 @@ void mpi_mod_raw_cond_assign( char * input_X,
     mbedtls_mpi_mod_modulus_init( &m );
 
     TEST_EQUAL( limbs_X, limbs_Y );
+    TEST_ASSERT( limbs_X > 0 );
     TEST_ASSERT( copy_limbs <= limbs );
 
     ASSERT_ALLOC( buff_m, copy_limbs );

@@ -1264,14 +1264,19 @@ static int add_sub_mpi( mbedtls_mpi *X,
     s = A->s;
     if( A->s * B->s * flip_B < 0 )
     {
-        if( mbedtls_mpi_cmp_abs( A, B ) >= 0 )
+        int cmp = mbedtls_mpi_cmp_abs( A, B );
+        if( cmp >= 0 )
         {
             MBEDTLS_MPI_CHK( mbedtls_mpi_sub_abs( X, A, B ) );
-            X->s =  s;
+            /* If |A| = |B|, the result is 0 and we must set the sign bit
+             * to +1 regardless of which of A or B was negative. Otherwise,
+             * since |A| > |B|, the sign is the sign of A. */
+            X->s = cmp == 0 ? 1 : s;
         }
         else
         {
             MBEDTLS_MPI_CHK( mbedtls_mpi_sub_abs( X, B, A ) );
+            /* Since |A| < |B|, the sign is the opposite of A. */
             X->s = -s;
         }
     }

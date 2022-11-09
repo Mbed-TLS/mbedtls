@@ -57,7 +57,7 @@ of BaseTarget in test_data_generation.py.
 import sys
 
 from abc import ABCMeta
-from typing import Iterator, List
+from typing import List
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import test_case
@@ -69,6 +69,7 @@ from mbedtls_dev import bignum_common
 from mbedtls_dev import bignum_core # pylint: disable=unused-import
 
 class BignumTarget(test_data_generation.BaseTarget):
+    #pylint: disable=too-few-public-methods
     """Target for bignum (legacy) test case generation."""
     target_basename = 'test_suite_bignum.generated'
 

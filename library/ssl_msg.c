@@ -1883,7 +1883,7 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
         {
             len = in_buf_len - ( ssl->in_hdr - ssl->in_buf );
 
-            if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
+            if( mbedtls_ssl_is_handshake_over( ssl ) == 0 )
                 timeout = ssl->handshake->retransmit_timeout;
             else
                 timeout = ssl->conf->read_timeout;
@@ -3004,7 +3004,7 @@ void mbedtls_ssl_update_handshake_status( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_handshake_params * const hs = ssl->handshake;
 
-    if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER && hs != NULL )
+    if( mbedtls_ssl_is_handshake_over( ssl ) == 0 && hs != NULL )
     {
         ssl->handshake->update_checksum( ssl, ssl->in_msg, ssl->in_hslen );
     }

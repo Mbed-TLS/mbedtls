@@ -2064,7 +2064,8 @@ static int is_compression_bad( mbedtls_ssl_context *ssl, unsigned char comp )
 #if defined(MBEDTLS_ZLIB_SUPPORT)
     /* See comments in ssl_write_client_hello() */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+        comp != MBEDTLS_SSL_COMPRESS_NULL )
         bad_comp = 1;
 #endif
 

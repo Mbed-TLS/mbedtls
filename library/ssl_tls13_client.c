@@ -2542,9 +2542,18 @@ static int ssl_tls13_parse_new_session_ticket_exts( mbedtls_ssl_context *ssl,
         {
             case MBEDTLS_TLS_EXT_EARLY_DATA:
                 MBEDTLS_SSL_DEBUG_MSG( 4, ( "early_data extension received" ) );
-                if( extension_data_len == 4 && ssl->session != NULL )
+                if( extension_data_len != 4 )
+                {
+                    MBEDTLS_SSL_PEND_FATAL_ALERT(
+                        MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
+                        MBEDTLS_ERR_SSL_DECODE_ERROR );
+                    return( MBEDTLS_ERR_SSL_DECODE_ERROR );
+                }
+                if( ssl->session != NULL )
+                {
                     ssl->session->ticket_flags |=
                             MBEDTLS_SSL_TICKET_ALLOW_EARLY_DATA;
+                }
                 break;
 
             default:

@@ -55,7 +55,6 @@ of BaseTarget in test_data_generation.py.
 # limitations under the License.
 
 import sys
-import typing
 
 from abc import ABCMeta, abstractmethod
 from typing import Iterator, List, Tuple, TypeVar
@@ -71,7 +70,7 @@ def hex_to_int(val: str) -> int:
 
     This is a superset of what is accepted by mbedtls_test_read_mpi_core().
     """
-    if val == '' or val == '-':
+    if val in ['', '-']:
         return 0
     return int(val, 16)
 
@@ -121,6 +120,7 @@ class BignumOperation(BignumTarget, metaclass=ABCMeta):
         return [quote_str(self.arg_a), quote_str(self.arg_b), self.result()]
 
     def description_suffix(self) -> str:
+        #pylint: disable=no-self-use # derived classes need self
         """Text to add at the end of the test case description."""
         return ""
 

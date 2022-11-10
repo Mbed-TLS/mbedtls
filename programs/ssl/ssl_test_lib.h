@@ -20,6 +20,8 @@
 #ifndef MBEDTLS_PROGRAMS_SSL_SSL_TEST_LIB_H
 #define MBEDTLS_PROGRAMS_SSL_SSL_TEST_LIB_H
 
+#include "mbedtls/version.h"
+
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else

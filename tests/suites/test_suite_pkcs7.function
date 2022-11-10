@@ -75,7 +75,7 @@ void pkcs7_verify( char *pkcs7_file, char *crt, char *filetobesigned, int do_has
     TEST_ASSERT( file != NULL );
 
     datalen = st.st_size;
-    data = mbedtls_calloc( datalen, 1 );
+    ASSERT_ALLOC( data, datalen );
     TEST_ASSERT( data != NULL );
 
     buflen = fread( (void *)data , sizeof( unsigned char ), datalen, file );
@@ -154,7 +154,7 @@ void pkcs7_verify_multiple_signers( char *pkcs7_file, char *crt1, char *crt2, ch
     TEST_ASSERT( file != NULL );
 
     datalen = st.st_size;
-    data = ( unsigned char* ) calloc( datalen, sizeof(unsigned char) );
+    ASSERT_ALLOC( data, datalen );
     buflen = fread( ( void * )data , sizeof( unsigned char ), datalen, file );
     TEST_ASSERT( buflen == datalen );
 

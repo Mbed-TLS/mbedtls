@@ -3553,6 +3553,17 @@ component_check_test_helpers () {
     python3 -m unittest tests/scripts/translate_ciphers.py 2>&1
 }
 
+component_check_code_style () {
+    msg "Check: code style" # ~50s
+    ./scripts/code_style.py
+}
+support_check_code_style() {
+    case $(uncrustify --version) in
+        *0.75.1*) true;;
+        *) false;;
+    esac
+}
+
 ################################################################
 #### Termination
 ################################################################

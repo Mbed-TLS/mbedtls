@@ -26,31 +26,6 @@ class BignumModRawTarget(test_data_generation.BaseTarget, metaclass=ABCMeta):
     """Target for bignum mod_raw test case generation."""
     target_basename = 'test_suite_bignum_mod_raw.generated'
 
-# BEGIN MERGE SLOT 1
-
-# END MERGE SLOT 1
-
-# BEGIN MERGE SLOT 2
-
-# END MERGE SLOT 2
-
-# BEGIN MERGE SLOT 3
-
-# END MERGE SLOT 3
-
-# BEGIN MERGE SLOT 4
-
-# END MERGE SLOT 4
-
-# BEGIN MERGE SLOT 5
-
-# END MERGE SLOT 5
-
-# BEGIN MERGE SLOT 6
-
-# END MERGE SLOT 6
-
-# BEGIN MERGE SLOT 7
 class BignumModRawOperation(bignum_common.OperationCommon, BignumModRawTarget, metaclass=ABCMeta):
     #pylint: disable=abstract-method
     """Target for bignum mod_raw test case generation."""
@@ -99,7 +74,7 @@ class BignumModRawOperation(bignum_common.OperationCommon, BignumModRawTarget, m
         return bignum_common.invmod(self.r, self.int_n)
 
     @property
-    def r_sqrt(self) -> int: # pylint: disable=invalid-name
+    def r2(self) -> int: # pylint: disable=invalid-name
         return pow(self.r, 2)
 
 class BignumModRawOperationArchSplit(BignumModRawOperation):
@@ -122,6 +97,32 @@ class BignumModRawOperationArchSplit(BignumModRawOperation):
         for a_value, b_value in cls.get_value_pairs():
             for bil in cls.limb_sizes:
                 yield cls(a_value, b_value, bits_in_limb=bil).create_test_case()
+# BEGIN MERGE SLOT 1
+
+# END MERGE SLOT 1
+
+# BEGIN MERGE SLOT 2
+
+# END MERGE SLOT 2
+
+# BEGIN MERGE SLOT 3
+
+# END MERGE SLOT 3
+
+# BEGIN MERGE SLOT 4
+
+# END MERGE SLOT 4
+
+# BEGIN MERGE SLOT 5
+
+# END MERGE SLOT 5
+
+# BEGIN MERGE SLOT 6
+
+# END MERGE SLOT 6
+
+# BEGIN MERGE SLOT 7
+
 # END MERGE SLOT 7
 
 # BEGIN MERGE SLOT 8

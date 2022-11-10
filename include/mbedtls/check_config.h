@@ -842,8 +842,13 @@
         "but no key exchange methods defined with MBEDTLS_KEY_EXCHANGE_xxxx"
 #endif
 
-/* Early data requires MBEDTLS_SSL_SESSION_TICKETS defined */
-#if defined(MBEDTLS_SSL_EARLY_DATA) && !defined(MBEDTLS_SSL_SESSION_TICKETS)
+/* Early data requires MBEDTLS_SSL_SESSION_TICKETS and SOME_PSK related
+ * mode defined
+ */
+#if defined(MBEDTLS_SSL_EARLY_DATA) && \
+    ( !defined(MBEDTLS_SSL_SESSION_TICKETS) || \
+      ( !defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED) && \
+        !defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED) ) )
 #error "MBEDTLS_SSL_EARLY_DATA  defined, but not all prerequisites"
 #endif
 

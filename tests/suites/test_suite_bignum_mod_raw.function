@@ -297,76 +297,70 @@ exit:
 /* BEGIN_CASE */
 void mpi_mod_raw_to_mont_rep( char * input_N, char * input_A, char * input_X )
 {
-    mbedtls_mpi N, A, X;
+    mbedtls_mpi_uint *N = NULL;
+    mbedtls_mpi_uint *A = NULL;
+    mbedtls_mpi_uint *X = NULL;
     mbedtls_mpi_mod_modulus m;
-
-    mbedtls_mpi_init( &N );
-    mbedtls_mpi_init( &A );
-    mbedtls_mpi_init( &X );
+    size_t n_limbs, a_limbs, x_limbs, x_bytes;
 
     /* Read inputs */
-    TEST_EQUAL( 0, mbedtls_test_read_mpi( &N, input_N ) );
-    TEST_EQUAL( 0, mbedtls_test_read_mpi( &A, input_A ) );
-    TEST_EQUAL( 0, mbedtls_test_read_mpi( &X, input_X ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &N, &n_limbs, input_N ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &A, &a_limbs, input_A ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &X, &x_limbs, input_X ) );
+    x_bytes = x_limbs * sizeof(mbedtls_mpi_uint);
 
-    /* All of the inputs are +ve (or zero) */
-    TEST_EQUAL( 1, X.s );
-    TEST_EQUAL( 1, A.s );
+    /* Test that input does not require more limbs than modulo */
+    TEST_LE_U(a_limbs, n_limbs);
 
     mbedtls_mpi_mod_modulus_init( &m );
-    TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N.p, N.n, MBEDTLS_MPI_MOD_EXT_REP_BE, MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
+    TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs,
+                MBEDTLS_MPI_MOD_EXT_REP_BE, MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
 
-    TEST_EQUAL(0, mbedtls_mpi_mod_raw_to_mont_rep( A.p ,&m ) );
+    /* Convert from cannonical into Montgomery representation */
+    TEST_EQUAL(0, mbedtls_mpi_mod_raw_to_mont_rep( A, &m ) );
 
-    /* Calculated matches expected value */
-    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &A, &X ) == 0 );
-
-   /* Output is +ve (or zero) */
-    TEST_EQUAL( 1, A.s );
-
+    /* The result matches expected value */
+    ASSERT_COMPARE( A, x_bytes, X, x_bytes );
 exit:
     mbedtls_mpi_mod_modulus_free( &m );
-    mbedtls_mpi_free( &N );
-    mbedtls_mpi_free( &A );
-    mbedtls_mpi_free( &X );
+    mbedtls_free( N );
+    mbedtls_free( A );
+    mbedtls_free( X );
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
 void mpi_mod_raw_from_mont_rep( char * input_N, char * input_A, char * input_X )
 {
-    mbedtls_mpi N, A, X;
+    mbedtls_mpi_uint *N = NULL;
+    mbedtls_mpi_uint *A = NULL;
+    mbedtls_mpi_uint *X = NULL;
     mbedtls_mpi_mod_modulus m;
-
-    mbedtls_mpi_init( &N );
-    mbedtls_mpi_init( &A );
-    mbedtls_mpi_init( &X );
+    size_t n_limbs, a_limbs, x_limbs, x_bytes;
 
     /* Read inputs */
-    TEST_EQUAL( 0, mbedtls_test_read_mpi( &N, input_N ) );
-    TEST_EQUAL( 0, mbedtls_test_read_mpi( &A, input_A ) );
-    TEST_EQUAL( 0, mbedtls_test_read_mpi( &X, input_X ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &N, &n_limbs, input_N ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &A, &a_limbs, input_A ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &X, &x_limbs, input_X ) );
+    x_bytes = x_limbs * sizeof(mbedtls_mpi_uint);
 
-    /* All of the inputs are +ve (or zero) */
-    TEST_EQUAL( 1, X.s );
-    TEST_EQUAL( 1, A.s );
+    /* Test that input does not require more limbs than modulo */
+    TEST_LE_U(a_limbs, n_limbs);
 
     mbedtls_mpi_mod_modulus_init( &m );
-    TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N.p, N.n, MBEDTLS_MPI_MOD_EXT_REP_BE, MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
+    TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs,
+                MBEDTLS_MPI_MOD_EXT_REP_BE, MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
 
-    TEST_EQUAL(0, mbedtls_mpi_mod_raw_from_mont_rep( A.p ,&m ) );
+    /* Convert from Montgomery into cannonical representation */
+    TEST_EQUAL(0, mbedtls_mpi_mod_raw_from_mont_rep( A, &m ) );
 
-    /* Calculated matches expected value */
-    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &A, &X ) == 0 );
-
-   /* Output is +ve (or zero) */
-    TEST_EQUAL( 1, A.s );
-
+    /* The result matches expected value */
+    ASSERT_COMPARE( A, x_bytes, X, x_bytes );
 exit:
     mbedtls_mpi_mod_modulus_free( &m );
-    mbedtls_mpi_free( &N );
-    mbedtls_mpi_free( &A );
-    mbedtls_mpi_free( &X );
+    mbedtls_free( N );
+    mbedtls_free( A );
+    mbedtls_free( X );
 }
 /* END_CASE */
 /* END MERGE SLOT 7 */

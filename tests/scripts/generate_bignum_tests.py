@@ -85,6 +85,7 @@ class BignumOperation(bignum_common.OperationCommon, BignumTarget, metaclass=ABC
     ]
 
     def description_suffix(self) -> str:
+        #pylint: disable=no-self-use # derived classes need self
         """Text to add at the end of the test case description."""
         return ""
 

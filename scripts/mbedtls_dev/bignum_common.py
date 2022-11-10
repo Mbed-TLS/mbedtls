@@ -14,9 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import itertools
-import typing
-
 from abc import abstractmethod
 from typing import Iterator, List, Tuple, TypeVar
 
@@ -42,7 +39,7 @@ def hex_to_int(val: str) -> int:
 
     This is a superset of what is accepted by mbedtls_test_read_mpi_core().
     """
-    if val == '' or val == '-':
+    if val in ['', '-']:
         return 0
     return int(val, 16)
 

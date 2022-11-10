@@ -108,6 +108,7 @@ src/drivers/%.o : src/drivers/%.c
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
 C_FILES := $(addsuffix .c,$(APPS))
+c: $(C_FILES)
 
 # Wildcard target for test code generation:
 # A .c file is generated for each .data file in the suites/ directory. Each .c

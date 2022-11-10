@@ -1300,8 +1300,8 @@ int mbedtls_mpi_div_mpi( mbedtls_mpi *Q, mbedtls_mpi *R, const mbedtls_mpi *A,
 
     if( mbedtls_mpi_cmp_abs( A, B ) < 0 )
     {
-        if( Q != NULL ) MBEDTLS_MPI_CHK( mbedtls_mpi_lset( Q, 0 ) );
         if( R != NULL ) MBEDTLS_MPI_CHK( mbedtls_mpi_copy( R, A ) );
+        if( Q != NULL ) MBEDTLS_MPI_CHK( mbedtls_mpi_lset( Q, 0 ) );
         return( 0 );
     }
 
@@ -1372,16 +1372,19 @@ int mbedtls_mpi_div_mpi( mbedtls_mpi *Q, mbedtls_mpi *R, const mbedtls_mpi *A,
         }
     }
 
+    T1.s = A->s; /* save sign value in case outputs alias inputs */
+
     if( Q != NULL )
     {
+        T2.s = B->s; /* save sign value in case outputs alias inputs */
         MBEDTLS_MPI_CHK( mbedtls_mpi_copy( Q, &Z ) );
-        Q->s = A->s * B->s;
+        Q->s = T1.s * T2.s;
     }
 
     if( R != NULL )
     {
         MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &X, k ) );
-        X.s = A->s;
+        X.s = T1.s;
         MBEDTLS_MPI_CHK( mbedtls_mpi_copy( R, &X ) );
 
         if( mbedtls_mpi_cmp_int( R, 0 ) == 0 )

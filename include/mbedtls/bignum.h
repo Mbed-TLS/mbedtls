@@ -758,10 +758,10 @@ int mbedtls_mpi_mul_int( mbedtls_mpi *X, const mbedtls_mpi *A,
  *
  * \param Q        The destination MPI for the quotient.
  *                 This may be \c NULL if the value of the
- *                 quotient is not needed. This must not alias A or B.
+ *                 quotient is not needed.
  * \param R        The destination MPI for the remainder value.
  *                 This may be \c NULL if the value of the
- *                 remainder is not needed. This must not alias A or B.
+ *                 remainder is not needed.
  * \param A        The dividend. This must point to an initialized MPI.
  * \param B        The divisor. This must point to an initialized MPI.
  *
@@ -779,10 +779,10 @@ int mbedtls_mpi_div_mpi( mbedtls_mpi *Q, mbedtls_mpi *R, const mbedtls_mpi *A,
  *
  * \param Q        The destination MPI for the quotient.
  *                 This may be \c NULL if the value of the
- *                 quotient is not needed.  This must not alias A.
+ *                 quotient is not needed.
  * \param R        The destination MPI for the remainder value.
  *                 This may be \c NULL if the value of the
- *                 remainder is not needed.  This must not alias A.
+ *                 remainder is not needed.
  * \param A        The dividend. This must point to an initialized MPi.
  * \param b        The divisor.
  *

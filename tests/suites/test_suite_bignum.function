@@ -1194,11 +1194,21 @@ void mbedtls_mpi_mod_int( char * input_X, char * input_Y,
     TEST_EQUAL( Y.n, 1 );
     TEST_EQUAL( A.n, 1 );
 
-    /* Convert the MPIs for Y and A to signed mbedtls_mpi_uints */
-    mbedtls_mpi_uint y = Y.p[0];
+    /* Convert the MPIs for Y and A to (signed) mbedtls_mpi_sints */
+
+    /* Since we're converting sign+magnitude to two's complement, we lose one
+     * bit of value in the output. This means there are some values we can't
+     * represent, e.g. (hex) -A0000000 on 32-bit systems. These are technically
+     * invalid test cases, so could be considered "won't happen", but they are
+     * easy to test for, and this helps guard against human error. */
+
+    mbedtls_mpi_sint y = (mbedtls_mpi_sint) Y.p[0];
+    TEST_ASSERT( y >= 0 );      /* If y < 0 here, we can't make negative y */
     if( Y.s == -1 )
         y = -y;
-    mbedtls_mpi_uint a = A.p[0];
+
+    mbedtls_mpi_sint a = (mbedtls_mpi_sint) A.p[0];
+    TEST_ASSERT( a >= 0 );      /* Same goes for a */
     if( A.s == -1 )
         a = -a;
 

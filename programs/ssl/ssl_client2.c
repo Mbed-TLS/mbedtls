@@ -64,6 +64,7 @@ int main( void )
 #define DFL_KEY_OPAQUE          0
 #define DFL_KEY_PWD             ""
 #define DFL_PSK                 ""
+#define DFL_EARLY_DATA          MBEDTLS_SSL_EARLY_DATA_DISABLED
 #define DFL_PSK_OPAQUE          0
 #define DFL_PSK_IDENTITY        "Client_identity"
 #define DFL_ECJPAKE_PW          NULL
@@ -430,6 +431,7 @@ int main( void )
     USAGE_REPRODUCIBLE                                      \
     USAGE_CURVES                                            \
     USAGE_SIG_ALGS                                          \
+    USAGE_EARLY_DATA                                        \
     USAGE_DHMLEN                                            \
     USAGE_KEY_OPAQUE_ALGS                                   \
     "\n"
@@ -541,7 +543,9 @@ struct options
                                  * after renegotiation                      */
     int reproducible;           /* make communication reproducible          */
     int skip_close_notify;      /* skip sending the close_notify alert      */
+#if defined(MBEDTLS_SSL_EARLY_DATA)
     int early_data;             /* support for early data                   */
+#endif
     int query_config_mode;      /* whether to read config                   */
     int use_srtp;               /* Support SRTP                             */
     int force_srtp_profile;     /* SRTP protection profile to use or all    */
@@ -941,6 +945,9 @@ int main( int argc, char *argv[] )
     opt.alpn_string         = DFL_ALPN_STRING;
     opt.curves              = DFL_CURVES;
     opt.sig_algs            = DFL_SIG_ALGS;
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    opt.early_data          = DFL_EARLY_DATA;
+#endif
     opt.transport           = DFL_TRANSPORT;
     opt.hs_to_min           = DFL_HS_TO_MIN;
     opt.hs_to_max           = DFL_HS_TO_MAX;

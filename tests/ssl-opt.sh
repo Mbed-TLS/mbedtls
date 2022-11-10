@@ -13047,14 +13047,15 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
-                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_EARLY_DATA
 run_test    "TLS 1.3 m->G: EarlyData: basic check, good" \
-            "$G_NEXT_SRV -d 10 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:+PSK --earlydata --disable-client-cert" \
-            "$P_CLI debug_level=4 early_data=1 reco_mode=1 reconnect=1" \
+            "$G_NEXT_SRV -d 10 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:+ECDHE-PSK:+PSK --earlydata --disable-client-cert" \
+            "$P_CLI debug_level=4 early_data=1 reco_mode=1 reconnect=1 reco_delay=2" \
             1 \
             -c "client hello, adding early_data extension" \
             -c "Reconnecting with saved session" \
-            -c "unsupported extension found: 42" \
+            -c "EncryptedExtensions: early_data(42) extension is unsupported" \
             -s "Parsing extension 'Early Data/42' (0 bytes)" \
             -s "Sending extension Early Data/42 (0 bytes)"
 

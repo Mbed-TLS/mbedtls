@@ -1,0 +1,6 @@
+Features
+   * cert_write: support for setting extended key usage attributes. A
+     corresponding new public API call has been added in the library,
+     mbedtls_x509write_crt_set_ext_key_usage().
+   * cert_write: support for writing certificate files in either PEM
+     or DER format.

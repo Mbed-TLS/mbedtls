@@ -6,6 +6,61 @@
  *  modules should use the high-level modular bignum interface (bignum_mod.h)
  *  or the legacy bignum interface (bignum.h).
  *
+ * This module is about processing non-negative integers with a fixed upper
+ * bound that's of the form 2^n-1 where n is a multiple of #biL.
+ * These can be thought of integers written in base 2^#biL with a fixed
+ * number of digits. Digits in this base are called *limbs*.
+ * Many operations treat these numbers as the principal representation of
+ * a number modulo 2^n or a smaller bound.
+ *
+ * The functions in this module obey the following conventions unless
+ * explicitly indicated otherwise:
+ *
+ * - **Overflow**: some functions indicate overflow from the range
+ *   [0, 2^n-1] by returning carry parameters, while others operate
+ *   modulo and so cannot overflow. This should be clear from the function
+ *   documentation.
+ * - **Bignum parameters**: Bignums are passed as pointers to an array of
+ *   limbs. A limb has the type #mbedtls_mpi_uint. Unless otherwise specified:
+ *     - Bignum parameters called \p A, \p B, ... are inputs, and are
+ *       not modified by the function.
+ *     - For operations modulo some number, the modulus is called \p N
+ *       and is input-only.
+ *     - Bignum parameters called \p X, \p Y are outputs or input-output.
+ *       The initial content of output-only parameters is ignored.
+ *     - Some functions use different names that reflect traditional
+ *       naming of operands of certain operations (e.g.
+ *       divisor/dividend/quotient/remainder).
+ *     - \p T is a temporary storage area. The initial content of such
+ *       parameter is ignored and the final content is unspecified.
+ * - **Bignum sizes**: bignum sizes are always expressed in limbs.
+ *   Most functions work on bignums of a given size and take a single
+ *   \p limbs parameter that applies to all parameters that are limb arrays.
+ *   All bignum sizes must be at least 1 and must be significantly less than
+ *   #SIZE_MAX. The behavior if a size is 0 is undefined. The behavior if the
+ *   total size of all parameters overflows #SIZE_MAX is undefined.
+ * - **Parameter ordering**: for bignum parameters, outputs come before inputs.
+ *   Temporaries come last.
+ * - **Aliasing**: in general, output bignums may be aliased to one or more
+ *   inputs. As an exception, parameters that are documented as a modulus value
+ *   may not be aliased to an output. Outputs may not be aliased to one another.
+ *   Temporaries may not be aliased to any other parameter.
+ * - **Overlap**: apart from aliasing of limb array pointers (where two
+ *   arguments are equal pointers), overlap is not supported and may result
+ *   in undefined behavior.
+ * - **Error handling**: This is a low-level module. Functions generally do not
+ *   try to protect against invalid arguments such as nonsensical sizes or
+ *   null pointers. Note that some functions that operate on bignums of
+ *   different sizes have constraints about their size, and violating those
+ *   constraints may lead to buffer overflows.
+ * - **Modular representatives**: functions that operate modulo \p N expect
+ *   all modular inputs to be in the range [0, \p N - 1] and guarantee outputs
+ *   in the range [0, \p N - 1]. If an input is out of range, outputs are
+ *   fully unspecified, though bignum values out of range should not cause
+ *   buffer overflows (beware that this is not extensively tested).
+ */
+
+/*
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -30,6 +85,20 @@
 #if defined(MBEDTLS_BIGNUM_C)
 #include "mbedtls/bignum.h"
 #endif
+
+#define ciL    ( sizeof(mbedtls_mpi_uint) )   /** chars in limb  */
+#define biL    ( ciL << 3 )                   /** bits  in limb  */
+#define biH    ( ciL << 2 )                   /** half limb size */
+
+/*
+ * Convert between bits/chars and number of limbs
+ * Divide first in order to avoid potential overflows
+ */
+#define BITS_TO_LIMBS(i)  ( (i) / biL + ( (i) % biL != 0 ) )
+#define CHARS_TO_LIMBS(i) ( (i) / ciL + ( (i) % ciL != 0 ) )
+/* Get a specific byte, without range checks. */
+#define GET_BYTE( X, i )                                \
+    ( ( (X)[(i) / ciL] >> ( ( (i) % ciL ) * 8 ) ) & 0xff )
 
 /** Count leading zero bits in a given integer.
  *
@@ -59,6 +128,58 @@ size_t mbedtls_mpi_core_bitlen( const mbedtls_mpi_uint *A, size_t A_limbs );
  */
 void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *A,
                                          size_t A_limbs );
+
+/**
+ * \brief   Perform a safe conditional copy of an MPI which doesn't reveal
+ *          whether assignment was done or not.
+ *
+ * \param[out] X        The address of the destination MPI.
+ *                      This must be initialized. Must have enough limbs to
+ *                      store the full value of \p A.
+ * \param[in]  A        The address of the source MPI. This must be initialized.
+ * \param      limbs    The number of limbs of \p A.
+ * \param      assign   The condition deciding whether to perform the
+ *                      assignment or not. Must be either 0 or 1:
+ *                      * \c 1: Perform the assignment `X = A`.
+ *                      * \c 0: Keep the original value of \p X.
+ *
+ * \note           This function avoids leaking any information about whether
+ *                 the assignment was done or not.
+ *
+ * \warning        If \p assign is neither 0 nor 1, the result of this function
+ *                 is indeterminate, and the resulting value in \p X might be
+ *                 neither its original value nor the value in \p A.
+ */
+void mbedtls_mpi_core_cond_assign( mbedtls_mpi_uint *X,
+                                   const mbedtls_mpi_uint *A,
+                                   size_t limbs,
+                                   unsigned char assign );
+
+/**
+ * \brief   Perform a safe conditional swap of two MPIs which doesn't reveal
+ *          whether the swap was done or not.
+ *
+ * \param[in,out] X         The address of the first MPI.
+ *                          This must be initialized.
+ * \param[in,out] Y         The address of the second MPI.
+ *                          This must be initialized.
+ * \param         limbs     The number of limbs of \p X and \p Y.
+ * \param         swap      The condition deciding whether to perform
+ *                          the swap or not. Must be either 0 or 1:
+ *                          * \c 1: Swap the values of \p X and \p Y.
+ *                          * \c 0: Keep the original values of \p X and \p Y.
+ *
+ * \note           This function avoids leaking any information about whether
+ *                 the swap was done or not.
+ *
+ * \warning        If \p swap is neither 0 nor 1, the result of this function
+ *                 is indeterminate, and both \p X and \p Y might end up with
+ *                 values different to either of the original ones.
+ */
+void mbedtls_mpi_core_cond_swap( mbedtls_mpi_uint *X,
+                                 mbedtls_mpi_uint *Y,
+                                 size_t limbs,
+                                 unsigned char swap );
 
 /** Import X from unsigned binary data, little-endian.
  *
@@ -141,18 +262,276 @@ int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *A,
                                unsigned char *output,
                                size_t output_length );
 
-#define ciL    ( sizeof(mbedtls_mpi_uint) )   /* chars in limb  */
-#define biL    ( ciL << 3 )                   /* bits  in limb  */
-#define biH    ( ciL << 2 )                   /* half limb size */
-
-/*
- * Convert between bits/chars and number of limbs
- * Divide first in order to avoid potential overflows
+/** \brief              Shift an MPI right in place by a number of bits.
+ *
+ *                      Shifting by more bits than there are bit positions
+ *                      in \p X is valid and results in setting \p X to 0.
+ *
+ *                      This function's execution time depends on the value
+ *                      of \p count (and of course \p limbs).
+ *
+ * \param[in,out] X     The number to shift.
+ * \param limbs         The number of limbs of \p X. This must be at least 1.
+ * \param count         The number of bits to shift by.
  */
-#define BITS_TO_LIMBS(i)  ( (i) / biL + ( (i) % biL != 0 ) )
-#define CHARS_TO_LIMBS(i) ( (i) / ciL + ( (i) % ciL != 0 ) )
-/* Get a specific byte, without range checks. */
-#define GET_BYTE( X, i )                                \
-    ( ( (X)[(i) / ciL] >> ( ( (i) % ciL ) * 8 ) ) & 0xff )
+void mbedtls_mpi_core_shift_r( mbedtls_mpi_uint *X, size_t limbs,
+                               size_t count );
+
+/**
+ * \brief Add two fixed-size large unsigned integers, returning the carry.
+ *
+ * Calculates `A + B` where `A` and `B` have the same size.
+ *
+ * This function operates modulo `2^(biL*limbs)` and returns the carry
+ * (1 if there was a wraparound, and 0 otherwise).
+ *
+ * \p X may be aliased to \p A or \p B.
+ *
+ * \param[out] X    The result of the addition.
+ * \param[in] A     Little-endian presentation of the left operand.
+ * \param[in] B     Little-endian presentation of the right operand.
+ * \param limbs     Number of limbs of \p X, \p A and \p B.
+ *
+ * \return          1 if `A + B >= 2^(biL*limbs)`, 0 otherwise.
+ */
+mbedtls_mpi_uint mbedtls_mpi_core_add( mbedtls_mpi_uint *X,
+                                       const mbedtls_mpi_uint *A,
+                                       const mbedtls_mpi_uint *B,
+                                       size_t limbs );
+
+/**
+ * \brief Conditional addition of two fixed-size large unsigned integers,
+ *        returning the carry.
+ *
+ * Functionally equivalent to
+ *
+ * ```
+ * if( cond )
+ *    X += A;
+ * return carry;
+ * ```
+ *
+ * This function operates modulo `2^(biL*limbs)`.
+ *
+ * \param[in,out] X  The pointer to the (little-endian) array
+ *                   representing the bignum to accumulate onto.
+ * \param[in] A      The pointer to the (little-endian) array
+ *                   representing the bignum to conditionally add
+ *                   to \p X. This may be aliased to \p X but may not
+ *                   overlap otherwise.
+ * \param limbs      Number of limbs of \p X and \p A.
+ * \param cond       Condition bit dictating whether addition should
+ *                   happen or not. This must be \c 0 or \c 1.
+ *
+ * \warning          If \p cond is neither 0 nor 1, the result of this function
+ *                   is unspecified, and the resulting value in \p X might be
+ *                   neither its original value nor \p X + \p A.
+ *
+ * \return           1 if `X + cond * A >= 2^(biL*limbs)`, 0 otherwise.
+ */
+mbedtls_mpi_uint mbedtls_mpi_core_add_if( mbedtls_mpi_uint *X,
+                                          const mbedtls_mpi_uint *A,
+                                          size_t limbs,
+                                          unsigned cond );
+
+/**
+ * \brief Subtract two fixed-size large unsigned integers, returning the borrow.
+ *
+ * Calculate `A - B` where \p A and \p B have the same size.
+ * This function operates modulo `2^(biL*limbs)` and returns the carry
+ * (1 if there was a wraparound, i.e. if `A < B`, and 0 otherwise).
+ *
+ * \p X may be aliased to \p A or \p B, or even both, but may not overlap
+ * either otherwise.
+ *
+ * \param[out] X    The result of the subtraction.
+ * \param[in] A     Little-endian presentation of left operand.
+ * \param[in] B     Little-endian presentation of right operand.
+ * \param limbs     Number of limbs of \p X, \p A and \p B.
+ *
+ * \return          1 if `A < B`.
+ *                  0 if `A >= B`.
+ */
+mbedtls_mpi_uint mbedtls_mpi_core_sub( mbedtls_mpi_uint *X,
+                                       const mbedtls_mpi_uint *A,
+                                       const mbedtls_mpi_uint *B,
+                                       size_t limbs );
+
+/**
+ * \brief Perform a fixed-size multiply accumulate operation: X += b * A
+ *
+ * \p X may be aliased to \p A (when \p X_limbs == \p A_limbs), but may not
+ * otherwise overlap.
+ *
+ * This function operates modulo `2^(biL*X_limbs)`.
+ *
+ * \param[in,out] X  The pointer to the (little-endian) array
+ *                   representing the bignum to accumulate onto.
+ * \param X_limbs    The number of limbs of \p X. This must be
+ *                   at least \p A_limbs.
+ * \param[in] A      The pointer to the (little-endian) array
+ *                   representing the bignum to multiply with.
+ *                   This may be aliased to \p X but may not overlap
+ *                   otherwise.
+ * \param A_limbs    The number of limbs of \p A.
+ * \param b          X scalar to multiply with.
+ *
+ * \return           The carry at the end of the operation.
+ */
+mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *X, size_t X_limbs,
+                                       const mbedtls_mpi_uint *A, size_t A_limbs,
+                                       mbedtls_mpi_uint b );
+
+/**
+ * \brief Calculate initialisation value for fast Montgomery modular
+ *        multiplication
+ *
+ * \param[in] N  Little-endian presentation of the modulus. This must have
+ *               at least one limb.
+ *
+ * \return       The initialisation value for fast Montgomery modular multiplication
+ */
+mbedtls_mpi_uint mbedtls_mpi_core_montmul_init( const mbedtls_mpi_uint *N );
+
+/**
+ * \brief Montgomery multiplication: X = A * B * R^-1 mod N (HAC 14.36)
+ *
+ * \p A and \p B must be in canonical form. That is, < \p N.
+ *
+ * \p X may be aliased to \p A or \p N, or even \p B (if \p AN_limbs ==
+ * \p B_limbs) but may not overlap any parameters otherwise.
+ *
+ * \p A and \p B may alias each other, if \p AN_limbs == \p B_limbs. They may
+ * not alias \p N (since they must be in canonical form, they cannot == \p N).
+ *
+ * \param[out]    X         The destination MPI, as a little-endian array of
+ *                          length \p AN_limbs.
+ *                          On successful completion, X contains the result of
+ *                          the multiplication `A * B * R^-1` mod N where
+ *                          `R = 2^(biL*AN_limbs)`.
+ * \param[in]     A         Little-endian presentation of first operand.
+ *                          Must have the same number of limbs as \p N.
+ * \param[in]     B         Little-endian presentation of second operand.
+ * \param[in]     B_limbs   The number of limbs in \p B.
+ *                          Must be <= \p AN_limbs.
+ * \param[in]     N         Little-endian presentation of the modulus.
+ *                          This must be odd, and have exactly the same number
+ *                          of limbs as \p A.
+ *                          It may alias \p X, but must not alias or otherwise
+ *                          overlap any of the other parameters.
+ * \param[in]     AN_limbs  The number of limbs in \p X, \p A and \p N.
+ * \param         mm        The Montgomery constant for \p N: -N^-1 mod 2^biL.
+ *                          This can be calculated by `mbedtls_mpi_core_montmul_init()`.
+ * \param[in,out] T         Temporary storage of size at least 2*AN_limbs+1 limbs.
+ *                          Its initial content is unused and
+ *                          its final content is indeterminate.
+ *                          It must not alias or otherwise overlap any of the
+ *                          other parameters.
+ */
+void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
+                               const mbedtls_mpi_uint *A,
+                               const mbedtls_mpi_uint *B, size_t B_limbs,
+                               const mbedtls_mpi_uint *N, size_t AN_limbs,
+                               mbedtls_mpi_uint mm, mbedtls_mpi_uint *T );
+
+/**
+ * \brief Calculate the square of the Montgomery constant. (Needed
+ *        for conversion and operations in Montgomery form.)
+ *
+ * \param[out] X  A pointer to the result of the calculation of
+ *                the square of the Montgomery constant:
+ *                2^{2*n*biL} mod N.
+ * \param[in]  N  Little-endian presentation of the modulus, which must be odd.
+ *
+ * \return        0 if successful.
+ * \return        #MBEDTLS_ERR_MPI_ALLOC_FAILED if there is not enough space
+ *                to store the value of Montgomery constant squared.
+ * \return        #MBEDTLS_ERR_MPI_DIVISION_BY_ZERO if \p N modulus is zero.
+ * \return        #MBEDTLS_ERR_MPI_NEGATIVE_VALUE if \p N modulus is negative.
+ */
+int mbedtls_mpi_core_get_mont_r2_unsafe( mbedtls_mpi *X,
+                                         const mbedtls_mpi *N );
+
+/**
+ * Copy an MPI from a table without leaking the index.
+ *
+ * \param dest              The destination buffer. This must point to a writable
+ *                          buffer of at least \p limbs limbs.
+ * \param table             The address of the table. This must point to a readable
+ *                          array of \p count elements of \p limbs limbs each.
+ * \param limbs             The number of limbs in each table entry.
+ * \param count             The number of entries in \p table.
+ * \param index             The (secret) table index to look up. This must be in the
+ *                          range `0 .. count-1`.
+ */
+void mbedtls_mpi_core_ct_uint_table_lookup( mbedtls_mpi_uint *dest,
+                                            const mbedtls_mpi_uint *table,
+                                            size_t limbs,
+                                            size_t count,
+                                            size_t index );
+
+/**
+ * \brief          Fill an integer with a number of random bytes.
+ *
+ * \param X        The destination MPI.
+ * \param X_limbs  The number of limbs of \p X.
+ * \param bytes    The number of random bytes to generate.
+ * \param f_rng    The RNG function to use. This must not be \c NULL.
+ * \param p_rng    The RNG parameter to be passed to \p f_rng. This may be
+ *                 \c NULL if \p f_rng doesn't need a context argument.
+ *
+ * \return         \c 0 if successful.
+ * \return         #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p X does not have
+ *                 enough room for \p bytes bytes.
+ * \return         A negative error code on RNG failure.
+ *
+ * \note           The bytes obtained from the RNG are interpreted
+ *                 as a big-endian representation of an MPI; this can
+ *                 be relevant in applications like deterministic ECDSA.
+ */
+int mbedtls_mpi_core_fill_random( mbedtls_mpi_uint *X, size_t X_limbs,
+                                  size_t bytes,
+                                  int (*f_rng)(void *, unsigned char *, size_t),
+                                  void *p_rng );
+
+/* BEGIN MERGE SLOT 1 */
+
+/* END MERGE SLOT 1 */
+
+/* BEGIN MERGE SLOT 2 */
+
+/* END MERGE SLOT 2 */
+
+/* BEGIN MERGE SLOT 3 */
+
+/* END MERGE SLOT 3 */
+
+/* BEGIN MERGE SLOT 4 */
+
+/* END MERGE SLOT 4 */
+
+/* BEGIN MERGE SLOT 5 */
+
+/* END MERGE SLOT 5 */
+
+/* BEGIN MERGE SLOT 6 */
+
+/* END MERGE SLOT 6 */
+
+/* BEGIN MERGE SLOT 7 */
+
+/* END MERGE SLOT 7 */
+
+/* BEGIN MERGE SLOT 8 */
+
+/* END MERGE SLOT 8 */
+
+/* BEGIN MERGE SLOT 9 */
+
+/* END MERGE SLOT 9 */
+
+/* BEGIN MERGE SLOT 10 */
+
+/* END MERGE SLOT 10 */
 
 #endif /* MBEDTLS_BIGNUM_CORE_H */

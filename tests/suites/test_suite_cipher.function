@@ -1,9 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/cipher.h"
-
-#if defined(MBEDTLS_AES_C)
 #include "mbedtls/aes.h"
-#endif
 
 #if defined(MBEDTLS_GCM_C)
 #include "mbedtls/gcm.h"
@@ -119,7 +116,7 @@ static int cipher_reset_key( mbedtls_cipher_context_t *ctx, int cipher_id,
     mbedtls_cipher_free( ctx );
     mbedtls_cipher_init( ctx );
 
-#if !defined(MBEDTLS_USE_PSA_CRYPO) || !defined(MBEDTLS_TEST_DEPRECATED)
+#if !defined(MBEDTLS_USE_PSA_CRYPTO) || !defined(MBEDTLS_TEST_DEPRECATED)
     (void) use_psa;
     (void) tag_len;
 #else
@@ -304,7 +301,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:NOT_DEFINED */
+/* BEGIN_CASE */
 void cipher_invalid_param_conditional( )
 {
     mbedtls_cipher_context_t valid_ctx;
@@ -313,8 +310,6 @@ void cipher_invalid_param_conditional( )
     unsigned char valid_buffer[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
     int valid_size = sizeof(valid_buffer);
     int valid_bitlen = valid_size * 8;
-    const mbedtls_cipher_info_t *valid_info = mbedtls_cipher_info_from_type(
-        *( mbedtls_cipher_list() ) );
 
     TEST_EQUAL(
         MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
@@ -1072,7 +1067,7 @@ void test_vec_crypt( int cipher_id, int operation, data_t *key,
     memset( output, 0x00, sizeof( output ) );
 
     /* Prepare context */
-#if !defined(MBEDTLS_USE_PSA_CRYPO) || !defined(MBEDTLS_TEST_DEPRECATED)
+#if !defined(MBEDTLS_USE_PSA_CRYPTO) || !defined(MBEDTLS_TEST_DEPRECATED)
     (void) use_psa;
 #else
     if( use_psa == 1 )
@@ -1100,9 +1095,9 @@ void test_vec_crypt( int cipher_id, int operation, data_t *key,
 
 exit:
     mbedtls_cipher_free( &ctx );
-#if defined(MBEDTLS_USE_PSA_CRYPO) && defined(MBEDTLS_TEST_DEPRECATED)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_TEST_DEPRECATED)
     PSA_DONE( );
-#endif /* MBEDTLS_USE_PSA_CRYPTO && defined(MBEDTLS_TEST_DEPRECATED */
+#endif /* MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_TEST_DEPRECATED */
 }
 /* END_CASE */
 

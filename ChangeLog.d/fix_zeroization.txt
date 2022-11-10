@@ -1,0 +1,3 @@
+Bugfix
+   * Fix possible crash in TLS PRF code, if a failure to allocate memory occurs.
+     Reported by Michael Madsen in #6516.

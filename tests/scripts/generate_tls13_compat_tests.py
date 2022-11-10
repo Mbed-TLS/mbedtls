@@ -357,7 +357,7 @@ class MbedTLSBase(TLSProgram):
 
     def pre_checks(self):
         ret = ['requires_config_enabled MBEDTLS_DEBUG_C',
-               'requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3']
+               'requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED']
 
         if self._compat_mode:
             ret += ['requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE']
@@ -398,7 +398,7 @@ class MbedTLSServ(MbedTLSBase):
                                 named_group=named_group,
                                 iana_value=NAMED_GROUP_IANA_VALUE[named_group])]
 
-        check_strings.append("Verifying peer X.509 certificate... ok")
+        check_strings.append("Certificate verification was skipped")
         return ['-s "{}"'.format(i) for i in check_strings]
 
     def pre_cmd(self):

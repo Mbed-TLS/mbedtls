@@ -22,7 +22,7 @@ import enum
 import re
 from typing import FrozenSet, Iterable, List, Optional, Tuple
 
-from mbedtls_dev.asymmetric_key_data import ASYMMETRIC_KEY_DATA
+from .asymmetric_key_data import ASYMMETRIC_KEY_DATA
 
 
 def short_expression(original: str, level: int = 0) -> str:
@@ -357,6 +357,7 @@ class Algorithm:
         'HKDF': AlgorithmCategory.KEY_DERIVATION,
         'TLS12_PRF': AlgorithmCategory.KEY_DERIVATION,
         'TLS12_PSK_TO_MS': AlgorithmCategory.KEY_DERIVATION,
+        'TLS12_ECJPAKE_TO_PMS': AlgorithmCategory.KEY_DERIVATION,
         'PBKDF': AlgorithmCategory.KEY_DERIVATION,
         'ECDH': AlgorithmCategory.KEY_AGREEMENT,
         'FFDH': AlgorithmCategory.KEY_AGREEMENT,

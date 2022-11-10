@@ -1,0 +1,5 @@
+Bugfix
+   * Fix ECDSA verification, where it was not always validating the
+     public key. This bug meant that it was possible to verify a
+     signature with an invalid public key, in some cases. Reported by
+     Guido Vranken using Cryptofuzz in #4420.

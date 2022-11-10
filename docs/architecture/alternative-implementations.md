@@ -38,7 +38,7 @@ The general principle of an alternative implementation is:
 * Create a header file `xxx_alt.h` that defines the context type(s) used by the module. For example, `mbedtls_aes_context` for AES.
 * Implement all the functions from the module, i.e. the functions declared in `include/mbedtls/xxx.h`.
 
-See https://tls.mbed.org/kb/development/hw_acc_guidelines for a more detailed guide.
+See https://mbed-tls.readthedocs.io/en/latest/kb/development/hw_acc_guidelines for a more detailed guide.
 
 ### Constraints on context types
 

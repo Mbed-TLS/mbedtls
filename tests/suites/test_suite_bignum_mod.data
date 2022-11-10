@@ -1,0 +1,66 @@
+Test mbedtls_mpi_mod_setup #1 (Both representations invalid)
+mpi_mod_setup:MBEDTLS_MPI_MOD_EXT_REP_INVALID:MBEDTLS_MPI_MOD_REP_INVALID:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Test mbedtls_mpi_mod_setup #2 (Internal representation invalid)
+mpi_mod_setup:MBEDTLS_MPI_MOD_EXT_REP_LE:MBEDTLS_MPI_MOD_REP_INVALID:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Test mbedtls_mpi_mod_setup #3 (Internal representation invalid)
+mpi_mod_setup:MBEDTLS_MPI_MOD_EXT_REP_BE:MBEDTLS_MPI_MOD_REP_INVALID:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Test mbedtls_mpi_mod_setup #4 (External representation invalid)
+mpi_mod_setup:MBEDTLS_MPI_MOD_EXT_REP_INVALID:MBEDTLS_MPI_MOD_REP_MONTGOMERY:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Test mbedtls_mpi_mod_setup #5 (External representation invalid)
+mpi_mod_setup:MBEDTLS_MPI_MOD_EXT_REP_INVALID:MBEDTLS_MPI_MOD_REP_OPT_RED:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Test mbedtls_mpi_mod_setup #6 (Both representations valid)
+mpi_mod_setup:MBEDTLS_MPI_MOD_EXT_REP_BE:MBEDTLS_MPI_MOD_REP_OPT_RED:0
+
+Test mbedtls_mpi_mod_setup #7 (Both representations valid)
+mpi_mod_setup:MBEDTLS_MPI_MOD_EXT_REP_BE:MBEDTLS_MPI_MOD_REP_MONTGOMERY:0
+
+Test mbedtls_mpi_mod_setup #8 (Both representations valid)
+mpi_mod_setup:MBEDTLS_MPI_MOD_EXT_REP_LE:MBEDTLS_MPI_MOD_REP_OPT_RED:0
+
+Test mbedtls_mpi_mod_setup #9 (Both representations valid)
+mpi_mod_setup:MBEDTLS_MPI_MOD_EXT_REP_LE:MBEDTLS_MPI_MOD_REP_MONTGOMERY:0
+
+# BEGIN MERGE SLOT 1
+
+# END MERGE SLOT 1
+
+# BEGIN MERGE SLOT 2
+
+# END MERGE SLOT 2
+
+# BEGIN MERGE SLOT 3
+
+# END MERGE SLOT 3
+
+# BEGIN MERGE SLOT 4
+
+# END MERGE SLOT 4
+
+# BEGIN MERGE SLOT 5
+
+# END MERGE SLOT 5
+
+# BEGIN MERGE SLOT 6
+
+# END MERGE SLOT 6
+
+# BEGIN MERGE SLOT 7
+
+# END MERGE SLOT 7
+
+# BEGIN MERGE SLOT 8
+
+# END MERGE SLOT 8
+
+# BEGIN MERGE SLOT 9
+
+# END MERGE SLOT 9
+
+# BEGIN MERGE SLOT 10
+
+# END MERGE SLOT 10

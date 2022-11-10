@@ -34,6 +34,9 @@ try:
 except ImportError:
     pass
 
+import scripts_path # pylint: disable=unused-import
+from mbedtls_dev import build_tree
+
 
 class FileIssueTracker:
     """Base class for file-wide issue tracking.
@@ -339,7 +342,7 @@ class IntegrityChecker:
         """Instantiate the sanity checker.
         Check files under the current directory.
         Write a report of issues to log_file."""
-        self.check_repo_path()
+        build_tree.check_repo_path()
         self.logger = None
         self.setup_logger(log_file)
         self.issues_to_check = [
@@ -353,11 +356,6 @@ class IntegrityChecker:
             TabIssueTracker(),
             MergeArtifactIssueTracker(),
         ]
-
-    @staticmethod
-    def check_repo_path():
-        if not all(os.path.isdir(d) for d in ["include", "library", "tests"]):
-            raise Exception("Must be run from Mbed TLS root")
 
     def setup_logger(self, log_file, level=logging.INFO):
         self.logger = logging.getLogger()

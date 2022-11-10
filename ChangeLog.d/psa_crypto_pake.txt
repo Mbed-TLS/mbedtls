@@ -1,0 +1,4 @@
+Features
+    * Expose the EC J-PAKE functionality through the Draft PSA PAKE Crypto API.
+      Only the ECC primitive with secp256r1 curve and SHA-256 hash algorithm
+      are supported in this implementation.

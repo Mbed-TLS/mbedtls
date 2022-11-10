@@ -84,17 +84,21 @@ static int is_accelerated_rsa( psa_algorithm_t alg )
  * also be built-in. */
 static int is_builtin_calling_md( psa_algorithm_t alg )
 {
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN)
-    if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) )
-        return( 1 );
-#endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS)
     if( PSA_ALG_IS_RSA_PSS( alg ) )
+#if defined(MBEDTLS_MD_C)
         return( 1 );
+#else
+        return( 0 );
+#endif
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP)
     if( PSA_ALG_IS_RSA_OAEP( alg ) )
+#if defined(MBEDTLS_MD_C)
         return( 1 );
+#else
+        return( 0 );
+#endif
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
     if( PSA_ALG_IS_DETERMINISTIC_ECDSA( alg ) )

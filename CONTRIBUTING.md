@@ -1,13 +1,20 @@
 Contributing
 ============
-We gratefully accept bug reports and contributions from the community. There are some requirements we need to fulfill in order to be able to integrate contributions:
+We gratefully accept bug reports and contributions from the community. All PRs are reviewed by the project team / community, and may need some modifications to
+be accepted.
 
- - As with any open source project, contributions will be reviewed by the project team and community and may need some modifications to be accepted.
- - The contribution should not break API or ABI, unless there is a real justification for that. If there is an API change, the contribution, if accepted, will be merged only when there will be a major release.
+Quick Checklist for PR contributors
+-----------------------------------
+More details on all of these points may be found in the sections below.
+
+- [Sign-off](#license-and-copyright): all commits must be signed off.
+- [Tests](#tests): please ensure the PR includes adequate tests.
+- [Changelog](#documentation): if needed, please provide a changelog entry.
+- [Backports](#long-term-support-branches): provide a backport if needed (it's fine to wait until the main PR is accepted).
 
 Coding Standards
 ----------------
-- We would ask that contributions conform to [our coding standards](https://tls.mbed.org/kb/development/mbedtls-coding-standards), and that contributions are fully tested before submission, as mentioned in the [Tests](#tests) and [Continuous Integration](#continuous-integration-tests) sections.
+- We would ask that contributions conform to [our coding standards](https://mbed-tls.readthedocs.io/en/latest/kb/development/mbedtls-coding-standards/), and that contributions are fully tested before submission, as mentioned in the [Tests](#tests) and [Continuous Integration](#continuous-integration-tests) sections.
 - The code should be written in a clean and readable style.
 - The code should be written in a portable generic way, that will benefit the whole community, and not only your own needs.
 - The code should be secure, and will be reviewed from a security point of view as well.
@@ -19,15 +26,13 @@ Making a Contribution
 1. Write a test which shows that the bug was fixed or that the feature works as expected.
 1. Send a pull request (PR) and work with us until it gets merged and published. Contributions may need some modifications, so a few rounds of review and fixing may be necessary. We will include your name in the ChangeLog :)
 1. For quick merging, the contribution should be short, and concentrated on a single feature or topic. The larger the contribution is, the longer it would take to review it and merge it.
-1. All new files should include the [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html) standard license header where possible.
-1. Ensure that each commit has at least one `Signed-off-by:` line from the committer. If anyone else contributes to the commit, they should also add their own `Signed-off-by:` line. By adding this line, contributor(s) certify that the contribution is made under the terms of the [Developer Certificate of Origin](dco.txt). The contribution licensing is described in the [License section of the README](README.md#License).
 
 Backwards Compatibility
 -----------------------
 
 The project aims to minimise the impact on users upgrading to newer versions of the library and it should not be necessary for a user to make any changes to their own code to work with a newer version of the library. Unless the user has made an active decision to use newer features, a newer generation of the library or a change has been necessary due to a security issue or other significant software defect, no modifications to their own code should be necessary. To achieve this, API compatibility is maintained between different versions of Mbed TLS on the main development branch and in LTS (Long Term Support) branches, as described in [BRANCHES.md](BRANCHES.md).
 
-To minimise such disruption to users, where a change to the interface is required, all changes to the ABI or API, even on the main development branch where new features are added, need to be justifiable by either being a significant enhancement, new feature or bug fix which is best resolved by an interface change.
+To minimise such disruption to users, where a change to the interface is required, all changes to the ABI or API, even on the main development branch where new features are added, need to be justifiable by either being a significant enhancement, new feature or bug fix which is best resolved by an interface change. If there is an API change, the contribution, if accepted, will be merged only when there will be a major release.
 
 Where changes to an existing interface are necessary, functions in the public interface which need to be changed, are marked as 'deprecated'. This is done with the preprocessor symbols `MBEDTLS_DEPRECATED_WARNING` and `MBEDTLS_DEPRECATED_REMOVED`. Then, a new function with a new name but similar if not identical behaviour to the original function containing the necessary changes should be created alongside the existing deprecated function.
 
@@ -56,9 +61,9 @@ Tests
 -----
 As mentioned, tests that show the correctness of the feature or bug fix should be added to the pull request, if no such tests exist.
 
-Mbed TLS includes a comprehensive set of test suites in the `tests/` directory that are dynamically generated to produce the actual test source files (e.g. `test_suite_mpi.c`). These files are generated from a `function file` (e.g. `suites/test_suite_mpi.function`) and a `data file` (e.g. `suites/test_suite_mpi.data`). The function file contains the test functions. The data file contains the test cases, specified as parameters that will be passed to the test function.
+Mbed TLS includes a comprehensive set of test suites in the `tests/` directory that are dynamically generated to produce the actual test source files (e.g. `test_suite_rsa.c`). These files are generated from a `function file` (e.g. `suites/test_suite_rsa.function`) and a `data file` (e.g. `suites/test_suite_rsa.data`). The function file contains the test functions. The data file contains the test cases, specified as parameters that will be passed to the test function.
 
-[A Knowledge Base article describing how to add additional tests is available on the Mbed TLS website](https://tls.mbed.org/kb/development/test_suites).
+[A Knowledge Base article describing how to add additional tests is available on the Mbed TLS website](https://mbed-tls.readthedocs.io/en/latest/kb/development/test_suites/).
 
 A test script `tests/scripts/basic-build-test.sh` is available to show test coverage of the library. New code contributions should provide a similar level of code coverage to that which already exists for the library.
 
@@ -77,5 +82,14 @@ Mbed TLS is well documented, but if you think documentation is needed, speak out
 1. All interfaces should be documented through Doxygen. New APIs should introduce Doxygen documentation.
 1. Complex parts in the code should include comments.
 1. If needed, a Readme file is advised.
-1. If a [Knowledge Base (KB)](https://tls.mbed.org/kb) article should be added, write this as a comment in the PR description.
+1. If a [Knowledge Base (KB)](https://mbed-tls.readthedocs.io/en/latest/kb/) article should be added, write this as a comment in the PR description.
 1. A [ChangeLog](https://github.com/Mbed-TLS/mbedtls/blob/development/ChangeLog.d/00README.md) entry should be added for this contribution.
+
+License and Copyright
+---------------------
+
+All new files should include the [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html) standard license header where possible. For licensing details, please see the [License section of the README](README.md#License).
+
+The copyright on contributions is retained by the original authors of the code. Where possible for new files, this should be noted in a comment at the top of the file in the form: "Copyright The Mbed TLS Contributors".
+
+When contributing code to us, the committer and all authors are required to make the submission under the terms of the [Developer Certificate of Origin](dco.txt), confirming that the code submitted can (legally) become part of the project, and be subject to the same Apache 2.0 license. This is done by including the standard Git `Signed-off-by:` line in every commit message. If more than one person contributed to the commit, they should also add their own `Signed-off-by:` line.

@@ -12,20 +12,7 @@
 #if defined (MBEDTLS_ERROR_C)
 #include "mbedtls/error.h"
 #endif
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
-#include <stdio.h>
-#define mbedtls_fprintf    fprintf
-#define mbedtls_snprintf   snprintf
-#define mbedtls_calloc     calloc
-#define mbedtls_free       free
-#define mbedtls_exit       exit
-#define mbedtls_time       time
-#define mbedtls_time_t     time_t
-#define MBEDTLS_EXIT_SUCCESS EXIT_SUCCESS
-#define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
-#endif
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
 #include "mbedtls/memory_buffer_alloc.h"
@@ -51,13 +38,6 @@ typedef UINT32 uint32_t;
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 #include <unistd.h>
 #endif
-
-/* Type for Hex parameters */
-typedef struct data_tag
-{
-    uint8_t *   x;
-    uint32_t    len;
-} data_t;
 
 /*----------------------------------------------------------------------------*/
 /* Status and error constants */

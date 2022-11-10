@@ -983,7 +983,7 @@ int mbedtls_mpi_add_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     MPI_VALIDATE_RET( B != NULL );
 
     s = A->s;
-    if( A->s * B->s < 0 )
+    if( A->s != B->s )
     {
         if( mbedtls_mpi_cmp_abs( A, B ) >= 0 )
         {
@@ -1018,7 +1018,7 @@ int mbedtls_mpi_sub_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     MPI_VALIDATE_RET( B != NULL );
 
     s = A->s;
-    if( A->s * B->s > 0 )
+    if( A->s == B->s )
     {
         if( mbedtls_mpi_cmp_abs( A, B ) >= 0 )
         {
@@ -1099,14 +1099,10 @@ int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     for( i = A->n; i > 0; i-- )
         if( A->p[i - 1] != 0 )
             break;
-    if( i == 0 )
-        result_is_zero = 1;
 
     for( j = B->n; j > 0; j-- )
         if( B->p[j - 1] != 0 )
             break;
-    if( j == 0 )
-        result_is_zero = 1;
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, i + j ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( X, 0 ) );
@@ -1124,10 +1120,8 @@ int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
      * but does not eliminate side channels leaking the zero-ness. We do
      * need to take care to set the sign bit properly since the library does
      * not fully support an MPI object with a value of 0 and s == -1. */
-    if( result_is_zero )
-        X->s = 1;
-    else
-        X->s = A->s * B->s;
+    result_is_zero = ( i == 0 ) | ( j == 0 );
+    X->s = ( ( A->s != B->s ) & !result_is_zero ) ? -1 : 1;
 
 cleanup:
 
@@ -1375,7 +1369,7 @@ int mbedtls_mpi_div_mpi( mbedtls_mpi *Q, mbedtls_mpi *R, const mbedtls_mpi *A,
     if( Q != NULL )
     {
         MBEDTLS_MPI_CHK( mbedtls_mpi_copy( Q, &Z ) );
-        Q->s = A->s * B->s;
+        Q->s = ( A->s ^ B->s ) | 1; /* -1 or 1 result from inputs of -1 or 1 */
     }
 
     if( R != NULL )

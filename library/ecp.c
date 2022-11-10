@@ -2051,7 +2051,7 @@ static int ecp_mul_comb_core( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R
 
         int have_rng = 1;
 #if defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
-        if( f_rng == 0 )
+        if( f_rng == NULL )
             have_rng = 0;
 #endif
         if( have_rng )
@@ -2190,7 +2190,7 @@ final_norm:
      */
     int have_rng = 1;
 #if defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
-    if( f_rng == 0 )
+    if( f_rng == NULL )
         have_rng = 0;
 #endif
     if( have_rng )

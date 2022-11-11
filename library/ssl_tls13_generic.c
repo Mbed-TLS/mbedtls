@@ -398,6 +398,7 @@ int mbedtls_ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
     size_t certificate_list_len = 0;
     const unsigned char *p = buf;
     const unsigned char *certificate_list_end;
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 4 );
     certificate_request_context_len = p[0];
@@ -447,6 +448,7 @@ int mbedtls_ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
     while( p < certificate_list_end )
     {
         size_t cert_data_len, extensions_len;
+        const unsigned char *extensions_end;
 
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, certificate_list_end, 3 );
         cert_data_len = MBEDTLS_GET_UINT24_BE( p, 0 );
@@ -504,7 +506,48 @@ int mbedtls_ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
         extensions_len = MBEDTLS_GET_UINT16_BE( p, 0 );
         p += 2;
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, certificate_list_end, extensions_len );
-        p += extensions_len;
+
+        extensions_end = p + extensions_len;
+        handshake->received_extensions = MBEDTLS_SSL_EXT_MASK_NONE;
+
+        while( p < extensions_end )
+        {
+            unsigned int extension_type;
+            size_t extension_data_len;
+
+            /*
+            * struct {
+            *     ExtensionType extension_type; (2 bytes)
+            *     opaque extension_data<0..2^16-1>;
+            * } Extension;
+            */
+            MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, 4 );
+            extension_type = MBEDTLS_GET_UINT16_BE( p, 0 );
+            extension_data_len = MBEDTLS_GET_UINT16_BE( p, 2 );
+            p += 4;
+
+            MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, extension_data_len );
+
+            ret = mbedtls_ssl_tls13_check_received_extension(
+                      ssl, MBEDTLS_SSL_HS_CERTIFICATE, extension_type,
+                      MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_CT );
+            if( ret != 0 )
+                return( ret );
+
+            switch( extension_type )
+            {
+                default:
+                    MBEDTLS_SSL_PRINT_EXT(
+                        3, MBEDTLS_SSL_HS_CERTIFICATE,
+                        extension_type, "( ignored )" );
+                    break;
+            }
+
+            p += extension_data_len;
+        }
+
+        MBEDTLS_SSL_PRINT_EXTS( 3, MBEDTLS_SSL_HS_CERTIFICATE,
+                                handshake->received_extensions );
     }
 
 exit:
@@ -512,7 +555,7 @@ exit:
     if( p != end )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad Certificate message" ) );
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR, \
+        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
                                       MBEDTLS_ERR_SSL_DECODE_ERROR );
         return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
@@ -842,6 +885,9 @@ static int ssl_tls13_write_certificate_body( mbedtls_ssl_context *ssl,
                            p_certificate_list_len, 0 );
 
     *out_len = p - buf;
+
+    MBEDTLS_SSL_PRINT_EXTS(
+        3, MBEDTLS_SSL_HS_CERTIFICATE, ssl->handshake->sent_extensions );
 
     return( 0 );
 }
@@ -1485,4 +1531,61 @@ int mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
 }
 #endif /* MBEDTLS_ECDH_C */
 
+/* RFC 8446 section 4.2
+ *
+ * If an implementation receives an extension which it recognizes and which is
+ * not specified for the message in which it appears, it MUST abort the handshake
+ * with an "illegal_parameter" alert.
+ *
+ */
+int mbedtls_ssl_tls13_check_received_extension(
+        mbedtls_ssl_context *ssl,
+        int hs_msg_type,
+        unsigned int received_extension_type,
+        uint32_t hs_msg_allowed_extensions_mask )
+{
+    uint32_t extension_mask = mbedtls_ssl_get_extension_mask(
+                                  received_extension_type );
+
+    MBEDTLS_SSL_PRINT_EXT(
+        3, hs_msg_type, received_extension_type, "received" );
+
+    if( ( extension_mask & hs_msg_allowed_extensions_mask ) == 0 )
+    {
+        MBEDTLS_SSL_PRINT_EXT(
+            3, hs_msg_type, received_extension_type, "is illegal" );
+        MBEDTLS_SSL_PEND_FATAL_ALERT(
+            MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+            MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+    }
+
+    ssl->handshake->received_extensions |= extension_mask;
+    /*
+     * If it is a message containing extension responses, check that we
+     * previously sent the extension.
+     */
+    switch( hs_msg_type )
+    {
+        case MBEDTLS_SSL_HS_SERVER_HELLO:
+        case MBEDTLS_SSL_TLS1_3_HS_HELLO_RETRY_REQUEST:
+        case MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS:
+        case MBEDTLS_SSL_HS_CERTIFICATE:
+            /* Check if the received extension is sent by peer message.*/
+            if( ( ssl->handshake->sent_extensions & extension_mask ) != 0 )
+                return( 0 );
+            break;
+        default:
+            return( 0 );
+    }
+
+    MBEDTLS_SSL_PRINT_EXT(
+            3, hs_msg_type, received_extension_type, "is unsupported" );
+    MBEDTLS_SSL_PEND_FATAL_ALERT(
+        MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT,
+        MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION );
+    return( MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION );
+}
+
 #endif /* MBEDTLS_SSL_TLS_C && MBEDTLS_SSL_PROTO_TLS1_3 */
+

@@ -301,7 +301,7 @@ int mbedtls_test_read_mpi_core( mbedtls_mpi_uint **pX, size_t *plimbs,
  * - This function guarantees that if \p s begins with '-' then the sign
  *   bit of the result will be negative, even if the value is 0.
  *   When this function encounters such a "negative 0", it
- *   increments #mbedtls_test_read_mpi.
+ *   increments #mbedtls_test_case_uses_negative_0.
  * - The size of the result is exactly the minimum number of limbs needed
  *   to fit the digits in the input. In particular, this function constructs
  *   a bignum with 0 limbs for an empty string, and a bignum with leading 0

@@ -682,12 +682,12 @@ exit:
     @patch("generate_test_code.gen_dependencies")
     @patch("generate_test_code.gen_function_wrapper")
     @patch("generate_test_code.parse_function_arguments")
-    def test_functio_name_on_newline(self, parse_function_arguments_mock,
-                                     gen_function_wrapper_mock,
-                                     gen_dependencies_mock,
-                                     gen_dispatch_mock):
+    def test_function_name_on_newline(self, parse_function_arguments_mock,
+                                      gen_function_wrapper_mock,
+                                      gen_dependencies_mock,
+                                      gen_dispatch_mock):
         """
-        Test when exit label is present.
+        Test with line break before the function name.
         :return:
         """
         parse_function_arguments_mock.return_value = ([], '', [])

@@ -1085,16 +1085,11 @@ int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t i, j;
-    mbedtls_mpi TA, TB;
+    mbedtls_mpi *R = X, T;
     int result_is_zero = 0;
     MPI_VALIDATE_RET( X != NULL );
     MPI_VALIDATE_RET( A != NULL );
     MPI_VALIDATE_RET( B != NULL );
-
-    mbedtls_mpi_init( &TA ); mbedtls_mpi_init( &TB );
-
-    if( X == A ) { MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &TA, A ) ); A = &TA; }
-    if( X == B ) { MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &TB, B ) ); B = &TB; }
 
     for( i = A->n; i > 0; i-- )
         if( A->p[i - 1] != 0 )
@@ -1108,6 +1103,9 @@ int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     if( j == 0 )
         result_is_zero = 1;
 
+    mbedtls_mpi_init( &T );
+    if( X == A || X == B )
+        X = &T;
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, i + j ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( X, 0 ) );
 
@@ -1129,9 +1127,12 @@ int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     else
         X->s = A->s * B->s;
 
+    if( R != X )
+        MBEDTLS_MPI_CHK( mbedtls_mpi_copy( R, X ) );
+
 cleanup:
 
-    mbedtls_mpi_free( &TB ); mbedtls_mpi_free( &TA );
+    mbedtls_mpi_free( &T );
 
     return( ret );
 }

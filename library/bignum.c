@@ -2054,11 +2054,20 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &T, j * 2 ) );
 
     /*
-     * Append the output variable to the end of the  table for constant time
-     * lookup. From this point on we need to use the table entry in each
-     * calculation, this makes it safe to use simple assignment.
+     * If we call mpi_montmul() without doing a table lookup first, we leak
+     * through timing side channels the fact that a squaring is happening. In
+     * some strong attack settings this can be enough to defeat blinding.
+     *
+     * To prevent this leak, we append the output variable to the end of the
+     * table. This allows as to always do a constant time lookup whenever we
+     * call mpi_montmul().
      */
     const size_t x_index = w_count - 1;
+    /*
+     * To prevent the leak, we need to use the table entry in each calculation
+     * from this point on. This makes it safe to load X into the table by a
+     * simple assignment.
+     */
     W[x_index] = *X;
 
     /*

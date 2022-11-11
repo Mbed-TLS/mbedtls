@@ -1593,6 +1593,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
     size_t bufsize, nbits;
     mbedtls_mpi_uint ei, mm, state;
     mbedtls_mpi RR, T, W[ 1 << MBEDTLS_MPI_WINDOW_SIZE ], WW, Apos;
+    mbedtls_mpi *R = X;
     int neg;
 
     MPI_VALIDATE_RET( X != NULL );
@@ -1628,6 +1629,9 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
     if( wsize > MBEDTLS_MPI_WINDOW_SIZE )
         wsize = MBEDTLS_MPI_WINDOW_SIZE;
 #endif
+
+    if( X == E || X == N )
+        X = &Apos; /* dual-purpose stack var Apos */
 
     j = N->n + 1;
     /* All W[i] and X must have at least N->n limbs for the mpi_montmul()
@@ -1802,6 +1806,9 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
         X->s = -1;
         MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( X, N, X ) );
     }
+
+    if( R != X )
+        MBEDTLS_MPI_CHK( mbedtls_mpi_copy( R, X ) );
 
 cleanup:
 

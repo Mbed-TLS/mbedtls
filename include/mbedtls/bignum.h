@@ -837,7 +837,6 @@ int mbedtls_mpi_mod_int( mbedtls_mpi_uint *r, const mbedtls_mpi *A,
  * \brief          Perform a sliding-window exponentiation: X = A^E mod N
  *
  * \param X        The destination MPI. This must point to an initialized MPI.
- *                 This must not alias E or N.
  * \param A        The base of the exponentiation.
  *                 This must point to an initialized MPI.
  * \param E        The exponent MPI. This must point to an initialized MPI.

@@ -519,6 +519,41 @@ def generate_function_code(name, code, local_vars, args_dispatch,
         gen_dependencies(dependencies)
     return preprocessor_check_start + code + preprocessor_check_end
 
+COMMENT_START_REGEX = re.compile(r'/[*/]')
+
+def skip_comments(line, stream):
+    """Remove comments in line.
+
+    If the line contains an unfinished comment, read more lines from stream
+    until the line that contains the comment.
+
+    :return: The original line with inner comments replaced by spaces.
+             Trailing comments and whitespace may be removed completely.
+    """
+    pos = 0
+    while True:
+        opening = COMMENT_START_REGEX.search(line, pos)
+        if not opening:
+            break
+        if line[opening.start(0) + 1] == '/': # //...
+            continuation = line
+            while continuation.endswith('\\\n'):
+                # This errors out if the file ends with an unfinished line
+                # comment. That's acceptable to not complicat the code further.
+                continuation = next(stream)
+            return line[:opening.start(0)].rstrip() + '\n'
+        # Parsing /*...*/, looking for the end
+        closing = line.find('*/', opening.end(0))
+        while closing == -1:
+            # This errors out if the file ends with an unfinished block
+            # comment. That's acceptable to not complicat the code further.
+            line += next(stream)
+            closing = line.find('*/', opening.end(0))
+        pos = closing + 2
+        line = (line[:opening.start(0)] +
+                ' ' * (pos - opening.start(0)) +
+                line[pos:])
+    return re.sub(r' +(\n|\Z)', r'\1', line)
 
 def parse_function_code(funcs_f, dependencies, suite_dependencies):
     """
@@ -538,6 +573,7 @@ def parse_function_code(funcs_f, dependencies, suite_dependencies):
         # across multiple lines. Here we try to find the start of
         # arguments list, then remove '\n's and apply the regex to
         # detect function start.
+        line = skip_comments(line, funcs_f)
         up_to_arg_list_start = code + line[:line.find('(') + 1]
         match = re.match(TEST_FUNCTION_VALIDATION_REGEX,
                          up_to_arg_list_start.replace('\n', ' '), re.I)
@@ -546,7 +582,7 @@ def parse_function_code(funcs_f, dependencies, suite_dependencies):
             name = match.group('func_name')
             if not re.match(FUNCTION_ARG_LIST_END_REGEX, line):
                 for lin in funcs_f:
-                    line += lin
+                    line += skip_comments(lin, funcs_f)
                     if re.search(FUNCTION_ARG_LIST_END_REGEX, line):
                         break
             args, local_vars, args_dispatch = parse_function_arguments(

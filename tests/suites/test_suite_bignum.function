@@ -853,6 +853,52 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mpi_mul_mpi_aliasing( int result )
+{
+    mbedtls_mpi X, Y, A;
+    mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y ); mbedtls_mpi_init( &A );
+    (void)result;
+
+    TEST_ASSERT( mbedtls_mpi_lset( &X, 2 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &A, 4 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_mul_mpi( &X, &X, &X ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &A ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &X, -2 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &A, 4 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_mul_mpi( &X, &X, &X ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &A ) == 0 );
+
+    struct { mbedtls_mpi_sint x; mbedtls_mpi_sint y; mbedtls_mpi_sint a; }
+      tests[] =
+      {
+        {  1,  0,  0 },
+        { -1,  0,  0 },
+        {  2,  3,  6 },
+        { -2, -3,  6 },
+        { -2,  3, -6 },
+        {  2, -3, -6 },
+      };
+
+    for( size_t i = 0; i < sizeof(tests)/sizeof(*tests); ++i )
+    {
+        TEST_ASSERT( mbedtls_mpi_lset( &X, tests[i].x ) == 0 );
+        TEST_ASSERT( mbedtls_mpi_lset( &Y, tests[i].y ) == 0 );
+        TEST_ASSERT( mbedtls_mpi_lset( &A, tests[i].a ) == 0 );
+        TEST_ASSERT( mbedtls_mpi_mul_mpi( &X, &X, &Y ) == 0 );
+        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &A ) == 0 );
+        TEST_ASSERT( mbedtls_mpi_lset( &X, tests[i].x ) == 0 );
+        TEST_ASSERT( mbedtls_mpi_lset( &Y, tests[i].y ) == 0 );
+        TEST_ASSERT( mbedtls_mpi_lset( &A, tests[i].a ) == 0 );
+        TEST_ASSERT( mbedtls_mpi_mul_mpi( &X, &Y, &X ) == 0 );
+        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &A ) == 0 );
+    }
+
+exit:
+    mbedtls_mpi_free( &X ); mbedtls_mpi_free( &Y ); mbedtls_mpi_free( &A );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mpi_mul_int( char * input_X, int input_Y,
                   char * input_A, char * result_comparison )
 {

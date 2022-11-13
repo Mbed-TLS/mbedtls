@@ -1156,6 +1156,9 @@ mpi_div_mpi:"3e8":"7":"8e":"6":0
 Test mbedtls_mpi_div_mpi #4
 mpi_div_mpi:"309":"7":"6f":"0":0
 
+Test mbedtls_mpi_div_mpi output argument aliasing inputs
+mpi_div_mpi_aliasing:0
+
 Base test mbedtls_mpi_div_int #1
 mpi_div_int:"3e8":13:"4c":"c":0
 

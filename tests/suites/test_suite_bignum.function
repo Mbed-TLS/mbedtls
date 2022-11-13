@@ -906,6 +906,76 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mpi_div_mpi_aliasing( int result )
+{
+    mbedtls_mpi Q, R, A, B, X;
+    mbedtls_mpi_init( &Q ); mbedtls_mpi_init( &R ); mbedtls_mpi_init( &A ); mbedtls_mpi_init( &B );
+    mbedtls_mpi_init( &X );
+    (void)result;
+
+    TEST_ASSERT( mbedtls_mpi_lset( &R, 2 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_div_mpi( NULL, &R, &R, &R ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &X, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R, &X ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_lset( &Q, 2 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_div_mpi( &Q, NULL, &Q, &Q ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &X, 1 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &Q, &X ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_lset( &R, 2 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_div_mpi( &Q, &R, &R, &R ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &X, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R, &X ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &X, 1 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &Q, &X ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_lset( &Q, 2 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_div_mpi( &Q, &R, &Q, &Q ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &X, 1 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &Q, &X ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &X, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R, &X ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_lset( &Q, 6 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &R, 3 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_div_mpi( &Q, &R, &Q, &R ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &X, 2 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &Q, &X ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &X, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R, &X ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_lset( &R, 6 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &Q, 3 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_div_mpi( &Q, &R, &R, &Q ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &X, 2 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &Q, &X ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &X, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R, &X ) == 0 );
+
+    /* test specific implementation internals */
+    TEST_ASSERT( mbedtls_mpi_lset( &Q, 1 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &B, 2 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_div_mpi( &Q, &R, &Q, &B ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &X, 1 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R, &X ) == 0 );
+
+    /* test specific implementation internals */
+    TEST_ASSERT( mbedtls_mpi_lset( &Q, 5 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &B, -2 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_div_mpi( &Q, &R, &Q, &B ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &X, -2 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &Q, &X ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &X, 1 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R, &X ) == 0 );
+
+exit:
+    mbedtls_mpi_free( &Q ); mbedtls_mpi_free( &R ); mbedtls_mpi_free( &A ); mbedtls_mpi_free( &B );
+    mbedtls_mpi_free( &X );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mpi_div_int( char * input_X, int input_Y,
                   char * input_A, char * input_B,
                   int div_result )

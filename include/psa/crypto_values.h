@@ -69,12 +69,12 @@
 #define PSA_ERROR_GENERIC_ERROR         ((psa_status_t)-132)
 
 /** The requested operation or a parameter is not supported
- * by this implementation.
- *
- * Implementations should return this error code when an enumeration
- * parameter such as a key type, algorithm, etc. is not recognized.
- * If a combination of parameters is recognized and identified as
- * not valid, return #PSA_ERROR_INVALID_ARGUMENT instead. */
+* by this implementation.
+*
+* Implementations should return this error code when an enumeration
+* parameter such as a key type, algorithm, etc. is not recognized.
+* If a combination of parameters is recognized and identified as
+* not valid, return #PSA_ERROR_INVALID_ARGUMENT instead. */
 #define PSA_ERROR_NOT_SUPPORTED         ((psa_status_t)-134)
 
 /** The requested action is denied by a policy.
@@ -576,7 +576,7 @@
 
 /** Extract the curve from an elliptic curve key type. */
 #define PSA_KEY_TYPE_ECC_GET_FAMILY(type)                        \
-    ((psa_ecc_family_t) (PSA_KEY_TYPE_IS_ECC(type) ?             \
+    ((psa_ecc_family_t)(PSA_KEY_TYPE_IS_ECC(type) ?             \
                         ((type) & PSA_KEY_TYPE_ECC_CURVE_MASK) : \
                         0))
 
@@ -591,7 +591,7 @@
  * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
  * https://www.secg.org/sec2-v2.pdf
  */
-#define PSA_ECC_FAMILY_SECP_K1           ((psa_ecc_family_t) 0x17)
+#define PSA_ECC_FAMILY_SECP_K1           ((psa_ecc_family_t)0x17)
 
 /** SEC random curves over prime fields.
  *
@@ -601,9 +601,9 @@
  * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
  * https://www.secg.org/sec2-v2.pdf
  */
-#define PSA_ECC_FAMILY_SECP_R1           ((psa_ecc_family_t) 0x12)
+#define PSA_ECC_FAMILY_SECP_R1           ((psa_ecc_family_t)0x12)
 /* SECP160R2 (SEC2 v1, obsolete) */
-#define PSA_ECC_FAMILY_SECP_R2           ((psa_ecc_family_t) 0x1b)
+#define PSA_ECC_FAMILY_SECP_R2           ((psa_ecc_family_t)0x1b)
 
 /** SEC Koblitz curves over binary fields.
  *
@@ -613,7 +613,7 @@
  * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
  * https://www.secg.org/sec2-v2.pdf
  */
-#define PSA_ECC_FAMILY_SECT_K1           ((psa_ecc_family_t) 0x27)
+#define PSA_ECC_FAMILY_SECT_K1           ((psa_ecc_family_t)0x27)
 
 /** SEC random curves over binary fields.
  *
@@ -623,7 +623,7 @@
  * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
  * https://www.secg.org/sec2-v2.pdf
  */
-#define PSA_ECC_FAMILY_SECT_R1           ((psa_ecc_family_t) 0x22)
+#define PSA_ECC_FAMILY_SECT_R1           ((psa_ecc_family_t)0x22)
 
 /** SEC additional random curves over binary fields.
  *
@@ -633,7 +633,7 @@
  * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
  * https://www.secg.org/sec2-v2.pdf
  */
-#define PSA_ECC_FAMILY_SECT_R2           ((psa_ecc_family_t) 0x2b)
+#define PSA_ECC_FAMILY_SECT_R2           ((psa_ecc_family_t)0x2b)
 
 /** Brainpool P random curves.
  *
@@ -642,7 +642,7 @@
  * brainpoolP320r1, brainpoolP384r1, brainpoolP512r1.
  * It is defined in RFC 5639.
  */
-#define PSA_ECC_FAMILY_BRAINPOOL_P_R1    ((psa_ecc_family_t) 0x30)
+#define PSA_ECC_FAMILY_BRAINPOOL_P_R1    ((psa_ecc_family_t)0x30)
 
 /** Curve25519 and Curve448.
  *
@@ -654,7 +654,7 @@
  *   _Ed448-Goldilocks, a new elliptic curve_, NIST ECC Workshop, 2015.
  *   The algorithm #PSA_ALG_ECDH performs X448 when used with this curve.
  */
-#define PSA_ECC_FAMILY_MONTGOMERY        ((psa_ecc_family_t) 0x41)
+#define PSA_ECC_FAMILY_MONTGOMERY        ((psa_ecc_family_t)0x41)
 
 /** The twisted Edwards curves Ed25519 and Ed448.
  *
@@ -670,7 +670,7 @@
  *   to Curve448.
  *   Hamburg, _Ed448-Goldilocks, a new elliptic curve_, NIST ECC Workshop, 2015.
  */
-#define PSA_ECC_FAMILY_TWISTED_EDWARDS   ((psa_ecc_family_t) 0x42)
+#define PSA_ECC_FAMILY_TWISTED_EDWARDS   ((psa_ecc_family_t)0x42)
 
 #define PSA_KEY_TYPE_DH_PUBLIC_KEY_BASE             ((psa_key_type_t)0x4200)
 #define PSA_KEY_TYPE_DH_KEY_PAIR_BASE               ((psa_key_type_t)0x7200)
@@ -705,7 +705,7 @@
 
 /** Extract the group from a Diffie-Hellman key type. */
 #define PSA_KEY_TYPE_DH_GET_FAMILY(type)                        \
-    ((psa_dh_family_t) (PSA_KEY_TYPE_IS_DH(type) ?              \
+    ((psa_dh_family_t)(PSA_KEY_TYPE_IS_DH(type) ?              \
                        ((type) & PSA_KEY_TYPE_DH_GROUP_MASK) :  \
                        0))
 
@@ -715,7 +715,7 @@
  * 2048, 3072, 4096, 6144, 8192. A given implementation may support
  * all of these sizes or only a subset.
  */
-#define PSA_DH_FAMILY_RFC7919            ((psa_dh_family_t) 0x03)
+#define PSA_DH_FAMILY_RFC7919            ((psa_dh_family_t)0x03)
 
 #define PSA_GET_KEY_TYPE_BLOCK_SIZE_EXPONENT(type)      \
     (((type) >> 8) & 7)
@@ -740,7 +740,7 @@
 #define PSA_BLOCK_CIPHER_BLOCK_LENGTH(type)                                     \
     (((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_SYMMETRIC ? \
      1u << PSA_GET_KEY_TYPE_BLOCK_SIZE_EXPONENT(type) :                         \
-     0u)
+        0u)
 
 /* Note that algorithm values are embedded in the persistent key store,
  * as part of key metadata. As a consequence, they must not be changed
@@ -1099,8 +1099,8 @@
  *                        too large for the specified MAC algorithm.
  */
 #define PSA_ALG_AT_LEAST_THIS_LENGTH_MAC(mac_alg, min_mac_length)   \
-    ( PSA_ALG_TRUNCATED_MAC(mac_alg, min_mac_length) |              \
-      PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG )
+    (PSA_ALG_TRUNCATED_MAC(mac_alg, min_mac_length) |              \
+     PSA_ALG_MAC_AT_LEAST_THIS_LENGTH_FLAG)
 
 #define PSA_ALG_CIPHER_MAC_BASE                 ((psa_algorithm_t)0x03c00000)
 /** The CBC-MAC construction over a block cipher
@@ -1141,7 +1141,7 @@
  */
 #define PSA_ALG_IS_STREAM_CIPHER(alg)            \
     (((alg) & (PSA_ALG_CATEGORY_MASK | PSA_ALG_CIPHER_STREAM_FLAG)) == \
-        (PSA_ALG_CATEGORY_CIPHER | PSA_ALG_CIPHER_STREAM_FLAG))
+     (PSA_ALG_CATEGORY_CIPHER | PSA_ALG_CIPHER_STREAM_FLAG))
 
 /** The stream cipher mode of a stream cipher algorithm.
  *
@@ -1302,7 +1302,7 @@
     (((aead_alg) & ~(PSA_ALG_AEAD_TAG_LENGTH_MASK |                     \
                      PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG)) |         \
      ((tag_length) << PSA_AEAD_TAG_LENGTH_OFFSET &                      \
-      PSA_ALG_AEAD_TAG_LENGTH_MASK))
+        PSA_ALG_AEAD_TAG_LENGTH_MASK))
 
 /** Retrieve the tag length of a specified AEAD algorithm
  *
@@ -1316,7 +1316,7 @@
  */
 #define PSA_ALG_AEAD_GET_TAG_LENGTH(aead_alg)                           \
     (((aead_alg) & PSA_ALG_AEAD_TAG_LENGTH_MASK) >>                     \
-      PSA_AEAD_TAG_LENGTH_OFFSET )
+     PSA_AEAD_TAG_LENGTH_OFFSET)
 
 /** Calculate the corresponding AEAD algorithm with the default tag length.
  *
@@ -1330,7 +1330,8 @@
     (                                                                    \
         PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG_CASE(aead_alg, PSA_ALG_CCM) \
         PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG_CASE(aead_alg, PSA_ALG_GCM) \
-        PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG_CASE(aead_alg, PSA_ALG_CHACHA20_POLY1305) \
+        PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG_CASE(aead_alg, \
+                                                  PSA_ALG_CHACHA20_POLY1305) \
         0)
 #define PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG_CASE(aead_alg, ref)         \
     PSA_ALG_AEAD_WITH_SHORTENED_TAG(aead_alg, 0) ==                      \
@@ -1362,8 +1363,8 @@
  *                        or too large for the specified AEAD algorithm.
  */
 #define PSA_ALG_AEAD_WITH_AT_LEAST_THIS_LENGTH_TAG(aead_alg, min_tag_length) \
-    ( PSA_ALG_AEAD_WITH_SHORTENED_TAG(aead_alg, min_tag_length) |            \
-      PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG )
+    (PSA_ALG_AEAD_WITH_SHORTENED_TAG(aead_alg, min_tag_length) |            \
+     PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG)
 
 #define PSA_ALG_RSA_PKCS1V15_SIGN_BASE          ((psa_algorithm_t)0x06000200)
 /** RSA PKCS#1 v1.5 signature with hashing.
@@ -1674,7 +1675,7 @@
  *         supported algorithm identifier.
  */
 #define PSA_ALG_IS_SIGN_MESSAGE(alg)                                    \
-    (PSA_ALG_IS_SIGN_HASH(alg) || (alg) == PSA_ALG_PURE_EDDSA )
+    (PSA_ALG_IS_SIGN_HASH(alg) || (alg) == PSA_ALG_PURE_EDDSA)
 
 /** Whether the specified algorithm is a hash-and-sign algorithm.
  *
@@ -1802,7 +1803,8 @@
 #define PSA_ALG_HKDF_GET_HASH(hkdf_alg)                         \
     (PSA_ALG_CATEGORY_HASH | ((hkdf_alg) & PSA_ALG_HASH_MASK))
 
-#define PSA_ALG_HKDF_EXTRACT_BASE                       ((psa_algorithm_t)0x08000400)
+#define PSA_ALG_HKDF_EXTRACT_BASE                       ((psa_algorithm_t) \
+                                                         0x08000400)
 /** Macro to build an HKDF-Extract algorithm.
  *
  * For example, `PSA_ALG_HKDF_EXTRACT(PSA_ALG_SHA256)` is
@@ -1851,7 +1853,8 @@
 #define PSA_ALG_IS_HKDF_EXTRACT(alg)                            \
     (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_HKDF_EXTRACT_BASE)
 
-#define PSA_ALG_HKDF_EXPAND_BASE                       ((psa_algorithm_t)0x08000500)
+#define PSA_ALG_HKDF_EXPAND_BASE                       ((psa_algorithm_t) \
+                                                        0x08000500)
 /** Macro to build an HKDF-Expand algorithm.
  *
  * For example, `PSA_ALG_HKDF_EXPAND(PSA_ALG_SHA256)` is
@@ -2243,7 +2246,8 @@
  * \return \c 0 if alg is not a composite algorithm that uses a hash.
  */
 #define PSA_ALG_GET_HASH(alg) \
-        (((alg) & 0x000000ff) == 0 ? ((psa_algorithm_t)0) : 0x02000000 | ((alg) & 0x000000ff))
+    (((alg) & 0x000000ff) == \
+     0 ? ((psa_algorithm_t)0) : 0x02000000 | ((alg) & 0x000000ff))
 
 /**@}*/
 
@@ -2395,9 +2399,9 @@
 
 #if !defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 
-#define MBEDTLS_SVC_KEY_ID_INIT ( (psa_key_id_t)0 )
-#define MBEDTLS_SVC_KEY_ID_GET_KEY_ID( id ) ( id )
-#define MBEDTLS_SVC_KEY_ID_GET_OWNER_ID( id ) ( 0 )
+#define MBEDTLS_SVC_KEY_ID_INIT ((psa_key_id_t)0)
+#define MBEDTLS_SVC_KEY_ID_GET_KEY_ID(id) (id)
+#define MBEDTLS_SVC_KEY_ID_GET_OWNER_ID(id) (0)
 
 /** Utility to initialize a key identifier at runtime.
  *
@@ -2405,11 +2409,11 @@
  * \param key_id  Identifier of the key.
  */
 static inline mbedtls_svc_key_id_t mbedtls_svc_key_id_make(
-    unsigned int unused, psa_key_id_t key_id )
+    unsigned int unused, psa_key_id_t key_id)
 {
     (void)unused;
 
-    return( key_id );
+    return key_id;
 }
 
 /** Compare two key identifiers.
@@ -2419,10 +2423,10 @@ static inline mbedtls_svc_key_id_t mbedtls_svc_key_id_make(
  *
  * \return Non-zero if the two key identifier are equal, zero otherwise.
  */
-static inline int mbedtls_svc_key_id_equal( mbedtls_svc_key_id_t id1,
-                                            mbedtls_svc_key_id_t id2 )
+static inline int mbedtls_svc_key_id_equal(mbedtls_svc_key_id_t id1,
+                                           mbedtls_svc_key_id_t id2)
 {
-    return( id1 == id2 );
+    return id1 == id2;
 }
 
 /** Check whether a key identifier is null.
@@ -2431,16 +2435,16 @@ static inline int mbedtls_svc_key_id_equal( mbedtls_svc_key_id_t id1,
  *
  * \return Non-zero if the key identifier is null, zero otherwise.
  */
-static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
+static inline int mbedtls_svc_key_id_is_null(mbedtls_svc_key_id_t key)
 {
-    return( key == 0 );
+    return key == 0;
 }
 
 #else /* MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER */
 
-#define MBEDTLS_SVC_KEY_ID_INIT ( (mbedtls_svc_key_id_t){ 0, 0 } )
-#define MBEDTLS_SVC_KEY_ID_GET_KEY_ID( id ) ( ( id ).MBEDTLS_PRIVATE(key_id) )
-#define MBEDTLS_SVC_KEY_ID_GET_OWNER_ID( id ) ( ( id ).MBEDTLS_PRIVATE(owner) )
+#define MBEDTLS_SVC_KEY_ID_INIT ((mbedtls_svc_key_id_t){ 0, 0 })
+#define MBEDTLS_SVC_KEY_ID_GET_KEY_ID(id) ((id).MBEDTLS_PRIVATE(key_id))
+#define MBEDTLS_SVC_KEY_ID_GET_OWNER_ID(id) ((id).MBEDTLS_PRIVATE(owner))
 
 /** Utility to initialize a key identifier at runtime.
  *
@@ -2448,10 +2452,10 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * \param key_id   Identifier of the key.
  */
 static inline mbedtls_svc_key_id_t mbedtls_svc_key_id_make(
-    mbedtls_key_owner_id_t owner_id, psa_key_id_t key_id )
+    mbedtls_key_owner_id_t owner_id, psa_key_id_t key_id)
 {
-    return( (mbedtls_svc_key_id_t){ .MBEDTLS_PRIVATE(key_id) = key_id,
-                                    .MBEDTLS_PRIVATE(owner) = owner_id } );
+    return (mbedtls_svc_key_id_t){ .MBEDTLS_PRIVATE(key_id) = key_id,
+                                   .MBEDTLS_PRIVATE(owner) = owner_id };
 }
 
 /** Compare two key identifiers.
@@ -2461,11 +2465,12 @@ static inline mbedtls_svc_key_id_t mbedtls_svc_key_id_make(
  *
  * \return Non-zero if the two key identifier are equal, zero otherwise.
  */
-static inline int mbedtls_svc_key_id_equal( mbedtls_svc_key_id_t id1,
-                                            mbedtls_svc_key_id_t id2 )
+static inline int mbedtls_svc_key_id_equal(mbedtls_svc_key_id_t id1,
+                                           mbedtls_svc_key_id_t id2)
 {
-    return( ( id1.MBEDTLS_PRIVATE(key_id) == id2.MBEDTLS_PRIVATE(key_id) ) &&
-            mbedtls_key_owner_id_equal( id1.MBEDTLS_PRIVATE(owner), id2.MBEDTLS_PRIVATE(owner) ) );
+    return (id1.MBEDTLS_PRIVATE(key_id) == id2.MBEDTLS_PRIVATE(key_id)) &&
+           mbedtls_key_owner_id_equal(id1.MBEDTLS_PRIVATE(owner),
+                                      id2.MBEDTLS_PRIVATE(owner));
 }
 
 /** Check whether a key identifier is null.
@@ -2474,9 +2479,9 @@ static inline int mbedtls_svc_key_id_equal( mbedtls_svc_key_id_t id1,
  *
  * \return Non-zero if the key identifier is null, zero otherwise.
  */
-static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
+static inline int mbedtls_svc_key_id_is_null(mbedtls_svc_key_id_t key)
 {
-    return( key.MBEDTLS_PRIVATE(key_id) == 0 );
+    return key.MBEDTLS_PRIVATE(key_id) == 0;
 }
 
 #endif /* !MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER */
@@ -2664,7 +2669,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * a direct input passed to `psa_key_derivation_input_bytes()`.
  */
 #define PSA_KEY_DERIVATION_INPUT_OTHER_SECRET \
-                                            ((psa_key_derivation_step_t)0x0103)
+    ((psa_key_derivation_step_t)0x0103)
 
 /** A label for key derivation.
  *
@@ -2722,7 +2727,8 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  */
 #define MBEDTLS_PSA_ALG_AEAD_EQUAL(aead_alg_1, aead_alg_2) \
     (!(((aead_alg_1) ^ (aead_alg_2)) & \
-       ~(PSA_ALG_AEAD_TAG_LENGTH_MASK | PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG)))
+       ~(PSA_ALG_AEAD_TAG_LENGTH_MASK | \
+         PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG)))
 
 /**@}*/
 

@@ -17,37 +17,48 @@
 #include <stdbool.h>
 #include "kremlin/internal/types.h"
 
-uint64_t FStar_UInt128___proj__Mkuint128__item__low(FStar_UInt128_uint128 projectee);
+uint64_t FStar_UInt128___proj__Mkuint128__item__low(
+    FStar_UInt128_uint128 projectee);
 
-uint64_t FStar_UInt128___proj__Mkuint128__item__high(FStar_UInt128_uint128 projectee);
+uint64_t FStar_UInt128___proj__Mkuint128__item__high(
+    FStar_UInt128_uint128 projectee);
 
 typedef FStar_UInt128_uint128 FStar_UInt128_t;
 
-FStar_UInt128_uint128 FStar_UInt128_add(FStar_UInt128_uint128 a, FStar_UInt128_uint128 b);
+FStar_UInt128_uint128 FStar_UInt128_add(FStar_UInt128_uint128 a,
+                                        FStar_UInt128_uint128 b);
 
 FStar_UInt128_uint128
 FStar_UInt128_add_underspec(FStar_UInt128_uint128 a, FStar_UInt128_uint128 b);
 
-FStar_UInt128_uint128 FStar_UInt128_add_mod(FStar_UInt128_uint128 a, FStar_UInt128_uint128 b);
+FStar_UInt128_uint128 FStar_UInt128_add_mod(FStar_UInt128_uint128 a,
+                                            FStar_UInt128_uint128 b);
 
-FStar_UInt128_uint128 FStar_UInt128_sub(FStar_UInt128_uint128 a, FStar_UInt128_uint128 b);
+FStar_UInt128_uint128 FStar_UInt128_sub(FStar_UInt128_uint128 a,
+                                        FStar_UInt128_uint128 b);
 
 FStar_UInt128_uint128
 FStar_UInt128_sub_underspec(FStar_UInt128_uint128 a, FStar_UInt128_uint128 b);
 
-FStar_UInt128_uint128 FStar_UInt128_sub_mod(FStar_UInt128_uint128 a, FStar_UInt128_uint128 b);
+FStar_UInt128_uint128 FStar_UInt128_sub_mod(FStar_UInt128_uint128 a,
+                                            FStar_UInt128_uint128 b);
 
-FStar_UInt128_uint128 FStar_UInt128_logand(FStar_UInt128_uint128 a, FStar_UInt128_uint128 b);
+FStar_UInt128_uint128 FStar_UInt128_logand(FStar_UInt128_uint128 a,
+                                           FStar_UInt128_uint128 b);
 
-FStar_UInt128_uint128 FStar_UInt128_logxor(FStar_UInt128_uint128 a, FStar_UInt128_uint128 b);
+FStar_UInt128_uint128 FStar_UInt128_logxor(FStar_UInt128_uint128 a,
+                                           FStar_UInt128_uint128 b);
 
-FStar_UInt128_uint128 FStar_UInt128_logor(FStar_UInt128_uint128 a, FStar_UInt128_uint128 b);
+FStar_UInt128_uint128 FStar_UInt128_logor(FStar_UInt128_uint128 a,
+                                          FStar_UInt128_uint128 b);
 
 FStar_UInt128_uint128 FStar_UInt128_lognot(FStar_UInt128_uint128 a);
 
-FStar_UInt128_uint128 FStar_UInt128_shift_left(FStar_UInt128_uint128 a, uint32_t s);
+FStar_UInt128_uint128 FStar_UInt128_shift_left(FStar_UInt128_uint128 a,
+                                               uint32_t s);
 
-FStar_UInt128_uint128 FStar_UInt128_shift_right(FStar_UInt128_uint128 a, uint32_t s);
+FStar_UInt128_uint128 FStar_UInt128_shift_right(FStar_UInt128_uint128 a,
+                                                uint32_t s);
 
 bool FStar_UInt128_eq(FStar_UInt128_uint128 a, FStar_UInt128_uint128 b);
 
@@ -59,34 +70,41 @@ bool FStar_UInt128_gte(FStar_UInt128_uint128 a, FStar_UInt128_uint128 b);
 
 bool FStar_UInt128_lte(FStar_UInt128_uint128 a, FStar_UInt128_uint128 b);
 
-FStar_UInt128_uint128 FStar_UInt128_eq_mask(FStar_UInt128_uint128 a, FStar_UInt128_uint128 b);
+FStar_UInt128_uint128 FStar_UInt128_eq_mask(FStar_UInt128_uint128 a,
+                                            FStar_UInt128_uint128 b);
 
-FStar_UInt128_uint128 FStar_UInt128_gte_mask(FStar_UInt128_uint128 a, FStar_UInt128_uint128 b);
+FStar_UInt128_uint128 FStar_UInt128_gte_mask(FStar_UInt128_uint128 a,
+                                             FStar_UInt128_uint128 b);
 
 FStar_UInt128_uint128 FStar_UInt128_uint64_to_uint128(uint64_t a);
 
 uint64_t FStar_UInt128_uint128_to_uint64(FStar_UInt128_uint128 a);
 
 extern FStar_UInt128_uint128
-(*FStar_UInt128_op_Plus_Hat)(FStar_UInt128_uint128 x0, FStar_UInt128_uint128 x1);
+(*FStar_UInt128_op_Plus_Hat)(FStar_UInt128_uint128 x0,
+                             FStar_UInt128_uint128 x1);
 
 extern FStar_UInt128_uint128
-(*FStar_UInt128_op_Plus_Question_Hat)(FStar_UInt128_uint128 x0, FStar_UInt128_uint128 x1);
+(*FStar_UInt128_op_Plus_Question_Hat)(FStar_UInt128_uint128 x0,
+                                      FStar_UInt128_uint128 x1);
 
 extern FStar_UInt128_uint128
-(*FStar_UInt128_op_Plus_Percent_Hat)(FStar_UInt128_uint128 x0, FStar_UInt128_uint128 x1);
+(*FStar_UInt128_op_Plus_Percent_Hat)(FStar_UInt128_uint128 x0,
+                                     FStar_UInt128_uint128 x1);
 
 extern FStar_UInt128_uint128
-(*FStar_UInt128_op_Subtraction_Hat)(FStar_UInt128_uint128 x0, FStar_UInt128_uint128 x1);
+(*FStar_UInt128_op_Subtraction_Hat)(FStar_UInt128_uint128 x0,
+                                    FStar_UInt128_uint128 x1);
 
 extern FStar_UInt128_uint128
 (*FStar_UInt128_op_Subtraction_Question_Hat)(
-  FStar_UInt128_uint128 x0,
-  FStar_UInt128_uint128 x1
-);
+    FStar_UInt128_uint128 x0,
+    FStar_UInt128_uint128 x1
+    );
 
 extern FStar_UInt128_uint128
-(*FStar_UInt128_op_Subtraction_Percent_Hat)(FStar_UInt128_uint128 x0, FStar_UInt128_uint128 x1);
+(*FStar_UInt128_op_Subtraction_Percent_Hat)(FStar_UInt128_uint128 x0,
+                                            FStar_UInt128_uint128 x1);
 
 extern FStar_UInt128_uint128
 (*FStar_UInt128_op_Amp_Hat)(FStar_UInt128_uint128 x0, FStar_UInt128_uint128 x1);
@@ -103,18 +121,23 @@ extern FStar_UInt128_uint128
 extern FStar_UInt128_uint128
 (*FStar_UInt128_op_Greater_Greater_Hat)(FStar_UInt128_uint128 x0, uint32_t x1);
 
-extern bool (*FStar_UInt128_op_Equals_Hat)(FStar_UInt128_uint128 x0, FStar_UInt128_uint128 x1);
+extern bool (*FStar_UInt128_op_Equals_Hat)(FStar_UInt128_uint128 x0,
+                                           FStar_UInt128_uint128 x1);
 
 extern bool
-(*FStar_UInt128_op_Greater_Hat)(FStar_UInt128_uint128 x0, FStar_UInt128_uint128 x1);
+(*FStar_UInt128_op_Greater_Hat)(FStar_UInt128_uint128 x0,
+                                FStar_UInt128_uint128 x1);
 
-extern bool (*FStar_UInt128_op_Less_Hat)(FStar_UInt128_uint128 x0, FStar_UInt128_uint128 x1);
+extern bool (*FStar_UInt128_op_Less_Hat)(FStar_UInt128_uint128 x0,
+                                         FStar_UInt128_uint128 x1);
 
 extern bool
-(*FStar_UInt128_op_Greater_Equals_Hat)(FStar_UInt128_uint128 x0, FStar_UInt128_uint128 x1);
+(*FStar_UInt128_op_Greater_Equals_Hat)(FStar_UInt128_uint128 x0,
+                                       FStar_UInt128_uint128 x1);
 
 extern bool
-(*FStar_UInt128_op_Less_Equals_Hat)(FStar_UInt128_uint128 x0, FStar_UInt128_uint128 x1);
+(*FStar_UInt128_op_Less_Equals_Hat)(FStar_UInt128_uint128 x0,
+                                    FStar_UInt128_uint128 x1);
 
 FStar_UInt128_uint128 FStar_UInt128_mul32(uint64_t x, uint32_t y);
 

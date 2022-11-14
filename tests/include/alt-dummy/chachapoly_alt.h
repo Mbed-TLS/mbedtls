@@ -21,8 +21,7 @@
 
 #include "mbedtls/chacha20.h"
 
-typedef struct mbedtls_chachapoly_context
-{
+typedef struct mbedtls_chachapoly_context {
     int dummy;
 }
 mbedtls_chachapoly_context;

@@ -93,7 +93,7 @@ psa_status_t mbedtls_psa_hash_compute(
  */
 psa_status_t mbedtls_psa_hash_setup(
     mbedtls_psa_hash_operation_t *operation,
-    psa_algorithm_t alg );
+    psa_algorithm_t alg);
 
 /** Clone an Mbed TLS hash operation.
  *
@@ -125,7 +125,7 @@ psa_status_t mbedtls_psa_hash_setup(
  */
 psa_status_t mbedtls_psa_hash_clone(
     const mbedtls_psa_hash_operation_t *source_operation,
-    mbedtls_psa_hash_operation_t *target_operation );
+    mbedtls_psa_hash_operation_t *target_operation);
 
 /** Add a message fragment to a multipart Mbed TLS hash operation.
  *
@@ -153,7 +153,7 @@ psa_status_t mbedtls_psa_hash_clone(
 psa_status_t mbedtls_psa_hash_update(
     mbedtls_psa_hash_operation_t *operation,
     const uint8_t *input,
-    size_t input_length );
+    size_t input_length);
 
 /** Finish the calculation of the Mbed TLS-calculated hash of a message.
  *
@@ -193,7 +193,7 @@ psa_status_t mbedtls_psa_hash_finish(
     mbedtls_psa_hash_operation_t *operation,
     uint8_t *hash,
     size_t hash_size,
-    size_t *hash_length );
+    size_t *hash_length);
 
 /** Abort an Mbed TLS hash operation.
  *
@@ -220,6 +220,6 @@ psa_status_t mbedtls_psa_hash_finish(
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  */
 psa_status_t mbedtls_psa_hash_abort(
-    mbedtls_psa_hash_operation_t *operation );
+    mbedtls_psa_hash_operation_t *operation);
 
 #endif /* PSA_CRYPTO_HASH_H */

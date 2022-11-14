@@ -167,7 +167,7 @@
 #define PSA_AEAD_TAG_LENGTH(key_type, key_bits, alg)                        \
     (PSA_AEAD_NONCE_LENGTH(key_type, alg) != 0 ?                            \
      PSA_ALG_AEAD_GET_TAG_LENGTH(alg) :                                     \
-     ((void) (key_bits), 0))
+     ((void)(key_bits), 0))
 
 /** The maximum tag size for all supported AEAD algorithms, in bytes.
  *
@@ -275,7 +275,8 @@
 #define PSA_MAC_LENGTH(key_type, key_bits, alg)                                   \
     ((alg) & PSA_ALG_MAC_TRUNCATION_MASK ? PSA_MAC_TRUNCATED_LENGTH(alg) :        \
      PSA_ALG_IS_HMAC(alg) ? PSA_HASH_LENGTH(PSA_ALG_HMAC_GET_HASH(alg)) :         \
-     PSA_ALG_IS_BLOCK_CIPHER_MAC(alg) ? PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) : \
+     PSA_ALG_IS_BLOCK_CIPHER_MAC(alg) ? PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) \
+    : \
      ((void)(key_type), (void)(key_bits), 0))
 
 /** The maximum size of the output of psa_aead_encrypt(), in bytes.
@@ -359,8 +360,8 @@
  */
 #define PSA_AEAD_DECRYPT_OUTPUT_SIZE(key_type, alg, ciphertext_length) \
     (PSA_AEAD_NONCE_LENGTH(key_type, alg) != 0 &&                      \
-         (ciphertext_length) > PSA_ALG_AEAD_GET_TAG_LENGTH(alg) ?      \
-         (ciphertext_length) - PSA_ALG_AEAD_GET_TAG_LENGTH(alg) :      \
+     (ciphertext_length) > PSA_ALG_AEAD_GET_TAG_LENGTH(alg) ?      \
+     (ciphertext_length) - PSA_ALG_AEAD_GET_TAG_LENGTH(alg) :      \
      0)
 
 /** A sufficient output buffer size for psa_aead_decrypt(), for any of the
@@ -382,7 +383,7 @@
  *
  */
 #define PSA_AEAD_DECRYPT_OUTPUT_MAX_SIZE(ciphertext_length)     \
-     (ciphertext_length)
+    (ciphertext_length)
 
 /** The default nonce size for an AEAD algorithm, in bytes.
  *
@@ -411,11 +412,11 @@
  */
 #define PSA_AEAD_NONCE_LENGTH(key_type, alg) \
     (PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) == 16 ? \
-          MBEDTLS_PSA_ALG_AEAD_EQUAL(alg, PSA_ALG_CCM) ? 13 : \
-          MBEDTLS_PSA_ALG_AEAD_EQUAL(alg, PSA_ALG_GCM) ? 12 : \
-          0 : \
+     MBEDTLS_PSA_ALG_AEAD_EQUAL(alg, PSA_ALG_CCM) ? 13 : \
+     MBEDTLS_PSA_ALG_AEAD_EQUAL(alg, PSA_ALG_GCM) ? 12 : \
+     0 : \
      (key_type) == PSA_KEY_TYPE_CHACHA20 && \
-          MBEDTLS_PSA_ALG_AEAD_EQUAL(alg, PSA_ALG_CHACHA20_POLY1305) ? 12 : \
+     MBEDTLS_PSA_ALG_AEAD_EQUAL(alg, PSA_ALG_CHACHA20_POLY1305) ? 12 : \
      0)
 
 /** The maximum default nonce size among all supported pairs of key types and
@@ -463,9 +464,10 @@
  * implementation to delay the output until it has a full block. */
 #define PSA_AEAD_UPDATE_OUTPUT_SIZE(key_type, alg, input_length)                             \
     (PSA_AEAD_NONCE_LENGTH(key_type, alg) != 0 ?                                             \
-         PSA_ALG_IS_AEAD_ON_BLOCK_CIPHER(alg) ?                                              \
-         PSA_ROUND_UP_TO_MULTIPLE(PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type), (input_length)) : \
-         (input_length) : \
+     PSA_ALG_IS_AEAD_ON_BLOCK_CIPHER(alg) ?                                              \
+     PSA_ROUND_UP_TO_MULTIPLE(PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type), \
+                              (input_length)) : \
+     (input_length) : \
      0)
 
 /** A sufficient output buffer size for psa_aead_update(), for any of the
@@ -504,8 +506,8 @@
  */
 #define PSA_AEAD_FINISH_OUTPUT_SIZE(key_type, alg) \
     (PSA_AEAD_NONCE_LENGTH(key_type, alg) != 0 &&  \
-         PSA_ALG_IS_AEAD_ON_BLOCK_CIPHER(alg) ?    \
-         PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) : \
+     PSA_ALG_IS_AEAD_ON_BLOCK_CIPHER(alg) ?    \
+     PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) : \
      0)
 
 /** A sufficient ciphertext buffer size for psa_aead_finish(), for any of the
@@ -538,8 +540,8 @@
  */
 #define PSA_AEAD_VERIFY_OUTPUT_SIZE(key_type, alg) \
     (PSA_AEAD_NONCE_LENGTH(key_type, alg) != 0 &&  \
-         PSA_ALG_IS_AEAD_ON_BLOCK_CIPHER(alg) ?    \
-         PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) : \
+     PSA_ALG_IS_AEAD_ON_BLOCK_CIPHER(alg) ?    \
+     PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) : \
      0)
 
 /** A sufficient plaintext buffer size for psa_aead_verify(), for any of the
@@ -606,7 +608,8 @@
  * is the maximum size of a signature in bytes.
  */
 #define PSA_SIGNATURE_MAX_SIZE                               \
-    (PSA_BITS_TO_BYTES(PSA_VENDOR_RSA_MAX_KEY_BITS) > PSA_VENDOR_ECDSA_SIGNATURE_MAX_SIZE ? \
+    (PSA_BITS_TO_BYTES(PSA_VENDOR_RSA_MAX_KEY_BITS) > \
+     PSA_VENDOR_ECDSA_SIGNATURE_MAX_SIZE ? \
      PSA_BITS_TO_BYTES(PSA_VENDOR_RSA_MAX_KEY_BITS) :                   \
      PSA_VENDOR_ECDSA_SIGNATURE_MAX_SIZE)
 
@@ -840,12 +843,22 @@
  */
 #define PSA_EXPORT_KEY_OUTPUT_SIZE(key_type, key_bits)                                              \
     (PSA_KEY_TYPE_IS_UNSTRUCTURED(key_type) ? PSA_BITS_TO_BYTES(key_bits) :                         \
-     (key_type) == PSA_KEY_TYPE_RSA_KEY_PAIR ? PSA_KEY_EXPORT_RSA_KEY_PAIR_MAX_SIZE(key_bits) :     \
-     (key_type) == PSA_KEY_TYPE_RSA_PUBLIC_KEY ? PSA_KEY_EXPORT_RSA_PUBLIC_KEY_MAX_SIZE(key_bits) : \
-     (key_type) == PSA_KEY_TYPE_DSA_KEY_PAIR ? PSA_KEY_EXPORT_DSA_KEY_PAIR_MAX_SIZE(key_bits) :     \
-     (key_type) == PSA_KEY_TYPE_DSA_PUBLIC_KEY ? PSA_KEY_EXPORT_DSA_PUBLIC_KEY_MAX_SIZE(key_bits) : \
-     PSA_KEY_TYPE_IS_ECC_KEY_PAIR(key_type) ? PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(key_bits) :      \
-     PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY(key_type) ? PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(key_bits) :  \
+     (key_type) == \
+     PSA_KEY_TYPE_RSA_KEY_PAIR ? PSA_KEY_EXPORT_RSA_KEY_PAIR_MAX_SIZE(key_bits) \
+    :     \
+     (key_type) == \
+     PSA_KEY_TYPE_RSA_PUBLIC_KEY ? PSA_KEY_EXPORT_RSA_PUBLIC_KEY_MAX_SIZE( \
+         key_bits) : \
+     (key_type) == \
+     PSA_KEY_TYPE_DSA_KEY_PAIR ? PSA_KEY_EXPORT_DSA_KEY_PAIR_MAX_SIZE(key_bits) \
+    :     \
+     (key_type) == \
+     PSA_KEY_TYPE_DSA_PUBLIC_KEY ? PSA_KEY_EXPORT_DSA_PUBLIC_KEY_MAX_SIZE( \
+         key_bits) : \
+     PSA_KEY_TYPE_IS_ECC_KEY_PAIR(key_type) ? \
+     PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(key_bits) :      \
+     PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY(key_type) ? \
+     PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(key_bits) :  \
      0)
 
 /** Sufficient output buffer size for psa_export_public_key().
@@ -894,8 +907,10 @@
  *                          \p key_bits).
  */
 #define PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE(key_type, key_bits)                           \
-    (PSA_KEY_TYPE_IS_RSA(key_type) ? PSA_KEY_EXPORT_RSA_PUBLIC_KEY_MAX_SIZE(key_bits) : \
-     PSA_KEY_TYPE_IS_ECC(key_type) ? PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(key_bits) : \
+    (PSA_KEY_TYPE_IS_RSA(key_type) ? PSA_KEY_EXPORT_RSA_PUBLIC_KEY_MAX_SIZE( \
+         key_bits) : \
+     PSA_KEY_TYPE_IS_ECC(key_type) ? PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE( \
+         key_bits) : \
      0)
 
 /** Sufficient buffer size for exporting any asymmetric key pair.
@@ -992,16 +1007,16 @@
  */
 #define PSA_CIPHER_IV_LENGTH(key_type, alg) \
     (PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) > 1 && \
-        ((alg) == PSA_ALG_CTR || \
-         (alg) == PSA_ALG_CFB || \
-         (alg) == PSA_ALG_OFB || \
-         (alg) == PSA_ALG_XTS || \
-         (alg) == PSA_ALG_CBC_NO_PADDING || \
-         (alg) == PSA_ALG_CBC_PKCS7) ? PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) : \
+     ((alg) == PSA_ALG_CTR || \
+      (alg) == PSA_ALG_CFB || \
+      (alg) == PSA_ALG_OFB || \
+      (alg) == PSA_ALG_XTS || \
+      (alg) == PSA_ALG_CBC_NO_PADDING || \
+      (alg) == PSA_ALG_CBC_PKCS7) ? PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) : \
      (key_type) == PSA_KEY_TYPE_CHACHA20 && \
-         (alg) == PSA_ALG_STREAM_CIPHER ? 12 : \
-         (alg) == PSA_ALG_CCM_STAR_NO_TAG ? 13 : \
-         0)
+     (alg) == PSA_ALG_STREAM_CIPHER ? 12 : \
+     (alg) == PSA_ALG_CCM_STAR_NO_TAG ? 13 : \
+     0)
 
 /** The maximum IV size for all supported cipher algorithms, in bytes.
  *
@@ -1035,12 +1050,12 @@
 #define PSA_CIPHER_ENCRYPT_OUTPUT_SIZE(key_type, alg, input_length)             \
     (alg == PSA_ALG_CBC_PKCS7 ?                                                 \
      (PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) != 0 ?                            \
-     PSA_ROUND_UP_TO_MULTIPLE(PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type),          \
-                              (input_length) + 1) +                             \
-     PSA_CIPHER_IV_LENGTH((key_type), (alg)) : 0) :                             \
+      PSA_ROUND_UP_TO_MULTIPLE(PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type),          \
+                               (input_length) + 1) +                             \
+      PSA_CIPHER_IV_LENGTH((key_type), (alg)) : 0) :                             \
      (PSA_ALG_IS_CIPHER(alg) ?                                                  \
       (input_length) + PSA_CIPHER_IV_LENGTH((key_type), (alg)) :                \
-     0))
+      0))
 
 /** A sufficient output buffer size for psa_cipher_encrypt(), for any of the
  *  supported key types and cipher algorithms.
@@ -1079,7 +1094,8 @@
  */
 #define PSA_CIPHER_DECRYPT_OUTPUT_SIZE(key_type, alg, input_length)                 \
     (PSA_ALG_IS_CIPHER(alg) &&                                                      \
-     ((key_type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_SYMMETRIC ? \
+     ((key_type) & PSA_KEY_TYPE_CATEGORY_MASK) == \
+     PSA_KEY_TYPE_CATEGORY_SYMMETRIC ? \
      (input_length) :                                                               \
      0)
 
@@ -1116,13 +1132,13 @@
  */
 #define PSA_CIPHER_UPDATE_OUTPUT_SIZE(key_type, alg, input_length)              \
     (PSA_ALG_IS_CIPHER(alg) ?                                                   \
-    (PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) != 0 ?                             \
-     (((alg) == PSA_ALG_CBC_PKCS7      ||                                       \
-       (alg) == PSA_ALG_CBC_NO_PADDING ||                                       \
-       (alg) == PSA_ALG_ECB_NO_PADDING) ?                                       \
-      PSA_ROUND_UP_TO_MULTIPLE(PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type),         \
+     (PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) != 0 ?                             \
+      (((alg) == PSA_ALG_CBC_PKCS7      ||                                       \
+        (alg) == PSA_ALG_CBC_NO_PADDING ||                                       \
+        (alg) == PSA_ALG_ECB_NO_PADDING) ?                                       \
+       PSA_ROUND_UP_TO_MULTIPLE(PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type),         \
                                 input_length) :                                 \
-      (input_length)) : 0) :                                                    \
+       (input_length)) : 0) :                                                    \
      0)
 
 /** A sufficient output buffer size for psa_cipher_update(), for any of the

@@ -31,8 +31,7 @@ extern "C" {
 /**
  * Defines the source of the imported EC key.
  */
-typedef enum
-{
+typedef enum {
     MBEDTLS_EVEREST_ECDH_OURS,   /**< Our key. */
     MBEDTLS_EVEREST_ECDH_THEIRS, /**< The key of the peer. */
 } mbedtls_everest_ecdh_side;
@@ -58,14 +57,14 @@ typedef struct {
  *
  * \return          \c 0 on success.
  */
-int mbedtls_everest_setup( mbedtls_ecdh_context_everest *ctx, int grp_id );
+int mbedtls_everest_setup(mbedtls_ecdh_context_everest *ctx, int grp_id);
 
 /**
  * \brief           This function frees a context.
  *
  * \param ctx       The context to free.
  */
-void mbedtls_everest_free( mbedtls_ecdh_context_everest *ctx );
+void mbedtls_everest_free(mbedtls_ecdh_context_everest *ctx);
 
 /**
  * \brief           This function generates a public key and a TLS
@@ -90,10 +89,10 @@ void mbedtls_everest_free( mbedtls_ecdh_context_everest *ctx );
  * \return          \c 0 on success.
  * \return          An \c MBEDTLS_ERR_ECP_XXX error code on failure.
  */
-int mbedtls_everest_make_params( mbedtls_ecdh_context_everest *ctx, size_t *olen,
-                                 unsigned char *buf, size_t blen,
-                                 int( *f_rng )( void *, unsigned char *, size_t ),
-                                 void *p_rng );
+int mbedtls_everest_make_params(mbedtls_ecdh_context_everest *ctx, size_t *olen,
+                                unsigned char *buf, size_t blen,
+                                int (*f_rng)(void *, unsigned char *, size_t),
+                                void *p_rng);
 
 /**
  * \brief           This function parses and processes a TLS ServerKeyExchange
@@ -112,8 +111,9 @@ int mbedtls_everest_make_params( mbedtls_ecdh_context_everest *ctx, size_t *olen
  * \return          An \c MBEDTLS_ERR_ECP_XXX error code on failure.
  *
  */
-int mbedtls_everest_read_params( mbedtls_ecdh_context_everest *ctx,
-                                 const unsigned char **buf, const unsigned char *end );
+int mbedtls_everest_read_params(mbedtls_ecdh_context_everest *ctx,
+                                const unsigned char **buf,
+                                const unsigned char *end);
 
 /**
  * \brief           This function parses and processes a TLS ServerKeyExchange
@@ -132,8 +132,9 @@ int mbedtls_everest_read_params( mbedtls_ecdh_context_everest *ctx,
  * \return          An \c MBEDTLS_ERR_ECP_XXX error code on failure.
  *
  */
-int mbedtls_everest_read_params( mbedtls_ecdh_context_everest *ctx,
-                                 const unsigned char **buf, const unsigned char *end );
+int mbedtls_everest_read_params(mbedtls_ecdh_context_everest *ctx,
+                                const unsigned char **buf,
+                                const unsigned char *end);
 
 /**
  * \brief           This function sets up an ECDH context from an EC key.
@@ -153,8 +154,9 @@ int mbedtls_everest_read_params( mbedtls_ecdh_context_everest *ctx,
  * \return          An \c MBEDTLS_ERR_ECP_XXX error code on failure.
  *
  */
-int mbedtls_everest_get_params( mbedtls_ecdh_context_everest *ctx, const mbedtls_ecp_keypair *key,
-                                mbedtls_everest_ecdh_side side );
+int mbedtls_everest_get_params(mbedtls_ecdh_context_everest *ctx,
+                               const mbedtls_ecp_keypair *key,
+                               mbedtls_everest_ecdh_side side);
 
 /**
  * \brief           This function generates a public key and a TLS
@@ -175,10 +177,10 @@ int mbedtls_everest_get_params( mbedtls_ecdh_context_everest *ctx, const mbedtls
  * \return          \c 0 on success.
  * \return          An \c MBEDTLS_ERR_ECP_XXX error code on failure.
  */
-int mbedtls_everest_make_public( mbedtls_ecdh_context_everest *ctx, size_t *olen,
-                                 unsigned char *buf, size_t blen,
-                                 int( *f_rng )( void *, unsigned char *, size_t ),
-                                 void *p_rng );
+int mbedtls_everest_make_public(mbedtls_ecdh_context_everest *ctx, size_t *olen,
+                                unsigned char *buf, size_t blen,
+                                int (*f_rng)(void *, unsigned char *, size_t),
+                                void *p_rng);
 
 /**
  * \brief       This function parses and processes a TLS ClientKeyExchange
@@ -197,8 +199,8 @@ int mbedtls_everest_make_public( mbedtls_ecdh_context_everest *ctx, size_t *olen
  * \return      \c 0 on success.
  * \return      An \c MBEDTLS_ERR_ECP_XXX error code on failure.
  */
-int mbedtls_everest_read_public( mbedtls_ecdh_context_everest *ctx,
-                                 const unsigned char *buf, size_t blen );
+int mbedtls_everest_read_public(mbedtls_ecdh_context_everest *ctx,
+                                const unsigned char *buf, size_t blen);
 
 /**
  * \brief           This function derives and exports the shared secret.
@@ -222,10 +224,10 @@ int mbedtls_everest_read_public( mbedtls_ecdh_context_everest *ctx,
  * \return          \c 0 on success.
  * \return          An \c MBEDTLS_ERR_ECP_XXX error code on failure.
  */
-int mbedtls_everest_calc_secret( mbedtls_ecdh_context_everest *ctx, size_t *olen,
-                                 unsigned char *buf, size_t blen,
-                                 int( *f_rng )( void *, unsigned char *, size_t ),
-                                 void *p_rng );
+int mbedtls_everest_calc_secret(mbedtls_ecdh_context_everest *ctx, size_t *olen,
+                                unsigned char *buf, size_t blen,
+                                int (*f_rng)(void *, unsigned char *, size_t),
+                                void *p_rng);
 
 #ifdef __cplusplus
 }

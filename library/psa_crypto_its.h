@@ -45,8 +45,7 @@ typedef uint64_t psa_storage_uid_t;
 /**
  * \brief A container for metadata associated with a specific uid
  */
-struct psa_storage_info_t
-{
+struct psa_storage_info_t {
     uint32_t size;                  /**< The size of the data associated with a uid **/
     psa_storage_create_flags_t flags;    /**< The flags set when the uid was created **/
 };
@@ -109,7 +108,7 @@ psa_status_t psa_its_get(psa_storage_uid_t uid,
                          uint32_t data_offset,
                          uint32_t data_length,
                          void *p_data,
-                         size_t *p_data_length );
+                         size_t *p_data_length);
 
 /**
  * \brief Retrieve the metadata about the provided uid

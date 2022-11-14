@@ -34,33 +34,36 @@
 #include "bignum_mod_raw.h"
 #include "constant_time_internal.h"
 
-int mbedtls_mpi_mod_residue_setup( mbedtls_mpi_mod_residue *r,
-                                   const mbedtls_mpi_mod_modulus *m,
-                                   mbedtls_mpi_uint *p,
-                                   size_t p_limbs )
+int mbedtls_mpi_mod_residue_setup(mbedtls_mpi_mod_residue *r,
+                                  const mbedtls_mpi_mod_modulus *m,
+                                  mbedtls_mpi_uint *p,
+                                  size_t p_limbs)
 {
-    if( p_limbs < m->limbs || !mbedtls_mpi_core_lt_ct( m->p, p, p_limbs ) )
-        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+    if (p_limbs < m->limbs || !mbedtls_mpi_core_lt_ct(m->p, p, p_limbs)) {
+        return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+    }
 
     r->limbs = m->limbs;
     r->p = p;
 
-    return( 0 );
+    return 0;
 }
 
-void mbedtls_mpi_mod_residue_release( mbedtls_mpi_mod_residue *r )
+void mbedtls_mpi_mod_residue_release(mbedtls_mpi_mod_residue *r)
 {
-    if ( r == NULL )
+    if (r == NULL) {
         return;
+    }
 
     r->limbs = 0;
     r->p = NULL;
 }
 
-void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *m )
+void mbedtls_mpi_mod_modulus_init(mbedtls_mpi_mod_modulus *m)
 {
-    if ( m == NULL )
+    if (m == NULL) {
         return;
+    }
 
     m->p = NULL;
     m->limbs = 0;
@@ -69,25 +72,24 @@ void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *m )
     m->int_rep = MBEDTLS_MPI_MOD_REP_INVALID;
 }
 
-void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m )
+void mbedtls_mpi_mod_modulus_free(mbedtls_mpi_mod_modulus *m)
 {
-    if ( m == NULL )
+    if (m == NULL) {
         return;
+    }
 
-    switch( m->int_rep )
-    {
+    switch (m->int_rep) {
         case MBEDTLS_MPI_MOD_REP_MONTGOMERY:
-            if (m->rep.mont.rr != NULL)
-            {
-                mbedtls_platform_zeroize( (mbedtls_mpi_uint *) m->rep.mont.rr,
-                                           m->limbs );
-                mbedtls_free( (mbedtls_mpi_uint *)m->rep.mont.rr );
+            if (m->rep.mont.rr != NULL) {
+                mbedtls_platform_zeroize((mbedtls_mpi_uint *)m->rep.mont.rr,
+                                         m->limbs);
+                mbedtls_free((mbedtls_mpi_uint *)m->rep.mont.rr);
                 m->rep.mont.rr = NULL;
             }
             m->rep.mont.mm = 0;
             break;
         case MBEDTLS_MPI_MOD_REP_OPT_RED:
-            mbedtls_free( m->rep.ored );
+            mbedtls_free(m->rep.ored);
             break;
         case MBEDTLS_MPI_MOD_REP_INVALID:
             break;
@@ -100,30 +102,31 @@ void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m )
     m->int_rep = MBEDTLS_MPI_MOD_REP_INVALID;
 }
 
-static int set_mont_const_square( const mbedtls_mpi_uint **X,
-                                  const mbedtls_mpi_uint *A,
-                                  size_t limbs )
+static int set_mont_const_square(const mbedtls_mpi_uint **X,
+                                 const mbedtls_mpi_uint *A,
+                                 size_t limbs)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi N;
     mbedtls_mpi RR;
     *X = NULL;
 
-    mbedtls_mpi_init( &N );
-    mbedtls_mpi_init( &RR );
+    mbedtls_mpi_init(&N);
+    mbedtls_mpi_init(&RR);
 
-    if ( A == NULL || limbs == 0 || limbs >= ( MBEDTLS_MPI_MAX_LIMBS / 2 ) - 2 )
+    if (A == NULL || limbs == 0 || limbs >= (MBEDTLS_MPI_MAX_LIMBS / 2) - 2) {
         goto cleanup;
+    }
 
-    if ( mbedtls_mpi_grow( &N, limbs ) )
+    if (mbedtls_mpi_grow(&N, limbs)) {
         goto cleanup;
+    }
 
-    memcpy( N.p, A, sizeof(mbedtls_mpi_uint) * limbs );
+    memcpy(N.p, A, sizeof(mbedtls_mpi_uint) * limbs);
 
     ret = mbedtls_mpi_core_get_mont_r2_unsafe(&RR, &N);
 
-    if ( ret == 0 )
-    {
+    if (ret == 0) {
         *X = RR.p;
         RR.p = NULL;
     }
@@ -131,24 +134,23 @@ static int set_mont_const_square( const mbedtls_mpi_uint **X,
 cleanup:
     mbedtls_mpi_free(&N);
     mbedtls_mpi_free(&RR);
-    ret = ( ret != 0 ) ? MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED : 0;
-    return( ret );
+    ret = (ret != 0) ? MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED : 0;
+    return ret;
 }
 
-int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
-                                   const mbedtls_mpi_uint *p,
-                                   size_t p_limbs,
-                                   mbedtls_mpi_mod_ext_rep ext_rep,
-                                   mbedtls_mpi_mod_rep_selector int_rep )
+int mbedtls_mpi_mod_modulus_setup(mbedtls_mpi_mod_modulus *m,
+                                  const mbedtls_mpi_uint *p,
+                                  size_t p_limbs,
+                                  mbedtls_mpi_mod_ext_rep ext_rep,
+                                  mbedtls_mpi_mod_rep_selector int_rep)
 {
     int ret = 0;
 
     m->p = p;
     m->limbs = p_limbs;
-    m->bits = mbedtls_mpi_core_bitlen( p, p_limbs );
+    m->bits = mbedtls_mpi_core_bitlen(p, p_limbs);
 
-    switch( ext_rep )
-    {
+    switch (ext_rep) {
         case MBEDTLS_MPI_MOD_EXT_REP_LE:
         case MBEDTLS_MPI_MOD_EXT_REP_BE:
             m->ext_rep = ext_rep;
@@ -158,12 +160,11 @@ int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
             goto exit;
     }
 
-    switch( int_rep )
-    {
+    switch (int_rep) {
         case MBEDTLS_MPI_MOD_REP_MONTGOMERY:
             m->int_rep = int_rep;
-            m->rep.mont.mm = mbedtls_mpi_core_montmul_init( m->p );
-            ret = set_mont_const_square( &m->rep.mont.rr, m->p, m->limbs );
+            m->rep.mont.mm = mbedtls_mpi_core_montmul_init(m->p);
+            ret = set_mont_const_square(&m->rep.mont.rr, m->p, m->limbs);
             break;
         case MBEDTLS_MPI_MOD_REP_OPT_RED:
             m->int_rep = int_rep;
@@ -176,12 +177,11 @@ int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
 
 exit:
 
-    if( ret != 0 )
-    {
-        mbedtls_mpi_mod_modulus_free( m );
+    if (ret != 0) {
+        mbedtls_mpi_mod_modulus_free(m);
     }
 
-    return( ret );
+    return ret;
 }
 
 /* BEGIN MERGE SLOT 1 */

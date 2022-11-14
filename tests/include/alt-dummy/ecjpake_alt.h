@@ -19,8 +19,7 @@
 #ifndef ECJPAKE_ALT_H
 #define ECJPAKE_ALT_H
 
-typedef struct mbedtls_ecjpake_context
-{
+typedef struct mbedtls_ecjpake_context {
     int dummy;
 } mbedtls_ecjpake_context;
 

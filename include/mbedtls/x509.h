@@ -183,22 +183,37 @@
  * Those are defined in oid.h as oid.c needs them in a data structure. Since
  * these were previously defined here, let's have aliases for compatibility.
  */
-#define MBEDTLS_X509_EXT_AUTHORITY_KEY_IDENTIFIER MBEDTLS_OID_X509_EXT_AUTHORITY_KEY_IDENTIFIER
-#define MBEDTLS_X509_EXT_SUBJECT_KEY_IDENTIFIER   MBEDTLS_OID_X509_EXT_SUBJECT_KEY_IDENTIFIER
+#define MBEDTLS_X509_EXT_AUTHORITY_KEY_IDENTIFIER \
+    MBEDTLS_OID_X509_EXT_AUTHORITY_KEY_IDENTIFIER
+#define MBEDTLS_X509_EXT_SUBJECT_KEY_IDENTIFIER   \
+    MBEDTLS_OID_X509_EXT_SUBJECT_KEY_IDENTIFIER
 #define MBEDTLS_X509_EXT_KEY_USAGE                MBEDTLS_OID_X509_EXT_KEY_USAGE
-#define MBEDTLS_X509_EXT_CERTIFICATE_POLICIES     MBEDTLS_OID_X509_EXT_CERTIFICATE_POLICIES
-#define MBEDTLS_X509_EXT_POLICY_MAPPINGS          MBEDTLS_OID_X509_EXT_POLICY_MAPPINGS
-#define MBEDTLS_X509_EXT_SUBJECT_ALT_NAME         MBEDTLS_OID_X509_EXT_SUBJECT_ALT_NAME         /* Supported (DNS) */
-#define MBEDTLS_X509_EXT_ISSUER_ALT_NAME          MBEDTLS_OID_X509_EXT_ISSUER_ALT_NAME
-#define MBEDTLS_X509_EXT_SUBJECT_DIRECTORY_ATTRS  MBEDTLS_OID_X509_EXT_SUBJECT_DIRECTORY_ATTRS
-#define MBEDTLS_X509_EXT_BASIC_CONSTRAINTS        MBEDTLS_OID_X509_EXT_BASIC_CONSTRAINTS        /* Supported */
-#define MBEDTLS_X509_EXT_NAME_CONSTRAINTS         MBEDTLS_OID_X509_EXT_NAME_CONSTRAINTS
-#define MBEDTLS_X509_EXT_POLICY_CONSTRAINTS       MBEDTLS_OID_X509_EXT_POLICY_CONSTRAINTS
-#define MBEDTLS_X509_EXT_EXTENDED_KEY_USAGE       MBEDTLS_OID_X509_EXT_EXTENDED_KEY_USAGE
-#define MBEDTLS_X509_EXT_CRL_DISTRIBUTION_POINTS  MBEDTLS_OID_X509_EXT_CRL_DISTRIBUTION_POINTS
-#define MBEDTLS_X509_EXT_INIHIBIT_ANYPOLICY       MBEDTLS_OID_X509_EXT_INIHIBIT_ANYPOLICY
-#define MBEDTLS_X509_EXT_FRESHEST_CRL             MBEDTLS_OID_X509_EXT_FRESHEST_CRL
-#define MBEDTLS_X509_EXT_NS_CERT_TYPE             MBEDTLS_OID_X509_EXT_NS_CERT_TYPE
+#define MBEDTLS_X509_EXT_CERTIFICATE_POLICIES     \
+    MBEDTLS_OID_X509_EXT_CERTIFICATE_POLICIES
+#define MBEDTLS_X509_EXT_POLICY_MAPPINGS          \
+    MBEDTLS_OID_X509_EXT_POLICY_MAPPINGS
+#define MBEDTLS_X509_EXT_SUBJECT_ALT_NAME         \
+    MBEDTLS_OID_X509_EXT_SUBJECT_ALT_NAME                                                       /* Supported (DNS) */
+#define MBEDTLS_X509_EXT_ISSUER_ALT_NAME          \
+    MBEDTLS_OID_X509_EXT_ISSUER_ALT_NAME
+#define MBEDTLS_X509_EXT_SUBJECT_DIRECTORY_ATTRS  \
+    MBEDTLS_OID_X509_EXT_SUBJECT_DIRECTORY_ATTRS
+#define MBEDTLS_X509_EXT_BASIC_CONSTRAINTS        \
+    MBEDTLS_OID_X509_EXT_BASIC_CONSTRAINTS                                                      /* Supported */
+#define MBEDTLS_X509_EXT_NAME_CONSTRAINTS         \
+    MBEDTLS_OID_X509_EXT_NAME_CONSTRAINTS
+#define MBEDTLS_X509_EXT_POLICY_CONSTRAINTS       \
+    MBEDTLS_OID_X509_EXT_POLICY_CONSTRAINTS
+#define MBEDTLS_X509_EXT_EXTENDED_KEY_USAGE       \
+    MBEDTLS_OID_X509_EXT_EXTENDED_KEY_USAGE
+#define MBEDTLS_X509_EXT_CRL_DISTRIBUTION_POINTS  \
+    MBEDTLS_OID_X509_EXT_CRL_DISTRIBUTION_POINTS
+#define MBEDTLS_X509_EXT_INIHIBIT_ANYPOLICY       \
+    MBEDTLS_OID_X509_EXT_INIHIBIT_ANYPOLICY
+#define MBEDTLS_X509_EXT_FRESHEST_CRL             \
+    MBEDTLS_OID_X509_EXT_FRESHEST_CRL
+#define MBEDTLS_X509_EXT_NS_CERT_TYPE             \
+    MBEDTLS_OID_X509_EXT_NS_CERT_TYPE
 
 /*
  * Storage format identifiers
@@ -244,8 +259,7 @@ typedef mbedtls_asn1_named_data mbedtls_x509_name;
 typedef mbedtls_asn1_sequence mbedtls_x509_sequence;
 
 /** Container for date and time (precision in seconds). */
-typedef struct mbedtls_x509_time
-{
+typedef struct mbedtls_x509_time {
     int year, mon, day;         /**< Date. */
     int hour, min, sec;         /**< Time. */
 }
@@ -264,7 +278,7 @@ mbedtls_x509_time;
  * \return         The length of the string written (not including the
  *                 terminated nul byte), or a negative error code.
  */
-int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn );
+int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn);
 
 /**
  * \brief          Return the next relative DN in an X509 name.
@@ -277,12 +291,13 @@ int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn );
  * \return         Pointer to the first attribute-value pair of the
  *                 next RDN in sequence, or NULL if end is reached.
  */
-static inline mbedtls_x509_name * mbedtls_x509_dn_get_next(
-    mbedtls_x509_name * dn )
+static inline mbedtls_x509_name *mbedtls_x509_dn_get_next(
+    mbedtls_x509_name *dn)
 {
-    while( dn->MBEDTLS_PRIVATE(next_merged) && dn->next != NULL )
+    while (dn->MBEDTLS_PRIVATE(next_merged) && dn->next != NULL) {
         dn = dn->next;
-    return( dn->next );
+    }
+    return dn->next;
 }
 
 /**
@@ -296,7 +311,9 @@ static inline mbedtls_x509_name * mbedtls_x509_dn_get_next(
  * \return         The length of the string written (not including the
  *                 terminated nul byte), or a negative error code.
  */
-int mbedtls_x509_serial_gets( char *buf, size_t size, const mbedtls_x509_buf *serial );
+int mbedtls_x509_serial_gets(char *buf,
+                             size_t size,
+                             const mbedtls_x509_buf *serial);
 
 /**
  * \brief          Check a given mbedtls_x509_time against the system time
@@ -310,7 +327,7 @@ int mbedtls_x509_serial_gets( char *buf, size_t size, const mbedtls_x509_buf *se
  * \return         1 if the given time is in the past or an error occurred,
  *                 0 otherwise.
  */
-int mbedtls_x509_time_is_past( const mbedtls_x509_time *to );
+int mbedtls_x509_time_is_past(const mbedtls_x509_time *to);
 
 /**
  * \brief          Check a given mbedtls_x509_time against the system time
@@ -324,7 +341,7 @@ int mbedtls_x509_time_is_past( const mbedtls_x509_time *to );
  * \return         1 if the given time is in the future or an error occurred,
  *                 0 otherwise.
  */
-int mbedtls_x509_time_is_future( const mbedtls_x509_time *from );
+int mbedtls_x509_time_is_future(const mbedtls_x509_time *from);
 
 /** \} addtogroup x509_module */
 
@@ -332,53 +349,65 @@ int mbedtls_x509_time_is_future( const mbedtls_x509_time *from );
  * Internal module functions. You probably do not want to use these unless you
  * know you do.
  */
-int mbedtls_x509_get_name( unsigned char **p, const unsigned char *end,
-                   mbedtls_x509_name *cur );
-int mbedtls_x509_get_alg_null( unsigned char **p, const unsigned char *end,
-                       mbedtls_x509_buf *alg );
-int mbedtls_x509_get_alg( unsigned char **p, const unsigned char *end,
-                  mbedtls_x509_buf *alg, mbedtls_x509_buf *params );
+int mbedtls_x509_get_name(unsigned char **p, const unsigned char *end,
+                          mbedtls_x509_name *cur);
+int mbedtls_x509_get_alg_null(unsigned char **p, const unsigned char *end,
+                              mbedtls_x509_buf *alg);
+int mbedtls_x509_get_alg(unsigned char **p, const unsigned char *end,
+                         mbedtls_x509_buf *alg, mbedtls_x509_buf *params);
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
-int mbedtls_x509_get_rsassa_pss_params( const mbedtls_x509_buf *params,
-                                mbedtls_md_type_t *md_alg, mbedtls_md_type_t *mgf_md,
-                                int *salt_len );
+int mbedtls_x509_get_rsassa_pss_params(const mbedtls_x509_buf *params,
+                                       mbedtls_md_type_t *md_alg,
+                                       mbedtls_md_type_t *mgf_md,
+                                       int *salt_len);
 #endif
-int mbedtls_x509_get_sig( unsigned char **p, const unsigned char *end, mbedtls_x509_buf *sig );
-int mbedtls_x509_get_sig_alg( const mbedtls_x509_buf *sig_oid, const mbedtls_x509_buf *sig_params,
-                      mbedtls_md_type_t *md_alg, mbedtls_pk_type_t *pk_alg,
-                      void **sig_opts );
-int mbedtls_x509_get_time( unsigned char **p, const unsigned char *end,
-                   mbedtls_x509_time *t );
-int mbedtls_x509_get_serial( unsigned char **p, const unsigned char *end,
-                     mbedtls_x509_buf *serial );
-int mbedtls_x509_get_ext( unsigned char **p, const unsigned char *end,
-                  mbedtls_x509_buf *ext, int tag );
+int mbedtls_x509_get_sig(unsigned char **p,
+                         const unsigned char *end,
+                         mbedtls_x509_buf *sig);
+int mbedtls_x509_get_sig_alg(const mbedtls_x509_buf *sig_oid,
+                             const mbedtls_x509_buf *sig_params,
+                             mbedtls_md_type_t *md_alg,
+                             mbedtls_pk_type_t *pk_alg,
+                             void **sig_opts);
+int mbedtls_x509_get_time(unsigned char **p, const unsigned char *end,
+                          mbedtls_x509_time *t);
+int mbedtls_x509_get_serial(unsigned char **p, const unsigned char *end,
+                            mbedtls_x509_buf *serial);
+int mbedtls_x509_get_ext(unsigned char **p, const unsigned char *end,
+                         mbedtls_x509_buf *ext, int tag);
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
-int mbedtls_x509_sig_alg_gets( char *buf, size_t size, const mbedtls_x509_buf *sig_oid,
-                       mbedtls_pk_type_t pk_alg, mbedtls_md_type_t md_alg,
-                       const void *sig_opts );
+int mbedtls_x509_sig_alg_gets(char *buf,
+                              size_t size,
+                              const mbedtls_x509_buf *sig_oid,
+                              mbedtls_pk_type_t pk_alg,
+                              mbedtls_md_type_t md_alg,
+                              const void *sig_opts);
 #endif
-int mbedtls_x509_key_size_helper( char *buf, size_t buf_size, const char *name );
-int mbedtls_x509_string_to_names( mbedtls_asn1_named_data **head, const char *name );
-int mbedtls_x509_set_extension( mbedtls_asn1_named_data **head, const char *oid, size_t oid_len,
-                        int critical, const unsigned char *val,
-                        size_t val_len );
-int mbedtls_x509_write_extensions( unsigned char **p, unsigned char *start,
-                           mbedtls_asn1_named_data *first );
-int mbedtls_x509_write_names( unsigned char **p, unsigned char *start,
-                      mbedtls_asn1_named_data *first );
-int mbedtls_x509_write_sig( unsigned char **p, unsigned char *start,
-                    const char *oid, size_t oid_len,
-                    unsigned char *sig, size_t size );
+int mbedtls_x509_key_size_helper(char *buf, size_t buf_size, const char *name);
+int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head,
+                                 const char *name);
+int mbedtls_x509_set_extension(mbedtls_asn1_named_data **head,
+                               const char *oid,
+                               size_t oid_len,
+                               int critical,
+                               const unsigned char *val,
+                               size_t val_len);
+int mbedtls_x509_write_extensions(unsigned char **p, unsigned char *start,
+                                  mbedtls_asn1_named_data *first);
+int mbedtls_x509_write_names(unsigned char **p, unsigned char *start,
+                             mbedtls_asn1_named_data *first);
+int mbedtls_x509_write_sig(unsigned char **p, unsigned char *start,
+                           const char *oid, size_t oid_len,
+                           unsigned char *sig, size_t size);
 
 #define MBEDTLS_X509_SAFE_SNPRINTF                          \
     do {                                                    \
-        if( ret < 0 || (size_t) ret >= n )                  \
-            return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );    \
-                                                            \
-        n -= (size_t) ret;                                  \
-        p += (size_t) ret;                                  \
-    } while( 0 )
+        if (ret < 0 || (size_t)ret >= n)                  \
+        return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;    \
+                                                          \
+        n -= (size_t)ret;                                  \
+        p += (size_t)ret;                                  \
+    } while (0)
 
 #ifdef __cplusplus
 }

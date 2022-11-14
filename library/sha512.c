@@ -42,22 +42,22 @@
 
 #if defined(__aarch64__)
 #  if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT) || \
-      defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY)
+    defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY)
 #    include <arm_neon.h>
 #  endif
 #  if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT)
 #    if defined(__unix__)
 #      if defined(__linux__)
-         /* Our preferred method of detection is getauxval() */
+/* Our preferred method of detection is getauxval() */
 #        include <sys/auxv.h>
 #      endif
-       /* Use SIGILL on Unix, and fall back to it on Linux */
+/* Use SIGILL on Unix, and fall back to it on Linux */
 #      include <signal.h>
 #    endif
 #  endif
 #elif defined(_M_ARM64)
 #  if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT) || \
-      defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY)
+    defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY)
 #    include <arm64_neon.h>
 #  endif
 #else
@@ -71,22 +71,22 @@
  * MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT if no detection mechanism found
  */
 #if defined(HWCAP_SHA512)
-static int mbedtls_a64_crypto_sha512_determine_support( void )
+static int mbedtls_a64_crypto_sha512_determine_support(void)
 {
-    return( ( getauxval( AT_HWCAP ) & HWCAP_SHA512 ) ? 1 : 0 );
+    return (getauxval(AT_HWCAP) & HWCAP_SHA512) ? 1 : 0;
 }
 #elif defined(__APPLE__)
 #include <sys/types.h>
 #include <sys/sysctl.h>
 
-static int mbedtls_a64_crypto_sha512_determine_support( void )
+static int mbedtls_a64_crypto_sha512_determine_support(void)
 {
     int value = 0;
     size_t value_len = sizeof(value);
 
-    int ret = sysctlbyname( "hw.optional.armv8_2_sha512", &value, &value_len,
-                            NULL, 0 );
-    return( ret == 0 && value != 0 );
+    int ret = sysctlbyname("hw.optional.armv8_2_sha512", &value, &value_len,
+                           NULL, 0);
+    return ret == 0 && value != 0;
 }
 #elif defined(_M_ARM64)
 /*

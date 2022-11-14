@@ -42,11 +42,15 @@
 /* Currently only defined for SHA256, 32 is the max hash output size */
 #define MBEDTLS_LMOTS_N_HASH_LEN_MAX           (32u)
 #define MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT_MAX    (34u)
-#define MBEDTLS_LMOTS_N_HASH_LEN(type)         ((type) == MBEDTLS_LMOTS_SHA256_N32_W8 ? 32u : 0)
+#define MBEDTLS_LMOTS_N_HASH_LEN(type)         ((type) == \
+                                                MBEDTLS_LMOTS_SHA256_N32_W8 ? \
+                                                32u : 0)
 #define MBEDTLS_LMOTS_I_KEY_ID_LEN             (16u)
 #define MBEDTLS_LMOTS_Q_LEAF_ID_LEN            (4u)
 #define MBEDTLS_LMOTS_TYPE_LEN                 (4u)
-#define MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT(type)  ((type) == MBEDTLS_LMOTS_SHA256_N32_W8 ? 34u : 0)
+#define MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT(type)  ((type) == \
+                                                MBEDTLS_LMOTS_SHA256_N32_W8 ? \
+                                                34u : 0)
 #define MBEDTLS_LMOTS_C_RANDOM_VALUE_LEN(type) (MBEDTLS_LMOTS_N_HASH_LEN(type))
 
 #define MBEDTLS_LMOTS_SIG_LEN(type) (MBEDTLS_LMOTS_TYPE_LEN + \
@@ -56,12 +60,14 @@
 
 
 #define MBEDTLS_LMS_TYPE_LEN            (4)
-#define MBEDTLS_LMS_H_TREE_HEIGHT(type) ((type) == MBEDTLS_LMS_SHA256_M32_H10 ? 10u : 0)
+#define MBEDTLS_LMS_H_TREE_HEIGHT(type) ((type) == \
+                                         MBEDTLS_LMS_SHA256_M32_H10 ? 10u : 0)
 
 /* The length of a hash output, Currently only imlemented for SHA256.
  * Max is 32 bytes.
  */
-#define MBEDTLS_LMS_M_NODE_BYTES(type) ((type) == MBEDTLS_LMS_SHA256_M32_H10 ? 32 : 0)
+#define MBEDTLS_LMS_M_NODE_BYTES(type) ((type) == \
+                                        MBEDTLS_LMS_SHA256_M32_H10 ? 32 : 0)
 #define MBEDTLS_LMS_M_NODE_BYTES_MAX 32
 
 #define MBEDTLS_LMS_SIG_LEN(type, otstype) (MBEDTLS_LMOTS_Q_LEAF_ID_LEN + \
@@ -104,10 +110,11 @@ typedef enum {
  */
 typedef struct {
     unsigned char MBEDTLS_PRIVATE(I_key_identifier[MBEDTLS_LMOTS_I_KEY_ID_LEN]); /*!< The key
-                                                     identifier. */
-    unsigned char MBEDTLS_PRIVATE(q_leaf_identifier[MBEDTLS_LMOTS_Q_LEAF_ID_LEN]); /*!< Which
-                                                      leaf of the LMS key this is.
-                                                      0 if the key is not part of an LMS key. */
+                                                                                    identifier. */
+    unsigned char MBEDTLS_PRIVATE(
+        q_leaf_identifier[MBEDTLS_LMOTS_Q_LEAF_ID_LEN]);                           /*!< Which
+                                                                                      leaf of the LMS key this is.
+                                                                                      0 if the key is not part of an LMS key. */
     mbedtls_lmots_algorithm_type_t MBEDTLS_PRIVATE(type); /*!< The LM-OTS key type identifier as
                                                                per IANA. Only SHA256_N32_W8 is
                                                                currently supported. */
@@ -134,7 +141,7 @@ typedef struct {
     mbedtls_lmots_parameters_t MBEDTLS_PRIVATE(params);
     unsigned char MBEDTLS_PRIVATE(public_key)[MBEDTLS_LMOTS_N_HASH_LEN_MAX];
     unsigned char MBEDTLS_PRIVATE(have_public_key); /*!< Whether the context contains a public key.
-                                                     Boolean values only. */
+                                                       Boolean values only. */
 } mbedtls_lmots_public_t;
 
 #if defined(MBEDTLS_LMS_PRIVATE)
@@ -157,9 +164,10 @@ typedef struct {
  */
 typedef struct {
     mbedtls_lmots_parameters_t MBEDTLS_PRIVATE(params);
-    unsigned char MBEDTLS_PRIVATE(private_key)[MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT_MAX][MBEDTLS_LMOTS_N_HASH_LEN_MAX];
+    unsigned char MBEDTLS_PRIVATE(private_key)[
+        MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT_MAX][MBEDTLS_LMOTS_N_HASH_LEN_MAX];
     unsigned char MBEDTLS_PRIVATE(have_private_key); /*!< Whether the context contains a private key.
-                                                     Boolean values only. */
+                                                        Boolean values only. */
 } mbedtls_lmots_private_t;
 #endif /* defined(MBEDTLS_LMS_PRIVATE) */
 
@@ -171,10 +179,10 @@ typedef struct {
  */
 typedef struct {
     unsigned char MBEDTLS_PRIVATE(I_key_identifier[MBEDTLS_LMOTS_I_KEY_ID_LEN]); /*!< The key
-                                                     identifier. */
+                                                                                    identifier. */
     mbedtls_lmots_algorithm_type_t MBEDTLS_PRIVATE(otstype); /*!< The LM-OTS key type identifier as
-                                                               per IANA. Only SHA256_N32_W8 is
-                                                               currently supported. */
+                                                                per IANA. Only SHA256_N32_W8 is
+                                                                currently supported. */
     mbedtls_lms_algorithm_type_t MBEDTLS_PRIVATE(type); /*!< The LMS key type identifier as per
                                                              IANA. Only SHA256_M32_H10 is currently
                                                              supported. */
@@ -182,7 +190,7 @@ typedef struct {
 
 /** LMS public context structure.
  *
- *A LMS public key is the hash output that is the root of the Merkle tree, and
+ * A LMS public key is the hash output that is the root of the Merkle tree, and
  * the applicable parameter set
  *
  * The context must be initialized before it is used. A public key must either
@@ -201,9 +209,9 @@ typedef struct {
 typedef struct {
     mbedtls_lms_parameters_t MBEDTLS_PRIVATE(params);
     unsigned char MBEDTLS_PRIVATE(T_1_pub_key)[MBEDTLS_LMS_M_NODE_BYTES_MAX]; /*!< The public key, in
-                                                     the form of the Merkle tree root node. */
+                                                                                 the form of the Merkle tree root node. */
     unsigned char MBEDTLS_PRIVATE(have_public_key); /*!< Whether the context contains a public key.
-                                                     Boolean values only. */
+                                                       Boolean values only. */
 } mbedtls_lms_public_t;
 
 
@@ -229,9 +237,9 @@ typedef struct {
     uint32_t MBEDTLS_PRIVATE(q_next_usable_key); /*!< The index of the next OTS key that has not
                                                       been used. */
     mbedtls_lmots_private_t *MBEDTLS_PRIVATE(ots_private_keys); /*!< The private key material. One OTS key
-                                                              for each leaf node in the Merkle tree. NULL
-                                                              when have_private_key is 0 and non-NULL otherwise.
-                                                              is 2^MBEDTLS_LMS_H_TREE_HEIGHT(type) in length. */
+                                                                   for each leaf node in the Merkle tree. NULL
+                                                                   when have_private_key is 0 and non-NULL otherwise.
+                                                                   is 2^MBEDTLS_LMS_H_TREE_HEIGHT(type) in length. */
     mbedtls_lmots_public_t *MBEDTLS_PRIVATE(ots_public_keys); /*!< The OTS key public keys, used to
                                                                    build the Merkle tree. NULL
                                                                    when have_private_key is 0 and
@@ -239,7 +247,7 @@ typedef struct {
                                                                    Is 2^MBEDTLS_LMS_H_TREE_HEIGHT(type)
                                                                    in length. */
     unsigned char MBEDTLS_PRIVATE(have_private_key); /*!< Whether the context contains a private key.
-                                                     Boolean values only. */
+                                                        Boolean values only. */
 } mbedtls_lms_private_t;
 #endif /* defined(MBEDTLS_LMS_PRIVATE) */
 
@@ -249,7 +257,7 @@ typedef struct {
  * \param ctx                The uninitialized LMS context that will then be
  *                           initialized.
  */
-void mbedtls_lms_public_init( mbedtls_lms_public_t *ctx );
+void mbedtls_lms_public_init(mbedtls_lms_public_t *ctx);
 
 /**
  * \brief                    This function uninitializes an LMS public context
@@ -257,7 +265,7 @@ void mbedtls_lms_public_init( mbedtls_lms_public_t *ctx );
  * \param ctx                The initialized LMS context that will then be
  *                           uninitialized.
  */
-void mbedtls_lms_public_free( mbedtls_lms_public_t *ctx );
+void mbedtls_lms_public_free(mbedtls_lms_public_t *ctx);
 
 /**
  * \brief                    This function imports an LMS public key into a
@@ -278,8 +286,8 @@ void mbedtls_lms_public_free( mbedtls_lms_public_t *ctx );
  * \return         \c 0 on success.
  * \return         A non-zero error code on failure.
  */
-int mbedtls_lms_import_public_key( mbedtls_lms_public_t *ctx,
-                                   const unsigned char *key, size_t key_size );
+int mbedtls_lms_import_public_key(mbedtls_lms_public_t *ctx,
+                                  const unsigned char *key, size_t key_size);
 
 /**
  * \brief                    This function exports an LMS public key from a
@@ -304,9 +312,9 @@ int mbedtls_lms_import_public_key( mbedtls_lms_public_t *ctx,
  * \return         \c 0 on success.
  * \return         A non-zero error code on failure.
  */
-int mbedtls_lms_export_public_key( const mbedtls_lms_public_t *ctx,
-                                   unsigned char *key, size_t key_size,
-                                   size_t *key_len );
+int mbedtls_lms_export_public_key(const mbedtls_lms_public_t *ctx,
+                                  unsigned char *key, size_t key_size,
+                                  size_t *key_len);
 
 /**
  * \brief                    This function verifies a LMS signature, using a
@@ -328,9 +336,9 @@ int mbedtls_lms_export_public_key( const mbedtls_lms_public_t *ctx,
  * \return         \c 0 on successful verification.
  * \return         A non-zero error code on failure.
  */
-int mbedtls_lms_verify( const mbedtls_lms_public_t *ctx,
-                        const unsigned char *msg, size_t msg_size,
-                        const unsigned char *sig, size_t sig_size );
+int mbedtls_lms_verify(const mbedtls_lms_public_t *ctx,
+                       const unsigned char *msg, size_t msg_size,
+                       const unsigned char *sig, size_t sig_size);
 
 #if defined(MBEDTLS_LMS_PRIVATE)
 /**
@@ -338,7 +346,7 @@ int mbedtls_lms_verify( const mbedtls_lms_public_t *ctx,
  *
  * \param ctx                The uninitialized LMS private context that will
  *                           then be initialized. */
-void mbedtls_lms_private_init( mbedtls_lms_private_t *ctx );
+void mbedtls_lms_private_init(mbedtls_lms_private_t *ctx);
 
 /**
  * \brief                    This function uninitializes an LMS private context
@@ -346,7 +354,7 @@ void mbedtls_lms_private_init( mbedtls_lms_private_t *ctx );
  * \param ctx                The initialized LMS private context that will then
  *                           be uninitialized.
  */
-void mbedtls_lms_private_free( mbedtls_lms_private_t *ctx );
+void mbedtls_lms_private_free(mbedtls_lms_private_t *ctx);
 
 /**
  * \brief                    This function generates an LMS private key, and
@@ -372,12 +380,14 @@ void mbedtls_lms_private_free( mbedtls_lms_private_t *ctx );
  * \return         \c 0 on success.
  * \return         A non-zero error code on failure.
  */
-int mbedtls_lms_generate_private_key( mbedtls_lms_private_t *ctx,
-                                      mbedtls_lms_algorithm_type_t type,
-                                      mbedtls_lmots_algorithm_type_t otstype,
-                                      int (*f_rng)(void *, unsigned char *, size_t),
-                                      void* p_rng, const unsigned char *seed,
-                                      size_t seed_size );
+int mbedtls_lms_generate_private_key(mbedtls_lms_private_t *ctx,
+                                     mbedtls_lms_algorithm_type_t type,
+                                     mbedtls_lmots_algorithm_type_t otstype,
+                                     int (*f_rng)(void *,
+                                                  unsigned char *,
+                                                  size_t),
+                                     void *p_rng, const unsigned char *seed,
+                                     size_t seed_size);
 
 /**
  * \brief                    This function calculates an LMS public key from a
@@ -397,8 +407,8 @@ int mbedtls_lms_generate_private_key( mbedtls_lms_private_t *ctx,
  * \return         \c 0 on success.
  * \return         A non-zero error code on failure.
  */
-int mbedtls_lms_calculate_public_key( mbedtls_lms_public_t *ctx,
-                                      const mbedtls_lms_private_t *priv_ctx );
+int mbedtls_lms_calculate_public_key(mbedtls_lms_public_t *ctx,
+                                     const mbedtls_lms_private_t *priv_ctx);
 
 /**
  * \brief                    This function creates a LMS signature, using a
@@ -437,11 +447,11 @@ int mbedtls_lms_calculate_public_key( mbedtls_lms_public_t *ctx,
  * \return         \c 0 on success.
  * \return         A non-zero error code on failure.
  */
-int mbedtls_lms_sign( mbedtls_lms_private_t *ctx,
-                      int (*f_rng)(void *, unsigned char *, size_t),
-                      void* p_rng, const unsigned char *msg,
-                      unsigned int msg_size, unsigned char *sig, size_t sig_size,
-                      size_t *sig_len );
+int mbedtls_lms_sign(mbedtls_lms_private_t *ctx,
+                     int (*f_rng)(void *, unsigned char *, size_t),
+                     void *p_rng, const unsigned char *msg,
+                     unsigned int msg_size, unsigned char *sig, size_t sig_size,
+                     size_t *sig_len);
 #endif /* defined(MBEDTLS_LMS_PRIVATE) */
 
 #ifdef __cplusplus

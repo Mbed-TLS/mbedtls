@@ -19,8 +19,7 @@
 #ifndef CAMELLIA_ALT_H
 #define CAMELLIA_ALT_H
 
-typedef struct mbedtls_camellia_context
-{
+typedef struct mbedtls_camellia_context {
     int dummy;
 }
 mbedtls_camellia_context;

@@ -19,8 +19,7 @@
 #ifndef RIPEMD160_ALT_H
 #define RIPEMD160_ALT_H
 
-typedef struct mbedtls_ripemd160_context
-{
+typedef struct mbedtls_ripemd160_context {
     int dummy;
 }
 mbedtls_ripemd160_context;

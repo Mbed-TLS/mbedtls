@@ -37,10 +37,10 @@ typedef struct {
 
 #define MBEDTLS_TEST_DRIVER_MAC_INIT { 0, 0, 0 }
 static inline mbedtls_test_driver_mac_hooks_t
-    mbedtls_test_driver_mac_hooks_init( void )
+mbedtls_test_driver_mac_hooks_init(void)
 {
     const mbedtls_test_driver_mac_hooks_t v = MBEDTLS_TEST_DRIVER_MAC_INIT;
-    return( v );
+    return v;
 }
 
 extern mbedtls_test_driver_mac_hooks_t mbedtls_test_driver_mac_hooks;
@@ -54,40 +54,40 @@ psa_status_t mbedtls_test_transparent_mac_compute(
     size_t input_length,
     uint8_t *mac,
     size_t mac_size,
-    size_t *mac_length );
+    size_t *mac_length);
 
 psa_status_t mbedtls_test_transparent_mac_sign_setup(
     mbedtls_transparent_test_driver_mac_operation_t *operation,
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
     size_t key_buffer_size,
-    psa_algorithm_t alg );
+    psa_algorithm_t alg);
 
 psa_status_t mbedtls_test_transparent_mac_verify_setup(
     mbedtls_transparent_test_driver_mac_operation_t *operation,
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
     size_t key_buffer_size,
-    psa_algorithm_t alg );
+    psa_algorithm_t alg);
 
 psa_status_t mbedtls_test_transparent_mac_update(
     mbedtls_transparent_test_driver_mac_operation_t *operation,
     const uint8_t *input,
-    size_t input_length );
+    size_t input_length);
 
 psa_status_t mbedtls_test_transparent_mac_sign_finish(
     mbedtls_transparent_test_driver_mac_operation_t *operation,
     uint8_t *mac,
     size_t mac_size,
-    size_t *mac_length );
+    size_t *mac_length);
 
 psa_status_t mbedtls_test_transparent_mac_verify_finish(
     mbedtls_transparent_test_driver_mac_operation_t *operation,
     const uint8_t *mac,
-    size_t mac_length );
+    size_t mac_length);
 
 psa_status_t mbedtls_test_transparent_mac_abort(
-    mbedtls_transparent_test_driver_mac_operation_t *operation );
+    mbedtls_transparent_test_driver_mac_operation_t *operation);
 
 psa_status_t mbedtls_test_opaque_mac_compute(
     const psa_key_attributes_t *attributes,
@@ -98,40 +98,40 @@ psa_status_t mbedtls_test_opaque_mac_compute(
     size_t input_length,
     uint8_t *mac,
     size_t mac_size,
-    size_t *mac_length );
+    size_t *mac_length);
 
 psa_status_t mbedtls_test_opaque_mac_sign_setup(
     mbedtls_opaque_test_driver_mac_operation_t *operation,
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
     size_t key_buffer_size,
-    psa_algorithm_t alg );
+    psa_algorithm_t alg);
 
 psa_status_t mbedtls_test_opaque_mac_verify_setup(
     mbedtls_opaque_test_driver_mac_operation_t *operation,
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
     size_t key_buffer_size,
-    psa_algorithm_t alg );
+    psa_algorithm_t alg);
 
 psa_status_t mbedtls_test_opaque_mac_update(
     mbedtls_opaque_test_driver_mac_operation_t *operation,
     const uint8_t *input,
-    size_t input_length );
+    size_t input_length);
 
 psa_status_t mbedtls_test_opaque_mac_sign_finish(
     mbedtls_opaque_test_driver_mac_operation_t *operation,
     uint8_t *mac,
     size_t mac_size,
-    size_t *mac_length );
+    size_t *mac_length);
 
 psa_status_t mbedtls_test_opaque_mac_verify_finish(
     mbedtls_opaque_test_driver_mac_operation_t *operation,
     const uint8_t *mac,
-    size_t mac_length );
+    size_t mac_length);
 
 psa_status_t mbedtls_test_opaque_mac_abort(
-    mbedtls_opaque_test_driver_mac_operation_t *operation );
+    mbedtls_opaque_test_driver_mac_operation_t *operation);
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_TEST_DRIVERS_MAC_H */

@@ -24,8 +24,7 @@
 #include "mbedtls/legacy_or_psa.h"
 #include "mbedtls/error.h"
 
-typedef struct
-{
+typedef struct {
     psa_algorithm_t psa_alg;
     mbedtls_md_type_t md_type;
     unsigned char size;
@@ -58,12 +57,11 @@ static const hash_entry hash_table[] = {
 };
 
 /* Get size from MD type */
-unsigned char mbedtls_hash_info_get_size( mbedtls_md_type_t md_type )
+unsigned char mbedtls_hash_info_get_size(mbedtls_md_type_t md_type)
 {
     const hash_entry *entry = hash_table;
-    while( entry->md_type != MBEDTLS_MD_NONE &&
-           entry->md_type != md_type )
-    {
+    while (entry->md_type != MBEDTLS_MD_NONE &&
+           entry->md_type != md_type) {
         entry++;
     }
 
@@ -71,12 +69,11 @@ unsigned char mbedtls_hash_info_get_size( mbedtls_md_type_t md_type )
 }
 
 /* Get block size from MD type */
-unsigned char mbedtls_hash_info_get_block_size( mbedtls_md_type_t md_type )
+unsigned char mbedtls_hash_info_get_block_size(mbedtls_md_type_t md_type)
 {
     const hash_entry *entry = hash_table;
-    while( entry->md_type != MBEDTLS_MD_NONE &&
-           entry->md_type != md_type )
-    {
+    while (entry->md_type != MBEDTLS_MD_NONE &&
+           entry->md_type != md_type) {
         entry++;
     }
 
@@ -84,12 +81,11 @@ unsigned char mbedtls_hash_info_get_block_size( mbedtls_md_type_t md_type )
 }
 
 /* Get PSA from MD */
-psa_algorithm_t mbedtls_hash_info_psa_from_md( mbedtls_md_type_t md_type )
+psa_algorithm_t mbedtls_hash_info_psa_from_md(mbedtls_md_type_t md_type)
 {
     const hash_entry *entry = hash_table;
-    while( entry->md_type != MBEDTLS_MD_NONE &&
-           entry->md_type != md_type )
-    {
+    while (entry->md_type != MBEDTLS_MD_NONE &&
+           entry->md_type != md_type) {
         entry++;
     }
 
@@ -97,31 +93,29 @@ psa_algorithm_t mbedtls_hash_info_psa_from_md( mbedtls_md_type_t md_type )
 }
 
 /* Get MD from PSA */
-mbedtls_md_type_t mbedtls_hash_info_md_from_psa( psa_algorithm_t psa_alg )
+mbedtls_md_type_t mbedtls_hash_info_md_from_psa(psa_algorithm_t psa_alg)
 {
     const hash_entry *entry = hash_table;
-    while( entry->md_type != MBEDTLS_MD_NONE &&
-           entry->psa_alg != psa_alg )
-    {
+    while (entry->md_type != MBEDTLS_MD_NONE &&
+           entry->psa_alg != psa_alg) {
         entry++;
     }
 
     return entry->md_type;
 }
 
-int mbedtls_md_error_from_psa( psa_status_t status )
+int mbedtls_md_error_from_psa(psa_status_t status)
 {
-    switch( status )
-    {
+    switch (status) {
         case PSA_SUCCESS:
-            return( 0 );
+            return 0;
         case PSA_ERROR_NOT_SUPPORTED:
-            return( MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE );
+            return MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE;
         case PSA_ERROR_INVALID_ARGUMENT:
-            return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+            return MBEDTLS_ERR_MD_BAD_INPUT_DATA;
         case PSA_ERROR_INSUFFICIENT_MEMORY:
-            return( MBEDTLS_ERR_MD_ALLOC_FAILED );
+            return MBEDTLS_ERR_MD_ALLOC_FAILED;
         default:
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+            return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
 }

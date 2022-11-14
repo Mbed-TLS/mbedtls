@@ -8,14 +8,14 @@
  */
 
 /* BEGIN_CASE */
-void error_strerror( int code, char * result_str )
+void error_strerror(int code, char *result_str)
 {
     char buf[500];
 
-    memset( buf, 0, sizeof( buf ) );
+    memset(buf, 0, sizeof(buf));
 
-    mbedtls_strerror( code, buf, 500 );
+    mbedtls_strerror(code, buf, 500);
 
-    TEST_ASSERT( strcmp( buf, result_str ) == 0 );
+    TEST_ASSERT(strcmp(buf, result_str) == 0);
 }
 /* END_CASE */

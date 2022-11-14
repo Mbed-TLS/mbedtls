@@ -60,7 +60,7 @@ def analyze_coverage(results, outcomes):
             # fixed this branch to have full coverage of test cases.
             results.warning('Test case not executed: {}', key)
 
-def analyze_driver_vs_reference(outcomes, component_ref,component_driver, ignored_tests):
+def analyze_driver_vs_reference(outcomes, component_ref, component_driver, ignored_tests):
     """Check that all tests executed in the reference component are also
     executed in the corresponding driver component.
     Skip test suites provided in ignored_tests list.
@@ -143,12 +143,14 @@ TASKS = {
         'args': {
             'component_ref': 'test_psa_crypto_config_reference_hash_use_psa',
             'component_driver': 'test_psa_crypto_config_accel_hash_use_psa',
-            'ignored_suites': ['shax','mdx', # the software implementations that are being excluded
+            'ignored_suites': ['shax', 'mdx', # the software implementations that are being excluded
                                'md',  # the legacy abstraction layer that's being excluded
-                               'entropy','hmac_drbg','random', # temporary limitation (see RNG EPIC)
+                               'entropy', 'hmac_drbg', 'random', # temporary limitation
+                                                                 # (see RNG EPIC)
                                'psa_crypto_init', # doesn't work with external RNG
-                               'hkdf', # legacy still depends on MD, but there's a PSA interface that doesn't
-                               'pkcs7 '  # recent addition, will be addressed later
+                               'hkdf', # legacy still depends on MD,
+                                       # but there's a PSA interface that doesn't
+                               'pkcs7' # recent addition, will be addressed later
                               ]}}
 }
 

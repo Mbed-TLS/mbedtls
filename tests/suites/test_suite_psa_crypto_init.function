@@ -20,6 +20,82 @@ exit:
     return( 0 );
 }
 
+/* Assume that the key store is initialized, but the random generator is not.
+ * Check that a cipher mechanism with IV behaves as expected. */
+static int test_symmetric_key_without_random( psa_key_type_t key_type,
+                                              psa_algorithm_t alg )
+{
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    int ok = 0;
+
+    psa_set_key_type( &attributes, key_type );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_usage_flags( &attributes,
+                             PSA_KEY_USAGE_ENCRYPT |
+                             PSA_KEY_USAGE_DECRYPT );
+    const uint8_t key_data[32] = "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK";
+    PSA_ASSERT( psa_import_key( &attributes,
+                                key_data, sizeof( key_data ),
+                                &key ) );
+
+    uint8_t plaintext[16] = "This is a sample";
+    uint8_t ciphertext[32] = "[[[[IV  here]]]]CIPHERTEXT!";
+    size_t length;
+    PSA_ASSERT( psa_cipher_decrypt( key, alg,
+                                    ciphertext, sizeof( ciphertext ),
+                                    plaintext, sizeof( plaintext ),
+                                    &length ) );
+
+    /* Should fail to generate an IV */
+    TEST_EQUAL( PSA_ERROR_BAD_STATE,
+                psa_cipher_encrypt( key, alg,
+                                    plaintext, sizeof( plaintext ),
+                                    ciphertext, sizeof( ciphertext ),
+                                    &length ) );
+
+    PSA_ASSERT( psa_destroy_key( key ) );
+    psa_reset_key_attributes( &attributes );
+
+    ok = 1;
+
+exit:
+    psa_reset_key_attributes( &attributes );
+    psa_destroy_key( key );
+    return( ok );
+}
+
+/* Assume that the key store is initialized, but the random generator is not.
+ * Check that various cryptographic operations behave as expected.
+ *
+ * This function currently covers a representative set of algorithms.
+ * It does not attempt systematic coverage.
+ */
+static int test_with_keys_without_random( void )
+{
+    /* IV generation requires random, but decryption doesn't. */
+#if defined(PSA_WANT_KEY_TYPE_AES) && defined(PSA_WANT_ALG_CTR)
+    if( ! test_symmetric_key_without_random( PSA_KEY_TYPE_AES,
+                                             PSA_ALG_CTR ) )
+        return( 0 );
+#endif
+#if defined(PSA_WANT_KEY_TYPE_CAMELLIA) && defined(PSA_WANT_ALG_CTR)
+    if( ! test_symmetric_key_without_random( PSA_KEY_TYPE_CAMELLIA,
+                                             PSA_ALG_CTR ) )
+        return( 0 );
+#endif
+    /* Don't bother figuring out exactly in which configurations the function
+     * is unused. */
+    (void) test_symmetric_key_without_random;
+
+    /* TODO: check that signature verification is possible. */
+    /* TODO: check that signing with a built-in implementation that uses
+     * blinding is rejected. */
+    /* TODO: check that asymmetric encryption is rejected. */
+
+    return( 1 );
+}
+
 /* Check that the availability of API functions is coherent with
  * the claims from mbedtls_psa_crypto_is_subsystem_initialized(). */
 static int subsystems_are_coherent( void )
@@ -90,8 +166,14 @@ static int subsystems_are_coherent( void )
     {
         TEST_EQUAL( psa_generate_random( rnd1, sizeof( rnd1 ) ),
                     PSA_ERROR_BAD_STATE );
-        TEST_EQUAL( psa_generate_key( &attributes, &key ),
-                    PSA_ERROR_BAD_STATE );
+        if( mbedtls_psa_crypto_is_subsystem_initialized(
+                PSA_CRYPTO_SUBSYSTEM_KEYS ) )
+        {
+            TEST_EQUAL( psa_generate_key( &attributes, &key ),
+                        PSA_ERROR_BAD_STATE );
+            if( ! test_with_keys_without_random( ) )
+                goto exit;
+        }
     }
     psa_reset_key_attributes( &attributes );
 

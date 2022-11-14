@@ -1,0 +1,6 @@
+Features
+    * Brought in PSA code geneneration JSON driver list.
+      Added auto generated templating support for key management.
+      Added Support for transparent and opaque keys (import/export/copy).
+      Included some general JSON validation for the given entry points.
+      Addresses version 1.1 of #5137.

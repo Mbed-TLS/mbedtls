@@ -25,12 +25,7 @@
 
 #if defined(MBEDTLS_SSL_COOKIE_C)
 
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
-#define mbedtls_calloc    calloc
-#define mbedtls_free      free
-#endif
 
 #include "mbedtls/ssl_cookie.h"
 #include "ssl_misc.h"
@@ -38,13 +33,13 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/constant_time.h"
 
-#include "legacy_or_psa.h"
+#include "mbedtls/legacy_or_psa.h"
 
 #include <string.h>
 
 /*
- * If DTLS is in use, then at least one of SHA-1, SHA-256, SHA-512 is
- * available. Try SHA-256 first, 512 wastes resources
+ * If DTLS is in use, then at least one of SHA-1, SHA-256, SHA-384 is
+ * available. Try SHA-256 first, 384 wastes resources
  */
 #if defined(MBEDTLS_HAS_ALG_SHA_224_VIA_LOWLEVEL_OR_PSA)
 #define COOKIE_MD           MBEDTLS_MD_SHA224

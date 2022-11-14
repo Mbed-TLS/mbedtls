@@ -30,6 +30,7 @@
 
 #if defined(MBEDTLS_BIGNUM_C)
 #include "mbedtls/bignum.h"
+#include "bignum_core.h"
 #endif
 
 #if defined(MBEDTLS_SSL_TLS_C)
@@ -81,7 +82,7 @@ unsigned mbedtls_ct_uint_mask( unsigned value )
 #endif
 }
 
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 
 size_t mbedtls_ct_size_mask( size_t value )
 {
@@ -97,7 +98,7 @@ size_t mbedtls_ct_size_mask( size_t value )
 #endif
 }
 
-#endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 
 #if defined(MBEDTLS_BIGNUM_C)
 
@@ -404,7 +405,7 @@ static void mbedtls_ct_mem_move_to_left( void *start,
 
 #endif /* MBEDTLS_PKCS1_V15 && MBEDTLS_RSA_C && ! MBEDTLS_RSA_ALT */
 
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 
 void mbedtls_ct_memcpy_if_eq( unsigned char *dest,
                               const unsigned char *src,
@@ -654,7 +655,7 @@ cleanup:
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-#endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 
 #if defined(MBEDTLS_BIGNUM_C)
 
@@ -678,21 +679,19 @@ int mbedtls_mpi_safe_cond_assign( mbedtls_mpi *X,
                                   unsigned char assign )
 {
     int ret = 0;
-    size_t i;
-    mbedtls_mpi_uint limb_mask;
     MPI_VALIDATE_RET( X != NULL );
     MPI_VALIDATE_RET( Y != NULL );
 
     /* all-bits 1 if assign is 1, all-bits 0 if assign is 0 */
-    limb_mask = mbedtls_ct_mpi_uint_mask( assign );;
+    mbedtls_mpi_uint limb_mask = mbedtls_ct_mpi_uint_mask( assign );
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, Y->n ) );
 
     X->s = mbedtls_ct_cond_select_sign( assign, Y->s, X->s );
 
-    mbedtls_ct_mpi_uint_cond_assign( Y->n, X->p, Y->p, assign );
+    mbedtls_mpi_core_cond_assign( X->p, Y->p, Y->n, assign );
 
-    for( i = Y->n; i < X->n; i++ )
+    for( size_t i = Y->n; i < X->n; i++ )
         X->p[i] &= ~limb_mask;
 
 cleanup:
@@ -709,18 +708,13 @@ int mbedtls_mpi_safe_cond_swap( mbedtls_mpi *X,
                                 mbedtls_mpi *Y,
                                 unsigned char swap )
 {
-    int ret, s;
-    size_t i;
-    mbedtls_mpi_uint limb_mask;
-    mbedtls_mpi_uint tmp;
+    int ret = 0;
+    int s;
     MPI_VALIDATE_RET( X != NULL );
     MPI_VALIDATE_RET( Y != NULL );
 
     if( X == Y )
         return( 0 );
-
-    /* all-bits 1 if swap is 1, all-bits 0 if swap is 0 */
-    limb_mask = mbedtls_ct_mpi_uint_mask( swap );
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, Y->n ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( Y, X->n ) );
@@ -729,13 +723,7 @@ int mbedtls_mpi_safe_cond_swap( mbedtls_mpi *X,
     X->s = mbedtls_ct_cond_select_sign( swap, Y->s, X->s );
     Y->s = mbedtls_ct_cond_select_sign( swap, s, Y->s );
 
-
-    for( i = 0; i < X->n; i++ )
-    {
-        tmp = X->p[i];
-        X->p[i] = ( X->p[i] & ~limb_mask ) | ( Y->p[i] & limb_mask );
-        Y->p[i] = ( Y->p[i] & ~limb_mask ) | (     tmp & limb_mask );
-    }
+    mbedtls_mpi_core_cond_swap( X->p, Y->p, X->n, swap );
 
 cleanup:
     return( ret );

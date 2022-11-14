@@ -88,7 +88,11 @@ x509_cert_info:"data_files/server5-sha512.crt":"cert. version     \: 3\nserial n
 
 X509 CRT information EC, SHA256 Digest, hardware module name SAN
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA
-x509_cert_info:"data_files/server5-othername.crt":"cert. version     \: 3\nserial number     \: 4D\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS othername SAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS othername SAN\nissued  on        \: 2019-03-24 09\:06\:02\nexpires on        \: 2029-03-21 09\:06\:02\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\nsubject alt name  \:\n    otherName \:\n        hardware module name \:\n            hardware type          \: 1.3.6.1.4.1.17.3\n            hardware serial number \: 123456\n"
+x509_cert_info:"data_files/server5-othername.crt":"cert. version     \: 3\nserial number     \: 4D\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS othername SAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS othername SAN\nissued  on        \: 2019-03-24 09\:06\:02\nexpires on        \: 2029-03-21 09\:06\:02\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\nsubject alt name  \:\n    otherName \:\n        hardware module name \:\n            hardware type          \: 1.3.6.1.4.1.17.3\n            hardware serial number \: 313233343536\n"
+
+X509 CRT information EC, SHA256 Digest, binary hardware module name SAN
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA
+x509_cert_info:"data_files/server5-nonprintable_othername.crt":"cert. version     \: 3\nserial number     \: 4D\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS non-printable othername SAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS non-printable othername SAN\nissued  on        \: 2022-09-06 15\:56\:47\nexpires on        \: 2032-09-03 15\:56\:47\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\nsubject alt name  \:\n    otherName \:\n        hardware module name \:\n            hardware type          \: 1.3.6.1.4.1.17.3\n            hardware serial number \: 3132338081008180333231\n"
 
 X509 CRT information EC, SHA256 Digest, Wisun Fan device
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA
@@ -112,7 +116,7 @@ x509_cert_info:"data_files/cert_example_multi.crt":"cert. version     \: 3\nseri
 
 X509 CRT information, Multiple different Subject Alt Name
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA
-x509_cert_info:"data_files/multiple_san.crt":"cert. version     \: 3\nserial number     \: 04\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS multiple othername SAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS multiple othername SAN\nissued  on        \: 2019-04-22 16\:10\:48\nexpires on        \: 2029-04-19 16\:10\:48\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\nsubject alt name  \:\n    dNSName \: example.com\n    otherName \:\n        hardware module name \:\n            hardware type          \: 1.3.6.1.4.1.17.3\n            hardware serial number \: 123456\n    dNSName \: example.net\n    dNSName \: *.example.org\n"
+x509_cert_info:"data_files/multiple_san.crt":"cert. version     \: 3\nserial number     \: 04\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS multiple othername SAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS multiple othername SAN\nissued  on        \: 2019-04-22 16\:10\:48\nexpires on        \: 2029-04-19 16\:10\:48\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\nsubject alt name  \:\n    dNSName \: example.com\n    otherName \:\n        hardware module name \:\n            hardware type          \: 1.3.6.1.4.1.17.3\n            hardware serial number \: 313233343536\n    dNSName \: example.net\n    dNSName \: *.example.org\n"
 
 X509 CRT information, Subject Alt Name + Key Usage
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA
@@ -172,7 +176,11 @@ x509_cert_info:"data_files/non-ascii-string-in-issuer.crt":"cert. version     \:
 
 X509 SAN parsing otherName
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA
-x509_parse_san:"data_files/server5-othername.crt":"type \: 0\notherName \: hardware module name \: hardware type \: 1.3.6.1.4.1.17.3, hardware serial number \: 123456\n"
+x509_parse_san:"data_files/server5-othername.crt":"type \: 0\notherName \: hardware module name \: hardware type \: 1.3.6.1.4.1.17.3, hardware serial number \: 313233343536\n"
+
+X509 SAN parsing binary otherName
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA
+x509_parse_san:"data_files/server5-nonprintable_othername.crt":"type \: 0\notherName \: hardware module name \: hardware type \: 1.3.6.1.4.1.17.3, hardware serial number \: 3132338081008180333231\n"
 
 X509 SAN parsing dNSName
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA
@@ -180,7 +188,7 @@ x509_parse_san:"data_files/cert_example_multi.crt":"type \: 2\ndNSName \: exampl
 
 X509 SAN parsing  Multiple different types
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA
-x509_parse_san:"data_files/multiple_san.crt":"type \: 2\ndNSName \: example.com\ntype \: 0\notherName \: hardware module name \: hardware type \: 1.3.6.1.4.1.17.3, hardware serial number \: 123456\ntype \: 2\ndNSName \: example.net\ntype \: 2\ndNSName \: *.example.org\n"
+x509_parse_san:"data_files/multiple_san.crt":"type \: 2\ndNSName \: example.com\ntype \: 0\notherName \: hardware module name \: hardware type \: 1.3.6.1.4.1.17.3, hardware serial number \: 313233343536\ntype \: 2\ndNSName \: example.net\ntype \: 2\ndNSName \: *.example.org\n"
 
 X509 SAN parsing, no subject alt name
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_ECDSA_C
@@ -414,6 +422,46 @@ mbedtls_x509_dn_get_next:"C=NL, O=PolarSSL, CN=PolarSSL Server 1":0x03:"C":1:"C=
 
 X509 Get Next DN #4 Consecutive Multivalue RDNs
 mbedtls_x509_dn_get_next:"C=NL, O=PolarSSL, title=Example, CN=PolarSSL Server 1":0x05:"C title":2:"C=NL + O=PolarSSL, title=Example + CN=PolarSSL Server 1"
+
+# Parse the following valid DN:
+#
+# 31 0B <- Set of
+#     30 09 <- Sequence of
+#         06 03 55 04 06 <- OID 2.5.4.6 countryName (C)
+#         13 02 4E 4C <- PrintableString "NL"
+# 31 11 <- Set of
+#     30 0F <- Sequence of
+#         06 03 55 04 0A <- OID 2.5.4.10 organizationName (O)
+#         0C 08 50 6F 6C 61 72 53 53 4C <- UTF8String "PolarSSL"
+# 31 19 <- Set of
+#     30 17 <- Sequence of
+#         06 03 55 04 03 <- OID 2.5.4.3 commonName (CN)
+#         0C 10 50 6F 6C 61 72 53 53 4C 20 54 65 73 74 20 43 41 <- UTF8String "PolarSSL Test CA"
+#
+X509 Get Name Valid DN
+mbedtls_x509_get_name:"310B3009060355040613024E4C3111300F060355040A0C08506F6C617253534C3119301706035504030C10506F6C617253534C2054657374204341":0
+
+# Parse the following corrupted DN:
+#
+# 31 0B <- Set of
+#     30 09 <- Sequence of
+#         06 03 55 04 06 <- OID 2.5.4.6 countryName (C)
+#         13 02 4E 4C <- PrintableString "NL"
+# 31 11 <- Set of
+#     30 0F <- Sequence of
+#         06 03 55 04 0A <- OID 2.5.4.10 organizationName (O)
+#         0C 08 50 6F 6C 61 72 53 53 4C <- UTF8String "PolarSSL"
+# 30 19 <- Sequence of (corrupted)
+#     30 17 <- Sequence of
+#         06 03 55 04 03 <- OID 2.5.4.3 commonName (CN)
+#         0C 10 50 6F 6C 61 72 53 53 4C 20 54 65 73 74 20 43 41 <- UTF8String "PolarSSL Test CA"
+#
+# The third 'Set of' is corrupted to instead be a 'Sequence of', causing an
+# error and forcing mbedtls_x509_get_name() to clean up the names it has
+# already allocated.
+#
+X509 Get Name Corrupted DN Mem Leak
+mbedtls_x509_get_name:"310B3009060355040613024E4C3111300F060355040A0C08506F6C617253534C3019301706035504030C10506F6C617253534C2054657374204341":MBEDTLS_ERR_X509_INVALID_NAME + MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 Time Expired #1
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_HAVE_TIME_DATE:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA

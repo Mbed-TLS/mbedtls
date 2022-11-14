@@ -25,18 +25,13 @@
 
 #include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
+#include "constant_time_internal.h"
 
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
-#include <stdio.h>
-#include <stdlib.h>
-#define mbedtls_printf      printf
-#define mbedtls_calloc      calloc
-#define mbedtls_free        free
-#endif
 
 #include "bignum_core.h"
+#include "bn_mul.h"
+#include "constant_time_internal.h"
 
 size_t mbedtls_mpi_core_clz( mbedtls_mpi_uint a )
 {
@@ -153,9 +148,39 @@ void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *A,
         mbedtls_mpi_uint tmp;
         /* Note that if cur_limb_left == cur_limb_right,
          * this code effectively swaps the bytes only once. */
-        tmp             = mpi_bigendian_to_host( *cur_limb_left  );
+        tmp             = mpi_bigendian_to_host( *cur_limb_left );
         *cur_limb_left  = mpi_bigendian_to_host( *cur_limb_right );
         *cur_limb_right = tmp;
+    }
+}
+
+void mbedtls_mpi_core_cond_assign( mbedtls_mpi_uint *X,
+                                   const mbedtls_mpi_uint *A,
+                                   size_t limbs,
+                                   unsigned char assign )
+{
+    if( X == A )
+        return;
+
+    mbedtls_ct_mpi_uint_cond_assign( limbs, X, A, assign );
+}
+
+void mbedtls_mpi_core_cond_swap( mbedtls_mpi_uint *X,
+                                 mbedtls_mpi_uint *Y,
+                                 size_t limbs,
+                                 unsigned char swap )
+{
+    if( X == Y )
+        return;
+
+    /* all-bits 1 if swap is 1, all-bits 0 if swap is 0 */
+    mbedtls_mpi_uint limb_mask = mbedtls_ct_mpi_uint_mask( swap );
+
+    for( size_t i = 0; i < limbs; i++ )
+    {
+        mbedtls_mpi_uint tmp = X[i];
+        X[i] = ( X[i] & ~limb_mask ) | ( Y[i] & limb_mask );
+        Y[i] = ( Y[i] & ~limb_mask ) | (  tmp & limb_mask );
     }
 }
 
@@ -290,5 +315,309 @@ int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *X,
 
     return( 0 );
 }
+
+void mbedtls_mpi_core_shift_r( mbedtls_mpi_uint *X, size_t limbs,
+                               size_t count )
+{
+    size_t i, v0, v1;
+    mbedtls_mpi_uint r0 = 0, r1;
+
+    v0 = count /  biL;
+    v1 = count & (biL - 1);
+
+    if( v0 > limbs || ( v0 == limbs && v1 > 0 ) )
+    {
+        memset( X, 0, limbs * ciL );
+        return;
+    }
+
+    /*
+     * shift by count / limb_size
+     */
+    if( v0 > 0 )
+    {
+        for( i = 0; i < limbs - v0; i++ )
+            X[i] = X[i + v0];
+
+        for( ; i < limbs; i++ )
+            X[i] = 0;
+    }
+
+    /*
+     * shift by count % limb_size
+     */
+    if( v1 > 0 )
+    {
+        for( i = limbs; i > 0; i-- )
+        {
+            r1 = X[i - 1] << (biL - v1);
+            X[i - 1] >>= v1;
+            X[i - 1] |= r0;
+            r0 = r1;
+        }
+    }
+}
+
+mbedtls_mpi_uint mbedtls_mpi_core_add( mbedtls_mpi_uint *X,
+                                       const mbedtls_mpi_uint *A,
+                                       const mbedtls_mpi_uint *B,
+                                       size_t limbs )
+{
+    mbedtls_mpi_uint c = 0;
+
+    for( size_t i = 0; i < limbs; i++ )
+    {
+        mbedtls_mpi_uint t = c + A[i];
+        c = ( t < A[i] );
+        t += B[i];
+        c += ( t < B[i] );
+        X[i] = t;
+    }
+
+    return( c );
+}
+
+mbedtls_mpi_uint mbedtls_mpi_core_add_if( mbedtls_mpi_uint *X,
+                                          const mbedtls_mpi_uint *A,
+                                          size_t limbs,
+                                          unsigned cond )
+{
+    mbedtls_mpi_uint c = 0;
+
+    /* all-bits 0 if cond is 0, all-bits 1 if cond is non-0 */
+    const mbedtls_mpi_uint mask = mbedtls_ct_mpi_uint_mask( cond );
+
+    for( size_t i = 0; i < limbs; i++ )
+    {
+        mbedtls_mpi_uint add = mask & A[i];
+        mbedtls_mpi_uint t = c + X[i];
+        c = ( t < X[i] );
+        t += add;
+        c += ( t < add );
+        X[i] = t;
+    }
+
+    return( c );
+}
+
+mbedtls_mpi_uint mbedtls_mpi_core_sub( mbedtls_mpi_uint *X,
+                                       const mbedtls_mpi_uint *A,
+                                       const mbedtls_mpi_uint *B,
+                                       size_t limbs )
+{
+    mbedtls_mpi_uint c = 0;
+
+    for( size_t i = 0; i < limbs; i++ )
+    {
+        mbedtls_mpi_uint z = ( A[i] < c );
+        mbedtls_mpi_uint t = A[i] - c;
+        c = ( t < B[i] ) + z;
+        X[i] = t - B[i];
+    }
+
+    return( c );
+}
+
+mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len,
+                                       const mbedtls_mpi_uint *s, size_t s_len,
+                                       mbedtls_mpi_uint b )
+{
+    mbedtls_mpi_uint c = 0; /* carry */
+    /*
+     * It is a documented precondition of this function that d_len >= s_len.
+     * If that's not the case, we swap these round: this turns what would be
+     * a buffer overflow into an incorrect result.
+     */
+    if( d_len < s_len )
+        s_len = d_len;
+    size_t excess_len = d_len - s_len;
+    size_t steps_x8 = s_len / 8;
+    size_t steps_x1 = s_len & 7;
+
+    while( steps_x8-- )
+    {
+        MULADDC_X8_INIT
+        MULADDC_X8_CORE
+        MULADDC_X8_STOP
+    }
+
+    while( steps_x1-- )
+    {
+        MULADDC_X1_INIT
+        MULADDC_X1_CORE
+        MULADDC_X1_STOP
+    }
+
+    while( excess_len-- )
+    {
+        *d += c;
+        c = ( *d < c );
+        d++;
+    }
+
+    return( c );
+}
+
+/*
+ * Fast Montgomery initialization (thanks to Tom St Denis).
+ */
+mbedtls_mpi_uint mbedtls_mpi_core_montmul_init( const mbedtls_mpi_uint *N )
+{
+    mbedtls_mpi_uint x = N[0];
+
+    x += ( ( N[0] + 2 ) & 4 ) << 1;
+
+    for( unsigned int i = biL; i >= 8; i /= 2 )
+        x *= ( 2 - ( N[0] * x ) );
+
+    return( ~x + 1 );
+}
+
+void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
+                               const mbedtls_mpi_uint *A,
+                               const mbedtls_mpi_uint *B,
+                               size_t B_limbs,
+                               const mbedtls_mpi_uint *N,
+                               size_t AN_limbs,
+                               mbedtls_mpi_uint mm,
+                               mbedtls_mpi_uint *T )
+{
+    memset( T, 0, ( 2 * AN_limbs + 1 ) * ciL );
+
+    for( size_t i = 0; i < AN_limbs; i++ )
+    {
+        /* T = (T + u0*B + u1*N) / 2^biL */
+        mbedtls_mpi_uint u0 = A[i];
+        mbedtls_mpi_uint u1 = ( T[0] + u0 * B[0] ) * mm;
+
+        (void) mbedtls_mpi_core_mla( T, AN_limbs + 2, B, B_limbs, u0 );
+        (void) mbedtls_mpi_core_mla( T, AN_limbs + 2, N, AN_limbs, u1 );
+
+        T++;
+    }
+
+    /*
+     * The result we want is (T >= N) ? T - N : T.
+     *
+     * For better constant-time properties in this function, we always do the
+     * subtraction, with the result in X.
+     *
+     * We also look to see if there was any carry in the final additions in the
+     * loop above.
+     */
+
+    mbedtls_mpi_uint carry  = T[AN_limbs];
+    mbedtls_mpi_uint borrow = mbedtls_mpi_core_sub( X, T, N, AN_limbs );
+
+    /*
+     * Using R as the Montgomery radix (auxiliary modulus) i.e. 2^(biL*AN_limbs):
+     *
+     * T can be in one of 3 ranges:
+     *
+     * 1) T < N      : (carry, borrow) = (0, 1): we want T
+     * 2) N <= T < R : (carry, borrow) = (0, 0): we want X
+     * 3) T >= R     : (carry, borrow) = (1, 1): we want X
+     *
+     * and (carry, borrow) = (1, 0) can't happen.
+     *
+     * So the correct return value is already in X if (carry ^ borrow) = 0,
+     * but is in (the lower AN_limbs limbs of) T if (carry ^ borrow) = 1.
+     */
+    mbedtls_ct_mpi_uint_cond_assign( AN_limbs, X, T, (unsigned char) ( carry ^ borrow ) );
+}
+
+int mbedtls_mpi_core_get_mont_r2_unsafe( mbedtls_mpi *X,
+                                         const mbedtls_mpi *N )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( X, 1 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( X, N->n * 2 * biL ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( X, X, N ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_shrink( X, N->n ) );
+
+cleanup:
+    return( ret );
+}
+
+void mbedtls_mpi_core_ct_uint_table_lookup( mbedtls_mpi_uint *dest,
+                                            const mbedtls_mpi_uint *table,
+                                            size_t limbs,
+                                            size_t count,
+                                            size_t index )
+{
+    for( size_t i = 0; i < count; i++, table += limbs )
+    {
+        unsigned char assign = mbedtls_ct_size_bool_eq( i, index );
+        mbedtls_mpi_core_cond_assign( dest, table, limbs, assign );
+    }
+}
+
+/* Fill X with n_bytes random bytes.
+ * X must already have room for those bytes.
+ * The ordering of the bytes returned from the RNG is suitable for
+ * deterministic ECDSA (see RFC 6979 §3.3 and the specification of
+ * mbedtls_mpi_core_random()).
+ */
+int mbedtls_mpi_core_fill_random(
+    mbedtls_mpi_uint *X, size_t X_limbs,
+    size_t n_bytes,
+    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    const size_t limbs = CHARS_TO_LIMBS( n_bytes );
+    const size_t overhead = ( limbs * ciL ) - n_bytes;
+
+    if( X_limbs < limbs )
+        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+
+    memset( X, 0, overhead );
+    memset( (unsigned char *) X + limbs * ciL, 0, ( X_limbs - limbs ) * ciL );
+    MBEDTLS_MPI_CHK( f_rng( p_rng, (unsigned char *) X + overhead, n_bytes ) );
+    mbedtls_mpi_core_bigendian_to_host( X, limbs );
+
+cleanup:
+    return( ret );
+}
+
+/* BEGIN MERGE SLOT 1 */
+
+/* END MERGE SLOT 1 */
+
+/* BEGIN MERGE SLOT 2 */
+
+/* END MERGE SLOT 2 */
+
+/* BEGIN MERGE SLOT 3 */
+
+/* END MERGE SLOT 3 */
+
+/* BEGIN MERGE SLOT 4 */
+
+/* END MERGE SLOT 4 */
+
+/* BEGIN MERGE SLOT 5 */
+
+/* END MERGE SLOT 5 */
+
+/* BEGIN MERGE SLOT 6 */
+
+/* END MERGE SLOT 6 */
+
+/* BEGIN MERGE SLOT 7 */
+
+/* END MERGE SLOT 7 */
+
+/* BEGIN MERGE SLOT 8 */
+
+/* END MERGE SLOT 8 */
+
+/* BEGIN MERGE SLOT 9 */
+
+/* END MERGE SLOT 9 */
+
+/* BEGIN MERGE SLOT 10 */
+
+/* END MERGE SLOT 10 */
 
 #endif /* MBEDTLS_BIGNUM_C */

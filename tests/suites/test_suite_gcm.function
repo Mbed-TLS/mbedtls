@@ -411,7 +411,7 @@ void gcm_encrypt_and_verify_no_ad_no_cipher( int cipher_id,
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:NOT_DEFINED */
+/* BEGIN_CASE */
 void gcm_invalid_param( )
 {
     mbedtls_gcm_context ctx;
@@ -454,7 +454,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
+/* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST:MBEDTLS_AES_C */
 void gcm_selftest(  )
 {
     TEST_ASSERT( mbedtls_gcm_self_test( 1 ) == 0 );

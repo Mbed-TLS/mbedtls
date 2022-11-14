@@ -37,20 +37,7 @@
 #define MBEDTLS_TEST_MUTEX_USAGE
 #endif
 
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
-#include <stdio.h>
-#define mbedtls_fprintf    fprintf
-#define mbedtls_snprintf   snprintf
-#define mbedtls_calloc     calloc
-#define mbedtls_free       free
-#define mbedtls_exit       exit
-#define mbedtls_time       time
-#define mbedtls_time_t     time_t
-#define MBEDTLS_EXIT_SUCCESS EXIT_SUCCESS
-#define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
-#endif
 
 #include <stddef.h>
 #include <stdint.h>
@@ -58,6 +45,13 @@
 #if defined(MBEDTLS_BIGNUM_C)
 #include "mbedtls/bignum.h"
 #endif
+
+/** The type of test case arguments that contain binary data. */
+typedef struct data_tag
+{
+    uint8_t *   x;
+    uint32_t    len;
+} data_t;
 
 typedef enum
 {
@@ -276,6 +270,29 @@ void mbedtls_test_err_add_check( int high, int low,
 #endif
 
 #if defined(MBEDTLS_BIGNUM_C)
+/** Allocate and populate a core MPI from a test case argument.
+ *
+ * This function allocates exactly as many limbs as necessary to fit
+ * the length of the input. In other words, it preserves leading zeros.
+ *
+ * The limb array is allocated with mbedtls_calloc() and must later be
+ * freed with mbedtls_free().
+ *
+ * \param[in,out] pX    The address where a pointer to the allocated limb
+ *                      array will be stored.
+ *                      \c *pX must be null on entry.
+ *                      On exit, \c *pX is null on error or if the number
+ *                      of limbs is 0.
+ * \param[out] plimbs   The address where the number of limbs will be stored.
+ * \param[in] input     The test argument to read.
+ *                      It is interpreted as a hexadecimal representation
+ *                      of a non-negative integer.
+ *
+ * \return \c 0 on success, an \c MBEDTLS_ERR_MPI_xxx error code otherwise.
+ */
+int mbedtls_test_read_mpi_core( mbedtls_mpi_uint **pX, size_t *plimbs,
+                                const char *input );
+
 /** Read an MPI from a hexadecimal string.
  *
  * Like mbedtls_mpi_read_string(), but size the resulting bignum based
@@ -291,7 +308,6 @@ void mbedtls_test_err_add_check( int high, int low,
  *
  * \return \c 0 on success, an \c MBEDTLS_ERR_MPI_xxx error code otherwise.
  */
-/* Since the library has exactly the desired behavior, this is trivial. */
 int mbedtls_test_read_mpi( mbedtls_mpi *X, const char *s );
 #endif /* MBEDTLS_BIGNUM_C */
 

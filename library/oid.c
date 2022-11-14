@@ -27,16 +27,12 @@
 #include "mbedtls/rsa.h"
 #include "mbedtls/error.h"
 
-#include "legacy_or_psa.h"
+#include "mbedtls/legacy_or_psa.h"
 
 #include <stdio.h>
 #include <string.h>
 
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
-#define mbedtls_snprintf snprintf
-#endif
 
 /*
  * Macro to automatically add the size of #define'd OIDs

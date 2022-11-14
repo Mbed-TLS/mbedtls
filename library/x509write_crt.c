@@ -43,10 +43,10 @@
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
-#include "hash_info.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-#include "legacy_or_psa.h"
+#include "hash_info.h"
+#include "mbedtls/legacy_or_psa.h"
 
 void mbedtls_x509write_crt_init( mbedtls_x509write_cert *ctx )
 {
@@ -296,6 +296,43 @@ int mbedtls_x509write_crt_set_key_usage( mbedtls_x509write_cert *ctx,
     return( 0 );
 }
 
+int mbedtls_x509write_crt_set_ext_key_usage( mbedtls_x509write_cert *ctx,
+                                             const mbedtls_asn1_sequence *exts )
+{
+    unsigned char buf[256];
+    unsigned char *c = buf + sizeof(buf);
+    int ret;
+    size_t len = 0;
+    const mbedtls_asn1_sequence *last_ext = NULL;
+    const mbedtls_asn1_sequence *ext;
+
+    memset( buf, 0, sizeof(buf) );
+
+    /* We need at least one extension: SEQUENCE SIZE (1..MAX) OF KeyPurposeId */
+    if( exts == NULL )
+        return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
+
+    /* Iterate over exts backwards, so we write them out in the requested order */
+    while( last_ext != exts )
+    {
+        for( ext = exts; ext->next != last_ext; ext = ext->next ) {}
+        if( ext->buf.tag != MBEDTLS_ASN1_OID )
+            return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_raw_buffer( &c, buf, ext->buf.p, ext->buf.len ) );
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, buf, ext->buf.len ) );
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &c, buf, MBEDTLS_ASN1_OID ) );
+        last_ext = ext;
+    }
+
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, buf, len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &c, buf, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) );
+
+    return mbedtls_x509write_crt_set_extension( ctx,
+                         MBEDTLS_OID_EXTENDED_KEY_USAGE,
+                         MBEDTLS_OID_SIZE( MBEDTLS_OID_EXTENDED_KEY_USAGE ),
+                         1, c, len );
+}
+
 int mbedtls_x509write_crt_set_ns_cert_type( mbedtls_x509write_cert *ctx,
                                     unsigned char ns_cert_type )
 {
@@ -360,12 +397,10 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx,
     unsigned char *c, *c2;
     unsigned char sig[MBEDTLS_PK_SIGNATURE_MAX_SIZE];
     size_t hash_length = 0;
+    unsigned char hash[MBEDTLS_HASH_MAX_SIZE];
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_algorithm_t psa_algorithm;
-    unsigned char hash[PSA_HASH_MAX_SIZE];
-#else
-    unsigned char hash[64];
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     size_t sub_len = 0, pub_len = 0, sig_and_oid_len = 0, sig_len;

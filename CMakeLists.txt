@@ -120,37 +120,32 @@ endif()
 
 # Create a symbolic link from ${base_name} in the binary directory
 # to the corresponding path in the source directory.
+# Note: Copies the file(s) on Windows.
 function(link_to_source base_name)
-    # Get OS dependent path to use in `execute_process`
-    if (CMAKE_HOST_WIN32)
-        #mklink is an internal command of cmd.exe it can only work with \
-        string(REPLACE "/" "\\" link "${CMAKE_CURRENT_BINARY_DIR}/${base_name}")
-        string(REPLACE "/" "\\" target "${CMAKE_CURRENT_SOURCE_DIR}/${base_name}")
-    else()
-        set(link "${CMAKE_CURRENT_BINARY_DIR}/${base_name}")
-        set(target "${CMAKE_CURRENT_SOURCE_DIR}/${base_name}")
-    endif()
+    set(link "${CMAKE_CURRENT_BINARY_DIR}/${base_name}")
+    set(target "${CMAKE_CURRENT_SOURCE_DIR}/${base_name}")
 
     # Linking to non-existent file is not desirable. At best you will have a
     # dangling link, but when building in tree, this can create a symbolic link
     # to itself.
     if (EXISTS ${target} AND NOT EXISTS ${link})
         if (CMAKE_HOST_UNIX)
-            set(command ln -s ${target} ${link})
+            execute_process(COMMAND ln -s ${target} ${link}
+                RESULT_VARIABLE result
+                ERROR_VARIABLE output)
+
+            if (NOT ${result} EQUAL 0)
+                message(FATAL_ERROR "Could not create symbolic link for: ${target} --> ${output}")
+            endif()
         else()
             if (IS_DIRECTORY ${target})
-                set(command cmd.exe /c mklink /j ${link} ${target})
+                file(GLOB_RECURSE files FOLLOW_SYMLINKS LIST_DIRECTORIES false RELATIVE ${target} "${target}/*")
+                foreach(file IN LISTS files)
+                    configure_file("${target}/${file}" "${link}/${file}" COPYONLY)
+                endforeach(file)
             else()
-                set(command cmd.exe /c mklink /h ${link} ${target})
+                configure_file(${target} ${link} COPYONLY)
             endif()
-        endif()
-
-        execute_process(COMMAND ${command}
-            RESULT_VARIABLE result
-            ERROR_VARIABLE output)
-
-        if (NOT ${result} EQUAL 0)
-            message(FATAL_ERROR "Could not create symbolic link for: ${target} --> ${output}")
         endif()
     endif()
 endfunction(link_to_source)

@@ -1,0 +1,96 @@
+/* BEGIN_HEADER */
+#include "mbedtls/bignum.h"
+#include "mbedtls/entropy.h"
+#include "bignum_mod.h"
+#include "constant_time_internal.h"
+#include "test/constant_flow.h"
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_BIGNUM_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void mpi_mod_setup( int ext_rep, int int_rep, int iret )
+{
+    #define MLIMBS 8
+    mbedtls_mpi_uint mp[MLIMBS];
+    mbedtls_mpi_mod_modulus m;
+    int ret;
+
+    memset( mp, 0xFF, sizeof(mp) );
+
+    mbedtls_mpi_mod_modulus_init( &m );
+    ret = mbedtls_mpi_mod_modulus_setup( &m, mp, MLIMBS, ext_rep, int_rep );
+    TEST_EQUAL( ret, iret );
+
+    /* Only test if the constants have been set-up  */
+    if ( ret == 0 && int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY )
+    {
+        /* Test that the consts have been calculated */
+        TEST_ASSERT( m.rep.mont.rr != NULL );
+        TEST_ASSERT( m.rep.mont.mm != 0 );
+
+    }
+
+    /* Address sanitiser should catch if we try to free mp */
+    mbedtls_mpi_mod_modulus_free( &m );
+
+    /* Make sure that the modulus doesn't have reference to mp anymore */
+    TEST_ASSERT( m.p != mp );
+
+    /* Only test if the constants have been set-up  */
+    if ( ret == 0 && int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY )
+    {
+        /* Verify the data and pointers allocated have been properly wiped */
+        TEST_ASSERT( m.rep.mont.rr == NULL );
+        TEST_ASSERT( m.rep.mont.mm == 0 );
+    }
+exit:
+    /* It should be safe to call an mbedtls free several times */
+    mbedtls_mpi_mod_modulus_free( &m );
+
+    #undef MLIMBS
+}
+/* END_CASE */
+
+/* BEGIN MERGE SLOT 1 */
+
+/* END MERGE SLOT 1 */
+
+/* BEGIN MERGE SLOT 2 */
+
+/* END MERGE SLOT 2 */
+
+/* BEGIN MERGE SLOT 3 */
+
+/* END MERGE SLOT 3 */
+
+/* BEGIN MERGE SLOT 4 */
+
+/* END MERGE SLOT 4 */
+
+/* BEGIN MERGE SLOT 5 */
+
+/* END MERGE SLOT 5 */
+
+/* BEGIN MERGE SLOT 6 */
+
+/* END MERGE SLOT 6 */
+
+/* BEGIN MERGE SLOT 7 */
+
+/* END MERGE SLOT 7 */
+
+/* BEGIN MERGE SLOT 8 */
+
+/* END MERGE SLOT 8 */
+
+/* BEGIN MERGE SLOT 9 */
+
+/* END MERGE SLOT 9 */
+
+/* BEGIN MERGE SLOT 10 */
+
+/* END MERGE SLOT 10 */

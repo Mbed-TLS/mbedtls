@@ -463,7 +463,7 @@ API changes
      provides better randomness. Instead of HAVEGE, declare OS or hardware RNG
      interfaces with mbedtls_entropy_add_source() and/or use an entropy seed
      file created securely during device provisioning. See
-     https://tls.mbed.org/kb/how-to/add-entropy-sources-to-entropy-pool for
+     https://mbed-tls.readthedocs.io/en/latest/kb/how-to/add-entropy-sources-to-entropy-pool/ for
      more information.
    * Add missing const attributes to API functions.
    * Remove helpers for the transition from Mbed TLS 1.3 to Mbed TLS 2.0: the

@@ -11,12 +11,14 @@
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/timing.h"
 #include "mbedtls/ssl_cookie.h"
-
+#include "mbedtls/legacy_or_psa.h"
 
 #if defined(MBEDTLS_SSL_SRV_C) && \
     defined(MBEDTLS_ENTROPY_C) && \
     defined(MBEDTLS_CTR_DRBG_C) && \
-    defined(MBEDTLS_TIMING_C)
+    defined(MBEDTLS_TIMING_C) && \
+        ( defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA) || \
+          defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA) )
 const char *pers = "fuzz_dtlsserver";
 const unsigned char client_ip[4] = {0x7F, 0, 0, 1};
 static int initialized = 0;
@@ -32,7 +34,9 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     defined(MBEDTLS_SSL_SRV_C) && \
     defined(MBEDTLS_ENTROPY_C) && \
     defined(MBEDTLS_CTR_DRBG_C) && \
-    defined(MBEDTLS_TIMING_C)
+    defined(MBEDTLS_TIMING_C) && \
+    ( defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA) || \
+      defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA) )
     int ret;
     size_t len;
     mbedtls_ssl_context ssl;

@@ -59,6 +59,14 @@ static int subsystems_are_coherent( void )
                 mbedtls_psa_crypto_is_subsystem_initialized(
                     PSA_CRYPTO_SUBSYSTEM_STORAGE ) );
 
+    /* TODO: PSA_CRYPTO_SUBSYSTEM_ACCELERATORS */
+    /* Need to find an accelerated algorithm and try to use it. */
+    /* Also arrange a white-box check when using a test driver. */
+
+    /* TODO: PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS */
+    /* Need to find a secure element location and try to use it. */
+    /* Also arrange a white-box check when using a test driver. */
+
     ok = 1;
 
 exit:

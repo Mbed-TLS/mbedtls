@@ -116,7 +116,14 @@ psa_status_t psa_driver_wrapper_init_secure_elements( void )
     return( PSA_SUCCESS );
 }
 
-void psa_driver_wrapper_free( void )
+void psa_driver_wrapper_free_accelerators( void )
+{
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+    mbedtls_test_transparent_free( );
+#endif
+}
+
+void psa_driver_wrapper_free_secure_elements( void )
 {
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     /* Unregister all secure element drivers, so that we restart from
@@ -125,7 +132,6 @@ void psa_driver_wrapper_free( void )
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-    mbedtls_test_transparent_free( );
     mbedtls_test_opaque_free( );
 #endif
 }

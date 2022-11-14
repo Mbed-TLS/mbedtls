@@ -22,6 +22,12 @@ subsystem_init:PSA_CRYPTO_SUBSYSTEM_KEYS
 Subsystem init: storage
 subsystem_init:PSA_CRYPTO_SUBSYSTEM_STORAGE
 
+Subsystem init: accelerators
+subsystem_init:PSA_CRYPTO_SUBSYSTEM_ACCELERATORS
+
+Subsystem init: secure elements
+subsystem_init:PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS
+
 Subsystem init: invalid
 subsystem_init_invalid:1 << MBEDTLS_PSA_CRYPTO_SUBSYSTEM_COUNT
 

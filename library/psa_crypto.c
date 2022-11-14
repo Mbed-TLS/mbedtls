@@ -6034,10 +6034,17 @@ static psa_status_t mbedtls_psa_random_seed( mbedtls_psa_random_context_t *rng )
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 }
 
+static inline int psa_is_random_initialized( void )
+{
+    return( mbedtls_psa_crypto_is_subsystem_initialized(
+                PSA_CRYPTO_SUBSYSTEM_RANDOM ) );
+}
+
 psa_status_t psa_generate_random( uint8_t *output,
                                   size_t output_size )
 {
-    GUARD_MODULE_INITIALIZED;
+    if( ! psa_is_random_initialized( ) )
+        return( PSA_ERROR_BAD_STATE );
 
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 
@@ -6401,6 +6408,12 @@ psa_status_t psa_crypto_init_subsystem( psa_crypto_subsystem_t subsystems )
     /* If a subsystem is already initialized, skip it. */
     subsystems &= ~global_data.active_subsystems;
 
+#if defined(MBEDTLS_PSA_INJECT_ENTROPY)
+    /* The random generator needs a seed in storage */
+    if( subsystems & PSA_CRYPTO_SUBSYSTEM_RANDOM )
+        subsystems |= PSA_CRYPTO_SUBSYSTEM_STORAGE;
+#endif /* MBEDTLS_PSA_INJECT_ENTROPY */
+
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     if( subsystems & PSA_CRYPTO_SUBSYSTEM_COMMUNICATION )
@@ -6454,6 +6467,17 @@ psa_status_t psa_crypto_init_subsystem( psa_crypto_subsystem_t subsystems )
         global_data.active_subsystems |= PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS;
     }
 
+    if( subsystems & PSA_CRYPTO_SUBSYSTEM_RANDOM )
+    {
+        mbedtls_psa_random_init( &global_data.rng );
+        global_data.rng_state = RNG_INITIALIZED;
+        status = mbedtls_psa_random_seed( &global_data.rng );
+        if( status != PSA_SUCCESS )
+            return( status );
+        global_data.rng_state = RNG_SEEDED;
+        global_data.active_subsystems |= PSA_CRYPTO_SUBSYSTEM_RANDOM;
+    }
+
     return( PSA_SUCCESS );
 }
 
@@ -6468,14 +6492,6 @@ psa_status_t psa_crypto_init( void )
     status = psa_crypto_init_subsystem( MBEDTLS_PSA_CRYPTO_ALL_SUBSYSTEMS );
     if( status != PSA_SUCCESS )
         goto exit;
-
-    /* Initialize and seed the random generator. */
-    mbedtls_psa_random_init( &global_data.rng );
-    global_data.rng_state = RNG_INITIALIZED;
-    status = mbedtls_psa_random_seed( &global_data.rng );
-    if( status != PSA_SUCCESS )
-        goto exit;
-    global_data.rng_state = RNG_SEEDED;
 
     /* All done. */
     global_data.initialized = 1;

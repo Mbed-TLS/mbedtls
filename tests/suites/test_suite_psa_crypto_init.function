@@ -28,6 +28,7 @@ static int subsystems_are_coherent( void )
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     const uint8_t key_material[1] = {'K'};
+    uint8_t rnd1[16] = {0}, rnd2[16] = {0};
 
     /* Communication: nothing to check since the tests are calling the library
      * directly. */
@@ -51,6 +52,7 @@ static int subsystems_are_coherent( void )
         TEST_EQUAL( psa_get_key_attributes( key, &attributes ),
                     PSA_ERROR_BAD_STATE );
     }
+    psa_reset_key_attributes( &attributes );
 
     /* Gray box testing: Mbed TLS currently initializes storage access
      * together with the key store in memory. */
@@ -66,6 +68,32 @@ static int subsystems_are_coherent( void )
     /* TODO: PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS */
     /* Need to find a secure element location and try to use it. */
     /* Also arrange a white-box check when using a test driver. */
+
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_RAW_DATA );
+    psa_set_key_bits( &attributes, 8 );
+    if( mbedtls_psa_crypto_is_subsystem_initialized(
+            PSA_CRYPTO_SUBSYSTEM_RANDOM ) )
+    {
+        PSA_ASSERT( psa_generate_random( rnd1, sizeof( rnd1 ) ) );
+        PSA_ASSERT( psa_generate_random( rnd2, sizeof( rnd2 ) ) );
+        /* If the random generator is working properly, the chances of
+         * getting the same 16 bytes twice are negligible. */
+        TEST_ASSERT( memcmp( rnd1, rnd2, sizeof( rnd1 ) ) != 0 );
+
+        if( mbedtls_psa_crypto_is_subsystem_initialized(
+                PSA_CRYPTO_SUBSYSTEM_KEYS ) )
+        {
+            PSA_ASSERT( psa_generate_key( &attributes, &key ) );
+        }
+    }
+    else
+    {
+        TEST_EQUAL( psa_generate_random( rnd1, sizeof( rnd1 ) ),
+                    PSA_ERROR_BAD_STATE );
+        TEST_EQUAL( psa_generate_key( &attributes, &key ),
+                    PSA_ERROR_BAD_STATE );
+    }
+    psa_reset_key_attributes( &attributes );
 
     ok = 1;
 

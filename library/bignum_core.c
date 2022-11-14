@@ -597,11 +597,11 @@ static size_t exp_mod_get_window_size( size_t Ebits )
 }
 
 int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
-                              mbedtls_mpi_uint const *A,
+                              const mbedtls_mpi_uint *A,
                               const mbedtls_mpi_uint *N,
-                              size_t n,
+                              size_t AN_limbs,
                               const mbedtls_mpi_uint *E,
-                              size_t E_len,
+                              size_t E_limbs,
                               const mbedtls_mpi_uint *RR )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -616,15 +616,15 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
     mbedtls_mpi_uint one = 1, mm;
 
     mm = mbedtls_mpi_core_montmul_init( N ); /* Compute Montgomery constant */
-    E += E_len;               /* Skip to end of exponent buffer */
+    E += E_limbs;               /* Skip to end of exponent buffer */
 
-    wsize = exp_mod_get_window_size( E_len * biL );
+    wsize = exp_mod_get_window_size( E_limbs * biL );
     welem = ( (size_t) 1 ) << wsize;
 
     /* Allocate memory pool and set pointers to parts of it */
-    const size_t table_limbs   = welem * n;
-    const size_t temp_limbs    = 2 * n + 1;
-    const size_t wselect_limbs = n;
+    const size_t table_limbs   = welem * AN_limbs;
+    const size_t temp_limbs    = 2 * AN_limbs + 1;
+    const size_t wselect_limbs = AN_limbs;
     const size_t total_limbs   = table_limbs + temp_limbs + wselect_limbs;
 
     mempool = mbedtls_calloc( total_limbs, sizeof(mbedtls_mpi_uint) );
@@ -643,25 +643,26 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
      */
 
     /* W[0] = 1 (in Montgomery presentation) */
-    memset( Wtbl, 0, n * ciL ); Wtbl[0] = 1;
-    mbedtls_mpi_core_montmul( Wtbl, Wtbl, RR, n, N, n, mm, temp );
-    Wcur = Wtbl + n;
+    memset( Wtbl, 0, AN_limbs * ciL );
+    Wtbl[0] = 1;
+    mbedtls_mpi_core_montmul( Wtbl, Wtbl, RR, AN_limbs, N, AN_limbs, mm, temp );
+    Wcur = Wtbl + AN_limbs;
     /* W[1] = A * R^2 * R^-1 mod N = A * R mod N */
-    memcpy( Wcur, A, n * ciL );
-    mbedtls_mpi_core_montmul( Wcur, Wcur, RR, n, N, n, mm, temp );
+    memcpy( Wcur, A, AN_limbs * ciL );
+    mbedtls_mpi_core_montmul( Wcur, Wcur, RR, AN_limbs, N, AN_limbs, mm, temp );
     W1 = Wcur;
-    Wcur += n;
+    Wcur += AN_limbs;
     /* W[i+1] = W[i] * W[1], i >= 2 */
     Wlast = W1;
-    for( size_t i=2; i < welem; i++, Wlast += n, Wcur += n )
-        mbedtls_mpi_core_montmul( Wcur, Wlast, W1, n, N, n, mm, temp );
+    for( size_t i = 2; i < welem; i++, Wlast += AN_limbs, Wcur += AN_limbs )
+        mbedtls_mpi_core_montmul( Wcur, Wlast, W1, AN_limbs, N, AN_limbs, mm, temp );
 
     /*
-     * Sliding window exponentiation
+     * Fixed window exponentiation
      */
 
     /* X = 1 (in Montgomery presentation) initially */
-    memcpy( X, Wtbl, n * ciL );
+    memcpy( X, Wtbl, AN_limbs * ciL );
 
     size_t limb_bits_remaining = 0;
     mbedtls_mpi_uint cur_limb, window = 0;
@@ -671,7 +672,7 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
         size_t window_bits_missing = wsize - window_bits;
 
         const int no_more_bits =
-            ( limb_bits_remaining == 0 ) && ( E_len == 0 );
+            ( limb_bits_remaining == 0 ) && ( E_limbs == 0 );
         const int window_full =
             ( window_bits_missing == 0 );
 
@@ -682,8 +683,8 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
                 break;
             /* Select table entry, square and multiply */
             mbedtls_mpi_core_ct_uint_table_lookup( Wselect, Wtbl,
-                                                   n, welem, window );
-            mbedtls_mpi_core_montmul( X, X, Wselect, n, N, n, mm, temp );
+                                                   AN_limbs, welem, window );
+            mbedtls_mpi_core_montmul( X, X, Wselect, AN_limbs, N, AN_limbs, mm, temp );
             window = window_bits = 0;
             continue;
         }
@@ -692,12 +693,12 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
         if( limb_bits_remaining == 0 )
         {
             cur_limb = *--E;
-            E_len--;
+            E_limbs--;
             limb_bits_remaining = biL;
         }
 
         /* Square */
-        mbedtls_mpi_core_montmul( X, X, X, n, N, n, mm, temp );
+        mbedtls_mpi_core_montmul( X, X, X, AN_limbs, N, AN_limbs, mm, temp );
 
         /* Insert next exponent bit into window */
         window   <<= 1;
@@ -708,7 +709,7 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
     }
 
     /* Convert X back to normal presentation */
-    mbedtls_mpi_core_montmul( X, X, &one, 1, N, n, mm, temp );
+    mbedtls_mpi_core_montmul( X, X, &one, 1, N, AN_limbs, mm, temp );
 
     ret = 0;
 

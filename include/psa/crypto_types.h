@@ -471,6 +471,8 @@ typedef enum {
     MBEDTLS_PSA_CRYPTO_SUBSYSTEM_COMMUNICATION_INDEX,
     MBEDTLS_PSA_CRYPTO_SUBSYSTEM_KEYS_INDEX,
     MBEDTLS_PSA_CRYPTO_SUBSYSTEM_STORAGE_INDEX,
+    MBEDTLS_PSA_CRYPTO_SUBSYSTEM_ACCELERATORS_INDEX,
+    MBEDTLS_PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS_INDEX,
     /* Must come last. Value equal to the number of preceding elements. */
     MBEDTLS_PSA_CRYPTO_SUBSYSTEM_COUNT
 } mbedtls_psa_crypto_subsystem_index_t;
@@ -521,11 +523,36 @@ typedef uint32_t psa_crypto_subsystem_t;
 #define PSA_CRYPTO_SUBSYSTEM_STORAGE \
     ((psa_crypto_subsystem_t)1 << MBEDTLS_PSA_CRYPTO_SUBSYSTEM_STORAGE_INDEX)
 
+/** Accelerator drivers.
+ *
+ * Initializing this subsystem calls the initialization entry points
+ * of all registered accelerator drivers.
+ *
+ * Initializing this subsystem allows cryptographic operations that
+ * are implemented via an accelerator driver.
+ */
+#define PSA_CRYPTO_SUBSYSTEM_ACCELERATORS \
+    ((psa_crypto_subsystem_t)1 << MBEDTLS_PSA_CRYPTO_SUBSYSTEM_ACCELERATORS_INDEX)
+
+/** Secure element drivers.
+ *
+ * Initializing this subsystem calls the initialization entry points
+ * of all registered secure element drivers.
+ *
+ * Initializing this subsystem as well as #PSA_CRYPTO_SUBSYSTEM_KEYS
+ * allows creating, accessing and destroying keys in a secure element
+ * (i.e. keys whose location is not #PSA_KEY_LOCATION_LOCAL_STORAGE).
+ */
+#define PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS \
+    ((psa_crypto_subsystem_t)1 << MBEDTLS_PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS_INDEX)
+
 /* A mask of all the subsystems recognized by Mbed TLS. */
 #define MBEDTLS_PSA_CRYPTO_ALL_SUBSYSTEMS (     \
         PSA_CRYPTO_SUBSYSTEM_COMMUNICATION |    \
         PSA_CRYPTO_SUBSYSTEM_KEYS |             \
         PSA_CRYPTO_SUBSYSTEM_STORAGE |          \
+        PSA_CRYPTO_SUBSYSTEM_ACCELERATORS |     \
+        PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS |  \
         0 )
 
 /**@}*/

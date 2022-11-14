@@ -474,6 +474,7 @@ typedef enum {
     MBEDTLS_PSA_CRYPTO_SUBSYSTEM_ACCELERATORS_INDEX,
     MBEDTLS_PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS_INDEX,
     MBEDTLS_PSA_CRYPTO_SUBSYSTEM_RANDOM_INDEX,
+    MBEDTLS_PSA_CRYPTO_SUBSYSTEM_BUILTIN_KEYS_INDEX,
     /* Must come last. Value equal to the number of preceding elements. */
     MBEDTLS_PSA_CRYPTO_SUBSYSTEM_COUNT
 } mbedtls_psa_crypto_subsystem_index_t;
@@ -568,6 +569,14 @@ typedef uint32_t psa_crypto_subsystem_t;
 #define PSA_CRYPTO_SUBSYSTEM_RANDOM \
     ((psa_crypto_subsystem_t)1 << MBEDTLS_PSA_CRYPTO_SUBSYSTEM_RANDOM_INDEX)
 
+/** Access to built-in keys.
+ *
+ * Initializing this subsystem as well as #PSA_CRYPTO_SUBSYSTEM_KEYS
+ * allows access to built-in keys.
+ */
+#define PSA_CRYPTO_SUBSYSTEM_BUILTIN_KEYS \
+    ((psa_crypto_subsystem_t)1 << MBEDTLS_PSA_CRYPTO_SUBSYSTEM_BUILTIN_KEYS_INDEX)
+
 /* A mask of all the subsystems recognized by Mbed TLS. */
 #define MBEDTLS_PSA_CRYPTO_ALL_SUBSYSTEMS (     \
         PSA_CRYPTO_SUBSYSTEM_COMMUNICATION |    \
@@ -576,6 +585,7 @@ typedef uint32_t psa_crypto_subsystem_t;
         PSA_CRYPTO_SUBSYSTEM_ACCELERATORS |     \
         PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS |  \
         PSA_CRYPTO_SUBSYSTEM_RANDOM |           \
+        PSA_CRYPTO_SUBSYSTEM_BUILTIN_KEYS |     \
         0 )
 
 /**@}*/

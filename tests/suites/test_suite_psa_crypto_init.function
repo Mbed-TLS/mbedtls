@@ -95,6 +95,13 @@ static int subsystems_are_coherent( void )
     }
     psa_reset_key_attributes( &attributes );
 
+    /* Gray box testing: Mbed TLS currently initializes built-in keys
+     * together with the key store in memory. */
+    TEST_EQUAL( mbedtls_psa_crypto_is_subsystem_initialized(
+                    PSA_CRYPTO_SUBSYSTEM_KEYS ),
+                mbedtls_psa_crypto_is_subsystem_initialized(
+                    PSA_CRYPTO_SUBSYSTEM_BUILTIN_KEYS ) );
+
     ok = 1;
 
 exit:

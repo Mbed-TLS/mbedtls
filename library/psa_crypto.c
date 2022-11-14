@@ -6424,7 +6424,8 @@ psa_status_t psa_crypto_init_subsystem( psa_crypto_subsystem_t subsystems )
     }
 
     if( subsystems & ( PSA_CRYPTO_SUBSYSTEM_KEYS |
-                       PSA_CRYPTO_SUBSYSTEM_STORAGE ) )
+                       PSA_CRYPTO_SUBSYSTEM_STORAGE |
+                       PSA_CRYPTO_SUBSYSTEM_BUILTIN_KEYS ) )
     {
         status = psa_initialize_key_slots( );
         if( status != PSA_SUCCESS )
@@ -6439,7 +6440,8 @@ psa_status_t psa_crypto_init_subsystem( psa_crypto_subsystem_t subsystems )
         }
 #endif /* PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS */
         global_data.active_subsystems |= ( PSA_CRYPTO_SUBSYSTEM_KEYS |
-                                           PSA_CRYPTO_SUBSYSTEM_STORAGE );
+                                           PSA_CRYPTO_SUBSYSTEM_STORAGE |
+                                           PSA_CRYPTO_SUBSYSTEM_BUILTIN_KEYS );
     }
 
     if( subsystems & PSA_CRYPTO_SUBSYSTEM_ACCELERATORS )

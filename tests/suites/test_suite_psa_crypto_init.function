@@ -1,6 +1,35 @@
 /* BEGIN_HEADER */
 #include <stdint.h>
 
+static int all_subsystems_are_initialized( void )
+{
+    return( mbedtls_psa_crypto_is_subsystem_initialized(
+                MBEDTLS_PSA_CRYPTO_ALL_SUBSYSTEMS ) );
+}
+
+static int no_subsystems_are_initialized( void )
+{
+    mbedtls_psa_crypto_subsystem_index_t i;
+    for( i = 0; i < MBEDTLS_PSA_CRYPTO_SUBSYSTEM_COUNT; i++ )
+    {
+        TEST_ASSERT( ! mbedtls_psa_crypto_is_subsystem_initialized( 1 << i ) );
+    }
+    return( 1) ;
+
+exit:
+    return( 0 );
+}
+
+/* Check that the availability of API functions is coherent with
+ * the claims from mbedtls_psa_crypto_is_subsystem_initialized(). */
+static int subsystems_are_coherent( void )
+{
+    /* Communication: nothing to check since the tests are calling the library
+     * directly. */
+
+    return( 1 );
+}
+
 /* Some tests in this module configure entropy sources. */
 #include "psa_crypto_invasive.h"
 
@@ -139,9 +168,17 @@ void init_deinit( int count )
     {
         status = psa_crypto_init( );
         PSA_ASSERT( status );
+        TEST_ASSERT( all_subsystems_are_initialized( ) );
+        TEST_ASSERT( subsystems_are_coherent( ) );
+
         status = psa_crypto_init( );
         PSA_ASSERT( status );
+        TEST_ASSERT( all_subsystems_are_initialized( ) );
+        TEST_ASSERT( subsystems_are_coherent( ) );
+
         PSA_DONE( );
+        TEST_ASSERT( no_subsystems_are_initialized( ) );
+        TEST_ASSERT( subsystems_are_coherent( ) );
     }
 }
 /* END_CASE */
@@ -153,9 +190,55 @@ void deinit_without_init( int count )
     for( i = 0; i < count; i++ )
     {
         PSA_ASSERT( psa_crypto_init( ) );
+        TEST_ASSERT( all_subsystems_are_initialized( ) );
+        TEST_ASSERT( subsystems_are_coherent( ) );
+
         PSA_DONE( );
+        TEST_ASSERT( subsystems_are_coherent( ) );
+        TEST_ASSERT( no_subsystems_are_initialized( ) );
     }
+
     PSA_DONE( );
+    TEST_ASSERT( subsystems_are_coherent( ) );
+    TEST_ASSERT( no_subsystems_are_initialized( ) );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void subsystem_init( int subsystems )
+{
+    TEST_EQUAL( subsystems == 0,
+                mbedtls_psa_crypto_is_subsystem_initialized( subsystems ) );
+
+    mbedtls_test_set_step( 1 );
+    PSA_ASSERT( psa_crypto_init_subsystem( subsystems ) );
+    TEST_EQUAL( 1, mbedtls_psa_crypto_is_subsystem_initialized( subsystems ) );
+    TEST_ASSERT( subsystems_are_coherent( ) );
+
+    /* A second initialization should be a no-op */
+    mbedtls_test_set_step( 2 );
+    PSA_ASSERT( psa_crypto_init_subsystem( subsystems ) );
+    TEST_EQUAL( 1, mbedtls_psa_crypto_is_subsystem_initialized( subsystems ) );
+    TEST_ASSERT( subsystems_are_coherent( ) );
+
+    mbedtls_test_set_step( 3 );
+    PSA_DONE( );
+    TEST_ASSERT( no_subsystems_are_initialized( ) );
+    TEST_EQUAL( subsystems == 0,
+                mbedtls_psa_crypto_is_subsystem_initialized( subsystems ) );
+    TEST_ASSERT( subsystems_are_coherent( ) );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void subsystem_init_invalid( int subsystem )
+{
+    TEST_EQUAL( 0, mbedtls_psa_crypto_is_subsystem_initialized( subsystem ) );
+    TEST_EQUAL( psa_crypto_init_subsystem( subsystem ),
+                PSA_ERROR_INVALID_ARGUMENT );
+    TEST_EQUAL( 0, mbedtls_psa_crypto_is_subsystem_initialized( subsystem ) );
+    TEST_ASSERT( no_subsystems_are_initialized( ) );
+    TEST_ASSERT( subsystems_are_coherent( ) );
 }
 /* END_CASE */
 

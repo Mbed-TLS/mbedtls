@@ -462,4 +462,45 @@ typedef uint16_t psa_key_derivation_step_t;
 
 /**@}*/
 
+/** \addtogroup initialization
+ * @{
+ */
+
+/* Auxiliary type for values of type psa_crypto_subsystem_index_t */
+typedef enum {
+    MBEDTLS_PSA_CRYPTO_SUBSYSTEM_COMMUNICATION_INDEX,
+    /* Must come last. Value equal to the number of preceding elements. */
+    MBEDTLS_PSA_CRYPTO_SUBSYSTEM_COUNT
+} mbedtls_psa_crypto_subsystem_index_t;
+
+/** \brief The designation of a subsystem of the PSA Crypto implementation.
+ *
+ * Value of this type are masks of \c PSA_CRYPTO_SUBSYSTEM_xxx constants.
+ *
+ * \note This type is experimental and may change without notice.
+ */
+typedef uint32_t psa_crypto_subsystem_t;
+
+/** Communication with the server, if this is a client that communicates
+ * with a server where the key store is located.
+ *
+ * In a client-server implementation, this subsystem is necessary
+ * before any API function other than library initialization,
+ * deinitialization and functions accessing local data structures
+ * such as key attributes.
+ *
+ * In a library implementation, initializing this subsystem does nothing
+ * and succeeds.
+ */
+#define PSA_CRYPTO_SUBSYSTEM_COMMUNICATION \
+    ((psa_crypto_subsystem_t)1 << MBEDTLS_PSA_CRYPTO_SUBSYSTEM_COMMUNICATION_INDEX)
+
+
+/* A mask of all the subsystems recognized by Mbed TLS. */
+#define MBEDTLS_PSA_CRYPTO_ALL_SUBSYSTEMS (     \
+        PSA_CRYPTO_SUBSYSTEM_COMMUNICATION |    \
+        0 )
+
+/**@}*/
+
 #endif /* PSA_CRYPTO_TYPES_H */

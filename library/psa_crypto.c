@@ -99,6 +99,7 @@ static int key_type_is_raw_bytes( psa_key_type_t type )
     return( PSA_KEY_TYPE_IS_UNSTRUCTURED( type ) );
 }
 
+
 /* Values for psa_global_data_t::rng_state */
 #define RNG_NOT_INITIALIZED 0
 #define RNG_INITIALIZED 1
@@ -106,6 +107,7 @@ static int key_type_is_raw_bytes( psa_key_type_t type )
 
 typedef struct
 {
+    psa_crypto_subsystem_t active_subsystems;
     unsigned initialized : 1;
     unsigned rng_state : 2;
     mbedtls_psa_random_context_t rng;
@@ -6330,6 +6332,8 @@ void mbedtls_psa_crypto_free( void )
 
     /* Terminate drivers */
     psa_driver_wrapper_free( );
+
+    global_data.active_subsystems = 0;
 }
 
 #if defined(PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS)
@@ -6358,6 +6362,32 @@ static psa_status_t psa_crypto_recover_transaction(
 }
 #endif /* PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS */
 
+int mbedtls_psa_crypto_is_subsystem_initialized(
+    psa_crypto_subsystem_t subsystems )
+{
+    return( ( subsystems & global_data.active_subsystems ) == subsystems );
+}
+
+psa_status_t psa_crypto_init_subsystem( psa_crypto_subsystem_t subsystems )
+{
+    if( ( subsystems & MBEDTLS_PSA_CRYPTO_ALL_SUBSYSTEMS ) != subsystems )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    /* If a subsystem is already initialized, skip it. */
+    subsystems &= ~global_data.active_subsystems;
+
+    psa_status_t status = PSA_SUCCESS;
+
+    if( subsystems & PSA_CRYPTO_SUBSYSTEM_COMMUNICATION )
+    {
+        /* This is the library/server. If you can reach this, communication
+         * is already up. */
+        global_data.active_subsystems |= PSA_CRYPTO_SUBSYSTEM_COMMUNICATION;
+    }
+
+    return( status );
+}
+
 psa_status_t psa_crypto_init( void )
 {
     psa_status_t status;
@@ -6365,6 +6395,10 @@ psa_status_t psa_crypto_init( void )
     /* Double initialization is explicitly allowed. */
     if( global_data.initialized != 0 )
         return( PSA_SUCCESS );
+
+    status = psa_crypto_init_subsystem( MBEDTLS_PSA_CRYPTO_ALL_SUBSYSTEMS );
+    if( status != PSA_SUCCESS )
+        goto exit;
 
     /* Initialize and seed the random generator. */
     mbedtls_psa_random_init( &global_data.rng );

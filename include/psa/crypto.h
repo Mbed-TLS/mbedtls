@@ -75,18 +75,12 @@ extern "C" {
  * \brief Library initialization.
  *
  * Applications must call this function before calling any other
- * function in this module.
+ * function in this module, except as otherwise indicated.
  *
  * Applications may call this function more than once. Once a call
  * succeeds, subsequent calls are guaranteed to succeed.
  *
- * If the application calls other functions before calling psa_crypto_init(),
- * the behavior is undefined. Implementations are encouraged to either perform
- * the operation as if the library had been initialized or to return
- * #PSA_ERROR_BAD_STATE or some other applicable error. In particular,
- * implementations should not return a success status if the lack of
- * initialization may have security implications, for example due to improper
- * seeding of the random number generator.
+ * For finer control over initialization, see psa_crypto_init_subsystem().
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -100,6 +94,44 @@ extern "C" {
  * \retval #PSA_ERROR_DATA_CORRUPT
  */
 psa_status_t psa_crypto_init(void);
+
+/**
+ * \brief Partial library initialization.
+ *
+ * Applications may call this function on the same subsystem more than once.
+ * Once a call succeeds, subsequent calls with the same subsystem are
+ * guaranteed to succeed.
+ *
+ * Initializing a subsystem may initialize other subsystems if the
+ * implementations needs them internally. For example, in a typical
+ * client-server implementation, #PSA_CRYPTO_SUBSYSTEM_COMMUNICATION is
+ * required for all other subsystems, and therefore initializing any other
+ * subsystem also initializes #PSA_CRYPTO_SUBSYSTEM_COMMUNICATION.
+ *
+ * Calling psa_crypto_init() is equivalent to calling
+ * psa_crypto_init_subsystem() on all the available subsystems.
+ *
+ * \note This function is part of a draft API specification and may change
+ *       as the API evolves.
+ *
+ * \note You can initialize multiple subsystems in the same call by passing
+ *       a bitwise-or of \c PSA_CRYPTO_SUBSYSTEM_xxx values. This ability
+ *       is experimental and may change without notice. If the initialization
+ *       of one subsystem fails, it is unspecified whether other requested
+ *       subsystems are initialized or not.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_DATA_INVALID
+ * \retval #PSA_ERROR_DATA_CORRUPT
+ */
+psa_status_t psa_crypto_init_subsystem(psa_crypto_subsystem_t subsystem);
 
 /**@}*/
 

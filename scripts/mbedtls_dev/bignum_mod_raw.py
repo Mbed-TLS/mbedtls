@@ -132,16 +132,10 @@ class BignumModRawAdd(BignumModRawOperation):
         self.arg_b = bignum_common.grow_mpi(self.int_b, self.limbs, 32)
 
     def description(self) -> str:
-        """Generate a description for the test case.
-
-        If not set, case_description uses the form A `symbol` B mod N, where
-        symbol is used to represent the operation. Descriptions of each value
-        are generated to provide some context to the test case.
-        """
-        if not self.case_description:
-            self.case_description = "{:x} {} {:x} mod {:x} {}".format(
-                self.int_a, self.symbol, self.int_b, self.int_n, self.mod_desc
-            ).strip()
+        """Generate a description for the test case."""
+        self.case_description = "{:x} + {:x} mod {:x} {}".format(
+            self.int_a, self.int_b, self.int_n, self.mod_desc
+        ).strip()
         return super().description()
 
     def arguments(self) -> List[str]:

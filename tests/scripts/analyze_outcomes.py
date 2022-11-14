@@ -175,17 +175,15 @@ def main():
 
         result = True
 
-        tasks = []
         if options.task == 'all':
-            for task in TASKS:
-                tasks.append(task)
+            tasks = TASKS.keys()
         else:
             tasks = options.task.split(',')
 
-        for task in tasks:
-            if task not in TASKS:
-                print('Error: invalid task: {}'.format(task))
-                sys.exit(1)
+            for task in tasks:
+                if task not in TASKS:
+                    print('Error: invalid task: {}'.format(task))
+                    sys.exit(1)
 
         for task in TASKS:
             if task in tasks:

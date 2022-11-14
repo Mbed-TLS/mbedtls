@@ -473,6 +473,7 @@ typedef enum {
     MBEDTLS_PSA_CRYPTO_SUBSYSTEM_STORAGE_INDEX,
     MBEDTLS_PSA_CRYPTO_SUBSYSTEM_ACCELERATORS_INDEX,
     MBEDTLS_PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS_INDEX,
+    MBEDTLS_PSA_CRYPTO_SUBSYSTEM_RANDOM_INDEX,
     /* Must come last. Value equal to the number of preceding elements. */
     MBEDTLS_PSA_CRYPTO_SUBSYSTEM_COUNT
 } mbedtls_psa_crypto_subsystem_index_t;
@@ -546,6 +547,27 @@ typedef uint32_t psa_crypto_subsystem_t;
 #define PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS \
     ((psa_crypto_subsystem_t)1 << MBEDTLS_PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS_INDEX)
 
+/** Initialize the random generator.
+ *
+ * Initializing this subsystem initializes all registered entropy drivers
+ * and accesses the registered entropy sources.
+ *
+ * Initializing this subsystem is necessary for psa_generate_random(),
+ * psa_generate_key(), as well as some operations using private or
+ * secret keys. Only the following operations are guaranteed not to
+ * require this subsystem:
+ *
+ * - hash operations;
+ * - signature verification operations.
+ *
+ * \note Currently, symmetric decryption (authenticated or not) and
+ *       MAC operations do not require the random generator.
+ *       This may change in future versions of the library
+ *       or when the operations are performed by a driver.
+ */
+#define PSA_CRYPTO_SUBSYSTEM_RANDOM \
+    ((psa_crypto_subsystem_t)1 << MBEDTLS_PSA_CRYPTO_SUBSYSTEM_RANDOM_INDEX)
+
 /* A mask of all the subsystems recognized by Mbed TLS. */
 #define MBEDTLS_PSA_CRYPTO_ALL_SUBSYSTEMS (     \
         PSA_CRYPTO_SUBSYSTEM_COMMUNICATION |    \
@@ -553,6 +575,7 @@ typedef uint32_t psa_crypto_subsystem_t;
         PSA_CRYPTO_SUBSYSTEM_STORAGE |          \
         PSA_CRYPTO_SUBSYSTEM_ACCELERATORS |     \
         PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS |  \
+        PSA_CRYPTO_SUBSYSTEM_RANDOM |           \
         0 )
 
 /**@}*/

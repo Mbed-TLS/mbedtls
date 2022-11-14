@@ -6376,7 +6376,7 @@ psa_status_t psa_crypto_init_subsystem( psa_crypto_subsystem_t subsystems )
     /* If a subsystem is already initialized, skip it. */
     subsystems &= ~global_data.active_subsystems;
 
-    psa_status_t status = PSA_SUCCESS;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     if( subsystems & PSA_CRYPTO_SUBSYSTEM_COMMUNICATION )
     {
@@ -6385,7 +6385,17 @@ psa_status_t psa_crypto_init_subsystem( psa_crypto_subsystem_t subsystems )
         global_data.active_subsystems |= PSA_CRYPTO_SUBSYSTEM_COMMUNICATION;
     }
 
-    return( status );
+    if( subsystems & ( PSA_CRYPTO_SUBSYSTEM_KEYS |
+                       PSA_CRYPTO_SUBSYSTEM_STORAGE ) )
+    {
+        status = psa_initialize_key_slots( );
+        if( status != PSA_SUCCESS )
+            return( status );
+        global_data.active_subsystems |= ( PSA_CRYPTO_SUBSYSTEM_KEYS |
+                                           PSA_CRYPTO_SUBSYSTEM_STORAGE );
+    }
+
+    return( PSA_SUCCESS );
 }
 
 psa_status_t psa_crypto_init( void )

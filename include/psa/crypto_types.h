@@ -469,6 +469,8 @@ typedef uint16_t psa_key_derivation_step_t;
 /* Auxiliary type for values of type psa_crypto_subsystem_index_t */
 typedef enum {
     MBEDTLS_PSA_CRYPTO_SUBSYSTEM_COMMUNICATION_INDEX,
+    MBEDTLS_PSA_CRYPTO_SUBSYSTEM_KEYS_INDEX,
+    MBEDTLS_PSA_CRYPTO_SUBSYSTEM_STORAGE_INDEX,
     /* Must come last. Value equal to the number of preceding elements. */
     MBEDTLS_PSA_CRYPTO_SUBSYSTEM_COUNT
 } mbedtls_psa_crypto_subsystem_index_t;
@@ -495,10 +497,35 @@ typedef uint32_t psa_crypto_subsystem_t;
 #define PSA_CRYPTO_SUBSYSTEM_COMMUNICATION \
     ((psa_crypto_subsystem_t)1 << MBEDTLS_PSA_CRYPTO_SUBSYSTEM_COMMUNICATION_INDEX)
 
+/** The key store in memory.
+ *
+ * Initializing this subsystem allows creating, accessing and destroying
+ * volatile keys in the default location, i.e.  keys with the lifetime
+ * #PSA_KEY_LIFETIME_VOLATILE.
+ *
+ * Persistent keys also require #PSA_CRYPTO_SUBSYSTEM_STORAGE.
+ * Keys in other locations also require
+ * #PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS.
+ */
+#define PSA_CRYPTO_SUBSYSTEM_KEYS \
+    ((psa_crypto_subsystem_t)1 << MBEDTLS_PSA_CRYPTO_SUBSYSTEM_KEYS_INDEX)
+
+/** Access to keys in storage.
+ *
+ * Initializing this subsystem as well as #PSA_CRYPTO_SUBSYSTEM_KEYS
+ * allows creating, accessing and destroying persistent keys.
+ *
+ * Oersistent keys in secure elements also require
+ * #PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS.
+ */
+#define PSA_CRYPTO_SUBSYSTEM_STORAGE \
+    ((psa_crypto_subsystem_t)1 << MBEDTLS_PSA_CRYPTO_SUBSYSTEM_STORAGE_INDEX)
 
 /* A mask of all the subsystems recognized by Mbed TLS. */
 #define MBEDTLS_PSA_CRYPTO_ALL_SUBSYSTEMS (     \
         PSA_CRYPTO_SUBSYSTEM_COMMUNICATION |    \
+        PSA_CRYPTO_SUBSYSTEM_KEYS |             \
+        PSA_CRYPTO_SUBSYSTEM_STORAGE |          \
         0 )
 
 /**@}*/

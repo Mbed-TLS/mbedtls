@@ -24,10 +24,47 @@ exit:
  * the claims from mbedtls_psa_crypto_is_subsystem_initialized(). */
 static int subsystems_are_coherent( void )
 {
+    int ok = 0;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    const uint8_t key_material[1] = {'K'};
+
     /* Communication: nothing to check since the tests are calling the library
      * directly. */
 
-    return( 1 );
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_RAW_DATA );
+    if( mbedtls_psa_crypto_is_subsystem_initialized(
+            PSA_CRYPTO_SUBSYSTEM_KEYS ) )
+    {
+        PSA_ASSERT( psa_import_key( &attributes, key_material, 1, &key ) );
+        psa_reset_key_attributes( &attributes );
+        PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+        TEST_EQUAL( psa_get_key_type( &attributes ), PSA_KEY_TYPE_RAW_DATA );
+        TEST_EQUAL( psa_get_key_bits( &attributes ), 8 );
+        PSA_ASSERT( psa_destroy_key( key ) );
+        key = MBEDTLS_SVC_KEY_ID_INIT;
+    }
+    else
+    {
+        TEST_EQUAL( psa_import_key( &attributes, key_material, 1, &key ),
+                    PSA_ERROR_BAD_STATE );
+        TEST_EQUAL( psa_get_key_attributes( key, &attributes ),
+                    PSA_ERROR_BAD_STATE );
+    }
+
+    /* Gray box testing: Mbed TLS currently initializes storage access
+     * together with the key store in memory. */
+    TEST_EQUAL( mbedtls_psa_crypto_is_subsystem_initialized(
+                    PSA_CRYPTO_SUBSYSTEM_KEYS ),
+                mbedtls_psa_crypto_is_subsystem_initialized(
+                    PSA_CRYPTO_SUBSYSTEM_STORAGE ) );
+
+    ok = 1;
+
+exit:
+    psa_reset_key_attributes( &attributes );
+    psa_destroy_key( key );
+    return( ok );
 }
 
 /* Some tests in this module configure entropy sources. */

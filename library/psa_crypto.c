@@ -6360,6 +6360,23 @@ static psa_status_t psa_crypto_recover_transaction(
             return( PSA_ERROR_DATA_INVALID );
     }
 }
+
+static psa_status_t psa_crypto_init_transactions( void )
+{
+    psa_status_t status = psa_crypto_load_transaction( );
+    if( status == PSA_ERROR_DOES_NOT_EXIST )
+    {
+        /* There's no transaction to complete. It's all good. */
+        return( PSA_SUCCESS );
+    }
+    else if( status != PSA_SUCCESS )
+        return( status );
+
+    status = psa_crypto_recover_transaction( &psa_crypto_transaction );
+    if( status != PSA_SUCCESS )
+        return( status );
+    return( psa_crypto_stop_transaction( ) );
+}
 #endif /* PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS */
 
 int mbedtls_psa_crypto_is_subsystem_initialized(
@@ -6427,19 +6444,9 @@ psa_status_t psa_crypto_init( void )
         goto exit;
 
 #if defined(PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS)
-    status = psa_crypto_load_transaction( );
-    if( status == PSA_SUCCESS )
-    {
-        status = psa_crypto_recover_transaction( &psa_crypto_transaction );
-        if( status != PSA_SUCCESS )
-            goto exit;
-        status = psa_crypto_stop_transaction( );
-    }
-    else if( status == PSA_ERROR_DOES_NOT_EXIST )
-    {
-        /* There's no transaction to complete. It's all good. */
-        status = PSA_SUCCESS;
-    }
+    status = psa_crypto_init_transactions( );
+    if( status != PSA_SUCCESS )
+        goto exit;
 #endif /* PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS */
 
     /* All done. */

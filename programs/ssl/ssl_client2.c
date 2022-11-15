@@ -2777,6 +2777,39 @@ send_request:
                          * a NewSessionTicket instead. */
                         mbedtls_printf( " got new session ticket ( %d ).\n",
                                         ticket_id++ );
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+                        /* anti_replay_check of GnuTLS check the ticket ages of client and server.
+                         * The restriction is in https://gitlab.com/gnutls/gnutls/-/blob/master/lib/tls13/anti_replay.c#L150
+                         *
+                         * Root cause: That is due to time precision.
+                         * The time precision of ticket_age is milliseconds(RFC 8446). But our precision is senconds, we caculate
+                         * ticket age with `(mbedtls_time( NULL ) - ticket_recived)*1000` .
+                         * If the ticket is sent/received near the end of a second and client send ticket at the beggining of
+                         * next second, ticket age of client is 1000 ms, but ticket age of server is less than it. As a result,
+                         * it offends the anit replay ruler.
+                         *
+                         * Workaround solution: Add 1 second to ticket_received and do reconnect 1 second later.
+                         * This commit implement it.
+                         *
+                         * Fix solution: Change the time precision.
+                         * - [ ] Add platform time function with milliseconds precision.
+                         *       - `clock()` from C99(N1256 section 7.23) https://www.open-std.org/JTC1/SC22/WG14/www/docs/n1256.pdf
+                         *       - `clock_gettime()` from POSIX.1-2008 ( `man clock_gettime` )
+                         *       - `gettimeofday()` NOT recommend, POSIX.1-2008 marks gettimeofday() as obsolete ( `man gettimeofday` )
+                         * - [ ] Change the time precision from seconds to milliseconds.
+                         * - [ ] Force enable MBEDTL_HAVE_TIME when TLS1.3 session ticket is enabled.
+                         * - [ ] Remove negative tollerance window?? Consider this point again. In embed world, the negative tollerance might
+                         *       be appear.
+                         */
+                        if( opt.early_data )
+                        {
+                            ssl.MBEDTLS_PRIVATE(session)->MBEDTLS_PRIVATE(ticket_received) += 1;
+                            if( opt.reco_delay < 1 )
+                                opt.reco_delay = 1;
+                        }
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
                         if( opt.reconnect != 0 )
                         {
                             mbedtls_printf("  . Saving session for reuse..." );

@@ -300,8 +300,10 @@ void mpi_mod_raw_to_mont_rep( char * input_N, char * input_A, char * input_X )
     mbedtls_mpi_uint *N = NULL;
     mbedtls_mpi_uint *A = NULL;
     mbedtls_mpi_uint *X = NULL;
-    mbedtls_mpi_mod_modulus m;
     size_t n_limbs, a_limbs, x_limbs, x_bytes;
+
+    mbedtls_mpi_mod_modulus m;
+    mbedtls_mpi_mod_modulus_init( &m );
 
     /* Read inputs */
     TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &N, &n_limbs, input_N ) );
@@ -312,7 +314,6 @@ void mpi_mod_raw_to_mont_rep( char * input_N, char * input_A, char * input_X )
     /* Test that input does not require more limbs than modulo */
     TEST_LE_U(a_limbs, n_limbs);
 
-    mbedtls_mpi_mod_modulus_init( &m );
     TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs,
                 MBEDTLS_MPI_MOD_EXT_REP_BE, MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
 
@@ -335,8 +336,10 @@ void mpi_mod_raw_from_mont_rep( char * input_N, char * input_A, char * input_X )
     mbedtls_mpi_uint *N = NULL;
     mbedtls_mpi_uint *A = NULL;
     mbedtls_mpi_uint *X = NULL;
-    mbedtls_mpi_mod_modulus m;
     size_t n_limbs, a_limbs, x_limbs, x_bytes;
+
+    mbedtls_mpi_mod_modulus m;
+    mbedtls_mpi_mod_modulus_init( &m );
 
     /* Read inputs */
     TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &N, &n_limbs, input_N ) );
@@ -347,7 +350,6 @@ void mpi_mod_raw_from_mont_rep( char * input_N, char * input_A, char * input_X )
     /* Test that input does not require more limbs than modulo */
     TEST_LE_U(a_limbs, n_limbs);
 
-    mbedtls_mpi_mod_modulus_init( &m );
     TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs,
                 MBEDTLS_MPI_MOD_EXT_REP_BE, MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
 

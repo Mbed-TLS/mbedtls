@@ -2364,6 +2364,218 @@ static inline int psa_ssl_status_to_mbedtls( psa_status_t status )
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */
 
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) && \
+    defined(MBEDTLS_USE_PSA_CRYPTO)
+/**
+ * \brief       Parse the provided input buffer for getting the first round
+ *              of key exchange. This code is common between server and client
+ *
+ * \param  pake_ctx [in] the PAKE's operation/context structure
+ * \param  buf      [in] input buffer to parse
+ * \param  len      [in] length of the input buffer
+ *
+ * \return               0 on success or a negative error code in case of failure
+ */
+static inline int psa_tls12_parse_ecjpake_round_one( 
+                                    psa_pake_operation_t *pake_ctx,
+                                    const unsigned char *buf,
+                                    size_t len )
+{
+    psa_status_t status;
+    size_t input_offset = 0;
+
+    /* Repeat the KEY_SHARE, ZK_PUBLIC & ZF_PROOF twice */
+    for( unsigned int x = 1; x <= 2; ++x )
+    {
+        for( psa_pake_step_t step = PSA_PAKE_STEP_KEY_SHARE;
+             step <= PSA_PAKE_STEP_ZK_PROOF;
+             ++step )
+        {
+            /* Length is stored at the first byte */
+            size_t length = buf[input_offset];
+            input_offset += 1;
+
+            if( input_offset + length > len )
+            {
+                return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+            }
+
+            status = psa_pake_input( pake_ctx, step,
+                                     buf + input_offset, length );
+            if( status != PSA_SUCCESS)
+            {
+                return psa_ssl_status_to_mbedtls( status );
+            }
+
+            input_offset += length;
+        }
+    }
+
+    return( 0 );
+}
+
+/**
+ * \brief       Parse the provided input buffer for getting the second round
+ *              of key exchange. This code is common between server and client
+ *
+ * \param  pake_ctx [in] the PAKE's operation/context structure
+ * \param  buf      [in] input buffer to parse
+ * \param  len      [in] length of the input buffer
+ *
+ * \return               0 on success or a negative error code in case of failure
+ */
+static inline int psa_tls12_parse_ecjpake_round_two(
+                                    psa_pake_operation_t *pake_ctx,
+                                    const unsigned char *buf,
+                                    size_t len, int role )
+{
+    psa_status_t status;
+    size_t input_offset = 0;
+
+    for( psa_pake_step_t step = PSA_PAKE_STEP_KEY_SHARE ;
+            step <= PSA_PAKE_STEP_ZK_PROOF ;
+            ++step )
+    {
+        size_t length;
+
+        /*
+         * On its 2nd round, the server sends 3 extra bytes which identify the
+         * curve. Therefore we should skip them only on the client side
+         */
+        if( ( step == PSA_PAKE_STEP_KEY_SHARE ) && 
+            ( role == MBEDTLS_SSL_IS_CLIENT ) )
+        {
+            /* Length is stored after the 3 bytes for the curve */
+            length = buf[input_offset + 3];
+            input_offset += 3 + 1;
+        }
+        else
+        {
+            /* Length is stored at the first byte */
+            length = buf[input_offset];
+            input_offset += 1;
+        }
+
+        if( input_offset + length > len )
+        {
+            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        }
+
+        status = psa_pake_input( pake_ctx, step,
+                                    buf + input_offset, length );
+        if( status != PSA_SUCCESS)
+        {
+            return psa_ssl_status_to_mbedtls( status );
+        }
+
+        input_offset += length;
+    }
+
+    return( 0 );
+}
+
+/**
+ * \brief       Write the first round of key exchange into the provided output
+ *              buffer. This code is common between server and client
+ *
+ * \param  pake_ctx [in] the PAKE's operation/context structure
+ * \param  buf      [out] the output buffer in which data will be written to
+ * \param  len      [in] length of the output buffer
+ * \param  olen     [out] the length of the data really written on the buffer
+ *
+ * \return               0 on success or a negative error code in case of failure
+ */
+static inline int psa_tls12_write_ecjpake_round_one(
+                                    psa_pake_operation_t *pake_ctx,
+                                    unsigned char *buf,
+                                    size_t len, size_t *olen )
+{
+    psa_status_t status;
+    size_t output_offset = 0;
+    size_t output_len;
+
+    /* Repeat the KEY_SHARE, ZK_PUBLIC & ZF_PROOF twice */
+    for( unsigned int x = 1 ; x <= 2 ; ++x )
+    {
+        for( psa_pake_step_t step = PSA_PAKE_STEP_KEY_SHARE ;
+            step <= PSA_PAKE_STEP_ZK_PROOF ;
+            ++step )
+        {
+            /* For each step, prepend 1 byte with the length of the data */
+            if (step != PSA_PAKE_STEP_ZK_PROOF) {
+                *(buf + output_offset) = 65;
+            } else {
+                *(buf + output_offset) = 32;
+            }
+            output_offset += 1;
+
+            status = psa_pake_output( pake_ctx, step,
+                                        buf + output_offset,
+                                        len - output_offset,
+                                        &output_len );
+            if( status != PSA_SUCCESS )
+            {
+                return( psa_ssl_status_to_mbedtls( status ) );
+            }
+
+            output_offset += output_len;
+        }
+    }
+
+    *olen = output_offset;
+
+    return( 0 );
+}
+
+/**
+ * \brief       Write the second round of key exchange into the provided output
+ *              buffer. This code is common between server and client
+ *
+ * \param  pake_ctx [in] the PAKE's operation/context structure
+ * \param  buf      [out] the output buffer in which data will be written to
+ * \param  len      [in] length of the output buffer
+ * \param  olen     [out] the length of the data really written on the buffer
+ *
+ * \return               0 on success or a negative error code in case of failure
+ */
+static inline int psa_tls12_write_ecjpake_round_two(
+                                    psa_pake_operation_t *pake_ctx,
+                                    unsigned char *buf,
+                                    size_t len, size_t *olen )
+{
+    psa_status_t status;
+    size_t output_offset = 0;
+    size_t output_len;
+
+    for( psa_pake_step_t step = PSA_PAKE_STEP_KEY_SHARE ;
+            step <= PSA_PAKE_STEP_ZK_PROOF ;
+            ++step )
+    {
+        /* For each step, prepend 1 byte with the length of the data */
+        if (step != PSA_PAKE_STEP_ZK_PROOF) {
+            *(buf + output_offset) = 65;
+        } else {
+            *(buf + output_offset) = 32;
+        }
+        output_offset += 1;
+        status = psa_pake_output( pake_ctx,
+                                    step, buf + output_offset,
+                                    len - output_offset,
+                                    &output_len );
+        if( status != PSA_SUCCESS )
+        {
+            return( psa_ssl_status_to_mbedtls( status ) );
+        }
+
+        output_offset += output_len;
+    }
+
+    *olen = output_offset;
+
+    return( 0 );
+}
+#endif //MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED && MBEDTLS_USE_PSA_CRYPTO
+
 /**
  * \brief       TLS record protection modes
  */

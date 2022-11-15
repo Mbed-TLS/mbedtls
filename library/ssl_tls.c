@@ -1616,23 +1616,19 @@ void mbedtls_ssl_set_verify( mbedtls_ssl_context *ssl,
 /*
  * Set EC J-PAKE password for current handshake
  */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
 int mbedtls_ssl_set_hs_ecjpake_password( mbedtls_ssl_context *ssl,
                                          const unsigned char *pw,
                                          size_t pw_len )
 {
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_pake_role_t psa_role;
     psa_status_t status;
-#else
-    mbedtls_ecjpake_role role;
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     if( ssl->handshake == NULL || ssl->conf == NULL )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
         psa_role = PSA_PAKE_ROLE_SERVER;
     else
@@ -1688,7 +1684,17 @@ int mbedtls_ssl_set_hs_ecjpake_password( mbedtls_ssl_context *ssl,
     ssl->handshake->psa_pake_ctx_is_ok = 1;
 
     return( 0 );
-#else
+}
+#else /* MBEDTLS_USE_PSA_CRYPTO */
+int mbedtls_ssl_set_hs_ecjpake_password( mbedtls_ssl_context *ssl,
+                                         const unsigned char *pw,
+                                         size_t pw_len )
+{
+    mbedtls_ecjpake_role role;
+
+    if( ssl->handshake == NULL || ssl->conf == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
         role = MBEDTLS_ECJPAKE_SERVER;
     else
@@ -1699,8 +1705,8 @@ int mbedtls_ssl_set_hs_ecjpake_password( mbedtls_ssl_context *ssl,
                                    MBEDTLS_MD_SHA256,
                                    MBEDTLS_ECP_DP_SECP256R1,
                                    pw, pw_len ) );
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
@@ -3734,6 +3740,7 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
 #if !defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_ECDH_C)
     mbedtls_ecdh_free( &handshake->ecdh_ctx );
 #endif
+
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_pake_abort( &handshake->psa_pake_ctx );
@@ -6041,7 +6048,6 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_RET( 1, "ssl_set_handshake_prfs", ret );
         return( ret );
     }
-
 
     /* Compute master secret if needed */
     ret = ssl_compute_master( ssl->handshake,

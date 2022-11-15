@@ -889,6 +889,11 @@ int mbedtls_mpi_add_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
         if( B->p[j - 1] != 0 )
             break;
 
+    /* Exit early to avoid undefined behavior on NULL+0 when X->n == 0
+     * and B is 0 (of any size). */
+    if( j == 0 )
+        return( 0 );
+
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, j ) );
 
     /* j is the number of non-zero limbs of B. Add those to X. */

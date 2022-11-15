@@ -8235,12 +8235,15 @@ static int ssl_tls12_populate_transform(mbedtls_ssl_transform *transform,
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     if (ssl_mode == MBEDTLS_SSL_MODE_AEAD) {
-        transform->taglen =
-            ciphersuite_info->flags & MBEDTLS_CIPHERSUITE_SHORT_TAG ? 8 : 16;
+        transform->taglen = 16;
+        if (ciphersuite_info->flags & MBEDTLS_CIPHERSUITE_SHORT_TAG) {
+            transform->taglen = 8;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        mbedtls_ssl_cipher_to_psa(ciphersuite_info->cipher, transform->taglen,
-                                  &alg, &key_type, &key_bits);
+            if (alg == PSA_ALG_CCM) {
+                alg = PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, 8);
+            }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
+        }
     }
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM)
     else {

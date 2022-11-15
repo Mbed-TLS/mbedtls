@@ -252,6 +252,17 @@ void mbedtls_mpi_swap( mbedtls_mpi *X, mbedtls_mpi *Y )
     memcpy(  Y, &T, sizeof( mbedtls_mpi ) );
 }
 
+static inline mbedtls_mpi_uint mpi_sint_abs( mbedtls_mpi_sint z )
+{
+    if( z >= 0 )
+        return( z );
+    /* Take care to handle the most negative value (-2^(biL-1)) correctly.
+     * A naive -z would have undefined behavior.
+     * Write this in a way that makes popular compilers happy (GCC, Clang,
+     * MSVC). */
+    return( (mbedtls_mpi_uint) 0 - (mbedtls_mpi_uint) z );
+}
+
 /*
  * Set value from integer
  */
@@ -263,7 +274,7 @@ int mbedtls_mpi_lset( mbedtls_mpi *X, mbedtls_mpi_sint z )
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, 1 ) );
     memset( X->p, 0, X->n * ciL );
 
-    X->p[0] = ( z < 0 ) ? -(mbedtls_mpi_uint)z : z;
+    X->p[0] = mpi_sint_abs( z );
     X->s    = ( z < 0 ) ? -1 : 1;
 
 cleanup:
@@ -853,7 +864,7 @@ int mbedtls_mpi_cmp_int( const mbedtls_mpi *X, mbedtls_mpi_sint z )
     mbedtls_mpi_uint p[1];
     MPI_VALIDATE_RET( X != NULL );
 
-    *p  = ( z < 0 ) ? -(mbedtls_mpi_uint)z : z;
+    *p  = mpi_sint_abs( z );
     Y.s = ( z < 0 ) ? -1 : 1;
     Y.n = 1;
     Y.p = p;
@@ -1057,7 +1068,7 @@ int mbedtls_mpi_add_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_sint 
     MPI_VALIDATE_RET( X != NULL );
     MPI_VALIDATE_RET( A != NULL );
 
-    p[0] = ( b < 0 ) ? -(mbedtls_mpi_uint)b : b;
+    p[0] = mpi_sint_abs( b );
     B.s = ( b < 0 ) ? -1 : 1;
     B.n = 1;
     B.p = p;
@@ -1075,7 +1086,7 @@ int mbedtls_mpi_sub_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_sint 
     MPI_VALIDATE_RET( X != NULL );
     MPI_VALIDATE_RET( A != NULL );
 
-    p[0] = ( b < 0 ) ? -(mbedtls_mpi_uint)b : b;
+    p[0] = mpi_sint_abs( b );
     B.s = ( b < 0 ) ? -1 : 1;
     B.n = 1;
     B.p = p;
@@ -1413,7 +1424,7 @@ int mbedtls_mpi_div_int( mbedtls_mpi *Q, mbedtls_mpi *R,
     mbedtls_mpi_uint p[1];
     MPI_VALIDATE_RET( A != NULL );
 
-    p[0] = ( b < 0 ) ? -(mbedtls_mpi_uint)b : b;
+    p[0] = mpi_sint_abs( b );
     B.s = ( b < 0 ) ? -1 : 1;
     B.n = 1;
     B.p = p;

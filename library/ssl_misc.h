@@ -2366,6 +2366,18 @@ static inline int psa_ssl_status_to_mbedtls( psa_status_t status )
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) && \
     defined(MBEDTLS_USE_PSA_CRYPTO)
+
+/* Currently JPAKE only supports elliptic curve secp256r1 */
+#define MBEDTLS_SSL_ECJPAKE_PSA_PRIMITIVE   \
+                        PSA_PAKE_PRIMITIVE( PSA_PAKE_PRIMITIVE_TYPE_ECC, \
+                                                PSA_ECC_FAMILY_SECP_R1, 256 )
+
+/* Expected output data size for each "step" of EC-JPAKE key echange */
+#define MBEDTLS_SSL_ECJPAKE_OUTPUT_SIZE( step ) \
+                        PSA_PAKE_OUTPUT_SIZE( PSA_ALG_JPAKE, \
+                            MBEDTLS_SSL_ECJPAKE_PSA_PRIMITIVE, \
+                            step )
+
 /**
  * \brief       Parse the provided input buffer for getting the first round
  *              of key exchange. This code is common between server and client
@@ -2376,7 +2388,7 @@ static inline int psa_ssl_status_to_mbedtls( psa_status_t status )
  *
  * \return               0 on success or a negative error code in case of failure
  */
-static inline int psa_tls12_parse_ecjpake_round_one( 
+static inline int psa_tls12_parse_ecjpake_round_one(
                                     psa_pake_operation_t *pake_ctx,
                                     const unsigned char *buf,
                                     size_t len )
@@ -2502,11 +2514,7 @@ static inline int psa_tls12_write_ecjpake_round_one(
             ++step )
         {
             /* For each step, prepend 1 byte with the length of the data */
-            if (step != PSA_PAKE_STEP_ZK_PROOF) {
-                *(buf + output_offset) = 65;
-            } else {
-                *(buf + output_offset) = 32;
-            }
+            *(buf + output_offset) = MBEDTLS_SSL_ECJPAKE_OUTPUT_SIZE( step );
             output_offset += 1;
 
             status = psa_pake_output( pake_ctx, step,
@@ -2552,11 +2560,7 @@ static inline int psa_tls12_write_ecjpake_round_two(
             ++step )
     {
         /* For each step, prepend 1 byte with the length of the data */
-        if (step != PSA_PAKE_STEP_ZK_PROOF) {
-            *(buf + output_offset) = 65;
-        } else {
-            *(buf + output_offset) = 32;
-        }
+        *(buf + output_offset) = MBEDTLS_SSL_ECJPAKE_OUTPUT_SIZE( step );
         output_offset += 1;
         status = psa_pake_output( pake_ctx,
                                     step, buf + output_offset,

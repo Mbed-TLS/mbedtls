@@ -38,7 +38,13 @@ def invmod(a: int, n: int) -> int:
     raise ValueError("Not invertible")
 
 def hex_to_int(val: str) -> int:
-    return int(val, 16) if val else 0
+    """Implement the syntax accepted by mbedtls_test_read_mpi().
+
+    This is a superset of what is accepted by mbedtls_test_read_mpi_core().
+    """
+    if val == '' or val == '-':
+        return 0
+    return int(val, 16)
 
 def quote_str(val) -> str:
     return "\"{}\"".format(val)

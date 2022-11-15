@@ -2542,7 +2542,6 @@ static int ssl_tls13_parse_new_session_ticket_exts( mbedtls_ssl_context *ssl,
         switch( extension_type )
         {
             case MBEDTLS_TLS_EXT_EARLY_DATA:
-                MBEDTLS_SSL_DEBUG_MSG( 4, ( "early_data extension received" ) );
                 if( extension_data_len != 4 )
                 {
                     MBEDTLS_SSL_PEND_FATAL_ALERT(

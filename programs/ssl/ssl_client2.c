@@ -2504,12 +2504,6 @@ int main( int argc, char *argv[] )
         }
     }
 
-#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
-    /* TODO: We can log the actual early data status after we define
-     * the API mbedtls_ssl_get_early_data_status.
-     */
-#endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_CLI_C */
-
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
     /*
      * 5. Verify the server certificate
@@ -3219,12 +3213,6 @@ reconnect:
         }
 
         mbedtls_printf( " ok\n" );
-
-#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
-        /* TODO: We can log the actual early data status when reconnect
-         * after we define the API mbedtls_ssl_get_early_data_status.
-         */
-#endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_CLI_C */
 
         goto send_request;
     }

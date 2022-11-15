@@ -1,0 +1,4 @@
+Features
+   * You can now use a custom heap allocator by setting
+     MBEDTLS_PLATFORM_CALLOC_MACRO and MBEDTLS_PLATFORM_FREE_MACRO
+     without enabling MBEDTLS_PLATFORM_C.

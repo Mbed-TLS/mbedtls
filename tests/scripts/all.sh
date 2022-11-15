@@ -2585,6 +2585,35 @@ component_test_no_platform () {
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -Os' test
 }
 
+component_test_platform_macros_without_module () {
+    msg "build: with platform macros without platform.c"
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_PLATFORM_C
+    scripts/config.py unset MBEDTLS_PLATFORM_MEMORY
+    scripts/config.py unset MBEDTLS_PLATFORM_PRINTF_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_FPRINTF_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_SNPRINTF_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_VSNPRINTF_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_TIME_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_EXIT_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_SETBUF_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
+    scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
+    make CFLAGS="$ASAN_CFLAGS -DMBEDTLS_TEST_PLATFORM_MACROS -DMBEDTLS_USER_CONFIG_FILE='\"../tests/configs/user-config-for-test.h\"' -O2" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: with platform macros and platform.c"
+    make test
+}
+
+component_test_platform_macros_with_module () {
+    msg "build: with platform macros and platform.c"
+    scripts/config.py full
+    make CFLAGS="$ASAN_CFLAGS -DMBEDTLS_TEST_PLATFORM_MACROS -DMBEDTLS_USER_CONFIG_FILE='\"../tests/configs/user-config-for-test.h\"' -O2" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: with platform macros and platform.c"
+    make test
+}
+
 component_build_no_std_function () {
     # catch compile bugs in _uninit functions
     msg "build: full config with NO_STD_FUNCTION, make, gcc" # ~ 30s
@@ -2768,18 +2797,6 @@ component_test_no_date_time () {
     make test
 }
 
-component_test_platform_calloc_macro () {
-    msg "build: MBEDTLS_PLATFORM_{CALLOC/FREE}_MACRO enabled (ASan build)"
-    scripts/config.py set MBEDTLS_PLATFORM_MEMORY
-    scripts/config.py set MBEDTLS_PLATFORM_CALLOC_MACRO calloc
-    scripts/config.py set MBEDTLS_PLATFORM_FREE_MACRO   free
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make
-
-    msg "test: MBEDTLS_PLATFORM_{CALLOC/FREE}_MACRO enabled (ASan build)"
-    make test
-}
-
 component_test_malloc_0_null () {
     msg "build: malloc(0) returns NULL (ASan+UBSan build)"
     scripts/config.py full
@@ -2833,7 +2850,6 @@ component_test_aes_fewer_tables_and_rom_tables () {
 component_test_ctr_drbg_aes_256_sha_256 () {
     msg "build: full + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
     scripts/config.py full
-    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.py set MBEDTLS_ENTROPY_FORCE_SHA256
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
@@ -2845,7 +2861,6 @@ component_test_ctr_drbg_aes_256_sha_256 () {
 component_test_ctr_drbg_aes_128_sha_512 () {
     msg "build: full + MBEDTLS_CTR_DRBG_USE_128_BIT_KEY (ASan build)"
     scripts/config.py full
-    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.py set MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
@@ -2857,7 +2872,6 @@ component_test_ctr_drbg_aes_128_sha_512 () {
 component_test_ctr_drbg_aes_128_sha_256 () {
     msg "build: full + MBEDTLS_CTR_DRBG_USE_128_BIT_KEY + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
     scripts/config.py full
-    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.py set MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
     scripts/config.py set MBEDTLS_ENTROPY_FORCE_SHA256
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .

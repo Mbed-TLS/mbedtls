@@ -136,12 +136,13 @@ extern "C" {
 /*
  * The function pointers for calloc and free.
  */
-#if defined(MBEDTLS_PLATFORM_MEMORY)
 #if defined(MBEDTLS_PLATFORM_FREE_MACRO) && \
     defined(MBEDTLS_PLATFORM_CALLOC_MACRO)
 #define mbedtls_free       MBEDTLS_PLATFORM_FREE_MACRO
 #define mbedtls_calloc     MBEDTLS_PLATFORM_CALLOC_MACRO
-#else
+
+#elif defined(MBEDTLS_PLATFORM_MEMORY)
+
 /* For size_t */
 #include <stddef.h>
 extern void *mbedtls_calloc( size_t n, size_t size );
@@ -158,11 +159,10 @@ extern void mbedtls_free( void *ptr );
  */
 int mbedtls_platform_set_calloc_free( void * (*calloc_func)( size_t, size_t ),
                               void (*free_func)( void * ) );
-#endif /* MBEDTLS_PLATFORM_FREE_MACRO && MBEDTLS_PLATFORM_CALLOC_MACRO */
-#else /* !MBEDTLS_PLATFORM_MEMORY */
+#else /* !MBEDTLS_PLATFORM_MEMORY && !MBEDTLS_PLATFORM_{FREE,CALLOC}_MACRO */
 #define mbedtls_free       free
 #define mbedtls_calloc     calloc
-#endif /* MBEDTLS_PLATFORM_MEMORY && !MBEDTLS_PLATFORM_{FREE,CALLOC}_MACRO */
+#endif /* !MBEDTLS_PLATFORM_MEMORY && !MBEDTLS_PLATFORM_{FREE,CALLOC}_MACRO */
 
 /*
  * The function pointers for fprintf

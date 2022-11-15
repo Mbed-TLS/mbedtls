@@ -275,6 +275,59 @@ exit:
 
 /* BEGIN MERGE SLOT 2 */
 
+/* BEGIN_CASE */
+void mpi_mod_raw_sub( char * input_A,
+                      char * input_B,
+                      char * input_N,
+                      char * result )
+{
+    mbedtls_mpi_uint *A = NULL;
+    mbedtls_mpi_uint *B = NULL;
+    mbedtls_mpi_uint *N = NULL;
+    mbedtls_mpi_uint *X = NULL;
+    mbedtls_mpi_uint *res = NULL;
+    size_t limbs_A;
+    size_t limbs_B;
+    size_t limbs_N;
+    size_t limbs_res;
+
+    TEST_EQUAL( mbedtls_test_read_mpi_core( &A,   &limbs_A,   input_A ), 0 );
+    TEST_EQUAL( mbedtls_test_read_mpi_core( &B,   &limbs_B,   input_B ), 0 );
+    TEST_EQUAL( mbedtls_test_read_mpi_core( &N,   &limbs_N,   input_N ), 0 );
+    TEST_EQUAL( mbedtls_test_read_mpi_core( &res, &limbs_res, result  ), 0 );
+
+    size_t limbs = limbs_N;
+    size_t bytes = limbs * sizeof( mbedtls_mpi_uint );
+
+    TEST_ASSERT( limbs_A   <= limbs );
+    TEST_ASSERT( limbs_B   <= limbs );
+    TEST_ASSERT( limbs_res <= limbs );
+
+    ASSERT_ALLOC( X, limbs );
+
+    mbedtls_mpi_mod_modulus m;
+    mbedtls_mpi_mod_modulus_init( &m );
+
+    TEST_EQUAL( mbedtls_mpi_mod_modulus_setup(
+                        &m, N, limbs,
+                        MBEDTLS_MPI_MOD_EXT_REP_BE,
+                        MBEDTLS_MPI_MOD_REP_MONTGOMERY ), 0 );
+
+    mbedtls_mpi_mod_raw_sub( X, A, B, &m );
+
+    ASSERT_COMPARE( X, bytes, res, bytes );
+
+exit:
+    mbedtls_free( A );
+    mbedtls_free( B );
+    mbedtls_free( X );
+    mbedtls_free( res );
+
+    mbedtls_mpi_mod_modulus_free( &m );
+    mbedtls_free( N );
+}
+/* END_CASE */
+
 /* END MERGE SLOT 2 */
 
 /* BEGIN MERGE SLOT 3 */

@@ -890,7 +890,7 @@ static psa_status_t psa_restrict_key_policy(
  * On success, the returned key slot is locked. It is the responsibility of
  * the caller to unlock the key slot when it does not access it anymore.
  */
-static psa_status_t psa_get_and_lock_key_slot_with_policy(
+psa_status_t psa_get_and_lock_key_slot_with_policy(
     mbedtls_svc_key_id_t key,
     psa_key_slot_t **p_slot,
     psa_key_usage_t usage,

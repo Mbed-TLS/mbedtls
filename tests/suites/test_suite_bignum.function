@@ -1447,6 +1447,150 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void most_negative_mpi_sint( )
+{
+    /* Ad hoc tests for n = -p = -2^(biL-1) as a mbedtls_mpi_sint. We
+     * guarantee that mbedtls_mpi_sint is a two's complement type, so this
+     * is a valid value. However, negating it (`-n`) has undefined behavior
+     * (although in practice `-n` evaluates to the value n).
+     *
+     * This function has ad hoc tests for this value. It's separated from other
+     * functions because the test framework makes it hard to pass this value
+     * into test cases.
+     *
+     * In the comments here:
+     * - biL = number of bits in limbs
+     * - p = 2^(biL-1) (smallest positive value not in mbedtls_mpi_sint range)
+     * - n = -2^(biL-1) (largest negative value in mbedtls_mpi_sint range)
+     */
+
+    mbedtls_mpi A, R, X;
+    mbedtls_mpi_init( &A );
+    mbedtls_mpi_init( &R );
+    mbedtls_mpi_init( &X );
+
+    const size_t biL = 8 * sizeof( mbedtls_mpi_sint );
+    mbedtls_mpi_uint most_positive_plus_1 = (mbedtls_mpi_uint) 1 << ( biL - 1 );
+    const mbedtls_mpi_sint most_positive = most_positive_plus_1 - 1;
+    const mbedtls_mpi_sint most_negative = - most_positive - 1;
+    TEST_EQUAL( (mbedtls_mpi_uint) most_negative,
+                (mbedtls_mpi_uint) 1 << ( biL - 1 ) );
+    TEST_EQUAL( (mbedtls_mpi_uint) most_negative << 1, 0 );
+
+    /* Test mbedtls_mpi_lset() */
+    TEST_EQUAL( mbedtls_mpi_lset( &A, most_negative ), 0 );
+    TEST_EQUAL( A.s, -1 );
+    TEST_EQUAL( A.n, 1 );
+    TEST_EQUAL( A.p[0], most_positive_plus_1 );
+
+    /* Test mbedtls_mpi_cmp_int(): -p == -p */
+    TEST_EQUAL( mbedtls_mpi_cmp_int( &A, most_negative ), 0 );
+
+    /* Test mbedtls_mpi_cmp_int(): -(p+1) < -p */
+    A.p[0] = most_positive_plus_1 + 1;
+    TEST_EQUAL( mbedtls_mpi_cmp_int( &A, most_negative ), -1 );
+
+    /* Test mbedtls_mpi_cmp_int(): -(p-1) > -p */
+    A.p[0] = most_positive_plus_1 - 1;
+    TEST_EQUAL( mbedtls_mpi_cmp_int( &A, most_negative ), 1 );
+
+    /* Test mbedtls_mpi_add_int(): (p-1) + (-p) */
+    TEST_EQUAL( mbedtls_mpi_lset( &A, most_positive ), 0 );
+    TEST_EQUAL( mbedtls_mpi_add_int( &X, &A, most_negative ), 0 );
+    TEST_EQUAL( mbedtls_mpi_cmp_int( &X, -1 ), 0 );
+
+    /* Test mbedtls_mpi_add_int(): (0) + (-p) */
+    TEST_EQUAL( mbedtls_mpi_lset( &A, 0 ), 0 );
+    TEST_EQUAL( mbedtls_mpi_add_int( &X, &A, most_negative ), 0 );
+    TEST_EQUAL( mbedtls_mpi_cmp_int( &X, most_negative ), 0 );
+
+    /* Test mbedtls_mpi_add_int(): (-p) + (-p) */
+    TEST_EQUAL( mbedtls_mpi_lset( &A, most_negative ), 0 );
+    TEST_EQUAL( mbedtls_mpi_add_int( &X, &A, most_negative ), 0 );
+    TEST_EQUAL( X.s, -1 );
+    TEST_EQUAL( X.n, 2 );
+    TEST_EQUAL( X.p[0], 0 );
+    TEST_EQUAL( X.p[1], 1 );
+
+    /* Test mbedtls_mpi_sub_int(): (p) - (-p) */
+    mbedtls_mpi_free( &X );
+    TEST_EQUAL( mbedtls_mpi_lset( &A, most_positive ), 0 );
+    TEST_EQUAL( mbedtls_mpi_sub_int( &X, &A, most_negative ), 0 );
+    TEST_EQUAL( X.s, 1 );
+    TEST_EQUAL( X.n, 1 );
+    TEST_EQUAL( X.p[0], ~(mbedtls_mpi_uint)0 );
+
+    /* Test mbedtls_mpi_sub_int(): (0) - (-p) */
+    TEST_EQUAL( mbedtls_mpi_lset( &A, 0 ), 0 );
+    TEST_EQUAL( mbedtls_mpi_sub_int( &X, &A, most_negative ), 0 );
+    TEST_EQUAL( X.s, 1 );
+    TEST_EQUAL( X.n, 1 );
+    TEST_EQUAL( X.p[0], most_positive_plus_1 );
+
+    /* Test mbedtls_mpi_sub_int(): (-p) - (-p) */
+    TEST_EQUAL( mbedtls_mpi_lset( &A, most_negative ), 0 );
+    TEST_EQUAL( mbedtls_mpi_sub_int( &X, &A, most_negative ), 0 );
+    TEST_EQUAL( mbedtls_mpi_cmp_int( &X, 0 ), 0 );
+
+    /* Test mbedtls_mpi_div_int(): (-p+1) / (-p) */
+    TEST_EQUAL( mbedtls_mpi_lset( &A, -most_positive ), 0 );
+    TEST_EQUAL( mbedtls_mpi_div_int( &X, &R, &A, most_negative ), 0 );
+    TEST_EQUAL( mbedtls_mpi_cmp_int( &X, 0 ), 0 );
+    TEST_EQUAL( mbedtls_mpi_cmp_int( &R, -most_positive ), 0 );
+
+    /* Test mbedtls_mpi_div_int(): (-p) / (-p) */
+    TEST_EQUAL( mbedtls_mpi_lset( &A, most_negative ), 0 );
+    TEST_EQUAL( mbedtls_mpi_div_int( &X, &R, &A, most_negative ), 0 );
+    TEST_EQUAL( mbedtls_mpi_cmp_int( &X, 1 ), 0 );
+    TEST_EQUAL( mbedtls_mpi_cmp_int( &R, 0 ), 0 );
+
+    /* Test mbedtls_mpi_div_int(): (-2*p) / (-p) */
+    TEST_EQUAL( mbedtls_mpi_shift_l( &A, 1 ), 0 );
+    TEST_EQUAL( mbedtls_mpi_div_int( &X, &R, &A, most_negative ), 0 );
+    TEST_EQUAL( mbedtls_mpi_cmp_int( &X, 2 ), 0 );
+    TEST_EQUAL( mbedtls_mpi_cmp_int( &R, 0 ), 0 );
+
+    /* Test mbedtls_mpi_div_int(): (-2*p+1) / (-p) */
+    TEST_EQUAL( mbedtls_mpi_add_int( &A, &A, 1 ), 0 );
+    TEST_EQUAL( mbedtls_mpi_div_int( &X, &R, &A, most_negative ), 0 );
+    TEST_EQUAL( mbedtls_mpi_cmp_int( &X, 1 ), 0 );
+    TEST_EQUAL( mbedtls_mpi_cmp_int( &R, -most_positive ), 0 );
+
+    /* Test mbedtls_mpi_div_int(): (p-1) / (-p) */
+    TEST_EQUAL( mbedtls_mpi_lset( &A, most_positive ), 0 );
+    TEST_EQUAL( mbedtls_mpi_div_int( &X, &R, &A, most_negative ), 0 );
+    TEST_EQUAL( mbedtls_mpi_cmp_int( &X, 0 ), 0 );
+    TEST_EQUAL( mbedtls_mpi_cmp_int( &R, most_positive ), 0 );
+
+    /* Test mbedtls_mpi_div_int(): (p) / (-p) */
+    TEST_EQUAL( mbedtls_mpi_add_int( &A, &A, 1 ), 0 );
+    TEST_EQUAL( mbedtls_mpi_div_int( &X, &R, &A, most_negative ), 0 );
+    TEST_EQUAL( mbedtls_mpi_cmp_int( &X, -1 ), 0 );
+    TEST_EQUAL( mbedtls_mpi_cmp_int( &R, 0 ), 0 );
+
+    /* Test mbedtls_mpi_div_int(): (2*p) / (-p) */
+    TEST_EQUAL( mbedtls_mpi_shift_l( &A, 1 ), 0 );
+    TEST_EQUAL( mbedtls_mpi_div_int( &X, &R, &A, most_negative ), 0 );
+    TEST_EQUAL( mbedtls_mpi_cmp_int( &X, -2 ), 0 );
+    TEST_EQUAL( mbedtls_mpi_cmp_int( &R, 0 ), 0 );
+
+    /* Test mbedtls_mpi_mod_int(): never valid */
+    TEST_EQUAL( mbedtls_mpi_mod_int( X.p, &A, most_negative ),
+                MBEDTLS_ERR_MPI_NEGATIVE_VALUE );
+
+    /* Test mbedtls_mpi_random(): never valid */
+    TEST_EQUAL( mbedtls_mpi_random( &X, most_negative, &A,
+                                    mbedtls_test_rnd_std_rand, NULL ),
+                MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+
+exit:
+    mbedtls_mpi_free( &A );
+    mbedtls_mpi_free( &R );
+    mbedtls_mpi_free( &X );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void mpi_selftest(  )
 {

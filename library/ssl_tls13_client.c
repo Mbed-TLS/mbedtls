@@ -2541,6 +2541,7 @@ static int ssl_tls13_parse_new_session_ticket_exts( mbedtls_ssl_context *ssl,
 
         switch( extension_type )
         {
+#if defined(MBEDTLS_SSL_EARLY_DATA)
             case MBEDTLS_TLS_EXT_EARLY_DATA:
                 if( extension_data_len != 4 )
                 {
@@ -2555,6 +2556,7 @@ static int ssl_tls13_parse_new_session_ticket_exts( mbedtls_ssl_context *ssl,
                             MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA;
                 }
                 break;
+#endif /* MBEDTLS_SSL_EARLY_DATA */
 
             default:
                 MBEDTLS_SSL_PRINT_EXT(

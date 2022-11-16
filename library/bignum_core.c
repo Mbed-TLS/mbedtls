@@ -624,6 +624,12 @@ static void exp_mod_precompute_window( const mbedtls_mpi_uint *A,
     }
 }
 
+/* Exponentiation: X := A^E mod N.
+ *
+ * As in other bignum functions, assume that AN_limbs and E_limbs are nonzero.
+ *
+ * RR must contain 2^{2*biL} mod N.
+ */
 int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
                               const mbedtls_mpi_uint *A,
                               const mbedtls_mpi_uint *N,
@@ -722,6 +728,7 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
     const mbedtls_mpi_uint one = 1;
     mbedtls_mpi_core_montmul( X, X, &one, 1, N, AN_limbs, mm, temp );
 
+    mbedtls_platform_zeroize( mempool, total_limbs * sizeof(mbedtls_mpi_uint) );
     mbedtls_free( mempool );
     return( 0 );
 }

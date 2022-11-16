@@ -924,10 +924,10 @@ component_test_default_cmake_gcc_asan () {
     tests/context-info.sh
 }
 
-component_test_full_cmake_gcc_asan () {
-    msg "build: full config, cmake, gcc, ASan"
+component_test_full_cmake_clang_asan () {
+    msg "build: full config, cmake, clang, ASan"
     scripts/config.py full
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=clang cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: main suites (inc. selftests) (full config, ASan build)"
@@ -944,6 +944,15 @@ component_test_full_cmake_gcc_asan () {
 
     msg "test: context-info.sh (full config, ASan build)" # ~ 15 sec
     tests/context-info.sh
+}
+# Insist on a reasonably modern Clang. New versions find more problems,
+# especially with UBSan.
+support_test_full_cmake_clang_asan () {
+    local version
+    version="$(echo __clang_major__ | clang -E -)"
+    version="${version##*$'\n'}"
+    # Require at least the version in Ubuntu 20.04
+    [[ $version != [!0-9]* && $version -ge 10 ]]
 }
 
 component_test_psa_crypto_key_id_encodes_owner () {

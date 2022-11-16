@@ -607,18 +607,9 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     /* heap allocated memory pool */
     mbedtls_mpi_uint *mempool = NULL;
-    /* pointers to temporaries within memory pool */
-    mbedtls_mpi_uint *Wtable, *Wselect, *temp;
-    /* pointers to table entries */
-    mbedtls_mpi_uint *Wcur, *Wlast, *W1;
 
-    size_t wsize, welem;
-    mbedtls_mpi_uint one = 1, mm;
-
-    mm = mbedtls_mpi_core_montmul_init( N ); /* Compute Montgomery constant */
-
-    wsize = exp_mod_get_window_size( E_limbs * biL );
-    welem = ( (size_t) 1 ) << wsize;
+    const size_t wsize = exp_mod_get_window_size( E_limbs * biL );
+    const size_t welem = ( (size_t) 1 ) << wsize;
 
     /* Allocate memory pool and set pointers to parts of it */
     const size_t table_limbs   = welem * AN_limbs;
@@ -633,13 +624,19 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
         goto cleanup;
     }
 
-    Wtable    = mempool;
-    Wselect = Wtable    + table_limbs;
-    temp    = Wselect  + select_limbs;
+    /* pointers to temporaries within memory pool */
+    mbedtls_mpi_uint *const Wtable  = mempool;
+    mbedtls_mpi_uint *const Wselect = Wtable    + table_limbs;
+    mbedtls_mpi_uint *const temp    = Wselect  + select_limbs;
 
     /*
      * Window precomputation
      */
+
+    const mbedtls_mpi_uint mm = mbedtls_mpi_core_montmul_init( N );
+
+    /* pointers to table entries */
+    mbedtls_mpi_uint *Wcur, *Wlast, *W1;
 
     /* W[0] = 1 (in Montgomery presentation) */
     memset( Wtable, 0, AN_limbs * ciL );
@@ -667,8 +664,11 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
     E += E_limbs;
 
     size_t limb_bits_remaining = 0;
-    mbedtls_mpi_uint cur_limb, window = 0;
+    mbedtls_mpi_uint window = 0;
     size_t window_bits = 0;
+    /* Will be initialized properly in the first loop iteration */
+    mbedtls_mpi_uint cur_limb = 0;
+
     while( 1 )
     {
         size_t window_bits_missing = wsize - window_bits;
@@ -711,6 +711,7 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
     }
 
     /* Convert X back to normal presentation */
+    const mbedtls_mpi_uint one = 1;
     mbedtls_mpi_core_montmul( X, X, &one, 1, N, AN_limbs, mm, temp );
 
     ret = 0;

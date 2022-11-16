@@ -33,7 +33,7 @@ jobs:
           - clang
           - gnutls-bin
       script:
-        - tests/scripts/all.sh -k test_full_cmake_clang_asan
+        - bash -x tests/scripts/all.sh -k test_full_cmake_clang_asan
 
     - name: Windows
       os: windows

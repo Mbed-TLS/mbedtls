@@ -2877,26 +2877,24 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
                                ssl->out_msglen;
         size_t output_offset = 0;
         size_t output_len = 0;
-        size_t ec_len;
-
-#if !defined(MBEDTLS_ECJPAKE_ALT)
-        psa_pake_operation_t* pake_op = &(ssl->handshake->psa_pake_ctx);
-
-        mbedtls_ecp_tls_write_group( &(pake_op->ctx.ecjpake.grp),
-                                    &ec_len, out_p + output_offset,
-                                    end_p - out_p);
-#else
         const mbedtls_ecp_curve_info *curve_info;
 
-        if( ( curve_info = mbedtls_ecp_curve_info_from_grp_id( MBEDTLS_ECP_DP_SECP256R1 ) ) == NULL )
-            return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-
+        /*
+         * The first 3 bytes are:
+         * [0] MBEDTLS_ECP_TLS_NAMED_CURVE
+         * [1, 2] elliptic curve's TLS ID
+         *
+         * However since we only support secp256r1 for now, we hardcode its
+         * TLS ID here
+         */
+        if( ( curve_info = mbedtls_ecp_curve_info_from_grp_id(
+                                    MBEDTLS_ECP_DP_SECP256R1 ) ) == NULL )
+        {
+            return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+        }
         *out_p = MBEDTLS_ECP_TLS_NAMED_CURVE;
-
-        MBEDTLS_PUT_UINT16_BE( curve_info->tls_id, out_p + 1, 0 );
-        ec_len = 3;
-#endif //MBEDTLS_PSA_BUILTIN_ALG_JPAKE
-        output_offset += ec_len;
+        MBEDTLS_PUT_UINT16_BE( curve_info->tls_id, out_p, 1 );
+        output_offset += sizeof( uint8_t ) + sizeof( uint16_t );
 
         ret = psa_tls12_write_ecjpake_round_two( &ssl->handshake->psa_pake_ctx,
                                     out_p + output_offset,

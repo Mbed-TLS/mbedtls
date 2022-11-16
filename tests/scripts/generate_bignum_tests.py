@@ -78,10 +78,16 @@ class BignumOperation(bignum_common.OperationCommon, BignumTarget, metaclass=ABC
     #pylint: disable=abstract-method
     """Common features for bignum operations in legacy tests."""
     input_values = [
-        "", "0", "7b", "-7b",
+        "", "0", "-", "-0",
+        "7b", "-7b",
         "0000000000000000123", "-0000000000000000123",
         "1230000000000000000", "-1230000000000000000"
     ]
+
+    def description_suffix(self) -> str:
+        #pylint: disable=no-self-use # derived classes need self
+        """Text to add at the end of the test case description."""
+        return ""
 
     def description(self) -> str:
         """Generate a description for the test case.
@@ -96,6 +102,9 @@ class BignumOperation(bignum_common.OperationCommon, BignumTarget, metaclass=ABC
                 self.symbol,
                 self.value_description(self.arg_b)
             )
+            description_suffix = self.description_suffix()
+            if description_suffix:
+                self.case_description += " " + description_suffix
         return super().description()
 
     @staticmethod
@@ -107,6 +116,8 @@ class BignumOperation(bignum_common.OperationCommon, BignumTarget, metaclass=ABC
         """
         if val == "":
             return "0 (null)"
+        if val == "-":
+            return "negative 0 (null)"
         if val == "0":
             return "0 (1 limb)"
 
@@ -171,9 +182,21 @@ class BignumAdd(BignumOperation):
         ]
     )
 
-    def result(self) -> List[str]:
-        return [bignum_common.quote_str("{:x}").format(self.int_a + self.int_b)]
+    def __init__(self, val_a: str, val_b: str) -> None:
+        super().__init__(val_a, val_b)
+        self._result = self.int_a + self.int_b
 
+    def description_suffix(self) -> str:
+        if (self.int_a >= 0 and self.int_b >= 0):
+            return "" # obviously positive result or 0
+        if (self.int_a <= 0 and self.int_b <= 0):
+            return "" # obviously negative result or 0
+        # The sign of the result is not obvious, so indicate it
+        return ", result{}0".format('>' if self._result > 0 else
+                                    '<' if self._result < 0 else '=')
+
+    def result(self) -> List[str]:
+        return [bignum_common.quote_str("{:x}".format(self._result))]
 
 if __name__ == '__main__':
     # Use the section of the docstring relevant to the CLI as description

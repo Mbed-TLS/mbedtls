@@ -596,6 +596,34 @@ static size_t exp_mod_get_window_size( size_t Ebits )
     return( wsize );
 }
 
+static void exp_mod_precompute_window( const mbedtls_mpi_uint *A,
+                                       const mbedtls_mpi_uint *N,
+                                       size_t AN_limbs,
+                                       mbedtls_mpi_uint mm,
+                                       const mbedtls_mpi_uint *RR,
+                                       size_t welem,
+                                       mbedtls_mpi_uint *Wtable,
+                                       mbedtls_mpi_uint *temp )
+{
+    /* pointers to table entries */
+    mbedtls_mpi_uint *Wcur, *Wlast, *W1;
+
+    /* W[0] = 1 (in Montgomery presentation) */
+    memset( Wtable, 0, AN_limbs * ciL );
+    Wtable[0] = 1;
+    mbedtls_mpi_core_montmul( Wtable, Wtable, RR, AN_limbs, N, AN_limbs, mm, temp );
+    Wcur = Wtable + AN_limbs;
+    /* W[1] = A * R^2 * R^-1 mod N = A * R mod N */
+    memcpy( Wcur, A, AN_limbs * ciL );
+    mbedtls_mpi_core_montmul( Wcur, Wcur, RR, AN_limbs, N, AN_limbs, mm, temp );
+    W1 = Wcur;
+    Wcur += AN_limbs;
+    /* W[i+1] = W[i] * W[1], i >= 2 */
+    Wlast = W1;
+    for( size_t i = 2; i < welem; i++, Wlast += AN_limbs, Wcur += AN_limbs )
+        mbedtls_mpi_core_montmul( Wcur, Wlast, W1, AN_limbs, N, AN_limbs, mm, temp );
+}
+
 int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
                               const mbedtls_mpi_uint *A,
                               const mbedtls_mpi_uint *N,
@@ -635,23 +663,10 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
 
     const mbedtls_mpi_uint mm = mbedtls_mpi_core_montmul_init( N );
 
-    /* pointers to table entries */
-    mbedtls_mpi_uint *Wcur, *Wlast, *W1;
-
-    /* W[0] = 1 (in Montgomery presentation) */
-    memset( Wtable, 0, AN_limbs * ciL );
-    Wtable[0] = 1;
-    mbedtls_mpi_core_montmul( Wtable, Wtable, RR, AN_limbs, N, AN_limbs, mm, temp );
-    Wcur = Wtable + AN_limbs;
-    /* W[1] = A * R^2 * R^-1 mod N = A * R mod N */
-    memcpy( Wcur, A, AN_limbs * ciL );
-    mbedtls_mpi_core_montmul( Wcur, Wcur, RR, AN_limbs, N, AN_limbs, mm, temp );
-    W1 = Wcur;
-    Wcur += AN_limbs;
-    /* W[i+1] = W[i] * W[1], i >= 2 */
-    Wlast = W1;
-    for( size_t i = 2; i < welem; i++, Wlast += AN_limbs, Wcur += AN_limbs )
-        mbedtls_mpi_core_montmul( Wcur, Wlast, W1, AN_limbs, N, AN_limbs, mm, temp );
+    /* Set Wtable[i] = A^(2^i) (in Montgomery representation) */
+    exp_mod_precompute_window( A, N, AN_limbs,
+                               mm, RR,
+                               welem, Wtable, temp );
 
     /*
      * Fixed window exponentiation

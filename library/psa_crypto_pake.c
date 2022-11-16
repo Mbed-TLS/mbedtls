@@ -33,11 +33,6 @@
 #include <mbedtls/error.h>
 #include <string.h>
 
-extern psa_status_t psa_get_and_lock_key_slot_with_policy(
-    mbedtls_svc_key_id_t key,
-    psa_key_slot_t **p_slot,
-    psa_key_usage_t usage,
-    psa_algorithm_t alg );
 /*
  * State sequence:
  *

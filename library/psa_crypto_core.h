@@ -183,6 +183,14 @@ static inline psa_key_slot_number_t psa_key_slot_get_slot_number(
 }
 #endif
 
+/** Get the description of a key given its identifier and policy constraints
+ *  and lock it.
+ */
+psa_status_t psa_get_and_lock_key_slot_with_policy( mbedtls_svc_key_id_t key,
+                                                    psa_key_slot_t **p_slot,
+                                                    psa_key_usage_t usage,
+                                                    psa_algorithm_t alg );
+
 /** Completely wipe a slot in memory, including its policy.
  *
  * Persistent storage is not affected.

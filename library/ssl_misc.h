@@ -2452,21 +2452,26 @@ static inline int psa_tls12_parse_ecjpake_round_two(
 
         /*
          * On its 2nd round, the server sends 3 extra bytes which identify the
-         * curve. Therefore we should skip them only on the client side
+         * curve:
+         * - the 1st one is MBEDTLS_ECP_TLS_NAMED_CURVE
+         * - the 2nd and 3rd represent curve's TLS ID
+         * Validate this data before moving forward
          */
-        if( ( step == PSA_PAKE_STEP_KEY_SHARE ) && 
+        if( ( step == PSA_PAKE_STEP_KEY_SHARE ) &&
             ( role == MBEDTLS_SSL_IS_CLIENT ) )
         {
-            /* Length is stored after the 3 bytes for the curve */
-            length = buf[input_offset + 3];
-            input_offset += 3 + 1;
+            uint16_t tls_id = MBEDTLS_GET_UINT16_BE( buf, 1 );
+
+            if( ( *buf != MBEDTLS_ECP_TLS_NAMED_CURVE ) ||
+                ( mbedtls_ecp_curve_info_from_tls_id( tls_id ) == NULL ) )
+                return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+            input_offset += 3;
         }
-        else
-        {
-            /* Length is stored at the first byte */
-            length = buf[input_offset];
-            input_offset += 1;
-        }
+
+        /* Length is stored at the first byte */
+        length = buf[input_offset];
+        input_offset += 1;
 
         if( input_offset + length > len )
         {

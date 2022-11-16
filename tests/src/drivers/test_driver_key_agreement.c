@@ -50,6 +50,8 @@ psa_status_t mbedtls_test_transparent_key_agreement(
     size_t shared_secret_size,
     size_t *shared_secret_length )
 {
+    ++mbedtls_test_driver_key_agreement_hooks.hits;
+
     if( mbedtls_test_driver_key_agreement_hooks.forced_status != PSA_SUCCESS )
         return( mbedtls_test_driver_key_agreement_hooks.forced_status );
 

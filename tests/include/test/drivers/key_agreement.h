@@ -45,6 +45,9 @@ static inline mbedtls_test_driver_key_agreement_hooks_t
     return( v );
 }
 
+extern mbedtls_test_driver_key_agreement_hooks_t
+    mbedtls_test_driver_key_agreement_hooks;
+
 psa_status_t mbedtls_test_transparent_key_agreement(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,

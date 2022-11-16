@@ -115,7 +115,7 @@ void mbedtls_mpi_mod_raw_sub( mbedtls_mpi_uint *X,
 {
     mbedtls_mpi_uint c = mbedtls_mpi_core_sub( X, A, B, N->limbs );
 
-    (void) mbedtls_mpi_core_add_if( X, N->p, N->limbs, c );
+    (void) mbedtls_mpi_core_add_if( X, N->p, N->limbs, (unsigned) c );
 }
 
 /* END MERGE SLOT 2 */

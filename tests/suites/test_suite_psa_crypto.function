@@ -9073,7 +9073,6 @@ exit:
 /* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE */
 void ecjpake_rounds( int alg_arg, int primitive_arg, int hash_arg,
                      int derive_alg_arg, data_t *pw_data,
-                     int client_input_first, int destroy_key,
                      int client_input_first, int inj_err_type_arg )
 {
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
@@ -9125,9 +9124,6 @@ void ecjpake_rounds( int alg_arg, int primitive_arg, int hash_arg,
 
     PSA_ASSERT( psa_pake_set_password_key( &server, key ) );
     PSA_ASSERT( psa_pake_set_password_key( &client, key ) );
-
-    if( destroy_key == 1 )
-        psa_destroy_key( key );
 
     if( inj_err_type == INJECT_ANTICIPATE_KEY_DERIVATION_1 )
     {

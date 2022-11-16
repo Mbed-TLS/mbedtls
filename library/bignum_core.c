@@ -675,21 +675,20 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
     /* X = 1 (in Montgomery presentation) initially */
     memcpy( X, Wtable, AN_limbs * ciL );
 
-    /* Start from the end of exponent buffer */
-    E += E_limbs;
-
-    size_t limb_bits_remaining = 0;
+    /* We'll process the bits of E from most significant
+     * (limb_index=E_limbs-1, E_bit_index=biL-1) to least significant
+     * (limb_index=0, E_bit_index=0). */
+    size_t E_limb_index = E_limbs;
+    size_t E_bit_index = 0;
     mbedtls_mpi_uint window = 0;
     size_t window_bits = 0;
-    /* Will be initialized properly in the first loop iteration */
-    mbedtls_mpi_uint cur_limb = 0;
 
     while( 1 )
     {
         size_t window_bits_missing = wsize - window_bits;
 
         const int no_more_bits =
-            ( limb_bits_remaining == 0 ) && ( E_limbs == 0 );
+            ( E_bit_index == 0 ) && ( E_limb_index == 0 );
         const int window_full =
             ( window_bits_missing == 0 );
 
@@ -707,24 +706,22 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
             continue;
         }
 
-        /* Load next exponent limb if necessary */
-        if( limb_bits_remaining == 0 )
-        {
-            --E;
-            cur_limb = *E;
-            --E_limbs;
-            limb_bits_remaining = biL;
-        }
-
         /* Square */
         mbedtls_mpi_core_montmul( X, X, X, AN_limbs, N, AN_limbs, mm, temp );
 
         /* Insert next exponent bit into window */
-        window   <<= 1;
-        window    |= ( cur_limb >> ( biL - 1 ) );
-        cur_limb <<= 1;
+        if( E_bit_index == 0 )
+        {
+            --E_limb_index;
+            E_bit_index = biL - 1;
+        }
+        else
+        {
+            --E_bit_index;
+        }
         ++window_bits;
-        --limb_bits_remaining;
+        window <<= 1;
+        window |= ( E[E_limb_index] >> E_bit_index ) & 1;
     }
 
     /* Convert X back to normal presentation */

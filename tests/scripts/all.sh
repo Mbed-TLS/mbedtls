@@ -2115,7 +2115,7 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
     tests/ssl-opt.sh
 
     msg "test: compat.sh, MBEDTLS_PSA_CRYPTO_CONFIG without accelerated hash and USE_PSA"
-    #tests/compat.sh
+    tests/compat.sh
 }
 
 # This component provides reference configuration for test_psa_crypto_config_accel_hash_use_psa
@@ -2124,6 +2124,9 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
 # Both components need to be kept in sync.
 component_test_psa_crypto_config_reference_hash_use_psa() {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG without accelerated hash and USE_PSA"
+
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
 
     config_psa_crypto_hash_use_psa 0
 

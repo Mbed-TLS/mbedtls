@@ -145,12 +145,6 @@ TASKS = {
             'component_driver': 'test_psa_crypto_config_accel_hash_use_psa',
             'ignored_suites': ['shax', 'mdx', # the software implementations that are being excluded
                                'md',  # the legacy abstraction layer that's being excluded
-                               'entropy', 'hmac_drbg', 'random', # temporary limitation
-                                                                 # (see RNG EPIC)
-                               'psa_crypto_init', # doesn't work with external RNG
-                               'hkdf', # legacy still depends on MD,
-                                       # but there's a PSA interface that doesn't
-                               'pkcs7' # recent addition, will be addressed later
                               ]}}
 }
 

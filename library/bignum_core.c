@@ -616,7 +616,6 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
     mbedtls_mpi_uint one = 1, mm;
 
     mm = mbedtls_mpi_core_montmul_init( N ); /* Compute Montgomery constant */
-    E += E_limbs;               /* Skip to end of exponent buffer */
 
     wsize = exp_mod_get_window_size( E_limbs * biL );
     welem = ( (size_t) 1 ) << wsize;
@@ -663,6 +662,9 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
 
     /* X = 1 (in Montgomery presentation) initially */
     memcpy( X, Wtable, AN_limbs * ciL );
+
+    /* Start from the end of exponent buffer */
+    E += E_limbs;
 
     size_t limb_bits_remaining = 0;
     mbedtls_mpi_uint cur_limb, window = 0;

@@ -63,6 +63,9 @@ max-module-lines=2000
 #        return value2
 # * unnecessary-pass: If we take the trouble of adding a line with "pass",
 #   it's because we think the code is clearer that way.
+# * duplicate-code: We are using python for our test generation, which is under
+#   heavy development. The requirement that we have a perfect class hierarchy
+#   at any given point in time is too much of a constraint.
 disable=locally-disabled,locally-enabled,logging-format-interpolation,no-else-return,unnecessary-pass
 
 [REPORTS]

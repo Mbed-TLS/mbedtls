@@ -2105,7 +2105,6 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
     scripts/config.py unset MBEDTLS_HKDF_C # has independent PSA implementation
     scripts/config.py unset MBEDTLS_HMAC_DRBG_C
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC
-    scripts/config.py unset MBEDTLS_SSL_EARLY_DATA
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
 
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"

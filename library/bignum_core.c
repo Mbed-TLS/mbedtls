@@ -605,23 +605,23 @@ static void exp_mod_precompute_window( const mbedtls_mpi_uint *A,
                                        mbedtls_mpi_uint *Wtable,
                                        mbedtls_mpi_uint *temp )
 {
-    /* pointers to table entries */
-    mbedtls_mpi_uint *Wcur, *Wlast, *W1;
-
     /* W[0] = 1 (in Montgomery presentation) */
     memset( Wtable, 0, AN_limbs * ciL );
     Wtable[0] = 1;
     mbedtls_mpi_core_montmul( Wtable, Wtable, RR, AN_limbs, N, AN_limbs, mm, temp );
-    Wcur = Wtable + AN_limbs;
+
     /* W[1] = A * R^2 * R^-1 mod N = A * R mod N */
-    memcpy( Wcur, A, AN_limbs * ciL );
-    mbedtls_mpi_core_montmul( Wcur, Wcur, RR, AN_limbs, N, AN_limbs, mm, temp );
-    W1 = Wcur;
-    Wcur += AN_limbs;
+    mbedtls_mpi_uint *W1 = Wtable + AN_limbs;
+    mbedtls_mpi_core_montmul( W1, A, RR, AN_limbs, N, AN_limbs, mm, temp );
+
     /* W[i+1] = W[i] * W[1], i >= 2 */
-    Wlast = W1;
-    for( size_t i = 2; i < welem; i++, Wlast += AN_limbs, Wcur += AN_limbs )
-        mbedtls_mpi_core_montmul( Wcur, Wlast, W1, AN_limbs, N, AN_limbs, mm, temp );
+    mbedtls_mpi_uint *Wprev = W1;
+    for( size_t i = 2; i < welem; i++ )
+    {
+        mbedtls_mpi_uint *Wcur = Wprev + AN_limbs;
+        mbedtls_mpi_core_montmul( Wcur, Wprev, W1, AN_limbs, N, AN_limbs, mm, temp );
+        Wprev = Wcur;
+    }
 }
 
 int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
@@ -702,15 +702,17 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
             mbedtls_mpi_core_ct_uint_table_lookup( Wselect, Wtable,
                                                    AN_limbs, welem, window );
             mbedtls_mpi_core_montmul( X, X, Wselect, AN_limbs, N, AN_limbs, mm, temp );
-            window = window_bits = 0;
+            window = 0;
+            window_bits = 0;
             continue;
         }
 
         /* Load next exponent limb if necessary */
         if( limb_bits_remaining == 0 )
         {
-            cur_limb = *--E;
-            E_limbs--;
+            --E;
+            cur_limb = *E;
+            --E_limbs;
             limb_bits_remaining = biL;
         }
 
@@ -721,8 +723,8 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
         window   <<= 1;
         window    |= ( cur_limb >> ( biL - 1 ) );
         cur_limb <<= 1;
-        window_bits++;
-        limb_bits_remaining--;
+        ++window_bits;
+        --limb_bits_remaining;
     }
 
     /* Convert X back to normal presentation */

@@ -25,8 +25,15 @@ jobs:
         - tests/scripts/all.sh -k build_arm_linux_gnueabi_gcc_arm5vte build_arm_none_eabi_gcc_m0plus
 
     - name: full configuration
+      os: linux
+      dist: focal
+      addons:
+        apt:
+          packages:
+          - clang
+          - gnutls-bin
       script:
-        - tests/scripts/all.sh -k test_full_cmake_gcc_asan
+        - tests/scripts/all.sh -k test_full_cmake_clang_asan
 
     - name: Windows
       os: windows

@@ -632,10 +632,6 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
                               size_t E_limbs,
                               const mbedtls_mpi_uint *RR )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    /* heap allocated memory pool */
-    mbedtls_mpi_uint *mempool = NULL;
-
     const size_t wsize = exp_mod_get_window_size( E_limbs * biL );
     const size_t welem = ( (size_t) 1 ) << wsize;
 
@@ -645,11 +641,12 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
     const size_t select_limbs  = AN_limbs;
     const size_t total_limbs   = table_limbs + temp_limbs + select_limbs;
 
-    mempool = mbedtls_calloc( total_limbs, sizeof(mbedtls_mpi_uint) );
+    /* heap allocated memory pool */
+    mbedtls_mpi_uint *mempool =
+        mbedtls_calloc( total_limbs, sizeof(mbedtls_mpi_uint) );
     if( mempool == NULL )
     {
-        ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
-        goto cleanup;
+        return( MBEDTLS_ERR_MPI_ALLOC_FAILED );
     }
 
     /* pointers to temporaries within memory pool */
@@ -721,12 +718,8 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
     const mbedtls_mpi_uint one = 1;
     mbedtls_mpi_core_montmul( X, X, &one, 1, N, AN_limbs, mm, temp );
 
-    ret = 0;
-
-cleanup:
-
     mbedtls_free( mempool );
-    return( ret );
+    return( 0 );
 }
 
 /* END MERGE SLOT 1 */

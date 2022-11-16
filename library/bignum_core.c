@@ -608,7 +608,7 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
     /* heap allocated memory pool */
     mbedtls_mpi_uint *mempool = NULL;
     /* pointers to temporaries within memory pool */
-    mbedtls_mpi_uint *Wtbl, *Wselect, *temp;
+    mbedtls_mpi_uint *Wtable, *Wselect, *temp;
     /* pointers to table entries */
     mbedtls_mpi_uint *Wcur, *Wlast, *W1;
 
@@ -624,8 +624,8 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
     /* Allocate memory pool and set pointers to parts of it */
     const size_t table_limbs   = welem * AN_limbs;
     const size_t temp_limbs    = 2 * AN_limbs + 1;
-    const size_t wselect_limbs = AN_limbs;
-    const size_t total_limbs   = table_limbs + temp_limbs + wselect_limbs;
+    const size_t select_limbs  = AN_limbs;
+    const size_t total_limbs   = table_limbs + temp_limbs + select_limbs;
 
     mempool = mbedtls_calloc( total_limbs, sizeof(mbedtls_mpi_uint) );
     if( mempool == NULL )
@@ -634,19 +634,19 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
         goto cleanup;
     }
 
-    Wtbl    = mempool;
-    Wselect = Wtbl    + table_limbs;
-    temp    = Wselect + wselect_limbs;
+    Wtable    = mempool;
+    Wselect = Wtable    + table_limbs;
+    temp    = Wselect  + select_limbs;
 
     /*
      * Window precomputation
      */
 
     /* W[0] = 1 (in Montgomery presentation) */
-    memset( Wtbl, 0, AN_limbs * ciL );
-    Wtbl[0] = 1;
-    mbedtls_mpi_core_montmul( Wtbl, Wtbl, RR, AN_limbs, N, AN_limbs, mm, temp );
-    Wcur = Wtbl + AN_limbs;
+    memset( Wtable, 0, AN_limbs * ciL );
+    Wtable[0] = 1;
+    mbedtls_mpi_core_montmul( Wtable, Wtable, RR, AN_limbs, N, AN_limbs, mm, temp );
+    Wcur = Wtable + AN_limbs;
     /* W[1] = A * R^2 * R^-1 mod N = A * R mod N */
     memcpy( Wcur, A, AN_limbs * ciL );
     mbedtls_mpi_core_montmul( Wcur, Wcur, RR, AN_limbs, N, AN_limbs, mm, temp );
@@ -662,7 +662,7 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
      */
 
     /* X = 1 (in Montgomery presentation) initially */
-    memcpy( X, Wtbl, AN_limbs * ciL );
+    memcpy( X, Wtable, AN_limbs * ciL );
 
     size_t limb_bits_remaining = 0;
     mbedtls_mpi_uint cur_limb, window = 0;
@@ -682,7 +682,7 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
             if( window_bits == 0 )
                 break;
             /* Select table entry, square and multiply */
-            mbedtls_mpi_core_ct_uint_table_lookup( Wselect, Wtbl,
+            mbedtls_mpi_core_ct_uint_table_lookup( Wselect, Wtable,
                                                    AN_limbs, welem, window );
             mbedtls_mpi_core_montmul( X, X, Wselect, AN_limbs, N, AN_limbs, mm, temp );
             window = window_bits = 0;

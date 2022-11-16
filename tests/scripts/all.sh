@@ -2046,11 +2046,10 @@ config_psa_crypto_hash_use_psa () {
     DRIVER_ONLY="$1"
     # start with config full for maximum coverage (also enables USE_PSA)
     scripts/config.py full
-    # enable support for configuring PSA-only algorithms
+    # enable support for drivers and configuring PSA-only algorithms
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
     if [ "$DRIVER_ONLY" -eq 1 ]; then
-        # enable support for drivers
-        scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
         # disable the built-in implementation of hashes
         scripts/config.py unset MBEDTLS_MD5_C
         scripts/config.py unset MBEDTLS_RIPEMD160_C

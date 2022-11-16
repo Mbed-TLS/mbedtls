@@ -683,29 +683,8 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
     mbedtls_mpi_uint window = 0;
     size_t window_bits = 0;
 
-    while( 1 )
+    do
     {
-        size_t window_bits_missing = wsize - window_bits;
-
-        const int no_more_bits =
-            ( E_bit_index == 0 ) && ( E_limb_index == 0 );
-        const int window_full =
-            ( window_bits_missing == 0 );
-
-        /* Clear window if it's full or if we don't have further bits. */
-        if( window_full || no_more_bits )
-        {
-            if( window_bits == 0 )
-                break;
-            /* Select table entry, square and multiply */
-            mbedtls_mpi_core_ct_uint_table_lookup( Wselect, Wtable,
-                                                   AN_limbs, welem, window );
-            mbedtls_mpi_core_montmul( X, X, Wselect, AN_limbs, N, AN_limbs, mm, temp );
-            window = 0;
-            window_bits = 0;
-            continue;
-        }
-
         /* Square */
         mbedtls_mpi_core_montmul( X, X, X, AN_limbs, N, AN_limbs, mm, temp );
 
@@ -722,7 +701,21 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
         ++window_bits;
         window <<= 1;
         window |= ( E[E_limb_index] >> E_bit_index ) & 1;
+
+        /* Clear window if it's full. Also clear the window at the end,
+         * when we've finished processing the exponent. */
+        if( window_bits == wsize ||
+            ( E_bit_index == 0 && E_limb_index == 0 ) )
+        {
+            /* Select table entry, square and multiply */
+            mbedtls_mpi_core_ct_uint_table_lookup( Wselect, Wtable,
+                                                   AN_limbs, welem, window );
+            mbedtls_mpi_core_montmul( X, X, Wselect, AN_limbs, N, AN_limbs, mm, temp );
+            window = 0;
+            window_bits = 0;
+        }
     }
+    while( ! ( E_bit_index == 0 && E_limb_index == 0 ) );
 
     /* Convert X back to normal presentation */
     const mbedtls_mpi_uint one = 1;

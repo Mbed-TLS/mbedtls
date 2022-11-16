@@ -81,6 +81,53 @@ exit:
 
 /* BEGIN MERGE SLOT 7 */
 /* BEGIN_CASE */
+void mpi_residue_setup( )
+{
+    #define RS_ONE       0
+    #define RS_MAX_MIN1  1
+    #define RS_MAX       2
+    const char * s_data[ 3 ] = { "01", "fe", "ff" };
+
+    mbedtls_mpi_uint *N = NULL;
+    mbedtls_mpi_uint *R = NULL;
+    mbedtls_mpi_uint *R_MAX = NULL;
+    size_t n_limbs, r_limbs, r_max_limbs;
+    mbedtls_mpi_mod_modulus m;
+    mbedtls_mpi_mod_residue r;
+
+    /* Allocate the memory for intermediate data structures */
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &N, &n_limbs, s_data[ RS_MAX_MIN1 ] ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &R, &r_limbs, s_data[ RS_ONE ] ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &R_MAX, &r_max_limbs, s_data[ RS_MAX ] ) );
+
+    mbedtls_mpi_mod_modulus_init( &m );
+
+    TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs,
+                MBEDTLS_MPI_MOD_EXT_REP_LE, MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
+
+    TEST_EQUAL( 0, mbedtls_mpi_mod_residue_setup( &r, &m, R , r_limbs ) );
+
+    /* Test for r-> limbs > m-> limbs */
+    TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA, mbedtls_mpi_mod_residue_setup( &r, &m, R , r_limbs + 1 ) );
+
+    /* Test for r-> p > m-> p */
+    TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA, mbedtls_mpi_mod_residue_setup( &r, &m, R_MAX , r_max_limbs ) );
+
+    /* Test for r-> p == m-> p */
+    TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA, mbedtls_mpi_mod_residue_setup( &r, &m, N , r_max_limbs ) );
+
+exit:
+    mbedtls_mpi_mod_modulus_free( &m );
+    mbedtls_free( N );
+    mbedtls_free( R );
+    mbedtls_free( R_MAX );
+
+    #undef RS_ONE
+    #undef RS_MAX_MIN1
+    #undef RS_MAX
+}
+/* END_CASE */
+/* BEGIN_CASE */
 void mpi_mod_io_neg( )
 {
     #define IO_ZERO        0

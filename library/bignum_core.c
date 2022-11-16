@@ -677,8 +677,10 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
      * (limb_index=0, E_bit_index=0). */
     size_t E_limb_index = E_limbs;
     size_t E_bit_index = 0;
-    mbedtls_mpi_uint window = 0;
+    /* At any given time, window contains window_bits bits from E.
+     * window_bits can go up to wsize. */
     size_t window_bits = 0;
+    mbedtls_mpi_uint window = 0;
 
     do
     {
@@ -704,9 +706,11 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
         if( window_bits == wsize ||
             ( E_bit_index == 0 && E_limb_index == 0 ) )
         {
-            /* Select table entry, square and multiply */
+            /* Select Wtable[window] without leaking window through
+             * memory access patterns. */
             mbedtls_mpi_core_ct_uint_table_lookup( Wselect, Wtable,
                                                    AN_limbs, welem, window );
+            /* Multiply X by the selected element. */
             mbedtls_mpi_core_montmul( X, X, Wselect, AN_limbs, N, AN_limbs, mm, temp );
             window = 0;
             window_bits = 0;

@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import ABCMeta
 from typing import Dict, Iterator, List
 
 from . import test_case
@@ -26,58 +25,8 @@ class BignumModRawTarget(test_data_generation.BaseTarget):
     """Target for bignum mod_raw test case generation."""
     target_basename = 'test_suite_bignum_mod_raw.generated'
 
-class BignumModRawOperation(bignum_common.OperationCommon, BignumModRawTarget, metaclass=ABCMeta):
-    #pylint: disable=abstract-method
-    """Target for bignum mod_raw test case generation."""
-
-    def __init__(self, val_n: str, val_a: str, val_b: str = "0", bits_in_limb: int = 64) -> None:
-        super().__init__(val_a=val_a, val_b=val_b)
-        self.val_n = val_n
-        self.bits_in_limb = bits_in_limb
-
-    @property
-    def int_n(self) -> int:
-        return bignum_common.hex_to_int(self.val_n)
-
-    @property
-    def boundary(self) -> int:
-        data_in = [self.int_a, self.int_b, self.int_n]
-        return max([n for n in data_in if n is not None])
-
-    @property
-    def limbs(self) -> int:
-        return bignum_common.limbs_mpi(self.boundary, self.bits_in_limb)
-
-    @property
-    def hex_digits(self) -> int:
-        return 2 * (self.limbs * self.bits_in_limb // 8)
-
-    @property
-    def hex_n(self) -> str:
-        return "{:x}".format(self.int_n).zfill(self.hex_digits)
-
-    @property
-    def hex_a(self) -> str:
-        return "{:x}".format(self.int_a).zfill(self.hex_digits)
-
-    @property
-    def hex_b(self) -> str:
-        return "{:x}".format(self.int_b).zfill(self.hex_digits)
-
-    @property
-    def r(self) -> int: # pylint: disable=invalid-name
-        l = bignum_common.limbs_mpi(self.int_n, self.bits_in_limb)
-        return bignum_common.bound_mpi_limbs(l, self.bits_in_limb)
-
-    @property
-    def r_inv(self) -> int:
-        return bignum_common.invmod(self.r, self.int_n)
-
-    @property
-    def r2(self) -> int: # pylint: disable=invalid-name
-        return pow(self.r, 2)
-
-class BignumModRawOperationArchSplit(BignumModRawOperation):
+class BignumModRawOperationArchSplit(bignum_common.ModOperationCommon,
+                                     BignumModRawTarget):
     #pylint: disable=abstract-method
     """Common features for bignum mod raw operations where the result depends on
     the limb size."""

@@ -9,6 +9,7 @@ less likely to be useful.
 import argparse
 import sys
 import traceback
+import re
 
 import check_test_cases
 
@@ -157,7 +158,7 @@ def main():
                             help='Analysis to be done. By default, run all tasks. '
                                  'With one or more TASK, run only those. '
                                  'TASK can be the name of a single task or '
-                                 'coma-separated list of tasks. ')
+                                 'comma/space-separated list of tasks. ')
         parser.add_argument('--list', action='store_true',
                             help='List all available tasks and exit.')
         options = parser.parse_args()
@@ -172,7 +173,7 @@ def main():
         if options.task == 'all':
             tasks = TASKS.keys()
         else:
-            tasks = options.task.split(',')
+            tasks = re.split(r'[, ]+', options.task)
 
             for task in tasks:
                 if task not in TASKS:

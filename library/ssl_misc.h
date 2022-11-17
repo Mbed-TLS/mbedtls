@@ -2378,6 +2378,11 @@ static inline int psa_ssl_status_to_mbedtls( psa_status_t status )
                             MBEDTLS_SSL_ECJPAKE_PSA_PRIMITIVE, \
                             step )
 
+typedef enum {
+    MBEDTLS_ECJPAKE_ROUND_ONE,
+    MBEDTLS_ECJPAKE_ROUND_TWO
+} mbedtls_ecjpake_rounds_t;
+
 /**
  * \brief       Parse the provided input buffer for getting the first round
  *              of key exchange. This code is common between server and client
@@ -2385,27 +2390,15 @@ static inline int psa_ssl_status_to_mbedtls( psa_status_t status )
  * \param  pake_ctx [in] the PAKE's operation/context structure
  * \param  buf      [in] input buffer to parse
  * \param  len      [in] length of the input buffer
+ * \param  round    [in] either MBEDTLS_ECJPAKE_ROUND_ONE or
+ *                       MBEDTLS_ECJPAKE_ROUND_TWO
  *
  * \return               0 on success or a negative error code in case of failure
  */
-int mbedtls_psa_ecjpake_read_round_one(
+int mbedtls_psa_ecjpake_read_round(
                                     psa_pake_operation_t *pake_ctx,
                                     const unsigned char *buf,
-                                    size_t len );
-
-/**
- * \brief       Parse the provided input buffer for getting the second round
- *              of key exchange. This code is common between server and client
- *
- * \param  pake_ctx [in] the PAKE's operation/context structure
- * \param  buf      [in] input buffer to parse
- * \param  len      [in] length of the input buffer
- *
- * \return               0 on success or a negative error code in case of failure
- */
-int mbedtls_psa_ecjpake_read_round_two(
-                                    psa_pake_operation_t *pake_ctx,
-                                    const unsigned char *buf, size_t len );
+                                    size_t len, mbedtls_ecjpake_rounds_t round );
 
 /**
  * \brief       Write the first round of key exchange into the provided output
@@ -2415,29 +2408,16 @@ int mbedtls_psa_ecjpake_read_round_two(
  * \param  buf      [out] the output buffer in which data will be written to
  * \param  len      [in] length of the output buffer
  * \param  olen     [out] the length of the data really written on the buffer
+ * \param  round    [in] either MBEDTLS_ECJPAKE_ROUND_ONE or
+ *                       MBEDTLS_ECJPAKE_ROUND_TWO
  *
  * \return               0 on success or a negative error code in case of failure
  */
-int mbedtls_psa_ecjpake_write_round_one(
+int mbedtls_psa_ecjpake_write_round(
                                     psa_pake_operation_t *pake_ctx,
                                     unsigned char *buf,
-                                    size_t len, size_t *olen );
-
-/**
- * \brief       Write the second round of key exchange into the provided output
- *              buffer. This code is common between server and client
- *
- * \param  pake_ctx [in] the PAKE's operation/context structure
- * \param  buf      [out] the output buffer in which data will be written to
- * \param  len      [in] length of the output buffer
- * \param  olen     [out] the length of the data really written on the buffer
- *
- * \return               0 on success or a negative error code in case of failure
- */
-int mbedtls_psa_ecjpake_write_round_two(
-                                    psa_pake_operation_t *pake_ctx,
-                                    unsigned char *buf,
-                                    size_t len, size_t *olen );
+                                    size_t len, size_t *olen,
+                                    mbedtls_ecjpake_rounds_t round );
 
 #endif //MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED && MBEDTLS_USE_PSA_CRYPTO
 

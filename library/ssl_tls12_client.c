@@ -164,8 +164,9 @@ static int ssl_write_ecjpake_kkpp_ext( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "generating new ecjpake parameters" ) );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        ret = mbedtls_psa_ecjpake_write_round_one(&ssl->handshake->psa_pake_ctx,
-                                                p + 2, end - p - 2, &kkpp_len );
+        ret = mbedtls_psa_ecjpake_write_round(&ssl->handshake->psa_pake_ctx,
+                                                p + 2, end - p - 2, &kkpp_len,
+                                                MBEDTLS_ECJPAKE_ROUND_ONE );
         if ( ret != 0 )
         {
             psa_destroy_key( ssl->handshake->psa_pake_password );
@@ -908,8 +909,9 @@ static int ssl_parse_ecjpake_kkpp( mbedtls_ssl_context *ssl,
     ssl->handshake->ecjpake_cache_len = 0;
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if( ( ret = mbedtls_psa_ecjpake_read_round_one(
-                            &ssl->handshake->psa_pake_ctx, buf, len ) ) != 0 )
+    if( ( ret = mbedtls_psa_ecjpake_read_round(
+                            &ssl->handshake->psa_pake_ctx, buf, len,
+                            MBEDTLS_ECJPAKE_ROUND_ONE ) ) != 0 )
     {
         psa_destroy_key( ssl->handshake->psa_pake_password );
         psa_pake_abort( &ssl->handshake->psa_pake_ctx );
@@ -2356,8 +2358,9 @@ start_processing:
 
         p += 3;
 
-        if( ( ret = mbedtls_psa_ecjpake_read_round_two(
-                        &ssl->handshake->psa_pake_ctx, p, end - p ) ) != 0 )
+        if( ( ret = mbedtls_psa_ecjpake_read_round(
+                        &ssl->handshake->psa_pake_ctx, p, end - p,
+                        MBEDTLS_ECJPAKE_ROUND_TWO ) ) != 0 )
         {
             psa_destroy_key( ssl->handshake->psa_pake_password );
             psa_pake_abort( &ssl->handshake->psa_pake_ctx );
@@ -3314,8 +3317,9 @@ ecdh_calc_secret:
         unsigned char *out_p = ssl->out_msg + header_len;
         unsigned char *end_p = ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN -
                                header_len;
-        ret = mbedtls_psa_ecjpake_write_round_two( &ssl->handshake->psa_pake_ctx,
-                                    out_p, end_p - out_p, &content_len );
+        ret = mbedtls_psa_ecjpake_write_round( &ssl->handshake->psa_pake_ctx,
+                                    out_p, end_p - out_p, &content_len,
+                                    MBEDTLS_ECJPAKE_ROUND_TWO );
         if ( ret != 0 )
         {
             psa_destroy_key( ssl->handshake->psa_pake_password );

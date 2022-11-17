@@ -305,8 +305,9 @@ static int ssl_parse_ecjpake_kkpp( mbedtls_ssl_context *ssl,
     }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if ( ( ret = mbedtls_psa_ecjpake_read_round_one(
-                        &ssl->handshake->psa_pake_ctx, buf, len ) ) != 0 )
+    if ( ( ret = mbedtls_psa_ecjpake_read_round(
+                        &ssl->handshake->psa_pake_ctx, buf, len, 
+                        MBEDTLS_ECJPAKE_ROUND_ONE ) ) != 0 )
     {
         psa_destroy_key( ssl->handshake->psa_pake_password );
         psa_pake_abort( &ssl->handshake->psa_pake_ctx );
@@ -2019,8 +2020,9 @@ static void ssl_write_ecjpake_kkpp_ext( mbedtls_ssl_context *ssl,
     p += 2;
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    ret = mbedtls_psa_ecjpake_write_round_one( &ssl->handshake->psa_pake_ctx,
-                                p + 2, end - p - 2, &kkpp_len );
+    ret = mbedtls_psa_ecjpake_write_round( &ssl->handshake->psa_pake_ctx,
+                                p + 2, end - p - 2, &kkpp_len,
+                                MBEDTLS_ECJPAKE_ROUND_ONE );
     if ( ret != 0 )
     {
         psa_destroy_key( ssl->handshake->psa_pake_password );
@@ -2867,9 +2869,10 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
         MBEDTLS_PUT_UINT16_BE( curve_info->tls_id, out_p, 1 );
         output_offset += sizeof( uint8_t ) + sizeof( uint16_t );
 
-        ret = mbedtls_psa_ecjpake_write_round_two( &ssl->handshake->psa_pake_ctx,
+        ret = mbedtls_psa_ecjpake_write_round( &ssl->handshake->psa_pake_ctx,
                                     out_p + output_offset,
-                                    end_p - out_p - output_offset, &output_len );
+                                    end_p - out_p - output_offset, &output_len,
+                                    MBEDTLS_ECJPAKE_ROUND_TWO );
         if( ret != 0 )
         {
             psa_destroy_key( ssl->handshake->psa_pake_password );
@@ -4114,8 +4117,9 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
     {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        if( ( ret = mbedtls_psa_ecjpake_read_round_two(
-                        &ssl->handshake->psa_pake_ctx, p, end - p ) ) != 0 )
+        if( ( ret = mbedtls_psa_ecjpake_read_round(
+                        &ssl->handshake->psa_pake_ctx, p, end - p,
+                        MBEDTLS_ECJPAKE_ROUND_TWO ) ) != 0 )
         {
             psa_destroy_key( ssl->handshake->psa_pake_password );
             psa_pake_abort( &ssl->handshake->psa_pake_ctx );

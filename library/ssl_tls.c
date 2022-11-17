@@ -8196,16 +8196,20 @@ end:
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) && \
     defined(MBEDTLS_USE_PSA_CRYPTO)
-int mbedtls_psa_ecjpake_read_round_one(
+int mbedtls_psa_ecjpake_read_round(
                                     psa_pake_operation_t *pake_ctx,
                                     const unsigned char *buf,
-                                    size_t len )
+                                    size_t len, mbedtls_ecjpake_rounds_t round )
 {
     psa_status_t status;
     size_t input_offset = 0;
+    /* 
+     * At round one repeat the KEY_SHARE, ZK_PUBLIC & ZF_PROOF twice
+     * At round two perform a single cycle
+     */
+    unsigned int remaining_steps = ( round == MBEDTLS_ECJPAKE_ROUND_ONE) ? 2 : 1;
 
-    /* Repeat the KEY_SHARE, ZK_PUBLIC & ZF_PROOF twice */
-    for( unsigned int x = 1; x <= 2; ++x )
+    for( ; remaining_steps > 0; remaining_steps-- )
     {
         for( psa_pake_step_t step = PSA_PAKE_STEP_KEY_SHARE;
              step <= PSA_PAKE_STEP_ZK_PROOF;
@@ -8237,59 +8241,25 @@ int mbedtls_psa_ecjpake_read_round_one(
     return( 0 );
 }
 
-int mbedtls_psa_ecjpake_read_round_two(
-                                    psa_pake_operation_t *pake_ctx,
-                                    const unsigned char *buf,
-                                    size_t len )
-{
-    psa_status_t status;
-    size_t input_offset = 0;
-
-    for( psa_pake_step_t step = PSA_PAKE_STEP_KEY_SHARE ;
-            step <= PSA_PAKE_STEP_ZK_PROOF ;
-            ++step )
-    {
-        size_t length;
-
-        /* Length is stored at the first byte */
-        length = buf[input_offset];
-        input_offset += 1;
-
-        if( input_offset + length > len )
-        {
-            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-        }
-
-        status = psa_pake_input( pake_ctx, step,
-                                    buf + input_offset, length );
-        if( status != PSA_SUCCESS)
-        {
-            return psa_ssl_status_to_mbedtls( status );
-        }
-
-        input_offset += length;
-    }
-
-    if ( input_offset != len )
-        return PSA_ERROR_INVALID_ARGUMENT;
-
-    return( 0 );
-}
-
-int mbedtls_psa_ecjpake_write_round_one(
+int mbedtls_psa_ecjpake_write_round(
                                     psa_pake_operation_t *pake_ctx,
                                     unsigned char *buf,
-                                    size_t len, size_t *olen )
+                                    size_t len, size_t *olen,
+                                    mbedtls_ecjpake_rounds_t round )
 {
     psa_status_t status;
     size_t output_offset = 0;
     size_t output_len;
+    /* 
+     * At round one repeat the KEY_SHARE, ZK_PUBLIC & ZF_PROOF twice
+     * At round two perform a single cycle
+     */
+    unsigned int remaining_steps = ( round == MBEDTLS_ECJPAKE_ROUND_ONE) ? 2 : 1;
 
-    /* Repeat the KEY_SHARE, ZK_PUBLIC & ZF_PROOF twice */
-    for( unsigned int x = 1 ; x <= 2 ; ++x )
+    for( ; remaining_steps > 0; remaining_steps-- )
     {
-        for( psa_pake_step_t step = PSA_PAKE_STEP_KEY_SHARE ;
-            step <= PSA_PAKE_STEP_ZK_PROOF ;
+        for( psa_pake_step_t step = PSA_PAKE_STEP_KEY_SHARE;
+            step <= PSA_PAKE_STEP_ZK_PROOF;
             ++step )
         {
             /* For each step, prepend 1 byte with the length of the data */
@@ -8307,39 +8277,6 @@ int mbedtls_psa_ecjpake_write_round_one(
 
             output_offset += output_len;
         }
-    }
-
-    *olen = output_offset;
-
-    return( 0 );
-}
-
-int mbedtls_psa_ecjpake_write_round_two(
-                                    psa_pake_operation_t *pake_ctx,
-                                    unsigned char *buf,
-                                    size_t len, size_t *olen )
-{
-    psa_status_t status;
-    size_t output_offset = 0;
-    size_t output_len;
-
-    for( psa_pake_step_t step = PSA_PAKE_STEP_KEY_SHARE ;
-            step <= PSA_PAKE_STEP_ZK_PROOF ;
-            ++step )
-    {
-        /* For each step, prepend 1 byte with the length of the data */
-        *(buf + output_offset) = MBEDTLS_SSL_ECJPAKE_OUTPUT_SIZE( step );
-        output_offset += 1;
-        status = psa_pake_output( pake_ctx,
-                                    step, buf + output_offset,
-                                    len - output_offset,
-                                    &output_len );
-        if( status != PSA_SUCCESS )
-        {
-            return( psa_ssl_status_to_mbedtls( status ) );
-        }
-
-        output_offset += output_len;
     }
 
     *olen = output_offset;

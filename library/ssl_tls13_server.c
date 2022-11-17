@@ -2604,6 +2604,13 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
     session->start = mbedtls_time(NULL);
 #endif
 
+    /* Set ticket_flags depends on the advertised psk key exchange mode */
+    mbedtls_ssl_tls13_session_clear_ticket_flags(session,
+                                                 MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK);
+    mbedtls_ssl_tls13_session_set_ticket_flags(session,
+                                               ssl->handshake->tls13_kex_modes);
+    MBEDTLS_SSL_DEBUG_TICKET_FLAGS(4, session->ticket_flags);
+
     /* Generate ticket_age_add */
     if ((ret = ssl->conf->f_rng(ssl->conf->p_rng,
                                 (unsigned char *) &session->ticket_age_add,

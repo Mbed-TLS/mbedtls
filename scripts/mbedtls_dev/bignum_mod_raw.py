@@ -50,12 +50,13 @@ class BignumModRawTarget(test_data_generation.BaseTarget):
 # END MERGE SLOT 6
 
 # BEGIN MERGE SLOT 7
-class BignumModRawConvertToMont(bignum_common.ModOperationCommonArchSplit,
+class BignumModRawConvertToMont(bignum_common.ModOperationCommon,
                                 BignumModRawTarget):
     """ Test cases for mpi_mod_raw_to_mont_rep(). """
 
     test_function = "mpi_mod_raw_to_mont_rep"
     test_name = "Convert into Mont: "
+    arch_split = True
 
     test_data_moduli = ["b",
                         "fd",

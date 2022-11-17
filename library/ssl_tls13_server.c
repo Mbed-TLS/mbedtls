@@ -249,6 +249,24 @@ static int ssl_tls13_offered_psks_check_identity_match(
     if (ssl_tls13_offered_psks_check_identity_match_ticket(
             ssl, identity, identity_len, obfuscated_ticket_age,
             session) == SSL_TLS1_3_OFFERED_PSK_MATCH) {
+        /* RFC 8446 section 4.2.9
+         *
+         * Servers SHOULD NOT send NewSessionTicket with tickets that are not
+         * compatible with the advertised modes; however, if a server does so,
+         * the impact will just be that the client's attempts at resumption fail.
+         *
+         * We regard the ticket with incompatible key exchange modes as not match.
+         */
+        MBEDTLS_SSL_DEBUG_TICKET_FLAGS(4,
+                                       session->ticket_flags);
+        if (mbedtls_ssl_tls13_check_kex_modes(ssl,
+                                              mbedtls_ssl_tls13_session_get_ticket_flags(session,
+                                                                                         MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_ALL)))
+        {
+            MBEDTLS_SSL_DEBUG_MSG(3, ("No suitable key exchange mode"));
+            return SSL_TLS1_3_OFFERED_PSK_NOT_MATCH;
+        }
+
         ssl->handshake->resume = 1;
         *psk_type = MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION;
         mbedtls_ssl_set_hs_psk(ssl,

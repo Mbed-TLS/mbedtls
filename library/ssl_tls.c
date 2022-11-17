@@ -8194,6 +8194,173 @@ end:
     return( ret );
 }
 
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) && \
+    defined(MBEDTLS_USE_PSA_CRYPTO)
+int mbedtls_psa_ecjpake_read_round_one(
+                                    psa_pake_operation_t *pake_ctx,
+                                    const unsigned char *buf,
+                                    size_t len )
+{
+    psa_status_t status;
+    size_t input_offset = 0;
+
+    /* Repeat the KEY_SHARE, ZK_PUBLIC & ZF_PROOF twice */
+    for( unsigned int x = 1; x <= 2; ++x )
+    {
+        for( psa_pake_step_t step = PSA_PAKE_STEP_KEY_SHARE;
+             step <= PSA_PAKE_STEP_ZK_PROOF;
+             ++step )
+        {
+            /* Length is stored at the first byte */
+            size_t length = buf[input_offset];
+            input_offset += 1;
+
+            if( input_offset + length > len )
+            {
+                return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+            }
+
+            status = psa_pake_input( pake_ctx, step,
+                                     buf + input_offset, length );
+            if( status != PSA_SUCCESS)
+            {
+                return psa_ssl_status_to_mbedtls( status );
+            }
+
+            input_offset += length;
+        }
+    }
+
+    return( 0 );
+}
+
+int mbedtls_psa_ecjpake_read_round_two(
+                                    psa_pake_operation_t *pake_ctx,
+                                    const unsigned char *buf,
+                                    size_t len, int role )
+{
+    psa_status_t status;
+    size_t input_offset = 0;
+
+    for( psa_pake_step_t step = PSA_PAKE_STEP_KEY_SHARE ;
+            step <= PSA_PAKE_STEP_ZK_PROOF ;
+            ++step )
+    {
+        size_t length;
+
+        /*
+         * On its 2nd round, the server sends 3 extra bytes which identify the
+         * curve:
+         * - the 1st one is MBEDTLS_ECP_TLS_NAMED_CURVE
+         * - the 2nd and 3rd represent curve's TLS ID
+         * Validate this data before moving forward
+         */
+        if( ( step == PSA_PAKE_STEP_KEY_SHARE ) &&
+            ( role == MBEDTLS_SSL_IS_CLIENT ) )
+        {
+            uint16_t tls_id = MBEDTLS_GET_UINT16_BE( buf, 1 );
+
+            if( ( *buf != MBEDTLS_ECP_TLS_NAMED_CURVE ) ||
+                ( mbedtls_ecp_curve_info_from_tls_id( tls_id ) == NULL ) )
+                return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+            input_offset += 3;
+        }
+
+        /* Length is stored at the first byte */
+        length = buf[input_offset];
+        input_offset += 1;
+
+        if( input_offset + length > len )
+        {
+            return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+        }
+
+        status = psa_pake_input( pake_ctx, step,
+                                    buf + input_offset, length );
+        if( status != PSA_SUCCESS)
+        {
+            return psa_ssl_status_to_mbedtls( status );
+        }
+
+        input_offset += length;
+    }
+
+    return( 0 );
+}
+
+int mbedtls_psa_ecjpake_write_round_one(
+                                    psa_pake_operation_t *pake_ctx,
+                                    unsigned char *buf,
+                                    size_t len, size_t *olen )
+{
+    psa_status_t status;
+    size_t output_offset = 0;
+    size_t output_len;
+
+    /* Repeat the KEY_SHARE, ZK_PUBLIC & ZF_PROOF twice */
+    for( unsigned int x = 1 ; x <= 2 ; ++x )
+    {
+        for( psa_pake_step_t step = PSA_PAKE_STEP_KEY_SHARE ;
+            step <= PSA_PAKE_STEP_ZK_PROOF ;
+            ++step )
+        {
+            /* For each step, prepend 1 byte with the length of the data */
+            *(buf + output_offset) = MBEDTLS_SSL_ECJPAKE_OUTPUT_SIZE( step );
+            output_offset += 1;
+
+            status = psa_pake_output( pake_ctx, step,
+                                        buf + output_offset,
+                                        len - output_offset,
+                                        &output_len );
+            if( status != PSA_SUCCESS )
+            {
+                return( psa_ssl_status_to_mbedtls( status ) );
+            }
+
+            output_offset += output_len;
+        }
+    }
+
+    *olen = output_offset;
+
+    return( 0 );
+}
+
+int mbedtls_psa_ecjpake_write_round_two(
+                                    psa_pake_operation_t *pake_ctx,
+                                    unsigned char *buf,
+                                    size_t len, size_t *olen )
+{
+    psa_status_t status;
+    size_t output_offset = 0;
+    size_t output_len;
+
+    for( psa_pake_step_t step = PSA_PAKE_STEP_KEY_SHARE ;
+            step <= PSA_PAKE_STEP_ZK_PROOF ;
+            ++step )
+    {
+        /* For each step, prepend 1 byte with the length of the data */
+        *(buf + output_offset) = MBEDTLS_SSL_ECJPAKE_OUTPUT_SIZE( step );
+        output_offset += 1;
+        status = psa_pake_output( pake_ctx,
+                                    step, buf + output_offset,
+                                    len - output_offset,
+                                    &output_len );
+        if( status != PSA_SUCCESS )
+        {
+            return( psa_ssl_status_to_mbedtls( status ) );
+        }
+
+        output_offset += output_len;
+    }
+
+    *olen = output_offset;
+
+    return( 0 );
+}
+#endif //MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED && MBEDTLS_USE_PSA_CRYPTO
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 int mbedtls_ssl_get_key_exchange_md_tls1_2( mbedtls_ssl_context *ssl,
                                             unsigned char *hash, size_t *hashlen,

@@ -305,7 +305,7 @@ static int ssl_parse_ecjpake_kkpp( mbedtls_ssl_context *ssl,
     }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if ( ( ret = psa_tls12_parse_ecjpake_round_one(
+    if ( ( ret = mbedtls_psa_ecjpake_read_round_one(
                         &ssl->handshake->psa_pake_ctx, buf, len ) ) != 0 )
     {
         psa_destroy_key( ssl->handshake->psa_pake_password );
@@ -2896,7 +2896,7 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
         MBEDTLS_PUT_UINT16_BE( curve_info->tls_id, out_p, 1 );
         output_offset += sizeof( uint8_t ) + sizeof( uint16_t );
 
-        ret = psa_tls12_write_ecjpake_round_two( &ssl->handshake->psa_pake_ctx,
+        ret = mbedtls_psa_ecjpake_write_round_two( &ssl->handshake->psa_pake_ctx,
                                     out_p + output_offset,
                                     end_p - out_p - output_offset, &output_len );
         if( ret != 0 )
@@ -4143,7 +4143,7 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
     {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        if( ( ret = psa_tls12_parse_ecjpake_round_two(
+        if( ( ret = mbedtls_psa_ecjpake_read_round_two(
                         &ssl->handshake->psa_pake_ctx, p, end - p,
                         ssl->conf->endpoint ) ) != 0 )
         {

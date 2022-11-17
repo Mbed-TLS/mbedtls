@@ -164,7 +164,7 @@ static int ssl_write_ecjpake_kkpp_ext( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "generating new ecjpake parameters" ) );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        ret = psa_tls12_write_ecjpake_round_one(&ssl->handshake->psa_pake_ctx,
+        ret = mbedtls_psa_ecjpake_write_round_one(&ssl->handshake->psa_pake_ctx,
                                                 p + 2, end - p - 2, &kkpp_len );
         if ( ret != 0 )
         {
@@ -908,7 +908,7 @@ static int ssl_parse_ecjpake_kkpp( mbedtls_ssl_context *ssl,
     ssl->handshake->ecjpake_cache_len = 0;
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if( ( ret = psa_tls12_parse_ecjpake_round_one(
+    if( ( ret = mbedtls_psa_ecjpake_read_round_one(
                             &ssl->handshake->psa_pake_ctx, buf, len ) ) != 0 )
     {
         psa_destroy_key( ssl->handshake->psa_pake_password );
@@ -2333,7 +2333,7 @@ start_processing:
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
     {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        if( ( ret = psa_tls12_parse_ecjpake_round_two(
+        if( ( ret = mbedtls_psa_ecjpake_read_round_two(
                         &ssl->handshake->psa_pake_ctx, p, end - p,
                         ssl->conf->endpoint ) ) != 0 )
         {
@@ -3292,7 +3292,7 @@ ecdh_calc_secret:
         unsigned char *out_p = ssl->out_msg + header_len;
         unsigned char *end_p = ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN -
                                header_len;
-        ret = psa_tls12_write_ecjpake_round_two( &ssl->handshake->psa_pake_ctx,
+        ret = mbedtls_psa_ecjpake_write_round_two( &ssl->handshake->psa_pake_ctx,
                                     out_p, end_p - out_p, &content_len );
         if ( ret != 0 )
         {

@@ -305,8 +305,8 @@ static int ssl_parse_ecjpake_kkpp( mbedtls_ssl_context *ssl,
     }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if ( ( ret = mbedtls_psa_ecjpake_read_round(
-                        &ssl->handshake->psa_pake_ctx, buf, len, 
+    if( ( ret = mbedtls_psa_ecjpake_read_round(
+                        &ssl->handshake->psa_pake_ctx, buf, len,
                         MBEDTLS_ECJPAKE_ROUND_ONE ) ) != 0 )
     {
         psa_destroy_key( ssl->handshake->psa_pake_password );
@@ -2867,7 +2867,7 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
         }
         *out_p = MBEDTLS_ECP_TLS_NAMED_CURVE;
         MBEDTLS_PUT_UINT16_BE( curve_info->tls_id, out_p, 1 );
-        output_offset += sizeof( uint8_t ) + sizeof( uint16_t );
+        output_offset += 3;
 
         ret = mbedtls_psa_ecjpake_write_round( &ssl->handshake->psa_pake_ctx,
                                     out_p + output_offset,

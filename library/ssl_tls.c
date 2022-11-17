@@ -8203,7 +8203,7 @@ int mbedtls_psa_ecjpake_read_round(
 {
     psa_status_t status;
     size_t input_offset = 0;
-    /* 
+    /*
      * At round one repeat the KEY_SHARE, ZK_PUBLIC & ZF_PROOF twice
      * At round two perform a single cycle
      */
@@ -8235,7 +8235,7 @@ int mbedtls_psa_ecjpake_read_round(
         }
     }
 
-    if ( input_offset != len )
+    if( input_offset != len )
         return PSA_ERROR_INVALID_ARGUMENT;
 
     return( 0 );
@@ -8250,7 +8250,7 @@ int mbedtls_psa_ecjpake_write_round(
     psa_status_t status;
     size_t output_offset = 0;
     size_t output_len;
-    /* 
+    /*
      * At round one repeat the KEY_SHARE, ZK_PUBLIC & ZF_PROOF twice
      * At round two perform a single cycle
      */

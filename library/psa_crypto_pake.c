@@ -286,20 +286,20 @@ psa_status_t psa_pake_set_password_key( psa_pake_operation_t *operation,
     if( slot->key.data == NULL || slot->key.bytes == 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    if( operation->password_data != NULL )
+    if( operation->password != NULL )
     {
-        mbedtls_free( operation->password_data );
-        operation->password_bytes = 0;
+        mbedtls_free( operation->password );
+        operation->password_len = 0;
     }
 
-    operation->password_data = mbedtls_calloc( 1, slot->key.bytes );
-    if( operation->password_data == NULL )
+    operation->password = mbedtls_calloc( 1, slot->key.bytes );
+    if( operation->password == NULL )
     {
         status = psa_unlock_key_slot( slot );
         return( PSA_ERROR_INSUFFICIENT_MEMORY );
     }
-    memcpy( operation->password_data, slot->key.data, slot->key.bytes );
-    operation->password_bytes = slot->key.bytes;
+    memcpy( operation->password, slot->key.data, slot->key.bytes );
+    operation->password_len = slot->key.bytes;
 
     status = psa_unlock_key_slot( slot );
     if( status != PSA_SUCCESS )
@@ -387,8 +387,8 @@ static psa_status_t psa_pake_ecjpake_setup( psa_pake_operation_t *operation )
     else
         return( PSA_ERROR_BAD_STATE );
 
-    if (operation->password_data == NULL ||
-        operation->password_bytes == 0 )
+    if (operation->password == NULL ||
+        operation->password_len == 0 )
     {
         return( PSA_ERROR_BAD_STATE );
     }
@@ -397,8 +397,8 @@ static psa_status_t psa_pake_ecjpake_setup( psa_pake_operation_t *operation )
                                  role,
                                  MBEDTLS_MD_SHA256,
                                  MBEDTLS_ECP_DP_SECP256R1,
-                                 operation->password_data,
-                                 operation->password_bytes );
+                                 operation->password,
+                                 operation->password_len );
 
     if( ret != 0 )
         return( mbedtls_ecjpake_to_psa_error( ret ) );
@@ -864,9 +864,9 @@ psa_status_t psa_pake_abort(psa_pake_operation_t * operation)
     {
         operation->input_step = PSA_PAKE_STEP_INVALID;
         operation->output_step = PSA_PAKE_STEP_INVALID;
-        mbedtls_free( operation->password_data );
-        operation->password_data = NULL;
-        operation->password_bytes = 0;
+        mbedtls_free( operation->password );
+        operation->password = NULL;
+        operation->password_len = 0;
         operation->role = PSA_PAKE_ROLE_NONE;
         mbedtls_platform_zeroize( operation->buffer, MBEDTLS_PSA_PAKE_BUFFER_SIZE );
         operation->buffer_length = 0;

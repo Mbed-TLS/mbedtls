@@ -1920,8 +1920,8 @@ struct psa_pake_operation_s
 #if defined(MBEDTLS_PSA_BUILTIN_PAKE)
     unsigned int MBEDTLS_PRIVATE(input_step);
     unsigned int MBEDTLS_PRIVATE(output_step);
-    uint8_t* MBEDTLS_PRIVATE(password_data);
-    size_t MBEDTLS_PRIVATE(password_bytes);
+    uint8_t* MBEDTLS_PRIVATE(password);
+    size_t MBEDTLS_PRIVATE(password_len);
     psa_pake_role_t MBEDTLS_PRIVATE(role);
     uint8_t MBEDTLS_PRIVATE(buffer[MBEDTLS_PSA_PAKE_BUFFER_SIZE]);
     size_t MBEDTLS_PRIVATE(buffer_length);

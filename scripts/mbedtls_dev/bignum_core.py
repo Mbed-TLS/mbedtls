@@ -74,6 +74,10 @@ class BignumCoreTarget(test_data_generation.BaseTarget, metaclass=ABCMeta):
             )
         return super().description()
 
+    def arguments(self) -> List[str]:
+        return [
+            bignum_common.quote_str(self.arg_a), bignum_common.quote_str(self.arg_b)
+        ] + self.result()
 
 class BignumCoreShiftR(BignumCoreTarget, metaclass=ABCMeta):
     """Test cases for mbedtls_bignum_core_shift_r()."""
@@ -153,11 +157,9 @@ class BignumCoreCTLookup(BignumCoreTarget, metaclass=ABCMeta):
                 yield (cls(bitsize, bitsize_description, window_size)
                        .create_test_case())
 
-class BignumCoreOperation(bignum_common.OperationCommon, BignumCoreTarget, metaclass=ABCMeta):
+class BignumCoreOperation(BignumCoreTarget, bignum_common.OperationCommon, metaclass=ABCMeta):
     #pylint: disable=abstract-method
     """Common features for bignum core operations."""
-
-    input_values = input_values
 
     def description(self) -> str:
         """Generate a description for the test case.
@@ -178,12 +180,10 @@ class BignumCoreOperation(bignum_common.OperationCommon, BignumCoreTarget, metac
             yield cls(a_value, b_value).create_test_case()
 
 
-class BignumCoreOperationArchSplit(bignum_common.OperationCommonArchSplit, BignumCoreTarget, metaclass=ABCMeta):
+class BignumCoreOperationArchSplit(BignumCoreTarget, bignum_common.OperationCommonArchSplit, metaclass=ABCMeta):
     #pylint: disable=abstract-method
     """Common features for bignum core operations where the result depends on
     the limb size."""
-
-    input_values = input_values
 
     def __init__(self, val_a: str, val_b: str, bits_in_limb: int) -> None:
         super().__init__(val_n="0", val_a=val_a, val_b=val_b, bits_in_limb=bits_in_limb)

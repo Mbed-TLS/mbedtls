@@ -2719,4 +2719,25 @@ int mbedtls_ssl_session_set_hostname(mbedtls_ssl_session *session,
                                      const char *hostname);
 #endif
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+static inline uint8_t mbedtls_ssl_tls13_session_get_ticket_flags(
+    mbedtls_ssl_session *session, uint8_t flags)
+{
+    return session->ticket_flags &
+           (flags & MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK);
+}
+
+static inline void mbedtls_ssl_tls13_session_set_ticket_flags(
+    mbedtls_ssl_session *session, uint8_t flags)
+{
+    session->ticket_flags |= (flags & MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK);
+}
+
+static inline void mbedtls_ssl_tls13_session_clear_ticket_flags(
+    mbedtls_ssl_session *session, uint8_t flags)
+{
+    session->ticket_flags &= ~(flags & MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK);
+}
+#endif
+
 #endif /* ssl_misc.h */

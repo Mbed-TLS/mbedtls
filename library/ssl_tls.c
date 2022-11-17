@@ -8231,6 +8231,9 @@ int mbedtls_psa_ecjpake_read_round_one(
         }
     }
 
+    if ( input_offset != len )
+        return PSA_ERROR_INVALID_ARGUMENT;
+
     return( 0 );
 }
 
@@ -8285,6 +8288,9 @@ int mbedtls_psa_ecjpake_read_round_two(
 
         input_offset += length;
     }
+
+    if ( input_offset != len )
+        return PSA_ERROR_INVALID_ARGUMENT;
 
     return( 0 );
 }

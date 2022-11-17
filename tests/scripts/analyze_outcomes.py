@@ -153,7 +153,7 @@ def main():
         parser = argparse.ArgumentParser(description=__doc__)
         parser.add_argument('outcomes', metavar='OUTCOMES.CSV',
                             help='Outcome file to analyze')
-        parser.add_argument('task', default='all',
+        parser.add_argument('task', default='all', nargs='?',
                             help='Analysis to be done. By default, run all tasks. '
                                  'With one or more TASK, run only those. '
                                  'TASK can be the name of a single task or '

@@ -288,6 +288,7 @@ psa_status_t psa_pake_set_password_key( psa_pake_operation_t *operation,
 
     if( operation->password != NULL )
     {
+        mbedtls_platform_zeroize( operation->password, operation->password_len );
         mbedtls_free( operation->password );
         operation->password_len = 0;
     }
@@ -864,6 +865,7 @@ psa_status_t psa_pake_abort(psa_pake_operation_t * operation)
     {
         operation->input_step = PSA_PAKE_STEP_INVALID;
         operation->output_step = PSA_PAKE_STEP_INVALID;
+        mbedtls_platform_zeroize( operation->password, operation->password_len );
         mbedtls_free( operation->password );
         operation->password = NULL;
         operation->password_len = 0;

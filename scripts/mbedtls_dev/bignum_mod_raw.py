@@ -142,6 +142,9 @@ class BignumModRawConvertToMont(BignumModRawOperationArchSplit):
 
     @classmethod
     def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
+
+        #Note This could be similarly accessed by
+        # bil, a, n BignumModRawConvertToMont.get_bil_value_pairs()
         for bil in [32, 64]:
             for n in cls.test_data_moduli:
                 for i in cls.test_input_numbers:

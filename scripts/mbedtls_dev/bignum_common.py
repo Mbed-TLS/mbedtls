@@ -185,6 +185,15 @@ class OperationCommonArchSplit(OperationCommon):
             raise ValueError("Invalid number of bits in limb!")
 
         self.dependencies = ["MBEDTLS_HAVE_INT{:d}".format(bits_in_limb)]
+
+    @classmethod
+    def get_bil_value_pairs(cls) -> Iterator[Tuple[str, str]]:
+    # Note: Instead of overriding get_value_pairs we invoke it and prefix it with the bil
+        yield from ( 
+            (a, b, c)
+            for a in cls.limb_sizes
+            for b, c in cls.get_value_pairs()
+        )
 # BEGIN MERGE SLOT 1
 
 # END MERGE SLOT 1

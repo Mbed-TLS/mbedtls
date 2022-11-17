@@ -386,4 +386,41 @@ void mbedtls_debug_printf_ecdh(const mbedtls_ssl_context *ssl, int level,
 }
 #endif /* MBEDTLS_ECDH_C */
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+#define BITS_OF(var)    (sizeof(var) * 8)
+#define ARRAY_LENGTH(a) (sizeof(a) / sizeof(*(a)))
+
+static const char *ticket_flag_name_table[BITS_OF(mbedtls_ssl_tls13_ticket_flags)] =
+{
+    [0] = "ALLOW_PSK_RESUMPTION",
+    [2] = "ALLOW_PSK_EPHEMERAL_RESUMPTION",
+    [3] = "ALLOW_EARLY_DATA",
+};
+
+void mbedtls_debug_print_ticket_flags(
+    const mbedtls_ssl_context *ssl, int level,
+    const char *file, int line,
+    mbedtls_ssl_tls13_ticket_flags flag)
+{
+    size_t i;
+
+    if (NULL == ssl              ||
+        NULL == ssl->conf        ||
+        NULL == ssl->conf->f_dbg ||
+        level > debug_threshold) {
+        return;
+    }
+
+    mbedtls_debug_print_msg(ssl, level, file, line,
+                            "print ticket_flags (0x%02x)", flag);
+
+    for (i = 0; i < ARRAY_LENGTH(ticket_flag_name_table); i++) {
+        if ((flag & (1 << i)) & MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK) {
+            mbedtls_debug_print_msg(ssl, level, file, line, "- %s is set.",
+                                    ticket_flag_name_table[i]);
+        }
+    }
+}
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */
+
 #endif /* MBEDTLS_DEBUG_C */

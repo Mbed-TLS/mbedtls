@@ -104,6 +104,27 @@ class OperationCommon(test_data_generation.BaseTest):
             self.dependencies = ["MBEDTLS_HAVE_INT{:d}".format(bits_in_limb)]
         self.bits_in_limb = bits_in_limb
 
+    @property
+    def boundary(self) -> int:
+        data_in = [self.int_a, self.int_b]
+        return max([n for n in data_in if n is not None])
+
+    @property
+    def limbs(self) -> int:
+        return limbs_mpi(self.boundary, self.bits_in_limb)
+
+    @property
+    def hex_digits(self) -> int:
+        return 2 * (self.limbs * self.bits_in_limb // 8)
+
+    @property
+    def hex_a(self) -> str:
+        return "{:x}".format(self.int_a).zfill(self.hex_digits)
+
+    @property
+    def hex_b(self) -> str:
+        return "{:x}".format(self.int_b).zfill(self.hex_digits)
+
     def arguments(self) -> List[str]:
         return [
             quote_str(self.arg_a), quote_str(self.arg_b)
@@ -178,24 +199,8 @@ class ModOperationCommon(OperationCommon):
         return max([n for n in data_in if n is not None])
 
     @property
-    def limbs(self) -> int:
-        return limbs_mpi(self.boundary, self.bits_in_limb)
-
-    @property
-    def hex_digits(self) -> int:
-        return 2 * (self.limbs * self.bits_in_limb // 8)
-
-    @property
     def hex_n(self) -> str:
         return "{:x}".format(self.int_n).zfill(self.hex_digits)
-
-    @property
-    def hex_a(self) -> str:
-        return "{:x}".format(self.int_a).zfill(self.hex_digits)
-
-    @property
-    def hex_b(self) -> str:
-        return "{:x}".format(self.int_b).zfill(self.hex_digits)
 
     @property
     def r(self) -> int: # pylint: disable=invalid-name
@@ -221,9 +226,6 @@ class OperationCommonArchSplit(OperationCommon):
         bound_val = max(self.int_a, self.int_b)
         self.bits_in_limb = bits_in_limb
         self.bound = bound_mpi(bound_val, self.bits_in_limb)
-        limbs = limbs_mpi(bound_val, self.bits_in_limb)
-        byte_len = limbs * self.bits_in_limb // 8
-        self.hex_digits = 2 * byte_len
         if self.bits_in_limb == 32:
             self.dependencies = ["MBEDTLS_HAVE_INT32"]
         elif self.bits_in_limb == 64:

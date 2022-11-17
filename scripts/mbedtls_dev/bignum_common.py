@@ -226,6 +226,28 @@ class OperationCommonArchSplit(OperationCommon):
             yield cls(a_value, b_value, 64).create_test_case()
 
 
+class ModOperationCommonArchSplit(ModOperationCommon):
+    #pylint: disable=abstract-method
+    """Common features for bignum mod raw operations where the result depends on
+    the limb size."""
+
+    limb_sizes = [32, 64] # type: List[int]
+
+    def __init__(self, val_n: str, val_a: str, val_b: str = "0", bits_in_limb: int = 64) -> None:
+        super().__init__(val_n=val_n, val_a=val_a, val_b=val_b, bits_in_limb=bits_in_limb)
+
+        if bits_in_limb not in self.limb_sizes:
+            raise ValueError("Invalid number of bits in limb!")
+
+        self.dependencies = ["MBEDTLS_HAVE_INT{:d}".format(bits_in_limb)]
+
+    @classmethod
+    def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
+        for a_value, b_value in cls.get_value_pairs():
+            for bil in cls.limb_sizes:
+                yield cls(a_value, b_value, bits_in_limb=bil).create_test_case()
+
+
 # BEGIN MERGE SLOT 1
 
 # END MERGE SLOT 1

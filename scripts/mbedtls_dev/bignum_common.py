@@ -80,17 +80,18 @@ class OperationCommon(test_data_generation.BaseTest):
         unique_combinations_only: Boolean to select if test case combinations
             must be unique. If True, only A,B or B,A would be included as a test
             case. If False, both A,B and B,A would be included.
-        arch_split: Boolean to select if different test cases are needed
-            depending on the architecture/limb size. This will cause test
-            objects being generated with different architectures. Individual
-            test objects can tell their architecture by accessing the
-            bits_in_limb instance variable.
+        input_style: Controls the way how test data is passed to the functions
+            in the generated test cases. "variable" passes them as they are
+            defined in the python source. "arch_split" pads the values with
+            zeroes depending on the architecture/limb size. If this is set,
+            test cases are generated for all architectures.
     """
     symbol = ""
     input_values = [] # type: List[str]
     input_cases = [] # type: List[Tuple[str, str]]
     unique_combinations_only = True
-    arch_split = False
+    input_styles = ["variable", "arch_split"] # type: List[str]
+    input_style = "variable" # type: str
     limb_sizes = [32, 64] # type: List[int]
 
     def __init__(self, val_a: str, val_b: str, bits_in_limb: int = 64) -> None:
@@ -100,7 +101,7 @@ class OperationCommon(test_data_generation.BaseTest):
         self.int_b = hex_to_int(val_b)
         if bits_in_limb not in self.limb_sizes:
             raise ValueError("Invalid number of bits in limb!")
-        if self.arch_split:
+        if self.input_style == "arch_split":
             self.dependencies = ["MBEDTLS_HAVE_INT{:d}".format(bits_in_limb)]
         self.bits_in_limb = bits_in_limb
 
@@ -108,6 +109,10 @@ class OperationCommon(test_data_generation.BaseTest):
     def boundary(self) -> int:
         data_in = [self.int_a, self.int_b]
         return max([n for n in data_in if n is not None])
+
+    @property
+    def limb_boundary(self) -> int:
+        return bound_mpi(self.boundary, self.bits_in_limb)
 
     @property
     def limbs(self) -> int:
@@ -171,8 +176,10 @@ class OperationCommon(test_data_generation.BaseTest):
 
     @classmethod
     def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
+        if cls.input_style not in cls.input_styles:
+            raise ValueError("Unknown input style!")
         for a_value, b_value in cls.get_value_pairs():
-            if cls.arch_split:
+            if cls.input_style == "arch_split":
                 for bil in cls.limb_sizes:
                     yield cls(a_value, b_value,
                               bits_in_limb=bil).create_test_case()
@@ -214,35 +221,6 @@ class ModOperationCommon(OperationCommon):
     @property
     def r2(self) -> int: # pylint: disable=invalid-name
         return pow(self.r, 2)
-
-
-class OperationCommonArchSplit(OperationCommon):
-    #pylint: disable=abstract-method
-    """Common features for operations where the result depends on
-    the limb size."""
-
-    def __init__(self, val_a: str, val_b: str, bits_in_limb: int) -> None:
-        super().__init__(val_a, val_b)
-        bound_val = max(self.int_a, self.int_b)
-        self.bits_in_limb = bits_in_limb
-        self.bound = bound_mpi(bound_val, self.bits_in_limb)
-        if self.bits_in_limb == 32:
-            self.dependencies = ["MBEDTLS_HAVE_INT32"]
-        elif self.bits_in_limb == 64:
-            self.dependencies = ["MBEDTLS_HAVE_INT64"]
-        else:
-            raise ValueError("Invalid number of bits in limb!")
-        self.arg_a = self.arg_a.zfill(self.hex_digits)
-        self.arg_b = self.arg_b.zfill(self.hex_digits)
-
-    def pad_to_limbs(self, val) -> str:
-        return "{:x}".format(val).zfill(self.hex_digits)
-
-    @classmethod
-    def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
-        for a_value, b_value in cls.get_value_pairs():
-            yield cls(a_value, b_value, 32).create_test_case()
-            yield cls(a_value, b_value, 64).create_test_case()
 
 
 # BEGIN MERGE SLOT 1

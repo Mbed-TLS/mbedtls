@@ -106,6 +106,7 @@ class BignumCoreCTLookup(BignumCoreTarget, test_data_generation.BaseTest):
                 yield (cls(bitsize, bitsize_description, window_size)
                        .create_test_case())
 
+
 INPUT_VALUES = [
     "0", "1", "3", "f", "fe", "ff", "100", "ff00", "fffe", "ffff", "10000",
     "fffffffe", "ffffffff", "100000000", "1f7f7f7f7f7f7f",
@@ -127,37 +128,38 @@ INPUT_VALUES = [
     )
 ]
 
-
 class BignumCoreOperation(BignumCoreTarget, bignum_common.OperationCommon):
     #pylint: disable=abstract-method
     """Common features for bignum core operations."""
     input_values = INPUT_VALUES
 
 
-class BignumCoreOperationArchSplit(BignumCoreTarget,
-                                   bignum_common.OperationCommonArchSplit):
-    #pylint: disable=abstract-method
-    """Common features for bignum core operations where the result depends on
-    the limb size."""
-    input_values = INPUT_VALUES
-
-
-class BignumCoreAddAndAddIf(BignumCoreOperationArchSplit):
+class BignumCoreAddAndAddIf(BignumCoreOperation):
     """Test cases for bignum core add and add-if."""
     count = 0
     symbol = "+"
     test_function = "mpi_core_add_and_add_if"
     test_name = "mpi_core_add_and_add_if"
+    input_style = "arch_split"
+
+    def __init__(self, val_a: str, val_b: str, bits_in_limb: int) -> None:
+        super().__init__(val_a, val_b)
+        self.arg_a = self.arg_a.zfill(self.hex_digits)
+        self.arg_b = self.arg_b.zfill(self.hex_digits)
+
+    def pad_to_limbs(self, val) -> str:
+        return "{:x}".format(val).zfill(self.hex_digits)
 
     def result(self) -> List[str]:
         result = self.int_a + self.int_b
 
-        carry, result = divmod(result, self.bound)
+        carry, result = divmod(result, self.limb_boundary)
 
         return [
             bignum_common.quote_str(self.pad_to_limbs(result)),
             str(carry)
         ]
+
 
 class BignumCoreSub(BignumCoreOperation):
     """Test cases for bignum core sub."""

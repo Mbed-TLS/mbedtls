@@ -56,7 +56,7 @@ class BignumModRawConvertToMont(bignum_common.ModOperationCommon,
 
     test_function = "mpi_mod_raw_to_mont_rep"
     test_name = "Convert into Mont: "
-    arch_split = True
+    input_style = "arch_split"
 
     test_data_moduli = ["b",
                         "fd",

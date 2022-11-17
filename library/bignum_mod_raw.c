@@ -127,7 +127,7 @@ void mbedtls_mpi_mod_raw_add( mbedtls_mpi_uint *X,
     mbedtls_mpi_uint carry, borrow;
     carry  = mbedtls_mpi_core_add( X, A, B, N->limbs );
     borrow = mbedtls_mpi_core_sub( X, X, N->p, N->limbs );
-    (void) mbedtls_mpi_core_add_if( X, N->p, N->limbs, (unsigned char) ( carry ^ borrow ) );
+    (void) mbedtls_mpi_core_add_if( X, N->p, N->limbs, (unsigned) ( carry ^ borrow ) );
 }
 /* END MERGE SLOT 5 */
 

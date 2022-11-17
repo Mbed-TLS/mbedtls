@@ -3824,9 +3824,10 @@ void mbedtls_ssl_conf_sni( mbedtls_ssl_config *conf,
  * \note           The SSL context needs to be already set up. The right place
  *                 to call this function is between \c mbedtls_ssl_setup() or
  *                 \c mbedtls_ssl_reset() and \c mbedtls_ssl_handshake().
+ *                 Password cannot be empty (see RFC 8236).
  *
  * \param ssl      SSL context
- * \param pw       EC J-PAKE password (pre-shared secret)
+ * \param pw       EC J-PAKE password (pre-shared secret). It cannot be empty
  * \param pw_len   length of pw in bytes
  *
  * \return         0 on success, or a negative error code.

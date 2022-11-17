@@ -113,7 +113,7 @@ void mbedtls_ecjpake_init( mbedtls_ecjpake_context *ctx );
  * \param curve     The identifier of the elliptic curve to use,
  *                  for example #MBEDTLS_ECP_DP_SECP256R1.
  * \param secret    The pre-shared secret (passphrase). This must be
- *                  a readable buffer of length \p len Bytes. It need
+ *                  a readable not empty buffer of length \p len Bytes. It need
  *                  only be valid for the duration of this call.
  * \param len       The length of the pre-shared secret \p secret.
  *

@@ -1634,18 +1634,18 @@ int mbedtls_ssl_set_hs_ecjpake_password( mbedtls_ssl_context *ssl,
     else
         psa_role = PSA_PAKE_ROLE_CLIENT;
 
+    /* Empty password is not valid  */
+    if( ( pw == NULL) || ( pw_len == 0 ) )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    if( pw_len > 0 )
-    {
-        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
-        psa_set_key_algorithm( &attributes, PSA_ALG_JPAKE );
-        psa_set_key_type( &attributes, PSA_KEY_TYPE_PASSWORD );
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
+    psa_set_key_algorithm( &attributes, PSA_ALG_JPAKE );
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_PASSWORD );
 
-        status = psa_import_key( &attributes, pw, pw_len,
-                                 &ssl->handshake->psa_pake_password );
-        if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-    }
+    status = psa_import_key( &attributes, pw, pw_len,
+                                &ssl->handshake->psa_pake_password );
+    if( status != PSA_SUCCESS )
+        return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
 
     psa_pake_cs_set_algorithm( &cipher_suite, PSA_ALG_JPAKE );
     psa_pake_cs_set_primitive( &cipher_suite,
@@ -1669,16 +1669,13 @@ int mbedtls_ssl_set_hs_ecjpake_password( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
     }
 
-    if( pw_len > 0 )
+    psa_pake_set_password_key( &ssl->handshake->psa_pake_ctx,
+                                ssl->handshake->psa_pake_password );
+    if( status != PSA_SUCCESS )
     {
-        psa_pake_set_password_key( &ssl->handshake->psa_pake_ctx,
-                                   ssl->handshake->psa_pake_password );
-        if( status != PSA_SUCCESS )
-        {
-            psa_destroy_key( ssl->handshake->psa_pake_password );
-            psa_pake_abort( &ssl->handshake->psa_pake_ctx );
-            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-        }
+        psa_destroy_key( ssl->handshake->psa_pake_password );
+        psa_pake_abort( &ssl->handshake->psa_pake_ctx );
+        return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
     }
 
     ssl->handshake->psa_pake_ctx_is_ok = 1;

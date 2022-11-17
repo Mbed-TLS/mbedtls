@@ -85,12 +85,6 @@ class OperationCommon:
     unique_combinations_only = True
 
     def __init__(self, val_n: str, val_a: str, val_b: str = "0", bits_in_limb: int = 64) -> None:
-        super().__init__(val_a=val_a, val_b=val_b)
-        self.val_n = val_n
-        self.bits_in_limb = bits_in_limb
-
-
-    def __init__(self, val_n: str, val_a: str, val_b: str = "0", bits_in_limb: int = 64) -> None:
         self.val_n = val_n
         self.arg_a = val_a
         self.arg_b = val_b
@@ -189,7 +183,7 @@ class OperationCommonArchSplit(OperationCommon):
     @classmethod
     def get_bil_value_pairs(cls) -> Iterator[Tuple[str, str]]:
     # Note: Instead of overriding get_value_pairs we invoke it and prefix it with the bil
-        yield from ( 
+        yield from (
             (a, b, c)
             for a in cls.limb_sizes
             for b, c in cls.get_value_pairs()

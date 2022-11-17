@@ -1995,11 +1995,7 @@ static void ssl_write_ecjpake_kkpp_ext( mbedtls_ssl_context *ssl,
                                         unsigned char *buf,
                                         size_t *olen )
 {
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_status_t status;
-#else
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
     unsigned char *p = buf;
     const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN;
     size_t kkpp_len;
@@ -2023,40 +2019,15 @@ static void ssl_write_ecjpake_kkpp_ext( mbedtls_ssl_context *ssl,
     p += 2;
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    size_t output_offset = 0;
-    size_t output_len;
-
-    /* Repeat the KEY_SHARE, ZK_PUBLIC & ZF_PROOF twice */
-    for( unsigned int x = 1 ; x <= 2 ; ++x )
+    ret = mbedtls_psa_ecjpake_write_round_one( &ssl->handshake->psa_pake_ctx,
+                                p + 2, end - p - 2, &kkpp_len );
+    if ( ret != 0 )
     {
-        for( psa_pake_step_t step = PSA_PAKE_STEP_KEY_SHARE ;
-             step <= PSA_PAKE_STEP_ZK_PROOF ;
-             ++step )
-        {
-            /* For each step, prepend 1 byte with the length of the data */
-            if (step != PSA_PAKE_STEP_ZK_PROOF) {
-                *(p + 2 + output_offset) = 65;
-            } else {
-                *(p + 2 + output_offset) = 32;
-            }
-            output_offset += 1;
-            status = psa_pake_output( &ssl->handshake->psa_pake_ctx,
-                                      step, p + 2 + output_offset,
-                                      end - p - output_offset - 2,
-                                      &output_len );
-            if( status != PSA_SUCCESS )
-            {
-                psa_destroy_key( ssl->handshake->psa_pake_password );
-                psa_pake_abort( &ssl->handshake->psa_pake_ctx );
-                MBEDTLS_SSL_DEBUG_RET( 1 , "psa_pake_output", status );
-                return;
-            }
-
-            output_offset += output_len;
-        }
+        psa_destroy_key( ssl->handshake->psa_pake_password );
+        psa_pake_abort( &ssl->handshake->psa_pake_ctx );
+        MBEDTLS_SSL_DEBUG_RET( 1 , "psa_pake_output", ret );
+        return;
     }
-
-    kkpp_len = output_offset;
 #else
     ret = mbedtls_ecjpake_write_round_one( &ssl->handshake->ecjpake_ctx,
                                         p + 2, end - p - 2, &kkpp_len,

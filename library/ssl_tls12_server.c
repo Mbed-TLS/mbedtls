@@ -4115,8 +4115,7 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         if( ( ret = mbedtls_psa_ecjpake_read_round_two(
-                        &ssl->handshake->psa_pake_ctx, p, end - p,
-                        ssl->conf->endpoint ) ) != 0 )
+                        &ssl->handshake->psa_pake_ctx, p, end - p ) ) != 0 )
         {
             psa_destroy_key( ssl->handshake->psa_pake_password );
             psa_pake_abort( &ssl->handshake->psa_pake_ctx );

@@ -8240,7 +8240,7 @@ int mbedtls_psa_ecjpake_read_round_one(
 int mbedtls_psa_ecjpake_read_round_two(
                                     psa_pake_operation_t *pake_ctx,
                                     const unsigned char *buf,
-                                    size_t len, int role )
+                                    size_t len )
 {
     psa_status_t status;
     size_t input_offset = 0;
@@ -8250,25 +8250,6 @@ int mbedtls_psa_ecjpake_read_round_two(
             ++step )
     {
         size_t length;
-
-        /*
-         * On its 2nd round, the server sends 3 extra bytes which identify the
-         * curve:
-         * - the 1st one is MBEDTLS_ECP_TLS_NAMED_CURVE
-         * - the 2nd and 3rd represent curve's TLS ID
-         * Validate this data before moving forward
-         */
-        if( ( step == PSA_PAKE_STEP_KEY_SHARE ) &&
-            ( role == MBEDTLS_SSL_IS_CLIENT ) )
-        {
-            uint16_t tls_id = MBEDTLS_GET_UINT16_BE( buf, 1 );
-
-            if( ( *buf != MBEDTLS_ECP_TLS_NAMED_CURVE ) ||
-                ( mbedtls_ecp_curve_info_from_tls_id( tls_id ) == NULL ) )
-                return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-
-            input_offset += 3;
-        }
 
         /* Length is stored at the first byte */
         length = buf[input_offset];

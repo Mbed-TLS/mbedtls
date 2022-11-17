@@ -2405,8 +2405,7 @@ int mbedtls_psa_ecjpake_read_round_one(
  */
 int mbedtls_psa_ecjpake_read_round_two(
                                     psa_pake_operation_t *pake_ctx,
-                                    const unsigned char *buf,
-                                    size_t len, int role );
+                                    const unsigned char *buf, size_t len );
 
 /**
  * \brief       Write the first round of key exchange into the provided output

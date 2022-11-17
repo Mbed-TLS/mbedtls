@@ -2333,9 +2333,31 @@ start_processing:
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
     {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
+        /*
+         * The first 3 bytes are:
+         * [0] MBEDTLS_ECP_TLS_NAMED_CURVE
+         * [1, 2] elliptic curve's TLS ID
+         *
+         * However since we only support secp256r1 for now, we check only
+         * that TLS ID here
+         */
+        uint16_t read_tls_id = MBEDTLS_GET_UINT16_BE( p, 1 );
+        const mbedtls_ecp_curve_info *curve_info;
+
+        if( ( curve_info = mbedtls_ecp_curve_info_from_grp_id(
+                                MBEDTLS_ECP_DP_SECP256R1 ) ) == NULL )
+        {
+            return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+        }
+
+        if( ( *p != MBEDTLS_ECP_TLS_NAMED_CURVE ) ||
+            ( read_tls_id != curve_info->tls_id ) )
+            return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+        p += 3;
+
         if( ( ret = mbedtls_psa_ecjpake_read_round_two(
-                        &ssl->handshake->psa_pake_ctx, p, end - p,
-                        ssl->conf->endpoint ) ) != 0 )
+                        &ssl->handshake->psa_pake_ctx, p, end - p ) ) != 0 )
         {
             psa_destroy_key( ssl->handshake->psa_pake_password );
             psa_pake_abort( &ssl->handshake->psa_pake_ctx );

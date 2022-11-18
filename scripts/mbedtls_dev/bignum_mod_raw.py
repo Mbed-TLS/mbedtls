@@ -114,8 +114,8 @@ class BignumModRawConvertToMont(bignum_common.ModOperationCommon,
         return [self.hex_x]
 
     def arguments(self) -> List[str]:
-        return [bignum_common.quote_str(n) for n in [self.hex_n,
-                                                     self.hex_a,
+        return [bignum_common.quote_str(n) for n in [self.arg_n,
+                                                     self.arg_a,
                                                      self.hex_x]]
 
     def description(self) -> str:

@@ -142,21 +142,13 @@ class BignumCoreAddAndAddIf(BignumCoreOperation):
     test_name = "mpi_core_add_and_add_if"
     input_style = "arch_split"
 
-    def __init__(self, val_a: str, val_b: str, bits_in_limb: int) -> None:
-        super().__init__(val_a, val_b)
-        self.arg_a = self.arg_a.zfill(self.hex_digits)
-        self.arg_b = self.arg_b.zfill(self.hex_digits)
-
-    def pad_to_limbs(self, val) -> str:
-        return "{:x}".format(val).zfill(self.hex_digits)
-
     def result(self) -> List[str]:
         result = self.int_a + self.int_b
 
         carry, result = divmod(result, self.limb_boundary)
 
         return [
-            bignum_common.quote_str(self.pad_to_limbs(result)),
+            self.format_result(result),
             str(carry)
         ]
 

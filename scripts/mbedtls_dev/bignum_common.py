@@ -95,8 +95,8 @@ class OperationCommon(test_data_generation.BaseTest):
     limb_sizes = [32, 64] # type: List[int]
 
     def __init__(self, val_a: str, val_b: str, bits_in_limb: int = 64) -> None:
-        self.arg_a = val_a
-        self.arg_b = val_b
+        self.val_a = val_a
+        self.val_b = val_b
         self.int_a = hex_to_int(val_a)
         self.int_b = hex_to_int(val_b)
         if bits_in_limb not in self.limb_sizes:
@@ -122,13 +122,25 @@ class OperationCommon(test_data_generation.BaseTest):
     def hex_digits(self) -> int:
         return 2 * (self.limbs * self.bits_in_limb // 8)
 
-    @property
-    def hex_a(self) -> str:
-        return "{:x}".format(self.int_a).zfill(self.hex_digits)
+    def format_arg(self, val) -> str:
+        if self.input_style not in self.input_styles:
+            raise ValueError("Unknown input style!")
+        if self.input_style == "variable":
+            return val
+        else:
+            return val.zfill(self.hex_digits)
+
+    def format_result(self, res) -> str:
+        res_str = '{:x}'.format(res)
+        return quote_str(self.format_arg(res_str))
 
     @property
-    def hex_b(self) -> str:
-        return "{:x}".format(self.int_b).zfill(self.hex_digits)
+    def arg_a(self) -> str:
+        return self.format_arg(self.val_a)
+
+    @property
+    def arg_b(self) -> str:
+        return self.format_arg(self.val_b)
 
     def arguments(self) -> List[str]:
         return [
@@ -206,8 +218,8 @@ class ModOperationCommon(OperationCommon):
         return max([n for n in data_in if n is not None])
 
     @property
-    def hex_n(self) -> str:
-        return "{:x}".format(self.int_n).zfill(self.hex_digits)
+    def arg_n(self) -> str:
+        return self.format_arg(self.val_n)
 
     @property
     def r(self) -> int: # pylint: disable=invalid-name

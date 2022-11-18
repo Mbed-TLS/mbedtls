@@ -550,6 +550,13 @@ def skip_comments(line, stream):
             line += next(stream)
             closing = line.find('*/', opening.end(0))
         pos = closing + 2
+        # Replace inner comment by spaces. There needs to be at least one space
+        # for things like 'int/*ihatespaces*/foo'. Go further and preserve the
+        # width of the comment, this way column positions in error messages
+        # remain correct.
+        # TODO: It would be better to preserve line breaks, to get accurate
+        # line numbers if there's something interesting after a comment on
+        # the same line.
         line = (line[:opening.start(0)] +
                 ' ' * (pos - opening.start(0)) +
                 line[pos:])

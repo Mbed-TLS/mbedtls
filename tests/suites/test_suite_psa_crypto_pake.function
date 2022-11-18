@@ -596,22 +596,57 @@ exit:
 
 typedef enum
 {
-    INJECT_ERR_NONE = 0,
-    INJECT_ERR_UNINITIALIZED_ACCESS,
-    INJECT_ERR_DUPLICATE_SETUP,
-    INJECT_ERR_INVALID_USER,
-    INJECT_ERR_INVALID_PEER,
-    INJECT_ERR_SET_USER,
-    INJECT_ERR_SET_PEER,
-    INJECT_EMPTY_IO_BUFFER,
-    INJECT_UNKNOWN_STEP,
-    INJECT_INVALID_FIRST_STEP,
-    INJECT_WRONG_BUFFER_SIZE,
-    INJECT_VALID_OPERATION_AFTER_FAILURE,
-    INJECT_ANTICIPATE_KEY_DERIVATION_1,
-    INJECT_ANTICIPATE_KEY_DERIVATION_2,
-} ecjpake_injected_failure_t;
+    ERR_NONE = 0,
+    /* errors forced internally in the code */
+    ERR_INJECT_UNINITIALIZED_ACCESS,
+    ERR_INJECT_DUPLICATE_SETUP,
+    ERR_INJECT_INVALID_USER,
+    ERR_INJECT_INVALID_PEER,
+    ERR_INJECT_SET_USER,
+    ERR_INJECT_SET_PEER,
+    ERR_INJECT_EMPTY_IO_BUFFER,
+    ERR_INJECT_UNKNOWN_STEP,
+    ERR_INJECT_INVALID_FIRST_STEP,
+    ERR_INJECT_WRONG_BUFFER_SIZE,
+    ERR_INJECT_VALID_OPERATION_AFTER_FAILURE,
+    ERR_INJECT_ANTICIPATE_KEY_DERIVATION_1,
+    ERR_INJECT_ANTICIPATE_KEY_DERIVATION_2,
+    /* erros issued from the .data file */
+    ERR_IN_SETUP,
+    ERR_IN_SET_ROLE,
+    ERR_IN_SET_PASSWORD_KEY,
+    ERR_IN_INPUT,
+    ERR_IN_OUTPUT,
+} ecjpake_error_stage_t;
 
+/*
+ * This check is used for errors issued through wrong input parameters. The
+ * check is always performed because, in case of all valid parameters, the
+ * setup function can go on
+ */
+#define SETUP_ALWAYS_CHECK_STEP( test_function, this_check_err_stage )      \
+    status = test_function;                                                 \
+    if( err_stage != this_check_err_stage )                                 \
+    {                                                                       \
+        PSA_ASSERT( status );                                               \
+    }                                                                       \
+    else                                                                    \
+    {                                                                       \
+        TEST_EQUAL( status, expected_error );                               \
+        goto exit;                                                          \
+    }
+
+/*
+ * This check is used for errors injected explicitly. The check is conditional
+ * because once the error is triggered, the setup function cannot proceed so
+ * it would not be possible to check following steps
+ */
+#define SETUP_CONDITIONAL_CHECK_STEP( test_function, this_check_err_stage ) \
+    if( err_stage == this_check_err_stage )                                 \
+    {                                                                       \
+        TEST_EQUAL( test_function, expected_error );                        \
+        goto exit;                                                          \
+    }
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -623,7 +658,7 @@ typedef enum
 void ecjpake_setup( int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
                     int primitive_arg, int hash_arg, int role_arg,
                     int test_input, data_t *pw_data,
-                    int inj_err_type_arg,
+                    int err_stage_arg,
                     int expected_error_arg)
 {
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
@@ -636,16 +671,17 @@ void ecjpake_setup( int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
     psa_pake_role_t role = role_arg;
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    ecjpake_injected_failure_t inj_err_type = inj_err_type_arg;
+    ecjpake_error_stage_t err_stage = err_stage_arg;
     psa_status_t expected_error = expected_error_arg;
     psa_status_t status;
     unsigned char *output_buffer = NULL;
     size_t output_len = 0;
+    const uint8_t unsupp_id[] = "abcd";
 
     PSA_INIT( );
 
-    size_t buf_size = PSA_PAKE_OUTPUT_SIZE(alg, primitive_arg,
-                                       PSA_PAKE_STEP_KEY_SHARE);
+    size_t buf_size = PSA_PAKE_OUTPUT_SIZE( alg, primitive_arg,
+                                       PSA_PAKE_STEP_KEY_SHARE );
     ASSERT_ALLOC( output_buffer, buf_size );
 
     if( pw_data->len > 0 )
@@ -663,7 +699,7 @@ void ecjpake_setup( int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
 
     PSA_ASSERT( psa_pake_abort( &operation ) );
 
-    if ( inj_err_type == INJECT_ERR_UNINITIALIZED_ACCESS )
+    if ( err_stage == ERR_INJECT_UNINITIALIZED_ACCESS )
     {
         TEST_EQUAL( psa_pake_set_user( &operation, NULL, 0 ),
                     expected_error );
@@ -687,66 +723,29 @@ void ecjpake_setup( int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
         goto exit;
     }
 
-    status = psa_pake_setup( &operation, &cipher_suite );
-    if (status != PSA_SUCCESS)
-    {
-        TEST_EQUAL( status, expected_error );
-        goto exit;
-    }
+    SETUP_ALWAYS_CHECK_STEP( psa_pake_setup( &operation, &cipher_suite ),
+                            ERR_IN_SETUP );
 
-    if( inj_err_type == INJECT_ERR_DUPLICATE_SETUP )
-    {
-        TEST_EQUAL( psa_pake_setup( &operation, &cipher_suite ),
-                expected_error );
-        goto exit;
-    }
+    SETUP_CONDITIONAL_CHECK_STEP( psa_pake_setup( &operation, &cipher_suite ),
+                                    ERR_INJECT_DUPLICATE_SETUP);
 
-    status = psa_pake_set_role( &operation, role);
-    if ( status != PSA_SUCCESS )
-    {
-        TEST_EQUAL( status, expected_error );
-        goto exit;
-    }
+    SETUP_ALWAYS_CHECK_STEP( psa_pake_set_role( &operation, role),
+                                ERR_IN_SET_ROLE );
 
-    if( pw_data->len > 0 )
-    {
-        status = psa_pake_set_password_key( &operation, key );
-        if ( status != PSA_SUCCESS )
-        {
-            TEST_EQUAL( status, expected_error );
-            goto exit;
-        }
-    }
+    SETUP_ALWAYS_CHECK_STEP( psa_pake_set_password_key( &operation, key ),
+                                ERR_IN_SET_PASSWORD_KEY );
 
-    if ( inj_err_type == INJECT_ERR_INVALID_USER )
-    {
-        TEST_EQUAL( psa_pake_set_user( &operation, NULL, 0 ),
-                    PSA_ERROR_INVALID_ARGUMENT );
-        goto exit;
-    }
+    SETUP_CONDITIONAL_CHECK_STEP( psa_pake_set_user( &operation, NULL, 0 ),
+                                    ERR_INJECT_INVALID_USER );
 
-    if ( inj_err_type == INJECT_ERR_INVALID_PEER )
-    {
-        TEST_EQUAL( psa_pake_set_peer( &operation, NULL, 0 ),
-                    PSA_ERROR_INVALID_ARGUMENT );
-        goto exit;
-    }
+    SETUP_CONDITIONAL_CHECK_STEP( psa_pake_set_peer( &operation, NULL, 0 ),
+                                    ERR_INJECT_INVALID_PEER );
 
-    if ( inj_err_type == INJECT_ERR_SET_USER )
-    {
-        const uint8_t unsupported_id[] = "abcd";
-        TEST_EQUAL( psa_pake_set_user( &operation, unsupported_id, 4 ),
-                    PSA_ERROR_NOT_SUPPORTED );
-        goto exit;
-    }
+    SETUP_CONDITIONAL_CHECK_STEP( psa_pake_set_user( &operation, unsupp_id, 4 ),
+                                    ERR_INJECT_SET_USER );
 
-    if ( inj_err_type == INJECT_ERR_SET_PEER )
-    {
-        const uint8_t unsupported_id[] = "abcd";
-        TEST_EQUAL( psa_pake_set_peer( &operation, unsupported_id, 4 ),
-                    PSA_ERROR_NOT_SUPPORTED );
-        goto exit;
-    }
+    SETUP_CONDITIONAL_CHECK_STEP( psa_pake_set_peer( &operation, unsupp_id, 4 ),
+                                    ERR_INJECT_SET_PEER );
 
     const size_t size_key_share = PSA_PAKE_INPUT_SIZE( alg, primitive,
                                                 PSA_PAKE_STEP_KEY_SHARE );
@@ -757,108 +756,71 @@ void ecjpake_setup( int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
 
     if ( test_input )
     {
-        if ( inj_err_type == INJECT_EMPTY_IO_BUFFER )
-        {
-            TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_ZK_PROOF, NULL, 0 ),
-                                        PSA_ERROR_INVALID_ARGUMENT );
-            goto exit;
-        }
+        SETUP_CONDITIONAL_CHECK_STEP( psa_pake_input( &operation,
+                                        PSA_PAKE_STEP_ZK_PROOF,  NULL, 0 ),
+                                        ERR_INJECT_EMPTY_IO_BUFFER );
 
-        if ( inj_err_type == INJECT_UNKNOWN_STEP )
-        {
-            TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_ZK_PROOF + 10,
+        SETUP_CONDITIONAL_CHECK_STEP( psa_pake_input( &operation,
+                                        PSA_PAKE_STEP_ZK_PROOF + 10,
                                         output_buffer, size_zk_proof ),
-                                        PSA_ERROR_INVALID_ARGUMENT );
-            goto exit;
-        }
+                                        ERR_INJECT_UNKNOWN_STEP );
 
-        if ( inj_err_type == INJECT_INVALID_FIRST_STEP )
-        {
-            TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_ZK_PROOF,
+        SETUP_CONDITIONAL_CHECK_STEP( psa_pake_input( &operation,
+                                        PSA_PAKE_STEP_ZK_PROOF,
                                         output_buffer, size_zk_proof ),
-                                        PSA_ERROR_BAD_STATE );
-            goto exit;
-        }
+                                        ERR_INJECT_INVALID_FIRST_STEP )
 
-        status = psa_pake_input( &operation, PSA_PAKE_STEP_KEY_SHARE,
-                                        output_buffer, size_key_share );
-        if ( status != PSA_SUCCESS )
-        {
-            TEST_EQUAL( status, expected_error);
-            goto exit;
-        }
+        SETUP_ALWAYS_CHECK_STEP( psa_pake_input( &operation,
+                                    PSA_PAKE_STEP_KEY_SHARE,
+                                    output_buffer, size_key_share ),
+                                    ERR_IN_INPUT );
 
-        if ( inj_err_type == INJECT_WRONG_BUFFER_SIZE )
-        {
-            TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_ZK_PUBLIC,
+        SETUP_CONDITIONAL_CHECK_STEP( psa_pake_input( &operation,
+                                        PSA_PAKE_STEP_ZK_PUBLIC,
                                         output_buffer, size_zk_public + 1 ),
-                                        PSA_ERROR_INVALID_ARGUMENT );
-            goto exit;
-        }
+                                        ERR_INJECT_WRONG_BUFFER_SIZE );
 
-        if ( inj_err_type == INJECT_VALID_OPERATION_AFTER_FAILURE )
-        {
-            // Just trigger any kind of error. We don't care about the result here
-            psa_pake_input( &operation, PSA_PAKE_STEP_ZK_PUBLIC,
-                                        output_buffer, size_zk_public + 1 );
-            TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_ZK_PUBLIC,
-                                        output_buffer, size_zk_public ),
-                                        PSA_ERROR_BAD_STATE );
-            goto exit;
-        }
+        SETUP_CONDITIONAL_CHECK_STEP(
+                  ( psa_pake_input( &operation, PSA_PAKE_STEP_ZK_PUBLIC,
+                                        output_buffer, size_zk_public + 1 ),
+                    psa_pake_input( &operation, PSA_PAKE_STEP_ZK_PUBLIC,
+                                        output_buffer, size_zk_public ) ),
+                    ERR_INJECT_VALID_OPERATION_AFTER_FAILURE );
     } else {
-        if ( inj_err_type == INJECT_EMPTY_IO_BUFFER )
-        {
-            TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_ZK_PROOF,
+        SETUP_CONDITIONAL_CHECK_STEP( psa_pake_output( &operation,
+                                        PSA_PAKE_STEP_ZK_PROOF,
                                         NULL, 0, NULL ),
-                                        PSA_ERROR_INVALID_ARGUMENT );
-            goto exit;
-        }
+                                        ERR_INJECT_EMPTY_IO_BUFFER );
 
-        if ( inj_err_type == INJECT_UNKNOWN_STEP )
-        {
-            TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_ZK_PROOF + 10,
+        SETUP_CONDITIONAL_CHECK_STEP( psa_pake_output( &operation,
+                                        PSA_PAKE_STEP_ZK_PROOF + 10,
                                         output_buffer, buf_size, &output_len ),
-                                        PSA_ERROR_INVALID_ARGUMENT );
-            goto exit;
-        }
+                                        ERR_INJECT_UNKNOWN_STEP );
 
-        if ( inj_err_type == INJECT_INVALID_FIRST_STEP )
-        {
-            TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_ZK_PROOF,
+        SETUP_CONDITIONAL_CHECK_STEP( psa_pake_output( &operation,
+                                        PSA_PAKE_STEP_ZK_PROOF,
                                         output_buffer, buf_size, &output_len ),
-                                        PSA_ERROR_BAD_STATE );
-            goto exit;
-        }
+                                        ERR_INJECT_INVALID_FIRST_STEP );
 
-        status = psa_pake_output( &operation, PSA_PAKE_STEP_KEY_SHARE,
-                                    output_buffer, buf_size, &output_len );
-        if ( status != PSA_SUCCESS )
-        {
-            TEST_EQUAL( status, expected_error);
-            goto exit;
-        }
+        SETUP_ALWAYS_CHECK_STEP( psa_pake_output( &operation,
+                                    PSA_PAKE_STEP_KEY_SHARE,
+                                    output_buffer, buf_size, &output_len ),
+                                    ERR_IN_OUTPUT );
 
         TEST_ASSERT( output_len > 0 );
 
-        if ( inj_err_type == INJECT_WRONG_BUFFER_SIZE )
-        {
-            TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_ZK_PUBLIC,
-                                        output_buffer, size_zk_public - 1, &output_len ),
-                                        PSA_ERROR_BUFFER_TOO_SMALL );
-            goto exit;
-        }
+        SETUP_CONDITIONAL_CHECK_STEP( psa_pake_output( &operation,
+                                        PSA_PAKE_STEP_ZK_PUBLIC,
+                                        output_buffer, size_zk_public - 1,
+                                        &output_len ),
+                                        ERR_INJECT_WRONG_BUFFER_SIZE );
 
-        if ( inj_err_type == INJECT_VALID_OPERATION_AFTER_FAILURE )
-        {
-            // Just trigger any kind of error. We don't care about the result here
-            psa_pake_output( &operation, PSA_PAKE_STEP_ZK_PUBLIC,
-                                        output_buffer, size_zk_public - 1, &output_len );
-            TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_ZK_PUBLIC,
-                                        output_buffer, buf_size, &output_len ),
-                                        PSA_ERROR_BAD_STATE );
-            goto exit;
-        }
+        SETUP_CONDITIONAL_CHECK_STEP(
+              ( psa_pake_output( &operation, PSA_PAKE_STEP_ZK_PUBLIC,
+                        output_buffer, size_zk_public - 1, &output_len ),
+                psa_pake_output( &operation, PSA_PAKE_STEP_ZK_PUBLIC,
+                                        output_buffer, buf_size, &output_len ) ),
+                ERR_INJECT_VALID_OPERATION_AFTER_FAILURE );
     }
 
 exit:
@@ -924,7 +886,7 @@ exit:
 /* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE */
 void ecjpake_rounds( int alg_arg, int primitive_arg, int hash_arg,
                      int derive_alg_arg, data_t *pw_data,
-                     int client_input_first, int inj_err_type_arg )
+                     int client_input_first, int err_stage_arg )
 {
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
     psa_pake_operation_t server = psa_pake_operation_init();
@@ -938,7 +900,7 @@ void ecjpake_rounds( int alg_arg, int primitive_arg, int hash_arg,
                             PSA_KEY_DERIVATION_OPERATION_INIT;
     psa_key_derivation_operation_t client_derive =
                             PSA_KEY_DERIVATION_OPERATION_INIT;
-    ecjpake_injected_failure_t inj_err_type = inj_err_type_arg;
+    ecjpake_error_stage_t err_stage = err_stage_arg;
 
     PSA_INIT( );
 
@@ -976,7 +938,7 @@ void ecjpake_rounds( int alg_arg, int primitive_arg, int hash_arg,
     PSA_ASSERT( psa_pake_set_password_key( &server, key ) );
     PSA_ASSERT( psa_pake_set_password_key( &client, key ) );
 
-    if( inj_err_type == INJECT_ANTICIPATE_KEY_DERIVATION_1 )
+    if( err_stage == ERR_INJECT_ANTICIPATE_KEY_DERIVATION_1 )
     {
         TEST_EQUAL( psa_pake_get_implicit_key( &server, &server_derive ),
                 PSA_ERROR_BAD_STATE );
@@ -989,7 +951,7 @@ void ecjpake_rounds( int alg_arg, int primitive_arg, int hash_arg,
     ecjpake_do_round( alg, primitive_arg, &server, &client,
                       client_input_first, 1, 0 );
 
-    if ( inj_err_type == INJECT_ANTICIPATE_KEY_DERIVATION_2 )
+    if ( err_stage == ERR_INJECT_ANTICIPATE_KEY_DERIVATION_2 )
     {
         TEST_EQUAL( psa_pake_get_implicit_key( &server, &server_derive ),
                 PSA_ERROR_BAD_STATE );

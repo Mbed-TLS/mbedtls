@@ -746,8 +746,8 @@ exit:
         data = '''/* comment */
 /* more
  * comment */
-// this is\
-still \
+// this is\\
+still \\
 a comment
 void func()
 {

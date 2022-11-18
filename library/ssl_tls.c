@@ -8233,7 +8233,7 @@ int mbedtls_psa_ecjpake_read_round(
     }
 
     if( input_offset != len )
-        return PSA_ERROR_INVALID_ARGUMENT;
+        return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
 
     return( 0 );
 }

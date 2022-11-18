@@ -85,6 +85,8 @@ class OperationCommon(test_data_generation.BaseTest):
             defined in the python source. "arch_split" pads the values with
             zeroes depending on the architecture/limb size. If this is set,
             test cases are generated for all architectures.
+        arity: the number of operands for the operation. Currently supported
+            values are 1 and 2.
     """
     symbol = ""
     input_values = [] # type: List[str]
@@ -93,8 +95,10 @@ class OperationCommon(test_data_generation.BaseTest):
     input_styles = ["variable", "arch_split"] # type: List[str]
     input_style = "variable" # type: str
     limb_sizes = [32, 64] # type: List[int]
+    arities = [1, 2]
+    arity = 2
 
-    def __init__(self, val_a: str, val_b: str, bits_in_limb: int = 64) -> None:
+    def __init__(self, val_a: str, val_b: str = "0", bits_in_limb: int = 64) -> None:
         self.val_a = val_a
         self.val_b = val_b
         # Setting the int versions here as opposed to making them @properties
@@ -109,8 +113,11 @@ class OperationCommon(test_data_generation.BaseTest):
 
     @property
     def boundary(self) -> int:
-        data_in = [self.int_a, self.int_b]
-        return max([n for n in data_in if n is not None])
+        if self.arity == 1:
+            return self.int_a
+        elif self.arity == 2:
+            return max(self.int_a, self.int_b)
+        raise ValueError("Unsupported number of operands!")
 
     @property
     def limb_boundary(self) -> int:
@@ -142,12 +149,15 @@ class OperationCommon(test_data_generation.BaseTest):
 
     @property
     def arg_b(self) -> str:
+        if self.arity == 1:
+            raise AttributeError("Operation is unary and doesn't have arg_b!")
         return self.format_arg(self.val_b)
 
     def arguments(self) -> List[str]:
-        return [
-            quote_str(self.arg_a), quote_str(self.arg_b)
-        ] + self.result()
+        args = [quote_str(self.arg_a)]
+        if self.arity == 2:
+            args.append(quote_str(self.arg_b))
+        return args + self.result()
 
     def description(self) -> str:
         """Generate a description for the test case.
@@ -192,6 +202,8 @@ class OperationCommon(test_data_generation.BaseTest):
     def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
         if cls.input_style not in cls.input_styles:
             raise ValueError("Unknown input style!")
+        if cls.arity not in cls.arities:
+            raise ValueError("Unsupported number of operands!")
         for a_value, b_value in cls.get_value_pairs():
             if cls.input_style == "arch_split":
                 for bil in cls.limb_sizes:
@@ -215,12 +227,14 @@ class ModOperationCommon(OperationCommon):
 
     @property
     def boundary(self) -> int:
-        data_in = [self.int_a, self.int_b, self.int_n]
-        return max([n for n in data_in if n is not None])
+        return self.int_n
 
     @property
     def arg_n(self) -> str:
         return self.format_arg(self.val_n)
+
+    def arguments(self) -> List[str]:
+        return [quote_str(self.arg_n)] + super().arguments()
 
     @property
     def r(self) -> int: # pylint: disable=invalid-name

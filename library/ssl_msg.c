@@ -2936,9 +2936,9 @@ int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
         }
 
         if( ssl->handshake != NULL &&
-           ( ( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER &&
+           ( ( mbedtls_ssl_is_handshake_over( ssl ) == 0 &&
                 recv_msg_seq != ssl->handshake->in_msg_seq ) ||
-             ( ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER &&
+             ( mbedtls_ssl_is_handshake_over( ssl ) == 1 &&
                 ssl->in_msg[0] != MBEDTLS_SSL_HS_CLIENT_HELLO ) ) )
         {
             if( recv_msg_seq > ssl->handshake->in_msg_seq )
@@ -4833,7 +4833,7 @@ int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl )
         }
 
         if( ssl->handshake != NULL &&
-            ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER )
+            mbedtls_ssl_is_handshake_over( ssl ) == 1 )
         {
             mbedtls_ssl_handshake_wrapup_free_hs_transform( ssl );
         }

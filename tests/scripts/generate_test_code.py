@@ -539,14 +539,14 @@ def skip_comments(line, stream):
             continuation = line
             while continuation.endswith('\\\n'):
                 # This errors out if the file ends with an unfinished line
-                # comment. That's acceptable to not complicat the code further.
+                # comment. That's acceptable to not complicate the code further.
                 continuation = next(stream)
             return line[:opening.start(0)].rstrip() + '\n'
         # Parsing /*...*/, looking for the end
         closing = line.find('*/', opening.end(0))
         while closing == -1:
             # This errors out if the file ends with an unfinished block
-            # comment. That's acceptable to not complicat the code further.
+            # comment. That's acceptable to not complicate the code further.
             line += next(stream)
             closing = line.find('*/', opening.end(0))
         pos = closing + 2

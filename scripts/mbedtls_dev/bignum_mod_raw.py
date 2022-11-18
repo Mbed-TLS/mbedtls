@@ -57,6 +57,7 @@ class BignumModRawConvertToMont(bignum_common.ModOperationCommon,
     test_function = "mpi_mod_raw_to_mont_rep"
     test_name = "Convert into Mont: "
     input_style = "arch_split"
+    arity = 1
 
     test_data_moduli = ["b",
                         "fd",
@@ -111,12 +112,8 @@ class BignumModRawConvertToMont(bignum_common.ModOperationCommon,
     descr_tpl = '{} #{} N: \"{}\" A: \"{}\".'
 
     def result(self) -> List[str]:
-        return [self.hex_x]
-
-    def arguments(self) -> List[str]:
-        return [bignum_common.quote_str(n) for n in [self.arg_n,
-                                                     self.arg_a,
-                                                     self.hex_x]]
+        result = (self.int_a * self.r) % self.int_n
+        return [self.format_result(result)]
 
     def description(self) -> str:
         return self.descr_tpl.format(self.test_name,
@@ -134,13 +131,6 @@ class BignumModRawConvertToMont(bignum_common.ModOperationCommon,
                         continue
                     yield cls(n, i, bits_in_limb=bil).create_test_case()
 
-    @property
-    def x(self) -> int: # pylint: disable=invalid-name
-        return (self.int_a * self.r) % self.int_n
-
-    @property
-    def hex_x(self) -> str:
-        return "{:x}".format(self.x).zfill(self.hex_digits)
 
 class BignumModRawConvertFromMont(BignumModRawConvertToMont):
     """ Test cases for mpi_mod_raw_from_mont_rep(). """
@@ -169,9 +159,11 @@ class BignumModRawConvertFromMont(BignumModRawConvertToMont):
                           "138a7e6bfbc319ebd1725dacb9a359cbf693f2ecb785efb9d627"
                          ]
 
-    @property
-    def x(self): # pylint: disable=invalid-name
-        return (self.int_a * self.r_inv) % self.int_n
+    def result(self) -> List[str]:
+        result = (self.int_a * self.r_inv) % self.int_n
+        return [self.format_result(result)]
+
+
 # END MERGE SLOT 7
 
 # BEGIN MERGE SLOT 8

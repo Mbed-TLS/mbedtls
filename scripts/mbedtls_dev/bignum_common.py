@@ -97,6 +97,8 @@ class OperationCommon(test_data_generation.BaseTest):
     def __init__(self, val_a: str, val_b: str, bits_in_limb: int = 64) -> None:
         self.val_a = val_a
         self.val_b = val_b
+        # Setting the int versions here as opposed to making them @properties
+        # provides earlier/more robust input validation.
         self.int_a = hex_to_int(val_a)
         self.int_b = hex_to_int(val_b)
         if bits_in_limb not in self.limb_sizes:
@@ -207,10 +209,9 @@ class ModOperationCommon(OperationCommon):
                  bits_in_limb: int = 64) -> None:
         super().__init__(val_a=val_a, val_b=val_b, bits_in_limb=bits_in_limb)
         self.val_n = val_n
-
-    @property
-    def int_n(self) -> int:
-        return hex_to_int(self.val_n)
+        # Setting the int versions here as opposed to making them @properties
+        # provides earlier/more robust input validation.
+        self.int_n = hex_to_int(val_n)
 
     @property
     def boundary(self) -> int:

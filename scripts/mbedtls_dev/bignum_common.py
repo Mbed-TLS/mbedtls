@@ -172,6 +172,10 @@ class OperationCommon(test_data_generation.BaseTest):
             )
         return super().description()
 
+    @property
+    def is_valid(self) -> bool:
+        return True
+
     @abstractmethod
     def result(self) -> List[str]:
         """Get the result of the operation.
@@ -204,13 +208,18 @@ class OperationCommon(test_data_generation.BaseTest):
             raise ValueError("Unknown input style!")
         if cls.arity not in cls.arities:
             raise ValueError("Unsupported number of operands!")
-        for a_value, b_value in cls.get_value_pairs():
-            if cls.input_style == "arch_split":
-                for bil in cls.limb_sizes:
-                    yield cls(a_value, b_value,
-                              bits_in_limb=bil).create_test_case()
-            else:
-                yield cls(a_value, b_value).create_test_case()
+        if cls.input_style == "arch_split":
+            test_objects = (cls(a_value, b_value, bits_in_limb=bil)
+                            for a_value, b_value in cls.get_value_pairs()
+                            for bil in cls.limb_sizes)
+        else:
+            test_objects = (cls(a_value, b_value) for
+                            a_value, b_value in cls.get_value_pairs())
+        yield from (valid_test_object.create_test_case()
+                    for valid_test_object in filter(
+                        lambda test_object: test_object.is_valid,
+                        test_objects
+                        ))
 
 
 class ModOperationCommon(OperationCommon):

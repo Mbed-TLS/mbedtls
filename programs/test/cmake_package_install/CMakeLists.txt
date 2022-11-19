@@ -26,7 +26,7 @@ execute_process(
 # Locate the package.
 #
 
-set(MbedTLS_DIR "${MbedTLS_INSTALL_DIR}/cmake")
+list(INSERT CMAKE_PREFIX_PATH 0 "${MbedTLS_INSTALL_DIR}")
 find_package(MbedTLS REQUIRED)
 
 #

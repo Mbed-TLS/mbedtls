@@ -355,7 +355,7 @@ if(NOT DISABLE_PACKAGE_CONFIG_AND_INSTALL)
     install(
         FILES "${CMAKE_CURRENT_BINARY_DIR}/cmake/MbedTLSConfig.cmake"
               "${CMAKE_CURRENT_BINARY_DIR}/cmake/MbedTLSConfigVersion.cmake"
-        DESTINATION "cmake")
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/MbedTLS")
 
     export(
         EXPORT MbedTLSTargets
@@ -365,7 +365,7 @@ if(NOT DISABLE_PACKAGE_CONFIG_AND_INSTALL)
     install(
         EXPORT MbedTLSTargets
         NAMESPACE MbedTLS::
-        DESTINATION "cmake"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/MbedTLS"
         FILE "MbedTLSTargets.cmake")
 
     if(CMAKE_VERSION VERSION_GREATER 3.15 OR CMAKE_VERSION VERSION_EQUAL 3.15)

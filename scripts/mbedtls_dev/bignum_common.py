@@ -168,9 +168,14 @@ class OperationCommon(test_data_generation.BaseTest):
         generated to provide some context to the test case.
         """
         if not self.case_description:
-            self.case_description = "{:x} {} {:x}".format(
-                self.int_a, self.symbol, self.int_b
-            )
+            if self.arity == 1:
+                self.case_description = "{} {:x}".format(
+                    self.symbol, self.int_a
+                )
+            elif self.arity == 2:
+                self.case_description = "{:x} {} {:x}".format(
+                    self.int_a, self.symbol, self.int_b
+                )
         return super().description()
 
     @property
@@ -232,7 +237,6 @@ class OperationCommon(test_data_generation.BaseTest):
                     )
 
 
-
 class ModOperationCommon(OperationCommon):
     #pylint: disable=abstract-method
     """Target for bignum mod_raw test case generation."""
@@ -277,6 +281,17 @@ class ModOperationCommon(OperationCommon):
         if self.arity == 2 and self.int_b >= self.int_n:
             return False
         return True
+
+    def description(self) -> str:
+        """Generate a description for the test case.
+
+        It uses the form A `symbol` B mod N, where symbol is used to represent
+        the operation.
+        """
+
+        if not self.case_description:
+            return super().description() + " mod {:x}".format(self.int_n)
+        return super().description()
 
     @classmethod
     def input_cases_args(cls) -> Iterator[Tuple[Any, Any, Any]]:

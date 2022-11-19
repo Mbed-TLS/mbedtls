@@ -55,6 +55,7 @@ class BignumModRawConvertToMont(bignum_common.ModOperationCommon,
 
     test_function = "mpi_mod_raw_to_mont_rep"
     test_name = "Convert into Mont: "
+    symbol = "R *"
     input_style = "arch_split"
     arity = 1
 
@@ -108,24 +109,17 @@ class BignumModRawConvertToMont(bignum_common.ModOperationCommon,
                     "947fb3baf674f74a673cf1d38126983a19ed52c7439fab42c2185"
                     ]
 
-    descr_tpl = '{} #{} N: \"{}\" A: \"{}\".'
-
     def result(self) -> List[str]:
         result = (self.int_a * self.r) % self.int_n
         return [self.format_result(result)]
 
-    def description(self) -> str:
-        return self.descr_tpl.format(self.test_name,
-                                     self.count,
-                                     self.int_n,
-                                     self.int_a)
-
 
 class BignumModRawConvertFromMont(BignumModRawConvertToMont):
     """ Test cases for mpi_mod_raw_from_mont_rep(). """
-
+    count = 0
     test_function = "mpi_mod_raw_from_mont_rep"
     test_name = "Convert from Mont: "
+    symbol = "1/R *"
 
     input_values = ["0",
                     "1",

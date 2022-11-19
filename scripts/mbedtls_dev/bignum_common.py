@@ -93,13 +93,13 @@ class OperationCommon(test_data_generation.BaseTest):
     input_values = [] # type: List[str]
     input_cases = [] # type: List[Any]
     unique_combinations_only = True
-    input_styles = ["variable", "arch_split"] # type: List[str]
+    input_styles = ["variable", "fixed", "arch_split"] # type: List[str]
     input_style = "variable" # type: str
     limb_sizes = [32, 64] # type: List[int]
     arities = [1, 2]
     arity = 2
 
-    def __init__(self, val_a: str, val_b: str = "0", bits_in_limb: int = 64) -> None:
+    def __init__(self, val_a: str, val_b: str = "0", bits_in_limb: int = 32) -> None:
         self.val_a = val_a
         self.val_b = val_b
         # Setting the int versions here as opposed to making them @properties

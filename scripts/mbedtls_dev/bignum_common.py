@@ -193,14 +193,19 @@ class OperationCommon(test_data_generation.BaseTest):
         Combinations are first generated from all input values, and then
         specific cases provided.
         """
-        if cls.unique_combinations_only:
-            yield from combination_pairs(cls.input_values)
+        if cls.arity == 1:
+            yield from ((a, "0") for a in cls.input_values)
+        elif cls.arity == 2:
+            if cls.unique_combinations_only:
+                yield from combination_pairs(cls.input_values)
+            else:
+                yield from (
+                    (a, b)
+                    for a in cls.input_values
+                    for b in cls.input_values
+                )
         else:
-            yield from (
-                (a, b)
-                for a in cls.input_values
-                for b in cls.input_values
-            )
+            raise ValueError("Unsupported number of operands!")
 
     @classmethod
     def generate_function_tests(cls) -> Iterator[test_case.TestCase]:

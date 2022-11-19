@@ -15,7 +15,8 @@
 # limitations under the License.
 
 from abc import abstractmethod
-from typing import Iterator, List, Tuple, TypeVar
+from typing import Iterator, List, Tuple, TypeVar, Any
+from itertools import chain
 
 from . import test_case
 from . import test_data_generation
@@ -90,7 +91,7 @@ class OperationCommon(test_data_generation.BaseTest):
     """
     symbol = ""
     input_values = [] # type: List[str]
-    input_cases = [] # type: List[Tuple[str, str]]
+    input_cases = [] # type: List[Any]
     unique_combinations_only = True
     input_styles = ["variable", "arch_split"] # type: List[str]
     input_style = "variable" # type: str
@@ -200,7 +201,6 @@ class OperationCommon(test_data_generation.BaseTest):
                 for a in cls.input_values
                 for b in cls.input_values
             )
-        yield from cls.input_cases
 
     @classmethod
     def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
@@ -212,14 +212,20 @@ class OperationCommon(test_data_generation.BaseTest):
             test_objects = (cls(a, b, bits_in_limb=bil)
                             for a, b in cls.get_value_pairs()
                             for bil in cls.limb_sizes)
+            special_cases = (cls(*args, bits_in_limb=bil) # type: ignore
+                             for args in cls.input_cases
+                             for bil in cls.limb_sizes)
         else:
             test_objects = (cls(a, b)
                             for a, b in cls.get_value_pairs())
+            special_cases = (cls(*args) for args in cls.input_cases)
         yield from (valid_test_object.create_test_case()
                     for valid_test_object in filter(
                         lambda test_object: test_object.is_valid,
-                        test_objects
-                        ))
+                        chain(test_objects, special_cases)
+                        )
+                    )
+
 
 
 class ModOperationCommon(OperationCommon):

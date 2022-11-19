@@ -244,6 +244,16 @@ class BignumCoreMLA(BignumCoreOperation):
         ]
 
     @classmethod
+    def get_value_pairs(cls) -> Iterator[Tuple[str, str]]:
+        """Generator to yield pairs of inputs.
+
+        Combinations are first generated from all input values, and then
+        specific cases provided.
+        """
+        yield from super().get_value_pairs()
+        yield from cls.input_cases
+
+    @classmethod
     def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
         """Override for additional scalar input."""
         for a_value, b_value in cls.get_value_pairs():

@@ -159,6 +159,24 @@
  */
 #define MBEDTLS_HAVE_TIME_DATE
 
+
+/**
+ * \def MBEDTLS_HAVE_CLOCK_GETTIME
+ *
+ * System has POSIX clock_gettime().
+ * The time does not need to be correct, only time differences are used,
+ * by contrast with MBEDTLS_HAVE_TIME_DATE
+ *
+ * Defining MBEDTLS_HAVE_CLOCK_GETTIME allows you to specify,
+ * MBEDTLS_PLATFORM_CLOCK_GETTIME_MACRO, MBEDTLS_CLOCK_REALTIME
+ * and MBEDTLS_PLATFORM_CLOCK_GETTIME_TYPE_MACRO.
+ *
+ * requires: MBEDTLS_HAVE_TIME
+ *
+ * Comment if your system does not support clock_gettime functions.
+ */
+#define MBEDTLS_HAVE_CLOCK_GETTIME
+
 /**
  * \def MBEDTLS_PLATFORM_MEMORY
  *
@@ -3509,6 +3527,9 @@
 //#define MBEDTLS_PLATFORM_SETBUF_MACRO      setbuf /**< Default setbuf macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_TIME_MACRO            time /**< Default time macro to use, can be undefined. MBEDTLS_HAVE_TIME must be enabled */
 //#define MBEDTLS_PLATFORM_TIME_TYPE_MACRO       time_t /**< Default time macro to use, can be undefined. MBEDTLS_HAVE_TIME must be enabled */
+//#define MBEDTLS_PLATFORM_CLOCK_GETTIME_MACRO   clock_gettime /**< Default time macro to use, can be undefined. MBEDTLS_HAVE_CLOCK_GETTIME must be enabled */
+//#define MBEDTLS_PLATFORM_CLOCK_GETTIME_TYPE_MACRO       struct timespec /**< Default time macro to use, can be undefined. MBEDTLS_HAVE_CLOCK_GETTIME must be enabled */
+//#define MBEDTLS_PLATFORM_CLOCK_REALTIME_MACRO       CLOCK_REALTIME /**< Default time macro to use, can be undefined. MBEDTLS_HAVE_CLOCK_GETTIME must be enabled */
 //#define MBEDTLS_PLATFORM_FPRINTF_MACRO      fprintf /**< Default fprintf macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_PRINTF_MACRO        printf /**< Default printf macro to use, can be undefined */
 /* Note: your snprintf must correctly zero-terminate the buffer! */

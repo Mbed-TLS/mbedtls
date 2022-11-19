@@ -45,6 +45,10 @@
 #include "mbedtls/platform_time.h"
 #endif
 
+#if defined(MBEDTLS_HAVE_CLOCK_GETTIME)
+#include "mbedtls/platform_clock_gettime.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

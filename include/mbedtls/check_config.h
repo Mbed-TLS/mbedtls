@@ -459,6 +459,25 @@
 #error "MBEDTLS_PLATFORM_TIME_TYPE_MACRO and MBEDTLS_PLATFORM_STD_TIME/MBEDTLS_PLATFORM_TIME_ALT cannot be defined simultaneously"
 #endif
 
+#if defined(MBEDTLS_HAVE_CLOCK_GETTIME) && !defined(MBEDTLS_HAVE_TIME)
+#error "MBEDTLS_HAVE_CLOCK_GETTIME defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PLATFORM_CLOCK_GETTIME_MACRO) && \
+    !defined(MBEDTLS_HAVE_CLOCK_GETTIME)
+#error "MBEDTLS_PLATFORM_CLOCK_GETTIME_MACRO defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PLATFORM_CLOCK_GETTIME_TYPE_MACRO) && \
+    !defined(MBEDTLS_HAVE_CLOCK_GETTIME)
+#error "MBEDTLS_PLATFORM_CLOCK_GETTIME_TYPE_MACRO defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PLATFORM_CLOCK_REALTIME_MACRO) && \
+    !defined(MBEDTLS_HAVE_CLOCK_GETTIME)
+#error "MBEDTLS_PLATFORM_CLOCK_REALTIME_MACRO defined, but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_PLATFORM_FPRINTF_ALT) && !defined(MBEDTLS_PLATFORM_C)
 #error "MBEDTLS_PLATFORM_FPRINTF_ALT defined, but not all prerequisites"
 #endif

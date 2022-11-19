@@ -282,9 +282,6 @@ run_test    "TLS 1.3: G->m: PSK: configured ephemeral only, good." \
             0 \
             -s "key exchange mode: ephemeral$"
 
-# skip the basic check now cause it will randomly trigger the anti-replay protection in gnutls_server
-# Add it back once we fix the issue
-skip_next_test
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C

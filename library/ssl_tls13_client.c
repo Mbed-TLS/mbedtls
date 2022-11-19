@@ -941,23 +941,17 @@ int mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
     if( ssl_tls13_ticket_get_identity(
             ssl, &hash_alg, &identity, &identity_len ) == 0 )
     {
-#if defined(MBEDTLS_HAVE_TIME)
-        mbedtls_time_t now = mbedtls_time( NULL );
+        mbedtls_ms_time_t now = mbedtls_ms_time();
         mbedtls_ssl_session *session = ssl->session_negotiate;
         uint32_t obfuscated_ticket_age =
                                 (uint32_t)( now - session->ticket_received );
 
-        obfuscated_ticket_age *= 1000;
         obfuscated_ticket_age += session->ticket_age_add;
 
         ret = ssl_tls13_write_identity( ssl, p, end,
                                         identity, identity_len,
                                         obfuscated_ticket_age,
                                         &output_len );
-#else
-        ret = ssl_tls13_write_identity( ssl, p, end, identity, identity_len,
-                                        0, &output_len );
-#endif /* MBEDTLS_HAVE_TIME */
         if( ret != 0 )
             return( ret );
 
@@ -1650,10 +1644,6 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: ( %04x ) - %s",
                                  cipher_suite, ciphersuite_info->name ) );
-
-#if defined(MBEDTLS_HAVE_TIME)
-    ssl->session_negotiate->start = time( NULL );
-#endif /* MBEDTLS_HAVE_TIME */
 
     /* ...
      * uint8 legacy_compression_method = 0;
@@ -2685,10 +2675,8 @@ static int ssl_tls13_postprocess_new_session_ticket( mbedtls_ssl_context *ssl,
     psa_algorithm_t psa_hash_alg;
     int hash_length;
 
-#if defined(MBEDTLS_HAVE_TIME)
-    /* Store ticket creation time */
-    session->ticket_received = mbedtls_time( NULL );
-#endif
+    /* Store ticket received time */
+    session->ticket_received = mbedtls_ms_time();
 
     ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( session->ciphersuite );
     if( ciphersuite_info == NULL )

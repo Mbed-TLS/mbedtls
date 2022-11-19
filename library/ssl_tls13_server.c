@@ -128,13 +128,7 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *ticket_buffer;
-#if defined(MBEDTLS_HAVE_TIME)
-    mbedtls_time_t now;
-    uint64_t age_in_s;
-    int64_t age_diff_in_ms;
-#endif
-
-    ((void) obfuscated_ticket_age);
+    mbedtls_ms_time_t now, server_ticket_age, client_ticket_age;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> check_identity_match_ticket" ) );
 
@@ -174,8 +168,8 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
         goto exit;
 
     ret = MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
-#if defined(MBEDTLS_HAVE_TIME)
-    now = mbedtls_time( NULL );
+
+    now = mbedtls_ms_time();
 
     if( now < session->start )
     {
@@ -186,7 +180,7 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
         goto exit;
     }
 
-    age_in_s = (uint64_t)( now - session->start );
+    server_ticket_age = now - session->start;
 
     /* RFC 8446 section 4.6.1
      *
@@ -199,11 +193,11 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
      *
      * For time being, the age MUST be less than 604800 seconds (7 days).
      */
-    if( age_in_s > 604800 )
+    if( server_ticket_age > 604800*1000 )
     {
         MBEDTLS_SSL_DEBUG_MSG(
             3, ( "Ticket age exceeds limitation ticket_age=%lu",
-                 (long unsigned int)age_in_s ) );
+                 (long unsigned int)server_ticket_age ) );
         goto exit;
     }
 
@@ -214,25 +208,19 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
      * ticket_age_add from PskIdentity.obfuscated_ticket_age modulo 2^32) is
      * within a small tolerance of the time since the ticket was issued.
      *
-     * NOTE: When `now == session->start`, `age_diff_in_ms` may be negative
-     *       as the age units are different on the server (s) and in the
-     *       client (ms) side. Add a -1000 ms tolerance window to take this
-     *       into account.
      */
-    age_diff_in_ms = age_in_s * 1000;
-    age_diff_in_ms -= ( obfuscated_ticket_age - session->ticket_age_add );
-    if( age_diff_in_ms <= -1000 ||
-        age_diff_in_ms > MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE )
+
+    client_ticket_age = obfuscated_ticket_age - session->ticket_age_add;
+
+    if( client_ticket_age > MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE )
     {
         MBEDTLS_SSL_DEBUG_MSG(
             3, ( "Ticket age outside tolerance window ( diff=%d )",
-                 (int)age_diff_in_ms ) );
+                 (int)client_ticket_age ) );
         goto exit;
     }
 
     ret = 0;
-
-#endif /* MBEDTLS_HAVE_TIME */
 
 exit:
     if( ret != 0 )
@@ -1770,10 +1758,6 @@ static int ssl_tls13_prepare_server_hello( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, random bytes", server_randbytes,
                            MBEDTLS_SERVER_HELLO_RANDOM_LEN );
 
-#if defined(MBEDTLS_HAVE_TIME)
-    ssl->session_negotiate->start = time( NULL );
-#endif /* MBEDTLS_HAVE_TIME */
-
     return( ret );
 }
 
@@ -2681,9 +2665,7 @@ static int ssl_tls13_prepare_new_session_ticket( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> prepare NewSessionTicket msg" ) );
 
-#if defined(MBEDTLS_HAVE_TIME)
-    session->start = mbedtls_time( NULL );
-#endif
+    session->start = mbedtls_ms_time();
 
     /* Generate ticket_age_add */
     if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng,

@@ -1148,6 +1148,10 @@ mbedtls_dtls_srtp_info;
 
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
+#if defined(MBEDTLS_HAVE_CLOCK_GETTIME)
+typedef int64_t mbedtls_ms_time_t;
+#endif /* MBEDTLS_HAVE_CLOCK_GETTIME */
+
 /** Human-friendly representation of the (D)TLS protocol version. */
 typedef enum
 {
@@ -1179,8 +1183,9 @@ struct mbedtls_ssl_session
      *  or resuming a session instead of the configured minor TLS version.
      */
     mbedtls_ssl_protocol_version MBEDTLS_PRIVATE(tls_version);
-
-#if defined(MBEDTLS_HAVE_TIME)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_HAVE_CLOCK_GETTIME)
+    mbedtls_ms_time_t MBEDTLS_PRIVATE(start);       /*!< starting time      */
+#elif defined(MBEDTLS_HAVE_TIME)
     mbedtls_time_t MBEDTLS_PRIVATE(start);       /*!< starting time      */
 #endif
     int MBEDTLS_PRIVATE(ciphersuite);            /*!< chosen ciphersuite */
@@ -1219,7 +1224,11 @@ struct mbedtls_ssl_session
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION && MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_CLI_C)
+#if defined(MBEDTLS_HAVE_CLOCK_GETTIME)
+    mbedtls_ms_time_t MBEDTLS_PRIVATE(ticket_received);        /*!< time ticket was received */
+#else
     mbedtls_time_t MBEDTLS_PRIVATE(ticket_received);        /*!< time ticket was received */
+#endif
 #endif /* MBEDTLS_HAVE_TIME && MBEDTLS_SSL_CLI_C */
 
 #endif /*  MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */

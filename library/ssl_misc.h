@@ -2634,4 +2634,9 @@ int mbedtls_ssl_session_set_hostname( mbedtls_ssl_session *session,
                                       const char *hostname );
 #endif
 
+#if defined(MBEDTLS_HAVE_CLOCK_GETTIME)
+MBEDTLS_CHECK_RETURN_CRITICAL
+mbedtls_ms_time_t mbedtls_ms_time(void);
+#endif /* MBEDTLS_HAVE_CLOCK_GETTIME */
+
 #endif /* ssl_misc.h */

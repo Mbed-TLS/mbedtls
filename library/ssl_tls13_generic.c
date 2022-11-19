@@ -1620,5 +1620,18 @@ int mbedtls_ssl_tls13_check_received_extension(
     return( MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION );
 }
 
+#if defined(MBEDTLS_HAVE_CLOCK_GETTIME)
+/* TODO: move to right place */
+mbedtls_ms_time_t mbedtls_ms_time(void)
+{
+    int ret;
+    mbedtls_timespec_t tv;
+    ret = mbedtls_clock_gettime( MBEDTLS_CLOCK_REALTIME, &tv );
+    if( ret )
+        return( 0 );
+    return (tv.tv_sec*1000 + (tv.tv_nsec % 1000000)/1000 );
+}
+#endif /* MBEDTLS_HAVE_CLOCK_GETTIME */
+
 #endif /* MBEDTLS_SSL_TLS_C && MBEDTLS_SSL_PROTO_TLS1_3 */
 

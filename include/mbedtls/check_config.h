@@ -873,6 +873,13 @@
 #error "MBEDTLS_SSL_PROTO_DTLS defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)    && \
+    defined(MBEDTLS_SSL_PROTO_TLS1_3)       && \
+    !defined(MBEDTLS_HAVE_CLOCK_GETTIME)
+#error "MBEDTLS_SSL_SESSION_TICKETS and MBEDTLS_SSL_PROTO_TLS1_3 defined, " \
+       "but MBEDTLS_HAVE_CLOCK_GETTIME not defined."
+#endif
+
 #if defined(MBEDTLS_SSL_CLI_C) && !defined(MBEDTLS_SSL_TLS_C)
 #error "MBEDTLS_SSL_CLI_C defined, but not all prerequisites"
 #endif

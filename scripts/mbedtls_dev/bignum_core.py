@@ -107,12 +107,7 @@ class BignumCoreCTLookup(BignumCoreTarget, test_data_generation.BaseTest):
                        .create_test_case())
 
 
-class BignumCoreOperation(BignumCoreTarget, bignum_common.OperationCommon):
-    #pylint: disable=abstract-method
-    """Common features for bignum core operations."""
-
-
-class BignumCoreAddAndAddIf(BignumCoreOperation):
+class BignumCoreAddAndAddIf(BignumCoreTarget, bignum_common.OperationCommon):
     """Test cases for bignum core add and add-if."""
     count = 0
     symbol = "+"
@@ -131,7 +126,7 @@ class BignumCoreAddAndAddIf(BignumCoreOperation):
         ]
 
 
-class BignumCoreSub(BignumCoreOperation):
+class BignumCoreSub(BignumCoreTarget, bignum_common.OperationCommon):
     """Test cases for bignum core sub."""
     count = 0
     symbol = "-"
@@ -157,7 +152,7 @@ class BignumCoreSub(BignumCoreOperation):
         ]
 
 
-class BignumCoreMLA(BignumCoreOperation):
+class BignumCoreMLA(BignumCoreTarget, bignum_common.OperationCommon):
     """Test cases for fixed-size multiply accumulate."""
     count = 0
     test_function = "mpi_core_mla"

@@ -107,31 +107,9 @@ class BignumCoreCTLookup(BignumCoreTarget, test_data_generation.BaseTest):
                        .create_test_case())
 
 
-INPUT_VALUES = [
-    "0", "1", "3", "f", "fe", "ff", "100", "ff00", "fffe", "ffff", "10000",
-    "fffffffe", "ffffffff", "100000000", "1f7f7f7f7f7f7f",
-    "8000000000000000", "fefefefefefefefe", "fffffffffffffffe",
-    "ffffffffffffffff", "10000000000000000", "1234567890abcdef0",
-    "fffffffffffffffffefefefefefefefe", "fffffffffffffffffffffffffffffffe",
-    "ffffffffffffffffffffffffffffffff", "100000000000000000000000000000000",
-    "1234567890abcdef01234567890abcdef0",
-    "fffffffffffffffffffffffffffffffffffffffffffffffffefefefefefefefe",
-    "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe",
-    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-    "10000000000000000000000000000000000000000000000000000000000000000",
-    "1234567890abcdef01234567890abcdef01234567890abcdef01234567890abcdef0",
-    (
-        "4df72d07b4b71c8dacb6cffa954f8d88254b6277099308baf003fab73227f34029"
-        "643b5a263f66e0d3c3fa297ef71755efd53b8fb6cb812c6bbf7bcf179298bd9947"
-        "c4c8b14324140a2c0f5fad7958a69050a987a6096e9f055fb38edf0c5889eca4a0"
-        "cfa99b45fbdeee4c696b328ddceae4723945901ec025076b12b"
-    )
-]
-
 class BignumCoreOperation(BignumCoreTarget, bignum_common.OperationCommon):
     #pylint: disable=abstract-method
     """Common features for bignum core operations."""
-    input_values = INPUT_VALUES
 
 
 class BignumCoreAddAndAddIf(BignumCoreOperation):

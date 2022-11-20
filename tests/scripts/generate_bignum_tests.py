@@ -78,6 +78,7 @@ class BignumOperation(bignum_common.OperationCommon, BignumTarget,
                       metaclass=ABCMeta):
     #pylint: disable=abstract-method
     """Common features for bignum operations in legacy tests."""
+    unique_combinations_only = True
     input_values = [
         "", "0", "-", "-0",
         "7b", "-7b",

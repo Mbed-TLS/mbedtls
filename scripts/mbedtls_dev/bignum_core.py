@@ -114,6 +114,7 @@ class BignumCoreAddAndAddIf(BignumCoreTarget, bignum_common.OperationCommon):
     test_function = "mpi_core_add_and_add_if"
     test_name = "mpi_core_add_and_add_if"
     input_style = "arch_split"
+    unique_combinations_only = True
 
     def result(self) -> List[str]:
         result = self.int_a + self.int_b
@@ -132,7 +133,6 @@ class BignumCoreSub(BignumCoreTarget, bignum_common.OperationCommon):
     symbol = "-"
     test_function = "mpi_core_sub"
     test_name = "mbedtls_mpi_core_sub"
-    unique_combinations_only = False
 
     def result(self) -> List[str]:
         if self.int_a >= self.int_b:
@@ -157,7 +157,6 @@ class BignumCoreMLA(BignumCoreTarget, bignum_common.OperationCommon):
     count = 0
     test_function = "mpi_core_mla"
     test_name = "mbedtls_mpi_core_mla"
-    unique_combinations_only = False
 
     input_values = [
         "0", "1", "fffe", "ffffffff", "100000000", "20000000000000",

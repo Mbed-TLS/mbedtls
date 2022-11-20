@@ -93,7 +93,7 @@ class OperationCommon(test_data_generation.BaseTest):
     symbol = ""
     input_values = INPUTS_DEFAULT # type: List[str]
     input_cases = [] # type: List[Any]
-    unique_combinations_only = True
+    unique_combinations_only = False
     input_styles = ["variable", "fixed", "arch_split"] # type: List[str]
     input_style = "variable" # type: str
     limb_sizes = [32, 64] # type: List[int]

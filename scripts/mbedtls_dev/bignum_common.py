@@ -20,6 +20,7 @@ from itertools import chain
 
 from . import test_case
 from . import test_data_generation
+from .bignum_data import INPUTS_DEFAULT, MODULI_DEFAULT
 
 T = TypeVar('T') #pylint: disable=invalid-name
 
@@ -90,7 +91,7 @@ class OperationCommon(test_data_generation.BaseTest):
             values are 1 and 2.
     """
     symbol = ""
-    input_values = [] # type: List[str]
+    input_values = INPUTS_DEFAULT # type: List[str]
     input_cases = [] # type: List[Any]
     unique_combinations_only = True
     input_styles = ["variable", "fixed", "arch_split"] # type: List[str]
@@ -240,7 +241,7 @@ class OperationCommon(test_data_generation.BaseTest):
 class ModOperationCommon(OperationCommon):
     #pylint: disable=abstract-method
     """Target for bignum mod_raw test case generation."""
-    moduli = [] # type: List[str]
+    moduli = MODULI_DEFAULT # type: List[str]
 
     def __init__(self, val_n: str, val_a: str, val_b: str = "0",
                  bits_in_limb: int = 64) -> None:

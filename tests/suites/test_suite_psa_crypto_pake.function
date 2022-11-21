@@ -687,6 +687,7 @@ void ecjpake_setup( int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
     unsigned char *output_buffer = NULL;
     size_t output_len = 0;
     const uint8_t unsupp_id[] = "abcd";
+    psa_key_derivation_operation_t key_derivation;
 
     PSA_INIT( );
 
@@ -713,23 +714,20 @@ void ecjpake_setup( int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
     {
         TEST_EQUAL( psa_pake_set_user( &operation, NULL, 0 ),
                     expected_error );
-        PSA_ASSERT( psa_pake_abort( &operation ) );
         TEST_EQUAL( psa_pake_set_peer( &operation, NULL, 0 ),
                     expected_error );
-        PSA_ASSERT( psa_pake_abort( &operation ) );
         TEST_EQUAL( psa_pake_set_password_key( &operation, key ),
                     expected_error );
-        PSA_ASSERT( psa_pake_abort( &operation ) );
         TEST_EQUAL( psa_pake_set_role( &operation, role ),
                     expected_error );
-        PSA_ASSERT( psa_pake_abort( &operation ) );
         TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_KEY_SHARE,
                     NULL, 0, NULL ),
                     expected_error );
-        PSA_ASSERT( psa_pake_abort( &operation ) );
-        TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_KEY_SHARE, NULL, 0),
+        TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_KEY_SHARE, 
+                    NULL, 0 ),
                     expected_error );
-        PSA_ASSERT( psa_pake_abort( &operation ) );
+        TEST_EQUAL( psa_pake_get_implicit_key( &operation, &key_derivation ),
+                    expected_error );
         goto exit;
     }
 

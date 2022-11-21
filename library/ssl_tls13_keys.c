@@ -1082,8 +1082,8 @@ static int ssl_tls13_get_cipher_key_info(
 }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-/* ssl_tls13_generate_early_keys() generates keys necessary for protecting
- * the early app data messages described in section 7  RFC 8446. */
+/* ssl_tls13_generate_early_keys() generates keys necessary for protecting the
+   early application and handshake messages described in section 7 RFC 8446. */
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_generate_early_keys( mbedtls_ssl_context *ssl,
                                           mbedtls_ssl_key_set *traffic_keys )
@@ -1130,9 +1130,9 @@ static int ssl_tls13_generate_early_keys( mbedtls_ssl_context *ssl,
         return( ret );
     }
 
-    ret = mbedtls_ssl_tls13_derive_early_secrets( hash_alg,
-                                    handshake->tls13_master_secrets.early,
-                                    transcript, transcript_len, tls13_early_secrets );
+    ret = mbedtls_ssl_tls13_derive_early_secrets(
+              hash_alg, handshake->tls13_master_secrets.early,
+              transcript, transcript_len, tls13_early_secrets );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET(
@@ -1142,27 +1142,28 @@ static int ssl_tls13_generate_early_keys( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_BUF(
         4, "Client early traffic secret",
-                    tls13_early_secrets->client_early_traffic_secret,
-                    hash_len );
+        tls13_early_secrets->client_early_traffic_secret, hash_len );
 
     /*
      * Export client handshake traffic secret
      */
     if( ssl->f_export_keys != NULL )
     {
-        ssl->f_export_keys( ssl->p_export_keys,
-                MBEDTLS_SSL_KEY_EXPORT_TLS1_3_CLIENT_EARLY_SECRET,
-                tls13_early_secrets->client_early_traffic_secret,
-                hash_len,
-                handshake->randbytes,
-                handshake->randbytes + MBEDTLS_CLIENT_HELLO_RANDOM_LEN,
-                MBEDTLS_SSL_TLS_PRF_NONE /* TODO: FIX! */ );
+        ssl->f_export_keys(
+            ssl->p_export_keys,
+            MBEDTLS_SSL_KEY_EXPORT_TLS1_3_CLIENT_EARLY_SECRET,
+            tls13_early_secrets->client_early_traffic_secret,
+            hash_len,
+            handshake->randbytes,
+            handshake->randbytes + MBEDTLS_CLIENT_HELLO_RANDOM_LEN,
+            MBEDTLS_SSL_TLS_PRF_NONE /* TODO: FIX! */ );
     }
 
-    ret = mbedtls_ssl_tls13_make_traffic_keys( hash_alg,
-                            tls13_early_secrets->client_early_traffic_secret,
-                            tls13_early_secrets->client_early_traffic_secret,
-                            hash_len, key_len, iv_len, traffic_keys );
+    ret = mbedtls_ssl_tls13_make_traffic_keys(
+              hash_alg,
+              tls13_early_secrets->client_early_traffic_secret,
+              tls13_early_secrets->client_early_traffic_secret,
+              hash_len, key_len, iv_len, traffic_keys );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_make_traffic_keys", ret );
@@ -1283,16 +1284,13 @@ int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
                                                mbedtls_ssl_key_set *traffic_keys )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
     mbedtls_md_type_t md_type;
-
     psa_algorithm_t hash_alg;
     size_t hash_len;
-
     unsigned char transcript[MBEDTLS_TLS1_3_MD_MAX_SIZE];
     size_t transcript_len;
-
-    size_t key_len, iv_len;
+    size_t key_len;
+    size_t iv_len;
 
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info = handshake->ciphersuite_info;
@@ -1300,8 +1298,7 @@ int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_tls13_generate_handshake_keys" ) );
 
-    ret = ssl_tls13_get_cipher_key_info( ciphersuite_info,
-                                                 &key_len, &iv_len );
+    ret = ssl_tls13_get_cipher_key_info( ciphersuite_info, &key_len, &iv_len );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_get_cipher_key_info", ret );
@@ -1521,7 +1518,7 @@ int mbedtls_ssl_tls13_generate_application_keys(
     /* Extract basic information about hash and ciphersuite */
 
     ret = ssl_tls13_get_cipher_key_info( handshake->ciphersuite_info,
-                                                 &key_len, &iv_len );
+                                         &key_len, &iv_len );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_get_cipher_key_info", ret );

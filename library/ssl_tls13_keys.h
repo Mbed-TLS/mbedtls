@@ -671,14 +671,14 @@ int mbedtls_ssl_tls13_calculate_verify_data( mbedtls_ssl_context *ssl,
 /**
  * \brief Compute TLS 1.3 early transform
  *
- * \param ssl  The SSL context to operate on. The early secret must have been
- *             computed.
+ * \param ssl  The SSL context to operate on.
  *
  * \returns    \c 0 on success.
  * \returns    A negative error code on failure.
  *
- * \warning   `early_secrets` is not computation. Caller MUST call
- *            mbedtls_ssl_tls13_key_schedule_stage_early() before this function.
+ * \warning   `early_secrets` is not computed before this function. Call
+ *            mbedtls_ssl_tls13_key_schedule_stage_early() to generate early
+ *            secrets.
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_compute_early_transform( mbedtls_ssl_context *ssl );

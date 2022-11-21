@@ -108,7 +108,6 @@ static int key_type_is_raw_bytes( psa_key_type_t type )
 typedef struct
 {
     psa_crypto_subsystem_t active_subsystems;
-    unsigned initialized : 1;
     unsigned rng_state : 2;
     mbedtls_psa_random_context_t rng;
 } psa_global_data_t;
@@ -6528,21 +6527,11 @@ psa_status_t psa_crypto_init_subsystem( psa_crypto_subsystem_t subsystems )
 
 psa_status_t psa_crypto_init( void )
 {
-    psa_status_t status;
-
-    /* Double initialization is explicitly allowed. */
-    if( global_data.initialized != 0 )
-        return( PSA_SUCCESS );
-
-    status = psa_crypto_init_subsystem( MBEDTLS_PSA_CRYPTO_ALL_SUBSYSTEMS );
-    if( status != PSA_SUCCESS )
-        goto exit;
-
-    /* All done. */
-    global_data.initialized = 1;
-
-exit:
-    if( status != PSA_SUCCESS )
+    psa_crypto_subsystem_t original_active_subsystems =
+        global_data.active_subsystems;
+    psa_status_t status =
+        psa_crypto_init_subsystem( MBEDTLS_PSA_CRYPTO_ALL_SUBSYSTEMS );
+    if( original_active_subsystems != 0 && status != PSA_SUCCESS )
         mbedtls_psa_crypto_free( );
     return( status );
 }

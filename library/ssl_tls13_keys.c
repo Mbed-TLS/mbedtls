@@ -215,6 +215,30 @@ cleanup:
     return( psa_ssl_status_to_mbedtls ( status ) );
 }
 
+static int ssl_tls13_make_traffic_key(
+                    psa_algorithm_t hash_alg,
+                    const unsigned char *secret, size_t secret_len,
+                    unsigned char *key, size_t key_len,
+                    unsigned char *iv, size_t iv_len )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    ret = mbedtls_ssl_tls13_hkdf_expand_label( hash_alg,
+                    secret, secret_len,
+                    MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( key ),
+                    NULL, 0,
+                    key, key_len );
+    if( ret != 0 )
+        return( ret );
+
+    ret = mbedtls_ssl_tls13_hkdf_expand_label( hash_alg,
+                    secret, secret_len,
+                    MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( iv ),
+                    NULL, 0,
+                    iv, iv_len );
+    return( ret );
+}
+
 /*
  * The traffic keying material is generated from the following inputs:
  *
@@ -240,35 +264,17 @@ int mbedtls_ssl_tls13_make_traffic_keys(
 {
     int ret = 0;
 
-    ret = mbedtls_ssl_tls13_hkdf_expand_label( hash_alg,
-                    client_secret, secret_len,
-                    MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( key ),
-                    NULL, 0,
-                    keys->client_write_key, key_len );
+    ret = ssl_tls13_make_traffic_key(
+            hash_alg, client_secret, secret_len,
+            keys->client_write_key, key_len,
+            keys->client_write_iv, iv_len );
     if( ret != 0 )
         return( ret );
 
-    ret = mbedtls_ssl_tls13_hkdf_expand_label( hash_alg,
-                    server_secret, secret_len,
-                    MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( key ),
-                    NULL, 0,
-                    keys->server_write_key, key_len );
-    if( ret != 0 )
-        return( ret );
-
-    ret = mbedtls_ssl_tls13_hkdf_expand_label( hash_alg,
-                    client_secret, secret_len,
-                    MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( iv ),
-                    NULL, 0,
-                    keys->client_write_iv, iv_len );
-    if( ret != 0 )
-        return( ret );
-
-    ret = mbedtls_ssl_tls13_hkdf_expand_label( hash_alg,
-                    server_secret, secret_len,
-                    MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( iv ),
-                    NULL, 0,
-                    keys->server_write_iv, iv_len );
+    ret = ssl_tls13_make_traffic_key(
+            hash_alg, server_secret, secret_len,
+            keys->server_write_key, key_len,
+            keys->server_write_iv, iv_len );
     if( ret != 0 )
         return( ret );
 
@@ -1166,16 +1172,18 @@ static int ssl_tls13_generate_early_key( mbedtls_ssl_context *ssl,
             MBEDTLS_SSL_TLS_PRF_NONE /* TODO: FIX! */ );
     }
 
-    ret = mbedtls_ssl_tls13_make_traffic_keys(
+    ret = ssl_tls13_make_traffic_key(
               hash_alg,
               tls13_early_secrets->client_early_traffic_secret,
-              tls13_early_secrets->client_early_traffic_secret,
-              hash_len, key_len, iv_len, traffic_keys );
+              hash_len, traffic_keys->client_write_key, key_len,
+              traffic_keys->client_write_iv, iv_len );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_make_traffic_keys", ret );
         goto exit;
     }
+    traffic_keys->key_len = key_len;
+    traffic_keys->iv_len = iv_len;
 
     MBEDTLS_SSL_DEBUG_BUF( 4, "client early write_key",
                            traffic_keys->client_write_key,

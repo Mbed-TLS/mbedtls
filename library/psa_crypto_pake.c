@@ -256,9 +256,6 @@ psa_status_t psa_pake_set_password_key( psa_pake_operation_t *operation,
         return( PSA_ERROR_BAD_STATE );
     }
 
-    if( psa_is_valid_key_id( password, 1 ) == 0 )
-        return( PSA_ERROR_BAD_STATE );
-
     status = psa_get_key_attributes( password, &attributes );
     if( status != PSA_SUCCESS )
         return( status );
@@ -283,15 +280,8 @@ psa_status_t psa_pake_set_password_key( psa_pake_operation_t *operation,
     if( status != PSA_SUCCESS )
         return( status );
 
-    if( slot->key.data == NULL || slot->key.bytes == 0 )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
     if( operation->password != NULL )
-    {
-        mbedtls_platform_zeroize( operation->password, operation->password_len );
-        mbedtls_free( operation->password );
-        operation->password_len = 0;
-    }
+        return( PSA_ERROR_BAD_STATE );
 
     operation->password = mbedtls_calloc( 1, slot->key.bytes );
     if( operation->password == NULL )
@@ -388,11 +378,8 @@ static psa_status_t psa_pake_ecjpake_setup( psa_pake_operation_t *operation )
     else
         return( PSA_ERROR_BAD_STATE );
 
-    if (operation->password == NULL ||
-        operation->password_len == 0 )
-    {
+    if( operation->password_len == 0 )
         return( PSA_ERROR_BAD_STATE );
-    }
 
     ret = mbedtls_ecjpake_setup( &operation->ctx.ecjpake,
                                  role,
@@ -403,6 +390,11 @@ static psa_status_t psa_pake_ecjpake_setup( psa_pake_operation_t *operation )
 
     if( ret != 0 )
         return( mbedtls_ecjpake_to_psa_error( ret ) );
+
+    mbedtls_platform_zeroize( operation->password, operation->password_len );
+    mbedtls_free( operation->password );
+    operation->password = NULL;
+    operation->password_len = 0;
 
     operation->state = PSA_PAKE_STATE_READY;
 
@@ -453,7 +445,13 @@ static psa_status_t psa_pake_output_internal(
         if( operation->state == PSA_PAKE_STATE_SETUP ) {
             status = psa_pake_ecjpake_setup( operation );
             if( status != PSA_SUCCESS )
+            {
+                mbedtls_platform_zeroize( operation->password, operation->password_len );
+                mbedtls_free( operation->password );
+                operation->password = NULL;
+                operation->password_len = 0;
                 return( status );
+            }
         }
 
         if( operation->state != PSA_PAKE_STATE_READY &&
@@ -661,7 +659,13 @@ static psa_status_t psa_pake_input_internal(
         {
             status = psa_pake_ecjpake_setup( operation );
             if( status != PSA_SUCCESS )
+            {
+                mbedtls_platform_zeroize( operation->password, operation->password_len );
+                mbedtls_free( operation->password );
+                operation->password = NULL;
+                operation->password_len = 0;
                 return( status );
+            }
         }
 
         if( operation->state != PSA_PAKE_STATE_READY &&
@@ -865,7 +869,8 @@ psa_status_t psa_pake_abort(psa_pake_operation_t * operation)
     {
         operation->input_step = PSA_PAKE_STEP_INVALID;
         operation->output_step = PSA_PAKE_STEP_INVALID;
-        mbedtls_platform_zeroize( operation->password, operation->password_len );
+        if( operation->password_len > 0 )
+            mbedtls_platform_zeroize( operation->password, operation->password_len );
         mbedtls_free( operation->password );
         operation->password = NULL;
         operation->password_len = 0;

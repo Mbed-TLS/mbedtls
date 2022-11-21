@@ -620,9 +620,14 @@ typedef enum
 } ecjpake_error_stage_t;
 
 /*
- * This check is used for errors issued through wrong input parameters. The
- * check is always performed because, in case of all valid parameters, the
- * setup function can go on
+ * This check is used for functions that might either succeed or fail depending
+ * on the parameters that are passed in from the *.data file:
+ * - in case of success following functions depend on the current one
+ * - in case of failure the test is always terminated. There are two options
+ *   here
+ *     - terminated successfully if this exact error was expected at this stage
+ *     - terminated with failure otherwise (either no error was expected at this
+ *       stage or a different error code was expected)
  */
 #define SETUP_ALWAYS_CHECK_STEP( test_function, this_check_err_stage )      \
     status = test_function;                                                 \
@@ -637,9 +642,14 @@ typedef enum
     }
 
 /*
- * This check is used for errors injected explicitly. The check is conditional
- * because once the error is triggered, the setup function cannot proceed so
- * it would not be possible to check following steps
+ * This check is used for failures that are injected at code level. There's only
+ * 1 input parameter that is relevant in this case and it's the stage at which
+ * the error should be injected.
+ * The check is conditional in this case because, once the error is triggered,
+ * the pake's context structure is compromised and the setup function cannot
+ * proceed further. As a consequence the test is terminated.
+ * The test succeeds if the returned error is exactly the expected one,
+ * otherwise it fails.
  */
 #define SETUP_CONDITIONAL_CHECK_STEP( test_function, this_check_err_stage ) \
     if( err_stage == this_check_err_stage )                                 \

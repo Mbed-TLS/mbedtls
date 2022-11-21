@@ -1970,12 +1970,12 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
                          mbedtls_mpi *prec_RR )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t wbits, wsize, one = 1;
+    size_t window_bitsize, one = 1;
     size_t i, j, nblimbs;
     size_t bufsize, nbits;
     mbedtls_mpi_uint ei, mm, state;
     mbedtls_mpi RR, T, W[ ( 1 << MBEDTLS_MPI_WINDOW_SIZE ) + 1 ], WW, Apos;
-    const size_t w_count = sizeof( W ) / sizeof( W[0] );
+    const size_t w_table_size = sizeof( W ) / sizeof( W[0] );
     int neg;
 
     MPI_VALIDATE_RET( X != NULL );
@@ -2004,12 +2004,12 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
 
     i = mbedtls_mpi_bitlen( E );
 
-    wsize = ( i > 671 ) ? 6 : ( i > 239 ) ? 5 :
+    window_bitsize = ( i > 671 ) ? 6 : ( i > 239 ) ? 5 :
             ( i >  79 ) ? 4 : ( i >  23 ) ? 3 : 1;
 
 #if( MBEDTLS_MPI_WINDOW_SIZE < 6 )
-    if( wsize > MBEDTLS_MPI_WINDOW_SIZE )
-        wsize = MBEDTLS_MPI_WINDOW_SIZE;
+    if( window_bitsize > MBEDTLS_MPI_WINDOW_SIZE )
+        window_bitsize = MBEDTLS_MPI_WINDOW_SIZE;
 #endif
 
     /*
@@ -2024,7 +2024,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
      * To achieve this, we make a copy of X and we use the table entry in each
      * calculation from this point on.
      */
-    const size_t x_index = w_count - 1;
+    const size_t x_index = w_table_size - 1;
     mbedtls_mpi_init( &W[x_index] );
     mbedtls_mpi_copy( &W[x_index], X );
 
@@ -2088,23 +2088,23 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &W[x_index], &RR ) );
     mpi_montred( &W[x_index], N, mm, &T );
 
-    if( wsize > 1 )
+    if( window_bitsize > 1 )
     {
         /*
-         * W[1 << (wsize - 1)] = W[1] ^ (wsize - 1)
+         * W[1 << (window_bitsize - 1)] = W[1] ^ (window_bitsize - 1)
          */
-        j =  one << ( wsize - 1 );
+        j =  one << ( window_bitsize - 1 );
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &W[j], N->n + 1 ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &W[j], &W[1]    ) );
 
-        for( i = 0; i < wsize - 1; i++ )
+        for( i = 0; i < window_bitsize - 1; i++ )
             mpi_montmul( &W[j], &W[j], N, mm, &T );
 
         /*
          * W[i] = W[i - 1] * W[1]
          */
-        for( i = j + 1; i < ( one << wsize ); i++ )
+        for( i = j + 1; i < ( one << window_bitsize ); i++ )
         {
             MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &W[i], N->n + 1 ) );
             MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &W[i], &W[i - 1] ) );
@@ -2116,7 +2116,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
     nblimbs = E->n;
     bufsize = 0;
     nbits   = 0;
-    wbits   = 0;
+    size_t exponent_bits_in_window = 0;
     state   = 0;
 
     while( 1 )
@@ -2146,7 +2146,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
             /*
              * out of window, square W[x_index]
              */
-            MBEDTLS_MPI_CHK( mpi_select( &WW, W, w_count, x_index ) );
+            MBEDTLS_MPI_CHK( mpi_select( &WW, W, w_table_size, x_index ) );
             mpi_montmul( &W[x_index], &WW, N, mm, &T );
             continue;
         }
@@ -2157,28 +2157,29 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
         state = 2;
 
         nbits++;
-        wbits |= ( ei << ( wsize - nbits ) );
+        exponent_bits_in_window |= ( ei << ( window_bitsize - nbits ) );
 
-        if( nbits == wsize )
+        if( nbits == window_bitsize )
         {
             /*
-             * W[x_index] = W[x_index]^wsize R^-1 mod N
+             * W[x_index] = W[x_index]^window_bitsize R^-1 mod N
              */
-            for( i = 0; i < wsize; i++ )
+            for( i = 0; i < window_bitsize; i++ )
             {
-                MBEDTLS_MPI_CHK( mpi_select( &WW, W, w_count, x_index ) );
+                MBEDTLS_MPI_CHK( mpi_select( &WW, W, w_table_size, x_index ) );
                 mpi_montmul( &W[x_index], &WW, N, mm, &T );
             }
 
             /*
-             * W[x_index] = W[x_index] * W[wbits] R^-1 mod N
+             * W[x_index] = W[x_index] * W[exponent_bits_in_window] R^-1 mod N
              */
-            MBEDTLS_MPI_CHK( mpi_select( &WW, W, w_count, wbits ) );
+            MBEDTLS_MPI_CHK( mpi_select( &WW, W, w_table_size,
+                                         exponent_bits_in_window ) );
             mpi_montmul( &W[x_index], &WW, N, mm, &T );
 
             state--;
             nbits = 0;
-            wbits = 0;
+            exponent_bits_in_window = 0;
         }
     }
 
@@ -2187,14 +2188,14 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
      */
     for( i = 0; i < nbits; i++ )
     {
-        MBEDTLS_MPI_CHK( mpi_select( &WW, W, w_count, x_index ) );
+        MBEDTLS_MPI_CHK( mpi_select( &WW, W, w_table_size, x_index ) );
         mpi_montmul( &W[x_index], &WW, N, mm, &T );
 
-        wbits <<= 1;
+        exponent_bits_in_window <<= 1;
 
-        if( ( wbits & ( one << wsize ) ) != 0 )
+        if( ( exponent_bits_in_window & ( one << window_bitsize ) ) != 0 )
         {
-            MBEDTLS_MPI_CHK( mpi_select( &WW, W, w_count, 1 ) );
+            MBEDTLS_MPI_CHK( mpi_select( &WW, W, w_table_size, 1 ) );
             mpi_montmul( &W[x_index], &WW, N, mm, &T );
         }
     }
@@ -2217,7 +2218,8 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
 
 cleanup:
 
-    for( i = ( one << ( wsize - 1 ) ); i < ( one << wsize ); i++ )
+    for( i = ( one << ( window_bitsize - 1 ) );
+         i < ( one << window_bitsize ); i++ )
         mbedtls_mpi_free( &W[i] );
 
     mbedtls_mpi_free( &W[1] );

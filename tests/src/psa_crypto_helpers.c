@@ -128,15 +128,9 @@ psa_key_usage_t mbedtls_test_update_key_usage_flags( psa_key_usage_t usage_flags
     return( updated_usage );
 }
 
-/** Check that no PSA Crypto key slots are in use.
- *
- * If any slots are in use, mark the current test as failed.
- *
- * \return 0 if the key store is empty, 1 otherwise.
- */
 int test_fail_if_psa_leaking( int line_no, const char *filename )
 {
-    const char *msg = mbedtls_test_helper_is_psa_leaking( );
+    const char *msg = mbedtls_test_helper_is_psa_leaking();
     if( msg == NULL )
         return 0;
     else

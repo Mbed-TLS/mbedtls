@@ -134,9 +134,9 @@ typedef struct mbedtls_test_mock_socket
  */
 typedef struct mbedtls_test_message_socket_context
 {
-    mbedtls_test_ssl_message_queue* queue_input;
-    mbedtls_test_ssl_message_queue* queue_output;
-    mbedtls_test_mock_socket* socket;
+    mbedtls_test_ssl_message_queue *queue_input;
+    mbedtls_test_ssl_message_queue *queue_output;
+    mbedtls_test_mock_socket *socket;
 } mbedtls_test_message_socket_context;
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
@@ -146,9 +146,9 @@ typedef struct mbedtls_test_message_socket_context
  */
 typedef struct mbedtls_test_ssl_endpoint_certificate
 {
-    mbedtls_x509_crt* ca_cert;
-    mbedtls_x509_crt* cert;
-    mbedtls_pk_context* pkey;
+    mbedtls_x509_crt *ca_cert;
+    mbedtls_x509_crt *cert;
+    mbedtls_pk_context *pkey;
 } mbedtls_test_ssl_endpoint_certificate;
 
 /*
@@ -224,7 +224,7 @@ int mbedtls_test_ssl_buffer_put( mbedtls_test_ssl_buffer *buf,
  * \retval  -1, if \buf is NULL or it hasn't been set up.
  */
 int mbedtls_test_ssl_buffer_get( mbedtls_test_ssl_buffer *buf,
-                                 unsigned char* output, size_t output_len );
+                                 unsigned char *output, size_t output_len );
 
 /*
  * Errors used in the message transport mock tests
@@ -246,13 +246,6 @@ int mbedtls_test_ssl_message_queue_setup(
 
 void mbedtls_test_ssl_message_queue_free(
         mbedtls_test_ssl_message_queue *queue );
-
-/*
- * Close a given message socket context, along with the socket itself. Free the
- * memory allocated by the input queue.
- */
-void mbedtls_test_message_socket_close(
-        mbedtls_test_message_socket_context* ctx );
 
 /*
  * Push message length information onto the message metadata queue.
@@ -296,7 +289,7 @@ void mbedtls_mock_socket_init( mbedtls_test_mock_socket *socket );
  * phenomenon that when closing a UDP connection the peer is not aware of the
  * connection having been closed.
  */
-void mbedtls_test_mock_socket_close( mbedtls_test_mock_socket* socket );
+void mbedtls_test_mock_socket_close( mbedtls_test_mock_socket *socket );
 
 /*
  * Establishes a connection between \p peer1 and \p peer2.
@@ -308,8 +301,8 @@ void mbedtls_test_mock_socket_close( mbedtls_test_mock_socket* socket );
  * the correct value allows for simulation of MTU, sanity testing the mock
  * implementation and mocking TCP connections with lower memory cost.
  */
-int mbedtls_test_mock_socket_connect( mbedtls_test_mock_socket* peer1,
-                                      mbedtls_test_mock_socket* peer2,
+int mbedtls_test_mock_socket_connect( mbedtls_test_mock_socket *peer1,
+                                      mbedtls_test_mock_socket *peer2,
                                       size_t bufsize );
 
 
@@ -317,8 +310,8 @@ int mbedtls_test_mock_socket_connect( mbedtls_test_mock_socket* peer1,
  * Callbacks for simulating blocking I/O over connection-oriented transport.
  */
 
-int mbedtls_test_mock_tcp_send_b( void *ctx, const unsigned char *buf,
-                                  size_t len );
+int mbedtls_test_mock_tcp_send_b( void *ctx,
+                                  const unsigned char *buf, size_t len );
 
 int mbedtls_test_mock_tcp_recv_b( void *ctx, unsigned char *buf, size_t len );
 
@@ -326,8 +319,8 @@ int mbedtls_test_mock_tcp_recv_b( void *ctx, unsigned char *buf, size_t len );
  * Callbacks for simulating non-blocking I/O over connection-oriented transport.
  */
 
-int mbedtls_test_mock_tcp_send_nb( void *ctx, const unsigned char *buf,
-                                   size_t len );
+int mbedtls_test_mock_tcp_send_nb( void *ctx,
+                                   const unsigned char *buf, size_t len );
 
 int mbedtls_test_mock_tcp_recv_nb( void *ctx, unsigned char *buf, size_t len );
 
@@ -344,17 +337,17 @@ void mbedtls_test_message_socket_init(
  *          queue failed.
  */
 int mbedtls_test_message_socket_setup(
-        mbedtls_test_ssl_message_queue* queue_input,
-        mbedtls_test_ssl_message_queue* queue_output,
-        size_t queue_capacity, mbedtls_test_mock_socket* socket,
-        mbedtls_test_message_socket_context* ctx );
+        mbedtls_test_ssl_message_queue *queue_input,
+        mbedtls_test_ssl_message_queue *queue_output,
+        size_t queue_capacity, mbedtls_test_mock_socket *socket,
+        mbedtls_test_message_socket_context *ctx );
 
 /*
  * Close a given message socket context, along with the socket itself. Free the
  * memory allocated by the input queue.
  */
 void mbedtls_test_message_socket_close(
-        mbedtls_test_message_socket_context* ctx );
+        mbedtls_test_message_socket_context *ctx );
 
 /*
  * Send one message through a given message socket context.
@@ -369,8 +362,8 @@ void mbedtls_test_message_socket_close(
  * This function will also return any error from
  * mbedtls_test_ssl_message_queue_push_info.
  */
-int mbedtls_test_mock_tcp_send_msg( void *ctx, const unsigned char *buf,
-                                    size_t len );
+int mbedtls_test_mock_tcp_send_msg( void *ctx,
+                                    const unsigned char *buf, size_t len );
 
 /*
  * Receive one message from a given message socket context and return message
@@ -386,8 +379,8 @@ int mbedtls_test_mock_tcp_send_msg( void *ctx, const unsigned char *buf,
  * MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED from
  * mbedtls_test_message_queue_peek_info.
  */
-int mbedtls_test_mock_tcp_recv_msg( void *ctx, unsigned char *buf,
-                                    size_t buf_len );
+int mbedtls_test_mock_tcp_recv_msg( void *ctx,
+                                    unsigned char *buf, size_t buf_len );
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 
@@ -423,7 +416,7 @@ int mbedtls_test_ssl_endpoint_init(
         mbedtls_test_message_socket_context *dtls_context,
         mbedtls_test_ssl_message_queue *input_queue,
         mbedtls_test_ssl_message_queue *output_queue,
-        uint16_t* group_list );
+        uint16_t *group_list );
 
 /*
  * Deinitializes endpoint represented by \p ep.
@@ -447,13 +440,11 @@ int mbedtls_test_move_handshake_to_state( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_AES_C)
-int mbedtls_test_psa_cipher_encrypt_helper( mbedtls_ssl_transform *transform,
-                                            const unsigned char *iv,
-                                            size_t iv_len,
-                                            const unsigned char *input,
-                                            size_t ilen,
-                                            unsigned char *output,
-                                            size_t *olen );
+int mbedtls_test_psa_cipher_encrypt_helper(
+        mbedtls_ssl_transform *transform,
+        const unsigned char *iv, size_t iv_len,
+        const unsigned char *input, size_t ilen,
+        unsigned char *output, size_t *olen );
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_CIPHER_MODE_CBC &&
           MBEDTLS_AES_C */
 

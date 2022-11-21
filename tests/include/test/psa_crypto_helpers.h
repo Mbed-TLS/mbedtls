@@ -99,7 +99,7 @@ const char *mbedtls_test_helper_is_psa_leaking( void );
 
 /** Check that no PSA Crypto key slots are in use.
  *
- * If any slots are in use, mark the current test as failed and jump to
+ * If any slot is in use, mark the current test as failed and jump to
  * the exit label. This is equivalent to
  * `TEST_ASSERT( ! mbedtls_test_helper_is_psa_leaking( ) )`
  * but with a more informative message.
@@ -195,7 +195,7 @@ psa_key_usage_t mbedtls_test_update_key_usage_flags( psa_key_usage_t usage_flags
 
 /** Check that no PSA Crypto key slots are in use.
  *
- * If any slots are in use, mark the current test as failed.
+ * If any slot is in use, mark the current test as failed.
  *
  * \return 0 if the key store is empty, 1 otherwise.
  */

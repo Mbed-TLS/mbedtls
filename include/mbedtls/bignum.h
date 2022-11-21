@@ -179,6 +179,20 @@
     #endif /* !MBEDTLS_NO_UDBL_DIVISION */
 #endif /* !MBEDTLS_HAVE_INT64 */
 
+/** \typedef mbedtls_mpi_uint
+ * \brief The type of machine digits in a bignum, called _limbs_.
+ *
+ * This is always an unsigned integer type with no padding bits. The size
+ * is platform-dependent.
+ */
+
+/** \typedef mbedtls_mpi_sint
+ * \brief The signed type corresponding to #mbedtls_mpi_uint.
+ *
+ * This is always an signed integer type with no padding bits. The size
+ * is platform-dependent.
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

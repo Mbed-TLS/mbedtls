@@ -2354,7 +2354,9 @@ start_processing:
 
         if( ( *p != MBEDTLS_ECP_TLS_NAMED_CURVE ) ||
             ( read_tls_id != curve_info->tls_id ) )
+        {
             return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+        }
 
         p += 3;
 

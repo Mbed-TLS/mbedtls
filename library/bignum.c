@@ -1970,7 +1970,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
                          mbedtls_mpi *prec_RR )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t window_bitsize, one = 1;
+    size_t window_bitsize;
     size_t i, j, nblimbs;
     size_t bufsize, nbits;
     mbedtls_mpi_uint ei, mm, state;
@@ -2091,9 +2091,12 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
     if( window_bitsize > 1 )
     {
         /*
-         * W[1 << (window_bitsize - 1)] = W[1] ^ (window_bitsize - 1)
+         * W[i] = W[1] ^ i
+         *
+         * The first bit of the sliding window is always 1 and therefore we
+         * only need to store the second half of the table.
          */
-        j =  one << ( window_bitsize - 1 );
+        j = w_table_used_size / 2;
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &W[j], N->n + 1 ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &W[j], &W[1]    ) );
@@ -2103,8 +2106,10 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
 
         /*
          * W[i] = W[i - 1] * W[1]
+         * (The last element in the table is for the result X, so we don't need
+         * to calculate that.)
          */
-        for( i = j + 1; i < ( one << window_bitsize ); i++ )
+        for( i = j + 1; i < w_table_used_size - 1; i++ )
         {
             MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &W[i], N->n + 1 ) );
             MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &W[i], &W[i - 1] ) );
@@ -2194,7 +2199,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
 
         exponent_bits_in_window <<= 1;
 
-        if( ( exponent_bits_in_window & ( one << window_bitsize ) ) != 0 )
+        if( ( exponent_bits_in_window & ( (size_t) 1 << window_bitsize ) ) != 0 )
         {
             MBEDTLS_MPI_CHK( mpi_select( &WW, W, w_table_used_size, 1 ) );
             mpi_montmul( &W[x_index], &WW, N, mm, &T );

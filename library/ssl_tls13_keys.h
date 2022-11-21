@@ -676,9 +676,13 @@ int mbedtls_ssl_tls13_calculate_verify_data( mbedtls_ssl_context *ssl,
  * \returns    \c 0 on success.
  * \returns    A negative error code on failure.
  *
- * \warning   `early_secrets` is not computed before this function. Call
- *            mbedtls_ssl_tls13_key_schedule_stage_early() to generate early
- *            secrets.
+ * \warning    The function does not compute the early master secret. Call
+ *             mbedtls_ssl_tls13_key_schedule_stage_early() before to
+ *             call this function to generate the early master secret.
+ * \note       For a client/server endpoint, the function computes only the
+ *             encryption/decryption part of the transform as the decryption/
+ *             encryption part is not defined by the specification (no early
+ *             traffic from the server to the client).
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_compute_early_transform( mbedtls_ssl_context *ssl );

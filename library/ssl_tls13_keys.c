@@ -1082,11 +1082,18 @@ static int ssl_tls13_get_cipher_key_info(
 }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-/* ssl_tls13_generate_early_keys() generates keys necessary for protecting the
-   early application and handshake messages described in section 7 RFC 8446. */
+/*
+ * ssl_tls13_generate_early_key() generates the key necessary for protecting
+ * the early application data and the EndOfEarlyData handshake message
+ * as described in section 7 of RFC 8446.
+ *
+ * NOTE: That only one key is generated, the key for the traffic from the
+ * client to the server. The TLS 1.3 specification does not define a secret
+ * and thus a key for server early traffic.
+ */
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_generate_early_keys( mbedtls_ssl_context *ssl,
-                                          mbedtls_ssl_key_set *traffic_keys )
+static int ssl_tls13_generate_early_key( mbedtls_ssl_context *ssl,
+                                         mbedtls_ssl_key_set *traffic_keys )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
@@ -1104,7 +1111,7 @@ static int ssl_tls13_generate_early_keys( mbedtls_ssl_context *ssl,
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info = handshake->ciphersuite_info;
     mbedtls_ssl_tls13_early_secrets *tls13_early_secrets = &handshake->tls13_early_secrets;
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> ssl_tls13_generate_early_keys" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> ssl_tls13_generate_early_key" ) );
 
     ret = ssl_tls13_get_cipher_key_info( ciphersuite_info, &key_len, &iv_len );
     if( ret != 0 )
@@ -1170,16 +1177,15 @@ static int ssl_tls13_generate_early_keys( mbedtls_ssl_context *ssl,
         goto exit;
     }
 
-    MBEDTLS_SSL_DEBUG_BUF( 5, "client_handshake write_key",
+    MBEDTLS_SSL_DEBUG_BUF( 4, "client early write_key",
                            traffic_keys->client_write_key,
                            traffic_keys->key_len);
 
-    MBEDTLS_SSL_DEBUG_BUF( 5, "client_handshake write_iv",
+    MBEDTLS_SSL_DEBUG_BUF( 4, "client early write_iv",
                            traffic_keys->client_write_iv,
                            traffic_keys->iv_len);
 
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= ssl_tls13_generate_early_keys" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= ssl_tls13_generate_early_key" ) );
 
 exit:
 
@@ -1195,10 +1201,10 @@ int mbedtls_ssl_tls13_compute_early_transform( mbedtls_ssl_context *ssl )
 
     /* Next evolution in key schedule: Establish early_data secret and
      * key material. */
-    ret = ssl_tls13_generate_early_keys( ssl, &traffic_keys );
+    ret = ssl_tls13_generate_early_key( ssl, &traffic_keys );
     if( ret != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_generate_early_keys",
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_generate_early_key",
                                ret );
         goto cleanup;
     }

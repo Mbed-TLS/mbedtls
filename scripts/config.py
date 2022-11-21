@@ -260,6 +260,7 @@ EXCLUDE_FROM_BAREMETAL = frozenset([
     'MBEDTLS_FS_IO', # requires a filesystem
     'MBEDTLS_HAVE_TIME', # requires a clock
     'MBEDTLS_HAVE_TIME_DATE', # requires a clock
+    'MBEDTLS_HAVE_CLOCK_GETTIME', # requires a clock
     'MBEDTLS_NET_C', # requires POSIX-like networking
     'MBEDTLS_PLATFORM_FPRINTF_ALT', # requires FILE* from stdio.h
     'MBEDTLS_PLATFORM_NV_SEED_ALT', # requires a filesystem and ENTROPY_NV_SEED

@@ -32,25 +32,23 @@
 #define ASSERT_OPERATION_IS_INACTIVE( operation ) TEST_ASSERT( operation.id == 0 )
 
 #if defined(PSA_WANT_ALG_JPAKE)
-void ecjpake_operation_setup( psa_pake_operation_t *operation,
+int ecjpake_operation_setup( psa_pake_operation_t *operation,
                               psa_pake_cipher_suite_t *cipher_suite,
                               psa_pake_role_t role,
                               mbedtls_svc_key_id_t key,
                               size_t key_available )
 {
-    *operation = psa_pake_operation_init();
+    PSA_ASSERT( psa_pake_abort( operation ) );
 
-    TEST_EQUAL( psa_pake_setup( operation, cipher_suite ),
-                PSA_SUCCESS );
+    PSA_ASSERT( psa_pake_setup( operation, cipher_suite ) );
 
-    TEST_EQUAL( psa_pake_set_role( operation, role),
-                PSA_SUCCESS );
+    PSA_ASSERT( psa_pake_set_role( operation, role) );
 
     if( key_available )
-        TEST_EQUAL( psa_pake_set_password_key( operation, key ),
-                    PSA_SUCCESS );
+        PSA_ASSERT( psa_pake_set_password_key( operation, key ) );
+    return 0;
 exit:
-    return;
+    return 1;
 }
 #endif
 
@@ -8865,21 +8863,21 @@ void ecjpake_setup( int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
                                     NULL, 0 ),
                     PSA_ERROR_INVALID_ARGUMENT );
         /* Invalid parameters (step) */
-        ecjpake_operation_setup( &operation, &cipher_suite, role,
-                                 key, pw_data->len );
+        TEST_EQUAL( ecjpake_operation_setup( &operation, &cipher_suite, role,
+                                 key, pw_data->len ) , 0 );
         TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_ZK_PROOF + 10,
                                     output_buffer, size_zk_proof ),
                     PSA_ERROR_INVALID_ARGUMENT );
         /* Invalid first step */
-        ecjpake_operation_setup( &operation, &cipher_suite, role,
-                                 key, pw_data->len );
+        TEST_EQUAL( ecjpake_operation_setup( &operation, &cipher_suite, role,
+                                 key, pw_data->len ), 0 );
         TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_ZK_PROOF,
                                     output_buffer, size_zk_proof ),
                     PSA_ERROR_BAD_STATE );
 
         /* Possibly valid */
-        ecjpake_operation_setup( &operation, &cipher_suite, role,
-                                 key, pw_data->len );
+        TEST_EQUAL( ecjpake_operation_setup( &operation, &cipher_suite, role,
+                                 key, pw_data->len ), 0 );
         TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_KEY_SHARE,
                                     output_buffer, size_key_share ),
                     expected_status_input_output);
@@ -8904,21 +8902,21 @@ void ecjpake_setup( int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
                                      NULL, 0, NULL ),
                     PSA_ERROR_INVALID_ARGUMENT );
         /* Invalid parameters (step) */
-        ecjpake_operation_setup( &operation, &cipher_suite, role,
-                                key, pw_data->len );
+        TEST_EQUAL( ecjpake_operation_setup( &operation, &cipher_suite, role,
+                                key, pw_data->len ), 0 );
         TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_ZK_PROOF + 10,
                                      output_buffer, buf_size, &output_len ),
                     PSA_ERROR_INVALID_ARGUMENT );
         /* Invalid first step */
-        ecjpake_operation_setup( &operation, &cipher_suite, role,
-                                 key, pw_data->len );
+        TEST_EQUAL( ecjpake_operation_setup( &operation, &cipher_suite, role,
+                                 key, pw_data->len ), 0 );
         TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_ZK_PROOF,
                                      output_buffer, buf_size, &output_len ),
                     PSA_ERROR_BAD_STATE );
 
         /* Possibly valid */
-        ecjpake_operation_setup( &operation, &cipher_suite, role,
-                                 key, pw_data->len );
+        TEST_EQUAL( ecjpake_operation_setup( &operation, &cipher_suite, role,
+                                 key, pw_data->len ), 0 );
         TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_KEY_SHARE,
                                      output_buffer, buf_size, &output_len ),
                     expected_status_input_output );

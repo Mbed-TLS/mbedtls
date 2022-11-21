@@ -40,9 +40,10 @@ typedef struct timespec mbedtls_timespec_t;
 #endif /* MBEDTLS_PLATFORM_CLOCK_GETTIME_TYPE_MACRO */
 
 #if defined(MBEDTLS_PLATFORM_CLOCK_GETTIME_MACRO)
-#define mbedtls_clock_gettime   MBEDTLS_PLATFORM_CLOCK_GETTIME_MACRO
+#define /* no-check-names */ mbedtls_clock_gettime   \
+                                 MBEDTLS_PLATFORM_CLOCK_GETTIME_MACRO
 #else
-#define mbedtls_clock_gettime   clock_gettime
+#define /* no-check-names */ mbedtls_clock_gettime   clock_gettime
 #endif /* MBEDTLS_PLATFORM_CLOCK_GETTIME_MACRO */
 
 #if defined(MBEDTLS_PLATFORM_CLOCK_REALTIME_MACRO)

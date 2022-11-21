@@ -2013,13 +2013,33 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
 #endif
 
     /*
-     * If we call mpi_montmul() without doing a table lookup first, we leak
-     * through timing side channels the fact that a squaring is happening. In
-     * some strong attack settings this can be enough to defeat blinding.
+     * This function is not constant-trace: its memory accesses depend on the
+     * exponent value. To defend against timing attacks, callers (such as RSA
+     * and DHM) should use exponent blinding. However this is not enough if the
+     * adversary can find the exponent in a single trace, so this function
+     * takes extra precautions against adversaries who can observe memory
+     * access patterns.
      *
-     * To prevent this leak, we append the output variable to the end of the
-     * table. This allows as to always do a constant time lookup whenever we
-     * call mpi_montmul().
+     * This function performs a series of multiplications by table elements and
+     * squarings, and we want the prevent the adversary from finding out which
+     * table element was used, and from distinguishing between multiplications
+     * and squarings. Firstly, when multiplying by an element of the window
+     * W[i], we do a constant-trace table lookup to obfuscate i. This leaves
+     * squarings as having a different memory access patterns from other
+     * multiplications. So secondly, we put the accumulator X in the table as
+     * well, and also do a constant-trace table lookup to multiply by X.
+     *
+     * This way, all multiplications take the form of a lookup-and-multiply.
+     * The number of lookup-and-multiply operations inside each iteration of
+     * the main loop still depends on the bits of the exponent, but since the
+     * other operations in the loop don't have an easily recognizable memory
+     * trace, an adversary is unlikely to be able to observe the exact
+     * patterns.
+     *
+     * An adversary may still be able to recover the exponent if they can
+     * observe both memory accesses and branches. However, branch prediction
+     * exploitation typically requires many traces of execution over the same
+     * data, which is defeated by randomized blinding.
      *
      * To achieve this, we make a copy of X and we use the table entry in each
      * calculation from this point on.

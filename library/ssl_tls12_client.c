@@ -2654,7 +2654,7 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
     for( size_t i = 0; i < sig_alg_len; i += 2 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3,
-            ( "Supported Signature Algorithm found: %d,%d",
+            ( "Supported Signature Algorithm found: %02x %02x",
               sig_alg[i], sig_alg[i + 1]  ) );
     }
 #endif

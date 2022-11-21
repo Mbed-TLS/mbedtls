@@ -2012,16 +2012,6 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
         wsize = MBEDTLS_MPI_WINDOW_SIZE;
 #endif
 
-    j = N->n + 1;
-    /* All W[i] and X must have at least N->n limbs for the mpi_montmul()
-     * and mpi_montred() calls later. Here we ensure that W[1] and X are
-     * large enough, and later we'll grow other W[i] to the same length.
-     * They must not be shrunk midway through this function!
-     */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, j ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &W[1],  j ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &T, j * 2 ) );
-
     /*
      * If we call mpi_montmul() without doing a table lookup first, we leak
      * through timing side channels the fact that a squaring is happening. In
@@ -2030,14 +2020,23 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
      * To prevent this leak, we append the output variable to the end of the
      * table. This allows as to always do a constant time lookup whenever we
      * call mpi_montmul().
+     *
+     * To achieve this, we make a copy of X and we use the table entry in each
+     * calculation from this point on.
      */
     const size_t x_index = w_count - 1;
-    /*
-     * To prevent the leak, we need to use the table entry in each calculation
-     * from this point on. This makes it safe to load X into the table by a
-     * simple assignment.
+    mbedtls_mpi_init( &W[x_index] );
+    mbedtls_mpi_copy( &W[x_index], X );
+
+    j = N->n + 1;
+    /* All W[i] and X must have at least N->n limbs for the mpi_montmul()
+     * and mpi_montred() calls later. Here we ensure that W[1] and X are
+     * large enough, and later we'll grow other W[i] to the same length.
+     * They must not be shrunk midway through this function!
      */
-    W[x_index] = *X;
+    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &W[x_index], j ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &W[1],  j ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &T, j * 2 ) );
 
     /*
      * Compensate for negative A (and correct at the end)
@@ -2214,14 +2213,17 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
     /*
      * Load the result in the output variable.
      */
-    *X = W[x_index];
+    mbedtls_mpi_copy( X, &W[x_index] );
 
 cleanup:
 
     for( i = ( one << ( wsize - 1 ) ); i < ( one << wsize ); i++ )
         mbedtls_mpi_free( &W[i] );
 
-    mbedtls_mpi_free( &W[1] ); mbedtls_mpi_free( &T ); mbedtls_mpi_free( &Apos );
+    mbedtls_mpi_free( &W[1] );
+    mbedtls_mpi_free( &W[x_index] );
+    mbedtls_mpi_free( &T );
+    mbedtls_mpi_free( &Apos );
     mbedtls_mpi_free( &WW );
 
     if( prec_RR == NULL || prec_RR->p == NULL )

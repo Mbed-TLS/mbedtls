@@ -99,15 +99,9 @@ static int key_type_is_raw_bytes( psa_key_type_t type )
     return( PSA_KEY_TYPE_IS_UNSTRUCTURED( type ) );
 }
 
-/* Values for psa_global_data_t::rng_state */
-#define RNG_NOT_INITIALIZED 0
-#define RNG_INITIALIZED 1
-#define RNG_SEEDED 2
-
 typedef struct
 {
-    unsigned initialized : 1;
-    unsigned rng_state : 2;
+    psa_crypto_subsystem_t active_subsystems;
     mbedtls_psa_random_context_t rng;
 } psa_global_data_t;
 
@@ -877,6 +871,26 @@ static psa_status_t psa_restrict_key_policy(
     return( PSA_SUCCESS );
 }
 
+/** Whether the key in the given slot has reachable material.
+ *
+ * A transparent key is always reachable when the key store is initialized.
+ * An opaque key requires the corresponding secure element driver.
+ *
+ * \param slot  Pointer to a slot containing a key.
+ *
+ * \return 1 if the key material is reachable, otherwise 0.
+ */
+static int psa_is_key_material_reachable( psa_key_slot_t *slot )
+{
+    if( psa_key_lifetime_is_external( slot->attr.lifetime ) )
+    {
+        return( mbedtls_psa_crypto_is_subsystem_initialized(
+                    PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS ) );
+    }
+    else
+        return( 1 );
+}
+
 /** Get the description of a key given its identifier and policy constraints
  *  and lock it.
  *
@@ -903,6 +917,14 @@ static psa_status_t psa_get_and_lock_key_slot_with_policy(
     if( status != PSA_SUCCESS )
         return( status );
     slot = *p_slot;
+
+    /* Secure element keys need the secure element driver to be initialized,
+     * except when only retrieving attributes. */
+    if( usage != 0 && ! psa_is_key_material_reachable( *p_slot ) )
+    {
+        status = PSA_ERROR_BAD_STATE;
+        goto error;
+    }
 
     /* Enforce that usage policy for the key slot contains all the flags
      * required by the usage parameter. There is one exception: public
@@ -1038,6 +1060,9 @@ psa_status_t psa_destroy_key( mbedtls_svc_key_id_t key )
     status = psa_get_and_lock_key_slot( key, &slot );
     if( status != PSA_SUCCESS )
         return( status );
+
+    if( ! psa_is_key_material_reachable( slot ) )
+        return( PSA_ERROR_BAD_STATE );
 
     /*
      * If the key slot containing the key description is under access by the
@@ -1428,6 +1453,12 @@ psa_status_t psa_export_public_key( mbedtls_svc_key_id_t key,
     if( status != PSA_SUCCESS )
         return( status );
 
+    if( ! psa_is_key_material_reachable( slot ) )
+    {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
     if( ! PSA_KEY_TYPE_IS_ASYMMETRIC( slot->attr.type ) )
     {
          status = PSA_ERROR_INVALID_ARGUMENT;
@@ -1605,6 +1636,12 @@ static psa_status_t psa_start_key_creation(
 #else
         slot->attr.id.key_id = volatile_key_id;
 #endif
+    }
+    if( psa_key_lifetime_is_external( attributes->core.lifetime ) &&
+        ! mbedtls_psa_crypto_is_subsystem_initialized(
+            PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS ) )
+    {
+        return( PSA_ERROR_BAD_STATE );
     }
 
     /* Erase external-only flags from the internal copy. To access
@@ -6032,10 +6069,17 @@ static psa_status_t mbedtls_psa_random_seed( mbedtls_psa_random_context_t *rng )
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 }
 
+static inline int psa_is_random_initialized( void )
+{
+    return( mbedtls_psa_crypto_is_subsystem_initialized(
+                PSA_CRYPTO_SUBSYSTEM_RANDOM ) );
+}
+
 psa_status_t psa_generate_random( uint8_t *output,
                                   size_t output_size )
 {
-    GUARD_MODULE_INITIALIZED;
+    if( ! psa_is_random_initialized( ) )
+        return( PSA_ERROR_BAD_STATE );
 
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 
@@ -6308,7 +6352,8 @@ psa_status_t mbedtls_psa_crypto_configure_entropy_sources(
     void (* entropy_init )( mbedtls_entropy_context *ctx ),
     void (* entropy_free )( mbedtls_entropy_context *ctx ) )
 {
-    if( global_data.rng_state != RNG_NOT_INITIALIZED )
+    if( mbedtls_psa_crypto_is_subsystem_initialized(
+            PSA_CRYPTO_SUBSYSTEM_RANDOM ) )
         return( PSA_ERROR_BAD_STATE );
     global_data.rng.entropy_init = entropy_init;
     global_data.rng.entropy_free = entropy_free;
@@ -6319,17 +6364,24 @@ psa_status_t mbedtls_psa_crypto_configure_entropy_sources(
 void mbedtls_psa_crypto_free( void )
 {
     psa_wipe_all_key_slots( );
-    if( global_data.rng_state != RNG_NOT_INITIALIZED )
+    if( mbedtls_psa_crypto_is_subsystem_initialized(
+            PSA_CRYPTO_SUBSYSTEM_RANDOM ) )
     {
         mbedtls_psa_random_free( &global_data.rng );
     }
-    /* Wipe all remaining data, including configuration.
-     * In particular, this sets all state indicator to the value
-     * indicating "uninitialized". */
-    mbedtls_platform_zeroize( &global_data, sizeof( global_data ) );
 
-    /* Terminate drivers */
-    psa_driver_wrapper_free( );
+    if( mbedtls_psa_crypto_is_subsystem_initialized(
+            PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS ) )
+    {
+        psa_driver_wrapper_free_secure_elements( );
+    }
+    if( mbedtls_psa_crypto_is_subsystem_initialized(
+            PSA_CRYPTO_SUBSYSTEM_ACCELERATORS ) )
+    {
+        psa_driver_wrapper_free_accelerators( );
+    }
+
+    global_data.active_subsystems = 0;
 }
 
 #if defined(PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS)
@@ -6356,54 +6408,119 @@ static psa_status_t psa_crypto_recover_transaction(
             return( PSA_ERROR_DATA_INVALID );
     }
 }
+
+static psa_crypto_init_transactions( void )
+{
+    psa_status_t status = psa_crypto_load_transaction( );
+    if( status == PSA_ERROR_DOES_NOT_EXIST )
+    {
+        /* There's no transaction to complete. It's all good. */
+        return( PSA_SUCCESS );
+    }
+    else if( status != PSA_SUCCESS )
+        return( status );
+
+    status = psa_crypto_recover_transaction( &psa_crypto_transaction );
+    if( status != PSA_SUCCESS )
+        return( status );
+    return( psa_crypto_stop_transaction( ) );
+}
 #endif /* PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS */
+
+int mbedtls_psa_crypto_is_subsystem_initialized(
+    psa_crypto_subsystem_t subsystems )
+{
+    return( ( subsystems & global_data.active_subsystems ) == subsystems );
+}
+
+psa_status_t psa_crypto_init_subsystem( psa_crypto_subsystem_t subsystems )
+{
+    if( ( subsystems & MBEDTLS_PSA_CRYPTO_ALL_SUBSYSTEMS ) != subsystems )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    /* If a subsystem is already initialized, skip it. */
+    subsystems &= ~global_data.active_subsystems;
+
+#if defined(MBEDTLS_PSA_INJECT_ENTROPY)
+    /* The random generator needs a seed in storage */
+    if( subsystems & PSA_CRYPTO_SUBSYSTEM_RANDOM )
+        subsystems |= PSA_CRYPTO_SUBSYSTEM_STORAGE;
+#endif /* MBEDTLS_PSA_INJECT_ENTROPY */
+
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    if( subsystems & PSA_CRYPTO_SUBSYSTEM_COMMUNICATION )
+    {
+        /* This is the library/server. If you can reach this, communication
+         * is already up. */
+        global_data.active_subsystems |= PSA_CRYPTO_SUBSYSTEM_COMMUNICATION;
+    }
+
+    if( subsystems & ( PSA_CRYPTO_SUBSYSTEM_KEYS |
+                       PSA_CRYPTO_SUBSYSTEM_STORAGE |
+                       PSA_CRYPTO_SUBSYSTEM_BUILTIN_KEYS ) )
+    {
+        status = psa_initialize_key_slots( );
+        if( status != PSA_SUCCESS )
+            return( status );
+#if defined(PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS)
+        /* Recover transactions once both storage and SE drivers are up */
+        if( subsystems & PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS )
+        {
+            status = psa_crypto_init_transactions( );
+            if( status != PSA_SUCCESS )
+                return( status );
+        }
+#endif /* PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS */
+        global_data.active_subsystems |= ( PSA_CRYPTO_SUBSYSTEM_KEYS |
+                                           PSA_CRYPTO_SUBSYSTEM_STORAGE |
+                                           PSA_CRYPTO_SUBSYSTEM_BUILTIN_KEYS );
+    }
+
+    if( subsystems & PSA_CRYPTO_SUBSYSTEM_ACCELERATORS )
+    {
+        status = psa_driver_wrapper_init_accelerators( );
+        if( status != PSA_SUCCESS )
+            return( status );
+        global_data.active_subsystems |= PSA_CRYPTO_SUBSYSTEM_ACCELERATORS;
+    }
+
+    if( subsystems & PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS )
+    {
+        status = psa_driver_wrapper_init_secure_elements( );
+        if( status != PSA_SUCCESS )
+            return( status );
+#if defined(PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS)
+        /* Recover transactions once both storage and SE drivers are up */
+        if( subsystems & PSA_CRYPTO_SUBSYSTEM_STORAGE )
+        {
+            status = psa_crypto_init_transactions( );
+            if( status != PSA_SUCCESS )
+                return( status );
+        }
+#endif /* PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS */
+        global_data.active_subsystems |= PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS;
+    }
+
+    if( subsystems & PSA_CRYPTO_SUBSYSTEM_RANDOM )
+    {
+        mbedtls_psa_random_init( &global_data.rng );
+        status = mbedtls_psa_random_seed( &global_data.rng );
+        if( status != PSA_SUCCESS )
+            return( status );
+        global_data.active_subsystems |= PSA_CRYPTO_SUBSYSTEM_RANDOM;
+    }
+
+    return( PSA_SUCCESS );
+}
 
 psa_status_t psa_crypto_init( void )
 {
-    psa_status_t status;
-
-    /* Double initialization is explicitly allowed. */
-    if( global_data.initialized != 0 )
-        return( PSA_SUCCESS );
-
-    /* Initialize and seed the random generator. */
-    mbedtls_psa_random_init( &global_data.rng );
-    global_data.rng_state = RNG_INITIALIZED;
-    status = mbedtls_psa_random_seed( &global_data.rng );
-    if( status != PSA_SUCCESS )
-        goto exit;
-    global_data.rng_state = RNG_SEEDED;
-
-    status = psa_initialize_key_slots( );
-    if( status != PSA_SUCCESS )
-        goto exit;
-
-    /* Init drivers */
-    status = psa_driver_wrapper_init( );
-    if( status != PSA_SUCCESS )
-        goto exit;
-
-#if defined(PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS)
-    status = psa_crypto_load_transaction( );
-    if( status == PSA_SUCCESS )
-    {
-        status = psa_crypto_recover_transaction( &psa_crypto_transaction );
-        if( status != PSA_SUCCESS )
-            goto exit;
-        status = psa_crypto_stop_transaction( );
-    }
-    else if( status == PSA_ERROR_DOES_NOT_EXIST )
-    {
-        /* There's no transaction to complete. It's all good. */
-        status = PSA_SUCCESS;
-    }
-#endif /* PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS */
-
-    /* All done. */
-    global_data.initialized = 1;
-
-exit:
-    if( status != PSA_SUCCESS )
+    psa_crypto_subsystem_t original_active_subsystems =
+        global_data.active_subsystems;
+    psa_status_t status =
+        psa_crypto_init_subsystem( MBEDTLS_PSA_CRYPTO_ALL_SUBSYSTEMS );
+    if( original_active_subsystems != 0 && status != PSA_SUCCESS )
         mbedtls_psa_crypto_free( );
     return( status );
 }

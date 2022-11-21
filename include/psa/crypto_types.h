@@ -462,4 +462,132 @@ typedef uint16_t psa_key_derivation_step_t;
 
 /**@}*/
 
+/** \addtogroup initialization
+ * @{
+ */
+
+/* Auxiliary type for values of type psa_crypto_subsystem_index_t */
+typedef enum {
+    MBEDTLS_PSA_CRYPTO_SUBSYSTEM_COMMUNICATION_INDEX,
+    MBEDTLS_PSA_CRYPTO_SUBSYSTEM_KEYS_INDEX,
+    MBEDTLS_PSA_CRYPTO_SUBSYSTEM_STORAGE_INDEX,
+    MBEDTLS_PSA_CRYPTO_SUBSYSTEM_ACCELERATORS_INDEX,
+    MBEDTLS_PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS_INDEX,
+    MBEDTLS_PSA_CRYPTO_SUBSYSTEM_RANDOM_INDEX,
+    MBEDTLS_PSA_CRYPTO_SUBSYSTEM_BUILTIN_KEYS_INDEX,
+    /* Must come last. Value equal to the number of preceding elements. */
+    MBEDTLS_PSA_CRYPTO_SUBSYSTEM_COUNT
+} mbedtls_psa_crypto_subsystem_index_t;
+
+/** \brief The designation of a subsystem of the PSA Crypto implementation.
+ *
+ * Value of this type are masks of \c PSA_CRYPTO_SUBSYSTEM_xxx constants.
+ *
+ * \note This type is experimental and may change without notice.
+ */
+typedef uint32_t psa_crypto_subsystem_t;
+
+/** Communication with the server, if this is a client that communicates
+ * with a server where the key store is located.
+ *
+ * In a client-server implementation, this subsystem is necessary
+ * before any API function other than library initialization,
+ * deinitialization and functions accessing local data structures
+ * such as key attributes.
+ *
+ * In a library implementation, initializing this subsystem does nothing
+ * and succeeds.
+ */
+#define PSA_CRYPTO_SUBSYSTEM_COMMUNICATION \
+    ((psa_crypto_subsystem_t)1 << MBEDTLS_PSA_CRYPTO_SUBSYSTEM_COMMUNICATION_INDEX)
+
+/** The key store in memory.
+ *
+ * Initializing this subsystem allows creating, accessing and destroying
+ * volatile keys in the default location, i.e.  keys with the lifetime
+ * #PSA_KEY_LIFETIME_VOLATILE.
+ *
+ * Persistent keys also require #PSA_CRYPTO_SUBSYSTEM_STORAGE.
+ * Keys in other locations also require
+ * #PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS.
+ */
+#define PSA_CRYPTO_SUBSYSTEM_KEYS \
+    ((psa_crypto_subsystem_t)1 << MBEDTLS_PSA_CRYPTO_SUBSYSTEM_KEYS_INDEX)
+
+/** Access to keys in storage.
+ *
+ * Initializing this subsystem as well as #PSA_CRYPTO_SUBSYSTEM_KEYS
+ * allows creating, accessing and destroying persistent keys.
+ *
+ * Oersistent keys in secure elements also require
+ * #PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS.
+ */
+#define PSA_CRYPTO_SUBSYSTEM_STORAGE \
+    ((psa_crypto_subsystem_t)1 << MBEDTLS_PSA_CRYPTO_SUBSYSTEM_STORAGE_INDEX)
+
+/** Accelerator drivers.
+ *
+ * Initializing this subsystem calls the initialization entry points
+ * of all registered accelerator drivers.
+ *
+ * Initializing this subsystem allows cryptographic operations that
+ * are implemented via an accelerator driver.
+ */
+#define PSA_CRYPTO_SUBSYSTEM_ACCELERATORS \
+    ((psa_crypto_subsystem_t)1 << MBEDTLS_PSA_CRYPTO_SUBSYSTEM_ACCELERATORS_INDEX)
+
+/** Secure element drivers.
+ *
+ * Initializing this subsystem calls the initialization entry points
+ * of all registered secure element drivers.
+ *
+ * Initializing this subsystem as well as #PSA_CRYPTO_SUBSYSTEM_KEYS
+ * allows creating, accessing and destroying keys in a secure element
+ * (i.e. keys whose location is not #PSA_KEY_LOCATION_LOCAL_STORAGE).
+ */
+#define PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS \
+    ((psa_crypto_subsystem_t)1 << MBEDTLS_PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS_INDEX)
+
+/** Initialize the random generator.
+ *
+ * Initializing this subsystem initializes all registered entropy drivers
+ * and accesses the registered entropy sources.
+ *
+ * Initializing this subsystem is necessary for psa_generate_random(),
+ * psa_generate_key(), as well as some operations using private or
+ * secret keys. Only the following operations are guaranteed not to
+ * require this subsystem:
+ *
+ * - hash operations;
+ * - signature verification operations.
+ *
+ * \note Currently, symmetric decryption (authenticated or not) and
+ *       MAC operations do not require the random generator.
+ *       This may change in future versions of the library
+ *       or when the operations are performed by a driver.
+ */
+#define PSA_CRYPTO_SUBSYSTEM_RANDOM \
+    ((psa_crypto_subsystem_t)1 << MBEDTLS_PSA_CRYPTO_SUBSYSTEM_RANDOM_INDEX)
+
+/** Access to built-in keys.
+ *
+ * Initializing this subsystem as well as #PSA_CRYPTO_SUBSYSTEM_KEYS
+ * allows access to built-in keys.
+ */
+#define PSA_CRYPTO_SUBSYSTEM_BUILTIN_KEYS \
+    ((psa_crypto_subsystem_t)1 << MBEDTLS_PSA_CRYPTO_SUBSYSTEM_BUILTIN_KEYS_INDEX)
+
+/* A mask of all the subsystems recognized by Mbed TLS. */
+#define MBEDTLS_PSA_CRYPTO_ALL_SUBSYSTEMS (     \
+        PSA_CRYPTO_SUBSYSTEM_COMMUNICATION |    \
+        PSA_CRYPTO_SUBSYSTEM_KEYS |             \
+        PSA_CRYPTO_SUBSYSTEM_STORAGE |          \
+        PSA_CRYPTO_SUBSYSTEM_ACCELERATORS |     \
+        PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS |  \
+        PSA_CRYPTO_SUBSYSTEM_RANDOM |           \
+        PSA_CRYPTO_SUBSYSTEM_BUILTIN_KEYS |     \
+        0 )
+
+/**@}*/
+
 #endif /* PSA_CRYPTO_TYPES_H */

@@ -216,6 +216,26 @@ psa_status_t mbedtls_psa_register_se_key(
  */
 void mbedtls_psa_crypto_free( void );
 
+/**
+ * \brief Query the library initialization state.
+ *
+ * This is an Mbed TLS extension.
+ *
+ * \note This function is experimental and may change or be removed
+ *       without notice.
+ *
+ * \note You can pass a mask of subsystems as \p subsystem, and this
+ *       function returns 1 if and only if all the given subsystems are
+ *       initialized. This ability is experimental and may be removed
+ *       without notice.
+ *
+ * \param subsystem     The subsystem to query.
+ *
+ * \return 1 if the given subsysem is already initialized, otherwise 0.
+ */
+int mbedtls_psa_crypto_is_subsystem_initialized(
+    psa_crypto_subsystem_t subsystem );
+
 /** \brief Statistics about
  * resource consumption related to the PSA keystore.
  *

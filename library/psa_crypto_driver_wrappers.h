@@ -27,8 +27,10 @@
 /*
  * Initialization and termination functions
  */
-psa_status_t psa_driver_wrapper_init( void );
-void psa_driver_wrapper_free( void );
+psa_status_t psa_driver_wrapper_init_accelerators( void );
+psa_status_t psa_driver_wrapper_init_secure_elements( void );
+void psa_driver_wrapper_free_accelerators( void );
+void psa_driver_wrapper_free_secure_elements( void );
 
 /*
  * Signature functions

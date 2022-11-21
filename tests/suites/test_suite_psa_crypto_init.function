@@ -1,6 +1,197 @@
 /* BEGIN_HEADER */
 #include <stdint.h>
 
+static int all_subsystems_are_initialized( void )
+{
+    return( mbedtls_psa_crypto_is_subsystem_initialized(
+                MBEDTLS_PSA_CRYPTO_ALL_SUBSYSTEMS ) );
+}
+
+static int no_subsystems_are_initialized( void )
+{
+    mbedtls_psa_crypto_subsystem_index_t i;
+    for( i = 0; i < MBEDTLS_PSA_CRYPTO_SUBSYSTEM_COUNT; i++ )
+    {
+        TEST_ASSERT( ! mbedtls_psa_crypto_is_subsystem_initialized( 1 << i ) );
+    }
+    return( 1) ;
+
+exit:
+    return( 0 );
+}
+
+/* Assume that the key store is initialized, but the random generator is not.
+ * Check that a cipher mechanism with IV behaves as expected. */
+static int test_symmetric_key_without_random( psa_key_type_t key_type,
+                                              psa_algorithm_t alg )
+{
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    int ok = 0;
+
+    psa_set_key_type( &attributes, key_type );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_usage_flags( &attributes,
+                             PSA_KEY_USAGE_ENCRYPT |
+                             PSA_KEY_USAGE_DECRYPT );
+    const uint8_t key_data[32] = "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK";
+    PSA_ASSERT( psa_import_key( &attributes,
+                                key_data, sizeof( key_data ),
+                                &key ) );
+
+    uint8_t plaintext[16] = "This is a sample";
+    uint8_t ciphertext[32] = "[[[[IV  here]]]]CIPHERTEXT!";
+    size_t length;
+    PSA_ASSERT( psa_cipher_decrypt( key, alg,
+                                    ciphertext, sizeof( ciphertext ),
+                                    plaintext, sizeof( plaintext ),
+                                    &length ) );
+
+    /* Should fail to generate an IV */
+    TEST_EQUAL( PSA_ERROR_BAD_STATE,
+                psa_cipher_encrypt( key, alg,
+                                    plaintext, sizeof( plaintext ),
+                                    ciphertext, sizeof( ciphertext ),
+                                    &length ) );
+
+    PSA_ASSERT( psa_destroy_key( key ) );
+    psa_reset_key_attributes( &attributes );
+
+    ok = 1;
+
+exit:
+    psa_reset_key_attributes( &attributes );
+    psa_destroy_key( key );
+    return( ok );
+}
+
+/* Assume that the key store is initialized, but the random generator is not.
+ * Check that various cryptographic operations behave as expected.
+ *
+ * This function currently covers a representative set of algorithms.
+ * It does not attempt systematic coverage.
+ */
+static int test_with_keys_without_random( void )
+{
+    /* IV generation requires random, but decryption doesn't. */
+#if defined(PSA_WANT_KEY_TYPE_AES) && defined(PSA_WANT_ALG_CTR)
+    if( ! test_symmetric_key_without_random( PSA_KEY_TYPE_AES,
+                                             PSA_ALG_CTR ) )
+        return( 0 );
+#endif
+#if defined(PSA_WANT_KEY_TYPE_CAMELLIA) && defined(PSA_WANT_ALG_CTR)
+    if( ! test_symmetric_key_without_random( PSA_KEY_TYPE_CAMELLIA,
+                                             PSA_ALG_CTR ) )
+        return( 0 );
+#endif
+    /* Don't bother figuring out exactly in which configurations the function
+     * is unused. */
+    (void) test_symmetric_key_without_random;
+
+    /* TODO: check that signature verification is possible. */
+    /* TODO: check that signing with a built-in implementation that uses
+     * blinding is rejected. */
+    /* TODO: check that asymmetric encryption is rejected. */
+
+    return( 1 );
+}
+
+/* Check that the availability of API functions is coherent with
+ * the claims from mbedtls_psa_crypto_is_subsystem_initialized(). */
+static int subsystems_are_coherent( void )
+{
+    int ok = 0;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    const uint8_t key_material[1] = {'K'};
+    uint8_t rnd1[16] = {0}, rnd2[16] = {0};
+
+    /* Communication: nothing to check since the tests are calling the library
+     * directly. */
+
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_RAW_DATA );
+    if( mbedtls_psa_crypto_is_subsystem_initialized(
+            PSA_CRYPTO_SUBSYSTEM_KEYS ) )
+    {
+        PSA_ASSERT( psa_import_key( &attributes, key_material, 1, &key ) );
+        psa_reset_key_attributes( &attributes );
+        PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+        TEST_EQUAL( psa_get_key_type( &attributes ), PSA_KEY_TYPE_RAW_DATA );
+        TEST_EQUAL( psa_get_key_bits( &attributes ), 8 );
+        PSA_ASSERT( psa_destroy_key( key ) );
+        key = MBEDTLS_SVC_KEY_ID_INIT;
+    }
+    else
+    {
+        TEST_EQUAL( psa_import_key( &attributes, key_material, 1, &key ),
+                    PSA_ERROR_BAD_STATE );
+        TEST_EQUAL( psa_get_key_attributes( key, &attributes ),
+                    PSA_ERROR_BAD_STATE );
+    }
+    psa_reset_key_attributes( &attributes );
+
+    /* Gray box testing: Mbed TLS currently initializes storage access
+     * together with the key store in memory. */
+    TEST_EQUAL( mbedtls_psa_crypto_is_subsystem_initialized(
+                    PSA_CRYPTO_SUBSYSTEM_KEYS ),
+                mbedtls_psa_crypto_is_subsystem_initialized(
+                    PSA_CRYPTO_SUBSYSTEM_STORAGE ) );
+
+    /* TODO: PSA_CRYPTO_SUBSYSTEM_ACCELERATORS */
+    /* Need to find an accelerated algorithm and try to use it. */
+    /* Also arrange a white-box check when using a test driver. */
+
+    /* TODO: PSA_CRYPTO_SUBSYSTEM_SECURE_ELEMENTS */
+    /* Need to find a secure element location and try to use it. */
+    /* Also arrange a white-box check when using a test driver. */
+
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_RAW_DATA );
+    psa_set_key_bits( &attributes, 8 );
+    if( mbedtls_psa_crypto_is_subsystem_initialized(
+            PSA_CRYPTO_SUBSYSTEM_RANDOM ) )
+    {
+        PSA_ASSERT( psa_generate_random( rnd1, sizeof( rnd1 ) ) );
+        PSA_ASSERT( psa_generate_random( rnd2, sizeof( rnd2 ) ) );
+        /* If the random generator is working properly, the chances of
+         * getting the same 16 bytes twice are negligible. */
+        TEST_ASSERT( memcmp( rnd1, rnd2, sizeof( rnd1 ) ) != 0 );
+
+        if( mbedtls_psa_crypto_is_subsystem_initialized(
+                PSA_CRYPTO_SUBSYSTEM_KEYS ) )
+        {
+            PSA_ASSERT( psa_generate_key( &attributes, &key ) );
+        }
+    }
+    else
+    {
+        TEST_EQUAL( psa_generate_random( rnd1, sizeof( rnd1 ) ),
+                    PSA_ERROR_BAD_STATE );
+        if( mbedtls_psa_crypto_is_subsystem_initialized(
+                PSA_CRYPTO_SUBSYSTEM_KEYS ) )
+        {
+            TEST_EQUAL( psa_generate_key( &attributes, &key ),
+                        PSA_ERROR_BAD_STATE );
+            if( ! test_with_keys_without_random( ) )
+                goto exit;
+        }
+    }
+    psa_reset_key_attributes( &attributes );
+
+    /* Gray box testing: Mbed TLS currently initializes built-in keys
+     * together with the key store in memory. */
+    TEST_EQUAL( mbedtls_psa_crypto_is_subsystem_initialized(
+                    PSA_CRYPTO_SUBSYSTEM_KEYS ),
+                mbedtls_psa_crypto_is_subsystem_initialized(
+                    PSA_CRYPTO_SUBSYSTEM_BUILTIN_KEYS ) );
+
+    ok = 1;
+
+exit:
+    psa_reset_key_attributes( &attributes );
+    psa_destroy_key( key );
+    return( ok );
+}
+
 /* Some tests in this module configure entropy sources. */
 #include "psa_crypto_invasive.h"
 
@@ -139,9 +330,17 @@ void init_deinit( int count )
     {
         status = psa_crypto_init( );
         PSA_ASSERT( status );
+        TEST_ASSERT( all_subsystems_are_initialized( ) );
+        TEST_ASSERT( subsystems_are_coherent( ) );
+
         status = psa_crypto_init( );
         PSA_ASSERT( status );
+        TEST_ASSERT( all_subsystems_are_initialized( ) );
+        TEST_ASSERT( subsystems_are_coherent( ) );
+
         PSA_DONE( );
+        TEST_ASSERT( no_subsystems_are_initialized( ) );
+        TEST_ASSERT( subsystems_are_coherent( ) );
     }
 }
 /* END_CASE */
@@ -153,9 +352,55 @@ void deinit_without_init( int count )
     for( i = 0; i < count; i++ )
     {
         PSA_ASSERT( psa_crypto_init( ) );
+        TEST_ASSERT( all_subsystems_are_initialized( ) );
+        TEST_ASSERT( subsystems_are_coherent( ) );
+
         PSA_DONE( );
+        TEST_ASSERT( subsystems_are_coherent( ) );
+        TEST_ASSERT( no_subsystems_are_initialized( ) );
     }
+
     PSA_DONE( );
+    TEST_ASSERT( subsystems_are_coherent( ) );
+    TEST_ASSERT( no_subsystems_are_initialized( ) );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void subsystem_init( int subsystems )
+{
+    TEST_EQUAL( subsystems == 0,
+                mbedtls_psa_crypto_is_subsystem_initialized( subsystems ) );
+
+    mbedtls_test_set_step( 1 );
+    PSA_ASSERT( psa_crypto_init_subsystem( subsystems ) );
+    TEST_EQUAL( 1, mbedtls_psa_crypto_is_subsystem_initialized( subsystems ) );
+    TEST_ASSERT( subsystems_are_coherent( ) );
+
+    /* A second initialization should be a no-op */
+    mbedtls_test_set_step( 2 );
+    PSA_ASSERT( psa_crypto_init_subsystem( subsystems ) );
+    TEST_EQUAL( 1, mbedtls_psa_crypto_is_subsystem_initialized( subsystems ) );
+    TEST_ASSERT( subsystems_are_coherent( ) );
+
+    mbedtls_test_set_step( 3 );
+    PSA_DONE( );
+    TEST_ASSERT( no_subsystems_are_initialized( ) );
+    TEST_EQUAL( subsystems == 0,
+                mbedtls_psa_crypto_is_subsystem_initialized( subsystems ) );
+    TEST_ASSERT( subsystems_are_coherent( ) );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void subsystem_init_invalid( int subsystem )
+{
+    TEST_EQUAL( 0, mbedtls_psa_crypto_is_subsystem_initialized( subsystem ) );
+    TEST_EQUAL( psa_crypto_init_subsystem( subsystem ),
+                PSA_ERROR_INVALID_ARGUMENT );
+    TEST_EQUAL( 0, mbedtls_psa_crypto_is_subsystem_initialized( subsystem ) );
+    TEST_ASSERT( no_subsystems_are_initialized( ) );
+    TEST_ASSERT( subsystems_are_coherent( ) );
 }
 /* END_CASE */
 

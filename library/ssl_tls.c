@@ -8259,20 +8259,27 @@ int mbedtls_psa_ecjpake_write_round(
             step <= PSA_PAKE_STEP_ZK_PROOF;
             ++step )
         {
-            /* For each step, prepend 1 byte with the length of the data */
-            *(buf + output_offset) = MBEDTLS_SSL_ECJPAKE_OUTPUT_SIZE( step );
-            output_offset += 1;
-
+            /*
+             * For each step, prepend 1 byte with the length of the data.
+             *
+             * NOTE = psa_pake_output() sometimes output elements which are
+             * NOT 32 or 65 bytes as expected, but 1 byte less. So, instead
+             * of hardcoding the expected length, we
+             * - get the output first
+             * - then write the length of this output
+             */
             status = psa_pake_output( pake_ctx, step,
-                                        buf + output_offset,
-                                        len - output_offset,
+                                        buf + output_offset + 1,
+                                        len - output_offset - 1,
                                         &output_len );
             if( status != PSA_SUCCESS )
             {
                 return( psa_ssl_status_to_mbedtls( status ) );
             }
 
-            output_offset += output_len;
+            *(buf + output_offset) = output_len;
+
+            output_offset += output_len + 1;
         }
     }
 

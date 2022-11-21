@@ -197,7 +197,7 @@ static psa_status_t mbedtls_ecjpake_to_psa_error( int ret )
 psa_status_t psa_pake_setup( psa_pake_operation_t *operation,
                              const psa_pake_cipher_suite_t *cipher_suite)
 {
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     /* A context must be freshly initialized before it can be set up. */
     if( operation->alg != PSA_ALG_NONE )
@@ -322,7 +322,7 @@ psa_status_t psa_pake_set_user( psa_pake_operation_t *operation,
                                 const uint8_t *user_id,
                                 size_t user_id_len )
 {
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     if( operation->alg == PSA_ALG_NONE ||
         operation->state != PSA_PAKE_STATE_SETUP )
@@ -348,7 +348,7 @@ psa_status_t psa_pake_set_peer( psa_pake_operation_t *operation,
                                 const uint8_t *peer_id,
                                 size_t peer_id_len )
 {
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     if( operation->alg == PSA_ALG_NONE ||
         operation->state != PSA_PAKE_STATE_SETUP )
@@ -373,7 +373,7 @@ error:
 psa_status_t psa_pake_set_role( psa_pake_operation_t *operation,
                                 psa_pake_role_t role )
 {
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     if( operation->alg == PSA_ALG_NONE ||
         operation->state != PSA_PAKE_STATE_SETUP )

@@ -2219,12 +2219,12 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
 
 cleanup:
 
-    for( i = ( one << ( window_bitsize - 1 ) );
-         i < ( one << window_bitsize ); i++ )
+    /* The first bit of the sliding window is always 1 and therefore the first
+     * half of the table was unused. */
+    for( i = w_table_used_size/2; i < w_table_used_size; i++ )
         mbedtls_mpi_free( &W[i] );
 
     mbedtls_mpi_free( &W[1] );
-    mbedtls_mpi_free( &W[x_index] );
     mbedtls_mpi_free( &T );
     mbedtls_mpi_free( &Apos );
     mbedtls_mpi_free( &WW );

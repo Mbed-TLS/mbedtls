@@ -191,9 +191,26 @@ static psa_status_t mbedtls_ecjpake_to_psa_error(int ret)
 #endif
 
 #if defined(MBEDTLS_PSA_BUILTIN_PAKE)
-psa_status_t mbedtls_psa_pake_setup(psa_pake_operation_t *operation,
+psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
                                     const psa_pake_cipher_suite_t *cipher_suite)
 {
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    /* A context must be freshly initialized before it can be set up. */
+    if (operation->alg != PSA_ALG_NONE) {
+        status = PSA_ERROR_BAD_STATE;
+        goto error;
+    }
+
+    if (cipher_suite == NULL ||
+        PSA_ALG_IS_PAKE(cipher_suite->algorithm) == 0 ||
+        (cipher_suite->type != PSA_PAKE_PRIMITIVE_TYPE_ECC &&
+         cipher_suite->type != PSA_PAKE_PRIMITIVE_TYPE_DH) ||
+        PSA_ALG_IS_HASH(cipher_suite->hash) == 0) {
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto error;
+    }
+
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     if (cipher_suite->algorithm == PSA_ALG_JPAKE) {
         if (cipher_suite->type != PSA_PAKE_PRIMITIVE_TYPE_ECC ||
@@ -206,12 +223,14 @@ psa_status_t mbedtls_psa_pake_setup(psa_pake_operation_t *operation,
 
         operation->alg = cipher_suite->algorithm;
 
-        mbedtls_ecjpake_init(&operation->ctx.ecjpake);
+        mbedtls_ecjpake_init(&operation->ctx.pake);
 
         operation->state = PSA_PAKE_STATE_SETUP;
         operation->sequence = PSA_PAKE_SEQ_INVALID;
         operation->input_step = PSA_PAKE_STEP_X1_X2;
         operation->output_step = PSA_PAKE_STEP_X1_X2;
+        operation->password_len = 0;
+        operation->password = NULL;
 
         mbedtls_platform_zeroize(operation->buffer, MBEDTLS_PSA_PAKE_BUFFER_SIZE);
         operation->buffer_length = 0;
@@ -230,30 +249,14 @@ error:
     return status;
 }
 
-psa_status_t mbedtls_psa_pake_set_password_key(psa_pake_operation_t *operation,
-                                               mbedtls_svc_key_id_t password)
+psa_status_t mbedtls_psa_pake_set_password_key(const psa_key_attributes_t *attributes,
+                                               mbedtls_psa_pake_operation_t *operation,
+                                               uint8_t *password,
+                                               size_t password_len)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_attributes_t attributes = psa_key_attributes_init();
-    psa_key_type_t type;
-    psa_key_usage_t usage;
-    psa_key_slot_t *slot = NULL;
-
-    if (operation->alg == PSA_ALG_NONE ||
-        operation->state != PSA_PAKE_STATE_SETUP) {
-        status = PSA_ERROR_BAD_STATE;
-        goto error;
-    }
-
-    status = psa_get_key_attributes(password, &attributes);
-    if (status != PSA_SUCCESS) {
-        goto error;
-    }
-
-    type = psa_get_key_type(&attributes);
-    usage = psa_get_key_usage_flags(&attributes);
-
-    psa_reset_key_attributes(&attributes);
+    psa_key_type_t type = psa_get_key_type(attributes);
+    psa_key_usage_t usage = psa_get_key_usage_flags(attributes);
 
     if (type != PSA_KEY_TYPE_PASSWORD &&
         type != PSA_KEY_TYPE_PASSWORD_HASH) {
@@ -266,44 +269,48 @@ psa_status_t mbedtls_psa_pake_set_password_key(psa_pake_operation_t *operation,
         goto error;
     }
 
+    if (operation->alg == PSA_ALG_NONE) {
+        status = PSA_ERROR_BAD_STATE;
+        goto error;
+    }
+
+    if (operation->state != PSA_PAKE_STATE_SETUP) {
+        status =  PSA_ERROR_BAD_STATE;
+        goto error;
+    }
+
     if (operation->password != NULL) {
-        return PSA_ERROR_BAD_STATE;
+        status = PSA_ERROR_BAD_STATE;
+        goto error;
     }
 
-    status = psa_get_and_lock_key_slot_with_policy(password, &slot,
-                                                   PSA_KEY_USAGE_DERIVE,
-                                                   PSA_ALG_JPAKE);
-    if (status != PSA_SUCCESS) {
-        return status;
-    }
-
-    operation->password = mbedtls_calloc(1, slot->key.bytes);
+    operation->password = mbedtls_calloc(1, password_len);
     if (operation->password == NULL) {
-        psa_unlock_key_slot(slot);
         return PSA_ERROR_INSUFFICIENT_MEMORY;
     }
-    memcpy(operation->password, slot->key.data, slot->key.bytes);
-    operation->password_len = slot->key.bytes;
 
-    status = psa_unlock_key_slot(slot);
-    if (status != PSA_SUCCESS) {
-        return status;
-    }
+    memcpy(operation->password, password, password_len);
+    operation->password_len = password_len;
 
     return PSA_SUCCESS;
 
 error:
-    psa_pake_abort(operation);
+    mbedtls_psa_pake_abort(operation);
     return status;
 }
 
-psa_status_t mbedtls_psa_pake_set_user(psa_pake_operation_t *operation,
+psa_status_t mbedtls_psa_pake_set_user(mbedtls_psa_pake_operation_t *operation,
                                        const uint8_t *user_id,
                                        size_t user_id_len)
 {
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     (void) user_id;
     (void) user_id_len;
 
+    if (operation->alg == PSA_ALG_NONE) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
     if (operation->state != PSA_PAKE_STATE_SETUP) {
         status = PSA_ERROR_BAD_STATE;
         goto error;
@@ -316,12 +323,18 @@ error:
     return status;
 }
 
-psa_status_t mbedtls_psa_pake_set_peer(psa_pake_operation_t *operation,
+psa_status_t mbedtls_psa_pake_set_peer(mbedtls_psa_pake_operation_t *operation,
                                        const uint8_t *peer_id,
                                        size_t peer_id_len)
 {
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     (void) peer_id;
     (void) peer_id_len;
+
+    if (operation->alg == PSA_ALG_NONE) {
+        status =  PSA_ERROR_BAD_STATE;
+        goto error;
+    }
 
     if (operation->state != PSA_PAKE_STATE_SETUP) {
         status = PSA_ERROR_BAD_STATE;
@@ -335,9 +348,15 @@ error:
     return status;
 }
 
-psa_status_t mbedtls_psa_pake_set_role(psa_pake_operation_t *operation,
+psa_status_t mbedtls_psa_pake_set_role(mbedtls_psa_pake_operation_t *operation,
                                        psa_pake_role_t role)
 {
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    if (operation->alg == PSA_ALG_NONE) {
+        status = PSA_ERROR_BAD_STATE;
+        goto error;
+    }
+
     if (operation->state != PSA_PAKE_STATE_SETUP) {
         status = PSA_ERROR_BAD_STATE;
         goto error;
@@ -366,7 +385,7 @@ error:
 }
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
-static psa_status_t psa_pake_ecjpake_setup(psa_pake_operation_t *operation)
+static psa_status_t psa_pake_ecjpake_setup(mbedtls_psa_pake_operation_t *operation)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecjpake_role role;
@@ -383,7 +402,7 @@ static psa_status_t psa_pake_ecjpake_setup(psa_pake_operation_t *operation)
         return PSA_ERROR_BAD_STATE;
     }
 
-    ret = mbedtls_ecjpake_setup(&operation->ctx.ecjpake,
+    ret = mbedtls_ecjpake_setup(&operation->ctx.pake,
                                 role,
                                 MBEDTLS_MD_SHA256,
                                 MBEDTLS_ECP_DP_SECP256R1,
@@ -406,7 +425,7 @@ static psa_status_t psa_pake_ecjpake_setup(psa_pake_operation_t *operation)
 #endif
 
 static psa_status_t mbedtls_psa_pake_output_internal(
-    psa_pake_operation_t *operation,
+    mbedtls_psa_pake_operation_t *operation,
     psa_pake_step_t step,
     uint8_t *output,
     size_t output_size,
@@ -415,6 +434,10 @@ static psa_status_t mbedtls_psa_pake_output_internal(
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t length;
+
+    if (operation->alg == PSA_ALG_NONE) {
+        return PSA_ERROR_BAD_STATE;
+    }
 
     if (operation->state == PSA_PAKE_STATE_INVALID) {
         return PSA_ERROR_BAD_STATE;
@@ -504,7 +527,7 @@ static psa_status_t mbedtls_psa_pake_output_internal(
         /* Initialize & write round on KEY_SHARE sequences */
         if (operation->state == PSA_PAKE_OUTPUT_X1_X2 &&
             operation->sequence == PSA_PAKE_X1_STEP_KEY_SHARE) {
-            ret = mbedtls_ecjpake_write_round_one(&operation->ctx.ecjpake,
+            ret = mbedtls_ecjpake_write_round_one(&operation->ctx.pake,
                                                   operation->buffer,
                                                   MBEDTLS_PSA_PAKE_BUFFER_SIZE,
                                                   &operation->buffer_length,
@@ -517,7 +540,7 @@ static psa_status_t mbedtls_psa_pake_output_internal(
             operation->buffer_offset = 0;
         } else if (operation->state == PSA_PAKE_OUTPUT_X2S &&
                    operation->sequence == PSA_PAKE_X1_STEP_KEY_SHARE) {
-            ret = mbedtls_ecjpake_write_round_two(&operation->ctx.ecjpake,
+            ret = mbedtls_ecjpake_write_round_two(&operation->ctx.pake,
                                                   operation->buffer,
                                                   MBEDTLS_PSA_PAKE_BUFFER_SIZE,
                                                   &operation->buffer_length,
@@ -594,7 +617,7 @@ static psa_status_t mbedtls_psa_pake_output_internal(
     { return PSA_ERROR_NOT_SUPPORTED; }
 }
 
-psa_status_t mbedtls_psa_pake_output(psa_pake_operation_t *operation,
+psa_status_t mbedtls_psa_pake_output(mbedtls_psa_pake_operation_t *operation,
                                      psa_pake_step_t step,
                                      uint8_t *output,
                                      size_t output_size,
@@ -604,20 +627,24 @@ psa_status_t mbedtls_psa_pake_output(psa_pake_operation_t *operation,
         operation, step, output, output_size, output_length);
 
     if (status != PSA_SUCCESS) {
-        psa_pake_abort(operation);
+        mbedtls_psa_pake_abort(operation);
     }
 
     return status;
 }
 
 static psa_status_t mbedtls_psa_pake_input_internal(
-    psa_pake_operation_t *operation,
+    mbedtls_psa_pake_operation_t *operation,
     psa_pake_step_t step,
     const uint8_t *input,
     size_t input_length)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    if (operation->alg == PSA_ALG_NONE) {
+        return PSA_ERROR_BAD_STATE;
+    }
 
     if (operation->state == PSA_PAKE_STATE_INVALID) {
         return PSA_ERROR_BAD_STATE;
@@ -746,7 +773,7 @@ static psa_status_t mbedtls_psa_pake_input_internal(
         /* Load buffer at each last round ZK_PROOF */
         if (operation->state == PSA_PAKE_INPUT_X1_X2 &&
             operation->sequence == PSA_PAKE_X2_STEP_ZK_PROOF) {
-            ret = mbedtls_ecjpake_read_round_one(&operation->ctx.ecjpake,
+            ret = mbedtls_ecjpake_read_round_one(&operation->ctx.pake,
                                                  operation->buffer,
                                                  operation->buffer_length);
 
@@ -758,7 +785,7 @@ static psa_status_t mbedtls_psa_pake_input_internal(
             }
         } else if (operation->state == PSA_PAKE_INPUT_X4S &&
                    operation->sequence == PSA_PAKE_X1_STEP_ZK_PROOF) {
-            ret = mbedtls_ecjpake_read_round_two(&operation->ctx.ecjpake,
+            ret = mbedtls_ecjpake_read_round_two(&operation->ctx.pake,
                                                  operation->buffer,
                                                  operation->buffer_length);
 
@@ -791,7 +818,7 @@ static psa_status_t mbedtls_psa_pake_input_internal(
     { return PSA_ERROR_NOT_SUPPORTED; }
 }
 
-psa_status_t mbedtls_psa_pake_input(psa_pake_operation_t *operation,
+psa_status_t mbedtls_psa_pake_input(mbedtls_psa_pake_operation_t *operation,
                                     psa_pake_step_t step,
                                     const uint8_t *input,
                                     size_t input_length)
@@ -800,18 +827,22 @@ psa_status_t mbedtls_psa_pake_input(psa_pake_operation_t *operation,
         operation, step, input, input_length);
 
     if (status != PSA_SUCCESS) {
-        psa_pake_abort(operation);
+        mbedtls_psa_pake_abort(operation);
     }
 
     return status;
 }
 
 psa_status_t mbedtls_psa_pake_get_implicit_key(
-    psa_pake_operation_t *operation,
+    mbedtls_psa_pake_operation_t *operation,
     psa_key_derivation_operation_t *output)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    if (operation->alg == PSA_ALG_NONE) {
+        return PSA_ERROR_BAD_STATE;
+    }
 
     if (operation->input_step != PSA_PAKE_STEP_DERIVE ||
         operation->output_step != PSA_PAKE_STEP_DERIVE) {
@@ -821,14 +852,14 @@ psa_status_t mbedtls_psa_pake_get_implicit_key(
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     if (operation->alg == PSA_ALG_JPAKE) {
-        ret = mbedtls_ecjpake_write_shared_key(&operation->ctx.ecjpake,
+        ret = mbedtls_ecjpake_write_shared_key(&operation->ctx.pake,
                                                operation->buffer,
                                                MBEDTLS_PSA_PAKE_BUFFER_SIZE,
                                                &operation->buffer_length,
                                                mbedtls_psa_get_random,
                                                MBEDTLS_PSA_RANDOM_STATE);
         if (ret != 0) {
-            psa_pake_abort(operation);
+            mbedtls_psa_pake_abort(operation);
             return mbedtls_ecjpake_to_psa_error(ret);
         }
 
@@ -839,7 +870,7 @@ psa_status_t mbedtls_psa_pake_get_implicit_key(
 
         mbedtls_platform_zeroize(operation->buffer, MBEDTLS_PSA_PAKE_BUFFER_SIZE);
 
-        psa_pake_abort(operation);
+        mbedtls_psa_pake_abort(operation);
 
         return status;
     } else
@@ -850,14 +881,19 @@ psa_status_t mbedtls_psa_pake_get_implicit_key(
 
 error:
     psa_key_derivation_abort(output);
-    psa_pake_abort(operation);
+    mbedtls_psa_pake_abort(operation);
 
     return status;
 }
 
-psa_status_t mbedtls_psa_pake_abort(psa_pake_operation_t *operation)
+psa_status_t mbedtls_psa_pake_abort(mbedtls_psa_pake_operation_t *operation)
 {
+    if (operation->alg == PSA_ALG_NONE) {
+        return PSA_SUCCESS;
+    }
+
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
+
     if (operation->alg == PSA_ALG_JPAKE) {
         operation->input_step = PSA_PAKE_STEP_INVALID;
         operation->output_step = PSA_PAKE_STEP_INVALID;
@@ -871,7 +907,7 @@ psa_status_t mbedtls_psa_pake_abort(psa_pake_operation_t *operation)
         mbedtls_platform_zeroize(operation->buffer, MBEDTLS_PSA_PAKE_BUFFER_SIZE);
         operation->buffer_length = 0;
         operation->buffer_offset = 0;
-        mbedtls_ecjpake_free(&operation->ctx.ecjpake);
+        mbedtls_ecjpake_free(&operation->ctx.pake);
     }
 #endif
 

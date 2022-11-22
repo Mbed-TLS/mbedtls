@@ -5072,13 +5072,13 @@ psa_status_t psa_key_derivation_abort(psa_key_derivation_operation_t *operation)
                                      operation->ctx.tls12_prf.label_length);
             mbedtls_free(operation->ctx.tls12_prf.label);
         }
-
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
         if (operation->ctx.tls12_prf.other_secret != NULL) {
             mbedtls_platform_zeroize(operation->ctx.tls12_prf.other_secret,
                                      operation->ctx.tls12_prf.other_secret_length);
             mbedtls_free(operation->ctx.tls12_prf.other_secret);
         }
-
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
         status = PSA_SUCCESS;
 
         /* We leave the fields Ai and output_block to be erased safely by the
@@ -7163,24 +7163,10 @@ exit:
     return status;
 }
 
-#if defined(MBEDTLS_PSA_BUILTIN_PAKE)
 psa_status_t psa_pake_setup(
     psa_pake_operation_t *operation,
     const psa_pake_cipher_suite_t *cipher_suite)
 {
-    /* A context must be freshly initialized before it can be set up. */
-    if (operation->alg != PSA_ALG_NONE) {
-        return PSA_ERROR_BAD_STATE;
-    }
-
-    if (cipher_suite == NULL ||
-        PSA_ALG_IS_PAKE(cipher_suite->algorithm) == 0 ||
-        (cipher_suite->type != PSA_PAKE_PRIMITIVE_TYPE_ECC &&
-         cipher_suite->type != PSA_PAKE_PRIMITIVE_TYPE_DH) ||
-        PSA_ALG_IS_HASH(cipher_suite->hash) == 0) {
-        return PSA_ERROR_INVALID_ARGUMENT;
-    }
-
     return psa_driver_wrapper_pake_setup(operation, cipher_suite);
 }
 
@@ -7189,34 +7175,30 @@ psa_status_t psa_pake_set_password_key(
     mbedtls_svc_key_id_t password)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_attributes_t attributes = psa_key_attributes_init();
-    psa_key_type_t type;
-    psa_key_usage_t usage;
+    psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_slot_t *slot = NULL;
 
-    if (operation->alg == PSA_ALG_NONE) {
+    if (operation->id == 0) {
         return PSA_ERROR_BAD_STATE;
     }
 
-    status = psa_get_key_attributes(password, &attributes);
+    status = psa_get_and_lock_key_slot_with_policy(password, &slot,
+                                                   PSA_KEY_USAGE_DERIVE,
+                                                   PSA_ALG_JPAKE);
     if (status != PSA_SUCCESS) {
         return status;
     }
 
-    type = psa_get_key_type(&attributes);
-    usage = psa_get_key_usage_flags(&attributes);
+    psa_key_attributes_t attributes = {
+        .core = slot->attr
+    };
 
-    psa_reset_key_attributes(&attributes);
+    status = psa_driver_wrapper_pake_set_password_key(&attributes, operation,
+                                                      slot->key.data, slot->key.bytes);
 
-    if (type != PSA_KEY_TYPE_PASSWORD &&
-        type != PSA_KEY_TYPE_PASSWORD_HASH) {
-        return PSA_ERROR_INVALID_ARGUMENT;
-    }
+    unlock_status = psa_unlock_key_slot(slot);
 
-    if ((usage & PSA_KEY_USAGE_DERIVE) == 0) {
-        return PSA_ERROR_NOT_PERMITTED;
-    }
-
-    return psa_driver_wrapper_pake_set_password_key(operation, password);
+    return (status == PSA_SUCCESS) ? unlock_status : status;
 }
 
 psa_status_t psa_pake_set_user(
@@ -7224,7 +7206,7 @@ psa_status_t psa_pake_set_user(
     const uint8_t *user_id,
     size_t user_id_len)
 {
-    if (operation->alg == PSA_ALG_NONE) {
+    if (operation->id == 0) {
         return PSA_ERROR_BAD_STATE;
     }
 
@@ -7241,7 +7223,7 @@ psa_status_t psa_pake_set_peer(
     const uint8_t *peer_id,
     size_t peer_id_len)
 {
-    if (operation->alg == PSA_ALG_NONE) {
+    if (operation->id == 0) {
         return PSA_ERROR_BAD_STATE;
     }
 
@@ -7257,7 +7239,7 @@ psa_status_t psa_pake_set_role(
     psa_pake_operation_t *operation,
     psa_pake_role_t role)
 {
-    if (operation->alg == PSA_ALG_NONE) {
+    if (operation->id == 0) {
         return PSA_ERROR_BAD_STATE;
     }
 
@@ -7279,7 +7261,7 @@ psa_status_t psa_pake_output(
     size_t output_size,
     size_t *output_length)
 {
-    if (operation->alg == PSA_ALG_NONE) {
+    if (operation->id == 0) {
         return PSA_ERROR_BAD_STATE;
     }
 
@@ -7297,7 +7279,7 @@ psa_status_t psa_pake_input(
     const uint8_t *input,
     size_t input_length)
 {
-    if (operation->alg == PSA_ALG_NONE) {
+    if (operation->id == 0) {
         return PSA_ERROR_BAD_STATE;
     }
 
@@ -7313,7 +7295,7 @@ psa_status_t psa_pake_get_implicit_key(
     psa_pake_operation_t *operation,
     psa_key_derivation_operation_t *output)
 {
-    if (operation->alg == PSA_ALG_NONE) {
+    if (operation->id == 0) {
         return PSA_ERROR_BAD_STATE;
     }
 
@@ -7323,12 +7305,12 @@ psa_status_t psa_pake_get_implicit_key(
 psa_status_t psa_pake_abort(
     psa_pake_operation_t *operation)
 {
-    if (operation->alg == PSA_ALG_NONE) {
+    /* Aborting a non-active operation is allowed */
+    if (operation->id == 0) {
         return PSA_SUCCESS;
     }
 
     return psa_driver_wrapper_pake_abort(operation);
 }
-#endif /* MBEDTLS_PSA_BUILTIN_PAKE */
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

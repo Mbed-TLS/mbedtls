@@ -93,14 +93,15 @@
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t mbedtls_psa_pake_setup(psa_pake_operation_t *operation,
+psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
                                     const psa_pake_cipher_suite_t *cipher_suite);
 
 /** Set the password for a password-authenticated key exchange from key ID.
  *
  * Call this function when the password, or a value derived from the password,
  * is already present in the key store.
- *
+ * \param[in] attributes        The attributes of the key to use for the
+ *                              operation.
  * \param[in,out] operation     The operation object to set the password for. It
  *                              must have been set up by psa_pake_setup() and
  *                              not yet in use (neither psa_pake_output() nor
@@ -108,13 +109,8 @@ psa_status_t mbedtls_psa_pake_setup(psa_pake_operation_t *operation,
  *                              be on operation for which the password hasn't
  *                              been set yet (psa_pake_set_password_key()
  *                              hasn't been called yet).
- * \param password              Identifier of the key holding the password or a
- *                              value derived from the password (eg. by a
- *                              memory-hard function).  It must remain valid
- *                              until the operation terminates. It must be of
- *                              type #PSA_KEY_TYPE_PASSWORD or
- *                              #PSA_KEY_TYPE_PASSWORD_HASH. It has to allow
- *                              the usage #PSA_KEY_USAGE_DERIVE.
+ * \param password              Buffer holding the password
+ * \param password_len          Password buffer size
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -142,8 +138,10 @@ psa_status_t mbedtls_psa_pake_setup(psa_pake_operation_t *operation,
  *         results in this error code.
  */
 psa_status_t mbedtls_psa_pake_set_password_key(
-    psa_pake_operation_t *operation,
-    mbedtls_svc_key_id_t password);
+    const psa_key_attributes_t *attributes,
+    mbedtls_psa_pake_operation_t *operation,
+    uint8_t *password,
+    size_t password_len);
 
 /** Set the user ID for a password-authenticated key exchange.
  *
@@ -182,7 +180,7 @@ psa_status_t mbedtls_psa_pake_set_password_key(
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t mbedtls_psa_pake_set_user(psa_pake_operation_t *operation,
+psa_status_t mbedtls_psa_pake_set_user(mbedtls_psa_pake_operation_t *operation,
                                        const uint8_t *user_id,
                                        size_t user_id_len);
 
@@ -224,7 +222,7 @@ psa_status_t mbedtls_psa_pake_set_user(psa_pake_operation_t *operation,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t mbedtls_psa_pake_set_peer(psa_pake_operation_t *operation,
+psa_status_t mbedtls_psa_pake_set_peer(mbedtls_psa_pake_operation_t *operation,
                                        const uint8_t *peer_id,
                                        size_t peer_id_len);
 
@@ -266,7 +264,7 @@ psa_status_t mbedtls_psa_pake_set_peer(psa_pake_operation_t *operation,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t mbedtls_psa_pake_set_role(psa_pake_operation_t *operation,
+psa_status_t mbedtls_psa_pake_set_role(mbedtls_psa_pake_operation_t *operation,
                                        psa_pake_role_t role);
 
 /** Get output for a step of a password-authenticated key exchange.
@@ -324,7 +322,7 @@ psa_status_t mbedtls_psa_pake_set_role(psa_pake_operation_t *operation,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t mbedtls_psa_pake_output(psa_pake_operation_t *operation,
+psa_status_t mbedtls_psa_pake_output(mbedtls_psa_pake_operation_t *operation,
                                      psa_pake_step_t step,
                                      uint8_t *output,
                                      size_t output_size,
@@ -379,7 +377,7 @@ psa_status_t mbedtls_psa_pake_output(psa_pake_operation_t *operation,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t mbedtls_psa_pake_input(psa_pake_operation_t *operation,
+psa_status_t mbedtls_psa_pake_input(mbedtls_psa_pake_operation_t *operation,
                                     psa_pake_step_t step,
                                     const uint8_t *input,
                                     size_t input_length);
@@ -443,7 +441,7 @@ psa_status_t mbedtls_psa_pake_input(psa_pake_operation_t *operation,
  *         results in this error code.
  */
 psa_status_t mbedtls_psa_pake_get_implicit_key(
-    psa_pake_operation_t *operation,
+    mbedtls_psa_pake_operation_t *operation,
     psa_key_derivation_operation_t *output);
 
 /** Abort a PAKE operation.
@@ -470,6 +468,6 @@ psa_status_t mbedtls_psa_pake_get_implicit_key(
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t mbedtls_psa_pake_abort(psa_pake_operation_t *operation);
+psa_status_t mbedtls_psa_pake_abort(mbedtls_psa_pake_operation_t *operation);
 
 #endif /* PSA_CRYPTO_PAKE_H */

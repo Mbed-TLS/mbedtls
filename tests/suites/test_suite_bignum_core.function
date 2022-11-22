@@ -1049,6 +1049,52 @@ exit:
 
 /* BEGIN MERGE SLOT 3 */
 
+/* BEGIN_CASE */
+void mpi_core_sub_int( char * input_A, char * input_B,
+                       char * input_X, int borrow )
+{
+    /* We are testing A - b, where A is an MPI and b is a scalar, expecting
+     * result X with borrow borrow.  However, for ease of handling we encode b
+     * as a 1-limb MPI (B) in the .data file. */
+
+    mbedtls_mpi_uint *A = NULL;
+    mbedtls_mpi_uint *B = NULL;
+    mbedtls_mpi_uint *X = NULL;
+    mbedtls_mpi_uint *R = NULL;
+    size_t A_limbs, B_limbs, X_limbs;
+
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &A, &A_limbs, input_A ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &B, &B_limbs, input_B ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &X, &X_limbs, input_X ) );
+
+    /* The MPI encoding of scalar b must be only 1 limb */
+    TEST_EQUAL( B_limbs, 1 );
+
+    /* The subtraction is fixed-width, so A and X must have the same number of limbs */
+    TEST_EQUAL( A_limbs, X_limbs );
+    size_t limbs = A_limbs;
+
+    ASSERT_ALLOC( R, limbs );
+
+#define TEST_COMPARE_CORE_MPIS( A, B, limbs ) \
+                ASSERT_COMPARE( A, (limbs) * sizeof(mbedtls_mpi_uint), B, (limbs) * sizeof(mbedtls_mpi_uint) )
+
+    /* 1. R = A - b. Result and borrow should be correct */
+    TEST_EQUAL( mbedtls_mpi_core_sub_int( R, A, B[0], limbs ), borrow );
+    TEST_COMPARE_CORE_MPIS( R, X, limbs );
+
+    /* 2. A = A - b. Result and borrow should be correct */
+    TEST_EQUAL( mbedtls_mpi_core_sub_int( A, A, B[0], limbs ), borrow );
+    TEST_COMPARE_CORE_MPIS( A, X, limbs );
+
+exit:
+    mbedtls_free( A );
+    mbedtls_free( B );
+    mbedtls_free( X );
+    mbedtls_free( R );
+}
+/* END_CASE */
+
 /* END MERGE SLOT 3 */
 
 /* BEGIN MERGE SLOT 4 */

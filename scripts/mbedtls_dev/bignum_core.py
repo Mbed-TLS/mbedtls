@@ -763,6 +763,37 @@ def mpi_modmul_case_generate() -> None:
 
 # BEGIN MERGE SLOT 3
 
+class BignumCoreSubInt(BignumCoreTarget, bignum_common.OperationCommon):
+    """Test cases for bignum core sub int."""
+    count = 0
+    symbol = "-"
+    test_function = "mpi_core_sub_int"
+    test_name = "mpi_core_sub_int"
+    input_style = "arch_split"
+
+    @property
+    def is_valid(self) -> bool:
+        # This is "sub int", so b is only one limb
+        if bignum_common.limbs_mpi(self.int_b, self.bits_in_limb) > 1:
+            return False
+        return True
+
+    # Overriding because we don't want leading zeros on b
+    @property
+    def arg_b(self) -> str:
+        return self.val_b
+
+    def result(self) -> List[str]:
+        result = self.int_a - self.int_b
+
+        borrow, result = divmod(result, self.limb_boundary)
+
+        # Borrow will be -1 if non-zero, but we want it to be 1 in the test data
+        return [
+            self.format_result(result),
+            str(-borrow)
+        ]
+
 # END MERGE SLOT 3
 
 # BEGIN MERGE SLOT 4

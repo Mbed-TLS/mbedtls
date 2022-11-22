@@ -274,19 +274,19 @@ psa_status_t psa_pake_set_password_key( psa_pake_operation_t *operation,
     if( ( usage & PSA_KEY_USAGE_DERIVE ) == 0 )
         return( PSA_ERROR_NOT_PERMITTED );
 
+    if( operation->password != NULL )
+        return( PSA_ERROR_BAD_STATE );
+
     status = psa_get_and_lock_key_slot_with_policy( password, &slot,
                                                     PSA_KEY_USAGE_DERIVE,
                                                     PSA_ALG_JPAKE );
     if( status != PSA_SUCCESS )
         return( status );
 
-    if( operation->password != NULL )
-        return( PSA_ERROR_BAD_STATE );
-
     operation->password = mbedtls_calloc( 1, slot->key.bytes );
     if( operation->password == NULL )
     {
-        status = psa_unlock_key_slot( slot );
+        psa_unlock_key_slot( slot );
         return( PSA_ERROR_INSUFFICIENT_MEMORY );
     }
     memcpy( operation->password, slot->key.data, slot->key.bytes );
@@ -388,13 +388,13 @@ static psa_status_t psa_pake_ecjpake_setup( psa_pake_operation_t *operation )
                                  operation->password,
                                  operation->password_len );
 
-    if( ret != 0 )
-        return( mbedtls_ecjpake_to_psa_error( ret ) );
-
     mbedtls_platform_zeroize( operation->password, operation->password_len );
     mbedtls_free( operation->password );
     operation->password = NULL;
     operation->password_len = 0;
+
+    if( ret != 0 )
+        return( mbedtls_ecjpake_to_psa_error( ret ) );
 
     operation->state = PSA_PAKE_STATE_READY;
 
@@ -445,13 +445,7 @@ static psa_status_t psa_pake_output_internal(
         if( operation->state == PSA_PAKE_STATE_SETUP ) {
             status = psa_pake_ecjpake_setup( operation );
             if( status != PSA_SUCCESS )
-            {
-                mbedtls_platform_zeroize( operation->password, operation->password_len );
-                mbedtls_free( operation->password );
-                operation->password = NULL;
-                operation->password_len = 0;
                 return( status );
-            }
         }
 
         if( operation->state != PSA_PAKE_STATE_READY &&
@@ -659,13 +653,7 @@ static psa_status_t psa_pake_input_internal(
         {
             status = psa_pake_ecjpake_setup( operation );
             if( status != PSA_SUCCESS )
-            {
-                mbedtls_platform_zeroize( operation->password, operation->password_len );
-                mbedtls_free( operation->password );
-                operation->password = NULL;
-                operation->password_len = 0;
                 return( status );
-            }
         }
 
         if( operation->state != PSA_PAKE_STATE_READY &&

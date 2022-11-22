@@ -1,0 +1,10 @@
+benchmark
+test-openbox
+test-closedbox
+test-data.h
+*.o
+*.s
+*.dump
+*.sizes
+*.su
+*.dfinish

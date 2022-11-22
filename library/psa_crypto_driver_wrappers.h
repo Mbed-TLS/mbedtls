@@ -420,8 +420,10 @@ psa_status_t psa_driver_wrapper_pake_setup(
     const psa_pake_cipher_suite_t *cipher_suite);
 
 psa_status_t psa_driver_wrapper_pake_set_password_key(
+    const psa_key_attributes_t *attributes,
     psa_pake_operation_t *operation,
-    mbedtls_svc_key_id_t password);
+    uint8_t *key_buffer,
+    size_t key_size);
 
 psa_status_t psa_driver_wrapper_pake_set_user(
     psa_pake_operation_t *operation,

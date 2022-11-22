@@ -160,32 +160,58 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mpi_read_write_string( int radix_X, char * input_X, int radix_A,
-                            char * input_A, int output_size, int result_read,
-                            int result_write )
+void mpi_read_string( int radix_A, char * input_A, char * input_X, int ret )
 {
-    mbedtls_mpi X;
-    char str[1000];
-    size_t len;
+    mbedtls_mpi A, X;
 
+    mbedtls_mpi_init( &A );
     mbedtls_mpi_init( &X );
 
-    memset( str, '!', sizeof( str ) );
-
-    TEST_ASSERT( mbedtls_mpi_read_string( &X, radix_X, input_X ) == result_read );
-    if( result_read == 0 )
+    TEST_EQUAL( mbedtls_mpi_read_string( &A, radix_A, input_A ), ret );
+    if( ret == 0 )
     {
-        TEST_ASSERT( sign_is_valid( &X ) );
-        TEST_ASSERT( mbedtls_mpi_write_string( &X, radix_A, str, output_size, &len ) == result_write );
-        if( result_write == 0 )
-        {
-            TEST_ASSERT( strcasecmp( str, input_A ) == 0 );
-            TEST_ASSERT( str[len] == '!' );
-        }
+        TEST_EQUAL( sign_is_valid( &A ), 1 );
+        TEST_EQUAL( mbedtls_mpi_read_string( &X, 16, input_X ), 0 );
+        TEST_EQUAL( sign_is_valid( &X ), 1 );
+        TEST_EQUAL( mbedtls_mpi_cmp_mpi( &A, &X ), 0 );
     }
-
 exit:
+    mbedtls_mpi_free( &A );
     mbedtls_mpi_free( &X );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_write_string( char * input_A, int radix_X, char * input_X,
+                       int buf_size, int ret )
+{
+    mbedtls_mpi A;
+    char *str = NULL;
+    char *str2 = NULL;
+    size_t olen;
+
+    mbedtls_mpi_init( &A );
+    ASSERT_ALLOC( str, buf_size );
+
+    TEST_EQUAL( mbedtls_mpi_read_string( &A, 16, input_A ), 0 );
+    TEST_EQUAL( sign_is_valid( &A ), 1 );
+    TEST_EQUAL( mbedtls_mpi_write_string( &A, radix_X, str, buf_size, &olen ), ret );
+
+    if( ret == 0 )
+    {
+        TEST_EQUAL( str[olen - 1], 0 );
+        ASSERT_COMPARE( str, olen, input_X, strlen( input_X ) + 1 );
+    }
+    else if( ret == MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL )
+    {
+        // Test that write succeeds with olen sized buffer
+        ASSERT_ALLOC( str2, olen );
+        TEST_EQUAL( mbedtls_mpi_write_string( &A, radix_X, str2, olen, &olen ), 0 );
+    }
+exit:
+    mbedtls_mpi_free( &A );
+    mbedtls_free( str );
+    mbedtls_free( str2 );
 }
 /* END_CASE */
 

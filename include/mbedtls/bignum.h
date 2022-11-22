@@ -758,11 +758,11 @@ int mbedtls_mpi_mul_int( mbedtls_mpi *X, const mbedtls_mpi *A,
  *
  * \param Q        The destination MPI for the quotient.
  *                 This may be \c NULL if the value of the
- *                 quotient is not needed.
+ *                 quotient is not needed. This must not alias A or B.
  * \param R        The destination MPI for the remainder value.
  *                 This may be \c NULL if the value of the
- *                 remainder is not needed.
- * \param A        The dividend. This must point to an initialized MPi.
+ *                 remainder is not needed. This must not alias A or B.
+ * \param A        The dividend. This must point to an initialized MPI.
  * \param B        The divisor. This must point to an initialized MPI.
  *
  * \return         \c 0 if successful.
@@ -779,10 +779,10 @@ int mbedtls_mpi_div_mpi( mbedtls_mpi *Q, mbedtls_mpi *R, const mbedtls_mpi *A,
  *
  * \param Q        The destination MPI for the quotient.
  *                 This may be \c NULL if the value of the
- *                 quotient is not needed.
+ *                 quotient is not needed.  This must not alias A.
  * \param R        The destination MPI for the remainder value.
  *                 This may be \c NULL if the value of the
- *                 remainder is not needed.
+ *                 remainder is not needed.  This must not alias A.
  * \param A        The dividend. This must point to an initialized MPi.
  * \param b        The divisor.
  *
@@ -837,6 +837,7 @@ int mbedtls_mpi_mod_int( mbedtls_mpi_uint *r, const mbedtls_mpi *A,
  * \brief          Perform a sliding-window exponentiation: X = A^E mod N
  *
  * \param X        The destination MPI. This must point to an initialized MPI.
+ *                 This must not alias E or N.
  * \param A        The base of the exponentiation.
  *                 This must point to an initialized MPI.
  * \param E        The exponent MPI. This must point to an initialized MPI.

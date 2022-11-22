@@ -167,9 +167,6 @@ mpi_core_lt_ct:"2B5":"2B4":0
 mbedtls_mpi_core_lt_ct: x<y (1 limb)
 mpi_core_lt_ct:"2B5":"2B6":1
 
-mbedtls_mpi_core_lt_ct: x=y (0 limbs)
-mpi_core_lt_ct:"":"":0
-
 mbedtls_mpi_core_lt_ct: x>y (63 bit x, y first byte greater)
 mpi_core_lt_ct:"7FFFFFFFFFFFFFFF":"00000000000000FF":0
 

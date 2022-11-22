@@ -376,6 +376,8 @@ int main( void )
     "                        a second non-empty message before attempting\n" \
     "                        to read a response from the server\n"           \
     "    debug_level=%%d      default: 0 (disabled)\n"             \
+    "    build_version=%%d    default: none (disabled)\n"                     \
+    "                        option: 1 (print build version only and stop)\n" \
     "    nbio=%%d             default: 0 (blocking I/O)\n"         \
     "                        options: 1 (non-blocking), 2 (added delays)\n"   \
     "    event=%%d            default: 0 (loop)\n"                            \
@@ -980,6 +982,16 @@ int main( int argc, char *argv[] )
             opt.debug_level = atoi( q );
             if( opt.debug_level < 0 || opt.debug_level > 65535 )
                 goto usage;
+        }
+        else if( strcmp( p, "build_version" ) == 0 )
+        {
+            if( strcmp( q, "1" ) == 0 )
+            {
+                mbedtls_printf( "build version: %s (build %d)\n",
+                                MBEDTLS_VERSION_STRING_FULL,
+                                MBEDTLS_VERSION_NUMBER );
+                goto exit;
+            }
         }
         else if( strcmp( p, "context_crt_cb" ) == 0 )
         {
@@ -1690,6 +1702,9 @@ int main( int argc, char *argv[] )
         }
     }
 #endif /* MBEDTLS_SSL_ALPN */
+
+    mbedtls_printf( "build version: %s (build %d)\n",
+                    MBEDTLS_VERSION_STRING_FULL, MBEDTLS_VERSION_NUMBER );
 
     /*
      * 0. Initialize the RNG and the session data

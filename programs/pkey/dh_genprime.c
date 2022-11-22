@@ -157,8 +157,8 @@ int main( int argc, char **argv )
         goto exit;
     }
 
-    if( ( ret = mbedtls_mpi_write_file( "P = ", &P, 16, fout ) != 0 ) ||
-        ( ret = mbedtls_mpi_write_file( "G = ", &G, 16, fout ) != 0 ) )
+    if( ( ( ret = mbedtls_mpi_write_file( "P = ", &P, 16, fout ) ) != 0 ) ||
+        ( ( ret = mbedtls_mpi_write_file( "G = ", &G, 16, fout ) ) != 0 ) )
     {
         mbedtls_printf( " failed\n  ! mbedtls_mpi_write_file returned %d\n\n", ret );
         fclose( fout );

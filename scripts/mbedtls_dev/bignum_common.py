@@ -14,11 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import itertools
-import typing
-
 from abc import abstractmethod
-from typing import Iterator, List, Tuple, TypeVar
+from typing import Iterator, List, Tuple, TypeVar, Any
+from itertools import chain
+
+from . import test_case
+from . import test_data_generation
+from .bignum_data import INPUTS_DEFAULT, MODULI_DEFAULT
 
 T = TypeVar('T') #pylint: disable=invalid-name
 
@@ -38,7 +40,13 @@ def invmod(a: int, n: int) -> int:
     raise ValueError("Not invertible")
 
 def hex_to_int(val: str) -> int:
-    return int(val, 16) if val else 0
+    """Implement the syntax accepted by mbedtls_test_read_mpi().
+
+    This is a superset of what is accepted by mbedtls_test_read_mpi_core().
+    """
+    if val in ['', '-']:
+        return 0
+    return int(val, 16)
 
 def quote_str(val) -> str:
     return "\"{}\"".format(val)
@@ -57,18 +65,10 @@ def limbs_mpi(val: int, bits_in_limb: int) -> int:
     return (val.bit_length() + bits_in_limb - 1) // bits_in_limb
 
 def combination_pairs(values: List[T]) -> List[Tuple[T, T]]:
-    """Return all pair combinations from input values.
+    """Return all pair combinations from input values."""
+    return [(x, y) for x in values for y in values]
 
-    The return value is cast, as older versions of mypy are unable to derive
-    the specific type returned by itertools.combinations_with_replacement.
-    """
-    return typing.cast(
-        List[Tuple[T, T]],
-        list(itertools.combinations_with_replacement(values, 2))
-    )
-
-
-class OperationCommon:
+class OperationCommon(test_data_generation.BaseTest):
     """Common features for bignum binary operations.
 
     This adds functionality common in binary operation tests.
@@ -82,22 +82,106 @@ class OperationCommon:
         unique_combinations_only: Boolean to select if test case combinations
             must be unique. If True, only A,B or B,A would be included as a test
             case. If False, both A,B and B,A would be included.
+        input_style: Controls the way how test data is passed to the functions
+            in the generated test cases. "variable" passes them as they are
+            defined in the python source. "arch_split" pads the values with
+            zeroes depending on the architecture/limb size. If this is set,
+            test cases are generated for all architectures.
+        arity: the number of operands for the operation. Currently supported
+            values are 1 and 2.
     """
     symbol = ""
-    input_values = [] # type: List[str]
-    input_cases = [] # type: List[Tuple[str, str]]
-    unique_combinations_only = True
+    input_values = INPUTS_DEFAULT # type: List[str]
+    input_cases = [] # type: List[Any]
+    unique_combinations_only = False
+    input_styles = ["variable", "fixed", "arch_split"] # type: List[str]
+    input_style = "variable" # type: str
+    limb_sizes = [32, 64] # type: List[int]
+    arities = [1, 2]
+    arity = 2
 
-    def __init__(self, val_a: str, val_b: str) -> None:
-        self.arg_a = val_a
-        self.arg_b = val_b
+    def __init__(self, val_a: str, val_b: str = "0", bits_in_limb: int = 32) -> None:
+        self.val_a = val_a
+        self.val_b = val_b
+        # Setting the int versions here as opposed to making them @properties
+        # provides earlier/more robust input validation.
         self.int_a = hex_to_int(val_a)
         self.int_b = hex_to_int(val_b)
+        if bits_in_limb not in self.limb_sizes:
+            raise ValueError("Invalid number of bits in limb!")
+        if self.input_style == "arch_split":
+            self.dependencies = ["MBEDTLS_HAVE_INT{:d}".format(bits_in_limb)]
+        self.bits_in_limb = bits_in_limb
+
+    @property
+    def boundary(self) -> int:
+        if self.arity == 1:
+            return self.int_a
+        elif self.arity == 2:
+            return max(self.int_a, self.int_b)
+        raise ValueError("Unsupported number of operands!")
+
+    @property
+    def limb_boundary(self) -> int:
+        return bound_mpi(self.boundary, self.bits_in_limb)
+
+    @property
+    def limbs(self) -> int:
+        return limbs_mpi(self.boundary, self.bits_in_limb)
+
+    @property
+    def hex_digits(self) -> int:
+        return 2 * (self.limbs * self.bits_in_limb // 8)
+
+    def format_arg(self, val) -> str:
+        if self.input_style not in self.input_styles:
+            raise ValueError("Unknown input style!")
+        if self.input_style == "variable":
+            return val
+        else:
+            return val.zfill(self.hex_digits)
+
+    def format_result(self, res) -> str:
+        res_str = '{:x}'.format(res)
+        return quote_str(self.format_arg(res_str))
+
+    @property
+    def arg_a(self) -> str:
+        return self.format_arg(self.val_a)
+
+    @property
+    def arg_b(self) -> str:
+        if self.arity == 1:
+            raise AttributeError("Operation is unary and doesn't have arg_b!")
+        return self.format_arg(self.val_b)
 
     def arguments(self) -> List[str]:
-        return [
-            quote_str(self.arg_a), quote_str(self.arg_b)
-        ] + self.result()
+        args = [quote_str(self.arg_a)]
+        if self.arity == 2:
+            args.append(quote_str(self.arg_b))
+        return args + self.result()
+
+    def description(self) -> str:
+        """Generate a description for the test case.
+
+        If not set, case_description uses the form A `symbol` B, where symbol
+        is used to represent the operation. Descriptions of each value are
+        generated to provide some context to the test case.
+        """
+        if not self.case_description:
+            if self.arity == 1:
+                self.case_description = "{} {:x}".format(
+                    self.symbol, self.int_a
+                )
+            elif self.arity == 2:
+                self.case_description = "{:x} {} {:x}".format(
+                    self.int_a, self.symbol, self.int_b
+                )
+        return super().description()
+
+    @property
+    def is_valid(self) -> bool:
+        return True
 
     @abstractmethod
     def result(self) -> List[str]:
@@ -115,15 +199,134 @@ class OperationCommon:
         Combinations are first generated from all input values, and then
         specific cases provided.
         """
-        if cls.unique_combinations_only:
-            yield from combination_pairs(cls.input_values)
+        if cls.arity == 1:
+            yield from ((a, "0") for a in cls.input_values)
+        elif cls.arity == 2:
+            if cls.unique_combinations_only:
+                yield from combination_pairs(cls.input_values)
+            else:
+                yield from (
+                    (a, b)
+                    for a in cls.input_values
+                    for b in cls.input_values
+                )
         else:
-            yield from (
-                (a, b)
-                for a in cls.input_values
-                for b in cls.input_values
-            )
-        yield from cls.input_cases
+            raise ValueError("Unsupported number of operands!")
+
+    @classmethod
+    def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
+        if cls.input_style not in cls.input_styles:
+            raise ValueError("Unknown input style!")
+        if cls.arity not in cls.arities:
+            raise ValueError("Unsupported number of operands!")
+        if cls.input_style == "arch_split":
+            test_objects = (cls(a, b, bits_in_limb=bil)
+                            for a, b in cls.get_value_pairs()
+                            for bil in cls.limb_sizes)
+            special_cases = (cls(*args, bits_in_limb=bil) # type: ignore
+                             for args in cls.input_cases
+                             for bil in cls.limb_sizes)
+        else:
+            test_objects = (cls(a, b)
+                            for a, b in cls.get_value_pairs())
+            special_cases = (cls(*args) for args in cls.input_cases)
+        yield from (valid_test_object.create_test_case()
+                    for valid_test_object in filter(
+                        lambda test_object: test_object.is_valid,
+                        chain(test_objects, special_cases)
+                        )
+                    )
+
+
+class ModOperationCommon(OperationCommon):
+    #pylint: disable=abstract-method
+    """Target for bignum mod_raw test case generation."""
+    moduli = MODULI_DEFAULT # type: List[str]
+
+    def __init__(self, val_n: str, val_a: str, val_b: str = "0",
+                 bits_in_limb: int = 64) -> None:
+        super().__init__(val_a=val_a, val_b=val_b, bits_in_limb=bits_in_limb)
+        self.val_n = val_n
+        # Setting the int versions here as opposed to making them @properties
+        # provides earlier/more robust input validation.
+        self.int_n = hex_to_int(val_n)
+
+    @property
+    def boundary(self) -> int:
+        return self.int_n
+
+    @property
+    def arg_n(self) -> str:
+        return self.format_arg(self.val_n)
+
+    def arguments(self) -> List[str]:
+        return [quote_str(self.arg_n)] + super().arguments()
+
+    @property
+    def r(self) -> int: # pylint: disable=invalid-name
+        l = limbs_mpi(self.int_n, self.bits_in_limb)
+        return bound_mpi_limbs(l, self.bits_in_limb)
+
+    @property
+    def r_inv(self) -> int:
+        return invmod(self.r, self.int_n)
+
+    @property
+    def r2(self) -> int: # pylint: disable=invalid-name
+        return pow(self.r, 2)
+
+    @property
+    def is_valid(self) -> bool:
+        if self.int_a >= self.int_n:
+            return False
+        if self.arity == 2 and self.int_b >= self.int_n:
+            return False
+        return True
+
+    def description(self) -> str:
+        """Generate a description for the test case.
+
+        It uses the form A `symbol` B mod N, where symbol is used to represent
+        the operation.
+        """
+
+        if not self.case_description:
+            return super().description() + " mod {:x}".format(self.int_n)
+        return super().description()
+
+    @classmethod
+    def input_cases_args(cls) -> Iterator[Tuple[Any, Any, Any]]:
+        if cls.arity == 1:
+            yield from ((n, a, "0") for a, n in cls.input_cases)
+        elif cls.arity == 2:
+            yield from ((n, a, b) for a, b, n in cls.input_cases)
+        else:
+            raise ValueError("Unsupported number of operands!")
+
+    @classmethod
+    def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
+        if cls.input_style not in cls.input_styles:
+            raise ValueError("Unknown input style!")
+        if cls.arity not in cls.arities:
+            raise ValueError("Unsupported number of operands!")
+        if cls.input_style == "arch_split":
+            test_objects = (cls(n, a, b, bits_in_limb=bil)
+                            for n in cls.moduli
+                            for a, b in cls.get_value_pairs()
+                            for bil in cls.limb_sizes)
+            special_cases = (cls(*args, bits_in_limb=bil)
+                             for args in cls.input_cases_args()
+                             for bil in cls.limb_sizes)
+        else:
+            test_objects = (cls(n, a, b)
+                            for n in cls.moduli
+                            for a, b in cls.get_value_pairs())
+            special_cases = (cls(*args) for args in cls.input_cases_args())
+        yield from (valid_test_object.create_test_case()
+                    for valid_test_object in filter(
+                        lambda test_object: test_object.is_valid,
+                        chain(test_objects, special_cases)
+                        ))
 
 # BEGIN MERGE SLOT 1
 

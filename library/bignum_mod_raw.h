@@ -163,7 +163,29 @@ int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *A,
 /* END MERGE SLOT 6 */
 
 /* BEGIN MERGE SLOT 7 */
+/** Convert an MPI into Montgomery form.
+ *
+ * \param X      The address of the MPI.
+ *               Must have the same number of limbs as \p m.
+ * \param m      The address of the modulus, which gives the size of
+ *               the base `R` = 2^(biL*m->limbs).
+ *
+ * \return       \c 0 if successful.
+ */
+int mbedtls_mpi_mod_raw_to_mont_rep( mbedtls_mpi_uint *X,
+                                     const mbedtls_mpi_mod_modulus *m );
 
+/** Convert an MPI back from Montgomery representation.
+ *
+ * \param X      The address of the MPI.
+ *               Must have the same number of limbs as \p m.
+ * \param m      The address of the modulus, which gives the size of
+ *               the base `R`= 2^(biL*m->limbs).
+ *
+ * \return       \c 0 if successful.
+ */
+int mbedtls_mpi_mod_raw_from_mont_rep( mbedtls_mpi_uint *X,
+                                       const mbedtls_mpi_mod_modulus *m );
 /* END MERGE SLOT 7 */
 
 /* BEGIN MERGE SLOT 8 */

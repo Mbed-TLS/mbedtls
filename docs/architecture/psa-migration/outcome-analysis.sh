@@ -13,6 +13,7 @@
 # - the set of tests skipped in the driver-only build is the same as in an
 #   equivalent software-based configuration, or the difference is small enough,
 #   justified, and a github issue is created to track it.
+#   This part is verified by tests/scripts/analyze_outcomes.py
 #
 # WARNING: this script checks out a commit other than the head of the current
 # branch; it checks out the current branch again when running successfully,
@@ -26,30 +27,12 @@
 # re-running this script (for example "get numbers before this PR").
 
 # ----- BEGIN edit this -----
-# The component in all.sh that builds and tests with drivers.
-DRIVER_COMPONENT=test_psa_crypto_config_accel_hash_use_psa
-# A similar configuration to that of the component, except without drivers,
-# for comparison.
-reference_config () {
-    # start with full
-    scripts/config.py full
-    # use PSA config and disable driver-less algs as in the component
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
-    # disable options as in the component
-    # (no need to disable whole modules, we'll just skip their test suite)
-    scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
-}
 # Space-separated list of test suites to ignore:
 # if SSS is in that list, test_suite_SSS and test_suite_SSS.* are ignored.
 IGNORE="md mdx shax" # accelerated
 IGNORE="$IGNORE entropy hmac_drbg random" # disabled (ext. RNG)
 IGNORE="$IGNORE psa_crypto_init" # needs internal RNG
 IGNORE="$IGNORE hkdf" # disabled in the all.sh component tested
-# Compare only "reference vs driver" or also "before vs after"?
-BEFORE_AFTER=1 # 0 or 1
 # ----- END edit this -----
 
 set -eu
@@ -65,38 +48,27 @@ record() {
     make check
 }
 
-if [ "$BEFORE_AFTER" -eq 1 ]; then
-    # save current HEAD
-    HEAD=$(git branch --show-current)
+# save current HEAD
+HEAD=$(git branch --show-current)
 
-    # get the numbers before this PR for default and full
-    cleanup
-    git checkout $(git merge-base HEAD development)
-    record "before-default"
-
-    cleanup
-    scripts/config.py full
-    record "before-full"
-
-    # get the numbers now for default and full
-    cleanup
-    git checkout $HEAD
-    record "after-default"
-
-    cleanup
-    scripts/config.py full
-    record "after-full"
-fi
-
-# get the numbers now for driver-only and reference
+# get the numbers before this PR for default and full
 cleanup
-reference_config
-record "reference"
+git checkout $(git merge-base HEAD development)
+record "before-default"
 
 cleanup
-export MBEDTLS_TEST_OUTCOME_FILE="$PWD/outcome-drivers.csv"
-export SKIP_SSL_OPT_COMPAT_SH=1
-tests/scripts/all.sh -k test_psa_crypto_config_accel_hash_use_psa
+scripts/config.py full
+record "before-full"
+
+# get the numbers now for default and full
+cleanup
+git checkout $HEAD
+record "after-default"
+
+cleanup
+scripts/config.py full
+record "after-full"
+
 
 # analysis
 
@@ -156,8 +128,5 @@ compare_builds () {
 }
 
 populate_suites
-if [ "$BEFORE_AFTER" -eq 1 ]; then
-    compare_builds before-default after-default
-    compare_builds before-full after-full
-fi
-compare_builds reference drivers
+compare_builds before-default after-default
+compare_builds before-full after-full

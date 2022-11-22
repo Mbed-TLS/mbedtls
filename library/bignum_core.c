@@ -629,6 +629,10 @@ static void exp_mod_precompute_window( const mbedtls_mpi_uint *A,
  * As in other bignum functions, assume that AN_limbs and E_limbs are nonzero.
  *
  * RR must contain 2^{2*biL} mod N.
+ *
+ * The algorithm is a variant of Left-to-right k-ary exponentiation: HAC 14.82
+ * (The difference is that the body in our loop processes a single bit instead
+ * of a full window.)
  */
 int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
                               const mbedtls_mpi_uint *A,
@@ -693,7 +697,7 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
         /* Square */
         mbedtls_mpi_core_montmul( X, X, X, AN_limbs, N, AN_limbs, mm, temp );
 
-        /* Insert next exponent bit into window */
+        /* Move to the next bit of the exponent */
         if( E_bit_index == 0 )
         {
             --E_limb_index;
@@ -703,6 +707,7 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
         {
             --E_bit_index;
         }
+        /* Insert next exponent bit into window */
         ++window_bits;
         window <<= 1;
         window |= ( E[E_limb_index] >> E_bit_index ) & 1;
@@ -717,7 +722,8 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
             mbedtls_mpi_core_ct_uint_table_lookup( Wselect, Wtable,
                                                    AN_limbs, welem, window );
             /* Multiply X by the selected element. */
-            mbedtls_mpi_core_montmul( X, X, Wselect, AN_limbs, N, AN_limbs, mm, temp );
+            mbedtls_mpi_core_montmul( X, X, Wselect, AN_limbs, N, AN_limbs, mm,
+                                      temp );
             window = 0;
             window_bits = 0;
         }

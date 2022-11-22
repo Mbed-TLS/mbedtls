@@ -45,6 +45,8 @@
 #include <libtestdriver1/include/psa/crypto.h>
 #endif
 
+#include "mbedtls/ecjpake.h"
+
 #if defined(PSA_CRYPTO_DRIVER_TEST)
 
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
@@ -87,6 +89,32 @@ typedef struct {
 #define MBEDTLS_OPAQUE_TEST_DRIVER_CIPHER_OPERATION_INIT \
     { 0, MBEDTLS_TRANSPARENT_TEST_DRIVER_CIPHER_OPERATION_INIT }
 
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_PAKE)
+
+typedef libtestdriver1_mbedtls_psa_pake_operation_t
+    mbedtls_transparent_test_driver_pake_operation_t;
+typedef libtestdriver1_psa_pake_operation_t
+    mbedtls_opaque_test_driver_pake_operation_t;
+
+#define MBEDTLS_TRANSPARENT_TEST_DRIVER_PAKE_OPERATION_INIT \
+    LIBTESTDRIVER1_MBEDTLS_PSA_PAKE_OPERATION_INIT
+#define MBEDTLS_OPAQUE_TEST_DRIVER_PAKE_OPERATION_INIT \
+    LIBTESTDRIVER1_MBEDTLS_PSA_PAKE_OPERATION_INIT
+
+#else
+typedef mbedtls_psa_pake_operation_t
+    mbedtls_transparent_test_driver_pake_operation_t;
+typedef mbedtls_psa_pake_operation_t
+    mbedtls_opaque_test_driver_pake_operation_t;
+
+#define MBEDTLS_TRANSPARENT_TEST_DRIVER_PAKE_OPERATION_INIT \
+    MBEDTLS_PSA_PAKE_OPERATION_INIT
+#define MBEDTLS_OPAQUE_TEST_DRIVER_PAKE_OPERATION_INIT \
+    MBEDTLS_PSA_PAKE_OPERATION_INIT
+
+#endif /* MBEDTLS_TEST_LIBTESTDRIVER1 && LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_PAKE */
+
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 
 /* Define the context to be used for an operation that is executed through the
@@ -112,6 +140,15 @@ typedef union {
     mbedtls_opaque_test_driver_cipher_operation_t opaque_test_driver_ctx;
 #endif
 } psa_driver_cipher_context_t;
+
+typedef union {
+    unsigned dummy; /* Make sure this union is always non-empty */
+    mbedtls_psa_pake_operation_t mbedtls_ctx;
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+    mbedtls_transparent_test_driver_pake_operation_t transparent_test_driver_ctx;
+    mbedtls_opaque_test_driver_pake_operation_t opaque_test_driver_ctx;
+#endif
+} psa_driver_pake_context_t;
 
 #endif /* PSA_CRYPTO_DRIVER_CONTEXTS_PRIMITIVES_H */
 /* End of automatically generated file. */

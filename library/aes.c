@@ -978,7 +978,6 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
                     const unsigned char *input,
                     unsigned char *output )
 {
-    int i;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char temp[16];
 
@@ -1009,8 +1008,7 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
             if( ret != 0 )
                 goto exit;
 
-            for( i = 0; i < 16; i++ )
-                output[i] = (unsigned char)( output[i] ^ iv[i] );
+            mbedtls_xor( output, output, iv, 16 );
 
             memcpy( iv, temp, 16 );
 
@@ -1023,8 +1021,7 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
     {
         while( length > 0 )
         {
-            for( i = 0; i < 16; i++ )
-                output[i] = (unsigned char)( input[i] ^ iv[i] );
+            mbedtls_xor( output, input, iv, 16 );
 
             ret = mbedtls_aes_crypt_ecb( ctx, mode, output, output );
             if( ret != 0 )
@@ -1106,8 +1103,6 @@ int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
 
     while( blocks-- )
     {
-        size_t i;
-
         if( leftover && ( mode == MBEDTLS_AES_DECRYPT ) && blocks == 0 )
         {
             /* We are on the last block in a decrypt operation that has
@@ -1119,15 +1114,13 @@ int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
             mbedtls_gf128mul_x_ble( tweak, tweak );
         }
 
-        for( i = 0; i < 16; i++ )
-            tmp[i] = input[i] ^ tweak[i];
+        mbedtls_xor( tmp, input, tweak, 16 );
 
         ret = mbedtls_aes_crypt_ecb( &ctx->crypt, mode, tmp, tmp );
         if( ret != 0 )
             return( ret );
 
-        for( i = 0; i < 16; i++ )
-            output[i] = tmp[i] ^ tweak[i];
+        mbedtls_xor( output, tmp, tweak, 16 );
 
         /* Update the tweak for the next block. */
         mbedtls_gf128mul_x_ble( tweak, tweak );
@@ -1147,20 +1140,19 @@ int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
         size_t i;
         unsigned char *prev_output = output - 16;
 
-        /* Copy ciphertext bytes from the previous block to our output for each
-         * byte of ciphertext we won't steal. At the same time, copy the
-         * remainder of the input for this final round (since the loop bounds
-         * are the same). */
+        /* Copy the remainder of the input for this final round. */
         for( i = 0; i < leftover; i++ )
         {
             output[i] = prev_output[i];
-            tmp[i] = input[i] ^ t[i];
         }
+
+        /* Copy ciphertext bytes from the previous block to our output for each
+         * byte of ciphertext we won't steal. */
+        mbedtls_xor( tmp, input, t, leftover );
 
         /* Copy ciphertext bytes from the previous block for input in this
          * round. */
-        for( ; i < 16; i++ )
-            tmp[i] = prev_output[i] ^ t[i];
+        mbedtls_xor( tmp + i, prev_output + i, t + i, 16 - i );
 
         ret = mbedtls_aes_crypt_ecb( &ctx->crypt, mode, tmp, tmp );
         if( ret != 0 )
@@ -1168,8 +1160,7 @@ int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
 
         /* Write the result back to the previous block, overriding the previous
          * output we copied. */
-        for( i = 0; i < 16; i++ )
-            prev_output[i] = tmp[i] ^ t[i];
+        mbedtls_xor( prev_output, tmp, t, 16 );
     }
 
     return( 0 );

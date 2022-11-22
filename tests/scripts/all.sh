@@ -924,11 +924,10 @@ component_test_default_cmake_gcc_asan () {
     tests/context-info.sh
 }
 
-component_test_full_cmake_clang_asan () {
-    msg "build: full config, cmake, clang, ASan"
+component_test_full_make_clang_asan () {
+    msg "build: full config, make, clang, ASan"
     scripts/config.py full
-    CC=clang cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make
+    make CFLAGS="$ASAN_CFLAGS -O2" LDFLAGS="$ASAN_CFLAGS" TEST_CPP=1
 
     msg "test: main suites (inc. selftests) (full config, ASan build)"
     make test
@@ -936,18 +935,30 @@ component_test_full_cmake_clang_asan () {
     msg "test: selftest (ASan build)" # ~ 10s
     programs/test/selftest
 
+    msg "test: cpp_dummy_build (full config, clang)" # ~ 1s
+    programs/test/cpp_dummy_build
+
+    msg "test: psa_constant_names (full config, clang)" # ~ 1s
+    tests/scripts/test_psa_constant_names.py
+
     msg "test: ssl-opt.sh (full config, ASan build)"
     tests/ssl-opt.sh
 
-    msg "test: compat.sh (full config, ASan build)"
+    msg "test: compat.sh default set (full config, ASan build)"
     tests/compat.sh
+
+    msg "test: compat.sh modern set (full config, ASan build)"
+    OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
+
+    msg "test: compat.sh antique set (full config, ASan build)"
+    OPENSSL_CMD="$OPENSSL_LEGACY" tests/compat.sh -e '^$' -f 'NULL'
 
     msg "test: context-info.sh (full config, ASan build)" # ~ 15 sec
     tests/context-info.sh
 }
 # Insist on a reasonably modern Clang. New versions find more problems,
 # especially with UBSan.
-support_test_full_cmake_clang_asan () {
+support_test_full_make_clang_asan () {
     local version
     version="$(echo __clang_major__ | clang -E -)"
     version="${version##*$'\n'}"
@@ -1546,31 +1557,6 @@ component_test_psa_collect_statuses () {
   # Check that psa_crypto_init() succeeded at least once
   grep -q '^0:psa_crypto_init:' tests/statuses.log
   rm -f tests/statuses.log
-}
-
-component_test_full_cmake_clang () {
-    msg "build: cmake, full config, clang" # ~ 50s
-    scripts/config.py full
-    CC=clang CXX=clang cmake -D CMAKE_BUILD_TYPE:String=Release -D ENABLE_TESTING=On -D TEST_CPP=1 .
-    make
-
-    msg "test: main suites (full config, clang)" # ~ 5s
-    make test
-
-    msg "test: cpp_dummy_build (full config, clang)" # ~ 1s
-    programs/test/cpp_dummy_build
-
-    msg "test: psa_constant_names (full config, clang)" # ~ 1s
-    tests/scripts/test_psa_constant_names.py
-
-    msg "test: ssl-opt.sh default, ECJPAKE, SSL async (full config)" # ~ 1s
-    tests/ssl-opt.sh -f 'Default\|ECJPAKE\|SSL async private'
-
-    msg "test: compat.sh NULL (full config)" # ~ 2 min
-    env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '^$' -f 'NULL'
-
-    msg "test: compat.sh ARIA + ChachaPoly"
-    env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
 }
 
 component_test_memsan_constant_flow () {

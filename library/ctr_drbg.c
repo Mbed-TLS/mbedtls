@@ -174,8 +174,7 @@ static int block_cipher_df( unsigned char *output,
 
         while( use_len > 0 )
         {
-            for( i = 0; i < MBEDTLS_CTR_DRBG_BLOCKSIZE; i++ )
-                chain[i] ^= p[i];
+            mbedtls_xor( chain, chain, p, MBEDTLS_CTR_DRBG_BLOCKSIZE );
             p += MBEDTLS_CTR_DRBG_BLOCKSIZE;
             use_len -= ( use_len >= MBEDTLS_CTR_DRBG_BLOCKSIZE ) ?
                        MBEDTLS_CTR_DRBG_BLOCKSIZE : use_len;

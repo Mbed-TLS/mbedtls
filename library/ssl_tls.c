@@ -8260,13 +8260,8 @@ int mbedtls_psa_ecjpake_write_round(
             ++step )
         {
             /*
-             * For each step, prepend 1 byte with the length of the data.
-             *
-             * NOTE = psa_pake_output() sometimes output elements which are
-             * NOT 32 or 65 bytes as expected, but 1 byte less. So, instead
-             * of hardcoding the expected length, we
-             * - get the output first
-             * - then write the length of this output
+             * For each step, prepend 1 byte with the length of the data as
+             * given by psa_pake_output().
              */
             status = psa_pake_output( pake_ctx, step,
                                         buf + output_offset + 1,

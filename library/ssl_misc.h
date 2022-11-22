@@ -2367,17 +2367,6 @@ static inline int psa_ssl_status_to_mbedtls( psa_status_t status )
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) && \
     defined(MBEDTLS_USE_PSA_CRYPTO)
 
-/* Currently JPAKE only supports elliptic curve secp256r1 */
-#define MBEDTLS_SSL_ECJPAKE_PSA_PRIMITIVE   \
-                        PSA_PAKE_PRIMITIVE( PSA_PAKE_PRIMITIVE_TYPE_ECC, \
-                                                PSA_ECC_FAMILY_SECP_R1, 256 )
-
-/* Expected output data size for each "step" of EC-JPAKE key echange */
-#define MBEDTLS_SSL_ECJPAKE_OUTPUT_SIZE( step ) \
-                        PSA_PAKE_OUTPUT_SIZE( PSA_ALG_JPAKE, \
-                            MBEDTLS_SSL_ECJPAKE_PSA_PRIMITIVE, \
-                            step )
-
 typedef enum {
     MBEDTLS_ECJPAKE_ROUND_ONE,
     MBEDTLS_ECJPAKE_ROUND_TWO

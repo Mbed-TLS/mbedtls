@@ -2005,7 +2005,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
 
     window_bitsize = ( i > 671 ) ? 6 : ( i > 239 ) ? 5 :
             ( i >  79 ) ? 4 : ( i >  23 ) ? 3 : 1;
-    const size_t w_table_used_size = ( 1 << window_bitsize ) + 1;
+    const size_t w_table_used_size = ( (size_t)1 << window_bitsize ) + 1;
 
 #if( MBEDTLS_MPI_WINDOW_SIZE < 6 )
     if( window_bitsize > MBEDTLS_MPI_WINDOW_SIZE )

@@ -8272,7 +8272,7 @@ int mbedtls_psa_ecjpake_write_round(
                 return( psa_ssl_status_to_mbedtls( status ) );
             }
 
-            *(buf + output_offset) = output_len;
+            *(buf + output_offset) = (uint8_t) output_len;
 
             output_offset += output_len + 1;
         }

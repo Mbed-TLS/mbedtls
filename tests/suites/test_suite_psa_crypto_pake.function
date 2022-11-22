@@ -545,7 +545,7 @@ exit:
 /* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE */
 void ecjpake_setup( int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
                     int primitive_arg, int hash_arg, int role_arg,
-                    int test_input, data_t *pw_data,
+                    int test_input,
                     int err_stage_arg,
                     int expected_error_arg)
 {
@@ -565,6 +565,7 @@ void ecjpake_setup( int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
     unsigned char *output_buffer = NULL;
     size_t output_len = 0;
     const uint8_t unsupp_id[] = "abcd";
+    const uint8_t password[] = "abcd";
     psa_key_derivation_operation_t key_derivation;
 
     PSA_INIT( );
@@ -573,14 +574,11 @@ void ecjpake_setup( int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
                                        PSA_PAKE_STEP_KEY_SHARE );
     ASSERT_ALLOC( output_buffer, buf_size );
 
-    if( pw_data->len > 0 )
-    {
-        psa_set_key_usage_flags( &attributes, key_usage_pw );
-        psa_set_key_algorithm( &attributes, alg );
-        psa_set_key_type( &attributes, key_type_pw );
-        PSA_ASSERT( psa_import_key( &attributes, pw_data->x, pw_data->len,
-                                    &key ) );
-    }
+    psa_set_key_usage_flags( &attributes, key_usage_pw );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, key_type_pw );
+    PSA_ASSERT( psa_import_key( &attributes, password, sizeof( password ),
+                &key ) );
 
     psa_pake_cs_set_algorithm( &cipher_suite, alg );
     psa_pake_cs_set_primitive( &cipher_suite, primitive );

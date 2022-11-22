@@ -1090,12 +1090,12 @@ static int ssl_tls13_get_cipher_key_info(
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 /*
  * ssl_tls13_generate_early_key() generates the key necessary for protecting
- * the early application data and the EndOfEarlyData handshake message
- * as described in section 7 of RFC 8446.
+ * the early application data and handshake messages as described in section 7
+ * of RFC 8446.
  *
- * NOTE: That only one key is generated, the key for the traffic from the
- * client to the server. The TLS 1.3 specification does not define a secret
- * and thus a key for server early traffic.
+ * NOTE: Only one key is generated, the key for the traffic from the client to
+ *       the server. The TLS 1.3 specification does not define a secret and thus
+ *       a key for server early traffic.
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_generate_early_key( mbedtls_ssl_context *ssl,

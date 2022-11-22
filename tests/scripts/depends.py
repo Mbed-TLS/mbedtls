@@ -263,6 +263,7 @@ REVERSE_DEPENDENCIES = {
 # if a given define is the only one enabled from an exclusive group.
 EXCLUSIVE_GROUPS = {
     'MBEDTLS_SHA512_C': ['-MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL'],
+    'MBEDTLS_SHA512_NO_SHA384': ['+MBEDTLS_SHA512_C'],
     'MBEDTLS_ECP_DP_CURVE448_ENABLED': ['-MBEDTLS_ECDSA_C',
                                         '-MBEDTLS_ECDSA_DETERMINISTIC',
                                         '-MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED',
@@ -392,6 +393,7 @@ class DomainData:
         self.all_config_symbols = set(collect_config_symbols(options))
         # Find hash modules by name.
         hash_symbols = self.config_symbols_matching(r'MBEDTLS_(MD|RIPEMD|SHA)[0-9]+_C\Z')
+        hash_symbols.append("MBEDTLS_SHA512_NO_SHA384")
         # Find elliptic curve enabling macros by name.
         curve_symbols = self.config_symbols_matching(r'MBEDTLS_ECP_DP_\w+_ENABLED\Z')
         # Find key exchange enabling macros by name.
@@ -415,7 +417,8 @@ class DomainData:
             'curves': ExclusiveDomain(curve_symbols, build_and_test),
             # Hash algorithms. Exclude exclusive domain of MD, RIPEMD, SHA1 (obsolete)
             'hashes': DualDomain(hash_symbols, build_and_test,
-                                 exclude=r'MBEDTLS_(MD|RIPEMD|SHA1_)'),
+                                 exclude=r'MBEDTLS_(MD|RIPEMD|SHA1_)'\
+                                          '|!MBEDTLS_*_NO_SHA'),
             # Key exchange types. Only build the library and the sample
             # programs.
             'kex': ExclusiveDomain(key_exchange_symbols,

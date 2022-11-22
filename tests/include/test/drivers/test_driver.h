@@ -38,6 +38,7 @@
 #include "test/drivers/signature.h"
 #include "test/drivers/asymmetric_encryption.h"
 #include "test/drivers/key_agreement.h"
+#include "test/drivers/pake.h"
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_TEST_DRIVER_H */

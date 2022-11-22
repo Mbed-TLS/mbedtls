@@ -755,6 +755,27 @@ def mpi_modmul_case_generate() -> None:
 
 # BEGIN MERGE SLOT 1
 
+class BignumCoreExpMod(BignumCoreTarget, bignum_common.ModOperationCommon):
+    """Test cases for bignum core exponentiation."""
+    symbol = "^"
+    test_function = "mpi_core_exp_mod"
+    test_name = "Core modular exponentiation"
+    input_style = "fixed"
+
+    def result(self) -> List[str]:
+        result = pow(self.int_a, self.int_b, self.int_n)
+        return [self.format_result(result)]
+
+    @property
+    def is_valid(self) -> bool:
+        # The base needs to be canonical, but the exponent can be larger than
+        # the modulus (see for example exponent blinding)
+        if self.int_a < self.int_n:
+            return True
+        else:
+            return False
+
+
 # END MERGE SLOT 1
 
 # BEGIN MERGE SLOT 2

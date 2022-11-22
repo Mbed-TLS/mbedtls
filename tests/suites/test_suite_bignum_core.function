@@ -1042,8 +1042,8 @@ exit:
 /* BEGIN MERGE SLOT 1 */
 
 /* BEGIN_CASE */
-void mpi_core_exp_mod( char * input_A, char * input_E,
-                       char * input_N, char * input_X )
+void mpi_core_exp_mod( char * input_N, char * input_A,
+                       char * input_E, char * input_X )
 {
     mbedtls_mpi_uint *A = NULL;
     size_t A_limbs;

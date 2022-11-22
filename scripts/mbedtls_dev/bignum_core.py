@@ -770,11 +770,7 @@ class BignumCoreExpMod(BignumCoreTarget, bignum_common.ModOperationCommon):
     def is_valid(self) -> bool:
         # The base needs to be canonical, but the exponent can be larger than
         # the modulus (see for example exponent blinding)
-        if self.int_a < self.int_n:
-            return True
-        else:
-            return False
-
+        return bool(self.int_a < self.int_n)
 
 # END MERGE SLOT 1
 

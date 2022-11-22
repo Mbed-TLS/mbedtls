@@ -566,7 +566,8 @@ void ecjpake_setup( int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
     size_t output_len = 0;
     const uint8_t unsupp_id[] = "abcd";
     const uint8_t password[] = "abcd";
-    psa_key_derivation_operation_t key_derivation;
+    psa_key_derivation_operation_t key_derivation =
+                            PSA_KEY_DERIVATION_OPERATION_INIT;
 
     PSA_INIT( );
 

@@ -1974,7 +1974,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
     size_t i, j, nblimbs;
     size_t bufsize, nbits;
     mbedtls_mpi_uint ei, mm, state;
-    mbedtls_mpi RR, T, W[ ( 1 << MBEDTLS_MPI_WINDOW_SIZE ) + 1 ], WW, Apos;
+    mbedtls_mpi RR, T, W[ (size_t) 1 << MBEDTLS_MPI_WINDOW_SIZE ], WW, Apos;
     int neg;
 
     MPI_VALIDATE_RET( X != NULL );
@@ -2011,7 +2011,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
         window_bitsize = MBEDTLS_MPI_WINDOW_SIZE;
 #endif
 
-    const size_t w_table_used_size = ( (size_t) 1 << window_bitsize ) + 1;
+    const size_t w_table_used_size = (size_t) 1 << window_bitsize;
 
     /*
      * This function is not constant-trace: its memory accesses depend on the
@@ -2045,7 +2045,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
      * To achieve this, we make a copy of X and we use the table entry in each
      * calculation from this point on.
      */
-    const size_t x_index = w_table_used_size - 1;
+    const size_t x_index = 0;
     mbedtls_mpi_init( &W[x_index] );
     mbedtls_mpi_copy( &W[x_index], X );
 
@@ -2109,6 +2109,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &W[x_index], &RR ) );
     mpi_montred( &W[x_index], N, mm, &T );
 
+
     if( window_bitsize > 1 )
     {
         /*
@@ -2116,6 +2117,10 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
          *
          * The first bit of the sliding window is always 1 and therefore we
          * only need to store the second half of the table.
+         *
+         * (There are two special elements in the table: W[0] for the
+         * accumulator/result and W[1] for A in Montgomery form. Both of these
+         * are already set at this point.)
          */
         j = w_table_used_size / 2;
 
@@ -2127,10 +2132,8 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
 
         /*
          * W[i] = W[i - 1] * W[1]
-         * (The last element in the table is for the result X, so we don't need
-         * to calculate that.)
          */
-        for( i = j + 1; i < w_table_used_size - 1; i++ )
+        for( i = j + 1; i < w_table_used_size; i++ )
         {
             MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &W[i], N->n + 1 ) );
             MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &W[i], &W[i - 1] ) );
@@ -2250,6 +2253,7 @@ cleanup:
     for( i = w_table_used_size/2; i < w_table_used_size; i++ )
         mbedtls_mpi_free( &W[i] );
 
+    mbedtls_mpi_free( &W[0] );
     mbedtls_mpi_free( &W[1] );
     mbedtls_mpi_free( &T );
     mbedtls_mpi_free( &Apos );

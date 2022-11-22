@@ -149,8 +149,7 @@
     ( defined(MBEDTLS_AES_C)      ||                                  \
       defined(MBEDTLS_CAMELLIA_C) ||                                  \
       defined(MBEDTLS_ARIA_C)     ||                                  \
-      defined(MBEDTLS_DES_C)      ||                                  \
-      defined(MBEDTLS_BLOWFISH_C) )
+      defined(MBEDTLS_DES_C) )
 #define MBEDTLS_SSL_SOME_SUITES_USE_CBC
 #endif
 

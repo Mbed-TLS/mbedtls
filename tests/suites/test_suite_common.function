@@ -1,0 +1,76 @@
+/* BEGIN_HEADER */
+#include "../library/common.h"
+
+void fill_arrays( unsigned char *a, unsigned char *b, unsigned char *r1, unsigned char *r2, size_t n )
+{
+    for ( size_t i = 0; i < n; i++ )
+    {
+        a[i]  = (unsigned char) i * 3;
+        b[i]  = (unsigned char) i * 3 + 1;
+        r1[i] = (unsigned char) i * 3 + 2;
+        r2[i] = r1[i];
+    }
+}
+/* END_HEADER */
+
+/* BEGIN_CASE */
+void mbedtls_xor( int len )
+{
+    size_t n = (size_t) len;
+    unsigned char *a = NULL, *b = NULL, *r1 = NULL, *r2 = NULL;
+    ASSERT_ALLOC( a, n );
+    ASSERT_ALLOC( b, n );
+    ASSERT_ALLOC( r1, n );
+    ASSERT_ALLOC( r2, n );
+
+    /* Test non-overlapping */
+    fill_arrays( a, b, r1, r2, n );
+    for ( size_t i = 0; i < n; i++ )
+    {
+        r1[i] = a[i] ^ b[i];
+    }
+    mbedtls_xor( r2, a, b, n );
+    ASSERT_COMPARE( r1, n, r2, n );
+
+    /* Test r == a */
+    fill_arrays( a, b, r1, r2, n );
+    for ( size_t i = 0; i < n; i++ )
+    {
+        r1[i] = r1[i] ^ b[i];
+    }
+    mbedtls_xor( r2, r2, b, n );
+    ASSERT_COMPARE( r1, n, r2, n );
+
+    /* Test r == b */
+    fill_arrays( a, b, r1, r2, n );
+    for ( size_t i = 0; i < n; i++ )
+    {
+        r1[i] = a[i] ^ r1[i];
+    }
+    mbedtls_xor( r2, a, r2, n );
+    ASSERT_COMPARE( r1, n, r2, n );
+
+    /* Test a == b */
+    fill_arrays( a, b, r1, r2, n );
+    for ( size_t i = 0; i < n; i++ )
+    {
+        r1[i] = a[i] ^ a[i];
+    }
+    mbedtls_xor( r2, a, a, n );
+    ASSERT_COMPARE( r1, n, r2, n );
+
+    /* Test a == b == r */
+    fill_arrays( a, b, r1, r2, n );
+    for ( size_t i = 0; i < n; i++ )
+    {
+        r1[i] = r1[i] ^ r1[i];
+    }
+    mbedtls_xor( r2, r2, r2, n );
+    ASSERT_COMPARE( r1, n, r2, n );
+exit:
+    if ( a != NULL ) mbedtls_free( a );
+    if ( a != NULL ) mbedtls_free( b );
+    if ( r1 != NULL ) mbedtls_free( r1 );
+    if ( r2 != NULL ) mbedtls_free( r2 );
+}
+/* END_CASE */

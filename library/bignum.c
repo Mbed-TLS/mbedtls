@@ -2284,7 +2284,7 @@ cleanup:
     for( i = w_table_used_size/2; i < w_table_used_size; i++ )
         mbedtls_mpi_free( &W[i] );
 
-    mbedtls_mpi_free( &W[0] );
+    mbedtls_mpi_free( &W[x_index] );
     mbedtls_mpi_free( &W[1] );
     mbedtls_mpi_free( &T );
     mbedtls_mpi_free( &Apos );

@@ -50,10 +50,10 @@ GetOptions(
            'verbose|v:1' => \$verbose,
           ) or die;
 
-# All test suites = executable files derived from a .data file.
+# All test suites = executable files with a .datax file.
 my @suites = ();
-for my $data_file (glob 'suites/test_suite_*.data') {
-    (my $base = $data_file) =~ s#^suites/(.*)\.data$#$1#;
+for my $data_file (glob 'test_suite_*.datax') {
+    (my $base = $data_file) =~ s/\.datax$//;
     push @suites, $base if -x $base;
     push @suites, "$base.exe" if -e "$base.exe";
 }

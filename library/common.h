@@ -69,6 +69,18 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
  */
 #define MBEDTLS_ALLOW_PRIVATE_ACCESS
 
+/** Detect architectures where unaligned memory accesses are safe and performant.
+ *
+ * This list is incomplete.
+ */
+#if defined(__i386__) || defined(__amd64__) || defined( __x86_64__) \
+    || defined(__ARM_FEATURE_UNALIGNED) \
+    || defined(__aarch64__) \
+    || defined(__ARM_ARCH_8__) || defined(__ARM_ARCH_8A__) || defined(__ARM_ARCH_8M__) \
+    || defined(__ARM_ARCH_7A__)
+#define MBEDTLS_ALLOW_UNALIGNED_ACCESS
+#endif
+
 /** Byte Reading Macros
  *
  * Given a multi-byte integer \p x, MBEDTLS_BYTE_n retrieves the n-th
@@ -404,6 +416,7 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
  */
 static inline void mbedtls_xor( unsigned char* r, unsigned char const *a, unsigned char const *b, size_t n )
 {
+#if defined(MBEDTLS_ALLOW_UNALIGNED_ACCESS)
     uint32_t *a32 = (uint32_t*)a;
     uint32_t *b32 = (uint32_t*)b;
     uint32_t *r32 = (uint32_t*)r;
@@ -415,6 +428,12 @@ static inline void mbedtls_xor( unsigned char* r, unsigned char const *a, unsign
     {
         r[i] = a[i] ^ b[i];
     }
+#else
+    for ( size_t i = 0; i < n; i++ )
+    {
+        r[i] = a[i] ^ b[i];
+    }
+#endif
 }
 
 /* Fix MSVC C99 compatible issue

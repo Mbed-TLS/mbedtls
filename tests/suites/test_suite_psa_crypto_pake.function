@@ -52,12 +52,15 @@ typedef enum
     PAKE_ROUND_TWO
 } pake_round_t;
 
-/* Inject an error on the specified buffer ONLY it this is the correct stage */
+/*
+ * Inject an error on the specified buffer ONLY it this is the correct stage.
+ * Offset 7 is arbitrary, but chosen because it's "in the middle" of the part
+ * we're corrupting.
+ */
 #define DO_ROUND_CONDITIONAL_INJECT( this_stage, buf ) \
     if ( this_stage == err_stage )                  \
     {                                               \
         *( buf + 7) ^= 1;                           \
-        *( buf + 8 ) ^= 1;                          \
     }
 
 #define DO_ROUND_UPDATE_OFFSETS( main_buf_offset, step_offset, step_size ) \

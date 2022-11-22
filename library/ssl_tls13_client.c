@@ -817,6 +817,8 @@ static int ssl_tls13_write_identity( mbedtls_ssl_context *ssl,
      * - identity               (psk_identity_len bytes)
      * - obfuscated_ticket_age  (4 bytes)
      */
+    MBEDTLS_SSL_DEBUG_MSG( 4, ( "after add, obfuscated_ticket_age = %ud",
+                                (unsigned int)obfuscated_ticket_age ) );
     MBEDTLS_SSL_CHK_BUF_PTR( buf, end, 6 + identity_len );
 
     MBEDTLS_PUT_UINT16_BE( identity_len, buf, 0 );
@@ -947,6 +949,10 @@ int mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
         uint32_t obfuscated_ticket_age =
                                 (uint32_t)( now - session->ticket_received );
 
+        MBEDTLS_SSL_DEBUG_MSG( 4, ( "HAVE_TIME,  obfuscated_ticket_age = %ud",
+                                    (unsigned int)obfuscated_ticket_age ) );
+        MBEDTLS_SSL_DEBUG_MSG( 4, ( "HAVE_TIME,  session->ticket_age_add = %ud",
+                                    (unsigned int)session->ticket_age_add ) );
         obfuscated_ticket_age *= 1000;
         obfuscated_ticket_age += session->ticket_age_add;
 
@@ -955,6 +961,7 @@ int mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
                                         obfuscated_ticket_age,
                                         &output_len );
 #else
+        MBEDTLS_SSL_DEBUG_MSG( 4, ( "Not HAVE_TIME, write 0" ) );
         ret = ssl_tls13_write_identity( ssl, p, end, identity, identity_len,
                                         0, &output_len );
 #endif /* MBEDTLS_HAVE_TIME */

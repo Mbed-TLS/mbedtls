@@ -3,12 +3,88 @@
 
 #include "psa/crypto.h"
 
+typedef enum
+{
+    ERR_NONE = 0,
+    /* errors forced internally in the code */
+    ERR_INJECT_UNINITIALIZED_ACCESS,
+    ERR_INJECT_DUPLICATE_SETUP,
+    ERR_INJECT_INVALID_USER,
+    ERR_INJECT_INVALID_PEER,
+    ERR_INJECT_SET_USER,
+    ERR_INJECT_SET_PEER,
+    ERR_INJECT_EMPTY_IO_BUFFER,
+    ERR_INJECT_UNKNOWN_STEP,
+    ERR_INJECT_INVALID_FIRST_STEP,
+    ERR_INJECT_WRONG_BUFFER_SIZE,
+    ERR_INJECT_VALID_OPERATION_AFTER_FAILURE,
+    ERR_INJECT_ANTICIPATE_KEY_DERIVATION_1,
+    ERR_INJECT_ANTICIPATE_KEY_DERIVATION_2,
+    ERR_INJECT_ROUND1_CLIENT_KEY_SHARE_PART1,
+    ERR_INJECT_ROUND1_CLIENT_ZK_PUBLIC_PART1,
+    ERR_INJECT_ROUND1_CLIENT_ZK_PROOF_PART1,
+    ERR_INJECT_ROUND1_CLIENT_KEY_SHARE_PART2,
+    ERR_INJECT_ROUND1_CLIENT_ZK_PUBLIC_PART2,
+    ERR_INJECT_ROUND1_CLIENT_ZK_PROOF_PART2,
+    ERR_INJECT_ROUND2_CLIENT_KEY_SHARE,
+    ERR_INJECT_ROUND2_CLIENT_ZK_PUBLIC,
+    ERR_INJECT_ROUND2_CLIENT_ZK_PROOF,
+    ERR_INJECT_ROUND1_SERVER_KEY_SHARE_PART1,
+    ERR_INJECT_ROUND1_SERVER_ZK_PUBLIC_PART1,
+    ERR_INJECT_ROUND1_SERVER_ZK_PROOF_PART1,
+    ERR_INJECT_ROUND1_SERVER_KEY_SHARE_PART2,
+    ERR_INJECT_ROUND1_SERVER_ZK_PUBLIC_PART2,
+    ERR_INJECT_ROUND1_SERVER_ZK_PROOF_PART2,
+    ERR_INJECT_ROUND2_SERVER_KEY_SHARE,
+    ERR_INJECT_ROUND2_SERVER_ZK_PUBLIC,
+    ERR_INJECT_ROUND2_SERVER_ZK_PROOF,
+    /* erros issued from the .data file */
+    ERR_IN_SETUP,
+    ERR_IN_SET_ROLE,
+    ERR_IN_SET_PASSWORD_KEY,
+    ERR_IN_INPUT,
+    ERR_IN_OUTPUT,
+} ecjpake_error_stage_t;
+
+typedef enum
+{
+    PAKE_ROUND_ONE,
+    PAKE_ROUND_TWO
+} pake_round_t;
+
+/* Inject an error on the specified buffer ONLY it this is the correct stage */
+#define DO_ROUND_CONDITIONAL_INJECT( this_stage, buf ) \
+    if ( this_stage == err_stage )                  \
+    {                                               \
+        *( buf + 7) ^= 1;                           \
+        *( buf + 8 ) ^= 1;                          \
+    }
+
+#define DO_ROUND_UPDATE_OFFSETS( main_buf_offset, step_offset, step_size ) \
+    {                                       \
+        step_offset = main_buf_offset;      \
+        main_buf_offset += step_size;        \
+    }
+
+#define DO_ROUND_CHECK_FAILURE(  )                                  \
+    if( err_stage != ERR_NONE && status != PSA_SUCCESS )            \
+    {                                                               \
+        TEST_EQUAL( status, expected_error_arg );                   \
+        break;                                                      \
+    }                                                               \
+    else                                                            \
+    {                                                               \
+        TEST_EQUAL( status, PSA_SUCCESS );                          \
+    }
+
 #if defined(PSA_WANT_ALG_JPAKE)
 static void ecjpake_do_round( psa_algorithm_t alg, unsigned int primitive,
                               psa_pake_operation_t *server,
                               psa_pake_operation_t *client,
                               int client_input_first,
-                              int round, int inject_error )
+                              pake_round_t round,
+                              ecjpake_error_stage_t err_stage,
+                              int expected_error_arg )
 {
     unsigned char *buffer0 = NULL, *buffer1 = NULL;
     size_t buffer_length = (
@@ -38,7 +114,6 @@ static void ecjpake_do_round( psa_algorithm_t alg, unsigned int primitive,
     size_t c_x1_pk_off, c_x2_pk_off, c_x2s_pk_off;
     size_t c_x1_pr_len, c_x2_pr_len, c_x2s_pr_len;
     size_t c_x1_pr_off, c_x2_pr_off, c_x2s_pr_off;
-    psa_status_t expected_status = PSA_SUCCESS;
     psa_status_t status;
 
     ASSERT_ALLOC( buffer0, buffer_length );
@@ -46,51 +121,61 @@ static void ecjpake_do_round( psa_algorithm_t alg, unsigned int primitive,
 
     switch( round )
     {
-        case 1:
+        case PAKE_ROUND_ONE:
             /* Server first round Output */
             PSA_ASSERT( psa_pake_output( server, PSA_PAKE_STEP_KEY_SHARE,
                                          buffer0 + buffer0_off,
                                          512 - buffer0_off, &s_g1_len ) );
             TEST_EQUAL( s_g1_len, expected_size_key_share );
-            s_g1_off = buffer0_off;
-            buffer0_off += s_g1_len;
+            DO_ROUND_CONDITIONAL_INJECT(
+                                    ERR_INJECT_ROUND1_SERVER_KEY_SHARE_PART1,
+                                    buffer0 + buffer0_off );
+            DO_ROUND_UPDATE_OFFSETS( buffer0_off, s_g1_off, s_g1_len );
+
             PSA_ASSERT( psa_pake_output( server, PSA_PAKE_STEP_ZK_PUBLIC,
                                          buffer0 + buffer0_off,
                                          512 - buffer0_off, &s_x1_pk_len ) );
             TEST_EQUAL( s_x1_pk_len, expected_size_zk_public );
-            s_x1_pk_off = buffer0_off;
-            buffer0_off += s_x1_pk_len;
+            DO_ROUND_CONDITIONAL_INJECT(
+                                    ERR_INJECT_ROUND1_SERVER_ZK_PUBLIC_PART1,
+                                    buffer0 + buffer0_off );
+            DO_ROUND_UPDATE_OFFSETS( buffer0_off, s_x1_pk_off, s_x1_pk_len );
+
             PSA_ASSERT( psa_pake_output( server, PSA_PAKE_STEP_ZK_PROOF,
                                          buffer0 + buffer0_off,
                                          512 - buffer0_off, &s_x1_pr_len ) );
             TEST_LE_U( s_x1_pr_len, max_expected_size_zk_proof );
-            s_x1_pr_off = buffer0_off;
-            buffer0_off += s_x1_pr_len;
+            DO_ROUND_CONDITIONAL_INJECT(
+                                    ERR_INJECT_ROUND1_SERVER_ZK_PROOF_PART1,
+                                    buffer0 + buffer0_off );
+            DO_ROUND_UPDATE_OFFSETS( buffer0_off, s_x1_pr_off, s_x1_pr_len );
+
             PSA_ASSERT( psa_pake_output( server, PSA_PAKE_STEP_KEY_SHARE,
                                          buffer0 + buffer0_off,
                                          512 - buffer0_off, &s_g2_len ) );
             TEST_EQUAL( s_g2_len, expected_size_key_share );
-            s_g2_off = buffer0_off;
-            buffer0_off += s_g2_len;
+            DO_ROUND_CONDITIONAL_INJECT(
+                                    ERR_INJECT_ROUND1_SERVER_KEY_SHARE_PART2,
+                                    buffer0 + buffer0_off );
+            DO_ROUND_UPDATE_OFFSETS( buffer0_off, s_g2_off, s_g2_len );
+
             PSA_ASSERT( psa_pake_output( server, PSA_PAKE_STEP_ZK_PUBLIC,
                                          buffer0 + buffer0_off,
                                          512 - buffer0_off, &s_x2_pk_len ) );
             TEST_EQUAL( s_x2_pk_len, expected_size_zk_public );
-            s_x2_pk_off = buffer0_off;
-            buffer0_off += s_x2_pk_len;
+            DO_ROUND_CONDITIONAL_INJECT(
+                                    ERR_INJECT_ROUND1_SERVER_ZK_PUBLIC_PART2,
+                                    buffer0 + buffer0_off );
+            DO_ROUND_UPDATE_OFFSETS( buffer0_off, s_x2_pk_off, s_x2_pk_len );
+
             PSA_ASSERT( psa_pake_output( server, PSA_PAKE_STEP_ZK_PROOF,
                                          buffer0 + buffer0_off,
                                          512 - buffer0_off, &s_x2_pr_len ) );
             TEST_LE_U( s_x2_pr_len, max_expected_size_zk_proof );
-            s_x2_pr_off = buffer0_off;
-            buffer0_off += s_x2_pr_len;
-
-            if( inject_error == 1 )
-            {
-                buffer0[s_x1_pr_off + 8] ^= 1;
-                buffer0[s_x2_pr_off + 7] ^= 1;
-                expected_status = PSA_ERROR_DATA_INVALID;
-            }
+            DO_ROUND_CONDITIONAL_INJECT(
+                                    ERR_INJECT_ROUND1_SERVER_ZK_PROOF_PART2,
+                                    buffer0 + buffer0_off );
+            DO_ROUND_UPDATE_OFFSETS( buffer0_off, s_x2_pr_off, s_x2_pr_len );
 
             /*
              * When injecting errors in inputs, the implementation is
@@ -99,90 +184,44 @@ static void ecjpake_do_round( psa_algorithm_t alg, unsigned int primitive,
              * sequence, if no error appears then, this will be treated
              * as an error.
              */
-
             if( client_input_first == 1 )
             {
                 /* Client first round Input */
                 status = psa_pake_input( client, PSA_PAKE_STEP_KEY_SHARE,
                                          buffer0 + s_g1_off, s_g1_len );
-                if( inject_error == 1 && status != PSA_SUCCESS )
-                {
-                    TEST_EQUAL( status, expected_status );
-                    break;
-                }
-                else
-                {
-                    TEST_EQUAL( status, PSA_SUCCESS );
-                }
+                DO_ROUND_CHECK_FAILURE(  );
 
                 status = psa_pake_input( client, PSA_PAKE_STEP_ZK_PUBLIC,
                                          buffer0 + s_x1_pk_off,
                                          s_x1_pk_len );
-                if( inject_error == 1 && status != PSA_SUCCESS )
-                {
-                    TEST_EQUAL( status, expected_status );
-                    break;
-                }
-                else
-                {
-                    TEST_EQUAL( status, PSA_SUCCESS );
-                }
+                DO_ROUND_CHECK_FAILURE(  );
 
                 status = psa_pake_input( client, PSA_PAKE_STEP_ZK_PROOF,
                                          buffer0 + s_x1_pr_off,
                                          s_x1_pr_len );
-                if( inject_error == 1 && status != PSA_SUCCESS )
-                {
-                    TEST_EQUAL( status, expected_status );
-                    break;
-                }
-                else
-                {
-                    TEST_EQUAL( status, PSA_SUCCESS );
-                }
+                DO_ROUND_CHECK_FAILURE(  );
 
                 status = psa_pake_input( client, PSA_PAKE_STEP_KEY_SHARE,
                                          buffer0 + s_g2_off,
                                          s_g2_len );
-                if( inject_error == 1 && status != PSA_SUCCESS )
-                {
-                    TEST_EQUAL( status, expected_status );
-                    break;
-                }
-                else
-                {
-                    TEST_EQUAL( status, PSA_SUCCESS );
-                }
+                DO_ROUND_CHECK_FAILURE(  );
 
                 status = psa_pake_input( client, PSA_PAKE_STEP_ZK_PUBLIC,
                                          buffer0 + s_x2_pk_off,
                                          s_x2_pk_len );
-                if( inject_error == 1 && status != PSA_SUCCESS )
-                {
-                    TEST_EQUAL( status, expected_status );
-                    break;
-                }
-                else
-                {
-                    TEST_EQUAL( status, PSA_SUCCESS );
-                }
+                DO_ROUND_CHECK_FAILURE(  );
 
                 status = psa_pake_input( client, PSA_PAKE_STEP_ZK_PROOF,
                                          buffer0 + s_x2_pr_off,
                                          s_x2_pr_len );
-                if( inject_error == 1 && status != PSA_SUCCESS )
-                {
-                    TEST_EQUAL( status, expected_status );
-                    break;
-                }
-                else
-                {
-                    TEST_EQUAL( status, PSA_SUCCESS );
-                }
+                DO_ROUND_CHECK_FAILURE(  );
 
                 /* Error didn't trigger, make test fail */
-                if( inject_error == 1 )
+                if( ( err_stage >= ERR_INJECT_ROUND1_SERVER_KEY_SHARE_PART1 ) &&
+                    ( err_stage <= ERR_INJECT_ROUND1_SERVER_ZK_PROOF_PART2 ) )
+                {
                     TEST_ASSERT( ! "One of the last psa_pake_input() calls should have returned the expected error." );
+                }
             }
 
             /* Client first round Output */
@@ -190,211 +229,131 @@ static void ecjpake_do_round( psa_algorithm_t alg, unsigned int primitive,
                                          buffer1 + buffer1_off,
                                          512 - buffer1_off, &c_g1_len ) );
             TEST_EQUAL( c_g1_len, expected_size_key_share );
-            c_g1_off = buffer1_off;
-            buffer1_off += c_g1_len;
+            DO_ROUND_CONDITIONAL_INJECT(
+                                    ERR_INJECT_ROUND1_CLIENT_KEY_SHARE_PART1,
+                                    buffer1 + buffer1_off );
+            DO_ROUND_UPDATE_OFFSETS( buffer1_off, c_g1_off, c_g1_len );
+
             PSA_ASSERT( psa_pake_output( client, PSA_PAKE_STEP_ZK_PUBLIC,
                                          buffer1 + buffer1_off,
                                          512 - buffer1_off, &c_x1_pk_len ) );
             TEST_EQUAL( c_x1_pk_len, expected_size_zk_public );
-            c_x1_pk_off = buffer1_off;
-            buffer1_off += c_x1_pk_len;
+            DO_ROUND_CONDITIONAL_INJECT(
+                                    ERR_INJECT_ROUND1_CLIENT_ZK_PUBLIC_PART1,
+                                    buffer1 + buffer1_off );
+            DO_ROUND_UPDATE_OFFSETS( buffer1_off, c_x1_pk_off, c_x1_pk_len );
+
             PSA_ASSERT( psa_pake_output( client, PSA_PAKE_STEP_ZK_PROOF,
                                          buffer1 + buffer1_off,
                                          512 - buffer1_off, &c_x1_pr_len ) );
             TEST_LE_U( c_x1_pr_len, max_expected_size_zk_proof );
-            c_x1_pr_off = buffer1_off;
-            buffer1_off += c_x1_pr_len;
+            DO_ROUND_CONDITIONAL_INJECT(
+                                    ERR_INJECT_ROUND1_CLIENT_ZK_PROOF_PART1,
+                                    buffer1 + buffer1_off );
+            DO_ROUND_UPDATE_OFFSETS( buffer1_off, c_x1_pr_off, c_x1_pr_len );
+
             PSA_ASSERT( psa_pake_output( client, PSA_PAKE_STEP_KEY_SHARE,
                                          buffer1 + buffer1_off,
                                          512 - buffer1_off, &c_g2_len ) );
             TEST_EQUAL( c_g2_len, expected_size_key_share );
-            c_g2_off = buffer1_off;
-            buffer1_off += c_g2_len;
+            DO_ROUND_CONDITIONAL_INJECT(
+                                    ERR_INJECT_ROUND1_CLIENT_KEY_SHARE_PART2,
+                                    buffer1 + buffer1_off );
+            DO_ROUND_UPDATE_OFFSETS( buffer1_off, c_g2_off, c_g2_len );
+
             PSA_ASSERT( psa_pake_output( client, PSA_PAKE_STEP_ZK_PUBLIC,
                                          buffer1 + buffer1_off,
                                          512 - buffer1_off, &c_x2_pk_len ) );
             TEST_EQUAL( c_x2_pk_len, expected_size_zk_public );
-            c_x2_pk_off = buffer1_off;
-            buffer1_off += c_x2_pk_len;
+            DO_ROUND_CONDITIONAL_INJECT(
+                                    ERR_INJECT_ROUND1_CLIENT_ZK_PUBLIC_PART2,
+                                    buffer1 + buffer1_off );
+            DO_ROUND_UPDATE_OFFSETS( buffer1_off, c_x2_pk_off, c_x2_pk_len );
+
             PSA_ASSERT( psa_pake_output( client, PSA_PAKE_STEP_ZK_PROOF,
                                          buffer1 + buffer1_off,
                                          512 - buffer1_off, &c_x2_pr_len ) );
             TEST_LE_U( c_x2_pr_len, max_expected_size_zk_proof );
-            c_x2_pr_off = buffer1_off;
-            buffer1_off += c_x2_pr_len;
+            DO_ROUND_CONDITIONAL_INJECT(
+                                    ERR_INJECT_ROUND1_CLIENT_ZK_PROOF_PART2,
+                                    buffer1 + buffer1_off );
+            DO_ROUND_UPDATE_OFFSETS( buffer1_off, c_x2_pr_off, buffer1_off );
 
             if( client_input_first == 0 )
             {
                 /* Client first round Input */
                 status = psa_pake_input( client, PSA_PAKE_STEP_KEY_SHARE,
                                          buffer0 + s_g1_off, s_g1_len );
-                if( inject_error == 1 && status != PSA_SUCCESS )
-                {
-                    TEST_EQUAL( status, expected_status );
-                    break;
-                }
-                else
-                {
-                    TEST_EQUAL( status, PSA_SUCCESS );
-                }
+                DO_ROUND_CHECK_FAILURE(  );
 
                 status = psa_pake_input( client, PSA_PAKE_STEP_ZK_PUBLIC,
                                          buffer0 + s_x1_pk_off,
                                          s_x1_pk_len );
-                if( inject_error == 1 && status != PSA_SUCCESS )
-                {
-                    TEST_EQUAL( status, expected_status );
-                    break;
-                }
-                else
-                {
-                    TEST_EQUAL( status, PSA_SUCCESS );
-                }
+                DO_ROUND_CHECK_FAILURE(  );
 
                 status = psa_pake_input( client, PSA_PAKE_STEP_ZK_PROOF,
                                          buffer0 + s_x1_pr_off,
                                          s_x1_pr_len );
-                if( inject_error == 1 && status != PSA_SUCCESS )
-                {
-                    TEST_EQUAL( status, expected_status );
-                    break;
-                }
-                else
-                {
-                    TEST_EQUAL( status, PSA_SUCCESS );
-                }
+                DO_ROUND_CHECK_FAILURE(  );
 
                 status = psa_pake_input( client, PSA_PAKE_STEP_KEY_SHARE,
                                          buffer0 + s_g2_off,
                                          s_g2_len );
-                if( inject_error == 1 && status != PSA_SUCCESS )
-                {
-                    TEST_EQUAL( status, expected_status );
-                    break;
-                }
-                else
-                {
-                    TEST_EQUAL( status, PSA_SUCCESS );
-                }
+                DO_ROUND_CHECK_FAILURE(  );
 
                 status = psa_pake_input( client, PSA_PAKE_STEP_ZK_PUBLIC,
                                          buffer0 + s_x2_pk_off,
                                          s_x2_pk_len );
-                if( inject_error == 1 && status != PSA_SUCCESS )
-                {
-                    TEST_EQUAL( status, expected_status );
-                    break;
-                }
-                else
-                {
-                    TEST_EQUAL( status, PSA_SUCCESS );
-                }
+                DO_ROUND_CHECK_FAILURE(  );
 
                 status = psa_pake_input( client, PSA_PAKE_STEP_ZK_PROOF,
                                          buffer0 + s_x2_pr_off,
                                          s_x2_pr_len );
-                if( inject_error == 1 && status != PSA_SUCCESS )
-                {
-                    TEST_EQUAL( status, expected_status );
-                    break;
-                }
-                else
-                {
-                    TEST_EQUAL( status, PSA_SUCCESS );
-                }
+                DO_ROUND_CHECK_FAILURE(  );
 
                 /* Error didn't trigger, make test fail */
-                if( inject_error == 1 )
+                if( ( err_stage >= ERR_INJECT_ROUND1_SERVER_KEY_SHARE_PART1 ) &&
+                    ( err_stage <= ERR_INJECT_ROUND1_SERVER_ZK_PROOF_PART2 ) )
+                {
                     TEST_ASSERT( ! "One of the last psa_pake_input() calls should have returned the expected error." );
-            }
-
-            if( inject_error == 2 )
-            {
-                buffer1[c_x1_pr_off + 12] ^= 1;
-                buffer1[c_x2_pr_off + 7] ^= 1;
-                expected_status = PSA_ERROR_DATA_INVALID;
+                }
             }
 
             /* Server first round Input */
             status = psa_pake_input( server, PSA_PAKE_STEP_KEY_SHARE,
                                      buffer1 + c_g1_off, c_g1_len );
-            if( inject_error == 2 && status != PSA_SUCCESS )
-            {
-                TEST_EQUAL( status, expected_status );
-                break;
-            }
-            else
-            {
-                TEST_EQUAL( status, PSA_SUCCESS );
-            }
+            DO_ROUND_CHECK_FAILURE(  );
 
             status = psa_pake_input( server, PSA_PAKE_STEP_ZK_PUBLIC,
                                      buffer1 + c_x1_pk_off, c_x1_pk_len );
-            if( inject_error == 2 && status != PSA_SUCCESS )
-            {
-                TEST_EQUAL( status, expected_status );
-                break;
-            }
-            else
-            {
-                TEST_EQUAL( status, PSA_SUCCESS );
-            }
+            DO_ROUND_CHECK_FAILURE(  );
 
             status = psa_pake_input( server, PSA_PAKE_STEP_ZK_PROOF,
                                      buffer1 + c_x1_pr_off, c_x1_pr_len );
-            if( inject_error == 2 && status != PSA_SUCCESS )
-            {
-                TEST_EQUAL( status, expected_status );
-                break;
-            }
-            else
-            {
-                TEST_EQUAL( status, PSA_SUCCESS );
-            }
+            DO_ROUND_CHECK_FAILURE(  );
 
             status = psa_pake_input( server, PSA_PAKE_STEP_KEY_SHARE,
                                      buffer1 + c_g2_off, c_g2_len );
-            if( inject_error == 2 && status != PSA_SUCCESS )
-            {
-                TEST_EQUAL( status, expected_status );
-                break;
-            }
-            else
-            {
-                TEST_EQUAL( status, PSA_SUCCESS );
-            }
+            DO_ROUND_CHECK_FAILURE(  );
 
             status = psa_pake_input( server, PSA_PAKE_STEP_ZK_PUBLIC,
                                      buffer1 + c_x2_pk_off, c_x2_pk_len );
-            if( inject_error == 2 && status != PSA_SUCCESS )
-            {
-                TEST_EQUAL( status, expected_status );
-                break;
-            }
-            else
-            {
-                TEST_EQUAL( status, PSA_SUCCESS );
-            }
+            DO_ROUND_CHECK_FAILURE(  );
 
             status = psa_pake_input( server, PSA_PAKE_STEP_ZK_PROOF,
                                      buffer1 + c_x2_pr_off, c_x2_pr_len );
-            if( inject_error == 2 && status != PSA_SUCCESS )
-            {
-                TEST_EQUAL( status, expected_status );
-                break;
-            }
-            else
-            {
-                TEST_EQUAL( status, PSA_SUCCESS );
-            }
+            DO_ROUND_CHECK_FAILURE(  );
 
             /* Error didn't trigger, make test fail */
-            if( inject_error == 2 )
+            if( ( err_stage >= ERR_INJECT_ROUND1_CLIENT_KEY_SHARE_PART1 ) &&
+                ( err_stage <= ERR_INJECT_ROUND1_CLIENT_ZK_PROOF_PART2 ) )
+            {
                 TEST_ASSERT( ! "One of the last psa_pake_input() calls should have returned the expected error." );
+            }
 
             break;
 
-        case 2:
+        case PAKE_ROUND_TWO:
             /* Server second round Output */
             buffer0_off = 0;
 
@@ -402,71 +361,52 @@ static void ecjpake_do_round( psa_algorithm_t alg, unsigned int primitive,
                                          buffer0 + buffer0_off,
                                          512 - buffer0_off, &s_a_len ) );
             TEST_EQUAL( s_a_len, expected_size_key_share );
-            s_a_off = buffer0_off;
-            buffer0_off += s_a_len;
+            DO_ROUND_CONDITIONAL_INJECT(
+                                    ERR_INJECT_ROUND2_SERVER_KEY_SHARE,
+                                    buffer0 + buffer0_off );
+            DO_ROUND_UPDATE_OFFSETS( buffer0_off, s_a_off, s_a_len );
+
             PSA_ASSERT( psa_pake_output( server, PSA_PAKE_STEP_ZK_PUBLIC,
                                          buffer0 + buffer0_off,
                                          512 - buffer0_off, &s_x2s_pk_len ) );
             TEST_EQUAL( s_x2s_pk_len, expected_size_zk_public );
-            s_x2s_pk_off = buffer0_off;
-            buffer0_off += s_x2s_pk_len;
+            DO_ROUND_CONDITIONAL_INJECT(
+                                    ERR_INJECT_ROUND2_SERVER_ZK_PUBLIC,
+                                    buffer0 + buffer0_off );
+            DO_ROUND_UPDATE_OFFSETS( buffer0_off, s_x2s_pk_off, s_x2s_pk_len );
+
             PSA_ASSERT( psa_pake_output( server, PSA_PAKE_STEP_ZK_PROOF,
                                          buffer0 + buffer0_off,
                                          512 - buffer0_off, &s_x2s_pr_len ) );
             TEST_LE_U( s_x2s_pr_len, max_expected_size_zk_proof );
-            s_x2s_pr_off = buffer0_off;
-            buffer0_off += s_x2s_pr_len;
-
-            if( inject_error == 3 )
-            {
-                buffer0[s_x2s_pk_off + 12] += 0x33;
-                expected_status = PSA_ERROR_DATA_INVALID;
-            }
+            DO_ROUND_CONDITIONAL_INJECT(
+                                    ERR_INJECT_ROUND2_SERVER_ZK_PROOF,
+                                    buffer0 + buffer0_off );
+            DO_ROUND_UPDATE_OFFSETS( buffer0_off, s_x2s_pr_off, s_x2s_pr_len );
 
             if( client_input_first == 1 )
             {
                 /* Client second round Input */
                 status = psa_pake_input( client, PSA_PAKE_STEP_KEY_SHARE,
                                          buffer0 + s_a_off, s_a_len );
-                if( inject_error == 3 && status != PSA_SUCCESS )
-                {
-                    TEST_EQUAL( status, expected_status );
-                    break;
-                }
-                else
-                {
-                    TEST_EQUAL( status, PSA_SUCCESS );
-                }
+                DO_ROUND_CHECK_FAILURE(  );
 
                 status = psa_pake_input( client, PSA_PAKE_STEP_ZK_PUBLIC,
                                          buffer0 + s_x2s_pk_off,
                                          s_x2s_pk_len );
-                if( inject_error == 3 && status != PSA_SUCCESS )
-                {
-                    TEST_EQUAL( status, expected_status );
-                    break;
-                }
-                else
-                {
-                    TEST_EQUAL( status, PSA_SUCCESS );
-                }
+                DO_ROUND_CHECK_FAILURE(  );
 
                 status = psa_pake_input( client, PSA_PAKE_STEP_ZK_PROOF,
                                          buffer0 + s_x2s_pr_off,
                                          s_x2s_pr_len );
-                if( inject_error == 3 && status != PSA_SUCCESS )
-                {
-                    TEST_EQUAL( status, expected_status );
-                    break;
-                }
-                else
-                {
-                    TEST_EQUAL( status, PSA_SUCCESS );
-                }
+                DO_ROUND_CHECK_FAILURE(  );
 
                 /* Error didn't trigger, make test fail */
-                if( inject_error == 3 )
+                if( ( err_stage >= ERR_INJECT_ROUND2_SERVER_KEY_SHARE ) &&
+                    ( err_stage <= ERR_INJECT_ROUND2_SERVER_ZK_PROOF ) )
+                {
                     TEST_ASSERT( ! "One of the last psa_pake_input() calls should have returned the expected error." );
+                }
             }
 
             /* Client second round Output */
@@ -476,113 +416,73 @@ static void ecjpake_do_round( psa_algorithm_t alg, unsigned int primitive,
                                          buffer1 + buffer1_off,
                                          512 - buffer1_off, &c_a_len ) );
             TEST_EQUAL( c_a_len, expected_size_key_share );
-            c_a_off = buffer1_off;
-            buffer1_off += c_a_len;
+            DO_ROUND_CONDITIONAL_INJECT(
+                                    ERR_INJECT_ROUND2_CLIENT_KEY_SHARE,
+                                    buffer1 + buffer1_off );
+            DO_ROUND_UPDATE_OFFSETS( buffer1_off, c_a_off, c_a_len );
+
             PSA_ASSERT( psa_pake_output( client, PSA_PAKE_STEP_ZK_PUBLIC,
                                          buffer1 + buffer1_off,
                                          512 - buffer1_off, &c_x2s_pk_len ) );
             TEST_EQUAL( c_x2s_pk_len, expected_size_zk_public );
-            c_x2s_pk_off = buffer1_off;
-            buffer1_off += c_x2s_pk_len;
+            DO_ROUND_CONDITIONAL_INJECT(
+                                    ERR_INJECT_ROUND2_CLIENT_ZK_PUBLIC,
+                                    buffer1 + buffer1_off );
+            DO_ROUND_UPDATE_OFFSETS( buffer1_off, c_x2s_pk_off, c_x2s_pk_len );
+
             PSA_ASSERT( psa_pake_output( client, PSA_PAKE_STEP_ZK_PROOF,
                                          buffer1 + buffer1_off,
                                          512 - buffer1_off, &c_x2s_pr_len ) );
             TEST_LE_U( c_x2s_pr_len, max_expected_size_zk_proof );
-            c_x2s_pr_off = buffer1_off;
-            buffer1_off += c_x2s_pr_len;
+            DO_ROUND_CONDITIONAL_INJECT(
+                                    ERR_INJECT_ROUND2_CLIENT_ZK_PROOF,
+                                    buffer1 + buffer1_off );
+            DO_ROUND_UPDATE_OFFSETS( buffer1_off, c_x2s_pr_off, c_x2s_pr_len );
 
             if( client_input_first == 0 )
             {
                 /* Client second round Input */
                 status = psa_pake_input( client, PSA_PAKE_STEP_KEY_SHARE,
                                          buffer0 + s_a_off, s_a_len );
-                if( inject_error == 3 && status != PSA_SUCCESS )
-                {
-                    TEST_EQUAL( status, expected_status );
-                    break;
-                }
-                else
-                {
-                    TEST_EQUAL( status, PSA_SUCCESS );
-                }
+                DO_ROUND_CHECK_FAILURE(  );
 
                 status = psa_pake_input( client, PSA_PAKE_STEP_ZK_PUBLIC,
                                          buffer0 + s_x2s_pk_off,
                                          s_x2s_pk_len );
-                if( inject_error == 3 && status != PSA_SUCCESS )
-                {
-                    TEST_EQUAL( status, expected_status );
-                    break;
-                }
-                else
-                {
-                    TEST_EQUAL( status, PSA_SUCCESS );
-                }
+                DO_ROUND_CHECK_FAILURE(  );
 
                 status = psa_pake_input( client, PSA_PAKE_STEP_ZK_PROOF,
                                          buffer0 + s_x2s_pr_off,
                                          s_x2s_pr_len );
-                if( inject_error == 3 && status != PSA_SUCCESS )
-                {
-                    TEST_EQUAL( status, expected_status );
-                    break;
-                }
-                else
-                {
-                    TEST_EQUAL( status, PSA_SUCCESS );
-                }
+                DO_ROUND_CHECK_FAILURE(  );
 
                 /* Error didn't trigger, make test fail */
-                if( inject_error == 3 )
+                if( ( err_stage >= ERR_INJECT_ROUND2_SERVER_KEY_SHARE ) &&
+                    ( err_stage <= ERR_INJECT_ROUND2_SERVER_ZK_PROOF ) )
+                {
                     TEST_ASSERT( ! "One of the last psa_pake_input() calls should have returned the expected error." );
-            }
-
-            if( inject_error == 4 )
-            {
-                buffer1[c_x2s_pk_off + 7] += 0x28;
-                expected_status = PSA_ERROR_DATA_INVALID;
+                }
             }
 
             /* Server second round Input */
             status = psa_pake_input( server, PSA_PAKE_STEP_KEY_SHARE,
                                      buffer1 + c_a_off, c_a_len );
-            if( inject_error == 4 && status != PSA_SUCCESS )
-            {
-                TEST_EQUAL( status, expected_status );
-                break;
-            }
-            else
-            {
-                TEST_EQUAL( status, PSA_SUCCESS );
-            }
+            DO_ROUND_CHECK_FAILURE(  );
 
             status = psa_pake_input( server, PSA_PAKE_STEP_ZK_PUBLIC,
                                      buffer1 + c_x2s_pk_off, c_x2s_pk_len );
-            if( inject_error == 4 && status != PSA_SUCCESS )
-            {
-                TEST_EQUAL( status, expected_status );
-                break;
-            }
-            else
-            {
-                TEST_EQUAL( status, PSA_SUCCESS );
-            }
+            DO_ROUND_CHECK_FAILURE(  );
 
             status = psa_pake_input( server, PSA_PAKE_STEP_ZK_PROOF,
                                      buffer1 + c_x2s_pr_off, c_x2s_pr_len );
-            if( inject_error == 4 && status != PSA_SUCCESS )
-            {
-                TEST_EQUAL( status, expected_status );
-                break;
-            }
-            else
-            {
-                TEST_EQUAL( status, PSA_SUCCESS );
-            }
+            DO_ROUND_CHECK_FAILURE(  );
 
             /* Error didn't trigger, make test fail */
-            if( inject_error == 4 )
+            if( ( err_stage >= ERR_INJECT_ROUND2_CLIENT_KEY_SHARE ) &&
+                ( err_stage <= ERR_INJECT_ROUND2_CLIENT_ZK_PROOF ) )
+            {
                 TEST_ASSERT( ! "One of the last psa_pake_input() calls should have returned the expected error." );
+            }
 
             break;
 
@@ -593,31 +493,6 @@ exit:
     mbedtls_free( buffer1 );
 }
 #endif /* PSA_WANT_ALG_JPAKE */
-
-typedef enum
-{
-    ERR_NONE = 0,
-    /* errors forced internally in the code */
-    ERR_INJECT_UNINITIALIZED_ACCESS,
-    ERR_INJECT_DUPLICATE_SETUP,
-    ERR_INJECT_INVALID_USER,
-    ERR_INJECT_INVALID_PEER,
-    ERR_INJECT_SET_USER,
-    ERR_INJECT_SET_PEER,
-    ERR_INJECT_EMPTY_IO_BUFFER,
-    ERR_INJECT_UNKNOWN_STEP,
-    ERR_INJECT_INVALID_FIRST_STEP,
-    ERR_INJECT_WRONG_BUFFER_SIZE,
-    ERR_INJECT_VALID_OPERATION_AFTER_FAILURE,
-    ERR_INJECT_ANTICIPATE_KEY_DERIVATION_1,
-    ERR_INJECT_ANTICIPATE_KEY_DERIVATION_2,
-    /* erros issued from the .data file */
-    ERR_IN_SETUP,
-    ERR_IN_SET_ROLE,
-    ERR_IN_SET_PASSWORD_KEY,
-    ERR_IN_INPUT,
-    ERR_IN_OUTPUT,
-} ecjpake_error_stage_t;
 
 /*
  * This check is used for functions that might either succeed or fail depending
@@ -723,7 +598,7 @@ void ecjpake_setup( int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
         TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_KEY_SHARE,
                     NULL, 0, NULL ),
                     expected_error );
-        TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_KEY_SHARE, 
+        TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_KEY_SHARE,
                     NULL, 0 ),
                     expected_error );
         TEST_EQUAL( psa_pake_get_implicit_key( &operation, &key_derivation ),
@@ -841,8 +716,10 @@ exit:
 
 /* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE */
 void ecjpake_rounds_inject( int alg_arg, int primitive_arg, int hash_arg,
-                            int client_input_first, int inject_error,
-                            data_t *pw_data )
+                            int client_input_first,
+                            data_t *pw_data,
+                            int err_stage_arg,
+                            int expected_error_arg )
 {
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
     psa_pake_operation_t server = psa_pake_operation_init();
@@ -851,6 +728,7 @@ void ecjpake_rounds_inject( int alg_arg, int primitive_arg, int hash_arg,
     psa_algorithm_t hash_alg = hash_arg;
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    ecjpake_error_stage_t err_stage = err_stage_arg;
 
     PSA_INIT( );
 
@@ -864,7 +742,6 @@ void ecjpake_rounds_inject( int alg_arg, int primitive_arg, int hash_arg,
     psa_pake_cs_set_primitive( &cipher_suite, primitive_arg );
     psa_pake_cs_set_hash( &cipher_suite, hash_alg );
 
-
     PSA_ASSERT( psa_pake_setup( &server, &cipher_suite ) );
     PSA_ASSERT( psa_pake_setup( &client, &cipher_suite ) );
 
@@ -875,13 +752,15 @@ void ecjpake_rounds_inject( int alg_arg, int primitive_arg, int hash_arg,
     PSA_ASSERT( psa_pake_set_password_key( &client, key ) );
 
     ecjpake_do_round( alg, primitive_arg, &server, &client,
-                      client_input_first, 1, inject_error );
+                      client_input_first, PAKE_ROUND_ONE,
+                      err_stage, expected_error_arg );
 
-    if( inject_error == 1 || inject_error == 2 )
+    if( err_stage != ERR_NONE )
         goto exit;
 
     ecjpake_do_round( alg, primitive_arg, &server, &client,
-                      client_input_first, 2, inject_error );
+                      client_input_first, PAKE_ROUND_TWO,
+                      err_stage, expected_error_arg );
 
 exit:
     psa_destroy_key( key );
@@ -957,7 +836,8 @@ void ecjpake_rounds( int alg_arg, int primitive_arg, int hash_arg,
 
     /* First round */
     ecjpake_do_round( alg, primitive_arg, &server, &client,
-                      client_input_first, 1, 0 );
+                      client_input_first, PAKE_ROUND_ONE,
+                      ERR_NONE, PSA_SUCCESS );
 
     if ( err_stage == ERR_INJECT_ANTICIPATE_KEY_DERIVATION_2 )
     {
@@ -970,7 +850,8 @@ void ecjpake_rounds( int alg_arg, int primitive_arg, int hash_arg,
 
     /* Second round */
     ecjpake_do_round( alg, primitive_arg, &server, &client,
-                      client_input_first, 2, 0 );
+                      client_input_first, PAKE_ROUND_TWO,
+                      ERR_NONE, PSA_SUCCESS );
 
     PSA_ASSERT( psa_pake_get_implicit_key( &server, &server_derive ) );
     PSA_ASSERT( psa_pake_get_implicit_key( &client, &client_derive ) );

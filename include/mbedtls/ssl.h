@@ -1524,9 +1524,17 @@ struct mbedtls_ssl_config
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
+#if defined(MBEDTLS_SSL_CLI_C)
     int MBEDTLS_PRIVATE(early_data_enabled);     /*!< Early data enablement:
                                                   *   - MBEDTLS_SSL_EARLY_DATA_DISABLED,
                                                   *   - MBEDTLS_SSL_EARLY_DATA_ENABLED */
+#endif /* MBEDTLS_SSL_CLI_C */
+
+#if defined(MBEDTLS_SSL_SRV_C)
+    /* The maximium amount of 0-RTT data. RFC 8446 section 4.6.1 */
+    uint32_t MBEDTLS_PRIVATE(max_early_data_size);
+#endif /* MBEDTLS_SSL_SRV_C */
+
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #if defined(MBEDTLS_SSL_ALPN)
@@ -1943,6 +1951,7 @@ void mbedtls_ssl_conf_transport( mbedtls_ssl_config *conf, int transport );
 void mbedtls_ssl_conf_authmode( mbedtls_ssl_config *conf, int authmode );
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_EARLY_DATA)
+#if defined(MBEDTLS_SSL_CLI_C)
 /**
 * \brief    Set the early data mode
 *           Default: disabled on server and client
@@ -1964,6 +1973,27 @@ void mbedtls_ssl_conf_authmode( mbedtls_ssl_config *conf, int authmode );
 */
 void mbedtls_ssl_tls13_conf_early_data( mbedtls_ssl_config *conf,
                                         int early_data_enabled );
+#endif /* MBEDTLS_SSL_CLI_C */
+
+#if defined(MBEDTLS_SSL_SRV_C)
+/**
+ * \brief Set the max_early_data_size parameter.
+ *
+ * \param[in] conf                  The SSL configuration to use.
+ * \param[in] max_early_data_size   The maximum amount of 0-RTT data.
+ *                                  - 0 Disable 0-RTT feature.
+ *
+ * \note    max_early_data_size MUST be smaller than
+ *          MBEDTLS_SSL_MAX_EARLY_DATA_SIZE. Otherwise,
+ *          MBEDTLS_SSL_MAX_EARLY_DATA_SIZE will be used.
+ *
+ * \warning This interface is experimental and may change without notice.
+ *
+ */
+void mbedtls_ssl_tls13_conf_max_early_data_size(
+         mbedtls_ssl_config *conf, uint32_t max_early_data_size );
+#endif /* MBEDTLS_SSL_SRV_C */
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_EARLY_DATA */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)

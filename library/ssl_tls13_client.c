@@ -1335,53 +1335,6 @@ static int ssl_tls13_is_downgrade_negotiation( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-#if defined(MBEDTLS_SSL_EARLY_DATA)
-/*
- * ssl_tls13_parse_ee_early_data_ext()
- *      Parse early data indication extension in EncryptedExtensions.
- *
- * struct {} Empty;
- *
- * struct {
- *   select (Handshake.msg_type) {
- *     ...
- *     case client_hello:         Empty;
- *     case encrypted_extensions: Empty;
- *   };
- * } EarlyDataIndication;
- *
- */
-
-MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_parse_ee_early_data_ext( mbedtls_ssl_context *ssl,
-                                              const unsigned char *buf,
-                                              size_t len )
-{
-    if( ssl->early_data_status < MBEDTLS_SSL_EARLY_DATA_STATUS_INDICATION_SENT )
-    {
-        /* The server must not send the EarlyDataIndication if the
-         * client hasn't indicated the use of early data. */
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
-                                      MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
-        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
-    }
-
-    if( len != 0 )
-    {
-        /* The message must be empty. */
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
-                                      MBEDTLS_ERR_SSL_DECODE_ERROR );
-        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
-    }
-
-    /* Nothing to parse */
-    ((void) buf);
-
-    ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED;
-    return( 0 );
-}
-#endif /* MBEDTLS_SSL_EARLY_DATA */
-
 /* Returns a negative value on failure, and otherwise
  * - SSL_SERVER_HELLO or
  * - SSL_SERVER_HELLO_HRR
@@ -2110,16 +2063,25 @@ static int ssl_tls13_parse_encrypted_extensions( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
             case MBEDTLS_TLS_EXT_EARLY_DATA:
-                ret = ssl_tls13_parse_ee_early_data_ext(
-                            ssl, p, (size_t)extension_data_len );
-                if( ret != 0 )
+                if( ssl->early_data_status != MBEDTLS_SSL_EARLY_DATA_STATUS_INDICATION_SENT )
                 {
-                    ssl->early_data_status =
-                            MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED;
-                    MBEDTLS_SSL_DEBUG_RET(
-                            1, "ssl_tls13_parse_ee_early_data_ext", ret );
-                    return( ret );
+                    /* The server must not send the EarlyDataIndication if the
+                    * client hasn't indicated the use of early data. */
+                    MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                                                  MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+                    return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
                 }
+
+                if( extension_data_len != 0 )
+                {
+                    /* The message must be empty. */
+                    MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
+                                                  MBEDTLS_ERR_SSL_DECODE_ERROR );
+                    return( MBEDTLS_ERR_SSL_DECODE_ERROR );
+                }
+
+	            ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED;
+
                 break;
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 

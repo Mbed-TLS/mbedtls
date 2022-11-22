@@ -117,9 +117,11 @@ void mpi_mod_raw_cond_assign( char * input_X,
     mbedtls_mpi_uint *X = NULL;
     mbedtls_mpi_uint *Y = NULL;
     mbedtls_mpi_uint *buff_m = NULL;
-    mbedtls_mpi_mod_modulus m;
     size_t limbs_X;
     size_t limbs_Y;
+
+    mbedtls_mpi_mod_modulus m;
+    mbedtls_mpi_mod_modulus_init( &m );
 
     TEST_EQUAL( mbedtls_test_read_mpi_core( &X, &limbs_X, input_X ), 0 );
     TEST_EQUAL( mbedtls_test_read_mpi_core( &Y, &limbs_Y, input_Y ), 0 );
@@ -128,8 +130,6 @@ void mpi_mod_raw_cond_assign( char * input_X,
     size_t copy_limbs = CHARS_TO_LIMBS( input_bytes );
     size_t bytes = limbs * sizeof( mbedtls_mpi_uint );
     size_t copy_bytes = copy_limbs * sizeof( mbedtls_mpi_uint );
-
-    mbedtls_mpi_mod_modulus_init( &m );
 
     TEST_EQUAL( limbs_X, limbs_Y );
     TEST_ASSERT( copy_limbs <= limbs );
@@ -190,9 +190,11 @@ void mpi_mod_raw_cond_swap( char * input_X,
     mbedtls_mpi_uint *X = NULL;
     mbedtls_mpi_uint *Y = NULL;
     mbedtls_mpi_uint *buff_m = NULL;
-    mbedtls_mpi_mod_modulus m;
     size_t limbs_X;
     size_t limbs_Y;
+
+    mbedtls_mpi_mod_modulus m;
+    mbedtls_mpi_mod_modulus_init( &m );
 
     TEST_EQUAL( mbedtls_test_read_mpi_core( &tmp_X, &limbs_X, input_X ), 0 );
     TEST_EQUAL( mbedtls_test_read_mpi_core( &tmp_Y, &limbs_Y, input_Y ), 0 );
@@ -201,8 +203,6 @@ void mpi_mod_raw_cond_swap( char * input_X,
     size_t copy_limbs = CHARS_TO_LIMBS( input_bytes );
     size_t bytes = limbs * sizeof( mbedtls_mpi_uint );
     size_t copy_bytes = copy_limbs * sizeof( mbedtls_mpi_uint );
-
-    mbedtls_mpi_mod_modulus_init( &m );
 
     TEST_EQUAL( limbs_X, limbs_Y );
     TEST_ASSERT( copy_limbs <= limbs );
@@ -294,7 +294,77 @@ exit:
 /* END MERGE SLOT 6 */
 
 /* BEGIN MERGE SLOT 7 */
+/* BEGIN_CASE */
+void mpi_mod_raw_to_mont_rep( char * input_N, char * input_A, char * input_X )
+{
+    mbedtls_mpi_uint *N = NULL;
+    mbedtls_mpi_uint *A = NULL;
+    mbedtls_mpi_uint *X = NULL;
+    size_t n_limbs, a_limbs, x_limbs, x_bytes;
 
+    mbedtls_mpi_mod_modulus m;
+    mbedtls_mpi_mod_modulus_init( &m );
+
+    /* Read inputs */
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &N, &n_limbs, input_N ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &A, &a_limbs, input_A ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &X, &x_limbs, input_X ) );
+    x_bytes = x_limbs * sizeof(mbedtls_mpi_uint);
+
+    /* Test that input does not require more limbs than modulo */
+    TEST_LE_U(a_limbs, n_limbs);
+
+    TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs,
+                MBEDTLS_MPI_MOD_EXT_REP_BE, MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
+
+    /* Convert from cannonical into Montgomery representation */
+    TEST_EQUAL(0, mbedtls_mpi_mod_raw_to_mont_rep( A, &m ) );
+
+    /* The result matches expected value */
+    ASSERT_COMPARE( A, x_bytes, X, x_bytes );
+exit:
+    mbedtls_mpi_mod_modulus_free( &m );
+    mbedtls_free( N );
+    mbedtls_free( A );
+    mbedtls_free( X );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_mod_raw_from_mont_rep( char * input_N, char * input_A, char * input_X )
+{
+    mbedtls_mpi_uint *N = NULL;
+    mbedtls_mpi_uint *A = NULL;
+    mbedtls_mpi_uint *X = NULL;
+    size_t n_limbs, a_limbs, x_limbs, x_bytes;
+
+    mbedtls_mpi_mod_modulus m;
+    mbedtls_mpi_mod_modulus_init( &m );
+
+    /* Read inputs */
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &N, &n_limbs, input_N ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &A, &a_limbs, input_A ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &X, &x_limbs, input_X ) );
+    x_bytes = x_limbs * sizeof(mbedtls_mpi_uint);
+
+    /* Test that input does not require more limbs than modulo */
+    TEST_LE_U(a_limbs, n_limbs);
+
+    TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs,
+                MBEDTLS_MPI_MOD_EXT_REP_BE, MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
+
+    /* Convert from Montgomery into cannonical representation */
+    TEST_EQUAL(0, mbedtls_mpi_mod_raw_from_mont_rep( A, &m ) );
+
+    /* The result matches expected value */
+    ASSERT_COMPARE( A, x_bytes, X, x_bytes );
+exit:
+    mbedtls_mpi_mod_modulus_free( &m );
+    mbedtls_free( N );
+    mbedtls_free( A );
+    mbedtls_free( X );
+}
+/* END_CASE */
 /* END MERGE SLOT 7 */
 
 /* BEGIN MERGE SLOT 8 */

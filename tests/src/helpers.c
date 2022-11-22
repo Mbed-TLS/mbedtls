@@ -89,6 +89,10 @@ void mbedtls_test_set_step( unsigned long step )
     mbedtls_test_info.step = step;
 }
 
+#if defined(MBEDTLS_BIGNUM_C)
+unsigned mbedtls_test_case_uses_negative_0 = 0;
+#endif
+
 void mbedtls_test_info_reset( void )
 {
     mbedtls_test_info.result = MBEDTLS_TEST_RESULT_SUCCESS;
@@ -98,6 +102,9 @@ void mbedtls_test_info_reset( void )
     mbedtls_test_info.filename = 0;
     memset( mbedtls_test_info.line1, 0, sizeof( mbedtls_test_info.line1 ) );
     memset( mbedtls_test_info.line2, 0, sizeof( mbedtls_test_info.line2 ) );
+#if defined(MBEDTLS_BIGNUM_C)
+    mbedtls_test_case_uses_negative_0 = 0;
+#endif
 }
 
 int mbedtls_test_equal( const char *test, int line_no, const char* filename,
@@ -396,6 +403,15 @@ exit:
 
 int mbedtls_test_read_mpi( mbedtls_mpi *X, const char *s )
 {
+    int negative = 0;
+    /* Always set the sign bit to -1 if the input has a minus sign, even for 0.
+     * This creates an invalid representation, which mbedtls_mpi_read_string()
+     * avoids but we want to be able to create that in test data. */
+    if( s[0] == '-' )
+    {
+        ++s;
+        negative = 1;
+    }
     /* mbedtls_mpi_read_string() currently retains leading zeros.
      * It always allocates at least one limb for the value 0. */
     if( s[0] == 0 )
@@ -403,7 +419,15 @@ int mbedtls_test_read_mpi( mbedtls_mpi *X, const char *s )
         mbedtls_mpi_free( X );
         return( 0 );
     }
-    else
-        return( mbedtls_mpi_read_string( X, 16, s ) );
+    int ret = mbedtls_mpi_read_string( X, 16, s );
+    if( ret != 0 )
+        return( ret );
+    if( negative )
+    {
+        if( mbedtls_mpi_cmp_int( X, 0 ) == 0 )
+            ++mbedtls_test_case_uses_negative_0;
+        X->s = -1;
+    }
+    return( 0 );
 }
 #endif

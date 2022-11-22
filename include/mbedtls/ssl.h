@@ -801,6 +801,29 @@ typedef struct mbedtls_ssl_key_cert mbedtls_ssl_key_cert;
 typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
 #endif
 
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN           0
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT          1
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_INDICATION_SENT   2
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED          3
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED          4
+#endif
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+typedef uint8_t mbedtls_ssl_tls13_ticket_flags;
+
+#define MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_PSK_RESUMPTION                          \
+            MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK                /* 1U << 0 */
+#define MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_PSK_EPHEMERAL_RESUMPTION                \
+            MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL      /* 1U << 2 */
+#define MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA                  ( 1U << 3 )
+
+#define MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK                                    \
+            ( MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_PSK_RESUMPTION             |      \
+              MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_PSK_EPHEMERAL_RESUMPTION   |      \
+              MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA )
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */
+
 /**
  * \brief          Callback type: server-side session cache getter
  *
@@ -1782,6 +1805,10 @@ struct mbedtls_ssl_context
                             *   Possible values are #MBEDTLS_SSL_CID_ENABLED
                             *   and #MBEDTLS_SSL_CID_DISABLED. */
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
+    int MBEDTLS_PRIVATE(early_data_status);
+#endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_CLI_C */
 
     /** Callback to export key block and master secret                      */
     mbedtls_ssl_export_keys_t *MBEDTLS_PRIVATE(f_export_keys);

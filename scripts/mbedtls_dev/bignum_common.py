@@ -14,9 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import itertools
-import typing
-
 from abc import abstractmethod
 from typing import Iterator, List, Tuple, TypeVar
 
@@ -38,7 +35,13 @@ def invmod(a: int, n: int) -> int:
     raise ValueError("Not invertible")
 
 def hex_to_int(val: str) -> int:
-    return int(val, 16) if val else 0
+    """Implement the syntax accepted by mbedtls_test_read_mpi().
+
+    This is a superset of what is accepted by mbedtls_test_read_mpi_core().
+    """
+    if val in ['', '-']:
+        return 0
+    return int(val, 16)
 
 def quote_str(val) -> str:
     return "\"{}\"".format(val)
@@ -57,15 +60,8 @@ def limbs_mpi(val: int, bits_in_limb: int) -> int:
     return (val.bit_length() + bits_in_limb - 1) // bits_in_limb
 
 def combination_pairs(values: List[T]) -> List[Tuple[T, T]]:
-    """Return all pair combinations from input values.
-
-    The return value is cast, as older versions of mypy are unable to derive
-    the specific type returned by itertools.combinations_with_replacement.
-    """
-    return typing.cast(
-        List[Tuple[T, T]],
-        list(itertools.combinations_with_replacement(values, 2))
-    )
+    """Return all pair combinations from input values."""
+    return [(x, y) for x in values for y in values]
 
 
 class OperationCommon:

@@ -80,12 +80,14 @@ fi
 
 if [ -n "${OPENSSL_NEXT:-}" ]; then
     O_NEXT_SRV="$OPENSSL_NEXT s_server -www -cert data_files/server5.crt -key data_files/server5.key"
+    O_NEXT_SRV_EARLY_DATA="$OPENSSL_NEXT s_server -early_data -cert data_files/server5.crt -key data_files/server5.key"
     O_NEXT_SRV_NO_CERT="$OPENSSL_NEXT s_server -www "
     O_NEXT_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_NEXT s_client -CAfile data_files/test-ca_cat12.crt"
     O_NEXT_CLI_NO_CERT="echo 'GET / HTTP/1.0' | $OPENSSL_NEXT s_client"
 else
     O_NEXT_SRV=false
     O_NEXT_SRV_NO_CERT=false
+    O_NEXT_SRV_EARLY_DATA=false
     O_NEXT_CLI_NO_CERT=false
     O_NEXT_CLI=false
 fi
@@ -1024,6 +1026,16 @@ is_gnutls() {
     esac
 }
 
+# Generate random psk_list argument for ssl_server2
+get_srv_psk_list ()
+{
+    case $(( TESTS % 3 )) in
+        0) echo "psk_list=abc,dead,def,beef,Client_identity,6162636465666768696a6b6c6d6e6f70";;
+        1) echo "psk_list=abc,dead,Client_identity,6162636465666768696a6b6c6d6e6f70,def,beef";;
+        2) echo "psk_list=Client_identity,6162636465666768696a6b6c6d6e6f70,abc,dead,def,beef";;
+    esac
+}
+
 # Determine what calc_verify trace is to be expected, if any.
 #
 # calc_verify is only called for two things: to calculate the
@@ -1680,6 +1692,7 @@ fi
 if [ -n "${OPENSSL_NEXT:-}" ]; then
     O_NEXT_SRV="$O_NEXT_SRV -accept $SRV_PORT"
     O_NEXT_SRV_NO_CERT="$O_NEXT_SRV_NO_CERT -accept $SRV_PORT"
+    O_NEXT_SRV_EARLY_DATA="$O_NEXT_SRV_EARLY_DATA -accept $SRV_PORT"
     O_NEXT_CLI="$O_NEXT_CLI -connect 127.0.0.1:+SRV_PORT"
     O_NEXT_CLI_NO_CERT="$O_NEXT_CLI_NO_CERT -connect 127.0.0.1:+SRV_PORT"
 fi
@@ -2370,6 +2383,31 @@ run_test    "Unique IV in GCM" \
             0 \
             -u "IV used" \
             -U "IV used"
+
+# Test for correctness of sent single supported algorithm
+requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_hash_alg SHA_256
+run_test    "Single supported algorithm sending: mbedtls client" \
+            "$P_SRV sig_algs=ecdsa_secp256r1_sha256 auth_mode=required" \
+            "$P_CLI sig_algs=ecdsa_secp256r1_sha256 debug_level=3" \
+            0 \
+            -c "Supported Signature Algorithm found: 04 03"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_hash_alg SHA_256
+run_test    "Single supported algorithm sending: openssl client" \
+            "$P_SRV sig_algs=ecdsa_secp256r1_sha256 auth_mode=required" \
+            "$O_CLI -cert data_files/server6.crt \
+                    -key data_files/server6.key" \
+            0
 
 # Tests for certificate verification callback
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
@@ -5274,8 +5312,8 @@ run_test    "Authentication: client SHA256, server required" \
              key_file=data_files/server6.key \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384" \
             0 \
-            -c "Supported Signature Algorithm found: 4," \
-            -c "Supported Signature Algorithm found: 5,"
+            -c "Supported Signature Algorithm found: 04 " \
+            -c "Supported Signature Algorithm found: 05 "
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
@@ -5285,8 +5323,8 @@ run_test    "Authentication: client SHA384, server required" \
              key_file=data_files/server6.key \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256" \
             0 \
-            -c "Supported Signature Algorithm found: 4," \
-            -c "Supported Signature Algorithm found: 5,"
+            -c "Supported Signature Algorithm found: 04 " \
+            -c "Supported Signature Algorithm found: 05 "
 
 requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Authentication: client has no cert, server required (TLS)" \
@@ -5687,8 +5725,8 @@ run_test    "Authentication, CA callback: client SHA256, server required" \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384" \
             0 \
             -s "use CA callback for X.509 CRT verification" \
-            -c "Supported Signature Algorithm found: 4," \
-            -c "Supported Signature Algorithm found: 5,"
+            -c "Supported Signature Algorithm found: 04 " \
+            -c "Supported Signature Algorithm found: 05 "
 
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
@@ -5700,8 +5738,8 @@ run_test    "Authentication, CA callback: client SHA384, server required" \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256" \
             0 \
             -s "use CA callback for X.509 CRT verification" \
-            -c "Supported Signature Algorithm found: 4," \
-            -c "Supported Signature Algorithm found: 5,"
+            -c "Supported Signature Algorithm found: 04 " \
+            -c "Supported Signature Algorithm found: 05 "
 
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2

@@ -314,9 +314,29 @@ void mpi_mod_raw_sub( char * input_A,
                         MBEDTLS_MPI_MOD_REP_MONTGOMERY ), 0 );
 
     mbedtls_mpi_mod_raw_sub( X, A, B, &m );
-
     ASSERT_COMPARE( X, bytes, res, bytes );
 
+    /* alias X to A */
+    memcpy( X, A, bytes );
+    mbedtls_mpi_mod_raw_sub( X, X, B, &m );
+    ASSERT_COMPARE( X, bytes, res, bytes );
+
+    /* alias X to B */
+    memcpy( X, B, bytes );
+    mbedtls_mpi_mod_raw_sub( X, A, X, &m );
+    ASSERT_COMPARE( X, bytes, res, bytes );
+
+    /* A == B: alias A and B */
+    if( memcmp( A, B, bytes ) == 0 )
+    {
+        mbedtls_mpi_mod_raw_sub( X, A, A, &m );
+        ASSERT_COMPARE( X, bytes, res, bytes );
+
+        /* X, A, B all aliased together */
+        memcpy( X, A, bytes );
+        mbedtls_mpi_mod_raw_sub( X, X, X, &m );
+        ASSERT_COMPARE( X, bytes, res, bytes );
+    }
 exit:
     mbedtls_free( A );
     mbedtls_free( B );

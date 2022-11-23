@@ -40,57 +40,61 @@ int mbedtls_asn1_get_len(unsigned char **p,
                          const unsigned char *end,
                          size_t *len)
 {
+    unsigned char lenlen;
+
     if ((end - *p) < 1) {
         return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
     }
 
-    if ((**p & 0x80) == 0) {
-        *len = *(*p)++;
+    lenlen = **p;
+    if ((lenlen & 0x80) == 0) {
+        *len = lenlen;
+        (*p)++;
     } else {
-        switch (**p & 0x7F) {
-            case 1:
-                if ((end - *p) < 2) {
-                    return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
-                }
+        lenlen &= 0x7F;
+        if (lenlen < 1 || lenlen > 4 || lenlen > sizeof(size_t)) {
+            /* Invalid ASN.1 DER *or* longer than Mbed TLS can handle */
+            return MBEDTLS_ERR_ASN1_INVALID_LENGTH;
+        }
 
+        /* Check that the length bytes fit in the buffer */
+        if ((end - *p) < (lenlen + 1)) {
+            return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
+        }
+
+        /* Check for overlong encodings of lengths */
+        if ((*p)[1] < (lenlen > 1 ? 1 : 0x80)) {
+            return MBEDTLS_ERR_ASN1_INVALID_LENGTH;
+        }
+
+        switch (lenlen) {
+            case 1:
                 *len = (*p)[1];
-                (*p) += 2;
                 break;
 
             case 2:
-                if ((end - *p) < 3) {
-                    return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
-                }
-
                 *len = ((size_t) (*p)[1] << 8) | (*p)[2];
-                (*p) += 3;
                 break;
 
             case 3:
-                if ((end - *p) < 4) {
-                    return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
-                }
-
                 *len = ((size_t) (*p)[1] << 16) |
                        ((size_t) (*p)[2] << 8) | (*p)[3];
-                (*p) += 4;
                 break;
 
             case 4:
-                if ((end - *p) < 5) {
-                    return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
-                }
-
                 *len = ((size_t) (*p)[1] << 24) | ((size_t) (*p)[2] << 16) |
                        ((size_t) (*p)[3] << 8) |           (*p)[4];
-                (*p) += 5;
                 break;
-
             default:
-                return MBEDTLS_ERR_ASN1_INVALID_LENGTH;
+                /* not reached */
+                *len = 0;
+                return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         }
+
+        (*p) += (lenlen + 1);
     }
 
+    /* Check that the payload fits in the buffer */
     if (*len > (size_t) (end - *p)) {
         return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
     }

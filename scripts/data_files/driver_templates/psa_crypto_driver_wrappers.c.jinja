@@ -2887,9 +2887,12 @@ psa_status_t psa_driver_wrapper_pake_set_password_key(
                 return( status );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+#if defined(MBEDTLS_PSA_BUILTIN_PAKE)
             return( mbedtls_psa_pake_set_password_key(
                         attributes, &operation->ctx.mbedtls_ctx,
                         key_buffer, key_size ) );
+#endif
+            return( PSA_ERROR_NOT_SUPPORTED );
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
@@ -2903,6 +2906,7 @@ psa_status_t psa_driver_wrapper_pake_set_password_key(
 
         default:
             /* Key is declared with a lifetime not known to us */
+            (void)operation;
             (void)status;
             (void)key_buffer;
             (void)key_size;

@@ -96,7 +96,10 @@
 /* Error space gap */
 /** Processing of the Certificate handshake message failed. */
 #define MBEDTLS_ERR_SSL_BAD_CERTIFICATE                   -0x7A00
-/** Received NewSessionTicket Post Handshake Message */
+/**
+ * Received NewSessionTicket Post Handshake Message.
+ * This error code is experimental and may be changed or removed without notice.
+ */
 #define MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET       -0x7B00
 /* Error space gap */
 /* Error space gap */

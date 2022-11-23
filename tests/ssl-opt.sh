@@ -1362,7 +1362,7 @@ do_run_test_once() {
 
     if [ -n "$PXY_CMD" ]; then
         kill $PXY_PID >/dev/null 2>&1
-        wait $PXY_PID
+        wait $PXY_PID >> $PXY_OUT 2>&1
     fi
 }
 
@@ -12945,8 +12945,8 @@ run_test    "TLS 1.3: NewSessionTicket: Basic check, O->m" \
             "$O_NEXT_CLI -msg -debug -tls1_3 -reconnect" \
             0 \
             -s "=> write NewSessionTicket msg" \
-            -s "server state: MBEDTLS_SSL_NEW_SESSION_TICKET" \
-            -s "server state: MBEDTLS_SSL_NEW_SESSION_TICKET_FLUSH"
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
@@ -12962,8 +12962,8 @@ run_test    "TLS 1.3: NewSessionTicket: Basic check, G->m" \
             -c "Connecting again- trying to resume previous session" \
             -c "NEW SESSION TICKET (4) was received" \
             -s "=> write NewSessionTicket msg" \
-            -s "server state: MBEDTLS_SSL_NEW_SESSION_TICKET" \
-            -s "server state: MBEDTLS_SSL_NEW_SESSION_TICKET_FLUSH" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH" \
             -s "key exchange mode: ephemeral" \
             -s "key exchange mode: psk_ephemeral" \
             -s "found pre_shared_key extension"
@@ -12985,8 +12985,8 @@ run_test    "TLS 1.3: NewSessionTicket: Basic check, m->m" \
             -c "Reconnecting with saved session" \
             -c "HTTP/1.0 200 OK"    \
             -s "=> write NewSessionTicket msg" \
-            -s "server state: MBEDTLS_SSL_NEW_SESSION_TICKET" \
-            -s "server state: MBEDTLS_SSL_NEW_SESSION_TICKET_FLUSH" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH" \
             -s "key exchange mode: ephemeral" \
             -s "key exchange mode: psk_ephemeral" \
             -s "found pre_shared_key extension"
@@ -13040,8 +13040,8 @@ run_test    "TLS 1.3: NewSessionTicket: servername check, m->m" \
             -c "Reconnecting with saved session" \
             -c "HTTP/1.0 200 OK"    \
             -s "=> write NewSessionTicket msg" \
-            -s "server state: MBEDTLS_SSL_NEW_SESSION_TICKET" \
-            -s "server state: MBEDTLS_SSL_NEW_SESSION_TICKET_FLUSH" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH" \
             -s "key exchange mode: ephemeral" \
             -s "key exchange mode: psk_ephemeral" \
             -s "found pre_shared_key extension"
@@ -13064,8 +13064,8 @@ run_test    "TLS 1.3: NewSessionTicket: servername negative check, m->m" \
             -c "Reconnecting with saved session" \
             -c "Hostname mismatch the session ticket, disable session resumption."    \
             -s "=> write NewSessionTicket msg" \
-            -s "server state: MBEDTLS_SSL_NEW_SESSION_TICKET" \
-            -s "server state: MBEDTLS_SSL_NEW_SESSION_TICKET_FLUSH"
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH"
 
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2

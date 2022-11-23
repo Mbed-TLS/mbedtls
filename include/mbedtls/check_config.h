@@ -903,8 +903,8 @@
 #error "MBEDTLS_SSL_CID_OUT_LEN_MAX too large (max 255)"
 #endif
 
-#if !defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)            &&                 \
-    defined(MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT)     &&                 \
+    !defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 #error "MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT defined, but not all prerequsites"
 #endif
 

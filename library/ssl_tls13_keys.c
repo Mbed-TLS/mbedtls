@@ -215,6 +215,7 @@ cleanup:
     return( psa_ssl_status_to_mbedtls ( status ) );
 }
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_make_traffic_key(
                     psa_algorithm_t hash_alg,
                     const unsigned char *secret, size_t secret_len,
@@ -1123,7 +1124,7 @@ static int ssl_tls13_generate_early_key( mbedtls_ssl_context *ssl,
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_get_cipher_key_info", ret );
-        return ret;
+        return( ret );
     }
 
     md_type = ciphersuite_info->mac;
@@ -1179,8 +1180,8 @@ static int ssl_tls13_generate_early_key( mbedtls_ssl_context *ssl,
               traffic_keys->client_write_iv, iv_len );
     if( ret != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_make_traffic_keys", ret );
-        goto exit;
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_make_traffic_key", ret );
+        return( 0 );
     }
     traffic_keys->key_len = key_len;
     traffic_keys->iv_len = iv_len;
@@ -1195,9 +1196,7 @@ static int ssl_tls13_generate_early_key( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= ssl_tls13_generate_early_key" ) );
 
-exit:
-
-    return( ret );
+    return( 0 );
 }
 
 int mbedtls_ssl_tls13_compute_early_transform( mbedtls_ssl_context *ssl )

@@ -615,70 +615,6 @@ static int x509_date_is_valid(const mbedtls_x509_time *t)
 }
 
 /*
- * Parse an ASN1_UTC_TIME (yearlen=2) or ASN1_GENERALIZED_TIME (yearlen=4)
- * field.
- */
-static int x509_parse_time(unsigned char **p, size_t len, size_t yearlen,
-                           mbedtls_x509_time *tm)
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
-    /*
-     * Minimum length is 10 or 12 depending on yearlen
-     */
-    if (len < yearlen + 8) {
-        return MBEDTLS_ERR_X509_INVALID_DATE;
-    }
-    len -= yearlen + 8;
-
-    /*
-     * Parse year, month, day, hour, minute
-     */
-    CHECK(x509_parse_int(p, yearlen, &tm->year));
-    if (2 == yearlen) {
-        if (tm->year < 50) {
-            tm->year += 100;
-        }
-
-        tm->year += 1900;
-    }
-
-    CHECK(x509_parse_int(p, 2, &tm->mon));
-    CHECK(x509_parse_int(p, 2, &tm->day));
-    CHECK(x509_parse_int(p, 2, &tm->hour));
-    CHECK(x509_parse_int(p, 2, &tm->min));
-
-    /*
-     * Parse seconds if present
-     */
-    if (len >= 2) {
-        CHECK(x509_parse_int(p, 2, &tm->sec));
-        len -= 2;
-    } else {
-        return MBEDTLS_ERR_X509_INVALID_DATE;
-    }
-
-    /*
-     * Parse trailing 'Z' if present
-     */
-    if (1 == len && 'Z' == **p) {
-        (*p)++;
-        len--;
-    }
-
-    /*
-     * We should have parsed all characters at this point
-     */
-    if (0 != len) {
-        return MBEDTLS_ERR_X509_INVALID_DATE;
-    }
-
-    CHECK(x509_date_is_valid(tm));
-
-    return 0;
-}
-
-/*
  *  Time ::= CHOICE {
  *       utcTime        UTCTime,
  *       generalTime    GeneralizedTime }
@@ -713,7 +649,33 @@ int mbedtls_x509_get_time(unsigned char **p, const unsigned char *end,
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_DATE, ret);
     }
 
-    return x509_parse_time(p, len, year_len, tm);
+    /* Minimum length is 12 or 14 depending on yearlen. */
+    if (len < (year_len + 10) || len > (year_len + 11)) {
+        return MBEDTLS_ERR_X509_INVALID_DATE;
+    }
+
+    /*
+     * Parse year, month, day, hour, minute
+     */
+    CHECK(x509_parse_int(p, year_len, &tm->year));
+    if (2 == year_len) {
+        if (tm->year < 50) {
+            tm->year += 100;
+        }
+
+        tm->year += 1900;
+    }
+
+    CHECK(x509_parse_int(p, 2, &tm->mon));
+    CHECK(x509_parse_int(p, 2, &tm->day));
+    CHECK(x509_parse_int(p, 2, &tm->hour));
+    CHECK(x509_parse_int(p, 2, &tm->min));
+    CHECK(x509_parse_int(p, 2, &tm->sec));
+    if (len - year_len > 10 && 'Z' != *(*p)++) {
+        return MBEDTLS_ERR_X509_INVALID_DATE;
+    }
+
+    return x509_date_is_valid(tm);
 }
 
 int mbedtls_x509_get_sig(unsigned char **p, const unsigned char *end, mbedtls_x509_buf *sig)

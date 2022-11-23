@@ -3165,6 +3165,10 @@ X509 Get time (UTC without seconds)
 depends_on:MBEDTLS_X509_USE_C
 x509_get_time:MBEDTLS_ASN1_UTC_TIME:"0002291212":MBEDTLS_ERR_X509_INVALID_DATE:2000:2:29:12:12:0
 
+X509 Get time (UTC without seconds with timezone)
+depends_on:MBEDTLS_X509_USE_C
+x509_get_time:MBEDTLS_ASN1_UTC_TIME:"0002291212Z":MBEDTLS_ERR_X509_INVALID_DATE:2000:2:29:12:12:0
+
 X509 Get time (UTC without seconds and with invalid time zone #1)
 depends_on:MBEDTLS_X509_USE_C
 x509_get_time:MBEDTLS_ASN1_UTC_TIME:"0002291212J":MBEDTLS_ERR_X509_INVALID_DATE:0:0:0:0:0:0
@@ -3196,6 +3200,10 @@ x509_get_time:MBEDTLS_ASN1_UTC_TIME:"00113023u012Z":MBEDTLS_ERR_X509_INVALID_DAT
 X509 Get time (UTC invalid character in sec)
 depends_on:MBEDTLS_X509_USE_C
 x509_get_time:MBEDTLS_ASN1_UTC_TIME:"0011302359n0Z":MBEDTLS_ERR_X509_INVALID_DATE:0:0:0:0:0:0
+
+X509 Get time (Generalized Time missing sec)
+depends_on:MBEDTLS_X509_USE_C
+x509_get_time:MBEDTLS_ASN1_GENERALIZED_TIME:"200002290000Z":MBEDTLS_ERR_X509_INVALID_DATE:0:0:0:0:0:0
 
 X509 Get time (Generalized Time, year multiple of 100 but not 400 is not a leap year)
 depends_on:MBEDTLS_X509_USE_C

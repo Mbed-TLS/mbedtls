@@ -2060,6 +2060,21 @@ static int ssl_tls13_parse_encrypted_extensions( mbedtls_ssl_context *ssl,
 
                 break;
 #endif /* MBEDTLS_SSL_ALPN */
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+            case MBEDTLS_TLS_EXT_EARLY_DATA:
+
+                if( extension_data_len != 0 )
+                {
+                    /* The message must be empty. */
+                    MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
+                                                  MBEDTLS_ERR_SSL_DECODE_ERROR );
+                    return( MBEDTLS_ERR_SSL_DECODE_ERROR );
+                }
+
+                break;
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
             default:
                 MBEDTLS_SSL_PRINT_EXT(
                     3, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS,
@@ -2101,6 +2116,14 @@ static int ssl_tls13_process_encrypted_extensions( mbedtls_ssl_context *ssl )
     /* Process the message contents */
     MBEDTLS_SSL_PROC_CHK(
         ssl_tls13_parse_encrypted_extensions( ssl, buf, buf + buf_len ) );
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    if( ssl->handshake->received_extensions &
+        MBEDTLS_SSL_EXT_MASK( EARLY_DATA ) )
+    {
+        ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED;
+    }
+#endif
 
     mbedtls_ssl_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS,
                                         buf, buf_len );

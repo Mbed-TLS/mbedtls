@@ -1,0 +1,2 @@
+Bugfix
+  * Invalid overlong encodings of ASN.1 DER lengths are now rejected.

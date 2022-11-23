@@ -291,6 +291,9 @@ void mpi_mod_raw_sub( char * input_A,
     size_t limbs_N;
     size_t limbs_res;
 
+    mbedtls_mpi_mod_modulus m;
+    mbedtls_mpi_mod_modulus_init( &m );
+
     TEST_EQUAL( mbedtls_test_read_mpi_core( &A,   &limbs_A,   input_A ), 0 );
     TEST_EQUAL( mbedtls_test_read_mpi_core( &B,   &limbs_B,   input_B ), 0 );
     TEST_EQUAL( mbedtls_test_read_mpi_core( &N,   &limbs_N,   input_N ), 0 );
@@ -304,9 +307,6 @@ void mpi_mod_raw_sub( char * input_A,
     TEST_ASSERT( limbs_res <= limbs );
 
     ASSERT_ALLOC( X, limbs );
-
-    mbedtls_mpi_mod_modulus m;
-    mbedtls_mpi_mod_modulus_init( &m );
 
     TEST_EQUAL( mbedtls_mpi_mod_modulus_setup(
                         &m, N, limbs,

@@ -2580,18 +2580,6 @@ run_test    "Context serialization, client serializes, with CID" \
             -c "Deserializing connection..." \
             -S "Deserializing connection..."
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
-requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
-requires_cid_compat
-run_test    "Context serialization, client serializes, with CID (legacy)" \
-            "$P_SRV dtls=1 serialize=0 exchanges=2 cid=1 cid_val=dead" \
-            "$P_CLI dtls=1 serialize=1 exchanges=2 cid=1 cid_val=beef" \
-            0 \
-            -c "Deserializing connection..." \
-            -S "Deserializing connection..."
-
-
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
 run_test    "Context serialization, server serializes, CCM" \
             "$P_SRV dtls=1 serialize=1 exchanges=2" \

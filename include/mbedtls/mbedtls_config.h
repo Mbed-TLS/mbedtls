@@ -1320,9 +1320,10 @@
 /**
  * \def MBEDTLS_SSL_DTLS_CONNECTION_ID
  *
- * Enable support for the DTLS Connection ID extension,
+ * Enable support for the DTLS Connection ID (CID) extension,
  * which allows to identify DTLS connections across changes
- * in the underlying transport.
+ * in the underlying transport. The CID functionality is described
+ * in RFC 9146.
  *
  * Setting this option enables the SSL APIs `mbedtls_ssl_set_cid()`,
  * mbedtls_ssl_get_own_cid()`, `mbedtls_ssl_get_peer_cid()` and
@@ -1351,6 +1352,13 @@
  *
  * Set the value to 0 for the standard version, and
  * 1 for the legacy draft version.
+ *
+ * \deprecated Support for the legacy version of the DTLS
+ *             Connection ID feature is deprecated. Please
+ *             switch to the standardized version defined
+ *             in RFC 9146 enabled by utilizing
+ *             MBEDTLS_SSL_DTLS_CONNECTION_ID without use
+ *             of MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT.
  *
  * Requires: MBEDTLS_SSL_DTLS_CONNECTION_ID
  */

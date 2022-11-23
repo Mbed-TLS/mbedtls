@@ -1124,7 +1124,7 @@ static int ssl_tls13_generate_early_key( mbedtls_ssl_context *ssl,
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_get_cipher_key_info", ret );
-        return( ret );
+        goto cleanup;
     }
 
     md_type = ciphersuite_info->mac;
@@ -1141,7 +1141,7 @@ static int ssl_tls13_generate_early_key( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_RET( 1,
                                "mbedtls_ssl_get_handshake_transcript",
                                ret );
-        return( ret );
+        goto cleanup;
     }
 
     ret = mbedtls_ssl_tls13_derive_early_secrets(
@@ -1151,7 +1151,7 @@ static int ssl_tls13_generate_early_key( mbedtls_ssl_context *ssl,
     {
         MBEDTLS_SSL_DEBUG_RET(
             1, "mbedtls_ssl_tls13_derive_early_secrets", ret );
-        return( ret );
+        goto cleanup;
     }
 
     MBEDTLS_SSL_DEBUG_BUF(
@@ -1181,7 +1181,7 @@ static int ssl_tls13_generate_early_key( mbedtls_ssl_context *ssl,
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_make_traffic_key", ret );
-        return( 0 );
+        goto cleanup;
     }
     traffic_keys->key_len = key_len;
     traffic_keys->iv_len = iv_len;
@@ -1196,7 +1196,12 @@ static int ssl_tls13_generate_early_key( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= ssl_tls13_generate_early_key" ) );
 
-    return( 0 );
+cleanup:
+    /* Erase secret and transcript */
+    mbedtls_platform_zeroize(
+        tls13_early_secrets, sizeof( mbedtls_ssl_tls13_early_secrets ) );
+    mbedtls_platform_zeroize( transcript, sizeof( transcript ) );
+    return( ret );
 }
 
 int mbedtls_ssl_tls13_compute_early_transform( mbedtls_ssl_context *ssl )

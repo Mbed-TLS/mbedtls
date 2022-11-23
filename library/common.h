@@ -77,7 +77,7 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
 /** MBEDTLS_ALLOW_UNALIGNED_ACCESS is defined for architectures where unaligned
  * memory accesses are safe and performant.
  *
- * Unaligned accesses must be made via the UNALIGNED_UINT32_PTR type
+ * Unaligned accesses must be made via the UNALIGNED_UINT32_T type
  * defined here.
  *
  * This list is incomplete.
@@ -92,10 +92,10 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
     || (defined(__ARMCC_VERSION) && __ARMCC_VERSION >= 5000000 )
 #define MBEDTLS_ALLOW_UNALIGNED_ACCESS
 __attribute__((aligned(1))) typedef uint32_t unaligned_uint32_t;
-#define UNALIGNED_UINT32_PTR unaligned_uint32_t
+#define UNALIGNED_UINT32_T unaligned_uint32_t
 #elif defined(_MSC_VER)
 #define MBEDTLS_ALLOW_UNALIGNED_ACCESS
-#define UNALIGNED_UINT32_PTR __declspec(align(1)) uint32_t
+#define UNALIGNED_UINT32_T __declspec(align(1)) uint32_t
 #endif
 #endif
 
@@ -435,9 +435,9 @@ __attribute__((aligned(1))) typedef uint32_t unaligned_uint32_t;
 inline void mbedtls_xor( unsigned char *r, unsigned char const *a, unsigned char const *b, size_t n )
 {
 #if defined(MBEDTLS_ALLOW_UNALIGNED_ACCESS)
-     UNALIGNED_UINT32_PTR *a32 = (uint32_t *)a;
-     UNALIGNED_UINT32_PTR *b32 = (uint32_t *)b;
-     UNALIGNED_UINT32_PTR *r32 = (uint32_t *)r;
+     UNALIGNED_UINT32_T *a32 = (uint32_t *)a;
+     UNALIGNED_UINT32_T *b32 = (uint32_t *)b;
+     UNALIGNED_UINT32_T *r32 = (uint32_t *)r;
     for ( size_t i = 0; i < ( n >> 2 ); i++ )
     {
         r32[i] = a32[i] ^ b32[i];

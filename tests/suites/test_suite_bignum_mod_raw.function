@@ -302,9 +302,9 @@ void mpi_mod_raw_sub( char * input_A,
     size_t limbs = limbs_N;
     size_t bytes = limbs * sizeof( mbedtls_mpi_uint );
 
-    TEST_ASSERT( limbs_A   <= limbs );
-    TEST_ASSERT( limbs_B   <= limbs );
-    TEST_ASSERT( limbs_res <= limbs );
+    TEST_EQUAL( limbs_A,   limbs );
+    TEST_EQUAL( limbs_B,   limbs );
+    TEST_EQUAL( limbs_res, limbs );
 
     ASSERT_ALLOC( X, limbs );
 

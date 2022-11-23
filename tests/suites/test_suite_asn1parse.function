@@ -342,12 +342,11 @@ void empty_integer(const data_t *input)
                MBEDTLS_ERR_ASN1_INVALID_LENGTH);
 
 #if defined(MBEDTLS_BIGNUM_C)
-    /* INTEGERs are sometimes abused as bitstrings, so the library accepts
-     * an INTEGER with empty content and gives it the value 0. */
+    /* INTEGERs are sometimes abused as bitstrings, so the library used to
+     * accept an INTEGER with empty content and give it the value 0. */
     p = input->x;
     TEST_EQUAL(mbedtls_asn1_get_mpi(&p, input->x + input->len, &actual_mpi),
-               0);
-    TEST_EQUAL(mbedtls_mpi_cmp_int(&actual_mpi, 0), 0);
+               MBEDTLS_ERR_ASN1_INVALID_LENGTH);
 #endif
 
 exit:
@@ -394,10 +393,12 @@ void get_integer(const data_t *input,
     }
     if (expected_result == 0 && expected_value < 0) {
         /* The library does not support negative INTEGERs and
-         * returns the dubious error code INVALID_LENGTH.
-         * Test that we preserve the historical behavior. If we
-         * decide to change the behavior, we'll also change this test. */
-        expected_result_for_int = MBEDTLS_ERR_ASN1_INVALID_LENGTH;
+         * returns the error code INVALID_DATA.
+         * Test that this behavior is preserved. */
+        expected_result_for_int = MBEDTLS_ERR_ASN1_INVALID_DATA;
+#if defined(MBEDTLS_BIGNUM_C)
+        expected_result_for_mpi = MBEDTLS_ERR_ASN1_INVALID_DATA;
+#endif
     }
 
     p = input->x;
@@ -419,31 +420,9 @@ void get_integer(const data_t *input,
     ret = mbedtls_asn1_get_mpi(&p, input->x + input->len, &actual_mpi);
     TEST_EQUAL(ret, expected_result_for_mpi);
     if (ret == 0) {
-        if (expected_value >= 0) {
-            TEST_ASSERT(mbedtls_mpi_cmp_mpi(&actual_mpi,
-                                            &expected_mpi) == 0);
-        } else {
-            /* The library ignores the sign bit in ASN.1 INTEGERs
-             * (which makes sense insofar as INTEGERs are sometimes
-             * abused as bit strings), so the result of parsing them
-             * is a positive integer such that expected_mpi +
-             * actual_mpi = 2^n where n is the length of the content
-             * of the INTEGER. (Leading ff octets don't matter for the
-             * expected value, but they matter for the actual value.)
-             * Test that we don't change from this behavior. If we
-             * decide to fix the library to change the behavior on
-             * negative INTEGERs, we'll fix this test code. */
-            unsigned char *q = input->x + 1;
-            size_t len;
-            TEST_ASSERT(mbedtls_asn1_get_len(&q, input->x + input->len,
-                                             &len) == 0);
-            TEST_ASSERT(mbedtls_mpi_lset(&complement, 1) == 0);
-            TEST_ASSERT(mbedtls_mpi_shift_l(&complement, len * 8) == 0);
-            TEST_ASSERT(mbedtls_mpi_add_mpi(&complement, &complement,
-                                            &expected_mpi) == 0);
-            TEST_ASSERT(mbedtls_mpi_cmp_mpi(&complement,
-                                            &actual_mpi) == 0);
-        }
+        TEST_ASSERT(expected_value >= 0);
+        TEST_ASSERT(mbedtls_mpi_cmp_mpi(&actual_mpi,
+                                        &expected_mpi) == 0);
         TEST_ASSERT(p == input->x + input->len);
     }
 #endif
@@ -485,7 +464,7 @@ void get_enum(const data_t *input,
          * returns the dubious error code INVALID_LENGTH.
          * Test that we preserve the historical behavior. If we
          * decide to change the behavior, we'll also change this test. */
-        expected_result_for_enum = MBEDTLS_ERR_ASN1_INVALID_LENGTH;
+        expected_result_for_enum = MBEDTLS_ERR_ASN1_INVALID_DATA;
     }
 
     p = input->x;

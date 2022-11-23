@@ -86,23 +86,19 @@ static int asn1_write_10x(unsigned char **p,
                           unsigned char x)
 {
     int ret;
-    int len = bits / 8 + 1;
-    if (bits == 0) {
+    size_t len = bits / 8 + 1;
+    if (bits == 0 || (len >> 30) != 0) {
         return MBEDTLS_ERR_ASN1_INVALID_DATA;
     }
-    if (bits <= 8 && x >= 1 << (bits - 1)) {
+    if (bits <= 8 && x >= (1 << (bits - 1))) {
         return MBEDTLS_ERR_ASN1_INVALID_DATA;
     }
-    if (*p < start || *p - start < (ptrdiff_t) len) {
+    if (*p < start || (size_t) (*p - start) < len) {
         return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
     }
+    (*p)[-1] = x;
+    *(*p - 1 - (ptrdiff_t) ((bits - 1) / 8)) |= 1 << ((bits - 1) % 8);
     *p -= len;
-    (*p)[len-1] = x;
-    if (bits % 8 == 0) {
-        (*p)[1] |= 1;
-    } else {
-        (*p)[0] |= 1 << (bits % 8);
-    }
     MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(p, start, len));
     MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_tag(p, start,
                                                      MBEDTLS_ASN1_INTEGER));

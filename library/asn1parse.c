@@ -153,28 +153,25 @@ static int asn1_get_tagged_int(unsigned char **p,
 
     /*
      * len==0 is malformed (0 must be represented as 020100 for INTEGER,
-     * or 0A0100 for ENUMERATED tags
+     * or 0A0100 for ENUMERATED tags)
      */
     if (len == 0) {
         return MBEDTLS_ERR_ASN1_INVALID_LENGTH;
     }
+
     /* This is a cryptography library. Reject negative integers. */
     if ((**p & 0x80) != 0) {
-        return MBEDTLS_ERR_ASN1_INVALID_LENGTH;
+        return MBEDTLS_ERR_ASN1_INVALID_DATA;
     }
 
-    /* Skip leading zeros. */
-    while (len > 0 && **p == 0) {
-        ++(*p);
-        --len;
+    /* Reject excess leading zeroes. */
+    if (len >= 2 && **p == 0 && (*p)[1] < 0x80) {
+        return MBEDTLS_ERR_ASN1_INVALID_DATA;
     }
 
     /* Reject integers that don't fit in an int. This code assumes that
      * the int type has no padding bit. */
     if (len > sizeof(int)) {
-        return MBEDTLS_ERR_ASN1_INVALID_LENGTH;
-    }
-    if (len == sizeof(int) && (**p & 0x80) != 0) {
         return MBEDTLS_ERR_ASN1_INVALID_LENGTH;
     }
 
@@ -211,6 +208,24 @@ int mbedtls_asn1_get_mpi(unsigned char **p,
 
     if ((ret = mbedtls_asn1_get_tag(p, end, &len, MBEDTLS_ASN1_INTEGER)) != 0) {
         return ret;
+    }
+
+    /*
+     * len==0 is malformed (0 must be represented as 020100 for INTEGER,
+     * or 0A0100 for ENUMERATED tags)
+     */
+    if (len == 0) {
+        return MBEDTLS_ERR_ASN1_INVALID_LENGTH;
+    }
+
+    /* This is a cryptography library. Reject negative integers. */
+    if ((**p & 0x80) != 0) {
+        return MBEDTLS_ERR_ASN1_INVALID_DATA;
+    }
+
+    /* Reject excess leading zeroes. */
+    if (len >= 2 && **p == 0 && (*p)[1] < 0x80) {
+        return MBEDTLS_ERR_ASN1_INVALID_DATA;
     }
 
     ret = mbedtls_mpi_read_binary(X, *p, len);

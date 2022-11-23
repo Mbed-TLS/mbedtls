@@ -179,13 +179,13 @@ INTEGER 0
 get_integer:"020100":"0":0
 
 INTEGER 0, extra leading 0
-get_integer:"02020000":"0":0
+get_integer:"02020000":"0":MBEDTLS_ERR_ASN1_INVALID_DATA
 
 INTEGER 1
 get_integer:"020101":"1":0
 
 INTEGER 1, extra leading 0
-get_integer:"02020001":"1":0
+get_integer:"02020001":"1":MBEDTLS_ERR_ASN1_INVALID_DATA
 
 INTEGER 0x7f
 get_integer:"02017f":"7f":0
@@ -194,7 +194,7 @@ INTEGER 0x80
 get_integer:"02020080":"80":0
 
 INTEGER 0x80, extra leading 0
-get_integer:"0203000080":"80":0
+get_integer:"0203000080":"80":MBEDTLS_ERR_ASN1_INVALID_DATA
 
 INTEGER 0xff
 get_integer:"020200ff":"ff":0
@@ -206,13 +206,13 @@ INTEGER 0x12345678
 get_integer:"020412345678":"12345678":0
 
 INTEGER 0x12345678, extra leading 0
-get_integer:"02050012345678":"12345678":0
+get_integer:"02050012345678":"12345678":MBEDTLS_ERR_ASN1_INVALID_DATA
 
 INTEGER 0x7fffffff
 get_integer:"02047fffffff":"7fffffff":0
 
 INTEGER 0x7fffffff, extra leading 0
-get_integer:"0205007fffffff":"7fffffff":0
+get_integer:"0205007fffffff":"7fffffff":MBEDTLS_ERR_ASN1_INVALID_DATA
 
 INTEGER 0x80000000
 get_integer:"02050080000000":"80000000":0
@@ -299,13 +299,13 @@ ENUMERATED 0
 get_enum:"0A0100":"0":0
 
 ENUMERATED 0, extra leading 0
-get_enum:"0A020000":"0":0
+get_enum:"0A020000":"0":MBEDTLS_ERR_ASN1_INVALID_DATA
 
 ENUMERATED 1
 get_enum:"0A0101":"1":0
 
 ENUMERATED 1, extra leading 0
-get_enum:"0A020001":"1":0
+get_enum:"0A020001":"1":MBEDTLS_ERR_ASN1_INVALID_DATA
 
 ENUMERATED 0x7f
 get_enum:"0A017f":"7f":0
@@ -314,7 +314,7 @@ ENUMERATED 0x80
 get_enum:"0A020080":"80":0
 
 ENUMERATED 0x80, extra leading 0
-get_enum:"0A03000080":"80":0
+get_enum:"0A03000080":"80":MBEDTLS_ERR_ASN1_INVALID_DATA
 
 ENUMERATED 0xff
 get_enum:"0A0200ff":"ff":0
@@ -326,13 +326,13 @@ ENUMERATED 0x12345678
 get_enum:"0A0412345678":"12345678":0
 
 ENUMERATED 0x12345678, extra leading 0
-get_enum:"0A050012345678":"12345678":0
+get_enum:"0A050012345678":"12345678":MBEDTLS_ERR_ASN1_INVALID_DATA
 
 ENUMERATED 0x7fffffff
 get_enum:"0A047fffffff":"7fffffff":0
 
 ENUMERATED 0x7fffffff, extra leading 0
-get_enum:"0A05007fffffff":"7fffffff":0
+get_enum:"0A05007fffffff":"7fffffff":MBEDTLS_ERR_ASN1_INVALID_DATA
 
 ENUMERATED 0x80000000
 get_enum:"0A050080000000":"80000000":0

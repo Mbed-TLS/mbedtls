@@ -4,6 +4,7 @@
 #include "mbedtls/asn1.h"
 #include "mbedtls/asn1write.h"
 #include "mbedtls/oid.h"
+#include "common.h"
 
 /* For MBEDTLS_CTR_DRBG_MAX_REQUEST, knowing that psa_generate_random()
  * uses mbedtls_ctr_drbg internally. */
@@ -2658,7 +2659,7 @@ void cipher_alg_without_iv( int alg_arg, int key_type_arg, data_t *key_data,
     TEST_LE_U( length, output_buffer_size );
     output_length += length;
     PSA_ASSERT( psa_cipher_finish( &operation,
-                                   output + output_length,
+                                   mbedtls_buffer_offset( output, output_length ),
                                    output_buffer_size - output_length,
                                    &length ) );
     output_length += length;
@@ -2676,7 +2677,7 @@ void cipher_alg_without_iv( int alg_arg, int key_type_arg, data_t *key_data,
     TEST_LE_U( length, output_buffer_size );
     output_length += length;
     PSA_ASSERT( psa_cipher_finish( &operation,
-                                   output + output_length,
+                                   mbedtls_buffer_offset( output, output_length ),
                                    output_buffer_size - output_length,
                                    &length ) );
     output_length += length;

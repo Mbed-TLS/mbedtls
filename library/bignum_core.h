@@ -504,6 +504,23 @@ int mbedtls_mpi_core_fill_random( mbedtls_mpi_uint *X, size_t X_limbs,
 
 /* BEGIN MERGE SLOT 3 */
 
+/**
+ * \brief Subtract unsigned integer from known-size large unsigned integers.
+ *        Return the borrow.
+ *
+ * \param[out] X    The result of the subtraction.
+ * \param[in] A     The left operand.
+ * \param b         The unsigned scalar to subtract.
+ * \param limbs     Number of limbs of \p X and \p A.
+ *
+ * \return          1 if `A < b`.
+ *                  0 if `A >= b`.
+ */
+mbedtls_mpi_uint mbedtls_mpi_core_sub_int( mbedtls_mpi_uint *X,
+                                           const mbedtls_mpi_uint *A,
+                                           mbedtls_mpi_uint b,
+                                           size_t limbs );
+
 /* END MERGE SLOT 3 */
 
 /* BEGIN MERGE SLOT 4 */

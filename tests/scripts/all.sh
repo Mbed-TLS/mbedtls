@@ -1437,6 +1437,31 @@ component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only_use_psa () {
     tests/ssl-opt.sh -f "TLS 1.2"
 }
 
+# We're not aware of any other (open source) implementation of EC J-PAKE in TLS
+# that we could use for interop testing. However, we now have sort of two
+# implementations ourselves: one using PSA, the other not. At least test that
+# these two interoperate with each other.
+component_test_tls1_2_ecjpake_compatibility() {
+    msg "build: TLS1.2 server+client w/ EC-JPAKE w/o USE_PSA"
+    scripts/config.py set MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
+    make -C programs ssl/ssl_server2 ssl/ssl_client2
+    cp programs/ssl/ssl_server2 s2_no_use_psa
+    cp programs/ssl/ssl_client2 c2_no_use_psa
+
+    msg "build: TLS1.2 server+client w/ EC-JPAKE w/ USE_PSA"
+    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
+    make clean
+    make -C programs ssl/ssl_server2 ssl/ssl_client2
+    make -C programs test/udp_proxy test/query_compile_time_config
+
+    msg "test: server w/o USE_PSA - client w/ USE_PSA"
+    P_SRV=../s2_no_use_psa tests/ssl-opt.sh -f ECJPAKE
+    msg "test: client w/o USE_PSA - server w/ USE_PSA"
+    P_CLI=../c2_no_use_psa tests/ssl-opt.sh -f ECJPAKE
+
+    rm s2_no_use_psa c2_no_use_psa
+}
+
 component_test_psa_external_rng_use_psa_crypto () {
     msg "build: full + PSA_CRYPTO_EXTERNAL_RNG + USE_PSA_CRYPTO minus CTR_DRBG"
     scripts/config.py full

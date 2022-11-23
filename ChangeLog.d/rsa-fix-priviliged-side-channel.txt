@@ -1,0 +1,10 @@
+Security
+   * An adversary with access to precise enough information about memory
+     accesses (typically, an untrusted operating system attacking a secure
+     enclave) could recover an RSA private key after observing the victim
+     performing a single private-key operation if the window size used for the
+     exponentiation was 3 or smaller. Found and reported by Zili KOU,
+     Wenjian HE, Sharad Sinha, and Wei ZHANG. See "Cache Side-channel Attacks
+     and Defenses of the Sliding Window Algorithm in TEEs" - Design, Automation
+     and Test in Europe 2023.
+

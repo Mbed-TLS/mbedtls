@@ -78,12 +78,17 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
  *
  * This list is incomplete.
  */
+#if defined(__has_feature)
+#if __has_feature(undefined_behavior_sanitizer)
+#define MBEDTLS_HAVE_UBSAN
+#endif
+#endif
+
 #if (defined(__i386__) || defined(__amd64__) || defined( __x86_64__) \
     || defined(__ARM_FEATURE_UNALIGNED) \
     || defined(__aarch64__) \
     || defined(__ARM_ARCH_8__) || defined(__ARM_ARCH_8A__) || defined(__ARM_ARCH_8M__) \
-    || defined(__ARM_ARCH_7A__)) \
-    && (!(defined(__has_feature) && __has_feature(undefined_behavior_sanitizer)))
+    || defined(__ARM_ARCH_7A__)) && !defined(MBEDTLS_HAVE_UBSAN)
 #define MBEDTLS_ALLOW_UNALIGNED_ACCESS
 #endif
 

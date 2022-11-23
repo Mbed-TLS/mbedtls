@@ -417,14 +417,14 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
 static inline void mbedtls_xor( unsigned char* r, unsigned char const *a, unsigned char const *b, size_t n )
 {
 #if defined(MBEDTLS_ALLOW_UNALIGNED_ACCESS)
-    uint32_t *a32 = (uint32_t*)a;
-    uint32_t *b32 = (uint32_t*)b;
-    uint32_t *r32 = (uint32_t*)r;
-    for ( size_t i = 0; i < (n >> 2); i++ )
+    uint32_t *a32 = (uint32_t *)a;
+    uint32_t *b32 = (uint32_t *)b;
+    uint32_t *r32 = (uint32_t *)r;
+    for ( size_t i = 0; i < ( n >> 2 ); i++ )
     {
         r32[i] = a32[i] ^ b32[i];
     }
-    for ( size_t i = n - (n % 4) ; i < n; i++ )
+    for ( size_t i = n - ( n % 4 ) ; i < n; i++ )
     {
         r[i] = a[i] ^ b[i];
     }

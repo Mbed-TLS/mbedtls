@@ -402,6 +402,8 @@
 #define MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY 16
 #endif
 
+/** \} name SECTION: Module settings */
+
 /*
  * Default to standard CID mode
  */

@@ -74,22 +74,29 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
  */
 #define MBEDTLS_ALLOW_PRIVATE_ACCESS
 
-/** Detect architectures where unaligned memory accesses are safe and performant.
+/** MBEDTLS_ALLOW_UNALIGNED_ACCESS is defined for architectures where unaligned
+ * memory accesses are safe and performant.
+ *
+ * Unaligned accesses must be made via the UNALIGNED_UINT32_PTR type
+ * defined here.
  *
  * This list is incomplete.
  */
-#if defined(__has_feature)
-#if __has_feature(undefined_behavior_sanitizer)
-#define MBEDTLS_HAVE_UBSAN
-#endif
-#endif
-
-#if (defined(__i386__) || defined(__amd64__) || defined( __x86_64__) \
+#if defined(__i386__) || defined(__amd64__) || defined( __x86_64__) \
     || defined(__ARM_FEATURE_UNALIGNED) \
     || defined(__aarch64__) \
     || defined(__ARM_ARCH_8__) || defined(__ARM_ARCH_8A__) || defined(__ARM_ARCH_8M__) \
-    || defined(__ARM_ARCH_7A__)) && !defined(MBEDTLS_HAVE_UBSAN)
+    || defined(__ARM_ARCH_7A__)
+#if (defined(__GNUC__) && __GNUC__ >= 4) \
+    || (defined(__clang__) && __has_attribute(aligned)) \
+    || (defined(__ARMCC_VERSION) && __ARMCC_VERSION >= 5000000 )
 #define MBEDTLS_ALLOW_UNALIGNED_ACCESS
+__attribute__((aligned(1))) typedef uint32_t unaligned_uint32_t;
+#define UNALIGNED_UINT32_PTR unaligned_uint32_t
+#elif defined(_MSC_VER)
+#define MBEDTLS_ALLOW_UNALIGNED_ACCESS
+#define UNALIGNED_UINT32_PTR __declspec(align(1)) uint32_t
+#endif
 #endif
 
 /** Byte Reading Macros
@@ -428,9 +435,9 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
 inline void mbedtls_xor( unsigned char *r, unsigned char const *a, unsigned char const *b, size_t n )
 {
 #if defined(MBEDTLS_ALLOW_UNALIGNED_ACCESS)
-    uint32_t *a32 = (uint32_t *)a;
-    uint32_t *b32 = (uint32_t *)b;
-    uint32_t *r32 = (uint32_t *)r;
+     UNALIGNED_UINT32_PTR *a32 = (uint32_t *)a;
+     UNALIGNED_UINT32_PTR *b32 = (uint32_t *)b;
+     UNALIGNED_UINT32_PTR *r32 = (uint32_t *)r;
     for ( size_t i = 0; i < ( n >> 2 ); i++ )
     {
         r32[i] = a32[i] ^ b32[i];

@@ -359,36 +359,6 @@ int mbedtls_x509_get_rsassa_pss_params(const mbedtls_x509_buf *params,
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_ALG, ret);
     }
 
-    if (p == end) {
-        return 0;
-    }
-
-    /*
-     * trailer_field (if present, must be 1)
-     */
-    if ((ret = mbedtls_asn1_get_tag(&p, end, &len,
-                                    MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED |
-                                    3)) == 0) {
-        int trailer_field;
-
-        end2 = p + len;
-
-        if ((ret = mbedtls_asn1_get_int(&p, end2, &trailer_field)) != 0) {
-            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_ALG, ret);
-        }
-
-        if (p != end2) {
-            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_ALG,
-                                     MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
-        }
-
-        if (trailer_field != 1) {
-            return MBEDTLS_ERR_X509_INVALID_ALG;
-        }
-    } else if (ret != MBEDTLS_ERR_ASN1_UNEXPECTED_TAG) {
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_ALG, ret);
-    }
-
     if (p != end) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_ALG,
                                  MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);

@@ -32,6 +32,12 @@
 #include <stddef.h>
 #include <stdint.h>
 
+/* Define `inline` on some non-C99-compliant compilers. */
+#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
+    !defined(inline) && !defined(__cplusplus)
+#define inline __inline
+#endif
+
 /** Helper to define a function as static except when building invasive tests.
  *
  * If a function is only used inside its own source file and should be

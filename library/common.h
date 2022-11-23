@@ -414,7 +414,7 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
  * \param   b Pointer to input (buffer of at least \p n bytes)
  * \param   n Number of bytes to process.
  */
-static inline void mbedtls_xor( unsigned char *r, unsigned char const *a, unsigned char const *b, size_t n )
+inline void mbedtls_xor( unsigned char *r, unsigned char const *a, unsigned char const *b, size_t n )
 {
 #if defined(MBEDTLS_ALLOW_UNALIGNED_ACCESS)
     uint32_t *a32 = (uint32_t *)a;

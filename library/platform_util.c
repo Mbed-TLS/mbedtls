@@ -143,3 +143,8 @@ struct tm *mbedtls_platform_gmtime_r( const mbedtls_time_t *tt,
 void (*mbedtls_test_hook_test_fail)( const char *, int, const char *);
 #endif /* MBEDTLS_TEST_HOOKS */
 
+/*
+ * Provide an external definition of mbedtls_xor so that the compiler
+ * has the option to not inline it
+ */
+extern inline void mbedtls_xor( unsigned char *r, unsigned char const *a, unsigned char const *b, size_t n );

@@ -1,5 +1,16 @@
 /* BEGIN_HEADER */
+#include <ssl_misc.h>
+#include <mbedtls/timing.h>
+#include <mbedtls/debug.h>
+#include <ssl_tls13_keys.h>
+#include <ssl_tls13_invasive.h>
 #include <test/ssl_helpers.h>
+
+#include <mbedtls/legacy_or_psa.h>
+#include "hash_info.h"
+
+#include <constant_time_internal.h>
+#include <test/constant_flow.h>
 
 /* END_HEADER */
 
@@ -8,7 +19,7 @@
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 void handshake_ssl_connection( int dtls, int expected_negotiated_version,
                                char* cipher, int pk_alg,
                                int expected_ciphersuite  )

@@ -379,26 +379,32 @@ get_bitstring:"0300":0:0:MBEDTLS_ERR_ASN1_OUT_OF_DATA:MBEDTLS_ERR_ASN1_INVALID_D
 BIT STRING: octets=0, unused_bits=0
 get_bitstring:"030100":0:0:0:0
 
-BIT STRING: octets=0, unused_bits=7
-get_bitstring:"030107":0:7:0:MBEDTLS_ERR_ASN1_INVALID_DATA
+BIT STRING: octets=0, unused_bits=7, no space for trailing bits
+get_bitstring:"030107":0:7:MBEDTLS_ERR_ASN1_INVALID_LENGTH:MBEDTLS_ERR_ASN1_INVALID_DATA
 
 BIT STRING: octets=0, unused_bits=8
 get_bitstring:"030108":0:0:MBEDTLS_ERR_ASN1_INVALID_LENGTH:MBEDTLS_ERR_ASN1_INVALID_DATA
 
+BIT STRING: octets=1, unused_bits=8
+get_bitstring:"03020800":0:0:MBEDTLS_ERR_ASN1_INVALID_LENGTH:MBEDTLS_ERR_ASN1_INVALID_DATA
+
 BIT STRING: octets=1, unused_bits=0
 get_bitstring:"03020041":1:0:0:0
 
-BIT STRING: octets=1, unused_bits=7
-get_bitstring:"03020741":1:7:0:MBEDTLS_ERR_ASN1_INVALID_DATA
+BIT STRING: octets=1, unused_bits=7, used bit not zero
+get_bitstring:"03020780":1:7:0:MBEDTLS_ERR_ASN1_INVALID_DATA
 
-BIT STRING: octets=1, unused_bits=8
-get_bitstring:"03020841":1:8:MBEDTLS_ERR_ASN1_INVALID_LENGTH:MBEDTLS_ERR_ASN1_INVALID_DATA
+BIT STRING: octets=1, unused_bits=7, unused bits not zeroed
+get_bitstring:"03020701":1:7:MBEDTLS_ERR_ASN1_INVALID_DATA:MBEDTLS_ERR_ASN1_INVALID_DATA
 
 BIT STRING: octets=2, unused_bits=0
 get_bitstring:"0303004142":2:0:0:0
 
 BIT STRING: octets=2, unused_bits=7
-get_bitstring:"0303074142":2:7:0:MBEDTLS_ERR_ASN1_INVALID_DATA
+get_bitstring:"0303074180":2:7:0:MBEDTLS_ERR_ASN1_INVALID_DATA
+
+BIT STRING: octets=2, unused_bits=7, unused bits not zeroed
+get_bitstring:"0303074142":2:7:MBEDTLS_ERR_ASN1_INVALID_DATA:MBEDTLS_ERR_ASN1_INVALID_DATA
 
 BIT STRING: octets=2, unused_bits=8
 get_bitstring:"0303084142":2:8:MBEDTLS_ERR_ASN1_INVALID_LENGTH:MBEDTLS_ERR_ASN1_INVALID_DATA
@@ -407,7 +413,7 @@ BIT STRING with trailing garbage, unused_bits=0
 get_bitstring:"030200417e":1:0:MBEDTLS_ERR_ASN1_LENGTH_MISMATCH:0
 
 BIT STRING with trailing garbage, unused_bits=7
-get_bitstring:"030207417e":1:7:MBEDTLS_ERR_ASN1_LENGTH_MISMATCH:MBEDTLS_ERR_ASN1_INVALID_DATA
+get_bitstring:"030207807e":1:7:MBEDTLS_ERR_ASN1_LENGTH_MISMATCH:MBEDTLS_ERR_ASN1_INVALID_DATA
 
 BIT STRING with trailing garbage, unused_bits=8
 get_bitstring:"030208417e":1:8:MBEDTLS_ERR_ASN1_INVALID_LENGTH:MBEDTLS_ERR_ASN1_INVALID_DATA

@@ -91,8 +91,8 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
     || (defined(__clang__) && __has_attribute(aligned)) \
     || (defined(__ARMCC_VERSION) && __ARMCC_VERSION >= 5000000 )
 #define MBEDTLS_ALLOW_UNALIGNED_ACCESS
-__attribute__((aligned(1))) typedef uint32_t unaligned_uint32_t;
-#define UNALIGNED_UINT32_T unaligned_uint32_t
+__attribute__((aligned(1))) typedef uint32_t mbedtls_unaligned_uint32_t;
+#define UNALIGNED_UINT32_T mbedtls_unaligned_uint32_t
 #elif defined(_MSC_VER)
 #define MBEDTLS_ALLOW_UNALIGNED_ACCESS
 #define UNALIGNED_UINT32_T __declspec(align(1)) uint32_t

@@ -2072,8 +2072,6 @@ static int ssl_tls13_parse_encrypted_extensions( mbedtls_ssl_context *ssl,
                     return( MBEDTLS_ERR_SSL_DECODE_ERROR );
                 }
 
-                ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED;
-
                 break;
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
@@ -2118,6 +2116,14 @@ static int ssl_tls13_process_encrypted_extensions( mbedtls_ssl_context *ssl )
     /* Process the message contents */
     MBEDTLS_SSL_PROC_CHK(
         ssl_tls13_parse_encrypted_extensions( ssl, buf, buf + buf_len ) );
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    if( ssl->handshake->received_extensions &
+        MBEDTLS_SSL_EXT_MASK( EARLY_DATA ) )
+    {
+        ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED;
+    }
+#endif
 
     mbedtls_ssl_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS,
                                         buf, buf_len );

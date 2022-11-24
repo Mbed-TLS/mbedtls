@@ -181,11 +181,12 @@ void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m );
  * and will be padded to m->limbs). The data will be automatically converted
  * into the appropriate internal representation based on the value of `m->int_rep`.
  *
- * \param r      The address of the residue related to \p m. It must have as
- *               many limbs as the modulus \p m.
- * \param m      The address of the modulus.
- * \param buf    The input buffer to import from.
- * \param buflen The length in bytes of \p buf.
+ * \param r         The address of the residue related to \p m. It must have as
+ *                  many limbs as the modulus \p m.
+ * \param m         The address of the modulus.
+ * \param buf       The input buffer to import from.
+ * \param buflen    The length in bytes of \p buf.
+ * \param ext_rep   The endianness of the number in the input buffer.
  *
  * \return       \c 0 if successful.
  * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p X isn't
@@ -196,7 +197,8 @@ void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m );
 int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
                           const mbedtls_mpi_mod_modulus *m,
                           const unsigned char *buf,
-                          size_t buflen );
+                          size_t buflen,
+                          mbedtls_mpi_mod_ext_rep ext_rep );
 
 /** Write residue data onto a buffer using public representation data.
  *
@@ -206,11 +208,12 @@ int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
  * converted from the appropriate internal representation based on the
  * value of `m->int_rep field`.
  *
- * \param r      The address of the residue related to \p m. It must have as
- *               many limbs as the modulus \p m.
- * \param m      The address of the modulus.
- * \param buf    The output buffer to export to.
- * \param buflen The length in bytes of \p buf.
+ * \param r         The address of the residue related to \p m. It must have as
+ *                  many limbs as the modulus \p m.
+ * \param m         The address of the modulus.
+ * \param buf       The output buffer to export to.
+ * \param buflen    The length in bytes of \p buf.
+ * \param ext_rep   The endianness in which the number should be written into the output buffer.
  *
  * \return       \c 0 if successful.
  * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p buf isn't
@@ -221,7 +224,8 @@ int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
 int mbedtls_mpi_mod_write( const mbedtls_mpi_mod_residue *r,
                            const mbedtls_mpi_mod_modulus *m,
                            unsigned char *buf,
-                           size_t buflen );
+                           size_t buflen,
+                           mbedtls_mpi_mod_ext_rep ext_rep );
 /* END MERGE SLOT 7 */
 
 /* BEGIN MERGE SLOT 8 */

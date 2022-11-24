@@ -143,48 +143,59 @@ void mpi_mod_io_neg( )
     ASSERT_ALLOC( r_buff, buff_bytes );
     memset( r_buff, 0x1, 1 );
 
+    mbedtls_mpi_mod_ext_rep endian = MBEDTLS_MPI_MOD_EXT_REP_LE;
     TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs,
-                MBEDTLS_MPI_MOD_EXT_REP_LE, MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
+                endian, MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
 
     TEST_EQUAL( 0, mbedtls_mpi_mod_residue_setup( &r, &m, R , n_limbs ) );
 
     /* Pass for input_r < modulo */
-    TEST_EQUAL( 0, mbedtls_mpi_mod_read( &r, &m, r_buff, 1 ) );
+    TEST_EQUAL( 0, mbedtls_mpi_mod_read( &r, &m, r_buff, 1, endian ) );
 
     /* Pass for input_r == modulo -1 */
     memset( r_buff, 0xfd, buff_bytes );
-    TEST_EQUAL( 0, mbedtls_mpi_mod_read( &r, &m, r_buff, 1 ) );
+    TEST_EQUAL( 0, mbedtls_mpi_mod_read( &r, &m, r_buff, 1, endian ) );
 
     /* modulo->p == NULL || residue->p == NULL ( m2 has not been set-up ) */
-    TEST_EQUAL(MBEDTLS_ERR_MPI_BAD_INPUT_DATA, mbedtls_mpi_mod_read( &r, &m2, r_buff, 1 ) );
-    TEST_EQUAL(MBEDTLS_ERR_MPI_BAD_INPUT_DATA, mbedtls_mpi_mod_read( &rn, &m, r_buff, 1 ) );
-    TEST_EQUAL(MBEDTLS_ERR_MPI_BAD_INPUT_DATA, mbedtls_mpi_mod_write( &r, &m2, r_buff, 1 ) );
-    TEST_EQUAL(MBEDTLS_ERR_MPI_BAD_INPUT_DATA, mbedtls_mpi_mod_write( &rn, &m, r_buff, 1 ) );
+    TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                mbedtls_mpi_mod_read( &r, &m2, r_buff, 1, endian ) );
+    TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                mbedtls_mpi_mod_read( &rn, &m, r_buff, 1, endian ) );
+    TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                mbedtls_mpi_mod_write( &r, &m2, r_buff, 1, endian ) );
+    TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                mbedtls_mpi_mod_write( &rn, &m, r_buff, 1, endian ) );
 
     /* Fail for r_limbs < m->limbs */
     r.limbs = m.limbs - 1;
-    TEST_EQUAL(MBEDTLS_ERR_MPI_BAD_INPUT_DATA, mbedtls_mpi_mod_read( &r, &m, r_buff, 1 ) );
-    TEST_EQUAL(MBEDTLS_ERR_MPI_BAD_INPUT_DATA, mbedtls_mpi_mod_write( &rn, &m, r_buff, 1 ) );
+    TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                mbedtls_mpi_mod_read( &r, &m, r_buff, 1, endian ) );
+    TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                mbedtls_mpi_mod_write( &rn, &m, r_buff, 1, endian ) );
     r.limbs = r_limbs;
 
     /* Fail if input_r >= modulo m */
     /* input_r = modulo */
     memset( r_buff, 0xfe, buff_bytes );
-    TEST_EQUAL(MBEDTLS_ERR_MPI_BAD_INPUT_DATA, mbedtls_mpi_mod_read( &r, &m, r_buff, 1 ) );
+    TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                mbedtls_mpi_mod_read( &r, &m, r_buff, 1, endian ) );
 
     /* input_r > modulo */
     memset( r_buff, 0xff, buff_bytes );
-    TEST_EQUAL(MBEDTLS_ERR_MPI_BAD_INPUT_DATA, mbedtls_mpi_mod_read( &r, &m, r_buff, 1 ) );
+    TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                mbedtls_mpi_mod_read( &r, &m, r_buff, 1, endian ) );
 
     /* Data too large to fit */
-    TEST_EQUAL(MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL, mbedtls_mpi_mod_read( &r, &m, r_buff, buff_bytes ) );
+    TEST_EQUAL( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL,
+                mbedtls_mpi_mod_read( &r, &m, r_buff, buff_bytes, endian ) );
 
     /* Read the two limbs input data into a larger modulus and residue */
     TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m2, N2, n2_limbs,
-                MBEDTLS_MPI_MOD_EXT_REP_LE, MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
+                endian, MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
     rn.p = R2;
     rn.limbs = r2_limbs;
-    TEST_EQUAL(MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL, mbedtls_mpi_mod_write( &rn, &m2, r_buff, 1 ) );
+    TEST_EQUAL( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL,
+                mbedtls_mpi_mod_write( &rn, &m2, r_buff, 1, endian ) );
 
 exit:
     mbedtls_mpi_mod_modulus_free( &m );
@@ -198,7 +209,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mpi_mod_io( char * input_N, data_t * input_A, int iendian )
+void mpi_mod_io( char * input_N, data_t * input_A, int endian )
 {
     mbedtls_mpi_uint *N = NULL;
     mbedtls_mpi_uint *R = NULL;
@@ -221,15 +232,17 @@ void mpi_mod_io( char * input_N, data_t * input_A, int iendian )
 
     /* Init Structures */
     mbedtls_mpi_mod_modulus_init( &m );
-    TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs, iendian,
+    TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs, endian,
                 MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
 
     /* Enforcing p_limbs >= m->limbs */
-    TEST_EQUAL( 0, mbedtls_mpi_mod_residue_setup( &r, &m, R , n_limbs ) );
+    TEST_EQUAL( 0, mbedtls_mpi_mod_residue_setup( &r, &m, R, n_limbs ) );
 
-    TEST_EQUAL( 0, mbedtls_mpi_mod_read( &r, &m, input_A->x, input_A->len ) );
+    TEST_EQUAL( 0, mbedtls_mpi_mod_read( &r, &m, input_A->x, input_A->len,
+                                         endian ) );
 
-    TEST_EQUAL( 0,mbedtls_mpi_mod_write( &r, &m, r_buff, a_bytes ) );
+    TEST_EQUAL( 0, mbedtls_mpi_mod_write( &r, &m, r_buff, a_bytes,
+                                          endian ) );
 
     ASSERT_COMPARE( r_buff, a_bytes, input_A->x, a_bytes );
 exit:

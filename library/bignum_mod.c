@@ -212,7 +212,8 @@ exit:
 int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
                           const mbedtls_mpi_mod_modulus *m,
                           const unsigned char *buf,
-                          size_t buflen )
+                          size_t buflen,
+                          mbedtls_mpi_mod_ext_rep ext_rep )
 {
     int ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
 
@@ -223,7 +224,7 @@ int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
          r->limbs == 0 || m->limbs == 0 )
         goto cleanup;
 
-    ret = mbedtls_mpi_mod_raw_read( r->p, m, buf, buflen );
+    ret = mbedtls_mpi_mod_raw_read( r->p, m, buf, buflen, ext_rep );
 
     if( ret != 0 )
         goto cleanup;
@@ -240,7 +241,8 @@ cleanup:
 int mbedtls_mpi_mod_write( const mbedtls_mpi_mod_residue *r,
                            const mbedtls_mpi_mod_modulus *m,
                            unsigned char *buf,
-                           size_t buflen )
+                           size_t buflen,
+                           mbedtls_mpi_mod_ext_rep ext_rep )
 {
     int ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
 
@@ -254,7 +256,7 @@ int mbedtls_mpi_mod_write( const mbedtls_mpi_mod_residue *r,
     if ( m->int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY)
         ret = mbedtls_mpi_mod_raw_from_mont_rep( r->p, m );
 
-    ret = mbedtls_mpi_mod_raw_write( r->p, m, buf, buflen );
+    ret = mbedtls_mpi_mod_raw_write( r->p, m, buf, buflen, ext_rep );
 
 cleanup:
     return ( ret );

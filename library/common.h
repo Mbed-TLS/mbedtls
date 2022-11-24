@@ -88,24 +88,16 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
  */
 inline void mbedtls_xor( unsigned char *r, unsigned char const *a, unsigned char const *b, size_t n )
 {
-#if defined(MBEDTLS_ALLOW_UNALIGNED_ACCESS)
-     UNALIGNED_UINT32_T *a32 = (uint32_t *)a;
-     UNALIGNED_UINT32_T *b32 = (uint32_t *)b;
-     UNALIGNED_UINT32_T *r32 = (uint32_t *)r;
-    for ( size_t i = 0; i < ( n >> 2 ); i++ )
+    size_t i;
+    for ( i = 0; (i + 4) < n; i+= 4 )
     {
-        r32[i] = a32[i] ^ b32[i];
+        uint32_t x = mbedtls_get_unaligned_uint32(a + i) ^ mbedtls_get_unaligned_uint32(b + i);
+        mbedtls_put_unaligned_uint32(r + i, x);
     }
-    for ( size_t i = n - ( n % 4 ) ; i < n; i++ )
+    for ( ; i < n; i++ )
     {
         r[i] = a[i] ^ b[i];
     }
-#else
-    for ( size_t i = 0; i < n; i++ )
-    {
-        r[i] = a[i] ^ b[i];
-    }
-#endif
 }
 
 /* Fix MSVC C99 compatible issue

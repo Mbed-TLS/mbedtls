@@ -24,38 +24,32 @@
 #define MBEDTLS_LIBRARY_ALIGNMENT_H
 
 #include <stdint.h>
+#include <string.h>
 
-/** MBEDTLS_ALLOW_UNALIGNED_ACCESS is defined for architectures where unaligned
- * memory accesses are safe and performant.
+/**
+ * Read the unsigned 32 bits integer from the given address, which need not
+ * be aligned.
  *
- * Unaligned accesses must be made via the UNALIGNED_UINT32_T type
- * defined here.
- *
- * This list is incomplete.
+ * \param   p pointer to 4 bytes of data
  */
-#if defined(__i386__) || defined(__amd64__) || defined( __x86_64__) \
-    || defined(__ARM_FEATURE_UNALIGNED) \
-    || defined(__aarch64__) \
-    || defined(__ARM_ARCH_8__) || defined(__ARM_ARCH_8A__) || defined(__ARM_ARCH_8M__) \
-    || defined(__ARM_ARCH_7A__)
-#if (defined(__GNUC__) && __GNUC__ >= 4) \
-    || (defined(__clang__) && __has_attribute(aligned)) \
-    || (defined(__ARMCC_VERSION) && __ARMCC_VERSION >= 5000000 )
-    /* GCC, Clang and armcc */
-#define MBEDTLS_ALLOW_UNALIGNED_ACCESS
-__attribute__((aligned(1))) typedef uint32_t mbedtls_unaligned_uint32_t;
-#define UNALIGNED_UINT32_T mbedtls_unaligned_uint32_t
-#elif defined(_MSC_VER)
-    /* MSVC */
-#define MBEDTLS_ALLOW_UNALIGNED_ACCESS
-#define UNALIGNED_UINT32_T __declspec(align(1)) uint32_t
-#elif (defined __ICCARM__)
-    /* IAR - this is disabled until we have the opportunity to test it */
-#undef MBEDTLS_ALLOW_UNALIGNED_ACCESS
-#define UNALIGNED_UINT32_T _Pragma("data_alignment = 1") uint32_t
-#endif
-#endif
+static inline uint32_t mbedtls_get_unaligned_uint32( void const *p )
+{
+    uint32_t r;
+    memcpy( &r, p, 4 );
+    return r;
+}
 
+/**
+ * Write the unsigned 32 bits integer to the given address, which need not
+ * be aligned.
+ *
+ * \param   p pointer to 4 bytes of data
+ * \param   x data to write
+ */
+static inline void mbedtls_put_unaligned_uint32( void *p, uint32_t x )
+{
+    memcpy(p, &x, 4);
+}
 
 /** Byte Reading Macros
  *

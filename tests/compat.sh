@@ -867,12 +867,15 @@ setup_arguments()
     G_MODE=""
     case "$MODE" in
         "ssl3")
+            O_MODE="ssl3"
             G_PRIO_MODE="+VERS-SSL3.0"
             ;;
         "tls1")
+            O_MODE="tls1"
             G_PRIO_MODE="+VERS-TLS1.0"
             ;;
         "tls1_1")
+            O_MODE="tls1_1"
             G_PRIO_MODE="+VERS-TLS1.1"
             ;;
         "tls12")
@@ -880,6 +883,7 @@ setup_arguments()
             G_PRIO_MODE="+VERS-TLS1.2"
             ;;
         "dtls1")
+            O_MODE="dtls1"
             G_PRIO_MODE="+VERS-DTLS1.0"
             G_MODE="-u"
             ;;

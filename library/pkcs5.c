@@ -322,7 +322,6 @@ exit:
     mbedtls_md_free( &md_ctx );
     return( ret );
 #else
-    int j;
     unsigned int i;
     unsigned char md1[PSA_HASH_MAX_SIZE];
     unsigned char work[PSA_HASH_MAX_SIZE];

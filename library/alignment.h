@@ -31,6 +31,7 @@
  * be aligned.
  *
  * \param   p pointer to 4 bytes of data
+ * \return  Data at the given address
  */
 inline uint32_t mbedtls_get_unaligned_uint32( void const *p )
 {

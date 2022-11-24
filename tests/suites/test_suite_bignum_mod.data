@@ -50,8 +50,29 @@ mpi_mod_setup:MBEDTLS_MPI_MOD_EXT_REP_LE:MBEDTLS_MPI_MOD_REP_MONTGOMERY:0
 # END MERGE SLOT 6
 
 # BEGIN MERGE SLOT 7
-Test mbedtls_mpi_residue_setup
-mpi_residue_setup:
+Test mbedtls_mpi_residue_setup #1 m > r
+mpi_residue_setup:"fe":"01":0
+
+Test mbedtls_mpi_residue_setup #2 r == m - 1
+mpi_residue_setup:"ff":"fe":0
+
+Test mbedtls_mpi_residue_setup #3 m->limbs > r-> limbs && m > r
+mpi_residue_setup:"000000000000000000000000000000007dfe5c6beb35a2d6":"fe":0
+
+Test mbedtls_mpi_residue_setup #4 m->limbs > r-> limbs && m > r
+mpi_residue_setup:"7ffffffffffffffffffffffffffffffffffffffffffffff1":"fe":0
+
+Test mbedtls_mpi_residue_setup #5 m->limbs > r-> limbs && m > r
+mpi_residue_setup:"7ffffffffffffffffffff000000000000000000000000000":"fe":-4
+
+Test mbedtls_mpi_residue_setup #6 m->limbs < r-> limbs && m > r
+mpi_residue_setup:"ff":"000000000000000000000000000000000000000000000001":-4
+
+Test mbedtls_mpi_residue_setup #7 r == m
+mpi_residue_setup:"fe":"fe":-4
+
+Test mbedtls_mpi_residue_setup #8 r > m
+mpi_residue_setup:"fe":"ff":-4
 
 Test mbedtls_mpi_mod_io_neg
 mpi_mod_io_neg:

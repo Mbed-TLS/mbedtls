@@ -75,16 +75,17 @@ typedef struct {
 
 /** Setup a residue structure.
  *
- * \param[out] r    The address of residue to setup. The size is determined by
- *                  \p m.
- *                  (In particular, it must have at least as many limbs as the
- *                  modulus \p m.)
+ * \param[out] r    The address of residue to setup. The resulting structure's
+ *                  size is determined by \p m.
  * \param[in] m     The address of the modulus related to \p r.
  * \param[in] p     The address of the limb array storing the value of \p r.
  *                  The memory pointed to by \p p will be used by \p r and must
  *                  not be modified in any way until after
- *                  mbedtls_mpi_mod_residue_release() is called.
- * \param p_limbs   The number of limbs of \p p.
+ *                  mbedtls_mpi_mod_residue_release() is called. The data
+ *                  pointed by p should be compatible (in terms of size/endianness)
+ *                  with the representation used in \p m.
+ * \param p_limbs   The number of limbs of \p p. It must have at most as
+ *                  many limbs as the modulus \p m.)
  *
  * \return      \c 0 if successful.
  * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p p_limbs is less than the

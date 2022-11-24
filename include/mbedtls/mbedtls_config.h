@@ -1147,7 +1147,7 @@
  * before doing any PKCS#1 v2.1 operation.
  *
  * \warning When building with MBEDTLS_MD_C, all hashes used with this
- * need to be available a built-ins (that is, for SHA-256, MBEDTLS_SHA256_C,
+ * need to be available as built-ins (that is, for SHA-256, MBEDTLS_SHA256_C,
  * etc.) as opposed to just PSA drivers. So far, PSA drivers are only used by
  * this module in builds where MBEDTLS_MD_C is disabled.
  *
@@ -2440,7 +2440,7 @@
  * before doing any EC J-PAKE operations.
  *
  * \warning When building with MBEDTLS_MD_C, all hashes used with this
- * need to be available a built-ins (that is, for SHA-256, MBEDTLS_SHA256_C,
+ * need to be available as built-ins (that is, for SHA-256, MBEDTLS_SHA256_C,
  * etc.) as opposed to just PSA drivers. So far, PSA drivers are only used by
  * this module in builds where MBEDTLS_MD_C is disabled.
  */
@@ -2788,7 +2788,7 @@
  * before doing any PKCS5 operation.
  *
  * \warning When building with MBEDTLS_MD_C, all hashes used with this
- * need to be available a built-ins (that is, for SHA-256, MBEDTLS_SHA256_C,
+ * need to be available as built-ins (that is, for SHA-256, MBEDTLS_SHA256_C,
  * etc.) as opposed to just PSA drivers. So far, PSA drivers are only used by
  * this module in builds where MBEDTLS_MD_C is disabled.
  *
@@ -2812,7 +2812,7 @@
  * before doing any PKCS12 operation.
  *
  * \warning When building with MBEDTLS_MD_C, all hashes used with this
- * need to be available a built-ins (that is, for SHA-256, MBEDTLS_SHA256_C,
+ * need to be available as built-ins (that is, for SHA-256, MBEDTLS_SHA256_C,
  * etc.) as opposed to just PSA drivers. So far, PSA drivers are only used by
  * this module in builds where MBEDTLS_MD_C is disabled.
  *

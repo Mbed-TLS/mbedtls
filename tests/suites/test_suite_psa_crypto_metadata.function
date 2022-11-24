@@ -46,7 +46,8 @@
 #define ALG_IS_AEAD_ON_BLOCK_CIPHER     ( 1u << 27 )
 #define ALG_IS_TLS12_PRF                ( 1u << 28 )
 #define ALG_IS_TLS12_PSK_TO_MS          ( 1u << 29 )
-#define ALG_FLAG_MASK_PLUS_ONE          ( 1u << 30 ) /* must be last! */
+#define ALG_IS_TLS12_ECJPAKE_TO_PMS     ( 1u << 30 )
+#define ALG_FLAG_MASK_PLUS_ONE          ( 1u << 31 ) /* must be last! */
 
 /* Flags for key type classification macros. There is a flag for every
  * key type classification macro PSA_KEY_TYPE_IS_xxx except for some that
@@ -151,6 +152,7 @@ void algorithm_classification( psa_algorithm_t alg, unsigned flags )
     TEST_CLASSIFICATION_MACRO( 1, ALG_IS_AEAD_ON_BLOCK_CIPHER, alg, flags );
     TEST_CLASSIFICATION_MACRO( 1, ALG_IS_TLS12_PRF, alg, flags );
     TEST_CLASSIFICATION_MACRO( 1, ALG_IS_TLS12_PSK_TO_MS, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_TLS12_ECJPAKE_TO_PMS, alg, flags );
     TEST_EQUAL( classification_flags_tested, ALG_FLAG_MASK_PLUS_ONE - 1 );
 exit: ;
 }

@@ -74,6 +74,18 @@ typedef struct {
 
 /** Setup a residue structure.
  *
+ * The residue will be set up with the \p p buffer \p m modulus.
+ *
+ * The memory pointed by \p p will be used by the resulting residue structure.
+ * The value at the pointed memory will be the initial value of \p r and must
+ * hold a value that is less than the modulus. This value will be used as it is
+ * and interpreted according to the value of the `m->int_rep` field.
+ *
+ * The modulus \p m will be the modulus associated with \p r. The residue \p r
+ * should only be used in operations where the modulus is \p m or a modulus
+ * equivalent to \p m (in the sense that all their fields or memory pointed by
+ * their fields hold the same value).
+ *
  * \param[out] r    The address of residue to setup. The resulting structure's
  *                  size is determined by \p m.
  * \param[in] m     The address of the modulus related to \p r.
@@ -81,8 +93,9 @@ typedef struct {
  *                  The memory pointed to by \p p will be used by \p r and must
  *                  not be modified in any way until after
  *                  mbedtls_mpi_mod_residue_release() is called. The data
- *                  pointed by p should be compatible (in terms of size/endianness)
- *                  with the representation used in \p m.
+ *                  pointed by \p p should be less than the modulus (the value
+ *                  pointed by `m->p`) and already in the representation
+ *                  indicated by `m->int_rep`.
  * \param p_limbs   The number of limbs of \p p. It must have at most as
  *                  many limbs as the modulus \p m.)
  *
@@ -170,25 +183,28 @@ void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m );
 /* END MERGE SLOT 6 */
 
 /* BEGIN MERGE SLOT 7 */
-/** Read public representation data stored in a buffer into a residue structure.
+/** Read a residue from a byte buffer.
  *
- * The `mbedtls_mpi_mod_residue` and `mbedtls_mpi_mod_modulus` structures must
- * be compatible (Data in public representation is assumed to be in the m->ext_rep
- * and will be padded to m->limbs). The data will be automatically converted
- * into the appropriate internal representation based on the value of `m->int_rep`.
+ * The residue will be automatically converted to the internal representation
+ * based on the value of `m->int_rep` field.
  *
- * \param r         The address of the residue related to \p m. It must have as
- *                  many limbs as the modulus \p m.
+ * The modulus \p m will be the modulus associated with \p r. The residue \p r
+ * should only be used in operations where the modulus is \p m or a modulus
+ * equivalent to \p m (in the sense that all their fields or memory pointed by
+ * their fields hold the same value).
+ *
+ * \param r         The address of the residue. It must have as many limbs as
+ *                  the modulus \p m.
  * \param m         The address of the modulus.
  * \param buf       The input buffer to import from.
  * \param buflen    The length in bytes of \p buf.
  * \param ext_rep   The endianness of the number in the input buffer.
  *
  * \return       \c 0 if successful.
- * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p X isn't
+ * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p r isn't
  *               large enough to hold the value in \p buf.
- * \return       #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if the external representation
- *               of \p m is invalid or \p X is not less than \p m.
+ * \return       #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p ext_rep
+ *               is invalid or the value in the buffer is not less than \p m.
  */
 int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
                           const mbedtls_mpi_mod_modulus *m,
@@ -196,26 +212,32 @@ int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
                           size_t buflen,
                           mbedtls_mpi_mod_ext_rep ext_rep );
 
-/** Write residue data onto a buffer using public representation data.
+/** Write a residue into a byte buffer.
  *
- * The `mbedtls_mpi_mod_residue` and `mbedtls_mpi_mod_modulus` structures must
- * be compatible (Data will be exported onto the bufer using the m->ext_rep
- * and will be read as of m->limbs length).The data will be automatically
- * converted from the appropriate internal representation based on the
- * value of `m->int_rep field`.
+ * The modulus \p m must be the modulus associated with \p r (see
+ * mbedtls_mpi_mod_residue_setup() and mbedtls_mpi_mod_read()).
  *
- * \param r         The address of the residue related to \p m. It must have as
- *                  many limbs as the modulus \p m.
- * \param m         The address of the modulus.
+ * The residue will be automatically converted from the internal representation
+ * based on the value of `m->int_rep` field.
+ *
+ * \warning     If the buffer is smaller than `m->bits`, the number of
+ *              leading zeroes is leaked through side channels. If \p r is
+ *              secret, the caller must ensure that \p buflen is at least
+ *              (`m->bits`+7)/8.
+ *
+ * \param r         The address of the residue. It must have as many limbs as
+ *                  the modulus \p m.
+ * \param m         The address of the modulus associated with \r.
  * \param buf       The output buffer to export to.
  * \param buflen    The length in bytes of \p buf.
- * \param ext_rep   The endianness in which the number should be written into the output buffer.
+ * \param ext_rep   The endianness in which the number should be written into
+ *                  the output buffer.
  *
  * \return       \c 0 if successful.
  * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p buf isn't
- *               large enough to hold the value of \p X.
- * \return       #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if the external representation
- *               of \p m is invalid.
+ *               large enough to hold the value of \p r (without leading
+ *               zeroes).
+ * \return       #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if of \p ext_rep is invalid.
  */
 int mbedtls_mpi_mod_write( const mbedtls_mpi_mod_residue *r,
                            const mbedtls_mpi_mod_modulus *m,

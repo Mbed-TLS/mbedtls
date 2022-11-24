@@ -57,16 +57,16 @@ Test mbedtls_mpi_residue_setup #2 r == m - 1
 mpi_residue_setup:"ff":"fe":0
 
 Test mbedtls_mpi_residue_setup #3 m->limbs > r-> limbs && m > r
-mpi_residue_setup:"000000000000000000000000000000007dfe5c6beb35a2d6":"fe":0
+mpi_residue_setup:"000000000000000000000000000000007dfe5c6beb35a2d6":"fe":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
-Test mbedtls_mpi_residue_setup #4 m->limbs > r-> limbs && m > r
-mpi_residue_setup:"7ffffffffffffffffffffffffffffffffffffffffffffff1":"fe":0
+Test mbedtls_mpi_residue_setup #4 m->limbs = r-> limbs && m > r
+mpi_residue_setup:"7ffffffffffffffffffffffffffffffffffffffffffffff1":"0000000000000000000000000000000000000000000000fe":0
 
-Test mbedtls_mpi_residue_setup #5 m->limbs > r-> limbs && m > r
-mpi_residue_setup:"7ffffffffffffffffffff000000000000000000000000000":"fe":-4
+Test mbedtls_mpi_residue_setup #5 m->limbs < r-> limbs && m > r
+mpi_residue_setup:"7ffffffff0000000":"000000000000000fe":0
 
 Test mbedtls_mpi_residue_setup #6 m->limbs < r-> limbs && m > r
-mpi_residue_setup:"ff":"000000000000000000000000000000000000000000000001":-4
+mpi_residue_setup:"ff":"000000000000000000000000000000000000000000000001":0
 
 Test mbedtls_mpi_residue_setup #7 r == m
 mpi_residue_setup:"fe":"fe":-4

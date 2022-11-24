@@ -10,11 +10,12 @@
 #include "mbedtls/timing.h"
 #include "mbedtls/ssl_cookie.h"
 
-
 #if defined(MBEDTLS_SSL_SRV_C) && \
     defined(MBEDTLS_ENTROPY_C) && \
     defined(MBEDTLS_CTR_DRBG_C) && \
-    defined(MBEDTLS_TIMING_C)
+    defined(MBEDTLS_TIMING_C) && \
+    ( defined(MBEDTLS_SHA256_C) || \
+        ( defined(MBEDTLS_SHA512_C) && !defined(MBEDTLS_SHA512_NO_SHA384) ) )
 const char *pers = "fuzz_dtlsserver";
 const unsigned char client_ip[4] = {0x7F, 0, 0, 1};
 static int initialized = 0;
@@ -30,7 +31,9 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     defined(MBEDTLS_SSL_SRV_C) && \
     defined(MBEDTLS_ENTROPY_C) && \
     defined(MBEDTLS_CTR_DRBG_C) && \
-    defined(MBEDTLS_TIMING_C)
+    defined(MBEDTLS_TIMING_C) && \
+    ( defined(MBEDTLS_SHA256_C) || \
+        ( defined(MBEDTLS_SHA512_C) && !defined(MBEDTLS_SHA512_NO_SHA384) ) )
     int ret;
     size_t len;
     mbedtls_ssl_context ssl;

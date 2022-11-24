@@ -29,22 +29,22 @@ psa_status_t p256m_to_psa_error( int ret )
 
 psa_status_t p256m_generate_key(
     const psa_key_attributes_t *attributes,
-    uint8_t *key_buffer, 
-    size_t key_buffer_size, 
+    uint8_t *key_buffer,
+    size_t key_buffer_size,
     size_t *key_buffer_length )
 {
     /* We don't use this argument, but the specification mandates the signature
-     * of driver entry-points. (void) used to avoid compiler warning. */ 
+     * of driver entry-points. (void) used to avoid compiler warning. */
     (void) attributes;
 
     psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
 
-    /* 
+    /*
      *  p256-m generates a 32 byte private key, and expects to write to a buffer
      *   that is of that size. */
     if( key_buffer_size != 32 )
         return( status );
-    
+
     /*
      *  p256-m's keypair generation function outputs both public and private
      *  keys. Allocate a buffer to which the public key will be written. The
@@ -81,8 +81,8 @@ psa_status_t p256m_ecdh(
     size_t *shared_secret_length )
 {
     /* We don't use these arguments, but the specification mandates the
-     * sginature of driver entry-points. (void) used to avoid compiler 
-     * warning. */ 
+     * sginature of driver entry-points. (void) used to avoid compiler
+     * warning. */
     (void) attributes;
     (void) alg;
 
@@ -90,7 +90,7 @@ psa_status_t p256m_ecdh(
      *  Check that private key = 32 bytes, peer public key = 65 bytes,
      *  and that the shared secret buffer is big enough. */
     psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
-    if( key_buffer_size != 32 || shared_secret_size < 32 || 
+    if( key_buffer_size != 32 || shared_secret_size < 32 ||
         peer_key_length != 65 )
         return ( status );
 
@@ -114,8 +114,8 @@ psa_status_t p256m_sign_hash(
     size_t *signature_length )
 {
     /* We don't use these arguments, but the specification mandates the
-     * sginature of driver entry-points. (void) used to avoid compiler 
-     * warning. */ 
+     * sginature of driver entry-points. (void) used to avoid compiler
+     * warning. */
     (void) attributes;
     (void) alg;
 
@@ -127,7 +127,7 @@ psa_status_t p256m_sign_hash(
             p256_ecdsa_sign(signature, key_buffer, hash, hash_length) );
     if( status == PSA_SUCCESS )
         *signature_length = 64;
-    
+
     return status;
 }
 
@@ -144,7 +144,7 @@ static psa_status_t p256m_verify_hash_with_public_key(
     psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
     if( key_buffer_size != 65 || signature_length != 64 || *key_buffer != 0x04 )
         return status;
-        
+
     const uint8_t *public_key_buffer = key_buffer + 1;
     status = p256m_to_psa_error(
             p256_ecdsa_verify( signature, public_key_buffer, hash, hash_length) );
@@ -163,7 +163,7 @@ psa_status_t p256m_verify_hash(
     size_t signature_length )
 {
     /* We don't use this argument, but the specification mandates the signature
-     * of driver entry-points. (void) used to avoid compiler warning. */ 
+     * of driver entry-points. (void) used to avoid compiler warning. */
     (void) alg;
 
     psa_status_t status;

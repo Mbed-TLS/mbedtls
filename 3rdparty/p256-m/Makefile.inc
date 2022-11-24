@@ -2,5 +2,4 @@ THIRDPARTY_INCLUDES+=-I../3rdparty/p256-m/p256-m/include -I../3rdparty/p256-m/p2
 
 THIRDPARTY_CRYPTO_OBJECTS+= \
 	../3rdparty/p256-m//p256-m_driver_interface.o \
-	../3rdparty/p256-m//p256-m/p256-m.o 
-	
+	../3rdparty/p256-m//p256-m/p256-m.o

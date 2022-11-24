@@ -15,10 +15,11 @@
  *
  * \return              The corresponding PSA error code
  */
-psa_status_t p256m_to_psa_error( int ret );
+ //no-check-names
+psa_status_t p256m_to_psa_error( int ret ); //no-check-names
 
 
-/** Generate SECP256R1 ECC Key Pair. 
+/** Generate SECP256R1 ECC Key Pair.
  *  Interface function which calls the p256-m key generation function and
  *  places it in the key buffer provided by the caller (mbed TLS) in the
  *  correct format. For a SECP256R1 curve this is the 32 bit private key.
@@ -37,10 +38,11 @@ psa_status_t p256m_to_psa_error( int ret );
  * \retval #PSA_ERROR_GENERIC_ERROR
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  */
+ //no-check-names
 psa_status_t p256m_generate_key(
     const psa_key_attributes_t *attributes,
-    uint8_t *key_buffer, 
-    size_t key_buffer_size, 
+    uint8_t *key_buffer,
+    size_t key_buffer_size,
     size_t *key_buffer_length );
 
 /** Perform raw key agreement using p256-m's ECDH implementation
@@ -52,8 +54,8 @@ psa_status_t p256m_generate_key(
  * \param[in]  alg                  A key agreement algorithm that is
  *                                  compatible with the type of the key.
  * \param[in]  peer_key             The buffer containing the peer's public
- *                                  key in format specified by PSA. 
- * \param[in]  peer_key_length      Size of the \p peer_key buffer in 
+ *                                  key in format specified by PSA.
+ * \param[in]  peer_key_length      Size of the \p peer_key buffer in
  *                                  bytes.
  * \param[out] shared_secret        The buffer to which the shared secret
  *                                  is to be written.
@@ -65,6 +67,7 @@ psa_status_t p256m_generate_key(
  *         Success. Shared secret successfully calculated.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  */
+ //no-check-names
 psa_status_t p256m_ecdh(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
@@ -97,6 +100,7 @@ psa_status_t p256m_ecdh(
  *         respectively of the key.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  */
+//no-check-names
 psa_status_t p256m_sign_hash(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,

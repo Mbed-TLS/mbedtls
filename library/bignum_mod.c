@@ -39,7 +39,7 @@ int mbedtls_mpi_mod_residue_setup( mbedtls_mpi_mod_residue *r,
                                    mbedtls_mpi_uint *p,
                                    size_t p_limbs )
 {
-    if( p_limbs < m->limbs || !mbedtls_mpi_core_lt_ct( p, m->p, m->limbs ) )
+    if( p_limbs != m->limbs || !mbedtls_mpi_core_lt_ct( p, m->p, m->limbs ) )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
     r->limbs = m->limbs;

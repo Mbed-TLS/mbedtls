@@ -144,7 +144,11 @@ void (*mbedtls_test_hook_test_fail)( const char *, int, const char *);
 #endif /* MBEDTLS_TEST_HOOKS */
 
 /*
- * Provide an external definition of mbedtls_xor so that the compiler
- * has the option to not inline it
+ * Provide external definitions of some inline functions so that the compiler
+ * has the option to not inline them
  */
 extern inline void mbedtls_xor( unsigned char *r, unsigned char const *a, unsigned char const *b, size_t n );
+
+extern inline uint32_t mbedtls_get_unaligned_uint32( void const *p );
+
+extern inline void mbedtls_put_unaligned_uint32( void *p, uint32_t x );

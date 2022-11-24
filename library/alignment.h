@@ -32,7 +32,7 @@
  *
  * \param   p pointer to 4 bytes of data
  */
-static inline uint32_t mbedtls_get_unaligned_uint32( void const *p )
+inline uint32_t mbedtls_get_unaligned_uint32( void const *p )
 {
     uint32_t r;
     memcpy( &r, p, 4 );
@@ -46,7 +46,7 @@ static inline uint32_t mbedtls_get_unaligned_uint32( void const *p )
  * \param   p pointer to 4 bytes of data
  * \param   x data to write
  */
-static inline void mbedtls_put_unaligned_uint32( void *p, uint32_t x )
+inline void mbedtls_put_unaligned_uint32( void *p, uint32_t x )
 {
     memcpy( p, &x, 4 );
 }

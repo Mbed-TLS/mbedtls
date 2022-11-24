@@ -64,7 +64,6 @@ typedef struct {
     const mbedtls_mpi_uint *p;
     size_t limbs;                            // number of limbs
     size_t bits;                             // bitlen of p
-    mbedtls_mpi_mod_ext_rep ext_rep;         // signals external representation (eg. byte order)
     mbedtls_mpi_mod_rep_selector int_rep;    // selector to signal the active member of the union
     union rep
     {
@@ -122,8 +121,6 @@ void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *m );
  *                  not be modified in any way until after
  *                  mbedtls_mpi_mod_modulus_free() is called.
  * \param p_limbs   The number of limbs of \p p.
- * \param ext_rep   The external representation to be used for residues
- *                  associated with \p m (see #mbedtls_mpi_mod_ext_rep).
  * \param int_rep   The internal representation to be used for residues
  *                  associated with \p m (see #mbedtls_mpi_mod_rep_selector).
  *
@@ -134,7 +131,6 @@ void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *m );
 int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
                                    const mbedtls_mpi_uint *p,
                                    size_t p_limbs,
-                                   mbedtls_mpi_mod_ext_rep ext_rep,
                                    mbedtls_mpi_mod_rep_selector int_rep );
 
 /** Free elements of a modulus structure.

@@ -12,7 +12,7 @@
  */
 
 /* BEGIN_CASE */
-void mpi_mod_setup( int ext_rep, int int_rep, int iret )
+void mpi_mod_setup( int int_rep, int iret )
 {
     #define MLIMBS 8
     mbedtls_mpi_uint mp[MLIMBS];
@@ -22,7 +22,7 @@ void mpi_mod_setup( int ext_rep, int int_rep, int iret )
     memset( mp, 0xFF, sizeof(mp) );
 
     mbedtls_mpi_mod_modulus_init( &m );
-    ret = mbedtls_mpi_mod_modulus_setup( &m, mp, MLIMBS, ext_rep, int_rep );
+    ret = mbedtls_mpi_mod_modulus_setup( &m, mp, MLIMBS, int_rep );
     TEST_EQUAL( ret, iret );
 
     /* Only test if the constants have been set-up  */
@@ -96,7 +96,7 @@ void mpi_residue_setup( char * input_X, char * input_Y, int ret )
     TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &R, &r_limbs, input_Y ) );
 
     TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs,
-                MBEDTLS_MPI_MOD_EXT_REP_LE, MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
+                MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
 
     TEST_EQUAL( ret, mbedtls_mpi_mod_residue_setup( &r, &m, R , r_limbs ) );
 
@@ -145,7 +145,7 @@ void mpi_mod_io_neg( )
 
     mbedtls_mpi_mod_ext_rep endian = MBEDTLS_MPI_MOD_EXT_REP_LE;
     TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs,
-                endian, MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
+                MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
 
     TEST_EQUAL( 0, mbedtls_mpi_mod_residue_setup( &r, &m, R , n_limbs ) );
 
@@ -191,7 +191,7 @@ void mpi_mod_io_neg( )
 
     /* Read the two limbs input data into a larger modulus and residue */
     TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m2, N2, n2_limbs,
-                endian, MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
+                MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
     rn.p = R2;
     rn.limbs = r2_limbs;
     TEST_EQUAL( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL,
@@ -232,7 +232,7 @@ void mpi_mod_io( char * input_N, data_t * input_A, int endian )
 
     /* Init Structures */
     mbedtls_mpi_mod_modulus_init( &m );
-    TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs, endian,
+    TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs,
                 MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
 
     /* Enforcing p_limbs >= m->limbs */

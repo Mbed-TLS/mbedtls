@@ -49,7 +49,7 @@ void mpi_mod_raw_io( data_t *input, int nb_int, int nx_32_int,
 
     mbedtls_mpi_uint init[sizeof( X ) / sizeof( X[0] )];
     memset( init, 0xFF, sizeof( init ) );
-    int ret = mbedtls_mpi_mod_modulus_setup( &m, init, nx, endian,
+    int ret = mbedtls_mpi_mod_modulus_setup( &m, init, nx,
                                              MBEDTLS_MPI_MOD_REP_MONTGOMERY );
     TEST_EQUAL( ret, 0 );
 
@@ -138,7 +138,6 @@ void mpi_mod_raw_cond_assign( char * input_X,
     memset( buff_m, 0xFF, copy_limbs );
     TEST_EQUAL( mbedtls_mpi_mod_modulus_setup(
                         &m, buff_m, copy_limbs,
-                        MBEDTLS_MPI_MOD_EXT_REP_BE,
                         MBEDTLS_MPI_MOD_REP_MONTGOMERY ), 0 );
 
     /* condition is false */
@@ -211,7 +210,6 @@ void mpi_mod_raw_cond_swap( char * input_X,
     memset( buff_m, 0xFF, copy_limbs );
     TEST_EQUAL( mbedtls_mpi_mod_modulus_setup(
                         &m, buff_m, copy_limbs,
-                        MBEDTLS_MPI_MOD_EXT_REP_BE,
                         MBEDTLS_MPI_MOD_REP_MONTGOMERY ), 0 );
 
     ASSERT_ALLOC( X, limbs );
@@ -480,7 +478,7 @@ void mpi_mod_raw_to_mont_rep( char * input_N, char * input_A, char * input_X )
     TEST_LE_U(a_limbs, n_limbs);
 
     TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs,
-                MBEDTLS_MPI_MOD_EXT_REP_BE, MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
+                MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
 
     /* Convert from cannonical into Montgomery representation */
     TEST_EQUAL(0, mbedtls_mpi_mod_raw_to_mont_rep( A, &m ) );
@@ -516,7 +514,7 @@ void mpi_mod_raw_from_mont_rep( char * input_N, char * input_A, char * input_X )
     TEST_LE_U(a_limbs, n_limbs);
 
     TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs,
-                MBEDTLS_MPI_MOD_EXT_REP_BE, MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
+                MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
 
     /* Convert from Montgomery into cannonical representation */
     TEST_EQUAL(0, mbedtls_mpi_mod_raw_from_mont_rep( A, &m ) );

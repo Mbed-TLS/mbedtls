@@ -65,7 +65,6 @@ void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *m )
     m->p = NULL;
     m->limbs = 0;
     m->bits = 0;
-    m->ext_rep = MBEDTLS_MPI_MOD_EXT_REP_INVALID;
     m->int_rep = MBEDTLS_MPI_MOD_REP_INVALID;
 }
 
@@ -96,7 +95,6 @@ void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m )
     m->p = NULL;
     m->limbs = 0;
     m->bits = 0;
-    m->ext_rep = MBEDTLS_MPI_MOD_EXT_REP_INVALID;
     m->int_rep = MBEDTLS_MPI_MOD_REP_INVALID;
 }
 
@@ -138,7 +136,6 @@ cleanup:
 int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
                                    const mbedtls_mpi_uint *p,
                                    size_t p_limbs,
-                                   mbedtls_mpi_mod_ext_rep ext_rep,
                                    mbedtls_mpi_mod_rep_selector int_rep )
 {
     int ret = 0;
@@ -146,17 +143,6 @@ int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
     m->p = p;
     m->limbs = p_limbs;
     m->bits = mbedtls_mpi_core_bitlen( p, p_limbs );
-
-    switch( ext_rep )
-    {
-        case MBEDTLS_MPI_MOD_EXT_REP_LE:
-        case MBEDTLS_MPI_MOD_EXT_REP_BE:
-            m->ext_rep = ext_rep;
-            break;
-        default:
-            ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
-            goto exit;
-    }
 
     switch( int_rep )
     {

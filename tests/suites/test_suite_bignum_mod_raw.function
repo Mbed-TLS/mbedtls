@@ -296,9 +296,9 @@ void mpi_mod_raw_add( char * input_A, char * input_B,
     mbedtls_mpi_uint *S = NULL;
     mbedtls_mpi_uint *N = NULL;
     mbedtls_mpi_uint *X = NULL;
-    mbedtls_mpi_mod_modulus m;
     size_t A_limbs, B_limbs, N_limbs, S_limbs;
 
+    mbedtls_mpi_mod_modulus m;
     mbedtls_mpi_mod_modulus_init( &m );
 
     TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &A, &A_limbs, input_A ) );
@@ -306,13 +306,13 @@ void mpi_mod_raw_add( char * input_A, char * input_B,
     TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &N, &N_limbs, input_N ) );
     TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &S, &S_limbs, input_S ) );
 
-    /* All inputs must have have the same number of limbs. */
-    TEST_EQUAL( A_limbs, B_limbs );
-    TEST_EQUAL( S_limbs, N_limbs );
-    TEST_EQUAL( A_limbs, S_limbs );
-
-    size_t limbs = A_limbs;
+    /* Modulus gives the number of limbs; all inputs must have the same. */
+    size_t limbs = N_limbs;
     size_t bytes = limbs * sizeof( *A );
+
+    TEST_EQUAL( A_limbs, limbs );
+    TEST_EQUAL( B_limbs, limbs );
+    TEST_EQUAL( S_limbs, limbs );
 
     ASSERT_ALLOC( X, limbs );
 

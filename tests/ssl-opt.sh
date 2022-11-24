@@ -1689,6 +1689,20 @@ if [ -n "${OPENSSL_LEGACY:-}" ]; then
     O_LEGACY_CLI="$O_LEGACY_CLI -connect 127.0.0.1:+SRV_PORT"
 fi
 
+# Newer versions of OpenSSL have a syntax to enable all "ciphers", even
+# low-security ones. This covers not just cipher suites but also protocol
+# versions. It is necessary, for example, to use (D)TLS 1.0/1.1 on
+# OpenSSL 1.1.1f from Ubuntu 20.04. The syntax was only introduced in
+# OpenSSL 1.1.0 (21e0c1d23afff48601eb93135defddae51f7e2e3) and I can't find
+# a way to discover it from -help, so check the openssl version.
+case $($OPENSSL_CMD version) in
+    "OpenSSL 0"*|"OpenSSL 1.0"*) :;;
+    *)
+        O_CLI="$O_CLI -cipher ALL@SECLEVEL=0"
+        O_SRV="$O_SRV -cipher ALL@SECLEVEL=0"
+        ;;
+esac
+
 if [ -n "${OPENSSL_NEXT:-}" ]; then
     O_NEXT_SRV="$O_NEXT_SRV -accept $SRV_PORT"
     O_NEXT_SRV_NO_CERT="$O_NEXT_SRV_NO_CERT -accept $SRV_PORT"

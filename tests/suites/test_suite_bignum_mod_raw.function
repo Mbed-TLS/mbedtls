@@ -288,8 +288,9 @@ exit:
 /* BEGIN MERGE SLOT 5 */
 
 /* BEGIN_CASE */
-void mpi_mod_raw_add( char * input_A, char * input_B,
-                      char * input_N, char * input_S )
+void mpi_mod_raw_add( char * input_N,
+                      char * input_A, char * input_B,
+                      char * input_S )
 {
     mbedtls_mpi_uint *A = NULL;
     mbedtls_mpi_uint *B = NULL;

@@ -51,12 +51,6 @@ class BignumModRawAdd(bignum_common.ModOperationCommon,
     input_style = "fixed"
     arity = 2
 
-    def arguments(self) -> List[str]:
-        return [bignum_common.quote_str(n) for n in [self.arg_a,
-                                                     self.arg_b,
-                                                     self.arg_n]
-               ] + self.result()
-
     def result(self) -> List[str]:
         result = (self.int_a + self.int_b) % self.int_n
         return [self.format_result(result)]

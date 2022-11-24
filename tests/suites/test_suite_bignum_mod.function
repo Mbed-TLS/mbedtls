@@ -110,13 +110,6 @@ exit:
 /* BEGIN_CASE */
 void mpi_mod_io_neg( )
 {
-    #define IO_ZERO        0
-    #define IO_ONE         1
-    #define IO_MIN1        2
-    #define IO_MAX         3
-    #define IO_2LIMBS_MIN1 4
-    #define IO_2LIMBS      5
-
     mbedtls_mpi_uint *N = NULL;
     mbedtls_mpi_uint *R = NULL;
     mbedtls_mpi_uint *N2 = NULL;
@@ -130,15 +123,18 @@ void mpi_mod_io_neg( )
     mbedtls_mpi_mod_modulus m2;
     mbedtls_mpi_mod_residue rn = { NULL, 0 };
 
-    const char * s_data[ 6 ] = { "00", "01", "fe", "ff",
-                                 "7ffffffffffffffff0" ,"7ffffffffffffffff1" };
+    const char *hex_residue_single = "01";
+    const char *hex_modulus_single = "fe";
+    const char *hex_residue_multi = "7ffffffffffffffffffffffffffffff0";
+    const char *hex_modulus_multi = "7ffffffffffffffffffffffffffffff1";
+
     const size_t buff_bytes = 1024;
 
     /* Allocate the memory for intermediate data structures */
-    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &N, &n_limbs, s_data[ IO_MIN1 ] ) );
-    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &R, &r_limbs, s_data[ IO_ONE ] ) );
-    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &N2, &n2_limbs, s_data[ IO_2LIMBS ] ) );
-    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &R2, &r2_limbs, s_data[ IO_2LIMBS_MIN1 ] ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &N, &n_limbs, hex_modulus_single ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &R, &r_limbs, hex_residue_single ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &N2, &n2_limbs, hex_modulus_multi ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &R2, &r2_limbs, hex_residue_multi ) );
 
     mbedtls_mpi_mod_modulus_init( &m );
     mbedtls_mpi_mod_modulus_init( &m2 );
@@ -155,7 +151,7 @@ void mpi_mod_io_neg( )
     /* Pass for input_r < modulo */
     TEST_EQUAL( 0, mbedtls_mpi_mod_read( &r, &m, r_buff, 1 ) );
 
-    /* input_r == modulo -1 */
+    /* Pass for input_r == modulo -1 */
     memset( r_buff, 0xfd, buff_bytes );
     TEST_EQUAL( 0, mbedtls_mpi_mod_read( &r, &m, r_buff, 1 ) );
 
@@ -198,13 +194,6 @@ exit:
     mbedtls_free( N2 );
     mbedtls_free( R2 );
     mbedtls_free( r_buff );
-
-    #undef IO_ZERO
-    #undef IO_ONE
-    #undef IO_MIN1
-    #undef IO_MAX
-    #undef IO_2LIMBS_MIN1
-    #undef IO_2LIMBS
 }
 /* END_CASE */
 

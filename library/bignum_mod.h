@@ -177,8 +177,9 @@ void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m );
 /** Read public representation data stored in a buffer into a residue structure.
  *
  * The `mbedtls_mpi_mod_residue` and `mbedtls_mpi_mod_modulus` structures must
- * be compatible. The data will be automatically converted into the appropriate
- * representation based on the value of `m->int_rep field`.
+ * be compatible (Data in public representation is assumed to be in the m->ext_rep
+ * and will be padded to m->limbs). The data will be automatically converted
+ * into the appropriate internal representation based on the value of `m->int_rep`.
  *
  * \param r      The address of the residue related to \p m. It must have as
  *               many limbs as the modulus \p m.
@@ -193,15 +194,17 @@ void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m );
  *               of \p m is invalid or \p X is not less than \p m.
  */
 int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
-                          mbedtls_mpi_mod_modulus *m,
-                          unsigned char *buf,
+                          const mbedtls_mpi_mod_modulus *m,
+                          const unsigned char *buf,
                           size_t buflen );
 
 /** Write residue data onto a buffer using public representation data.
  *
  * The `mbedtls_mpi_mod_residue` and `mbedtls_mpi_mod_modulus` structures must
- * be compatible. The data will be automatically converted into the appropriate
- * representation based on the value of `m->int_rep field`.
+ * be compatible (Data will be exported onto the bufer using the m->ext_rep
+ * and will be read as of m->limbs length).The data will be automatically
+ * converted from the appropriate internal representation based on the
+ * value of `m->int_rep field`.
  *
  * \param r      The address of the residue related to \p m. It must have as
  *               many limbs as the modulus \p m.
@@ -215,8 +218,8 @@ int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
  * \return       #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if the external representation
  *               of \p m is invalid.
  */
-int mbedtls_mpi_mod_write( mbedtls_mpi_mod_residue *r,
-                           mbedtls_mpi_mod_modulus *m,
+int mbedtls_mpi_mod_write( const mbedtls_mpi_mod_residue *r,
+                           const mbedtls_mpi_mod_modulus *m,
                            unsigned char *buf,
                            size_t buflen );
 /* END MERGE SLOT 7 */

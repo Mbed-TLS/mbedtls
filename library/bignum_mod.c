@@ -210,8 +210,8 @@ exit:
 
 /* BEGIN MERGE SLOT 7 */
 int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
-                          mbedtls_mpi_mod_modulus *m,
-                          unsigned char *buf,
+                          const mbedtls_mpi_mod_modulus *m,
+                          const unsigned char *buf,
                           size_t buflen )
 {
     int ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
@@ -219,7 +219,7 @@ int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
     if ( r == NULL || m == NULL )
         goto cleanup;
 
-    if ( r->p == NULL || m->p == NULL || r->limbs > m->limbs ||\
+    if ( r->p == NULL || m->p == NULL || r->limbs > m->limbs ||
          r->limbs == 0 || m->limbs == 0 )
         goto cleanup;
 
@@ -228,6 +228,8 @@ int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
     if( ret != 0 )
         goto cleanup;
 
+    r->limbs = m->limbs;
+
     if (m->int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY)
        ret = mbedtls_mpi_mod_raw_to_mont_rep(r->p, m);
 
@@ -235,8 +237,8 @@ cleanup:
     return ( ret );
 }
 
-int mbedtls_mpi_mod_write( mbedtls_mpi_mod_residue *r,
-                           mbedtls_mpi_mod_modulus *m,
+int mbedtls_mpi_mod_write( const mbedtls_mpi_mod_residue *r,
+                           const mbedtls_mpi_mod_modulus *m,
                            unsigned char *buf,
                            size_t buflen )
 {
@@ -245,7 +247,7 @@ int mbedtls_mpi_mod_write( mbedtls_mpi_mod_residue *r,
     if ( r == NULL || m == NULL )
         goto cleanup;
 
-    if ( r->p == NULL || m->p == NULL || r->limbs > m->limbs ||\
+    if ( r->p == NULL || m->p == NULL || r->limbs > m->limbs ||
          r->limbs == 0 || m->limbs == 0 )
         goto cleanup;
 

@@ -48,7 +48,7 @@ static inline uint32_t mbedtls_get_unaligned_uint32( void const *p )
  */
 static inline void mbedtls_put_unaligned_uint32( void *p, uint32_t x )
 {
-    memcpy(p, &x, 4);
+    memcpy( p, &x, 4 );
 }
 
 /** Byte Reading Macros

@@ -45,6 +45,7 @@ def short_expression(original: str, level: int = 0) -> str:
         short = re.sub(r'\bDETERMINISTIC_', r'DET_', short)
         short = re.sub(r'\bKEY_AGREEMENT\b', r'KA', short)
         short = re.sub(r'_PSK_TO_MS\b', r'_PSK2MS', short)
+        short = re.sub(r'_ECJPAKE_TO_PMS\b', r'_PAKE2PMS', short)
     return short
 
 

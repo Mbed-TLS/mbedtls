@@ -86,7 +86,7 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
  * \param   b Pointer to input (buffer of at least \p n bytes)
  * \param   n Number of bytes to process.
  */
-inline void mbedtls_xor( unsigned char *r, unsigned char const *a, unsigned char const *b, size_t n )
+inline void mbedtls_xor( unsigned char *r, const unsigned char *a, const unsigned char *b, size_t n )
 {
     size_t i;
     for ( i = 0; ( i + 4 ) <= n; i += 4 )

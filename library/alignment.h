@@ -33,10 +33,10 @@
  * \param   p pointer to 4 bytes of data
  * \return  Data at the given address
  */
-inline uint32_t mbedtls_get_unaligned_uint32( void const *p )
+inline uint32_t mbedtls_get_unaligned_uint32( const void *p )
 {
     uint32_t r;
-    memcpy( &r, p, 4 );
+    memcpy( &r, p, sizeof( r ) );
     return r;
 }
 
@@ -49,7 +49,7 @@ inline uint32_t mbedtls_get_unaligned_uint32( void const *p )
  */
 inline void mbedtls_put_unaligned_uint32( void *p, uint32_t x )
 {
-    memcpy( p, &x, 4 );
+    memcpy( p, &x, sizeof( x ) );
 }
 
 /** Byte Reading Macros

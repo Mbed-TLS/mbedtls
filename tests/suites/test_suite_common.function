@@ -82,9 +82,9 @@ void mbedtls_xor( int len )
         ASSERT_COMPARE( r1 + r_off, n, r2 + r_off, n );
     }
 exit:
-    if ( a != NULL ) mbedtls_free( a );
-    if ( a != NULL ) mbedtls_free( b );
-    if ( r1 != NULL ) mbedtls_free( r1 );
-    if ( r2 != NULL ) mbedtls_free( r2 );
+    mbedtls_free( a );
+    mbedtls_free( b );
+    mbedtls_free( r1 );
+    mbedtls_free( r2 );
 }
 /* END_CASE */

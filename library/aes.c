@@ -1140,14 +1140,14 @@ int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
         size_t i;
         unsigned char *prev_output = output - 16;
 
-        /* Copy the remainder of the input for this final round. */
+        /* Copy ciphertext bytes from the previous block to our output for each
+         * byte of ciphertext we won't steal. */
         for( i = 0; i < leftover; i++ )
         {
             output[i] = prev_output[i];
         }
 
-        /* Copy ciphertext bytes from the previous block to our output for each
-         * byte of ciphertext we won't steal. */
+        /* Copy the remainder of the input for this final round. */
         mbedtls_xor( tmp, input, t, leftover );
 
         /* Copy ciphertext bytes from the previous block for input in this

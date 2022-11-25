@@ -172,7 +172,7 @@ We need a way to decide this based on the available information:
 
 And we need to take care of the [the cases where PSA is not possible](#why-psa-is-not-always-possible): either make sure the current behavior is preserved, or (where allowed by backward compatibility) document a behavior change and, preferably, a workaround.
 
-### Working through an example
+### Working through an example: RSA-PSS
 
 Let us work through the example of RSA-PSS which calculates a hash, as in [see issue \#6497](https://github.com/Mbed-TLS/mbedtls/issues/6497).
 
@@ -189,9 +189,17 @@ A natural solution is to double up the encoding of hashes in `mbedtls_md_type_t`
 
 This maximally preserves backward compatibility, but then no non-PSA code benefits from PSA accelerators, and there's little potential for removing the software implementation.
 
-#### Compile-time availability determination
+#### Availability of hashes in RSA-PSS
 
-Can we determine how to dispatch at compile time?
+Here we try to answer the question: As a caller of RSA-PSS via `rsa.h`, how do I know whether it can use a certain hash?
+
+* For a caller in the legacy domain: if e.g. `MBEDTLS_SHA256_C` is enabled, then I want RSA-PSS to support SHA-256. I don't care about negative support. So `MBEDTLS_SHA256_C` must imply support for RSA-PSS-SHA-256. It must work at all times, regardless of the state of PSA (e.g. drivers not initialized).
+* For a caller in the PSA domain: if e.g. `PSA_WANT_ALG_SHA_256` is enabled, then I want RSA-PSS to support SHA-256, provided that `psa_crypto_init()` has been called. In some limited cases, such as `test_suite_psa_crypto_not_supported` when PSA implements RSA-PSS in software, we care about negative support: if `PSA_WANT_ALG_SHA_256` then `psa_verify_hash` must reject `PSA_WANT_ALG_SHA_256`. This can be done at the level of PSA before it calls the RSA module, though, so it doesn't have any implication on the RSA module. As far as `rsa.c` is concerned, what matters is that `PSA_WANT_ALG_SHA_256` implies that SHA-256 is supported after `psa_crypto_init()` has been called.
+* For a caller in the mixed domain: requirements depend on the caller. Whatever solution RSA has to determine the availability of algorithms will apply to its caller as well.
+
+Conclusion so far: RSA must be able to do SHA-256 if either `MBEDTLS_SHA256_C` or `PSA_WANT_ALG_SHA_256` is enabled. If only `PSA_WANT_ALG_SHA_256` and not `MBEDTLS_SHA256_C` is enabled (which implies that PSA's SHA-256 comes from an accelerator driver), then SHA-256 only needs to work if `psa_crypto_init()` has been called.
+
+#### More in-depth discussion of compile-time availability determination
 
 The following combinations of compile-time support are possible:
 
@@ -202,13 +210,39 @@ The following combinations of compile-time support are possible:
 
 Note that it's a bit tricky to determine which algorithms are available. In the case where there is a PSA accelerator but no software implementation, we don't want the preprocessor symbols to indicate that the algorithm is available through the legacy domain, only through the PSA domain. What does this mean for the interfaces in the mixed domain? They can't guarantee the availability of the algorithm, but they must try if requested.
 
-TODO: so in this approach, how exactly do you know whether RSA-PSS-somehash is possible through `mbedtls_rsa_xxx`?
+### Designing an interface for hashes
 
-#### Runtime availability determination
+In this section, we specify a hash metadata and calculation for the [mixed domain](#classification-of-callers), i.e. code that can be called both from legacy code and from PSA code.
 
-Can we have a way to determine which interface to use for a particular cryptographic mechanism at run time? Schematically:
-```
-enum {PSA, LEGACY} where_to_dispatch(algorithm_encoding alg);
-```
-In many cases this would be a constant based on [compile-time availability determination](#compile-time-availability-determination). In the case where both a PSA accelerator and a legacy implementation are available, this function can, for example, check the initialization status of the PSA subsystem.
+#### Availability of hashes
 
+Generalizing the analysis in [“Availability of hashes in RSA-PSS”](#availability-of-hashes-in-RSA-PSS):
+
+A hash is available through the mixed-domain interface iff either of the following conditions is true:
+
+* A legacy hash interface is available and the hash algorithm is implemented in software.
+* PSA crypto is enabled and the hash algorithm is implemented via PSA.
+
+We could go further and make PSA accelerators available to legacy callers that call any legacy hash interface, e.g. `md.h` or `shaX.h`. There is little point in doing this, however: callers should just use the mixed-domain interface.
+
+#### Shape of the mixed-domain hash interface
+
+We now need to create an abstraction for mixed-domain hash calculation. (We could not create an abstraction, but that would require every piece of mixed-domain code to replicate the logic here. We went that route in Mbed TLS 3.3, but it made it effectively impossible to get something that works correctly.)
+
+Requirements: given a hash algorithm,
+
+* Obtain some metadata about it (size, block size).
+* Calculate the hash.
+* Set up a multipart operation to calculate the hash. The operation must support update, finish, reset, abort, clone.
+
+The existing interface in `md.h` is close to what we want, but not perfect. What's wrong with it?
+
+* It has an extra step of converting from `mbedtls_md_type_t` to `const mbedtls_md_info_t *`.
+* It includes extra fluff such as names and HMAC. This costs code size.
+* The md module has some legacy baggage dating from when it was more open, which we don't care about anymore. This costs code size.
+
+These problems are easily solvable.
+
+* `mbedtls_md_info_t` can become a very thin type. We can't remove the extra function call from the source code of callers, but we can make it a very thin abstraction that compilers can often optimize.
+* We can make names and HMAC optional. The mixed-domain hash interface won't be the full `MBEDTLS_MD_C` but a subset.
+* We can optimize `md.c` without making API changes to `md.h`.

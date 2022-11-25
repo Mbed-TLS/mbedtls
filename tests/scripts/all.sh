@@ -1612,12 +1612,8 @@ skip_non_constant_flow_components () {
     # The following components are especially slow and don't have any constant-flow annotations,
     # so disable them for better CI performance.
     # It would be better to pass a list of tests that we want to run, rather than tests to skip,
-    # but this functionality is currently missing from run-test-suites.pl.
-    if [ $1 -eq 1 ]; then
-        ${SKIP_TEST_SUITES="lms,gcm,ssl,pk"}
-    else
-        ${SKIP_TEST_SUITES=""}
-    fi
+    # but this functionality is currently not implemented.
+    ${SKIP_TEST_SUITES="lms,gcm,ssl,pk"}
     export SKIP_TEST_SUITES
 }
 
@@ -1653,7 +1649,7 @@ component_test_valgrind_constant_flow () {
     scripts/config.py full
     scripts/config.py set MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-    skip_non_constant_flow_components 1
+    skip_non_constant_flow_components
     cmake -D CMAKE_BUILD_TYPE:String=Release .
     make
 
@@ -1661,7 +1657,6 @@ component_test_valgrind_constant_flow () {
     # details are left in Testing/<date>/DynamicAnalysis.xml
     msg "test: main suites (full minus MBEDTLS_USE_PSA_CRYPTO, valgrind + constant flow)"
     make memcheck
-    skip_non_constant_flow_components 0
 }
 
 component_test_valgrind_constant_flow_psa () {
@@ -1677,7 +1672,7 @@ component_test_valgrind_constant_flow_psa () {
     msg "build: cmake release GCC, full config with constant flow testing"
     scripts/config.py full
     scripts/config.py set MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND
-    skip_non_constant_flow_components 1
+    skip_non_constant_flow_components
     cmake -D CMAKE_BUILD_TYPE:String=Release .
     make
 
@@ -1685,7 +1680,6 @@ component_test_valgrind_constant_flow_psa () {
     # details are left in Testing/<date>/DynamicAnalysis.xml
     msg "test: main suites (valgrind + constant flow)"
     make memcheck
-    skip_non_constant_flow_components 0
 }
 
 component_test_default_no_deprecated () {

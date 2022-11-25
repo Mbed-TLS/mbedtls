@@ -450,8 +450,12 @@ void enc_dec_buf( int cipher_id, char * cipher_string, int key_len,
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_enc ) );
 
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
-    TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx_dec, ad, sizeof( ad ) - i ) );
-    TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx_enc, ad, sizeof( ad ) - i ) );
+    int expected = ( cipher_info->mode == MBEDTLS_MODE_GCM ||
+                     cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305 ) ?
+                   0 : MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
+
+    TEST_EQUAL( expected, mbedtls_cipher_update_ad( &ctx_dec, ad, sizeof(ad) - i ) );
+    TEST_EQUAL( expected, mbedtls_cipher_update_ad( &ctx_enc, ad, sizeof(ad) - i ) );
 #endif
 
     block_size = mbedtls_cipher_get_block_size( &ctx_enc );
@@ -470,7 +474,7 @@ void enc_dec_buf( int cipher_id, char * cipher_string, int key_len,
     total_len += outlen;
 
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
-    TEST_ASSERT( 0 == mbedtls_cipher_write_tag( &ctx_enc, tag, sizeof( tag ) ) );
+    TEST_EQUAL( expected, mbedtls_cipher_write_tag( &ctx_enc, tag, sizeof(tag) ) );
 #endif
 
     TEST_ASSERT( total_len == length ||
@@ -491,7 +495,7 @@ void enc_dec_buf( int cipher_id, char * cipher_string, int key_len,
     total_len += outlen;
 
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
-    TEST_ASSERT( 0 == mbedtls_cipher_check_tag( &ctx_dec, tag, sizeof( tag ) ) );
+    TEST_EQUAL( expected, mbedtls_cipher_check_tag( &ctx_dec, tag, sizeof(tag) ) );
 #endif
 
     /* check result */
@@ -547,7 +551,11 @@ void enc_fail( int cipher_id, int pad_mode, int key_len, int length_val,
     TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx, iv, 16 ) );
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx ) );
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
-    TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx, NULL, 0 ) );
+    int expected = ( cipher_info->mode == MBEDTLS_MODE_GCM ||
+                     cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305 ) ?
+                   0 : MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
+
+    TEST_EQUAL( expected, mbedtls_cipher_update_ad( &ctx, NULL, 0 ) );
 #endif
 
     /* encode length number of bytes from inbuf */
@@ -609,7 +617,11 @@ void dec_empty_buf( int cipher,
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_dec ) );
 
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
-    TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx_dec, NULL, 0 ) );
+    int expected = ( cipher_info->mode == MBEDTLS_MODE_GCM ||
+                     cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305 ) ?
+                   0 : MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
+
+    TEST_EQUAL( expected, mbedtls_cipher_update_ad( &ctx_dec, NULL, 0 ) );
 #endif
 
     /* decode 0-byte string */
@@ -710,8 +722,12 @@ void enc_dec_buf_multipart( int cipher_id, int key_len, int first_length_val,
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_enc ) );
 
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
-    TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx_dec, NULL, 0 ) );
-    TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx_enc, NULL, 0 ) );
+    int expected = ( cipher_info->mode == MBEDTLS_MODE_GCM ||
+                     cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305 ) ?
+                   0 : MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
+
+    TEST_EQUAL( expected, mbedtls_cipher_update_ad( &ctx_dec, NULL, 0 ) );
+    TEST_EQUAL( expected, mbedtls_cipher_update_ad( &ctx_enc, NULL, 0 ) );
 #endif
 
     block_size = mbedtls_cipher_get_block_size( &ctx_enc );
@@ -795,7 +811,11 @@ void decrypt_test_vec( int cipher_id, int pad_mode, data_t * key,
     TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx, iv->x, iv->len ) );
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx ) );
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
-    TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx, ad->x, ad->len ) );
+    int expected = ( ctx.cipher_info->mode == MBEDTLS_MODE_GCM ||
+                     ctx.cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305 ) ?
+                   0 : MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
+
+    TEST_EQUAL( expected, mbedtls_cipher_update_ad( &ctx, ad->x, ad->len ) );
 #endif
 
     /* decode buffer and check tag->x */
@@ -806,7 +826,11 @@ void decrypt_test_vec( int cipher_id, int pad_mode, data_t * key,
                                                  &outlen ) );
     total_len += outlen;
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
-    TEST_ASSERT( tag_result == mbedtls_cipher_check_tag( &ctx, tag->x, tag->len ) );
+    int tag_expected = ( ctx.cipher_info->mode == MBEDTLS_MODE_GCM ||
+                         ctx.cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305 ) ?
+                       tag_result : MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
+
+    TEST_EQUAL( tag_expected, mbedtls_cipher_check_tag( &ctx, tag->x, tag->len ) );
 #endif
 
     /* check plaintext only if everything went fine */

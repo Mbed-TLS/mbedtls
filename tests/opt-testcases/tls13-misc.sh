@@ -301,7 +301,7 @@ run_test    "TLS 1.3 m->G: EarlyData: basic check, good" \
             -c "NewSessionTicket: early_data(42) extension received." \
             -c "ClientHello: early_data(42) extension exists." \
             -c "EncryptedExtensions: early_data(42) extension received." \
-            -c "EncryptedExtensions: early_data(42) extension ( ignored )." \
+            -c "EncryptedExtensions: early_data(42) extension exists." \
             -s "Parsing extension 'Early Data/42' (0 bytes)" \
             -s "Sending extension Early Data/42 (0 bytes)" \
             -s "early data accepted"
@@ -322,7 +322,7 @@ run_test    "TLS 1.3 m->G: EarlyData: no early_data in NewSessionTicket, good" \
             -C "NewSessionTicket: early_data(42) extension received." \
             -c "ClientHello: early_data(42) extension does not exist." \
             -C "EncryptedExtensions: early_data(42) extension received." \
-            -C "EncryptedExtensions: early_data(42) extension ( ignored )."
+            -C "EncryptedExtensions: early_data(42) extension exists."
 
 #TODO: OpenSSL tests don't work now. It might be openssl options issue, cause GnuTLS has worked.
 skip_next_test

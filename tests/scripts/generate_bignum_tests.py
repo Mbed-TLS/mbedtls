@@ -57,7 +57,7 @@ of BaseTarget in test_data_generation.py.
 import sys
 
 from abc import ABCMeta
-from typing import Iterator, List
+from typing import List
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import test_case
@@ -68,15 +68,17 @@ from mbedtls_dev import bignum_common
 # the framework
 from mbedtls_dev import bignum_core, bignum_mod_raw # pylint: disable=unused-import
 
-class BignumTarget(test_data_generation.BaseTarget, metaclass=ABCMeta):
-    #pylint: disable=abstract-method
+class BignumTarget(test_data_generation.BaseTarget):
+    #pylint: disable=too-few-public-methods
     """Target for bignum (legacy) test case generation."""
     target_basename = 'test_suite_bignum.generated'
 
 
-class BignumOperation(bignum_common.OperationCommon, BignumTarget, metaclass=ABCMeta):
+class BignumOperation(bignum_common.OperationCommon, BignumTarget,
+                      metaclass=ABCMeta):
     #pylint: disable=abstract-method
     """Common features for bignum operations in legacy tests."""
+    unique_combinations_only = True
     input_values = [
         "", "0", "-", "-0",
         "7b", "-7b",
@@ -131,11 +133,6 @@ class BignumOperation(bignum_common.OperationCommon, BignumTarget, metaclass=ABC
         elif len(val) > 10:
             tmp = "large " + tmp
         return tmp
-
-    @classmethod
-    def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
-        for a_value, b_value in cls.get_value_pairs():
-            yield cls(a_value, b_value).create_test_case()
 
 
 class BignumCmp(BignumOperation):

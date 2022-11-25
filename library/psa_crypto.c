@@ -877,20 +877,7 @@ static psa_status_t psa_restrict_key_policy(
     return( PSA_SUCCESS );
 }
 
-/** Get the description of a key given its identifier and policy constraints
- *  and lock it.
- *
- * The key must have allow all the usage flags set in \p usage. If \p alg is
- * nonzero, the key must allow operations with this algorithm. If \p alg is
- * zero, the algorithm is not checked.
- *
- * In case of a persistent key, the function loads the description of the key
- * into a key slot if not already done.
- *
- * On success, the returned key slot is locked. It is the responsibility of
- * the caller to unlock the key slot when it does not access it anymore.
- */
-static psa_status_t psa_get_and_lock_key_slot_with_policy(
+psa_status_t psa_get_and_lock_key_slot_with_policy(
     mbedtls_svc_key_id_t key,
     psa_key_slot_t **p_slot,
     psa_key_usage_t usage,
@@ -3467,8 +3454,8 @@ psa_status_t psa_cipher_encrypt( mbedtls_svc_key_id_t key,
     status = psa_driver_wrapper_cipher_encrypt(
         &attributes, slot->key.data, slot->key.bytes,
         alg, local_iv, default_iv_length, input, input_length,
-        output + default_iv_length, output_size - default_iv_length,
-        output_length );
+        mbedtls_buffer_offset( output, default_iv_length ),
+        output_size - default_iv_length, output_length );
 
 exit:
     unlock_status = psa_unlock_key_slot( slot );

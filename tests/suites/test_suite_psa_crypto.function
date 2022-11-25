@@ -4,6 +4,7 @@
 #include "mbedtls/asn1.h"
 #include "mbedtls/asn1write.h"
 #include "mbedtls/oid.h"
+#include "common.h"
 
 /* For MBEDTLS_CTR_DRBG_MAX_REQUEST, knowing that psa_generate_random()
  * uses mbedtls_ctr_drbg internally. */
@@ -30,6 +31,27 @@
  * This serves as a proxy for checking if the operation is aborted. */
 #define ASSERT_OPERATION_IS_ACTIVE(   operation ) TEST_ASSERT( operation.id != 0 )
 #define ASSERT_OPERATION_IS_INACTIVE( operation ) TEST_ASSERT( operation.id == 0 )
+
+#if defined(PSA_WANT_ALG_JPAKE)
+int ecjpake_operation_setup( psa_pake_operation_t *operation,
+                              psa_pake_cipher_suite_t *cipher_suite,
+                              psa_pake_role_t role,
+                              mbedtls_svc_key_id_t key,
+                              size_t key_available )
+{
+    PSA_ASSERT( psa_pake_abort( operation ) );
+
+    PSA_ASSERT( psa_pake_setup( operation, cipher_suite ) );
+
+    PSA_ASSERT( psa_pake_set_role( operation, role) );
+
+    if( key_available )
+        PSA_ASSERT( psa_pake_set_password_key( operation, key ) );
+    return 0;
+exit:
+    return 1;
+}
+#endif
 
 /** An invalid export length that will never be set by psa_export_key(). */
 static const size_t INVALID_EXPORT_LENGTH = ~0U;
@@ -3962,7 +3984,7 @@ void cipher_alg_without_iv( int alg_arg, int key_type_arg, data_t *key_data,
     TEST_LE_U( length, output_buffer_size );
     output_length += length;
     PSA_ASSERT( psa_cipher_finish( &operation,
-                                   output + output_length,
+                                   mbedtls_buffer_offset( output, output_length ),
                                    output_buffer_size - output_length,
                                    &length ) );
     output_length += length;
@@ -3980,7 +4002,7 @@ void cipher_alg_without_iv( int alg_arg, int key_type_arg, data_t *key_data,
     TEST_LE_U( length, output_buffer_size );
     output_length += length;
     PSA_ASSERT( psa_cipher_finish( &operation,
-                                   output + output_length,
+                                   mbedtls_buffer_offset( output, output_length ),
                                    output_buffer_size - output_length,
                                    &length ) );
     output_length += length;
@@ -8740,7 +8762,6 @@ void ecjpake_setup( int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
 {
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
     psa_pake_operation_t operation = psa_pake_operation_init();
-    psa_pake_operation_t op_copy = psa_pake_operation_init();
     psa_algorithm_t alg = alg_arg;
     psa_pake_primitive_t primitive = primitive_arg;
     psa_key_type_t key_type_pw = key_type_pw_arg;
@@ -8839,22 +8860,25 @@ void ecjpake_setup( int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
     if( input_first )
     {
         /* Invalid parameters (input) */
-        op_copy = operation;
-        TEST_EQUAL( psa_pake_input( &op_copy, PSA_PAKE_STEP_ZK_PROOF,
+        TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_ZK_PROOF,
                                     NULL, 0 ),
                     PSA_ERROR_INVALID_ARGUMENT );
         /* Invalid parameters (step) */
-        op_copy = operation;
-        TEST_EQUAL( psa_pake_input( &op_copy, PSA_PAKE_STEP_ZK_PROOF + 10,
+        TEST_EQUAL( ecjpake_operation_setup( &operation, &cipher_suite, role,
+                                 key, pw_data->len ) , 0 );
+        TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_ZK_PROOF + 10,
                                     output_buffer, size_zk_proof ),
                     PSA_ERROR_INVALID_ARGUMENT );
         /* Invalid first step */
-        op_copy = operation;
-        TEST_EQUAL( psa_pake_input( &op_copy, PSA_PAKE_STEP_ZK_PROOF,
+        TEST_EQUAL( ecjpake_operation_setup( &operation, &cipher_suite, role,
+                                 key, pw_data->len ), 0 );
+        TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_ZK_PROOF,
                                     output_buffer, size_zk_proof ),
                     PSA_ERROR_BAD_STATE );
 
         /* Possibly valid */
+        TEST_EQUAL( ecjpake_operation_setup( &operation, &cipher_suite, role,
+                                 key, pw_data->len ), 0 );
         TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_KEY_SHARE,
                                     output_buffer, size_key_share ),
                     expected_status_input_output);
@@ -8875,22 +8899,25 @@ void ecjpake_setup( int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
     else
     {
         /* Invalid parameters (output) */
-        op_copy = operation;
-        TEST_EQUAL( psa_pake_output( &op_copy, PSA_PAKE_STEP_ZK_PROOF,
+        TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_ZK_PROOF,
                                      NULL, 0, NULL ),
                     PSA_ERROR_INVALID_ARGUMENT );
-        op_copy = operation;
         /* Invalid parameters (step) */
-        TEST_EQUAL( psa_pake_output( &op_copy, PSA_PAKE_STEP_ZK_PROOF + 10,
+        TEST_EQUAL( ecjpake_operation_setup( &operation, &cipher_suite, role,
+                                key, pw_data->len ), 0 );
+        TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_ZK_PROOF + 10,
                                      output_buffer, buf_size, &output_len ),
                     PSA_ERROR_INVALID_ARGUMENT );
         /* Invalid first step */
-        op_copy = operation;
-        TEST_EQUAL( psa_pake_output( &op_copy, PSA_PAKE_STEP_ZK_PROOF,
+        TEST_EQUAL( ecjpake_operation_setup( &operation, &cipher_suite, role,
+                                 key, pw_data->len ), 0 );
+        TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_ZK_PROOF,
                                      output_buffer, buf_size, &output_len ),
                     PSA_ERROR_BAD_STATE );
 
         /* Possibly valid */
+        TEST_EQUAL( ecjpake_operation_setup( &operation, &cipher_suite, role,
+                                 key, pw_data->len ), 0 );
         TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_KEY_SHARE,
                                      output_buffer, buf_size, &output_len ),
                     expected_status_input_output );
@@ -8974,7 +9001,7 @@ exit:
 /* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE */
 void ecjpake_rounds( int alg_arg, int primitive_arg, int hash_arg,
                      int derive_alg_arg, data_t *pw_data,
-                     int client_input_first )
+                     int client_input_first, int destroy_key )
 {
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
     psa_pake_operation_t server = psa_pake_operation_init();
@@ -9024,6 +9051,9 @@ void ecjpake_rounds( int alg_arg, int primitive_arg, int hash_arg,
 
     PSA_ASSERT( psa_pake_set_password_key( &server, key ) );
     PSA_ASSERT( psa_pake_set_password_key( &client, key ) );
+
+    if( destroy_key == 1 )
+        psa_destroy_key( key );
 
     TEST_EQUAL( psa_pake_get_implicit_key( &server, &server_derive ),
                 PSA_ERROR_BAD_STATE );

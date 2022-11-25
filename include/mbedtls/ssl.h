@@ -96,12 +96,16 @@
 /* Error space gap */
 /** Processing of the Certificate handshake message failed. */
 #define MBEDTLS_ERR_SSL_BAD_CERTIFICATE                   -0x7A00
-/** Received NewSessionTicket Post Handshake Message */
+/* Error space gap */
+/**
+ * Received NewSessionTicket Post Handshake Message.
+ * This error code is experimental and may be changed or removed without notice.
+ */
 #define MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET       -0x7B00
-/* Error space gap */
-/* Error space gap */
-/* Error space gap */
-/* Error space gap */
+/** Not possible to read early data */
+#define MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA            -0x7B80
+/** Not possible to write early data */
+#define MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA           -0x7C00
 /* Error space gap */
 /* Error space gap */
 /* Error space gap */
@@ -661,7 +665,7 @@ typedef enum
     MBEDTLS_SSL_SERVER_FINISHED,
     MBEDTLS_SSL_FLUSH_BUFFERS,
     MBEDTLS_SSL_HANDSHAKE_WRAPUP,
-    MBEDTLS_SSL_HANDSHAKE_OVER,
+
     MBEDTLS_SSL_NEW_SESSION_TICKET,
     MBEDTLS_SSL_SERVER_HELLO_VERIFY_REQUEST_SENT,
     MBEDTLS_SSL_HELLO_RETRY_REQUEST,
@@ -671,7 +675,9 @@ typedef enum
     MBEDTLS_SSL_CLIENT_CCS_BEFORE_2ND_CLIENT_HELLO,
     MBEDTLS_SSL_SERVER_CCS_AFTER_SERVER_HELLO,
     MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REQUEST,
-    MBEDTLS_SSL_NEW_SESSION_TICKET_FLUSH,
+    MBEDTLS_SSL_HANDSHAKE_OVER,
+    MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET,
+    MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH,
 }
 mbedtls_ssl_states;
 
@@ -799,14 +805,6 @@ typedef struct mbedtls_ssl_key_cert mbedtls_ssl_key_cert;
 #endif
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
-#endif
-
-#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_UNKNOWN           0
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT          1
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_INDICATION_SENT   2
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED          3
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED          4
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
@@ -3851,9 +3849,10 @@ void mbedtls_ssl_conf_sni( mbedtls_ssl_config *conf,
  * \note           The SSL context needs to be already set up. The right place
  *                 to call this function is between \c mbedtls_ssl_setup() or
  *                 \c mbedtls_ssl_reset() and \c mbedtls_ssl_handshake().
+ *                 Password cannot be empty (see RFC 8236).
  *
  * \param ssl      SSL context
- * \param pw       EC J-PAKE password (pre-shared secret)
+ * \param pw       EC J-PAKE password (pre-shared secret). It cannot be empty
  * \param pw_len   length of pw in bytes
  *
  * \return         0 on success, or a negative error code.
@@ -4651,7 +4650,7 @@ int mbedtls_ssl_handshake( mbedtls_ssl_context *ssl );
  */
 static inline int mbedtls_ssl_is_handshake_over( mbedtls_ssl_context *ssl )
 {
-    return( ssl->MBEDTLS_PRIVATE( state ) == MBEDTLS_SSL_HANDSHAKE_OVER );
+    return( ssl->MBEDTLS_PRIVATE( state ) >= MBEDTLS_SSL_HANDSHAKE_OVER );
 }
 
 /**
@@ -4890,6 +4889,151 @@ int mbedtls_ssl_send_alert_message( mbedtls_ssl_context *ssl,
  *                 for a new connection; the current connection must be closed.
  */
 int mbedtls_ssl_close_notify( mbedtls_ssl_context *ssl );
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+
+#if defined(MBEDTLS_SSL_SRV_C)
+/**
+ * \brief          Read at most 'len' application data bytes while performing
+ *                 the handshake (early data).
+ *
+ * \note           This function behaves mainly as mbedtls_ssl_read(). The
+ *                 specification of mbedtls_ssl_read() relevant to TLS 1.3
+ *                 (thus not the parts specific to (D)TLS 1.2) applies to this
+ *                 function and the present documentation is restricted to the
+ *                 differences with mbedtls_ssl_read().
+ *
+ * \param ssl      SSL context
+ * \param buf      buffer that will hold the data
+ * \param len      maximum number of bytes to read
+ *
+ * \return         One additional specific return value:
+ *                 #MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA.
+ *
+ *                 #MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA is returned when it
+ *                 is not possible to read early data for the SSL context
+ *                 \p ssl.
+ *
+ *                 It may have been possible and it is not possible
+ *                 anymore because the server received the End of Early Data
+ *                 message or the maximum number of allowed early data for the
+ *                 PSK in use has been reached.
+ *
+ *                 It may never have been possible and will never be possible
+ *                 for the SSL context \p ssl because the use of early data
+ *                 is disabled for that context or more generally the context
+ *                 is not suitably configured to enable early data or the
+ *                 client does not use early data or the first call to the
+ *                 function was done while the handshake was already too
+ *                 advanced to gather and accept early data.
+ *
+ *                 It is not possible to read early data for the SSL context
+ *                 \p ssl but this does not preclude for using it with
+ *                 mbedtls_ssl_write(), mbedtls_ssl_read() or
+ *                 mbedtls_ssl_handshake().
+ *
+ * \note           When a server wants to retrieve early data, it is expected
+ *                 that this function starts the handshake for the SSL context
+ *                 \p ssl. But this is not mandatory.
+ *
+ */
+int mbedtls_ssl_read_early_data( mbedtls_ssl_context *ssl,
+                                 unsigned char *buf, size_t len );
+#endif /* MBEDTLS_SSL_SRV_C */
+
+#if defined(MBEDTLS_SSL_CLI_C)
+/**
+ * \brief          Try to write exactly 'len' application data bytes while
+ *                 performing the handshake (early data).
+ *
+ * \note           This function behaves mainly as mbedtls_ssl_write(). The
+ *                 specification of mbedtls_ssl_write() relevant to TLS 1.3
+ *                 (thus not the parts specific to (D)TLS1.2) applies to this
+ *                 function and the present documentation is restricted to the
+ *                 differences with mbedtls_ssl_write().
+ *
+ * \param ssl      SSL context
+ * \param buf      buffer holding the data
+ * \param len      how many bytes must be written
+ *
+ * \return         One additional specific return value:
+ *                 #MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA.
+ *
+ *                 #MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA is returned when it
+ *                 is not possible to write early data for the SSL context
+ *                 \p ssl.
+ *
+ *                 It may have been possible and it is not possible
+ *                 anymore because the client received the server Finished
+ *                 message, the server rejected early data or the maximum
+ *                 number of allowed early data for the PSK in use has been
+ *                 reached.
+ *
+ *                 It may never have been possible and will never be possible
+ *                 for the SSL context \p ssl because the use of early data
+ *                 is disabled for that context or more generally the context
+ *                 is not suitably configured to enable early data or the first
+ *                 call to the function was done while the handshake was
+ *                 already completed.
+ *
+ *                 It is not possible to write early data for the SSL context
+ *                 \p ssl but this does not preclude for using it with
+ *                 mbedtls_ssl_write(), mbedtls_ssl_read() or
+ *                 mbedtls_ssl_handshake().
+ *
+ * \note           This function may write early data only if the SSL context
+ *                 has been configured for the handshake with a PSK for which
+ *                 early data is allowed.
+ *
+ * \note           To maximize the number of early data that can be written in
+ *                 the course of the handshake, it is expected that this
+ *                 function starts the handshake for the SSL context \p ssl.
+ *                 But this is not mandatory.
+ *
+ * \note           This function does not provide any information on whether
+ *                 the server has accepted or will accept early data or not.
+ *                 When it returns a positive value, it just means that it
+ *                 has written early data to the server. To know whether the
+ *                 server has accepted early data or not, you should call
+ *                 mbedtls_ssl_get_early_data_status() with the handshake
+ *                 completed.
+ */
+int mbedtls_ssl_write_early_data( mbedtls_ssl_context *ssl,
+                                  const unsigned char *buf, size_t len );
+
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT  0
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED  1
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED  2
+/**
+ * \brief Get the status of the negotiation of the use of early data.
+ *
+ * \param ssl      The SSL context to query
+ *
+ * \return         #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if this function is called
+ *                 from the server-side.
+ *
+ * \return         #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if this function is called
+ *                 prior to completion of the handshake.
+ *
+ * \return         #MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT if the client has
+ *                 not indicated the use of early data to the server.
+ *
+ * \return         #MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED if the client has
+ *                 indicated the use of early data and the server has accepted
+ *                 it.
+ *
+ * \return         #MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED if the client has
+ *                 indicated the use of early data but the server has rejected
+ *                 it. In this situation, the client may want to re-send the
+ *                 early data it may have tried to send by calling
+ *                 mbedtls_ssl_write_early_data() as ordinary post-handshake
+ *                 application data by calling mbedtls_ssl_write().
+ *
+ */
+int mbedtls_ssl_get_early_data_status( mbedtls_ssl_context *ssl );
+#endif /* MBEDTLS_SSL_CLI_C */
+
+#endif /* MBEDTLS_SSL_EARLY_DATA */
 
 /**
  * \brief          Free referenced items in an SSL context and clear memory

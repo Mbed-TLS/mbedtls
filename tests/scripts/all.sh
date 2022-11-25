@@ -1217,6 +1217,7 @@ component_test_crypto_full_no_md () {
     # Direct dependencies
     scripts/config.py unset MBEDTLS_HKDF_C
     scripts/config.py unset MBEDTLS_HMAC_DRBG_C
+    scripts/config.py unset MBEDTLS_PKCS7_C
     # Indirect dependencies
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC
     make
@@ -1435,6 +1436,31 @@ component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only_use_psa () {
 
     msg "test: default with only CBC-legacy and CBC-EtM ciphers use psa - ssl-opt.sh (subset)"
     tests/ssl-opt.sh -f "TLS 1.2"
+}
+
+# We're not aware of any other (open source) implementation of EC J-PAKE in TLS
+# that we could use for interop testing. However, we now have sort of two
+# implementations ourselves: one using PSA, the other not. At least test that
+# these two interoperate with each other.
+component_test_tls1_2_ecjpake_compatibility() {
+    msg "build: TLS1.2 server+client w/ EC-JPAKE w/o USE_PSA"
+    scripts/config.py set MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
+    make -C programs ssl/ssl_server2 ssl/ssl_client2
+    cp programs/ssl/ssl_server2 s2_no_use_psa
+    cp programs/ssl/ssl_client2 c2_no_use_psa
+
+    msg "build: TLS1.2 server+client w/ EC-JPAKE w/ USE_PSA"
+    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
+    make clean
+    make -C programs ssl/ssl_server2 ssl/ssl_client2
+    make -C programs test/udp_proxy test/query_compile_time_config
+
+    msg "test: server w/o USE_PSA - client w/ USE_PSA"
+    P_SRV=../s2_no_use_psa tests/ssl-opt.sh -f ECJPAKE
+    msg "test: client w/o USE_PSA - server w/ USE_PSA"
+    P_CLI=../c2_no_use_psa tests/ssl-opt.sh -f ECJPAKE
+
+    rm s2_no_use_psa c2_no_use_psa
 }
 
 component_test_psa_external_rng_use_psa_crypto () {
@@ -2099,6 +2125,7 @@ config_psa_crypto_hash_use_psa () {
     fi
     scripts/config.py unset MBEDTLS_HKDF_C # has independent PSA implementation
     scripts/config.py unset MBEDTLS_HMAC_DRBG_C
+    scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
 }
@@ -3250,6 +3277,7 @@ component_build_armcc () {
 
 component_test_tls13_only () {
     msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3, without MBEDTLS_SSL_PROTO_TLS1_2"
+    scripts/config.py set MBEDTLS_SSL_EARLY_DATA
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test: TLS 1.3 only, all key exchange modes enabled"
@@ -3269,6 +3297,8 @@ component_test_tls13_only_psk () {
     scripts/config.py unset MBEDTLS_SSL_SERVER_NAME_INDICATION
     scripts/config.py unset MBEDTLS_ECDSA_C
     scripts/config.py unset MBEDTLS_PKCS1_V21
+    scripts/config.py unset MBEDTLS_PKCS7_C
+    scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test_suite_ssl: TLS 1.3 only, only PSK key exchange mode enabled"
@@ -3301,6 +3331,8 @@ component_test_tls13_only_psk_ephemeral () {
     scripts/config.py unset MBEDTLS_SSL_SERVER_NAME_INDICATION
     scripts/config.py unset MBEDTLS_ECDSA_C
     scripts/config.py unset MBEDTLS_PKCS1_V21
+    scripts/config.py unset MBEDTLS_PKCS7_C
+    scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test_suite_ssl: TLS 1.3 only, only PSK ephemeral key exchange mode"
@@ -3318,6 +3350,8 @@ component_test_tls13_only_psk_all () {
     scripts/config.py unset MBEDTLS_SSL_SERVER_NAME_INDICATION
     scripts/config.py unset MBEDTLS_ECDSA_C
     scripts/config.py unset MBEDTLS_PKCS1_V21
+    scripts/config.py unset MBEDTLS_PKCS7_C
+    scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test_suite_ssl: TLS 1.3 only, PSK and PSK ephemeral key exchange modes"
@@ -3330,6 +3364,7 @@ component_test_tls13_only_psk_all () {
 component_test_tls13_only_ephemeral_all () {
     msg "build: TLS 1.3 only from default, without PSK key exchange mode"
     scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
+    scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test_suite_ssl: TLS 1.3 only, ephemeral and PSK ephemeral key exchange modes"
@@ -3344,6 +3379,7 @@ component_test_tls13 () {
     scripts/config.py set MBEDTLS_SSL_PROTO_TLS1_3
     scripts/config.py set MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
     scripts/config.py set MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY 1
+    scripts/config.py set MBEDTLS_SSL_EARLY_DATA
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
     msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, without padding"
@@ -3357,6 +3393,7 @@ component_test_tls13_no_compatibility_mode () {
     scripts/config.py set   MBEDTLS_SSL_PROTO_TLS1_3
     scripts/config.py unset MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
     scripts/config.py set   MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY 1
+    scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
     msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, without padding"

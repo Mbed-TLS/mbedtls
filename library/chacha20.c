@@ -36,11 +36,6 @@
 
 #if !defined(MBEDTLS_CHACHA20_ALT)
 
-#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
-    !defined(inline) && !defined(__cplusplus)
-#define inline __inline
-#endif
-
 #define ROTL32( value, amount ) \
     ( (uint32_t) ( (value) << (amount) ) | ( (value) >> ( 32 - (amount) ) ) )
 

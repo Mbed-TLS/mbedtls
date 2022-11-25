@@ -382,3 +382,27 @@ Note that this assumes that an operation that has been started via PSA can be co
 #### Error code conversion
 
 After calling a PSA function, call `mbedtls_md_error_from_psa` to convert its status code. This function is currently defined in `hash_info.c`.
+
+### Migration to MD light
+
+#### Migration of modules that used to call MD and now do the legacy-or-PSA dance
+
+Get rid of the case where `MBEDTLS_MD_C` is undefined. Enable `MBEDTLS_MD_LIGHT` in `build_info.h`.
+
+#### Migration of modules that used to call a low-level hash module and now do the legacy-or-PSA dance
+
+Switch to calling MD (light) unconditionally. Enable `MBEDTLS_MD_LIGHT` in `build_info.h`.
+
+#### Migration of modules that call a low-level hash module
+
+Switch to calling MD (light). Enable `MBEDTLS_MD_LIGHT` in `build_info.h`.
+
+#### Migration of use-PSA mixed code
+
+Instead of calling `hash_info.h` functions to obtain metadata, get it from `md.h`.
+
+Optionally, code that currently tests on `MBEDTLS_USE_PSA_CRYPTO` just to determine whether to call MD or PSA to calculate hashes can switch to just having the MD variant.
+
+#### Remove `legacy_or_psa.h`
+
+It's no longer used.

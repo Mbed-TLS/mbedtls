@@ -9,7 +9,6 @@
 #include "constant_time_internal.h"
 
 #include "mbedtls/md.h"
-#include "legacy_or_psa.h"
 
 #include <test/constant_flow.h>
 

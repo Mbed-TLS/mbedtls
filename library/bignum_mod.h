@@ -86,8 +86,7 @@ typedef struct {
  * equivalent to \p m (in the sense that all their fields or memory pointed to by
  * their fields hold the same value).
  *
- * \param[out] r    The address of the residue to setup. The resulting structure's
- *                  size is determined by \p m.
+ * \param[out] r    The address of the residue to setup.
  * \param[in] m     The address of the modulus related to \p r.
  * \param[in] p     The address of the limb array containing the value of \p r.
  *                  The memory pointed to by \p p will be used by \p r and must
@@ -96,8 +95,8 @@ typedef struct {
  *                  pointed to by \p p must be less than the modulus (the value
  *                  pointed to by `m->p`) and already in the representation
  *                  indicated by `m->int_rep`.
- * \param p_limbs   The number of limbs of \p p. Must be <= the number of
- *                  limbs in the modulus \p m.)
+ * \param p_limbs   The number of limbs of \p p. Must be the same as the number
+ *                  of limbs in the modulus \p m.)
  *
  * \return      \c 0 if successful.
  * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p p_limbs is less than the
@@ -138,8 +137,7 @@ void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *m );
  *                  associated with \p m (see #mbedtls_mpi_mod_rep_selector).
  *
  * \return      \c 0 if successful.
- * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p ext_rep or \p int_rep is
- *              invalid.
+ * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p int_rep is invalid.
  */
 int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
                                    const mbedtls_mpi_uint *p,

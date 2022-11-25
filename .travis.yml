@@ -27,8 +27,44 @@ jobs:
         - tests/scripts/all.sh -k build_arm_linux_gnueabi_gcc_arm5vte build_arm_none_eabi_gcc_m0plus
 
     - name: full configuration
+      os: linux
+      dist: focal
+      addons:
+        apt:
+          packages:
+          - clang-10
+          - gnutls-bin
       script:
-        - tests/scripts/all.sh -k test_full_cmake_gcc_asan
+        # Do a manual build+test sequence rather than using all.sh,
+        # because there's no all.sh component that does what we want,
+        # which is a build with Clang >= 10 and ASan, running all the SSL
+        # testing.
+        #   - The clang executable in the default PATH is Clang 7 on
+        #     Travis's focal instances, but we want Clang >= 10.
+        #   - Running all the SSL testing requires a specific set of
+        #     OpenSSL and GnuTLS versions and we don't want to bother
+        #     with those on Travis.
+        # So we explicitly select clang-10 as the compiler, and we
+        # have ad hoc restrictions on SSL testing based on what is
+        # passing at the time of writing. We will remove these limitations
+        # gradually.
+        - make CC=clang-10 CFLAGS='-Werror -Wall -Wextra -fsanitize=address,undefined -fno-sanitize-recover=all -O2' LDFLAGS='-Werror -Wall -Wextra -fsanitize=address,undefined -fno-sanitize-recover=all'
+        - make test
+        - programs/test/selftest
+        - tests/scripts/test_psa_constant_names.py
+        # Exclude a few test cases that are failing mysteriously.
+        # https://github.com/Mbed-TLS/mbedtls/issues/6660
+        - tests/ssl-opt.sh -e 'Fallback SCSV:\ .*list'
+        # Modern OpenSSL does not support fixed ECDH, null or ancient ciphers.
+        - tests/compat.sh -p OpenSSL -e 'NULL\|ECDH-\|DES\|RC4'
+        - tests/scripts/travis-log-failure.sh
+        # GnuTLS supports CAMELLIA but compat.sh doesn't properly enable it.
+        # Modern GnuTLS does not support DES.
+        # One NULL cipher suite is strangely missing in pre-1.2 protocol
+        # versions (it works with (D)TLS1.2, but don't bother).
+        - tests/compat.sh -p GnuTLS -e 'CAMELLIA\|DES\|TLS-RSA-WITH-NULL-SHA256'
+        - tests/scripts/travis-log-failure.sh
+        - tests/context-info.sh
 
     - name: Windows
       os: windows

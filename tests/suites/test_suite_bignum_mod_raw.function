@@ -308,7 +308,6 @@ void mpi_mod_raw_sub( char * input_A,
 
     TEST_EQUAL( mbedtls_mpi_mod_modulus_setup(
                         &m, N, limbs,
-                        MBEDTLS_MPI_MOD_EXT_REP_BE,
                         MBEDTLS_MPI_MOD_REP_MONTGOMERY ), 0 );
 
     mbedtls_mpi_mod_raw_sub( X, A, B, &m );
@@ -390,7 +389,6 @@ void mpi_mod_raw_add( char * input_N,
 
     TEST_EQUAL( mbedtls_mpi_mod_modulus_setup(
                         &m, N, limbs,
-                        MBEDTLS_MPI_MOD_EXT_REP_BE,
                         MBEDTLS_MPI_MOD_REP_MONTGOMERY
                 ), 0 );
 

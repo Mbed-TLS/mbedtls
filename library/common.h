@@ -63,6 +63,9 @@
  *
  * This is just the addition of an offset to a pointer, except that this
  * function also accepts an offset of 0 into a buffer whose pointer is null.
+ * (`p + n` has undefined behavior when `p` is null, even when `n == 0`.
+ * A null pointer is a valid buffer pointer when the size is 0, for example
+ * as the result of `malloc(0)` on some platforms.)
  *
  * \param p     Pointer to a buffer of at least n bytes.
  *              This may be \p NULL if \p n is zero.
@@ -79,8 +82,7 @@ static inline unsigned char *mbedtls_buffer_offset(
 
 /** Return an offset into a read-only buffer.
  *
- * This is just the addition of an offset to a pointer, except that this
- * function also accepts an offset of 0 into a buffer whose pointer is null.
+ * Similar to mbedtls_buffer_offset(), but for const pointers.
  *
  * \param p     Pointer to a buffer of at least n bytes.
  *              This may be \p NULL if \p n is zero.

@@ -74,30 +74,30 @@ typedef struct {
 
 /** Setup a residue structure.
  *
- * The residue will be set up with the \p p buffer \p m modulus.
+ * The residue will be set up with the buffer \p p and modulus \p m.
  *
- * The memory pointed by \p p will be used by the resulting residue structure.
- * The value at the pointed memory will be the initial value of \p r and must
- * hold a value that is less than the modulus. This value will be used as it is
+ * The memory pointed to by \p p will be used by the resulting residue structure.
+ * The value at the pointed-to memory will be the initial value of \p r and must
+ * hold a value that is less than the modulus. This value will be used as-is
  * and interpreted according to the value of the `m->int_rep` field.
  *
  * The modulus \p m will be the modulus associated with \p r. The residue \p r
  * should only be used in operations where the modulus is \p m or a modulus
- * equivalent to \p m (in the sense that all their fields or memory pointed by
+ * equivalent to \p m (in the sense that all their fields or memory pointed to by
  * their fields hold the same value).
  *
- * \param[out] r    The address of residue to setup. The resulting structure's
+ * \param[out] r    The address of the residue to setup. The resulting structure's
  *                  size is determined by \p m.
  * \param[in] m     The address of the modulus related to \p r.
- * \param[in] p     The address of the limb array storing the value of \p r.
+ * \param[in] p     The address of the limb array containing the value of \p r.
  *                  The memory pointed to by \p p will be used by \p r and must
  *                  not be modified in any way until after
  *                  mbedtls_mpi_mod_residue_release() is called. The data
- *                  pointed by \p p should be less than the modulus (the value
- *                  pointed by `m->p`) and already in the representation
+ *                  pointed to by \p p must be less than the modulus (the value
+ *                  pointed to by `m->p`) and already in the representation
  *                  indicated by `m->int_rep`.
- * \param p_limbs   The number of limbs of \p p. It must have at most as
- *                  many limbs as the modulus \p m.)
+ * \param p_limbs   The number of limbs of \p p. Must be <= the number of
+ *                  limbs in the modulus \p m.)
  *
  * \return      \c 0 if successful.
  * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p p_limbs is less than the
@@ -186,15 +186,15 @@ void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m );
 /** Read a residue from a byte buffer.
  *
  * The residue will be automatically converted to the internal representation
- * based on the value of `m->int_rep` field.
+ * based on the value of the `m->int_rep` field.
  *
  * The modulus \p m will be the modulus associated with \p r. The residue \p r
  * should only be used in operations where the modulus is \p m or a modulus
  * equivalent to \p m (in the sense that all their fields or memory pointed by
  * their fields hold the same value).
  *
- * \param r         The address of the residue. It must have as many limbs as
- *                  the modulus \p m.
+ * \param r         The address of the residue. It must have exactly the same
+ *                  number of limbs as the modulus \p m.
  * \param m         The address of the modulus.
  * \param buf       The input buffer to import from.
  * \param buflen    The length in bytes of \p buf.
@@ -237,7 +237,7 @@ int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
  * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p buf isn't
  *               large enough to hold the value of \p r (without leading
  *               zeroes).
- * \return       #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if of \p ext_rep is invalid.
+ * \return       #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p ext_rep is invalid.
  */
 int mbedtls_mpi_mod_write( const mbedtls_mpi_mod_residue *r,
                            const mbedtls_mpi_mod_modulus *m,

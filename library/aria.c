@@ -37,11 +37,6 @@
 
 #include "mbedtls/platform_util.h"
 
-#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
-    !defined(inline) && !defined(__cplusplus)
-#define inline __inline
-#endif
-
 /* Parameter validation macros */
 #define ARIA_VALIDATE_RET( cond )                                       \
     MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_ARIA_BAD_INPUT_DATA )

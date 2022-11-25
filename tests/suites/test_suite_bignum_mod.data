@@ -56,8 +56,20 @@ mpi_residue_setup:"fe":"fe":-4
 Test mbedtls_mpi_residue_setup #8 r > m
 mpi_residue_setup:"fe":"ff":-4
 
-Test mbedtls_mpi_mod_io_neg
-mpi_mod_io_neg:
+Test mbedtls_mpi_mod_io_neg #1 input_r < modulo m
+mpi_mod_io_neg:"fe":"01":1:253:0
+
+Test mbedtls_mpi_mod_io_neg #2  input_r == modulo m
+mpi_mod_io_neg:"fe":"01":1:254:-4
+
+Test mbedtls_mpi_mod_io_neg #3  input_r >= modulo m
+mpi_mod_io_neg:"fe":"01":1:255:-4
+
+Test mbedtls_mpi_mod_io_neg #4  input_r too large to fit
+mpi_mod_io_neg:"fe":"01":1024:255:-8
+
+Test mbedtls_mpi_mod_io_neg #5  Sucesfull read / output buffer too small
+mpi_mod_io_neg:"7ffffffffffffffffffffffffffffff1":"7ffffffffffffffffffffffffffffff0":2:255:0
 
 Test mbedtls_mpi_mod_io #1 N: "11" A: "119".
 mpi_mod_io:"000000000000000b":"0000000000000000":MBEDTLS_MPI_MOD_EXT_REP_BE

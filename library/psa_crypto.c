@@ -4346,7 +4346,7 @@ psa_status_t psa_key_derivation_abort( psa_key_derivation_operation_t *operation
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS) */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS)
-    if( kdf_alg == PSA_ALG_TLS12_ECJPAKE_TO_PMS )
+    if( PSA_ALG_IS_TLS12_ECJPAKE_TO_PMS( kdf_alg ) )
     {
         mbedtls_platform_zeroize( operation->ctx.tls12_ecjpake_to_pms.data,
             sizeof( operation->ctx.tls12_ecjpake_to_pms.data ) );
@@ -4714,7 +4714,7 @@ psa_status_t psa_key_derivation_output_bytes(
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF ||
         * MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS)
-    if( kdf_alg == PSA_ALG_TLS12_ECJPAKE_TO_PMS )
+    if( PSA_ALG_IS_TLS12_ECJPAKE_TO_PMS( kdf_alg ) )
     {
         status = psa_key_derivation_tls12_ecjpake_to_pms_read(
             &operation->ctx.tls12_ecjpake_to_pms, output, output_length );
@@ -5115,7 +5115,7 @@ static int is_kdf_alg_supported( psa_algorithm_t kdf_alg )
         return( 1 );
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS)
-    if( kdf_alg == PSA_ALG_TLS12_ECJPAKE_TO_PMS )
+    if( PSA_ALG_IS_TLS12_ECJPAKE_TO_PMS( kdf_alg ) )
         return( 1 );
 #endif
     return( 0 );
@@ -5145,7 +5145,7 @@ static psa_status_t psa_key_derivation_setup_kdf(
      * ecjpake to pms) are based on a hash algorithm. */
     psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH( kdf_alg );
     size_t hash_size = PSA_HASH_LENGTH( hash_alg );
-    if( kdf_alg != PSA_ALG_TLS12_ECJPAKE_TO_PMS )
+    if( !PSA_ALG_IS_TLS12_ECJPAKE_TO_PMS( kdf_alg ) )
     {
         if( hash_size == 0 )
             return( PSA_ERROR_NOT_SUPPORTED );
@@ -5171,7 +5171,7 @@ static psa_status_t psa_key_derivation_setup_kdf(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS)
     if( PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) ||
-        ( kdf_alg == PSA_ALG_TLS12_ECJPAKE_TO_PMS ) )
+        ( PSA_ALG_IS_TLS12_ECJPAKE_TO_PMS( kdf_alg ) ) )
         operation->capacity = hash_size;
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT ||
@@ -5666,7 +5666,7 @@ static psa_status_t psa_key_derivation_input_internal(
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS)
-    if( kdf_alg == PSA_ALG_TLS12_ECJPAKE_TO_PMS )
+    if( PSA_ALG_IS_TLS12_ECJPAKE_TO_PMS( kdf_alg ) )
     {
         status = psa_tls12_ecjpake_to_pms_input(
             &operation->ctx.tls12_ecjpake_to_pms, step, data, data_length );

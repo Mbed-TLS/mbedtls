@@ -177,7 +177,28 @@ void mbedtls_mpi_mod_raw_sub( mbedtls_mpi_uint *X,
 /* END MERGE SLOT 4 */
 
 /* BEGIN MERGE SLOT 5 */
-
+/**
+ * \brief Perform a known-size modular addition.
+ *
+ * Calculate `A + B modulo N`.
+ *
+ * The number of limbs in each operand, and the result, is given by the
+ * modulus \p N.
+ *
+ * \p X may be aliased to \p A or \p B, or even both, but may not overlap
+ * either otherwise.
+ *
+ * \param[out] X    The result of the modular addition.
+ * \param[in] A     Little-endian presentation of the left operand. This
+ *                  must be smaller than \p N.
+ * \param[in] B     Little-endian presentation of the right operand. This
+ *                  must be smaller than \p N.
+ * \param[in] N     The address of the modulus.
+ */
+void mbedtls_mpi_mod_raw_add( mbedtls_mpi_uint *X,
+                              const mbedtls_mpi_uint *A,
+                              const mbedtls_mpi_uint *B,
+                              const mbedtls_mpi_mod_modulus *N );
 /* END MERGE SLOT 5 */
 
 /* BEGIN MERGE SLOT 6 */

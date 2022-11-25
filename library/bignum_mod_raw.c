@@ -129,7 +129,16 @@ void mbedtls_mpi_mod_raw_sub( mbedtls_mpi_uint *X,
 /* END MERGE SLOT 4 */
 
 /* BEGIN MERGE SLOT 5 */
-
+void mbedtls_mpi_mod_raw_add( mbedtls_mpi_uint *X,
+                              const mbedtls_mpi_uint *A,
+                              const mbedtls_mpi_uint *B,
+                              const mbedtls_mpi_mod_modulus *N )
+{
+    mbedtls_mpi_uint carry, borrow;
+    carry  = mbedtls_mpi_core_add( X, A, B, N->limbs );
+    borrow = mbedtls_mpi_core_sub( X, X, N->p, N->limbs );
+    (void) mbedtls_mpi_core_add_if( X, N->p, N->limbs, (unsigned) ( carry ^ borrow ) );
+}
 /* END MERGE SLOT 5 */
 
 /* BEGIN MERGE SLOT 6 */

@@ -189,6 +189,32 @@ filter()
   echo "$NEW_LIST" | sed -e 's/[[:space:]][[:space:]]*/ /g' -e 's/^ //' -e 's/ $//'
 }
 
+# List all the ciphers supported by gnutls-xxx, except for protocol versions.
+# Output a colon-separated list.
+list_gnutls_prio_all()
+{
+    o=$("$1" --list | awk -F: -v ORS=: '
+            # "Category: ELEMENT, ELEMENT"
+            NF == 2 && $1 ~ /^[A-Z]/ &&
+            # Exclude categories that cannot be used in priority strings
+            $1 != "Certificate types" && $1 != "Public Key Systems" &&
+            # Exclude protocols (one will be enabled manually later)
+            $1 != "Protocols" {
+                sub(/^ +/, "+", $2); gsub(/[, ]+/, ":+", $2);
+                print $2
+            }')
+    o=${o#:}
+    o=${o%:}
+    echo "NORMAL:$o"
+}
+
+# GnuTLS rejects some ciphers by default, and has no option to
+# simply enable them all. So list all supported ones and enable them.
+set_gnutls_prio()
+{
+    G_SERVER_PRIO_BASE=$(list_gnutls_prio_all "$GNUTLS_SERV")
+}
+
 # OpenSSL 1.0.1h with -Verify wants a ClientCertificate message even for
 # PSK ciphersuites with DTLS, which is incorrect, so disable them for now
 check_openssl_server_bug()
@@ -558,17 +584,10 @@ setup_arguments()
             exit 1;
     esac
 
-    # GnuTLS < 3.4 will choke if we try to allow CCM-8
-    if [ -z "${GNUTLS_MINOR_LT_FOUR-}" ]; then
-        G_PRIO_CCM="+AES-256-CCM-8:+AES-128-CCM-8:"
-    else
-        G_PRIO_CCM=""
-    fi
-
     M_SERVER_ARGS="server_port=$PORT server_addr=0.0.0.0 force_version=$MODE"
     O_SERVER_ARGS="-accept $PORT -cipher NULL,ALL -$O_MODE"
     G_SERVER_ARGS="-p $PORT --http $G_MODE"
-    G_SERVER_PRIO="NORMAL:${G_PRIO_CCM}+NULL:+MD5:+PSK:+DHE-PSK:+ECDHE-PSK:+SHA256:+SHA384:+RSA-PSK:-VERS-TLS-ALL:$G_PRIO_MODE"
+    G_SERVER_PRIO="$G_SERVER_PRIO_BASE:$G_PRIO_MODE"
 
     # The default prime for `openssl s_server` depends on the version:
     # * OpenSSL <= 1.0.2a: 512-bit
@@ -593,7 +612,6 @@ setup_arguments()
     M_CLIENT_ARGS="server_port=$PORT server_addr=127.0.0.1 force_version=$MODE"
     O_CLIENT_ARGS="-connect localhost:$PORT -$O_MODE"
     G_CLIENT_ARGS="-p $PORT --debug 3 $G_MODE"
-    G_CLIENT_PRIO="NONE:$G_PRIO_MODE:+COMP-NULL:+CURVE-ALL:+SIGN-ALL"
 
     if [ "X$VERIFY" = "XYES" ];
     then
@@ -943,7 +961,12 @@ if echo "$PEERS" | grep -i gnutls > /dev/null; then
             echo "Command '$CMD' not found" >&2
             exit 1
         fi
+        set_gnutls_prio
     done
+else
+    # The variable needs to be set because it'll be used to set other
+    # variables, but those variables won't be used so the value doesn't matter.
+    G_SERVER_PRIO_BASE=
 fi
 
 for PEER in $PEERS; do

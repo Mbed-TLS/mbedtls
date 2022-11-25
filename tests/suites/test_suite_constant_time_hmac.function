@@ -9,6 +9,7 @@
 #include "constant_time_internal.h"
 
 #include "mbedtls/md.h"
+#include "hash_info.h"
 
 #include <test/constant_flow.h>
 

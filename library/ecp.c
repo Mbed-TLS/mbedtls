@@ -88,11 +88,6 @@
 
 #include "ecp_internal_alt.h"
 
-#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
-    !defined(inline) && !defined(__cplusplus)
-#define inline __inline
-#endif
-
 #if defined(MBEDTLS_SELF_TEST)
 /*
  * Counts of point addition and doubling, and field multiplications.

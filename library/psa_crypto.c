@@ -3454,8 +3454,8 @@ psa_status_t psa_cipher_encrypt( mbedtls_svc_key_id_t key,
     status = psa_driver_wrapper_cipher_encrypt(
         &attributes, slot->key.data, slot->key.bytes,
         alg, local_iv, default_iv_length, input, input_length,
-        output + default_iv_length, output_size - default_iv_length,
-        output_length );
+        mbedtls_buffer_offset( output, default_iv_length ),
+        output_size - default_iv_length, output_length );
 
 exit:
     unlock_status = psa_unlock_key_slot( slot );

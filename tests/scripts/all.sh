@@ -2710,26 +2710,8 @@ component_test_variable_ssl_in_out_buffer_len () {
     tests/compat.sh
 }
 
-component_test_variable_ssl_in_out_buffer_len_CID () {
-    msg "build: MBEDTLS_SSL_DTLS_CONNECTION_ID (standard) enabled (ASan build)"
-    scripts/config.py set MBEDTLS_SSL_DTLS_CONNECTION_ID
-
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make
-
-    msg "test: MBEDTLS_SSL_DTLS_CONNECTION_ID (standard)"
-    make test
-
-    msg "test: ssl-opt.sh, MBEDTLS_SSL_DTLS_CONNECTION_ID (standard) enabled"
-    tests/ssl-opt.sh
-
-    msg "test: compat.sh, MBEDTLS_SSL_DTLS_CONNECTION_ID (standard) enabled"
-    tests/compat.sh
-}
-
-component_test_variable_ssl_in_out_buffer_len_CID_legacy () {
+component_test_dtls_cid_legacy () {
     msg "build: MBEDTLS_SSL_DTLS_CONNECTION_ID (legacy) enabled (ASan build)"
-    scripts/config.py set MBEDTLS_SSL_DTLS_CONNECTION_ID
     scripts/config.py set MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT 1
 
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
@@ -2741,7 +2723,7 @@ component_test_variable_ssl_in_out_buffer_len_CID_legacy () {
     msg "test: ssl-opt.sh, MBEDTLS_SSL_DTLS_CONNECTION_ID (legacy) enabled"
     tests/ssl-opt.sh
 
-    msg "test: compat.sh, MMBEDTLS_SSL_DTLS_CONNECTION_ID (legacy) enabled"
+    msg "test: compat.sh, MBEDTLS_SSL_DTLS_CONNECTION_ID (legacy) enabled"
     tests/compat.sh
 }
 

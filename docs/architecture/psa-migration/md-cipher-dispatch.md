@@ -246,3 +246,139 @@ These problems are easily solvable.
 * `mbedtls_md_info_t` can become a very thin type. We can't remove the extra function call from the source code of callers, but we can make it a very thin abstraction that compilers can often optimize.
 * We can make names and HMAC optional. The mixed-domain hash interface won't be the full `MBEDTLS_MD_C` but a subset.
 * We can optimize `md.c` without making API changes to `md.h`.
+
+## Specification
+
+### MD light
+
+https://github.com/Mbed-TLS/mbedtls/pull/6474 implements part of this specification, but it's based on Mbed TLS 3.2, so it needs to be rewritten for 3.3.
+
+#### Definition of MD light
+
+MD light is a subset of `md.h` that implements the hash calculation interface described in ”[Designing an interface for hashes](#designing-an-interface-for-hashes)”. It is activated by `MBEDTLS_MD_LIGHT` in `mbedtls_config.h`.
+
+The following things enable MD light automatically in `build_info.h`:
+
+* A [mixed-domain](#classification-of-callers) module that needs to calculate hashes is enabled.
+* `MBEDTLS_MD_C` is enabled.
+
+MD light includes the following types:
+
+* `mbedtls_md_type_t`
+* `mbedtls_md_info_t`
+* `mbedtls_md_context_t`
+
+MD light includes the following functions:
+
+* `mbedtls_md_info_from_type`
+* `mbedtls_md_init`
+* `mbedtls_md_free`
+* `mbedtls_md_setup` — but `hmac` must be 0 if `MBEDTLS_MD_C` is disabled.
+* `mbedtls_md_clone`
+* `mbedtls_md_get_size`
+* `mbedtls_md_get_type`
+* `mbedtls_md_starts`
+* `mbedtls_md_update`
+* `mbedtls_md_finish`
+
+Unlike the full MD, MD light does not support null pointers as as `mbedtls_md_context_t *`. At least some functions still need to support null pointers as `const mbedtls_md_info_t *` because this arises when you try to use an unsupported algorithm (`mbedtls_md_info_from_type` returns `NULL`).
+
+#### MD algorithm support macros
+
+For each hash algorithm, `md.h` defines a macro `MBEDTLS_MD_CAN_xxx` whenever the corresponding hash is available through MD light. These macros are only defined when `MBEDTLS_MD_LIGHT` is enabled. Per “[Availability of hashes](#availability-of-hashes)”, `MBEDTLS_MD_CAN_xxx` is enabled if:
+
+* the corresponding `MBEDTLS_xxx_C` is defined; or
+* one of `MBEDTLS_PSA_CRYPTO_C` or `MBEDTLS_PSA_CRYPTO_CLIENT` is enabled, and the corresponding `PSA_WANT_ALG_xxx` is enabled.
+
+Note that some algorithms have different spellings in legacy and PSA. Since MD is a legacy interface, we'll use the legacy names. Thus, for example:
+
+```
+#if defined(MBEDTLS_MD_LIGHT)
+#if defined(MBEDTLS_SHA256_C) || \
+    ((defined(MBEDTLS_PSA_CRYPTO_C) || defined(MBEDTLS_PSA_CRYPTO_CLIENT)) && \
+     PSA_WANT_ALG_SHA_256)
+#define MBEDTLS_MD_CAN_SHA256
+#endif
+#endif
+```
+
+#### MD light internal support macros
+
+* If at least one hash has a PSA driver, define `MBEDTLS_MD_SOME_PSA`.
+* If at least one hash has a legacy implementation, defined `MBEDTLS_MD_SOME_LEGACY`.
+
+#### Support for PSA in the MD context
+
+An MD context needs to contain either a legacy module's context (or a pointer to one, as is the case now), or a PSA context (or a pointer to one).
+
+I am inclined to remove the pointer indirection, but this means that an MD context would always be as large as the largest supported hash context. So for the time being, this specification keeps a pointer. For uniformity, PSA will also have a pointer (we may simplify this later).
+
+```
+enum {
+    MBEDTLS_MD_ENGINE_LEGACY,
+    MBEDTLS_MD_ENGINE_PSA,
+} mbedtls_md_engine_t; // private type
+
+typedef struct mbedtls_md_context_t {
+    const mbedtls_md_type_t type;
+    const mbedtls_md_engine_t engine;
+    union {
+#if defined(MBEDTLS_MD_SOME_LEGACY)
+        void *legacy; // used if engine == LEGACY
+#endif
+#if defined(MBEDTLS_MD_SOME_PSA)
+        psa_hash_operation_t *psa; // used if engine == PSA
+#endif
+    } digest;
+#if defined(MBEDTLS_MD_C)
+    void *hmac_ctx;
+#endif
+} mbedtls_md_context_t;
+```
+
+All fields are private.
+
+The `engine` field is almost redundant with knowledge about `type`. However, when an algorithm is available both via a legacy module and a PSA accelerator, we will choose based on the runtime availability of the accelerator when the context is set up. This choice needs to be recorded in the context structure.
+
+#### Inclusion of MD info structures
+
+MD light needs to support hashes that are only enabled through PSA. Therefore the `mbedtls_md_info_t` structures must be included based on `MBEDTLS_MD_CAN_xxx` instead of just the legacy module.
+
+The same criterion applies in `mbedtls_md_info_from_type`.
+
+#### Conversion to PSA encoding
+
+The implementation needs to convert from a legacy type encoding to a PSA encoding.
+
+```
+static inline psa_algorithm_t psa_alg_of_md_info(
+    const mbedtls_md_info_t *md_info );
+```
+
+#### Determination of PSA support at runtime
+
+```
+int psa_can_do_hash(psa_algorithm_t hash_alg);
+```
+
+The job of this private function is to return 1 if `hash_alg` can be performed through PSA now, and 0 otherwise. It is only defined on algorithms that are enabled via PSA.
+
+As a starting point, return 1 if PSA crypto has been initialized. This will be refined later (to return 1 if the [accelerator subsystem](https://github.com/Mbed-TLS/mbedtls/issues/6007) has been initialized).
+
+#### Support for PSA dispatch in hash operations
+
+Each function that performs some hash operation or context management needs to know whether to dispatch via PSA or legacy.
+
+If given an established context, use its `engine` field.
+
+If given an algorithm as an `mbedtls_md_type_t type` (possibly being the `type` field of a `const mbedtls_md_info_t *`):
+
+* If there is a PSA accelerator for this hash and `psa_can_do_hash(alg)`, call the corresponding PSA function, and if applicable set the engine to `MBEDTLS_MD_ENGINE_PSA`. (Skip this is `MBEDTLS_MD_SOME_PSA` is not defined.)
+* Otherwise dispatch to the legacy module based on the type as currently done. (Skip this is `MBEDTLS_MD_SOME_LEGACY` is not defined.)
+* If no dispatch is possible, return `MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE`.
+
+Note that this assumes that an operation that has been started via PSA can be completed. This implies that `mbedtls_psa_crypto_free` must not be called while an operation using PSA is in progress. Document this.
+
+#### Error code conversion
+
+After calling a PSA function, call `mbedtls_md_error_from_psa` to convert its status code. This function is currently defined in `hash_info.c`.

@@ -26,10 +26,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
-     !defined(inline) && !defined(__cplusplus)
-#define inline __inline
-#endif
+#include "mbedtls/build_info.h"
 
 /**
  * Read the unsigned 32 bits integer from the given address, which need not

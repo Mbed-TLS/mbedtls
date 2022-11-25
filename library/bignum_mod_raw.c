@@ -108,6 +108,16 @@ int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *A,
 
 /* BEGIN MERGE SLOT 2 */
 
+void mbedtls_mpi_mod_raw_sub( mbedtls_mpi_uint *X,
+                              const mbedtls_mpi_uint *A,
+                              const mbedtls_mpi_uint *B,
+                              const mbedtls_mpi_mod_modulus *N )
+{
+    mbedtls_mpi_uint c = mbedtls_mpi_core_sub( X, A, B, N->limbs );
+
+    (void) mbedtls_mpi_core_add_if( X, N->p, N->limbs, (unsigned) c );
+}
+
 /* END MERGE SLOT 2 */
 
 /* BEGIN MERGE SLOT 3 */

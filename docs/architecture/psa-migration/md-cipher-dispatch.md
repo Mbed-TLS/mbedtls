@@ -406,3 +406,40 @@ Optionally, code that currently tests on `MBEDTLS_USE_PSA_CRYPTO` just to determ
 #### Remove `legacy_or_psa.h`
 
 It's no longer used.
+
+### MD light optimizations
+
+This section is not necessary to implement MD light, but will cut down its code size.
+
+#### Split names out of MD light
+
+Remove hash names from `mbedtls_md_info_t`. Use a simple switch-case or a separate list to implement `mbedtls_md_info_from_string` and `mbedtls_md_get_name`.
+
+#### Remove metadata from the info structure
+
+In `mbedtls_md_get_size` and in modules that want a hash's block size, instead of looking up hash metadata in the info structure, call the PSA macros.
+
+#### Optimize type conversions
+
+To allow optimizing conversions between `mbedtls_md_type_t` and `psa_algorithm_t`, renumber the `mbedtls_md_type_t` enum so that the values are the 8 lower bits of the PSA encoding.
+
+With this optimization,
+```
+static inline psa_algorithm_t psa_alg_of_md_info(
+    const mbedtls_md_info_t *md_info )
+{
+    if( md_info == NULL )
+        return( PSA_ALG_NONE );
+    return( PSA_ALG_CATEGORY_HASH | md_info->type );
+}
+```
+
+Work in progress on this conversion is at https://github.com/gilles-peskine-arm/mbedtls/tree/hash-unify-ids-wip-1
+
+#### Get rid of the hash_info module
+
+The hash_info module is redundant with MD light. Move `mbedtls_md_error_from_psa` to `md.c`, defined only when `MBEDTLS_MD_SOME_PSA` is defined. The rest is no longer used.
+
+#### Unify HMAC with PSA
+
+PSA has its own HMAC implementation. In builds with both `MBEDTLS_MD_C` and `PSA_WANT_ALG_HMAC` not fully provided by drivers, we should have a single implementation. Replace the one in `md.h` by calls to the PSA driver interface. This will also give mixed-domain modules access to HMAC accelerated directly by a PSA driver (eliminating the need to a HMAC interface in software if all supported hashes have an accelerator that includes HMAC support).

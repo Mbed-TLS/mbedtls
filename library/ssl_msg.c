@@ -551,9 +551,8 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
         ((void) tls_version);
         ((void) taglen);
 
-#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-
-#if MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT == 0
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID) && \
+    MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT == 0
         if( rec->cid_len != 0 )
         {
             // seq_num_placeholder
@@ -569,17 +568,12 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
             cur++;
         }
         else
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
         {
             // epoch + sequence number
             memcpy( cur, rec->ctr, sizeof( rec->ctr ) );
             cur += sizeof( rec->ctr );
         }
-#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT == 0 */
-#else
-        // epoch + sequence number
-        memcpy(cur, rec->ctr, sizeof(rec->ctr));
-        cur += sizeof(rec->ctr);
-#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
     }
 
     // type

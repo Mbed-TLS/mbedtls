@@ -370,13 +370,13 @@ void mpi_mod_raw_add( char * input_N,
     }
 
 exit:
+    mbedtls_mpi_mod_modulus_free( &m );
+
     mbedtls_free( A );
     mbedtls_free( B );
     mbedtls_free( S );
     mbedtls_free( N );
     mbedtls_free( X );
-
-    mbedtls_mpi_mod_modulus_free( &m );
 }
 /* END_CASE */
 /* END MERGE SLOT 5 */

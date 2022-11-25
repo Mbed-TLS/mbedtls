@@ -311,6 +311,7 @@ def include_in_crypto(name):
     if name in [
             'MBEDTLS_DEBUG_C', # part of libmbedtls
             'MBEDTLS_NET_C', # part of libmbedtls
+            'MBEDTLS_PKCS7_C', # part of libmbedx509
     ]:
         return False
     return True

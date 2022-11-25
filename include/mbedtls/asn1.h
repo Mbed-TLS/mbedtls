@@ -39,8 +39,9 @@
 
 /**
  * \name ASN1 Error codes
- * These error codes are OR'ed to X509 error codes for
+ * These error codes are combined with other error codes for
  * higher error granularity.
+ * e.g. X.509 and PKCS #7 error codes
  * ASN1 is a standard to specify data structures.
  * \{
  */

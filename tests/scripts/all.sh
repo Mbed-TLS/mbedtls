@@ -1217,6 +1217,7 @@ component_test_crypto_full_no_md () {
     # Direct dependencies
     scripts/config.py unset MBEDTLS_HKDF_C
     scripts/config.py unset MBEDTLS_HMAC_DRBG_C
+    scripts/config.py unset MBEDTLS_PKCS7_C
     # Indirect dependencies
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC
     make
@@ -2124,6 +2125,7 @@ config_psa_crypto_hash_use_psa () {
     fi
     scripts/config.py unset MBEDTLS_HKDF_C # has independent PSA implementation
     scripts/config.py unset MBEDTLS_HMAC_DRBG_C
+    scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
 }
@@ -3295,6 +3297,7 @@ component_test_tls13_only_psk () {
     scripts/config.py unset MBEDTLS_SSL_SERVER_NAME_INDICATION
     scripts/config.py unset MBEDTLS_ECDSA_C
     scripts/config.py unset MBEDTLS_PKCS1_V21
+    scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
@@ -3328,6 +3331,7 @@ component_test_tls13_only_psk_ephemeral () {
     scripts/config.py unset MBEDTLS_SSL_SERVER_NAME_INDICATION
     scripts/config.py unset MBEDTLS_ECDSA_C
     scripts/config.py unset MBEDTLS_PKCS1_V21
+    scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
@@ -3346,6 +3350,7 @@ component_test_tls13_only_psk_all () {
     scripts/config.py unset MBEDTLS_SSL_SERVER_NAME_INDICATION
     scripts/config.py unset MBEDTLS_ECDSA_C
     scripts/config.py unset MBEDTLS_PKCS1_V21
+    scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 

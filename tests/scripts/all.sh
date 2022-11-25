@@ -1613,7 +1613,7 @@ skip_non_constant_flow_components () {
     # so disable them for better CI performance.
     # It would be better to pass a list of tests that we want to run, rather than tests to skip,
     # but this functionality is currently not implemented.
-    ${SKIP_TEST_SUITES="lms,gcm,ssl,pk"}
+    ${SKIP_TEST_SUITES="ccm,dhm,ecdh,ecdsa,ecjpake,ecp,lms,gcm,ssl,pk,pkcs1_v21,pkcs5,pkparse,psa_crypto,psa_crypto_storage_format,rsa,x509parse,x509write"}
     export SKIP_TEST_SUITES
 }
 

@@ -114,8 +114,6 @@ OBJS_CRYPTO= \
 	     md.o \
 	     md5.o \
 	     memory_buffer_alloc.o \
-	     mps_reader.o \
-	     mps_trace.o \
 	     nist_kw.o \
 	     oid.o \
 	     padlock.o \
@@ -172,6 +170,8 @@ OBJS_X509= \
 
 OBJS_TLS= \
 	  debug.o \
+	  mps_reader.o \
+	  mps_trace.o \
 	  net_sockets.o \
 	  ssl_cache.o \
 	  ssl_ciphersuites.o \

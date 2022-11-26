@@ -207,7 +207,7 @@ int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
     /* Do our best to check if r and m have been set up */
     if ( r->limbs == 0 || m->limbs == 0 )
         goto cleanup;
-    if ( r->limbs > m->limbs )
+    if ( r->limbs != m->limbs )
         goto cleanup;
 
     ret = mbedtls_mpi_mod_raw_read( r->p, m, buf, buflen, ext_rep );
@@ -235,7 +235,7 @@ int mbedtls_mpi_mod_write( const mbedtls_mpi_mod_residue *r,
     /* Do our best to check if r and m have been set up */
     if ( r->limbs == 0 || m->limbs == 0 )
         goto cleanup;
-    if ( r->limbs > m->limbs )
+    if ( r->limbs != m->limbs )
         goto cleanup;
 
     if ( m->int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY)

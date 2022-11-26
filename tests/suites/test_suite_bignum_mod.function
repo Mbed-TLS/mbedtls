@@ -148,13 +148,23 @@ void mpi_mod_io_neg( char * input_N, data_t * buf, int ret )
     TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
                 mbedtls_mpi_mod_write( &rn, &m, buf->x, buf->len, endian ) );
 
-    /* Fail for r_limbs > m->limbs */
-    r.limbs = m.limbs + 1;
+    /* Fail for r_limbs < m->limbs */
+    r.limbs--;
+    TEST_ASSERT( r.limbs < m.limbs );
     TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
                 mbedtls_mpi_mod_read( &r, &m, buf->x, buf->len, endian ) );
     TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
                 mbedtls_mpi_mod_write( &r, &m, buf->x, buf->len, endian ) );
-    r.limbs = r_limbs;
+    r.limbs++;
+
+    /* Fail for r_limbs > m->limbs */
+    m.limbs--;
+    TEST_ASSERT( r.limbs > m.limbs );
+    TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                mbedtls_mpi_mod_read( &r, &m, buf->x, buf->len, endian ) );
+    TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                mbedtls_mpi_mod_write( &r, &m, buf->x, buf->len, endian ) );
+    m.limbs++;
 
     /* Test the read */
     TEST_EQUAL( ret, mbedtls_mpi_mod_read( &r, &m, buf->x, buf->len, endian ) );
@@ -163,7 +173,9 @@ void mpi_mod_io_neg( char * input_N, data_t * buf, int ret )
     if ( r.limbs > 1 && ret == 0 )
         TEST_EQUAL( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL,
                         mbedtls_mpi_mod_write( &r, &m, buf->x, 1, endian ) );
+
 exit:
+    mbedtls_mpi_mod_residue_release( &r );
     mbedtls_mpi_mod_modulus_free( &m );
     mbedtls_free( N );
     mbedtls_free( R );

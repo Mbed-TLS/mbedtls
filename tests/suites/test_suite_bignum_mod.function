@@ -120,8 +120,7 @@ void mpi_mod_io_neg( char * input_N, data_t * buf, int ret )
     mbedtls_mpi_uint *R = NULL;
 
     mbedtls_mpi_mod_modulus m;
-    mbedtls_mpi_mod_residue r;
-    mbedtls_mpi_mod_residue rn = { NULL, 0 };
+    mbedtls_mpi_mod_residue r = { NULL, 0 };
     mbedtls_mpi_mod_ext_rep endian = MBEDTLS_MPI_MOD_EXT_REP_LE;
 
     mbedtls_mpi_mod_modulus_init( &m );
@@ -131,22 +130,24 @@ void mpi_mod_io_neg( char * input_N, data_t * buf, int ret )
     size_t r_limbs = n_limbs;
     ASSERT_ALLOC( R, r_limbs );
 
-    /* modulo->p == NULL || residue->p == NULL ( m has not been set-up ) */
+    /* modulus->p == NULL || residue->p == NULL ( m has not been set-up ) */
     TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
                 mbedtls_mpi_mod_read( &r, &m, buf->x, buf->len, endian ) );
 
     TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
                 mbedtls_mpi_mod_write( &r, &m, buf->x, buf->len, endian ) );
 
+    /* Set up modulus and test with residue->p == NULL */
     TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs,
                 MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
-    TEST_EQUAL( 0, mbedtls_mpi_mod_residue_setup( &r, &m, R , r_limbs ) );
 
-    /* modulo->p == NULL || residue->p == NULL ( m has been set-up ) */
     TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
-                mbedtls_mpi_mod_read( &rn, &m, buf->x, buf->len, endian ) );
+                mbedtls_mpi_mod_read( &r, &m, buf->x, buf->len, endian ) );
     TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
-                mbedtls_mpi_mod_write( &rn, &m, buf->x, buf->len, endian ) );
+                mbedtls_mpi_mod_write( &r, &m, buf->x, buf->len, endian ) );
+
+    /* Do the rest of the tests with a residue set up with the input data */
+    TEST_EQUAL( 0, mbedtls_mpi_mod_residue_setup( &r, &m, R , r_limbs ) );
 
     /* Fail for r_limbs < m->limbs */
     r.limbs--;

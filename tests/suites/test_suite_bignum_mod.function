@@ -160,7 +160,7 @@ void mpi_mod_io_neg( char * input_N, data_t * buf, int ret )
     TEST_EQUAL( ret, mbedtls_mpi_mod_read( &r, &m, buf->x, buf->len, endian ) );
 
     /* Test write overflow only when the representation is large and read is successful  */
-    if (r.limbs > 1 && ret == 0)
+    if ( r.limbs > 1 && ret == 0 )
         TEST_EQUAL( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL,
                         mbedtls_mpi_mod_write( &r, &m, buf->x, 1, endian ) );
 exit:
@@ -185,14 +185,14 @@ void mpi_mod_io( char * input_N, data_t * input_A, int endian )
     /* Read inputs */
     TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &N, &n_limbs, input_N ) );
     n_bytes = n_limbs * sizeof( mbedtls_mpi_uint );
-    a_bytes = input_A->len * sizeof( char );
+    a_bytes = input_A->len;
 
     /* Allocate the memory for intermediate data structures */
     ASSERT_ALLOC( R, n_bytes );
     ASSERT_ALLOC( r_buff, a_bytes );
 
     /* Test that input's size is not greater to modulo's */
-    TEST_LE_U(a_bytes, n_bytes );
+    TEST_LE_U( a_bytes, n_bytes );
 
     /* Init Structures */
     TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs,

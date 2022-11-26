@@ -187,9 +187,11 @@ void mpi_mod_io( char * input_N, data_t * input_A, int endian )
 {
     mbedtls_mpi_uint *N = NULL;
     mbedtls_mpi_uint *R = NULL;
+    mbedtls_mpi_uint *R_COPY = NULL;
     unsigned char *r_buff = NULL;
     mbedtls_mpi_mod_modulus m;
     mbedtls_mpi_mod_residue r;
+    mbedtls_mpi_mod_residue r_copy;
     size_t n_limbs, n_bytes, a_bytes;
 
     mbedtls_mpi_mod_modulus_init( &m );
@@ -201,6 +203,7 @@ void mpi_mod_io( char * input_N, data_t * input_A, int endian )
 
     /* Allocate the memory for intermediate data structures */
     ASSERT_ALLOC( R, n_bytes );
+    ASSERT_ALLOC( R_COPY, n_bytes );
     ASSERT_ALLOC( r_buff, a_bytes );
 
     /* Test that input's size is not greater to modulo's */
@@ -219,11 +222,18 @@ void mpi_mod_io( char * input_N, data_t * input_A, int endian )
     TEST_EQUAL( 0, mbedtls_mpi_mod_write( &r, &m, r_buff, a_bytes,
                                           endian ) );
 
+    /* Make sure that writing didn't change the value of r */
+    TEST_EQUAL( 0, mbedtls_mpi_mod_residue_setup( &r_copy, &m, R_COPY, n_limbs ) );
+    TEST_EQUAL( 0, mbedtls_mpi_mod_read( &r_copy, &m, input_A->x, input_A->len,
+                                         endian ) );
+    ASSERT_COMPARE( r.p, r.limbs, r_copy.p, r_copy.limbs );
+
     ASSERT_COMPARE( r_buff, a_bytes, input_A->x, a_bytes );
 exit:
     mbedtls_mpi_mod_modulus_free( &m );
     mbedtls_free( N );
     mbedtls_free( R );
+    mbedtls_free( R_COPY );
     mbedtls_free( r_buff );
 }
 /* END_CASE */

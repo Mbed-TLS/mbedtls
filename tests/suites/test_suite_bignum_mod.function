@@ -81,7 +81,7 @@ exit:
 
 /* BEGIN MERGE SLOT 7 */
 /* BEGIN_CASE */
-void mpi_residue_setup( char * input_X, char * input_Y, int ret )
+void mpi_residue_setup( char * input_N, char * input_R, int ret )
 {
     mbedtls_mpi_uint *N = NULL;
     mbedtls_mpi_uint *R = NULL;
@@ -92,13 +92,19 @@ void mpi_residue_setup( char * input_X, char * input_Y, int ret )
     mbedtls_mpi_mod_modulus_init( &m );
 
     /* Allocate the memory for intermediate data structures */
-    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &N, &n_limbs, input_X ) );
-    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &R, &r_limbs, input_Y ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &N, &n_limbs, input_N ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &R, &r_limbs, input_R ) );
 
     TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs,
                 MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
 
     TEST_EQUAL( ret, mbedtls_mpi_mod_residue_setup( &r, &m, R , r_limbs ) );
+
+    if ( ret == 0 )
+    {
+        TEST_EQUAL( r.limbs, r_limbs );
+        TEST_ASSERT( r.p == R );
+    }
 
 exit:
     mbedtls_mpi_mod_modulus_free( &m );

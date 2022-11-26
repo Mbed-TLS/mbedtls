@@ -114,11 +114,10 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mpi_mod_io_neg( char * input_N, char * input_R, int buff_bytes, int buff_byte_val, int ret )
+void mpi_mod_io_neg( char * input_N, char * input_R, data_t * buf, int ret )
 {
     mbedtls_mpi_uint *N = NULL;
     mbedtls_mpi_uint *R = NULL;
-    unsigned char *r_buff = NULL;
     size_t n_limbs, r_limbs;
 
     mbedtls_mpi_mod_modulus m;
@@ -128,20 +127,15 @@ void mpi_mod_io_neg( char * input_N, char * input_R, int buff_bytes, int buff_by
 
     mbedtls_mpi_mod_modulus_init( &m );
 
-    /* Allocate the memory for intermediate data structures */
-    ASSERT_ALLOC( r_buff, buff_bytes );
-    /* Fill the buffer with the value passed in */
-    memset( r_buff, buff_byte_val, buff_bytes );
-
     TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &N, &n_limbs, input_N ) );
     TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &R, &r_limbs, input_R ) );
 
     /* modulo->p == NULL || residue->p == NULL ( m has not been set-up ) */
     TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
-                mbedtls_mpi_mod_read( &r, &m, r_buff, buff_bytes, endian ) );
+                mbedtls_mpi_mod_read( &r, &m, buf->x, buf->len, endian ) );
 
     TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
-                mbedtls_mpi_mod_write( &r, &m, r_buff, buff_bytes, endian ) );
+                mbedtls_mpi_mod_write( &r, &m, buf->x, buf->len, endian ) );
 
     TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs,
                 MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
@@ -149,30 +143,29 @@ void mpi_mod_io_neg( char * input_N, char * input_R, int buff_bytes, int buff_by
 
     /* modulo->p == NULL || residue->p == NULL ( m has been set-up ) */
     TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
-                mbedtls_mpi_mod_read( &rn, &m, r_buff, buff_bytes, endian ) );
+                mbedtls_mpi_mod_read( &rn, &m, buf->x, buf->len, endian ) );
     TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
-                mbedtls_mpi_mod_write( &rn, &m, r_buff, buff_bytes, endian ) );
+                mbedtls_mpi_mod_write( &rn, &m, buf->x, buf->len, endian ) );
 
     /* Fail for r_limbs > m->limbs */
     r.limbs = m.limbs + 1;
     TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
-                mbedtls_mpi_mod_read( &r, &m, r_buff, buff_bytes, endian ) );
+                mbedtls_mpi_mod_read( &r, &m, buf->x, buf->len, endian ) );
     TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
-                mbedtls_mpi_mod_write( &r, &m, r_buff, buff_bytes, endian ) );
+                mbedtls_mpi_mod_write( &r, &m, buf->x, buf->len, endian ) );
     r.limbs = r_limbs;
 
     /* Test the read */
-    TEST_EQUAL( ret, mbedtls_mpi_mod_read( &r, &m, r_buff, buff_bytes, endian ) );
+    TEST_EQUAL( ret, mbedtls_mpi_mod_read( &r, &m, buf->x, buf->len, endian ) );
 
     /* Test write overflow only when the representation is large and read is successful  */
     if (r.limbs > 1 && ret == 0)
         TEST_EQUAL( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL,
-                        mbedtls_mpi_mod_write( &r, &m, r_buff, 1, endian ) );
+                        mbedtls_mpi_mod_write( &r, &m, buf->x, 1, endian ) );
 exit:
     mbedtls_mpi_mod_modulus_free( &m );
     mbedtls_free( N );
     mbedtls_free( R );
-    mbedtls_free( r_buff );
 }
 /* END_CASE */
 

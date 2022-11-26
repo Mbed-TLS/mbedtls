@@ -149,7 +149,6 @@ OBJS_CRYPTO= \
 	     sha1.o \
 	     sha256.o \
 	     sha512.o \
-	     ssl_debug_helpers_generated.o \
 	     threading.o \
 	     timing.o \
 	     version.o \
@@ -178,6 +177,7 @@ OBJS_TLS= \
 	  ssl_ciphersuites.o \
 	  ssl_client.o \
 	  ssl_cookie.o \
+	  ssl_debug_helpers_generated.o \
 	  ssl_msg.o \
 	  ssl_ticket.o \
 	  ssl_tls.o \

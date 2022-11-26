@@ -82,9 +82,7 @@ typedef struct {
  * and interpreted according to the value of the `m->int_rep` field.
  *
  * The modulus \p m will be the modulus associated with \p r. The residue \p r
- * should only be used in operations where the modulus is \p m or a modulus
- * equivalent to \p m (in the sense that all their fields or memory pointed to by
- * their fields hold the same value).
+ * should only be used in operations where the modulus is \p m.
  *
  * \param[out] r    The address of the residue to setup.
  * \param[in] m     The address of the modulus related to \p r.
@@ -96,7 +94,7 @@ typedef struct {
  *                  pointed to by `m->p`) and already in the representation
  *                  indicated by `m->int_rep`.
  * \param p_limbs   The number of limbs of \p p. Must be the same as the number
- *                  of limbs in the modulus \p m.)
+ *                  of limbs in the modulus \p m.
  *
  * \return      \c 0 if successful.
  * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p p_limbs is less than the
@@ -219,7 +217,7 @@ int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
  * based on the value of `m->int_rep` field.
  *
  * \warning     If the buffer is smaller than `m->bits`, the number of
- *              leading zeroes is leaked through side channels. If \p r is
+ *              leading zeroes is leaked through timing. If \p r is
  *              secret, the caller must ensure that \p buflen is at least
  *              (`m->bits`+7)/8.
  *

@@ -50,7 +50,7 @@ int mbedtls_mpi_mod_residue_setup( mbedtls_mpi_mod_residue *r,
 
 void mbedtls_mpi_mod_residue_release( mbedtls_mpi_mod_residue *r )
 {
-    if ( r == NULL )
+    if( r == NULL )
         return;
 
     r->limbs = 0;
@@ -59,7 +59,7 @@ void mbedtls_mpi_mod_residue_release( mbedtls_mpi_mod_residue *r )
 
 void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *m )
 {
-    if ( m == NULL )
+    if( m == NULL )
         return;
 
     m->p = NULL;
@@ -70,7 +70,7 @@ void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *m )
 
 void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m )
 {
-    if ( m == NULL )
+    if( m == NULL )
         return;
 
     switch( m->int_rep )
@@ -110,17 +110,17 @@ static int set_mont_const_square( const mbedtls_mpi_uint **X,
     mbedtls_mpi_init( &N );
     mbedtls_mpi_init( &RR );
 
-    if ( A == NULL || limbs == 0 || limbs >= ( MBEDTLS_MPI_MAX_LIMBS / 2 ) - 2 )
+    if( A == NULL || limbs == 0 || limbs >= ( MBEDTLS_MPI_MAX_LIMBS / 2 ) - 2 )
         goto cleanup;
 
-    if ( mbedtls_mpi_grow( &N, limbs ) )
+    if( mbedtls_mpi_grow( &N, limbs ) )
         goto cleanup;
 
     memcpy( N.p, A, sizeof(mbedtls_mpi_uint) * limbs );
 
     ret = mbedtls_mpi_core_get_mont_r2_unsafe(&RR, &N);
 
-    if ( ret == 0 )
+    if( ret == 0 )
     {
         *X = RR.p;
         RR.p = NULL;
@@ -205,20 +205,19 @@ int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
 
 
     /* Do our best to check if r and m have been set up */
-    if ( r->limbs == 0 || m->limbs == 0 )
+    if( r->limbs == 0 || m->limbs == 0 )
         goto cleanup;
-    if ( r->limbs != m->limbs )
+    if( r->limbs != m->limbs )
         goto cleanup;
 
     ret = mbedtls_mpi_mod_raw_read( r->p, m, buf, buflen, ext_rep );
-
     if( ret != 0 )
         goto cleanup;
 
     r->limbs = m->limbs;
 
-    if (m->int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY)
-       ret = mbedtls_mpi_mod_raw_to_mont_rep(r->p, m);
+    if( m->int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY )
+       ret = mbedtls_mpi_mod_raw_to_mont_rep( r->p, m );
 
 cleanup:
     return ( ret );
@@ -234,12 +233,12 @@ int mbedtls_mpi_mod_write( const mbedtls_mpi_mod_residue *r,
     int conv_ret = 0;
 
     /* Do our best to check if r and m have been set up */
-    if ( r->limbs == 0 || m->limbs == 0 )
+    if( r->limbs == 0 || m->limbs == 0 )
         goto cleanup;
-    if ( r->limbs != m->limbs )
+    if( r->limbs != m->limbs )
         goto cleanup;
 
-    if ( m->int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY )
+    if( m->int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY )
     {
         conv_ret = mbedtls_mpi_mod_raw_from_mont_rep( r->p, m );
         if( conv_ret != 0 )
@@ -248,12 +247,12 @@ int mbedtls_mpi_mod_write( const mbedtls_mpi_mod_residue *r,
 
     ret = mbedtls_mpi_mod_raw_write( r->p, m, buf, buflen, ext_rep );
 
-    if ( m->int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY )
+    if( m->int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY )
         conv_ret = mbedtls_mpi_mod_raw_to_mont_rep( r->p, m );
 
 cleanup:
 
-    if ( ret == 0 )
+    if( ret == 0 )
         ret = conv_ret;
 
     return ( ret );

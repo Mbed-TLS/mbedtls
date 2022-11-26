@@ -203,11 +203,11 @@ int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
 {
     int ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
 
-    if ( r == NULL || m == NULL )
-        goto cleanup;
 
-    if ( r->p == NULL || m->p == NULL || r->limbs > m->limbs ||
-         r->limbs == 0 || m->limbs == 0 )
+    /* Do our best to check if r and m have been set up */
+    if ( r->limbs == 0 || m->limbs == 0 )
+        goto cleanup;
+    if ( r->limbs > m->limbs )
         goto cleanup;
 
     ret = mbedtls_mpi_mod_raw_read( r->p, m, buf, buflen, ext_rep );
@@ -232,11 +232,10 @@ int mbedtls_mpi_mod_write( const mbedtls_mpi_mod_residue *r,
 {
     int ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
 
-    if ( r == NULL || m == NULL )
+    /* Do our best to check if r and m have been set up */
+    if ( r->limbs == 0 || m->limbs == 0 )
         goto cleanup;
-
-    if ( r->p == NULL || m->p == NULL || r->limbs > m->limbs ||
-         r->limbs == 0 || m->limbs == 0 )
+    if ( r->limbs > m->limbs )
         goto cleanup;
 
     if ( m->int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY)

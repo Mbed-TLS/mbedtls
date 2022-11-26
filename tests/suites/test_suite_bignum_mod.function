@@ -114,11 +114,10 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mpi_mod_io_neg( char * input_N, char * input_R, data_t * buf, int ret )
+void mpi_mod_io_neg( char * input_N, data_t * buf, int ret )
 {
     mbedtls_mpi_uint *N = NULL;
     mbedtls_mpi_uint *R = NULL;
-    size_t n_limbs, r_limbs;
 
     mbedtls_mpi_mod_modulus m;
     mbedtls_mpi_mod_residue r;
@@ -127,8 +126,10 @@ void mpi_mod_io_neg( char * input_N, char * input_R, data_t * buf, int ret )
 
     mbedtls_mpi_mod_modulus_init( &m );
 
+    size_t n_limbs;
     TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &N, &n_limbs, input_N ) );
-    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &R, &r_limbs, input_R ) );
+    size_t r_limbs = n_limbs;
+    ASSERT_ALLOC( R, r_limbs );
 
     /* modulo->p == NULL || residue->p == NULL ( m has not been set-up ) */
     TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
@@ -139,7 +140,7 @@ void mpi_mod_io_neg( char * input_N, char * input_R, data_t * buf, int ret )
 
     TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs,
                 MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
-    TEST_EQUAL( 0, mbedtls_mpi_mod_residue_setup( &r, &m, R , n_limbs ) );
+    TEST_EQUAL( 0, mbedtls_mpi_mod_residue_setup( &r, &m, R , r_limbs ) );
 
     /* modulo->p == NULL || residue->p == NULL ( m has been set-up ) */
     TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,

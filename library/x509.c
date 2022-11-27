@@ -90,6 +90,23 @@ int mbedtls_x509_get_serial(unsigned char **p, const unsigned char *end,
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_SERIAL, ret);
     }
 
+    if (serial->len == 0) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_SERIAL,
+                                 MBEDTLS_ERR_ASN1_INVALID_LENGTH);
+    }
+
+    if (**p == 0x80) {
+        if (serial->len < 2 || (*p)[1] < 0x80) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_SERIAL,
+                                     MBEDTLS_ERR_ASN1_INVALID_DATA);
+        }
+    } else if (**p == 0) {
+        if (serial->len > 1 && (*p)[1] < 0x80) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_SERIAL,
+                                     MBEDTLS_ERR_ASN1_INVALID_DATA);
+        }
+    }
+
     serial->p = *p;
     *p += serial->len;
 

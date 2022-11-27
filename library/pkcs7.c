@@ -353,6 +353,7 @@ static void pkcs7_free_signer_info( mbedtls_pkcs7_signer_info *signer )
         name_cur = name_cur->next;
         mbedtls_free( name_prv );
     }
+    signer->issuer.next = NULL;
 }
 
 /**

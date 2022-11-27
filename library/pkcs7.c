@@ -430,15 +430,16 @@ static int pkcs7_get_signers_info_set( unsigned char **p, unsigned char *end,
     goto out;
 
 cleanup:
-    signer = signers_set->next;
     pkcs7_free_signer_info( signers_set );
-    while( signer )
+    signer = signers_set->next;
+    while( signer != NULL )
     {
         prev = signer;
         signer = signer->next;
         pkcs7_free_signer_info( prev );
         mbedtls_free( prev );
     }
+    signers_set->next = NULL;
 
 out:
     return( ret );

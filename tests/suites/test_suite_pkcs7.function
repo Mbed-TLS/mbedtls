@@ -54,10 +54,10 @@ void pkcs7_verify( char *pkcs7_file, char *crt, char *filetobesigned, int do_has
     mbedtls_pkcs7 pkcs7;
     mbedtls_x509_crt x509;
 
-    USE_PSA_INIT();
-
     mbedtls_pkcs7_init( &pkcs7 );
     mbedtls_x509_crt_init( &x509 );
+
+    USE_PSA_INIT();
 
     res = mbedtls_x509_crt_parse_file( &x509, crt );
     TEST_EQUAL( res, 0 );
@@ -127,11 +127,11 @@ void pkcs7_verify_multiple_signers( char *pkcs7_file, char *crt1, char *crt2, ch
     mbedtls_x509_crt x509_1;
     mbedtls_x509_crt x509_2;
 
-    USE_PSA_INIT();
-
     mbedtls_pkcs7_init( &pkcs7 );
     mbedtls_x509_crt_init( &x509_1 );
     mbedtls_x509_crt_init( &x509_2 );
+
+    USE_PSA_INIT();
 
     res = mbedtls_pk_load_file( pkcs7_file, &pkcs7_buf, &buflen );
     TEST_EQUAL( res, 0 );

@@ -387,7 +387,7 @@ static int pkcs7_get_signers_info_set( unsigned char **p, unsigned char *end,
 
     ret = pkcs7_get_signer_info( p, end_set, signers_set );
     if( ret != 0 )
-        return( ret );
+        goto cleanup;
     count++;
 
     mbedtls_pkcs7_signer_info *prev = signers_set;

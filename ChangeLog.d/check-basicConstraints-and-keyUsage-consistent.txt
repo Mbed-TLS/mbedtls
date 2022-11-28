@@ -1,0 +1,4 @@
+Bugfix:
+  * Check that the basicConstraints and keyUsage extensions are consistent
+    with each other.
+    Fixes #4070.

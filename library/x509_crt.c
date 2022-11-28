@@ -1077,6 +1077,14 @@ static int x509_get_crt_ext(unsigned char **p,
                                  MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
     }
 
+    /* Check that basicConstraints and keyUsage are consistent with each other */
+    if ((crt->ext_types & (MBEDTLS_X509_EXT_KEY_USAGE | MBEDTLS_X509_EXT_BASIC_CONSTRAINTS)) ==
+        (MBEDTLS_X509_EXT_KEY_USAGE | MBEDTLS_X509_EXT_BASIC_CONSTRAINTS) &&
+        (!(crt->key_usage & MBEDTLS_X509_KU_KEY_CERT_SIGN) !=
+         !(crt->ca_istrue))) {
+        return MBEDTLS_ERR_X509_INVALID_EXTENSIONS;
+    }
+
     return 0;
 }
 

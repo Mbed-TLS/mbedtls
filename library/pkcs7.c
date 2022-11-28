@@ -60,9 +60,9 @@ static int pkcs7_get_next_content_len( unsigned char **p, unsigned char *end,
     ret = mbedtls_asn1_get_tag( p, end, len, MBEDTLS_ASN1_CONSTRUCTED
             | MBEDTLS_ASN1_CONTEXT_SPECIFIC );
     if( ret != 0 )
-        ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_FORMAT, ret );
+        ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO, ret );
     else if( (size_t)( end - *p ) != *len )
-        ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_FORMAT,
+        ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO,
                                  MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
 
     return( ret );
@@ -83,40 +83,6 @@ static int pkcs7_get_version( unsigned char **p, unsigned char *end, int *ver )
     /* If version != 1, return invalid version */
     if( *ver != MBEDTLS_PKCS7_SUPPORTED_VERSION )
         ret = MBEDTLS_ERR_PKCS7_INVALID_VERSION;
-
-    return( ret );
-}
-
-/**
- * ContentInfo ::= SEQUENCE {
- *      contentType ContentType,
- *      content
- *              [0] EXPLICIT ANY DEFINED BY contentType OPTIONAL }
- **/
-static int pkcs7_get_content_info_type( unsigned char **p, unsigned char *end,
-                                        mbedtls_pkcs7_buf *pkcs7 )
-{
-    size_t len = 0;
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned char *start = *p;
-
-    ret = mbedtls_asn1_get_tag( p, end, &len, MBEDTLS_ASN1_CONSTRUCTED
-                                            | MBEDTLS_ASN1_SEQUENCE );
-    if( ret != 0 ) {
-        *p = start;
-        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO, ret ) );
-    }
-
-    ret = mbedtls_asn1_get_tag( p, end, &len, MBEDTLS_ASN1_OID );
-    if( ret != 0 ) {
-        *p = start;
-        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO, ret ) );
-    }
-
-    pkcs7->tag = MBEDTLS_ASN1_OID;
-    pkcs7->len = len;
-    pkcs7->p = *p;
-    *p += len;
 
     return( ret );
 }
@@ -186,14 +152,12 @@ static int pkcs7_get_certificates( unsigned char **p, unsigned char *end,
     size_t len2 = 0;
     unsigned char *end_set, *end_cert, *start;
 
-    if( ( ret = mbedtls_asn1_get_tag( p, end, &len1, MBEDTLS_ASN1_CONSTRUCTED
-                    | MBEDTLS_ASN1_CONTEXT_SPECIFIC ) ) != 0 )
-    {
-        if( ret == MBEDTLS_ERR_ASN1_UNEXPECTED_TAG )
-            return( 0 );
-        else
-            return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_FORMAT, ret ) );
-    }
+    ret = mbedtls_asn1_get_tag( p, end, &len1, MBEDTLS_ASN1_CONSTRUCTED
+                    | MBEDTLS_ASN1_CONTEXT_SPECIFIC );
+    if( ret == MBEDTLS_ERR_ASN1_UNEXPECTED_TAG )
+        return( 0 );
+    else if( ret != 0 )
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_FORMAT, ret ) );
     start = *p;
     end_set = *p + len1;
 
@@ -444,8 +408,9 @@ static int pkcs7_get_signed_data( unsigned char *buf, size_t buflen,
 {
     unsigned char *p = buf;
     unsigned char *end = buf + buflen;
+    unsigned char *end_content;
     size_t len = 0;
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED, content_info_ret = 0;
     mbedtls_md_type_t md_alg;
 
     ret = mbedtls_asn1_get_tag( &p, end, &len, MBEDTLS_ASN1_CONSTRUCTED
@@ -476,15 +441,45 @@ static int pkcs7_get_signed_data( unsigned char *buf, size_t buflen,
         return( MBEDTLS_ERR_PKCS7_INVALID_ALG );
     }
 
-    /* Do not expect any content */
-    ret = pkcs7_get_content_info_type( &p, end, &signed_data->content.oid );
-    if( ret != 0 )
-        return( ret );
+    /**
+     * ContentInfo ::= SEQUENCE {
+     **/
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len, MBEDTLS_ASN1_CONSTRUCTED
+                                                   | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+        return MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO, ret );
+
+    end_content = p + len;
+
+    /*
+     *      contentType ContentType,
+     *
+     *      ContentType ::= OBJECT IDENTIFIER
+     */
+    if( ( ret = mbedtls_asn1_get_tag( &p, end_content, &len, MBEDTLS_ASN1_OID ) ) != 0 )
+        return MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO, ret );
+
+    signed_data->content.oid.tag = MBEDTLS_ASN1_OID;
+    signed_data->content.oid.len = len;
+    signed_data->content.oid.p = p;
+    p += len;
 
     if( MBEDTLS_OID_CMP( MBEDTLS_OID_PKCS7_DATA, &signed_data->content.oid ) )
     {
         return( MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO );
     }
+
+    /*
+     *      content      [0] EXPLICIT ANY DEFINED BY contentType OPTIONAL }
+     */
+    if( p == end_content )
+        memset( &signed_data->content.data, 0, sizeof( signed_data->content.data ) );
+    else if( ( content_info_ret = pkcs7_get_next_content_len( &p, end_content, &len ) ) == 0 )
+    {
+        signed_data->content.data.tag = MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_CONTEXT_SPECIFIC;
+        signed_data->content.data.len = len;
+        signed_data->content.data.p = p;
+    }
+    p = end_content;
 
     /* Look for certificates, there may or may not be any */
     mbedtls_x509_crt_init( &signed_data->certs );
@@ -506,6 +501,8 @@ static int pkcs7_get_signed_data( unsigned char *buf, size_t buflen,
     ret = pkcs7_get_signers_info_set( &p, end, &signed_data->signers );
     if( ret < 0 )
         return( ret );
+    if( content_info_ret )
+        return( content_info_ret );
 
     signed_data->no_of_signers = ret;
 

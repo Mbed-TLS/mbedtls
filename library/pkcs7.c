@@ -216,12 +216,11 @@ static int pkcs7_get_certificates(unsigned char **p, unsigned char *end,
         return MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE;
     }
 
-    *p = start;
-    if ((ret = mbedtls_x509_crt_parse_der(certs, *p, len1)) < 0) {
+    if ((ret = mbedtls_x509_crt_parse_der(certs, start, len1)) < 0) {
         return MBEDTLS_ERR_PKCS7_INVALID_CERT;
     }
 
-    *p = *p + len1;
+    *p = end_cert;
 
     /*
      * Since in this version we strictly support single certificate, and reaching

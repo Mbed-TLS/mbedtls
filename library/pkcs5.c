@@ -211,7 +211,6 @@ static int pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx,
                               uint32_t key_length, unsigned char *output )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    int j;
     unsigned int i;
     unsigned char md1[MBEDTLS_MD_MAX_SIZE];
     unsigned char work[MBEDTLS_MD_MAX_SIZE];
@@ -263,8 +262,7 @@ static int pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx,
 
             // U1 xor U2
             //
-            for( j = 0; j < md_size; j++ )
-                work[j] ^= md1[j];
+            mbedtls_xor( work, work, md1, md_size );
         }
 
         use_len = ( key_length < md_size ) ? key_length : md_size;
@@ -324,7 +322,6 @@ exit:
     mbedtls_md_free( &md_ctx );
     return( ret );
 #else
-    int j;
     unsigned int i;
     unsigned char md1[PSA_HASH_MAX_SIZE];
     unsigned char work[PSA_HASH_MAX_SIZE];
@@ -396,8 +393,7 @@ exit:
 
             // U1 xor U2
             //
-            for( j = 0; j < md_size; j++ )
-                work[j] ^= md1[j];
+            mbedtls_xor( work, work, md1, md_size );
         }
 
         use_len = ( key_length < md_size ) ? key_length : md_size;

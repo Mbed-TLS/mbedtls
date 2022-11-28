@@ -267,7 +267,9 @@ class CodeParser():
             "include/psa/*.h",
             "library/*.h",
             "3rdparty/everest/include/everest/everest.h",
-            "3rdparty/everest/include/everest/x25519.h"
+            "3rdparty/everest/include/everest/x25519.h",
+            "3rdparty/p256-m/p256-m_driver_interface.h",
+            "3rdparty/p256-m/p256-m/p256-m.h"
         ])
         mbed_words = self.parse_mbed_words([
             "include/mbedtls/*.h",

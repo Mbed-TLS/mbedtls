@@ -324,8 +324,10 @@ psa_status_t psa_driver_wrapper_sign_hash(
                 PSA_KEY_TYPE_ECC_GET_FAMILY(attributes->core.type) == PSA_ECC_FAMILY_SECP_R1 &&
                 attributes->core.bits == 256 )
             {
-                status = p256m_sign_hash( key_buffer,
+                status = p256m_sign_hash( attributes,
+                                          key_buffer,
                                           key_buffer_size,
+                                          alg,
                                           hash,
                                           hash_length,
                                           signature,
@@ -429,6 +431,7 @@ psa_status_t psa_driver_wrapper_verify_hash(
                 status = p256m_verify_hash( attributes,
                                             key_buffer,
                                             key_buffer_size,
+                                            alg,
                                             hash,
                                             hash_length,
                                             signature,
@@ -611,7 +614,8 @@ psa_status_t psa_driver_wrapper_generate_key(
                     attributes->core.type == PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1) &&
                     attributes->core.bits == 256 )
                 {
-                    status = p256m_generate_key( key_buffer,
+                    status = p256m_generate_key( attributes,
+                                                 key_buffer,
                                                  key_buffer_size,
                                                  key_buffer_length );
                     if( status != PSA_ERROR_NOT_SUPPORTED )
@@ -2567,8 +2571,10 @@ psa_status_t psa_driver_wrapper_key_agreement(
                 PSA_KEY_TYPE_ECC_GET_FAMILY(attributes->core.type) == PSA_ECC_FAMILY_SECP_R1 &&
                 attributes->core.bits == 256 )
             {
-                status = p256m_ecdh( key_buffer,
+                status = p256m_ecdh( attributes,
+                                     key_buffer,
                                      key_buffer_size,
+                                     alg,
                                      peer_key,
                                      peer_key_length,
                                      shared_secret,

@@ -166,7 +166,6 @@ endif
 C_SOURCE_FILES = $(wildcard \
 	3rdparty/*/include/*/*.h 3rdparty/*/include/*/*/*.h 3rdparty/*/include/*/*/*/*.h \
 	3rdparty/*/*.c 3rdparty/*/*/*.c 3rdparty/*/*/*/*.c 3rdparty/*/*/*/*/*.c \
-	3rdparty/*/*.h 3rdparty/*/*/*.h\
 	include/*/*.h \
 	library/*.[hc] \
 	programs/*/*.[hc] \

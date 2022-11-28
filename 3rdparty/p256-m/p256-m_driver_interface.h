@@ -16,7 +16,7 @@
  * \return              The corresponding PSA error code
  */
  //no-check-names
-psa_status_t p256m_to_psa_error( int ret ); //no-check-names
+psa_status_t p256m_to_psa_error( int ret );
 
 
 /** Generate SECP256R1 ECC Key Pair.

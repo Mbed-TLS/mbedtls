@@ -49,22 +49,22 @@ void mpi_mod_raw_io( data_t *input, int nb_int, int nx_32_int,
 
     mbedtls_mpi_uint init[sizeof( X ) / sizeof( X[0] )];
     memset( init, 0xFF, sizeof( init ) );
-    int ret = mbedtls_mpi_mod_modulus_setup( &m, init, nx, endian,
+    int ret = mbedtls_mpi_mod_modulus_setup( &m, init, nx,
                                              MBEDTLS_MPI_MOD_REP_MONTGOMERY );
     TEST_EQUAL( ret, 0 );
 
     if( iendian == MBEDTLS_MPI_MOD_EXT_REP_INVALID && iret != 0 )
-        m.ext_rep = MBEDTLS_MPI_MOD_EXT_REP_INVALID;
+       endian = MBEDTLS_MPI_MOD_EXT_REP_INVALID;
 
-    ret = mbedtls_mpi_mod_raw_read( X, &m, input->x, input->len );
+    ret = mbedtls_mpi_mod_raw_read( X, &m, input->x, input->len, endian );
     TEST_EQUAL( ret, iret );
 
     if( iret == 0 )
     {
         if( iendian == MBEDTLS_MPI_MOD_EXT_REP_INVALID && oret != 0 )
-            m.ext_rep = MBEDTLS_MPI_MOD_EXT_REP_INVALID;
+            endian = MBEDTLS_MPI_MOD_EXT_REP_INVALID;
 
-        ret = mbedtls_mpi_mod_raw_write( X, &m, buf, nb );
+        ret = mbedtls_mpi_mod_raw_write( X, &m, buf, nb, endian );
         TEST_EQUAL( ret, oret );
     }
 
@@ -138,7 +138,6 @@ void mpi_mod_raw_cond_assign( char * input_X,
     memset( buff_m, 0xFF, copy_limbs );
     TEST_EQUAL( mbedtls_mpi_mod_modulus_setup(
                         &m, buff_m, copy_limbs,
-                        MBEDTLS_MPI_MOD_EXT_REP_BE,
                         MBEDTLS_MPI_MOD_REP_MONTGOMERY ), 0 );
 
     /* condition is false */
@@ -211,7 +210,6 @@ void mpi_mod_raw_cond_swap( char * input_X,
     memset( buff_m, 0xFF, copy_limbs );
     TEST_EQUAL( mbedtls_mpi_mod_modulus_setup(
                         &m, buff_m, copy_limbs,
-                        MBEDTLS_MPI_MOD_EXT_REP_BE,
                         MBEDTLS_MPI_MOD_REP_MONTGOMERY ), 0 );
 
     ASSERT_ALLOC( X, limbs );
@@ -310,7 +308,6 @@ void mpi_mod_raw_sub( char * input_A,
 
     TEST_EQUAL( mbedtls_mpi_mod_modulus_setup(
                         &m, N, limbs,
-                        MBEDTLS_MPI_MOD_EXT_REP_BE,
                         MBEDTLS_MPI_MOD_REP_MONTGOMERY ), 0 );
 
     mbedtls_mpi_mod_raw_sub( X, A, B, &m );
@@ -392,7 +389,6 @@ void mpi_mod_raw_add( char * input_N,
 
     TEST_EQUAL( mbedtls_mpi_mod_modulus_setup(
                         &m, N, limbs,
-                        MBEDTLS_MPI_MOD_EXT_REP_BE,
                         MBEDTLS_MPI_MOD_REP_MONTGOMERY
                 ), 0 );
 
@@ -480,7 +476,7 @@ void mpi_mod_raw_to_mont_rep( char * input_N, char * input_A, char * input_X )
     TEST_LE_U(a_limbs, n_limbs);
 
     TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs,
-                MBEDTLS_MPI_MOD_EXT_REP_BE, MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
+                MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
 
     /* Convert from cannonical into Montgomery representation */
     TEST_EQUAL(0, mbedtls_mpi_mod_raw_to_mont_rep( A, &m ) );
@@ -516,7 +512,7 @@ void mpi_mod_raw_from_mont_rep( char * input_N, char * input_A, char * input_X )
     TEST_LE_U(a_limbs, n_limbs);
 
     TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs,
-                MBEDTLS_MPI_MOD_EXT_REP_BE, MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
+                MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
 
     /* Convert from Montgomery into cannonical representation */
     TEST_EQUAL(0, mbedtls_mpi_mod_raw_from_mont_rep( A, &m ) );

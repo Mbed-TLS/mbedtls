@@ -120,6 +120,35 @@ inline void mbedtls_put_unaligned_uint64( void *p, uint64_t x )
 #define MBEDTLS_BYTE_6( x ) ( (uint8_t) ( ( ( x ) >> 48 ) & 0xff ) )
 #define MBEDTLS_BYTE_7( x ) ( (uint8_t) ( ( ( x ) >> 56 ) & 0xff ) )
 
+static inline uint16_t mbedtls_bswap16( uint16_t x ) {
+    return
+         ( x & 0x00ff ) << 8 |
+         ( x & 0xff00 ) >> 8;
+}
+#define MBEDTLS_BSWAP16 mbedtls_bswap16
+
+static inline uint32_t mbedtls_bswap32( uint32_t x ) {
+    return
+         ( x & 0x000000ff ) << 24 |
+         ( x & 0x0000ff00 ) <<  8 |
+         ( x & 0x00ff0000 ) >>  8 |
+         ( x & 0xff000000 ) >> 24;
+}
+#define MBEDTLS_BSWAP32 mbedtls_bswap32
+
+static inline uint64_t mbedtls_bswap64( uint64_t x ) {
+    return
+         ( x & 0x00000000000000ff ) << 56 |
+         ( x & 0x000000000000ff00 ) << 40 |
+         ( x & 0x0000000000ff0000 ) << 24 |
+         ( x & 0x00000000ff000000 ) <<  8 |
+         ( x & 0x000000ff00000000 ) >>  8 |
+         ( x & 0x0000ff0000000000 ) >> 24 |
+         ( x & 0x00ff000000000000 ) >> 40 |
+         ( x & 0xff00000000000000 ) >> 56;
+}
+#define MBEDTLS_BSWAP64 mbedtls_bswap64
+
 #if !defined(__BYTE_ORDER__)
 static const uint16_t mbedtls_byte_order_detector = { 0x100 };
 #define MBEDTLS_IS_BIG_ENDIAN (*((unsigned char *) (&mbedtls_byte_order_detector)) == 0x01)

@@ -120,6 +120,13 @@ inline void mbedtls_put_unaligned_uint64( void *p, uint64_t x )
 #define MBEDTLS_BYTE_6( x ) ( (uint8_t) ( ( ( x ) >> 48 ) & 0xff ) )
 #define MBEDTLS_BYTE_7( x ) ( (uint8_t) ( ( ( x ) >> 56 ) & 0xff ) )
 
+#if !defined(__BYTE_ORDER__)
+static const uint16_t mbedtls_byte_order_detector = { 0x100 };
+#define MBEDTLS_IS_BIG_ENDIAN (*((unsigned char *) (&mbedtls_byte_order_detector)) == 0x01)
+#else
+#define MBEDTLS_IS_BIG_ENDIAN ((__BYTE_ORDER__) == (__ORDER_BIG_ENDIAN__))
+#endif /* !defined(__BYTE_ORDER__) */
+
 /**
  * Get the unsigned 32 bits integer corresponding to four bytes in
  * big-endian order (MSB first).

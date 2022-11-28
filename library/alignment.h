@@ -25,6 +25,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "mbedtls/build_info.h"
 
@@ -120,13 +121,58 @@ inline void mbedtls_put_unaligned_uint64( void *p, uint64_t x )
 #define MBEDTLS_BYTE_6( x ) ( (uint8_t) ( ( ( x ) >> 48 ) & 0xff ) )
 #define MBEDTLS_BYTE_7( x ) ( (uint8_t) ( ( ( x ) >> 56 ) & 0xff ) )
 
+/*
+ * Detect GCC built-in byteswap routines
+ */
+#if defined(__GNUC__) && defined(__GNUC_PREREQ)
+#if __GNUC_PREREQ(4,8)
+#define MBEDTLS_BSWAP16 __builtin_bswap16
+#endif /* __GNUC_PREREQ(4,8) */
+#if __GNUC_PREREQ(4,3)
+#define MBEDTLS_BSWAP32 __builtin_bswap32
+#define MBEDTLS_BSWAP64 __builtin_bswap64
+#endif /* __GNUC_PREREQ(4,3) */
+#endif /* defined(__GNUC__) && defined(__GNUC_PREREQ) */
+
+/*
+ * Detect Clang built-in byteswap routines
+ */
+#if defined(__clang__) && defined(__has_builtin)
+#if __has_builtin(__builtin_bswap16)
+#define MBEDTLS_BSWAP16 __builtin_bswap16
+#endif /* __has_builtin(__builtin_bswap16) */
+#if __has_builtin(__builtin_bswap32)
+#define MBEDTLS_BSWAP32 __builtin_bswap32
+#endif /* __has_builtin(__builtin_bswap32) */
+#if __has_builtin(__builtin_bswap64)
+#define MBEDTLS_BSWAP64 __builtin_bswap64
+#endif /* __has_builtin(__builtin_bswap64) */
+#endif /* defined(__clang__) && defined(__has_builtin) */
+
+/*
+ * Detect MSVC built-in byteswap routines
+ */
+#if defined(_MSC_VER)
+#define MBEDTLS_BSWAP16 _byteswap_ushort
+#define MBEDTLS_BSWAP32 _byteswap_ulong
+#define MBEDTLS_BSWAP64 _byteswap_uint64
+#endif /* defined(_MSC_VER) */
+
+/*
+ * Where compiler built-ins are not present, fall back to C code that the
+ * compiler may be able to detect and transform into the relevant bswap or
+ * similar instruction.
+ */
+#if !defined(MBEDTLS_BSWAP16)
 static inline uint16_t mbedtls_bswap16( uint16_t x ) {
     return
          ( x & 0x00ff ) << 8 |
          ( x & 0xff00 ) >> 8;
 }
 #define MBEDTLS_BSWAP16 mbedtls_bswap16
+#endif /* !defined(MBEDTLS_BSWAP16) */
 
+#if !defined(MBEDTLS_BSWAP32)
 static inline uint32_t mbedtls_bswap32( uint32_t x ) {
     return
          ( x & 0x000000ff ) << 24 |
@@ -135,7 +181,9 @@ static inline uint32_t mbedtls_bswap32( uint32_t x ) {
          ( x & 0xff000000 ) >> 24;
 }
 #define MBEDTLS_BSWAP32 mbedtls_bswap32
+#endif /* !defined(MBEDTLS_BSWAP32) */
 
+#if !defined(MBEDTLS_BSWAP64)
 static inline uint64_t mbedtls_bswap64( uint64_t x ) {
     return
          ( x & 0x00000000000000ff ) << 56 |
@@ -148,6 +196,7 @@ static inline uint64_t mbedtls_bswap64( uint64_t x ) {
          ( x & 0xff00000000000000 ) >> 56;
 }
 #define MBEDTLS_BSWAP64 mbedtls_bswap64
+#endif /* !defined(MBEDTLS_BSWAP64) */
 
 #if !defined(__BYTE_ORDER__)
 static const uint16_t mbedtls_byte_order_detector = { 0x100 };

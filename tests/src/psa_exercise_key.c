@@ -663,6 +663,13 @@ static int exercise_key_agreement_key( mbedtls_svc_key_id_t key,
                 expected_key_agreement_status = PSA_ERROR_INVALID_ARGUMENT;
         }
 
+        if( PSA_ALG_IS_TLS12_ECJPAKE_TO_PMS( kdf_alg ) )
+        {
+            /* ECJPAKE_TO_PMS requires an EC point (shared secret K) as an input,
+             * which is not implemented yet in these tests. */
+            expected_key_agreement_status = PSA_ERROR_INVALID_ARGUMENT;
+        }
+
         TEST_EQUAL( mbedtls_test_psa_key_agreement_with_self( &operation, key ),
                     expected_key_agreement_status );
 

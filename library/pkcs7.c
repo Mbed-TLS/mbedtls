@@ -556,7 +556,6 @@ int mbedtls_pkcs7_parse_der(mbedtls_pkcs7 *pkcs7, const unsigned char *buf,
     unsigned char *end, *end_content_info;
     size_t len = 0;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    int isoidset = 0;
 
     if (pkcs7 == NULL) {
         return MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA;
@@ -572,34 +571,42 @@ int mbedtls_pkcs7_parse_der(mbedtls_pkcs7 *pkcs7, const unsigned char *buf,
     pkcs7->raw.len = buflen;
     end = p + buflen;
 
-    ret = pkcs7_get_content_info_type(&p, end, &end_content_info,
-                                      &pkcs7->content_type_oid);
+    ret = mbedtls_asn1_get_tag(&p, end, &len, MBEDTLS_ASN1_CONSTRUCTED
+                               | MBEDTLS_ASN1_SEQUENCE);
     if (ret != 0) {
+        ret = MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_FORMAT, ret);
+        goto out;
+    }
+
+    if ((size_t) (end - p) != len) {
+        ret = MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_FORMAT,
+                                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
+        goto out;
+    }
+
+    if ((ret = mbedtls_asn1_get_tag(&p, end, &len, MBEDTLS_ASN1_OID)) != 0) {
+        if (ret != MBEDTLS_ERR_ASN1_UNEXPECTED_TAG) {
+            goto out;
+        }
+        p = pkcs7->raw.p;
         len = buflen;
         goto try_data;
     }
 
-    /* Ensure PKCS7 data uses the exact number of bytes specified in buflen */
-    if (end_content_info != end) {
-        ret = MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA;
+    if (MBEDTLS_OID_CMP_RAW(MBEDTLS_OID_PKCS7_SIGNED_DATA, p, len)) {
+        if (!MBEDTLS_OID_CMP_RAW(MBEDTLS_OID_PKCS7_DATA, p, len)
+            || !MBEDTLS_OID_CMP_RAW(MBEDTLS_OID_PKCS7_ENCRYPTED_DATA, p, len)
+            || !MBEDTLS_OID_CMP_RAW(MBEDTLS_OID_PKCS7_ENVELOPED_DATA, p, len)
+            || !MBEDTLS_OID_CMP_RAW(MBEDTLS_OID_PKCS7_SIGNED_AND_ENVELOPED_DATA, p, len)
+            || !MBEDTLS_OID_CMP_RAW(MBEDTLS_OID_PKCS7_DIGESTED_DATA, p, len)) {
+            ret =  MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE;
+        } else {
+            ret = MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA;
+        }
         goto out;
     }
 
-    if (!MBEDTLS_OID_CMP(MBEDTLS_OID_PKCS7_DATA, &pkcs7->content_type_oid)
-        || !MBEDTLS_OID_CMP(MBEDTLS_OID_PKCS7_ENVELOPED_DATA, &pkcs7->content_type_oid)
-        || !MBEDTLS_OID_CMP(MBEDTLS_OID_PKCS7_SIGNED_AND_ENVELOPED_DATA, &pkcs7->content_type_oid)
-        || !MBEDTLS_OID_CMP(MBEDTLS_OID_PKCS7_DIGESTED_DATA, &pkcs7->content_type_oid)
-        || !MBEDTLS_OID_CMP(MBEDTLS_OID_PKCS7_ENCRYPTED_DATA, &pkcs7->content_type_oid)) {
-        ret =  MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE;
-        goto out;
-    }
-
-    if (MBEDTLS_OID_CMP(MBEDTLS_OID_PKCS7_SIGNED_DATA, &pkcs7->content_type_oid)) {
-        ret = MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA;
-        goto out;
-    }
-
-    isoidset = 1;
+    p += len;
 
     ret = pkcs7_get_next_content_len(&p, end, &len);
     if (ret != 0) {
@@ -616,12 +623,6 @@ try_data:
     ret = pkcs7_get_signed_data(p, len, &pkcs7->signed_data);
     if (ret != 0) {
         goto out;
-    }
-
-    if (!isoidset) {
-        pkcs7->content_type_oid.tag = MBEDTLS_ASN1_OID;
-        pkcs7->content_type_oid.len = MBEDTLS_OID_SIZE(MBEDTLS_OID_PKCS7_SIGNED_DATA);
-        pkcs7->content_type_oid.p = (unsigned char *) MBEDTLS_OID_PKCS7_SIGNED_DATA;
     }
 
     ret = MBEDTLS_PKCS7_SIGNED_DATA;

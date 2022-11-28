@@ -203,7 +203,6 @@ int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
 {
     int ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
 
-
     /* Do our best to check if r and m have been set up */
     if( r->limbs == 0 || m->limbs == 0 )
         goto cleanup;

@@ -189,10 +189,10 @@ void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m );
  * equivalent to \p m (in the sense that all their fields or memory pointed by
  * their fields hold the same value).
  *
- * \param r         The address of the residue. It must have exactly the same
+ * \param[out] r    The address of the residue. It must have exactly the same
  *                  number of limbs as the modulus \p m.
- * \param m         The address of the modulus.
- * \param buf       The input buffer to import from.
+ * \param[in] m     The address of the modulus.
+ * \param[in] buf   The input buffer to import from.
  * \param buflen    The length in bytes of \p buf.
  * \param ext_rep   The endianness of the number in the input buffer.
  *
@@ -221,10 +221,12 @@ int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
  *              secret, the caller must ensure that \p buflen is at least
  *              (`m->bits`+7)/8.
  *
- * \param r         The address of the residue. It must have as many limbs as
- *                  the modulus \p m.
- * \param m         The address of the modulus associated with \r.
- * \param buf       The output buffer to export to.
+ * \param[in] r     The address of the residue. It must have the same number of
+ *                  limbs as the modulus \p m. (\p r is an input parameter, but
+ *                  its value will be modified during execution and restored
+ *                  before the function returns.)
+ * \param[in] m     The address of the modulus associated with \r.
+ * \param[out] buf  The output buffer to export to.
  * \param buflen    The length in bytes of \p buf.
  * \param ext_rep   The endianness in which the number should be written into
  *                  the output buffer.
@@ -234,6 +236,9 @@ int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
  *               large enough to hold the value of \p r (without leading
  *               zeroes).
  * \return       #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p ext_rep is invalid.
+ * \return       #MBEDTLS_ERR_MPI_ALLOC_FAILED if couldn't allocate enough
+ *               memory for conversion. Can occur only for moduli with
+ *               MBEDTLS_MPI_MOD_REP_MONTGOMERY.
  */
 int mbedtls_mpi_mod_write( const mbedtls_mpi_mod_residue *r,
                            const mbedtls_mpi_mod_modulus *m,

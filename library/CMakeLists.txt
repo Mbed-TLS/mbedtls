@@ -49,8 +49,6 @@ set(src_crypto
     md.c
     md5.c
     memory_buffer_alloc.c
-    mps_reader.c
-    mps_trace.c
     nist_kw.c
     oid.c
     padlock.c
@@ -84,7 +82,6 @@ set(src_crypto
     sha1.c
     sha256.c
     sha512.c
-    ssl_debug_helpers_generated.c
     threading.c
     timing.c
     version.c
@@ -104,11 +101,14 @@ set(src_x509
 
 set(src_tls
     debug.c
+    mps_reader.c
+    mps_trace.c
     net_sockets.c
     ssl_cache.c
     ssl_ciphersuites.c
     ssl_client.c
     ssl_cookie.c
+    ssl_debug_helpers_generated.c
     ssl_msg.c
     ssl_ticket.c
     ssl_tls.c

@@ -626,7 +626,6 @@ exit:
     PSA_DONE( );
     mbedtls_test_driver_key_agreement_hooks =
         mbedtls_test_driver_key_agreement_hooks_init();
-
 }
 
 /* END_CASE */

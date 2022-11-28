@@ -5738,11 +5738,11 @@ psa_status_t psa_key_agreement_raw_builtin( const psa_key_attributes_t *attribut
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
         case PSA_ALG_ECDH:
             return( mbedtls_psa_key_agreement_ecdh( attributes, key_buffer,
-                                                   key_buffer_size, alg,
-                                                   peer_key, peer_key_length,
-                                                   shared_secret,
-                                                   shared_secret_size,
-                                                   shared_secret_length ) );
+                                                    key_buffer_size, alg,
+                                                    peer_key, peer_key_length,
+                                                    shared_secret,
+                                                    shared_secret_size,
+                                                    shared_secret_length ) );
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_ECDH */
         default:
             (void) attributes;
@@ -5771,18 +5771,20 @@ static psa_status_t psa_key_agreement_raw_internal( psa_algorithm_t alg,
                                                     size_t shared_secret_size,
                                                     size_t *shared_secret_length )
 {
-    if( !PSA_ALG_IS_RAW_KEY_AGREEMENT(alg) )
+    if( !PSA_ALG_IS_RAW_KEY_AGREEMENT( alg ) )
         return( PSA_ERROR_NOT_SUPPORTED );
 
     psa_key_attributes_t attributes = {
       .core = private_key->attr
     };
 
-    return( psa_driver_wrapper_key_agreement( &attributes, private_key->key.data,
-                                                  private_key->key.bytes,
-                                                  alg, peer_key, peer_key_length,
-                                                  shared_secret, shared_secret_size,
-                                                  shared_secret_length ) );
+    return( psa_driver_wrapper_key_agreement( &attributes,
+                                              private_key->key.data,
+                                              private_key->key.bytes, alg,
+                                              peer_key, peer_key_length,
+                                              shared_secret,
+                                              shared_secret_size,
+                                              shared_secret_length ) );
 }
 
 /* Note that if this function fails, you must call psa_key_derivation_abort()

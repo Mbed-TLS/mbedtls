@@ -68,6 +68,7 @@ int main( void )
 #define DFL_PSK_OPAQUE          0
 #define DFL_PSK_IDENTITY        "Client_identity"
 #define DFL_ECJPAKE_PW          NULL
+#define DFL_ECJPAKE_PW_OPAQUE   0
 #define DFL_EC_MAX_OPS          -1
 #define DFL_FORCE_CIPHER        0
 #define DFL_TLS1_3_KEX_MODES    MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_ALL
@@ -319,7 +320,8 @@ int main( void )
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 #define USAGE_ECJPAKE \
-    "    ecjpake_pw=%%s       default: none (disabled)\n"
+    "    ecjpake_pw=%%s           default: none (disabled)\n"   \
+    "    ecjpake_pw_opaque=%%d    default: 0 (disabled)\n"
 #else
 #define USAGE_ECJPAKE ""
 #endif
@@ -492,6 +494,7 @@ struct options
     const char *psk;            /* the pre-shared key                       */
     const char *psk_identity;   /* the pre-shared key identity              */
     const char *ecjpake_pw;     /* the EC J-PAKE password                   */
+    int ecjpake_pw_opaque;      /* set to 1 to use the opaque method for setting the password */
     int ec_max_ops;             /* EC consecutive operations limit          */
     int force_ciphersuite[2];   /* protocol/ciphersuite to use, or all      */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
@@ -824,6 +827,10 @@ int main( int argc, char *argv[] )
         MBEDTLS_TLS_SRTP_UNSET
     };
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
+#if defined( MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED ) && \
+    defined( MBEDTLS_USE_PSA_CRYPTO )
+    mbedtls_svc_key_id_t ecjpake_pw_slot = MBEDTLS_SVC_KEY_ID_INIT; /* ecjpake password key slot */
+#endif // MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     mbedtls_memory_buffer_alloc_init( alloc_buf, sizeof(alloc_buf) );
@@ -919,6 +926,7 @@ int main( int argc, char *argv[] )
 #endif
     opt.psk_identity        = DFL_PSK_IDENTITY;
     opt.ecjpake_pw          = DFL_ECJPAKE_PW;
+    opt.ecjpake_pw_opaque   = DFL_ECJPAKE_PW_OPAQUE;
     opt.ec_max_ops          = DFL_EC_MAX_OPS;
     opt.force_ciphersuite[0]= DFL_FORCE_CIPHER;
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
@@ -1094,6 +1102,8 @@ int main( int argc, char *argv[] )
             opt.psk_identity = q;
         else if( strcmp( p, "ecjpake_pw" ) == 0 )
             opt.ecjpake_pw = q;
+        else if( strcmp( p, "ecjpake_pw_opaque" ) == 0 )
+            opt.ecjpake_pw_opaque = atoi( q );
         else if( strcmp( p, "ec_max_ops" ) == 0 )
             opt.ec_max_ops = atoi( q );
         else if( strcmp( p, "force_ciphersuite" ) == 0 )
@@ -2166,16 +2176,45 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if( opt.ecjpake_pw != DFL_ECJPAKE_PW )
     {
-        if( ( ret = mbedtls_ssl_set_hs_ecjpake_password( &ssl,
-                        (const unsigned char *) opt.ecjpake_pw,
-                                        strlen( opt.ecjpake_pw ) ) ) != 0 )
+#if defined( MBEDTLS_USE_PSA_CRIPTO )
+        if ( opt.ecjpake_pw_opaque != DFL_ECJPAKE_PW_OPAQUE )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hs_ecjpake_password returned %d\n\n",
-                            ret );
-            goto exit;
+            psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+            psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
+            psa_set_key_algorithm( &attributes, PSA_ALG_JPAKE );
+            psa_set_key_type( &attributes, PSA_KEY_TYPE_PASSWORD );
+
+            status = psa_import_key( &attributes,
+                                (const unsigned char *) opt.ecjpake_pw,
+                                strlen( opt.ecjpake_pw ),
+                                &ecjpake_pw_slot );
+            if( status != PSA_SUCCESS )
+            {
+                mbedtls_printf( " failed\n  ! psa_import_key returned %d\n\n",
+                            status );
+                goto exit;
+            }
+            if( ( ret = mbedtls_ssl_set_hs_ecjpake_password_opaque( &ssl,
+                                        ecjpake_pw_slot ) ) != 0 )
+            {
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hs_ecjpake_password_opaque returned %d\n\n", ret );
+                goto exit;
+            }
+        }
+        else
+#endif  // MBEDTLS_USE_PSA_CRIPTO
+        {
+            if( ( ret = mbedtls_ssl_set_hs_ecjpake_password( &ssl,
+                                        (const unsigned char *) opt.ecjpake_pw,
+                                        strlen( opt.ecjpake_pw ) ) ) != 0 )
+            {
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hs_ecjpake_password returned %d\n\n", ret );
+                goto exit;
+            }
         }
     }
-#endif
+#endif // MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
     if( opt.context_crt_cb == 1 )
@@ -3275,6 +3314,14 @@ exit:
     }
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED &&
           MBEDTLS_USE_PSA_CRYPTO */
+
+#if defined( MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED ) && \
+    defined( MBEDTLS_USE_PSA_CRYPTO )
+    if( opt.ecjpake_pw_opaque != DFL_ECJPAKE_PW_OPAQUE )
+    {
+        psa_destroy_key( ecjpake_pw_slot );
+    }
+#endif  //   MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED && MBEDTLS_USE_PSA_CRYPTO
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
     const char* message = mbedtls_test_helper_is_psa_leaking();

@@ -58,6 +58,9 @@ static int pkcs7_get_next_content_len(unsigned char **p, unsigned char *end,
                                | MBEDTLS_ASN1_CONTEXT_SPECIFIC);
     if (ret != 0) {
         ret = MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_FORMAT, ret);
+    } else if ((size_t) (end - *p) != *len) {
+        ret = MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_FORMAT,
+                                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
     }
 
     return ret;

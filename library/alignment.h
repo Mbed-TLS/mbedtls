@@ -29,6 +29,32 @@
 #include "mbedtls/build_info.h"
 
 /**
+ * Read the unsigned 16 bits integer from the given address, which need not
+ * be aligned.
+ *
+ * \param   p pointer to 2 bytes of data
+ * \return  Data at the given address
+ */
+inline uint16_t mbedtls_get_unaligned_uint16( const void *p )
+{
+    uint16_t r;
+    memcpy( &r, p, sizeof( r ) );
+    return r;
+}
+
+/**
+ * Write the unsigned 16 bits integer to the given address, which need not
+ * be aligned.
+ *
+ * \param   p pointer to 2 bytes of data
+ * \param   x data to write
+ */
+inline void mbedtls_put_unaligned_uint16( void *p, uint16_t x )
+{
+    memcpy( p, &x, sizeof( x ) );
+}
+
+/**
  * Read the unsigned 32 bits integer from the given address, which need not
  * be aligned.
  *
@@ -50,6 +76,32 @@ inline uint32_t mbedtls_get_unaligned_uint32( const void *p )
  * \param   x data to write
  */
 inline void mbedtls_put_unaligned_uint32( void *p, uint32_t x )
+{
+    memcpy( p, &x, sizeof( x ) );
+}
+
+/**
+ * Read the unsigned 64 bits integer from the given address, which need not
+ * be aligned.
+ *
+ * \param   p pointer to 8 bytes of data
+ * \return  Data at the given address
+ */
+inline uint64_t mbedtls_get_unaligned_uint64( const void *p )
+{
+    uint64_t r;
+    memcpy( &r, p, sizeof( r ) );
+    return r;
+}
+
+/**
+ * Write the unsigned 64 bits integer to the given address, which need not
+ * be aligned.
+ *
+ * \param   p pointer to 8 bytes of data
+ * \param   x data to write
+ */
+inline void mbedtls_put_unaligned_uint64( void *p, uint64_t x )
 {
     memcpy( p, &x, sizeof( x ) );
 }

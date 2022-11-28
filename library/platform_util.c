@@ -149,6 +149,14 @@ void (*mbedtls_test_hook_test_fail)( const char *, int, const char *);
  */
 extern inline void mbedtls_xor( unsigned char *r, const unsigned char *a, const unsigned char *b, size_t n );
 
+extern inline uint16_t mbedtls_get_unaligned_uint16( const void *p );
+
+extern inline void mbedtls_put_unaligned_uint16( void *p, uint16_t x );
+
 extern inline uint32_t mbedtls_get_unaligned_uint32( const void *p );
 
 extern inline void mbedtls_put_unaligned_uint32( void *p, uint32_t x );
+
+extern inline uint64_t mbedtls_get_unaligned_uint64( const void *p );
+
+extern inline void mbedtls_put_unaligned_uint64( void *p, uint64_t x );

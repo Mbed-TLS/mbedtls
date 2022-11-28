@@ -1555,6 +1555,15 @@ component_test_full_cmake_clang () {
     env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
 }
 
+skip_non_constant_flow_components () {
+    # Skip the test suites that don't have any constant-flow annotations.
+    SKIP_TEST_SUITES=$(
+        grep -L TEST_CF_ tests/suites/test_suite_*.function |
+        sed 's!.*/test_suite_!!; s!\.function$!!' |
+        tr '\n' ,)
+    export SKIP_TEST_SUITES
+}
+
 component_test_memsan_constant_flow () {
     # This tests both (1) accesses to undefined memory, and (2) branches or
     # memory access depending on secret values. To distinguish between those:
@@ -1586,6 +1595,7 @@ component_test_valgrind_constant_flow () {
     msg "build: cmake release GCC, full config with constant flow testing"
     scripts/config.py full
     scripts/config.py set MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND
+    skip_non_constant_flow_components
     cmake -D CMAKE_BUILD_TYPE:String=Release .
     make
 

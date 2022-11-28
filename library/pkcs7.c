@@ -60,9 +60,9 @@ static int pkcs7_get_next_content_len( unsigned char **p, unsigned char *end,
     ret = mbedtls_asn1_get_tag( p, end, len, MBEDTLS_ASN1_CONSTRUCTED
             | MBEDTLS_ASN1_CONTEXT_SPECIFIC );
     if( ret != 0 )
-        ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_FORMAT, ret );
+        ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO, ret );
     else if( (size_t)( end - *p ) != *len )
-        ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_FORMAT,
+        ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO,
                                  MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
 
     return( ret );
@@ -152,14 +152,12 @@ static int pkcs7_get_certificates( unsigned char **p, unsigned char *end,
     size_t len2 = 0;
     unsigned char *end_set, *end_cert, *start;
 
-    if( ( ret = mbedtls_asn1_get_tag( p, end, &len1, MBEDTLS_ASN1_CONSTRUCTED
-                    | MBEDTLS_ASN1_CONTEXT_SPECIFIC ) ) != 0 )
-    {
-        if( ret == MBEDTLS_ERR_ASN1_UNEXPECTED_TAG )
-            return( 0 );
-        else
-            return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_FORMAT, ret ) );
-    }
+    ret = mbedtls_asn1_get_tag( p, end, &len1, MBEDTLS_ASN1_CONSTRUCTED
+                    | MBEDTLS_ASN1_CONTEXT_SPECIFIC );
+    if( ret == MBEDTLS_ERR_ASN1_UNEXPECTED_TAG )
+        return( 0 );
+    if( ret != 0 )
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_FORMAT, ret ) );
     start = *p;
     end_set = *p + len1;
 
@@ -458,6 +456,9 @@ static int pkcs7_get_signed_data( unsigned char *buf, size_t buflen,
 
     p += len;
 
+    if( p != end_content )
+        return( MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE );
+
     /* Look for certificates, there may or may not be any */
     mbedtls_x509_crt_init( &signed_data->certs );
     ret = pkcs7_get_certificates( &p, end, &signed_data->certs );
@@ -637,7 +638,8 @@ static int mbedtls_pkcs7_data_or_hash_verify( mbedtls_pkcs7 *pkcs7,
         }
 
         hash = mbedtls_calloc( mbedtls_md_get_size( md_info ), 1 );
-        if( hash == NULL ) {
+        if( hash == NULL )
+        {
             return( MBEDTLS_ERR_PKCS7_ALLOC_FAILED );
         }
         /* BEGIN must free hash before jumping out */
@@ -671,11 +673,14 @@ static int mbedtls_pkcs7_data_or_hash_verify( mbedtls_pkcs7 *pkcs7,
 
     return( ret );
 }
+
 int mbedtls_pkcs7_signed_data_verify( mbedtls_pkcs7 *pkcs7,
                                       const mbedtls_x509_crt *cert,
                                       const unsigned char *data,
                                       size_t datalen )
 {
+    if( data == NULL )
+        return MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA;
     return( mbedtls_pkcs7_data_or_hash_verify( pkcs7, cert, data, datalen, 0 ) );
 }
 
@@ -684,6 +689,8 @@ int mbedtls_pkcs7_signed_hash_verify( mbedtls_pkcs7 *pkcs7,
                                       const unsigned char *hash,
                                       size_t hashlen )
 {
+    if( hash == NULL )
+        return MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA;
     return( mbedtls_pkcs7_data_or_hash_verify( pkcs7, cert, hash, hashlen, 1 ) );
 }
 

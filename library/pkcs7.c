@@ -541,12 +541,43 @@ int mbedtls_pkcs7_parse_der( mbedtls_pkcs7 *pkcs7, const unsigned char *buf,
     pkcs7->raw.len = buflen;
     end = p + buflen;
 
-    ret = pkcs7_get_content_info_type( &p, end, &pkcs7->content_type_oid );
+    /**
+     * ContentInfo ::= SEQUENCE {
+     **/
+    ret = mbedtls_asn1_get_tag( &p, end, &len, MBEDTLS_ASN1_CONSTRUCTED
+                                | MBEDTLS_ASN1_SEQUENCE );
     if( ret != 0 )
     {
+        ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_FORMAT, ret );
+        goto out;
+    }
+
+    if( (size_t)( end - p ) != len )
+    {
+        ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_FORMAT,
+                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+        goto out;
+    }
+
+    /*
+     *      contentType ContentType,
+     *
+     *      ContentType ::= OBJECT IDENTIFIER
+     */
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len, MBEDTLS_ASN1_OID ) ) != 0 )
+    {
+        if( ret != MBEDTLS_ERR_ASN1_UNEXPECTED_TAG )
+            goto out;
+        p = pkcs7->raw.p;
         len = buflen;
         goto try_data;
     }
+
+    pkcs7->content_type_oid.tag = MBEDTLS_ASN1_OID;
+    pkcs7->content_type_oid.len = len;
+    pkcs7->content_type_oid.p = p;
+
+    p += len;
 
     if( ! MBEDTLS_OID_CMP( MBEDTLS_OID_PKCS7_DATA, &pkcs7->content_type_oid )
      || ! MBEDTLS_OID_CMP( MBEDTLS_OID_PKCS7_ENCRYPTED_DATA, &pkcs7->content_type_oid )
@@ -566,6 +597,9 @@ int mbedtls_pkcs7_parse_der( mbedtls_pkcs7 *pkcs7, const unsigned char *buf,
 
     isoidset = 1;
 
+    /*
+     *      content      [0] EXPLICIT ANY DEFINED BY contentType OPTIONAL }
+     */
     ret = pkcs7_get_next_content_len( &p, end, &len );
     if( ret != 0 )
         goto out;

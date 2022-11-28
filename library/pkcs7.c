@@ -579,19 +579,9 @@ int mbedtls_pkcs7_parse_der( mbedtls_pkcs7 *pkcs7, const unsigned char *buf,
 
     p += len;
 
-    if( ! MBEDTLS_OID_CMP( MBEDTLS_OID_PKCS7_DATA, &pkcs7->content_type_oid )
-     || ! MBEDTLS_OID_CMP( MBEDTLS_OID_PKCS7_ENCRYPTED_DATA, &pkcs7->content_type_oid )
-     || ! MBEDTLS_OID_CMP( MBEDTLS_OID_PKCS7_ENVELOPED_DATA, &pkcs7->content_type_oid )
-     || ! MBEDTLS_OID_CMP( MBEDTLS_OID_PKCS7_SIGNED_AND_ENVELOPED_DATA, &pkcs7->content_type_oid )
-     || ! MBEDTLS_OID_CMP( MBEDTLS_OID_PKCS7_DIGESTED_DATA, &pkcs7->content_type_oid ) )
-    {
-        ret =  MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE;
-        goto out;
-    }
-
     if( MBEDTLS_OID_CMP( MBEDTLS_OID_PKCS7_SIGNED_DATA, &pkcs7->content_type_oid ) )
     {
-        ret = MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA;
+        ret = MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE;
         goto out;
     }
 

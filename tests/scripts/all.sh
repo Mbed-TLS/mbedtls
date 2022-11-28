@@ -1609,10 +1609,6 @@ component_test_memsan_constant_flow () {
 }
 
 skip_non_constant_flow_components () {
-    # The following components are especially slow and don't have any constant-flow annotations,
-    # so disable them for better CI performance.
-    # It would be better to pass a list of tests that we want to run, rather than tests to skip,
-    # but this functionality is currently not implemented.
     # Skip the test suites that don't have any constant-flow annotations.
     SKIP_TEST_SUITES=$(
         grep -L TEST_CF_ tests/suites/test_suite_*.function |

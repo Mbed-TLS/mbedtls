@@ -670,7 +670,21 @@ static int mbedtls_pkcs7_data_or_hash_verify( mbedtls_pkcs7 *pkcs7,
             return( MBEDTLS_ERR_PKCS7_ALLOC_FAILED );
         }
         /* BEGIN must free hash before jumping out */
-        if( is_data_hash )
+        if( data == NULL )
+        {
+            if( pkcs7->signed_data.content.data.p != NULL )
+                ret = mbedtls_md( md_info,
+                                  pkcs7->signed_data.content.data.p,
+                                  pkcs7->signed_data.content.data.len,
+                                  hash );
+            else
+                ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+        }
+        else if( pkcs7->signed_data.content.data.p != NULL )
+        {
+            ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+        }
+        else if( is_data_hash )
         {
             if( datalen != mbedtls_md_get_size( md_info ))
                 ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
@@ -700,11 +714,20 @@ static int mbedtls_pkcs7_data_or_hash_verify( mbedtls_pkcs7 *pkcs7,
 
     return( ret );
 }
+
+int mbedtls_pkcs7_signed_content_verify( mbedtls_pkcs7 *pkcs7,
+                                         const mbedtls_x509_crt *cert )
+{
+    return( mbedtls_pkcs7_data_or_hash_verify( pkcs7, cert, NULL, 0, 0 ) );
+}
+
 int mbedtls_pkcs7_signed_data_verify( mbedtls_pkcs7 *pkcs7,
                                       const mbedtls_x509_crt *cert,
                                       const unsigned char *data,
                                       size_t datalen )
 {
+    if( data == NULL )
+        return MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA;
     return( mbedtls_pkcs7_data_or_hash_verify( pkcs7, cert, data, datalen, 0 ) );
 }
 
@@ -713,6 +736,8 @@ int mbedtls_pkcs7_signed_hash_verify( mbedtls_pkcs7 *pkcs7,
                                       const unsigned char *hash,
                                       size_t hashlen )
 {
+    if( hash == NULL )
+        return MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA;
     return( mbedtls_pkcs7_data_or_hash_verify( pkcs7, cert, hash, hashlen, 1 ) );
 }
 

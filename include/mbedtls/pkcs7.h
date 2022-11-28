@@ -208,7 +208,8 @@ int mbedtls_pkcs7_parse_der( mbedtls_pkcs7 *pkcs7, const unsigned char *buf,
  *                 matches.
  *
  *                 This function does not use the certificates held within the
- *                 PKCS7 structure itself.
+ *                 PKCS7 structure itself, and does not check that the
+ *                 certificate is signed by a trusted certification authority.
  *
  * \param pkcs7    PKCS7 structure containing signature.
  * \param cert     Certificate containing key to verify signature.
@@ -216,7 +217,8 @@ int mbedtls_pkcs7_parse_der( mbedtls_pkcs7 *pkcs7, const unsigned char *buf,
  * \param datalen  Length of the data.
  *
  * \note           This function internally calculates the hash on the supplied
- *                 plain data for signature verification.
+ *                 plain data for signature verification. This function fails
+ *                 if the signature has any internal data.
  *
  * \return         0 if the signature verifies, or a negative error code on failure.
  */
@@ -229,15 +231,15 @@ int mbedtls_pkcs7_signed_data_verify( mbedtls_pkcs7 *pkcs7,
  * \brief          Verification of PKCS7 signature against a caller-supplied
  *                 certificate.
  *
- *                 For each signer in the PKCS structure, this function computes
- *                 a signature over the supplied hash, using the supplied
- *                 certificate and the same digest algorithm as specified by the
- *                 signer. It then compares this signature against the
- *                 signer's signature; verification succeeds if any comparison
- *                 matches.
+ *                 For each signer in the PKCS structure, this function
+ *                 validates a signature over the supplied hash, using the
+ *                 supplied certificate and the same digest algorithm as
+ *                 specified by the signer. Verification succeeds if any
+ *                 signature is good.
  *
  *                 This function does not use the certificates held within the
- *                 PKCS7 structure itself.
+ *                 PKCS7 structure itself, and does not check that the
+ *                 certificate is signed by a trusted certification authority.
  *
  * \param pkcs7    PKCS7 structure containing signature.
  * \param cert     Certificate containing key to verify signature.
@@ -246,12 +248,35 @@ int mbedtls_pkcs7_signed_data_verify( mbedtls_pkcs7 *pkcs7,
  *
  * \note           This function is different from mbedtls_pkcs7_signed_data_verify()
  *                 in a way that it directly receives the hash of the data.
+ *                 in that it is directly passed the hash of the data. This
+ *                 function fails if the signature has any internal data.
  *
  * \return         0 if the signature verifies, or a negative error code on failure.
  */
 int mbedtls_pkcs7_signed_hash_verify( mbedtls_pkcs7 *pkcs7,
                                       const mbedtls_x509_crt *cert,
                                       const unsigned char *hash, size_t hashlen);
+
+/**
+ * \brief          Verification of PKCS7 non-detached signature.
+ *
+ *                 For each signer in the PKCS structure, this function
+ *                 validates a signature over the internal data, using the
+ *                 supplied certificate and the same digest algorithm as
+ *                 specified by the signer. Verification succeeds if any
+ *                 signature is good.
+ *
+ *                 This function does not use the certificates held within the
+ *                 PKCS7 structure itself, and does not check that the
+ *                 certificate is signed by a trusted certification authority.
+ *
+ * \param pkcs7    PKCS7 structure containing both signature and signed data.
+ * \param cert     Certificate containing key to verify signature.
+ *
+ * \return         A negative error code on failure.
+ */
+int mbedtls_pkcs7_signed_content_verify( mbedtls_pkcs7 *pkcs7,
+                                         const mbedtls_x509_crt *cert );
 
 /**
  * \brief          Unallocate all PKCS7 data and zeroize the memory.

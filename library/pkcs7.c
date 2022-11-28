@@ -542,28 +542,48 @@ int mbedtls_pkcs7_parse_der( mbedtls_pkcs7 *pkcs7, const unsigned char *buf,
     pkcs7->raw.len = buflen;
     end = p + buflen;
 
-    ret = pkcs7_get_content_info_type( &p, end, &pkcs7->content_type_oid );
+    ret = mbedtls_asn1_get_tag( &p, end, &len, MBEDTLS_ASN1_CONSTRUCTED
+                                | MBEDTLS_ASN1_SEQUENCE );
     if( ret != 0 )
     {
+        ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_FORMAT, ret );
+        goto out;
+    }
+
+    if( (size_t)( end - p ) != len )
+    {
+        ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_FORMAT,
+                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+        goto out;
+    }
+
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len, MBEDTLS_ASN1_OID ) ) != 0 )
+    {
+        if( ret != MBEDTLS_ERR_ASN1_UNEXPECTED_TAG )
+            goto out;
+        p = pkcs7->raw.p;
         len = buflen;
         goto try_data;
     }
 
-    if( ! MBEDTLS_OID_CMP( MBEDTLS_OID_PKCS7_DATA, &pkcs7->content_type_oid )
-     || ! MBEDTLS_OID_CMP( MBEDTLS_OID_PKCS7_ENCRYPTED_DATA, &pkcs7->content_type_oid )
-     || ! MBEDTLS_OID_CMP( MBEDTLS_OID_PKCS7_ENVELOPED_DATA, &pkcs7->content_type_oid )
-     || ! MBEDTLS_OID_CMP( MBEDTLS_OID_PKCS7_SIGNED_AND_ENVELOPED_DATA, &pkcs7->content_type_oid )
-     || ! MBEDTLS_OID_CMP( MBEDTLS_OID_PKCS7_DIGESTED_DATA, &pkcs7->content_type_oid ) )
+    if( MBEDTLS_OID_CMP_RAW( MBEDTLS_OID_PKCS7_SIGNED_DATA, p, len ) )
     {
-        ret =  MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE;
+        if( ! MBEDTLS_OID_CMP_RAW( MBEDTLS_OID_PKCS7_DATA, p, len )
+         || ! MBEDTLS_OID_CMP_RAW( MBEDTLS_OID_PKCS7_ENCRYPTED_DATA, p, len )
+         || ! MBEDTLS_OID_CMP_RAW( MBEDTLS_OID_PKCS7_ENVELOPED_DATA, p, len )
+         || ! MBEDTLS_OID_CMP_RAW( MBEDTLS_OID_PKCS7_SIGNED_AND_ENVELOPED_DATA, p, len )
+         || ! MBEDTLS_OID_CMP_RAW( MBEDTLS_OID_PKCS7_DIGESTED_DATA, p, len ) )
+        {
+            ret =  MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE;
+        }
+        else
+        {
+            ret = MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA;
+        }
         goto out;
     }
 
-    if( MBEDTLS_OID_CMP( MBEDTLS_OID_PKCS7_SIGNED_DATA, &pkcs7->content_type_oid ) )
-    {
-        ret = MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA;
-        goto out;
-    }
+    p += len;
 
     isoidset = 1;
 

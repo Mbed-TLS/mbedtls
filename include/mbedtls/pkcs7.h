@@ -167,7 +167,6 @@ mbedtls_pkcs7_signed_data;
 typedef struct mbedtls_pkcs7
 {
     mbedtls_pkcs7_buf MBEDTLS_PRIVATE(raw);
-    mbedtls_pkcs7_buf MBEDTLS_PRIVATE(content_type_oid);
     mbedtls_pkcs7_signed_data MBEDTLS_PRIVATE(signed_data);
 }
 mbedtls_pkcs7;

@@ -446,7 +446,6 @@ static int pkcs7_get_signed_data( unsigned char *buf, size_t buflen,
 {
     unsigned char *p = buf;
     unsigned char *end = buf + buflen;
-    unsigned char *end_set;
     size_t len = 0;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_md_type_t md_alg;
@@ -458,15 +457,17 @@ static int pkcs7_get_signed_data( unsigned char *buf, size_t buflen,
         return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_FORMAT, ret ) );
     }
 
-    end_set = p + len;
+    if( p + len != end )
+        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_FORMAT,
+                                   MBEDTLS_ERR_ASN1_LENGTH_MISMATCH ) );
 
     /* Get version of signed data */
-    ret = pkcs7_get_version( &p, end_set, &signed_data->version );
+    ret = pkcs7_get_version( &p, end, &signed_data->version );
     if( ret != 0 )
         return( ret );
 
     /* Get digest algorithm */
-    ret = pkcs7_get_digest_algorithm_set( &p, end_set,
+    ret = pkcs7_get_digest_algorithm_set( &p, end,
             &signed_data->digest_alg_identifiers );
     if( ret != 0 )
         return( ret );
@@ -478,7 +479,7 @@ static int pkcs7_get_signed_data( unsigned char *buf, size_t buflen,
     }
 
     /* Do not expect any content */
-    ret = pkcs7_get_content_info_type( &p, end_set, &signed_data->content.oid );
+    ret = pkcs7_get_content_info_type( &p, end, &signed_data->content.oid );
     if( ret != 0 )
         return( ret );
 
@@ -489,7 +490,7 @@ static int pkcs7_get_signed_data( unsigned char *buf, size_t buflen,
 
     /* Look for certificates, there may or may not be any */
     mbedtls_x509_crt_init( &signed_data->certs );
-    ret = pkcs7_get_certificates( &p, end_set, &signed_data->certs );
+    ret = pkcs7_get_certificates( &p, end, &signed_data->certs );
     if( ret < 0 )
         return( ret );
 
@@ -504,7 +505,7 @@ static int pkcs7_get_signed_data( unsigned char *buf, size_t buflen,
     signed_data->no_of_crls = 0;
 
     /* Get signers info */
-    ret = pkcs7_get_signers_info_set( &p, end_set, &signed_data->signers );
+    ret = pkcs7_get_signers_info_set( &p, end, &signed_data->signers );
     if( ret < 0 )
         return( ret );
 

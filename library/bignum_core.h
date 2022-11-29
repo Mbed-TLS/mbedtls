@@ -452,6 +452,7 @@ void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
 int mbedtls_mpi_core_get_mont_r2_unsafe( mbedtls_mpi *X,
                                          const mbedtls_mpi *N );
 
+#if defined(MBEDTLS_TEST_HOOKS)
 /**
  * Copy an MPI from a table without leaking the index.
  *
@@ -469,6 +470,7 @@ void mbedtls_mpi_core_ct_uint_table_lookup( mbedtls_mpi_uint *dest,
                                             size_t limbs,
                                             size_t count,
                                             size_t index );
+#endif /* MBEDTLS_TEST_HOOKS */
 
 /**
  * \brief          Fill an integer with a number of random bytes.
@@ -495,6 +497,29 @@ int mbedtls_mpi_core_fill_random( mbedtls_mpi_uint *X, size_t X_limbs,
                                   void *p_rng );
 
 /* BEGIN MERGE SLOT 1 */
+
+/**
+ * \brief          Perform a modular exponentiation with secret exponent:
+ *                 X = A^E mod N
+ *
+ * \param[out] X   The destination MPI, as a little endian array of length
+ *                 \p AN_limbs.
+ * \param[in] A    The base MPI, as a little endian array of length \p AN_limbs.
+ * \param[in] N    The modulus, as a little endian array of length \p AN_limbs.
+ * \param AN_limbs The number of limbs in \p X, \p A, \p N, \p RR.
+ * \param[in] E    The exponent, as a little endian array of length \p E_limbs.
+ * \param E_limbs  The number of limbs in \p E.
+ * \param[in] RR   The precomputed residue of 2^{2*biL} modulo N, as a little
+ *                 endian array of length \p AN_limbs.
+ *
+ * \return         \c 0 if successful.
+ * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if a memory allocation failed.
+ */
+int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
+                              const mbedtls_mpi_uint *A,
+                              const mbedtls_mpi_uint *N, size_t AN_limbs,
+                              const mbedtls_mpi_uint *E, size_t E_limbs,
+                              const mbedtls_mpi_uint *RR );
 
 /* END MERGE SLOT 1 */
 

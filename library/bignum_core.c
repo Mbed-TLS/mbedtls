@@ -540,6 +540,7 @@ cleanup:
     return( ret );
 }
 
+MBEDTLS_STATIC_TESTABLE
 void mbedtls_mpi_core_ct_uint_table_lookup( mbedtls_mpi_uint *dest,
                                             const mbedtls_mpi_uint *table,
                                             size_t limbs,
@@ -581,6 +582,162 @@ cleanup:
 }
 
 /* BEGIN MERGE SLOT 1 */
+
+static size_t exp_mod_get_window_size( size_t Ebits )
+{
+    size_t wsize = ( Ebits > 671 ) ? 6 : ( Ebits > 239 ) ? 5 :
+                   ( Ebits >  79 ) ? 4 : 1;
+
+#if( MBEDTLS_MPI_WINDOW_SIZE < 6 )
+    if( wsize > MBEDTLS_MPI_WINDOW_SIZE )
+        wsize = MBEDTLS_MPI_WINDOW_SIZE;
+#endif
+
+    return( wsize );
+}
+
+static void exp_mod_precompute_window( const mbedtls_mpi_uint *A,
+                                       const mbedtls_mpi_uint *N,
+                                       size_t AN_limbs,
+                                       mbedtls_mpi_uint mm,
+                                       const mbedtls_mpi_uint *RR,
+                                       size_t welem,
+                                       mbedtls_mpi_uint *Wtable,
+                                       mbedtls_mpi_uint *temp )
+{
+    /* W[0] = 1 (in Montgomery presentation) */
+    memset( Wtable, 0, AN_limbs * ciL );
+    Wtable[0] = 1;
+    mbedtls_mpi_core_montmul( Wtable, Wtable, RR, AN_limbs, N, AN_limbs, mm, temp );
+
+    /* W[1] = A * R^2 * R^-1 mod N = A * R mod N */
+    mbedtls_mpi_uint *W1 = Wtable + AN_limbs;
+    mbedtls_mpi_core_montmul( W1, A, RR, AN_limbs, N, AN_limbs, mm, temp );
+
+    /* W[i+1] = W[i] * W[1], i >= 2 */
+    mbedtls_mpi_uint *Wprev = W1;
+    for( size_t i = 2; i < welem; i++ )
+    {
+        mbedtls_mpi_uint *Wcur = Wprev + AN_limbs;
+        mbedtls_mpi_core_montmul( Wcur, Wprev, W1, AN_limbs, N, AN_limbs, mm, temp );
+        Wprev = Wcur;
+    }
+}
+
+/* Exponentiation: X := A^E mod N.
+ *
+ * As in other bignum functions, assume that AN_limbs and E_limbs are nonzero.
+ *
+ * RR must contain 2^{2*biL} mod N.
+ *
+ * The algorithm is a variant of Left-to-right k-ary exponentiation: HAC 14.82
+ * (The difference is that the body in our loop processes a single bit instead
+ * of a full window.)
+ */
+int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
+                              const mbedtls_mpi_uint *A,
+                              const mbedtls_mpi_uint *N,
+                              size_t AN_limbs,
+                              const mbedtls_mpi_uint *E,
+                              size_t E_limbs,
+                              const mbedtls_mpi_uint *RR )
+{
+    const size_t wsize = exp_mod_get_window_size( E_limbs * biL );
+    const size_t welem = ( (size_t) 1 ) << wsize;
+
+    /* Allocate memory pool and set pointers to parts of it */
+    const size_t table_limbs   = welem * AN_limbs;
+    const size_t temp_limbs    = 2 * AN_limbs + 1;
+    const size_t select_limbs  = AN_limbs;
+    const size_t total_limbs   = table_limbs + temp_limbs + select_limbs;
+
+    /* heap allocated memory pool */
+    mbedtls_mpi_uint *mempool =
+        mbedtls_calloc( total_limbs, sizeof(mbedtls_mpi_uint) );
+    if( mempool == NULL )
+    {
+        return( MBEDTLS_ERR_MPI_ALLOC_FAILED );
+    }
+
+    /* pointers to temporaries within memory pool */
+    mbedtls_mpi_uint *const Wtable  = mempool;
+    mbedtls_mpi_uint *const Wselect = Wtable    + table_limbs;
+    mbedtls_mpi_uint *const temp    = Wselect  + select_limbs;
+
+    /*
+     * Window precomputation
+     */
+
+    const mbedtls_mpi_uint mm = mbedtls_mpi_core_montmul_init( N );
+
+    /* Set Wtable[i] = A^(2^i) (in Montgomery representation) */
+    exp_mod_precompute_window( A, N, AN_limbs,
+                               mm, RR,
+                               welem, Wtable, temp );
+
+    /*
+     * Fixed window exponentiation
+     */
+
+    /* X = 1 (in Montgomery presentation) initially */
+    memcpy( X, Wtable, AN_limbs * ciL );
+
+    /* We'll process the bits of E from most significant
+     * (limb_index=E_limbs-1, E_bit_index=biL-1) to least significant
+     * (limb_index=0, E_bit_index=0). */
+    size_t E_limb_index = E_limbs;
+    size_t E_bit_index = 0;
+    /* At any given time, window contains window_bits bits from E.
+     * window_bits can go up to wsize. */
+    size_t window_bits = 0;
+    mbedtls_mpi_uint window = 0;
+
+    do
+    {
+        /* Square */
+        mbedtls_mpi_core_montmul( X, X, X, AN_limbs, N, AN_limbs, mm, temp );
+
+        /* Move to the next bit of the exponent */
+        if( E_bit_index == 0 )
+        {
+            --E_limb_index;
+            E_bit_index = biL - 1;
+        }
+        else
+        {
+            --E_bit_index;
+        }
+        /* Insert next exponent bit into window */
+        ++window_bits;
+        window <<= 1;
+        window |= ( E[E_limb_index] >> E_bit_index ) & 1;
+
+        /* Clear window if it's full. Also clear the window at the end,
+         * when we've finished processing the exponent. */
+        if( window_bits == wsize ||
+            ( E_bit_index == 0 && E_limb_index == 0 ) )
+        {
+            /* Select Wtable[window] without leaking window through
+             * memory access patterns. */
+            mbedtls_mpi_core_ct_uint_table_lookup( Wselect, Wtable,
+                                                   AN_limbs, welem, window );
+            /* Multiply X by the selected element. */
+            mbedtls_mpi_core_montmul( X, X, Wselect, AN_limbs, N, AN_limbs, mm,
+                                      temp );
+            window = 0;
+            window_bits = 0;
+        }
+    }
+    while( ! ( E_bit_index == 0 && E_limb_index == 0 ) );
+
+    /* Convert X back to normal presentation */
+    const mbedtls_mpi_uint one = 1;
+    mbedtls_mpi_core_montmul( X, X, &one, 1, N, AN_limbs, mm, temp );
+
+    mbedtls_platform_zeroize( mempool, total_limbs * sizeof(mbedtls_mpi_uint) );
+    mbedtls_free( mempool );
+    return( 0 );
+}
 
 /* END MERGE SLOT 1 */
 

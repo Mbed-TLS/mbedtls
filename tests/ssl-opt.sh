@@ -8016,6 +8016,8 @@ run_test    "ECJPAKE: working, TLS, opaque password" \
             0 \
             -c "add ciphersuite: c0ff" \
             -c "adding ecjpake_kkpp extension" \
+            -c "using opaque password" \
+            -s "using opaque password" \
             -C "re-using cached ecjpake parameters" \
             -s "found ecjpake kkpp extension" \
             -S "skip ecjpake kkpp extension" \

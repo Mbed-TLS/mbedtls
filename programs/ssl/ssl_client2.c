@@ -2201,6 +2201,7 @@ int main( int argc, char *argv[] )
                 mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hs_ecjpake_password_opaque returned %d\n\n", ret );
                 goto exit;
             }
+            mbedtls_printf( "using opaque password\n");
         }
         else
 #endif  /* MBEDTLS_USE_PSA_CRYPTO */

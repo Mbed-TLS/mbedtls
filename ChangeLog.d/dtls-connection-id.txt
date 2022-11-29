@@ -3,7 +3,7 @@ Features
      MBEDTLS_SSL_DTLS_CONNECTION_ID (enabled by default) and configured with
      mbedtls_ssl_set_cid().
 
-Changes
+Default behavior changes
    * Previously the macro MBEDTLS_SSL_DTLS_CONNECTION_ID implemented version 05
      of the IETF draft, and was marked experimental and disabled by default.
      It is now no longer experimental, and implements the final version from

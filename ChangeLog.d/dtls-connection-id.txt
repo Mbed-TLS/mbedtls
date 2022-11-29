@@ -1,0 +1,16 @@
+Features
+   * Add support for DTLS Connection ID as defined by RFC 9146, controlled by
+     MBEDTLS_SSL_DTLS_CONNECTION_ID (enabled by default) and configured with
+     mbedtls_ssl_set_cid().
+
+Changes
+   * Previously the macro MBEDTLS_SSL_DTLS_CONNECTION_ID implemented version 05
+     of the draft, and was marked experimental and disabled by default. It is
+     now no longer experimental, and implements the final version from RFC 9146,
+     which is not interoperable with the draft-05 version. If you need to
+     communicate with peers that use earlier versions of Mbed TLS, you
+     need to define MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT to 1, but then you
+     won't be able to communicate with peers that use the standard (non-draft)
+     version. If you need to interoperate with both classes of peers with the
+     same build of Mbed TLS, please let us know about your situation on the
+     mailing list or GitHub.

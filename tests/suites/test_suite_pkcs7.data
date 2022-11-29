@@ -62,6 +62,14 @@ PKCS7 Signed Data Parse Failure Corrupt signerInfo.serial #15.2
 depends_on:MBEDTLS_SHA256_C
 pkcs7_parse:"data_files/pkcs7_signerInfo_serial_invalid_size.der":MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO
 
+pkcs7_get_signers_info_set error handling (6213931373035520)
+depends_on:MBEDTLS_RIPEMD160_C
+pkcs7_parse:"data_files/pkcs7_get_signers_info_set-missing_free-fuzz_pkcs7-6213931373035520.der":MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO + MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+
+pkcs7_get_signers_info_set error handling (4541044530479104)
+depends_on:MBEDTLS_RIPEMD160_C
+pkcs7_parse:"data_files/pkcs7_get_signers_info_set-missing_free-fuzz_pkcs7-6213931373035520.der":MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO + MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+
 PKCS7 Only Signed Data Parse Pass #15
 depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
 pkcs7_parse:"data_files/pkcs7_data_cert_signeddata_sha256.der":MBEDTLS_PKCS7_SIGNED_DATA

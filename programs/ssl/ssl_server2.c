@@ -1509,10 +1509,10 @@ int main( int argc, char *argv[] )
     unsigned char *context_buf = NULL;
     size_t context_buf_len = 0;
 #endif
-#if defined( MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED ) && \
-    defined( MBEDTLS_USE_PSA_CRYPTO )
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) && \
+    defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_svc_key_id_t ecjpake_pw_slot = MBEDTLS_SVC_KEY_ID_INIT; /* ecjpake password key slot */
-#endif // MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
+#endif /* MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
     uint16_t sig_alg_list[SIG_ALG_LIST_SIZE];
@@ -3498,10 +3498,10 @@ reset:
     }
 #endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY */
 
-#if defined( MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED )
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if( opt.ecjpake_pw != DFL_ECJPAKE_PW )
     {
-#if defined( MBEDTLS_USE_PSA_CRIPTO )
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
         if ( opt.ecjpake_pw_opaque != DFL_ECJPAKE_PW_OPAQUE )
         {
             psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -3528,7 +3528,7 @@ reset:
             }
         }
         else
-#endif  // MBEDTLS_USE_PSA_CRIPTO
+#endif  /* MBEDTLS_USE_PSA_CRYPTO */
         {
             if( ( ret = mbedtls_ssl_set_hs_ecjpake_password( &ssl,
                                         (const unsigned char *) opt.ecjpake_pw,
@@ -3539,7 +3539,7 @@ reset:
             }
         }
     }
-#endif // MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
+#endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
 #if defined(MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED)
@@ -4425,13 +4425,13 @@ exit:
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED &&
           MBEDTLS_USE_PSA_CRYPTO */
 
-#if defined( MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED ) && \
-    defined( MBEDTLS_USE_PSA_CRYPTO )
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) && \
+    defined(MBEDTLS_USE_PSA_CRYPTO)
     if( opt.ecjpake_pw_opaque != DFL_ECJPAKE_PW_OPAQUE )
     {
         psa_destroy_key( ecjpake_pw_slot );
     }
-#endif  //   MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED && MBEDTLS_USE_PSA_CRYPTO
+#endif  /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED && MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
     const char* message = mbedtls_test_helper_is_psa_leaking();

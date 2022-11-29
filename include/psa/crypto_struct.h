@@ -514,10 +514,18 @@ static inline size_t psa_get_key_bits(
  */
 struct psa_sign_hash_interruptible_operation_s
 {
+    /** Unique ID indicating which driver got assigned to do the
+     * operation. Since driver contexts are driver-specific, swapping
+     * drivers halfway through the operation is not supported.
+     * ID values are auto-generated in psa_crypto_driver_wrappers.h
+     * ID value zero means the context is not valid or not assigned to
+     * any driver (i.e. none of the driver contexts are active). */
+    unsigned int MBEDTLS_PRIVATE( id );
+
     size_t MBEDTLS_PRIVATE( num_ops );
 };
 
-#define PSA_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT {0}
+#define PSA_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT {0, 0}
 
 static inline struct psa_sign_hash_interruptible_operation_s
                               psa_sign_hash_interruptible_operation_init( void )
@@ -536,10 +544,18 @@ static inline struct psa_sign_hash_interruptible_operation_s
  */
 struct psa_verify_hash_interruptible_operation_s
 {
+    /** Unique ID indicating which driver got assigned to do the
+      * operation. Since driver contexts are driver-specific, swapping
+      * drivers halfway through the operation is not supported.
+      * ID values are auto-generated in psa_crypto_driver_wrappers.h
+      * ID value zero means the context is not valid or not assigned to
+      * any driver (i.e. none of the driver contexts are active). */
+    unsigned int MBEDTLS_PRIVATE( id );
+
     size_t MBEDTLS_PRIVATE( num_ops );
 };
 
-#define PSA_VERIFY_HASH_INTERRUPTIBLE_OPERATION_INIT {0}
+#define PSA_VERIFY_HASH_INTERRUPTIBLE_OPERATION_INIT {0, 0}
 
 static inline struct psa_verify_hash_interruptible_operation_s
                             psa_verify_hash_interruptible_operation_init( void )

@@ -224,7 +224,8 @@ static int ssl_tls13_make_traffic_key(
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    ret = mbedtls_ssl_tls13_hkdf_expand_label( hash_alg,
+    ret = mbedtls_ssl_tls13_hkdf_expand_label(
+                    hash_alg,
                     secret, secret_len,
                     MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( key ),
                     NULL, 0,
@@ -232,7 +233,8 @@ static int ssl_tls13_make_traffic_key(
     if( ret != 0 )
         return( ret );
 
-    ret = mbedtls_ssl_tls13_hkdf_expand_label( hash_alg,
+    ret = mbedtls_ssl_tls13_hkdf_expand_label(
+                    hash_alg,
                     secret, secret_len,
                     MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( iv ),
                     NULL, 0,
@@ -1103,16 +1105,13 @@ static int ssl_tls13_generate_early_key( mbedtls_ssl_context *ssl,
                                          mbedtls_ssl_key_set *traffic_keys )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
     mbedtls_md_type_t md_type;
-
     psa_algorithm_t hash_alg;
     size_t hash_len;
-
     unsigned char transcript[MBEDTLS_TLS1_3_MD_MAX_SIZE];
     size_t transcript_len;
-
-    size_t key_len, iv_len;
+    size_t key_len;
+    size_t iv_len;
 
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info = handshake->ciphersuite_info;

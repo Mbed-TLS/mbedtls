@@ -7295,11 +7295,34 @@ psa_status_t psa_pake_get_implicit_key(
     psa_pake_operation_t *operation,
     psa_key_derivation_operation_t *output)
 {
+    psa_status_t status = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    uint8_t shared_key[MBEDTLS_PSA_PAKE_BUFFER_SIZE];
+    size_t shared_key_len = 0;
+
     if (operation->id == 0) {
         return PSA_ERROR_BAD_STATE;
     }
 
-    return psa_driver_wrapper_pake_get_implicit_key(operation, output);
+    status = psa_driver_wrapper_pake_get_implicit_key(operation,
+                                                      shared_key,
+                                                      &shared_key_len);
+
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
+
+    status = psa_key_derivation_input_bytes(output,
+                                            PSA_KEY_DERIVATION_INPUT_SECRET,
+                                            shared_key,
+                                            shared_key_len);
+
+    if (status != PSA_SUCCESS) {
+        psa_key_derivation_abort(output);
+    }
+
+    mbedtls_platform_zeroize(shared_key, MBEDTLS_PSA_PAKE_BUFFER_SIZE);
+
+    return status;
 }
 
 psa_status_t psa_pake_abort(

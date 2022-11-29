@@ -270,7 +270,7 @@ psa_status_t mbedtls_test_transparent_pake_input(
 
 psa_status_t mbedtls_test_transparent_pake_get_implicit_key(
     mbedtls_transparent_test_driver_pake_operation_t *operation,
-    psa_key_derivation_operation_t *output)
+    uint8_t *output, size_t *output_size)
 {
     mbedtls_test_driver_pake_hooks.hits++;
 
@@ -282,11 +282,11 @@ psa_status_t mbedtls_test_transparent_pake_get_implicit_key(
         defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_PAKE)
         mbedtls_test_driver_pake_hooks.driver_status =
             libtestdriver1_mbedtls_psa_pake_get_implicit_key(
-                operation, (libtestdriver1_psa_key_derivation_operation_t *) output);
+                operation,  output, output_size);
 #elif defined(MBEDTLS_PSA_BUILTIN_PAKE)
         mbedtls_test_driver_pake_hooks.driver_status =
             mbedtls_psa_pake_get_implicit_key(
-                operation, output);
+                operation, output, output_size);
 #else
         (void) operation;
         (void) output;
@@ -411,10 +411,11 @@ psa_status_t mbedtls_test_opaque_pake_input(
 
 psa_status_t mbedtls_test_opaque_pake_get_implicit_key(
     mbedtls_opaque_test_driver_pake_operation_t *operation,
-    psa_key_derivation_operation_t *output)
+    uint8_t *output, size_t *output_size)
 {
     (void) operation;
     (void) output;
+    (void) output_size;
     return PSA_ERROR_NOT_SUPPORTED;
 }
 

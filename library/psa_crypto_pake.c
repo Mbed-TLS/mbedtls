@@ -835,7 +835,7 @@ psa_status_t mbedtls_psa_pake_input(mbedtls_psa_pake_operation_t *operation,
 
 psa_status_t mbedtls_psa_pake_get_implicit_key(
     mbedtls_psa_pake_operation_t *operation,
-    psa_key_derivation_operation_t *output)
+    uint8_t *output, size_t *output_size)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
@@ -863,16 +863,14 @@ psa_status_t mbedtls_psa_pake_get_implicit_key(
             return mbedtls_ecjpake_to_psa_error(ret);
         }
 
-        status = psa_key_derivation_input_bytes(output,
-                                                PSA_KEY_DERIVATION_INPUT_SECRET,
-                                                operation->buffer,
-                                                operation->buffer_length);
+        memcpy(output, operation->buffer, operation->buffer_length);
+        *output_size = operation->buffer_length;
 
         mbedtls_platform_zeroize(operation->buffer, MBEDTLS_PSA_PAKE_BUFFER_SIZE);
 
         mbedtls_psa_pake_abort(operation);
 
-        return status;
+        return PSA_SUCCESS;
     } else
 #else
     (void) output;
@@ -880,7 +878,6 @@ psa_status_t mbedtls_psa_pake_get_implicit_key(
     { status = PSA_ERROR_NOT_SUPPORTED; }
 
 error:
-    psa_key_derivation_abort(output);
     mbedtls_psa_pake_abort(operation);
 
     return status;

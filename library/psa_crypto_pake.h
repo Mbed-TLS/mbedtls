@@ -442,7 +442,7 @@ psa_status_t mbedtls_psa_pake_input(mbedtls_psa_pake_operation_t *operation,
  */
 psa_status_t mbedtls_psa_pake_get_implicit_key(
     mbedtls_psa_pake_operation_t *operation,
-    psa_key_derivation_operation_t *output);
+    uint8_t *output, size_t *output_size);
 
 /** Abort a PAKE operation.
  *

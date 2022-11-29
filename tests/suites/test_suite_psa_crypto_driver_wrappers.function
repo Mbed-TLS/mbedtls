@@ -1,6 +1,5 @@
 /* BEGIN_HEADER */
 #include "test/drivers/test_driver.h"
-#include <stdio.h>
 
 #if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY)
 /* Sanity checks on the output of RSA encryption.

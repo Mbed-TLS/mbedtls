@@ -1,3 +1,4 @@
 Bugfix
    * Fix an issue with CMake builds in releases with GEN_FILES turned off,
-     whereby missing generated files could be turned into symlinks to themselves.
+     whereby missing generated files could be turned into symlinks to
+     themselves.

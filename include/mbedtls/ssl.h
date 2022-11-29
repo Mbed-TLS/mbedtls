@@ -409,6 +409,14 @@
 /** \} name SECTION: Module settings */
 
 /*
+ * Default to standard CID mode
+ */
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID) && \
+    !defined(MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT)
+#define MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT 0
+#endif
+
+/*
  * Length of the verify data for secure renegotiation
  */
 #define MBEDTLS_SSL_VERIFY_DATA_MAX_LEN 12
@@ -576,15 +584,10 @@
 #define MBEDTLS_TLS_EXT_SIG_ALG_CERT                50 /* RFC 8446 TLS 1.3 */
 #define MBEDTLS_TLS_EXT_KEY_SHARE                   51 /* RFC 8446 TLS 1.3 */
 
-/* The value of the CID extension is still TBD as of
- * draft-ietf-tls-dtls-connection-id-05
- * (https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-05).
- *
- * A future minor revision of Mbed TLS may change the default value of
- * this option to match evolving standards and usage.
- */
-#if !defined(MBEDTLS_TLS_EXT_CID)
-#define MBEDTLS_TLS_EXT_CID                        254 /* TBD */
+#if MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT == 0
+#define MBEDTLS_TLS_EXT_CID                         54 /* RFC 9146 DTLS 1.2 CID */
+#else
+#define MBEDTLS_TLS_EXT_CID                        254 /* Pre-RFC 9146 DTLS 1.2 CID */
 #endif
 
 #define MBEDTLS_TLS_EXT_ECJPAKE_KKPP               256 /* experimental */
@@ -2074,8 +2077,9 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  * \brief             Configure the use of the Connection ID (CID)
  *                    extension in the next handshake.
  *
- *                    Reference: draft-ietf-tls-dtls-connection-id-05
+ *                    Reference: RFC 9146 (or draft-ietf-tls-dtls-connection-id-05
  *                    https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-05
+ *                    for legacy version)
  *
  *                    The DTLS CID extension allows the reliable association of
  *                    DTLS records to DTLS connections across changes in the

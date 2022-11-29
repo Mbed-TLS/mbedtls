@@ -226,9 +226,6 @@ static int ssl_write_cid_ext( mbedtls_ssl_context *ssl,
     size_t ext_len;
 
     /*
-     * Quoting draft-ietf-tls-dtls-connection-id-05
-     * https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-05
-     *
      *   struct {
      *      opaque cid<0..2^8-1>;
      *   } ConnectionId;

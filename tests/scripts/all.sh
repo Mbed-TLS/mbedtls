@@ -1591,6 +1591,17 @@ component_test_full_cmake_clang () {
     env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
 }
 
+skip_suites_without_constant_flow () {
+    # Skip the test suites that don't have any constant-flow annotations.
+    # This will need to be adjusted if we ever start declaring things as
+    # secret from macros or functions inside tests/include or tests/src.
+    SKIP_TEST_SUITES=$(
+        git -C tests/suites grep -L TEST_CF_ 'test_suite_*.function' |
+            sed 's/test_suite_//; s/\.function$//' |
+            tr '\n' ,)
+    export SKIP_TEST_SUITES
+}
+
 component_test_memsan_constant_flow () {
     # This tests both (1) accesses to undefined memory, and (2) branches or
     # memory access depending on secret values. To distinguish between those:
@@ -1642,12 +1653,13 @@ component_test_valgrind_constant_flow () {
     scripts/config.py full
     scripts/config.py set MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
+    skip_suites_without_constant_flow
     cmake -D CMAKE_BUILD_TYPE:String=Release .
     make
 
     # this only shows a summary of the results (how many of each type)
     # details are left in Testing/<date>/DynamicAnalysis.xml
-    msg "test: main suites (full minus MBEDTLS_USE_PSA_CRYPTO, valgrind + constant flow)"
+    msg "test: some suites (full minus MBEDTLS_USE_PSA_CRYPTO, valgrind + constant flow)"
     make memcheck
 }
 
@@ -1664,12 +1676,13 @@ component_test_valgrind_constant_flow_psa () {
     msg "build: cmake release GCC, full config with constant flow testing"
     scripts/config.py full
     scripts/config.py set MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND
+    skip_suites_without_constant_flow
     cmake -D CMAKE_BUILD_TYPE:String=Release .
     make
 
     # this only shows a summary of the results (how many of each type)
     # details are left in Testing/<date>/DynamicAnalysis.xml
-    msg "test: main suites (valgrind + constant flow)"
+    msg "test: some suites (valgrind + constant flow)"
     make memcheck
 }
 

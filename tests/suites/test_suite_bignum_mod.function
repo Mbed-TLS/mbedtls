@@ -210,7 +210,118 @@ exit:
 /* END MERGE SLOT 4 */
 
 /* BEGIN MERGE SLOT 5 */
+/* BEGIN_CASE */
+void mpi_mod_add( char * input_N,
+                  char * input_A, char * input_B,
+                  char * input_S, int oret )
+{
+    mbedtls_mpi_mod_residue a = { NULL, 0 };
+    mbedtls_mpi_mod_residue b = { NULL, 0 };
+    mbedtls_mpi_mod_residue s = { NULL, 0 };
+    mbedtls_mpi_mod_residue x = { NULL, 0 };
+    mbedtls_mpi_uint *X_raw = NULL;
 
+    mbedtls_mpi_mod_modulus m;
+    mbedtls_mpi_mod_modulus_init( &m );
+
+    TEST_EQUAL( 0,
+        test_read_modulus( &m, MBEDTLS_MPI_MOD_REP_MONTGOMERY, input_N ) );
+
+    /* test_read_residue() normally checks that inputs have the same number of
+     * limbs as the modulus. For negative testing we can ask it to skip this
+     * with a non-zero final parameter. */
+    TEST_EQUAL( 0, test_read_residue( &a, &m, input_A, oret != 0 ) );
+    TEST_EQUAL( 0, test_read_residue( &b, &m, input_B, oret != 0 ) );
+    TEST_EQUAL( 0, test_read_residue( &s, &m, input_S, oret != 0 ) );
+
+    size_t limbs = m.limbs;
+    size_t bytes = limbs * sizeof( *X_raw );
+
+    /* One spare limb for negative testing */
+    ASSERT_ALLOC( X_raw, limbs + 1 );
+
+    if( oret == 0 )
+    {
+        /* Negative test with too many limbs in output */
+        x.p = X_raw;
+        x.limbs = limbs + 1;
+        TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                    mbedtls_mpi_mod_add( &x, &a, &b, &m ) );
+
+        /* Negative test with too few limbs in output */
+        if( limbs > 1 )
+        {
+            x.p = X_raw;
+            x.limbs = limbs - 1;
+            TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                        mbedtls_mpi_mod_add( &x, &a, &b, &m ) );
+        }
+
+        /* Negative testing with too many/too few limbs in a and b is covered by
+         * manually-written test cases with oret != 0. */
+    }
+
+    TEST_EQUAL( 0, mbedtls_mpi_mod_residue_setup( &x, &m, X_raw, limbs ) );
+
+    /* A + B => Correct result or expected error */
+    TEST_EQUAL( oret, mbedtls_mpi_mod_add( &x, &a, &b, &m ) );
+    if( oret != 0 )
+        goto exit;
+
+    TEST_COMPARE_MPI_RESIDUES( x, s );
+
+    /* a + b: alias x to a => Correct result */
+    memcpy( x.p, a.p, bytes );
+    TEST_EQUAL( 0, mbedtls_mpi_mod_add( &x, &x, &b, &m ) );
+    TEST_COMPARE_MPI_RESIDUES( x, s );
+
+    /* a + b: alias x to b => Correct result */
+    memcpy( x.p, b.p, bytes );
+    TEST_EQUAL( 0, mbedtls_mpi_mod_add( &x, &a, &x, &m ) );
+    TEST_COMPARE_MPI_RESIDUES( x, s );
+
+    if ( memcmp( a.p, b.p, bytes ) == 0 )
+    {
+        /* a == b: alias a and b */
+
+        /* a + a => Correct result */
+        TEST_EQUAL( 0, mbedtls_mpi_mod_add( &x, &a, &a, &m ) );
+        TEST_COMPARE_MPI_RESIDUES( x, s );
+
+        /* a + a: x, a, b all aliased together => Correct result */
+        memcpy( x.p, a.p, bytes );
+        TEST_EQUAL( 0, mbedtls_mpi_mod_add( &x, &x, &x, &m ) );
+        TEST_COMPARE_MPI_RESIDUES( x, s );
+    }
+    else
+    {
+        /* a != b: test b + a */
+
+        /* b + a => Correct result */
+        mbedtls_mpi_mod_add( &x, &b, &a, &m );
+        TEST_COMPARE_MPI_RESIDUES( x, s );
+
+        /* b + a: alias x to a => Correct result */
+        memcpy( x.p, a.p, bytes );
+        TEST_EQUAL( 0, mbedtls_mpi_mod_add( &x, &b, &x, &m ) );
+        TEST_COMPARE_MPI_RESIDUES( x, s );
+
+        /* b + a: alias x to b => Correct result */
+        memcpy( x.p, b.p, bytes );
+        TEST_EQUAL( 0, mbedtls_mpi_mod_add( &x, &x, &a, &m ) );
+        TEST_COMPARE_MPI_RESIDUES( x, s );
+    }
+
+exit:
+    mbedtls_free( (void *)m.p ); /* mbedtls_mpi_mod_modulus_free() sets m.p = NULL */
+    mbedtls_mpi_mod_modulus_free( &m );
+
+    mbedtls_free( a.p );
+    mbedtls_free( b.p );
+    mbedtls_free( s.p );
+    mbedtls_free( X_raw );
+}
+/* END_CASE */
 /* END MERGE SLOT 5 */
 
 /* BEGIN MERGE SLOT 6 */

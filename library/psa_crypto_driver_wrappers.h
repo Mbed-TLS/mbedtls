@@ -67,6 +67,47 @@ psa_status_t psa_driver_wrapper_verify_hash(
     const uint8_t *signature, size_t signature_length);
 
 /*
+ * Interruptible Signature functions
+ */
+
+void psa_driver_wrapper_interruptible_set_max_ops(uint32_t max_ops);
+
+uint32_t psa_driver_wrapper_interruptible_get_max_ops(void);
+
+uint32_t psa_driver_wrapper_sign_hash_get_num_ops(
+    const psa_sign_hash_interruptible_operation_t *operation);
+
+uint32_t psa_driver_wrapper_verify_hash_get_num_ops(
+    const psa_verify_hash_interruptible_operation_t *operation);
+
+psa_status_t psa_driver_wrapper_sign_hash_start(
+    psa_sign_hash_interruptible_operation_t *operation,
+    const psa_key_attributes_t *attributes, const uint8_t *key_buffer,
+    size_t key_buffer_size, psa_algorithm_t alg,
+    const uint8_t *hash, size_t hash_length);
+
+psa_status_t psa_driver_wrapper_sign_hash_complete(
+    psa_sign_hash_interruptible_operation_t *operation,
+    uint8_t *signature, size_t signature_size,
+    size_t *signature_length);
+
+psa_status_t psa_driver_wrapper_sign_hash_abort(
+    psa_sign_hash_interruptible_operation_t *operation);
+
+psa_status_t psa_driver_wrapper_verify_hash_start(
+    psa_verify_hash_interruptible_operation_t *operation,
+    const psa_key_attributes_t *attributes, const uint8_t *key_buffer,
+    size_t key_buffer_size, psa_algorithm_t alg,
+    const uint8_t *hash, size_t hash_length,
+    const uint8_t *signature, size_t signature_length);
+
+psa_status_t psa_driver_wrapper_verify_hash_complete(
+    psa_verify_hash_interruptible_operation_t *operation);
+
+psa_status_t psa_driver_wrapper_verify_hash_abort(
+    psa_verify_hash_interruptible_operation_t *operation);
+
+/*
  * Key handling functions
  */
 

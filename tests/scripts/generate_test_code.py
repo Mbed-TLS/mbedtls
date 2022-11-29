@@ -552,14 +552,12 @@ def skip_comments(line, stream):
         pos = closing + 2
         # Replace inner comment by spaces. There needs to be at least one space
         # for things like 'int/*ihatespaces*/foo'. Go further and preserve the
-        # width of the comment, this way column positions in error messages
-        # remain correct.
-        # TODO: It would be better to preserve line breaks, to get accurate
-        # line numbers if there's something interesting after a comment on
-        # the same line.
+        # width of the comment and line breaks, this way positions in error
+        # messages remain correct.
         line = (line[:opening.start(0)] +
-                ' ' * (pos - opening.start(0)) +
+                re.sub(r'.', r' ', line[opening.start(0):pos]) +
                 line[pos:])
+    # Strip whitespace at the end of lines (it's irrelevant to error messages).
     return re.sub(r' +(\n|\Z)', r'\1', line)
 
 def parse_function_code(funcs_f, dependencies, suite_dependencies):

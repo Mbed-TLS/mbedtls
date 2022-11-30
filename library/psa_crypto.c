@@ -3124,6 +3124,242 @@ exit:
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
 
+/****************************************************************/
+/* Asymmetric interruptible cryptography                        */
+/****************************************************************/
+
+void psa_interruptible_set_max_ops(uint32_t max_ops)
+{
+    psa_driver_wrapper_interruptible_set_max_ops(max_ops);
+}
+
+uint32_t psa_interruptible_get_max_ops(void)
+{
+    return psa_driver_wrapper_interruptible_get_max_ops();
+}
+
+
+uint32_t psa_sign_hash_get_num_ops(
+    const psa_sign_hash_interruptible_operation_t *operation)
+{
+    return psa_driver_wrapper_sign_hash_get_num_ops(operation);
+}
+
+uint32_t psa_verify_hash_get_num_ops(
+    const psa_verify_hash_interruptible_operation_t *operation)
+{
+    return psa_driver_wrapper_verify_hash_get_num_ops(operation);
+}
+
+psa_status_t psa_sign_hash_start(
+    psa_sign_hash_interruptible_operation_t *operation,
+    mbedtls_svc_key_id_t key, psa_algorithm_t alg,
+    const uint8_t *hash, size_t hash_length)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_slot_t *slot;
+
+    /* Check that start has not been previously called. */
+    if (operation->id != 0) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+
+    status = psa_sign_verify_check_alg(0, alg);
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
+
+    status = psa_get_and_lock_key_slot_with_policy(key, &slot,
+                                                   PSA_KEY_USAGE_SIGN_HASH,
+                                                   alg);
+
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+
+    if (!PSA_KEY_TYPE_IS_KEY_PAIR(slot->attr.type)) {
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto exit;
+    }
+
+    psa_key_attributes_t attributes = {
+        .core = slot->attr
+    };
+
+    status = psa_driver_wrapper_sign_hash_start(operation, &attributes,
+                                                slot->key.data,
+                                                slot->key.bytes, alg,
+                                                hash, hash_length);
+exit:
+
+    if (status != PSA_SUCCESS) {
+        psa_sign_hash_abort(operation);
+    }
+
+    unlock_status = psa_unlock_key_slot(slot);
+
+    return (status == PSA_SUCCESS) ? unlock_status : status;
+
+}
+
+
+psa_status_t psa_sign_hash_complete(
+    psa_sign_hash_interruptible_operation_t *operation,
+    uint8_t *signature, size_t signature_size,
+    size_t *signature_length)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    *signature_length = 0;
+
+    /* Check that start has been called first. */
+    if (operation->id == 0) {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
+    /* Immediately reject a zero-length signature buffer. This guarantees
+     * that signature must be a valid pointer. (On the other hand, the input
+     * buffer can in principle be empty since it doesn't actually have
+     * to be a hash.) */
+    if (signature_size == 0) {
+        status = PSA_ERROR_BUFFER_TOO_SMALL;
+        goto exit;
+    }
+
+    status = psa_driver_wrapper_sign_hash_complete(operation, signature,
+                                                   signature_size,
+                                                   signature_length);
+exit:
+
+    if (status != PSA_OPERATION_INCOMPLETE) {
+        /* Fill the unused part of the output buffer (the whole buffer on error,
+         * the trailing part on success) with something that isn't a valid
+         * signature (barring an attack on the signature and
+         * deliberately-crafted input), in case the caller doesn't check the
+         * return status properly.*/
+        if (status == PSA_SUCCESS) {
+            memset(signature + *signature_length, '!',
+                   signature_size - *signature_length);
+        } else if (signature_size > 0) {
+            memset(signature, '!', signature_size);
+        }
+        /* If signature_size is 0 then we have nothing to do. We must not
+         * call memset because signature may be NULL in this case.*/
+
+        psa_sign_hash_abort(operation);
+    }
+
+    return status;
+}
+
+psa_status_t psa_sign_hash_abort(
+    psa_sign_hash_interruptible_operation_t *operation)
+{
+    if (operation->id == 0) {
+        /* The object has (apparently) been initialized but it is not (yet)
+         * in use. It's ok to call abort on such an object, and there's
+         * nothing to do. */
+        return PSA_SUCCESS;
+    }
+
+    psa_driver_wrapper_sign_hash_abort(operation);
+
+    operation->id = 0;
+
+    return PSA_SUCCESS;
+}
+
+psa_status_t psa_verify_hash_start(
+    psa_verify_hash_interruptible_operation_t *operation,
+    mbedtls_svc_key_id_t key, psa_algorithm_t alg,
+    const uint8_t *hash, size_t hash_length,
+    const uint8_t *signature, size_t signature_length)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_slot_t *slot;
+
+    /* Check that start has not been previously called. */
+    if (operation->id != 0) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    status = psa_sign_verify_check_alg(0, alg);
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
+
+    status = psa_get_and_lock_key_slot_with_policy(key, &slot,
+                                                   PSA_KEY_USAGE_VERIFY_HASH,
+                                                   alg);
+
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
+
+    psa_key_attributes_t attributes = {
+        .core = slot->attr
+    };
+
+    status = psa_driver_wrapper_verify_hash_start(operation, &attributes,
+                                                  slot->key.data,
+                                                  slot->key.bytes,
+                                                  alg, hash, hash_length,
+                                                  signature, signature_length);
+
+    if (status != PSA_SUCCESS) {
+        psa_verify_hash_abort(operation);
+    }
+
+    unlock_status = psa_unlock_key_slot(slot);
+
+    return (status == PSA_SUCCESS) ? unlock_status : status;
+
+    return status;
+}
+
+psa_status_t psa_verify_hash_complete(
+    psa_verify_hash_interruptible_operation_t *operation)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    /* Check that start has been called first. */
+    if (operation->id == 0) {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
+    status = psa_driver_wrapper_verify_hash_complete(operation);
+
+exit:
+
+    if (status != PSA_OPERATION_INCOMPLETE) {
+        psa_verify_hash_abort(operation);
+    }
+
+    return status;
+}
+
+psa_status_t psa_verify_hash_abort(
+    psa_verify_hash_interruptible_operation_t *operation)
+{
+    if (operation->id == 0) {
+        /* The object has (apparently) been initialized but it is not (yet)
+         * in use. It's ok to call abort on such an object, and there's
+         * nothing to do. */
+        return PSA_SUCCESS;
+    }
+
+    psa_driver_wrapper_verify_hash_abort(operation);
+
+    operation->id = 0;
+
+    return PSA_SUCCESS;
+}
+
 
 
 /****************************************************************/

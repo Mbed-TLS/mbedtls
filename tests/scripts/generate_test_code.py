@@ -537,11 +537,15 @@ def skip_comments(line, stream):
             break
         if line[opening.start(0) + 1] == '/': # //...
             continuation = line
+            # Count the number of line breaks, to keep line numbers aligned
+            # in the output.
+            line_count = 1
             while continuation.endswith('\\\n'):
                 # This errors out if the file ends with an unfinished line
                 # comment. That's acceptable to not complicate the code further.
                 continuation = next(stream)
-            return line[:opening.start(0)].rstrip() + '\n'
+                line_count += 1
+            return line[:opening.start(0)].rstrip() + '\n' * line_count
         # Parsing /*...*/, looking for the end
         closing = line.find('*/', opening.end(0))
         while closing == -1:

@@ -767,6 +767,8 @@ exit:
 
 
 
+
+
 void test_func()
 {
     ba ba black sheep
@@ -813,6 +815,7 @@ exit:
         expected = '''#line 1 "test_suite_ut.function"
 
 void test_func( int x,
+
            int y                                 )
 {
     ba ba black sheep

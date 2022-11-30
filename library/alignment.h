@@ -158,6 +158,11 @@ inline void mbedtls_put_unaligned_uint64( void *p, uint64_t x )
 #define MBEDTLS_BSWAP64 _byteswap_uint64
 #endif /* defined(_MSC_VER) */
 
+/* Detect armcc built-in byteswap routine */
+#if defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= 410000)
+#define MBEDTLS_BSWAP32 __rev
+#endif
+
 /*
  * Where compiler built-ins are not present, fall back to C code that the
  * compiler may be able to detect and transform into the relevant bswap or

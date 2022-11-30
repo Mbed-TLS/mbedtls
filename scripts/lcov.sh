@@ -34,13 +34,14 @@ set -eu
 
 lcov_rebuild_stats () {
     rm -rf Coverage
-    lcov --capture --initial --directory library -o files.info
-    lcov --rc lcov_branch_coverage=1 --capture --directory library -o tests.info
-    lcov --rc lcov_branch_coverage=1 --add-tracefile files.info --add-tracefile tests.info -o all.info
-    lcov --rc lcov_branch_coverage=1 --remove all.info -o final.info '*.h'
-    gendesc tests/Descriptions.txt -o descriptions
-    genhtml --title "mbed TLS" --description-file descriptions --keep-descriptions --legend --branch-coverage -o Coverage final.info
-    rm -f files.info tests.info all.info final.info descriptions
+    mkdir Coverage Coverage/tmp
+    lcov --capture --initial --directory library -o Coverage/tmp/files.info
+    lcov --rc lcov_branch_coverage=1 --capture --directory library -o Coverage/tmp/tests.info
+    lcov --rc lcov_branch_coverage=1 --add-tracefile Coverage/tmp/files.info --add-tracefile Coverage/tmp/tests.info -o Coverage/tmp/all.info
+    lcov --rc lcov_branch_coverage=1 --remove Coverage/tmp/all.info -o Coverage/tmp/final.info '*.h'
+    gendesc tests/Descriptions.txt -o Coverage/tmp/descriptions
+    genhtml --title "mbed TLS" --description-file Coverage/tmp/descriptions --keep-descriptions --legend --branch-coverage -o Coverage Coverage/tmp/final.info
+    rm -f Coverage/tmp/*.info Coverage/tmp/descriptions
     echo "Coverage report in: Coverage/index.html"
 }
 

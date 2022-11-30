@@ -164,9 +164,7 @@ static int pkcs7_get_certificates( unsigned char **p, unsigned char *end,
     ret = mbedtls_asn1_get_tag( p, end_set, &len2, MBEDTLS_ASN1_CONSTRUCTED
             | MBEDTLS_ASN1_SEQUENCE );
     if( ret != 0 )
-    {
         return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_CERT, ret ) );
-    }
 
     end_cert = *p + len2;
 
@@ -177,14 +175,10 @@ static int pkcs7_get_certificates( unsigned char **p, unsigned char *end,
      * The behaviour would be improved with addition of multiple signer support.
      */
     if ( end_cert != end_set )
-    {
         return( MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE );
-    }
 
     if( ( ret = mbedtls_x509_crt_parse_der( certs, start, len1 ) ) < 0 )
-    {
         return( MBEDTLS_ERR_PKCS7_INVALID_CERT );
-    }
 
     *p = end_cert;
 
@@ -254,7 +248,7 @@ static void pkcs7_free_signer_info( mbedtls_pkcs7_signer_info *signer )
 static int pkcs7_get_signer_info( unsigned char **p, unsigned char *end,
                                   mbedtls_pkcs7_signer_info *signer )
 {
-    unsigned char *end_signer;
+    unsigned char *end_signer, *end_signer_identifier;
     int asn1_ret = 0, ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len = 0;
 
@@ -273,11 +267,12 @@ static int pkcs7_get_signer_info( unsigned char **p, unsigned char *end,
                 MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE );
     if( asn1_ret != 0 )
         goto out;
+    end_signer_identifier = *p + len;
 
     /* Parsing IssuerAndSerialNumber */
     signer->issuer_raw.p = *p;
 
-    asn1_ret = mbedtls_asn1_get_tag( p, end_signer, &len,
+    asn1_ret = mbedtls_asn1_get_tag( p, end_signer_identifier, &len,
                 MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE );
     if( asn1_ret != 0 )
         goto out;
@@ -288,16 +283,21 @@ static int pkcs7_get_signer_info( unsigned char **p, unsigned char *end,
 
     signer->issuer_raw.len =  *p - signer->issuer_raw.p;
 
-    ret = mbedtls_x509_get_serial( p, end_signer, &signer->serial );
+    ret = mbedtls_x509_get_serial( p, end_signer_identifier, &signer->serial );
     if( ret != 0 )
         goto out;
+    if( *p != end_signer_identifier )
+    {
+        ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_FORMAT,
+                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+        goto out;
+    }
 
     ret = pkcs7_get_digest_algorithm( p, end_signer, &signer->alg_identifier );
     if( ret != 0 )
         goto out;
 
-    /* Assume authenticatedAttributes is nonexistent */
-
+    /* Asssume signedAttrs is nonexistent */
     ret = pkcs7_get_digest_algorithm( p, end_signer, &signer->sig_alg_identifier );
     if( ret != 0 )
         goto out;
@@ -306,7 +306,7 @@ static int pkcs7_get_signer_info( unsigned char **p, unsigned char *end,
     if( ret != 0 )
         goto out;
 
-    /* Do not permit any unauthenticated attributes */
+    /* Do not permit any unsigned attributes */
     if( *p != end_signer )
         ret = MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO;
 
@@ -338,15 +338,11 @@ static int pkcs7_get_signers_info_set( unsigned char **p, unsigned char *end,
     ret = mbedtls_asn1_get_tag( p, end, &len, MBEDTLS_ASN1_CONSTRUCTED
                                 | MBEDTLS_ASN1_SET );
     if( ret != 0 )
-    {
         return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO, ret ) );
-    }
 
     /* Detect zero signers */
     if( len == 0 )
-    {
         return( 0 );
-    }
 
     end_set = *p + len;
 

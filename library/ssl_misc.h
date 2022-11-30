@@ -890,13 +890,6 @@ struct mbedtls_ssl_handshake_params
     uint16_t mtu;                       /*!<  Handshake mtu, used to fragment outgoing messages */
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    /*! TLS 1.3 transforms for 0-RTT and encrypted handshake messages.
-     *  Those pointers own the transforms they reference. */
-    mbedtls_ssl_transform *transform_handshake;
-    mbedtls_ssl_transform *transform_earlydata;
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
-
     /*
      * Checksum contexts
      */
@@ -981,6 +974,8 @@ struct mbedtls_ssl_handshake_params
     unsigned char *certificate_request_context;
 #endif
 
+    /** TLS 1.3 transform for encrypted handshake messages. */
+    mbedtls_ssl_transform *transform_handshake;
     union
     {
         unsigned char early    [MBEDTLS_TLS1_3_MD_MAX_SIZE];
@@ -989,6 +984,11 @@ struct mbedtls_ssl_handshake_params
     } tls13_master_secrets;
 
     mbedtls_ssl_tls13_handshake_secrets tls13_hs_secrets;
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    mbedtls_ssl_tls13_early_secrets tls13_early_secrets;
+    /** TLS 1.3 transform for early data and handshake messages. */
+    mbedtls_ssl_transform *transform_earlydata;
+#endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)

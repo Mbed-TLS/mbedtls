@@ -215,6 +215,33 @@ cleanup:
     return( psa_ssl_status_to_mbedtls ( status ) );
 }
 
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_make_traffic_key(
+                    psa_algorithm_t hash_alg,
+                    const unsigned char *secret, size_t secret_len,
+                    unsigned char *key, size_t key_len,
+                    unsigned char *iv, size_t iv_len )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    ret = mbedtls_ssl_tls13_hkdf_expand_label(
+                    hash_alg,
+                    secret, secret_len,
+                    MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( key ),
+                    NULL, 0,
+                    key, key_len );
+    if( ret != 0 )
+        return( ret );
+
+    ret = mbedtls_ssl_tls13_hkdf_expand_label(
+                    hash_alg,
+                    secret, secret_len,
+                    MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( iv ),
+                    NULL, 0,
+                    iv, iv_len );
+    return( ret );
+}
+
 /*
  * The traffic keying material is generated from the following inputs:
  *
@@ -240,35 +267,17 @@ int mbedtls_ssl_tls13_make_traffic_keys(
 {
     int ret = 0;
 
-    ret = mbedtls_ssl_tls13_hkdf_expand_label( hash_alg,
-                    client_secret, secret_len,
-                    MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( key ),
-                    NULL, 0,
-                    keys->client_write_key, key_len );
+    ret = ssl_tls13_make_traffic_key(
+            hash_alg, client_secret, secret_len,
+            keys->client_write_key, key_len,
+            keys->client_write_iv, iv_len );
     if( ret != 0 )
         return( ret );
 
-    ret = mbedtls_ssl_tls13_hkdf_expand_label( hash_alg,
-                    server_secret, secret_len,
-                    MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( key ),
-                    NULL, 0,
-                    keys->server_write_key, key_len );
-    if( ret != 0 )
-        return( ret );
-
-    ret = mbedtls_ssl_tls13_hkdf_expand_label( hash_alg,
-                    client_secret, secret_len,
-                    MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( iv ),
-                    NULL, 0,
-                    keys->client_write_iv, iv_len );
-    if( ret != 0 )
-        return( ret );
-
-    ret = mbedtls_ssl_tls13_hkdf_expand_label( hash_alg,
-                    server_secret, secret_len,
-                    MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( iv ),
-                    NULL, 0,
-                    keys->server_write_iv, iv_len );
+    ret = ssl_tls13_make_traffic_key(
+            hash_alg, server_secret, secret_len,
+            keys->server_write_key, key_len,
+            keys->server_write_iv, iv_len );
     if( ret != 0 )
         return( ret );
 
@@ -1052,6 +1061,194 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
     return( 0 );
 }
 
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_get_cipher_key_info(
+                    const mbedtls_ssl_ciphersuite_t *ciphersuite_info,
+                    size_t *key_len, size_t *iv_len )
+{
+    psa_key_type_t key_type;
+    psa_algorithm_t alg;
+    size_t taglen;
+    size_t key_bits;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    if( ciphersuite_info->flags & MBEDTLS_CIPHERSUITE_SHORT_TAG )
+        taglen = 8;
+    else
+        taglen = 16;
+
+    status = mbedtls_ssl_cipher_to_psa( ciphersuite_info->cipher, taglen,
+                                        &alg, &key_type, &key_bits );
+    if( status != PSA_SUCCESS )
+        return psa_ssl_status_to_mbedtls( status );
+
+    *key_len = PSA_BITS_TO_BYTES( key_bits );
+
+    /* TLS 1.3 only have AEAD ciphers, IV length is unconditionally 12 bytes */
+    *iv_len = 12;
+
+    return 0;
+}
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+/*
+ * ssl_tls13_generate_early_key() generates the key necessary for protecting
+ * the early application data and handshake messages as described in section 7
+ * of RFC 8446.
+ *
+ * NOTE: Only one key is generated, the key for the traffic from the client to
+ *       the server. The TLS 1.3 specification does not define a secret and thus
+ *       a key for server early traffic.
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_generate_early_key( mbedtls_ssl_context *ssl,
+                                         mbedtls_ssl_key_set *traffic_keys )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_md_type_t md_type;
+    psa_algorithm_t hash_alg;
+    size_t hash_len;
+    unsigned char transcript[MBEDTLS_TLS1_3_MD_MAX_SIZE];
+    size_t transcript_len;
+    size_t key_len;
+    size_t iv_len;
+
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info = handshake->ciphersuite_info;
+    mbedtls_ssl_tls13_early_secrets *tls13_early_secrets = &handshake->tls13_early_secrets;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> ssl_tls13_generate_early_key" ) );
+
+    ret = ssl_tls13_get_cipher_key_info( ciphersuite_info, &key_len, &iv_len );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_get_cipher_key_info", ret );
+        goto cleanup;
+    }
+
+    md_type = ciphersuite_info->mac;
+
+    hash_alg = mbedtls_hash_info_psa_from_md( ciphersuite_info->mac );
+    hash_len = PSA_HASH_LENGTH( hash_alg );
+
+    ret = mbedtls_ssl_get_handshake_transcript( ssl, md_type,
+                                                transcript,
+                                                sizeof( transcript ),
+                                                &transcript_len );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1,
+                               "mbedtls_ssl_get_handshake_transcript",
+                               ret );
+        goto cleanup;
+    }
+
+    ret = mbedtls_ssl_tls13_derive_early_secrets(
+              hash_alg, handshake->tls13_master_secrets.early,
+              transcript, transcript_len, tls13_early_secrets );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET(
+            1, "mbedtls_ssl_tls13_derive_early_secrets", ret );
+        goto cleanup;
+    }
+
+    MBEDTLS_SSL_DEBUG_BUF(
+        4, "Client early traffic secret",
+        tls13_early_secrets->client_early_traffic_secret, hash_len );
+
+    /*
+     * Export client handshake traffic secret
+     */
+    if( ssl->f_export_keys != NULL )
+    {
+        ssl->f_export_keys(
+            ssl->p_export_keys,
+            MBEDTLS_SSL_KEY_EXPORT_TLS1_3_CLIENT_EARLY_SECRET,
+            tls13_early_secrets->client_early_traffic_secret,
+            hash_len,
+            handshake->randbytes,
+            handshake->randbytes + MBEDTLS_CLIENT_HELLO_RANDOM_LEN,
+            MBEDTLS_SSL_TLS_PRF_NONE /* TODO: FIX! */ );
+    }
+
+    ret = ssl_tls13_make_traffic_key(
+              hash_alg,
+              tls13_early_secrets->client_early_traffic_secret,
+              hash_len, traffic_keys->client_write_key, key_len,
+              traffic_keys->client_write_iv, iv_len );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_make_traffic_key", ret );
+        goto cleanup;
+    }
+    traffic_keys->key_len = key_len;
+    traffic_keys->iv_len = iv_len;
+
+    MBEDTLS_SSL_DEBUG_BUF( 4, "client early write_key",
+                           traffic_keys->client_write_key,
+                           traffic_keys->key_len);
+
+    MBEDTLS_SSL_DEBUG_BUF( 4, "client early write_iv",
+                           traffic_keys->client_write_iv,
+                           traffic_keys->iv_len);
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= ssl_tls13_generate_early_key" ) );
+
+cleanup:
+    /* Erase secret and transcript */
+    mbedtls_platform_zeroize(
+        tls13_early_secrets, sizeof( mbedtls_ssl_tls13_early_secrets ) );
+    mbedtls_platform_zeroize( transcript, sizeof( transcript ) );
+    return( ret );
+}
+
+int mbedtls_ssl_tls13_compute_early_transform( mbedtls_ssl_context *ssl )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_ssl_key_set traffic_keys;
+    mbedtls_ssl_transform *transform_earlydata = NULL;
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+
+    /* Next evolution in key schedule: Establish early_data secret and
+     * key material. */
+    ret = ssl_tls13_generate_early_key( ssl, &traffic_keys );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_generate_early_key",
+                               ret );
+        goto cleanup;
+    }
+
+    transform_earlydata = mbedtls_calloc( 1, sizeof( mbedtls_ssl_transform ) );
+    if( transform_earlydata == NULL )
+    {
+        ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
+        goto cleanup;
+    }
+
+    ret = mbedtls_ssl_tls13_populate_transform(
+                                        transform_earlydata,
+                                        ssl->conf->endpoint,
+                                        ssl->session_negotiate->ciphersuite,
+                                        &traffic_keys,
+                                        ssl );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_populate_transform", ret );
+        goto cleanup;
+    }
+    handshake->transform_earlydata = transform_earlydata;
+
+cleanup:
+    mbedtls_platform_zeroize( &traffic_keys, sizeof( traffic_keys ) );
+    if( ret != 0 )
+        mbedtls_free( transform_earlydata );
+
+    return( ret );
+}
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
 int mbedtls_ssl_tls13_key_schedule_stage_early( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -1098,51 +1295,19 @@ int mbedtls_ssl_tls13_key_schedule_stage_early( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
-MBEDTLS_CHECK_RETURN_CRITICAL
-static int mbedtls_ssl_tls13_get_cipher_key_info(
-                    const mbedtls_ssl_ciphersuite_t *ciphersuite_info,
-                    size_t *key_len, size_t *iv_len )
-{
-    psa_key_type_t key_type;
-    psa_algorithm_t alg;
-    size_t taglen;
-    size_t key_bits;
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-
-    if( ciphersuite_info->flags & MBEDTLS_CIPHERSUITE_SHORT_TAG )
-        taglen = 8;
-    else
-        taglen = 16;
-
-    status = mbedtls_ssl_cipher_to_psa( ciphersuite_info->cipher, taglen,
-                                        &alg, &key_type, &key_bits );
-    if( status != PSA_SUCCESS )
-        return psa_ssl_status_to_mbedtls( status );
-
-    *key_len = PSA_BITS_TO_BYTES( key_bits );
-
-    /* TLS 1.3 only have AEAD ciphers, IV length is unconditionally 12 bytes */
-    *iv_len = 12;
-
-    return 0;
-}
-
 /* mbedtls_ssl_tls13_generate_handshake_keys() generates keys necessary for
  * protecting the handshake messages, as described in Section 7 of TLS 1.3. */
 int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
                                                mbedtls_ssl_key_set *traffic_keys )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
     mbedtls_md_type_t md_type;
-
     psa_algorithm_t hash_alg;
     size_t hash_len;
-
     unsigned char transcript[MBEDTLS_TLS1_3_MD_MAX_SIZE];
     size_t transcript_len;
-
-    size_t key_len, iv_len;
+    size_t key_len;
+    size_t iv_len;
 
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info = handshake->ciphersuite_info;
@@ -1150,11 +1315,10 @@ int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_tls13_generate_handshake_keys" ) );
 
-    ret = mbedtls_ssl_tls13_get_cipher_key_info( ciphersuite_info,
-                                                 &key_len, &iv_len );
+    ret = ssl_tls13_get_cipher_key_info( ciphersuite_info, &key_len, &iv_len );
     if( ret != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_get_cipher_key_info", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_get_cipher_key_info", ret );
         return ret;
     }
 
@@ -1370,11 +1534,11 @@ int mbedtls_ssl_tls13_generate_application_keys(
 
     /* Extract basic information about hash and ciphersuite */
 
-    ret = mbedtls_ssl_tls13_get_cipher_key_info( handshake->ciphersuite_info,
-                                                 &key_len, &iv_len );
+    ret = ssl_tls13_get_cipher_key_info( handshake->ciphersuite_info,
+                                         &key_len, &iv_len );
     if( ret != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_get_cipher_key_info", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_get_cipher_key_info", ret );
         goto cleanup;
     }
 

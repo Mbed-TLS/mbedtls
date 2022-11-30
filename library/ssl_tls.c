@@ -1447,9 +1447,11 @@ void mbedtls_ssl_session_reset_msg_layer( mbedtls_ssl_context *ssl,
 
     if( ssl->handshake != NULL )
     {
+#if defined(MBEDTLS_SSL_EARLY_DATA)
         mbedtls_ssl_transform_free( ssl->handshake->transform_earlydata );
         mbedtls_free( ssl->handshake->transform_earlydata );
         ssl->handshake->transform_earlydata = NULL;
+#endif
 
         mbedtls_ssl_transform_free( ssl->handshake->transform_handshake );
         mbedtls_free( ssl->handshake->transform_handshake );
@@ -4067,9 +4069,11 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     mbedtls_ssl_transform_free( handshake->transform_handshake );
+    mbedtls_free( handshake->transform_handshake );
+#if defined(MBEDTLS_SSL_EARLY_DATA)
     mbedtls_ssl_transform_free( handshake->transform_earlydata );
     mbedtls_free( handshake->transform_earlydata );
-    mbedtls_free( handshake->transform_handshake );
+#endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 

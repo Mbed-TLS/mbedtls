@@ -246,7 +246,8 @@ static void pkcs7_free_signer_info( mbedtls_pkcs7_signer_info *signer )
  * and unauthenticatedAttributes.
  **/
 static int pkcs7_get_signer_info( unsigned char **p, unsigned char *end,
-                                  mbedtls_pkcs7_signer_info *signer )
+                                  mbedtls_pkcs7_signer_info *signer,
+                                  mbedtls_x509_buf *alg )
 {
     unsigned char *end_signer, *end_signer_identifier;
     int asn1_ret = 0, ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -297,6 +298,15 @@ static int pkcs7_get_signer_info( unsigned char **p, unsigned char *end,
     if( ret != 0 )
         goto out;
 
+    /* Check that the digest algorithm used matches the one provided earlier */
+    if( signer->alg_identifier.tag != alg->tag ||
+        signer->alg_identifier.len != alg->len ||
+        memcmp( signer->alg_identifier.p, alg->p, alg->len ) != 0 )
+    {
+        ret = MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO;
+        goto out;
+    }
+
     /* Asssume signedAttrs is nonexistent */
     ret = pkcs7_get_digest_algorithm( p, end_signer, &signer->sig_alg_identifier );
     if( ret != 0 )
@@ -328,7 +338,8 @@ out:
  * Return negative error code for failure.
  **/
 static int pkcs7_get_signers_info_set( unsigned char **p, unsigned char *end,
-                                       mbedtls_pkcs7_signer_info *signers_set )
+                                       mbedtls_pkcs7_signer_info *signers_set,
+                                       mbedtls_x509_buf *digest_alg )
 {
     unsigned char *end_set;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -346,7 +357,7 @@ static int pkcs7_get_signers_info_set( unsigned char **p, unsigned char *end,
 
     end_set = *p + len;
 
-    ret = pkcs7_get_signer_info( p, end_set, signers_set );
+    ret = pkcs7_get_signer_info( p, end_set, signers_set, digest_alg );
     if( ret != 0 )
         return( ret );
     count++;
@@ -362,7 +373,7 @@ static int pkcs7_get_signers_info_set( unsigned char **p, unsigned char *end,
             goto cleanup;
         }
 
-        ret = pkcs7_get_signer_info( p, end_set, signer );
+        ret = pkcs7_get_signer_info( p, end_set, signer, digest_alg );
         if( ret != 0 ) {
             mbedtls_free( signer );
             goto cleanup;
@@ -472,7 +483,7 @@ static int pkcs7_get_signed_data( unsigned char *buf, size_t buflen,
     signed_data->no_of_crls = 0;
 
     /* Get signers info */
-    ret = pkcs7_get_signers_info_set( &p, end, &signed_data->signers );
+    ret = pkcs7_get_signers_info_set( &p, end, &signed_data->signers, &signed_data->digest_alg_identifiers );
     if( ret < 0 )
         return( ret );
 
@@ -604,6 +615,39 @@ static int mbedtls_pkcs7_data_or_hash_verify( mbedtls_pkcs7 *pkcs7,
         return( MBEDTLS_ERR_PKCS7_CERT_DATE_INVALID );
     }
 
+    ret = mbedtls_oid_get_md_alg( &pkcs7->signed_data.digest_alg_identifiers, &md_alg );
+    if( ret != 0 )
+        return( ret );
+
+    md_info = mbedtls_md_info_from_type( md_alg );
+    if( md_info == NULL )
+        return( MBEDTLS_ERR_PKCS7_VERIFY_FAIL );
+
+    hash = mbedtls_calloc( mbedtls_md_get_size( md_info ), 1 );
+    if( hash == NULL )
+        return( MBEDTLS_ERR_PKCS7_ALLOC_FAILED );
+    /* BEGIN must free hash before jumping out */
+
+    if( is_data_hash )
+    {
+        if( datalen != mbedtls_md_get_size( md_info ))
+            ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+        else
+            memcpy(hash, data, datalen);
+    }
+    else
+    {
+        ret = mbedtls_md( md_info, data, datalen, hash );
+    }
+    if( ret != 0 )
+    {
+        mbedtls_free( hash );
+        return( MBEDTLS_ERR_PKCS7_VERIFY_FAIL );
+    }
+
+    /* assume failure */
+    ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+
     /*
      * Potential TODOs
      * Currently we iterate over all signers and return success if any of them
@@ -613,60 +657,19 @@ static int mbedtls_pkcs7_data_or_hash_verify( mbedtls_pkcs7 *pkcs7,
      * identification and SignerIdentifier fields first. That would also allow
      * us to distinguish between 'no signature for key' and 'signature for key
      * failed to validate'.
-     *
-     * We could also cache hashes by md, so if there are several sigs all using
-     * the same algo we don't recalculate the hash each time.
      */
     for( signer = &pkcs7->signed_data.signers; signer; signer = signer->next )
     {
-        ret = mbedtls_oid_get_md_alg( &signer->alg_identifier, &md_alg );
-        if( ret != 0 )
-        {
-            ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
-            continue;
-        }
-
-        md_info = mbedtls_md_info_from_type( md_alg );
-        if( md_info == NULL )
-        {
-            ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
-            continue;
-        }
-
-        hash = mbedtls_calloc( mbedtls_md_get_size( md_info ), 1 );
-        if( hash == NULL )
-        {
-            return( MBEDTLS_ERR_PKCS7_ALLOC_FAILED );
-        }
-        /* BEGIN must free hash before jumping out */
-        if( is_data_hash )
-        {
-            if( datalen != mbedtls_md_get_size( md_info ))
-                ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
-            else
-                memcpy(hash, data, datalen);
-        }
-        else
-        {
-            ret = mbedtls_md( md_info, data, datalen, hash );
-        }
-        if( ret != 0 )
-        {
-            ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
-            mbedtls_free( hash );
-            continue;
-        }
-
         ret = mbedtls_pk_verify( &pk_cxt, md_alg, hash,
                                  mbedtls_md_get_size( md_info ),
                                  signer->sig.p, signer->sig.len );
-        mbedtls_free( hash );
-        /* END must free hash before jumping out */
 
         if( ret == 0 )
             break;
     }
 
+    mbedtls_free( hash );
+    /* END must free hash before jumping out */
     return( ret );
 }
 

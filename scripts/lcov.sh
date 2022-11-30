@@ -2,7 +2,7 @@
 
 help () {
     cat <<EOF
-Usage: $0
+Usage: $0 [-r]
 Collect coverage statistics of library code into an HTML report.
 
 General instructions:
@@ -12,6 +12,10 @@ General instructions:
 3. Run this script from the parent of the directory containing the library
    object files and coverage statistics files.
 4. Browse the coverage report in Coverage/index.html.
+5. After rework, run "$0 -r", then re-test and run "$0" to get a fresh report.
+
+Options
+  -r    Reset traces. Run this before re-testing to get fresh measurements.
 EOF
 }
 
@@ -32,7 +36,8 @@ EOF
 
 set -eu
 
-lcov_rebuild_stats () {
+# Collect stats and build a HTML report.
+lcov_library_report () {
     rm -rf Coverage
     mkdir Coverage Coverage/tmp
     lcov --capture --initial --directory library -o Coverage/tmp/files.info
@@ -45,9 +50,26 @@ lcov_rebuild_stats () {
     echo "Coverage report in: Coverage/index.html"
 }
 
+# Reset the traces to 0.
+lcov_reset_traces () {
+    # Location with plain make
+    rm -f library/*.gcda
+    # Location with CMake
+    rm -f library/CMakeFiles/*.dir/*.gcda
+}
+
 if [ $# -gt 0 ] && [ "$1" = "--help" ]; then
     help
     exit
 fi
 
-lcov_rebuild_stats
+main=lcov_library_report
+while getopts r OPTLET; do
+    case $OPTLET in
+        r) main=lcov_reset_traces;;
+        *) help 2>&1; exit 120;;
+    esac
+done
+shift $((OPTIND - 1))
+
+"$main" "$@"

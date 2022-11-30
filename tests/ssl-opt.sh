@@ -8008,8 +8008,9 @@ run_test    "ECJPAKE: working, TLS" \
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "ECJPAKE: working, TLS, opaque password" \
+run_test    "ECJPAKE_OPAQUE_PW: working, TLS, opaque password" \
             "$P_SRV debug_level=3 ecjpake_pw=bla ecjpake_pw_opaque=1" \
             "$P_CLI debug_level=3 ecjpake_pw=bla ecjpake_pw_opaque=1\
              force_ciphersuite=TLS-ECJPAKE-WITH-AES-128-CCM-8" \

@@ -2,7 +2,7 @@ Features
    * Support rsa_pss_rsae_* signature algorithms in TLS 1.2.
 Bugfix
    * Fix an interoperability failure between an Mbed TLS client with both
-     TLS 1.2 and TLS 1.3 support, and a TLS 1.2 server such as GnuTLS or
-     OpenSSL that supports rsa_pss_rsae_* signature algorithms. This failed
-     because Mbed TLS supported PSS only in TLS 1.3, but advertised support
-     in TLS 1.2 as well.
+     TLS 1.2 and TLS 1.3 support, and a TLS 1.2 server that supports
+     rsa_pss_rsae_* signature algorithms. This failed because Mbed TLS
+     advertised support for PSS in both TLS 1.2 and 1.3, but only
+     actually supported PSS in TLS 1.3.

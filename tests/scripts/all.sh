@@ -1463,21 +1463,6 @@ component_test_tls1_2_ecjpake_compatibility() {
     rm s2_no_use_psa c2_no_use_psa
 }
 
-# Opaque password testing requires a separate test with repect to
-# "test_tls1_2_ecjpake_compatibility". In that case there's a mix of PSA and
-# MbedTLS based implementations of EC-JPAKE which makes it difficult to parse
-# proper strings during the test. As a consequence here we just build the
-# PSA variant for both client and server.
-component_test_tls1_2_ecjpake_opaque_password() {
-    msg "build: TLS1.2 server+client w/ opaque password support"
-    scripts/config.py set MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
-    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
-    make -C programs ssl/ssl_server2 ssl/ssl_client2
-    make -C programs test/udp_proxy test/query_compile_time_config
-
-    tests/ssl-opt.sh -f ECJPAKE_OPAQUE_PW
-}
-
 component_test_psa_external_rng_use_psa_crypto () {
     msg "build: full + PSA_CRYPTO_EXTERNAL_RNG + USE_PSA_CRYPTO minus CTR_DRBG"
     scripts/config.py full

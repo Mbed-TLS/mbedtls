@@ -22,6 +22,11 @@
  */
 
 /**
+ * This feature is a work in progress and not ready for production. The API may
+ * change. Furthermore, please note that the implementation has only been
+ * validated with well-formed inputs, not yet with untrusted inputs (which is
+ * almost always the case in practice).
+ *
  * Note: For the time being, this implementation of the PKCS7 cryptographic
  * message syntax is a partial implementation of RFC 2315.
  * Differences include:
@@ -179,7 +184,7 @@ void mbedtls_pkcs7_init( mbedtls_pkcs7 *pkcs7 );
  *
  * \param pkcs7    The pkcs7 structure to be filled by parser for the output.
  * \param buf      The buffer holding the DER encoded pkcs7.
- * \param buflen   The size in Bytes of \p buf.
+ * \param buflen   The size in bytes of \p buf.
  *
  * \note           This function makes an internal copy of the PKCS7 buffer
  *                 \p buf. In particular, \p buf may be destroyed or reused
@@ -192,7 +197,18 @@ int mbedtls_pkcs7_parse_der( mbedtls_pkcs7 *pkcs7, const unsigned char *buf,
                              const size_t buflen );
 
 /**
- * \brief          Verification of PKCS7 signature.
+ * \brief          Verification of PKCS7 signature against a caller-supplied
+ *                 certificate.
+ *
+ *                 For each signer in the PKCS structure, this function computes
+ *                 a signature over the supplied data, using the supplied
+ *                 certificate and the same digest algorithm as specified by the
+ *                 signer. It then compares this signature against the
+ *                 signer's signature; verification succeeds if any comparison
+ *                 matches.
+ *
+ *                 This function does not use the certificates held within the
+ *                 PKCS7 structure itself.
  *
  * \param pkcs7    PKCS7 structure containing signature.
  * \param cert     Certificate containing key to verify signature.
@@ -202,7 +218,7 @@ int mbedtls_pkcs7_parse_der( mbedtls_pkcs7 *pkcs7, const unsigned char *buf,
  * \note           This function internally calculates the hash on the supplied
  *                 plain data for signature verification.
  *
- * \return         A negative error code on failure.
+ * \return         0 if the signatures match, or a negative error code on failure.
  */
 int mbedtls_pkcs7_signed_data_verify( mbedtls_pkcs7 *pkcs7,
                                       const mbedtls_x509_crt *cert,
@@ -210,7 +226,18 @@ int mbedtls_pkcs7_signed_data_verify( mbedtls_pkcs7 *pkcs7,
                                       size_t datalen );
 
 /**
- * \brief          Verification of PKCS7 signature.
+ * \brief          Verification of PKCS7 signature against a caller-supplied
+ *                 certificate.
+ *
+ *                 For each signer in the PKCS structure, this function computes
+ *                 a signature over the supplied hash, using the supplied
+ *                 certificate and the same digest algorithm as specified by the
+ *                 signer. It then compares this signature against the
+ *                 signer's signature; verification succeeds if any comparison
+ *                 matches.
+ *
+ *                 This function does not use the certificates held within the
+ *                 PKCS7 structure itself.
  *
  * \param pkcs7    PKCS7 structure containing signature.
  * \param cert     Certificate containing key to verify signature.
@@ -220,7 +247,7 @@ int mbedtls_pkcs7_signed_data_verify( mbedtls_pkcs7 *pkcs7,
  * \note           This function is different from mbedtls_pkcs7_signed_data_verify()
  *                 in a way that it directly recieves the hash of the data.
  *
- * \return         A negative error code on failure.
+ * \return         0 if the signatures match, or a negative error code on failure.
  */
 int mbedtls_pkcs7_signed_hash_verify( mbedtls_pkcs7 *pkcs7,
                                       const mbedtls_x509_crt *cert,

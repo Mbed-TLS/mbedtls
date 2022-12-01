@@ -1503,6 +1503,7 @@ void import_export(data_t *data,
     size_t reexported_length;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_status_t expected_import_result = PSA_SUCCESS;
 
     export_size = (ptrdiff_t) data->len + export_size_delta;
     ASSERT_ALLOC(exported, export_size);
@@ -1516,8 +1517,24 @@ void import_export(data_t *data,
     psa_set_key_algorithm(&attributes, alg);
     psa_set_key_type(&attributes, type);
 
+    if (PSA_KEY_TYPE_IS_DH(type) &&
+        expected_export_status == PSA_ERROR_BUFFER_TOO_SMALL) {
+        export_size -= 8;
+    }
+
+    if (PSA_KEY_TYPE_IS_DH(type) &&
+        (data->len != 256 && data->len != 384 &&
+         data->len != 512 && data->len != 768 && data->len != 1024)) {
+        expected_import_result =  PSA_ERROR_INVALID_ARGUMENT;
+    }
+
     /* Import the key */
-    PSA_ASSERT(psa_import_key(&attributes, data->x, data->len, &key));
+    TEST_EQUAL(psa_import_key(&attributes, data->x, data->len, &key),
+               expected_import_result);
+
+    if (expected_import_result != PSA_SUCCESS) {
+        goto exit;
+    }
 
     /* Test the key information */
     PSA_ASSERT(psa_get_key_attributes(key, &got_attributes));

@@ -1204,7 +1204,7 @@ all_final += pkcs7_data_multiple_certs_signed.der
 
 # pkcs7 raw signature file
 pkcs7_data_signed.bin: $(pkcs7_test_file) $(pkcs7_test_cert_1)
-	$(OPENSSL) dgst -sha256 -sign pkcs7-rsa-sha256-1.key -out $@ pkcs7_data.txt
+	$(OPENSSL) dgst -sha256 -sign pkcs7-rsa-sha256-1.key -out $@ pkcs7_data.bin
 all_final += pkcs7_data_multiple_certs_signed.der
 
 # pkcs7 raw signature file, that is incorrectly generated

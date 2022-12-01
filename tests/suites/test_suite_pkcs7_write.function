@@ -26,21 +26,21 @@ void pkcs7_write( char *data_file, char *cert_file, char *key_file, int md, int 
 
     mbedtls_pkcs7_init( &pkcs7 );
     key_pairs = 1;
-    res = mbedtls_pkcs7_load_file( data_file, &new_data, &new_data_len );
+    res = mbedtls_pk_load_file( data_file, &new_data, &new_data_len );
     TEST_ASSERT( res == 0 );
     if( keys_are_signatures )
     {
-        res = mbedtls_pkcs7_load_file( key_file, &key, &key_len);
+        res = mbedtls_pk_load_file( key_file, &key, &key_len);
         TEST_ASSERT( res == 0 );
     }
     else
     {
-        res = mbedtls_pkcs7_load_file( key_file, &key_pem, &key_pem_len );
+        res = mbedtls_pk_load_file( key_file, &key_pem, &key_pem_len );
         TEST_ASSERT( res == 0 );
         res = mbedtls_convert_pem_to_der( key_pem, key_pem_len, &key, &key_len );
         TEST_ASSERT( res == 0 );
     }
-    res = mbedtls_pkcs7_load_file( cert_file, &crt_pem, &crt_pem_len );
+    res = mbedtls_pk_load_file( cert_file, &crt_pem, &crt_pem_len );
     TEST_ASSERT( res == 0 );
     res = mbedtls_convert_pem_to_der( crt_pem, crt_pem_len, &crt, &crt_len);
     TEST_ASSERT( res == 0 );
@@ -59,7 +59,7 @@ void pkcs7_write( char *data_file, char *cert_file, char *key_file, int md, int 
     TEST_ASSERT( res == 0 );
 
     /* test that it can be parsed */
-    res = mbedtls_pkcs7_parse_der( pkcs7_buf, pkcs7_len, &pkcs7 );
+    res = mbedtls_pkcs7_parse_der( &pkcs7, pkcs7_buf, pkcs7_len );
     TEST_ASSERT( res == MBEDTLS_PKCS7_SIGNED_DATA );
 
     /* test that the original data was signed correctly */
@@ -102,21 +102,21 @@ void pkcs7_write_fail( char *data_file, char *cert_file, char *key_file, int md,
 
     mbedtls_pkcs7_init( &pkcs7 );
     key_pairs = 1;
-    res = mbedtls_pkcs7_load_file( data_file, &new_data, &new_data_len );
+    res = mbedtls_pk_load_file( data_file, &new_data, &new_data_len );
     TEST_ASSERT( res == 0 );
     if( keys_are_signatures )
     {
-        res = mbedtls_pkcs7_load_file( key_file, &key, &key_len);
+        res = mbedtls_pk_load_file( key_file, &key, &key_len);
         TEST_ASSERT( res == 0 );
     }
     else
     {
-        res = mbedtls_pkcs7_load_file( key_file, &key_pem, &key_pem_len );
+        res = mbedtls_pk_load_file( key_file, &key_pem, &key_pem_len );
         TEST_ASSERT( res == 0 );
         res = mbedtls_convert_pem_to_der( key_pem, key_pem_len, &key, &key_len );
         TEST_ASSERT( res == 0 );
     }
-    res = mbedtls_pkcs7_load_file( cert_file, &crt_pem, &crt_pem_len );
+    res = mbedtls_pk_load_file( cert_file, &crt_pem, &crt_pem_len );
     TEST_ASSERT( res == 0 );
     res = mbedtls_convert_pem_to_der( crt_pem, crt_pem_len, &crt, &crt_len );
     TEST_ASSERT( res == 0 );

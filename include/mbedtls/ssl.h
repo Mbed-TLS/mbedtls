@@ -1656,9 +1656,11 @@ struct mbedtls_ssl_context
     mbedtls_ssl_transform *MBEDTLS_PRIVATE(transform);           /*!<  negotiated transform params
                                                                   *    This pointer owns the transform
                                                                   *    it references.                  */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     mbedtls_ssl_transform *MBEDTLS_PRIVATE(transform_negotiate); /*!<  transform params in negotiation
                                                                   *    This pointer owns the transform
                                                                   *    it references.                  */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     /*! The application data transform in TLS 1.3.

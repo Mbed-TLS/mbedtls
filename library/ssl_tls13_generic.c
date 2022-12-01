@@ -28,15 +28,13 @@
 #include "mbedtls/oid.h"
 #include "mbedtls/platform.h"
 #include "mbedtls/constant_time.h"
-#include <string.h>
+#include "psa/crypto.h"
+#include "mbedtls/psa_util.h"
 
 #include "ssl_misc.h"
 #include "ssl_tls13_invasive.h"
 #include "ssl_tls13_keys.h"
 #include "ssl_debug_helpers.h"
-
-#include "psa/crypto.h"
-#include "mbedtls/psa_util.h"
 
 const uint8_t mbedtls_ssl_tls13_hello_retry_request_magic[
                 MBEDTLS_SERVER_HELLO_RANDOM_LEN ] =

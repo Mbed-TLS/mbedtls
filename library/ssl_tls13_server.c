@@ -30,16 +30,6 @@
 #include "ssl_tls13_keys.h"
 #include "ssl_debug_helpers.h"
 
-#if defined(MBEDTLS_ECP_C)
-#include "mbedtls/ecp.h"
-#endif /* MBEDTLS_ECP_C */
-
-#include "mbedtls/platform.h"
-
-#include "ssl_misc.h"
-#include "ssl_tls13_keys.h"
-#include "ssl_debug_helpers.h"
-
 
 static const mbedtls_ssl_ciphersuite_t *ssl_tls13_validate_peer_ciphersuite(
                                       mbedtls_ssl_context *ssl,

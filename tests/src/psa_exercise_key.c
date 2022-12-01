@@ -789,6 +789,9 @@ int mbedtls_test_psa_exported_key_sanity_check(
             TEST_EQUAL(1 + 2 * PSA_BITS_TO_BYTES(bits), exported_length);
             TEST_EQUAL(exported[0], 4);
         }
+    } else
+    if (PSA_KEY_TYPE_IS_DH_PUBLIC_KEY(type) || PSA_KEY_TYPE_IS_DH_KEY_PAIR(type)) {
+        TEST_LE_U(exported_length, PSA_BITS_TO_BYTES(bits));
     } else {
         (void) exported;
         TEST_ASSERT(!"Sanity check not implemented for this key type");

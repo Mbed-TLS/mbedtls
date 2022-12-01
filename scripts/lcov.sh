@@ -6,8 +6,14 @@ Usage: $0 [-r]
 Collect coverage statistics of library code into an HTML report.
 
 General instructions:
-1. Build the library with CFLAGS="--coverage -O0 -g3".
+1. Build the library with CFLAGS="--coverage -O0 -g3" and link the test
+   programs with LDFLAGS="--coverage".
    This can be an out-of-tree build.
+   For example (in-tree):
+        make CFLAGS="--coverage -O0 -g3" LDFLAGS="--coverage"
+   Or (out-of-tree):
+        mkdir build-coverage && cd build-coverage &&
+        cmake -D CMAKE_BUILD_TYPE=Coverage .. && make
 2. Run whatever tests you want.
 3. Run this script from the parent of the directory containing the library
    object files and coverage statistics files.

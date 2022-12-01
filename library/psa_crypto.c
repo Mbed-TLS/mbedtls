@@ -1579,6 +1579,36 @@ cleanup:
     return status;
 }
 
+static psa_status_t mbedtls_psa_ffdh_generate_key(
+    const psa_key_attributes_t *attributes,
+    uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length)
+{
+    mbedtls_mpi X, P;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    mbedtls_mpi_init(&P); mbedtls_mpi_init(&X);
+
+    status = psa_ffdh_set_prime_generator(PSA_BITS_TO_BYTES(attributes->core.bits), &P, NULL);
+
+    if (status == PSA_SUCCESS) {
+        MBEDTLS_MPI_CHK(mbedtls_mpi_random(&X, 4, &P, mbedtls_psa_get_random,
+                                           MBEDTLS_PSA_RANDOM_STATE));
+        MBEDTLS_MPI_CHK(mbedtls_mpi_sub_int(&X, &X, 2));
+
+        *key_buffer_length = mbedtls_mpi_size(&X);
+
+        MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&X, key_buffer,
+                                                 key_buffer_size));
+    }
+
+cleanup:
+    mbedtls_mpi_free(&P); mbedtls_mpi_free(&X);
+    if (status == PSA_SUCCESS && ret != 0) {
+        return mbedtls_to_psa_error(ret);
+    }
+
+    return status;
+}
 #endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR ||
           MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_PUBLIC_KEY */
 
@@ -7162,6 +7192,15 @@ static psa_status_t psa_validate_key_type_and_size_for_key_generation(
         return PSA_SUCCESS;
     } else
 #endif /* defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) */
+
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR)
+    if (PSA_KEY_TYPE_IS_DH(type) && PSA_KEY_TYPE_IS_KEY_PAIR(type)) {
+        if (bits != 2048 && bits != 3072 && bits != 4096 &&
+            bits != 6144 && bits != 8192) {
+            return PSA_ERROR_NOT_SUPPORTED;
+        }
+    } else
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR) */
     {
         return PSA_ERROR_NOT_SUPPORTED;
     }
@@ -7213,6 +7252,15 @@ psa_status_t psa_generate_key_internal(
                                             key_buffer_length);
     } else
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) */
+
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR)
+    if (PSA_KEY_TYPE_IS_DH(type) && PSA_KEY_TYPE_IS_KEY_PAIR(type)) {
+        return mbedtls_psa_ffdh_generate_key(attributes,
+                                             key_buffer,
+                                             key_buffer_size,
+                                             key_buffer_length);
+    } else
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR) */
     {
         (void) key_buffer_length;
         return PSA_ERROR_NOT_SUPPORTED;

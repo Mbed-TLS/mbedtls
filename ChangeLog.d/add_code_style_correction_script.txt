@@ -1,0 +1,3 @@
+Changes
+   * Add a config file for Uncrustify and a script to correct the code style
+     using Uncrustify.

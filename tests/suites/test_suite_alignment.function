@@ -3,7 +3,9 @@
 
 #include <stdint.h>
 
+#if defined(__clang__)
 #pragma clang diagnostic ignored "-Wunreachable-code"
+#endif
 /* END_HEADER */
 
 /* BEGIN_CASE */
@@ -109,7 +111,7 @@ void mbedtls_byteswap( unsigned int input_h, unsigned int input_l, int size,
     uint64_t expected = ( ((uint64_t)expected_h) << 32 ) | ( (uint64_t)expected_l );
 
     /* Check against expected */
-    uint64_t r;
+    uint64_t r = 0;
     switch ( size )
     {
         case 16:
@@ -121,6 +123,8 @@ void mbedtls_byteswap( unsigned int input_h, unsigned int input_l, int size,
         case 64:
             r = MBEDTLS_BSWAP64( input );
             break;
+        default:
+            TEST_ASSERT( ! "size must be 16, 32 or 64" );
     }
     TEST_EQUAL( r, expected );
 
@@ -258,7 +262,7 @@ void unaligned_access_endian_aware(int size, int offset, int big_endian )
     for ( size_t i = 0; i < sizeof(raw); i++ )
         x[i] = (uint8_t) i;
 
-    uint64_t read;
+    uint64_t read = 0;
     if ( big_endian )
     {
         switch ( size )

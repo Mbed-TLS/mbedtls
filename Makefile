@@ -137,7 +137,7 @@ test: check
 
 ifndef WINDOWS
 # Note: for coverage testing, build with:
-#     make CFLAGS='--coverage -g3 -O0' LDFLAGS='--coverage -g3 -O0'
+#     make CFLAGS='--coverage -g3 -O0' LDFLAGS='--coverage'
 # For the reference coverage measurement, see tests/scripts/basic-build-test.sh
 covtest:
 	$(MAKE) check

@@ -2809,7 +2809,6 @@ psa_status_t psa_driver_wrapper_key_agreement(
     }
  }
 
-#if defined(MBEDTLS_PSA_BUILTIN_PAKE)
 psa_status_t psa_driver_wrapper_pake_setup(
     psa_pake_operation_t *operation,
     const psa_pake_cipher_suite_t *cipher_suite )

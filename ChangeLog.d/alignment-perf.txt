@@ -1,0 +1,4 @@
+Features
+   * Improvements to the code used to access unaligned and byte-swapped memory
+     reduce code size and improve performance (depending on compiler and target
+     architecture).

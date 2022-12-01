@@ -218,7 +218,7 @@ int mbedtls_pkcs7_parse_der( mbedtls_pkcs7 *pkcs7, const unsigned char *buf,
  * \note           This function internally calculates the hash on the supplied
  *                 plain data for signature verification.
  *
- * \return         0 if the signatures match, or a negative error code on failure.
+ * \return         0 if the signature verifies, or a negative error code on failure.
  */
 int mbedtls_pkcs7_signed_data_verify( mbedtls_pkcs7 *pkcs7,
                                       const mbedtls_x509_crt *cert,
@@ -247,7 +247,7 @@ int mbedtls_pkcs7_signed_data_verify( mbedtls_pkcs7 *pkcs7,
  * \note           This function is different from mbedtls_pkcs7_signed_data_verify()
  *                 in a way that it directly recieves the hash of the data.
  *
- * \return         0 if the signatures match, or a negative error code on failure.
+ * \return         0 if the signature verifies, or a negative error code on failure.
  */
 int mbedtls_pkcs7_signed_hash_verify( mbedtls_pkcs7 *pkcs7,
                                       const mbedtls_x509_crt *cert,

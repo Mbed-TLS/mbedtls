@@ -2,6 +2,8 @@
 #include "../library/alignment.h"
 
 #include <stdint.h>
+
+#pragma clang diagnostic ignored "-Wunreachable-code"
 /* END_HEADER */
 
 /* BEGIN_CASE */

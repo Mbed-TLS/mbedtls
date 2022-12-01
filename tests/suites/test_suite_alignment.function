@@ -171,7 +171,8 @@ void get_byte()
     uint64_t u64 = 0x0706050403020100;
     for ( size_t b = 0; b < 8 ; b++ )
     {
-        uint8_t actual;
+        uint8_t expected = b;
+        uint8_t actual = b + 1;
         switch ( b )
         {
             case 0:
@@ -199,14 +200,14 @@ void get_byte()
                 actual = MBEDTLS_BYTE_7( u64 );
                 break;
         }
-        uint8_t expected = b;
         TEST_EQUAL( actual, expected );
     }
 
     uint32_t u32 = 0x03020100;
     for ( size_t b = 0; b < 4 ; b++ )
     {
-        uint8_t actual;
+        uint8_t expected = b;
+        uint8_t actual = b + 1;
         switch ( b )
         {
             case 0:
@@ -222,14 +223,14 @@ void get_byte()
                 actual = MBEDTLS_BYTE_3( u32 );
                 break;
         }
-        uint8_t expected = b;
         TEST_EQUAL( actual, expected );
     }
 
     uint16_t u16 = 0x0100;
     for ( size_t b = 0; b < 2 ; b++ )
     {
-        uint8_t actual;
+        uint8_t expected = b;
+        uint8_t actual = b + 1;
         switch ( b )
         {
             case 0:
@@ -239,7 +240,6 @@ void get_byte()
                 actual = MBEDTLS_BYTE_1( u16 );
                 break;
         }
-        uint8_t expected = b;
         TEST_EQUAL( actual, expected );
     }
 

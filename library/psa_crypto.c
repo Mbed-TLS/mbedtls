@@ -82,6 +82,7 @@
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
 #include "hash_info.h"
+#include "mbedtls/dhm.h"
 
 #define ARRAY_LENGTH(array) (sizeof(array) / sizeof(*(array)))
 
@@ -628,6 +629,25 @@ psa_status_t psa_import_key_into_slot(
 
         return PSA_SUCCESS;
     } else if (PSA_KEY_TYPE_IS_ASYMMETRIC(type)) {
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR) || \
+        defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_PUBLIC_KEY)
+        if (PSA_KEY_TYPE_IS_DH(type)) {
+            if (data_length != 256 && data_length != 384 &&
+                data_length != 512 && data_length != 768 &&
+                data_length != 1024) {
+                return PSA_ERROR_INVALID_ARGUMENT;
+            }
+
+            /* Copy the key material. */
+            memcpy(key_buffer, data, data_length);
+            *key_buffer_length = data_length;
+            *bits = PSA_BYTES_TO_BITS(data_length);
+            (void) key_buffer_size;
+
+            return PSA_SUCCESS;
+        }
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_PUBLIC_KEY) */
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
         defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
         if (PSA_KEY_TYPE_IS_ECC(type)) {
@@ -1330,7 +1350,8 @@ psa_status_t psa_export_key_internal(
 
     if (key_type_is_raw_bytes(type) ||
         PSA_KEY_TYPE_IS_RSA(type)   ||
-        PSA_KEY_TYPE_IS_ECC(type)) {
+        PSA_KEY_TYPE_IS_ECC(type)   ||
+        PSA_KEY_TYPE_IS_DH(type)) {
         return psa_export_key_buffer_internal(
             key_buffer, key_buffer_size,
             data, data_size, data_length);
@@ -1386,6 +1407,128 @@ psa_status_t psa_export_key(mbedtls_svc_key_id_t key,
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
 
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_PUBLIC_KEY)
+static psa_status_t psa_ffdh_set_prime_generator(size_t key_size,
+                                                 mbedtls_mpi *P,
+                                                 mbedtls_mpi *G)
+{
+    const unsigned char *dhm_P = NULL;
+    const unsigned char *dhm_G = NULL;
+    size_t dhm_size_P = 0;
+    size_t dhm_size_G = 0;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    if (P == NULL && G == NULL) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    static const unsigned char dhm_P_2048[] =
+        MBEDTLS_DHM_RFC7919_FFDHE2048_P_BIN;
+    static const unsigned char dhm_P_3072[] =
+        MBEDTLS_DHM_RFC7919_FFDHE3072_P_BIN;
+    static const unsigned char dhm_P_4096[] =
+        MBEDTLS_DHM_RFC7919_FFDHE4096_P_BIN;
+    static const unsigned char dhm_P_6144[] =
+        MBEDTLS_DHM_RFC7919_FFDHE6144_P_BIN;
+    static const unsigned char dhm_P_8192[] =
+        MBEDTLS_DHM_RFC7919_FFDHE8192_P_BIN;
+    static const unsigned char dhm_G_2048[] =
+        MBEDTLS_DHM_RFC7919_FFDHE2048_G_BIN;
+    static const unsigned char dhm_G_3072[] =
+        MBEDTLS_DHM_RFC7919_FFDHE3072_G_BIN;
+    static const unsigned char dhm_G_4096[] =
+        MBEDTLS_DHM_RFC7919_FFDHE4096_G_BIN;
+    static const unsigned char dhm_G_6144[] =
+        MBEDTLS_DHM_RFC7919_FFDHE6144_G_BIN;
+    static const unsigned char dhm_G_8192[] =
+        MBEDTLS_DHM_RFC7919_FFDHE8192_G_BIN;
+
+    if (key_size <= 256) {
+        dhm_P = dhm_P_2048;
+        dhm_G = dhm_G_2048;
+        dhm_size_P = sizeof(dhm_P_2048);
+        dhm_size_G = sizeof(dhm_G_2048);
+    } else if (key_size <= 384) {
+        dhm_P = dhm_P_3072;
+        dhm_G = dhm_G_3072;
+        dhm_size_P = sizeof(dhm_P_3072);
+        dhm_size_G = sizeof(dhm_G_3072);
+    } else if (key_size <= 512) {
+        dhm_P = dhm_P_4096;
+        dhm_G = dhm_G_4096;
+        dhm_size_P = sizeof(dhm_P_4096);
+        dhm_size_G = sizeof(dhm_G_4096);
+    } else if (key_size <= 768) {
+        dhm_P = dhm_P_6144;
+        dhm_G = dhm_G_6144;
+        dhm_size_P = sizeof(dhm_P_6144);
+        dhm_size_G = sizeof(dhm_G_6144);
+    } else if (key_size <= 1024) {
+        dhm_P = dhm_P_8192;
+        dhm_G = dhm_G_8192;
+        dhm_size_P = sizeof(dhm_P_8192);
+        dhm_size_G = sizeof(dhm_G_8192);
+    } else {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    if (P != NULL) {
+        MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(P, dhm_P,
+                                                dhm_size_P));
+    }
+    if (G != NULL) {
+        MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(G, dhm_G,
+                                                dhm_size_G));
+    }
+
+cleanup:
+    if (ret != 0) {
+        return mbedtls_to_psa_error(ret);
+    }
+
+    return PSA_SUCCESS;
+}
+
+static psa_status_t psa_export_ffdh_public_key_internal(
+    const uint8_t *key_buffer,
+    size_t key_buffer_size,
+    uint8_t *data,
+    size_t data_size,
+    size_t *data_length)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    mbedtls_mpi GX, G, X, P;
+
+    mbedtls_mpi_init(&GX); mbedtls_mpi_init(&G);
+    mbedtls_mpi_init(&X); mbedtls_mpi_init(&P);
+
+    status = psa_ffdh_set_prime_generator(key_buffer_size, &P, &G);
+
+    if (status == PSA_SUCCESS) {
+        MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&X, key_buffer,
+                                                key_buffer_size));
+
+        MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod(&GX, &G, &X, &P, NULL));
+        MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&GX, data, data_size));
+
+        *data_length = mbedtls_mpi_size(&GX);
+    }
+cleanup:
+    mbedtls_mpi_free(&P); mbedtls_mpi_free(&G);
+    mbedtls_mpi_free(&X); mbedtls_mpi_free(&GX);
+
+    if (status == PSA_SUCCESS && ret != 0) {
+        return mbedtls_to_psa_error(ret);
+    }
+
+    return status;
+}
+
+#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR ||
+          MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_PUBLIC_KEY */
+
 psa_status_t psa_export_public_key_internal(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
@@ -1396,7 +1539,8 @@ psa_status_t psa_export_public_key_internal(
 {
     psa_key_type_t type = attributes->core.type;
 
-    if (PSA_KEY_TYPE_IS_RSA(type) || PSA_KEY_TYPE_IS_ECC(type)) {
+    if (PSA_KEY_TYPE_IS_RSA(type) || PSA_KEY_TYPE_IS_ECC(type) ||
+        PSA_KEY_TYPE_IS_DH(type)) {
         if (PSA_KEY_TYPE_IS_PUBLIC_KEY(type)) {
             /* Exporting public -> public */
             return psa_export_key_buffer_internal(
@@ -1418,7 +1562,7 @@ psa_status_t psa_export_public_key_internal(
             return PSA_ERROR_NOT_SUPPORTED;
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) ||
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
-        } else {
+        } else if (PSA_KEY_TYPE_IS_ECC(type)) {
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
             defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
             return mbedtls_psa_ecp_export_public_key(attributes,
@@ -1433,6 +1577,19 @@ psa_status_t psa_export_public_key_internal(
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) */
         }
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR) || \
+        defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_PUBLIC_KEY)
+        else {
+            return psa_export_ffdh_public_key_internal(key_buffer,
+                                                       key_buffer_size,
+                                                       data, data_size,
+                                                       data_length);
+        }
+#else
+        /* We don't know how to convert a private FFDH key to public */
+        return PSA_ERROR_NOT_SUPPORTED;
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_PUBLIC_KEY) */
     } else {
         /* This shouldn't happen in the reference implementation, but
            it is valid for a special-purpose implementation to omit

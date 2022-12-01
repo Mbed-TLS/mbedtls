@@ -44,31 +44,37 @@ Unaligned 64-bit access offset=8
 mbedtls_unaligned_access:64:8
 
 Byteswap 16
-mbedtls_byteswap:0x07060504:0x03020100:16:0x00:0x01
+mbedtls_byteswap:"0100":16:"0001"
+
+Byteswap 16 with truncation
+mbedtls_byteswap:"0706050403020100":16:"0001"
 
 Byteswap 16 all-zero
-mbedtls_byteswap:0x0:0x0:16:0x00:0x0
+mbedtls_byteswap:"0000":16:"0000"
 
 Byteswap 16 all-ones
-mbedtls_byteswap:0xffffffff:0xffffffff:16:0x00:0xffff
+mbedtls_byteswap:"ffffffffffffffff":16:"ffff"
 
 Byteswap 32
-mbedtls_byteswap:0x07060504:0x03020100:32:0x00:0x010203
+mbedtls_byteswap:"03020100":32:"00010203"
+
+Byteswap 32 with truncation
+mbedtls_byteswap:"0706050403020100":32:"00010203"
 
 Byteswap 32 all-zero
-mbedtls_byteswap:0x0:0x0:32:0x00:0x0
+mbedtls_byteswap:"00000000":32:"00000000"
 
 Byteswap 32 all-ones
-mbedtls_byteswap:0xffffffff:0xffffffff:32:0x00:0xffffffff
+mbedtls_byteswap:"ffffffffffffffff":32:"ffffffff"
 
 Byteswap 64
-mbedtls_byteswap:0x07060504:0x03020100:64:0x010203:0x04050607
+mbedtls_byteswap:"0706050403020100":64:"01020304050607"
 
 Byteswap 64 all-zero
-mbedtls_byteswap:0x0:0x0:64:0x00:0x0
+mbedtls_byteswap:"0000000000000000":64:"0000000000000000"
 
 Byteswap 64 all-ones
-mbedtls_byteswap:0xffffffff:0xffffffff:64:0xffffffff:0xffffffff
+mbedtls_byteswap:"ffffffffffffffff":64:"ffffffffffffffff"
 
 Get individual bytes
 get_byte

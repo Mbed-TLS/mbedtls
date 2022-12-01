@@ -6,6 +6,30 @@
 #if defined(__clang__)
 #pragma clang diagnostic ignored "-Wunreachable-code"
 #endif
+#include <stdio.h>
+
+/*
+ * Convert a string of the form "abcd" (case-insensitive) to a uint64_t.
+ */
+int parse_hex_string( char* hex_string, uint64_t *result )
+{
+    uint8_t raw[8];
+    size_t olen;
+    if ( mbedtls_test_unhexify(raw, sizeof(raw), hex_string, &olen) != 0 ) return 0;
+    *result = 0;
+    for ( size_t i = 0; i < olen; i++ )
+    {
+        if ( MBEDTLS_IS_BIG_ENDIAN ) {
+            *result |= ((uint64_t)raw[i]) << ( i * 8 );
+        }
+        else
+        {
+            *result |= ((uint64_t)raw[i]) << ( (olen - i - 1) * 8 );
+        }
+    }
+    return 1;
+}
+
 /* END_HEADER */
 
 /* BEGIN_CASE */
@@ -104,13 +128,13 @@ void mbedtls_unaligned_access( int size, int offset )
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_byteswap( unsigned int input_h, unsigned int input_l, int size,
-    unsigned int expected_h, unsigned int expected_l )
+void mbedtls_byteswap( char* input_str, int size, char *expected_str )
 {
-    uint64_t input    = ( ((uint64_t)input_h   ) << 32 ) | ( (uint64_t)input_l    );
-    uint64_t expected = ( ((uint64_t)expected_h) << 32 ) | ( (uint64_t)expected_l );
+    uint64_t input, expected;
+    TEST_ASSERT( parse_hex_string( input_str, &input ) );
+    TEST_ASSERT( parse_hex_string( expected_str, &expected ) );
 
-    /* Check against expected */
+    /* Check against expected result */
     uint64_t r = 0;
     switch ( size )
     {

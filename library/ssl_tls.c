@@ -1991,6 +1991,10 @@ int mbedtls_ssl_set_hs_ecjpake_password( mbedtls_ssl_context *ssl,
     else
         role = MBEDTLS_ECJPAKE_CLIENT;
 
+    /* Empty password is not valid  */
+    if( ( pw == NULL) || ( pw_len == 0 ) )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
     return( mbedtls_ecjpake_setup( &ssl->handshake->ecjpake_ctx,
                                    role,
                                    MBEDTLS_MD_SHA256,

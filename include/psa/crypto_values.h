@@ -39,7 +39,26 @@
  * @{
  */
 
-/* PSA error codes */
+/* Status codes are shared across PSA modules. All PSA modules
+ * that define a given status code must give it the same numerical value
+ * and must use the same sequence of tokens. This is necessary to allow
+ * the same C source file to include multiple PSA specifications' headers.
+ * For example, both <psa/crypto.h> and <psa/client.h> define a macro called
+ * `PSA_ERROR_NOT_PERMITTED`, so the two definitions must expand to the same
+ * sequence of tokens, otherwise including both errors would lead to a
+ * compilation error.
+ *
+ * If two PSA modules included a header called `psa/error.h`, then users
+ * would need to ensure that the one present first in the include path
+ * contains all the definitions needed by the other module. To avoid this
+ * difficulty, only the PSA firmware framework supplies `psa/error.h`.
+ * Since PSA crypto can be used without the firmware framework, it makes
+ * its own arrangement to define the status codes that it needs.
+ *
+ * If PSA Crypto needs a new status code, the status code (name and value)
+ * must be registered with the PSA API status code specification by filing
+ * a request at https://github.com/ARM-software/psa-api/issues .
+ */
 
 /** The action was completed successfully. */
 #define PSA_SUCCESS ((psa_status_t)0)

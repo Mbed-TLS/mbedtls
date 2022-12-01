@@ -822,7 +822,11 @@ int mbedtls_test_psa_exported_key_sanity_check(
     }
     else
 #endif /* MBEDTLS_ECP_C */
-
+    if( PSA_KEY_TYPE_IS_DH_PUBLIC_KEY( type ) || PSA_KEY_TYPE_IS_DH_KEY_PAIR( type ) )
+    {
+        TEST_LE_U( exported_length, PSA_BITS_TO_BYTES( bits ) );
+    }
+    else
     {
         (void) exported;
         TEST_ASSERT( ! "Sanity check not implemented for this key type" );

@@ -435,12 +435,12 @@ psa_status_t psa_driver_wrapper_verify_hash(
 
 void psa_driver_wrapper_interruptible_set_max_ops( uint32_t max_ops )
 {
-    ( void ) max_ops;
+    mbedtls_psa_interruptible_set_max_ops( max_ops );
 }
 
 uint32_t psa_driver_wrapper_interruptible_get_max_ops( void )
 {
-    return( PSA_ERROR_INVALID_ARGUMENT );
+    return mbedtls_psa_interruptible_get_max_ops( );
 }
 
 uint32_t psa_driver_wrapper_sign_hash_get_num_ops(
@@ -449,12 +449,13 @@ uint32_t psa_driver_wrapper_sign_hash_get_num_ops(
     switch( operation->id )
     {
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
+            return( mbedtls_psa_sign_hash_get_num_ops(
+                                                &operation->ctx.mbedtls_ctx )
+                  );
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-        case MBEDTLS_TEST_TRANSPARENT_DRIVER_ID:
-
-            /* Add cases for opaque driver here */
+            /* Add test driver tests here */
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
@@ -469,15 +470,17 @@ uint32_t psa_driver_wrapper_verify_hash_get_num_ops(
     switch( operation->id )
     {
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
+            return( mbedtls_psa_verify_hash_get_num_ops(
+                                                &operation->ctx.mbedtls_ctx )
+                    );
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-        case MBEDTLS_TEST_TRANSPARENT_DRIVER_ID:
-
-            /* Add cases for opaque driver here */
+            /* Add test driver tests here */
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
+
     }
 
     return( PSA_ERROR_INVALID_ARGUMENT );
@@ -491,7 +494,8 @@ psa_status_t psa_driver_wrapper_sign_hash_start(
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_location_t location =
-                                  PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime );
+                                  PSA_KEY_LIFETIME_GET_LOCATION(
+                                                    attributes->core.lifetime );
 
     switch( location )
     {
@@ -511,6 +515,10 @@ psa_status_t psa_driver_wrapper_sign_hash_start(
 
             /* Fell through, meaning no accelerator supports this operation */
             operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
+            return( mbedtls_psa_sign_hash_start( &operation->ctx.mbedtls_ctx,
+                                                 attributes,
+                                                 key_buffer, key_buffer_size,
+                                                 alg, hash, hash_length ) );
             break;
 
             /* Add cases for opaque driver here */
@@ -539,12 +547,13 @@ psa_status_t psa_driver_wrapper_sign_hash_complete(
     switch( operation->id )
     {
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
+            return( mbedtls_psa_sign_hash_complete( &operation->ctx.mbedtls_ctx,
+                                                    signature, signature_size,
+                                                    signature_length ) );
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-        case MBEDTLS_TEST_TRANSPARENT_DRIVER_ID:
-
-            /* Add cases for opaque driver here */
+            /* Add test driver tests here */
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
@@ -563,12 +572,11 @@ psa_status_t psa_driver_wrapper_sign_hash_abort(
     switch( operation->id )
     {
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
+            return( mbedtls_psa_sign_hash_abort( &operation->ctx.mbedtls_ctx ) );
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-        case MBEDTLS_TEST_TRANSPARENT_DRIVER_ID:
-
-            /* Add cases for opaque driver here */
+            /* Add test driver tests here */
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
@@ -586,8 +594,8 @@ psa_status_t psa_driver_wrapper_verify_hash_start(
 {
 
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_location_t location =
-                                  PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime );
+    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION(
+                                                    attributes->core.lifetime );
 
     switch( location )
     {
@@ -607,6 +615,12 @@ psa_status_t psa_driver_wrapper_verify_hash_start(
 
             /* Fell through, meaning no accelerator supports this operation */
             operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
+            return( mbedtls_psa_verify_hash_start( &operation->ctx.mbedtls_ctx,
+                                                   attributes,
+                                                   key_buffer, key_buffer_size,
+                                                   alg, hash, hash_length,
+                                                   signature, signature_length
+                                                   ) );
             break;
 
             /* Add cases for opaque driver here */
@@ -635,12 +649,13 @@ psa_status_t psa_driver_wrapper_verify_hash_complete(
     switch( operation->id )
     {
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
+            return( mbedtls_psa_verify_hash_complete(
+                                                     &operation->ctx.mbedtls_ctx
+                                                     ) );
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-        case MBEDTLS_TEST_TRANSPARENT_DRIVER_ID:
-
-            /* Add cases for opaque driver here */
+            /* Add test driver tests here */
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
@@ -655,12 +670,12 @@ psa_status_t psa_driver_wrapper_verify_hash_abort(
     switch( operation->id )
     {
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
+            return( mbedtls_psa_verify_hash_abort( &operation->ctx.mbedtls_ctx
+                                                 ) );
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-        case MBEDTLS_TEST_TRANSPARENT_DRIVER_ID:
-
-            /* Add cases for opaque driver here */
+            /* Add test driver tests here */
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */

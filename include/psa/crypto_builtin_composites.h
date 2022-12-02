@@ -112,4 +112,59 @@ typedef struct
 
 #define MBEDTLS_PSA_AEAD_OPERATION_INIT {0, 0, 0, 0, {0}}
 
+#include "mbedtls/ecdsa.h"
+
+/* Context structure for the Mbed TLS interruptible sign hash implementation. */
+typedef struct
+{
+
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+ defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
+    mbedtls_ecdsa_context * MBEDTLS_PRIVATE( ctx );
+#if defined( MBEDTLS_ECP_RESTARTABLE )
+    mbedtls_ecdsa_restart_ctx MBEDTLS_PRIVATE( restart_ctx );
+#endif /* MBEDTLS_ECP_RESTARTABLE */
+
+    size_t MBEDTLS_PRIVATE( curve_bytes );
+    psa_algorithm_t MBEDTLS_PRIVATE( alg );
+    mbedtls_md_type_t MBEDTLS_PRIVATE( md_alg );
+    const uint8_t* MBEDTLS_PRIVATE( hash );
+    size_t MBEDTLS_PRIVATE( hash_length );
+
+    mbedtls_mpi MBEDTLS_PRIVATE( r );
+    mbedtls_mpi MBEDTLS_PRIVATE( s );
+
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA */
+
+} mbedtls_psa_sign_hash_interruptible_operation_t;
+
+#define MBEDTLS_PSA_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT {{0}, {0}, 0, 0, 0, 0, 0, {0}, {0}}
+
+/* Context structure for the Mbed TLS interruptible verify hash
+ * implementation.*/
+typedef struct
+{
+
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+ defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
+    mbedtls_ecdsa_context * MBEDTLS_PRIVATE( ctx );
+#if defined( MBEDTLS_ECP_RESTARTABLE )
+    mbedtls_ecdsa_restart_ctx MBEDTLS_PRIVATE( restart_ctx );
+#endif /* MBEDTLS_ECP_RESTARTABLE */
+
+    size_t MBEDTLS_PRIVATE( curve_bytes );
+    const uint8_t* MBEDTLS_PRIVATE( hash );
+    size_t MBEDTLS_PRIVATE( hash_length );
+
+    mbedtls_mpi MBEDTLS_PRIVATE( r );
+    mbedtls_mpi MBEDTLS_PRIVATE( s );
+
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA */
+
+} mbedtls_psa_verify_hash_interruptible_operation_t;
+
+#define MBEDTLS_VERIFY_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT {{0}, {0}, 0, 0, 0, {0}, {0}}
+
+
+
 #endif /* PSA_CRYPTO_BUILTIN_COMPOSITES_H */

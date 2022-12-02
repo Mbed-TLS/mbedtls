@@ -81,6 +81,7 @@
 #include "mbedtls/sha1.h"
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
+#include "hash_info.h"
 
 #define ARRAY_LENGTH( array ) ( sizeof( array ) / sizeof( *( array ) ) )
 
@@ -311,6 +312,9 @@ psa_status_t mbedtls_to_psa_error( int ret )
             return( PSA_ERROR_INSUFFICIENT_MEMORY );
         case MBEDTLS_ERR_ECP_RANDOM_FAILED:
             return( PSA_ERROR_INSUFFICIENT_ENTROPY );
+
+        case MBEDTLS_ERR_ECP_IN_PROGRESS:
+            return( PSA_OPERATION_INCOMPLETE );
 
         case MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED:
             return( PSA_ERROR_CORRUPTION_DETECTED );
@@ -3364,7 +3368,426 @@ psa_status_t psa_verify_hash_abort(
     return( PSA_SUCCESS );
 }
 
+/****************************************************************/
+/* Asymmetric interruptible cryptography internal               */
+/* implementations                                              */
+/****************************************************************/
 
+static uint32_t mbedtls_psa_interruptible_max_ops =
+                                            PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED;
+
+void mbedtls_psa_interruptible_set_max_ops( uint32_t max_ops )
+{
+#if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ) && \
+     defined( MBEDTLS_ECP_RESTARTABLE )
+
+    /* Internal implementation uses zero to indicate infinite number max ops,
+     * therefore avoid this value, and set to minimum possible. */
+    if( max_ops == 0 )
+    {
+        max_ops = 1;
+    }
+
+    mbedtls_psa_interruptible_max_ops = max_ops;
+    mbedtls_ecp_set_max_ops( max_ops );
+#else
+    ( void ) max_ops;
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) &&
+        * defined( MBEDTLS_ECP_RESTARTABLE ) */
+}
+
+uint32_t mbedtls_psa_interruptible_get_max_ops( void )
+{
+    return mbedtls_psa_interruptible_max_ops;
+}
+
+uint32_t mbedtls_psa_sign_hash_get_num_ops(
+            const mbedtls_psa_sign_hash_interruptible_operation_t *operation )
+{
+#if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ) && \
+     defined( MBEDTLS_ECP_RESTARTABLE )
+
+    return( operation->restart_ctx.ecp.ops_done );
+#else
+    ( void ) operation;
+    return( 0 );
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) &&
+        * defined( MBEDTLS_ECP_RESTARTABLE ) */
+}
+
+uint32_t mbedtls_psa_verify_hash_get_num_ops(
+            const mbedtls_psa_verify_hash_interruptible_operation_t *operation )
+{
+    #if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ) && \
+     defined( MBEDTLS_ECP_RESTARTABLE )
+
+    return( operation->restart_ctx.ecp.ops_done );
+#else
+    ( void ) operation;
+    return( 0 );
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) &&
+        * defined( MBEDTLS_ECP_RESTARTABLE ) */
+}
+
+psa_status_t mbedtls_psa_sign_hash_start(
+              mbedtls_psa_sign_hash_interruptible_operation_t *operation,
+              const psa_key_attributes_t *attributes, const uint8_t *key_buffer,
+              size_t key_buffer_size, psa_algorithm_t alg,
+              const uint8_t *hash, size_t hash_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    if( PSA_KEY_TYPE_IS_ECC( attributes->core.type ) )
+    {
+        if( PSA_ALG_IS_ECDSA( alg ) )
+        {
+
+#if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ) && \
+     defined( MBEDTLS_ECP_RESTARTABLE )
+
+#if !defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
+            if( PSA_ALG_ECDSA_IS_DETERMINISTIC( alg ) )
+                return PSA_ERROR_NOT_SUPPORTED;
+#endif
+
+            /* Ensure default is set even if
+             * mbedtls_psa_interruptible_get_max_ops() has not been called. */
+            mbedtls_ecp_set_max_ops( mbedtls_psa_interruptible_get_max_ops( ) );
+
+            status = mbedtls_psa_ecp_load_representation( attributes->core.type,
+                                                          attributes->core.bits,
+                                                          key_buffer,
+                                                          key_buffer_size,
+                                                          &operation->ctx );
+
+            if( status != PSA_SUCCESS )
+                return status;
+
+            mbedtls_ecdsa_restart_init( &operation->restart_ctx );
+
+            mbedtls_mpi_init( &operation->r );
+            mbedtls_mpi_init( &operation->s );
+
+            operation->curve_bytes = PSA_BITS_TO_BYTES(
+                                                    operation->ctx->grp.pbits );
+
+            psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH( alg );
+            operation->md_alg = mbedtls_hash_info_md_from_psa( hash_alg );
+            operation->alg = alg;
+
+            operation->hash = hash;
+            operation->hash_length = hash_length;
+
+#else
+            ( void ) operation;
+            ( void ) key_buffer;
+            ( void ) key_buffer_size;
+            ( void ) alg;
+            ( void ) hash;
+            ( void ) hash_length;
+
+            return( PSA_ERROR_NOT_SUPPORTED );
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) &&
+        * defined( MBEDTLS_ECP_RESTARTABLE ) */
+        }
+        else
+            status = PSA_ERROR_INVALID_ARGUMENT;
+    }
+    else
+        status = PSA_ERROR_NOT_SUPPORTED;
+
+    return( status );
+}
+
+psa_status_t mbedtls_psa_sign_hash_complete(
+                     mbedtls_psa_sign_hash_interruptible_operation_t *operation,
+                     uint8_t *signature, size_t signature_size,
+                     size_t *signature_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+#if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ) && \
+     defined( MBEDTLS_ECP_RESTARTABLE )
+
+    if( signature_size < 2 * operation->curve_bytes )
+        return( PSA_ERROR_BUFFER_TOO_SMALL );
+
+
+    if( PSA_ALG_ECDSA_IS_DETERMINISTIC( operation->alg ) )
+    {
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
+        status = mbedtls_to_psa_error(
+                mbedtls_ecdsa_sign_det_restartable( &operation->ctx->grp,
+                                                    &operation->r,
+                                                    &operation->s,
+                                                    &operation->ctx->d,
+                                                    operation->hash,
+                                                    operation->hash_length,
+                                                    operation->md_alg,
+                                                    mbedtls_psa_get_random,
+                                                    MBEDTLS_PSA_RANDOM_STATE,
+                                                    &operation->restart_ctx ) );
+#else /* defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
+        return PSA_ERROR_NOT_SUPPORTED;
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
+    }
+    else
+    {
+
+        status = mbedtls_to_psa_error(
+                    mbedtls_ecdsa_sign_restartable( &operation->ctx->grp,
+                                                    &operation->r,
+                                                    &operation->s,
+                                                    &operation->ctx->d,
+                                                    operation->hash,
+                                                    operation->hash_length,
+                                                    mbedtls_psa_get_random,
+                                                    MBEDTLS_PSA_RANDOM_STATE,
+                                                    mbedtls_psa_get_random,
+                                                    MBEDTLS_PSA_RANDOM_STATE,
+                                                    &operation->restart_ctx ) );
+    }
+
+    if( status != PSA_SUCCESS )
+        return status;
+    else
+    {
+        status =  mbedtls_to_psa_error(
+                        mbedtls_mpi_write_binary( &operation->r,
+                                                  signature,
+                                                  operation->curve_bytes ) );
+
+        if( status != PSA_SUCCESS )
+            return status;
+
+        status =  mbedtls_to_psa_error(
+                        mbedtls_mpi_write_binary( &operation->s,
+                                                  signature +
+                                                  operation->curve_bytes,
+                                                  operation->curve_bytes ) );
+
+        if( status != PSA_SUCCESS )
+            return status;
+
+        *signature_length = operation->curve_bytes * 2;
+
+        return PSA_SUCCESS;
+    }
+ #else
+
+    ( void ) operation;
+    ( void ) status;
+    ( void ) signature;
+    ( void ) signature_size;
+    ( void ) signature_length;
+
+    return( PSA_ERROR_NOT_SUPPORTED );
+
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) &&
+        * defined( MBEDTLS_ECP_RESTARTABLE ) */
+}
+
+psa_status_t mbedtls_psa_sign_hash_abort(
+                    mbedtls_psa_sign_hash_interruptible_operation_t *operation )
+{
+
+#if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ) && \
+     defined( MBEDTLS_ECP_RESTARTABLE )
+
+    if( operation->ctx )
+    {
+        mbedtls_ecdsa_free( operation->ctx );
+        mbedtls_free( operation->ctx );
+    }
+
+    mbedtls_ecdsa_restart_free( &operation->restart_ctx );
+
+    mbedtls_mpi_free( &operation->r );
+    mbedtls_mpi_free( &operation->s );
+
+    return PSA_SUCCESS;
+
+#else
+
+    ( void ) operation;
+
+    return( PSA_ERROR_NOT_SUPPORTED );
+
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+    * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) &&
+    * defined( MBEDTLS_ECP_RESTARTABLE ) */
+}
+
+psa_status_t mbedtls_psa_verify_hash_start(
+                mbedtls_psa_verify_hash_interruptible_operation_t *operation,
+                const psa_key_attributes_t *attributes,
+                const uint8_t *key_buffer, size_t key_buffer_size,
+                psa_algorithm_t alg,
+                const uint8_t *hash, size_t hash_length,
+                const uint8_t *signature, size_t signature_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    if( PSA_KEY_TYPE_IS_ECC( attributes->core.type ) )
+    {
+        if( PSA_ALG_IS_ECDSA( alg ) )
+        {
+
+#if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ) && \
+     defined( MBEDTLS_ECP_RESTARTABLE )
+
+            /* Ensure default is set even if
+             * mbedtls_psa_interruptible_get_max_ops() has not been called. */
+            mbedtls_ecp_set_max_ops( mbedtls_psa_interruptible_get_max_ops( ) );
+
+            status = mbedtls_psa_ecp_load_representation( attributes->core.type,
+                                                          attributes->core.bits,
+                                                          key_buffer,
+                                                          key_buffer_size,
+                                                          &operation->ctx );
+
+            if( status != PSA_SUCCESS )
+                return status;
+
+            operation->curve_bytes = PSA_BITS_TO_BYTES(
+                                                    operation->ctx->grp.pbits );
+
+
+            if( signature_length != 2 * operation->curve_bytes )
+                return PSA_ERROR_INVALID_SIGNATURE;
+
+            mbedtls_mpi_init( &operation->r );
+            status = mbedtls_to_psa_error(
+                           mbedtls_mpi_read_binary( &operation->r,
+                                                    signature,
+                                                    operation->curve_bytes ) );
+
+            if( status != PSA_SUCCESS )
+                return status;
+
+            mbedtls_mpi_init( &operation->s );
+            status = mbedtls_to_psa_error(
+                           mbedtls_mpi_read_binary( &operation->s,
+                                                    signature +
+                                                    operation->curve_bytes,
+                                                    operation->curve_bytes ) );
+
+            if( status != PSA_SUCCESS )
+                return status;
+
+            /* Check whether the public part is loaded. If not, load it. */
+            if( mbedtls_ecp_is_zero( &operation->ctx->Q ) )
+            {
+                int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+                ret = mbedtls_ecp_mul( &operation->ctx->grp,
+                                       &operation->ctx->Q,
+                                       &operation->ctx->d,
+                                       &operation->ctx->grp.G,
+                                       mbedtls_psa_get_random,
+                                       MBEDTLS_PSA_RANDOM_STATE );
+
+                if( ret != 0 )
+                    return( mbedtls_to_psa_error( ret ) );
+            }
+
+            mbedtls_ecdsa_restart_init( &operation->restart_ctx );
+
+            operation->hash = hash;
+            operation->hash_length = hash_length;
+#else
+            ( void ) operation;
+            ( void ) key_buffer;
+            ( void ) key_buffer_size;
+            ( void ) alg;
+            ( void ) hash;
+            ( void ) hash_length;
+            ( void ) signature;
+            ( void ) signature_length;
+
+            return( PSA_ERROR_NOT_SUPPORTED );
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) &&
+        * defined( MBEDTLS_ECP_RESTARTABLE ) */
+        }
+        else
+            status = PSA_ERROR_INVALID_ARGUMENT;
+    }
+    else
+        status = PSA_ERROR_NOT_SUPPORTED;
+
+    return( status );
+}
+
+psa_status_t mbedtls_psa_verify_hash_complete(
+                mbedtls_psa_verify_hash_interruptible_operation_t *operation )
+{
+
+#if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ) && \
+     defined( MBEDTLS_ECP_RESTARTABLE )
+
+    return( mbedtls_to_psa_error(
+                 mbedtls_ecdsa_verify_restartable( &operation->ctx->grp,
+                                                   operation->hash,
+                                                   operation->hash_length,
+                                                   &operation->ctx->Q,
+                                                   &operation->r,
+                                                   &operation->s,
+                                                   &operation->restart_ctx ) ) );
+
+#else
+    ( void ) operation;
+
+    return( PSA_ERROR_NOT_SUPPORTED );
+
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) &&
+        * defined( MBEDTLS_ECP_RESTARTABLE ) */
+}
+
+psa_status_t mbedtls_psa_verify_hash_abort(
+                mbedtls_psa_verify_hash_interruptible_operation_t *operation )
+{
+
+#if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ) && \
+     defined( MBEDTLS_ECP_RESTARTABLE )
+
+    if( operation->ctx )
+    {
+        mbedtls_ecdsa_free( operation->ctx );
+        mbedtls_free( operation->ctx );
+    }
+
+    mbedtls_ecdsa_restart_free( &operation->restart_ctx );
+
+    mbedtls_mpi_free( &operation->r );
+    mbedtls_mpi_free( &operation->s );
+
+    return PSA_SUCCESS;
+
+#else
+    ( void ) operation;
+
+    return( PSA_ERROR_NOT_SUPPORTED );
+
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+    * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) &&
+    * defined( MBEDTLS_ECP_RESTARTABLE ) */
+}
 
 /****************************************************************/
 /* Symmetric cryptography */

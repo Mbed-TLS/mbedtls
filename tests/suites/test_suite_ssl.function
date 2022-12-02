@@ -2583,14 +2583,20 @@ int tweak_tls13_certificate_msg_vector_len(
 }
 #endif /* MBEDTLS_TEST_HOOKS */
 
-typedef enum {
-    ECJPAKE_ERR_NONE,
-    ECJPAKE_ERR_UNITIALIZED_SSL_CONTEXT,
-    ECJPAKE_ERR_EMPTY_PASSWORD,
-    ECJPAKE_ERR_UNINITIALIZED_PWD_KEY,
-} ecjpake_err_inj_step_t;
-
 #define ECJPAKE_TEST_PWD        "bla"
+
+#if defined( MBEDTLS_USE_PSA_CRYPTO )
+#define ECJPAKE_TEST_SET_PASSWORD( exp_ret_val )                          \
+    ret = ( use_opaque_arg ) ?                                            \
+        mbedtls_ssl_set_hs_ecjpake_password_opaque( &ssl, pwd_slot ) :    \
+        mbedtls_ssl_set_hs_ecjpake_password( &ssl, pwd_string, pwd_len ); \
+    TEST_ASSERT( ret == exp_ret_val )
+#else
+#define ECJPAKE_TEST_SET_PASSWORD( exp_ret_val )                \
+    ret = mbedtls_ssl_set_hs_ecjpake_password( &ssl,            \
+                                        pwd_string, pwd_len );  \
+    TEST_ASSERT( ret == exp_ret_val )
+#endif
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -6191,9 +6197,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
-void ssl_ecjpake_set_password( int use_opaque_arg,
-                               int err_injection_step_arg,
-                               int expected_error_arg )
+void ssl_ecjpake_set_password( int use_opaque_arg )
 {
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
@@ -6204,15 +6208,14 @@ void ssl_ecjpake_set_password( int use_opaque_arg,
 #endif  /* MBEDTLS_USE_PSA_CRYPTO */
     const unsigned char pwd_string[ sizeof(ECJPAKE_TEST_PWD) ] = "";
     size_t pwd_len = 0;
-    ecjpake_err_inj_step_t err_injection_step = err_injection_step_arg;
     int ret;
 
     USE_PSA_INIT( );
 
     mbedtls_ssl_init( &ssl );
 
-    if( err_injection_step == ECJPAKE_ERR_UNITIALIZED_SSL_CONTEXT )
-        goto run_test;
+    /* test with uninitalized SSL context */
+    ECJPAKE_TEST_SET_PASSWORD( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     mbedtls_ssl_config_init( &conf );
 
@@ -6224,8 +6227,8 @@ void ssl_ecjpake_set_password( int use_opaque_arg,
 
     TEST_ASSERT( mbedtls_ssl_setup( &ssl, &conf ) == 0 );
 
-    if( err_injection_step == ECJPAKE_ERR_EMPTY_PASSWORD )
-        goto run_test;
+    /* test with empty password */
+    ECJPAKE_TEST_SET_PASSWORD( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     pwd_len = strlen( ECJPAKE_TEST_PWD );
     memcpy( (void*) pwd_string, ECJPAKE_TEST_PWD, pwd_len );
@@ -6233,8 +6236,8 @@ void ssl_ecjpake_set_password( int use_opaque_arg,
 #if defined( MBEDTLS_USE_PSA_CRYPTO )
     if( use_opaque_arg )
     {
-        if( err_injection_step == ECJPAKE_ERR_UNINITIALIZED_PWD_KEY )
-            goto run_test;
+        /* test with uninitialized password key */
+        ECJPAKE_TEST_SET_PASSWORD( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
         psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
@@ -6247,16 +6250,12 @@ void ssl_ecjpake_set_password( int use_opaque_arg,
     }
 #endif  /* MBEDTLS_USE_PSA_CRYPTO */
 
-run_test:
-#if defined( MBEDTLS_USE_PSA_CRYPTO )
-    ret = ( use_opaque_arg ) ?
-            mbedtls_ssl_set_hs_ecjpake_password_opaque( &ssl, pwd_slot ) :
-            mbedtls_ssl_set_hs_ecjpake_password( &ssl, pwd_string, pwd_len );
-#else   /* MBEDTLS_USE_PSA_CRYPTO */
-    ret = mbedtls_ssl_set_hs_ecjpake_password( &ssl, pwd_string, pwd_len );
-#endif  /* MBEDTLS_USE_PSA_CRYPTO */
-    TEST_EQUAL( ret, expected_error_arg );
+    /* final check which should work without errors */
+    ECJPAKE_TEST_SET_PASSWORD( 0 );
 
+#if defined( MBEDTLS_USE_PSA_CRYPTO )
+    psa_destroy_key( pwd_slot );
+#endif  /* MBEDTLS_USE_PSA_CRYPTO */
     mbedtls_ssl_free( &ssl );
     mbedtls_ssl_config_free( &conf );
 

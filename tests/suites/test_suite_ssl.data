@@ -3570,28 +3570,8 @@ tls13_server_certificate_msg_invalid_vector_len
 
 EC-JPAKE set password
 depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
-ssl_ecjpake_set_password:0:ECJPAKE_ERR_NONE:0
-
-EC-JPAKE set password - uninitiazed SSL context
-depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
-ssl_ecjpake_set_password:0:ECJPAKE_ERR_UNITIALIZED_SSL_CONTEXT:MBEDTLS_ERR_SSL_BAD_INPUT_DATA
-
-EC-JPAKE set password - empty password
-depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
-ssl_ecjpake_set_password:0:ECJPAKE_ERR_EMPTY_PASSWORD:MBEDTLS_ERR_SSL_BAD_INPUT_DATA
+ssl_ecjpake_set_password:0
 
 EC-JPAKE set opaque password
 depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED:MBEDTLS_USE_PSA_CRYPTO
-ssl_ecjpake_set_password:1:ECJPAKE_ERR_NONE:0
-
-EC-JPAKE set opaque password - uninitiazed SSL context
-depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED:MBEDTLS_USE_PSA_CRYPTO
-ssl_ecjpake_set_password:1:ECJPAKE_ERR_UNITIALIZED_SSL_CONTEXT:MBEDTLS_ERR_SSL_BAD_INPUT_DATA
-
-EC-JPAKE set opaque password - empty password
-depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED:MBEDTLS_USE_PSA_CRYPTO
-ssl_ecjpake_set_password:1:ECJPAKE_ERR_EMPTY_PASSWORD:MBEDTLS_ERR_SSL_BAD_INPUT_DATA
-
-EC-JPAKE set opaque password - uninitalized password key
-depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED:MBEDTLS_USE_PSA_CRYPTO
-ssl_ecjpake_set_password:1:ECJPAKE_ERR_UNINITIALIZED_PWD_KEY:MBEDTLS_ERR_SSL_BAD_INPUT_DATA
+ssl_ecjpake_set_password:1

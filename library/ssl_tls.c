@@ -1950,31 +1950,24 @@ int mbedtls_ssl_set_hs_ecjpake_password_opaque( mbedtls_ssl_context *ssl,
 
     status = psa_pake_setup( &ssl->handshake->psa_pake_ctx, &cipher_suite );
     if( status != PSA_SUCCESS )
-    {
-        psa_destroy_key( ssl->handshake->psa_pake_password );
-        return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-    }
+        goto error;
 
     status = psa_pake_set_role( &ssl->handshake->psa_pake_ctx, psa_role );
     if( status != PSA_SUCCESS )
-    {
-        psa_destroy_key( ssl->handshake->psa_pake_password );
-        psa_pake_abort( &ssl->handshake->psa_pake_ctx );
-        return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-    }
+        goto error;
 
     psa_pake_set_password_key( &ssl->handshake->psa_pake_ctx,
                                 ssl->handshake->psa_pake_password );
     if( status != PSA_SUCCESS )
-    {
-        psa_destroy_key( ssl->handshake->psa_pake_password );
-        psa_pake_abort( &ssl->handshake->psa_pake_ctx );
-        return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-    }
+        goto error;
 
     ssl->handshake->psa_pake_ctx_is_ok = 1;
 
     return( 0 );
+
+error:
+    psa_pake_abort( &ssl->handshake->psa_pake_ctx );
+    return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
 }
 #else /* MBEDTLS_USE_PSA_CRYPTO */
 int mbedtls_ssl_set_hs_ecjpake_password( mbedtls_ssl_context *ssl,

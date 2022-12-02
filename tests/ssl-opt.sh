@@ -8010,7 +8010,7 @@ run_test    "ECJPAKE: working, TLS" \
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "ECJPAKE_OPAQUE_PW: working, TLS, opaque password client+server" \
+run_test    "ECJPAKE: opaque password client+server, working, TLS" \
             "$P_SRV debug_level=3 ecjpake_pw=bla ecjpake_pw_opaque=1" \
             "$P_CLI debug_level=3 ecjpake_pw=bla ecjpake_pw_opaque=1\
              force_ciphersuite=TLS-ECJPAKE-WITH-AES-128-CCM-8" \
@@ -8031,7 +8031,7 @@ run_test    "ECJPAKE_OPAQUE_PW: working, TLS, opaque password client+server" \
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "ECJPAKE_OPAQUE_PW: working, TLS, opaque password client only" \
+run_test    "ECJPAKE: opaque password client only, working, TLS" \
             "$P_SRV debug_level=3 ecjpake_pw=bla" \
             "$P_CLI debug_level=3 ecjpake_pw=bla ecjpake_pw_opaque=1\
              force_ciphersuite=TLS-ECJPAKE-WITH-AES-128-CCM-8" \
@@ -8052,7 +8052,7 @@ run_test    "ECJPAKE_OPAQUE_PW: working, TLS, opaque password client only" \
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "ECJPAKE_OPAQUE_PW: working, TLS, opaque password server only" \
+run_test    "ECJPAKE: opaque password server only, working, TLS" \
             "$P_SRV debug_level=3 ecjpake_pw=bla ecjpake_pw_opaque=1" \
             "$P_CLI debug_level=3 ecjpake_pw=bla\
              force_ciphersuite=TLS-ECJPAKE-WITH-AES-128-CCM-8" \

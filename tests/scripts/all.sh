@@ -1455,10 +1455,14 @@ component_test_tls1_2_ecjpake_compatibility() {
     make -C programs ssl/ssl_server2 ssl/ssl_client2
     make -C programs test/udp_proxy test/query_compile_time_config
 
-    msg "test: server w/o USE_PSA - client w/ USE_PSA"
-    P_SRV=../s2_no_use_psa tests/ssl-opt.sh -f ECJPAKE -e ECJPAKE_OPAQUE_PW
-    msg "test: client w/o USE_PSA - server w/ USE_PSA"
-    P_CLI=../c2_no_use_psa tests/ssl-opt.sh -f ECJPAKE -e ECJPAKE_OPAQUE_PW
+    msg "test: server w/o USE_PSA - client w/ USE_PSA, text password"
+    P_SRV=../s2_no_use_psa tests/ssl-opt.sh -f "ECJPAKE: working, TLS"
+    msg "test: server w/o USE_PSA - client w/ USE_PSA, opaque password"
+    P_SRV=../s2_no_use_psa tests/ssl-opt.sh -f "ECJPAKE: opaque password client only, working, TLS"
+    msg "test: client w/o USE_PSA - server w/ USE_PSA, text password"
+    P_CLI=../c2_no_use_psa tests/ssl-opt.sh -f "ECJPAKE: working, TLS"
+    msg "test: client w/o USE_PSA - server w/ USE_PSA, opaque password"
+    P_CLI=../c2_no_use_psa tests/ssl-opt.sh -f "ECJPAKE: opaque password server only, working, TLS"
 
     rm s2_no_use_psa c2_no_use_psa
 }

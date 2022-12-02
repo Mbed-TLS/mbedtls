@@ -12531,7 +12531,9 @@ for i in opt-testcases/*.sh
 do
     TEST_SUITE_NAME=${i##*/}
     TEST_SUITE_NAME=${TEST_SUITE_NAME%.*}
-    . "$i"
+    if is_excluded_test_suite "${TEST_SUITE_NAME}"; then
+        . "$i"
+    fi
 done
 unset TEST_SUITE_NAME
 

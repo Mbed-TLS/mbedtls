@@ -1392,13 +1392,6 @@ run_test() {
         return
     fi
 
-    # Use ssl-opt as default test suite name. Also see record_outcome function
-    if is_excluded_test_suite "${TEST_SUITE_NAME:-ssl-opt}"; then
-        # Do not skip next test and skip current test.
-        SKIP_NEXT="NO"
-        return
-    fi
-
     print_name "$NAME"
 
     # Do we only run numbered tests?

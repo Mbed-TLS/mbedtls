@@ -403,36 +403,30 @@ static int x509_get_version(unsigned char **p,
                             const unsigned char *end,
                             int *ver)
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t len;
+    unsigned char raw_ver = 0;
+    unsigned char const prefix[4] = {
+        MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED | 0,
+        3,
+        MBEDTLS_ASN1_INTEGER,
+        1,
+    };
 
-    if ((ret = mbedtls_asn1_get_tag(p, end, &len,
-                                    MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED |
-                                    0)) != 0) {
-        if (ret == MBEDTLS_ERR_ASN1_UNEXPECTED_TAG) {
-            *ver = 1;
-            return 0;
+    if ((end - *p) < 6) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_VERSION,
+                                 MBEDTLS_ERR_ASN1_OUT_OF_DATA);
+    }
+    if (memcmp(*p, prefix, sizeof(prefix)) == 0) {
+        raw_ver = (*p)[4];
+        if (raw_ver > 2) {
+            return MBEDTLS_ERR_X509_UNKNOWN_VERSION;
         }
 
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_FORMAT, ret);
+        if (raw_ver <= 0) {
+            return MBEDTLS_ERR_X509_INVALID_VERSION;
+        }
+        *p += 5;
     }
-
-    end = *p + len;
-
-    if ((ret = mbedtls_asn1_get_int(p, end, ver)) != 0) {
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_VERSION, ret);
-    }
-
-    if (*p != end) {
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_VERSION,
-                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
-    }
-
-    if (*ver < 0 || *ver > 2) {
-        return MBEDTLS_ERR_X509_UNKNOWN_VERSION;
-    }
-
-    (*ver)++;
+    *ver = raw_ver + 1;
     return 0;
 }
 

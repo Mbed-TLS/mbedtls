@@ -1264,29 +1264,29 @@ dhm_selftest:
         # List of (name, function_name, dependencies, args)
         tests = list(parse_test_data(stream))
         test1, test2, test3, test4 = tests
-        self.assertEqual(test1[0], 'Diffie-Hellman full exchange #1')
-        self.assertEqual(test1[1], 'dhm_do_dhm')
-        self.assertEqual(test1[2], [])
-        self.assertEqual(test1[3], ['10', '"23"', '10', '"5"'])
+        self.assertEqual(test1[1], 'Diffie-Hellman full exchange #1')
+        self.assertEqual(test1[2], 'dhm_do_dhm')
+        self.assertEqual(test1[3], [])
+        self.assertEqual(test1[4], ['10', '"23"', '10', '"5"'])
 
-        self.assertEqual(test2[0], 'Diffie-Hellman full exchange #2')
-        self.assertEqual(test2[1], 'dhm_do_dhm')
-        self.assertEqual(test2[2], [])
-        self.assertEqual(test2[3], ['10', '"93450983094850938450983409623"',
+        self.assertEqual(test2[1], 'Diffie-Hellman full exchange #2')
+        self.assertEqual(test2[2], 'dhm_do_dhm')
+        self.assertEqual(test2[3], [])
+        self.assertEqual(test2[4], ['10', '"93450983094850938450983409623"',
                                     '10', '"9345098304850938450983409622"'])
 
-        self.assertEqual(test3[0], 'Diffie-Hellman full exchange #3')
-        self.assertEqual(test3[1], 'dhm_do_dhm')
-        self.assertEqual(test3[2], [])
-        self.assertEqual(test3[3], ['10',
+        self.assertEqual(test3[1], 'Diffie-Hellman full exchange #3')
+        self.assertEqual(test3[2], 'dhm_do_dhm')
+        self.assertEqual(test3[3], [])
+        self.assertEqual(test3[4], ['10',
                                     '"9345098382739712938719287391879381271"',
                                     '10',
                                     '"9345098792137312973297123912791271"'])
 
-        self.assertEqual(test4[0], 'Diffie-Hellman selftest')
-        self.assertEqual(test4[1], 'dhm_selftest')
-        self.assertEqual(test4[2], [])
+        self.assertEqual(test4[1], 'Diffie-Hellman selftest')
+        self.assertEqual(test4[2], 'dhm_selftest')
         self.assertEqual(test4[3], [])
+        self.assertEqual(test4[4], [])
 
     def test_with_dependencies(self):
         """
@@ -1306,15 +1306,15 @@ dhm_do_dhm:10:"93450983094850938450983409623":10:"9345098304850938450983409622"
         # List of (name, function_name, dependencies, args)
         tests = list(parse_test_data(stream))
         test1, test2 = tests
-        self.assertEqual(test1[0], 'Diffie-Hellman full exchange #1')
-        self.assertEqual(test1[1], 'dhm_do_dhm')
-        self.assertEqual(test1[2], ['YAHOO'])
-        self.assertEqual(test1[3], ['10', '"23"', '10', '"5"'])
+        self.assertEqual(test1[1], 'Diffie-Hellman full exchange #1')
+        self.assertEqual(test1[2], 'dhm_do_dhm')
+        self.assertEqual(test1[3], ['YAHOO'])
+        self.assertEqual(test1[4], ['10', '"23"', '10', '"5"'])
 
-        self.assertEqual(test2[0], 'Diffie-Hellman full exchange #2')
-        self.assertEqual(test2[1], 'dhm_do_dhm')
-        self.assertEqual(test2[2], [])
-        self.assertEqual(test2[3], ['10', '"93450983094850938450983409623"',
+        self.assertEqual(test2[1], 'Diffie-Hellman full exchange #2')
+        self.assertEqual(test2[2], 'dhm_do_dhm')
+        self.assertEqual(test2[3], [])
+        self.assertEqual(test2[4], ['10', '"93450983094850938450983409623"',
                                     '10', '"9345098304850938450983409622"'])
 
     def test_no_args(self):
@@ -1335,7 +1335,7 @@ dhm_do_dhm:10:"93450983094850938450983409623":10:"9345098304850938450983409622"
         stream = StringIOWrapper('test_suite_ut.function', data)
         err = None
         try:
-            for _, _, _, _ in parse_test_data(stream):
+            for _, _, _, _, _ in parse_test_data(stream):
                 pass
         except GeneratorInputError as err:
             self.assertEqual(type(err), GeneratorInputError)
@@ -1353,7 +1353,7 @@ depends_on:YAHOO
         stream = StringIOWrapper('test_suite_ut.function', data)
         err = None
         try:
-            for _, _, _, _ in parse_test_data(stream):
+            for _, _, _, _, _ in parse_test_data(stream):
                 pass
         except GeneratorInputError as err:
             self.assertEqual(type(err), GeneratorInputError)

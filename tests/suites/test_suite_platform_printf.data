@@ -1,6 +1,6 @@
 # The test cases for printf and integers have two purposes: they exercise
 # the printf function family, and they exercise the passing of integers
-# through the test framework.
+# and strings through the test framework.
 
 printf "%d", 0
 printf_int:"%d":0:"0"
@@ -55,3 +55,44 @@ printf_int:"%d":-2147483648:"-2147483648"
 
 printf "%d", -0x80000000
 printf_int:"%d":-0x80000000:"-2147483648"
+
+# The next few test cases exercise how the test framework handles special
+# characters in strings.
+printf "%c", SPACE, SPACE
+printf_char2:"%c%c":SPACE_CHAR:SPACE_CHAR:"  "
+
+printf "%c", NEWLINE, SPACE
+printf_char2:"%c%c":NEWLINE_CHAR:SPACE_CHAR:"\n "
+
+printf "%c", DOUBLE QUOTE, SPACE
+printf_char2:"%c%c":DOUBLE_QUOTE_CHAR:SPACE_CHAR:"\" "
+
+printf "%c", COLON, SPACE
+printf_char2:"%c%c":COLON_CHAR:SPACE_CHAR:"\: "
+
+printf "%c", BACKSLASH, SPACE
+printf_char2:"%c%c":BACKSLASH_CHAR:SPACE_CHAR:"\\ "
+
+printf "%c", SPACE, BACKSLASH
+printf_char2:"%c%c":SPACE_CHAR:BACKSLASH_CHAR:" \\"
+
+printf "%c%c", COLON, COLON
+printf_char2:"%c%c":COLON_CHAR:COLON_CHAR:"\:\:"
+
+printf "%c%c", COLON, NEWLINE
+printf_char2:"%c%c":COLON_CHAR:NEWLINE_CHAR:"\:\n"
+
+printf "%c%c", BACKSLASH, NEWLINE
+printf_char2:"%c%c":BACKSLASH_CHAR:NEWLINE_CHAR:"\\\n"
+
+printf "%c%c", BACKSLASH, DOUBLE QUOTE
+printf_char2:"%c%c":BACKSLASH_CHAR:DOUBLE_QUOTE_CHAR:"\\\""
+
+printf "%c%c", BACKSLASH, COLON
+printf_char2:"%c%c":BACKSLASH_CHAR:COLON_CHAR:"\\\:"
+
+printf "%c%c", BACKSLASH, BACKSLASH
+printf_char2:"%c%c":BACKSLASH_CHAR:BACKSLASH_CHAR:"\\\\"
+
+printf "%c%c", BACKSLASH, n
+printf_char2:"%c%c":BACKSLASH_CHAR:LOWERCASE_N_CHAR:"\\n"

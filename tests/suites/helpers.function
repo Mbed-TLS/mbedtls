@@ -8,6 +8,8 @@
 #include <test/bignum_helpers.h>
 #include <test/psa_crypto_helpers.h>
 
+#include <errno.h>
+#include <limits.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>

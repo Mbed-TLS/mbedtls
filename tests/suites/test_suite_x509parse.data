@@ -336,7 +336,7 @@ mbedtls_x509_csr_info:"data_files/server1.req.sha512":"CSR version   \: 1\nsubje
 
 X509 CSR Information RSA with SHA-256, containing commas
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C:MBEDTS_X509_INFO
-mbedtls_x509_csr_info:"data_files/server1.req.commas.sha256":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL\, Commas, CN=PolarSSL Server 1\nsigned using  \: RSA with SHA-256\nRSA key size  \: 2048 bits\n"
+mbedtls_x509_csr_info:"data_files/server1.req.commas.sha256":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL\\, Commas, CN=PolarSSL Server 1\nsigned using  \: RSA with SHA-256\nRSA key size  \: 2048 bits\n"
 
 X509 CSR Information EC with SHA1
 depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA1:!MBEDTLS_X509_REMOVE_INFO
@@ -437,7 +437,7 @@ mbedtls_x509_dn_gets:"data_files/server2.crt":"issuer":"C=NL, O=PolarSSL, CN=Pol
 
 X509 Get Distinguished Name #5
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA1
-mbedtls_x509_dn_gets:"data_files/server1.commas.crt":"subject":"C=NL, O=PolarSSL\, Commas, CN=PolarSSL Server 1"
+mbedtls_x509_dn_gets:"data_files/server1.commas.crt":"subject":"C=NL, O=PolarSSL\\, Commas, CN=PolarSSL Server 1"
 
 X509 Get Modified DN #1
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA1
@@ -3145,7 +3145,7 @@ x509_get_time:MBEDTLS_ASN1_UTC_TIME:"0002291212+0300":MBEDTLS_ERR_X509_INVALID_D
 
 X509 Get time (UTC invalid character in year)
 depends_on:MBEDTLS_X509_USE_C
-x509_get_time:MBEDTLS_ASN1_UTC_TIME:"0\1130231212Z":MBEDTLS_ERR_X509_INVALID_DATE:0:0:0:0:0:0
+x509_get_time:MBEDTLS_ASN1_UTC_TIME:"0\\1130231212Z":MBEDTLS_ERR_X509_INVALID_DATE:0:0:0:0:0:0
 
 X509 Get time (UTC invalid character in month)
 depends_on:MBEDTLS_X509_USE_C

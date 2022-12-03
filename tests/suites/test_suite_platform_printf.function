@@ -1,0 +1,25 @@
+/* BEGIN_HEADER */
+#include "mbedtls/platform.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+/* END_HEADER */
+
+/* BEGIN_CASE */
+void printf_int(char *format, int x, char *result)
+{
+    char *output = NULL;
+    const size_t n = strlen(result);
+
+    /* Nominal case: buffer just large enough */
+    ASSERT_ALLOC(output, n + 1);
+    TEST_EQUAL(n, mbedtls_snprintf(output, n + 1, format, x));
+    ASSERT_COMPARE(result, n + 1, output, n + 1);
+    mbedtls_free(output);
+    output = NULL;
+
+exit:
+    mbedtls_free(output);
+}
+/* END_CASE */

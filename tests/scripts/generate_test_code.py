@@ -846,6 +846,14 @@ def write_dependencies(out_data_f, test_dependencies, unique_dependencies):
     return dep_check_code
 
 
+INT_VAL_REGEX = re.compile(r'-?(\d+|0x[0-9a-f]+)$', re.I)
+def val_is_int(val: str) -> bool:
+    """Whether val is suitable as an 'int' parameter in the .datax file."""
+    if not INT_VAL_REGEX.match(val):
+        return False
+    # Limit the range to what is guaranteed to get through strtol()
+    return abs(int(val, 0)) <= 0x7fffffff
+
 def write_parameters(out_data_f, test_args, func_args, unique_expressions):
     """
     Writes test parameters to the intermediate data file, replacing
@@ -864,9 +872,9 @@ def write_parameters(out_data_f, test_args, func_args, unique_expressions):
         typ = func_args[i]
         val = test_args[i]
 
-        # check if val is a non literal int val (i.e. an expression)
-        if typ == 'int' and not re.match(r'(\d+|0x[0-9a-f]+)$',
-                                         val, re.I):
+        # Pass small integer constants literally. This reduces the size of
+        # the C code. Register anything else as an expression.
+        if typ == 'int' and not val_is_int(val):
             typ = 'exp'
             if val not in unique_expressions:
                 unique_expressions.append(val)

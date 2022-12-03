@@ -180,24 +180,24 @@ static int parse_arguments(char *buf, size_t len, char **params,
         p++;
     }
 
-    /* Replace newlines, question marks and colons in strings */
+    /* Replace backslash escapes in strings */
     for (i = 0; i < cnt; i++) {
         p = params[i];
         q = params[i];
 
         while (*p != '\0') {
-            if (*p == '\\' && *(p + 1) == 'n') {
-                p += 2;
-                *(q++) = '\n';
-            } else if (*p == '\\' && *(p + 1) == ':') {
-                p += 2;
-                *(q++) = ':';
-            } else if (*p == '\\' && *(p + 1) == '?') {
-                p += 2;
-                *(q++) = '?';
-            } else {
-                *(q++) = *(p++);
+            if (*p == '\\') {
+                ++p;
+                switch (*p) {
+                    case 'n':
+                        *p = '\n';
+                        break;
+                    default:
+                        // Fall through to copying *p
+                        break;
+                }
             }
+            *(q++) = *(p++);
         }
         *q = '\0';
     }

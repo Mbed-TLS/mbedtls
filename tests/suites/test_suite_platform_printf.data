@@ -1,0 +1,57 @@
+# The test cases for printf and integers have two purposes: they exercise
+# the printf function family, and they exercise the passing of integers
+# through the test framework.
+
+printf "%d", 0
+printf_int:"%d":0:"0"
+
+printf "%d", -0
+printf_int:"%d":-0:"0"
+
+printf "%d", 0x0
+printf_int:"%d":0x0:"0"
+
+printf "%d", 0x00
+printf_int:"%d":0x00:"0"
+
+printf "%d", 0x000000000000000000000000000000000000000000
+printf_int:"%d":0x000000000000000000000000000000000000000000:"0"
+
+printf "%d", -0x0
+printf_int:"%d":-0x0:"0"
+
+printf "%d", 1
+printf_int:"%d":1:"1"
+
+printf "%d", 0x1
+printf_int:"%d":0x1:"1"
+
+printf "%d", 0x0000000000000000000000000000000000000000001
+printf_int:"%d":0x0000000000000000000000000000000000000000001:"1"
+
+printf "%d", -1
+printf_int:"%d":-1:"-1"
+
+printf "%d", -0x1
+printf_int:"%d":-0x1:"-1"
+
+printf "%d", -0x0000000000000000000000000000000000000000001
+printf_int:"%d":-0x0000000000000000000000000000000000000000001:"-1"
+
+printf "%d", 2147483647
+printf_int:"%d":2147483647:"2147483647"
+
+printf "%d", 0x7fffffff
+printf_int:"%d":0x7fffffff:"2147483647"
+
+printf "%d", -2147483647
+printf_int:"%d":-2147483647:"-2147483647"
+
+printf "%d", -0x7fffffff
+printf_int:"%d":-0x7fffffff:"-2147483647"
+
+printf "%d", -2147483648
+printf_int:"%d":-2147483648:"-2147483648"
+
+printf "%d", -0x80000000
+printf_int:"%d":-0x80000000:"-2147483648"

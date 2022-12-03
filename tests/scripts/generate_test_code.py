@@ -705,7 +705,7 @@ def parse_test_data(data_f):
     execution.
 
     :param data_f: file object of the data file.
-    :return: Generator that yields test name, function name,
+    :return: Generator that yields line number, test name, function name,
              dependency list and function argument list.
     """
     __state_read_name = 0
@@ -748,7 +748,7 @@ def parse_test_data(data_f):
                 parts = escaped_split(line, ':')
                 test_function = parts[0]
                 args = parts[1:]
-                yield name, test_function, dependencies, args
+                yield data_f.line_no, name, test_function, dependencies, args
                 dependencies = []
                 state = __state_read_name
     if state == __state_read_args:
@@ -931,7 +931,7 @@ def gen_from_test_data(data_f, out_data_f, func_info, suite_dependencies):
     unique_expressions = []
     dep_check_code = ''
     expression_code = ''
-    for test_name, function_name, test_dependencies, test_args in \
+    for line_no, test_name, function_name, test_dependencies, test_args in \
             parse_test_data(data_f):
         out_data_f.write(test_name + '\n')
 
@@ -942,16 +942,16 @@ def gen_from_test_data(data_f, out_data_f, func_info, suite_dependencies):
         # Write test function name
         test_function_name = 'test_' + function_name
         if test_function_name not in func_info:
-            raise GeneratorInputError("Function %s not found!" %
-                                      test_function_name)
+            raise GeneratorInputError("%d: Function %s not found!" %
+                                      (line_no, test_function_name))
         func_id, func_args = func_info[test_function_name]
         out_data_f.write(str(func_id))
 
         # Write parameters
         if len(test_args) != len(func_args):
-            raise GeneratorInputError("Invalid number of arguments in test "
+            raise GeneratorInputError("%d: Invalid number of arguments in test "
                                       "%s. See function %s signature." %
-                                      (test_name, function_name))
+                                      (line_no, test_name, function_name))
         expression_code += write_parameters(out_data_f, test_args, func_args,
                                             unique_expressions)
 

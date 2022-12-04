@@ -7,7 +7,9 @@
 #include <test/random.h>
 #include <test/psa_crypto_helpers.h>
 
+#include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "mbedtls/platform.h"
 
@@ -19,17 +21,6 @@
 #include "mbedtls/platform_util.h"
 #include <setjmp.h>
 #endif
-
-#ifdef _MSC_VER
-#include <basetsd.h>
-typedef UINT8 uint8_t;
-typedef INT32 int32_t;
-typedef UINT32 uint32_t;
-#else
-#include <stdint.h>
-#endif
-
-#include <string.h>
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 #include <unistd.h>

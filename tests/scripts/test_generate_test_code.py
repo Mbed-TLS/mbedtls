@@ -513,12 +513,45 @@ class ParseFuncSignature(TestCase):
         line = 'void entropy_threshold( char * a, data_t * h, char result )'
         self.assertRaises(ValueError, parse_function_arguments, line)
 
-    def test_no_params(self):
+    def test_empty_params(self):
         """
-        Test no parameters.
+        Test no parameters (nothing between parentheses).
         :return:
         """
         line = 'void entropy_threshold()'
+        args, local, arg_dispatch = parse_function_arguments(line)
+        self.assertEqual(args, [])
+        self.assertEqual(local, '')
+        self.assertEqual(arg_dispatch, [])
+
+    def test_blank_params(self):
+        """
+        Test no parameters (space between parentheses).
+        :return:
+        """
+        line = 'void entropy_threshold( )'
+        args, local, arg_dispatch = parse_function_arguments(line)
+        self.assertEqual(args, [])
+        self.assertEqual(local, '')
+        self.assertEqual(arg_dispatch, [])
+
+    def test_void_params(self):
+        """
+        Test no parameters (void keyword).
+        :return:
+        """
+        line = 'void entropy_threshold(void)'
+        args, local, arg_dispatch = parse_function_arguments(line)
+        self.assertEqual(args, [])
+        self.assertEqual(local, '')
+        self.assertEqual(arg_dispatch, [])
+
+    def test_void_space_params(self):
+        """
+        Test no parameters (void with spaces).
+        :return:
+        """
+        line = 'void entropy_threshold( void )'
         args, local, arg_dispatch = parse_function_arguments(line)
         self.assertEqual(args, [])
         self.assertEqual(local, '')

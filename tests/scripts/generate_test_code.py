@@ -457,8 +457,6 @@ def parse_function_argument(arg, arg_idx, args, local_vars, args_dispatch):
              or None if the argument declaration is invalid.
     """
     arg = arg.strip()
-    if arg == '':
-        return 0
     if re.search(INT_CHECK_REGEX, arg.strip()):
         args.append('int')
         args_dispatch.append('((mbedtls_test_argument_t*)params[%d])->s32' % arg_idx)
@@ -478,6 +476,7 @@ def parse_function_argument(arg, arg_idx, args, local_vars, args_dispatch):
         return 2
     return None
 
+ARGUMENT_LIST_REGEX = re.compile(r'\((.*?)\)', re.S)
 def parse_function_arguments(line):
     """
     Parses test function signature for validation and generates
@@ -489,17 +488,19 @@ def parse_function_arguments(line):
     :return: argument list, local variables for
              wrapper function and argument dispatch code.
     """
-    args = []
-    local_vars = []
-    args_dispatch = []
-    arg_idx = 0
-    # Remove characters before arguments
-    line = line[line.find('(') + 1:]
     # Process arguments, ex: <type> arg1, <type> arg2 )
     # This script assumes that the argument list is terminated by ')'
     # i.e. the test functions will not have a function pointer
     # argument.
-    for arg in line[:line.find(')')].split(','):
+    m = ARGUMENT_LIST_REGEX.search(line)
+    arg_list = m.group(1).strip()
+    if arg_list in ['', 'void']:
+        return [], '', []
+    args = []
+    local_vars = []
+    args_dispatch = []
+    arg_idx = 0
+    for arg in arg_list.split(','):
         indexes = parse_function_argument(arg, arg_idx,
                                           args, local_vars, args_dispatch)
         if indexes is None:

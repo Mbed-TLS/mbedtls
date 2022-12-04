@@ -8,7 +8,9 @@
 #include <test/bignum_helpers.h>
 #include <test/psa_crypto_helpers.h>
 
+#include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #if defined(MBEDTLS_ERROR_C)
 #include "mbedtls/error.h"
@@ -18,17 +20,6 @@
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
 #include "mbedtls/memory_buffer_alloc.h"
 #endif
-
-#ifdef _MSC_VER
-#include <basetsd.h>
-typedef UINT8 uint8_t;
-typedef INT32 int32_t;
-typedef UINT32 uint32_t;
-#else
-#include <stdint.h>
-#endif
-
-#include <string.h>
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 #include <unistd.h>

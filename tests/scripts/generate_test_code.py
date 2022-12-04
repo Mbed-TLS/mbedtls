@@ -456,7 +456,7 @@ def parse_function_arguments(line):
              wrapper function and argument dispatch code.
     """
     args = []
-    local_vars = ''
+    local_vars = []
     args_dispatch = []
     arg_idx = 0
     # Remove characters before arguments
@@ -480,9 +480,8 @@ def parse_function_arguments(line):
             # create a structure
             pointer_initializer = '(uint8_t *) params[%d]' % arg_idx
             len_initializer = '((mbedtls_test_argument_t*)params[%d])->len' % (arg_idx+1)
-            local_vars += """    data_t data%d = {%s, %s};
-""" % (arg_idx, pointer_initializer, len_initializer)
-
+            local_vars.append('    data_t data%d = {%s, %s};\n' %
+                              (arg_idx, pointer_initializer, len_initializer))
             args_dispatch.append('&data%d' % arg_idx)
             arg_idx += 1
         else:
@@ -490,7 +489,7 @@ def parse_function_arguments(line):
                              "'char *' or 'data_t'\n%s" % line)
         arg_idx += 1
 
-    return args, local_vars, args_dispatch
+    return args, ''.join(local_vars), args_dispatch
 
 
 def generate_function_code(name, code, local_vars, args_dispatch,

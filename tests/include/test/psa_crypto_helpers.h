@@ -189,7 +189,7 @@ psa_status_t mbedtls_test_record_status( psa_status_t status,
  *
  * Do a key policy permission extension on key usage policies always involves
  * permissions of other usage policies
- * (like PSA_KEY_USAGE_SIGN_HASH involves PSA_KEY_USAGE_SIGN_MESSGAE).
+ * (like PSA_KEY_USAGE_SIGN_HASH involves PSA_KEY_USAGE_SIGN_MESSAGE).
  */
 psa_key_usage_t mbedtls_test_update_key_usage_flags( psa_key_usage_t usage_flags );
 

@@ -2577,7 +2577,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  *
  * This flag allows the key to be used for a MAC verification operation
  * or for an asymmetric signature verification operation,
- * if otherwise permitted by by the key's type and policy.
+ * if otherwise permitted by the key's type and policy.
  *
  * For a key pair, this concerns the public key.
  */
@@ -2587,7 +2587,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * hash.
  *
  * This flag allows the key to be used for a key derivation operation or for
- * a key agreement operation, if otherwise permitted by by the key's type and
+ * a key agreement operation, if otherwise permitted by the key's type and
  * policy.
  *
  * If this flag is present on all keys used in calls to
@@ -2603,7 +2603,7 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * This flag allows the key to be used:
  *
  * This flag allows the key to be used in a key derivation operation, if
- * otherwise permitted by by the key's type and policy.
+ * otherwise permitted by the key's type and policy.
  *
  * If this flag is present on all keys used in calls to
  * psa_key_derivation_input_key() for a key derivation operation, then it

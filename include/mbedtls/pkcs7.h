@@ -218,7 +218,7 @@ int mbedtls_pkcs7_signed_data_verify( mbedtls_pkcs7 *pkcs7,
  * \param hashlen  Length of the hash.
  *
  * \note           This function is different from mbedtls_pkcs7_signed_data_verify()
- *                 in a way that it directly recieves the hash of the data.
+ *                 in a way that it directly receives the hash of the data.
  *
  * \return         A negative error code on failure.
  */

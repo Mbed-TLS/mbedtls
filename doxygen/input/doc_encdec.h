@@ -38,7 +38,7 @@
  * All symmetric encryption algorithms are accessible via the generic cipher layer
  * (see \c mbedtls_cipher_setup()).
  *
- * The asymmetric encryptrion algorithms are accessible via the generic public
+ * The asymmetric encryption algorithms are accessible via the generic public
  * key layer (see \c mbedtls_pk_init()).
  *
  * The following algorithms are provided:

@@ -530,7 +530,7 @@ int mbedtls_mps_reader_reclaim( mbedtls_mps_reader *rd,
          * of the accumulator. */
         memmove( acc, acc + acc_backup_offset, acc_backup_len );
 
-        /* Copy uncmmitted parts of the current fragment to the
+        /* Copy uncommitted parts of the current fragment to the
          * accumulator. */
         memcpy( acc + acc_backup_len,
                 frag + frag_backup_offset, frag_backup_len );

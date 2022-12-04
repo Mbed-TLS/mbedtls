@@ -525,7 +525,7 @@ psa_status_t psa_copy_key(mbedtls_svc_key_id_t source_key,
  *
  * This function destroys a key from both volatile
  * memory and, if applicable, non-volatile storage. Implementations shall
- * make a best effort to ensure that that the key material cannot be recovered.
+ * make a best effort to ensure that the key material cannot be recovered.
  *
  * This function also erases any metadata such as policies and frees
  * resources associated with the key.
@@ -3823,7 +3823,7 @@ psa_status_t psa_key_derivation_verify_bytes(
  * compares those bytes to an expected value, provided as key of type
  * #PSA_KEY_TYPE_PASSWORD_HASH.
  * If you view the key derivation's output as a stream of bytes, this
- * function destructively reads the number of bytes corresponding the the
+ * function destructively reads the number of bytes corresponding to the
  * length of the expected value from the stream before comparing them.
  * The operation's capacity decreases by the number of bytes read.
  *

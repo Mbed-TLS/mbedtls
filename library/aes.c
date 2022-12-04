@@ -1112,7 +1112,7 @@ int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
         {
             /* We are on the last block in a decrypt operation that has
              * leftover bytes, so we need to use the next tweak for this block,
-             * and this tweak for the lefover bytes. Save the current tweak for
+             * and this tweak for the leftover bytes. Save the current tweak for
              * the leftovers and then update the current tweak for use on this,
              * the last full block. */
             memcpy( prev_tweak, tweak, sizeof( tweak ) );

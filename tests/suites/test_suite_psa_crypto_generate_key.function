@@ -18,7 +18,7 @@ void generate_key( int key_type_arg, int bits_arg, int expected_status_arg)
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     mbedtls_svc_key_id_t key_id = INVALID_KEY_ID;
 
-    // key lifetiem, usage flags, algorithm are irrelevant for this test
+    // key lifetime, usage flags, algorithm are irrelevant for this test
     psa_key_type_t key_type = key_type_arg;
     size_t bits = bits_arg;
     psa_status_t expected_status = expected_status_arg;

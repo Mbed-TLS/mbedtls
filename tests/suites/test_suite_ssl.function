@@ -511,7 +511,7 @@ void mbedtls_mock_socket_close( mbedtls_mock_socket* socket )
  * \p peer1 and \p peer2 must have been previously initialized by calling
  * mbedtls_mock_socket_init().
  *
- * The capacites of the internal buffers are set to \p bufsize. Setting this to
+ * The capacities of the internal buffers are set to \p bufsize. Setting this to
  * the correct value allows for simulation of MTU, sanity testing the mock
  * implementation and mocking TCP connections with lower memory cost.
  */
@@ -652,7 +652,7 @@ void mbedtls_message_socket_init( mbedtls_test_message_socket_context *ctx )
 }
 
 /*
- * Setup a given mesasge socket context including initialization of
+ * Setup a given message socket context including initialization of
  * input/output queues to a chosen capacity of messages. Also set the
  * corresponding mock socket.
  *

@@ -507,10 +507,10 @@ class ParseFuncSignature(TestCase):
 
     def test_unsupported_arg(self):
         """
-        Test unsupported arguments (not among int, char * and data_t)
+        Test unsupported argument type
         :return:
         """
-        line = 'void entropy_threshold( char * a, data_t * h, char result )'
+        line = 'void entropy_threshold( char * a, data_t * h, unknown_t result )'
         self.assertRaises(ValueError, parse_function_arguments, line)
 
     def test_empty_params(self):

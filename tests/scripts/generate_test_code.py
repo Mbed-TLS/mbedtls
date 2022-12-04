@@ -171,8 +171,23 @@ import string
 import argparse
 
 
-# Types regognized as integer arguments in test functions.
-INTEGER_TYPES = frozenset(['int'])
+# Types regognized as signed integer arguments in test functions.
+SIGNED_INTEGER_TYPES = frozenset([
+    'char',
+    'short',
+    'short int',
+    'int',
+    'int8_t',
+    'int16_t',
+    'int32_t',
+    'int64_t',
+    'intmax_t',
+    'long',
+    'long int',
+    'long long int',
+    'mbedtls_mpi_sint',
+    'psa_status_t',
+])
 # Types recognized as string arguments in test functions.
 STRING_TYPES = frozenset(['char*', 'const char*', 'char const*'])
 # Types recognized as hex data arguments in test functions.
@@ -471,7 +486,7 @@ def parse_function_argument(arg, arg_idx, args, local_vars, args_dispatch):
         # E.g. "int x[42]"
         return None
     typ, _ = m.groups()
-    if typ in INTEGER_TYPES:
+    if typ in SIGNED_INTEGER_TYPES:
         args.append('int')
         args_dispatch.append('((mbedtls_test_argument_t*)params[%d])->sint' % arg_idx)
         return 1

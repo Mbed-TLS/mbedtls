@@ -471,7 +471,7 @@ def parse_function_arguments(line):
             continue
         if re.search(INT_CHECK_REGEX, arg.strip()):
             args.append('int')
-            args_dispatch.append('*( (int *) params[%d] )' % arg_idx)
+            args_dispatch.append('((mbedtls_test_argument_t*)params[%d])->s32' % arg_idx)
         elif re.search(CHAR_CHECK_REGEX, arg.strip()):
             args.append('char*')
             args_dispatch.append('(char *) params[%d]' % arg_idx)
@@ -479,7 +479,7 @@ def parse_function_arguments(line):
             args.append('hex')
             # create a structure
             pointer_initializer = '(uint8_t *) params[%d]' % arg_idx
-            len_initializer = '*( (uint32_t *) params[%d] )' % (arg_idx+1)
+            len_initializer = '((mbedtls_test_argument_t*)params[%d])->len' % (arg_idx+1)
             local_vars += """    data_t data%d = {%s, %s};
 """ % (arg_idx, pointer_initializer, len_initializer)
 

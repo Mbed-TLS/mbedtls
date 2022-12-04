@@ -444,6 +444,40 @@ def parse_function_dependencies(line):
     return dependencies
 
 
+def parse_function_argument(arg, arg_idx, args, local_vars, args_dispatch):
+    """
+    Parses one test function's argument declaration.
+
+    :param arg: argument declaration.
+    :param arg_idx: current wrapper argument index.
+    :param args: accumulator of arguments' internal types.
+    :param local_vars: accumulator of internal variable declarations.
+    :param args_dispatch: accumulator of argument usage expressions.
+    :return: the number of new wrapper arguments,
+             or None if the argument declaration is invalid.
+    """
+    arg = arg.strip()
+    if arg == '':
+        return 0
+    if re.search(INT_CHECK_REGEX, arg.strip()):
+        args.append('int')
+        args_dispatch.append('((mbedtls_test_argument_t*)params[%d])->s32' % arg_idx)
+        return 1
+    if re.search(CHAR_CHECK_REGEX, arg.strip()):
+        args.append('char*')
+        args_dispatch.append('(char *) params[%d]' % arg_idx)
+        return 1
+    if re.search(DATA_T_CHECK_REGEX, arg.strip()):
+        args.append('hex')
+        # create a structure
+        pointer_initializer = '(uint8_t *) params[%d]' % arg_idx
+        len_initializer = '((mbedtls_test_argument_t*)params[%d])->len' % (arg_idx+1)
+        local_vars.append('    data_t data%d = {%s, %s};\n' %
+                          (arg_idx, pointer_initializer, len_initializer))
+        args_dispatch.append('&data%d' % arg_idx)
+        return 2
+    return None
+
 def parse_function_arguments(line):
     """
     Parses test function signature for validation and generates
@@ -466,28 +500,12 @@ def parse_function_arguments(line):
     # i.e. the test functions will not have a function pointer
     # argument.
     for arg in line[:line.find(')')].split(','):
-        arg = arg.strip()
-        if arg == '':
-            continue
-        if re.search(INT_CHECK_REGEX, arg.strip()):
-            args.append('int')
-            args_dispatch.append('((mbedtls_test_argument_t*)params[%d])->s32' % arg_idx)
-        elif re.search(CHAR_CHECK_REGEX, arg.strip()):
-            args.append('char*')
-            args_dispatch.append('(char *) params[%d]' % arg_idx)
-        elif re.search(DATA_T_CHECK_REGEX, arg.strip()):
-            args.append('hex')
-            # create a structure
-            pointer_initializer = '(uint8_t *) params[%d]' % arg_idx
-            len_initializer = '((mbedtls_test_argument_t*)params[%d])->len' % (arg_idx+1)
-            local_vars.append('    data_t data%d = {%s, %s};\n' %
-                              (arg_idx, pointer_initializer, len_initializer))
-            args_dispatch.append('&data%d' % arg_idx)
-            arg_idx += 1
-        else:
+        indexes = parse_function_argument(arg, arg_idx,
+                                          args, local_vars, args_dispatch)
+        if indexes is None:
             raise ValueError("Test function arguments can only be 'int', "
                              "'char *' or 'data_t'\n%s" % line)
-        arg_idx += 1
+        arg_idx += indexes
 
     return args, ''.join(local_vars), args_dispatch
 

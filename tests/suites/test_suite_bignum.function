@@ -391,7 +391,7 @@ void mpi_read_write_string(int radix_X, char *input_X, int radix_A,
         TEST_ASSERT(sign_is_valid(&X));
         TEST_ASSERT(mbedtls_mpi_write_string(&X, radix_A, str, output_size, &len) == result_write);
         if (result_write == 0) {
-            TEST_ASSERT(strcasecmp(str, input_A) == 0);
+            TEST_ASSERT(strcmp(str, input_A) == 0);
             TEST_ASSERT(str[len] == '!');
         }
     }

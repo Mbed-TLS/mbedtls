@@ -171,6 +171,13 @@ import string
 import argparse
 
 
+# Types regognized as integer arguments in test functions.
+INTEGER_TYPES = frozenset(['int'])
+# Types recognized as string arguments in test functions.
+STRING_TYPES = frozenset(['char*', 'const char*', 'char const*'])
+# Types recognized as hex data arguments in test functions.
+DATA_TYPES = frozenset(['data_t*', 'const data_t*', 'data_t const*'])
+
 BEGIN_HEADER_REGEX = r'/\*\s*BEGIN_HEADER\s*\*/'
 END_HEADER_REGEX = r'/\*\s*END_HEADER\s*\*/'
 
@@ -192,9 +199,6 @@ CONDITION_REGEX = r'({})(?:\s*({})\s*({}))?$'.format(C_IDENTIFIER_REGEX,
                                                      CONDITION_OPERATOR_REGEX,
                                                      CONDITION_VALUE_REGEX)
 TEST_FUNCTION_VALIDATION_REGEX = r'\s*void\s+(?P<func_name>\w+)\s*\('
-INT_CHECK_REGEX = r'int\s+.*'
-CHAR_CHECK_REGEX = r'char\s*\*\s*.*'
-DATA_T_CHECK_REGEX = r'data_t\s*\*\s*.*'
 FUNCTION_ARG_LIST_END_REGEX = r'.*\)'
 EXIT_LABEL_REGEX = r'^exit:'
 
@@ -444,6 +448,7 @@ def parse_function_dependencies(line):
     return dependencies
 
 
+ARGUMENT_DECLARATION_REGEX = re.compile(r'(.+?) ?(?:\bconst\b)? ?(\w+)\Z', re.S)
 def parse_function_argument(arg, arg_idx, args, local_vars, args_dispatch):
     """
     Parses one test function's argument declaration.
@@ -456,16 +461,25 @@ def parse_function_argument(arg, arg_idx, args, local_vars, args_dispatch):
     :return: the number of new wrapper arguments,
              or None if the argument declaration is invalid.
     """
+    # Normalize whitespace
     arg = arg.strip()
-    if re.search(INT_CHECK_REGEX, arg.strip()):
+    arg = re.sub(r'\s*\*\s*', r'*', arg)
+    arg = re.sub(r'\s+', r' ', arg)
+    # Extract name and type
+    m = ARGUMENT_DECLARATION_REGEX.search(arg)
+    if not m:
+        # E.g. "int x[42]"
+        return None
+    typ, _ = m.groups()
+    if typ in INTEGER_TYPES:
         args.append('int')
         args_dispatch.append('((mbedtls_test_argument_t*)params[%d])->s32' % arg_idx)
         return 1
-    if re.search(CHAR_CHECK_REGEX, arg.strip()):
+    if typ in STRING_TYPES:
         args.append('char*')
         args_dispatch.append('(char *) params[%d]' % arg_idx)
         return 1
-    if re.search(DATA_T_CHECK_REGEX, arg.strip()):
+    if typ in DATA_TYPES:
         args.append('hex')
         # create a structure
         pointer_initializer = '(uint8_t *) params[%d]' % arg_idx

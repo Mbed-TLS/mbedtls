@@ -485,9 +485,10 @@ class ParseFuncSignature(TestCase):
         args, local, arg_dispatch = parse_function_arguments(line)
         self.assertEqual(args, ['char*', 'int', 'int'])
         self.assertEqual(local, '')
-        self.assertEqual(arg_dispatch, ['(char *) params[0]',
-                                        '*( (int *) params[1] )',
-                                        '*( (int *) params[2] )'])
+        self.assertEqual(arg_dispatch,
+                         ['(char *) params[0]',
+                          '((mbedtls_test_argument_t*)params[1])->s32',
+                          '((mbedtls_test_argument_t*)params[2])->s32'])
 
     def test_hex_params(self):
         """
@@ -499,10 +500,10 @@ class ParseFuncSignature(TestCase):
         self.assertEqual(args, ['char*', 'hex', 'int'])
         self.assertEqual(local,
                          '    data_t data1 = {(uint8_t *) params[1], '
-                         '*( (uint32_t *) params[2] )};\n')
+                         '((mbedtls_test_argument_t*)params[2])->len};\n')
         self.assertEqual(arg_dispatch, ['(char *) params[0]',
                                         '&data1',
-                                        '*( (int *) params[3] )'])
+                                        '((mbedtls_test_argument_t*)params[3])->s32'])
 
     def test_unsupported_arg(self):
         """

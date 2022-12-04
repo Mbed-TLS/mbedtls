@@ -1880,6 +1880,16 @@ static int ssl_tls13_postprocess_client_hello(mbedtls_ssl_context *ssl)
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     /* There is enough information, update early data state. */
     ssl_tls13_update_early_data_status(ssl);
+
+    if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED) {
+        ret = mbedtls_ssl_tls13_compute_early_transform(ssl);
+        if (ret != 0) {
+            MBEDTLS_SSL_DEBUG_RET(
+                1, "mbedtls_ssl_tls13_compute_early_transform", ret);
+            return ret;
+        }
+    }
+
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
     return 0;

@@ -37,7 +37,7 @@
 
 typedef union {
     size_t len;
-    int32_t s32;
+    intmax_t sint;
 } mbedtls_test_argument_t;
 
 #endif /* TEST_ARGUMENTS_H */

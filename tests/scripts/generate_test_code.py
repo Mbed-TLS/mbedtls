@@ -473,7 +473,7 @@ def parse_function_argument(arg, arg_idx, args, local_vars, args_dispatch):
     typ, _ = m.groups()
     if typ in INTEGER_TYPES:
         args.append('int')
-        args_dispatch.append('((mbedtls_test_argument_t*)params[%d])->s32' % arg_idx)
+        args_dispatch.append('((mbedtls_test_argument_t*)params[%d])->sint' % arg_idx)
         return 1
     if typ in STRING_TYPES:
         args.append('char*')

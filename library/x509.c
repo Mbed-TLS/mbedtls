@@ -55,7 +55,7 @@
 
 #include "mbedtls/legacy_or_psa.h"
 
-#define CHECK(code) if ((ret = (code)) != 0) { return ret; }
+#define CHECK(code) do if ((ret = (code)) != 0) { return ret; } while (0)
 #define CHECK_RANGE(min, max, val)                      \
     do                                                  \
     {                                                   \

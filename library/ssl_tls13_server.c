@@ -1752,6 +1752,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
 {
+    mbedtls_ssl_session *session = ssl->session_negotiate;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
     if ((handshake->received_extensions &
@@ -1762,8 +1763,41 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
         return;
     }
 
-    /* We do not accept early data for the time being */
     ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED;
+
+    if (ssl->conf->early_data_enabled == MBEDTLS_SSL_EARLY_DATA_DISABLED) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            1, ("EarlyData: rejected. configured disabled."));
+        return;
+    }
+
+    MBEDTLS_SSL_DEBUG_MSG(
+        3, ("EarlyData: conf->max_early_data_size = %u",
+            (unsigned int) ssl->conf->max_early_data_size));
+
+    if (!mbedtls_ssl_conf_tls13_some_psk_enabled(ssl)) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            1,
+            ("EarlyData: rejected. psk or psk_ephemeral is not available."));
+        return;
+    }
+
+    if (handshake && handshake->resume != 1) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            1, ("EarlyData: rejected. not resumption session."));
+        return;
+    }
+
+    if (session->tls_version != MBEDTLS_SSL_VERSION_TLS1_3) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            1,
+            ("EarlyData: rejected. not a TLS 1.3 ticket."));
+        return;
+    }
+
+    /* TODO: Add more checks here. */
+
+    ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED;
 
 }
 #endif /* MBEDTLS_SSL_EARLY_DATA */

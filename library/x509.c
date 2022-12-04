@@ -671,6 +671,8 @@ int mbedtls_x509_get_time(unsigned char **p, const unsigned char *end,
         }
 
         tm->year += 1900;
+    } else if (tm->year < 1950) {
+        return MBEDTLS_ERR_X509_INVALID_DATE;
     }
 
     CHECK(x509_parse_int(p, 2, &tm->mon));

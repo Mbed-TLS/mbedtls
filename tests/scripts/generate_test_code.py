@@ -909,6 +909,24 @@ def gen_suite_dep_checks(suite_dependencies, dep_check_code, expression_code):
     return dep_check_code, expression_code
 
 
+def get_function_info(func_info, function_name, line_no):
+    """Look up information about a test function by name.
+
+    Raise an informative expression if function_name is not found.
+
+    :param func_info: dictionary mapping function names to their information.
+    :param function_name: the function name as written in the .function and
+                          .data files.
+    :param line_no: line number for error messages.
+    :return Function information (id, args).
+    """
+    test_function_name = 'test_' + function_name
+    if test_function_name not in func_info:
+        raise GeneratorInputError("%d: Function %s not found!" %
+                                  (line_no, test_function_name))
+    return func_info[test_function_name]
+
+
 def gen_from_test_data(data_f, out_data_f, func_info, suite_dependencies):
     """
     This function reads test case name, dependencies and test vectors
@@ -940,11 +958,8 @@ def gen_from_test_data(data_f, out_data_f, func_info, suite_dependencies):
                                              unique_dependencies)
 
         # Write test function name
-        test_function_name = 'test_' + function_name
-        if test_function_name not in func_info:
-            raise GeneratorInputError("%d: Function %s not found!" %
-                                      (line_no, test_function_name))
-        func_id, func_args = func_info[test_function_name]
+        func_id, func_args = \
+            get_function_info(func_info, function_name, line_no)
         out_data_f.write(str(func_id))
 
         # Write parameters

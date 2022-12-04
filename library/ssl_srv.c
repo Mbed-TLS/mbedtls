@@ -1344,7 +1344,7 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
 
             if( ssl->minor_ver < ssl->conf->max_minor_ver )
             {
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "inapropriate fallback" ) );
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "inappropriate fallback" ) );
 
                 mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_INAPROPRIATE_FALLBACK );
@@ -2126,7 +2126,7 @@ read_record_header:
 
             if( ssl->minor_ver < ssl->conf->max_minor_ver )
             {
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "inapropriate fallback" ) );
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "inappropriate fallback" ) );
 
                 mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_INAPROPRIATE_FALLBACK );

@@ -624,7 +624,7 @@ typedef int mbedtls_ssl_recv_t( void *ctx,
  * \param ctx      Context for the receive callback (typically a file descriptor)
  * \param buf      Buffer to write the received data to
  * \param len      Length of the receive buffer
- * \param timeout  Maximum nomber of millisecondes to wait for data
+ * \param timeout  Maximum number of milliseconds to wait for data
  *                 0 means no timeout (potentially waiting forever)
  *
  * \return         The callback must return the number of bytes received,

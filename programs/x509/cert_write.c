@@ -672,7 +672,7 @@ int main( int argc, char *argv[] )
         if( ret != 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
-            mbedtls_printf( " failed\n  !  x509write_crt_set_basic_contraints "
+            mbedtls_printf( " failed\n  !  x509write_crt_set_basic_constraints "
                             "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
             goto exit;
         }

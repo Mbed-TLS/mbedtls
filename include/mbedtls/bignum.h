@@ -192,7 +192,7 @@
 /** \typedef mbedtls_mpi_sint
  * \brief The signed type corresponding to #mbedtls_mpi_uint.
  *
- * This is always an signed integer type with no padding bits. The size
+ * This is always a signed integer type with no padding bits. The size
  * is platform-dependent.
  */
 

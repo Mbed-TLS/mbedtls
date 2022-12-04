@@ -32,6 +32,31 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void printf_long_max(const char *format, long value)
+{
+    char *expected = NULL;
+    char *output = NULL;
+    /* "0x" plus 2 hex digits per byte */
+    const size_t n = sizeof(value) * 2;
+
+    /* We assume that long has no padding bits! */
+    ASSERT_ALLOC(expected, n + 1);
+    expected[0] = '7';
+    memset(expected + 1, 'f', sizeof(value) * 2 - 1);
+
+    ASSERT_ALLOC(output, n + 1);
+    TEST_EQUAL(n, mbedtls_snprintf(output, n + 1, format, value));
+    ASSERT_COMPARE(expected, n + 1, output, n + 1);
+    mbedtls_free(output);
+    output = NULL;
+
+exit:
+    mbedtls_free(output);
+    mbedtls_free(expected);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void printf_char2(char *format, int arg1, int arg2, char *result)
 {
     char *output = NULL;

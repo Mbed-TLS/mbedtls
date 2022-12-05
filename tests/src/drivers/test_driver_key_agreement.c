@@ -24,6 +24,7 @@
 #include "psa/crypto.h"
 #include "psa_crypto_core.h"
 #include "psa_crypto_ecp.h"
+#include "psa_crypto_ffdh.h"
 
 #include "test/drivers/key_agreement.h"
 #include "test/drivers/test_driver.h"
@@ -82,6 +83,37 @@ psa_status_t mbedtls_test_transparent_key_agreement(
             key_buffer, key_buffer_size,
             alg, peer_key, peer_key_length,
             shared_secret, shared_secret_size,
+            shared_secret_length);
+#else
+        (void) attributes;
+        (void) key_buffer;
+        (void) key_buffer_size;
+        (void) peer_key;
+        (void) peer_key_length;
+        (void) shared_secret;
+        (void) shared_secret_size;
+        (void) shared_secret_length;
+        return PSA_ERROR_NOT_SUPPORTED;
+#endif
+    }
+    if (PSA_ALG_IS_FFDH(alg)) {
+#if (defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+        defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_ALG_FFDH))
+        return libtestdriver1_mbedtls_psa_key_agreement_ffdh(
+            (const libtestdriver1_psa_key_attributes_t *) attributes,
+            key_buffer, key_buffer_size,
+            alg, peer_key, peer_key_length,
+            shared_secret, shared_secret_size,
+            shared_secret_length);
+#elif defined(MBEDTLS_PSA_BUILTIN_ALG_FFDH)
+        return mbedtls_psa_key_agreement_ffdh(
+            attributes,
+            peer_key,
+            peer_key_length,
+            key_buffer,
+            key_buffer_size,
+            shared_secret,
+            shared_secret_size,
             shared_secret_length);
 #else
         (void) attributes;

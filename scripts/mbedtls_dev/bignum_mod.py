@@ -42,16 +42,11 @@ class BignumModSub(bignum_common.ModOperationCommon, BignumModTarget):
     input_style = "fixed"
     arity = 2
 
-    # To make negative tests easier, append 0 for success to the generated cases
-    def arguments(self) -> List[str]:
-        return [bignum_common.quote_str(n) for n in [self.arg_n,
-                                                     self.arg_a,
-                                                     self.arg_b]
-               ] + self.result() + ["0"]
-
     def result(self) -> List[str]:
         result = (self.int_a - self.int_b) % self.int_n
-        return [self.format_result(result)]
+        # To make negative tests easier, append 0 for success to the
+        # generated cases
+        return [self.format_result(result), "0"]
 
 # END MERGE SLOT 3
 

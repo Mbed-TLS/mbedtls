@@ -9,9 +9,9 @@
             ASSERT_COMPARE( (a).p, (a).limbs * sizeof(mbedtls_mpi_uint), \
                             (b).p, (b).limbs * sizeof(mbedtls_mpi_uint) )
 
-int test_read_modulus( mbedtls_mpi_mod_modulus *m,
-                       mbedtls_mpi_mod_rep_selector int_rep,
-                       char *input )
+static int test_read_modulus( mbedtls_mpi_mod_modulus *m,
+                              mbedtls_mpi_mod_rep_selector int_rep,
+                              char *input )
 {
     mbedtls_mpi_uint *p = NULL;
     size_t limbs;
@@ -23,10 +23,10 @@ int test_read_modulus( mbedtls_mpi_mod_modulus *m,
     return( mbedtls_mpi_mod_modulus_setup( m, p, limbs, int_rep ) );
 }
 
-int test_read_residue( mbedtls_mpi_mod_residue *r,
-                       const mbedtls_mpi_mod_modulus *m,
-                       char *input,
-                       int skip_limbs_and_value_checks )
+static int test_read_residue( mbedtls_mpi_mod_residue *r,
+                              const mbedtls_mpi_mod_modulus *m,
+                              char *input,
+                              int skip_limbs_and_value_checks )
 {
     mbedtls_mpi_uint *p = NULL;
     size_t limbs;

@@ -69,6 +69,7 @@ set(src_crypto
     psa_crypto_client.c
     psa_crypto_driver_wrappers.c
     psa_crypto_ecp.c
+    psa_crypto_ffdh.c
     psa_crypto_hash.c
     psa_crypto_mac.c
     psa_crypto_pake.c

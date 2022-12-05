@@ -664,8 +664,10 @@ static int smoke_test_key( mbedtls_svc_key_id_t key )
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_mac_operation_t mac_operation = PSA_MAC_OPERATION_INIT;
     psa_cipher_operation_t cipher_operation = PSA_CIPHER_OPERATION_INIT;
+#if defined(MBEDTLS_SHA256_C)
     psa_key_derivation_operation_t derivation_operation =
         PSA_KEY_DERIVATION_OPERATION_INIT;
+#endif
     uint8_t buffer[80]; /* large enough for a public key for ECDH */
     size_t length;
     mbedtls_svc_key_id_t key2 = MBEDTLS_SVC_KEY_ID_INIT;

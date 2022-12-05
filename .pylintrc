@@ -73,3 +73,7 @@ reports=no
 # Allow unused variables if their name starts with an underscore.
 # [unused-argument]
 dummy-variables-rgx=_.*
+
+[SIMILARITIES]
+# Ignore imports when computing similarities.
+ignore-imports=yes

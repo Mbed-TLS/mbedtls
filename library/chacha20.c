@@ -36,11 +36,6 @@
 
 #if !defined(MBEDTLS_CHACHA20_ALT)
 
-#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
-    !defined(inline) && !defined(__cplusplus)
-#define inline __inline
-#endif
-
 /* Parameter validation macros */
 #define CHACHA20_VALIDATE_RET( cond )                                       \
     MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA )

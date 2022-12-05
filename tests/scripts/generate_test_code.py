@@ -126,33 +126,39 @@ code that is generated or read from helpers and platform files.
 This script replaces following fields in the template and generates
 the test source file:
 
-$test_common_helpers        <-- All common code from helpers.function
-                                is substituted here.
-$functions_code             <-- Test functions are substituted here
-                                from the input test_suit_xyz.function
-                                file. C preprocessor checks are generated
-                                for the build dependencies specified
-                                in the input file. This script also
-                                generates wrappers for the test
-                                functions with code to expand the
-                                string parameters read from the data
-                                file.
-$expression_code            <-- This script enumerates the
-                                expressions in the .data file and
-                                generates code to handle enumerated
-                                expression Ids and return the values.
-$dep_check_code             <-- This script enumerates all
-                                build dependencies and generate
-                                code to handle enumerated build
-                                dependency Id and return status: if
-                                the dependency is defined or not.
-$dispatch_code              <-- This script enumerates the functions
-                                specified in the input test data file
-                                and generates the initializer for the
-                                function table in the template
-                                file.
-$platform_code              <-- Platform specific setup and test
-                                dispatch code.
+__MBEDTLS_TEST_TEMPLATE__TEST_COMMON_HELPERS
+            All common code from helpers.function
+            is substituted here.
+__MBEDTLS_TEST_TEMPLATE__FUNCTIONS_CODE
+            Test functions are substituted here
+            from the input test_suit_xyz.function
+            file. C preprocessor checks are generated
+            for the build dependencies specified
+            in the input file. This script also
+            generates wrappers for the test
+            functions with code to expand the
+            string parameters read from the data
+            file.
+__MBEDTLS_TEST_TEMPLATE__EXPRESSION_CODE
+            This script enumerates the
+            expressions in the .data file and
+            generates code to handle enumerated
+            expression Ids and return the values.
+__MBEDTLS_TEST_TEMPLATE__DEP_CHECK_CODE
+            This script enumerates all
+            build dependencies and generate
+            code to handle enumerated build
+            dependency Id and return status: if
+            the dependency is defined or not.
+__MBEDTLS_TEST_TEMPLATE__DISPATCH_CODE
+            This script enumerates the functions
+            specified in the input test data file
+            and generates the initializer for the
+            function table in the template
+            file.
+__MBEDTLS_TEST_TEMPLATE__PLATFORM_CODE
+            Platform specific setup and test
+            dispatch code.
 
 """
 
@@ -974,11 +980,27 @@ def write_test_source_file(template_file, c_file, snippets):
     :param snippets: Generated and code snippets
     :return:
     """
+
+    # Create a placeholder pattern with the correct named capture groups
+    # to override the default provided with Template.
+    # Match nothing (no way of escaping placeholders).
+    escaped = "(?P<escaped>(?!))"
+    # Match the "__MBEDTLS_TEST_TEMPLATE__PLACEHOLDER_NAME" pattern.
+    named = "__MBEDTLS_TEST_TEMPLATE__(?P<named>[A-Z][_A-Z0-9]*)"
+    # Match nothing (no braced placeholder syntax).
+    braced = "(?P<braced>(?!))"
+    # If not already matched, a "__MBEDTLS_TEST_TEMPLATE__" prefix is invalid.
+    invalid = "(?P<invalid>__MBEDTLS_TEST_TEMPLATE__)"
+    placeholder_pattern = re.compile("|".join([escaped, named, braced, invalid]))
+
     with open(template_file, 'r') as template_f, open(c_file, 'w') as c_f:
         for line_no, line in enumerate(template_f.readlines(), 1):
             # Update line number. +1 as #line directive sets next line number
             snippets['line_no'] = line_no + 1
-            code = string.Template(line).substitute(**snippets)
+            template = string.Template(line)
+            template.pattern = placeholder_pattern
+            snippets = {k.upper():v for (k, v) in snippets.items()}
+            code = template.substitute(**snippets)
             c_f.write(code)
 
 

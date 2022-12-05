@@ -707,6 +707,8 @@
  *   - generation of our signature if client authentication is used, with an
  *     ECC key/certificate.
  *
+ * TODO: document interation with USE_PSA_CRYPTO
+ *
  * \note  In the cases above, the usual SSL/TLS functions, such as
  *        mbedtls_ssl_handshake(), can now return
  *        MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS.
@@ -1928,7 +1930,6 @@
  * before calling any function from the SSL/TLS, X.509 or PK modules.
  *
  * Requires: MBEDTLS_PSA_CRYPTO_C.
- * Conflicts with: MBEDTLS_ECP_RESTARTABLE
  *
  * Uncomment this to enable internal use of PSA Crypto and new associated APIs.
  */

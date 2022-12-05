@@ -29,11 +29,6 @@
 
 #include <string.h>
 
-#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
-    !defined(inline) && !defined(__cplusplus)
-#define inline __inline
-#endif
-
 #if defined(MBEDTLS_MPS_ENABLE_TRACE)
 static int mbedtls_mps_trace_id = MBEDTLS_MPS_TRACE_BIT_READER;
 #endif /* MBEDTLS_MPS_ENABLE_TRACE */

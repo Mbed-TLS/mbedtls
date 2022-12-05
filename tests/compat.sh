@@ -867,12 +867,15 @@ setup_arguments()
     G_MODE=""
     case "$MODE" in
         "ssl3")
+            O_MODE="ssl3"
             G_PRIO_MODE="+VERS-SSL3.0"
             ;;
         "tls1")
+            O_MODE="tls1"
             G_PRIO_MODE="+VERS-TLS1.0"
             ;;
         "tls1_1")
+            O_MODE="tls1_1"
             G_PRIO_MODE="+VERS-TLS1.1"
             ;;
         "tls12")
@@ -880,6 +883,7 @@ setup_arguments()
             G_PRIO_MODE="+VERS-TLS1.2"
             ;;
         "dtls1")
+            O_MODE="dtls1"
             G_PRIO_MODE="+VERS-DTLS1.0"
             G_MODE="-u"
             ;;
@@ -929,6 +933,20 @@ setup_arguments()
     O_CLIENT_ARGS="-connect localhost:$PORT -$O_MODE"
     G_CLIENT_ARGS="-p $PORT --debug 3 $G_MODE"
     G_CLIENT_PRIO="NONE:$G_PRIO_MODE:+COMP-NULL:+CURVE-ALL:+SIGN-ALL"
+
+    # Newer versions of OpenSSL have a syntax to enable all "ciphers", even
+    # low-security ones. This covers not just cipher suites but also protocol
+    # versions. It is necessary, for example, to use (D)TLS 1.0/1.1 on
+    # OpenSSL 1.1.1f from Ubuntu 20.04. The syntax was only introduced in
+    # OpenSSL 1.1.0 (21e0c1d23afff48601eb93135defddae51f7e2e3) and I can't find
+    # a way to discover it from -help, so check the openssl version.
+    case $($OPENSSL_CMD version) in
+        "OpenSSL 0"*|"OpenSSL 1.0"*) :;;
+        *)
+            O_CLIENT_ARGS="$O_CLIENT_ARGS -cipher ALL@SECLEVEL=0"
+            O_SERVER_ARGS="$O_SERVER_ARGS -cipher ALL@SECLEVEL=0"
+            ;;
+    esac
 
     if [ "X$VERIFY" = "XYES" ];
     then

@@ -514,9 +514,10 @@ psa_status_t mbedtls_psa_cipher_encrypt( const psa_key_attributes_t *attributes,
     if( status != PSA_SUCCESS )
         goto exit;
 
-    status = mbedtls_psa_cipher_finish( &operation, output + update_output_length,
-                            output_size - update_output_length,
-                            &finish_output_length );
+    status = mbedtls_psa_cipher_finish(
+        &operation,
+        mbedtls_buffer_offset( output, update_output_length ),
+        output_size - update_output_length, &finish_output_length );
     if( status != PSA_SUCCESS )
         goto exit;
 
@@ -560,17 +561,20 @@ psa_status_t mbedtls_psa_cipher_decrypt(
             goto exit;
     }
 
-    status = mbedtls_psa_cipher_update( &operation, input + operation.iv_length,
-                                        input_length - operation.iv_length,
-                                        output, output_size, &olength );
+    status = mbedtls_psa_cipher_update(
+        &operation,
+        mbedtls_buffer_offset_const( input, operation.iv_length ),
+        input_length - operation.iv_length,
+        output, output_size, &olength );
     if( status != PSA_SUCCESS )
         goto exit;
 
     accumulated_length = olength;
 
-    status = mbedtls_psa_cipher_finish( &operation, output + accumulated_length,
-                                        output_size - accumulated_length,
-                                        &olength );
+    status = mbedtls_psa_cipher_finish(
+        &operation,
+        mbedtls_buffer_offset( output, accumulated_length ),
+        output_size - accumulated_length, &olength );
     if( status != PSA_SUCCESS )
         goto exit;
 

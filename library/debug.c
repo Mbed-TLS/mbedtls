@@ -30,11 +30,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
-    !defined(inline) && !defined(__cplusplus)
-#define inline __inline
-#endif
-
 #define DEBUG_BUF_SIZE      512
 
 static int debug_threshold = 0;

@@ -148,16 +148,22 @@ int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,
 
     int do_mbedtls_cipher_setup = 1;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    do_mbedtls_cipher_setup = 0;
-
     ret = mbedtls_cipher_setup_psa( &ctx->keys[0].ctx,
                                     cipher_info, TICKET_AUTH_TAG_BYTES );
-    if( ret != 0 && ret != MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE )
-        return( ret );
-    /* We don't yet expect to support all ciphers through PSA,
-     * so allow fallback to ordinary mbedtls_cipher_setup(). */
-    if( ret == MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE )
-        do_mbedtls_cipher_setup = 1;
+
+    switch( ret )
+    {
+        case 0:
+            do_mbedtls_cipher_setup = 0;
+            break;
+        case MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE:
+            /* We don't yet expect to support all ciphers through PSA,
+             * so allow fallback to ordinary mbedtls_cipher_setup(). */
+            do_mbedtls_cipher_setup = 1;
+            break;
+        default:
+            return( ret );
+    }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     if( do_mbedtls_cipher_setup )
         if( ( ret = mbedtls_cipher_setup( &ctx->keys[0].ctx, cipher_info ) )

@@ -877,20 +877,7 @@ static psa_status_t psa_restrict_key_policy(
     return( PSA_SUCCESS );
 }
 
-/** Get the description of a key given its identifier and policy constraints
- *  and lock it.
- *
- * The key must have allow all the usage flags set in \p usage. If \p alg is
- * nonzero, the key must allow operations with this algorithm. If \p alg is
- * zero, the algorithm is not checked.
- *
- * In case of a persistent key, the function loads the description of the key
- * into a key slot if not already done.
- *
- * On success, the returned key slot is locked. It is the responsibility of
- * the caller to unlock the key slot when it does not access it anymore.
- */
-static psa_status_t psa_get_and_lock_key_slot_with_policy(
+psa_status_t psa_get_and_lock_key_slot_with_policy(
     mbedtls_svc_key_id_t key,
     psa_key_slot_t **p_slot,
     psa_key_usage_t usage,
@@ -3467,8 +3454,8 @@ psa_status_t psa_cipher_encrypt( mbedtls_svc_key_id_t key,
     status = psa_driver_wrapper_cipher_encrypt(
         &attributes, slot->key.data, slot->key.bytes,
         alg, local_iv, default_iv_length, input, input_length,
-        output + default_iv_length, output_size - default_iv_length,
-        output_length );
+        mbedtls_buffer_offset( output, default_iv_length ),
+        output_size - default_iv_length, output_length );
 
 exit:
     unlock_status = psa_unlock_key_slot( slot );
@@ -5736,63 +5723,46 @@ psa_status_t psa_key_derivation_input_key(
 /* Key agreement */
 /****************************************************************/
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
-static psa_status_t psa_key_agreement_ecdh( const uint8_t *peer_key,
+psa_status_t psa_key_agreement_raw_builtin( const psa_key_attributes_t *attributes,
+                                            const uint8_t *key_buffer,
+                                            size_t key_buffer_size,
+                                            psa_algorithm_t alg,
+                                            const uint8_t *peer_key,
                                             size_t peer_key_length,
-                                            const mbedtls_ecp_keypair *our_key,
                                             uint8_t *shared_secret,
                                             size_t shared_secret_size,
                                             size_t *shared_secret_length )
 {
-    mbedtls_ecp_keypair *their_key = NULL;
-    mbedtls_ecdh_context ecdh;
-    psa_status_t status;
-    size_t bits = 0;
-    psa_ecc_family_t curve = mbedtls_ecc_group_to_psa( our_key->grp.id, &bits );
-    mbedtls_ecdh_init( &ecdh );
-
-    status = mbedtls_psa_ecp_load_representation(
-                 PSA_KEY_TYPE_ECC_PUBLIC_KEY(curve),
-                 bits,
-                 peer_key,
-                 peer_key_length,
-                 &their_key );
-    if( status != PSA_SUCCESS )
-        goto exit;
-
-    status = mbedtls_to_psa_error(
-        mbedtls_ecdh_get_params( &ecdh, their_key, MBEDTLS_ECDH_THEIRS ) );
-    if( status != PSA_SUCCESS )
-        goto exit;
-    status = mbedtls_to_psa_error(
-        mbedtls_ecdh_get_params( &ecdh, our_key, MBEDTLS_ECDH_OURS ) );
-    if( status != PSA_SUCCESS )
-        goto exit;
-
-    status = mbedtls_to_psa_error(
-        mbedtls_ecdh_calc_secret( &ecdh,
-                                  shared_secret_length,
-                                  shared_secret, shared_secret_size,
-                                  mbedtls_psa_get_random,
-                                  MBEDTLS_PSA_RANDOM_STATE ) );
-    if( status != PSA_SUCCESS )
-        goto exit;
-    if( PSA_BITS_TO_BYTES( bits ) != *shared_secret_length )
-        status = PSA_ERROR_CORRUPTION_DETECTED;
-
-exit:
-    if( status != PSA_SUCCESS )
-        mbedtls_platform_zeroize( shared_secret, shared_secret_size );
-    mbedtls_ecdh_free( &ecdh );
-    mbedtls_ecp_keypair_free( their_key );
-    mbedtls_free( their_key );
-
-    return( status );
-}
+    switch( alg )
+    {
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
+        case PSA_ALG_ECDH:
+            return( mbedtls_psa_key_agreement_ecdh( attributes, key_buffer,
+                                                    key_buffer_size, alg,
+                                                    peer_key, peer_key_length,
+                                                    shared_secret,
+                                                    shared_secret_size,
+                                                    shared_secret_length ) );
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_ECDH */
+        default:
+            (void) attributes;
+            (void) key_buffer;
+            (void) key_buffer_size;
+            (void) peer_key;
+            (void) peer_key_length;
+            (void) shared_secret;
+            (void) shared_secret_size;
+            (void) shared_secret_length;
+            return( PSA_ERROR_NOT_SUPPORTED );
+    }
+}
 
-#define PSA_KEY_AGREEMENT_MAX_SHARED_SECRET_SIZE MBEDTLS_ECP_MAX_BYTES
-
+/** Internal function for raw key agreement
+ *  Calls the driver wrapper which will hand off key agreement task
+ *  to the driver's implementation if a driver is present.
+ *  Fallback specified in the driver wrapper is built-in raw key agreement
+ *  (psa_key_agreement_raw_builtin).
+ */
 static psa_status_t psa_key_agreement_raw_internal( psa_algorithm_t alg,
                                                     psa_key_slot_t *private_key,
                                                     const uint8_t *peer_key,
@@ -5801,38 +5771,20 @@ static psa_status_t psa_key_agreement_raw_internal( psa_algorithm_t alg,
                                                     size_t shared_secret_size,
                                                     size_t *shared_secret_length )
 {
-    switch( alg )
-    {
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
-        case PSA_ALG_ECDH:
-            if( ! PSA_KEY_TYPE_IS_ECC_KEY_PAIR( private_key->attr.type ) )
-                return( PSA_ERROR_INVALID_ARGUMENT );
-            mbedtls_ecp_keypair *ecp = NULL;
-            psa_status_t status = mbedtls_psa_ecp_load_representation(
-                                      private_key->attr.type,
-                                      private_key->attr.bits,
-                                      private_key->key.data,
-                                      private_key->key.bytes,
-                                      &ecp );
-            if( status != PSA_SUCCESS )
-                return( status );
-            status = psa_key_agreement_ecdh( peer_key, peer_key_length,
-                                             ecp,
-                                             shared_secret, shared_secret_size,
-                                             shared_secret_length );
-            mbedtls_ecp_keypair_free( ecp );
-            mbedtls_free( ecp );
-            return( status );
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_ECDH */
-        default:
-            (void) private_key;
-            (void) peer_key;
-            (void) peer_key_length;
-            (void) shared_secret;
-            (void) shared_secret_size;
-            (void) shared_secret_length;
-            return( PSA_ERROR_NOT_SUPPORTED );
-    }
+    if( !PSA_ALG_IS_RAW_KEY_AGREEMENT( alg ) )
+        return( PSA_ERROR_NOT_SUPPORTED );
+
+    psa_key_attributes_t attributes = {
+      .core = private_key->attr
+    };
+
+    return( psa_driver_wrapper_key_agreement( &attributes,
+                                              private_key->key.data,
+                                              private_key->key.bytes, alg,
+                                              peer_key, peer_key_length,
+                                              shared_secret,
+                                              shared_secret_size,
+                                              shared_secret_length ) );
 }
 
 /* Note that if this function fails, you must call psa_key_derivation_abort()
@@ -5845,7 +5797,7 @@ static psa_status_t psa_key_agreement_internal( psa_key_derivation_operation_t *
                                                 size_t peer_key_length )
 {
     psa_status_t status;
-    uint8_t shared_secret[PSA_KEY_AGREEMENT_MAX_SHARED_SECRET_SIZE];
+    uint8_t shared_secret[PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE];
     size_t shared_secret_length = 0;
     psa_algorithm_t ka_alg = PSA_ALG_KEY_AGREEMENT_GET_BASE( operation->alg );
 

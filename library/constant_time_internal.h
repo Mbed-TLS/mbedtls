@@ -138,6 +138,7 @@ unsigned mbedtls_ct_mpi_uint_lt( const mbedtls_mpi_uint x,
  * \param B        The right-hand MPI. This must point to an array of limbs
  *                 with the same allocated length as \p A.
  * \param limbs    The number of limbs in \p A and \p B.
+ *                 This must not be 0.
  *
  * \return         The result of the comparison:
  *                 \c 1 if \p A is less than \p B.

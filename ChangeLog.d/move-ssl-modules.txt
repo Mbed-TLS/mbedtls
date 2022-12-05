@@ -1,0 +1,3 @@
+Bugfix
+   * Move some SSL-specific code out of libmbedcrypto where it had been placed
+     accidentally.

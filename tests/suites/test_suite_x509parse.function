@@ -246,36 +246,30 @@ int verify_parse_san( mbedtls_x509_subject_alternative_name *san,
 
     switch( san->type )
     {
-       case( MBEDTLS_X509_SAN_OTHER_NAME ):
-           ret = mbedtls_snprintf( p, n, "\notherName :");
-           MBEDTLS_X509_SAFE_SNPRINTF;
+        case( MBEDTLS_X509_SAN_OTHER_NAME ):
+            ret = mbedtls_snprintf( p, n, "\notherName :");
+            MBEDTLS_X509_SAFE_SNPRINTF;
 
-           if( MBEDTLS_OID_CMP( MBEDTLS_OID_ON_HW_MODULE_NAME,
-                    &san->san.other_name.value.hardware_module_name.oid ) != 0 )
-           {
-               ret = mbedtls_snprintf( p, n, " hardware module name :" );
-               MBEDTLS_X509_SAFE_SNPRINTF;
-               ret = mbedtls_snprintf( p, n, " hardware type : " );
-               MBEDTLS_X509_SAFE_SNPRINTF;
+            if( MBEDTLS_OID_CMP( MBEDTLS_OID_ON_HW_MODULE_NAME,
+                     &san->san.other_name.value.hardware_module_name.oid ) != 0 )
+            {
+                ret = mbedtls_snprintf( p, n, " hardware module name :" );
+                MBEDTLS_X509_SAFE_SNPRINTF;
+                ret = mbedtls_snprintf( p, n, " hardware type : " );
+                MBEDTLS_X509_SAFE_SNPRINTF;
 
-               ret = mbedtls_oid_get_numeric_string( p, n,
-                          &san->san.other_name.value.hardware_module_name.oid );
-               MBEDTLS_X509_SAFE_SNPRINTF;
+                ret = mbedtls_oid_get_numeric_string( p, n,
+                           &san->san.other_name.value.hardware_module_name.oid );
+                MBEDTLS_X509_SAFE_SNPRINTF;
 
-               ret = mbedtls_snprintf( p, n, ", hardware serial number : " );
-               MBEDTLS_X509_SAFE_SNPRINTF;
+                ret = mbedtls_snprintf( p, n, ", hardware serial number : " );
+                MBEDTLS_X509_SAFE_SNPRINTF;
 
-               if( san->san.other_name.value.hardware_module_name.val.len >= n )
-               {
-                   *p = '\0';
-                   return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
-               }
-
-               for( i=0; i < san->san.other_name.value.hardware_module_name.val.len; i++ )
-               {
-                   *p++ = san->san.other_name.value.hardware_module_name.val.p[i];
-               }
-               n -= san->san.other_name.value.hardware_module_name.val.len;
+                for( i = 0; i < san->san.other_name.value.hardware_module_name.val.len; i++ )
+                {
+                    ret = mbedtls_snprintf( p, n, "%02X", san->san.other_name.value.hardware_module_name.val.p[i] );
+                    MBEDTLS_X509_SAFE_SNPRINTF;
+                }
             }
         break;/* MBEDTLS_OID_ON_HW_MODULE_NAME */
         case(  MBEDTLS_X509_SAN_DNS_NAME ):
@@ -825,7 +819,6 @@ void mbedtls_x509_get_name( char * rdn_sequence, int exp_ret )
     unsigned char *p;
     size_t name_len;
     mbedtls_x509_name head;
-    mbedtls_x509_name *allocated, *prev;
     int ret;
 
     memset( &head, 0, sizeof( head ) );
@@ -835,17 +828,7 @@ void mbedtls_x509_get_name( char * rdn_sequence, int exp_ret )
 
     ret = mbedtls_x509_get_name( &p, ( name + name_len ), &head );
     if( ret == 0 )
-    {
-        allocated = head.next;
-
-        while( allocated != NULL )
-        {
-            prev = allocated;
-            allocated = allocated->next;
-
-            mbedtls_free( prev );
-        }
-    }
+        mbedtls_asn1_free_named_data_list_shallow( head.next );
 
     TEST_EQUAL( ret, exp_ret );
 
@@ -859,7 +842,7 @@ void mbedtls_x509_dn_get_next( char * name_str, int next_merged, char * expected
     int ret = 0, i;
     size_t len = 0, out_size;
     mbedtls_asn1_named_data *names = NULL;
-    mbedtls_x509_name parsed, *parsed_cur, *parsed_prv;
+    mbedtls_x509_name parsed, *parsed_cur;
     // Size of buf is maximum required for test cases
     unsigned char buf[80], *out = NULL, *c;
     const char *short_name;
@@ -913,14 +896,7 @@ void mbedtls_x509_dn_get_next( char * name_str, int next_merged, char * expected
 exit:
     mbedtls_free( out );
     mbedtls_asn1_free_named_data_list( &names );
-
-    parsed_cur = parsed.next;
-    while( parsed_cur != 0 )
-    {
-        parsed_prv = parsed_cur;
-        parsed_cur = parsed_cur->next;
-        mbedtls_free( parsed_prv );
-    }
+    mbedtls_asn1_free_named_data_list_shallow( parsed.next );
 }
 /* END_CASE */
 

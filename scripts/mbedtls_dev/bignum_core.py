@@ -16,20 +16,19 @@
 
 import random
 
-from abc import ABCMeta
 from typing import Dict, Iterator, List, Tuple
 
 from . import test_case
 from . import test_data_generation
 from . import bignum_common
 
-class BignumCoreTarget(test_data_generation.BaseTarget, metaclass=ABCMeta):
-    #pylint: disable=abstract-method
+class BignumCoreTarget(test_data_generation.BaseTarget):
+    #pylint: disable=abstract-method, too-few-public-methods
     """Target for bignum core test case generation."""
     target_basename = 'test_suite_bignum_core.generated'
 
 
-class BignumCoreShiftR(BignumCoreTarget, metaclass=ABCMeta):
+class BignumCoreShiftR(BignumCoreTarget, test_data_generation.BaseTest):
     """Test cases for mbedtls_bignum_core_shift_r()."""
     count = 0
     test_function = "mpi_core_shift_r"
@@ -69,7 +68,7 @@ class BignumCoreShiftR(BignumCoreTarget, metaclass=ABCMeta):
             for count in counts:
                 yield cls(input_hex, descr, count).create_test_case()
 
-class BignumCoreCTLookup(BignumCoreTarget, metaclass=ABCMeta):
+class BignumCoreCTLookup(BignumCoreTarget, test_data_generation.BaseTest):
     """Test cases for mbedtls_mpi_core_ct_uint_table_lookup()."""
     test_function = "mpi_core_ct_uint_table_lookup"
     test_name = "Constant time MPI table lookup"
@@ -107,104 +106,33 @@ class BignumCoreCTLookup(BignumCoreTarget, metaclass=ABCMeta):
                 yield (cls(bitsize, bitsize_description, window_size)
                        .create_test_case())
 
-class BignumCoreOperation(bignum_common.OperationCommon, BignumCoreTarget, metaclass=ABCMeta):
-    #pylint: disable=abstract-method
-    """Common features for bignum core operations."""
-    input_values = [
-        "0", "1", "3", "f", "fe", "ff", "100", "ff00", "fffe", "ffff", "10000",
-        "fffffffe", "ffffffff", "100000000", "1f7f7f7f7f7f7f",
-        "8000000000000000", "fefefefefefefefe", "fffffffffffffffe",
-        "ffffffffffffffff", "10000000000000000", "1234567890abcdef0",
-        "fffffffffffffffffefefefefefefefe", "fffffffffffffffffffffffffffffffe",
-        "ffffffffffffffffffffffffffffffff", "100000000000000000000000000000000",
-        "1234567890abcdef01234567890abcdef0",
-        "fffffffffffffffffffffffffffffffffffffffffffffffffefefefefefefefe",
-        "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe",
-        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        "10000000000000000000000000000000000000000000000000000000000000000",
-        "1234567890abcdef01234567890abcdef01234567890abcdef01234567890abcdef0",
-        (
-            "4df72d07b4b71c8dacb6cffa954f8d88254b6277099308baf003fab73227f34029"
-            "643b5a263f66e0d3c3fa297ef71755efd53b8fb6cb812c6bbf7bcf179298bd9947"
-            "c4c8b14324140a2c0f5fad7958a69050a987a6096e9f055fb38edf0c5889eca4a0"
-            "cfa99b45fbdeee4c696b328ddceae4723945901ec025076b12b"
-        )
-    ]
 
-    def description(self) -> str:
-        """Generate a description for the test case.
-
-        If not set, case_description uses the form A `symbol` B, where symbol
-        is used to represent the operation. Descriptions of each value are
-        generated to provide some context to the test case.
-        """
-        if not self.case_description:
-            self.case_description = "{:x} {} {:x}".format(
-                self.int_a, self.symbol, self.int_b
-            )
-        return super().description()
-
-    @classmethod
-    def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
-        for a_value, b_value in cls.get_value_pairs():
-            yield cls(a_value, b_value).create_test_case()
-
-
-class BignumCoreOperationArchSplit(BignumCoreOperation):
-    #pylint: disable=abstract-method
-    """Common features for bignum core operations where the result depends on
-    the limb size."""
-
-    def __init__(self, val_a: str, val_b: str, bits_in_limb: int) -> None:
-        super().__init__(val_a, val_b)
-        bound_val = max(self.int_a, self.int_b)
-        self.bits_in_limb = bits_in_limb
-        self.bound = bignum_common.bound_mpi(bound_val, self.bits_in_limb)
-        limbs = bignum_common.limbs_mpi(bound_val, self.bits_in_limb)
-        byte_len = limbs * self.bits_in_limb // 8
-        self.hex_digits = 2 * byte_len
-        if self.bits_in_limb == 32:
-            self.dependencies = ["MBEDTLS_HAVE_INT32"]
-        elif self.bits_in_limb == 64:
-            self.dependencies = ["MBEDTLS_HAVE_INT64"]
-        else:
-            raise ValueError("Invalid number of bits in limb!")
-        self.arg_a = self.arg_a.zfill(self.hex_digits)
-        self.arg_b = self.arg_b.zfill(self.hex_digits)
-
-    def pad_to_limbs(self, val) -> str:
-        return "{:x}".format(val).zfill(self.hex_digits)
-
-    @classmethod
-    def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
-        for a_value, b_value in cls.get_value_pairs():
-            yield cls(a_value, b_value, 32).create_test_case()
-            yield cls(a_value, b_value, 64).create_test_case()
-
-class BignumCoreAddAndAddIf(BignumCoreOperationArchSplit):
+class BignumCoreAddAndAddIf(BignumCoreTarget, bignum_common.OperationCommon):
     """Test cases for bignum core add and add-if."""
     count = 0
     symbol = "+"
     test_function = "mpi_core_add_and_add_if"
     test_name = "mpi_core_add_and_add_if"
+    input_style = "arch_split"
+    unique_combinations_only = True
 
     def result(self) -> List[str]:
         result = self.int_a + self.int_b
 
-        carry, result = divmod(result, self.bound)
+        carry, result = divmod(result, self.limb_boundary)
 
         return [
-            bignum_common.quote_str(self.pad_to_limbs(result)),
+            self.format_result(result),
             str(carry)
         ]
 
-class BignumCoreSub(BignumCoreOperation):
+
+class BignumCoreSub(BignumCoreTarget, bignum_common.OperationCommon):
     """Test cases for bignum core sub."""
     count = 0
     symbol = "-"
     test_function = "mpi_core_sub"
     test_name = "mbedtls_mpi_core_sub"
-    unique_combinations_only = False
 
     def result(self) -> List[str]:
         if self.int_a >= self.int_b:
@@ -224,12 +152,11 @@ class BignumCoreSub(BignumCoreOperation):
         ]
 
 
-class BignumCoreMLA(BignumCoreOperation):
+class BignumCoreMLA(BignumCoreTarget, bignum_common.OperationCommon):
     """Test cases for fixed-size multiply accumulate."""
     count = 0
     test_function = "mpi_core_mla"
     test_name = "mbedtls_mpi_core_mla"
-    unique_combinations_only = False
 
     input_values = [
         "0", "1", "fffe", "ffffffff", "100000000", "20000000000000",
@@ -289,6 +216,16 @@ class BignumCoreMLA(BignumCoreOperation):
         ]
 
     @classmethod
+    def get_value_pairs(cls) -> Iterator[Tuple[str, str]]:
+        """Generator to yield pairs of inputs.
+
+        Combinations are first generated from all input values, and then
+        specific cases provided.
+        """
+        yield from super().get_value_pairs()
+        yield from cls.input_cases
+
+    @classmethod
     def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
         """Override for additional scalar input."""
         for a_value, b_value in cls.get_value_pairs():
@@ -297,7 +234,7 @@ class BignumCoreMLA(BignumCoreOperation):
                 yield cur_op.create_test_case()
 
 
-class BignumCoreMontmul(BignumCoreTarget):
+class BignumCoreMontmul(BignumCoreTarget, test_data_generation.BaseTest):
     """Test cases for Montgomery multiplication."""
     count = 0
     test_function = "mpi_core_montmul"
@@ -818,6 +755,23 @@ def mpi_modmul_case_generate() -> None:
 
 # BEGIN MERGE SLOT 1
 
+class BignumCoreExpMod(BignumCoreTarget, bignum_common.ModOperationCommon):
+    """Test cases for bignum core exponentiation."""
+    symbol = "^"
+    test_function = "mpi_core_exp_mod"
+    test_name = "Core modular exponentiation"
+    input_style = "fixed"
+
+    def result(self) -> List[str]:
+        result = pow(self.int_a, self.int_b, self.int_n)
+        return [self.format_result(result)]
+
+    @property
+    def is_valid(self) -> bool:
+        # The base needs to be canonical, but the exponent can be larger than
+        # the modulus (see for example exponent blinding)
+        return bool(self.int_a < self.int_n)
+
 # END MERGE SLOT 1
 
 # BEGIN MERGE SLOT 2
@@ -825,6 +779,37 @@ def mpi_modmul_case_generate() -> None:
 # END MERGE SLOT 2
 
 # BEGIN MERGE SLOT 3
+
+class BignumCoreSubInt(BignumCoreTarget, bignum_common.OperationCommon):
+    """Test cases for bignum core sub int."""
+    count = 0
+    symbol = "-"
+    test_function = "mpi_core_sub_int"
+    test_name = "mpi_core_sub_int"
+    input_style = "arch_split"
+
+    @property
+    def is_valid(self) -> bool:
+        # This is "sub int", so b is only one limb
+        if bignum_common.limbs_mpi(self.int_b, self.bits_in_limb) > 1:
+            return False
+        return True
+
+    # Overriding because we don't want leading zeros on b
+    @property
+    def arg_b(self) -> str:
+        return self.val_b
+
+    def result(self) -> List[str]:
+        result = self.int_a - self.int_b
+
+        borrow, result = divmod(result, self.limb_boundary)
+
+        # Borrow will be -1 if non-zero, but we want it to be 1 in the test data
+        return [
+            self.format_result(result),
+            str(-borrow)
+        ]
 
 # END MERGE SLOT 3
 

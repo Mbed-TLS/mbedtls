@@ -488,6 +488,8 @@ int main( void )
     "    server_addr=%%s      default: (all interfaces)\n"  \
     "    server_port=%%d      default: 4433\n"              \
     "    debug_level=%%d      default: 0 (disabled)\n"      \
+    "    build_version=%%d    default: none (disabled)\n"                     \
+    "                        option: 1 (print build version only and stop)\n" \
     "    buffer_size=%%d      default: 200 \n" \
     "                         (minimum: 1)\n" \
     "    response_size=%%d    default: about 152 (basic response)\n" \
@@ -1743,6 +1745,16 @@ int main( int argc, char *argv[] )
             if( opt.debug_level < 0 || opt.debug_level > 65535 )
                 goto usage;
         }
+        else if( strcmp( p, "build_version" ) == 0 )
+        {
+            if( strcmp( q, "1" ) == 0 )
+            {
+                mbedtls_printf( "build version: %s (build %d)\n",
+                                MBEDTLS_VERSION_STRING_FULL,
+                                MBEDTLS_VERSION_NUMBER );
+                goto exit;
+            }
+        }
         else if( strcmp( p, "nbio" ) == 0 )
         {
             opt.nbio = atoi( q );
@@ -2571,6 +2583,9 @@ int main( int argc, char *argv[] )
         }
     }
 #endif /* MBEDTLS_SSL_ALPN */
+
+    mbedtls_printf( "build version: %s (build %d)\n",
+                    MBEDTLS_VERSION_STRING_FULL, MBEDTLS_VERSION_NUMBER );
 
     /*
      * 0. Initialize the RNG and the session data

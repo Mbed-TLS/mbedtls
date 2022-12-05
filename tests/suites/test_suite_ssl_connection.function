@@ -19,7 +19,7 @@
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
 void handshake_ssl_connection( int dtls, int expected_negotiated_version,
                                char* cipher, int pk_alg,
                                int expected_ciphersuite  )

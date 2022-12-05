@@ -2817,8 +2817,9 @@
 /**
  * \def MBEDTLS_PKCS7_C
  *
- * This feature is a work in progress and not ready for production. The API may
- * change. Testing and validation is incomplete.
+ * This feature is a work in progress and not ready for production. Testing and
+ * validation is incomplete, and handling of malformed inputs may not be robust.
+ * The API may change.
  *
  * Enable PKCS7 core for using PKCS7 formatted signatures.
  * RFC Link - https://tools.ietf.org/html/rfc2315

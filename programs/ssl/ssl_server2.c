@@ -430,7 +430,7 @@ int main( void )
     "    max_early_data_size=%%d default: 0 (disabled)\n"             \
     "                            options: 0     (disabled), "           \
     "                                     -1    (enabled, builtin max size), " \
-    "                                     n > 0 (enabled, max amount data for 0-RTT )\n"
+    "                                     n > 0 (enabled, max amount of early data )\n"
 #else
 #define USAGE_EARLY_DATA ""
 #endif /* MBEDTLS_SSL_EARLY_DATA */
@@ -502,7 +502,7 @@ int main( void )
     "    build_version=%%d    default: none (disabled)\n"                     \
     "                        option: 1 (print build version only and stop)\n" \
     "    reco_debug_level=%%d default: 0 (disabled)\n"      \
-    "                         debug_level for 2nd flight.\n" \
+    "                         level of debugging for re-connection.\n" \
     "    buffer_size=%%d      default: 200 \n" \
     "                         (minimum: 1)\n" \
     "    response_size=%%d    default: about 152 (basic response)\n" \
@@ -605,7 +605,7 @@ struct options
     const char *server_addr;    /* address on which the ssl service runs    */
     const char *server_port;    /* port on which the ssl service runs       */
     int debug_level;            /* level of debugging                       */
-    int reco_debug_level;       /* level of 2nd flight debugging            */
+    int reco_debug_level;       /* level of debugging for re-connection.    */
     int nbio;                   /* should I/O be blocking?                  */
     int event;                  /* loop or event-driven IO? level or edge triggered? */
     uint32_t read_timeout;      /* timeout on mbedtls_ssl_read() in milliseconds    */
@@ -691,7 +691,7 @@ struct options
     const char *cid_val_renego; /* the CID to use for incoming messages
                                  * after renegotiation                      */
     int reproducible;           /* make communication reproducible          */
-    uint32_t max_early_data_size; /* max amount early data                   */
+    uint32_t max_early_data_size; /* max amount of early data               */
     int query_config_mode;      /* whether to read config                   */
     int use_srtp;               /* Support SRTP                             */
     int force_srtp_profile;     /* SRTP protection profile to use or all    */

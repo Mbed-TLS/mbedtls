@@ -1457,15 +1457,16 @@ psa_status_t psa_export_public_key_internal(
         }
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR) || \
         defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_PUBLIC_KEY)
-        else {
+        else if (PSA_KEY_TYPE_IS_DH(type)) {
             return mbedtls_psa_export_ffdh_public_key(attributes,
                                                       key_buffer,
                                                       key_buffer_size,
                                                       data, data_size,
                                                       data_length);
+        } else {
+            return PSA_ERROR_NOT_SUPPORTED;
         }
 #else
-        /* We don't know how to convert a private FFDH key to public */
         return PSA_ERROR_NOT_SUPPORTED;
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR) ||
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_PUBLIC_KEY) */

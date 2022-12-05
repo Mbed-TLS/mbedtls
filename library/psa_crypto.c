@@ -6594,10 +6594,6 @@ psa_status_t psa_key_agreement_raw_builtin(const psa_key_attributes_t *attribute
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_FFDH)
         case PSA_ALG_FFDH:
-            if (!PSA_KEY_TYPE_IS_DH_KEY_PAIR(psa_get_key_type(attributes))) {
-                return PSA_ERROR_INVALID_ARGUMENT;
-            }
-
             return mbedtls_psa_key_agreement_ffdh(attributes,
                                                   peer_key,
                                                   peer_key_length,

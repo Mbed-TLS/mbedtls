@@ -131,6 +131,10 @@ psa_status_t mbedtls_psa_key_agreement_ffdh(
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
+    if (!PSA_KEY_TYPE_IS_DH_KEY_PAIR(psa_get_key_type(attributes))) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
     mbedtls_mpi_init(&P); mbedtls_mpi_init(&G);
     mbedtls_mpi_init(&X); mbedtls_mpi_init(&GY);
     mbedtls_mpi_init(&K);

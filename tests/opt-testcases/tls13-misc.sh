@@ -274,7 +274,7 @@ requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test    "TLS 1.3 m->G: EarlyData: basic check, good" \
             "$G_NEXT_SRV -d 10 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:+ECDHE-PSK:+PSK --earlydata --disable-client-cert" \
-            "$P_CLI debug_level=4 early_data=1 reco_mode=1 reconnect=1 reco_delay=2" \
+            "$P_CLI debug_level=4 early_data=1 reco_mode=1 reconnect=1 reco_delay=900" \
             1 \
             -c "Reconnecting with saved session" \
             -c "NewSessionTicket: early_data(42) extension received." \
@@ -295,7 +295,7 @@ requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test    "TLS 1.3 m->G: EarlyData: no early_data in NewSessionTicket, good" \
             "$G_NEXT_SRV -d 10 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:+ECDHE-PSK:+PSK --disable-client-cert" \
-            "$P_CLI debug_level=4 early_data=1 reco_mode=1 reconnect=1 reco_delay=2" \
+            "$P_CLI debug_level=4 early_data=1 reco_mode=1 reconnect=1" \
             0 \
             -c "Reconnecting with saved session" \
             -C "NewSessionTicket: early_data(42) extension received." \

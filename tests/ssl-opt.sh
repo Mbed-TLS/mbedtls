@@ -1766,7 +1766,7 @@ for i in $(seq 1 400); do
                                 MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
     run_test    "TLS 1.3 m->G: EarlyData: basic check, good $i" \
                 "$G_NEXT_SRV -d 10 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:+ECDHE-PSK:+PSK --earlydata --disable-client-cert" \
-                "$P_CLI debug_level=4 early_data=1 reco_mode=1 reconnect=1" \
+                "$P_CLI debug_level=4 early_data=1 reco_mode=1 reconnect=1 reco_delay=900" \
                 1 \
                 -c "Reconnecting with saved session" \
                 -c "NewSessionTicket: early_data(42) extension received." \

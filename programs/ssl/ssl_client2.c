@@ -3184,7 +3184,7 @@ reconnect:
 
 #if defined(MBEDTLS_TIMING_C)
         if( opt.reco_delay > 0 )
-            mbedtls_net_usleep( 1000000 * opt.reco_delay );
+            mbedtls_net_usleep( 1000 * opt.reco_delay );
 #endif
 
         mbedtls_printf( "  . Reconnecting with saved session..." );

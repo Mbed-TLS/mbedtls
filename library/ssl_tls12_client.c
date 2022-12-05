@@ -1971,7 +1971,7 @@ static int ssl_parse_server_psk_hint( mbedtls_ssl_context *ssl,
     }
 
     /*
-     * Note: we currently ignore the PKS identity hint, as we only allow one
+     * Note: we currently ignore the PSK identity hint, as we only allow one
      * PSK to be provisioned on the client. This could be changed later if
      * someone needs that feature.
      */

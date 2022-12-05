@@ -685,16 +685,7 @@ static int x509_get_subject_alt_name( unsigned char **p,
          */
         if( ret != 0 && ret != MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE )
         {
-            mbedtls_x509_sequence *seq_cur = subject_alt_name->next;
-            mbedtls_x509_sequence *seq_prv;
-            while( seq_cur != NULL )
-            {
-                seq_prv = seq_cur;
-                seq_cur = seq_cur->next;
-                mbedtls_platform_zeroize( seq_prv,
-                                          sizeof( mbedtls_x509_sequence ) );
-                mbedtls_free( seq_prv );
-            }
+            mbedtls_asn1_sequence_free( subject_alt_name->next );
             subject_alt_name->next = NULL;
             return( ret );
         }
@@ -1846,6 +1837,7 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
                                        const char *prefix )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t i;
     size_t n = *size;
     char *p = *buf;
     const mbedtls_x509_sequence *cur = subject_alt_name;
@@ -1898,18 +1890,11 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
                     ret = mbedtls_snprintf( p, n, "\n%s            hardware serial number : ", prefix );
                     MBEDTLS_X509_SAFE_SNPRINTF;
 
-                    if( other_name->value.hardware_module_name.val.len >= n )
+                    for( i = 0; i < other_name->value.hardware_module_name.val.len; i++ )
                     {
-                        *p = '\0';
-                        return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
+                        ret = mbedtls_snprintf( p, n, "%02X", other_name->value.hardware_module_name.val.p[i] );
+                        MBEDTLS_X509_SAFE_SNPRINTF;
                     }
-
-                    memcpy( p, other_name->value.hardware_module_name.val.p,
-                            other_name->value.hardware_module_name.val.len );
-                    p += other_name->value.hardware_module_name.val.len;
-
-                    n -= other_name->value.hardware_module_name.val.len;
-
                 }/* MBEDTLS_OID_ON_HW_MODULE_NAME */
             }
             break;
@@ -3300,15 +3285,8 @@ void mbedtls_x509_crt_free( mbedtls_x509_crt *crt )
 {
     mbedtls_x509_crt *cert_cur = crt;
     mbedtls_x509_crt *cert_prv;
-    mbedtls_x509_name *name_cur;
-    mbedtls_x509_name *name_prv;
-    mbedtls_x509_sequence *seq_cur;
-    mbedtls_x509_sequence *seq_prv;
 
-    if( crt == NULL )
-        return;
-
-    do
+    while( cert_cur != NULL )
     {
         mbedtls_pk_free( &cert_cur->pk );
 
@@ -3316,53 +3294,11 @@ void mbedtls_x509_crt_free( mbedtls_x509_crt *crt )
         mbedtls_free( cert_cur->sig_opts );
 #endif
 
-        name_cur = cert_cur->issuer.next;
-        while( name_cur != NULL )
-        {
-            name_prv = name_cur;
-            name_cur = name_cur->next;
-            mbedtls_platform_zeroize( name_prv, sizeof( mbedtls_x509_name ) );
-            mbedtls_free( name_prv );
-        }
-
-        name_cur = cert_cur->subject.next;
-        while( name_cur != NULL )
-        {
-            name_prv = name_cur;
-            name_cur = name_cur->next;
-            mbedtls_platform_zeroize( name_prv, sizeof( mbedtls_x509_name ) );
-            mbedtls_free( name_prv );
-        }
-
-        seq_cur = cert_cur->ext_key_usage.next;
-        while( seq_cur != NULL )
-        {
-            seq_prv = seq_cur;
-            seq_cur = seq_cur->next;
-            mbedtls_platform_zeroize( seq_prv,
-                                      sizeof( mbedtls_x509_sequence ) );
-            mbedtls_free( seq_prv );
-        }
-
-        seq_cur = cert_cur->subject_alt_names.next;
-        while( seq_cur != NULL )
-        {
-            seq_prv = seq_cur;
-            seq_cur = seq_cur->next;
-            mbedtls_platform_zeroize( seq_prv,
-                                      sizeof( mbedtls_x509_sequence ) );
-            mbedtls_free( seq_prv );
-        }
-
-        seq_cur = cert_cur->certificate_policies.next;
-        while( seq_cur != NULL )
-        {
-            seq_prv = seq_cur;
-            seq_cur = seq_cur->next;
-            mbedtls_platform_zeroize( seq_prv,
-                                      sizeof( mbedtls_x509_sequence ) );
-            mbedtls_free( seq_prv );
-        }
+        mbedtls_asn1_free_named_data_list_shallow( cert_cur->issuer.next );
+        mbedtls_asn1_free_named_data_list_shallow( cert_cur->subject.next );
+        mbedtls_asn1_sequence_free( cert_cur->ext_key_usage.next );
+        mbedtls_asn1_sequence_free( cert_cur->subject_alt_names.next );
+        mbedtls_asn1_sequence_free( cert_cur->certificate_policies.next );
 
         if( cert_cur->raw.p != NULL && cert_cur->own_buffer )
         {
@@ -3370,13 +3306,6 @@ void mbedtls_x509_crt_free( mbedtls_x509_crt *crt )
             mbedtls_free( cert_cur->raw.p );
         }
 
-        cert_cur = cert_cur->next;
-    }
-    while( cert_cur != NULL );
-
-    cert_cur = crt;
-    do
-    {
         cert_prv = cert_cur;
         cert_cur = cert_cur->next;
 
@@ -3384,7 +3313,6 @@ void mbedtls_x509_crt_free( mbedtls_x509_crt *crt )
         if( cert_prv != crt )
             mbedtls_free( cert_prv );
     }
-    while( cert_cur != NULL );
 }
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)

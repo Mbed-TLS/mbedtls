@@ -80,12 +80,14 @@ fi
 
 if [ -n "${OPENSSL_NEXT:-}" ]; then
     O_NEXT_SRV="$OPENSSL_NEXT s_server -www -cert data_files/server5.crt -key data_files/server5.key"
+    O_NEXT_SRV_EARLY_DATA="$OPENSSL_NEXT s_server -early_data -cert data_files/server5.crt -key data_files/server5.key"
     O_NEXT_SRV_NO_CERT="$OPENSSL_NEXT s_server -www "
     O_NEXT_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_NEXT s_client -CAfile data_files/test-ca_cat12.crt"
     O_NEXT_CLI_NO_CERT="echo 'GET / HTTP/1.0' | $OPENSSL_NEXT s_client"
 else
     O_NEXT_SRV=false
     O_NEXT_SRV_NO_CERT=false
+    O_NEXT_SRV_EARLY_DATA=false
     O_NEXT_CLI_NO_CERT=false
     O_NEXT_CLI=false
 fi
@@ -1024,6 +1026,16 @@ is_gnutls() {
     esac
 }
 
+# Generate random psk_list argument for ssl_server2
+get_srv_psk_list ()
+{
+    case $(( TESTS % 3 )) in
+        0) echo "psk_list=abc,dead,def,beef,Client_identity,6162636465666768696a6b6c6d6e6f70";;
+        1) echo "psk_list=abc,dead,Client_identity,6162636465666768696a6b6c6d6e6f70,def,beef";;
+        2) echo "psk_list=Client_identity,6162636465666768696a6b6c6d6e6f70,abc,dead,def,beef";;
+    esac
+}
+
 # Determine what calc_verify trace is to be expected, if any.
 #
 # calc_verify is only called for two things: to calculate the
@@ -1350,7 +1362,7 @@ do_run_test_once() {
 
     if [ -n "$PXY_CMD" ]; then
         kill $PXY_PID >/dev/null 2>&1
-        wait $PXY_PID
+        wait $PXY_PID >> $PXY_OUT 2>&1
     fi
 }
 
@@ -1677,9 +1689,24 @@ if [ -n "${OPENSSL_LEGACY:-}" ]; then
     O_LEGACY_CLI="$O_LEGACY_CLI -connect 127.0.0.1:+SRV_PORT"
 fi
 
+# Newer versions of OpenSSL have a syntax to enable all "ciphers", even
+# low-security ones. This covers not just cipher suites but also protocol
+# versions. It is necessary, for example, to use (D)TLS 1.0/1.1 on
+# OpenSSL 1.1.1f from Ubuntu 20.04. The syntax was only introduced in
+# OpenSSL 1.1.0 (21e0c1d23afff48601eb93135defddae51f7e2e3) and I can't find
+# a way to discover it from -help, so check the openssl version.
+case $($OPENSSL_CMD version) in
+    "OpenSSL 0"*|"OpenSSL 1.0"*) :;;
+    *)
+        O_CLI="$O_CLI -cipher ALL@SECLEVEL=0"
+        O_SRV="$O_SRV -cipher ALL@SECLEVEL=0"
+        ;;
+esac
+
 if [ -n "${OPENSSL_NEXT:-}" ]; then
     O_NEXT_SRV="$O_NEXT_SRV -accept $SRV_PORT"
     O_NEXT_SRV_NO_CERT="$O_NEXT_SRV_NO_CERT -accept $SRV_PORT"
+    O_NEXT_SRV_EARLY_DATA="$O_NEXT_SRV_EARLY_DATA -accept $SRV_PORT"
     O_NEXT_CLI="$O_NEXT_CLI -connect 127.0.0.1:+SRV_PORT"
     O_NEXT_CLI_NO_CERT="$O_NEXT_CLI_NO_CERT -connect 127.0.0.1:+SRV_PORT"
 fi
@@ -2371,6 +2398,31 @@ run_test    "Unique IV in GCM" \
             -u "IV used" \
             -U "IV used"
 
+# Test for correctness of sent single supported algorithm
+requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_hash_alg SHA_256
+run_test    "Single supported algorithm sending: mbedtls client" \
+            "$P_SRV sig_algs=ecdsa_secp256r1_sha256 auth_mode=required" \
+            "$P_CLI sig_algs=ecdsa_secp256r1_sha256 debug_level=3" \
+            0 \
+            -c "Supported Signature Algorithm found: 04 03"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_hash_alg SHA_256
+run_test    "Single supported algorithm sending: openssl client" \
+            "$P_SRV sig_algs=ecdsa_secp256r1_sha256 auth_mode=required" \
+            "$O_CLI -cert data_files/server6.crt \
+                    -key data_files/server6.key" \
+            0
+
 # Tests for certificate verification callback
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Configuration-specific CRT verification callback" \
@@ -2562,7 +2614,6 @@ run_test    "Context serialization, client serializes, with CID" \
             -c "Deserializing connection..." \
             -S "Deserializing connection..."
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
 run_test    "Context serialization, server serializes, CCM" \
             "$P_SRV dtls=1 serialize=1 exchanges=2" \
@@ -2636,7 +2687,6 @@ run_test    "Context serialization, both serialize, with CID" \
             -c "Deserializing connection..." \
             -s "Deserializing connection..."
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
 run_test    "Context serialization, re-init, client serializes, CCM" \
             "$P_SRV dtls=1 serialize=0 exchanges=2" \
@@ -2673,7 +2723,6 @@ run_test    "Context serialization, re-init, client serializes, with CID" \
             -c "Deserializing connection..." \
             -S "Deserializing connection..."
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
 run_test    "Context serialization, re-init, server serializes, CCM" \
             "$P_SRV dtls=1 serialize=2 exchanges=2" \
@@ -5274,8 +5323,8 @@ run_test    "Authentication: client SHA256, server required" \
              key_file=data_files/server6.key \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384" \
             0 \
-            -c "Supported Signature Algorithm found: 4," \
-            -c "Supported Signature Algorithm found: 5,"
+            -c "Supported Signature Algorithm found: 04 " \
+            -c "Supported Signature Algorithm found: 05 "
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
@@ -5285,8 +5334,8 @@ run_test    "Authentication: client SHA384, server required" \
              key_file=data_files/server6.key \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256" \
             0 \
-            -c "Supported Signature Algorithm found: 4," \
-            -c "Supported Signature Algorithm found: 5,"
+            -c "Supported Signature Algorithm found: 04 " \
+            -c "Supported Signature Algorithm found: 05 "
 
 requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Authentication: client has no cert, server required (TLS)" \
@@ -5687,8 +5736,8 @@ run_test    "Authentication, CA callback: client SHA256, server required" \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384" \
             0 \
             -s "use CA callback for X.509 CRT verification" \
-            -c "Supported Signature Algorithm found: 4," \
-            -c "Supported Signature Algorithm found: 5,"
+            -c "Supported Signature Algorithm found: 04 " \
+            -c "Supported Signature Algorithm found: 05 "
 
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
@@ -5700,8 +5749,8 @@ run_test    "Authentication, CA callback: client SHA384, server required" \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256" \
             0 \
             -s "use CA callback for X.509 CRT verification" \
-            -c "Supported Signature Algorithm found: 4," \
-            -c "Supported Signature Algorithm found: 5,"
+            -c "Supported Signature Algorithm found: 04 " \
+            -c "Supported Signature Algorithm found: 05 "
 
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
@@ -12907,8 +12956,8 @@ run_test    "TLS 1.3: NewSessionTicket: Basic check, O->m" \
             "$O_NEXT_CLI -msg -debug -tls1_3 -reconnect" \
             0 \
             -s "=> write NewSessionTicket msg" \
-            -s "server state: MBEDTLS_SSL_NEW_SESSION_TICKET" \
-            -s "server state: MBEDTLS_SSL_NEW_SESSION_TICKET_FLUSH"
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
@@ -12924,8 +12973,8 @@ run_test    "TLS 1.3: NewSessionTicket: Basic check, G->m" \
             -c "Connecting again- trying to resume previous session" \
             -c "NEW SESSION TICKET (4) was received" \
             -s "=> write NewSessionTicket msg" \
-            -s "server state: MBEDTLS_SSL_NEW_SESSION_TICKET" \
-            -s "server state: MBEDTLS_SSL_NEW_SESSION_TICKET_FLUSH" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH" \
             -s "key exchange mode: ephemeral" \
             -s "key exchange mode: psk_ephemeral" \
             -s "found pre_shared_key extension"
@@ -12947,8 +12996,8 @@ run_test    "TLS 1.3: NewSessionTicket: Basic check, m->m" \
             -c "Reconnecting with saved session" \
             -c "HTTP/1.0 200 OK"    \
             -s "=> write NewSessionTicket msg" \
-            -s "server state: MBEDTLS_SSL_NEW_SESSION_TICKET" \
-            -s "server state: MBEDTLS_SSL_NEW_SESSION_TICKET_FLUSH" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH" \
             -s "key exchange mode: ephemeral" \
             -s "key exchange mode: psk_ephemeral" \
             -s "found pre_shared_key extension"
@@ -13002,8 +13051,8 @@ run_test    "TLS 1.3: NewSessionTicket: servername check, m->m" \
             -c "Reconnecting with saved session" \
             -c "HTTP/1.0 200 OK"    \
             -s "=> write NewSessionTicket msg" \
-            -s "server state: MBEDTLS_SSL_NEW_SESSION_TICKET" \
-            -s "server state: MBEDTLS_SSL_NEW_SESSION_TICKET_FLUSH" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH" \
             -s "key exchange mode: ephemeral" \
             -s "key exchange mode: psk_ephemeral" \
             -s "found pre_shared_key extension"
@@ -13026,8 +13075,8 @@ run_test    "TLS 1.3: NewSessionTicket: servername negative check, m->m" \
             -c "Reconnecting with saved session" \
             -c "Hostname mismatch the session ticket, disable session resumption."    \
             -s "=> write NewSessionTicket msg" \
-            -s "server state: MBEDTLS_SSL_NEW_SESSION_TICKET" \
-            -s "server state: MBEDTLS_SSL_NEW_SESSION_TICKET_FLUSH"
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH"
 
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2

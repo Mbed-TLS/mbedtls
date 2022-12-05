@@ -61,11 +61,6 @@
 /** Invalid input data. */
 #define MBEDTLS_ERR_AES_BAD_INPUT_DATA                    -0x0021
 
-#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
-    !defined(inline) && !defined(__cplusplus)
-#define inline __inline
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif

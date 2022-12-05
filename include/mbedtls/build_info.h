@@ -53,6 +53,12 @@
 #define _CRT_SECURE_NO_DEPRECATE 1
 #endif
 
+/* Define `inline` on some non-C99-compliant compilers. */
+#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
+    !defined(inline) && !defined(__cplusplus)
+#define inline __inline
+#endif
+
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/mbedtls_config.h"
 #else

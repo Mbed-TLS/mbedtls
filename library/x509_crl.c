@@ -705,28 +705,16 @@ void mbedtls_x509_crl_free( mbedtls_x509_crl *crl )
 {
     mbedtls_x509_crl *crl_cur = crl;
     mbedtls_x509_crl *crl_prv;
-    mbedtls_x509_name *name_cur;
-    mbedtls_x509_name *name_prv;
     mbedtls_x509_crl_entry *entry_cur;
     mbedtls_x509_crl_entry *entry_prv;
 
-    if( crl == NULL )
-        return;
-
-    do
+    while( crl_cur != NULL )
     {
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
         mbedtls_free( crl_cur->sig_opts );
 #endif
 
-        name_cur = crl_cur->issuer.next;
-        while( name_cur != NULL )
-        {
-            name_prv = name_cur;
-            name_cur = name_cur->next;
-            mbedtls_platform_zeroize( name_prv, sizeof( mbedtls_x509_name ) );
-            mbedtls_free( name_prv );
-        }
+        mbedtls_asn1_free_named_data_list_shallow( crl_cur->issuer.next );
 
         entry_cur = crl_cur->entry.next;
         while( entry_cur != NULL )
@@ -744,13 +732,6 @@ void mbedtls_x509_crl_free( mbedtls_x509_crl *crl )
             mbedtls_free( crl_cur->raw.p );
         }
 
-        crl_cur = crl_cur->next;
-    }
-    while( crl_cur != NULL );
-
-    crl_cur = crl;
-    do
-    {
         crl_prv = crl_cur;
         crl_cur = crl_cur->next;
 
@@ -758,7 +739,6 @@ void mbedtls_x509_crl_free( mbedtls_x509_crl *crl )
         if( crl_prv != crl )
             mbedtls_free( crl_prv );
     }
-    while( crl_cur != NULL );
 }
 
 #endif /* MBEDTLS_X509_CRL_PARSE_C */

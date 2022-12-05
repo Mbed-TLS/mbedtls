@@ -12,7 +12,7 @@
  */
 
 /* BEGIN_CASE */
-void mpi_mod_setup( int ext_rep, int int_rep, int iret )
+void mpi_mod_setup( int int_rep, int iret )
 {
     #define MLIMBS 8
     mbedtls_mpi_uint mp[MLIMBS];
@@ -22,7 +22,7 @@ void mpi_mod_setup( int ext_rep, int int_rep, int iret )
     memset( mp, 0xFF, sizeof(mp) );
 
     mbedtls_mpi_mod_modulus_init( &m );
-    ret = mbedtls_mpi_mod_modulus_setup( &m, mp, MLIMBS, ext_rep, int_rep );
+    ret = mbedtls_mpi_mod_modulus_setup( &m, mp, MLIMBS, int_rep );
     TEST_EQUAL( ret, iret );
 
     /* Only test if the constants have been set-up  */
@@ -80,7 +80,214 @@ exit:
 /* END MERGE SLOT 6 */
 
 /* BEGIN MERGE SLOT 7 */
+/* BEGIN_CASE */
+void mpi_residue_setup( char * input_N, char * input_R, int ret )
+{
+    mbedtls_mpi_uint *N = NULL;
+    mbedtls_mpi_uint *R = NULL;
+    size_t n_limbs, r_limbs;
+    mbedtls_mpi_mod_modulus m;
+    mbedtls_mpi_mod_residue r;
 
+    mbedtls_mpi_mod_modulus_init( &m );
+
+    /* Allocate the memory for intermediate data structures */
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &N, &n_limbs, input_N ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &R, &r_limbs, input_R ) );
+
+    TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs,
+                MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
+
+    TEST_EQUAL( ret, mbedtls_mpi_mod_residue_setup( &r, &m, R , r_limbs ) );
+
+    if ( ret == 0 )
+    {
+        TEST_EQUAL( r.limbs, r_limbs );
+        TEST_ASSERT( r.p == R );
+    }
+
+exit:
+    mbedtls_mpi_mod_modulus_free( &m );
+    mbedtls_free( N );
+    mbedtls_free( R );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_mod_io_neg( char * input_N, data_t * buf, int ret )
+{
+    mbedtls_mpi_uint *N = NULL;
+    mbedtls_mpi_uint *R = NULL;
+
+    mbedtls_mpi_mod_modulus m;
+    mbedtls_mpi_mod_residue r = { NULL, 0 };
+    mbedtls_mpi_mod_ext_rep endian = MBEDTLS_MPI_MOD_EXT_REP_LE;
+
+    mbedtls_mpi_mod_modulus_init( &m );
+
+    size_t n_limbs;
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &N, &n_limbs, input_N ) );
+    size_t r_limbs = n_limbs;
+    ASSERT_ALLOC( R, r_limbs );
+
+    /* modulus->p == NULL || residue->p == NULL ( m has not been set-up ) */
+    TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                mbedtls_mpi_mod_read( &r, &m, buf->x, buf->len, endian ) );
+
+    TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                mbedtls_mpi_mod_write( &r, &m, buf->x, buf->len, endian ) );
+
+    /* Set up modulus and test with residue->p == NULL */
+    TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs,
+                MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
+
+    TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                mbedtls_mpi_mod_read( &r, &m, buf->x, buf->len, endian ) );
+    TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                mbedtls_mpi_mod_write( &r, &m, buf->x, buf->len, endian ) );
+
+    /* Do the rest of the tests with a residue set up with the input data */
+    TEST_EQUAL( 0, mbedtls_mpi_mod_residue_setup( &r, &m, R , r_limbs ) );
+
+    /* Fail for r_limbs < m->limbs */
+    r.limbs--;
+    TEST_ASSERT( r.limbs < m.limbs );
+    TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                mbedtls_mpi_mod_read( &r, &m, buf->x, buf->len, endian ) );
+    TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                mbedtls_mpi_mod_write( &r, &m, buf->x, buf->len, endian ) );
+    r.limbs++;
+
+    /* Fail for r_limbs > m->limbs */
+    m.limbs--;
+    TEST_ASSERT( r.limbs > m.limbs );
+    TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                mbedtls_mpi_mod_read( &r, &m, buf->x, buf->len, endian ) );
+    TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                mbedtls_mpi_mod_write( &r, &m, buf->x, buf->len, endian ) );
+    m.limbs++;
+
+    /* Test the read */
+    TEST_EQUAL( ret, mbedtls_mpi_mod_read( &r, &m, buf->x, buf->len, endian ) );
+
+    /* Test write overflow only when the representation is large and read is successful  */
+    if ( r.limbs > 1 && ret == 0 )
+        TEST_EQUAL( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL,
+                        mbedtls_mpi_mod_write( &r, &m, buf->x, 1, endian ) );
+
+exit:
+    mbedtls_mpi_mod_residue_release( &r );
+    mbedtls_mpi_mod_modulus_free( &m );
+    mbedtls_free( N );
+    mbedtls_free( R );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_mod_io( char * input_N, data_t * input_A, int endian )
+{
+    mbedtls_mpi_uint *N = NULL;
+    mbedtls_mpi_uint *R = NULL;
+    mbedtls_mpi_uint *R_COPY = NULL;
+    unsigned char *obuf = NULL;
+    unsigned char *ref_buf = NULL;
+    mbedtls_mpi_mod_modulus m;
+    mbedtls_mpi_mod_residue r;
+    mbedtls_mpi_mod_residue r_copy;
+    size_t n_limbs, n_bytes, a_bytes;
+
+    mbedtls_mpi_mod_modulus_init( &m );
+
+    /* Read inputs */
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &N, &n_limbs, input_N ) );
+    n_bytes = n_limbs * sizeof( mbedtls_mpi_uint );
+    a_bytes = input_A->len;
+
+    /* Allocate the memory for intermediate data structures */
+    ASSERT_ALLOC( R, n_bytes );
+    ASSERT_ALLOC( R_COPY, n_bytes );
+
+    /* Test that input's size is not greater to modulo's */
+    TEST_LE_U( a_bytes, n_bytes );
+
+    /* Init Structures */
+    TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs,
+                MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
+
+    /* Enforcing p_limbs >= m->limbs */
+    TEST_EQUAL( 0, mbedtls_mpi_mod_residue_setup( &r, &m, R, n_limbs ) );
+
+    TEST_EQUAL( 0, mbedtls_mpi_mod_read( &r, &m, input_A->x, input_A->len,
+                                         endian ) );
+
+    /* Read a copy for checking that writing didn't change the value of r */
+    TEST_EQUAL( 0, mbedtls_mpi_mod_residue_setup( &r_copy, &m,
+                                                  R_COPY, n_limbs ) );
+    TEST_EQUAL( 0, mbedtls_mpi_mod_read( &r_copy, &m, input_A->x, input_A->len,
+                                         endian ) );
+
+    /* Get number of bytes without leading zeroes */
+    size_t a_bytes_trimmed = a_bytes;
+    while( a_bytes_trimmed > 0 )
+    {
+        unsigned char* r_byte_array = (unsigned char*) r.p;
+        if( r_byte_array[--a_bytes_trimmed] != 0 )
+            break;
+    }
+    a_bytes_trimmed++;
+
+    /* Test write with three output buffer sizes: tight, same as input and
+     * longer than the input */
+    size_t obuf_sizes[3];
+    const size_t obuf_sizes_len = sizeof( obuf_sizes ) / sizeof( obuf_sizes[0] );
+    obuf_sizes[0] = a_bytes_trimmed;
+    obuf_sizes[1] = a_bytes;
+    obuf_sizes[2] = a_bytes + 8;
+
+    for( size_t i = 0; i < obuf_sizes_len; i++ )
+    {
+        ASSERT_ALLOC( obuf, obuf_sizes[i] );
+        TEST_EQUAL( 0, mbedtls_mpi_mod_write( &r, &m, obuf, obuf_sizes[i], endian ) );
+
+        /* Make sure that writing didn't corrupt the value of r */
+        ASSERT_COMPARE( r.p, r.limbs, r_copy.p, r_copy.limbs );
+
+        /* Set up reference output for checking the result */
+        ASSERT_ALLOC( ref_buf, obuf_sizes[i] );
+        switch( endian )
+        {
+            case MBEDTLS_MPI_MOD_EXT_REP_LE:
+                memcpy( ref_buf, input_A->x, a_bytes_trimmed );
+                break;
+            case MBEDTLS_MPI_MOD_EXT_REP_BE:
+                {
+                    size_t a_offset = input_A->len - a_bytes_trimmed;
+                    size_t ref_offset = obuf_sizes[i] - a_bytes_trimmed;
+                    memcpy( ref_buf + ref_offset, input_A->x + a_offset,
+                            a_bytes_trimmed );
+                }
+                break;
+            default:
+                TEST_ASSERT( 0 );
+        }
+
+        /* Check the result */
+        ASSERT_COMPARE( obuf, obuf_sizes[i], ref_buf, obuf_sizes[i] );
+
+        mbedtls_free( ref_buf );
+        ref_buf = NULL;
+        mbedtls_free( obuf );
+        obuf = NULL;
+    }
+
+exit:
+    mbedtls_mpi_mod_modulus_free( &m );
+    mbedtls_free( N );
+    mbedtls_free( R );
+    mbedtls_free( R_COPY );
+    mbedtls_free( obuf );
+}
+/* END_CASE */
 /* END MERGE SLOT 7 */
 
 /* BEGIN MERGE SLOT 8 */

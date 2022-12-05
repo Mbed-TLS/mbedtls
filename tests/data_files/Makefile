@@ -276,8 +276,11 @@ all_final += server5-ss-forgeca.crt
 server5-othername.crt: server5.key
 	$(OPENSSL) req -x509 -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS othername SAN" -set_serial 77 -config $(test_ca_config_file) -extensions othername_san -days 3650 -sha256 -key $< -out $@
 
+server5-nonprintable_othername.crt: server5.key
+	$(OPENSSL) req -x509 -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS non-printable othername SAN" -set_serial 77 -config $(test_ca_config_file) -extensions nonprintable_othername_san -days 3650 -sha256 -key $< -out $@
+
 server5-unsupported_othername.crt: server5.key
-	$(OPENSSL) req -x509 -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS unsupported othername SAN" -set_serial 77 -config $(test_ca_config_file) -extensions unsupoported_othername_san -days 3650 -sha256 -key $< -out $@
+	$(OPENSSL) req -x509 -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS unsupported othername SAN" -set_serial 77 -config $(test_ca_config_file) -extensions unsupported_othername_san -days 3650 -sha256 -key $< -out $@
 
 server5-fan.crt: server5.key
 	$(OPENSSL) req -x509 -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS FAN" -set_serial 77 -config $(test_ca_config_file) -extensions fan_cert -days 3650 -sha256 -key server5.key -out $@
@@ -881,6 +884,11 @@ server1.req.sha256: server1.key
 	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< subject_name="C=NL,O=PolarSSL,CN=PolarSSL Server 1" md=SHA256
 all_final += server1.req.sha256
 
+server1.req.sha256.ext: server1.key
+	# Generating this with OpenSSL as a comparison point to test we're getting the same result
+	openssl req -new -out $@ -key $< -subj '/C=NL/O=PolarSSL/CN=PolarSSL Server 1' -sha256 -addext "extendedKeyUsage=serverAuth"
+all_final += server1.req.sha256.ext
+
 server1.req.sha384: server1.key
 	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< subject_name="C=NL,O=PolarSSL,CN=PolarSSL Server 1" md=SHA384
 all_final += server1.req.sha384
@@ -1130,6 +1138,108 @@ ecdsa_secp521r1.crt: ecdsa_secp521r1.csr
 				-set_serial 77 -days 3653 -sha384 -in $< -out $@
 all_final += ecdsa_secp521r1.crt ecdsa_secp521r1.key
 tls13_certs: ecdsa_secp521r1.crt ecdsa_secp521r1.key
+
+# PKCS7 test data
+pkcs7_test_cert_1 = pkcs7-rsa-sha256-1.crt
+pkcs7_test_cert_2 = pkcs7-rsa-sha256-2.crt
+pkcs7_test_file = pkcs7_data.bin
+
+$(pkcs7_test_file):
+	echo -e "Hello\xd" > $@
+all_final += $(pkcs7_test_file)
+
+pkcs7_data_1.bin:
+	echo -e "2\xd" > $@
+all_final += pkcs7_data_1.bin
+
+# Generate signing cert
+pkcs7-rsa-sha256-1.crt:
+	$(OPENSSL) req -x509 -subj="/C=NL/O=PKCS7/CN=PKCS7 Cert 1" -sha256 -nodes -days 365  -newkey rsa:2048 -keyout pkcs7-rsa-sha256-1.key -out pkcs7-rsa-sha256-1.crt
+	cat pkcs7-rsa-sha256-1.crt pkcs7-rsa-sha256-1.key > pkcs7-rsa-sha256-1.pem
+all_final += pkcs7-rsa-sha256-1.crt
+
+pkcs7-rsa-sha256-2.crt:
+	$(OPENSSL) req -x509 -subj="/C=NL/O=PKCS7/CN=PKCS7 Cert 2" -sha256 -nodes -days 365  -newkey rsa:2048 -keyout pkcs7-rsa-sha256-2.key -out pkcs7-rsa-sha256-2.crt
+	cat pkcs7-rsa-sha256-2.crt pkcs7-rsa-sha256-2.key > pkcs7-rsa-sha256-2.pem
+all_final += pkcs7-rsa-sha256-2.crt
+
+# Convert signing certs to DER for testing PEM-free builds
+pkcs7-rsa-sha256-1.der: $(pkcs7_test_cert_1)
+	$(OPENSSL) x509 -in pkcs7-rsa-sha256-1.crt -out $@ -outform DER
+all_final += pkcs7-rsa-sha256-1.der
+
+pkcs7-rsa-sha256-2.der: $(pkcs7_test_cert_2)
+	$(OPENSSL) x509 -in pkcs7-rsa-sha256-2.crt -out $@ -outform DER
+all_final += pkcs7-rsa-sha256-2.der
+
+# pkcs7 signature file with CERT
+pkcs7_data_cert_signed_sha256.der: $(pkcs7_test_file) $(pkcs7_test_cert_1)
+	$(OPENSSL) smime -sign -binary -in pkcs7_data.bin -out $@ -md sha256 -signer pkcs7-rsa-sha256-1.pem -noattr -outform DER -out $@
+all_final += pkcs7_data_cert_signed_sha256.der
+
+# pkcs7 signature file with CERT and sha1
+pkcs7_data_cert_signed_sha1.der: $(pkcs7_test_file) $(pkcs7_test_cert_1)
+	$(OPENSSL) smime -sign -binary -in pkcs7_data.bin -out $@ -md sha1 -signer pkcs7-rsa-sha256-1.pem -noattr -outform DER -out $@
+all_final += pkcs7_data_cert_signed_sha1.der
+
+# pkcs7 signature file with CERT and sha512
+pkcs7_data_cert_signed_sha512.der: $(pkcs7_test_file) $(pkcs7_test_cert_1)
+	$(OPENSSL) smime -sign -binary -in pkcs7_data.bin -out $@ -md sha512 -signer pkcs7-rsa-sha256-1.pem -noattr -outform DER -out $@
+all_final += pkcs7_data_cert_signed_sha512.der
+
+# pkcs7 signature file without CERT
+pkcs7_data_without_cert_signed.der: $(pkcs7_test_file) $(pkcs7_test_cert_1)
+	$(OPENSSL) smime -sign -binary -in pkcs7_data.bin -out $@ -md sha256 -signer pkcs7-rsa-sha256-1.pem -nocerts -noattr -outform DER -out $@
+all_final += pkcs7_data_without_cert_signed.der
+
+# pkcs7 signature file with multiple signers
+pkcs7_data_multiple_signed.der: $(pkcs7_test_file) $(pkcs7_test_cert_1) $(pkcs7_test_cert_2)
+	$(OPENSSL) smime -sign -binary -in pkcs7_data.bin -out $@ -md sha256 -signer pkcs7-rsa-sha256-1.pem -signer pkcs7-rsa-sha256-2.pem -nocerts -noattr -outform DER -out $@
+all_final += pkcs7_data_multiple_signed.der
+
+# pkcs7 signature file with multiple certificates
+pkcs7_data_multiple_certs_signed.der: $(pkcs7_test_file) $(pkcs7_test_cert_1) $(pkcs7_test_cert_2)
+	$(OPENSSL) smime -sign -binary -in pkcs7_data.bin -out $@ -md sha256 -signer pkcs7-rsa-sha256-1.pem -signer pkcs7-rsa-sha256-2.pem -noattr -outform DER -out $@
+all_final += pkcs7_data_multiple_certs_signed.der
+
+# pkcs7 signature file with corrupted CERT
+pkcs7_data_signed_badcert.der: pkcs7_data_cert_signed_sha256.der
+	cp pkcs7_data_cert_signed_sha256.der $@
+	echo -en '\xa1' | dd of=$@ bs=1 seek=547 conv=notrunc
+all_final += pkcs7_data_signed_badcert.der
+
+# pkcs7 signature file with corrupted signer info
+pkcs7_data_signed_badsigner.der: pkcs7_data_cert_signed_sha256.der
+	cp pkcs7_data_cert_signed_sha256.der $@
+	echo -en '\xa1' | dd of=$@ bs=1 seek=918 conv=notrunc
+all_final += pkcs7_data_signed_badsigner.der
+
+# pkcs7 file with version 2
+pkcs7_data_cert_signed_v2.der: pkcs7_data_cert_signed_sha256.der
+	cp pkcs7_data_cert_signed_sha256.der $@
+	echo -en '\x02' | dd of=$@ bs=1 seek=25 conv=notrunc
+all_final += pkcs7_data_cert_signed_v2.der
+
+pkcs7_data_cert_encrypted.der: $(pkcs7_test_file) $(pkcs7_test_cert_1)
+	$(OPENSSL) smime -encrypt -aes256 -in pkcs7_data.bin -binary -outform DER -out $@ pkcs7-rsa-sha256-1.crt
+all_final += pkcs7_data_cert_encrypted.der
+
+## Negative tests
+# For some interesting sizes, what happens if we make them off-by-one?
+pkcs7_signerInfo_issuer_invalid_size.der: pkcs7_data_cert_signed_sha256.der
+	cp $< $@
+	echo -en '\x35' | dd of=$@ seek=919 bs=1 conv=notrunc
+all_final += pkcs7_signerInfo_issuer_invalid_size.der
+
+pkcs7_signerInfo_serial_invalid_size.der: pkcs7_data_cert_signed_sha256.der
+	cp $< $@
+	echo -en '\x15' | dd of=$@ seek=973 bs=1 conv=notrunc
+all_final += pkcs7_signerInfo_serial_invalid_size.der
+
+# pkcs7 signature file just with signed data
+pkcs7_data_cert_signeddata_sha256.der: pkcs7_data_cert_signed_sha256.der
+	dd if=pkcs7_data_cert_signed_sha256.der of=$@ skip=19 bs=1
+all_final += pkcs7_data_cert_signeddata_sha256.der
 
 ################################################################
 #### Diffie-Hellman parameters

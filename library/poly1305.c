@@ -32,11 +32,6 @@
 
 #if !defined(MBEDTLS_POLY1305_ALT)
 
-#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
-    !defined(inline) && !defined(__cplusplus)
-#define inline __inline
-#endif
-
 #define POLY1305_BLOCK_SIZE_BYTES ( 16U )
 
 /*

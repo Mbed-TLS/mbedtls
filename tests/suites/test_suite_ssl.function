@@ -6227,7 +6227,7 @@ void ssl_ecjpake_set_password( int use_opaque_arg )
 
     TEST_ASSERT( mbedtls_ssl_setup( &ssl, &conf ) == 0 );
 
-    /* test with empty password */
+    /* test with empty password or unitialized password key (depending on use_opaque_arg) */
     ECJPAKE_TEST_SET_PASSWORD( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     pwd_len = strlen( ECJPAKE_TEST_PWD );
@@ -6236,9 +6236,6 @@ void ssl_ecjpake_set_password( int use_opaque_arg )
 #if defined( MBEDTLS_USE_PSA_CRYPTO )
     if( use_opaque_arg )
     {
-        /* test with uninitialized password key */
-        ECJPAKE_TEST_SET_PASSWORD( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-
         psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
         psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );

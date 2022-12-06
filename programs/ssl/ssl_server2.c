@@ -427,10 +427,9 @@ int main( void )
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 #define USAGE_EARLY_DATA \
-    "    max_early_data_size=%%d default: 0 (disabled)\n"             \
-    "                            options: 0     (disabled), "           \
-    "                                     -1    (enabled, builtin max size), " \
-    "                                     n > 0 (enabled, max amount of early data )\n"
+    "    max_early_data_size=%%d default: -1 (disabled)\n"             \
+    "                            options: -1 (disabled), "           \
+    "                                     >= 0 (enabled, max amount of early data )\n"
 #else
 #define USAGE_EARLY_DATA ""
 #endif /* MBEDTLS_SSL_EARLY_DATA */
@@ -1547,6 +1546,9 @@ int main( int argc, char *argv[] )
      };
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    int tls13_early_data_enabled = MBEDTLS_SSL_EARLY_DATA_DISABLED;
+#endif
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     mbedtls_memory_buffer_alloc_init( alloc_buf, sizeof(alloc_buf) );
 #if defined(MBEDTLS_MEMORY_DEBUG)
@@ -1897,7 +1899,14 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_EARLY_DATA)
         else if( strcmp( p, "max_early_data_size" ) == 0 )
         {
-            opt.max_early_data_size = atoi( q );
+            long long value = atoll( q );
+            tls13_early_data_enabled =
+                value >= 0 ? MBEDTLS_SSL_EARLY_DATA_ENABLED :
+                             MBEDTLS_SSL_EARLY_DATA_DISABLED;
+            if( tls13_early_data_enabled )
+            {
+                opt.max_early_data_size = atoi( q );
+            }
         }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
         else if( strcmp( p, "renegotiation" ) == 0 )
@@ -2896,7 +2905,12 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_conf_cert_req_ca_list( &conf, opt.cert_req_ca_list );
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    mbedtls_ssl_tls13_conf_max_early_data_size( &conf, opt.max_early_data_size );
+    mbedtls_ssl_tls13_conf_early_data( &conf, tls13_early_data_enabled );
+    if( tls13_early_data_enabled == MBEDTLS_SSL_EARLY_DATA_ENABLED )
+    {
+        mbedtls_ssl_tls13_conf_max_early_data_size(
+            &conf, opt.max_early_data_size );
+    }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED)

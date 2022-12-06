@@ -1869,10 +1869,13 @@ component_test_depends_py_pkalgs_psa () {
 component_build_module_alt () {
     msg "build: MBEDTLS_XXX_ALT" # ~30s
     scripts/config.py full
-    # Disable options that are incompatible with some ALT implementations.
+
+    # Disable options that are incompatible with some ALT implementations:
     # aesni.c and padlock.c reference mbedtls_aes_context fields directly.
     scripts/config.py unset MBEDTLS_AESNI_C
     scripts/config.py unset MBEDTLS_PADLOCK_C
+    # MBEDTLS_ECP_RESTARTABLE is documented as incompatible.
+    scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
     # You can only have one threading implementation: alt or pthread, not both.
     scripts/config.py unset MBEDTLS_THREADING_PTHREAD
     # The SpecifiedECDomain parsing code accesses mbedtls_ecp_group fields
@@ -1884,10 +1887,12 @@ component_build_module_alt () {
     # MBEDTLS_SHA512_*ALT can't be used with MBEDTLS_SHA512_USE_A64_CRYPTO_*
     scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
     scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY
+
     # Enable all MBEDTLS_XXX_ALT for whole modules. Do not enable
     # MBEDTLS_XXX_YYY_ALT which are for single functions.
     scripts/config.py set-all 'MBEDTLS_([A-Z0-9]*|NIST_KW)_ALT'
     scripts/config.py unset MBEDTLS_DHM_ALT #incompatible with MBEDTLS_DEBUG_C
+
     # We can only compile, not link, since we don't have any implementations
     # suitable for testing with the dummy alt headers.
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -I../tests/include/alt-dummy' lib

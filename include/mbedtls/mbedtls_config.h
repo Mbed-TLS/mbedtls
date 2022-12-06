@@ -723,6 +723,8 @@
  *
  * \note  This option only works for Short Weierstrass curves.
  *
+ * Requires: MBEDTLS_ECP_C
+ *
  * Uncomment this macro to enable restartable ECC computations.
  */
 //#define MBEDTLS_ECP_RESTARTABLE

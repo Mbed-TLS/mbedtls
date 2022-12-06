@@ -50,6 +50,12 @@
  * This file contains two implementations: one based on MemorySanitizer, the
  * other on valgrind's memcheck. If none of them is enabled, dummy macros that
  * do nothing are defined for convenience.
+ *
+ * \note #TEST_CF_SECRET must be called directly from within a .function file,
+ *       not indirectly via a macro defined under tests/include or a function
+ *       under tests/src. This is because we only run Valgrind for constant
+ *       flow on test suites that have greppable annotations inside them (see
+ *       `skip_suites_without_constant_flow` in `tests/scripts/all.sh`).
  */
 
 #if defined(MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN)

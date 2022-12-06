@@ -1,0 +1,49 @@
+/* BEGIN_HEADER */
+/** \file test_suite_constant_time.function
+ *
+ * Functional testing of functions in the constant_time module.
+ *
+ * The tests are instrumented with #TEST_CF_SECRET and #TEST_CF_PUBLIC
+ * (see tests/include/test/constant_flow.h) so that running the tests
+ * under MSan or Valgrind will detect a non-constant-time implementation.
+ */
+
+#include <mbedtls/constant_time.h>
+#include <constant_time_internal.h>
+#include <constant_time_invasive.h>
+
+#include <test/constant_flow.h>
+/* END_HEADER */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC:MBEDTLS_TEST_HOOKS */
+void ssl_cf_memcpy_offset( int offset_min, int offset_max, int len )
+{
+    unsigned char *dst = NULL;
+    unsigned char *src = NULL;
+    size_t src_len = offset_max + len;
+    size_t secret;
+
+    ASSERT_ALLOC( dst, len );
+    ASSERT_ALLOC( src, src_len );
+
+    /* Fill src in a way that we can detect if we copied the right bytes */
+    mbedtls_test_rnd_std_rand( NULL, src, src_len );
+
+    for( secret = offset_min; secret <= (size_t) offset_max; secret++ )
+    {
+        mbedtls_test_set_step( (int) secret );
+
+        TEST_CF_SECRET( &secret, sizeof( secret ) );
+        mbedtls_ct_memcpy_offset( dst, src, secret,
+                                  offset_min, offset_max, len );
+        TEST_CF_PUBLIC( &secret, sizeof( secret ) );
+        TEST_CF_PUBLIC( dst, len );
+
+        ASSERT_COMPARE( dst, len, src + secret, len );
+    }
+
+exit:
+    mbedtls_free( dst );
+    mbedtls_free( src );
+}
+/* END_CASE */

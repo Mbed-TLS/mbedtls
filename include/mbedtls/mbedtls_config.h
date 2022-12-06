@@ -721,6 +721,8 @@
  *        elliptic curve functionality. It is incompatible with
  *        MBEDTLS_ECP_ALT, MBEDTLS_ECDH_XXX_ALT, MBEDTLS_ECDSA_XXX_ALT.
  *
+ * \note  This option only works for Short Weierstrass curves.
+ *
  * Uncomment this macro to enable restartable ECC computations.
  */
 //#define MBEDTLS_ECP_RESTARTABLE

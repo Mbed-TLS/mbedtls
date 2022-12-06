@@ -1,0 +1,3 @@
+Bugfix
+   * Fix a build issue on Windows using CMake where the source and build
+     directories could not be on different drives. Fixes #5751.

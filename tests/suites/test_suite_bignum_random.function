@@ -8,6 +8,7 @@
 #include "mbedtls/bignum.h"
 #include "mbedtls/entropy.h"
 #include "bignum_core.h"
+#include "bignum_mod_raw.h"
 #include "constant_time_internal.h"
 
 /* This test suite only manipulates non-negative bignums. */
@@ -155,6 +156,61 @@ exit:
     mbedtls_mpi_free( &max_legacy );
     mbedtls_free( R_core );
     mbedtls_mpi_free( &R_legacy );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_mod_random_values( int min, char *max_hex )
+{
+    /* Same RNG as in mpi_core_random_basic */
+    mbedtls_test_rnd_pseudo_info rnd_core = {
+        {'T', 'h', 'i', 's', ' ', 'i', ',', 'a',
+         's', 'e', 'e', 'd', '!', 0},
+        0, 0};
+    mbedtls_test_rnd_pseudo_info rnd_mod_raw;
+    memcpy( &rnd_mod_raw, &rnd_core, sizeof( rnd_core ) );
+    mbedtls_mpi_uint *R_core = NULL;
+    mbedtls_mpi_uint *R_mod_raw = NULL;
+    mbedtls_mpi_mod_modulus N;
+    mbedtls_mpi_mod_modulus_init( &N );
+
+    TEST_EQUAL( mbedtls_test_read_mpi_modulus( &N, max_hex,
+                                               MBEDTLS_MPI_MOD_REP_MONTGOMERY ),
+                0 );
+    ASSERT_ALLOC( R_core, N.limbs );
+    ASSERT_ALLOC( R_mod_raw, N.limbs );
+
+    /* Call the core and mod random() functions with the same random stream. */
+    int core_ret = mbedtls_mpi_core_random( R_core,
+                                            min, N.p, N.limbs,
+                                            mbedtls_test_rnd_pseudo_rand,
+                                            &rnd_core );
+    int mod_raw_ret = mbedtls_mpi_mod_raw_random( R_mod_raw,
+                                                  min, &N,
+                                                  mbedtls_test_rnd_pseudo_rand,
+                                                  &rnd_mod_raw );
+
+    /* They must return the same status, and, on success, output the
+     * same number, with the same limb count. */
+    TEST_EQUAL( core_ret, mod_raw_ret );
+    if( core_ret == 0 )
+    {
+        TEST_EQUAL( mbedtls_mpi_mod_raw_from_mont_rep( R_mod_raw, &N ), 0 );
+        ASSERT_COMPARE( R_core, N.limbs * ciL,
+                        R_mod_raw, N.limbs * ciL );
+    }
+
+    /* Also check that they have consumed the RNG in the same way. */
+    /* This may theoretically fail on rare platforms with padding in
+     * the structure! If this is a problem in practice, change to a
+     * field-by-field comparison. */
+    ASSERT_COMPARE( &rnd_core, sizeof( rnd_core ),
+                    &rnd_mod_raw, sizeof( rnd_mod_raw ) );
+
+exit:
+    mbedtls_mpi_mod_modulus_free( &N );
+    mbedtls_free( R_core );
+    mbedtls_free( R_mod_raw );
 }
 /* END_CASE */
 

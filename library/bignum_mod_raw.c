@@ -176,6 +176,18 @@ void mbedtls_mpi_mod_raw_add( mbedtls_mpi_uint *X,
 
 /* BEGIN MERGE SLOT 6 */
 
+int mbedtls_mpi_mod_raw_random( mbedtls_mpi_uint *X,
+                                mbedtls_mpi_uint min,
+                                const mbedtls_mpi_mod_modulus *N,
+                                int (*f_rng)(void *, unsigned char *, size_t),
+                                void *p_rng )
+{
+    int ret = mbedtls_mpi_core_random( X, min, N->p, N->limbs, f_rng, p_rng );
+    if( ret != 0 )
+        return( ret );
+    return( mbedtls_mpi_mod_raw_to_mont_rep( X, N ) );
+}
+
 /* END MERGE SLOT 6 */
 
 /* BEGIN MERGE SLOT 7 */

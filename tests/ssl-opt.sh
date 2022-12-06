@@ -7720,6 +7720,8 @@ run_test    "Large server packet TLS 1.2 AEAD shorter tag" \
 
 # Tests for restartable ECC
 
+requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 run_test    "EC restart: TLS, default" \
             "$P_SRV auth_mode=required" \
@@ -7732,6 +7734,8 @@ run_test    "EC restart: TLS, default" \
             -C "mbedtls_ecdh_make_public.*4b00" \
             -C "mbedtls_pk_sign.*4b00"
 
+requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 run_test    "EC restart: TLS, max_ops=0" \
             "$P_SRV auth_mode=required" \
@@ -7744,6 +7748,8 @@ run_test    "EC restart: TLS, max_ops=0" \
             -C "mbedtls_ecdh_make_public.*4b00" \
             -C "mbedtls_pk_sign.*4b00"
 
+requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 run_test    "EC restart: TLS, max_ops=65535" \
             "$P_SRV auth_mode=required" \
@@ -7756,6 +7762,8 @@ run_test    "EC restart: TLS, max_ops=65535" \
             -C "mbedtls_ecdh_make_public.*4b00" \
             -C "mbedtls_pk_sign.*4b00"
 
+requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 run_test    "EC restart: TLS, max_ops=1000" \
             "$P_SRV auth_mode=required" \
@@ -7768,6 +7776,8 @@ run_test    "EC restart: TLS, max_ops=1000" \
             -c "mbedtls_ecdh_make_public.*4b00" \
             -c "mbedtls_pk_sign.*4b00"
 
+requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 run_test    "EC restart: TLS, max_ops=1000, badsign" \
             "$P_SRV auth_mode=required \
@@ -7785,6 +7795,8 @@ run_test    "EC restart: TLS, max_ops=1000, badsign" \
             -c "! mbedtls_ssl_handshake returned" \
             -c "X509 - Certificate verification failed"
 
+requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 run_test    "EC restart: TLS, max_ops=1000, auth_mode=optional badsign" \
             "$P_SRV auth_mode=required \
@@ -7802,6 +7814,8 @@ run_test    "EC restart: TLS, max_ops=1000, auth_mode=optional badsign" \
             -C "! mbedtls_ssl_handshake returned" \
             -C "X509 - Certificate verification failed"
 
+requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 run_test    "EC restart: TLS, max_ops=1000, auth_mode=none badsign" \
             "$P_SRV auth_mode=required \
@@ -7819,6 +7833,8 @@ run_test    "EC restart: TLS, max_ops=1000, auth_mode=none badsign" \
             -C "! mbedtls_ssl_handshake returned" \
             -C "X509 - Certificate verification failed"
 
+requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 run_test    "EC restart: DTLS, max_ops=1000" \
             "$P_SRV auth_mode=required dtls=1" \
@@ -7831,6 +7847,8 @@ run_test    "EC restart: DTLS, max_ops=1000" \
             -c "mbedtls_ecdh_make_public.*4b00" \
             -c "mbedtls_pk_sign.*4b00"
 
+requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 run_test    "EC restart: TLS, max_ops=1000 no client auth" \
             "$P_SRV" \
@@ -7842,11 +7860,19 @@ run_test    "EC restart: TLS, max_ops=1000 no client auth" \
             -c "mbedtls_ecdh_make_public.*4b00" \
             -C "mbedtls_pk_sign.*4b00"
 
+
+# Restartable is only for ECDHE-ECDSA, with another ciphersuite we expect no
+# restartable behaviour at all (not even client auth).
+# This is the same as "EC restart: TLS, max_ops=1000" except with ECDHE-RSA,
+# and all 4 assertions negated.
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
-run_test    "EC restart: TLS, max_ops=1000, ECDHE-PSK" \
-            "$P_SRV psk=abc123" \
-            "$P_CLI force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA256 \
-             psk=abc123 debug_level=1 ec_max_ops=1000" \
+requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "EC restart: TLS, max_ops=1000, ECDHE-RSA" \
+            "$P_SRV curves=secp256r1 auth_mode=required" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256 \
+             key_file=data_files/server5.key crt_file=data_files/server5.crt  \
+             debug_level=1 ec_max_ops=1000" \
             0 \
             -C "x509_verify_cert.*4b00" \
             -C "mbedtls_pk_verify.*4b00" \

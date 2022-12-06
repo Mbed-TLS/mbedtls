@@ -32,7 +32,6 @@
 #error "mbed TLS requires a platform with 8-bit chars"
 #endif
 
-/* Need std integer definition for checking max_early_data_size */
 #include <stdint.h>
 
 #if defined(_WIN32)
@@ -854,9 +853,9 @@
 
 #if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_SRV_C) && \
     ( !defined(MBEDTLS_SSL_MAX_EARLY_DATA_SIZE)     || \
-      ( MBEDTLS_SSL_MAX_EARLY_DATA_SIZE <= 0 )      || \
+      ( MBEDTLS_SSL_MAX_EARLY_DATA_SIZE < 0 )       || \
       ( MBEDTLS_SSL_MAX_EARLY_DATA_SIZE > UINT32_MAX ) )
-#error "MBEDTLS_SSL_MAX_EARLY_DATA_SIZE MUST be defined and in range(1..UINT32_MAX)"
+#error "MBEDTLS_SSL_MAX_EARLY_DATA_SIZE MUST be defined and in range(0..UINT32_MAX)"
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)     && \

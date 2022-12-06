@@ -26,6 +26,10 @@ endif()
 # on non-POSIX platforms.
 add_definitions("-D_POSIX_C_SOURCE=200809L")
 
+# If SKIP_TEST_SUITES is not defined with -D, get it from the environment.
+if((NOT DEFINED SKIP_TEST_SUITES) AND (DEFINED ENV{SKIP_TEST_SUITES}))
+    set(SKIP_TEST_SUITES $ENV{SKIP_TEST_SUITES})
+endif()
 # Test suites caught by SKIP_TEST_SUITES are built but not executed.
 # "foo" as a skip pattern skips "test_suite_foo" and "test_suite_foo.bar"
 # but not "test_suite_foobar".

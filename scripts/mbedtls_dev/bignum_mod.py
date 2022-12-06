@@ -14,10 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List # pylint: disable=unused-import
+from typing import Dict, List
 
 from . import test_data_generation
-from . import bignum_common # pylint: disable=unused-import
+from . import bignum_common
 
 class BignumModTarget(test_data_generation.BaseTarget):
     #pylint: disable=abstract-method, too-few-public-methods

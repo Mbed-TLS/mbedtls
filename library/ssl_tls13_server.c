@@ -2569,14 +2569,16 @@ static int ssl_tls13_handshake_wrapup(mbedtls_ssl_context *ssl)
     mbedtls_ssl_tls13_handshake_wrapup(ssl);
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
     /* Sent NewSessionTicket message only when client supports PSK */
-    if (mbedtls_ssl_tls13_some_psk_enabled(ssl)) {
-        mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET);
+    if (!mbedtls_ssl_tls13_some_psk_enabled(ssl)) {
+        mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_HANDSHAKE_OVER);
     } else
 #endif
-    {
-        mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_HANDSHAKE_OVER);
-    }
+    mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET);
+#else
+    mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_HANDSHAKE_OVER);
+#endif
     return 0;
 }
 
@@ -2630,8 +2632,10 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
     /* Set ticket_flags depends on the advertised psk key exchange mode */
     mbedtls_ssl_tls13_session_clear_ticket_flags(session,
                                                  MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK);
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
     mbedtls_ssl_tls13_session_set_ticket_flags(session,
                                                ssl->handshake->tls13_kex_modes);
+#endif
     MBEDTLS_SSL_DEBUG_TICKET_FLAGS(4, session->ticket_flags);
 
     /* Generate ticket_age_add */

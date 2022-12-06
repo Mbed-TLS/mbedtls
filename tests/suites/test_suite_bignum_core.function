@@ -1046,15 +1046,13 @@ void mpi_core_exp_mod( char * input_N, char * input_A,
                        char * input_E, char * input_X )
 {
     mbedtls_mpi_uint *A = NULL;
-    size_t A_limbs;
     mbedtls_mpi_uint *E = NULL;
-    size_t E_limbs;
     mbedtls_mpi_uint *N = NULL;
-    size_t N_limbs;
     mbedtls_mpi_uint *X = NULL;
-    size_t X_limbs;
+    size_t A_limbs, E_limbs, N_limbs, X_limbs;
     const mbedtls_mpi_uint *R2 = NULL;
     mbedtls_mpi_uint *Y = NULL;
+    mbedtls_mpi_uint *T = NULL;
     /* Legacy MPIs for computing R2 */
     mbedtls_mpi N_mpi;
     mbedtls_mpi_init( &N_mpi );
@@ -1078,11 +1076,29 @@ void mpi_core_exp_mod( char * input_N, char * input_A,
     TEST_EQUAL( 0, mbedtls_mpi_grow( &R2_mpi, N_limbs ) );
     R2 = R2_mpi.p;
 
-    TEST_EQUAL( 0,
-                mbedtls_mpi_core_exp_mod( Y, A, N, N_limbs, E, E_limbs, R2 ) );
+    size_t working_limbs = mbedtls_mpi_core_exp_mod_working_limbs( N_limbs,
+                                                                   E_limbs );
+
+    /* No point exactly duplicating the code in mbedtls_mpi_core_exp_mod_working_limbs()
+     * to see if the output is correct, but we can check that it's in a
+     * reasonable range.  The current calculation works out as
+     * `1 + N_limbs * (welem + 3)`, where welem is the number of elements in
+     * the window (1 << 1 up to 1 << 6).
+     */
+    size_t min_expected_working_limbs = 1 + N_limbs * 4;
+    size_t max_expected_working_limbs = 1 + N_limbs * 67;
+
+    TEST_LE_U( min_expected_working_limbs, working_limbs );
+    TEST_LE_U( working_limbs, max_expected_working_limbs );
+
+    ASSERT_ALLOC( T, working_limbs );
+
+    mbedtls_mpi_core_exp_mod( Y, A, N, N_limbs, E, E_limbs, R2, T );
+
     TEST_EQUAL( 0, memcmp( X, Y, N_limbs * sizeof( mbedtls_mpi_uint ) ) );
 
 exit:
+    mbedtls_free( T );
     mbedtls_free( A );
     mbedtls_free( E );
     mbedtls_free( N );

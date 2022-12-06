@@ -701,22 +701,25 @@
  * - Changes the behaviour of TLS 1.2 clients (not servers) when using the
  *   ECDHE-ECDSA key exchange (not other key exchanges) to make all ECC
  *   computations restartable:
- *   - ECDH operations from the key exchange;
+ *   - ECDH operations from the key exchange - unless MBEDTLS_USE_PSA_CRYPTO
+ *     is also enabled.
  *   - verification of the server's key exchange signature;
  *   - verification of the server's certificate chain;
  *   - generation of our signature if client authentication is used, with an
  *     ECC key/certificate.
  *
- * TODO: document interation with USE_PSA_CRYPTO
- *
  * \note  In the cases above, the usual SSL/TLS functions, such as
  *        mbedtls_ssl_handshake(), can now return
  *        MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS.
  *
+ * \note  When this option and MBEDTLS_USE_PSA_CRYPTO are both enabled,
+ *        restartable operations in PK, X.509 and TLS (see above) are not
+ *        using PSA. On the other hand, ECDH computations in TLS are using
+ *        PSA, and are not restartable.
+ *
  * \note  This option only works with the default software implementation of
  *        elliptic curve functionality. It is incompatible with
- *        MBEDTLS_ECP_ALT, MBEDTLS_ECDH_XXX_ALT, MBEDTLS_ECDSA_XXX_ALT,
- *        and MBEDTLS_USE_PSA_CRYPTO.
+ *        MBEDTLS_ECP_ALT, MBEDTLS_ECDH_XXX_ALT, MBEDTLS_ECDSA_XXX_ALT.
  *
  * Uncomment this macro to enable restartable ECC computations.
  */

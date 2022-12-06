@@ -8395,10 +8395,12 @@ run_test    "EC restart: TLS, max_ops=65535" \
             -C "mbedtls_ecdh_make_public.*4b00" \
             -C "mbedtls_pk_sign.*4b00"
 
+# With USE_PSA disabled we expect full restartable behaviour.
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "EC restart: TLS, max_ops=1000" \
+requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "EC restart: TLS, max_ops=1000 (no USE_PSA)" \
             "$P_SRV curves=secp256r1 auth_mode=required" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
              key_file=data_files/server5.key crt_file=data_files/server5.crt  \
@@ -8409,6 +8411,25 @@ run_test    "EC restart: TLS, max_ops=1000" \
             -c "mbedtls_ecdh_make_public.*4b00" \
             -c "mbedtls_pk_sign.*4b00"
 
+# With USE_PSA enabled we expect only partial restartable behaviour:
+# everything except ECDH (where TLS calls PSA directly).
+requires_config_enabled MBEDTLS_ECP_RESTARTABLE
+requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "EC restart: TLS, max_ops=1000 (USE_PSA)" \
+            "$P_SRV curves=secp256r1 auth_mode=required" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
+             key_file=data_files/server5.key crt_file=data_files/server5.crt  \
+             debug_level=1 ec_max_ops=1000" \
+            0 \
+            -c "x509_verify_cert.*4b00" \
+            -c "mbedtls_pk_verify.*4b00" \
+            -C "mbedtls_ecdh_make_public.*4b00" \
+            -c "mbedtls_pk_sign.*4b00"
+
+# This works the same with & without USE_PSA as we never get to ECDH:
+# we abort as soon as we determined the cert is bad.
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
@@ -8428,10 +8449,12 @@ run_test    "EC restart: TLS, max_ops=1000, badsign" \
             -c "! mbedtls_ssl_handshake returned" \
             -c "X509 - Certificate verification failed"
 
+# With USE_PSA disabled we expect full restartable behaviour.
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "EC restart: TLS, max_ops=1000, auth_mode=optional badsign" \
+requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "EC restart: TLS, max_ops=1000, auth_mode=optional badsign (no USE_PSA)" \
             "$P_SRV curves=secp256r1 auth_mode=required \
              crt_file=data_files/server5-badsign.crt \
              key_file=data_files/server5.key" \
@@ -8447,10 +8470,34 @@ run_test    "EC restart: TLS, max_ops=1000, auth_mode=optional badsign" \
             -C "! mbedtls_ssl_handshake returned" \
             -C "X509 - Certificate verification failed"
 
+# With USE_PSA enabled we expect only partial restartable behaviour:
+# everything except ECDH (where TLS calls PSA directly).
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "EC restart: TLS, max_ops=1000, auth_mode=none badsign" \
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "EC restart: TLS, max_ops=1000, auth_mode=optional badsign (USE_PSA)" \
+            "$P_SRV curves=secp256r1 auth_mode=required \
+             crt_file=data_files/server5-badsign.crt \
+             key_file=data_files/server5.key" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
+             key_file=data_files/server5.key crt_file=data_files/server5.crt  \
+             debug_level=1 ec_max_ops=1000 auth_mode=optional" \
+            0 \
+            -c "x509_verify_cert.*4b00" \
+            -c "mbedtls_pk_verify.*4b00" \
+            -C "mbedtls_ecdh_make_public.*4b00" \
+            -c "mbedtls_pk_sign.*4b00" \
+            -c "! The certificate is not correctly signed by the trusted CA" \
+            -C "! mbedtls_ssl_handshake returned" \
+            -C "X509 - Certificate verification failed"
+
+# With USE_PSA disabled we expect full restartable behaviour.
+requires_config_enabled MBEDTLS_ECP_RESTARTABLE
+requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "EC restart: TLS, max_ops=1000, auth_mode=none badsign (no USE_PSA)" \
             "$P_SRV curves=secp256r1 auth_mode=required \
              crt_file=data_files/server5-badsign.crt \
              key_file=data_files/server5.key" \
@@ -8466,10 +8513,34 @@ run_test    "EC restart: TLS, max_ops=1000, auth_mode=none badsign" \
             -C "! mbedtls_ssl_handshake returned" \
             -C "X509 - Certificate verification failed"
 
+# With USE_PSA enabled we expect only partial restartable behaviour:
+# everything except ECDH (where TLS calls PSA directly).
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "EC restart: DTLS, max_ops=1000" \
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "EC restart: TLS, max_ops=1000, auth_mode=none badsign (USE_PSA)" \
+            "$P_SRV curves=secp256r1 auth_mode=required \
+             crt_file=data_files/server5-badsign.crt \
+             key_file=data_files/server5.key" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
+             key_file=data_files/server5.key crt_file=data_files/server5.crt  \
+             debug_level=1 ec_max_ops=1000 auth_mode=none" \
+            0 \
+            -C "x509_verify_cert.*4b00" \
+            -c "mbedtls_pk_verify.*4b00" \
+            -C "mbedtls_ecdh_make_public.*4b00" \
+            -c "mbedtls_pk_sign.*4b00" \
+            -C "! The certificate is not correctly signed by the trusted CA" \
+            -C "! mbedtls_ssl_handshake returned" \
+            -C "X509 - Certificate verification failed"
+
+# With USE_PSA disabled we expect full restartable behaviour.
+requires_config_enabled MBEDTLS_ECP_RESTARTABLE
+requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "EC restart: DTLS, max_ops=1000 (no USE_PSA)" \
             "$P_SRV curves=secp256r1 auth_mode=required dtls=1" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
              key_file=data_files/server5.key crt_file=data_files/server5.crt  \
@@ -8480,10 +8551,29 @@ run_test    "EC restart: DTLS, max_ops=1000" \
             -c "mbedtls_ecdh_make_public.*4b00" \
             -c "mbedtls_pk_sign.*4b00"
 
+# With USE_PSA enabled we expect only partial restartable behaviour:
+# everything except ECDH (where TLS calls PSA directly).
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "EC restart: TLS, max_ops=1000 no client auth" \
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "EC restart: DTLS, max_ops=1000 (USE_PSA)" \
+            "$P_SRV curves=secp256r1 auth_mode=required dtls=1" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
+             key_file=data_files/server5.key crt_file=data_files/server5.crt  \
+             dtls=1 debug_level=1 ec_max_ops=1000" \
+            0 \
+            -c "x509_verify_cert.*4b00" \
+            -c "mbedtls_pk_verify.*4b00" \
+            -C "mbedtls_ecdh_make_public.*4b00" \
+            -c "mbedtls_pk_sign.*4b00"
+
+# With USE_PSA disabled we expect full restartable behaviour.
+requires_config_enabled MBEDTLS_ECP_RESTARTABLE
+requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "EC restart: TLS, max_ops=1000 no client auth (no USE_PSA)" \
             "$P_SRV curves=secp256r1" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
              debug_level=1 ec_max_ops=1000" \
@@ -8493,6 +8583,22 @@ run_test    "EC restart: TLS, max_ops=1000 no client auth" \
             -c "mbedtls_ecdh_make_public.*4b00" \
             -C "mbedtls_pk_sign.*4b00"
 
+
+# With USE_PSA enabled we expect only partial restartable behaviour:
+# everything except ECDH (where TLS calls PSA directly).
+requires_config_enabled MBEDTLS_ECP_RESTARTABLE
+requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "EC restart: TLS, max_ops=1000 no client auth (USE_PSA)" \
+            "$P_SRV curves=secp256r1" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
+             debug_level=1 ec_max_ops=1000" \
+            0 \
+            -c "x509_verify_cert.*4b00" \
+            -c "mbedtls_pk_verify.*4b00" \
+            -C "mbedtls_ecdh_make_public.*4b00" \
+            -C "mbedtls_pk_sign.*4b00"
 
 # Restartable is only for ECDHE-ECDSA, with another ciphersuite we expect no
 # restartable behaviour at all (not even client auth).

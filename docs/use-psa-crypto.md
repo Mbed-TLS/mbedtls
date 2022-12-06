@@ -7,9 +7,6 @@ operations, and enables new APIs for using keys handled by PSA Crypto.
 General considerations
 ----------------------
 
-**Compile-time:** enabling `MBEDTLS_USE_PSA_CRYPTO` requires
-`MBEDTLS_ECP_RESTARTABLE` to be disabled.
-
 **Application code:** when this option is enabled, you need to call
 `psa_crypto_init()` before calling any function from the SSL/TLS, X.509 or PK
 module.
@@ -86,28 +83,34 @@ is enabled, no change required on the application side.
 
 Current exceptions:
 
-- finite-field (non-EC) Diffie-Hellman (used in key exchanges: DHE-RSA,
-  DHE-PSK)
+- Finite-field (non-EC) Diffie-Hellman (used in key exchanges: DHE-RSA,
+  DHE-PSK).
+- Restartable operations when `MBEDTLS_ECP_RESTARTABLE` is also enabled (see
+  the documentation of that option).
 
 Other than the above exceptions, all crypto operations are based on PSA when
 `MBEDTLS_USE_PSA_CRYPTO` is enabled.
 
 ### X.509: most crypto operations based on PSA
 
-Current exception:
+Current exceptions:
 
-- verification of RSA-PSS signatures with a salt length that is different from
+- Verification of RSA-PSS signatures with a salt length that is different from
   the hash length.
+- Restartable operations when `MBEDTLS_ECP_RESTARTABLE` is also enabled (see
+  the documentation of that option).
 
 Other than the above exception, all crypto operations are based on PSA when
 `MBEDTLS_USE_PSA_CRYPTO` is enabled.
 
 ### PK layer: most crypto operations based on PSA
 
-Current exception:
+Current exceptions:
 
-- verification of RSA-PSS signatures with a salt length that is different from
+- Verification of RSA-PSS signatures with a salt length that is different from
   the hash length, or with an MGF hash that's different from the message hash.
+- Restartable operations when `MBEDTLS_ECP_RESTARTABLE` is also enabled (see
+  the documentation of that option).
 
 Other than the above exception, all crypto operations are based on PSA when
 `MBEDTLS_USE_PSA_CRYPTO` is enabled.

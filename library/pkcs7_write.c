@@ -271,7 +271,7 @@ static int pkcs7_set_signature( unsigned char **start, size_t *size,
                                 size_t priv_size )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t sig_size, hash_size, sig_size_bits;
+    size_t out_sig_size, hash_size, sig_size;
     unsigned char *hash = NULL;
     char *signature = NULL;
     mbedtls_pk_context *priv_key;
@@ -325,9 +325,9 @@ static int pkcs7_set_signature( unsigned char **start, size_t *size,
         goto out;
     }
     /* get size of RSA signature, ex 2048, 4096 ... */
-    sig_size_bits = priv_key->pk_info->get_bitlen( priv_key->pk_ctx );
+    sig_size = mbedtls_pk_get_len( priv_key->pk_ctx );
 
-    signature = mbedtls_calloc( 1, sig_size_bits / 8 );
+    signature = mbedtls_calloc( 1, sig_size );
     if( signature == NULL ) {
         ret = MBEDTLS_ERR_PKCS7_ALLOC_FAILED;
         goto out;
@@ -336,8 +336,8 @@ static int pkcs7_set_signature( unsigned char **start, size_t *size,
 
     ret = mbedtls_pk_sign( priv_key, pkcs7_info->hash_func,
                            (const unsigned char *) hash, hash_size,
-                           (unsigned char *) signature, sig_size_bits / 8,
-                           &sig_size, pkcs7_info->rng_func, pkcs7_info->rng_param );
+                           (unsigned char *) signature, sig_size, &out_sig_size,
+                           pkcs7_info->rng_func, pkcs7_info->rng_param );
     if( ret != 0 ) {
         mbedtls_free( signature );
         goto out;

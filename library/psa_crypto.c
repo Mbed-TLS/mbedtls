@@ -5998,7 +5998,7 @@ psa_status_t psa_generate_random( uint8_t *output,
     if( status != PSA_SUCCESS )
         return( status );
     /* Breaking up a request into smaller chunks is currently not supported
-     * for the extrernal RNG interface. */
+     * for the external RNG interface. */
     if( output_length != output_size )
         return( PSA_ERROR_INSUFFICIENT_ENTROPY );
     return( PSA_SUCCESS );

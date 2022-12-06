@@ -622,7 +622,7 @@ exit:
  *                                  the data in to be encrypted / decrypted. If
  *                                  -1, no chunking
  * \param expected_output           Expected output
- * \param is_verify                 If non-zero this is an verify operation.
+ * \param is_verify                 If non-zero this is a verify operation.
  * \param do_zero_parts             If non-zero, interleave zero length chunks
  *                                  with normal length chunks.
  * \return int                      Zero on failure, non-zero on success.
@@ -6131,7 +6131,7 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     psa_aead_abort( &operation );
 
-    /* Test for calling set lengths with an plaintext length of SIZE_MAX, after setting nonce */
+    /* Test for calling set lengths with a plaintext length of SIZE_MAX, after setting nonce */
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
     PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );

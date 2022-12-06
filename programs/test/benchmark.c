@@ -416,7 +416,7 @@ static void TimerProc( void *TimerContext )
     Sleep( alarmMs );
     mbedtls_timing_alarmed = 1;
     /* _endthread will be called implicitly on return
-     * That ensures execution of thread funcition's epilogue */
+     * That ensures execution of thread function's epilogue */
 }
 
 static void mbedtls_set_alarm( int seconds )

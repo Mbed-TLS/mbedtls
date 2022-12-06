@@ -1949,7 +1949,7 @@ int main( int argc, char *argv[] )
              * is not recommended in practice.
              * `psk_or_ephemeral` exists in theory, we need this mode to test if
              * this setting work correctly. With this key exchange setting, server
-             * should always perform `ephemeral` handshake. `psk` or `psk_ephermal`
+             * should always perform `ephemeral` handshake. `psk` or `psk_ephemeral`
              * is not expected.
              */
             else if( strcmp( q, "psk_or_ephemeral" ) == 0 )

@@ -18,7 +18,7 @@ produced them."""
 import random
 
 # Functions calling these were used to produce test data and are here only for
-# reproducability, they are not used by the test generation framework/classes
+# reproducibility, they are not used by the test generation framework/classes
 try:
     from Cryptodome.Util.number import isPrime, getPrime #type: ignore #pylint: disable=import-error
 except ImportError:
@@ -128,7 +128,7 @@ def __gen_safe_prime(bits, seed):
     randbytes.
     '''
     rng = random.Random()
-    # We want reproducability across python versions
+    # We want reproducibility across python versions
     rng.seed(seed, version=2)
     while True:
         prime = 2*getPrime(bits-1, rng.randbytes)+1 #pylint: disable=no-member

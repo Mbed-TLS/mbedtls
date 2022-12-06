@@ -107,7 +107,7 @@ void mbedtls_debug_print_ret( const mbedtls_ssl_context *ssl, int level,
     /*
      * With non-blocking I/O and examples that just retry immediately,
      * the logs would be quickly flooded with WANT_READ, so ignore that.
-     * Don't ignore WANT_WRITE however, since is is usually rare.
+     * Don't ignore WANT_WRITE however, since it is usually rare.
      */
     if( ret == MBEDTLS_ERR_SSL_WANT_READ )
         return;

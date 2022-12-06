@@ -2136,7 +2136,7 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  *                      the `ServerHello` contains the CID extension, too,
  *                      the CID extension will actually be put to use.
  *                    - On the Server, enabling the use of the CID through
- *                      this call implies that that the server will look for
+ *                      this call implies that the server will look for
  *                      the CID extension in a `ClientHello` from the client,
  *                      and, if present, reply with a CID extension in its
  *                      `ServerHello`.
@@ -2582,7 +2582,7 @@ static inline uintptr_t mbedtls_ssl_conf_get_user_data_n(
  * \note The library stores \c p without accessing it. It is the responsibility
  *       of the caller to ensure that the pointer remains valid.
  *
- * \param ssl            The SSL context context to modify.
+ * \param ssl            The SSL context to modify.
  * \param p              The new value of the user data.
  */
 static inline void mbedtls_ssl_set_user_data_p(
@@ -2596,7 +2596,7 @@ static inline void mbedtls_ssl_set_user_data_p(
  *
  * You can retrieve this value later with mbedtls_ssl_get_user_data_n().
  *
- * \param ssl            The SSL context context to modify.
+ * \param ssl            The SSL context to modify.
  * \param n              The new value of the user data.
  */
 static inline void mbedtls_ssl_set_user_data_n(
@@ -2613,7 +2613,7 @@ static inline void mbedtls_ssl_set_user_data_n(
  * called. The value is undefined if mbedtls_ssl_set_user_data_n() has
  * been called without a subsequent call to mbedtls_ssl_set_user_data_p().
  *
- * \param ssl            The SSL context context to modify.
+ * \param ssl            The SSL context to modify.
  * \return               The current value of the user data.
  */
 static inline void *mbedtls_ssl_get_user_data_p(
@@ -2629,7 +2629,7 @@ static inline void *mbedtls_ssl_get_user_data_p(
  * called. The value is undefined if mbedtls_ssl_set_user_data_p() has
  * been called without a subsequent call to mbedtls_ssl_set_user_data_n().
  *
- * \param ssl            The SSL context context to modify.
+ * \param ssl            The SSL context to modify.
  * \return               The current value of the user data.
  */
 static inline uintptr_t mbedtls_ssl_get_user_data_n(

@@ -1543,7 +1543,7 @@
  * Requires: MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
  * Requires: MBEDTLS_PSA_CRYPTO_C
  *
- * Note: even though TLS 1.3 depends on PSA Crypto, and uses it unconditonally
+ * Note: even though TLS 1.3 depends on PSA Crypto, and uses it unconditionally
  * for most operations, if you want it to only use PSA for all crypto
  * operations, you need to also enable MBEDTLS_USE_PSA_CRYPTO; otherwise X.509
  * operations, and functions that are common with TLS 1.2 (record protection,

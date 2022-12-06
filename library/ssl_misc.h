@@ -143,7 +143,7 @@ uint32_t mbedtls_ssl_get_extension_mask( unsigned int extension_type );
               MBEDTLS_SSL_EXT_MASK( TRUNCATED_HMAC )                         | \
               MBEDTLS_SSL_EXT_MASK( UNRECOGNIZED ) )
 
-/* RFC 8446 section 4.2. Allowed extensions for ClienHello */
+/* RFC 8446 section 4.2. Allowed extensions for ClientHello */
 #define MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_CH                                  \
             ( MBEDTLS_SSL_EXT_MASK( SERVERNAME )                             | \
               MBEDTLS_SSL_EXT_MASK( MAX_FRAGMENT_LENGTH )                    | \

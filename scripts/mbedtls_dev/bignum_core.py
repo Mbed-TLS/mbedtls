@@ -764,7 +764,7 @@ class BignumCoreExpMod(BignumCoreTarget, bignum_common.ModOperationCommon):
 
     def arguments(self) -> List[str]:
         # Input 'a' has to be given in Montgomery form
-        mont_a = (self.int_a * self.r) % self.int_n
+        mont_a = self.to_montgomery(self.int_a)
         arg_mont_a = self.format_arg('{:x}'.format(mont_a))
         return [bignum_common.quote_str(n) for n in [self.arg_n,
                                                      arg_mont_a,
@@ -772,9 +772,9 @@ class BignumCoreExpMod(BignumCoreTarget, bignum_common.ModOperationCommon):
                ] + self.result()
 
     def result(self) -> List[str]:
-        # Result has to be given in Montgomery form
+        # Result has to be given in Montgomery form too
         result = pow(self.int_a, self.int_b, self.int_n)
-        mont_result = (result * self.r) % self.int_n
+        mont_result = self.to_montgomery(result)
         return [self.format_result(mont_result)]
 
     @property

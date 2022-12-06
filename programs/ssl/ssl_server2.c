@@ -501,8 +501,6 @@ int main( void )
     "    debug_level=%%d      default: 0 (disabled)\n"      \
     "    build_version=%%d    default: none (disabled)\n"                     \
     "                        option: 1 (print build version only and stop)\n" \
-    "    reco_debug_level=%%d default: 0 (disabled)\n"      \
-    "                         level of debugging for re-connection.\n" \
     "    buffer_size=%%d      default: 200 \n" \
     "                         (minimum: 1)\n" \
     "    response_size=%%d    default: about 152 (basic response)\n" \
@@ -605,7 +603,6 @@ struct options
     const char *server_addr;    /* address on which the ssl service runs    */
     const char *server_port;    /* port on which the ssl service runs       */
     int debug_level;            /* level of debugging                       */
-    int reco_debug_level;       /* level of debugging for re-connection.    */
     int nbio;                   /* should I/O be blocking?                  */
     int event;                  /* loop or event-driven IO? level or edge triggered? */
     uint32_t read_timeout;      /* timeout on mbedtls_ssl_read() in milliseconds    */
@@ -1644,7 +1641,6 @@ int main( int argc, char *argv[] )
     opt.server_addr         = DFL_SERVER_ADDR;
     opt.server_port         = DFL_SERVER_PORT;
     opt.debug_level         = DFL_DEBUG_LEVEL;
-    opt.reco_debug_level    = DFL_DEBUG_LEVEL;
     opt.event               = DFL_EVENT;
     opt.response_size       = DFL_RESPONSE_SIZE;
     opt.nbio                = DFL_NBIO;
@@ -1771,12 +1767,6 @@ int main( int argc, char *argv[] )
                                 MBEDTLS_VERSION_NUMBER );
                 goto exit;
             }
-        }
-        else if( strcmp( p, "reco_debug_level" ) == 0 )
-        {
-            opt.reco_debug_level = atoi( q );
-            if( opt.reco_debug_level < 0 || opt.reco_debug_level > 65535 )
-                goto usage;
         }
         else if( strcmp( p, "nbio" ) == 0 )
         {
@@ -4316,11 +4306,6 @@ close_notify:
     ret = 0;
 
     mbedtls_printf( " done\n" );
-
-#if defined(MBEDTLS_DEBUG_C)
-    if( opt.reco_debug_level )
-        mbedtls_debug_set_threshold( opt.reco_debug_level );
-#endif
 
     goto reset;
 

@@ -82,9 +82,9 @@ void mpi_core_random_basic( int min, char *bound_bytes, int expected_ret )
 
     TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &upper_bound, &limbs,
                                                bound_bytes ) );
-    ASSERT_ALLOC( lower_bound, limbs * ciL );
+    ASSERT_ALLOC( lower_bound, limbs );
     lower_bound[0] = min;
-    ASSERT_ALLOC( result, limbs * ciL );
+    ASSERT_ALLOC( result, limbs );
 
     TEST_EQUAL( expected_ret,
                 mbedtls_mpi_core_random( result, min, upper_bound, limbs,
@@ -121,7 +121,7 @@ void mpi_random_values( int min, char *max_hex )
 
     TEST_EQUAL( 0, mbedtls_test_read_mpi( &max_legacy, max_hex ) );
     size_t limbs = max_legacy.n;
-    ASSERT_ALLOC( R_core, limbs * ciL );
+    ASSERT_ALLOC( R_core, limbs );
 
     /* Call the legacy function and the core function with the same random
      * stream. */
@@ -180,7 +180,7 @@ void mpi_random_many( int min, char *bound_hex, int iterations )
 
     TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &upper_bound, &limbs,
                                                bound_hex ) );
-    ASSERT_ALLOC( result, limbs * ciL );
+    ASSERT_ALLOC( result, limbs );
 
     n_bits = mbedtls_mpi_core_bitlen( upper_bound, limbs );
     /* Consider a bound "small" if it's less than 2^5. This value is chosen

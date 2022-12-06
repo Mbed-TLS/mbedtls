@@ -17,6 +17,27 @@ mpi_mod_setup:MBEDTLS_MPI_MOD_REP_MONTGOMERY:0
 
 # BEGIN MERGE SLOT 3
 
+mpi_mod_sub base case for negative testing (N, a, b all >= 1 limb)
+mpi_mod_sub:"014320a022ccb75bdf470ddf25":"000000025a55a46e5da99c71c7":"00033b2e3c9fd0803ce8000f93":"013fe57440828b4a0008aa4159":0
+
+mpi_mod_sub with modulus too long/both inputs too short
+mpi_mod_sub:"0000000014320a022ccb75bdf470ddf25":"000000025a55a46e5da99c71c7":"00033b2e3c9fd0803ce8000f93":"00":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+mpi_mod_sub with first input too long
+mpi_mod_sub:"014320a022ccb75bdf470ddf25":"0000000000000025a55a46e5da99c71c7":"00033b2e3c9fd0803ce8000f93":"00":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+mpi_mod_sub with second input too long
+mpi_mod_sub:"014320a022ccb75bdf470ddf25":"000000025a55a46e5da99c71c7":"000000000033b2e3c9fd0803ce8000f93":"00":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+mpi_mod_sub with both inputs too long
+mpi_mod_sub:"014320a022ccb75bdf470ddf25":"0000000000000025a55a46e5da99c71c7":"000000000033b2e3c9fd0803ce8000f93":"00":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+mpi_mod_sub with first input too short
+mpi_mod_sub:"014320a022ccb75bdf470ddf25":"a99c71c7":"00033b2e3c9fd0803ce8000f93":"00":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+mpi_mod_sub with second input too short
+mpi_mod_sub:"014320a022ccb75bdf470ddf25":"000000025a55a46e5da99c71c7":"e8000f93":"00":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
 # END MERGE SLOT 3
 
 # BEGIN MERGE SLOT 4

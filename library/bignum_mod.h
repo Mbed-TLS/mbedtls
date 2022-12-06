@@ -163,7 +163,35 @@ void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m );
 /* END MERGE SLOT 2 */
 
 /* BEGIN MERGE SLOT 3 */
-
+/**
+ * \brief Perform a fixed-size modular subtraction.
+ *
+ * Calculate `A - B modulo N`.
+ *
+ * \p A, \p B and \p X must all have the same number of limbs as \p N.
+ *
+ * \p X may be aliased to \p A or \p B, or even both, but may not overlap
+ * either otherwise.
+ *
+ * \note This function does not check that \p A or \p B are in canonical
+ *       form (that is, are < \p N) - that will have been done by
+ *       mbedtls_mpi_mod_residue_setup().
+ *
+ * \param[out] X    The address of the result MPI. Must be initialized.
+ *                  Must have the same number of limbs as the modulus \p N.
+ * \param[in]  A    The address of the first MPI.
+ * \param[in]  B    The address of the second MPI.
+ * \param[in]  N    The address of the modulus. Used to perform a modulo
+ *                  operation on the result of the subtraction.
+ *
+ * \return          \c 0 if successful.
+ * \return          #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if the given MPIs do not
+ *                  have the correct number of limbs.
+ */
+int mbedtls_mpi_mod_sub( mbedtls_mpi_mod_residue *X,
+                         const mbedtls_mpi_mod_residue *A,
+                         const mbedtls_mpi_mod_residue *B,
+                         const mbedtls_mpi_mod_modulus *N );
 /* END MERGE SLOT 3 */
 
 /* BEGIN MERGE SLOT 4 */

@@ -34,6 +34,20 @@ class BignumModTarget(test_data_generation.BaseTarget):
 
 # BEGIN MERGE SLOT 3
 
+class BignumModSub(bignum_common.ModOperationCommon, BignumModTarget):
+    """Test cases for bignum mpi_mod_sub()."""
+    symbol = "-"
+    test_function = "mpi_mod_sub"
+    test_name = "mbedtls_mpi_mod_sub"
+    input_style = "fixed"
+    arity = 2
+
+    def result(self) -> List[str]:
+        result = (self.int_a - self.int_b) % self.int_n
+        # To make negative tests easier, append 0 for success to the
+        # generated cases
+        return [self.format_result(result), "0"]
+
 # END MERGE SLOT 3
 
 # BEGIN MERGE SLOT 4

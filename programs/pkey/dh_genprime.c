@@ -46,7 +46,7 @@ int main( void )
 
 #define USAGE \
     "\n usage: dh_genprime param=<>...\n"                                   \
-    "\n acceprable parameters:\n"                                           \
+    "\n acceptable parameters:\n"                                           \
     "    bits=%%d           default: 2048\n"
 
 #define DFL_BITS    2048

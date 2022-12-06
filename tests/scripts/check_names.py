@@ -620,7 +620,7 @@ class CodeParser():
         self.log.info("Compiling...")
         symbols = []
 
-        # Back up the config and atomically compile with the full configratuion.
+        # Back up the config and atomically compile with the full configuration.
         shutil.copy(
             "include/mbedtls/config.h",
             "include/mbedtls/config.h.bak"
@@ -879,7 +879,7 @@ def main():
     parser.add_argument(
         "-q", "--quiet",
         action="store_true",
-        help="hide unnecessary text, explanations, and highlighs"
+        help="hide unnecessary text, explanations, and highlights"
     )
 
     args = parser.parse_args()

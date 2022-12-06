@@ -3414,7 +3414,7 @@ static void ssl_calc_finished_tls_sha384(
                    sha512.state, sizeof( sha512.state ) );
 #endif
     /* mbedtls_sha512_finish_ret's output parameter is declared as a
-     * 64-byte buffer, but sice we're using SHA-384, we know that the
+     * 64-byte buffer, but since we're using SHA-384, we know that the
      * output fits in 48 bytes. This is correct C, but GCC 11.1 warns
      * about it.
      */
@@ -4480,7 +4480,7 @@ static void ssl_conf_remove_psk( mbedtls_ssl_config *conf )
         conf->psk_opaque = MBEDTLS_SVC_KEY_ID_INIT;
     }
     /* This and the following branch should never
-     * be taken simultaenously as we maintain the
+     * be taken simultaneously as we maintain the
      * invariant that raw and opaque PSKs are never
      * configured simultaneously. As a safeguard,
      * though, `else` is omitted here. */
@@ -6952,7 +6952,7 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
 }
 
 /*
- * Initialze mbedtls_ssl_config
+ * Initialize mbedtls_ssl_config
  */
 void mbedtls_ssl_config_init( mbedtls_ssl_config *conf )
 {

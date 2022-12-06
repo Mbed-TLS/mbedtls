@@ -587,14 +587,14 @@ void cipher_encrypt_multipart( int alg_arg,
     mbedtls_psa_cipher_operation_t mbedtls_operation =
             MBEDTLS_PSA_CIPHER_OPERATION_INIT;
 
-    mbedtls_transparent_test_driver_cipher_operation_t tranparent_operation =
+    mbedtls_transparent_test_driver_cipher_operation_t transparent_operation =
             MBEDTLS_TRANSPARENT_TEST_DRIVER_CIPHER_OPERATION_INIT;
 
     mbedtls_opaque_test_driver_cipher_operation_t opaque_operation =
             MBEDTLS_OPAQUE_TEST_DRIVER_CIPHER_OPERATION_INIT;
 
     operation.ctx.mbedtls_ctx = mbedtls_operation;
-    operation.ctx.transparent_test_driver_ctx = tranparent_operation;
+    operation.ctx.transparent_test_driver_ctx = transparent_operation;
     operation.ctx.opaque_test_driver_ctx = opaque_operation;
 
     PSA_ASSERT( psa_crypto_init( ) );
@@ -719,14 +719,14 @@ void cipher_decrypt_multipart( int alg_arg,
     mbedtls_psa_cipher_operation_t mbedtls_operation =
             MBEDTLS_PSA_CIPHER_OPERATION_INIT;
 
-    mbedtls_transparent_test_driver_cipher_operation_t tranparent_operation =
+    mbedtls_transparent_test_driver_cipher_operation_t transparent_operation =
             MBEDTLS_TRANSPARENT_TEST_DRIVER_CIPHER_OPERATION_INIT;
 
     mbedtls_opaque_test_driver_cipher_operation_t opaque_operation =
             MBEDTLS_OPAQUE_TEST_DRIVER_CIPHER_OPERATION_INIT;
 
     operation.ctx.mbedtls_ctx = mbedtls_operation;
-    operation.ctx.transparent_test_driver_ctx = tranparent_operation;
+    operation.ctx.transparent_test_driver_ctx = transparent_operation;
     operation.ctx.opaque_test_driver_ctx = opaque_operation;
 
     PSA_ASSERT( psa_crypto_init( ) );

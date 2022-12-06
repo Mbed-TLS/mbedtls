@@ -295,7 +295,7 @@ void mbedtls_mps_reader_reclaim_overflow()
     /* This test exercises the behaviour of the MPS reader with accumulator
      * in the situation where upon calling mbedtls_mps_reader_reclaim(), the
      * uncommitted data together with the excess data missing in the last
-     * call to medtls_mps_reader_get() exceeds the bounds of the type
+     * call to mbedtls_mps_reader_get() exceeds the bounds of the type
      * holding the buffer length.
      */
 

@@ -3482,13 +3482,14 @@ static unsigned char ssl_serialized_session_header[] = {
  *                                 // the structure of mbedtls_ssl_session.
  *
  *    uint8_t minor_ver;           // Protocol minor version. Possible values:
- *                                 // - TLS 1.2 (3)
+ *                                 // - TLS 1.2 (0x0303)
+ *                                 // - TLS 1.3 (0x0304)
  *
  *    select (serialized_session.tls_version) {
  *
  *      case MBEDTLS_SSL_VERSION_TLS1_2:
  *        serialized_session_tls12 data;
- *      case MBEDTLS_SSL_MINOR_VERSION_4:
+ *      case MBEDTLS_SSL_VERSION_TLS1_3:
  *        serialized_session_tls13 data;
  *
  *   };
@@ -4765,7 +4766,6 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
         mbedtls_ssl_transform_free( ssl->transform );
         mbedtls_free( ssl->transform );
     }
-
 
     if( ssl->handshake )
     {

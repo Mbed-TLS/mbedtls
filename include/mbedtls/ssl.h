@@ -1527,6 +1527,12 @@ struct mbedtls_ssl_config
     int MBEDTLS_PRIVATE(early_data_enabled);     /*!< Early data enablement:
                                                   *   - MBEDTLS_SSL_EARLY_DATA_DISABLED,
                                                   *   - MBEDTLS_SSL_EARLY_DATA_ENABLED */
+
+#if defined(MBEDTLS_SSL_SRV_C)
+    /* The maximum amount of 0-RTT data. RFC 8446 section 4.6.1 */
+    uint32_t MBEDTLS_PRIVATE(max_early_data_size);
+#endif /* MBEDTLS_SSL_SRV_C */
+
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #if defined(MBEDTLS_SSL_ALPN)
@@ -1964,6 +1970,35 @@ void mbedtls_ssl_conf_authmode( mbedtls_ssl_config *conf, int authmode );
 */
 void mbedtls_ssl_tls13_conf_early_data( mbedtls_ssl_config *conf,
                                         int early_data_enabled );
+
+#if defined(MBEDTLS_SSL_SRV_C)
+/**
+ * \brief Set the maximum amount of 0-RTT data in bytes
+ *        Default:  #MBEDTLS_SSL_MAX_EARLY_DATA_SIZE
+ *
+ *        This function sets the value of the max_early_data_size
+ *        field of the early data indication extension included in
+ *        the NewSessionTicket messages that the server may send.
+ *
+ *        The value defines the maximum amount of 0-RTT data
+ *        in bytes that a client will be allowed to send when using
+ *        one of the tickets defined by the NewSessionTicket messages.
+ *
+ * \note When resuming a session using a ticket, if the server receives more
+ *       early data than allowed for the ticket, it terminates the connection.
+ *       The maximum amount of 0-RTT data should thus be large enough
+ *       to allow a minimum of early data to be exchanged.
+ *
+ * \param[in] conf                  The SSL configuration to use.
+ * \param[in] max_early_data_size   The maximum amount of 0-RTT data.
+ *
+ * \warning This interface is experimental and may change without notice.
+ *
+ */
+void mbedtls_ssl_tls13_conf_max_early_data_size(
+         mbedtls_ssl_config *conf, uint32_t max_early_data_size );
+#endif /* MBEDTLS_SSL_SRV_C */
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_EARLY_DATA */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)

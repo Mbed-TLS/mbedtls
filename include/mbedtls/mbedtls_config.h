@@ -1674,6 +1674,23 @@
 //#define MBEDTLS_SSL_EARLY_DATA
 
 /**
+ * \def MBEDTLS_SSL_MAX_EARLY_DATA_SIZE
+ *
+ * The default maximum amount of 0-RTT data. See the documentation of
+ * \c mbedtls_ssl_tls13_conf_max_early_data_size() for more information.
+ *
+ * It must be positive and smaller than UINT32_MAX.
+ *
+ * If MBEDTLS_SSL_EARLY_DATA is not defined, this default value does not
+ * have any impact on the build.
+ *
+ * This feature is experimental, not completed and thus not ready for
+ * production.
+ *
+ */
+#define MBEDTLS_SSL_MAX_EARLY_DATA_SIZE        1024
+
+/**
  * \def MBEDTLS_SSL_PROTO_DTLS
  *
  * Enable support for DTLS (all available versions).

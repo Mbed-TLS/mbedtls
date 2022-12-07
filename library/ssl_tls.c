@@ -1908,7 +1908,7 @@ int mbedtls_ssl_set_hs_ecjpake_password( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
     }
 
-    psa_pake_set_password_key( &ssl->handshake->psa_pake_ctx,
+    status = psa_pake_set_password_key( &ssl->handshake->psa_pake_ctx,
                                 ssl->handshake->psa_pake_password );
     if( status != PSA_SUCCESS )
     {
@@ -1956,7 +1956,7 @@ int mbedtls_ssl_set_hs_ecjpake_password_opaque( mbedtls_ssl_context *ssl,
     if( status != PSA_SUCCESS )
         goto error;
 
-    psa_pake_set_password_key( &ssl->handshake->psa_pake_ctx,
+    status = psa_pake_set_password_key( &ssl->handshake->psa_pake_ctx,
                                 ssl->handshake->psa_pake_password );
     if( status != PSA_SUCCESS )
         goto error;

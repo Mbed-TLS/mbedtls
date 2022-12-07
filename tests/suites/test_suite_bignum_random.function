@@ -110,7 +110,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mpi_random_values( int min, char *max_hex )
+void mpi_legacy_random_values( int min, char *max_hex )
 {
     /* Same RNG as in mpi_core_random_basic */
     mbedtls_test_rnd_pseudo_info rnd_core = rnd_pseudo_seed;

@@ -17,31 +17,31 @@ MPI core random basic: 2^30..2^129
 mpi_core_random_basic:0x40000000:"0200000000000000000000000000000000":0
 
 # Use the same data values for mpi_core_random_basic->NOT_ACCEPTABLE
-# and for mpi_random_values where we want to return NOT_ACCEPTABLE but
-# this isn't checked at runtime.
+# and for mpi_legacy_random_values where we want to return NOT_ACCEPTABLE
+# but this isn't checked at runtime.
 MPI core random basic: 2^28-1..2^28 (NOT_ACCEPTABLE)
 mpi_core_random_basic:0x0fffffff:"10000000":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
 
 MPI random legacy=core: 2^28-1..2^28 (NOT_ACCEPTABLE)
-mpi_random_values:0x0fffffff:"10000000"
+mpi_legacy_random_values:0x0fffffff:"10000000"
 
 MPI core random basic: 2^29-1..2^29 (NOT_ACCEPTABLE)
 mpi_core_random_basic:0x1fffffff:"20000000":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
 
 MPI random legacy=core: 2^29-1..2^29 (NOT_ACCEPTABLE)
-mpi_random_values:0x1fffffff:"20000000"
+mpi_legacy_random_values:0x1fffffff:"20000000"
 
 MPI core random basic: 2^30-1..2^30 (NOT_ACCEPTABLE)
 mpi_core_random_basic:0x3fffffff:"40000000":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
 
 MPI random legacy=core: 2^30-1..2^30 (NOT_ACCEPTABLE)
-mpi_random_values:0x3fffffff:"40000000"
+mpi_legacy_random_values:0x3fffffff:"40000000"
 
 MPI core random basic: 2^31-1..2^31 (NOT_ACCEPTABLE)
 mpi_core_random_basic:0x7fffffff:"80000000":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
 
 MPI random legacy=core: 2^31-1..2^31 (NOT_ACCEPTABLE)
-mpi_random_values:0x7fffffff:"80000000"
+mpi_legacy_random_values:0x7fffffff:"80000000"
 
 MPI random in range: 1..2
 mpi_random_many:1:"02":1000
@@ -214,22 +214,22 @@ MPI random bad arguments: min > N = 1, 0 limb in upper bound
 mpi_random_fail:2:"000000000000000001":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
 MPI random legacy=core: 0..1
-mpi_random_values:0:"01"
+mpi_legacy_random_values:0:"01"
 
 MPI random legacy=core: 0..2
-mpi_random_values:0:"02"
+mpi_legacy_random_values:0:"02"
 
 MPI random legacy=core: 1..2
-mpi_random_values:1:"02"
+mpi_legacy_random_values:1:"02"
 
 MPI random legacy=core: 2^30..2^31
-mpi_random_values:0x40000000:"80000000"
+mpi_legacy_random_values:0x40000000:"80000000"
 
 MPI random legacy=core: 2^31-1..2^32-1
-mpi_random_values:0x7fffffff:"ffffffff"
+mpi_legacy_random_values:0x7fffffff:"ffffffff"
 
 MPI random legacy=core: 0..2^256
-mpi_random_values:0:"010000000000000000000000000000000000000000000000000000000000000000"
+mpi_legacy_random_values:0:"010000000000000000000000000000000000000000000000000000000000000000"
 
 MPI random legacy=core: 0..2^256+1
-mpi_random_values:0:"010000000000000000000000000000000000000000000000000000000000000001"
+mpi_legacy_random_values:0:"010000000000000000000000000000000000000000000000000000000000000001"

@@ -1913,7 +1913,6 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
     # full minus MBEDTLS_USE_PSA_CRYPTO: run the same set of tests as basic-build-test.sh
     msg "build: cmake, full config minus MBEDTLS_USE_PSA_CRYPTO, ASan"
     scripts/config.py full
-    scripts/config.py set MBEDTLS_ECP_RESTARTABLE  # not using PSA, so enable restartable ECC
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
@@ -1928,6 +1927,9 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
     msg "test: main suites (full minus MBEDTLS_USE_PSA_CRYPTO)"
     make test
 
+    # Note: ssl-opt.sh has some test cases that depend on
+    # MBEDTLS_ECP_RESTARTABLE && !MBEDTLS_USE_PSA_CRYPTO
+    # This is the only component where those tests are not skipped.
     msg "test: ssl-opt.sh (full minus MBEDTLS_USE_PSA_CRYPTO)"
     tests/ssl-opt.sh
 

@@ -109,7 +109,18 @@ class BignumModRawConvertFromMont(bignum_common.ModOperationCommon,
         result = (self.int_a * self.r_inv) % self.int_n
         return [self.format_result(result)]
 
+class BignumModRawModNegate(bignum_common.ModOperationCommon,
+                            BignumModRawTarget):
+    """ Test cases for mpi_mod_raw_neg(). """
+    test_function = "mpi_mod_raw_neg"
+    test_name = "Modular negation: "
+    symbol = "(-A)"
+    input_style = "arch_split"
+    arity = 1
 
+    def result(self) -> List[str]:
+        result = (self.int_n - self.int_a) % self.int_n
+        return [self.format_result(result)]
 # END MERGE SLOT 7
 
 # BEGIN MERGE SLOT 8

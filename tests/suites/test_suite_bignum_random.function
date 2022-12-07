@@ -169,8 +169,12 @@ void mpi_mod_random_values( int min, char *max_hex )
         0, 0};
     mbedtls_test_rnd_pseudo_info rnd_mod_raw;
     memcpy( &rnd_mod_raw, &rnd_core, sizeof( rnd_core ) );
+    mbedtls_test_rnd_pseudo_info rnd_mod;
+    memcpy( &rnd_mod, &rnd_core, sizeof( rnd_core ) );
     mbedtls_mpi_uint *R_core = NULL;
     mbedtls_mpi_uint *R_mod_raw = NULL;
+    mbedtls_mpi_uint *R_mod_digits = NULL;
+    mbedtls_mpi_mod_residue R_mod;
     mbedtls_mpi_mod_modulus N;
     mbedtls_mpi_mod_modulus_init( &N );
 
@@ -179,6 +183,10 @@ void mpi_mod_random_values( int min, char *max_hex )
                 0 );
     ASSERT_ALLOC( R_core, N.limbs );
     ASSERT_ALLOC( R_mod_raw, N.limbs );
+    ASSERT_ALLOC( R_mod_digits, N.limbs );
+    TEST_EQUAL( mbedtls_mpi_mod_residue_setup( &R_mod, &N,
+                                               R_mod_digits, N.limbs ),
+                0 );
 
     /* Call the core and mod random() functions with the same random stream. */
     int core_ret = mbedtls_mpi_core_random( R_core,
@@ -189,15 +197,23 @@ void mpi_mod_random_values( int min, char *max_hex )
                                                   min, &N,
                                                   mbedtls_test_rnd_pseudo_rand,
                                                   &rnd_mod_raw );
+    int mod_ret = mbedtls_mpi_mod_random( &R_mod,
+                                          min, &N,
+                                          mbedtls_test_rnd_pseudo_rand,
+                                          &rnd_mod );
 
     /* They must return the same status, and, on success, output the
      * same number, with the same limb count. */
     TEST_EQUAL( core_ret, mod_raw_ret );
+    TEST_EQUAL( core_ret, mod_ret );
     if( core_ret == 0 )
     {
         TEST_EQUAL( mbedtls_mpi_mod_raw_from_mont_rep( R_mod_raw, &N ), 0 );
         ASSERT_COMPARE( R_core, N.limbs * ciL,
                         R_mod_raw, N.limbs * ciL );
+        TEST_EQUAL( mbedtls_mpi_mod_raw_from_mont_rep( R_mod_digits, &N ), 0 );
+        ASSERT_COMPARE( R_core, N.limbs * ciL,
+                        R_mod_digits, N.limbs * ciL );
     }
 
     /* Also check that they have consumed the RNG in the same way. */
@@ -206,11 +222,14 @@ void mpi_mod_random_values( int min, char *max_hex )
      * field-by-field comparison. */
     ASSERT_COMPARE( &rnd_core, sizeof( rnd_core ),
                     &rnd_mod_raw, sizeof( rnd_mod_raw ) );
+    ASSERT_COMPARE( &rnd_core, sizeof( rnd_core ),
+                    &rnd_mod, sizeof( rnd_mod ) );
 
 exit:
     mbedtls_test_mpi_mod_modulus_free_with_limbs( &N );
     mbedtls_free( R_core );
     mbedtls_free( R_mod_raw );
+    mbedtls_free( R_mod_digits );
 }
 /* END_CASE */
 

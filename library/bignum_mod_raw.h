@@ -233,6 +233,24 @@ int mbedtls_mpi_mod_raw_to_mont_rep( mbedtls_mpi_uint *X,
  */
 int mbedtls_mpi_mod_raw_from_mont_rep( mbedtls_mpi_uint *X,
                                        const mbedtls_mpi_mod_modulus *m );
+
+/** \brief  Perform fixed width modular negation.
+ *
+ * The size of the operation is determined by \p N. \p A must have
+ * the same number of limbs as \p N.
+ *
+ * \p X may be aliased to \p A.
+ *
+ * \param[out] X        The result of the modular negation.
+ *                      This must be initialized. Must have enough limbs to
+ *                      store the full value of the result.
+ * \param[in] A         Little-endian presentation of the input operand. This
+ *                      must be smaller or equal to \p N.
+ * \param[in] m         The address of the modulus related to \p A.
+ */
+void mbedtls_mpi_mod_raw_neg( mbedtls_mpi_uint *X,
+                              const mbedtls_mpi_uint *A,
+                              const mbedtls_mpi_mod_modulus *m);
 /* END MERGE SLOT 7 */
 
 /* BEGIN MERGE SLOT 8 */

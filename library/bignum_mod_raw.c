@@ -182,6 +182,18 @@ int mbedtls_mpi_mod_raw_from_mont_rep( mbedtls_mpi_uint *X,
     mbedtls_free( T );
     return( 0 );
 }
+
+void mbedtls_mpi_mod_raw_neg( mbedtls_mpi_uint *X,
+                              const mbedtls_mpi_uint *A,
+                              const mbedtls_mpi_mod_modulus *m )
+{
+    mbedtls_mpi_core_sub( X, m->p, A, m->limbs );
+
+    /* If A=0 initially, then X=N now. Detect this by
+     * subtracting N and catching the carry. */
+    mbedtls_mpi_uint borrow = mbedtls_mpi_core_sub( X, X, m->p, m->limbs );
+    (void) mbedtls_mpi_core_add_if( X, m->p, m->limbs, (unsigned) borrow  );
+}
 /* END MERGE SLOT 7 */
 
 /* BEGIN MERGE SLOT 8 */

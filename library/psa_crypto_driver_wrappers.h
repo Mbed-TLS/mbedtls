@@ -417,27 +417,7 @@ psa_status_t psa_driver_wrapper_key_agreement(
  */
 psa_status_t psa_driver_wrapper_pake_setup(
     psa_pake_operation_t *operation,
-    const psa_pake_cipher_suite_t *cipher_suite);
-
-psa_status_t psa_driver_wrapper_pake_set_password_key(
-    const psa_key_attributes_t *attributes,
-    psa_pake_operation_t *operation,
-    uint8_t *key_buffer,
-    size_t key_size);
-
-psa_status_t psa_driver_wrapper_pake_set_user(
-    psa_pake_operation_t *operation,
-    const uint8_t *user_id,
-    size_t user_id_len);
-
-psa_status_t psa_driver_wrapper_pake_set_peer(
-    psa_pake_operation_t *operation,
-    const uint8_t *peer_id,
-    size_t peer_id_len);
-
-psa_status_t psa_driver_wrapper_pake_set_role(
-    psa_pake_operation_t *operation,
-    psa_pake_role_t role);
+    const psa_crypto_driver_pake_inputs_t *inputs);
 
 psa_status_t psa_driver_wrapper_pake_output(
     psa_pake_operation_t *operation,

@@ -35,7 +35,7 @@ mbedtls_test_driver_pake_hooks_t mbedtls_test_driver_pake_hooks =
 
 psa_status_t mbedtls_test_transparent_pake_setup(
     mbedtls_transparent_test_driver_pake_operation_t *operation,
-    const psa_pake_cipher_suite_t *cipher_suite)
+    const psa_crypto_driver_pake_inputs_t *inputs)
 {
     mbedtls_test_driver_pake_hooks.hits++;
 
@@ -47,139 +47,14 @@ psa_status_t mbedtls_test_transparent_pake_setup(
         defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_PAKE)
         mbedtls_test_driver_pake_hooks.driver_status =
             libtestdriver1_mbedtls_psa_pake_setup(
-                operation, (const libtestdriver1_psa_pake_cipher_suite_t *) cipher_suite);
+                operation, (const libtestdriver1_psa_crypto_driver_pake_inputs_t *) inputs);
 #elif defined(MBEDTLS_PSA_BUILTIN_PAKE)
         mbedtls_test_driver_pake_hooks.driver_status =
             mbedtls_psa_pake_setup(
-                operation, cipher_suite);
+                operation, inputs);
 #else
         (void) operation;
-        (void) cipher_suite;
-        mbedtls_test_driver_pake_hooks.driver_status = PSA_ERROR_NOT_SUPPORTED;
-#endif
-    }
-
-    return mbedtls_test_driver_pake_hooks.driver_status;
-}
-
-psa_status_t mbedtls_test_transparent_set_password_key(
-    const psa_key_attributes_t *attributes,
-    mbedtls_transparent_test_driver_pake_operation_t *operation,
-    uint8_t *key_buffer,
-    size_t key_size)
-{
-    mbedtls_test_driver_pake_hooks.hits++;
-
-    if (mbedtls_test_driver_pake_hooks.forced_status != PSA_SUCCESS) {
-        mbedtls_test_driver_pake_hooks.driver_status =
-            mbedtls_test_driver_pake_hooks.forced_status;
-    } else {
-#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
-        defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_PAKE)
-        mbedtls_test_driver_pake_hooks.driver_status =
-            libtestdriver1_mbedtls_psa_pake_set_password_key(
-                (const libtestdriver1_psa_key_attributes_t *) attributes,
-                operation, key_buffer, key_size);
-#elif defined(MBEDTLS_PSA_BUILTIN_PAKE)
-        mbedtls_test_driver_pake_hooks.driver_status =
-            mbedtls_psa_pake_set_password_key(
-                attributes, operation, key_buffer, key_size);
-#else
-        (void) operation;
-        (void) key_buffer,
-        (void) key_size;
-        mbedtls_test_driver_pake_hooks.driver_status = PSA_ERROR_NOT_SUPPORTED;
-#endif
-    }
-
-    return mbedtls_test_driver_pake_hooks.driver_status;
-}
-
-psa_status_t mbedtls_test_transparent_pake_set_user(
-    mbedtls_transparent_test_driver_pake_operation_t *operation,
-    const uint8_t *user_id,
-    size_t user_id_len)
-{
-    mbedtls_test_driver_pake_hooks.hits++;
-
-    if (mbedtls_test_driver_pake_hooks.forced_status != PSA_SUCCESS) {
-        mbedtls_test_driver_pake_hooks.driver_status =
-            mbedtls_test_driver_pake_hooks.forced_status;
-    } else {
-#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
-        defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_PAKE)
-        mbedtls_test_driver_pake_hooks.driver_status =
-            libtestdriver1_mbedtls_psa_pake_set_user(
-                operation, user_id, user_id_len);
-#elif defined(MBEDTLS_PSA_BUILTIN_PAKE)
-        mbedtls_test_driver_pake_hooks.driver_status =
-            mbedtls_psa_pake_set_user(
-                operation, user_id, user_id_len);
-#else
-        (void) operation;
-        (void) user_id;
-        (void) user_id_len;
-        mbedtls_test_driver_pake_hooks.driver_status = PSA_ERROR_NOT_SUPPORTED;
-#endif
-    }
-
-    return mbedtls_test_driver_pake_hooks.driver_status;
-}
-
-
-psa_status_t mbedtls_test_transparent_pake_set_peer(
-    mbedtls_transparent_test_driver_pake_operation_t *operation,
-    const uint8_t *peer_id,
-    size_t peer_id_len)
-{
-    mbedtls_test_driver_pake_hooks.hits++;
-
-    if (mbedtls_test_driver_pake_hooks.forced_status != PSA_SUCCESS) {
-        mbedtls_test_driver_pake_hooks.driver_status =
-            mbedtls_test_driver_pake_hooks.forced_status;
-    } else {
-#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
-        defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_PAKE)
-        mbedtls_test_driver_pake_hooks.driver_status =
-            libtestdriver1_mbedtls_psa_pake_set_peer(
-                operation, peer_id, peer_id_len);
-#elif defined(MBEDTLS_PSA_BUILTIN_PAKE)
-        mbedtls_test_driver_pake_hooks.driver_status =
-            mbedtls_psa_pake_set_peer(
-                operation, peer_id, peer_id_len);
-#else
-        (void) operation;
-        (void) peer_id;
-        (void) peer_id_len;
-        mbedtls_test_driver_pake_hooks.driver_status = PSA_ERROR_NOT_SUPPORTED;
-#endif
-    }
-
-    return mbedtls_test_driver_pake_hooks.driver_status;
-}
-
-psa_status_t mbedtls_test_transparent_pake_set_role(
-    mbedtls_transparent_test_driver_pake_operation_t *operation,
-    psa_pake_role_t role)
-{
-    mbedtls_test_driver_pake_hooks.hits++;
-
-    if (mbedtls_test_driver_pake_hooks.forced_status != PSA_SUCCESS) {
-        mbedtls_test_driver_pake_hooks.driver_status =
-            mbedtls_test_driver_pake_hooks.forced_status;
-    } else {
-#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
-        defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_PAKE)
-        mbedtls_test_driver_pake_hooks.driver_status =
-            libtestdriver1_mbedtls_psa_pake_set_role(
-                operation, role);
-#elif defined(MBEDTLS_PSA_BUILTIN_PAKE)
-        mbedtls_test_driver_pake_hooks.driver_status =
-            mbedtls_psa_pake_set_role(
-                operation, role);
-#else
-        (void) operation;
-        (void) role;
+        (void) inputs;
         mbedtls_test_driver_pake_hooks.driver_status = PSA_ERROR_NOT_SUPPORTED;
 #endif
     }
@@ -329,10 +204,10 @@ psa_status_t mbedtls_test_transparent_pake_abort(
  */
 psa_status_t mbedtls_test_opaque_pake_setup(
     mbedtls_opaque_test_driver_pake_operation_t *operation,
-    const psa_pake_cipher_suite_t *cipher_suite)
+    const psa_crypto_driver_pake_inputs_t *inputs)
 {
     (void) operation;
-    (void) cipher_suite;
+    (void) inputs;
     return PSA_ERROR_NOT_SUPPORTED;
 }
 

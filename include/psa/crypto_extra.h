@@ -429,6 +429,9 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  */
 #define PSA_DH_FAMILY_CUSTOM             ((psa_dh_family_t) 0x7e)
 
+/** EC-JPAKE operation stages. */
+#define PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS 0
+#define PSA_PAKE_OPERATION_STAGE_COMPUTATION 1
 
 /**
  * \brief Set domain parameters for a key.
@@ -1286,6 +1289,9 @@ static void psa_pake_cs_set_hash(psa_pake_cipher_suite_t *cipher_suite,
  * Implementation details can change in future versions without notice. */
 typedef struct psa_pake_operation_s psa_pake_operation_t;
 
+/** The type of input values for PAKE operations. */
+typedef struct psa_crypto_driver_pake_inputs_s psa_crypto_driver_pake_inputs_t;
+
 /** Return an initial value for a PAKE operation object.
  */
 static psa_pake_operation_t psa_pake_operation_init(void);
@@ -1826,7 +1832,7 @@ psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
 /** Returns a suitable initializer for a PAKE operation object of type
  * psa_pake_operation_t.
  */
-#define PSA_PAKE_OPERATION_INIT { 0, { .dummy = 0 } }
+#define PSA_PAKE_OPERATION_INIT { 0, PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS, { 0 } }
 
 struct psa_pake_cipher_suite_s {
     psa_algorithm_t algorithm;
@@ -1897,6 +1903,15 @@ static inline void psa_pake_cs_set_hash(psa_pake_cipher_suite_t *cipher_suite,
     }
 }
 
+struct psa_crypto_driver_pake_inputs_s {
+    psa_algorithm_t MBEDTLS_PRIVATE(alg);
+    uint8_t *MBEDTLS_PRIVATE(password);
+    size_t MBEDTLS_PRIVATE(password_len);
+    psa_pake_role_t MBEDTLS_PRIVATE(role);
+    psa_key_lifetime_t MBEDTLS_PRIVATE(key_lifetime);
+    psa_pake_cipher_suite_t MBEDTLS_PRIVATE(cipher_suite);
+};
+
 struct psa_pake_operation_s {
     /** Unique ID indicating which driver got assigned to do the
      * operation. Since driver contexts are driver-specific, swapping
@@ -1905,7 +1920,15 @@ struct psa_pake_operation_s {
      * ID value zero means the context is not valid or not assigned to
      * any driver (i.e. none of the driver contexts are active). */
     unsigned int MBEDTLS_PRIVATE(id);
-    psa_driver_pake_context_t MBEDTLS_PRIVATE(ctx);
+    /* Based on stage (collecting inputs/computation) we select active structure of data union.
+     * While switching stage (when driver setup is called) collected inputs
+       are copied to the corresponding operation context. */
+    uint8_t MBEDTLS_PRIVATE(stage);
+    union {
+        unsigned dummy;
+        psa_crypto_driver_pake_inputs_t MBEDTLS_PRIVATE(inputs);
+        psa_driver_pake_context_t MBEDTLS_PRIVATE(ctx);
+    } MBEDTLS_PRIVATE(data);
 };
 
 static inline struct psa_pake_cipher_suite_s psa_pake_cipher_suite_init(void)

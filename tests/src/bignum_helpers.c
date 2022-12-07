@@ -85,6 +85,23 @@ exit:
     return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 }
 
+int mbedtls_test_read_mpi_modulus( mbedtls_mpi_mod_modulus *N,
+                                   const char *s,
+                                   mbedtls_mpi_mod_rep_selector int_rep )
+{
+    mbedtls_mpi_uint *p = NULL;
+    size_t limbs = 0;
+    if( N->limbs != 0 )
+        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+    int ret = mbedtls_test_read_mpi_core( &p, &limbs, s );
+    if( ret != 0 )
+        return( ret );
+    ret = mbedtls_mpi_mod_modulus_setup( N, p, limbs, int_rep );
+    if( ret != 0 )
+        mbedtls_free( p );
+    return( ret );
+}
+
 int mbedtls_test_read_mpi( mbedtls_mpi *X, const char *s )
 {
     int negative = 0;

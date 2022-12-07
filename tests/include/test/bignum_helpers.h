@@ -30,6 +30,7 @@
 #if defined(MBEDTLS_BIGNUM_C)
 
 #include <mbedtls/bignum.h>
+#include <bignum_mod.h>
 
 /** Allocate and populate a core MPI from a test case argument.
  *
@@ -53,6 +54,25 @@
  */
 int mbedtls_test_read_mpi_core( mbedtls_mpi_uint **pX, size_t *plimbs,
                                 const char *input );
+
+/** Read a modulus from a hexadecimal string.
+ *
+ * This function allocates exactly as many limbs as necessary to fit
+ * the length of the input. In other words, it preserves leading zeros.
+ *
+ * The limb array is allocated with mbedtls_calloc() and must later be
+ * freed with mbedtls_free().
+ *
+ * \param[in,out] N     A modulus structure. It must be initialized, but
+ *                      not set up.
+ * \param[in] s         The null-terminated hexadecimal string to read from.
+ * \param int_rep       The desired representation of residues.
+ *
+ * \return \c 0 on success, an \c MBEDTLS_ERR_MPI_xxx error code otherwise.
+ */
+int mbedtls_test_read_mpi_modulus( mbedtls_mpi_mod_modulus *N,
+                                   const char *s,
+                                   mbedtls_mpi_mod_rep_selector int_rep );
 
 /** Read an MPI from a hexadecimal string.
  *

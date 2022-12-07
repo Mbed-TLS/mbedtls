@@ -4250,7 +4250,7 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "There is pending outgoing data" ) );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
-    /* Protocol must be DLTS, not TLS */
+    /* Protocol must be DTLS, not TLS */
     if( ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Only DTLS is supported" ) );

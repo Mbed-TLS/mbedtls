@@ -120,6 +120,16 @@ void mbedtls_mpi_mod_raw_sub( mbedtls_mpi_uint *X,
     (void) mbedtls_mpi_core_add_if( X, N->p, N->limbs, (unsigned) c );
 }
 
+void mbedtls_mpi_mod_raw_mul( mbedtls_mpi_uint *X,
+                              const mbedtls_mpi_uint *A,
+                              const mbedtls_mpi_uint *B,
+                              const mbedtls_mpi_mod_modulus *N,
+                              mbedtls_mpi_uint *T )
+{
+    mbedtls_mpi_core_montmul( X, A, B, N->limbs, N->p, N->limbs,
+                              N->rep.mont.mm, T );
+}
+
 /* END MERGE SLOT 2 */
 
 /* BEGIN MERGE SLOT 3 */

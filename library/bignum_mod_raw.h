@@ -170,6 +170,31 @@ void mbedtls_mpi_mod_raw_sub( mbedtls_mpi_uint *X,
                               const mbedtls_mpi_uint *B,
                               const mbedtls_mpi_mod_modulus *N );
 
+/** \brief  Multiply two MPIs, returning the residue modulo the specified
+ *          modulus.
+ *
+ * The size of the operation is determined by \p N. \p A and \p B must have
+ * the same number of limbs as \p N.
+ *
+ * \p X may be aliased to \p A or \p B, or even both, but may not overlap
+ * either otherwise.
+ *
+ * \param[out] X        The address of the result MPI.
+ *                      This must be initialized. Must have enough limbs to
+ *                      store the full value of the result.
+ * \param[in]  A        The address of the first MPI. This must be initialized.
+ * \param[in]  B        The address of the second MPI. This must be initialized.
+ * \param[in]  N        The address of the modulus. Used to perform a modulo
+ *                      operation on the result of the subtraction.
+ * \param[in]  T        The address of an MPI used by the multiplication
+ *                      as a temp variable.
+ */
+void mbedtls_mpi_mod_raw_mul( mbedtls_mpi_uint *X,
+                              const mbedtls_mpi_uint *A,
+                              const mbedtls_mpi_uint *B,
+                              const mbedtls_mpi_mod_modulus *N,
+                              mbedtls_mpi_uint *T );
+
 /* END MERGE SLOT 2 */
 
 /* BEGIN MERGE SLOT 3 */

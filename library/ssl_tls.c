@@ -1945,7 +1945,7 @@ int mbedtls_ssl_set_hs_ecjpake_password_opaque( mbedtls_ssl_context *ssl,
 
     status = psa_pake_setup( &ssl->handshake->psa_pake_ctx, &cipher_suite );
     if( status != PSA_SUCCESS )
-        goto error;
+        return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
 
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
         psa_role = PSA_PAKE_ROLE_SERVER;

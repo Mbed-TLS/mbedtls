@@ -4441,7 +4441,16 @@ exit:
     defined(MBEDTLS_USE_PSA_CRYPTO)
     if( opt.ecjpake_pw_opaque != DFL_ECJPAKE_PW_OPAQUE )
     {
-        psa_destroy_key( ecjpake_pw_slot );
+        psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
+
+        /* Ensure the key is still valid before destroying it */
+        status = psa_get_key_attributes( ecjpake_pw_slot, &key_attr );
+        if( status == PSA_SUCCESS &&
+            PSA_ALG_IS_PAKE( psa_get_key_algorithm( &key_attr ) ) )
+        {
+            psa_destroy_key( ecjpake_pw_slot );
+        }
+        psa_reset_key_attributes( &key_attr );
     }
 #endif  /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED && MBEDTLS_USE_PSA_CRYPTO */
 

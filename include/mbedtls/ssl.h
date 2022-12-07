@@ -3864,8 +3864,7 @@ int mbedtls_ssl_set_hs_ecjpake_password( mbedtls_ssl_context *ssl,
 /**
  * \brief          Set the EC J-PAKE opaque password for current handshake.
  *
- * \note           The input key in not copied, so the caller must not destroy
- *                 it before the handshake is over.
+ * \note           The key must remain valid until the handshake is over.
  *
  * \note           The SSL context needs to be already set up. The right place
  *                 to call this function is between \c mbedtls_ssl_setup() or

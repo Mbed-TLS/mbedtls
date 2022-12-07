@@ -1932,11 +1932,6 @@ int mbedtls_ssl_set_hs_ecjpake_password_opaque( mbedtls_ssl_context *ssl,
     if( ssl->handshake == NULL || ssl->conf == NULL )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
-        psa_role = PSA_PAKE_ROLE_SERVER;
-    else
-        psa_role = PSA_PAKE_ROLE_CLIENT;
-
     if( mbedtls_svc_key_id_is_null( pwd ) )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     ssl->handshake->psa_pake_password = pwd;
@@ -1951,6 +1946,11 @@ int mbedtls_ssl_set_hs_ecjpake_password_opaque( mbedtls_ssl_context *ssl,
     status = psa_pake_setup( &ssl->handshake->psa_pake_ctx, &cipher_suite );
     if( status != PSA_SUCCESS )
         goto error;
+
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+        psa_role = PSA_PAKE_ROLE_SERVER;
+    else
+        psa_role = PSA_PAKE_ROLE_CLIENT;
 
     status = psa_pake_set_role( &ssl->handshake->psa_pake_ctx, psa_role );
     if( status != PSA_SUCCESS )
@@ -1979,14 +1979,14 @@ int mbedtls_ssl_set_hs_ecjpake_password( mbedtls_ssl_context *ssl,
     if( ssl->handshake == NULL || ssl->conf == NULL )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
+    /* Empty password is not valid  */
+    if( ( pw == NULL) || ( pw_len == 0 ) )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
         role = MBEDTLS_ECJPAKE_SERVER;
     else
         role = MBEDTLS_ECJPAKE_CLIENT;
-
-    /* Empty password is not valid  */
-    if( ( pw == NULL) || ( pw_len == 0 ) )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     return( mbedtls_ecjpake_setup( &ssl->handshake->ecjpake_ctx,
                                    role,

@@ -500,11 +500,12 @@ int mbedtls_mpi_core_fill_random( mbedtls_mpi_uint *X, size_t X_limbs,
 
 /**
  * \brief          Perform a modular exponentiation with secret exponent:
- *                 X = A^E mod N
+ *                 X = A^E mod N, where \p A is already in Montgomery form.
  *
  * \param[out] X   The destination MPI, as a little endian array of length
  *                 \p AN_limbs.
  * \param[in] A    The base MPI, as a little endian array of length \p AN_limbs.
+ *                 Must be in Montgomery form.
  * \param[in] N    The modulus, as a little endian array of length \p AN_limbs.
  * \param AN_limbs The number of limbs in \p X, \p A, \p N, \p RR.
  * \param[in] E    The exponent, as a little endian array of length \p E_limbs.

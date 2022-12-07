@@ -251,6 +251,12 @@ class ModOperationCommon(OperationCommon):
         # provides earlier/more robust input validation.
         self.int_n = hex_to_int(val_n)
 
+    def to_montgomery(self, val: int) -> int:
+        return (val * self.r) % self.int_n
+
+    def from_montgomery(self, val: int) -> int:
+        return (val * self.r_inv) % self.int_n
+
     @property
     def boundary(self) -> int:
         return self.int_n

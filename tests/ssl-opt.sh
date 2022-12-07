@@ -7989,6 +7989,8 @@ run_test    "ECJPAKE: server not configured" \
             -C "found ecjpake_kkpp extension" \
             -s "SSL - The handshake negotiation failed"
 
+# Note: if the name of this test is changed, then please adjust the corresponding
+#       filtering label in "test_tls1_2_ecjpake_compatibility" (in "all.sh")
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "ECJPAKE: working, TLS" \
@@ -8028,6 +8030,8 @@ run_test    "ECJPAKE: opaque password client+server, working, TLS" \
             -S "SSL - The handshake negotiation failed" \
             -S "SSL - Verification of the message MAC failed"
 
+# Note: if the name of this test is changed, then please adjust the corresponding
+#       filtering label in "test_tls1_2_ecjpake_compatibility" (in "all.sh")
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
@@ -8049,6 +8053,8 @@ run_test    "ECJPAKE: opaque password client only, working, TLS" \
             -S "SSL - The handshake negotiation failed" \
             -S "SSL - Verification of the message MAC failed"
 
+# Note: if the name of this test is changed, then please adjust the corresponding
+#       filtering label in "test_tls1_2_ecjpake_compatibility" (in "all.sh")
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2

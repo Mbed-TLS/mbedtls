@@ -2590,12 +2590,12 @@ int tweak_tls13_certificate_msg_vector_len(
     ret = ( use_opaque_arg ) ?                                            \
         mbedtls_ssl_set_hs_ecjpake_password_opaque( &ssl, pwd_slot ) :    \
         mbedtls_ssl_set_hs_ecjpake_password( &ssl, pwd_string, pwd_len ); \
-    TEST_ASSERT( ret == exp_ret_val )
+    TEST_EQUAL( ret, exp_ret_val )
 #else
 #define ECJPAKE_TEST_SET_PASSWORD( exp_ret_val )                \
     ret = mbedtls_ssl_set_hs_ecjpake_password( &ssl,            \
                                         pwd_string, pwd_len );  \
-    TEST_ASSERT( ret == exp_ret_val )
+    TEST_EQUAL( ret, exp_ret_val )
 #endif
 /* END_HEADER */
 
@@ -6219,13 +6219,12 @@ void ssl_ecjpake_set_password( int use_opaque_arg )
 
     mbedtls_ssl_config_init( &conf );
 
-    TEST_ASSERT( mbedtls_ssl_config_defaults( &conf,
+    TEST_EQUAL( mbedtls_ssl_config_defaults( &conf,
                                               MBEDTLS_SSL_IS_CLIENT,
                                               MBEDTLS_SSL_TRANSPORT_STREAM,
-                                              MBEDTLS_SSL_PRESET_DEFAULT )
-                 == 0 );
+                                              MBEDTLS_SSL_PRESET_DEFAULT ), 0 );
 
-    TEST_ASSERT( mbedtls_ssl_setup( &ssl, &conf ) == 0 );
+    TEST_EQUAL( mbedtls_ssl_setup( &ssl, &conf ), 0 );
 
     /* test with empty password or unitialized password key (depending on use_opaque_arg) */
     ECJPAKE_TEST_SET_PASSWORD( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
@@ -6242,8 +6241,8 @@ void ssl_ecjpake_set_password( int use_opaque_arg )
         psa_set_key_algorithm( &attributes, PSA_ALG_JPAKE );
         psa_set_key_type( &attributes, PSA_KEY_TYPE_PASSWORD );
 
-        TEST_ASSERT( psa_import_key( &attributes, pwd_string,
-                    pwd_len, &pwd_slot ) == PSA_SUCCESS );
+        PSA_ASSERT( psa_import_key( &attributes, pwd_string,
+                    pwd_len, &pwd_slot ) );
     }
 #endif  /* MBEDTLS_USE_PSA_CRYPTO */
 

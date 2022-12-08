@@ -1934,7 +1934,6 @@ int mbedtls_ssl_set_hs_ecjpake_password_opaque( mbedtls_ssl_context *ssl,
 
     if( mbedtls_svc_key_id_is_null( pwd ) )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-    ssl->handshake->psa_pake_password = pwd;
 
     psa_pake_cs_set_algorithm( &cipher_suite, PSA_ALG_JPAKE );
     psa_pake_cs_set_primitive( &cipher_suite,
@@ -1956,8 +1955,7 @@ int mbedtls_ssl_set_hs_ecjpake_password_opaque( mbedtls_ssl_context *ssl,
     if( status != PSA_SUCCESS )
         goto error;
 
-    status = psa_pake_set_password_key( &ssl->handshake->psa_pake_ctx,
-                                ssl->handshake->psa_pake_password );
+    status = psa_pake_set_password_key( &ssl->handshake->psa_pake_ctx, pwd );
     if( status != PSA_SUCCESS )
         goto error;
 
@@ -4037,7 +4035,15 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_pake_abort( &handshake->psa_pake_ctx );
-    psa_destroy_key( handshake->psa_pake_password );
+    /*
+     * Opaque keys are not stored in the handshake's data and it's the user
+     * responsibility to destroy them. Clear ones, instead, are created by
+     * the TLS library and should be destroyed at the same level
+     */
+    if( ! mbedtls_svc_key_id_is_null( handshake->psa_pake_password ) )
+    {
+        psa_destroy_key( handshake->psa_pake_password );
+    }
     handshake->psa_pake_password = MBEDTLS_SVC_KEY_ID_INIT;
 #else
     mbedtls_ecjpake_free( &handshake->ecjpake_ctx );

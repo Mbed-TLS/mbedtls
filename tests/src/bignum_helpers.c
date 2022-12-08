@@ -102,6 +102,12 @@ int mbedtls_test_read_mpi_modulus( mbedtls_mpi_mod_modulus *N,
     return( ret );
 }
 
+void mbedtls_test_mpi_mod_modulus_free_with_limbs( mbedtls_mpi_mod_modulus *N )
+{
+    mbedtls_free( (mbedtls_mpi_uint*) N->p );
+    mbedtls_mpi_mod_modulus_free( N );
+}
+
 int mbedtls_test_read_mpi( mbedtls_mpi *X, const char *s )
 {
     int negative = 0;

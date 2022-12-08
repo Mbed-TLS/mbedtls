@@ -61,7 +61,8 @@ int mbedtls_test_read_mpi_core( mbedtls_mpi_uint **pX, size_t *plimbs,
  * the length of the input. In other words, it preserves leading zeros.
  *
  * The limb array is allocated with mbedtls_calloc() and must later be
- * freed with mbedtls_free().
+ * freed with mbedtls_free(). You can do that by calling
+ * mbedtls_test_mpi_mod_modulus_free_with_limbs().
  *
  * \param[in,out] N     A modulus structure. It must be initialized, but
  *                      not set up.
@@ -73,6 +74,13 @@ int mbedtls_test_read_mpi_core( mbedtls_mpi_uint **pX, size_t *plimbs,
 int mbedtls_test_read_mpi_modulus( mbedtls_mpi_mod_modulus *N,
                                    const char *s,
                                    mbedtls_mpi_mod_rep_selector int_rep );
+
+/** Free a modulus and its limbs.
+ *
+ * \param[in] N         A modulus structure such that there is no other
+ *                      reference to `N->p`.
+ */
+void mbedtls_test_mpi_mod_modulus_free_with_limbs( mbedtls_mpi_mod_modulus *N );
 
 /** Read an MPI from a hexadecimal string.
  *

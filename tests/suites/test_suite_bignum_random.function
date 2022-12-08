@@ -208,7 +208,7 @@ void mpi_mod_random_values( int min, char *max_hex )
                     &rnd_mod_raw, sizeof( rnd_mod_raw ) );
 
 exit:
-    mbedtls_mpi_mod_modulus_free( &N );
+    mbedtls_test_mpi_mod_modulus_free_with_limbs( &N );
     mbedtls_free( R_core );
     mbedtls_free( R_mod_raw );
 }

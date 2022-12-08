@@ -387,6 +387,66 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mpi_mod_random_validation( int min, char *bound_hex,
+                                int result_limbs_delta,
+                                int expected_ret )
+{
+    mbedtls_mpi_uint *result_digits = NULL;
+    mbedtls_mpi_mod_modulus N;
+    mbedtls_mpi_mod_modulus_init( &N );
+
+    TEST_EQUAL( mbedtls_test_read_mpi_modulus( &N, bound_hex,
+                                               MBEDTLS_MPI_MOD_REP_MONTGOMERY ),
+                0 );
+    size_t result_limbs = N.limbs + result_limbs_delta;
+    ASSERT_ALLOC( result_digits, result_limbs );
+    /* Build a reside that might not match the modulus, to test that
+     * the library function rejects that as expected. */
+    mbedtls_mpi_mod_residue result = {result_digits, result_limbs};
+
+    TEST_EQUAL( mbedtls_mpi_mod_random( &result, min, &N,
+                                        mbedtls_test_rnd_std_rand, NULL ),
+                expected_ret );
+    if( expected_ret == 0 )
+    {
+        /* Success should only be expected when the result has the same
+         * size as the modulus, otherwise it's a mistake in the test data. */
+        TEST_EQUAL( result_limbs, N.limbs );
+        /* Sanity check: check that the result is in range */
+        TEST_EQUAL( mbedtls_mpi_mod_raw_from_mont_rep( result_digits, &N ), 0 );
+        TEST_EQUAL( mbedtls_mpi_core_lt_ct( result_digits, N.p, N.limbs ),
+                    1 );
+        /* Check result >= min (changes result) */
+        TEST_EQUAL( mbedtls_mpi_core_sub_int( result_digits, result_digits, min,
+                                              result_limbs ),
+                    0 );
+    }
+
+    /* When the result has the right number of limbs, also test mod_raw
+     * (for which this is an unchecked precondition). */
+    if( result_limbs_delta == 0 )
+    {
+        TEST_EQUAL( mbedtls_mpi_mod_raw_random( result_digits, min, &N,
+                                                mbedtls_test_rnd_std_rand, NULL ),
+                    expected_ret );
+        if( expected_ret == 0 )
+        {
+            TEST_EQUAL( mbedtls_mpi_mod_raw_from_mont_rep( result_digits, &N ), 0 );
+            TEST_EQUAL( mbedtls_mpi_core_lt_ct( result_digits, N.p, N.limbs ),
+                        1 );
+            TEST_EQUAL( mbedtls_mpi_core_sub_int( result_digits, result.p, min,
+                                                  result_limbs ),
+                        0 );
+        }
+    }
+
+exit:
+    mbedtls_test_mpi_mod_modulus_free_with_limbs( &N );
+    mbedtls_free( result_digits );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mpi_random_fail( int min, data_t *bound_bytes, int expected_ret )
 {
     mbedtls_mpi upper_bound;

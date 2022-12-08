@@ -263,3 +263,48 @@ mpi_mod_random_values:0x7fffffff:"ffffffff"
 
 MPI random mod=core: 0..2^256+1
 mpi_mod_random_values:0:"010000000000000000000000000000000000000000000000000000000000000001"
+
+MPI random mod validation: 1 limb, good, 0..1
+mpi_mod_random_validation:0:"1":0:0
+
+MPI random mod validation: 1 limb, good, 1..3
+mpi_mod_random_validation:1:"3":0:0
+
+MPI random mod validation: 1 limb, good, 2..3
+mpi_mod_random_validation:2:"3":0:0
+
+MPI random mod validation: 1 limb, good, 3..5
+mpi_mod_random_validation:3:"5":0:0
+
+MPI random mod validation: 1 limb, good, 4..5
+mpi_mod_random_validation:4:"5":0:0
+
+MPI random mod validation: 1 limb, good, 5..7
+mpi_mod_random_validation:5:"7":0:0
+
+MPI random mod validation: 1 limb, good, 6..7
+mpi_mod_random_validation:6:"7":0:0
+
+MPI random mod validation: 1 limb, good, 0..0x123
+mpi_mod_random_validation:0:"123":0:0
+
+MPI random mod validation: 2+ limbs, good
+mpi_mod_random_validation:0:"01234567890123456789":0:0
+
+MPI random mod validation: 1 limb, output null
+mpi_mod_random_validation:0:"123":-1:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+MPI random mod validation: 1 limb, output too large
+mpi_mod_random_validation:0:"123":1:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+MPI random mod validation: 2+ limbs, output too small
+mpi_mod_random_validation:0:"01234567890123456789":-1:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+MPI random mod validation: 2+ limbs, output too large
+mpi_mod_random_validation:0:"01234567890123456789":1:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+MPI random mod validation: min == upper bound
+mpi_mod_random_validation:0x123:"123":-1:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+MPI random mod validation: min > upper bound
+mpi_mod_random_validation:0x124:"123":-1:MBEDTLS_ERR_MPI_BAD_INPUT_DATA

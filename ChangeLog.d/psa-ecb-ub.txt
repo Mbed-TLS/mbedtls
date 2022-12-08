@@ -1,3 +1,0 @@
-Bugfix
-   * Fix undefined behavior (typically harmless in practice) in PSA ECB
-     encryption and decryption.

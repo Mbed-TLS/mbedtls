@@ -1311,6 +1311,11 @@ int mbedtls_ssl_send_fatal_handshake_failure(mbedtls_ssl_context *ssl);
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_reset_checksum(mbedtls_ssl_context *ssl);
 
+/* Read message from ssl->in_msg. */
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_read_inmsg(
+    mbedtls_ssl_context *ssl, unsigned char *buf, size_t len);
+
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_derive_keys(mbedtls_ssl_context *ssl);

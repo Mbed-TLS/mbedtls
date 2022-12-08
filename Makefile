@@ -4,7 +4,7 @@ PERL ?= perl
 
 .SILENT:
 
-.PHONY: all no_test programs lib tests install uninstall clean test check covtest lcov apidoc apidoc_clean
+.PHONY: all no_test programs lib tests install uninstall clean test check lcov apidoc apidoc_clean
 
 all: programs tests
 	$(MAKE) post_build
@@ -136,15 +136,13 @@ check: lib tests
 test: check
 
 ifndef WINDOWS
-# Note: for coverage testing, build with:
-#     make CFLAGS='--coverage -g3 -O0' LDFLAGS='--coverage'
-# For the reference coverage measurement, see tests/scripts/basic-build-test.sh
-covtest:
-	$(MAKE) check
-	programs/test/selftest
-	tests/compat.sh
-	tests/ssl-opt.sh
-
+# For coverage testing:
+# 1. Build with:
+#         make CFLAGS='--coverage -g3 -O0' LDFLAGS='--coverage'
+# 2. Run the relevant tests for the part of the code you're interested in.
+#    For the reference coverage measurement, see
+#    tests/scripts/basic-build-test.sh
+# 3. Run scripts/lcov.sh to generate an HTML report.
 lcov:
 	scripts/lcov.sh
 

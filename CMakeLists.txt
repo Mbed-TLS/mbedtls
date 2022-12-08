@@ -304,13 +304,13 @@ if(ENABLE_TESTING)
     # additional convenience targets for Unix only
     if(UNIX)
 
-        ADD_CUSTOM_TARGET(covtest
-            COMMAND make test
-            COMMAND programs/test/selftest
-            COMMAND tests/compat.sh
-            COMMAND tests/ssl-opt.sh
-        )
-
+        # For coverage testing:
+        # 1. Build with:
+        #         cmake -D CMAKE_BUILD_TYPE=Coverage /path/to/source && make
+        # 2. Run the relevant tests for the part of the code you're interested in.
+        #    For the reference coverage measurement, see
+        #    tests/scripts/basic-build-test.sh
+        # 3. Run scripts/lcov.sh to generate an HTML report.
         ADD_CUSTOM_TARGET(lcov
             COMMAND scripts/lcov.sh
         )

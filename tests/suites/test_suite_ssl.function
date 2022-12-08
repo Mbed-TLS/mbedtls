@@ -24,6 +24,8 @@ enum {
 #undef MBEDTLS_SSL_TLS1_3_LABEL
 };
 
+#define MBEDTLS_ENDPOINT_INIT { 0, 0, 0, 0, 0 }
+
 typedef struct log_pattern {
     const char *pattern;
     size_t counter;
@@ -2031,7 +2033,8 @@ void perform_handshake(handshake_test_options *options)
     /* forced_ciphersuite needs to last until the end of the handshake */
     int forced_ciphersuite[2];
     enum { BUFFSIZE = 17000 };
-    mbedtls_endpoint client = { 0 }, server = { 0 };
+    mbedtls_endpoint client = MBEDTLS_ENDPOINT_INIT;
+    mbedtls_endpoint server = MBEDTLS_ENDPOINT_INIT;
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
     const char *psk_identity = "foo";
 #endif
@@ -4972,7 +4975,7 @@ void ssl_session_serialize_version_check(int corrupt_major,
 void mbedtls_endpoint_sanity(int endpoint_type)
 {
     enum { BUFFSIZE = 1024 };
-    mbedtls_endpoint ep = { 0 };
+    mbedtls_endpoint ep = MBEDTLS_ENDPOINT_INIT;
     int ret = -1;
     handshake_test_options options;
     init_handshake_options(&options);
@@ -4999,7 +5002,8 @@ exit:
 void move_handshake_to_state(int endpoint_type, int state, int need_pass)
 {
     enum { BUFFSIZE = 1024 };
-    mbedtls_endpoint base_ep = { 0 }, second_ep = { 0 };
+    mbedtls_endpoint base_ep = MBEDTLS_ENDPOINT_INIT;
+    mbedtls_endpoint second_ep = MBEDTLS_ENDPOINT_INIT;
     int ret = -1;
     handshake_test_options options;
     init_handshake_options(&options);
@@ -5520,7 +5524,8 @@ void force_bad_session_id_len()
 {
     enum { BUFFSIZE = 1024 };
     handshake_test_options options;
-    mbedtls_endpoint client = { 0 }, server = { 0 };
+    mbedtls_endpoint client = MBEDTLS_ENDPOINT_INIT;
+    mbedtls_endpoint server = MBEDTLS_ENDPOINT_INIT;
     log_pattern srv_pattern, cli_pattern;
     mbedtls_test_message_socket_context server_context, client_context;
 
@@ -5703,7 +5708,8 @@ void cid_sanity()
 void raw_key_agreement_fail(int bad_server_ecdhe_key)
 {
     enum { BUFFSIZE = 17000 };
-    mbedtls_endpoint client = { 0 }, server = { 0 };
+    mbedtls_endpoint client = MBEDTLS_ENDPOINT_INIT;
+    mbedtls_endpoint server = MBEDTLS_ENDPOINT_INIT;
     mbedtls_psa_stats_t stats;
     size_t free_slots_before = -1;
     handshake_test_options options;
@@ -5772,7 +5778,8 @@ exit:
 void tls13_server_certificate_msg_invalid_vector_len()
 {
     int ret = -1;
-    mbedtls_endpoint client_ep = { 0 }, server_ep = { 0 };
+    mbedtls_endpoint client_ep = MBEDTLS_ENDPOINT_INIT;
+    mbedtls_endpoint server_ep = MBEDTLS_ENDPOINT_INIT;
     unsigned char *buf, *end;
     size_t buf_len;
     int step = 0;

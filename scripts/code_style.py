@@ -41,9 +41,9 @@ def get_src_files() -> List[str]:
     Use git ls-files to get a list of the source files
     """
     git_ls_files_cmd = ["git", "ls-files",
-            "*.[hc]",
-            "tests/suites/*.function",
-            "scripts/data_files/*.fmt"]
+                        "*.[hc]",
+                        "tests/suites/*.function",
+                        "scripts/data_files/*.fmt"]
 
     result = subprocess.run(git_ls_files_cmd, stdout=subprocess.PIPE, \
             stderr=STDERR_UTF8, check=False)

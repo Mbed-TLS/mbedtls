@@ -68,7 +68,7 @@ def get_uncrustify_version() -> str:
 
 def check_style_is_correct(src_file_list: List[str]) -> bool:
     """
-    Check the code style and output a diff foir each file whose style is
+    Check the code style and output a diff for each file whose style is
     incorrect.
     """
     style_correct = True

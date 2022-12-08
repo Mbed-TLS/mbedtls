@@ -22,6 +22,7 @@ import subprocess
 import sys
 from typing import List
 
+UNCRUSTIFY_SUPPORTED_VERSION = "0.75.1"
 CONFIG_FILE = "codestyle.cfg"
 UNCRUSTIFY_EXE = "uncrustify"
 UNCRUSTIFY_ARGS = ["-c", CONFIG_FILE]
@@ -125,10 +126,11 @@ def main() -> int:
     """
     Main with command line arguments.
     """
-    uncrustify_version = get_uncrustify_version()
-    if "0.75.1" not in uncrustify_version:
+    uncrustify_version = get_uncrustify_version().strip()
+    if UNCRUSTIFY_SUPPORTED_VERSION not in uncrustify_version:
         print("Warning: Using unsupported Uncrustify version '" \
-                + uncrustify_version + "'", file=STDOUT_UTF8)
+                + uncrustify_version + "' (Note: The only supported version" \
+                "is " + UNCRUSTIFY_SUPPORTED_VERSION + ")", file=STDOUT_UTF8)
 
     src_files = get_src_files()
 

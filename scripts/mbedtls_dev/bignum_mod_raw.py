@@ -114,7 +114,7 @@ class BignumModRawModNegate(bignum_common.ModOperationCommon,
     """ Test cases for mpi_mod_raw_neg(). """
     test_function = "mpi_mod_raw_neg"
     test_name = "Modular negation: "
-    symbol = "(-A)"
+    symbol = "-"
     input_style = "arch_split"
     arity = 1
 

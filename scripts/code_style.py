@@ -28,6 +28,9 @@ UNCRUSTIFY_ARGS = ["-c", CONFIG_FILE]
 STDOUT_UTF8 = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 STDERR_UTF8 = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
+def print_err(*args):
+    print("Error: ", *args, file=STDERR_UTF8)
+
 def get_src_files() -> List[str]:
     """
     Use git ls-files to get a list of the source files
@@ -41,8 +44,7 @@ def get_src_files() -> List[str]:
             stderr=STDERR_UTF8, check=False)
 
     if result.returncode != 0:
-        print("Error: git ls-files returned: "+str(result.returncode), \
-                file=STDERR_UTF8)
+        print_err("git ls-files returned: "+str(result.returncode))
         return []
     else:
         src_files = str(result.stdout, "utf-8").split()
@@ -59,8 +61,7 @@ def get_uncrustify_version() -> str:
     result = subprocess.run([UNCRUSTIFY_EXE, "--version"], \
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
     if result.returncode != 0:
-        print("Error getting version: "+str(result.stderr, "utf-8"), \
-                file=STDERR_UTF8)
+        print_err("Could not get Uncrustify version:", str(result.stderr, "utf-8"))
         return ""
     else:
         return str(result.stdout, "utf-8")
@@ -115,8 +116,7 @@ def fix_style(src_file_list: List[str]) -> int:
     # Guard against future changes that cause the codebase to require
     # more passes.
     if not check_style_is_correct(src_file_list):
-        print("Error: Code style still incorrect after second run of Uncrustify.", \
-                file=STDERR_UTF8)
+        print("Code style still incorrect after second run of Uncrustify.")
         return 1
     else:
         return 0

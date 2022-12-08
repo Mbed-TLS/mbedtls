@@ -1363,10 +1363,6 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
     for( j = 0, p = buf + 6; j < ciph_len; j += 3, p += 3 )
         for( i = 0; ciphersuites[i] != 0; i++ )
-#else
-    for( i = 0; ciphersuites[i] != 0; i++ )
-        for( j = 0, p = buf + 6; j < ciph_len; j += 3, p += 3 )
-#endif
         {
             if( p[0] != 0 ||
                 MBEDTLS_GET_UINT16_BE(p, 1) != ciphersuites[i] )
@@ -1381,6 +1377,24 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
             if( ciphersuite_info != NULL )
                 goto have_ciphersuite_v2;
         }
+#else
+    for( i = 0; ciphersuites[i] != 0; i++ )
+        for( j = 0, p = buf + 6; j < ciph_len; j += 3, p += 3 )
+        {
+            if( p[0] != 0 ||
+                MBEDTLS_GET_UINT16_BE(p, 1) != ciphersuites[i] )
+                continue;
+
+            got_common_suite = 1;
+
+            if( ( ret = ssl_ciphersuite_match( ssl, ciphersuites[i],
+                                               &ciphersuite_info ) ) != 0 )
+                return( ret );
+
+            if( ciphersuite_info != NULL )
+                goto have_ciphersuite_v2;
+        }
+#endif
 
     if( got_common_suite )
     {
@@ -2233,10 +2247,6 @@ read_record_header:
 #if defined(MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
     for( j = 0, p = buf + ciph_offset + 2; j < ciph_len; j += 2, p += 2 )
         for( i = 0; ciphersuites[i] != 0; i++ )
-#else
-    for( i = 0; ciphersuites[i] != 0; i++ )
-        for( j = 0, p = buf + ciph_offset + 2; j < ciph_len; j += 2, p += 2 )
-#endif
         {
             if( MBEDTLS_GET_UINT16_BE(p, 0) != ciphersuites[i] )
                 continue;
@@ -2250,6 +2260,23 @@ read_record_header:
             if( ciphersuite_info != NULL )
                 goto have_ciphersuite;
         }
+#else
+    for( i = 0; ciphersuites[i] != 0; i++ )
+        for( j = 0, p = buf + ciph_offset + 2; j < ciph_len; j += 2, p += 2 )
+        {
+            if( MBEDTLS_GET_UINT16_BE(p, 0) != ciphersuites[i] )
+                continue;
+
+            got_common_suite = 1;
+
+            if( ( ret = ssl_ciphersuite_match( ssl, ciphersuites[i],
+                                               &ciphersuite_info ) ) != 0 )
+                return( ret );
+
+            if( ciphersuite_info != NULL )
+                goto have_ciphersuite;
+        }
+#endif
 
     if( got_common_suite )
     {

@@ -6237,9 +6237,20 @@ void ssl_ecjpake_set_password( int use_opaque_arg )
     {
         psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
-        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
+        /* First try with an invalid usage */
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH );
         psa_set_key_algorithm( &attributes, PSA_ALG_JPAKE );
         psa_set_key_type( &attributes, PSA_KEY_TYPE_PASSWORD );
+
+        PSA_ASSERT( psa_import_key( &attributes, pwd_string,
+                    pwd_len, &pwd_slot ) );
+
+        ECJPAKE_TEST_SET_PASSWORD( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+
+        psa_destroy_key( pwd_slot );
+
+        /* Then set the correct usage */
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
 
         PSA_ASSERT( psa_import_key( &attributes, pwd_string,
                     pwd_len, &pwd_slot ) );

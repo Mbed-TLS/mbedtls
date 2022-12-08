@@ -49,7 +49,7 @@ def get_src_files() -> List[str]:
             stderr=STDERR_UTF8, check=False)
 
     if result.returncode != 0:
-        print_err("git ls-files returned: "+str(result.returncode))
+        print_err("git ls-files returned: " + str(result.returncode))
         return []
     else:
         src_files = str(result.stdout, "utf-8").split()
@@ -85,19 +85,19 @@ def check_style_is_correct(src_file_list: List[str]) -> bool:
         # Uncrustify makes changes to the code and places the result in a new
         # file with the extension ".uncrustify". To get the changes (if any)
         # simply diff the 2 files.
-        diff_cmd = ["diff", "-u", src_file, src_file+".uncrustify"]
+        diff_cmd = ["diff", "-u", src_file, src_file + ".uncrustify"]
         result = subprocess.run(diff_cmd, stdout=subprocess.PIPE, \
                 stderr=STDERR_UTF8, check=False)
         if len(result.stdout) > 0:
-            print(src_file+" - Incorrect code style.", file=STDOUT_UTF8)
+            print(src_file + " - Incorrect code style.", file=STDOUT_UTF8)
             print("File changed - diff:", file=STDOUT_UTF8)
             print(str(result.stdout, "utf-8"), file=STDOUT_UTF8)
             style_correct = False
         else:
-            print(src_file+" - OK.", file=STDOUT_UTF8)
+            print(src_file + " - OK.", file=STDOUT_UTF8)
 
         # Tidy up artifact
-        os.remove(src_file+".uncrustify")
+        os.remove(src_file + ".uncrustify")
 
     return style_correct
 

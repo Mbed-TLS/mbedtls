@@ -1,0 +1,4 @@
+Security
+    * Fix potential heap buffer overread and overwrite in DTLS if
+      MBEDTLS_SSL_DTLS_CONNECTION_ID is enabled and
+      MBEDTLS_SSL_CID_IN_LEN_MAX > 2 * MBEDTLS_SSL_CID_OUT_LEN_MAX.

@@ -32,9 +32,9 @@ def get_src_files() -> List[str]:
     """
     Use git ls-files to get a list of the source files
     """
-    git_ls_files_cmd = ["git", "ls-files", \
-            "*.[hc]", \
-            "tests/suites/*.function", \
+    git_ls_files_cmd = ["git", "ls-files",
+            "*.[hc]",
+            "tests/suites/*.function",
             "scripts/data_files/*.fmt"]
 
     result = subprocess.run(git_ls_files_cmd, stdout=subprocess.PIPE, \
@@ -56,8 +56,7 @@ def get_uncrustify_version() -> str:
     """
     Get the version string from Uncrustify
     """
-    version_args = ["--version"]
-    result = subprocess.run([UNCRUSTIFY_EXE] + version_args, \
+    result = subprocess.run([UNCRUSTIFY_EXE, "--version"], \
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
     if result.returncode != 0:
         print("Error getting version: "+str(result.stderr, "utf-8"), \

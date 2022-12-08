@@ -99,6 +99,7 @@ class OperationCommon(test_data_generation.BaseTest):
     limb_sizes = [32, 64] # type: List[int]
     arities = [1, 2]
     arity = 2
+    suffix = False   # for arity = 1, symbol can be prefix (default) or suffix
 
     def __init__(self, val_a: str, val_b: str = "0", bits_in_limb: int = 32) -> None:
         self.val_a = val_a
@@ -170,7 +171,8 @@ class OperationCommon(test_data_generation.BaseTest):
         """
         if not self.case_description:
             if self.arity == 1:
-                self.case_description = "{} {:x}".format(
+                format_string = "{1:x} {0}" if self.suffix else "{0} {1:x}"
+                self.case_description = format_string.format(
                     self.symbol, self.int_a
                 )
             elif self.arity == 2:

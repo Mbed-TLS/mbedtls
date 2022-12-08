@@ -90,8 +90,8 @@ RANDOM_1024_BIT_SEED_4_NO5 = ("53be4721f5b9e1f5acdac615bc20f6264922b9ccf469aef8"
                               "4708d9893a973000b54a23020fc5b043d6e4a51519d9c9cc"
                               "52d32377e78131c1")
 
-# Adding 192 bit and 1024 bit numbers because these are the shortest required
-# for ECC and RSA respectively.
+# Adding 192 bit and 1024 bit numbers because these are the shortest required
+# for ECC and RSA respectively.
 INPUTS_DEFAULT = [
         "0", "1", # corner cases
         "2", "3", # small primes
@@ -110,11 +110,19 @@ INPUTS_DEFAULT = [
 # supported for now.
 MODULI_DEFAULT = [
         "53", # safe prime
-        "45", # non-prime
+        "45", # non-prime
         SAFE_PRIME_192_BIT_SEED_1,  # safe prime
         RANDOM_192_BIT_SEED_2_NO4,  # not a prime
         SAFE_PRIME_1024_BIT_SEED_3, # safe prime
         RANDOM_1024_BIT_SEED_4_NO5, # not a prime
+        ]
+
+# Some functions, e.g. mbedtls_mpi_mod_raw_inv_prime(), only support prime moduli.
+ONLY_PRIME_MODULI = [
+        "53", # safe prime
+        "8ac72304057392b5",     # 9999999997777777333 (longer, not safe, prime)
+        SAFE_PRIME_192_BIT_SEED_1,  # safe prime
+        SAFE_PRIME_1024_BIT_SEED_3, # safe prime
         ]
 
 def __gen_safe_prime(bits, seed):

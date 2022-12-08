@@ -27,7 +27,7 @@ import sys
 from typing import List
 
 UNCRUSTIFY_SUPPORTED_VERSION = "0.75.1"
-CONFIG_FILE = "codestyle.cfg"
+CONFIG_FILE = ".uncrustify.cfg"
 UNCRUSTIFY_EXE = "uncrustify"
 UNCRUSTIFY_ARGS = ["-c", CONFIG_FILE]
 STDOUT_UTF8 = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')

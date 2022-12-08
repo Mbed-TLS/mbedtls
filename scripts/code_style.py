@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 """Check or fix the code style by running Uncrustify.
+
+Note: The code style enforced by this script is not yet introduced to
+Mbed TLS. At present this script will only be used to prepare for a future
+change of code style.
 """
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0

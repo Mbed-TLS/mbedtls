@@ -1390,7 +1390,8 @@ psa_status_t psa_export_public_key(mbedtls_svc_key_id_t key,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_slot_t *slot;
+    psa_key_slot_t *slot = NULL;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     /* Reject a zero-length output buffer now, since this can never be a
      * valid key representation. This way we know that data must be a valid
@@ -1416,9 +1417,7 @@ psa_status_t psa_export_public_key(mbedtls_svc_key_id_t key,
         goto exit;
     }
 
-    psa_key_attributes_t attributes = {
-        .core = slot->attr
-    };
+    attributes.core = slot->attr;
     status = psa_driver_wrapper_export_public_key(
         &attributes, slot->key.data, slot->key.bytes,
         data, data_size, data_length);
@@ -2365,6 +2364,7 @@ static psa_status_t psa_mac_setup(psa_mac_operation_t *operation,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot = NULL;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     /* A context must be freshly initialized before it can be set up. */
     if (operation->id != 0) {
@@ -2381,9 +2381,7 @@ static psa_status_t psa_mac_setup(psa_mac_operation_t *operation,
         goto exit;
     }
 
-    psa_key_attributes_t attributes = {
-        .core = slot->attr
-    };
+    attributes.core = slot->attr;
 
     status = psa_mac_finalize_alg_and_key_validation(alg, &attributes,
                                                      &operation->mac_size);
@@ -2552,7 +2550,8 @@ static psa_status_t psa_mac_compute_internal(mbedtls_svc_key_id_t key,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_slot_t *slot;
+    psa_key_slot_t *slot = NULL;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     uint8_t operation_mac_size = 0;
 
     status = psa_get_and_lock_key_slot_with_policy(
@@ -2564,9 +2563,7 @@ static psa_status_t psa_mac_compute_internal(mbedtls_svc_key_id_t key,
         goto exit;
     }
 
-    psa_key_attributes_t attributes = {
-        .core = slot->attr
-    };
+    attributes.core = slot->attr;
 
     status = psa_mac_finalize_alg_and_key_validation(alg, &attributes,
                                                      &operation_mac_size);
@@ -2690,7 +2687,8 @@ static psa_status_t psa_sign_internal(mbedtls_svc_key_id_t key,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_slot_t *slot;
+    psa_key_slot_t *slot = NULL;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     *signature_length = 0;
 
@@ -2722,9 +2720,7 @@ static psa_status_t psa_sign_internal(mbedtls_svc_key_id_t key,
         goto exit;
     }
 
-    psa_key_attributes_t attributes = {
-        .core = slot->attr
-    };
+    attributes.core = slot->attr;
 
     if (input_is_message) {
         status = psa_driver_wrapper_sign_message(
@@ -3034,7 +3030,8 @@ psa_status_t psa_asymmetric_encrypt(mbedtls_svc_key_id_t key,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_slot_t *slot;
+    psa_key_slot_t *slot = NULL;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     (void) input;
     (void) input_length;
@@ -3059,9 +3056,7 @@ psa_status_t psa_asymmetric_encrypt(mbedtls_svc_key_id_t key,
         goto exit;
     }
 
-    psa_key_attributes_t attributes = {
-        .core = slot->attr
-    };
+    attributes.core = slot->attr;
 
     status = psa_driver_wrapper_asymmetric_encrypt(
         &attributes, slot->key.data, slot->key.bytes,
@@ -3085,7 +3080,8 @@ psa_status_t psa_asymmetric_decrypt(mbedtls_svc_key_id_t key,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_slot_t *slot;
+    psa_key_slot_t *slot = NULL;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     (void) input;
     (void) input_length;
@@ -3109,9 +3105,7 @@ psa_status_t psa_asymmetric_decrypt(mbedtls_svc_key_id_t key,
         goto exit;
     }
 
-    psa_key_attributes_t attributes = {
-        .core = slot->attr
-    };
+    attributes.core = slot->attr;
 
     status = psa_driver_wrapper_asymmetric_decrypt(
         &attributes, slot->key.data, slot->key.bytes,
@@ -3138,6 +3132,7 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot = NULL;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_usage_t usage = (cipher_operation == MBEDTLS_ENCRYPT ?
                              PSA_KEY_USAGE_ENCRYPT :
                              PSA_KEY_USAGE_DECRYPT);
@@ -3170,9 +3165,7 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
     }
     operation->default_iv_length = PSA_CIPHER_IV_LENGTH(slot->attr.type, alg);
 
-    psa_key_attributes_t attributes = {
-        .core = slot->attr
-    };
+    attributes.core = slot->attr;
 
     /* Try doing the operation through a driver before using software fallback. */
     if (cipher_operation == MBEDTLS_ENCRYPT) {
@@ -3394,6 +3387,7 @@ psa_status_t psa_cipher_encrypt(mbedtls_svc_key_id_t key,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot = NULL;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     uint8_t local_iv[PSA_CIPHER_IV_MAX_SIZE];
     size_t default_iv_length = 0;
 
@@ -3409,9 +3403,7 @@ psa_status_t psa_cipher_encrypt(mbedtls_svc_key_id_t key,
         goto exit;
     }
 
-    psa_key_attributes_t attributes = {
-        .core = slot->attr
-    };
+    attributes.core = slot->attr;
 
     default_iv_length = PSA_CIPHER_IV_LENGTH(slot->attr.type, alg);
     if (default_iv_length > PSA_CIPHER_IV_MAX_SIZE) {
@@ -3466,6 +3458,7 @@ psa_status_t psa_cipher_decrypt(mbedtls_svc_key_id_t key,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot = NULL;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     if (!PSA_ALG_IS_CIPHER(alg)) {
         status = PSA_ERROR_INVALID_ARGUMENT;
@@ -3479,9 +3472,7 @@ psa_status_t psa_cipher_decrypt(mbedtls_svc_key_id_t key,
         goto exit;
     }
 
-    psa_key_attributes_t attributes = {
-        .core = slot->attr
-    };
+    attributes.core = slot->attr;
 
     if (alg == PSA_ALG_CCM_STAR_NO_TAG &&
         input_length < PSA_BLOCK_CIPHER_BLOCK_LENGTH(slot->attr.type)) {
@@ -3732,6 +3723,7 @@ static psa_status_t psa_aead_setup(psa_aead_operation_t *operation,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot = NULL;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_usage_t key_usage = 0;
 
     status = psa_aead_check_algorithm(alg);
@@ -3762,9 +3754,7 @@ static psa_status_t psa_aead_setup(psa_aead_operation_t *operation,
         goto exit;
     }
 
-    psa_key_attributes_t attributes = {
-        .core = slot->attr
-    };
+    attributes.core = slot->attr;
 
     if ((status = psa_validate_tag_length(alg)) != PSA_SUCCESS) {
         goto exit;
@@ -4927,6 +4917,7 @@ static psa_status_t psa_generate_derived_key_internal(
     size_t bytes = PSA_BITS_TO_BYTES(bits);
     size_t storage_size = bytes;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     if (PSA_KEY_TYPE_IS_PUBLIC_KEY(slot->attr.type)) {
         return PSA_ERROR_INVALID_ARGUMENT;
@@ -4981,9 +4972,7 @@ static psa_status_t psa_generate_derived_key_internal(
     }
 
     slot->attr.bits = (psa_key_bits_t) bits;
-    psa_key_attributes_t attributes = {
-        .core = slot->attr
-    };
+    attributes.core = slot->attr;
 
     if (psa_key_lifetime_is_external(attributes.core.lifetime)) {
         status = psa_driver_wrapper_get_key_buffer_size(&attributes,
@@ -5867,6 +5856,7 @@ psa_status_t psa_raw_key_agreement(psa_algorithm_t alg,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot = NULL;
+    size_t expected_length = 0;
 
     if (!PSA_ALG_IS_KEY_AGREEMENT(alg)) {
         status = PSA_ERROR_INVALID_ARGUMENT;
@@ -5886,9 +5876,10 @@ psa_status_t psa_raw_key_agreement(psa_algorithm_t alg,
      * PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE() is exact so the point is moot.
      * If FFDH is implemented, PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE() can easily
      * be exact for it as well. */
-    size_t expected_length =
-        PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(slot->attr.type, slot->attr.bits);
-    if (output_size < expected_length) {
+    expected_length =
+        PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE( slot->attr.type, slot->attr.bits );
+    if (output_size < expected_length)
+    {
         status = PSA_ERROR_BUFFER_TOO_SMALL;
         goto exit;
     }

@@ -1126,7 +1126,7 @@ int mbedtls_move_handshake_to_state(mbedtls_ssl_context *ssl,
     }
 
     /* Perform communication via connected sockets */
-    while ((ssl->state != state) && (--max_steps >= 0)) {
+    while ((ssl->state != (mbedtls_ssl_states)state) && (--max_steps >= 0)) {
         /* If /p second_ssl ends the handshake procedure before /p ssl then
          * there is no need to call the next step */
         if (!mbedtls_ssl_is_handshake_over(second_ssl)) {
@@ -5007,12 +5007,12 @@ void move_handshake_to_state(int endpoint_type, int state, int need_pass)
         TEST_ASSERT(ret == 0 ||
                     ret == MBEDTLS_ERR_SSL_WANT_READ ||
                     ret == MBEDTLS_ERR_SSL_WANT_WRITE);
-        TEST_ASSERT(base_ep.ssl.state == state);
+        TEST_ASSERT(base_ep.ssl.state == (mbedtls_ssl_states)state);
     } else {
         TEST_ASSERT(ret != 0 &&
                     ret != MBEDTLS_ERR_SSL_WANT_READ &&
                     ret != MBEDTLS_ERR_SSL_WANT_WRITE);
-        TEST_ASSERT(base_ep.ssl.state != state);
+        TEST_ASSERT(base_ep.ssl.state != (mbedtls_ssl_states)state);
     }
 
 exit:

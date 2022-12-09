@@ -719,7 +719,7 @@ static int ssl_tls13_parse_supported_versions_ext(mbedtls_ssl_context *ssl,
     const unsigned char *p = buf;
     size_t versions_len;
     const unsigned char *versions_end;
-    uint16_t tls_version;
+    mbedtls_ssl_protocol_version tls_version;
     int tls13_supported = 0;
 
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, 1);
@@ -2884,7 +2884,7 @@ int mbedtls_ssl_tls13_handshake_server_step(mbedtls_ssl_context *ssl)
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 
-    MBEDTLS_SSL_DEBUG_MSG(2, ("tls13 server state: %s(%d)",
+    MBEDTLS_SSL_DEBUG_MSG(2, ("tls13 server state: %s(%u)",
                               mbedtls_ssl_states_str(ssl->state),
                               ssl->state));
 
@@ -3017,7 +3017,7 @@ int mbedtls_ssl_tls13_handshake_server_step(mbedtls_ssl_context *ssl)
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
         default:
-            MBEDTLS_SSL_DEBUG_MSG(1, ("invalid state %d", ssl->state));
+            MBEDTLS_SSL_DEBUG_MSG(1, ("invalid state %u", ssl->state));
             return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     }
 

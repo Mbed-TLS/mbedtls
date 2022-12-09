@@ -3120,7 +3120,7 @@ ecdh_calc_secret:
 
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
         if ((ret = mbedtls_ssl_psk_derive_premaster(ssl,
-                                                    ciphersuite_info->key_exchange)) != 0) {
+                                                    (mbedtls_key_exchange_type_t)ciphersuite_info->key_exchange)) != 0) {
             MBEDTLS_SSL_DEBUG_RET(1,
                                   "mbedtls_ssl_psk_derive_premaster", ret);
             return ret;
@@ -3578,7 +3578,7 @@ int mbedtls_ssl_handshake_client_step(mbedtls_ssl_context *ssl)
             break;
 
         default:
-            MBEDTLS_SSL_DEBUG_MSG(1, ("invalid state %d", ssl->state));
+            MBEDTLS_SSL_DEBUG_MSG(1, ("invalid state %u", ssl->state));
             return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 

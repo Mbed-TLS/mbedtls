@@ -2342,7 +2342,7 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
     }
 #else
     const mbedtls_cipher_info_t *cipher =
-        mbedtls_cipher_info_from_type(suite->cipher);
+            mbedtls_cipher_info_from_type((mbedtls_cipher_type_t)suite->cipher);
     if (cipher != NULL) {
         base_mode =
             mbedtls_ssl_get_base_mode(
@@ -3022,12 +3022,12 @@ void mbedtls_ssl_get_dtls_srtp_negotiation_result(const mbedtls_ssl_context *ssl
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_ssl_conf_max_version(mbedtls_ssl_config *conf, int major, int minor)
 {
-    conf->max_tls_version = (major << 8) | minor;
+    conf->max_tls_version = (mbedtls_ssl_protocol_version)((major << 8) | minor);
 }
 
 void mbedtls_ssl_conf_min_version(mbedtls_ssl_config *conf, int major, int minor)
 {
-    conf->min_tls_version = (major << 8) | minor;
+    conf->min_tls_version = (mbedtls_ssl_protocol_version)((major << 8) | minor);
 }
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 
@@ -3655,7 +3655,7 @@ static int ssl_session_load(mbedtls_ssl_session *session,
     if (1 > (size_t) (end - p)) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
-    session->tls_version = 0x0300 | *p++;
+    session->tls_version = (mbedtls_ssl_protocol_version)(0x0300 | *p++);
 
     /* Dispatch according to TLS version. */
     remaining_len = (end - p);
@@ -6437,7 +6437,7 @@ int mbedtls_ssl_derive_keys(mbedtls_ssl_context *ssl)
 
     /* Set PRF, calc_verify and calc_finished function pointers */
     ret = ssl_set_handshake_prfs(ssl->handshake,
-                                 ciphersuite_info->mac);
+                                (mbedtls_md_type_t)ciphersuite_info->mac);
     if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "ssl_set_handshake_prfs", ret);
         return ret;
@@ -8133,7 +8133,7 @@ static int ssl_tls12_populate_transform(mbedtls_ssl_transform *transform,
         goto end;
     }
 #else
-    cipher_info = mbedtls_cipher_info_from_type(ciphersuite_info->cipher);
+    cipher_info = mbedtls_cipher_info_from_type((mbedtls_cipher_type_t)ciphersuite_info->cipher);
     if (cipher_info == NULL) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("cipher info for %u not found",
                                   ciphersuite_info->cipher));
@@ -8149,7 +8149,7 @@ static int ssl_tls12_populate_transform(mbedtls_ssl_transform *transform,
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 #else
-    md_info = mbedtls_md_info_from_type(ciphersuite_info->mac);
+    md_info = mbedtls_md_info_from_type((mbedtls_md_type_t)ciphersuite_info->mac);
     if (md_info == NULL) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("mbedtls_md info for %u not found",
                                   (unsigned) ciphersuite_info->mac));

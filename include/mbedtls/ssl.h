@@ -1582,7 +1582,7 @@ struct mbedtls_ssl_context {
     /*
      * Miscellaneous
      */
-    int MBEDTLS_PRIVATE(state);                  /*!< SSL handshake: current state     */
+    mbedtls_ssl_states MBEDTLS_PRIVATE(state);   /*!< SSL handshake: current state     */
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     int MBEDTLS_PRIVATE(renego_status);          /*!< Initial, in progress, pending?   */
     int MBEDTLS_PRIVATE(renego_records_seen);    /*!< Records since renego request, or with DTLS,

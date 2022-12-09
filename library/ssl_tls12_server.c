@@ -4208,7 +4208,7 @@ int mbedtls_ssl_handshake_server_step(mbedtls_ssl_context *ssl)
 {
     int ret = 0;
 
-    MBEDTLS_SSL_DEBUG_MSG(2, ("server state: %d", ssl->state));
+    MBEDTLS_SSL_DEBUG_MSG(2, ("server state: %u", ssl->state));
 
     switch (ssl->state) {
         case MBEDTLS_SSL_HELLO_REQUEST:
@@ -4309,7 +4309,7 @@ int mbedtls_ssl_handshake_server_step(mbedtls_ssl_context *ssl)
             break;
 
         default:
-            MBEDTLS_SSL_DEBUG_MSG(1, ("invalid state %d", ssl->state));
+            MBEDTLS_SSL_DEBUG_MSG(1, ("invalid state %u", ssl->state));
             return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 

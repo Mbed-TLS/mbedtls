@@ -1312,7 +1312,7 @@ void mbedtls_ssl_handshake_wrapup(mbedtls_ssl_context *ssl);
 static inline void mbedtls_ssl_handshake_set_state(mbedtls_ssl_context *ssl,
                                                    mbedtls_ssl_states state)
 {
-    ssl->state = (int) state;
+    ssl->state = state;
 }
 
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -1664,8 +1664,8 @@ int mbedtls_ssl_check_cert_usage(const mbedtls_x509_crt *cert,
 
 void mbedtls_ssl_write_version(unsigned char version[2], int transport,
                                mbedtls_ssl_protocol_version tls_version);
-uint16_t mbedtls_ssl_read_version(const unsigned char version[2],
-                                  int transport);
+mbedtls_ssl_protocol_version mbedtls_ssl_read_version(const unsigned char version[2],
+                                                      int transport);
 
 static inline size_t mbedtls_ssl_in_hdr_len(const mbedtls_ssl_context *ssl)
 {

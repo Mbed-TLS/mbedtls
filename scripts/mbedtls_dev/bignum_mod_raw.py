@@ -69,13 +69,11 @@ class BignumModRawInvPrime(bignum_common.ModOperationCommon,
     def is_valid(self) -> bool:
         return self.int_a > 0 and self.int_a < self.int_n
 
-    def arguments(self) -> List[str]:
+    @property
+    def arg_a(self) -> str:
         # Input has to be given in Montgomery form
         mont_a = self.to_montgomery(self.int_a)
-        arg_mont_a = self.format_arg('{:x}'.format(mont_a))
-        return [bignum_common.quote_str(n) for n in [self.arg_n,
-                                                     arg_mont_a]
-               ] + self.result()
+        return self.format_arg('{:x}'.format(mont_a))
 
     def result(self) -> List[str]:
         result = bignum_common.invmod(self.int_a, self.int_n)

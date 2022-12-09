@@ -6247,6 +6247,9 @@ void ssl_ecjpake_set_password( int use_opaque_arg )
 
         ECJPAKE_TEST_SET_PASSWORD( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
 
+        /* check that the opaque key is still valid after failure */
+        TEST_ASSERT( ! mbedtls_svc_key_id_is_null( pwd_slot ) );
+
         psa_destroy_key( pwd_slot );
 
         /* Then set the correct usage */

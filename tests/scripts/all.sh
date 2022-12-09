@@ -3662,20 +3662,12 @@ support_test_psa_compliance () {
     [ "$ver_major" -eq 3 ] && [ "$ver_minor" -ge 10 ]
 }
 
-component_test_corrected_code_style () {
-    ./scripts/code_style.py --fix
-
-    msg "build: make, default config (out-of-box), corrected code style"
-    make
-
-    msg "test: main suites make, default config (out-of-box), corrected code style"
-    make test
-
-    # Clean up code-style corrections
-    git checkout -- .
+component_check_code_style () {
+    msg "Check C code style"
+    ./scripts/code_style.py
 }
 
-support_test_corrected_code_style() {
+support_check_code_style() {
     case $(uncrustify --version) in
         *0.75.1*) true;;
         *) false;;

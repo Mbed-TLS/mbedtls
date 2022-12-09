@@ -862,7 +862,8 @@
  * This option:
  * - Adds xxx_restartable() variants of existing operations in the
  *   following modules, with corresponding restart context types:
- *   - ECP: scalar multiplication (mult), linear combination (muladd);
+ *   - ECP (for Short Weierstrass curves only): scalar multiplication (mul),
+ *     linear combination (muladd);
  *   - ECDSA: signature generation & verification;
  *   - PK: signature generation & verification;
  *   - X509: certificate chain verification.
@@ -870,11 +871,12 @@
  * - Changes the behaviour of TLS 1.2 clients (not servers) when using the
  *   ECDHE-ECDSA key exchange (not other key exchanges) to make all ECC
  *   computations restartable:
- *   - ECDH operations from the key exchange;
+ *   - ECDH operations from the key exchange, only for Short Weierstass
+ *     curves;
  *   - verification of the server's key exchange signature;
  *   - verification of the server's certificate chain;
- *   - generation of our signature if client authentication is used, with an
- *     ECC key/certificate.
+ *   - generation of the client's signature if client authentication is used,
+ *     with an ECC key/certificate.
  *
  * \note  In the cases above, the usual SSL/TLS functions, such as
  *        mbedtls_ssl_handshake(), can now return

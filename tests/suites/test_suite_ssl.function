@@ -6264,7 +6264,10 @@ void ssl_ecjpake_set_password( int use_opaque_arg )
     ECJPAKE_TEST_SET_PASSWORD( 0 );
 
 #if defined( MBEDTLS_USE_PSA_CRYPTO )
-    psa_destroy_key( pwd_slot );
+    if( use_opaque_arg )
+    {
+        psa_destroy_key( pwd_slot );
+    }
 #endif  /* MBEDTLS_USE_PSA_CRYPTO */
     mbedtls_ssl_free( &ssl );
     mbedtls_ssl_config_free( &conf );

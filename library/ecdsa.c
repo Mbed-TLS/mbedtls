@@ -237,7 +237,7 @@ cleanup:
  * Compute ECDSA signature of a hashed message (SEC1 4.1.3)
  * Obviously, compared to SEC1 4.1.3, we skip step 4 (hash message)
  */
-static int ecdsa_sign_restartable( mbedtls_ecp_group *grp,
+int mbedtls_ecdsa_sign_restartable( mbedtls_ecp_group *grp,
                 mbedtls_mpi *r, mbedtls_mpi *s,
                 const mbedtls_mpi *d, const unsigned char *buf, size_t blen,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
@@ -393,8 +393,8 @@ int mbedtls_ecdsa_sign( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     /* Use the same RNG for both blinding and ephemeral key generation */
-    return( ecdsa_sign_restartable( grp, r, s, d, buf, blen,
-                                    f_rng, p_rng, f_rng, p_rng, NULL ) );
+    return( mbedtls_ecdsa_sign_restartable( grp, r, s, d, buf, blen, f_rng,
+                                            p_rng, f_rng, p_rng, NULL ) );
 }
 #endif /* !MBEDTLS_ECDSA_SIGN_ALT */
 
@@ -405,7 +405,7 @@ int mbedtls_ecdsa_sign( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
  * note:    The f_rng_blind parameter must not be NULL.
  *
  */
-static int ecdsa_sign_det_restartable( mbedtls_ecp_group *grp,
+int mbedtls_ecdsa_sign_det_restartable( mbedtls_ecp_group *grp,
                     mbedtls_mpi *r, mbedtls_mpi *s,
                     const mbedtls_mpi *d, const unsigned char *buf, size_t blen,
                     mbedtls_md_type_t md_alg,
@@ -459,9 +459,9 @@ sign:
     ret = mbedtls_ecdsa_sign( grp, r, s, d, buf, blen,
                               mbedtls_hmac_drbg_random, p_rng );
 #else
-    ret = ecdsa_sign_restartable( grp, r, s, d, buf, blen,
-                                  mbedtls_hmac_drbg_random, p_rng,
-                                  f_rng_blind, p_rng_blind, rs_ctx );
+    ret = mbedtls_ecdsa_sign_restartable( grp, r, s, d, buf, blen,
+                                          mbedtls_hmac_drbg_random, p_rng,
+                                          f_rng_blind, p_rng_blind, rs_ctx );
 #endif /* MBEDTLS_ECDSA_SIGN_ALT */
 
 cleanup:
@@ -484,8 +484,9 @@ int mbedtls_ecdsa_sign_det_ext( mbedtls_ecp_group *grp, mbedtls_mpi *r,
                                                    size_t),
                                 void *p_rng_blind )
 {
-    return( ecdsa_sign_det_restartable( grp, r, s, d, buf, blen, md_alg,
-                                        f_rng_blind, p_rng_blind, NULL ) );
+    return( mbedtls_ecdsa_sign_det_restartable( grp, r, s, d, buf, blen, md_alg,
+                                                f_rng_blind, p_rng_blind,
+                                                NULL ) );
 }
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
@@ -494,11 +495,12 @@ int mbedtls_ecdsa_sign_det_ext( mbedtls_ecp_group *grp, mbedtls_mpi *r,
  * Verify ECDSA signature of hashed message (SEC1 4.1.4)
  * Obviously, compared to SEC1 4.1.3, we skip step 2 (hash message)
  */
-static int ecdsa_verify_restartable( mbedtls_ecp_group *grp,
-                                     const unsigned char *buf, size_t blen,
-                                     const mbedtls_ecp_point *Q,
-                                     const mbedtls_mpi *r, const mbedtls_mpi *s,
-                                     mbedtls_ecdsa_restart_ctx *rs_ctx )
+int mbedtls_ecdsa_verify_restartable( mbedtls_ecp_group *grp,
+                                      const unsigned char *buf, size_t blen,
+                                      const mbedtls_ecp_point *Q,
+                                      const mbedtls_mpi *r,
+                                      const mbedtls_mpi *s,
+                                      mbedtls_ecdsa_restart_ctx *rs_ctx )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi e, s_inv, u1, u2;
@@ -608,7 +610,7 @@ int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
                           const mbedtls_mpi *r,
                           const mbedtls_mpi *s)
 {
-    return( ecdsa_verify_restartable( grp, buf, blen, Q, r, s, NULL ) );
+    return( mbedtls_ecdsa_verify_restartable( grp, buf, blen, Q, r, s, NULL ) );
 }
 #endif /* !MBEDTLS_ECDSA_VERIFY_ALT */
 
@@ -660,9 +662,10 @@ int mbedtls_ecdsa_write_signature_restartable( mbedtls_ecdsa_context *ctx,
     mbedtls_mpi_init( &s );
 
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
-    MBEDTLS_MPI_CHK( ecdsa_sign_det_restartable( &ctx->grp, &r, &s, &ctx->d,
-                                                 hash, hlen, md_alg, f_rng,
-                                                 p_rng, rs_ctx ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecdsa_sign_det_restartable( &ctx->grp, &r, &s,
+                                                         &ctx->d, hash, hlen,
+                                                         md_alg, f_rng,
+                                                         p_rng, rs_ctx ) );
 #else
     (void) md_alg;
 
@@ -673,9 +676,9 @@ int mbedtls_ecdsa_write_signature_restartable( mbedtls_ecdsa_context *ctx,
                          hash, hlen, f_rng, p_rng ) );
 #else
     /* Use the same RNG for both blinding and ephemeral key generation */
-    MBEDTLS_MPI_CHK( ecdsa_sign_restartable( &ctx->grp, &r, &s, &ctx->d,
-                                             hash, hlen, f_rng, p_rng, f_rng,
-                                             p_rng, rs_ctx ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecdsa_sign_restartable( &ctx->grp, &r, &s, &ctx->d,
+                                                     hash, hlen, f_rng, p_rng,
+                                                     f_rng, p_rng, rs_ctx ) );
 #endif /* MBEDTLS_ECDSA_SIGN_ALT */
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
@@ -757,8 +760,9 @@ int mbedtls_ecdsa_read_signature_restartable( mbedtls_ecdsa_context *ctx,
                                       &ctx->Q, &r, &s ) ) != 0 )
         goto cleanup;
 #else
-    if( ( ret = ecdsa_verify_restartable( &ctx->grp, hash, hlen,
-                              &ctx->Q, &r, &s, rs_ctx ) ) != 0 )
+    if( ( ret = mbedtls_ecdsa_verify_restartable( &ctx->grp, hash, hlen,
+                                                  &ctx->Q, &r, &s,
+                                                  rs_ctx )) != 0 )
         goto cleanup;
 #endif /* MBEDTLS_ECDSA_VERIFY_ALT */
 

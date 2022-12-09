@@ -144,9 +144,12 @@ void mbedtls_mpi_mod_raw_inv_prime( mbedtls_mpi_uint *X,
      *                       |G| = N - 1, so we want
      *                 g^(|G|-1) = g^(N - 2)
      */
+
+    /* Use the first AN_limbs of T to hold N - 2 */
     mbedtls_mpi_uint *Nminus2 = T;
     (void) mbedtls_mpi_core_sub_int( Nminus2, N, 2, AN_limbs );
 
+    /* Rest of T is given to exp_mod for its working space */
     mbedtls_mpi_core_exp_mod( X,
                               A, N, AN_limbs, Nminus2, AN_limbs,
                               RR, T + AN_limbs );

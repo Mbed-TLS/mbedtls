@@ -36,9 +36,9 @@ Bugfix
      with MBEDTLS_PLATFORM_C disabled. Fixes #6118, #6196.
    * Fix compilation errors when trying to build with
      PSA drivers for AEAD (GCM, CCM, Chacha20-Poly1305).
-    * Fix memory leak in ssl_parse_certificate_request() caused by
-      mbedtls_x509_get_name() not freeing allocated objects in case of error.
-      Change mbedtls_x509_get_name() to clean up allocated objects on error.
+   * Fix memory leak in ssl_parse_certificate_request() caused by
+     mbedtls_x509_get_name() not freeing allocated objects in case of error.
+     Change mbedtls_x509_get_name() to clean up allocated objects on error.
    * Fix checks on PK in check_config.h for builds with PSA and RSA. This does
      not change which builds actually work, only moving a link-time error to
      an early check.

@@ -30,8 +30,8 @@ Bugfix
      other certificate files. Contributed by Eduardo Silva in #2602.
    * Fix a compilation error when using CMake with an IAR toolchain.
      Fixes #5964.
-    * Fix bugs and missing dependencies when building and testing
-      configurations with only one encryption type enabled in TLS 1.2.
+   * Fix bugs and missing dependencies when building and testing
+     configurations with only one encryption type enabled in TLS 1.2.
    * Provide the missing definition of mbedtls_setbuf() in some configurations
      with MBEDTLS_PLATFORM_C disabled. Fixes #6118, #6196.
    * Fix compilation errors when trying to build with

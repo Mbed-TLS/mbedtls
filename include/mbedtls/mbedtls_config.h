@@ -693,7 +693,8 @@
  * This option:
  * - Adds xxx_restartable() variants of existing operations in the
  *   following modules, with corresponding restart context types:
- *   - ECP: scalar multiplication (mult), linear combination (muladd);
+ *   - ECP (for Short Weierstrass curves only): scalar multiplication (mul),
+ *     linear combination (muladd);
  *   - ECDSA: signature generation & verification;
  *   - PK: signature generation & verification;
  *   - X509: certificate chain verification.
@@ -701,12 +702,12 @@
  * - Changes the behaviour of TLS 1.2 clients (not servers) when using the
  *   ECDHE-ECDSA key exchange (not other key exchanges) to make all ECC
  *   computations restartable:
- *   - ECDH operations from the key exchange - unless MBEDTLS_USE_PSA_CRYPTO
- *     is also enabled.
+ *   - ECDH operations from the key exchange, only for Short Weierstass
+ *     curves, only when MBEDTLS_USE_PSA_CRYPTO is not enabled.
  *   - verification of the server's key exchange signature;
  *   - verification of the server's certificate chain;
- *   - generation of our signature if client authentication is used, with an
- *     ECC key/certificate.
+ *   - generation of the client's signature if client authentication is used,
+ *     with an ECC key/certificate.
  *
  * \note  In the cases above, the usual SSL/TLS functions, such as
  *        mbedtls_ssl_handshake(), can now return
@@ -715,13 +716,12 @@
  * \note  When this option and MBEDTLS_USE_PSA_CRYPTO are both enabled,
  *        restartable operations in PK, X.509 and TLS (see above) are not
  *        using PSA. On the other hand, ECDH computations in TLS are using
- *        PSA, and are not restartable.
+ *        PSA, and are not restartable. These are temporary limitations that
+ *        should be lifted in the future.
  *
  * \note  This option only works with the default software implementation of
  *        elliptic curve functionality. It is incompatible with
  *        MBEDTLS_ECP_ALT, MBEDTLS_ECDH_XXX_ALT, MBEDTLS_ECDSA_XXX_ALT.
- *
- * \note  This option only works for Short Weierstrass curves.
  *
  * Requires: MBEDTLS_ECP_C
  *

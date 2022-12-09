@@ -1146,7 +1146,7 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg )
 {
-    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
+    psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
     psa_key_location_t location =
         PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime );
 
@@ -1181,9 +1181,8 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
             if( status == PSA_SUCCESS )
                 operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
 
-            return( status );
 #endif /* MBEDTLS_PSA_BUILTIN_CIPHER */
-            return( PSA_ERROR_NOT_SUPPORTED );
+            return( status );
 
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)

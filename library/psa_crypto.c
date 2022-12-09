@@ -3686,6 +3686,7 @@ exit:
 
 static psa_status_t psa_validate_tag_length(psa_algorithm_t alg)
 {
+    psa_status_t status = PSA_SUCCESS;
     const uint8_t tag_len = PSA_ALG_AEAD_GET_TAG_LENGTH(alg);
 
     switch (PSA_ALG_AEAD_WITH_SHORTENED_TAG(alg, 0)) {
@@ -3718,9 +3719,10 @@ static psa_status_t psa_validate_tag_length(psa_algorithm_t alg)
 
         default:
             (void) tag_len;
-            return PSA_ERROR_NOT_SUPPORTED;
+            status = PSA_ERROR_NOT_SUPPORTED;
+            break;
     }
-    return PSA_SUCCESS;
+    return status;
 }
 
 /* Set the key for a multipart authenticated operation. */
@@ -5200,7 +5202,7 @@ psa_status_t psa_key_derivation_setup(psa_key_derivation_operation_t *operation,
         return PSA_ERROR_NOT_SUPPORTED;
 #endif /* AT_LEAST_ONE_BUILTIN_KDF */
     } else {
-        return PSA_ERROR_INVALID_ARGUMENT;
+        status = PSA_ERROR_INVALID_ARGUMENT;
     }
 
     if (status == PSA_SUCCESS) {

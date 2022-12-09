@@ -44,70 +44,71 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
         alg = PSA_ALG_AEAD_WITH_SHORTENED_TAG(alg, 0);
     }
 
-    if (PSA_ALG_IS_CIPHER(alg) || PSA_ALG_IS_AEAD(alg)) {
-        switch (alg) {
+    switch (alg)
+    {
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
+        case PSA_ALG_CMAC:
+            mode = MBEDTLS_MODE_ECB;
+            break;
+#endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_STREAM_CIPHER)
-            case PSA_ALG_STREAM_CIPHER:
-                mode = MBEDTLS_MODE_STREAM;
-                break;
+        case PSA_ALG_STREAM_CIPHER:
+            mode = MBEDTLS_MODE_STREAM;
+            break;
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CTR)
-            case PSA_ALG_CTR:
-                mode = MBEDTLS_MODE_CTR;
-                break;
+        case PSA_ALG_CTR:
+            mode = MBEDTLS_MODE_CTR;
+            break;
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CFB)
-            case PSA_ALG_CFB:
-                mode = MBEDTLS_MODE_CFB;
-                break;
+        case PSA_ALG_CFB:
+            mode = MBEDTLS_MODE_CFB;
+            break;
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_OFB)
-            case PSA_ALG_OFB:
-                mode = MBEDTLS_MODE_OFB;
-                break;
+        case PSA_ALG_OFB:
+            mode = MBEDTLS_MODE_OFB;
+            break;
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_ECB_NO_PADDING)
-            case PSA_ALG_ECB_NO_PADDING:
-                mode = MBEDTLS_MODE_ECB;
-                break;
+        case PSA_ALG_ECB_NO_PADDING:
+            mode = MBEDTLS_MODE_ECB;
+            break;
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_NO_PADDING)
-            case PSA_ALG_CBC_NO_PADDING:
-                mode = MBEDTLS_MODE_CBC;
-                break;
+        case PSA_ALG_CBC_NO_PADDING:
+            mode = MBEDTLS_MODE_CBC;
+            break;
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_PKCS7)
-            case PSA_ALG_CBC_PKCS7:
-                mode = MBEDTLS_MODE_CBC;
-                break;
+        case PSA_ALG_CBC_PKCS7:
+            mode = MBEDTLS_MODE_CBC;
+            break;
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM_STAR_NO_TAG)
-            case PSA_ALG_CCM_STAR_NO_TAG:
-                mode = MBEDTLS_MODE_CCM_STAR_NO_TAG;
-                break;
+        case PSA_ALG_CCM_STAR_NO_TAG:
+            mode = MBEDTLS_MODE_CCM_STAR_NO_TAG;
+            break;
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
-            case PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, 0):
-                mode = MBEDTLS_MODE_CCM;
-                break;
+        case PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, 0):
+            mode = MBEDTLS_MODE_CCM;
+            break;
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
-            case PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_GCM, 0):
-                mode = MBEDTLS_MODE_GCM;
-                break;
+        case PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_GCM, 0):
+            mode = MBEDTLS_MODE_GCM;
+            break;
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
-            case PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CHACHA20_POLY1305, 0):
-                mode = MBEDTLS_MODE_CHACHAPOLY;
-                break;
+        case PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CHACHA20_POLY1305, 0):
+            mode = MBEDTLS_MODE_CHACHAPOLY;
+            break;
 #endif
-            default:
-                return NULL;
-        }
-    } else if (alg == PSA_ALG_CMAC) {
-        mode = MBEDTLS_MODE_ECB;
-    } else {
-        return NULL;
+        default:
+            mode = MBEDTLS_MODE_NONE;
+            break;
     }
 
     switch (key_type) {
@@ -149,14 +150,19 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
             break;
 #endif
         default:
-            return NULL;
-    }
-    if (cipher_id != NULL) {
-        *cipher_id = cipher_id_tmp;
+            cipher_id_tmp = MBEDTLS_CIPHER_ID_NONE;
+            break;
     }
 
-    return mbedtls_cipher_info_from_values(cipher_id_tmp,
-                                           (int) key_bits, mode);
+    if (mode == MBEDTLS_MODE_NONE || cipher_id_tmp == MBEDTLS_CIPHER_ID_NONE) {
+        return NULL;
+    } else {
+        if (cipher_id != NULL) {
+            *cipher_id = cipher_id_tmp;
+        }
+        return mbedtls_cipher_info_from_values(cipher_id_tmp,
+                                               (int) key_bits, mode);
+    }
 }
 
 #if defined(MBEDTLS_PSA_BUILTIN_CIPHER)

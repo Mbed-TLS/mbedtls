@@ -118,16 +118,18 @@ static psa_status_t psa_aead_setup(
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
 
         default:
-            (void) status;
             (void) key_buffer;
-            return PSA_ERROR_NOT_SUPPORTED;
+            status = PSA_ERROR_NOT_SUPPORTED;
+            break;
     }
 
-    operation->key_type = psa_get_key_type(attributes);
+    if (status == PSA_SUCCESS) {
+        operation->key_type = psa_get_key_type(attributes);
 
-    operation->tag_length = PSA_ALG_AEAD_GET_TAG_LENGTH(alg);
+        operation->tag_length = PSA_ALG_AEAD_GET_TAG_LENGTH(alg);
+    }
 
-    return PSA_SUCCESS;
+    return status;
 }
 
 psa_status_t mbedtls_psa_aead_encrypt(
@@ -206,7 +208,7 @@ psa_status_t mbedtls_psa_aead_encrypt(
         (void) additional_data;
         (void) additional_data_length;
         (void) plaintext;
-        return PSA_ERROR_NOT_SUPPORTED;
+        status = PSA_ERROR_NOT_SUPPORTED;
     }
 
     if (status == PSA_SUCCESS) {
@@ -316,7 +318,7 @@ psa_status_t mbedtls_psa_aead_decrypt(
         (void) additional_data;
         (void) additional_data_length;
         (void) plaintext;
-        return PSA_ERROR_NOT_SUPPORTED;
+        status = PSA_ERROR_NOT_SUPPORTED;
     }
 
     if (status == PSA_SUCCESS) {
@@ -426,7 +428,7 @@ psa_status_t mbedtls_psa_aead_set_nonce(
         (void) nonce;
         (void) nonce_length;
 
-        return PSA_ERROR_NOT_SUPPORTED;
+        status = PSA_ERROR_NOT_SUPPORTED;
     }
 
     return status;
@@ -489,7 +491,7 @@ psa_status_t mbedtls_psa_aead_update_ad(
         (void) input;
         (void) input_length;
 
-        return PSA_ERROR_NOT_SUPPORTED;
+        status = PSA_ERROR_NOT_SUPPORTED;
     }
 
     return status;
@@ -551,7 +553,7 @@ psa_status_t mbedtls_psa_aead_update(
         (void) output;
         (void) output_size;
 
-        return PSA_ERROR_NOT_SUPPORTED;
+        status = PSA_ERROR_NOT_SUPPORTED;
     }
 
     if (status == PSA_SUCCESS) {
@@ -622,7 +624,7 @@ psa_status_t mbedtls_psa_aead_finish(
         (void) tag_size;
         (void) tag_length;
 
-        return PSA_ERROR_NOT_SUPPORTED;
+        status = PSA_ERROR_NOT_SUPPORTED;
     }
 
     if (status == PSA_SUCCESS) {

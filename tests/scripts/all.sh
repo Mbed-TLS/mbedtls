@@ -3662,6 +3662,26 @@ support_test_psa_compliance () {
     [ "$ver_major" -eq 3 ] && [ "$ver_minor" -ge 10 ]
 }
 
+component_test_corrected_code_style () {
+    ./scripts/code_style.py --fix
+
+    msg "build: make, default config (out-of-box), corrected code style"
+    make
+
+    msg "test: main suites make, default config (out-of-box), corrected code style"
+    make test
+
+    # Clean up code-style corrections
+    git checkout -- .
+}
+
+support_test_corrected_code_style() {
+    case $(uncrustify --version) in
+        *0.75.1*) true;;
+        *) false;;
+    esac
+}
+
 component_check_python_files () {
     msg "Lint: Python scripts"
     tests/scripts/check-python-files.sh

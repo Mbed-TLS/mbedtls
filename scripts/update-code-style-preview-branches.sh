@@ -1,6 +1,6 @@
 #!/bin/sh
 
-ENFORCEMENT_COMMIT=7a88ce312a516cb2fe9c30cfe365ff3fa64c17b7
+ENFORCEMENT_COMMIT=6ed34c672d4f9298a90a17f149211b69ea97d190
 REMOTE_URL=git@github.com:Mbed-TLS/mbedtls.git
 
 help () {

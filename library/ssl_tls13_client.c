@@ -183,8 +183,9 @@ static int ssl_tls13_reset_key_share( mbedtls_ssl_context *ssl )
     if( group_id == 0 )
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 
-#if defined(MBEDTLS_ECDH_C)
-    if( mbedtls_ssl_tls13_named_group_is_ecdhe( group_id ) )
+#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_DHM_C)
+    if( mbedtls_ssl_tls13_named_group_is_ecdhe( group_id ) ||
+        mbedtls_ssl_tls13_named_group_is_dhe( group_id ) )
     {
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
@@ -202,7 +203,7 @@ static int ssl_tls13_reset_key_share( mbedtls_ssl_context *ssl )
         return( 0 );
     }
     else
-#endif /* MBEDTLS_ECDH_C */
+#endif /* MBEDTLS_ECDH_C || MBEDTLS_DHM_C */
     if( 0 /* other KEMs? */ )
     {
         /* Do something */
@@ -222,7 +223,7 @@ static int ssl_tls13_get_default_group_id( mbedtls_ssl_context *ssl,
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
 
 
-#if defined(MBEDTLS_ECDH_C)
+#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_DHM_C)
     const uint16_t *group_list = mbedtls_ssl_get_groups( ssl );
     /* Pick first available ECDHE group compatible with TLS 1.3 */
     if( group_list == NULL )
@@ -230,6 +231,7 @@ static int ssl_tls13_get_default_group_id( mbedtls_ssl_context *ssl,
 
     for ( ; *group_list != 0; group_list++ )
     {
+#if defined(MBEDTLS_ECDH_C)
         const mbedtls_ecp_curve_info *curve_info;
         curve_info = mbedtls_ecp_curve_info_from_tls_id( *group_list );
         if( curve_info != NULL &&
@@ -238,11 +240,20 @@ static int ssl_tls13_get_default_group_id( mbedtls_ssl_context *ssl,
             *group_id = *group_list;
             return( 0 );
         }
+#endif /* MBEDTLS_ECDH_C */
+#if defined(MBEDTLS_DHM_C)
+        if( *group_list >= MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048 &&
+            *group_list <= MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192 )
+        {
+            *group_id = *group_list;
+            return( 0 );
+        }
+#endif /* MBEDTLS_DHM_C */
     }
 #else
     ((void) ssl);
     ((void) group_id);
-#endif /* MBEDTLS_ECDH_C */
+#endif /* MBEDTLS_ECDH_C || MBEDTLS_DHM_C */
 
     /*
      * Add DHE named groups here.
@@ -307,8 +318,9 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
      * only one key share entry is allowed.
      */
     client_shares = p;
-#if defined(MBEDTLS_ECDH_C)
-    if( mbedtls_ssl_tls13_named_group_is_ecdhe( group_id ) )
+#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_DHM_C)
+    if( mbedtls_ssl_tls13_named_group_is_ecdhe( group_id ) ||
+        mbedtls_ssl_tls13_named_group_is_dhe( group_id ) )
     {
         /* Pointer to group */
         unsigned char *group = p;
@@ -321,8 +333,20 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
          */
         MBEDTLS_SSL_CHK_BUF_PTR( p, end, 4 );
         p += 4;
-        ret = mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
+#if defined(MBEDTLS_ECDH_C)
+        if( mbedtls_ssl_tls13_named_group_is_ecdhe( group_id ) )
+        {
+            ret = mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
                                     ssl, group_id, p, end, &key_exchange_len );
+        }
+#endif /* MBEDTLS_ECDH_C */
+#if defined(MBEDTLS_DHM_C)
+        if( mbedtls_ssl_tls13_named_group_is_dhe( group_id ) )
+        {
+            ret = mbedtls_ssl_tls13_generate_and_write_dhe_key_exchange(
+                                    ssl, group_id, p, end, &key_exchange_len );
+        }
+#endif /* MBEDTLS_DHM_C */
         p += key_exchange_len;
         if( ret != 0 )
             return( ret );
@@ -412,13 +436,20 @@ static int ssl_tls13_parse_hrr_key_share_ext( mbedtls_ssl_context *ssl,
      */
     for( ; *group_list != 0; group_list++ )
     {
-        curve_info = mbedtls_ecp_curve_info_from_tls_id( *group_list );
-        if( curve_info == NULL || curve_info->tls_id != selected_group )
-            continue;
-
-        /* We found a match */
-        found = 1;
-        break;
+        if( mbedtls_ssl_tls13_named_group_is_ecdhe( *group_list ) )
+        {
+            curve_info = mbedtls_ecp_curve_info_from_tls_id( *group_list );
+            if( curve_info != NULL && curve_info->tls_id == selected_group )
+            {
+                found = 1;
+                break;
+            }
+        }
+        if( mbedtls_ssl_tls13_named_group_is_dhe( *group_list ) )
+        {
+            found = 1;
+            break;
+        }
     }
 
     /* Client MUST verify that the selected_group field does not
@@ -490,25 +521,36 @@ static int ssl_tls13_parse_key_share_ext( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
 
-#if defined(MBEDTLS_ECDH_C)
-    if( mbedtls_ssl_tls13_named_group_is_ecdhe( group ) )
+#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_DHM_C)
+    if( mbedtls_ssl_tls13_named_group_is_ecdhe( group ) ||
+        mbedtls_ssl_tls13_named_group_is_dhe( group ) )
     {
-        const mbedtls_ecp_curve_info *curve_info =
-            mbedtls_ecp_curve_info_from_tls_id( group );
-        if( curve_info == NULL )
+#if defined(MBEDTLS_ECDH_C)
+        if( mbedtls_ssl_tls13_named_group_is_ecdhe( group ) )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Invalid TLS curve group id" ) );
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            const mbedtls_ecp_curve_info *curve_info =
+                mbedtls_ecp_curve_info_from_tls_id( group );
+            if( curve_info == NULL )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "Invalid TLS curve group id" ) );
+                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            }
+
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDH curve: %s", curve_info->name ) );
         }
-
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDH curve: %s", curve_info->name ) );
-
+#endif /* MBEDTLS_ECDH_C */
+#if defined(MBEDTLS_DHM_C)
+        if( mbedtls_ssl_tls13_named_group_is_dhe( group ) )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "DHE group name: %s", mbedtls_ssl_ffdh_name_from_group( group ) ) );
+        }
+#endif /* MBEDTLS_DHM_C */
         ret = mbedtls_ssl_tls13_read_public_ecdhe_share( ssl, p, end - p );
         if( ret != 0 )
             return( ret );
     }
     else
-#endif /* MBEDTLS_ECDH_C */
+#endif /* MBEDTLS_ECDH_C || MBEDTLS_DHM_C */
     if( 0 /* other KEMs? */ )
     {
         /* Do something */

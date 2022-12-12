@@ -895,11 +895,12 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
         }
 
         /*
-         * For now, we only support ECDHE groups.
+         * ECDHE and FFDH groups are supported
          */
-        if( mbedtls_ssl_tls13_named_group_is_ecdhe( group ) )
+        if( mbedtls_ssl_tls13_named_group_is_ecdhe( group ) ||
+            mbedtls_ssl_tls13_named_group_is_dhe( group ) )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDH group: %s (%04x)",
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDH/DHE group: %s (%04x)",
                                         mbedtls_ssl_named_group_to_str( group ),
                                         group ) );
             ret = mbedtls_ssl_tls13_read_public_ecdhe_share(
@@ -1851,6 +1852,21 @@ static int ssl_tls13_generate_and_write_key_share( mbedtls_ssl_context *ssl,
     }
     else
 #endif /* MBEDTLS_ECDH_C */
+#if defined(MBEDTLS_DHM_C)
+    if( mbedtls_ssl_tls13_named_group_is_dhe( named_group ) )
+    {
+        ret = mbedtls_ssl_tls13_generate_and_write_dhe_key_exchange(
+                                        ssl, named_group, buf, end, out_len );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET(
+                1, "mbedtls_ssl_tls13_generate_and_write_dhe_key_exchange",
+                ret );
+            return( ret );
+        }
+    }
+    else
+#endif /* MBEDTLS_DHM_C */
     if( 0 /* Other kinds of KEMs */ )
     {
     }

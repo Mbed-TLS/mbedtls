@@ -1428,10 +1428,16 @@ int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
      */
     if( mbedtls_ssl_tls13_key_exchange_mode_with_ephemeral( ssl ) )
     {
-        if( mbedtls_ssl_tls13_named_group_is_ecdhe( handshake->offered_group_id ) )
+        if( mbedtls_ssl_tls13_named_group_is_ecdhe( handshake->offered_group_id ) ||
+            mbedtls_ssl_tls13_named_group_is_dhe( handshake->offered_group_id ) )
         {
-#if defined(MBEDTLS_ECDH_C)
-        /* Compute ECDH shared secret. */
+#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_DHM_C)
+        psa_algorithm_t alg = 0;
+        if( mbedtls_ssl_tls13_named_group_is_ecdhe( handshake->offered_group_id ) )
+            alg = PSA_ALG_ECDH;
+        else
+            alg = PSA_ALG_FFDH;
+        /* Compute ECDH/FFDH shared secret. */
             psa_status_t status = PSA_ERROR_GENERIC_ERROR;
             psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
 
@@ -1447,7 +1453,7 @@ int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
                 return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
 
             status = psa_raw_key_agreement(
-                         PSA_ALG_ECDH, handshake->ecdh_psa_privkey,
+                         alg, handshake->ecdh_psa_privkey,
                          handshake->ecdh_psa_peerkey, handshake->ecdh_psa_peerkey_len,
                          shared_secret, shared_secret_len, &shared_secret_len );
             if( status != PSA_SUCCESS )
@@ -1466,12 +1472,7 @@ int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
             }
 
             handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
-#endif /* MBEDTLS_ECDH_C */
-        }
-        else
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Group not supported." ) );
-            return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+#endif /* MBEDTLS_ECDH_C || MBEDTLS_DHM_C */
         }
     }
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED */

@@ -13,6 +13,18 @@
  * depends_on:MBEDTLS_PKCS7_C:MBEDTLS_RSA_C
  * END_DEPENDENCIES
  */
+/* BEGIN_SUITE_HELPERS */
+int pkcs7_parse_buffer(unsigned char *pkcs7_buf, int buflen)
+{
+    int res;
+    mbedtls_pkcs7 pkcs7;
+
+    mbedtls_pkcs7_init(&pkcs7);
+    res = mbedtls_pkcs7_parse_der(&pkcs7, pkcs7_buf, buflen);
+    mbedtls_pkcs7_free(&pkcs7);
+    return res;
+}
+/* END_SUITE_HELPERS */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO */
 void pkcs7_parse(char *pkcs7_file, int res_expect)
@@ -21,19 +33,14 @@ void pkcs7_parse(char *pkcs7_file, int res_expect)
     size_t buflen;
     int res;
 
-    mbedtls_pkcs7 pkcs7;
-
-    mbedtls_pkcs7_init(&pkcs7);
-
     res = mbedtls_pk_load_file(pkcs7_file, &pkcs7_buf, &buflen);
     TEST_EQUAL(res, 0);
 
-    res = mbedtls_pkcs7_parse_der(&pkcs7, pkcs7_buf, buflen);
+    res = pkcs7_parse_buffer(pkcs7_buf, buflen);
     TEST_EQUAL(res, res_expect);
 
 exit:
     mbedtls_free(pkcs7_buf);
-    mbedtls_pkcs7_free(&pkcs7);
 }
 /* END_CASE */
 

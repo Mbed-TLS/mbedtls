@@ -1845,6 +1845,14 @@ static void ssl_tls13_update_early_data_status(mbedtls_ssl_context *ssl)
 
     }
 
+    if (mbedtls_ssl_session_get_ticket_flags(
+            ssl->session_negotiate,
+            MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_EARLY_DATA) == 0) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            1,
+            ("EarlyData: rejected, denied by ticket permission bits."));
+        return;
+    }
 
     ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED;
 

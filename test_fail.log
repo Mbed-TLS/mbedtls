@@ -1,0 +1,1843 @@
+
++ id -u
++ id -g
++ pwd
++ docker run -u 1000:1000 -e MAKEFLAGS --rm --entrypoint /var/lib/build/steps.sh -w /var/lib/build -v /tmp/workspace/mbed-tls-pr-merge_PR-6712-merge/src:/var/lib/build --cap-add SYS_PTRACE 666618195821.dkr.ecr.eu-west-1.amazonaws.com/jenkins-mbedtls:ubuntu-16.04-c1f96fa11a6066680482ab9c0ed3ed84daa47e99
++ ulimit -f 20971520
++ export MBEDTLS_TEST_OUTCOME_FILE=all_u16-test_tls13_only-outcome.csv
++ scripts/min_requirements.py --user
+DEPRECATION: Python 3.5 reached the end of its life on September 13th, 2020. Please upgrade your Python as Python 3.5 is no longer maintained. pip 21.0 will drop support for Python 3.5 in January 2021. pip 21.0 will remove support for this functionality.
+WARNING: The directory '/var/lib/builds/.cache/pip' or its parent directory is not owned or is not writable by the current user. The cache has been disabled. Check the permissions and owner of that directory. If executing pip with sudo, you may want sudo's -H flag.
+Ignoring Jinja2: markers 'python_version >= "3.10"' don't match your environment
+Collecting markupsafe<2.1
+  Downloading MarkupSafe-1.1.1-cp35-cp35m-manylinux1_x86_64.whl (27 kB)
+Collecting Jinja2==2.10.1
+  Downloading Jinja2-2.10.1-py2.py3-none-any.whl (124 kB)
+Collecting types-Jinja2
+  Downloading types_Jinja2-2.11.9-py3-none-any.whl (18 kB)
+Collecting jsonschema==3.2.0
+  Downloading jsonschema-3.2.0-py2.py3-none-any.whl (56 kB)
+Collecting types-jsonschema
+  Downloading types_jsonschema-4.17.0.2-py3-none-any.whl (8.9 kB)
+Collecting pylint==2.4.4
+  Downloading pylint-2.4.4-py3-none-any.whl (302 kB)
+Collecting mypy==0.780
+  Downloading mypy-0.780-cp35-cp35m-manylinux1_x86_64.whl (20.2 MB)
+Collecting importlib-metadata
+  Downloading importlib_metadata-2.1.3-py2.py3-none-any.whl (10 kB)
+Collecting attrs>=17.4.0
+  Downloading attrs-22.1.0-py2.py3-none-any.whl (58 kB)
+Collecting pyrsistent>=0.14.0
+  Downloading pyrsistent-0.17.3.tar.gz (106 kB)
+Requirement already satisfied: setuptools in /usr/local/lib/python3.5/dist-packages (from jsonschema==3.2.0->-r /tmp/tmpy2jwv5yx/requirements.txt (line 5)) (50.3.2)
+Collecting six>=1.11.0
+  Downloading six-1.16.0-py2.py3-none-any.whl (11 kB)
+Collecting typing-extensions>=3.7.4
+  Downloading typing_extensions-3.10.0.2-py3-none-any.whl (26 kB)
+Collecting typed-ast<1.5.0,>=1.4.0
+  Downloading typed_ast-1.4.3-cp35-cp35m-manylinux1_x86_64.whl (743 kB)
+Collecting mypy-extensions<0.5.0,>=0.4.3
+  Downloading mypy_extensions-0.4.3-py2.py3-none-any.whl (4.5 kB)
+Collecting isort<5,>=4.2.5
+  Downloading isort-4.3.21-py2.py3-none-any.whl (42 kB)
+Collecting astroid<2.4,>=2.3.0
+  Downloading astroid-2.3.3-py3-none-any.whl (205 kB)
+Collecting mccabe<0.7,>=0.6
+  Downloading mccabe-0.6.1-py2.py3-none-any.whl (8.6 kB)
+Collecting wrapt==1.11.*
+  Downloading wrapt-1.11.2.tar.gz (27 kB)
+Collecting lazy-object-proxy==1.4.*
+  Downloading lazy_object_proxy-1.4.3-cp35-cp35m-manylinux1_x86_64.whl (55 kB)
+Collecting types-MarkupSafe
+  Downloading types_MarkupSafe-1.1.10-py3-none-any.whl (4.0 kB)
+Collecting zipp>=0.5
+  Downloading zipp-1.2.0-py2.py3-none-any.whl (4.8 kB)
+Building wheels for collected packages: wrapt, pyrsistent
+  Building wheel for wrapt (setup.py): started
+  Building wheel for wrapt (setup.py): finished with status 'done'
+  Created wheel for wrapt: filename=wrapt-1.11.2-cp35-cp35m-linux_x86_64.whl size=66131 sha256=30e6e99115a7e008484bf0404062d68e62d14d61b4a88ffd5aa6333ef6ec1125
+  Stored in directory: /tmp/pip-ephem-wheel-cache-i82gtxm8/wheels/df/45/79/5782fcab13ca40147bbfc80c68a7cb043f1c18d170f60b93a2
+  Building wheel for pyrsistent (setup.py): started
+  Building wheel for pyrsistent (setup.py): finished with status 'done'
+  Created wheel for pyrsistent: filename=pyrsistent-0.17.3-cp35-cp35m-linux_x86_64.whl size=102277 sha256=ab21d515155a5fc3ae58a7821ec7f16007116ed77508b6b0eedd623beaf0331b
+  Stored in directory: /tmp/pip-ephem-wheel-cache-i82gtxm8/wheels/6e/ce/d7/a149c2d007203e74294d9d641ea6a6504a3d71a0540790e452
+Successfully built wrapt pyrsistent
+Installing collected packages: zipp, wrapt, typed-ast, six, lazy-object-proxy, typing-extensions, types-MarkupSafe, pyrsistent, mypy-extensions, mccabe, markupsafe, isort, importlib-metadata, attrs, astroid, types-jsonschema, types-Jinja2, pylint, mypy, jsonschema, Jinja2
+  WARNING: The script isort is installed in '/var/lib/builds/.local/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+  WARNING: The scripts epylint, pylint, pyreverse and symilar are installed in '/var/lib/builds/.local/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+  WARNING: The scripts dmypy, mypy, stubgen and stubtest are installed in '/var/lib/builds/.local/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+  WARNING: The script jsonschema is installed in '/var/lib/builds/.local/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+Successfully installed Jinja2-2.10.1 astroid-2.3.3 attrs-22.1.0 importlib-metadata-2.1.3 isort-4.3.21 jsonschema-3.2.0 lazy-object-proxy-1.4.3 markupsafe-1.1.1 mccabe-0.6.1 mypy-0.780 mypy-extensions-0.4.3 pylint-2.4.4 pyrsistent-0.17.3 six-1.16.0 typed-ast-1.4.3 types-Jinja2-2.11.9 types-MarkupSafe-1.1.10 types-jsonschema-4.17.0.2 typing-extensions-3.10.0.2 wrapt-1.11.2 zipp-1.2.0
+markupsafe < 2.1
+Jinja2 == 2.10.1; python_version <  '3.10'
+Jinja2 == 2.10.3; python_version >= '3.10'
+types-Jinja2
+jsonschema == 3.2.0
+types-jsonschema
+pylint == 2.4.4
+mypy == 0.780
++ ./tests/scripts/all.sh --seed 4 --keep-going test_tls13_only
+./tests/scripts/all.sh: line 3679: uncrustify: command not found
+
+******************************************************************
+* info: ./tests/scripts/all.sh configuration
+* Mon Dec 12 03:27:18 UTC 2022
+******************************************************************
+MEMORY: 0
+FORCE: 0
+MBEDTLS_TEST_OUTCOME_FILE: /var/lib/build/all_u16-test_tls13_only-outcome.csv
+SEED: 4
+
+OPENSSL: /usr/local/openssl-1.0.2g/bin/openssl
+OPENSSL_LEGACY: /usr/local/openssl-1.0.1j/bin/openssl
+OPENSSL_NEXT: /usr/local/openssl-1.1.1a/bin/openssl
+GNUTLS_CLI: /usr/local/gnutls-3.4.10/bin/gnutls-cli
+GNUTLS_SERV: /usr/local/gnutls-3.4.10/bin/gnutls-serv
+GNUTLS_LEGACY_CLI: /usr/local/gnutls-3.3.8/bin/gnutls-cli
+GNUTLS_LEGACY_SERV: /usr/local/gnutls-3.3.8/bin/gnutls-serv
+ARMC5_BIN_DIR: /usr/local/ARM_Compiler_5.06u3/bin/
+ARMC6_BIN_DIR: /usr/local/ARM_Compiler_6.6/bin/
+
+******************************************************************
+* info: output_env.sh
+* Mon Dec 12 03:27:18 UTC 2022
+******************************************************************
+** Platform:
+
+Linux variant
+
+scripts/output_env.sh: 72: scripts/output_env.sh: lsb_release: not found
+ * uname: /bin/uname : Linux 1d0cfa4a2686 5.4.0-1045-aws #47-Ubuntu SMP Tue Apr 13 07:02:25 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux
+
+
+** Tool Versions:
+
+ * make: /usr/bin/make : GNU Make 4.1
+
+ * cmake: /usr/bin/cmake : cmake version 3.5.1
+
+ * arm-none-eabi-gcc: /opt/gcc-arm-none-eabi-5_4-2016q3/bin/arm-none-eabi-gcc : arm-none-eabi-gcc (GNU Tools for ARM Embedded Processors) 5.4.1 20160919 (release) [ARM/embedded-5-branch revision 240496]
+
+ * gcc: /usr/bin/gcc : gcc (Ubuntu 5.4.0-6ubuntu1~16.04.12) 5.4.0 20160609
+
+ * clang: /usr/bin/clang : clang version 3.8.0-2ubuntu4 (tags/RELEASE_380/final)
+Target: x86_64-pc-linux-gnu
+
+ * ldd: /usr/bin/ldd : ldd (Ubuntu GLIBC 2.23-0ubuntu11.3) 2.23
+
+ * valgrind: /usr/bin/valgrind : valgrind-3.11.0
+
+ * gdb: /usr/bin/gdb : GNU gdb (Ubuntu 7.11.1-0ubuntu1~16.5) 7.11.1
+
+ * perl: /usr/bin/perl : This is perl 5, version 22, subversion 1 (v5.22.1) built for x86_64-linux-gnu-thread-multi
+
+ * python: /usr/bin/python : Python 2.7.12
+
+ * python3: /usr/bin/python3 : Python 3.5.2
+
+ * pylint or pylint3: Not found.
+
+ * openssl (default): /usr/local/openssl-1.0.2g/bin/openssl : OpenSSL 1.0.2g  1 Mar 2016
+
+ * openssl (legacy): /usr/local/openssl-1.0.1j/bin/openssl : OpenSSL 1.0.1j 15 Oct 2014
+
+ * openssl (next): /usr/local/openssl-1.1.1a/bin/openssl : OpenSSL 1.1.1a  20 Nov 2018
+
+ * gnutls-cli (default): /usr/local/gnutls-3.4.10/bin/gnutls-cli : gnutls-cli 3.4.10
+
+ * gnutls-serv (default): /usr/local/gnutls-3.4.10/bin/gnutls-serv : gnutls-serv 3.4.10
+
+ * gnutls-cli (legacy): /usr/local/gnutls-3.3.8/bin/gnutls-cli : gnutls-cli 3.3.8
+
+ * gnutls-serv (legacy): /usr/local/gnutls-3.3.8/bin/gnutls-serv : gnutls-serv 3.3.8
+
+ * Installed asan versions:
+libasan2: 5.4.0-6ubuntu1~16.04.12
+
+  Gen   error.c
+  Gen   psa/psa_constant_names_generated.c
+  Gen   test/query_config.c
+  Gen   version_features.c
+  Gen   ssl_debug_helpers_generated.c
+  Gen   psa_crypto_driver_wrappers.c
+  Gen   suites/test_suite_psa_crypto_generate_key.generated.data suites/test_suite_psa_crypto_not_supported.generated.data suites/test_suite_psa_crypto_op_fail.generated.data suites/test_suite_psa_crypto_storage_format.current.data suites/test_suite_psa_crypto_storage_format.v0.data ...
+  Gen   visualc/VS2010/mbedTLS.sln ...
+  Gen   visualc/VS2010/mbedTLS.vcxproj ...
+  Gen   suites/test_suite_bignum.generated.data suites/test_suite_bignum_core.generated.data suites/test_suite_bignum_mod.generated.data suites/test_suite_bignum_mod_raw.generated.data
+
+******************************************************************
+* test_tls13_only: build: default config with MBEDTLS_SSL_PROTO_TLS1_3, without MBEDTLS_SSL_PROTO_TLS1_2
+* Mon Dec 12 03:27:20 UTC 2022
+******************************************************************
+  CC    aes.c
+  CC    aesni.c
+  CC    aria.c
+  CC    asn1parse.c
+  CC    src/helpers.c
+  CC    asn1write.c
+  CC    src/asn1_helpers.c
+  CC    src/psa_crypto_helpers.c
+  CC    base64.c
+  CC    src/psa_exercise_key.c
+  CC    bignum.c
+  CC    src/threading_helpers.c
+  CC    src/random.c
+  CC    src/fake_external_rng_for_test.c
+  CC    src/certs.c
+  CC    bignum_core.c
+  CC    src/drivers/test_driver_aead.c
+  CC    src/drivers/test_driver_asymmetric_encryption.c
+  CC    src/drivers/test_driver_key_agreement.c
+  CC    bignum_mod.c
+  CC    src/drivers/test_driver_signature.c
+  CC    src/drivers/test_driver_key_management.c
+  CC    bignum_mod_raw.c
+  CC    src/drivers/test_driver_cipher.c
+  CC    src/drivers/hash.c
+  CC    src/drivers/test_driver_mac.c
+  CC    camellia.c
+  CC    src/drivers/platform_builtin_keys.c
+  CC    ccm.c
+  CC    chacha20.c
+  CC    chachapoly.c
+  CC    cipher.c
+  CC    cipher_wrap.c
+  CC    cmac.c
+  CC    constant_time.c
+  CC    ctr_drbg.c
+  CC    des.c
+  CC    dhm.c
+  CC    ecdh.c
+  CC    ecdsa.c
+  CC    ecjpake.c
+  CC    ecp.c
+  CC    ecp_curves.c
+  CC    entropy.c
+  CC    entropy_poll.c
+  Gen   error.c
+  CC    gcm.c
+  CC    hash_info.c
+  CC    hkdf.c
+  CC    hmac_drbg.c
+  CC    lmots.c
+  CC    lms.c
+  CC    md.c
+  CC    md5.c
+  CC    memory_buffer_alloc.c
+  CC    nist_kw.c
+  CC    oid.c
+  CC    padlock.c
+  CC    pem.c
+  CC    pk.c
+  CC    pk_wrap.c
+  CC    pkcs12.c
+  CC    pkcs5.c
+  CC    pkparse.c
+  CC    pkwrite.c
+  CC    platform.c
+  CC    platform_util.c
+  CC    poly1305.c
+  CC    psa_crypto.c
+  CC    psa_crypto_aead.c
+  CC    psa_crypto_cipher.c
+  CC    psa_crypto_client.c
+  CC    psa_crypto_driver_wrappers.c
+  CC    psa_crypto_ecp.c
+  CC    psa_crypto_hash.c
+  CC    psa_crypto_mac.c
+  CC    psa_crypto_pake.c
+  CC    psa_crypto_rsa.c
+  CC    psa_crypto_se.c
+  CC    psa_crypto_slot_management.c
+  CC    psa_crypto_storage.c
+  CC    psa_its_file.c
+  CC    ripemd160.c
+  CC    rsa.c
+  CC    rsa_alt_helpers.c
+  CC    sha1.c
+  CC    sha256.c
+  CC    sha512.c
+  CC    threading.c
+  CC    timing.c
+  CC    version.c
+  CC    version_features.c
+  CC    ../3rdparty/everest/library/everest.c
+  CC    ../3rdparty/everest/library/x25519.c
+  CC    ../3rdparty/everest/library/Hacl_Curve25519_joined.c
+  CC    x509.c
+  CC    x509_create.c
+  CC    x509_crl.c
+  CC    x509_crt.c
+  CC    x509_csr.c
+  CC    x509write_crt.c
+  CC    x509write_csr.c
+  CC    pkcs7.c
+  CC    debug.c
+  CC    mps_reader.c
+  CC    mps_trace.c
+  CC    net_sockets.c
+  CC    ssl_cache.c
+  CC    ssl_ciphersuites.c
+  CC    ssl_client.c
+  CC    ssl_cookie.c
+  Gen   ssl_debug_helpers_generated.c
+  CC    ssl_msg.c
+  CC    ssl_ticket.c
+  CC    ssl_tls.c
+  CC    ssl_tls12_client.c
+  CC    ssl_tls12_server.c
+  CC    ssl_tls13_keys.c
+  CC    ssl_tls13_client.c
+  CC    ssl_tls13_server.c
+  CC    ssl_tls13_generic.c
+  CC    error.c
+  AR    libmbedx509.a
+  CC    ssl_debug_helpers_generated.c
+  AR    libmbedcrypto.a
+  AR    libmbedtls.a
+  CC    aes/crypt_and_hash.c
+  CC    cipher/cipher_aead_demo.c
+  CC    hash/generic_sum.c
+  Gen   test_suite_psa_crypto_se_driver_hal.c
+  CC    hash/hello.c
+  CC    hash/md_hmac_demo.c
+  Gen   test_suite_aes.ofb.c
+  CC    pkey/dh_client.c
+  Gen   test_suite_cipher.null.c
+  CC    pkey/dh_genprime.c
+  CC    pkey/dh_server.c
+  Gen   test_suite_psa_crypto_init.c
+  Gen   test_suite_lmots.c
+  CC    pkey/ecdh_curve25519.c
+  CC    pkey/ecdsa.c
+  Gen   test_suite_cipher.nist_kw.c
+  CC    pkey/gen_key.c
+  Gen   test_suite_pkcs7.c
+  CC    pkey/key_app.c
+  Gen   test_suite_pem.c
+  CC    pkey/key_app_writer.c
+  Gen   test_suite_base64.c
+  CC    pkey/mpi_demo.c
+  Gen   test_suite_psa_crypto_storage_format.v0.c
+  CC    pkey/pk_decrypt.c
+  CC    pkey/pk_encrypt.c
+  CC    pkey/pk_sign.c
+  CC    pkey/pk_verify.c
+  CC    pkey/rsa_decrypt.c
+  CC    pkey/rsa_encrypt.c
+  CC    pkey/rsa_genkey.c
+  CC    pkey/rsa_sign.c
+  CC    pkey/rsa_sign_pss.c
+  CC    pkey/rsa_verify.c
+  CC    pkey/rsa_verify_pss.c
+  CC    psa/aead_demo.c
+  CC    psa/crypto_examples.c
+  CC    psa/hmac_demo.c
+  CC    psa/key_ladder_demo.c
+  CC    psa/psa_constant_names.c
+  CC    random/gen_entropy.c
+  CC    random/gen_random_ctr_drbg.c
+  CC    ssl/dtls_client.c
+  CC    ssl/dtls_server.c
+  CC    ssl/mini_client.c
+  CC    ssl/ssl_client1.c
+  CC    test/query_config.c
+  Gen   test_suite_psa_crypto_generate_key.generated.c
+  Gen   test_suite_gcm.aes256_en.c
+  CC    ssl/ssl_test_lib.c
+  CC    ssl/ssl_context_info.c
+  CC    ssl/ssl_fork_server.c
+  Gen   test_suite_random.c
+  Gen   test_suite_ecdsa.c
+  CC    ssl/ssl_mail_client.c
+  Gen   test_suite_bignum_mod.generated.c
+  CC    ssl/ssl_server.c
+  CC    ssl/ssl_server2.c
+  CC    test/benchmark.c
+  CC    test/query_compile_time_config.c
+  CC    test/selftest.c
+  Gen   test_suite_psa_crypto_slot_management.c
+  CC    test/udp_proxy.c
+  Gen   test_suite_psa_crypto_se_driver_hal_mocks.c
+  CC    test/zeroize.c
+  Gen   test_suite_psa_crypto_storage_format.misc.c
+  CC    util/pem2der.c
+  Gen   test_suite_pkcs5.c
+  CC    util/strerror.c
+  Gen   test_suite_cipher.gcm.c
+  CC    x509/cert_app.c
+  CC    x509/cert_req.c
+  CC    x509/cert_write.c
+  CC    x509/crl_app.c
+  CC    x509/load_roots.c
+  CC    x509/req_app.c
+  Gen   test_suite_psa_crypto_attributes.c
+  Gen   test_suite_oid.c
+ cc common.o onefile.o fuzz_privkey.o ../../tests/src/helpers.o ../../tests/src/asn1_helpers.o ../../tests/src/psa_crypto_helpers.o ../../tests/src/psa_exercise_key.o ../../tests/src/threading_helpers.o ../../tests/src/random.o ../../tests/src/fake_external_rng_for_test.o ../../tests/src/certs.o ../../tests/src/drivers/test_driver_aead.o ../../tests/src/drivers/test_driver_asymmetric_encryption.o ../../tests/src/drivers/test_driver_key_agreement.o ../../tests/src/drivers/test_driver_signature.o ../../tests/src/drivers/test_driver_key_management.o ../../tests/src/drivers/test_driver_cipher.o ../../tests/src/drivers/hash.o ../../tests/src/drivers/test_driver_mac.o ../../tests/src/drivers/platform_builtin_keys.o -L../../library -lmbedtls -lmbedx509 -lmbedcrypto  -o fuzz_privkey
+ cc common.o onefile.o fuzz_x509csr.o ../../tests/src/helpers.o ../../tests/src/asn1_helpers.o ../../tests/src/psa_crypto_helpers.o ../../tests/src/psa_exercise_key.o ../../tests/src/threading_helpers.o ../../tests/src/random.o ../../tests/src/fake_external_rng_for_test.o ../../tests/src/certs.o ../../tests/src/drivers/test_driver_aead.o ../../tests/src/drivers/test_driver_asymmetric_encryption.o ../../tests/src/drivers/test_driver_key_agreement.o ../../tests/src/drivers/test_driver_signature.o ../../tests/src/drivers/test_driver_key_management.o ../../tests/src/drivers/test_driver_cipher.o ../../tests/src/drivers/hash.o ../../tests/src/drivers/test_driver_mac.o ../../tests/src/drivers/platform_builtin_keys.o -L../../library -lmbedtls -lmbedx509 -lmbedcrypto  -o fuzz_x509csr
+  Gen   test_suite_asn1parse.c
+ cc common.o onefile.o fuzz_server.o ../../tests/src/helpers.o ../../tests/src/asn1_helpers.o ../../tests/src/psa_crypto_helpers.o ../../tests/src/psa_exercise_key.o ../../tests/src/threading_helpers.o ../../tests/src/random.o ../../tests/src/fake_external_rng_for_test.o ../../tests/src/certs.o ../../tests/src/drivers/test_driver_aead.o ../../tests/src/drivers/test_driver_asymmetric_encryption.o ../../tests/src/drivers/test_driver_key_agreement.o ../../tests/src/drivers/test_driver_signature.o ../../tests/src/drivers/test_driver_key_management.o ../../tests/src/drivers/test_driver_cipher.o ../../tests/src/drivers/hash.o ../../tests/src/drivers/test_driver_mac.o ../../tests/src/drivers/platform_builtin_keys.o -L../../library -lmbedtls -lmbedx509 -lmbedcrypto  -o fuzz_server
+ cc common.o onefile.o fuzz_pkcs7.o ../../tests/src/helpers.o ../../tests/src/asn1_helpers.o ../../tests/src/psa_crypto_helpers.o ../../tests/src/psa_exercise_key.o ../../tests/src/threading_helpers.o ../../tests/src/random.o ../../tests/src/fake_external_rng_for_test.o ../../tests/src/certs.o ../../tests/src/drivers/test_driver_aead.o ../../tests/src/drivers/test_driver_asymmetric_encryption.o ../../tests/src/drivers/test_driver_key_agreement.o ../../tests/src/drivers/test_driver_signature.o ../../tests/src/drivers/test_driver_key_management.o ../../tests/src/drivers/test_driver_cipher.o ../../tests/src/drivers/hash.o ../../tests/src/drivers/test_driver_mac.o ../../tests/src/drivers/platform_builtin_keys.o -L../../library -lmbedtls -lmbedx509 -lmbedcrypto  -o fuzz_pkcs7
+ cc common.o onefile.o fuzz_x509crt.o ../../tests/src/helpers.o ../../tests/src/asn1_helpers.o ../../tests/src/psa_crypto_helpers.o ../../tests/src/psa_exercise_key.o ../../tests/src/threading_helpers.o ../../tests/src/random.o ../../tests/src/fake_external_rng_for_test.o ../../tests/src/certs.o ../../tests/src/drivers/test_driver_aead.o ../../tests/src/drivers/test_driver_asymmetric_encryption.o ../../tests/src/drivers/test_driver_key_agreement.o ../../tests/src/drivers/test_driver_signature.o ../../tests/src/drivers/test_driver_key_management.o ../../tests/src/drivers/test_driver_cipher.o ../../tests/src/drivers/hash.o ../../tests/src/drivers/test_driver_mac.o ../../tests/src/drivers/platform_builtin_keys.o -L../../library -lmbedtls -lmbedx509 -lmbedcrypto  -o fuzz_x509crt
+  Gen   test_suite_aes.xts.c
+ cc common.o onefile.o fuzz_dtlsclient.o ../../tests/src/helpers.o ../../tests/src/asn1_helpers.o ../../tests/src/psa_crypto_helpers.o ../../tests/src/psa_exercise_key.o ../../tests/src/threading_helpers.o ../../tests/src/random.o ../../tests/src/fake_external_rng_for_test.o ../../tests/src/certs.o ../../tests/src/drivers/test_driver_aead.o ../../tests/src/drivers/test_driver_asymmetric_encryption.o ../../tests/src/drivers/test_driver_key_agreement.o ../../tests/src/drivers/test_driver_signature.o ../../tests/src/drivers/test_driver_key_management.o ../../tests/src/drivers/test_driver_cipher.o ../../tests/src/drivers/hash.o ../../tests/src/drivers/test_driver_mac.o ../../tests/src/drivers/platform_builtin_keys.o -L../../library -lmbedtls -lmbedx509 -lmbedcrypto  -o fuzz_dtlsclient
+ cc common.o onefile.o fuzz_pubkey.o ../../tests/src/helpers.o ../../tests/src/asn1_helpers.o ../../tests/src/psa_crypto_helpers.o ../../tests/src/psa_exercise_key.o ../../tests/src/threading_helpers.o ../../tests/src/random.o ../../tests/src/fake_external_rng_for_test.o ../../tests/src/certs.o ../../tests/src/drivers/test_driver_aead.o ../../tests/src/drivers/test_driver_asymmetric_encryption.o ../../tests/src/drivers/test_driver_key_agreement.o ../../tests/src/drivers/test_driver_signature.o ../../tests/src/drivers/test_driver_key_management.o ../../tests/src/drivers/test_driver_cipher.o ../../tests/src/drivers/hash.o ../../tests/src/drivers/test_driver_mac.o ../../tests/src/drivers/platform_builtin_keys.o -L../../library -lmbedtls -lmbedx509 -lmbedcrypto  -o fuzz_pubkey
+ cc common.o onefile.o fuzz_x509crl.o ../../tests/src/helpers.o ../../tests/src/asn1_helpers.o ../../tests/src/psa_crypto_helpers.o ../../tests/src/psa_exercise_key.o ../../tests/src/threading_helpers.o ../../tests/src/random.o ../../tests/src/fake_external_rng_for_test.o ../../tests/src/certs.o ../../tests/src/drivers/test_driver_aead.o ../../tests/src/drivers/test_driver_asymmetric_encryption.o ../../tests/src/drivers/test_driver_key_agreement.o ../../tests/src/drivers/test_driver_signature.o ../../tests/src/drivers/test_driver_key_management.o ../../tests/src/drivers/test_driver_cipher.o ../../tests/src/drivers/hash.o ../../tests/src/drivers/test_driver_mac.o ../../tests/src/drivers/platform_builtin_keys.o -L../../library -lmbedtls -lmbedx509 -lmbedcrypto  -o fuzz_x509crl
+ cc common.o onefile.o fuzz_client.o ../../tests/src/helpers.o ../../tests/src/asn1_helpers.o ../../tests/src/psa_crypto_helpers.o ../../tests/src/psa_exercise_key.o ../../tests/src/threading_helpers.o ../../tests/src/random.o ../../tests/src/fake_external_rng_for_test.o ../../tests/src/certs.o ../../tests/src/drivers/test_driver_aead.o ../../tests/src/drivers/test_driver_asymmetric_encryption.o ../../tests/src/drivers/test_driver_key_agreement.o ../../tests/src/drivers/test_driver_signature.o ../../tests/src/drivers/test_driver_key_management.o ../../tests/src/drivers/test_driver_cipher.o ../../tests/src/drivers/hash.o ../../tests/src/drivers/test_driver_mac.o ../../tests/src/drivers/platform_builtin_keys.o -L../../library -lmbedtls -lmbedx509 -lmbedcrypto  -o fuzz_client
+  Gen   test_suite_ccm.c
+ cc common.o onefile.o fuzz_dtlsserver.o ../../tests/src/helpers.o ../../tests/src/asn1_helpers.o ../../tests/src/psa_crypto_helpers.o ../../tests/src/psa_exercise_key.o ../../tests/src/threading_helpers.o ../../tests/src/random.o ../../tests/src/fake_external_rng_for_test.o ../../tests/src/certs.o ../../tests/src/drivers/test_driver_aead.o ../../tests/src/drivers/test_driver_asymmetric_encryption.o ../../tests/src/drivers/test_driver_key_agreement.o ../../tests/src/drivers/test_driver_signature.o ../../tests/src/drivers/test_driver_key_management.o ../../tests/src/drivers/test_driver_cipher.o ../../tests/src/drivers/hash.o ../../tests/src/drivers/test_driver_mac.o ../../tests/src/drivers/platform_builtin_keys.o -L../../library -lmbedtls -lmbedx509 -lmbedcrypto  -o fuzz_dtlsserver
+  CC    ssl/ssl_client2.c
+  Gen   test_suite_entropy.c
+  Gen   test_suite_pkparse.c
+  Gen   test_suite_error.c
+  Gen   test_suite_hmac_drbg.pr.c
+  Gen   test_suite_aes.rest.c
+  Gen   test_suite_aria.c
+  Gen   test_suite_aes.cbc.c
+  Gen   test_suite_asn1write.c
+  Gen   test_suite_poly1305.c
+  Gen   test_suite_psa_crypto_driver_wrappers.c
+  Gen   test_suite_bignum_mod.c
+  Gen   test_suite_gcm.aes192_en.c
+  Gen   test_suite_hmac_drbg.no_reseed.c
+  Gen   test_suite_gcm.aes256_de.c
+  Gen   test_suite_cipher.ccm.c
+  Gen   test_suite_nist_kw.c
+  Gen   test_suite_chachapoly.c
+  Gen   test_suite_psa_crypto_op_fail.misc.c
+  Gen   test_suite_psa_its.c
+  Gen   test_suite_rsa.c
+  Gen   test_suite_timing.c
+  Gen   test_suite_mps.c
+  Gen   test_suite_ctr_drbg.c
+  Gen   test_suite_gcm.aes128_en.c
+  Gen   test_suite_cipher.camellia.c
+  Gen   test_suite_ecjpake.c
+  Gen   test_suite_psa_crypto_storage_format.current.c
+  Gen   test_suite_cmac.c
+  Gen   test_suite_cipher.misc.c
+  Gen   test_suite_psa_crypto_pake.c
+  Gen   test_suite_constant_time_hmac.c
+  Gen   test_suite_mdx.c
+  Gen   test_suite_pkwrite.c
+  Gen   test_suite_cipher.padding.c
+  Gen   test_suite_shax.c
+  Gen   test_suite_debug.c
+  Gen   test_suite_cipher.chacha20.c
+  Gen   test_suite_x509parse.c
+  Gen   test_suite_psa_crypto_entropy.c
+  Gen   test_suite_cipher.des.c
+  Gen   test_suite_hmac_drbg.misc.c
+  Gen   test_suite_constant_time.c
+  Gen   test_suite_psa_crypto_op_fail.generated.c
+  Gen   test_suite_bignum.generated.c
+  Gen   test_suite_psa_crypto_persistent_key.c
+  Gen   test_suite_pkcs1_v21.c
+  Gen   test_suite_hkdf.c
+  Gen   test_suite_dhm.c
+  Gen   test_suite_chacha20.c
+  Gen   test_suite_pk.c
+  Gen   test_suite_gcm.aes128_de.c
+  Gen   test_suite_bignum_core.generated.c
+  Gen   test_suite_cipher.aria.c
+  Gen   test_suite_bignum.misc.c
+  Gen   test_suite_x509write.c
+  Gen   test_suite_hmac_drbg.nopr.c
+  Gen   test_suite_des.c
+  Gen   test_suite_psa_crypto_hash.c
+  Gen   test_suite_cipher.aes.c
+  Gen   test_suite_gcm.misc.c
+  Gen   test_suite_gcm.aes192_de.c
+  Gen   test_suite_psa_crypto_not_supported.generated.c
+  Gen   test_suite_ssl.c
+  Gen   test_suite_bignum_mod_raw.c
+  Gen   test_suite_bignum_core.misc.c
+  Gen   test_suite_aes.cfb.c
+  Gen   test_suite_md.c
+  Gen   test_suite_bignum_mod_raw.generated.c
+  Gen   test_suite_version.c
+  Gen   test_suite_pkcs1_v15.c
+  Gen   test_suite_ecdh.c
+  Gen   test_suite_psa_crypto_not_supported.misc.c
+  Gen   test_suite_aes.ecb.c
+  Gen   test_suite_pkcs12.c
+  Gen   test_suite_camellia.c
+  Gen   test_suite_psa_crypto.c
+  Gen   test_suite_cipher.chachapoly.c
+  Gen   test_suite_net.c
+  Gen   test_suite_ecp.c
+  Gen   test_suite_psa_crypto_metadata.c
+  Gen   test_suite_lms.c
+  Gen   test_suite_memory_buffer_alloc.c
+  Gen   test_suite_gcm.camellia.c
+  CC    test_suite_psa_crypto_se_driver_hal.c
+  CC    test_suite_aes.ofb.c
+  CC    test_suite_cipher.null.c
+  CC    test_suite_psa_crypto_init.c
+  CC    test_suite_lmots.c
+  CC    test_suite_cipher.nist_kw.c
+  CC    test_suite_pkcs7.c
+  CC    test_suite_pem.c
+  CC    test_suite_base64.c
+  CC    test_suite_psa_crypto_storage_format.v0.c
+  CC    test_suite_psa_crypto_generate_key.generated.c
+  CC    test_suite_gcm.aes256_en.c
+  CC    test_suite_random.c
+  CC    test_suite_ecdsa.c
+  CC    test_suite_bignum_mod.generated.c
+  CC    test_suite_psa_crypto_slot_management.c
+  CC    test_suite_psa_crypto_se_driver_hal_mocks.c
+  CC    test_suite_psa_crypto_storage_format.misc.c
+  CC    test_suite_pkcs5.c
+  CC    test_suite_cipher.gcm.c
+  CC    test_suite_psa_crypto_attributes.c
+  CC    test_suite_oid.c
+  CC    test_suite_asn1parse.c
+  CC    test_suite_aes.xts.c
+  CC    test_suite_ccm.c
+  CC    test_suite_entropy.c
+  CC    test_suite_pkparse.c
+  CC    test_suite_error.c
+  CC    test_suite_hmac_drbg.pr.c
+  CC    test_suite_aes.rest.c
+  CC    test_suite_aria.c
+  CC    test_suite_aes.cbc.c
+  CC    test_suite_asn1write.c
+  CC    test_suite_poly1305.c
+  CC    test_suite_psa_crypto_driver_wrappers.c
+  CC    test_suite_bignum_mod.c
+  CC    test_suite_gcm.aes192_en.c
+  CC    test_suite_hmac_drbg.no_reseed.c
+  CC    test_suite_gcm.aes256_de.c
+  CC    test_suite_cipher.ccm.c
+  CC    test_suite_nist_kw.c
+  CC    test_suite_chachapoly.c
+  CC    test_suite_psa_crypto_op_fail.misc.c
+  CC    test_suite_psa_its.c
+  CC    test_suite_rsa.c
+  CC    test_suite_timing.c
+  CC    test_suite_mps.c
+  CC    test_suite_ctr_drbg.c
+  CC    test_suite_gcm.aes128_en.c
+  CC    test_suite_cipher.camellia.c
+  CC    test_suite_ecjpake.c
+  CC    test_suite_psa_crypto_storage_format.current.c
+  CC    test_suite_cmac.c
+  CC    test_suite_cipher.misc.c
+  CC    test_suite_psa_crypto_pake.c
+  CC    test_suite_constant_time_hmac.c
+  CC    test_suite_mdx.c
+  CC    test_suite_pkwrite.c
+  CC    test_suite_cipher.padding.c
+  CC    test_suite_shax.c
+  CC    test_suite_debug.c
+  CC    test_suite_cipher.chacha20.c
+  CC    test_suite_x509parse.c
+  CC    test_suite_psa_crypto_entropy.c
+  CC    test_suite_cipher.des.c
+  CC    test_suite_hmac_drbg.misc.c
+  CC    test_suite_constant_time.c
+  CC    test_suite_psa_crypto_op_fail.generated.c
+  CC    test_suite_bignum.generated.c
+  CC    test_suite_psa_crypto_persistent_key.c
+  CC    test_suite_pkcs1_v21.c
+  CC    test_suite_hkdf.c
+  CC    test_suite_dhm.c
+  CC    test_suite_chacha20.c
+  CC    test_suite_pk.c
+  CC    test_suite_gcm.aes128_de.c
+  CC    test_suite_bignum_core.generated.c
+  CC    test_suite_cipher.aria.c
+  CC    test_suite_bignum.misc.c
+  CC    test_suite_x509write.c
+  CC    test_suite_hmac_drbg.nopr.c
+  CC    test_suite_des.c
+  CC    test_suite_psa_crypto_hash.c
+  CC    test_suite_cipher.aes.c
+  CC    test_suite_gcm.misc.c
+  CC    test_suite_gcm.aes192_de.c
+  CC    test_suite_psa_crypto_not_supported.generated.c
+  CC    test_suite_ssl.c
+  CC    test_suite_bignum_mod_raw.c
+  CC    test_suite_bignum_core.misc.c
+  CC    test_suite_aes.cfb.c
+  CC    test_suite_md.c
+  CC    test_suite_bignum_mod_raw.generated.c
+  CC    test_suite_version.c
+  CC    test_suite_pkcs1_v15.c
+  CC    test_suite_ecdh.c
+  CC    test_suite_aes.ecb.c
+  CC    test_suite_psa_crypto_not_supported.misc.c
+  CC    test_suite_pkcs12.c
+  CC    test_suite_camellia.c
+  CC    test_suite_psa_crypto.c
+  CC    test_suite_cipher.chachapoly.c
+  CC    test_suite_net.c
+  CC    test_suite_ecp.c
+  CC    test_suite_psa_crypto_metadata.c
+  CC    test_suite_lms.c
+  CC    test_suite_memory_buffer_alloc.c
+  CC    test_suite_gcm.camellia.c
+
+******************************************************************
+* test_tls13_only: test: TLS 1.3 only, all key exchange modes enabled
+* Mon Dec 12 03:27:50 UTC 2022
+******************************************************************
+test_suite_aes.cbc ................................................ PASS
+test_suite_aes.cfb ................................................ PASS
+test_suite_aes.ecb ................................................ PASS
+test_suite_aes.ofb ................................................ PASS
+test_suite_aes.rest ............................................... PASS
+test_suite_aes.xts ................................................ PASS
+test_suite_aria ................................................... PASS
+test_suite_asn1parse .............................................. PASS
+test_suite_asn1write .............................................. PASS
+test_suite_base64 ................................................. PASS
+test_suite_bignum.generated ....................................... PASS
+test_suite_bignum.misc ............................................ PASS
+test_suite_bignum_core.generated .................................. PASS
+test_suite_bignum_core.misc ....................................... PASS
+test_suite_bignum_mod ............................................. PASS
+test_suite_bignum_mod.generated ................................... PASS
+test_suite_bignum_mod_raw ......................................... PASS
+test_suite_bignum_mod_raw.generated ............................... PASS
+test_suite_camellia ............................................... PASS
+test_suite_ccm .................................................... PASS
+test_suite_chacha20 ............................................... PASS
+test_suite_chachapoly ............................................. PASS
+test_suite_cipher.aes ............................................. PASS
+test_suite_cipher.aria ............................................ PASS
+test_suite_cipher.camellia ........................................ PASS
+test_suite_cipher.ccm ............................................. PASS
+test_suite_cipher.chacha20 ........................................ PASS
+test_suite_cipher.chachapoly ...................................... PASS
+test_suite_cipher.des ............................................. PASS
+test_suite_cipher.gcm ............................................. PASS
+test_suite_cipher.misc ............................................ PASS
+test_suite_cipher.nist_kw ......................................... PASS
+test_suite_cipher.null ............................................ PASS
+test_suite_cipher.padding ......................................... PASS
+test_suite_cmac ................................................... PASS
+test_suite_constant_time .......................................... PASS
+test_suite_constant_time_hmac ..................................... PASS
+test_suite_ctr_drbg ............................................... PASS
+test_suite_debug .................................................. PASS
+test_suite_des .................................................... PASS
+test_suite_dhm .................................................... PASS
+test_suite_ecdh ................................................... PASS
+test_suite_ecdsa .................................................. PASS
+test_suite_ecjpake ................................................ PASS
+test_suite_ecp .................................................... PASS
+test_suite_entropy ................................................ PASS
+test_suite_error .................................................. PASS
+test_suite_gcm.aes128_de .......................................... PASS
+test_suite_gcm.aes128_en .......................................... PASS
+test_suite_gcm.aes192_de .......................................... PASS
+test_suite_gcm.aes192_en .......................................... PASS
+test_suite_gcm.aes256_de .......................................... PASS
+test_suite_gcm.aes256_en .......................................... PASS
+test_suite_gcm.camellia ........................................... PASS
+test_suite_gcm.misc ............................................... PASS
+test_suite_hkdf ................................................... PASS
+test_suite_hmac_drbg.misc ......................................... PASS
+test_suite_hmac_drbg.no_reseed .................................... PASS
+test_suite_hmac_drbg.nopr ......................................... PASS
+test_suite_hmac_drbg.pr ........................................... PASS
+test_suite_lmots .................................................. PASS
+test_suite_lms .................................................... PASS
+test_suite_md ..................................................... PASS
+test_suite_mdx .................................................... PASS
+test_suite_memory_buffer_alloc .................................... PASS
+test_suite_mps .................................................... PASS
+test_suite_net .................................................... PASS
+test_suite_nist_kw ................................................ PASS
+test_suite_oid .................................................... PASS
+test_suite_pem .................................................... PASS
+test_suite_pk ..................................................... PASS
+test_suite_pkcs12 ................................................. PASS
+test_suite_pkcs1_v15 .............................................. PASS
+test_suite_pkcs1_v21 .............................................. PASS
+test_suite_pkcs5 .................................................. PASS
+test_suite_pkcs7 .................................................. PASS
+test_suite_pkparse ................................................ PASS
+test_suite_pkwrite ................................................ PASS
+test_suite_poly1305 ............................................... PASS
+test_suite_psa_crypto ............................................. PASS
+test_suite_psa_crypto_attributes .................................. PASS
+test_suite_psa_crypto_driver_wrappers ............................. PASS
+test_suite_psa_crypto_entropy ..................................... PASS
+test_suite_psa_crypto_generate_key.generated ...................... PASS
+test_suite_psa_crypto_hash ........................................ PASS
+test_suite_psa_crypto_init ........................................ PASS
+test_suite_psa_crypto_metadata .................................... PASS
+test_suite_psa_crypto_not_supported.generated ..................... PASS
+test_suite_psa_crypto_not_supported.misc .......................... PASS
+test_suite_psa_crypto_op_fail.generated ........................... PASS
+test_suite_psa_crypto_op_fail.misc ................................ PASS
+test_suite_psa_crypto_pake ........................................ PASS
+test_suite_psa_crypto_persistent_key .............................. PASS
+test_suite_psa_crypto_se_driver_hal ............................... PASS
+test_suite_psa_crypto_se_driver_hal_mocks ......................... PASS
+test_suite_psa_crypto_slot_management ............................. PASS
+test_suite_psa_crypto_storage_format.current ...................... PASS
+test_suite_psa_crypto_storage_format.misc ......................... PASS
+test_suite_psa_crypto_storage_format.v0 ........................... PASS
+test_suite_psa_its ................................................ PASS
+test_suite_random ................................................. PASS
+test_suite_rsa .................................................... PASS
+test_suite_shax ................................................... PASS
+test_suite_ssl .................................................... PASS
+test_suite_timing ................................................. PASS
+test_suite_version ................................................ PASS
+test_suite_x509parse .............................................. PASS
+test_suite_x509write .............................................. PASS
+------------------------------------------------------------------------
+PASSED (108 suites, 20938 tests run)
+
+******************************************************************
+* test_tls13_only: ssl-opt.sh: TLS 1.3 only, all key exchange modes enabled
+* Mon Dec 12 03:28:37 UTC 2022
+******************************************************************
+TLS 1.3 m->G: EarlyData: basic check, good 1 ........................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 2 ........................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-2.log
+TLS 1.3 m->G: EarlyData: basic check, good 3 ........................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-3.log
+TLS 1.3 m->G: EarlyData: basic check, good 4 ........................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-4.log
+TLS 1.3 m->G: EarlyData: basic check, good 5 ........................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-5.log
+TLS 1.3 m->G: EarlyData: basic check, good 6 ........................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-6.log
+TLS 1.3 m->G: EarlyData: basic check, good 7 ........................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-7.log
+TLS 1.3 m->G: EarlyData: basic check, good 8 ........................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-8.log
+TLS 1.3 m->G: EarlyData: basic check, good 9 ........................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-9.log
+TLS 1.3 m->G: EarlyData: basic check, good 10 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-10.log
+TLS 1.3 m->G: EarlyData: basic check, good 11 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-11.log
+TLS 1.3 m->G: EarlyData: basic check, good 12 .......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 13 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-13.log
+TLS 1.3 m->G: EarlyData: basic check, good 14 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-14.log
+TLS 1.3 m->G: EarlyData: basic check, good 15 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-15.log
+TLS 1.3 m->G: EarlyData: basic check, good 16 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-16.log
+TLS 1.3 m->G: EarlyData: basic check, good 17 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-17.log
+TLS 1.3 m->G: EarlyData: basic check, good 18 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-18.log
+TLS 1.3 m->G: EarlyData: basic check, good 19 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-19.log
+TLS 1.3 m->G: EarlyData: basic check, good 20 .......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 21 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-21.log
+TLS 1.3 m->G: EarlyData: basic check, good 22 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-22.log
+TLS 1.3 m->G: EarlyData: basic check, good 23 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-23.log
+TLS 1.3 m->G: EarlyData: basic check, good 24 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-24.log
+TLS 1.3 m->G: EarlyData: basic check, good 25 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-25.log
+TLS 1.3 m->G: EarlyData: basic check, good 26 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-26.log
+TLS 1.3 m->G: EarlyData: basic check, good 27 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-27.log
+TLS 1.3 m->G: EarlyData: basic check, good 28 .......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 29 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-29.log
+TLS 1.3 m->G: EarlyData: basic check, good 30 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-30.log
+TLS 1.3 m->G: EarlyData: basic check, good 31 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-31.log
+TLS 1.3 m->G: EarlyData: basic check, good 32 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-32.log
+TLS 1.3 m->G: EarlyData: basic check, good 33 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-33.log
+TLS 1.3 m->G: EarlyData: basic check, good 34 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-34.log
+TLS 1.3 m->G: EarlyData: basic check, good 35 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-35.log
+TLS 1.3 m->G: EarlyData: basic check, good 36 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-36.log
+TLS 1.3 m->G: EarlyData: basic check, good 37 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-37.log
+TLS 1.3 m->G: EarlyData: basic check, good 38 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-38.log
+TLS 1.3 m->G: EarlyData: basic check, good 39 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-39.log
+TLS 1.3 m->G: EarlyData: basic check, good 40 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-40.log
+TLS 1.3 m->G: EarlyData: basic check, good 41 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-41.log
+TLS 1.3 m->G: EarlyData: basic check, good 42 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-42.log
+TLS 1.3 m->G: EarlyData: basic check, good 43 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-43.log
+TLS 1.3 m->G: EarlyData: basic check, good 44 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-44.log
+TLS 1.3 m->G: EarlyData: basic check, good 45 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-45.log
+TLS 1.3 m->G: EarlyData: basic check, good 46 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-46.log
+TLS 1.3 m->G: EarlyData: basic check, good 47 .......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 48 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-48.log
+TLS 1.3 m->G: EarlyData: basic check, good 49 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-49.log
+TLS 1.3 m->G: EarlyData: basic check, good 50 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-50.log
+TLS 1.3 m->G: EarlyData: basic check, good 51 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-51.log
+TLS 1.3 m->G: EarlyData: basic check, good 52 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-52.log
+TLS 1.3 m->G: EarlyData: basic check, good 53 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-53.log
+TLS 1.3 m->G: EarlyData: basic check, good 54 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-54.log
+TLS 1.3 m->G: EarlyData: basic check, good 55 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-55.log
+TLS 1.3 m->G: EarlyData: basic check, good 56 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-56.log
+TLS 1.3 m->G: EarlyData: basic check, good 57 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-57.log
+TLS 1.3 m->G: EarlyData: basic check, good 58 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-58.log
+TLS 1.3 m->G: EarlyData: basic check, good 59 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-59.log
+TLS 1.3 m->G: EarlyData: basic check, good 60 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-60.log
+TLS 1.3 m->G: EarlyData: basic check, good 61 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-61.log
+TLS 1.3 m->G: EarlyData: basic check, good 62 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-62.log
+TLS 1.3 m->G: EarlyData: basic check, good 63 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-63.log
+TLS 1.3 m->G: EarlyData: basic check, good 64 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-64.log
+TLS 1.3 m->G: EarlyData: basic check, good 65 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-65.log
+TLS 1.3 m->G: EarlyData: basic check, good 66 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-66.log
+TLS 1.3 m->G: EarlyData: basic check, good 67 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-67.log
+TLS 1.3 m->G: EarlyData: basic check, good 68 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-68.log
+TLS 1.3 m->G: EarlyData: basic check, good 69 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-69.log
+TLS 1.3 m->G: EarlyData: basic check, good 70 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-70.log
+TLS 1.3 m->G: EarlyData: basic check, good 71 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-71.log
+TLS 1.3 m->G: EarlyData: basic check, good 72 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-72.log
+TLS 1.3 m->G: EarlyData: basic check, good 73 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-73.log
+TLS 1.3 m->G: EarlyData: basic check, good 74 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-74.log
+TLS 1.3 m->G: EarlyData: basic check, good 75 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-75.log
+TLS 1.3 m->G: EarlyData: basic check, good 76 .......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 77 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-77.log
+TLS 1.3 m->G: EarlyData: basic check, good 78 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-78.log
+TLS 1.3 m->G: EarlyData: basic check, good 79 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-79.log
+TLS 1.3 m->G: EarlyData: basic check, good 80 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-80.log
+TLS 1.3 m->G: EarlyData: basic check, good 81 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-81.log
+TLS 1.3 m->G: EarlyData: basic check, good 82 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-82.log
+TLS 1.3 m->G: EarlyData: basic check, good 83 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-83.log
+TLS 1.3 m->G: EarlyData: basic check, good 84 .......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 85 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-85.log
+TLS 1.3 m->G: EarlyData: basic check, good 86 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-86.log
+TLS 1.3 m->G: EarlyData: basic check, good 87 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-87.log
+TLS 1.3 m->G: EarlyData: basic check, good 88 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-88.log
+TLS 1.3 m->G: EarlyData: basic check, good 89 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-89.log
+TLS 1.3 m->G: EarlyData: basic check, good 90 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-90.log
+TLS 1.3 m->G: EarlyData: basic check, good 91 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-91.log
+TLS 1.3 m->G: EarlyData: basic check, good 92 .......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 93 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-93.log
+TLS 1.3 m->G: EarlyData: basic check, good 94 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-94.log
+TLS 1.3 m->G: EarlyData: basic check, good 95 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-95.log
+TLS 1.3 m->G: EarlyData: basic check, good 96 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-96.log
+TLS 1.3 m->G: EarlyData: basic check, good 97 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-97.log
+TLS 1.3 m->G: EarlyData: basic check, good 98 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-98.log
+TLS 1.3 m->G: EarlyData: basic check, good 99 .......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-99.log
+TLS 1.3 m->G: EarlyData: basic check, good 100 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 101 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-101.log
+TLS 1.3 m->G: EarlyData: basic check, good 102 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-102.log
+TLS 1.3 m->G: EarlyData: basic check, good 103 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-103.log
+TLS 1.3 m->G: EarlyData: basic check, good 104 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-104.log
+TLS 1.3 m->G: EarlyData: basic check, good 105 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-105.log
+TLS 1.3 m->G: EarlyData: basic check, good 106 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-106.log
+TLS 1.3 m->G: EarlyData: basic check, good 107 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-107.log
+TLS 1.3 m->G: EarlyData: basic check, good 108 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 109 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-109.log
+TLS 1.3 m->G: EarlyData: basic check, good 110 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-110.log
+TLS 1.3 m->G: EarlyData: basic check, good 111 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-111.log
+TLS 1.3 m->G: EarlyData: basic check, good 112 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-112.log
+TLS 1.3 m->G: EarlyData: basic check, good 113 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-113.log
+TLS 1.3 m->G: EarlyData: basic check, good 114 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-114.log
+TLS 1.3 m->G: EarlyData: basic check, good 115 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-115.log
+TLS 1.3 m->G: EarlyData: basic check, good 116 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 117 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-117.log
+TLS 1.3 m->G: EarlyData: basic check, good 118 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-118.log
+TLS 1.3 m->G: EarlyData: basic check, good 119 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-119.log
+TLS 1.3 m->G: EarlyData: basic check, good 120 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-120.log
+TLS 1.3 m->G: EarlyData: basic check, good 121 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-121.log
+TLS 1.3 m->G: EarlyData: basic check, good 122 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-122.log
+TLS 1.3 m->G: EarlyData: basic check, good 123 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-123.log
+TLS 1.3 m->G: EarlyData: basic check, good 124 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 125 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-125.log
+TLS 1.3 m->G: EarlyData: basic check, good 126 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-126.log
+TLS 1.3 m->G: EarlyData: basic check, good 127 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-127.log
+TLS 1.3 m->G: EarlyData: basic check, good 128 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-128.log
+TLS 1.3 m->G: EarlyData: basic check, good 129 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-129.log
+TLS 1.3 m->G: EarlyData: basic check, good 130 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-130.log
+TLS 1.3 m->G: EarlyData: basic check, good 131 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-131.log
+TLS 1.3 m->G: EarlyData: basic check, good 132 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 133 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-133.log
+TLS 1.3 m->G: EarlyData: basic check, good 134 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-134.log
+TLS 1.3 m->G: EarlyData: basic check, good 135 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-135.log
+TLS 1.3 m->G: EarlyData: basic check, good 136 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-136.log
+TLS 1.3 m->G: EarlyData: basic check, good 137 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-137.log
+TLS 1.3 m->G: EarlyData: basic check, good 138 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-138.log
+TLS 1.3 m->G: EarlyData: basic check, good 139 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-139.log
+TLS 1.3 m->G: EarlyData: basic check, good 140 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 141 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-141.log
+TLS 1.3 m->G: EarlyData: basic check, good 142 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-142.log
+TLS 1.3 m->G: EarlyData: basic check, good 143 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-143.log
+TLS 1.3 m->G: EarlyData: basic check, good 144 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-144.log
+TLS 1.3 m->G: EarlyData: basic check, good 145 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-145.log
+TLS 1.3 m->G: EarlyData: basic check, good 146 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-146.log
+TLS 1.3 m->G: EarlyData: basic check, good 147 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-147.log
+TLS 1.3 m->G: EarlyData: basic check, good 148 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 149 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-149.log
+TLS 1.3 m->G: EarlyData: basic check, good 150 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-150.log
+TLS 1.3 m->G: EarlyData: basic check, good 151 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-151.log
+TLS 1.3 m->G: EarlyData: basic check, good 152 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-152.log
+TLS 1.3 m->G: EarlyData: basic check, good 153 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-153.log
+TLS 1.3 m->G: EarlyData: basic check, good 154 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-154.log
+TLS 1.3 m->G: EarlyData: basic check, good 155 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-155.log
+TLS 1.3 m->G: EarlyData: basic check, good 156 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-156.log
+TLS 1.3 m->G: EarlyData: basic check, good 157 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-157.log
+TLS 1.3 m->G: EarlyData: basic check, good 158 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-158.log
+TLS 1.3 m->G: EarlyData: basic check, good 159 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-159.log
+TLS 1.3 m->G: EarlyData: basic check, good 160 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-160.log
+TLS 1.3 m->G: EarlyData: basic check, good 161 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-161.log
+TLS 1.3 m->G: EarlyData: basic check, good 162 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-162.log
+TLS 1.3 m->G: EarlyData: basic check, good 163 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-163.log
+TLS 1.3 m->G: EarlyData: basic check, good 164 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-164.log
+TLS 1.3 m->G: EarlyData: basic check, good 165 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-165.log
+TLS 1.3 m->G: EarlyData: basic check, good 166 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-166.log
+TLS 1.3 m->G: EarlyData: basic check, good 167 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-167.log
+TLS 1.3 m->G: EarlyData: basic check, good 168 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-168.log
+TLS 1.3 m->G: EarlyData: basic check, good 169 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 170 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-170.log
+TLS 1.3 m->G: EarlyData: basic check, good 171 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-171.log
+TLS 1.3 m->G: EarlyData: basic check, good 172 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-172.log
+TLS 1.3 m->G: EarlyData: basic check, good 173 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-173.log
+TLS 1.3 m->G: EarlyData: basic check, good 174 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-174.log
+TLS 1.3 m->G: EarlyData: basic check, good 175 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-175.log
+TLS 1.3 m->G: EarlyData: basic check, good 176 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-176.log
+TLS 1.3 m->G: EarlyData: basic check, good 177 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 178 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-178.log
+TLS 1.3 m->G: EarlyData: basic check, good 179 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-179.log
+TLS 1.3 m->G: EarlyData: basic check, good 180 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-180.log
+TLS 1.3 m->G: EarlyData: basic check, good 181 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-181.log
+TLS 1.3 m->G: EarlyData: basic check, good 182 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-182.log
+TLS 1.3 m->G: EarlyData: basic check, good 183 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-183.log
+TLS 1.3 m->G: EarlyData: basic check, good 184 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-184.log
+TLS 1.3 m->G: EarlyData: basic check, good 185 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 186 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-186.log
+TLS 1.3 m->G: EarlyData: basic check, good 187 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-187.log
+TLS 1.3 m->G: EarlyData: basic check, good 188 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-188.log
+TLS 1.3 m->G: EarlyData: basic check, good 189 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-189.log
+TLS 1.3 m->G: EarlyData: basic check, good 190 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-190.log
+TLS 1.3 m->G: EarlyData: basic check, good 191 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-191.log
+TLS 1.3 m->G: EarlyData: basic check, good 192 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-192.log
+TLS 1.3 m->G: EarlyData: basic check, good 193 ......................... Cannot contact container-host.eu-west-1a (i-096ceba83a3aa1da8): java.lang.InterruptedException
+PASS
+TLS 1.3 m->G: EarlyData: basic check, good 194 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 194 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-194.log
+TLS 1.3 m->G: EarlyData: basic check, good 195 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-195.log
+TLS 1.3 m->G: EarlyData: basic check, good 196 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-196.log
+TLS 1.3 m->G: EarlyData: basic check, good 197 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-197.log
+TLS 1.3 m->G: EarlyData: basic check, good 198 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-198.log
+TLS 1.3 m->G: EarlyData: basic check, good 199 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-199.log
+TLS 1.3 m->G: EarlyData: basic check, good 200 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-200.log
+TLS 1.3 m->G: EarlyData: basic check, good 201 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 202 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-202.log
+TLS 1.3 m->G: EarlyData: basic check, good 203 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-203.log
+TLS 1.3 m->G: EarlyData: basic check, good 204 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-204.log
+TLS 1.3 m->G: EarlyData: basic check, good 205 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-205.log
+TLS 1.3 m->G: EarlyData: basic check, good 206 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-206.log
+TLS 1.3 m->G: EarlyData: basic check, good 207 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-207.log
+TLS 1.3 m->G: EarlyData: basic check, good 208 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-208.log
+TLS 1.3 m->G: EarlyData: basic check, good 209 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-209.log
+TLS 1.3 m->G: EarlyData: basic check, good 210 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-210.log
+TLS 1.3 m->G: EarlyData: basic check, good 211 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-211.log
+TLS 1.3 m->G: EarlyData: basic check, good 212 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-212.log
+TLS 1.3 m->G: EarlyData: basic check, good 213 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-213.log
+TLS 1.3 m->G: EarlyData: basic check, good 214 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-214.log
+TLS 1.3 m->G: EarlyData: basic check, good 215 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-215.log
+TLS 1.3 m->G: EarlyData: basic check, good 216 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-216.log
+TLS 1.3 m->G: EarlyData: basic check, good 217 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 218 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-218.log
+TLS 1.3 m->G: EarlyData: basic check, good 219 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-219.log
+TLS 1.3 m->G: EarlyData: basic check, good 220 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-220.log
+TLS 1.3 m->G: EarlyData: basic check, good 221 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-221.log
+TLS 1.3 m->G: EarlyData: basic check, good 222 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-222.log
+TLS 1.3 m->G: EarlyData: basic check, good 223 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-223.log
+TLS 1.3 m->G: EarlyData: basic check, good 224 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-224.log
+TLS 1.3 m->G: EarlyData: basic check, good 225 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 226 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-226.log
+TLS 1.3 m->G: EarlyData: basic check, good 227 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-227.log
+TLS 1.3 m->G: EarlyData: basic check, good 228 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-228.log
+TLS 1.3 m->G: EarlyData: basic check, good 229 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-229.log
+TLS 1.3 m->G: EarlyData: basic check, good 230 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-230.log
+TLS 1.3 m->G: EarlyData: basic check, good 231 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-231.log
+TLS 1.3 m->G: EarlyData: basic check, good 232 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-232.log
+TLS 1.3 m->G: EarlyData: basic check, good 233 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 234 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-234.log
+TLS 1.3 m->G: EarlyData: basic check, good 235 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-235.log
+TLS 1.3 m->G: EarlyData: basic check, good 236 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-236.log
+TLS 1.3 m->G: EarlyData: basic check, good 237 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-237.log
+TLS 1.3 m->G: EarlyData: basic check, good 238 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-238.log
+TLS 1.3 m->G: EarlyData: basic check, good 239 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-239.log
+TLS 1.3 m->G: EarlyData: basic check, good 240 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-240.log
+TLS 1.3 m->G: EarlyData: basic check, good 241 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 242 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-242.log
+TLS 1.3 m->G: EarlyData: basic check, good 243 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-243.log
+TLS 1.3 m->G: EarlyData: basic check, good 244 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-244.log
+TLS 1.3 m->G: EarlyData: basic check, good 245 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-245.log
+TLS 1.3 m->G: EarlyData: basic check, good 246 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-246.log
+TLS 1.3 m->G: EarlyData: basic check, good 247 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-247.log
+TLS 1.3 m->G: EarlyData: basic check, good 248 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-248.log
+TLS 1.3 m->G: EarlyData: basic check, good 249 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 250 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-250.log
+TLS 1.3 m->G: EarlyData: basic check, good 251 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-251.log
+TLS 1.3 m->G: EarlyData: basic check, good 252 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-252.log
+TLS 1.3 m->G: EarlyData: basic check, good 253 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-253.log
+TLS 1.3 m->G: EarlyData: basic check, good 254 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-254.log
+TLS 1.3 m->G: EarlyData: basic check, good 255 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-255.log
+TLS 1.3 m->G: EarlyData: basic check, good 256 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-256.log
+TLS 1.3 m->G: EarlyData: basic check, good 257 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 258 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-258.log
+TLS 1.3 m->G: EarlyData: basic check, good 259 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-259.log
+TLS 1.3 m->G: EarlyData: basic check, good 260 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-260.log
+TLS 1.3 m->G: EarlyData: basic check, good 261 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-261.log
+TLS 1.3 m->G: EarlyData: basic check, good 262 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-262.log
+TLS 1.3 m->G: EarlyData: basic check, good 263 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-263.log
+TLS 1.3 m->G: EarlyData: basic check, good 264 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-264.log
+TLS 1.3 m->G: EarlyData: basic check, good 265 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 266 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-266.log
+TLS 1.3 m->G: EarlyData: basic check, good 267 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-267.log
+TLS 1.3 m->G: EarlyData: basic check, good 268 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-268.log
+TLS 1.3 m->G: EarlyData: basic check, good 269 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-269.log
+TLS 1.3 m->G: EarlyData: basic check, good 270 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-270.log
+TLS 1.3 m->G: EarlyData: basic check, good 271 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-271.log
+TLS 1.3 m->G: EarlyData: basic check, good 272 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-272.log
+TLS 1.3 m->G: EarlyData: basic check, good 273 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-273.log
+TLS 1.3 m->G: EarlyData: basic check, good 274 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-274.log
+TLS 1.3 m->G: EarlyData: basic check, good 275 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-275.log
+TLS 1.3 m->G: EarlyData: basic check, good 276 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 277 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-277.log
+TLS 1.3 m->G: EarlyData: basic check, good 278 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-278.log
+TLS 1.3 m->G: EarlyData: basic check, good 279 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-279.log
+TLS 1.3 m->G: EarlyData: basic check, good 280 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-280.log
+TLS 1.3 m->G: EarlyData: basic check, good 281 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-281.log
+TLS 1.3 m->G: EarlyData: basic check, good 282 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-282.log
+TLS 1.3 m->G: EarlyData: basic check, good 283 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-283.log
+TLS 1.3 m->G: EarlyData: basic check, good 284 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 285 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-285.log
+TLS 1.3 m->G: EarlyData: basic check, good 286 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-286.log
+TLS 1.3 m->G: EarlyData: basic check, good 287 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-287.log
+TLS 1.3 m->G: EarlyData: basic check, good 288 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-288.log
+TLS 1.3 m->G: EarlyData: basic check, good 289 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-289.log
+TLS 1.3 m->G: EarlyData: basic check, good 290 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-290.log
+TLS 1.3 m->G: EarlyData: basic check, good 291 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-291.log
+TLS 1.3 m->G: EarlyData: basic check, good 292 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-292.log
+TLS 1.3 m->G: EarlyData: basic check, good 293 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-293.log
+TLS 1.3 m->G: EarlyData: basic check, good 294 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-294.log
+TLS 1.3 m->G: EarlyData: basic check, good 295 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-295.log
+TLS 1.3 m->G: EarlyData: basic check, good 296 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-296.log
+TLS 1.3 m->G: EarlyData: basic check, good 297 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-297.log
+TLS 1.3 m->G: EarlyData: basic check, good 298 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-298.log
+TLS 1.3 m->G: EarlyData: basic check, good 299 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-299.log
+TLS 1.3 m->G: EarlyData: basic check, good 300 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-300.log
+TLS 1.3 m->G: EarlyData: basic check, good 301 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-301.log
+TLS 1.3 m->G: EarlyData: basic check, good 302 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-302.log
+TLS 1.3 m->G: EarlyData: basic check, good 303 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-303.log
+TLS 1.3 m->G: EarlyData: basic check, good 304 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-304.log
+TLS 1.3 m->G: EarlyData: basic check, good 305 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-305.log
+TLS 1.3 m->G: EarlyData: basic check, good 306 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-306.log
+TLS 1.3 m->G: EarlyData: basic check, good 307 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-307.log
+TLS 1.3 m->G: EarlyData: basic check, good 308 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-308.log
+TLS 1.3 m->G: EarlyData: basic check, good 309 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-309.log
+TLS 1.3 m->G: EarlyData: basic check, good 310 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-310.log
+TLS 1.3 m->G: EarlyData: basic check, good 311 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-311.log
+TLS 1.3 m->G: EarlyData: basic check, good 312 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-312.log
+TLS 1.3 m->G: EarlyData: basic check, good 313 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-313.log
+TLS 1.3 m->G: EarlyData: basic check, good 314 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-314.log
+TLS 1.3 m->G: EarlyData: basic check, good 315 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-315.log
+TLS 1.3 m->G: EarlyData: basic check, good 316 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-316.log
+TLS 1.3 m->G: EarlyData: basic check, good 317 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-317.log
+TLS 1.3 m->G: EarlyData: basic check, good 318 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-318.log
+TLS 1.3 m->G: EarlyData: basic check, good 319 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-319.log
+TLS 1.3 m->G: EarlyData: basic check, good 320 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-320.log
+TLS 1.3 m->G: EarlyData: basic check, good 321 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-321.log
+TLS 1.3 m->G: EarlyData: basic check, good 322 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-322.log
+TLS 1.3 m->G: EarlyData: basic check, good 323 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-323.log
+TLS 1.3 m->G: EarlyData: basic check, good 324 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 325 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-325.log
+TLS 1.3 m->G: EarlyData: basic check, good 326 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-326.log
+TLS 1.3 m->G: EarlyData: basic check, good 327 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-327.log
+TLS 1.3 m->G: EarlyData: basic check, good 328 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-328.log
+TLS 1.3 m->G: EarlyData: basic check, good 329 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-329.log
+TLS 1.3 m->G: EarlyData: basic check, good 330 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-330.log
+TLS 1.3 m->G: EarlyData: basic check, good 331 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-331.log
+TLS 1.3 m->G: EarlyData: basic check, good 332 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-332.log
+TLS 1.3 m->G: EarlyData: basic check, good 333 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-333.log
+TLS 1.3 m->G: EarlyData: basic check, good 334 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-334.log
+TLS 1.3 m->G: EarlyData: basic check, good 335 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-335.log
+TLS 1.3 m->G: EarlyData: basic check, good 336 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-336.log
+TLS 1.3 m->G: EarlyData: basic check, good 337 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-337.log
+TLS 1.3 m->G: EarlyData: basic check, good 338 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-338.log
+TLS 1.3 m->G: EarlyData: basic check, good 339 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-339.log
+TLS 1.3 m->G: EarlyData: basic check, good 340 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 341 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-341.log
+TLS 1.3 m->G: EarlyData: basic check, good 342 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-342.log
+TLS 1.3 m->G: EarlyData: basic check, good 343 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-343.log
+TLS 1.3 m->G: EarlyData: basic check, good 344 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-344.log
+TLS 1.3 m->G: EarlyData: basic check, good 345 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-345.log
+TLS 1.3 m->G: EarlyData: basic check, good 346 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-346.log
+TLS 1.3 m->G: EarlyData: basic check, good 347 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-347.log
+TLS 1.3 m->G: EarlyData: basic check, good 348 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 349 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-349.log
+TLS 1.3 m->G: EarlyData: basic check, good 350 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-350.log
+TLS 1.3 m->G: EarlyData: basic check, good 351 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-351.log
+TLS 1.3 m->G: EarlyData: basic check, good 352 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-352.log
+TLS 1.3 m->G: EarlyData: basic check, good 353 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-353.log
+TLS 1.3 m->G: EarlyData: basic check, good 354 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-354.log
+TLS 1.3 m->G: EarlyData: basic check, good 355 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-355.log
+TLS 1.3 m->G: EarlyData: basic check, good 356 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 357 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-357.log
+TLS 1.3 m->G: EarlyData: basic check, good 358 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-358.log
+TLS 1.3 m->G: EarlyData: basic check, good 359 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-359.log
+TLS 1.3 m->G: EarlyData: basic check, good 360 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-360.log
+TLS 1.3 m->G: EarlyData: basic check, good 361 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-361.log
+TLS 1.3 m->G: EarlyData: basic check, good 362 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-362.log
+TLS 1.3 m->G: EarlyData: basic check, good 363 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-363.log
+TLS 1.3 m->G: EarlyData: basic check, good 364 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 365 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-365.log
+TLS 1.3 m->G: EarlyData: basic check, good 366 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-366.log
+TLS 1.3 m->G: EarlyData: basic check, good 367 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-367.log
+TLS 1.3 m->G: EarlyData: basic check, good 368 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-368.log
+TLS 1.3 m->G: EarlyData: basic check, good 369 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-369.log
+TLS 1.3 m->G: EarlyData: basic check, good 370 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-370.log
+TLS 1.3 m->G: EarlyData: basic check, good 371 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-371.log
+TLS 1.3 m->G: EarlyData: basic check, good 372 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 373 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-373.log
+TLS 1.3 m->G: EarlyData: basic check, good 374 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-374.log
+TLS 1.3 m->G: EarlyData: basic check, good 375 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-375.log
+TLS 1.3 m->G: EarlyData: basic check, good 376 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-376.log
+TLS 1.3 m->G: EarlyData: basic check, good 377 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-377.log
+TLS 1.3 m->G: EarlyData: basic check, good 378 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-378.log
+TLS 1.3 m->G: EarlyData: basic check, good 379 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-379.log
+TLS 1.3 m->G: EarlyData: basic check, good 380 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 381 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-381.log
+TLS 1.3 m->G: EarlyData: basic check, good 382 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-382.log
+TLS 1.3 m->G: EarlyData: basic check, good 383 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-383.log
+TLS 1.3 m->G: EarlyData: basic check, good 384 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-384.log
+TLS 1.3 m->G: EarlyData: basic check, good 385 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-385.log
+TLS 1.3 m->G: EarlyData: basic check, good 386 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-386.log
+TLS 1.3 m->G: EarlyData: basic check, good 387 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-387.log
+TLS 1.3 m->G: EarlyData: basic check, good 388 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 389 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-389.log
+TLS 1.3 m->G: EarlyData: basic check, good 390 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-390.log
+TLS 1.3 m->G: EarlyData: basic check, good 391 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-391.log
+TLS 1.3 m->G: EarlyData: basic check, good 392 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-392.log
+TLS 1.3 m->G: EarlyData: basic check, good 393 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-393.log
+TLS 1.3 m->G: EarlyData: basic check, good 394 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-394.log
+TLS 1.3 m->G: EarlyData: basic check, good 395 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-395.log
+TLS 1.3 m->G: EarlyData: basic check, good 396 ......................... PASS
+TLS 1.3 m->G: EarlyData: basic check, good 397 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-397.log
+TLS 1.3 m->G: EarlyData: basic check, good 398 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-398.log
+TLS 1.3 m->G: EarlyData: basic check, good 399 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-399.log
+TLS 1.3 m->G: EarlyData: basic check, good 400 ......................... FAIL
+  ! bad client exit code (expected 1, got 0)
+  ! outputs saved to o-XXX-400.log
+------------------------------------------------------------------------
+FAILED (38 / 400 tests (0 skipped))
+^^^^test_tls13_only: ssl-opt.sh: TLS 1.3 only, all key exchange modes enabled: tests/ssl-opt.sh -> 106^^^^
+
+******************************************************************
+* Done, cleaning up
+* Mon Dec 12 03:39:27 UTC 2022
+******************************************************************
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+FAILED: 1 components
+test_tls13_only: ssl-opt.sh: TLS 1.3 only, all key exchange modes enabled: tests/ssl-opt.sh -> 106
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

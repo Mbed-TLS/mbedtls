@@ -83,45 +83,25 @@ static mbedtls_mpi_uint mpi_bigendian_to_host_c( mbedtls_mpi_uint a )
 
 static mbedtls_mpi_uint mpi_bigendian_to_host( mbedtls_mpi_uint a )
 {
-#if defined(__BYTE_ORDER__)
-
-/* Nothing to do on bigendian systems. */
-#if ( __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__ )
-    return( a );
-#endif /* __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__ */
-
-#if ( __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__ )
-
-/* For GCC and Clang, have builtins for byte swapping. */
-#if defined(__GNUC__) && defined(__GNUC_PREREQ)
-#if __GNUC_PREREQ(4,3)
-#define have_bswap
-#endif
-#endif
-
-#if defined(__clang__) && defined(__has_builtin)
-#if __has_builtin(__builtin_bswap32)  &&                 \
-    __has_builtin(__builtin_bswap64)
-#define have_bswap
-#endif
-#endif
-
-#if defined(have_bswap)
-    /* The compiler is hopefully able to statically evaluate this! */
-    switch( sizeof(mbedtls_mpi_uint) )
+    if ( MBEDTLS_IS_BIG_ENDIAN )
     {
-        case 4:
-            return( __builtin_bswap32(a) );
-        case 8:
-            return( __builtin_bswap64(a) );
+        /* Nothing to do on bigendian systems. */
+        return( a );
     }
-#endif
-#endif /* __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__ */
-#endif /* __BYTE_ORDER__ */
+    else
+    {
+        switch( sizeof(mbedtls_mpi_uint) )
+        {
+            case 4:
+                return (mbedtls_mpi_uint) MBEDTLS_BSWAP32( (uint32_t)a );
+            case 8:
+                return (mbedtls_mpi_uint) MBEDTLS_BSWAP64( (uint64_t)a );
+        }
 
-    /* Fall back to C-based reordering if we don't know the byte order
-     * or we couldn't use a compiler-specific builtin. */
-    return( mpi_bigendian_to_host_c( a ) );
+        /* Fall back to C-based reordering if we don't know the byte order
+        * or we couldn't use a compiler-specific builtin. */
+        return( mpi_bigendian_to_host_c( a ) );
+    }
 }
 
 void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *A,

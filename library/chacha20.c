@@ -217,7 +217,6 @@ int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
                               unsigned char *output )
 {
     size_t offset = 0U;
-    size_t i;
 
     /* Use leftover keystream bytes, if available */
     while( size > 0U && ctx->keystream_bytes_used < CHACHA20_BLOCK_SIZE_BYTES )
@@ -237,17 +236,7 @@ int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
         chacha20_block( ctx->state, ctx->keystream8 );
         ctx->state[CHACHA20_CTR_INDEX]++;
 
-        for( i = 0U; i < 64U; i += 8U )
-        {
-            output[offset + i  ] = input[offset + i  ] ^ ctx->keystream8[i  ];
-            output[offset + i+1] = input[offset + i+1] ^ ctx->keystream8[i+1];
-            output[offset + i+2] = input[offset + i+2] ^ ctx->keystream8[i+2];
-            output[offset + i+3] = input[offset + i+3] ^ ctx->keystream8[i+3];
-            output[offset + i+4] = input[offset + i+4] ^ ctx->keystream8[i+4];
-            output[offset + i+5] = input[offset + i+5] ^ ctx->keystream8[i+5];
-            output[offset + i+6] = input[offset + i+6] ^ ctx->keystream8[i+6];
-            output[offset + i+7] = input[offset + i+7] ^ ctx->keystream8[i+7];
-        }
+        mbedtls_xor( output + offset, input + offset, ctx->keystream8, 64U );
 
         offset += CHACHA20_BLOCK_SIZE_BYTES;
         size   -= CHACHA20_BLOCK_SIZE_BYTES;
@@ -260,10 +249,7 @@ int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
         chacha20_block( ctx->state, ctx->keystream8 );
         ctx->state[CHACHA20_CTR_INDEX]++;
 
-        for( i = 0U; i < size; i++)
-        {
-            output[offset + i] = input[offset + i] ^ ctx->keystream8[i];
-        }
+        mbedtls_xor( output + offset, input + offset, ctx->keystream8, size );
 
         ctx->keystream_bytes_used = size;
 

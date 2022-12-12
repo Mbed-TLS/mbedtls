@@ -137,34 +137,31 @@ endif()
 
 # Create a symbolic link from ${base_name} in the binary directory
 # to the corresponding path in the source directory.
+# Note: Copies the file(s) on Windows.
 function(link_to_source base_name)
-    # Get OS dependent path to use in `execute_process`
-    if (CMAKE_HOST_WIN32)
-        #mklink is an internal command of cmd.exe it can only work with \
-        string(REPLACE "/" "\\" link "${CMAKE_CURRENT_BINARY_DIR}/${base_name}")
-        string(REPLACE "/" "\\" target "${CMAKE_CURRENT_SOURCE_DIR}/${base_name}")
-    else()
-        set(link "${CMAKE_CURRENT_BINARY_DIR}/${base_name}")
-        set(target "${CMAKE_CURRENT_SOURCE_DIR}/${base_name}")
-    endif()
+    set(link "${CMAKE_CURRENT_BINARY_DIR}/${base_name}")
+    set(target "${CMAKE_CURRENT_SOURCE_DIR}/${base_name}")
 
     if (NOT EXISTS ${link})
         if (CMAKE_HOST_UNIX)
-            set(command ln -s ${target} ${link})
+            execute_process(COMMAND ln -s ${target} ${link}
+                RESULT_VARIABLE result
+                ERROR_VARIABLE output)
+
+            if (NOT ${result} EQUAL 0)
+                message(FATAL_ERROR "Could not create symbolic link for: ${target} --> ${output}")
+            endif()
         else()
             if (IS_DIRECTORY ${target})
-                set(command cmd.exe /c mklink /j ${link} ${target})
+                file(GLOB_RECURSE files FOLLOW_SYMLINKS RELATIVE ${target} "${target}/*")
+                foreach(file IN LISTS files)
+                    if(NOT IS_DIRECTORY "${target}/${file}")
+                        configure_file("${target}/${file}" "${link}/${file}" COPYONLY)
+                    endif()
+                endforeach(file)
             else()
-                set(command cmd.exe /c mklink /h ${link} ${target})
+                configure_file(${target} ${link} COPYONLY)
             endif()
-        endif()
-
-        execute_process(COMMAND ${command}
-            RESULT_VARIABLE result
-            ERROR_VARIABLE output)
-
-        if (NOT ${result} EQUAL 0)
-            message(FATAL_ERROR "Could not create symbolic link for: ${target} --> ${output}")
         endif()
     endif()
 endfunction(link_to_source)

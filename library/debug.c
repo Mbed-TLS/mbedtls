@@ -387,10 +387,9 @@ void mbedtls_debug_printf_ecdh(const mbedtls_ssl_context *ssl, int level,
 #endif /* MBEDTLS_ECDH_C */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
-#define BITS_OF(var)    (sizeof(var) * 8)
 #define ARRAY_LENGTH(a) (sizeof(a) / sizeof(*(a)))
 
-static const char *ticket_flag_name_table[BITS_OF(mbedtls_ssl_tls13_ticket_flags)] =
+static const char *ticket_flag_name_table[] =
 {
     [0] = "ALLOW_PSK_RESUMPTION",
     [2] = "ALLOW_PSK_EPHEMERAL_RESUMPTION",

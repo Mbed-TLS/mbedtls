@@ -31,6 +31,7 @@
 
 #define MBEDTLS_AESNI_AES      0x02000000u
 #define MBEDTLS_AESNI_CLMUL    0x00000002u
+#define MBEDTLS_SSSE3          0x00000200u
 
 #if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) &&  \
     ( defined(__amd64__) || defined(__x86_64__) )   &&  \
@@ -58,6 +59,16 @@ extern "C" {
 int mbedtls_aesni_has_support( unsigned int what );
 
 /**
+ * \brief          Internal function to detect the SSSE3 feature in CPUs.
+ *
+ * \note           This function is only for internal use by other library
+ *                 functions; you must not call it directly.
+ *
+ * \return         1 if CPU has support for the feature, 0 otherwise
+ */
+int mbedtls_ssse3_has_support( void );
+
+/**
  * \brief          Internal AES-NI AES-ECB block encryption and decryption
  *
  * \note           This function is only for internal use by other library
@@ -74,6 +85,26 @@ int mbedtls_aesni_crypt_ecb( mbedtls_aes_context *ctx,
                              int mode,
                              const unsigned char input[16],
                              unsigned char output[16] );
+
+/**
+ * \brief          Internal AES-NI fast calculate and apply the encryption mask
+ *
+ * \note           This function is only for internal use by other library
+ *                 functions; you must not call it directly.
+ *
+ * \param mode     MBEDTLS_AES_ENCRYPT or MBEDTLS_AES_DECRYPT
+ * \param buf      16-byte AES ctx buf
+ * \param ectr     16-byte ectr block
+ * \param input    16-byte input block
+ * \param output   16-byte output block
+ *
+ * \return         0 on success (cannot fail)
+ */
+int mbedtls_aesni_fast_gcm_xor( int mode,
+                                unsigned char buf[16],
+                                unsigned char ectr[16],
+                                const unsigned char input[16],
+                                unsigned char output[16] );
 
 /**
  * \brief          Internal GCM multiplication: c = a * b in GF(2^128)

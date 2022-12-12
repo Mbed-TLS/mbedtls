@@ -388,7 +388,10 @@ static int gcm_mask( mbedtls_gcm_context *ctx,
         mbedtls_platform_zeroize( ectr, 16 );
         return( ret );
     }
-
+#if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
+    if( use_len == 16 )
+        return( mbedtls_aesni_fast_gcm_xor( ctx->mode, ctx->buf, ectr, input, output ) );
+#endif
     for( i = 0; i < use_len; i++ )
     {
         if( ctx->mode == MBEDTLS_GCM_DECRYPT )

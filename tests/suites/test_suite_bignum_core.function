@@ -798,7 +798,9 @@ void mpi_core_montmul( int limbs_AN4, int limbs_B4,
     TEST_EQUAL( 0, mbedtls_mpi_grow( X, limbs_AN ) );
     TEST_EQUAL( 0, mbedtls_mpi_grow( &B, limbs_B ) );
 
-    TEST_EQUAL( 0, mbedtls_mpi_grow( &T, limbs_AN * 2 + 1 ) );
+    size_t working_limbs = mbedtls_mpi_core_montmul_working_limbs( limbs_AN );
+    TEST_EQUAL( working_limbs, limbs_AN * 2 + 1 );
+    TEST_EQUAL( 0, mbedtls_mpi_grow( &T, working_limbs ) );
 
     /* Calculate the Montgomery constant (this is unit tested separately) */
     mbedtls_mpi_uint mm = mbedtls_mpi_core_montmul_init( N.p );
@@ -1082,6 +1084,10 @@ void mpi_core_exp_mod( char * input_N, char * input_A,
 
     TEST_LE_U( min_expected_working_limbs, working_limbs );
     TEST_LE_U( working_limbs, max_expected_working_limbs );
+
+    /* Should also be at least mbedtls_mpi_core_montmul_working_limbs() */
+    TEST_LE_U( mbedtls_mpi_core_montmul_working_limbs( N_limbs ),
+               working_limbs );
 
     ASSERT_ALLOC( T, working_limbs );
 

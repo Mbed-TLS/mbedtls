@@ -183,7 +183,7 @@ int mbedtls_mpi_mod_raw_to_mont_rep( mbedtls_mpi_uint *X,
                                      const mbedtls_mpi_mod_modulus *m )
 {
     mbedtls_mpi_uint *T;
-    const size_t t_limbs = m->limbs * 2 + 1;
+    const size_t t_limbs = mbedtls_mpi_core_montmul_working_limbs( m->limbs );
 
     if( ( T = (mbedtls_mpi_uint *) mbedtls_calloc( t_limbs, ciL ) ) == NULL )
         return( MBEDTLS_ERR_MPI_ALLOC_FAILED );
@@ -200,7 +200,7 @@ int mbedtls_mpi_mod_raw_from_mont_rep( mbedtls_mpi_uint *X,
                                        const mbedtls_mpi_mod_modulus *m )
 {
     const mbedtls_mpi_uint one = 1;
-    const size_t t_limbs = m->limbs * 2 + 1;
+    const size_t t_limbs = mbedtls_mpi_core_montmul_working_limbs( m->limbs );
     mbedtls_mpi_uint *T;
 
     if( ( T = (mbedtls_mpi_uint *) mbedtls_calloc( t_limbs, ciL ) ) == NULL )

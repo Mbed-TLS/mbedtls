@@ -502,6 +502,10 @@ int mbedtls_mpi_core_fill_random( mbedtls_mpi_uint *X, size_t X_limbs,
  * \brief          Returns the number of limbs of working memory required for
  *                 a call to `mbedtls_mpi_core_exp_mod()`.
  *
+ * \note           This will always be at least
+ *                 `mbedtls_mpi_core_montmul_working_limbs(AN_limbs)`,
+ *                 i.e. sufficient for a call to `mbedtls_mpi_core_montmul()`.
+ *
  * \param AN_limbs The number of limbs in the input `A` and the modulus `N`
  *                 (they must be the same size) that will be given to
  *                 `mbedtls_mpi_core_exp_mod()`.
@@ -584,6 +588,23 @@ mbedtls_mpi_uint mbedtls_mpi_core_sub_int( mbedtls_mpi_uint *X,
  */
 mbedtls_mpi_uint mbedtls_mpi_core_check_zero_ct( const mbedtls_mpi_uint *A,
                                                  size_t limbs );
+
+/**
+ * \brief          Returns the number of limbs of working memory required for
+ *                 a call to `mbedtls_mpi_core_montmul()`.
+ *
+ * \param AN_limbs The number of limbs in the input `A` and the modulus `N`
+ *                 (they must be the same size) that will be given to
+ *                 `mbedtls_mpi_core_montmul()` or one of the other functions
+ *                 that specifies this as the amount of working memory needed.
+ *
+ * \return         The number of limbs of working memory required by
+ *                 `mbedtls_mpi_core_montmul()` (or other similar function).
+ */
+static inline size_t mbedtls_mpi_core_montmul_working_limbs( size_t AN_limbs )
+{
+    return( 2 * AN_limbs + 1 );
+}
 
 /* END MERGE SLOT 3 */
 

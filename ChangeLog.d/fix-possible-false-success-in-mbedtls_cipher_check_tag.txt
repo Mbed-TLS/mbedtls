@@ -1,5 +1,0 @@
-Changes
-   * Calling AEAD tag-specific functions for non-AEAD algorithms (which
-     should not be done - they are documented for use only by AES-GCM and
-     ChaCha20+Poly1305) now returns MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE
-     instead of success (0).

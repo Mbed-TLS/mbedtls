@@ -1,5 +1,0 @@
-Features
-   * Add a driver dispatch layer for raw key agreement, enabling alternative
-     implementations of raw key agreement through the key_agreement driver
-     entry point. This entry point is specified in the proposed PSA driver
-     interface, but had not yet been implemented.

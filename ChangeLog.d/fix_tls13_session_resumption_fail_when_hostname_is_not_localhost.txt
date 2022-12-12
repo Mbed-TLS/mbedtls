@@ -1,4 +1,0 @@
-Bugfix
-    * Fix TLS 1.3 session resumption. Fixes #6488.
-    * Add a configuration check to exclude optional client authentication
-      in TLS 1.3 (where it is forbidden).

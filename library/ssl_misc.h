@@ -756,7 +756,7 @@ struct mbedtls_ssl_handshake_params
  * access to ecdh_ctx structure is needed for MBEDTLS_ECDSA_C which does not
  * seem correct.
  */
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_DHM_C)
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
 #endif /* !MBEDTLS_USE_PSA_CRYPTO */
@@ -766,7 +766,11 @@ struct mbedtls_ssl_handshake_params
     size_t ecdh_bits;
     mbedtls_svc_key_id_t ecdh_psa_privkey;
     uint8_t ecdh_psa_privkey_is_external;
+#if defined(MBEDTLS_DHM_C)
+    unsigned char ecdh_psa_peerkey[MBEDTLS_PSA_MAX_FFDH_PUBKEY_LENGTH];
+#else
     unsigned char ecdh_psa_peerkey[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
+#endif
     size_t ecdh_psa_peerkey_len;
 #endif /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */
 #endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C */
@@ -2048,6 +2052,13 @@ int mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
                 size_t *out_len );
 #endif /* MBEDTLS_ECDH_C */
 
+int mbedtls_ssl_tls13_generate_and_write_dhe_key_exchange(
+                mbedtls_ssl_context *ssl,
+                uint16_t named_group,
+                unsigned char *buf,
+                unsigned char *end,
+                size_t *out_len );
+
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 int mbedtls_ssl_tls13_write_early_data_ext( mbedtls_ssl_context *ssl,
                                             unsigned char *buf,
@@ -2164,9 +2175,13 @@ static inline int mbedtls_ssl_named_group_is_supported( uint16_t named_group )
         if( curve_info != NULL )
             return( 1 );
     }
-#else
-    ((void) named_group);
-#endif /* MBEDTLS_ECDH_C */
+#endif
+#if defined(MBEDTLS_DHM_C)
+    if( mbedtls_ssl_tls13_named_group_is_dhe( named_group ) )
+        return( 1 );
+#endif
+
+    (void) named_group;
     return( 0 );
 }
 

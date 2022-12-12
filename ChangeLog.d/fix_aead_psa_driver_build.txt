@@ -1,3 +1,0 @@
-Bugfix
-   * Fix compilation errors when trying to build with
-     PSA drivers for AEAD (GCM, CCM, Chacha20-Poly1305).

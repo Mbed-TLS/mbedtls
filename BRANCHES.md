@@ -70,6 +70,7 @@ The following branches are currently maintained:
 - [master](https://github.com/Mbed-TLS/mbedtls/tree/master)
 - [`development`](https://github.com/Mbed-TLS/mbedtls/)
 - [`mbedtls-2.28`](https://github.com/Mbed-TLS/mbedtls/tree/mbedtls-2.28)
- maintained until at least the end of 2024.
+ maintained until at least the end of 2024, see
+  <https://github.com/Mbed-TLS/mbedtls/releases/tag/v2.28.2>.
 
 Users are urged to always use the latest version of a maintained branch.

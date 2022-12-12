@@ -566,7 +566,7 @@ int main( void )
     " acceptable ciphersuite names:\n"
 
 #define ALPN_LIST_SIZE    10
-#define CURVE_LIST_SIZE   20
+#define CURVE_LIST_SIZE   25
 #define SIG_ALG_LIST_SIZE 5
 
 #define PUT_UINT64_BE(out_be,in_le,i)                                   \
@@ -2423,6 +2423,7 @@ int main( int argc, char *argv[] )
             while( i < CURVE_LIST_SIZE - 1 && *p != '\0' )
             {
                 q = p;
+                uint16_t ffdh_group = 0;
 
                 /* Terminate the current string */
                 while( *p != ',' && *p != '\0' )
@@ -2434,6 +2435,10 @@ int main( int argc, char *argv[] )
                 {
                     group_list[i++] = curve_cur->tls_id;
                 }
+                else if( ( ffdh_group = mbedtls_ssl_ffdh_group_from_name( q ) ) != 0 )
+                {
+                    group_list[i++] = ffdh_group;
+                }
                 else
                 {
                     mbedtls_printf( "unknown curve %s\n", q );
@@ -2443,6 +2448,13 @@ int main( int argc, char *argv[] )
                          curve_cur++ )
                     {
                         mbedtls_printf( "%s ", curve_cur->name );
+                    }
+                    uint16_t* supported_ffdh_group = mbedtls_ssl_ffdh_supported_groups();
+                    while( *supported_ffdh_group != 0 )
+                    {
+                        mbedtls_printf( "%s ",
+                            mbedtls_ssl_ffdh_name_from_group( *supported_ffdh_group ) );
+                        supported_ffdh_group++;
                     }
                     mbedtls_printf( "\n" );
                     goto exit;

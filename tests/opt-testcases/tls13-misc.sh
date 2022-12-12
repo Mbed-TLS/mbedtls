@@ -323,60 +323,23 @@ run_test    "TLS 1.3, ext PSK, early data" \
             -c "EncryptedExtensions: early_data(42) extension received." \
             -c "EncryptedExtensions: early_data(42) extension ( ignored )."
 
-get_resumption_with_ticket_flags_criteria()
-{
-    ticket_flags=$1
-    psk_modes=$2
-    if [ "$ticket_flags" = "none" ] || \
-       ( [ "$psk_modes" != "psk_all" ] && \
-         [ "$ticket_flags" != "psk_all" ] && \
-         [ "$psk_modes" != "$ticket_flags" ] );
-    then
-        # ticket_flags is incompatible with the psk_kex_modes
-        echo ' -c "Pre-configured PSK number = 1"' \
-             ' -S "sent selected_identity:"' \
-             ' -s "key exchange mode: ephemeral"' \
-             ' -S "key exchange mode: psk_ephemeral"' \
-             ' -S "key exchange mode: psk$"' \
-             ' -s "No suitable key exchange mode"' \
-             ' -s "No matched PSK or ticket"'
-    else
-        # ticket_flags is compatible with the psk_kex_modes
-        echo ' -c "Pre-configured PSK number = 1"' \
-             ' -S "No suitable key exchange mode"' \
-             ' -s "found matched identity"'
-    fi
-}
-
-run_tests_tls13_resumption_with_ticket_flags()
-{
-    # all tests in this sequence requires the same configuration.
-    SKIP_THIS_TESTS="$SKIP_NEXT"
-
-    DUMMY_TICKET_BASE=6
-    TLS13_KEX_MODES="ephemeral:psk_or_ephemeral:ephemeral_all:all"
-    PSK_KEX_MODES="none:psk:psk_ephemeral:psk_all"
-
-    for m in $(seq 4); do
-        kex_mode="$(echo "$TLS13_KEX_MODES" | cut -d ":" -f "$m")"
-        # ephemeral only mode doesn't support resumption
-        if [ "$kex_mode" = "ephemeral" ]; then continue; fi
-
-        for n in $(seq 4); do
-            supported_psk_modes="$(echo "$PSK_KEX_MODES" | cut -d ":" -f "$m")"
-            dummy_ticket_flags="$(echo "$PSK_KEX_MODES" | cut -d ":" -f "$n")"
-
-            eval "set -- $(get_resumption_with_ticket_flags_criteria "$dummy_ticket_flags" "$supported_psk_modes")"
-
-            SKIP_NEXT="$SKIP_THIS_TESTS"
-            run_test "TLS 1.3 m->m: Resumption with ticket flags, $supported_psk_modes->$dummy_ticket_flags." \
-                     "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 dummy_ticket=$((n + DUMMY_TICKET_BASE))" \
-                     "$P_CLI debug_level=4 force_version=tls13 tls13_kex_modes=$kex_mode reconnect=1" \
-                     0 \
-                     "$@"
-        done
-    done
-}
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test "TLS 1.3 m->m: Resumption with ticket flags, psk/none." \
+         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 dummy_ticket=7" \
+         "$P_CLI debug_level=4 force_version=tls13 tls13_kex_modes=psk_or_ephemeral reconnect=1" \
+         0 \
+         -c "Pre-configured PSK number = 1" \
+         -S "sent selected_identity:" \
+         -s "key exchange mode: ephemeral" \
+         -S "key exchange mode: psk_ephemeral" \
+         -S "key exchange mode: psk$" \
+         -s "No suitable key exchange mode" \
+         -s "No matched PSK or ticket"
 
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS \
                              MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
@@ -384,5 +347,167 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHAN
                              MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_tests_tls13_resumption_with_ticket_flags
+run_test "TLS 1.3 m->m: Resumption with ticket flags, psk/psk." \
+         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 dummy_ticket=8" \
+         "$P_CLI debug_level=4 force_version=tls13 tls13_kex_modes=psk_or_ephemeral reconnect=1" \
+         0 \
+         -c "Pre-configured PSK number = 1" \
+         -S "No suitable key exchange mode" \
+         -s "found matched identity"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test "TLS 1.3 m->m: Resumption with ticket flags, psk/psk_ephemeral." \
+         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 dummy_ticket=9" \
+         "$P_CLI debug_level=4 force_version=tls13 tls13_kex_modes=psk_or_ephemeral reconnect=1" \
+         0 \
+         -c "Pre-configured PSK number = 1" \
+         -S "sent selected_identity:" \
+         -s "key exchange mode: ephemeral" \
+         -S "key exchange mode: psk_ephemeral" \
+         -S "key exchange mode: psk$" \
+         -s "No suitable key exchange mode" \
+         -s "No matched PSK or ticket"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test "TLS 1.3 m->m: Resumption with ticket flags, psk/psk_all." \
+         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 dummy_ticket=10" \
+         "$P_CLI debug_level=4 force_version=tls13 tls13_kex_modes=psk_or_ephemeral reconnect=1" \
+         0 \
+         -c "Pre-configured PSK number = 1" \
+         -S "No suitable key exchange mode" \
+         -s "found matched identity"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test "TLS 1.3 m->m: Resumption with ticket flags, psk_ephemeral/none." \
+         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 dummy_ticket=7" \
+         "$P_CLI debug_level=4 force_version=tls13 tls13_kex_modes=ephemeral_all reconnect=1" \
+         0 \
+         -c "Pre-configured PSK number = 1" \
+         -S "sent selected_identity:" \
+         -s "key exchange mode: ephemeral" \
+         -S "key exchange mode: psk_ephemeral" \
+         -S "key exchange mode: psk$" \
+         -s "No suitable key exchange mode" \
+         -s "No matched PSK or ticket"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test "TLS 1.3 m->m: Resumption with ticket flags, psk_ephemeral/psk." \
+         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 dummy_ticket=8" \
+         "$P_CLI debug_level=4 force_version=tls13 tls13_kex_modes=ephemeral_all reconnect=1" \
+         0 \
+         -c "Pre-configured PSK number = 1" \
+         -S "sent selected_identity:" \
+         -s "key exchange mode: ephemeral" \
+         -S "key exchange mode: psk_ephemeral" \
+         -S "key exchange mode: psk$" \
+         -s "No suitable key exchange mode" \
+         -s "No matched PSK or ticket"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test "TLS 1.3 m->m: Resumption with ticket flags, psk_ephemeral/psk_ephemeral." \
+         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 dummy_ticket=9" \
+         "$P_CLI debug_level=4 force_version=tls13 tls13_kex_modes=ephemeral_all reconnect=1" \
+         0 \
+         -c "Pre-configured PSK number = 1" \
+         -S "No suitable key exchange mode" \
+         -s "found matched identity"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test "TLS 1.3 m->m: Resumption with ticket flags, psk_ephemeral/psk_all." \
+         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 dummy_ticket=10" \
+         "$P_CLI debug_level=4 force_version=tls13 tls13_kex_modes=ephemeral_all reconnect=1" \
+         0 \
+         -c "Pre-configured PSK number = 1" \
+         -S "No suitable key exchange mode" \
+         -s "found matched identity"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test "TLS 1.3 m->m: Resumption with ticket flags, psk_all/none." \
+         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 dummy_ticket=7" \
+         "$P_CLI debug_level=4 force_version=tls13 tls13_kex_modes=all reconnect=1" \
+         0 \
+         -c "Pre-configured PSK number = 1" \
+         -S "sent selected_identity:" \
+         -s "key exchange mode: ephemeral" \
+         -S "key exchange mode: psk_ephemeral" \
+         -S "key exchange mode: psk$" \
+         -s "No suitable key exchange mode" \
+         -s "No matched PSK or ticket"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test "TLS 1.3 m->m: Resumption with ticket flags, psk_all/psk." \
+         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 dummy_ticket=8" \
+         "$P_CLI debug_level=4 force_version=tls13 tls13_kex_modes=all reconnect=1" \
+         0 \
+         -c "Pre-configured PSK number = 1" \
+         -S "No suitable key exchange mode" \
+         -s "found matched identity"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test "TLS 1.3 m->m: Resumption with ticket flags, psk_all/psk_ephemeral." \
+         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 dummy_ticket=9" \
+         "$P_CLI debug_level=4 force_version=tls13 tls13_kex_modes=all reconnect=1" \
+         0 \
+         -c "Pre-configured PSK number = 1" \
+         -S "No suitable key exchange mode" \
+         -s "found matched identity"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS \
+                             MBEDTLS_SSL_SRV_C MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test "TLS 1.3 m->m: Resumption with ticket flags, psk_all/psk_all." \
+         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 dummy_ticket=10" \
+         "$P_CLI debug_level=4 force_version=tls13 tls13_kex_modes=all reconnect=1" \
+         0 \
+         -c "Pre-configured PSK number = 1" \
+         -S "No suitable key exchange mode" \
+         -s "found matched identity"
 

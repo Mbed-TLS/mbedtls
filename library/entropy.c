@@ -564,7 +564,7 @@ static int mbedtls_entropy_source_self_test_check_bits( const unsigned char *buf
 }
 
 /*
- * A test to ensure hat the entropy sources are functioning correctly
+ * A test to ensure that the entropy sources are functioning correctly
  * and there is no obvious failure. The test performs the following checks:
  *  - The entropy source is not providing only 0s (all bits unset) or 1s (all
  *    bits set).

@@ -1844,8 +1844,10 @@ static int ssl_parse_server_ecdh_params( mbedtls_ssl_context *ssl,
     if( (size_t)( end - *p ) < ecpoint_len )
         return( MBEDTLS_ERR_SSL_DECODE_ERROR );
 
+#if !defined(MBEDTLS_DHM_C)
     if( ecpoint_len > sizeof( handshake->ecdh_psa_peerkey ) )
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+#endif
 
     memcpy( handshake->ecdh_psa_peerkey, *p, ecpoint_len );
     handshake->ecdh_psa_peerkey_len = ecpoint_len;

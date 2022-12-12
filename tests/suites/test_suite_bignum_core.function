@@ -1162,6 +1162,25 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void mpi_core_check_zero_ct( char *input_X, int expected_is_zero )
+{
+    mbedtls_mpi_uint *X = NULL;
+    size_t X_limbs;
+
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &X, &X_limbs, input_X ) );
+
+    TEST_CF_SECRET( X, X_limbs * sizeof( mbedtls_mpi_uint ) );
+
+    mbedtls_mpi_uint check = mbedtls_mpi_core_check_zero_ct( X, X_limbs );
+    int is_zero = (check == 0);
+    TEST_EQUAL( is_zero, expected_is_zero );
+
+exit:
+    mbedtls_free( X );
+}
+/* END_CASE */
+
 /* END MERGE SLOT 3 */
 
 /* BEGIN MERGE SLOT 4 */

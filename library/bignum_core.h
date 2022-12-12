@@ -572,6 +572,19 @@ mbedtls_mpi_uint mbedtls_mpi_core_sub_int( mbedtls_mpi_uint *X,
                                            mbedtls_mpi_uint b,
                                            size_t limbs );
 
+/**
+ * \brief Determine if a given MPI has the value \c 0 in constant time with
+ *        respect to the value (but not with respect to the number of limbs).
+ *
+ * \param[in] A   The MPI to test.
+ * \param limbs   Number of limbs in \p A.
+ *
+ * \return        0 if `A == 0`
+ *                non-0 (may be any value) if `A != 0`.
+ */
+mbedtls_mpi_uint mbedtls_mpi_core_check_zero_ct( const mbedtls_mpi_uint *A,
+                                                 size_t limbs );
+
 /* END MERGE SLOT 3 */
 
 /* BEGIN MERGE SLOT 4 */

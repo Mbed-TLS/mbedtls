@@ -818,6 +818,20 @@ class BignumCoreSubInt(BignumCoreTarget, bignum_common.OperationCommon):
             str(-borrow)
         ]
 
+class BignumCoreZeroCheckCT(BignumCoreTarget, bignum_common.OperationCommon):
+    """Test cases for bignum core zero check (constant flow)."""
+    count = 0
+    symbol = "== 0"
+    test_function = "mpi_core_check_zero_ct"
+    test_name = "mpi_core_check_zero_ct"
+    input_style = "variable"
+    arity = 1
+    suffix = True
+
+    def result(self) -> List[str]:
+        result = 1 if self.int_a == 0 else 0
+        return [str(result)]
+
 # END MERGE SLOT 3
 
 # BEGIN MERGE SLOT 4

@@ -3333,10 +3333,16 @@ exit:
      * In case opaque keys it's the user responsibility to keep the key valid
      * for the duration of the handshake and destroy it at the end
      */
-    if( ( opt.ecjpake_pw_opaque != DFL_ECJPAKE_PW_OPAQUE ) &&
-        ( ! mbedtls_svc_key_id_is_null( ecjpake_pw_slot ) ) )
+    if( ( opt.ecjpake_pw_opaque != DFL_ECJPAKE_PW_OPAQUE ) )
     {
-        psa_destroy_key( ecjpake_pw_slot );
+        psa_key_attributes_t check_attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+        /* Verify that the key is still valid before destroying it */
+        if( psa_get_key_attributes( ecjpake_pw_slot, &check_attributes ) ==
+                PSA_SUCCESS )
+        {
+            psa_destroy_key( ecjpake_pw_slot );
+        }
     }
 #endif  /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED && MBEDTLS_USE_PSA_CRYPTO */
 

@@ -6236,6 +6236,7 @@ void ssl_ecjpake_set_password( int use_opaque_arg )
     if( use_opaque_arg )
     {
         psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+        psa_key_attributes_t check_attributes = PSA_KEY_ATTRIBUTES_INIT;
 
         /* First try with an invalid usage */
         psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH );
@@ -6248,7 +6249,8 @@ void ssl_ecjpake_set_password( int use_opaque_arg )
         ECJPAKE_TEST_SET_PASSWORD( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
 
         /* check that the opaque key is still valid after failure */
-        TEST_ASSERT( ! mbedtls_svc_key_id_is_null( pwd_slot ) );
+        TEST_EQUAL( psa_get_key_attributes( pwd_slot, &check_attributes ),
+                        PSA_SUCCESS );
 
         psa_destroy_key( pwd_slot );
 

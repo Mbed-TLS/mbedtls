@@ -533,10 +533,9 @@ exit:
 
 /* BEGIN_CASE */
 void mpi_core_sub( char * input_A, char * input_B,
-                   char * input_X4, char * input_X8,
-                   int carry )
+                   char * input_X, int carry )
 {
-    mbedtls_mpi A, B, X4, X8;
+    mbedtls_mpi A, B, X;
     mbedtls_mpi_uint *a = NULL;
     mbedtls_mpi_uint *b = NULL;
     mbedtls_mpi_uint *x = NULL; /* expected */
@@ -544,29 +543,23 @@ void mpi_core_sub( char * input_A, char * input_B,
 
     mbedtls_mpi_init( &A );
     mbedtls_mpi_init( &B );
-    mbedtls_mpi_init( &X4 );
-    mbedtls_mpi_init( &X8 );
+    mbedtls_mpi_init( &X );
 
     TEST_EQUAL( 0, mbedtls_test_read_mpi( &A, input_A ) );
     TEST_EQUAL( 0, mbedtls_test_read_mpi( &B, input_B ) );
-    TEST_EQUAL( 0, mbedtls_test_read_mpi( &X4, input_X4 ) );
-    TEST_EQUAL( 0, mbedtls_test_read_mpi( &X8, input_X8 ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &X, input_X ) );
 
     /* All of the inputs are +ve (or zero) */
     TEST_EQUAL( 1, A.s );
     TEST_EQUAL( 1, B.s );
-    TEST_EQUAL( 1, X4.s );
-    TEST_EQUAL( 1, X8.s );
+    TEST_EQUAL( 1, X.s );
 
     /* Get the number of limbs we will need */
     size_t limbs = MAX( A.n, B.n );
     size_t bytes = limbs * sizeof(mbedtls_mpi_uint);
 
-    /* We only need to work with X4 or X8, depending on sizeof(mbedtls_mpi_uint) */
-    mbedtls_mpi *X = ( sizeof(mbedtls_mpi_uint) == 4 ) ? &X4 : &X8;
-
     /* The result shouldn't have more limbs than the longest input */
-    TEST_LE_U( X->n, limbs );
+    TEST_LE_U( X.n, limbs );
 
     /* Now let's get arrays of mbedtls_mpi_uints, rather than MPI structures */
 
@@ -582,7 +575,7 @@ void mpi_core_sub( char * input_A, char * input_B,
      */
     memcpy( a, A.p, A.n * sizeof(mbedtls_mpi_uint) );
     memcpy( b, B.p, B.n * sizeof(mbedtls_mpi_uint) );
-    memcpy( x, X->p, X->n * sizeof(mbedtls_mpi_uint) );
+    memcpy( x, X.p, X.n * sizeof(mbedtls_mpi_uint) );
 
     /* 1a) r = a - b => we should get the correct carry */
     TEST_EQUAL( carry, mbedtls_mpi_core_sub( r, a, b, limbs ) );
@@ -621,8 +614,7 @@ exit:
 
     mbedtls_mpi_free( &A );
     mbedtls_mpi_free( &B );
-    mbedtls_mpi_free( &X4 );
-    mbedtls_mpi_free( &X8 );
+    mbedtls_mpi_free( &X );
 }
 /* END_CASE */
 

@@ -979,7 +979,12 @@ struct mbedtls_ssl_handshake_params {
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     /** TLS 1.3 transform for early data and handshake messages. */
     mbedtls_ssl_transform *transform_earlydata;
-#endif
+
+#if defined(MBEDTLS_SSL_SRV_C)
+    size_t received_early_data_size;
+#endif /* MBEDTLS_SSL_SRV_C */
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)

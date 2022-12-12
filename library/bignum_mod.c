@@ -79,7 +79,7 @@ void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m )
             if (m->rep.mont.rr != NULL)
             {
                 mbedtls_platform_zeroize( (mbedtls_mpi_uint *) m->rep.mont.rr,
-                                           m->limbs );
+                                           m->limbs * sizeof(mbedtls_mpi_uint) );
                 mbedtls_free( (mbedtls_mpi_uint *)m->rep.mont.rr );
                 m->rep.mont.rr = NULL;
             }

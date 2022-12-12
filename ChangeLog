@@ -455,7 +455,7 @@ Bugfix
      make to break on a clean checkout. Fixes #5340.
    * Work around an MSVC ARM64 compiler bug causing incorrect behaviour
      in mbedtls_mpi_exp_mod(). Reported by Tautvydas Žilys in #5467.
-   * Removed the prompt to exit from all windows build programs that was causing
+   * Removed the prompt to exit from all windows build programs, which was causing
      issues in CI/CD environments.
 
 Changes

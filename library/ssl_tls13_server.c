@@ -2782,6 +2782,30 @@ static int ssl_tls13_write_server_finished(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_DEBUG_MSG(1, ("Switch to handshake keys for inbound traffic"));
     mbedtls_ssl_set_inbound_transform(ssl, ssl->handshake->transform_handshake);
 
+    mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_WAIT_FLIGHT2);
+
+    return 0;
+}
+
+/*
+ * Handler for MBEDTLS_SSL_WAIT_FLIGHT2
+ *
+ * RFC 8446 section A.2
+ *
+ *                      WAIT_FLIGHT2
+ *                            |
+ *                   +--------+--------+
+ *           No auth |                 | Client auth
+ *                   |                 |
+ *                   |                 v
+ *                   |             WAIT_CERT
+ *                   |        Recv |       | Recv Certificate
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_process_wait_flight2(mbedtls_ssl_context *ssl)
+{
+    MBEDTLS_SSL_DEBUG_MSG(2, ("=> ssl_tls13_process_wait_flight2"));
+
     if (ssl->handshake->certificate_request_sent) {
         mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE);
     } else {
@@ -2790,6 +2814,7 @@ static int ssl_tls13_write_server_finished(mbedtls_ssl_context *ssl)
         mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_FINISHED);
     }
 
+    MBEDTLS_SSL_DEBUG_MSG(2, ("<= ssl_tls13_process_wait_flight2"));
     return 0;
 }
 
@@ -3213,8 +3238,28 @@ int mbedtls_ssl_tls13_handshake_server_step(mbedtls_ssl_context *ssl)
             break;
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
 
+        /* RFC 8446 section A.2
+         *
+         *                                 | Send Finished ( SERVER_FINISHED )
+         *                                 | K_send = application
+         *                        +--------+--------+
+         *               No 0-RTT |                 | 0-RTT
+         *                        |                 |
+         *    K_recv = handshake  |                 | K_recv = early data
+         *  [Skip decrypt errors] |    +------> WAIT_EOED -+
+         *                        |    |       Recv |      | Recv EndOfEarlyData
+         *                        |    | early data |      | K_recv = handshake
+         *                        |    +------------+      |
+         *                        |                        |
+         *                        +> WAIT_FLIGHT2 <--------+
+         *                                 |
+         */
         case MBEDTLS_SSL_SERVER_FINISHED:
             ret = ssl_tls13_write_server_finished(ssl);
+            break;
+
+        case MBEDTLS_SSL_WAIT_FLIGHT2:
+            ret = ssl_tls13_process_wait_flight2(ssl);
             break;
 
         case MBEDTLS_SSL_CLIENT_FINISHED:

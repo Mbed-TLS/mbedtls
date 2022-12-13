@@ -917,13 +917,13 @@ int mbedtls_cipher_crypt( mbedtls_cipher_context_t *ctx,
  *                      parameter-verification failure.
  * \return              A cipher-specific error code on failure.
  */
-int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
-                         const unsigned char *iv, size_t iv_len,
-                         const unsigned char *ad, size_t ad_len,
-                         const unsigned char *input, size_t ilen,
-                         unsigned char *output, size_t *olen,
-                         unsigned char *tag, size_t tag_len )
-                         MBEDTLS_DEPRECATED;
+int MBEDTLS_DEPRECATED mbedtls_cipher_auth_encrypt(
+        mbedtls_cipher_context_t *ctx,
+        const unsigned char *iv, size_t iv_len,
+        const unsigned char *ad, size_t ad_len,
+        const unsigned char *input, size_t ilen,
+        unsigned char *output, size_t *olen,
+        unsigned char *tag, size_t tag_len );
 
 /**
  * \brief               The generic authenticated decryption (AEAD) function.
@@ -976,13 +976,13 @@ int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
  * \return              #MBEDTLS_ERR_CIPHER_AUTH_FAILED if data is not authentic.
  * \return              A cipher-specific error code on failure.
  */
-int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
-                         const unsigned char *iv, size_t iv_len,
-                         const unsigned char *ad, size_t ad_len,
-                         const unsigned char *input, size_t ilen,
-                         unsigned char *output, size_t *olen,
-                         const unsigned char *tag, size_t tag_len )
-                         MBEDTLS_DEPRECATED;
+int MBEDTLS_DEPRECATED mbedtls_cipher_auth_decrypt(
+        mbedtls_cipher_context_t *ctx,
+        const unsigned char *iv, size_t iv_len,
+        const unsigned char *ad, size_t ad_len,
+        const unsigned char *input, size_t ilen,
+        unsigned char *output, size_t *olen,
+        const unsigned char *tag, size_t tag_len );
 #undef MBEDTLS_DEPRECATED
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_CIPHER_MODE_AEAD */

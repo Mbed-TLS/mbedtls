@@ -644,7 +644,24 @@ int mbedtls_ssl_tls13_derive_resumption_master_secret(
     return 0;
 }
 
-int mbedtls_ssl_tls13_key_schedule_stage_application(mbedtls_ssl_context *ssl)
+/**
+ * \brief Transition into application stage of TLS 1.3 key schedule.
+ *
+ *        The TLS 1.3 key schedule can be viewed as a simple state machine
+ *        with states Initial -> Early -> Handshake -> Application, and
+ *        this function represents the Handshake -> Application transition.
+ *
+ *        In the handshake stage, mbedtls_ssl_tls13_generate_application_keys()
+ *        can be used to derive the handshake traffic keys.
+ *
+ * \param ssl  The SSL context to operate on. This must be in key schedule
+ *             stage \c Handshake.
+ *
+ * \returns    \c 0 on success.
+ * \returns    A negative error code on failure.
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int mbedtls_ssl_tls13_key_schedule_stage_application(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
@@ -1282,10 +1299,25 @@ int mbedtls_ssl_tls13_key_schedule_stage_early(mbedtls_ssl_context *ssl)
     return 0;
 }
 
-/* mbedtls_ssl_tls13_generate_handshake_keys() generates keys necessary for
- * protecting the handshake messages, as described in Section 7 of TLS 1.3. */
-int mbedtls_ssl_tls13_generate_handshake_keys(mbedtls_ssl_context *ssl,
-                                              mbedtls_ssl_key_set *traffic_keys)
+/**
+ * \brief Compute TLS 1.3 handshake traffic keys.
+ *
+ *        mbedtls_ssl_tls13_generate_handshake_keys() generates keys necessary
+ *        for protecting the handshake messages, as described in Section 7
+ *        of TLS 1.3.
+ *
+ * \param ssl  The SSL context to operate on. This must be in
+ *             key schedule stage \c Handshake, see
+ *             mbedtls_ssl_tls13_key_schedule_stage_handshake().
+ * \param traffic_keys The address at which to store the handshake traffic key
+ *                     keys. This must be writable but may be uninitialized.
+ *
+ * \returns    \c 0 on success.
+ * \returns    A negative error code on failure.
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int mbedtls_ssl_tls13_generate_handshake_keys(mbedtls_ssl_context *ssl,
+                                                     mbedtls_ssl_key_set *traffic_keys)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_md_type_t md_type;
@@ -1393,7 +1425,24 @@ exit:
     return ret;
 }
 
-int mbedtls_ssl_tls13_key_schedule_stage_handshake(mbedtls_ssl_context *ssl)
+/**
+ * \brief Transition into handshake stage of TLS 1.3 key schedule.
+ *
+ *        The TLS 1.3 key schedule can be viewed as a simple state machine
+ *        with states Initial -> Early -> Handshake -> Application, and
+ *        this function represents the Early -> Handshake transition.
+ *
+ *        In the handshake stage, mbedtls_ssl_tls13_generate_handshake_keys()
+ *        can be used to derive the handshake traffic keys.
+ *
+ * \param ssl  The SSL context to operate on. This must be in key schedule
+ *             stage \c Early.
+ *
+ * \returns    \c 0 on success.
+ * \returns    A negative error code on failure.
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int mbedtls_ssl_tls13_key_schedule_stage_handshake(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
@@ -1479,10 +1528,24 @@ cleanup:
     return ret;
 }
 
-/* Generate application traffic keys since any records following a 1-RTT Finished message
- * MUST be encrypted under the application traffic key.
+/**
+ * \brief Compute TLS 1.3 application traffic keys.
+ *
+ *        mbedtls_ssl_tls13_generate_application_keys() generates application
+ *        traffic keys, since any records following a 1-RTT Finished message
+ *        MUST be encrypted under the application traffic key.
+ *
+ * \param ssl  The SSL context to operate on. This must be in
+ *             key schedule stage \c Application, see
+ *             mbedtls_ssl_tls13_key_schedule_stage_application().
+ * \param traffic_keys The address at which to store the application traffic key
+ *                     keys. This must be writable but may be uninitialized.
+ *
+ * \returns    \c 0 on success.
+ * \returns    A negative error code on failure.
  */
-int mbedtls_ssl_tls13_generate_application_keys(
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int mbedtls_ssl_tls13_generate_application_keys(
     mbedtls_ssl_context *ssl,
     mbedtls_ssl_key_set *traffic_keys)
 {

@@ -204,7 +204,8 @@ int mbedtls_mpi_mod_sub( mbedtls_mpi_mod_residue *X,
  *
  * Calculate `A + B modulo N`.
  *
- * \p A, \p B and \p X must all have the same number of limbs as \p N.
+ * \p A, \p B and \p X must all be associated with the modulus \p N and must
+ * all have the same number of limbs as \p N.
  *
  * \p X may be aliased to \p A or \p B, or even both, but may not overlap
  * either otherwise.
@@ -213,10 +214,10 @@ int mbedtls_mpi_mod_sub( mbedtls_mpi_mod_residue *X,
  *       form (that is, are < \p N) - that will have been done by
  *       mbedtls_mpi_mod_residue_setup().
  *
- * \param[out] X    The address of the result MPI. Must be initialized.
+ * \param[out] X    The address of the result residue. Must be initialized.
  *                  Must have the same number of limbs as the modulus \p N.
- * \param[in]  A    The address of the first MPI.
- * \param[in]  B    The address of the second MPI.
+ * \param[in]  A    The address of the first input residue.
+ * \param[in]  B    The address of the second input residue.
  * \param[in]  N    The address of the modulus. Used to perform a modulo
  *                  operation on the result of the addition.
  *

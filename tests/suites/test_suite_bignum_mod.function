@@ -303,24 +303,6 @@ void mpi_mod_add( char * input_N,
         TEST_EQUAL( 0, mbedtls_mpi_mod_add( &x, &x, &x, &m ) );
         TEST_COMPARE_MPI_RESIDUES( x, s );
     }
-    else
-    {
-        /* a != b: test b + a */
-
-        /* b + a => Correct result */
-        mbedtls_mpi_mod_add( &x, &b, &a, &m );
-        TEST_COMPARE_MPI_RESIDUES( x, s );
-
-        /* b + a: alias x to a => Correct result */
-        memcpy( x.p, a.p, bytes );
-        TEST_EQUAL( 0, mbedtls_mpi_mod_add( &x, &b, &x, &m ) );
-        TEST_COMPARE_MPI_RESIDUES( x, s );
-
-        /* b + a: alias x to b => Correct result */
-        memcpy( x.p, b.p, bytes );
-        TEST_EQUAL( 0, mbedtls_mpi_mod_add( &x, &x, &a, &m ) );
-        TEST_COMPARE_MPI_RESIDUES( x, s );
-    }
 
 exit:
     mbedtls_free( (void *)m.p ); /* mbedtls_mpi_mod_modulus_free() sets m.p = NULL */

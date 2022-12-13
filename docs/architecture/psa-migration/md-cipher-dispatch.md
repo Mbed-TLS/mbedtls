@@ -97,7 +97,7 @@ In this work, we want two things:
 We can classify code that implements or uses cryptographic mechanisms into several groups:
 
 * Software implementations of primitive cryptographic mechanisms. These are not expected to change.
-* Software implementations of constructed cryptographic mechanisms (e.g. HMAC, CTR_DRBG, RSA (calling a hash for PSS/OAEP), …). These need to keep working whenever a legacy implementation of the auxiliary mechanism is available, even if a PSA implementation is also available.
+* Software implementations of constructed cryptographic mechanisms (e.g. HMAC, CTR_DRBG, RSA (calling a hash for PSS/OAEP, and needing to know the hash length in PKCS1v1.5 sign/verify), …). These need to keep working whenever a legacy implementation of the auxiliary mechanism is available, regardless of whether a PSA implementation is also available.
 * Code implementing the PSA crypto interface. This is not expected to change, except perhaps to expose some internal functionality to overhauled glue code.
 * Code that's subject to `MBEDTLS_USE_PSA_CRYPTO`: `pk.h`, X.509, TLS (excluding TLS 1.3).
 * Code that always uses PSA for crypto: TLS 1.3, LMS.

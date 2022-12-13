@@ -73,6 +73,7 @@ The following configuration options are described as experimental, and are likel
 
 * `MBEDTLS_PSA_CRYPTO_CLIENT`: “This interface is experimental and may change or be removed without notice.” In practice we don't want to remove this, but we may constrain how it's used.
 * `MBEDTLS_PSA_CRYPTO_DRIVERS`: “This interface is experimental. We intend to maintain backward compatibility with application code that relies on drivers, but the driver interfaces may change without notice.” In practice, this may mean constraints not only on how to write drivers, but also on how to integrate drivers into code that is platform code more than application code.
+* `MBEDTLS_PSA_CRYPTO_CONFIG`: “This feature is still experimental and is not ready for production since it is not completed.” We may want to change this, for example, to automatically enable more mechanisms (although this wouldn't be considered a backward compatibility break anyway, since we don't promise that you will not get a feature if you don't enable its `PSA_WANT_xxx`).
 
 ### Non-goals
 

@@ -595,6 +595,60 @@ exit:
     mbedtls_free( X );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_mod_raw_neg( char * input_N, char * input_A, char * input_X )
+{
+    mbedtls_mpi_uint *N = NULL;
+    mbedtls_mpi_uint *A = NULL;
+    mbedtls_mpi_uint *X = NULL;
+    mbedtls_mpi_uint *R = NULL;
+    mbedtls_mpi_uint *Z = NULL;
+    size_t n_limbs, a_limbs, x_limbs, bytes;
+
+    mbedtls_mpi_mod_modulus m;
+    mbedtls_mpi_mod_modulus_init( &m );
+
+    /* Read inputs */
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &N, &n_limbs, input_N ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &A, &a_limbs, input_A ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &X, &x_limbs, input_X ) );
+
+    TEST_EQUAL( a_limbs, n_limbs );
+    TEST_EQUAL( x_limbs, n_limbs );
+    bytes = n_limbs * sizeof( mbedtls_mpi_uint );
+
+    ASSERT_ALLOC( R, n_limbs );
+    ASSERT_ALLOC( Z, n_limbs );
+
+    TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs,
+            MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
+
+    /* Neg( A == 0 ) => Zero result */
+    mbedtls_mpi_mod_raw_neg( R, Z, &m );
+    ASSERT_COMPARE( R, bytes, Z, bytes );
+
+    /* Neg( A == N ) => Zero result */
+    mbedtls_mpi_mod_raw_neg( R, N, &m );
+    ASSERT_COMPARE( R, bytes, Z, bytes );
+
+    /* Neg( A ) => Correct result */
+    mbedtls_mpi_mod_raw_neg( R, A, &m );
+    ASSERT_COMPARE( R, bytes, X, bytes );
+
+    /* Neg( A ): alias A to R => Correct result */
+    mbedtls_mpi_mod_raw_neg( A, A, &m );
+    ASSERT_COMPARE( A, bytes, X, bytes );
+exit:
+    mbedtls_mpi_mod_modulus_free( &m );
+    mbedtls_free( N );
+    mbedtls_free( A );
+    mbedtls_free( X );
+    mbedtls_free( R );
+    mbedtls_free( Z );
+}
+/* END_CASE */
+
 /* END MERGE SLOT 7 */
 
 /* BEGIN MERGE SLOT 8 */

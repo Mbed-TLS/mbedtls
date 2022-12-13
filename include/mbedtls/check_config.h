@@ -330,7 +330,7 @@
 
 /* Use of EC J-PAKE in TLS requires SHA-256.
  * This will be taken from MD if it is present, or from PSA if MD is absent.
- * Note: ECJPAKE_C depends on MD_C || PSA_CRYPTO_C. */
+ * Note: MBEDTLS_ECJPAKE_C depends on MBEDTLS_MD_C || MBEDTLS_PSA_CRYPTO_C. */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) &&                    \
     !( defined(MBEDTLS_MD_C) && defined(MBEDTLS_SHA256_C) ) &&          \
     !( !defined(MBEDTLS_MD_C) && defined(PSA_WANT_ALG_SHA_256) )

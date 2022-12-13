@@ -508,4 +508,4 @@ psa_status_t mbedtls_psa_aead_finish(
 psa_status_t mbedtls_psa_aead_abort(
     mbedtls_psa_aead_operation_t *operation );
 
-#endif /* PSA_CRYPTO_AEAD */
+#endif /* PSA_CRYPTO_AEAD_H */

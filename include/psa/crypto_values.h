@@ -1760,7 +1760,7 @@
 #define PSA_ALG_HKDF_BASE                       ((psa_algorithm_t)0x08000100)
 /** Macro to build an HKDF algorithm.
  *
- * For example, `PSA_ALG_HKDF(PSA_ALG_SHA256)` is HKDF using HMAC-SHA-256.
+ * For example, `PSA_ALG_HKDF(PSA_ALG_SHA_256)` is HKDF using HMAC-SHA-256.
  *
  * This key derivation algorithm uses the following inputs:
  * - #PSA_KEY_DERIVATION_INPUT_SALT is the salt used in the "extract" step.
@@ -1805,7 +1805,7 @@
 #define PSA_ALG_HKDF_EXTRACT_BASE                       ((psa_algorithm_t)0x08000400)
 /** Macro to build an HKDF-Extract algorithm.
  *
- * For example, `PSA_ALG_HKDF_EXTRACT(PSA_ALG_SHA256)` is
+ * For example, `PSA_ALG_HKDF_EXTRACT(PSA_ALG_SHA_256)` is
  * HKDF-Extract using HMAC-SHA-256.
  *
  * This key derivation algorithm uses the following inputs:
@@ -1854,7 +1854,7 @@
 #define PSA_ALG_HKDF_EXPAND_BASE                       ((psa_algorithm_t)0x08000500)
 /** Macro to build an HKDF-Expand algorithm.
  *
- * For example, `PSA_ALG_HKDF_EXPAND(PSA_ALG_SHA256)` is
+ * For example, `PSA_ALG_HKDF_EXPAND(PSA_ALG_SHA_256)` is
  * HKDF-Expand using HMAC-SHA-256.
  *
  * This key derivation algorithm uses the following inputs:
@@ -1925,7 +1925,7 @@
  * concatenation of ServerHello.Random + ClientHello.Random,
  * and the label is "key expansion".
  *
- * For example, `PSA_ALG_TLS12_PRF(PSA_ALG_SHA256)` represents the
+ * For example, `PSA_ALG_TLS12_PRF(PSA_ALG_SHA_256)` represents the
  * TLS 1.2 PRF using HMAC-SHA-256.
  *
  * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
@@ -1995,7 +1995,7 @@
  *   PSA_ALG_RSA_PKCS1V15_CRYPT, passed to the key derivation operation
  *   with `psa_key_derivation_input_bytes()`.
  *
- * For example, `PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA256)` represents the
+ * For example, `PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_256)` represents the
  * TLS-1.2 PSK to MasterSecret derivation PRF using HMAC-SHA-256.
  *
  * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
@@ -2050,7 +2050,7 @@
  * PBKDF2 is defined by PKCS#5, republished as RFC 8018 (section 5.2).
  * This macro specifies the PBKDF2 algorithm constructed using a PRF based on
  * HMAC with the specified hash.
- * For example, `PSA_ALG_PBKDF2_HMAC(PSA_ALG_SHA256)` specifies PBKDF2
+ * For example, `PSA_ALG_PBKDF2_HMAC(PSA_ALG_SHA_256)` specifies PBKDF2
  * using the PRF HMAC-SHA-256.
  *
  * This key derivation algorithm uses the following inputs, which must be

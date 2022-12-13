@@ -1690,7 +1690,7 @@
 #define PSA_ALG_HKDF_BASE                       ((psa_algorithm_t)0x08000100)
 /** Macro to build an HKDF algorithm.
  *
- * For example, `PSA_ALG_HKDF(PSA_ALG_SHA256)` is HKDF using HMAC-SHA-256.
+ * For example, `PSA_ALG_HKDF(PSA_ALG_SHA_256)` is HKDF using HMAC-SHA-256.
  *
  * This key derivation algorithm uses the following inputs:
  * - #PSA_KEY_DERIVATION_INPUT_SALT is the salt used in the "extract" step.
@@ -1743,7 +1743,7 @@
  * concatenation of ServerHello.Random + ClientHello.Random,
  * and the label is "key expansion".
  *
- * For example, `PSA_ALG_TLS12_PRF(PSA_ALG_SHA256)` represents the
+ * For example, `PSA_ALG_TLS12_PRF(PSA_ALG_SHA_256)` represents the
  * TLS 1.2 PRF using HMAC-SHA-256.
  *
  * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
@@ -1789,7 +1789,7 @@
  * ClientHello.Random + ServerHello.Random,
  * and the label is "master secret" or "extended master secret".
  *
- * For example, `PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA256)` represents the
+ * For example, `PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_256)` represents the
  * TLS-1.2 PSK to MasterSecret derivation PRF using HMAC-SHA-256.
  *
  * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that

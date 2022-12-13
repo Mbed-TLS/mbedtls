@@ -148,4 +148,4 @@ psa_status_t mbedtls_psa_aead_decrypt(
     const uint8_t *ciphertext, size_t ciphertext_length,
     uint8_t *plaintext, size_t plaintext_size, size_t *plaintext_length );
 
-#endif /* PSA_CRYPTO_AEAD */
+#endif /* PSA_CRYPTO_AEAD_H */

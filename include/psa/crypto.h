@@ -2861,7 +2861,7 @@ psa_status_t psa_aead_abort(psa_aead_operation_t *operation);
  *
  * \note To perform a multi-part hash-and-sign signature algorithm, first use
  *       a multi-part hash operation and then pass the resulting hash to
- *       psa_sign_hash(). PSA_ALG_GET_HASH(\p alg) can be used to determine the
+ *       psa_sign_hash(). PSA_ALG_SIGN_GET_HASH(\p alg) can be used to determine the
  *       hash algorithm to use.
  *
  * \param[in]  key              Identifier of the key to use for the operation.
@@ -2927,7 +2927,7 @@ psa_status_t psa_sign_message( mbedtls_svc_key_id_t key,
  * \note To perform a multi-part hash-and-sign signature verification
  *       algorithm, first use a multi-part hash operation to hash the message
  *       and then pass the resulting hash to psa_verify_hash().
- *       PSA_ALG_GET_HASH(\p alg) can be used to determine the hash algorithm
+ *       PSA_ALG_SIGN_GET_HASH(\p alg) can be used to determine the hash algorithm
  *       to use.
  *
  * \param[in]  key              Identifier of the key to use for the operation.

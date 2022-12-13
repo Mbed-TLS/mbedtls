@@ -192,6 +192,32 @@ int mbedtls_mpi_mod_sub( mbedtls_mpi_mod_residue *X,
                          const mbedtls_mpi_mod_residue *A,
                          const mbedtls_mpi_mod_residue *B,
                          const mbedtls_mpi_mod_modulus *N );
+
+/**
+ * \brief Perform modular inversion of an MPI with respect to a modulus \p N.
+ *
+ * \p X may be aliased to \p A.
+ *
+ * \warning  Currently only supports prime moduli, but does not check for them.
+ *
+ * \param[out] X   The modular inverse of \p A with respect to \p N.
+ * \param[in] A    The number to calculate the modular inverse of.
+ *                 Must not be 0.
+ * \param[in] N    The modulus to use.
+ *
+ * \return         \c 0 if successful.
+ * \return         #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p A and \p N do not
+ *                 have the same number of limbs.
+ * \return         #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p A is zero.
+ * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if couldn't allocate enough
+ *                 memory (needed for conversion to and from Mongtomery form
+ *                 when not in Montgomery form already, and for temporary use
+ *                 by the inversion calculation itself).
+ */
+
+int mbedtls_mpi_mod_inv( mbedtls_mpi_mod_residue *X,
+                         const mbedtls_mpi_mod_residue *A,
+                         const mbedtls_mpi_mod_modulus *N );
 /* END MERGE SLOT 3 */
 
 /* BEGIN MERGE SLOT 4 */

@@ -31,6 +31,25 @@ class BignumModTarget(test_data_generation.BaseTarget):
 
 # BEGIN MERGE SLOT 2
 
+class BignumModMul(bignum_common.ModOperationCommon,
+                   BignumModTarget):
+    """Test cases for bignum mpi_mod_mul()."""
+    symbol = "*"
+    test_function = "mpi_mod_mul"
+    test_name = "mbedtls_mpi_mod_mul"
+    input_style = "arch_split"
+    arity = 2
+
+    def arguments(self) -> List[str]:
+        return [bignum_common.quote_str(n) for n in [self.arg_a,
+                                                     self.arg_b,
+                                                     self.arg_n]
+               ] + self.result()
+
+    def result(self) -> List[str]:
+        result = (self.int_a * self.int_b) % self.int_n
+        return [self.format_result(result)]
+
 # END MERGE SLOT 2
 
 # BEGIN MERGE SLOT 3

@@ -82,7 +82,9 @@
 #define MBEDTLS_SSL_DEBUG_ECP(level, text, X)         do { } while (0)
 #define MBEDTLS_SSL_DEBUG_CRT(level, text, crt)       do { } while (0)
 #define MBEDTLS_SSL_DEBUG_ECDH(level, ecdh, attr)     do { } while (0)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
 #define MBEDTLS_SSL_DEBUG_TICKET_FLAGS(level, flag)   do { } while (0)
+#endif
 
 #endif /* MBEDTLS_DEBUG_C */
 

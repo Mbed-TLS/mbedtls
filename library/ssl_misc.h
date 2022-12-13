@@ -2738,6 +2738,6 @@ static inline void mbedtls_ssl_tls13_session_clear_ticket_flags(
 {
     session->ticket_flags &= ~(flags & MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK);
 }
-#endif
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */
 
 #endif /* ssl_misc.h */

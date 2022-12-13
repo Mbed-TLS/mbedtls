@@ -139,7 +139,7 @@ Here are some reasons why calling `psa_xxx()` to perform a hash or cipher calcul
 * For ciphers, the keystore is not initialized yet, and Mbed TLS uses a custom implementation of PSA ITS where the file system is not accessible yet (because something else needs to happen first, and the application takes care that it happens before it calls `psa_crypto_init()`). A possible workaround may be to dispatch to the internal functions that are called after the keystore lookup, rather than to the PSA API functions (but this is incompatible with `MBEDTLS_PSA_CRYPTO_CLIENT`).
 * The requested mechanism is enabled in the legacy interface but not in the PSA interface. This was not really intended, but is possible, for example, if you enable `MBEDTLS_MD5_C` for PEM decoding with PBKDF1 but don't want `PSA_ALG_WANT_MD5` because it isn't supported for `PSA_ALG_RSA_PSS` and `PSA_ALG_DETERMINISTIC_ECDSA`.
 * `MBEDTLS_PSA_CRYPTO_CLIENT` is enabled, and the client has not yet activated the connection to the server (this happens in `psa_crypto_init()`).
-* `MBEDTLS_PSA_CRYPTO_CLIENT` is enabled, but the local implementation is faster because it avoids a remote procedure call.
+* `MBEDTLS_PSA_CRYPTO_CLIENT` is enabled, but the operation is part of the implementation of an encrypted communication with the crypto service, or the local implementation is faster because it avoids a costly remote procedure call.
 
 #### Indirect knowledge
 

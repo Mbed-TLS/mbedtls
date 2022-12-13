@@ -237,29 +237,39 @@ void mpi_mod_add( char * input_N,
     size_t limbs = m.limbs;
     size_t bytes = limbs * sizeof( *X_raw );
 
-    /* One spare limb for negative testing */
-    ASSERT_ALLOC( X_raw, limbs + 1 );
-
     if( expected_ret == 0 )
     {
         /* Negative test with too many limbs in output */
+        ASSERT_ALLOC( X_raw, limbs + 1 );
+
         x.p = X_raw;
         x.limbs = limbs + 1;
         TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
                     mbedtls_mpi_mod_add( &x, &a, &b, &m ) );
 
+        mbedtls_free( X_raw );
+        X_raw = NULL;
+
         /* Negative test with too few limbs in output */
         if( limbs > 1 )
         {
+            ASSERT_ALLOC( X_raw, limbs - 1 );
+
             x.p = X_raw;
             x.limbs = limbs - 1;
             TEST_EQUAL( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
                         mbedtls_mpi_mod_add( &x, &a, &b, &m ) );
+
+            mbedtls_free( X_raw );
+            X_raw = NULL;
         }
 
         /* Negative testing with too many/too few limbs in a and b is covered by
          * manually-written test cases with oret != 0. */
     }
+
+    /* Allocate correct number of limbs for X_raw */
+    ASSERT_ALLOC( X_raw, limbs );
 
     TEST_EQUAL( 0, mbedtls_mpi_mod_residue_setup( &x, &m, X_raw, limbs ) );
 

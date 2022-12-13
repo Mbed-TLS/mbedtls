@@ -606,6 +606,81 @@ static inline size_t mbedtls_mpi_core_montmul_working_limbs( size_t AN_limbs )
     return( 2 * AN_limbs + 1 );
 }
 
+/** Convert an MPI into Montgomery form.
+ *
+ * \p X may be aliased to \p A, but may not otherwise overlap it.
+ *
+ * \p X may not alias \p N (it is in canonical form, so must be stricly less
+ * than \p N). Nor may it alias or overlap \p rr (this is unlikely to be
+ * required in practice.)
+ *
+ * This function is a thin wrapper around `mbedtls_mpi_core_montmul()` that is
+ * an alternative to calling `mbedtls_mpi_mod_raw_to_mont_rep()` when we
+ * don't want to allocate memory.
+ *
+ * \param[out]    X         The result of the conversion.
+ *                          Must have the same number of limbs as \p A.
+ * \param[in]     A         The MPI to convert into Montgomery form.
+ *                          Must have the same number of limbs as the modulus.
+ * \param[in]     N         The address of the modulus, which gives the size of
+ *                          the base `R` = 2^(biL*m->limbs).
+ * \param[in]     AN_limbs  The number of limbs in \p X, \p A, \p N and \p rr.
+ * \param         mm        The Montgomery constant for \p N: -N^-1 mod 2^biL.
+ *                          This can be determined  by calling
+ *                          `mbedtls_mpi_core_montmul_init()`.
+ * \param[in]     rr        The residue for `2^{2*n*biL} mod N`.
+ * \param[in,out] T         Temporary storage of size at least
+ *                          `mbedtls_mpi_core_montmul_working_limbs(AN_limbs)`
+ *                          limbs.
+ *                          Its initial content is unused and
+ *                          its final content is indeterminate.
+ *                          It must not alias or otherwise overlap any of the
+ *                          other parameters.
+ */
+void mbedtls_mpi_core_to_mont_rep( mbedtls_mpi_uint *X,
+                                   const mbedtls_mpi_uint *A,
+                                   const mbedtls_mpi_uint *N,
+                                   size_t AN_limbs,
+                                   mbedtls_mpi_uint mm,
+                                   const mbedtls_mpi_uint *rr,
+                                   mbedtls_mpi_uint *T );
+
+/** Convert an MPI from Montgomery form.
+ *
+ * \p X may be aliased to \p A, but may not otherwise overlap it.
+ *
+ * \p X may not alias \p N (it is in canonical form, so must be stricly less
+ * than \p N).
+ *
+ * This function is a thin wrapper around `mbedtls_mpi_core_montmul()` that is
+ * an alternative to calling `mbedtls_mpi_mod_raw_from_mont_rep()` when we
+ * don't want to allocate memory.
+ *
+ * \param[out]    X         The result of the conversion.
+ *                          Must have the same number of limbs as \p A.
+ * \param[in]     A         The MPI to convert from Montgomery form.
+ *                          Must have the same number of limbs as the modulus.
+ * \param[in]     N         The address of the modulus, which gives the size of
+ *                          the base `R` = 2^(biL*m->limbs).
+ * \param[in]     AN_limbs  The number of limbs in \p X, \p A and \p N.
+ * \param         mm        The Montgomery constant for \p N: -N^-1 mod 2^biL.
+ *                          This can be determined  by calling
+ *                          `mbedtls_mpi_core_montmul_init()`.
+ * \param[in,out] T         Temporary storage of size at least
+ *                          `mbedtls_mpi_core_montmul_working_limbs(AN_limbs)`
+ *                          limbs.
+ *                          Its initial content is unused and
+ *                          its final content is indeterminate.
+ *                          It must not alias or otherwise overlap any of the
+ *                          other parameters.
+ */
+void mbedtls_mpi_core_from_mont_rep( mbedtls_mpi_uint *X,
+                                     const mbedtls_mpi_uint *A,
+                                     const mbedtls_mpi_uint *N,
+                                     size_t AN_limbs,
+                                     mbedtls_mpi_uint mm,
+                                     mbedtls_mpi_uint *T );
+
 /* END MERGE SLOT 3 */
 
 /* BEGIN MERGE SLOT 4 */

@@ -533,8 +533,10 @@ void mpi_mod_raw_to_mont_rep( char * input_N, char * input_A, char * input_X )
 {
     mbedtls_mpi_uint *N = NULL;
     mbedtls_mpi_uint *A = NULL;
+    mbedtls_mpi_uint *R = NULL; /* for result of low-level conversion */
     mbedtls_mpi_uint *X = NULL;
-    size_t n_limbs, a_limbs, x_limbs, x_bytes;
+    mbedtls_mpi_uint *T = NULL;
+    size_t n_limbs, a_limbs, x_limbs;
 
     mbedtls_mpi_mod_modulus m;
     mbedtls_mpi_mod_modulus_init( &m );
@@ -543,23 +545,50 @@ void mpi_mod_raw_to_mont_rep( char * input_N, char * input_A, char * input_X )
     TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &N, &n_limbs, input_N ) );
     TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &A, &a_limbs, input_A ) );
     TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &X, &x_limbs, input_X ) );
-    x_bytes = x_limbs * sizeof(mbedtls_mpi_uint);
 
-    /* Test that input does not require more limbs than modulo */
-    TEST_LE_U(a_limbs, n_limbs);
+    /* Number to convert must have same number of limbs as modulus */
+    TEST_EQUAL(a_limbs, n_limbs);
+
+    /* Higher-level conversion is in-place, so expected result must have the
+     * same number of limbs too */
+    TEST_EQUAL(x_limbs, n_limbs);
+
+    size_t limbs = n_limbs;
+    size_t bytes = limbs * sizeof(mbedtls_mpi_uint);
 
     TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs,
-                MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
+                                          MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
 
-    /* Convert from cannonical into Montgomery representation */
+    /* 1. Test low-level function first */
+
+    /* It has separate output, and requires temporary working storage */
+    size_t temp_limbs = mbedtls_mpi_core_montmul_working_limbs( limbs );
+    ASSERT_ALLOC( T, temp_limbs );
+    ASSERT_ALLOC( R, limbs );
+    mbedtls_mpi_core_to_mont_rep( R, A, N, n_limbs,
+                                  m.rep.mont.mm, m.rep.mont.rr, T );
+    /* Test that the low-level function gives the required value */
+    ASSERT_COMPARE( R, bytes, X, bytes );
+
+    /* Test when output is aliased to input */
+    memcpy( R, A, bytes );
+    mbedtls_mpi_core_to_mont_rep( R, R, N, n_limbs,
+                                  m.rep.mont.mm, m.rep.mont.rr, T );
+    ASSERT_COMPARE( R, bytes, X, bytes );
+
+    /* 2. Test higher-level cannonical to Montgomery conversion */
+
     TEST_EQUAL(0, mbedtls_mpi_mod_raw_to_mont_rep( A, &m ) );
 
     /* The result matches expected value */
-    ASSERT_COMPARE( A, x_bytes, X, x_bytes );
+    ASSERT_COMPARE( A, bytes, X, bytes );
+
 exit:
     mbedtls_mpi_mod_modulus_free( &m );
+    mbedtls_free( T );
     mbedtls_free( N );
     mbedtls_free( A );
+    mbedtls_free( R );
     mbedtls_free( X );
 }
 /* END_CASE */
@@ -569,8 +598,10 @@ void mpi_mod_raw_from_mont_rep( char * input_N, char * input_A, char * input_X )
 {
     mbedtls_mpi_uint *N = NULL;
     mbedtls_mpi_uint *A = NULL;
+    mbedtls_mpi_uint *R = NULL; /* for result of low-level conversion */
     mbedtls_mpi_uint *X = NULL;
-    size_t n_limbs, a_limbs, x_limbs, x_bytes;
+    mbedtls_mpi_uint *T = NULL;
+    size_t n_limbs, a_limbs, x_limbs;
 
     mbedtls_mpi_mod_modulus m;
     mbedtls_mpi_mod_modulus_init( &m );
@@ -579,23 +610,50 @@ void mpi_mod_raw_from_mont_rep( char * input_N, char * input_A, char * input_X )
     TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &N, &n_limbs, input_N ) );
     TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &A, &a_limbs, input_A ) );
     TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &X, &x_limbs, input_X ) );
-    x_bytes = x_limbs * sizeof(mbedtls_mpi_uint);
 
-    /* Test that input does not require more limbs than modulo */
-    TEST_LE_U(a_limbs, n_limbs);
+    /* Number to convert must have same number of limbs as modulus */
+    TEST_EQUAL(a_limbs, n_limbs);
+
+    /* Higher-level conversion is in-place, so expected result must have the
+     * same number of limbs too */
+    TEST_EQUAL(x_limbs, n_limbs);
+
+    size_t limbs = n_limbs;
+    size_t bytes = limbs * sizeof(mbedtls_mpi_uint);
 
     TEST_EQUAL( 0, mbedtls_mpi_mod_modulus_setup( &m, N, n_limbs,
-                MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
+                                          MBEDTLS_MPI_MOD_REP_MONTGOMERY ) );
 
-    /* Convert from Montgomery into cannonical representation */
+    /* 1. Test low-level function first */
+
+    /* It has separate output, and requires temporary working storage */
+    size_t temp_limbs = mbedtls_mpi_core_montmul_working_limbs( limbs );
+    ASSERT_ALLOC( T, temp_limbs );
+    ASSERT_ALLOC( R, limbs );
+    mbedtls_mpi_core_from_mont_rep( R, A, N, n_limbs,
+                                    m.rep.mont.mm, T );
+    /* Test that the low-level function gives the required value */
+    ASSERT_COMPARE( R, bytes, X, bytes );
+
+    /* Test when output is aliased to input */
+    memcpy( R, A, bytes );
+    mbedtls_mpi_core_from_mont_rep( R, R, N, n_limbs,
+                                    m.rep.mont.mm, T );
+    ASSERT_COMPARE( R, bytes, X, bytes );
+
+    /* 2. Test higher-level Montgomery to cannonical conversion */
+
     TEST_EQUAL(0, mbedtls_mpi_mod_raw_from_mont_rep( A, &m ) );
 
     /* The result matches expected value */
-    ASSERT_COMPARE( A, x_bytes, X, x_bytes );
+    ASSERT_COMPARE( A, bytes, X, bytes );
+
 exit:
     mbedtls_mpi_mod_modulus_free( &m );
+    mbedtls_free( T );
     mbedtls_free( N );
     mbedtls_free( A );
+    mbedtls_free( R );
     mbedtls_free( X );
 }
 /* END_CASE */

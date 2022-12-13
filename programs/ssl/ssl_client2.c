@@ -3338,8 +3338,14 @@ exit:
         psa_key_attributes_t check_attributes = PSA_KEY_ATTRIBUTES_INIT;
 
         /* Verify that the key is still valid before destroying it */
-        if( psa_get_key_attributes( ecjpake_pw_slot, &check_attributes ) ==
+        if( psa_get_key_attributes( ecjpake_pw_slot, &check_attributes ) !=
                 PSA_SUCCESS )
+        {
+            if( ret == 0 )
+                ret = 1;
+            mbedtls_printf( "The EC J-PAKE password key has unexpectedly been already destroyed\n" );
+        }
+        else
         {
             psa_destroy_key( ecjpake_pw_slot );
         }

@@ -213,7 +213,7 @@ exit:
 /* BEGIN_CASE */
 void mpi_mod_add( char * input_N,
                   char * input_A, char * input_B,
-                  char * input_S, int oret )
+                  char * input_S, int expected_ret )
 {
     mbedtls_mpi_mod_residue a = { NULL, 0 };
     mbedtls_mpi_mod_residue b = { NULL, 0 };
@@ -230,9 +230,9 @@ void mpi_mod_add( char * input_N,
     /* test_read_residue() normally checks that inputs have the same number of
      * limbs as the modulus. For negative testing we can ask it to skip this
      * with a non-zero final parameter. */
-    TEST_EQUAL( 0, test_read_residue( &a, &m, input_A, oret != 0 ) );
-    TEST_EQUAL( 0, test_read_residue( &b, &m, input_B, oret != 0 ) );
-    TEST_EQUAL( 0, test_read_residue( &s, &m, input_S, oret != 0 ) );
+    TEST_EQUAL( 0, test_read_residue( &a, &m, input_A, expected_ret != 0 ) );
+    TEST_EQUAL( 0, test_read_residue( &b, &m, input_B, expected_ret != 0 ) );
+    TEST_EQUAL( 0, test_read_residue( &s, &m, input_S, expected_ret != 0 ) );
 
     size_t limbs = m.limbs;
     size_t bytes = limbs * sizeof( *X_raw );
@@ -240,7 +240,7 @@ void mpi_mod_add( char * input_N,
     /* One spare limb for negative testing */
     ASSERT_ALLOC( X_raw, limbs + 1 );
 
-    if( oret == 0 )
+    if( expected_ret == 0 )
     {
         /* Negative test with too many limbs in output */
         x.p = X_raw;
@@ -264,8 +264,8 @@ void mpi_mod_add( char * input_N,
     TEST_EQUAL( 0, mbedtls_mpi_mod_residue_setup( &x, &m, X_raw, limbs ) );
 
     /* A + B => Correct result or expected error */
-    TEST_EQUAL( oret, mbedtls_mpi_mod_add( &x, &a, &b, &m ) );
-    if( oret != 0 )
+    TEST_EQUAL( expected_ret, mbedtls_mpi_mod_add( &x, &a, &b, &m ) );
+    if( expected_ret != 0 )
         goto exit;
 
     TEST_COMPARE_MPI_RESIDUES( x, s );

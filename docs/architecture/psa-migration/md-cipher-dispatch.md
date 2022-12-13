@@ -32,7 +32,7 @@ Note: this is the same problem we face in X.509 and TLS.
 #### Hardware accelerator vendor user stories
 
 As a vendor of a platform with hardware acceleration for some crypto,  
-I want to build Mbed TLS which uses my hardware wherever relevant,  
+I want to build Mbed TLS in a way that uses my hardware wherever relevant,  
 so that my customers maximally benefit from my hardware.
 
 As a vendor of a platform with hardware acceleration for some crypto,  
@@ -84,12 +84,12 @@ It is not a goal at this stage to make more code directly call `psa_xxx` functio
 
 #### Limitations of `MBEDTLS_USE_PSA_CRYPTO`
 
-`MBEDTLS_USE_PSA_CRYPTO` only applies to `pk.h`, X.509 and TLS. When this option is enabled, applications must call `psa_crypto_init()` before calling any of the functions in these modules.
+The option `MBEDTLS_USE_PSA_CRYPTO` causes parts of the library to call the PSA API instead of legacy APIs for cryptographic calculations. `MBEDTLS_USE_PSA_CRYPTO` only applies to `pk.h`, X.509 and TLS. When this option is enabled, applications must call `psa_crypto_init()` before calling any of the functions in these modules.
 
 In this work, we want two things:
 
-* Partially apply `MBEDTLS_USE_PSA_CRYPTO` to non-covered modules, but only [when this will actually work](#why-psa-is-not-always-possible).
-* Effectively apply `MBEDTLS_USE_PSA_CRYPTO` when a covered module calls a non-covered module which calls another module, for example X.509 calling pk for PSS verification which calls RSA which calculates a hash ([see issue \#6497](https://github.com/Mbed-TLS/mbedtls/issues/6497)).
+* Make non-covered modules call PSA, but only [when this will actually work](#why-psa-is-not-always-possible). This effectively brings those modules to a partial use-PSA behavior regardless of whether the option is enabled.
+* Call PSA when a covered module calls a non-covered module which calls another module, for example X.509 calling pk for PSS verification which calls RSA which calculates a hash ([see issue \#6497](https://github.com/Mbed-TLS/mbedtls/issues/6497)). This effectively extends the option to modules that aren't directly covered.
 
 #### Classification of callers
 
@@ -116,8 +116,8 @@ The following modules in Mbed TLS call another module to perform cryptographic o
 * CMAC (AES-ECB and DES-ECB, but could be extended to the other block ciphers; interdependent with cipher)
 * CTR\_DRBG (AES-ECB, but could be extended to the other block ciphers)
 * entropy (hashes via low-level)
-* ECDSA (hashes via md; `md.h` exposed through API)
-* ECJPAKE (HMAC\_DRBG; `md.h` exposed through API)
+* ECDSA (HMAC\_DRBG; `md.h` exposed through API)
+* ECJPAKE (hashes via md; `md.h` exposed through API)
 * GCM (block cipher in ECB mode; interdependent with cipher)
 * md (hashes and HMAC)
 * NIST\_KW (AES-ECB; interdependent with cipher)
@@ -194,7 +194,7 @@ This maximally preserves backward compatibility, but then no non-PSA code benefi
 Here we try to answer the question: As a caller of RSA-PSS via `rsa.h`, how do I know whether it can use a certain hash?
 
 * For a caller in the legacy domain: if e.g. `MBEDTLS_SHA256_C` is enabled, then I want RSA-PSS to support SHA-256. I don't care about negative support. So `MBEDTLS_SHA256_C` must imply support for RSA-PSS-SHA-256. It must work at all times, regardless of the state of PSA (e.g. drivers not initialized).
-* For a caller in the PSA domain: if e.g. `PSA_WANT_ALG_SHA_256` is enabled, then I want RSA-PSS to support SHA-256, provided that `psa_crypto_init()` has been called. In some limited cases, such as `test_suite_psa_crypto_not_supported` when PSA implements RSA-PSS in software, we care about negative support: if `PSA_WANT_ALG_SHA_256` then `psa_verify_hash` must reject `PSA_WANT_ALG_SHA_256`. This can be done at the level of PSA before it calls the RSA module, though, so it doesn't have any implication on the RSA module. As far as `rsa.c` is concerned, what matters is that `PSA_WANT_ALG_SHA_256` implies that SHA-256 is supported after `psa_crypto_init()` has been called.
+* For a caller in the PSA domain: if e.g. `PSA_WANT_ALG_SHA_256` is enabled, then I want RSA-PSS to support SHA-256, provided that `psa_crypto_init()` has been called. In some limited cases, such as `test_suite_psa_crypto_not_supported` when PSA implements RSA-PSS in software, we care about negative support: if `PSA_WANT_ALG_SHA_256` is disabled then `psa_verify_hash` must reject `PSA_WANT_ALG_SHA_256`. This can be done at the level of PSA before it calls the RSA module, though, so it doesn't have any implication on the RSA module. As far as `rsa.c` is concerned, what matters is that `PSA_WANT_ALG_SHA_256` implies that SHA-256 is supported after `psa_crypto_init()` has been called.
 * For a caller in the mixed domain: requirements depend on the caller. Whatever solution RSA has to determine the availability of algorithms will apply to its caller as well.
 
 Conclusion so far: RSA must be able to do SHA-256 if either `MBEDTLS_SHA256_C` or `PSA_WANT_ALG_SHA_256` is enabled. If only `PSA_WANT_ALG_SHA_256` and not `MBEDTLS_SHA256_C` is enabled (which implies that PSA's SHA-256 comes from an accelerator driver), then SHA-256 only needs to work if `psa_crypto_init()` has been called.
@@ -239,7 +239,7 @@ The existing interface in `md.h` is close to what we want, but not perfect. What
 
 * It has an extra step of converting from `mbedtls_md_type_t` to `const mbedtls_md_info_t *`.
 * It includes extra fluff such as names and HMAC. This costs code size.
-* The md module has some legacy baggage dating from when it was more open, which we don't care about anymore. This costs code size.
+* The md module has some legacy baggage dating from when it was more open, which we don't care about anymore. This may cost code size.
 
 These problems are easily solvable.
 
@@ -280,8 +280,9 @@ MD light includes the following functions:
 * `mbedtls_md_starts`
 * `mbedtls_md_update`
 * `mbedtls_md_finish`
+* `mbedtls_md`
 
-Unlike the full MD, MD light does not support null pointers as as `mbedtls_md_context_t *`. At least some functions still need to support null pointers as `const mbedtls_md_info_t *` because this arises when you try to use an unsupported algorithm (`mbedtls_md_info_from_type` returns `NULL`).
+Unlike the full MD, MD light does not support null pointers as `mbedtls_md_context_t *`. At least some functions still need to support null pointers as `const mbedtls_md_info_t *` because this arises when you try to use an unsupported algorithm (`mbedtls_md_info_from_type` returns `NULL`).
 
 #### MD algorithm support macros
 
@@ -364,6 +365,8 @@ int psa_can_do_hash(psa_algorithm_t hash_alg);
 The job of this private function is to return 1 if `hash_alg` can be performed through PSA now, and 0 otherwise. It is only defined on algorithms that are enabled via PSA.
 
 As a starting point, return 1 if PSA crypto has been initialized. This will be refined later (to return 1 if the [accelerator subsystem](https://github.com/Mbed-TLS/mbedtls/issues/6007) has been initialized).
+
+Usage note: for algorithms that are not enabled via PSA, calling `psa_can_do_hash` is generally safe: whether it returns 0 or 1, you can call a PSA hash function on the algorithm and it will return `PSA_ERROR_NOT_SUPPORTED`.
 
 #### Support for PSA dispatch in hash operations
 

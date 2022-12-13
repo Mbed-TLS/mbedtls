@@ -176,6 +176,28 @@ exit:
 
 /* BEGIN MERGE SLOT 2 */
 
+int mbedtls_mpi_mod_mul( mbedtls_mpi_mod_residue *X,
+                         const mbedtls_mpi_mod_residue *A,
+                         const mbedtls_mpi_mod_residue *B,
+                         const mbedtls_mpi_mod_modulus *N )
+{
+    if( N->limbs == 0 )
+        return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+
+    if( X->limbs != N->limbs || A->limbs != N->limbs || B->limbs != N->limbs )
+        return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+
+    mbedtls_mpi_uint *T = mbedtls_calloc( N->limbs * 2  + 1, ciL );
+    if( !T )
+        return MBEDTLS_ERR_MPI_ALLOC_FAILED;
+
+    mbedtls_mpi_mod_raw_mul( X->p, A->p, B->p, N, T );
+
+    mbedtls_free( T );
+
+    return( 0 );
+}
+
 /* END MERGE SLOT 2 */
 
 /* BEGIN MERGE SLOT 3 */

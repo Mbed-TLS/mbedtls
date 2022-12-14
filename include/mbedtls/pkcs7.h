@@ -139,7 +139,6 @@ mbedtls_pkcs7_signer_info;
  * Structure holding attached data as part of PKCS7 signed data format
  */
 typedef struct mbedtls_pkcs7_data {
-    mbedtls_pkcs7_buf MBEDTLS_PRIVATE(oid);
     mbedtls_pkcs7_buf MBEDTLS_PRIVATE(data);
 }
 mbedtls_pkcs7_data;

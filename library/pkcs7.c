@@ -490,11 +490,13 @@ static int pkcs7_get_signed_data(unsigned char *buf, size_t buflen,
         return MBEDTLS_ERR_PKCS7_INVALID_ALG;
     }
 
-    /* Do not expect any content */
-    ret = pkcs7_get_content_info_type(&p, end_set, &end_content_info,
-                                      &signed_data->content.oid);
+    mbedtls_pkcs7_buf content_type;
+    ret = pkcs7_get_content_info_type(&p, end, &end_content_info, &content_type);
     if (ret != 0) {
         return ret;
+    }
+    if (MBEDTLS_OID_CMP(MBEDTLS_OID_PKCS7_DATA, &content_type)) {
+        return MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO;
     }
 
     if (p != end_content_info) {
@@ -512,10 +514,6 @@ static int pkcs7_get_signed_data(unsigned char *buf, size_t buflen,
         }
         /* Valid content is present - this is not supported */
         return MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE;
-    }
-
-    if (MBEDTLS_OID_CMP(MBEDTLS_OID_PKCS7_DATA, &signed_data->content.oid)) {
-        return MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO;
     }
 
     /* Look for certificates, there may or may not be any */

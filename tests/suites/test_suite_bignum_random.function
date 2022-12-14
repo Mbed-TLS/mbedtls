@@ -3,6 +3,38 @@
  * functions. Due to the complexity of how these functions are tested,
  * we test all the layers in a single test suite, unlike the way other
  * functions are tested with each layer in its own test suite.
+ *
+ * Test strategy
+ * =============
+ *
+ * There are three main goals for testing random() functions:
+ * - Parameter validation.
+ * - Correctness of outputs (well-formed, in range).
+ * - Distribution of outputs.
+ *
+ * We test parameter validation in a standard way, with unit tests with
+ * positive and negative cases:
+ * - mbedtls_mpi_core_random(): negative cases for mpi_core_random_basic.
+ * - mbedtls_mpi_mod_raw_random(),  mbedtls_mpi_mod_random(): negative
+ *   cases for mpi_mod_random_validation.
+ * - mbedtls_mpi_random(): mpi_random_fail.
+ *
+ * We test the correctness of outputs in positive tests:
+ * - mbedtls_mpi_core_random(): positive cases for mpi_core_random_basic,
+ *   and mpi_random_many.
+ * - mbedtls_mpi_mod_raw_random(), mbedtls_mpi_mod_random(): tested indirectly
+ *   via mpi_mod_random_values.
+ * - mbedtls_mpi_random(): mpi_random_sizes, plus indirectly via
+ *   mpi_random_values.
+ *
+ * We test the distribution of outputs only for mbedtls_mpi_core_random(),
+ * in mpi_random_many, which runs the function multiple times. This also
+ * helps in validating the output range, through test cases with a small
+ * range where any output out of range would be very likely to lead to a
+ * test failure. For the other functions, we validate the distribution
+ * indirectly by testing that these functions consume the random generator
+ * in the same way as mbedtls_mpi_core_random(). This is done in
+ * mpi_mod_random_values and mpi_legacy_random_values.
  */
 
 #include "mbedtls/bignum.h"

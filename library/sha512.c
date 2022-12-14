@@ -1031,15 +1031,19 @@ exit:
     return( ret );
 }
 
+#if defined(MBEDTLS_SHA512_C)
 int mbedtls_sha512_self_test( int verbose )
 {
     return mbedtls_sha512_common_self_test( verbose, 0 );
 }
+#endif /* MBEDTLS_SHA512_C */
 
+#if defined(MBEDTLS_SHA384_C)
 int mbedtls_sha384_self_test( int verbose )
 {
     return mbedtls_sha512_common_self_test( verbose, 1 );
 }
+#endif /* MBEDTLS_SHA384_C */
 
 #undef ARRAY_LENGTH
 

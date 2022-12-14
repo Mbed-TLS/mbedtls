@@ -173,6 +173,10 @@ SHA-256 Selftest
 depends_on:MBEDTLS_SELF_TEST:MBEDTLS_SHA256_C
 sha256_selftest:
 
+SHA-384 Selftest
+depends_on:MBEDTLS_SELF_TEST:MBEDTLS_SHA384_C
+sha384_selftest:
+
 SHA-512 Selftest
 depends_on:MBEDTLS_SELF_TEST:MBEDTLS_SHA512_C
 sha512_selftest:

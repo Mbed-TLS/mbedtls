@@ -196,6 +196,9 @@ int mbedtls_mpi_mod_sub( mbedtls_mpi_mod_residue *X,
 /**
  * \brief Perform modular inversion of an MPI with respect to a modulus \p N.
  *
+ * \p A and \p X must be associated with the modulus \p N and will therefore
+ * have the same number of limbs as \p N.
+ *
  * \p X may be aliased to \p A.
  *
  * \warning  Currently only supports prime moduli, but does not check for them.

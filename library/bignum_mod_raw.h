@@ -15,9 +15,10 @@
  * The functions in this module obey the following conventions unless
  * explicitly indicated otherwise:
  * - **Modulus parameters**: the modulus is passed as a pointer to a structure
- *   of type #mbedtls_mpi_mod_modulus. The structure must be setup with an
- *   array of limbs storing the bignum value of the modulus. Unless otherwise
- *   specified, the modulus is called \p N and is input-only.
+ *   of type #mbedtls_mpi_mod_modulus. The structure must be set up with an
+ *   array of limbs storing the bignum value of the modulus. The modulus must
+ *   be odd and is assumed to have no leading zeroes. The modulus is usually
+ *   named \p N and is usually input-only.
  * - **Bignum parameters**: Bignums are passed as pointers to an array of
  *   limbs. A limb has the type #mbedtls_mpi_uint. Unless otherwise specified:
  *     - Bignum parameters called \p A, \p B, ... are inputs, and are not

@@ -1137,7 +1137,12 @@ static int ssl_parse_hello_verify_request( mbedtls_ssl_context *ssl )
 {
     const unsigned char *p = ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl );
     uint16_t dtls_legacy_version;
-    unsigned char cookie_len;
+
+#if !defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    uint8_t cookie_len;
+#else
+    uint16_t cookie_len;
+#endif
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse hello verify request" ) );
 
@@ -1200,7 +1205,7 @@ static int ssl_parse_hello_verify_request( mbedtls_ssl_context *ssl )
     }
 
     memcpy( ssl->handshake->cookie, p, cookie_len );
-    ssl->handshake->verify_cookie_len = cookie_len;
+    ssl->handshake->cookie_len = cookie_len;
 
     /* Start over at ClientHello */
     ssl->state = MBEDTLS_SSL_CLIENT_HELLO;
@@ -1284,7 +1289,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
             /* We made it through the verification process */
             mbedtls_free( ssl->handshake->cookie );
             ssl->handshake->cookie = NULL;
-            ssl->handshake->verify_cookie_len = 0;
+            ssl->handshake->cookie_len = 0;
         }
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */

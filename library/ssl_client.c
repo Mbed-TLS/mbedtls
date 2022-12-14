@@ -518,18 +518,22 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
-        unsigned char cookie_len = 0;
+#if !defined(MBEDTLS_SSL_PROTO_TLS1_3)
+        uint8_t cookie_len = 0;
+#else
+        uint16_t cookie_len = 0;
+#endif /* !MBEDTLS_SSL_PROTO_TLS1_3 */
 
         if( handshake->cookie != NULL )
         {
             MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, cookie",
                                    handshake->cookie,
-                                   handshake->verify_cookie_len );
-            cookie_len = handshake->verify_cookie_len;
+                                   handshake->cookie_len );
+            cookie_len = handshake->cookie_len;
         }
 
         MBEDTLS_SSL_CHK_BUF_PTR( p, end, cookie_len + 1 );
-        *p++ = cookie_len;
+        *p++ = ( unsigned char )cookie_len;
         if( cookie_len > 0 )
         {
             memcpy( p, handshake->cookie, cookie_len );

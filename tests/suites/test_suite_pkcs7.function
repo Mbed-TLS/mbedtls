@@ -26,6 +26,16 @@ int pkcs7_parse_buffer(unsigned char *pkcs7_buf, int buflen)
 }
 /* END_SUITE_HELPERS */
 
+/* BEGIN_CASE */
+void pkcs7_asn1_fail(data_t *pkcs7_buf)
+{
+    int res;
+    res = pkcs7_parse_buffer(pkcs7_buf->x, pkcs7_buf->len);
+    TEST_ASSERT(res != MBEDTLS_PKCS7_SIGNED_DATA);
+
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO */
 void pkcs7_parse(char *pkcs7_file, int res_expect)
 {

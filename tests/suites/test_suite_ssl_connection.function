@@ -1,0 +1,44 @@
+/* BEGIN_HEADER */
+#include <ssl_misc.h>
+#include <mbedtls/timing.h>
+#include <mbedtls/debug.h>
+#include <ssl_tls13_keys.h>
+#include <ssl_tls13_invasive.h>
+#include <test/ssl_helpers.h>
+
+#include <mbedtls/legacy_or_psa.h>
+#include "hash_info.h"
+
+#include <constant_time_internal.h>
+#include <test/constant_flow.h>
+
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_SSL_TLS_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
+void handshake_ssl_connection( int dtls, int expected_negotiated_version,
+                               char* cipher, int pk_alg,
+                               int expected_ciphersuite  )
+{
+    mbedtls_test_handshake_test_options options;
+    mbedtls_test_init_handshake_options( &options );
+
+    options.dtls = dtls;
+    options.expected_negotiated_version = expected_negotiated_version;
+    options.cipher = cipher;
+    options.pk_alg = pk_alg;
+    options.expected_ciphersuite = expected_ciphersuite;
+
+    mbedtls_test_ssl_perform_handshake( &options );
+
+    /* The goto below is used to avoid an "unused label" warning.*/
+    goto exit;
+
+exit:
+    mbedtls_test_free_handshake_options( &options );
+}
+/* END_CASE */

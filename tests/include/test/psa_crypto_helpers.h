@@ -99,7 +99,7 @@ const char *mbedtls_test_helper_is_psa_leaking( void );
 
 /** Check that no PSA Crypto key slots are in use.
  *
- * If any slots are in use, mark the current test as failed and jump to
+ * If any slot is in use, mark the current test as failed and jump to
  * the exit label. This is equivalent to
  * `TEST_ASSERT( ! mbedtls_test_helper_is_psa_leaking( ) )`
  * but with a more informative message.
@@ -107,7 +107,7 @@ const char *mbedtls_test_helper_is_psa_leaking( void );
 #define ASSERT_PSA_PRISTINE( )                                          \
     do                                                                  \
     {                                                                   \
-        if( test_fail_if_psa_leaking( __LINE__, __FILE__ ) )            \
+        if( mbedtls_test_fail_if_psa_leaking( __LINE__, __FILE__ ) )    \
             goto exit;                                                  \
     }                                                                   \
     while( 0 )
@@ -125,7 +125,7 @@ const char *mbedtls_test_helper_is_psa_leaking( void );
 #define PSA_DONE( )                                                     \
     do                                                                  \
     {                                                                   \
-        test_fail_if_psa_leaking( __LINE__, __FILE__ );                 \
+        mbedtls_test_fail_if_psa_leaking( __LINE__, __FILE__ );         \
         mbedtls_test_psa_purge_key_storage( );                          \
         mbedtls_psa_crypto_free( );                                     \
     }                                                                   \
@@ -192,6 +192,14 @@ psa_status_t mbedtls_test_record_status( psa_status_t status,
  * (like PSA_KEY_USAGE_SIGN_HASH involves PSA_KEY_USAGE_SIGN_MESSAGE).
  */
 psa_key_usage_t mbedtls_test_update_key_usage_flags( psa_key_usage_t usage_flags );
+
+/** Check that no PSA Crypto key slots are in use.
+ *
+ * If any slot is in use, mark the current test as failed.
+ *
+ * \return 0 if the key store is empty, 1 otherwise.
+ */
+int mbedtls_test_fail_if_psa_leaking( int line_no, const char *filename );
 
 /** Skip a test case if the given key is a 192 bits AES key and the AES
  *  implementation is at least partially provided by an accelerator or

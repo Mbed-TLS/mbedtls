@@ -18,19 +18,6 @@ code style change.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# if workdir not clean exit
-#
-# git checkout oldbranch
-# git rebase codestyle_change_commit~1
-#
-# for oldbranch_commit in oldbranch
-#
-#     files = $(git diff --name-only oldbranch_commit oldbranch_commit~)
-#     git checkout oldbranch_commit -- $files
-#     code_style.fix($files)
-#     git add $files
-#     git commit --reuse-message=$(oldbranch_commit)
-
 import argparse
 import subprocess
 import sys

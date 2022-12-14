@@ -34,7 +34,7 @@
  * - **Bignum representation**: the representation of inputs and outputs is
  *   specified by the \p int_rep field of the modulus.
  * - **Parameter ordering**: for bignum parameters, outputs come before inputs.
- *   Temporaries come last.
+ *   The modulus is passed after residues. Temporaries come last.
  * - **Aliasing**: in general, output bignums may be aliased to one or more
  *   inputs. Modulus values may not be aliased to any other parameter. Outputs
  *   may not be aliased to one another. Temporaries may not be aliased to any

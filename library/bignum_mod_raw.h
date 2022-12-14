@@ -51,11 +51,11 @@
  *   modulus may lead to buffer overflows. Some functions which allocate
  *   memory or handle reading/writing of bignums will return an error if
  *   memory allocation fails or if buffer sizes are invalid.
- * - **Modular representatives**: functions that operate modulo \p N expect
- *   all modular inputs to be in the range [0, \p N - 1] and guarantee outputs
- *   in the range [0, \p N - 1]. If an input is out of range, outputs are
- *   fully unspecified, though bignum values out of range should not cause
- *   buffer overflows (beware that this is not extensively tested).
+ * - **Modular representatives**: all functions expect inputs to be in the
+ *   range [0, \p N - 1] and guarantee outputs in the range [0, \p N - 1]. If
+ *   an input is out of range, outputs are fully unspecified, though bignum
+ *   values out of range should not cause buffer overflows (beware that this is
+ *   not extensively tested).
  */
 
 /*

@@ -46,15 +46,15 @@
  *   sizes. Most functions will not check that input values are in canonical
  *   form (i.e. that \p A < \p N), this is only checked during setup of a
  *   residue structure.
- * - **Modular representatives**: functions that operate modulo \p N expect
- *   all modular inputs to be in the range [0, \p N - 1] and guarantee outputs
- *   in the range [0, \p N - 1]. Residues are setup with an associated modulus,
- *   and operations are only guaranteed to work if the modulus is associated
- *   with all residue parameters. If a residue is passed with a modulus other
- *   than the one it is associated with, then it may be out of range. If an
- *   input is out of range, outputs are fully unspecified, though bignum values
- *   out of range should not cause buffer overflows (beware that this is not
- *   extensively tested).
+ * - **Modular representatives**: all functions expect inputs to be in the
+ *   range [0, \p N - 1] and guarantee outputs in the range [0, \p N - 1].
+ *   Residues are set up with an associated modulus, and operations are only
+ *   guaranteed to work if the modulus is associated with all residue
+ *   parameters. If a residue is passed with a modulus other than the one it
+ *   is associated with, then it may be out of range. If an input is out of
+ *   range, outputs are fully unspecified, though bignum values out of range
+ *   should not cause buffer overflows (beware that this is not extensively
+ *   tested).
  */
 
 /*

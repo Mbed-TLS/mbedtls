@@ -43,7 +43,7 @@ def working_directory_clean() -> bool:
         return False
     return True
 
-def delete_branch(branch_name) -> bool:
+def delete_branch(branch_name: str) -> bool:
     """
     Delete the given branch.
     """

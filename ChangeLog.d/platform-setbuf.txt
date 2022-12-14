@@ -1,3 +1,0 @@
-Bugfix
-   * Provide the missing definition of mbedtls_setbuf() in some configurations
-     with MBEDTLS_PLATFORM_C disabled. Fixes #6118, #6196.

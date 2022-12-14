@@ -1,5 +1,74 @@
 Mbed TLS ChangeLog (Sorted per branch, date)
 
+= Mbed TLS 2.28.2 branch released 2022-12-14
+
+Security
+   * Fix potential heap buffer overread and overwrite in DTLS if
+     MBEDTLS_SSL_DTLS_CONNECTION_ID is enabled and
+     MBEDTLS_SSL_CID_IN_LEN_MAX > 2 * MBEDTLS_SSL_CID_OUT_LEN_MAX.
+   * An adversary with access to precise enough information about memory
+     accesses (typically, an untrusted operating system attacking a secure
+     enclave) could recover an RSA private key after observing the victim
+     performing a single private-key operation if the window size used for the
+     exponentiation was 3 or smaller. Found and reported by Zili KOU,
+     Wenjian HE, Sharad Sinha, and Wei ZHANG. See "Cache Side-channel Attacks
+     and Defenses of the Sliding Window Algorithm in TEEs" - Design, Automation
+     and Test in Europe 2023.
+
+Bugfix
+   * Fix a long-standing build failure when building x86 PIC code with old
+     gcc (4.x). The code will be slower, but will compile. We do however
+     recommend upgrading to a more recent compiler instead. Fixes #1910.
+   * Fix support for little-endian Microblaze when MBEDTLS_HAVE_ASM is defined.
+     Contributed by Kazuyuki Kimura to fix #2020.
+   * Use double quotes to include private header file psa_crypto_cipher.h.
+     Fixes 'file not found with <angled> include' error
+     when building with Xcode.
+   * Fix handling of broken symlinks when loading certificates using
+     mbedtls_x509_crt_parse_path(). Instead of returning an error as soon as a
+     broken link is encountered, skip the broken link and continue parsing
+     other certificate files. Contributed by Eduardo Silva in #2602.
+   * Fix a compilation error when using CMake with an IAR toolchain.
+     Fixes #5964.
+   * Fix bugs and missing dependencies when building and testing
+     configurations with only one encryption type enabled in TLS 1.2.
+   * Provide the missing definition of mbedtls_setbuf() in some configurations
+     with MBEDTLS_PLATFORM_C disabled. Fixes #6118, #6196.
+   * Fix compilation errors when trying to build with
+     PSA drivers for AEAD (GCM, CCM, Chacha20-Poly1305).
+   * Fix memory leak in ssl_parse_certificate_request() caused by
+     mbedtls_x509_get_name() not freeing allocated objects in case of error.
+     Change mbedtls_x509_get_name() to clean up allocated objects on error.
+   * Fix checks on PK in check_config.h for builds with PSA and RSA. This does
+     not change which builds actually work, only moving a link-time error to
+     an early check.
+   * Fix ECDSA verification, where it was not always validating the
+     public key. This bug meant that it was possible to verify a
+     signature with an invalid public key, in some cases. Reported by
+     Guido Vranken using Cryptofuzz in #4420.
+   * Fix a possible null pointer dereference if a memory allocation fails
+     in TLS PRF code. Reported by Michael Madsen in #6516.
+   * Fix a bug in which mbedtls_x509_crt_info() would produce non-printable
+     bytes when parsing certificates containing a binary RFC 4108
+     HardwareModuleName as a Subject Alternative Name extension. Hardware
+     serial numbers are now rendered in hex format. Fixes #6262.
+   * Fix bug in error reporting in dh_genprime.c where upon failure,
+     the error code returned by mbedtls_mpi_write_file() is overwritten
+     and therefore not printed.
+   * In the bignum module, operations of the form (-A) - (+A) or (-A) - (-A)
+     with A > 0 created an unintended representation of the value 0 which was
+     not processed correctly by some bignum operations. Fix this. This had no
+     consequence on cryptography code, but might affect applications that call
+     bignum directly and use negative numbers.
+   * Fix undefined behavior (typically harmless in practice) of
+     mbedtls_mpi_add_mpi(), mbedtls_mpi_add_abs() and mbedtls_mpi_add_int()
+     when both operands are 0 and the left operand is represented with 0 limbs.
+   * Fix undefined behavior (typically harmless in practice) when some bignum
+     functions receive the most negative value of mbedtls_mpi_sint. Credit
+     to OSS-Fuzz. Fixes #6597.
+   * Fix undefined behavior (typically harmless in practice) in PSA ECB
+     encryption and decryption.
+
 = Mbed TLS 2.28.1 branch released 2022-07-11
 
 Default behavior changes

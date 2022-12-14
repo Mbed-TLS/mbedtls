@@ -7196,7 +7196,6 @@ psa_status_t psa_pake_setup(
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
-    ;
     memset(&operation->data.inputs, 0, sizeof(operation->data.inputs));
 
     operation->data.inputs.alg = cipher_suite->algorithm;
@@ -7233,16 +7232,10 @@ psa_status_t psa_pake_set_password_key(
     };
 
     psa_key_type_t type = psa_get_key_type(&attributes);
-    psa_key_usage_t usage = psa_get_key_usage_flags(&attributes);
 
     if (type != PSA_KEY_TYPE_PASSWORD &&
         type != PSA_KEY_TYPE_PASSWORD_HASH) {
         status = PSA_ERROR_INVALID_ARGUMENT;
-        goto error;
-    }
-
-    if ((usage & PSA_KEY_USAGE_DERIVE) == 0) {
-        status = PSA_ERROR_NOT_PERMITTED;
         goto error;
     }
 

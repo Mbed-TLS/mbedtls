@@ -25,7 +25,7 @@
  *       modified by the function.
  *     - Bignum parameters called \p X, \p Y are outputs or input-output.
  *       The initial content of output-only parameters is ignored.
- *     - \p T is a temporary storage area. The initial content of such
+ *     - \p T is a temporary storage area. The initial content of such a
  *       parameter is ignored and the final content is unspecified.
  * - **Bignum sizes**: bignum sizes are always expressed by the \p limbs
  *   member of the modulus argument. Any bignum parameters must have the same

@@ -20,9 +20,9 @@
  *     - Bignum parameters called \p X, \p Y, ... are outputs or input-output.
  *       The initial bignum value of output-only parameters is ignored, but
  *       they must be set up and associated with the modulus \p N.
- *     - Bignum parameters called \p P are inputs used to setup a modulus or
+ *     - Bignum parameters called \p P are inputs used to set up a modulus or
  *       residue. These must be pointers to an array of limbs.
- *     - \p T is a temporary storage area. The initial content of such
+ *     - \p T is a temporary storage area. The initial content of such a
  *       parameter is ignored and the final content is unspecified.
  *     - Some functions use different names, such as \p R for the residue.
  * - **Bignum sizes**: bignum sizes are always expressed in limbs. Both
@@ -44,7 +44,7 @@
  * - **Overlap**: apart from aliasing of residue pointers (where two residue
  *   arguments are equal pointers), overlap is not supported and may result
  *   in undefined behavior.
- * - **Error handling**: functions generally check compatability of input
+ * - **Error handling**: functions generally check compatibility of input
  *   sizes. Most functions will not check that input values are in canonical
  *   form (i.e. that \p A < \p N), this is only checked during setup of a
  *   residue structure.

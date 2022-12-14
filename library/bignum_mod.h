@@ -16,8 +16,7 @@
  *   #mbedtls_mpi_uint. Residues must be initialized before use, and must be
  *   associated with the modulus \p N. Unless otherwise specified:
  *     - Bignum parameters called \p A, \p B, ... are inputs and are not
- *       modified by the function. These will have the type
- *       #mbedtls_mpi_mod_residue.
+ *       modified by the function.
  *     - Bignum parameters called \p X, \p Y, ... are outputs or input-output.
  *       The initial content of output-only parameters is ignored. These will
  *       have the type #mbedtls_mpi_mod_residue.

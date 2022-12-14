@@ -98,25 +98,23 @@ def restyle_commit_onto_current(commit_hash: str) -> bool:
     changed_files = str(result.stdout, "ascii").strip().split()
 
     # Checkout changed files to their state in the old commit
-    for changed_file in changed_files:
-        result = subprocess.run(["git", "checkout", commit_hash, "--", \
-                changed_file], check=False)
-        if result.returncode != 0:
-            print("Error checking out changed file '" + changed_file + \
-                    "' to commit " + commit_hash + ".", file=sys.stderr)
-            return False
+    result = subprocess.run(["git", "checkout", commit_hash, "--"] + \
+            changed_files, check=False)
+    if result.returncode != 0:
+        print("Error checking out changed files: " + ", ".join(changed_files) + \
+                " to commit " + commit_hash + ".", file=sys.stderr)
+        return False
 
     # Restyle the changed files to the new style
     if code_style.fix_style(changed_files) != 0:
         return False
 
     # Add the changed files
-    for changed_file in changed_files:
-        result = subprocess.run(["git", "add", changed_file], check=False)
-        if result.returncode != 0:
-            print("Error adding changed file '" + changed_file + "'.", \
-                    file=sys.stderr)
-            return False
+    result = subprocess.run(["git", "add"] + changed_files, check=False)
+    if result.returncode != 0:
+        print("Error adding changed files: " + ", ".join(changed_files) + \
+                ".", file=sys.stderr)
+        return False
 
     # Commit the newly added files
     result = subprocess.run(["git", "commit", "--reuse-message=" + \

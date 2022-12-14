@@ -98,6 +98,7 @@ int main( void )
 #define DFL_PSK_LIST_OPAQUE     0
 #define DFL_PSK_IDENTITY        "Client_identity"
 #define DFL_ECJPAKE_PW          NULL
+#define DFL_ECJPAKE_PW_OPAQUE   0
 #define DFL_PSK_LIST            NULL
 #define DFL_FORCE_CIPHER        0
 #define DFL_TLS1_3_KEX_MODES    MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_ALL
@@ -419,11 +420,17 @@ int main( void )
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
 #define USAGE_ECJPAKE \
-    "    ecjpake_pw=%%s       default: none (disabled)\n"
-#else
+    "    ecjpake_pw=%%s           default: none (disabled)\n"   \
+    "    ecjpake_pw_opaque=%%d    default: 0 (disabled)\n"
+#else /* MBEDTLS_USE_PSA_CRYPTO */
+#define USAGE_ECJPAKE \
+    "    ecjpake_pw=%%s           default: none (disabled)\n"
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#else /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 #define USAGE_ECJPAKE ""
-#endif
+#endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 #define USAGE_EARLY_DATA \
@@ -631,6 +638,9 @@ struct options
     const char *psk_identity;   /* the pre-shared key identity              */
     char *psk_list;             /* list of PSK id/key pairs for callback    */
     const char *ecjpake_pw;     /* the EC J-PAKE password                   */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    int ecjpake_pw_opaque;      /* set to 1 to use the opaque method for setting the password */
+#endif
     int force_ciphersuite[2];   /* protocol/ciphersuite to use, or all      */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     int tls13_kex_modes;        /* supported TLS 1.3 key exchange modes     */
@@ -1517,6 +1527,10 @@ int main( int argc, char *argv[] )
     unsigned char *context_buf = NULL;
     size_t context_buf_len = 0;
 #endif
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) && \
+    defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_svc_key_id_t ecjpake_pw_slot = MBEDTLS_SVC_KEY_ID_INIT; /* ecjpake password key slot */
+#endif /* MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
     uint16_t sig_alg_list[SIG_ALG_LIST_SIZE];
@@ -1675,6 +1689,9 @@ int main( int argc, char *argv[] )
     opt.psk_identity        = DFL_PSK_IDENTITY;
     opt.psk_list            = DFL_PSK_LIST;
     opt.ecjpake_pw          = DFL_ECJPAKE_PW;
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    opt.ecjpake_pw_opaque   = DFL_ECJPAKE_PW_OPAQUE;
+#endif
     opt.force_ciphersuite[0]= DFL_FORCE_CIPHER;
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     opt.tls13_kex_modes     = DFL_TLS1_3_KEX_MODES;
@@ -1879,6 +1896,10 @@ int main( int argc, char *argv[] )
             opt.psk_list = q;
         else if( strcmp( p, "ecjpake_pw" ) == 0 )
             opt.ecjpake_pw = q;
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        else if( strcmp( p, "ecjpake_pw_opaque" ) == 0 )
+            opt.ecjpake_pw_opaque = atoi( q );
+#endif
         else if( strcmp( p, "force_ciphersuite" ) == 0 )
         {
             opt.force_ciphersuite[0] = mbedtls_ssl_get_ciphersuite_id( q );
@@ -3528,15 +3549,46 @@ reset:
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if( opt.ecjpake_pw != DFL_ECJPAKE_PW )
     {
-        if( ( ret = mbedtls_ssl_set_hs_ecjpake_password( &ssl,
-                        (const unsigned char *) opt.ecjpake_pw,
-                                        strlen( opt.ecjpake_pw ) ) ) != 0 )
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        if ( opt.ecjpake_pw_opaque != DFL_ECJPAKE_PW_OPAQUE )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hs_ecjpake_password returned %d\n\n", ret );
-            goto exit;
+            psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+            psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
+            psa_set_key_algorithm( &attributes, PSA_ALG_JPAKE );
+            psa_set_key_type( &attributes, PSA_KEY_TYPE_PASSWORD );
+
+            status = psa_import_key( &attributes,
+                                (const unsigned char *) opt.ecjpake_pw,
+                                strlen( opt.ecjpake_pw ),
+                                &ecjpake_pw_slot );
+            if( status != PSA_SUCCESS )
+            {
+                mbedtls_printf( " failed\n  ! psa_import_key returned %d\n\n",
+                            status );
+                goto exit;
+            }
+            if( ( ret = mbedtls_ssl_set_hs_ecjpake_password_opaque( &ssl,
+                                        ecjpake_pw_slot ) ) != 0 )
+            {
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hs_ecjpake_password_opaque returned %d\n\n", ret );
+                goto exit;
+            }
+            mbedtls_printf( "using opaque password\n");
+        }
+        else
+#endif  /* MBEDTLS_USE_PSA_CRYPTO */
+        {
+            if( ( ret = mbedtls_ssl_set_hs_ecjpake_password( &ssl,
+                                        (const unsigned char *) opt.ecjpake_pw,
+                                        strlen( opt.ecjpake_pw ) ) ) != 0 )
+            {
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hs_ecjpake_password returned %d\n\n", ret );
+                goto exit;
+            }
         }
     }
-#endif
+#endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
 #if defined(MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED)
@@ -4421,6 +4473,31 @@ exit:
     }
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED &&
           MBEDTLS_USE_PSA_CRYPTO */
+
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) && \
+    defined(MBEDTLS_USE_PSA_CRYPTO)
+    /*
+     * In case opaque keys it's the user responsibility to keep the key valid
+     * for the duration of the handshake and destroy it at the end
+     */
+    if( ( opt.ecjpake_pw_opaque != DFL_ECJPAKE_PW_OPAQUE ) )
+    {
+        psa_key_attributes_t check_attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+        /* Verify that the key is still valid before destroying it */
+        if( psa_get_key_attributes( ecjpake_pw_slot, &check_attributes ) !=
+                PSA_SUCCESS )
+        {
+            if( ret == 0 )
+                ret = 1;
+            mbedtls_printf( "The EC J-PAKE password key has unexpectedly been already destroyed\n" );
+        }
+        else
+        {
+            psa_destroy_key( ecjpake_pw_slot );
+        }
+    }
+#endif  /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED && MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
     const char* message = mbedtls_test_helper_is_psa_leaking();

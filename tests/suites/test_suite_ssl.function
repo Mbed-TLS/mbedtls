@@ -2582,6 +2582,21 @@ int tweak_tls13_certificate_msg_vector_len(
     return( 0 );
 }
 #endif /* MBEDTLS_TEST_HOOKS */
+
+#define ECJPAKE_TEST_PWD        "bla"
+
+#if defined( MBEDTLS_USE_PSA_CRYPTO )
+#define ECJPAKE_TEST_SET_PASSWORD( exp_ret_val )                          \
+    ret = ( use_opaque_arg ) ?                                            \
+        mbedtls_ssl_set_hs_ecjpake_password_opaque( &ssl, pwd_slot ) :    \
+        mbedtls_ssl_set_hs_ecjpake_password( &ssl, pwd_string, pwd_len ); \
+    TEST_EQUAL( ret, exp_ret_val )
+#else
+#define ECJPAKE_TEST_SET_PASSWORD( exp_ret_val )                \
+    ret = mbedtls_ssl_set_hs_ecjpake_password( &ssl,            \
+                                        pwd_string, pwd_len );  \
+    TEST_EQUAL( ret, exp_ret_val )
+#endif
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -5994,6 +6009,88 @@ exit:
     mbedtls_endpoint_free( &server_ep, NULL );
     free_handshake_options( &client_options );
     free_handshake_options( &server_options );
+    USE_PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
+void ssl_ecjpake_set_password( int use_opaque_arg )
+{
+    mbedtls_ssl_context ssl;
+    mbedtls_ssl_config conf;
+#if defined( MBEDTLS_USE_PSA_CRYPTO )
+    mbedtls_svc_key_id_t pwd_slot = MBEDTLS_SVC_KEY_ID_INIT;
+#else   /* MBEDTLS_USE_PSA_CRYPTO */
+    (void) use_opaque_arg;
+#endif  /* MBEDTLS_USE_PSA_CRYPTO */
+    unsigned char pwd_string[ sizeof(ECJPAKE_TEST_PWD) ] = "";
+    size_t pwd_len = 0;
+    int ret;
+
+    USE_PSA_INIT( );
+
+    mbedtls_ssl_init( &ssl );
+
+    /* test with uninitalized SSL context */
+    ECJPAKE_TEST_SET_PASSWORD( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    mbedtls_ssl_config_init( &conf );
+
+    TEST_EQUAL( mbedtls_ssl_config_defaults( &conf,
+                                              MBEDTLS_SSL_IS_CLIENT,
+                                              MBEDTLS_SSL_TRANSPORT_STREAM,
+                                              MBEDTLS_SSL_PRESET_DEFAULT ), 0 );
+
+    TEST_EQUAL( mbedtls_ssl_setup( &ssl, &conf ), 0 );
+
+    /* test with empty password or unitialized password key (depending on use_opaque_arg) */
+    ECJPAKE_TEST_SET_PASSWORD( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    pwd_len = strlen( ECJPAKE_TEST_PWD );
+    memcpy( pwd_string, ECJPAKE_TEST_PWD, pwd_len );
+
+#if defined( MBEDTLS_USE_PSA_CRYPTO )
+    if( use_opaque_arg )
+    {
+        psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+        psa_key_attributes_t check_attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+        /* First try with an invalid usage */
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH );
+        psa_set_key_algorithm( &attributes, PSA_ALG_JPAKE );
+        psa_set_key_type( &attributes, PSA_KEY_TYPE_PASSWORD );
+
+        PSA_ASSERT( psa_import_key( &attributes, pwd_string,
+                    pwd_len, &pwd_slot ) );
+
+        ECJPAKE_TEST_SET_PASSWORD( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+
+        /* check that the opaque key is still valid after failure */
+        TEST_EQUAL( psa_get_key_attributes( pwd_slot, &check_attributes ),
+                        PSA_SUCCESS );
+
+        psa_destroy_key( pwd_slot );
+
+        /* Then set the correct usage */
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
+
+        PSA_ASSERT( psa_import_key( &attributes, pwd_string,
+                    pwd_len, &pwd_slot ) );
+    }
+#endif  /* MBEDTLS_USE_PSA_CRYPTO */
+
+    /* final check which should work without errors */
+    ECJPAKE_TEST_SET_PASSWORD( 0 );
+
+#if defined( MBEDTLS_USE_PSA_CRYPTO )
+    if( use_opaque_arg )
+    {
+        psa_destroy_key( pwd_slot );
+    }
+#endif  /* MBEDTLS_USE_PSA_CRYPTO */
+    mbedtls_ssl_free( &ssl );
+    mbedtls_ssl_config_free( &conf );
+
     USE_PSA_DONE( );
 }
 /* END_CASE */

@@ -29,6 +29,9 @@ typedef struct {
     /* If not PSA_SUCCESS, return this error code instead of processing the
      * function call. */
     psa_status_t forced_status;
+    /* PAKE driver setup is executed on the first call to
+       pake_output/pake_input (added to distinguish forced statuses). */
+    psa_status_t forced_setup_status;
     /* Count the amount of times PAKE driver functions are called. */
     unsigned long hits;
     /* Status returned by the last PAKE driver function call. */
@@ -38,7 +41,7 @@ typedef struct {
     size_t forced_output_length;
 } mbedtls_test_driver_pake_hooks_t;
 
-#define MBEDTLS_TEST_DRIVER_PAKE_INIT { 0, 0, 0, NULL, 0 }
+#define MBEDTLS_TEST_DRIVER_PAKE_INIT { PSA_SUCCESS, PSA_SUCCESS, 0, PSA_SUCCESS, NULL, 0 }
 static inline mbedtls_test_driver_pake_hooks_t
 mbedtls_test_driver_pake_hooks_init(void)
 {

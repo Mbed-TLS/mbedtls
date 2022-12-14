@@ -626,7 +626,7 @@ static inline size_t mbedtls_mpi_core_montmul_working_limbs( size_t AN_limbs )
  *                          the base `R` = 2^(biL*m->limbs).
  * \param[in]     AN_limbs  The number of limbs in \p X, \p A, \p N and \p rr.
  * \param         mm        The Montgomery constant for \p N: -N^-1 mod 2^biL.
- *                          This can be determined  by calling
+ *                          This can be determined by calling
  *                          `mbedtls_mpi_core_montmul_init()`.
  * \param[in]     rr        The residue for `2^{2*n*biL} mod N`.
  * \param[in,out] T         Temporary storage of size at least
@@ -664,7 +664,7 @@ void mbedtls_mpi_core_to_mont_rep( mbedtls_mpi_uint *X,
  *                          the base `R` = 2^(biL*m->limbs).
  * \param[in]     AN_limbs  The number of limbs in \p X, \p A and \p N.
  * \param         mm        The Montgomery constant for \p N: -N^-1 mod 2^biL.
- *                          This can be determined  by calling
+ *                          This can be determined by calling
  *                          `mbedtls_mpi_core_montmul_init()`.
  * \param[in,out] T         Temporary storage of size at least
  *                          `mbedtls_mpi_core_montmul_working_limbs(AN_limbs)`

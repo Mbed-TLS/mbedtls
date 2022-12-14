@@ -18,8 +18,8 @@
  *     - Bignum parameters called \p A, \p B, ... are inputs and are not
  *       modified by the function.
  *     - Bignum parameters called \p X, \p Y, ... are outputs or input-output.
- *       The initial content of output-only parameters is ignored. These will
- *       have the type #mbedtls_mpi_mod_residue.
+ *       The initial bignum value of output-only parameters is ignored, but
+ *       they must be set up and associated with the modulus \p N.
  *     - Bignum parameters called \p P are inputs used to setup a modulus or
  *       residue. These must be pointers to an array of limbs.
  *     - \p T is a temporary storage area. The initial content of such

@@ -1,5 +1,0 @@
-Features
-   * The TLS 1.2 EC J-PAKE key exchange can now use the PSA Crypto API.
-     Additional PSA key slots will be allocated in the process of such key
-     exchange for builds that enable MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED and
-     MBEDTLS_USE_PSA_CRYPTO.

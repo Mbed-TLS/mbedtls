@@ -1,8 +1,0 @@
-Features
-   * The new functions mbedtls_asn1_free_named_data_list() and
-     mbedtls_asn1_free_named_data_list_shallow() simplify the management
-     of memory in named data lists in X.509 structures.
-New deprecations
-   * Deprecate mbedtls_asn1_free_named_data().
-     Use mbedtls_asn1_free_named_data_list()
-     or mbedtls_asn1_free_named_data_list_shallow().

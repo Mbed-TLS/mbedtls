@@ -1,4 +1,0 @@
-Bugfix
-   * Fix bug in error reporting in dh_genprime.c where upon failure,
-     the error code returned by mbedtls_mpi_write_file() is overwritten
-     and therefore not printed.

@@ -1,4 +1,0 @@
-Bugfix
-   * Fix an issue with in-tree CMake builds in releases with GEN_FILES
-     turned off: if a shipped file was missing from the working directory,
-     it could be turned into a symbolic link to itself.

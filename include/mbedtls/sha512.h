@@ -99,8 +99,11 @@ void mbedtls_sha512_clone( mbedtls_sha512_context *dst,
  * \param is384    Determines which function to use. This must be
  *                 either \c 0 for SHA-512, or \c 1 for SHA-384.
  *
- * \note           When \c MBEDTLS_SHA384_C is not defined,
- *                 \p is384 must be \c 0, or the function will return
+ * \note           is384 must be defined accordingly with the supported
+ *                 symbols in the config file. If:
+ *                 - is384 is 0, but \c MBEDTLS_SHA384_C is not defined, or
+ *                 - is384 is 1, but \c MBEDTLS_SHA512_C is not defined
+ *                 then the function will return
  *                 #MBEDTLS_ERR_SHA512_BAD_INPUT_DATA.
  *
  * \return         \c 0 on success.
@@ -175,8 +178,11 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
  * \param is384    Determines which function to use. This must be either
  *                 \c 0 for SHA-512, or \c 1 for SHA-384.
  *
- * \note           When \c MBEDTLS_SHA384_C is not defined, \p is384 must
- *                 be \c 0, or the function will return
+ * \note           is384 must be defined accordingly with the supported
+ *                 symbols in the config file. If:
+ *                 - is384 is 0, but \c MBEDTLS_SHA384_C is not defined, or
+ *                 - is384 is 1, but \c MBEDTLS_SHA512_C is not defined
+ *                 then the function will return
  *                 #MBEDTLS_ERR_SHA512_BAD_INPUT_DATA.
  *
  * \return         \c 0 on success.
@@ -190,7 +196,15 @@ int mbedtls_sha512( const unsigned char *input,
 #if defined(MBEDTLS_SELF_TEST)
 
  /**
- * \brief          The SHA-384 or SHA-512 checkup routine.
+ * \brief          The SHA-384 checkup routine.
+ *
+ * \return         \c 0 on success.
+ * \return         \c 1 on failure.
+ */
+int mbedtls_sha384_self_test( int verbose );
+
+ /**
+ * \brief          The SHA-512 checkup routine.
  *
  * \return         \c 0 on success.
  * \return         \c 1 on failure.

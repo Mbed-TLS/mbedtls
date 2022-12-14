@@ -3102,8 +3102,6 @@
  *
  * Enable the SHA-384 cryptographic hash algorithm.
  *
- * Requires: MBEDTLS_SHA512_C
- *
  * Module:  library/sha512.c
  * Caller:  library/md.c
  *          library/psa_crypto_hash.c

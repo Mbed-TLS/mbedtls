@@ -691,10 +691,6 @@
 #error "MBEDTLS_X509_RSASSA_PSS_SUPPORT defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_SHA384_C) && !defined(MBEDTLS_SHA512_C)
-#error "MBEDTLS_SHA384_C defined without MBEDTLS_SHA512_C"
-#endif
-
 #if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT) && \
     defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY)
 #error "Must only define one of MBEDTLS_SHA512_USE_A64_CRYPTO_*"

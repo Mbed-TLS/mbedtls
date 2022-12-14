@@ -746,14 +746,6 @@
 #error "MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY defined on non-Aarch64 system"
 #endif
 
-#if defined(MBEDTLS_SHA224_C) && !defined(MBEDTLS_SHA256_C)
-#error "MBEDTLS_SHA224_C defined without MBEDTLS_SHA256_C"
-#endif
-
-#if defined(MBEDTLS_SHA256_C) && !defined(MBEDTLS_SHA224_C)
-#error "MBEDTLS_SHA256_C defined without MBEDTLS_SHA224_C"
-#endif
-
 #if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) && \
     defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY)
 #error "Must only define one of MBEDTLS_SHA256_USE_A64_CRYPTO_*"

@@ -179,7 +179,15 @@ int mbedtls_sha256( const unsigned char *input,
 #if defined(MBEDTLS_SELF_TEST)
 
 /**
- * \brief          The SHA-224 and SHA-256 checkup routine.
+ * \brief          The SHA-224 checkup routine.
+ *
+ * \return         \c 0 on success.
+ * \return         \c 1 on failure.
+ */
+int mbedtls_sha224_self_test( int verbose );
+
+/**
+ * \brief          The SHA-256 checkup routine.
  *
  * \return         \c 0 on success.
  * \return         \c 1 on failure.

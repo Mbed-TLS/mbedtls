@@ -19,6 +19,7 @@ code style change.
 # limitations under the License.
 
 import argparse
+from pathlib import PurePath
 import subprocess
 import sys
 from typing import List
@@ -97,6 +98,14 @@ def restyle_commit_onto_current(commit_hash: str) -> bool:
         return False
     changed_files = str(result.stdout, "ascii").strip().split()
 
+    # Filter for source files only
+    changed_src_files = list(filter(lambda f: \
+               PurePath(f).match("*.h") \
+            or PurePath(f).match("*.c") \
+            or PurePath(f).match("tests/suites/*.function") \
+            or PurePath(f).match("scripts/data_files/*.fmt"), \
+            changed_files))
+
     # Checkout changed files to their state in the old commit
     result = subprocess.run(["git", "checkout", commit_hash, "--"] + \
             changed_files, check=False)
@@ -105,8 +114,8 @@ def restyle_commit_onto_current(commit_hash: str) -> bool:
                 " to commit " + commit_hash + ".", file=sys.stderr)
         return False
 
-    # Restyle the changed files to the new style
-    if code_style.fix_style(changed_files) != 0:
+    # Restyle the source files to the new style
+    if code_style.fix_style(changed_src_files) != 0:
         return False
 
     # Add the changed files

@@ -243,6 +243,9 @@ const selftest_t selftests[] =
 #if defined(MBEDTLS_SHA1_C)
     {"sha1", mbedtls_sha1_self_test},
 #endif
+#if defined(MBEDTLS_SHA224_C)
+    {"sha256", mbedtls_sha224_self_test},
+#endif
 #if defined(MBEDTLS_SHA256_C)
     {"sha256", mbedtls_sha256_self_test},
 #endif

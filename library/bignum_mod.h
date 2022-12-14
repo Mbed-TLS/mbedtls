@@ -26,13 +26,11 @@
  *       parameter is ignored and the final content is unspecified.
  *     - Some functions use different names, such as \p R for the residue.
  * - **Bignum sizes**: bignum sizes are always expressed in limbs. Both
- *   #mbedtls_mpi_mod_modulus and #mbedtls_mpi_mod_residue have a \p limbs
- *   member storing its size. Functions which take a limb array parameter
- *   must also take an associated \p limbs parameter specifying its size.
- *   All bignum sizes must be at least 1 and be significantly less than
- *   #SIZE_MAX. The behavior if a size is 0 may be undefined or an error
- *   may be returned. All bignum parameters must have the same size unless
- *   otherwise specified.
+ *   #mbedtls_mpi_mod_modulus and #mbedtls_mpi_mod_residue have a \c limbs
+ *   member storing its size. All bignum parameters must have the same
+ *   number of limbs as the modulus. All bignum sizes must be at least 1 and
+ *   must be significantly less than #SIZE_MAX. The behavior if a size is 0 is
+ *   undefined.
  * - **Bignum representation**: the representation of inputs and outputs is
  *   specified by the \p int_rep field of the modulus.
  * - **Parameter ordering**: for bignum parameters, outputs come before inputs.

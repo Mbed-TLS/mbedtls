@@ -27,8 +27,8 @@
  *       The initial content of output-only parameters is ignored.
  *     - \p T is a temporary storage area. The initial content of such a
  *       parameter is ignored and the final content is unspecified.
- * - **Bignum sizes**: bignum sizes are always expressed by the \p limbs
- *   member of the modulus argument. Any bignum parameters must have the same
+ * - **Bignum sizes**: bignum sizes are usually expressed by the \c limbs
+ *   member of the modulus argument. All bignum parameters must have the same
  *   number of limbs as the modulus. All bignum sizes must be at least 1 and
  *   must be significantly less than #SIZE_MAX. The behavior if a size is 0 is
  *   undefined.

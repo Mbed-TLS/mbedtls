@@ -61,7 +61,7 @@ class BignumModRawInvPrime(bignum_common.ModOperationCommon,
     symbol = "^ -1"
     test_function = "mpi_mod_raw_inv_prime"
     test_name = "mbedtls_mpi_mod_raw_inv_prime (Montgomery form only)"
-    input_style = "fixed"
+    input_style = "arch_split"
     arity = 1
     suffix = True
 

@@ -88,40 +88,6 @@ static int pkcs7_get_version( unsigned char **p, unsigned char *end, int *ver )
 }
 
 /**
- * ContentInfo ::= SEQUENCE {
- *      contentType ContentType,
- *      content
- *              [0] EXPLICIT ANY DEFINED BY contentType OPTIONAL }
- **/
-static int pkcs7_get_content_info_type( unsigned char **p, unsigned char *end,
-                                        mbedtls_pkcs7_buf *pkcs7 )
-{
-    size_t len = 0;
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned char *start = *p;
-
-    ret = mbedtls_asn1_get_tag( p, end, &len, MBEDTLS_ASN1_CONSTRUCTED
-                                            | MBEDTLS_ASN1_SEQUENCE );
-    if( ret != 0 ) {
-        *p = start;
-        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO, ret ) );
-    }
-
-    ret = mbedtls_asn1_get_tag( p, end, &len, MBEDTLS_ASN1_OID );
-    if( ret != 0 ) {
-        *p = start;
-        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO, ret ) );
-    }
-
-    pkcs7->tag = MBEDTLS_ASN1_OID;
-    pkcs7->len = len;
-    pkcs7->p = *p;
-    *p += len;
-
-    return( ret );
-}
-
-/**
  * DigestAlgorithmIdentifier ::= AlgorithmIdentifier
  *
  * This is from x509.h
@@ -445,6 +411,7 @@ static int pkcs7_get_signed_data( unsigned char *buf, size_t buflen,
 {
     unsigned char *p = buf;
     unsigned char *end = buf + buflen;
+    unsigned char *end_content;
     size_t len = 0;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_md_type_t md_alg;
@@ -477,15 +444,19 @@ static int pkcs7_get_signed_data( unsigned char *buf, size_t buflen,
         return( MBEDTLS_ERR_PKCS7_INVALID_ALG );
     }
 
-    /* Do not expect any content */
-    ret = pkcs7_get_content_info_type( &p, end, &signed_data->content.oid );
-    if( ret != 0 )
-        return( ret );
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len, MBEDTLS_ASN1_CONSTRUCTED
+                                                   | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+        return MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO, ret );
 
-    if( MBEDTLS_OID_CMP( MBEDTLS_OID_PKCS7_DATA, &signed_data->content.oid ) )
-    {
+    end_content = p + len;
+
+    if( ( ret = mbedtls_asn1_get_tag( &p, end_content, &len, MBEDTLS_ASN1_OID ) ) != 0 )
+        return MBEDTLS_ERROR_ADD( MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO, ret );
+
+    if( MBEDTLS_OID_CMP_RAW( MBEDTLS_OID_PKCS7_DATA, p, len ) )
         return( MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO );
-    }
+
+    p += len;
 
     /* Look for certificates, there may or may not be any */
     mbedtls_x509_crt_init( &signed_data->certs );

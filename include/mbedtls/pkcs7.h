@@ -139,7 +139,6 @@ mbedtls_pkcs7_signer_info;
  */
 typedef struct mbedtls_pkcs7_data
 {
-    mbedtls_pkcs7_buf MBEDTLS_PRIVATE(oid);
     mbedtls_pkcs7_buf MBEDTLS_PRIVATE(data);
 }
 mbedtls_pkcs7_data;

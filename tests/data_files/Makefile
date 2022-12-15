@@ -1163,6 +1163,10 @@ pkcs7-rsa-sha256-2.crt:
 	cat pkcs7-rsa-sha256-2.crt pkcs7-rsa-sha256-2.key > pkcs7-rsa-sha256-2.pem
 all_final += pkcs7-rsa-sha256-2.crt
 
+pkcs7-rsa-expired.crt:
+	$(FAKETIME) -f -3650d $(OPENSSL) req -x509 -subj="/C=NL/O=PKCS7/CN=PKCS7 Cert Expired" -sha256 -nodes -days 365  -newkey rsa:2048 -keyout pkcs7-rsa-expired.key -out pkcs7-rsa-expired.crt
+all_final += pkcs7-rsa-expired.crt
+
 # Convert signing certs to DER for testing PEM-free builds
 pkcs7-rsa-sha256-1.der: $(pkcs7_test_cert_1)
 	$(OPENSSL) x509 -in pkcs7-rsa-sha256-1.crt -out $@ -outform DER

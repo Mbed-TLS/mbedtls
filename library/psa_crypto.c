@@ -3153,13 +3153,13 @@ uint32_t psa_interruptible_get_max_ops( void )
 uint32_t psa_sign_hash_get_num_ops(
                     const psa_sign_hash_interruptible_operation_t *operation )
 {
-    return( psa_driver_wrapper_sign_hash_get_num_ops( operation ) );
+    return ( operation->num_ops );
 }
 
 uint32_t psa_verify_hash_get_num_ops(
                     const psa_verify_hash_interruptible_operation_t *operation )
 {
-    return( psa_driver_wrapper_verify_hash_get_num_ops( operation ) );
+    return ( operation->num_ops );
 }
 
 psa_status_t psa_sign_hash_start(
@@ -3196,6 +3196,9 @@ psa_status_t psa_sign_hash_start(
     psa_key_attributes_t attributes = {
         .core = slot->attr
     };
+
+    /* Ensure ops count gets reset, in case of operation re-use. */
+    operation->num_ops = 0;
 
     status = psa_driver_wrapper_sign_hash_start( operation, &attributes,
                                                  slot->key.data,
@@ -3243,6 +3246,9 @@ psa_status_t psa_sign_hash_complete(
                                                     signature_size,
                                                     signature_length );
 exit:
+
+    /* Update ops count with work done. */
+    operation->num_ops += psa_driver_wrapper_sign_hash_get_num_ops( operation );
 
     if( status != PSA_OPERATION_INCOMPLETE )
     {
@@ -3312,6 +3318,9 @@ psa_status_t psa_verify_hash_start(
         .core = slot->attr
     };
 
+    /* Ensure ops count gets reset, in case of operation re-use. */
+    operation->num_ops = 0;
+
     status = psa_driver_wrapper_verify_hash_start( operation, &attributes,
                                                   slot->key.data,
                                                   slot->key.bytes,
@@ -3343,6 +3352,10 @@ psa_status_t psa_verify_hash_complete(
     status = psa_driver_wrapper_verify_hash_complete( operation );
 
 exit:
+
+    /* Update ops count with work done. */
+    operation->num_ops += psa_driver_wrapper_verify_hash_get_num_ops(
+                                                                  operation );
 
     if( status != PSA_OPERATION_INCOMPLETE )
         psa_verify_hash_abort( operation );

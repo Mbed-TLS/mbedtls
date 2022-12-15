@@ -524,7 +524,7 @@ struct psa_sign_hash_interruptible_operation_s
 
     psa_driver_sign_hash_interruptible_context_t MBEDTLS_PRIVATE( ctx );
 
-    size_t MBEDTLS_PRIVATE( num_ops );
+    uint32_t MBEDTLS_PRIVATE( num_ops );
 };
 
 #define PSA_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT {0, {0}, 0}
@@ -556,7 +556,7 @@ struct psa_verify_hash_interruptible_operation_s
 
     psa_driver_verify_hash_interruptible_context_t MBEDTLS_PRIVATE( ctx );
 
-    size_t MBEDTLS_PRIVATE( num_ops );
+    uint32_t MBEDTLS_PRIVATE( num_ops );
 };
 
 #define PSA_VERIFY_HASH_INTERRUPTIBLE_OPERATION_INIT {0, {0}, 0}

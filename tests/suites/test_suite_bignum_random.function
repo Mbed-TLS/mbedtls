@@ -16,6 +16,15 @@ static int sign_is_valid( const mbedtls_mpi *X )
     return( X->s == 1 );
 }
 
+/* A common initializer for test functions that should generate the same
+ * sequences for reproducibility and good coverage. */
+const mbedtls_test_rnd_pseudo_info rnd_pseudo_seed = {
+    /* 16-word key */
+    {'T', 'h', 'i', 's', ' ', 'i', 's', ' ',
+     'a', ' ', 's', 'e', 'e', 'd', '!', 0},
+    /* 2-word initial state, should be zero */
+    0, 0};
+
 /* Test whether bytes represents (in big-endian base 256) a number b that
  * is significantly above a power of 2. That is, b must not have a long run
  * of unset bits after the most significant bit.
@@ -71,10 +80,7 @@ static int is_significantly_above_a_power_of_2( data_t *bytes )
 void mpi_core_random_basic( int min, char *bound_bytes, int expected_ret )
 {
     /* Same RNG as in mpi_random_values */
-    mbedtls_test_rnd_pseudo_info rnd = {
-        {'T', 'h', 'i', 's', ' ', 'i', ',', 'a',
-         's', 'e', 'e', 'd', '!', 0},
-        0, 0};
+    mbedtls_test_rnd_pseudo_info rnd = rnd_pseudo_seed;
     size_t limbs;
     mbedtls_mpi_uint *lower_bound = NULL;
     mbedtls_mpi_uint *upper_bound = NULL;
@@ -107,10 +113,7 @@ exit:
 void mpi_random_values( int min, char *max_hex )
 {
     /* Same RNG as in mpi_core_random_basic */
-    mbedtls_test_rnd_pseudo_info rnd_core = {
-        {'T', 'h', 'i', 's', ' ', 'i', ',', 'a',
-         's', 'e', 'e', 'd', '!', 0},
-        0, 0};
+    mbedtls_test_rnd_pseudo_info rnd_core = rnd_pseudo_seed;
     mbedtls_test_rnd_pseudo_info rnd_legacy;
     memcpy( &rnd_legacy, &rnd_core, sizeof( rnd_core ) );
     mbedtls_mpi max_legacy;

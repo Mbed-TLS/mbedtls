@@ -1,6 +1,6 @@
 #!/bin/sh
 
-ENFORCEMENT_COMMIT=6ed34c672d4f9298a90a17f149211b69ea97d190
+ENFORCEMENT_COMMIT=features/new-code-style/switch-to-enforcement
 REMOTE_URL=git@github.com:Mbed-TLS/mbedtls.git
 
 help () {

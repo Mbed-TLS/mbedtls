@@ -3,7 +3,7 @@ PREFIX=mbedtls_
 
 .SILENT:
 
-.PHONY: all no_test programs lib tests install uninstall clean test check covtest lcov apidoc apidoc_clean
+.PHONY: all no_test programs lib tests install uninstall clean test check lcov apidoc apidoc_clean
 
 all: programs tests
 	$(MAKE) post_build
@@ -100,23 +100,15 @@ check: lib tests
 test: check
 
 ifndef WINDOWS
-# note: for coverage testing, build with:
-# make CFLAGS='--coverage -g3 -O0'
-covtest:
-	$(MAKE) check
-	programs/test/selftest
-	tests/compat.sh
-	tests/ssl-opt.sh
-
+# For coverage testing:
+# 1. Build with:
+#         make CFLAGS='--coverage -g3 -O0' LDFLAGS='--coverage'
+# 2. Run the relevant tests for the part of the code you're interested in.
+#    For the reference coverage measurement, see
+#    tests/scripts/basic-build-test.sh
+# 3. Run scripts/lcov.sh to generate an HTML report.
 lcov:
-	rm -rf Coverage
-	lcov --capture --initial --directory library -o files.info
-	lcov --rc lcov_branch_coverage=1 --capture --directory library -o tests.info
-	lcov --rc lcov_branch_coverage=1 --add-tracefile files.info --add-tracefile tests.info -o all.info
-	lcov --rc lcov_branch_coverage=1 --remove all.info -o final.info '*.h'
-	gendesc tests/Descriptions.txt -o descriptions
-	genhtml --title "mbed TLS" --description-file descriptions --keep-descriptions --legend --branch-coverage -o Coverage final.info
-	rm -f files.info tests.info all.info final.info descriptions
+	scripts/lcov.sh
 
 apidoc:
 	mkdir -p apidoc

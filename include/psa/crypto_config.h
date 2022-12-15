@@ -116,6 +116,8 @@
 #define PSA_WANT_ECC_SECP_R1_521                1
 
 #define PSA_WANT_KEY_TYPE_DERIVE                1
+#define PSA_WANT_KEY_TYPE_PASSWORD              1
+#define PSA_WANT_KEY_TYPE_PASSWORD_HASH         1
 #define PSA_WANT_KEY_TYPE_HMAC                  1
 #define PSA_WANT_KEY_TYPE_AES                   1
 #define PSA_WANT_KEY_TYPE_ARIA                  1

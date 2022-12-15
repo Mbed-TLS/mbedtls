@@ -843,6 +843,8 @@ extern "C" {
 
 /* These features are always enabled. */
 #define PSA_WANT_KEY_TYPE_DERIVE 1
+#define PSA_WANT_KEY_TYPE_PASSWORD 1
+#define PSA_WANT_KEY_TYPE_PASSWORD_HASH 1
 #define PSA_WANT_KEY_TYPE_RAW_DATA 1
 
 #ifdef __cplusplus

@@ -893,6 +893,7 @@ static int ssl_prepare_client_hello(mbedtls_ssl_context *ssl)
 
     return 0;
 }
+
 /*
  * Write ClientHello handshake message.
  * Handler for MBEDTLS_SSL_CLIENT_HELLO
@@ -962,8 +963,52 @@ int mbedtls_ssl_write_client_hello(mbedtls_ssl_context *ssl)
                                                               buf_len,
                                                               msg_len));
         mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_SERVER_HELLO);
-    }
 
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+        if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED) {
+            psa_algorithm_t hash_alg = PSA_ALG_NONE;
+            const unsigned char *psk;
+            size_t psk_len;
+            MBEDTLS_SSL_DEBUG_MSG(1, ("in generate early keys"));
+
+            if ((ret = mbedtls_ssl_tls13_ticket_get_psk(
+                     ssl, &hash_alg, &psk, &psk_len))
+                != 0) {
+                MBEDTLS_SSL_DEBUG_RET(
+                    1, "mbedtls_ssl_tls13_ticket_get_psk", ret);
+                goto cleanup;
+            }
+
+            if ((ret = mbedtls_ssl_set_hs_psk(ssl, psk, psk_len)) != 0) {
+                MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_set_hs_psk", ret);
+                goto cleanup;
+            }
+
+            /* Start the TLS 1.3 key schedule:
+             * Set the PSK and derive early secret.
+             */
+            ret = mbedtls_ssl_tls13_key_schedule_stage_early(ssl);
+            if (ret != 0) {
+                MBEDTLS_SSL_DEBUG_RET(1,
+                                      "mbedtls_ssl_tls13_key_schedule_stage_early", ret);
+                goto cleanup;
+            }
+
+            /* Derive early data key material */
+            ret = mbedtls_ssl_tls13_compute_early_transform(ssl);
+            if (ret != 0) {
+                MBEDTLS_SSL_DEBUG_RET(1,
+                                      "mbedtls_ssl_tls13_compute_early_transform", ret);
+                goto cleanup;
+            }
+
+            MBEDTLS_SSL_DEBUG_MSG(
+                1, ("Switch to early data keys for outbound traffic"));
+            mbedtls_ssl_set_outbound_transform(
+                ssl, ssl->handshake->transform_earlydata);
+        }
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+    }
 
 cleanup:
 

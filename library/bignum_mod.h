@@ -10,13 +10,15 @@
  *   of type #mbedtls_mpi_mod_modulus. The structure must be set up with an
  *   array of limbs storing the bignum value of the modulus. The modulus must
  *   be odd and is assumed to have no leading zeroes. The modulus is usually
- *   named \c N and is usually input-only.
+ *   named \c N and is usually input-only. Functions which take a parameter
+ *   of type \c const #mbedtls_mpi_mod_modulus* must not modify its value.
  * - **Bignum parameters**: Bignums are passed as pointers to an array of
  *   limbs or to a #mbedtls_mpi_mod_residue structure. A limb has the type
  *   #mbedtls_mpi_uint. Residues must be initialized before use, and must be
  *   associated with the modulus \c N. Unless otherwise specified:
  *     - Bignum parameters called \c A, \c B, ... are inputs and are not
- *       modified by the function.
+ *       modified by the function. Functions which take a parameter of
+ *       type \c const #mbedtls_mpi_mod_residue* must not modify its value.
  *     - Bignum parameters called \c X, \c Y, ... are outputs or input-output.
  *       The initial bignum value of output-only parameters is ignored, but
  *       they must be set up and associated with the modulus \c N. Some

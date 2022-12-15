@@ -18,14 +18,14 @@
  *   of type #mbedtls_mpi_mod_modulus. The structure must be set up with an
  *   array of limbs storing the bignum value of the modulus. The modulus must
  *   be odd and is assumed to have no leading zeroes. The modulus is usually
- *   named \p N and is usually input-only.
+ *   named \c N and is usually input-only.
  * - **Bignum parameters**: Bignums are passed as pointers to an array of
  *   limbs. A limb has the type #mbedtls_mpi_uint. Unless otherwise specified:
- *     - Bignum parameters called \p A, \p B, ... are inputs, and are not
+ *     - Bignum parameters called \c A, \c B, ... are inputs, and are not
  *       modified by the function.
- *     - Bignum parameters called \p X, \p Y are outputs or input-output.
+ *     - Bignum parameters called \c X, \c Y are outputs or input-output.
  *       The initial content of output-only parameters is ignored.
- *     - \p T is a temporary storage area. The initial content of such a
+ *     - \c T is a temporary storage area. The initial content of such a
  *       parameter is ignored and the final content is unspecified.
  * - **Bignum sizes**: bignum sizes are usually expressed by the \c limbs
  *   member of the modulus argument. All bignum parameters must have the same
@@ -33,7 +33,7 @@
  *   must be significantly less than #SIZE_MAX. The behavior if a size is 0 is
  *   undefined.
  * - **Bignum representation**: the representation of inputs and outputs is
- *   specified by the \p int_rep field of the modulus for arithmetic
+ *   specified by the \c int_rep field of the modulus for arithmetic
  *   functions. Utility functions may allow for different representation.
  * - **Parameter ordering**: for bignum parameters, outputs come before inputs.
  *   The modulus is passed after other bignum input parameters. Temporaries
@@ -52,7 +52,7 @@
  *   memory or handle reading/writing of bignums will return an error if
  *   memory allocation fails or if buffer sizes are invalid.
  * - **Modular representatives**: all functions expect inputs to be in the
- *   range [0, \p N - 1] and guarantee outputs in the range [0, \p N - 1]. If
+ *   range [0, \c N - 1] and guarantee outputs in the range [0, \c N - 1]. If
  *   an input is out of range, outputs are fully unspecified, though bignum
  *   values out of range should not cause buffer overflows (beware that this is
  *   not extensively tested).

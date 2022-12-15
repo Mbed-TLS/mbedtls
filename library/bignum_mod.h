@@ -10,21 +10,21 @@
  *   of type #mbedtls_mpi_mod_modulus. The structure must be set up with an
  *   array of limbs storing the bignum value of the modulus. The modulus must
  *   be odd and is assumed to have no leading zeroes. The modulus is usually
- *   named \p N and is usually input-only.
+ *   named \c N and is usually input-only.
  * - **Bignum parameters**: Bignums are passed as pointers to an array of
  *   limbs or to a #mbedtls_mpi_mod_residue structure. A limb has the type
  *   #mbedtls_mpi_uint. Residues must be initialized before use, and must be
- *   associated with the modulus \p N. Unless otherwise specified:
- *     - Bignum parameters called \p A, \p B, ... are inputs and are not
+ *   associated with the modulus \c N. Unless otherwise specified:
+ *     - Bignum parameters called \c A, \c B, ... are inputs and are not
  *       modified by the function.
- *     - Bignum parameters called \p X, \p Y, ... are outputs or input-output.
+ *     - Bignum parameters called \c X, \c Y, ... are outputs or input-output.
  *       The initial bignum value of output-only parameters is ignored, but
- *       they must be set up and associated with the modulus \p N.
- *     - Bignum parameters called \p P are inputs used to set up a modulus or
+ *       they must be set up and associated with the modulus \c N.
+ *     - Bignum parameters called \c P are inputs used to set up a modulus or
  *       residue. These must be pointers to an array of limbs.
- *     - \p T is a temporary storage area. The initial content of such a
+ *     - \c T is a temporary storage area. The initial content of such a
  *       parameter is ignored and the final content is unspecified.
- *     - Some functions use different names, such as \p R for the residue.
+ *     - Some functions use different names, such as \c R for the residue.
  * - **Bignum sizes**: bignum sizes are always expressed in limbs. Both
  *   #mbedtls_mpi_mod_modulus and #mbedtls_mpi_mod_residue have a \c limbs
  *   member storing its size. All bignum parameters must have the same
@@ -32,7 +32,7 @@
  *   must be significantly less than #SIZE_MAX. The behavior if a size is 0 is
  *   undefined.
  * - **Bignum representation**: the representation of inputs and outputs is
- *   specified by the \p int_rep field of the modulus.
+ *   specified by the \c int_rep field of the modulus.
  * - **Parameter ordering**: for bignum parameters, outputs come before inputs.
  *   The modulus is passed after residues. Temporaries come last.
  * - **Aliasing**: in general, output bignums may be aliased to one or more
@@ -44,10 +44,10 @@
  *   in undefined behavior.
  * - **Error handling**: functions generally check compatibility of input
  *   sizes. Most functions will not check that input values are in canonical
- *   form (i.e. that \p A < \p N), this is only checked during setup of a
+ *   form (i.e. that \c A < \c N), this is only checked during setup of a
  *   residue structure.
  * - **Modular representatives**: all functions expect inputs to be in the
- *   range [0, \p N - 1] and guarantee outputs in the range [0, \p N - 1].
+ *   range [0, \c N - 1] and guarantee outputs in the range [0, \c N - 1].
  *   Residues are set up with an associated modulus, and operations are only
  *   guaranteed to work if the modulus is associated with all residue
  *   parameters. If a residue is passed with a modulus other than the one it

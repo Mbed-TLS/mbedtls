@@ -386,37 +386,28 @@ void mpi_mod_raw_mul( char * input_A,
     const size_t limbs_T = limbs * 2 + 1;
     ASSERT_ALLOC( T, limbs_T );
 
-    /* Convert to Montgomery representation */
-    TEST_EQUAL( mbedtls_mpi_mod_raw_to_mont_rep( A, &m ), 0 );
-    TEST_EQUAL( mbedtls_mpi_mod_raw_to_mont_rep( B, &m ), 0 );
-
     mbedtls_mpi_mod_raw_mul( X, A, B, &m, T );
-    TEST_EQUAL( mbedtls_mpi_mod_raw_from_mont_rep( X, &m ), 0 );
     ASSERT_COMPARE( X, bytes, R, bytes );
 
     /* alias X to A */
     memcpy( X, A, bytes );
     mbedtls_mpi_mod_raw_mul( X, X, B, &m, T );
-    TEST_EQUAL( mbedtls_mpi_mod_raw_from_mont_rep( X, &m ), 0 );
     ASSERT_COMPARE( X, bytes, R, bytes );
 
     /* alias X to B */
     memcpy( X, B, bytes );
     mbedtls_mpi_mod_raw_mul( X, A, X, &m, T );
-    TEST_EQUAL( mbedtls_mpi_mod_raw_from_mont_rep( X, &m ), 0 );
     ASSERT_COMPARE( X, bytes, R, bytes );
 
     /* A == B: alias A and B */
     if( memcmp( A, B, bytes ) == 0 )
     {
         mbedtls_mpi_mod_raw_mul( X, A, A, &m, T );
-        TEST_EQUAL( mbedtls_mpi_mod_raw_from_mont_rep( X, &m ), 0 );
         ASSERT_COMPARE( X, bytes, R, bytes );
 
         /* X, A, B all aliased together */
         memcpy( X, A, bytes );
         mbedtls_mpi_mod_raw_mul( X, X, X, &m, T );
-        TEST_EQUAL( mbedtls_mpi_mod_raw_from_mont_rep( X, &m ), 0 );
         ASSERT_COMPARE( X, bytes, R, bytes );
     }
 
@@ -424,19 +415,16 @@ void mpi_mod_raw_mul( char * input_A,
     else
     {
         mbedtls_mpi_mod_raw_mul( X, B, A, &m, T );
-        TEST_EQUAL( mbedtls_mpi_mod_raw_from_mont_rep( X, &m ), 0 );
         ASSERT_COMPARE( X, bytes, R, bytes );
 
         /* B * A: alias X to A */
         memcpy( X, A, bytes );
         mbedtls_mpi_mod_raw_mul( X, B, X, &m, T );
-        TEST_EQUAL( mbedtls_mpi_mod_raw_from_mont_rep( X, &m ), 0 );
         ASSERT_COMPARE( X, bytes, R, bytes );
 
         /* B + A: alias X to B */
         memcpy( X, B, bytes );
         mbedtls_mpi_mod_raw_mul( X, X, A, &m, T );
-        TEST_EQUAL( mbedtls_mpi_mod_raw_from_mont_rep( X, &m ), 0 );
         ASSERT_COMPARE( X, bytes, R, bytes );
     }
 

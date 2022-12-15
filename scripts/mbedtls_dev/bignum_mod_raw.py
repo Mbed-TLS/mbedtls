@@ -60,14 +60,14 @@ class BignumModRawMul(bignum_common.ModOperationCommon,
     arity = 2
 
     def arguments(self) -> List[str]:
-        return [bignum_common.quote_str(n) for n in [self.arg_a,
-                                                     self.arg_b,
-                                                     self.arg_n]
+        return [self.format_result(self.to_montgomery(self.int_a)),
+                self.format_result(self.to_montgomery(self.int_b)),
+                bignum_common.quote_str(self.arg_n)
                ] + self.result()
 
     def result(self) -> List[str]:
         result = (self.int_a * self.int_b) % self.int_n
-        return [self.format_result(result)]
+        return [self.format_result(self.to_montgomery(result))]
 
 # END MERGE SLOT 2
 

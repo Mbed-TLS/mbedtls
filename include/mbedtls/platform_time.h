@@ -39,6 +39,12 @@ typedef MBEDTLS_PLATFORM_TIME_TYPE_MACRO mbedtls_time_t;
 typedef time_t mbedtls_time_t;
 #endif /* MBEDTLS_PLATFORM_TIME_TYPE_MACRO */
 
+#if defined(MBEDTLS_PLATFORM_MS_TIME_TYPE_MACRO)
+typedef MBEDTLS_PLATFORM_MS_TIME_TYPE_MACRO mbedtls_ms_time_t;
+#else
+typedef signed long long mbedtls_ms_time_t;
+#endif /* MBEDTLS_PLATFORM_MS_TIME_TYPE_MACRO */
+
 /*
  * The function pointers for time
  */

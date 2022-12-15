@@ -448,6 +448,12 @@
 #error "MBEDTLS_PLATFORM_TIME_MACRO defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_PLATFORM_MS_TIME_TYPE_MACRO) &&\
+    ( !defined(MBEDTLS_PLATFORM_C) ||\
+        !defined(MBEDTLS_HAVE_TIME) )
+#error "MBEDTLS_PLATFORM_MS_TIME_TYPE_MACRO defined, but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_PLATFORM_TIME_TYPE_MACRO) &&\
     ( !defined(MBEDTLS_PLATFORM_C) ||\
         !defined(MBEDTLS_HAVE_TIME) )

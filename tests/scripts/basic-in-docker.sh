@@ -9,6 +9,10 @@
 # in the default configuration, partial test runs in the reference
 # configurations, and some dependency tests.
 #
+# WARNING: the Dockerfile used by this script is no longer maintained! See
+# https://github.com/Mbed-TLS/mbedtls-test/blob/master/README.md#quick-start
+# for the set of Docker images we use on the CI.
+#
 # Notes for users
 # ---------------
 # See docker_env.sh for prerequisites and other information.

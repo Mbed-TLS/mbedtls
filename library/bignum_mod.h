@@ -22,11 +22,11 @@
  *       they must be set up and associated with the modulus \c N. Some
  *       functions (typically constant-flow) require that the limbs in an
  *       output residue are initialized.
- *     - Bignum parameters called \c P are inputs used to set up a modulus or
+ *     - Bignum parameters called \c p are inputs used to set up a modulus or
  *       residue. These must be pointers to an array of limbs.
  *     - \c T is a temporary storage area. The initial content of such a
  *       parameter is ignored and the final content is unspecified.
- *     - Some functions use different names, such as \c R for the residue.
+ *     - Some functions use different names, such as \c r for the residue.
  * - **Bignum sizes**: bignum sizes are always expressed in limbs. Both
  *   #mbedtls_mpi_mod_modulus and #mbedtls_mpi_mod_residue have a \c limbs
  *   member storing its size. All bignum parameters must have the same

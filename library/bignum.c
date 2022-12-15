@@ -1973,7 +1973,7 @@ int mbedtls_mpi_random( mbedtls_mpi *X,
 
     /* Ensure that target MPI has exactly the same number of limbs
      * as the upper bound, even if the upper bound has leading zeros.
-     * This is necessary for the mbedtls_mpi_lt_mpi_ct() check. */
+     * This is necessary for mbedtls_mpi_core_random. */
     int ret = mbedtls_mpi_resize_clear( X, N->n );
     if( ret != 0 )
         return( ret );

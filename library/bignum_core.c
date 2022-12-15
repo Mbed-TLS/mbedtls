@@ -163,7 +163,7 @@ unsigned mbedtls_mpi_core_uint_le_mpi( mbedtls_mpi_uint min,
     /* min <= least significant limb? */
     unsigned min_le_lsl = 1 ^ mbedtls_ct_mpi_uint_lt( A[0], min );
 
-    /* most significant limbs (excluding 1) are all zero? */
+    /* limbs other than the least significant one are all zero? */
     mbedtls_mpi_uint msll_mask = 0;
     for( size_t i = 1; i < A_limbs; i++ )
         msll_mask |= A[i];

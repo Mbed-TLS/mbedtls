@@ -284,6 +284,7 @@ run_test    "TLS 1.3 m->G: EarlyData: basic check, good" \
             -c "Client write EndOfEarlyData" \
             -s "Parsing extension 'Early Data/42' (0 bytes)" \
             -s "Sending extension Early Data/42 (0 bytes)" \
+            -s "END OF EARLY DATA (5) was received." \
             -s "early data accepted"
 
 requires_gnutls_tls1_3

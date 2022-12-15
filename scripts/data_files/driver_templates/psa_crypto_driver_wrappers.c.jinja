@@ -448,6 +448,10 @@ uint32_t psa_driver_wrapper_sign_hash_get_num_ops(
 {
     switch( operation->id )
     {
+        /* If uninitialised, return 0, as no work can have been done. */
+        case 0:
+            return 0;
+
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
             return( mbedtls_psa_sign_hash_get_num_ops(
                                                 &operation->ctx.mbedtls_ctx )
@@ -469,6 +473,10 @@ uint32_t psa_driver_wrapper_verify_hash_get_num_ops(
 {
     switch( operation->id )
     {
+        /* If uninitialised, return 0, as no work can have been done. */
+        case 0:
+            return 0;
+
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
             return( mbedtls_psa_verify_hash_get_num_ops(
                                                 &operation->ctx.mbedtls_ctx )

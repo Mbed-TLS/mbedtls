@@ -159,6 +159,8 @@ class KeyTypeNotSupported:
 
     ALWAYS_SUPPORTED = frozenset([
         'PSA_KEY_TYPE_DERIVE',
+        'PSA_KEY_TYPE_PASSWORD',
+        'PSA_KEY_TYPE_PASSWORD_HASH',
         'PSA_KEY_TYPE_RAW_DATA',
         'PSA_KEY_TYPE_HMAC'
     ])

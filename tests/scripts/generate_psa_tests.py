@@ -522,7 +522,7 @@ class StorageFormat:
             key_type: psa_storage.Expr, bits: int,
             alg: psa_storage.Expr
     ) -> bool:
-        """Whether to the given key with the given algorithm.
+        """Whether to exercise the given key with the given algorithm.
 
         Normally only the type and algorithm matter for compatibility, and
         this is handled in crypto_knowledge.KeyType.can_do(). This function

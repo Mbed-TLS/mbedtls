@@ -553,7 +553,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE:MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 void ecp_muladd_restart( int id, char *xR_str, char *yR_str,
                          char *u1_str, char *u2_str,
                          char *xQ_str, char *yQ_str,

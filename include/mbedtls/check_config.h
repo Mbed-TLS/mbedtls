@@ -144,6 +144,11 @@
 #error "MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED defined, but MBEDTLS_ECDH_LEGACY_CONTEXT not disabled"
 #endif
 
+#if defined(MBEDTLS_ECP_RESTARTABLE)           && \
+    !defined(MBEDTLS_ECP_C)
+#error "MBEDTLS_ECP_RESTARTABLE defined, but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC) && !defined(MBEDTLS_HMAC_DRBG_C)
 #error "MBEDTLS_ECDSA_DETERMINISTIC defined, but not all prerequisites"
 #endif

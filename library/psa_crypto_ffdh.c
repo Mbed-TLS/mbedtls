@@ -149,7 +149,7 @@ psa_status_t mbedtls_psa_key_agreement_ffdh(
         MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&GY, peer_key,
                                                 peer_key_length));
 
-        /* Calculate shared secret public key: K = G^(XY) mod P */
+        /* Calculate shared secret public key: K = G^(XY) mod P = GY^X mod P */
         MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod(&K, &GY, &X, &P, NULL));
 
         MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&K, shared_secret,
@@ -221,6 +221,9 @@ psa_status_t mbedtls_psa_ffdh_generate_key(
         PSA_BITS_TO_BYTES(attributes->core.bits), &P, NULL);
 
     if (status == PSA_SUCCESS) {
+        /* RFC7919: Traditional finite field Diffie-Hellman has each peer choose their
+           secret exponent from the range [2, P-2].
+           Select random value in range [4, P] and decrease it by 2. */
         MBEDTLS_MPI_CHK(mbedtls_mpi_random(&X, 4, &P, mbedtls_psa_get_random,
                                            MBEDTLS_PSA_RANDOM_STATE));
         MBEDTLS_MPI_CHK(mbedtls_mpi_sub_int(&X, &X, 2));

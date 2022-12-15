@@ -51,6 +51,8 @@
 
 #define PSA_BITS_TO_BYTES(bits) (((bits) + 7) / 8)
 #define PSA_BYTES_TO_BITS(bytes) ((bytes) * 8)
+#define PSA_MAX_OF_THREE(a, b, c) ((a) <= (b) ? (b) <= (c) ? \
+                                   (c) : (b) : (a) <= (c) ? (c) : (a))
 
 #define PSA_ROUND_UP_TO_MULTIPLE(block_size, length) \
     (((length) + (block_size) - 1) / (block_size) * (block_size))
@@ -952,17 +954,11 @@
  *
  * See also #PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE(\p key_type, \p key_bits).
  */
-#define PSA_EXPORT_PUBLIC_KEY_MAX_SIZE                                          \
-    (PSA_KEY_EXPORT_RSA_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_RSA_MAX_KEY_BITS) >      \
-     PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS) ?    \
-     PSA_KEY_EXPORT_RSA_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_RSA_MAX_KEY_BITS) >      \
-     PSA_KEY_EXPORT_FFDH_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_FFDH_MAX_KEY_BITS) ?  \
-     PSA_KEY_EXPORT_RSA_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_RSA_MAX_KEY_BITS) :      \
-     PSA_KEY_EXPORT_FFDH_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_FFDH_MAX_KEY_BITS) :  \
-     PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS) >    \
-     PSA_KEY_EXPORT_FFDH_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_FFDH_MAX_KEY_BITS) ?  \
-     PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS) :    \
-     PSA_KEY_EXPORT_FFDH_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_FFDH_MAX_KEY_BITS))
+#define PSA_EXPORT_PUBLIC_KEY_MAX_SIZE                                                    \
+    PSA_MAX_OF_THREE(PSA_KEY_EXPORT_RSA_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_RSA_MAX_KEY_BITS), \
+                     PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS),   \
+                     PSA_KEY_EXPORT_FFDH_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_FFDH_MAX_KEY_BITS))
+
 
 /** Sufficient output buffer size for psa_raw_key_agreement().
  *
@@ -988,12 +984,8 @@
  *                      the return value is unspecified.
  */
 #define PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(key_type, key_bits)   \
-    (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(key_type) ?                   \
-     PSA_BITS_TO_BYTES(key_bits) :                              \
-     PSA_KEY_TYPE_IS_DH_KEY_PAIR(key_type) ?                    \
-     PSA_BITS_TO_BYTES(key_bits) :                              \
-     0                                                          \
-    )
+    ((PSA_KEY_TYPE_IS_ECC_KEY_PAIR(key_type) || \
+      PSA_KEY_TYPE_IS_DH_KEY_PAIR(key_type)) ? PSA_BITS_TO_BYTES(key_bits) : 0)
 
 /** Maximum size of the output from psa_raw_key_agreement().
  *

@@ -1519,7 +1519,8 @@ void import_export(data_t *data,
 
     if (PSA_KEY_TYPE_IS_DH(type) &&
         expected_export_status == PSA_ERROR_BUFFER_TOO_SMALL) {
-        export_size -= 8;
+        /* Simulate that buffer is too small, by decreasing its size by 1 byte. */
+        export_size -= 1;
     }
 
     if (PSA_KEY_TYPE_IS_DH(type) &&

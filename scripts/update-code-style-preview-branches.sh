@@ -19,7 +19,8 @@ If something goes wrong, a Git worktree may be left in
 Options:
   -c SHA        Commit that switches all.sh to code style enforcement mode
                 (default: $ENFORCEMENT_COMMIT)
-  -r REMOTE     Git remote name (default: autodetected from REMOTE_URL)
+  -p REMOTE     Git remote name for pushing (default: autodetected from REMOTE_URL)
+  -r REMOTE     Git remote name for fetching (default: autodetected from REMOTE_URL)
   -u REMOTE_URL Git remote URL (default: $REMOTE_URL)
 EOF
 }
@@ -27,6 +28,7 @@ EOF
 set -eu
 
 remote=
+push_remote=
 
 # update_branch BRANCH_NAME
 update_branch () {
@@ -37,7 +39,7 @@ update_branch () {
     ./scripts/code_style.py --fix >/dev/null
     git commit -a --signoff -m 'Switch to the new code style'
     git cherry-pick "$ENFORCEMENT_COMMIT"
-    git push --force-with-lease "$REMOTE_URL" "HEAD:refs/heads/features/new-code-style/$1"
+    git push --force-with-lease "$push_remote" "HEAD:refs/heads/features/new-code-style/$1"
     cd "$OLDPWD"
     git worktree remove "../$worktree_name"
 }
@@ -54,12 +56,19 @@ find_remote () {
         remote=$(git remote -v |
                      awk -v REMOTE_URL="$REMOTE_URL" '$2 == REMOTE_URL && $3 == "(push)" {print $1; exit}')
         if [ -z "$remote" ]; then
-            echo >&2 "Fatal: o pushable Git remote found for $REMOTE_URL"
+            echo >&2 "Fatal: no pushable Git remote found for $REMOTE_URL"
             echo >&2 "Please run this script from a Git checkout of mbedtls."
             exit 2
         fi
     fi
     git fetch "$remote"
+
+    if [ -z "$push_remote" ]; then
+        push_remote=$remote
+    fi
+    if [ "$push_remote" != "$remote" ]; then
+        git fetch "$push_remote"
+    fi
 
     if [ "$(git cat-file -t "$ENFORCEMENT_COMMIT")" != "commit" ]; then
         echo >&2 "Fatal: code style enforcement commit not found."
@@ -71,9 +80,10 @@ if [ "${1-}" = "--help" ]; then
     help
     exit
 fi
-while getopts c:r:u: OPTLET; do
+while getopts c:p:r:u: OPTLET; do
     case $OPTLET in
         c) ENFORCEMENT_COMMIT=$OPTARG;;
+        p) push_remote=$OPTARG;;
         r) remote=$OPTARG;;
         u) REMOTE_URL=$OPTARG;;
         \?) help >&2; exit 3;;

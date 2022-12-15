@@ -179,8 +179,9 @@ void mbedtls_pkcs7_init(mbedtls_pkcs7 *pkcs7);
  * \brief          Parse a single DER formatted pkcs7 content.
  *
  * \param pkcs7    The pkcs7 structure to be filled by parser for the output.
- * \param buf      The buffer holding the DER encoded pkcs7.
- * \param buflen   The size in bytes of \p buf.
+ * \param buf      The buffer holding only the DER encoded pkcs7.
+ * \param buflen   The size in bytes of \p buf. The size must be exactly the
+ *                 length of the DER encoded pkcs7.
  *
  * \note           This function makes an internal copy of the PKCS7 buffer
  *                 \p buf. In particular, \p buf may be destroyed or reused

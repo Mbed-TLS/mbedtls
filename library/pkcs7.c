@@ -94,6 +94,7 @@ static int pkcs7_get_version(unsigned char **p, unsigned char *end, int *ver)
  *              [0] EXPLICIT ANY DEFINED BY contentType OPTIONAL }
  **/
 static int pkcs7_get_content_info_type(unsigned char **p, unsigned char *end,
+                                       unsigned char **seq_end,
                                        mbedtls_pkcs7_buf *pkcs7)
 {
     size_t len = 0;
@@ -106,8 +107,8 @@ static int pkcs7_get_content_info_type(unsigned char **p, unsigned char *end,
         *p = start;
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO, ret);
     }
-
-    ret = mbedtls_asn1_get_tag(p, end, &len, MBEDTLS_ASN1_OID);
+    *seq_end = *p + len;
+    ret = mbedtls_asn1_get_tag(p, *seq_end, &len, MBEDTLS_ASN1_OID);
     if (ret != 0) {
         *p = start;
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO, ret);
@@ -289,7 +290,7 @@ static void pkcs7_free_signer_info(mbedtls_pkcs7_signer_info *signer)
 static int pkcs7_get_signer_info(unsigned char **p, unsigned char *end,
                                  mbedtls_pkcs7_signer_info *signer)
 {
-    unsigned char *end_signer;
+    unsigned char *end_signer, *end_issuer_and_sn;
     int asn1_ret = 0, ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len = 0;
 
@@ -312,6 +313,7 @@ static int pkcs7_get_signer_info(unsigned char **p, unsigned char *end,
         goto out;
     }
 
+    end_issuer_and_sn = *p + len;
     /* Parsing IssuerAndSerialNumber */
     signer->issuer_raw.p = *p;
 
@@ -330,6 +332,12 @@ static int pkcs7_get_signer_info(unsigned char **p, unsigned char *end,
 
     ret = mbedtls_x509_get_serial(p, end_signer, &signer->serial);
     if (ret != 0) {
+        goto out;
+    }
+
+    /* ensure no extra or missing bytes */
+    if (*p != end_issuer_and_sn) {
+        ret = MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO;
         goto out;
     }
 
@@ -449,7 +457,7 @@ static int pkcs7_get_signed_data(unsigned char *buf, size_t buflen,
 {
     unsigned char *p = buf;
     unsigned char *end = buf + buflen;
-    unsigned char *end_set;
+    unsigned char *end_set, *end_content_info;
     size_t len = 0;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_md_type_t md_alg;
@@ -481,9 +489,14 @@ static int pkcs7_get_signed_data(unsigned char *buf, size_t buflen,
     }
 
     /* Do not expect any content */
-    ret = pkcs7_get_content_info_type(&p, end_set, &signed_data->content.oid);
+    ret = pkcs7_get_content_info_type(&p, end_set, &end_content_info,
+                                      &signed_data->content.oid);
     if (ret != 0) {
         return ret;
+    }
+
+    if (end_content_info != p) {
+        return MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO;
     }
 
     if (MBEDTLS_OID_CMP(MBEDTLS_OID_PKCS7_DATA, &signed_data->content.oid)) {
@@ -527,7 +540,7 @@ int mbedtls_pkcs7_parse_der(mbedtls_pkcs7 *pkcs7, const unsigned char *buf,
                             const size_t buflen)
 {
     unsigned char *p;
-    unsigned char *end;
+    unsigned char *end, *end_content_info;
     size_t len = 0;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     int isoidset = 0;
@@ -546,10 +559,17 @@ int mbedtls_pkcs7_parse_der(mbedtls_pkcs7 *pkcs7, const unsigned char *buf,
     pkcs7->raw.len = buflen;
     end = p + buflen;
 
-    ret = pkcs7_get_content_info_type(&p, end, &pkcs7->content_type_oid);
+    ret = pkcs7_get_content_info_type(&p, end, &end_content_info,
+                                      &pkcs7->content_type_oid);
     if (ret != 0) {
         len = buflen;
         goto try_data;
+    }
+
+    /* Ensure PKCS7 data uses the exact number of bytes specified in buflen */
+    if (end_content_info != end) {
+        ret = MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA;
+        goto out;
     }
 
     if (!MBEDTLS_OID_CMP(MBEDTLS_OID_PKCS7_DATA, &pkcs7->content_type_oid)
@@ -571,6 +591,12 @@ int mbedtls_pkcs7_parse_der(mbedtls_pkcs7 *pkcs7, const unsigned char *buf,
 
     ret = pkcs7_get_next_content_len(&p, end, &len);
     if (ret != 0) {
+        goto out;
+    }
+
+    /* ensure no extra/missing data */
+    if (p + len != end) {
+        ret = MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA;
         goto out;
     }
 

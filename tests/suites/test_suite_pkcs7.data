@@ -64,11 +64,11 @@ pkcs7_parse:"data_files/pkcs7_signerInfo_serial_invalid_size.der":MBEDTLS_ERR_PK
 
 pkcs7_get_signers_info_set error handling (6213931373035520)
 depends_on:MBEDTLS_RIPEMD160_C
-pkcs7_parse:"data_files/pkcs7_get_signers_info_set-missing_free-fuzz_pkcs7-6213931373035520.der":MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO + MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+pkcs7_parse:"data_files/pkcs7_get_signers_info_set-missing_free-fuzz_pkcs7-6213931373035520.der":MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO
 
 pkcs7_get_signers_info_set error handling (4541044530479104)
 depends_on:MBEDTLS_RIPEMD160_C
-pkcs7_parse:"data_files/pkcs7_get_signers_info_set-leak-fuzz_pkcs7-4541044530479104.der":MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO
+pkcs7_parse:"data_files/pkcs7_get_signers_info_set-leak-fuzz_pkcs7-4541044530479104.der":MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO
 
 PKCS7 Only Signed Data Parse Pass #15
 depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C

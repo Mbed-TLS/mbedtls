@@ -2629,6 +2629,13 @@ static inline int mbedtls_ssl_tls13_cipher_suite_is_offered(
     return 0;
 }
 
+#ifdef MBEDTLS_SSL_SESSION_TICKETS
+int mbedtls_ssl_tls13_ticket_get_psk(mbedtls_ssl_context *ssl,
+                                     psa_algorithm_t *hash_alg,
+                                     const unsigned char **psk,
+                                     size_t *psk_len);
+#endif
+
 /**
  * \brief Validate cipher suite against config in SSL context.
  *

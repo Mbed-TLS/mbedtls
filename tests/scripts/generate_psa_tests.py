@@ -151,8 +151,8 @@ def test_case_for_key_type_not_supported(
     tc.set_arguments([key_type] + list(args))
     return tc
 
-class NotSupported:
-    """Generate test cases for when something is not supported."""
+class KeyTypeNotSupported:
+    """Generate test cases for when a key type is not supported."""
 
     def __init__(self, info: Information) -> None:
         self.constructors = info.constructors
@@ -902,7 +902,7 @@ class PSATestGenerator(test_data_generation.TestGenerator):
         'test_suite_psa_crypto_generate_key.generated':
         lambda info: KeyGenerate(info).test_cases_for_key_generation(),
         'test_suite_psa_crypto_not_supported.generated':
-        lambda info: NotSupported(info).test_cases_for_not_supported(),
+        lambda info: KeyTypeNotSupported(info).test_cases_for_not_supported(),
         'test_suite_psa_crypto_op_fail.generated':
         lambda info: OpFail(info).all_test_cases(),
         'test_suite_psa_crypto_storage_format.current':

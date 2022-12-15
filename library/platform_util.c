@@ -165,3 +165,43 @@ extern inline void mbedtls_put_unaligned_uint32(void *p, uint32_t x);
 extern inline uint64_t mbedtls_get_unaligned_uint64(const void *p);
 
 extern inline void mbedtls_put_unaligned_uint64(void *p, uint64_t x);
+
+#if defined(MBEDTLS_HAVE_TIME) && !defined(MBEDTLS_PLATFORM_MS_TIME_ALT)
+
+#include <time.h>
+#if !defined(_WIN32) && (defined(unix) || \
+    defined(__unix) || defined(__unix__) || (defined(__APPLE__) && \
+    defined(__MACH__)))
+#include <unistd.h>
+#endif /* !_WIN32 && (unix || __unix || __unix__ ||
+        * (__APPLE__ && __MACH__)) */
+#if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 199309L)
+mbedtls_ms_time_t mbedtls_ms_time(void)
+{
+    int ret;
+    struct timespec tv;
+    mbedtls_ms_time_t current_ms;
+
+    ret = clock_gettime(CLOCK_REALTIME, &tv);
+    if (ret) {
+        return 0;
+    }
+
+    current_ms = tv.tv_sec;
+
+    return current_ms*1000 + tv.tv_nsec / 1000000;
+}
+#elif defined(_WIN32) || defined(WIN32) || defined(__CYGWIN__) || \
+    defined(__MINGW32__) || defined(_WIN64)
+#include <windows.h>
+mbedtls_ms_time_t mbedtls_ms_time(void)
+{
+    SYSTEMTIME st;
+
+    GetSystemTime(&st);
+    return time(NULL)*1000LL + st.wMilliseconds;
+}
+#else
+#error "No mbedtls_ms_time available"
+#endif
+#endif /* MBEDTLS_HAVE_TIME && !MBEDTLS_PLATFORM_MS_TIME_ALT */

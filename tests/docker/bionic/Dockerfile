@@ -4,6 +4,10 @@
 # -------
 # Defines a Docker container suitable to build and run all tests (all.sh),
 # except for those that use a proprietary toolchain.
+#
+# WARNING: this Dockerfile is no longer maintained! See
+# https://github.com/Mbed-TLS/mbedtls-test/blob/master/README.md#quick-start
+# for the set of Docker images we use on the CI.
 
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0

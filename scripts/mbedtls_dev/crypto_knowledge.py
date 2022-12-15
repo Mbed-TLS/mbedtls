@@ -214,9 +214,7 @@ class KeyType:
         This function does not currently handle key derivation or PAKE.
         """
         #pylint: disable=too-many-branches,too-many-return-statements
-        if alg.is_wildcard:
-            return False
-        if alg.is_invalid_truncation():
+        if not alg.is_valid_for_operation():
             return False
         if self.head == 'HMAC' and alg.head == 'HMAC':
             return True
@@ -497,6 +495,19 @@ class Algorithm:
             if to_length not in permitted_lengths:
                 return True
         return False
+
+    def is_valid_for_operation(self) -> bool:
+        """Whether this algorithm construction is valid for an operation.
+
+        This function assumes that the algorithm is constructed in a
+        "grammatically" correct way, and only rejects semantically invalid
+        combinations.
+        """
+        if self.is_wildcard:
+            return False
+        if self.is_invalid_truncation():
+            return False
+        return True
 
     def can_do(self, category: AlgorithmCategory) -> bool:
         """Whether this algorithm can perform operations in the given category.

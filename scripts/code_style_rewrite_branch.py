@@ -146,7 +146,6 @@ def restyle_commit_onto_current(commit_hash: str) -> bool:
 
     # Add the changed files
     for changed_file in changed_files:
-        print("git add " + changed_file)
         result = subprocess.run(["git", "add", changed_file], check=False)
         # Ignore failures as these are caused by renamed files
 

@@ -870,7 +870,7 @@ component_check_test_cases () {
     else
         opt=''
     fi
-    tests/scripts/check_test_cases.py $opt
+    tests/scripts/check_test_cases.py -q $opt
     unset opt
 
     # Check that no tests are explicitely disabled when USE_PSA_CRYPTO is set

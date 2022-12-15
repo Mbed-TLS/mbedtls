@@ -228,6 +228,10 @@ endif(CMAKE_COMPILER_IS_IAR)
 if(CMAKE_COMPILER_IS_MSVC)
     # Strictest warnings, UTF-8 source and execution charset
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3 /utf-8")
+    # Make the linker less verbose
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /v:m")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /v:m")
+    set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} /v:m")
 endif(CMAKE_COMPILER_IS_MSVC)
 
 if(MBEDTLS_FATAL_WARNINGS)

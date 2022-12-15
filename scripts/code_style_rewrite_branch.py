@@ -157,6 +157,12 @@ def restyle_commit_onto_current(commit_hash: str) -> bool:
         print("Error making restyled commit.", file=sys.stderr)
         return False
 
+    # Cleanup leftover unstaged files
+    result = subprocess.run(["git", "restore", "."], check=False)
+    if result.returncode != 0:
+        print("Error cleaning up unstaged files.", file=sys.stderr)
+        return False
+
     return True
 
 def list_revisions(revision_or_range: str) -> List[str]:

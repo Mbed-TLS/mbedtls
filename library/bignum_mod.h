@@ -19,7 +19,9 @@
  *       modified by the function.
  *     - Bignum parameters called \c X, \c Y, ... are outputs or input-output.
  *       The initial bignum value of output-only parameters is ignored, but
- *       they must be set up and associated with the modulus \c N.
+ *       they must be set up and associated with the modulus \c N. Some
+ *       functions (typically constant-flow) require that the limbs in an
+ *       output residue are initialized.
  *     - Bignum parameters called \c P are inputs used to set up a modulus or
  *       residue. These must be pointers to an array of limbs.
  *     - \c T is a temporary storage area. The initial content of such a

@@ -19,6 +19,7 @@ code style change.
 # limitations under the License.
 
 import argparse
+import os.path
 from pathlib import PurePath
 import subprocess
 import sys
@@ -90,15 +91,47 @@ def restyle_commit_onto_current(commit_hash: str) -> bool:
     branch.
     """
     # Get a list of changed files in the commit
-    result = subprocess.run(["git", "diff", "--name-only", commit_hash, \
-            commit_hash + "~"], stdout=subprocess.PIPE, check=False)
+    result = subprocess.run(["git", "diff", "--name-only", "--no-renames", \
+            commit_hash + "~", commit_hash], \
+            stdout=subprocess.PIPE, check=False)
     if result.returncode != 0:
         print("Error getting changed files for commit " + commit_hash + \
                 ".", file=sys.stderr)
         return False
     changed_files = str(result.stdout, "ascii").strip().split()
 
-    # Filter for source files only
+    # Get the current HEAD commit
+    result = subprocess.run(["git", "rev-parse", "HEAD"], \
+            stdout=subprocess.PIPE, check=False)
+    if result.returncode != 0:
+        print("Error getting current HEAD commit.", file=sys.stderr)
+        return False
+    head_commit_hash = str(result.stdout, "ascii").strip()
+
+    # Hard reset to the old commit
+    result = subprocess.run(["git", "reset", "--hard", commit_hash], \
+            check=False)
+    if result.returncode != 0:
+        print("Error hard-resetting to commit " + commit_hash + ".", \
+                file=sys.stderr)
+        return False
+
+    # Soft-reset to the current HEAD commit
+    result = subprocess.run(["git", "reset", "--soft", head_commit_hash], \
+            check=False)
+    if result.returncode != 0:
+        print("Error soft-resetting to commit " + head_commit_hash + ".", \
+                file=sys.stderr)
+        return False
+
+    # Unstage files
+    result = subprocess.run(["git", "restore", "--staged", "."], \
+            check=False)
+    if result.returncode != 0:
+        print("Error unstaging files.", file=sys.stderr)
+        return False
+
+    # Filter file list for source files only
     changed_src_files = list(filter(lambda f: \
                PurePath(f).match("*.h") \
             or PurePath(f).match("*.c") \
@@ -106,24 +139,16 @@ def restyle_commit_onto_current(commit_hash: str) -> bool:
             or PurePath(f).match("scripts/data_files/*.fmt"), \
             changed_files))
 
-    # Checkout changed files to their state in the old commit
-    result = subprocess.run(["git", "checkout", commit_hash, "--"] + \
-            changed_files, check=False)
-    if result.returncode != 0:
-        print("Error checking out changed files: " + ", ".join(changed_files) + \
-                " to commit " + commit_hash + ".", file=sys.stderr)
-        return False
-
-    # Restyle the source files to the new style
-    if code_style.fix_style(changed_src_files) != 0:
-        return False
+    if len(changed_src_files) > 0:
+        # Restyle the source files to the new style
+        if code_style.fix_style(changed_src_files) != 0:
+            return False
 
     # Add the changed files
-    result = subprocess.run(["git", "add"] + changed_files, check=False)
-    if result.returncode != 0:
-        print("Error adding changed files: " + ", ".join(changed_files) + \
-                ".", file=sys.stderr)
-        return False
+    for changed_file in changed_files:
+        print("git add " + changed_file)
+        result = subprocess.run(["git", "add", changed_file], check=False)
+        # Ignore failures as these are caused by renamed files
 
     # Commit the newly added files
     result = subprocess.run(["git", "commit", "--reuse-message=" + \

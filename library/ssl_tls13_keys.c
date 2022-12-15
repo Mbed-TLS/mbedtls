@@ -1110,10 +1110,10 @@ static int ssl_tls13_generate_early_key(mbedtls_ssl_context *ssl,
     size_t transcript_len;
     size_t key_len;
     size_t iv_len;
+    mbedtls_ssl_tls13_early_secrets tls13_early_secrets;
 
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info = handshake->ciphersuite_info;
-    mbedtls_ssl_tls13_early_secrets tls13_early_secrets;
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> ssl_tls13_generate_early_key"));
 
@@ -1178,6 +1178,10 @@ static int ssl_tls13_generate_early_key(mbedtls_ssl_context *ssl,
     traffic_keys->key_len = key_len;
     traffic_keys->iv_len = iv_len;
 
+    /* Erase early secrets */
+    mbedtls_platform_zeroize(
+        &tls13_early_secrets, sizeof(mbedtls_ssl_tls13_early_secrets));
+
     MBEDTLS_SSL_DEBUG_BUF(4, "client early write_key",
                           traffic_keys->client_write_key,
                           traffic_keys->key_len);
@@ -1189,7 +1193,7 @@ static int ssl_tls13_generate_early_key(mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG(2, ("<= ssl_tls13_generate_early_key"));
 
 cleanup:
-    /* Erase secret and transcript */
+    /* Erase early secrets and transcript */
     mbedtls_platform_zeroize(
         &tls13_early_secrets, sizeof(mbedtls_ssl_tls13_early_secrets));
     mbedtls_platform_zeroize(transcript, sizeof(transcript));

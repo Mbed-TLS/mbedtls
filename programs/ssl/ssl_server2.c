@@ -1420,16 +1420,16 @@ int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
         case 2:
             return MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
         case 3:
-            session->start = mbedtls_time(NULL) + 10;
+            session->start = mbedtls_ms_time() + 10 * 1000;
             break;
         case 4:
-            session->start = mbedtls_time(NULL) - 10 - 7 * 24 * 3600;
+            session->start = mbedtls_ms_time() - 10 * 1000 - 7 * 24 * 3600 * 1000;
             break;
         case 5:
-            session->start = mbedtls_time(NULL) - 10;
+            session->start = mbedtls_ms_time() - 10 * 1000;
             break;
         case 6:
-            session->start = mbedtls_time(NULL);
+            session->start = mbedtls_ms_time();
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
             session->ticket_age_add -= 1000;
 #endif

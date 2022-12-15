@@ -81,3 +81,8 @@ pkcs7_verify_multiple_signers:"data_files/pkcs7_data_multiple_signed.der":"data_
 PKCS7 Signed Data Hash Verify with multiple signers #17
 depends_on:MBEDTLS_SHA256_C
 pkcs7_verify_multiple_signers:"data_files/pkcs7_data_multiple_signed.der":"data_files/pkcs7-rsa-sha256-1.crt":"data_files/pkcs7-rsa-sha256-2.crt":"data_files/pkcs7_data.bin":MBEDTLS_MD_SHA256:0
+
+PKCS7 Signed Data Hash Verify Fail with multiple signers #18
+depends_on:MBEDTLS_SHA256_C:MBEDTLS_SHA512_C
+pkcs7_verify_multiple_signers:"data_files/pkcs7_data_multiple_signed.der":"data_files/pkcs7-rsa-sha256-1.crt":"data_files/pkcs7-rsa-sha256-2.crt":"data_files/pkcs7_data.bin":MBEDTLS_MD_SHA512:MBEDTLS_ERR_PKCS7_VERIFY_FAIL
+

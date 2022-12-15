@@ -44,13 +44,12 @@ void pkcs7_verify(char *pkcs7_file, char *crt, char *filetobesigned, int do_hash
     unsigned char *pkcs7_buf = NULL;
     size_t buflen;
     unsigned char *data = NULL;
-    unsigned char hash[32];
+    unsigned char hash[64];
     struct stat st;
     size_t datalen;
     int res;
     FILE *file;
     const mbedtls_md_info_t *md_info;
-    mbedtls_md_type_t md_alg;
 
     mbedtls_pkcs7 pkcs7;
     mbedtls_x509_crt x509;
@@ -84,15 +83,12 @@ void pkcs7_verify(char *pkcs7_file, char *crt, char *filetobesigned, int do_hash
     fclose(file);
 
     if (do_hash_alg) {
-        res = mbedtls_oid_get_md_alg(&pkcs7.signed_data.digest_alg_identifiers, &md_alg);
-        TEST_EQUAL(res, 0);
-        TEST_EQUAL(md_alg, (mbedtls_md_type_t) do_hash_alg);
-        md_info = mbedtls_md_info_from_type(md_alg);
+        md_info = mbedtls_md_info_from_type((mbedtls_md_type_t) do_hash_alg);
 
         res = mbedtls_md(md_info, data, datalen, hash);
         TEST_EQUAL(res, 0);
 
-        res = mbedtls_pkcs7_signed_hash_verify(&pkcs7, &x509, hash, sizeof(hash));
+        res = mbedtls_pkcs7_signed_hash_verify(&pkcs7, &x509, hash, mbedtls_md_get_size(md_info));
     } else {
         res = mbedtls_pkcs7_signed_data_verify(&pkcs7, &x509, data, datalen);
     }
@@ -118,13 +114,12 @@ void pkcs7_verify_multiple_signers(char *pkcs7_file,
     unsigned char *pkcs7_buf = NULL;
     size_t buflen;
     unsigned char *data = NULL;
-    unsigned char hash[32];
+    unsigned char hash[64];
     struct stat st;
     size_t datalen;
     int res;
     FILE *file;
     const mbedtls_md_info_t *md_info;
-    mbedtls_md_type_t md_alg;
 
     mbedtls_pkcs7 pkcs7;
     mbedtls_x509_crt x509_1;
@@ -164,24 +159,21 @@ void pkcs7_verify_multiple_signers(char *pkcs7_file,
     fclose(file);
 
     if (do_hash_alg) {
-        res = mbedtls_oid_get_md_alg(&pkcs7.signed_data.digest_alg_identifiers, &md_alg);
-        TEST_EQUAL(res, 0);
-        TEST_EQUAL(md_alg, MBEDTLS_MD_SHA256);
-
-        md_info = mbedtls_md_info_from_type(md_alg);
+        md_info = mbedtls_md_info_from_type((mbedtls_md_type_t) do_hash_alg);
 
         res = mbedtls_md(md_info, data, datalen, hash);
         TEST_EQUAL(res, 0);
 
-        res = mbedtls_pkcs7_signed_hash_verify(&pkcs7, &x509_1, hash, sizeof(hash));
+        res = mbedtls_pkcs7_signed_hash_verify(&pkcs7, &x509_1, hash, mbedtls_md_get_size(md_info));
+        TEST_EQUAL(res, res_expect);
+        res = mbedtls_pkcs7_signed_hash_verify(&pkcs7, &x509_2, hash, mbedtls_md_get_size(md_info));
         TEST_EQUAL(res, res_expect);
     } else {
         res = mbedtls_pkcs7_signed_data_verify(&pkcs7, &x509_1, data, datalen);
         TEST_EQUAL(res, res_expect);
+        res = mbedtls_pkcs7_signed_data_verify(&pkcs7, &x509_2, data, datalen);
+        TEST_EQUAL(res, res_expect);
     }
-
-    res = mbedtls_pkcs7_signed_data_verify(&pkcs7, &x509_2, data, datalen);
-    TEST_EQUAL(res, res_expect);
 
 exit:
     mbedtls_x509_crt_free(&x509_1);

@@ -1246,7 +1246,16 @@ struct mbedtls_ssl_session {
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     uint32_t MBEDTLS_PRIVATE(max_early_data_size);          /*!< maximum amount of early data in tickets */
-#endif
+
+#if defined(MBEDTLS_SSL_ALPN) && defined(MBEDTLS_SSL_SRV_C)
+    union
+    {
+        const char **alpn_list;                /*!< Configured ALPN list */
+        const char *alpn;                      /*!< ALPN for ticket */
+    } MBEDTLS_PRIVATE(ticket_alpn);
+#endif /* MBEDTLS_SSL_ALPN */
+
+#endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     int MBEDTLS_PRIVATE(encrypt_then_mac);       /*!< flag for EtM activation                */

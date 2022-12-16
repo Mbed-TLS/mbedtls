@@ -249,7 +249,7 @@ class ModOperationCommon(OperationCommon):
     #pylint: disable=abstract-method
     """Target for bignum mod_raw test case generation."""
     moduli = MODULI_DEFAULT # type: List[str]
-    mongtomgery_form_a = False
+    montgomery_form_a = False
     disallow_zero_a = False
 
     def __init__(self, val_n: str, val_a: str, val_b: str = "0",
@@ -272,7 +272,7 @@ class ModOperationCommon(OperationCommon):
 
     @property
     def arg_a(self) -> str:
-        if self.mongtomgery_form_a:
+        if self.montgomery_form_a:
             value_a = self.to_montgomery(self.int_a)
         else:
             value_a = self.int_a

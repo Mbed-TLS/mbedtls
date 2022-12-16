@@ -757,7 +757,7 @@ class BignumCoreExpMod(BignumCoreTarget, bignum_common.ModOperationCommon):
     test_function = "mpi_core_exp_mod"
     test_name = "Core modular exponentiation (Mongtomery form only)"
     input_style = "fixed"
-    mongtomgery_form_a = True
+    montgomery_form_a = True
 
     def result(self) -> List[str]:
         # Result has to be given in Montgomery form too

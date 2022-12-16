@@ -76,7 +76,7 @@ class BignumModInvMont(bignum_common.ModOperationCommon, BignumModTarget):
     arity = 1
     suffix = True
     disallow_zero_a = True
-    mongtomgery_form_a = True
+    montgomery_form_a = True
 
     def result(self) -> List[str]:
         result = bignum_common.invmod_positive(self.int_a, self.int_n)

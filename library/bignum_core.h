@@ -623,7 +623,7 @@ static inline size_t mbedtls_mpi_core_montmul_working_limbs( size_t AN_limbs )
  * \param[in]     A         The MPI to convert into Montgomery form.
  *                          Must have the same number of limbs as the modulus.
  * \param[in]     N         The address of the modulus, which gives the size of
- *                          the base `R` = 2^(biL*m->limbs).
+ *                          the base `R` = 2^(biL*N->limbs).
  * \param[in]     AN_limbs  The number of limbs in \p X, \p A, \p N and \p rr.
  * \param         mm        The Montgomery constant for \p N: -N^-1 mod 2^biL.
  *                          This can be determined by calling
@@ -661,7 +661,7 @@ void mbedtls_mpi_core_to_mont_rep( mbedtls_mpi_uint *X,
  * \param[in]     A         The MPI to convert from Montgomery form.
  *                          Must have the same number of limbs as the modulus.
  * \param[in]     N         The address of the modulus, which gives the size of
- *                          the base `R` = 2^(biL*m->limbs).
+ *                          the base `R` = 2^(biL*N->limbs).
  * \param[in]     AN_limbs  The number of limbs in \p X, \p A and \p N.
  * \param         mm        The Montgomery constant for \p N: -N^-1 mod 2^biL.
  *                          This can be determined by calling

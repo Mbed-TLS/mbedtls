@@ -64,7 +64,7 @@ class BignumModRawInvPrime(bignum_common.ModOperationCommon,
     input_style = "arch_split"
     arity = 1
     suffix = True
-    mongtomgery_form_a = True
+    montgomery_form_a = True
     disallow_zero_a = True
 
     def result(self) -> List[str]:

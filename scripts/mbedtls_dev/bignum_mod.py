@@ -58,15 +58,10 @@ class BignumModInvNonMont(bignum_common.ModOperationCommon, BignumModTarget):
     input_style = "fixed"
     arity = 1
     suffix = True
-
-    @property
-    def is_valid(self) -> bool:
-        return self.int_a > 0 and self.int_a < self.int_n
+    disallow_zero_a = True
 
     def result(self) -> List[str]:
-        result = bignum_common.invmod(self.int_a, self.int_n)
-        if result < 0:
-            result += self.int_n
+        result = bignum_common.invmod_positive(self.int_a, self.int_n)
         # To make negative tests easier, append 0 for success to the
         # generated cases
         return [self.format_result(result), "0"]
@@ -80,20 +75,11 @@ class BignumModInvMont(bignum_common.ModOperationCommon, BignumModTarget):
     input_style = "arch_split"  # Mont. form requires arch_split
     arity = 1
     suffix = True
-
-    @property
-    def is_valid(self) -> bool:
-        return self.int_a > 0 and self.int_a < self.int_n
-
-    @property
-    def arg_a(self) -> str:
-        mont_a = self.to_montgomery(self.int_a)
-        return self.format_arg('{:x}'.format(mont_a))
+    disallow_zero_a = True
+    mongtomgery_form_a = True
 
     def result(self) -> List[str]:
-        result = bignum_common.invmod(self.int_a, self.int_n)
-        if result < 0:
-            result += self.int_n
+        result = bignum_common.invmod_positive(self.int_a, self.int_n)
         mont_result = self.to_montgomery(result)
         # To make negative tests easier, append 0 for success to the
         # generated cases

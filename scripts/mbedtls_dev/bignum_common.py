@@ -39,6 +39,11 @@ def invmod(a: int, n: int) -> int:
         return b
     raise ValueError("Not invertible")
 
+def invmod_positive(a: int, n: int) -> int:
+    """Return a non-negative inverse of a to modulo n."""
+    inv = invmod(a, n)
+    return inv if inv >= 0 else inv + n
+
 def hex_to_int(val: str) -> int:
     """Implement the syntax accepted by mbedtls_test_read_mpi().
 
@@ -244,6 +249,8 @@ class ModOperationCommon(OperationCommon):
     #pylint: disable=abstract-method
     """Target for bignum mod_raw test case generation."""
     moduli = MODULI_DEFAULT # type: List[str]
+    mongtomgery_form_a = False
+    disallow_zero_a = False
 
     def __init__(self, val_n: str, val_a: str, val_b: str = "0",
                  bits_in_limb: int = 64) -> None:
@@ -262,6 +269,14 @@ class ModOperationCommon(OperationCommon):
     @property
     def boundary(self) -> int:
         return self.int_n
+
+    @property
+    def arg_a(self) -> str:
+        if self.mongtomgery_form_a:
+            value_a = self.to_montgomery(self.int_a)
+        else:
+            value_a = self.int_a
+        return self.format_arg('{:x}'.format(value_a))
 
     @property
     def arg_n(self) -> str:
@@ -286,6 +301,8 @@ class ModOperationCommon(OperationCommon):
     @property
     def is_valid(self) -> bool:
         if self.int_a >= self.int_n:
+            return False
+        if self.disallow_zero_a and self.int_a == 0:
             return False
         if self.arity == 2 and self.int_b >= self.int_n:
             return False

@@ -173,7 +173,7 @@ void mbedtls_mpi_mod_raw_sub( mbedtls_mpi_uint *X,
 /** \brief  Multiply two MPIs, returning the residue modulo the specified
  *          modulus.
  *
- * \note Currently handles the case when `m->int_rep` is
+ * \note Currently handles the case when `N->int_rep` is
  * MBEDTLS_MPI_MOD_REP_MONTGOMERY.
  *
  * The size of the operation is determined by \p N. \p A, \p B and \p X must
@@ -193,7 +193,7 @@ void mbedtls_mpi_mod_raw_sub( mbedtls_mpi_uint *X,
  * \param[in]  B        The address of the second MPI.
  * \param[in]  N        The address of the modulus. Used to perform a modulo
  *                      operation on the result of the multiplication.
- * \param[in,out] T     Temporary storage of size at least 2 * AN_limbs + 1
+ * \param[in,out] T     Temporary storage of size at least 2 * N->limbs + 1
  *                      limbs. Its initial content is unused and
  *                      its final content is indeterminate.
  *                      It must not alias or otherwise overlap any of the

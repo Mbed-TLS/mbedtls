@@ -6572,6 +6572,89 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
+void sign_hash_fail_interruptible(int key_type_arg, data_t *key_data,
+                                  int alg_arg, data_t *input_data,
+                                  int signature_size_arg,
+                                  int expected_start_status_arg,
+                                  int expected_complete_status_arg)
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    size_t signature_size = signature_size_arg;
+    psa_status_t actual_status;
+    psa_status_t expected_start_status = expected_start_status_arg;
+    psa_status_t expected_complete_status = expected_complete_status_arg;
+    unsigned char *signature = NULL;
+    size_t signature_length = 0xdeadbeef;
+    size_t num_ops = 0;
+    size_t num_ops_prior = 0;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_sign_hash_interruptible_operation_t operation =
+        psa_sign_hash_interruptible_operation_init();
+
+    ASSERT_ALLOC(signature, signature_size);
+
+    PSA_ASSERT(psa_crypto_init());
+
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH);
+    psa_set_key_algorithm(&attributes, alg);
+    psa_set_key_type(&attributes, key_type);
+
+    PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len,
+                              &key));
+
+    num_ops_prior = psa_sign_hash_get_num_ops(&operation);
+    TEST_ASSERT(num_ops_prior == 0);
+
+    /* Start performing the signature. */
+    actual_status = psa_sign_hash_start(&operation, key, alg,
+                                        input_data->x, input_data->len);
+
+    TEST_EQUAL(actual_status, expected_start_status);
+
+    num_ops_prior = psa_sign_hash_get_num_ops(&operation);
+    TEST_ASSERT(num_ops_prior == 0);
+
+    actual_status = PSA_OPERATION_INCOMPLETE;
+
+    /* Continue performing the signature until complete. */
+    while (actual_status == PSA_OPERATION_INCOMPLETE) {
+        actual_status = psa_sign_hash_complete(&operation, signature,
+                                               signature_size,
+                                               &signature_length);
+
+        /* If the psa_sign_hash_start() failed, psa_sign_hash_complete()
+         * should also fail with bad state. */
+        if (expected_start_status != PSA_SUCCESS) {
+            TEST_EQUAL(actual_status, PSA_ERROR_BAD_STATE);
+        } else if (actual_status != PSA_OPERATION_INCOMPLETE) {
+            TEST_EQUAL(actual_status, expected_complete_status);
+        } else {
+            num_ops = psa_sign_hash_get_num_ops(&operation);
+
+            TEST_ASSERT(num_ops > num_ops_prior);
+            num_ops_prior = num_ops;
+        }
+    }
+
+    PSA_ASSERT(psa_sign_hash_abort(&operation));
+
+    /* The value of *signature_length is unspecified on error, but
+     * whatever it is, it should be less than signature_size, so that
+     * if the caller tries to read *signature_length bytes without
+     * checking the error code then they don't overflow a buffer. */
+    TEST_LE_U(signature_length, signature_size);
+
+exit:
+    psa_reset_key_attributes(&attributes);
+    psa_destroy_key(key);
+    mbedtls_free(signature);
+    PSA_DONE();
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void sign_verify_hash(int key_type_arg, data_t *key_data,
                       int alg_arg, data_t *input_data)
@@ -6847,8 +6930,6 @@ exit:
 }
 /* END_CASE */
 
-
-
 /* BEGIN_CASE */
 void verify_hash_fail(int key_type_arg, data_t *key_data,
                       int alg_arg, data_t *hash_data,
@@ -6875,6 +6956,77 @@ void verify_hash_fail(int key_type_arg, data_t *key_data,
                                     hash_data->x, hash_data->len,
                                     signature_data->x, signature_data->len);
     TEST_EQUAL(actual_status, expected_status);
+
+exit:
+    psa_reset_key_attributes(&attributes);
+    psa_destroy_key(key);
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
+void verify_hash_fail_interruptible(int key_type_arg, data_t *key_data,
+                                    int alg_arg, data_t *hash_data,
+                                    data_t *signature_data,
+                                    int expected_start_status_arg,
+                                    int expected_complete_status_arg)
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_status_t actual_status;
+    psa_status_t expected_start_status = expected_start_status_arg;
+    psa_status_t expected_complete_status = expected_complete_status_arg;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    size_t num_ops = 0;
+    size_t num_ops_prior = 0;
+    psa_verify_hash_interruptible_operation_t operation =
+        psa_verify_hash_interruptible_operation_init();
+
+    PSA_ASSERT(psa_crypto_init());
+
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_VERIFY_HASH);
+    psa_set_key_algorithm(&attributes, alg);
+    psa_set_key_type(&attributes, key_type);
+
+    PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len,
+                              &key));
+
+    num_ops_prior = psa_verify_hash_get_num_ops(&operation);
+    TEST_ASSERT(num_ops_prior == 0);
+
+    /* Start verification. */
+    actual_status = psa_verify_hash_start(&operation, key, alg,
+                                          hash_data->x, hash_data->len,
+                                          signature_data->x,
+                                          signature_data->len);
+
+    TEST_EQUAL(actual_status, expected_start_status);
+
+    num_ops_prior = psa_verify_hash_get_num_ops(&operation);
+    TEST_ASSERT(num_ops_prior == 0);
+
+    actual_status = PSA_OPERATION_INCOMPLETE;
+
+    /* Continue performing the signature until complete. */
+    while (actual_status == PSA_OPERATION_INCOMPLETE) {
+        actual_status = psa_verify_hash_complete(&operation);
+
+        /* If the psa_verify_hash_start() failed,
+         * psa_verify_hash_complete() should also fail with bad state.*/
+        if (expected_start_status != PSA_SUCCESS) {
+            TEST_EQUAL(actual_status, PSA_ERROR_BAD_STATE);
+        } else if (actual_status != PSA_OPERATION_INCOMPLETE) {
+            TEST_EQUAL(actual_status, expected_complete_status);
+        } else {
+            num_ops = psa_verify_hash_get_num_ops(&operation);
+
+            TEST_ASSERT(num_ops > num_ops_prior);
+            num_ops_prior = num_ops;
+        }
+    }
+
+    PSA_ASSERT(psa_verify_hash_abort(&operation));
 
 exit:
     psa_reset_key_attributes(&attributes);

@@ -2854,6 +2854,8 @@
 /**
  * \def MBEDTLS_PKCS7_WRITE_C
  *
+ * This feature is a work in progress and not ready for production. The API may
+ * change. Testing and validation is incomplete.
  * Enable PKCS7 functions for using generating a PKCS7.
  * RFC Link - https://tools.ietf.org/html/rfc2315
  *
@@ -2863,7 +2865,7 @@
  *
  * This module is required for generating PKCS7 modules.
  */
-#define MBEDTLS_PKCS7_WRITE_C
+//#define MBEDTLS_PKCS7_WRITE_C
 
 /*
  * \def MBEDTLS_PKCS12_C

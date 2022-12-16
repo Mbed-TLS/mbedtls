@@ -33,6 +33,7 @@ class BignumModTarget(test_data_generation.BaseTarget):
 
 class BignumModMul(bignum_common.ModOperationCommon,
                    BignumModTarget):
+    # pylint:disable=duplicate-code
     """Test cases for bignum mpi_mod_mul()."""
     symbol = "*"
     test_function = "mpi_mod_mul"

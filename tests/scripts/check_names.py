@@ -444,8 +444,11 @@ class CodeParser():
                     # Match typedefs and brackets only when they are at the
                     # beginning of the line -- if they are indented, they might
                     # be sub-structures within structs, etc.
+                    optional_c_identifier = r"([_a-zA-Z][_a-zA-Z0-9]*)?"
                     if (state == states.OUTSIDE_KEYWORD and
-                            re.search(r"^(typedef +)?enum +{", line)):
+                            re.search(r"^(typedef +)?enum " + \
+                                    optional_c_identifier + \
+                                    r" *{", line)):
                         state = states.IN_BRACES
                     elif (state == states.OUTSIDE_KEYWORD and
                           re.search(r"^(typedef +)?enum", line)):

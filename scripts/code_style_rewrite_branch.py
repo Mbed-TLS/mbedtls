@@ -89,6 +89,7 @@ def restyle_commit_onto_current(commit_hash: str) -> bool:
     Re-style the given commit and add the result as a new commit on the given
     branch.
     """
+    #pylint: disable=too-many-return-statements
     # Get a list of changed files in the commit
     result = subprocess.run(["git", "diff", "--name-only", "--no-renames", \
             commit_hash + "~", commit_hash], \

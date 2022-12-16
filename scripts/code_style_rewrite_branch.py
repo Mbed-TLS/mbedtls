@@ -19,7 +19,6 @@ code style change.
 # limitations under the License.
 
 import argparse
-import os.path
 from pathlib import PurePath
 import subprocess
 import sys

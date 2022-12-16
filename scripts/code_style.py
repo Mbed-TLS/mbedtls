@@ -55,7 +55,8 @@ def get_src_files() -> List[str]:
         src_files = str(result.stdout, "utf-8").split()
         # Don't correct style for files in 3rdparty/
         src_files = list(filter( \
-                lambda filename: not filename.startswith("3rdparty/"), \
+                lambda filename: (not filename.startswith("3rdparty/") \
+                                  and not "error.c" in filename), \
                 src_files))
         return src_files
 

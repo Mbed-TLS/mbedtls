@@ -2032,75 +2032,19 @@ int mbedtls_mpi_random( mbedtls_mpi *X,
                         int (*f_rng)(void *, unsigned char *, size_t),
                         void *p_rng )
 {
-    int ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
-    int count;
-    unsigned lt_lower = 1, lt_upper = 0;
-    size_t n_bits = mbedtls_mpi_bitlen( N );
-    size_t n_bytes = ( n_bits + 7 ) / 8;
-    mbedtls_mpi lower_bound;
-
     if( min < 0 )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
     if( mbedtls_mpi_cmp_int( N, min ) <= 0 )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
-    /*
-     * When min == 0, each try has at worst a probability 1/2 of failing
-     * (the msb has a probability 1/2 of being 0, and then the result will
-     * be < N), so after 30 tries failure probability is a most 2**(-30).
-     *
-     * When N is just below a power of 2, as is the case when generating
-     * a random scalar on most elliptic curves, 1 try is enough with
-     * overwhelming probability. When N is just above a power of 2,
-     * as when generating a random scalar on secp224k1, each try has
-     * a probability of failing that is almost 1/2.
-     *
-     * The probabilities are almost the same if min is nonzero but negligible
-     * compared to N. This is always the case when N is crypto-sized, but
-     * it's convenient to support small N for testing purposes. When N
-     * is small, use a higher repeat count, otherwise the probability of
-     * failure is macroscopic.
-     */
-    count = ( n_bytes > 4 ? 30 : 250 );
-
-    mbedtls_mpi_init( &lower_bound );
-
     /* Ensure that target MPI has exactly the same number of limbs
      * as the upper bound, even if the upper bound has leading zeros.
-     * This is necessary for the mbedtls_mpi_lt_mpi_ct() check. */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_resize_clear( X, N->n ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &lower_bound, N->n ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &lower_bound, min ) );
+     * This is necessary for mbedtls_mpi_core_random. */
+    int ret = mbedtls_mpi_resize_clear( X, N->n );
+    if( ret != 0 )
+        return( ret );
 
-    /*
-     * Match the procedure given in RFC 6979 §3.3 (deterministic ECDSA)
-     * when f_rng is a suitably parametrized instance of HMAC_DRBG:
-     * - use the same byte ordering;
-     * - keep the leftmost n_bits bits of the generated octet string;
-     * - try until result is in the desired range.
-     * This also avoids any bias, which is especially important for ECDSA.
-     */
-    do
-    {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_core_fill_random( X->p, X->n,
-                                                       n_bytes,
-                                                       f_rng, p_rng ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( X, 8 * n_bytes - n_bits ) );
-
-        if( --count == 0 )
-        {
-            ret = MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
-            goto cleanup;
-        }
-
-        MBEDTLS_MPI_CHK( mbedtls_mpi_lt_mpi_ct( X, &lower_bound, &lt_lower ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_lt_mpi_ct( X, N, &lt_upper ) );
-    }
-    while( lt_lower != 0 || lt_upper == 0 );
-
-cleanup:
-    mbedtls_mpi_free( &lower_bound );
-    return( ret );
+    return( mbedtls_mpi_core_random( X->p, min, N->p, X->n, f_rng, p_rng ) );
 }
 
 /*

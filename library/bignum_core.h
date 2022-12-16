@@ -129,6 +129,22 @@ size_t mbedtls_mpi_core_bitlen( const mbedtls_mpi_uint *A, size_t A_limbs );
 void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *A,
                                          size_t A_limbs );
 
+/** \brief         Compare a machine integer with an MPI.
+ *
+ *                 This function operates in constant time with respect
+ *                 to the values of \p min and \p A.
+ *
+ * \param min      A machine integer.
+ * \param[in] A    An MPI.
+ * \param A_limbs  The number of limbs of \p A.
+ *                 This must be at least 1.
+ *
+ * \return         1 if \p min is less than or equal to \p A, otherwise 0.
+ */
+unsigned mbedtls_mpi_core_uint_le_mpi( mbedtls_mpi_uint min,
+                                       const mbedtls_mpi_uint *A,
+                                       size_t A_limbs );
+
 /**
  * \brief   Perform a safe conditional copy of an MPI which doesn't reveal
  *          whether assignment was done or not.
@@ -495,6 +511,43 @@ int mbedtls_mpi_core_fill_random( mbedtls_mpi_uint *X, size_t X_limbs,
                                   size_t bytes,
                                   int (*f_rng)(void *, unsigned char *, size_t),
                                   void *p_rng );
+
+/** Generate a random number uniformly in a range.
+ *
+ * This function generates a random number between \p min inclusive and
+ * \p N exclusive.
+ *
+ * The procedure complies with RFC 6979 §3.3 (deterministic ECDSA)
+ * when the RNG is a suitably parametrized instance of HMAC_DRBG
+ * and \p min is \c 1.
+ *
+ * \note           There are `N - min` possible outputs. The lower bound
+ *                 \p min can be reached, but the upper bound \p N cannot.
+ *
+ * \param X        The destination MPI, with \p limbs limbs.
+ *                 It must not be aliased with \p N or otherwise overlap it.
+ * \param min      The minimum value to return.
+ * \param N        The upper bound of the range, exclusive, with \p limbs limbs.
+ *                 In other words, this is one plus the maximum value to return.
+ *                 \p N must be strictly larger than \p min.
+ * \param limbs    The number of limbs of \p N and \p X.
+ *                 This must not be 0.
+ * \param f_rng    The RNG function to use. This must not be \c NULL.
+ * \param p_rng    The RNG parameter to be passed to \p f_rng.
+ *
+ * \return         \c 0 if successful.
+ * \return         #MBEDTLS_ERR_MPI_NOT_ACCEPTABLE if the implementation was
+ *                 unable to find a suitable value within a limited number
+ *                 of attempts. This has a negligible probability if \p N
+ *                 is significantly larger than \p min, which is the case
+ *                 for all usual cryptographic applications.
+ */
+int mbedtls_mpi_core_random( mbedtls_mpi_uint *X,
+                             mbedtls_mpi_uint min,
+                             const mbedtls_mpi_uint *N,
+                             size_t limbs,
+                             int (*f_rng)(void *, unsigned char *, size_t),
+                             void *p_rng );
 
 /* BEGIN MERGE SLOT 1 */
 

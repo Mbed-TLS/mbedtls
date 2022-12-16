@@ -1499,6 +1499,33 @@ int parse_cipher(char *buf)
     }
     return MBEDTLS_CIPHER_NONE;
 }
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+static int read_early_data(mbedtls_ssl_context *ssl,
+                           unsigned char *buf,
+                           size_t buf_size,
+                           size_t *out_len)
+{
+    int ret = 0;
+
+    *out_len = 0;
+
+    ret = mbedtls_ssl_read_early_data(ssl, buf, buf_size);
+    if (ret > 0) {
+        *out_len = ret;
+        return MBEDTLS_ERR_SSL_WANT_READ;
+    }
+
+    if (mbedtls_status_is_ssl_in_progress(ret)) {
+        return ret;
+    }
+    if (ret == MBEDTLS_ERR_SSL_BAD_INPUT_DATA ||
+        ret == MBEDTLS_ERR_SSL_CANNOT_READ_EARLY_DATA) {
+        return mbedtls_ssl_handshake(ssl);
+    }
+
+    return ret;
+}
+#endif /* MBEDTLS_SSL_EARLY_DATA */
 
 int main(int argc, char *argv[])
 {
@@ -1611,7 +1638,12 @@ int main(int argc, char *argv[])
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     int tls13_early_data_enabled = MBEDTLS_SSL_EARLY_DATA_DISABLED;
+    unsigned char *tls13_early_data_buf = NULL;
+    unsigned char *tls13_early_data_cur = NULL;
+    long long tls13_early_data_buf_size = 0;
+    size_t tls13_early_data_out_len;
 #endif
+
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     mbedtls_memory_buffer_alloc_init(alloc_buf, sizeof(alloc_buf));
 #if defined(MBEDTLS_MEMORY_DEBUG)
@@ -3449,7 +3481,32 @@ handshake:
     mbedtls_printf("  . Performing the SSL/TLS handshake...");
     fflush(stdout);
 
-    while ((ret = mbedtls_ssl_handshake(&ssl)) != 0) {
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+
+    if (tls13_early_data_buf == NULL && tls13_early_data_enabled) {
+        tls13_early_data_buf_size = opt.max_early_data_size;
+        tls13_early_data_buf = mbedtls_calloc(1, (size_t) tls13_early_data_buf_size + 1);
+        if (tls13_early_data_buf == NULL) {
+            mbedtls_printf("  ! tls13_early_data_buf memory allocation failed\n");
+            ret = 1;
+            goto exit;
+        }
+        tls13_early_data_cur = tls13_early_data_buf;
+    }
+
+    while ((ret = read_early_data(
+                &ssl, tls13_early_data_cur, 1, &tls13_early_data_out_len)) != 0)
+#else
+    while ((ret = mbedtls_ssl_handshake(&ssl)) != 0)
+#endif
+    {
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+        if (tls13_early_data_cur && ret == MBEDTLS_ERR_SSL_WANT_READ) {
+            tls13_early_data_cur += tls13_early_data_out_len;
+        }
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         if (ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS &&
             ssl_async_keys.inject_error == SSL_ASYNC_INJECT_ERROR_CANCEL) {
@@ -3527,6 +3584,18 @@ handshake:
     mbedtls_printf("    [ Maximum outgoing record payload length is %u ]\n",
                    (unsigned int) mbedtls_ssl_get_max_out_record_payload(&ssl));
 #endif
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    if (tls13_early_data_cur && tls13_early_data_cur - tls13_early_data_buf) {
+        mbedtls_printf("    [ Received 0-RTT data size is %u ]\n",
+                       (unsigned int) (tls13_early_data_cur - tls13_early_data_buf));
+        mbedtls_printf("%s\n", tls13_early_data_buf);
+    }
+    if (tls13_early_data_buf) {
+        mbedtls_free(tls13_early_data_buf);
+        tls13_early_data_buf = NULL;
+    }
+#endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #if defined(MBEDTLS_SSL_ALPN)
     if (opt.alpn_string != NULL) {
@@ -4168,6 +4237,12 @@ exit:
         char error_buf[100];
         mbedtls_strerror(ret, error_buf, 100);
         mbedtls_printf("Last error was: -0x%X - %s\n\n", (unsigned int) -ret, error_buf);
+    }
+#endif
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    if (tls13_early_data_buf != NULL) {
+        mbedtls_free(tls13_early_data_buf);
     }
 #endif
 

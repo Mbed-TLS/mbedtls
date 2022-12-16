@@ -149,37 +149,28 @@ void mpi_mod_mul( char * input_A,
     mbedtls_mpi_mod_residue rX;
     TEST_EQUAL( mbedtls_mpi_mod_residue_setup( &rX, &m, X, limbs ), 0 );
 
-    /* Convert to Montgomery representation */
-    TEST_EQUAL( mbedtls_mpi_mod_raw_to_mont_rep( rA.p, &m ), 0 );
-    TEST_EQUAL( mbedtls_mpi_mod_raw_to_mont_rep( rB.p, &m ), 0 );
-
     TEST_EQUAL( mbedtls_mpi_mod_mul( &rX, &rA, &rB, &m ), 0 );
-    TEST_EQUAL( mbedtls_mpi_mod_raw_from_mont_rep( rX.p, &m ), 0 );
     ASSERT_COMPARE( rX.p, bytes, R, bytes );
 
     /* alias X to A */
     memcpy( rX.p, rA.p, bytes );
     TEST_EQUAL( mbedtls_mpi_mod_mul( &rX, &rX, &rB, &m ), 0 );
-    TEST_EQUAL( mbedtls_mpi_mod_raw_from_mont_rep( rX.p, &m ), 0 );
     ASSERT_COMPARE( rX.p, bytes, R, bytes );
 
     /* alias X to B */
     memcpy( rX.p, rB.p, bytes );
     TEST_EQUAL( mbedtls_mpi_mod_mul( &rX, &rA, &rX, &m ), 0);
-    TEST_EQUAL( mbedtls_mpi_mod_raw_from_mont_rep( rX.p, &m ), 0 );
     ASSERT_COMPARE( rX.p, bytes, R, bytes );
 
     /* A == B: alias A and B */
     if( memcmp( rA.p, rB.p, bytes ) == 0 )
     {
         TEST_EQUAL( mbedtls_mpi_mod_mul( &rX, &rA, &rA, &m ), 0 );
-        TEST_EQUAL( mbedtls_mpi_mod_raw_from_mont_rep( rX.p, &m ), 0 );
         ASSERT_COMPARE( rX.p, bytes, R, bytes );
 
         /* X, A, B all aliased together */
         memcpy( rX.p, rA.p, bytes );
         TEST_EQUAL( mbedtls_mpi_mod_mul( &rX, &rX, &rX, &m ), 0 );
-        TEST_EQUAL( mbedtls_mpi_mod_raw_from_mont_rep( rX.p, &m ), 0 );
         ASSERT_COMPARE( rX.p, bytes, R, bytes );
     }
 
@@ -187,19 +178,16 @@ void mpi_mod_mul( char * input_A,
     else
     {
         TEST_EQUAL( mbedtls_mpi_mod_mul( &rX, &rB, &rA, &m ), 0 );
-        TEST_EQUAL( mbedtls_mpi_mod_raw_from_mont_rep( rX.p, &m ), 0 );
         ASSERT_COMPARE( rX.p, bytes, R, bytes );
 
         /* B * A: alias X to A */
         memcpy( rX.p, rA.p, bytes );
         TEST_EQUAL( mbedtls_mpi_mod_mul( &rX, &rB, &rX, &m ), 0 );
-        TEST_EQUAL( mbedtls_mpi_mod_raw_from_mont_rep( rX.p, &m ), 0 );
         ASSERT_COMPARE( rX.p, bytes, R, bytes );
 
         /* B + A: alias X to B */
         memcpy( rX.p, rB.p, bytes );
         TEST_EQUAL( mbedtls_mpi_mod_mul( &rX, &rX, &rA, &m ), 0 );
-        TEST_EQUAL( mbedtls_mpi_mod_raw_from_mont_rep( rX.p, &m ), 0 );
         ASSERT_COMPARE( rX.p, bytes, R, bytes );
     }
 

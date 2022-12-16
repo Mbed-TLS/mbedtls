@@ -256,17 +256,14 @@ REVERSE_DEPENDENCIES = {
                       'MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED'],
     'MBEDTLS_SHA256_C': ['MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED',
                          'MBEDTLS_ENTROPY_FORCE_SHA256',
-                         'MBEDTLS_SHA224_C',
                          'MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT',
                          'MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY',
                          'MBEDTLS_LMS_C',
                          'MBEDTLS_LMS_PRIVATE'],
-    'MBEDTLS_SHA512_C': ['MBEDTLS_SHA384_C',
-                         'MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT',
+    'MBEDTLS_SHA512_C': ['MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT',
                          'MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY'],
     'MBEDTLS_SHA224_C': ['MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED',
                          'MBEDTLS_ENTROPY_FORCE_SHA256',
-                         'MBEDTLS_SHA256_C',
                          'MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT',
                          'MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY'],
     'MBEDTLS_X509_RSASSA_PSS_SUPPORT': []
@@ -276,8 +273,10 @@ REVERSE_DEPENDENCIES = {
 # These are not necessarily dependencies, but just minimal required changes
 # if a given define is the only one enabled from an exclusive group.
 EXCLUSIVE_GROUPS = {
-    'MBEDTLS_SHA256_C': ['+MBEDTLS_SHA224_C'],
-    'MBEDTLS_SHA384_C': ['+MBEDTLS_SHA512_C'],
+    'MBEDTLS_SHA224_C': ['+MBEDTLS_SSL_COOKIE_C'],
+    'MBEDTLS_SHA256_C': ['-MBEDTLS_SSL_COOKIE_C'],
+    'MBEDTLS_SHA384_C': ['+MBEDTLS_SHA512_C',
+                         '+MBEDTLS_SSL_COOKIE_C'],
     'MBEDTLS_SHA512_C': ['-MBEDTLS_SSL_COOKIE_C',
                          '-MBEDTLS_SSL_PROTO_TLS1_3'],
     'MBEDTLS_ECP_DP_CURVE448_ENABLED': ['-MBEDTLS_ECDSA_C',

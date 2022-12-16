@@ -774,7 +774,7 @@ static int mbedtls_ecp_sw_derive_y( const mbedtls_ecp_group *grp,
                                     int parity_bit )
 {
     /* y^2 = x^3 + ax + b
-     * sqrt(w) = w^((p+1)/4) mod p   (for prime p where p = 3 mod 4)
+     * y = sqrt(w) = w^((p+1)/4) mod p   (for prime p where p = 3 mod 4)
      *
      * Note: this method for extracting square root does not validate that w
      * was indeed a square so this function will return garbage in Y if X
@@ -788,7 +788,7 @@ static int mbedtls_ecp_sw_derive_y( const mbedtls_ecp_group *grp,
 
     int ret;
     mbedtls_mpi exp;
-    mbedtls_mpi_init(&exp);
+    mbedtls_mpi_init( &exp );
 
     /* use Y to store intermediate results */
     /* y^2 = x^3 + ax + b = (x^2 + a)x + b */
@@ -824,7 +824,7 @@ static int mbedtls_ecp_sw_derive_y( const mbedtls_ecp_group *grp,
 
 cleanup:
 
-    mbedtls_mpi_free(&exp);
+    mbedtls_mpi_free( &exp );
     return( ret );
 }
 #endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */

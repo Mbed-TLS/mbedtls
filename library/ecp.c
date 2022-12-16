@@ -773,7 +773,7 @@ static int mbedtls_ecp_sw_derive_y( const mbedtls_ecp_group *grp,
                                     mbedtls_mpi *Y,
                                     int parity_bit )
 {
-    /* y^2 = x^3 + ax + b
+    /* w = y^2 = x^3 + ax + b
      * y = sqrt(w) = w^((p+1)/4) mod p   (for prime p where p = 3 mod 4)
      *
      * Note: this method for extracting square root does not validate that w

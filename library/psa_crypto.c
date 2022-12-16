@@ -5176,6 +5176,17 @@ static psa_status_t psa_key_agreement_try_support( psa_algorithm_t alg )
     (void) alg;
     return( PSA_ERROR_NOT_SUPPORTED );
 }
+
+static int psa_key_derivation_allows_free_form_secret_input(
+    psa_algorithm_t kdf_alg )
+{
+#if defined(PSA_WANT_ALG_TLS12_ECJPAKE_TO_PMS)
+    if( kdf_alg == PSA_ALG_TLS12_ECJPAKE_TO_PMS )
+        return( 0 );
+#endif
+    (void) kdf_alg;
+    return( 1 );
+}
 #endif /* AT_LEAST_ONE_BUILTIN_KDF */
 
 psa_status_t psa_key_derivation_setup( psa_key_derivation_operation_t *operation,
@@ -5196,6 +5207,8 @@ psa_status_t psa_key_derivation_setup( psa_key_derivation_operation_t *operation
         status = psa_key_agreement_try_support( ka_alg );
         if( status != PSA_SUCCESS )
             return( status );
+        if( ! psa_key_derivation_allows_free_form_secret_input( kdf_alg ) )
+            return( PSA_ERROR_INVALID_ARGUMENT );
         status = psa_key_derivation_setup_kdf( operation, kdf_alg );
 #else
         return( PSA_ERROR_NOT_SUPPORTED );

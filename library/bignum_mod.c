@@ -276,7 +276,7 @@ int mbedtls_mpi_mod_inv( mbedtls_mpi_mod_residue *X,
 
     mbedtls_platform_zeroize( working_memory,
                               working_limbs * sizeof(mbedtls_mpi_uint) );
-    free( working_memory );
+    mbedtls_free( working_memory );
 
     return ret;
 }

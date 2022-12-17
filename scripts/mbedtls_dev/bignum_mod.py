@@ -18,6 +18,7 @@ from typing import Dict, List
 
 from . import test_data_generation
 from . import bignum_common
+from .bignum_data import ONLY_PRIME_MODULI
 
 class BignumModTarget(test_data_generation.BaseTarget):
     #pylint: disable=abstract-method, too-few-public-methods
@@ -47,6 +48,42 @@ class BignumModSub(bignum_common.ModOperationCommon, BignumModTarget):
         # To make negative tests easier, append 0 for success to the
         # generated cases
         return [self.format_result(result), "0"]
+
+class BignumModInvNonMont(bignum_common.ModOperationCommon, BignumModTarget):
+    """Test cases for bignum mpi_mod_inv() - not in Montgomery form."""
+    moduli = ONLY_PRIME_MODULI  # for now only prime moduli supported
+    symbol = "^ -1"
+    test_function = "mpi_mod_inv_non_mont"
+    test_name = "mbedtls_mpi_mod_inv non-Mont. form"
+    input_style = "fixed"
+    arity = 1
+    suffix = True
+    disallow_zero_a = True
+
+    def result(self) -> List[str]:
+        result = bignum_common.invmod_positive(self.int_a, self.int_n)
+        # To make negative tests easier, append 0 for success to the
+        # generated cases
+        return [self.format_result(result), "0"]
+
+class BignumModInvMont(bignum_common.ModOperationCommon, BignumModTarget):
+    """Test cases for bignum mpi_mod_inv() - Montgomery form."""
+    moduli = ONLY_PRIME_MODULI  # for now only prime moduli supported
+    symbol = "^ -1"
+    test_function = "mpi_mod_inv_mont"
+    test_name = "mbedtls_mpi_mod_inv Mont. form"
+    input_style = "arch_split"  # Mont. form requires arch_split
+    arity = 1
+    suffix = True
+    disallow_zero_a = True
+    montgomery_form_a = True
+
+    def result(self) -> List[str]:
+        result = bignum_common.invmod_positive(self.int_a, self.int_n)
+        mont_result = self.to_montgomery(result)
+        # To make negative tests easier, append 0 for success to the
+        # generated cases
+        return [self.format_result(mont_result), "0"]
 
 # END MERGE SLOT 3
 

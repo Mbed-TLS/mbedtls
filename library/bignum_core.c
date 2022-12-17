@@ -824,6 +824,40 @@ mbedtls_mpi_uint mbedtls_mpi_core_sub_int( mbedtls_mpi_uint *X,
     return( c );
 }
 
+mbedtls_mpi_uint mbedtls_mpi_core_check_zero_ct( const mbedtls_mpi_uint *A,
+                                                 size_t limbs )
+{
+    mbedtls_mpi_uint bits = 0;
+
+    for( size_t i = 0; i < limbs; i++ )
+        bits |= A[i];
+
+    return( bits );
+}
+
+void mbedtls_mpi_core_to_mont_rep( mbedtls_mpi_uint *X,
+                                   const mbedtls_mpi_uint *A,
+                                   const mbedtls_mpi_uint *N,
+                                   size_t AN_limbs,
+                                   mbedtls_mpi_uint mm,
+                                   const mbedtls_mpi_uint *rr,
+                                   mbedtls_mpi_uint *T )
+{
+    mbedtls_mpi_core_montmul( X, A, rr, AN_limbs, N, AN_limbs, mm, T );
+}
+
+void mbedtls_mpi_core_from_mont_rep( mbedtls_mpi_uint *X,
+                                     const mbedtls_mpi_uint *A,
+                                     const mbedtls_mpi_uint *N,
+                                     size_t AN_limbs,
+                                     mbedtls_mpi_uint mm,
+                                     mbedtls_mpi_uint *T )
+{
+    const mbedtls_mpi_uint Rinv = 1;    /* 1/R in Mont. rep => 1 */
+
+    mbedtls_mpi_core_montmul( X, A, &Rinv, 1, N, AN_limbs, mm, T );
+}
+
 /* END MERGE SLOT 3 */
 
 /* BEGIN MERGE SLOT 4 */

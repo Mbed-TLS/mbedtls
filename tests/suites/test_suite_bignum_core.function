@@ -848,7 +848,9 @@ void mpi_core_montmul( int limbs_AN4, int limbs_B4,
     TEST_EQUAL( 0, mbedtls_mpi_grow( X, limbs_AN ) );
     TEST_EQUAL( 0, mbedtls_mpi_grow( &B, limbs_B ) );
 
-    TEST_EQUAL( 0, mbedtls_mpi_grow( &T, limbs_AN * 2 + 1 ) );
+    size_t working_limbs = mbedtls_mpi_core_montmul_working_limbs( limbs_AN );
+    TEST_EQUAL( working_limbs, limbs_AN * 2 + 1 );
+    TEST_EQUAL( 0, mbedtls_mpi_grow( &T, working_limbs ) );
 
     /* Calculate the Montgomery constant (this is unit tested separately) */
     mbedtls_mpi_uint mm = mbedtls_mpi_core_montmul_init( N.p );
@@ -1133,6 +1135,10 @@ void mpi_core_exp_mod( char * input_N, char * input_A,
     TEST_LE_U( min_expected_working_limbs, working_limbs );
     TEST_LE_U( working_limbs, max_expected_working_limbs );
 
+    /* Should also be at least mbedtls_mpi_core_montmul_working_limbs() */
+    TEST_LE_U( mbedtls_mpi_core_montmul_working_limbs( N_limbs ),
+               working_limbs );
+
     ASSERT_ALLOC( T, working_limbs );
 
     mbedtls_mpi_core_exp_mod( Y, A, N, N_limbs, E, E_limbs, R2, T );
@@ -1209,6 +1215,25 @@ exit:
     mbedtls_free( B );
     mbedtls_free( X );
     mbedtls_free( R );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_core_check_zero_ct( char *input_X, int expected_is_zero )
+{
+    mbedtls_mpi_uint *X = NULL;
+    size_t X_limbs;
+
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &X, &X_limbs, input_X ) );
+
+    TEST_CF_SECRET( X, X_limbs * sizeof( mbedtls_mpi_uint ) );
+
+    mbedtls_mpi_uint check = mbedtls_mpi_core_check_zero_ct( X, X_limbs );
+    int is_zero = (check == 0);
+    TEST_EQUAL( is_zero, expected_is_zero );
+
+exit:
+    mbedtls_free( X );
 }
 /* END_CASE */
 

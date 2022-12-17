@@ -757,15 +757,7 @@ class BignumCoreExpMod(BignumCoreTarget, bignum_common.ModOperationCommon):
     test_function = "mpi_core_exp_mod"
     test_name = "Core modular exponentiation (Mongtomery form only)"
     input_style = "fixed"
-
-    def arguments(self) -> List[str]:
-        # Input 'a' has to be given in Montgomery form
-        mont_a = self.to_montgomery(self.int_a)
-        arg_mont_a = self.format_arg('{:x}'.format(mont_a))
-        return [bignum_common.quote_str(n) for n in [self.arg_n,
-                                                     arg_mont_a,
-                                                     self.arg_b]
-               ] + self.result()
+    montgomery_form_a = True
 
     def result(self) -> List[str]:
         # Result has to be given in Montgomery form too
@@ -817,6 +809,20 @@ class BignumCoreSubInt(BignumCoreTarget, bignum_common.OperationCommon):
             self.format_result(result),
             str(-borrow)
         ]
+
+class BignumCoreZeroCheckCT(BignumCoreTarget, bignum_common.OperationCommon):
+    """Test cases for bignum core zero check (constant flow)."""
+    count = 0
+    symbol = "== 0"
+    test_function = "mpi_core_check_zero_ct"
+    test_name = "mpi_core_check_zero_ct"
+    input_style = "variable"
+    arity = 1
+    suffix = True
+
+    def result(self) -> List[str]:
+        result = 1 if self.int_a == 0 else 0
+        return [str(result)]
 
 # END MERGE SLOT 3
 

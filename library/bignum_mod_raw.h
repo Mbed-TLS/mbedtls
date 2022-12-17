@@ -258,6 +258,10 @@ void mbedtls_mpi_mod_raw_mul( mbedtls_mpi_uint *X,
  * \brief          Returns the number of limbs of working memory required for
  *                 a call to `mbedtls_mpi_mod_raw_inv_prime()`.
  *
+ * \note           This will always be at least
+ *                 `mbedtls_mpi_core_montmul_working_limbs(AN_limbs)`,
+ *                 i.e. sufficient for a call to `mbedtls_mpi_core_montmul()`.
+ *
  * \param AN_limbs The number of limbs in the input `A` and the modulus `N`
  *                 (they must be the same size) that will be given to
  *                 `mbedtls_mpi_mod_raw_inv_prime()`.

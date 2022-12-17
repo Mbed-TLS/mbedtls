@@ -121,6 +121,9 @@ MODULI_DEFAULT = [
 ONLY_PRIME_MODULI = [
         "53", # safe prime
         "8ac72304057392b5",     # 9999999997777777333 (longer, not safe, prime)
+        # The next prime has a different R in Montgomery form depending on
+        # whether 32- or 64-bit MPIs are used.
+        "152d02c7e14af67fe0bf", # 99999999999999999991999
         SAFE_PRIME_192_BIT_SEED_1,  # safe prime
         SAFE_PRIME_1024_BIT_SEED_3, # safe prime
         ]

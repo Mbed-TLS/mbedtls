@@ -208,6 +208,106 @@ exit:
     mbedtls_free( X_raw );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_mod_inv_mont( char * input_N,
+                       char * input_A, char * input_I,
+                       int expected_ret )
+{
+    mbedtls_mpi_mod_residue a = { NULL, 0 };    /* argument */
+    mbedtls_mpi_mod_residue i = { NULL, 0 };    /* expected inverse wrt N */
+    mbedtls_mpi_mod_residue x = { NULL, 0 };    /* output */
+    mbedtls_mpi_uint *X_raw = NULL;
+
+    mbedtls_mpi_mod_modulus N;
+    mbedtls_mpi_mod_modulus_init( &N );
+
+    TEST_EQUAL( 0,
+        test_read_modulus( &N, MBEDTLS_MPI_MOD_REP_MONTGOMERY, input_N ) );
+
+    /* test_read_residue() normally checks that inputs have the same number of
+     * limbs as the modulus. For negative testing we can ask it to skip this
+     * with a non-zero final parameter. */
+    TEST_EQUAL( 0, test_read_residue( &a, &N, input_A, expected_ret != 0 ) );
+    TEST_EQUAL( 0, test_read_residue( &i, &N, input_I, expected_ret != 0 ) );
+
+    size_t limbs = N.limbs;
+    size_t bytes = limbs * sizeof( *X_raw );
+
+    ASSERT_ALLOC( X_raw, limbs );
+
+    TEST_EQUAL( 0, mbedtls_mpi_mod_residue_setup( &x, &N, X_raw, limbs ) );
+
+    TEST_EQUAL( expected_ret, mbedtls_mpi_mod_inv( &x, &a, &N ) );
+    if( expected_ret == 0 )
+    {
+        TEST_COMPARE_MPI_RESIDUES( x, i );
+
+        /* a^-1: alias x to a => Correct result */
+        memcpy( x.p, a.p, bytes );
+        TEST_EQUAL( 0, mbedtls_mpi_mod_inv( &x, &x, &N ) );
+        TEST_COMPARE_MPI_RESIDUES( x, i );
+    }
+
+exit:
+    mbedtls_free( (void *)N.p ); /* mbedtls_mpi_mod_modulus_free() sets N.p = NULL */
+    mbedtls_mpi_mod_modulus_free( &N );
+
+    mbedtls_free( a.p );
+    mbedtls_free( i.p );
+    mbedtls_free( X_raw );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_mod_inv_non_mont( char * input_N,
+                           char * input_A, char * input_I,
+                           int expected_ret )
+{
+    mbedtls_mpi_mod_residue a = { NULL, 0 };    /* argument */
+    mbedtls_mpi_mod_residue i = { NULL, 0 };    /* expected inverse wrt N */
+    mbedtls_mpi_mod_residue x = { NULL, 0 };    /* output */
+    mbedtls_mpi_uint *X_raw = NULL;
+
+    mbedtls_mpi_mod_modulus N;
+    mbedtls_mpi_mod_modulus_init( &N );
+
+    TEST_EQUAL( 0,
+        test_read_modulus( &N, MBEDTLS_MPI_MOD_REP_OPT_RED, input_N ) );
+
+    /* test_read_residue() normally checks that inputs have the same number of
+     * limbs as the modulus. For negative testing we can ask it to skip this
+     * with a non-zero final parameter. */
+    TEST_EQUAL( 0, test_read_residue( &a, &N, input_A, expected_ret != 0 ) );
+    TEST_EQUAL( 0, test_read_residue( &i, &N, input_I, expected_ret != 0 ) );
+
+    size_t limbs = N.limbs;
+    size_t bytes = limbs * sizeof( *X_raw );
+
+    ASSERT_ALLOC( X_raw, limbs );
+
+    TEST_EQUAL( 0, mbedtls_mpi_mod_residue_setup( &x, &N, X_raw, limbs ) );
+
+    TEST_EQUAL( expected_ret, mbedtls_mpi_mod_inv( &x, &a, &N ) );
+    if( expected_ret == 0 )
+    {
+        TEST_COMPARE_MPI_RESIDUES( x, i );
+
+        /* a^-1: alias x to a => Correct result */
+        memcpy( x.p, a.p, bytes );
+        TEST_EQUAL( 0, mbedtls_mpi_mod_inv( &x, &x, &N ) );
+        TEST_COMPARE_MPI_RESIDUES( x, i );
+    }
+
+exit:
+    mbedtls_free( (void *)N.p ); /* mbedtls_mpi_mod_modulus_free() sets N.p = NULL */
+    mbedtls_mpi_mod_modulus_free( &N );
+
+    mbedtls_free( a.p );
+    mbedtls_free( i.p );
+    mbedtls_free( X_raw );
+}
+/* END_CASE */
 /* END MERGE SLOT 3 */
 
 /* BEGIN MERGE SLOT 4 */

@@ -9,6 +9,10 @@
 # thus making it easier to get set up as well as isolating test dependencies
 # (which include legacy/insecure configurations of openssl and gnutls).
 #
+# WARNING: the Dockerfile used by this script is no longer maintained! See
+# https://github.com/Mbed-TLS/mbedtls-test/blob/master/README.md#quick-start
+# for the set of Docker images we use on the CI.
+#
 # Notes for users
 # ---------------
 # This script expects a Linux x86_64 system with a recent version of Docker

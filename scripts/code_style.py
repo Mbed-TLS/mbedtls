@@ -22,9 +22,10 @@ change of code style.
 import argparse
 import io
 import os
+import re
 import subprocess
 import sys
-from typing import List
+from typing import FrozenSet, List
 
 UNCRUSTIFY_SUPPORTED_VERSION = "0.75.1"
 CONFIG_FILE = ".uncrustify.cfg"
@@ -32,9 +33,32 @@ UNCRUSTIFY_EXE = "uncrustify"
 UNCRUSTIFY_ARGS = ["-c", CONFIG_FILE]
 STDOUT_UTF8 = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 STDERR_UTF8 = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+CHECK_GENERATED_FILES = "tests/scripts/check-generated-files.sh"
 
 def print_err(*args):
     print("Error: ", *args, file=STDERR_UTF8)
+
+# Match FILENAME(s) in "check SCRIPT (FILENAME...)"
+CHECK_CALL_RE = re.compile(r"\n\s*check\s+[^\s#$&*?;|]+([^\n#$&*?;|]+)",
+                           re.ASCII)
+def list_generated_files() -> FrozenSet[str]:
+    """Return the names of generated files.
+
+    We don't reformat generated files, since the result might be different
+    from the output of the generator. Ideally the result of the generator
+    would conform to the code style, but this would be difficult, especially
+    with respect to the placement of line breaks in long logical lines.
+    """
+    # Parse check-generated-files.sh to get an up-to-date list of
+    # generated files. Read the file rather than calling it so that
+    # this script only depends on Git, Python and uncrustify, and not other
+    # tools such as sh or grep which might not be available on Windows.
+    # This introduces a limitation: check-generated-files.sh must have
+    # the expected format and must list the files explicitly, not through
+    # wildcards or command substitution.
+    content = open(CHECK_GENERATED_FILES, encoding="utf-8").read()
+    checks = re.findall(CHECK_CALL_RE, content)
+    return frozenset(word for s in checks for word in s.split())
 
 def get_src_files() -> List[str]:
     """
@@ -52,11 +76,14 @@ def get_src_files() -> List[str]:
         print_err("git ls-files returned: " + str(result.returncode))
         return []
     else:
+        generated_files = list_generated_files()
         src_files = str(result.stdout, "utf-8").split()
-        # Don't correct style for files in 3rdparty/
-        src_files = list(filter( \
-                lambda filename: not filename.startswith("3rdparty/"), \
-                src_files))
+        # Don't correct style for third-party files (and, for simplicity,
+        # companion files in the same subtree), or for automatically
+        # generated files (we're correcting the templates instead).
+        src_files = [filename for filename in src_files
+                     if not (filename.startswith("3rdparty/") or
+                             filename in generated_files)]
         return src_files
 
 def get_uncrustify_version() -> str:

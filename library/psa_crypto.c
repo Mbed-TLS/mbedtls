@@ -3162,6 +3162,26 @@ uint32_t psa_verify_hash_get_num_ops(
     return ( operation->num_ops );
 }
 
+static psa_status_t psa_sign_hash_abort_internal(
+                          psa_sign_hash_interruptible_operation_t *operation )
+{
+    if( operation->id == 0 )
+    {
+        /* The object has (apparently) been initialized but it is not (yet)
+         * in use. It's ok to call abort on such an object, and there's
+         * nothing to do. */
+        return( PSA_SUCCESS );
+    }
+
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    status = psa_driver_wrapper_sign_hash_abort( operation );
+
+    operation->id = 0;
+
+    return( status );
+}
+
 psa_status_t psa_sign_hash_start(
                             psa_sign_hash_interruptible_operation_t *operation,
                             mbedtls_svc_key_id_t key, psa_algorithm_t alg,
@@ -3207,7 +3227,7 @@ psa_status_t psa_sign_hash_start(
 exit:
 
     if( status != PSA_SUCCESS )
-        psa_sign_hash_abort( operation );
+        psa_sign_hash_abort_internal( operation );
 
     unlock_status = psa_unlock_key_slot( slot );
 
@@ -3265,7 +3285,7 @@ exit:
             /* If signature_size is 0 then we have nothing to do. We must not
              * call memset because signature may be NULL in this case.*/
 
-        psa_sign_hash_abort( operation );
+        psa_sign_hash_abort_internal( operation );
     }
 
     return( status );
@@ -3273,6 +3293,20 @@ exit:
 
 psa_status_t psa_sign_hash_abort(
                             psa_sign_hash_interruptible_operation_t *operation )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    status = psa_sign_hash_abort_internal( operation );
+
+    /* We clear the number of ops done here, so that it is not cleared when
+     * the operation fails or succeeds, only on manual abort. */
+    operation->num_ops = 0;
+
+    return( status );
+}
+
+static psa_status_t psa_verify_hash_abort_internal(
+                        psa_verify_hash_interruptible_operation_t *operation )
 {
     if( operation->id == 0 )
     {
@@ -3282,11 +3316,13 @@ psa_status_t psa_sign_hash_abort(
         return( PSA_SUCCESS );
     }
 
-    psa_driver_wrapper_sign_hash_abort( operation );
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    status = psa_driver_wrapper_verify_hash_abort( operation );
 
     operation->id = 0;
 
-    return( PSA_SUCCESS );
+    return( status );
 }
 
 psa_status_t psa_verify_hash_start(
@@ -3328,7 +3364,7 @@ psa_status_t psa_verify_hash_start(
                                                   signature, signature_length );
 
     if( status != PSA_SUCCESS )
-        psa_verify_hash_abort( operation );
+        psa_verify_hash_abort_internal( operation );
 
     unlock_status = psa_unlock_key_slot( slot );
 
@@ -3358,7 +3394,7 @@ exit:
                                                                   operation );
 
     if( status != PSA_OPERATION_INCOMPLETE )
-        psa_verify_hash_abort( operation );
+        psa_verify_hash_abort_internal( operation );
 
     return( status );
 }
@@ -3366,19 +3402,15 @@ exit:
 psa_status_t psa_verify_hash_abort(
                         psa_verify_hash_interruptible_operation_t *operation )
 {
-    if( operation->id == 0 )
-    {
-        /* The object has (apparently) been initialized but it is not (yet)
-         * in use. It's ok to call abort on such an object, and there's
-         * nothing to do. */
-        return( PSA_SUCCESS );
-    }
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    psa_driver_wrapper_verify_hash_abort( operation );
+    status = psa_verify_hash_abort_internal( operation );
 
-    operation->id = 0;
+    /* We clear the number of ops done here, so that it is not cleared when
+     * the operation fails or succeeds, only on manual abort. */
+    operation->num_ops = 0;
 
-    return( PSA_SUCCESS );
+    return( status );
 }
 
 /****************************************************************/

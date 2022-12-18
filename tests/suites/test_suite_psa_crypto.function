@@ -6522,6 +6522,9 @@ void sign_hash_interruptible(int key_type_arg, data_t *key_data,
 
     PSA_ASSERT(psa_sign_hash_abort(&operation));
 
+    num_ops = psa_sign_hash_get_num_ops(&operation);
+    TEST_ASSERT(num_ops == 0);
+
 exit:
 
     /*
@@ -6656,6 +6659,9 @@ void sign_hash_fail_interruptible(int key_type_arg, data_t *key_data,
     }
 
     PSA_ASSERT(psa_sign_hash_abort(&operation));
+
+    num_ops = psa_sign_hash_get_num_ops(&operation);
+    TEST_ASSERT(num_ops == 0);
 
     /* The value of *signature_length is unspecified on error, but
      * whatever it is, it should be less than signature_size, so that
@@ -6969,6 +6975,9 @@ void verify_hash_interruptible(int key_type_arg, data_t *key_data,
 
     PSA_ASSERT(psa_verify_hash_abort(&operation));
 
+    num_ops = psa_verify_hash_get_num_ops(&operation);
+    TEST_ASSERT(num_ops == 0);
+
 exit:
     psa_reset_key_attributes(&attributes);
     psa_destroy_key(key);
@@ -7083,6 +7092,9 @@ void verify_hash_fail_interruptible(int key_type_arg, data_t *key_data,
     TEST_LE_U(num_completes, max_completes);
 
     PSA_ASSERT(psa_verify_hash_abort(&operation));
+
+    num_ops = psa_verify_hash_get_num_ops(&operation);
+    TEST_ASSERT(num_ops == 0);
 
 exit:
     psa_reset_key_attributes(&attributes);

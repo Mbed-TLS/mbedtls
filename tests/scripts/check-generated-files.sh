@@ -121,6 +121,11 @@ check()
 # the format must be "check SCRIPT FILENAME...". For other source files,
 # any shell syntax is permitted (including e.g. command substitution).
 
+# Note: Instructions to generate those files are replicated in:
+#   - **/Makefile (to (re)build them with make)
+#   - **/CMakeLists.txt (to (re)build them with cmake)
+#   - scripts/make_generated_files.bat (to generate them under Windows)
+
 check scripts/generate_errors.pl library/error.c
 check scripts/generate_query_config.pl programs/test/query_config.c
 check scripts/generate_driver_wrappers.py library/psa_crypto_driver_wrappers.c

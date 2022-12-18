@@ -116,6 +116,11 @@ check()
     fi
 }
 
+# Note: if the format of calls to the "check" function changes, update
+# scripts/code_style.py accordingly. For generated C source files (*.h or *.c),
+# the format must be "check SCRIPT FILENAME...". For other source files,
+# any shell syntax is permitted (including e.g. command substitution).
+
 check scripts/generate_errors.pl library/error.c
 check scripts/generate_query_config.pl programs/test/query_config.c
 check scripts/generate_driver_wrappers.py library/psa_crypto_driver_wrappers.c

@@ -2455,7 +2455,19 @@ static int ssl_tls13_process_server_finished(mbedtls_ssl_context *ssl)
         return ret;
     }
 
-    mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_END_OF_EARLY_DATA);
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED) {
+        mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_END_OF_EARLY_DATA);
+    } else
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+    {
+#if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
+        mbedtls_ssl_handshake_set_state(
+            ssl, MBEDTLS_SSL_CLIENT_CCS_AFTER_SERVER_FINISHED);
+#else
+        mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE);
+#endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
+    }
 
     return 0;
 }

@@ -1574,31 +1574,4 @@ int mbedtls_ssl_tls13_check_received_extension(
     return MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION;
 }
 
-#ifdef MBEDTLS_SSL_SESSION_TICKETS
-int mbedtls_ssl_tls13_ticket_get_psk(mbedtls_ssl_context *ssl,
-                                     psa_algorithm_t *hash_alg,
-                                     const unsigned char **psk,
-                                     size_t *psk_len)
-{
-
-    mbedtls_ssl_session *session = ssl->session_negotiate;
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info = NULL;
-
-    if (ssl->handshake->resume == 0 || session == NULL ||
-        session->ticket == NULL) {
-        return -1;
-    }
-
-    ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(session->ciphersuite);
-    if (ciphersuite_info != NULL) {
-        *hash_alg = mbedtls_psa_translate_md(ciphersuite_info->mac);
-    }
-
-    *psk = session->resumption_key;
-    *psk_len = session->resumption_key_len;
-
-    return 0;
-}
-#endif /* MBEDTLS_SSL_SESSION_TICKETS */
-
 #endif /* MBEDTLS_SSL_TLS_C && MBEDTLS_SSL_PROTO_TLS1_3 */

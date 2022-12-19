@@ -975,7 +975,7 @@ int mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
         ret = ssl_tls13_ticket_get_psk(ssl, &hash_alg, &psk, &psk_len);
         if (ret != 0) {
             MBEDTLS_SSL_DEBUG_RET(
-                1, "mbedtls_ssl_tls13_ticket_get_psk", ret);
+                1, "ssl_tls13_ticket_get_psk", ret);
             return ret;
         }
 

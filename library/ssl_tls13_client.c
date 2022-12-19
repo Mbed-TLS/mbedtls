@@ -2134,12 +2134,9 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_write_end_of_early_data(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    MBEDTLS_SSL_DEBUG_MSG(2, ("=> write EndOfEarlyData"));
-
     unsigned char *buf = NULL;
     size_t buf_len;
-
-    MBEDTLS_SSL_DEBUG_MSG(2, ("Client write EndOfEarlyData"));
+    MBEDTLS_SSL_DEBUG_MSG(2, ("=> write EndOfEarlyData"));
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_start_handshake_msg(
                              ssl, MBEDTLS_SSL_HS_END_OF_EARLY_DATA, &buf, &buf_len));

@@ -35,10 +35,22 @@ update_branch () {
     worktree_name="update-code-style-preview-$1-$$"
     git worktree add "../$worktree_name" "$remote/$1"
     cd "../$worktree_name"
+
+    # Rewrite code style
     # Hide diffs, keep errors (and uncrustify's progress output)
     ./scripts/code_style.py --fix >/dev/null
     git commit -a --signoff -m 'Switch to the new code style'
+
+    # Update generated files, if relevant
+    tests/scripts/check-generated-files.sh -u
+    if ! git diff --quiet; then
+        git commit -a --signoff -m 'Update generated files'
+    fi
+
+    # Switch all.sh to enforcing the code style
     git cherry-pick "$ENFORCEMENT_COMMIT"
+
+    # All good, push it out
     git push --force-with-lease "$push_remote" "HEAD:refs/heads/features/new-code-style/$1"
     cd "$OLDPWD"
     git worktree remove "../$worktree_name"

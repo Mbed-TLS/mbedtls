@@ -1676,8 +1676,6 @@ int mbedtls_ssl_set_session(mbedtls_ssl_context *ssl, const mbedtls_ssl_session 
                                       session->ciphersuite));
             return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
         }
-        ssl->handshake->ciphersuite_info = ciphersuite_info;
-        ssl->handshake->key_exchange_mode = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL;
     }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 

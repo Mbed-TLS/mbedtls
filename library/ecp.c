@@ -1224,6 +1224,7 @@ cleanup:
     MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_swap( (X), (Y), (cond) ) )
 
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
+
 /*
  * Computes the right-hand side of the Short Weierstrass equation
  * RHS = X^3 + A X + B
@@ -1302,9 +1303,7 @@ cleanup:
     mbedtls_mpi_free( &exp );
     return( ret );
 }
-#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 
-#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
 /*
  * For curves in short Weierstrass form, we do all the internal operations in
  * Jacobian coordinates.

@@ -195,10 +195,7 @@ exit:
 void mpi_mod_random_values( int min, char *max_hex, int rep )
 {
     /* Same RNG as in mpi_core_random_basic */
-    mbedtls_test_rnd_pseudo_info rnd_core = {
-        {'T', 'h', 'i', 's', ' ', 'i', ',', 'a',
-         's', 'e', 'e', 'd', '!', 0},
-        0, 0};
+    mbedtls_test_rnd_pseudo_info rnd_core = rnd_pseudo_seed;
     mbedtls_test_rnd_pseudo_info rnd_mod_raw;
     memcpy( &rnd_mod_raw, &rnd_core, sizeof( rnd_core ) );
     mbedtls_test_rnd_pseudo_info rnd_mod;

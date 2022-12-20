@@ -192,7 +192,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mpi_mod_random_values( int min, char *max_hex )
+void mpi_mod_random_values( int min, char *max_hex, int rep )
 {
     /* Same RNG as in mpi_core_random_basic */
     mbedtls_test_rnd_pseudo_info rnd_core = {
@@ -210,9 +210,7 @@ void mpi_mod_random_values( int min, char *max_hex )
     mbedtls_mpi_mod_modulus N;
     mbedtls_mpi_mod_modulus_init( &N );
 
-    TEST_EQUAL( mbedtls_test_read_mpi_modulus( &N, max_hex,
-                                               MBEDTLS_MPI_MOD_REP_MONTGOMERY ),
-                0 );
+    TEST_EQUAL( mbedtls_test_read_mpi_modulus( &N, max_hex, rep ), 0 );
     ASSERT_ALLOC( R_core, N.limbs );
     ASSERT_ALLOC( R_mod_raw, N.limbs );
     ASSERT_ALLOC( R_mod_digits, N.limbs );
@@ -240,10 +238,12 @@ void mpi_mod_random_values( int min, char *max_hex )
     TEST_EQUAL( core_ret, mod_ret );
     if( core_ret == 0 )
     {
-        TEST_EQUAL( mbedtls_mpi_mod_raw_from_mont_rep( R_mod_raw, &N ), 0 );
+        TEST_EQUAL( mbedtls_mpi_mod_raw_modulus_to_canonical_rep( R_mod_raw, &N ),
+                    0 );
         ASSERT_COMPARE( R_core, N.limbs * ciL,
                         R_mod_raw, N.limbs * ciL );
-        TEST_EQUAL( mbedtls_mpi_mod_raw_from_mont_rep( R_mod_digits, &N ), 0 );
+        TEST_EQUAL( mbedtls_mpi_mod_raw_modulus_to_canonical_rep( R_mod_digits, &N ),
+                    0 );
         ASSERT_COMPARE( R_core, N.limbs * ciL,
                         R_mod_digits, N.limbs * ciL );
     }
@@ -428,7 +428,7 @@ void mpi_mod_random_validation( int min, char *bound_hex,
     mbedtls_mpi_mod_modulus_init( &N );
 
     TEST_EQUAL( mbedtls_test_read_mpi_modulus( &N, bound_hex,
-                                               MBEDTLS_MPI_MOD_REP_MONTGOMERY ),
+                                               MBEDTLS_MPI_MOD_REP_OPT_RED ),
                 0 );
     size_t result_limbs = N.limbs + result_limbs_delta;
     ASSERT_ALLOC( result_digits, result_limbs );
@@ -445,7 +445,6 @@ void mpi_mod_random_validation( int min, char *bound_hex,
          * size as the modulus, otherwise it's a mistake in the test data. */
         TEST_EQUAL( result_limbs, N.limbs );
         /* Sanity check: check that the result is in range */
-        TEST_EQUAL( mbedtls_mpi_mod_raw_from_mont_rep( result_digits, &N ), 0 );
         TEST_EQUAL( mbedtls_mpi_core_lt_ct( result_digits, N.p, N.limbs ),
                     1 );
         /* Check result >= min (changes result) */
@@ -463,7 +462,6 @@ void mpi_mod_random_validation( int min, char *bound_hex,
                     expected_ret );
         if( expected_ret == 0 )
         {
-            TEST_EQUAL( mbedtls_mpi_mod_raw_from_mont_rep( result_digits, &N ), 0 );
             TEST_EQUAL( mbedtls_mpi_core_lt_ct( result_digits, N.p, N.limbs ),
                         1 );
             TEST_EQUAL( mbedtls_mpi_core_sub_int( result_digits, result.p, min,

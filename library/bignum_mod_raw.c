@@ -215,7 +215,7 @@ int mbedtls_mpi_mod_raw_random( mbedtls_mpi_uint *X,
     int ret = mbedtls_mpi_core_random( X, min, N->p, N->limbs, f_rng, p_rng );
     if( ret != 0 )
         return( ret );
-    return( mbedtls_mpi_mod_raw_to_mont_rep( X, N ) );
+    return( mbedtls_mpi_mod_raw_canonical_to_modulus_rep( X, N ) );
 }
 
 /* END MERGE SLOT 6 */

@@ -25,8 +25,11 @@ mpi_core_random_basic:0x0fffffff:"10000001":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
 MPI random legacy=core: 2^28-1..2^28+1 (NOT_ACCEPTABLE)
 mpi_legacy_random_values:0x0fffffff:"10000001"
 
-MPI random mod=core: 2^28-1..2^28+1 (NOT_ACCEPTABLE)
-mpi_mod_random_values:0x0fffffff:"10000001"
+MPI random mod=core: 2^28-1..2^28+1 (NOT_ACCEPTABLE) (Mont)
+mpi_mod_random_values:0x0fffffff:"10000001":MBEDTLS_MPI_MOD_REP_MONTGOMERY
+
+MPI random mod=core: 2^28-1..2^28+1 (NOT_ACCEPTABLE) (canon)
+mpi_mod_random_values:0x0fffffff:"10000001":MBEDTLS_MPI_MOD_REP_OPT_RED
 
 MPI core random basic: 2^29-1..2^29+1 (NOT_ACCEPTABLE)
 mpi_core_random_basic:0x1fffffff:"20000001":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
@@ -34,8 +37,11 @@ mpi_core_random_basic:0x1fffffff:"20000001":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
 MPI random legacy=core: 2^29-1..2^29+1 (NOT_ACCEPTABLE)
 mpi_legacy_random_values:0x1fffffff:"20000001"
 
-MPI random mod=core: 2^29-1..2^29+1 (NOT_ACCEPTABLE)
-mpi_mod_random_values:0x1fffffff:"20000001"
+MPI random mod=core: 2^29-1..2^29+1 (NOT_ACCEPTABLE) (Mont)
+mpi_mod_random_values:0x1fffffff:"20000001":MBEDTLS_MPI_MOD_REP_MONTGOMERY
+
+MPI random mod=core: 2^29-1..2^29+1 (NOT_ACCEPTABLE) (canon)
+mpi_mod_random_values:0x1fffffff:"20000001":MBEDTLS_MPI_MOD_REP_OPT_RED
 
 MPI core random basic: 2^30-1..2^30+1 (NOT_ACCEPTABLE)
 mpi_core_random_basic:0x3fffffff:"40000001":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
@@ -43,8 +49,11 @@ mpi_core_random_basic:0x3fffffff:"40000001":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
 MPI random legacy=core: 2^30-1..2^30+1 (NOT_ACCEPTABLE)
 mpi_legacy_random_values:0x3fffffff:"40000001"
 
-MPI random mod=core: 2^30-1..2^30+1 (NOT_ACCEPTABLE)
-mpi_mod_random_values:0x3fffffff:"40000001"
+MPI random mod=core: 2^30-1..2^30+1 (NOT_ACCEPTABLE) (Mont)
+mpi_mod_random_values:0x3fffffff:"40000001":MBEDTLS_MPI_MOD_REP_MONTGOMERY
+
+MPI random mod=core: 2^30-1..2^30+1 (NOT_ACCEPTABLE) (canon)
+mpi_mod_random_values:0x3fffffff:"40000001":MBEDTLS_MPI_MOD_REP_OPT_RED
 
 MPI core random basic: 2^31-1..2^31+1 (NOT_ACCEPTABLE)
 mpi_core_random_basic:0x7fffffff:"80000001":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
@@ -52,8 +61,11 @@ mpi_core_random_basic:0x7fffffff:"80000001":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
 MPI random legacy=core: 2^31-1..2^31+1 (NOT_ACCEPTABLE)
 mpi_legacy_random_values:0x7fffffff:"80000001"
 
-MPI random mod=core: 2^31-1..2^31+1 (NOT_ACCEPTABLE)
-mpi_mod_random_values:0x7fffffff:"80000001"
+MPI random mod=core: 2^31-1..2^31+1 (NOT_ACCEPTABLE) (Mont)
+mpi_mod_random_values:0x7fffffff:"80000001":MBEDTLS_MPI_MOD_REP_MONTGOMERY
+
+MPI random mod=core: 2^31-1..2^31+1 (NOT_ACCEPTABLE) (canon)
+mpi_mod_random_values:0x7fffffff:"80000001":MBEDTLS_MPI_MOD_REP_OPT_RED
 
 MPI random in range: 1..2
 mpi_random_many:1:"02":1000
@@ -246,23 +258,41 @@ mpi_legacy_random_values:0:"0100000000000000000000000000000000000000000000000000
 MPI random legacy=core: 0..2^256+1
 mpi_legacy_random_values:0:"010000000000000000000000000000000000000000000000000000000000000001"
 
-MPI random mod=core: 0..1
-mpi_mod_random_values:0:"01"
+MPI random mod=core: 0..1 (Mont)
+mpi_mod_random_values:0:"01":MBEDTLS_MPI_MOD_REP_MONTGOMERY
 
-MPI random mod=core: 0..3
-mpi_mod_random_values:0:"03"
+MPI random mod=core: 0..1 (canon)
+mpi_mod_random_values:0:"01":MBEDTLS_MPI_MOD_REP_OPT_RED
 
-MPI random mod=core: 1..3
-mpi_mod_random_values:1:"03"
+MPI random mod=core: 0..3 (Mont)
+mpi_mod_random_values:0:"03":MBEDTLS_MPI_MOD_REP_MONTGOMERY
 
-MPI random mod=core: 2^30..2^31-1
-mpi_mod_random_values:0x40000000:"7fffffff"
+MPI random mod=core: 0..3 (canon)
+mpi_mod_random_values:0:"03":MBEDTLS_MPI_MOD_REP_OPT_RED
 
-MPI random mod=core: 2^31-1..2^32-1
-mpi_mod_random_values:0x7fffffff:"ffffffff"
+MPI random mod=core: 1..3 (Mont)
+mpi_mod_random_values:1:"03":MBEDTLS_MPI_MOD_REP_MONTGOMERY
 
-MPI random mod=core: 0..2^256+1
-mpi_mod_random_values:0:"010000000000000000000000000000000000000000000000000000000000000001"
+MPI random mod=core: 1..3 (canon)
+mpi_mod_random_values:1:"03":MBEDTLS_MPI_MOD_REP_OPT_RED
+
+MPI random mod=core: 2^30..2^31-1 (Mont)
+mpi_mod_random_values:0x40000000:"7fffffff":MBEDTLS_MPI_MOD_REP_MONTGOMERY
+
+MPI random mod=core: 2^30..2^31-1 (canon)
+mpi_mod_random_values:0x40000000:"7fffffff":MBEDTLS_MPI_MOD_REP_OPT_RED
+
+MPI random mod=core: 2^31-1..2^32-1 (Mont)
+mpi_mod_random_values:0x7fffffff:"ffffffff":MBEDTLS_MPI_MOD_REP_MONTGOMERY
+
+MPI random mod=core: 2^31-1..2^32-1 (canon)
+mpi_mod_random_values:0x7fffffff:"ffffffff":MBEDTLS_MPI_MOD_REP_OPT_RED
+
+MPI random mod=core: 0..2^256+1 (Mont)
+mpi_mod_random_values:0:"010000000000000000000000000000000000000000000000000000000000000001":MBEDTLS_MPI_MOD_REP_MONTGOMERY
+
+MPI random mod=core: 0..2^256+1 (canon)
+mpi_mod_random_values:0:"010000000000000000000000000000000000000000000000000000000000000001":MBEDTLS_MPI_MOD_REP_OPT_RED
 
 MPI random mod validation: 1 limb, good, 0..1
 mpi_mod_random_validation:0:"1":0:0

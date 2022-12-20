@@ -181,10 +181,6 @@ void mpi_mod_mul( char * input_A,
     }
 
 exit:
-    mbedtls_mpi_mod_residue_release( &rA );
-    mbedtls_mpi_mod_residue_release( &rB );
-    mbedtls_mpi_mod_residue_release( &rR );
-    mbedtls_mpi_mod_residue_release( &rX );
     mbedtls_mpi_mod_modulus_free( &m );
 
     mbedtls_free( rA.p );
@@ -237,10 +233,6 @@ void mpi_mod_mul_neg( char * input_A,
                 MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
 exit:
-    mbedtls_mpi_mod_residue_release( &rA );
-    mbedtls_mpi_mod_residue_release( &rB );
-    mbedtls_mpi_mod_residue_release( &rR );
-    mbedtls_mpi_mod_residue_release( &rX );
     mbedtls_mpi_mod_modulus_free( &m );
     mbedtls_mpi_mod_modulus_free( &fake_m );
 

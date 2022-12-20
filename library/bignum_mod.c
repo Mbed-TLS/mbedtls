@@ -248,8 +248,7 @@ int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
 
     r->limbs = m->limbs;
 
-    if( m->int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY )
-       ret = mbedtls_mpi_mod_raw_to_mont_rep( r->p, m );
+    ret = mbedtls_mpi_mod_raw_canonical_to_modulus_rep( r->p, m );
 
 cleanup:
     return ( ret );

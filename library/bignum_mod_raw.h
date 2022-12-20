@@ -297,6 +297,40 @@ void mbedtls_mpi_mod_raw_add( mbedtls_mpi_uint *X,
 
 /* BEGIN MERGE SLOT 6 */
 
+/** Convert an MPI from canonical representation (little-endian limb array)
+ * to the representation associated with the modulus.
+ *
+ * \param[in,out] X The limb array to convert.
+ *                  It must have as many limbs as \p N.
+ *                  It is converted in place.
+ *                  If this function returns an error, the content of \p X
+ *                  is unspecified.
+ * \param[in] N     The modulus structure.
+ *
+ *\ return          \c 0 if successful.
+ *                  Otherwise an \c MBEDTLS_ERR_MPI_xxx error code.
+ */
+int mbedtls_mpi_mod_raw_canonical_to_modulus_rep(
+    mbedtls_mpi_uint *X,
+    const mbedtls_mpi_mod_modulus *N );
+
+/** Convert an MPI from the representation associated with the modulus
+ * to canonical representation (little-endian limb array).
+ *
+ * \param[in,out] X The limb array to convert.
+ *                  It must have as many limbs as \p N.
+ *                  It is converted in place.
+ *                  If this function returns an error, the content of \p X
+ *                  is unspecified.
+ * \param[in] N     The modulus structure.
+ *
+ *\ return          \c 0 if successful.
+ *                  Otherwise an \c MBEDTLS_ERR_MPI_xxx error code.
+ */
+int mbedtls_mpi_mod_raw_modulus_to_canonical_rep(
+    mbedtls_mpi_uint *X,
+    const mbedtls_mpi_mod_modulus *N );
+
 /** Generate a random number uniformly in a range.
  *
  * This function generates a random number between \p min inclusive and

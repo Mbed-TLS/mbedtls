@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Iterator, List
+from typing import Iterator, List, Optional, Union
 
 from . import test_case
 from . import test_data_generation
@@ -115,9 +115,13 @@ class BignumModRawConvertRep(bignum_common.ModOperationCommon,
     """Test cases for representation conversion."""
     arity = 1
 
-    def __init__(self, val_n: str, val_a: str,
+    def __init__(self, val_n: str, val_a: str, bits_in_limb: Optional[int],
                  rep: bignum_common.ModulusRepresentation) -> None:
-        super().__init__(val_n=val_n, val_a=val_a)
+        if bits_in_limb is None:
+            super().__init__(val_n=val_n, val_a=val_a)
+        else:
+            self.input_style = "arch_split"
+            super().__init__(val_n=val_n, val_a=val_a, bits_in_limb=bits_in_limb)
         self.rep = rep
 
     def arguments(self) -> List[str]:
@@ -125,16 +129,26 @@ class BignumModRawConvertRep(bignum_common.ModOperationCommon,
                  bignum_common.quote_str(self.arg_a)] +
                 self.result())
 
+    def description(self) -> str:
+        base = super().description()
+        mod_with_rep = 'mod({})'.format(self.rep.name)
+        return base.replace('mod', mod_with_rep, 1)
+
     @classmethod
     def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
         representations = \
             bignum_common.ModulusRepresentation.supported_representations()
         for rep in representations:
+            if rep is bignum_common.ModulusRepresentation.MONTGOMERY:
+                limb_sizes = cls.limb_sizes #type: Union[List[int], List[None]]
+            else:
+                limb_sizes = [None] # no dependency on limb size
             for n in cls.moduli:
                 for a in cls.input_values:
-                    test_object = cls(n, a, rep)
-                    if test_object.is_valid:
-                        yield test_object.create_test_case()
+                    for bil in limb_sizes:
+                        test_object = cls(n, a, bil, rep)
+                        if test_object.is_valid:
+                            yield test_object.create_test_case()
 
 class BignumModRawCanonicalToModulusRep(BignumModRawConvertRep):
     """Test cases for mpi_mod_raw_canonical_to_modulus_rep."""

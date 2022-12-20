@@ -15,6 +15,7 @@
 # limitations under the License.
 
 from abc import abstractmethod
+import enum
 from typing import Iterator, List, Tuple, TypeVar, Any
 from itertools import chain
 
@@ -240,6 +241,23 @@ class OperationCommon(test_data_generation.BaseTest):
                     )
 
 
+class ModulusRepresentation(enum.Enum):
+    """Representation selector of a modulus."""
+    # Numerical values aligned with the type mbedtls_mpi_mod_rep_selector
+    INVALID = 0
+    MONTGOMERY = 2
+    OPT_RED = 3
+
+    def symbol(self) -> str:
+        """The C symbol for this representation selector."""
+        return 'MBEDTLS_MPI_MOD_REP_' + self.name
+
+    @classmethod
+    def supported_representations(cls) -> List['ModulusRepresentation']:
+        """Return all representations that are supported in positive test cases."""
+        return [cls.MONTGOMERY, cls.OPT_RED]
+
+
 class ModOperationCommon(OperationCommon):
     #pylint: disable=abstract-method
     """Target for bignum mod_raw test case generation."""
@@ -258,6 +276,17 @@ class ModOperationCommon(OperationCommon):
 
     def from_montgomery(self, val: int) -> int:
         return (val * self.r_inv) % self.int_n
+
+    def convert_from_canonical(self, canonical: int,
+                               rep: ModulusRepresentation) -> int:
+        """Convert values from canonical representation to the given representation."""
+        if rep is ModulusRepresentation.MONTGOMERY:
+            return self.to_montgomery(canonical)
+        elif rep is ModulusRepresentation.OPT_RED:
+            return canonical
+        else:
+            raise ValueError('Modulus representation not supported: {}'
+                             .format(rep.name))
 
     @property
     def boundary(self) -> int:

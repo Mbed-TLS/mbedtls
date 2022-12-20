@@ -188,7 +188,7 @@ int mbedtls_mpi_mod_mul( mbedtls_mpi_mod_residue *X,
         return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
 
     mbedtls_mpi_uint *T = mbedtls_calloc( N->limbs * 2 + 1, ciL );
-    if( !T )
+    if( T == NULL )
         return MBEDTLS_ERR_MPI_ALLOC_FAILED;
 
     mbedtls_mpi_mod_raw_mul( X->p, A->p, B->p, N, T );

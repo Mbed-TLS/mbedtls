@@ -108,22 +108,17 @@ class BignumModRawAdd(bignum_common.ModOperationCommon,
 
 # BEGIN MERGE SLOT 6
 
-class BignumModRawCanonicalToModulusRep(bignum_common.ModOperationCommon,
-                                        BignumModRawTarget):
-    """Test cases for mpi_mod_raw_canonical_to_modulus_rep."""
-    test_function = "mpi_mod_raw_canonical_to_modulus_rep"
-    test_name = "Rep canon->mod"
+class BignumModRawConvertRep(bignum_common.ModOperationCommon,
+                             BignumModRawTarget):
+    # This is an abstract class, it's ok to have unimplemented methods.
+    #pylint: disable=abstract-method
+    """Test cases for representation conversion."""
     arity = 1
 
-    def __init__(self,
-                 val_n: str, val_a: str,
+    def __init__(self, val_n: str, val_a: str,
                  rep: bignum_common.ModulusRepresentation) -> None:
         super().__init__(val_n=val_n, val_a=val_a)
         self.rep = rep
-
-    def result(self) -> List[str]:
-        result = self.convert_from_canonical(self.int_a, self.rep)
-        return [self.format_result(result)]
 
     def arguments(self) -> List[str]:
         return ([bignum_common.quote_str(self.arg_n), self.rep.symbol(),
@@ -140,6 +135,28 @@ class BignumModRawCanonicalToModulusRep(bignum_common.ModOperationCommon,
                     test_object = cls(n, a, rep)
                     if test_object.is_valid:
                         yield test_object.create_test_case()
+
+class BignumModRawCanonicalToModulusRep(BignumModRawConvertRep):
+    """Test cases for mpi_mod_raw_canonical_to_modulus_rep."""
+    test_function = "mpi_mod_raw_canonical_to_modulus_rep"
+    test_name = "Rep canon->mod"
+
+    def result(self) -> List[str]:
+        result = self.convert_from_canonical(self.int_a, self.rep)
+        return [self.format_result(result)]
+
+class BignumModRawModulusToCanonicalRep(BignumModRawConvertRep):
+    """Test cases for mpi_mod_raw_modulus_to_canonical_rep."""
+    test_function = "mpi_mod_raw_modulus_to_canonical_rep"
+    test_name = "Rep mod->canon"
+
+    @property
+    def arg_a(self) -> str:
+        converted_a = self.convert_from_canonical(self.int_a, self.rep)
+        return self.format_arg(hex(converted_a)[2:])
+
+    def result(self) -> List[str]:
+        return [self.format_result(self.int_a)]
 
 # END MERGE SLOT 6
 

@@ -771,58 +771,7 @@ cleanup:
 static int mbedtls_ecp_sw_derive_y( const mbedtls_ecp_group *grp,
                                     const mbedtls_mpi *X,
                                     mbedtls_mpi *Y,
-                                    int parity_bit )
-{
-    /* w = y^2 = x^3 + ax + b
-     * y = sqrt(w) = w^((p+1)/4) mod p   (for prime p where p = 3 mod 4)
-     *
-     * Note: this method for extracting square root does not validate that w
-     * was indeed a square so this function will return garbage in Y if X
-     * does not correspond to a point on the curve.
-     */
-
-    /* Check prerequisite p = 3 mod 4 */
-    if( mbedtls_mpi_get_bit( &grp->P, 0 ) != 1 ||
-        mbedtls_mpi_get_bit( &grp->P, 1 ) != 1 )
-        return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
-
-    int ret;
-    mbedtls_mpi exp;
-    mbedtls_mpi_init( &exp );
-
-    /* use Y to store intermediate results */
-    /* y^2 = x^3 + ax + b = (x^2 + a)x + b */
-    /* x^2 */
-    MPI_ECP_MUL( Y, X, X );
-    /* x^2 + a */
-    if( !grp->A.p ) /* special case for A = -3; temporarily set exp = -3 */
-        MPI_ECP_LSET( &exp, -3 );
-    MPI_ECP_ADD( Y, Y, grp->A.p ? &grp->A : &exp );
-    /* (x^2 + a)x */
-    MPI_ECP_MUL( Y, Y, X );
-    /* (x^2 + a)x + b */
-    MPI_ECP_ADD( Y, Y, &grp->B );
-
-    /* w = y^2 */ /* Y contains y^2 intermediate result */
-    /* exp = ((p+1)/4) */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( &exp, &grp->P, 1 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &exp, 2 ) );
-    /* sqrt(w) = w^((p+1)/4) mod p   (for prime p where p = 3 mod 4) */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( Y, Y /*y^2*/, &exp, &grp->P, NULL ) );
-
-    /* check parity bit match or else invert Y */
-    /* This quick inversion implementation is valid because Y != 0 for all
-     * Short Weierstrass curves supported by mbedtls, as each supported curve
-     * has an order that is a large prime, so each supported curve does not
-     * have any point of order 2, and a point with Y == 0 would be of order 2 */
-    if( mbedtls_mpi_get_bit( Y, 0 ) != parity_bit )
-        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( Y, &grp->P, Y ) );
-
-cleanup:
-
-    mbedtls_mpi_free( &exp );
-    return( ret );
-}
+                                    int parity_bit );
 #endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 
 /*
@@ -1273,6 +1222,64 @@ cleanup:
 
 #define MPI_ECP_COND_SWAP( X, Y, cond )       \
     MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_swap( (X), (Y), (cond) ) )
+
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
+static int mbedtls_ecp_sw_derive_y( const mbedtls_ecp_group *grp,
+                                    const mbedtls_mpi *X,
+                                    mbedtls_mpi *Y,
+                                    int parity_bit )
+{
+    /* w = y^2 = x^3 + ax + b
+     * y = sqrt(w) = w^((p+1)/4) mod p   (for prime p where p = 3 mod 4)
+     *
+     * Note: this method for extracting square root does not validate that w
+     * was indeed a square so this function will return garbage in Y if X
+     * does not correspond to a point on the curve.
+     */
+
+    /* Check prerequisite p = 3 mod 4 */
+    if( mbedtls_mpi_get_bit( &grp->P, 0 ) != 1 ||
+        mbedtls_mpi_get_bit( &grp->P, 1 ) != 1 )
+        return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
+
+    int ret;
+    mbedtls_mpi exp;
+    mbedtls_mpi_init( &exp );
+
+    /* use Y to store intermediate results */
+    /* y^2 = x^3 + ax + b = (x^2 + a)x + b */
+    /* x^2 */
+    MPI_ECP_MUL( Y, X, X );
+    /* x^2 + a */
+    if( !grp->A.p ) /* special case for A = -3; temporarily set exp = -3 */
+        MPI_ECP_LSET( &exp, -3 );
+    MPI_ECP_ADD( Y, Y, grp->A.p ? &grp->A : &exp );
+    /* (x^2 + a)x */
+    MPI_ECP_MUL( Y, Y, X );
+    /* (x^2 + a)x + b */
+    MPI_ECP_ADD( Y, Y, &grp->B );
+
+    /* w = y^2 */ /* Y contains y^2 intermediate result */
+    /* exp = ((p+1)/4) */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( &exp, &grp->P, 1 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &exp, 2 ) );
+    /* sqrt(w) = w^((p+1)/4) mod p   (for prime p where p = 3 mod 4) */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( Y, Y /*y^2*/, &exp, &grp->P, NULL ) );
+
+    /* check parity bit match or else invert Y */
+    /* This quick inversion implementation is valid because Y != 0 for all
+     * Short Weierstrass curves supported by mbedtls, as each supported curve
+     * has an order that is a large prime, so each supported curve does not
+     * have any point of order 2, and a point with Y == 0 would be of order 2 */
+    if( mbedtls_mpi_get_bit( Y, 0 ) != parity_bit )
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( Y, &grp->P, Y ) );
+
+cleanup:
+
+    mbedtls_mpi_free( &exp );
+    return( ret );
+}
+#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
 /*

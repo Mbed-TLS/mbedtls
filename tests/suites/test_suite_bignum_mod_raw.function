@@ -555,7 +555,7 @@ void mpi_mod_raw_modulus_to_canonical_rep( const char *input_N, int rep,
     mbedtls_mpi_mod_modulus N;
     mbedtls_mpi_mod_modulus_init( &N );
     mbedtls_mpi_uint *A = NULL;
-    size_t A_limbs = 0;;
+    size_t A_limbs = 0;
     mbedtls_mpi_uint *X = NULL;
     size_t X_limbs = 0;
 

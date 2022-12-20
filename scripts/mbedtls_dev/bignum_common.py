@@ -48,7 +48,7 @@ def hex_to_int(val: str) -> int:
         return 0
     return int(val, 16)
 
-def quote_str(val) -> str:
+def quote_str(val: str) -> str:
     return "\"{}\"".format(val)
 
 def bound_mpi(val: int, bits_in_limb: int) -> int:
@@ -134,7 +134,7 @@ class OperationCommon(test_data_generation.BaseTest):
     def hex_digits(self) -> int:
         return 2 * (self.limbs * self.bits_in_limb // 8)
 
-    def format_arg(self, val) -> str:
+    def format_arg(self, val: str) -> str:
         if self.input_style not in self.input_styles:
             raise ValueError("Unknown input style!")
         if self.input_style == "variable":
@@ -142,7 +142,7 @@ class OperationCommon(test_data_generation.BaseTest):
         else:
             return val.zfill(self.hex_digits)
 
-    def format_result(self, res) -> str:
+    def format_result(self, res: int) -> str:
         res_str = '{:x}'.format(res)
         return quote_str(self.format_arg(res_str))
 

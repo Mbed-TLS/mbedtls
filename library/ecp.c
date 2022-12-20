@@ -793,19 +793,15 @@ static int mbedtls_ecp_sw_derive_y( const mbedtls_ecp_group *grp,
     /* use Y to store intermediate results */
     /* y^2 = x^3 + ax + b = (x^2 + a)x + b */
     /* x^2 */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( Y, X, X ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( Y, Y, &grp->P ) );
+    MPI_ECP_MUL( Y, X, X );
     /* x^2 + a */
     if( !grp->A.p ) /* special case for A = -3; temporarily set exp = -3 */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &exp, -3 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( Y, Y, grp->A.p ? &grp->A : &exp ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( Y, Y, &grp->P ) );
+        MPI_ECP_LSET( &exp, -3 );
+    MPI_ECP_ADD( Y, Y, grp->A.p ? &grp->A : &exp );
     /* (x^2 + a)x */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( Y, Y, X ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( Y, Y, &grp->P ) );
+    MPI_ECP_MUL( Y, Y, X );
     /* (x^2 + a)x + b */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( Y, Y, &grp->B ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( Y, Y, &grp->P ) );
+    MPI_ECP_ADD( Y, Y, &grp->B );
 
     /* w = y^2 */ /* Y contains y^2 intermediate result */
     /* exp = ((p+1)/4) */

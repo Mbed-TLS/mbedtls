@@ -87,12 +87,23 @@
 #include "mbedtls/bignum.h"
 #endif
 
-/* Skip 1 as it is slightly easier to accidentally pass to functions. */
+/** How residues associated with a modulus are represented.
+ *
+ * This also determines which fields of the modulus structure are valid and
+ * what their contents are (see #mbedtls_mpi_mod_modulus).
+ */
 typedef enum
 {
+    /** Representation not chosen (makes the modulus structure invalid). */
     MBEDTLS_MPI_MOD_REP_INVALID    = 0,
+    /* Skip 1 as it is slightly easier to accidentally pass to functions. */
+    /** Montgomery representation. */
     MBEDTLS_MPI_MOD_REP_MONTGOMERY = 2,
-    MBEDTLS_MPI_MOD_REP_OPT_RED
+    /** TODO: document this.
+     *
+     * Residues are in canonical representation.
+     */
+    MBEDTLS_MPI_MOD_REP_OPT_RED,
 } mbedtls_mpi_mod_rep_selector;
 
 /* Make mbedtls_mpi_mod_rep_selector and mbedtls_mpi_mod_ext_rep disjoint to
@@ -124,7 +135,9 @@ typedef struct {
     mbedtls_mpi_mod_rep_selector int_rep;    // selector to signal the active member of the union
     union rep
     {
+        /* if int_rep == #MBEDTLS_MPI_MOD_REP_MONTGOMERY */
         mbedtls_mpi_mont_struct mont;
+        /* if int_rep == #MBEDTLS_MPI_MOD_REP_OPT_RED */
         mbedtls_mpi_opt_red_struct ored;
     } rep;
 } mbedtls_mpi_mod_modulus;

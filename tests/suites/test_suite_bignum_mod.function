@@ -111,20 +111,20 @@ void mpi_mod_mul( char * input_A,
 {
     mbedtls_mpi_uint *X = NULL;
 
+    mbedtls_mpi_mod_residue rA = { NULL, 0 };
+    mbedtls_mpi_mod_residue rB = { NULL, 0 };
+    mbedtls_mpi_mod_residue rR = { NULL, 0 };
+    mbedtls_mpi_mod_residue rX = { NULL, 0 };
+
     mbedtls_mpi_mod_modulus m;
     mbedtls_mpi_mod_modulus_init( &m );
 
     TEST_EQUAL( test_read_modulus( &m, MBEDTLS_MPI_MOD_REP_MONTGOMERY, input_N ),
                 0 );
 
-    mbedtls_mpi_mod_residue rA;
     TEST_EQUAL( test_read_residue( &rA, &m, input_A, 0 ), 0 );
-
-    mbedtls_mpi_mod_residue rB;
     TEST_EQUAL( test_read_residue( &rB, &m, input_B, 0 ), 0 );
-
-    mbedtls_mpi_mod_residue rR;
-    TEST_EQUAL( test_read_residue( &rR, &m, result, 0 ), 0 );
+    TEST_EQUAL( test_read_residue( &rR, &m, result,  0 ), 0 );
 
     const size_t limbs = m.limbs;
     const size_t bytes = limbs * sizeof( mbedtls_mpi_uint );
@@ -135,7 +135,6 @@ void mpi_mod_mul( char * input_A,
 
     ASSERT_ALLOC( X, limbs );
 
-    mbedtls_mpi_mod_residue rX;
     TEST_EQUAL( mbedtls_mpi_mod_residue_setup( &rX, &m, X, limbs ), 0 );
 
     TEST_EQUAL( mbedtls_mpi_mod_mul( &rX, &rA, &rB, &m ), 0 );
@@ -200,26 +199,25 @@ void mpi_mod_mul_neg( char * input_A,
 {
     mbedtls_mpi_uint *X = NULL;
 
+    mbedtls_mpi_mod_residue rA = { NULL, 0 };
+    mbedtls_mpi_mod_residue rB = { NULL, 0 };
+    mbedtls_mpi_mod_residue rR = { NULL, 0 };
+    mbedtls_mpi_mod_residue rX = { NULL, 0 };
+
     mbedtls_mpi_mod_modulus m;
     mbedtls_mpi_mod_modulus_init( &m );
 
     TEST_EQUAL( test_read_modulus( &m, MBEDTLS_MPI_MOD_REP_MONTGOMERY, input_N ),
                 0 );
 
-    mbedtls_mpi_mod_residue rA;
     TEST_EQUAL( test_read_residue( &rA, &m, input_A, 1 ), 0 );
-
-    mbedtls_mpi_mod_residue rB;
     TEST_EQUAL( test_read_residue( &rB, &m, input_B, 1 ), 0 );
-
-    mbedtls_mpi_mod_residue rR;
-    TEST_EQUAL( test_read_residue( &rR, &m, result, 1 ), 0 );
+    TEST_EQUAL( test_read_residue( &rR, &m, result,  1 ), 0 );
 
     const size_t limbs = m.limbs;
 
     ASSERT_ALLOC( X, limbs );
 
-    mbedtls_mpi_mod_residue rX;
     TEST_EQUAL( mbedtls_mpi_mod_residue_setup( &rX, &m, X, limbs ), 0 );
     rX.limbs = rR.limbs;
 

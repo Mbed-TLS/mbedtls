@@ -14,8 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List
+from typing import Dict, Iterator, List
 
+from . import test_case
 from . import test_data_generation
 from . import bignum_common
 from .bignum_data import ONLY_PRIME_MODULI
@@ -106,6 +107,39 @@ class BignumModRawAdd(bignum_common.ModOperationCommon,
 # END MERGE SLOT 5
 
 # BEGIN MERGE SLOT 6
+
+class BignumModRawCanonicalToModulusRep(bignum_common.ModOperationCommon,
+                                        BignumModRawTarget):
+    """Test cases for mpi_mod_raw_canonical_to_modulus_rep."""
+    test_function = "mpi_mod_raw_canonical_to_modulus_rep"
+    test_name = "Rep canon->mod"
+    arity = 1
+
+    def __init__(self,
+                 val_n: str, val_a: str,
+                 rep: bignum_common.ModulusRepresentation) -> None:
+        super().__init__(val_n=val_n, val_a=val_a)
+        self.rep = rep
+
+    def result(self) -> List[str]:
+        result = self.convert_from_canonical(self.int_a, self.rep)
+        return [self.format_result(result)]
+
+    def arguments(self) -> List[str]:
+        return ([bignum_common.quote_str(self.arg_n), self.rep.symbol(),
+                 bignum_common.quote_str(self.arg_a)] +
+                self.result())
+
+    @classmethod
+    def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
+        representations = \
+            bignum_common.ModulusRepresentation.supported_representations()
+        for rep in representations:
+            for n in cls.moduli:
+                for a in cls.input_values:
+                    test_object = cls(n, a, rep)
+                    if test_object.is_valid:
+                        yield test_object.create_test_case()
 
 # END MERGE SLOT 6
 

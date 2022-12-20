@@ -136,19 +136,6 @@ int mbedtls_ecdh_compute_shared(mbedtls_ecp_group *grp, mbedtls_mpi *z,
 }
 #endif /* !MBEDTLS_ECDH_COMPUTE_SHARED_ALT */
 
-static void ecdh_init_internal(mbedtls_ecdh_context_mbed *ctx)
-{
-    mbedtls_ecp_group_init(&ctx->grp);
-    mbedtls_mpi_init(&ctx->d);
-    mbedtls_ecp_point_init(&ctx->Q);
-    mbedtls_ecp_point_init(&ctx->Qp);
-    mbedtls_mpi_init(&ctx->z);
-
-#if defined(MBEDTLS_ECP_RESTARTABLE)
-    mbedtls_ecp_restart_init(&ctx->rs);
-#endif
-}
-
 /*
  * Initialize context
  */
@@ -194,8 +181,7 @@ int mbedtls_ecdh_setup(mbedtls_ecdh_context *ctx, mbedtls_ecp_group_id grp_id)
             ctx->point_format = MBEDTLS_ECP_PF_UNCOMPRESSED;
             ctx->var = MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0;
             ctx->grp_id = grp_id;
-            ecdh_init_internal(&ctx->ctx.mbed_ecdh);
-            return ecdh_setup_internal(&ctx->ctx.mbed_ecdh, grp_id);
+            return( ecdh_setup_internal( &ctx->ctx.mbed_ecdh, grp_id ) );
     }
 }
 

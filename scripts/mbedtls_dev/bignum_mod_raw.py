@@ -133,17 +133,13 @@ class BignumModRawConvertRep(bignum_common.ModOperationCommon,
 
     @classmethod
     def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
-        representations = \
-            bignum_common.ModulusRepresentation.supported_representations()
-        for rep in representations:
-            if rep is bignum_common.ModulusRepresentation.MONTGOMERY:
-                limb_sizes = cls.limb_sizes #type: Union[List[int], List[None]]
-            else:
-                limb_sizes = [None] # no dependency on limb size
+
+        for rep in bignum_common.ModulusRepresentation.supported_representations():
             for n in cls.moduli:
                 for a in cls.input_values:
-                    for bil in limb_sizes:
-                        test_object = cls(n, a, bil, rep)
+                    for bil in cls.limb_sizes:
+                        test_object = cls(n, a, bits_in_limb=bil)
+                        test_object.set_representation(rep)
                         if test_object.is_valid:
                             yield test_object.create_test_case()
 

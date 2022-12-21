@@ -134,17 +134,32 @@ class BignumModRawConvertRep(bignum_common.ModOperationCommon,
     @classmethod
     def test_cases_for_values(cls, rep: bignum_common.ModulusRepresentation,
                               n: str, a: str) -> Iterator[test_case.TestCase]:
+        """Emit test cases for the given values (if any).
+
+        This may emit no test cases if a isn't valid for the modulus n,
+        or multiple test cases if rep requires different data depending
+        on the limb size.
+        """
         for bil in cls.limb_sizes:
             test_object = cls(n, a, bits_in_limb=bil)
             test_object.set_representation(rep)
-            #Filters out the duplicate
-            if rep == bignum_common.ModulusRepresentation.OPT_RED:
+            # The class is set to having separate test cases for each limb
+            # size, because the Montgomery representation requires it.
+            # But other representations don't require it. So for other
+            # representations, emit a single test case with no dependency
+            # on the limb size.
+            if rep is not bignum_common.ModulusRepresentation.MONTGOMERY:
                 test_object.dependencies = []
-                if bil == 64:
-                    continue
             if test_object.is_valid:
                 yield test_object.create_test_case()
+            if rep is not bignum_common.ModulusRepresentation.MONTGOMERY:
+                # A single test case (emitted, or skipped due to invalidity)
+                # is enough, since this test case doesn't depend on the
+                # limb size.
+                break
 
+    # The parent class doesn't support non-bignum parameters. So we override
+    # test generation, in order to have the representation as a parameter.
     @classmethod
     def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
 

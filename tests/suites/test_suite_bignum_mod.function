@@ -207,6 +207,9 @@ void mpi_mod_mul_neg( char * input_A,
     mbedtls_mpi_mod_modulus m;
     mbedtls_mpi_mod_modulus_init( &m );
 
+    mbedtls_mpi_mod_modulus fake_m;
+    mbedtls_mpi_mod_modulus_init( &fake_m );
+
     TEST_EQUAL( test_read_modulus( &m, MBEDTLS_MPI_MOD_REP_MONTGOMERY, input_N ),
                 0 );
 
@@ -222,9 +225,6 @@ void mpi_mod_mul_neg( char * input_A,
     rX.limbs = rR.limbs;
 
     TEST_EQUAL( mbedtls_mpi_mod_mul( &rX, &rA, &rB, &m ), exp_ret );
-
-    mbedtls_mpi_mod_modulus fake_m;
-    mbedtls_mpi_mod_modulus_init( &fake_m );
 
     /* Check when m is not initialized */
     TEST_EQUAL( mbedtls_mpi_mod_mul( &rX, &rA, &rB, &fake_m ),

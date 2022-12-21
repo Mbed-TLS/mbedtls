@@ -140,6 +140,11 @@ class BignumModRawConvertRep(bignum_common.ModOperationCommon,
                     for bil in cls.limb_sizes:
                         test_object = cls(n, a, bits_in_limb=bil)
                         test_object.set_representation(rep)
+                        #Filters out the duplicate
+                        if rep == bignum_common.ModulusRepresentation.OPT_RED:
+                            test_object.dependencies= []
+                            if bil == 64:
+                                continue
                         if test_object.is_valid:
                             yield test_object.create_test_case()
 

@@ -149,7 +149,9 @@ class BignumModRawConvertRep(bignum_common.ModOperationCommon,
             # representations, emit a single test case with no dependency
             # on the limb size.
             if rep is not bignum_common.ModulusRepresentation.MONTGOMERY:
-                test_object.dependencies = []
+                test_object.dependencies = \
+                    [dep for dep in test_object.dependencies
+                     if not dep.startswith('MBEDTLS_HAVE_INT')]
             if test_object.is_valid:
                 yield test_object.create_test_case()
             if rep is not bignum_common.ModulusRepresentation.MONTGOMERY:

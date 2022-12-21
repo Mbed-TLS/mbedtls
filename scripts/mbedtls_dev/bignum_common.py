@@ -297,10 +297,7 @@ class ModOperationCommon(OperationCommon):
         return self.format_arg(self.val_n)
 
     def format_arg(self, val: str) -> str:
-        if self.input_style == "variable":
-            return val.zfill(len(hex(self.int_n)) - 2)
-        else:
-            return super().format_arg(val)
+        return super().format_arg(val).zfill(self.hex_digits)
 
     def arguments(self) -> List[str]:
         return [quote_str(self.arg_n)] + super().arguments()

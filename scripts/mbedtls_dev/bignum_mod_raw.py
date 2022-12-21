@@ -113,16 +113,13 @@ class BignumModRawConvertRep(bignum_common.ModOperationCommon,
     # This is an abstract class, it's ok to have unimplemented methods.
     #pylint: disable=abstract-method
     """Test cases for representation conversion."""
+    symbol = ""
+    input_style = "arch_split"
     arity = 1
+    rep = bignum_common.ModulusRepresentation.INVALID
 
-    def __init__(self, val_n: str, val_a: str, bits_in_limb: Optional[int],
-                 rep: bignum_common.ModulusRepresentation) -> None:
-        if bits_in_limb is None:
-            super().__init__(val_n=val_n, val_a=val_a)
-        else:
-            self.input_style = "arch_split"
-            super().__init__(val_n=val_n, val_a=val_a, bits_in_limb=bits_in_limb)
-        self.rep = rep
+    def set_representation(self, r: bignum_common.ModulusRepresentation) -> bool:
+        self.rep = r
 
     def arguments(self) -> List[str]:
         return ([bignum_common.quote_str(self.arg_n), self.rep.symbol(),

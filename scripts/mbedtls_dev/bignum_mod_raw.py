@@ -118,7 +118,7 @@ class BignumModRawConvertRep(bignum_common.ModOperationCommon,
     arity = 1
     rep = bignum_common.ModulusRepresentation.INVALID
 
-    def set_representation(self, r: bignum_common.ModulusRepresentation) -> bool:
+    def set_representation(self, r: bignum_common.ModulusRepresentation) -> None:
         self.rep = r
 
     def arguments(self) -> List[str]:

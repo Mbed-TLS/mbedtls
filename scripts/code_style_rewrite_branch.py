@@ -64,7 +64,7 @@ def rebase_on(branch: str, commit: str, new_branch: str) -> bool:
     rebased on the given commit.
     """
     # Create a new branch from the existing branch
-    result = subprocess.run(["git", "checkout", branch], check=False)
+    result = subprocess.run(["git", "checkout", "--detach", branch], check=False)
     if result.returncode != 0:
         print("Error checking out branch '"+branch+"'.", file=sys.stderr)
         return False
@@ -189,7 +189,8 @@ def rewrite_branch_code_style(existing_branch: str, new_branch: str, \
     given commit that changes the code style.
     """
     # Create the new branch to rewrite onto at the code style change commit
-    result = subprocess.run(["git", "checkout", codestyle_change_commit], \
+    result = subprocess.run(["git", "checkout", "--detach",
+                             codestyle_change_commit], \
             check=False)
     if result.returncode != 0:
         print("Error checking out code style commit '" + \

@@ -156,8 +156,7 @@ class BignumModRawCanonicalToModulusRep(BignumModRawConvertRep):
     test_name = "Rep canon->mod"
 
     def result(self) -> List[str]:
-        result = self.convert_from_canonical(self.int_a, self.rep)
-        return [self.format_result(result)]
+        return [self.format_result(self.convert_from_canonical(self.int_a, self.rep))]
 
 class BignumModRawModulusToCanonicalRep(BignumModRawConvertRep):
     """Test cases for mpi_mod_raw_modulus_to_canonical_rep."""
@@ -166,8 +165,7 @@ class BignumModRawModulusToCanonicalRep(BignumModRawConvertRep):
 
     @property
     def arg_a(self) -> str:
-        converted_a = self.convert_from_canonical(self.int_a, self.rep)
-        return self.format_arg(hex(converted_a)[2:])
+        return self.format_arg("{:x}".format(self.convert_from_canonical(self.int_a, self.rep)))
 
     def result(self) -> List[str]:
         return [self.format_result(self.int_a)]

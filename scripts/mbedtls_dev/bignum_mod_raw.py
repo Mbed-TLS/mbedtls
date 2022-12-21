@@ -132,21 +132,26 @@ class BignumModRawConvertRep(bignum_common.ModOperationCommon,
         return base.replace('mod', mod_with_rep, 1)
 
     @classmethod
+    def test_cases_for_values(cls, rep: bignum_common.ModulusRepresentation,
+                              n: str, a: str) -> Iterator[test_case.TestCase]:
+        for bil in cls.limb_sizes:
+            test_object = cls(n, a, bits_in_limb=bil)
+            test_object.set_representation(rep)
+            #Filters out the duplicate
+            if rep == bignum_common.ModulusRepresentation.OPT_RED:
+                test_object.dependencies= []
+                if bil == 64:
+                    continue
+            if test_object.is_valid:
+                yield test_object.create_test_case()
+
+    @classmethod
     def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
 
         for rep in bignum_common.ModulusRepresentation.supported_representations():
             for n in cls.moduli:
                 for a in cls.input_values:
-                    for bil in cls.limb_sizes:
-                        test_object = cls(n, a, bits_in_limb=bil)
-                        test_object.set_representation(rep)
-                        #Filters out the duplicate
-                        if rep == bignum_common.ModulusRepresentation.OPT_RED:
-                            test_object.dependencies= []
-                            if bil == 64:
-                                continue
-                        if test_object.is_valid:
-                            yield test_object.create_test_case()
+                    yield from cls.test_cases_for_values(rep, n, a)
 
 class BignumModRawCanonicalToModulusRep(BignumModRawConvertRep):
     """Test cases for mpi_mod_raw_canonical_to_modulus_rep."""

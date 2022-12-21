@@ -195,11 +195,8 @@ typedef struct {
 
 typedef struct {
     psa_algorithm_t MBEDTLS_PRIVATE(alg);
-    unsigned int MBEDTLS_PRIVATE(state);
-    unsigned int MBEDTLS_PRIVATE(sequence);
+
 #if defined(MBEDTLS_PSA_BUILTIN_PAKE)
-    unsigned int MBEDTLS_PRIVATE(input_step);
-    unsigned int MBEDTLS_PRIVATE(output_step);
     uint8_t *MBEDTLS_PRIVATE(password);
     size_t MBEDTLS_PRIVATE(password_len);
     uint8_t MBEDTLS_PRIVATE(role);

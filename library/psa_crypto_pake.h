@@ -58,6 +58,7 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
  * \param[in,out] operation    Active PAKE operation.
  * \param step                 The step of the algorithm for which the output is
  *                             requested.
+ * \param computation_stage    The structure that holds PAKE computation stage.
  * \param[out] output          Buffer where the output is to be written in the
  *                             format appropriate for this \p step. Refer to
  *                             the documentation of the individual
@@ -97,6 +98,7 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
  */
 psa_status_t mbedtls_psa_pake_output(mbedtls_psa_pake_operation_t *operation,
                                      psa_pake_step_t step,
+                                     const psa_pake_computation_stage_t *computation_stage,
                                      uint8_t *output,
                                      size_t output_size,
                                      size_t *output_length);
@@ -110,6 +112,7 @@ psa_status_t mbedtls_psa_pake_output(mbedtls_psa_pake_operation_t *operation,
  *
  * \param[in,out] operation    Active PAKE operation.
  * \param step                 The step for which the input is provided.
+ * \param computation_stage    The structure that holds PAKE computation stage.
  * \param[in] input            Buffer containing the input in the format
  *                             appropriate for this \p step. Refer to the
  *                             documentation of the individual
@@ -144,6 +147,7 @@ psa_status_t mbedtls_psa_pake_output(mbedtls_psa_pake_operation_t *operation,
  */
 psa_status_t mbedtls_psa_pake_input(mbedtls_psa_pake_operation_t *operation,
                                     psa_pake_step_t step,
+                                    const psa_pake_computation_stage_t *computation_stage,
                                     const uint8_t *input,
                                     size_t input_length);
 

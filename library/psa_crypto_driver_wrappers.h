@@ -422,6 +422,7 @@ psa_status_t psa_driver_wrapper_pake_setup(
 psa_status_t psa_driver_wrapper_pake_output(
     psa_pake_operation_t *operation,
     psa_pake_step_t step,
+    const psa_pake_computation_stage_t *computation_stage,
     uint8_t *output,
     size_t output_size,
     size_t *output_length);
@@ -429,6 +430,7 @@ psa_status_t psa_driver_wrapper_pake_output(
 psa_status_t psa_driver_wrapper_pake_input(
     psa_pake_operation_t *operation,
     psa_pake_step_t step,
+    const psa_pake_computation_stage_t *computation_stage,
     const uint8_t *input,
     size_t input_length);
 

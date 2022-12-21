@@ -1292,6 +1292,12 @@ typedef struct psa_pake_operation_s psa_pake_operation_t;
 /** The type of input values for PAKE operations. */
 typedef struct psa_crypto_driver_pake_inputs_s psa_crypto_driver_pake_inputs_t;
 
+/** The type of compuatation stage for PAKE operations. */
+typedef struct psa_pake_computation_stage_s psa_pake_computation_stage_t;
+
+/** The type of compuatation stage for J-PAKE operations. */
+typedef struct psa_jpake_computation_stage_s psa_jpake_computation_stage_t;
+
 /** Return an initial value for a PAKE operation object.
  */
 static psa_pake_operation_t psa_pake_operation_init(void);
@@ -1832,7 +1838,8 @@ psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
 /** Returns a suitable initializer for a PAKE operation object of type
  * psa_pake_operation_t.
  */
-#define PSA_PAKE_OPERATION_INIT { 0, PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS, { 0 } }
+#define PSA_PAKE_OPERATION_INIT { 0, PSA_ALG_NONE, PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS, \
+                                  { { 0 } }, { 0 } }
 
 struct psa_pake_cipher_suite_s {
     psa_algorithm_t algorithm;
@@ -1904,12 +1911,53 @@ static inline void psa_pake_cs_set_hash(psa_pake_cipher_suite_t *cipher_suite,
 }
 
 struct psa_crypto_driver_pake_inputs_s {
-    psa_algorithm_t MBEDTLS_PRIVATE(alg);
     uint8_t *MBEDTLS_PRIVATE(password);
     size_t MBEDTLS_PRIVATE(password_len);
     psa_pake_role_t MBEDTLS_PRIVATE(role);
     psa_key_lifetime_t MBEDTLS_PRIVATE(key_lifetime);
     psa_pake_cipher_suite_t MBEDTLS_PRIVATE(cipher_suite);
+};
+
+enum psa_jpake_step {
+    PSA_PAKE_STEP_INVALID       = 0,
+    PSA_PAKE_STEP_X1_X2         = 1,
+    PSA_PAKE_STEP_X2S           = 2,
+    PSA_PAKE_STEP_DERIVE        = 3,
+};
+
+enum psa_jpake_state {
+    PSA_PAKE_STATE_INVALID      = 0,
+    PSA_PAKE_STATE_SETUP        = 1,
+    PSA_PAKE_STATE_READY        = 2,
+    PSA_PAKE_OUTPUT_X1_X2       = 3,
+    PSA_PAKE_OUTPUT_X2S         = 4,
+    PSA_PAKE_INPUT_X1_X2        = 5,
+    PSA_PAKE_INPUT_X4S          = 6,
+};
+
+enum psa_jpake_sequence {
+    PSA_PAKE_SEQ_INVALID        = 0,
+    PSA_PAKE_X1_STEP_KEY_SHARE  = 1,    /* also X2S & X4S KEY_SHARE */
+    PSA_PAKE_X1_STEP_ZK_PUBLIC  = 2,    /* also X2S & X4S ZK_PUBLIC */
+    PSA_PAKE_X1_STEP_ZK_PROOF   = 3,    /* also X2S & X4S ZK_PROOF */
+    PSA_PAKE_X2_STEP_KEY_SHARE  = 4,
+    PSA_PAKE_X2_STEP_ZK_PUBLIC  = 5,
+    PSA_PAKE_X2_STEP_ZK_PROOF   = 6,
+    PSA_PAKE_SEQ_END            = 7,
+};
+
+struct psa_jpake_computation_stage_s {
+    unsigned int MBEDTLS_PRIVATE(state);
+    unsigned int MBEDTLS_PRIVATE(sequence);
+    unsigned int MBEDTLS_PRIVATE(input_step);
+    unsigned int MBEDTLS_PRIVATE(output_step);
+};
+
+struct psa_pake_computation_stage_s {
+    union {
+        unsigned dummy;
+        psa_jpake_computation_stage_t MBEDTLS_PRIVATE(jpake_computation_stage);
+    } MBEDTLS_PRIVATE(data);
 };
 
 struct psa_pake_operation_s {
@@ -1920,10 +1968,14 @@ struct psa_pake_operation_s {
      * ID value zero means the context is not valid or not assigned to
      * any driver (i.e. none of the driver contexts are active). */
     unsigned int MBEDTLS_PRIVATE(id);
+    /* Algorithm used for PAKE operation */
+    psa_algorithm_t MBEDTLS_PRIVATE(alg);
     /* Based on stage (collecting inputs/computation) we select active structure of data union.
      * While switching stage (when driver setup is called) collected inputs
        are copied to the corresponding operation context. */
     uint8_t MBEDTLS_PRIVATE(stage);
+    /* Holds computation stage of the PAKE algorithms. */
+    psa_pake_computation_stage_t MBEDTLS_PRIVATE(computation_stage);
     union {
         unsigned dummy;
         psa_crypto_driver_pake_inputs_t MBEDTLS_PRIVATE(inputs);

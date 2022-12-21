@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterator, List, Optional, Union
+from typing import Iterator, List
 
 from . import test_case
 from . import test_data_generation
@@ -139,7 +139,7 @@ class BignumModRawConvertRep(bignum_common.ModOperationCommon,
             test_object.set_representation(rep)
             #Filters out the duplicate
             if rep == bignum_common.ModulusRepresentation.OPT_RED:
-                test_object.dependencies= []
+                test_object.dependencies = []
                 if bil == 64:
                     continue
             if test_object.is_valid:

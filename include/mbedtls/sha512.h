@@ -195,6 +195,7 @@ int mbedtls_sha512( const unsigned char *input,
 
 #if defined(MBEDTLS_SELF_TEST)
 
+#if defined(MBEDTLS_SHA384_C)
  /**
  * \brief          The SHA-384 checkup routine.
  *
@@ -202,7 +203,9 @@ int mbedtls_sha512( const unsigned char *input,
  * \return         \c 1 on failure.
  */
 int mbedtls_sha384_self_test( int verbose );
+#endif /* MBEDTLS_SHA384_C */
 
+#if defined(MBEDTLS_SHA512_C)
  /**
  * \brief          The SHA-512 checkup routine.
  *
@@ -210,6 +213,8 @@ int mbedtls_sha384_self_test( int verbose );
  * \return         \c 1 on failure.
  */
 int mbedtls_sha512_self_test( int verbose );
+#endif /* MBEDTLS_SHA512_C */
+
 #endif /* MBEDTLS_SELF_TEST */
 
 #ifdef __cplusplus

@@ -47,16 +47,64 @@
 
 #include <string.h>
 
+/*
+ * Define MBEDTLS_EFFICIENT_UNALIGNED_ACCESS for architectures where unaligned memory
+ * accesses are known to be safe and efficient.
+ *
+ * This is needed because mbedtls_get_unaligned_uintXX etc don't support volatile
+ * memory accesses.
+ *
+ * This macro could be moved into alignment.h but for now it's only used here.
+ */
+#if defined(__ARM_FEATURE_UNALIGNED)
+/* __ARM_FEATURE_UNALIGNED is defined by armcc, gcc 7, clang 9 and later versions. */
+#define MBEDTLS_EFFICIENT_UNALIGNED_ACCESS
+#endif
+
+#if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS) && defined(MBEDTLS_HAVE_ASM)
+static inline uint32_t mbedtls_get_unaligned_volatile_uint32(volatile const unsigned char *p)
+{
+    /* This is UB, even where it's safe:
+     *    return *((volatile uint32_t*)p);
+     * so instead the same thing is expressed in assembly below.
+     */
+    uint32_t r;
+#if defined(__arm__) || defined(__thumb__) || defined(__thumb2__)
+    asm ("ldr %0, [%1]" : "=r" (r) : "r" (p) :);
+    return r;
+#endif
+#if defined(__aarch64__)
+    asm ("ldr %w0, [%1]" : "=r" (r) : "r" (p) :);
+    return r;
+#endif
+
+    /* Always safe, but inefficient, fall-back */
+    if (MBEDTLS_IS_BIG_ENDIAN) {
+        return (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];
+    } else {
+        return p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24);
+    }
+}
+#endif /* MBEDTLS_EFFICIENT_UNALIGNED_ACCESS */
+
 int mbedtls_ct_memcmp(const void *a,
                       const void *b,
                       size_t n)
 {
-    size_t i;
+    size_t i = 0;
     volatile const unsigned char *A = (volatile const unsigned char *) a;
     volatile const unsigned char *B = (volatile const unsigned char *) b;
-    volatile unsigned char diff = 0;
+    volatile uint32_t diff = 0;
 
-    for (i = 0; i < n; i++) {
+#if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)
+    for (; (i + 4) <= n; i += 4) {
+        uint32_t x = mbedtls_get_unaligned_volatile_uint32(A + i);
+        uint32_t y = mbedtls_get_unaligned_volatile_uint32(B + i);
+        diff |= x ^ y;
+    }
+#endif
+
+    for (; i < n; i++) {
         /* Read volatile data in order before computing diff.
          * This avoids IAR compiler warning:
          * 'the order of volatile accesses is undefined ..' */
@@ -414,10 +462,22 @@ void mbedtls_ct_memcpy_if_eq(unsigned char *dest,
 {
     /* mask = c1 == c2 ? 0xff : 0x00 */
     const size_t equal = mbedtls_ct_size_bool_eq(c1, c2);
-    const unsigned char mask = (unsigned char) mbedtls_ct_size_mask(equal);
 
     /* dest[i] = c1 == c2 ? src[i] : dest[i] */
-    for (size_t i = 0; i < len; i++) {
+    size_t i = 0;
+#if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)
+    const uint32_t mask32 = (uint32_t) mbedtls_ct_size_mask(equal);
+    const unsigned char mask = (unsigned char) mask32 & 0xff;
+
+    for (; (i + 4) <= len; i += 4) {
+        uint32_t a = mbedtls_get_unaligned_uint32(src  + i) &  mask32;
+        uint32_t b = mbedtls_get_unaligned_uint32(dest + i) & ~mask32;
+        mbedtls_put_unaligned_uint32(dest + i, a | b);
+    }
+#else
+    const unsigned char mask = (unsigned char) mbedtls_ct_size_mask(equal);
+#endif /* MBEDTLS_EFFICIENT_UNALIGNED_ACCESS */
+    for (; i < len; i++) {
         dest[i] = (src[i] & mask) | (dest[i] & ~mask);
     }
 }

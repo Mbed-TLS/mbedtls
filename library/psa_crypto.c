@@ -898,7 +898,7 @@ static psa_status_t psa_get_and_lock_key_slot_with_policy(
     psa_algorithm_t alg)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_slot_t *slot;
+    psa_key_slot_t *slot = NULL;
 
     status = psa_get_and_lock_key_slot(key, p_slot);
     if (status != PSA_SUCCESS) {
@@ -7180,9 +7180,6 @@ psa_status_t psa_pake_setup(
     psa_pake_operation_t *operation,
     const psa_pake_cipher_suite_t *cipher_suite)
 {
-    psa_jpake_computation_stage_t *computation_stage =
-        &operation->computation_stage.data.jpake_computation_stage;
-
     if (operation->stage != PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS) {
         return PSA_ERROR_BAD_STATE;
     }
@@ -7205,6 +7202,9 @@ psa_status_t psa_pake_setup(
     operation->data.inputs.cipher_suite = *cipher_suite;
 
     if (operation->alg == PSA_ALG_JPAKE) {
+        psa_jpake_computation_stage_t *computation_stage =
+            &operation->computation_stage.data.jpake_computation_stage;
+
         computation_stage->state = PSA_PAKE_STATE_SETUP;
         computation_stage->sequence = PSA_PAKE_SEQ_INVALID;
         computation_stage->input_step = PSA_PAKE_STEP_X1_X2;
@@ -7260,7 +7260,6 @@ psa_status_t psa_pake_set_password_key(
     operation->data.inputs.key_lifetime = attributes.core.lifetime;
 error:
     unlock_status = psa_unlock_key_slot(slot);
-
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
 
@@ -7603,7 +7602,6 @@ static psa_status_t psa_jpake_input_prologue(
     return PSA_SUCCESS;
 }
 
-
 static psa_status_t psa_jpake_input_epilogue(
     psa_pake_operation_t *operation)
 {
@@ -7623,7 +7621,6 @@ static psa_status_t psa_jpake_input_epilogue(
 
     return PSA_SUCCESS;
 }
-
 
 psa_status_t psa_pake_input(
     psa_pake_operation_t *operation,
@@ -7733,27 +7730,38 @@ psa_status_t psa_pake_get_implicit_key(
 psa_status_t psa_pake_abort(
     psa_pake_operation_t *operation)
 {
-    psa_jpake_computation_stage_t *computation_stage =
-        &operation->computation_stage.data.jpake_computation_stage;
+    psa_status_t status = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    /* If we are in collecting inputs stage clear inputs. */
-    if (operation->stage == PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS) {
-        if (operation->data.inputs.password_len > 0) {
-            mbedtls_platform_zeroize(operation->data.inputs.password,
-                                     operation->data.inputs.password_len);
-            mbedtls_free(operation->data.inputs.password);
+    if (operation->id != 0) {
+        status = psa_driver_wrapper_pake_abort(operation);
+        if (status != PSA_SUCCESS) {
+            return status;
         }
-        memset(&operation->data.inputs, 0, sizeof(psa_crypto_driver_pake_inputs_t));
-        return PSA_SUCCESS;
     }
+
+    if (operation->data.inputs.password_len > 0) {
+        mbedtls_platform_zeroize(operation->data.inputs.password,
+                                 operation->data.inputs.password_len);
+        mbedtls_free(operation->data.inputs.password);
+    }
+
+    memset(&operation->data, 0, sizeof(operation->data));
+
     if (operation->alg == PSA_ALG_JPAKE) {
+        psa_jpake_computation_stage_t *computation_stage =
+            &operation->computation_stage.data.jpake_computation_stage;
+
         computation_stage->input_step = PSA_PAKE_STEP_INVALID;
         computation_stage->output_step = PSA_PAKE_STEP_INVALID;
         computation_stage->state = PSA_PAKE_STATE_INVALID;
         computation_stage->sequence = PSA_PAKE_SEQ_INVALID;
     }
 
-    return psa_driver_wrapper_pake_abort(operation);
+    operation->alg = PSA_ALG_NONE;
+    operation->stage = PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS;
+    operation->id = 0;
+
+    return PSA_SUCCESS;
 }
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

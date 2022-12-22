@@ -2524,7 +2524,7 @@ component_test_psa_crypto_config_accel_pake () {
 }
 
 component_test_psa_crypto_config_accel_pake_no_fallback () {
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated PAKE"
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated PAKE - no fallback"
 
     # Start with full
     scripts/config.py full
@@ -2550,7 +2550,7 @@ component_test_psa_crypto_config_accel_pake_no_fallback () {
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
     make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
 
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated PAKE"
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated PAKE - no fallback"
     make test
 }
 

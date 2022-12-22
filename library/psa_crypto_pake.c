@@ -274,11 +274,7 @@ static psa_status_t mbedtls_psa_pake_output_internal(
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t length;
-    (void) step;
-
-    if (operation->alg == PSA_ALG_NONE) {
-        return PSA_ERROR_BAD_STATE;
-    }
+    (void) step; // Unused parameter
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     /*
@@ -412,10 +408,7 @@ static psa_status_t mbedtls_psa_pake_input_internal(
     size_t input_length)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    (void) step;
-    if (operation->alg == PSA_ALG_NONE) {
-        return PSA_ERROR_BAD_STATE;
-    }
+    (void) step; // Unused parameter
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     /*
@@ -528,10 +521,6 @@ psa_status_t mbedtls_psa_pake_get_implicit_key(
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    if (operation->alg == PSA_ALG_NONE) {
-        return PSA_ERROR_BAD_STATE;
-    }
-
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     if (operation->alg == PSA_ALG_JPAKE) {
         ret = mbedtls_ecjpake_write_shared_key(&operation->ctx.pake,
@@ -562,10 +551,6 @@ psa_status_t mbedtls_psa_pake_get_implicit_key(
 
 psa_status_t mbedtls_psa_pake_abort(mbedtls_psa_pake_operation_t *operation)
 {
-    if (operation->alg == PSA_ALG_NONE) {
-        return PSA_SUCCESS;
-    }
-
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
 
     if (operation->alg == PSA_ALG_JPAKE) {

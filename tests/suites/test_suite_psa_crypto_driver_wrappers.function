@@ -3248,7 +3248,7 @@ void ecjpake_rounds(int alg_arg, int primitive_arg, int hash_arg,
     ecjpake_do_round(alg, primitive_arg, &server, &client,
                      client_input_first, 2);
 
-    /* After get the key is obtained operation is aborted.
+    /* After the key is obtained operation is aborted.
        Adapt counter of expected hits. */
     if (pake_in_driver) {
         pake_expected_hit_count++;
@@ -3258,7 +3258,7 @@ void ecjpake_rounds(int alg_arg, int primitive_arg, int hash_arg,
     TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits,
                pake_in_driver ? pake_expected_hit_count++ : pake_expected_hit_count);
 
-    /* After get the key is obtained operation is aborted.
+    /* After the key is obtained operation is aborted.
        Adapt counter of expected hits. */
     if (pake_in_driver) {
         pake_expected_hit_count++;

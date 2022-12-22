@@ -230,8 +230,14 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
 
         mbedtls_ecjpake_init(&operation->ctx.pake);
 
+        operation->password = mbedtls_calloc(1, password_len);
+        if (operation->password == NULL) {
+            status = PSA_ERROR_INSUFFICIENT_MEMORY;
+            goto error;
+        }
+
+        memcpy(operation->password, password, password_len);
         operation->password_len = password_len;
-        operation->password = password;
         operation->role = role;
         operation->alg = cipher_suite.algorithm;
 
@@ -254,7 +260,6 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
     { status = PSA_ERROR_NOT_SUPPORTED; }
 
 error:
-    mbedtls_free(password);
     mbedtls_psa_pake_abort(operation);
     return status;
 }

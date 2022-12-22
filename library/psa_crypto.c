@@ -7333,6 +7333,44 @@ psa_status_t psa_pake_set_role(
     return PSA_SUCCESS;
 }
 
+static psa_status_t psa_pake_complete_inputs(
+    psa_pake_operation_t *operation)
+{
+    psa_jpake_computation_stage_t *computation_stage =
+        &operation->computation_stage.data.jpake_computation_stage;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    uint8_t *password = operation->data.inputs.password;
+    size_t password_len = operation->data.inputs.password_len;
+
+    if (operation->alg == PSA_ALG_NONE ||
+        operation->data.inputs.password_len == 0 ||
+        operation->data.inputs.role == PSA_PAKE_ROLE_NONE) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    status = psa_driver_wrapper_pake_setup(operation,
+                                           &operation->data.inputs);
+
+    /* Driver is responsible for creating its own copy of the password. */
+    mbedtls_platform_zeroize(password, password_len);
+    mbedtls_free(password);
+
+    if (status == PSA_SUCCESS) {
+        operation->stage = PSA_PAKE_OPERATION_STAGE_COMPUTATION;
+        if (operation->alg == PSA_ALG_JPAKE) {
+            computation_stage->state = PSA_PAKE_STATE_READY;
+            computation_stage->sequence = PSA_PAKE_SEQ_INVALID;
+            computation_stage->input_step = PSA_PAKE_STEP_X1_X2;
+            computation_stage->output_step = PSA_PAKE_STEP_X1_X2;
+        }
+    } else {
+        operation->data.inputs.password_len = 0;
+        operation->data.inputs.password = NULL;
+    }
+
+    return status;
+}
+
 static psa_status_t psa_jpake_output_prologue(
     psa_pake_operation_t *operation,
     psa_pake_step_t step)
@@ -7433,28 +7471,10 @@ psa_status_t psa_pake_output(
     size_t *output_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_jpake_computation_stage_t *computation_stage =
-        &operation->computation_stage.data.jpake_computation_stage;
 
     if (operation->stage == PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS) {
-        if (operation->alg == PSA_ALG_NONE ||
-            operation->data.inputs.password_len == 0 ||
-            operation->data.inputs.role == PSA_PAKE_ROLE_NONE) {
-            return PSA_ERROR_BAD_STATE;
-        }
-
-        status = psa_driver_wrapper_pake_setup(operation,
-                                               &operation->data.inputs);
-
-        if (status == PSA_SUCCESS) {
-            operation->stage = PSA_PAKE_OPERATION_STAGE_COMPUTATION;
-            if (operation->alg == PSA_ALG_JPAKE) {
-                computation_stage->state = PSA_PAKE_STATE_READY;
-                computation_stage->sequence = PSA_PAKE_SEQ_INVALID;
-                computation_stage->input_step = PSA_PAKE_STEP_X1_X2;
-                computation_stage->output_step = PSA_PAKE_STEP_X1_X2;
-            }
-        } else {
+        status = psa_pake_complete_inputs(operation);
+        if (status != PSA_SUCCESS) {
             return status;
         }
     }
@@ -7612,28 +7632,10 @@ psa_status_t psa_pake_input(
     size_t input_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_jpake_computation_stage_t *computation_stage =
-        &operation->computation_stage.data.jpake_computation_stage;
 
     if (operation->stage == PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS) {
-        if (operation->alg == PSA_ALG_NONE ||
-            operation->data.inputs.password_len == 0 ||
-            operation->data.inputs.role == PSA_PAKE_ROLE_NONE) {
-            return PSA_ERROR_BAD_STATE;
-        }
-
-        status = psa_driver_wrapper_pake_setup(operation,
-                                               &operation->data.inputs);
-
-        if (status == PSA_SUCCESS) {
-            operation->stage = PSA_PAKE_OPERATION_STAGE_COMPUTATION;
-            if (operation->alg == PSA_ALG_JPAKE) {
-                computation_stage->state = PSA_PAKE_STATE_READY;
-                computation_stage->sequence = PSA_PAKE_SEQ_INVALID;
-                computation_stage->input_step = PSA_PAKE_STEP_X1_X2;
-                computation_stage->output_step = PSA_PAKE_STEP_X1_X2;
-            }
-        } else {
+        status = psa_pake_complete_inputs(operation);
+        if (status != PSA_SUCCESS) {
             return status;
         }
     }
@@ -7736,7 +7738,11 @@ psa_status_t psa_pake_abort(
 
     /* If we are in collecting inputs stage clear inputs. */
     if (operation->stage == PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS) {
-        mbedtls_free(operation->data.inputs.password);
+        if (operation->data.inputs.password_len > 0) {
+            mbedtls_platform_zeroize(operation->data.inputs.password,
+                                     operation->data.inputs.password_len);
+            mbedtls_free(operation->data.inputs.password);
+        }
         memset(&operation->data.inputs, 0, sizeof(psa_crypto_driver_pake_inputs_t));
         return PSA_SUCCESS;
     }

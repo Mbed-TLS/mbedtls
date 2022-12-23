@@ -2514,6 +2514,7 @@ psa_status_t mbedtls_ssl_cipher_to_psa(mbedtls_cipher_type_t mbedtls_cipher_type
                                        psa_key_type_t *key_type,
                                        size_t *key_size);
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**
  * \brief       Convert given PSA status to mbedtls error code.
  *
@@ -2521,7 +2522,7 @@ psa_status_t mbedtls_ssl_cipher_to_psa(mbedtls_cipher_type_t mbedtls_cipher_type
  *
  * \return             corresponding mbedtls error code
  */
-static inline int psa_ssl_status_to_mbedtls(psa_status_t status)
+static inline MBEDTLS_DEPRECATED int psa_ssl_status_to_mbedtls(psa_status_t status)
 {
     switch (status) {
         case PSA_SUCCESS:
@@ -2542,6 +2543,7 @@ static inline int psa_ssl_status_to_mbedtls(psa_status_t status)
             return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
 }
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) && \

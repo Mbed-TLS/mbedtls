@@ -36,6 +36,13 @@
 #include "ssl_tls13_keys.h"
 #include "ssl_debug_helpers.h"
 
+#include "psa/crypto.h"
+#include "mbedtls/psa_util.h"
+
+#define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
+                                                           psa_to_ssl_errors,             \
+                                                           psa_generic_status_to_mbedtls)
+
 const uint8_t mbedtls_ssl_tls13_hello_retry_request_magic[
     MBEDTLS_SERVER_HELLO_RANDOM_LEN] =
 { 0xCF, 0x21, 0xAD, 0x74, 0xE5, 0x9A, 0x61, 0x11,
@@ -1016,7 +1023,7 @@ static int ssl_tls13_write_certificate_verify_body(mbedtls_ssl_context *ssl,
                                   verify_hash, sizeof(verify_hash),
                                   &verify_hash_len);
         if (status != PSA_SUCCESS) {
-            return psa_ssl_status_to_mbedtls(status);
+            return PSA_TO_MBEDTLS_ERR(status);
         }
 
         MBEDTLS_SSL_DEBUG_BUF(3, "verify hash", verify_hash, verify_hash_len);
@@ -1482,7 +1489,7 @@ int mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
     status = psa_generate_key(&key_attributes,
                               &handshake->ecdh_psa_privkey);
     if (status != PSA_SUCCESS) {
-        ret = psa_ssl_status_to_mbedtls(status);
+        ret = PSA_TO_MBEDTLS_ERR(status);
         MBEDTLS_SSL_DEBUG_RET(1, "psa_generate_key", ret);
         return ret;
 
@@ -1493,7 +1500,7 @@ int mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
                                    buf, (size_t) (end - buf),
                                    &own_pubkey_len);
     if (status != PSA_SUCCESS) {
-        ret = psa_ssl_status_to_mbedtls(status);
+        ret = PSA_TO_MBEDTLS_ERR(status);
         MBEDTLS_SSL_DEBUG_RET(1, "psa_export_public_key", ret);
         return ret;
 

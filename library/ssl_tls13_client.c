@@ -34,6 +34,10 @@
 #include "ssl_tls13_keys.h"
 #include "ssl_debug_helpers.h"
 
+#define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
+                                                           psa_to_ssl_errors,             \
+                                                           psa_generic_status_to_mbedtls)
+
 /* Write extensions */
 
 /*
@@ -188,7 +192,7 @@ static int ssl_tls13_reset_key_share(mbedtls_ssl_context *ssl)
         /* Destroy generated private key. */
         status = psa_destroy_key(ssl->handshake->ecdh_psa_privkey);
         if (status != PSA_SUCCESS) {
-            ret = psa_ssl_status_to_mbedtls(status);
+            ret = PSA_TO_MBEDTLS_ERR(status);
             MBEDTLS_SSL_DEBUG_RET(1, "psa_destroy_key", ret);
             return ret;
         }

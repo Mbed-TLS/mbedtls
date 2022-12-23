@@ -52,6 +52,12 @@
 #include "mbedtls/oid.h"
 #endif
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status, \
+                                                           psa_to_ssl_errors, \
+                                                           psa_generic_status_to_mbedtls)
+#endif
+
 #if defined(MBEDTLS_TEST_HOOKS)
 static mbedtls_ssl_chk_buf_ptr_args chk_buf_ptr_fail_args;
 
@@ -5759,7 +5765,7 @@ exit:
     !defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
     (void) ssl;
 #endif
-    return psa_ssl_status_to_mbedtls(status);
+    return PSA_TO_MBEDTLS_ERR(status);
 }
 #else /* MBEDTLS_USE_PSA_CRYPTO */
 
@@ -8230,7 +8236,7 @@ static int ssl_tls12_populate_transform(mbedtls_ssl_transform *transform,
                                             &alg,
                                             &key_type,
                                             &key_bits)) != PSA_SUCCESS) {
-        ret = psa_ssl_status_to_mbedtls(status);
+        ret = PSA_TO_MBEDTLS_ERR(status);
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_cipher_to_psa", ret);
         goto end;
     }
@@ -8478,7 +8484,7 @@ static int ssl_tls12_populate_transform(mbedtls_ssl_transform *transform,
                                      PSA_BITS_TO_BYTES(key_bits),
                                      &transform->psa_key_enc)) != PSA_SUCCESS) {
             MBEDTLS_SSL_DEBUG_RET(3, "psa_import_key", (int) status);
-            ret = psa_ssl_status_to_mbedtls(status);
+            ret = PSA_TO_MBEDTLS_ERR(status);
             MBEDTLS_SSL_DEBUG_RET(1, "psa_import_key", ret);
             goto end;
         }
@@ -8489,7 +8495,7 @@ static int ssl_tls12_populate_transform(mbedtls_ssl_transform *transform,
                                      key2,
                                      PSA_BITS_TO_BYTES(key_bits),
                                      &transform->psa_key_dec)) != PSA_SUCCESS) {
-            ret = psa_ssl_status_to_mbedtls(status);
+            ret = PSA_TO_MBEDTLS_ERR(status);
             MBEDTLS_SSL_DEBUG_RET(1, "psa_import_key", ret);
             goto end;
         }
@@ -8552,7 +8558,7 @@ static int ssl_tls12_populate_transform(mbedtls_ssl_transform *transform,
         if ((status = psa_import_key(&attributes,
                                      mac_enc, mac_key_len,
                                      &transform->psa_mac_enc)) != PSA_SUCCESS) {
-            ret = psa_ssl_status_to_mbedtls(status);
+            ret = PSA_TO_MBEDTLS_ERR(status);
             MBEDTLS_SSL_DEBUG_RET(1, "psa_import_mac_key", ret);
             goto end;
         }
@@ -8573,7 +8579,7 @@ static int ssl_tls12_populate_transform(mbedtls_ssl_transform *transform,
         if ((status = psa_import_key(&attributes,
                                      mac_dec, mac_key_len,
                                      &transform->psa_mac_dec)) != PSA_SUCCESS) {
-            ret = psa_ssl_status_to_mbedtls(status);
+            ret = PSA_TO_MBEDTLS_ERR(status);
             MBEDTLS_SSL_DEBUG_RET(1, "psa_import_mac_key", ret);
             goto end;
         }
@@ -8628,7 +8634,7 @@ int mbedtls_psa_ecjpake_read_round(
             status = psa_pake_input(pake_ctx, step,
                                     buf + input_offset, length);
             if (status != PSA_SUCCESS) {
-                return psa_ssl_status_to_mbedtls(status);
+                return PSA_TO_MBEDTLS_ERR(status);
             }
 
             input_offset += length;
@@ -8670,7 +8676,7 @@ int mbedtls_psa_ecjpake_write_round(
                                      len - output_offset - 1,
                                      &output_len);
             if (status != PSA_SUCCESS) {
-                return psa_ssl_status_to_mbedtls(status);
+                return PSA_TO_MBEDTLS_ERR(status);
             }
 
             *(buf + output_offset) = (uint8_t) output_len;

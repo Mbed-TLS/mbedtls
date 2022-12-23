@@ -18,6 +18,12 @@
 #include <constant_time_internal.h>
 #include <test/constant_flow.h>
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status, \
+                                                           psa_to_ssl_errors, \
+                                                           psa_generic_status_to_mbedtls)
+#endif
+
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) || \
     defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
@@ -1299,27 +1305,27 @@ static int psa_cipher_encrypt_helper(mbedtls_ssl_transform *transform,
                                       transform->psa_key_enc, transform->psa_alg);
 
     if (status != PSA_SUCCESS) {
-        return psa_ssl_status_to_mbedtls(status);
+        return PSA_TO_MBEDTLS_ERR(status);
     }
 
     status = psa_cipher_set_iv(&cipher_op, iv, iv_len);
 
     if (status != PSA_SUCCESS) {
-        return psa_ssl_status_to_mbedtls(status);
+        return PSA_TO_MBEDTLS_ERR(status);
     }
 
     status = psa_cipher_update(&cipher_op,
                                input, ilen, output, ilen, olen);
 
     if (status != PSA_SUCCESS) {
-        return psa_ssl_status_to_mbedtls(status);
+        return PSA_TO_MBEDTLS_ERR(status);
     }
 
     status = psa_cipher_finish(&cipher_op,
                                output + *olen, ilen - *olen, &part_len);
 
     if (status != PSA_SUCCESS) {
-        return psa_ssl_status_to_mbedtls(status);
+        return PSA_TO_MBEDTLS_ERR(status);
     }
 
     *olen += part_len;
@@ -1614,7 +1620,7 @@ static int build_transforms(mbedtls_ssl_transform *t_in,
                                        &key_bits);
 
     if (status != PSA_SUCCESS) {
-        ret = psa_ssl_status_to_mbedtls(status);
+        ret = PSA_TO_MBEDTLS_ERR(status);
         goto cleanup;
     }
 
@@ -1633,7 +1639,7 @@ static int build_transforms(mbedtls_ssl_transform *t_in,
                                 &t_in->psa_key_enc);
 
         if (status != PSA_SUCCESS) {
-            ret = psa_ssl_status_to_mbedtls(status);
+            ret = PSA_TO_MBEDTLS_ERR(status);
             goto cleanup;
         }
 
@@ -1643,7 +1649,7 @@ static int build_transforms(mbedtls_ssl_transform *t_in,
                                 &t_out->psa_key_enc);
 
         if (status != PSA_SUCCESS) {
-            ret = psa_ssl_status_to_mbedtls(status);
+            ret = PSA_TO_MBEDTLS_ERR(status);
             goto cleanup;
         }
 
@@ -1655,7 +1661,7 @@ static int build_transforms(mbedtls_ssl_transform *t_in,
                                 &t_in->psa_key_dec);
 
         if (status != PSA_SUCCESS) {
-            ret = psa_ssl_status_to_mbedtls(status);
+            ret = PSA_TO_MBEDTLS_ERR(status);
             goto cleanup;
         }
 
@@ -1665,7 +1671,7 @@ static int build_transforms(mbedtls_ssl_transform *t_in,
                                 &t_out->psa_key_dec);
 
         if (status != PSA_SUCCESS) {
-            ret = psa_ssl_status_to_mbedtls(status);
+            ret = PSA_TO_MBEDTLS_ERR(status);
             goto cleanup;
         }
     }
@@ -1735,7 +1741,7 @@ static int ssl_tls12_populate_session(mbedtls_ssl_session *session,
                                                session->peer_cert_digest,
                                                MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN,
                                                &hash_size);
-        ret = psa_ssl_status_to_mbedtls(status);
+        ret = PSA_TO_MBEDTLS_ERR(status);
 #else
         ret = mbedtls_md(mbedtls_md_info_from_type(
                              MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE),

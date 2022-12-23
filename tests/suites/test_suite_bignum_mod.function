@@ -2,6 +2,7 @@
 #include "mbedtls/bignum.h"
 #include "mbedtls/entropy.h"
 #include "bignum_mod.h"
+#include "bignum_mod_raw.h"
 #include "constant_time_internal.h"
 #include "test/constant_flow.h"
 
@@ -101,6 +102,145 @@ exit:
 /* END MERGE SLOT 1 */
 
 /* BEGIN MERGE SLOT 2 */
+
+/* BEGIN_CASE */
+void mpi_mod_mul( char * input_A,
+                  char * input_B,
+                  char * input_N,
+                  char * result )
+{
+    mbedtls_mpi_uint *X = NULL;
+
+    mbedtls_mpi_mod_residue rA = { NULL, 0 };
+    mbedtls_mpi_mod_residue rB = { NULL, 0 };
+    mbedtls_mpi_mod_residue rR = { NULL, 0 };
+    mbedtls_mpi_mod_residue rX = { NULL, 0 };
+
+    mbedtls_mpi_mod_modulus m;
+    mbedtls_mpi_mod_modulus_init( &m );
+
+    TEST_EQUAL( test_read_modulus( &m, MBEDTLS_MPI_MOD_REP_MONTGOMERY, input_N ),
+                0 );
+
+    TEST_EQUAL( test_read_residue( &rA, &m, input_A, 0 ), 0 );
+    TEST_EQUAL( test_read_residue( &rB, &m, input_B, 0 ), 0 );
+    TEST_EQUAL( test_read_residue( &rR, &m, result,  0 ), 0 );
+
+    const size_t limbs = m.limbs;
+    const size_t bytes = limbs * sizeof( mbedtls_mpi_uint );
+
+    TEST_EQUAL( rA.limbs, limbs );
+    TEST_EQUAL( rB.limbs, limbs );
+    TEST_EQUAL( rR.limbs, limbs );
+
+    ASSERT_ALLOC( X, limbs );
+
+    TEST_EQUAL( mbedtls_mpi_mod_residue_setup( &rX, &m, X, limbs ), 0 );
+
+    TEST_EQUAL( mbedtls_mpi_mod_mul( &rX, &rA, &rB, &m ), 0 );
+    ASSERT_COMPARE( rX.p, bytes, rR.p, bytes );
+
+    /* alias X to A */
+    memcpy( rX.p, rA.p, bytes );
+    TEST_EQUAL( mbedtls_mpi_mod_mul( &rX, &rX, &rB, &m ), 0 );
+    ASSERT_COMPARE( rX.p, bytes, rR.p, bytes );
+
+    /* alias X to B */
+    memcpy( rX.p, rB.p, bytes );
+    TEST_EQUAL( mbedtls_mpi_mod_mul( &rX, &rA, &rX, &m ), 0);
+    ASSERT_COMPARE( rX.p, bytes, rR.p, bytes );
+
+    /* A == B: alias A and B */
+    if( memcmp( rA.p, rB.p, bytes ) == 0 )
+    {
+        TEST_EQUAL( mbedtls_mpi_mod_mul( &rX, &rA, &rA, &m ), 0 );
+        ASSERT_COMPARE( rX.p, bytes, rR.p, bytes );
+
+        /* X, A, B all aliased together */
+        memcpy( rX.p, rA.p, bytes );
+        TEST_EQUAL( mbedtls_mpi_mod_mul( &rX, &rX, &rX, &m ), 0 );
+        ASSERT_COMPARE( rX.p, bytes, rR.p, bytes );
+    }
+
+    /* A != B: test B * A */
+    else
+    {
+        TEST_EQUAL( mbedtls_mpi_mod_mul( &rX, &rB, &rA, &m ), 0 );
+        ASSERT_COMPARE( rX.p, bytes, rR.p, bytes );
+
+        /* B * A: alias X to A */
+        memcpy( rX.p, rA.p, bytes );
+        TEST_EQUAL( mbedtls_mpi_mod_mul( &rX, &rB, &rX, &m ), 0 );
+        ASSERT_COMPARE( rX.p, bytes, rR.p, bytes );
+
+        /* B + A: alias X to B */
+        memcpy( rX.p, rB.p, bytes );
+        TEST_EQUAL( mbedtls_mpi_mod_mul( &rX, &rX, &rA, &m ), 0 );
+        ASSERT_COMPARE( rX.p, bytes, rR.p, bytes );
+    }
+
+exit:
+    mbedtls_free( rA.p );
+    mbedtls_free( rB.p );
+    mbedtls_free( rR.p );
+    mbedtls_free( X );
+    mbedtls_free( (mbedtls_mpi_uint *) m.p );
+
+    mbedtls_mpi_mod_modulus_free( &m );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_mod_mul_neg( char * input_A,
+                      char * input_B,
+                      char * input_N,
+                      char * result,
+                      int exp_ret )
+{
+    mbedtls_mpi_uint *X = NULL;
+
+    mbedtls_mpi_mod_residue rA = { NULL, 0 };
+    mbedtls_mpi_mod_residue rB = { NULL, 0 };
+    mbedtls_mpi_mod_residue rR = { NULL, 0 };
+    mbedtls_mpi_mod_residue rX = { NULL, 0 };
+
+    mbedtls_mpi_mod_modulus m;
+    mbedtls_mpi_mod_modulus_init( &m );
+
+    mbedtls_mpi_mod_modulus fake_m;
+    mbedtls_mpi_mod_modulus_init( &fake_m );
+
+    TEST_EQUAL( test_read_modulus( &m, MBEDTLS_MPI_MOD_REP_MONTGOMERY, input_N ),
+                0 );
+
+    TEST_EQUAL( test_read_residue( &rA, &m, input_A, 1 ), 0 );
+    TEST_EQUAL( test_read_residue( &rB, &m, input_B, 1 ), 0 );
+    TEST_EQUAL( test_read_residue( &rR, &m, result,  1 ), 0 );
+
+    const size_t limbs = m.limbs;
+
+    ASSERT_ALLOC( X, limbs );
+
+    TEST_EQUAL( mbedtls_mpi_mod_residue_setup( &rX, &m, X, limbs ), 0 );
+    rX.limbs = rR.limbs;
+
+    TEST_EQUAL( mbedtls_mpi_mod_mul( &rX, &rA, &rB, &m ), exp_ret );
+
+    /* Check when m is not initialized */
+    TEST_EQUAL( mbedtls_mpi_mod_mul( &rX, &rA, &rB, &fake_m ),
+                MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+
+exit:
+    mbedtls_free( rA.p );
+    mbedtls_free( rB.p );
+    mbedtls_free( rR.p );
+    mbedtls_free( X );
+    mbedtls_free( (mbedtls_mpi_uint *) m.p );
+
+    mbedtls_mpi_mod_modulus_free( &m );
+    mbedtls_mpi_mod_modulus_free( &fake_m );
+}
+/* END_CASE */
 
 /* END MERGE SLOT 2 */
 

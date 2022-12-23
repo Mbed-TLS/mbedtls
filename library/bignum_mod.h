@@ -230,6 +230,40 @@ void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m );
 
 /* BEGIN MERGE SLOT 2 */
 
+/** \brief  Multiply two residues, returning the residue modulo the specified
+ *          modulus.
+ *
+ * \note Currently handles the case when `N->int_rep` is
+ * MBEDTLS_MPI_MOD_REP_MONTGOMERY.
+ *
+ * The size of the operation is determined by \p N. \p A, \p B and \p X must
+ * all be associated with the modulus \p N and must all have the same number
+ * of limbs as \p N.
+ *
+ * \p X may be aliased to \p A or \p B, or even both, but may not overlap
+ * either otherwise. They may not alias \p N (since they must be in canonical
+ * form, they cannot == \p N).
+ *
+ * \param[out] X        The address of the result MPI. Must have the same
+ *                      number of limbs as \p N.
+ *                      On successful completion, \p X contains the result of
+ *                      the multiplication `A * B * R^-1` mod N where
+ *                      `R = 2^(biL * N->limbs)`.
+ * \param[in]  A        The address of the first MPI.
+ * \param[in]  B        The address of the second MPI.
+ * \param[in]  N        The address of the modulus. Used to perform a modulo
+ *                      operation on the result of the multiplication.
+ *
+ * \return      \c 0 if successful.
+ * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if all the parameters do not
+ *              have the same number of limbs or \p N is invalid.
+ * \return      #MBEDTLS_ERR_MPI_ALLOC_FAILED on memory-allocation failure.
+ */
+int mbedtls_mpi_mod_mul( mbedtls_mpi_mod_residue *X,
+                         const mbedtls_mpi_mod_residue *A,
+                         const mbedtls_mpi_mod_residue *B,
+                         const mbedtls_mpi_mod_modulus *N );
+
 /* END MERGE SLOT 2 */
 
 /* BEGIN MERGE SLOT 3 */

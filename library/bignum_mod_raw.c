@@ -186,6 +186,48 @@ void mbedtls_mpi_mod_raw_add( mbedtls_mpi_uint *X,
 
 /* BEGIN MERGE SLOT 6 */
 
+int mbedtls_mpi_mod_raw_canonical_to_modulus_rep(
+    mbedtls_mpi_uint *X,
+    const mbedtls_mpi_mod_modulus *N )
+{
+    switch( N->int_rep )
+    {
+        case MBEDTLS_MPI_MOD_REP_MONTGOMERY:
+            return( mbedtls_mpi_mod_raw_to_mont_rep( X, N ) );
+        case MBEDTLS_MPI_MOD_REP_OPT_RED:
+            return( 0 );
+        default:
+            return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+    }
+}
+
+int mbedtls_mpi_mod_raw_modulus_to_canonical_rep(
+    mbedtls_mpi_uint *X,
+    const mbedtls_mpi_mod_modulus *N )
+{
+    switch( N->int_rep )
+    {
+        case MBEDTLS_MPI_MOD_REP_MONTGOMERY:
+            return( mbedtls_mpi_mod_raw_from_mont_rep( X, N ) );
+        case MBEDTLS_MPI_MOD_REP_OPT_RED:
+            return( 0 );
+        default:
+            return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+    }
+}
+
+int mbedtls_mpi_mod_raw_random( mbedtls_mpi_uint *X,
+                                mbedtls_mpi_uint min,
+                                const mbedtls_mpi_mod_modulus *N,
+                                int (*f_rng)(void *, unsigned char *, size_t),
+                                void *p_rng )
+{
+    int ret = mbedtls_mpi_core_random( X, min, N->p, N->limbs, f_rng, p_rng );
+    if( ret != 0 )
+        return( ret );
+    return( mbedtls_mpi_mod_raw_canonical_to_modulus_rep( X, N ) );
+}
+
 /* END MERGE SLOT 6 */
 
 /* BEGIN MERGE SLOT 7 */

@@ -48,7 +48,7 @@ void mbedtls_test_platform_teardown( void )
 #endif /* MBEDTLS_PLATFORM_C */
 }
 
-static int ascii2uc(const char c, unsigned char *uc)
+int mbedtls_test_ascii2uc(const char c, unsigned char *uc)
 {
     if( ( c >= '0' ) && ( c <= '9' ) )
         *uc = c - '0';
@@ -207,10 +207,10 @@ int mbedtls_test_unhexify( unsigned char *obuf,
 
     while( *ibuf != 0 )
     {
-        if ( ascii2uc( *(ibuf++), &uc ) != 0 )
+        if ( mbedtls_test_ascii2uc( *(ibuf++), &uc ) != 0 )
             return( -1 );
 
-        if ( ascii2uc( *(ibuf++), &uc2 ) != 0 )
+        if ( mbedtls_test_ascii2uc( *(ibuf++), &uc2 ) != 0 )
             return( -1 );
 
         *(obuf++) = ( uc << 4 ) | uc2;
@@ -350,84 +350,3 @@ void mbedtls_test_err_add_check( int high, int low,
     }
 }
 #endif /* MBEDTLS_TEST_HOOKS */
-
-#if defined(MBEDTLS_BIGNUM_C)
-#include "bignum_core.h"
-
-int mbedtls_test_read_mpi_core( mbedtls_mpi_uint **pX, size_t *plimbs,
-                                const char *input )
-{
-    /* Sanity check */
-    if( *pX != NULL )
-        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
-
-    size_t hex_len = strlen( input );
-    size_t byte_len = ( hex_len + 1 ) / 2;
-    *plimbs = CHARS_TO_LIMBS( byte_len );
-
-    /* A core bignum is not allowed to be empty. Forbid it as test data,
-     * this way static analyzers have a chance of knowing we don't expect
-     * the bignum functions to support empty inputs. */
-    if( *plimbs == 0 )
-        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
-
-    *pX = mbedtls_calloc( *plimbs, sizeof( **pX ) );
-    if( *pX == NULL )
-        return( MBEDTLS_ERR_MPI_ALLOC_FAILED );
-
-    unsigned char *byte_start = ( unsigned char * ) *pX;
-    if( byte_len % sizeof( mbedtls_mpi_uint ) != 0 )
-    {
-        byte_start += sizeof( mbedtls_mpi_uint ) - byte_len % sizeof( mbedtls_mpi_uint );
-    }
-    if( ( hex_len & 1 ) != 0 )
-    {
-        /* mbedtls_test_unhexify wants an even number of hex digits */
-        TEST_ASSERT( ascii2uc( *input, byte_start ) == 0 );
-        ++byte_start;
-        ++input;
-        --byte_len;
-    }
-    TEST_ASSERT( mbedtls_test_unhexify( byte_start,
-                                        byte_len,
-                                        input,
-                                        &byte_len ) == 0 );
-
-    mbedtls_mpi_core_bigendian_to_host( *pX, *plimbs );
-    return( 0 );
-
-exit:
-    mbedtls_free( *pX );
-    return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
-}
-
-int mbedtls_test_read_mpi( mbedtls_mpi *X, const char *s )
-{
-    int negative = 0;
-    /* Always set the sign bit to -1 if the input has a minus sign, even for 0.
-     * This creates an invalid representation, which mbedtls_mpi_read_string()
-     * avoids but we want to be able to create that in test data. */
-    if( s[0] == '-' )
-    {
-        ++s;
-        negative = 1;
-    }
-    /* mbedtls_mpi_read_string() currently retains leading zeros.
-     * It always allocates at least one limb for the value 0. */
-    if( s[0] == 0 )
-    {
-        mbedtls_mpi_free( X );
-        return( 0 );
-    }
-    int ret = mbedtls_mpi_read_string( X, 16, s );
-    if( ret != 0 )
-        return( ret );
-    if( negative )
-    {
-        if( mbedtls_mpi_cmp_int( X, 0 ) == 0 )
-            ++mbedtls_test_case_uses_negative_0;
-        X->s = -1;
-    }
-    return( 0 );
-}
-#endif

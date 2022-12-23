@@ -60,7 +60,6 @@ from abc import ABCMeta
 from typing import List
 
 import scripts_path # pylint: disable=unused-import
-from mbedtls_dev import test_case
 from mbedtls_dev import test_data_generation
 from mbedtls_dev import bignum_common
 # Import modules containing additional test classes

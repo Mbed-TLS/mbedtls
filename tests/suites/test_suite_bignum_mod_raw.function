@@ -619,7 +619,59 @@ exit:
 /* END MERGE SLOT 5 */
 
 /* BEGIN MERGE SLOT 6 */
+/* BEGIN_CASE */
+void mpi_mod_raw_canonical_to_modulus_rep( const char *input_N, int rep,
+                                           const char *input_A,
+                                           const char *input_X )
+{
+    mbedtls_mpi_mod_modulus N;
+    mbedtls_mpi_mod_modulus_init( &N );
+    mbedtls_mpi_uint *A = NULL;
+    size_t A_limbs = 0;;
+    mbedtls_mpi_uint *X = NULL;
+    size_t X_limbs = 0;
 
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_modulus( &N, input_N, rep ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &A, &A_limbs, input_A ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &X, &X_limbs, input_X ) );
+
+    TEST_EQUAL( 0, mbedtls_mpi_mod_raw_canonical_to_modulus_rep( A, &N ) );
+    ASSERT_COMPARE( A, A_limbs * sizeof( mbedtls_mpi_uint ),
+                    X, X_limbs * sizeof( mbedtls_mpi_uint ) );
+
+exit:
+    mbedtls_test_mpi_mod_modulus_free_with_limbs( &N );
+    mbedtls_free( A );
+    mbedtls_free( X );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_mod_raw_modulus_to_canonical_rep( const char *input_N, int rep,
+                                           const char *input_A,
+                                           const char *input_X )
+{
+    mbedtls_mpi_mod_modulus N;
+    mbedtls_mpi_mod_modulus_init( &N );
+    mbedtls_mpi_uint *A = NULL;
+    size_t A_limbs = 0;
+    mbedtls_mpi_uint *X = NULL;
+    size_t X_limbs = 0;
+
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_modulus( &N, input_N, rep ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &A, &A_limbs, input_A ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &X, &X_limbs, input_X ) );
+
+    TEST_EQUAL( 0, mbedtls_mpi_mod_raw_modulus_to_canonical_rep( A, &N ) );
+    ASSERT_COMPARE( A, A_limbs * sizeof( mbedtls_mpi_uint ),
+                    X, X_limbs * sizeof( mbedtls_mpi_uint ) );
+
+exit:
+    mbedtls_test_mpi_mod_modulus_free_with_limbs( &N );
+    mbedtls_free( A );
+    mbedtls_free( X );
+}
+/* END_CASE */
 /* END MERGE SLOT 6 */
 
 /* BEGIN MERGE SLOT 7 */

@@ -3,11 +3,44 @@
  * functions. Due to the complexity of how these functions are tested,
  * we test all the layers in a single test suite, unlike the way other
  * functions are tested with each layer in its own test suite.
+ *
+ * Test strategy
+ * =============
+ *
+ * There are three main goals for testing random() functions:
+ * - Parameter validation.
+ * - Correctness of outputs (well-formed, in range).
+ * - Distribution of outputs.
+ *
+ * We test parameter validation in a standard way, with unit tests with
+ * positive and negative cases:
+ * - mbedtls_mpi_core_random(): negative cases for mpi_core_random_basic.
+ * - mbedtls_mpi_mod_raw_random(),  mbedtls_mpi_mod_random(): negative
+ *   cases for mpi_mod_random_validation.
+ * - mbedtls_mpi_random(): mpi_random_fail.
+ *
+ * We test the correctness of outputs in positive tests:
+ * - mbedtls_mpi_core_random(): positive cases for mpi_core_random_basic,
+ *   and mpi_random_many.
+ * - mbedtls_mpi_mod_raw_random(), mbedtls_mpi_mod_random(): tested indirectly
+ *   via mpi_mod_random_values.
+ * - mbedtls_mpi_random(): mpi_random_sizes, plus indirectly via
+ *   mpi_random_values.
+ *
+ * We test the distribution of outputs only for mbedtls_mpi_core_random(),
+ * in mpi_random_many, which runs the function multiple times. This also
+ * helps in validating the output range, through test cases with a small
+ * range where any output out of range would be very likely to lead to a
+ * test failure. For the other functions, we validate the distribution
+ * indirectly by testing that these functions consume the random generator
+ * in the same way as mbedtls_mpi_core_random(). This is done in
+ * mpi_mod_random_values and mpi_legacy_random_values.
  */
 
 #include "mbedtls/bignum.h"
 #include "mbedtls/entropy.h"
 #include "bignum_core.h"
+#include "bignum_mod_raw.h"
 #include "constant_time_internal.h"
 
 /* This test suite only manipulates non-negative bignums. */
@@ -110,7 +143,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mpi_random_values( int min, char *max_hex )
+void mpi_legacy_random_values( int min, char *max_hex )
 {
     /* Same RNG as in mpi_core_random_basic */
     mbedtls_test_rnd_pseudo_info rnd_core = rnd_pseudo_seed;
@@ -155,6 +188,77 @@ exit:
     mbedtls_mpi_free( &max_legacy );
     mbedtls_free( R_core );
     mbedtls_mpi_free( &R_legacy );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_mod_random_values( int min, char *max_hex, int rep )
+{
+    /* Same RNG as in mpi_core_random_basic */
+    mbedtls_test_rnd_pseudo_info rnd_core = rnd_pseudo_seed;
+    mbedtls_test_rnd_pseudo_info rnd_mod_raw;
+    memcpy( &rnd_mod_raw, &rnd_core, sizeof( rnd_core ) );
+    mbedtls_test_rnd_pseudo_info rnd_mod;
+    memcpy( &rnd_mod, &rnd_core, sizeof( rnd_core ) );
+    mbedtls_mpi_uint *R_core = NULL;
+    mbedtls_mpi_uint *R_mod_raw = NULL;
+    mbedtls_mpi_uint *R_mod_digits = NULL;
+    mbedtls_mpi_mod_residue R_mod;
+    mbedtls_mpi_mod_modulus N;
+    mbedtls_mpi_mod_modulus_init( &N );
+
+    TEST_EQUAL( mbedtls_test_read_mpi_modulus( &N, max_hex, rep ), 0 );
+    ASSERT_ALLOC( R_core, N.limbs );
+    ASSERT_ALLOC( R_mod_raw, N.limbs );
+    ASSERT_ALLOC( R_mod_digits, N.limbs );
+    TEST_EQUAL( mbedtls_mpi_mod_residue_setup( &R_mod, &N,
+                                               R_mod_digits, N.limbs ),
+                0 );
+
+    /* Call the core and mod random() functions with the same random stream. */
+    int core_ret = mbedtls_mpi_core_random( R_core,
+                                            min, N.p, N.limbs,
+                                            mbedtls_test_rnd_pseudo_rand,
+                                            &rnd_core );
+    int mod_raw_ret = mbedtls_mpi_mod_raw_random( R_mod_raw,
+                                                  min, &N,
+                                                  mbedtls_test_rnd_pseudo_rand,
+                                                  &rnd_mod_raw );
+    int mod_ret = mbedtls_mpi_mod_random( &R_mod,
+                                          min, &N,
+                                          mbedtls_test_rnd_pseudo_rand,
+                                          &rnd_mod );
+
+    /* They must return the same status, and, on success, output the
+     * same number, with the same limb count. */
+    TEST_EQUAL( core_ret, mod_raw_ret );
+    TEST_EQUAL( core_ret, mod_ret );
+    if( core_ret == 0 )
+    {
+        TEST_EQUAL( mbedtls_mpi_mod_raw_modulus_to_canonical_rep( R_mod_raw, &N ),
+                    0 );
+        ASSERT_COMPARE( R_core, N.limbs * ciL,
+                        R_mod_raw, N.limbs * ciL );
+        TEST_EQUAL( mbedtls_mpi_mod_raw_modulus_to_canonical_rep( R_mod_digits, &N ),
+                    0 );
+        ASSERT_COMPARE( R_core, N.limbs * ciL,
+                        R_mod_digits, N.limbs * ciL );
+    }
+
+    /* Also check that they have consumed the RNG in the same way. */
+    /* This may theoretically fail on rare platforms with padding in
+     * the structure! If this is a problem in practice, change to a
+     * field-by-field comparison. */
+    ASSERT_COMPARE( &rnd_core, sizeof( rnd_core ),
+                    &rnd_mod_raw, sizeof( rnd_mod_raw ) );
+    ASSERT_COMPARE( &rnd_core, sizeof( rnd_core ),
+                    &rnd_mod, sizeof( rnd_mod ) );
+
+exit:
+    mbedtls_test_mpi_mod_modulus_free_with_limbs( &N );
+    mbedtls_free( R_core );
+    mbedtls_free( R_mod_raw );
+    mbedtls_free( R_mod_digits );
 }
 /* END_CASE */
 
@@ -308,6 +412,64 @@ void mpi_random_sizes( int min, data_t *bound_bytes, int nlimbs, int before )
 exit:
     mbedtls_mpi_free( &upper_bound );
     mbedtls_mpi_free( &result );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_mod_random_validation( int min, char *bound_hex,
+                                int result_limbs_delta,
+                                int expected_ret )
+{
+    mbedtls_mpi_uint *result_digits = NULL;
+    mbedtls_mpi_mod_modulus N;
+    mbedtls_mpi_mod_modulus_init( &N );
+
+    TEST_EQUAL( mbedtls_test_read_mpi_modulus( &N, bound_hex,
+                                               MBEDTLS_MPI_MOD_REP_OPT_RED ),
+                0 );
+    size_t result_limbs = N.limbs + result_limbs_delta;
+    ASSERT_ALLOC( result_digits, result_limbs );
+    /* Build a reside that might not match the modulus, to test that
+     * the library function rejects that as expected. */
+    mbedtls_mpi_mod_residue result = {result_digits, result_limbs};
+
+    TEST_EQUAL( mbedtls_mpi_mod_random( &result, min, &N,
+                                        mbedtls_test_rnd_std_rand, NULL ),
+                expected_ret );
+    if( expected_ret == 0 )
+    {
+        /* Success should only be expected when the result has the same
+         * size as the modulus, otherwise it's a mistake in the test data. */
+        TEST_EQUAL( result_limbs, N.limbs );
+        /* Sanity check: check that the result is in range */
+        TEST_EQUAL( mbedtls_mpi_core_lt_ct( result_digits, N.p, N.limbs ),
+                    1 );
+        /* Check result >= min (changes result) */
+        TEST_EQUAL( mbedtls_mpi_core_sub_int( result_digits, result_digits, min,
+                                              result_limbs ),
+                    0 );
+    }
+
+    /* When the result has the right number of limbs, also test mod_raw
+     * (for which this is an unchecked precondition). */
+    if( result_limbs_delta == 0 )
+    {
+        TEST_EQUAL( mbedtls_mpi_mod_raw_random( result_digits, min, &N,
+                                                mbedtls_test_rnd_std_rand, NULL ),
+                    expected_ret );
+        if( expected_ret == 0 )
+        {
+            TEST_EQUAL( mbedtls_mpi_core_lt_ct( result_digits, N.p, N.limbs ),
+                        1 );
+            TEST_EQUAL( mbedtls_mpi_core_sub_int( result_digits, result.p, min,
+                                                  result_limbs ),
+                        0 );
+        }
+    }
+
+exit:
+    mbedtls_test_mpi_mod_modulus_free_with_limbs( &N );
+    mbedtls_free( result_digits );
 }
 /* END_CASE */
 

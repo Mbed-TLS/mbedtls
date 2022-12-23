@@ -15,6 +15,7 @@
 # limitations under the License.
 
 from abc import abstractmethod
+import enum
 from typing import Iterator, List, Tuple, TypeVar, Any
 from itertools import chain
 
@@ -53,7 +54,7 @@ def hex_to_int(val: str) -> int:
         return 0
     return int(val, 16)
 
-def quote_str(val) -> str:
+def quote_str(val: str) -> str:
     return "\"{}\"".format(val)
 
 def bound_mpi(val: int, bits_in_limb: int) -> int:
@@ -139,7 +140,7 @@ class OperationCommon(test_data_generation.BaseTest):
     def hex_digits(self) -> int:
         return 2 * (self.limbs * self.bits_in_limb // 8)
 
-    def format_arg(self, val) -> str:
+    def format_arg(self, val: str) -> str:
         if self.input_style not in self.input_styles:
             raise ValueError("Unknown input style!")
         if self.input_style == "variable":
@@ -147,7 +148,7 @@ class OperationCommon(test_data_generation.BaseTest):
         else:
             return val.zfill(self.hex_digits)
 
-    def format_result(self, res) -> str:
+    def format_result(self, res: int) -> str:
         res_str = '{:x}'.format(res)
         return quote_str(self.format_arg(res_str))
 
@@ -245,6 +246,23 @@ class OperationCommon(test_data_generation.BaseTest):
                     )
 
 
+class ModulusRepresentation(enum.Enum):
+    """Representation selector of a modulus."""
+    # Numerical values aligned with the type mbedtls_mpi_mod_rep_selector
+    INVALID = 0
+    MONTGOMERY = 2
+    OPT_RED = 3
+
+    def symbol(self) -> str:
+        """The C symbol for this representation selector."""
+        return 'MBEDTLS_MPI_MOD_REP_' + self.name
+
+    @classmethod
+    def supported_representations(cls) -> List['ModulusRepresentation']:
+        """Return all representations that are supported in positive test cases."""
+        return [cls.MONTGOMERY, cls.OPT_RED]
+
+
 class ModOperationCommon(OperationCommon):
     #pylint: disable=abstract-method
     """Target for bignum mod_raw test case generation."""
@@ -266,6 +284,17 @@ class ModOperationCommon(OperationCommon):
     def from_montgomery(self, val: int) -> int:
         return (val * self.r_inv) % self.int_n
 
+    def convert_from_canonical(self, canonical: int,
+                               rep: ModulusRepresentation) -> int:
+        """Convert values from canonical representation to the given representation."""
+        if rep is ModulusRepresentation.MONTGOMERY:
+            return self.to_montgomery(canonical)
+        elif rep is ModulusRepresentation.OPT_RED:
+            return canonical
+        else:
+            raise ValueError('Modulus representation not supported: {}'
+                             .format(rep.name))
+
     @property
     def boundary(self) -> int:
         return self.int_n
@@ -281,6 +310,9 @@ class ModOperationCommon(OperationCommon):
     @property
     def arg_n(self) -> str:
         return self.format_arg(self.val_n)
+
+    def format_arg(self, val: str) -> str:
+        return super().format_arg(val).zfill(self.hex_digits)
 
     def arguments(self) -> List[str]:
         return [quote_str(self.arg_n)] + super().arguments()

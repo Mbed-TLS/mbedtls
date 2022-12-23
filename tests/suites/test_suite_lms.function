@@ -9,7 +9,41 @@
  */
 
 /* BEGIN_CASE depends_on:MBEDTLS_LMS_PRIVATE */
-void lms_sign_verify_test ( data_t *msg, data_t *seed )
+void lms_sign_verify_test_m24 ( data_t *msg, data_t *seed )
+{
+    mbedtls_lms_public_t pub_ctx;
+    mbedtls_lms_private_t priv_ctx;
+    unsigned char sig[MBEDTLS_LMS_SIG_LEN(MBEDTLS_LMS_SHA256_M24_H20, MBEDTLS_LMOTS_SHA256_N24_W8)];
+
+    mbedtls_lms_public_init( &pub_ctx );
+    mbedtls_lms_private_init( &priv_ctx );
+
+    /* Allocation failure isn't a test failure, since it likely just means
+     * there's not enough memory to run the test.
+     */
+    TEST_EQUAL( mbedtls_lms_generate_private_key( &priv_ctx, MBEDTLS_LMS_SHA256_M24_H20,
+                                           MBEDTLS_LMOTS_SHA256_N24_W8,
+                                           mbedtls_test_rnd_std_rand, NULL,
+                                           seed->x, seed->len ), 0 );
+
+    TEST_EQUAL( mbedtls_lms_calculate_public_key( &pub_ctx, &priv_ctx ), 0 );
+
+    TEST_EQUAL( mbedtls_lms_sign( &priv_ctx, mbedtls_test_rnd_std_rand, NULL,
+                                   msg->x, msg->len, sig, sizeof( sig ),
+                                   NULL ), 0 );
+
+    TEST_EQUAL( mbedtls_lms_verify( &pub_ctx, msg->x, msg->len, sig,
+                                     sizeof( sig ) ), 0 );
+
+exit:
+    mbedtls_lms_public_free( &pub_ctx );
+    mbedtls_lms_private_free( &priv_ctx );
+}
+/* END_CASE */
+
+
+/* BEGIN_CASE depends_on:MBEDTLS_LMS_PRIVATE */
+void lms_sign_verify_test_m32 ( data_t *msg, data_t *seed )
 {
     mbedtls_lms_public_t pub_ctx;
     mbedtls_lms_private_t priv_ctx;

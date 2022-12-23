@@ -1,0 +1,8 @@
+Features
+    * Add support for the LMS_SHA256_M24_H20 parameter set.
+      Height 20 trees allow for 1048576 messages to be signed.
+      As such, it is not intended for use in TLS, but instead for
+      verification of assets transmitted over an insecure channel,
+      particularly firmware images.
+      Signature verification is production-ready, but generation is for
+      testing purposes only.

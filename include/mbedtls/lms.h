@@ -42,11 +42,13 @@
 /* Currently only defined for SHA256, 32 is the max hash output size */
 #define MBEDTLS_LMOTS_N_HASH_LEN_MAX           (32u)
 #define MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT_MAX    (34u)
-#define MBEDTLS_LMOTS_N_HASH_LEN(type)         ((type) == MBEDTLS_LMOTS_SHA256_N32_W8 ? 32u : 0)
+#define MBEDTLS_LMOTS_N_HASH_LEN(type)         ((type) == MBEDTLS_LMOTS_SHA256_N32_W8 ? 32u : \
+                                                (type) == MBEDTLS_LMOTS_SHA256_N24_W8 ? 24u : 0)
 #define MBEDTLS_LMOTS_I_KEY_ID_LEN             (16u)
 #define MBEDTLS_LMOTS_Q_LEAF_ID_LEN            (4u)
 #define MBEDTLS_LMOTS_TYPE_LEN                 (4u)
-#define MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT(type)  ((type) == MBEDTLS_LMOTS_SHA256_N32_W8 ? 34u : 0)
+#define MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT(type)  ((type) == MBEDTLS_LMOTS_SHA256_N32_W8 ? 34u : \
+                                                (type) == MBEDTLS_LMOTS_SHA256_N24_W8 ? 26u : 0)
 #define MBEDTLS_LMOTS_C_RANDOM_VALUE_LEN(type) (MBEDTLS_LMOTS_N_HASH_LEN(type))
 
 #define MBEDTLS_LMOTS_SIG_LEN(type) (MBEDTLS_LMOTS_TYPE_LEN + \
@@ -56,12 +58,14 @@
 
 
 #define MBEDTLS_LMS_TYPE_LEN            (4)
-#define MBEDTLS_LMS_H_TREE_HEIGHT(type) ((type) == MBEDTLS_LMS_SHA256_M32_H10 ? 10u : 0)
+#define MBEDTLS_LMS_H_TREE_HEIGHT(type) ((type) == MBEDTLS_LMS_SHA256_M32_H10 ? 10u : \
+                                         (type) == MBEDTLS_LMS_SHA256_M24_H20 ? 20u : 0)
 
 /* The length of a hash output, Currently only implemented for SHA256.
  * Max is 32 bytes.
  */
-#define MBEDTLS_LMS_M_NODE_BYTES(type) ((type) == MBEDTLS_LMS_SHA256_M32_H10 ? 32 : 0)
+#define MBEDTLS_LMS_M_NODE_BYTES(type) ((type) == MBEDTLS_LMS_SHA256_M32_H10 ? 32 : \
+                                        (type) == MBEDTLS_LMS_SHA256_M24_H20 ? 24 : 0)
 #define MBEDTLS_LMS_M_NODE_BYTES_MAX 32
 
 #define MBEDTLS_LMS_SIG_LEN(type, otstype) (MBEDTLS_LMOTS_Q_LEAF_ID_LEN + \
@@ -86,6 +90,7 @@ extern "C" {
  */
 typedef enum {
     MBEDTLS_LMS_SHA256_M32_H10 = 0x6,
+    MBEDTLS_LMS_SHA256_M24_H20 = 0xd,
 } mbedtls_lms_algorithm_type_t;
 
 /** The Identifier of the LMOTS parameter set, as per
@@ -93,7 +98,8 @@ typedef enum {
  *  We are only implementing a subset of the types, particularly N32_W8, for the sake of simplicity.
  */
 typedef enum {
-    MBEDTLS_LMOTS_SHA256_N32_W8 = 4
+    MBEDTLS_LMOTS_SHA256_N32_W8 = 4,
+    MBEDTLS_LMOTS_SHA256_N24_W8 = 8,
 } mbedtls_lmots_algorithm_type_t;
 
 /** LMOTS parameters structure.

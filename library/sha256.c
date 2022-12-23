@@ -781,15 +781,12 @@ static int mbedtls_sha256_common_self_test( int verbose, int is224 )
     unsigned char sha256sum[32];
     mbedtls_sha256_context ctx;
 
-    sha_test_sum_t* sha_test_sum;
-
-    sha_test_sum =
 #if defined(MBEDTLS_SHA224_C) && defined(MBEDTLS_SHA256_C)
-                ( is224 ) ? sha224_test_sum : sha256_test_sum;
+    sha_test_sum_t* sha_test_sum = ( is224 ) ? sha224_test_sum : sha256_test_sum;
 #elif defined(MBEDTLS_SHA256_C)
-                sha256_test_sum;
+    sha_test_sum_t* sha_test_sum = sha256_test_sum;
 #else
-                sha224_test_sum;
+    sha_test_sum_t* sha_test_sum = sha224_test_sum;
 #endif
 
     buf = mbedtls_calloc( 1024, sizeof(unsigned char) );

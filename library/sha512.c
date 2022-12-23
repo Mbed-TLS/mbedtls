@@ -953,15 +953,12 @@ static int mbedtls_sha512_common_self_test( int verbose, int is384 )
     unsigned char sha512sum[64];
     mbedtls_sha512_context ctx;
 
-    sha_test_sum_t* sha_test_sum;
-
-    sha_test_sum =
 #if defined(MBEDTLS_SHA384_C) && defined(MBEDTLS_SHA512_C)
-                ( is384 ) ? sha384_test_sum : sha512_test_sum;
+    sha_test_sum_t* sha_test_sum = ( is384 ) ? sha384_test_sum : sha512_test_sum;
 #elif defined(MBEDTLS_SHA512_C)
-                sha512_test_sum;
+    sha_test_sum_t* sha_test_sum = sha512_test_sum;
 #else
-                sha384_test_sum;
+    sha_test_sum_t* sha_test_sum = sha384_test_sum;
 #endif
 
     buf = mbedtls_calloc( 1024, sizeof(unsigned char) );

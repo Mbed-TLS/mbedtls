@@ -83,10 +83,6 @@
 /* *INDENT-OFF* */
 #if defined(MBEDTLS_HAVE_ASM)
 
-#ifndef asm
-#define asm __asm
-#endif
-
 /* armcc5 --gnu defines __GNUC__ but doesn't support GNU's extended asm */
 #if defined(__GNUC__) && \
     ( !defined(__ARMCC_VERSION) || __ARMCC_VERSION >= 6000000 )

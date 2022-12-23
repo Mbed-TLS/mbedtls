@@ -89,12 +89,6 @@ static int mbedtls_a64_crypto_sha256_determine_support(void)
 #include <signal.h>
 #include <setjmp.h>
 
-/* *INDENT-OFF* */
-#ifndef asm
-#define asm __asm__
-#endif
-/* *INDENT-ON* */
-
 static jmp_buf return_from_sigill;
 
 /*

@@ -48,8 +48,11 @@
  * Requires support for asm() in compiler.
  *
  * Used in:
+ *      library/aesni.h
  *      library/aria.c
  *      library/bn_mul.h
+ *      library/constant_time.c
+ *      library/padlock.h
  *
  * Required by:
  *      MBEDTLS_AESNI_C

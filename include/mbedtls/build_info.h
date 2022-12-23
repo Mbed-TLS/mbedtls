@@ -59,6 +59,13 @@
 #define inline __inline
 #endif
 
+/* Define `asm` for compilers which don't define it. */
+/* *INDENT-OFF* */
+#ifndef asm
+#define asm __asm__
+#endif
+/* *INDENT-ON* */
+
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/mbedtls_config.h"
 #else

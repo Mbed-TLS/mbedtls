@@ -27,24 +27,29 @@ perform the cryptographic operations. The core is responsible for:
 * dispatching the cryptographic operations to the appropriate PSA drivers.
 
 The sketch of an Mbed TLS PSA cryptographic API implementation is thus:
-```C                                                                            
-psa_status_t psa_api( ... )
+```C
+psa_status_t psa_api(...)
 {
     psa_status_t status;
 
     /* Pre driver interface call processing: validation of arguments, building
      * of arguments for the call to the driver interface, ... */
-
-    ...
+    // ...
 
     /* Call to the driver interface */
-    status = psa_driver_wrapper_<entry_point>( ... );
-    if( status != PSA_SUCCESS )
-        return( status );
+    status = psa_driver_wrapper_<entry_point>(...);
+    if (status != PSA_SUCCESS)
+        goto cleanup;
 
     /* Post driver interface call processing: validation of the values returned
-     * by the driver, finalization of the values to return to the caller,
-     * clean-up in case of error ... */
+     * by the driver, finalization of the values to return to the caller... */
+    // ...
+
+cleanup:
+    /* clean-up (including in case of error) */
+    // ...
+
+    return status;
 }
 ```
 The code of most PSA APIs is expected to match precisely the above layout. However, it is likely that the code structure of some APIs will be more complicated with several calls to the driver interface, mainly to encompass a larger variety of hardware designs. For example, to encompass hardware accelerators that are capable of verifying a MAC and those that are only capable of computing a MAC, the psa_mac_verify() API could call first psa_driver_wrapper_mac_verify() and then fallback to psa_driver_wrapper_mac_compute().

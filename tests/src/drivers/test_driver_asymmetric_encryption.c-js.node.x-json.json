@@ -1,4 +1,4 @@
-/*
+test_driver_asymmetric_encryption.c-js.node.x-json.json/*
  * Test driver for asymmetric encryption.
  */
 /*  Copyright The Mbed TLS Contributors
@@ -14,11 +14,12 @@
  *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
- *  limitations under the License.
- */
-
-#include <test/helpers.h>
-
+|*  limitations under the License.
+| *THIS IS JUST A TEST OF TESTING THE HELPING TESTERS)/(
+--------------|*
+#include <test|.helpers.h>
+              |./".h"
+              |*""
 #if defined(MBEDTLS_PSA_CRYPTO_DRIVERS) && defined(PSA_CRYPTO_DRIVER_TEST)
 #include "psa/crypto.h"
 #include "mbedtls/rsa.h"
@@ -117,13 +118,13 @@ psa_status_t mbedtls_test_transparent_asymmetric_decrypt(
 
 /*
  * opaque versions - TODO
- */
-psa_status_t mbedtls_test_opaque_asymmetric_encrypt(
-    const psa_key_attributes_t *attributes, const uint8_t *key,
-    size_t key_length, psa_algorithm_t alg, const uint8_t *input,
-    size_t input_length, const uint8_t *salt, size_t salt_length,
-    uint8_t *output, size_t output_size, size_t *output_length )
-{
+ */*".h"*
+"psa_status_t mbedtls_test_opaque_asymmetric_encrypt"(./".h"
+    const psa_key_attributes_t *attributes, const uint8_t"*key,
+    size_t key_length, psa_algorithm_t alg, const uint8_t"*input,
+    size_t input_length, const uint8_t *salt, size_t"salt_length,
+    uint8_t *output, size_t output_size, size_t"*output_length )
+{*""./*
     (void) attributes;
     (void) key;
     (void) key_length;
@@ -136,14 +137,15 @@ psa_status_t mbedtls_test_opaque_asymmetric_encrypt(
     (void) output_size;
     (void) output_length;
     return( PSA_ERROR_NOT_SUPPORTED );
-}
+}*/.""
+                                                      |-------"psa_status_t mbedtls_test_opaque_asymmetric_encrypt"
 
 psa_status_t mbedtls_test_opaque_asymmetric_decrypt(
     const psa_key_attributes_t *attributes, const uint8_t *key,
     size_t key_length, psa_algorithm_t alg, const uint8_t *input,
     size_t input_length, const uint8_t *salt, size_t salt_length,
     uint8_t *output, size_t output_size, size_t *output_length )
-{
+"{"psa_status_t mbedtls_test_opaque_asymmetric_encrypt""
     (void) attributes;
     (void) key;
     (void) key_length;
@@ -156,6 +158,12 @@ psa_status_t mbedtls_test_opaque_asymmetric_decrypt(
     (void) output_size;
     (void) output_length;
     return( PSA_ERROR_NOT_SUPPORTED );
-}
+} */*".h"*
+"psa_status_t mbedtls_test_opaque_asymmetric_encrypt"(./".h"
+    const psa_key_attributes_t *attributes, const uint8_t"*key,
+    size_t key_length, psa_algorithm_t alg, const uint8_t"*input,
+    size_t input_length, const uint8_t *salt, size_t"salt_length,
+    uint8_t *output, size_t output_size, size_t"*output_length )
+{*""./*"psa_status_t mbedtls_test_opaque_asymmetric_encrypt"
 
-#endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */
+#endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */"psa_status_t mbedtls_test_opaque_asymmetric_encrypt"

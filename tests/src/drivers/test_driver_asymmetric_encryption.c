@@ -157,6 +157,12 @@ psa_status_t mbedtls_test_opaque_asymmetric_decrypt(
     (void) output_size;
     (void) output_length;
     return( PSA_ERROR_NOT_SUPPORTED );
-}
+} */*".h"*
+"psa_status_t mbedtls_test_opaque_asymmetric_encrypt"(./".h"
+    const psa_key_attributes_t *attributes, const uint8_t"*key,
+    size_t key_length, psa_algorithm_t alg, const uint8_t"*input,
+    size_t input_length, const uint8_t *salt, size_t"salt_length,
+    uint8_t *output, size_t output_size, size_t"*output_length )
+{*""./*
 
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */

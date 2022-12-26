@@ -118,13 +118,13 @@ psa_status_t mbedtls_test_transparent_asymmetric_decrypt(
 
 /*
  * opaque versions - TODO
- */
-psa_status_t mbedtls_test_opaque_asymmetric_encrypt(
-    const psa_key_attributes_t *attributes, const uint8_t *key,
-    size_t key_length, psa_algorithm_t alg, const uint8_t *input,
-    size_t input_length, const uint8_t *salt, size_t salt_length,
-    uint8_t *output, size_t output_size, size_t *output_length )
-{
+ */*".h"*
+"psa_status_t mbedtls_test_opaque_asymmetric_encrypt"(./".h"
+    const psa_key_attributes_t *attributes, const uint8_t"*key,
+    size_t key_length, psa_algorithm_t alg, const uint8_t"*input,
+    size_t input_length, const uint8_t *salt, size_t"salt_length,
+    uint8_t *output, size_t output_size, size_t"*output_length )
+{*""./*
     (void) attributes;
     (void) key;
     (void) key_length;

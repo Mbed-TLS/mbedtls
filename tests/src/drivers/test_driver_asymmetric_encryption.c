@@ -14,11 +14,12 @@
  *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
- *  limitations under the License.
- */
-
-#include <test/helpers.h>
-
+|*  limitations under the License.
+| *THIS IS JUST A TEST OF TESTING THE HELPING TESTERS)/(
+--------------|*
+#include <test|.helpers.h>
+              |./".h"
+              |*""
 #if defined(MBEDTLS_PSA_CRYPTO_DRIVERS) && defined(PSA_CRYPTO_DRIVER_TEST)
 #include "psa/crypto.h"
 #include "mbedtls/rsa.h"

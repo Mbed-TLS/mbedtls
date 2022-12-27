@@ -119,8 +119,25 @@ int mbedtls_pk_error_from_psa_rsa(psa_status_t status)
             return MBEDTLS_ERR_RSA_VERIFY_FAILED;
         case PSA_ERROR_INVALID_PADDING:
             return MBEDTLS_ERR_RSA_INVALID_PADDING;
+        case PSA_SUCCESS:
+            return 0;
+        case PSA_ERROR_NOT_SUPPORTED:
+            return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+        case PSA_ERROR_INSUFFICIENT_MEMORY:
+            return MBEDTLS_ERR_PK_ALLOC_FAILED;
+        case PSA_ERROR_BAD_STATE:
+            return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+        case PSA_ERROR_COMMUNICATION_FAILURE:
+        case PSA_ERROR_HARDWARE_FAILURE:
+            return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        case PSA_ERROR_DATA_CORRUPT:
+        case PSA_ERROR_DATA_INVALID:
+        case PSA_ERROR_STORAGE_FAILURE:
+            return MBEDTLS_ERR_PK_FILE_IO_ERROR;
+        case PSA_ERROR_CORRUPTION_DETECTED:
+            return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         default:
-            return mbedtls_pk_error_from_psa(status);
+            return MBEDTLS_ERR_ERROR_GENERIC_ERROR;
     }
 }
 #endif /* PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY || PSA_WANT_KEY_TYPE_RSA_KEY_PAIR */
@@ -142,8 +159,25 @@ int mbedtls_pk_error_from_psa_ecdsa(psa_status_t status)
             return MBEDTLS_ERR_ECP_RANDOM_FAILED;
         case PSA_ERROR_INVALID_SIGNATURE:
             return MBEDTLS_ERR_ECP_VERIFY_FAILED;
+        case PSA_SUCCESS:
+            return 0;
+        case PSA_ERROR_NOT_SUPPORTED:
+            return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+        case PSA_ERROR_INSUFFICIENT_MEMORY:
+            return MBEDTLS_ERR_PK_ALLOC_FAILED;
+        case PSA_ERROR_BAD_STATE:
+            return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+        case PSA_ERROR_COMMUNICATION_FAILURE:
+        case PSA_ERROR_HARDWARE_FAILURE:
+            return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        case PSA_ERROR_DATA_CORRUPT:
+        case PSA_ERROR_DATA_INVALID:
+        case PSA_ERROR_STORAGE_FAILURE:
+            return MBEDTLS_ERR_PK_FILE_IO_ERROR;
+        case PSA_ERROR_CORRUPTION_DETECTED:
+            return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         default:
-            return mbedtls_pk_error_from_psa(status);
+            return MBEDTLS_ERR_ERROR_GENERIC_ERROR;
     }
 }
 #endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */

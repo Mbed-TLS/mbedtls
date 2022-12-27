@@ -5805,27 +5805,27 @@ void tls13_server_certificate_msg_invalid_vector_len()
                                  &server_options, NULL, NULL, NULL, NULL);
     TEST_EQUAL(ret, 0);
 
-    ret = mbedtls_mock_socket_connect(&(client_ep.socket),
-                                      &(server_ep.socket), 1024);
+    ret = mbedtls_mock_socket_connect(client_ep.socket,
+                                      server_ep.socket, 1024);
     TEST_EQUAL(ret, 0);
 
     while (1) {
         mbedtls_test_set_step(++step);
 
-        ret = mbedtls_move_handshake_to_state(&(server_ep.ssl),
-                                              &(client_ep.ssl),
+        ret = mbedtls_move_handshake_to_state(server_ep.ssl,
+                                              client_ep.ssl,
                                               MBEDTLS_SSL_CERTIFICATE_VERIFY);
         TEST_EQUAL(ret, 0);
 
-        ret = mbedtls_ssl_flush_output(&(server_ep.ssl));
+        ret = mbedtls_ssl_flush_output(server_ep.ssl);
         TEST_EQUAL(ret, 0);
 
-        ret = mbedtls_move_handshake_to_state(&(client_ep.ssl),
-                                              &(server_ep.ssl),
+        ret = mbedtls_move_handshake_to_state(client_ep.ssl,
+                                              server_ep.ssl,
                                               MBEDTLS_SSL_SERVER_CERTIFICATE);
         TEST_EQUAL(ret, 0);
 
-        ret = mbedtls_ssl_tls13_fetch_handshake_msg(&(client_ep.ssl),
+        ret = mbedtls_ssl_tls13_fetch_handshake_msg(client_ep.ssl,
                                                     MBEDTLS_SSL_HS_CERTIFICATE,
                                                     &buf, &buf_len);
         TEST_EQUAL(ret, 0);
@@ -5843,7 +5843,7 @@ void tls13_server_certificate_msg_invalid_vector_len()
             break;
         }
 
-        ret = mbedtls_ssl_tls13_parse_certificate(&(client_ep.ssl), buf, end);
+        ret = mbedtls_ssl_tls13_parse_certificate(client_ep.ssl, buf, end);
         TEST_EQUAL(ret, expected_result);
 
         TEST_ASSERT(mbedtls_ssl_cmp_chk_buf_ptr_fail_args(
@@ -5851,10 +5851,10 @@ void tls13_server_certificate_msg_invalid_vector_len()
 
         mbedtls_ssl_reset_chk_buf_ptr_fail_args();
 
-        ret = mbedtls_ssl_session_reset(&(client_ep.ssl));
+        ret = mbedtls_ssl_session_reset(client_ep.ssl);
         TEST_EQUAL(ret, 0);
 
-        ret = mbedtls_ssl_session_reset(&(server_ep.ssl));
+        ret = mbedtls_ssl_session_reset(server_ep.ssl);
         TEST_EQUAL(ret, 0);
     }
 

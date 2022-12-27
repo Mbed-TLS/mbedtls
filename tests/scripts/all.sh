@@ -133,13 +133,14 @@ pre_check_environment () {
 pre_initialize_variables () {
     CONFIG_H='include/mbedtls/mbedtls_config.h'
     CRYPTO_CONFIG_H='include/psa/crypto_config.h'
+    CONFIG_TEST_DRIVER_H='tests/include/test/drivers/config_test_driver.h'
 
     # Files that are clobbered by some jobs will be backed up. Use a different
     # suffix from auxiliary scripts so that all.sh and auxiliary scripts can
     # independently decide when to remove the backup file.
     backup_suffix='.all.bak'
     # Files clobbered by config.py
-    files_to_back_up="$CONFIG_H $CRYPTO_CONFIG_H"
+    files_to_back_up="$CONFIG_H $CRYPTO_CONFIG_H $CONFIG_TEST_DRIVER_H"
     # Files clobbered by in-tree cmake
     files_to_back_up="$files_to_back_up Makefile library/Makefile programs/Makefile tests/Makefile programs/fuzz/Makefile"
 
@@ -1978,11 +1979,6 @@ component_test_psa_crypto_config_accel_ecdsa () {
     loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
     make -C tests libtestdriver1.a CFLAGS="$ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
 
-    # Restore test driver base configuration
-    scripts/config.py -f tests/include/test/drivers/config_test_driver.h unset MBEDTLS_SHA224_C
-    scripts/config.py -f tests/include/test/drivers/config_test_driver.h unset MBEDTLS_SHA384_C
-    scripts/config.py -f tests/include/test/drivers/config_test_driver.h unset MBEDTLS_SHA512_C
-
     scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
@@ -2076,15 +2072,6 @@ component_test_psa_crypto_config_accel_rsa_signature () {
     loc_accel_list="ALG_RSA_PKCS1V15_SIGN ALG_RSA_PSS KEY_TYPE_RSA_KEY_PAIR KEY_TYPE_RSA_PUBLIC_KEY"
     loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
     make -C tests libtestdriver1.a CFLAGS="$ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
-
-    # Restore test driver base configuration
-    scripts/config.py -f tests/include/test/drivers/config_test_driver.h unset MBEDTLS_SHA1_C
-    scripts/config.py -f tests/include/test/drivers/config_test_driver.h unset MBEDTLS_SHA224_C
-    scripts/config.py -f tests/include/test/drivers/config_test_driver.h unset MBEDTLS_SHA512_C
-    scripts/config.py -f tests/include/test/drivers/config_test_driver.h unset MBEDTLS_MD_C
-    scripts/config.py -f tests/include/test/drivers/config_test_driver.h unset MBEDTLS_PEM_PARSE_C
-    scripts/config.py -f tests/include/test/drivers/config_test_driver.h unset MBEDTLS_BASE64_C
-
 
     # Mbed TLS library build
     scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS

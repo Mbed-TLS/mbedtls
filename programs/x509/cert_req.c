@@ -63,6 +63,11 @@ int main(void)
     "    debug_level=%%d      default: 0 (disabled)\n"  \
     "    output_file=%%s      default: cert.req\n"      \
     "    subject_name=%%s     default: CN=Cert,O=mbed TLS,C=UK\n"   \
+    "    san=%%s              default: (none)\n"       \
+    "                        Comma-separated-list of values:\n"     \
+    "                          DNS:value\n"            \
+    "                          URI:value\n"            \
+    "                          OTHER:value\n"            \
     "    key_usage=%%s        default: (empty)\n"       \
     "                        Comma-separated-list of values:\n"     \
     "                          digital_signature\n"     \
@@ -96,16 +101,17 @@ int main(void)
  * global options
  */
 struct options {
-    const char *filename;       /* filename of the key file             */
-    const char *password;       /* password for the key file            */
-    int debug_level;            /* level of debugging                   */
-    const char *output_file;    /* where to store the constructed key file  */
-    const char *subject_name;   /* subject name for certificate request */
-    unsigned char key_usage;    /* key usage flags                      */
-    int force_key_usage;        /* Force adding the KeyUsage extension  */
-    unsigned char ns_cert_type; /* NS cert type                         */
-    int force_ns_cert_type;     /* Force adding NsCertType extension    */
-    mbedtls_md_type_t md_alg;   /* Hash algorithm used for signature.   */
+    const char *filename;             /* filename of the key file             */
+    const char *password;             /* password for the key file            */
+    int debug_level;                  /* level of debugging                   */
+    const char *output_file;          /* where to store the constructed key file  */
+    const char *subject_name;         /* subject name for certificate request   */
+    mbedtls_x509_san_list *san_list;  /* subjectAltName for certificate request */
+    unsigned char key_usage;          /* key usage flags                      */
+    int force_key_usage;              /* Force adding the KeyUsage extension  */
+    unsigned char ns_cert_type;       /* NS cert type                         */
+    int force_ns_cert_type;           /* Force adding NsCertType extension    */
+    mbedtls_md_type_t md_alg;         /* Hash algorithm used for signature.   */
 } opt;
 
 int write_certificate_request(mbedtls_x509write_csr *req, const char *output_file,
@@ -145,11 +151,12 @@ int main(int argc, char *argv[])
     mbedtls_pk_context key;
     char buf[1024];
     int i;
-    char *p, *q, *r;
+    char *p, *q, *r, *r2;
     mbedtls_x509write_csr req;
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     const char *pers = "csr example app";
+    mbedtls_x509_san_list *cur, *prev;
 
     /*
      * Set to sane values
@@ -175,6 +182,7 @@ usage:
     opt.ns_cert_type        = DFL_NS_CERT_TYPE;
     opt.force_ns_cert_type  = DFL_FORCE_NS_CERT_TYPE;
     opt.md_alg              = DFL_MD_ALG;
+    opt.san_list            = NULL;
 
     for (i = 1; i < argc; i++) {
 
@@ -197,6 +205,52 @@ usage:
             }
         } else if (strcmp(p, "subject_name") == 0) {
             opt.subject_name = q;
+        } else if (strcmp(p, "san") == 0) {
+            prev = NULL;
+
+            while (q != NULL) {
+                if ((r = strchr(q, ',')) != NULL) {
+                    *r++ = '\0';
+                }
+
+                cur = mbedtls_calloc(1, sizeof(mbedtls_x509_san_list));
+                if (cur == NULL) {
+                    mbedtls_printf("Not enough memory for subjectAltName list\n");
+                    goto usage;
+                }
+
+                cur->next = NULL;
+
+                if ((r2 = strchr(q, ':')) != NULL) {
+                    *r2++ = '\0';
+                }
+
+                if (strcmp(q, "URI") == 0) {
+                    cur->node.type = MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER;
+                } else if (strcmp(q, "DNS") == 0) {
+                    cur->node.type = MBEDTLS_X509_SAN_DNS_NAME;
+                } else if (strcmp(q, "OTHER") == 0) {
+                    cur->node.type = MBEDTLS_X509_SAN_OTHER_NAME;
+                } else {
+                    mbedtls_free(cur);
+                    goto usage;
+                }
+
+                q = r2;
+
+                cur->node.name = q;
+                cur->node.len = strlen(q);
+
+                if (prev == NULL) {
+                    opt.san_list = cur;
+                } else {
+                    prev->next = cur;
+                }
+
+                prev = cur;
+                q = r;
+            }
+
         } else if (strcmp(p, "md") == 0) {
             const mbedtls_md_info_t *md_info =
                 mbedtls_md_info_from_string(q);
@@ -274,14 +328,39 @@ usage:
         }
     }
 
+    /* Set the MD algorithm to use for the signature in the CSR */
     mbedtls_x509write_csr_set_md_alg(&req, opt.md_alg);
 
+    /* Set the Key Usage Extension flags in the CSR */
     if (opt.key_usage || opt.force_key_usage == 1) {
-        mbedtls_x509write_csr_set_key_usage(&req, opt.key_usage);
+        ret = mbedtls_x509write_csr_set_key_usage(&req, opt.key_usage);
+
+        if (ret != 0) {
+            mbedtls_printf(" failed\n  !  mbedtls_x509write_csr_set_key_usage returned %d", ret);
+            goto exit;
+        }
     }
 
+    /* Set the Cert Type flags in the CSR */
     if (opt.ns_cert_type || opt.force_ns_cert_type == 1) {
-        mbedtls_x509write_csr_set_ns_cert_type(&req, opt.ns_cert_type);
+        ret = mbedtls_x509write_csr_set_ns_cert_type(&req, opt.ns_cert_type);
+
+        if (ret != 0) {
+            mbedtls_printf(" failed\n  !  mbedtls_x509write_csr_set_ns_cert_type returned %d", ret);
+            goto exit;
+        }
+    }
+
+    /* Set the SubjectAltName in the CSR */
+    if (opt.san_list != NULL) {
+        ret = mbedtls_x509write_csr_set_subject_alternative_name(&req, opt.san_list);
+
+        if (ret != 0) {
+            mbedtls_printf(
+                " failed\n  !  mbedtls_x509write_csr_set_subject_alternative_name returned %d",
+                ret);
+            goto exit;
+        }
     }
 
     /*
@@ -362,6 +441,14 @@ exit:
     mbedtls_pk_free(&key);
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);
+
+    cur = opt.san_list;
+    while (cur != NULL) {
+        prev = cur;
+        cur = cur->next;
+        mbedtls_free(prev);
+    }
+
 
     mbedtls_exit(exit_code);
 }

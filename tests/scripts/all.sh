@@ -1987,9 +1987,10 @@ component_test_psa_crypto_config_accel_ecdsa () {
     # Configure and build the test driver library
     # -------------------------------------------
 
-    # Start from default config (no USE_PSA or TLS 1.3) + driver support
+    # Start from default config (no USE_PSA) + driver support + TLS 1.3
     scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py set MBEDTLS_SSL_PROTO_TLS1_3
 
     # Disable the module that's accelerated
     scripts/config.py unset MBEDTLS_ECDSA_C

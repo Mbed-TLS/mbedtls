@@ -77,7 +77,7 @@ typedef struct mbedtls_x509_crt
     mbedtls_x509_buf issuer_id;         /**< Optional X.509 v2/v3 issuer unique identifier. */
     mbedtls_x509_buf subject_id;        /**< Optional X.509 v2/v3 subject unique identifier. */
     mbedtls_x509_buf v3_ext;            /**< Optional X.509 v3 extensions.  */
-    mbedtls_x509_sequence subject_alt_names;    /**< Optional list of raw entries of Subject Alternative Names extension (currently only dNSName and OtherName are listed). */
+    mbedtls_x509_sequence subject_alt_names;    /**< Optional list of raw entries of Subject Alternative Names extension (currently only dNSName, uniformResourceIdentifier and OtherName are listed). */
 
     mbedtls_x509_sequence certificate_policies; /**< Optional list of certificate policies (Only anyPolicy is printed and enforced, however the rest of the policies are still listed). */
 
@@ -151,7 +151,7 @@ typedef struct mbedtls_x509_subject_alternative_name
     int type;                              /**< The SAN type, value of MBEDTLS_X509_SAN_XXX. */
     union {
         mbedtls_x509_san_other_name other_name; /**< The otherName supported type. */
-        mbedtls_x509_buf   unstructured_name; /**< The buffer for the un constructed types. Only dnsName currently supported */
+        mbedtls_x509_buf   unstructured_name; /**< The buffer for the un constructed types. Only dnsName and uniformResourceIdentifier currently supported */
     }
     san; /**< A union of the supported SAN types */
 }
@@ -607,8 +607,8 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path );
  * \param san      The target structure to populate with the parsed presentation
  *                 of the subject alternative name encoded in \p san_raw.
  *
- * \note           Only "dnsName" and "otherName" of type hardware_module_name
- *                 as defined in RFC 4180 is supported.
+ * \note           Only "dnsName", "uniformResourceIdentifier" and "otherName",
+ *                 as defined in RFC 5280, is supported.
  *
  * \note           This function should be called on a single raw data of
  *                 subject alternative name. For example, after successful

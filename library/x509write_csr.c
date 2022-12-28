@@ -85,6 +85,70 @@ int mbedtls_x509write_csr_set_extension( mbedtls_x509write_csr *ctx,
                                critical, val, val_len );
 }
 
+int mbedtls_x509write_csr_set_subject_alternative_name( mbedtls_x509write_csr *ctx, const mbedtls_x509_san_list *san_list )
+{
+    int ret = 0;
+    size_t sandeep = 0;
+    const mbedtls_x509_san_list *cur = san_list;
+    unsigned char *buf;
+    unsigned char *p;
+    size_t len;
+    size_t buflen = 0;
+
+    /* Determine the maximum size of the SubjectAltName list */
+    while( cur != NULL )
+    {
+        if( cur->node.len <= 0 )
+            return( 0 );
+
+        /* Calculate size of the required buffer:
+         * + length of value for each name entry,
+         * + maximum 4 bytes for the length field,
+         * + 1 byte for the tag/type.
+         */
+        buflen += cur->node.len + 4 + 1;
+
+        cur = cur->next;
+    }
+
+    /* Add the extra length field and tag */
+    buflen += 4 + 1;
+
+    /* Allocate buffer */
+    buf = mbedtls_calloc( 1, buflen );
+    if( buf == NULL )
+        return( MBEDTLS_ERR_ASN1_ALLOC_FAILED );
+
+    mbedtls_platform_zeroize( buf, buflen );
+    p = buf + buflen;
+
+    /* Write ASN.1-based structure */
+    cur = san_list;
+    len = 0;
+    while( cur != NULL )
+    {
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_raw_buffer( &p, buf, (const unsigned char *) cur->node.name, cur->node.len ) );
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &p, buf, cur->node.len ) );
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &p, buf, MBEDTLS_ASN1_CONTEXT_SPECIFIC | cur->node.type ) );
+
+        cur = cur->next;
+    }
+
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &p, buf, len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &p, buf, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) );
+
+    ret = mbedtls_x509write_csr_set_extension(
+            ctx,
+            MBEDTLS_OID_SUBJECT_ALT_NAME,
+            MBEDTLS_OID_SIZE( MBEDTLS_OID_SUBJECT_ALT_NAME ),
+            0,
+            buf + buflen - len,
+            len );
+
+    mbedtls_free( buf );
+    return( ret );
+}
+
 int mbedtls_x509write_csr_set_key_usage( mbedtls_x509write_csr *ctx, unsigned char key_usage )
 {
     unsigned char buf[4] = {0};

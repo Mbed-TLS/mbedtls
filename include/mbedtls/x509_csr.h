@@ -79,6 +79,21 @@ typedef struct mbedtls_x509write_csr
 }
 mbedtls_x509write_csr;
 
+typedef struct mbedtls_x509_san_node
+{
+    int type;                       /**< Subject Alternative Name types */
+    char *name;                     /**< Value, following the syntax allowed bythe type */
+    size_t len;                     /**< Length of the provided value */
+}
+mbedtls_x509_san_node;
+
+typedef struct mbedtls_x509_san_list
+{
+    mbedtls_x509_san_node node;
+    struct mbedtls_x509_san_list *next;
+}
+mbedtls_x509_san_list;
+
 #if defined(MBEDTLS_X509_CSR_PARSE_C)
 /**
  * \brief          Load a Certificate Signing Request (CSR) in DER format
@@ -215,6 +230,19 @@ void mbedtls_x509write_csr_set_md_alg( mbedtls_x509write_csr *ctx, mbedtls_md_ty
  *                  function.
  */
 int mbedtls_x509write_csr_set_key_usage( mbedtls_x509write_csr *ctx, unsigned char key_usage );
+
+/**
+ * \brief           Set Subject Alternative Name
+ *
+ * \param ctx       CSR context to use
+ * \param san_list  List of SAN values
+ *
+ * \return          0 if successful, or MBEDTLS_ERR_X509_ALLOC_FAILED
+ *
+ * \note            Only "dnsName", "uniformResourceIdentifier" and "otherName",
+ *                  as defined in RFC 5280, are supported.
+ */
+int mbedtls_x509write_csr_set_subject_alternative_name( mbedtls_x509write_csr *ctx, const mbedtls_x509_san_list *san_list );
 
 /**
  * \brief           Set the Netscape Cert Type flags

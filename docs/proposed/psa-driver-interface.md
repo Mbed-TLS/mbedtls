@@ -321,6 +321,81 @@ TODO: key input and output for opaque drivers; deterministic key generation for 
 
 TODO
 
+#### PAKE operation driver dispatch logic
+
+PSA PAKE operation structure for driver dispatch:
+
+```
+struct psa_pake_operation_s
+{
+    /** Unique ID indicating which driver got assigned to do the
+     * operation. Since driver contexts are driver-specific, swapping
+     * drivers halfway through the operation is not supported.
+     * ID values are auto-generated in psa_crypto_driver_wrappers.h
+     * ID value zero means the context is not valid or not assigned to
+     * any driver (i.e. none of the driver contexts are active). */
+    unsigned int MBEDTLS_PRIVATE(id);
+    /* Algorithm used for PAKE operation */
+    psa_algorithm_t MBEDTLS_PRIVATE(alg);
+    /* Based on stage (collecting inputs/computation) we select active structure of data union.
+     * While switching stage (when driver setup is called) collected inputs
+       are copied to the corresponding operation context. */
+    uint8_t MBEDTLS_PRIVATE(stage);
+    /* Holds the computation stage of the PAKE algorithms. */
+    psa_pake_computation_stage_t MBEDTLS_PRIVATE(computation_stage);
+    union {
+        unsigned dummy;
+        psa_crypto_driver_pake_inputs_t MBEDTLS_PRIVATE(inputs);
+        psa_driver_pake_context_t MBEDTLS_PRIVATE(ctx);
+    } MBEDTLS_PRIVATE(data);
+};
+```
+
+PAKE operation is divided into two stages: `collecting inputs` and `computation`. `stage` field defines the current stage and selects the active structure of the `data` union.
+The core decides whether to dispatch a PAKE operation to a driver based on the location of the provided password while calling `pake_setup` driver entry point.
+The core is responsible for holding information about the current stage of computation(`computation_stage`) and provides this information to the driver.
+
+1. Collecting inputs stage
+
+The core conveys the initial inputs for a PAKE operation via an opaque data structure of type `psa_crypto_driver_pake_inputs_t`.
+After calling `psa_pake_setup` the operation object is initialized and is ready to collect inputs. Driver entry point for `pake_setup` is not called at this point. It will be called later when all inputs are collected. Setter functions: `psa_pake_set_password_key`, `psa_pake_set_role`, `psa_pake_set_user`, `psa_pake_set_peer` do not have driver entry points. These functions just fill `inputs` structure.
+
+2. Computation stage
+
+First call of `psa_pake_output()` or `psa_pake_input()` switches the stage to `computation` (assuming that all inputs are collected) and calls `pake_setup` driver entry point. Driver function is responsible for coping inputs from given `inputs` structure to the driver context. Note that, after calling `pake_setup` the driver entry point, core will free memory allocated for the password. The driver is responsible for making its own copy.
+
+#### Driver entry points for PAKE operation
+
+A PAKE driver has the following entry points:
+`pake_setup` (mandatory): always the first entry point to be called. This entry point provides the `inputs` that need to be copied by the driver to the driver context.
+`pake_output` (mandatory): derive cryptographic material for the specified step and output it.
+`pake_input` (mandatory): provides cryptographic material in the format appropriate for the specified step.
+`pake_get_implicit_key` (mandatory): returns implicitly confirmed shared secret from a PAKE.
+`pake_abort` (mandatory): always the last entry point to be called.
+
+```
+psa_status_t pake_setup( mbedtls_psa_pake_operation_t *operation,
+                         const psa_crypto_driver_pake_inputs_t *inputs );
+
+psa_status_t pake_output( mbedtls_psa_pake_operation_t *operation,
+                          psa_pake_step_t step,
+                          const psa_pake_computation_stage_t *computation_stage,
+                          uint8_t *output,
+                          size_t output_size,
+                          size_t *output_length );
+
+psa_status_t pake_input( mbedtls_psa_pake_operation_t *operation,
+                         psa_pake_step_t step,
+                         const psa_pake_computation_stage_t *computation_stage,
+                         const uint8_t *input,
+                         size_t input_length );
+
+psa_status_t pake_get_implicit_key( mbedtls_psa_pake_operation_t *operation,
+                                    uint8_t *output, size_t *output_size );
+
+psa_status_t pake_abort( mbedtls_psa_pake_operation_t * operation );
+```
+
 ### Driver entry points for key management
 
 The driver entry points for key management differ significantly between [transparent drivers](#key-management-with-transparent-drivers) and [opaque drivers](#key-management-with-opaque-drivers). This section describes common elements. Refer to the applicable section for each driver type for more information.

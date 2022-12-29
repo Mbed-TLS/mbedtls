@@ -138,15 +138,38 @@ def do_analyze_driver_vs_reference(outcome_file, args):
 TASKS = {
     'analyze_coverage':                 {
         'test_function': do_analyze_coverage,
-        'args': {}},
+        'args': {}
+        },
+    # How to use analyze_driver_vs_reference_xxx locally:
+    # 1. tests/scripts/all.sh --outcome-file "$PWD/out.csv" <component_ref> <component_driver>
+    # 2. tests/scripts/analyze_outcomes.py out.csv analyze_driver_vs_reference_xxx
     'analyze_driver_vs_reference_hash': {
         'test_function': do_analyze_driver_vs_reference,
         'args': {
             'component_ref': 'test_psa_crypto_config_reference_hash_use_psa',
             'component_driver': 'test_psa_crypto_config_accel_hash_use_psa',
-            'ignored_suites': ['shax', 'mdx', # the software implementations that are being excluded
-                               'md',  # the legacy abstraction layer that's being excluded
-                              ]}}
+            'ignored_suites': [
+                'shax', 'mdx', # the software implementations that are being excluded
+                'md',  # the legacy abstraction layer that's being excluded
+            ]}},
+    'analyze_driver_vs_reference_ecdsa': {
+        'test_function': do_analyze_driver_vs_reference,
+        'args': {
+            'component_ref': 'test_psa_crypto_config_reference_ecdsa_use_psa',
+            'component_driver': 'test_psa_crypto_config_accel_ecdsa_use_psa',
+            'ignored_suites': [
+                'ecdsa', # the software implementation that's excluded
+                # the following lines should not be needed,
+                # they will be removed by upcoming work
+                'psa_crypto_se_driver_hal',
+                'random',
+                'ecp',
+                'pk',
+                'x509parse',
+                'x509write',
+                'debug',
+                'ssl',
+            ]}},
 }
 
 def main():

@@ -2013,6 +2013,25 @@ component_test_psa_crypto_config_accel_ecdsa () {
     make test
 }
 
+# Auxiliary function to build config for hashes with and without drivers
+config_psa_crypto_config_ecdsa_use_psa () {
+    DRIVER_ONLY="$1"
+    # start with config full for maximum coverage (also enables USE_PSA)
+    scripts/config.py full
+    # enable support for drivers and configuring PSA-only algorithms
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
+    if [ "$DRIVER_ONLY" -eq 1 ]; then
+        # Disable the module that's accelerated
+        scripts/config.py unset MBEDTLS_ECDSA_C
+    fi
+    # Disable things that depend on it
+    # TODO: make these work
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
+}
+
+# Keep in sync with component_test_psa_crypto_config_reference_ecdsa_use_psa
 component_test_psa_crypto_config_accel_ecdsa_use_psa () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDSA + USE_PSA"
 
@@ -2037,17 +2056,8 @@ component_test_psa_crypto_config_accel_ecdsa_use_psa () {
     # Configure and build the test driver library
     # -------------------------------------------
 
-    # Start from full config (inc. USE_PSA + TLS 1.3) + driver support
-    scripts/config.py full
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
-
-    # Disable the module that's accelerated
-    scripts/config.py unset MBEDTLS_ECDSA_C
-
-    # Disable things that depend on it
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
+    # Use the same config as reference, only without built-in ECDSA
+    config_psa_crypto_config_ecdsa_use_psa 1
 
     # Build the library
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
@@ -2061,6 +2071,28 @@ component_test_psa_crypto_config_accel_ecdsa_use_psa () {
 
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDSA + USE_PSA"
     make test
+
+    # TODO: ssl-opt.sh (currently doesn't pass)
+    # TODO: is some subset of compat.sh needed?
+}
+
+# Keep in sync with component_test_psa_crypto_config_accel_ecdsa_use_psa.
+# Used by tests/scripts/analyze_outcomes.py for comparison purposes.
+component_test_psa_crypto_config_reference_ecdsa_use_psa () {
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDSA + USE_PSA"
+
+    # To be aligned with the accel component that needs this
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+
+    config_psa_crypto_config_ecdsa_use_psa 0
+
+    make
+
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDSA + USE_PSA"
+    make test
+
+    # TODO: ssl-opt.sh (when the accel component is ready)
 }
 
 component_test_psa_crypto_config_accel_ecdh () {

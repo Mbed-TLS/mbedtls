@@ -203,6 +203,7 @@ ifndef WINDOWS
 	rm -f src/*.o src/drivers/*.o src/libmbed*
 	rm -f include/test/instrument_record_status.h
 	rm -rf libtestdriver1
+	rm -f ../library/libtestdriver1.a
 else
 	if exist *.c del /Q /F *.c
 	if exist *.exe del /Q /F *.exe

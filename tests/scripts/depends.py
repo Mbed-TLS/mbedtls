@@ -409,12 +409,11 @@ class DomainData:
                                               build_and_test),
             # Elliptic curves. Run the test suites.
             'curves': ExclusiveDomain(curve_symbols, build_and_test),
-            # Hash algorithms. Exclude two groups:
-            # - Exclusive domain of MD, RIPEMD, SHA1;
-            # - Exclusive domain of SHA224 and SHA384, because MBEDTLS_ENTROPY_C
-            #   is extensively used across various modules, but it depends on
-            #   either SHA256 or SHA512. As a consequence an "exclusive" test
-            #   of SHA224/SHA384 with MBEDTLS_ENTROPY_C enabled is not possible.
+            # Hash algorithms. Excluding exclusive domains of MD, RIPEMD, SHA1,
+            # SHA224 and SHA384 because MBEDTLS_ENTROPY_C is extensively used
+            # across various modules, but it depends on either SHA256 or SHA512.
+            # As a consequence an "exclusive" test of anything other than SHA256
+            # or SHA512 with MBEDTLS_ENTROPY_C enabled is not possible.
             'hashes': DualDomain(hash_symbols, build_and_test,
                                  exclude=r'MBEDTLS_(MD|RIPEMD|SHA1_)' \
                                           '|MBEDTLS_SHA224_' \

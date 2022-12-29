@@ -1,39 +1,20 @@
 #!/bin/sh
 
-# This script runs tests in various revisions and configurations and analyses
-# the results in order to highlight any difference in the set of tests skipped
-# in the test suites of interest.
+# This script runs tests before and after a PR and analyzes the results in
+# order to highlight any difference in the set of tests skipped.
 #
-# It can be used to ensure the testing criteria mentioned in strategy.md,
+# It can be used to check the first testing criterion mentioned in strategy.md,
 # end of section "Supporting builds with drivers without the software
-# implementation" are met, namely:
-#
-# - the sets of tests skipped in the default config and the full config must be
-#   the same before and after the PR that implements step 3;
-# - the set of tests skipped in the driver-only build is the same as in an
-#   equivalent software-based configuration, or the difference is small enough,
-#   justified, and a github issue is created to track it.
-#   This part is verified by tests/scripts/analyze_outcomes.py
+# implementation", namely: the sets of tests skipped in the default config and
+# the full config must be the same before and after the PR.
 #
 # WARNING: this script checks out a commit other than the head of the current
 # branch; it checks out the current branch again when running successfully,
 # but while the script is running, or if it terminates early in error, you
 # should be aware that you might be at a different commit than expected.
 #
-# NOTE: This is only an example/template script, you should make a copy and
-# edit it to suit your needs. The part that needs editing is at the top.
-#
-# Also, you can comment out parts that don't need to be re-done when
+# NOTE: you can comment out parts that don't need to be re-done when
 # re-running this script (for example "get numbers before this PR").
-
-# ----- BEGIN edit this -----
-# Space-separated list of test suites to ignore:
-# if SSS is in that list, test_suite_SSS and test_suite_SSS.* are ignored.
-IGNORE="md mdx shax" # accelerated
-IGNORE="$IGNORE entropy hmac_drbg random" # disabled (ext. RNG)
-IGNORE="$IGNORE psa_crypto_init" # needs internal RNG
-IGNORE="$IGNORE hkdf" # disabled in the all.sh component tested
-# ----- END edit this -----
 
 set -eu
 
@@ -69,7 +50,6 @@ cleanup
 scripts/config.py full
 record "after-full"
 
-
 # analysis
 
 populate_suites () {
@@ -79,11 +59,7 @@ populate_suites () {
     for data in $data_files; do
         suite=${data#test_suite_}
         suite=${suite%.data}
-        suite_base=${suite%%.*}
-        case " $IGNORE " in
-            *" $suite_base "*) :;;
-            *) SUITES="$SUITES $suite";;
-        esac
+        SUITES="$SUITES $suite"
     done
     make neat
 }

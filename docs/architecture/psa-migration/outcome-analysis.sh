@@ -8,6 +8,11 @@
 # implementation", namely: the sets of tests skipped in the default config and
 # the full config must be the same before and after the PR.
 #
+# USAGE:
+# - First, commit any uncommited changes. (Also, see warning below.)
+# - including ssl-opt.sh: docs/architecture/psa-migration/outcome-analysis.sh
+# - or: SKIP_SSL_OPT=1 docs/architecture/psa-migration/outcome-analysis.sh
+#
 # WARNING: this script checks out a commit other than the head of the current
 # branch; it checks out the current branch again when running successfully,
 # but while the script is running, or if it terminates early in error, you
@@ -18,6 +23,8 @@
 
 set -eu
 
+: ${SKIP_SSL_OPT:=0}
+
 cleanup() {
     make clean
     git checkout -- include/mbedtls/mbedtls_config.h include/psa/crypto_config.h
@@ -26,7 +33,14 @@ cleanup() {
 record() {
     export MBEDTLS_TEST_OUTCOME_FILE="$PWD/outcome-$1.csv"
     rm -f $MBEDTLS_TEST_OUTCOME_FILE
+
     make check
+
+    if [ $SKIP_SSL_OPT -eq 0 ]; then
+        make -C programs ssl/ssl_server2 ssl/ssl_client2 \
+            test/udp_proxy test/query_compile_time_config
+        tests/ssl-opt.sh
+    fi
 }
 
 # save current HEAD
@@ -35,20 +49,26 @@ HEAD=$(git branch --show-current)
 # get the numbers before this PR for default and full
 cleanup
 git checkout $(git merge-base HEAD development)
+
 record "before-default"
 
 cleanup
+
 scripts/config.py full
 record "before-full"
 
 # get the numbers now for default and full
 cleanup
 git checkout $HEAD
+
 record "after-default"
 
 cleanup
+
 scripts/config.py full
 record "after-full"
+
+cleanup
 
 # analysis
 
@@ -57,11 +77,19 @@ populate_suites () {
     make generated_files >/dev/null
     data_files=$(cd tests/suites && echo *.data)
     for data in $data_files; do
-        suite=${data#test_suite_}
-        suite=${suite%.data}
+        suite=${data%.data}
         SUITES="$SUITES $suite"
     done
     make neat
+
+    if [ $SKIP_SSL_OPT -eq 0 ]; then
+        SUITES="$SUITES ssl-opt"
+        extra_files=$(cd tests/opt-testcases && echo *.sh)
+        for extra in $extra_files; do
+            suite=${extra%.sh}
+            SUITES="$SUITES $suite"
+        done
+    fi
 }
 
 compare_suite () {
@@ -69,7 +97,7 @@ compare_suite () {
     new="outcome-$2.csv"
     suite="$3"
 
-    pattern_suite=";test_suite_$suite;"
+    pattern_suite=";$suite;"
     total=$(grep -c "$pattern_suite" "$ref")
     sed_cmd="s/^.*$pattern_suite\(.*\);SKIP.*/\1/p"
     sed -n "$sed_cmd" "$ref" > skipped-ref
@@ -77,8 +105,9 @@ compare_suite () {
     nb_ref=$(wc -l <skipped-ref)
     nb_new=$(wc -l <skipped-new)
 
-    printf "%36s: total %4d; skipped %4d -> %4d\n" \
-            $suite      $total       $nb_ref $nb_new
+    name=${suite#test_suite_}
+    printf "%40s: total %4d; skipped %4d -> %4d\n" \
+            $name       $total       $nb_ref $nb_new
     if diff skipped-ref skipped-new | grep '^> '; then
         ret=1
     else

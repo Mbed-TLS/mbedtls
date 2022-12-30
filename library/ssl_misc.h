@@ -781,7 +781,7 @@ struct mbedtls_ssl_handshake_params {
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) ||      \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-    const mbedtls_ecp_curve_info **curves;      /*!<  Supported elliptic curves */
+    uint16_t *curves_tls_id;      /*!<  List of TLS IDs of supported elliptic curves */
 #endif
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
@@ -1554,6 +1554,70 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_check_curve(const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id);
 #endif
 
+/**
+ * \brief Return PSA EC info for the specified TLS ID.
+ *
+ * \param tls_id    The TLS ID to look for
+ * \param family    If the TLD ID is supported, then proper \c psa_ecc_family_t
+ *                  value is returned here. Can be NULL.
+ * \param bits      If the TLD ID is supported, then proper bit size is returned
+ *                  here. Can be NULL.
+ * \return          PSA_SUCCESS if the TLS ID is supported,
+ *                  PSA_ERROR_NOT_SUPPORTED otherwise
+ *
+ * \note            If either \c family or \c bits parameters are NULL, then
+ *                  the corresponding value is not returned.
+ *                  The function can be called with both parameters as NULL
+ *                  simply to check if a specific TLS ID is supported.
+ */
+int mbedtls_ssl_get_psa_curve_info_from_tls_id(uint16_t tls_id,
+                                               psa_ecc_family_t *family,
+                                               size_t *bits);
+
+/**
+ * \brief Return \c mbedtls_ecp_group_id for the specified TLS ID.
+ *
+ * \param tls_id    The TLS ID to look for
+ * \return          Proper \c mbedtls_ecp_group_id if the TLS ID is supported,
+ *                  or MBEDTLS_ECP_DP_NONE otherwise
+ */
+mbedtls_ecp_group_id mbedtls_ssl_get_ecp_group_id_from_tls_id(uint16_t tls_id);
+
+/**
+ * \brief Return TLS ID for the specified \c mbedtls_ecp_group_id.
+ *
+ * \param grp_id    The \c mbedtls_ecp_group_id ID to look for
+ * \return          Proper TLS ID if the \c mbedtls_ecp_group_id is supported,
+ *                  or 0 otherwise
+ */
+uint16_t mbedtls_ssl_get_tls_id_from_ecp_group_id(mbedtls_ecp_group_id grp_id);
+
+/**
+ * \brief Return EC's name for the specified TLS ID.
+ *
+ * \param tls_id    The TLS ID to look for
+ * \return          A pointer to a const string with the proper name. If TLS
+ *                  ID is not suppoted, a NULL pointer is returned insted.
+ */
+const char *mbedtls_ssl_get_curve_name_from_tls_id(uint16_t tls_id);
+
+/* This function transforms an ECC group identifier from
+ * https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8
+ * into a PSA ECC group identifier. */
+#if defined(MBEDTLS_ECP_C)
+static inline psa_key_type_t mbedtls_psa_parse_tls_ecc_group(
+    uint16_t tls_ecc_grp_reg_id, size_t *bits)
+{
+    mbedtls_ecp_group_id grp_id =
+        mbedtls_ssl_get_ecp_group_id_from_tls_id(tls_ecc_grp_reg_id);
+    if (grp_id == MBEDTLS_ECP_DP_NONE) {
+        return 0;
+    }
+    return PSA_KEY_TYPE_ECC_KEY_PAIR(
+        mbedtls_ecc_group_to_psa(grp_id, bits));
+}
+#endif /* MBEDTLS_ECP_C */
+
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
 static inline mbedtls_ssl_srtp_profile mbedtls_ssl_check_srtp_profile_value
     (const uint16_t srtp_profile_value)
@@ -2153,9 +2217,8 @@ static inline int mbedtls_ssl_named_group_is_supported(uint16_t named_group)
 {
 #if defined(MBEDTLS_ECDH_C)
     if (mbedtls_ssl_tls13_named_group_is_ecdhe(named_group)) {
-        const mbedtls_ecp_curve_info *curve_info =
-            mbedtls_ecp_curve_info_from_tls_id(named_group);
-        if (curve_info != NULL) {
+        if (mbedtls_ssl_get_ecp_group_id_from_tls_id(named_group) !=
+            MBEDTLS_ECP_DP_NONE) {
             return 1;
         }
     }

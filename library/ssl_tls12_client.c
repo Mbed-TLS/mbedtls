@@ -1778,7 +1778,7 @@ static int ssl_parse_server_ecdh_params(mbedtls_ssl_context *ssl,
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_check_server_ecdh_params(const mbedtls_ssl_context *ssl)
 {
-    const mbedtls_ecp_curve_info *curve_info;
+    uint16_t tls_id;
     mbedtls_ecp_group_id grp_id;
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
     grp_id = ssl->handshake->ecdh_ctx.grp.id;
@@ -1786,13 +1786,14 @@ static int ssl_check_server_ecdh_params(const mbedtls_ssl_context *ssl)
     grp_id = ssl->handshake->ecdh_ctx.grp_id;
 #endif
 
-    curve_info = mbedtls_ecp_curve_info_from_grp_id(grp_id);
-    if (curve_info == NULL) {
+    tls_id = mbedtls_ssl_get_tls_id_from_ecp_group_id(grp_id);
+    if (tls_id == 0) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("should never happen"));
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }
 
-    MBEDTLS_SSL_DEBUG_MSG(2, ("ECDH curve: %s", curve_info->name));
+    MBEDTLS_SSL_DEBUG_MSG(2, ("ECDH curve: %s",
+                              mbedtls_ssl_get_curve_name_from_tls_id(tls_id)));
 
     if (mbedtls_ssl_check_curve(ssl, grp_id) != 0) {
         return -1;
@@ -2222,15 +2223,15 @@ start_processing:
          * that TLS ID here
          */
         uint16_t read_tls_id = MBEDTLS_GET_UINT16_BE(p, 1);
-        const mbedtls_ecp_curve_info *curve_info;
+        uint16_t exp_tls_id = mbedtls_ssl_get_tls_id_from_ecp_group_id(
+            MBEDTLS_ECP_DP_SECP256R1);
 
-        if ((curve_info = mbedtls_ecp_curve_info_from_grp_id(
-                 MBEDTLS_ECP_DP_SECP256R1)) == NULL) {
+        if (exp_tls_id == 0) {
             return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
         }
 
         if ((*p != MBEDTLS_ECP_TLS_NAMED_CURVE) ||
-            (read_tls_id != curve_info->tls_id)) {
+            (read_tls_id != exp_tls_id)) {
             return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
         }
 

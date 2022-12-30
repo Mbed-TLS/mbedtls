@@ -257,23 +257,6 @@ static inline int mbedtls_psa_get_ecc_oid_from_id(
 #define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH \
     PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)
 
-/* This function transforms an ECC group identifier from
- * https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8
- * into a PSA ECC group identifier. */
-#if defined(MBEDTLS_ECP_C)
-static inline psa_key_type_t mbedtls_psa_parse_tls_ecc_group(
-    uint16_t tls_ecc_grp_reg_id, size_t *bits)
-{
-    const mbedtls_ecp_curve_info *curve_info =
-        mbedtls_ecp_curve_info_from_tls_id(tls_ecc_grp_reg_id);
-    if (curve_info == NULL) {
-        return 0;
-    }
-    return PSA_KEY_TYPE_ECC_KEY_PAIR(
-        mbedtls_ecc_group_to_psa(curve_info->grp_id, bits));
-}
-#endif /* MBEDTLS_ECP_C */
-
 /* Expose whatever RNG the PSA subsystem uses to applications using the
  * mbedtls_xxx API. The declarations and definitions here need to be
  * consistent with the implementation in library/psa_crypto_random_impl.h.

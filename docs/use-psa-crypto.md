@@ -95,8 +95,6 @@ Other than the above exceptions, all crypto operations are based on PSA when
 
 Current exceptions:
 
-- Verification of RSA-PSS signatures with a salt length that is different from
-  the hash length.
 - Restartable operations when `MBEDTLS_ECP_RESTARTABLE` is also enabled (see
   the documentation of that option).
 
@@ -107,11 +105,11 @@ Other than the above exception, all crypto operations are based on PSA when
 
 Current exceptions:
 
-- Verification of RSA-PSS signatures with a salt length that is different from
-  the hash length, or with an MGF hash that's different from the message hash.
+- Verification of RSA-PSS signatures with an MGF hash that's different from
+  the message hash.
 - Restartable operations when `MBEDTLS_ECP_RESTARTABLE` is also enabled (see
   the documentation of that option).
 
-Other than the above exception, all crypto operations are based on PSA when
+Other than the above exceptions, all crypto operations are based on PSA when
 `MBEDTLS_USE_PSA_CRYPTO` is enabled.
 

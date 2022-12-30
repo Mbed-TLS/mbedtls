@@ -48,15 +48,6 @@
 #include <string.h>
 
 /*
- * Define MBEDTLS_EFFICIENT_UNALIGNED_ACCESS for architectures where unaligned memory
- * accesses are known to be safe and efficient.
- */
-#if defined(__ARM_FEATURE_UNALIGNED)
-/* __ARM_FEATURE_UNALIGNED is defined by armcc, gcc 7, clang 9 and later versions */
-#define MBEDTLS_EFFICIENT_UNALIGNED_ACCESS
-#endif
-
-/*
  * Define MBEDTLS_EFFICIENT_UNALIGNED_VOLATILE_ACCESS where assembly is present to
  * perform fast unaligned access to volatile data.
  *

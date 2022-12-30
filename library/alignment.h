@@ -29,6 +29,19 @@
 
 #include "mbedtls/build_info.h"
 
+/*
+ * Define MBEDTLS_EFFICIENT_UNALIGNED_ACCESS for architectures where unaligned memory
+ * accesses are known to be safe and efficient.
+ */
+#if defined(__ARM_FEATURE_UNALIGNED) \
+    || defined(__i386__) || defined(__amd64__) || defined(__x86_64__)
+/*
+ * __ARM_FEATURE_UNALIGNED is defined where appropriate by armcc, gcc 7, clang 9
+ * (and later versions); all x86 platforms should have efficient unaligned access.
+ */
+#define MBEDTLS_EFFICIENT_UNALIGNED_ACCESS
+#endif
+
 /**
  * Read the unsigned 16 bits integer from the given address, which need not
  * be aligned.

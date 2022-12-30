@@ -939,6 +939,19 @@ component_test_full_cmake_gcc_asan () {
 
     msg "test: context-info.sh (full config, ASan build)" # ~ 15 sec
     tests/context-info.sh
+
+    # Verify that TLS and X509 libraries have no dipendency from
+    # "mbedtls_ecp_curve" symbols.
+    msg "test: verify that TLS and X509 have no dependency from mbedtls_ecp_curve symbols"
+    docs/architecture/psa-migration/syms.sh full
+
+    not grep mbedtls_ecp_curve full-tls-external
+    not grep mbedtls_ecp_curve full-x509-external
+
+    rm  full-tls-external \
+        full-tls-modules \
+        full-x509-external \
+        full-x509-modules
 }
 
 component_test_psa_crypto_key_id_encodes_owner () {

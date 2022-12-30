@@ -87,8 +87,8 @@ def analyze_driver_vs_reference(outcomes, component_ref, component_driver, ignor
                 driver_test_passed = True
             if component_ref in entry:
                 reference_test_passed = True
-        if(driver_test_passed is False and reference_test_passed is True):
-            print('{}: driver: skipped/failed; reference: passed'.format(key))
+        if(reference_test_passed and not driver_test_passed):
+            print(key)
             result = False
     return result
 
@@ -123,6 +123,7 @@ def do_analyze_coverage(outcome_file, args):
     """Perform coverage analysis."""
     del args # unused
     outcomes = read_outcome_file(outcome_file)
+    print("\n*** Analyze coverage ***\n")
     results = analyze_outcomes(outcomes)
     return results.error_count == 0
 
@@ -131,6 +132,8 @@ def do_analyze_driver_vs_reference(outcome_file, args):
     ignored_tests = ['test_suite_' + x for x in args['ignored_suites']]
 
     outcomes = read_outcome_file(outcome_file)
+    print("\n*** Analyze driver {} vs reference {} ***\n".format(
+        args['component_driver'], args['component_ref']))
     return analyze_driver_vs_reference(outcomes, args['component_ref'],
                                        args['component_driver'], ignored_tests)
 

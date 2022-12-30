@@ -180,7 +180,7 @@ static int ssl_parse_supported_groups_ext( mbedtls_ssl_context *ssl,
 {
     size_t list_size, our_size;
     const unsigned char *p;
-    const mbedtls_ecp_curve_info *curve_info, **curves;
+    uint16_t *curves_tls_id;
 
     if ( len < 2 ) {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
@@ -199,7 +199,7 @@ static int ssl_parse_supported_groups_ext( mbedtls_ssl_context *ssl,
     }
 
     /* Should never happen unless client duplicates the extension */
-    if( ssl->handshake->curves != NULL )
+    if( ssl->handshake->curves_tls_id != NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
@@ -213,23 +213,25 @@ static int ssl_parse_supported_groups_ext( mbedtls_ssl_context *ssl,
     if( our_size > MBEDTLS_ECP_DP_MAX )
         our_size = MBEDTLS_ECP_DP_MAX;
 
-    if( ( curves = mbedtls_calloc( our_size, sizeof( *curves ) ) ) == NULL )
+    if( ( curves_tls_id = mbedtls_calloc( our_size,
+                                sizeof( *curves_tls_id ) ) ) == NULL )
     {
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
         return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
     }
 
-    ssl->handshake->curves = curves;
+    ssl->handshake->curves_tls_id = curves_tls_id;
 
     p = buf + 2;
     while( list_size > 0 && our_size > 1 )
     {
-        curve_info = mbedtls_ecp_curve_info_from_tls_id( ( p[0] << 8 ) | p[1] );
+        uint16_t curr_tls_id = MBEDTLS_GET_UINT16_BE( p, 0 );
 
-        if( curve_info != NULL )
+        if( mbedtls_ssl_get_ecp_group_id_from_tls_id( curr_tls_id ) !=
+                                        MBEDTLS_ECP_DP_NONE )
         {
-            *curves++ = curve_info;
+            *curves_tls_id++ = curr_tls_id;
             our_size--;
         }
 
@@ -685,16 +687,18 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_ECDSA_C)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_check_key_curve( mbedtls_pk_context *pk,
-                                const mbedtls_ecp_curve_info **curves )
+                                uint16_t *curves_tls_id )
 {
-    const mbedtls_ecp_curve_info **crv = curves;
+    uint16_t *curr_tls_id = curves_tls_id;
     mbedtls_ecp_group_id grp_id = mbedtls_pk_ec( *pk )->grp.id;
+    mbedtls_ecp_group_id curr_grp_id;
 
-    while( *crv != NULL )
+    while( *curr_tls_id != 0 )
     {
-        if( (*crv)->grp_id == grp_id )
+        curr_grp_id = mbedtls_ssl_get_ecp_group_id_from_tls_id( *curr_tls_id );
+        if( curr_grp_id == grp_id )
             return( 0 );
-        crv++;
+        curr_tls_id++;
     }
 
     return( -1 );
@@ -789,7 +793,8 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_ECDSA_C)
         if( pk_alg == MBEDTLS_PK_ECDSA &&
-            ssl_check_key_curve( &cur->cert->pk, ssl->handshake->curves ) != 0 )
+            ssl_check_key_curve( &cur->cert->pk,
+                            ssl->handshake->curves_tls_id ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "certificate mismatch: elliptic curve" ) );
             continue;
@@ -857,8 +862,8 @@ static int ssl_ciphersuite_match( mbedtls_ssl_context *ssl, int suite_id,
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
     if( mbedtls_ssl_ciphersuite_uses_ec( suite_info ) &&
-        ( ssl->handshake->curves == NULL ||
-          ssl->handshake->curves[0] == NULL ) )
+        ( ssl->handshake->curves_tls_id == NULL ||
+          ssl->handshake->curves_tls_id[0] == 0 ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: "
                             "no common elliptic curve" ) );
@@ -2849,7 +2854,6 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
                                ssl->out_msglen;
         size_t output_offset = 0;
         size_t output_len = 0;
-        const mbedtls_ecp_curve_info *curve_info;
 
         /*
          * The first 3 bytes are:
@@ -2859,13 +2863,14 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
          * However since we only support secp256r1 for now, we hardcode its
          * TLS ID here
          */
-        if( ( curve_info = mbedtls_ecp_curve_info_from_grp_id(
-                                    MBEDTLS_ECP_DP_SECP256R1 ) ) == NULL )
+        uint16_t tls_id = mbedtls_ssl_get_tls_id_from_ecp_group_id(
+                                    MBEDTLS_ECP_DP_SECP256R1 );
+        if( tls_id ==0 )
         {
             return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
         }
         *out_p = MBEDTLS_ECP_TLS_NAMED_CURVE;
-        MBEDTLS_PUT_UINT16_BE( curve_info->tls_id, out_p, 1 );
+        MBEDTLS_PUT_UINT16_BE( tls_id, out_p, 1 );
         output_offset += 3;
 
         ret = mbedtls_psa_ecjpake_write_round( &ssl->handshake->psa_pake_ctx,
@@ -2986,27 +2991,29 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
          *     ECPoint      public;
          * } ServerECDHParams;
          */
-        const mbedtls_ecp_curve_info **curve = NULL;
+        uint16_t *curr_tls_id = ssl->handshake->curves_tls_id;
         const uint16_t *group_list = mbedtls_ssl_get_groups( ssl );
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         size_t len = 0;
 
         /* Match our preference list against the offered curves */
-        if( group_list == NULL )
+        if( ( group_list == NULL ) || ( curr_tls_id == NULL ) )
             return( MBEDTLS_ERR_SSL_BAD_CONFIG );
         for( ; *group_list != 0; group_list++ )
-            for( curve = ssl->handshake->curves; *curve != NULL; curve++ )
-                if( (*curve)->tls_id == *group_list )
+            for( curr_tls_id = ssl->handshake->curves_tls_id;
+                 *curr_tls_id != 0; curr_tls_id++ )
+                if( *curr_tls_id == *group_list )
                     goto curve_matching_done;
 
 curve_matching_done:
-        if( curve == NULL || *curve == NULL )
+        if( *curr_tls_id == 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "no matching curve for ECDHE" ) );
             return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
         }
 
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDHE curve: %s", (*curve)->name ) );
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDHE curve: %s",
+                    mbedtls_ssl_get_curve_name_from_tls_id(*curr_tls_id) ) );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         psa_status_t status = PSA_ERROR_GENERIC_ERROR;
@@ -3022,7 +3029,7 @@ curve_matching_done:
 
         /* Convert EC group to PSA key type. */
         handshake->ecdh_psa_type = mbedtls_psa_parse_tls_ecc_group(
-                    (*curve)->tls_id, &ecdh_bits );
+                    *curr_tls_id, &ecdh_bits );
 
         if( handshake->ecdh_psa_type == 0 )
         {
@@ -3047,7 +3054,7 @@ curve_matching_done:
         /*
          * Next two bytes are the namedcurve value
          */
-        MBEDTLS_PUT_UINT16_BE( (*curve)->tls_id, p, 0 );
+        MBEDTLS_PUT_UINT16_BE( *curr_tls_id, p, 0 );
         p += 2;
 
         /* Generate ECDH private key. */
@@ -3093,8 +3100,11 @@ curve_matching_done:
         /* Determine full message length. */
         len += header_size;
 #else
+        mbedtls_ecp_group_id curr_grp_id =
+                    mbedtls_ssl_get_ecp_group_id_from_tls_id( *curr_tls_id );
+
         if( ( ret = mbedtls_ecdh_setup( &ssl->handshake->ecdh_ctx,
-                                        (*curve)->grp_id ) ) != 0 )
+                                        curr_grp_id ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecp_group_load", ret );
             return( ret );

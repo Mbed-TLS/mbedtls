@@ -50,18 +50,29 @@
 /*
  * Define MBEDTLS_EFFICIENT_UNALIGNED_ACCESS for architectures where unaligned memory
  * accesses are known to be safe and efficient.
+ */
+#if defined(__ARM_FEATURE_UNALIGNED)
+/* __ARM_FEATURE_UNALIGNED is defined by armcc, gcc 7, clang 9 and later versions */
+#define MBEDTLS_EFFICIENT_UNALIGNED_ACCESS
+#endif
+
+/*
+ * Define MBEDTLS_EFFICIENT_UNALIGNED_VOLATILE_ACCESS where assembly is present to
+ * perform fast unaligned access to volatile data.
  *
  * This is needed because mbedtls_get_unaligned_uintXX etc don't support volatile
  * memory accesses.
  *
- * This macro could be moved into alignment.h but for now it's only used here.
+ * Some of these definitions could be moved into alignment.h but for now they are
+ * only used here.
  */
-#if defined(__ARM_FEATURE_UNALIGNED)
-/* __ARM_FEATURE_UNALIGNED is defined by armcc, gcc 7, clang 9 and later versions. */
-#define MBEDTLS_EFFICIENT_UNALIGNED_ACCESS
+#if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS) && defined(MBEDTLS_HAVE_ASM)
+#if defined(__arm__) || defined(__thumb__) || defined(__thumb2__) || defined(__aarch64__)
+#define MBEDTLS_EFFICIENT_UNALIGNED_VOLATILE_ACCESS
+#endif
 #endif
 
-#if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS) && defined(MBEDTLS_HAVE_ASM)
+#if defined(MBEDTLS_EFFICIENT_UNALIGNED_VOLATILE_ACCESS)
 static inline uint32_t mbedtls_get_unaligned_volatile_uint32(volatile const unsigned char *p)
 {
     /* This is UB, even where it's safe:
@@ -71,21 +82,12 @@ static inline uint32_t mbedtls_get_unaligned_volatile_uint32(volatile const unsi
     uint32_t r;
 #if defined(__arm__) || defined(__thumb__) || defined(__thumb2__)
     asm ("ldr %0, [%1]" : "=r" (r) : "r" (p) :);
-    return r;
-#endif
-#if defined(__aarch64__)
+#elif defined(__aarch64__)
     asm ("ldr %w0, [%1]" : "=r" (r) : "r" (p) :);
-    return r;
 #endif
-
-    /* Always safe, but inefficient, fall-back */
-    if (MBEDTLS_IS_BIG_ENDIAN) {
-        return (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];
-    } else {
-        return p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24);
-    }
+    return r;
 }
-#endif /* MBEDTLS_EFFICIENT_UNALIGNED_ACCESS */
+#endif /* MBEDTLS_EFFICIENT_UNALIGNED_VOLATILE_ACCESS */
 
 int mbedtls_ct_memcmp(const void *a,
                       const void *b,
@@ -96,7 +98,7 @@ int mbedtls_ct_memcmp(const void *a,
     volatile const unsigned char *B = (volatile const unsigned char *) b;
     volatile uint32_t diff = 0;
 
-#if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)
+#if defined(MBEDTLS_EFFICIENT_UNALIGNED_VOLATILE_ACCESS)
     for (; (i + 4) <= n; i += 4) {
         uint32_t x = mbedtls_get_unaligned_volatile_uint32(A + i);
         uint32_t y = mbedtls_get_unaligned_volatile_uint32(B + i);

@@ -35,7 +35,7 @@ cat doc.out doc.err | \
     grep -v "warning: ignoring unsupported tag" \
     > doc.filtered
 
-if egrep "(warning|error):" doc.filtered; then
+if grep -E "(warning|error):" doc.filtered; then
     echo "FAIL" >&2
     exit 1;
 fi

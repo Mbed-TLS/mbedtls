@@ -3304,6 +3304,8 @@ void mbedtls_x509_crt_free(mbedtls_x509_crt *crt)
 {
     mbedtls_x509_crt *cert_cur = crt;
     mbedtls_x509_crt *cert_prv;
+    mbedtls_x509_sequence *seq_cur;
+    mbedtls_x509_sequence *seq_prv;
 
     while (cert_cur != NULL) {
         mbedtls_pk_free(&cert_cur->pk);

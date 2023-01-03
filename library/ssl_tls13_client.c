@@ -2150,16 +2150,6 @@ cleanup:
  */
 
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_finalize_write_end_of_early_data(
-    mbedtls_ssl_context *ssl)
-{
-
-    mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE);
-
-    return 0;
-}
-
-MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_write_end_of_early_data(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -2180,8 +2170,7 @@ static int ssl_tls13_write_end_of_early_data(mbedtls_ssl_context *ssl)
     mbedtls_ssl_set_outbound_transform(
         ssl, ssl->handshake->transform_handshake);
 
-    MBEDTLS_SSL_PROC_CHK(
-        ssl_tls13_finalize_write_end_of_early_data(ssl));
+    mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE);
 
 cleanup:
 

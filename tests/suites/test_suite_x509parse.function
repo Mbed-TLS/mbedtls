@@ -434,7 +434,7 @@ void x509_parse_san(char *crt_file, char *result_str)
     if (crt.ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME) {
         cur = &crt.subject_alt_names;
         while (cur != NULL) {
-            ret = mbedtls_x509_parse_general_name(&cur->buf, &san);
+            ret = mbedtls_x509_parse_subject_alt_name(&cur->buf, &san);
             TEST_ASSERT(ret == 0 || ret == MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE);
             /*
              * If san type not supported, ignore.

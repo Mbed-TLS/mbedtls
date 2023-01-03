@@ -1969,7 +1969,8 @@ component_test_psa_crypto_config_accel_ecdsa () {
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
 
-    # SHA384 needed for some ECDSA signature tests.
+    # These hashes are needed for some ECDSA signature tests.
+    scripts/config.py -f tests/include/test/drivers/config_test_driver.h set MBEDTLS_SHA224_C
     scripts/config.py -f tests/include/test/drivers/config_test_driver.h set MBEDTLS_SHA384_C
     scripts/config.py -f tests/include/test/drivers/config_test_driver.h set MBEDTLS_SHA512_C
 
@@ -1978,6 +1979,7 @@ component_test_psa_crypto_config_accel_ecdsa () {
     make -C tests libtestdriver1.a CFLAGS="$ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
 
     # Restore test driver base configuration
+    scripts/config.py -f tests/include/test/drivers/config_test_driver.h unset MBEDTLS_SHA224_C
     scripts/config.py -f tests/include/test/drivers/config_test_driver.h unset MBEDTLS_SHA384_C
     scripts/config.py -f tests/include/test/drivers/config_test_driver.h unset MBEDTLS_SHA512_C
 
@@ -2062,6 +2064,7 @@ component_test_psa_crypto_config_accel_rsa_signature () {
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_RIPEMD160_C
 
     scripts/config.py -f tests/include/test/drivers/config_test_driver.h set MBEDTLS_SHA1_C
+    scripts/config.py -f tests/include/test/drivers/config_test_driver.h set MBEDTLS_SHA224_C
     scripts/config.py -f tests/include/test/drivers/config_test_driver.h set MBEDTLS_SHA512_C
     # We need to define either MD_C or all of the PSA_WANT_ALG_SHAxxx.
     scripts/config.py -f tests/include/test/drivers/config_test_driver.h set MBEDTLS_MD_C
@@ -2076,6 +2079,7 @@ component_test_psa_crypto_config_accel_rsa_signature () {
 
     # Restore test driver base configuration
     scripts/config.py -f tests/include/test/drivers/config_test_driver.h unset MBEDTLS_SHA1_C
+    scripts/config.py -f tests/include/test/drivers/config_test_driver.h unset MBEDTLS_SHA224_C
     scripts/config.py -f tests/include/test/drivers/config_test_driver.h unset MBEDTLS_SHA512_C
     scripts/config.py -f tests/include/test/drivers/config_test_driver.h unset MBEDTLS_MD_C
     scripts/config.py -f tests/include/test/drivers/config_test_driver.h unset MBEDTLS_PEM_PARSE_C

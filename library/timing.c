@@ -33,9 +33,11 @@
 #error "This module only works on Unix and Windows, see MBEDTLS_TIMING_C in config.h"
 #endif
 
+/* *INDENT-OFF* */
 #ifndef asm
 #define asm __asm
 #endif
+/* *INDENT-ON* */
 
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
 

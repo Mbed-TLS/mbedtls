@@ -475,7 +475,10 @@ static int ssl_tls13_session_copy_ticket(mbedtls_ssl_session *dst,
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     dst->max_early_data_size = src->max_early_data_size;
+#if defined(MBEDTLS_SSL_ALPN)
+    dst->ticket_alpn = src->ticket_alpn;
 #endif
+#endif /* MBEDTLS_SSL_EARLY_DATA */
 
     return 0;
 }
@@ -564,7 +567,15 @@ static int ssl_tls13_parse_pre_shared_key_ext(
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
         mbedtls_ssl_session session;
         mbedtls_ssl_session_init(&session);
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+        session.max_early_data_size = ssl->conf->max_early_data_size;
+#if defined(MBEDTLS_SSL_ALPN)
+        session.ticket_alpn.alpn_list = ssl->conf->alpn_list;
 #endif
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
         MBEDTLS_SSL_CHK_BUF_READ_PTR(p_identity_len, identities_end, 2 + 1 + 4);
         identity_len = MBEDTLS_GET_UINT16_BE(p_identity_len, 0);
@@ -3147,6 +3158,10 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
     MBEDTLS_SSL_PRINT_TICKET_FLAGS(4, session->ticket_flags);
+
+#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_ALPN)
+    session->ticket_alpn.alpn = ssl->alpn_chosen;
+#endif
 
     /* Generate ticket_age_add */
     if ((ret = ssl->conf->f_rng(ssl->conf->p_rng,

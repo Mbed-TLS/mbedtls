@@ -7502,7 +7502,6 @@ exit:
     PSA_DONE( );
 }
 /* END_CASE */
-#endif
 
 /* BEGIN_CASE */
 void sign_message_deterministic( int key_type_arg,

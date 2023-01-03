@@ -962,34 +962,9 @@ int mbedtls_ssl_write_client_hello(mbedtls_ssl_context *ssl)
         MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_finish_handshake_msg(ssl,
                                                               buf_len,
                                                               msg_len));
-        mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_SERVER_HELLO);
 
-#if defined(MBEDTLS_SSL_EARLY_DATA)
-        if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED) {
-            /* Start the TLS 1.3 key schedule:
-             * Set the PSK and derive early secret.
-             */
-            ret = mbedtls_ssl_tls13_key_schedule_stage_early(ssl);
-            if (ret != 0) {
-                MBEDTLS_SSL_DEBUG_RET(1,
-                                      "mbedtls_ssl_tls13_key_schedule_stage_early", ret);
-                goto cleanup;
-            }
+        mbedtls_ssl_tls13_finalize_write_client_hello(ssl);
 
-            /* Derive early data key material */
-            ret = mbedtls_ssl_tls13_compute_early_transform(ssl);
-            if (ret != 0) {
-                MBEDTLS_SSL_DEBUG_RET(1,
-                                      "mbedtls_ssl_tls13_compute_early_transform", ret);
-                goto cleanup;
-            }
-
-            MBEDTLS_SSL_DEBUG_MSG(
-                1, ("Switch to early data keys for outbound traffic"));
-            mbedtls_ssl_set_outbound_transform(
-                ssl, ssl->handshake->transform_earlydata);
-        }
-#endif /* MBEDTLS_SSL_EARLY_DATA */
     }
 
 cleanup:

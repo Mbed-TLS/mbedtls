@@ -2740,4 +2740,6 @@ static inline void mbedtls_ssl_session_clear_ticket_flags(
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */
 
+int mbedtls_ssl_tls13_finalize_write_client_hello(mbedtls_ssl_context *ssl);
+
 #endif /* ssl_misc.h */

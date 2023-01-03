@@ -104,9 +104,11 @@ static int mbedtls_a64_crypto_sha512_determine_support( void )
 #include <signal.h>
 #include <setjmp.h>
 
+/* *INDENT-OFF* */
 #ifndef asm
 #define asm __asm__
 #endif
+/* *INDENT-ON* */
 
 static jmp_buf return_from_sigill;
 
@@ -297,9 +299,11 @@ static const uint64_t K[80] =
 #  define mbedtls_internal_sha512_process_a64_crypto      mbedtls_internal_sha512_process
 #endif
 
+/* *INDENT-OFF* */
 #ifndef asm
 #define asm __asm__
 #endif
+/* *INDENT-ON* */
 
 /* Accelerated SHA-512 implementation originally written by Simon Tatham for PuTTY,
  * under the MIT licence; dual-licensed as Apache 2 with his kind permission.

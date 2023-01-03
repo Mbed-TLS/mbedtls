@@ -36,22 +36,22 @@
 
 #if defined(__aarch64__)
 #  if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) || \
-      defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY)
+    defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY)
 #    include <arm_neon.h>
 #  endif
 #  if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT)
 #    if defined(__unix__)
 #      if defined(__linux__)
-         /* Our preferred method of detection is getauxval() */
+/* Our preferred method of detection is getauxval() */
 #        include <sys/auxv.h>
 #      endif
-       /* Use SIGILL on Unix, and fall back to it on Linux */
+/* Use SIGILL on Unix, and fall back to it on Linux */
 #      include <signal.h>
 #    endif
 #  endif
 #elif defined(_M_ARM64)
 #  if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) || \
-      defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY)
+    defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY)
 #    include <arm64_neon.h>
 #  endif
 #else
@@ -65,24 +65,24 @@
  * MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT if no detection mechanism found
  */
 #if defined(HWCAP_SHA2)
-static int mbedtls_a64_crypto_sha256_determine_support( void )
+static int mbedtls_a64_crypto_sha256_determine_support(void)
 {
-    return( ( getauxval( AT_HWCAP ) & HWCAP_SHA2 ) ? 1 : 0 );
+    return (getauxval(AT_HWCAP) & HWCAP_SHA2) ? 1 : 0;
 }
 #elif defined(__APPLE__)
-static int mbedtls_a64_crypto_sha256_determine_support( void )
+static int mbedtls_a64_crypto_sha256_determine_support(void)
 {
-    return( 1 );
+    return 1;
 }
 #elif defined(_M_ARM64)
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <processthreadsapi.h>
 
-static int mbedtls_a64_crypto_sha256_determine_support( void )
+static int mbedtls_a64_crypto_sha256_determine_support(void)
 {
-    return( IsProcessorFeaturePresent( PF_ARM_V8_CRYPTO_INSTRUCTIONS_AVAILABLE ) ?
-            1 : 0 );
+    return IsProcessorFeaturePresent(PF_ARM_V8_CRYPTO_INSTRUCTIONS_AVAILABLE) ?
+           1 : 0;
 }
 #elif defined(__unix__) && defined(SIG_SETMASK)
 /* Detection with SIGILL, setjmp() and longjmp() */

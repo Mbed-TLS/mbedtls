@@ -24,10 +24,10 @@
 #include "mbedtls/platform.h"
 
 #if !defined(MBEDTLS_HAVE_TIME)
-int main( void )
+int main(void)
 {
     mbedtls_printf("MBEDTLS_HAVE_TIME not defined.\n");
-    mbedtls_exit( 0 );
+    mbedtls_exit(0);
 }
 #else
 

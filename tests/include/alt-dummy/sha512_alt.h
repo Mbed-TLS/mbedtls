@@ -19,8 +19,7 @@
 #ifndef SHA512_ALT_H
 #define SHA512_ALT_H
 
-typedef struct mbedtls_sha512_context
-{
+typedef struct mbedtls_sha512_context {
     int dummy;
 }
 mbedtls_sha512_context;

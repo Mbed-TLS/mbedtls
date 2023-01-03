@@ -38,11 +38,11 @@ typedef struct {
 
 #define MBEDTLS_TEST_DRIVER_KEY_AGREEMENT_INIT { NULL, 0, PSA_SUCCESS, 0 }
 static inline mbedtls_test_driver_key_agreement_hooks_t
-    mbedtls_test_driver_key_agreement_hooks_init( void )
+mbedtls_test_driver_key_agreement_hooks_init(void)
 {
     const mbedtls_test_driver_key_agreement_hooks_t
         v = MBEDTLS_TEST_DRIVER_KEY_AGREEMENT_INIT;
-    return( v );
+    return v;
 }
 
 extern mbedtls_test_driver_key_agreement_hooks_t
@@ -57,7 +57,7 @@ psa_status_t mbedtls_test_transparent_key_agreement(
     size_t peer_key_length,
     uint8_t *shared_secret,
     size_t shared_secret_size,
-    size_t *shared_secret_length );
+    size_t *shared_secret_length);
 
 psa_status_t mbedtls_test_opaque_key_agreement(
     const psa_key_attributes_t *attributes,
@@ -68,7 +68,7 @@ psa_status_t mbedtls_test_opaque_key_agreement(
     size_t peer_key_length,
     uint8_t *shared_secret,
     size_t shared_secret_size,
-    size_t *shared_secret_length );
+    size_t *shared_secret_length);
 
 #endif /*PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_TEST_DRIVERS_KEY_AGREEMENT_H */

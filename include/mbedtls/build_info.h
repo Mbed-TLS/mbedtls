@@ -6,22 +6,22 @@
  *  Include this file if you need to depend on the
  *  configuration options defined in mbedtls_config.h or MBEDTLS_CONFIG_FILE
  */
- /*
-  *  Copyright The Mbed TLS Contributors
-  *  SPDX-License-Identifier: Apache-2.0
-  *
-  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
-  *  not use this file except in compliance with the License.
-  *  You may obtain a copy of the License at
-  *
-  *  http://www.apache.org/licenses/LICENSE-2.0
-  *
-  *  Unless required by applicable law or agreed to in writing, software
-  *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  *  See the License for the specific language governing permissions and
-  *  limitations under the License.
-  */
+/*
+ *  Copyright The Mbed TLS Contributors
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may
+ *  not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 
 #ifndef MBEDTLS_BUILD_INFO_H
 #define MBEDTLS_BUILD_INFO_H
@@ -54,7 +54,7 @@
 #endif
 
 /* Define `inline` on some non-C99-compliant compilers. */
-#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
+#if (defined(__ARMCC_VERSION) || defined(_MSC_VER)) && \
     !defined(inline) && !defined(__cplusplus)
 #define inline __inline
 #endif
@@ -67,7 +67,7 @@
 
 #if defined(MBEDTLS_CONFIG_VERSION) && ( \
     MBEDTLS_CONFIG_VERSION < 0x03000000 || \
-    MBEDTLS_CONFIG_VERSION > MBEDTLS_VERSION_NUMBER )
+                             MBEDTLS_CONFIG_VERSION > MBEDTLS_VERSION_NUMBER)
 #error "Invalid config version, defined value of MBEDTLS_CONFIG_VERSION is unsupported"
 #endif
 

@@ -19,8 +19,7 @@
 #ifndef DHM_ALT_H
 #define DHM_ALT_H
 
-typedef struct mbedtls_dhm_context
-{
+typedef struct mbedtls_dhm_context {
     int dummy;
 }
 mbedtls_dhm_context;

@@ -93,7 +93,7 @@ def summarize_results(ordinal_threshold, unicode_mode, total_occurrences_found, 
     print()
 
 
-def check_file(ordinal_threshold, unicode_mode, exclusions_list, source_string_lines):
+def check_file(ordinal_threshold, unicode_mode, exclusions_list, source_string_lines, verbose = False):
     # Perform the detection
     flagged_chars = {}
     line_number = 1
@@ -135,16 +135,17 @@ def check_file(ordinal_threshold, unicode_mode, exclusions_list, source_string_l
             'locations': value['locations']
         })
         occurrences_found += value['occurrences']
-
-    summarize_results(ordinal_threshold, unicode_mode, occurrences_found, len(flagged_chars_list))
+    if verbose:
+        summarize_results(ordinal_threshold, unicode_mode, occurrences_found, len(flagged_chars_list))
     return flagged_chars_list, occurrences_found
 
 
-def load_and_check_file(ordinal_threshold, unicode_mode, exclusions_list, results, unique_flagged_chars, total_occurrences_found, input_file):
+def load_and_check_file(ordinal_threshold, unicode_mode, exclusions_list, results, unique_flagged_chars, total_occurrences_found, input_file, verbose = False):
     source_string_lines = []
     checked = False
     if os.path.isfile(input_file):
-        print('Checking file {} ...'.format(input_file))
+        if verbose:
+            print('Checking file {} ...'.format(input_file))
         try:
             with open(input_file, 'r', encoding='utf-8') as f:
                 source_string_lines += f.readlines()
@@ -159,9 +160,11 @@ def load_and_check_file(ordinal_threshold, unicode_mode, exclusions_list, result
                 })
             checked = True
         except UnicodeDecodeError:
-            print('WARNING: Skipping file {} as it is does not have valid UTF-8 encoding'.format(input_file))
+            if verbose:
+                print('WARNING: Skipping file {} as it is does not have valid UTF-8 encoding'.format(input_file))
     else:
-        print('WARNING: Skipping file {} as it no longer exists'.format(input_file))
+        if verbose:
+            print('WARNING: Skipping file {} as it no longer exists'.format(input_file))
     return total_occurrences_found, checked
 
 

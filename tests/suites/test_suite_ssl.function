@@ -2597,6 +2597,25 @@ int tweak_tls13_certificate_msg_vector_len(
                                         pwd_string, pwd_len );  \
     TEST_EQUAL( ret, exp_ret_val )
 #endif
+
+#define TEST_AVAILABLE_ECC( _tls_id, _group_id, _psa_family, _psa_bits ) \
+    TEST_EQUAL( mbedtls_ssl_get_ecp_group_id_from_tls_id( _tls_id ),     \
+                _group_id );                                             \
+    TEST_EQUAL( mbedtls_ssl_get_tls_id_from_ecp_group_id( _group_id ),   \
+                _tls_id );                                               \
+    TEST_EQUAL( mbedtls_ssl_get_psa_curve_info_from_tls_id( _tls_id,     \
+                    &psa_family, &psa_bits), PSA_SUCCESS );             \
+    TEST_EQUAL( _psa_family, psa_family );                               \
+    TEST_EQUAL( _psa_bits, psa_bits );
+
+#define TEST_UNAVAILABLE_ECC( _tls_id, _group_id, _psa_family, _psa_bits )  \
+    TEST_EQUAL( mbedtls_ssl_get_ecp_group_id_from_tls_id( _tls_id ),     \
+                    MBEDTLS_ECP_DP_NONE );                              \
+    TEST_EQUAL( mbedtls_ssl_get_tls_id_from_ecp_group_id( _group_id ),   \
+                0 );                                                    \
+    TEST_EQUAL( mbedtls_ssl_get_psa_curve_info_from_tls_id( _tls_id,     \
+                    &psa_family, &psa_bits), PSA_ERROR_NOT_SUPPORTED );
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -6090,6 +6109,84 @@ void ssl_ecjpake_set_password( int use_opaque_arg )
 #endif  /* MBEDTLS_USE_PSA_CRYPTO */
     mbedtls_ssl_free( &ssl );
     mbedtls_ssl_config_free( &conf );
+
+    USE_PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_TLS_C*/
+void elliptic_curve_get_properties( )
+{
+    psa_ecc_family_t psa_family;
+    size_t psa_bits;
+
+    USE_PSA_INIT( );
+
+#if defined( MBEDTLS_ECP_DP_SECP521R1_ENABLED ) || defined(PSA_WANT_ECC_SECP_R1_521)
+    TEST_AVAILABLE_ECC( 25, MBEDTLS_ECP_DP_SECP521R1, PSA_ECC_FAMILY_SECP_R1, 521 );
+#else
+    TEST_UNAVAILABLE_ECC( 25, MBEDTLS_ECP_DP_SECP521R1, PSA_ECC_FAMILY_SECP_R1, 521 );
+#endif
+#if defined( MBEDTLS_ECP_DP_BP512R1_ENABLED ) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512)
+    TEST_AVAILABLE_ECC( 28, MBEDTLS_ECP_DP_BP512R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1, 512 );
+#else
+    TEST_UNAVAILABLE_ECC( 28, MBEDTLS_ECP_DP_BP512R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1, 512 );
+#endif
+#if defined( MBEDTLS_ECP_DP_SECP384R1_ENABLED ) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
+    TEST_AVAILABLE_ECC( 24, MBEDTLS_ECP_DP_SECP384R1, PSA_ECC_FAMILY_SECP_R1, 384 );
+#else
+    TEST_UNAVAILABLE_ECC( 24, MBEDTLS_ECP_DP_SECP384R1, PSA_ECC_FAMILY_SECP_R1, 384 );
+#endif
+#if defined( MBEDTLS_ECP_DP_BP384R1_ENABLED ) || defined(PSA_WANT_ECC_SECP_R1_384)
+    TEST_AVAILABLE_ECC( 27, MBEDTLS_ECP_DP_BP384R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1, 384 );
+#else
+    TEST_UNAVAILABLE_ECC( 27, MBEDTLS_ECP_DP_BP384R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1, 384 );
+#endif
+#if defined( MBEDTLS_ECP_DP_SECP256R1_ENABLED ) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
+    TEST_AVAILABLE_ECC( 23, MBEDTLS_ECP_DP_SECP256R1, PSA_ECC_FAMILY_SECP_R1, 256 );
+#else
+    TEST_UNAVAILABLE_ECC( 23, MBEDTLS_ECP_DP_SECP256R1, PSA_ECC_FAMILY_SECP_R1, 256 );
+#endif
+#if defined( MBEDTLS_ECP_DP_SECP256K1_ENABLED ) || defined(PSA_WANT_ECC_SECP_K1_256)
+    TEST_AVAILABLE_ECC( 22, MBEDTLS_ECP_DP_SECP256K1, PSA_ECC_FAMILY_SECP_K1, 256 );
+#else
+    TEST_UNAVAILABLE_ECC( 22, MBEDTLS_ECP_DP_SECP256K1, PSA_ECC_FAMILY_SECP_K1, 256 );
+#endif
+#if defined( MBEDTLS_ECP_DP_BP256R1_ENABLED ) || defined(PSA_WANT_ECC_SECP_R1_256)
+    TEST_AVAILABLE_ECC( 26, MBEDTLS_ECP_DP_BP256R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1, 256 );
+#else
+    TEST_UNAVAILABLE_ECC( 26, MBEDTLS_ECP_DP_BP256R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1, 256 );
+#endif
+#if defined( MBEDTLS_ECP_DP_SECP224R1_ENABLED ) || defined(PSA_WANT_ECC_SECP_R1_224)
+    TEST_AVAILABLE_ECC( 21, MBEDTLS_ECP_DP_SECP224R1, PSA_ECC_FAMILY_SECP_R1, 224 );
+#else
+    TEST_UNAVAILABLE_ECC( 21, MBEDTLS_ECP_DP_SECP224R1, PSA_ECC_FAMILY_SECP_R1, 224 );
+#endif
+#if defined( MBEDTLS_ECP_DP_SECP224K1_ENABLED ) || defined(PSA_WANT_ECC_SECP_K1_224)
+    TEST_AVAILABLE_ECC( 20, MBEDTLS_ECP_DP_SECP224K1, PSA_ECC_FAMILY_SECP_K1, 224 );
+#else
+    TEST_UNAVAILABLE_ECC( 20, MBEDTLS_ECP_DP_SECP224K1, PSA_ECC_FAMILY_SECP_K1, 224 );
+#endif
+#if defined( MBEDTLS_ECP_DP_SECP192R1_ENABLED ) || defined(PSA_WANT_ECC_SECP_R1_192)
+    TEST_AVAILABLE_ECC( 19, MBEDTLS_ECP_DP_SECP192R1, PSA_ECC_FAMILY_SECP_R1, 192 );
+#else
+    TEST_UNAVAILABLE_ECC( 19, MBEDTLS_ECP_DP_SECP192R1, PSA_ECC_FAMILY_SECP_R1, 192 );
+#endif
+#if defined( MBEDTLS_ECP_DP_SECP192K1_ENABLED ) || defined(PSA_WANT_ECC_SECP_K1_192)
+    TEST_AVAILABLE_ECC( 18, MBEDTLS_ECP_DP_SECP192K1, PSA_ECC_FAMILY_SECP_K1, 192 );
+#else
+    TEST_UNAVAILABLE_ECC( 18, MBEDTLS_ECP_DP_SECP192K1, PSA_ECC_FAMILY_SECP_K1, 192 );
+#endif
+#if defined( MBEDTLS_ECP_DP_CURVE25519_ENABLED ) || defined(PSA_WANT_ECC_MONTGOMERY_255)
+    TEST_AVAILABLE_ECC( 29, MBEDTLS_ECP_DP_CURVE25519, PSA_ECC_FAMILY_MONTGOMERY, 256 );
+#else
+    TEST_UNAVAILABLE_ECC( 29, MBEDTLS_ECP_DP_CURVE25519, PSA_ECC_FAMILY_MONTGOMERY, 256 );
+#endif
+#if defined( MBEDTLS_ECP_DP_CURVE448_ENABLED ) || defined(PSA_WANT_ECC_MONTGOMERY_448)
+    TEST_AVAILABLE_ECC( 30, MBEDTLS_ECP_DP_CURVE448, PSA_ECC_FAMILY_MONTGOMERY, 448 );
+#else
+    TEST_UNAVAILABLE_ECC( 30, MBEDTLS_ECP_DP_CURVE448, PSA_ECC_FAMILY_MONTGOMERY, 448 );
+#endif
 
     USE_PSA_DONE( );
 }

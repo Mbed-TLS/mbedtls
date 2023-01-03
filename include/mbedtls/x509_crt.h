@@ -588,8 +588,8 @@ int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path);
  *                 SAN type.
  * \return         Another negative value for any other failure.
  */
-int mbedtls_x509_parse_general_name(const mbedtls_x509_buf *san_buf,
-                                    mbedtls_x509_subject_alternative_name *san);
+int mbedtls_x509_parse_subject_alt_name(const mbedtls_x509_buf *san_buf,
+                                        mbedtls_x509_subject_alternative_name *san);
 
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
 /**

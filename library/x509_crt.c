@@ -710,7 +710,7 @@ static int x509_get_general_names( unsigned char **p,
         /*
          * Check that the SAN is structured correctly.
          */
-        ret = mbedtls_x509_parse_general_name( &(cur->buf), &dummy_san_buf );
+        ret = mbedtls_x509_parse_subject_alt_name( &(cur->buf), &dummy_san_buf );
         /*
          * In case the extension is malformed, return an error,
          * and clear the allocated sequences.
@@ -1988,7 +1988,7 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
     while( cur != NULL )
     {
         memset( &san, 0, sizeof( san ) );
-        parse_ret = mbedtls_x509_parse_general_name( &cur->buf, &san );
+        parse_ret = mbedtls_x509_parse_subject_alt_name( &cur->buf, &san );
         if( parse_ret != 0 )
         {
             if( parse_ret == MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE )
@@ -2079,7 +2079,7 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
     return( 0 );
 }
 
-int mbedtls_x509_parse_general_name( const mbedtls_x509_buf *san_buf,
+int mbedtls_x509_parse_subject_alt_name( const mbedtls_x509_buf *san_buf,
                                          mbedtls_x509_subject_alternative_name *san )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;

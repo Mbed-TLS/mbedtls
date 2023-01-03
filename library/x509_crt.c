@@ -1963,6 +1963,28 @@ int mbedtls_x509_parse_subject_alt_name( const mbedtls_x509_buf *san_buf,
         break;
 
         /*
+         * RFC822 Name
+         */
+        case( MBEDTLS_ASN1_SEQUENCE | MBEDTLS_X509_SAN_RFC822_NAME ):
+        {
+            mbedtls_x509_name rfc822Name;
+            unsigned char* bufferPointer = san_buf->p;
+            unsigned char** p = &bufferPointer;
+            const unsigned char* end = san_buf->p + san_buf->len;
+
+            /* The leading ASN1 tag and length has been processed. Stepping back with 2 bytes, because mbedtls_x509_get_name expects the beginning of the SET tag */
+            *p = *p - 2;
+
+            ret = mbedtls_x509_get_name( p, end, &rfc822Name );
+            if ( ret != 0 )
+                return( ret );
+
+            memset( san, 0, sizeof( mbedtls_x509_subject_alternative_name ) );
+            san->type = MBEDTLS_X509_SAN_OTHER_NAME;
+            memcpy( &san->san.unstructured_name,
+                &rfc822Name, sizeof( rfc822Name ) );
+        }
+        /*
          * Type not supported
          */
         default:
@@ -2076,80 +2098,6 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
     *size = n;
     *buf = p;
 
-    return( 0 );
-}
-
-int mbedtls_x509_parse_subject_alt_name( const mbedtls_x509_buf *san_buf,
-                                         mbedtls_x509_subject_alternative_name *san )
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    switch( san_buf->tag &
-            ( MBEDTLS_ASN1_TAG_CLASS_MASK |
-              MBEDTLS_ASN1_TAG_VALUE_MASK ) )
-    {
-        /*
-         * otherName
-         */
-        case( MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_OTHER_NAME ):
-        {
-            mbedtls_x509_san_other_name other_name;
-
-            ret = x509_get_other_name( san_buf, &other_name );
-            if( ret != 0 )
-                return( ret );
-
-            memset( san, 0, sizeof( mbedtls_x509_subject_alternative_name ) );
-            san->type = MBEDTLS_X509_SAN_OTHER_NAME;
-            memcpy( &san->san.other_name,
-                    &other_name, sizeof( other_name ) );
-
-        }
-        break;
-
-        /*
-         * dNSName
-         */
-        case( MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_DNS_NAME ):
-        {
-            memset( san, 0, sizeof( mbedtls_x509_subject_alternative_name ) );
-            san->type = MBEDTLS_X509_SAN_DNS_NAME;
-
-            memcpy( &san->san.unstructured_name,
-                    san_buf, sizeof( *san_buf ) );
-
-        }
-        break;
-
-        /*
-         * RFC822 Name
-         */
-        case( MBEDTLS_ASN1_SEQUENCE | MBEDTLS_X509_SAN_RFC822_NAME ):
-        {
-            mbedtls_x509_name rfc822Name;
-            unsigned char* bufferPointer = san_buf->p;
-            unsigned char** p = &bufferPointer;
-            const unsigned char* end = san_buf->p + san_buf->len;
-
-            /* The leading ASN1 tag and length has been processed. Stepping back with 2 bytes, because mbedtls_x509_get_name expects the beginning of the SET tag */
-            *p = *p - 2;
-
-            ret = mbedtls_x509_get_name( p, end, &rfc822Name );
-            if ( ret != 0 )
-                return( ret );
-
-            memset( san, 0, sizeof( mbedtls_x509_subject_alternative_name ) );
-            san->type = MBEDTLS_X509_SAN_OTHER_NAME;
-            memcpy( &san->san.unstructured_name,
-                &rfc822Name, sizeof( rfc822Name ) );
-        }
-        break;
-
-        /*
-         * Type not supported
-         */
-        default:
-            return( MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE );
-    }
     return( 0 );
 }
 

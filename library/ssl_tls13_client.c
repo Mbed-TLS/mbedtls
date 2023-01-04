@@ -1221,9 +1221,7 @@ int mbedtls_ssl_tls13_finalize_write_client_hello(mbedtls_ssl_context *ssl)
     const unsigned char *psk;
     size_t psk_len;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
-#endif
-    mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_SERVER_HELLO);
-#if defined(MBEDTLS_SSL_EARLY_DATA)
+
     if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED) {
         MBEDTLS_SSL_DEBUG_MSG(
             1, ("Set hs psk for early data when writing the first psk"));
@@ -1265,10 +1263,6 @@ int mbedtls_ssl_tls13_finalize_write_client_hello(mbedtls_ssl_context *ssl)
             return ret;
         }
 
-        MBEDTLS_SSL_DEBUG_MSG(
-            1, ("Switch to early data keys for outbound traffic"));
-        mbedtls_ssl_set_outbound_transform(
-            ssl, ssl->handshake->transform_earlydata);
     }
 #endif /* MBEDTLS_SSL_EARLY_DATA */
     return 0;
@@ -2957,6 +2951,17 @@ int mbedtls_ssl_tls13_handshake_client_step(mbedtls_ssl_context *ssl)
             ret = mbedtls_ssl_tls13_write_change_cipher_spec(ssl);
             if (ret == 0) {
                 mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE);
+            }
+            break;
+        case MBEDTLS_SSL_CLIENT_CCS_AFTER_CLIENT_HELLO:
+            ret = mbedtls_ssl_tls13_write_change_cipher_spec(ssl);
+            if (ret == 0) {
+                mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_SERVER_HELLO);
+
+                MBEDTLS_SSL_DEBUG_MSG(
+                    1, ("Switch to early data keys for outbound traffic"));
+                mbedtls_ssl_set_outbound_transform(
+                    ssl, ssl->handshake->transform_earlydata);
             }
             break;
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */

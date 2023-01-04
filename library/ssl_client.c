@@ -964,6 +964,18 @@ int mbedtls_ssl_write_client_hello(mbedtls_ssl_context *ssl)
                                                               msg_len));
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+        if ((ssl->handshake->min_tls_version == MBEDTLS_SSL_VERSION_TLS1_3) &&
+            (ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_3)) {
+#if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
+            mbedtls_ssl_handshake_set_state(
+                ssl, MBEDTLS_SSL_CLIENT_CCS_AFTER_CLIENT_HELLO);
+#else
+            mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_SERVER_HELLO);
+#endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
+        } else
+#endif
+        mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_SERVER_HELLO);
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
         mbedtls_ssl_tls13_finalize_write_client_hello(ssl);
 #endif
 

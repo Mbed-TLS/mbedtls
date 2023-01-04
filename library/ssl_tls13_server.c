@@ -2472,6 +2472,12 @@ static int ssl_tls13_write_hello_retry_request(mbedtls_ssl_context *ssl)
 
     ssl->handshake->hello_retry_request_count++;
 
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED) {
+        mbedtls_ssl_set_inbound_transform(ssl, NULL);
+    }
+#endif
+
 #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
     /* The server sends a dummy change_cipher_spec record immediately
      * after its first handshake message. This may either be after

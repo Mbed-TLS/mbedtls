@@ -1901,14 +1901,20 @@ static int ssl_tls13_postprocess_server_hello(mbedtls_ssl_context *ssl)
 
     /* Start the TLS 1.3 key schedule: Set the PSK and derive early secret.
      *
-     * TODO: We don't have to do this in case we offered 0-RTT and the
-     *       server accepted it. In this case, we could skip generating
-     *       the early secret. */
-    ret = mbedtls_ssl_tls13_key_schedule_stage_early(ssl);
-    if (ret != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_tls13_key_schedule_stage_early",
-                              ret);
-        goto cleanup;
+     * We do this in case we didn't offer 0-RTT or even we offered 0-RTT but
+     * server selected ephemeral mode. In other cases, we could skip generating
+     * the early secret.
+     */
+    if ((ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT)
+        || ((ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED)
+            && handshake->key_exchange_mode ==
+            MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL)) {
+        ret = mbedtls_ssl_tls13_key_schedule_stage_early(ssl);
+        if (ret != 0) {
+            MBEDTLS_SSL_DEBUG_RET(
+                1, "mbedtls_ssl_tls13_key_schedule_stage_early", ret);
+            goto cleanup;
+        }
     }
 
     ret = mbedtls_ssl_tls13_compute_handshake_transform(ssl);

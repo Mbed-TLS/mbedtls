@@ -828,7 +828,9 @@
     (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_KEY_DERIVATION)
 
 /** An invalid algorithm identifier value. */
+/* *INDENT-OFF* (https://github.com/ARM-software/psa-arch-tests/issues/337) */
 #define PSA_ALG_NONE                            ((psa_algorithm_t)0)
+/* *INDENT-ON* */
 
 #define PSA_ALG_HASH_MASK                       ((psa_algorithm_t)0x000000ff)
 /** MD2 */
@@ -2094,7 +2096,9 @@
 
 /** The null key identifier.
  */
+/* *INDENT-OFF* (https://github.com/ARM-software/psa-arch-tests/issues/337) */
 #define PSA_KEY_ID_NULL                         ((psa_key_id_t)0)
+/* *INDENT-ON* */
 /** The minimum value for a key identifier chosen by the application.
  */
 #define PSA_KEY_ID_USER_MIN                     ((psa_key_id_t)0x00000001)

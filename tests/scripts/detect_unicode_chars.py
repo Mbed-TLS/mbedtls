@@ -113,14 +113,16 @@ def check_file(ordinal_threshold, unicode_mode, exclusions_list, source_string_l
                         'occurrences': 1,
                         'locations': [{
                             'line': line_number,
-                            'column': column_number
+                            'column': column_number,
+                            'line_text': source_string
                         }]
                     }
                 else:
                     flagged_chars[ordinal]['occurrences'] = flagged_chars[ordinal]['occurrences'] + 1
                     flagged_chars[ordinal]['locations'].append({
                         'line': line_number,
-                        'column': column_number
+                        'column': column_number,
+                        'line_text': source_string
                     })
             column_number += 1
         line_number += 1

@@ -1800,9 +1800,10 @@ static int ssl_parse_server_ecdh_params( mbedtls_ssl_context *ssl,
                                              unsigned char *end )
 {
     uint16_t tls_id;
-    size_t ecdh_bits = 0;
     uint8_t ecpoint_len;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+    psa_ecc_family_t ec_psa_family = 0;
+    size_t ec_bits = 0;
 
     /*
      * struct {
@@ -1836,13 +1837,14 @@ static int ssl_parse_server_ecdh_params( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
 
-    /* Convert EC group to PSA key type. */
-    if( ( handshake->ecdh_psa_type =
-          mbedtls_psa_parse_tls_ecc_group( tls_id, &ecdh_bits ) ) == 0 )
+    /* Convert EC's TLS ID to PSA key type. */
+    if( mbedtls_ssl_get_psa_curve_info_from_tls_id( tls_id, &ec_psa_family,
+                    &ec_bits ) == PSA_ERROR_NOT_SUPPORTED )
     {
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
-    handshake->ecdh_bits = ecdh_bits;
+    handshake->ecdh_psa_type = PSA_KEY_TYPE_ECC_KEY_PAIR( ec_psa_family );
+    handshake->ecdh_bits = ec_bits;
 
     /* Keep a copy of the peer's public key */
     ecpoint_len = *(*p)++;

@@ -1619,25 +1619,9 @@ uint16_t mbedtls_ssl_get_tls_id_from_ecp_group_id( mbedtls_ecp_group_id grp_id )
  *
  * \param tls_id    The TLS ID to look for
  * \return          A pointer to a const string with the proper name. If TLS
- *                  ID is not suppoted, a NULL pointer is returned insted.
+ *                  ID is not suppoted, a NULL pointer is returned instead.
  */
 const char* mbedtls_ssl_get_curve_name_from_tls_id( uint16_t tls_id );
-
-/* This function transforms an ECC group identifier from
- * https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8
- * into a PSA ECC group identifier. */
-#if defined(MBEDTLS_ECP_C)
-static inline psa_key_type_t mbedtls_psa_parse_tls_ecc_group(
-    uint16_t tls_ecc_grp_reg_id, size_t *bits )
-{
-    mbedtls_ecp_group_id grp_id =
-            mbedtls_ssl_get_ecp_group_id_from_tls_id( tls_ecc_grp_reg_id );
-    if( grp_id == MBEDTLS_ECP_DP_NONE )
-        return( 0 );
-    return( PSA_KEY_TYPE_ECC_KEY_PAIR(
-                mbedtls_ecc_group_to_psa( grp_id, bits ) ) );
-}
-#endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
 static inline mbedtls_ssl_srtp_profile mbedtls_ssl_check_srtp_profile_value

@@ -713,4 +713,6 @@ usage_failure:
     usage( );
     return( EXIT_FAILURE );
 }
-#endif /* MBEDTLS_SHA256_C && MBEDTLS_MD_C && MBEDTLS_AES_C && MBEDTLS_CCM_C && MBEDTLS_PSA_CRYPTO_C && MBEDTLS_FS_IO */
+#endif /* MBEDTLS_SHA256_C && MBEDTLS_MD_C &&
+          MBEDTLS_AES_C && MBEDTLS_CCM_C &&
+          MBEDTLS_PSA_CRYPTO_C && MBEDTLS_FS_IO */

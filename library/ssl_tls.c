@@ -907,7 +907,12 @@ static void ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
     mbedtls_ecdh_init( &handshake->ecdh_ctx );
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    handshake->psa_pake_ctx = psa_pake_operation_init();
+    handshake->psa_pake_password = MBEDTLS_SVC_KEY_ID_INIT;
+#else
     mbedtls_ecjpake_init( &handshake->ecjpake_ctx );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 #if defined(MBEDTLS_SSL_CLI_C)
     handshake->ecjpake_cache = NULL;
     handshake->ecjpake_cache_len = 0;
@@ -1442,9 +1447,11 @@ void mbedtls_ssl_session_reset_msg_layer( mbedtls_ssl_context *ssl,
 
     if( ssl->handshake != NULL )
     {
+#if defined(MBEDTLS_SSL_EARLY_DATA)
         mbedtls_ssl_transform_free( ssl->handshake->transform_earlydata );
         mbedtls_free( ssl->handshake->transform_earlydata );
         ssl->handshake->transform_earlydata = NULL;
+#endif
 
         mbedtls_ssl_transform_free( ssl->handshake->transform_handshake );
         mbedtls_free( ssl->handshake->transform_handshake );
@@ -1697,6 +1704,15 @@ void mbedtls_ssl_tls13_conf_early_data( mbedtls_ssl_config *conf,
 {
     conf->early_data_enabled = early_data_enabled;
 }
+
+#if defined(MBEDTLS_SSL_SRV_C)
+void mbedtls_ssl_tls13_conf_max_early_data_size(
+         mbedtls_ssl_config *conf, uint32_t max_early_data_size )
+{
+    conf->max_early_data_size = max_early_data_size;
+}
+#endif /* MBEDTLS_SSL_SRV_C */
+
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
@@ -1847,9 +1863,101 @@ void mbedtls_ssl_set_verify( mbedtls_ssl_context *ssl,
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-/*
- * Set EC J-PAKE password for current handshake
- */
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+static psa_status_t mbedtls_ssl_set_hs_ecjpake_password_common(
+                                                mbedtls_ssl_context *ssl,
+                                                mbedtls_svc_key_id_t pwd )
+{
+    psa_status_t status;
+    psa_pake_role_t psa_role;
+    psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
+
+    psa_pake_cs_set_algorithm( &cipher_suite, PSA_ALG_JPAKE );
+    psa_pake_cs_set_primitive( &cipher_suite,
+                               PSA_PAKE_PRIMITIVE( PSA_PAKE_PRIMITIVE_TYPE_ECC,
+                                                   PSA_ECC_FAMILY_SECP_R1,
+                                                   256) );
+    psa_pake_cs_set_hash( &cipher_suite, PSA_ALG_SHA_256 );
+
+    status = psa_pake_setup( &ssl->handshake->psa_pake_ctx, &cipher_suite );
+    if( status != PSA_SUCCESS )
+        return status;
+
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+        psa_role = PSA_PAKE_ROLE_SERVER;
+    else
+        psa_role = PSA_PAKE_ROLE_CLIENT;
+
+    status = psa_pake_set_role( &ssl->handshake->psa_pake_ctx, psa_role );
+    if( status != PSA_SUCCESS )
+        return status;
+
+    status = psa_pake_set_password_key( &ssl->handshake->psa_pake_ctx, pwd );
+    if( status != PSA_SUCCESS )
+        return status;
+
+    ssl->handshake->psa_pake_ctx_is_ok = 1;
+
+    return ( PSA_SUCCESS );
+}
+
+int mbedtls_ssl_set_hs_ecjpake_password( mbedtls_ssl_context *ssl,
+                                         const unsigned char *pw,
+                                         size_t pw_len )
+{
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_status_t status;
+
+    if( ssl->handshake == NULL || ssl->conf == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    /* Empty password is not valid  */
+    if( ( pw == NULL) || ( pw_len == 0 ) )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
+    psa_set_key_algorithm( &attributes, PSA_ALG_JPAKE );
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_PASSWORD );
+
+    status = psa_import_key( &attributes, pw, pw_len,
+                                &ssl->handshake->psa_pake_password );
+    if( status != PSA_SUCCESS )
+        return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+
+    status = mbedtls_ssl_set_hs_ecjpake_password_common( ssl,
+                                        ssl->handshake->psa_pake_password );
+    if( status != PSA_SUCCESS )
+    {
+        psa_destroy_key( ssl->handshake->psa_pake_password );
+        psa_pake_abort( &ssl->handshake->psa_pake_ctx );
+        return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+    }
+
+    return( 0 );
+}
+
+int mbedtls_ssl_set_hs_ecjpake_password_opaque( mbedtls_ssl_context *ssl,
+                                                mbedtls_svc_key_id_t pwd )
+{
+    psa_status_t status;
+
+    if( ssl->handshake == NULL || ssl->conf == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    if( mbedtls_svc_key_id_is_null( pwd ) )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    status = mbedtls_ssl_set_hs_ecjpake_password_common( ssl, pwd );
+    if( status != PSA_SUCCESS )
+    {
+        psa_pake_abort( &ssl->handshake->psa_pake_ctx );
+        return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+    }
+
+    return( 0 );
+}
+#else /* MBEDTLS_USE_PSA_CRYPTO */
 int mbedtls_ssl_set_hs_ecjpake_password( mbedtls_ssl_context *ssl,
                                          const unsigned char *pw,
                                          size_t pw_len )
@@ -1857,6 +1965,10 @@ int mbedtls_ssl_set_hs_ecjpake_password( mbedtls_ssl_context *ssl,
     mbedtls_ecjpake_role role;
 
     if( ssl->handshake == NULL || ssl->conf == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    /* Empty password is not valid  */
+    if( ( pw == NULL) || ( pw_len == 0 ) )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
@@ -1870,6 +1982,7 @@ int mbedtls_ssl_set_hs_ecjpake_password( mbedtls_ssl_context *ssl,
                                    MBEDTLS_ECP_DP_SECP256R1,
                                    pw, pw_len ) );
 }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
@@ -3602,7 +3715,7 @@ int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl )
     if( ssl            == NULL                       ||
         ssl->conf      == NULL                       ||
         ssl->handshake == NULL                       ||
-        mbedtls_ssl_is_handshake_over( ssl ) == 1 )
+        ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER  )
     {
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
@@ -3706,7 +3819,7 @@ int mbedtls_ssl_handshake( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> handshake" ) );
 
     /* Main handshake loop */
-    while( mbedtls_ssl_is_handshake_over( ssl ) == 0 )
+    while( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
     {
         ret = mbedtls_ssl_handshake_step( ssl );
 
@@ -3908,8 +4021,23 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
 #if !defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_ECDH_C)
     mbedtls_ecdh_free( &handshake->ecdh_ctx );
 #endif
+
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_pake_abort( &handshake->psa_pake_ctx );
+    /*
+     * Opaque keys are not stored in the handshake's data and it's the user
+     * responsibility to destroy them. Clear ones, instead, are created by
+     * the TLS library and should be destroyed at the same level
+     */
+    if( ! mbedtls_svc_key_id_is_null( handshake->psa_pake_password ) )
+    {
+        psa_destroy_key( handshake->psa_pake_password );
+    }
+    handshake->psa_pake_password = MBEDTLS_SVC_KEY_ID_INIT;
+#else
     mbedtls_ecjpake_free( &handshake->ecjpake_ctx );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 #if defined(MBEDTLS_SSL_CLI_C)
     mbedtls_free( handshake->ecjpake_cache );
     handshake->ecjpake_cache = NULL;
@@ -3987,9 +4115,11 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     mbedtls_ssl_transform_free( handshake->transform_handshake );
+    mbedtls_free( handshake->transform_handshake );
+#if defined(MBEDTLS_SSL_EARLY_DATA)
     mbedtls_ssl_transform_free( handshake->transform_earlydata );
     mbedtls_free( handshake->transform_earlydata );
-    mbedtls_free( handshake->transform_handshake );
+#endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 
@@ -4157,7 +4287,7 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "There is pending outgoing data" ) );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
-    /* Protocol must be DLTS, not TLS */
+    /* Protocol must be DTLS, not TLS */
     if( ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Only DTLS is supported" ) );
@@ -5033,6 +5163,15 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    mbedtls_ssl_tls13_conf_early_data( conf, MBEDTLS_SSL_EARLY_DATA_DISABLED );
+#if defined(MBEDTLS_SSL_SRV_C)
+    mbedtls_ssl_tls13_conf_max_early_data_size(
+        conf, MBEDTLS_SSL_MAX_EARLY_DATA_SIZE );
+#endif
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
 #if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_SESSION_TICKETS)
     mbedtls_ssl_conf_new_session_tickets(
         conf, MBEDTLS_SSL_TLS1_3_DEFAULT_NEW_SESSION_TICKETS );
@@ -6123,6 +6262,55 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
     else
 #endif
     {
+#if defined(MBEDTLS_USE_PSA_CRYPTO) &&                              \
+    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+        if( handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
+        {
+            psa_status_t status;
+            psa_algorithm_t alg = PSA_ALG_TLS12_ECJPAKE_TO_PMS;
+            psa_key_derivation_operation_t derivation =
+                PSA_KEY_DERIVATION_OPERATION_INIT;
+
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "perform PSA-based PMS KDF for ECJPAKE" ) );
+
+            handshake->pmslen = PSA_TLS12_ECJPAKE_TO_PMS_DATA_SIZE;
+
+            status = psa_key_derivation_setup( &derivation, alg );
+            if( status != PSA_SUCCESS )
+                return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+
+            status = psa_key_derivation_set_capacity( &derivation,
+                                            PSA_TLS12_ECJPAKE_TO_PMS_DATA_SIZE );
+            if( status != PSA_SUCCESS )
+            {
+                psa_key_derivation_abort( &derivation );
+                return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+            }
+
+            status = psa_pake_get_implicit_key( &handshake->psa_pake_ctx,
+                                                &derivation );
+            if( status != PSA_SUCCESS )
+            {
+                psa_key_derivation_abort( &derivation );
+                return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+            }
+
+            status = psa_key_derivation_output_bytes( &derivation,
+                                                      handshake->premaster,
+                                                      handshake->pmslen );
+            if( status != PSA_SUCCESS )
+            {
+                psa_key_derivation_abort( &derivation );
+                return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+            }
+
+            status = psa_key_derivation_abort( &derivation );
+            if( status != PSA_SUCCESS )
+            {
+                return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+            }
+        }
+#endif
         ret = handshake->tls_prf( handshake->premaster, handshake->pmslen,
                                   lbl, seed, seed_len,
                                   master,
@@ -7544,7 +7732,7 @@ void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
 #endif
         mbedtls_ssl_handshake_wrapup_free_hs_transform( ssl );
 
-    ssl->state++;
+    ssl->state = MBEDTLS_SSL_HANDSHAKE_OVER;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "<= handshake wrapup" ) );
 }
@@ -8306,6 +8494,99 @@ end:
     return( ret );
 }
 
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) && \
+    defined(MBEDTLS_USE_PSA_CRYPTO)
+int mbedtls_psa_ecjpake_read_round(
+                                    psa_pake_operation_t *pake_ctx,
+                                    const unsigned char *buf,
+                                    size_t len, mbedtls_ecjpake_rounds_t round )
+{
+    psa_status_t status;
+    size_t input_offset = 0;
+    /*
+     * At round one repeat the KEY_SHARE, ZK_PUBLIC & ZF_PROOF twice
+     * At round two perform a single cycle
+     */
+    unsigned int remaining_steps = ( round == MBEDTLS_ECJPAKE_ROUND_ONE) ? 2 : 1;
+
+    for( ; remaining_steps > 0; remaining_steps-- )
+    {
+        for( psa_pake_step_t step = PSA_PAKE_STEP_KEY_SHARE;
+             step <= PSA_PAKE_STEP_ZK_PROOF;
+             ++step )
+        {
+            /* Length is stored at the first byte */
+            size_t length = buf[input_offset];
+            input_offset += 1;
+
+            if( input_offset + length > len )
+            {
+                return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+            }
+
+            status = psa_pake_input( pake_ctx, step,
+                                     buf + input_offset, length );
+            if( status != PSA_SUCCESS)
+            {
+                return psa_ssl_status_to_mbedtls( status );
+            }
+
+            input_offset += length;
+        }
+    }
+
+    if( input_offset != len )
+        return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+
+    return( 0 );
+}
+
+int mbedtls_psa_ecjpake_write_round(
+                                    psa_pake_operation_t *pake_ctx,
+                                    unsigned char *buf,
+                                    size_t len, size_t *olen,
+                                    mbedtls_ecjpake_rounds_t round )
+{
+    psa_status_t status;
+    size_t output_offset = 0;
+    size_t output_len;
+    /*
+     * At round one repeat the KEY_SHARE, ZK_PUBLIC & ZF_PROOF twice
+     * At round two perform a single cycle
+     */
+    unsigned int remaining_steps = ( round == MBEDTLS_ECJPAKE_ROUND_ONE) ? 2 : 1;
+
+    for( ; remaining_steps > 0; remaining_steps-- )
+    {
+        for( psa_pake_step_t step = PSA_PAKE_STEP_KEY_SHARE;
+            step <= PSA_PAKE_STEP_ZK_PROOF;
+            ++step )
+        {
+            /*
+             * For each step, prepend 1 byte with the length of the data as
+             * given by psa_pake_output().
+             */
+            status = psa_pake_output( pake_ctx, step,
+                                        buf + output_offset + 1,
+                                        len - output_offset - 1,
+                                        &output_len );
+            if( status != PSA_SUCCESS )
+            {
+                return( psa_ssl_status_to_mbedtls( status ) );
+            }
+
+            *(buf + output_offset) = (uint8_t) output_len;
+
+            output_offset += output_len + 1;
+        }
+    }
+
+    *olen = output_offset;
+
+    return( 0 );
+}
+#endif //MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED && MBEDTLS_USE_PSA_CRYPTO
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 int mbedtls_ssl_get_key_exchange_md_tls1_2( mbedtls_ssl_context *ssl,
                                             unsigned char *hash, size_t *hashlen,
@@ -8864,8 +9145,13 @@ int mbedtls_ssl_validate_ciphersuite(
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_CLI_C)
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( suite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE &&
+        ssl->handshake->psa_pake_ctx_is_ok != 1 )
+#else
     if( suite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE &&
         mbedtls_ecjpake_check( &ssl->handshake->ecjpake_ctx ) != 0 )
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     {
         return( -1 );
     }

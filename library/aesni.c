@@ -36,9 +36,11 @@
 
 #include <string.h>
 
+/* *INDENT-OFF* */
 #ifndef asm
 #define asm __asm
 #endif
+/* *INDENT-ON* */
 
 #if defined(MBEDTLS_HAVE_X86_64)
 

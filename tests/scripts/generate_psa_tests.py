@@ -80,7 +80,7 @@ def automatic_dependencies(*expressions: str) -> List[str]:
 # A temporary hack: at the time of writing, not all dependency symbols
 # are implemented yet. Skip test cases for which the dependency symbols are
 # not available. Once all dependency symbols are available, this hack must
-# be removed so that a bug in the dependency symbols proprely leads to a test
+# be removed so that a bug in the dependency symbols properly leads to a test
 # failure.
 def read_implemented_dependencies(filename: str) -> FrozenSet[str]:
     return frozenset(symbol
@@ -459,7 +459,7 @@ class StorageKey(psa_storage.Key):
         """Prepare to generate a key.
 
         * `usage`                 : The usage flags used for the key.
-        * `without_implicit_usage`: Flag to defide to apply the usage extension
+        * `without_implicit_usage`: Flag to define to apply the usage extension
         """
         usage_flags = set(usage)
         if not without_implicit_usage:
@@ -483,7 +483,7 @@ class StorageTestData(StorageKey):
     ) -> None:
         """Prepare to generate test data
 
-        * `description`   : used for the the test case names
+        * `description`   : used for the test case names
         * `expected_usage`: the usage flags generated as the expected usage flags
                             in the test cases. CAn differ from the usage flags
                             stored in the keys because of the usage flags extension.

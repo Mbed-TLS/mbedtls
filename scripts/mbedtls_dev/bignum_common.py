@@ -15,6 +15,7 @@
 # limitations under the License.
 
 from abc import abstractmethod
+import enum
 from typing import Iterator, List, Tuple, TypeVar, Any
 from itertools import chain
 
@@ -39,6 +40,11 @@ def invmod(a: int, n: int) -> int:
         return b
     raise ValueError("Not invertible")
 
+def invmod_positive(a: int, n: int) -> int:
+    """Return a non-negative inverse of a to modulo n."""
+    inv = invmod(a, n)
+    return inv if inv >= 0 else inv + n
+
 def hex_to_int(val: str) -> int:
     """Implement the syntax accepted by mbedtls_test_read_mpi().
 
@@ -48,7 +54,7 @@ def hex_to_int(val: str) -> int:
         return 0
     return int(val, 16)
 
-def quote_str(val) -> str:
+def quote_str(val: str) -> str:
     return "\"{}\"".format(val)
 
 def bound_mpi(val: int, bits_in_limb: int) -> int:
@@ -99,6 +105,7 @@ class OperationCommon(test_data_generation.BaseTest):
     limb_sizes = [32, 64] # type: List[int]
     arities = [1, 2]
     arity = 2
+    suffix = False   # for arity = 1, symbol can be prefix (default) or suffix
 
     def __init__(self, val_a: str, val_b: str = "0", bits_in_limb: int = 32) -> None:
         self.val_a = val_a
@@ -133,7 +140,7 @@ class OperationCommon(test_data_generation.BaseTest):
     def hex_digits(self) -> int:
         return 2 * (self.limbs * self.bits_in_limb // 8)
 
-    def format_arg(self, val) -> str:
+    def format_arg(self, val: str) -> str:
         if self.input_style not in self.input_styles:
             raise ValueError("Unknown input style!")
         if self.input_style == "variable":
@@ -141,7 +148,7 @@ class OperationCommon(test_data_generation.BaseTest):
         else:
             return val.zfill(self.hex_digits)
 
-    def format_result(self, res) -> str:
+    def format_result(self, res: int) -> str:
         res_str = '{:x}'.format(res)
         return quote_str(self.format_arg(res_str))
 
@@ -170,7 +177,8 @@ class OperationCommon(test_data_generation.BaseTest):
         """
         if not self.case_description:
             if self.arity == 1:
-                self.case_description = "{} {:x}".format(
+                format_string = "{1:x} {0}" if self.suffix else "{0} {1:x}"
+                self.case_description = format_string.format(
                     self.symbol, self.int_a
                 )
             elif self.arity == 2:
@@ -238,10 +246,29 @@ class OperationCommon(test_data_generation.BaseTest):
                     )
 
 
+class ModulusRepresentation(enum.Enum):
+    """Representation selector of a modulus."""
+    # Numerical values aligned with the type mbedtls_mpi_mod_rep_selector
+    INVALID = 0
+    MONTGOMERY = 2
+    OPT_RED = 3
+
+    def symbol(self) -> str:
+        """The C symbol for this representation selector."""
+        return 'MBEDTLS_MPI_MOD_REP_' + self.name
+
+    @classmethod
+    def supported_representations(cls) -> List['ModulusRepresentation']:
+        """Return all representations that are supported in positive test cases."""
+        return [cls.MONTGOMERY, cls.OPT_RED]
+
+
 class ModOperationCommon(OperationCommon):
     #pylint: disable=abstract-method
     """Target for bignum mod_raw test case generation."""
     moduli = MODULI_DEFAULT # type: List[str]
+    montgomery_form_a = False
+    disallow_zero_a = False
 
     def __init__(self, val_n: str, val_a: str, val_b: str = "0",
                  bits_in_limb: int = 64) -> None:
@@ -251,13 +278,41 @@ class ModOperationCommon(OperationCommon):
         # provides earlier/more robust input validation.
         self.int_n = hex_to_int(val_n)
 
+    def to_montgomery(self, val: int) -> int:
+        return (val * self.r) % self.int_n
+
+    def from_montgomery(self, val: int) -> int:
+        return (val * self.r_inv) % self.int_n
+
+    def convert_from_canonical(self, canonical: int,
+                               rep: ModulusRepresentation) -> int:
+        """Convert values from canonical representation to the given representation."""
+        if rep is ModulusRepresentation.MONTGOMERY:
+            return self.to_montgomery(canonical)
+        elif rep is ModulusRepresentation.OPT_RED:
+            return canonical
+        else:
+            raise ValueError('Modulus representation not supported: {}'
+                             .format(rep.name))
+
     @property
     def boundary(self) -> int:
         return self.int_n
 
     @property
+    def arg_a(self) -> str:
+        if self.montgomery_form_a:
+            value_a = self.to_montgomery(self.int_a)
+        else:
+            value_a = self.int_a
+        return self.format_arg('{:x}'.format(value_a))
+
+    @property
     def arg_n(self) -> str:
         return self.format_arg(self.val_n)
+
+    def format_arg(self, val: str) -> str:
+        return super().format_arg(val).zfill(self.hex_digits)
 
     def arguments(self) -> List[str]:
         return [quote_str(self.arg_n)] + super().arguments()
@@ -278,6 +333,8 @@ class ModOperationCommon(OperationCommon):
     @property
     def is_valid(self) -> bool:
         if self.int_a >= self.int_n:
+            return False
+        if self.disallow_zero_a and self.int_a == 0:
             return False
         if self.arity == 2 and self.int_b >= self.int_n:
             return False

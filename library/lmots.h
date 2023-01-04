@@ -139,7 +139,7 @@ int mbedtls_lmots_import_public_key( mbedtls_lmots_public_t *ctx,
  *                           this public key.
  *
  * \param ctx                The initialized LMOTS context that contains the
- *                           publc key.
+ *                           public key.
  * \param key                The buffer into which the key will be output. Must
  *                           be at least #MBEDTLS_LMOTS_PUBLIC_KEY_LEN in size.
  *

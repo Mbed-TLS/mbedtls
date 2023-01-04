@@ -59,16 +59,16 @@ psa_status_t mbedtls_test_transparent_key_agreement(
     size_t shared_secret_size,
     size_t *shared_secret_length );
 
-// psa_status_t mbedtls_test_opaque_key_agreement(
-//     const psa_key_attributes_t *attributes,
-//     const uint8_t *key_buffer,
-//     size_t key_buffer_size,
-//     psa_algorithm_t alg,
-//     const uint8_t *peer_key,
-//     size_t peer_key_length,
-//     uint8_t *shared_secret,
-//     size_t shared_secret_size,
-//     size_t *shared_secret_length );
+psa_status_t mbedtls_test_opaque_key_agreement(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer,
+    size_t key_buffer_size,
+    psa_algorithm_t alg,
+    const uint8_t *peer_key,
+    size_t peer_key_length,
+    uint8_t *shared_secret,
+    size_t shared_secret_size,
+    size_t *shared_secret_length );
 
 #endif /*PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_TEST_DRIVERS_KEY_AGREEMENT_H */

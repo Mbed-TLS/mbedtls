@@ -477,16 +477,17 @@ psa_status_t mbedtls_psa_key_agreement_ecdh(
     uint8_t *shared_secret, size_t shared_secret_size,
     size_t *shared_secret_length )
 {
+    psa_status_t status;
     if( ! PSA_KEY_TYPE_IS_ECC_KEY_PAIR( attributes->core.type ) ||
         ! PSA_ALG_IS_ECDH(alg) )
                 return( PSA_ERROR_INVALID_ARGUMENT );
     mbedtls_ecp_keypair *ecp = NULL;
-    psa_status_t status = mbedtls_psa_ecp_load_representation(
-                                attributes->core.type,
-                                attributes->core.bits,
-                                key_buffer,
-                                key_buffer_size,
-                                &ecp );
+    status = mbedtls_psa_ecp_load_representation(
+                attributes->core.type,
+                attributes->core.bits,
+                key_buffer,
+                key_buffer_size,
+                &ecp );
     if( status != PSA_SUCCESS )
         return( status );
     mbedtls_ecp_keypair *their_key = NULL;
@@ -523,7 +524,6 @@ psa_status_t mbedtls_psa_key_agreement_ecdh(
         goto exit;
     if( PSA_BITS_TO_BYTES( bits ) != *shared_secret_length )
         status = PSA_ERROR_CORRUPTION_DETECTED;
-
 exit:
     if( status != PSA_SUCCESS )
         mbedtls_platform_zeroize( shared_secret, shared_secret_size );

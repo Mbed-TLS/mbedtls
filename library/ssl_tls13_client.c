@@ -553,7 +553,7 @@ static int ssl_tls13_parse_cookie_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_BUF( 3, "cookie extension", p, cookie_len );
 
     mbedtls_free( handshake->cookie );
-    handshake->hrr_cookie_len = 0;
+    handshake->cookie_len = 0;
     handshake->cookie = mbedtls_calloc( 1, cookie_len );
     if( handshake->cookie == NULL )
     {
@@ -564,7 +564,7 @@ static int ssl_tls13_parse_cookie_ext( mbedtls_ssl_context *ssl,
     }
 
     memcpy( handshake->cookie, p, cookie_len );
-    handshake->hrr_cookie_len = cookie_len;
+    handshake->cookie_len = cookie_len;
 
     return( 0 );
 }
@@ -587,21 +587,21 @@ static int ssl_tls13_write_cookie_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, cookie",
                            handshake->cookie,
-                           handshake->hrr_cookie_len );
+                           handshake->cookie_len );
 
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, handshake->hrr_cookie_len + 6 );
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, handshake->cookie_len + 6 );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding cookie extension" ) );
 
     MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_COOKIE, p, 0 );
-    MBEDTLS_PUT_UINT16_BE( handshake->hrr_cookie_len + 2, p, 2 );
-    MBEDTLS_PUT_UINT16_BE( handshake->hrr_cookie_len, p, 4 );
+    MBEDTLS_PUT_UINT16_BE( handshake->cookie_len + 2, p, 2 );
+    MBEDTLS_PUT_UINT16_BE( handshake->cookie_len, p, 4 );
     p += 6;
 
     /* Cookie */
-    memcpy( p, handshake->cookie, handshake->hrr_cookie_len );
+    memcpy( p, handshake->cookie, handshake->cookie_len );
 
-    *out_len = handshake->hrr_cookie_len + 6;
+    *out_len = handshake->cookie_len + 6;
 
     mbedtls_ssl_tls13_set_hs_sent_ext_mask( ssl, MBEDTLS_TLS_EXT_COOKIE );
 
@@ -1183,11 +1183,11 @@ int mbedtls_ssl_tls13_write_client_hello_exts( mbedtls_ssl_context *ssl,
             return( ret );
         p += ext_len;
 
-        /* Initializes the status to `indication sent`. It will be updated to
-         * `accepted` or `rejected` depending on whether the EncryptedExtension
-         * message will contain an early data indication extension or not.
+        /* Initializes the status to `rejected`. It will be updated to
+         * `accepted` if the EncryptedExtension message contain an early data
+         * indication extension.
          */
-        ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_INDICATION_SENT;
+        ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED;
     }
     else
     {
@@ -2060,6 +2060,21 @@ static int ssl_tls13_parse_encrypted_extensions( mbedtls_ssl_context *ssl,
 
                 break;
 #endif /* MBEDTLS_SSL_ALPN */
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+            case MBEDTLS_TLS_EXT_EARLY_DATA:
+
+                if( extension_data_len != 0 )
+                {
+                    /* The message must be empty. */
+                    MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
+                                                  MBEDTLS_ERR_SSL_DECODE_ERROR );
+                    return( MBEDTLS_ERR_SSL_DECODE_ERROR );
+                }
+
+                break;
+#endif /* MBEDTLS_SSL_EARLY_DATA */
+
             default:
                 MBEDTLS_SSL_PRINT_EXT(
                     3, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS,
@@ -2101,6 +2116,14 @@ static int ssl_tls13_process_encrypted_extensions( mbedtls_ssl_context *ssl )
     /* Process the message contents */
     MBEDTLS_SSL_PROC_CHK(
         ssl_tls13_parse_encrypted_extensions( ssl, buf, buf + buf_len ) );
+
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    if( ssl->handshake->received_extensions &
+        MBEDTLS_SSL_EXT_MASK( EARLY_DATA ) )
+    {
+        ssl->early_data_status = MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED;
+    }
+#endif
 
     mbedtls_ssl_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS,
                                         buf, buf_len );
@@ -2743,7 +2766,7 @@ static int ssl_tls13_postprocess_new_session_ticket( mbedtls_ssl_context *ssl,
 }
 
 /*
- * Handler for MBEDTLS_SSL_NEW_SESSION_TICKET
+ * Handler for MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_process_new_session_ticket( mbedtls_ssl_context *ssl )
@@ -2857,7 +2880,7 @@ int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-        case MBEDTLS_SSL_NEW_SESSION_TICKET:
+        case MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET:
             ret = ssl_tls13_process_new_session_ticket( ssl );
             if( ret != 0 )
                 break;

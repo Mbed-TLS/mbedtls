@@ -233,7 +233,7 @@ static int x509_get_hash_alg( const mbedtls_x509_buf *alg, mbedtls_md_type_t *md
  *
  * RFC 4055 (which defines use of RSASSA-PSS in PKIX) states that the value
  * of trailerField MUST be 1, and PKCS#1 v2.2 doesn't even define any other
- * option. Enfore this at parsing time.
+ * option. Enforce this at parsing time.
  */
 int mbedtls_x509_get_rsassa_pss_params( const mbedtls_x509_buf *params,
                                 mbedtls_md_type_t *md_alg, mbedtls_md_type_t *mgf_md,

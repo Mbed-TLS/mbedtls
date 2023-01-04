@@ -297,7 +297,7 @@ typedef psa_key_id_t mbedtls_svc_key_id_t;
 
 #else /* MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER */
 /* Implementation-specific: The Mbed Cryptography library can be built as
- * part of a multi-client service that exposes the PSA Cryptograpy API in each
+ * part of a multi-client service that exposes the PSA Cryptography API in each
  * client and encodes the client identity in the key identifier argument of
  * functions such as psa_open_key().
  */

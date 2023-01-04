@@ -3454,8 +3454,8 @@ psa_status_t psa_cipher_encrypt( mbedtls_svc_key_id_t key,
     status = psa_driver_wrapper_cipher_encrypt(
         &attributes, slot->key.data, slot->key.bytes,
         alg, local_iv, default_iv_length, input, input_length,
-        output + default_iv_length, output_size - default_iv_length,
-        output_length );
+        mbedtls_buffer_offset( output, default_iv_length ),
+        output_size - default_iv_length, output_length );
 
 exit:
     unlock_status = psa_unlock_key_slot( slot );
@@ -5738,11 +5738,11 @@ psa_status_t psa_key_agreement_raw_builtin( const psa_key_attributes_t *attribut
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
         case PSA_ALG_ECDH:
             return( mbedtls_psa_key_agreement_ecdh( attributes, key_buffer,
-                                                   key_buffer_size, alg,
-                                                   peer_key, peer_key_length,
-                                                   shared_secret,
-                                                   shared_secret_size,
-                                                   shared_secret_length ) );
+                                                    key_buffer_size, alg,
+                                                    peer_key, peer_key_length,
+                                                    shared_secret,
+                                                    shared_secret_size,
+                                                    shared_secret_length ) );
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_ECDH */
         default:
             (void) attributes;
@@ -5771,18 +5771,20 @@ static psa_status_t psa_key_agreement_raw_internal( psa_algorithm_t alg,
                                                     size_t shared_secret_size,
                                                     size_t *shared_secret_length )
 {
-    if( !PSA_ALG_IS_RAW_KEY_AGREEMENT(alg) )
+    if( !PSA_ALG_IS_RAW_KEY_AGREEMENT( alg ) )
         return( PSA_ERROR_NOT_SUPPORTED );
 
     psa_key_attributes_t attributes = {
       .core = private_key->attr
     };
 
-    return( psa_driver_wrapper_key_agreement( &attributes, private_key->key.data,
-                                                  private_key->key.bytes,
-                                                  alg, peer_key, peer_key_length,
-                                                  shared_secret, shared_secret_size,
-                                                  shared_secret_length ) );
+    return( psa_driver_wrapper_key_agreement( &attributes,
+                                              private_key->key.data,
+                                              private_key->key.bytes, alg,
+                                              peer_key, peer_key_length,
+                                              shared_secret,
+                                              shared_secret_size,
+                                              shared_secret_length ) );
 }
 
 /* Note that if this function fails, you must call psa_key_derivation_abort()
@@ -5996,7 +5998,7 @@ psa_status_t psa_generate_random( uint8_t *output,
     if( status != PSA_SUCCESS )
         return( status );
     /* Breaking up a request into smaller chunks is currently not supported
-     * for the extrernal RNG interface. */
+     * for the external RNG interface. */
     if( output_length != output_size )
         return( PSA_ERROR_INSUFFICIENT_ENTROPY );
     return( PSA_SUCCESS );

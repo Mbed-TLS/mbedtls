@@ -634,7 +634,7 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
 
     if( p_identity_len != identities_end || p_binder_len != binders_end )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "pre_shared_key extesion decode error" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "pre_shared_key extension decode error" ) );
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
                                       MBEDTLS_ERR_SSL_DECODE_ERROR );
         return( MBEDTLS_ERR_SSL_DECODE_ERROR );
@@ -2628,7 +2628,7 @@ static int ssl_tls13_handshake_wrapup( mbedtls_ssl_context *ssl )
     mbedtls_ssl_tls13_handshake_wrapup( ssl );
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_NEW_SESSION_TICKET );
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET );
 #else
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_HANDSHAKE_OVER );
 #endif
@@ -2636,7 +2636,7 @@ static int ssl_tls13_handshake_wrapup( mbedtls_ssl_context *ssl )
 }
 
 /*
- * Handler for MBEDTLS_SSL_NEW_SESSION_TICKET
+ * Handler for MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET
  */
 #define SSL_NEW_SESSION_TICKET_SKIP  0
 #define SSL_NEW_SESSION_TICKET_WRITE 1
@@ -2872,7 +2872,7 @@ static int ssl_tls13_write_new_session_ticket_body( mbedtls_ssl_context *ssl,
 }
 
 /*
- * Handler for MBEDTLS_SSL_NEW_SESSION_TICKET
+ * Handler for MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET
  */
 static int ssl_tls13_write_new_session_ticket( mbedtls_ssl_context *ssl )
 {
@@ -2908,8 +2908,8 @@ static int ssl_tls13_write_new_session_ticket( mbedtls_ssl_context *ssl )
         else
             ssl->handshake->new_session_tickets_count--;
 
-        mbedtls_ssl_handshake_set_state( ssl,
-                                         MBEDTLS_SSL_NEW_SESSION_TICKET_FLUSH );
+        mbedtls_ssl_handshake_set_state(
+            ssl, MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH );
     }
     else
     {
@@ -3045,7 +3045,7 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-        case MBEDTLS_SSL_NEW_SESSION_TICKET:
+        case MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET:
             ret = ssl_tls13_write_new_session_ticket( ssl );
             if( ret != 0 )
             {
@@ -3054,9 +3054,9 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
                                        ret );
             }
             break;
-        case MBEDTLS_SSL_NEW_SESSION_TICKET_FLUSH:
+        case MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH:
             /* This state is necessary to do the flush of the New Session
-             * Ticket message written in MBEDTLS_SSL_NEW_SESSION_TICKET
+             * Ticket message written in MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET
              * as part of ssl_prepare_handshake_step.
              */
             ret = 0;
@@ -3064,7 +3064,7 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
             if( ssl->handshake->new_session_tickets_count == 0 )
                 mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_HANDSHAKE_OVER );
             else
-                mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_NEW_SESSION_TICKET );
+                mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET );
             break;
 
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */

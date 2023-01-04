@@ -61,9 +61,11 @@ int main( void )
 
 #include "mbedtls/error.h"
 
+/* *INDENT-OFF* */
 #ifndef asm
 #define asm __asm
 #endif
+/* *INDENT-ON* */
 
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
 
@@ -398,7 +400,7 @@ static unsigned long mbedtls_timing_hardclock( void )
     }
 
     gettimeofday( &tv_cur, NULL );
-    return( ( tv_cur.tv_sec  - tv_init.tv_sec  ) * 1000000
+    return( ( tv_cur.tv_sec  - tv_init.tv_sec  ) * 1000000U
           + ( tv_cur.tv_usec - tv_init.tv_usec ) );
 }
 #endif /* !HAVE_HARDCLOCK */
@@ -416,7 +418,7 @@ static void TimerProc( void *TimerContext )
     Sleep( alarmMs );
     mbedtls_timing_alarmed = 1;
     /* _endthread will be called implicitly on return
-     * That ensures execution of thread funcition's epilogue */
+     * That ensures execution of thread function's epilogue */
 }
 
 static void mbedtls_set_alarm( int seconds )

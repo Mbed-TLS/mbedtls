@@ -1,5 +1,5 @@
 /*
- *  X.509 Certidicate Revocation List (CRL) parsing
+ *  X.509 Certificate Revocation List (CRL) parsing
  *
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0

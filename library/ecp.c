@@ -88,11 +88,6 @@
 
 #include "ecp_internal_alt.h"
 
-#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
-    !defined(inline) && !defined(__cplusplus)
-#define inline __inline
-#endif
-
 #if defined(MBEDTLS_SELF_TEST)
 /*
  * Counts of point addition and doubling, and field multiplications.
@@ -759,6 +754,13 @@ cleanup:
     return( ret );
 }
 
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
+static int mbedtls_ecp_sw_derive_y( const mbedtls_ecp_group *grp,
+                                    const mbedtls_mpi *X,
+                                    mbedtls_mpi *Y,
+                                    int parity_bit );
+#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
+
 /*
  * Import a point from unsigned binary data (SEC1 2.3.4 and RFC7748)
  */
@@ -800,16 +802,29 @@ int mbedtls_ecp_point_read_binary( const mbedtls_ecp_group *grp,
                 return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
         }
 
-        if( buf[0] != 0x04 )
-            return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
-
-        if( ilen != 2 * plen + 1 )
+        if( ilen < 1 + plen )
             return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &pt->X, buf + 1, plen ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &pt->Y,
-                                                  buf + 1 + plen, plen ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->Z, 1 ) );
+
+        if( buf[0] == 0x04 )
+        {
+            /* format == MBEDTLS_ECP_PF_UNCOMPRESSED */
+            if( ilen != 1 + plen * 2 )
+                return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+            return( mbedtls_mpi_read_binary( &pt->Y, buf + 1 + plen, plen ) );
+        }
+        else if( buf[0] == 0x02 || buf[0] == 0x03 )
+        {
+            /* format == MBEDTLS_ECP_PF_COMPRESSED */
+            if( ilen != 1 + plen )
+                return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+            return( mbedtls_ecp_sw_derive_y( grp, &pt->X, &pt->Y,
+                                             ( buf[0] & 1 ) ) );
+        }
+        else
+            return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
     }
 #endif
 
@@ -1196,6 +1211,86 @@ cleanup:
     MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_swap( (X), (Y), (cond) ) )
 
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
+
+/*
+ * Computes the right-hand side of the Short Weierstrass equation
+ * RHS = X^3 + A X + B
+ */
+static int ecp_sw_rhs( const mbedtls_ecp_group *grp,
+                       mbedtls_mpi *rhs,
+                       const mbedtls_mpi *X )
+{
+    int ret;
+
+    /* Compute X^3 + A X + B as X (X^2 + A) + B */
+    MPI_ECP_SQR( rhs, X );
+
+    /* Special case for A = -3 */
+    if( grp->A.p == NULL )
+    {
+        MPI_ECP_SUB_INT( rhs, rhs, 3 );
+    }
+    else
+    {
+        MPI_ECP_ADD( rhs, rhs, &grp->A );
+    }
+
+    MPI_ECP_MUL( rhs, rhs, X  );
+    MPI_ECP_ADD( rhs, rhs, &grp->B );
+
+cleanup:
+    return( ret );
+}
+
+/*
+ * Derive Y from X and a parity bit
+ */
+static int mbedtls_ecp_sw_derive_y( const mbedtls_ecp_group *grp,
+                                    const mbedtls_mpi *X,
+                                    mbedtls_mpi *Y,
+                                    int parity_bit )
+{
+    /* w = y^2 = x^3 + ax + b
+     * y = sqrt(w) = w^((p+1)/4) mod p   (for prime p where p = 3 mod 4)
+     *
+     * Note: this method for extracting square root does not validate that w
+     * was indeed a square so this function will return garbage in Y if X
+     * does not correspond to a point on the curve.
+     */
+
+    /* Check prerequisite p = 3 mod 4 */
+    if( mbedtls_mpi_get_bit( &grp->P, 0 ) != 1 ||
+        mbedtls_mpi_get_bit( &grp->P, 1 ) != 1 )
+        return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
+
+    int ret;
+    mbedtls_mpi exp;
+    mbedtls_mpi_init( &exp );
+
+    /* use Y to store intermediate result, actually w above */
+    MBEDTLS_MPI_CHK( ecp_sw_rhs( grp, Y, X ) );
+
+    /* w = y^2 */ /* Y contains y^2 intermediate result */
+    /* exp = ((p+1)/4) */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( &exp, &grp->P, 1 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &exp, 2 ) );
+    /* sqrt(w) = w^((p+1)/4) mod p   (for prime p where p = 3 mod 4) */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( Y, Y /*y^2*/, &exp, &grp->P, NULL ) );
+
+    /* check parity bit match or else invert Y */
+    /* This quick inversion implementation is valid because Y != 0 for all
+     * Short Weierstrass curves supported by mbedtls, as each supported curve
+     * has an order that is a large prime, so each supported curve does not
+     * have any point of order 2, and a point with Y == 0 would be of order 2 */
+    if( mbedtls_mpi_get_bit( Y, 0 ) != parity_bit )
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( Y, &grp->P, Y ) );
+
+cleanup:
+
+    mbedtls_mpi_free( &exp );
+    return( ret );
+}
+
 /*
  * For curves in short Weierstrass form, we do all the internal operations in
  * Jacobian coordinates.
@@ -2616,23 +2711,10 @@ static int ecp_check_pubkey_sw( const mbedtls_ecp_group *grp, const mbedtls_ecp_
 
     /*
      * YY = Y^2
-     * RHS = X (X^2 + A) + B = X^3 + A X + B
+     * RHS = X^3 + A X + B
      */
     MPI_ECP_SQR( &YY,  &pt->Y );
-    MPI_ECP_SQR( &RHS, &pt->X );
-
-    /* Special case for A = -3 */
-    if( grp->A.p == NULL )
-    {
-        MPI_ECP_SUB_INT( &RHS, &RHS, 3 );
-    }
-    else
-    {
-        MPI_ECP_ADD( &RHS, &RHS, &grp->A );
-    }
-
-    MPI_ECP_MUL( &RHS, &RHS, &pt->X  );
-    MPI_ECP_ADD( &RHS, &RHS, &grp->B );
+    MBEDTLS_MPI_CHK( ecp_sw_rhs( grp, &RHS, &pt->X ) );
 
     if( MPI_ECP_CMP( &YY, &RHS ) != 0 )
         ret = MBEDTLS_ERR_ECP_INVALID_KEY;

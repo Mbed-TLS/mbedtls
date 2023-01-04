@@ -24,7 +24,7 @@
 
 #include "common.h"
 
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA224_C)
 
 #include "mbedtls/sha256.h"
 #include "mbedtls/platform_util.h"
@@ -89,9 +89,11 @@ static int mbedtls_a64_crypto_sha256_determine_support( void )
 #include <signal.h>
 #include <setjmp.h>
 
+/* *INDENT-OFF* */
 #ifndef asm
 #define asm __asm__
 #endif
+/* *INDENT-ON* */
 
 static jmp_buf return_from_sigill;
 
@@ -167,11 +169,14 @@ void mbedtls_sha256_clone( mbedtls_sha256_context *dst,
  */
 int mbedtls_sha256_starts( mbedtls_sha256_context *ctx, int is224 )
 {
-#if defined(MBEDTLS_SHA224_C)
+#if defined(MBEDTLS_SHA224_C) && defined(MBEDTLS_SHA256_C)
     if( is224 != 0 && is224 != 1 )
         return MBEDTLS_ERR_SHA256_BAD_INPUT_DATA;
-#else
+#elif defined(MBEDTLS_SHA256_C)
     if( is224 != 0 )
+        return MBEDTLS_ERR_SHA256_BAD_INPUT_DATA;
+#else /* defined MBEDTLS_SHA224_C only */
+    if( is224 == 0 )
         return MBEDTLS_ERR_SHA256_BAD_INPUT_DATA;
 #endif
 
@@ -180,7 +185,7 @@ int mbedtls_sha256_starts( mbedtls_sha256_context *ctx, int is224 )
 
     if( is224 == 0 )
     {
-        /* SHA-256 */
+#if defined(MBEDTLS_SHA256_C)
         ctx->state[0] = 0x6A09E667;
         ctx->state[1] = 0xBB67AE85;
         ctx->state[2] = 0x3C6EF372;
@@ -189,11 +194,11 @@ int mbedtls_sha256_starts( mbedtls_sha256_context *ctx, int is224 )
         ctx->state[5] = 0x9B05688C;
         ctx->state[6] = 0x1F83D9AB;
         ctx->state[7] = 0x5BE0CD19;
+#endif
     }
     else
     {
 #if defined(MBEDTLS_SHA224_C)
-        /* SHA-224 */
         ctx->state[0] = 0xC1059ED8;
         ctx->state[1] = 0x367CD507;
         ctx->state[2] = 0x3070DD17;
@@ -205,7 +210,9 @@ int mbedtls_sha256_starts( mbedtls_sha256_context *ctx, int is224 )
 #endif
     }
 
+#if defined(MBEDTLS_SHA224_C)
     ctx->is224 = is224;
+#endif
 
     return( 0 );
 }
@@ -678,11 +685,14 @@ int mbedtls_sha256( const unsigned char *input,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_sha256_context ctx;
 
-#if defined(MBEDTLS_SHA224_C)
+#if defined(MBEDTLS_SHA224_C) && defined(MBEDTLS_SHA256_C)
     if( is224 != 0 && is224 != 1 )
         return MBEDTLS_ERR_SHA256_BAD_INPUT_DATA;
-#else
+#elif defined(MBEDTLS_SHA256_C)
     if( is224 != 0 )
+        return MBEDTLS_ERR_SHA256_BAD_INPUT_DATA;
+#else /* defined MBEDTLS_SHA224_C only */
+    if( is224 == 0 )
         return MBEDTLS_ERR_SHA256_BAD_INPUT_DATA;
 #endif
 
@@ -707,23 +717,26 @@ exit:
 /*
  * FIPS-180-2 test vectors
  */
-static const unsigned char sha256_test_buf[3][57] =
+static const unsigned char sha_test_buf[3][57] =
 {
     { "abc" },
     { "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq" },
     { "" }
 };
 
-static const size_t sha256_test_buflen[3] =
+static const size_t sha_test_buflen[3] =
 {
     3, 56, 1000
 };
 
-static const unsigned char sha256_test_sum[6][32] =
+typedef const unsigned char (sha_test_sum_t)[32];
+
+/*
+ * SHA-224 test vectors
+ */
+#if defined(MBEDTLS_SHA224_C)
+static sha_test_sum_t sha224_test_sum[] =
 {
-    /*
-     * SHA-224 test vectors
-     */
     { 0x23, 0x09, 0x7D, 0x22, 0x34, 0x05, 0xD8, 0x22,
       0x86, 0x42, 0xA4, 0x77, 0xBD, 0xA2, 0x55, 0xB3,
       0x2A, 0xAD, 0xBC, 0xE4, 0xBD, 0xA0, 0xB3, 0xF7,
@@ -735,11 +748,16 @@ static const unsigned char sha256_test_sum[6][32] =
     { 0x20, 0x79, 0x46, 0x55, 0x98, 0x0C, 0x91, 0xD8,
       0xBB, 0xB4, 0xC1, 0xEA, 0x97, 0x61, 0x8A, 0x4B,
       0xF0, 0x3F, 0x42, 0x58, 0x19, 0x48, 0xB2, 0xEE,
-      0x4E, 0xE7, 0xAD, 0x67 },
+      0x4E, 0xE7, 0xAD, 0x67 }
+};
+#endif
 
-    /*
-     * SHA-256 test vectors
-     */
+/*
+ * SHA-256 test vectors
+ */
+#if defined(MBEDTLS_SHA256_C)
+static sha_test_sum_t sha256_test_sum[] =
+{
     { 0xBA, 0x78, 0x16, 0xBF, 0x8F, 0x01, 0xCF, 0xEA,
       0x41, 0x41, 0x40, 0xDE, 0x5D, 0xAE, 0x22, 0x23,
       0xB0, 0x03, 0x61, 0xA3, 0x96, 0x17, 0x7A, 0x9C,
@@ -753,16 +771,25 @@ static const unsigned char sha256_test_sum[6][32] =
       0xF1, 0x80, 0x9A, 0x48, 0xA4, 0x97, 0x20, 0x0E,
       0x04, 0x6D, 0x39, 0xCC, 0xC7, 0x11, 0x2C, 0xD0 }
 };
+#endif
 
 /*
  * Checkup routine
  */
-int mbedtls_sha256_self_test( int verbose )
+static int mbedtls_sha256_common_self_test( int verbose, int is224 )
 {
-    int i, j, k, buflen, ret = 0;
+    int i, buflen, ret = 0;
     unsigned char *buf;
     unsigned char sha256sum[32];
     mbedtls_sha256_context ctx;
+
+#if defined(MBEDTLS_SHA224_C) && defined(MBEDTLS_SHA256_C)
+    sha_test_sum_t* sha_test_sum = ( is224 ) ? sha224_test_sum : sha256_test_sum;
+#elif defined(MBEDTLS_SHA256_C)
+    sha_test_sum_t* sha_test_sum = sha256_test_sum;
+#else
+    sha_test_sum_t* sha_test_sum = sha224_test_sum;
+#endif
 
     buf = mbedtls_calloc( 1024, sizeof(unsigned char) );
     if( NULL == buf )
@@ -775,22 +802,19 @@ int mbedtls_sha256_self_test( int verbose )
 
     mbedtls_sha256_init( &ctx );
 
-    for( i = 0; i < 6; i++ )
+    for( i = 0; i < 3; i++ )
     {
-        j = i % 3;
-        k = i < 3;
-
         if( verbose != 0 )
-            mbedtls_printf( "  SHA-%d test #%d: ", 256 - k * 32, j + 1 );
+            mbedtls_printf( "  SHA-%d test #%d: ", 256 - is224 * 32, i + 1 );
 
-        if( ( ret = mbedtls_sha256_starts( &ctx, k ) ) != 0 )
+        if( ( ret = mbedtls_sha256_starts( &ctx, is224 ) ) != 0 )
             goto fail;
 
-        if( j == 2 )
+        if( i == 2 )
         {
             memset( buf, 'a', buflen = 1000 );
 
-            for( j = 0; j < 1000; j++ )
+            for( int j = 0; j < 1000; j++ )
             {
                 ret = mbedtls_sha256_update( &ctx, buf, buflen );
                 if( ret != 0 )
@@ -800,8 +824,8 @@ int mbedtls_sha256_self_test( int verbose )
         }
         else
         {
-            ret = mbedtls_sha256_update( &ctx, sha256_test_buf[j],
-                                             sha256_test_buflen[j] );
+            ret = mbedtls_sha256_update( &ctx, sha_test_buf[i],
+                                             sha_test_buflen[i] );
             if( ret != 0 )
                  goto fail;
         }
@@ -810,7 +834,7 @@ int mbedtls_sha256_self_test( int verbose )
             goto fail;
 
 
-        if( memcmp( sha256sum, sha256_test_sum[i], 32 - k * 4 ) != 0 )
+        if( memcmp( sha256sum, sha_test_sum[i], 32 - is224 * 4 ) != 0 )
         {
             ret = 1;
             goto fail;
@@ -836,6 +860,20 @@ exit:
     return( ret );
 }
 
+#if defined(MBEDTLS_SHA256_C)
+int mbedtls_sha256_self_test( int verbose )
+{
+    return mbedtls_sha256_common_self_test( verbose, 0 );
+}
+#endif /* MBEDTLS_SHA256_C */
+
+#if defined(MBEDTLS_SHA224_C)
+int mbedtls_sha224_self_test( int verbose )
+{
+    return mbedtls_sha256_common_self_test( verbose, 1 );
+}
+#endif /* MBEDTLS_SHA224_C */
+
 #endif /* MBEDTLS_SELF_TEST */
 
-#endif /* MBEDTLS_SHA256_C */
+#endif /* MBEDTLS_SHA256_C || MBEDTLS_SHA224_C */

@@ -1,4 +1,0 @@
-Bugfix
-   * Fix undefined behavior (typically harmless in practice) of
-     mbedtls_mpi_add_mpi(), mbedtls_mpi_add_abs() and mbedtls_mpi_add_int()
-     when both operands are 0 and the left operand is represented with 0 limbs.

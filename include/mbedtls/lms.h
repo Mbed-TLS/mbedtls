@@ -58,7 +58,7 @@
 #define MBEDTLS_LMS_TYPE_LEN            (4)
 #define MBEDTLS_LMS_H_TREE_HEIGHT(type) ((type) == MBEDTLS_LMS_SHA256_M32_H10 ? 10u : 0)
 
-/* The length of a hash output, Currently only imlemented for SHA256.
+/* The length of a hash output, Currently only implemented for SHA256.
  * Max is 32 bytes.
  */
 #define MBEDTLS_LMS_M_NODE_BYTES(type) ((type) == MBEDTLS_LMS_SHA256_M32_H10 ? 32 : 0)
@@ -82,7 +82,7 @@ extern "C" {
 
 /** The Identifier of the LMS parameter set, as per
  * https://www.iana.org/assignments/leighton-micali-signatures/leighton-micali-signatures.xhtml
- * We are only implementing a subset of the types, particularly H10, for the sake of simplicty.
+ * We are only implementing a subset of the types, particularly H10, for the sake of simplicity.
  */
 typedef enum {
     MBEDTLS_LMS_SHA256_M32_H10 = 0x6,
@@ -90,7 +90,7 @@ typedef enum {
 
 /** The Identifier of the LMOTS parameter set, as per
  *  https://www.iana.org/assignments/leighton-micali-signatures/leighton-micali-signatures.xhtml.
- *  We are only implementing a subset of the types, particularly N32_W8, for the sake of simplicty.
+ *  We are only implementing a subset of the types, particularly N32_W8, for the sake of simplicity.
  */
 typedef enum {
     MBEDTLS_LMOTS_SHA256_N32_W8 = 4

@@ -38,23 +38,19 @@
 #include <string.h>
 
 /*
- * If DTLS is in use, then at least one of SHA-1, SHA-256, SHA-384 is
- * available. Try SHA-256 first, 384 wastes resources
+ * If DTLS is in use, then at least one of SHA-256 or SHA-384 is
+ * available. Try SHA-256 first as 384 wastes resources
  */
-#if defined(MBEDTLS_HAS_ALG_SHA_224_VIA_LOWLEVEL_OR_PSA)
-#define COOKIE_MD           MBEDTLS_MD_SHA224
+#if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_LOWLEVEL_OR_PSA)
+#define COOKIE_MD           MBEDTLS_MD_SHA256
 #define COOKIE_MD_OUTLEN    32
 #define COOKIE_HMAC_LEN     28
 #elif defined(MBEDTLS_HAS_ALG_SHA_384_VIA_LOWLEVEL_OR_PSA)
 #define COOKIE_MD           MBEDTLS_MD_SHA384
 #define COOKIE_MD_OUTLEN    48
 #define COOKIE_HMAC_LEN     28
-#elif defined(MBEDTLS_HAS_ALG_SHA_1_VIA_LOWLEVEL_OR_PSA)
-#define COOKIE_MD           MBEDTLS_MD_SHA1
-#define COOKIE_MD_OUTLEN    20
-#define COOKIE_HMAC_LEN     20
 #else
-#error "DTLS hello verify needs SHA-1 or SHA-2"
+#error "DTLS hello verify needs SHA-256 or SHA-384"
 #endif
 
 /*

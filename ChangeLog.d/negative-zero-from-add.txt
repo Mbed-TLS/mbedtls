@@ -1,6 +1,0 @@
-Bugfix
-   * In the bignum module, operations of the form (-A) - (+A) or (-A) - (-A)
-     with A > 0 created an unintended representation of the value 0 which was
-     not processed correctly by some bignum operations. Fix this. This had no
-     consequence on cryptography code, but might affect applications that call
-     bignum directly and use negative numbers.

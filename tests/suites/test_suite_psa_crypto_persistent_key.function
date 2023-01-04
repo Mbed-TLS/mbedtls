@@ -2,7 +2,7 @@
 
 /* The tests in this module verify the contents of key store files. They
  * access internal key storage functions directly. Some of the tests depend
- * on the the storage format. On the other hand, these tests treat the storage
+ * on the storage format. On the other hand, these tests treat the storage
  * subsystem as a black box, and in particular have no reliance on the
  * internals of the ITS implementation.
  *

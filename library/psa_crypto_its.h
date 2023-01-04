@@ -73,7 +73,7 @@ struct psa_storage_info_t
  * \return      A status indicating the success/failure of the operation
  *
  * \retval      #PSA_SUCCESS                     The operation completed successfully
- * \retval      #PSA_ERROR_NOT_PERMITTED         The operation failed because the provided `uid` value was already created with PSA_STORAGE_WRITE_ONCE_FLAG
+ * \retval      #PSA_ERROR_NOT_PERMITTED         The operation failed because the provided `uid` value was already created with PSA_STORAGE_FLAG_WRITE_ONCE
  * \retval      #PSA_ERROR_NOT_SUPPORTED         The operation failed because one or more of the flags provided in `create_flags` is not supported or is not valid
  * \retval      #PSA_ERROR_INSUFFICIENT_STORAGE  The operation failed because there was insufficient space on the storage medium
  * \retval      #PSA_ERROR_STORAGE_FAILURE       The operation failed because the physical storage has failed (Fatal error)
@@ -137,7 +137,7 @@ psa_status_t psa_its_get_info(psa_storage_uid_t uid,
  *
  * \retval      #PSA_SUCCESS                  The operation completed successfully
  * \retval      #PSA_ERROR_DOES_NOT_EXIST     The operation failed because the provided key value was not found in the storage
- * \retval      #PSA_ERROR_NOT_PERMITTED      The operation failed because the provided key value was created with PSA_STORAGE_WRITE_ONCE_FLAG
+ * \retval      #PSA_ERROR_NOT_PERMITTED      The operation failed because the provided key value was created with PSA_STORAGE_FLAG_WRITE_ONCE
  * \retval      #PSA_ERROR_STORAGE_FAILURE    The operation failed because the physical storage has failed (Fatal error)
  */
 psa_status_t psa_its_remove(psa_storage_uid_t uid);

@@ -44,12 +44,6 @@ The configuration building method can be one of the three following:
   direct dependencies, but rather non-trivial results of other configs missing. Then
   look for any unset symbols and handle their reverse dependencies.
   Examples of EXCLUSIVE_GROUPS usage:
-  - MBEDTLS_SHA256 job turns off all hashes except SHA256, however, when investigating
-    reverse dependencies, SHA224 is found to depend on SHA256, so it is disabled,
-    and then SHA256 is found to depend on SHA224, so it is also disabled. To handle
-    this, there's a field in EXCLUSIVE_GROUPS that states that in a SHA256 test SHA224
-    should also be enabled before processing reverse dependencies:
-    'MBEDTLS_SHA256_C': ['+MBEDTLS_SHA224_C']
   - MBEDTLS_SHA512_C job turns off all hashes except SHA512. MBEDTLS_SSL_COOKIE_C
     requires either SHA256 or SHA384 to work, so it also has to be disabled.
     This is not a dependency on SHA512_C, but a result of an exclusive domain
@@ -234,6 +228,7 @@ REVERSE_DEPENDENCIES = {
     'MBEDTLS_ECP_C': ['MBEDTLS_ECDSA_C',
                       'MBEDTLS_ECDH_C',
                       'MBEDTLS_ECJPAKE_C',
+                      'MBEDTLS_ECP_RESTARTABLE',
                       'MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED',
                       'MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED',
                       'MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED',
@@ -256,17 +251,14 @@ REVERSE_DEPENDENCIES = {
                       'MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED'],
     'MBEDTLS_SHA256_C': ['MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED',
                          'MBEDTLS_ENTROPY_FORCE_SHA256',
-                         'MBEDTLS_SHA224_C',
                          'MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT',
                          'MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY',
                          'MBEDTLS_LMS_C',
                          'MBEDTLS_LMS_PRIVATE'],
-    'MBEDTLS_SHA512_C': ['MBEDTLS_SHA384_C',
-                         'MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT',
+    'MBEDTLS_SHA512_C': ['MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT',
                          'MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY'],
     'MBEDTLS_SHA224_C': ['MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED',
                          'MBEDTLS_ENTROPY_FORCE_SHA256',
-                         'MBEDTLS_SHA256_C',
                          'MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT',
                          'MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY'],
     'MBEDTLS_X509_RSASSA_PSS_SUPPORT': []
@@ -276,8 +268,6 @@ REVERSE_DEPENDENCIES = {
 # These are not necessarily dependencies, but just minimal required changes
 # if a given define is the only one enabled from an exclusive group.
 EXCLUSIVE_GROUPS = {
-    'MBEDTLS_SHA256_C': ['+MBEDTLS_SHA224_C'],
-    'MBEDTLS_SHA384_C': ['+MBEDTLS_SHA512_C'],
     'MBEDTLS_SHA512_C': ['-MBEDTLS_SSL_COOKIE_C',
                          '-MBEDTLS_SSL_PROTO_TLS1_3'],
     'MBEDTLS_ECP_DP_CURVE448_ENABLED': ['-MBEDTLS_ECDSA_C',
@@ -420,15 +410,15 @@ class DomainData:
                                               build_and_test),
             # Elliptic curves. Run the test suites.
             'curves': ExclusiveDomain(curve_symbols, build_and_test),
-            # Hash algorithms. Exclude three groups:
-            # - Exclusive domain of MD, RIPEMD, SHA1 (obsolete);
-            # - Exclusive domain of SHA224 (tested with and depends on SHA256);
-            # - Complementary domain of SHA224 and SHA384 - tested with and depend
-            #       on SHA256 and SHA512, respectively.
+            # Hash algorithms. Excluding exclusive domains of MD, RIPEMD, SHA1,
+            # SHA224 and SHA384 because MBEDTLS_ENTROPY_C is extensively used
+            # across various modules, but it depends on either SHA256 or SHA512.
+            # As a consequence an "exclusive" test of anything other than SHA256
+            # or SHA512 with MBEDTLS_ENTROPY_C enabled is not possible.
             'hashes': DualDomain(hash_symbols, build_and_test,
                                  exclude=r'MBEDTLS_(MD|RIPEMD|SHA1_)' \
-                                          '|MBEDTLS_SHA224_'\
-                                          '|!MBEDTLS_(SHA224_|SHA384_)'),
+                                          '|MBEDTLS_SHA224_' \
+                                          '|MBEDTLS_SHA384_'),
             # Key exchange types. Only build the library and the sample
             # programs.
             'kex': ExclusiveDomain(key_exchange_symbols,

@@ -345,6 +345,56 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mpi_core_uint_le_mpi( char *input_A )
+{
+    mbedtls_mpi_uint *A = NULL;
+    size_t A_limbs = 0;
+
+    TEST_EQUAL( mbedtls_test_read_mpi_core( &A, &A_limbs, input_A ), 0 );
+
+    int is_large = 0; /* nonzero limbs beyond the lowest-order one? */
+    for( size_t i = 1; i < A_limbs; i++ )
+    {
+        if( A[i] != 0 )
+        {
+            is_large = 1;
+            break;
+        }
+    }
+
+    TEST_CF_SECRET( A, A_limbs * sizeof( *A ) );
+
+    TEST_EQUAL( mbedtls_mpi_core_uint_le_mpi( 0, A, A_limbs ), 1 );
+    TEST_EQUAL( mbedtls_mpi_core_uint_le_mpi( A[0], A, A_limbs ), 1 );
+
+    if( is_large )
+    {
+        TEST_EQUAL( mbedtls_mpi_core_uint_le_mpi( A[0] + 1,
+                                                  A, A_limbs ), 1 );
+        TEST_EQUAL( mbedtls_mpi_core_uint_le_mpi( (mbedtls_mpi_uint)( -1 ) >> 1,
+                                                  A, A_limbs ), 1 );
+        TEST_EQUAL( mbedtls_mpi_core_uint_le_mpi( (mbedtls_mpi_uint)( -1 ),
+                                                  A, A_limbs ), 1 );
+    }
+    else
+    {
+        TEST_EQUAL( mbedtls_mpi_core_uint_le_mpi( A[0] + 1,
+                                                  A, A_limbs ),
+                    A[0] + 1 <= A[0] );
+        TEST_EQUAL( mbedtls_mpi_core_uint_le_mpi( (mbedtls_mpi_uint)( -1 ) >> 1,
+                                                  A, A_limbs ),
+                    (mbedtls_mpi_uint)( -1 ) >> 1 <= A[0] );
+        TEST_EQUAL( mbedtls_mpi_core_uint_le_mpi( (mbedtls_mpi_uint)( -1 ),
+                                                  A, A_limbs ),
+                    (mbedtls_mpi_uint)( -1 ) <= A[0] );
+    }
+
+exit:
+    mbedtls_free( A );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mpi_core_cond_assign( char * input_X,
                            char * input_Y,
                            int input_bytes )
@@ -533,10 +583,9 @@ exit:
 
 /* BEGIN_CASE */
 void mpi_core_sub( char * input_A, char * input_B,
-                   char * input_X4, char * input_X8,
-                   int carry )
+                   char * input_X, int carry )
 {
-    mbedtls_mpi A, B, X4, X8;
+    mbedtls_mpi A, B, X;
     mbedtls_mpi_uint *a = NULL;
     mbedtls_mpi_uint *b = NULL;
     mbedtls_mpi_uint *x = NULL; /* expected */
@@ -544,29 +593,23 @@ void mpi_core_sub( char * input_A, char * input_B,
 
     mbedtls_mpi_init( &A );
     mbedtls_mpi_init( &B );
-    mbedtls_mpi_init( &X4 );
-    mbedtls_mpi_init( &X8 );
+    mbedtls_mpi_init( &X );
 
     TEST_EQUAL( 0, mbedtls_test_read_mpi( &A, input_A ) );
     TEST_EQUAL( 0, mbedtls_test_read_mpi( &B, input_B ) );
-    TEST_EQUAL( 0, mbedtls_test_read_mpi( &X4, input_X4 ) );
-    TEST_EQUAL( 0, mbedtls_test_read_mpi( &X8, input_X8 ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &X, input_X ) );
 
     /* All of the inputs are +ve (or zero) */
     TEST_EQUAL( 1, A.s );
     TEST_EQUAL( 1, B.s );
-    TEST_EQUAL( 1, X4.s );
-    TEST_EQUAL( 1, X8.s );
+    TEST_EQUAL( 1, X.s );
 
     /* Get the number of limbs we will need */
     size_t limbs = MAX( A.n, B.n );
     size_t bytes = limbs * sizeof(mbedtls_mpi_uint);
 
-    /* We only need to work with X4 or X8, depending on sizeof(mbedtls_mpi_uint) */
-    mbedtls_mpi *X = ( sizeof(mbedtls_mpi_uint) == 4 ) ? &X4 : &X8;
-
     /* The result shouldn't have more limbs than the longest input */
-    TEST_LE_U( X->n, limbs );
+    TEST_LE_U( X.n, limbs );
 
     /* Now let's get arrays of mbedtls_mpi_uints, rather than MPI structures */
 
@@ -582,7 +625,7 @@ void mpi_core_sub( char * input_A, char * input_B,
      */
     memcpy( a, A.p, A.n * sizeof(mbedtls_mpi_uint) );
     memcpy( b, B.p, B.n * sizeof(mbedtls_mpi_uint) );
-    memcpy( x, X->p, X->n * sizeof(mbedtls_mpi_uint) );
+    memcpy( x, X.p, X.n * sizeof(mbedtls_mpi_uint) );
 
     /* 1a) r = a - b => we should get the correct carry */
     TEST_EQUAL( carry, mbedtls_mpi_core_sub( r, a, b, limbs ) );
@@ -621,8 +664,7 @@ exit:
 
     mbedtls_mpi_free( &A );
     mbedtls_mpi_free( &B );
-    mbedtls_mpi_free( &X4 );
-    mbedtls_mpi_free( &X8 );
+    mbedtls_mpi_free( &X );
 }
 /* END_CASE */
 
@@ -806,7 +848,9 @@ void mpi_core_montmul( int limbs_AN4, int limbs_B4,
     TEST_EQUAL( 0, mbedtls_mpi_grow( X, limbs_AN ) );
     TEST_EQUAL( 0, mbedtls_mpi_grow( &B, limbs_B ) );
 
-    TEST_EQUAL( 0, mbedtls_mpi_grow( &T, limbs_AN * 2 + 1 ) );
+    size_t working_limbs = mbedtls_mpi_core_montmul_working_limbs( limbs_AN );
+    TEST_EQUAL( working_limbs, limbs_AN * 2 + 1 );
+    TEST_EQUAL( 0, mbedtls_mpi_grow( &T, working_limbs ) );
 
     /* Calculate the Montgomery constant (this is unit tested separately) */
     mbedtls_mpi_uint mm = mbedtls_mpi_core_montmul_init( N.p );
@@ -935,7 +979,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
 void mpi_core_ct_uint_table_lookup( int bitlen, int window_size )
 {
     size_t limbs = BITS_TO_LIMBS( bitlen );
@@ -1041,6 +1085,85 @@ exit:
 
 /* BEGIN MERGE SLOT 1 */
 
+/* BEGIN_CASE */
+void mpi_core_exp_mod( char * input_N, char * input_A,
+                       char * input_E, char * input_X )
+{
+    mbedtls_mpi_uint *A = NULL;
+    mbedtls_mpi_uint *E = NULL;
+    mbedtls_mpi_uint *N = NULL;
+    mbedtls_mpi_uint *X = NULL;
+    size_t A_limbs, E_limbs, N_limbs, X_limbs;
+    const mbedtls_mpi_uint *R2 = NULL;
+    mbedtls_mpi_uint *Y = NULL;
+    mbedtls_mpi_uint *T = NULL;
+    /* Legacy MPIs for computing R2 */
+    mbedtls_mpi N_mpi;
+    mbedtls_mpi_init( &N_mpi );
+    mbedtls_mpi R2_mpi;
+    mbedtls_mpi_init( &R2_mpi );
+
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &A, &A_limbs, input_A ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &E, &E_limbs, input_E ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &N, &N_limbs, input_N ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &X, &X_limbs, input_X ) );
+    ASSERT_ALLOC( Y, N_limbs );
+
+    TEST_EQUAL( A_limbs, N_limbs );
+    TEST_EQUAL( X_limbs, N_limbs );
+
+    TEST_EQUAL( 0, mbedtls_mpi_grow( &N_mpi, N_limbs ) );
+    memcpy( N_mpi.p, N, N_limbs * sizeof( *N ) );
+    N_mpi.n = N_limbs;
+    TEST_EQUAL( 0,
+                mbedtls_mpi_core_get_mont_r2_unsafe( &R2_mpi, &N_mpi ) );
+    TEST_EQUAL( 0, mbedtls_mpi_grow( &R2_mpi, N_limbs ) );
+    R2 = R2_mpi.p;
+
+    size_t working_limbs = mbedtls_mpi_core_exp_mod_working_limbs( N_limbs,
+                                                                   E_limbs );
+
+    /* No point exactly duplicating the code in mbedtls_mpi_core_exp_mod_working_limbs()
+     * to see if the output is correct, but we can check that it's in a
+     * reasonable range.  The current calculation works out as
+     * `1 + N_limbs * (welem + 3)`, where welem is the number of elements in
+     * the window (1 << 1 up to 1 << 6).
+     */
+    size_t min_expected_working_limbs = 1 + N_limbs * 4;
+    size_t max_expected_working_limbs = 1 + N_limbs * 67;
+
+    TEST_LE_U( min_expected_working_limbs, working_limbs );
+    TEST_LE_U( working_limbs, max_expected_working_limbs );
+
+    /* Should also be at least mbedtls_mpi_core_montmul_working_limbs() */
+    TEST_LE_U( mbedtls_mpi_core_montmul_working_limbs( N_limbs ),
+               working_limbs );
+
+    ASSERT_ALLOC( T, working_limbs );
+
+    mbedtls_mpi_core_exp_mod( Y, A, N, N_limbs, E, E_limbs, R2, T );
+
+    TEST_EQUAL( 0, memcmp( X, Y, N_limbs * sizeof( mbedtls_mpi_uint ) ) );
+
+    /* Check when output aliased to input */
+
+    mbedtls_mpi_core_exp_mod( A, A, N, N_limbs, E, E_limbs, R2, T );
+
+    TEST_EQUAL( 0, memcmp( X, A, N_limbs * sizeof( mbedtls_mpi_uint ) ) );
+
+exit:
+    mbedtls_free( T );
+    mbedtls_free( A );
+    mbedtls_free( E );
+    mbedtls_free( N );
+    mbedtls_free( X );
+    mbedtls_free( Y );
+    mbedtls_mpi_free( &N_mpi );
+    mbedtls_mpi_free( &R2_mpi );
+    // R2 doesn't need to be freed as it is only aliasing R2_mpi
+}
+/* END_CASE */
+
 /* END MERGE SLOT 1 */
 
 /* BEGIN MERGE SLOT 2 */
@@ -1048,6 +1171,71 @@ exit:
 /* END MERGE SLOT 2 */
 
 /* BEGIN MERGE SLOT 3 */
+
+/* BEGIN_CASE */
+void mpi_core_sub_int( char * input_A, char * input_B,
+                       char * input_X, int borrow )
+{
+    /* We are testing A - b, where A is an MPI and b is a scalar, expecting
+     * result X with borrow borrow.  However, for ease of handling we encode b
+     * as a 1-limb MPI (B) in the .data file. */
+
+    mbedtls_mpi_uint *A = NULL;
+    mbedtls_mpi_uint *B = NULL;
+    mbedtls_mpi_uint *X = NULL;
+    mbedtls_mpi_uint *R = NULL;
+    size_t A_limbs, B_limbs, X_limbs;
+
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &A, &A_limbs, input_A ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &B, &B_limbs, input_B ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &X, &X_limbs, input_X ) );
+
+    /* The MPI encoding of scalar b must be only 1 limb */
+    TEST_EQUAL( B_limbs, 1 );
+
+    /* The subtraction is fixed-width, so A and X must have the same number of limbs */
+    TEST_EQUAL( A_limbs, X_limbs );
+    size_t limbs = A_limbs;
+
+    ASSERT_ALLOC( R, limbs );
+
+#define TEST_COMPARE_CORE_MPIS( A, B, limbs ) \
+                ASSERT_COMPARE( A, (limbs) * sizeof(mbedtls_mpi_uint), B, (limbs) * sizeof(mbedtls_mpi_uint) )
+
+    /* 1. R = A - b. Result and borrow should be correct */
+    TEST_EQUAL( mbedtls_mpi_core_sub_int( R, A, B[0], limbs ), borrow );
+    TEST_COMPARE_CORE_MPIS( R, X, limbs );
+
+    /* 2. A = A - b. Result and borrow should be correct */
+    TEST_EQUAL( mbedtls_mpi_core_sub_int( A, A, B[0], limbs ), borrow );
+    TEST_COMPARE_CORE_MPIS( A, X, limbs );
+
+exit:
+    mbedtls_free( A );
+    mbedtls_free( B );
+    mbedtls_free( X );
+    mbedtls_free( R );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_core_check_zero_ct( char *input_X, int expected_is_zero )
+{
+    mbedtls_mpi_uint *X = NULL;
+    size_t X_limbs;
+
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &X, &X_limbs, input_X ) );
+
+    TEST_CF_SECRET( X, X_limbs * sizeof( mbedtls_mpi_uint ) );
+
+    mbedtls_mpi_uint check = mbedtls_mpi_core_check_zero_ct( X, X_limbs );
+    int is_zero = (check == 0);
+    TEST_EQUAL( is_zero, expected_is_zero );
+
+exit:
+    mbedtls_free( X );
+}
+/* END_CASE */
 
 /* END MERGE SLOT 3 */
 

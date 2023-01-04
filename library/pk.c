@@ -482,12 +482,9 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
     pss_opts = (const mbedtls_pk_rsassa_pss_options *) options;
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if( pss_opts->mgf1_hash_id == md_alg &&
-        ( (size_t) pss_opts->expected_salt_len == hash_len ||
-            pss_opts->expected_salt_len  == MBEDTLS_RSA_SALT_LEN_ANY ) )
+    if( pss_opts->mgf1_hash_id == md_alg )
     {
-        /* see RSA_PUB_DER_MAX_BYTES in pkwrite.c */
-        unsigned char buf[ 38 + 2 * MBEDTLS_MPI_MAX_SIZE ];
+        unsigned char buf[MBEDTLS_PK_RSA_PUB_DER_MAX_BYTES];
         unsigned char *p;
         int key_len;
         size_t signature_length;
@@ -497,10 +494,7 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
         psa_algorithm_t psa_md_alg = mbedtls_hash_info_psa_from_md( md_alg );
         mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
         psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-        psa_algorithm_t psa_sig_alg =
-            ( pss_opts->expected_salt_len == MBEDTLS_RSA_SALT_LEN_ANY ?
-                                 PSA_ALG_RSA_PSS_ANY_SALT(psa_md_alg) :
-                                 PSA_ALG_RSA_PSS(psa_md_alg) );
+        psa_algorithm_t psa_sig_alg = PSA_ALG_RSA_PSS_ANY_SALT( psa_md_alg );
         p = buf + sizeof( buf );
         key_len = mbedtls_pk_write_pubkey( &p, buf, ctx );
 

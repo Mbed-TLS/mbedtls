@@ -96,6 +96,10 @@ void mbedtls_sha256_clone( mbedtls_sha256_context *dst,
  * \param is224    This determines which function to use. This must be
  *                 either \c 0 for SHA-256, or \c 1 for SHA-224.
  *
+ * \note           is224 must be defined accordingly to the enabled
+ *                 MBEDTLS_SHA224_C/MBEDTLS_SHA256_C symbols otherwise the
+ *                 function will return #MBEDTLS_ERR_SHA512_BAD_INPUT_DATA.
+ *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
@@ -178,13 +182,25 @@ int mbedtls_sha256( const unsigned char *input,
 
 #if defined(MBEDTLS_SELF_TEST)
 
+#if defined(MBEDTLS_SHA224_C)
 /**
- * \brief          The SHA-224 and SHA-256 checkup routine.
+ * \brief          The SHA-224 checkup routine.
+ *
+ * \return         \c 0 on success.
+ * \return         \c 1 on failure.
+ */
+int mbedtls_sha224_self_test( int verbose );
+#endif /* MBEDTLS_SHA224_C */
+
+#if defined(MBEDTLS_SHA256_C)
+/**
+ * \brief          The SHA-256 checkup routine.
  *
  * \return         \c 0 on success.
  * \return         \c 1 on failure.
  */
 int mbedtls_sha256_self_test( int verbose );
+#endif /* MBEDTLS_SHA256_C */
 
 #endif /* MBEDTLS_SELF_TEST */
 

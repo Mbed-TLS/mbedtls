@@ -237,7 +237,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE:MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 void ecp_muladd_restart( int id, char *xR_str, char *yR_str,
                          char *u1_str, char *u2_str,
                          char *xQ_str, char *yQ_str,
@@ -642,6 +642,19 @@ void ecp_read_binary( int id, data_t * buf, char * x, char * y, char * z,
         {
             TEST_ASSERT( mbedtls_mpi_cmp_mpi( &P.Y, &Y ) == 0 );
             TEST_ASSERT( mbedtls_mpi_cmp_mpi( &P.Z, &Z ) == 0 );
+
+            if( buf->x[0] == 0x04 &&
+                /* (reading compressed format supported only for
+                 *  Short Weierstrass curves with prime p where p = 3 mod 4) */
+                id != MBEDTLS_ECP_DP_SECP224R1 &&
+                id != MBEDTLS_ECP_DP_SECP224K1 )
+            {
+                /* re-encode in compressed format and test read again */
+                mbedtls_mpi_free( &P.Y );
+                buf->x[0] = 0x02 + mbedtls_mpi_get_bit( &Y, 0 );
+                TEST_ASSERT( mbedtls_ecp_point_read_binary( &grp, &P, buf->x, buf->len/2+1 ) == 0 );
+                TEST_ASSERT( mbedtls_mpi_cmp_mpi( &P.Y, &Y ) == 0 );
+            }
         }
     }
 
@@ -703,8 +716,10 @@ void ecp_tls_write_read_point( int id )
     memset( buf, 0x00, sizeof( buf ) ); vbuf = buf;
     TEST_ASSERT( mbedtls_ecp_tls_write_point( &grp, &grp.G,
                     MBEDTLS_ECP_PF_COMPRESSED, &olen, buf, 256 ) == 0 );
-    TEST_ASSERT( mbedtls_ecp_tls_read_point( &grp, &pt, &vbuf, olen )
-                 == MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
+    TEST_ASSERT( mbedtls_ecp_tls_read_point( &grp, &pt, &vbuf, olen ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &grp.G.X, &pt.X ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &grp.G.Y, &pt.Y ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &grp.G.Z, &pt.Z ) == 0 );
     TEST_ASSERT( vbuf == buf + olen );
 
     memset( buf, 0x00, sizeof( buf ) ); vbuf = buf;

@@ -1,5 +1,0 @@
-Bugfix
-    * Fix a bug whereby the the list of signature algorithms sent as part of the
-      TLS 1.2 server certificate request would get corrupted, meaning the first
-      algorithm would not get sent and an entry consisting of two random bytes
-      would be sent instead. Found by Serban Bejan and Dudek Sebastian.

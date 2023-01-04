@@ -220,34 +220,23 @@ class FileWrapper(io.FileIO):
 
         :param file_name: File path to open.
         """
-        super(FileWrapper, self).__init__(file_name, 'r')
+        super().__init__(file_name, 'r')
         self._line_no = 0
 
-    def next(self):
+    def __next__(self):
         """
-        Python 2 iterator method. This method overrides base class's
-        next method and extends the next method to count the line
-        numbers as each line is read.
-
-        It works for both Python 2 and Python 3 by checking iterator
-        method name in the base iterator object.
+        This method overrides base class's __next__ method and extends it
+        method to count the line numbers as each line is read.
 
         :return: Line read from file.
         """
-        parent = super(FileWrapper, self)
-        if hasattr(parent, '__next__'):
-            line = parent.__next__()  # Python 3
-        else:
-            line = parent.next()  # Python 2 # pylint: disable=no-member
+        line = super().__next__()
         if line is not None:
             self._line_no += 1
             # Convert byte array to string with correct encoding and
             # strip any whitespaces added in the decoding process.
             return line.decode(sys.getdefaultencoding()).rstrip() + '\n'
         return None
-
-    # Python 3 iterator method
-    __next__ = next
 
     def get_line_no(self):
         """
@@ -530,6 +519,50 @@ def generate_function_code(name, code, local_vars, args_dispatch,
         gen_dependencies(dependencies)
     return preprocessor_check_start + code + preprocessor_check_end
 
+COMMENT_START_REGEX = re.compile(r'/[*/]')
+
+def skip_comments(line, stream):
+    """Remove comments in line.
+
+    If the line contains an unfinished comment, read more lines from stream
+    until the line that contains the comment.
+
+    :return: The original line with inner comments replaced by spaces.
+             Trailing comments and whitespace may be removed completely.
+    """
+    pos = 0
+    while True:
+        opening = COMMENT_START_REGEX.search(line, pos)
+        if not opening:
+            break
+        if line[opening.start(0) + 1] == '/': # //...
+            continuation = line
+            # Count the number of line breaks, to keep line numbers aligned
+            # in the output.
+            line_count = 1
+            while continuation.endswith('\\\n'):
+                # This errors out if the file ends with an unfinished line
+                # comment. That's acceptable to not complicate the code further.
+                continuation = next(stream)
+                line_count += 1
+            return line[:opening.start(0)].rstrip() + '\n' * line_count
+        # Parsing /*...*/, looking for the end
+        closing = line.find('*/', opening.end(0))
+        while closing == -1:
+            # This errors out if the file ends with an unfinished block
+            # comment. That's acceptable to not complicate the code further.
+            line += next(stream)
+            closing = line.find('*/', opening.end(0))
+        pos = closing + 2
+        # Replace inner comment by spaces. There needs to be at least one space
+        # for things like 'int/*ihatespaces*/foo'. Go further and preserve the
+        # width of the comment and line breaks, this way positions in error
+        # messages remain correct.
+        line = (line[:opening.start(0)] +
+                re.sub(r'.', r' ', line[opening.start(0):pos]) +
+                line[pos:])
+    # Strip whitespace at the end of lines (it's irrelevant to error messages).
+    return re.sub(r' +(\n|\Z)', r'\1', line)
 
 def parse_function_code(funcs_f, dependencies, suite_dependencies):
     """
@@ -549,6 +582,7 @@ def parse_function_code(funcs_f, dependencies, suite_dependencies):
         # across multiple lines. Here we try to find the start of
         # arguments list, then remove '\n's and apply the regex to
         # detect function start.
+        line = skip_comments(line, funcs_f)
         up_to_arg_list_start = code + line[:line.find('(') + 1]
         match = re.match(TEST_FUNCTION_VALIDATION_REGEX,
                          up_to_arg_list_start.replace('\n', ' '), re.I)
@@ -557,7 +591,7 @@ def parse_function_code(funcs_f, dependencies, suite_dependencies):
             name = match.group('func_name')
             if not re.match(FUNCTION_ARG_LIST_END_REGEX, line):
                 for lin in funcs_f:
-                    line += lin
+                    line += skip_comments(lin, funcs_f)
                     if re.search(FUNCTION_ARG_LIST_END_REGEX, line):
                         break
             args, local_vars, args_dispatch = parse_function_arguments(

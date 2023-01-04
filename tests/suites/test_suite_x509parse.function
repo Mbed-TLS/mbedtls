@@ -579,6 +579,8 @@ void x509_verify_restart( char *crt_file, char *ca_file,
     mbedtls_x509_crt_init( &crt );
     mbedtls_x509_crt_init( &ca );
 
+    USE_PSA_INIT( );
+
     TEST_ASSERT( mbedtls_x509_crt_parse_file( &crt, crt_file ) == 0 );
     TEST_ASSERT( mbedtls_x509_crt_parse_file( &ca, ca_file ) == 0 );
 
@@ -607,6 +609,7 @@ exit:
     mbedtls_x509_crt_restart_free( &rs_ctx );
     mbedtls_x509_crt_free( &crt );
     mbedtls_x509_crt_free( &ca );
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 
@@ -662,8 +665,8 @@ void x509_verify( char *crt_file, char *ca_file, char *crl_file,
 
     res = mbedtls_x509_crt_verify_with_profile( &crt, &ca, &crl, profile, cn_name, &flags, f_vrfy, NULL );
 
-    TEST_ASSERT( res == ( result ) );
-    TEST_ASSERT( flags == (uint32_t)( flags_result ) );
+    TEST_EQUAL( res, result );
+    TEST_EQUAL( flags, (uint32_t) flags_result );
 
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
     /* CRLs aren't supported with CA callbacks, so skip the CA callback

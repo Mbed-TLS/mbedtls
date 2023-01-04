@@ -3378,34 +3378,6 @@ TLS 1.3: SRV: Session serialization, load buffer size
 depends_on:MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_SSL_SRV_C
 ssl_serialize_session_load_buf_size:0:"":MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_VERSION_TLS1_3
 
-Constant-flow HMAC: MD5
-depends_on:MBEDTLS_HAS_ALG_MD5_VIA_MD_OR_PSA_BASED_ON_USE_PSA
-ssl_cf_hmac:MBEDTLS_MD_MD5
-
-Constant-flow HMAC: SHA1
-depends_on:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA
-ssl_cf_hmac:MBEDTLS_MD_SHA1
-
-Constant-flow HMAC: SHA256
-depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA
-ssl_cf_hmac:MBEDTLS_MD_SHA256
-
-Constant-flow HMAC: SHA384
-depends_on:MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA
-ssl_cf_hmac:MBEDTLS_MD_SHA384
-
-# these are the numbers we'd get with an empty plaintext and truncated HMAC
-Constant-flow memcpy from offset: small
-ssl_cf_memcpy_offset:0:5:10
-
-# we could get this with 255-bytes plaintext and untruncated SHA-256
-Constant-flow memcpy from offset: medium
-ssl_cf_memcpy_offset:0:255:32
-
-# we could get this with 255-bytes plaintext and untruncated SHA-384
-Constant-flow memcpy from offset: large
-ssl_cf_memcpy_offset:100:339:48
-
 Test configuration of groups for DHE through mbedtls_ssl_conf_curves()
 conf_curve:
 
@@ -3567,3 +3539,11 @@ cookie_parsing:"16fefd0000000000000000002F010000de000000000000011efefd7b72727272
 
 TLS 1.3 srv Certificate msg - wrong vector lengths
 tls13_server_certificate_msg_invalid_vector_len
+
+EC-JPAKE set password
+depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
+ssl_ecjpake_set_password:0
+
+EC-JPAKE set opaque password
+depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED:MBEDTLS_USE_PSA_CRYPTO
+ssl_ecjpake_set_password:1

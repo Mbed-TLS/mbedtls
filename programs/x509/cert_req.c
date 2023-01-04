@@ -355,7 +355,7 @@ int main( int argc, char *argv[] )
     if( ( ret = write_certificate_request( &req, opt.output_file,
                                            mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  !  write_certifcate_request %d", ret );
+        mbedtls_printf( " failed\n  !  write_certificate_request %d", ret );
         goto exit;
     }
 

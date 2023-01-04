@@ -1,0 +1,11 @@
+# these are the numbers we'd get with an empty plaintext and truncated HMAC
+Constant-flow memcpy from offset: small
+ssl_cf_memcpy_offset:0:5:10
+
+# we could get this with 255-bytes plaintext and untruncated SHA-256
+Constant-flow memcpy from offset: medium
+ssl_cf_memcpy_offset:0:255:32
+
+# we could get this with 255-bytes plaintext and untruncated SHA-384
+Constant-flow memcpy from offset: large
+ssl_cf_memcpy_offset:100:339:48

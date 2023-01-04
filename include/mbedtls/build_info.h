@@ -37,20 +37,26 @@
  * Major, Minor, Patchlevel
  */
 #define MBEDTLS_VERSION_MAJOR  3
-#define MBEDTLS_VERSION_MINOR  2
-#define MBEDTLS_VERSION_PATCH  1
+#define MBEDTLS_VERSION_MINOR  3
+#define MBEDTLS_VERSION_PATCH  0
 
 /**
  * The single version number has the following structure:
  *    MMNNPP00
  *    Major version | Minor version | Patch version
  */
-#define MBEDTLS_VERSION_NUMBER         0x03020100
-#define MBEDTLS_VERSION_STRING         "3.2.1"
-#define MBEDTLS_VERSION_STRING_FULL    "mbed TLS 3.2.1"
+#define MBEDTLS_VERSION_NUMBER         0x03030000
+#define MBEDTLS_VERSION_STRING         "3.3.0"
+#define MBEDTLS_VERSION_STRING_FULL    "mbed TLS 3.3.0"
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
 #define _CRT_SECURE_NO_DEPRECATE 1
+#endif
+
+/* Define `inline` on some non-C99-compliant compilers. */
+#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
+    !defined(inline) && !defined(__cplusplus)
+#define inline __inline
 #endif
 
 #if !defined(MBEDTLS_CONFIG_FILE)

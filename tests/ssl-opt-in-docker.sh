@@ -6,6 +6,10 @@
 # -------
 # This runs ssl-opt.sh in a Docker container.
 #
+# WARNING: the Dockerfile used by this script is no longer maintained! See
+# https://github.com/Mbed-TLS/mbedtls-test/blob/master/README.md#quick-start
+# for the set of Docker images we use on the CI.
+#
 # Notes for users
 # ---------------
 # If OPENSSL_CMD, GNUTLS_CLI, or GNUTLS_SERV are specified, the path must

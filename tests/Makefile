@@ -94,6 +94,8 @@ $(GENERATED_BIGNUM_DATA_FILES): generated_bignum_test_data
 generated_bignum_test_data: scripts/generate_bignum_tests.py
 generated_bignum_test_data: ../scripts/mbedtls_dev/bignum_common.py
 generated_bignum_test_data: ../scripts/mbedtls_dev/bignum_core.py
+generated_bignum_test_data: ../scripts/mbedtls_dev/bignum_mod_raw.py
+generated_bignum_test_data: ../scripts/mbedtls_dev/bignum_mod.py
 generated_bignum_test_data: ../scripts/mbedtls_dev/test_case.py
 generated_bignum_test_data: ../scripts/mbedtls_dev/test_data_generation.py
 generated_bignum_test_data:
@@ -163,6 +165,7 @@ src/drivers/%.o : src/drivers/%.c
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
 C_FILES := $(addsuffix .c,$(APPS))
+c: $(C_FILES)
 
 # Wildcard target for test code generation:
 # A .c file is generated for each .data file in the suites/ directory. Each .c

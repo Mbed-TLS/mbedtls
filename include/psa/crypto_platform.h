@@ -45,11 +45,6 @@
 /* PSA requires several types which C99 provides in stdint.h. */
 #include <stdint.h>
 
-#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
-    !defined(inline) && !defined(__cplusplus)
-#define inline __inline
-#endif
-
 #if defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 
 /* Building for the PSA Crypto service on a PSA platform, a key owner is a PSA

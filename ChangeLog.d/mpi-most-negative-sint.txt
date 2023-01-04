@@ -1,4 +1,0 @@
-Bugfix
-   * Fix undefined behavior (typically harmless in practice) when some bignum
-     functions receive the most negative value of mbedtls_mpi_sint. Credit
-     to OSS-Fuzz. Fixes #6597.

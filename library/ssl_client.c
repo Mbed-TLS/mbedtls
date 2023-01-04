@@ -963,7 +963,9 @@ int mbedtls_ssl_write_client_hello(mbedtls_ssl_context *ssl)
                                                               buf_len,
                                                               msg_len));
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
         mbedtls_ssl_tls13_finalize_write_client_hello(ssl);
+#endif
 
     }
 

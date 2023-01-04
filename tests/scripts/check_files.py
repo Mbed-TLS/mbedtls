@@ -36,7 +36,7 @@ except ImportError:
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import build_tree
-
+from detect_unicode_chars import load_and_check_file as unicode_check_f
 
 class FileIssueTracker:
     """Base class for file-wide issue tracking.
@@ -179,6 +179,66 @@ class PermissionIssueTracker(FileIssueTracker):
         if is_executable != should_be_executable:
             self.files_with_issues[filepath] = None
 
+class UnicodeIssueTracker(FileIssueTracker):
+    """Track files with bad permissions.
+
+    Files that are not executable scripts must not be executable."""
+
+    heading = "Unicode characters in code:"
+
+    suffix_exemptions = frozenset({".py",
+                                   ".md",
+                                   ".data",
+                                   ".der",
+                                   ".crt",
+                                   ".cfg",
+                                   ".vcxproj",
+                                   ".sln",
+                                   "ChangeLog"})
+    issues_count = 0
+    flagged_chars = set() # type: ignore
+
+    def check_file_for_issue(self, filepath):
+
+        unicode_occurences = []
+        self.issues_count, checked = unicode_check_f(ordinal_threshold=127,
+                                                     unicode_mode=False,
+                                                     exclusions_list=[],
+                                                     results=unicode_occurences,
+                                                     unique_flagged_chars=self.flagged_chars,
+                                                     total_occurrences_found=self.issues_count,
+                                                     input_file=filepath)
+        if self.issues_count and checked:
+            report = self.parse_unicode_issues(unicode_occurences)
+            if len(report) != 0:
+                self.files_with_issues[filepath] = report
+
+    @staticmethod
+    def parse_unicode_issues(results):
+        """ Parse the json output and exclude comments,
+            as unicode is allowed in documentation """
+
+        res = []
+        report_tpl = "Unicode Character: \"{}\" found at line {} and column {}"
+        for r in results:
+            for entry in r['detected_characters']:
+                for location in entry["locations"]:
+                    txt = location['line_text'].lstrip()
+                    # Look for c style single line comments
+                    _c = next((x for x in ["//", "/*"] if x in txt), False)
+                    if _c:
+                        if _c in txt and txt.index(_c) < location["column"]:
+                            continue
+
+                    # Catching multi-line comments without looking at previous lines by asssuming
+                    # that comment continuation lines start with '* ' and are not terminated by `;`.
+                    # That may happen in MACROS but they should not have unicode characters.
+                    if txt[:2] == "* " and txt[-1] != ";":
+                        continue
+                    res.append(report_tpl.format(entry["character"],
+                                                 location["line"],
+                                                 location["column"]))
+        return res
 
 class ShebangIssueTracker(FileIssueTracker):
     """Track files with a bad, missing or extraneous shebang line.
@@ -355,6 +415,7 @@ class IntegrityChecker:
             TrailingWhitespaceIssueTracker(),
             TabIssueTracker(),
             MergeArtifactIssueTracker(),
+            UnicodeIssueTracker(),
         ]
 
     def setup_logger(self, log_file, level=logging.INFO):

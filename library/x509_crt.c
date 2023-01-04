@@ -2514,6 +2514,23 @@ static int x509_crt_check_parent(const mbedtls_x509_crt *child,
         return -1;
     }
 
+    /* RFC5280 Section 4.2.1.2: In conforming CA certificates, the value of the subject key identifier
+       must be the value placed in the key identifier field of the authority key identifier extension
+       of certificates issued by the subject of this certificate.
+       RFC 5280 section 4.2.1.2: Applications are not required to verify that key identifiers match
+       when performing certification path validation.
+
+       Verify key identifiers only if AuthorityKeyIdentifier extension is available and critical.
+       This is done to keep backward compatibility with certificates that don't have
+       this extension. */
+    if (child->authority_key_id.keyIdentifier.len != 0 && /* is extension available? */
+        child->authority_key_id.keyIdentifier.p[0] == 1) { /* is critical extension? */
+        if (x509_string_cmp(&child->authority_key_id.keyIdentifier,
+                            &parent->subject_key_id) != 0) {
+            return -1;
+        }
+    }
+
     /* Parent must have the basicConstraints CA bit set as a general rule */
     need_ca_bit = 1;
 

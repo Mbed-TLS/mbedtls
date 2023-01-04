@@ -80,13 +80,12 @@
 
 #endif /* bits in mbedtls_mpi_uint */
 
+/* *INDENT-OFF* */
 #if defined(MBEDTLS_HAVE_ASM)
 
-/* *INDENT-OFF* */
 #ifndef asm
 #define asm __asm
 #endif
-/* *INDENT-ON* */
 
 /* armcc5 --gnu defines __GNUC__ but doesn't support GNU's extended asm */
 #if defined(__GNUC__) && \
@@ -1006,6 +1005,7 @@
 #endif /* MSVC */
 
 #endif /* MBEDTLS_HAVE_ASM */
+/* *INDENT-ON* */
 
 #if !defined(MULADDC_X1_CORE)
 #if defined(MBEDTLS_HAVE_UDBL)

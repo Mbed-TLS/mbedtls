@@ -940,13 +940,13 @@ component_test_full_cmake_gcc_asan () {
     msg "test: context-info.sh (full config, ASan build)" # ~ 15 sec
     tests/context-info.sh
 
-    # Verify that TLS and X509 libraries have no dipendency from
-    # "mbedtls_ecp_curve" symbols.
-    msg "test: verify that TLS and X509 have no dependency from mbedtls_ecp_curve symbols"
+    msg "test: check direct ECP dependencies in TLS and X.509"
     docs/architecture/psa-migration/syms.sh full
 
+    # TODO: replace "mbedtls_ecp_curve" with "mbedtls_ecp" also for
+    # "full-tls-external" once Issue6839 is completed
     not grep mbedtls_ecp_curve full-tls-external
-    not grep mbedtls_ecp_curve full-x509-external
+    not grep mbedtls_ecp full-x509-external
 
     rm  full-tls-external \
         full-tls-modules \

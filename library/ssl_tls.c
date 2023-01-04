@@ -5477,6 +5477,12 @@ int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_i
 }
 #endif /* MBEDTLS_ECP_C */
 
+#if defined( MBEDTLS_DEBUG_C )
+#define EC_NAME(_name_)     _name_
+#else
+#define EC_NAME(_name_)     NULL
+#endif
+
 static const struct {
     uint16_t tls_id;
     mbedtls_ecp_group_id ecp_group_id;
@@ -5486,43 +5492,43 @@ static const struct {
 } tls_id_match_table[] =
 {
 #if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_521)
-    { 25, MBEDTLS_ECP_DP_SECP521R1, PSA_ECC_FAMILY_SECP_R1, 521, "secp521r1" },
+    { 25, MBEDTLS_ECP_DP_SECP521R1, PSA_ECC_FAMILY_SECP_R1, 521, EC_NAME( "secp521r1" ) },
 #endif
 #if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512)
-    { 28, MBEDTLS_ECP_DP_BP512R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1, 512, "brainpoolP512r1" },
+    { 28, MBEDTLS_ECP_DP_BP512R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1, 512, EC_NAME( "brainpoolP512r1" ) },
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
-    { 24, MBEDTLS_ECP_DP_SECP384R1, PSA_ECC_FAMILY_SECP_R1, 384, "secp384r1" },
+#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_384)
+    { 24, MBEDTLS_ECP_DP_SECP384R1, PSA_ECC_FAMILY_SECP_R1, 384, EC_NAME( "secp384r1" ) },
 #endif
-#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_384)
-    { 27, MBEDTLS_ECP_DP_BP384R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1, 384, "brainpoolP384r1" },
+#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
+    { 27, MBEDTLS_ECP_DP_BP384R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1, 384, EC_NAME( "brainpoolP384r1" ) },
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
-    { 23, MBEDTLS_ECP_DP_SECP256R1, PSA_ECC_FAMILY_SECP_R1, 256, "secp256r1" },
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_256)
+    { 23, MBEDTLS_ECP_DP_SECP256R1, PSA_ECC_FAMILY_SECP_R1, 256, EC_NAME( "secp256r1" ) },
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED) || defined(PSA_WANT_ECC_SECP_K1_256)
-    { 22, MBEDTLS_ECP_DP_SECP256K1, PSA_ECC_FAMILY_SECP_K1, 256, "secp256k1" },
+    { 22, MBEDTLS_ECP_DP_SECP256K1, PSA_ECC_FAMILY_SECP_K1, 256, EC_NAME( "secp256k1" ) },
 #endif
-#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_256)
-    { 26, MBEDTLS_ECP_DP_BP256R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1, 256, "brainpoolP256r1" },
+#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED) || defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
+    { 26, MBEDTLS_ECP_DP_BP256R1, PSA_ECC_FAMILY_BRAINPOOL_P_R1, 256, EC_NAME( "brainpoolP256r1" ) },
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_224)
-    { 21, MBEDTLS_ECP_DP_SECP224R1, PSA_ECC_FAMILY_SECP_R1, 224, "secp224r1" },
+    { 21, MBEDTLS_ECP_DP_SECP224R1, PSA_ECC_FAMILY_SECP_R1, 224, EC_NAME( "secp224r1" ) },
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED) || defined(PSA_WANT_ECC_SECP_K1_224)
-    { 20, MBEDTLS_ECP_DP_SECP224K1, PSA_ECC_FAMILY_SECP_K1, 224, "secp224k1" },
+    { 20, MBEDTLS_ECP_DP_SECP224K1, PSA_ECC_FAMILY_SECP_K1, 224, EC_NAME( "secp224k1" ) },
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) || defined(PSA_WANT_ECC_SECP_R1_192)
-    { 19, MBEDTLS_ECP_DP_SECP192R1, PSA_ECC_FAMILY_SECP_R1, 192, "secp192r1" },
+    { 19, MBEDTLS_ECP_DP_SECP192R1, PSA_ECC_FAMILY_SECP_R1, 192, EC_NAME( "secp192r1" ) },
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED) || defined(PSA_WANT_ECC_SECP_K1_192)
-    { 18, MBEDTLS_ECP_DP_SECP192K1, PSA_ECC_FAMILY_SECP_K1, 192, "secp192k1" },
+    { 18, MBEDTLS_ECP_DP_SECP192K1, PSA_ECC_FAMILY_SECP_K1, 192, EC_NAME( "secp192k1" ) },
 #endif
 #if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) || defined(PSA_WANT_ECC_MONTGOMERY_255)
-    { 29, MBEDTLS_ECP_DP_CURVE25519, PSA_ECC_FAMILY_MONTGOMERY, 256, "x25519" },
+    { 29, MBEDTLS_ECP_DP_CURVE25519, PSA_ECC_FAMILY_MONTGOMERY, 255, EC_NAME( "x25519" ) },
 #endif
 #if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED) || defined(PSA_WANT_ECC_MONTGOMERY_448)
-    { 30, MBEDTLS_ECP_DP_CURVE448, PSA_ECC_FAMILY_MONTGOMERY, 448, "x448" },
+    { 30, MBEDTLS_ECP_DP_CURVE448, PSA_ECC_FAMILY_MONTGOMERY, 448, EC_NAME( "x448" ) },
 #endif
     { 0, MBEDTLS_ECP_DP_NONE, 0, 0, NULL },
 };
@@ -5569,6 +5575,7 @@ uint16_t mbedtls_ssl_get_tls_id_from_ecp_group_id( mbedtls_ecp_group_id grp_id )
     return 0;
 }
 
+#if defined(MBEDTLS_DEBUG_C)
 const char* mbedtls_ssl_get_curve_name_from_tls_id( uint16_t tls_id )
 {
     for( int i = 0; tls_id_match_table[i].tls_id != 0; i++ )
@@ -5579,6 +5586,7 @@ const char* mbedtls_ssl_get_curve_name_from_tls_id( uint16_t tls_id )
 
     return NULL;
 }
+#endif
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,

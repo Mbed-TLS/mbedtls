@@ -1614,6 +1614,7 @@ mbedtls_ecp_group_id mbedtls_ssl_get_ecp_group_id_from_tls_id( uint16_t tls_id )
  */
 uint16_t mbedtls_ssl_get_tls_id_from_ecp_group_id( mbedtls_ecp_group_id grp_id );
 
+#if defined(MBEDTLS_DEBUG_C)
 /**
  * \brief Return EC's name for the specified TLS ID.
  *
@@ -1622,6 +1623,7 @@ uint16_t mbedtls_ssl_get_tls_id_from_ecp_group_id( mbedtls_ecp_group_id grp_id )
  *                  ID is not suppoted, a NULL pointer is returned instead.
  */
 const char* mbedtls_ssl_get_curve_name_from_tls_id( uint16_t tls_id );
+#endif
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
 static inline mbedtls_ssl_srtp_profile mbedtls_ssl_check_srtp_profile_value

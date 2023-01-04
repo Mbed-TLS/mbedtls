@@ -1093,6 +1093,7 @@ static int ssl_tls13_parse_server_pre_shared_key_ext(mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_CHK_BUF_READ_PTR(buf, end, 2);
     selected_identity = MBEDTLS_GET_UINT16_BE(buf, 0);
+    ssl->handshake->selected_identity = (uint16_t) selected_identity;
 
     MBEDTLS_SSL_DEBUG_MSG(3, ("selected_identity = %d", selected_identity));
 
@@ -2095,6 +2096,18 @@ static int ssl_tls13_parse_encrypted_extensions(mbedtls_ssl_context *ssl,
                     MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
                                                  MBEDTLS_ERR_SSL_DECODE_ERROR);
                     return MBEDTLS_ERR_SSL_DECODE_ERROR;
+                }
+                if (ssl->handshake->selected_identity != 0) {
+                    /* RFC8446 4.2.11
+                     * If the server supplies an "early_data" extension, the
+                     * client MUST verify that the server's selected_identity
+                     * is 0. If any other value is returned, the client MUST
+                     * abort the handshake with an "illegal_parameter" alert.
+                     */
+                    MBEDTLS_SSL_PEND_FATAL_ALERT(
+                        MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                        MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
+                    return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
                 }
 
                 break;

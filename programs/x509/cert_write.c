@@ -514,12 +514,14 @@ usage:
     mbedtls_printf("  . Reading serial number...");
     fflush(stdout);
 
+#if defined(MBEDTLS_BIGNUM_C)
     if ((ret = mbedtls_mpi_read_string(&serial, 10, opt.serial)) != 0) {
         mbedtls_strerror(ret, buf, sizeof(buf));
         mbedtls_printf(" failed\n  !  mbedtls_mpi_read_string "
                        "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf);
         goto exit;
     }
+#endif
 
     mbedtls_printf(" ok\n");
 
@@ -661,6 +663,7 @@ usage:
     mbedtls_x509write_crt_set_version(&crt, opt.version);
     mbedtls_x509write_crt_set_md_alg(&crt, opt.md);
 
+#if defined(MBEDTLS_BIGNUM_C)
     ret = mbedtls_x509write_crt_set_serial(&crt, &serial);
     if (ret != 0) {
         mbedtls_strerror(ret, buf, sizeof(buf));
@@ -668,6 +671,16 @@ usage:
                        "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf);
         goto exit;
     }
+#else
+    ret = mbedtls_x509write_crt_set_serial_new(&crt, opt.serial,
+                                               strlen(opt.serial));
+    if (ret != 0) {
+        mbedtls_strerror(ret, buf, sizeof(buf));
+        mbedtls_printf(" failed\n  !  mbedtls_x509write_crt_set_serial_new "
+                       "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf);
+        goto exit;
+    }
+#endif
 
     ret = mbedtls_x509write_crt_set_validity(&crt, opt.not_before, opt.not_after);
     if (ret != 0) {

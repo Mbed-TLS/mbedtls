@@ -203,7 +203,7 @@ mbedtls_x509_crt_profile;
 #define MBEDTLS_X509_CRT_VERSION_2              1
 #define MBEDTLS_X509_CRT_VERSION_3              2
 
-#define MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN 32
+#define MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN 20
 #define MBEDTLS_X509_RFC5280_UTC_TIME_LEN   15
 
 #if !defined( MBEDTLS_X509_MAX_FILE_PATH_LEN )
@@ -284,7 +284,8 @@ mbedtls_x509_crt_profile;
 typedef struct mbedtls_x509write_cert
 {
     int MBEDTLS_PRIVATE(version);
-    mbedtls_mpi MBEDTLS_PRIVATE(serial);
+    unsigned char MBEDTLS_PRIVATE(serial)[MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN];
+    size_t MBEDTLS_PRIVATE(serial_len);
     mbedtls_pk_context *MBEDTLS_PRIVATE(subject_key);
     mbedtls_pk_context *MBEDTLS_PRIVATE(issuer_key);
     mbedtls_asn1_named_data *MBEDTLS_PRIVATE(subject);
@@ -995,8 +996,18 @@ void mbedtls_x509write_crt_init( mbedtls_x509write_cert *ctx );
  */
 void mbedtls_x509write_crt_set_version( mbedtls_x509write_cert *ctx, int version );
 
+#if defined(MBEDTLS_BIGNUM_C)
 /**
  * \brief           Set the serial number for a Certificate.
+ *
+ * \deprecated      This function is deprecated and will be removed in a
+ *                  future version of the library. Please use
+ *                  mbedtls_x509write_crt_set_serial_new() instead.
+ *
+ * \note            Even though the MBEDTLS_BIGNUM_C guard looks redundant since
+ *                  X509 depends on PK and PK depends on BIGNUM, this emphasizes
+ *                  a direct dependency between X509 and BIGNUM which is going
+ *                  to be deprecated in the future.
  *
  * \param ctx       CRT context to use
  * \param serial    serial number to set
@@ -1004,6 +1015,23 @@ void mbedtls_x509write_crt_set_version( mbedtls_x509write_cert *ctx, int version
  * \return          0 if successful
  */
 int mbedtls_x509write_crt_set_serial( mbedtls_x509write_cert *ctx, const mbedtls_mpi *serial );
+#endif
+
+/**
+ * \brief           Set the serial number for a Certificate.
+ *
+ * \param ctx               CRT context to use
+ * \param serial_buff       Input buffer containing the serial number in big
+ *                          endian format
+ * \param serial_buff_len   Length of the previous input buffer buffer
+ *
+ * \return          0 if successful, or
+ *                  MBEDTLS_ERR_X509_BAD_INPUT_DATA if the provided input buffer:
+ *                  - is too big (longer than MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN)
+ *                  - contains invalid chars
+ */
+int mbedtls_x509write_crt_set_serial_new( mbedtls_x509write_cert *ctx,
+                                char* serial_buff, size_t serial_buff_len );
 
 /**
  * \brief           Set the validity period for a Certificate

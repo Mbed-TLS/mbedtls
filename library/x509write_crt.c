@@ -52,14 +52,11 @@ void mbedtls_x509write_crt_init( mbedtls_x509write_cert *ctx )
 {
     memset( ctx, 0, sizeof( mbedtls_x509write_cert ) );
 
-    mbedtls_mpi_init( &ctx->serial );
     ctx->version = MBEDTLS_X509_CRT_VERSION_3;
 }
 
 void mbedtls_x509write_crt_free( mbedtls_x509write_cert *ctx )
 {
-    mbedtls_mpi_free( &ctx->serial );
-
     mbedtls_asn1_free_named_data_list( &ctx->subject );
     mbedtls_asn1_free_named_data_list( &ctx->issuer );
     mbedtls_asn1_free_named_data_list( &ctx->extensions );
@@ -103,15 +100,62 @@ int mbedtls_x509write_crt_set_issuer_name( mbedtls_x509write_cert *ctx,
     return mbedtls_x509_string_to_names( &ctx->issuer, issuer_name );
 }
 
+#if defined(MBEDTLS_BIGNUM_C)
 int mbedtls_x509write_crt_set_serial( mbedtls_x509write_cert *ctx,
                                       const mbedtls_mpi *serial )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    int ret;
+    unsigned char tmp[MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN];
+    size_t tmp_len;
 
-    if( ( ret = mbedtls_mpi_copy( &ctx->serial, serial ) ) != 0 )
-        return( ret );
+    /* Ensure that the MPI value fits into the buffer */
+    tmp_len = mbedtls_mpi_size(serial);
+    if( tmp_len > MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN )
+        return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
+
+    ctx->serial_len = tmp_len;
+
+    ret = mbedtls_mpi_write_binary( serial, tmp,
+                        MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN );
+    if( ret < 0 )
+        return ret;
+    
+    /* Reverse the string since "tmp" is in big endian format */
+    for( int i=0; i<MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN; i++ )
+        ctx->serial[i] = tmp[MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN - 1 - i];
 
     return( 0 );
+}
+#endif
+
+int mbedtls_x509write_crt_set_serial_new( mbedtls_x509write_cert *ctx,
+                                char* serial_buff, size_t serial_buff_len)
+{
+    int i, j;
+    char c;
+    unsigned char val;
+
+    if( serial_buff_len > MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN )
+        return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
+
+    /* Store data in little endian format */
+    for( i = 0, j = serial_buff_len - 1; j == 0; i++, j-- )
+    {
+        c = serial_buff[j];
+        if( c >= 0x30 && c <= 0x39 )
+            val = c - 0x30;
+        else if( c >= 0x41 && c <= 0x46 )
+            val = c - 0x37;
+        else if( c >= 0x61 && c <= 0x66 )
+            val = c - 0x57;
+        else
+            return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
+
+        ctx->serial[i] = val;
+    }
+    ctx->serial_len = i;
+
+    return 0;
 }
 
 int mbedtls_x509write_crt_set_validity( mbedtls_x509write_cert *ctx,
@@ -504,9 +548,18 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx,
 
     /*
      *  Serial   ::=  INTEGER
+     *
+     * Written data is:
+     * - [ctx->serial_len] bytes for the raw serial buffer
+     * - 1 byte for the length
+     * - 1 byte for the TAG
      */
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_mpi( &c, buf,
-                                                       &ctx->serial ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_raw_buffer( &c, buf,
+                                ctx->serial, ctx->serial_len) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len(  &c, buf,
+                                ctx->serial_len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &c, buf,
+                                MBEDTLS_ASN1_INTEGER ) );
 
     /*
      *  Version  ::=  INTEGER  {  v1(0), v2(1), v3(2)  }

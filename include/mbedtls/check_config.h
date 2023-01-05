@@ -1026,7 +1026,7 @@
 #endif
 
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK) && \
-            ( !defined(MBEDTLS_X509_CSR_WRITE_C) )
+            ( !defined(MBEDTLS_X509_CRT_PARSE_C) )
 #error "MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK defined, but not all prerequisites"
 #endif
 

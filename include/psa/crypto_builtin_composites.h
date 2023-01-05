@@ -36,6 +36,11 @@
 
 #include <psa/crypto_driver_common.h>
 
+#include "mbedtls/cmac.h"
+#include "mbedtls/gcm.h"
+#include "mbedtls/ccm.h"
+#include "mbedtls/chachapoly.h"
+
 /*
  * MAC multi-part operation definitions.
  */
@@ -56,8 +61,6 @@ typedef struct {
 
 #define MBEDTLS_PSA_HMAC_OPERATION_INIT { 0, PSA_HASH_OPERATION_INIT, { 0 } }
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */
-
-#include "mbedtls/cmac.h"
 
 typedef struct {
     psa_algorithm_t MBEDTLS_PRIVATE(alg);

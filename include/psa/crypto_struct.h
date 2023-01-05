@@ -70,11 +70,6 @@ extern "C" {
  * in each of its header files. */
 #include "mbedtls/build_info.h"
 
-#include "mbedtls/cmac.h"
-#include "mbedtls/gcm.h"
-#include "mbedtls/ccm.h"
-#include "mbedtls/chachapoly.h"
-
 /* Include the context definition for the compiled-in drivers for the primitive
  * algorithms. */
 #include "psa/crypto_driver_contexts_primitives.h"

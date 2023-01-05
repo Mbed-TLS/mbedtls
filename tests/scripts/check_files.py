@@ -122,6 +122,7 @@ BINARY_FILE_PATH_RE_LIST = [
     r'tests/data_files/.*\.req\.[^/]+\Z',
     r'tests/data_files/.*malformed[^/]+\Z',
     r'tests/data_files/format_pkcs12\.fmt\Z',
+    r'tests/data_files/.*\.bin\Z',
 ]
 BINARY_FILE_PATH_RE = re.compile('|'.join(BINARY_FILE_PATH_RE_LIST))
 

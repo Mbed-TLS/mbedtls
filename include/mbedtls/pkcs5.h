@@ -63,10 +63,10 @@ extern "C" {
  *
  * \returns        0 on success, or a MBEDTLS_ERR_XXX code if verification fails.
  */
-int mbedtls_pkcs5_pbes2( const mbedtls_asn1_buf *pbe_params, int mode,
-                 const unsigned char *pwd,  size_t pwdlen,
-                 const unsigned char *data, size_t datalen,
-                 unsigned char *output );
+int mbedtls_pkcs5_pbes2(const mbedtls_asn1_buf *pbe_params, int mode,
+                        const unsigned char *pwd,  size_t pwdlen,
+                        const unsigned char *data, size_t datalen,
+                        unsigned char *output);
 
 #endif /* MBEDTLS_ASN1_PARSE_C */
 
@@ -84,11 +84,11 @@ int mbedtls_pkcs5_pbes2( const mbedtls_asn1_buf *pbe_params, int mode,
  *
  * \returns        0 on success, or a MBEDTLS_ERR_XXX code if verification fails.
  */
-int mbedtls_pkcs5_pbkdf2_hmac_ext( mbedtls_md_type_t md_type,
-                       const unsigned char *password,
-                       size_t plen, const unsigned char *salt, size_t slen,
-                       unsigned int iteration_count,
-                       uint32_t key_length, unsigned char *output );
+int mbedtls_pkcs5_pbkdf2_hmac_ext(mbedtls_md_type_t md_type,
+                                  const unsigned char *password,
+                                  size_t plen, const unsigned char *salt, size_t slen,
+                                  unsigned int iteration_count,
+                                  uint32_t key_length, unsigned char *output);
 
 #if defined(MBEDTLS_MD_C)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
@@ -108,11 +108,14 @@ int mbedtls_pkcs5_pbkdf2_hmac_ext( mbedtls_md_type_t md_type,
  *
  * \returns        0 on success, or a MBEDTLS_ERR_XXX code if verification fails.
  */
-int MBEDTLS_DEPRECATED mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx,
-                       const unsigned char *password,
-                       size_t plen, const unsigned char *salt, size_t slen,
-                       unsigned int iteration_count,
-                       uint32_t key_length, unsigned char *output );
+int MBEDTLS_DEPRECATED mbedtls_pkcs5_pbkdf2_hmac(mbedtls_md_context_t *ctx,
+                                                 const unsigned char *password,
+                                                 size_t plen,
+                                                 const unsigned char *salt,
+                                                 size_t slen,
+                                                 unsigned int iteration_count,
+                                                 uint32_t key_length,
+                                                 unsigned char *output);
 #endif /* !MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_MD_C */
 #if defined(MBEDTLS_SELF_TEST)
@@ -122,7 +125,7 @@ int MBEDTLS_DEPRECATED mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx,
  *
  * \return         0 if successful, or 1 if the test failed
  */
-int mbedtls_pkcs5_self_test( int verbose );
+int mbedtls_pkcs5_self_test(int verbose);
 
 #endif /* MBEDTLS_SELF_TEST */
 

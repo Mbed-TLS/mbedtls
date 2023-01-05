@@ -49,10 +49,10 @@
 
 /* If the build options we need are not enabled, compile a placeholder. */
 #if !defined(MBEDTLS_MD_C)
-int main( void )
+int main(void)
 {
-    printf( "MBEDTLS_MD_C not defined\r\n" );
-    return( 0 );
+    printf("MBEDTLS_MD_C not defined\r\n");
+    return 0;
 }
 #else
 
@@ -69,30 +69,31 @@ const unsigned char msg2_part2[] = { 0x06, 0x06 };
 const unsigned char key_bytes[32] = { 0 };
 
 /* Print the contents of a buffer in hex */
-void print_buf( const char *title, unsigned char *buf, size_t len )
+void print_buf(const char *title, unsigned char *buf, size_t len)
 {
-    printf( "%s:", title );
-    for( size_t i = 0; i < len; i++ )
-        printf( " %02x", buf[i] );
-    printf( "\n" );
+    printf("%s:", title);
+    for (size_t i = 0; i < len; i++) {
+        printf(" %02x", buf[i]);
+    }
+    printf("\n");
 }
 
 /* Run an Mbed TLS function and bail out if it fails.
  * A string description of the error code can be recovered with:
  * programs/util/strerror <value> */
-#define CHK( expr )                                             \
+#define CHK(expr)                                             \
     do                                                          \
     {                                                           \
-        ret = ( expr );                                         \
-        if( ret != 0 )                                          \
+        ret = (expr);                                         \
+        if (ret != 0)                                          \
         {                                                       \
-            printf( "Error %d at line %d: %s\n",                \
-                    ret,                                        \
-                    __LINE__,                                   \
-                    #expr );                                    \
+            printf("Error %d at line %d: %s\n",                \
+                   ret,                                        \
+                   __LINE__,                                   \
+                   #expr);                                    \
             goto exit;                                          \
         }                                                       \
-    } while( 0 )
+    } while (0)
 
 /*
  * This function demonstrates computation of the HMAC of two messages using
@@ -106,42 +107,42 @@ int hmac_demo(void)
 
     mbedtls_md_context_t ctx;
 
-    mbedtls_md_init( &ctx );
+    mbedtls_md_init(&ctx);
 
     /* prepare context and load key */
     // the last argument to setup is 1 to enable HMAC (not just hashing)
-    const mbedtls_md_info_t *info = mbedtls_md_info_from_type( alg );
-    CHK( mbedtls_md_setup( &ctx, info, 1 ) );
-    CHK( mbedtls_md_hmac_starts( &ctx, key_bytes, sizeof( key_bytes ) ) );
+    const mbedtls_md_info_t *info = mbedtls_md_info_from_type(alg);
+    CHK(mbedtls_md_setup(&ctx, info, 1));
+    CHK(mbedtls_md_hmac_starts(&ctx, key_bytes, sizeof(key_bytes)));
 
     /* compute HMAC(key, msg1_part1 | msg1_part2) */
-    CHK( mbedtls_md_hmac_update( &ctx, msg1_part1, sizeof( msg1_part1 ) ) );
-    CHK( mbedtls_md_hmac_update( &ctx, msg1_part2, sizeof( msg1_part2 ) ) );
-    CHK( mbedtls_md_hmac_finish( &ctx, out ) );
-    print_buf( "msg1", out, mbedtls_md_get_size( info ) );
+    CHK(mbedtls_md_hmac_update(&ctx, msg1_part1, sizeof(msg1_part1)));
+    CHK(mbedtls_md_hmac_update(&ctx, msg1_part2, sizeof(msg1_part2)));
+    CHK(mbedtls_md_hmac_finish(&ctx, out));
+    print_buf("msg1", out, mbedtls_md_get_size(info));
 
     /* compute HMAC(key, msg2_part1 | msg2_part2) */
-    CHK( mbedtls_md_hmac_reset( &ctx ) ); // prepare for new operation
-    CHK( mbedtls_md_hmac_update( &ctx, msg2_part1, sizeof( msg2_part1 ) ) );
-    CHK( mbedtls_md_hmac_update( &ctx, msg2_part2, sizeof( msg2_part2 ) ) );
-    CHK( mbedtls_md_hmac_finish( &ctx, out ) );
-    print_buf( "msg2", out, mbedtls_md_get_size( info ) );
+    CHK(mbedtls_md_hmac_reset(&ctx));     // prepare for new operation
+    CHK(mbedtls_md_hmac_update(&ctx, msg2_part1, sizeof(msg2_part1)));
+    CHK(mbedtls_md_hmac_update(&ctx, msg2_part2, sizeof(msg2_part2)));
+    CHK(mbedtls_md_hmac_finish(&ctx, out));
+    print_buf("msg2", out, mbedtls_md_get_size(info));
 
 exit:
-    mbedtls_md_free( &ctx );
-    mbedtls_platform_zeroize( out, sizeof( out ) );
+    mbedtls_md_free(&ctx);
+    mbedtls_platform_zeroize(out, sizeof(out));
 
-    return( ret );
+    return ret;
 }
 
 int main(void)
 {
     int ret;
 
-    CHK( hmac_demo() );
+    CHK(hmac_demo());
 
 exit:
-    return( ret == 0 ? EXIT_SUCCESS : EXIT_FAILURE );
+    return ret == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 #endif

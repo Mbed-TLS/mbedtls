@@ -121,8 +121,7 @@ mbedtls_pkcs7_type;
 /**
  * Structure holding PKCS7 signer info
  */
-typedef struct mbedtls_pkcs7_signer_info
-{
+typedef struct mbedtls_pkcs7_signer_info {
     int MBEDTLS_PRIVATE(version);
     mbedtls_x509_buf MBEDTLS_PRIVATE(serial);
     mbedtls_x509_name MBEDTLS_PRIVATE(issuer);
@@ -137,8 +136,7 @@ mbedtls_pkcs7_signer_info;
 /**
  * Structure holding attached data as part of PKCS7 signed data format
  */
-typedef struct mbedtls_pkcs7_data
-{
+typedef struct mbedtls_pkcs7_data {
     mbedtls_pkcs7_buf MBEDTLS_PRIVATE(oid);
     mbedtls_pkcs7_buf MBEDTLS_PRIVATE(data);
 }
@@ -147,8 +145,7 @@ mbedtls_pkcs7_data;
 /**
  * Structure holding the signed data section
  */
-typedef struct mbedtls_pkcs7_signed_data
-{
+typedef struct mbedtls_pkcs7_signed_data {
     int MBEDTLS_PRIVATE(version);
     mbedtls_pkcs7_buf MBEDTLS_PRIVATE(digest_alg_identifiers);
     struct mbedtls_pkcs7_data MBEDTLS_PRIVATE(content);
@@ -164,8 +161,7 @@ mbedtls_pkcs7_signed_data;
 /**
  * Structure holding PKCS7 structure, only signed data for now
  */
-typedef struct mbedtls_pkcs7
-{
+typedef struct mbedtls_pkcs7 {
     mbedtls_pkcs7_buf MBEDTLS_PRIVATE(raw);
     mbedtls_pkcs7_buf MBEDTLS_PRIVATE(content_type_oid);
     mbedtls_pkcs7_signed_data MBEDTLS_PRIVATE(signed_data);
@@ -177,7 +173,7 @@ mbedtls_pkcs7;
  *
  * \param pkcs7    pkcs7 structure.
  */
-void mbedtls_pkcs7_init( mbedtls_pkcs7 *pkcs7 );
+void mbedtls_pkcs7_init(mbedtls_pkcs7 *pkcs7);
 
 /**
  * \brief          Parse a single DER formatted pkcs7 content.
@@ -193,8 +189,8 @@ void mbedtls_pkcs7_init( mbedtls_pkcs7 *pkcs7 );
  * \return         The \c mbedtls_pkcs7_type of \p buf, if successful.
  * \return         A negative error code on failure.
  */
-int mbedtls_pkcs7_parse_der( mbedtls_pkcs7 *pkcs7, const unsigned char *buf,
-                             const size_t buflen );
+int mbedtls_pkcs7_parse_der(mbedtls_pkcs7 *pkcs7, const unsigned char *buf,
+                            const size_t buflen);
 
 /**
  * \brief          Verification of PKCS7 signature against a caller-supplied
@@ -220,10 +216,10 @@ int mbedtls_pkcs7_parse_der( mbedtls_pkcs7 *pkcs7, const unsigned char *buf,
  *
  * \return         0 if the signature verifies, or a negative error code on failure.
  */
-int mbedtls_pkcs7_signed_data_verify( mbedtls_pkcs7 *pkcs7,
-                                      const mbedtls_x509_crt *cert,
-                                      const unsigned char *data,
-                                      size_t datalen );
+int mbedtls_pkcs7_signed_data_verify(mbedtls_pkcs7 *pkcs7,
+                                     const mbedtls_x509_crt *cert,
+                                     const unsigned char *data,
+                                     size_t datalen);
 
 /**
  * \brief          Verification of PKCS7 signature against a caller-supplied
@@ -249,9 +245,9 @@ int mbedtls_pkcs7_signed_data_verify( mbedtls_pkcs7 *pkcs7,
  *
  * \return         0 if the signature verifies, or a negative error code on failure.
  */
-int mbedtls_pkcs7_signed_hash_verify( mbedtls_pkcs7 *pkcs7,
-                                      const mbedtls_x509_crt *cert,
-                                      const unsigned char *hash, size_t hashlen);
+int mbedtls_pkcs7_signed_hash_verify(mbedtls_pkcs7 *pkcs7,
+                                     const mbedtls_x509_crt *cert,
+                                     const unsigned char *hash, size_t hashlen);
 
 /**
  * \brief          Unallocate all PKCS7 data and zeroize the memory.
@@ -259,7 +255,7 @@ int mbedtls_pkcs7_signed_hash_verify( mbedtls_pkcs7 *pkcs7,
  *
  * \param pkcs7    PKCS7 structure to free.
  */
-void mbedtls_pkcs7_free( mbedtls_pkcs7 *pkcs7 );
+void mbedtls_pkcs7_free(mbedtls_pkcs7 *pkcs7);
 
 #ifdef __cplusplus
 }

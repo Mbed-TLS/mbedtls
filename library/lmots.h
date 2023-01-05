@@ -53,7 +53,7 @@ extern "C" {
 
 
 #if defined(MBEDTLS_TEST_HOOKS)
-extern int( *mbedtls_lmots_sign_private_key_invalidated_hook )( unsigned char * );
+extern int (*mbedtls_lmots_sign_private_key_invalidated_hook)(unsigned char *);
 #endif /* defined(MBEDTLS_TEST_HOOKS) */
 
 /**
@@ -64,8 +64,8 @@ extern int( *mbedtls_lmots_sign_private_key_invalidated_hook )( unsigned char * 
  * \param len                The length of the string.
  * \param bytes              The string to output into.
  */
-void mbedtls_lms_unsigned_int_to_network_bytes( unsigned int val, size_t len,
-                                                unsigned char *bytes );
+void mbedtls_lms_unsigned_int_to_network_bytes(unsigned int val, size_t len,
+                                               unsigned char *bytes);
 
 /**
  * \brief                    This function converts a network-byte-order
@@ -76,8 +76,8 @@ void mbedtls_lms_unsigned_int_to_network_bytes( unsigned int val, size_t len,
  *
  * \return                   The corresponding LMS error code.
  */
-unsigned int mbedtls_lms_network_bytes_to_unsigned_int( size_t len,
-                                                        const unsigned char *bytes );
+unsigned int mbedtls_lms_network_bytes_to_unsigned_int(size_t len,
+                                                       const unsigned char *bytes);
 
 /**
  * \brief                    This function converts a \ref psa_status_t to a
@@ -87,7 +87,7 @@ unsigned int mbedtls_lms_network_bytes_to_unsigned_int( size_t len,
  *
  * \return                   The corresponding LMS error code.
  */
-int mbedtls_lms_error_from_psa( psa_status_t status );
+int mbedtls_lms_error_from_psa(psa_status_t status);
 
 
 /**
@@ -96,7 +96,7 @@ int mbedtls_lms_error_from_psa( psa_status_t status );
  * \param ctx                The uninitialized LMOTS context that will then be
  *                           initialized.
  */
-void mbedtls_lmots_public_init( mbedtls_lmots_public_t *ctx );
+void mbedtls_lmots_public_init(mbedtls_lmots_public_t *ctx);
 
 /**
  * \brief                    This function uninitializes a public LMOTS context
@@ -104,7 +104,7 @@ void mbedtls_lmots_public_init( mbedtls_lmots_public_t *ctx );
  * \param ctx                The initialized LMOTS context that will then be
  *                           uninitialized.
  */
-void mbedtls_lmots_public_free( mbedtls_lmots_public_t *ctx );
+void mbedtls_lmots_public_free(mbedtls_lmots_public_t *ctx);
 
 /**
  * \brief                    This function imports an LMOTS public key into a
@@ -124,8 +124,8 @@ void mbedtls_lmots_public_free( mbedtls_lmots_public_t *ctx );
  * \return         \c 0 on success.
  * \return         A non-zero error code on failure.
  */
-int mbedtls_lmots_import_public_key( mbedtls_lmots_public_t *ctx,
-                                     const unsigned char *key, size_t key_size );
+int mbedtls_lmots_import_public_key(mbedtls_lmots_public_t *ctx,
+                                    const unsigned char *key, size_t key_size);
 
 /**
  * \brief                    This function exports an LMOTS public key from a
@@ -146,9 +146,9 @@ int mbedtls_lmots_import_public_key( mbedtls_lmots_public_t *ctx,
  * \return         \c 0 on success.
  * \return         A non-zero error code on failure.
  */
-int mbedtls_lmots_export_public_key( const mbedtls_lmots_public_t *ctx,
-                                     unsigned char *key, size_t key_size,
-                                     size_t *key_len );
+int mbedtls_lmots_export_public_key(const mbedtls_lmots_public_t *ctx,
+                                    unsigned char *key, size_t key_size,
+                                    size_t *key_len);
 
 /**
  * \brief                    This function creates a candidate public key from
@@ -175,14 +175,14 @@ int mbedtls_lmots_export_public_key( const mbedtls_lmots_public_t *ctx,
  * \return         \c 0 on success.
  * \return         A non-zero error code on failure.
  */
-int mbedtls_lmots_calculate_public_key_candidate( const mbedtls_lmots_parameters_t *params,
-                                                  const unsigned char *msg,
-                                                  size_t msg_size,
-                                                  const unsigned char *sig,
-                                                  size_t sig_size,
-                                                  unsigned char *out,
-                                                  size_t out_size,
-                                                  size_t *out_len );
+int mbedtls_lmots_calculate_public_key_candidate(const mbedtls_lmots_parameters_t *params,
+                                                 const unsigned char *msg,
+                                                 size_t msg_size,
+                                                 const unsigned char *sig,
+                                                 size_t sig_size,
+                                                 unsigned char *out,
+                                                 size_t out_size,
+                                                 size_t *out_len);
 
 /**
  * \brief                    This function verifies a LMOTS signature, using a
@@ -209,10 +209,10 @@ int mbedtls_lmots_calculate_public_key_candidate( const mbedtls_lmots_parameters
  * \return         \c 0 on successful verification.
  * \return         A non-zero error code on failure.
  */
-int mbedtls_lmots_verify( const mbedtls_lmots_public_t *ctx,
-                          const unsigned char *msg,
-                          size_t msg_size, const unsigned char *sig,
-                          size_t sig_size );
+int mbedtls_lmots_verify(const mbedtls_lmots_public_t *ctx,
+                         const unsigned char *msg,
+                         size_t msg_size, const unsigned char *sig,
+                         size_t sig_size);
 
 #if defined(MBEDTLS_LMS_PRIVATE)
 
@@ -222,7 +222,7 @@ int mbedtls_lmots_verify( const mbedtls_lmots_public_t *ctx,
  * \param ctx                The uninitialized LMOTS context that will then be
  *                           initialized.
  */
-void mbedtls_lmots_private_init( mbedtls_lmots_private_t *ctx );
+void mbedtls_lmots_private_init(mbedtls_lmots_private_t *ctx);
 
 /**
  * \brief                    This function uninitializes a private LMOTS context
@@ -230,7 +230,7 @@ void mbedtls_lmots_private_init( mbedtls_lmots_private_t *ctx );
  * \param ctx                The initialized LMOTS context that will then be
  *                           uninitialized.
  */
-void mbedtls_lmots_private_free( mbedtls_lmots_private_t *ctx );
+void mbedtls_lmots_private_free(mbedtls_lmots_private_t *ctx);
 
 /**
  * \brief                    This function calculates an LMOTS private key, and
@@ -256,12 +256,12 @@ void mbedtls_lmots_private_free( mbedtls_lmots_private_t *ctx );
  * \return         \c 0 on success.
  * \return         A non-zero error code on failure.
  */
-int mbedtls_lmots_generate_private_key( mbedtls_lmots_private_t *ctx,
-                                        mbedtls_lmots_algorithm_type_t type,
-                                        const unsigned char I_key_identifier[MBEDTLS_LMOTS_I_KEY_ID_LEN],
-                                        uint32_t q_leaf_identifier,
-                                        const unsigned char *seed,
-                                        size_t seed_size );
+int mbedtls_lmots_generate_private_key(mbedtls_lmots_private_t *ctx,
+                                       mbedtls_lmots_algorithm_type_t type,
+                                       const unsigned char I_key_identifier[MBEDTLS_LMOTS_I_KEY_ID_LEN],
+                                       uint32_t q_leaf_identifier,
+                                       const unsigned char *seed,
+                                       size_t seed_size);
 
 /**
  * \brief                    This function generates an LMOTS public key from a
@@ -277,8 +277,8 @@ int mbedtls_lmots_generate_private_key( mbedtls_lmots_private_t *ctx,
  * \return         \c 0 on success.
  * \return         A non-zero error code on failure.
  */
-int mbedtls_lmots_calculate_public_key( mbedtls_lmots_public_t *ctx,
-                                        const mbedtls_lmots_private_t *priv_ctx );
+int mbedtls_lmots_calculate_public_key(mbedtls_lmots_public_t *ctx,
+                                       const mbedtls_lmots_private_t *priv_ctx);
 
 /**
  * \brief                    This function creates a LMOTS signature, using a
@@ -308,10 +308,10 @@ int mbedtls_lmots_calculate_public_key( mbedtls_lmots_public_t *ctx,
  * \return         \c 0 on success.
  * \return         A non-zero error code on failure.
  */
-int mbedtls_lmots_sign( mbedtls_lmots_private_t *ctx,
-                        int (*f_rng)(void *, unsigned char *, size_t),
-                        void *p_rng, const unsigned char *msg, size_t msg_size,
-                        unsigned char *sig, size_t sig_size, size_t* sig_len );
+int mbedtls_lmots_sign(mbedtls_lmots_private_t *ctx,
+                       int (*f_rng)(void *, unsigned char *, size_t),
+                       void *p_rng, const unsigned char *msg, size_t msg_size,
+                       unsigned char *sig, size_t sig_size, size_t *sig_len);
 
 #endif /* defined(MBEDTLS_LMS_PRIVATE) */
 

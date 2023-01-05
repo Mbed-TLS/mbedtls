@@ -1408,6 +1408,7 @@
  * module to perform private key operations instead of performing the
  * operation inside the library.
  *
+ * Requires: MBEDTLS_X509_CRT_PARSE_C
  */
 //#define MBEDTLS_SSL_ASYNC_PRIVATE
 

@@ -954,7 +954,6 @@
 #endif /* MSVC */
 
 #endif /* MBEDTLS_HAVE_ASM */
-/* *INDENT-ON* */
 
 #if !defined(MULADDC_CORE)
 #if defined(MBEDTLS_HAVE_UDBL)
@@ -1003,4 +1002,5 @@
 #endif /* C (generic)  */
 #endif /* C (longlong) */
 
+/* *INDENT-ON* */
 #endif /* bn_mul.h */

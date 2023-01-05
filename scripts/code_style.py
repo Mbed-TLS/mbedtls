@@ -132,7 +132,7 @@ def check_style_is_correct(src_file_list: List[str]) -> bool:
 
     return style_correct
 
-def fix_style_single_pass(src_file_list: List[str]) -> None:
+def fix_style_single_pass(src_file_list: List[str]) -> bool:
     """
     Run Uncrustify once over the source files.
     """
@@ -146,6 +146,7 @@ def fix_style_single_pass(src_file_list: List[str]) -> None:
                     str(result.returncode) + " correcting file " + \
                     src_file)
             return False
+    return True
 
 def fix_style(src_file_list: List[str]) -> int:
     """

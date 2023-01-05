@@ -152,9 +152,9 @@ def fix_style(src_file_list: List[str]) -> int:
     """
     Fix the code style. This takes 2 passes of Uncrustify.
     """
-    if fix_style_single_pass(src_file_list) != True:
+    if not fix_style_single_pass(src_file_list):
         return 1
-    if fix_style_single_pass(src_file_list) != True:
+    if not fix_style_single_pass(src_file_list):
         return 1
 
     # Guard against future changes that cause the codebase to require

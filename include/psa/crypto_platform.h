@@ -38,10 +38,6 @@
  * in each of its header files. */
 #include "mbedtls/build_info.h"
 
-/* Translate between classic MBEDTLS_xxx feature symbols and PSA_xxx
- * feature symbols. */
-#include "mbedtls/config_psa.h"
-
 /* PSA requires several types which C99 provides in stdint.h. */
 #include <stdint.h>
 

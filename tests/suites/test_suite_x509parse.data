@@ -123,11 +123,11 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA
 x509_cert_info:"data_files/cert_example_multi_nocn.crt":"cert. version     \: 3\nserial number     \: F7\:C6\:7F\:F8\:E9\:A9\:63\:F9\nissuer name       \: C=NL\nsubject name      \: C=NL\nissued  on        \: 2014-01-22 10\:04\:33\nexpires on        \: 2024-01-22 10\:04\:33\nsigned using      \: RSA with SHA1\nRSA key size      \: 1024 bits\nbasic constraints \: CA=false\nsubject alt name  \:\n    dNSName \: www.shotokan-braunschweig.de\n    dNSName \: www.massimo-abate.eu\n    <unsupported>\n    <unsupported>\nkey usage         \: Digital Signature, Non Repudiation, Key Encipherment\n"
 
 X509 CRT information, Subject Alt Name with uniformResourceIdentifier
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA
 x509_cert_info:"data_files/rsa_single_san_uri.crt":"cert. version     \: 3\nserial number     \: 59\:6B\:8F\:B8\:A0\:66\:A7\:F7\:BB\:26\:DE\:06\:DC\:90\:23\:A7\:DE\:F3\:D0\:D9\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS URI SAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS URI SAN\nissued  on        \: 2022-12-27 17\:05\:01\nexpires on        \: 2042-12-22 17\:05\:01\nsigned using      \: RSA with SHA-256\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\nsubject alt name  \:\n    uniformResourceIdentifier \: urn\:example.com\:5ff40f78-9210-494f-8206-c2c082f0609c\nkey usage         \: Digital Signature, Non Repudiation, Key Encipherment\n"
 
 X509 CRT information, Subject Alt Name with two uniformResourceIdentifiers
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA
 x509_cert_info:"data_files/rsa_multiple_san_uri.crt":"cert. version     \: 3\nserial number     \: 2F\:14\:4E\:99\:AD\:79\:42\:E0\:59\:A4\:B4\:86\:DC\:A6\:53\:B5\:CA\:CE\:5F\:40\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS URI SAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS URI SAN\nissued  on        \: 2022-12-28 08\:37\:46\nexpires on        \: 2042-12-23 08\:37\:46\nsigned using      \: RSA with SHA-256\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\nsubject alt name  \:\n    uniformResourceIdentifier \: urn\:example.com\:5ff40f78-9210-494f-8206-c2c082f0609c\n    uniformResourceIdentifier \: urn\:example.com\:5ff40f78-9210-494f-8206-abcde1234567\nkey usage         \: Digital Signature, Non Repudiation, Key Encipherment\n"
 
 X509 CRT information, RSA Certificate Policy any

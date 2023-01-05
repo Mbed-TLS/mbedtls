@@ -2805,11 +2805,10 @@ int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
 
     switch( ssl->state )
     {
-        /*
-         * ssl->state is initialized as HELLO_REQUEST. It is the same
-         * as CLIENT_HELLO state.
-         */
         case MBEDTLS_SSL_HELLO_REQUEST:
+            mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_HELLO );
+            break;
+
         case MBEDTLS_SSL_CLIENT_HELLO:
             ret = mbedtls_ssl_write_client_hello( ssl );
             break;

@@ -2073,6 +2073,12 @@ int mbedtls_ssl_tls13_write_early_data_ext( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 /*
+ * Write Signature Algorithm extension
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
+                                   const unsigned char *end, size_t *out_len );
+/*
  * Parse TLS Signature Algorithm extension
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -2618,10 +2624,6 @@ int mbedtls_ssl_validate_ciphersuite(
     const mbedtls_ssl_ciphersuite_t *suite_info,
     mbedtls_ssl_protocol_version min_tls_version,
     mbedtls_ssl_protocol_version max_tls_version );
-
-MBEDTLS_CHECK_RETURN_CRITICAL
-int mbedtls_ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
-                                   const unsigned char *end, size_t *out_len );
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
 MBEDTLS_CHECK_RETURN_CRITICAL

@@ -5094,7 +5094,9 @@ int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
      * data.
      */
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "switching to new transform spec for inbound data" ) );
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     ssl->transform_in = ssl->transform_negotiate;
+#endif
     ssl->session_in = ssl->session_negotiate;
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

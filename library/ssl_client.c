@@ -24,15 +24,11 @@
 #if defined(MBEDTLS_SSL_CLI_C)
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) || defined(MBEDTLS_SSL_PROTO_TLS1_2)
 
-#include "mbedtls/platform.h"
-
 #include <string.h>
 
 #include "mbedtls/debug.h"
 #include "mbedtls/error.h"
-#if defined(MBEDTLS_HAVE_TIME)
-#include "mbedtls/platform_time.h"
-#endif
+#include "mbedtls/platform.h"
 
 #include "ssl_client.h"
 #include "ssl_misc.h"

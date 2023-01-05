@@ -965,13 +965,16 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_handshake_init( mbedtls_ssl_context *ssl )
 {
     /* Clear old handshake information if present */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( ssl->transform_negotiate )
         mbedtls_ssl_transform_free( ssl->transform_negotiate );
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
     if( ssl->session_negotiate )
         mbedtls_ssl_session_free( ssl->session_negotiate );
     if( ssl->handshake )
         mbedtls_ssl_handshake_free( ssl );
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     /*
      * Either the pointers are now NULL or cleared properly and can be freed.
      * Now allocate missing structures.
@@ -980,6 +983,7 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
     {
         ssl->transform_negotiate = mbedtls_calloc( 1, sizeof(mbedtls_ssl_transform) );
     }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
     if( ssl->session_negotiate == NULL )
     {
@@ -998,18 +1002,23 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
 #endif
 
     /* All pointers should exist and can be directly freed without issue */
-    if( ssl->handshake == NULL ||
+    if( ssl->handshake           == NULL ||
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
         ssl->transform_negotiate == NULL ||
-        ssl->session_negotiate == NULL )
+#endif
+        ssl->session_negotiate   == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc() of ssl sub-contexts failed" ) );
 
         mbedtls_free( ssl->handshake );
-        mbedtls_free( ssl->transform_negotiate );
-        mbedtls_free( ssl->session_negotiate );
-
         ssl->handshake = NULL;
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+        mbedtls_free( ssl->transform_negotiate );
         ssl->transform_negotiate = NULL;
+#endif
+
+        mbedtls_free( ssl->session_negotiate );
         ssl->session_negotiate = NULL;
 
         return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
@@ -1017,8 +1026,11 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
 
     /* Initialize structures */
     mbedtls_ssl_session_init( ssl->session_negotiate );
-    mbedtls_ssl_transform_init( ssl->transform_negotiate );
     ssl_handshake_params_init( ssl->handshake );
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    mbedtls_ssl_transform_init( ssl->transform_negotiate );
+#endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
     defined(MBEDTLS_SSL_SRV_C) && \
@@ -3215,12 +3227,14 @@ size_t mbedtls_ssl_get_input_max_frag_len( const mbedtls_ssl_context *ssl )
     size_t max_len = MBEDTLS_SSL_IN_CONTENT_LEN;
     size_t read_mfl;
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     /* Use the configured MFL for the client if we're past SERVER_HELLO_DONE */
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
         ssl->state >= MBEDTLS_SSL_SERVER_HELLO_DONE )
     {
         return ssl_mfl_code_to_length( ssl->conf->mfl_code );
     }
+#endif
 
     /* Check if a smaller max length was negotiated */
     if( ssl->session_out != NULL )
@@ -3232,7 +3246,7 @@ size_t mbedtls_ssl_get_input_max_frag_len( const mbedtls_ssl_context *ssl )
         }
     }
 
-    // During a handshake, use the value being negotiated
+    /* During a handshake, use the value being negotiated */
     if( ssl->session_negotiate != NULL )
     {
         read_mfl = ssl_mfl_code_to_length( ssl->session_negotiate->mfl_code );
@@ -3497,12 +3511,15 @@ static unsigned char ssl_serialized_session_header[] = {
  *                                 // the structure of mbedtls_ssl_session.
  *
  *    uint8_t minor_ver;           // Protocol minor version. Possible values:
- *                                 // - TLS 1.2 (3)
+ *                                 // - TLS 1.2 (0x0303)
+ *                                 // - TLS 1.3 (0x0304)
  *
  *    select (serialized_session.tls_version) {
  *
  *      case MBEDTLS_SSL_VERSION_TLS1_2:
  *        serialized_session_tls12 data;
+ *      case MBEDTLS_SSL_VERSION_TLS1_3:
+ *        serialized_session_tls13 data;
  *
  *   };
  *
@@ -4004,7 +4021,7 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_hash_abort( &handshake->fin_sha256_psa );
 #else
-    mbedtls_sha256_free(   &handshake->fin_sha256    );
+    mbedtls_sha256_free( &handshake->fin_sha256 );
 #endif
 #endif
 #if defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
@@ -4549,10 +4566,12 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
 
     /* This has been allocated by ssl_handshake_init(), called by
      * by either mbedtls_ssl_session_reset_int() or mbedtls_ssl_setup(). */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     ssl->transform = ssl->transform_negotiate;
     ssl->transform_in = ssl->transform;
     ssl->transform_out = ssl->transform;
     ssl->transform_negotiate = NULL;
+#endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     prf_func = ssl_tls12prf_from_cs( ssl->session->ciphersuite );
@@ -4788,11 +4807,14 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
     if( ssl->handshake )
     {
         mbedtls_ssl_handshake_free( ssl );
-        mbedtls_ssl_transform_free( ssl->transform_negotiate );
-        mbedtls_ssl_session_free( ssl->session_negotiate );
-
         mbedtls_free( ssl->handshake );
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+        mbedtls_ssl_transform_free( ssl->transform_negotiate );
         mbedtls_free( ssl->transform_negotiate );
+#endif
+
+        mbedtls_ssl_session_free( ssl->session_negotiate );
         mbedtls_free( ssl->session_negotiate );
     }
 

@@ -136,7 +136,7 @@ class LineIssueTracker(FileIssueTracker):
     # Exclude binary files.
     path_exemptions = BINARY_FILE_PATH_RE
 
-    def issue_with_line(self, line, filepath):
+    def issue_with_line(self, line, filepath, line_number):
         """Check the specified line for the issue that this class is for.
 
         Subclasses must implement this method.
@@ -144,7 +144,7 @@ class LineIssueTracker(FileIssueTracker):
         raise NotImplementedError
 
     def check_file_line(self, filepath, line, line_number):
-        if self.issue_with_line(line, filepath):
+        if self.issue_with_line(line, filepath, line_number):
             self.record_issue(filepath, line_number)
 
     def check_file_for_issue(self, filepath):
@@ -273,7 +273,7 @@ class UnixLineEndingIssueTracker(LineIssueTracker):
             return False
         return not is_windows_file(filepath)
 
-    def issue_with_line(self, line, _filepath):
+    def issue_with_line(self, line, _filepath, _line_number):
         return b"\r" in line
 
 
@@ -287,7 +287,7 @@ class WindowsLineEndingIssueTracker(LineIssueTracker):
             return False
         return is_windows_file(filepath)
 
-    def issue_with_line(self, line, _filepath):
+    def issue_with_line(self, line, _filepath, _line_number):
         return not line.endswith(b"\r\n") or b"\r" in line[:-2]
 
 
@@ -297,7 +297,7 @@ class TrailingWhitespaceIssueTracker(LineIssueTracker):
     heading = "Trailing whitespace:"
     suffix_exemptions = frozenset([".dsp", ".md"])
 
-    def issue_with_line(self, line, _filepath):
+    def issue_with_line(self, line, _filepath, _line_number):
         return line.rstrip(b"\r\n") != line.rstrip()
 
 
@@ -313,7 +313,7 @@ class TabIssueTracker(LineIssueTracker):
         "/generate_visualc_files.pl",
     ])
 
-    def issue_with_line(self, line, _filepath):
+    def issue_with_line(self, line, _filepath, _line_number):
         return b"\t" in line
 
 
@@ -323,7 +323,7 @@ class MergeArtifactIssueTracker(LineIssueTracker):
 
     heading = "Merge artifact:"
 
-    def issue_with_line(self, line, _filepath):
+    def issue_with_line(self, line, _filepath, _line_number):
         # Detect leftover git conflict markers.
         if line.startswith(b'<<<<<<< ') or line.startswith(b'>>>>>>> '):
             return True

@@ -15,8 +15,6 @@
 #include <test/constant_flow.h>
 /* END_HEADER */
 
-#include <stdio.h>
-
 /* BEGIN_CASE */
 void mbedtls_ct_memcmp_null()
 {

@@ -1005,7 +1005,6 @@
 #endif /* MSVC */
 
 #endif /* MBEDTLS_HAVE_ASM */
-/* *INDENT-ON* */
 
 #if !defined(MULADDC_X1_CORE)
 #if defined(MBEDTLS_HAVE_UDBL)
@@ -1073,4 +1072,5 @@
 #define MULADDC_X8_CORE MULADDC_X4_CORE MULADDC_X4_CORE
 #endif /* MULADDC_X8_CORE */
 
+/* *INDENT-ON* */
 #endif /* bn_mul.h */

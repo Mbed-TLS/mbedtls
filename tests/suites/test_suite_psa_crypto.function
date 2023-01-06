@@ -4866,7 +4866,7 @@ void derive_key_exercise( int alg_arg,
                                 &base_key ) );
 
     /* Derive a key. */
-    if ( mbedtls_test_psa_setup_key_derivation_wrap( &operation, base_key, alg,
+    if ( !mbedtls_test_psa_setup_key_derivation_wrap( &operation, base_key, alg,
                                                      input1->x, input1->len,
                                                      input2->x, input2->len,
                                                      capacity ) )

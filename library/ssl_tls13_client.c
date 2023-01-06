@@ -1233,6 +1233,7 @@ int mbedtls_ssl_tls13_write_client_hello_exts(mbedtls_ssl_context *ssl,
 
 int mbedtls_ssl_tls13_finalize_write_client_hello(mbedtls_ssl_context *ssl)
 {
+    ((void) ssl);
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_algorithm_t hash_alg = PSA_ALG_NONE;
@@ -1919,10 +1920,13 @@ static int ssl_tls13_postprocess_server_hello(mbedtls_ssl_context *ssl)
      * server selected ephemeral mode. In other cases, we could skip generating
      * the early secret.
      */
+#if defined(MBEDTLS_SSL_EARLY_DATA)
     if ((ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT)
         || ((ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED)
             && handshake->key_exchange_mode ==
-            MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL)) {
+            MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL))
+#endif
+    {
         ret = mbedtls_ssl_tls13_key_schedule_stage_early(ssl);
         if (ret != 0) {
             MBEDTLS_SSL_DEBUG_RET(

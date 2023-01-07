@@ -947,6 +947,16 @@ int mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
         uint32_t obfuscated_ticket_age =
                                 (uint32_t)( now - session->ticket_received );
 
+        /* Workaround for anti replay fail of GnuTLS server.
+         *
+         * The time unit of ticket age is milliseconds, but current unit is
+         * seconds. If the ticket was received at the end of first second and
+         * sent in next second, GnuTLS think it is replay attack.
+         *
+         */
+        if( obfuscated_ticket_age > 0 )
+            obfuscated_ticket_age -= 1;
+
         obfuscated_ticket_age *= 1000;
         obfuscated_ticket_age += session->ticket_age_add;
 

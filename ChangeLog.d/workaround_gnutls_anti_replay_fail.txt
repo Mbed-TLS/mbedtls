@@ -1,0 +1,6 @@
+Bugfix
+    * Workaround #6623. That is time unit issue. The unit of ticket age is
+      seconds in MBedTLS and milliseconds in GnuTLS. If the real age is 10ms,
+      it might be 1s(1000ms), as a result, the age of MBedTLS is greater than
+      GnuTLS server. Reduce 1 if the age is greater than 1 second to workaround
+      it.

@@ -1022,17 +1022,17 @@ int MBEDTLS_DEPRECATED mbedtls_x509write_crt_set_serial(
  * \brief           Set the serial number for a Certificate.
  *
  * \param ctx               CRT context to use
- * \param serial_buff       Input buffer containing the serial number in big
- *                          endian format
+ * \param serial_buff       A raw array of bytes containing the serial number
+ *                          in big endian format
  * \param serial_buff_len   Length of the previous input buffer buffer
  *
  * \return          0 if successful, or
- *                  MBEDTLS_ERR_X509_BAD_INPUT_DATA if the provided input buffer:
- *                  - is too big (longer than MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN)
- *                  - contains invalid chars
+ *                  MBEDTLS_ERR_X509_BAD_INPUT_DATA if the provided input buffer
+ *                  is too big (longer than MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN)
  */
 int mbedtls_x509write_crt_set_serial_new( mbedtls_x509write_cert *ctx,
-                                char* serial_buff, size_t serial_buff_len );
+                                        unsigned char* serial_buff,
+                                        size_t serial_buff_len );
 
 /**
  * \brief           Set the validity period for a Certificate

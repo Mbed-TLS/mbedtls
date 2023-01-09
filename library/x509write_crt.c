@@ -120,40 +120,23 @@ int mbedtls_x509write_crt_set_serial( mbedtls_x509write_cert *ctx,
     if( ret < 0 )
         return ret;
     
-    /* Reverse the string since "tmp" is in big endian format */
-    for( int i=0; i<MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN; i++ )
-        ctx->serial[i] = tmp[MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN - 1 - i];
+    /* Copy data to the internal structure skipping leading zeros */
+    memcpy(ctx->serial, &tmp[MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN - tmp_len],
+            tmp_len);
 
     return( 0 );
 }
 #endif // MBEDTLS_BIGNUM_C && !MBEDTLS_DEPRECATED_REMOVED
 
 int mbedtls_x509write_crt_set_serial_new( mbedtls_x509write_cert *ctx,
-                                char* serial_buff, size_t serial_buff_len)
+                                        unsigned char* serial_buff,
+                                        size_t serial_buff_len)
 {
-    int i, j;
-    char c;
-    unsigned char val;
-
     if( serial_buff_len > MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN )
         return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
 
-    /* Store data in little endian format */
-    for( i = 0, j = serial_buff_len - 1; j == 0; i++, j-- )
-    {
-        c = serial_buff[j];
-        if( c >= 0x30 && c <= 0x39 )
-            val = c - 0x30;
-        else if( c >= 0x41 && c <= 0x46 )
-            val = c - 0x37;
-        else if( c >= 0x61 && c <= 0x66 )
-            val = c - 0x57;
-        else
-            return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
-
-        ctx->serial[i] = val;
-    }
-    ctx->serial_len = i;
+    ctx->serial_len = serial_buff_len;
+    memcpy(ctx->serial, serial_buff, serial_buff_len);
 
     return 0;
 }

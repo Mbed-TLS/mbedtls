@@ -235,6 +235,41 @@ int write_certificate( mbedtls_x509write_cert *crt, const char *output_file,
     return( 0 );
 }
 
+/*
+ * Convert the input "in_buff" string to a raw byte array "out_buff". The amount
+ * of converted data is returned on "written_data".
+ */
+static int parse_serial( const char* in_buff, size_t in_buff_len,
+                    unsigned char* out_buff, size_t out_buff_len,
+                    size_t *written_data )
+{
+    char c;
+    unsigned char val;
+    int i;
+
+    if( out_buff_len < in_buff_len )
+        return( -1 );
+
+    *written_data = 0;
+
+    for( i = 0; i < (int) in_buff_len; i++, (*written_data)++ )
+    {
+        c = in_buff[i];
+        if( c >= 0x30 && c <= 0x39 )
+            val = c - 0x30;
+        else if( c >= 0x41 && c <= 0x46 )
+            val = c - 0x37;
+        else if( c >= 0x61 && c <= 0x66 )
+            val = c - 0x57;
+        else
+            return( -1 );
+
+        out_buff[i] = val;
+    }
+
+    return( 0 );
+}
+
 int main( int argc, char *argv[] )
 {
     int ret = 1;
@@ -252,7 +287,8 @@ int main( int argc, char *argv[] )
     mbedtls_x509_csr csr;
 #endif
     mbedtls_x509write_cert crt;
-    mbedtls_mpi serial;
+    unsigned char serial[MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN];
+    size_t serial_len;
     mbedtls_asn1_sequence *ext_key_usage;
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
@@ -264,7 +300,6 @@ int main( int argc, char *argv[] )
     mbedtls_x509write_crt_init( &crt );
     mbedtls_pk_init( &loaded_issuer_key );
     mbedtls_pk_init( &loaded_subject_key );
-    mbedtls_mpi_init( &serial );
     mbedtls_ctr_drbg_init( &ctr_drbg );
     mbedtls_entropy_init( &entropy );
 #if defined(MBEDTLS_X509_CSR_PARSE_C)
@@ -559,16 +594,6 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "  . Reading serial number..." );
     fflush( stdout );
 
-#if defined(MBEDTLS_BIGNUM_C)
-    if( ( ret = mbedtls_mpi_read_string( &serial, 10, opt.serial ) ) != 0 )
-    {
-        mbedtls_strerror( ret, buf, sizeof(buf) );
-        mbedtls_printf( " failed\n  !  mbedtls_mpi_read_string "
-                        "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
-        goto exit;
-    }
-#endif
-
     mbedtls_printf( " ok\n" );
 
     // Parse issuer certificate if present
@@ -723,18 +748,13 @@ int main( int argc, char *argv[] )
     mbedtls_x509write_crt_set_version( &crt, opt.version );
     mbedtls_x509write_crt_set_md_alg( &crt, opt.md );
 
-#if defined(MBEDTLS_BIGNUM_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
-    ret = mbedtls_x509write_crt_set_serial( &crt, &serial );
-    if( ret != 0 )
+    if( parse_serial( opt.serial, strlen( opt.serial ),
+                    serial, sizeof( serial ), &serial_len ) < 0 )
     {
-        mbedtls_strerror( ret, buf, sizeof(buf) );
-        mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_serial "
-                        "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
+        mbedtls_printf( " failed\n  !  Unable to parse serial\n\n" );
         goto exit;
     }
-#else
-    ret = mbedtls_x509write_crt_set_serial_new( &crt, opt.serial,
-                                                strlen( opt.serial ) );
+    ret = mbedtls_x509write_crt_set_serial_new( &crt, serial, serial_len );
     if( ret != 0 )
     {
         mbedtls_strerror( ret, buf, sizeof(buf) );
@@ -742,7 +762,6 @@ int main( int argc, char *argv[] )
                         "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
         goto exit;
     }
-#endif
 
     ret = mbedtls_x509write_crt_set_validity( &crt, opt.not_before, opt.not_after );
     if( ret != 0 )
@@ -893,7 +912,6 @@ exit:
     mbedtls_x509write_crt_free( &crt );
     mbedtls_pk_free( &loaded_subject_key );
     mbedtls_pk_free( &loaded_issuer_key );
-    mbedtls_mpi_free( &serial );
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
 

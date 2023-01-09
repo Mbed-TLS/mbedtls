@@ -10,6 +10,14 @@ if(NOT DEFINED MBEDTLS_DIR)
     set(MBEDTLS_DIR ${CMAKE_SOURCE_DIR})
 endif()
 
+# If set, make MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE into PATHs
+if(DEFINED MBEDTLS_CONFIG_FILE)
+    set(MBEDTLS_CONFIG_FILE "" CACHE PATH "Mbed TLS config file (overrides default).")
+endif()
+if(DEFINED MBEDTLS_USER_CONFIG_FILE)
+    set(MBEDTLS_USER_CONFIG_FILE "" CACHE PATH "Mbed TLS user config file (appended to default).")
+endif()
+
 set(src_crypto
     aes.c
     aesni.c
@@ -229,6 +237,15 @@ foreach(target IN LISTS target_libraries)
         PRIVATE ${thirdparty_inc})
     target_compile_definitions(${target}
         PRIVATE ${thirdparty_def})
+    # Pass-through MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE
+    if(DEFINED MBEDTLS_CONFIG_FILE)
+        target_compile_definitions(${target}
+            PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
+    endif()
+    if(DEFINED MBEDTLS_USER_CONFIG_FILE)
+        target_compile_definitions(${target}
+            PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
+    endif()
     install(TARGETS ${target}
             DESTINATION ${LIB_INSTALL_DIR}
             PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)

@@ -996,7 +996,7 @@ void mbedtls_x509write_crt_init( mbedtls_x509write_cert *ctx );
  */
 void mbedtls_x509write_crt_set_version( mbedtls_x509write_cert *ctx, int version );
 
-#if defined(MBEDTLS_BIGNUM_C)
+#if defined(MBEDTLS_BIGNUM_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**
  * \brief           Set the serial number for a Certificate.
  *
@@ -1014,8 +1014,9 @@ void mbedtls_x509write_crt_set_version( mbedtls_x509write_cert *ctx, int version
  *
  * \return          0 if successful
  */
-int mbedtls_x509write_crt_set_serial( mbedtls_x509write_cert *ctx, const mbedtls_mpi *serial );
-#endif
+int MBEDTLS_DEPRECATED mbedtls_x509write_crt_set_serial(
+                    mbedtls_x509write_cert *ctx, const mbedtls_mpi *serial );
+#endif // MBEDTLS_BIGNUM_C && !MBEDTLS_DEPRECATED_REMOVED
 
 /**
  * \brief           Set the serial number for a Certificate.

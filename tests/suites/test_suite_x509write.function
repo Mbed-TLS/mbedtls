@@ -384,15 +384,12 @@ void x509_crt_check(char *subject_key_file, char *subject_pwd,
         TEST_ASSERT(mbedtls_pk_get_type(&issuer_key) == MBEDTLS_PK_OPAQUE);
     }
 
-#if !defined(MBEDTLS_BIGNUM_C)
-    TEST_ASSERT(mbedtls_test_read_mpi(&serial, serial_str) == 0);
-#endif
-
     if (ver != -1) {
         mbedtls_x509write_crt_set_version(&crt, ver);
     }
 
-#if !defined(MBEDTLS_BIGNUM_C)
+#if defined(MBEDTLS_BIGNUM_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
+    TEST_ASSERT(mbedtls_test_read_mpi(&serial, serial_str) == 0);
     TEST_ASSERT(mbedtls_x509write_crt_set_serial(&crt, &serial) == 0);
 #else
     TEST_ASSERT(mbedtls_x509write_crt_set_serial_new(&crt, serial_str,

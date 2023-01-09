@@ -663,7 +663,7 @@ usage:
     mbedtls_x509write_crt_set_version(&crt, opt.version);
     mbedtls_x509write_crt_set_md_alg(&crt, opt.md);
 
-#if defined(MBEDTLS_BIGNUM_C)
+#if defined(MBEDTLS_BIGNUM_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
     ret = mbedtls_x509write_crt_set_serial(&crt, &serial);
     if (ret != 0) {
         mbedtls_strerror(ret, buf, sizeof(buf));

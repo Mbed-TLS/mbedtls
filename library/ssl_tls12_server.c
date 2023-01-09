@@ -2659,7 +2659,8 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
     unsigned char buf[
         PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
     psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
-    size_t ecdh_bits = 0;
+    uint16_t tls_id = 0;
+    psa_ecc_family_t ecc_family;
     size_t key_len;
     mbedtls_pk_context *pk;
     mbedtls_ecp_keypair *key;
@@ -2703,15 +2704,19 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
         if( key == NULL )
             return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-        /* Convert EC group to PSA key type. */
-        if( ( ssl->handshake->ecdh_psa_type =
-                    mbedtls_ecc_group_to_psa( key->grp.id,
-                                              &ecdh_bits ) ) == 0 )
+        tls_id = mbedtls_ssl_get_tls_id_from_ecp_group_id( key->grp.id );
+        if( tls_id == 0 )
         {
+            /* This elliptic curve is not supported */
             return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
         }
 
-        ssl->handshake->ecdh_bits = ecdh_bits;
+        /* If the above conversion to TLS ID was fine, then also this one will
+            be, so there is no need to check the retun value here */
+        mbedtls_ssl_get_psa_curve_info_from_tls_id( tls_id, &ecc_family,
+                                &ssl->handshake->ecdh_bits );
+
+        ssl->handshake->ecdh_psa_type = PSA_KEY_TYPE_ECC_KEY_PAIR( ecc_family );
 
         key_attributes = psa_key_attributes_init();
         psa_set_key_usage_flags( &key_attributes, PSA_KEY_USAGE_DERIVE );

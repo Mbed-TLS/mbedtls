@@ -2107,8 +2107,9 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
     peer_key = mbedtls_pk_ec( *peer_pk );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    size_t ecdh_bits = 0;
     size_t olen = 0;
+    uint16_t tls_id = 0;
+    psa_ecc_family_t ecc_family;
 
     if( mbedtls_ssl_check_curve( ssl, peer_key->grp.id ) != 0 )
     {
@@ -2116,17 +2117,20 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_BAD_CERTIFICATE );
     }
 
-    ssl->handshake->ecdh_psa_type =
-        PSA_KEY_TYPE_ECC_KEY_PAIR( mbedtls_ecc_group_to_psa( peer_key->grp.id,
-                                                             &ecdh_bits ) );
-
-    if( ssl->handshake->ecdh_psa_type == 0 || ecdh_bits > 0xffff )
+    tls_id = mbedtls_ssl_get_tls_id_from_ecp_group_id( peer_key->grp.id );
+    if( tls_id == 0 )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Invalid ecc group conversion to psa." ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "ECC group %d not suported",
+                                peer_key->grp.id ) );
         return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
     }
 
-    ssl->handshake->ecdh_bits = (uint16_t) ecdh_bits;
+    /* If the above conversion to TLS ID was fine, then also this one will be, 
+       so there is no need to check the retun value here */
+    mbedtls_ssl_get_psa_curve_info_from_tls_id( tls_id, &ecc_family,
+                                &ssl->handshake->ecdh_bits );
+
+    ssl->handshake->ecdh_psa_type = PSA_KEY_TYPE_ECC_KEY_PAIR( ecc_family );
 
     /* Store peer's public key in psa format. */
     ret = mbedtls_ecp_point_write_binary( &peer_key->grp, &peer_key->Q,

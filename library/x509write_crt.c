@@ -119,7 +119,7 @@ int mbedtls_x509write_crt_set_serial( mbedtls_x509write_cert *ctx,
                         MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN );
     if( ret < 0 )
         return ret;
-    
+
     /* Copy data to the internal structure skipping leading zeros */
     memcpy(ctx->serial, &tmp[MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN - tmp_len],
             tmp_len);

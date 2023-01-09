@@ -581,13 +581,13 @@ void x509_set_serial_check()
 
     memset( invalid_serial, 0x01, sizeof( invalid_serial ) );
 
-#if defined(MBEDTLS_BIGNUM_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_TEST_DEPRECATED) && defined(MBEDTLS_BIGNUM_C)
     mbedtls_mpi serial_mpi;
 
     mbedtls_mpi_init(&serial_mpi);
     TEST_EQUAL( mbedtls_mpi_read_binary( &serial_mpi, invalid_serial,
                                     sizeof( invalid_serial ) ), 0 );
-    TEST_EQUAL( mbedtls_x509write_crt_set_serial( &ctx, &serial_mpi ), 
+    TEST_EQUAL( mbedtls_x509write_crt_set_serial( &ctx, &serial_mpi ),
                         MBEDTLS_ERR_X509_BAD_INPUT_DATA );
     mbedtls_mpi_free(&serial_mpi);
 #endif

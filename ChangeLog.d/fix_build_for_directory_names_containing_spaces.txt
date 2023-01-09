@@ -1,0 +1,4 @@
+Bugfix
+   * Fix a bug in the build where directory names containing spaces were
+     causing generate_errors.pl to error out resulting in a build failure.
+     Fixes issue #6879.

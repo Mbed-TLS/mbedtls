@@ -1620,7 +1620,7 @@ uint16_t mbedtls_ssl_get_tls_id_from_ecp_group_id( mbedtls_ecp_group_id grp_id )
  *
  * \param tls_id    The TLS ID to look for
  * \return          A pointer to a const string with the proper name. If TLS
- *                  ID is not suppoted, a NULL pointer is returned instead.
+ *                  ID is not supported, a NULL pointer is returned instead.
  */
 const char* mbedtls_ssl_get_curve_name_from_tls_id( uint16_t tls_id );
 #endif

@@ -2125,8 +2125,8 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
     }
 
-    /* If the above conversion to TLS ID was fine, then also this one will be, 
-       so there is no need to check the retun value here */
+    /* If the above conversion to TLS ID was fine, then also this one will be,
+       so there is no need to check the return value here */
     mbedtls_ssl_get_psa_curve_info_from_tls_id( tls_id, &ecc_family,
                                 &ssl->handshake->ecdh_bits );
 

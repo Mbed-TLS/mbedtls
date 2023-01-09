@@ -2120,7 +2120,7 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
     tls_id = mbedtls_ssl_get_tls_id_from_ecp_group_id( peer_key->grp.id );
     if( tls_id == 0 )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "ECC group %d not suported",
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "ECC group %u not suported",
                                 peer_key->grp.id ) );
         return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
     }

@@ -60,11 +60,11 @@ open(FORMAT_FILE, "$error_format_file") or die "Opening error format file '$erro
 my $error_format = <FORMAT_FILE>;
 close(FORMAT_FILE);
 
-my @files = <$include_dir/*.h>;
+my @files = glob qq("$include_dir/*.h");
 my @necessary_include_files;
 my @matches;
 foreach my $file (@files) {
-    open(FILE, "$file");
+    open(FILE, '<:crlf', $file) or die("$0: $file: $!");
     my $content = <FILE>;
     close FILE;
     my $found = 0;

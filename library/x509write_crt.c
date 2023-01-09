@@ -100,7 +100,7 @@ int mbedtls_x509write_crt_set_issuer_name(mbedtls_x509write_cert *ctx,
     return mbedtls_x509_string_to_names(&ctx->issuer, issuer_name);
 }
 
-#if defined(MBEDTLS_BIGNUM_C)
+#if defined(MBEDTLS_BIGNUM_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
 int mbedtls_x509write_crt_set_serial(mbedtls_x509write_cert *ctx,
                                      const mbedtls_mpi *serial)
 {
@@ -129,7 +129,7 @@ int mbedtls_x509write_crt_set_serial(mbedtls_x509write_cert *ctx,
 
     return 0;
 }
-#endif
+#endif // MBEDTLS_BIGNUM_C && !MBEDTLS_DEPRECATED_REMOVED
 
 int mbedtls_x509write_crt_set_serial_new(mbedtls_x509write_cert *ctx,
                                          char *serial_buff, size_t serial_buff_len)

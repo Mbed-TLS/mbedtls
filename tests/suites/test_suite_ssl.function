@@ -6114,7 +6114,7 @@ void ssl_ecjpake_set_password( int use_opaque_arg )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_TLS_C*/
+/* BEGIN_CASE */
 void elliptic_curve_get_properties( )
 {
     psa_ecc_family_t psa_family;

@@ -220,7 +220,7 @@ subproject.
 
 ### Microsoft Visual Studio
 
-The build files for Microsoft Visual Studio are generated for Visual Studio 2010.
+The build files for Microsoft Visual Studio are generated for Visual Studio 2013.
 
 The solution file `mbedTLS.sln` contains all the basic projects needed to build the library and all the programs. The files in tests are not generated and compiled, as these need Python and perl environments as well. However, the selftest program in `programs/test/` is still available.
 

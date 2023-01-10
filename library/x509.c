@@ -1434,6 +1434,31 @@ int mbedtls_x509_parse_subject_alt_name(const mbedtls_x509_buf *san_buf,
         break;
 
         /*
+         * directoryName
+         */
+        case (MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_DIRECTORY_NAME):
+        {
+            size_t name_len;
+            unsigned char *p = san_buf->p;
+            memset(san, 0, sizeof(mbedtls_x509_subject_alternative_name));
+            san->type = MBEDTLS_X509_SAN_DIRECTORY_NAME;
+
+            ret = mbedtls_asn1_get_tag(&p, p + san_buf->len, &name_len,
+                                       MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE);
+
+            if (ret != 0) {
+                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                         ret);
+            }
+
+            if ((ret = mbedtls_x509_get_name(&p, p + name_len,
+                                             &san->san.directory_name)) != 0) {
+                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                         ret);
+            }
+        }
+        break;
+        /*
          * Type not supported
          */
         default:
@@ -1553,6 +1578,22 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
             }
             break;
 
+            /*
+             * directoryName
+             */
+            case MBEDTLS_X509_SAN_DIRECTORY_NAME:
+            {
+                ret = mbedtls_snprintf(p, n, "\n%s    directoryName : ", prefix);
+                MBEDTLS_X509_SAFE_SNPRINTF;
+                ret = mbedtls_x509_dn_gets(p, n, &san.san.directory_name);
+                if (ret < 0) {
+                    return ret;
+                }
+
+                p += ret;
+                n -= ret;
+            }
+            break;
             /*
              * Type not supported, skip item.
              */

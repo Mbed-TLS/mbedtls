@@ -99,3 +99,11 @@ nsCertType=server
 keyUsage = cRLSign
 subjectAltName=otherName:1.3.6.1.5.5.7.8.4;SEQ:nonprintable_hw_module_name
 nsCertType=client
+
+[directory_name_san]
+subjectAltName=dirName:dirname_sect
+
+[dirname_sect]
+C=UK
+O=Mbed TLS
+CN=Mbed TLS directoryName SAN

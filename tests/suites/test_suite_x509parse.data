@@ -94,6 +94,10 @@ X509 CRT information EC, SHA256 Digest, binary hardware module name SAN
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
 x509_cert_info:"data_files/server5-nonprintable_othername.crt":"cert. version     \: 3\nserial number     \: 4D\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS non-printable othername SAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS non-printable othername SAN\nissued  on        \: 2022-09-06 15\:56\:47\nexpires on        \: 2032-09-03 15\:56\:47\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\nsubject alt name  \:\n    otherName \:\n        hardware module name \:\n            hardware type          \: 1.3.6.1.4.1.17.3\n            hardware serial number \: 3132338081008180333231\n"
 
+X509 CRT information EC, SHA256 Digest, directoryName SAN
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA
+x509_cert_info:"data_files/server5-directoryname.crt":"cert. version     \: 3\nserial number     \: 4D\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS directoryName SAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS directoryName SAN\nissued  on        \: 2023-01-10 16\:59\:29\nexpires on        \: 2033-01-07 16\:59\:29\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\nsubject alt name  \:\n    directoryName \: C=UK, O=Mbed TLS, CN=Mbed TLS directoryName SAN\n"
+
 X509 CRT information EC, SHA256 Digest, Wisun Fan device
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
 x509_cert_info:"data_files/server5-fan.crt":"cert. version     \: 3\nserial number     \: 4D\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS FAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS FAN\nissued  on        \: 2019-03-25 09\:03\:46\nexpires on        \: 2029-03-22 09\:03\:46\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\next key usage     \: Wi-SUN Alliance Field Area Network (FAN)\n"
@@ -189,6 +193,10 @@ x509_parse_san:"data_files/server5-othername.crt":"type \: 0\notherName \: hardw
 X509 SAN parsing binary otherName
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
 x509_parse_san:"data_files/server5-nonprintable_othername.crt":"type \: 0\notherName \: hardware module name \: hardware type \: 1.3.6.1.4.1.17.3, hardware serial number \: 3132338081008180333231\n"
+
+X509 SAN parsing directoryName
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA
+x509_parse_san:"data_files/server5-directoryname.crt":"type \: 4\ndirectoryName \: C=UK, O=Mbed TLS, CN=Mbed TLS directoryName SAN\n"
 
 X509 SAN parsing dNSName
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA256

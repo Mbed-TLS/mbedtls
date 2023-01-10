@@ -289,6 +289,17 @@ int verify_parse_san(mbedtls_x509_subject_alternative_name *san,
                 *p++ = san->san.unstructured_name.p[i];
             }
             break;/* MBEDTLS_X509_SAN_RFC822_NAME */
+        case (MBEDTLS_X509_SAN_DIRECTORY_NAME):
+            ret = mbedtls_snprintf(p, n, "\ndirectoryName : ");
+            MBEDTLS_X509_SAFE_SNPRINTF;
+            ret = mbedtls_x509_dn_gets(p, n, &san->san.directory_name);
+            if (ret < 0) {
+                return ret;
+            }
+
+            p += ret;
+            n -= ret;
+            break;/* MBEDTLS_X509_SAN_DIRECTORY_NAME */
         default:
             /*
              * Should not happen.

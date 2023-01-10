@@ -58,6 +58,13 @@
  * value, check with the Arm PSA framework group to pick one that other
  * domains aren't already using. */
 
+/* Tell uncrustify not to touch the constant definitions, otherwise
+ * it might change the spacing to something that is not PSA-compliant
+ * (e.g. adding a space after casts).
+ *
+ * *INDENT-OFF*
+ */
+
 /** The action was completed successfully. */
 #define PSA_SUCCESS ((psa_status_t)0)
 
@@ -327,6 +334,8 @@
  * written by an incompatible version of the library.
  */
 #define PSA_ERROR_DATA_INVALID          ((psa_status_t)-153)
+
+/* *INDENT-ON* */
 
 /**@}*/
 
@@ -883,7 +892,9 @@
      (alg) & PSA_ALG_KEY_DERIVATION_STRETCHING_FLAG)
 
 /** An invalid algorithm identifier value. */
+/* *INDENT-OFF* (https://github.com/ARM-software/psa-arch-tests/issues/337) */
 #define PSA_ALG_NONE                            ((psa_algorithm_t)0)
+/* *INDENT-ON* */
 
 #define PSA_ALG_HASH_MASK                       ((psa_algorithm_t)0x000000ff)
 /** MD5 */
@@ -2378,7 +2389,9 @@
 
 /** The null key identifier.
  */
+/* *INDENT-OFF* (https://github.com/ARM-software/psa-arch-tests/issues/337) */
 #define PSA_KEY_ID_NULL                         ((psa_key_id_t)0)
+/* *INDENT-ON* */
 /** The minimum value for a key identifier chosen by the application.
  */
 #define PSA_KEY_ID_USER_MIN                     ((psa_key_id_t)0x00000001)

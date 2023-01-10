@@ -105,7 +105,6 @@ int mbedtls_x509write_crt_set_serial(mbedtls_x509write_cert *ctx,
                                      const mbedtls_mpi *serial)
 {
     int ret;
-    unsigned char tmp[MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN];
     size_t tmp_len;
 
     /* Ensure that the MPI value fits into the buffer */
@@ -116,15 +115,10 @@ int mbedtls_x509write_crt_set_serial(mbedtls_x509write_cert *ctx,
 
     ctx->serial_len = tmp_len;
 
-    ret = mbedtls_mpi_write_binary(serial, tmp,
-                                   MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN);
+    ret = mbedtls_mpi_write_binary(serial, ctx->serial, tmp_len);
     if (ret < 0) {
         return ret;
     }
-
-    /* Copy data to the internal structure skipping leading zeros */
-    memcpy(ctx->serial, &tmp[MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN - tmp_len],
-           tmp_len);
 
     return 0;
 }
@@ -540,14 +534,25 @@ int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx,
      *  Serial   ::=  INTEGER
      *
      * Written data is:
-     * - [ctx->serial_len] bytes for the raw serial buffer
+     * - "ctx->serial_len" bytes for the raw serial buffer
+     *   - if MSb of "serial" is 1, then prepend an extra 0x00 byte
      * - 1 byte for the length
      * - 1 byte for the TAG
      */
     MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_raw_buffer(&c, buf,
                                                             ctx->serial, ctx->serial_len));
-    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(&c, buf,
-                                                     ctx->serial_len));
+    if (*c & 0x80) {
+        if (c - buf < 1) {
+            return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+        }
+        *(c--) = 0x0;
+        len++;
+        MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(&c, buf,
+                                                         ctx->serial_len + 1));
+    } else {
+        MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(&c, buf,
+                                                         ctx->serial_len));
+    }
     MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_tag(&c, buf,
                                                      MBEDTLS_ASN1_INTEGER));
 

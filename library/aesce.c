@@ -65,6 +65,66 @@ int mbedtls_aesce_has_support(void)
 #endif
 }
 
+static uint8x16_t aesce_encrypt_block(uint8x16_t block,
+                                      unsigned char *keys,
+                                      int rounds)
+{
+    for (int i = 0; i < rounds - 1; i++) {
+        block = vaeseq_u8(block, vld1q_u8(keys + i * 16));
+        /* AES mix columns */
+        block = vaesmcq_u8(block);
+    }
+
+    /* AES single round encryption */
+    block = vaeseq_u8(block, vld1q_u8(keys + (rounds -1) * 16));
+
+    /* Final Add (bitwise Xor) */
+    block = veorq_u8(block, vld1q_u8(keys + rounds  * 16));
+
+    return block;
+}
+
+static uint8x16_t aesce_decrypt_block(uint8x16_t block,
+                                      unsigned char *keys,
+                                      int rounds)
+{
+
+    for (int i = 0; i < rounds - 1; i++) {
+        block = vaesdq_u8(block, vld1q_u8(keys + i * 16));
+        /* AES inverse mix columns */
+        block = vaesimcq_u8(block);
+    }
+
+    /* AES single round encryption */
+    block = vaesdq_u8(block, vld1q_u8(keys + (rounds - 1) * 16));
+
+    /* Final Add (bitwise Xor) */
+    block = veorq_u8(block, vld1q_u8(keys + rounds * 16));
+
+    return block;
+}
+
+/*
+ * AES-ECB block en(de)cryption
+ */
+int mbedtls_aesce_crypt_ecb(mbedtls_aes_context *ctx,
+                            int mode,
+                            const unsigned char input[16],
+                            unsigned char output[16])
+{
+    uint8x16_t block = vld1q_u8(&input[0]);
+    unsigned char *keys = (unsigned char *) (ctx->buf + ctx->rk_offset);
+
+    if (mode == MBEDTLS_AES_ENCRYPT) {
+        block = aesce_encrypt_block(block, keys, ctx->nr);
+    } else {
+        block = aesce_decrypt_block(block, keys, ctx->nr);
+    }
+    vst1q_u8(&output[0], block);
+
+    return 0;
+}
+
 
 /*
  * Compute decryption round keys from encryption round keys

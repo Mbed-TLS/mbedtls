@@ -963,6 +963,12 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
     }
 #endif
 
+#if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
+    if (mbedtls_aesce_has_support()) {
+        return mbedtls_aesce_crypt_ecb(ctx, mode, input, output);
+    }
+#endif
+
 #if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)
     if (aes_padlock_ace > 0) {
         if (mbedtls_padlock_xcryptecb(ctx, mode, input, output) == 0) {

@@ -49,6 +49,21 @@ extern "C" {
  */
 int mbedtls_aesce_has_support(void);
 
+/**
+ * \brief          Internal AES-ECB block encryption and decryption
+ *
+ * \param ctx      AES context
+ * \param mode     MBEDTLS_AES_ENCRYPT or MBEDTLS_AES_DECRYPT
+ * \param input    16-byte input block
+ * \param output   16-byte output block
+ *
+ * \return         0 on success (cannot fail)
+ */
+int mbedtls_aesce_crypt_ecb(mbedtls_aes_context *ctx,
+                            int mode,
+                            const unsigned char input[16],
+                            unsigned char output[16]);
+
 
 /**
  * \brief           Internal round key inversion. This function computes

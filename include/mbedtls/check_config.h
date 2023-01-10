@@ -70,6 +70,16 @@
 #error "MBEDTLS_AESNI_C defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_AESCE_C) && !defined(MBEDTLS_HAVE_ASM)
+#error "MBEDTLS_AESCE_C defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_AESCE_C) && \
+    (defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT) || \
+      defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY))
+#error "MBEDTLS_AESCE_C defined, MBEDTLS_SHA512_USE_A64_CRYPTO_* MUST be disabled for known fail."
+#endif
+
 #if defined(MBEDTLS_CTR_DRBG_C) && !defined(MBEDTLS_AES_C)
 #error "MBEDTLS_CTR_DRBG_C defined, but not all prerequisites"
 #endif

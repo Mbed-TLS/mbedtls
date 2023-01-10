@@ -2066,6 +2066,25 @@
 #define MBEDTLS_AESNI_C
 
 /**
+ * \def MBEDTLS_AESCE_C
+ *
+ * Enable AES crypto engine support on Arm64.
+ *
+ * Module:  library/aesce.c
+ * Caller:  library/aes.c
+ *
+ * Requires: MBEDTLS_HAVE_ASM, MBEDTLS_AES_C
+ *
+ * \note The code uses Neon intrinsics, so \c CFLAGS must be set to a minimum
+ * of \c -march=armv8-a+crypto .
+ *
+ * \warning `MBEDTLS_SHA512_USE_A64_CRYPTO_*` should be disabled when enabled
+ *
+ * This modules adds support for the AES crypto instructions on Arm64
+ */
+#define MBEDTLS_AESCE_C
+
+/**
  * \def MBEDTLS_AES_C
  *
  * Enable the AES block cipher.

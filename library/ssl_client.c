@@ -262,15 +262,17 @@ static int ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
             ( mbedtls_ssl_conf_is_tls12_enabled( ssl->conf ) &&
               mbedtls_ssl_tls12_named_group_is_ecdhe( *group_list ) ) )
         {
-            const mbedtls_ecp_curve_info *curve_info;
-            curve_info = mbedtls_ecp_curve_info_from_tls_id( *group_list );
-            if( curve_info == NULL )
+            if( mbedtls_ssl_get_ecp_group_id_from_tls_id( *group_list ) ==
+                MBEDTLS_ECP_DP_NONE )
+            {
                 continue;
+            }
             MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
             MBEDTLS_PUT_UINT16_BE( *group_list, p, 0 );
             p += 2;
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "NamedGroup: %s ( %x )",
-                                curve_info->name, *group_list ) );
+                        mbedtls_ssl_get_curve_name_from_tls_id( *group_list ),
+                        *group_list ) );
         }
 #endif /* MBEDTLS_ECP_C */
         /* Add DHE groups here */

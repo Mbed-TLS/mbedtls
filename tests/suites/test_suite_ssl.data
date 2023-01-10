@@ -3547,3 +3547,6 @@ ssl_ecjpake_set_password:0
 EC-JPAKE set opaque password
 depends_on:MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED:MBEDTLS_USE_PSA_CRYPTO
 ssl_ecjpake_set_password:1
+
+Test Elliptic curves' info parsing
+elliptic_curve_get_properties

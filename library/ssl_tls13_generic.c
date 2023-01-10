@@ -1516,16 +1516,19 @@ int mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
     psa_key_attributes_t key_attributes;
     size_t own_pubkey_len;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
-    size_t ecdh_bits = 0;
+    psa_ecc_family_t ec_psa_family = 0;
+    size_t ec_bits = 0;
 
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "Perform PSA-based ECDH computation." ) );
 
-    /* Convert EC group to PSA key type. */
-    if( ( handshake->ecdh_psa_type =
-        mbedtls_psa_parse_tls_ecc_group( named_group, &ecdh_bits ) ) == 0 )
-            return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-
-    ssl->handshake->ecdh_bits = ecdh_bits;
+    /* Convert EC's TLS ID to PSA key type. */
+    if( mbedtls_ssl_get_psa_curve_info_from_tls_id( named_group,
+                &ec_psa_family, &ec_bits ) == PSA_ERROR_NOT_SUPPORTED )
+    {
+        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+    }
+    handshake->ecdh_psa_type = PSA_KEY_TYPE_ECC_KEY_PAIR( ec_psa_family );
+    ssl->handshake->ecdh_bits = ec_bits;
 
     key_attributes = psa_key_attributes_init();
     psa_set_key_usage_flags( &key_attributes, PSA_KEY_USAGE_DERIVE );

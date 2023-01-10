@@ -1,9 +1,9 @@
 #!/usr/bin/env perl
 
-# Generate main file, individual apps and solution files for MS Visual Studio
-# 2010
+# Generate main file, individual apps and solution files for
+# MS Visual Studio 2013
 #
-# Must be run from mbedTLS root or scripts directory.
+# Must be run from Mbed TLS root or scripts directory.
 # Takes no argument.
 #
 # Copyright The Mbed TLS Contributors
@@ -256,7 +256,7 @@ sub del_vsx_files {
 sub main {
     if( ! check_dirs() ) {
         chdir '..' or die;
-        check_dirs or die "Must but run from mbedTLS root or scripts dir\n";
+        check_dirs or die "Must be run from Mbed TLS root or scripts dir\n";
     }
 
     # Remove old files to ensure that, for example, project files from deleted

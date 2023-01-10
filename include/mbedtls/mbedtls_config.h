@@ -1408,6 +1408,7 @@
  * module to perform private key operations instead of performing the
  * operation inside the library.
  *
+ * Requires: MBEDTLS_X509_CRT_PARSE_C
  */
 //#define MBEDTLS_SSL_ASYNC_PRIVATE
 
@@ -2011,6 +2012,8 @@
  *
  * See the documentation of `mbedtls_x509_crt_verify_with_ca_cb()` and
  * `mbedtls_ssl_conf_ca_cb()` for more information.
+ *
+ * Requires: MBEDTLS_X509_CRT_PARSE_C
  *
  * Uncomment to enable trusted certificate callbacks.
  */

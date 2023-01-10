@@ -276,6 +276,69 @@ int mbedtls_aesce_setkey_enc(unsigned char *rk,
     return 0;
 }
 
+#if defined(MBEDTLS_GCM_C)
+
+static inline uint8x16_t pmull_low(uint8x16_t a, uint8x16_t b)
+{
+    return vreinterpretq_u8_p128(
+        vmull_p64(
+            (poly64_t) vget_low_p64(vreinterpretq_p64_u8(a)),
+            (poly64_t) vget_low_p64(vreinterpretq_p64_u8(b))));
+}
+
+static inline uint8x16_t pmull_high(uint8x16_t a, uint8x16_t b)
+{
+    return vreinterpretq_u8_p128(
+        vmull_high_p64(vreinterpretq_p64_u8(a),
+                       vreinterpretq_p64_u8(b)));
+}
+
+static inline uint8x16x3_t poly_mult_128(uint8x16_t a, uint8x16_t b)
+{
+    uint8x16x3_t ret;
+    uint8x16_t c = vextq_u8(b, b, 8);
+    ret.val[0] = pmull_high(a, b);              /* a1*b1 */
+    ret.val[1] = veorq_u8(pmull_high(a, c),     /* a1*b0 + a0*b1 */
+                          pmull_low(a, c));
+    ret.val[2] = pmull_low(a, b);               /* a0*b0 */
+    return ret;
+}
+
+static inline uint8x16_t poly_mult_reduce(uint8x16x3_t a)
+{
+    uint8x16_t const Z = vdupq_n_u8(0);
+    /* use 'asm' as an optimisation barrier to prevent loading R from memory */
+    uint64x2_t r = vreinterpretq_u64_u8(vdupq_n_u8(0x87));
+    asm ("" : "+w" (r));
+    uint8x16_t const R = vreinterpretq_u8_u64(vshrq_n_u64(r, 64 - 8));
+    uint8x16_t d = a.val[0];          /* d3:d2:00:00                         */
+    uint8x16_t j = a.val[1];          /*    j2:j1:00                         */
+    uint8x16_t g = a.val[2];          /*       g1:g0 = a0*b0                 */
+    uint8x16_t h = pmull_high(d, R);  /*    h2:h1:00 = reduction of d3       */
+    uint8x16_t i = pmull_low(d, R);   /*       i1:i0 = reduction of d2       */
+    uint8x16_t k = veorq_u8(j, h);    /*    k2:k1:00 = j2:j1 + h2:h1         */
+    uint8x16_t l = pmull_high(k, R);  /*       l1:l0 = reduction of k2       */
+    uint8x16_t m = vextq_u8(Z, k, 8); /*       m1:00 = k1:00                 */
+    uint8x16_t n = veorq_u8(g, i);    /*       n1:n0 = g1:g0 + i1:i0         */
+    uint8x16_t o = veorq_u8(n, l);    /*       o1:o0 = l1:l0 + n1:n0         */
+    return veorq_u8(o, m);            /*             = o1:o0 + m1:00         */
+}
+
+/*
+ * GCM multiplication: c = a times b in GF(2^128)
+ */
+void mbedtls_aesce_gcm_mult(unsigned char c[16],
+                            const unsigned char a[16],
+                            const unsigned char b[16])
+{
+    uint8x16_t va, vb, vc;
+    va = vrbitq_u8(vld1q_u8(&a[0]));
+    vb = vrbitq_u8(vld1q_u8(&b[0]));
+    vc = vrbitq_u8(poly_mult_reduce(poly_mult_128(va, vb)));
+    vst1q_u8(&c[0], vc);
+}
+
+#endif /* MBEDTLS_GCM_C */
 
 #if defined(MBEDTLS_POP_TARGET_PRAGMA)
 #if defined(__clang__)

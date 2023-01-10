@@ -26,13 +26,13 @@
     !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C) || \
     !defined(MBEDTLS_ERROR_C) || !defined(MBEDTLS_SHA256_C) || \
     !defined(MBEDTLS_PEM_WRITE_C)
-int main( void )
+int main(void)
 {
-    mbedtls_printf( "MBEDTLS_X509_CRT_WRITE_C and/or MBEDTLS_X509_CRT_PARSE_C and/or "
-            "MBEDTLS_FS_IO and/or MBEDTLS_SHA256_C and/or "
-            "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C and/or "
-            "MBEDTLS_ERROR_C not defined.\n");
-    mbedtls_exit( 0 );
+    mbedtls_printf("MBEDTLS_X509_CRT_WRITE_C and/or MBEDTLS_X509_CRT_PARSE_C and/or "
+                   "MBEDTLS_FS_IO and/or MBEDTLS_SHA256_C and/or "
+                   "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C and/or "
+                   "MBEDTLS_ERROR_C not defined.\n");
+    mbedtls_exit(0);
 }
 #else
 
@@ -49,7 +49,7 @@ int main( void )
 #include <string.h>
 
 #define SET_OID(x, oid) \
-    do { x.len = MBEDTLS_OID_SIZE(oid); x.p = (unsigned char*)oid; } while( 0 )
+    do { x.len = MBEDTLS_OID_SIZE(oid); x.p = (unsigned char *) oid; } while (0)
 
 #if defined(MBEDTLS_X509_CSR_PARSE_C)
 #define USAGE_CSR                                                           \
@@ -110,8 +110,8 @@ int main( void )
     "    issuer_pwd=%%s           default: (empty)\n"       \
     "    output_file=%%s          default: cert.crt\n"      \
     "    serial=%%s               default: 1\n"             \
-    "    not_before=%%s           default: 20010101000000\n"\
-    "    not_after=%%s            default: 20301231235959\n"\
+    "    not_before=%%s           default: 20010101000000\n" \
+    "    not_after=%%s            default: 20301231235959\n" \
     "    is_ca=%%d                default: 0 (disabled)\n"  \
     "    max_pathlen=%%d          default: -1 (none)\n"     \
     "    md=%%s                   default: SHA256\n"        \
@@ -119,16 +119,16 @@ int main( void )
     "                            MD5, RIPEMD160, SHA1,\n" \
     "                            SHA224, SHA256, SHA384, SHA512\n" \
     "    version=%%d              default: 3\n"            \
-    "                            Possible values: 1, 2, 3\n"\
+    "                            Possible values: 1, 2, 3\n" \
     "    subject_identifier=%%s   default: 1\n"             \
     "                            Possible values: 0, 1\n"   \
-    "                            (Considered for v3 only)\n"\
+    "                            (Considered for v3 only)\n" \
     "    authority_identifier=%%s default: 1\n"             \
     "                            Possible values: 0, 1\n"   \
-    "                            (Considered for v3 only)\n"\
+    "                            (Considered for v3 only)\n" \
     "    basic_constraints=%%d    default: 1\n"             \
     "                            Possible values: 0, 1\n"   \
-    "                            (Considered for v3 only)\n"\
+    "                            (Considered for v3 only)\n" \
     "    key_usage=%%s            default: (empty)\n"       \
     "                            Comma-separated-list of values:\n"     \
     "                            digital_signature\n"     \
@@ -138,7 +138,7 @@ int main( void )
     "                            key_agreement\n"         \
     "                            key_cert_sign\n"  \
     "                            crl_sign\n"              \
-    "                            (Considered for v3 only)\n"\
+    "                            (Considered for v3 only)\n" \
     "    ext_key_usage=%%s        default: (empty)\n"      \
     "                            Comma-separated-list of values:\n"     \
     "                            serverAuth\n"             \
@@ -163,8 +163,7 @@ int main( void )
 /*
  * global options
  */
-struct options
-{
+struct options {
     const char *issuer_crt;     /* filename of the issuer certificate   */
     const char *request_file;   /* filename of the certificate request  */
     const char *subject_key;    /* filename of the subject key file     */
@@ -191,9 +190,9 @@ struct options
     int format;                 /* format                               */
 } opt;
 
-int write_certificate( mbedtls_x509write_cert *crt, const char *output_file,
-                       int (*f_rng)(void *, unsigned char *, size_t),
-                       void *p_rng )
+int write_certificate(mbedtls_x509write_cert *crt, const char *output_file,
+                      int (*f_rng)(void *, unsigned char *, size_t),
+                      void *p_rng)
 {
     int ret;
     FILE *f;
@@ -201,48 +200,49 @@ int write_certificate( mbedtls_x509write_cert *crt, const char *output_file,
     unsigned char *output_start;
     size_t len = 0;
 
-    memset( output_buf, 0, 4096 );
-    if ( opt.format == FORMAT_DER )
-    {
-        ret = mbedtls_x509write_crt_der( crt, output_buf, 4096,
-                                           f_rng, p_rng );
-        if( ret < 0 )
-            return( ret );
+    memset(output_buf, 0, 4096);
+    if (opt.format == FORMAT_DER) {
+        ret = mbedtls_x509write_crt_der(crt, output_buf, 4096,
+                                        f_rng, p_rng);
+        if (ret < 0) {
+            return ret;
+        }
 
         len = ret;
         output_start = output_buf + 4096 - len;
     } else {
-        ret = mbedtls_x509write_crt_pem( crt, output_buf, 4096,
-                                           f_rng, p_rng );
-        if( ret < 0 )
-            return( ret );
+        ret = mbedtls_x509write_crt_pem(crt, output_buf, 4096,
+                                        f_rng, p_rng);
+        if (ret < 0) {
+            return ret;
+        }
 
-        len = strlen( (char *) output_buf );
+        len = strlen((char *) output_buf);
         output_start = output_buf;
     }
 
-    if( ( f = fopen( output_file, "w" ) ) == NULL )
-        return( -1 );
-
-    if( fwrite( output_start, 1, len, f ) != len )
-    {
-        fclose( f );
-        return( -1 );
+    if ((f = fopen(output_file, "w")) == NULL) {
+        return -1;
     }
 
-    fclose( f );
+    if (fwrite(output_start, 1, len, f) != len) {
+        fclose(f);
+        return -1;
+    }
 
-    return( 0 );
+    fclose(f);
+
+    return 0;
 }
 
-int main( int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
     int ret = 1;
     int exit_code = MBEDTLS_EXIT_FAILURE;
     mbedtls_x509_crt issuer_crt;
     mbedtls_pk_context loaded_issuer_key, loaded_subject_key;
     mbedtls_pk_context *issuer_key = &loaded_issuer_key,
-                *subject_key = &loaded_subject_key;
+                       *subject_key = &loaded_subject_key;
     char buf[1024];
     char issuer_name[256];
     int i;
@@ -261,22 +261,21 @@ int main( int argc, char *argv[] )
     /*
      * Set to sane values
      */
-    mbedtls_x509write_crt_init( &crt );
-    mbedtls_pk_init( &loaded_issuer_key );
-    mbedtls_pk_init( &loaded_subject_key );
-    mbedtls_mpi_init( &serial );
-    mbedtls_ctr_drbg_init( &ctr_drbg );
-    mbedtls_entropy_init( &entropy );
+    mbedtls_x509write_crt_init(&crt);
+    mbedtls_pk_init(&loaded_issuer_key);
+    mbedtls_pk_init(&loaded_subject_key);
+    mbedtls_mpi_init(&serial);
+    mbedtls_ctr_drbg_init(&ctr_drbg);
+    mbedtls_entropy_init(&entropy);
 #if defined(MBEDTLS_X509_CSR_PARSE_C)
-    mbedtls_x509_csr_init( &csr );
+    mbedtls_x509_csr_init(&csr);
 #endif
-    mbedtls_x509_crt_init( &issuer_crt );
-    memset( buf, 0, sizeof(buf) );
+    mbedtls_x509_crt_init(&issuer_crt);
+    memset(buf, 0, sizeof(buf));
 
-    if( argc == 0 )
-    {
-    usage:
-        mbedtls_printf( USAGE );
+    if (argc == 0) {
+usage:
+        mbedtls_printf(USAGE);
         goto exit;
     }
 
@@ -305,182 +304,143 @@ int main( int argc, char *argv[] )
     opt.basic_constraints    = DFL_CONSTRAINTS;
     opt.format              = DFL_FORMAT;
 
-    for( i = 1; i < argc; i++ )
-    {
+    for (i = 1; i < argc; i++) {
 
         p = argv[i];
-        if( ( q = strchr( p, '=' ) ) == NULL )
+        if ((q = strchr(p, '=')) == NULL) {
             goto usage;
+        }
         *q++ = '\0';
 
-        if( strcmp( p, "request_file" ) == 0 )
+        if (strcmp(p, "request_file") == 0) {
             opt.request_file = q;
-        else if( strcmp( p, "subject_key" ) == 0 )
+        } else if (strcmp(p, "subject_key") == 0) {
             opt.subject_key = q;
-        else if( strcmp( p, "issuer_key" ) == 0 )
+        } else if (strcmp(p, "issuer_key") == 0) {
             opt.issuer_key = q;
-        else if( strcmp( p, "subject_pwd" ) == 0 )
+        } else if (strcmp(p, "subject_pwd") == 0) {
             opt.subject_pwd = q;
-        else if( strcmp( p, "issuer_pwd" ) == 0 )
+        } else if (strcmp(p, "issuer_pwd") == 0) {
             opt.issuer_pwd = q;
-        else if( strcmp( p, "issuer_crt" ) == 0 )
+        } else if (strcmp(p, "issuer_crt") == 0) {
             opt.issuer_crt = q;
-        else if( strcmp( p, "output_file" ) == 0 )
+        } else if (strcmp(p, "output_file") == 0) {
             opt.output_file = q;
-        else if( strcmp( p, "subject_name" ) == 0 )
-        {
+        } else if (strcmp(p, "subject_name") == 0) {
             opt.subject_name = q;
-        }
-        else if( strcmp( p, "issuer_name" ) == 0 )
-        {
+        } else if (strcmp(p, "issuer_name") == 0) {
             opt.issuer_name = q;
-        }
-        else if( strcmp( p, "not_before" ) == 0 )
-        {
+        } else if (strcmp(p, "not_before") == 0) {
             opt.not_before = q;
-        }
-        else if( strcmp( p, "not_after" ) == 0 )
-        {
+        } else if (strcmp(p, "not_after") == 0) {
             opt.not_after = q;
-        }
-        else if( strcmp( p, "serial" ) == 0 )
-        {
+        } else if (strcmp(p, "serial") == 0) {
             opt.serial = q;
-        }
-        else if( strcmp( p, "authority_identifier" ) == 0 )
-        {
-            opt.authority_identifier = atoi( q );
-            if( opt.authority_identifier != 0 &&
-                opt.authority_identifier != 1 )
-            {
-                mbedtls_printf( "Invalid argument for option %s\n", p );
+        } else if (strcmp(p, "authority_identifier") == 0) {
+            opt.authority_identifier = atoi(q);
+            if (opt.authority_identifier != 0 &&
+                opt.authority_identifier != 1) {
+                mbedtls_printf("Invalid argument for option %s\n", p);
                 goto usage;
             }
-        }
-        else if( strcmp( p, "subject_identifier" ) == 0 )
-        {
-            opt.subject_identifier = atoi( q );
-            if( opt.subject_identifier != 0 &&
-                opt.subject_identifier != 1 )
-            {
-                mbedtls_printf( "Invalid argument for option %s\n", p );
+        } else if (strcmp(p, "subject_identifier") == 0) {
+            opt.subject_identifier = atoi(q);
+            if (opt.subject_identifier != 0 &&
+                opt.subject_identifier != 1) {
+                mbedtls_printf("Invalid argument for option %s\n", p);
                 goto usage;
             }
-        }
-        else if( strcmp( p, "basic_constraints" ) == 0 )
-        {
-            opt.basic_constraints = atoi( q );
-            if( opt.basic_constraints != 0 &&
-                opt.basic_constraints != 1 )
-            {
-                mbedtls_printf( "Invalid argument for option %s\n", p );
+        } else if (strcmp(p, "basic_constraints") == 0) {
+            opt.basic_constraints = atoi(q);
+            if (opt.basic_constraints != 0 &&
+                opt.basic_constraints != 1) {
+                mbedtls_printf("Invalid argument for option %s\n", p);
                 goto usage;
             }
-        }
-        else if( strcmp( p, "md" ) == 0 )
-        {
+        } else if (strcmp(p, "md") == 0) {
             const mbedtls_md_info_t *md_info =
-                mbedtls_md_info_from_string( q );
-            if( md_info == NULL )
-            {
-                mbedtls_printf( "Invalid argument for option %s\n", p );
+                mbedtls_md_info_from_string(q);
+            if (md_info == NULL) {
+                mbedtls_printf("Invalid argument for option %s\n", p);
                 goto usage;
             }
-            opt.md = mbedtls_md_get_type( md_info );
-        }
-        else if( strcmp( p, "version" ) == 0 )
-        {
-            opt.version = atoi( q );
-            if( opt.version < 1 || opt.version > 3 )
-            {
-                mbedtls_printf( "Invalid argument for option %s\n", p );
+            opt.md = mbedtls_md_get_type(md_info);
+        } else if (strcmp(p, "version") == 0) {
+            opt.version = atoi(q);
+            if (opt.version < 1 || opt.version > 3) {
+                mbedtls_printf("Invalid argument for option %s\n", p);
                 goto usage;
             }
             opt.version--;
-        }
-        else if( strcmp( p, "selfsign" ) == 0 )
-        {
-            opt.selfsign = atoi( q );
-            if( opt.selfsign < 0 || opt.selfsign > 1 )
-            {
-                mbedtls_printf( "Invalid argument for option %s\n", p );
+        } else if (strcmp(p, "selfsign") == 0) {
+            opt.selfsign = atoi(q);
+            if (opt.selfsign < 0 || opt.selfsign > 1) {
+                mbedtls_printf("Invalid argument for option %s\n", p);
                 goto usage;
             }
-        }
-        else if( strcmp( p, "is_ca" ) == 0 )
-        {
-            opt.is_ca = atoi( q );
-            if( opt.is_ca < 0 || opt.is_ca > 1 )
-            {
-                mbedtls_printf( "Invalid argument for option %s\n", p );
+        } else if (strcmp(p, "is_ca") == 0) {
+            opt.is_ca = atoi(q);
+            if (opt.is_ca < 0 || opt.is_ca > 1) {
+                mbedtls_printf("Invalid argument for option %s\n", p);
                 goto usage;
             }
-        }
-        else if( strcmp( p, "max_pathlen" ) == 0 )
-        {
-            opt.max_pathlen = atoi( q );
-            if( opt.max_pathlen < -1 || opt.max_pathlen > 127 )
-            {
-                mbedtls_printf( "Invalid argument for option %s\n", p );
+        } else if (strcmp(p, "max_pathlen") == 0) {
+            opt.max_pathlen = atoi(q);
+            if (opt.max_pathlen < -1 || opt.max_pathlen > 127) {
+                mbedtls_printf("Invalid argument for option %s\n", p);
                 goto usage;
             }
-        }
-        else if( strcmp( p, "key_usage" ) == 0 )
-        {
-            while( q != NULL )
-            {
-                if( ( r = strchr( q, ',' ) ) != NULL )
+        } else if (strcmp(p, "key_usage") == 0) {
+            while (q != NULL) {
+                if ((r = strchr(q, ',')) != NULL) {
                     *r++ = '\0';
+                }
 
-                if( strcmp( q, "digital_signature" ) == 0 )
+                if (strcmp(q, "digital_signature") == 0) {
                     opt.key_usage |= MBEDTLS_X509_KU_DIGITAL_SIGNATURE;
-                else if( strcmp( q, "non_repudiation" ) == 0 )
+                } else if (strcmp(q, "non_repudiation") == 0) {
                     opt.key_usage |= MBEDTLS_X509_KU_NON_REPUDIATION;
-                else if( strcmp( q, "key_encipherment" ) == 0 )
+                } else if (strcmp(q, "key_encipherment") == 0) {
                     opt.key_usage |= MBEDTLS_X509_KU_KEY_ENCIPHERMENT;
-                else if( strcmp( q, "data_encipherment" ) == 0 )
+                } else if (strcmp(q, "data_encipherment") == 0) {
                     opt.key_usage |= MBEDTLS_X509_KU_DATA_ENCIPHERMENT;
-                else if( strcmp( q, "key_agreement" ) == 0 )
+                } else if (strcmp(q, "key_agreement") == 0) {
                     opt.key_usage |= MBEDTLS_X509_KU_KEY_AGREEMENT;
-                else if( strcmp( q, "key_cert_sign" ) == 0 )
+                } else if (strcmp(q, "key_cert_sign") == 0) {
                     opt.key_usage |= MBEDTLS_X509_KU_KEY_CERT_SIGN;
-                else if( strcmp( q, "crl_sign" ) == 0 )
+                } else if (strcmp(q, "crl_sign") == 0) {
                     opt.key_usage |= MBEDTLS_X509_KU_CRL_SIGN;
-                else
-                {
-                    mbedtls_printf( "Invalid argument for option %s\n", p );
+                } else {
+                    mbedtls_printf("Invalid argument for option %s\n", p);
                     goto usage;
                 }
 
                 q = r;
             }
-        }
-        else if( strcmp( p, "ext_key_usage" ) == 0 )
-        {
+        } else if (strcmp(p, "ext_key_usage") == 0) {
             mbedtls_asn1_sequence **tail = &opt.ext_key_usage;
 
-            while( q != NULL )
-            {
-                if( ( r = strchr( q, ',' ) ) != NULL )
+            while (q != NULL) {
+                if ((r = strchr(q, ',')) != NULL) {
                     *r++ = '\0';
+                }
 
-                ext_key_usage = mbedtls_calloc( 1, sizeof(mbedtls_asn1_sequence) );
+                ext_key_usage = mbedtls_calloc(1, sizeof(mbedtls_asn1_sequence));
                 ext_key_usage->buf.tag = MBEDTLS_ASN1_OID;
-                if( strcmp( q, "serverAuth" ) == 0 )
-                    SET_OID( ext_key_usage->buf, MBEDTLS_OID_SERVER_AUTH );
-                else if( strcmp( q, "clientAuth" ) == 0 )
-                    SET_OID( ext_key_usage->buf, MBEDTLS_OID_CLIENT_AUTH );
-                else if( strcmp( q, "codeSigning" ) == 0 )
-                    SET_OID( ext_key_usage->buf, MBEDTLS_OID_CODE_SIGNING );
-                else if( strcmp( q, "emailProtection" ) == 0 )
-                    SET_OID( ext_key_usage->buf, MBEDTLS_OID_EMAIL_PROTECTION );
-                else if( strcmp( q, "timeStamping" ) == 0 )
-                    SET_OID( ext_key_usage->buf, MBEDTLS_OID_TIME_STAMPING );
-                else if( strcmp( q, "OCSPSigning" ) == 0 )
-                    SET_OID( ext_key_usage->buf, MBEDTLS_OID_OCSP_SIGNING );
-                else
-                {
-                    mbedtls_printf( "Invalid argument for option %s\n", p );
+                if (strcmp(q, "serverAuth") == 0) {
+                    SET_OID(ext_key_usage->buf, MBEDTLS_OID_SERVER_AUTH);
+                } else if (strcmp(q, "clientAuth") == 0) {
+                    SET_OID(ext_key_usage->buf, MBEDTLS_OID_CLIENT_AUTH);
+                } else if (strcmp(q, "codeSigning") == 0) {
+                    SET_OID(ext_key_usage->buf, MBEDTLS_OID_CODE_SIGNING);
+                } else if (strcmp(q, "emailProtection") == 0) {
+                    SET_OID(ext_key_usage->buf, MBEDTLS_OID_EMAIL_PROTECTION);
+                } else if (strcmp(q, "timeStamping") == 0) {
+                    SET_OID(ext_key_usage->buf, MBEDTLS_OID_TIME_STAMPING);
+                } else if (strcmp(q, "OCSPSigning") == 0) {
+                    SET_OID(ext_key_usage->buf, MBEDTLS_OID_OCSP_SIGNING);
+                } else {
+                    mbedtls_printf("Invalid argument for option %s\n", p);
                     goto usage;
                 }
 
@@ -489,49 +449,45 @@ int main( int argc, char *argv[] )
 
                 q = r;
             }
-        }
-        else if( strcmp( p, "ns_cert_type" ) == 0 )
-        {
-            while( q != NULL )
-            {
-                if( ( r = strchr( q, ',' ) ) != NULL )
+        } else if (strcmp(p, "ns_cert_type") == 0) {
+            while (q != NULL) {
+                if ((r = strchr(q, ',')) != NULL) {
                     *r++ = '\0';
+                }
 
-                if( strcmp( q, "ssl_client" ) == 0 )
+                if (strcmp(q, "ssl_client") == 0) {
                     opt.ns_cert_type |= MBEDTLS_X509_NS_CERT_TYPE_SSL_CLIENT;
-                else if( strcmp( q, "ssl_server" ) == 0 )
+                } else if (strcmp(q, "ssl_server") == 0) {
                     opt.ns_cert_type |= MBEDTLS_X509_NS_CERT_TYPE_SSL_SERVER;
-                else if( strcmp( q, "email" ) == 0 )
+                } else if (strcmp(q, "email") == 0) {
                     opt.ns_cert_type |= MBEDTLS_X509_NS_CERT_TYPE_EMAIL;
-                else if( strcmp( q, "object_signing" ) == 0 )
+                } else if (strcmp(q, "object_signing") == 0) {
                     opt.ns_cert_type |= MBEDTLS_X509_NS_CERT_TYPE_OBJECT_SIGNING;
-                else if( strcmp( q, "ssl_ca" ) == 0 )
+                } else if (strcmp(q, "ssl_ca") == 0) {
                     opt.ns_cert_type |= MBEDTLS_X509_NS_CERT_TYPE_SSL_CA;
-                else if( strcmp( q, "email_ca" ) == 0 )
+                } else if (strcmp(q, "email_ca") == 0) {
                     opt.ns_cert_type |= MBEDTLS_X509_NS_CERT_TYPE_EMAIL_CA;
-                else if( strcmp( q, "object_signing_ca" ) == 0 )
+                } else if (strcmp(q, "object_signing_ca") == 0) {
                     opt.ns_cert_type |= MBEDTLS_X509_NS_CERT_TYPE_OBJECT_SIGNING_CA;
-                else
-                {
-                    mbedtls_printf( "Invalid argument for option %s\n", p );
+                } else {
+                    mbedtls_printf("Invalid argument for option %s\n", p);
                     goto usage;
                 }
 
                 q = r;
             }
-        }
-        else if( strcmp( p, "format" ) == 0 )
-        {
-            if      ( strcmp(q, "der" ) == 0 ) opt.format = FORMAT_DER;
-            else if ( strcmp(q, "pem" ) == 0 ) opt.format = FORMAT_PEM;
-            else
-            {
-                mbedtls_printf( "Invalid argument for option %s\n", p );
+        } else if (strcmp(p, "format") == 0) {
+            if (strcmp(q, "der") == 0) {
+                opt.format = FORMAT_DER;
+            } else if (strcmp(q, "pem") == 0) {
+                opt.format = FORMAT_PEM;
+            } else {
+                mbedtls_printf("Invalid argument for option %s\n", p);
                 goto usage;
             }
-        }
-        else
+        } else {
             goto usage;
+        }
     }
 
     mbedtls_printf("\n");
@@ -539,351 +495,323 @@ int main( int argc, char *argv[] )
     /*
      * 0. Seed the PRNG
      */
-    mbedtls_printf( "  . Seeding the random number generator..." );
-    fflush( stdout );
+    mbedtls_printf("  . Seeding the random number generator...");
+    fflush(stdout);
 
-    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
-                               (const unsigned char *) pers,
-                               strlen( pers ) ) ) != 0 )
-    {
-        mbedtls_strerror( ret, buf, sizeof(buf) );
-        mbedtls_printf( " failed\n  !  mbedtls_ctr_drbg_seed returned %d - %s\n",
-                        ret, buf );
+    if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
+                                     (const unsigned char *) pers,
+                                     strlen(pers))) != 0) {
+        mbedtls_strerror(ret, buf, sizeof(buf));
+        mbedtls_printf(" failed\n  !  mbedtls_ctr_drbg_seed returned %d - %s\n",
+                       ret, buf);
         goto exit;
     }
 
-    mbedtls_printf( " ok\n" );
+    mbedtls_printf(" ok\n");
 
     // Parse serial to MPI
     //
-    mbedtls_printf( "  . Reading serial number..." );
-    fflush( stdout );
+    mbedtls_printf("  . Reading serial number...");
+    fflush(stdout);
 
-    if( ( ret = mbedtls_mpi_read_string( &serial, 10, opt.serial ) ) != 0 )
-    {
-        mbedtls_strerror( ret, buf, sizeof(buf) );
-        mbedtls_printf( " failed\n  !  mbedtls_mpi_read_string "
-                        "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
+    if ((ret = mbedtls_mpi_read_string(&serial, 10, opt.serial)) != 0) {
+        mbedtls_strerror(ret, buf, sizeof(buf));
+        mbedtls_printf(" failed\n  !  mbedtls_mpi_read_string "
+                       "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf);
         goto exit;
     }
 
-    mbedtls_printf( " ok\n" );
+    mbedtls_printf(" ok\n");
 
     // Parse issuer certificate if present
     //
-    if( !opt.selfsign && strlen( opt.issuer_crt ) )
-    {
+    if (!opt.selfsign && strlen(opt.issuer_crt)) {
         /*
          * 1.0.a. Load the certificates
          */
-        mbedtls_printf( "  . Loading the issuer certificate ..." );
-        fflush( stdout );
+        mbedtls_printf("  . Loading the issuer certificate ...");
+        fflush(stdout);
 
-        if( ( ret = mbedtls_x509_crt_parse_file( &issuer_crt, opt.issuer_crt ) ) != 0 )
-        {
-            mbedtls_strerror( ret, buf, sizeof(buf) );
-            mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse_file "
-                            "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
+        if ((ret = mbedtls_x509_crt_parse_file(&issuer_crt, opt.issuer_crt)) != 0) {
+            mbedtls_strerror(ret, buf, sizeof(buf));
+            mbedtls_printf(" failed\n  !  mbedtls_x509_crt_parse_file "
+                           "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf);
             goto exit;
         }
 
-        ret = mbedtls_x509_dn_gets( issuer_name, sizeof(issuer_name),
-                                 &issuer_crt.subject );
-        if( ret < 0 )
-        {
-            mbedtls_strerror( ret, buf, sizeof(buf) );
-            mbedtls_printf( " failed\n  !  mbedtls_x509_dn_gets "
-                            "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
+        ret = mbedtls_x509_dn_gets(issuer_name, sizeof(issuer_name),
+                                   &issuer_crt.subject);
+        if (ret < 0) {
+            mbedtls_strerror(ret, buf, sizeof(buf));
+            mbedtls_printf(" failed\n  !  mbedtls_x509_dn_gets "
+                           "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf);
             goto exit;
         }
 
         opt.issuer_name = issuer_name;
 
-        mbedtls_printf( " ok\n" );
+        mbedtls_printf(" ok\n");
     }
 
 #if defined(MBEDTLS_X509_CSR_PARSE_C)
     // Parse certificate request if present
     //
-    if( !opt.selfsign && strlen( opt.request_file ) )
-    {
+    if (!opt.selfsign && strlen(opt.request_file)) {
         /*
          * 1.0.b. Load the CSR
          */
-        mbedtls_printf( "  . Loading the certificate request ..." );
-        fflush( stdout );
+        mbedtls_printf("  . Loading the certificate request ...");
+        fflush(stdout);
 
-        if( ( ret = mbedtls_x509_csr_parse_file( &csr, opt.request_file ) ) != 0 )
-        {
-            mbedtls_strerror( ret, buf, sizeof(buf) );
-            mbedtls_printf( " failed\n  !  mbedtls_x509_csr_parse_file "
-                            "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
+        if ((ret = mbedtls_x509_csr_parse_file(&csr, opt.request_file)) != 0) {
+            mbedtls_strerror(ret, buf, sizeof(buf));
+            mbedtls_printf(" failed\n  !  mbedtls_x509_csr_parse_file "
+                           "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf);
             goto exit;
         }
 
-        ret = mbedtls_x509_dn_gets( subject_name, sizeof(subject_name),
-                                 &csr.subject );
-        if( ret < 0 )
-        {
-            mbedtls_strerror( ret, buf, sizeof(buf) );
-            mbedtls_printf( " failed\n  !  mbedtls_x509_dn_gets "
-                            "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
+        ret = mbedtls_x509_dn_gets(subject_name, sizeof(subject_name),
+                                   &csr.subject);
+        if (ret < 0) {
+            mbedtls_strerror(ret, buf, sizeof(buf));
+            mbedtls_printf(" failed\n  !  mbedtls_x509_dn_gets "
+                           "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf);
             goto exit;
         }
 
         opt.subject_name = subject_name;
         subject_key = &csr.pk;
 
-        mbedtls_printf( " ok\n" );
+        mbedtls_printf(" ok\n");
     }
 #endif /* MBEDTLS_X509_CSR_PARSE_C */
 
     /*
      * 1.1. Load the keys
      */
-    if( !opt.selfsign && !strlen( opt.request_file ) )
-    {
-        mbedtls_printf( "  . Loading the subject key ..." );
-        fflush( stdout );
+    if (!opt.selfsign && !strlen(opt.request_file)) {
+        mbedtls_printf("  . Loading the subject key ...");
+        fflush(stdout);
 
-        ret = mbedtls_pk_parse_keyfile( &loaded_subject_key, opt.subject_key,
-                opt.subject_pwd, mbedtls_ctr_drbg_random, &ctr_drbg );
-        if( ret != 0 )
-        {
-            mbedtls_strerror( ret, buf, sizeof(buf) );
-            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile "
-                            "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
+        ret = mbedtls_pk_parse_keyfile(&loaded_subject_key, opt.subject_key,
+                                       opt.subject_pwd, mbedtls_ctr_drbg_random, &ctr_drbg);
+        if (ret != 0) {
+            mbedtls_strerror(ret, buf, sizeof(buf));
+            mbedtls_printf(" failed\n  !  mbedtls_pk_parse_keyfile "
+                           "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf);
             goto exit;
         }
 
-        mbedtls_printf( " ok\n" );
+        mbedtls_printf(" ok\n");
     }
 
-    mbedtls_printf( "  . Loading the issuer key ..." );
-    fflush( stdout );
+    mbedtls_printf("  . Loading the issuer key ...");
+    fflush(stdout);
 
-    ret = mbedtls_pk_parse_keyfile( &loaded_issuer_key, opt.issuer_key,
-            opt.issuer_pwd, mbedtls_ctr_drbg_random, &ctr_drbg );
-    if( ret != 0 )
-    {
-        mbedtls_strerror( ret, buf, sizeof(buf) );
-        mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile "
-                        "returned -x%02x - %s\n\n", (unsigned int) -ret, buf );
+    ret = mbedtls_pk_parse_keyfile(&loaded_issuer_key, opt.issuer_key,
+                                   opt.issuer_pwd, mbedtls_ctr_drbg_random, &ctr_drbg);
+    if (ret != 0) {
+        mbedtls_strerror(ret, buf, sizeof(buf));
+        mbedtls_printf(" failed\n  !  mbedtls_pk_parse_keyfile "
+                       "returned -x%02x - %s\n\n", (unsigned int) -ret, buf);
         goto exit;
     }
 
     // Check if key and issuer certificate match
     //
-    if( strlen( opt.issuer_crt ) )
-    {
-        if( mbedtls_pk_check_pair( &issuer_crt.pk, issuer_key,
-                                   mbedtls_ctr_drbg_random, &ctr_drbg ) != 0 )
-        {
-            mbedtls_printf( " failed\n  !  issuer_key does not match "
-                            "issuer certificate\n\n" );
+    if (strlen(opt.issuer_crt)) {
+        if (mbedtls_pk_check_pair(&issuer_crt.pk, issuer_key,
+                                  mbedtls_ctr_drbg_random, &ctr_drbg) != 0) {
+            mbedtls_printf(" failed\n  !  issuer_key does not match "
+                           "issuer certificate\n\n");
             goto exit;
         }
     }
 
-    mbedtls_printf( " ok\n" );
+    mbedtls_printf(" ok\n");
 
-    if( opt.selfsign )
-    {
+    if (opt.selfsign) {
         opt.subject_name = opt.issuer_name;
         subject_key = issuer_key;
     }
 
-    mbedtls_x509write_crt_set_subject_key( &crt, subject_key );
-    mbedtls_x509write_crt_set_issuer_key( &crt, issuer_key );
+    mbedtls_x509write_crt_set_subject_key(&crt, subject_key);
+    mbedtls_x509write_crt_set_issuer_key(&crt, issuer_key);
 
     /*
      * 1.0. Check the names for validity
      */
-    if( ( ret = mbedtls_x509write_crt_set_subject_name( &crt, opt.subject_name ) ) != 0 )
-    {
-        mbedtls_strerror( ret, buf, sizeof(buf) );
-        mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_subject_name "
-                        "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
+    if ((ret = mbedtls_x509write_crt_set_subject_name(&crt, opt.subject_name)) != 0) {
+        mbedtls_strerror(ret, buf, sizeof(buf));
+        mbedtls_printf(" failed\n  !  mbedtls_x509write_crt_set_subject_name "
+                       "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf);
         goto exit;
     }
 
-    if( ( ret = mbedtls_x509write_crt_set_issuer_name( &crt, opt.issuer_name ) ) != 0 )
-    {
-        mbedtls_strerror( ret, buf, sizeof(buf) );
-        mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_issuer_name "
-                        "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
+    if ((ret = mbedtls_x509write_crt_set_issuer_name(&crt, opt.issuer_name)) != 0) {
+        mbedtls_strerror(ret, buf, sizeof(buf));
+        mbedtls_printf(" failed\n  !  mbedtls_x509write_crt_set_issuer_name "
+                       "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf);
         goto exit;
     }
 
-    mbedtls_printf( "  . Setting certificate values ..." );
-    fflush( stdout );
+    mbedtls_printf("  . Setting certificate values ...");
+    fflush(stdout);
 
-    mbedtls_x509write_crt_set_version( &crt, opt.version );
-    mbedtls_x509write_crt_set_md_alg( &crt, opt.md );
+    mbedtls_x509write_crt_set_version(&crt, opt.version);
+    mbedtls_x509write_crt_set_md_alg(&crt, opt.md);
 
-    ret = mbedtls_x509write_crt_set_serial( &crt, &serial );
-    if( ret != 0 )
-    {
-        mbedtls_strerror( ret, buf, sizeof(buf) );
-        mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_serial "
-                        "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
+    ret = mbedtls_x509write_crt_set_serial(&crt, &serial);
+    if (ret != 0) {
+        mbedtls_strerror(ret, buf, sizeof(buf));
+        mbedtls_printf(" failed\n  !  mbedtls_x509write_crt_set_serial "
+                       "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf);
         goto exit;
     }
 
-    ret = mbedtls_x509write_crt_set_validity( &crt, opt.not_before, opt.not_after );
-    if( ret != 0 )
-    {
-        mbedtls_strerror( ret, buf, sizeof(buf) );
-        mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_validity "
-                        "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
+    ret = mbedtls_x509write_crt_set_validity(&crt, opt.not_before, opt.not_after);
+    if (ret != 0) {
+        mbedtls_strerror(ret, buf, sizeof(buf));
+        mbedtls_printf(" failed\n  !  mbedtls_x509write_crt_set_validity "
+                       "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf);
         goto exit;
     }
 
-    mbedtls_printf( " ok\n" );
+    mbedtls_printf(" ok\n");
 
-    if( opt.version == MBEDTLS_X509_CRT_VERSION_3 &&
-        opt.basic_constraints != 0 )
-    {
-        mbedtls_printf( "  . Adding the Basic Constraints extension ..." );
-        fflush( stdout );
+    if (opt.version == MBEDTLS_X509_CRT_VERSION_3 &&
+        opt.basic_constraints != 0) {
+        mbedtls_printf("  . Adding the Basic Constraints extension ...");
+        fflush(stdout);
 
-        ret = mbedtls_x509write_crt_set_basic_constraints( &crt, opt.is_ca,
-                                                           opt.max_pathlen );
-        if( ret != 0 )
-        {
-            mbedtls_strerror( ret, buf, sizeof(buf) );
-            mbedtls_printf( " failed\n  !  x509write_crt_set_basic_constraints "
-                            "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
+        ret = mbedtls_x509write_crt_set_basic_constraints(&crt, opt.is_ca,
+                                                          opt.max_pathlen);
+        if (ret != 0) {
+            mbedtls_strerror(ret, buf, sizeof(buf));
+            mbedtls_printf(" failed\n  !  x509write_crt_set_basic_constraints "
+                           "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf);
             goto exit;
         }
 
-        mbedtls_printf( " ok\n" );
+        mbedtls_printf(" ok\n");
     }
 
 #if defined(MBEDTLS_SHA1_C)
-    if( opt.version == MBEDTLS_X509_CRT_VERSION_3 &&
-        opt.subject_identifier != 0 )
-    {
-        mbedtls_printf( "  . Adding the Subject Key Identifier ..." );
-        fflush( stdout );
+    if (opt.version == MBEDTLS_X509_CRT_VERSION_3 &&
+        opt.subject_identifier != 0) {
+        mbedtls_printf("  . Adding the Subject Key Identifier ...");
+        fflush(stdout);
 
-        ret = mbedtls_x509write_crt_set_subject_key_identifier( &crt );
-        if( ret != 0 )
-        {
-            mbedtls_strerror( ret, buf, sizeof(buf) );
-            mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_subject"
-                            "_key_identifier returned -0x%04x - %s\n\n",
-                            (unsigned int) -ret, buf );
+        ret = mbedtls_x509write_crt_set_subject_key_identifier(&crt);
+        if (ret != 0) {
+            mbedtls_strerror(ret, buf, sizeof(buf));
+            mbedtls_printf(" failed\n  !  mbedtls_x509write_crt_set_subject"
+                           "_key_identifier returned -0x%04x - %s\n\n",
+                           (unsigned int) -ret, buf);
             goto exit;
         }
 
-        mbedtls_printf( " ok\n" );
+        mbedtls_printf(" ok\n");
     }
 
-    if( opt.version == MBEDTLS_X509_CRT_VERSION_3 &&
-        opt.authority_identifier != 0 )
-    {
-        mbedtls_printf( "  . Adding the Authority Key Identifier ..." );
-        fflush( stdout );
+    if (opt.version == MBEDTLS_X509_CRT_VERSION_3 &&
+        opt.authority_identifier != 0) {
+        mbedtls_printf("  . Adding the Authority Key Identifier ...");
+        fflush(stdout);
 
-        ret = mbedtls_x509write_crt_set_authority_key_identifier( &crt );
-        if( ret != 0 )
-        {
-            mbedtls_strerror( ret, buf, sizeof(buf) );
-            mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_authority_"
-                            "key_identifier returned -0x%04x - %s\n\n",
-                            (unsigned int) -ret, buf );
+        ret = mbedtls_x509write_crt_set_authority_key_identifier(&crt);
+        if (ret != 0) {
+            mbedtls_strerror(ret, buf, sizeof(buf));
+            mbedtls_printf(" failed\n  !  mbedtls_x509write_crt_set_authority_"
+                           "key_identifier returned -0x%04x - %s\n\n",
+                           (unsigned int) -ret, buf);
             goto exit;
         }
 
-        mbedtls_printf( " ok\n" );
+        mbedtls_printf(" ok\n");
     }
 #endif /* MBEDTLS_SHA1_C */
 
-    if( opt.version == MBEDTLS_X509_CRT_VERSION_3 &&
-        opt.key_usage != 0 )
-    {
-        mbedtls_printf( "  . Adding the Key Usage extension ..." );
-        fflush( stdout );
+    if (opt.version == MBEDTLS_X509_CRT_VERSION_3 &&
+        opt.key_usage != 0) {
+        mbedtls_printf("  . Adding the Key Usage extension ...");
+        fflush(stdout);
 
-        ret = mbedtls_x509write_crt_set_key_usage( &crt, opt.key_usage );
-        if( ret != 0 )
-        {
-            mbedtls_strerror( ret, buf, sizeof(buf) );
-            mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_key_usage "
-                            "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
+        ret = mbedtls_x509write_crt_set_key_usage(&crt, opt.key_usage);
+        if (ret != 0) {
+            mbedtls_strerror(ret, buf, sizeof(buf));
+            mbedtls_printf(" failed\n  !  mbedtls_x509write_crt_set_key_usage "
+                           "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf);
             goto exit;
         }
 
-        mbedtls_printf( " ok\n" );
+        mbedtls_printf(" ok\n");
     }
 
-    if( opt.ext_key_usage )
-    {
-        mbedtls_printf( "  . Adding the Extended Key Usage extension ..." );
-        fflush( stdout );
+    if (opt.ext_key_usage) {
+        mbedtls_printf("  . Adding the Extended Key Usage extension ...");
+        fflush(stdout);
 
-        ret = mbedtls_x509write_crt_set_ext_key_usage( &crt, opt.ext_key_usage );
-        if( ret != 0 )
-        {
-            mbedtls_strerror( ret, buf, sizeof(buf) );
-            mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_ext_key_usage returned -0x%02x - %s\n\n", (unsigned int) -ret, buf );
+        ret = mbedtls_x509write_crt_set_ext_key_usage(&crt, opt.ext_key_usage);
+        if (ret != 0) {
+            mbedtls_strerror(ret, buf, sizeof(buf));
+            mbedtls_printf(
+                " failed\n  !  mbedtls_x509write_crt_set_ext_key_usage returned -0x%02x - %s\n\n",
+                (unsigned int) -ret,
+                buf);
             goto exit;
         }
 
-        mbedtls_printf( " ok\n" );
+        mbedtls_printf(" ok\n");
     }
 
-    if( opt.version == MBEDTLS_X509_CRT_VERSION_3 &&
-        opt.ns_cert_type != 0 )
-    {
-        mbedtls_printf( "  . Adding the NS Cert Type extension ..." );
-        fflush( stdout );
+    if (opt.version == MBEDTLS_X509_CRT_VERSION_3 &&
+        opt.ns_cert_type != 0) {
+        mbedtls_printf("  . Adding the NS Cert Type extension ...");
+        fflush(stdout);
 
-        ret = mbedtls_x509write_crt_set_ns_cert_type( &crt, opt.ns_cert_type );
-        if( ret != 0 )
-        {
-            mbedtls_strerror( ret, buf, sizeof(buf) );
-            mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_ns_cert_type "
-                            "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
+        ret = mbedtls_x509write_crt_set_ns_cert_type(&crt, opt.ns_cert_type);
+        if (ret != 0) {
+            mbedtls_strerror(ret, buf, sizeof(buf));
+            mbedtls_printf(" failed\n  !  mbedtls_x509write_crt_set_ns_cert_type "
+                           "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf);
             goto exit;
         }
 
-        mbedtls_printf( " ok\n" );
+        mbedtls_printf(" ok\n");
     }
 
     /*
      * 1.2. Writing the certificate
      */
-    mbedtls_printf( "  . Writing the certificate..." );
-    fflush( stdout );
+    mbedtls_printf("  . Writing the certificate...");
+    fflush(stdout);
 
-    if( ( ret = write_certificate( &crt, opt.output_file,
-                                   mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
-    {
-        mbedtls_strerror( ret, buf, sizeof(buf) );
-        mbedtls_printf( " failed\n  !  write_certificate -0x%04x - %s\n\n",
-                        (unsigned int) -ret, buf );
+    if ((ret = write_certificate(&crt, opt.output_file,
+                                 mbedtls_ctr_drbg_random, &ctr_drbg)) != 0) {
+        mbedtls_strerror(ret, buf, sizeof(buf));
+        mbedtls_printf(" failed\n  !  write_certificate -0x%04x - %s\n\n",
+                       (unsigned int) -ret, buf);
         goto exit;
     }
 
-    mbedtls_printf( " ok\n" );
+    mbedtls_printf(" ok\n");
 
     exit_code = MBEDTLS_EXIT_SUCCESS;
 
 exit:
 #if defined(MBEDTLS_X509_CSR_PARSE_C)
-    mbedtls_x509_csr_free( &csr );
+    mbedtls_x509_csr_free(&csr);
 #endif /* MBEDTLS_X509_CSR_PARSE_C */
-    mbedtls_x509_crt_free( &issuer_crt );
-    mbedtls_x509write_crt_free( &crt );
-    mbedtls_pk_free( &loaded_subject_key );
-    mbedtls_pk_free( &loaded_issuer_key );
-    mbedtls_mpi_free( &serial );
-    mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
+    mbedtls_x509_crt_free(&issuer_crt);
+    mbedtls_x509write_crt_free(&crt);
+    mbedtls_pk_free(&loaded_subject_key);
+    mbedtls_pk_free(&loaded_issuer_key);
+    mbedtls_mpi_free(&serial);
+    mbedtls_ctr_drbg_free(&ctr_drbg);
+    mbedtls_entropy_free(&entropy);
 
-    mbedtls_exit( exit_code );
+    mbedtls_exit(exit_code);
 }
 #endif /* MBEDTLS_X509_CRT_WRITE_C && MBEDTLS_X509_CRT_PARSE_C &&
           MBEDTLS_FS_IO && MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C &&

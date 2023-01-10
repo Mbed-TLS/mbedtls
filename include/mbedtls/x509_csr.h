@@ -47,8 +47,7 @@ extern "C" {
  * them except via Mbed TLS library functions: the effect of modifying
  * those fields or the data that those fields point to is unspecified.
  */
-typedef struct mbedtls_x509_csr
-{
+typedef struct mbedtls_x509_csr {
     mbedtls_x509_buf raw;           /**< The raw CSR data (DER). */
     mbedtls_x509_buf cri;           /**< The raw CertificateRequestInfo body (DER). */
 
@@ -70,8 +69,7 @@ mbedtls_x509_csr;
 /**
  * Container for writing a CSR
  */
-typedef struct mbedtls_x509write_csr
-{
+typedef struct mbedtls_x509write_csr {
     mbedtls_pk_context *MBEDTLS_PRIVATE(key);
     mbedtls_asn1_named_data *MBEDTLS_PRIVATE(subject);
     mbedtls_md_type_t MBEDTLS_PRIVATE(md_alg);
@@ -91,8 +89,8 @@ mbedtls_x509write_csr;
  *
  * \return         0 if successful, or a specific X509 error code
  */
-int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
-                        const unsigned char *buf, size_t buflen );
+int mbedtls_x509_csr_parse_der(mbedtls_x509_csr *csr,
+                               const unsigned char *buf, size_t buflen);
 
 /**
  * \brief          Load a Certificate Signing Request (CSR), DER or PEM format
@@ -106,7 +104,7 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int mbedtls_x509_csr_parse( mbedtls_x509_csr *csr, const unsigned char *buf, size_t buflen );
+int mbedtls_x509_csr_parse(mbedtls_x509_csr *csr, const unsigned char *buf, size_t buflen);
 
 #if defined(MBEDTLS_FS_IO)
 /**
@@ -119,7 +117,7 @@ int mbedtls_x509_csr_parse( mbedtls_x509_csr *csr, const unsigned char *buf, siz
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int mbedtls_x509_csr_parse_file( mbedtls_x509_csr *csr, const char *path );
+int mbedtls_x509_csr_parse_file(mbedtls_x509_csr *csr, const char *path);
 #endif /* MBEDTLS_FS_IO */
 
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
@@ -135,8 +133,8 @@ int mbedtls_x509_csr_parse_file( mbedtls_x509_csr *csr, const char *path );
  * \return         The length of the string written (not including the
  *                 terminated nul byte), or a negative error code.
  */
-int mbedtls_x509_csr_info( char *buf, size_t size, const char *prefix,
-                   const mbedtls_x509_csr *csr );
+int mbedtls_x509_csr_info(char *buf, size_t size, const char *prefix,
+                          const mbedtls_x509_csr *csr);
 #endif /* !MBEDTLS_X509_REMOVE_INFO */
 
 /**
@@ -144,14 +142,14 @@ int mbedtls_x509_csr_info( char *buf, size_t size, const char *prefix,
  *
  * \param csr      CSR to initialize
  */
-void mbedtls_x509_csr_init( mbedtls_x509_csr *csr );
+void mbedtls_x509_csr_init(mbedtls_x509_csr *csr);
 
 /**
  * \brief          Unallocate all CSR data
  *
  * \param csr      CSR to free
  */
-void mbedtls_x509_csr_free( mbedtls_x509_csr *csr );
+void mbedtls_x509_csr_free(mbedtls_x509_csr *csr);
 #endif /* MBEDTLS_X509_CSR_PARSE_C */
 
 /** \} name Structures and functions for X.509 Certificate Signing Requests (CSR) */
@@ -162,7 +160,7 @@ void mbedtls_x509_csr_free( mbedtls_x509_csr *csr );
  *
  * \param ctx       CSR context to initialize
  */
-void mbedtls_x509write_csr_init( mbedtls_x509write_csr *ctx );
+void mbedtls_x509write_csr_init(mbedtls_x509write_csr *ctx);
 
 /**
  * \brief           Set the subject name for a CSR
@@ -176,8 +174,8 @@ void mbedtls_x509write_csr_init( mbedtls_x509write_csr *ctx );
  * \return          0 if subject name was parsed successfully, or
  *                  a specific error code
  */
-int mbedtls_x509write_csr_set_subject_name( mbedtls_x509write_csr *ctx,
-                                    const char *subject_name );
+int mbedtls_x509write_csr_set_subject_name(mbedtls_x509write_csr *ctx,
+                                           const char *subject_name);
 
 /**
  * \brief           Set the key for a CSR (public key will be included,
@@ -186,7 +184,7 @@ int mbedtls_x509write_csr_set_subject_name( mbedtls_x509write_csr *ctx,
  * \param ctx       CSR context to use
  * \param key       Asymmetric key to include
  */
-void mbedtls_x509write_csr_set_key( mbedtls_x509write_csr *ctx, mbedtls_pk_context *key );
+void mbedtls_x509write_csr_set_key(mbedtls_x509write_csr *ctx, mbedtls_pk_context *key);
 
 /**
  * \brief           Set the MD algorithm to use for the signature
@@ -195,7 +193,7 @@ void mbedtls_x509write_csr_set_key( mbedtls_x509write_csr *ctx, mbedtls_pk_conte
  * \param ctx       CSR context to use
  * \param md_alg    MD algorithm to use
  */
-void mbedtls_x509write_csr_set_md_alg( mbedtls_x509write_csr *ctx, mbedtls_md_type_t md_alg );
+void mbedtls_x509write_csr_set_md_alg(mbedtls_x509write_csr *ctx, mbedtls_md_type_t md_alg);
 
 /**
  * \brief           Set the Key Usage Extension flags
@@ -214,7 +212,7 @@ void mbedtls_x509write_csr_set_md_alg( mbedtls_x509write_csr *ctx, mbedtls_md_ty
  *                  #MBEDTLS_X509_KU_DECIPHER_ONLY) cannot be set using this
  *                  function.
  */
-int mbedtls_x509write_csr_set_key_usage( mbedtls_x509write_csr *ctx, unsigned char key_usage );
+int mbedtls_x509write_csr_set_key_usage(mbedtls_x509write_csr *ctx, unsigned char key_usage);
 
 /**
  * \brief           Set the Netscape Cert Type flags
@@ -225,8 +223,8 @@ int mbedtls_x509write_csr_set_key_usage( mbedtls_x509write_csr *ctx, unsigned ch
  *
  * \return          0 if successful, or MBEDTLS_ERR_X509_ALLOC_FAILED
  */
-int mbedtls_x509write_csr_set_ns_cert_type( mbedtls_x509write_csr *ctx,
-                                    unsigned char ns_cert_type );
+int mbedtls_x509write_csr_set_ns_cert_type(mbedtls_x509write_csr *ctx,
+                                           unsigned char ns_cert_type);
 
 /**
  * \brief           Generic function to add to or replace an extension in the
@@ -241,17 +239,17 @@ int mbedtls_x509write_csr_set_ns_cert_type( mbedtls_x509write_csr *ctx,
  *
  * \return          0 if successful, or a MBEDTLS_ERR_X509_ALLOC_FAILED
  */
-int mbedtls_x509write_csr_set_extension( mbedtls_x509write_csr *ctx,
-                                 const char *oid, size_t oid_len,
-                                 int critical,
-                                 const unsigned char *val, size_t val_len );
+int mbedtls_x509write_csr_set_extension(mbedtls_x509write_csr *ctx,
+                                        const char *oid, size_t oid_len,
+                                        int critical,
+                                        const unsigned char *val, size_t val_len);
 
 /**
  * \brief           Free the contents of a CSR context
  *
  * \param ctx       CSR context to free
  */
-void mbedtls_x509write_csr_free( mbedtls_x509write_csr *ctx );
+void mbedtls_x509write_csr_free(mbedtls_x509write_csr *ctx);
 
 /**
  * \brief           Write a CSR (Certificate Signing Request) to a
@@ -271,9 +269,9 @@ void mbedtls_x509write_csr_free( mbedtls_x509write_csr *ctx );
  *
  * \note            \p f_rng is used for the signature operation.
  */
-int mbedtls_x509write_csr_der( mbedtls_x509write_csr *ctx, unsigned char *buf, size_t size,
-                       int (*f_rng)(void *, unsigned char *, size_t),
-                       void *p_rng );
+int mbedtls_x509write_csr_der(mbedtls_x509write_csr *ctx, unsigned char *buf, size_t size,
+                              int (*f_rng)(void *, unsigned char *, size_t),
+                              void *p_rng);
 
 #if defined(MBEDTLS_PEM_WRITE_C)
 /**
@@ -290,9 +288,9 @@ int mbedtls_x509write_csr_der( mbedtls_x509write_csr *ctx, unsigned char *buf, s
  *
  * \note            \p f_rng is used for the signature operation.
  */
-int mbedtls_x509write_csr_pem( mbedtls_x509write_csr *ctx, unsigned char *buf, size_t size,
-                       int (*f_rng)(void *, unsigned char *, size_t),
-                       void *p_rng );
+int mbedtls_x509write_csr_pem(mbedtls_x509write_csr *ctx, unsigned char *buf, size_t size,
+                              int (*f_rng)(void *, unsigned char *, size_t),
+                              void *p_rng);
 #endif /* MBEDTLS_PEM_WRITE_C */
 #endif /* MBEDTLS_X509_CSR_WRITE_C */
 

@@ -47,42 +47,42 @@ psa_status_t mbedtls_test_transparent_key_agreement(
     size_t peer_key_length,
     uint8_t *shared_secret,
     size_t shared_secret_size,
-    size_t *shared_secret_length )
+    size_t *shared_secret_length)
 {
     mbedtls_test_driver_key_agreement_hooks.hits++;
 
-    if( mbedtls_test_driver_key_agreement_hooks.forced_status != PSA_SUCCESS )
-        return( mbedtls_test_driver_key_agreement_hooks.forced_status );
-
-    if( mbedtls_test_driver_key_agreement_hooks.forced_output != NULL )
-    {
-        if( mbedtls_test_driver_key_agreement_hooks.forced_output_length > shared_secret_size )
-            return( PSA_ERROR_BUFFER_TOO_SMALL );
-
-        memcpy( shared_secret, mbedtls_test_driver_key_agreement_hooks.forced_output,
-                mbedtls_test_driver_key_agreement_hooks.forced_output_length );
-        *shared_secret_length = mbedtls_test_driver_key_agreement_hooks.forced_output_length;
-
-        return( PSA_SUCCESS );
+    if (mbedtls_test_driver_key_agreement_hooks.forced_status != PSA_SUCCESS) {
+        return mbedtls_test_driver_key_agreement_hooks.forced_status;
     }
 
-    if( PSA_ALG_IS_ECDH(alg) )
-    {
+    if (mbedtls_test_driver_key_agreement_hooks.forced_output != NULL) {
+        if (mbedtls_test_driver_key_agreement_hooks.forced_output_length > shared_secret_size) {
+            return PSA_ERROR_BUFFER_TOO_SMALL;
+        }
+
+        memcpy(shared_secret, mbedtls_test_driver_key_agreement_hooks.forced_output,
+               mbedtls_test_driver_key_agreement_hooks.forced_output_length);
+        *shared_secret_length = mbedtls_test_driver_key_agreement_hooks.forced_output_length;
+
+        return PSA_SUCCESS;
+    }
+
+    if (PSA_ALG_IS_ECDH(alg)) {
 #if (defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
-    defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_ALG_ECDH))
-        return( libtestdriver1_mbedtls_psa_key_agreement_ecdh(
-                    (const libtestdriver1_psa_key_attributes_t *) attributes,
-                    key_buffer, key_buffer_size,
-                    alg, peer_key, peer_key_length,
-                    shared_secret, shared_secret_size,
-                    shared_secret_length ) );
+        defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_ALG_ECDH))
+        return libtestdriver1_mbedtls_psa_key_agreement_ecdh(
+            (const libtestdriver1_psa_key_attributes_t *) attributes,
+            key_buffer, key_buffer_size,
+            alg, peer_key, peer_key_length,
+            shared_secret, shared_secret_size,
+            shared_secret_length);
 #elif defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
-        return( mbedtls_psa_key_agreement_ecdh(
-                attributes,
-                key_buffer, key_buffer_size,
-                alg, peer_key, peer_key_length,
-                shared_secret, shared_secret_size,
-                shared_secret_length ) );
+        return mbedtls_psa_key_agreement_ecdh(
+            attributes,
+            key_buffer, key_buffer_size,
+            alg, peer_key, peer_key_length,
+            shared_secret, shared_secret_size,
+            shared_secret_length);
 #else
         (void) attributes;
         (void) key_buffer;
@@ -92,12 +92,10 @@ psa_status_t mbedtls_test_transparent_key_agreement(
         (void) shared_secret;
         (void) shared_secret_size;
         (void) shared_secret_length;
-        return( PSA_ERROR_NOT_SUPPORTED );
+        return PSA_ERROR_NOT_SUPPORTED;
 #endif
-    }
-    else
-    {
-        return( PSA_ERROR_INVALID_ARGUMENT );
+    } else {
+        return PSA_ERROR_INVALID_ARGUMENT;
     }
 
 }
@@ -111,7 +109,7 @@ psa_status_t mbedtls_test_opaque_key_agreement(
     size_t peer_key_length,
     uint8_t *shared_secret,
     size_t shared_secret_size,
-    size_t *shared_secret_length )
+    size_t *shared_secret_length)
 {
     (void) attributes;
     (void) key_buffer;
@@ -122,7 +120,7 @@ psa_status_t mbedtls_test_opaque_key_agreement(
     (void) shared_secret;
     (void) shared_secret_size;
     (void) shared_secret_length;
-    return( PSA_ERROR_NOT_SUPPORTED );
+    return PSA_ERROR_NOT_SUPPORTED;
 }
 
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */

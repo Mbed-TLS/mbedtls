@@ -51,6 +51,18 @@ int mbedtls_aesce_has_support(void);
 
 
 /**
+ * \brief           Internal round key inversion. This function computes
+ *                  decryption round keys from the encryption round keys.
+ *
+ * \param invkey    Round keys for the equivalent inverse cipher
+ * \param fwdkey    Original round keys (for encryption)
+ * \param nr        Number of rounds (that is, number of round keys minus one)
+ */
+void mbedtls_aesce_inverse_key(unsigned char *invkey,
+                               const unsigned char *fwdkey,
+                               int nr);
+
+/**
  * \brief           Internal key expansion for encryption
  *
  * \param rk        Destination buffer where the round keys are written

@@ -661,6 +661,16 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
     }
 #endif
 
+#if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
+    if (mbedtls_aesce_has_support()) {
+        mbedtls_aesce_inverse_key(
+            (unsigned char *) RK,
+            (const unsigned char *) (cty.buf + cty.rk_offset),
+            ctx->nr);
+        goto exit;
+    }
+#endif
+
     SK = cty.buf + cty.rk_offset + cty.nr * 4;
 
     *RK++ = *SK++;

@@ -66,6 +66,24 @@ int mbedtls_aesce_has_support(void)
 }
 
 
+/*
+ * Compute decryption round keys from encryption round keys
+ */
+void mbedtls_aesce_inverse_key(unsigned char *invkey,
+                               const unsigned char *fwdkey,
+                               int nr)
+{
+    int i, j;
+    j = nr;
+    vst1q_u8(invkey, vld1q_u8(fwdkey + j * 16));
+    for (i = 1, j--; j > 0; i++, j--) {
+        vst1q_u8(invkey + i * 16,
+                 vaesimcq_u8(vld1q_u8(fwdkey + j * 16)));
+    }
+    vst1q_u8(invkey + i * 16, vld1q_u8(fwdkey + j * 16));
+
+}
+
 static uint8_t const rcon[] = { 0x01, 0x02, 0x04, 0x08, 0x10,
                                 0x20, 0x40, 0x80, 0x1b, 0x36 };
 

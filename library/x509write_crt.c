@@ -131,15 +131,14 @@ int mbedtls_x509write_crt_set_serial(mbedtls_x509write_cert *ctx,
 #endif // MBEDTLS_BIGNUM_C && !MBEDTLS_DEPRECATED_REMOVED
 
 int mbedtls_x509write_crt_set_serial_new(mbedtls_x509write_cert *ctx,
-                                         unsigned char *serial_buff,
-                                         size_t serial_buff_len)
+                                         unsigned char *serial, size_t serial_len)
 {
-    if (serial_buff_len > MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN) {
+    if (serial_len > MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN) {
         return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
     }
 
-    ctx->serial_len = serial_buff_len;
-    memcpy(ctx->serial, serial_buff, serial_buff_len);
+    ctx->serial_len = serial_len;
+    memcpy(ctx->serial, serial, serial_len);
 
     return 0;
 }

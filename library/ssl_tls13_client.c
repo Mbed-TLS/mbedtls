@@ -1106,7 +1106,8 @@ static int ssl_tls13_parse_server_pre_shared_key_ext(mbedtls_ssl_context *ssl,
     }
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    if (ssl->session_negotiate->res_ciphersuite !=
+    if (ssl->handshake->resume &&
+        ssl->session_negotiate->res_ciphersuite !=
         ssl->session_negotiate->ciphersuite) {
         MBEDTLS_SSL_DEBUG_MSG(
             1, ("Invalid ciphersuite for session ticket psk."));
@@ -1702,8 +1703,10 @@ static int ssl_tls13_parse_server_hello(mbedtls_ssl_context *ssl,
     mbedtls_ssl_optimize_checksum(ssl, ciphersuite_info);
 
     handshake->ciphersuite_info = ciphersuite_info;
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
     ssl->session_negotiate->res_ciphersuite =
         ssl->session_negotiate->ciphersuite;
+#endif
     ssl->session_negotiate->ciphersuite = cipher_suite;
 
     MBEDTLS_SSL_DEBUG_MSG(3, ("server hello, chosen ciphersuite: ( %04x ) - %s",
@@ -2984,10 +2987,12 @@ int mbedtls_ssl_tls13_handshake_client_step(mbedtls_ssl_context *ssl)
             if (ret == 0) {
                 mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_SERVER_HELLO);
 
+#if defined(MBEDTLS_SSL_EARLY_DATA)
                 MBEDTLS_SSL_DEBUG_MSG(
                     1, ("Switch to early data keys for outbound traffic"));
                 mbedtls_ssl_set_outbound_transform(
                     ssl, ssl->handshake->transform_earlydata);
+#endif
             }
             break;
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */

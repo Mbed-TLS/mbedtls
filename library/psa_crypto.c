@@ -3419,6 +3419,8 @@ static uint32_t mbedtls_psa_interruptible_max_ops =
 
 void mbedtls_psa_interruptible_set_max_ops(uint32_t max_ops)
 {
+    mbedtls_psa_interruptible_max_ops = max_ops;
+
 #if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
     defined(MBEDTLS_ECP_RESTARTABLE)
@@ -3429,10 +3431,7 @@ void mbedtls_psa_interruptible_set_max_ops(uint32_t max_ops)
         max_ops = 1;
     }
 
-    mbedtls_psa_interruptible_max_ops = max_ops;
     mbedtls_ecp_set_max_ops(max_ops);
-#else
-    (void) max_ops;
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) &&
         * defined( MBEDTLS_ECP_RESTARTABLE ) */
@@ -3497,8 +3496,9 @@ psa_status_t mbedtls_psa_sign_hash_start(
 #endif
 
             /* Ensure default is set even if
-             * mbedtls_psa_interruptible_get_max_ops() has not been called. */
-            mbedtls_ecp_set_max_ops(mbedtls_psa_interruptible_get_max_ops());
+             * mbedtls_psa_interruptible_set_max_ops() has not been called. */
+            mbedtls_psa_interruptible_set_max_ops(
+                mbedtls_psa_interruptible_get_max_ops());
 
             status = mbedtls_psa_ecp_load_representation(attributes->core.type,
                                                          attributes->core.bits,
@@ -3685,8 +3685,9 @@ psa_status_t mbedtls_psa_verify_hash_start(
             defined(MBEDTLS_ECP_RESTARTABLE)
 
             /* Ensure default is set even if
-             * mbedtls_psa_interruptible_get_max_ops() has not been called. */
-            mbedtls_ecp_set_max_ops(mbedtls_psa_interruptible_get_max_ops());
+             * mbedtls_psa_interruptible_set_max_ops() has not been called. */
+            mbedtls_psa_interruptible_set_max_ops(
+                mbedtls_psa_interruptible_get_max_ops());
 
             status = mbedtls_psa_ecp_load_representation(attributes->core.type,
                                                          attributes->core.bits,

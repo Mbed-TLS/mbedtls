@@ -393,7 +393,6 @@ void x509_crt_check(char *subject_key_file, char *subject_pwd,
     }
 
 #if defined(MBEDTLS_TEST_DEPRECATED) && defined(MBEDTLS_BIGNUM_C)
-    /* Try to set an invalid  */
     TEST_ASSERT(mbedtls_mpi_read_binary(&serial_mpi, serial_arg->x,
                                         serial_arg->len) == 0);
     TEST_ASSERT(mbedtls_x509write_crt_set_serial(&crt, &serial_mpi) == 0);

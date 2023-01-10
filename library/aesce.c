@@ -45,6 +45,26 @@
 
 #include <arm_neon.h>
 
+#if defined(__linux__)
+#include <asm/hwcap.h>
+#include <sys/auxv.h>
+#endif
+
+/*
+ * AES instruction support detection routine
+ */
+int mbedtls_aesce_has_support(void)
+{
+#if defined(__linux__)
+    unsigned long auxval = getauxval(AT_HWCAP);
+    return (auxval & (HWCAP_ASIMD | HWCAP_AES)) ==
+           (HWCAP_ASIMD | HWCAP_AES);
+#else
+    /* Suppose aes instructions are supported. */
+    return 1;
+#endif
+}
+
 #endif /* MBEDTLS_HAVE_ARM64 */
 
 #endif /* MBEDTLS_AESCE_C */

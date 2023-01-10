@@ -31,8 +31,8 @@
 #include "mbedtls/aes.h"
 
 
-#if !defined(MBEDTLS_HAVE_ARM64) && \
-    (defined(__aarch64__) || defined(_M_ARM64))
+#if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) &&  \
+    defined(__aarch64__) && !defined(MBEDTLS_HAVE_ARM64)
 #define MBEDTLS_HAVE_ARM64
 #endif
 
@@ -41,6 +41,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * \brief          Internal function to detect the crypto engine in CPUs.
+ *
+ * \return         1 if CPU has support for the feature, 0 otherwise
+ */
+int mbedtls_aesce_has_support(void);
+
 #ifdef __cplusplus
 }
 #endif

@@ -412,6 +412,8 @@ int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
  *                  initialized restart context.
  *
  * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
+ *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
  * \return          An \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_MPI_XXX
  *                  error code on failure.
  */
@@ -470,8 +472,6 @@ int mbedtls_ecdsa_verify_restartable( mbedtls_ecp_group *grp,
  *                  \c NULL if \p f_rng is \c NULL or doesn't use a context.
  *
  * \return          \c 0 on success.
- * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
- *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
  * \return          An \c MBEDTLS_ERR_ECP_XXX, \c MBEDTLS_ERR_MPI_XXX or
  *                  \c MBEDTLS_ERR_ASN1_XXX error code on failure.
  */

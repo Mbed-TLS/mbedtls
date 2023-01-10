@@ -1,6 +1,7 @@
 Bugfix
-    * Workaround #6623. That is time unit issue. The unit of ticket age is
-      seconds in MBedTLS and milliseconds in GnuTLS. If the real age is 10ms,
-      it might be 1s(1000ms), as a result, the age of MBedTLS is greater than
-      GnuTLS server. Reduce 1 if the age is greater than 1 second to workaround
-      it.
+    * In TLS 1.3, when using a ticket for session resumption, tweak its age
+      calculation on the client side. It prevents a server with more accurate
+      ticket timestamps (typically timestamps in milliseconds) compared to the
+      Mbed TLS ticket timestamps (in seconds) to compute a ticket age smaller
+      than the age computed and transmitted by the client and thus potentially
+      reject the ticket. Fix #6623.

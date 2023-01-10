@@ -1,5 +1,0 @@
-# PSA Cryptoprocessor driver development and integration guide
-
-This document describes how to write and integrate cryptoprocessor drivers, such as accelerators and secure elements, for the PSA cryptography subsystem of the current version of Mbed TLS.
-
-The `docs/proposed/` directory contains three documents which pertain to the proposed, work-in-progress driver system. The [PSA Driver Interface](https://github.com/Mbed-TLS/mbedtls/blob/development/docs/proposed/psa-driver-interface.md) describes how drivers will interface with Mbed TLS in the future, as well as driver types, operation types, and entry points. The PSA Driver [Developer](https://github.com/Mbed-TLS/mbedtls/blob/development/docs/proposed/psa-driver-developer-guide.md) Guide describes the deliverables for writing a driver that can be used with Mbed TLS, and the PSA Driver [Integration](https://github.com/Mbed-TLS/mbedtls/blob/development/docs/proposed/psa-driver-integration-guide.md) Guide describes how a driver can be built alongside Mbed TLS.

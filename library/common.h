@@ -142,4 +142,11 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
 #define /*no-check-names*/ __func__ __FUNCTION__
 #endif
 
+/* Define `asm` for compilers which don't define it. */
+/* *INDENT-OFF* */
+#ifndef asm
+#define asm __asm__
+#endif
+/* *INDENT-ON* */
+
 #endif /* MBEDTLS_LIBRARY_COMMON_H */

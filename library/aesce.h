@@ -49,6 +49,20 @@ extern "C" {
  */
 int mbedtls_aesce_has_support(void);
 
+
+/**
+ * \brief           Internal key expansion for encryption
+ *
+ * \param rk        Destination buffer where the round keys are written
+ * \param key       Encryption key
+ * \param bits      Key size in bits (must be 128, 192 or 256)
+ *
+ * \return          0 if successful, or MBEDTLS_ERR_AES_INVALID_KEY_LENGTH
+ */
+int mbedtls_aesce_setkey_enc(unsigned char *rk,
+                             const unsigned char *key,
+                             size_t bits);
+
 #ifdef __cplusplus
 }
 #endif

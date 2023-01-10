@@ -69,7 +69,7 @@ fi
 
 # To avoid setting OpenSSL and GnuTLS for each call to compat.sh and ssl-opt.sh
 # we just export the variables they require
-export OPENSSL_CMD="$OPENSSL"
+export OPENSSL="$OPENSSL"
 export GNUTLS_CLI="$GNUTLS_CLI"
 export GNUTLS_SERV="$GNUTLS_SERV"
 
@@ -125,17 +125,17 @@ echo '################ compat.sh ################'
     echo
 
     echo '#### compat.sh: legacy (SSLv3)'
-    OPENSSL_CMD="$OPENSSL_LEGACY" sh compat.sh -m 'ssl3'
+    OPENSSL="$OPENSSL_LEGACY" sh compat.sh -m 'ssl3'
     echo
 
     echo '#### compat.sh: legacy (null, DES, RC4)'
-    OPENSSL_CMD="$OPENSSL_LEGACY" \
+    OPENSSL="$OPENSSL_LEGACY" \
     GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" \
     sh compat.sh -e '^$' -f 'NULL\|DES\|RC4\|ARCFOUR'
     echo
 
     echo '#### compat.sh: next (ARIA, ChaCha)'
-    OPENSSL_CMD="$OPENSSL_NEXT" sh compat.sh -e '^$' -f 'ARIA\|CHACHA'
+    OPENSSL="$OPENSSL_NEXT" sh compat.sh -e '^$' -f 'ARIA\|CHACHA'
     echo
 } | tee compat-test-$TEST_OUTPUT
 echo '^^^^^^^^^^^^^^^^ compat.sh ^^^^^^^^^^^^^^^^'

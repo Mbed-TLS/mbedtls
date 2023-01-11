@@ -1,5 +1,5 @@
 #include "mbedtls/platform.h"
-#include "p256-m_driver_interface.h"
+#include "p256-m_driver_entrypoints.h"
 #include "p256-m/p256-m.h"
 #include "psa/crypto.h"
 #include "psa/crypto_struct.h"
@@ -27,7 +27,7 @@ psa_status_t p256m_to_psa_error( int ret )
     }
 }
 
-psa_status_t p256m_generate_key(
+psa_status_t p256m_transparent_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key_buffer,
     size_t key_buffer_size,
@@ -69,7 +69,7 @@ psa_status_t p256m_generate_key(
     return status;
 }
 
-psa_status_t p256m_ecdh(
+psa_status_t p256m_transparent_key_agreement(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
     size_t key_buffer_size,
@@ -102,7 +102,7 @@ psa_status_t p256m_ecdh(
     return status;
 }
 
-psa_status_t p256m_sign_hash(
+psa_status_t p256m_transparent_sign_hash(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
     size_t key_buffer_size,
@@ -152,7 +152,7 @@ static psa_status_t p256m_verify_hash_with_public_key(
     return status;
 }
 
-psa_status_t p256m_verify_hash(
+psa_status_t p256m_transparent_verify_hash(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
     size_t key_buffer_size,

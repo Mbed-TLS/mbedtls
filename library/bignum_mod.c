@@ -34,16 +34,16 @@
 #include "bignum_mod_raw.h"
 #include "constant_time_internal.h"
 
-int mbedtls_mpi_mod_residue_setup(mbedtls_mpi_mod_residue *r,
-                                  const mbedtls_mpi_mod_modulus *m,
-                                  mbedtls_mpi_uint *p,
-                                  size_t p_limbs)
+int mbedtls_mpi_mod_residue_setup( mbedtls_mpi_mod_residue *r,
+                                   const mbedtls_mpi_mod_modulus *N,
+                                   mbedtls_mpi_uint *p,
+                                   size_t p_limbs )
 {
-    if (p_limbs != m->limbs || !mbedtls_mpi_core_lt_ct(p, m->p, m->limbs)) {
+    if (p_limbs != N->limbs || !mbedtls_mpi_core_lt_ct(p, N->p, N->limbs)) {
         return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
     }
 
-    r->limbs = m->limbs;
+    r->limbs = N->limbs;
     r->p = p;
 
     return 0;

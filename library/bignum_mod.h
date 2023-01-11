@@ -140,36 +140,36 @@ typedef struct {
 
 /** Setup a residue structure.
  *
- * The residue will be set up with the buffer \p p and modulus \p m.
+ * The residue will be set up with the buffer \p p and modulus \p N.
  *
  * The memory pointed to by \p p will be used by the resulting residue structure.
  * The value at the pointed-to memory will be the initial value of \p r and must
  * hold a value that is less than the modulus. This value will be used as-is
- * and interpreted according to the value of the `m->int_rep` field.
+ * and interpreted according to the value of the `N->int_rep` field.
  *
- * The modulus \p m will be the modulus associated with \p r. The residue \p r
- * should only be used in operations where the modulus is \p m.
+ * The modulus \p N will be the modulus associated with \p r. The residue \p r
+ * should only be used in operations where the modulus is \p N.
  *
  * \param[out] r    The address of the residue to setup.
- * \param[in] m     The address of the modulus related to \p r.
+ * \param[in] N     The address of the modulus related to \p r.
  * \param[in] p     The address of the limb array containing the value of \p r.
  *                  The memory pointed to by \p p will be used by \p r and must
  *                  not be modified in any way until after
  *                  mbedtls_mpi_mod_residue_release() is called. The data
  *                  pointed to by \p p must be less than the modulus (the value
- *                  pointed to by `m->p`) and already in the representation
- *                  indicated by `m->int_rep`.
+ *                  pointed to by `N->p`) and already in the representation
+ *                  indicated by `N->int_rep`.
  * \param p_limbs   The number of limbs of \p p. Must be the same as the number
- *                  of limbs in the modulus \p m.
+ *                  of limbs in the modulus \p N.
  *
  * \return      \c 0 if successful.
  * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p p_limbs is less than the
- *              limbs in \p m or if \p p is not less than \p m.
+ *              limbs in \p N or if \p p is not less than \p N.
  */
-int mbedtls_mpi_mod_residue_setup(mbedtls_mpi_mod_residue *r,
-                                  const mbedtls_mpi_mod_modulus *m,
-                                  mbedtls_mpi_uint *p,
-                                  size_t p_limbs);
+int mbedtls_mpi_mod_residue_setup( mbedtls_mpi_mod_residue *r,
+                                   const mbedtls_mpi_mod_modulus *N,
+                                   mbedtls_mpi_uint *p,
+                                   size_t p_limbs );
 
 /** Unbind elements of a residue structure.
  *

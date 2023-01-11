@@ -54,11 +54,6 @@ struct psa_storage_info_t
 /** Flag indicating that \ref psa_storage_create and \ref psa_storage_set_extended are supported */
 #define PSA_STORAGE_SUPPORT_SET_EXTENDED (1 << 0)
 
-/** \brief PSA storage specific error codes
- */
-#define PSA_ERROR_INVALID_SIGNATURE     ((psa_status_t)-149)
-#define PSA_ERROR_DATA_CORRUPT          ((psa_status_t)-152)
-
 #define PSA_ITS_API_VERSION_MAJOR  1  /**< The major version number of the PSA ITS API. It will be incremented on significant updates that may include breaking changes */
 #define PSA_ITS_API_VERSION_MINOR  1  /**< The minor version number of the PSA ITS API. It will be incremented in small updates that are unlikely to include breaking changes */
 

@@ -234,6 +234,7 @@ filter_ciphersuites()
 
 reset_ciphersuites()
 {
+    S_CIPHERS=""
     M_CIPHERS=""
     O_CIPHERS=""
     G_CIPHERS=""
@@ -258,56 +259,60 @@ add_common_ciphersuites()
 
         "ECDSA")
             CIPHERS="$CIPHERS                           \
-                TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA    \
-                TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256 \
-                TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
-                TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA    \
-                TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA384 \
-                TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384 \
-                TLS-ECDHE-ECDSA-WITH-NULL-SHA           \
+                TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA    \
+                TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256 \
+                TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256 \
+                TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA    \
+                TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384 \
+                TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384 \
+                TLS_ECDHE_ECDSA_WITH_NULL_SHA           \
                 "
             ;;
 
         "RSA")
             CIPHERS="$CIPHERS                           \
-                TLS-DHE-RSA-WITH-AES-128-CBC-SHA        \
-                TLS-DHE-RSA-WITH-AES-128-CBC-SHA256     \
-                TLS-DHE-RSA-WITH-AES-128-GCM-SHA256     \
-                TLS-DHE-RSA-WITH-AES-256-CBC-SHA        \
-                TLS-DHE-RSA-WITH-AES-256-CBC-SHA256     \
-                TLS-DHE-RSA-WITH-AES-256-GCM-SHA384     \
-                TLS-DHE-RSA-WITH-CAMELLIA-128-CBC-SHA   \
-                TLS-DHE-RSA-WITH-CAMELLIA-256-CBC-SHA   \
-                TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA      \
-                TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA256   \
-                TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256   \
-                TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA      \
-                TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA384   \
-                TLS-ECDHE-RSA-WITH-AES-256-GCM-SHA384   \
-                TLS-ECDHE-RSA-WITH-NULL-SHA             \
-                TLS-RSA-WITH-AES-128-CBC-SHA            \
-                TLS-RSA-WITH-AES-128-CBC-SHA256         \
-                TLS-RSA-WITH-AES-128-GCM-SHA256         \
-                TLS-RSA-WITH-AES-256-CBC-SHA            \
-                TLS-RSA-WITH-AES-256-CBC-SHA256         \
-                TLS-RSA-WITH-AES-256-GCM-SHA384         \
-                TLS-RSA-WITH-CAMELLIA-128-CBC-SHA       \
-                TLS-RSA-WITH-CAMELLIA-256-CBC-SHA       \
-                TLS-RSA-WITH-NULL-MD5                   \
-                TLS-RSA-WITH-NULL-SHA                   \
-                TLS-RSA-WITH-NULL-SHA256                \
+                TLS_DHE_RSA_WITH_AES_128_CBC_SHA        \
+                TLS_DHE_RSA_WITH_AES_128_CBC_SHA256     \
+                TLS_DHE_RSA_WITH_AES_128_GCM_SHA256     \
+                TLS_DHE_RSA_WITH_AES_256_CBC_SHA        \
+                TLS_DHE_RSA_WITH_AES_256_CBC_SHA256     \
+                TLS_DHE_RSA_WITH_AES_256_GCM_SHA384     \
+                TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA   \
+                TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA   \
+                TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA      \
+                TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256   \
+                TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256   \
+                TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA      \
+                TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384   \
+                TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384   \
+                TLS_ECDHE_RSA_WITH_NULL_SHA             \
+                TLS_RSA_WITH_AES_128_CBC_SHA            \
+                TLS_RSA_WITH_AES_128_CBC_SHA256         \
+                TLS_RSA_WITH_AES_128_GCM_SHA256         \
+                TLS_RSA_WITH_AES_256_CBC_SHA            \
+                TLS_RSA_WITH_AES_256_CBC_SHA256         \
+                TLS_RSA_WITH_AES_256_GCM_SHA384         \
+                TLS_RSA_WITH_CAMELLIA_128_CBC_SHA       \
+                TLS_RSA_WITH_CAMELLIA_256_CBC_SHA       \
+                TLS_RSA_WITH_NULL_MD5                   \
+                TLS_RSA_WITH_NULL_SHA                   \
+                TLS_RSA_WITH_NULL_SHA256                \
                 "
             ;;
 
         "PSK")
             CIPHERS="$CIPHERS                           \
-                TLS-PSK-WITH-AES-128-CBC-SHA            \
-                TLS-PSK-WITH-AES-256-CBC-SHA            \
+                TLS_PSK_WITH_AES_128_CBC_SHA            \
+                TLS_PSK_WITH_AES_256_CBC_SHA            \
                 "
             ;;
     esac
 
-    M_CIPHERS="$M_CIPHERS $CIPHERS"
+    S_CIPHERS="$S_CIPHERS $CIPHERS"
+
+    T=$(./scripts/translate_ciphers.py m $CIPHERS)
+    check_translation $? "$T"
+    M_CIPHERS="$M_CIPHERS $T"
 
     T=$(./scripts/translate_ciphers.py g $CIPHERS)
     check_translation $? "$T"
@@ -337,46 +342,50 @@ add_openssl_ciphersuites()
 
         "ECDSA")
             CIPHERS="$CIPHERS                                   \
-                TLS-ECDH-ECDSA-WITH-AES-128-CBC-SHA             \
-                TLS-ECDH-ECDSA-WITH-AES-128-CBC-SHA256          \
-                TLS-ECDH-ECDSA-WITH-AES-128-GCM-SHA256          \
-                TLS-ECDH-ECDSA-WITH-AES-256-CBC-SHA             \
-                TLS-ECDH-ECDSA-WITH-AES-256-CBC-SHA384          \
-                TLS-ECDH-ECDSA-WITH-AES-256-GCM-SHA384          \
-                TLS-ECDH-ECDSA-WITH-NULL-SHA                    \
-                TLS-ECDHE-ECDSA-WITH-ARIA-128-GCM-SHA256        \
-                TLS-ECDHE-ECDSA-WITH-ARIA-256-GCM-SHA384        \
-                TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256   \
+                TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA             \
+                TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256          \
+                TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256          \
+                TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA             \
+                TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384          \
+                TLS_ECDH_ECDSA_WITH_AES_256_GCM_SHA384          \
+                TLS_ECDH_ECDSA_WITH_NULL_SHA                    \
+                TLS_ECDHE_ECDSA_WITH_ARIA_128_GCM_SHA256        \
+                TLS_ECDHE_ECDSA_WITH_ARIA_256_GCM_SHA384        \
+                TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256   \
                 "
             ;;
 
         "RSA")
             CIPHERS="$CIPHERS                                   \
-                TLS-DHE-RSA-WITH-ARIA-128-GCM-SHA256            \
-                TLS-DHE-RSA-WITH-ARIA-256-GCM-SHA384            \
-                TLS-DHE-RSA-WITH-CHACHA20-POLY1305-SHA256       \
-                TLS-ECDHE-RSA-WITH-ARIA-128-GCM-SHA256          \
-                TLS-ECDHE-RSA-WITH-ARIA-256-GCM-SHA384          \
-                TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256     \
-                TLS-RSA-WITH-ARIA-128-GCM-SHA256                \
-                TLS-RSA-WITH-ARIA-256-GCM-SHA384                \
+                TLS_DHE_RSA_WITH_ARIA_128_GCM_SHA256            \
+                TLS_DHE_RSA_WITH_ARIA_256_GCM_SHA384            \
+                TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256       \
+                TLS_ECDHE_RSA_WITH_ARIA_128_GCM_SHA256          \
+                TLS_ECDHE_RSA_WITH_ARIA_256_GCM_SHA384          \
+                TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256     \
+                TLS_RSA_WITH_ARIA_128_GCM_SHA256                \
+                TLS_RSA_WITH_ARIA_256_GCM_SHA384                \
                 "
             ;;
 
         "PSK")
             CIPHERS="$CIPHERS                                   \
-                TLS-DHE-PSK-WITH-ARIA-128-GCM-SHA256            \
-                TLS-DHE-PSK-WITH-ARIA-256-GCM-SHA384            \
-                TLS-DHE-PSK-WITH-CHACHA20-POLY1305-SHA256       \
-                TLS-ECDHE-PSK-WITH-CHACHA20-POLY1305-SHA256     \
-                TLS-PSK-WITH-ARIA-128-GCM-SHA256                \
-                TLS-PSK-WITH-ARIA-256-GCM-SHA384                \
-                TLS-PSK-WITH-CHACHA20-POLY1305-SHA256           \
+                TLS_DHE_PSK_WITH_ARIA_128_GCM_SHA256            \
+                TLS_DHE_PSK_WITH_ARIA_256_GCM_SHA384            \
+                TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256       \
+                TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256     \
+                TLS_PSK_WITH_ARIA_128_GCM_SHA256                \
+                TLS_PSK_WITH_ARIA_256_GCM_SHA384                \
+                TLS_PSK_WITH_CHACHA20_POLY1305_SHA256           \
                 "
             ;;
     esac
 
-    M_CIPHERS="$M_CIPHERS $CIPHERS"
+    S_CIPHERS="$S_CIPHERS $CIPHERS"
+
+    T=$(./scripts/translate_ciphers.py m $CIPHERS)
+    check_translation $? "$T"
+    M_CIPHERS="$M_CIPHERS $T"
 
     T=$(./scripts/translate_ciphers.py o $CIPHERS)
     check_translation $? "$T"
@@ -395,99 +404,103 @@ add_gnutls_ciphersuites()
 
         "ECDSA")
             CIPHERS="$CIPHERS                                       \
-                TLS-ECDHE-ECDSA-WITH-AES-128-CCM                    \
-                TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8                  \
-                TLS-ECDHE-ECDSA-WITH-AES-256-CCM                    \
-                TLS-ECDHE-ECDSA-WITH-AES-256-CCM-8                  \
-                TLS-ECDHE-ECDSA-WITH-CAMELLIA-128-CBC-SHA256        \
-                TLS-ECDHE-ECDSA-WITH-CAMELLIA-128-GCM-SHA256        \
-                TLS-ECDHE-ECDSA-WITH-CAMELLIA-256-CBC-SHA384        \
-                TLS-ECDHE-ECDSA-WITH-CAMELLIA-256-GCM-SHA384        \
+                TLS_ECDHE_ECDSA_WITH_AES_128_CCM                    \
+                TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8                  \
+                TLS_ECDHE_ECDSA_WITH_AES_256_CCM                    \
+                TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8                  \
+                TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_CBC_SHA256        \
+                TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_GCM_SHA256        \
+                TLS_ECDHE_ECDSA_WITH_CAMELLIA_256_CBC_SHA384        \
+                TLS_ECDHE_ECDSA_WITH_CAMELLIA_256_GCM_SHA384        \
                 "
             ;;
 
         "RSA")
             CIPHERS="$CIPHERS                               \
-                TLS-DHE-RSA-WITH-AES-128-CCM                \
-                TLS-DHE-RSA-WITH-AES-128-CCM-8              \
-                TLS-DHE-RSA-WITH-AES-256-CCM                \
-                TLS-DHE-RSA-WITH-AES-256-CCM-8              \
-                TLS-DHE-RSA-WITH-CAMELLIA-128-CBC-SHA256    \
-                TLS-DHE-RSA-WITH-CAMELLIA-128-GCM-SHA256    \
-                TLS-DHE-RSA-WITH-CAMELLIA-256-CBC-SHA256    \
-                TLS-DHE-RSA-WITH-CAMELLIA-256-GCM-SHA384    \
-                TLS-ECDHE-RSA-WITH-CAMELLIA-128-CBC-SHA256  \
-                TLS-ECDHE-RSA-WITH-CAMELLIA-128-GCM-SHA256  \
-                TLS-ECDHE-RSA-WITH-CAMELLIA-256-CBC-SHA384  \
-                TLS-ECDHE-RSA-WITH-CAMELLIA-256-GCM-SHA384  \
-                TLS-RSA-WITH-AES-128-CCM                    \
-                TLS-RSA-WITH-AES-128-CCM-8                  \
-                TLS-RSA-WITH-AES-256-CCM                    \
-                TLS-RSA-WITH-AES-256-CCM-8                  \
-                TLS-RSA-WITH-CAMELLIA-128-CBC-SHA256        \
-                TLS-RSA-WITH-CAMELLIA-128-GCM-SHA256        \
-                TLS-RSA-WITH-CAMELLIA-256-CBC-SHA256        \
-                TLS-RSA-WITH-CAMELLIA-256-GCM-SHA384        \
+                TLS_DHE_RSA_WITH_AES_128_CCM                \
+                TLS_DHE_RSA_WITH_AES_128_CCM_8              \
+                TLS_DHE_RSA_WITH_AES_256_CCM                \
+                TLS_DHE_RSA_WITH_AES_256_CCM_8              \
+                TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256    \
+                TLS_DHE_RSA_WITH_CAMELLIA_128_GCM_SHA256    \
+                TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256    \
+                TLS_DHE_RSA_WITH_CAMELLIA_256_GCM_SHA384    \
+                TLS_ECDHE_RSA_WITH_CAMELLIA_128_CBC_SHA256  \
+                TLS_ECDHE_RSA_WITH_CAMELLIA_128_GCM_SHA256  \
+                TLS_ECDHE_RSA_WITH_CAMELLIA_256_CBC_SHA384  \
+                TLS_ECDHE_RSA_WITH_CAMELLIA_256_GCM_SHA384  \
+                TLS_RSA_WITH_AES_128_CCM                    \
+                TLS_RSA_WITH_AES_128_CCM_8                  \
+                TLS_RSA_WITH_AES_256_CCM                    \
+                TLS_RSA_WITH_AES_256_CCM_8                  \
+                TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256        \
+                TLS_RSA_WITH_CAMELLIA_128_GCM_SHA256        \
+                TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256        \
+                TLS_RSA_WITH_CAMELLIA_256_GCM_SHA384        \
                 "
             ;;
 
         "PSK")
             CIPHERS="$CIPHERS                               \
-                TLS-DHE-PSK-WITH-AES-128-CBC-SHA            \
-                TLS-DHE-PSK-WITH-AES-128-CBC-SHA256         \
-                TLS-DHE-PSK-WITH-AES-128-CCM                \
-                TLS-DHE-PSK-WITH-AES-128-CCM-8              \
-                TLS-DHE-PSK-WITH-AES-128-GCM-SHA256         \
-                TLS-DHE-PSK-WITH-AES-256-CBC-SHA            \
-                TLS-DHE-PSK-WITH-AES-256-CBC-SHA384         \
-                TLS-DHE-PSK-WITH-AES-256-CCM                \
-                TLS-DHE-PSK-WITH-AES-256-CCM-8              \
-                TLS-DHE-PSK-WITH-AES-256-GCM-SHA384         \
-                TLS-DHE-PSK-WITH-CAMELLIA-128-CBC-SHA256    \
-                TLS-DHE-PSK-WITH-CAMELLIA-128-GCM-SHA256    \
-                TLS-DHE-PSK-WITH-CAMELLIA-256-CBC-SHA384    \
-                TLS-DHE-PSK-WITH-CAMELLIA-256-GCM-SHA384    \
-                TLS-DHE-PSK-WITH-NULL-SHA256                \
-                TLS-DHE-PSK-WITH-NULL-SHA384                \
-                TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA          \
-                TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA256       \
-                TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA          \
-                TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA384       \
-                TLS-ECDHE-PSK-WITH-CAMELLIA-128-CBC-SHA256  \
-                TLS-ECDHE-PSK-WITH-CAMELLIA-256-CBC-SHA384  \
-                TLS-ECDHE-PSK-WITH-NULL-SHA256              \
-                TLS-ECDHE-PSK-WITH-NULL-SHA384              \
-                TLS-PSK-WITH-AES-128-CBC-SHA256             \
-                TLS-PSK-WITH-AES-128-CCM                    \
-                TLS-PSK-WITH-AES-128-CCM-8                  \
-                TLS-PSK-WITH-AES-128-GCM-SHA256             \
-                TLS-PSK-WITH-AES-256-CBC-SHA384             \
-                TLS-PSK-WITH-AES-256-CCM                    \
-                TLS-PSK-WITH-AES-256-CCM-8                  \
-                TLS-PSK-WITH-AES-256-GCM-SHA384             \
-                TLS-PSK-WITH-CAMELLIA-128-CBC-SHA256        \
-                TLS-PSK-WITH-CAMELLIA-128-GCM-SHA256        \
-                TLS-PSK-WITH-CAMELLIA-256-CBC-SHA384        \
-                TLS-PSK-WITH-CAMELLIA-256-GCM-SHA384        \
-                TLS-PSK-WITH-NULL-SHA256                    \
-                TLS-PSK-WITH-NULL-SHA384                    \
-                TLS-RSA-PSK-WITH-AES-128-CBC-SHA            \
-                TLS-RSA-PSK-WITH-AES-128-CBC-SHA256         \
-                TLS-RSA-PSK-WITH-AES-128-GCM-SHA256         \
-                TLS-RSA-PSK-WITH-AES-256-CBC-SHA            \
-                TLS-RSA-PSK-WITH-AES-256-CBC-SHA384         \
-                TLS-RSA-PSK-WITH-AES-256-GCM-SHA384         \
-                TLS-RSA-PSK-WITH-CAMELLIA-128-CBC-SHA256    \
-                TLS-RSA-PSK-WITH-CAMELLIA-128-GCM-SHA256    \
-                TLS-RSA-PSK-WITH-CAMELLIA-256-CBC-SHA384    \
-                TLS-RSA-PSK-WITH-CAMELLIA-256-GCM-SHA384    \
-                TLS-RSA-PSK-WITH-NULL-SHA256                \
-                TLS-RSA-PSK-WITH-NULL-SHA384                \
+                TLS_DHE_PSK_WITH_AES_128_CBC_SHA            \
+                TLS_DHE_PSK_WITH_AES_128_CBC_SHA256         \
+                TLS_DHE_PSK_WITH_AES_128_CCM                \
+                TLS_DHE_PSK_WITH_AES_128_CCM_8              \
+                TLS_DHE_PSK_WITH_AES_128_GCM_SHA256         \
+                TLS_DHE_PSK_WITH_AES_256_CBC_SHA            \
+                TLS_DHE_PSK_WITH_AES_256_CBC_SHA384         \
+                TLS_DHE_PSK_WITH_AES_256_CCM                \
+                TLS_DHE_PSK_WITH_AES_256_CCM_8              \
+                TLS_DHE_PSK_WITH_AES_256_GCM_SHA384         \
+                TLS_DHE_PSK_WITH_CAMELLIA_128_CBC_SHA256    \
+                TLS_DHE_PSK_WITH_CAMELLIA_128_GCM_SHA256    \
+                TLS_DHE_PSK_WITH_CAMELLIA_256_CBC_SHA384    \
+                TLS_DHE_PSK_WITH_CAMELLIA_256_GCM_SHA384    \
+                TLS_DHE_PSK_WITH_NULL_SHA256                \
+                TLS_DHE_PSK_WITH_NULL_SHA384                \
+                TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA          \
+                TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256       \
+                TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA          \
+                TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA384       \
+                TLS_ECDHE_PSK_WITH_CAMELLIA_128_CBC_SHA256  \
+                TLS_ECDHE_PSK_WITH_CAMELLIA_256_CBC_SHA384  \
+                TLS_ECDHE_PSK_WITH_NULL_SHA256              \
+                TLS_ECDHE_PSK_WITH_NULL_SHA384              \
+                TLS_PSK_WITH_AES_128_CBC_SHA256             \
+                TLS_PSK_WITH_AES_128_CCM                    \
+                TLS_PSK_WITH_AES_128_CCM_8                  \
+                TLS_PSK_WITH_AES_128_GCM_SHA256             \
+                TLS_PSK_WITH_AES_256_CBC_SHA384             \
+                TLS_PSK_WITH_AES_256_CCM                    \
+                TLS_PSK_WITH_AES_256_CCM_8                  \
+                TLS_PSK_WITH_AES_256_GCM_SHA384             \
+                TLS_PSK_WITH_CAMELLIA_128_CBC_SHA256        \
+                TLS_PSK_WITH_CAMELLIA_128_GCM_SHA256        \
+                TLS_PSK_WITH_CAMELLIA_256_CBC_SHA384        \
+                TLS_PSK_WITH_CAMELLIA_256_GCM_SHA384        \
+                TLS_PSK_WITH_NULL_SHA256                    \
+                TLS_PSK_WITH_NULL_SHA384                    \
+                TLS_RSA_PSK_WITH_AES_128_CBC_SHA            \
+                TLS_RSA_PSK_WITH_AES_128_CBC_SHA256         \
+                TLS_RSA_PSK_WITH_AES_128_GCM_SHA256         \
+                TLS_RSA_PSK_WITH_AES_256_CBC_SHA            \
+                TLS_RSA_PSK_WITH_AES_256_CBC_SHA384         \
+                TLS_RSA_PSK_WITH_AES_256_GCM_SHA384         \
+                TLS_RSA_PSK_WITH_CAMELLIA_128_CBC_SHA256    \
+                TLS_RSA_PSK_WITH_CAMELLIA_128_GCM_SHA256    \
+                TLS_RSA_PSK_WITH_CAMELLIA_256_CBC_SHA384    \
+                TLS_RSA_PSK_WITH_CAMELLIA_256_GCM_SHA384    \
+                TLS_RSA_PSK_WITH_NULL_SHA256                \
+                TLS_RSA_PSK_WITH_NULL_SHA384                \
                 "
             ;;
     esac
 
-    M_CIPHERS="$M_CIPHERS $CIPHERS"
+    S_CIPHERS="$S_CIPHERS $CIPHERS"
+
+    T=$(./scripts/translate_ciphers.py m $CIPHERS)
+    check_translation $? "$T"
+    M_CIPHERS="$M_CIPHERS $T"
 
     T=$(./scripts/translate_ciphers.py g $CIPHERS)
     check_translation $? "$T"
@@ -503,51 +516,57 @@ add_mbedtls_ciphersuites()
 
         "ECDSA")
             M_CIPHERS="$M_CIPHERS                               \
-                TLS-ECDH-ECDSA-WITH-ARIA-128-CBC-SHA256         \
-                TLS-ECDH-ECDSA-WITH-ARIA-128-GCM-SHA256         \
-                TLS-ECDH-ECDSA-WITH-ARIA-256-CBC-SHA384         \
-                TLS-ECDH-ECDSA-WITH-ARIA-256-GCM-SHA384         \
-                TLS-ECDH-ECDSA-WITH-CAMELLIA-128-CBC-SHA256     \
-                TLS-ECDH-ECDSA-WITH-CAMELLIA-128-GCM-SHA256     \
-                TLS-ECDH-ECDSA-WITH-CAMELLIA-256-CBC-SHA384     \
-                TLS-ECDH-ECDSA-WITH-CAMELLIA-256-GCM-SHA384     \
-                TLS-ECDHE-ECDSA-WITH-ARIA-128-CBC-SHA256        \
-                TLS-ECDHE-ECDSA-WITH-ARIA-256-CBC-SHA384        \
+                TLS_ECDH_ECDSA_WITH_ARIA_128_CBC_SHA256         \
+                TLS_ECDH_ECDSA_WITH_ARIA_128_GCM_SHA256         \
+                TLS_ECDH_ECDSA_WITH_ARIA_256_CBC_SHA384         \
+                TLS_ECDH_ECDSA_WITH_ARIA_256_GCM_SHA384         \
+                TLS_ECDH_ECDSA_WITH_CAMELLIA_128_CBC_SHA256     \
+                TLS_ECDH_ECDSA_WITH_CAMELLIA_128_GCM_SHA256     \
+                TLS_ECDH_ECDSA_WITH_CAMELLIA_256_CBC_SHA384     \
+                TLS_ECDH_ECDSA_WITH_CAMELLIA_256_GCM_SHA384     \
+                TLS_ECDHE_ECDSA_WITH_ARIA_128_CBC_SHA256        \
+                TLS_ECDHE_ECDSA_WITH_ARIA_256_CBC_SHA384        \
                 "
             ;;
 
         "RSA")
             M_CIPHERS="$M_CIPHERS                               \
-                TLS-DHE-RSA-WITH-ARIA-128-CBC-SHA256            \
-                TLS-DHE-RSA-WITH-ARIA-256-CBC-SHA384            \
-                TLS-ECDHE-RSA-WITH-ARIA-128-CBC-SHA256          \
-                TLS-ECDHE-RSA-WITH-ARIA-256-CBC-SHA384          \
-                TLS-RSA-WITH-ARIA-128-CBC-SHA256                \
-                TLS-RSA-WITH-ARIA-256-CBC-SHA384                \
+                TLS_DHE_RSA_WITH_ARIA_128_CBC_SHA256            \
+                TLS_DHE_RSA_WITH_ARIA_256_CBC_SHA384            \
+                TLS_ECDHE_RSA_WITH_ARIA_128_CBC_SHA256          \
+                TLS_ECDHE_RSA_WITH_ARIA_256_CBC_SHA384          \
+                TLS_RSA_WITH_ARIA_128_CBC_SHA256                \
+                TLS_RSA_WITH_ARIA_256_CBC_SHA384                \
                 "
             ;;
 
         "PSK")
-            # *PSK-NULL-SHA suites supported by GnuTLS 3.3.5 but not 3.2.15
+            # *PSK_NULL_SHA suites supported by GnuTLS 3.3.5 but not 3.2.15
             M_CIPHERS="$M_CIPHERS                               \
-                TLS-DHE-PSK-WITH-ARIA-128-CBC-SHA256            \
-                TLS-DHE-PSK-WITH-ARIA-256-CBC-SHA384            \
-                TLS-DHE-PSK-WITH-NULL-SHA                       \
-                TLS-ECDHE-PSK-WITH-ARIA-128-CBC-SHA256          \
-                TLS-ECDHE-PSK-WITH-ARIA-256-CBC-SHA384          \
-                TLS-ECDHE-PSK-WITH-NULL-SHA                     \
-                TLS-PSK-WITH-ARIA-128-CBC-SHA256                \
-                TLS-PSK-WITH-ARIA-256-CBC-SHA384                \
-                TLS-PSK-WITH-NULL-SHA                           \
-                TLS-RSA-PSK-WITH-ARIA-128-CBC-SHA256            \
-                TLS-RSA-PSK-WITH-ARIA-128-GCM-SHA256            \
-                TLS-RSA-PSK-WITH-ARIA-256-CBC-SHA384            \
-                TLS-RSA-PSK-WITH-ARIA-256-GCM-SHA384            \
-                TLS-RSA-PSK-WITH-CHACHA20-POLY1305-SHA256       \
-                TLS-RSA-PSK-WITH-NULL-SHA                       \
+                TLS_DHE_PSK_WITH_ARIA_128_CBC_SHA256            \
+                TLS_DHE_PSK_WITH_ARIA_256_CBC_SHA384            \
+                TLS_DHE_PSK_WITH_NULL_SHA                       \
+                TLS_ECDHE_PSK_WITH_ARIA_128_CBC_SHA256          \
+                TLS_ECDHE_PSK_WITH_ARIA_256_CBC_SHA384          \
+                TLS_ECDHE_PSK_WITH_NULL_SHA                     \
+                TLS_PSK_WITH_ARIA_128_CBC_SHA256                \
+                TLS_PSK_WITH_ARIA_256_CBC_SHA384                \
+                TLS_PSK_WITH_NULL_SHA                           \
+                TLS_RSA_PSK_WITH_ARIA_128_CBC_SHA256            \
+                TLS_RSA_PSK_WITH_ARIA_128_GCM_SHA256            \
+                TLS_RSA_PSK_WITH_ARIA_256_CBC_SHA384            \
+                TLS_RSA_PSK_WITH_ARIA_256_GCM_SHA384            \
+                TLS_RSA_PSK_WITH_CHACHA20_POLY1305_SHA256       \
+                TLS_RSA_PSK_WITH_NULL_SHA                       \
                 "
             ;;
     esac
+
+    S_CIPHERS="$S_CIPHERS $CIPHERS"
+
+    T=$(./scripts/translate_ciphers.py m $CIPHERS)
+    check_translation $? "$T"
+    M_CIPHERS="$M_CIPHERS $T"
 }
 
 setup_arguments()

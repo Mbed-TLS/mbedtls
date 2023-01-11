@@ -389,6 +389,39 @@ int parse_crt_ext_cb( void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x509_buf
         return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
                                    MBEDTLS_ERR_ASN1_UNEXPECTED_TAG ) );
 }
+
+int parse_crl_ext_cb_recognized(void* p_ctx,
+    mbedtls_x509_crl const* crl,
+    mbedtls_x509_buf const* oid,
+    int critical,
+    const unsigned char* p,
+    const unsigned char* end)
+{
+    ((void) p_ctx);
+    ((void) crl);
+    ((void) oid);
+    ((void) critical);
+    ((void) p);
+    ((void) end);
+    return 0;
+}
+
+int parse_crl_ext_cb_not_recognized(void* p_ctx,
+    mbedtls_x509_crl const* crl,
+    mbedtls_x509_buf const* oid,
+    int critical,
+    const unsigned char* p,
+    const unsigned char* end)
+{
+    ((void) p_ctx);
+    ((void) crl);
+    ((void) oid);
+    ((void) critical);
+    ((void) p);
+    ((void) end);
+    return MBEDTLS_ERR_X509_INVALID_EXTENSIONS + MBEDTLS_ERR_ASN1_UNEXPECTED_TAG;
+}
+
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 /* END_HEADER */
 
@@ -512,6 +545,46 @@ void mbedtls_x509_crl_parse( char * crl_file, int result )
 
 exit:
     mbedtls_x509_crl_free( &crl );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRL_PARSE_C */
+void mbedtls_x509_crl_parse_cb_recognized( char * crl_file, int result )
+{
+    mbedtls_x509_crl   crl;
+    size_t n;
+    unsigned char *buf = NULL;
+
+    mbedtls_x509_crl_init( &crl );
+
+    TEST_ASSERT( mbedtls_pk_load_file(crl_file, &buf, &n) == 0 );
+
+    TEST_ASSERT( mbedtls_x509_crl_parse_with_cb_ext( &crl, buf, n, parse_crl_ext_cb_recognized, NULL ) == result );
+
+exit:
+    mbedtls_x509_crl_free( &crl );
+    if (buf)
+        mbedtls_free(buf);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRL_PARSE_C */
+void mbedtls_x509_crl_parse_cb_not_recognized( char * crl_file, int result )
+{
+    mbedtls_x509_crl   crl;
+    size_t n;
+    unsigned char *buf = NULL;
+
+    mbedtls_x509_crl_init( &crl );
+
+    TEST_ASSERT( mbedtls_pk_load_file(crl_file, &buf, &n) == 0 );
+
+    TEST_ASSERT( mbedtls_x509_crl_parse_with_cb_ext( &crl, buf, n, parse_crl_ext_cb_not_recognized, NULL ) == result );
+
+exit:
+    mbedtls_x509_crl_free( &crl );
+    if (buf)
+        mbedtls_free(buf);
 }
 /* END_CASE */
 

@@ -118,6 +118,63 @@ mbedtls_x509_crl;
  */
 int mbedtls_x509_crl_parse_der( mbedtls_x509_crl *chain,
                         const unsigned char *buf, size_t buflen );
+
+/**
+ * \brief          The type of CRL extension callbacks.
+ *
+ *                 Callbacks of this type are passed to and used by the
+ *                 mbedtls_x509_crl_parse_der_with_ext_cb() routine when
+ *                 it encounters either an unsupported extension.
+ *                 Future versions of the library may invoke the callback
+ *                 in other cases, if and when the need arises.
+ *
+ * \param p_ctx    An opaque context passed to the callback.
+ * \param crl      The CRL being parsed.
+ * \param oid      The OID of the extension.
+ * \param critical Whether the extension is critical.
+ * \param p        Pointer to the start of the extension value
+ *                 (the content of the OCTET STRING).
+ * \param end      End of extension value.
+ *
+ * \note           The callback must fail and return a negative error code
+ *                 if it can not parse or does not support the extension.
+ *                 When the callback fails to parse a critical extension
+ *                 mbedtls_x509_crl_parse_der_with_ext_cb() also fails.
+ *                 When the callback fails to parse a non critical extension
+ *                 mbedtls_x509_crl_parse_der_with_ext_cb() simply skips
+ *                 the extension and continues parsing.
+ *
+ * \return         \c 0 on success.
+ * \return         A negative error code on failure.
+ */
+typedef int (*mbedtls_x509_crl_ext_cb_t)( void *p_ctx,
+                                          mbedtls_x509_crl const *crl,
+                                          mbedtls_x509_buf const *oid,
+                                          int critical,
+                                          const unsigned char *p,
+                                          const unsigned char *end );
+
+/**
+ * \brief          Parse one or more CRLs and append them to the chained list
+ *
+ * \note           Multiple CRLs are accepted only if using PEM format
+ *
+ * \param chain    points to the start of the chain
+ * \param buf      buffer holding the CRL data in PEM or DER format
+ * \param buflen   size of the buffer
+ *                 (including the terminating null byte for PEM data)
+ * \param cb       A callback invoked for every unsupported certificate
+ *                 extension.
+ * \param p_ctx    An opaque context passed to the callback.
+ *
+ * \return         0 if successful, or a specific X509 or PEM error code
+ */
+int mbedtls_x509_crl_parse_with_cb_ext( mbedtls_x509_crl *chain,
+                                        const unsigned char *buf,
+                                        size_t buflen,
+                                        mbedtls_x509_crl_ext_cb_t cb,
+                                        void* p_ctx);
+
 /**
  * \brief          Parse one or more CRLs and append them to the chained list
  *

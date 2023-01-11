@@ -48,6 +48,39 @@ int main( void )
     "    filename=%%s         default: crl.pem\n"      \
     "\n"
 
+int app_mbedtls_x509_crl_ext_cb(void* p_ctx,
+    mbedtls_x509_crl const* crl,
+    mbedtls_x509_buf const* oid,
+    int critical,
+    const unsigned char* p,
+    const unsigned char* end)
+{
+    ((void) p_ctx);
+    ((void) crl);
+    ((void) oid);
+    ((void) critical);
+    ((void) p);
+    ((void) end);
+    return 0;
+}
+
+int app_x509_crl_parse_file(mbedtls_x509_crl* chain, const char* path)
+{
+    int ret;
+    size_t n;
+    unsigned char* buf;
+
+    if ((ret = mbedtls_pk_load_file(path, &buf, &n)) != 0)
+        return(ret);
+
+    ret = mbedtls_x509_crl_parse_with_cb_ext(chain, buf, n, app_mbedtls_x509_crl_ext_cb, NULL);
+
+    mbedtls_platform_zeroize(buf, n);
+    mbedtls_free(buf);
+
+    return(ret);
+}
+
 
 /*
  * global options
@@ -99,15 +132,23 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "\n  . Loading the CRL ..." );
     fflush( stdout );
 
+#if 0
     ret = mbedtls_x509_crl_parse_file( &crl, opt.filename );
-
     if( ret != 0 )
     {
         mbedtls_printf( " failed\n  !  mbedtls_x509_crl_parse_file returned %d\n\n", ret );
         mbedtls_x509_crl_free( &crl );
         goto exit;
     }
-
+#else
+    ret = app_x509_crl_parse_file( &crl, opt.filename );
+    if( ret != 0 )
+    {
+        mbedtls_printf( " failed\n  !  app_x509_crl_parse_file returned %d\n\n", ret );
+        mbedtls_x509_crl_free( &crl );
+        goto exit;
+    }
+#endif
     mbedtls_printf( " ok\n" );
 
     /*

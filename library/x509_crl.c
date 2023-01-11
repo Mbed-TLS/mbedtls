@@ -86,9 +86,11 @@ static int x509_crl_get_version( unsigned char **p,
  * list of extensions is well-formed and abort on critical extensions (that
  * are unsupported as we don't support any extension so far)
  */
-static int x509_get_crl_ext( unsigned char **p,
-                             const unsigned char *end,
-                             mbedtls_x509_buf *ext )
+static int x509_get_crl_ext_with_cb( unsigned char **p,
+                                    const unsigned char *end,
+                                    mbedtls_x509_crl* crl,
+                                    mbedtls_x509_buf *ext,
+                                    mbedtls_x509_crl_ext_cb_t cb, void* p_ctx )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
@@ -112,8 +114,9 @@ static int x509_get_crl_ext( unsigned char **p,
          *      critical    BOOLEAN DEFAULT FALSE,
          *      extnValue   OCTET STRING  }
          */
+        mbedtls_x509_buf extn_oid = { 0, 0, NULL };
         int is_critical = 0;
-        const unsigned char *end_ext_data;
+        const unsigned char *end_ext_data, *end_ext_octet;
         size_t len;
 
         /* Get enclosing sequence tag */
@@ -129,6 +132,10 @@ static int x509_get_crl_ext( unsigned char **p,
         {
             return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret ) );
         }
+        extn_oid.tag = MBEDTLS_ASN1_OID;
+        extn_oid.len = len;
+        extn_oid.p = *p;
+
         *p += len;
 
         /* Get optional critical */
@@ -144,14 +151,23 @@ static int x509_get_crl_ext( unsigned char **p,
                 MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
             return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret ) );
 
+        end_ext_octet = *p + len;
+
         /* Ignore data so far and just check its length */
         *p += len;
         if( *p != end_ext_data )
             return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
                     MBEDTLS_ERR_ASN1_LENGTH_MISMATCH ) );
 
+        /* Give the callback (if any) a chance to handle the extension */
+        if (cb != NULL)
+        {
+            ret = cb(p_ctx, crl, &extn_oid, is_critical, *p, end_ext_octet);
+            if (ret != 0 && is_critical)
+                return(ret);
+        }
         /* Abort on (unsupported) critical extensions */
-        if( is_critical )
+        else if( is_critical )
             return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
                     MBEDTLS_ERR_ASN1_UNEXPECTED_TAG ) );
     }
@@ -286,8 +302,11 @@ static int x509_get_entries( unsigned char **p,
 /*
  * Parse one  CRLs in DER format and append it to the chained list
  */
-int mbedtls_x509_crl_parse_der( mbedtls_x509_crl *chain,
-                        const unsigned char *buf, size_t buflen )
+static int mbedtls_x509_crl_parse_der_internal( mbedtls_x509_crl *chain,
+                                                const unsigned char *buf,
+                                                size_t buflen,
+                                                mbedtls_x509_crl_ext_cb_t cb,
+                                                void* p_ctx)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len;
@@ -468,7 +487,7 @@ int mbedtls_x509_crl_parse_der( mbedtls_x509_crl *chain,
      */
     if( crl->version == 2 )
     {
-        ret = x509_get_crl_ext( &p, end, &crl->crl_ext );
+        ret = x509_get_crl_ext_with_cb( &p, end, crl, &crl->crl_ext, cb, p_ctx );
 
         if( ret != 0 )
         {
@@ -523,9 +542,23 @@ int mbedtls_x509_crl_parse_der( mbedtls_x509_crl *chain,
 }
 
 /*
- * Parse one or more CRLs and add them to the chained list
+ * Parse one  CRLs in DER format and append it to the chained list
  */
-int mbedtls_x509_crl_parse( mbedtls_x509_crl *chain, const unsigned char *buf, size_t buflen )
+int mbedtls_x509_crl_parse_der(mbedtls_x509_crl *chain,
+    const unsigned char *buf, size_t buflen)
+{
+    return mbedtls_x509_crl_parse_der_internal(chain, buf, buflen, NULL, NULL);
+}
+
+/*
+ * Parse one or more CRLs and add them to the chained list
+ * support callback
+ */
+int mbedtls_x509_crl_parse_with_cb_ext( mbedtls_x509_crl *chain,
+                                        const unsigned char *buf,
+                                        size_t buflen,
+                                        mbedtls_x509_crl_ext_cb_t cb,
+                                        void* p_ctx)
 {
 #if defined(MBEDTLS_PEM_PARSE_C)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -560,8 +593,8 @@ int mbedtls_x509_crl_parse( mbedtls_x509_crl *chain, const unsigned char *buf, s
             buflen -= use_len;
             buf += use_len;
 
-            if( ( ret = mbedtls_x509_crl_parse_der( chain,
-                                            pem.buf, pem.buflen ) ) != 0 )
+            if( ( ret = mbedtls_x509_crl_parse_der_internal( chain,
+                                            pem.buf, pem.buflen, cb, p_ctx ) ) != 0 )
             {
                 mbedtls_pem_free( &pem );
                 return( ret );
@@ -583,7 +616,15 @@ int mbedtls_x509_crl_parse( mbedtls_x509_crl *chain, const unsigned char *buf, s
         return( 0 );
     else
 #endif /* MBEDTLS_PEM_PARSE_C */
-        return( mbedtls_x509_crl_parse_der( chain, buf, buflen ) );
+        return( mbedtls_x509_crl_parse_der_internal( chain, buf, buflen, cb, p_ctx ) );
+}
+
+/*
+ * Parse one or more CRLs and add them to the chained list
+ */
+int mbedtls_x509_crl_parse( mbedtls_x509_crl *chain, const unsigned char *buf, size_t buflen )
+{
+    return mbedtls_x509_crl_parse_with_cb_ext(chain, buf, buflen, NULL, NULL);
 }
 
 #if defined(MBEDTLS_FS_IO)

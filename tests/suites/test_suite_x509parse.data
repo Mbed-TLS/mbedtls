@@ -274,6 +274,14 @@ X509 CRL Unsupported critical extension (issuingDistributionPoint)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA
 mbedtls_x509_crl_parse:"data_files/crl-idp.pem":MBEDTLS_ERR_X509_INVALID_EXTENSIONS + MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
+X509 CRL Unsupported critical extension recognized by callback (issuingDistributionPoint)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
+mbedtls_x509_crl_parse_cb_recognized:"data_files/crl-idp.pem":0
+
+X509 CRL Unsupported critical extension not recognized by callback (issuingDistributionPoint)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
+mbedtls_x509_crl_parse_cb_not_recognized:"data_files/crl-idp.pem":MBEDTLS_ERR_X509_INVALID_EXTENSIONS + MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+
 X509 CRL Unsupported non-critical extension (issuingDistributionPoint)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA
 mbedtls_x509_crl_parse:"data_files/crl-idpnc.pem":0

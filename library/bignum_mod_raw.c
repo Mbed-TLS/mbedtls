@@ -49,22 +49,22 @@ void mbedtls_mpi_mod_raw_cond_swap(mbedtls_mpi_uint *X,
     mbedtls_mpi_core_cond_swap(X, Y, N->limbs, swap);
 }
 
-int mbedtls_mpi_mod_raw_read(mbedtls_mpi_uint *X,
-                             const mbedtls_mpi_mod_modulus *m,
-                             const unsigned char *input,
-                             size_t input_length,
-                             mbedtls_mpi_mod_ext_rep ext_rep)
+int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,
+                              const mbedtls_mpi_mod_modulus *N,
+                              const unsigned char *input,
+                              size_t input_length,
+                              mbedtls_mpi_mod_ext_rep ext_rep )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     switch (ext_rep) {
         case MBEDTLS_MPI_MOD_EXT_REP_LE:
-            ret = mbedtls_mpi_core_read_le(X, m->limbs,
-                                           input, input_length);
+            ret = mbedtls_mpi_core_read_le( X, N->limbs,
+                                            input, input_length );
             break;
         case MBEDTLS_MPI_MOD_EXT_REP_BE:
-            ret = mbedtls_mpi_core_read_be(X, m->limbs,
-                                           input, input_length);
+            ret = mbedtls_mpi_core_read_be( X, N->limbs,
+                                            input, input_length );
             break;
         default:
             return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
@@ -74,7 +74,8 @@ int mbedtls_mpi_mod_raw_read(mbedtls_mpi_uint *X,
         goto cleanup;
     }
 
-    if (!mbedtls_mpi_core_lt_ct(X, m->p, m->limbs)) {
+    if( !mbedtls_mpi_core_lt_ct( X, N->p, N->limbs ) )
+    {
         ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
         goto cleanup;
     }

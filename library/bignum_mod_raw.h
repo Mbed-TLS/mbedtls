@@ -145,10 +145,10 @@ void mbedtls_mpi_mod_raw_cond_swap(mbedtls_mpi_uint *X,
  * The MPI needs to have enough limbs to store the full value (including any
  * most significant zero bytes in the input).
  *
- * \param[out] X        The address of the MPI. The size is determined by \p m.
+ * \param[out] X        The address of the MPI. The size is determined by \p N.
  *                      (In particular, it must have at least as many limbs as
- *                      the modulus \p m.)
- * \param[in] m         The address of the modulus related to \p X.
+ *                      the modulus \p N.)
+ * \param[in] N         The address of the modulus related to \p X.
  * \param[in] input     The input buffer to import from.
  * \param input_length  The length in bytes of \p input.
  * \param ext_rep       The endianness of the number in the input buffer.
@@ -157,13 +157,13 @@ void mbedtls_mpi_mod_raw_cond_swap(mbedtls_mpi_uint *X,
  * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p X isn't
  *               large enough to hold the value in \p input.
  * \return       #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if the external representation
- *               of \p m is invalid or \p X is not less than \p m.
+ *               of \p N is invalid or \p X is not less than \p N.
  */
-int mbedtls_mpi_mod_raw_read(mbedtls_mpi_uint *X,
-                             const mbedtls_mpi_mod_modulus *m,
-                             const unsigned char *input,
-                             size_t input_length,
-                             mbedtls_mpi_mod_ext_rep ext_rep);
+int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,
+                              const mbedtls_mpi_mod_modulus *N,
+                              const unsigned char *input,
+                              size_t input_length,
+                              mbedtls_mpi_mod_ext_rep ext_rep );
 
 /** Export A into unsigned binary data.
  *

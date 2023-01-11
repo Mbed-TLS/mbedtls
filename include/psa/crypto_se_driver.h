@@ -323,7 +323,7 @@ typedef psa_status_t (*psa_drv_se_mac_verify_t)(psa_drv_se_context_t *drv_contex
 typedef struct {
     /**The size in bytes of the hardware-specific secure element MAC context
      * structure
-    */
+     */
     size_t                    MBEDTLS_PRIVATE(context_size);
     /** Function that performs a MAC setup operation
      */
@@ -815,8 +815,7 @@ typedef struct {
 
 /** An enumeration indicating how a key is created.
  */
-typedef enum
-{
+typedef enum {
     PSA_KEY_CREATION_IMPORT, /**< During psa_import_key() */
     PSA_KEY_CREATION_GENERATE, /**< During psa_generate_key() */
     PSA_KEY_CREATION_DERIVE, /**< During psa_key_derivation_output_key() */
@@ -1235,7 +1234,7 @@ typedef psa_status_t (*psa_drv_se_key_derivation_collateral_t)(void *op_context,
  * \retval #PSA_SUCCESS
  */
 typedef psa_status_t (*psa_drv_se_key_derivation_derive_t)(void *op_context,
-                                                          psa_key_slot_number_t dest_key);
+                                                           psa_key_slot_number_t dest_key);
 
 /** \brief A function that performs the final step of a secure element key
  * agreement and place the generated key material in a buffer

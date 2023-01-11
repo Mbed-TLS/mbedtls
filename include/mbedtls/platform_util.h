@@ -36,23 +36,23 @@ extern "C" {
 #endif
 
 /* Internal macros meant to be called only from within the library. */
-#define MBEDTLS_INTERNAL_VALIDATE_RET( cond, ret )  do { } while( 0 )
-#define MBEDTLS_INTERNAL_VALIDATE( cond )           do { } while( 0 )
+#define MBEDTLS_INTERNAL_VALIDATE_RET(cond, ret)  do { } while (0)
+#define MBEDTLS_INTERNAL_VALIDATE(cond)           do { } while (0)
 
 /* Internal helper macros for deprecating API constants. */
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 #if defined(MBEDTLS_DEPRECATED_WARNING)
 #define MBEDTLS_DEPRECATED __attribute__((deprecated))
-MBEDTLS_DEPRECATED typedef char const * mbedtls_deprecated_string_constant_t;
-#define MBEDTLS_DEPRECATED_STRING_CONSTANT( VAL )       \
-    ( (mbedtls_deprecated_string_constant_t) ( VAL ) )
+MBEDTLS_DEPRECATED typedef char const *mbedtls_deprecated_string_constant_t;
+#define MBEDTLS_DEPRECATED_STRING_CONSTANT(VAL)       \
+    ((mbedtls_deprecated_string_constant_t) (VAL))
 MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
-#define MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( VAL )       \
-    ( (mbedtls_deprecated_numeric_constant_t) ( VAL ) )
+#define MBEDTLS_DEPRECATED_NUMERIC_CONSTANT(VAL)       \
+    ((mbedtls_deprecated_numeric_constant_t) (VAL))
 #else /* MBEDTLS_DEPRECATED_WARNING */
 #define MBEDTLS_DEPRECATED
-#define MBEDTLS_DEPRECATED_STRING_CONSTANT( VAL ) VAL
-#define MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( VAL ) VAL
+#define MBEDTLS_DEPRECATED_STRING_CONSTANT(VAL) VAL
+#define MBEDTLS_DEPRECATED_NUMERIC_CONSTANT(VAL) VAL
 #endif /* MBEDTLS_DEPRECATED_WARNING */
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 
@@ -142,7 +142,7 @@ MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
  * https://stackoverflow.com/questions/40576003/ignoring-warning-wunused-result
  * https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66425#c34
  */
-#define MBEDTLS_IGNORE_RETURN(result) ( (void) !( result ) )
+#define MBEDTLS_IGNORE_RETURN(result) ((void) !(result))
 #endif
 
 /**
@@ -167,7 +167,7 @@ MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
  * \param len   Length of the buffer in bytes
  *
  */
-void mbedtls_platform_zeroize( void *buf, size_t len );
+void mbedtls_platform_zeroize(void *buf, size_t len);
 
 #if defined(MBEDTLS_HAVE_TIME_DATE)
 /**
@@ -196,8 +196,8 @@ void mbedtls_platform_zeroize( void *buf, size_t len );
  * \return      Pointer to an object of type struct tm on success, otherwise
  *              NULL
  */
-struct tm *mbedtls_platform_gmtime_r( const mbedtls_time_t *tt,
-                                      struct tm *tm_buf );
+struct tm *mbedtls_platform_gmtime_r(const mbedtls_time_t *tt,
+                                     struct tm *tm_buf);
 #endif /* MBEDTLS_HAVE_TIME_DATE */
 
 #ifdef __cplusplus

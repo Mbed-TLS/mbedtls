@@ -26,13 +26,13 @@
 
 #undef HAVE_RNG
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) &&         \
-    ( defined(MBEDTLS_USE_PSA_CRYPTO) ||                \
-      defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG) )
+    (defined(MBEDTLS_USE_PSA_CRYPTO) ||                \
+    defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG))
 #define HAVE_RNG
 #elif defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_CTR_DRBG_C)
 #define HAVE_RNG
 #elif defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_HMAC_DRBG_C) &&     \
-    ( defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA512_C) )
+    (defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA512_C))
 #define HAVE_RNG
 #endif
 
@@ -79,14 +79,13 @@
 
 #include "../test/query_config.h"
 
-typedef struct eap_tls_keys
-{
+typedef struct eap_tls_keys {
     unsigned char master_secret[48];
     unsigned char randbytes[64];
     mbedtls_tls_prf_types tls_prf_type;
 } eap_tls_keys;
 
-#if defined( MBEDTLS_SSL_DTLS_SRTP )
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
 
 /* Supported SRTP mode needs a maximum of :
  * - 16 bytes for key (AES-128)
@@ -95,8 +94,7 @@ typedef struct eap_tls_keys
  */
 #define MBEDTLS_TLS_SRTP_MAX_KEY_MATERIAL_LENGTH    60
 
-typedef struct dtls_srtp_keys
-{
+typedef struct dtls_srtp_keys {
     unsigned char master_secret[48];
     unsigned char randbytes[64];
     mbedtls_tls_prf_types tls_prf_type;
@@ -104,18 +102,17 @@ typedef struct dtls_srtp_keys
 
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
-typedef struct
-{
+typedef struct {
     mbedtls_ssl_context *ssl;
     mbedtls_net_context *net;
 } io_ctx_t;
 
-void my_debug( void *ctx, int level,
-               const char *file, int line,
-               const char *str );
+void my_debug(void *ctx, int level,
+              const char *file, int line,
+              const char *str);
 
 #if defined(MBEDTLS_HAVE_TIME)
-mbedtls_time_t dummy_constant_time( mbedtls_time_t* time );
+mbedtls_time_t dummy_constant_time(mbedtls_time_t *time);
 #endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG)
@@ -145,8 +142,7 @@ mbedtls_time_t dummy_constant_time( mbedtls_time_t* time );
 
 /** A context for random number generation (RNG).
  */
-typedef struct
-{
+typedef struct {
 #if defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG)
     unsigned char dummy;
 #else /* MBEDTLS_TEST_USE_PSA_CRYPTO_RNG */
@@ -166,7 +162,7 @@ typedef struct
  * This function only initializes the memory used by the RNG context.
  * Before using the RNG, it must be seeded with rng_seed().
  */
-void rng_init( rng_context_t *rng );
+void rng_init(rng_context_t *rng);
 
 /* Seed the random number generator.
  *
@@ -182,14 +178,14 @@ void rng_init( rng_context_t *rng );
  *
  * return 0 on success, a negative value on error.
  */
-int rng_seed( rng_context_t *rng, int reproducible, const char *pers );
+int rng_seed(rng_context_t *rng, int reproducible, const char *pers);
 
 /** Deinitialize the RNG. Free any embedded resource.
  *
  * \param rng           The RNG context to deinitialize. It must have been
  *                      initialized with rng_init().
  */
-void rng_free( rng_context_t *rng );
+void rng_free(rng_context_t *rng);
 
 /** Generate random data.
  *
@@ -204,7 +200,7 @@ void rng_free( rng_context_t *rng );
  * \return              \c 0 on success.
  * \return              An Mbed TLS error code on error.
  */
-int rng_get( void *p_rng, unsigned char *output, size_t output_len );
+int rng_get(void *p_rng, unsigned char *output, size_t output_len);
 
 /** Parse command-line option: key_opaque_algs
  *
@@ -223,7 +219,7 @@ int rng_get( void *p_rng, unsigned char *output, size_t output_len );
  * \return              \c 0 on success.
  * \return              \c 1 on parse failure.
  */
-int key_opaque_alg_parse( const char *arg, const char **alg1, const char **alg2 );
+int key_opaque_alg_parse(const char *arg, const char **alg1, const char **alg2);
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 /** Parse given opaque key algorithms to obtain psa algs and usage
@@ -241,11 +237,11 @@ int key_opaque_alg_parse( const char *arg, const char **alg1, const char **alg2 
  * \return              \c 0 on success.
  * \return              \c 1 on parse failure.
  */
-int key_opaque_set_alg_usage( const char *alg1, const char *alg2,
-                              psa_algorithm_t *psa_alg1,
-                              psa_algorithm_t *psa_alg2,
-                              psa_key_usage_t *usage,
-                              mbedtls_pk_type_t key_type );
+int key_opaque_set_alg_usage(const char *alg1, const char *alg2,
+                             psa_algorithm_t *psa_alg1,
+                             psa_algorithm_t *psa_alg2,
+                             psa_key_usage_t *usage,
+                             mbedtls_pk_type_t key_type);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
@@ -257,31 +253,31 @@ int key_opaque_set_alg_usage( const char *alg1, const char *alg2,
 #endif
 
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
-int ca_callback( void *data, mbedtls_x509_crt const *child,
-                 mbedtls_x509_crt **candidates );
+int ca_callback(void *data, mbedtls_x509_crt const *child,
+                mbedtls_x509_crt **candidates);
 #endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 
 /*
  * Test recv/send functions that make sure each try returns
  * WANT_READ/WANT_WRITE at least once before succeeding
  */
-int delayed_recv( void *ctx, unsigned char *buf, size_t len );
-int delayed_send( void *ctx, const unsigned char *buf, size_t len );
+int delayed_recv(void *ctx, unsigned char *buf, size_t len);
+int delayed_send(void *ctx, const unsigned char *buf, size_t len);
 
 /*
  * Wait for an event from the underlying transport or the timer
  * (Used in event-driven IO mode).
  */
-int idle( mbedtls_net_context *fd,
+int idle(mbedtls_net_context *fd,
 #if defined(MBEDTLS_TIMING_C)
-          mbedtls_timing_delay_context *timer,
+         mbedtls_timing_delay_context *timer,
 #endif
-          int idle_reason );
+         int idle_reason);
 
 #if defined(MBEDTLS_TEST_HOOKS)
 /** Initialize whatever test hooks are enabled by the compile-time
  * configuration and make sense for the TLS test programs. */
-void test_hooks_init( void );
+void test_hooks_init(void);
 
 /** Check if any test hooks detected a problem.
  *
@@ -299,14 +295,14 @@ void test_hooks_init( void );
  * \return Nonzero if a problem was detected.
  *         \c 0 if no problem was detected.
  */
-int test_hooks_failure_detected( void );
+int test_hooks_failure_detected(void);
 
 /** Free any resources allocated for the sake of test hooks.
  *
  * Call this at the end of the program so that resource leak analyzers
  * don't complain.
  */
-void test_hooks_free( void );
+void test_hooks_free(void);
 
 #endif /* !MBEDTLS_TEST_HOOKS */
 

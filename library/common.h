@@ -52,16 +52,16 @@
 #endif
 
 #if defined(MBEDTLS_TEST_HOOKS)
-extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const char * file );
-#define MBEDTLS_TEST_HOOK_TEST_ASSERT( TEST ) \
-       do { \
-            if( ( ! ( TEST ) ) && ( ( *mbedtls_test_hook_test_fail ) != NULL ) ) \
-            { \
-              ( *mbedtls_test_hook_test_fail )( #TEST, __LINE__, __FILE__ ); \
-            } \
-    } while( 0 )
+extern void (*mbedtls_test_hook_test_fail)(const char *test, int line, const char *file);
+#define MBEDTLS_TEST_HOOK_TEST_ASSERT(TEST) \
+    do { \
+        if ((!(TEST)) && ((*mbedtls_test_hook_test_fail) != NULL)) \
+        { \
+            (*mbedtls_test_hook_test_fail)( #TEST, __LINE__, __FILE__); \
+        } \
+    } while (0)
 #else
-#define MBEDTLS_TEST_HOOK_TEST_ASSERT( TEST )
+#define MBEDTLS_TEST_HOOK_TEST_ASSERT(TEST)
 #endif /* defined(MBEDTLS_TEST_HOOKS) */
 
 /** Allow library to access its structs' private members.
@@ -87,9 +87,9 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
  *              buffer is at least \p n + 1.
  */
 static inline unsigned char *mbedtls_buffer_offset(
-    unsigned char *p, size_t n )
+    unsigned char *p, size_t n)
 {
-    return( p == NULL ? NULL : p + n );
+    return p == NULL ? NULL : p + n;
 }
 
 /** Return an offset into a read-only buffer.
@@ -104,9 +104,9 @@ static inline unsigned char *mbedtls_buffer_offset(
  *              buffer is at least \p n + 1.
  */
 static inline const unsigned char *mbedtls_buffer_offset_const(
-    const unsigned char *p, size_t n )
+    const unsigned char *p, size_t n)
 {
-    return( p == NULL ? NULL : p + n );
+    return p == NULL ? NULL : p + n;
 }
 
 /**
@@ -120,16 +120,14 @@ static inline const unsigned char *mbedtls_buffer_offset_const(
  * \param   b Pointer to input (buffer of at least \p n bytes)
  * \param   n Number of bytes to process.
  */
-inline void mbedtls_xor( unsigned char *r, const unsigned char *a, const unsigned char *b, size_t n )
+inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned char *b, size_t n)
 {
     size_t i;
-    for ( i = 0; ( i + 4 ) <= n; i += 4 )
-    {
-        uint32_t x = mbedtls_get_unaligned_uint32( a + i ) ^ mbedtls_get_unaligned_uint32( b + i );
-        mbedtls_put_unaligned_uint32( r + i, x );
+    for (i = 0; (i + 4) <= n; i += 4) {
+        uint32_t x = mbedtls_get_unaligned_uint32(a + i) ^ mbedtls_get_unaligned_uint32(b + i);
+        mbedtls_put_unaligned_uint32(r + i, x);
     }
-    for ( ; i < n; i++ )
-    {
+    for (; i < n; i++) {
         r[i] = a[i] ^ b[i];
     }
 }
@@ -138,7 +136,7 @@ inline void mbedtls_xor( unsigned char *r, const unsigned char *a, const unsigne
  *      MSVC support __func__ from visual studio 2015( 1900 )
  *      Use MSVC predefine macro to avoid name check fail.
  */
-#if (defined(_MSC_VER) && ( _MSC_VER <= 1900 ))
+#if (defined(_MSC_VER) && (_MSC_VER <= 1900))
 #define /*no-check-names*/ __func__ __FUNCTION__
 #endif
 

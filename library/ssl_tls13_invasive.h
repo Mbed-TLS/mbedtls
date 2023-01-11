@@ -25,9 +25,9 @@
 #include "psa/crypto.h"
 
 #if defined(MBEDTLS_TEST_HOOKS)
-int mbedtls_ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
-                                         const unsigned char *buf,
-                                         const unsigned char *end );
+int mbedtls_ssl_tls13_parse_certificate(mbedtls_ssl_context *ssl,
+                                        const unsigned char *buf,
+                                        const unsigned char *end);
 #endif /* MBEDTLS_TEST_HOOKS */
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */

@@ -61,8 +61,7 @@ extern "C" {
 /**
  * \brief       PEM context structure
  */
-typedef struct mbedtls_pem_context
-{
+typedef struct mbedtls_pem_context {
     unsigned char *MBEDTLS_PRIVATE(buf);     /*!< buffer for decoded data             */
     size_t MBEDTLS_PRIVATE(buflen);          /*!< length of the buffer                */
     unsigned char *MBEDTLS_PRIVATE(info);    /*!< buffer for extra header information */
@@ -74,7 +73,7 @@ mbedtls_pem_context;
  *
  * \param ctx   context to be initialized
  */
-void mbedtls_pem_init( mbedtls_pem_context *ctx );
+void mbedtls_pem_init(mbedtls_pem_context *ctx);
 
 /**
  * \brief       Read a buffer for PEM information and store the resulting
@@ -102,10 +101,10 @@ void mbedtls_pem_init( mbedtls_pem_context *ctx );
  *
  * \return          0 on success, or a specific PEM error code
  */
-int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const char *footer,
-                     const unsigned char *data,
-                     const unsigned char *pwd,
-                     size_t pwdlen, size_t *use_len );
+int mbedtls_pem_read_buffer(mbedtls_pem_context *ctx, const char *header, const char *footer,
+                            const unsigned char *data,
+                            const unsigned char *pwd,
+                            size_t pwdlen, size_t *use_len);
 
 /**
  * \brief       Get the pointer to the decoded binary data in a PEM context.
@@ -119,10 +118,10 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
  * \note            The returned pointer remains valid only until \p ctx is
                     modified or freed.
  */
-static inline const unsigned char *mbedtls_pem_get_buffer( mbedtls_pem_context *ctx, size_t *buflen )
+static inline const unsigned char *mbedtls_pem_get_buffer(mbedtls_pem_context *ctx, size_t *buflen)
 {
     *buflen = ctx->MBEDTLS_PRIVATE(buflen);
-    return( ctx->MBEDTLS_PRIVATE(buf) );
+    return ctx->MBEDTLS_PRIVATE(buf);
 }
 
 
@@ -131,7 +130,7 @@ static inline const unsigned char *mbedtls_pem_get_buffer( mbedtls_pem_context *
  *
  * \param ctx   context to be freed
  */
-void mbedtls_pem_free( mbedtls_pem_context *ctx );
+void mbedtls_pem_free(mbedtls_pem_context *ctx);
 #endif /* MBEDTLS_PEM_PARSE_C */
 
 #if defined(MBEDTLS_PEM_WRITE_C)
@@ -161,9 +160,9 @@ void mbedtls_pem_free( mbedtls_pem_context *ctx );
  *                  the required minimum size of \p buf.
  * \return          Another PEM or BASE64 error code on other kinds of failure.
  */
-int mbedtls_pem_write_buffer( const char *header, const char *footer,
-                      const unsigned char *der_data, size_t der_len,
-                      unsigned char *buf, size_t buf_len, size_t *olen );
+int mbedtls_pem_write_buffer(const char *header, const char *footer,
+                             const unsigned char *der_data, size_t der_len,
+                             unsigned char *buf, size_t buf_len, size_t *olen);
 #endif /* MBEDTLS_PEM_WRITE_C */
 
 #ifdef __cplusplus

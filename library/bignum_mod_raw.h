@@ -109,10 +109,10 @@
  *                 is indeterminate, and the resulting value in \p X might be
  *                 neither its original value nor the value in \p A.
  */
-void mbedtls_mpi_mod_raw_cond_assign( mbedtls_mpi_uint *X,
-                                      const mbedtls_mpi_uint *A,
-                                      const mbedtls_mpi_mod_modulus *N,
-                                      unsigned char assign );
+void mbedtls_mpi_mod_raw_cond_assign(mbedtls_mpi_uint *X,
+                                     const mbedtls_mpi_uint *A,
+                                     const mbedtls_mpi_mod_modulus *N,
+                                     unsigned char assign);
 
 /**
  * \brief   Perform a safe conditional swap of two MPIs which doesn't reveal
@@ -135,10 +135,10 @@ void mbedtls_mpi_mod_raw_cond_assign( mbedtls_mpi_uint *X,
  *                 is indeterminate, and both \p X and \p Y might end up with
  *                 values different to either of the original ones.
  */
-void mbedtls_mpi_mod_raw_cond_swap( mbedtls_mpi_uint *X,
-                                    mbedtls_mpi_uint *Y,
-                                    const mbedtls_mpi_mod_modulus *N,
-                                    unsigned char swap );
+void mbedtls_mpi_mod_raw_cond_swap(mbedtls_mpi_uint *X,
+                                   mbedtls_mpi_uint *Y,
+                                   const mbedtls_mpi_mod_modulus *N,
+                                   unsigned char swap);
 
 /** Import X from unsigned binary data.
  *
@@ -159,11 +159,11 @@ void mbedtls_mpi_mod_raw_cond_swap( mbedtls_mpi_uint *X,
  * \return       #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if the external representation
  *               of \p m is invalid or \p X is not less than \p m.
  */
-int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,
-                              const mbedtls_mpi_mod_modulus *m,
-                              const unsigned char *input,
-                              size_t input_length,
-                              mbedtls_mpi_mod_ext_rep ext_rep );
+int mbedtls_mpi_mod_raw_read(mbedtls_mpi_uint *X,
+                             const mbedtls_mpi_mod_modulus *m,
+                             const unsigned char *input,
+                             size_t input_length,
+                             mbedtls_mpi_mod_ext_rep ext_rep);
 
 /** Export A into unsigned binary data.
  *
@@ -181,11 +181,11 @@ int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,
  * \return       #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if the external representation
  *               of \p m is invalid.
  */
-int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *A,
-                               const mbedtls_mpi_mod_modulus *m,
-                               unsigned char *output,
-                               size_t output_length,
-                               mbedtls_mpi_mod_ext_rep ext_rep );
+int mbedtls_mpi_mod_raw_write(const mbedtls_mpi_uint *A,
+                              const mbedtls_mpi_mod_modulus *m,
+                              unsigned char *output,
+                              size_t output_length,
+                              mbedtls_mpi_mod_ext_rep ext_rep);
 
 /* BEGIN MERGE SLOT 1 */
 
@@ -210,10 +210,10 @@ int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *A,
  * \param[in]  N        The address of the modulus. Used to perform a modulo
  *                      operation on the result of the subtraction.
  */
-void mbedtls_mpi_mod_raw_sub( mbedtls_mpi_uint *X,
-                              const mbedtls_mpi_uint *A,
-                              const mbedtls_mpi_uint *B,
-                              const mbedtls_mpi_mod_modulus *N );
+void mbedtls_mpi_mod_raw_sub(mbedtls_mpi_uint *X,
+                             const mbedtls_mpi_uint *A,
+                             const mbedtls_mpi_uint *B,
+                             const mbedtls_mpi_mod_modulus *N);
 
 /** \brief  Multiply two MPIs, returning the residue modulo the specified
  *          modulus.
@@ -244,11 +244,11 @@ void mbedtls_mpi_mod_raw_sub( mbedtls_mpi_uint *X,
  *                      It must not alias or otherwise overlap any of the
  *                      other parameters.
  */
-void mbedtls_mpi_mod_raw_mul( mbedtls_mpi_uint *X,
-                              const mbedtls_mpi_uint *A,
-                              const mbedtls_mpi_uint *B,
-                              const mbedtls_mpi_mod_modulus *N,
-                              mbedtls_mpi_uint *T );
+void mbedtls_mpi_mod_raw_mul(mbedtls_mpi_uint *X,
+                             const mbedtls_mpi_uint *A,
+                             const mbedtls_mpi_uint *B,
+                             const mbedtls_mpi_mod_modulus *N,
+                             mbedtls_mpi_uint *T);
 
 /* END MERGE SLOT 2 */
 
@@ -269,7 +269,7 @@ void mbedtls_mpi_mod_raw_mul( mbedtls_mpi_uint *X,
  * \return         The number of limbs of working memory required by
  *                 `mbedtls_mpi_mod_raw_inv_prime()`.
  */
-size_t mbedtls_mpi_mod_raw_inv_prime_working_limbs( size_t AN_limbs );
+size_t mbedtls_mpi_mod_raw_inv_prime_working_limbs(size_t AN_limbs);
 
 /**
  * \brief Perform fixed-width modular inversion of a Montgomery-form MPI with
@@ -296,12 +296,12 @@ size_t mbedtls_mpi_mod_raw_inv_prime_working_limbs( size_t AN_limbs );
  *                   longer needed, and before freeing it if it was dynamically
  *                   allocated.
  */
-void mbedtls_mpi_mod_raw_inv_prime( mbedtls_mpi_uint *X,
-                                    const mbedtls_mpi_uint *A,
-                                    const mbedtls_mpi_uint *N,
-                                    size_t AN_limbs,
-                                    const mbedtls_mpi_uint *RR,
-                                    mbedtls_mpi_uint *T );
+void mbedtls_mpi_mod_raw_inv_prime(mbedtls_mpi_uint *X,
+                                   const mbedtls_mpi_uint *A,
+                                   const mbedtls_mpi_uint *N,
+                                   size_t AN_limbs,
+                                   const mbedtls_mpi_uint *RR,
+                                   mbedtls_mpi_uint *T);
 
 /* END MERGE SLOT 3 */
 
@@ -328,10 +328,10 @@ void mbedtls_mpi_mod_raw_inv_prime( mbedtls_mpi_uint *X,
  *                  must be smaller than \p N.
  * \param[in] N     The address of the modulus.
  */
-void mbedtls_mpi_mod_raw_add( mbedtls_mpi_uint *X,
-                              const mbedtls_mpi_uint *A,
-                              const mbedtls_mpi_uint *B,
-                              const mbedtls_mpi_mod_modulus *N );
+void mbedtls_mpi_mod_raw_add(mbedtls_mpi_uint *X,
+                             const mbedtls_mpi_uint *A,
+                             const mbedtls_mpi_uint *B,
+                             const mbedtls_mpi_mod_modulus *N);
 /* END MERGE SLOT 5 */
 
 /* BEGIN MERGE SLOT 6 */
@@ -351,7 +351,7 @@ void mbedtls_mpi_mod_raw_add( mbedtls_mpi_uint *X,
  */
 int mbedtls_mpi_mod_raw_canonical_to_modulus_rep(
     mbedtls_mpi_uint *X,
-    const mbedtls_mpi_mod_modulus *N );
+    const mbedtls_mpi_mod_modulus *N);
 
 /** Convert an MPI from the representation associated with the modulus
  * to canonical representation (little-endian limb array).
@@ -368,7 +368,7 @@ int mbedtls_mpi_mod_raw_canonical_to_modulus_rep(
  */
 int mbedtls_mpi_mod_raw_modulus_to_canonical_rep(
     mbedtls_mpi_uint *X,
-    const mbedtls_mpi_mod_modulus *N );
+    const mbedtls_mpi_mod_modulus *N);
 
 /** Generate a random number uniformly in a range.
  *
@@ -398,11 +398,11 @@ int mbedtls_mpi_mod_raw_modulus_to_canonical_rep(
  *                 is significantly larger than \p min, which is the case
  *                 for all usual cryptographic applications.
  */
-int mbedtls_mpi_mod_raw_random( mbedtls_mpi_uint *X,
-                                mbedtls_mpi_uint min,
-                                const mbedtls_mpi_mod_modulus *N,
-                                int (*f_rng)(void *, unsigned char *, size_t),
-                                void *p_rng );
+int mbedtls_mpi_mod_raw_random(mbedtls_mpi_uint *X,
+                               mbedtls_mpi_uint min,
+                               const mbedtls_mpi_mod_modulus *N,
+                               int (*f_rng)(void *, unsigned char *, size_t),
+                               void *p_rng);
 
 /* END MERGE SLOT 6 */
 
@@ -416,8 +416,8 @@ int mbedtls_mpi_mod_raw_random( mbedtls_mpi_uint *X,
  *
  * \return       \c 0 if successful.
  */
-int mbedtls_mpi_mod_raw_to_mont_rep( mbedtls_mpi_uint *X,
-                                     const mbedtls_mpi_mod_modulus *m );
+int mbedtls_mpi_mod_raw_to_mont_rep(mbedtls_mpi_uint *X,
+                                    const mbedtls_mpi_mod_modulus *m);
 
 /** Convert an MPI back from Montgomery representation.
  *
@@ -428,8 +428,8 @@ int mbedtls_mpi_mod_raw_to_mont_rep( mbedtls_mpi_uint *X,
  *
  * \return       \c 0 if successful.
  */
-int mbedtls_mpi_mod_raw_from_mont_rep( mbedtls_mpi_uint *X,
-                                       const mbedtls_mpi_mod_modulus *m );
+int mbedtls_mpi_mod_raw_from_mont_rep(mbedtls_mpi_uint *X,
+                                      const mbedtls_mpi_mod_modulus *m);
 
 /** \brief  Perform fixed width modular negation.
  *
@@ -444,9 +444,9 @@ int mbedtls_mpi_mod_raw_from_mont_rep( mbedtls_mpi_uint *X,
  *                      must be less than or equal to \p m.
  * \param[in] m         The modulus to use.
  */
-void mbedtls_mpi_mod_raw_neg( mbedtls_mpi_uint *X,
-                              const mbedtls_mpi_uint *A,
-                              const mbedtls_mpi_mod_modulus *m);
+void mbedtls_mpi_mod_raw_neg(mbedtls_mpi_uint *X,
+                             const mbedtls_mpi_uint *A,
+                             const mbedtls_mpi_mod_modulus *m);
 /* END MERGE SLOT 7 */
 
 /* BEGIN MERGE SLOT 8 */

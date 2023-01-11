@@ -52,8 +52,8 @@
  *
  * \return \c 0 on success, an \c MBEDTLS_ERR_MPI_xxx error code otherwise.
  */
-int mbedtls_test_read_mpi_core( mbedtls_mpi_uint **pX, size_t *plimbs,
-                                const char *input );
+int mbedtls_test_read_mpi_core(mbedtls_mpi_uint **pX, size_t *plimbs,
+                               const char *input);
 
 /** Read a modulus from a hexadecimal string.
  *
@@ -71,16 +71,16 @@ int mbedtls_test_read_mpi_core( mbedtls_mpi_uint **pX, size_t *plimbs,
  *
  * \return \c 0 on success, an \c MBEDTLS_ERR_MPI_xxx error code otherwise.
  */
-int mbedtls_test_read_mpi_modulus( mbedtls_mpi_mod_modulus *N,
-                                   const char *s,
-                                   mbedtls_mpi_mod_rep_selector int_rep );
+int mbedtls_test_read_mpi_modulus(mbedtls_mpi_mod_modulus *N,
+                                  const char *s,
+                                  mbedtls_mpi_mod_rep_selector int_rep);
 
 /** Free a modulus and its limbs.
  *
  * \param[in] N         A modulus structure such that there is no other
  *                      reference to `N->p`.
  */
-void mbedtls_test_mpi_mod_modulus_free_with_limbs( mbedtls_mpi_mod_modulus *N );
+void mbedtls_test_mpi_mod_modulus_free_with_limbs(mbedtls_mpi_mod_modulus *N);
 
 /** Read an MPI from a hexadecimal string.
  *
@@ -103,7 +103,7 @@ void mbedtls_test_mpi_mod_modulus_free_with_limbs( mbedtls_mpi_mod_modulus *N );
  *
  * \return \c 0 on success, an \c MBEDTLS_ERR_MPI_xxx error code otherwise.
  */
-int mbedtls_test_read_mpi( mbedtls_mpi *X, const char *s );
+int mbedtls_test_read_mpi(mbedtls_mpi *X, const char *s);
 
 /** Nonzero if the current test case had an input parsed with
  * mbedtls_test_read_mpi() that is a negative 0 (`"-"`, `"-0"`, `"-00"`, etc.,

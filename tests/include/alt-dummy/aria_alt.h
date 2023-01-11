@@ -19,8 +19,7 @@
 #ifndef ARIA_ALT_H
 #define ARIA_ALT_H
 
-typedef struct mbedtls_aria_context
-{
+typedef struct mbedtls_aria_context {
     int dummy;
 }
 mbedtls_aria_context;

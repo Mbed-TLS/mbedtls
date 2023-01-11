@@ -50,11 +50,11 @@
 /* If the build options we need are not enabled, compile a placeholder. */
 #if !defined(MBEDTLS_PSA_CRYPTO_C) || \
     defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
-int main( void )
+int main(void)
 {
-    printf( "MBEDTLS_PSA_CRYPTO_C not defined, "
-            "and/or MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined\r\n" );
-    return( 0 );
+    printf("MBEDTLS_PSA_CRYPTO_C not defined, "
+           "and/or MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined\r\n");
+    return 0;
 }
 #else
 
@@ -71,31 +71,32 @@ const unsigned char msg2_part2[] = { 0x06, 0x06 };
 const unsigned char key_bytes[32] = { 0 };
 
 /* Print the contents of a buffer in hex */
-void print_buf( const char *title, uint8_t *buf, size_t len )
+void print_buf(const char *title, uint8_t *buf, size_t len)
 {
-    printf( "%s:", title );
-    for( size_t i = 0; i < len; i++ )
-        printf( " %02x", buf[i] );
-    printf( "\n" );
+    printf("%s:", title);
+    for (size_t i = 0; i < len; i++) {
+        printf(" %02x", buf[i]);
+    }
+    printf("\n");
 }
 
 /* Run a PSA function and bail out if it fails.
  * The symbolic name of the error code can be recovered using:
  * programs/psa/psa_constant_name status <value> */
-#define PSA_CHECK( expr )                                       \
+#define PSA_CHECK(expr)                                       \
     do                                                          \
     {                                                           \
-        status = ( expr );                                      \
-        if( status != PSA_SUCCESS )                             \
+        status = (expr);                                      \
+        if (status != PSA_SUCCESS)                             \
         {                                                       \
-            printf( "Error %d at line %d: %s\n",                \
-                    (int) status,                               \
-                    __LINE__,                                   \
-                    #expr );                                    \
+            printf("Error %d at line %d: %s\n",                \
+                   (int) status,                               \
+                   __LINE__,                                   \
+                   #expr);                                    \
             goto exit;                                          \
         }                                                       \
     }                                                           \
-    while( 0 )
+    while (0)
 
 /*
  * This function demonstrates computation of the HMAC of two messages using
@@ -113,40 +114,41 @@ psa_status_t hmac_demo(void)
     psa_key_id_t key = 0;
 
     /* prepare key */
-    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_MESSAGE );
-    psa_set_key_algorithm( &attributes, alg );
-    psa_set_key_type( &attributes, PSA_KEY_TYPE_HMAC );
-    psa_set_key_bits( &attributes, 8 * sizeof( key_bytes ) ); // optional
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_MESSAGE);
+    psa_set_key_algorithm(&attributes, alg);
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_HMAC);
+    psa_set_key_bits(&attributes, 8 * sizeof(key_bytes));     // optional
 
-    status = psa_import_key( &attributes,
-                             key_bytes, sizeof( key_bytes ), &key );
-    if( status != PSA_SUCCESS )
-        return( status );
+    status = psa_import_key(&attributes,
+                            key_bytes, sizeof(key_bytes), &key);
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
 
     /* prepare operation */
     psa_mac_operation_t op = PSA_MAC_OPERATION_INIT;
     size_t out_len = 0;
 
     /* compute HMAC(key, msg1_part1 | msg1_part2) */
-    PSA_CHECK( psa_mac_sign_setup( &op, key, alg ) );
-    PSA_CHECK( psa_mac_update( &op, msg1_part1, sizeof( msg1_part1 ) ) );
-    PSA_CHECK( psa_mac_update( &op, msg1_part2, sizeof( msg1_part2 ) ) );
-    PSA_CHECK( psa_mac_sign_finish( &op, out, sizeof( out ), &out_len ) );
-    print_buf( "msg1", out, out_len );
+    PSA_CHECK(psa_mac_sign_setup(&op, key, alg));
+    PSA_CHECK(psa_mac_update(&op, msg1_part1, sizeof(msg1_part1)));
+    PSA_CHECK(psa_mac_update(&op, msg1_part2, sizeof(msg1_part2)));
+    PSA_CHECK(psa_mac_sign_finish(&op, out, sizeof(out), &out_len));
+    print_buf("msg1", out, out_len);
 
     /* compute HMAC(key, msg2_part1 | msg2_part2) */
-    PSA_CHECK( psa_mac_sign_setup( &op, key, alg ) );
-    PSA_CHECK( psa_mac_update( &op, msg2_part1, sizeof( msg2_part1 ) ) );
-    PSA_CHECK( psa_mac_update( &op, msg2_part2, sizeof( msg2_part2 ) ) );
-    PSA_CHECK( psa_mac_sign_finish( &op, out, sizeof( out ), &out_len ) );
-    print_buf( "msg2", out, out_len );
+    PSA_CHECK(psa_mac_sign_setup(&op, key, alg));
+    PSA_CHECK(psa_mac_update(&op, msg2_part1, sizeof(msg2_part1)));
+    PSA_CHECK(psa_mac_update(&op, msg2_part2, sizeof(msg2_part2)));
+    PSA_CHECK(psa_mac_sign_finish(&op, out, sizeof(out), &out_len));
+    print_buf("msg2", out, out_len);
 
 exit:
-    psa_mac_abort( &op ); // needed on error, harmless on success
-    psa_destroy_key( key );
-    mbedtls_platform_zeroize( out, sizeof( out ) );
+    psa_mac_abort(&op);   // needed on error, harmless on success
+    psa_destroy_key(key);
+    mbedtls_platform_zeroize(out, sizeof(out));
 
-    return( status );
+    return status;
 }
 
 int main(void)
@@ -154,16 +156,16 @@ int main(void)
     psa_status_t status = PSA_SUCCESS;
 
     /* Initialize the PSA crypto library. */
-    PSA_CHECK( psa_crypto_init( ) );
+    PSA_CHECK(psa_crypto_init());
 
     /* Run the demo */
-    PSA_CHECK( hmac_demo() );
+    PSA_CHECK(hmac_demo());
 
     /* Deinitialize the PSA crypto library. */
-    mbedtls_psa_crypto_free( );
+    mbedtls_psa_crypto_free();
 
 exit:
-    return( status == PSA_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE );
+    return status == PSA_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 #endif

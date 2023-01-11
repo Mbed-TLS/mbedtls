@@ -70,11 +70,11 @@ extern "C" {
  *
  * \return           0 if successful, or a MBEDTLS_ERR_XXX code
  */
-int mbedtls_pkcs12_pbe( mbedtls_asn1_buf *pbe_params, int mode,
-                mbedtls_cipher_type_t cipher_type, mbedtls_md_type_t md_type,
-                const unsigned char *pwd,  size_t pwdlen,
-                const unsigned char *input, size_t len,
-                unsigned char *output );
+int mbedtls_pkcs12_pbe(mbedtls_asn1_buf *pbe_params, int mode,
+                       mbedtls_cipher_type_t cipher_type, mbedtls_md_type_t md_type,
+                       const unsigned char *pwd,  size_t pwdlen,
+                       const unsigned char *input, size_t len,
+                       unsigned char *output);
 
 #endif /* MBEDTLS_ASN1_PARSE_C */
 
@@ -105,10 +105,10 @@ int mbedtls_pkcs12_pbe( mbedtls_asn1_buf *pbe_params, int mode,
  *
  * \return          0 if successful, or a MD, BIGNUM type error.
  */
-int mbedtls_pkcs12_derivation( unsigned char *data, size_t datalen,
-                       const unsigned char *pwd, size_t pwdlen,
-                       const unsigned char *salt, size_t saltlen,
-                       mbedtls_md_type_t mbedtls_md, int id, int iterations );
+int mbedtls_pkcs12_derivation(unsigned char *data, size_t datalen,
+                              const unsigned char *pwd, size_t pwdlen,
+                              const unsigned char *salt, size_t saltlen,
+                              mbedtls_md_type_t mbedtls_md, int id, int iterations);
 
 #ifdef __cplusplus
 }

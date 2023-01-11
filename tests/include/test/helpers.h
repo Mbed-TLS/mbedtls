@@ -47,21 +47,18 @@
 #endif
 
 /** The type of test case arguments that contain binary data. */
-typedef struct data_tag
-{
-    uint8_t *   x;
+typedef struct data_tag {
+    uint8_t *x;
     uint32_t    len;
 } data_t;
 
-typedef enum
-{
+typedef enum {
     MBEDTLS_TEST_RESULT_SUCCESS = 0,
     MBEDTLS_TEST_RESULT_FAILED,
     MBEDTLS_TEST_RESULT_SKIPPED
 } mbedtls_test_result_t;
 
-typedef struct
-{
+typedef struct {
     mbedtls_test_result_t result;
     const char *test;
     const char *filename;
@@ -76,8 +73,8 @@ typedef struct
 mbedtls_test_info_t;
 extern mbedtls_test_info_t mbedtls_test_info;
 
-int mbedtls_test_platform_setup( void );
-void mbedtls_test_platform_teardown( void );
+int mbedtls_test_platform_setup(void);
+void mbedtls_test_platform_teardown(void);
 
 /**
  * \brief           Record the current test case as a failure.
@@ -95,7 +92,7 @@ void mbedtls_test_platform_teardown( void );
  * \param line_no   Line number where the failure originated.
  * \param filename  Filename where the failure originated.
  */
-void mbedtls_test_fail( const char *test, int line_no, const char* filename );
+void mbedtls_test_fail(const char *test, int line_no, const char *filename);
 
 /**
  * \brief           Record the current test case as skipped.
@@ -108,7 +105,7 @@ void mbedtls_test_fail( const char *test, int line_no, const char* filename );
  * \param line_no   Line number where the test case was skipped.
  * \param filename  Filename where the test case was skipped.
  */
-void mbedtls_test_skip( const char *test, int line_no, const char* filename );
+void mbedtls_test_skip(const char *test, int line_no, const char *filename);
 
 /**
  * \brief       Set the test step number for failure reports.
@@ -120,12 +117,12 @@ void mbedtls_test_skip( const char *test, int line_no, const char* filename );
  *
  * \param step  The step number to report.
  */
-void mbedtls_test_set_step( unsigned long step );
+void mbedtls_test_set_step(unsigned long step);
 
 /**
  * \brief       Reset mbedtls_test_info to a ready/starting state.
  */
-void mbedtls_test_info_reset( void );
+void mbedtls_test_info_reset(void);
 
 /**
  * \brief           Record the current test case as a failure if two integers
@@ -145,8 +142,8 @@ void mbedtls_test_info_reset( void );
  *
  * \return          \c 1 if the values are equal, otherwise \c 0.
  */
-int mbedtls_test_equal( const char *test, int line_no, const char* filename,
-                        unsigned long long value1, unsigned long long value2 );
+int mbedtls_test_equal(const char *test, int line_no, const char *filename,
+                       unsigned long long value1, unsigned long long value2);
 
 /**
  * \brief           Record the current test case as a failure based
@@ -166,8 +163,8 @@ int mbedtls_test_equal( const char *test, int line_no, const char* filename,
  *
  * \return          \c 1 if \p value1 <= \p value2, otherwise \c 0.
  */
-int mbedtls_test_le_u( const char *test, int line_no, const char* filename,
-                       unsigned long long value1, unsigned long long value2 );
+int mbedtls_test_le_u(const char *test, int line_no, const char *filename,
+                      unsigned long long value1, unsigned long long value2);
 
 /**
  * \brief           Record the current test case as a failure based
@@ -187,8 +184,8 @@ int mbedtls_test_le_u( const char *test, int line_no, const char* filename,
  *
  * \return          \c 1 if \p value1 <= \p value2, otherwise \c 0.
  */
-int mbedtls_test_le_s( const char *test, int line_no, const char* filename,
-                       long long value1, long long value2 );
+int mbedtls_test_le_s(const char *test, int line_no, const char *filename,
+                      long long value1, long long value2);
 
 /**
  * \brief          This function decodes the hexadecimal representation of
@@ -208,12 +205,12 @@ int mbedtls_test_le_s( const char *test, int line_no, const char* filename,
  * \return         \c -1 if the output buffer is too small or the input string
  *                 is not a valid hexadecimal representation.
  */
-int mbedtls_test_unhexify( unsigned char *obuf, size_t obufmax,
-                           const char *ibuf, size_t *len );
+int mbedtls_test_unhexify(unsigned char *obuf, size_t obufmax,
+                          const char *ibuf, size_t *len);
 
-void mbedtls_test_hexify( unsigned char *obuf,
-                          const unsigned char *ibuf,
-                          int len );
+void mbedtls_test_hexify(unsigned char *obuf,
+                         const unsigned char *ibuf,
+                         int len);
 
 /**
  * \brief Convert hexadecimal digit to an integer.
@@ -233,7 +230,7 @@ int mbedtls_test_ascii2uc(const char c, unsigned char *uc);
  *
  * For convenience, dies if allocation fails.
  */
-unsigned char *mbedtls_test_zero_alloc( size_t len );
+unsigned char *mbedtls_test_zero_alloc(size_t len);
 
 /**
  * Allocate and fill a buffer from hex data.
@@ -245,10 +242,10 @@ unsigned char *mbedtls_test_zero_alloc( size_t len );
  *
  * For convenience, dies if allocation fails.
  */
-unsigned char *mbedtls_test_unhexify_alloc( const char *ibuf, size_t *olen );
+unsigned char *mbedtls_test_unhexify_alloc(const char *ibuf, size_t *olen);
 
-int mbedtls_test_hexcmp( uint8_t * a, uint8_t * b,
-                         uint32_t a_len, uint32_t b_len );
+int mbedtls_test_hexcmp(uint8_t *a, uint8_t *b,
+                        uint32_t a_len, uint32_t b_len);
 
 #if defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 #include "test/fake_external_rng_for_test.h"
@@ -257,11 +254,11 @@ int mbedtls_test_hexcmp( uint8_t * a, uint8_t * b,
 #if defined(MBEDTLS_TEST_MUTEX_USAGE)
 /** Permanently activate the mutex usage verification framework. See
  * threading_helpers.c for information. */
-void mbedtls_test_mutex_usage_init( void );
+void mbedtls_test_mutex_usage_init(void);
 
 /** Call this function after executing a test case to check for mutex usage
  * errors. */
-void mbedtls_test_mutex_usage_check( void );
+void mbedtls_test_mutex_usage_check(void);
 #endif /* MBEDTLS_TEST_MUTEX_USAGE */
 
 #if defined(MBEDTLS_TEST_HOOKS)
@@ -276,8 +273,8 @@ void mbedtls_test_mutex_usage_check( void );
  *
  * \note    If the check fails, fail the test currently being run.
  */
-void mbedtls_test_err_add_check( int high, int low,
-                                 const char *file, int line);
+void mbedtls_test_err_add_check(int high, int low,
+                                const char *file, int line);
 #endif
 
 #endif /* TEST_HELPERS_H */

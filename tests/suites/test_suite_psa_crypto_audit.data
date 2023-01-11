@@ -1,0 +1,50 @@
+Key audit: invalid (0)
+key_audit_invalid:0
+
+Key audit: invalid (persistent range)
+key_audit_invalid:42
+
+Key audit: invalid (volatile range)
+key_audit_invalid:PSA_KEY_ID_VOLATILE_MIN
+
+Key audit: imported, non-exportable, volatile
+key_audit_created:PSA_KEY_LIFETIME_VOLATILE:PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_COPY:IMPORT_KEY:0:0
+
+Key audit: imported, exportable, volatile
+key_audit_created:PSA_KEY_LIFETIME_VOLATILE:PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_COPY | PSA_KEY_USAGE_EXPORT:IMPORT_KEY:0:0
+
+Key audit: generated, non-exportable, volatile
+key_audit_created:PSA_KEY_LIFETIME_VOLATILE:PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_COPY:GENERATE_KEY:PSA_KEY_AUDIT_FLAG_NEVER_EXPORTED:0
+
+Key audit: generated, exportable, volatile
+key_audit_created:PSA_KEY_LIFETIME_VOLATILE:PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_COPY | PSA_KEY_USAGE_EXPORT:GENERATE_KEY:0:0
+
+Key audit: derived, non-exportable, volatile
+key_audit_created:PSA_KEY_LIFETIME_VOLATILE:PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_COPY:DERIVE_KEY:0:0
+
+Key audit: derived, exportable, volatile
+key_audit_created:PSA_KEY_LIFETIME_VOLATILE:PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_COPY | PSA_KEY_USAGE_EXPORT:DERIVE_KEY:0:0
+
+Key audit: imported, non-exportable, persistent
+depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
+key_audit_created:PSA_KEY_LIFETIME_PERSISTENT:PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_COPY:IMPORT_KEY:0:0
+
+Key audit: imported, exportable, persistent
+depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
+key_audit_created:PSA_KEY_LIFETIME_PERSISTENT:PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_COPY | PSA_KEY_USAGE_EXPORT:IMPORT_KEY:0:0
+
+Key audit: generated, non-exportable, persistent
+depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
+key_audit_created:PSA_KEY_LIFETIME_PERSISTENT:PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_COPY:GENERATE_KEY:0:0
+
+Key audit: generated, exportable, persistent
+depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
+key_audit_created:PSA_KEY_LIFETIME_PERSISTENT:PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_COPY | PSA_KEY_USAGE_EXPORT:GENERATE_KEY:0:0
+
+Key audit: derived, non-exportable, persistent
+depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
+key_audit_created:PSA_KEY_LIFETIME_PERSISTENT:PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_COPY:DERIVE_KEY:0:0
+
+Key audit: derived, exportable, persistent
+depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
+key_audit_created:PSA_KEY_LIFETIME_PERSISTENT:PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_COPY | PSA_KEY_USAGE_EXPORT:DERIVE_KEY:0:0

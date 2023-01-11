@@ -1,0 +1,115 @@
+/* BEGIN_HEADER */
+
+#include <psa/crypto.h>
+
+#include "psa_crypto_slot_management.h"
+#include "psa/crypto_se_driver.h"
+
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_PSA_CRYPTO_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void key_audit_invalid( int key_id_arg )
+{
+    mbedtls_svc_key_id_t key_id = mbedtls_svc_key_id_make( 0, key_id_arg );
+    psa_key_audit_flags_t audit_flags;
+
+    PSA_INIT( );
+
+    TEST_EQUAL( PSA_ERROR_INVALID_HANDLE,
+                psa_get_key_audit_flags( key_id, &audit_flags ) );
+
+exit:
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void key_audit_created( int lifetime,
+                        int usage_flags_arg,
+                        int creation_method,
+                        int expected_audit_flags_arg,
+                        int expected_persistent_copy_audit_flags_arg )
+{
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
+    const uint8_t key_material[] = {0x66, 0x6f, 0x6f};
+    const size_t key_material_size = sizeof( key_material );
+    const size_t key_bits = PSA_BYTES_TO_BITS( key_material_size );
+    psa_key_type_t key_type = PSA_KEY_TYPE_DERIVE; // always supported
+    psa_key_usage_t usage_flags = usage_flags_arg;
+    psa_key_audit_flags_t expected_audit_flags = expected_audit_flags_arg;
+    psa_key_audit_flags_t actual_audit_flags = 0xdeadbeef;
+    mbedtls_svc_key_id_t key_copy = MBEDTLS_SVC_KEY_ID_INIT;
+
+    PSA_INIT( );
+
+    psa_set_key_lifetime( &attributes, lifetime );
+    if( ! PSA_KEY_LIFETIME_IS_VOLATILE( lifetime ) )
+    {
+        key_id = mbedtls_svc_key_id_make( 0, 1 );
+        TEST_USES_KEY_ID( key_id );
+        psa_set_key_id( &attributes, key_id );
+    }
+    psa_set_key_type( &attributes, key_type );
+    psa_set_key_bits( &attributes, key_bits );
+    psa_set_key_usage_flags( &attributes, usage_flags );
+
+    if( ! mbedtls_test_psa_create_key( creation_method, &attributes,
+                                       key_material, key_material_size,
+                                       &key_id ) )
+        goto exit;
+
+    PSA_ASSERT( psa_get_key_audit_flags( key_id, &actual_audit_flags ) );
+    TEST_EQUAL( expected_audit_flags, actual_audit_flags );
+
+    if( usage_flags & PSA_KEY_USAGE_COPY )
+    {
+        /* A volatile copy must have the same audit flags, even if
+         * its attributes are possibly tighter. */
+        psa_reset_key_attributes( &attributes );
+        PSA_ASSERT( psa_copy_key( key_id, &attributes, &key_copy ) );
+        actual_audit_flags = 0xdeadbeef;
+        PSA_ASSERT( psa_get_key_audit_flags( key_copy, &actual_audit_flags ) );
+        TEST_EQUAL( expected_audit_flags, actual_audit_flags );
+        PSA_ASSERT( psa_destroy_key( key_copy ) );
+
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
+        /* A persistent copy may have weaker flags. */
+        key_copy = mbedtls_svc_key_id_make( 0, 2 );
+        TEST_USES_KEY_ID( key_copy );
+        psa_set_key_id( &attributes, key_copy );
+        psa_set_key_lifetime( &attributes, PSA_KEY_LIFETIME_PERSISTENT );
+        PSA_ASSERT( psa_copy_key( key_id, &attributes, &key_copy ) );
+        actual_audit_flags = 0xdeadbeef;
+        PSA_ASSERT( psa_get_key_audit_flags( key_copy, &actual_audit_flags ) );
+        TEST_EQUAL( expected_persistent_copy_audit_flags_arg,
+                    actual_audit_flags );
+        PSA_ASSERT( psa_destroy_key( key_copy ) );
+#else
+        (void) expected_persistent_copy_audit_flags_arg;
+#endif
+    }
+
+    if( ! PSA_KEY_LIFETIME_IS_VOLATILE( lifetime ) )
+    {
+        /* After a shutdown and restart, the persistent key must have the
+         * same audit flags. */
+        mbedtls_psa_crypto_free( );
+        PSA_INIT( );
+        PSA_ASSERT( psa_get_key_attributes( key_id, &attributes ) );
+        PSA_ASSERT( psa_get_key_audit_flags( key_id, &actual_audit_flags ) );
+        TEST_EQUAL( expected_audit_flags, actual_audit_flags );
+    }
+
+exit:
+    psa_reset_key_attributes( &attributes );
+    psa_destroy_key( key_id );
+    psa_destroy_key( key_copy );
+    PSA_DONE( );
+}
+/* END_CASE */

@@ -663,6 +663,77 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
 
 /**@}*/
 
+/** \defgroup audit Key store audit
+ * @{
+ *
+ * \note    The audit interface is experimental and subject to change
+ *          without notice.
+ */
+
+/** Audit flag indicating that the key material was never and will never
+ * be exposed in plaintext form outside security boundary of its location.
+ *
+ * This flag should be set if all of the following conditions are met:
+ * - The key material was generated randomly with psa_generate_key().
+ * - The key has never had the flag #PSA_KEY_USAGE_EXPORT.
+ * - If the key can be exposed outside its security boundary in wrapped form,
+ *   the implementation guarantees that the wrapping key itself cannot be
+ *   exposed.
+ * - If the key was created by copying another key, these properties also
+ *   apply to the original key.
+ *
+ * This flag must not be set in any of the following cases:
+ * - The key was created by import.
+ * - The key, or a copy of it, was exportable in the past (unless the
+ *   implementation can guarantee that it was never exported).
+ * - The key, or a copy of it, is currently exportable.
+ * - The key was created by derivation, unless an implementation-specific
+ *   policy on the secret from which the key was derived prevents the
+ *   same key material from being derived again with an exportable policy.
+ * - The key is located in a secure element, and it or a copy of it may
+ *   have been present outside that secure element, even if it could not
+ *   escape the security boundary of the PSA Crypto implementation.
+ *
+ * \note    Mbed TLS currently supports this flag only for volatile keys.
+ */
+#define PSA_KEY_AUDIT_FLAG_NEVER_EXPORTED ((psa_key_audit_flags_t) 0x00000001u)
+
+/** Key audit information in the form of a flag mask.
+ *
+ * A value of this type is a mask (bitwise-or) of
+ * `PSA_KEY_AUDIT_FLAG_xxx` values.
+ *
+ * A flag is set in the audit flag mask only if the implementation can
+ * guarantee that the corresponding security property was always true.
+ * If this is not possible, the implementation must leave the flag unset.
+ * Implementations should document which audit flags they support and
+ * any applicable limitations.
+ */
+typedef uint32_t psa_key_audit_flags_t;
+
+/** Retrieve the audit information flags for a key.
+ *
+ * \param key               The key to query.
+ * \param[out] audit_flags  On success, the key's audit information flags.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success. \p audit_flags contains the key's audit information flags.
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ *         \p key does not exist.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_DATA_CORRUPT
+ * \retval #PSA_ERROR_DATA_INVALID
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ */
+psa_status_t psa_get_key_audit_flags(mbedtls_svc_key_id_t key,
+                                     psa_key_audit_flags_t *audit_flags);
+
+/**@}*/
+
 /** \defgroup psa_external_rng External random generator
  * @{
  */
@@ -1738,8 +1809,6 @@ psa_status_t psa_pake_get_implicit_key( psa_pake_operation_t *operation,
  */
 psa_status_t psa_pake_abort( psa_pake_operation_t * operation );
 
-/**@}*/
-
 /** A sufficient output buffer size for psa_pake_output().
  *
  * If the size of the output buffer is at least this large, it is guaranteed
@@ -1948,6 +2017,8 @@ static inline struct psa_pake_operation_s psa_pake_operation_init( void )
     const struct psa_pake_operation_s v = PSA_PAKE_OPERATION_INIT;
     return( v );
 }
+
+/**@}*/
 
 #ifdef __cplusplus
 }

@@ -1246,6 +1246,53 @@ psa_status_t psa_get_key_slot_number(
 }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
+/** Retrieve key audit information.
+ */
+psa_status_t psa_get_key_audit_flags( mbedtls_svc_key_id_t key,
+                                      psa_key_audit_flags_t *audit_flags )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_slot_t *slot;
+
+    status = psa_get_and_lock_key_slot_with_policy( key, &slot, 0, 0 );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    *audit_flags = slot->audit_flags;
+
+    return( psa_unlock_key_slot( slot ) );
+}
+
+/** Whether the given key is currently non-exposable, that is, it cannot
+ * escape its security boundary. For a key in internal storage, this means
+ * the key is non-exportable. For a key in a secure element, this means
+ * the key cannot be copied outside the secure element, even if the copy
+ * remains within the PSA boundary.
+ *
+ * If this property has been true ever since the time the key was created,
+ * and the secret data used for key creation can be guaranteed not to
+ * have been exposed the security boundary, then the key can have the
+ * audit flag #PSA_KEY_AUDIT_FLAG_NEVER_EXPORTED.
+ */
+static int psa_key_is_non_exposable( const psa_key_slot_t *slot )
+{
+    psa_key_lifetime_t lifetime = slot->attr.lifetime;
+    psa_key_usage_t usage = slot->attr.policy.usage;
+
+    /* If the copy is persistent, we can't yet track its audit flag
+     * after a reset. Even if it would be valid to set some flags here,
+     * don't do it, because it would be mostly useless and confusing if
+     * a persistent key's audit flags changed on the first reset after the
+     * key was created. */
+    if( ! PSA_KEY_LIFETIME_IS_VOLATILE( lifetime ) )
+        return( 0 );
+
+    /* #PSA_KEY_USAGE_COPY only allows copies inside the same security
+     * boundary, therefore it is not relevant here. */
+
+    return( ( usage & PSA_KEY_USAGE_EXPORT ) == 0 );
+}
+
 static psa_status_t psa_export_key_buffer_internal( const uint8_t *key_buffer,
                                                     size_t key_buffer_size,
                                                     uint8_t *data,
@@ -2044,6 +2091,7 @@ psa_status_t psa_copy_key( mbedtls_svc_key_id_t source_key,
         status = PSA_ERROR_NOT_SUPPORTED;
         goto exit;
     }
+
     /*
      * When the source and target keys are within the same location,
      * - For transparent keys it is a blind copy without any driver invocation,
@@ -2078,7 +2126,17 @@ psa_status_t psa_copy_key( mbedtls_svc_key_id_t source_key,
         if( status != PSA_SUCCESS )
             goto exit;
     }
+
+    /* If the copy is persistent, we can't yet track its audit flag
+     * after a reset. Even if it would be valid to set some flags here,
+     * don't do it, because it would be mostly useless and confusing if
+     * a persistent key's audit flags changed on the first reset after the
+     * key was created. */
+    if( PSA_KEY_LIFETIME_IS_VOLATILE( target_slot->attr.lifetime ) )
+        target_slot->audit_flags = source_slot->audit_flags;
+
     status = psa_finish_key_creation( target_slot, driver, target_key );
+
 exit:
     if( status != PSA_SUCCESS )
         psa_fail_key_creation( target_slot, driver );
@@ -6241,6 +6299,9 @@ psa_status_t psa_generate_key( const psa_key_attributes_t *attributes,
 
     if( status != PSA_SUCCESS )
         psa_remove_key_data_from_memory( slot );
+
+    if( psa_key_is_non_exposable( slot ) )
+        slot->audit_flags |= PSA_KEY_AUDIT_FLAG_NEVER_EXPORTED;
 
 exit:
     if( status == PSA_SUCCESS )

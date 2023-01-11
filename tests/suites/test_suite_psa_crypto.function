@@ -296,12 +296,6 @@ exit:
 #define KEY_BITS_FROM_DATA( type, data )        \
     ( data )->len
 
-typedef enum {
-    IMPORT_KEY = 0,
-    GENERATE_KEY = 1,
-    DERIVE_KEY = 2
-} generate_method;
-
 typedef enum
 {
     DO_NOT_SET_LENGTHS = 0,
@@ -8633,17 +8627,15 @@ exit:
 void persistent_key_load_key_from_storage( data_t *data,
                                            int type_arg, int bits_arg,
                                            int usage_flags_arg, int alg_arg,
-                                           int generation_method )
+                                           int creation_method )
 {
     mbedtls_svc_key_id_t key_id = mbedtls_svc_key_id_make( 1, 1 );
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
-    mbedtls_svc_key_id_t base_key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t type = type_arg;
     size_t bits = bits_arg;
     psa_key_usage_t usage_flags = usage_flags_arg;
     psa_algorithm_t alg = alg_arg;
-    psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
     unsigned char *first_export = NULL;
     unsigned char *second_export = NULL;
     size_t export_size = PSA_EXPORT_KEY_OUTPUT_SIZE( type, bits );
@@ -8663,57 +8655,10 @@ void persistent_key_load_key_from_storage( data_t *data,
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, type );
     psa_set_key_bits( &attributes, bits );
-
-    switch( generation_method )
-    {
-        case IMPORT_KEY:
-            /* Import the key */
-            PSA_ASSERT( psa_import_key( &attributes, data->x, data->len,
-                                        &key ) );
-            break;
-
-        case GENERATE_KEY:
-            /* Generate a key */
-            PSA_ASSERT( psa_generate_key( &attributes, &key ) );
-            break;
-
-        case DERIVE_KEY:
-#if defined(PSA_WANT_ALG_HKDF) && defined(PSA_WANT_ALG_SHA_256)
-            {
-                /* Create base key */
-                psa_algorithm_t derive_alg = PSA_ALG_HKDF( PSA_ALG_SHA_256 );
-                psa_key_attributes_t base_attributes = PSA_KEY_ATTRIBUTES_INIT;
-                psa_set_key_usage_flags( &base_attributes,
-                                         PSA_KEY_USAGE_DERIVE );
-                psa_set_key_algorithm( &base_attributes, derive_alg );
-                psa_set_key_type( &base_attributes, PSA_KEY_TYPE_DERIVE );
-                PSA_ASSERT( psa_import_key( &base_attributes,
-                                            data->x, data->len,
-                                            &base_key ) );
-                /* Derive a key. */
-                PSA_ASSERT( psa_key_derivation_setup( &operation, derive_alg ) );
-                PSA_ASSERT( psa_key_derivation_input_key(
-                                &operation,
-                                PSA_KEY_DERIVATION_INPUT_SECRET, base_key ) );
-                PSA_ASSERT( psa_key_derivation_input_bytes(
-                                &operation, PSA_KEY_DERIVATION_INPUT_INFO,
-                                NULL, 0 ) );
-                PSA_ASSERT( psa_key_derivation_output_key( &attributes,
-                                                           &operation,
-                                                           &key ) );
-                PSA_ASSERT( psa_key_derivation_abort( &operation ) );
-                PSA_ASSERT( psa_destroy_key( base_key ) );
-                base_key = MBEDTLS_SVC_KEY_ID_INIT;
-            }
-#else
-            TEST_ASSUME( ! "KDF not supported in this configuration" );
-#endif
-            break;
-
-        default:
-            TEST_ASSERT( ! "generation_method not implemented in test" );
-            break;
-    }
+    if( ! mbedtls_test_psa_create_key( creation_method, &attributes,
+                                       data->x, data->len,
+                                       &key ) )
+        goto exit;
     psa_reset_key_attributes( &attributes );
 
     /* Export the key if permitted by the key policy. */
@@ -8722,7 +8667,7 @@ void persistent_key_load_key_from_storage( data_t *data,
         PSA_ASSERT( psa_export_key( key,
                                     first_export, export_size,
                                     &first_exported_length ) );
-        if( generation_method == IMPORT_KEY )
+        if( creation_method == IMPORT_KEY )
             ASSERT_COMPARE( data->x, data->len,
                             first_export, first_exported_length );
     }
@@ -8767,8 +8712,6 @@ exit:
 
     mbedtls_free( first_export );
     mbedtls_free( second_export );
-    psa_key_derivation_abort( &operation );
-    psa_destroy_key( base_key );
     psa_destroy_key( key );
     PSA_DONE();
 }

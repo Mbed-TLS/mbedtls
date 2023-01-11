@@ -2620,7 +2620,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void hash_operation_init( )
+void hash_operation_init( int lib_init )
 {
     const uint8_t input[1] = { 0 };
     /* Test each valid way of initializing the object, except for `= {0}`, as
@@ -2630,8 +2630,10 @@ void hash_operation_init( )
     psa_hash_operation_t func = psa_hash_operation_init( );
     psa_hash_operation_t init = PSA_HASH_OPERATION_INIT;
     psa_hash_operation_t zero;
-
     memset( &zero, 0, sizeof( zero ) );
+
+    if( lib_init )
+        PSA_INIT( );
 
     /* A freshly-initialized hash operation should not be usable. */
     TEST_EQUAL( psa_hash_update( &func, input, sizeof( input ) ),
@@ -2645,6 +2647,10 @@ void hash_operation_init( )
     PSA_ASSERT( psa_hash_abort( &func ) );
     PSA_ASSERT( psa_hash_abort( &init ) );
     PSA_ASSERT( psa_hash_abort( &zero ) );
+
+exit:
+    if( lib_init )
+        PSA_DONE( );
 }
 /* END_CASE */
 
@@ -2659,8 +2665,6 @@ void hash_setup( int alg_arg,
     psa_status_t expected_status = expected_status_arg;
     psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     psa_status_t status;
-
-    PSA_ASSERT( psa_crypto_init( ) );
 
     /* Hash Setup, one-shot */
     output_size = PSA_HASH_LENGTH( alg );
@@ -2690,7 +2694,6 @@ void hash_setup( int alg_arg,
 
 exit:
     mbedtls_free( output );
-    PSA_DONE( );
 }
 /* END_CASE */
 
@@ -2707,8 +2710,6 @@ void hash_compute_fail( int alg_arg, data_t *input,
     psa_status_t status;
 
     ASSERT_ALLOC( output, output_size );
-
-    PSA_ASSERT( psa_crypto_init( ) );
 
     /* Hash Compute, one-shot */
     status = psa_hash_compute( alg, input->x, input->len,
@@ -2743,7 +2744,6 @@ void hash_compute_fail( int alg_arg, data_t *input,
 exit:
     PSA_ASSERT( psa_hash_abort( &operation ) );
     mbedtls_free( output );
-    PSA_DONE( );
 }
 /* END_CASE */
 
@@ -2756,8 +2756,6 @@ void hash_compare_fail( int alg_arg, data_t *input,
     psa_status_t expected_status = expected_status_arg;
     psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     psa_status_t status;
-
-    PSA_ASSERT( psa_crypto_init( ) );
 
     /* Hash Compare, one-shot */
     status = psa_hash_compare( alg, input->x, input->len,
@@ -2787,7 +2785,6 @@ void hash_compare_fail( int alg_arg, data_t *input,
 
 exit:
     PSA_ASSERT( psa_hash_abort( &operation ) );
-    PSA_DONE( );
 }
 /* END_CASE */
 
@@ -2800,8 +2797,6 @@ void hash_compute_compare( int alg_arg, data_t *input,
     size_t output_length = INVALID_EXPORT_LENGTH;
     psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     size_t i;
-
-    PSA_ASSERT( psa_crypto_init( ) );
 
     /* Compute with tight buffer, one-shot */
     PSA_ASSERT( psa_hash_compute( alg, input->x, input->len,
@@ -2892,12 +2887,11 @@ void hash_compute_compare( int alg_arg, data_t *input,
 
 exit:
     PSA_ASSERT( psa_hash_abort( &operation ) );
-    PSA_DONE( );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:PSA_WANT_ALG_SHA_256 */
-void hash_bad_order( )
+void hash_bad_order( int lib_init )
 {
     psa_algorithm_t alg = PSA_ALG_SHA_256;
     unsigned char input[] = "";
@@ -2910,7 +2904,8 @@ void hash_bad_order( )
     size_t hash_len;
     psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
 
-    PSA_ASSERT( psa_crypto_init( ) );
+    if( lib_init )
+        PSA_ASSERT( psa_crypto_init( ) );
 
     /* Call setup twice in a row. */
     PSA_ASSERT( psa_hash_setup( &operation, alg ) );
@@ -2996,7 +2991,8 @@ void hash_bad_order( )
     PSA_ASSERT( psa_hash_abort( &operation ) );
 
 exit:
-    PSA_DONE( );
+    if( lib_init )
+        PSA_DONE( );
 }
 /* END_CASE */
 
@@ -3012,8 +3008,6 @@ void hash_verify_bad_args( )
         0xa4, 0x95, 0x99, 0x1b, 0x78, 0x52, 0xb8, 0x55, 0xaa, 0xbb };
     size_t expected_size = PSA_HASH_LENGTH( alg );
     psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
-
-    PSA_ASSERT( psa_crypto_init( ) );
 
     /* psa_hash_verify with a smaller hash than expected */
     PSA_ASSERT( psa_hash_setup( &operation, alg ) );
@@ -3033,9 +3027,6 @@ void hash_verify_bad_args( )
     PSA_ASSERT( psa_hash_setup( &operation, alg ) );
     TEST_EQUAL( psa_hash_verify( &operation, hash, sizeof( hash ) ),
                 PSA_ERROR_INVALID_SIGNATURE );
-
-exit:
-    PSA_DONE( );
 }
 /* END_CASE */
 
@@ -3048,16 +3039,11 @@ void hash_finish_bad_args( )
     psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     size_t hash_len;
 
-    PSA_ASSERT( psa_crypto_init( ) );
-
     /* psa_hash_finish with a smaller hash buffer than expected */
     PSA_ASSERT( psa_hash_setup( &operation, alg ) );
     TEST_EQUAL( psa_hash_finish( &operation,
                                  hash, expected_size - 1, &hash_len ),
                 PSA_ERROR_BUFFER_TOO_SMALL );
-
-exit:
-    PSA_DONE( );
 }
 /* END_CASE */
 
@@ -3073,7 +3059,6 @@ void hash_clone_source_state( )
     psa_hash_operation_t op_aborted = PSA_HASH_OPERATION_INIT;
     size_t hash_len;
 
-    PSA_ASSERT( psa_crypto_init( ) );
     PSA_ASSERT( psa_hash_setup( &op_source, alg ) );
 
     PSA_ASSERT( psa_hash_setup( &op_setup, alg ) );
@@ -3102,7 +3087,6 @@ exit:
     psa_hash_abort( &op_setup );
     psa_hash_abort( &op_finished );
     psa_hash_abort( &op_aborted );
-    PSA_DONE( );
 }
 /* END_CASE */
 
@@ -3117,8 +3101,6 @@ void hash_clone_target_state( )
     psa_hash_operation_t op_aborted = PSA_HASH_OPERATION_INIT;
     psa_hash_operation_t op_target = PSA_HASH_OPERATION_INIT;
     size_t hash_len;
-
-    PSA_ASSERT( psa_crypto_init( ) );
 
     PSA_ASSERT( psa_hash_setup( &op_setup, alg ) );
     PSA_ASSERT( psa_hash_setup( &op_finished, alg ) );
@@ -3143,7 +3125,6 @@ exit:
     psa_hash_abort( &op_setup );
     psa_hash_abort( &op_finished );
     psa_hash_abort( &op_aborted );
-    PSA_DONE( );
 }
 /* END_CASE */
 

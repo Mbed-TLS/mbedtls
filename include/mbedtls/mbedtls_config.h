@@ -1221,8 +1221,30 @@
 /** \def MBEDTLS_PSA_CRYPTO_DRIVERS
  *
  * Enable support for the experimental PSA crypto driver interface.
+ * See docs/proposed/psa-driver-interface.md
  *
  * Requires: MBEDTLS_PSA_CRYPTO_C
+ *
+ * \note The driver interface is currently only partially supported:
+ *
+ *       - Cryptographic operations other than key agreement and key derivation
+ *         can have accelerator and secure element drivers.
+ *       - The entropy and random generator interfaces are not supported.
+ *       - Hash accelerator drivers may currently be called at any time.
+ *         Other drivers can assume that psa_crypto_init() has been called.
+ *       - The assumptions that drivers can make on input data passed by the
+ *         core are currently not fully defined. Drivers can assume that
+ *         the driver entry points are called in a valid sequence with valid
+ *         memory buffers, and that content coming from the core (e.g. the
+ *         content of a key_buffer input in an operation entry point) is
+ *         valid. Drivers should not make any assumption on the correctness
+ *         of data that comes from applications, such as whether numbers in
+ *         a public or private key are within a certain range, or whether
+ *         requested algorithms and key types are compatible.
+ *       - Drivers should not assume that they can call internal Mbed TLS
+ *         functions. This is possible, and will remain possible, however
+ *         the set of functions that it is safe to call may change without
+ *         notice.
  *
  * \warning This interface is experimental. We intend to maintain backward
  *          compatibility with application code that relies on drivers,

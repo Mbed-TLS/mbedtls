@@ -1,0 +1,9 @@
+Features
+   * Document that PSA hash operations don't require psa_crypto_init(). This
+     has always been possible, but was not previously explicitly stated. This
+     does not necessarily apply to a PSA crypto service built on Mbed TLS.
+
+Changes
+   * Clarify some current limitations of the PSA driver interface. See the
+     documentation of MBEDTLS_PSA_CRYPTO_DRIVERS in
+     include/mbedtls/mbedtls_config.h.

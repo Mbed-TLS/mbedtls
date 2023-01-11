@@ -17,8 +17,6 @@ void hash_finish( int alg_arg, data_t *input, data_t *expected_hash )
     size_t actual_hash_length;
     psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
 
-    PSA_ASSERT( psa_crypto_init( ) );
-
     PSA_ASSERT( psa_hash_setup( &operation, alg ) );
     PSA_ASSERT( psa_hash_update( &operation,
                                  input->x, input->len ) );
@@ -30,7 +28,6 @@ void hash_finish( int alg_arg, data_t *input, data_t *expected_hash )
 
 exit:
     psa_hash_abort( &operation );
-    PSA_DONE( );
 }
 /* END_CASE */
 
@@ -39,8 +36,6 @@ void hash_verify( int alg_arg, data_t *input, data_t *expected_hash )
 {
     psa_algorithm_t alg = alg_arg;
     psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
-
-    PSA_ASSERT( psa_crypto_init( ) );
 
     PSA_ASSERT( psa_hash_setup( &operation, alg ) );
     PSA_ASSERT( psa_hash_update( &operation,
@@ -52,7 +47,6 @@ void hash_verify( int alg_arg, data_t *input, data_t *expected_hash )
 
 exit:
     psa_hash_abort( &operation );
-    PSA_DONE( );
 }
 /* END_CASE */
 
@@ -65,8 +59,6 @@ void hash_multi_part( int alg_arg, data_t *input, data_t *expected_hash )
     psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     psa_hash_operation_t operation2 = PSA_HASH_OPERATION_INIT;
     uint32_t len = 0;
-
-    PSA_ASSERT( psa_crypto_init( ) );
 
     do
     {
@@ -97,6 +89,5 @@ void hash_multi_part( int alg_arg, data_t *input, data_t *expected_hash )
 exit:
     psa_hash_abort( &operation );
     psa_hash_abort( &operation2 );
-    PSA_DONE( );
 }
 /* END_CASE */

@@ -50,7 +50,7 @@ inline static int mbedtls_ecp_group_cmp( mbedtls_ecp_group *grp1,
         return 1;
     if( grp1->T_size != grp2->T_size )
         return 1;
-    if( grp1->T != grp2->T )
+    if( grp1->&T != grp2->&T )
         return 1;
 
     return 0;

@@ -216,9 +216,9 @@ int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *N,
  *          mbedtls_mpi_mod_modulus_setup() only removes the reference to it,
  *          making it safe to free or to use it again.
  *
- * \param[in,out] m     The address of the modulus structure to free.
+ * \param[in,out] N     The address of the modulus structure to free.
  */
-void mbedtls_mpi_mod_modulus_free(mbedtls_mpi_mod_modulus *m);
+void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *N );
 
 /* BEGIN MERGE SLOT 1 */
 

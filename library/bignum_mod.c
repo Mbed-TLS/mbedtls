@@ -71,33 +71,35 @@ void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *N )
     N->int_rep = MBEDTLS_MPI_MOD_REP_INVALID;
 }
 
-void mbedtls_mpi_mod_modulus_free(mbedtls_mpi_mod_modulus *m)
+void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *N )
 {
-    if (m == NULL) {
+    if (N == NULL) {
         return;
     }
 
-    switch (m->int_rep) {
+    switch( N->int_rep )
+    {
         case MBEDTLS_MPI_MOD_REP_MONTGOMERY:
-            if (m->rep.mont.rr != NULL) {
-                mbedtls_platform_zeroize((mbedtls_mpi_uint *) m->rep.mont.rr,
-                                         m->limbs * sizeof(mbedtls_mpi_uint));
-                mbedtls_free((mbedtls_mpi_uint *) m->rep.mont.rr);
-                m->rep.mont.rr = NULL;
+            if (N->rep.mont.rr != NULL)
+            {
+                mbedtls_platform_zeroize( (mbedtls_mpi_uint *) N->rep.mont.rr,
+                                           N->limbs * sizeof(mbedtls_mpi_uint) );
+                mbedtls_free( (mbedtls_mpi_uint *)N->rep.mont.rr );
+                N->rep.mont.rr = NULL;
             }
-            m->rep.mont.mm = 0;
+            N->rep.mont.mm = 0;
             break;
         case MBEDTLS_MPI_MOD_REP_OPT_RED:
-            mbedtls_free(m->rep.ored);
+            mbedtls_free( N->rep.ored );
             break;
         case MBEDTLS_MPI_MOD_REP_INVALID:
             break;
     }
 
-    m->p = NULL;
-    m->limbs = 0;
-    m->bits = 0;
-    m->int_rep = MBEDTLS_MPI_MOD_REP_INVALID;
+    N->p = NULL;
+    N->limbs = 0;
+    N->bits = 0;
+    N->int_rep = MBEDTLS_MPI_MOD_REP_INVALID;
 }
 
 static int set_mont_const_square(const mbedtls_mpi_uint **X,

@@ -85,9 +85,15 @@ int mbedtls_ct_memcmp(const void *a,
                       size_t n)
 {
     size_t i = 0;
+    /*
+     * `A` and `B` are cast to volatile to ensure that the compiler
+     * generates code that always fully reads both buffers.
+     * Otherwise it could generate a test to exit early if `diff` has all
+     * bits set early in the loop.
+     */
     volatile const unsigned char *A = (volatile const unsigned char *) a;
     volatile const unsigned char *B = (volatile const unsigned char *) b;
-    volatile uint32_t diff = 0;
+    uint32_t diff = 0;
 
 #if defined(MBEDTLS_EFFICIENT_UNALIGNED_VOLATILE_ACCESS)
     for (; (i + 4) <= n; i += 4) {

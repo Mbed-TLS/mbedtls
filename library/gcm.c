@@ -52,6 +52,34 @@ void mbedtls_gcm_init( mbedtls_gcm_context *ctx )
     memset( ctx, 0, sizeof( mbedtls_gcm_context ) );
 }
 
+void mbedtls_gcm_siv_init( mbedtls_gcm_siv_context *ctx ) {
+    GCM_VALIDATE( ctx != NULL );
+    memset( ctx, 0, sizeof( mbedtls_gcm_siv_context ) );
+}
+
+/*
+ * This function is needed to implement POLYVAL as a function of GHASH.
+ * See RFC 8452 Appendix A for more details.
+ */
+static inline void mulx_ghash(unsigned char block[16])
+{
+    uint64_t tmp[2], mask;
+
+    /* Convert to uint64_t to make bitwise operations easier */
+    tmp[0] = MBEDTLS_GET_UINT64_BE(block, 0);
+    tmp[1] = MBEDTLS_GET_UINT64_BE(block, 8);
+
+    /* GHASH polynomial mask */
+    mask = (-(tmp[1] & 1) & 0xe1) << (8 * (sizeof(uint64_t) - 1));
+
+    /* multiply by x */
+    tmp[1] = (tmp[1] >> 1) | (tmp[0] << 63);
+    tmp[0] = (tmp[0] >> 1) ^ mask;
+
+    MBEDTLS_PUT_UINT64_BE(tmp[0], block, 0);
+    MBEDTLS_PUT_UINT64_BE(tmp[1], block, 8);
+}
+
 /*
  * Precompute small multiples of H, that is set
  *      HH[i] || HL[i] = H times i,
@@ -60,17 +88,11 @@ void mbedtls_gcm_init( mbedtls_gcm_context *ctx )
  * is the high-order bit of HH corresponds to P^0 and the low-order bit of HL
  * corresponds to P^127.
  */
-static int gcm_gen_table( mbedtls_gcm_context *ctx )
-{
-    int ret, i, j;
+static void gcm_gen_table_h(const unsigned char *h, uint64_t *HL, uint64_t *HH) {
+    int i, j;
     uint64_t hi, lo;
     uint64_t vl, vh;
-    unsigned char h[16];
-    size_t olen = 0;
 
-    memset( h, 0, 16 );
-    if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx, h, 16, h, &olen ) ) != 0 )
-        return( ret );
 
     /* pack h as two 64-bits ints, big-endian */
     hi = MBEDTLS_GET_UINT32_BE( h,  0  );
@@ -82,18 +104,18 @@ static int gcm_gen_table( mbedtls_gcm_context *ctx )
     vl = (uint64_t) hi << 32 | lo;
 
     /* 8 = 1000 corresponds to 1 in GF(2^128) */
-    ctx->HL[8] = vl;
-    ctx->HH[8] = vh;
+    HL[8] = vl;
+    HH[8] = vh;
 
 #if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
     /* With CLMUL support, we need only h, not the rest of the table */
     if( mbedtls_aesni_has_support( MBEDTLS_AESNI_CLMUL ) )
-        return( 0 );
+        return;
 #endif
 
     /* 0 corresponds to 0 in GF(2^128) */
-    ctx->HH[0] = 0;
-    ctx->HL[0] = 0;
+    HH[0] = 0;
+    HL[0] = 0;
 
     for( i = 4; i > 0; i >>= 1 )
     {
@@ -101,21 +123,61 @@ static int gcm_gen_table( mbedtls_gcm_context *ctx )
         vl  = ( vh << 63 ) | ( vl >> 1 );
         vh  = ( vh >> 1 ) ^ ( (uint64_t) T << 32);
 
-        ctx->HL[i] = vl;
-        ctx->HH[i] = vh;
+        HL[i] = vl;
+        HH[i] = vh;
     }
 
     for( i = 2; i <= 8; i *= 2 )
     {
-        uint64_t *HiL = ctx->HL + i, *HiH = ctx->HH + i;
+        uint64_t *HiL = HL + i, *HiH = HH + i;
         vh = *HiH;
         vl = *HiL;
         for( j = 1; j < i; j++ )
         {
-            HiH[j] = vh ^ ctx->HH[j];
-            HiL[j] = vl ^ ctx->HL[j];
+            HiH[j] = vh ^ HH[j];
+            HiL[j] = vl ^ HL[j];
         }
     }
+}
+
+static int gcm_gen_table( mbedtls_gcm_context *ctx )
+{
+    int ret;
+    unsigned char h[16];
+    size_t olen = 0;
+
+    memset( h, 0, 16 );
+    if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx, h, 16, h, &olen ) ) != 0 )
+        return( ret );
+
+    gcm_gen_table_h(h, ctx->HL, ctx->HH);
+
+    return( 0 );
+}
+
+static int gcm_siv_gen_table( mbedtls_gcm_siv_context *ctx )
+{
+    int i;
+    unsigned char h[16];
+
+    /*
+     * To compute POLYVAL with GHASH, the RFC gives the following:
+     *
+     * POLYVAL(H, X_1, ..., X_n) =
+     *  ByteReverse(GHASH(mulX_GHASH(ByteReverse(H)), ByteReverse(X_1), ...,
+     *  ByteReverse(X_n)))
+     *
+     * Thus, when computing the table for GHASH, we supply
+     *  mulX_GHASH(ByteReverse(H))
+     * instead of H.
+     */
+    for (i = 0; i < 16; i++)
+        h[i] = ctx->message_authentication_key[15 - i];
+
+    /* Multiply H by X in GHASH to convert to POLYVAL field */
+    mulx_ghash(h);
+
+    gcm_gen_table_h(h, ctx->gcm_ctx.HL, ctx->gcm_ctx.HH);
 
     return( 0 );
 }
@@ -154,6 +216,67 @@ int mbedtls_gcm_setkey( mbedtls_gcm_context *ctx,
         return( ret );
 
     return( 0 );
+}
+
+int mbedtls_gcm_siv_setkey( mbedtls_gcm_siv_context *ctx,
+                            const unsigned char iv[12],
+                            const unsigned char *key,
+                            unsigned int keybits )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    unsigned char tmp[16];
+    unsigned char counter_nonce[16];
+
+    GCM_VALIDATE_RET( ctx != NULL );
+    GCM_VALIDATE_RET( key != NULL );
+    GCM_VALIDATE_RET( iv != NULL );
+    GCM_VALIDATE_RET( keybits == 128 || keybits == 256 );
+
+    /* Generate authentication/encryption keys using AES ECB */
+    mbedtls_aes_context aes_ctx;
+    mbedtls_aes_init(&aes_ctx);
+    ret = mbedtls_aes_setkey_enc(&aes_ctx, key, keybits);
+    if (ret != 0) {
+        goto cleanup;
+    }
+    memset(counter_nonce, 0, 4);
+    memcpy(&counter_nonce[4], iv, 12);
+
+    /* Compute message authentication key - note: always 128 bits */
+    for (unsigned char i=0; i<2; i++) {
+        counter_nonce[0] = i;
+        ret = mbedtls_aes_crypt_ecb(&aes_ctx, MBEDTLS_ENCRYPT, counter_nonce, tmp);
+        if (ret != 0) {
+            goto cleanup;
+        }
+
+        memcpy(ctx->message_authentication_key + i*8, tmp, 8);
+    }
+
+    /* Compute message encryption key */
+    unsigned char generation_rounds = 2;
+
+    if (keybits == 256) {
+        generation_rounds = 4;
+    }
+    ctx->message_encryption_key_len_bits = keybits;
+
+    for (unsigned char i=0; i<generation_rounds; i++) {
+        counter_nonce[0] = i+2;
+        ret = mbedtls_aes_crypt_ecb(&aes_ctx, MBEDTLS_ENCRYPT, counter_nonce, tmp);
+        if (ret != 0) {
+            goto cleanup;
+        }
+
+        memcpy(ctx->message_encryption_key + i*8, tmp, 8);
+    }
+
+    ret = gcm_siv_gen_table( ctx );
+
+cleanup:
+    mbedtls_aes_free(&aes_ctx);
+
+    return ret;
 }
 
 /*
@@ -555,6 +678,201 @@ int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,
     return( 0 );
 }
 
+static int siv_tag(mbedtls_gcm_siv_context *ctx,
+                   const unsigned char iv[12],
+                   const unsigned char *add,
+                   size_t add_len,
+                   const unsigned char *input,
+                   size_t input_len,
+                   unsigned char tag[16])
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t block_size;
+    unsigned char tmp[16];
+    unsigned char result[16];
+    unsigned char next_result[16];
+    const unsigned char *current;
+    size_t i;
+
+    memset(next_result, 0, 16);
+
+    /* additional unencrypted data */
+    i = 0;
+    while (i < add_len) {
+        block_size = add_len - i;
+        if (block_size > 16) {
+            block_size = 16;
+        }
+        current = add+i;
+        memset(tmp, 0, 16);
+        memcpy(tmp, current, block_size);
+
+        for (size_t j=0; j<16; j++) {
+            result[j] = next_result[j] ^ tmp[15-j];
+        }
+
+        gcm_mult(&ctx->gcm_ctx, result, next_result);
+        i += block_size;
+    }
+
+    /* plaintext */
+    i = 0;
+    while (i < input_len) {
+        block_size = input_len - i;
+        if (block_size > 16) {
+            block_size = 16;
+        }
+        current = input+i;
+        memset(tmp, 0, 16);
+        memcpy(tmp, current, block_size);
+
+        for (size_t j=0; j<16; j++) {
+            result[j] = next_result[j] ^ tmp[15-j];
+        }
+
+        gcm_mult(&ctx->gcm_ctx, result, next_result);
+        i += block_size;
+    }
+
+    /* length block */
+    MBEDTLS_PUT_UINT64_LE((uint64_t)add_len * 8, tmp, 0);
+    MBEDTLS_PUT_UINT64_LE((uint64_t)input_len * 8, tmp, 8);
+
+    for (int j=0; j<16; j++) {
+        result[j] = next_result[j] ^ tmp[15-j];
+    }
+    gcm_mult(&ctx->gcm_ctx, result, tmp);
+
+    for (i = 0; i < 16; i++)
+        result[i] = tmp[15 - i];
+
+    /* XOR in IV */
+    for (i=0; i<12; i++) {
+        result[i] ^= iv[i];
+    }
+
+    /* clear MSB of last byte */
+    result[15] &= 0x7F;
+
+    /* encrypt result with ECB to get the tag */
+    mbedtls_aes_context aes_ctx;
+    mbedtls_aes_init(&aes_ctx);
+    ret = mbedtls_aes_setkey_enc(&aes_ctx, ctx->message_encryption_key, ctx->message_encryption_key_len_bits);
+    if (ret != 0) {
+        goto cleanup;
+    }
+
+    ret = mbedtls_aes_crypt_ecb(&aes_ctx, MBEDTLS_ENCRYPT, result, tag);
+    if (ret != 0) {
+        goto cleanup;
+    }
+
+cleanup:
+    mbedtls_aes_free(&aes_ctx);
+
+    return ret;
+}
+
+static int aes_crypt_ctr32_le( mbedtls_aes_context *ctx,
+                               size_t length,
+                               unsigned char nonce_counter[16],
+                               unsigned char stream_block[16],
+                               const unsigned char *input,
+                               unsigned char *output )
+{
+    int c, i;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t n = 0;
+
+    while( length-- )
+    {
+        if( n == 0 ) {
+            ret = mbedtls_aes_crypt_ecb( ctx, MBEDTLS_AES_ENCRYPT, nonce_counter, stream_block );
+            if( ret != 0 )
+                goto exit;
+
+            /* increment little endian unsigned integer in first 32 bits */
+            for( i = 0; i < 4; i++ )
+                if( ++nonce_counter[i] != 0 )
+                    break;
+        }
+        c = *input++;
+        *output++ = (unsigned char)( c ^ stream_block[n] );
+
+        n = ( n + 1 ) & 0x0F;
+    }
+
+    ret = 0;
+
+    exit:
+    return( ret );
+}
+
+int mbedtls_gcm_siv_crypt_and_tag( mbedtls_gcm_siv_context *ctx,
+                               int mode,
+                               size_t length,
+                               const unsigned char iv[12],
+                               const unsigned char *add,
+                               size_t add_len,
+                               const unsigned char *input,
+                               unsigned char *output,
+                               unsigned char tag[16] )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    unsigned char ctr_nonce[16];
+    unsigned char stream_block[16];
+
+    GCM_VALIDATE_RET( ctx != NULL );
+    GCM_VALIDATE_RET( iv_len != 96 || iv != NULL );
+    GCM_VALIDATE_RET( add_len == 0 || add != NULL );
+    GCM_VALIDATE_RET( length == 0 || input != NULL );
+    GCM_VALIDATE_RET( length == 0 || output != NULL );
+    GCM_VALIDATE_RET( tag_len != 128 || tag != NULL );
+
+    mbedtls_aes_context aes_ctx;
+    mbedtls_aes_init(&aes_ctx);
+    ret = mbedtls_aes_setkey_enc(&aes_ctx, ctx->message_encryption_key, ctx->message_encryption_key_len_bits);
+    if (ret != 0) {
+        goto cleanup;
+    }
+
+    memset(stream_block, 0, 16);
+
+    if (mode == MBEDTLS_GCM_DECRYPT) {
+        memcpy(&ctr_nonce, tag, 16);
+        ctr_nonce[15] |= 0x80;
+
+        ret = aes_crypt_ctr32_le(&aes_ctx, length, ctr_nonce, stream_block, input, output);
+        if (ret != 0) {
+            goto cleanup;
+        }
+
+        ret = siv_tag(ctx, iv, add, add_len, output, length,  tag);
+        if (ret != 0) {
+            goto cleanup;
+        }
+    } else if (mode == MBEDTLS_GCM_ENCRYPT) {
+        ret = siv_tag(ctx, iv, add, add_len, input, length,  tag);
+        if (ret != 0) {
+            goto cleanup;
+        }
+
+        memcpy(&ctr_nonce, tag, 16);
+        ctr_nonce[15] |= 0x80;
+
+        ret = aes_crypt_ctr32_le(&aes_ctx, length, ctr_nonce, stream_block, input, output);
+        if (ret != 0) {
+            goto cleanup;
+        }
+    }
+
+cleanup:
+    mbedtls_aes_free(&aes_ctx);
+
+    return ret;
+}
+
 int mbedtls_gcm_auth_decrypt( mbedtls_gcm_context *ctx,
                       size_t length,
                       const unsigned char *iv,
@@ -591,12 +909,63 @@ int mbedtls_gcm_auth_decrypt( mbedtls_gcm_context *ctx,
     return( 0 );
 }
 
+int mbedtls_gcm_siv_auth_decrypt( mbedtls_gcm_siv_context *ctx,
+                                  size_t length,
+                                  const unsigned char iv[12],
+                                  const unsigned char *add,
+                                  size_t add_len,
+                                  const unsigned char *input,
+                                  unsigned char tag[16],
+                                  unsigned char *output )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    unsigned char original_tag[16];
+    size_t i;
+    int diff;
+
+    GCM_VALIDATE_RET( ctx != NULL );
+    GCM_VALIDATE_RET( iv != NULL );
+    GCM_VALIDATE_RET( add_len == 0 || add != NULL );
+    GCM_VALIDATE_RET( tag != NULL );
+    GCM_VALIDATE_RET( length == 0 || input != NULL );
+    GCM_VALIDATE_RET( length == 0 || output != NULL );
+
+    memcpy(original_tag, tag, 16);
+
+    if( ( ret = mbedtls_gcm_siv_crypt_and_tag( ctx, MBEDTLS_GCM_DECRYPT, length,
+                                               iv, add, add_len,
+                                               input, output, tag ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    /* Check tag in "constant-time" */
+    for( diff = 0, i = 0; i < 16; i++ )
+        diff |= tag[i] ^ original_tag[i];
+
+    if( diff != 0 )
+    {
+        mbedtls_platform_zeroize( output, length );
+        return( MBEDTLS_ERR_GCM_AUTH_FAILED );
+    }
+
+    return( 0 );
+}
+
 void mbedtls_gcm_free( mbedtls_gcm_context *ctx )
 {
     if( ctx == NULL )
         return;
     mbedtls_cipher_free( &ctx->cipher_ctx );
     mbedtls_platform_zeroize( ctx, sizeof( mbedtls_gcm_context ) );
+}
+
+void mbedtls_gcm_siv_free( mbedtls_gcm_siv_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+    mbedtls_cipher_free( &ctx->gcm_ctx.cipher_ctx );
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_gcm_siv_context ) );
 }
 
 #endif /* !MBEDTLS_GCM_ALT */
@@ -829,14 +1198,137 @@ static const unsigned char tag_test_data[MAX_TESTS * 3][16] =
       0xc8, 0xb5, 0xd4, 0xcf, 0x5a, 0xe9, 0xf1, 0x9a },
 };
 
+/* The following data is taken from RFC 8452 (AES-GCM-SIV) section 8 */
+static const unsigned char siv_test_key[] = {
+        0xee, 0x8e, 0x1e, 0xd9, 0xff, 0x25, 0x40, 0xae,
+        0x8f, 0x2b, 0xa9, 0xf5, 0x0b, 0xc2, 0xf2, 0x7c
+};
+
+static const unsigned char siv_test_nonce[] = {
+        0x75, 0x2a, 0xba, 0xd3, 0xe0, 0xaf,
+        0xb5, 0xf4, 0x34, 0xdc, 0x43, 0x10
+};
+
+static const unsigned char siv_test_ciphertext[] = {
+        0x5d, 0x34, 0x9e, 0xad, 0x17, 0x5e, 0xf6, 0xb1,
+        0xde, 0xf6, 0xfd
+};
+
+static const unsigned char siv_test_tag[] = {
+        0x4f, 0xbc, 0xde, 0xb7, 0xe4, 0x79,
+        0x3f, 0x4a, 0x1d, 0x7e, 0x4f, 0xaa, 0x70, 0x10, 0x0a, 0xf1
+};
+
+static const unsigned char siv_test_additional_data[] = "example";
+static const unsigned char siv_test_plaintext[] = "Hello world";
+
 int mbedtls_gcm_self_test( int verbose )
 {
     mbedtls_gcm_context ctx;
+    mbedtls_gcm_siv_context siv_ctx;
     unsigned char buf[64];
     unsigned char tag_buf[16];
     int i, j, ret;
     mbedtls_cipher_id_t cipher = MBEDTLS_CIPHER_ID_AES;
     size_t olen;
+
+    if( verbose != 0 )
+        mbedtls_printf( "  AES-GCM-SIV-128 (enc): ");
+
+    mbedtls_gcm_siv_init(&siv_ctx);
+    ret = mbedtls_gcm_siv_setkey(&siv_ctx,
+                           siv_test_nonce,
+                           siv_test_key,
+                           sizeof(siv_test_key)*8);
+
+    if (ret == 0) {
+        ret = mbedtls_gcm_siv_crypt_and_tag(&siv_ctx,
+                                            MBEDTLS_GCM_ENCRYPT,
+                                            sizeof(siv_test_plaintext)-1,
+                                            siv_test_nonce,
+                                            siv_test_additional_data,
+                                            sizeof(siv_test_additional_data)-1,
+                                            siv_test_plaintext,
+                                            buf,
+                                            tag_buf);
+    }
+
+    /* Append tag onto the end of the ciphertext */
+    memcpy(buf + sizeof(siv_test_plaintext)-1, tag_buf, sizeof(tag_buf));
+
+    if (ret != 0 ||
+            memcmp(buf, siv_test_ciphertext, sizeof(siv_test_plaintext)-1) != 0 ||
+            memcmp(tag_buf, siv_test_tag, 16) != 0) {
+
+        ret = -1; // TODO: Add a real error?
+        goto exit;
+    } else {
+        if( verbose != 0 )
+            mbedtls_printf( "passed\n" );
+    }
+
+    mbedtls_gcm_siv_free(&siv_ctx);
+
+    if( verbose != 0 )
+        mbedtls_printf( "  AES-GCM-SIV-128 (dec): ");
+
+    mbedtls_gcm_siv_init(&siv_ctx);
+    ret = mbedtls_gcm_siv_setkey(&siv_ctx,
+                                 siv_test_nonce,
+                                 siv_test_key,
+                                 sizeof(siv_test_key)*8);
+
+    memcpy(tag_buf, siv_test_tag, 16);
+    if (ret == 0) {
+        ret = mbedtls_gcm_siv_crypt_and_tag(&siv_ctx,
+                                            MBEDTLS_GCM_DECRYPT,
+                                            sizeof(siv_test_ciphertext),
+                                            siv_test_nonce,
+                                            siv_test_additional_data,
+                                            sizeof(siv_test_additional_data)-1,
+                                            siv_test_ciphertext,
+                                            buf,
+                                            tag_buf);
+    }
+
+    if (ret != 0 ||
+            memcmp(buf, siv_test_plaintext, sizeof(siv_test_plaintext)-1) != 0 ||
+            memcmp(tag_buf, siv_test_tag, 16) != 0) {
+
+        ret = -1; // TODO: Add a real error?
+        goto exit;
+    } else {
+        if( verbose != 0 )
+            mbedtls_printf( "passed\n" );
+    }
+    mbedtls_gcm_siv_free(&siv_ctx);
+
+    if( verbose != 0 )
+        mbedtls_printf( "  AES-GCM-SIV-128 (auth dec): ");
+
+    mbedtls_gcm_siv_init(&siv_ctx);
+    mbedtls_gcm_siv_setkey(&siv_ctx,
+                           siv_test_nonce,
+                           siv_test_key,
+                           sizeof(siv_test_key)*8);
+
+    memcpy(tag_buf, siv_test_tag, 16);
+    ret = mbedtls_gcm_siv_auth_decrypt(&siv_ctx,
+                                       sizeof(siv_test_ciphertext),
+                                       siv_test_nonce,
+                                       siv_test_additional_data,
+                                       sizeof(siv_test_additional_data)-1,
+                                       siv_test_ciphertext,
+                                       tag_buf,
+                                       buf);
+
+    if (ret == 0 && memcmp(buf, siv_test_plaintext, sizeof(siv_test_plaintext)-1) != 0) {
+        ret = -1; // TODO: Add a real error?
+        goto exit;
+    } else {
+        if( verbose != 0 )
+            mbedtls_printf( "passed\n" );
+    }
 
     for( j = 0; j < 3; j++ )
     {

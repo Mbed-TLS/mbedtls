@@ -1,0 +1,57 @@
+/* BEGIN_HEADER */
+#include "mbedtls/gcm.h"
+
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_GCM_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void gcm_siv_encrypt_and_tag( data_t * key_str, data_t * src_str, data_t * add_str,
+                              data_t * iv_str, data_t * dst, data_t * tag )
+{
+    unsigned char output[1024];
+    unsigned char tag_output[16];
+    mbedtls_gcm_siv_context ctx;
+
+    mbedtls_gcm_siv_init( &ctx );
+
+    memset(output, 0x00, 1024);
+    memset(tag_output, 0x00, 16);
+
+    TEST_ASSERT( mbedtls_gcm_siv_setkey( &ctx, iv_str->x, key_str->x, key_str->len * 8 ) == 0 );
+    TEST_ASSERT( mbedtls_gcm_siv_crypt_and_tag( &ctx, MBEDTLS_GCM_ENCRYPT, src_str->len, iv_str->x, add_str->x, add_str->len, src_str->x, output,  tag_output ) == 0 );
+
+    ASSERT_COMPARE( output, src_str->len, dst->x, dst->len );
+    ASSERT_COMPARE( tag_output, 16, tag->x, tag->len );
+
+exit:
+    mbedtls_gcm_siv_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void gcm_siv_decrypt_auth( data_t * key_str, data_t * src_str, data_t * add_str,
+                           data_t * iv_str, data_t * dst, data_t * tag )
+{
+    unsigned char output[128];
+    unsigned char tag_output[16];
+    mbedtls_gcm_siv_context ctx;
+
+    mbedtls_gcm_siv_init( &ctx );
+
+    memset(output, 0x00, sizeof(output));
+    memcpy(tag_output, tag->x, 16);
+
+    TEST_ASSERT( mbedtls_gcm_siv_setkey( &ctx, iv_str->x, key_str->x, key_str->len * 8 ) == 0 );
+    TEST_ASSERT( mbedtls_gcm_siv_auth_decrypt( &ctx, dst->len, iv_str->x, add_str->x, add_str->len, dst->x, tag_output, output) == 0 );
+
+    ASSERT_COMPARE( output, dst->len, src_str->x, src_str->len );
+    ASSERT_COMPARE( tag_output, 16, tag->x, tag->len );
+
+exit:
+    mbedtls_gcm_siv_free( &ctx );
+}
+/* END_CASE */

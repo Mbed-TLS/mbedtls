@@ -946,6 +946,21 @@ int mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
         uint32_t obfuscated_ticket_age =
                                 (uint32_t)( now - session->ticket_received );
 
+        /*
+         * The ticket timestamp is in seconds but the ticket age is in
+         * milliseconds. If the ticket was received at the end of a second and
+         * re-used here just at the beginning of the next second, the computed
+         * age `now - session->ticket_received` is equal to 1s thus 1000 ms
+         * while the actual age could be just a few milliseconds or tens of
+         * milliseconds. If the server has more accurate ticket timestamps
+         * (typically timestamps in milliseconds), as part of the processing of
+         * the ClientHello, it may compute a ticket lifetime smaller than the
+         * one computed here and potentially reject the ticket. To avoid that,
+         * remove one second to the ticket age if possible.
+         */
+        if( obfuscated_ticket_age > 0 )
+            obfuscated_ticket_age -= 1;
+
         obfuscated_ticket_age *= 1000;
         obfuscated_ticket_age += session->ticket_age_add;
 

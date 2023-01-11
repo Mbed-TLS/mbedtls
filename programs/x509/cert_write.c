@@ -43,10 +43,12 @@ int main(void)
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/md.h"
 #include "mbedtls/error.h"
+#include "test/helpers.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #define SET_OID(x, oid) \
     do { x.len = MBEDTLS_OID_SIZE(oid); x.p = (unsigned char *) oid; } while (0)
@@ -75,6 +77,7 @@ int main(void)
 #define DFL_NOT_BEFORE          "20010101000000"
 #define DFL_NOT_AFTER           "20301231235959"
 #define DFL_SERIAL              "1"
+#define DFL_SERIAL_HEX          "1"
 #define DFL_SELFSIGN            0
 #define DFL_IS_CA               0
 #define DFL_MAX_PATHLEN         -1
@@ -110,6 +113,13 @@ int main(void)
     "    issuer_pwd=%%s           default: (empty)\n"       \
     "    output_file=%%s          default: cert.crt\n"      \
     "    serial=%%s               default: 1\n"             \
+    "                            In decimal format; it can be used as\n"     \
+    "                            alternative to serial_hex, but it's\n"      \
+    "                            limited in max length to\n"                 \
+    "                            unsigned long long int\n"                   \
+    "    serial_hex=%%s           default: 1\n"             \
+    "                            In hex format; it can be used as\n"         \
+    "                            alternative to serial\n"                    \
     "    not_before=%%s           default: 20010101000000\n" \
     "    not_after=%%s            default: 20301231235959\n" \
     "    is_ca=%%d                default: 0 (disabled)\n"  \
@@ -159,6 +169,11 @@ int main(void)
     "   format=pem|der           default: pem\n"         \
     "\n"
 
+typedef enum {
+    SERIAL_FRMT_UNSPEC,
+    SERIAL_FRMT_DEC,
+    SERIAL_FRMT_HEX
+} serial_format_t;
 
 /*
  * global options
@@ -175,7 +190,8 @@ struct options {
     const char *issuer_name;    /* issuer name for certificate          */
     const char *not_before;     /* validity period not before           */
     const char *not_after;      /* validity period not after            */
-    const char *serial;         /* serial number string                 */
+    const char *serial;         /* serial number string (decimal)       */
+    const char *serial_hex;     /* serial number string (hex)           */
     int selfsign;               /* selfsign the certificate             */
     int is_ca;                  /* is a CA certificate                  */
     int max_pathlen;            /* maximum CA path length               */
@@ -235,37 +251,39 @@ int write_certificate(mbedtls_x509write_cert *crt, const char *output_file,
     return 0;
 }
 
-/*
- * Convert the input "in_buff" string to a raw byte array "out_buff". The amount
- * of converted data is returned on "written_data".
- */
-static int parse_serial(const char *in_buff, size_t in_buff_len,
-                        unsigned char *out_buff, size_t out_buff_len,
-                        size_t *written_data)
+int parse_serial_decimal_format(unsigned char *obuf, size_t obufmax,
+                                const char *ibuf, size_t *len)
 {
-    char c;
+    unsigned long long int dec;
+    unsigned int remaining_bytes = sizeof(dec);
+    unsigned char *p = obuf;
     unsigned char val;
-    int i;
+    char *end_ptr = NULL;
 
-    if (out_buff_len < in_buff_len) {
+    errno = 0;
+    dec = strtoull(ibuf, &end_ptr, 10);
+
+    if ((errno != 0) || (end_ptr == ibuf)) {
         return -1;
     }
 
-    *written_data = 0;
+    *len = 0;
 
-    for (i = 0; i < (int) in_buff_len; i++, (*written_data)++) {
-        c = in_buff[i];
-        if (c >= 0x30 && c <= 0x39) {
-            val = c - 0x30;
-        } else if (c >= 0x41 && c <= 0x46) {
-            val = c - 0x37;
-        } else if (c >= 0x61 && c <= 0x66) {
-            val = c - 0x57;
-        } else {
+    while (remaining_bytes > 0) {
+        if (obufmax < (*len + 1)) {
             return -1;
         }
 
-        out_buff[i] = val;
+        val = (dec >> ((remaining_bytes - 1) * 8)) & 0xFF;
+
+        /* Skip leading zeros */
+        if ((val) != 0) {
+            *p = val;
+            (*len)++;
+            p++;
+        }
+
+        remaining_bytes--;
     }
 
     return 0;
@@ -288,6 +306,7 @@ int main(int argc, char *argv[])
     mbedtls_x509_csr csr;
 #endif
     mbedtls_x509write_cert crt;
+    serial_format_t serial_frmt = SERIAL_FRMT_UNSPEC;
     unsigned char serial[MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN];
     size_t serial_len;
     mbedtls_asn1_sequence *ext_key_usage;
@@ -308,6 +327,7 @@ int main(int argc, char *argv[])
 #endif
     mbedtls_x509_crt_init(&issuer_crt);
     memset(buf, 0, sizeof(buf));
+    memset(serial, 0, sizeof(serial));
 
     if (argc == 0) {
 usage:
@@ -327,6 +347,7 @@ usage:
     opt.not_before          = DFL_NOT_BEFORE;
     opt.not_after           = DFL_NOT_AFTER;
     opt.serial              = DFL_SERIAL;
+    opt.serial_hex          = DFL_SERIAL_HEX;
     opt.selfsign            = DFL_SELFSIGN;
     opt.is_ca               = DFL_IS_CA;
     opt.max_pathlen         = DFL_MAX_PATHLEN;
@@ -371,7 +392,19 @@ usage:
         } else if (strcmp(p, "not_after") == 0) {
             opt.not_after = q;
         } else if (strcmp(p, "serial") == 0) {
+            if (serial_frmt != SERIAL_FRMT_UNSPEC) {
+                mbedtls_printf("Invalid attempt to set the serial more than once\n");
+                goto usage;
+            }
+            serial_frmt = SERIAL_FRMT_DEC;
             opt.serial = q;
+        } else if (strcmp(p, "serial_hex") == 0) {
+            if (serial_frmt != SERIAL_FRMT_UNSPEC) {
+                mbedtls_printf("Invalid attempt to set the serial more than once\n");
+                goto usage;
+            }
+            serial_frmt = SERIAL_FRMT_HEX;
+            opt.serial_hex = q;
         } else if (strcmp(p, "authority_identifier") == 0) {
             opt.authority_identifier = atoi(q);
             if (opt.authority_identifier != 0 &&
@@ -550,6 +583,19 @@ usage:
     mbedtls_printf("  . Reading serial number...");
     fflush(stdout);
 
+    if (serial_frmt == SERIAL_FRMT_HEX) {
+        ret = mbedtls_test_unhexify(serial, sizeof(serial),
+                                    opt.serial_hex, &serial_len);
+    } else { // SERIAL_FRMT_DEC || SERIAL_FRMT_UNSPEC
+        ret = parse_serial_decimal_format(serial, sizeof(serial),
+                                          opt.serial, &serial_len);
+    }
+
+    if (ret != 0) {
+        mbedtls_printf(" failed\n  !  Unable to parse serial\n");
+        goto exit;
+    }
+
     mbedtls_printf(" ok\n");
 
     // Parse issuer certificate if present
@@ -690,11 +736,6 @@ usage:
     mbedtls_x509write_crt_set_version(&crt, opt.version);
     mbedtls_x509write_crt_set_md_alg(&crt, opt.md);
 
-    if (parse_serial(opt.serial, strlen(opt.serial),
-                     serial, sizeof(serial), &serial_len) < 0) {
-        mbedtls_printf(" failed\n  !  Unable to parse serial\n\n");
-        goto exit;
-    }
     ret = mbedtls_x509write_crt_set_serial_new(&crt, serial, serial_len);
     if (ret != 0) {
         mbedtls_strerror(ret, buf, sizeof(buf));

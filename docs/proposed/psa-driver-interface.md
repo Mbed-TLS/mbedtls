@@ -321,80 +321,143 @@ TODO: key input and output for opaque drivers; deterministic key generation for 
 
 TODO
 
-#### PAKE operation driver dispatch logic
+### Driver entry points for PAKE
 
-PSA PAKE operation structure for driver dispatch:
+PAKE operation is divided into two stages: collecting inputs and computation. Core side is responsible for keeping inputs and core set-data functions do not have driver entry points. Collected inputs are available for drivers via get-data functions for `password`, `role` and `cipher_suite`. Lifetime of the inputs is limited by the lifetime of the core operation.
 
-```
-struct psa_pake_operation_s
-{
-    /** Unique ID indicating which driver got assigned to do the
-     * operation. Since driver contexts are driver-specific, swapping
-     * drivers halfway through the operation is not supported.
-     * ID values are auto-generated in psa_crypto_driver_wrappers.h
-     * ID value zero means the context is not valid or not assigned to
-     * any driver (i.e. none of the driver contexts are active). */
-    unsigned int MBEDTLS_PRIVATE(id);
-    /* Algorithm used for PAKE operation */
-    psa_algorithm_t MBEDTLS_PRIVATE(alg);
-    /* Based on stage (collecting inputs/computation) we select active structure of data union.
-     * While switching stage (when driver setup is called) collected inputs
-       are copied to the corresponding operation context. */
-    uint8_t MBEDTLS_PRIVATE(stage);
-    /* Holds the computation stage of the PAKE algorithms. */
-    psa_pake_computation_stage_t MBEDTLS_PRIVATE(computation_stage);
-    union {
-        unsigned dummy;
-        psa_crypto_driver_pake_inputs_t MBEDTLS_PRIVATE(inputs);
-        psa_driver_pake_context_t MBEDTLS_PRIVATE(ctx);
-    } MBEDTLS_PRIVATE(data);
-};
-```
+### PAKE driver dispatch logic
+The core decides whether to dispatch a PAKE operation to a driver based on the location of the provided password.
+When all inputs are collected and `"psa_pake_output"` or `"psa_pake_input"` is called for the first time `"pake_setup"` driver entry point is invoked.
 
-PAKE operation is divided into two stages: `collecting inputs` and `computation`. `stage` field defines the current stage and selects the active structure of the `data` union.
-The core decides whether to dispatch a PAKE operation to a driver based on the location of the provided password while calling `pake_setup` driver entry point.
-The core is responsible for holding information about the current stage of computation(`computation_stage`) and provides this information to the driver.
+1. Lifetime of the `password` is local storage
+- if there is a transparent driver available for the given configuration, the core calls that driver's `"pake_setup"` and subsequent entry points.
+- if a transparent driver is not available or can not handle a given configuration, the core uses its built-in implementation.
+2. Lifetime of the `password` is test driver
+- the core calls opaque driver's `"pake_setup"` and subsequent entry points.
 
-1. Collecting inputs stage
-
-The core conveys the initial inputs for a PAKE operation via an opaque data structure of type `psa_crypto_driver_pake_inputs_t`.
-After calling `psa_pake_setup` the operation object is initialized and is ready to collect inputs. Driver entry point for `pake_setup` is not called at this point. It will be called later when all inputs are collected. Setter functions: `psa_pake_set_password_key`, `psa_pake_set_role`, `psa_pake_set_user`, `psa_pake_set_peer` do not have driver entry points. These functions just fill `inputs` structure.
-
-2. Computation stage
-
-First call of `psa_pake_output()` or `psa_pake_input()` switches the stage to `computation` (assuming that all inputs are collected) and calls `pake_setup` driver entry point. Driver function is responsible for coping inputs from given `inputs` structure to the driver context. Note that, after calling `pake_setup` the driver entry point, core will free memory allocated for the password. The driver is responsible for making its own copy.
-
-#### Driver entry points for PAKE operation
+### Summary of entry points for PAKE
 
 A PAKE driver has the following entry points:
-`pake_setup` (mandatory): always the first entry point to be called. This entry point provides the `inputs` that need to be copied by the driver to the driver context.
-`pake_output` (mandatory): derive cryptographic material for the specified step and output it.
-`pake_input` (mandatory): provides cryptographic material in the format appropriate for the specified step.
-`pake_get_implicit_key` (mandatory): returns implicitly confirmed shared secret from a PAKE.
-`pake_abort` (mandatory): always the last entry point to be called.
+* `"pake_setup"` (mandatory): always the first entry point to be called. It is called when all inputs are collected and the computation stage starts. 
+* `"pake_output"` (mandatory): derive cryptographic material for the specified step and output it.
+* `"pake_input"` (mandatory): provides cryptographic material in the format appropriate for the specified step.
+* `"pake_get_implicit_key"` (mandatory): returns implicitly confirmed shared secret from a PAKE.
+* `"pake_abort"` (mandatory): always the last entry point to be called.
+
+For naming purposes, here and in the following subsection, this specification takes the example of a driver with the prefix `"acme"` that implements the PAKE entry point family with a capability that does not use the `"names"` property to declare different type and entry point names. Such a driver must implement the following type and functions, as well as the entry points listed above and described in the following subsections:
+```
+typedef ... acme_pake_operation_t;
+psa_status_t acme_pake_abort( acme_pake_operation_t *operation );
+```
+
+#### PAKE driver inputs
+
+The core conveys the initial inputs for a PAKE operation via an opaque data structure of type `psa_crypto_driver_pake_inputs_t`.
 
 ```
-psa_status_t pake_setup( mbedtls_psa_pake_operation_t *operation,
-                         const psa_crypto_driver_pake_inputs_t *inputs );
-
-psa_status_t pake_output( mbedtls_psa_pake_operation_t *operation,
-                          psa_pake_step_t step,
-                          const psa_pake_computation_stage_t *computation_stage,
-                          uint8_t *output,
-                          size_t output_size,
-                          size_t *output_length );
-
-psa_status_t pake_input( mbedtls_psa_pake_operation_t *operation,
-                         psa_pake_step_t step,
-                         const psa_pake_computation_stage_t *computation_stage,
-                         const uint8_t *input,
-                         size_t input_length );
-
-psa_status_t pake_get_implicit_key( mbedtls_psa_pake_operation_t *operation,
-                                    uint8_t *output, size_t *output_size );
-
-psa_status_t pake_abort( mbedtls_psa_pake_operation_t * operation );
+typedef ... psa_crypto_driver_pake_inputs_t; // implementation-specific type
 ```
+
+A driver receiving an argument that points to a `psa_crypto_driver_pake_inputs_t` can retrieve its contents by calling one of the get-data functions below.
+
+```
+psa_status_t psa_crypto_pake_get_password(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    uint8_t **password,
+    size_t *password_len);
+
+psa_status_t psa_crypto_pake_get_role(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    psa_pake_role_t *role);
+
+psa_status_t psa_crypto_pake_get_cipher_suite(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    psa_pake_cipher_suite_t *cipher_suite);
+```
+The get-data functions take the following parameters:
+
+The first parameter `inputs` must be a pointer passed by the core to a PAKE driver setup entry point.
+Next parameters are return buffers (must not be null pointers).
+
+These functions can return the following statuses:
+* `PSA_SUCCESS`: value has been successfully obtained
+* `PSA_ERROR_BAD_STATE`: the inputs are not ready
+
+#### PAKE driver setup
+
+```
+psa_status_t acme_psa_pake_setup( acme_pake_operation_t *operation,
+                                  const psa_crypto_driver_pake_inputs_t *inputs );
+```
+
+* `operation` is a zero-initialized operation object.
+* `inputs` is an opaque pointer to the [inputs](#pake-driver-inputs) for the PAKE operation.
+
+The setup driver function should preserve `inputs` for other driver functions.
+
+#### PAKE driver output
+
+```
+psa_status_t acme_pake_output(acme_pake_operation_t *operation,
+                              psa_pake_computation_step_t step,
+                              uint8_t *output,
+                              size_t output_size,
+                              size_t *output_length);
+```
+
+* `operation` is an operation object.
+* `step` computation step based on which driver should perform an action.
+* `output` buffer where the output is to be written.
+* `output_size` size of the output buffer in bytes.
+* `output_length` the number of bytes of the returned output.
+
+For `PSA_ALG_JPAKE` the following steps are available for output operation:
+`step` can be one of the following values:
+* `PSA_JPAKE_X1_STEP_KEY_SHARE`     Round 1: output our key share (for ephemeral private key X1)
+* `PSA_JPAKE_X1_STEP_ZK_PUBLIC`     Round 1: output Schnorr NIZKP public key for the X1 key
+* `PSA_JPAKE_X1_STEP_ZK_PROOF`      Round 1: output Schnorr NIZKP proof for the X1 key
+* `PSA_JPAKE_X2_STEP_KEY_SHARE`     Round 1: output our key share (for ephemeral private key X2)
+* `PSA_JPAKE_X2_STEP_ZK_PUBLIC`     Round 1: output Schnorr NIZKP public key for the X2 key
+* `PSA_JPAKE_X2_STEP_ZK_PROOF`      Round 1: output Schnorr NIZKP proof for the X2 key
+* `PSA_JPAKE_X2S_STEP_KEY_SHARE`    Round 2: output our X2S key
+* `PSA_JPAKE_X2S_STEP_ZK_PUBLIC`    Round 2: output Schnorr NIZKP public key for the X2S key 
+* `PSA_JPAKE_X2S_STEP_ZK_PROOF`     Round 2: output Schnorr NIZKP proof for the X2S key
+
+#### PAKE driver input
+```
+psa_status_t acme_pake_input(acme_pake_operation_t *operation,
+                             psa_pake_computation_step_t step,
+                             uint8_t *input,
+                             size_t input_size);
+```
+
+* `operation` is an operation object.
+* `step` computation step based on which driver should perform an action.
+* `input` buffer containing the input.
+* `input_length` length of the input in bytes.
+
+For `PSA_ALG_JPAKE` the following steps are available for input operation:
+* `PSA_JPAKE_X1_STEP_KEY_SHARE`     Round 1: input key share from peer (for ephemeral private key X1)
+* `PSA_JPAKE_X1_STEP_ZK_PUBLIC`     Round 1: input Schnorr NIZKP public key for the X1 key
+* `PSA_JPAKE_X1_STEP_ZK_PROOF`      Round 1: input Schnorr NIZKP proof for the X1 key
+* `PSA_JPAKE_X2_STEP_KEY_SHARE`     Round 1: input key share from peer (for ephemeral private key X2)
+* `PSA_JPAKE_X2_STEP_ZK_PUBLIC`     Round 1: input Schnorr NIZKP public key for the X2 key
+* `PSA_JPAKE_X2_STEP_ZK_PROOF`      Round 1: input Schnorr NIZKP proof for the X2 key
+* `PSA_JPAKE_X4S_STEP_KEY_SHARE`    Round 2: input X4S key from peer
+* `PSA_JPAKE_X4S_STEP_ZK_PUBLIC`    Round 2: input Schnorr NIZKP public key for the X4S key
+* `PSA_JPAKE_X4S_STEP_ZK_PROOF`     Round 2: input Schnorr NIZKP proof for the X4S key
+
+### PAKE driver get implicit key
+
+```
+psa_status_t acme_pake_get_implicit_key(
+                            acme_pake_operation_t *operation,
+                            uint8_t *output, size_t *output_size );
+```
+
+* `operation` is an operation object
+* `output` output buffer for implicit key
+* `output_size` size of the returned implicit key
 
 ### Driver entry points for key management
 

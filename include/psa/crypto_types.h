@@ -290,7 +290,7 @@ typedef uint32_t psa_key_id_t;
  *       Any changes to existing values will require bumping the storage
  *       format version and providing a translation when reading the old
  *       format.
-*/
+ */
 #if !defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 typedef psa_key_id_t mbedtls_svc_key_id_t;
 
@@ -300,8 +300,7 @@ typedef psa_key_id_t mbedtls_svc_key_id_t;
  * client and encodes the client identity in the key identifier argument of
  * functions such as psa_open_key().
  */
-typedef struct
-{
+typedef struct {
     psa_key_id_t key_id;
     mbedtls_key_owner_id_t owner;
 } mbedtls_svc_key_id_t;

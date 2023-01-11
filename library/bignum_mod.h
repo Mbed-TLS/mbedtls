@@ -429,22 +429,22 @@ int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
 
 /** Write a residue into a byte buffer.
  *
- * The modulus \p m must be the modulus associated with \p r (see
+ * The modulus \p N must be the modulus associated with \p r (see
  * mbedtls_mpi_mod_residue_setup() and mbedtls_mpi_mod_read()).
  *
  * The residue will be automatically converted from the internal representation
- * based on the value of `m->int_rep` field.
+ * based on the value of `N->int_rep` field.
  *
- * \warning     If the buffer is smaller than `m->bits`, the number of
+ * \warning     If the buffer is smaller than `N->bits`, the number of
  *              leading zeroes is leaked through timing. If \p r is
  *              secret, the caller must ensure that \p buflen is at least
- *              (`m->bits`+7)/8.
+ *              (`N->bits`+7)/8.
  *
  * \param[in] r     The address of the residue. It must have the same number of
- *                  limbs as the modulus \p m. (\p r is an input parameter, but
+ *                  limbs as the modulus \p N. (\p r is an input parameter, but
  *                  its value will be modified during execution and restored
  *                  before the function returns.)
- * \param[in] m     The address of the modulus associated with \r.
+ * \param[in] N     The address of the modulus associated with \r.
  * \param[out] buf  The output buffer to export to.
  * \param buflen    The length in bytes of \p buf.
  * \param ext_rep   The endianness in which the number should be written into
@@ -459,11 +459,11 @@ int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
  *               memory for conversion. Can occur only for moduli with
  *               MBEDTLS_MPI_MOD_REP_MONTGOMERY.
  */
-int mbedtls_mpi_mod_write(const mbedtls_mpi_mod_residue *r,
-                          const mbedtls_mpi_mod_modulus *m,
-                          unsigned char *buf,
-                          size_t buflen,
-                          mbedtls_mpi_mod_ext_rep ext_rep);
+int mbedtls_mpi_mod_write( const mbedtls_mpi_mod_residue *r,
+                           const mbedtls_mpi_mod_modulus *N,
+                           unsigned char *buf,
+                           size_t buflen,
+                           mbedtls_mpi_mod_ext_rep ext_rep );
 /* END MERGE SLOT 7 */
 
 /* BEGIN MERGE SLOT 8 */

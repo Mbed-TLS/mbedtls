@@ -380,37 +380,38 @@ cleanup:
     return ret;
 }
 
-int mbedtls_mpi_mod_write(const mbedtls_mpi_mod_residue *r,
-                          const mbedtls_mpi_mod_modulus *m,
-                          unsigned char *buf,
-                          size_t buflen,
-                          mbedtls_mpi_mod_ext_rep ext_rep)
+int mbedtls_mpi_mod_write( const mbedtls_mpi_mod_residue *r,
+                           const mbedtls_mpi_mod_modulus *N,
+                           unsigned char *buf,
+                           size_t buflen,
+                           mbedtls_mpi_mod_ext_rep ext_rep )
 {
     int ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
 
     /* Do our best to check if r and m have been set up */
-    if (r->limbs == 0 || m->limbs == 0) {
+    if (r->limbs == 0 || N->limbs == 0) {
         goto cleanup;
     }
-    if (r->limbs != m->limbs) {
+    if (r->limbs != N->limbs) {
         goto cleanup;
     }
 
-    if (m->int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY) {
-        ret = mbedtls_mpi_mod_raw_from_mont_rep(r->p, m);
+    if (N->int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY) {
+        ret = mbedtls_mpi_mod_raw_from_mont_rep(r->p, N);
         if (ret != 0) {
             goto cleanup;
         }
     }
 
-    ret = mbedtls_mpi_mod_raw_write(r->p, m, buf, buflen, ext_rep);
+    ret = mbedtls_mpi_mod_raw_write( r->p, N, buf, buflen, ext_rep );
 
-    if (m->int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY) {
+    if( N->int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY )
+    {
         /* If this fails, the value of r is corrupted and we want to return
          * this error (as opposed to the error code from the write above) to
          * let the caller know. If it succeeds, we want to return the error
          * code from write above. */
-        int conv_ret = mbedtls_mpi_mod_raw_to_mont_rep(r->p, m);
+        int conv_ret = mbedtls_mpi_mod_raw_to_mont_rep(r->p, N);
         if (ret == 0) {
             ret = conv_ret;
         }

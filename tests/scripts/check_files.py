@@ -122,7 +122,7 @@ BINARY_FILE_PATH_RE_LIST = [
     r'tests/data_files/.*\.req\.[^/]+\Z',
     r'tests/data_files/.*malformed[^/]+\Z',
     r'tests/data_files/format_pkcs12\.fmt\Z',
-    r'tests/data_files/pkcs7_data.*\.bin\Z',
+    r'tests/data_files/.*\.bin\Z',
 ]
 BINARY_FILE_PATH_RE = re.compile('|'.join(BINARY_FILE_PATH_RE_LIST))
 
@@ -136,7 +136,7 @@ class LineIssueTracker(FileIssueTracker):
     # Exclude binary files.
     path_exemptions = BINARY_FILE_PATH_RE
 
-    def issue_with_line(self, line, filepath):
+    def issue_with_line(self, line, filepath, line_number):
         """Check the specified line for the issue that this class is for.
 
         Subclasses must implement this method.
@@ -144,7 +144,7 @@ class LineIssueTracker(FileIssueTracker):
         raise NotImplementedError
 
     def check_file_line(self, filepath, line, line_number):
-        if self.issue_with_line(line, filepath):
+        if self.issue_with_line(line, filepath, line_number):
             self.record_issue(filepath, line_number)
 
     def check_file_for_issue(self, filepath):
@@ -263,6 +263,45 @@ class Utf8BomIssueTracker(FileIssueTracker):
                 self.files_with_issues[filepath] = None
 
 
+class UnicodeIssueTracker(LineIssueTracker):
+    """Track lines with invalid characters or invalid text encoding."""
+
+    heading = "Invalid UTF-8 or forbidden character:"
+
+    # Only allow valid UTF-8, and only white-listed characters.
+    # We deliberately exclude all characters that aren't a simple non-blank,
+    # non-zero-width glyph, apart from a very small set (tab, ordinary space,
+    # line breaks, "basic" no-break space and soft hyphen). In particular,
+    # non-ASCII control characters, combinig characters, and Unicode state
+    # changes (e.g. right-to-left text) are forbidden.
+    # Note that we do allow some characters with a risk of visual confusion,
+    # for example '-' (U+002D HYPHEN-MINUS) vs '­' (U+00AD SOFT HYPHEN) vs
+    # '‐' (U+2010 HYPHEN), or 'A' (U+0041 LATIN CAPITAL LETTER A) vs
+    # 'Α' (U+0391 GREEK CAPITAL LETTER ALPHA).
+    GOOD_CHARACTERS = ''.join([
+        '\t\n\r -~', # ASCII (tabs and line endings are checked separately)
+        '\u00A0-\u00FF', # Latin-1 Supplement (for NO-BREAK SPACE and punctuation)
+        '\u2010-\u2027\u2030-\u205E', # General Punctuation (printable)
+        '\u2070\u2071\u2074-\u208E\u2090-\u209C', # Superscripts and Subscripts
+        '\u2190-\u21FF', # Arrows
+        '\u2200-\u22FF', # Mathematical Symbols
+    ])
+    # Allow any of the characters and ranges above, and anything classified
+    # as a word constituent.
+    GOOD_CHARACTERS_RE = re.compile(r'[\w{}]+\Z'.format(GOOD_CHARACTERS))
+
+    def issue_with_line(self, line, _filepath, line_number):
+        try:
+            text = line.decode('utf-8')
+        except UnicodeDecodeError:
+            return True
+        if line_number == 1 and text.startswith('\uFEFF'):
+            # Strip BOM (U+FEFF ZERO WIDTH NO-BREAK SPACE) at the beginning.
+            # Which files are allowed to have a BOM is handled in
+            # Utf8BomIssueTracker.
+            text = text[1:]
+        return not self.GOOD_CHARACTERS_RE.match(text)
+
 class UnixLineEndingIssueTracker(LineIssueTracker):
     """Track files with non-Unix line endings (i.e. files with CR)."""
 
@@ -273,7 +312,7 @@ class UnixLineEndingIssueTracker(LineIssueTracker):
             return False
         return not is_windows_file(filepath)
 
-    def issue_with_line(self, line, _filepath):
+    def issue_with_line(self, line, _filepath, _line_number):
         return b"\r" in line
 
 
@@ -287,7 +326,7 @@ class WindowsLineEndingIssueTracker(LineIssueTracker):
             return False
         return is_windows_file(filepath)
 
-    def issue_with_line(self, line, _filepath):
+    def issue_with_line(self, line, _filepath, _line_number):
         return not line.endswith(b"\r\n") or b"\r" in line[:-2]
 
 
@@ -297,7 +336,7 @@ class TrailingWhitespaceIssueTracker(LineIssueTracker):
     heading = "Trailing whitespace:"
     suffix_exemptions = frozenset([".dsp", ".md"])
 
-    def issue_with_line(self, line, _filepath):
+    def issue_with_line(self, line, _filepath, _line_number):
         return line.rstrip(b"\r\n") != line.rstrip()
 
 
@@ -313,7 +352,7 @@ class TabIssueTracker(LineIssueTracker):
         "/generate_visualc_files.pl",
     ])
 
-    def issue_with_line(self, line, _filepath):
+    def issue_with_line(self, line, _filepath, _line_number):
         return b"\t" in line
 
 
@@ -323,7 +362,7 @@ class MergeArtifactIssueTracker(LineIssueTracker):
 
     heading = "Merge artifact:"
 
-    def issue_with_line(self, line, _filepath):
+    def issue_with_line(self, line, _filepath, _line_number):
         # Detect leftover git conflict markers.
         if line.startswith(b'<<<<<<< ') or line.startswith(b'>>>>>>> '):
             return True
@@ -350,6 +389,7 @@ class IntegrityChecker:
             ShebangIssueTracker(),
             EndOfFileNewlineIssueTracker(),
             Utf8BomIssueTracker(),
+            UnicodeIssueTracker(),
             UnixLineEndingIssueTracker(),
             WindowsLineEndingIssueTracker(),
             TrailingWhitespaceIssueTracker(),

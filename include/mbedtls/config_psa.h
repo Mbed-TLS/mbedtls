@@ -274,9 +274,9 @@ extern "C" {
     (defined(PSA_WANT_ALG_OFB) && !defined(MBEDTLS_PSA_ACCEL_ALG_OFB)) || \
     defined(PSA_WANT_ALG_ECB_NO_PADDING) || \
     (defined(PSA_WANT_ALG_CBC_NO_PADDING) && \
-     !defined(MBEDTLS_PSA_ACCEL_ALG_CBC_NO_PADDING)) || \
+    !defined(MBEDTLS_PSA_ACCEL_ALG_CBC_NO_PADDING)) || \
     (defined(PSA_WANT_ALG_CBC_PKCS7) && \
-     !defined(MBEDTLS_PSA_ACCEL_ALG_CBC_PKCS7)) || \
+    !defined(MBEDTLS_PSA_ACCEL_ALG_CBC_PKCS7)) || \
     (defined(PSA_WANT_ALG_CMAC) && !defined(MBEDTLS_PSA_ACCEL_ALG_CMAC))
 #define PSA_HAVE_SOFT_BLOCK_MODE 1
 #endif

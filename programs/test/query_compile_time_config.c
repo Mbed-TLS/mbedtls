@@ -36,19 +36,17 @@
 #include <string.h>
 #include "query_config.h"
 
-int main( int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
-    if ( argc != 2 )
-    {
-        mbedtls_printf( USAGE, argv[0] );
-        return( MBEDTLS_EXIT_FAILURE );
+    if (argc != 2) {
+        mbedtls_printf(USAGE, argv[0]);
+        return MBEDTLS_EXIT_FAILURE;
     }
 
-    if( strcmp( argv[1], "-l" ) == 0 )
-    {
+    if (strcmp(argv[1], "-l") == 0) {
         list_config();
-        return( 0 );
+        return 0;
     }
 
-    return( query_config( argv[1] ) );
+    return query_config(argv[1]);
 }

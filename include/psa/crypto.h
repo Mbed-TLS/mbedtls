@@ -116,7 +116,7 @@ psa_status_t psa_crypto_init(void);
 /* This is an example definition for documentation purposes.
  * Implementations should define a suitable value in `crypto_struct.h`.
  */
-#define PSA_KEY_ATTRIBUTES_INIT {0}
+#define PSA_KEY_ATTRIBUTES_INIT { 0 }
 #endif
 
 /** Return an initial value for a key attributes structure.
@@ -143,8 +143,8 @@ static psa_key_attributes_t psa_key_attributes_init(void);
  * \param[out] attributes  The attribute structure to write to.
  * \param key              The persistent identifier for the key.
  */
-static void psa_set_key_id( psa_key_attributes_t *attributes,
-                            mbedtls_svc_key_id_t key );
+static void psa_set_key_id(psa_key_attributes_t *attributes,
+                           mbedtls_svc_key_id_t key);
 
 #ifdef MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
 /** Set the owner identifier of a key.
@@ -161,8 +161,8 @@ static void psa_set_key_id( psa_key_attributes_t *attributes,
  * \param[out] attributes  The attribute structure to write to.
  * \param owner            The key owner identifier.
  */
-static void mbedtls_set_key_owner_id( psa_key_attributes_t *attributes,
-                                      mbedtls_key_owner_id_t owner );
+static void mbedtls_set_key_owner_id(psa_key_attributes_t *attributes,
+                                     mbedtls_key_owner_id_t owner);
 #endif
 
 /** Set the location of a persistent key.
@@ -944,7 +944,7 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
 /* This is an example definition for documentation purposes.
  * Implementations should define a suitable value in `crypto_struct.h`.
  */
-#define PSA_HASH_OPERATION_INIT {0}
+#define PSA_HASH_OPERATION_INIT { 0 }
 #endif
 
 /** Return an initial value for a hash operation object.
@@ -1308,7 +1308,7 @@ typedef struct psa_mac_operation_s psa_mac_operation_t;
 /* This is an example definition for documentation purposes.
  * Implementations should define a suitable value in `crypto_struct.h`.
  */
-#define PSA_MAC_OPERATION_INIT {0}
+#define PSA_MAC_OPERATION_INIT { 0 }
 #endif
 
 /** Return an initial value for a MAC operation object.
@@ -1727,7 +1727,7 @@ typedef struct psa_cipher_operation_s psa_cipher_operation_t;
 /* This is an example definition for documentation purposes.
  * Implementations should define a suitable value in `crypto_struct.h`.
  */
-#define PSA_CIPHER_OPERATION_INIT {0}
+#define PSA_CIPHER_OPERATION_INIT { 0 }
 #endif
 
 /** Return an initial value for a cipher operation object.
@@ -2251,7 +2251,7 @@ typedef struct psa_aead_operation_s psa_aead_operation_t;
 /* This is an example definition for documentation purposes.
  * Implementations should define a suitable value in `crypto_struct.h`.
  */
-#define PSA_AEAD_OPERATION_INIT {0}
+#define PSA_AEAD_OPERATION_INIT { 0 }
 #endif
 
 /** Return an initial value for an AEAD operation object.
@@ -2913,13 +2913,13 @@ psa_status_t psa_aead_abort(psa_aead_operation_t *operation);
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_sign_message( mbedtls_svc_key_id_t key,
-                               psa_algorithm_t alg,
-                               const uint8_t * input,
-                               size_t input_length,
-                               uint8_t * signature,
-                               size_t signature_size,
-                               size_t * signature_length );
+psa_status_t psa_sign_message(mbedtls_svc_key_id_t key,
+                              psa_algorithm_t alg,
+                              const uint8_t *input,
+                              size_t input_length,
+                              uint8_t *signature,
+                              size_t signature_size,
+                              size_t *signature_length);
 
 /** \brief Verify the signature of a message with a public key, using
  *         a hash-and-sign verification algorithm.
@@ -2965,12 +2965,12 @@ psa_status_t psa_sign_message( mbedtls_svc_key_id_t key,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_verify_message( mbedtls_svc_key_id_t key,
-                                 psa_algorithm_t alg,
-                                 const uint8_t * input,
-                                 size_t input_length,
-                                 const uint8_t * signature,
-                                 size_t signature_length );
+psa_status_t psa_verify_message(mbedtls_svc_key_id_t key,
+                                psa_algorithm_t alg,
+                                const uint8_t *input,
+                                size_t input_length,
+                                const uint8_t *signature,
+                                size_t signature_length);
 
 /**
  * \brief Sign a hash or short message with a private key.
@@ -3244,7 +3244,7 @@ typedef struct psa_key_derivation_s psa_key_derivation_operation_t;
 /* This is an example definition for documentation purposes.
  * Implementations should define a suitable value in `crypto_struct.h`.
  */
-#define PSA_KEY_DERIVATION_OPERATION_INIT {0}
+#define PSA_KEY_DERIVATION_OPERATION_INIT { 0 }
 #endif
 
 /** Return an initial value for a key derivation operation object.
@@ -3371,7 +3371,7 @@ psa_status_t psa_key_derivation_set_capacity(
  * The value of the maximum possible capacity depends on the key derivation
  * algorithm.
  */
-#define PSA_KEY_DERIVATION_UNLIMITED_CAPACITY ((size_t)(-1))
+#define PSA_KEY_DERIVATION_UNLIMITED_CAPACITY ((size_t) (-1))
 
 /** Provide an input for key derivation or key agreement.
  *

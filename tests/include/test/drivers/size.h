@@ -31,7 +31,7 @@
 
 size_t mbedtls_test_size_function(
     const psa_key_type_t key_type,
-    const size_t key_bits );
+    const size_t key_bits);
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_TEST_DRIVERS_SIZE_H */

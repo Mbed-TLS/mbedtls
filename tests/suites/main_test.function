@@ -81,24 +81,23 @@ __MBEDTLS_TEST_TEMPLATE__FUNCTIONS_CODE
  *
  * \return       0 if exp_id is found. 1 otherwise.
  */
-int get_expression( int32_t exp_id, int32_t * out_value )
+int get_expression(int32_t exp_id, int32_t *out_value)
 {
     int ret = KEY_VALUE_MAPPING_FOUND;
 
     (void) exp_id;
     (void) out_value;
 
-    switch( exp_id )
-    {
-__MBEDTLS_TEST_TEMPLATE__EXPRESSION_CODE
+    switch (exp_id) {
+    __MBEDTLS_TEST_TEMPLATE__EXPRESSION_CODE
 #line __MBEDTLS_TEST_TEMPLATE__LINE_NO "suites/main_test.function"
         default:
-           {
-                ret = KEY_VALUE_MAPPING_NOT_FOUND;
-           }
-           break;
+        {
+            ret = KEY_VALUE_MAPPING_NOT_FOUND;
+        }
+        break;
     }
-    return( ret );
+    return ret;
 }
 
 
@@ -113,20 +112,19 @@ __MBEDTLS_TEST_TEMPLATE__EXPRESSION_CODE
  *
  * \return       DEPENDENCY_SUPPORTED if set else DEPENDENCY_NOT_SUPPORTED
  */
-int dep_check( int dep_id )
+int dep_check(int dep_id)
 {
     int ret = DEPENDENCY_NOT_SUPPORTED;
 
     (void) dep_id;
 
-    switch( dep_id )
-    {
-__MBEDTLS_TEST_TEMPLATE__DEP_CHECK_CODE
+    switch (dep_id) {
+    __MBEDTLS_TEST_TEMPLATE__DEP_CHECK_CODE
 #line __MBEDTLS_TEST_TEMPLATE__LINE_NO "suites/main_test.function"
         default:
             break;
     }
-    return( ret );
+    return ret;
 }
 
 
@@ -143,7 +141,7 @@ __MBEDTLS_TEST_TEMPLATE__DEP_CHECK_CODE
  *                      dereferences. Each wrapper function hard-codes the
  *                      number and types of the parameters.
  */
-typedef void (*TestWrapper_t)( void **param_array );
+typedef void (*TestWrapper_t)(void **param_array);
 
 
 /**
@@ -154,7 +152,7 @@ typedef void (*TestWrapper_t)( void **param_array );
  */
 TestWrapper_t test_funcs[] =
 {
-__MBEDTLS_TEST_TEMPLATE__DISPATCH_CODE
+    __MBEDTLS_TEST_TEMPLATE__DISPATCH_CODE
 #line __MBEDTLS_TEST_TEMPLATE__LINE_NO "suites/main_test.function"
 };
 
@@ -173,32 +171,29 @@ __MBEDTLS_TEST_TEMPLATE__DISPATCH_CODE
 void execute_function_ptr(TestWrapper_t fp, void **params)
 {
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
-    mbedtls_test_enable_insecure_external_rng( );
+    mbedtls_test_enable_insecure_external_rng();
 #endif
 
 #if defined(MBEDTLS_CHECK_PARAMS)
     mbedtls_test_param_failed_location_record_t location_record;
 
-    if ( setjmp( mbedtls_test_param_failed_get_state_buf( ) ) == 0 )
-    {
-        fp( params );
-    }
-    else
-    {
+    if (setjmp(mbedtls_test_param_failed_get_state_buf()) == 0) {
+        fp(params);
+    } else {
         /* Unexpected parameter validation error */
-        mbedtls_test_param_failed_get_location_record( &location_record );
-        mbedtls_test_fail( location_record.failure_condition,
-                           location_record.line,
-                           location_record.file );
+        mbedtls_test_param_failed_get_location_record(&location_record);
+        mbedtls_test_fail(location_record.failure_condition,
+                          location_record.line,
+                          location_record.file);
     }
 
-    mbedtls_test_param_failed_reset_state( );
+    mbedtls_test_param_failed_reset_state();
 #else
-    fp( params );
+    fp(params);
 #endif
 
 #if defined(MBEDTLS_TEST_MUTEX_USAGE)
-    mbedtls_test_mutex_usage_check( );
+    mbedtls_test_mutex_usage_check();
 #endif /* MBEDTLS_TEST_MUTEX_USAGE */
 }
 
@@ -213,25 +208,23 @@ void execute_function_ptr(TestWrapper_t fp, void **params)
  *               DISPATCH_TEST_FN_NOT_FOUND if not found
  *               DISPATCH_UNSUPPORTED_SUITE if not compile time enabled.
  */
-int dispatch_test( size_t func_idx, void ** params )
+int dispatch_test(size_t func_idx, void **params)
 {
     int ret = DISPATCH_TEST_SUCCESS;
     TestWrapper_t fp = NULL;
 
-    if ( func_idx < (int)( sizeof( test_funcs ) / sizeof( TestWrapper_t ) ) )
-    {
+    if (func_idx < (int) (sizeof(test_funcs) / sizeof(TestWrapper_t))) {
         fp = test_funcs[func_idx];
-        if ( fp )
+        if (fp) {
             execute_function_ptr(fp, params);
-        else
+        } else {
             ret = DISPATCH_UNSUPPORTED_SUITE;
-    }
-    else
-    {
+        }
+    } else {
         ret = DISPATCH_TEST_FN_NOT_FOUND;
     }
 
-    return( ret );
+    return ret;
 }
 
 
@@ -245,23 +238,21 @@ int dispatch_test( size_t func_idx, void ** params )
  *               DISPATCH_TEST_FN_NOT_FOUND if not found
  *               DISPATCH_UNSUPPORTED_SUITE if not compile time enabled.
  */
-int check_test( size_t func_idx )
+int check_test(size_t func_idx)
 {
     int ret = DISPATCH_TEST_SUCCESS;
     TestWrapper_t fp = NULL;
 
-    if ( func_idx < (int)( sizeof(test_funcs)/sizeof( TestWrapper_t ) ) )
-    {
+    if (func_idx < (int) (sizeof(test_funcs)/sizeof(TestWrapper_t))) {
         fp = test_funcs[func_idx];
-        if ( fp == NULL )
+        if (fp == NULL) {
             ret = DISPATCH_UNSUPPORTED_SUITE;
-    }
-    else
-    {
+        }
+    } else {
         ret = DISPATCH_TEST_FN_NOT_FOUND;
     }
 
-    return( ret );
+    return ret;
 }
 
 
@@ -281,22 +272,21 @@ __MBEDTLS_TEST_TEMPLATE__PLATFORM_CODE
  *
  * \return       Exit code.
  */
-int main( int argc, const char *argv[] )
+int main(int argc, const char *argv[])
 {
-#if defined(MBEDTLS_TEST_HOOKS) && defined (MBEDTLS_ERROR_C)
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_ERROR_C)
     mbedtls_test_hook_error_add = &mbedtls_test_err_add_check;
 #endif
 
     int ret = mbedtls_test_platform_setup();
-    if( ret != 0 )
-    {
-        mbedtls_fprintf( stderr,
-                         "FATAL: Failed to initialize platform - error %d\n",
-                         ret );
-        return( -1 );
+    if (ret != 0) {
+        mbedtls_fprintf(stderr,
+                        "FATAL: Failed to initialize platform - error %d\n",
+                        ret);
+        return -1;
     }
 
-    ret = execute_tests( argc, argv );
+    ret = execute_tests(argc, argv);
     mbedtls_test_platform_teardown();
-    return( ret );
+    return ret;
 }

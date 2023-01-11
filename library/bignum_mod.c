@@ -351,30 +351,30 @@ int mbedtls_mpi_mod_random(mbedtls_mpi_mod_residue *X,
 /* END MERGE SLOT 6 */
 
 /* BEGIN MERGE SLOT 7 */
-int mbedtls_mpi_mod_read(mbedtls_mpi_mod_residue *r,
-                         const mbedtls_mpi_mod_modulus *m,
-                         const unsigned char *buf,
-                         size_t buflen,
-                         mbedtls_mpi_mod_ext_rep ext_rep)
+int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
+                          const mbedtls_mpi_mod_modulus *N,
+                          const unsigned char *buf,
+                          size_t buflen,
+                          mbedtls_mpi_mod_ext_rep ext_rep )
 {
     int ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
 
     /* Do our best to check if r and m have been set up */
-    if (r->limbs == 0 || m->limbs == 0) {
+    if (r->limbs == 0 || N->limbs == 0) {
         goto cleanup;
     }
-    if (r->limbs != m->limbs) {
+    if (r->limbs != N->limbs) {
         goto cleanup;
     }
 
-    ret = mbedtls_mpi_mod_raw_read(r->p, m, buf, buflen, ext_rep);
+    ret = mbedtls_mpi_mod_raw_read(r->p, N, buf, buflen, ext_rep);
     if (ret != 0) {
         goto cleanup;
     }
 
-    r->limbs = m->limbs;
+    r->limbs = N->limbs;
 
-    ret = mbedtls_mpi_mod_raw_canonical_to_modulus_rep(r->p, m);
+    ret = mbedtls_mpi_mod_raw_canonical_to_modulus_rep( r->p, N );
 
 cleanup:
     return ret;

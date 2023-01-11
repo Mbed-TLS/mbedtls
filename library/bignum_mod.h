@@ -401,16 +401,16 @@ int mbedtls_mpi_mod_random(mbedtls_mpi_mod_residue *X,
 /** Read a residue from a byte buffer.
  *
  * The residue will be automatically converted to the internal representation
- * based on the value of the `m->int_rep` field.
+ * based on the value of the `N->int_rep` field.
  *
- * The modulus \p m will be the modulus associated with \p r. The residue \p r
- * should only be used in operations where the modulus is \p m or a modulus
- * equivalent to \p m (in the sense that all their fields or memory pointed by
+ * The modulus \p N will be the modulus associated with \p r. The residue \p r
+ * should only be used in operations where the modulus is \p N or a modulus
+ * equivalent to \p N (in the sense that all their fields or memory pointed by
  * their fields hold the same value).
  *
  * \param[out] r    The address of the residue. It must have exactly the same
- *                  number of limbs as the modulus \p m.
- * \param[in] m     The address of the modulus.
+ *                  number of limbs as the modulus \p N.
+ * \param[in] N     The address of the modulus.
  * \param[in] buf   The input buffer to import from.
  * \param buflen    The length in bytes of \p buf.
  * \param ext_rep   The endianness of the number in the input buffer.
@@ -419,13 +419,13 @@ int mbedtls_mpi_mod_random(mbedtls_mpi_mod_residue *X,
  * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p r isn't
  *               large enough to hold the value in \p buf.
  * \return       #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p ext_rep
- *               is invalid or the value in the buffer is not less than \p m.
+ *               is invalid or the value in the buffer is not less than \p N.
  */
-int mbedtls_mpi_mod_read(mbedtls_mpi_mod_residue *r,
-                         const mbedtls_mpi_mod_modulus *m,
-                         const unsigned char *buf,
-                         size_t buflen,
-                         mbedtls_mpi_mod_ext_rep ext_rep);
+int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
+                          const mbedtls_mpi_mod_modulus *N,
+                          const unsigned char *buf,
+                          size_t buflen,
+                          mbedtls_mpi_mod_ext_rep ext_rep );
 
 /** Write a residue into a byte buffer.
  *

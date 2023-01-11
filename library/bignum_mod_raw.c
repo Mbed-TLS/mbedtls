@@ -85,19 +85,19 @@ cleanup:
     return ret;
 }
 
-int mbedtls_mpi_mod_raw_write(const mbedtls_mpi_uint *A,
-                              const mbedtls_mpi_mod_modulus *m,
-                              unsigned char *output,
-                              size_t output_length,
-                              mbedtls_mpi_mod_ext_rep ext_rep)
+int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *A,
+                               const mbedtls_mpi_mod_modulus *N,
+                               unsigned char *output,
+                               size_t output_length,
+                               mbedtls_mpi_mod_ext_rep ext_rep )
 {
     switch (ext_rep) {
         case MBEDTLS_MPI_MOD_EXT_REP_LE:
-            return mbedtls_mpi_core_write_le(A, m->limbs,
-                                             output, output_length);
+            return( mbedtls_mpi_core_write_le( A, N->limbs,
+                                               output, output_length ) );
         case MBEDTLS_MPI_MOD_EXT_REP_BE:
-            return mbedtls_mpi_core_write_be(A, m->limbs,
-                                             output, output_length);
+            return( mbedtls_mpi_core_write_be( A, N->limbs,
+                                               output, output_length ) );
         default:
             return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
     }

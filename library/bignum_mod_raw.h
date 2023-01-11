@@ -167,10 +167,10 @@ int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,
 
 /** Export A into unsigned binary data.
  *
- * \param[in] A         The address of the MPI. The size is determined by \p m.
+ * \param[in] A         The address of the MPI. The size is determined by \p N.
  *                      (In particular, it must have at least as many limbs as
- *                      the modulus \p m.)
- * \param[in] m         The address of the modulus related to \p A.
+ *                      the modulus \p N.)
+ * \param[in] N         The address of the modulus related to \p A.
  * \param[out] output   The output buffer to export to.
  * \param output_length The length in bytes of \p output.
  * \param ext_rep       The endianness in which the number should be written into the output buffer.
@@ -179,13 +179,13 @@ int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,
  * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p output isn't
  *               large enough to hold the value of \p A.
  * \return       #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if the external representation
- *               of \p m is invalid.
+ *               of \p N is invalid.
  */
-int mbedtls_mpi_mod_raw_write(const mbedtls_mpi_uint *A,
-                              const mbedtls_mpi_mod_modulus *m,
-                              unsigned char *output,
-                              size_t output_length,
-                              mbedtls_mpi_mod_ext_rep ext_rep);
+int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *A,
+                               const mbedtls_mpi_mod_modulus *N,
+                               unsigned char *output,
+                               size_t output_length,
+                               mbedtls_mpi_mod_ext_rep ext_rep );
 
 /* BEGIN MERGE SLOT 1 */
 

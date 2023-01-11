@@ -410,14 +410,14 @@ int mbedtls_mpi_mod_raw_random(mbedtls_mpi_uint *X,
 /** Convert an MPI into Montgomery form.
  *
  * \param X      The address of the MPI.
- *               Must have the same number of limbs as \p m.
- * \param m      The address of the modulus, which gives the size of
- *               the base `R` = 2^(biL*m->limbs).
+ *               Must have the same number of limbs as \p N.
+ * \param N      The address of the modulus, which gives the size of
+ *               the base `R` = 2^(biL*N->limbs).
  *
  * \return       \c 0 if successful.
  */
-int mbedtls_mpi_mod_raw_to_mont_rep(mbedtls_mpi_uint *X,
-                                    const mbedtls_mpi_mod_modulus *m);
+int mbedtls_mpi_mod_raw_to_mont_rep( mbedtls_mpi_uint *X,
+                                     const mbedtls_mpi_mod_modulus *N );
 
 /** Convert an MPI back from Montgomery representation.
  *

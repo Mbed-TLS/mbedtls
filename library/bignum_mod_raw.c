@@ -229,18 +229,18 @@ int mbedtls_mpi_mod_raw_random(mbedtls_mpi_uint *X,
 /* END MERGE SLOT 6 */
 
 /* BEGIN MERGE SLOT 7 */
-int mbedtls_mpi_mod_raw_to_mont_rep(mbedtls_mpi_uint *X,
-                                    const mbedtls_mpi_mod_modulus *m)
+int mbedtls_mpi_mod_raw_to_mont_rep( mbedtls_mpi_uint *X,
+                                     const mbedtls_mpi_mod_modulus *N )
 {
     mbedtls_mpi_uint *T;
-    const size_t t_limbs = mbedtls_mpi_core_montmul_working_limbs(m->limbs);
+    const size_t t_limbs = mbedtls_mpi_core_montmul_working_limbs( N->limbs );
 
     if ((T = (mbedtls_mpi_uint *) mbedtls_calloc(t_limbs, ciL)) == NULL) {
         return MBEDTLS_ERR_MPI_ALLOC_FAILED;
     }
 
-    mbedtls_mpi_core_to_mont_rep(X, X, m->p, m->limbs,
-                                 m->rep.mont.mm, m->rep.mont.rr, T);
+    mbedtls_mpi_core_to_mont_rep( X, X, N->p, N->limbs,
+                                  N->rep.mont.mm, N->rep.mont.rr, T );
 
     mbedtls_platform_zeroize(T, t_limbs * ciL);
     mbedtls_free(T);

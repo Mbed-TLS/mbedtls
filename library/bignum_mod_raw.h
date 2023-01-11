@@ -159,11 +159,11 @@ void mbedtls_mpi_mod_raw_cond_swap(mbedtls_mpi_uint *X,
  * \return       #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if the external representation
  *               of \p N is invalid or \p X is not less than \p N.
  */
-int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,
-                              const mbedtls_mpi_mod_modulus *N,
-                              const unsigned char *input,
-                              size_t input_length,
-                              mbedtls_mpi_mod_ext_rep ext_rep );
+int mbedtls_mpi_mod_raw_read(mbedtls_mpi_uint *X,
+                             const mbedtls_mpi_mod_modulus *N,
+                             const unsigned char *input,
+                             size_t input_length,
+                             mbedtls_mpi_mod_ext_rep ext_rep);
 
 /** Export A into unsigned binary data.
  *
@@ -181,11 +181,11 @@ int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,
  * \return       #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if the external representation
  *               of \p N is invalid.
  */
-int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *A,
-                               const mbedtls_mpi_mod_modulus *N,
-                               unsigned char *output,
-                               size_t output_length,
-                               mbedtls_mpi_mod_ext_rep ext_rep );
+int mbedtls_mpi_mod_raw_write(const mbedtls_mpi_uint *A,
+                              const mbedtls_mpi_mod_modulus *N,
+                              unsigned char *output,
+                              size_t output_length,
+                              mbedtls_mpi_mod_ext_rep ext_rep);
 
 /* BEGIN MERGE SLOT 1 */
 
@@ -416,8 +416,8 @@ int mbedtls_mpi_mod_raw_random(mbedtls_mpi_uint *X,
  *
  * \return       \c 0 if successful.
  */
-int mbedtls_mpi_mod_raw_to_mont_rep( mbedtls_mpi_uint *X,
-                                     const mbedtls_mpi_mod_modulus *N );
+int mbedtls_mpi_mod_raw_to_mont_rep(mbedtls_mpi_uint *X,
+                                    const mbedtls_mpi_mod_modulus *N);
 
 /** Convert an MPI back from Montgomery representation.
  *
@@ -428,25 +428,25 @@ int mbedtls_mpi_mod_raw_to_mont_rep( mbedtls_mpi_uint *X,
  *
  * \return       \c 0 if successful.
  */
-int mbedtls_mpi_mod_raw_from_mont_rep( mbedtls_mpi_uint *X,
-                                       const mbedtls_mpi_mod_modulus *N );
+int mbedtls_mpi_mod_raw_from_mont_rep(mbedtls_mpi_uint *X,
+                                      const mbedtls_mpi_mod_modulus *N);
 
 /** \brief  Perform fixed width modular negation.
  *
- * The size of the operation is determined by \p m. \p A must have
- * the same number of limbs as \p m.
+ * The size of the operation is determined by \p N. \p A must have
+ * the same number of limbs as \p N.
  *
  * \p X may be aliased to \p A.
  *
  * \param[out] X        The result of the modular negation.
  *                      This must be initialized.
  * \param[in] A         Little-endian presentation of the input operand. This
- *                      must be less than or equal to \p m.
- * \param[in] m         The modulus to use.
+ *                      must be less than or equal to \p N.
+ * \param[in] N         The modulus to use.
  */
 void mbedtls_mpi_mod_raw_neg(mbedtls_mpi_uint *X,
                              const mbedtls_mpi_uint *A,
-                             const mbedtls_mpi_mod_modulus *m);
+                             const mbedtls_mpi_mod_modulus *N);
 /* END MERGE SLOT 7 */
 
 /* BEGIN MERGE SLOT 8 */

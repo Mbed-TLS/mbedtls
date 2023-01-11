@@ -247,17 +247,17 @@ int mbedtls_mpi_mod_raw_to_mont_rep( mbedtls_mpi_uint *X,
     return 0;
 }
 
-int mbedtls_mpi_mod_raw_from_mont_rep(mbedtls_mpi_uint *X,
-                                      const mbedtls_mpi_mod_modulus *m)
+int mbedtls_mpi_mod_raw_from_mont_rep( mbedtls_mpi_uint *X,
+                                       const mbedtls_mpi_mod_modulus *N )
 {
-    const size_t t_limbs = mbedtls_mpi_core_montmul_working_limbs(m->limbs);
+    const size_t t_limbs = mbedtls_mpi_core_montmul_working_limbs( N->limbs );
     mbedtls_mpi_uint *T;
 
     if ((T = (mbedtls_mpi_uint *) mbedtls_calloc(t_limbs, ciL)) == NULL) {
         return MBEDTLS_ERR_MPI_ALLOC_FAILED;
     }
 
-    mbedtls_mpi_core_from_mont_rep(X, X, m->p, m->limbs, m->rep.mont.mm, T);
+    mbedtls_mpi_core_from_mont_rep( X, X, N->p, N->limbs, N->rep.mont.mm, T );
 
     mbedtls_platform_zeroize(T, t_limbs * ciL);
     mbedtls_free(T);

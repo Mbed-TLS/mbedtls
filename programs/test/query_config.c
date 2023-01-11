@@ -110,11 +110,12 @@
  */
 #define MACRO_EXPANSION_TO_STR(macro)   MACRO_NAME_TO_STR(macro)
 #define MACRO_NAME_TO_STR(macro)                                        \
-    mbedtls_printf( "%s", strlen( #macro "" ) > 0 ? #macro "\n" : "" )
+    mbedtls_printf("%s", strlen( #macro "") > 0 ? #macro "\n" : "")
 
 #define STRINGIFY(macro)  #macro
 #define OUTPUT_MACRO_NAME_VALUE(macro) mbedtls_printf( #macro "%s\n",   \
-    ( STRINGIFY(macro) "" )[0] != 0 ? "=" STRINGIFY(macro) : "" )
+                                                       (STRINGIFY(macro) "")[0] != 0 ? "=" STRINGIFY( \
+                                                           macro) : "")
 
 #if defined(_MSC_VER)
 /*
@@ -129,9 +130,9 @@
 #pragma warning(disable:4003)
 #endif /* _MSC_VER */
 
-int query_config( const char *config )
+int query_config(const char *config)
 {
-#if defined(MBEDTLS_HAVE_ASM)
+    #if defined(MBEDTLS_HAVE_ASM)
     if( strcmp( "MBEDTLS_HAVE_ASM", config ) == 0 )
     {
         MACRO_EXPANSION_TO_STR( MBEDTLS_HAVE_ASM );
@@ -2875,11 +2876,11 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED */
 
-    /* If the symbol is not found, return an error */
-    return( 1 );
+ /* If the symbol is not found, return an error */
+    return 1;
 }
 
-void list_config( void )
+void list_config(void)
 {
     #if defined(MBEDTLS_HAVE_ASM)
     OUTPUT_MACRO_NAME_VALUE(MBEDTLS_HAVE_ASM);

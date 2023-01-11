@@ -10965,6 +10965,16 @@ run_test    "DTLS proxy: delay ChangeCipherSpec" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
+# Tests using packet malformation
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_ciphersuite_enabled TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256
+run_test    "DTLS proxy packet malformation: bad session_id length" \
+            -p "$P_PXY malform_pattern=FF malform_offset=59 malform_message=ServerHello" \
+            "$P_SRV dtls=1" \
+            "$P_CLI dtls=1" \
+            MBEDTLS_ERR_SSL_DECODE_ERROR
+
 # Tests for reordering support with DTLS
 
 requires_certificate_authentication

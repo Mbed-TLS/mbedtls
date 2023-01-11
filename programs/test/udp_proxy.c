@@ -57,6 +57,11 @@ int main( void )
 #include "mbedtls/error.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/timing.h"
+#if defined(MBEDTLS_SHA256_C)
+#include "mbedtls/sha256.h"
+#endif
+
+#include <test/helpers.h>
 
 #include <string.h>
 
@@ -82,22 +87,74 @@ int main( void )
 #endif /* ( _WIN32 || _WIN32_WCE ) && !EFIX64 && !EFI32 */
 
 #define MAX_MSG_SIZE            16384 + 2048 /* max record/datagram size */
+#define PACKET_HASHES_STORED 1000
+#define SHA256_SIZE 32
+
+#define MODE_PATTERN    0
+#define MODE_BITFLIP    1
 
 #define DFL_SERVER_ADDR         "localhost"
 #define DFL_SERVER_PORT         "4433"
 #define DFL_LISTEN_ADDR         "localhost"
 #define DFL_LISTEN_PORT         "5556"
 #define DFL_PACK                0
+#define DFL_RESEND_PROTECTION   0
+#define DFL_MALFORM_HS_SEQ_NUM  -1
+#define DFL_MALFORM_TRUNCATE    -1
+#define DFL_MALFORM_MESSAGE     "Any"
 
 #if defined(MBEDTLS_TIMING_C)
 #define USAGE_PACK                                                          \
     "    pack=%%d             default: 0     (don't pack)\n"                \
-    "                         options: t > 0 (pack for t milliseconds)\n"
+    "                        options: t > 0 (pack for t milliseconds)\n"
 #else
 #define USAGE_PACK
 #endif
 
-#define USAGE                                                               \
+#if defined(MBEDTLS_SHA256_C)
+#define USAGE_RESEND \
+    "    resend_protection=0/1 default:0 For messages that pass malformation\n"\
+    "                        filters (below), calculate and save their hashes\n"\
+    "                        to only increment malform_packet_num for\n"    \
+    "                        unique packets. Apply the malformation again\n"\
+    "                        in case of a resend. The calculated hash\n"    \
+    "                        omits the record sequence_number.\n"
+#else
+#define USAGE_RESEND
+#endif
+
+#define USAGE_MALFORM                                                       \
+    " Packet malformation arguments:\n"                                     \
+    "    malform_mode=%%s     default: 0, memset packet data with a pattern.\n"\
+    "                        1, XOR packet data with a pattern.\n"          \
+    "    malform_offset=%%d   default: 0, where to start the malformation\n"\
+    "    malform_pattern=%%s  What pattern to use to set/xor packet data,\n"\
+    "                        in hex. Its presence indicates that\n"         \
+    "                        a malformation should be performed.\n"         \
+    "    malform_truncate=%%d default: -1, truncate the packet at this\n"   \
+    "                        offset and rewrite the length in the packet\n" \
+    "                        header. -1 means no truncation."               \
+    USAGE_RESEND                                                            \
+    " Possible malformation filters (joined by an AND):\n"                  \
+    "    malform_packet_num=%%d default:0, which packet of a given type\n"  \
+    "                                    that passes all filters to\n"      \
+    "                                    malform. Zero means all.\n"        \
+    "    malform_hs_seq_num=%%d  only malform handshake messages with this\n"\
+    "                            seq_num. default: -1 - do not apply.\n"    \
+    "                            Specifying this option and chosing a\n"    \
+    "                            non-handshake message type will probably\n"\
+    "                            give no results.\n"                        \
+    "    malform_message=%%s  Which message to malform. Default: Any.\n"    \
+    "                        Acceptable values:\n"                          \
+    "                        Any, HelloRequest, ClientHello, ServerHello,\n"\
+    "                        HelloVerifyRequest, NewSessionTicket,\n"       \
+    "                        Certificate, ServerKeyExchange,\n"             \
+    "                        CertificateRequest, ServerHelloDone,\n"        \
+    "                        CertificateVerify, ClientKeyExchange,\n"       \
+    "                        Finished, ChangeCipherSpec, Alert,\n"          \
+    "                        ApplicationData, CID\n"
+
+#define USAGE_1                                                             \
     "\n usage: udp_proxy param=<>...\n"                                     \
     "\n acceptable parameters:\n"                                           \
     "    server_addr=%%s      default: localhost\n"                         \
@@ -120,25 +177,29 @@ int main( void )
     "    delay_srv=%%s        Handshake message from server that should be\n"\
     "                        delayed. Possible values are 'HelloRequest',\n"\
     "                        'ServerHello', 'ServerHelloDone', 'Certificate'\n"\
-    "                        'ServerKeyExchange', 'NewSessionTicket',\n"\
+    "                        'ServerKeyExchange', 'NewSessionTicket',\n"    \
     "                        'HelloVerifyRequest' and ''CertificateRequest'.\n"\
     "                        May be used multiple times, even for the same\n"\
     "                        message, in which case the respective message\n"\
-    "                        gets delayed multiple times.\n"                 \
+    "                        gets delayed multiple times.\n"                \
     "    drop=%%d             default: 0 (no dropped packets)\n"            \
     "                        drop about 1:N packets randomly\n"             \
     "    mtu=%%d              default: 0 (unlimited)\n"                     \
     "                        drop packets larger than N bytes\n"            \
     "    bad_ad=0/1          default: 0 (don't add bad ApplicationData)\n"  \
-    "    bad_cid=%%d          default: 0 (don't corrupt Connection IDs)\n"   \
-    "                        duplicate 1:N packets containing a CID,\n" \
+    "    bad_cid=%%d          default: 0 (don't corrupt Connection IDs)\n"  \
+    "                        duplicate 1:N packets containing a CID,\n"     \
     "                        modifying CID in first instance of the packet.\n" \
     "    protect_hvr=0/1     default: 0 (don't protect HelloVerifyRequest)\n" \
     "    protect_len=%%d      default: (don't protect packets of this size)\n" \
     "    inject_clihlo=0/1   default: 0 (don't inject fake ClientHello)\n"  \
     "\n"                                                                    \
-    "    seed=%%d             default: (use current time)\n"                \
+    "    seed=%%d             default: (use current time)\n"
+
+#define USAGE_2                                                             \
     USAGE_PACK                                                              \
+    "\n"                                                                    \
+    USAGE_MALFORM                                                           \
     "\n"
 
 /*
@@ -146,6 +207,9 @@ int main( void )
  */
 
 #define MAX_DELAYED_HS 10
+size_t malform_counter = 0;
+unsigned char *malform_pattern = NULL; /* Converted to binary from hex */
+size_t malform_pattern_len = 0;
 
 static struct options
 {
@@ -173,6 +237,38 @@ static struct options
     unsigned pack;              /* merge packets into single datagram for
                                  * at most \c merge milliseconds if > 0     */
     unsigned int seed;          /* seed for "random" events                 */
+
+    uint8_t malform_mode;       /* how to malform the data of a message:
+                                 *     0 - pattern.
+                                 *     1 - XOR.                             */
+    int malform_truncate;       /* Truncate the packet at this offset,
+                                 * rewrite length in the packet header.
+                                 * -1 means no truncation.                  */
+    size_t malform_offset;      /* byte offset to start packet malformation */
+    const char* malform_message;/* which message to malform, a name as      */
+                                /* present in msg_type(), or Any            */
+
+    unsigned char* malform_pattern;/* Pattern to memset/XOR at an offset.
+                                    * Its presence indicates that
+                                    * a malformation should be performed. */
+
+    size_t malform_packet_num;  /* Which packet of a given message to
+                                 * malform. 0 - all. Currently only one
+                                 * packet or all can be malformed. First packet
+                                 * has number 1. */
+    uint16_t malform_hs_seq_num; /* Records containing which hs_seq_num
+                                 * should the malformation be applied to,
+                                 * or should increase the malform_packet_num
+                                 * counter. Default: -1 - no filter. */
+#if defined(MBEDTLS_SHA256_C)
+    int resend_protection;       /* For messages that pass malformation
+                                  * filters, calculate and save their hashes
+                                  * to only increment malform_packet_num for
+                                  * unique packets. Apply the malformation again
+                                  * in case of a resend. The calculated hash
+                                  * omits the record sequence_number. */
+#endif
+
 } opt;
 
 static void exit_usage( const char *name, const char *value )
@@ -182,7 +278,8 @@ static void exit_usage( const char *name, const char *value )
     else
         mbedtls_printf( " option %s: illegal value: %s\n", name, value );
 
-    mbedtls_printf( USAGE );
+    mbedtls_printf( USAGE_1 );
+    mbedtls_printf( USAGE_2 );
     mbedtls_exit( 1 );
 }
 
@@ -196,6 +293,12 @@ static void get_options( int argc, char *argv[] )
     opt.listen_addr    = DFL_LISTEN_ADDR;
     opt.listen_port    = DFL_LISTEN_PORT;
     opt.pack           = DFL_PACK;
+#if defined(MBEDTLS_SHA256_C)
+    opt.resend_protection = DFL_RESEND_PROTECTION;
+#endif
+    opt.malform_hs_seq_num   = DFL_MALFORM_HS_SEQ_NUM;
+    opt.malform_truncate     = DFL_MALFORM_TRUNCATE;
+    opt.malform_message      = DFL_MALFORM_MESSAGE;
     /* Other members default to 0 */
 
     opt.delay_cli_cnt = 0;
@@ -330,6 +433,32 @@ static void get_options( int argc, char *argv[] )
             if( opt.seed == 0 )
                 exit_usage( p, q );
         }
+        else if( strcmp( p, "malform_offset" ) == 0 )
+            opt.malform_offset = atoi( q );
+        else if( strcmp( p, "malform_truncate" ) == 0 )
+            opt.malform_truncate = atoi( q );
+        else if( strcmp( p, "malform_mode" ) == 0 )
+            opt.malform_mode = atoi( q );
+        else if( strcmp( p, "malform_packet_num" ) == 0 )
+            opt.malform_packet_num = atoi( q );
+        else if( strcmp( p, "malform_message" ) == 0 )
+            opt.malform_message = q;
+        else if( strcmp( p, "malform_pattern" ) == 0 )
+        {
+            opt.malform_pattern = mbedtls_test_unhexify_alloc( q,
+                &malform_pattern_len );
+            if( opt.malform_pattern == NULL )
+            {
+                mbedtls_printf( " Allocation failure\n" );
+                exit( 1 );
+            }
+        }
+        else if( strcmp( p, "malform_hs_seq_num" ) == 0 )
+            opt.malform_hs_seq_num = atoi( q );
+#if defined(MBEDTLS_SHA256_C)
+        else if( strcmp( p, "resend_protection" ) == 0 )
+            opt.resend_protection = atoi( q );
+#endif
         else
             exit_usage( p, NULL );
     }
@@ -509,6 +638,10 @@ typedef struct
     const char *type;
     unsigned len;
     unsigned char buf[MAX_MSG_SIZE];
+#if defined(MBEDTLS_SHA256_C)
+    unsigned char hash[SHA256_SIZE];
+    unsigned int resend_detected;
+#endif
 } packet;
 
 /* Print packet. Outgoing packets come with a reason (forward, dupl, etc.) */
@@ -533,6 +666,196 @@ void print_packet( const packet *p, const char *why )
     fflush( stdout );
 }
 
+#define DEBUG_BUF_SIZE      512
+static void debug_print_buf( const char *file, int line, const char *text,
+                      const unsigned char *buf, size_t len )
+{
+    char str[DEBUG_BUF_SIZE];
+    char txt[17];
+    size_t i, idx = 0;
+
+    mbedtls_snprintf( str + idx, sizeof( str ) - idx, "dumping '%s' (%u bytes)\n",
+              text, (unsigned int) len );
+
+    mbedtls_printf( "%s:%d:%s", file, line, str );
+
+    idx = 0;
+    memset( txt, 0, sizeof( txt ) );
+    for( i = 0; i < len; i++ )
+    {
+        if( i % 16 == 0 )
+        {
+            if( i > 0 )
+            {
+                mbedtls_snprintf( str + idx, sizeof( str ) - idx, "  %s\n", txt );
+                mbedtls_printf( "%s:%d:%s", file, line, str );
+
+                idx = 0;
+                memset( txt, 0, sizeof( txt ) );
+            }
+
+            idx += mbedtls_snprintf( str + idx, sizeof( str ) - idx, "%04x: ",
+                             (unsigned int) i );
+
+        }
+
+        idx += mbedtls_snprintf( str + idx, sizeof( str ) - idx, " %02x",
+                         (unsigned int) buf[i] );
+        txt[i % 16] = ( buf[i] > 31 && buf[i] < 127 ) ? buf[i] : '.' ;
+    }
+
+    if( len > 0 )
+    {
+        for( /* i = i */; i % 16 != 0; i++ )
+            idx += mbedtls_snprintf( str + idx, sizeof( str ) - idx, "   " );
+
+        mbedtls_snprintf( str + idx, sizeof( str ) - idx, "  %s\n", txt );
+        mbedtls_printf( "%s:%d:%s", file, line, str );
+    }
+}
+#define PRINT_DEBUG_BUF( text, buf, len )           \
+    debug_print_buf( __FILE__, __LINE__, text, buf, len )
+
+#if defined(MBEDTLS_SHA256_C)
+
+size_t num_unique_packets = 0; // Occupied size of unique_packet_hashes
+unsigned char unique_packet_hashes[PACKET_HASHES_STORED][SHA256_SIZE] = { { 0 } };
+
+unsigned char single_malformed_hash[SHA256_SIZE] = {0};
+unsigned int single_malformation_done = 0;
+
+#define SEQ_NUM_LEN 6
+#define SEQ_NUM_POS 5
+
+static void reset_packet_hashes( )
+{
+    memset( unique_packet_hashes, 0, sizeof( unique_packet_hashes ) );
+    memset( single_malformed_hash, 0, sizeof( single_malformed_hash ) );
+    single_malformation_done = 0;
+    num_unique_packets = 0;
+}
+
+static int calculate_packet_hash( packet *cur )
+{
+    int ret = -1;
+    unsigned char seq_num_buffer[SEQ_NUM_LEN] = {0};
+
+    memcpy( seq_num_buffer, &cur->buf[SEQ_NUM_POS], SEQ_NUM_LEN );
+
+    /* Clear out the sequence number in case of a resend */
+    memset( &cur->buf[SEQ_NUM_POS], 0, SEQ_NUM_LEN );
+    ret = mbedtls_sha256( cur->buf, cur->len, cur->hash, 0 );
+    memcpy( &cur->buf[SEQ_NUM_POS], seq_num_buffer, SEQ_NUM_LEN );
+
+    if( ret != 0 )
+    {
+        mbedtls_printf( " Failed to calculate sha256\n" );
+        return ret;
+    }
+    /* Check if the packet is unique. We do not expect too many
+     * packets to pass filters, so a simple for loop is enough. */
+    cur->resend_detected = 0;
+    for( uint16_t i = 0; i < num_unique_packets; i++ )
+    {
+        if( memcmp( unique_packet_hashes[i], cur->hash, SHA256_SIZE ) == 0 )
+        {
+            mbedtls_printf( " Detected resent packet %u\n", i );
+            cur->resend_detected = 1;
+            break;
+        }
+    }
+
+    if( cur->resend_detected == 0 )
+    {
+        mbedtls_printf( " Added as unique packet no. %u\n",
+                        (unsigned) num_unique_packets );
+        memcpy( unique_packet_hashes[num_unique_packets], cur->hash, SHA256_SIZE );
+        if( num_unique_packets == PACKET_HASHES_STORED )
+        {
+            mbedtls_printf( " Packet hash buffer full. Exiting. \n" );
+            exit( MBEDTLS_EXIT_FAILURE );
+        }
+        num_unique_packets++;
+    }
+
+    return ret;
+}
+#endif
+
+static int message_passes_filters( packet *cur )
+{
+    if( strcmp( opt.malform_message, "Any" ) != 0 &&
+        strcmp( cur->type, opt.malform_message ) != 0 )
+        return 0;
+    if( opt.malform_hs_seq_num != (uint16_t) -1  &&
+        cur->buf[0] == MBEDTLS_SSL_MSG_HANDSHAKE )
+    {
+        uint16_t rec_seqnum = ( (uint16_t) cur->buf[17] <<  8 ) |
+                              ( (uint16_t) cur->buf[18]      );
+        if( rec_seqnum != opt.malform_hs_seq_num )
+            return 0;
+    }
+    return 1;
+}
+
+static int handle_message_malformation( packet* cur )
+{
+    int malformed_before = 0;
+    if( !message_passes_filters( cur ) )
+        return 0;
+#if defined(MBEDTLS_SHA256_C)
+    if( opt.resend_protection )
+        calculate_packet_hash( cur );
+
+    /* resend_detected means that the protection is on */
+    if( cur->resend_detected )
+    {
+        /* Check if this packet was malformed before */
+        if( single_malformation_done
+            && ( memcmp( cur->hash, single_malformed_hash, SHA256_SIZE ) == 0 ) )
+        {
+            malformed_before = 1;
+            mbedtls_printf( " Detected a resent packet that should be malformed \n" );
+        }
+    }
+    else
+#endif
+        malform_counter++;
+
+    if( malform_counter == opt.malform_packet_num ||
+            opt.malform_packet_num == 0 ||
+            malformed_before )
+    {
+        if( opt.malform_mode == MODE_BITFLIP )
+        {
+            for( size_t i = 0; i < malform_pattern_len; i++ )
+            {
+                cur->buf[opt.malform_offset + i] ^= opt.malform_pattern[i];
+            }
+        }
+        else if( opt.malform_mode == MODE_PATTERN )
+        {
+                memcpy( &cur->buf[opt.malform_offset],
+                            opt.malform_pattern, malform_pattern_len );
+        }
+
+        if( opt.malform_truncate != -1 )
+            cur->len = (unsigned) opt.malform_truncate;
+#if defined(MBEDTLS_SHA256_C)
+        /* If just a single packet should be malformed - store the hash.
+         * Do not overwrite it with the sama data on a resend */
+        if( opt.resend_protection && opt.malform_packet_num != 0 &&
+                malformed_before == 0 )
+        {
+            single_malformation_done = 1;
+            memcpy( single_malformed_hash, cur->hash, SHA256_SIZE );
+        }
+#endif
+        PRINT_DEBUG_BUF( "malformed packet", cur->buf, cur->len );
+    }
+
+    return 0;
+}
 /*
  * In order to test the server's behaviour when receiving a ClientHello after
  * the connection is established (this could be a hard reset from the client,
@@ -727,6 +1050,12 @@ int handle_message( const char *way,
     cur.dst  = dst;
     print_packet( &cur, NULL );
 
+    if( malform_pattern_len != 0 || opt.malform_truncate != DFL_MALFORM_TRUNCATE )
+    {
+        if( handle_message_malformation( &cur ) != 0 )
+            return 1;
+    }
+
     id = cur.len % sizeof( held );
 
     if( strcmp( way, "S <- C" ) == 0 )
@@ -884,6 +1213,10 @@ int main( int argc, char *argv[] )
 accept:
     mbedtls_net_free( &client_fd );
 
+    malform_counter = 0;
+#if defined(MBEDTLS_SHA256_C)
+    reset_packet_hashes( );
+#endif
     mbedtls_printf( "  . Waiting for a remote connection ..." );
     fflush( stdout );
 
@@ -974,22 +1307,30 @@ accept:
         }
 
         if( FD_ISSET( listen_fd.fd, &read_fds ) )
+        {
+            mbedtls_printf( "  . New connection incomming\n" );
             goto accept;
+        }
 
         if( FD_ISSET( client_fd.fd, &read_fds ) )
         {
             if( ( ret = handle_message( "S <- C",
                                         &server_fd, &client_fd ) ) != 0 )
+            {
+                mbedtls_printf( "  . Unhandled S <- C message\n" );
                 goto accept;
+            }
         }
 
         if( FD_ISSET( server_fd.fd, &read_fds ) )
         {
             if( ( ret = handle_message( "S -> C",
                                         &client_fd, &server_fd ) ) != 0 )
+            {
+                mbedtls_printf( "  . Unhandled S -> C message\n" );
                 goto accept;
+            }
         }
-
     }
 
     exit_code = MBEDTLS_EXIT_SUCCESS;

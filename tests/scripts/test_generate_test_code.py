@@ -1264,18 +1264,18 @@ dhm_selftest:
         # List of (name, function_name, dependencies, args)
         tests = list(parse_test_data(stream))
         test1, test2, test3, test4 = tests
-        self.assertEqual(test1[0], 'Diffie-Hellman full exchange #1')
+        self.assertEqual(test1[0], '00002 Diffie-Hellman full exchange #1')
         self.assertEqual(test1[1], 'dhm_do_dhm')
         self.assertEqual(test1[2], [])
         self.assertEqual(test1[3], ['10', '"23"', '10', '"5"'])
 
-        self.assertEqual(test2[0], 'Diffie-Hellman full exchange #2')
+        self.assertEqual(test2[0], '00005 Diffie-Hellman full exchange #2')
         self.assertEqual(test2[1], 'dhm_do_dhm')
         self.assertEqual(test2[2], [])
         self.assertEqual(test2[3], ['10', '"93450983094850938450983409623"',
                                     '10', '"9345098304850938450983409622"'])
 
-        self.assertEqual(test3[0], 'Diffie-Hellman full exchange #3')
+        self.assertEqual(test3[0], '00008 Diffie-Hellman full exchange #3')
         self.assertEqual(test3[1], 'dhm_do_dhm')
         self.assertEqual(test3[2], [])
         self.assertEqual(test3[3], ['10',
@@ -1283,7 +1283,7 @@ dhm_selftest:
                                     '10',
                                     '"9345098792137312973297123912791271"'])
 
-        self.assertEqual(test4[0], 'Diffie-Hellman selftest')
+        self.assertEqual(test4[0], '00011 Diffie-Hellman selftest')
         self.assertEqual(test4[1], 'dhm_selftest')
         self.assertEqual(test4[2], [])
         self.assertEqual(test4[3], [])
@@ -1306,12 +1306,12 @@ dhm_do_dhm:10:"93450983094850938450983409623":10:"9345098304850938450983409622"
         # List of (name, function_name, dependencies, args)
         tests = list(parse_test_data(stream))
         test1, test2 = tests
-        self.assertEqual(test1[0], 'Diffie-Hellman full exchange #1')
+        self.assertEqual(test1[0], '00002 Diffie-Hellman full exchange #1')
         self.assertEqual(test1[1], 'dhm_do_dhm')
         self.assertEqual(test1[2], ['YAHOO'])
         self.assertEqual(test1[3], ['10', '"23"', '10', '"5"'])
 
-        self.assertEqual(test2[0], 'Diffie-Hellman full exchange #2')
+        self.assertEqual(test2[0], '00006 Diffie-Hellman full exchange #2')
         self.assertEqual(test2[1], 'dhm_do_dhm')
         self.assertEqual(test2[2], [])
         self.assertEqual(test2[3], ['10', '"93450983094850938450983409623"',
@@ -1858,11 +1858,11 @@ func2:"yahoo":88:MACRO1
 #endif
             }
             break;'''
-        expected_data = '''My test 1
+        expected_data = '''00002 My test 1
 depends_on:0
 0:int:0:int:0xfa:exp:0:exp:1
 
-My test 2
+00006 My test 2
 depends_on:0:1
 1:char*:"yahoo":int:88:exp:0
 

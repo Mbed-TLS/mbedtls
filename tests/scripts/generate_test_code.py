@@ -729,8 +729,8 @@ def parse_test_data(data_f):
             continue
 
         if state == __state_read_name:
-            # Read test name
-            name = line
+            # Read test name and prepend source line number for easy lookup
+            name = '%05u %s' % (data_f.line_no, line)
             state = __state_read_args
         elif state == __state_read_args:
             # Check dependencies

@@ -59,16 +59,16 @@ void mbedtls_mpi_mod_residue_release(mbedtls_mpi_mod_residue *r)
     r->p = NULL;
 }
 
-void mbedtls_mpi_mod_modulus_init(mbedtls_mpi_mod_modulus *m)
+void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *N )
 {
-    if (m == NULL) {
+    if (N == NULL) {
         return;
     }
 
-    m->p = NULL;
-    m->limbs = 0;
-    m->bits = 0;
-    m->int_rep = MBEDTLS_MPI_MOD_REP_INVALID;
+    N->p = NULL;
+    N->limbs = 0;
+    N->bits = 0;
+    N->int_rep = MBEDTLS_MPI_MOD_REP_INVALID;
 }
 
 void mbedtls_mpi_mod_modulus_free(mbedtls_mpi_mod_modulus *m)

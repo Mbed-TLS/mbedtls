@@ -185,20 +185,20 @@ void mbedtls_mpi_mod_residue_release(mbedtls_mpi_mod_residue *r);
 
 /** Initialize a modulus structure.
  *
- * \param[out] m     The address of the modulus structure to initialize.
+ * \param[out] N     The address of the modulus structure to initialize.
  */
-void mbedtls_mpi_mod_modulus_init(mbedtls_mpi_mod_modulus *m);
+void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *N );
 
 /** Setup a modulus structure.
  *
- * \param[out] m    The address of the modulus structure to populate.
- * \param[in] p     The address of the limb array storing the value of \p m.
- *                  The memory pointed to by \p p will be used by \p m and must
+ * \param[out] N    The address of the modulus structure to populate.
+ * \param[in] p     The address of the limb array storing the value of \p N.
+ *                  The memory pointed to by \p p will be used by \p N and must
  *                  not be modified in any way until after
  *                  mbedtls_mpi_mod_modulus_free() is called.
  * \param p_limbs   The number of limbs of \p p.
  * \param int_rep   The internal representation to be used for residues
- *                  associated with \p m (see #mbedtls_mpi_mod_rep_selector).
+ *                  associated with \p N (see #mbedtls_mpi_mod_rep_selector).
  *
  * \return      \c 0 if successful.
  * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p int_rep is invalid.

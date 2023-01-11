@@ -203,10 +203,10 @@ void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *N );
  * \return      \c 0 if successful.
  * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p int_rep is invalid.
  */
-int mbedtls_mpi_mod_modulus_setup(mbedtls_mpi_mod_modulus *m,
-                                  const mbedtls_mpi_uint *p,
-                                  size_t p_limbs,
-                                  mbedtls_mpi_mod_rep_selector int_rep);
+int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *N,
+                                   const mbedtls_mpi_uint *p,
+                                   size_t p_limbs,
+                                   mbedtls_mpi_mod_rep_selector int_rep );
 
 /** Free elements of a modulus structure.
  *

@@ -136,26 +136,26 @@ cleanup:
     return ret;
 }
 
-int mbedtls_mpi_mod_modulus_setup(mbedtls_mpi_mod_modulus *m,
-                                  const mbedtls_mpi_uint *p,
-                                  size_t p_limbs,
-                                  mbedtls_mpi_mod_rep_selector int_rep)
+int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *N,
+                                   const mbedtls_mpi_uint *p,
+                                   size_t p_limbs,
+                                   mbedtls_mpi_mod_rep_selector int_rep )
 {
     int ret = 0;
 
-    m->p = p;
-    m->limbs = p_limbs;
-    m->bits = mbedtls_mpi_core_bitlen(p, p_limbs);
+    N->p = p;
+    N->limbs = p_limbs;
+    N->bits = mbedtls_mpi_core_bitlen( p, p_limbs );
 
     switch (int_rep) {
         case MBEDTLS_MPI_MOD_REP_MONTGOMERY:
-            m->int_rep = int_rep;
-            m->rep.mont.mm = mbedtls_mpi_core_montmul_init(m->p);
-            ret = set_mont_const_square(&m->rep.mont.rr, m->p, m->limbs);
+            N->int_rep = int_rep;
+            N->rep.mont.mm = mbedtls_mpi_core_montmul_init( N->p );
+            ret = set_mont_const_square( &N->rep.mont.rr, N->p, N->limbs );
             break;
         case MBEDTLS_MPI_MOD_REP_OPT_RED:
-            m->int_rep = int_rep;
-            m->rep.ored = NULL;
+            N->int_rep = int_rep;
+            N->rep.ored = NULL;
             break;
         default:
             ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
@@ -164,8 +164,9 @@ int mbedtls_mpi_mod_modulus_setup(mbedtls_mpi_mod_modulus *m,
 
 exit:
 
-    if (ret != 0) {
-        mbedtls_mpi_mod_modulus_free(m);
+    if( ret != 0 )
+    {
+        mbedtls_mpi_mod_modulus_free( N );
     }
 
     return ret;

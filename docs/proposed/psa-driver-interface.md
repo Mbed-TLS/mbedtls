@@ -524,7 +524,7 @@ The core calls the `"derive_key"` entry point in a loop until it returns a statu
 For standard key types, the `"derive_key"` entry point is called with a certain input length as follows:
 
 * `PSA_KEY_TYPE_DES`: the length of the key.
-* `PSA_KEY_TYPE_ECC_KEY_PAIR(…)`, `PSA_KEY_TYPE_DH_KEY_PAIR(…)`: *m* bytes, where the bit-size of the key *n* satisfies *m*-1 &lt; 8×*n* ≤ *m*.
+* `PSA_KEY_TYPE_ECC_KEY_PAIR(…)`, `PSA_KEY_TYPE_DH_KEY_PAIR(…)`: $m$ bytes, where the bit-size of the key $n$ satisfies $m-1 < 8 n \le m$.
 * `PSA_KEY_TYPE_RSA_KEY_PAIR`: an implementation-defined length. A future version of this specification may specify a length.
 * Other key types: not applicable.
 

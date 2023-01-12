@@ -1903,6 +1903,20 @@ static int ssl_tls13_postprocess_server_hello(mbedtls_ssl_context *ssl)
             ret = MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
             goto cleanup;
     }
+#if defined(MBEDTLS_SSL_EARLY_DATA)
+    if (ssl->handshake->sent_extensions & MBEDTLS_SSL_EXT_MASK(EARLY_DATA) &&
+        ssl->handshake->selected_identity != 0) {
+        /* RFC8446 4.2.11
+         * If the server supplies an "early_data" extension, the
+         * client MUST verify that the server's selected_identity
+         * is 0. If any other value is returned, the client MUST
+         * abort the handshake with an "illegal_parameter" alert.
+         */
+        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                                     MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
+        return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+    }
+#endif
 
     if (!mbedtls_ssl_conf_tls13_check_kex_modes(ssl, handshake->key_exchange_mode)) {
         ret = MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
@@ -2122,18 +2136,6 @@ static int ssl_tls13_parse_encrypted_extensions(mbedtls_ssl_context *ssl,
                     MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
                                                  MBEDTLS_ERR_SSL_DECODE_ERROR);
                     return MBEDTLS_ERR_SSL_DECODE_ERROR;
-                }
-                if (ssl->handshake->selected_identity != 0) {
-                    /* RFC8446 4.2.11
-                     * If the server supplies an "early_data" extension, the
-                     * client MUST verify that the server's selected_identity
-                     * is 0. If any other value is returned, the client MUST
-                     * abort the handshake with an "illegal_parameter" alert.
-                     */
-                    MBEDTLS_SSL_PEND_FATAL_ALERT(
-                        MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
-                        MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
-                    return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
                 }
 
                 break;

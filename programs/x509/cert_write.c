@@ -277,7 +277,7 @@ int parse_serial_decimal_format(unsigned char *obuf, size_t obufmax,
         val = (dec >> ((remaining_bytes - 1) * 8)) & 0xFF;
 
         /* Skip leading zeros */
-        if ((val) != 0) {
+        if ((val != 0) || (*len != 0)) {
             *p = val;
             (*len)++;
             p++;

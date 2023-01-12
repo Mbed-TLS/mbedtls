@@ -299,7 +299,12 @@ TODO
 
 ### Driver entry points for key derivation
 
-Key derivation is more complex than other multipart operations due to the multiplicity of inputs and outputs, to the fact that multiple drivers can be involved (key agreement and subsequent key derivation accelerator, opaque driver for the secret key and for derived keys), and because the involvement of an opaque driver cannot be determined as soon as the operation is set up (since `psa_key_derivation_setup()` does not determine the key input).
+Key derivation is more complex than other multipart operations for several reasons:
+
+* There are multiple of inputs and outputs.
+* Multiple drivers can be involved. This happens when an operation combines a key agreement and a subsequent symmetric key derivation, each of which can have independent drivers. This also happens when deriving an asymmetric key, where processing the secret input and generating the key output might involve different drivers.
+* When multiple drivers are involved, they are not always independent: if the secret input is managed by an opaque driver, it might not allow the core to retrieve the intermediate output and pass it to another driver.
+* The involvement of an opaque driver cannot be determined as soon as the operation is set up (since `psa_key_derivation_setup()` does not determine the key input).
 
 #### Key derivation driver dispatch logic
 

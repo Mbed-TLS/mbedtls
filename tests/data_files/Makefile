@@ -93,6 +93,15 @@ cert_example_multi.csr: rsa_pkcs1_1024_clear.pem
 cert_example_multi.crt: cert_example_multi.csr
 	$(OPENSSL) x509 -req -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) -extfile $(test_ca_config_file) -extensions dns_alt_names -passin "pass:$(test_ca_pwd_rsa)" -set_serial 17 -days 3653 -sha256 -in $< > $@
 
+test_csr_v3_keyUsage.csr: rsa_pkcs1_1024_clear.pem
+	$(OPENSSL) req -new -subj '/CN=etcd' -config $(test_ca_config_file) -key rsa_pkcs1_1024_clear.pem -out $@ -reqexts csr_ext_v3_keyUsage
+test_csr_v3_subjectAltName.csr: rsa_pkcs1_1024_clear.pem
+	$(OPENSSL) req -new -subj '/CN=etcd' -config $(test_ca_config_file) -key rsa_pkcs1_1024_clear.pem -out $@ -reqexts csr_ext_v3_subjectAltName
+test_csr_v3_nsCertType.csr: rsa_pkcs1_1024_clear.pem
+	$(OPENSSL) req -new -subj '/CN=etcd' -config $(test_ca_config_file) -key rsa_pkcs1_1024_clear.pem -out $@ -reqexts csr_ext_v3_nsCertType
+test_csr_v3_all.csr: rsa_pkcs1_1024_clear.pem
+	$(OPENSSL) req -new -subj '/CN=etcd' -config $(test_ca_config_file) -key rsa_pkcs1_1024_clear.pem -out $@ -reqexts csr_ext_v3_all
+
 $(test_ca_key_file_rsa_alt):test-ca.opensslconf
 	$(OPENSSL) genrsa -out $@ 2048
 test-ca-alt.csr: $(test_ca_key_file_rsa_alt) $(test_ca_config_file)

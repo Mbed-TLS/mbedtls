@@ -55,6 +55,12 @@ void mbedtls_ssl_print_extension(const mbedtls_ssl_context *ssl,
                                  int hs_msg_type, unsigned int extension_type,
                                  const char *extra_msg0, const char *extra_msg1);
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+void mbedtls_debug_print_ticket_flags(const mbedtls_ssl_context *ssl,
+                                      int level, const char *file, int line,
+                                      mbedtls_ssl_tls13_ticket_flags flag);
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */
+
 #define MBEDTLS_SSL_PRINT_EXTS(level, hs_msg_type, extensions_mask)            \
     mbedtls_ssl_print_extensions(ssl, level, __FILE__, __LINE__,       \
                                  hs_msg_type, extensions_mask, NULL)
@@ -63,11 +69,21 @@ void mbedtls_ssl_print_extension(const mbedtls_ssl_context *ssl,
     mbedtls_ssl_print_extension(ssl, level, __FILE__, __LINE__,        \
                                 hs_msg_type, extension_type,           \
                                 extra, NULL)
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+#define MBEDTLS_SSL_DEBUG_TICKET_FLAGS(level, flag)             \
+    mbedtls_debug_print_ticket_flags(ssl, level, __FILE__, __LINE__, flag)
+#endif
+
 #else
 
 #define MBEDTLS_SSL_PRINT_EXTS(level, hs_msg_type, extension_mask)
 
 #define MBEDTLS_SSL_PRINT_EXT(level, hs_msg_type, extension_type, extra)
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+#define MBEDTLS_SSL_DEBUG_TICKET_FLAGS(level, flag)
+#endif
 
 #endif /* MBEDTLS_DEBUG_C */
 

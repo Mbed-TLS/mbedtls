@@ -68,11 +68,6 @@
     mbedtls_debug_printf_ecdh(ssl, level, __FILE__, __LINE__, ecdh, attr)
 #endif
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
-#define MBEDTLS_SSL_DEBUG_TICKET_FLAGS(level, flag)             \
-    mbedtls_debug_print_ticket_flags(ssl, level, __FILE__, __LINE__, flag)
-#endif
-
 #else /* MBEDTLS_DEBUG_C */
 
 #define MBEDTLS_SSL_DEBUG_MSG(level, args)            do { } while (0)
@@ -82,9 +77,6 @@
 #define MBEDTLS_SSL_DEBUG_ECP(level, text, X)         do { } while (0)
 #define MBEDTLS_SSL_DEBUG_CRT(level, text, crt)       do { } while (0)
 #define MBEDTLS_SSL_DEBUG_ECDH(level, ecdh, attr)     do { } while (0)
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
-#define MBEDTLS_SSL_DEBUG_TICKET_FLAGS(level, flag)   do { } while (0)
-#endif
 
 #endif /* MBEDTLS_DEBUG_C */
 
@@ -312,13 +304,6 @@ void mbedtls_debug_printf_ecdh(const mbedtls_ssl_context *ssl, int level,
                                const mbedtls_ecdh_context *ecdh,
                                mbedtls_debug_ecdh_attr attr);
 #endif
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
-void mbedtls_debug_print_ticket_flags(
-    const mbedtls_ssl_context *ssl, int level,
-    const char *file, int line,
-    mbedtls_ssl_tls13_ticket_flags flag);
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */
 
 #ifdef __cplusplus
 }

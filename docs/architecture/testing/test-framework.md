@@ -6,7 +6,7 @@ This document is incomplete. You can help by expanding it.
 
 ## Unit tests
 
-See <https://tls.mbed.org/kb/development/test_suites>
+See <https://mbed-tls.readthedocs.io/en/latest/kb/development/test_suites>
 
 ### Unit test descriptions
 

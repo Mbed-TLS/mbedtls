@@ -21,17 +21,16 @@
 
 #include "query_config.h"
 
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
-#include <stdio.h>
-#define mbedtls_printf printf
-#endif /* MBEDTLS_PLATFORM_C */
 
 /*
  * Include all the headers with public APIs in case they define a macro to its
- * default value when that configuration is not set in the mbedtls_config.h.
+ * default value when that configuration is not set in mbedtls_config.h, or
+ * for PSA_WANT macros, in case they're auto-defined based on mbedtls_config.h
+ * rather than defined directly in crypto_config.h.
  */
+#include "psa/crypto.h"
+
 #include "mbedtls/aes.h"
 #include "mbedtls/aria.h"
 #include "mbedtls/asn1.h"
@@ -99,11 +98,12 @@
  */
 #define MACRO_EXPANSION_TO_STR(macro)   MACRO_NAME_TO_STR(macro)
 #define MACRO_NAME_TO_STR(macro)                                        \
-    mbedtls_printf( "%s", strlen( #macro "" ) > 0 ? #macro "\n" : "" )
+    mbedtls_printf("%s", strlen( #macro "") > 0 ? #macro "\n" : "")
 
 #define STRINGIFY(macro)  #macro
 #define OUTPUT_MACRO_NAME_VALUE(macro) mbedtls_printf( #macro "%s\n",   \
-    ( STRINGIFY(macro) "" )[0] != 0 ? "=" STRINGIFY(macro) : "" )
+                                                       (STRINGIFY(macro) "")[0] != 0 ? "=" STRINGIFY( \
+                                                           macro) : "")
 
 #if defined(_MSC_VER)
 /*
@@ -118,13 +118,13 @@
 #pragma warning(disable:4003)
 #endif /* _MSC_VER */
 
-int query_config( const char *config )
+int query_config(const char *config)
 {
-CHECK_CONFIG    /* If the symbol is not found, return an error */
-    return( 1 );
+    CHECK_CONFIG /* If the symbol is not found, return an error */
+    return 1;
 }
 
-void list_config( void )
+void list_config(void)
 {
     LIST_CONFIG
 }

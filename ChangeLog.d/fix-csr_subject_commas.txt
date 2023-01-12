@@ -1,3 +1,0 @@
-Bugfix
-   * Fix string representation of DNs when outputting values containing commas
-     and other special characters, conforming to RFC 1779. Fixes #769.

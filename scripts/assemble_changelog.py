@@ -122,7 +122,7 @@ class ChangelogFormat:
 class TextChangelogFormat(ChangelogFormat):
     """The traditional Mbed TLS changelog format."""
 
-    _unreleased_version_text = '= mbed TLS x.x.x branch released xxxx-xx-xx'
+    _unreleased_version_text = '= Mbed TLS x.x.x branch released xxxx-xx-xx'
     @classmethod
     def is_released_version(cls, title):
         # Look for an incomplete release date

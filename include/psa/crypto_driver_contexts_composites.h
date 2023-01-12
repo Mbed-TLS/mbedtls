@@ -50,41 +50,41 @@
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
     defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_MAC)
 typedef libtestdriver1_mbedtls_psa_mac_operation_t
-        mbedtls_transparent_test_driver_mac_operation_t;
+    mbedtls_transparent_test_driver_mac_operation_t;
 typedef libtestdriver1_mbedtls_psa_mac_operation_t
-        mbedtls_opaque_test_driver_mac_operation_t;
+    mbedtls_opaque_test_driver_mac_operation_t;
 
 #define MBEDTLS_TRANSPARENT_TEST_DRIVER_MAC_OPERATION_INIT \
-        LIBTESTDRIVER1_MBEDTLS_PSA_MAC_OPERATION_INIT
+    LIBTESTDRIVER1_MBEDTLS_PSA_MAC_OPERATION_INIT
 #define MBEDTLS_OPAQUE_TEST_DRIVER_MAC_OPERATION_INIT \
-        LIBTESTDRIVER1_MBEDTLS_PSA_MAC_OPERATION_INIT
+    LIBTESTDRIVER1_MBEDTLS_PSA_MAC_OPERATION_INIT
 
 #else
 typedef mbedtls_psa_mac_operation_t
-        mbedtls_transparent_test_driver_mac_operation_t;
+    mbedtls_transparent_test_driver_mac_operation_t;
 typedef mbedtls_psa_mac_operation_t
-        mbedtls_opaque_test_driver_mac_operation_t;
+    mbedtls_opaque_test_driver_mac_operation_t;
 
 #define MBEDTLS_TRANSPARENT_TEST_DRIVER_MAC_OPERATION_INIT \
-        MBEDTLS_PSA_MAC_OPERATION_INIT
+    MBEDTLS_PSA_MAC_OPERATION_INIT
 #define MBEDTLS_OPAQUE_TEST_DRIVER_MAC_OPERATION_INIT \
-        MBEDTLS_PSA_MAC_OPERATION_INIT
+    MBEDTLS_PSA_MAC_OPERATION_INIT
 
 #endif /* MBEDTLS_TEST_LIBTESTDRIVER1 && LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_MAC */
 
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
     defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_AEAD)
 typedef libtestdriver1_mbedtls_psa_aead_operation_t
-        mbedtls_transparent_test_driver_aead_operation_t;
+    mbedtls_transparent_test_driver_aead_operation_t;
 
 #define MBEDTLS_TRANSPARENT_TEST_DRIVER_AEAD_OPERATION_INIT \
-        LIBTESTDRIVER1_MBEDTLS_PSA_AEAD_OPERATION_INIT
+    LIBTESTDRIVER1_MBEDTLS_PSA_AEAD_OPERATION_INIT
 #else
 typedef mbedtls_psa_aead_operation_t
-        mbedtls_transparent_test_driver_aead_operation_t;
+    mbedtls_transparent_test_driver_aead_operation_t;
 
 #define MBEDTLS_TRANSPARENT_TEST_DRIVER_AEAD_OPERATION_INIT \
-        MBEDTLS_PSA_AEAD_OPERATION_INIT
+    MBEDTLS_PSA_AEAD_OPERATION_INIT
 
 #endif /* MBEDTLS_TEST_LIBTESTDRIVER1 && LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_AEAD */
 

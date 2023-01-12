@@ -39,9 +39,20 @@ SRVMEM=0
 # default commands, can be overridden by the environment
 : ${M_SRV:=../programs/ssl/ssl_server2}
 : ${M_CLI:=../programs/ssl/ssl_client2}
-: ${OPENSSL_CMD:=openssl} # OPENSSL would conflict with the build system
+: ${OPENSSL:=openssl}
 : ${GNUTLS_CLI:=gnutls-cli}
 : ${GNUTLS_SERV:=gnutls-serv}
+
+# The OPENSSL variable used to be OPENSSL_CMD for historical reasons.
+# To help the migration, error out if the old variable is set,
+# but only if it has a different value than the new one.
+if [ "${OPENSSL_CMD+set}" = set ]; then
+    # the variable is set, we can now check its value
+    if [ "$OPENSSL_CMD" != "$OPENSSL" ]; then
+        echo "Please use OPENSSL instead of OPENSSL_CMD." >&2
+        exit 125
+    fi
+fi
 
 # do we have a recent enough GnuTLS?
 if ( which $GNUTLS_CLI && which $GNUTLS_SERV ) >/dev/null 2>&1; then
@@ -577,7 +588,7 @@ setup_arguments()
     # Mbed TLS wants >=1024, so force that for older versions. Don't force
     # it for newer versions, which reject a 1024-bit prime. Indifferently
     # force it or not for intermediate versions.
-    case $($OPENSSL_CMD version) in
+    case $($OPENSSL version) in
         "OpenSSL 1.0"*)
             O_SERVER_ARGS="$O_SERVER_ARGS -dhparam data_files/dhparams.pem"
             ;;
@@ -594,6 +605,20 @@ setup_arguments()
     O_CLIENT_ARGS="-connect localhost:$PORT -$O_MODE"
     G_CLIENT_ARGS="-p $PORT --debug 3 $G_MODE"
     G_CLIENT_PRIO="NONE:$G_PRIO_MODE:+COMP-NULL:+CURVE-ALL:+SIGN-ALL"
+
+    # Newer versions of OpenSSL have a syntax to enable all "ciphers", even
+    # low-security ones. This covers not just cipher suites but also protocol
+    # versions. It is necessary, for example, to use (D)TLS 1.0/1.1 on
+    # OpenSSL 1.1.1f from Ubuntu 20.04. The syntax was only introduced in
+    # OpenSSL 1.1.0 (21e0c1d23afff48601eb93135defddae51f7e2e3) and I can't find
+    # a way to discover it from -help, so check the openssl version.
+    case $($OPENSSL version) in
+        "OpenSSL 0"*|"OpenSSL 1.0"*) :;;
+        *)
+            O_CLIENT_ARGS="$O_CLIENT_ARGS -cipher ALL@SECLEVEL=0"
+            O_SERVER_ARGS="$O_SERVER_ARGS -cipher ALL@SECLEVEL=0"
+            ;;
+    esac
 
     if [ "X$VERIFY" = "XYES" ];
     then
@@ -706,7 +731,7 @@ fi
 start_server() {
     case $1 in
         [Oo]pen*)
-            SERVER_CMD="$OPENSSL_CMD s_server $O_SERVER_ARGS"
+            SERVER_CMD="$OPENSSL s_server $O_SERVER_ARGS"
             ;;
         [Gg]nu*)
             SERVER_CMD="$GNUTLS_SERV $G_SERVER_ARGS --priority $G_SERVER_PRIO"
@@ -796,7 +821,7 @@ run_client() {
     # run the command and interpret result
     case $1 in
         [Oo]pen*)
-            CLIENT_CMD="$OPENSSL_CMD s_client $O_CLIENT_ARGS -cipher $2"
+            CLIENT_CMD="$OPENSSL s_client $O_CLIENT_ARGS -cipher $2"
             log "$CLIENT_CMD"
             echo "$CLIENT_CMD" > $CLI_OUT
             printf 'GET HTTP/1.0\r\n\r\n' | $CLIENT_CMD >> $CLI_OUT 2>&1 &
@@ -931,8 +956,8 @@ if [ ! -x "$M_CLI" ]; then
 fi
 
 if echo "$PEERS" | grep -i openssl > /dev/null; then
-    if which "$OPENSSL_CMD" >/dev/null 2>&1; then :; else
-        echo "Command '$OPENSSL_CMD' not found" >&2
+    if which "$OPENSSL" >/dev/null 2>&1; then :; else
+        echo "Command '$OPENSSL' not found" >&2
         exit 1
     fi
 fi
@@ -995,7 +1020,7 @@ for VERIFY in $VERIFIES; do
                     # help isn't accurate as of 1.0.2g: it supports DTLS 1.2
                     # but doesn't list it. But the s_server help seems to be
                     # accurate.)
-                    if ! $OPENSSL_CMD s_server -help 2>&1 | grep -q "^ *-$O_MODE "; then
+                    if ! $OPENSSL s_server -help 2>&1 | grep -q "^ *-$O_MODE "; then
                         continue;
                     fi
 

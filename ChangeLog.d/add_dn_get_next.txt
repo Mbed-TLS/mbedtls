@@ -1,3 +1,0 @@
-Bugfix
-   * Add mbedtls_x509_dn_get_next function to return the next relative DN in
-     an X509 name, to allow walking the name list. Fixes #5431.

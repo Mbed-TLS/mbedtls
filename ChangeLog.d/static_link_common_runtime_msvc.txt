@@ -1,3 +1,0 @@
-Changes
-   * Add a CMake option that enables static linking of the runtime library
-     in Microsoft Visual C++ compiler. Contributed by Microplankton.

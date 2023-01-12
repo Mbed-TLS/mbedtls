@@ -1,2 +1,0 @@
-Bugfix
-   * Fix mbedtls_ssl_get_version() not reporting TLSv1.3. Fixes #5406.

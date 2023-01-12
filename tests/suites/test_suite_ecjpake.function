@@ -1,7 +1,8 @@
 /* BEGIN_HEADER */
 #include "mbedtls/ecjpake.h"
+#include "mbedtls/legacy_or_psa.h"
 
-#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) && defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) && defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA)
 static const unsigned char ecjpake_test_x1[] = {
     0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c,
     0x0d, 0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18,
@@ -63,34 +64,34 @@ static const unsigned char ecjpake_test_X4[] = {
 };
 
 /* Load my private and public keys, and peer's public keys */
-static int ecjpake_test_load( mbedtls_ecjpake_context *ctx,
-                              const unsigned char *xm1, size_t len_xm1,
-                              const unsigned char *xm2, size_t len_xm2,
-                              const unsigned char *Xm1, size_t len_Xm1,
-                              const unsigned char *Xm2, size_t len_Xm2,
-                              const unsigned char *Xp1, size_t len_Xp1,
-                              const unsigned char *Xp2, size_t len_Xp2 )
+static int ecjpake_test_load(mbedtls_ecjpake_context *ctx,
+                             const unsigned char *xm1, size_t len_xm1,
+                             const unsigned char *xm2, size_t len_xm2,
+                             const unsigned char *Xm1, size_t len_Xm1,
+                             const unsigned char *Xm2, size_t len_Xm2,
+                             const unsigned char *Xp1, size_t len_Xp1,
+                             const unsigned char *Xp2, size_t len_Xp2)
 {
     int ret;
 
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &ctx->xm1, xm1, len_xm1 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &ctx->xm2, xm2, len_xm2 ) );
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&ctx->xm1, xm1, len_xm1));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&ctx->xm2, xm2, len_xm2));
 
-    MBEDTLS_MPI_CHK( mbedtls_ecp_point_read_binary( &ctx->grp,
-                     &ctx->Xm1, Xm1, len_Xm1 ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_point_read_binary( &ctx->grp,
-                     &ctx->Xm2, Xm2, len_Xm2 ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_point_read_binary( &ctx->grp,
-                     &ctx->Xp1, Xp1, len_Xp1 ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_point_read_binary( &ctx->grp,
-                     &ctx->Xp2, Xp2, len_Xp2 ) );
+    MBEDTLS_MPI_CHK(mbedtls_ecp_point_read_binary(&ctx->grp,
+                                                  &ctx->Xm1, Xm1, len_Xm1));
+    MBEDTLS_MPI_CHK(mbedtls_ecp_point_read_binary(&ctx->grp,
+                                                  &ctx->Xm2, Xm2, len_Xm2));
+    MBEDTLS_MPI_CHK(mbedtls_ecp_point_read_binary(&ctx->grp,
+                                                  &ctx->Xp1, Xp1, len_Xp1));
+    MBEDTLS_MPI_CHK(mbedtls_ecp_point_read_binary(&ctx->grp,
+                                                  &ctx->Xp2, Xp2, len_Xp2));
 
 cleanup:
-    return( ret );
+    return ret;
 }
 
-#define ADD_SIZE( x )   x, sizeof( x )
-#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED && MBEDTLS_SHA256_C */
+#define ADD_SIZE(x)   x, sizeof(x)
+#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED && MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA */
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -98,121 +99,126 @@ cleanup:
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:NOT_DEFINED */
-void ecjpake_invalid_param( )
+/* BEGIN_CASE */
+void ecjpake_invalid_param()
 {
     mbedtls_ecjpake_context ctx;
     unsigned char buf[42] = { 0 };
-    size_t const len = sizeof( buf );
+    size_t const len = sizeof(buf);
     mbedtls_ecjpake_role invalid_role = (mbedtls_ecjpake_role) 42;
     mbedtls_md_type_t valid_md = MBEDTLS_MD_SHA256;
     mbedtls_ecp_group_id valid_group = MBEDTLS_ECP_DP_SECP256R1;
 
-    TEST_EQUAL( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                            mbedtls_ecjpake_setup( &ctx,
-                                                   invalid_role,
-                                                   valid_md,
-                                                   valid_group,
-                                                   buf, len ) );
+    mbedtls_ecjpake_init(&ctx);
 
+    TEST_EQUAL(MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+               mbedtls_ecjpake_setup(&ctx,
+                                     invalid_role,
+                                     valid_md,
+                                     valid_group,
+                                     buf, len));
 exit:
     return;
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
-void ecjpake_selftest(  )
+void ecjpake_selftest()
 {
-    TEST_ASSERT( mbedtls_ecjpake_self_test( 1 ) == 0 );
+    TEST_ASSERT(mbedtls_ecjpake_self_test(1) == 0);
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C */
-void read_bad_md( data_t *msg )
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA */
+void read_bad_md(data_t *msg)
 {
     mbedtls_ecjpake_context corrupt_ctx;
-    const unsigned char * pw = NULL;
+    const unsigned char *pw = NULL;
     const size_t pw_len = 0;
     int any_role = MBEDTLS_ECJPAKE_CLIENT;
 
-    mbedtls_ecjpake_init( &corrupt_ctx );
-    TEST_ASSERT( mbedtls_ecjpake_setup( &corrupt_ctx, any_role,
-                 MBEDTLS_MD_SHA256, MBEDTLS_ECP_DP_SECP256R1, pw, pw_len ) == 0 );
-    corrupt_ctx.md_info = NULL;
+    mbedtls_ecjpake_init(&corrupt_ctx);
+    TEST_ASSERT(mbedtls_ecjpake_setup(&corrupt_ctx, any_role,
+                                      MBEDTLS_MD_SHA256, MBEDTLS_ECP_DP_SECP256R1, pw,
+                                      pw_len) == 0);
+    corrupt_ctx.md_type = MBEDTLS_MD_NONE;
 
-    TEST_ASSERT( mbedtls_ecjpake_read_round_one( &corrupt_ctx, msg->x,
-                 msg->len ) == MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+    TEST_EQUAL(mbedtls_ecjpake_read_round_one(&corrupt_ctx, msg->x,
+                                              msg->len), MBEDTLS_ERR_MD_BAD_INPUT_DATA);
 
 exit:
-    mbedtls_ecjpake_free( &corrupt_ctx );
+    mbedtls_ecjpake_free(&corrupt_ctx);
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C */
-void read_round_one( int role, data_t * msg, int ref_ret )
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA */
+void read_round_one(int role, data_t *msg, int ref_ret)
 {
     mbedtls_ecjpake_context ctx;
-    const unsigned char * pw = NULL;
+    const unsigned char *pw = NULL;
     const size_t pw_len = 0;
 
-    mbedtls_ecjpake_init( &ctx );
+    mbedtls_ecjpake_init(&ctx);
 
-    TEST_ASSERT( mbedtls_ecjpake_setup( &ctx, role,
-                 MBEDTLS_MD_SHA256, MBEDTLS_ECP_DP_SECP256R1, pw, pw_len ) == 0 );
+    TEST_ASSERT(mbedtls_ecjpake_setup(&ctx, role,
+                                      MBEDTLS_MD_SHA256, MBEDTLS_ECP_DP_SECP256R1, pw,
+                                      pw_len) == 0);
 
-    TEST_ASSERT( mbedtls_ecjpake_read_round_one( &ctx, msg->x, msg->len ) == ref_ret );
+    TEST_ASSERT(mbedtls_ecjpake_read_round_one(&ctx, msg->x, msg->len) == ref_ret);
 
 exit:
-    mbedtls_ecjpake_free( &ctx );
+    mbedtls_ecjpake_free(&ctx);
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C */
-void read_round_two_cli( data_t * msg, int ref_ret )
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA */
+void read_round_two_cli(data_t *msg, int ref_ret)
 {
     mbedtls_ecjpake_context ctx;
-    const unsigned char * pw = NULL;
+    const unsigned char *pw = NULL;
     const size_t pw_len = 0;
 
-    mbedtls_ecjpake_init( &ctx );
+    mbedtls_ecjpake_init(&ctx);
 
-    TEST_ASSERT( mbedtls_ecjpake_setup( &ctx, MBEDTLS_ECJPAKE_CLIENT,
-                 MBEDTLS_MD_SHA256, MBEDTLS_ECP_DP_SECP256R1, pw, pw_len ) == 0 );
+    TEST_ASSERT(mbedtls_ecjpake_setup(&ctx, MBEDTLS_ECJPAKE_CLIENT,
+                                      MBEDTLS_MD_SHA256, MBEDTLS_ECP_DP_SECP256R1, pw,
+                                      pw_len) == 0);
 
-    TEST_ASSERT( ecjpake_test_load( &ctx,
-                 ADD_SIZE( ecjpake_test_x1 ), ADD_SIZE( ecjpake_test_x2 ),
-                 ADD_SIZE( ecjpake_test_X1 ), ADD_SIZE( ecjpake_test_X2 ),
-                 ADD_SIZE( ecjpake_test_X3 ), ADD_SIZE( ecjpake_test_X4 ) )
-            == 0 );
+    TEST_ASSERT(ecjpake_test_load(&ctx,
+                                  ADD_SIZE(ecjpake_test_x1), ADD_SIZE(ecjpake_test_x2),
+                                  ADD_SIZE(ecjpake_test_X1), ADD_SIZE(ecjpake_test_X2),
+                                  ADD_SIZE(ecjpake_test_X3), ADD_SIZE(ecjpake_test_X4))
+                == 0);
 
-    TEST_ASSERT( mbedtls_ecjpake_read_round_two( &ctx, msg->x, msg->len ) == ref_ret );
+    TEST_ASSERT(mbedtls_ecjpake_read_round_two(&ctx, msg->x, msg->len) == ref_ret);
 
 exit:
-    mbedtls_ecjpake_free( &ctx );
+    mbedtls_ecjpake_free(&ctx);
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C */
-void read_round_two_srv( data_t * msg, int ref_ret )
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA */
+void read_round_two_srv(data_t *msg, int ref_ret)
 {
     mbedtls_ecjpake_context ctx;
-    const unsigned char * pw = NULL;
+    const unsigned char *pw = NULL;
     const size_t pw_len = 0;
 
-    mbedtls_ecjpake_init( &ctx );
+    mbedtls_ecjpake_init(&ctx);
 
-    TEST_ASSERT( mbedtls_ecjpake_setup( &ctx, MBEDTLS_ECJPAKE_SERVER,
-                 MBEDTLS_MD_SHA256, MBEDTLS_ECP_DP_SECP256R1, pw, pw_len ) == 0 );
+    TEST_ASSERT(mbedtls_ecjpake_setup(&ctx, MBEDTLS_ECJPAKE_SERVER,
+                                      MBEDTLS_MD_SHA256, MBEDTLS_ECP_DP_SECP256R1, pw,
+                                      pw_len) == 0);
 
-    TEST_ASSERT( ecjpake_test_load( &ctx,
-                 ADD_SIZE( ecjpake_test_x3 ), ADD_SIZE( ecjpake_test_x4 ),
-                 ADD_SIZE( ecjpake_test_X3 ), ADD_SIZE( ecjpake_test_X4 ),
-                 ADD_SIZE( ecjpake_test_X1 ), ADD_SIZE( ecjpake_test_X2 ) )
-            == 0 );
+    TEST_ASSERT(ecjpake_test_load(&ctx,
+                                  ADD_SIZE(ecjpake_test_x3), ADD_SIZE(ecjpake_test_x4),
+                                  ADD_SIZE(ecjpake_test_X3), ADD_SIZE(ecjpake_test_X4),
+                                  ADD_SIZE(ecjpake_test_X1), ADD_SIZE(ecjpake_test_X2))
+                == 0);
 
-    TEST_ASSERT( mbedtls_ecjpake_read_round_two( &ctx, msg->x, msg->len ) == ref_ret );
+    TEST_ASSERT(mbedtls_ecjpake_read_round_two(&ctx, msg->x, msg->len) == ref_ret);
 
 exit:
-    mbedtls_ecjpake_free( &ctx );
+    mbedtls_ecjpake_free(&ctx);
 }
 /* END_CASE */

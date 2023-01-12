@@ -1,3 +1,0 @@
-Features
-   * Add accessors to configure DN hints for certificate request:
-     mbedtls_ssl_conf_dn_hints() and mbedtls_ssl_set_hs_dn_hints()

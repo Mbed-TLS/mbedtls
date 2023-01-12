@@ -7,6 +7,11 @@ Basic usage, to read the Mbed TLS or Mbed Crypto configuration:
     if 'MBEDTLS_RSA_C' in config: print('RSA is enabled')
 """
 
+# Note that as long as Mbed TLS 2.28 LTS is maintained, the version of
+# this script in the mbedtls-2.28 branch must remain compatible with
+# Python 3.4. The version in development may only use more recent features
+# in parts that are not backported to 2.28.
+
 ## Copyright The Mbed TLS Contributors
 ## SPDX-License-Identifier: Apache-2.0
 ##
@@ -189,7 +194,6 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_DEPRECATED_WARNING', # conflicts with deprecated options
     'MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED', # influences the use of ECDH in TLS
     'MBEDTLS_ECP_NO_FALLBACK', # removes internal ECP implementation
-    'MBEDTLS_ECP_RESTARTABLE', # incompatible with USE_PSA_CRYPTO
     'MBEDTLS_ENTROPY_FORCE_SHA256', # interacts with CTR_DRBG_128_BIT_KEY
     'MBEDTLS_HAVE_SSE2', # hardware dependency
     'MBEDTLS_MEMORY_BACKTRACE', # depends on MEMORY_BUFFER_ALLOC_C
@@ -306,6 +310,7 @@ def include_in_crypto(name):
     if name in [
             'MBEDTLS_DEBUG_C', # part of libmbedtls
             'MBEDTLS_NET_C', # part of libmbedtls
+            'MBEDTLS_PKCS7_C', # part of libmbedx509
     ]:
         return False
     return True

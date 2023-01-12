@@ -1,3 +1,0 @@
-Changes
-   * In mbedtls_pk_parse_key(), if no password is provided, don't allocate a
-     temporary variable on the heap. Suggested by Sergey Kanatov in #5304.

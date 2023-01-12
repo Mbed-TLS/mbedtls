@@ -1,3 +1,0 @@
-Bugfix
-   * Fix a race condition in out-of-source builds with CMake when generated data
-     files are already present. Fixes #5374.

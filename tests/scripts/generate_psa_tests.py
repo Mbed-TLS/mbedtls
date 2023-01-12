@@ -20,22 +20,17 @@ generate only the specified files.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import argparse
 import enum
-import os
-import posixpath
 import re
 import sys
-from typing import Callable, Dict, FrozenSet, Iterable, Iterator, List, Optional, TypeVar
+from typing import Callable, Dict, FrozenSet, Iterable, Iterator, List, Optional
 
 import scripts_path # pylint: disable=unused-import
-from mbedtls_dev import build_tree
 from mbedtls_dev import crypto_knowledge
 from mbedtls_dev import macro_collector
 from mbedtls_dev import psa_storage
 from mbedtls_dev import test_case
-
-T = TypeVar('T') #pylint: disable=invalid-name
+from mbedtls_dev import test_data_generation
 
 
 def psa_want_symbol(name: str) -> str:
@@ -85,7 +80,7 @@ def automatic_dependencies(*expressions: str) -> List[str]:
 # A temporary hack: at the time of writing, not all dependency symbols
 # are implemented yet. Skip test cases for which the dependency symbols are
 # not available. Once all dependency symbols are available, this hack must
-# be removed so that a bug in the dependency symbols proprely leads to a test
+# be removed so that a bug in the dependency symbols properly leads to a test
 # failure.
 def read_implemented_dependencies(filename: str) -> FrozenSet[str]:
     return frozenset(symbol
@@ -464,7 +459,7 @@ class StorageKey(psa_storage.Key):
         """Prepare to generate a key.
 
         * `usage`                 : The usage flags used for the key.
-        * `without_implicit_usage`: Flag to defide to apply the usage extension
+        * `without_implicit_usage`: Flag to define to apply the usage extension
         """
         usage_flags = set(usage)
         if not without_implicit_usage:
@@ -488,7 +483,7 @@ class StorageTestData(StorageKey):
     ) -> None:
         """Prepare to generate test data
 
-        * `description`   : used for the the test case names
+        * `description`   : used for the test case names
         * `expected_usage`: the usage flags generated as the expected usage flags
                             in the test cases. CAn differ from the usage flags
                             stored in the keys because of the usage flags extension.
@@ -897,35 +892,11 @@ class StorageFormatV0(StorageFormat):
         yield from super().generate_all_keys()
         yield from self.all_keys_for_implicit_usage()
 
-class TestGenerator:
-    """Generate test data."""
-
-    def __init__(self, options) -> None:
-        self.test_suite_directory = self.get_option(options, 'directory',
-                                                    'tests/suites')
-        self.info = Information()
-
-    @staticmethod
-    def get_option(options, name: str, default: T) -> T:
-        value = getattr(options, name, None)
-        return default if value is None else value
-
-    def filename_for(self, basename: str) -> str:
-        """The location of the data file with the specified base name."""
-        return posixpath.join(self.test_suite_directory, basename + '.data')
-
-    def write_test_data_file(self, basename: str,
-                             test_cases: Iterable[test_case.TestCase]) -> None:
-        """Write the test cases to a .data file.
-
-        The output file is ``basename + '.data'`` in the test suite directory.
-        """
-        filename = self.filename_for(basename)
-        test_case.write_data_file(filename, test_cases)
-
+class PSATestGenerator(test_data_generation.TestGenerator):
+    """Test generator subclass including PSA targets and info."""
     # Note that targets whose names contain 'test_format' have their content
     # validated by `abi_check.py`.
-    TARGETS = {
+    targets = {
         'test_suite_psa_crypto_generate_key.generated':
         lambda info: KeyGenerate(info).test_cases_for_key_generation(),
         'test_suite_psa_crypto_not_supported.generated':
@@ -938,44 +909,12 @@ class TestGenerator:
         lambda info: StorageFormatV0(info).all_test_cases(),
     } #type: Dict[str, Callable[[Information], Iterable[test_case.TestCase]]]
 
-    def generate_target(self, name: str) -> None:
-        test_cases = self.TARGETS[name](self.info)
-        self.write_test_data_file(name, test_cases)
+    def __init__(self, options):
+        super().__init__(options)
+        self.info = Information()
 
-def main(args):
-    """Command line entry point."""
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--list', action='store_true',
-                        help='List available targets and exit')
-    parser.add_argument('--list-for-cmake', action='store_true',
-                        help='Print \';\'-separated list of available targets and exit')
-    parser.add_argument('--directory', metavar='DIR',
-                        help='Output directory (default: tests/suites)')
-    parser.add_argument('targets', nargs='*', metavar='TARGET',
-                        help='Target file to generate (default: all; "-": none)')
-    options = parser.parse_args(args)
-    build_tree.chdir_to_root()
-    generator = TestGenerator(options)
-    if options.list:
-        for name in sorted(generator.TARGETS):
-            print(generator.filename_for(name))
-        return
-    # List in a cmake list format (i.e. ';'-separated)
-    if options.list_for_cmake:
-        print(';'.join(generator.filename_for(name)
-                       for name in sorted(generator.TARGETS)), end='')
-        return
-    if options.targets:
-        # Allow "-" as a special case so you can run
-        # ``generate_psa_tests.py - $targets`` and it works uniformly whether
-        # ``$targets`` is empty or not.
-        options.targets = [os.path.basename(re.sub(r'\.data\Z', r'', target))
-                           for target in options.targets
-                           if target != '-']
-    else:
-        options.targets = sorted(generator.TARGETS)
-    for target in options.targets:
-        generator.generate_target(target)
+    def generate_target(self, name: str, *target_args) -> None:
+        super().generate_target(name, self.info)
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    test_data_generation.main(sys.argv[1:], __doc__, PSATestGenerator)

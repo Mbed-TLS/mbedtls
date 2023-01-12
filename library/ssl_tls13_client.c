@@ -1262,6 +1262,7 @@ int mbedtls_ssl_tls13_finalize_write_client_hello(mbedtls_ssl_context *ssl)
         ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(
             ssl->session_negotiate->ciphersuite);
         ssl->handshake->ciphersuite_info = ciphersuite_info;
+        /* Enable psk and psk_ephermal to make stage early happy */
         ssl->handshake->key_exchange_mode =
             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL;
 
@@ -1924,10 +1925,10 @@ static int ssl_tls13_postprocess_server_hello(mbedtls_ssl_context *ssl)
      * the early secret.
      */
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    if ((ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT)
-        || ((ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED)
-            && handshake->key_exchange_mode ==
-            MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL))
+    if ((ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT) ||
+        (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED &&
+         handshake->key_exchange_mode ==
+         MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL))
 #endif
     {
         ret = mbedtls_ssl_tls13_key_schedule_stage_early(ssl);

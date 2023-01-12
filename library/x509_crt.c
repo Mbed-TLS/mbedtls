@@ -1849,10 +1849,10 @@ int mbedtls_x509_parse_subject_alt_name(const mbedtls_x509_buf *san_buf,
 }
 
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
-static int x509_info_subject_alt_name(char **buf, size_t *size,
-                                      const mbedtls_x509_sequence
-                                      *subject_alt_name,
-                                      const char *prefix)
+int x509_info_subject_alt_name(char **buf, size_t *size,
+                               const mbedtls_x509_sequence
+                               *subject_alt_name,
+                               const char *prefix)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t i;
@@ -1965,8 +1965,8 @@ static int x509_info_subject_alt_name(char **buf, size_t *size,
     if (ns_cert_type & (type))                 \
     PRINT_ITEM(name);
 
-static int x509_info_cert_type(char **buf, size_t *size,
-                               unsigned char ns_cert_type)
+int x509_info_cert_type(char **buf, size_t *size,
+                        unsigned char ns_cert_type)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t n = *size;
@@ -1992,8 +1992,8 @@ static int x509_info_cert_type(char **buf, size_t *size,
     if (key_usage & (code))    \
     PRINT_ITEM(name);
 
-static int x509_info_key_usage(char **buf, size_t *size,
-                               unsigned int key_usage)
+int x509_info_key_usage(char **buf, size_t *size,
+                        unsigned int key_usage)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t n = *size;

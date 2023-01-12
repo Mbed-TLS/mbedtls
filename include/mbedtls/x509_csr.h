@@ -62,6 +62,8 @@ typedef struct mbedtls_x509_csr {
     unsigned char ns_cert_type; /**< Optional Netscape certificate type extension value: See the values in x509.h */
     mbedtls_x509_sequence subject_alt_names;    /**< Optional list of raw entries of Subject Alternative Names extension (currently only dNSName and OtherName are listed). */
 
+    int MBEDTLS_PRIVATE(ext_types);              /**< Bit string containing detected and parsed extensions */
+
     mbedtls_x509_buf sig_oid;
     mbedtls_x509_buf MBEDTLS_PRIVATE(sig);
     mbedtls_md_type_t MBEDTLS_PRIVATE(sig_md);       /**< Internal representation of the MD algorithm of the signature algorithm, e.g. MBEDTLS_MD_SHA256 */

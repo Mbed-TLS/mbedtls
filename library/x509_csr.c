@@ -111,7 +111,19 @@ static int x509_csr_parse_extensions(mbedtls_x509_csr *csr,
                    MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
         }
 
-        if (mbedtls_oid_get_x509_ext_type(&extn_oid, &ext_type) == 0) {
+        /*
+         * Detect supported extensions
+         */
+        ret = mbedtls_oid_get_x509_ext_type(&extn_oid, &ext_type);
+
+        if (ret == 0) {
+            /* Forbid repeated extensions */
+            if ((csr->ext_types & ext_type) != 0) {
+                return MBEDTLS_ERR_X509_INVALID_EXTENSIONS;
+            }
+
+            csr->ext_types |= ext_type;
+
             switch (ext_type) {
                 case MBEDTLS_X509_EXT_KEY_USAGE:
                     /* Parse key usage */
@@ -496,6 +508,44 @@ int mbedtls_x509_csr_info(char *buf, size_t size, const char *prefix,
     ret = mbedtls_snprintf(p, n, "\n%s%-" BC "s: %d bits\n", prefix, key_size_str,
                            (int) mbedtls_pk_get_bitlen(&csr->pk));
     MBEDTLS_X509_SAFE_SNPRINTF;
+
+    /*
+     * Optional extensions
+     */
+
+    if (csr->ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME) {
+        ret = mbedtls_snprintf(p, n, "\n%ssubject alt name  :", prefix);
+        MBEDTLS_X509_SAFE_SNPRINTF;
+
+        if ((ret = x509_info_subject_alt_name(&p, &n,
+                                              &csr->subject_alt_names,
+                                              prefix)) != 0) {
+            return ret;
+        }
+    }
+
+    if (csr->ext_types & MBEDTLS_X509_EXT_NS_CERT_TYPE) {
+        ret = mbedtls_snprintf(p, n, "\n%scert. type        : ", prefix);
+        MBEDTLS_X509_SAFE_SNPRINTF;
+
+        if ((ret = x509_info_cert_type(&p, &n, csr->ns_cert_type)) != 0) {
+            return ret;
+        }
+    }
+
+    if (csr->ext_types & MBEDTLS_X509_EXT_KEY_USAGE) {
+        ret = mbedtls_snprintf(p, n, "\n%skey usage         : ", prefix);
+        MBEDTLS_X509_SAFE_SNPRINTF;
+
+        if ((ret = x509_info_key_usage(&p, &n, csr->key_usage)) != 0) {
+            return ret;
+        }
+    }
+
+    if (csr->ext_types != 0) {
+        ret = mbedtls_snprintf(p, n, "\n");
+        MBEDTLS_X509_SAFE_SNPRINTF;
+    }
 
     return (int) (size - n);
 }

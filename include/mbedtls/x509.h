@@ -379,6 +379,14 @@ int x509_get_key_usage(unsigned char **p,
 int x509_get_subject_alt_name(unsigned char **p,
                               const unsigned char *end,
                               mbedtls_x509_sequence *subject_alt_name);
+int x509_info_subject_alt_name(char **buf, size_t *size,
+                               const mbedtls_x509_sequence
+                               *subject_alt_name,
+                               const char *prefix);
+int x509_info_cert_type(char **buf, size_t *size,
+                        unsigned char ns_cert_type);
+int x509_info_key_usage(char **buf, size_t *size,
+                        unsigned int key_usage);
 
 #define MBEDTLS_X509_SAFE_SNPRINTF                          \
     do {                                                    \

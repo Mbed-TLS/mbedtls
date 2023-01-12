@@ -341,6 +341,9 @@ server5-tricky-ip-san.crt: server5.key
 server5-directoryname.crt: server5.key
 	$(OPENSSL) req -x509 -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS directoryName SAN" -set_serial 77 -config $(test_ca_config_file) -extensions directory_name_san -days 3650 -sha256 -key server5.key -out $@
 
+server5-two-directorynames.crt: server5.key
+	$(OPENSSL) req -x509 -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS directoryName SAN" -set_serial 77 -config $(test_ca_config_file) -extensions two_directorynames -days 3650 -sha256 -key server5.key -out $@
+
 all_final += server5-tricky-ip-san.crt
 
 rsa_single_san_uri.crt.der: rsa_single_san_uri.key

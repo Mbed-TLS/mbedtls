@@ -4566,6 +4566,69 @@ support_test_cmake_as_package_install () {
     support_test_cmake_out_of_source
 }
 
+component_build_cmake_custom_config_file () {
+    # Make a copy of mbedtls_config.h to use for the in-tree test
+    cp include/mbedtls/mbedtls_config.h include/mbedtls_config_in_tree_copy.h
+
+    MBEDTLS_ROOT_DIR="$PWD"
+    mkdir "$OUT_OF_SOURCE_DIR"
+    cd "$OUT_OF_SOURCE_DIR"
+
+    # Build once to get the generated files (which need an intact mbedtls_config.h)
+    cmake "$MBEDTLS_ROOT_DIR"
+    make
+
+    msg "build: cmake with -DMBEDTLS_CONFIG_FILE"
+    scripts/config.py -w full_config.h full
+    echo '#error "cmake -DMBEDTLS_CONFIG_FILE is not working."' > "$MBEDTLS_ROOT_DIR/include/mbedtls/mbedtls_config.h"
+    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h "$MBEDTLS_ROOT_DIR"
+    make
+
+    msg "build: cmake with -DMBEDTLS_CONFIG_FILE + -DMBEDTLS_USER_CONFIG_FILE"
+    # In the user config, disable one feature (for simplicity, pick a feature
+    # that nothing else depends on).
+    echo '#undef MBEDTLS_NIST_KW_C' >user_config.h
+
+    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h -DMBEDTLS_USER_CONFIG_FILE=user_config.h "$MBEDTLS_ROOT_DIR"
+    make
+    not programs/test/query_compile_time_config MBEDTLS_NIST_KW_C
+
+    rm -f user_config.h full_config.h
+
+    cd "$MBEDTLS_ROOT_DIR"
+    rm -rf "$OUT_OF_SOURCE_DIR"
+
+    # Now repeat the test for an in-tree build:
+
+    # Restore mbedtls_config.h for the in-tree test
+    mv include/mbedtls_config_in_tree_copy.h include/mbedtls/mbedtls_config.h
+
+    # Build once to get the generated files (which need an intact mbedtls_config.h)
+    cmake .
+    make
+
+    msg "build: cmake (in-tree) with -DMBEDTLS_CONFIG_FILE"
+    scripts/config.py -w full_config.h full
+    echo '#error "cmake -DMBEDTLS_CONFIG_FILE is not working."' > "$MBEDTLS_ROOT_DIR/include/mbedtls/mbedtls_config.h"
+    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h .
+    make
+
+    msg "build: cmake (in-tree) with -DMBEDTLS_CONFIG_FILE + -DMBEDTLS_USER_CONFIG_FILE"
+    # In the user config, disable one feature (for simplicity, pick a feature
+    # that nothing else depends on).
+    echo '#undef MBEDTLS_NIST_KW_C' >user_config.h
+
+    cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h -DMBEDTLS_USER_CONFIG_FILE=user_config.h .
+    make
+    not programs/test/query_compile_time_config MBEDTLS_NIST_KW_C
+
+    rm -f user_config.h full_config.h
+}
+support_build_cmake_custom_config_file () {
+    support_test_cmake_out_of_source
+}
+
+
 component_test_zeroize () {
     # Test that the function mbedtls_platform_zeroize() is not optimized away by
     # different combinations of compilers and optimization flags by using an

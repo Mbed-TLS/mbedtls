@@ -10,14 +10,6 @@ if(NOT DEFINED MBEDTLS_DIR)
     set(MBEDTLS_DIR ${CMAKE_SOURCE_DIR})
 endif()
 
-# If set, make MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE into PATHs
-if(DEFINED MBEDTLS_CONFIG_FILE)
-    set(MBEDTLS_CONFIG_FILE "" CACHE PATH "Mbed TLS config file (overrides default).")
-endif()
-if(DEFINED MBEDTLS_USER_CONFIG_FILE)
-    set(MBEDTLS_USER_CONFIG_FILE "" CACHE PATH "Mbed TLS user config file (appended to default).")
-endif()
-
 set(src_crypto
     aes.c
     aesni.c

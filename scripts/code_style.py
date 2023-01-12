@@ -171,8 +171,8 @@ def main() -> int:
     # --files is almost useless: it only matters if there are no files
     # ('code_style.py' without arguments checks all files known to Git,
     # 'code_style.py --files' does nothing). In particular,
-    # 'code_style.py --files ...' is intended as a stable ("porcelain") way
-    # to restyle a possibly empty set of files.
+    # 'code_style.py --fix --files ...' is intended as a stable ("porcelain")
+    # way to restyle a possibly empty set of files.
     parser.add_argument('--files', action='store_true',
                         help='only check the specified files (default with non-option arguments)')
     parser.add_argument('operands', nargs='*', metavar='FILE',

@@ -216,6 +216,7 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND', # build dependency (valgrind headers)
     'MBEDTLS_X509_REMOVE_INFO', # removes a feature
     'MBEDTLS_SSL_RECORD_SIZE_LIMIT', # in development, currently breaks other tests
+    'MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED' # influences SECP256R1 KeyGen/ECDH/ECDSA
 ])
 
 def is_seamless_alt(name):

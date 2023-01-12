@@ -3919,4 +3919,16 @@
  */
 //#define MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
 
+/**
+ * Uncomment to enable p256-m, which implements ECC key generation, ECDH,
+ * and ECDSA for SECP256R1 curves. This driver is used as an example to
+ * document how a third-party driver or software accelerator can be integrated
+ * to work alongside Mbed TLS.
+ *
+ * \warning As of now, the built-in RNG for p256-m depends on rand(). This is
+ * fine for examples, but not in production.
+ * DO NOT ENABLE/USE THIS MACRO IN PRODUCTION BUILDS!
+ */
+//#define MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED
+
 /** \} name SECTION: Module configuration options */

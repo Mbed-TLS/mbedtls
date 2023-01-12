@@ -1121,8 +1121,8 @@ static int ssl_tls13_parse_server_pre_shared_key_ext(mbedtls_ssl_context *ssl,
 #endif
     if (mbedtls_ssl_conf_has_static_psk(ssl->conf)) {
         ret = ssl_tls13_psk_get_psk(ssl, &hash_alg, &psk, &psk_len);
-        if (ssl_tls13_get_ciphersuite_hash_alg(
-                ssl->session_negotiate->ciphersuite) != hash_alg) {
+        if (mbedtls_psa_translate_md(ssl->handshake->ciphersuite_info->mac)
+            != hash_alg) {
             MBEDTLS_SSL_DEBUG_MSG(
                 1, ("Invalid ciphersuite for external psk."));
 

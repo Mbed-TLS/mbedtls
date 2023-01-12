@@ -96,8 +96,7 @@
 /* Error space gap */
 /** Processing of the Certificate handshake message failed. */
 #define MBEDTLS_ERR_SSL_BAD_CERTIFICATE                   -0x7A00
-/** No suitable key exchange mode for ticket */
-#define MBEDTLS_ERR_SSL_TICKET_INVALID_KEX_MODE           -0x7A80
+/* Error space gap */
 /**
  * Received NewSessionTicket Post Handshake Message.
  * This error code is experimental and may be changed or removed without notice.

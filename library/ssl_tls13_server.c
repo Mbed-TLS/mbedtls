@@ -169,7 +169,7 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
      *
      * We regard the ticket with incompatible key exchange modes as not match.
      */
-    ret = MBEDTLS_ERR_SSL_TICKET_INVALID_KEX_MODE;
+    ret = MBEDTLS_ERR_ERROR_GENERIC_ERROR;
     MBEDTLS_SSL_DEBUG_TICKET_FLAGS(4,
                                    session->ticket_flags);
     if (mbedtls_ssl_tls13_check_kex_modes(ssl,

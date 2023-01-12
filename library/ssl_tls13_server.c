@@ -2568,21 +2568,20 @@ static int ssl_tls13_handshake_wrapup(mbedtls_ssl_context *ssl)
 
     mbedtls_ssl_tls13_handshake_wrapup(ssl);
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && \
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
 /* TODO: Remove the check of SOME_PSK_ENABLED since SESSION_TICKETS requires
  *       SOME_PSK_ENABLED to be enabled. Here is just to make CI happy. It is
  *       expected to be resolved with issue#6395.
  */
-#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
     /* Sent NewSessionTicket message only when client supports PSK */
-    if (!mbedtls_ssl_tls13_some_psk_enabled(ssl)) {
-        mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_HANDSHAKE_OVER);
+    if (mbedtls_ssl_tls13_some_psk_enabled(ssl)) {
+        mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET);
     } else
 #endif
-    mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET);
-#else
-    mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_HANDSHAKE_OVER);
-#endif
+    {
+        mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_HANDSHAKE_OVER);
+    }
     return 0;
 }
 

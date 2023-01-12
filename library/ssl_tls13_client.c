@@ -1106,8 +1106,7 @@ static int ssl_tls13_parse_server_pre_shared_key_ext(mbedtls_ssl_context *ssl,
     }
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    if (ssl->handshake->resume &&
-        ssl->session_negotiate->res_ciphersuite !=
+    if (ssl->handshake->ciphersuite_info->id !=
         ssl->session_negotiate->ciphersuite) {
         MBEDTLS_SSL_DEBUG_MSG(
             1, ("Invalid ciphersuite for session ticket psk."));
@@ -1705,8 +1704,7 @@ static int ssl_tls13_parse_server_hello(mbedtls_ssl_context *ssl,
 
     handshake->ciphersuite_info = ciphersuite_info;
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    ssl->session_negotiate->res_ciphersuite =
-        ssl->session_negotiate->ciphersuite;
+    if (handshake->resume == 0)
 #endif
     ssl->session_negotiate->ciphersuite = cipher_suite;
 

@@ -545,7 +545,7 @@ int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx,
         if (c - buf < 1) {
             return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
         }
-        *(c--) = 0x0;
+        *(--c) = 0x0;
         len++;
         MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(&c, buf,
                                                          ctx->serial_len + 1));

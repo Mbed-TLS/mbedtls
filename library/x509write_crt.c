@@ -100,6 +100,10 @@ int mbedtls_x509write_crt_set_serial(mbedtls_x509write_cert *ctx,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
+    if (mbedtls_mpi_size(serial) > MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN) {
+        return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
+    }
+
     if ((ret = mbedtls_mpi_copy(&ctx->serial, serial)) != 0) {
         return ret;
     }

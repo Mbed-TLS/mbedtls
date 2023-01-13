@@ -112,7 +112,7 @@ jobs:
       addons:
         apt:
           packages:
-          - clang
+          - gcc
           - gnutls-bin
       script:
         # See above
@@ -122,7 +122,7 @@ jobs:
         - scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
         - scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY
         - make generated_files
-        - make CC=clang CFLAGS='-march=armv8-a+crypto -O3 -Werror -fsanitize=address,undefined -fno-sanitize-recover=all' LDFLAGS='-Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
+        - make CFLAGS='-march=armv8-a+crypto -O3 -Werror -fsanitize=address,undefined -fno-sanitize-recover=all' LDFLAGS='-Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
         # GnuTLS supports CAMELLIA but compat.sh doesn't properly enable it.
         - tests/compat.sh -p GnuTLS -e 'CAMELLIA'
         - tests/scripts/travis-log-failure.sh

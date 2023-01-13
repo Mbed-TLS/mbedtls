@@ -163,7 +163,8 @@ static int ecp_drbg_seed(ecp_drbg_context *ctx,
     int ret;
     unsigned char secret_bytes[MBEDTLS_ECP_MAX_BYTES];
     /* The list starts with strong hashes */
-    const mbedtls_md_type_t md_type = mbedtls_md_list()[0];
+    const mbedtls_md_type_t md_type =
+        (const mbedtls_md_type_t) (mbedtls_md_list()[0]);
     const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type(md_type);
 
     if (secret_len > MBEDTLS_ECP_MAX_BYTES) {
@@ -2062,12 +2063,13 @@ static int ecp_mul_comb_core(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     } else
 #endif
     {
+        int have_rng = 1;
+
         /* Start with a non-zero point and randomize its coordinates */
         i = d;
         MBEDTLS_MPI_CHK(ecp_select_comb(grp, R, T, T_size, x[i]));
         MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&R->Z, 1));
 
-        int have_rng = 1;
 #if defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
         if (f_rng == NULL) {
             have_rng = 0;
@@ -2172,6 +2174,7 @@ static int ecp_mul_comb_after_precomp(const mbedtls_ecp_group *grp,
     unsigned char parity_trick;
     unsigned char k[COMB_MAX_D + 1];
     mbedtls_ecp_point *RR = R;
+    int have_rng = 1;
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if (rs_ctx != NULL && rs_ctx->rsm != NULL) {
@@ -2208,7 +2211,6 @@ final_norm:
      *
      * Avoid the leak by randomizing coordinates before we normalize them.
      */
-    int have_rng = 1;
 #if defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
     if (f_rng == NULL) {
         have_rng = 0;

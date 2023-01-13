@@ -13312,4 +13312,9 @@ fi
 PASSES=$(( $TESTS - $FAILS ))
 echo " ($PASSES / $TESTS tests ($SKIPS skipped))"
 
+if [ $FAILS -gt 255 ]; then
+    # Clamp at 255 as caller gets exit code & 0xFF
+    # (so 256 would be 0, or success, etc)
+    FAILS=255
+fi
 exit $FAILS

@@ -89,7 +89,7 @@ FILTER=""
 # - NULL: excluded from our default config + requires OpenSSL legacy
 # - ARIA: requires OpenSSL >= 1.1.1
 # - ChachaPoly: requires OpenSSL >= 1.1.0
-EXCLUDE='NULL\|ARIA\|CHACHA20-POLY1305'
+EXCLUDE='NULL\|ARIA\|CHACHA20_POLY1305'
 VERBOSE=""
 MEMCHECK=0
 PEERS="OpenSSL$PEER_GNUTLS mbedTLS"
@@ -205,7 +205,7 @@ filter()
 check_openssl_server_bug()
 {
     if test "X$VERIFY" = "XYES" && is_dtls "$MODE" && \
-        echo "$1" | grep "^TLS-PSK" >/dev/null;
+        echo "$1" | grep "^TLS_PSK" >/dev/null;
     then
         SKIP_NEXT="YES"
     fi
@@ -234,7 +234,6 @@ filter_ciphersuites()
 
 reset_ciphersuites()
 {
-    S_CIPHERS=""
     M_CIPHERS=""
     O_CIPHERS=""
     G_CIPHERS=""
@@ -308,26 +307,17 @@ add_common_ciphersuites()
             ;;
     esac
 
-    S_CIPHERS="$S_CIPHERS $CIPHERS"
-
-    T=$(./scripts/translate_ciphers.py m $CIPHERS)
-    check_translation $? "$T"
-    M_CIPHERS="$M_CIPHERS $T"
-
-    T=$(./scripts/translate_ciphers.py g $CIPHERS)
-    check_translation $? "$T"
-    G_CIPHERS="$G_CIPHERS $T"
-
-    T=$(./scripts/translate_ciphers.py o $CIPHERS)
-    check_translation $? "$T"
-    O_CIPHERS="$O_CIPHERS $T"
+    O_CIPHERS="$O_CIPHERS $CIPHERS"
+    G_CIPHERS="$G_CIPHERS $CIPHERS"
+    M_CIPHERS="$M_CIPHERS $CIPHERS"
 }
 
 # Ciphersuites usable only with Mbed TLS and OpenSSL
-# A list of ciphersuites in the Mbed TLS convention is compiled and
-# appended to the list of Mbed TLS ciphersuites $M_CIPHERS. The same list
-# is translated to the OpenSSL naming convention and appended to the list of
-# OpenSSL ciphersuites $O_CIPHERS.
+# A list of ciphersuites in the standard naming convention is appended
+# to the list of Mbed TLS ciphersuites $M_CIPHERS and
+# to the list of OpenSSL ciphersuites $O_CIPHERS respectively.
+# Based on client's naming convention, all ciphersuite names will be
+# translated into another naming format before sent to the client.
 #
 # NOTE: for some reason RSA-PSK doesn't work with OpenSSL,
 # so RSA-PSK ciphersuites need to go in other sections, see
@@ -381,22 +371,16 @@ add_openssl_ciphersuites()
             ;;
     esac
 
-    S_CIPHERS="$S_CIPHERS $CIPHERS"
-
-    T=$(./scripts/translate_ciphers.py m $CIPHERS)
-    check_translation $? "$T"
-    M_CIPHERS="$M_CIPHERS $T"
-
-    T=$(./scripts/translate_ciphers.py o $CIPHERS)
-    check_translation $? "$T"
-    O_CIPHERS="$O_CIPHERS $T"
+    O_CIPHERS="$O_CIPHERS $CIPHERS"
+    M_CIPHERS="$M_CIPHERS $CIPHERS"
 }
 
 # Ciphersuites usable only with Mbed TLS and GnuTLS
-# A list of ciphersuites in the Mbed TLS convention is compiled and
-# appended to the list of Mbed TLS ciphersuites $M_CIPHERS. The same list
-# is translated to the GnuTLS naming convention and appended to the list of
-# GnuTLS ciphersuites $G_CIPHERS.
+# A list of ciphersuites in the standard naming convention is appended
+# to the list of Mbed TLS ciphersuites $M_CIPHERS and
+# to the list of GnuTLS ciphersuites $G_CIPHERS respectively.
+# Based on client's naming convention, all ciphersuite names will be
+# translated into another naming format before sent to the client.
 add_gnutls_ciphersuites()
 {
     CIPHERS=""
@@ -496,19 +480,12 @@ add_gnutls_ciphersuites()
             ;;
     esac
 
-    S_CIPHERS="$S_CIPHERS $CIPHERS"
-
-    T=$(./scripts/translate_ciphers.py m $CIPHERS)
-    check_translation $? "$T"
-    M_CIPHERS="$M_CIPHERS $T"
-
-    T=$(./scripts/translate_ciphers.py g $CIPHERS)
-    check_translation $? "$T"
-    G_CIPHERS="$G_CIPHERS $T"
+    G_CIPHERS="$G_CIPHERS $CIPHERS"
+    M_CIPHERS="$M_CIPHERS $CIPHERS"
 }
 
 # Ciphersuites usable only with Mbed TLS (not currently supported by another
-# peer usable in this script). This provide only very rudimentaty testing, as
+# peer usable in this script). This provides only very rudimentaty testing, as
 # this is not interop testing, but it's better than nothing.
 add_mbedtls_ciphersuites()
 {
@@ -561,12 +538,6 @@ add_mbedtls_ciphersuites()
                 "
             ;;
     esac
-
-    S_CIPHERS="$S_CIPHERS $CIPHERS"
-
-    T=$(./scripts/translate_ciphers.py m $CIPHERS)
-    check_translation $? "$T"
-    M_CIPHERS="$M_CIPHERS $T"
 }
 
 setup_arguments()
@@ -829,6 +800,10 @@ run_client() {
     LEN=$(( 72 - `echo "$TITLE" | wc -c` ))
     for i in `seq 1 $LEN`; do printf '.'; done; printf ' '
 
+    # Translate ciphersuite names based on client's naming convention
+    t_cipher=$(./scripts/translate_ciphers.py $3 $2)
+    check_translation $? "$t_cipher"
+
     # should we skip?
     if [ "X$SKIP_NEXT" = "XYES" ]; then
         SKIP_NEXT="NO"
@@ -840,7 +815,7 @@ run_client() {
     # run the command and interpret result
     case $1 in
         [Oo]pen*)
-            CLIENT_CMD="$OPENSSL s_client $O_CLIENT_ARGS -cipher $2"
+            CLIENT_CMD="$OPENSSL s_client $O_CLIENT_ARGS -cipher $t_cipher"
             log "$CLIENT_CMD"
             echo "$CLIENT_CMD" > $CLI_OUT
             printf 'GET HTTP/1.0\r\n\r\n' | $CLIENT_CMD >> $CLI_OUT 2>&1 &
@@ -865,7 +840,7 @@ run_client() {
             else
                 G_HOST="localhost"
             fi
-            CLIENT_CMD="$GNUTLS_CLI $G_CLIENT_ARGS --priority $G_PRIO_MODE:$2 $G_HOST"
+            CLIENT_CMD="$GNUTLS_CLI $G_CLIENT_ARGS --priority $G_PRIO_MODE:$t_cipher $G_HOST"
             log "$CLIENT_CMD"
             echo "$CLIENT_CMD" > $CLI_OUT
             printf 'GET HTTP/1.0\r\n\r\n' | $CLIENT_CMD >> $CLI_OUT 2>&1 &
@@ -887,7 +862,7 @@ run_client() {
             ;;
 
         mbed*)
-            CLIENT_CMD="$M_CLI $M_CLIENT_ARGS force_ciphersuite=$2"
+            CLIENT_CMD="$M_CLI $M_CLIENT_ARGS force_ciphersuite=$t_cipher"
             if [ "$MEMCHECK" -gt 0 ]; then
                 CLIENT_CMD="valgrind --leak-check=full $CLIENT_CMD"
             fi
@@ -1052,7 +1027,7 @@ for VERIFY in $VERIFIES; do
                         start_server "OpenSSL"
                         for i in $M_CIPHERS; do
                             check_openssl_server_bug $i
-                            run_client mbedTLS $i
+                            run_client mbedTLS $i m
                         done
                         stop_server
                     fi
@@ -1060,7 +1035,7 @@ for VERIFY in $VERIFIES; do
                     if [ "X" != "X$O_CIPHERS" ]; then
                         start_server "mbedTLS"
                         for i in $O_CIPHERS; do
-                            run_client OpenSSL $i
+                            run_client OpenSSL $i o
                         done
                         stop_server
                     fi
@@ -1077,7 +1052,7 @@ for VERIFY in $VERIFIES; do
                     if [ "X" != "X$M_CIPHERS" ]; then
                         start_server "GnuTLS"
                         for i in $M_CIPHERS; do
-                            run_client mbedTLS $i
+                            run_client mbedTLS $i m
                         done
                         stop_server
                     fi
@@ -1085,7 +1060,7 @@ for VERIFY in $VERIFIES; do
                     if [ "X" != "X$G_CIPHERS" ]; then
                         start_server "mbedTLS"
                         for i in $G_CIPHERS; do
-                            run_client GnuTLS $i
+                            run_client GnuTLS $i g
                         done
                         stop_server
                     fi
@@ -1104,7 +1079,7 @@ for VERIFY in $VERIFIES; do
                     if [ "X" != "X$M_CIPHERS" ]; then
                         start_server "mbedTLS"
                         for i in $M_CIPHERS; do
-                            run_client mbedTLS $i
+                            run_client mbedTLS $i m
                         done
                         stop_server
                     fi

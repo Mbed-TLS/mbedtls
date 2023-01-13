@@ -1092,15 +1092,17 @@ start_server() {
     echo "$SERVER_CMD" > $SRV_OUT
     # for servers without -www or equivalent
     while :; do echo bla; sleep 1; done | $SERVER_CMD >> $SRV_OUT 2>&1 &
-    PROCESS_ID=$!
+    SRV_PID=$!
 
-    wait_server_start "$PORT" "$PROCESS_ID"
+    wait_server_start "$PORT" "$SRV_PID"
 }
 
 # terminate the running server
 stop_server() {
-    kill $PROCESS_ID 2>/dev/null
-    wait $PROCESS_ID 2>/dev/null
+    # For Ubuntu 22.04, `Terminated` message is outputed by wait command.
+    # To remove it from stdout, redirect stdout/stderr to SRV_OUT
+    kill $SRV_PID >/dev/null 2>&1
+    wait $SRV_PID >> $SRV_OUT 2>&1
 
     if [ "$MEMCHECK" -gt 0 ]; then
         if is_mbedtls "$SERVER_CMD" && has_mem_err $SRV_OUT; then
@@ -1116,7 +1118,7 @@ stop_server() {
 # kill the running server (used when killed by signal)
 cleanup() {
     rm -f $SRV_OUT $CLI_OUT
-    kill $PROCESS_ID >/dev/null 2>&1
+    kill $SRV_PID >/dev/null 2>&1
     kill $WATCHDOG_PID >/dev/null 2>&1
     exit 1
 }

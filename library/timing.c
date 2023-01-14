@@ -352,9 +352,9 @@ int mbedtls_timing_get_delay(void *data)
     return 0;
 }
 
+#endif /* !MBEDTLS_TIMING_ALT */
 
 #if defined(MBEDTLS_SELF_TEST)
-
 /*
  * Busy-waits for the given number of milliseconds.
  * Used for testing mbedtls_timing_hardclock.
@@ -383,9 +383,8 @@ static void busy_msleep(unsigned long msec)
             mbedtls_printf(" cycles=%lu ratio=%lu millisecs=%lu secs=%lu hardfail=%d a=%lu b=%lu\n", \
                            cycles, ratio, millisecs, secs, hardfail,   \
                            (unsigned long) a, (unsigned long) b);     \
-            mbedtls_printf(" elapsed(hires)=%lu elapsed(ctx)=%lu status(ctx)=%d\n", \
+            mbedtls_printf(" elapsed(hires)=%lu status(ctx)=%d\n", \
                            mbedtls_timing_get_timer(&hires, 0),      \
-                           mbedtls_timing_get_timer(&ctx.timer, 0),  \
                            mbedtls_timing_get_delay(&ctx));         \
         }                                                               \
         return 1;                                                    \
@@ -526,5 +525,4 @@ hard_test_done:
 }
 
 #endif /* MBEDTLS_SELF_TEST */
-#endif /* !MBEDTLS_TIMING_ALT */
 #endif /* MBEDTLS_TIMING_C */

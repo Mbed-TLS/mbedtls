@@ -122,8 +122,6 @@ def check_style_is_correct(src_file_list: List[str]) -> bool:
             print("File changed - diff:", file=STDOUT_UTF8)
             print(str(result.stdout, "utf-8"), file=STDOUT_UTF8)
             style_correct = False
-        else:
-            print(src_file + " - OK.", file=STDOUT_UTF8)
 
         # Tidy up artifact
         os.remove(src_file + ".uncrustify")

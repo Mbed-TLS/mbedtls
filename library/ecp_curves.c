@@ -4681,11 +4681,29 @@ cleanup:
 #if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
 /* Constants used by ecp_use_curve448() */
 static const mbedtls_mpi_sint curve448_a24 = 0x98AA;
-static const unsigned char curve448_part_of_n[] = {
-    0x83, 0x35, 0xDC, 0x16, 0x3B, 0xB1, 0x24,
-    0xB6, 0x51, 0x29, 0xC9, 0x6F, 0xDE, 0x93,
-    0x3D, 0x8D, 0x72, 0x3A, 0x70, 0xAA, 0xDC,
-    0x87, 0x3D, 0x6D, 0x54, 0xA7, 0xBB, 0x0D,
+
+/* P = 2^448 - 2^224 - 1 */
+static const mbedtls_mpi_uint curve448_p[] = {
+    MBEDTLS_BYTES_TO_T_UINT_8(0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF),
+    MBEDTLS_BYTES_TO_T_UINT_8(0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF),
+    MBEDTLS_BYTES_TO_T_UINT_8(0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF),
+    MBEDTLS_BYTES_TO_T_UINT_8(0XFF, 0XFF, 0XFF, 0XFF, 0XFE, 0XFF, 0XFF, 0XFF),
+    MBEDTLS_BYTES_TO_T_UINT_8(0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF),
+    MBEDTLS_BYTES_TO_T_UINT_8(0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF),
+    MBEDTLS_BYTES_TO_T_UINT_8(0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF),
+    MBEDTLS_BYTES_TO_T_UINT_8(0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00)
+};
+
+/* N = 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885 */
+static const mbedtls_mpi_uint curve448_n[] = {
+    MBEDTLS_BYTES_TO_T_UINT_8(0XF3, 0X44, 0X58, 0XAB, 0X92, 0XC2, 0X78, 0X23),
+    MBEDTLS_BYTES_TO_T_UINT_8(0X55, 0X8F, 0XC5, 0X8D, 0X72, 0XC2, 0X6C, 0X21),
+    MBEDTLS_BYTES_TO_T_UINT_8(0X90, 0X36, 0XD6, 0XAE, 0X49, 0XDB, 0X4E, 0XC4),
+    MBEDTLS_BYTES_TO_T_UINT_8(0XE9, 0X23, 0XCA, 0X7C, 0XFF, 0XFF, 0XFF, 0XFF),
+    MBEDTLS_BYTES_TO_T_UINT_8(0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF),
+    MBEDTLS_BYTES_TO_T_UINT_8(0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF),
+    MBEDTLS_BYTES_TO_T_UINT_8(0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0X3F),
+    MBEDTLS_BYTES_TO_T_UINT_8(0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00, 0X00)
 };
 
 /*
@@ -4693,20 +4711,12 @@ static const unsigned char curve448_part_of_n[] = {
  */
 static int ecp_use_curve448(mbedtls_ecp_group *grp)
 {
-    mbedtls_mpi Ns;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
-    mbedtls_mpi_init(&Ns);
 
     /* Actually ( A + 2 ) / 4 */
     MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&grp->A, curve448_a24));
 
-    /* P = 2^448 - 2^224 - 1 */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&grp->P, 1));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_shift_l(&grp->P, 224));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_sub_int(&grp->P, &grp->P, 1));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_shift_l(&grp->P, 224));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_sub_int(&grp->P, &grp->P, 1));
+    ecp_mpi_load(&grp->P, curve448_p, sizeof(curve448_p));
     grp->pbits = mbedtls_mpi_bitlen(&grp->P);
 
     /* Y intentionally not set, since we use x/z coordinates.
@@ -4715,17 +4725,12 @@ static int ecp_use_curve448(mbedtls_ecp_group *grp)
     MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&grp->G.Z, 1));
     mbedtls_mpi_free(&grp->G.Y);
 
-    /* N = 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885 */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_set_bit(&grp->N, 446, 1));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&Ns,
-                                            curve448_part_of_n, sizeof(curve448_part_of_n)));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_sub_mpi(&grp->N, &grp->N, &Ns));
+    ecp_mpi_load(&grp->N, curve448_n, sizeof(curve448_n));
 
     /* Actually, the required msb for private keys */
     grp->nbits = 447;
 
 cleanup:
-    mbedtls_mpi_free(&Ns);
     if (ret != 0) {
         mbedtls_ecp_group_free(grp);
     }

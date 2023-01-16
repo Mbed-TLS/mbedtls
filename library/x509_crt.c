@@ -573,6 +573,11 @@ int mbedtls_x509_get_ns_cert_type(unsigned char **p,
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
     }
 
+    if (bs.len == 0) {
+        *ns_cert_type = 0;
+        return 0;
+    }
+
     if (bs.len != 1) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
                                  MBEDTLS_ERR_ASN1_INVALID_LENGTH);
@@ -593,6 +598,11 @@ int mbedtls_x509_get_key_usage(unsigned char **p,
 
     if ((ret = mbedtls_asn1_get_bitstring(p, end, &bs)) != 0) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+    }
+
+    if (bs.len == 0) {
+        *key_usage = 0;
+        return 0;
     }
 
     if (bs.len < 1) {

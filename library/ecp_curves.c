@@ -4627,9 +4627,21 @@ static int ecp_mod_p256k1(mbedtls_mpi *);
 #if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
 /* Constants used by ecp_use_curve25519() */
 static const mbedtls_mpi_sint curve25519_a24 = 0x01DB42;
-static const unsigned char curve25519_part_of_n[] = {
-    0x14, 0xDE, 0xF9, 0xDE, 0xA2, 0xF7, 0x9C, 0xD6,
-    0x58, 0x12, 0x63, 0x1A, 0x5C, 0xF5, 0xD3, 0xED,
+
+/* P = 2^255 - 19 */
+static const mbedtls_mpi_uint curve25519_p[] = {
+    MBEDTLS_BYTES_TO_T_UINT_8(0xED, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF),
+    MBEDTLS_BYTES_TO_T_UINT_8(0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF),
+    MBEDTLS_BYTES_TO_T_UINT_8(0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF),
+    MBEDTLS_BYTES_TO_T_UINT_8(0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0X7F)
+};
+
+/* N = 2^252 + 27742317777372353535851937790883648493 */
+static const mbedtls_mpi_uint curve25519_n[] = {
+    MBEDTLS_BYTES_TO_T_UINT_8(0XED, 0XD3, 0XF5, 0X5C, 0X1A, 0X63, 0X12, 0X58),
+    MBEDTLS_BYTES_TO_T_UINT_8(0XD6, 0X9C, 0XF7, 0XA2, 0XDE, 0XF9, 0XDE, 0X14),
+    MBEDTLS_BYTES_TO_T_UINT_8(0X00, 0X00, 0X00, 0X00, 0x00, 0x00, 0x00, 0x00),
+    MBEDTLS_BYTES_TO_T_UINT_8(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10)
 };
 
 /*
@@ -4642,16 +4654,11 @@ static int ecp_use_curve25519(mbedtls_ecp_group *grp)
     /* Actually ( A + 2 ) / 4 */
     MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&grp->A, curve25519_a24));
 
-    /* P = 2^255 - 19 */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&grp->P, 1));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_shift_l(&grp->P, 255));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_sub_int(&grp->P, &grp->P, 19));
+    ecp_mpi_load(&grp->P, curve25519_p, sizeof(curve25519_p));
+
     grp->pbits = mbedtls_mpi_bitlen(&grp->P);
 
-    /* N = 2^252 + 27742317777372353535851937790883648493 */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&grp->N,
-                                            curve25519_part_of_n, sizeof(curve25519_part_of_n)));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_set_bit(&grp->N, 252, 1));
+    ecp_mpi_load(&grp->N, curve25519_n, sizeof(curve25519_n));
 
     /* Y intentionally not set, since we use x/z coordinates.
      * This is used as a marker to identify Montgomery curves! */

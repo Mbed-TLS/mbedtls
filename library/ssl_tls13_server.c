@@ -170,7 +170,7 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
      * We regard the ticket with incompatible key exchange modes as not match.
      */
     ret = MBEDTLS_ERR_ERROR_GENERIC_ERROR;
-    MBEDTLS_SSL_DEBUG_TICKET_FLAGS(4,
+    MBEDTLS_SSL_PRINT_TICKET_FLAGS(4,
                                    session->ticket_flags);
     if (mbedtls_ssl_tls13_check_kex_modes(ssl,
                                           mbedtls_ssl_session_get_ticket_flags(
@@ -2639,7 +2639,7 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
     mbedtls_ssl_session_set_ticket_flags(
         session, ssl->handshake->tls13_kex_modes);
 #endif
-    MBEDTLS_SSL_DEBUG_TICKET_FLAGS(4, session->ticket_flags);
+    MBEDTLS_SSL_PRINT_TICKET_FLAGS(4, session->ticket_flags);
 
     /* Generate ticket_age_add */
     if ((ret = ssl->conf->f_rng(ssl->conf->p_rng,

@@ -2719,7 +2719,7 @@ static int ssl_tls13_postprocess_new_session_ticket(mbedtls_ssl_context *ssl,
     /* Set ticket_flags depends on the selected key exchange modes */
     mbedtls_ssl_session_set_ticket_flags(
         session, ssl->conf->tls13_kex_modes);
-    MBEDTLS_SSL_DEBUG_TICKET_FLAGS(4, session->ticket_flags);
+    MBEDTLS_SSL_PRINT_TICKET_FLAGS(4, session->ticket_flags);
 
     return 0;
 }

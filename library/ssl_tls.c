@@ -745,17 +745,19 @@ static const char *ticket_flag_name_table[] =
     [3] = "ALLOW_EARLY_DATA",
 };
 
-void mbedtls_debug_print_ticket_flags(
-    const mbedtls_ssl_context *ssl, int level,
-    const char *file, int line, unsigned int flag)
+void mbedtls_ssl_print_ticket_flags(const mbedtls_ssl_context *ssl,
+                                    int level, const char *file, int line,
+                                    unsigned int flags)
 {
     size_t i;
 
     mbedtls_debug_print_msg(ssl, level, file, line,
-                            "print ticket_flags (0x%02x)", flag);
+                            "print ticket_flags (0x%02x)", flags);
+
+    flags = flags & MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK;
 
     for (i = 0; i < ARRAY_LENGTH(ticket_flag_name_table); i++) {
-        if ((flag & (1 << i)) & MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK) {
+        if ((flags & (1 << i))) {
             mbedtls_debug_print_msg(ssl, level, file, line, "- %s is set.",
                                     ticket_flag_name_table[i]);
         }

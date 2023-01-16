@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Check or fix the code style by running Uncrustify.
+
+This script must be run from the root of a Git work tree containing Mbed TLS.
 """
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0

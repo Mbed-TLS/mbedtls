@@ -672,22 +672,14 @@ static psa_algorithm_t ssl_tls13_get_ciphersuite_hash_alg(int ciphersuite)
 }
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-static int ssl_tls13_has_compat_ticket_flags(mbedtls_ssl_context *ssl)
-{
-    mbedtls_ssl_session *session = ssl->session_negotiate;
-    return session != NULL &&
-           mbedtls_ssl_conf_tls13_check_kex_modes(ssl,
-                                                  mbedtls_ssl_session_get_ticket_flags(
-                                                      session,
-                                                      MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL));
-}
-
 static int ssl_tls13_has_configured_ticket(mbedtls_ssl_context *ssl)
 {
     mbedtls_ssl_session *session = ssl->session_negotiate;
     return ssl->handshake->resume &&
            session != NULL && session->ticket != NULL &&
-           ssl_tls13_has_compat_ticket_flags(ssl);
+           mbedtls_ssl_conf_tls13_check_kex_modes(
+        ssl, mbedtls_ssl_session_get_ticket_flags(
+            session, MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL));
 }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)

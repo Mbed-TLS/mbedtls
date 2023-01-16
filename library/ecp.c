@@ -79,6 +79,8 @@
 
 #include "bn_mul.h"
 #include "ecp_invasive.h"
+#include "ecp_internal.h"
+#include "bignum_core.h"
 
 #include <string.h>
 
@@ -1027,6 +1029,20 @@ static int ecp_modp(mbedtls_mpi *N, const mbedtls_ecp_group *grp)
 
 cleanup:
     return ret;
+}
+
+int mbedtls_ecp_quasi_reduction(mbedtls_mpi_uint *X,
+                                const mbedtls_mpi_mod_modulus *N)
+{
+    if (N->limbs == 0) {
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+
+    mbedtls_mpi_uint c = mbedtls_mpi_core_sub(X, X, N->p, N->limbs);
+
+    (void) mbedtls_mpi_core_add_if(X, N->p, N->limbs, (unsigned) c);
+
+    return 0;
 }
 
 /*

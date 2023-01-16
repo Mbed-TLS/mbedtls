@@ -342,7 +342,7 @@ class CodeParser():
         * exc_files: A List of relative filepaths for excluded files.
         """
         accumulator = set()
-        all_wildcards = include_wildcards + exclude_wildcards
+        all_wildcards = include_wildcards + (exclude_wildcards or [])
         for wildcard in all_wildcards:
             accumulator = accumulator.union(glob.iglob(wildcard))
 

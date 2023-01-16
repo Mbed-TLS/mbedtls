@@ -1229,18 +1229,6 @@
  */
 //#define MBEDTLS_PSA_CRYPTO_CLIENT
 
-/** \def MBEDTLS_PSA_CRYPTO_DRIVERS
- *
- * Enable support for the experimental PSA crypto driver interface.
- *
- * Requires: MBEDTLS_PSA_CRYPTO_C
- *
- * \warning This interface is experimental. We intend to maintain backward
- *          compatibility with application code that relies on drivers,
- *          but the driver interfaces may change without notice.
- */
-//#define MBEDTLS_PSA_CRYPTO_DRIVERS
-
 /** \def MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
  *
  * Make the PSA Crypto module use an external random generator provided
@@ -2981,8 +2969,8 @@
  * Enable dynamic secure element support in the Platform Security Architecture
  * cryptography API.
  *
- * \deprecated This feature is deprecated. Please switch to the driver
- *             interface enabled by #MBEDTLS_PSA_CRYPTO_DRIVERS.
+ * \deprecated This feature is deprecated. Please switch to the PSA driver
+ *             interface.
  *
  * Module:  library/psa_crypto_se.c
  *

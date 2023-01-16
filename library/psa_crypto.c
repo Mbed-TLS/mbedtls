@@ -3494,12 +3494,6 @@ psa_status_t mbedtls_psa_sign_hash_start(
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
     defined(MBEDTLS_ECP_RESTARTABLE)
 
-#if !defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
-    if (PSA_ALG_ECDSA_IS_DETERMINISTIC(alg)) {
-        return PSA_ERROR_NOT_SUPPORTED;
-    }
-#endif
-
     /* Ensure default is set even if
      * mbedtls_psa_interruptible_set_max_ops() has not been called. */
     mbedtls_psa_interruptible_set_max_ops(

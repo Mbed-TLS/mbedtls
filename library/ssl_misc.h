@@ -2721,20 +2721,20 @@ int mbedtls_ssl_session_set_hostname(mbedtls_ssl_session *session,
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
 static inline unsigned int mbedtls_ssl_session_get_ticket_flags(
-    mbedtls_ssl_session *session, uint8_t flags)
+    mbedtls_ssl_session *session, unsigned int flags)
 {
     return session->ticket_flags &
            (flags & MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK);
 }
 
 static inline void mbedtls_ssl_session_set_ticket_flags(
-    mbedtls_ssl_session *session, uint8_t flags)
+    mbedtls_ssl_session *session, unsigned int flags)
 {
     session->ticket_flags |= (flags & MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK);
 }
 
 static inline void mbedtls_ssl_session_clear_ticket_flags(
-    mbedtls_ssl_session *session, uint8_t flags)
+    mbedtls_ssl_session *session, unsigned int flags)
 {
     session->ticket_flags &= ~(flags & MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK);
 }

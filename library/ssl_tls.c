@@ -747,8 +747,7 @@ static const char *ticket_flag_name_table[] =
 
 void mbedtls_debug_print_ticket_flags(
     const mbedtls_ssl_context *ssl, int level,
-    const char *file, int line,
-    mbedtls_ssl_tls13_ticket_flags flag)
+    const char *file, int line, unsigned int flag)
 {
     size_t i;
 

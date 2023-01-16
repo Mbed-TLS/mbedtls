@@ -809,8 +809,6 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
-typedef uint8_t mbedtls_ssl_tls13_ticket_flags;
-
 #define MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_PSK_RESUMPTION                          \
     MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK                        /* 1U << 0 */
 #define MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_PSK_EPHEMERAL_RESUMPTION                \

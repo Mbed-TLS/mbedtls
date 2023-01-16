@@ -158,7 +158,7 @@ def fix_style(src_file_list: List[str]) -> int:
     # Guard against future changes that cause the codebase to require
     # more passes.
     if not check_style_is_correct(src_file_list):
-        print("Code style still incorrect after second run of Uncrustify.")
+        print_err("Code style still incorrect after second run of Uncrustify.")
         return 1
     else:
         return 0

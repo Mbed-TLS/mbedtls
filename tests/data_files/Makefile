@@ -864,6 +864,66 @@ ec_prv.pk8param.pem: ec_prv.pk8param.der
 	$(OPENSSL) pkey -in $< -inform DER -out $@
 all_final += ec_prv.pk8param.pem
 
+ec_prv.sec1.comp.pem: ec_prv.sec1.pem
+	$(OPENSSL) ec -in $< -out $@ -conv_form compressed
+all_final += ec_prv.sec1.comp.pem
+
+ec_224_prv.comp.pem: ec_224_prv.pem
+	$(OPENSSL) ec -in $< -out $@ -conv_form compressed
+all_final += ec_224_prv.comp.pem
+
+ec_256_prv.comp.pem: ec_256_prv.pem
+	$(OPENSSL) ec -in $< -out $@ -conv_form compressed
+all_final += ec_256_prv.comp.pem
+
+ec_384_prv.comp.pem: ec_384_prv.pem
+	$(OPENSSL) ec -in $< -out $@ -conv_form compressed
+all_final += ec_384_prv.comp.pem
+
+ec_521_prv.comp.pem: ec_521_prv.pem
+	$(OPENSSL) ec -in $< -out $@ -conv_form compressed
+all_final += ec_521_prv.comp.pem
+
+ec_bp256_prv.comp.pem: ec_bp256_prv.pem
+	$(OPENSSL) ec -in $< -out $@ -conv_form compressed
+all_final += ec_bp256_prv.comp.pem
+
+ec_bp384_prv.comp.pem: ec_bp384_prv.pem
+	$(OPENSSL) ec -in $< -out $@ -conv_form compressed
+all_final += ec_bp384_prv.comp.pem
+
+ec_bp512_prv.comp.pem: ec_bp512_prv.pem
+	$(OPENSSL) ec -in $< -out $@ -conv_form compressed
+all_final += ec_bp512_prv.comp.pem
+
+ec_pub.comp.pem: ec_pub.pem
+	$(OPENSSL) ec -pubin -in $< -out $@ -conv_form compressed
+all_final += ec_pub.comp.pem
+
+ec_256_pub.comp.pem: ec_256_pub.pem
+	$(OPENSSL) ec -pubin -in $< -out $@ -conv_form compressed
+all_final += ec_256_pub.comp.pem
+
+ec_384_pub.comp.pem: ec_384_pub.pem
+	$(OPENSSL) ec -pubin -in $< -out $@ -conv_form compressed
+all_final += ec_256_pub.comp.pem
+
+ec_521_pub.comp.pem: ec_521_pub.pem
+	$(OPENSSL) ec -pubin -in $< -out $@ -conv_form compressed
+all_final += ec_521_pub.comp.pem
+
+ec_bp256_pub.comp.pem: ec_bp256_pub.pem
+	$(OPENSSL) ec -pubin -in $< -out $@ -conv_form compressed
+all_final += ec_bp256_pub.comp.pem
+
+ec_bp384_pub.comp.pem: ec_bp384_pub.pem
+	$(OPENSSL) ec -pubin -in $< -out $@ -conv_form compressed
+all_final += ec_bp384_pub.comp.pem
+
+ec_bp512_pub.comp.pem: ec_bp512_pub.pem
+	$(OPENSSL) ec -pubin -in $< -out $@ -conv_form compressed
+all_final += ec_bp512_pub.comp.pem
+
 ################################################################
 ### Generate CSRs for X.509 write test suite
 ################################################################

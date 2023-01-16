@@ -138,13 +138,12 @@ typedef struct {
 /* Context structure for the Mbed TLS interruptible verify hash
  * implementation.*/
 typedef struct {
+#if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
+    defined(MBEDTLS_ECP_RESTARTABLE)
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
     mbedtls_ecdsa_context *MBEDTLS_PRIVATE(ctx);
-#if defined(MBEDTLS_ECP_RESTARTABLE)
     mbedtls_ecdsa_restart_ctx MBEDTLS_PRIVATE(restart_ctx);
-#endif /* MBEDTLS_ECP_RESTARTABLE */
 
     size_t MBEDTLS_PRIVATE(curve_bytes);
     const uint8_t *MBEDTLS_PRIVATE(hash);
@@ -153,7 +152,9 @@ typedef struct {
     mbedtls_mpi MBEDTLS_PRIVATE(r);
     mbedtls_mpi MBEDTLS_PRIVATE(s);
 
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        * MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA &&
+        * MBEDTLS_ECP_RESTARTABLE */
 
 } mbedtls_psa_verify_hash_interruptible_operation_t;
 

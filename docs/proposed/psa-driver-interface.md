@@ -323,7 +323,7 @@ TODO
 
 ### Driver entry points for PAKE
 
-PAKE operation is divided into two stages: collecting inputs and computation. Core side is responsible for keeping inputs and core set-data functions do not have driver entry points. Collected inputs are available for drivers via get-data functions for `password`, `role` and `cipher_suite`. Lifetime of the inputs is limited by the lifetime of the core operation.
+PAKE operation is divided into two stages: collecting inputs and computation. Core side is responsible for keeping inputs and core set-data functions do not have driver entry points. Collected inputs are available for drivers via get-data functions for `password`, `role` and `cipher_suite`.
 
 ### PAKE driver dispatch logic
 The core decides whether to dispatch a PAKE operation to a driver based on the location of the provided password.
@@ -361,16 +361,19 @@ typedef ... psa_crypto_driver_pake_inputs_t; // implementation-specific type
 A driver receiving an argument that points to a `psa_crypto_driver_pake_inputs_t` can retrieve its contents by calling one of the get-data functions below.
 
 ```
-psa_status_t psa_crypto_pake_get_password(
+psa_status_t psa_crypto_driver_pake_get_password_len(
     const psa_crypto_driver_pake_inputs_t *inputs,
-    uint8_t **password,
     size_t *password_len);
 
-psa_status_t psa_crypto_pake_get_role(
+psa_status_t psa_crypto_driver_pake_get_password(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    uint8_t *buffer, buffer_size, size_t *buffer_length);
+
+psa_status_t psa_crypto_driver_pake_get_role(
     const psa_crypto_driver_pake_inputs_t *inputs,
     psa_pake_role_t *role);
 
-psa_status_t psa_crypto_pake_get_cipher_suite(
+psa_status_t psa_crypto_driver_pake_get_cipher_suite(
     const psa_crypto_driver_pake_inputs_t *inputs,
     psa_pake_cipher_suite_t *cipher_suite);
 ```
@@ -382,6 +385,7 @@ Next parameters are return buffers (must not be null pointers).
 These functions can return the following statuses:
 * `PSA_SUCCESS`: value has been successfully obtained
 * `PSA_ERROR_BAD_STATE`: the inputs are not ready
+* `PSA_ERROR_BUFFER_TOO_SMALL` (`psa_crypto_driver_pake_get_password` only): the output buffer is too small. This is not a fatal error and the driver can, for example, subsequently call the same function again with a larger buffer. Call `psa_crypto_driver_pake_get_password_len` to obtain the required size.
 
 #### PAKE driver setup
 
@@ -393,7 +397,7 @@ psa_status_t acme_psa_pake_setup( acme_pake_operation_t *operation,
 * `operation` is a zero-initialized operation object.
 * `inputs` is an opaque pointer to the [inputs](#pake-driver-inputs) for the PAKE operation.
 
-The setup driver function should preserve `inputs` for other driver functions.
+The setup driver function should preserve the inputs using get-data functions.
 
 #### PAKE driver output
 

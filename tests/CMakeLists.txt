@@ -32,6 +32,18 @@ string(REGEX REPLACE "[^;]*/" ""
 execute_process(
     COMMAND
         ${MBEDTLS_PYTHON_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/../tests/scripts/generate_ecp_tests.py
+        --list-for-cmake
+    WORKING_DIRECTORY
+        ${CMAKE_CURRENT_SOURCE_DIR}/..
+    OUTPUT_VARIABLE
+        base_ecp_generated_data_files)
+string(REGEX REPLACE "[^;]*/" ""
+       base_ecp_generated_data_files "${base_ecp_generated_data_files}")
+
+execute_process(
+    COMMAND
+        ${MBEDTLS_PYTHON_EXECUTABLE}
         ${CMAKE_CURRENT_SOURCE_DIR}/../tests/scripts/generate_psa_tests.py
         --list-for-cmake
     WORKING_DIRECTORY
@@ -51,6 +63,9 @@ set(bignum_generated_data_files "")
 set(psa_generated_data_files "")
 foreach(file ${base_bignum_generated_data_files})
     list(APPEND bignum_generated_data_files ${CMAKE_CURRENT_BINARY_DIR}/suites/${file})
+endforeach()
+foreach(file ${base_ecp_generated_data_files})
+    list(APPEND ecp_generated_data_files ${CMAKE_CURRENT_BINARY_DIR}/suites/${file})
 endforeach()
 foreach(file ${base_psa_generated_data_files})
     list(APPEND psa_generated_data_files ${CMAKE_CURRENT_BINARY_DIR}/suites/${file})
@@ -72,6 +87,7 @@ if(GEN_FILES)
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/bignum_core.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/bignum_mod_raw.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/bignum_mod.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/ecp.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/test_case.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/test_data_generation.py
     )

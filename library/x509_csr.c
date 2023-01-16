@@ -127,24 +127,24 @@ static int x509_csr_parse_extensions(mbedtls_x509_csr *csr,
             switch (ext_type) {
                 case MBEDTLS_X509_EXT_KEY_USAGE:
                     /* Parse key usage */
-                    if ((ret = x509_get_key_usage(p, end_ext_data,
-                                                  &csr->key_usage)) != 0) {
+                    if ((ret = mbedtls_x509_get_key_usage(p, end_ext_data,
+                                                          &csr->key_usage)) != 0) {
                         return ret;
                     }
                     break;
 
                 case MBEDTLS_X509_EXT_SUBJECT_ALT_NAME:
                     /* Parse subject alt name */
-                    if ((ret = x509_get_subject_alt_name(p, end_ext_data,
-                                                         &csr->subject_alt_names)) != 0) {
+                    if ((ret = mbedtls_x509_get_subject_alt_name(p, end_ext_data,
+                                                                 &csr->subject_alt_names)) != 0) {
                         return ret;
                     }
                     break;
 
                 case MBEDTLS_X509_EXT_NS_CERT_TYPE:
                     /* Parse netscape certificate type */
-                    if ((ret = x509_get_ns_cert_type(p, end_ext_data,
-                                                     &csr->ns_cert_type)) != 0) {
+                    if ((ret = mbedtls_x509_get_ns_cert_type(p, end_ext_data,
+                                                             &csr->ns_cert_type)) != 0) {
                         return ret;
                     }
                     break;
@@ -517,9 +517,9 @@ int mbedtls_x509_csr_info(char *buf, size_t size, const char *prefix,
         ret = mbedtls_snprintf(p, n, "\n%ssubject alt name  :", prefix);
         MBEDTLS_X509_SAFE_SNPRINTF;
 
-        if ((ret = x509_info_subject_alt_name(&p, &n,
-                                              &csr->subject_alt_names,
-                                              prefix)) != 0) {
+        if ((ret = mbedtls_x509_info_subject_alt_name(&p, &n,
+                                                      &csr->subject_alt_names,
+                                                      prefix)) != 0) {
             return ret;
         }
     }
@@ -528,7 +528,7 @@ int mbedtls_x509_csr_info(char *buf, size_t size, const char *prefix,
         ret = mbedtls_snprintf(p, n, "\n%scert. type        : ", prefix);
         MBEDTLS_X509_SAFE_SNPRINTF;
 
-        if ((ret = x509_info_cert_type(&p, &n, csr->ns_cert_type)) != 0) {
+        if ((ret = mbedtls_x509_info_cert_type(&p, &n, csr->ns_cert_type)) != 0) {
             return ret;
         }
     }
@@ -537,7 +537,7 @@ int mbedtls_x509_csr_info(char *buf, size_t size, const char *prefix,
         ret = mbedtls_snprintf(p, n, "\n%skey usage         : ", prefix);
         MBEDTLS_X509_SAFE_SNPRINTF;
 
-        if ((ret = x509_info_key_usage(&p, &n, csr->key_usage)) != 0) {
+        if ((ret = mbedtls_x509_info_key_usage(&p, &n, csr->key_usage)) != 0) {
             return ret;
         }
     }

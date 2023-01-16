@@ -562,9 +562,9 @@ static int x509_get_basic_constraints(unsigned char **p,
     return 0;
 }
 
-int x509_get_ns_cert_type(unsigned char **p,
-                          const unsigned char *end,
-                          unsigned char *ns_cert_type)
+int mbedtls_x509_get_ns_cert_type(unsigned char **p,
+                                  const unsigned char *end,
+                                  unsigned char *ns_cert_type)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_x509_bitstring bs = { 0, 0, NULL };
@@ -583,9 +583,9 @@ int x509_get_ns_cert_type(unsigned char **p,
     return 0;
 }
 
-int x509_get_key_usage(unsigned char **p,
-                       const unsigned char *end,
-                       unsigned int *key_usage)
+int mbedtls_x509_get_key_usage(unsigned char **p,
+                               const unsigned char *end,
+                               unsigned int *key_usage)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t i;
@@ -660,9 +660,9 @@ static int x509_get_ext_key_usage(unsigned char **p,
  * NOTE: we list all types, but only use dNSName and otherName
  * of type HwModuleName, as defined in RFC 4108, at this point.
  */
-int x509_get_subject_alt_name(unsigned char **p,
-                              const unsigned char *end,
-                              mbedtls_x509_sequence *subject_alt_name)
+int mbedtls_x509_get_subject_alt_name(unsigned char **p,
+                                      const unsigned char *end,
+                                      mbedtls_x509_sequence *subject_alt_name)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len, tag_len;
@@ -1029,8 +1029,8 @@ static int x509_get_crt_ext(unsigned char **p,
 
             case MBEDTLS_X509_EXT_KEY_USAGE:
                 /* Parse key usage */
-                if ((ret = x509_get_key_usage(p, end_ext_octet,
-                                              &crt->key_usage)) != 0) {
+                if ((ret = mbedtls_x509_get_key_usage(p, end_ext_octet,
+                                                      &crt->key_usage)) != 0) {
                     return ret;
                 }
                 break;
@@ -1045,16 +1045,16 @@ static int x509_get_crt_ext(unsigned char **p,
 
             case MBEDTLS_X509_EXT_SUBJECT_ALT_NAME:
                 /* Parse subject alt name */
-                if ((ret = x509_get_subject_alt_name(p, end_ext_octet,
-                                                     &crt->subject_alt_names)) != 0) {
+                if ((ret = mbedtls_x509_get_subject_alt_name(p, end_ext_octet,
+                                                             &crt->subject_alt_names)) != 0) {
                     return ret;
                 }
                 break;
 
             case MBEDTLS_X509_EXT_NS_CERT_TYPE:
                 /* Parse netscape certificate type */
-                if ((ret = x509_get_ns_cert_type(p, end_ext_octet,
-                                                 &crt->ns_cert_type)) != 0) {
+                if ((ret = mbedtls_x509_get_ns_cert_type(p, end_ext_octet,
+                                                         &crt->ns_cert_type)) != 0) {
                     return ret;
                 }
                 break;
@@ -1849,10 +1849,10 @@ int mbedtls_x509_parse_subject_alt_name(const mbedtls_x509_buf *san_buf,
 }
 
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
-int x509_info_subject_alt_name(char **buf, size_t *size,
-                               const mbedtls_x509_sequence
-                               *subject_alt_name,
-                               const char *prefix)
+int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
+                                       const mbedtls_x509_sequence
+                                       *subject_alt_name,
+                                       const char *prefix)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t i;
@@ -1965,8 +1965,8 @@ int x509_info_subject_alt_name(char **buf, size_t *size,
     if (ns_cert_type & (type))                 \
     PRINT_ITEM(name);
 
-int x509_info_cert_type(char **buf, size_t *size,
-                        unsigned char ns_cert_type)
+int mbedtls_x509_info_cert_type(char **buf, size_t *size,
+                                unsigned char ns_cert_type)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t n = *size;
@@ -1992,8 +1992,8 @@ int x509_info_cert_type(char **buf, size_t *size,
     if (key_usage & (code))    \
     PRINT_ITEM(name);
 
-int x509_info_key_usage(char **buf, size_t *size,
-                        unsigned int key_usage)
+int mbedtls_x509_info_key_usage(char **buf, size_t *size,
+                                unsigned int key_usage)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t n = *size;
@@ -2167,9 +2167,9 @@ int mbedtls_x509_crt_info(char *buf, size_t size, const char *prefix,
         ret = mbedtls_snprintf(p, n, "\n%ssubject alt name  :", prefix);
         MBEDTLS_X509_SAFE_SNPRINTF;
 
-        if ((ret = x509_info_subject_alt_name(&p, &n,
-                                              &crt->subject_alt_names,
-                                              prefix)) != 0) {
+        if ((ret = mbedtls_x509_info_subject_alt_name(&p, &n,
+                                                      &crt->subject_alt_names,
+                                                      prefix)) != 0) {
             return ret;
         }
     }
@@ -2178,7 +2178,7 @@ int mbedtls_x509_crt_info(char *buf, size_t size, const char *prefix,
         ret = mbedtls_snprintf(p, n, "\n%scert. type        : ", prefix);
         MBEDTLS_X509_SAFE_SNPRINTF;
 
-        if ((ret = x509_info_cert_type(&p, &n, crt->ns_cert_type)) != 0) {
+        if ((ret = mbedtls_x509_info_cert_type(&p, &n, crt->ns_cert_type)) != 0) {
             return ret;
         }
     }
@@ -2187,7 +2187,7 @@ int mbedtls_x509_crt_info(char *buf, size_t size, const char *prefix,
         ret = mbedtls_snprintf(p, n, "\n%skey usage         : ", prefix);
         MBEDTLS_X509_SAFE_SNPRINTF;
 
-        if ((ret = x509_info_key_usage(&p, &n, crt->key_usage)) != 0) {
+        if ((ret = mbedtls_x509_info_key_usage(&p, &n, crt->key_usage)) != 0) {
             return ret;
         }
     }

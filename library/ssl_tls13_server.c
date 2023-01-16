@@ -172,10 +172,11 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
     ret = MBEDTLS_ERR_ERROR_GENERIC_ERROR;
     MBEDTLS_SSL_PRINT_TICKET_FLAGS(4,
                                    session->ticket_flags);
-    if (mbedtls_ssl_tls13_check_kex_modes(ssl,
-                                          mbedtls_ssl_session_get_ticket_flags(
-                                              session,
-                                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL))) {
+    if (mbedtls_ssl_tls13_check_kex_modes(
+            ssl,
+            mbedtls_ssl_session_get_ticket_flags(
+                session,
+                MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL))) {
         MBEDTLS_SSL_DEBUG_MSG(3, ("No suitable key exchange mode"));
         goto exit;
     }

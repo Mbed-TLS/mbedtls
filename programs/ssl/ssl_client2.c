@@ -371,7 +371,8 @@ int main(void)
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #define USAGE_TLS1_3_KEY_EXCHANGE_MODES \
     "    tls13_kex_modes=%%s   default: all\n"     \
-    "                          options: psk, psk_ephemeral, ephemeral, ephemeral_all, psk_all, all\n"
+    "                          options: psk, psk_ephemeral, psk_all, ephemeral,\n"     \
+    "                                   ephemeral_all, all, psk_or_ephemeral\n"
 #else
 #define USAGE_TLS1_3_KEY_EXCHANGE_MODES ""
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */

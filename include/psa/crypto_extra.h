@@ -1305,6 +1305,64 @@ typedef enum psa_pake_driver_step psa_pake_driver_step_t;
  */
 static psa_pake_operation_t psa_pake_operation_init(void);
 
+/** Get the lengths of the password in bytes from given inputs.
+ *
+ * \param[in]  inputs           Operation inputs.
+ * \param[out] password_len     Return buffer for password length.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         Password hasn't been set yet.
+ */
+psa_status_t psa_crypto_driver_pake_get_password_len(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    size_t *password_len);
+
+/** Get the password from given inputs.
+ *
+ * \param[in]  inputs           Operation inputs.
+ * \param[out] buffer           Return buffer for password.
+ * \param[in]  buffer_size      Size of the return buffer in bytes.
+ * \param[in]  buffer_length    Actual size of the password in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         Password hasn't been set yet.
+ */
+psa_status_t psa_crypto_driver_pake_get_password(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    uint8_t *buffer, size_t buffer_size, size_t *buffer_length);
+
+/** Get the role from given inputs.
+ *
+ * \param[in]  inputs           Operation inputs.
+ * \param[out] role             Return buffer for role.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         Role hasn't been set yet.
+ */
+psa_status_t psa_crypto_driver_pake_get_role(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    psa_pake_role_t *role);
+
+/** Get the cipher suite from given inputs.
+ *
+ * \param[in]  inputs           Operation inputs.
+ * \param[out] cipher_suite     Return buffer for role.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         Cipher_suite hasn't been set yet.
+ */
+psa_status_t psa_crypto_driver_pake_get_cipher_suite(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    psa_pake_cipher_suite_t *cipher_suite);
+
 /** Set the session information for a password-authenticated key exchange.
  *
  * The sequence of operations to set up a password-authenticated key exchange

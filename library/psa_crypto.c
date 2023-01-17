@@ -7176,6 +7176,63 @@ exit:
     return status;
 }
 
+psa_status_t psa_crypto_driver_pake_get_password_len(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    size_t *password_len)
+{
+    if (inputs->password_len == 0) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    *password_len = inputs->password_len;
+
+    return PSA_SUCCESS;
+}
+
+psa_status_t psa_crypto_driver_pake_get_password(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    uint8_t *buffer, size_t buffer_size, size_t *buffer_length)
+{
+    if (inputs->password_len == 0) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    if (buffer_size < inputs->password_len) {
+        return PSA_ERROR_BUFFER_TOO_SMALL;
+    }
+
+    memcpy(buffer, inputs->password, inputs->password_len);
+    *buffer_length = inputs->password_len;
+
+    return PSA_SUCCESS;
+}
+
+psa_status_t psa_crypto_driver_pake_get_role(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    psa_pake_role_t *role)
+{
+    if (inputs->role == PSA_PAKE_ROLE_NONE) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    *role = inputs->role;
+
+    return PSA_SUCCESS;
+}
+
+psa_status_t psa_crypto_driver_pake_get_cipher_suite(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    psa_pake_cipher_suite_t *cipher_suite)
+{
+    if (inputs->cipher_suite.algorithm == PSA_ALG_NONE) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    *cipher_suite = inputs->cipher_suite;
+
+    return PSA_SUCCESS;
+}
+
 psa_status_t psa_pake_setup(
     psa_pake_operation_t *operation,
     const psa_pake_cipher_suite_t *cipher_suite)

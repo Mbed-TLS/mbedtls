@@ -1842,7 +1842,7 @@ psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
  * psa_pake_operation_t.
  */
 #define PSA_PAKE_OPERATION_INIT { 0, PSA_ALG_NONE, PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS, \
-                                  { { 0 } }, { 0 } }
+                                  { { { 0 } } }, { { 0 } } }
 
 struct psa_pake_cipher_suite_s {
     psa_algorithm_t algorithm;
@@ -1975,7 +1975,6 @@ struct psa_jpake_computation_stage_s {
 
 struct psa_pake_computation_stage_s {
     union {
-        unsigned dummy;
         psa_jpake_computation_stage_t MBEDTLS_PRIVATE(jpake);
     } MBEDTLS_PRIVATE(data);
 };
@@ -1997,7 +1996,6 @@ struct psa_pake_operation_s {
     /* Holds computation stage of the PAKE algorithms. */
     psa_pake_computation_stage_t MBEDTLS_PRIVATE(computation_stage);
     union {
-        unsigned dummy;
         psa_crypto_driver_pake_inputs_t MBEDTLS_PRIVATE(inputs);
         psa_driver_pake_context_t MBEDTLS_PRIVATE(ctx);
     } MBEDTLS_PRIVATE(data);

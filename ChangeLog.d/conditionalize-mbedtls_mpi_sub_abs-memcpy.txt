@@ -1,5 +1,4 @@
 Bugfix
-   * Fix mbedtls_mpi_sub_abs() to account for the possibility that the output
-     pointer could equal the first input pointer and if so to skip a memcpy()
-     call that would be redundant.  Reported by Pascal Cuoq using TrustInSoft
-     Analyzer in #6701; observed independently by Aaron Ucko under Valgrind.
+   * Fix potential undefined behavior in mbedtls_mpi_sub_abs().  Reported by
+     Pascal Cuoq using TrustInSoft Analyzer in #6701; observed independently by
+     Aaron Ucko under Valgrind.

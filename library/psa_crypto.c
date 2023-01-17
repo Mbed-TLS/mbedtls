@@ -7461,6 +7461,9 @@ static psa_status_t psa_pake_complete_inputs(
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     uint8_t *password = operation->data.inputs.password;
     size_t password_len = operation->data.inputs.password_len;
+    /* Create copy of the inputs on stack as inputs share memory
+       with the driver context which will be setup by the driver. */
+    psa_crypto_driver_pake_inputs_t inputs = operation->data.inputs;
 
     if (operation->alg == PSA_ALG_NONE ||
         operation->data.inputs.password_len == 0 ||
@@ -7468,8 +7471,10 @@ static psa_status_t psa_pake_complete_inputs(
         return PSA_ERROR_BAD_STATE;
     }
 
-    status = psa_driver_wrapper_pake_setup(operation,
-                                           &operation->data.inputs);
+    /* Clear driver context */
+    mbedtls_platform_zeroize(&operation->data, sizeof(operation->data));
+
+    status = psa_driver_wrapper_pake_setup(operation, &inputs);
 
     /* Driver is responsible for creating its own copy of the password. */
     mbedtls_platform_zeroize(password, password_len);

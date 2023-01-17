@@ -1412,7 +1412,7 @@ int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
         return ret;
     }
 
-    switch (opt.dummy_ticket % 7) {
+    switch (opt.dummy_ticket % 11) {
         case 1:
             return MBEDTLS_ERR_SSL_INVALID_MAC;
         case 2:
@@ -1432,6 +1432,20 @@ int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
             session->ticket_age_add -= 1000;
 #endif
             break;
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+        case 7:
+            session->ticket_flags = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE;
+            break;
+        case 8:
+            session->ticket_flags = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK;
+            break;
+        case 9:
+            session->ticket_flags = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL;
+            break;
+        case 10:
+            session->ticket_flags = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL;
+            break;
+#endif
         default:
             break;
     }

@@ -676,7 +676,10 @@ static int ssl_tls13_has_configured_ticket(mbedtls_ssl_context *ssl)
 {
     mbedtls_ssl_session *session = ssl->session_negotiate;
     return ssl->handshake->resume &&
-           session != NULL && session->ticket != NULL;
+           session != NULL && session->ticket != NULL &&
+           mbedtls_ssl_conf_tls13_check_kex_modes(
+        ssl, mbedtls_ssl_session_get_ticket_flags(
+            session, MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL));
 }
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
@@ -2618,6 +2621,10 @@ static int ssl_tls13_parse_new_session_ticket(mbedtls_ssl_context *ssl,
     session->ticket = ticket;
     session->ticket_len = ticket_len;
 
+    /* Clear all flags in ticket_flags */
+    mbedtls_ssl_session_clear_ticket_flags(
+        session, MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK);
+
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, 2);
     extensions_len = MBEDTLS_GET_UINT16_BE(p, 0);
     p += 2;
@@ -2700,6 +2707,11 @@ static int ssl_tls13_postprocess_new_session_ticket(mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_BUF(3, "Ticket-resumed PSK",
                           session->resumption_key,
                           session->resumption_key_len);
+
+    /* Set ticket_flags depends on the selected key exchange modes */
+    mbedtls_ssl_session_set_ticket_flags(
+        session, ssl->conf->tls13_kex_modes);
+    MBEDTLS_SSL_PRINT_TICKET_FLAGS(4, session->ticket_flags);
 
     return 0;
 }

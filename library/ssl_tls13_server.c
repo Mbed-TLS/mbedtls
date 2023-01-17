@@ -161,6 +161,26 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
         goto exit;
     }
 
+    /* RFC 8446 section 4.2.9
+     *
+     * Servers SHOULD NOT send NewSessionTicket with tickets that are not
+     * compatible with the advertised modes; however, if a server does so,
+     * the impact will just be that the client's attempts at resumption fail.
+     *
+     * We regard the ticket with incompatible key exchange modes as not match.
+     */
+    ret = MBEDTLS_ERR_ERROR_GENERIC_ERROR;
+    MBEDTLS_SSL_PRINT_TICKET_FLAGS(4,
+                                   session->ticket_flags);
+    if (mbedtls_ssl_tls13_check_kex_modes(
+            ssl,
+            mbedtls_ssl_session_get_ticket_flags(
+                session,
+                MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL))) {
+        MBEDTLS_SSL_DEBUG_MSG(3, ("No suitable key exchange mode"));
+        goto exit;
+    }
+
     ret = MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
 #if defined(MBEDTLS_HAVE_TIME)
     now = mbedtls_time(NULL);
@@ -2549,11 +2569,20 @@ static int ssl_tls13_handshake_wrapup(mbedtls_ssl_context *ssl)
 
     mbedtls_ssl_tls13_handshake_wrapup(ssl);
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET);
-#else
-    mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_HANDSHAKE_OVER);
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && \
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
+/* TODO: Remove the check of SOME_PSK_ENABLED since SESSION_TICKETS requires
+ *       SOME_PSK_ENABLED to be enabled. Here is just to make CI happy. It is
+ *       expected to be resolved with issue#6395.
+ */
+    /* Sent NewSessionTicket message only when client supports PSK */
+    if (mbedtls_ssl_tls13_some_psk_enabled(ssl)) {
+        mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET);
+    } else
 #endif
+    {
+        mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_HANDSHAKE_OVER);
+    }
     return 0;
 }
 
@@ -2603,6 +2632,15 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_HAVE_TIME)
     session->start = mbedtls_time(NULL);
 #endif
+
+    /* Set ticket_flags depends on the advertised psk key exchange mode */
+    mbedtls_ssl_session_clear_ticket_flags(
+        session, MBEDTLS_SSL_TLS1_3_TICKET_FLAGS_MASK);
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
+    mbedtls_ssl_session_set_ticket_flags(
+        session, ssl->handshake->tls13_kex_modes);
+#endif
+    MBEDTLS_SSL_PRINT_TICKET_FLAGS(4, session->ticket_flags);
 
     /* Generate ticket_age_add */
     if ((ret = ssl->conf->f_rng(ssl->conf->p_rng,

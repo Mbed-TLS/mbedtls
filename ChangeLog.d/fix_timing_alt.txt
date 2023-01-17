@@ -1,0 +1,5 @@
+Bugfix
+   * Fix a build issue when defining MBEDTLS_TIMING_ALT and MBEDTLS_SELF_TEST.
+     The library would not link if the user didn't provide an external selftest function.
+     The self-test is now provided regardless of the choice of internal/alternative
+     timing implementation. Fixes #6923.

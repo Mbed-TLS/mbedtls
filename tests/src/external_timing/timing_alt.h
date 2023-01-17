@@ -127,4 +127,4 @@ int mbedtls_timing_get_delay(void *data);
 #ifdef __cplusplus
 }
 
-#endif /* FAKE_EXTERNAL_RNG_FOR_TEST_H */
+#endif /* EXTERNAL_TIMING_FOR_TEST_H */

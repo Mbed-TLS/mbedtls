@@ -1976,7 +1976,7 @@ struct psa_jpake_computation_stage_s {
 struct psa_pake_computation_stage_s {
     union {
         unsigned dummy;
-        psa_jpake_computation_stage_t MBEDTLS_PRIVATE(jpake_computation_stage);
+        psa_jpake_computation_stage_t MBEDTLS_PRIVATE(jpake);
     } MBEDTLS_PRIVATE(data);
 };
 

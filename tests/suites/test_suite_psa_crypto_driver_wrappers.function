@@ -3119,10 +3119,8 @@ void pake_operations(data_t *pw_data, int forced_status_setup_arg, int forced_st
                        PSA_SUCCESS);
 
             /* Simulate that we are ready to get implicit key. */
-            operation.computation_stage.data.jpake_computation_stage.input_step =
-                PSA_PAKE_STEP_DERIVE;
-            operation.computation_stage.data.jpake_computation_stage.output_step =
-                PSA_PAKE_STEP_DERIVE;
+            operation.computation_stage.data.jpake.input_step = PSA_PAKE_STEP_DERIVE;
+            operation.computation_stage.data.jpake.output_step = PSA_PAKE_STEP_DERIVE;
 
             /* --- psa_pake_get_implicit_key --- */
             mbedtls_test_driver_pake_hooks.forced_status = forced_status;

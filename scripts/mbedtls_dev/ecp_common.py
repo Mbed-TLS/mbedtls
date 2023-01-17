@@ -14,8 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from . import test_case
-from . import test_data_generation
 from . import bignum_common
 
 class EcpOperationCommon(bignum_common.ModOperationCommon):

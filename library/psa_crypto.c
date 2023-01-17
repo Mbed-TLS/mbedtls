@@ -7332,6 +7332,70 @@ psa_status_t psa_pake_set_role(
     return PSA_SUCCESS;
 }
 
+/* Auxiliary function to convert core computation stage(step, sequence, state) to single driver step. */
+static psa_pake_driver_step_t convert_jpake_computation_stage_to_driver_step(
+    psa_pake_computation_stage_t *stage)
+{
+    switch (stage->data.jpake_computation_stage.state) {
+        case PSA_PAKE_OUTPUT_X1_X2:
+        case PSA_PAKE_INPUT_X1_X2:
+            switch (stage->data.jpake_computation_stage.sequence) {
+                case PSA_PAKE_X1_STEP_KEY_SHARE:
+                    return PSA_JPAKE_X1_STEP_KEY_SHARE;
+                    break;
+                case PSA_PAKE_X1_STEP_ZK_PUBLIC:
+                    return PSA_JPAKE_X1_STEP_ZK_PUBLIC;
+                    break;
+                case PSA_PAKE_X1_STEP_ZK_PROOF:
+                    return PSA_JPAKE_X1_STEP_ZK_PROOF;
+                    break;
+                case PSA_PAKE_X2_STEP_KEY_SHARE:
+                    return PSA_JPAKE_X2_STEP_KEY_SHARE;
+                    break;
+                case PSA_PAKE_X2_STEP_ZK_PUBLIC:
+                    return PSA_JPAKE_X2_STEP_ZK_PUBLIC;
+                    break;
+                case PSA_PAKE_X2_STEP_ZK_PROOF:
+                    return PSA_JPAKE_X2_STEP_ZK_PROOF;
+                    break;
+                default:
+                    return PSA_JPAKE_STEP_INVALID;
+            }
+            break;
+        case PSA_PAKE_OUTPUT_X2S:
+            switch (stage->data.jpake_computation_stage.sequence) {
+                case PSA_PAKE_X1_STEP_KEY_SHARE:
+                    return PSA_JPAKE_X2S_STEP_KEY_SHARE;
+                    break;
+                case PSA_PAKE_X1_STEP_ZK_PUBLIC:
+                    return PSA_JPAKE_X2S_STEP_ZK_PUBLIC;
+                    break;
+                case PSA_PAKE_X1_STEP_ZK_PROOF:
+                    return PSA_JPAKE_X2S_STEP_ZK_PROOF;
+                    break;
+                    return PSA_JPAKE_STEP_INVALID;
+            }
+            break;
+        case PSA_PAKE_INPUT_X4S:
+            switch (stage->data.jpake_computation_stage.sequence) {
+                case PSA_PAKE_X1_STEP_KEY_SHARE:
+                    return PSA_JPAKE_X4S_STEP_KEY_SHARE;
+                    break;
+                case PSA_PAKE_X1_STEP_ZK_PUBLIC:
+                    return PSA_JPAKE_X4S_STEP_ZK_PUBLIC;
+                    break;
+                case PSA_PAKE_X1_STEP_ZK_PROOF:
+                    return PSA_JPAKE_X4S_STEP_ZK_PROOF;
+                    break;
+                    return PSA_JPAKE_STEP_INVALID;
+            }
+            break;
+        default:
+            return PSA_JPAKE_STEP_INVALID;
+    }
+    return PSA_JPAKE_STEP_INVALID;
+}
+
 static psa_status_t psa_pake_complete_inputs(
     psa_pake_operation_t *operation)
 {
@@ -7501,9 +7565,14 @@ psa_status_t psa_pake_output(
             return PSA_ERROR_NOT_SUPPORTED;
     }
 
-    status = psa_driver_wrapper_pake_output(operation, step,
-                                            &operation->computation_stage,
-                                            output, output_size, output_length);
+    status = psa_driver_wrapper_pake_output(operation,
+                                            convert_jpake_computation_stage_to_driver_step(&
+                                                                                           operation
+                                                                                           ->
+                                                                                           computation_stage),
+                                            output,
+                                            output_size,
+                                            output_length);
 
     if (status != PSA_SUCCESS) {
         return status;
@@ -7660,9 +7729,12 @@ psa_status_t psa_pake_input(
             return PSA_ERROR_NOT_SUPPORTED;
     }
 
-    status = psa_driver_wrapper_pake_input(operation, step,
-                                           &operation->computation_stage,
-                                           input, input_length);
+    status = psa_driver_wrapper_pake_input(operation,
+                                           convert_jpake_computation_stage_to_driver_step(&operation
+                                                                                          ->
+                                                                                          computation_stage),
+                                           input,
+                                           input_length);
 
     if (status != PSA_SUCCESS) {
         return status;

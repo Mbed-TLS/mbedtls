@@ -1292,11 +1292,14 @@ typedef struct psa_pake_operation_s psa_pake_operation_t;
 /** The type of input values for PAKE operations. */
 typedef struct psa_crypto_driver_pake_inputs_s psa_crypto_driver_pake_inputs_t;
 
-/** The type of compuatation stage for PAKE operations. */
+/** The type of computation stage for PAKE operations. */
 typedef struct psa_pake_computation_stage_s psa_pake_computation_stage_t;
 
-/** The type of compuatation stage for J-PAKE operations. */
+/** The type of computation stage for J-PAKE operations. */
 typedef struct psa_jpake_computation_stage_s psa_jpake_computation_stage_t;
+
+/** The type of driver step for PAKE operation. */
+typedef enum psa_pake_driver_step psa_pake_driver_step_t;
 
 /** Return an initial value for a PAKE operation object.
  */
@@ -1946,20 +1949,22 @@ enum psa_jpake_sequence {
     PSA_PAKE_SEQ_END            = 7,
 };
 
-enum psa_jpake_computation_state {
-    PSA_PAKE_X1_STEP_KEY_SHARE   = 1,  /* Round 1: input/output key share (for ephemeral private key X1).*/
-    PSA_PAKE_X1_STEP_ZK_PUBLIC   = 2,  /* Round 1: input/output Schnorr NIZKP public key for the X1 key */
-    PSA_PAKE_X1_STEP_ZK_PROOF    = 3,  /* Round 1: input/output Schnorr NIZKP proof for the X1 key */
-    PSA_PAKE_X2_STEP_KEY_SHARE   = 4,  /* Round 1: input/output key share (for ephemeral private key X2).*/
-    PSA_PAKE_X2_STEP_ZK_PUBLIC   = 5,  /* Round 1: input/output Schnorr NIZKP public key for the X2 key */
-    PSA_PAKE_X2_STEP_ZK_PROOF    = 6,  /* Round 1: input/output Schnorr NIZKP proof for the X2 key */
-    PSA_PAKE_X2S_STEP_KEY_SHARE  = 7,  /* Round 2: output X2S key (our key) */
-    PSA_PAKE_X2S_STEP_ZK_PUBLIC  = 8,  /* Round 2: output Schnorr NIZKP public key for the X2S key (our key) */
-    PSA_PAKE_X2S_STEP_ZK_PROOF   = 9,  /* Round 2: output Schnorr NIZKP proof for the X2S key (our key) */
-    PSA_PAKE_X4S_STEP_KEY_SHARE  = 10, /* Round 2: input X4S key (from peer) */
-    PSA_PAKE_X4S_STEP_ZK_PUBLIC  = 11, /* Round 2: input Schnorr NIZKP public key for the X4S key (from peer) */
-    PSA_PAKE_X4S_STEP_ZK_PROOF   = 12  /* Round 2: input Schnorr NIZKP proof for the X4S key (from peer) */
+enum psa_pake_driver_step {
+    PSA_JPAKE_STEP_INVALID        = 0,  /* Invalid step */
+    PSA_JPAKE_X1_STEP_KEY_SHARE   = 1,  /* Round 1: input/output key share (for ephemeral private key X1).*/
+    PSA_JPAKE_X1_STEP_ZK_PUBLIC   = 2,  /* Round 1: input/output Schnorr NIZKP public key for the X1 key */
+    PSA_JPAKE_X1_STEP_ZK_PROOF    = 3,  /* Round 1: input/output Schnorr NIZKP proof for the X1 key */
+    PSA_JPAKE_X2_STEP_KEY_SHARE   = 4,  /* Round 1: input/output key share (for ephemeral private key X2).*/
+    PSA_JPAKE_X2_STEP_ZK_PUBLIC   = 5,  /* Round 1: input/output Schnorr NIZKP public key for the X2 key */
+    PSA_JPAKE_X2_STEP_ZK_PROOF    = 6,  /* Round 1: input/output Schnorr NIZKP proof for the X2 key */
+    PSA_JPAKE_X2S_STEP_KEY_SHARE  = 7,  /* Round 2: output X2S key (our key) */
+    PSA_JPAKE_X2S_STEP_ZK_PUBLIC  = 8,  /* Round 2: output Schnorr NIZKP public key for the X2S key (our key) */
+    PSA_JPAKE_X2S_STEP_ZK_PROOF   = 9,  /* Round 2: output Schnorr NIZKP proof for the X2S key (our key) */
+    PSA_JPAKE_X4S_STEP_KEY_SHARE  = 10, /* Round 2: input X4S key (from peer) */
+    PSA_JPAKE_X4S_STEP_ZK_PUBLIC  = 11, /* Round 2: input Schnorr NIZKP public key for the X4S key (from peer) */
+    PSA_JPAKE_X4S_STEP_ZK_PROOF   = 12  /* Round 2: input Schnorr NIZKP proof for the X4S key (from peer) */
 };
+
 
 struct psa_jpake_computation_stage_s {
     unsigned int MBEDTLS_PRIVATE(state);

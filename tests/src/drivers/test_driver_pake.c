@@ -64,8 +64,7 @@ psa_status_t mbedtls_test_transparent_pake_setup(
 
 psa_status_t mbedtls_test_transparent_pake_output(
     mbedtls_transparent_test_driver_pake_operation_t *operation,
-    psa_pake_step_t step,
-    const psa_pake_computation_stage_t *computation_stage,
+    psa_pake_driver_step_t step,
     uint8_t *output,
     size_t output_size,
     size_t *output_length)
@@ -93,20 +92,14 @@ psa_status_t mbedtls_test_transparent_pake_output(
         defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_PAKE)
         mbedtls_test_driver_pake_hooks.driver_status =
             libtestdriver1_mbedtls_psa_pake_output(
-                operation,
-                step,
-                (libtestdriver1_psa_pake_computation_stage_t *) computation_stage,
-                output,
-                output_size,
-                output_length);
+                operation, step, output, output_size, output_length);
 #elif defined(MBEDTLS_PSA_BUILTIN_PAKE)
         mbedtls_test_driver_pake_hooks.driver_status =
             mbedtls_psa_pake_output(
-                operation, step, computation_stage, output, output_size, output_length);
+                operation, step, output, output_size, output_length);
 #else
         (void) operation;
         (void) step;
-        (void) computation_stage;
         (void) output;
         (void) output_size;
         (void) output_length;
@@ -119,8 +112,7 @@ psa_status_t mbedtls_test_transparent_pake_output(
 
 psa_status_t mbedtls_test_transparent_pake_input(
     mbedtls_transparent_test_driver_pake_operation_t *operation,
-    psa_pake_step_t step,
-    const psa_pake_computation_stage_t *computation_stage,
+    psa_pake_driver_step_t step,
     const uint8_t *input,
     size_t input_length)
 {
@@ -134,19 +126,14 @@ psa_status_t mbedtls_test_transparent_pake_input(
         defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_PAKE)
         mbedtls_test_driver_pake_hooks.driver_status =
             libtestdriver1_mbedtls_psa_pake_input(
-                operation,
-                step,
-                (libtestdriver1_psa_pake_computation_stage_t *) computation_stage,
-                input,
-                input_length);
+                operation, step, input, input_length);
 #elif defined(MBEDTLS_PSA_BUILTIN_PAKE)
         mbedtls_test_driver_pake_hooks.driver_status =
             mbedtls_psa_pake_input(
-                operation, step, computation_stage, input, input_length);
+                operation, step, input, input_length);
 #else
         (void) operation;
         (void) step;
-        (void) computation_stage;
         (void) input;
         (void) input_length;
         mbedtls_test_driver_pake_hooks.driver_status = PSA_ERROR_NOT_SUPPORTED;
@@ -270,15 +257,13 @@ psa_status_t mbedtls_test_opaque_pake_set_role(
 
 psa_status_t mbedtls_test_opaque_pake_output(
     mbedtls_opaque_test_driver_pake_operation_t *operation,
-    psa_pake_step_t step,
-    const psa_pake_computation_stage_t *computation_stage,
+    psa_pake_driver_step_t step,
     uint8_t *output,
     size_t output_size,
     size_t *output_length)
 {
     (void) operation;
     (void) step;
-    (void) computation_stage;
     (void) output;
     (void) output_size;
     (void) output_length;
@@ -288,14 +273,12 @@ psa_status_t mbedtls_test_opaque_pake_output(
 
 psa_status_t mbedtls_test_opaque_pake_input(
     mbedtls_opaque_test_driver_pake_operation_t *operation,
-    psa_pake_step_t step,
-    const psa_pake_computation_stage_t *computation_stage,
+    psa_pake_driver_step_t step,
     const uint8_t *input,
     size_t input_length)
 {
     (void) operation;
     (void) step;
-    (void) computation_stage;
     (void) input;
     (void) input_length;
     return PSA_ERROR_NOT_SUPPORTED;

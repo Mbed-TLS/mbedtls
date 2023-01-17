@@ -2,6 +2,7 @@
 #include "mbedtls/ecp.h"
 #include "mbedtls/ecdsa.h"
 #include "mbedtls/ecdh.h"
+#include "ecp_invasive.h"
 #include "ecp_internal.h"
 
 #if defined(MBEDTLS_TEST_HOOKS) &&                  \

@@ -28,6 +28,18 @@
 #include "mbedtls/bignum.h"
 #include "bignum_mod.h"
 
+/** Convert an MPI to its canonical representative.
+ *
+ * \note Currently handles the case when `N->int_rep` is
+ * MBEDTLS_MPI_MOD_REP_MONTGOMERY.
+ *
+ * \param[in,out] X     The address of the MPI to be converted. Must have the
+ *                      same number of limbs as \p N.
+ * \param[in]     N     The address of the modulus.
+ *
+ * \return      \c 0 if successful.
+ * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p N is invalid.
+ */
 int mbedtls_ecp_quasi_reduction(mbedtls_mpi_uint *X,
                                 const mbedtls_mpi_mod_modulus *N);
 

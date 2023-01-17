@@ -204,13 +204,25 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
                                     const psa_crypto_driver_pake_inputs_t *inputs)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    size_t password_len = 0;
+    psa_pake_role_t role = PSA_PAKE_ROLE_NONE;
+    psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
+    size_t actual_password_len = 0;
 
-    uint8_t *password = inputs->password;
-    size_t password_len = inputs->password_len;
-    psa_pake_role_t role = inputs->role;
-    psa_pake_cipher_suite_t cipher_suite = inputs->cipher_suite;
+    status = psa_crypto_driver_pake_get_password_len(inputs, &password_len);
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
 
-    memset(operation, 0, sizeof(mbedtls_psa_pake_operation_t));
+    status = psa_crypto_driver_pake_get_role(inputs, &role);
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
+
+    status = psa_crypto_driver_pake_get_cipher_suite(inputs, &cipher_suite);
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     if (cipher_suite.algorithm == PSA_ALG_JPAKE) {
@@ -236,8 +248,13 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
             goto error;
         }
 
-        memcpy(operation->password, password, password_len);
-        operation->password_len = password_len;
+        status = psa_crypto_driver_pake_get_password(inputs, operation->password,
+                                                     password_len, &actual_password_len);
+        if (status != PSA_SUCCESS) {
+            goto error;
+        }
+
+        operation->password_len = actual_password_len;
         operation->role = role;
         operation->alg = cipher_suite.algorithm;
 

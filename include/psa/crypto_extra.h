@@ -1298,9 +1298,6 @@ typedef struct psa_pake_computation_stage_s psa_pake_computation_stage_t;
 /** The type of computation stage for J-PAKE operations. */
 typedef struct psa_jpake_computation_stage_s psa_jpake_computation_stage_t;
 
-/** The type of driver step for PAKE operation. */
-typedef enum psa_pake_driver_step psa_pake_driver_step_t;
-
 /** Return an initial value for a PAKE operation object.
  */
 static psa_pake_operation_t psa_pake_operation_init(void);
@@ -2007,7 +2004,7 @@ enum psa_jpake_sequence {
     PSA_PAKE_SEQ_END            = 7,
 };
 
-enum psa_pake_driver_step {
+typedef enum psa_pake_driver_step {
     PSA_JPAKE_STEP_INVALID        = 0,  /* Invalid step */
     PSA_JPAKE_X1_STEP_KEY_SHARE   = 1,  /* Round 1: input/output key share (for ephemeral private key X1).*/
     PSA_JPAKE_X1_STEP_ZK_PUBLIC   = 2,  /* Round 1: input/output Schnorr NIZKP public key for the X1 key */
@@ -2021,7 +2018,7 @@ enum psa_pake_driver_step {
     PSA_JPAKE_X4S_STEP_KEY_SHARE  = 10, /* Round 2: input X4S key (from peer) */
     PSA_JPAKE_X4S_STEP_ZK_PUBLIC  = 11, /* Round 2: input Schnorr NIZKP public key for the X4S key (from peer) */
     PSA_JPAKE_X4S_STEP_ZK_PROOF   = 12  /* Round 2: input Schnorr NIZKP proof for the X4S key (from peer) */
-};
+} psa_pake_driver_step_t;
 
 
 struct psa_jpake_computation_stage_s {

@@ -895,4 +895,168 @@ int mbedtls_oid_get_numeric_string(char *buf, size_t size,
     return (int) (size - n);
 }
 
+static int oid_parse_number(const char **p, const char *bound)
+{
+    int ret = MBEDTLS_ERR_ASN1_INVALID_DATA;
+    int num = 0;
+    while (*p < bound && **p >= '0' && **p <= '9') {
+        ret = 0;
+        if (num > (INT_MAX / 10)) {
+            return MBEDTLS_ERR_OID_BUF_TOO_SMALL;
+        }
+        num *= 10;
+        num += **p - '0';
+        (*p)++;
+    }
+    if (ret != 0) {
+        return ret;
+    } else {
+        return num;
+    }
+}
+
+static size_t oid_subidentifier_num_bytes(unsigned int value)
+{
+    size_t num_bytes = 1;
+    value >>= 7;
+    while (value != 0) {
+        num_bytes++;
+        value >>= 7;
+    }
+    return num_bytes;
+}
+
+static int oid_subidentifier_encode_into(unsigned char **p,
+                                         unsigned char *bound,
+                                         unsigned int value)
+{
+    size_t num_bytes = oid_subidentifier_num_bytes(value);
+    if ((size_t) (bound - *p) < num_bytes) {
+        return MBEDTLS_ERR_OID_BUF_TOO_SMALL;
+    }
+    (*p)[num_bytes - 1] = (unsigned char) (value & 0x7f);
+    value >>= 7;
+
+    for (size_t i = 2; i <= num_bytes; i++) {
+        (*p)[num_bytes - i] = 0x80 | (unsigned char) (value & 0x7f);
+        value >>= 7;
+    }
+    *p += num_bytes;
+
+    return 0;
+}
+
+/* Return the OID for the given x.y.z.... style numeric string  */
+int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid,
+                                    const char *buf, size_t size)
+{
+    int ret = MBEDTLS_ERR_ASN1_INVALID_DATA;
+
+    const char *str_ptr = buf;
+    const char *str_bound = buf + size;
+    int val = 0;
+    size_t encoded_len;
+
+    int component1 = oid_parse_number(&str_ptr, str_bound);
+    if (component1 < 0) {
+        return component1;
+    }
+    if (component1 > 2) {
+        /* First component can't be > 2 */
+        return MBEDTLS_ERR_ASN1_INVALID_DATA;
+    }
+    if (str_ptr >= str_bound || *str_ptr != '.') {
+        return MBEDTLS_ERR_ASN1_INVALID_DATA;
+    }
+    str_ptr++;
+
+    int component2 = oid_parse_number(&str_ptr, str_bound);
+    if (component2 < 0) {
+        return component2;
+    }
+    if ((component1 < 2) && (component2 > 38)) {
+        /* Root nodes 0 and 1 may have up to 39 children */
+        return MBEDTLS_ERR_ASN1_INVALID_DATA;
+    }
+    if (str_ptr < str_bound && *str_ptr != '\0') {
+        if (*str_ptr == '.') {
+            str_ptr++;
+        } else {
+            return MBEDTLS_ERR_ASN1_INVALID_DATA;
+        }
+    }
+
+    if ((UINT_MAX - (unsigned int) component2) <=
+        ((unsigned int) component1 * 40)) {
+        return MBEDTLS_ERR_OID_BUF_TOO_SMALL;
+    }
+    encoded_len = oid_subidentifier_num_bytes(((unsigned int) component1 * 40)
+                                              + (unsigned int) component2);
+
+    while (str_ptr < str_bound && *str_ptr != '\0') {
+        val = oid_parse_number(&str_ptr, str_bound);
+        if (val < 0) {
+            return val;
+        }
+        if (str_ptr < str_bound && *str_ptr != '\0') {
+            if (*str_ptr == '.') {
+                str_ptr++;
+            } else {
+                return MBEDTLS_ERR_ASN1_INVALID_DATA;
+            }
+        }
+
+        size_t num_bytes = oid_subidentifier_num_bytes(val);
+        if ((SIZE_MAX - encoded_len) <= num_bytes) {
+            return MBEDTLS_ERR_OID_BUF_TOO_SMALL;
+        }
+        encoded_len += num_bytes;
+    }
+
+    oid->p = mbedtls_calloc(encoded_len, sizeof(unsigned char));
+    if (oid->p == NULL) {
+        return MBEDTLS_ERR_ASN1_ALLOC_FAILED;
+    }
+    oid->len = encoded_len;
+
+    /* Now that we've allocated the buffer, go back to the start and encode */
+    str_ptr = buf;
+    unsigned char *out_ptr = oid->p;
+    unsigned char *out_bound = oid->p + oid->len;
+
+    /* No need to do validation this time, as we did it on the first pass */
+    component1 = oid_parse_number(&str_ptr, str_bound);
+    /* Skip past the '.' */
+    str_ptr++;
+    component2 = oid_parse_number(&str_ptr, str_bound);
+    /* Skip past the '.' */
+    str_ptr++;
+    ret = oid_subidentifier_encode_into(&out_ptr, out_bound,
+                                        (component1 * 40) + component2);
+    if (ret != 0) {
+        mbedtls_free(oid->p);
+        oid->p = NULL;
+        oid->len = 0;
+        return ret;
+    }
+    while (str_ptr < str_bound && *str_ptr != '\0') {
+        val = oid_parse_number(&str_ptr, str_bound);
+        if (str_ptr < str_bound && *str_ptr == '.') {
+            /* Skip past the '.' */
+            str_ptr++;
+        }
+
+        ret = oid_subidentifier_encode_into(&out_ptr, out_bound, val);
+        if (ret != 0) {
+            mbedtls_free(oid->p);
+            oid->p = NULL;
+            oid->len = 0;
+            return ret;
+        }
+    }
+    oid->tag = MBEDTLS_ASN1_OID;
+
+    return 0;
+}
+
 #endif /* MBEDTLS_OID_C */

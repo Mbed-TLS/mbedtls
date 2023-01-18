@@ -467,6 +467,20 @@ typedef struct mbedtls_oid_descriptor_t {
 int mbedtls_oid_get_numeric_string(char *buf, size_t size, const mbedtls_asn1_buf *oid);
 
 /**
+ * \brief           Translate a string containing a numeric representation
+ *                  of an ASN.1 OID into its encoded form
+ *                  (e.g. "1.2.840.113549" into "\x2A\x86\x48\x86\xF7\x0D")
+ *
+ * \param buf       buffer to put representation in
+ * \param size      size of the buffer
+ * \param oid       OID to translate
+ *
+ * \return          Length of the string written (excluding final NULL) or
+ *                  MBEDTLS_ERR_OID_BUF_TOO_SMALL in case of error
+ */
+int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid, const char *buf, size_t size);
+
+/**
  * \brief          Translate an X.509 extension OID into local values
  *
  * \param oid      OID to use

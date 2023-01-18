@@ -367,7 +367,7 @@ psa_status_t psa_crypto_driver_pake_get_password_len(
 
 psa_status_t psa_crypto_driver_pake_get_password(
     const psa_crypto_driver_pake_inputs_t *inputs,
-    uint8_t *buffer, buffer_size, size_t *buffer_length);
+    uint8_t *buffer, size_t buffer_size, size_t *buffer_length);
 
 psa_status_t psa_crypto_driver_pake_get_role(
     const psa_crypto_driver_pake_inputs_t *inputs,
@@ -403,7 +403,7 @@ The setup driver function should preserve the inputs using get-data functions.
 
 ```
 psa_status_t acme_pake_output(acme_pake_operation_t *operation,
-                              psa_pake_computation_step_t step,
+                              psa_pake_driver_step_t step,
                               uint8_t *output,
                               size_t output_size,
                               size_t *output_length);
@@ -430,7 +430,7 @@ For `PSA_ALG_JPAKE` the following steps are available for output operation:
 #### PAKE driver input
 ```
 psa_status_t acme_pake_input(acme_pake_operation_t *operation,
-                             psa_pake_computation_step_t step,
+                             psa_pake_driver_step_t step,
                              uint8_t *input,
                              size_t input_size);
 ```

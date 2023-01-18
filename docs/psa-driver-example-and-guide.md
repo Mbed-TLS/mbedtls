@@ -46,7 +46,10 @@ A driver prefix is simply a word (often the name of the driver) that all functio
 The file `psa_crypto_driver_wrappers.c.jinja` contains the driver wrapper functions. For the entry points that have driver wrapper auto-generation implemented, the functions have been replaced with `jinja` templating logic. While the file has a `.jinja` extension, the driver wrapper functions for the remaining entry points are simple C functions. The names of these functions are of the form `psa_driver_wrapper` followed by the entry point name. So, for example, the function `psa_driver_wrapper_sign_hash()` corresponds to the `sign_hash` entry point.
 
 **3. If a driver entry point function has been provided then ensure it has the same signature as the driver wrapper function.** \
-If one has not been provided then write one. Its name should begin with the driver prefix, followed by transparent/opaque (depending on driver type), and end with the entry point name. It should have the same signature as the driver wrapper function. The purpose of the entry point function is to take arguments in PSA format for the implemented operation and return outputs/status codes in PSA format.
+If one has not been provided then write one. Its name should begin with the driver prefix, followed by transparent/opaque (depending on driver type), and end with the entry point name. It should have the same signature as the driver wrapper function. The purpose of the entry point function is to take arguments in PSA format for the implemented operation and return outputs/status codes in PSA format. \
+*Return Codes:*
+* `PSA_SUCCESS`: Successful Execution
+* `PSA_ERROR_NOT_SUPPORTED`: Input arguments are correct, but the driver does not support the operation. If a transparent driver returns this 
 
 **4. Include the following in one of the driver header files:** 
 ```
@@ -66,9 +69,45 @@ Include any header files required by the driver in `psa_crypto_driver_wrappers.h
 
 **6. Modify the driver wrapper function** \
 Each driver wrapper function contains a `switch` statement which checks the location of the key. If the key is stored in local storage, then operations are performed by a transparent driver. If it is stored elsewhere, then operations are performed by an opaque driver.
- * **Transparent drivers:** Calls to drivers go under `case PSA_KEY_LOCATION_LOCAL_STORAGE`
+ * **Transparent drivers:** Calls to driver entry points go under `case PSA_KEY_LOCATION_LOCAL_STORAGE`.
+ * **Opaque Drivers** Calls to driver entry points go in a separate `case` block corresponding to the key location.
 
 
+The diagram below shows the layout of a driver wrapper function which can dispatch to two transparent drivers `Foo` and `Bar`, and one opaque driver `Baz`.
+
+ ```
+psa_driver_wrapper_xxx()
+├── switch(location)
+|   |
+│   ├── case PSA_KEY_LOCATION_LOCAL_STORAGE //transparent driver
+|   |   ├── #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+|   |   |   ├── #if defined(FOO_DRIVER_PREFIX_ENABLED)
+|   |   |   |   ├── if(//conditions for foo driver capibilities)
+|   |   |   |   ├── foo_driver_transparent_xxx() //call to driver entry point
+|   |   |   |   ├── if (status != PSA_ERROR_NOT_SUPPORTED) return status
+|   |   |   ├── #endif
+|   |   |   ├── #if defined(BAR_DRIVER_PREFIX_ENABLED)
+|   |   |   |   ├── if(//conditions for bar driver capibilities)
+|   |   |   |   ├── bar_driver_transparent_xxx() //call to driver entry point
+|   |   |   |   ├── if (status != PSA_ERROR_NOT_SUPPORTED) return status
+|   |   |   ├── #endif
+|   |   ├── #endif
+|   |
+│   ├── case SECURE_ELEMENT_LOCATION //opaque driver
+|   |   ├── #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
+|   |   |   ├── #if defined(BAZ_DRIVER_PREFIX_ENABLED)
+|   |   |   |   ├── if(//conditions for baz driver capibilities)
+|   |   |   |   ├── baz_driver_opaque_xxx() //call to driver entry point
+|   |   |   |   ├── if (status != PSA_ERROR_NOT_SUPPORTED) return status
+|   |   |   ├── #endif
+|   |   ├── #endif
+└── return psa_xxx_builtin() // fall back to built in implementation
+ ```
 
 
-<!-- the developer must manually edit the driver dispatch layer such that it first checks for the presence of the driver, and its compatibility with operation parameters (such as key type, algorithm type etc.). If the checks are passed, the driver's entry point function for that operation is called. The specification for the signature of entry point functions can be found [here](https://github.com/Mbed-TLS/mbedtls/blob/development/docs/proposed/psa-driver-interface.md#overview-of-driver-entry-points), but as a rule of thumb the signature for the driver entry point for an operation will be the same as the signature of its driver wrapper function. -->
+All code related to driver calls within each `case` must be contained between `#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)` and a corresponding `#endif`. Within this block, each individual driver's compatibility checks and call to the entry point must be contained between `#if defined(DRIVER_PREFIX_ENABLED)` and a corresponding `#endif`. Checks that involve accessing key material using PSA macros, such as determining the key type or number of bits, must be done in the driver wrapper. 
+
+**7. Build Mbed TLS with the driver**
+This guide assumes you are building Mbed TLS from source alongside your project. If building with a driver present, the chosen driver macro (`DRIVER_PREFIX_ENABLED`) must be defined. This can be done in two ways:
+* *At compile time via flags.* This is the preferred option when your project uses Mbed TLS mostly out-of-the-box without significantly modifying the configuration. When building with Make this can be done by passing the macro name to Make with the `-D` flag. When building with CMake this can be done by modifying `CMakeLists.txt`. 
+* *Providing a user config file.* This is the preferred option when your project requires a custom configuration that is significantly different to the default. Define the macro for the driver, along with any other custom configurations in a separate header file, then use `config.py`, to set `MBEDTLS_USER_CONFIG_FILE`, providing the path to the defined header file. This will include your custom config file after the default. If you wish to completely replace the default config file, set `MBEDTLS_CONFIG_FILE` instead. 

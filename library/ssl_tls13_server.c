@@ -104,6 +104,10 @@ static int ssl_tls13_parse_key_exchange_modes_ext(mbedtls_ssl_context *ssl,
 #define SSL_TLS1_3_OFFERED_PSK_MATCH       0
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_check_psk_key_exchange(mbedtls_ssl_context *ssl);
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_check_psk_ephemeral_key_exchange(mbedtls_ssl_context *ssl);
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_offered_psks_check_identity_match_ticket(
@@ -115,6 +119,8 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *ticket_buffer;
+    unsigned int ticket_flags;
+    unsigned int key_exchanges;
 #if defined(MBEDTLS_HAVE_TIME)
     mbedtls_time_t now;
     uint64_t age_in_s;
@@ -169,14 +175,22 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
      *
      * We regard the ticket with incompatible key exchange modes as not match.
      */
-    ret = MBEDTLS_ERR_ERROR_GENERIC_ERROR;
-    MBEDTLS_SSL_PRINT_TICKET_FLAGS(4,
-                                   session->ticket_flags);
-    if (mbedtls_ssl_tls13_check_kex_modes(
-            ssl,
-            mbedtls_ssl_session_get_ticket_flags(
-                session,
-                MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL))) {
+    MBEDTLS_SSL_PRINT_TICKET_FLAGS(4, session->ticket_flags);
+    ticket_flags = mbedtls_ssl_session_get_ticket_flags(
+        session, MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL);
+
+    key_exchanges = 0;
+    if ((ticket_flags & MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_PSK_EPHEMERAL_RESUMPTION) &&
+        ssl_tls13_check_psk_ephemeral_key_exchange(ssl)) {
+        key_exchanges |= MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL;
+    }
+    if ((ticket_flags & MBEDTLS_SSL_TLS1_3_TICKET_ALLOW_PSK_RESUMPTION) &&
+        ssl_tls13_check_psk_key_exchange(ssl)) {
+        key_exchanges |= MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK;
+    }
+
+    if (key_exchanges == 0) {
+        ret = MBEDTLS_ERR_ERROR_GENERIC_ERROR;
         MBEDTLS_SSL_DEBUG_MSG(3, ("No suitable key exchange mode"));
         goto exit;
     }

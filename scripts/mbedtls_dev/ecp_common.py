@@ -17,5 +17,6 @@
 from . import bignum_common
 
 class EcpOperationCommon(bignum_common.ModOperationCommon):
+    #pylint: disable=abstract-method
     """Target for ecp test case generation."""
     pass

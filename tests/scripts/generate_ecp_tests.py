@@ -57,7 +57,7 @@ import sys
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import test_data_generation
-from mbedtls_dev import ecp_common
+
 # Import modules containing additional test classes
 # Test function classes in these modules will be registered by
 # the framework

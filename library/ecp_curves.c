@@ -4502,7 +4502,9 @@ static const mbedtls_ecp_point brainpoolP512r1_T[32] = {
 #endif
 #endif /* MBEDTLS_ECP_DP_BP512R1_ENABLED */
 
-#if defined(ECP_LOAD_GROUP)
+
+#if defined(ECP_LOAD_GROUP) || defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) || \
+    defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
 /*
  * Create an MPI from embedded constants
  * (assumes len is an exact multiple of sizeof mbedtls_mpi_uint)
@@ -4513,7 +4515,9 @@ static inline void ecp_mpi_load(mbedtls_mpi *X, const mbedtls_mpi_uint *p, size_
     X->n = len / sizeof(mbedtls_mpi_uint);
     X->p = (mbedtls_mpi_uint *) p;
 }
+#endif
 
+#if defined(ECP_LOAD_GROUP)
 /*
  * Set an MPI to static value 1
  */

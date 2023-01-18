@@ -982,7 +982,8 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_check_ephemeral_key_exchange(mbedtls_ssl_context *ssl)
 {
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
-    return mbedtls_ssl_conf_tls13_ephemeral_enabled(ssl) &&
+    return !ssl->handshake->resume &&
+           mbedtls_ssl_conf_tls13_ephemeral_enabled(ssl) &&
            ssl_tls13_client_hello_has_exts_for_ephemeral_key_exchange(ssl);
 #else
     ((void) ssl);

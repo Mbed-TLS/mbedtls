@@ -177,7 +177,6 @@ TASKS = {
                 'ecdsa', # the software implementation that's excluded
                 # the following lines should not be needed,
                 # they will be removed by upcoming work
-                'random', # #6856
                 'pk', # #6857
                 'x509parse', # #6858
                 'x509write', # #6858
@@ -185,6 +184,9 @@ TASKS = {
                 'ssl', # #6860
             ],
             'ignored_tests': {
+                'test_suite_random': [
+                    'PSA classic wrapper: ECDSA signature (SECP256R1)',
+                ],
             }
         }
     },

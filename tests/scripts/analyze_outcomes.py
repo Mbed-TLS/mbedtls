@@ -166,7 +166,6 @@ TASKS = {
                 # they will be removed by upcoming work
                 'psa_crypto_se_driver_hal', # #6856
                 'random', # #6856
-                'ecp', # #6856
                 'pk', # #6857
                 'x509parse', # #6858
                 'x509write', # #6858

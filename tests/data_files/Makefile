@@ -1369,6 +1369,18 @@ pkcs7_data_signed_badsigner.der: pkcs7_data_cert_signed_sha256.der
 	echo -en '\xa1' | dd of=$@ bs=1 seek=918 conv=notrunc
 all_final += pkcs7_data_signed_badsigner.der
 
+# pkcs7 signature file with invalid tag in signerInfo[1].serial after long issuer name
+pkcs7_signerInfo_1_serial_invalid_tag_after_long_name.der: pkcs7_data_multiple_signed.der
+	cp $< $@
+	echo -en '\xa1' | dd of=$@ bs=1 seek=498 conv=notrunc
+all_final += pkcs7_signerInfo_1_serial_invalid_tag_after_long_name.der
+
+# pkcs7 signature file with invalid tag in signerInfo[2]
+pkcs7_signerInfo_2_invalid_tag.der: pkcs7_data_3_signed.der
+	cp $< $@
+	echo -en '\xa1' | dd of=$@ bs=1 seek=810 conv=notrunc
+all_final += pkcs7_signerInfo_2_invalid_tag.der
+
 # pkcs7 file with version 2
 pkcs7_data_cert_signed_v2.der: pkcs7_data_cert_signed_sha256.der
 	cp pkcs7_data_cert_signed_sha256.der $@

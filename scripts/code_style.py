@@ -171,17 +171,31 @@ def main() -> int:
     """
     uncrustify_version = get_uncrustify_version().strip()
     if UNCRUSTIFY_SUPPORTED_VERSION not in uncrustify_version:
-        print("Warning: Using unsupported Uncrustify version '" \
-                + uncrustify_version + "' (Note: The only supported version" \
-                "is " + UNCRUSTIFY_SUPPORTED_VERSION + ")", file=STDOUT_UTF8)
-
-    src_files = get_src_files()
+        print("Warning: Using unsupported Uncrustify version '" +
+              uncrustify_version + "'", file=STDOUT_UTF8)
+        print("Note: The only supported version is " +
+              UNCRUSTIFY_SUPPORTED_VERSION, file=STDOUT_UTF8)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f', '--fix', action='store_true', \
-            help='modify source files to fix the code style')
+    parser.add_argument('-f', '--fix', action='store_true',
+                        help=('modify source files to fix the code style '
+                              '(default: print diff, do not modify files)'))
+    # --files is almost useless: it only matters if there are no files
+    # ('code_style.py' without arguments checks all files known to Git,
+    # 'code_style.py --files' does nothing). In particular,
+    # 'code_style.py --fix --files ...' is intended as a stable ("porcelain")
+    # way to restyle a possibly empty set of files.
+    parser.add_argument('--files', action='store_true',
+                        help='only check the specified files (default with non-option arguments)')
+    parser.add_argument('operands', nargs='*', metavar='FILE',
+                        help='files to check (if none: check files that are known to git)')
 
     args = parser.parse_args()
+
+    if args.files or args.operands:
+        src_files = args.operands
+    else:
+        src_files = get_src_files()
 
     if args.fix:
         # Fix mode

@@ -437,7 +437,7 @@ void x509_accessor_ext_types(int ext_type, int has_ext_type)
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
-void x509_parse_san(char *crt_file, char *result_str)
+void x509_parse_san(char *crt_file, char *result_str, int parse_result)
 {
     int ret;
     mbedtls_x509_crt   crt;
@@ -450,8 +450,11 @@ void x509_parse_san(char *crt_file, char *result_str)
     mbedtls_x509_crt_init(&crt);
     memset(buf, 0, 2000);
 
-    TEST_ASSERT(mbedtls_x509_crt_parse_file(&crt, crt_file) == 0);
+    TEST_EQUAL(mbedtls_x509_crt_parse_file(&crt, crt_file), parse_result);
 
+    if (parse_result != 0) {
+        goto exit;
+    }
     if (crt.ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME) {
         cur = &crt.subject_alt_names;
         while (cur != NULL) {

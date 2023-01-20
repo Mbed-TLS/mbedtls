@@ -344,7 +344,12 @@ server5-directoryname.crt.der: server5.key
 server5-two-directorynames.crt.der: server5.key
 	$(OPENSSL) req -x509 -outform der -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS directoryName SAN" -set_serial 77 -config $(test_ca_config_file) -extensions two_directorynames -days 3650 -sha256 -key server5.key -out $@
 
-server5-second-directoryname-malformed.crt.der: server5-two-directorynames.crt.der
+# directoryname sequence tag malformed
+server5-directoryname-seq-malformed.crt.der: server5-two-directorynames.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/62A4473045310B/62A4473145310B/" | xxd -r -p > $@
+	
+# Second directoryname OID length malformed 03 -> 15
+server5-second-directoryname-oid-malformed.crt.der: server5-two-directorynames.crt.der
 	hexdump -ve '1/1 "%.2X"' $< | sed "s/0355040A0C0A4D414C464F524D5F4D45/1555040A0C0A4D414C464F524D5F4D45/" | xxd -r -p > $@
 
 all_final += server5-tricky-ip-san.crt

@@ -379,6 +379,7 @@ psa_status_t psa_crypto_driver_key_derivation_get_input_bytes(
 psa_status_t psa_crypto_driver_key_derivation_get_input_key(
     const psa_crypto_driver_key_derivation_inputs_t *inputs,
     psa_key_derivation_step_t step,
+    const psa_key_attributes_t *attributes,
     uint8_t** p_key_buffer, size_t *key_buffer_size);
 psa_status_t psa_crypto_driver_key_derivation_get_input_integer(
     const psa_crypto_driver_key_derivation_inputs_t *inputs,

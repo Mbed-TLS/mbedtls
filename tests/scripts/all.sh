@@ -1806,6 +1806,18 @@ component_test_depends_py_pkalgs_psa () {
     tests/scripts/depends.py pkalgs
 }
 
+component_build_no_pk_rsa_alt_support () {
+    msg "build: !MBEDTLS_PK_RSA_ALT_SUPPORT" # ~30s
+
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_PK_RSA_ALT_SUPPORT
+    scripts/config.py set MBEDTLS_RSA_C
+    scripts/config.py set MBEDTLS_X509_CRT_WRITE_C
+
+    # Only compile - this is primarily to test for compile issues
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -I../tests/include/alt-dummy'
+}
+
 component_test_no_use_psa_crypto_full_cmake_asan() {
     # full minus MBEDTLS_USE_PSA_CRYPTO: run the same set of tests as basic-build-test.sh
     msg "build: cmake, full config minus MBEDTLS_USE_PSA_CRYPTO, ASan"

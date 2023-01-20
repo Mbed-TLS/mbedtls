@@ -345,7 +345,7 @@ void x509_crt_check(char *subject_key_file, char *subject_pwd,
 
     issuer_key_type = mbedtls_pk_get_type(&issuer_key);
 
-#if defined(MBEDTLS_RSA_C)
+#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
     /* For RSA PK contexts, create a copy as an alternative RSA context. */
     if (pk_wrap == 1 && issuer_key_type == MBEDTLS_PK_RSA) {
         TEST_ASSERT(mbedtls_pk_setup_rsa_alt(&issuer_key_alt,

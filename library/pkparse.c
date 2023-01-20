@@ -429,6 +429,13 @@ static int pk_group_id_from_specified(const mbedtls_asn1_buf *params,
     ret = pk_group_id_from_group(&grp, grp_id);
 
 cleanup:
+    /* The API respecting lifecycle for mbedtls_ecp_group struct is
+     * _init(), _load() and _free(). In pk_group_id_from_specified() the
+     * temporary grp breaks that flow and it's members are populated
+     * by pk_group_id_from_group(). As such mbedtls_ecp_group_free()
+     * which is assuming a group populated by _setup() may not clean-up
+     * properly -> Manually free it's members.
+     */
     mbedtls_mpi_free(&grp.N);
     mbedtls_mpi_free(&grp.P);
     mbedtls_mpi_free(&grp.A);

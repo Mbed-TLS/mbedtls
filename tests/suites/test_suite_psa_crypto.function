@@ -6684,7 +6684,7 @@ void sign_hash_interruptible( int key_type_arg, data_t *key_data,
     TEST_ASSERT( num_ops_prior == 0 );
 
     /* Continue performing the signature until complete. */
-    while( status == PSA_OPERATION_INCOMPLETE )
+    do
     {
         status = psa_sign_hash_complete( &operation, signature, signature_size,
                                             &signature_length );
@@ -6699,6 +6699,7 @@ void sign_hash_interruptible( int key_type_arg, data_t *key_data,
             num_ops_prior = num_ops;
         }
     }
+    while( status == PSA_OPERATION_INCOMPLETE );
 
     TEST_ASSERT( status == PSA_SUCCESS );
 
@@ -6823,10 +6824,8 @@ void sign_hash_fail_interruptible( int key_type_arg, data_t *key_data,
     num_ops_prior = psa_sign_hash_get_num_ops( &operation );
     TEST_ASSERT( num_ops_prior == 0 );
 
-    actual_status = PSA_OPERATION_INCOMPLETE;
-
     /* Continue performing the signature until complete. */
-    while( actual_status == PSA_OPERATION_INCOMPLETE )
+    do
     {
         actual_status = psa_sign_hash_complete( &operation, signature,
                                                 signature_size,
@@ -6848,6 +6847,7 @@ void sign_hash_fail_interruptible( int key_type_arg, data_t *key_data,
             num_ops_prior = num_ops;
         }
     }
+    while( actual_status == PSA_OPERATION_INCOMPLETE );
 
     PSA_ASSERT( psa_sign_hash_abort( &operation ) );
 
@@ -6990,7 +6990,7 @@ void sign_verify_hash_interruptible( int key_type_arg, data_t *key_data,
                                      input_data->x, input_data->len ) );
 
     /* Continue performing the signature until complete. */
-    while( status == PSA_OPERATION_INCOMPLETE )
+    do
     {
 
         status = psa_sign_hash_complete( &sign_operation, signature,
@@ -6999,6 +6999,7 @@ void sign_verify_hash_interruptible( int key_type_arg, data_t *key_data,
 
         num_completes++;
     }
+    while( status == PSA_OPERATION_INCOMPLETE );
 
     TEST_ASSERT( status == PSA_SUCCESS );
 
@@ -7012,7 +7013,6 @@ void sign_verify_hash_interruptible( int key_type_arg, data_t *key_data,
     TEST_ASSERT( signature_length > 0 );
 
     num_completes = 0;
-    status = PSA_OPERATION_INCOMPLETE;
 
     /* Start verification. */
     PSA_ASSERT( psa_verify_hash_start( &verify_operation, key, alg,
@@ -7020,12 +7020,13 @@ void sign_verify_hash_interruptible( int key_type_arg, data_t *key_data,
                                        signature, signature_length ) );
 
     /* Continue performing the signature until complete. */
-    while( status == PSA_OPERATION_INCOMPLETE )
+    do
     {
         status = psa_verify_hash_complete( &verify_operation );
 
         num_completes++;
     }
+    while( status == PSA_OPERATION_INCOMPLETE );
 
     TEST_ASSERT( status == PSA_SUCCESS );
 
@@ -7043,16 +7044,17 @@ void sign_verify_hash_interruptible( int key_type_arg, data_t *key_data,
          * because ECDSA may ignore the last few bits of the input. */
         input_data->x[0] ^= 1;
 
-        status = PSA_OPERATION_INCOMPLETE;
-
         /* Start verification. */
         PSA_ASSERT( psa_verify_hash_start( &verify_operation, key, alg,
                                            input_data->x, input_data->len,
                                            signature, signature_length ) );
 
         /* Continue performing the signature until complete. */
-        while( status == PSA_OPERATION_INCOMPLETE )
+        do
+        {
             status = psa_verify_hash_complete( &verify_operation );
+        }
+        while( status == PSA_OPERATION_INCOMPLETE );
 
         TEST_ASSERT( status ==  PSA_ERROR_INVALID_SIGNATURE );
     }
@@ -7149,7 +7151,7 @@ void verify_hash_interruptible( int key_type_arg, data_t *key_data,
     TEST_ASSERT( num_ops_prior == 0 );
 
     /* Continue performing the signature until complete. */
-    while( status == PSA_OPERATION_INCOMPLETE )
+    do
     {
         status = psa_verify_hash_complete( &operation );
 
@@ -7163,6 +7165,7 @@ void verify_hash_interruptible( int key_type_arg, data_t *key_data,
             num_ops_prior = num_ops;
         }
     }
+    while( status == PSA_OPERATION_INCOMPLETE );
 
     TEST_ASSERT( status == PSA_SUCCESS );
 
@@ -7262,10 +7265,8 @@ void verify_hash_fail_interruptible( int key_type_arg, data_t *key_data,
     num_ops_prior = psa_verify_hash_get_num_ops( &operation );
     TEST_ASSERT( num_ops_prior == 0 );
 
-    actual_status = PSA_OPERATION_INCOMPLETE;
-
     /* Continue performing the signature until complete. */
-    while( actual_status == PSA_OPERATION_INCOMPLETE )
+    do
     {
         actual_status = psa_verify_hash_complete( &operation );
 
@@ -7285,6 +7286,7 @@ void verify_hash_fail_interruptible( int key_type_arg, data_t *key_data,
             num_ops_prior = num_ops;
         }
     }
+    while( actual_status == PSA_OPERATION_INCOMPLETE );
 
     TEST_LE_U( min_completes, num_completes );
     TEST_LE_U( num_completes, max_completes );

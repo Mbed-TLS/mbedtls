@@ -6642,19 +6642,22 @@ void sign_hash_fail_interruptible(int key_type_arg, data_t *key_data,
 
         num_completes++;
 
-        /* If the psa_sign_hash_start() failed, psa_sign_hash_complete()
-         * should also fail with bad state. */
-        if (expected_start_status != PSA_SUCCESS) {
-            TEST_EQUAL(actual_status, PSA_ERROR_BAD_STATE);
-        } else if (actual_status != PSA_OPERATION_INCOMPLETE) {
-            TEST_EQUAL(actual_status, expected_complete_status);
-        } else {
+        if (actual_status == PSA_SUCCESS ||
+            actual_status == PSA_OPERATION_INCOMPLETE) {
             num_ops = psa_sign_hash_get_num_ops(&operation);
             TEST_ASSERT(num_ops > num_ops_prior);
 
             num_ops_prior = num_ops;
         }
     } while (actual_status == PSA_OPERATION_INCOMPLETE);
+
+    /* If the psa_sign_hash_start() failed, psa_sign_hash_complete()
+     * should also fail with bad state. */
+    if (expected_start_status != PSA_SUCCESS) {
+        TEST_EQUAL(actual_status, PSA_ERROR_BAD_STATE);
+    } else if (actual_status != PSA_OPERATION_INCOMPLETE) {
+        TEST_EQUAL(actual_status, expected_complete_status);
+    }
 
     PSA_ASSERT(psa_sign_hash_abort(&operation));
 
@@ -7067,19 +7070,22 @@ void verify_hash_fail_interruptible(int key_type_arg, data_t *key_data,
 
         num_completes++;
 
-        /* If the psa_verify_hash_start() failed,
-         * psa_verify_hash_complete() should also fail with bad state.*/
-        if (expected_start_status != PSA_SUCCESS) {
-            TEST_EQUAL(actual_status, PSA_ERROR_BAD_STATE);
-        } else if (actual_status != PSA_OPERATION_INCOMPLETE) {
-            TEST_EQUAL(actual_status, expected_complete_status);
-        } else {
+        if (actual_status == PSA_SUCCESS ||
+            actual_status == PSA_OPERATION_INCOMPLETE) {
             num_ops = psa_verify_hash_get_num_ops(&operation);
             TEST_ASSERT(num_ops > num_ops_prior);
 
             num_ops_prior = num_ops;
         }
     } while (actual_status == PSA_OPERATION_INCOMPLETE);
+
+    /* If the psa_verify_hash_start() failed,
+     * psa_verify_hash_complete() should also fail with bad state.*/
+    if (expected_start_status != PSA_SUCCESS) {
+        TEST_EQUAL(actual_status, PSA_ERROR_BAD_STATE);
+    } else if (actual_status != PSA_OPERATION_INCOMPLETE) {
+        TEST_EQUAL(actual_status, expected_complete_status);
+    }
 
     TEST_LE_U(min_completes, num_completes);
     TEST_LE_U(num_completes, max_completes);

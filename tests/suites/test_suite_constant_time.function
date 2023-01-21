@@ -80,7 +80,17 @@ void mbedtls_ct_memcpy_if_eq(int eq, int size, int offset)
         expected[i] = eq ? 1 : 0xff;
     }
 
-    mbedtls_ct_memcpy_if_eq(result + offset, src, size, eq, 1);
+    int one, secret_eq;
+    TEST_CF_SECRET(&one, sizeof(one));
+    TEST_CF_SECRET(&secret_eq,  sizeof(secret_eq));
+    one = 1;
+    secret_eq = eq;
+
+    mbedtls_ct_memcpy_if_eq(result + offset, src, size, secret_eq, one);
+
+    TEST_CF_PUBLIC(&one, sizeof(one));
+    TEST_CF_PUBLIC(&secret_eq, sizeof(secret_eq));
+
     ASSERT_COMPARE(expected, size, result + offset, size);
 
     for (int i = 0; i < size + offset; i++) {
@@ -88,9 +98,18 @@ void mbedtls_ct_memcpy_if_eq(int eq, int size, int offset)
         result[i] = 0xff;
         expected[i] = eq ? 1 : 0xff;
     }
-    mbedtls_ct_memcpy_if_eq(result, src + offset, size, eq, 1);
-    ASSERT_COMPARE(expected, size, result, size);
 
+    TEST_CF_SECRET(&one, sizeof(one));
+    TEST_CF_SECRET(&secret_eq,  sizeof(secret_eq));
+    one = 1;
+    secret_eq = eq;
+
+    mbedtls_ct_memcpy_if_eq(result, src + offset, size, secret_eq, one);
+
+    TEST_CF_PUBLIC(&one, sizeof(one));
+    TEST_CF_PUBLIC(&secret_eq, sizeof(secret_eq));
+
+    ASSERT_COMPARE(expected, size, result, size);
 exit:
     mbedtls_free(src);
     mbedtls_free(result);

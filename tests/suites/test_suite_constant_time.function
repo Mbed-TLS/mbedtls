@@ -35,9 +35,17 @@ void mbedtls_ct_memcmp(int same, int size, int offset)
     TEST_CF_SECRET(a + offset, size);
     TEST_CF_SECRET(b + offset, size);
 
+    /* Construct data that matches, if same == -1, otherwise
+     * same gives the number of bytes (after the initial offset)
+     * that will match; after that it will differ.
+     */
     for (int i = 0; i < size + offset; i++) {
         a[i] = i & 0xff;
-        b[i] = (i & 0xff) + (same ? 0 : 1);
+        if (same == -1 || (i - offset) < same) {
+            b[i] = a[i];
+        } else {
+            b[i] = (i + 1) & 0xff;
+        }
     }
 
     int reference = memcmp(a + offset, b + offset, size);
@@ -45,7 +53,7 @@ void mbedtls_ct_memcmp(int same, int size, int offset)
     TEST_CF_PUBLIC(a + offset, size);
     TEST_CF_PUBLIC(b + offset, size);
 
-    if (same != 0) {
+    if (same == -1 || same >= size) {
         TEST_ASSERT(reference == 0);
         TEST_ASSERT(actual == 0);
     } else {

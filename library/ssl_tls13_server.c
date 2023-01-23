@@ -3109,6 +3109,7 @@ static int ssl_tls13_handshake_wrapup(mbedtls_ssl_context *ssl)
     return 0;
 }
 
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
 /*
  * Handler for MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET
  */
@@ -3138,7 +3139,6 @@ static int ssl_tls13_write_new_session_ticket_coordinate(mbedtls_ssl_context *ss
     return SSL_NEW_SESSION_TICKET_WRITE;
 }
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
                                                 unsigned char *ticket_nonce,

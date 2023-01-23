@@ -419,8 +419,7 @@ class DomainData:
                                  exclude=r'MBEDTLS_(MD|RIPEMD|SHA1_)' \
                                           '|MBEDTLS_SHA224_' \
                                           '|MBEDTLS_SHA384_'),
-            # Key exchange types. Only build the library and the sample
-            # programs.
+            # Key exchange types.
             'kex': ExclusiveDomain(key_exchange_symbols, build_and_test),
             'pkalgs': ComplementaryDomain(['MBEDTLS_ECDSA_C',
                                            'MBEDTLS_ECP_C',

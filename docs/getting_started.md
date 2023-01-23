@@ -39,7 +39,7 @@ interface, which provides access to a set of primitives.
 * [Generating a random value](#generating-a-random-value)
 * [Authenticating and encrypting or decrypting a message](#authenticating-and-encrypting-or-decrypting-a-message)
 * [Generating and exporting keys](#generating-and-exporting-keys)
-* [More about the Mbed TLS library](#more-about-the-psa-crypto-api)
+* [More about the PSA Crypto API](#more-about-the-psa-crypto-api)
 
 ### Getting the Mbed TLS library
 
@@ -72,8 +72,8 @@ directory to the target machine.
 
 ### Using the PSA Crypto API
 
-To use the PSA APIs, call `psa_crypto_init()` before calling any other PSA API.
-This initializes the library.
+If using PSA Crypto, you must initialize the library by calling
+`psa_crypto_init()` before any other PSA API.
 
 ### Importing a key
 

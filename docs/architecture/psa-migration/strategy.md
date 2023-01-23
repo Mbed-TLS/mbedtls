@@ -393,7 +393,7 @@ manually for each PR that changes dependency declarations by using the script
 2. The set of tests skipped in the driver-only build is the same as in an
   equivalent software-based configuration. This is tested automatically by the
 CI in the "Results analysis" stage, by running
-`tests/scripts/analyze_outcomes.csv`. See the
+`tests/scripts/analyze_outcomes.py`. See the
 `analyze_driver_vs_reference_xxx` actions in the script and the comments above
 their declaration for how to do that locally.
 

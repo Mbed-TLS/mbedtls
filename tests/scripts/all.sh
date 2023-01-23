@@ -2053,8 +2053,8 @@ component_test_psa_crypto_config_accel_ecdsa_use_psa () {
     loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
     make -C tests libtestdriver1.a CFLAGS="$ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
 
-    # Configure and build the test driver library
-    # -------------------------------------------
+    # Configure and build the main libraries with drivers enabled
+    # -----------------------------------------------------------
 
     # Use the same config as reference, only without built-in ECDSA
     config_psa_crypto_config_ecdsa_use_psa 1

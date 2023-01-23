@@ -10,8 +10,8 @@
 #
 # USAGE:
 # - First, commit any uncommited changes. (Also, see warning below.)
-# - including ssl-opt.sh: docs/architecture/psa-migration/outcome-analysis.sh
-# - or: SKIP_SSL_OPT=1 docs/architecture/psa-migration/outcome-analysis.sh
+# - Then launch --> [SKIP_SSL_OPT=1] docs/architecture/psa-migration/outcome-analysis.sh
+#     - SKIP_SSL_OPT=1 can optionally be set to skip ssl-opt.sh tests
 #
 # WARNING: this script checks out a commit other than the head of the current
 # branch; it checks out the current branch again when running successfully,

@@ -179,6 +179,9 @@ mpi_mod_raw_cond_swap:"000000001111111122222222333333334444444455555555666666667
 mbedtls_mpi_mod_raw_cond_swap: copy half of the limbs
 mpi_mod_raw_cond_swap:"00000000FFFFFFFF55555555AAAAAAAA":"FEDCBA9876543210FEDCBA9876543210":8
 
+Bignum mod raw quasi-reduction: uninitialized modulus
+mpi_mod_raw_fix_quasi_reduction_neg:"11":"12":"1"
+
 # BEGIN MERGE SLOT 1
 
 # END MERGE SLOT 1

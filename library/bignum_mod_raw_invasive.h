@@ -1,8 +1,8 @@
 /**
- * \file ecp_internal.h
+ * \file bignum_mod_raw_invasive.h
  *
- * \brief Function declarations for internal functions of elliptic curve
- * point arithmetic.
+ * \brief Function declarations for invasive functions of Low-level
+ *        modular bignum.
  */
 /**
  *  Copyright The Mbed TLS Contributors
@@ -21,8 +21,8 @@
  *  limitations under the License.
  */
 
-#ifndef MBEDTLS_ECP_INTERNAL_H
-#define MBEDTLS_ECP_INTERNAL_H
+#ifndef MBEDTLS_BIGNUM_MOD_RAW_INVASIVE_H
+#define MBEDTLS_BIGNUM_MOD_RAW_INVASIVE_H
 
 #include "common.h"
 #include "mbedtls/bignum.h"
@@ -40,7 +40,8 @@
  * \return      \c 0 if successful.
  * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p N is invalid.
  */
-int mbedtls_ecp_quasi_reduction(mbedtls_mpi_uint *X,
-                                const mbedtls_mpi_mod_modulus *N);
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_mpi_mod_raw_fix_quasi_reduction(mbedtls_mpi_uint *X,
+                                            const mbedtls_mpi_mod_modulus *N);
 
-#endif /* MBEDTLS_ECP_INTERNAL_H */
+#endif /* MBEDTLS_BIGNUM_MOD_RAW_INVASIVE_H */

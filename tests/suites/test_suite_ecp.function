@@ -2,8 +2,8 @@
 #include "mbedtls/ecp.h"
 #include "mbedtls/ecdsa.h"
 #include "mbedtls/ecdh.h"
+
 #include "ecp_invasive.h"
-#include "ecp_internal.h"
 
 #if defined(MBEDTLS_TEST_HOOKS) &&                  \
     (defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) ||  \
@@ -1293,95 +1293,5 @@ void ecp_check_order(int id, char *expected_order_hex)
 exit:
     mbedtls_ecp_group_free(&grp);
     mbedtls_mpi_free(&expected_n);
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void ecp_quasi_reduction(char *input_N,
-                         char *input_A,
-                         char *result)
-{
-    mbedtls_mpi_uint *A = NULL;
-    mbedtls_mpi_uint *N = NULL;
-    mbedtls_mpi_uint *res = NULL;
-    size_t limbs_A;
-    size_t limbs_N;
-    size_t limbs_res;
-
-    mbedtls_mpi_mod_modulus m;
-    mbedtls_mpi_mod_modulus_init(&m);
-
-    TEST_EQUAL(mbedtls_test_read_mpi_core(&A,   &limbs_A,   input_A), 0);
-    TEST_EQUAL(mbedtls_test_read_mpi_core(&N,   &limbs_N,   input_N), 0);
-    TEST_EQUAL(mbedtls_test_read_mpi_core(&res, &limbs_res, result),  0);
-
-    size_t limbs = limbs_N;
-    size_t bytes = limbs * sizeof(mbedtls_mpi_uint);
-
-    TEST_EQUAL(limbs_A,   limbs);
-    TEST_EQUAL(limbs_res, limbs);
-
-    TEST_EQUAL(mbedtls_mpi_mod_modulus_setup(
-                   &m, N, limbs,
-                   MBEDTLS_MPI_MOD_REP_MONTGOMERY), 0);
-
-    TEST_EQUAL(mbedtls_ecp_quasi_reduction(A, &m), 0);
-    ASSERT_COMPARE(A, bytes, res, bytes);
-
-exit:
-    mbedtls_free(A);
-    mbedtls_free(res);
-
-    mbedtls_mpi_mod_modulus_free(&m);
-    mbedtls_free(N);
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void ecp_quasi_reduction_neg(char *input_N,
-                             char *input_A,
-                             char *result)
-{
-    mbedtls_mpi_uint *A = NULL;
-    mbedtls_mpi_uint *N = NULL;
-    mbedtls_mpi_uint *res = NULL;
-    size_t limbs_A;
-    size_t limbs_N;
-    size_t limbs_res;
-
-    mbedtls_mpi_mod_modulus m;
-    mbedtls_mpi_mod_modulus_init(&m);
-
-    mbedtls_mpi_mod_modulus fake_m;
-    mbedtls_mpi_mod_modulus_init(&fake_m);
-
-    TEST_EQUAL(mbedtls_test_read_mpi_core(&A,   &limbs_A,   input_A), 0);
-    TEST_EQUAL(mbedtls_test_read_mpi_core(&N,   &limbs_N,   input_N), 0);
-    TEST_EQUAL(mbedtls_test_read_mpi_core(&res, &limbs_res, result),  0);
-
-    size_t limbs = limbs_N;
-    size_t bytes = limbs * sizeof(mbedtls_mpi_uint);
-
-    TEST_EQUAL(limbs_A,   limbs);
-    TEST_EQUAL(limbs_res, limbs);
-
-    TEST_EQUAL(mbedtls_mpi_mod_modulus_setup(
-                   &m, N, limbs,
-                   MBEDTLS_MPI_MOD_REP_MONTGOMERY), 0);
-
-    TEST_EQUAL(mbedtls_ecp_quasi_reduction(A, &m), 0);
-    ASSERT_COMPARE(A, bytes, res, bytes);
-
-    /* Check when m is not initialized */
-    TEST_EQUAL(mbedtls_ecp_quasi_reduction(A, &fake_m),
-               MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
-
-exit:
-    mbedtls_free(A);
-    mbedtls_free(res);
-
-    mbedtls_mpi_mod_modulus_free(&fake_m);
-    mbedtls_mpi_mod_modulus_free(&m);
-    mbedtls_free(N);
 }
 /* END_CASE */

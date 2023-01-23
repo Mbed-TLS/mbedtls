@@ -346,7 +346,7 @@ void mbedtls_mpi_mod_raw_add(mbedtls_mpi_uint *X,
  *                  is unspecified.
  * \param[in] N     The modulus structure.
  *
- *\ return          \c 0 if successful.
+ * \return          \c 0 if successful.
  *                  Otherwise an \c MBEDTLS_ERR_MPI_xxx error code.
  */
 int mbedtls_mpi_mod_raw_canonical_to_modulus_rep(
@@ -363,7 +363,7 @@ int mbedtls_mpi_mod_raw_canonical_to_modulus_rep(
  *                  is unspecified.
  * \param[in] N     The modulus structure.
  *
- *\ return          \c 0 if successful.
+ * \return          \c 0 if successful.
  *                  Otherwise an \c MBEDTLS_ERR_MPI_xxx error code.
  */
 int mbedtls_mpi_mod_raw_modulus_to_canonical_rep(

@@ -15,6 +15,108 @@
 #include <test/constant_flow.h>
 /* END_HEADER */
 
+/* BEGIN_CASE */
+void mbedtls_ct_memcmp_null()
+{
+    uint32_t x;
+    TEST_ASSERT(mbedtls_ct_memcmp(&x, NULL, 0) == 0);
+    TEST_ASSERT(mbedtls_ct_memcmp(NULL, &x, 0) == 0);
+    TEST_ASSERT(mbedtls_ct_memcmp(NULL, NULL, 0) == 0);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mbedtls_ct_memcmp(int same, int size, int offset)
+{
+    uint8_t *a = NULL, *b = NULL;
+    ASSERT_ALLOC(a, size + offset);
+    ASSERT_ALLOC(b, size + offset);
+
+    TEST_CF_SECRET(a + offset, size);
+    TEST_CF_SECRET(b + offset, size);
+
+    /* Construct data that matches, if same == -1, otherwise
+     * same gives the number of bytes (after the initial offset)
+     * that will match; after that it will differ.
+     */
+    for (int i = 0; i < size + offset; i++) {
+        a[i] = i & 0xff;
+        if (same == -1 || (i - offset) < same) {
+            b[i] = a[i];
+        } else {
+            b[i] = (i + 1) & 0xff;
+        }
+    }
+
+    int reference = memcmp(a + offset, b + offset, size);
+    int actual = mbedtls_ct_memcmp(a + offset, b + offset, size);
+    TEST_CF_PUBLIC(a + offset, size);
+    TEST_CF_PUBLIC(b + offset, size);
+
+    if (same == -1 || same >= size) {
+        TEST_ASSERT(reference == 0);
+        TEST_ASSERT(actual == 0);
+    } else {
+        TEST_ASSERT(reference != 0);
+        TEST_ASSERT(actual != 0);
+    }
+exit:
+    mbedtls_free(a);
+    mbedtls_free(b);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_SOME_SUITES_USE_MAC */
+void mbedtls_ct_memcpy_if_eq(int eq, int size, int offset)
+{
+    uint8_t *src = NULL, *result = NULL, *expected = NULL;
+    ASSERT_ALLOC(src, size + offset);
+    ASSERT_ALLOC(result, size + offset);
+    ASSERT_ALLOC(expected, size + offset);
+
+    for (int i = 0; i < size + offset; i++) {
+        src[i]    = 1;
+        result[i] = 0xff;
+        expected[i] = eq ? 1 : 0xff;
+    }
+
+    int one, secret_eq;
+    TEST_CF_SECRET(&one, sizeof(one));
+    TEST_CF_SECRET(&secret_eq,  sizeof(secret_eq));
+    one = 1;
+    secret_eq = eq;
+
+    mbedtls_ct_memcpy_if_eq(result + offset, src, size, secret_eq, one);
+
+    TEST_CF_PUBLIC(&one, sizeof(one));
+    TEST_CF_PUBLIC(&secret_eq, sizeof(secret_eq));
+
+    ASSERT_COMPARE(expected, size, result + offset, size);
+
+    for (int i = 0; i < size + offset; i++) {
+        src[i]    = 1;
+        result[i] = 0xff;
+        expected[i] = eq ? 1 : 0xff;
+    }
+
+    TEST_CF_SECRET(&one, sizeof(one));
+    TEST_CF_SECRET(&secret_eq,  sizeof(secret_eq));
+    one = 1;
+    secret_eq = eq;
+
+    mbedtls_ct_memcpy_if_eq(result, src + offset, size, secret_eq, one);
+
+    TEST_CF_PUBLIC(&one, sizeof(one));
+    TEST_CF_PUBLIC(&secret_eq, sizeof(secret_eq));
+
+    ASSERT_COMPARE(expected, size, result, size);
+exit:
+    mbedtls_free(src);
+    mbedtls_free(result);
+    mbedtls_free(expected);
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC:MBEDTLS_TEST_HOOKS */
 void ssl_cf_memcpy_offset(int offset_min, int offset_max, int len)
 {

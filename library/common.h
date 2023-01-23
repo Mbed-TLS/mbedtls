@@ -122,11 +122,13 @@ static inline const unsigned char *mbedtls_buffer_offset_const(
  */
 inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned char *b, size_t n)
 {
-    size_t i;
-    for (i = 0; (i + 4) <= n; i += 4) {
+    size_t i = 0;
+#if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)
+    for (; (i + 4) <= n; i += 4) {
         uint32_t x = mbedtls_get_unaligned_uint32(a + i) ^ mbedtls_get_unaligned_uint32(b + i);
         mbedtls_put_unaligned_uint32(r + i, x);
     }
+#endif
     for (; i < n; i++) {
         r[i] = a[i] ^ b[i];
     }
@@ -139,5 +141,12 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
 #if (defined(_MSC_VER) && (_MSC_VER <= 1900))
 #define /*no-check-names*/ __func__ __FUNCTION__
 #endif
+
+/* Define `asm` for compilers which don't define it. */
+/* *INDENT-OFF* */
+#ifndef asm
+#define asm __asm__
+#endif
+/* *INDENT-ON* */
 
 #endif /* MBEDTLS_LIBRARY_COMMON_H */

@@ -6,7 +6,6 @@
 #if defined(__clang__)
 #pragma clang diagnostic ignored "-Wunreachable-code"
 #endif
-#include <stdio.h>
 
 /*
  * Convert a string of the form "abcd" (case-insensitive) to a uint64_t.

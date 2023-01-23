@@ -5,6 +5,12 @@ As of Mbed TLS 3.3.0, the PSA Driver Interface has only been partially implement
 The `docs/proposed/` directory contains three documents which pertain to the proposed, work-in-progress driver system. The [PSA Driver Interface](https://github.com/Mbed-TLS/mbedtls/blob/development/docs/proposed/psa-driver-interface.md) describes how drivers will interface with Mbed TLS in the future, as well as driver types, operation types, and entry points. As many key terms and concepts used in the examples in this document are defined in the PSA Driver Interface, it is recommended that developers read it prior to starting work on implementing drivers. 
 The PSA Driver [Developer](https://github.com/Mbed-TLS/mbedtls/blob/development/docs/proposed/psa-driver-developer-guide.md) Guide describes the deliverables for writing a driver that can be used with Mbed TLS, and the PSA Driver [Integration](https://github.com/Mbed-TLS/mbedtls/blob/development/docs/proposed/psa-driver-integration-guide.md) Guide describes how a driver can be built alongside Mbed TLS.
 
+## Contents:
+[Background on how Mbed TLS calls drivers](#background-on-how-mbed-tls-calls-drivers)\
+[Process for Entry Points where auto-generation is implemented](#process-for-entry-points-where-auto-generation-is-implemented) \
+[Process for Entry Points where auto-generation is not implemented](#process-for-entry-points-where-auto-generation-is-not-implemented) \
+[Example: Manually integrating a software accelerator alongside Mbed TLS](#example-manually-integrating-a-software-accelerator-alongside-mbed-tls) 
+
 ## Background on how Mbed TLS calls drivers
 
 The PSA Driver Interface specification specifies which cryptographic operations can be accelerated by third-party drivers. Operations that are completed within one step (one function call), such as verifying a signature, are called *Single-Part Operations*. On the other hand, operations that consist of multiple steps implemented by different functions called sequentially are called *Multi-Part Operations*. Single-part operations implemented by a driver will have one entry point, while multi-part operations will have multiple: one for each step.
@@ -111,3 +117,10 @@ All code related to driver calls within each `case` must be contained between `#
 This guide assumes you are building Mbed TLS from source alongside your project. If building with a driver present, the chosen driver macro (`DRIVER_PREFIX_ENABLED`) must be defined. This can be done in two ways:
 * *At compile time via flags.* This is the preferred option when your project uses Mbed TLS mostly out-of-the-box without significantly modifying the configuration. When building with Make this can be done by passing the macro name to Make with the `-D` flag. When building with CMake this can be done by modifying `CMakeLists.txt`. 
 * *Providing a user config file.* This is the preferred option when your project requires a custom configuration that is significantly different to the default. Define the macro for the driver, along with any other custom configurations in a separate header file, then use `config.py`, to set `MBEDTLS_USER_CONFIG_FILE`, providing the path to the defined header file. This will include your custom config file after the default. If you wish to completely replace the default config file, set `MBEDTLS_CONFIG_FILE` instead. 
+
+### Example: Manually integrating a software accelerator alongside Mbed TLS
+
+[p256-m](https://github.com/mpg/p256-m) is a minimalistic implementation of ECDH and ECDSA on NIST P-256 curves, specifically optimized for use in constrained 32-bit environments. As such, it serves as a software accelerator. This section demonstrates the integration of `p256-m` as a transparent driver alongside Mbed TLS, serving as a guide for implementation.
+The code for p256-m can be found in `3rdparty/p256-m/p256m`. In this demonstration, p256-m is built from source alongside Mbed TLS. 
+
+**1. Driver Prefix/Macro** \

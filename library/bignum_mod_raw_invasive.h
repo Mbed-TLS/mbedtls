@@ -28,6 +28,8 @@
 #include "mbedtls/bignum.h"
 #include "bignum_mod.h"
 
+#if defined(MBEDTLS_TEST_HOOKS)
+
 /** Convert an MPI to its canonical representative.
  *
  * \note Currently handles the case when `N->int_rep` is
@@ -43,5 +45,7 @@
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_mpi_mod_raw_fix_quasi_reduction(mbedtls_mpi_uint *X,
                                             const mbedtls_mpi_mod_modulus *N);
+
+#endif /* MBEDTLS_TEST_HOOKS */
 
 #endif /* MBEDTLS_BIGNUM_MOD_RAW_INVASIVE_H */

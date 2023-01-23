@@ -340,7 +340,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
 void mpi_mod_raw_fix_quasi_reduction(char *input_N,
                                      char *input_A,
                                      char *result)
@@ -381,7 +381,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
 void mpi_mod_raw_fix_quasi_reduction_neg(char *input_N,
                                          char *input_A,
                                          char *result)

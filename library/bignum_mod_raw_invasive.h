@@ -30,17 +30,12 @@
 
 #if defined(MBEDTLS_TEST_HOOKS)
 
-/** Convert an MPI to its canonical representative.
- *
- * \note Currently handles the case when `N->int_rep` is
- * MBEDTLS_MPI_MOD_REP_MONTGOMERY.
+/** Convert the result of a quasi-reduction to its canonical representative.
  *
  * \param[in,out] X     The address of the MPI to be converted. Must have the
- *                      same number of limbs as \p N.
+ *                      same number of limbs as \p N. The input value must
+ *                      be in range 0 <= X < 2N.
  * \param[in]     N     The address of the modulus.
- *
- * \return      \c 0 if successful.
- * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p N is invalid.
  */
 MBEDTLS_STATIC_TESTABLE
 void mbedtls_mpi_mod_raw_fix_quasi_reduction(mbedtls_mpi_uint *X,

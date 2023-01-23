@@ -164,14 +164,14 @@ TASKS = {
                 'ecdsa', # the software implementation that's excluded
                 # the following lines should not be needed,
                 # they will be removed by upcoming work
-                'psa_crypto_se_driver_hal',
-                'random',
-                'ecp',
-                'pk',
-                'x509parse',
-                'x509write',
-                'debug',
-                'ssl',
+                'psa_crypto_se_driver_hal', # #6856
+                'random', # #6856
+                'ecp', # #6856
+                'pk', # #6857
+                'x509parse', # #6858
+                'x509write', # #6858
+                'debug', # #6860
+                'ssl', # #6860
             ]}},
 }
 

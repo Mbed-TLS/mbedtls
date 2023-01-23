@@ -2026,7 +2026,7 @@ config_psa_crypto_config_ecdsa_use_psa () {
         scripts/config.py unset MBEDTLS_ECDSA_C
     fi
     # Disable things that depend on it
-    # TODO: make these work
+    # TODO: make these work - #6862
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
 }
@@ -2074,8 +2074,7 @@ component_test_psa_crypto_config_accel_ecdsa_use_psa () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDSA + USE_PSA"
     make test
 
-    # TODO: ssl-opt.sh (currently doesn't pass)
-    # TODO: is some subset of compat.sh needed?
+    # TODO: ssl-opt.sh (currently doesn't pass) - #6861
 }
 
 # Keep in sync with component_test_psa_crypto_config_accel_ecdsa_use_psa.
@@ -2094,7 +2093,7 @@ component_test_psa_crypto_config_reference_ecdsa_use_psa () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDSA + USE_PSA"
     make test
 
-    # TODO: ssl-opt.sh (when the accel component is ready)
+    # TODO: ssl-opt.sh (when the accel component is ready) - #6861
 }
 
 component_test_psa_crypto_config_accel_ecdh () {

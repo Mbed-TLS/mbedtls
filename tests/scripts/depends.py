@@ -71,7 +71,7 @@ import shutil
 import subprocess
 import sys
 import traceback
-
+# Add the Mbed TLS Python library directory to the module search path
 import scripts_path # pylint: disable=unused-import
 import config
 
@@ -140,22 +140,22 @@ def option_exists(conf, option):
         return False
     return True
 
-def set_config_option(conf, option, colors, value=None):
-    """Set configuration option, optionally specifying a value"""
+def set_config_option_value(conf, option, colors, value):
+    """Set/unset a configuration option, optionally specifying a value"""
     if not option_exists(conf, option):
         log_line('Symbol {} was not found in {}'.format(option, conf.filename), color=colors.red)
         return False
-    log_command(['config.py', 'set', option])
-    conf.set(option, value)
-    return True
 
-def unset_config_option(conf, option, colors):
-    """Unset configuration option if it exists"""
-    if not option_exists(conf, option):
-        log_line('Symbol {} was not found in {}'.format(option, conf.filename), color=colors.red)
-        return False
-    log_command(['config.py', 'unset', option])
-    conf.unset(option)
+    if value is False:
+        log_command(['config.py', 'unset', option])
+        conf.unset(option)
+    else:
+        if value is True:
+            log_command(['config.py', 'set', option])
+            conf.set(option)
+        else:
+            log_command(['config.py', 'set', option, value])
+            conf.set(option, value)
     return True
 
 def set_reference_config(conf, options, colors):
@@ -165,9 +165,9 @@ derived."""
     # Turn off options that are not relevant to the tests and slow them down.
     log_command(['config.py', 'full'])
     conf.adapt(config.full_adapter)
-    unset_config_option(conf, 'MBEDTLS_TEST_HOOKS', colors)
+    set_config_option_value(conf, 'MBEDTLS_TEST_HOOKS', colors, False)
     if options.unset_use_psa:
-        unset_config_option(conf, 'MBEDTLS_USE_PSA_CRYPTO', colors)
+        set_config_option_value(conf, 'MBEDTLS_USE_PSA_CRYPTO', colors, False)
 
 class Job:
     """A job builds the library in a specific configuration and runs some tests."""
@@ -201,13 +201,7 @@ If what is False, announce that the job has failed.'''
         '''Set library configuration options as required for the job.'''
         set_reference_config(conf, options, colors)
         for key, value in sorted(self.config_settings.items()):
-            ret = False
-            if value is True:
-                ret = set_config_option(conf, key, colors)
-            elif value is False:
-                ret = unset_config_option(conf, key, colors)
-            else:
-                ret = set_config_option(conf, key, colors, value)
+            ret = set_config_option_value(conf, key, colors, value)
             if ret is False:
                 return False
         return True

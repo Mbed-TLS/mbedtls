@@ -20,8 +20,8 @@ Mbed TLS is distributed under the Apache License, version 2.0.
 #### Platform Security Architecture (PSA)
 
 Arm's Platform Security Architecture (PSA) is a holistic set of threat models,
-security analyses, hardware and firmware architecture specifications, and an open
-source firmware reference implementation. PSA provides a recipe, based on
+security analyses, hardware and firmware architecture specifications, and an
+open source firmware reference implementation. PSA provides a recipe, based on
 industry best practice, that enables you to design security into both hardware
 and firmware consistently. Part of the API provided by PSA is the cryptography
 interface, which provides access to a set of primitives.
@@ -204,8 +204,9 @@ symmetric cipher algorithms (both block and stream ciphers).
 
 **Prerequisites to working with the symmetric cipher API:**
 * Initialize the library with a successful call to `psa_crypto_init()`.
-* Have a symmetric key. This key's usage flags must include `PSA_KEY_USAGE_ENCRYPT`
-  to allow encryption or `PSA_KEY_USAGE_DECRYPT` to allow decryption.
+* Have a symmetric key. This key's usage flags must include
+  `PSA_KEY_USAGE_ENCRYPT` to allow encryption or `PSA_KEY_USAGE_DECRYPT` to
+  allow decryption.
 
 **To encrypt a message with a symmetric cipher:**
 1. Allocate an operation (`psa_cipher_operation_t`) structure to pass to the
@@ -602,11 +603,13 @@ including other keys and data, and functions to generate outputs, such as
 new keys or other data.
 
 You must first initialize and set up a key derivation context,
-provided with a key and, optionally, other data. Then, use the key derivation context
-to either read derived data to a buffer or send derived data directly to a key slot.
+provided with a key and, optionally, other data. Then, use the key derivation
+context to either read derived data to a buffer or send derived data directly
+to a key slot.
 
-See the documentation for the particular algorithm (such as HKDF or the TLS1.2 PRF) for
-information about which inputs to pass when, and when you can obtain which outputs.
+See the documentation for the particular algorithm (such as HKDF or the
+TLS 1.2 PRF) for information about which inputs to pass when, and when you can
+obtain which outputs.
 
 **Prerequisites to working with the key derivation APIs:**
 * Initialize the library with a successful call to `psa_crypto_init()`.
@@ -623,11 +626,11 @@ with a given key, salt and info:**
 function, specifying the derivation algorithm `PSA_ALG_HKDF(PSA_ALG_SHA_256)`.
 1. Provide an optional salt with `psa_key_derivation_input_bytes()`.
 1. Provide info with `psa_key_derivation_input_bytes()`.
-1. Provide a secret with `psa_key_derivation_input_key()`, referencing a key that
-   can be used for key derivation.
+1. Provide a secret with `psa_key_derivation_input_key()`, referencing a key
+   that can be used for key derivation.
 1. Set the key attributes desired for the new derived key. We'll set
-   the `PSA_KEY_USAGE_ENCRYPT` usage flag and the `PSA_ALG_CTR` algorithm for this
-   example.
+   the `PSA_KEY_USAGE_ENCRYPT` usage flag and the `PSA_ALG_CTR` algorithm for
+   this example.
 1. Derive the key by calling `psa_key_derivation_output_key()`.
 1. Clean up the key derivation context.
 

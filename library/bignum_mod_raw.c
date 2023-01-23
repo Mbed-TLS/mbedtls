@@ -129,18 +129,12 @@ void mbedtls_mpi_mod_raw_mul(mbedtls_mpi_uint *X,
 }
 
 MBEDTLS_STATIC_TESTABLE
-int mbedtls_mpi_mod_raw_fix_quasi_reduction(mbedtls_mpi_uint *X,
-                                            const mbedtls_mpi_mod_modulus *N)
+void mbedtls_mpi_mod_raw_fix_quasi_reduction(mbedtls_mpi_uint *X,
+                                             const mbedtls_mpi_mod_modulus *N)
 {
-    if (N->limbs == 0) {
-        return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
-    }
-
     mbedtls_mpi_uint c = mbedtls_mpi_core_sub(X, X, N->p, N->limbs);
 
     (void) mbedtls_mpi_core_add_if(X, N->p, N->limbs, (unsigned) c);
-
-    return 0;
 }
 
 /* END MERGE SLOT 2 */

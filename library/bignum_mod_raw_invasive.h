@@ -43,8 +43,8 @@
  * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p N is invalid.
  */
 MBEDTLS_STATIC_TESTABLE
-int mbedtls_mpi_mod_raw_fix_quasi_reduction(mbedtls_mpi_uint *X,
-                                            const mbedtls_mpi_mod_modulus *N);
+void mbedtls_mpi_mod_raw_fix_quasi_reduction(mbedtls_mpi_uint *X,
+                                             const mbedtls_mpi_mod_modulus *N);
 
 #endif /* MBEDTLS_TEST_HOOKS */
 

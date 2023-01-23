@@ -16,7 +16,7 @@
  * \return              The corresponding PSA error code
  */
  //no-check-names
-psa_status_t p256m_to_psa_error( int ret );
+psa_status_t p256_to_psa_error( int ret );
 
 
 /** Generate SECP256R1 ECC Key Pair.
@@ -39,7 +39,7 @@ psa_status_t p256m_to_psa_error( int ret );
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  */
  //no-check-names
-psa_status_t p256m_transparent_generate_key(
+psa_status_t p256_transparent_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key_buffer,
     size_t key_buffer_size,
@@ -68,7 +68,7 @@ psa_status_t p256m_transparent_generate_key(
  * \retval #PSA_ERROR_NOT_SUPPORTED
  */
  //no-check-names
-psa_status_t p256m_transparent_key_agreement(
+psa_status_t p256_transparent_key_agreement(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
     size_t key_buffer_size,
@@ -101,7 +101,7 @@ psa_status_t p256m_transparent_key_agreement(
  * \retval #PSA_ERROR_NOT_SUPPORTED
  */
 //no-check-names
-psa_status_t p256m_transparent_sign_hash(
+psa_status_t p256_transparent_sign_hash(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
     size_t key_buffer_size,
@@ -142,7 +142,7 @@ psa_status_t p256m_transparent_sign_hash(
  *         signature is not a valid signature.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  */
-psa_status_t p256m_transparent_verify_hash(
+psa_status_t p256_transparent_verify_hash(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
     size_t key_buffer_size,

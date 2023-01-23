@@ -323,7 +323,7 @@ psa_status_t psa_driver_wrapper_sign_hash(
                 PSA_KEY_TYPE_ECC_GET_FAMILY(attributes->core.type) == PSA_ECC_FAMILY_SECP_R1 &&
                 attributes->core.bits == 256 )
             {
-                status = p256m_transparent_sign_hash( attributes,
+                status = p256_transparent_sign_hash( attributes,
                                                       key_buffer,
                                                       key_buffer_size,
                                                       alg,
@@ -427,7 +427,7 @@ psa_status_t psa_driver_wrapper_verify_hash(
                 PSA_KEY_TYPE_ECC_GET_FAMILY(attributes->core.type) == PSA_ECC_FAMILY_SECP_R1 &&
                 attributes->core.bits == 256 )
             {
-                status = p256m_transparent_verify_hash( attributes,
+                status = p256_transparent_verify_hash( attributes,
                                                         key_buffer,
                                                         key_buffer_size,
                                                         alg,
@@ -858,7 +858,7 @@ psa_status_t psa_driver_wrapper_generate_key(
                     attributes->core.type == PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1) &&
                     attributes->core.bits == 256 )
                 {
-                    status = p256m_transparent_generate_key( attributes,
+                    status = p256_transparent_generate_key( attributes,
                                                              key_buffer,
                                                              key_buffer_size,
                                                              key_buffer_length );
@@ -2811,7 +2811,7 @@ psa_status_t psa_driver_wrapper_key_agreement(
                 PSA_KEY_TYPE_ECC_GET_FAMILY(attributes->core.type) == PSA_ECC_FAMILY_SECP_R1 &&
                 attributes->core.bits == 256 )
             {
-                status = p256m_transparent_key_agreement( attributes,
+                status = p256_transparent_key_agreement( attributes,
                                                           key_buffer,
                                                           key_buffer_size,
                                                           alg,

@@ -6,7 +6,7 @@
 
 #if defined(MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED)
 
-psa_status_t p256m_to_psa_error( int ret )
+psa_status_t p256_to_psa_error( int ret )
 {
     switch( ret )
     {
@@ -23,7 +23,7 @@ psa_status_t p256m_to_psa_error( int ret )
     }
 }
 
-psa_status_t p256m_transparent_generate_key(
+psa_status_t p256_transparent_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key_buffer,
     size_t key_buffer_size,
@@ -51,7 +51,7 @@ psa_status_t p256m_transparent_generate_key(
     if( public_key_buffer == NULL)
         return( PSA_ERROR_INSUFFICIENT_MEMORY );
 
-    status = p256m_to_psa_error(
+    status = p256_to_psa_error(
                 p256_gen_keypair(key_buffer, public_key_buffer) );
     if( status == PSA_SUCCESS )
         *key_buffer_length = 32;
@@ -65,7 +65,7 @@ psa_status_t p256m_transparent_generate_key(
     return status;
 }
 
-psa_status_t p256m_transparent_key_agreement(
+psa_status_t p256_transparent_key_agreement(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
     size_t key_buffer_size,
@@ -90,7 +90,7 @@ psa_status_t p256m_transparent_key_agreement(
         peer_key_length != 65 )
         return ( status );
 
-    status = p256m_to_psa_error(
+    status = p256_to_psa_error(
                 p256_ecdh_shared_secret(shared_secret, key_buffer, peer_key+1) );
     if( status == PSA_SUCCESS )
         *shared_secret_length = 32;
@@ -98,7 +98,7 @@ psa_status_t p256m_transparent_key_agreement(
     return status;
 }
 
-psa_status_t p256m_transparent_sign_hash(
+psa_status_t p256_transparent_sign_hash(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
     size_t key_buffer_size,
@@ -119,7 +119,7 @@ psa_status_t p256m_transparent_sign_hash(
     if( key_buffer_size != 32 || signature_size != 64)
         return( status );
 
-    status = p256m_to_psa_error(
+    status = p256_to_psa_error(
             p256_ecdsa_sign(signature, key_buffer, hash, hash_length) );
     if( status == PSA_SUCCESS )
         *signature_length = 64;
@@ -129,7 +129,7 @@ psa_status_t p256m_transparent_sign_hash(
 
 /*  This function expects the key buffer to contain a 65 byte public key,
  *  as exported by psa_export_public_key() */
-static psa_status_t p256m_verify_hash_with_public_key(
+static psa_status_t p256_verify_hash_with_public_key(
     const uint8_t *key_buffer,
     size_t key_buffer_size,
     const uint8_t *hash,
@@ -142,13 +142,13 @@ static psa_status_t p256m_verify_hash_with_public_key(
         return status;
 
     const uint8_t *public_key_buffer = key_buffer + 1;
-    status = p256m_to_psa_error(
+    status = p256_to_psa_error(
             p256_ecdsa_verify( signature, public_key_buffer, hash, hash_length) );
 
     return status;
 }
 
-psa_status_t p256m_transparent_verify_hash(
+psa_status_t p256_transparent_verify_hash(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
     size_t key_buffer_size,
@@ -187,7 +187,7 @@ psa_status_t p256m_transparent_verify_hash(
     if( status != PSA_SUCCESS )
         goto exit;
 
-    status = p256m_verify_hash_with_public_key(
+    status = p256_verify_hash_with_public_key(
                 public_key_buffer,
                 public_key_buffer_size,
                 hash,

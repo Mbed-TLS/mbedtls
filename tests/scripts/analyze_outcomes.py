@@ -87,8 +87,8 @@ def analyze_driver_vs_reference(outcomes, component_ref, component_driver, ignor
                 driver_test_passed = True
             if component_ref in entry:
                 reference_test_passed = True
-        if(driver_test_passed is False and reference_test_passed is True):
-            print('{}: driver: skipped/failed; reference: passed'.format(key))
+        if(reference_test_passed and not driver_test_passed):
+            print(key)
             result = False
     return result
 
@@ -123,6 +123,7 @@ def do_analyze_coverage(outcome_file, args):
     """Perform coverage analysis."""
     del args # unused
     outcomes = read_outcome_file(outcome_file)
+    print("\n*** Analyze coverage ***\n")
     results = analyze_outcomes(outcomes)
     return results.error_count == 0
 
@@ -131,6 +132,8 @@ def do_analyze_driver_vs_reference(outcome_file, args):
     ignored_tests = ['test_suite_' + x for x in args['ignored_suites']]
 
     outcomes = read_outcome_file(outcome_file)
+    print("\n*** Analyze driver {} vs reference {} ***\n".format(
+        args['component_driver'], args['component_ref']))
     return analyze_driver_vs_reference(outcomes, args['component_ref'],
                                        args['component_driver'], ignored_tests)
 
@@ -138,15 +141,38 @@ def do_analyze_driver_vs_reference(outcome_file, args):
 TASKS = {
     'analyze_coverage':                 {
         'test_function': do_analyze_coverage,
-        'args': {}},
+        'args': {}
+        },
+    # How to use analyze_driver_vs_reference_xxx locally:
+    # 1. tests/scripts/all.sh --outcome-file "$PWD/out.csv" <component_ref> <component_driver>
+    # 2. tests/scripts/analyze_outcomes.py out.csv analyze_driver_vs_reference_xxx
     'analyze_driver_vs_reference_hash': {
         'test_function': do_analyze_driver_vs_reference,
         'args': {
             'component_ref': 'test_psa_crypto_config_reference_hash_use_psa',
             'component_driver': 'test_psa_crypto_config_accel_hash_use_psa',
-            'ignored_suites': ['shax', 'mdx', # the software implementations that are being excluded
-                               'md',  # the legacy abstraction layer that's being excluded
-                              ]}}
+            'ignored_suites': [
+                'shax', 'mdx', # the software implementations that are being excluded
+                'md',  # the legacy abstraction layer that's being excluded
+            ]}},
+    'analyze_driver_vs_reference_ecdsa': {
+        'test_function': do_analyze_driver_vs_reference,
+        'args': {
+            'component_ref': 'test_psa_crypto_config_reference_ecdsa_use_psa',
+            'component_driver': 'test_psa_crypto_config_accel_ecdsa_use_psa',
+            'ignored_suites': [
+                'ecdsa', # the software implementation that's excluded
+                # the following lines should not be needed,
+                # they will be removed by upcoming work
+                'psa_crypto_se_driver_hal', # #6856
+                'random', # #6856
+                'ecp', # #6856
+                'pk', # #6857
+                'x509parse', # #6858
+                'x509write', # #6858
+                'debug', # #6860
+                'ssl', # #6860
+            ]}},
 }
 
 def main():

@@ -433,11 +433,8 @@ class DomainData:
             'hashes': DualDomain(hash_symbols, build_and_test,
                                  exclude=r'MBEDTLS_(MD|RIPEMD|SHA1_)'\
                                           '|!MBEDTLS_*_NO_SHA'),
-            # Key exchange types. Only build the library and the sample
-            # programs.
-            'kex': ExclusiveDomain(key_exchange_symbols,
-                                   [build_command + ['lib'],
-                                    build_command + ['-C', 'programs']]),
+            # Key exchange types.
+            'kex': ExclusiveDomain(key_exchange_symbols, build_and_test),
             'pkalgs': ComplementaryDomain(['MBEDTLS_ECDSA_C',
                                            'MBEDTLS_ECP_C',
                                            'MBEDTLS_PKCS1_V21',

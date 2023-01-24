@@ -354,7 +354,7 @@ class OpFail:
                 dependencies[i] = '!' + dep
         tc.set_dependencies(dependencies)
         tc.set_function(category.name.lower() + '_fail')
-        arguments = []
+        arguments = [] # type: List[str]
         if kt:
             key_material = kt.key_material(kt.sizes_to_test()[0])
             arguments += [key_type, test_case.hex_string(key_material)]

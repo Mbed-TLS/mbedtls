@@ -342,46 +342,46 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
 void mpi_mod_raw_fix_quasi_reduction(char *input_N,
-                                     char *input_A,
+                                     char *input_X,
                                      char *result)
 {
-    mbedtls_mpi_uint *A = NULL;
+    mbedtls_mpi_uint *X = NULL;
     mbedtls_mpi_uint *N = NULL;
     mbedtls_mpi_uint *res = NULL;
     mbedtls_mpi_uint *tmp = NULL;
-    size_t limbs_A;
+    size_t limbs_X;
     size_t limbs_N;
     size_t limbs_res;
 
     mbedtls_mpi_mod_modulus m;
     mbedtls_mpi_mod_modulus_init(&m);
 
-    TEST_EQUAL(mbedtls_test_read_mpi_core(&A,   &limbs_A,   input_A), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi_core(&X,   &limbs_X,   input_X), 0);
     TEST_EQUAL(mbedtls_test_read_mpi_core(&N,   &limbs_N,   input_N), 0);
     TEST_EQUAL(mbedtls_test_read_mpi_core(&res, &limbs_res, result),  0);
 
     size_t limbs = limbs_N;
     size_t bytes = limbs * sizeof(mbedtls_mpi_uint);
 
-    TEST_EQUAL(limbs_A,   limbs);
+    TEST_EQUAL(limbs_X,   limbs);
     TEST_EQUAL(limbs_res, limbs);
 
     ASSERT_ALLOC(tmp, limbs);
-    memcpy(tmp, A, bytes);
+    memcpy(tmp, X, bytes);
 
     /* Check that 0 <= X < 2N */
-    mbedtls_mpi_uint c = mbedtls_mpi_core_sub(tmp, A, N, limbs);
+    mbedtls_mpi_uint c = mbedtls_mpi_core_sub(tmp, X, N, limbs);
     TEST_ASSERT(c || mbedtls_mpi_core_lt_ct(tmp, N, limbs));
 
     TEST_EQUAL(mbedtls_mpi_mod_modulus_setup(
                    &m, N, limbs,
                    MBEDTLS_MPI_MOD_REP_MONTGOMERY), 0);
 
-    mbedtls_mpi_mod_raw_fix_quasi_reduction(A, &m);
-    ASSERT_COMPARE(A, bytes, res, bytes);
+    mbedtls_mpi_mod_raw_fix_quasi_reduction(X, &m);
+    ASSERT_COMPARE(X, bytes, res, bytes);
 
 exit:
-    mbedtls_free(A);
+    mbedtls_free(X);
     mbedtls_free(res);
     mbedtls_free(tmp);
 

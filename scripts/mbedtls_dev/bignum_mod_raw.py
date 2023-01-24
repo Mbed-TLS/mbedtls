@@ -62,13 +62,13 @@ class BignumModRawFixQuasiReduction(bignum_common.ModOperationCommon,
 
     # Extend the default values with n < x < 2n
     input_values = bignum_common.ModOperationCommon.input_values + [
-            "73",
-            "ebeddd7b4fefae8755bbfb9c181a73347096b3ec70d1a021",
-            ("1f4e1d074d0b50e8d8818f9a9e5df9959f902bb955fd24fd3d791175226ad8c1"
-             "fcb6d59fa41a3dcb25412009e5e356eb65b50ca67782285290420b45b32f0d63"
-             "7c9ee549a52ad8d631ba4945435c9aec77227ec59faff878b71b920a3d631929"
-             "d636c9a409d6ffdcd95e2568e128596811fb9ade15e69f6efd509381ebbf3599")
-            ] # type: List[str]
+        "73",
+        "ebeddd7b4fefae8755bbfb9c181a73347096b3ec70d1a021",
+        ("1f4e1d074d0b50e8d8818f9a9e5df9959f902bb955fd24fd3d791175226ad8c1"
+         "fcb6d59fa41a3dcb25412009e5e356eb65b50ca67782285290420b45b32f0d63"
+         "7c9ee549a52ad8d631ba4945435c9aec77227ec59faff878b71b920a3d631929"
+         "d636c9a409d6ffdcd95e2568e128596811fb9ade15e69f6efd509381ebbf3599")
+    ] # type: List[str]
 
     def result(self) -> List[str]:
         result = self.int_a % self.int_n

@@ -525,11 +525,11 @@ int mbedtls_test_ssl_tls12_populate_session(mbedtls_ssl_session *session,
                                             int ticket_len,
                                             const char *crt_file);
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
 int mbedtls_test_ssl_tls13_populate_session(mbedtls_ssl_session *session,
                                             int ticket_len,
                                             int endpoint_type);
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */
 
 /*
  * Perform data exchanging between \p ssl_1 and \p ssl_2 and check if the

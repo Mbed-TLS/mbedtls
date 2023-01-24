@@ -2121,7 +2121,7 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
     /* Prepare a dummy session to work on */
     ((void) endpoint_type);
     ((void) tls_version);
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
     if (tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
         TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
                         &original, 0, endpoint_type) == 0);
@@ -2205,7 +2205,7 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
     }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
     if (tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
         TEST_ASSERT(original.endpoint == restored.endpoint);
         TEST_ASSERT(original.ciphersuite == restored.ciphersuite);
@@ -2242,7 +2242,7 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
         }
 #endif
     }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */
 
 exit:
     mbedtls_ssl_session_free(&original);
@@ -2268,7 +2268,7 @@ void ssl_serialize_session_load_save(int ticket_len, char *crt_file,
     /* Prepare a dummy session to work on */
     ((void) endpoint_type);
     ((void) tls_version);
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
     if (tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
         TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
                         &session, 0, endpoint_type) == 0);
@@ -2330,7 +2330,7 @@ void ssl_serialize_session_save_buf_size(int ticket_len, char *crt_file,
     /* Prepare dummy session and get serialized size */
     ((void) endpoint_type);
     ((void) tls_version);
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
     if (tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
         TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
                         &session, 0, endpoint_type) == 0);
@@ -2377,7 +2377,7 @@ void ssl_serialize_session_load_buf_size(int ticket_len, char *crt_file,
     /* Prepare serialized session data */
     ((void) endpoint_type);
     ((void) tls_version);
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
     if (tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
         TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
                         &session, 0, endpoint_type) == 0);
@@ -2434,7 +2434,7 @@ void ssl_session_serialize_version_check(int corrupt_major,
     mbedtls_ssl_session_init(&session);
     ((void) endpoint_type);
     ((void) tls_version);
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
     if (tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
         TEST_ASSERT(mbedtls_test_ssl_tls13_populate_session(
                         &session, 0, endpoint_type) == 0);

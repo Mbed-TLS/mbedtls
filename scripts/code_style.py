@@ -115,13 +115,14 @@ def check_style_is_correct(src_file_list: List[str]) -> bool:
         # file with the extension ".uncrustify". To get the changes (if any)
         # simply diff the 2 files.
         diff_cmd = ["diff", "-u", src_file, src_file + ".uncrustify"]
-        result = subprocess.run(diff_cmd, stdout=subprocess.PIPE, \
-                stderr=STDERR_UTF8, check=False)
-        if len(result.stdout) > 0:
-            print(src_file + " - Incorrect code style.", file=STDOUT_UTF8)
-            print("File changed - diff:", file=STDOUT_UTF8)
-            print(str(result.stdout, "utf-8"), file=STDOUT_UTF8)
+        cp = subprocess.run(diff_cmd, check=False)
+
+        if cp.returncode == 1:
+            print(src_file + " changed - code style is incorrect.", file=STDOUT_UTF8)
             style_correct = False
+        elif cp.returncode != 0:
+            raise subprocess.CalledProcessError(cp.returncode, cp.args,
+                                                cp.stdout, cp.stderr)
 
         # Tidy up artifact
         os.remove(src_file + ".uncrustify")

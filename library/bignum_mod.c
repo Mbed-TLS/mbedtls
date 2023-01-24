@@ -35,15 +35,15 @@
 #include "constant_time_internal.h"
 
 int mbedtls_mpi_mod_residue_setup(mbedtls_mpi_mod_residue *r,
-                                  const mbedtls_mpi_mod_modulus *m,
+                                  const mbedtls_mpi_mod_modulus *N,
                                   mbedtls_mpi_uint *p,
                                   size_t p_limbs)
 {
-    if (p_limbs != m->limbs || !mbedtls_mpi_core_lt_ct(p, m->p, m->limbs)) {
+    if (p_limbs != N->limbs || !mbedtls_mpi_core_lt_ct(p, N->p, N->limbs)) {
         return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
     }
 
-    r->limbs = m->limbs;
+    r->limbs = N->limbs;
     r->p = p;
 
     return 0;
@@ -59,45 +59,45 @@ void mbedtls_mpi_mod_residue_release(mbedtls_mpi_mod_residue *r)
     r->p = NULL;
 }
 
-void mbedtls_mpi_mod_modulus_init(mbedtls_mpi_mod_modulus *m)
+void mbedtls_mpi_mod_modulus_init(mbedtls_mpi_mod_modulus *N)
 {
-    if (m == NULL) {
+    if (N == NULL) {
         return;
     }
 
-    m->p = NULL;
-    m->limbs = 0;
-    m->bits = 0;
-    m->int_rep = MBEDTLS_MPI_MOD_REP_INVALID;
+    N->p = NULL;
+    N->limbs = 0;
+    N->bits = 0;
+    N->int_rep = MBEDTLS_MPI_MOD_REP_INVALID;
 }
 
-void mbedtls_mpi_mod_modulus_free(mbedtls_mpi_mod_modulus *m)
+void mbedtls_mpi_mod_modulus_free(mbedtls_mpi_mod_modulus *N)
 {
-    if (m == NULL) {
+    if (N == NULL) {
         return;
     }
 
-    switch (m->int_rep) {
+    switch (N->int_rep) {
         case MBEDTLS_MPI_MOD_REP_MONTGOMERY:
-            if (m->rep.mont.rr != NULL) {
-                mbedtls_platform_zeroize((mbedtls_mpi_uint *) m->rep.mont.rr,
-                                         m->limbs * sizeof(mbedtls_mpi_uint));
-                mbedtls_free((mbedtls_mpi_uint *) m->rep.mont.rr);
-                m->rep.mont.rr = NULL;
+            if (N->rep.mont.rr != NULL) {
+                mbedtls_platform_zeroize((mbedtls_mpi_uint *) N->rep.mont.rr,
+                                         N->limbs * sizeof(mbedtls_mpi_uint));
+                mbedtls_free((mbedtls_mpi_uint *) N->rep.mont.rr);
+                N->rep.mont.rr = NULL;
             }
-            m->rep.mont.mm = 0;
+            N->rep.mont.mm = 0;
             break;
         case MBEDTLS_MPI_MOD_REP_OPT_RED:
-            mbedtls_free(m->rep.ored);
+            mbedtls_free(N->rep.ored);
             break;
         case MBEDTLS_MPI_MOD_REP_INVALID:
             break;
     }
 
-    m->p = NULL;
-    m->limbs = 0;
-    m->bits = 0;
-    m->int_rep = MBEDTLS_MPI_MOD_REP_INVALID;
+    N->p = NULL;
+    N->limbs = 0;
+    N->bits = 0;
+    N->int_rep = MBEDTLS_MPI_MOD_REP_INVALID;
 }
 
 static int set_mont_const_square(const mbedtls_mpi_uint **X,
@@ -136,26 +136,26 @@ cleanup:
     return ret;
 }
 
-int mbedtls_mpi_mod_modulus_setup(mbedtls_mpi_mod_modulus *m,
+int mbedtls_mpi_mod_modulus_setup(mbedtls_mpi_mod_modulus *N,
                                   const mbedtls_mpi_uint *p,
                                   size_t p_limbs,
                                   mbedtls_mpi_mod_rep_selector int_rep)
 {
     int ret = 0;
 
-    m->p = p;
-    m->limbs = p_limbs;
-    m->bits = mbedtls_mpi_core_bitlen(p, p_limbs);
+    N->p = p;
+    N->limbs = p_limbs;
+    N->bits = mbedtls_mpi_core_bitlen(p, p_limbs);
 
     switch (int_rep) {
         case MBEDTLS_MPI_MOD_REP_MONTGOMERY:
-            m->int_rep = int_rep;
-            m->rep.mont.mm = mbedtls_mpi_core_montmul_init(m->p);
-            ret = set_mont_const_square(&m->rep.mont.rr, m->p, m->limbs);
+            N->int_rep = int_rep;
+            N->rep.mont.mm = mbedtls_mpi_core_montmul_init(N->p);
+            ret = set_mont_const_square(&N->rep.mont.rr, N->p, N->limbs);
             break;
         case MBEDTLS_MPI_MOD_REP_OPT_RED:
-            m->int_rep = int_rep;
-            m->rep.ored = NULL;
+            N->int_rep = int_rep;
+            N->rep.ored = NULL;
             break;
         default:
             ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
@@ -165,7 +165,7 @@ int mbedtls_mpi_mod_modulus_setup(mbedtls_mpi_mod_modulus *m,
 exit:
 
     if (ret != 0) {
-        mbedtls_mpi_mod_modulus_free(m);
+        mbedtls_mpi_mod_modulus_free(N);
     }
 
     return ret;
@@ -349,7 +349,7 @@ int mbedtls_mpi_mod_random(mbedtls_mpi_mod_residue *X,
 
 /* BEGIN MERGE SLOT 7 */
 int mbedtls_mpi_mod_read(mbedtls_mpi_mod_residue *r,
-                         const mbedtls_mpi_mod_modulus *m,
+                         const mbedtls_mpi_mod_modulus *N,
                          const unsigned char *buf,
                          size_t buflen,
                          mbedtls_mpi_mod_ext_rep ext_rep)
@@ -357,28 +357,28 @@ int mbedtls_mpi_mod_read(mbedtls_mpi_mod_residue *r,
     int ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
 
     /* Do our best to check if r and m have been set up */
-    if (r->limbs == 0 || m->limbs == 0) {
+    if (r->limbs == 0 || N->limbs == 0) {
         goto cleanup;
     }
-    if (r->limbs != m->limbs) {
+    if (r->limbs != N->limbs) {
         goto cleanup;
     }
 
-    ret = mbedtls_mpi_mod_raw_read(r->p, m, buf, buflen, ext_rep);
+    ret = mbedtls_mpi_mod_raw_read(r->p, N, buf, buflen, ext_rep);
     if (ret != 0) {
         goto cleanup;
     }
 
-    r->limbs = m->limbs;
+    r->limbs = N->limbs;
 
-    ret = mbedtls_mpi_mod_raw_canonical_to_modulus_rep(r->p, m);
+    ret = mbedtls_mpi_mod_raw_canonical_to_modulus_rep(r->p, N);
 
 cleanup:
     return ret;
 }
 
 int mbedtls_mpi_mod_write(const mbedtls_mpi_mod_residue *r,
-                          const mbedtls_mpi_mod_modulus *m,
+                          const mbedtls_mpi_mod_modulus *N,
                           unsigned char *buf,
                           size_t buflen,
                           mbedtls_mpi_mod_ext_rep ext_rep)
@@ -386,28 +386,28 @@ int mbedtls_mpi_mod_write(const mbedtls_mpi_mod_residue *r,
     int ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
 
     /* Do our best to check if r and m have been set up */
-    if (r->limbs == 0 || m->limbs == 0) {
+    if (r->limbs == 0 || N->limbs == 0) {
         goto cleanup;
     }
-    if (r->limbs != m->limbs) {
+    if (r->limbs != N->limbs) {
         goto cleanup;
     }
 
-    if (m->int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY) {
-        ret = mbedtls_mpi_mod_raw_from_mont_rep(r->p, m);
+    if (N->int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY) {
+        ret = mbedtls_mpi_mod_raw_from_mont_rep(r->p, N);
         if (ret != 0) {
             goto cleanup;
         }
     }
 
-    ret = mbedtls_mpi_mod_raw_write(r->p, m, buf, buflen, ext_rep);
+    ret = mbedtls_mpi_mod_raw_write(r->p, N, buf, buflen, ext_rep);
 
-    if (m->int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY) {
+    if (N->int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY) {
         /* If this fails, the value of r is corrupted and we want to return
          * this error (as opposed to the error code from the write above) to
          * let the caller know. If it succeeds, we want to return the error
          * code from write above. */
-        int conv_ret = mbedtls_mpi_mod_raw_to_mont_rep(r->p, m);
+        int conv_ret = mbedtls_mpi_mod_raw_to_mont_rep(r->p, N);
         if (ret == 0) {
             ret = conv_ret;
         }

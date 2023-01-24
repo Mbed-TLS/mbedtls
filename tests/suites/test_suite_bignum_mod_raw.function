@@ -348,6 +348,7 @@ void mpi_mod_raw_fix_quasi_reduction(char *input_N,
     mbedtls_mpi_uint *A = NULL;
     mbedtls_mpi_uint *N = NULL;
     mbedtls_mpi_uint *res = NULL;
+    mbedtls_mpi_uint *tmp = NULL;
     size_t limbs_A;
     size_t limbs_N;
     size_t limbs_res;
@@ -365,6 +366,13 @@ void mpi_mod_raw_fix_quasi_reduction(char *input_N,
     TEST_EQUAL(limbs_A,   limbs);
     TEST_EQUAL(limbs_res, limbs);
 
+    ASSERT_ALLOC(tmp, limbs);
+    memcpy(tmp, A, bytes);
+
+    /* Check that 0 <= X < 2N */
+    mbedtls_mpi_uint c = mbedtls_mpi_core_sub(tmp, A, N, limbs);
+    TEST_ASSERT(c || mbedtls_mpi_core_lt_ct(tmp, N, limbs));
+
     TEST_EQUAL(mbedtls_mpi_mod_modulus_setup(
                    &m, N, limbs,
                    MBEDTLS_MPI_MOD_REP_MONTGOMERY), 0);
@@ -375,6 +383,7 @@ void mpi_mod_raw_fix_quasi_reduction(char *input_N,
 exit:
     mbedtls_free(A);
     mbedtls_free(res);
+    mbedtls_free(tmp);
 
     mbedtls_mpi_mod_modulus_free(&m);
     mbedtls_free(N);

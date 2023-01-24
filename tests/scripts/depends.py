@@ -59,6 +59,8 @@ import shutil
 import subprocess
 import sys
 import traceback
+from typing import Union
+
 # Add the Mbed TLS Python library directory to the module search path
 import scripts_path # pylint: disable=unused-import
 import config
@@ -128,8 +130,10 @@ def option_exists(conf, option):
         return False
     return True
 
-def set_config_option_value(conf, option, colors, value):
-    """Set/unset a configuration option, optionally specifying a value"""
+def set_config_option_value(conf, option, colors, value: Union[bool, str]):
+    """Set/unset a configuration option, optionally specifying a value.
+value can be either True/False (set/unset config option), or a string,
+which will make a symbol defined with a certain value."""
     if not option_exists(conf, option):
         log_line('Symbol {} was not found in {}'.format(option, conf.filename), color=colors.red)
         return False

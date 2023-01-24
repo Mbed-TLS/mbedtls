@@ -581,6 +581,7 @@ void mbedtls_x509_csr_free(mbedtls_x509_csr *csr)
 #endif
 
     mbedtls_asn1_free_named_data_list_shallow(csr->subject.next);
+    mbedtls_asn1_sequence_free(csr->subject_alt_names.next);
 
     if (csr->raw.p != NULL) {
         mbedtls_platform_zeroize(csr->raw.p, csr->raw.len);

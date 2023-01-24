@@ -4048,7 +4048,7 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
 }
 
 static int ssl_tls13_session_load(const mbedtls_ssl_session *session,
-                                  unsigned char *buf,
+                                  const unsigned char *buf,
                                   size_t buf_len)
 {
     ((void) session);

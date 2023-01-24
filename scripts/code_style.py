@@ -199,6 +199,8 @@ def main() -> int:
     else:
         # Check mode
         if check_style_is_correct(src_files):
+            print("Checked {} files, style ok.".format(len(src_files)),
+                  file=STDOUT_UTF8)
             return 0
         else:
             return 1

@@ -85,8 +85,9 @@ def get_uncrustify_version() -> str:
     """
     Get the version string from Uncrustify
     """
-    result = subprocess.run([UNCRUSTIFY_EXE, "--version"], \
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+    result = subprocess.run([UNCRUSTIFY_EXE, "--version"],
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            check=False)
     if result.returncode != 0:
         print_err("Could not get Uncrustify version:", str(result.stderr, "utf-8"))
         return ""
@@ -101,11 +102,11 @@ def check_style_is_correct(src_file_list: List[str]) -> bool:
     style_correct = True
     for src_file in src_file_list:
         uncrustify_cmd = [UNCRUSTIFY_EXE] + UNCRUSTIFY_ARGS + [src_file]
-        result = subprocess.run(uncrustify_cmd, stdout=subprocess.PIPE, \
-                stderr=subprocess.PIPE, check=False)
+        result = subprocess.run(uncrustify_cmd, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, check=False)
         if result.returncode != 0:
-            print_err("Uncrustify returned " + str(result.returncode) + \
-                    " correcting file " + src_file)
+            print_err("Uncrustify returned " + str(result.returncode) +
+                      " correcting file " + src_file)
             return False
 
         # Uncrustify makes changes to the code and places the result in a new
@@ -135,9 +136,9 @@ def fix_style_single_pass(src_file_list: List[str]) -> bool:
         uncrustify_cmd = [UNCRUSTIFY_EXE] + code_change_args + [src_file]
         result = subprocess.run(uncrustify_cmd, check=False)
         if result.returncode != 0:
-            print_err("Uncrustify with file returned: " + \
-                    str(result.returncode) + " correcting file " + \
-                    src_file)
+            print_err("Uncrustify with file returned: " +
+                      str(result.returncode) + " correcting file " +
+                      src_file)
             return False
     return True
 

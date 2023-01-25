@@ -116,7 +116,7 @@ test_csr_v3_all_malformed_extension_key_usage_bitstream_tag.csr.der: test_csr_v3
 test_csr_v3_all_malformed_extension_subject_alt_name_sequence_tag.csr.der: test_csr_v3_all.csr.der
 	(hexdump -ve '1/1 "%.2X"' $< | sed "s/3026A02406082B060105/4026A02406082B060105/" | xxd -r -p ) > $@
 test_csr_v3_all_malformed_extension_ns_cert_bitstream_tag.csr.der: test_csr_v3_all.csr.der
-	(hexdump -ve '1/1 "%.2X"' $< | sed "s/04020780300D06092A86/03020780300D06092A86/" | xxd -r -p ) > $@
+	(hexdump -ve '1/1 "%.2X"' $< | sed "s/03020780300D06092A86/04020780300D06092A86/" | xxd -r -p ) > $@
 test_csr_v3_all_malformed_duplicated_extension.csr.der: test_csr_v3_all.csr.der
 	(hexdump -ve '1/1 "%.2X"' $< | sed "s/551D11/551D0F/" | xxd -r -p ) > $@
 test_csr_v3_all_malformed_extension_type_oid.csr.der: test_csr_v3_all.csr.der

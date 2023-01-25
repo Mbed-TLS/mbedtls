@@ -4570,7 +4570,8 @@ static int ecp_group_load(mbedtls_ecp_group *grp,
 /* Forward declarations */
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
 static int ecp_mod_p192(mbedtls_mpi *);
-static int ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn);
+MBEDTLS_STATIC_TESTABLE
+int ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn);
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
 static int ecp_mod_p224(mbedtls_mpi *);
@@ -4906,7 +4907,8 @@ cleanup:
     return ret;
 }
 
-static int ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn)
+MBEDTLS_STATIC_TESTABLE
+int ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn)
 {
     mbedtls_mpi_uint c = 0, last_carry[WIDTH] = { 0 };
     mbedtls_mpi_uint *p, *end;

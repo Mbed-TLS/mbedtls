@@ -76,6 +76,13 @@ int mbedtls_ecp_gen_privkey_mx(size_t n_bits,
 
 #endif /* MBEDTLS_ECP_MONTGOMERY_ENABLED */
 
+#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
+
+MBEDTLS_STATIC_TESTABLE
+int ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn);
+
+#endif /* MBEDTLS_ECP_DP_SECP192R1_ENABLED */
+
 #endif /* MBEDTLS_TEST_HOOKS && MBEDTLS_ECP_C */
 
 #endif /* MBEDTLS_ECP_INVASIVE_H */

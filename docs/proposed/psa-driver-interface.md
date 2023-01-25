@@ -323,17 +323,17 @@ TODO
 
 ### Driver entry points for PAKE
 
-PAKE operation is divided into two stages: collecting inputs and computation. Core side is responsible for keeping inputs and core set-data functions do not have driver entry points. Collected inputs are available for drivers via get-data functions for `password`, `role` and `cipher_suite`.
+A PAKE operation is divided into two stages: collecting inputs and computation. Core side is responsible for keeping inputs and core set-data functions do not have driver entry points. Collected inputs are available for drivers via get-data functions for `password`, `role` and `cipher_suite`.
 
 ### PAKE driver dispatch logic
 The core decides whether to dispatch a PAKE operation to a driver based on the location of the provided password.
 When all inputs are collected and `"psa_pake_output"` or `"psa_pake_input"` is called for the first time `"pake_setup"` driver entry point is invoked.
 
-1. Lifetime of the `password` is local storage
-- if there is a transparent driver available for the given configuration, the core calls that driver's `"pake_setup"` and subsequent entry points.
-- if a transparent driver is not available or can not handle a given configuration, the core uses its built-in implementation.
-2. Lifetime of the `password` is test driver
-- the core calls opaque driver's `"pake_setup"` and subsequent entry points.
+1. If the location of the `password` is the local storage
+- if there is a transparent driver for the specified ciphersuite, the core calls that driver's `"pake_setup"` and subsequent entry points.
+- otherwise, or on fallback, the core uses its built-in implementation.
+2. If the location of the `password` is the location of a secure element
+- the core calls the `"pake_setup"` entry point of the secure element driver and subsequent entry points.
 
 ### Summary of entry points for PAKE
 
@@ -365,9 +365,14 @@ psa_status_t psa_crypto_driver_pake_get_password_len(
     const psa_crypto_driver_pake_inputs_t *inputs,
     size_t *password_len);
 
-psa_status_t psa_crypto_driver_pake_get_password(
+psa_status_t psa_crypto_driver_pake_get_password_bytes(
     const psa_crypto_driver_pake_inputs_t *inputs,
     uint8_t *buffer, size_t buffer_size, size_t *buffer_length);
+
+psa_status_t psa_crypto_driver_pake_get_password_key(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    uint8_t** p_key_buffer, size_t *key_buffer_size,
+    const psa_key_attributes_t *attributes);
 
 psa_status_t psa_crypto_driver_pake_get_role(
     const psa_crypto_driver_pake_inputs_t *inputs,
@@ -385,19 +390,21 @@ Next parameters are return buffers (must not be null pointers).
 These functions can return the following statuses:
 * `PSA_SUCCESS`: value has been successfully obtained
 * `PSA_ERROR_BAD_STATE`: the inputs are not ready
-* `PSA_ERROR_BUFFER_TOO_SMALL` (`psa_crypto_driver_pake_get_password` only): the output buffer is too small. This is not a fatal error and the driver can, for example, subsequently call the same function again with a larger buffer. Call `psa_crypto_driver_pake_get_password_len` to obtain the required size.
+* `PSA_ERROR_BUFFER_TOO_SMALL` (`psa_crypto_driver_pake_get_password_bytes` and `psa_crypto_driver_pake_get_password_key` only): the output buffer is too small. This is not a fatal error and the driver can, for example, subsequently call the same function again with a larger buffer. Call `psa_crypto_driver_pake_get_password_len` to obtain the required size.
 
 #### PAKE driver setup
 
 ```
-psa_status_t acme_psa_pake_setup( acme_pake_operation_t *operation,
-                                  const psa_crypto_driver_pake_inputs_t *inputs );
+psa_status_t acme_pake_setup( acme_pake_operation_t *operation,
+                              const psa_crypto_driver_pake_inputs_t *inputs );
 ```
 
 * `operation` is a zero-initialized operation object.
 * `inputs` is an opaque pointer to the [inputs](#pake-driver-inputs) for the PAKE operation.
 
 The setup driver function should preserve the inputs using get-data functions.
+
+The pointer output by `psa_crypto_driver_pake_get_password_key` is only valid until the "pake_setup" entry point returns. Opaque drivers must copy all relevant data from the key buffer during the "pake_setup" entry point and must not store the pointer itself.
 
 #### PAKE driver output
 

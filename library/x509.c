@@ -1328,6 +1328,8 @@ int mbedtls_x509_get_ns_cert_type(unsigned char **p,
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
     }
 
+    /* A bitstring with no flags set is still technically valid, as it will mean
+       that the certificate has no designated purpose at the time of creation. */
     if (bs.len == 0) {
         *ns_cert_type = 0;
         return 0;
@@ -1355,14 +1357,11 @@ int mbedtls_x509_get_key_usage(unsigned char **p,
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
     }
 
+    /* A bitstring with no flags set is still technically valid, as it will mean
+       that the certificate has no designated purpose at the time of creation. */
     if (bs.len == 0) {
         *key_usage = 0;
         return 0;
-    }
-
-    if (bs.len < 1) {
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
-                                 MBEDTLS_ERR_ASN1_INVALID_LENGTH);
     }
 
     /* Get actual bitstring */

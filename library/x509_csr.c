@@ -112,52 +112,47 @@ static int x509_csr_parse_extensions(mbedtls_x509_csr *csr,
         }
 
         /*
-         * Detect supported extensions
+         * Detect supported extensions and skip unsupported extensions
          */
         ret = mbedtls_oid_get_x509_ext_type(&extn_oid, &ext_type);
 
-        if (ret != 0) {
-            *p = end_ext_data;
-            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
-                                     ret);
+        if (ret == 0) {
+            /* Forbid repeated extensions */
+            if ((csr->ext_types & ext_type) != 0) {
+                return (MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                        MBEDTLS_ERR_ASN1_INVALID_DATA));
+            }
+
+            csr->ext_types |= ext_type;
+
+            switch (ext_type) {
+                case MBEDTLS_X509_EXT_KEY_USAGE:
+                    /* Parse key usage */
+                    if ((ret = mbedtls_x509_get_key_usage(p, end_ext_data,
+                                                            &csr->key_usage)) != 0) {
+                        return ret;
+                    }
+                    break;
+
+                case MBEDTLS_X509_EXT_SUBJECT_ALT_NAME:
+                    /* Parse subject alt name */
+                    if ((ret = mbedtls_x509_get_subject_alt_name(p, end_ext_data,
+                                                                    &csr->subject_alt_names)) != 0) {
+                        return ret;
+                    }
+                    break;
+
+                case MBEDTLS_X509_EXT_NS_CERT_TYPE:
+                    /* Parse netscape certificate type */
+                    if ((ret = mbedtls_x509_get_ns_cert_type(p, end_ext_data,
+                                                                &csr->ns_cert_type)) != 0) {
+                        return ret;
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
-
-        /* Forbid repeated extensions */
-        if ((csr->ext_types & ext_type) != 0) {
-            return (MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
-                                      MBEDTLS_ERR_ASN1_INVALID_DATA));
-        }
-
-        csr->ext_types |= ext_type;
-
-        switch (ext_type) {
-            case MBEDTLS_X509_EXT_KEY_USAGE:
-                /* Parse key usage */
-                if ((ret = mbedtls_x509_get_key_usage(p, end_ext_data,
-                                                        &csr->key_usage)) != 0) {
-                    return ret;
-                }
-                break;
-
-            case MBEDTLS_X509_EXT_SUBJECT_ALT_NAME:
-                /* Parse subject alt name */
-                if ((ret = mbedtls_x509_get_subject_alt_name(p, end_ext_data,
-                                                                &csr->subject_alt_names)) != 0) {
-                    return ret;
-                }
-                break;
-
-            case MBEDTLS_X509_EXT_NS_CERT_TYPE:
-                /* Parse netscape certificate type */
-                if ((ret = mbedtls_x509_get_ns_cert_type(p, end_ext_data,
-                                                            &csr->ns_cert_type)) != 0) {
-                    return ret;
-                }
-                break;
-            default:
-                break;
-        }
-
         *p = end_ext_data;
     }
 
@@ -201,7 +196,6 @@ static int x509_csr_parse_attributes(mbedtls_x509_csr *csr,
 
         /* Check that this is an extension-request attribute */
         if (MBEDTLS_OID_CMP(MBEDTLS_OID_PKCS9_CSR_EXT_REQ, &attr_oid) == 0) {
-
             if ((ret = mbedtls_asn1_get_tag(p, end, &len,
                                             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SET)) != 0) {
                 return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);

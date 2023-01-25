@@ -900,6 +900,10 @@ ec_pub.comp.pem: ec_pub.pem
 	$(OPENSSL) ec -pubin -in $< -out $@ -conv_form compressed
 all_final += ec_pub.comp.pem
 
+ec_224_pub.comp.pem: ec_224_pub.pem
+	$(OPENSSL) ec -pubin -in $< -out $@ -conv_form compressed
+all_final += ec_224_pub.comp.pem
+
 ec_256_pub.comp.pem: ec_256_pub.pem
 	$(OPENSSL) ec -pubin -in $< -out $@ -conv_form compressed
 all_final += ec_256_pub.comp.pem

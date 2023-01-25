@@ -920,6 +920,12 @@ Parse Public EC Key #3 (RFC 5480, secp224r1)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP224R1_ENABLED
 pk_parse_public_keyfile_ec:"data_files/ec_224_pub.pem":0
 
+# Compressed points parsing does not support MBEDTLS_ECP_DP_SECP224R1 and
+# MBEDTLS_ECP_DP_SECP224K1. Therefore a failure is expected in this case
+Parse Public EC Key #3a (RFC 5480, secp224r1, compressed)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP224R1_ENABLED
+pk_parse_public_keyfile_ec:"data_files/ec_224_pub.comp.pem":MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE
+
 Parse Public EC Key #4 (RFC 5480, secp256r1)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 pk_parse_public_keyfile_ec:"data_files/ec_256_pub.pem":0

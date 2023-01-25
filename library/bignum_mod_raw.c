@@ -33,6 +33,8 @@
 #include "bignum_mod.h"
 #include "constant_time_internal.h"
 
+#include "bignum_mod_raw_invasive.h"
+
 void mbedtls_mpi_mod_raw_cond_assign(mbedtls_mpi_uint *X,
                                      const mbedtls_mpi_uint *A,
                                      const mbedtls_mpi_mod_modulus *N,

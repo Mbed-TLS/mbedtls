@@ -1,0 +1,3 @@
+Bugfix
+   * Remove -Wdocumentation to fix spurious warnings with clang version 15 or
+     greater. Fixes #6960.

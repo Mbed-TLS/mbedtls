@@ -214,7 +214,16 @@ endfunction(add_test_suite)
 add_definitions("-D_POSIX_C_SOURCE=200809L")
 
 if(CMAKE_COMPILER_IS_CLANG)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wdocumentation -Wno-documentation-deprecated-sync -Wunreachable-code")
+    execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE CLANG_VERSION)
+
+    # Clang version 15 or above introduces new rules for -Wdocumentation that
+    # state that we cannot have a non-empty description after \retval VALUE, which
+    # we have lots of occurances of.
+    if(CLANG_VERSION VERSION_LESS 15.0)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wdocumentation -Wno-documentation-deprecated-sync -Wunreachable-code")
+    else()
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-documentation-deprecated-sync -Wunreachable-code")
+    endif()
 endif(CMAKE_COMPILER_IS_CLANG)
 
 if(MSVC)

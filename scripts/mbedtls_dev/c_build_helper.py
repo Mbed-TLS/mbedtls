@@ -90,7 +90,10 @@ int main(void)
 ''')
 
 def compile_c_file(c_filename, exe_filename, include_dirs):
-    cc = os.getenv('CC', 'cc')
+    # Respect $HOSTCC if it is set
+    cc = os.getenv('HOSTCC', None)
+    if cc is None:
+        cc = os.getenv('CC', 'cc')
     cmd = [cc]
 
     proc = subprocess.Popen(cmd,

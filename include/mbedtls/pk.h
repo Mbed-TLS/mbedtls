@@ -156,6 +156,28 @@ typedef struct mbedtls_pk_rsassa_pss_options {
 #endif /* defined(MBEDTLS_USE_PSA_CRYPTO) */
 
 /**
+ * \brief   The following defines are meant to list ECDSA capabilities of the
+ *          PK module in a general way (without any reference to how this
+ *          is achieved, which can be either through PSA driver or
+ *          MBEDTLS_ECDSA_C)
+ */
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_ECDSA_C)
+#define MBEDTLS_PK_CAN_ECDSA_SIGN
+#define MBEDTLS_PK_CAN_ECDSA_VERIFY
+#endif
+#else /* MBEDTLS_USE_PSA_CRYPTO */
+#if defined(PSA_WANT_ALG_ECDSA)
+#if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR)
+#define MBEDTLS_PK_CAN_ECDSA_SIGN
+#endif
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
+#define MBEDTLS_PK_CAN_ECDSA_VERIFY
+#endif
+#endif /* PSA_WANT_ALG_ECDSA */
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+/**
  * \brief           Types for interfacing with the debug module
  */
 typedef enum {

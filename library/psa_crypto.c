@@ -7260,7 +7260,7 @@ psa_status_t psa_pake_setup(
 
     if (operation->alg == PSA_ALG_JPAKE) {
         psa_jpake_computation_stage_t *computation_stage =
-            &operation->computation_stage.data.jpake;
+            &operation->computation_stage.jpake;
 
         computation_stage->state = PSA_PAKE_STATE_SETUP;
         computation_stage->sequence = PSA_PAKE_SEQ_INVALID;
@@ -7391,12 +7391,12 @@ psa_status_t psa_pake_set_role(
 
 /* Auxiliary function to convert core computation stage(step, sequence, state) to single driver step. */
 static psa_pake_driver_step_t convert_jpake_computation_stage_to_driver_step(
-    psa_pake_computation_stage_t *stage)
+    psa_jpake_computation_stage_t *stage)
 {
-    switch (stage->data.jpake.state) {
+    switch (stage->state) {
         case PSA_PAKE_OUTPUT_X1_X2:
         case PSA_PAKE_INPUT_X1_X2:
-            switch (stage->data.jpake.sequence) {
+            switch (stage->sequence) {
                 case PSA_PAKE_X1_STEP_KEY_SHARE:
                     return PSA_JPAKE_X1_STEP_KEY_SHARE;
                     break;
@@ -7420,7 +7420,7 @@ static psa_pake_driver_step_t convert_jpake_computation_stage_to_driver_step(
             }
             break;
         case PSA_PAKE_OUTPUT_X2S:
-            switch (stage->data.jpake.sequence) {
+            switch (stage->sequence) {
                 case PSA_PAKE_X1_STEP_KEY_SHARE:
                     return PSA_JPAKE_X2S_STEP_KEY_SHARE;
                     break;
@@ -7434,7 +7434,7 @@ static psa_pake_driver_step_t convert_jpake_computation_stage_to_driver_step(
             }
             break;
         case PSA_PAKE_INPUT_X4S:
-            switch (stage->data.jpake.sequence) {
+            switch (stage->sequence) {
                 case PSA_PAKE_X1_STEP_KEY_SHARE:
                     return PSA_JPAKE_X4S_STEP_KEY_SHARE;
                     break;
@@ -7457,7 +7457,7 @@ static psa_status_t psa_pake_complete_inputs(
     psa_pake_operation_t *operation)
 {
     psa_jpake_computation_stage_t *computation_stage =
-        &operation->computation_stage.data.jpake;
+        &operation->computation_stage.jpake;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     uint8_t *password = operation->data.inputs.password;
     size_t password_len = operation->data.inputs.password_len;
@@ -7501,7 +7501,7 @@ static psa_status_t psa_jpake_output_prologue(
     psa_pake_step_t step)
 {
     psa_jpake_computation_stage_t *computation_stage =
-        &operation->computation_stage.data.jpake;
+        &operation->computation_stage.jpake;
 
     if (computation_stage->state == PSA_PAKE_STATE_INVALID) {
         return PSA_ERROR_BAD_STATE;
@@ -7572,7 +7572,7 @@ static psa_status_t psa_jpake_output_epilogue(
     psa_pake_operation_t *operation)
 {
     psa_jpake_computation_stage_t *computation_stage =
-        &operation->computation_stage.data.jpake;
+        &operation->computation_stage.jpake;
 
     if ((computation_stage->state == PSA_PAKE_OUTPUT_X1_X2 &&
          computation_stage->sequence == PSA_PAKE_X2_STEP_ZK_PROOF) ||
@@ -7628,10 +7628,8 @@ psa_status_t psa_pake_output(
     }
 
     status = psa_driver_wrapper_pake_output(operation,
-                                            convert_jpake_computation_stage_to_driver_step(&
-                                                                                           operation
-                                                                                           ->
-                                                                                           computation_stage),
+                                            convert_jpake_computation_stage_to_driver_step(
+                                                &operation->computation_stage.jpake),
                                             output,
                                             output_size,
                                             output_length);
@@ -7660,7 +7658,7 @@ static psa_status_t psa_jpake_input_prologue(
     size_t input_length)
 {
     psa_jpake_computation_stage_t *computation_stage =
-        &operation->computation_stage.data.jpake;
+        &operation->computation_stage.jpake;
 
     if (computation_stage->state == PSA_PAKE_STATE_INVALID) {
         return PSA_ERROR_BAD_STATE;
@@ -7737,7 +7735,7 @@ static psa_status_t psa_jpake_input_epilogue(
     psa_pake_operation_t *operation)
 {
     psa_jpake_computation_stage_t *computation_stage =
-        &operation->computation_stage.data.jpake;
+        &operation->computation_stage.jpake;
 
     if ((computation_stage->state == PSA_PAKE_INPUT_X1_X2 &&
          computation_stage->sequence == PSA_PAKE_X2_STEP_ZK_PROOF) ||
@@ -7792,9 +7790,8 @@ psa_status_t psa_pake_input(
     }
 
     status = psa_driver_wrapper_pake_input(operation,
-                                           convert_jpake_computation_stage_to_driver_step(&operation
-                                                                                          ->
-                                                                                          computation_stage),
+                                           convert_jpake_computation_stage_to_driver_step(
+                                                &operation->computation_stage.jpake),
                                            input,
                                            input_length);
 
@@ -7824,7 +7821,7 @@ psa_status_t psa_pake_get_implicit_key(
     uint8_t shared_key[MBEDTLS_PSA_PAKE_BUFFER_SIZE];
     size_t shared_key_len = 0;
     psa_jpake_computation_stage_t *computation_stage =
-        &operation->computation_stage.data.jpake;
+        &operation->computation_stage.jpake;
 
     if (operation->id == 0) {
         return PSA_ERROR_BAD_STATE;
@@ -7883,7 +7880,7 @@ psa_status_t psa_pake_abort(
 
     if (operation->alg == PSA_ALG_JPAKE) {
         psa_jpake_computation_stage_t *computation_stage =
-            &operation->computation_stage.data.jpake;
+            &operation->computation_stage.jpake;
 
         computation_stage->input_step = PSA_PAKE_STEP_INVALID;
         computation_stage->output_step = PSA_PAKE_STEP_INVALID;

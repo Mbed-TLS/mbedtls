@@ -1292,9 +1292,6 @@ typedef struct psa_pake_operation_s psa_pake_operation_t;
 /** The type of input values for PAKE operations. */
 typedef struct psa_crypto_driver_pake_inputs_s psa_crypto_driver_pake_inputs_t;
 
-/** The type of computation stage for PAKE operations. */
-typedef struct psa_pake_computation_stage_s psa_pake_computation_stage_t;
-
 /** The type of computation stage for J-PAKE operations. */
 typedef struct psa_jpake_computation_stage_s psa_jpake_computation_stage_t;
 
@@ -1897,7 +1894,7 @@ psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
  * psa_pake_operation_t.
  */
 #define PSA_PAKE_OPERATION_INIT { 0, PSA_ALG_NONE, PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS, \
-                                  { { { 0 } } }, { { 0 } } }
+                                  { { 0 } }, { { 0 } } }
 
 struct psa_pake_cipher_suite_s {
     psa_algorithm_t algorithm;
@@ -2028,12 +2025,6 @@ struct psa_jpake_computation_stage_s {
     unsigned int MBEDTLS_PRIVATE(output_step);
 };
 
-struct psa_pake_computation_stage_s {
-    union {
-        psa_jpake_computation_stage_t MBEDTLS_PRIVATE(jpake);
-    } MBEDTLS_PRIVATE(data);
-};
-
 struct psa_pake_operation_s {
     /** Unique ID indicating which driver got assigned to do the
      * operation. Since driver contexts are driver-specific, swapping
@@ -2049,7 +2040,9 @@ struct psa_pake_operation_s {
        are copied to the corresponding operation context. */
     uint8_t MBEDTLS_PRIVATE(stage);
     /* Holds computation stage of the PAKE algorithms. */
-    psa_pake_computation_stage_t MBEDTLS_PRIVATE(computation_stage);
+    union {
+        psa_jpake_computation_stage_t MBEDTLS_PRIVATE(jpake);
+    } MBEDTLS_PRIVATE(computation_stage);
     union {
         psa_crypto_driver_pake_inputs_t MBEDTLS_PRIVATE(inputs);
         psa_driver_pake_context_t MBEDTLS_PRIVATE(ctx);

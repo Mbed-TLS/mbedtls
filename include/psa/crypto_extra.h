@@ -1970,7 +1970,7 @@ struct psa_crypto_driver_pake_inputs_s {
     uint8_t *MBEDTLS_PRIVATE(password);
     size_t MBEDTLS_PRIVATE(password_len);
     psa_pake_role_t MBEDTLS_PRIVATE(role);
-    psa_key_lifetime_t MBEDTLS_PRIVATE(key_lifetime);
+    psa_key_attributes_t MBEDTLS_PRIVATE(attributes);
     psa_pake_cipher_suite_t MBEDTLS_PRIVATE(cipher_suite);
 };
 

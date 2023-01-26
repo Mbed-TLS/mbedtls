@@ -7306,7 +7306,7 @@ psa_status_t psa_pake_set_password_key(
 
     memcpy(operation->data.inputs.password, slot->key.data, slot->key.bytes);
     operation->data.inputs.password_len = slot->key.bytes;
-    operation->data.inputs.key_lifetime = attributes.core.lifetime;
+    operation->data.inputs.attributes = attributes;
 error:
     unlock_status = psa_unlock_key_slot(slot);
     return (status == PSA_SUCCESS) ? unlock_status : status;

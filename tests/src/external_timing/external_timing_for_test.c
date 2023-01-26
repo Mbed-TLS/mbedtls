@@ -1,6 +1,9 @@
-/*
- *  Portable interface to the CPU cycle counter
+/** \file external_timing_for_test.c
  *
+ * \brief Helper functions to test an alternate timing implementation.
+ */
+
+/*
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -17,15 +20,8 @@
  *  limitations under the License.
  */
 
-#include "common.h"
-
-#include "mbedtls/platform.h"
-
-#if defined(MBEDTLS_TIMING_C)
-
-#include "mbedtls/timing.h"
-
-#if !defined(MBEDTLS_TIMING_ALT)
+#include <timing_alt.h>
+#if defined(MBEDTLS_TIMING_ALT)
 
 #if !defined(unix) && !defined(__unix__) && !defined(__unix) && \
     !defined(__APPLE__) && !defined(_WIN32) && !defined(__QNXNTO__) && \
@@ -352,177 +348,4 @@ int mbedtls_timing_get_delay(void *data)
     return 0;
 }
 
-#endif /* !MBEDTLS_TIMING_ALT */
-
-#if defined(MBEDTLS_SELF_TEST)
-/*
- * Busy-waits for the given number of milliseconds.
- * Used for testing mbedtls_timing_hardclock.
- */
-static void busy_msleep(unsigned long msec)
-{
-    struct mbedtls_timing_hr_time hires;
-    unsigned long i = 0; /* for busy-waiting */
-    volatile unsigned long j; /* to prevent optimisation */
-
-    (void) mbedtls_timing_get_timer(&hires, 1);
-
-    while (mbedtls_timing_get_timer(&hires, 0) < msec) {
-        i++;
-    }
-
-    j = i;
-    (void) j;
-}
-
-#define FAIL    do                                                      \
-    {                                                                   \
-        if (verbose != 0)                                              \
-        {                                                               \
-            mbedtls_printf("failed at line %d\n", __LINE__);          \
-            mbedtls_printf(" cycles=%lu ratio=%lu millisecs=%lu secs=%lu hardfail=%d a=%lu b=%lu\n", \
-                           cycles, ratio, millisecs, secs, hardfail,   \
-                           (unsigned long) a, (unsigned long) b);     \
-            mbedtls_printf(" elapsed(hires)=%lu status(ctx)=%d\n", \
-                           mbedtls_timing_get_timer(&hires, 0),      \
-                           mbedtls_timing_get_delay(&ctx));         \
-        }                                                               \
-        return 1;                                                    \
-    } while (0)
-
-/*
- * Checkup routine
- *
- * Warning: this is work in progress, some tests may not be reliable enough
- * yet! False positives may happen.
- */
-int mbedtls_timing_self_test(int verbose)
-{
-    unsigned long cycles = 0, ratio = 0;
-    unsigned long millisecs = 0, secs = 0;
-    int hardfail = 0;
-    struct mbedtls_timing_hr_time hires;
-    uint32_t a = 0, b = 0;
-    mbedtls_timing_delay_context ctx;
-
-    if (verbose != 0) {
-        mbedtls_printf("  TIMING tests note: will take some time!\n");
-    }
-
-    if (verbose != 0) {
-        mbedtls_printf("  TIMING test #1 (set_alarm / get_timer): ");
-    }
-
-    {
-        secs = 1;
-
-        (void) mbedtls_timing_get_timer(&hires, 1);
-
-        mbedtls_set_alarm((int) secs);
-        while (!mbedtls_timing_alarmed) {
-            ;
-        }
-
-        millisecs = mbedtls_timing_get_timer(&hires, 0);
-
-        /* For some reason on Windows it looks like alarm has an extra delay
-         * (maybe related to creating a new thread). Allow some room here. */
-        if (millisecs < 800 * secs || millisecs > 1200 * secs + 300) {
-            FAIL;
-        }
-    }
-
-    if (verbose != 0) {
-        mbedtls_printf("passed\n");
-    }
-
-    if (verbose != 0) {
-        mbedtls_printf("  TIMING test #2 (set/get_delay        ): ");
-    }
-
-    {
-        a = 800;
-        b = 400;
-        mbedtls_timing_set_delay(&ctx, a, a + b);            /* T = 0 */
-
-        busy_msleep(a - a / 4);                        /* T = a - a/4 */
-        if (mbedtls_timing_get_delay(&ctx) != 0) {
-            FAIL;
-        }
-
-        busy_msleep(a / 4 + b / 4);                    /* T = a + b/4 */
-        if (mbedtls_timing_get_delay(&ctx) != 1) {
-            FAIL;
-        }
-
-        busy_msleep(b);                            /* T = a + b + b/4 */
-        if (mbedtls_timing_get_delay(&ctx) != 2) {
-            FAIL;
-        }
-    }
-
-    mbedtls_timing_set_delay(&ctx, 0, 0);
-    busy_msleep(200);
-    if (mbedtls_timing_get_delay(&ctx) != -1) {
-        FAIL;
-    }
-
-    if (verbose != 0) {
-        mbedtls_printf("passed\n");
-    }
-
-    if (verbose != 0) {
-        mbedtls_printf("  TIMING test #3 (hardclock / get_timer): ");
-    }
-
-    /*
-     * Allow one failure for possible counter wrapping.
-     * On a 4Ghz 32-bit machine the cycle counter wraps about once per second;
-     * since the whole test is about 10ms, it shouldn't happen twice in a row.
-     */
-
-hard_test:
-    if (hardfail > 1) {
-        if (verbose != 0) {
-            mbedtls_printf("failed (ignored)\n");
-        }
-
-        goto hard_test_done;
-    }
-
-    /* Get a reference ratio cycles/ms */
-    millisecs = 1;
-    cycles = mbedtls_timing_hardclock();
-    busy_msleep(millisecs);
-    cycles = mbedtls_timing_hardclock() - cycles;
-    ratio = cycles / millisecs;
-
-    /* Check that the ratio is mostly constant */
-    for (millisecs = 2; millisecs <= 4; millisecs++) {
-        cycles = mbedtls_timing_hardclock();
-        busy_msleep(millisecs);
-        cycles = mbedtls_timing_hardclock() - cycles;
-
-        /* Allow variation up to 20% */
-        if (cycles / millisecs < ratio - ratio / 5 ||
-            cycles / millisecs > ratio + ratio / 5) {
-            hardfail++;
-            goto hard_test;
-        }
-    }
-
-    if (verbose != 0) {
-        mbedtls_printf("passed\n");
-    }
-
-hard_test_done:
-
-    if (verbose != 0) {
-        mbedtls_printf("\n");
-    }
-
-    return 0;
-}
-
-#endif /* MBEDTLS_SELF_TEST */
-#endif /* MBEDTLS_TIMING_C */
+#endif /* MBEDTLS_TIMING_ALT */

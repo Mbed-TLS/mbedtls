@@ -2728,6 +2728,19 @@ component_test_no_date_time () {
     make test
 }
 
+component_test_alt_timing() {
+    msg "build: alternate timing implementation"
+    scripts/config.py set MBEDTLS_TIMING_ALT
+    make lib TEST_TIMING_ALT_IMPL=1 CFLAGS="-I../tests/src/external_timing"
+
+    msg "test: MBEDTLS_TIMING_ALT - test suites"
+    make test TEST_TIMING_ALT_IMPL=1 CFLAGS="-I../tests/src/external_timing"
+
+    msg "selftest - MBEDTLS-TIMING_ALT"
+    make programs TEST_TIMING_ALT_IMPL=1 CFLAGS="-I../../tests/src/external_timing -I../tests/src/external_timing"
+    programs/test/selftest
+}
+
 component_test_platform_calloc_macro () {
     msg "build: MBEDTLS_PLATFORM_{CALLOC/FREE}_MACRO enabled (ASan build)"
     scripts/config.py set MBEDTLS_PLATFORM_MEMORY

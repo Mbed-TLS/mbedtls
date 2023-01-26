@@ -7247,8 +7247,6 @@ psa_status_t psa_pake_setup(
 
     if (cipher_suite == NULL ||
         PSA_ALG_IS_PAKE(cipher_suite->algorithm) == 0 ||
-        (cipher_suite->type != PSA_PAKE_PRIMITIVE_TYPE_ECC &&
-         cipher_suite->type != PSA_PAKE_PRIMITIVE_TYPE_DH) ||
         PSA_ALG_IS_HASH(cipher_suite->hash) == 0) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }

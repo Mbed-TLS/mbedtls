@@ -430,8 +430,9 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
 #define PSA_DH_FAMILY_CUSTOM             ((psa_dh_family_t) 0x7e)
 
 /** EC-JPAKE operation stages. */
-#define PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS 0
-#define PSA_PAKE_OPERATION_STAGE_COMPUTATION 1
+#define PSA_PAKE_OPERATION_STAGE_SETUP 0
+#define PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS 1
+#define PSA_PAKE_OPERATION_STAGE_COMPUTATION 2
 
 /**
  * \brief Set domain parameters for a key.
@@ -1893,7 +1894,7 @@ psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
 /** Returns a suitable initializer for a PAKE operation object of type
  * psa_pake_operation_t.
  */
-#define PSA_PAKE_OPERATION_INIT { 0, PSA_ALG_NONE, PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS, \
+#define PSA_PAKE_OPERATION_INIT { 0, PSA_ALG_NONE, PSA_PAKE_OPERATION_STAGE_SETUP, \
                                   { { 0 } }, { { 0 } } }
 
 struct psa_pake_cipher_suite_s {

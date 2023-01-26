@@ -7237,11 +7237,7 @@ psa_status_t psa_pake_setup(
     psa_pake_operation_t *operation,
     const psa_pake_cipher_suite_t *cipher_suite)
 {
-    if (operation->stage != PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS) {
-        return PSA_ERROR_BAD_STATE;
-    }
-
-    if (operation->alg != PSA_ALG_NONE) {
+    if (operation->stage != PSA_PAKE_OPERATION_STAGE_SETUP) {
         return PSA_ERROR_BAD_STATE;
     }
 
@@ -7266,6 +7262,8 @@ psa_status_t psa_pake_setup(
         computation_stage->output_step = PSA_PAKE_STEP_X1_X2;
     }
 
+    operation->stage = PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS;
+
     return PSA_SUCCESS;
 }
 
@@ -7278,10 +7276,6 @@ psa_status_t psa_pake_set_password_key(
     psa_key_slot_t *slot = NULL;
 
     if (operation->stage != PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS) {
-        return PSA_ERROR_BAD_STATE;
-    }
-
-    if (operation->alg == PSA_ALG_NONE) {
         return PSA_ERROR_BAD_STATE;
     }
 
@@ -7329,10 +7323,6 @@ psa_status_t psa_pake_set_user(
         return PSA_ERROR_BAD_STATE;
     }
 
-    if (operation->alg == PSA_ALG_NONE) {
-        return PSA_ERROR_BAD_STATE;
-    }
-
     if (user_id_len == 0) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
@@ -7351,10 +7341,6 @@ psa_status_t psa_pake_set_peer(
         return PSA_ERROR_BAD_STATE;
     }
 
-    if (operation->alg == PSA_ALG_NONE) {
-        return PSA_ERROR_BAD_STATE;
-    }
-
     if (peer_id_len == 0) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
@@ -7367,10 +7353,6 @@ psa_status_t psa_pake_set_role(
     psa_pake_role_t role)
 {
     if (operation->stage != PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS) {
-        return PSA_ERROR_BAD_STATE;
-    }
-
-    if (operation->alg == PSA_ALG_NONE) {
         return PSA_ERROR_BAD_STATE;
     }
 
@@ -7887,7 +7869,7 @@ psa_status_t psa_pake_abort(
     }
 
     operation->alg = PSA_ALG_NONE;
-    operation->stage = PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS;
+    operation->stage = PSA_PAKE_OPERATION_STAGE_SETUP;
     operation->id = 0;
 
     return PSA_SUCCESS;

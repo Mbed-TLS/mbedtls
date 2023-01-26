@@ -6,7 +6,7 @@ Bugfix
 
 New deprecations
    * mbedtls_x509write_crt_set_serial() is now being deprecated in favor of
-     mbedtls_x509write_crt_set_serial_new(). The goal here is to remove any
+     mbedtls_x509write_crt_set_serial_raw(). The goal here is to remove any
      direct dependency of X509 on BIGNUM_C.
 
 Changes

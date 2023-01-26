@@ -124,7 +124,7 @@ int mbedtls_x509write_crt_set_serial(mbedtls_x509write_cert *ctx,
 }
 #endif // MBEDTLS_BIGNUM_C && !MBEDTLS_DEPRECATED_REMOVED
 
-int mbedtls_x509write_crt_set_serial_new(mbedtls_x509write_cert *ctx,
+int mbedtls_x509write_crt_set_serial_raw(mbedtls_x509write_cert *ctx,
                                          unsigned char *serial, size_t serial_len)
 {
     if (serial_len > MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN) {

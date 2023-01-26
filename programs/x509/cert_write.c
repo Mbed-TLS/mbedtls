@@ -736,10 +736,10 @@ usage:
     mbedtls_x509write_crt_set_version(&crt, opt.version);
     mbedtls_x509write_crt_set_md_alg(&crt, opt.md);
 
-    ret = mbedtls_x509write_crt_set_serial_new(&crt, serial, serial_len);
+    ret = mbedtls_x509write_crt_set_serial_raw(&crt, serial, serial_len);
     if (ret != 0) {
         mbedtls_strerror(ret, buf, sizeof(buf));
-        mbedtls_printf(" failed\n  !  mbedtls_x509write_crt_set_serial_new "
+        mbedtls_printf(" failed\n  !  mbedtls_x509write_crt_set_serial_raw "
                        "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf);
         goto exit;
     }

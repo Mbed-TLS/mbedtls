@@ -993,7 +993,7 @@ void mbedtls_x509write_crt_set_version(mbedtls_x509write_cert *ctx, int version)
  *
  * \deprecated      This function is deprecated and will be removed in a
  *                  future version of the library. Please use
- *                  mbedtls_x509write_crt_set_serial_new() instead.
+ *                  mbedtls_x509write_crt_set_serial_raw() instead.
  *
  * \note            Even though the MBEDTLS_BIGNUM_C guard looks redundant since
  *                  X509 depends on PK and PK depends on BIGNUM, this emphasizes
@@ -1021,7 +1021,7 @@ int MBEDTLS_DEPRECATED mbedtls_x509write_crt_set_serial(
  *                  MBEDTLS_ERR_X509_BAD_INPUT_DATA if the provided input buffer
  *                  is too big (longer than MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN)
  */
-int mbedtls_x509write_crt_set_serial_new(mbedtls_x509write_cert *ctx,
+int mbedtls_x509write_crt_set_serial_raw(mbedtls_x509write_cert *ctx,
                                          unsigned char *serial, size_t serial_len);
 
 /**

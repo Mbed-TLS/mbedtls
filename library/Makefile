@@ -190,7 +190,7 @@ ifdef TEST_TIMING_ALT_IMPL
 OBJS_CRYPTO += external_timing_for_test.o
 external_timing_for_test.o: ../tests/src/external_timing/external_timing_for_test.c
 	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -I../tests/include -o $@ -c $<
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 endif
 
 static: libmbedcrypto.a libmbedx509.a libmbedtls.a

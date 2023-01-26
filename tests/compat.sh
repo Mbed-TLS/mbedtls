@@ -205,7 +205,7 @@ filter()
 check_openssl_server_bug()
 {
     if test "X$VERIFY" = "XYES" && is_dtls "$MODE" && \
-        echo "$1" | grep "^TLS_PSK" >/dev/null;
+        test "$TYPE" = "PSK";
     then
         SKIP_NEXT="YES"
     fi
@@ -1029,7 +1029,7 @@ for VERIFY in $VERIFIES; do
                     if [ "X" != "X$M_CIPHERS" ]; then
                         start_server "OpenSSL"
                         for i in $M_CIPHERS; do
-                            check_openssl_server_bug $i
+                            check_openssl_server_bug
                             run_client mbedTLS $i
                         done
                         stop_server

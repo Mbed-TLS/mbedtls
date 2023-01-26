@@ -1015,7 +1015,8 @@ int MBEDTLS_DEPRECATED mbedtls_x509write_crt_set_serial(
  * \param ctx          CRT context to use
  * \param serial       A raw array of bytes containing the serial number in big
  *                     endian format
- * \param serial_len   Length of the previous input buffer buffer
+ * \param serial_len   Length of valid bytes (expressed in bytes) in \p serial
+ *                     input buffer
  *
  * \return          0 if successful, or
  *                  MBEDTLS_ERR_X509_BAD_INPUT_DATA if the provided input buffer

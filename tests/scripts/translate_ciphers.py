@@ -179,7 +179,7 @@ def format_ciphersuite_names(mode, names):
          "o": translate_ossl,
          "m": translate_mbedtls
         }[mode]
-    return " ".join(t(c) for c in names)
+    return " ".join(c + '=' + t(c) for c in names)
 
 def main(target, names):
     print(format_ciphersuite_names(target, names))

@@ -100,6 +100,11 @@
 #define MBEDTLS_PK_WRITE_C
 #endif
 
+/* Auto-enable MBEDTLD_MD_LIGHT based on MBEDTLS_MD_C */
+#if defined(MBEDTLS_MD_C)
+#define MBEDTLS_MD_LIGHT
+#endif
+
 #if !defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #undef MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
 #undef MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED

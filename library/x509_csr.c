@@ -119,8 +119,8 @@ static int x509_csr_parse_extensions(mbedtls_x509_csr *csr,
         if (ret == 0) {
             /* Forbid repeated extensions */
             if ((csr->ext_types & ext_type) != 0) {
-                return (MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
-                                        MBEDTLS_ERR_ASN1_INVALID_DATA));
+                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                         MBEDTLS_ERR_ASN1_INVALID_DATA);
             }
 
             csr->ext_types |= ext_type;
@@ -129,7 +129,7 @@ static int x509_csr_parse_extensions(mbedtls_x509_csr *csr,
                 case MBEDTLS_X509_EXT_KEY_USAGE:
                     /* Parse key usage */
                     if ((ret = mbedtls_x509_get_key_usage(p, end_ext_data,
-                                                            &csr->key_usage)) != 0) {
+                                                          &csr->key_usage)) != 0) {
                         return ret;
                     }
                     break;
@@ -137,7 +137,7 @@ static int x509_csr_parse_extensions(mbedtls_x509_csr *csr,
                 case MBEDTLS_X509_EXT_SUBJECT_ALT_NAME:
                     /* Parse subject alt name */
                     if ((ret = mbedtls_x509_get_subject_alt_name(p, end_ext_data,
-                                                                    &csr->subject_alt_names)) != 0) {
+                                                                 &csr->subject_alt_names)) != 0) {
                         return ret;
                     }
                     break;
@@ -145,7 +145,7 @@ static int x509_csr_parse_extensions(mbedtls_x509_csr *csr,
                 case MBEDTLS_X509_EXT_NS_CERT_TYPE:
                     /* Parse netscape certificate type */
                     if ((ret = mbedtls_x509_get_ns_cert_type(p, end_ext_data,
-                                                                &csr->ns_cert_type)) != 0) {
+                                                             &csr->ns_cert_type)) != 0) {
                         return ret;
                     }
                     break;
@@ -222,7 +222,7 @@ static int x509_csr_parse_attributes(mbedtls_x509_csr *csr,
 
     if (*p != end) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
-                                    MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
+                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
     }
 
     return 0;

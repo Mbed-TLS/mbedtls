@@ -31,7 +31,7 @@
 #include "mbedtls/build_info.h"
 #include "mbedtls/platform_util.h"
 
-#if defined(MBEDTLS_MD_C)
+#if defined(MBEDTLS_MD_LIGHT)
 
 /*
  * - MBEDTLS_MD_CAN_xxx is defined if the md module can perform xxx.
@@ -114,7 +114,7 @@
 #define MBEDTLS_MD_SOME_LEGACY
 #endif
 
-#endif /* MBEDTLS_MD_C */
+#endif /* MBEDTLS_MD_LIGHT */
 
 /** The selected feature is not available. */
 #define MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE                -0x5080

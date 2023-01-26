@@ -620,7 +620,7 @@ static size_t eckey_get_bitlen(const void *ctx)
     return ((mbedtls_ecp_keypair *) ctx)->grp.pbits;
 }
 
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SIGN) || defined(MBEDTLS_PK_CAN_ECDSA_VERIFY)
 /* Forward declarations */
 static int ecdsa_verify_wrap(void *ctx, mbedtls_md_type_t md_alg,
                              const unsigned char *hash, size_t hash_len,
@@ -636,15 +636,9 @@ static int eckey_verify_wrap(void *ctx, mbedtls_md_type_t md_alg,
                              const unsigned char *sig, size_t sig_len)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    mbedtls_ecdsa_context ecdsa;
+    mbedtls_ecp_keypair *keypair_ctx = ctx;
 
-    mbedtls_ecdsa_init(&ecdsa);
-
-    if ((ret = mbedtls_ecdsa_from_keypair(&ecdsa, ctx)) == 0) {
-        ret = ecdsa_verify_wrap(&ecdsa, md_alg, hash, hash_len, sig, sig_len);
-    }
-
-    mbedtls_ecdsa_free(&ecdsa);
+    ret = ecdsa_verify_wrap(keypair_ctx, md_alg, hash, hash_len, sig, sig_len);
 
     return ret;
 }
@@ -655,17 +649,11 @@ static int eckey_sign_wrap(void *ctx, mbedtls_md_type_t md_alg,
                            int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    mbedtls_ecdsa_context ecdsa;
+    mbedtls_ecp_keypair *keypair_ctx = ctx;
 
-    mbedtls_ecdsa_init(&ecdsa);
-
-    if ((ret = mbedtls_ecdsa_from_keypair(&ecdsa, ctx)) == 0) {
-        ret = ecdsa_sign_wrap(&ecdsa, md_alg, hash, hash_len,
-                              sig, sig_size, sig_len,
-                              f_rng, p_rng);
-    }
-
-    mbedtls_ecdsa_free(&ecdsa);
+    ret = ecdsa_sign_wrap(keypair_ctx, md_alg, hash, hash_len,
+                          sig, sig_size, sig_len,
+                          f_rng, p_rng);
 
     return ret;
 }
@@ -817,17 +805,17 @@ const mbedtls_pk_info_t mbedtls_eckey_info = {
     "EC",
     eckey_get_bitlen,
     eckey_can_do,
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SIGN) || defined(MBEDTLS_PK_CAN_ECDSA_VERIFY)
     eckey_verify_wrap,
     eckey_sign_wrap,
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     eckey_verify_rs_wrap,
     eckey_sign_rs_wrap,
 #endif
-#else /* MBEDTLS_ECDSA_C */
+#else /* MBEDTLS_PK_CAN_ECDSA_SIGN || MBEDTLS_PK_CAN_ECDSA_VERIFY */
     NULL,
     NULL,
-#endif /* MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_PK_CAN_ECDSA_SIGN || MBEDTLS_PK_CAN_ECDSA_VERIFY */
     NULL,
     NULL,
     eckey_check_pair,
@@ -873,7 +861,7 @@ const mbedtls_pk_info_t mbedtls_eckeydh_info = {
 };
 #endif /* MBEDTLS_ECP_C */
 
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SIGN) || defined(MBEDTLS_PK_CAN_ECDSA_VERIFY)
 static int ecdsa_can_do(mbedtls_pk_type_t type)
 {
     return type == MBEDTLS_PK_ECDSA;
@@ -944,7 +932,7 @@ static int ecdsa_verify_wrap(void *ctx_arg, mbedtls_md_type_t md_alg,
                              const unsigned char *hash, size_t hash_len,
                              const unsigned char *sig, size_t sig_len)
 {
-    mbedtls_ecdsa_context *ctx = ctx_arg;
+    mbedtls_ecp_keypair *ctx = ctx_arg;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
@@ -962,6 +950,7 @@ static int ecdsa_verify_wrap(void *ctx_arg, mbedtls_md_type_t md_alg,
     ((void) md_alg);
 
     if (curve == 0) {
+        fprintf(stderr, "unkown curve!\n");
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
 
@@ -1179,7 +1168,7 @@ static int ecdsa_sign_wrap(void *ctx_arg, mbedtls_md_type_t md_alg,
                            unsigned char *sig, size_t sig_size, size_t *sig_len,
                            int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
 {
-    mbedtls_ecdsa_context *ctx = ctx_arg;
+    mbedtls_ecp_keypair *ctx = ctx_arg;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
@@ -1301,10 +1290,10 @@ static int ecdsa_sign_rs_wrap(void *ctx, mbedtls_md_type_t md_alg,
 
 static void *ecdsa_alloc_wrap(void)
 {
-    void *ctx = mbedtls_calloc(1, sizeof(mbedtls_ecdsa_context));
+    void *ctx = mbedtls_calloc(1, sizeof(mbedtls_ecp_keypair));
 
     if (ctx != NULL) {
-        mbedtls_ecdsa_init((mbedtls_ecdsa_context *) ctx);
+        mbedtls_ecp_keypair_init((mbedtls_ecp_keypair *) ctx);
     }
 
     return ctx;
@@ -1312,7 +1301,7 @@ static void *ecdsa_alloc_wrap(void)
 
 static void ecdsa_free_wrap(void *ctx)
 {
-    mbedtls_ecdsa_free((mbedtls_ecdsa_context *) ctx);
+    mbedtls_ecp_keypair_free((mbedtls_ecp_keypair *) ctx);
     mbedtls_free(ctx);
 }
 
@@ -1546,7 +1535,7 @@ static int pk_opaque_sign_wrap(void *ctx, mbedtls_md_type_t md_alg,
                                unsigned char *sig, size_t sig_size, size_t *sig_len,
                                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
 {
-#if !defined(MBEDTLS_ECDSA_C) && !defined(MBEDTLS_RSA_C)
+#if !defined(MBEDTLS_PK_CAN_ECDSA_SIGN) && !defined(MBEDTLS_RSA_C)
     ((void) ctx);
     ((void) md_alg);
     ((void) hash);
@@ -1557,7 +1546,7 @@ static int pk_opaque_sign_wrap(void *ctx, mbedtls_md_type_t md_alg,
     ((void) f_rng);
     ((void) p_rng);
     return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
-#else /* !MBEDTLS_ECDSA_C && !MBEDTLS_RSA_C */
+#else /* !MBEDTLS_PK_CAN_ECDSA_SIGN && !MBEDTLS_RSA_C */
     const mbedtls_svc_key_id_t *key = (const mbedtls_svc_key_id_t *) ctx;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_algorithm_t alg;
@@ -1576,11 +1565,11 @@ static int pk_opaque_sign_wrap(void *ctx, mbedtls_md_type_t md_alg,
     type = psa_get_key_type(&attributes);
     psa_reset_key_attributes(&attributes);
 
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
     if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(type)) {
         alg = PSA_ALG_ECDSA(mbedtls_hash_info_psa_from_md(md_alg));
     } else
-#endif /* MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
 #if defined(MBEDTLS_RSA_C)
     if (PSA_KEY_TYPE_IS_RSA(type)) {
         alg = PSA_ALG_RSA_PKCS1V15_SIGN(mbedtls_hash_info_psa_from_md(md_alg));
@@ -1592,11 +1581,11 @@ static int pk_opaque_sign_wrap(void *ctx, mbedtls_md_type_t md_alg,
     status = psa_sign_hash(*key, alg, hash, hash_len,
                            sig, sig_size, sig_len);
     if (status != PSA_SUCCESS) {
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
         if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(type)) {
             return mbedtls_pk_error_from_psa_ecdsa(status);
         } else
-#endif /* MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
 #if defined(MBEDTLS_RSA_C)
         if (PSA_KEY_TYPE_IS_RSA(type)) {
             return mbedtls_pk_error_from_psa_rsa(status);
@@ -1605,15 +1594,15 @@ static int pk_opaque_sign_wrap(void *ctx, mbedtls_md_type_t md_alg,
         return mbedtls_pk_error_from_psa(status);
     }
 
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
     if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(type)) {
         /* transcode it to ASN.1 sequence */
         return pk_ecdsa_sig_asn1_from_psa(sig, sig_len, sig_size);
     }
-#endif /* MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
 
     return 0;
-#endif /* !MBEDTLS_ECDSA_C && !MBEDTLS_RSA_C */
+#endif /* !MBEDTLS_PK_CAN_ECDSA_SIGN && !MBEDTLS_RSA_C */
 }
 
 const mbedtls_pk_info_t mbedtls_pk_ecdsa_opaque_info = {

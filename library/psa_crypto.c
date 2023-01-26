@@ -7281,7 +7281,7 @@ psa_status_t psa_pake_set_password_key(
 
     status = psa_get_and_lock_key_slot_with_policy(password, &slot,
                                                    PSA_KEY_USAGE_DERIVE,
-                                                   PSA_ALG_JPAKE);
+                                                   operation->alg);
     if (status != PSA_SUCCESS) {
         return status;
     }

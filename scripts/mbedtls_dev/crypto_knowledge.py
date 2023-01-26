@@ -20,7 +20,7 @@ This module is entirely based on the PSA API.
 
 import enum
 import re
-from typing import FrozenSet, Iterable, List, Optional, Tuple
+from typing import FrozenSet, Iterable, List, Optional, Tuple, Dict
 
 from .asymmetric_key_data import ASYMMETRIC_KEY_DATA
 
@@ -148,7 +148,7 @@ class KeyType:
         'PSA_ECC_FAMILY_BRAINPOOL_P_R1': (160, 192, 224, 256, 320, 384, 512),
         'PSA_ECC_FAMILY_MONTGOMERY': (255, 448),
         'PSA_ECC_FAMILY_TWISTED_EDWARDS': (255, 448),
-    }
+    } # type: Dict[str, Tuple[int, ...]]
     KEY_TYPE_SIZES = {
         'PSA_KEY_TYPE_AES': (128, 192, 256), # exhaustive
         'PSA_KEY_TYPE_ARIA': (128, 192, 256), # exhaustive
@@ -162,7 +162,7 @@ class KeyType:
         'PSA_KEY_TYPE_PEPPER': (128, 256), # sample
         'PSA_KEY_TYPE_RAW_DATA': (8, 40, 128), # sample
         'PSA_KEY_TYPE_RSA_KEY_PAIR': (1024, 1536), # small sample
-    }
+    } # type: Dict[str, Tuple[int, ...]]
     def sizes_to_test(self) -> Tuple[int, ...]:
         """Return a tuple of key sizes to test.
 

@@ -679,7 +679,11 @@ setup_arguments()
 
 # is_mbedtls <cmd_line>
 is_mbedtls() {
-    echo "$1" | grep 'ssl_server2\|ssl_client2' > /dev/null
+    case $1 in
+        *ssl_client2*) true;;
+        *ssl_server2*) true;;
+        *) false;;
+    esac
 }
 
 # has_mem_err <log_file_name>
@@ -798,12 +802,9 @@ wait_client_done() {
 run_client() {
     # announce what we're going to do
     TESTS=$(( $TESTS + 1 ))
-    VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
-    TITLE="`echo $1 | head -c1`->`echo $SERVER_NAME | head -c1`"
+    TITLE="${1%"${1#?}"}->${SERVER_NAME%"${SERVER_NAME#?}"}"
     TITLE="$TITLE $MODE,$VERIF $2"
-    printf "%s " "$TITLE"
-    LEN=$(( 72 - `echo "$TITLE" | wc -c` ))
-    for i in `seq 1 $LEN`; do printf '.'; done; printf ' '
+    printf "%s %.*s " "$TITLE" "$((72 - ${#TITLE}))" ........................................................................
 
     # should we skip?
     if [ "X$SKIP_NEXT" = "XYES" ]; then
@@ -996,6 +997,7 @@ SKIP_NEXT="NO"
 trap cleanup INT TERM HUP
 
 for VERIFY in $VERIFIES; do
+    VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
     for MODE in $MODES; do
         for TYPE in $TYPES; do
             for PEER in $PEERS; do

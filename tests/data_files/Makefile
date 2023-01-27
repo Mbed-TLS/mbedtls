@@ -972,11 +972,14 @@ test_ca_server1_config_file = test-ca.server1.opensslconf
 
 server1.crt: server1.key server1.req.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
 	$(MBEDTLS_CERT_WRITE) request_file=server1.req.sha256 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) version=1 not_before=20190210144406 not_after=20290210144406 md=SHA1 version=3 output_file=$@
-server1.long_serial.crt: server1.long_serial.crt: server1.key server1.req.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
+server1.long_serial.crt: server1.key server1.req.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
 	echo "112233445566778899aabbccddeeff0011223344" > test-ca.server1.tmp.serial
 	$(OPENSSL) ca -in server1.req.sha256 -key PolarSSLTest -config test-ca.server1.test_serial.opensslconf -notext -batch -out $@
-server1.80serial.crt: server1.long_serial.crt: server1.key server1.req.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
+server1.80serial.crt: server1.key server1.req.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
 	echo "8011223344" > test-ca.server1.tmp.serial
+	$(OPENSSL) ca -in server1.req.sha256 -key PolarSSLTest -config test-ca.server1.test_serial.opensslconf -notext -batch -out $@
+server1.long_serial_FF.crt: server1.key server1.req.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
+	echo "ffffffffffffffffffffffffffffffff" > test-ca.server1.tmp.serial
 	$(OPENSSL) ca -in server1.req.sha256 -key PolarSSLTest -config test-ca.server1.test_serial.opensslconf -notext -batch -out $@
 server1.noauthid.crt: server1.key server1.req.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
 	$(MBEDTLS_CERT_WRITE) request_file=server1.req.sha256 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20190210144406 not_after=20290210144406 md=SHA1 authority_identifier=0 version=3 output_file=$@

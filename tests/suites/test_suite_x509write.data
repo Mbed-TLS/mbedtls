@@ -150,6 +150,10 @@ Certificate write check Server1 SHA1, Serial starting with 0x80
 depends_on:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_DES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_HAS_ALG_MD5_VIA_MD_OR_PSA_BASED_ON_USE_PSA
 x509_crt_check:"data_files/server1.key":"":"C=NL,O=PolarSSL,CN=PolarSSL Server 1":"data_files/test-ca.key":"PolarSSLTest":"C=NL,O=PolarSSL,CN=PolarSSL Test CA":"8011223344":"20190210144406":"20290210144406":MBEDTLS_MD_SHA1:0:0:"NULL":0:0:1:-1:"data_files/server1.80serial.crt":0:0:"data_files/test-ca.crt"
 
+Certificate write check Server1 SHA1, All 0xFF full length serial
+depends_on:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_DES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_HAS_ALG_MD5_VIA_MD_OR_PSA_BASED_ON_USE_PSA
+x509_crt_check:"data_files/server1.key":"":"C=NL,O=PolarSSL,CN=PolarSSL Server 1":"data_files/test-ca.key":"PolarSSLTest":"C=NL,O=PolarSSL,CN=PolarSSL Test CA":"ffffffffffffffffffffffffffffffff":"20190210144406":"20290210144406":MBEDTLS_MD_SHA1:0:0:"NULL":0:0:1:-1:"data_files/server1.long_serial_FF.crt":0:0:"data_files/test-ca.crt"
+
 Certificate write check Server5 ECDSA
 depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_ECDSA_C:MBEDTLS_ECDSA_DETERMINISTIC:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 x509_crt_check:"data_files/server5.key":"":"C=NL,O=PolarSSL,CN=PolarSSL Server 1":"data_files/test-ca2.key":"PolarSSLTest":"C=NL,O=PolarSSL,CN=Polarssl Test EC CA":"01":"20190210144406":"20290210144406":MBEDTLS_MD_SHA256:0:0:"NULL":0:0:1:-1:"data_files/server5.crt":0:0:"data_files/test-ca2.crt"

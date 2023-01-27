@@ -332,12 +332,9 @@
 #error "MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED defined, but not all prerequisites"
 #endif
 
-/* Use of EC J-PAKE in TLS requires SHA-256.
- * This will be taken from MD if it is present, or from PSA if MD is absent.
- * Note: MBEDTLS_ECJPAKE_C depends on MBEDTLS_MD_C || MBEDTLS_PSA_CRYPTO_C. */
+/* Use of EC J-PAKE in TLS requires SHA-256. */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) &&                    \
-    !( defined(MBEDTLS_MD_C) && defined(MBEDTLS_SHA256_C) ) &&          \
-    !( !defined(MBEDTLS_MD_C) && defined(PSA_WANT_ALG_SHA_256) )
+    !( defined(MBEDTLS_SHA256_C) || defined(PSA_WANT_ALG_SHA_256) )
 #error "MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED defined, but not all prerequisites"
 #endif
 
@@ -349,6 +346,7 @@
 #error "!MBEDTLS_SSL_KEEP_PEER_CERTIFICATE requires MBEDTLS_SHA512_C, MBEDTLS_SHA256_C or MBEDTLS_SHA1_C"
 #endif
 
+/* MD needs at least one software hash or PSA */
 #if defined(MBEDTLS_MD_C) && !( \
     defined(MBEDTLS_MD5_C) || \
     defined(MBEDTLS_RIPEMD160_C) || \
@@ -356,7 +354,8 @@
     defined(MBEDTLS_SHA224_C) || \
     defined(MBEDTLS_SHA256_C) || \
     defined(MBEDTLS_SHA384_C) || \
-    defined(MBEDTLS_SHA512_C) )
+    defined(MBEDTLS_SHA512_C) || \
+    defined(MBEDTLS_PSA_CRYPTO_C))
 #error "MBEDTLS_MD_C defined, but not all prerequisites"
 #endif
 

@@ -950,7 +950,6 @@ static int ecdsa_verify_wrap(void *ctx_arg, mbedtls_md_type_t md_alg,
     ((void) md_alg);
 
     if (curve == 0) {
-        fprintf(stderr, "unkown curve!\n");
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
 

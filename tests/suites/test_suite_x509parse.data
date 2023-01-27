@@ -351,19 +351,19 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_US
 mbedtls_x509_csr_info:"data_files/server1-ms.req.sha256":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with SHA-256\nRSA key size  \: 2048 bits\n"
 
 X509 CSR Information v3 extensions #1 (all)
-depends_on:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO
+depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO
 mbedtls_x509_csr_info:"data_files/test_csr_v3_all.csr.der":"CSR version   \: 1\nsubject name  \: CN=etcd\nsigned using  \: RSA with SHA-256\nRSA key size  \: 1024 bits\n\nsubject alt name  \:\n    otherName \:\n        hardware module name \:\n            hardware type          \: 1.3.6.1.4.1.17.3\n            hardware serial number \: 3132338081008180333231\ncert. type        \: SSL Client\nkey usage         \: CRL Sign\n"
 
 X509 CSR Information v3 extensions #2 (nsCertType only)
-depends_on:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO
+depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO
 mbedtls_x509_csr_info:"data_files/test_csr_v3_nsCertType.csr.der":"CSR version   \: 1\nsubject name  \: CN=etcd\nsigned using  \: RSA with SHA-256\nRSA key size  \: 1024 bits\n\ncert. type        \: SSL Server\n"
 
 X509 CSR Information v3 extensions #3 (subjectAltName only)
-depends_on:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO
+depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO
 mbedtls_x509_csr_info:"data_files/test_csr_v3_subjectAltName.csr.der":"CSR version   \: 1\nsubject name  \: CN=etcd\nsigned using  \: RSA with SHA-256\nRSA key size  \: 1024 bits\n\nsubject alt name  \:\n    dNSName \: example.com\n    dNSName \: example.net\n    dNSName \: *.example.org\n"
 
 X509 CSR Information v3 extensions #4 (keyUsage only)
-depends_on:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO
+depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO
 mbedtls_x509_csr_info:"data_files/test_csr_v3_keyUsage.csr.der":"CSR version   \: 1\nsubject name  \: CN=etcd\nsigned using  \: RSA with SHA-256\nRSA key size  \: 1024 bits\n\nkey usage         \: Digital Signature, Key Encipherment\n"
 
 X509 Verify Information: empty
@@ -2683,79 +2683,79 @@ mbedtls_x509_csr_parse:"3008300602047fffffff":"":MBEDTLS_ERR_X509_UNKNOWN_VERSIO
 # Used test_csr_v3_all.csr.der as a base for malforming CSR extenstions/attributes
 # Please see makefile for data_files to check malformation details (test_csr_v3_all_malformed_xxx.csr files)
 X509 CSR ASN.1 (attributes: invalid sequence tag)
-depends_on:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
+depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
 mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_attributes_sequence_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CSR ASN.1 (attributes: invalid attribute id)
-depends_on:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
+depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
 mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_attributes_id_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CSR ASN.1 (attributes: not extension request)
-depends_on:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
+depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
 mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_attributes_extension_request.csr.der":"CSR version   \: 1\nsubject name  \: CN=etcd\nsigned using  \: RSA with SHA-256\nRSA key size  \: 1024 bits\n":0
 
 X509 CSR ASN.1 (attributes: invalid extenstion request set tag)
-depends_on:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
+depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
 mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_attributes_extension_request_set_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CSR ASN.1 (attributes: invalid extenstion request sequence tag)
-depends_on:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
+depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
 mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_attributes_extension_request_sequence_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CSR ASN.1 (attributes: invalid len (len > data))
-depends_on:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
+depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
 mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_attributes_len1.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_OUT_OF_DATA
 
 X509 CSR ASN.1 (attributes: invalid len (len < data))
-depends_on:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
+depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
 mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_attributes_len2.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_LENGTH_MISMATCH
 
 X509 CSR ASN.1 (attributes: extension request invalid len (len > data))
-depends_on:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
+depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
 mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_attributes_extension_request_sequence_len1.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_OUT_OF_DATA
 
 X509 CSR ASN.1 (attributes: extension request invalid len (len < data))
-depends_on:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
+depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
 mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_attributes_extension_request_sequence_len2.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_OUT_OF_DATA
 
 X509 CSR ASN.1 (extensions: invalid sequence tag)
-depends_on:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
+depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
 mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_extensions_sequence_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CSR ASN.1 (extensions: invalid extension id tag)
-depends_on:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
+depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
 mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_extension_id_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CSR ASN.1 (extensions: invalid extension data tag)
-depends_on:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
+depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
 mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_extension_data_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CSR ASN.1 (extensions: invalid extension data len (len > data))
-depends_on:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
+depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
 mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_extension_data_len1.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_OUT_OF_DATA
 
 X509 CSR ASN.1 (extensions: invalid extension data len (len < data))
-depends_on:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
+depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
 mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_extension_data_len2.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_LENGTH_MISMATCH
 
 X509 CSR ASN.1 (extensions: invalid extension key usage bitstream tag)
-depends_on:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
+depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
 mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_extension_key_usage_bitstream_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CSR ASN.1 (extensions: invalid extension subject alt name sequence tag)
-depends_on:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
+depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
 mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_extension_subject_alt_name_sequence_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CSR ASN.1 (extensions: invalid extension ns cert bitstream tag)
-depends_on:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
+depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
 mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_extension_ns_cert_bitstream_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CSR ASN.1 (extensions: duplicated extension)
-depends_on:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
+depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
 mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_duplicated_extension.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_INVALID_DATA
 
 X509 CSR ASN.1 (extensions: invalid extension type data)
-depends_on:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
+depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C
 mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_extension_type_oid.csr.der":"CSR version   \: 1\nsubject name  \: CN=etcd\nsigned using  \: RSA with SHA-256\nRSA key size  \: 1024 bits\n\ncert. type        \: SSL Client\nkey usage         \: CRL Sign\n":0
 
 X509 File parse (no issues)

@@ -1,6 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/ecdsa.h"
-#if (defined(MBEDTLS_ECDSA_DETERMINISTIC) && defined(MBEDTLS_SHA256_C)) || \
+#if (defined(MBEDTLS_ECDSA_DETERMINISTIC) && defined(MBEDTLS_MD_CAN_SHA256)) || \
     (!defined(MBEDTLS_ECDSA_DETERMINISTIC) && defined(MBEDTLS_MD_CAN_SHA256))
 #define MBEDTLS_HAS_ALG_SHA_256_VIA_MD_IF_DETERMINISTIC
 #endif

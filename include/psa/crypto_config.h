@@ -57,6 +57,7 @@
 #define PSA_WANT_ALG_CBC_NO_PADDING             1
 #define PSA_WANT_ALG_CBC_PKCS7                  1
 #define PSA_WANT_ALG_CCM                        1
+#define PSA_WANT_ALG_CCM_STAR_NO_TAG            1
 #define PSA_WANT_ALG_CMAC                       1
 #define PSA_WANT_ALG_CFB                        1
 #define PSA_WANT_ALG_CHACHA20_POLY1305          1
@@ -115,6 +116,8 @@
 #define PSA_WANT_ECC_SECP_R1_521                1
 
 #define PSA_WANT_KEY_TYPE_DERIVE                1
+#define PSA_WANT_KEY_TYPE_PASSWORD              1
+#define PSA_WANT_KEY_TYPE_PASSWORD_HASH         1
 #define PSA_WANT_KEY_TYPE_HMAC                  1
 #define PSA_WANT_KEY_TYPE_AES                   1
 #define PSA_WANT_KEY_TYPE_ARIA                  1

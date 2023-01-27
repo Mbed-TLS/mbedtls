@@ -665,7 +665,7 @@ static psa_algorithm_t ssl_tls13_get_ciphersuite_hash_alg(int ciphersuite)
     ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(ciphersuite);
 
     if (ciphersuite_info != NULL) {
-        return mbedtls_psa_translate_md(ciphersuite_info->mac);
+        return mbedtls_md_psa_alg_from_type(ciphersuite_info->mac);
     }
 
     return PSA_ALG_NONE;
@@ -2668,7 +2668,7 @@ static int ssl_tls13_postprocess_new_session_ticket(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }
 
-    psa_hash_alg = mbedtls_psa_translate_md(ciphersuite_info->mac);
+    psa_hash_alg = mbedtls_md_psa_alg_from_type(ciphersuite_info->mac);
     hash_length = PSA_HASH_LENGTH(psa_hash_alg);
     if (hash_length == -1 ||
         (size_t) hash_length > sizeof(session->resumption_key)) {

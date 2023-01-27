@@ -65,7 +65,7 @@ static int mbedtls_ecjpake_compute_hash(mbedtls_md_type_t md_type,
     return mbedtls_md(mbedtls_md_info_from_type(md_type),
                       input, ilen, output);
 #else
-    psa_algorithm_t alg = mbedtls_psa_translate_md(md_type);
+    psa_algorithm_t alg = mbedtls_md_psa_alg_from_type(md_type);
     psa_status_t status;
     size_t out_size = PSA_HASH_LENGTH(alg);
     size_t out_len;
@@ -142,7 +142,7 @@ int mbedtls_ecjpake_setup(mbedtls_ecjpake_context *ctx,
         return MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE;
     }
 #else
-    if (mbedtls_psa_translate_md(hash) == MBEDTLS_MD_NONE) {
+    if (mbedtls_md_psa_alg_from_type(hash) == MBEDTLS_MD_NONE) {
         return MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE;
     }
 #endif

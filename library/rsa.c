@@ -1090,7 +1090,7 @@ static int mgf_mask(unsigned char *dst, size_t dlen, unsigned char *src,
     hlen = mbedtls_md_get_size(md_info);
 #else
     psa_hash_operation_t op = PSA_HASH_OPERATION_INIT;
-    psa_algorithm_t alg = mbedtls_psa_translate_md(md_alg);
+    psa_algorithm_t alg = mbedtls_md_psa_alg_from_type(md_alg);
     psa_status_t status = PSA_SUCCESS;
     size_t out_len;
 
@@ -1211,7 +1211,7 @@ exit:
     return ret;
 #else
     psa_hash_operation_t op = PSA_HASH_OPERATION_INIT;
-    psa_algorithm_t alg = mbedtls_psa_translate_md(md_alg);
+    psa_algorithm_t alg = mbedtls_md_psa_alg_from_type(md_alg);
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t out_size = PSA_HASH_LENGTH(alg);
     size_t out_len;
@@ -1262,7 +1262,7 @@ static int compute_hash(mbedtls_md_type_t md_alg,
 
     return mbedtls_md(md_info, input, ilen, output);
 #else
-    psa_algorithm_t alg = mbedtls_psa_translate_md(md_alg);
+    psa_algorithm_t alg = mbedtls_md_psa_alg_from_type(md_alg);
     psa_status_t status;
     size_t out_size = PSA_HASH_LENGTH(alg);
     size_t out_len;

@@ -280,7 +280,7 @@ exit:
     return ret;
 #else
     psa_hash_operation_t op = PSA_HASH_OPERATION_INIT;
-    psa_algorithm_t alg = mbedtls_psa_translate_md(md_type);
+    psa_algorithm_t alg = mbedtls_md_psa_alg_from_type(md_type);
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t status_abort = PSA_ERROR_CORRUPTION_DETECTED;
     size_t i, out_len, out_size = PSA_HASH_LENGTH(alg);

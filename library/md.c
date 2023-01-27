@@ -27,6 +27,7 @@
 
 #include "mbedtls/md.h"
 #include "md_wrap.h"
+#include "md_psa.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
@@ -371,20 +372,6 @@ static psa_algorithm_t psa_alg_of_md(const mbedtls_md_info_t *info)
 static int md_uses_psa(const mbedtls_md_info_t *info)
 {
     return psa_alg_of_md(info) != PSA_ALG_NONE;
-}
-
-static int mbedtls_md_error_from_psa(psa_status_t status)
-{
-    switch (status) {
-        case PSA_SUCCESS:
-            return 0;
-        case PSA_ERROR_NOT_SUPPORTED:
-            return MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE;
-        case PSA_ERROR_INSUFFICIENT_MEMORY:
-            return MBEDTLS_ERR_MD_ALLOC_FAILED;
-        default:
-            return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-    }
 }
 #endif /* MBEDTLS_MD_SOME_PSA */
 

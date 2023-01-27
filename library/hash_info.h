@@ -35,6 +35,8 @@
 #include "mbedtls/md.h"
 #include "psa/crypto.h"
 
+#include "md_psa.h"
+
 /** \def MBEDTLS_HASH_MAX_SIZE
  *
  * Maximum size of a hash based on configuration.

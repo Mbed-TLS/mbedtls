@@ -31,10 +31,6 @@
 #include "mbedtls/build_info.h"
 #include "mbedtls/platform_util.h"
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
-#include "psa/crypto_types.h"
-#endif
-
 #if defined(MBEDTLS_MD_LIGHT)
 
 /*
@@ -233,33 +229,6 @@ const mbedtls_md_info_t *mbedtls_md_info_from_string(const char *md_name);
  * \return          NULL if the associated message-digest information is not found.
  */
 const mbedtls_md_info_t *mbedtls_md_info_from_type(mbedtls_md_type_t md_type);
-
-#if defined(MBEDTLS_PSA_CRYPTO_C)
-/**
- * \brief           This function returns the PSA algorithm identifier
- *                  associated with the given digest type.
- *
- * \param md_type   The type of digest to search for.
- *
- * \return          The PSA algorithm identifier associated with \p md_type.
- * \return          PSA_ALG_NONE if the algorithm is not supported.
- */
-psa_algorithm_t mbedtls_md_psa_alg_from_type(mbedtls_md_type_t md_type);
-
-/**
- * \brief           This function returns the given digest type
- *                  associated with the PSA algorithm identifier.
- *
- * \param md_type   The PSA algorithm identifier to search for.
- *
- * \return          The MD type associated with \p psa_alg.
- * \return          MBEDTLS_MD_NONE if the algorithm is not supported.
- */
-mbedtls_md_type_t mbedtls_md_type_from_psa_alg(psa_algorithm_t psa_alg);
-
-/* Internal use */
-int mbedtls_md_error_from_psa(psa_status_t status);
-#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 #if defined(MBEDTLS_MD_C)
 /**

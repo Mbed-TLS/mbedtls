@@ -110,7 +110,7 @@ int mbedtls_ssl_cookie_setup(mbedtls_ssl_cookie_ctx *ctx,
     (void) f_rng;
     (void) p_rng;
 
-    alg = mbedtls_hash_info_psa_from_md(COOKIE_MD);
+    alg = mbedtls_md_psa_alg_from_type(COOKIE_MD);
     if (alg == 0) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }

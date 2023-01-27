@@ -171,7 +171,7 @@ static int rsa_verify_wrap(void *ctx, mbedtls_md_type_t md_alg,
     int key_len;
     unsigned char buf[MBEDTLS_PK_RSA_PUB_DER_MAX_BYTES];
     psa_algorithm_t psa_alg_md =
-        PSA_ALG_RSA_PKCS1V15_SIGN(mbedtls_hash_info_psa_from_md(md_alg));
+        PSA_ALG_RSA_PKCS1V15_SIGN(mbedtls_md_psa_alg_from_type(md_alg));
     size_t rsa_len = mbedtls_rsa_get_len(rsa);
 
 #if SIZE_MAX > UINT_MAX
@@ -327,7 +327,7 @@ static int rsa_sign_wrap(void *ctx, mbedtls_md_type_t md_alg,
     ((void) p_rng);
 
     psa_algorithm_t psa_md_alg;
-    psa_md_alg = mbedtls_hash_info_psa_from_md(md_alg);
+    psa_md_alg = mbedtls_md_psa_alg_from_type(md_alg);
     if (psa_md_alg == 0) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
@@ -1188,7 +1188,7 @@ static int ecdsa_sign_wrap(void *ctx_arg, mbedtls_md_type_t md_alg,
     size_t key_len;
     unsigned char buf[MBEDTLS_PK_ECP_PRV_DER_MAX_BYTES];
     unsigned char *p;
-    psa_algorithm_t psa_hash = mbedtls_hash_info_psa_from_md(md_alg);
+    psa_algorithm_t psa_hash = mbedtls_md_psa_alg_from_type(md_alg);
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
     psa_algorithm_t psa_sig_md = PSA_ALG_DETERMINISTIC_ECDSA(psa_hash);
 #else
@@ -1578,12 +1578,12 @@ static int pk_opaque_sign_wrap(void *ctx, mbedtls_md_type_t md_alg,
 
 #if defined(MBEDTLS_ECDSA_C)
     if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(type)) {
-        alg = PSA_ALG_ECDSA(mbedtls_hash_info_psa_from_md(md_alg));
+        alg = PSA_ALG_ECDSA(mbedtls_md_psa_alg_from_type(md_alg));
     } else
 #endif /* MBEDTLS_ECDSA_C */
 #if defined(MBEDTLS_RSA_C)
     if (PSA_KEY_TYPE_IS_RSA(type)) {
-        alg = PSA_ALG_RSA_PKCS1V15_SIGN(mbedtls_hash_info_psa_from_md(md_alg));
+        alg = PSA_ALG_RSA_PKCS1V15_SIGN(mbedtls_md_psa_alg_from_type(md_alg));
     } else
 #endif /* MBEDTLS_RSA_C */
     return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;

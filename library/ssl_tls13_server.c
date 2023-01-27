@@ -323,7 +323,7 @@ static int ssl_tls13_offered_psks_check_binder_match(mbedtls_ssl_context *ssl,
 
     /* Get current state of handshake transcript. */
     ret = mbedtls_ssl_get_handshake_transcript(
-        ssl, mbedtls_hash_info_md_from_psa(psk_hash_alg),
+        ssl, mbedtls_md_type_from_psa_alg(psk_hash_alg),
         transcript, sizeof(transcript), &transcript_len);
     if (ret != 0) {
         return ret;

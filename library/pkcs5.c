@@ -348,7 +348,7 @@ exit:
     unsigned int i;
     unsigned char md1[PSA_HASH_MAX_SIZE];
     unsigned char work[PSA_HASH_MAX_SIZE];
-    const unsigned char md_size = mbedtls_hash_info_get_size(md_alg);
+    const unsigned char md_size = mbedtls_md_get_size_from_type(md_alg);
     psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
 
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
@@ -358,7 +358,7 @@ exit:
     unsigned char counter[4];
     mbedtls_svc_key_id_t psa_hmac_key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    const psa_algorithm_t alg = PSA_ALG_HMAC(mbedtls_hash_info_psa_from_md(md_alg));
+    const psa_algorithm_t alg = PSA_ALG_HMAC(mbedtls_md_psa_alg_from_type(md_alg));
     const size_t out_size = PSA_MAC_LENGTH(PSA_KEY_TYPE_HMAC, 0, alg);
 
     memset(counter, 0, sizeof(counter));

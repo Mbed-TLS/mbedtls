@@ -1421,7 +1421,7 @@ static int build_transforms(mbedtls_ssl_transform *t_in,
         mbedtls_md_info_t const *md_info = mbedtls_md_info_from_type(hash_id);
         CHK(md_info != NULL);
 #endif
-        maclen = mbedtls_hash_info_get_size(hash_id);
+        maclen = mbedtls_md_get_size_from_type(hash_id);
         CHK(maclen != 0);
         /* Pick hash keys */
         CHK((md0 = mbedtls_calloc(1, maclen)) != NULL);
@@ -1430,7 +1430,7 @@ static int build_transforms(mbedtls_ssl_transform *t_in,
         memset(md1, 0x6, maclen);
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        alg = mbedtls_hash_info_psa_from_md(hash_id);
+        alg = mbedtls_md_psa_alg_from_type(hash_id);
 
         CHK(alg != 0);
 
@@ -1726,7 +1726,7 @@ static int ssl_tls12_populate_session(mbedtls_ssl_session *session,
         }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        psa_algorithm_t psa_alg = mbedtls_hash_info_psa_from_md(
+        psa_algorithm_t psa_alg = mbedtls_md_psa_alg_from_type(
             MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE);
         size_t hash_size = 0;
         psa_status_t status = psa_hash_compute(psa_alg, tmp_crt.raw.p,
@@ -4381,7 +4381,7 @@ void ssl_tls13_create_psk_binder(int hash_alg,
                                  data_t *transcript,
                                  data_t *binder_expected)
 {
-    unsigned char binder[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char binder[MBEDTLS_MD_MAX_SIZE];
 
     /* Double-check that we've passed sane parameters. */
     psa_algorithm_t alg = (psa_algorithm_t) hash_alg;
@@ -4514,7 +4514,7 @@ void ssl_tls13_key_evolution(int hash_alg,
                              data_t *input,
                              data_t *expected)
 {
-    unsigned char secret_new[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char secret_new[MBEDTLS_MD_MAX_SIZE];
 
     PSA_INIT();
 

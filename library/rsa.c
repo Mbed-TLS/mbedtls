@@ -487,7 +487,7 @@ int mbedtls_rsa_set_padding(mbedtls_rsa_context *ctx, int padding,
     if ((padding == MBEDTLS_RSA_PKCS_V21) &&
         (hash_id != MBEDTLS_MD_NONE)) {
         /* Just make sure this hash is supported in this build. */
-        if (mbedtls_hash_info_psa_from_md(hash_id) == PSA_ALG_NONE) {
+        if (mbedtls_md_psa_alg_from_type(hash_id) == PSA_ALG_NONE) {
             return MBEDTLS_ERR_RSA_INVALID_PADDING;
         }
     }
@@ -1070,7 +1070,7 @@ static int mgf_mask(unsigned char *dst, size_t dlen, unsigned char *src,
     unsigned char *p;
     unsigned int hlen;
     size_t i, use_len;
-    unsigned char mask[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char mask[MBEDTLS_MD_MAX_SIZE];
 #if defined(MBEDTLS_MD_C)
     int ret = 0;
     const mbedtls_md_info_t *md_info;
@@ -1295,7 +1295,7 @@ int mbedtls_rsa_rsaes_oaep_encrypt(mbedtls_rsa_context *ctx,
         return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     }
 
-    hlen = mbedtls_hash_info_get_size((mbedtls_md_type_t) ctx->hash_id);
+    hlen = mbedtls_md_get_size_from_type((mbedtls_md_type_t) ctx->hash_id);
     if (hlen == 0) {
         return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     }
@@ -1446,7 +1446,7 @@ int mbedtls_rsa_rsaes_oaep_decrypt(mbedtls_rsa_context *ctx,
     size_t ilen, i, pad_len;
     unsigned char *p, bad, pad_done;
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
-    unsigned char lhash[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char lhash[MBEDTLS_MD_MAX_SIZE];
     unsigned int hlen;
 
     /*
@@ -1462,7 +1462,7 @@ int mbedtls_rsa_rsaes_oaep_decrypt(mbedtls_rsa_context *ctx,
         return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     }
 
-    hlen = mbedtls_hash_info_get_size((mbedtls_md_type_t) ctx->hash_id);
+    hlen = mbedtls_md_get_size_from_type((mbedtls_md_type_t) ctx->hash_id);
     if (hlen == 0) {
         return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     }
@@ -1662,7 +1662,7 @@ static int rsa_rsassa_pss_sign(mbedtls_rsa_context *ctx,
 
     if (md_alg != MBEDTLS_MD_NONE) {
         /* Gather length of hash to sign */
-        size_t exp_hashlen = mbedtls_hash_info_get_size(md_alg);
+        size_t exp_hashlen = mbedtls_md_get_size_from_type(md_alg);
         if (exp_hashlen == 0) {
             return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
         }
@@ -1672,7 +1672,7 @@ static int rsa_rsassa_pss_sign(mbedtls_rsa_context *ctx,
         }
     }
 
-    hlen = mbedtls_hash_info_get_size((mbedtls_md_type_t) ctx->hash_id);
+    hlen = mbedtls_md_get_size_from_type((mbedtls_md_type_t) ctx->hash_id);
     if (hlen == 0) {
         return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     }
@@ -1810,7 +1810,7 @@ static int rsa_rsassa_pkcs1_v15_encode(mbedtls_md_type_t md_alg,
 
     /* Are we signing hashed or raw data? */
     if (md_alg != MBEDTLS_MD_NONE) {
-        unsigned char md_size = mbedtls_hash_info_get_size(md_alg);
+        unsigned char md_size = mbedtls_md_get_size_from_type(md_alg);
         if (md_size == 0) {
             return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
         }
@@ -2032,7 +2032,7 @@ int mbedtls_rsa_rsassa_pss_verify_ext(mbedtls_rsa_context *ctx,
     size_t siglen;
     unsigned char *p;
     unsigned char *hash_start;
-    unsigned char result[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char result[MBEDTLS_MD_MAX_SIZE];
     unsigned int hlen;
     size_t observed_salt_len, msb;
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE] = { 0 };
@@ -2061,7 +2061,7 @@ int mbedtls_rsa_rsassa_pss_verify_ext(mbedtls_rsa_context *ctx,
 
     if (md_alg != MBEDTLS_MD_NONE) {
         /* Gather length of hash to sign */
-        size_t exp_hashlen = mbedtls_hash_info_get_size(md_alg);
+        size_t exp_hashlen = mbedtls_md_get_size_from_type(md_alg);
         if (exp_hashlen == 0) {
             return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
         }
@@ -2071,7 +2071,7 @@ int mbedtls_rsa_rsassa_pss_verify_ext(mbedtls_rsa_context *ctx,
         }
     }
 
-    hlen = mbedtls_hash_info_get_size(mgf1_hash_id);
+    hlen = mbedtls_md_get_size_from_type(mgf1_hash_id);
     if (hlen == 0) {
         return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     }

@@ -371,7 +371,7 @@ static inline int pk_hashlen_helper(mbedtls_md_type_t md_alg, size_t *hash_len)
         return 0;
     }
 
-    *hash_len = mbedtls_hash_info_get_size(md_alg);
+    *hash_len = mbedtls_md_get_size_from_type(md_alg);
 
     if (*hash_len == 0) {
         return -1;
@@ -522,7 +522,7 @@ int mbedtls_pk_verify_ext(mbedtls_pk_type_t type, const void *options,
         psa_status_t status = PSA_ERROR_DATA_CORRUPT;
         psa_status_t destruction_status = PSA_ERROR_DATA_CORRUPT;
 
-        psa_algorithm_t psa_md_alg = mbedtls_hash_info_psa_from_md(md_alg);
+        psa_algorithm_t psa_md_alg = mbedtls_md_psa_alg_from_type(md_alg);
         mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
         psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
         psa_algorithm_t psa_sig_alg = PSA_ALG_RSA_PSS_ANY_SALT(psa_md_alg);
@@ -690,7 +690,7 @@ int mbedtls_pk_sign_ext(mbedtls_pk_type_t pk_type,
     }
 
 #if defined(MBEDTLS_RSA_C)
-    psa_md_alg = mbedtls_hash_info_psa_from_md(md_alg);
+    psa_md_alg = mbedtls_md_psa_alg_from_type(md_alg);
     if (psa_md_alg == 0) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }

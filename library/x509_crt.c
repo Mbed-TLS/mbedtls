@@ -2343,7 +2343,7 @@ static int x509_crt_verifycrl(mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
                               const mbedtls_x509_crt_profile *profile)
 {
     int flags = 0;
-    unsigned char hash[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_algorithm_t psa_algorithm;
 #else
@@ -2383,7 +2383,7 @@ static int x509_crt_verifycrl(mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
         }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        psa_algorithm = mbedtls_hash_info_psa_from_md(crl_list->sig_md);
+        psa_algorithm = mbedtls_md_psa_alg_from_type(crl_list->sig_md);
         if (psa_hash_compute(psa_algorithm,
                              crl_list->tbs.p,
                              crl_list->tbs.len,
@@ -2452,7 +2452,7 @@ static int x509_crt_check_signature(const mbedtls_x509_crt *child,
                                     mbedtls_x509_crt_restart_ctx *rs_ctx)
 {
     size_t hash_len;
-    unsigned char hash[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
     const mbedtls_md_info_t *md_info;
     md_info = mbedtls_md_info_from_type(child->sig_md);
@@ -2463,7 +2463,7 @@ static int x509_crt_check_signature(const mbedtls_x509_crt *child,
         return -1;
     }
 #else
-    psa_algorithm_t hash_alg = mbedtls_hash_info_psa_from_md(child->sig_md);
+    psa_algorithm_t hash_alg = mbedtls_md_psa_alg_from_type(child->sig_md);
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     status = psa_hash_compute(hash_alg,

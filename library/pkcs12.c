@@ -343,7 +343,7 @@ int mbedtls_pkcs12_derivation(unsigned char *data, size_t datalen,
 
     unsigned char diversifier[128];
     unsigned char salt_block[128], pwd_block[128], hash_block[128] = { 0 };
-    unsigned char hash_output[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char hash_output[MBEDTLS_MD_MAX_SIZE];
     unsigned char *p;
     unsigned char c;
     int           use_password = 0;
@@ -367,7 +367,7 @@ int mbedtls_pkcs12_derivation(unsigned char *data, size_t datalen,
     use_password = (pwd && pwdlen != 0);
     use_salt = (salt && saltlen != 0);
 
-    hlen = mbedtls_hash_info_get_size(md_type);
+    hlen = mbedtls_md_get_size_from_type(md_type);
 
     if (hlen <= 32) {
         v = 64;

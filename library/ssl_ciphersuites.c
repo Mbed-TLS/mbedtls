@@ -1968,10 +1968,10 @@ psa_algorithm_t mbedtls_ssl_get_ciphersuite_sig_pk_psa_alg(const mbedtls_ssl_cip
         case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
             return PSA_ALG_RSA_PKCS1V15_SIGN(
-                mbedtls_hash_info_psa_from_md(info->mac));
+                mbedtls_md_psa_alg_from_type(info->mac));
 
         case MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA:
-            return PSA_ALG_ECDSA(mbedtls_hash_info_psa_from_md(info->mac));
+            return PSA_ALG_ECDSA(mbedtls_md_psa_alg_from_type(info->mac));
 
         case MBEDTLS_KEY_EXCHANGE_ECDH_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA:

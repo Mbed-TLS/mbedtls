@@ -2278,7 +2278,7 @@ start_processing:
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_SERVER_SIGNATURE_ENABLED)
     if (mbedtls_ssl_ciphersuite_uses_server_signature(ciphersuite_info)) {
         size_t sig_len, hashlen;
-        unsigned char hash[MBEDTLS_HASH_MAX_SIZE];
+        unsigned char hash[MBEDTLS_MD_MAX_SIZE];
 
         mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
         mbedtls_pk_type_t pk_alg = MBEDTLS_PK_NONE;
@@ -2395,7 +2395,7 @@ start_processing:
             mbedtls_pk_rsassa_pss_options rsassa_pss_options;
             rsassa_pss_options.mgf1_hash_id = md_alg;
             rsassa_pss_options.expected_salt_len =
-                mbedtls_hash_info_get_size(md_alg);
+                mbedtls_md_get_size_from_type(md_alg);
             if (rsassa_pss_options.expected_salt_len == 0) {
                 return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
             }

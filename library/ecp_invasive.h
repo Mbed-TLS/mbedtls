@@ -78,6 +78,12 @@ int mbedtls_ecp_gen_privkey_mx(size_t n_bits,
 
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
 
+/** Fast quasi-reduction modulo p192 (FIPS 186-3 D.2.1)
+ *
+ * \param[in,out]   Np  The address of the MPI to be converted.
+ *                      Must have the double the limbs than \p Nn.
+ * \param[in]       Nn  The address of the modulus.
+ */
 MBEDTLS_STATIC_TESTABLE
 int ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn);
 

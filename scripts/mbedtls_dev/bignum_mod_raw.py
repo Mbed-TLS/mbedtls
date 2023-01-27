@@ -56,7 +56,7 @@ class BignumModRawFixQuasiReduction(bignum_common.ModOperationCommon,
     """Test cases for ecp quasi_reduction()."""
     symbol = "-"
     test_function = "mpi_mod_raw_fix_quasi_reduction"
-    test_name = "mbedtls_mpi_mod_raw_fix_quasi_reduction"
+    test_name = "fix_quasi_reduction"
     input_style = "fixed"
     arity = 1
 

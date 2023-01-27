@@ -323,9 +323,11 @@ class CodeParser():
         While the check_names script is designed only for use on UNIX/macOS
         (due to nm), this function alone will work fine on Windows even with
         forward slashes in the wildcard.
+
         Args:
         * include_wildcards: a List of shell-style wildcards to match filepaths.
         * exclude_wildcards: a List of shell-style wildcards to exclude.
+
         Returns:
         * inc_files: A List of relative filepaths for included files.
         * exc_files: A List of relative filepaths for excluded files.
@@ -350,9 +352,11 @@ class CodeParser():
         While the check_names script is designed only for use on UNIX/macOS
         (due to nm), this function alone will work fine on Windows even with
         forward slashes in the wildcard.
+
         Args:
         * include_wildcards: a List of shell-style wildcards to match filepaths.
         * exclude_wildcards: a List of shell-style wildcards to exclude.
+
         Returns a List of relative filepaths.
         """
         accumulator = set()
@@ -362,7 +366,6 @@ class CodeParser():
 
         return list(path for path in accumulator
                     if not self.is_file_excluded(path, exclude_wildcards))
-
 
     def parse_macros(self, include, exclude=None):
         """
@@ -632,9 +635,11 @@ class CodeParser():
         identifier is declared, based on some regex and heuristics. Highly
         dependent on formatting style. Identifiers in excluded files are still
         parsed
+
         Args:
         * include: A List of glob expressions to look for files through.
         * exclude: A List of glob expressions for excluding files.
+
         Returns: a Tuple of two Lists of Match objects with identifiers.
         * included_identifiers: A List of Match objects with identifiers from
           included files.
@@ -812,6 +817,7 @@ class NameChecker():
         Perform a check that all detected symbols in the library object files
         are properly declared in headers.
         Assumes parse_names_in_source() was called before this.
+
         Returns the number of problems that need fixing.
         """
         problems = []

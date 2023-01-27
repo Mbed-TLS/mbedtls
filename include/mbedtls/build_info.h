@@ -100,8 +100,19 @@
 #define MBEDTLS_PK_WRITE_C
 #endif
 
-/* Auto-enable MBEDTLD_MD_LIGHT based on MBEDTLS_MD_C */
-#if defined(MBEDTLS_MD_C)
+/* Auto-enable MBEDTLS_MD_LIGHT if:
+ * 1. MD is enabled (this makes guards simpler)
+ * 2. A module that uses it is enabled.
+ */
+#if defined(MBEDTLS_MD_C) || \
+    defined(MBEDTLS_RSA_C) || \
+    defined(MBEDTLS_PKCS5_C) || \
+    defined(MBEDTLS_PKCS12_C) || \
+    defined(MBEDTLS_ECJPAKE_C) || \
+    defined(MBEDTLS_PK_C) || \
+    defined(MBEDTLS_X509_USE_C) || \
+    defined(MBEDTLS_X509_CREATE_C) || \
+    defined(MBEDTLS_SSL_TLS_C)
 #define MBEDTLS_MD_LIGHT
 #endif
 

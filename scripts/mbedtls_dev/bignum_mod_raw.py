@@ -59,7 +59,6 @@ class BignumModRawFixQuasiReduction(bignum_common.ModOperationCommon,
     test_name = "mbedtls_mpi_mod_raw_fix_quasi_reduction"
     input_style = "fixed"
     arity = 1
-    dependencies = ["MBEDTLS_TEST_HOOKS"]
 
     # Extend the default values with n < x < 2n
     input_values = bignum_common.ModOperationCommon.input_values + [

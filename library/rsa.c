@@ -54,15 +54,6 @@
 #include <stdlib.h>
 #endif
 
-/* We use MD first if it's available (for compatibility reasons)
- * and "fall back" to PSA otherwise (which needs psa_crypto_init()). */
-#if defined(MBEDTLS_PKCS1_V21)
-#if !defined(MBEDTLS_MD_C)
-#include "psa/crypto.h"
-#include "mbedtls/psa_util.h"
-#endif /* MBEDTLS_MD_C */
-#endif /* MBEDTLS_PKCS1_V21 */
-
 #include "mbedtls/platform.h"
 
 #if !defined(MBEDTLS_RSA_ALT)
@@ -1071,7 +1062,6 @@ static int mgf_mask(unsigned char *dst, size_t dlen, unsigned char *src,
     unsigned int hlen;
     size_t i, use_len;
     unsigned char mask[MBEDTLS_MD_MAX_SIZE];
-#if defined(MBEDTLS_MD_C)
     int ret = 0;
     const mbedtls_md_info_t *md_info;
     mbedtls_md_context_t md_ctx;
@@ -1088,14 +1078,6 @@ static int mgf_mask(unsigned char *dst, size_t dlen, unsigned char *src,
     }
 
     hlen = mbedtls_md_get_size(md_info);
-#else
-    psa_hash_operation_t op = PSA_HASH_OPERATION_INIT;
-    psa_algorithm_t alg = mbedtls_md_psa_alg_from_type(md_alg);
-    psa_status_t status = PSA_SUCCESS;
-    size_t out_len;
-
-    hlen = PSA_HASH_LENGTH(alg);
-#endif
 
     memset(mask, 0, sizeof(mask));
     memset(counter, 0, 4);
@@ -1109,7 +1091,6 @@ static int mgf_mask(unsigned char *dst, size_t dlen, unsigned char *src,
             use_len = dlen;
         }
 
-#if defined(MBEDTLS_MD_C)
         if ((ret = mbedtls_md_starts(&md_ctx)) != 0) {
             goto exit;
         }
@@ -1122,21 +1103,6 @@ static int mgf_mask(unsigned char *dst, size_t dlen, unsigned char *src,
         if ((ret = mbedtls_md_finish(&md_ctx, mask)) != 0) {
             goto exit;
         }
-#else
-        if ((status = psa_hash_setup(&op, alg)) != PSA_SUCCESS) {
-            goto exit;
-        }
-        if ((status = psa_hash_update(&op, src, slen)) != PSA_SUCCESS) {
-            goto exit;
-        }
-        if ((status = psa_hash_update(&op, counter, 4)) != PSA_SUCCESS) {
-            goto exit;
-        }
-        status = psa_hash_finish(&op, mask, sizeof(mask), &out_len);
-        if (status != PSA_SUCCESS) {
-            goto exit;
-        }
-#endif
 
         for (i = 0; i < use_len; ++i) {
             *p++ ^= mask[i];
@@ -1149,15 +1115,9 @@ static int mgf_mask(unsigned char *dst, size_t dlen, unsigned char *src,
 
 exit:
     mbedtls_platform_zeroize(mask, sizeof(mask));
-#if defined(MBEDTLS_MD_C)
     mbedtls_md_free(&md_ctx);
 
     return ret;
-#else
-    psa_hash_abort(&op);
-
-    return mbedtls_md_error_from_psa(status);
-#endif
 }
 
 /**
@@ -1176,7 +1136,6 @@ static int hash_mprime(const unsigned char *hash, size_t hlen,
 {
     const unsigned char zeros[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
-#if defined(MBEDTLS_MD_C)
     mbedtls_md_context_t md_ctx;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
@@ -1209,35 +1168,6 @@ exit:
     mbedtls_md_free(&md_ctx);
 
     return ret;
-#else
-    psa_hash_operation_t op = PSA_HASH_OPERATION_INIT;
-    psa_algorithm_t alg = mbedtls_md_psa_alg_from_type(md_alg);
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    size_t out_size = PSA_HASH_LENGTH(alg);
-    size_t out_len;
-
-    if ((status = psa_hash_setup(&op, alg)) != PSA_SUCCESS) {
-        goto exit;
-    }
-    if ((status = psa_hash_update(&op, zeros, sizeof(zeros))) != PSA_SUCCESS) {
-        goto exit;
-    }
-    if ((status = psa_hash_update(&op, hash, hlen)) != PSA_SUCCESS) {
-        goto exit;
-    }
-    if ((status = psa_hash_update(&op, salt, slen)) != PSA_SUCCESS) {
-        goto exit;
-    }
-    status = psa_hash_finish(&op, out, out_size, &out_len);
-    if (status != PSA_SUCCESS) {
-        goto exit;
-    }
-
-exit:
-    psa_hash_abort(&op);
-
-    return mbedtls_md_error_from_psa(status);
-#endif /* !MBEDTLS_MD_C */
 }
 
 /**
@@ -1252,7 +1182,6 @@ static int compute_hash(mbedtls_md_type_t md_alg,
                         const unsigned char *input, size_t ilen,
                         unsigned char *output)
 {
-#if defined(MBEDTLS_MD_C)
     const mbedtls_md_info_t *md_info;
 
     md_info = mbedtls_md_info_from_type(md_alg);
@@ -1261,16 +1190,6 @@ static int compute_hash(mbedtls_md_type_t md_alg,
     }
 
     return mbedtls_md(md_info, input, ilen, output);
-#else
-    psa_algorithm_t alg = mbedtls_md_psa_alg_from_type(md_alg);
-    psa_status_t status;
-    size_t out_size = PSA_HASH_LENGTH(alg);
-    size_t out_len;
-
-    status = psa_hash_compute(alg, input, ilen, output, out_size, &out_len);
-
-    return mbedtls_md_error_from_psa(status);
-#endif /* !MBEDTLS_MD_C */
 }
 #endif /* MBEDTLS_PKCS1_V21 */
 

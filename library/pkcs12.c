@@ -227,7 +227,6 @@ static int calculate_hashes(mbedtls_md_type_t md_type, int iterations,
                             unsigned char *pwd_block, unsigned char *hash_output, int use_salt,
                             int use_password, size_t hlen, size_t v)
 {
-#if defined(MBEDTLS_MD_C)
     int ret = -1;
     size_t i;
     const mbedtls_md_info_t *md_info;
@@ -278,58 +277,6 @@ static int calculate_hashes(mbedtls_md_type_t md_type, int iterations,
 exit:
     mbedtls_md_free(&md_ctx);
     return ret;
-#else
-    psa_hash_operation_t op = PSA_HASH_OPERATION_INIT;
-    psa_algorithm_t alg = mbedtls_md_psa_alg_from_type(md_type);
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_status_t status_abort = PSA_ERROR_CORRUPTION_DETECTED;
-    size_t i, out_len, out_size = PSA_HASH_LENGTH(alg);
-
-    if (alg == PSA_ALG_NONE) {
-        return MBEDTLS_ERR_PKCS12_FEATURE_UNAVAILABLE;
-    }
-
-    if ((status = psa_hash_setup(&op, alg)) != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    // Calculate hash( diversifier || salt_block || pwd_block )
-    if ((status = psa_hash_update(&op, diversifier, v)) != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    if (use_salt != 0) {
-        if ((status = psa_hash_update(&op, salt_block, v)) != PSA_SUCCESS) {
-            goto exit;
-        }
-    }
-
-    if (use_password != 0) {
-        if ((status = psa_hash_update(&op, pwd_block, v)) != PSA_SUCCESS) {
-            goto exit;
-        }
-    }
-
-    if ((status = psa_hash_finish(&op, hash_output, out_size, &out_len))
-        != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    // Perform remaining ( iterations - 1 ) recursive hash calculations
-    for (i = 1; i < (size_t) iterations; i++) {
-        if ((status = psa_hash_compute(alg, hash_output, hlen, hash_output,
-                                       out_size, &out_len)) != PSA_SUCCESS) {
-            goto exit;
-        }
-    }
-
-exit:
-    status_abort = psa_hash_abort(&op);
-    if (status == PSA_SUCCESS) {
-        status = status_abort;
-    }
-    return mbedtls_md_error_from_psa(status);
-#endif /* !MBEDTLS_MD_C */
 }
 
 

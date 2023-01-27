@@ -311,6 +311,20 @@ int mbedtls_md_clone(mbedtls_md_context_t *dst,
 unsigned char mbedtls_md_get_size(const mbedtls_md_info_t *md_info);
 
 /**
+ * \brief           This function gives the message-digest size associated to
+ *                  message-digest type.
+ *
+ * \param md_type   The message-digest type.
+ *
+ * \return          The size of the message-digest output in Bytes,
+ *                  or 0 if the message-digest type is not known.
+ */
+static inline unsigned char mbedtls_md_get_size_from_type(mbedtls_md_type_t md_type)
+{
+    return mbedtls_md_get_size(mbedtls_md_info_from_type(md_type));
+}
+
+/**
  * \brief           This function extracts the message-digest type from the
  *                  message-digest information structure.
  *

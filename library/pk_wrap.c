@@ -620,7 +620,7 @@ static size_t eckey_get_bitlen(const void *ctx)
     return ((mbedtls_ecp_keypair *) ctx)->grp.pbits;
 }
 
-#if defined(MBEDTLS_PK_CAN_ECDSA_SIGN) || defined(MBEDTLS_PK_CAN_ECDSA_VERIFY)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
 /* Forward declarations */
 static int ecdsa_verify_wrap(void *ctx, mbedtls_md_type_t md_alg,
                              const unsigned char *hash, size_t hash_len,
@@ -805,17 +805,17 @@ const mbedtls_pk_info_t mbedtls_eckey_info = {
     "EC",
     eckey_get_bitlen,
     eckey_can_do,
-#if defined(MBEDTLS_PK_CAN_ECDSA_SIGN) || defined(MBEDTLS_PK_CAN_ECDSA_VERIFY)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
     eckey_verify_wrap,
     eckey_sign_wrap,
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     eckey_verify_rs_wrap,
     eckey_sign_rs_wrap,
 #endif
-#else /* MBEDTLS_PK_CAN_ECDSA_SIGN || MBEDTLS_PK_CAN_ECDSA_VERIFY */
+#else /* MBEDTLS_PK_CAN_ECDSA_SOME */
     NULL,
     NULL,
-#endif /* MBEDTLS_PK_CAN_ECDSA_SIGN || MBEDTLS_PK_CAN_ECDSA_VERIFY */
+#endif /* MBEDTLS_PK_CAN_ECDSA_SOME */
     NULL,
     NULL,
     eckey_check_pair,
@@ -861,7 +861,7 @@ const mbedtls_pk_info_t mbedtls_eckeydh_info = {
 };
 #endif /* MBEDTLS_ECP_C */
 
-#if defined(MBEDTLS_PK_CAN_ECDSA_SIGN) || defined(MBEDTLS_PK_CAN_ECDSA_VERIFY)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
 static int ecdsa_can_do(mbedtls_pk_type_t type)
 {
     return type == MBEDTLS_PK_ECDSA;
@@ -1345,7 +1345,7 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
 #endif
     eckey_debug,        /* Compatible key structures */
 };
-#endif /* MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_PK_CAN_ECDSA_SOME */
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /*

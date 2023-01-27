@@ -56,6 +56,10 @@ struct mbedtls_pk_info_t {
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng);
 
+#if defined(MBEDTLS_PK_CAN_ECDSA_VERIFY) || defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
+#define MBEDTLS_PK_CAN_ECDSA_SOME
+#endif
+
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     /** Verify signature (restartable) */
     int (*verify_rs_func)(void *ctx, mbedtls_md_type_t md_alg,
@@ -125,7 +129,7 @@ extern const mbedtls_pk_info_t mbedtls_eckey_info;
 extern const mbedtls_pk_info_t mbedtls_eckeydh_info;
 #endif
 
-#if defined(MBEDTLS_PK_CAN_ECDSA_SIGN) || defined(MBEDTLS_PK_CAN_ECDSA_VERIFY)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
 extern const mbedtls_pk_info_t mbedtls_ecdsa_info;
 #endif
 

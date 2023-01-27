@@ -44,7 +44,7 @@
 
 #include "mbedtls/platform.h"
 
-#include "hash_info.h"
+#include "md_psa.h"
 #include "mbedtls/psa_util.h"
 
 #if defined(MBEDTLS_ASN1_PARSE_C)

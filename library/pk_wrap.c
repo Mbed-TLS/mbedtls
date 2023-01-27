@@ -52,7 +52,7 @@
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
 #include "mbedtls/asn1.h"
-#include "hash_info.h"
+#include "md_psa.h"
 #endif
 
 #include "mbedtls/platform.h"

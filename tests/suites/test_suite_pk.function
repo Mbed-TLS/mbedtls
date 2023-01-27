@@ -7,7 +7,7 @@
 #include "mbedtls/ecp.h"
 #include "mbedtls/rsa.h"
 
-#include "hash_info.h"
+#include "md_psa.h"
 #include "mbedtls/legacy_or_psa.h"
 
 #include <limits.h>

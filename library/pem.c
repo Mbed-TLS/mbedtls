@@ -29,7 +29,7 @@
 #include "mbedtls/cipher.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
-#include "hash_info.h"
+#include "md_psa.h"
 
 #include <string.h>
 

@@ -36,7 +36,7 @@
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-#include "hash_info.h"
+#include "md_psa.h"
 
 #include <string.h>
 #include <stdlib.h>

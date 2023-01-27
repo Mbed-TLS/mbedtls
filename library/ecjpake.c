@@ -37,7 +37,7 @@
 #include "mbedtls/psa_util.h"
 #endif /* !MBEDTLS_MD_C */
 
-#include "hash_info.h"
+#include "md_psa.h"
 
 #include <string.h>
 

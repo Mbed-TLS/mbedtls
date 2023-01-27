@@ -12,7 +12,7 @@
 #endif
 
 #include <mbedtls/legacy_or_psa.h>
-#include "hash_info.h"
+#include "md_psa.h"
 
 #include <constant_time_internal.h>
 #include <test/constant_flow.h>

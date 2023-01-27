@@ -26,11 +26,11 @@
 
 #include "mbedtls/ssl.h"
 #include "mbedtls/cipher.h"
+#include "md_psa.h"
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
-#include "hash_info.h"
 #endif
 #include "mbedtls/legacy_or_psa.h"
 

@@ -24,7 +24,7 @@
 #include "pk_wrap.h"
 #include "pkwrite.h"
 
-#include "hash_info.h"
+#include "md_psa.h"
 
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"

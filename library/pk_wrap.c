@@ -631,33 +631,6 @@ static int ecdsa_sign_wrap(void *ctx, mbedtls_md_type_t md_alg,
                            unsigned char *sig, size_t sig_size, size_t *sig_len,
                            int (*f_rng)(void *, unsigned char *, size_t), void *p_rng);
 
-static int eckey_verify_wrap(void *ctx, mbedtls_md_type_t md_alg,
-                             const unsigned char *hash, size_t hash_len,
-                             const unsigned char *sig, size_t sig_len)
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    mbedtls_ecp_keypair *keypair_ctx = ctx;
-
-    ret = ecdsa_verify_wrap(keypair_ctx, md_alg, hash, hash_len, sig, sig_len);
-
-    return ret;
-}
-
-static int eckey_sign_wrap(void *ctx, mbedtls_md_type_t md_alg,
-                           const unsigned char *hash, size_t hash_len,
-                           unsigned char *sig, size_t sig_size, size_t *sig_len,
-                           int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    mbedtls_ecp_keypair *keypair_ctx = ctx;
-
-    ret = ecdsa_sign_wrap(keypair_ctx, md_alg, hash, hash_len,
-                          sig, sig_size, sig_len,
-                          f_rng, p_rng);
-
-    return ret;
-}
-
 #if defined(MBEDTLS_ECP_RESTARTABLE)
 /* Forward declarations */
 static int ecdsa_verify_rs_wrap(void *ctx, mbedtls_md_type_t md_alg,
@@ -806,8 +779,8 @@ const mbedtls_pk_info_t mbedtls_eckey_info = {
     eckey_get_bitlen,
     eckey_can_do,
 #if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
-    eckey_verify_wrap,
-    eckey_sign_wrap,
+    ecdsa_verify_wrap,   /* Compatible key structures */
+    ecdsa_sign_wrap,   /* Compatible key structures */
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     eckey_verify_rs_wrap,
     eckey_sign_rs_wrap,
@@ -1287,23 +1260,6 @@ static int ecdsa_sign_rs_wrap(void *ctx, mbedtls_md_type_t md_alg,
 }
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
-static void *ecdsa_alloc_wrap(void)
-{
-    void *ctx = mbedtls_calloc(1, sizeof(mbedtls_ecp_keypair));
-
-    if (ctx != NULL) {
-        mbedtls_ecp_keypair_init((mbedtls_ecp_keypair *) ctx);
-    }
-
-    return ctx;
-}
-
-static void ecdsa_free_wrap(void *ctx)
-{
-    mbedtls_ecp_keypair_free((mbedtls_ecp_keypair *) ctx);
-    mbedtls_free(ctx);
-}
-
 #if defined(MBEDTLS_ECP_RESTARTABLE)
 static void *ecdsa_rs_alloc(void)
 {
@@ -1337,8 +1293,8 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
     NULL,
     NULL,
     eckey_check_pair,   /* Compatible key structures */
-    ecdsa_alloc_wrap,
-    ecdsa_free_wrap,
+    eckey_alloc_wrap,   /* Compatible key structures */
+    eckey_free_wrap,   /* Compatible key structures */
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     ecdsa_rs_alloc,
     ecdsa_rs_free,

@@ -8,7 +8,6 @@
 #include "mbedtls/asn1write.h"
 
 #include "md_psa.h"
-#include "mbedtls/legacy_or_psa.h"
 
 #if defined(MBEDTLS_RSA_C)
 int mbedtls_rsa_decrypt_func(void *ctx, size_t *olen,
@@ -296,7 +295,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PEM_WRITE_C:MBEDTLS_X509_CRT_WRITE_C:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
+/* BEGIN_CASE depends_on:MBEDTLS_PEM_WRITE_C:MBEDTLS_X509_CRT_WRITE_C:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_MD_CAN_SHA1 */
 void x509_crt_check(char *subject_key_file, char *subject_pwd,
                     char *subject_name, char *issuer_key_file,
                     char *issuer_pwd, char *issuer_name,

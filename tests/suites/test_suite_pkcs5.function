@@ -1,6 +1,5 @@
 /* BEGIN_HEADER */
 #include "mbedtls/pkcs5.h"
-#include "mbedtls/legacy_or_psa.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

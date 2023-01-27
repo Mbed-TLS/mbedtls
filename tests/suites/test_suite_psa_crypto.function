@@ -22,7 +22,8 @@
 #else
 #define TEST_DRIVER_LOCATION 0x7fffff
 #endif
-#include "mbedtls/legacy_or_psa.h"
+/* For MBEDTLS_MD_CAN_xxx macros */
+#include "mbedtls/md.h"
 
 /* If this comes up, it's a bug in the test code or in the test data. */
 #define UNUSED 0xdeadbeef

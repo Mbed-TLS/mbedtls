@@ -1,7 +1,6 @@
 /* BEGIN_HEADER */
 
 #include <mbedtls/constant_time.h>
-#include <mbedtls/legacy_or_psa.h>
 #include <mbedtls/md.h>
 #include <constant_time_internal.h>
 

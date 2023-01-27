@@ -3,7 +3,6 @@
 #include "mbedtls/asn1.h"
 #include "mbedtls/asn1write.h"
 #include "string.h"
-#include "mbedtls/legacy_or_psa.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

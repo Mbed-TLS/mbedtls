@@ -1,0 +1,4 @@
+Features
+   * Use HOSTCC (if it is set) when compiling C code during generation of the
+     generated files. This allows them to be generated when CC is set for
+     cross compilation.

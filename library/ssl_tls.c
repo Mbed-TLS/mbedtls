@@ -8612,7 +8612,7 @@ int mbedtls_ssl_get_key_exchange_md_tls1_2(mbedtls_ssl_context *ssl,
         goto exit;
     }
 
-    if ((status = psa_hash_finish(&hash_operation, hash, PSA_HASH_MAX_SIZE,
+    if ((status = psa_hash_finish(&hash_operation, hash, MBEDTLS_MD_MAX_SIZE,
                                   hashlen)) != PSA_SUCCESS) {
         MBEDTLS_SSL_DEBUG_RET(1, "psa_hash_finish", status);
         goto exit;

@@ -42,7 +42,7 @@ psa_algorithm_t mbedtls_md_psa_alg_from_type(mbedtls_md_type_t md_type);
  * \brief           This function returns the given digest type
  *                  associated with the PSA algorithm identifier.
  *
- * \param md_type   The PSA algorithm identifier to search for.
+ * \param psa_alg   The PSA algorithm identifier to search for.
  *
  * \return          The MD type associated with \p psa_alg.
  * \return          MBEDTLS_MD_NONE if the algorithm is not supported.

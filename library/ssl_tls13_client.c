@@ -1234,6 +1234,13 @@ int mbedtls_ssl_tls13_write_client_hello_exts(mbedtls_ssl_context *ssl,
 int mbedtls_ssl_tls13_finalize_write_client_hello(mbedtls_ssl_context *ssl)
 {
     ((void) ssl);
+#if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
+    mbedtls_ssl_handshake_set_state(
+        ssl, MBEDTLS_SSL_CLIENT_CCS_AFTER_CLIENT_HELLO);
+#else
+    mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_SERVER_HELLO);
+#endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
+
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_algorithm_t hash_alg = PSA_ALG_NONE;

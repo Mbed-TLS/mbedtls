@@ -196,10 +196,13 @@ mbedtls_ms_time_t mbedtls_ms_time(void)
 #include <windows.h>
 mbedtls_ms_time_t mbedtls_ms_time(void)
 {
-    SYSTEMTIME st;
+    FILETIME ct;
+    mbedtls_ms_time_t current_ms;
 
-    GetSystemTime(&st);
-    return time(NULL)*1000LL + st.wMilliseconds;
+    GetSystemTimeAsFileTime(&ct);
+    current_ms = ((mbedtls_ms_time_t) ct.dwLowDateTime +
+                  ((mbedtls_ms_time_t) (ct.dwHighDateTime) << 32LL))/10;
+    return current_ms;
 }
 #else
 #error "No mbedtls_ms_time available"

@@ -52,14 +52,11 @@ void mbedtls_x509write_crt_init(mbedtls_x509write_cert *ctx)
 {
     memset(ctx, 0, sizeof(mbedtls_x509write_cert));
 
-    mbedtls_mpi_init(&ctx->serial);
     ctx->version = MBEDTLS_X509_CRT_VERSION_3;
 }
 
 void mbedtls_x509write_crt_free(mbedtls_x509write_cert *ctx)
 {
-    mbedtls_mpi_free(&ctx->serial);
-
     mbedtls_asn1_free_named_data_list(&ctx->subject);
     mbedtls_asn1_free_named_data_list(&ctx->issuer);
     mbedtls_asn1_free_named_data_list(&ctx->extensions);
@@ -103,14 +100,39 @@ int mbedtls_x509write_crt_set_issuer_name(mbedtls_x509write_cert *ctx,
     return mbedtls_x509_string_to_names(&ctx->issuer, issuer_name);
 }
 
+#if defined(MBEDTLS_BIGNUM_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
 int mbedtls_x509write_crt_set_serial(mbedtls_x509write_cert *ctx,
                                      const mbedtls_mpi *serial)
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    int ret;
+    size_t tmp_len;
 
-    if ((ret = mbedtls_mpi_copy(&ctx->serial, serial)) != 0) {
+    /* Ensure that the MPI value fits into the buffer */
+    tmp_len = mbedtls_mpi_size(serial);
+    if (tmp_len > MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN) {
+        return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
+    }
+
+    ctx->serial_len = tmp_len;
+
+    ret = mbedtls_mpi_write_binary(serial, ctx->serial, tmp_len);
+    if (ret < 0) {
         return ret;
     }
+
+    return 0;
+}
+#endif // MBEDTLS_BIGNUM_C && !MBEDTLS_DEPRECATED_REMOVED
+
+int mbedtls_x509write_crt_set_serial_raw(mbedtls_x509write_cert *ctx,
+                                         unsigned char *serial, size_t serial_len)
+{
+    if (serial_len > MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN) {
+        return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
+    }
+
+    ctx->serial_len = serial_len;
+    memcpy(ctx->serial, serial, serial_len);
 
     return 0;
 }
@@ -510,9 +532,29 @@ int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx,
 
     /*
      *  Serial   ::=  INTEGER
+     *
+     * Written data is:
+     * - "ctx->serial_len" bytes for the raw serial buffer
+     *   - if MSb of "serial" is 1, then prepend an extra 0x00 byte
+     * - 1 byte for the length
+     * - 1 byte for the TAG
      */
-    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_mpi(&c, buf,
-                                                     &ctx->serial));
+    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_raw_buffer(&c, buf,
+                                                            ctx->serial, ctx->serial_len));
+    if (*c & 0x80) {
+        if (c - buf < 1) {
+            return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+        }
+        *(--c) = 0x0;
+        len++;
+        MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(&c, buf,
+                                                         ctx->serial_len + 1));
+    } else {
+        MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(&c, buf,
+                                                         ctx->serial_len));
+    }
+    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_tag(&c, buf,
+                                                     MBEDTLS_ASN1_INTEGER));
 
     /*
      *  Version  ::=  INTEGER  {  v1(0), v2(1), v3(2)  }

@@ -609,14 +609,15 @@ static int x509_get_subject_key_id(unsigned char **p,
     }
 
     if (*p != end) {
-        return MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-               MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
     }
 
     return 0;
 }
 
 /*
+ * SubjectAltName ::= GeneralNames
  * GeneralNames ::= SEQUENCE SIZE (1..MAX) OF GeneralName
  *
  * GeneralName ::= CHOICE {
@@ -677,8 +678,8 @@ static int x509_get_general_names(unsigned char **p,
             MBEDTLS_ASN1_CONTEXT_SPECIFIC) {
             if ((tag & (MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) !=
                 (MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) {
-                return MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                       MBEDTLS_ERR_ASN1_UNEXPECTED_TAG;
+                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                         MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
             }
         }
 
@@ -746,7 +747,7 @@ static int x509_get_authority_key_id(unsigned char **p,
     size_t len = 0u;
 
     if ((ret = mbedtls_asn1_get_tag(p, end, &len,
-                                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE | 0)) != 0) {
+                                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
         return ret;
     }
 
@@ -768,13 +769,14 @@ static int x509_get_authority_key_id(unsigned char **p,
         /* Getting authorityCertIssuer using the required specific class tag [1] */
         if ((ret = mbedtls_asn1_get_tag(p, end, &len,
                                         MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED |
-                                        1)) != 0) {
+                                        MBEDTLS_X509_SAN_RFC822_NAME)) != 0) {
             /* authorityCertIssuer is an OPTIONAL field */
         } else {
             /* Getting directoryName using the required specific class tag [4] */
             if ((ret = mbedtls_asn1_get_tag(p, end, &len,
                                             MBEDTLS_ASN1_CONTEXT_SPECIFIC |
-                                            MBEDTLS_ASN1_CONSTRUCTED | 4)) != 0) {
+                                            MBEDTLS_ASN1_CONSTRUCTED |
+                                            MBEDTLS_X509_SAN_DIRECTORY_NAME)) != 0) {
                 return ret;
             } else {
                 /* "end" also includes the CertSerialNumber field so "len" shall be used */

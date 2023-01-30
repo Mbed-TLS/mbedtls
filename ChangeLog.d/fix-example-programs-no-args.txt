@@ -1,0 +1,7 @@
+Bugfix
+   * Fix a bug present in multiple example programs where running the program
+     from the shell without any command line argument results argv[1] being
+     accessed. The above was fixed for the following: pem2der.c, cert_req.c, 
+     cert_app.c, cert_write.c, req_app.c, crl_app.c, dh_genprime.c, key_app.c,
+     gen_key.c, key_app_writer.c, ssl_client2.c, ssl_server2.c, 
+     ssl_mail_client.c.

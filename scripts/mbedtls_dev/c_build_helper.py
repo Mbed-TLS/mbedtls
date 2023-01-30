@@ -90,6 +90,13 @@ int main(void)
 ''')
 
 def compile_c_file(c_filename, exe_filename, include_dirs):
+    """Compile a C source file with the host compiler.
+
+    * ``c_filename``: the name of the source file to compile.
+    * ``exe_filename``: the name for the executable to be created.
+    * ``include_dirs``: a list of paths to include directories to be passed
+      with the -I switch.
+    """
     # Respect $HOSTCC if it is set
     cc = os.getenv('HOSTCC', None)
     if cc is None:

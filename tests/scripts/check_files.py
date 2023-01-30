@@ -268,7 +268,7 @@ class UnicodeIssueTracker(LineIssueTracker):
 
     heading = "Invalid UTF-8 or forbidden character:"
 
-    # Only allow valid UTF-8, and only white-listed characters.
+    # Only allow valid UTF-8, and only other explicitly allowed characters.
     # We deliberately exclude all characters that aren't a simple non-blank,
     # non-zero-width glyph, apart from a very small set (tab, ordinary space,
     # line breaks, "basic" no-break space and soft hyphen). In particular,

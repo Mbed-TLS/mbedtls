@@ -165,7 +165,7 @@ int main(int argc, char *argv[])
     memset(&cacrl, 0, sizeof(mbedtls_x509_crl));
 #endif
 
-    if (argc == 0) {
+    if (argc < 2) {
 usage:
         mbedtls_printf(USAGE);
         goto exit;

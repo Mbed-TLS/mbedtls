@@ -75,7 +75,7 @@ int main(int argc, char **argv)
     mbedtls_ctr_drbg_init(&ctr_drbg);
     mbedtls_entropy_init(&entropy);
 
-    if (argc == 0) {
+    if (argc < 2) {
 usage:
         mbedtls_printf(USAGE);
         goto exit;

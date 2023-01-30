@@ -367,7 +367,7 @@ int main(int argc, char *argv[])
     mbedtls_pk_init(&pkey);
     mbedtls_ctr_drbg_init(&ctr_drbg);
 
-    if (argc == 0) {
+    if (argc < 2) {
 usage:
         mbedtls_printf(USAGE);
 

@@ -241,7 +241,7 @@ int main(int argc, char *argv[])
     mbedtls_x509_crt_init(&issuer_crt);
     memset(buf, 0, 1024);
 
-    if (argc == 0) {
+    if (argc < 2) {
 usage:
         mbedtls_printf(USAGE);
         goto exit;

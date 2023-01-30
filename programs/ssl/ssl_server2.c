@@ -1449,7 +1449,7 @@ int main(int argc, char *argv[])
     signal(SIGINT, term_handler);
 #endif
 
-    if (argc == 0) {
+    if (argc < 2) {
 usage:
         if (ret == 0) {
             ret = 1;

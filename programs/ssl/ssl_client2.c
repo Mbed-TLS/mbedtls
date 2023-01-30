@@ -767,7 +767,7 @@ int main(int argc, char *argv[])
     mbedtls_test_enable_insecure_external_rng();
 #endif  /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
-    if (argc == 0) {
+    if (argc < 2) {
 usage:
         if (ret == 0) {
             ret = 1;

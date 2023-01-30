@@ -692,8 +692,7 @@ static int ecdsa_verify_wrap(void *ctx_arg, mbedtls_md_type_t md_alg,
     /* This buffer contains first the public key (consisting of two public
      * points plus a header byte), then the signature (consisting of two
      * public points). Size it for the public key which is one byte larger. */
-    unsigned char buf[PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(
-            PSA_VENDOR_ECC_MAX_CURVE_BITS )];
+    unsigned char buf[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
     unsigned char *p;
     psa_algorithm_t psa_sig_md = PSA_ALG_ECDSA_ANY;
     size_t curve_bits;
@@ -876,8 +875,7 @@ static int ecdsa_sign_wrap(void *ctx_arg, mbedtls_md_type_t md_alg,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
     psa_status_t status;
-    unsigned char buf[PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(
-            PSA_VENDOR_ECC_MAX_CURVE_BITS )];
+    unsigned char buf[MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH];
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
     psa_algorithm_t psa_sig_md =
         PSA_ALG_DETERMINISTIC_ECDSA( mbedtls_hash_info_psa_from_md( md_alg ) );

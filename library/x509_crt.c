@@ -1919,31 +1919,6 @@ int mbedtls_x509_parse_subject_alt_name(const mbedtls_x509_buf *san_buf,
         break;
 
         /*
-         * RFC822 Name
-         */
-        case (MBEDTLS_ASN1_SEQUENCE | MBEDTLS_X509_SAN_RFC822_NAME):
-        {
-            mbedtls_x509_name rfc822Name;
-            unsigned char *bufferPointer = san_buf->p;
-            unsigned char **p = &bufferPointer;
-            const unsigned char *end = san_buf->p + san_buf->len;
-
-            /* The leading ASN1 tag and length has been processed. Stepping back with 2 bytes, because mbedtls_x509_get_name expects the beginning of the SET tag */
-            *p = *p - 2;
-
-            ret = mbedtls_x509_get_name(p, end, &rfc822Name);
-            if (ret != 0) {
-                return ret;
-            }
-
-            memset(san, 0, sizeof(mbedtls_x509_subject_alternative_name));
-            san->type = MBEDTLS_X509_SAN_OTHER_NAME;
-            memcpy(&san->san.unstructured_name,
-                   &rfc822Name, sizeof(rfc822Name));
-        }
-        break;
-
-        /*
          * Type not supported
          */
         default:

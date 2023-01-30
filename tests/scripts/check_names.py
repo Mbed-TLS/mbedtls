@@ -264,7 +264,7 @@ class CodeParser():
             "3rdparty/everest/include/everest/everest.h",
             "3rdparty/everest/include/everest/x25519.h"
         ])
-        identifiers = self.parse_identifiers([
+        identifiers, excluded_identifiers = self.parse_identifiers([
             "include/mbedtls/*.h",
             "include/psa/*.h",
             "library/*.h",
@@ -302,6 +302,7 @@ class CodeParser():
             "private_macros": private_macros,
             "enum_consts": enum_consts,
             "identifiers": identifiers,
+            "excluded_identifiers": excluded_identifiers,
             "symbols": symbols,
             "mbed_psa_words": mbed_psa_words
         }
@@ -315,12 +316,42 @@ class CodeParser():
                 return True
         return False
 
-    def get_files(self, include_wildcards, exclude_wildcards):
+    def get_all_files(self, include_wildcards, exclude_wildcards):
         """
-        Get all files that match any of the UNIX-style wildcards. While the
-        check_names script is designed only for use on UNIX/macOS (due to nm),
-        this function alone would work fine on Windows even with forward slashes
-        in the wildcard.
+        Get all files that match any of the included UNIX-style wildcards
+        and filter them into included and excluded lists.
+        While the check_names script is designed only for use on UNIX/macOS
+        (due to nm), this function alone will work fine on Windows even with
+        forward slashes in the wildcard.
+
+        Args:
+        * include_wildcards: a List of shell-style wildcards to match filepaths.
+        * exclude_wildcards: a List of shell-style wildcards to exclude.
+
+        Returns:
+        * inc_files: A List of relative filepaths for included files.
+        * exc_files: A List of relative filepaths for excluded files.
+        """
+        accumulator = set()
+        all_wildcards = include_wildcards + (exclude_wildcards or [])
+        for wildcard in all_wildcards:
+            accumulator = accumulator.union(glob.iglob(wildcard))
+
+        inc_files = []
+        exc_files = []
+        for path in accumulator:
+            if self.is_file_excluded(path, exclude_wildcards):
+                exc_files.append(path)
+            else:
+                inc_files.append(path)
+        return (inc_files, exc_files)
+
+    def get_included_files(self, include_wildcards, exclude_wildcards):
+        """
+        Get all files that match any of the included UNIX-style wildcards.
+        While the check_names script is designed only for use on UNIX/macOS
+        (due to nm), this function alone will work fine on Windows even with
+        forward slashes in the wildcard.
 
         Args:
         * include_wildcards: a List of shell-style wildcards to match filepaths.
@@ -351,7 +382,7 @@ class CodeParser():
             "asm", "inline", "EMIT", "_CRT_SECURE_NO_DEPRECATE", "MULADDC_"
         )
 
-        files = self.get_files(include, exclude)
+        files = self.get_included_files(include, exclude)
         self.log.debug("Looking for macros in {} files".format(len(files)))
 
         macros = []
@@ -386,7 +417,7 @@ class CodeParser():
         mbed_regex = re.compile(r"\b(MBED.+?|PSA)_[A-Z0-9_]*")
         exclusions = re.compile(r"// *no-check-names|#error")
 
-        files = self.get_files(include, exclude)
+        files = self.get_included_files(include, exclude)
         self.log.debug(
             "Looking for MBED|PSA words in {} files"
             .format(len(files))
@@ -419,7 +450,7 @@ class CodeParser():
 
         Returns a List of Match objects for the findings.
         """
-        files = self.get_files(include, exclude)
+        files = self.get_included_files(include, exclude)
         self.log.debug("Looking for enum consts in {} files".format(len(files)))
 
         # Emulate a finite state machine to parse enum declarations.
@@ -602,23 +633,34 @@ class CodeParser():
         """
         Parse all lines of a header where a function/enum/struct/union/typedef
         identifier is declared, based on some regex and heuristics. Highly
-        dependent on formatting style.
+        dependent on formatting style. Identifiers in excluded files are still
+        parsed
 
         Args:
         * include: A List of glob expressions to look for files through.
         * exclude: A List of glob expressions for excluding files.
 
-        Returns a List of Match objects with identifiers.
+        Returns: a Tuple of two Lists of Match objects with identifiers.
+        * included_identifiers: A List of Match objects with identifiers from
+          included files.
+        * excluded_identifiers: A List of Match objects with identifiers from
+          excluded files.
         """
 
-        files = self.get_files(include, exclude)
-        self.log.debug("Looking for identifiers in {} files".format(len(files)))
+        included_files, excluded_files = \
+            self.get_all_files(include, exclude)
 
-        identifiers = []
-        for header_file in files:
-            self.parse_identifiers_in_file(header_file, identifiers)
+        self.log.debug("Looking for included identifiers in {} files".format \
+            (len(included_files)))
 
-        return identifiers
+        included_identifiers = []
+        excluded_identifiers = []
+        for header_file in included_files:
+            self.parse_identifiers_in_file(header_file, included_identifiers)
+        for header_file in excluded_files:
+            self.parse_identifiers_in_file(header_file, excluded_identifiers)
+
+        return (included_identifiers, excluded_identifiers)
 
     def parse_symbols(self):
         """
@@ -779,10 +821,12 @@ class NameChecker():
         Returns the number of problems that need fixing.
         """
         problems = []
+        all_identifiers = self.parse_result["identifiers"] +  \
+            self.parse_result["excluded_identifiers"]
 
         for symbol in self.parse_result["symbols"]:
             found_symbol_declared = False
-            for identifier_match in self.parse_result["identifiers"]:
+            for identifier_match in all_identifiers:
                 if symbol == identifier_match.name:
                     found_symbol_declared = True
                     break

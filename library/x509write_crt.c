@@ -32,7 +32,6 @@
 #include "mbedtls/error.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
-#include "mbedtls/sha1.h"
 
 #include <string.h>
 
@@ -228,8 +227,8 @@ static int mbedtls_x509write_crt_set_key_identifier(mbedtls_x509write_cert *ctx,
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
 #else
-    ret = mbedtls_sha1(buf + sizeof(buf) - len, len,
-                       buf + sizeof(buf) - 20);
+    ret = mbedtls_md(mbedtls_md_info_from_type(MBEDTLS_MD_SHA1),
+                     buf + sizeof(buf) - len, len, buf + sizeof(buf) - 20);
     if (ret != 0) {
         return ret;
     }

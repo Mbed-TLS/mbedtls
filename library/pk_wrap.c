@@ -878,8 +878,13 @@ static int ecdsa_sign_wrap(void *ctx_arg, mbedtls_md_type_t md_alg,
     psa_status_t status;
     unsigned char buf[PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(
             PSA_VENDOR_ECC_MAX_CURVE_BITS )];
+#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
+    psa_algorithm_t psa_sig_md =
+        PSA_ALG_DETERMINISTIC_ECDSA( mbedtls_hash_info_psa_from_md( md_alg ) );
+#else
     psa_algorithm_t psa_sig_md =
         PSA_ALG_ECDSA( mbedtls_hash_info_psa_from_md( md_alg ) );
+#endif
     size_t curve_bits;
     psa_ecc_family_t curve =
         mbedtls_ecc_group_to_psa( ctx->grp.id, &curve_bits );

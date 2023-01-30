@@ -65,7 +65,7 @@ void pkcs7_verify(char *pkcs7_file,
     size_t buflen, i, k, cnt = 0, n_crts = 1;
     unsigned char *data = NULL;
     char **crt_files_arr = NULL;
-    unsigned char hash[64];
+    unsigned char *hash = NULL;
     struct stat st;
     size_t datalen;
     int res;
@@ -133,7 +133,7 @@ void pkcs7_verify(char *pkcs7_file,
 
     if (do_hash_alg) {
         md_info = mbedtls_md_info_from_type((mbedtls_md_type_t) do_hash_alg);
-
+        ASSERT_ALLOC(hash, mbedtls_md_get_size(md_info));
         res = mbedtls_md(md_info, data, datalen, hash);
         TEST_EQUAL(res, 0);
 
@@ -156,7 +156,7 @@ exit:
         mbedtls_free(crts[i]);
         mbedtls_free(crt_files_arr[i]);
     }
-
+    mbedtls_free(hash);
     mbedtls_pkcs7_free(&pkcs7);
     mbedtls_free(crt_files_arr);
     mbedtls_free(crts);

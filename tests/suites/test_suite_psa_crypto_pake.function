@@ -590,10 +590,10 @@ void ecjpake_setup(int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
         TEST_EQUAL(psa_pake_set_role(&operation, role),
                    expected_error);
         TEST_EQUAL(psa_pake_output(&operation, PSA_PAKE_STEP_KEY_SHARE,
-                                   NULL, 0, NULL),
+                                   output_buffer, 0, &output_len),
                    expected_error);
         TEST_EQUAL(psa_pake_input(&operation, PSA_PAKE_STEP_KEY_SHARE,
-                                  NULL, 0),
+                                  output_buffer, 0),
                    expected_error);
         TEST_EQUAL(psa_pake_get_implicit_key(&operation, &key_derivation),
                    expected_error);
@@ -633,7 +633,8 @@ void ecjpake_setup(int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
 
     if (test_input) {
         SETUP_CONDITIONAL_CHECK_STEP(psa_pake_input(&operation,
-                                                    PSA_PAKE_STEP_ZK_PROOF,  NULL, 0),
+                                                    PSA_PAKE_STEP_ZK_PROOF,
+                                                    output_buffer, 0),
                                      ERR_INJECT_EMPTY_IO_BUFFER);
 
         SETUP_CONDITIONAL_CHECK_STEP(psa_pake_input(&operation,
@@ -665,7 +666,8 @@ void ecjpake_setup(int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
     } else {
         SETUP_CONDITIONAL_CHECK_STEP(psa_pake_output(&operation,
                                                      PSA_PAKE_STEP_ZK_PROOF,
-                                                     NULL, 0, NULL),
+                                                     output_buffer, 0,
+                                                     &output_len),
                                      ERR_INJECT_EMPTY_IO_BUFFER);
 
         SETUP_CONDITIONAL_CHECK_STEP(psa_pake_output(&operation,

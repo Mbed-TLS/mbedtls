@@ -2816,7 +2816,7 @@ psa_status_t psa_driver_wrapper_pake_setup(
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     psa_key_location_t location =
-            PSA_KEY_LIFETIME_GET_LOCATION( inputs->attributes.core.lifetime );
+            PSA_KEY_LIFETIME_GET_LOCATION( psa_get_key_lifetime( &inputs->attributes ) );
 
     switch( location )
     {

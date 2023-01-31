@@ -46,12 +46,17 @@ typedef signed long long mbedtls_ms_time_t;
 #endif /* MBEDTLS_PLATFORM_MS_TIME_TYPE_MACRO */
 
 /**
- * \brief Get time in milliseconds.
+ * \brief   Get time in milliseconds.
  *
- * \return Current time in milliseconds
+ * \return Current time in milliseconds which is monotonically increasing.
  *
  * \note If MBEDTLS_PLATFORM_MS_TIME_ALT defined, users can provide their own
  *       implementation.
+ *
+ * \warning This function is used for time difference only. The start time is
+ *          not defined. A well defined time function is not required in
+ *          TLS negotiation.
+ *
  */
 mbedtls_ms_time_t mbedtls_ms_time(void);
 

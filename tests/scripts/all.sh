@@ -2131,6 +2131,7 @@ component_test_psa_crypto_config_accel_ecdsa_use_psa () {
 
     # All SHA-2 variants are needed for ECDSA signature tests,
     # but only SHA-256 is enabled by default, so enable the others.
+    scripts/config.py -f tests/include/test/drivers/config_test_driver.h set MBEDTLS_SHA1_C
     scripts/config.py -f tests/include/test/drivers/config_test_driver.h set MBEDTLS_SHA224_C
     scripts/config.py -f tests/include/test/drivers/config_test_driver.h set MBEDTLS_SHA384_C
     scripts/config.py -f tests/include/test/drivers/config_test_driver.h set MBEDTLS_SHA512_C

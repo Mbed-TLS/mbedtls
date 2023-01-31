@@ -705,9 +705,9 @@ static int ecdsa_verify_wrap(void *ctx_arg, mbedtls_md_type_t md_alg,
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
 
-    psa_set_key_type( &attributes, PSA_KEY_TYPE_ECC_PUBLIC_KEY( curve ) );
-    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_HASH );
-    psa_set_key_algorithm( &attributes, psa_sig_md );
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_PUBLIC_KEY(curve));
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_VERIFY_HASH);
+    psa_set_key_algorithm(&attributes, psa_sig_md);
 
     ret = mbedtls_ecp_point_write_binary(&ctx->grp, &ctx->Q,
                                          MBEDTLS_ECP_PF_UNCOMPRESSED,
@@ -720,7 +720,7 @@ static int ecdsa_verify_wrap(void *ctx_arg, mbedtls_md_type_t md_alg,
                             buf, key_len,
                             &key_id);
     if (status != PSA_SUCCESS) {
-        ret = mbedtls_pk_error_from_psa( status );
+        ret = mbedtls_pk_error_from_psa(status);
         goto cleanup;
     }
 
@@ -878,14 +878,14 @@ static int ecdsa_sign_wrap(void *ctx_arg, mbedtls_md_type_t md_alg,
     unsigned char buf[MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH];
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
     psa_algorithm_t psa_sig_md =
-        PSA_ALG_DETERMINISTIC_ECDSA( mbedtls_hash_info_psa_from_md( md_alg ) );
+        PSA_ALG_DETERMINISTIC_ECDSA(mbedtls_hash_info_psa_from_md(md_alg));
 #else
     psa_algorithm_t psa_sig_md =
-        PSA_ALG_ECDSA( mbedtls_hash_info_psa_from_md( md_alg ) );
+        PSA_ALG_ECDSA(mbedtls_hash_info_psa_from_md(md_alg));
 #endif
     size_t curve_bits;
     psa_ecc_family_t curve =
-        mbedtls_ecc_group_to_psa( ctx->grp.id, &curve_bits );
+        mbedtls_ecc_group_to_psa(ctx->grp.id, &curve_bits);
     size_t key_len = PSA_BITS_TO_BYTES(curve_bits);
 
     /* PSA has its own RNG */
@@ -897,10 +897,10 @@ static int ecdsa_sign_wrap(void *ctx_arg, mbedtls_md_type_t md_alg,
     }
 
     if (key_len > sizeof(buf)) {
-        return( MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED );
+        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     }
     ret = mbedtls_mpi_write_binary(&ctx->d, buf, key_len);
-    if( ret != 0 ) {
+    if (ret != 0) {
         goto cleanup;
     }
 

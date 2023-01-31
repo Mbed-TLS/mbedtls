@@ -1255,7 +1255,7 @@ static int ecp_sw_rhs(const mbedtls_ecp_group *grp,
     MPI_ECP_SQR(rhs, X);
 
     /* Special case for A = -3 */
-    if (grp->A.p == NULL) {
+    if (mbedtls_ecp_group_a_is_minus_3(grp)) {
         MPI_ECP_SUB_INT(rhs, rhs, 3);
     } else {
         MPI_ECP_ADD(rhs, rhs, &grp->A);
@@ -1526,7 +1526,7 @@ static int ecp_double_jac(const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     /* Special case for A = -3 */
-    if (grp->A.p == NULL) {
+    if (mbedtls_ecp_group_a_is_minus_3(grp)) {
         /* tmp[0] <- M = 3(X + Z^2)(X - Z^2) */
         MPI_ECP_SQR(&tmp[1],  &P->Z);
         MPI_ECP_ADD(&tmp[2],  &P->X,  &tmp[1]);

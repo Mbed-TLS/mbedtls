@@ -317,7 +317,7 @@ static int pkcs7_get_signer_info(unsigned char **p, unsigned char *end,
     /* Parsing IssuerAndSerialNumber */
     signer->issuer_raw.p = *p;
 
-    asn1_ret = mbedtls_asn1_get_tag(p, end_signer, &len,
+    asn1_ret = mbedtls_asn1_get_tag(p, end_issuer_and_sn, &len,
                                     MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE);
     if (asn1_ret != 0) {
         goto out;
@@ -330,7 +330,7 @@ static int pkcs7_get_signer_info(unsigned char **p, unsigned char *end,
 
     signer->issuer_raw.len =  *p - signer->issuer_raw.p;
 
-    ret = mbedtls_x509_get_serial(p, end_signer, &signer->serial);
+    ret = mbedtls_x509_get_serial(p, end_issuer_and_sn, &signer->serial);
     if (ret != 0) {
         goto out;
     }

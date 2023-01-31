@@ -59,7 +59,17 @@ typedef struct mbedtls_sha256_context {
 mbedtls_sha256_context;
 
 #else  /* MBEDTLS_SHA256_ALT */
+
+#ifdef __cplusplus
+}
+#endif
+
 #include "sha256_alt.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #endif /* MBEDTLS_SHA256_ALT */
 
 /**

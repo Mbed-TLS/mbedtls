@@ -1280,7 +1280,7 @@ int mbedtls_mpi_sub_abs(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
     /* Set the high limbs of X to match A. Don't touch the lower limbs
      * because X might be aliased to B, and we must not overwrite the
      * significant digits of B. */
-    if (A->n > n) {
+    if (A->n > n && A != X) {
         memcpy(X->p + n, A->p + n, (A->n - n) * ciL);
     }
     if (X->n > A->n) {

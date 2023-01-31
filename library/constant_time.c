@@ -72,9 +72,9 @@ static inline uint32_t mbedtls_get_unaligned_volatile_uint32(volatile const unsi
      */
     uint32_t r;
 #if defined(__arm__) || defined(__thumb__) || defined(__thumb2__)
-    asm ("ldr %0, [%1]" : "=r" (r) : "r" (p) :);
+    asm volatile ("ldr %0, [%1]" : "=r" (r) : "r" (p) :);
 #elif defined(__aarch64__)
-    asm ("ldr %w0, [%1]" : "=r" (r) : "r" (p) :);
+    asm volatile ("ldr %w0, [%1]" : "=r" (r) : "r" (p) :);
 #endif
     return r;
 }

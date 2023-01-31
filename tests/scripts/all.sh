@@ -4567,20 +4567,20 @@ support_test_cmake_as_package_install () {
 }
 
 component_build_cmake_custom_config_file () {
-    # Make a copy of mbedtls_config.h to use for the in-tree test
-    cp include/mbedtls/mbedtls_config.h include/mbedtls_config_in_tree_copy.h
+    # Make a copy of config file to use for the in-tree test
+    cp "$CONFIG_H" include/mbedtls_config_in_tree_copy.h
 
     MBEDTLS_ROOT_DIR="$PWD"
     mkdir "$OUT_OF_SOURCE_DIR"
     cd "$OUT_OF_SOURCE_DIR"
 
-    # Build once to get the generated files (which need an intact mbedtls_config.h)
+    # Build once to get the generated files (which need an intact config file)
     cmake "$MBEDTLS_ROOT_DIR"
     make
 
     msg "build: cmake with -DMBEDTLS_CONFIG_FILE"
     scripts/config.py -w full_config.h full
-    echo '#error "cmake -DMBEDTLS_CONFIG_FILE is not working."' > "$MBEDTLS_ROOT_DIR/include/mbedtls/mbedtls_config.h"
+    echo '#error "cmake -DMBEDTLS_CONFIG_FILE is not working."' > "$MBEDTLS_ROOT_DIR/$CONFIG_H"
     cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h "$MBEDTLS_ROOT_DIR"
     make
 
@@ -4600,16 +4600,16 @@ component_build_cmake_custom_config_file () {
 
     # Now repeat the test for an in-tree build:
 
-    # Restore mbedtls_config.h for the in-tree test
-    mv include/mbedtls_config_in_tree_copy.h include/mbedtls/mbedtls_config.h
+    # Restore config for the in-tree test
+    mv include/mbedtls_config_in_tree_copy.h "$CONFIG_H"
 
-    # Build once to get the generated files (which need an intact mbedtls_config.h)
+    # Build once to get the generated files (which need an intact config)
     cmake .
     make
 
     msg "build: cmake (in-tree) with -DMBEDTLS_CONFIG_FILE"
     scripts/config.py -w full_config.h full
-    echo '#error "cmake -DMBEDTLS_CONFIG_FILE is not working."' > "$MBEDTLS_ROOT_DIR/include/mbedtls/mbedtls_config.h"
+    echo '#error "cmake -DMBEDTLS_CONFIG_FILE is not working."' > "$MBEDTLS_ROOT_DIR/$CONFIG_H"
     cmake -DGEN_FILES=OFF -DMBEDTLS_CONFIG_FILE=full_config.h .
     make
 

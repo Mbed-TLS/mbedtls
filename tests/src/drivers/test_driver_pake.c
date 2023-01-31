@@ -177,24 +177,27 @@ psa_status_t mbedtls_test_transparent_pake_abort(
 {
     mbedtls_test_driver_pake_hooks.hits++;
 
-    if (mbedtls_test_driver_pake_hooks.forced_status != PSA_SUCCESS) {
-        mbedtls_test_driver_pake_hooks.driver_status =
-            mbedtls_test_driver_pake_hooks.forced_status;
-    } else {
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
         defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_PAKE)
-        mbedtls_test_driver_pake_hooks.driver_status =
-            libtestdriver1_mbedtls_psa_pake_abort(
-                operation);
+    mbedtls_test_driver_pake_hooks.driver_status =
+        libtestdriver1_mbedtls_psa_pake_abort(
+            operation);
 #elif defined(MBEDTLS_PSA_BUILTIN_PAKE)
-        mbedtls_test_driver_pake_hooks.driver_status =
-            mbedtls_psa_pake_abort(
-                operation);
+    mbedtls_test_driver_pake_hooks.driver_status =
+        mbedtls_psa_pake_abort(
+            operation);
 #else
-        (void) operation;
-        mbedtls_test_driver_pake_hooks.driver_status = PSA_ERROR_NOT_SUPPORTED;
+    (void) operation;
+    mbedtls_test_driver_pake_hooks.driver_status = PSA_ERROR_NOT_SUPPORTED;
 #endif
+
+
+    if (mbedtls_test_driver_pake_hooks.forced_status != PSA_SUCCESS &&
+        mbedtls_test_driver_pake_hooks.driver_status == PSA_SUCCESS) {
+        mbedtls_test_driver_pake_hooks.driver_status =
+            mbedtls_test_driver_pake_hooks.forced_status;
     }
+
 
     return mbedtls_test_driver_pake_hooks.driver_status;
 }

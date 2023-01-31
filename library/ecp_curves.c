@@ -4571,7 +4571,7 @@ static int ecp_group_load(mbedtls_ecp_group *grp,
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
 static int ecp_mod_p192(mbedtls_mpi *);
 MBEDTLS_STATIC_TESTABLE
-int ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn);
+int mbedtls_ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn);
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
 static int ecp_mod_p224(mbedtls_mpi *);
@@ -4901,14 +4901,14 @@ static int ecp_mod_p192(mbedtls_mpi *N)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t expected_width = 2 * ((192 + biL - 1) / biL);
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
-    ret = ecp_mod_p192_raw(N->p, expected_width);
+    ret = mbedtls_ecp_mod_p192_raw(N->p, expected_width);
 
 cleanup:
     return ret;
 }
 
 MBEDTLS_STATIC_TESTABLE
-int ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn)
+int mbedtls_ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn)
 {
     mbedtls_mpi_uint c = 0, last_carry[WIDTH] = { 0 };
     mbedtls_mpi_uint *p, *end;

@@ -1326,7 +1326,7 @@ void ecp_mod_p192_raw(char *input_N,
                    &m, N, limbs,
                    MBEDTLS_MPI_MOD_REP_MONTGOMERY), 0);
 
-    TEST_EQUAL(ecp_mod_p192_raw(X, limbs_X), 0);
+    TEST_EQUAL(mbedtls_ecp_mod_p192_raw(X, limbs_X), 0);
     mbedtls_mpi_mod_raw_fix_quasi_reduction(X, &m);
     ASSERT_COMPARE(X, bytes, res, bytes);
 

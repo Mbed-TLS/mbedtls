@@ -85,7 +85,7 @@ int mbedtls_ecp_gen_privkey_mx(size_t n_bits,
  * \param[in]       Nn  The address of the modulus.
  */
 MBEDTLS_STATIC_TESTABLE
-int ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn);
+int mbedtls_ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn);
 
 #endif /* MBEDTLS_ECP_DP_SECP192R1_ENABLED */
 

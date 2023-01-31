@@ -42,7 +42,8 @@ typedef time_t mbedtls_time_t;
 #if defined(MBEDTLS_PLATFORM_MS_TIME_TYPE_MACRO)
 typedef MBEDTLS_PLATFORM_MS_TIME_TYPE_MACRO mbedtls_ms_time_t;
 #else
-typedef signed long long mbedtls_ms_time_t;
+#include <stdint.h>
+typedef int64_t mbedtls_ms_time_t;
 #endif /* MBEDTLS_PLATFORM_MS_TIME_TYPE_MACRO */
 
 /**

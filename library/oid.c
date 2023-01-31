@@ -26,6 +26,7 @@
 #include "mbedtls/oid.h"
 #include "mbedtls/rsa.h"
 #include "mbedtls/error.h"
+#include "pk_wrap.h"
 
 #include "mbedtls/legacy_or_psa.h"
 
@@ -427,7 +428,7 @@ static const oid_sig_alg_t oid_sig_alg[] =
     },
 #endif /* MBEDTLS_HAS_ALG_SHA_1_VIA_LOWLEVEL_OR_PSA */
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
 #if defined(MBEDTLS_HAS_ALG_SHA_1_VIA_LOWLEVEL_OR_PSA)
     {
         OID_DESCRIPTOR(MBEDTLS_OID_ECDSA_SHA1,       "ecdsa-with-SHA1",      "ECDSA with SHA1"),

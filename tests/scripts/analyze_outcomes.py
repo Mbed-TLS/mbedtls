@@ -177,8 +177,6 @@ TASKS = {
                 'ecdsa', # the software implementation that's excluded
                 # the following lines should not be needed,
                 # they will be removed by upcoming work
-                'x509parse', # #6858
-                'x509write', # #6858
                 'debug', # #6860
                 'ssl', # #6860
             ],

@@ -16,7 +16,6 @@
 
 from typing import List
 
-from . import test_case
 from . import test_data_generation
 from . import bignum_common
 
@@ -34,7 +33,7 @@ class EcpP192R1Raw(bignum_common.ModOperationCommon,
     input_style = "fixed"
     arity = 1
 
-    moduli = [ "fffffffffffffffffffffffffffffffeffffffffffffffff" ] # type: List[str]
+    moduli = ["fffffffffffffffffffffffffffffffeffffffffffffffff"] # type: List[str]
 
     input_values = [
         "0", "1",

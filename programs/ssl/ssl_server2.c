@@ -2358,7 +2358,7 @@ usage:
 #if !defined(MBEDTLS_CERTS_C)
         mbedtls_printf("Not certificated or key provided, and \nMBEDTLS_CERTS_C not defined!\n");
         goto exit;
-#else
+#else /* MBEDTLS_CERTS_C */
 #if defined(MBEDTLS_RSA_C)
         if ((ret = mbedtls_x509_crt_parse(&srvcert,
                                           (const unsigned char *) mbedtls_test_srv_crt_rsa,
@@ -2393,6 +2393,7 @@ usage:
         }
         key_cert_init2 = 2;
 #endif /* MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_CERTS_C */
     }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -2418,7 +2419,6 @@ usage:
         }
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-#endif /* MBEDTLS_CERTS_C */
 
         mbedtls_printf(" ok (key types: %s - %s)\n",
                        mbedtls_pk_get_name(&pkey),

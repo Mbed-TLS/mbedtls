@@ -1,0 +1,3 @@
+Bugfix
+   * Fix build errors in test programs when MBEDTLS_CERTS_C is disabled.
+     Fixes #6243.

@@ -600,7 +600,7 @@ static int x509_get_subject_key_id(unsigned char **p,
 
     if ((ret = mbedtls_asn1_get_tag(p, end, &len,
                                     MBEDTLS_ASN1_OCTET_STRING)) != 0) {
-        return ret;
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
     } else {
         subject_key_id->len = len;
         subject_key_id->tag = MBEDTLS_ASN1_OCTET_STRING;
@@ -748,7 +748,7 @@ static int x509_get_authority_key_id(unsigned char **p,
 
     if ((ret = mbedtls_asn1_get_tag(p, end, &len,
                                     MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
-        return ret;
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
     }
 
     if (*p + len != end) {
@@ -782,7 +782,7 @@ static int x509_get_authority_key_id(unsigned char **p,
                                             MBEDTLS_ASN1_CONTEXT_SPECIFIC |
                                             MBEDTLS_ASN1_CONSTRUCTED |
                                             MBEDTLS_X509_SAN_DIRECTORY_NAME)) != 0) {
-                return ret;
+                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
             } else {
                 /* "end" also includes the CertSerialNumber field so "len" shall be used */
                 ret = x509_get_general_names(p,
@@ -797,7 +797,7 @@ static int x509_get_authority_key_id(unsigned char **p,
                                         MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_INTEGER)) !=
             0) {
             /* authorityCertSerialNumber is an OPTIONAL field, but if there are still data it must be the serial number */
-            return ret;
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
         } else {
             authority_key_id->authorityCertSerialNumber.len = len;
             authority_key_id->authorityCertSerialNumber.p = *p;

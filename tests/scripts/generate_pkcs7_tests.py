@@ -38,7 +38,7 @@ class Test:
         self.func_call = func_call
 
     def to_string(self):
-        return f"\n{self.name}\n{self.depends}\n{self.func_call}\n"
+        return "\n" + self.name + "\n" + self.depends + "\n" + self.func_call + "\n"
 
 class TestData:
     mandatory_dep = "MBEDTLS_SHA256_C"
@@ -52,7 +52,7 @@ class TestData:
     def read_test_file(self, file):
         tests = []
         if not exists(file):
-            print(f"{file} Does not exist")
+            print(file + " Does not exist")
             quit(1)
         f = open(file, "r")
         data = f.read()
@@ -71,7 +71,7 @@ class TestData:
 
     def add(self, name, func_call):
         self.last_test_num += 1
-        self.new_tests.append(Test(f"{self.test_name}: {name} #{self.last_test_num}", f"depends_on:{self.mandatory_dep}", f'{self.test_function}"{func_call}"'))
+        self.new_tests.append(Test(self.test_name + ": " + name +  " #" + str(self.last_test_num), "depends_on:" + self.mandatory_dep, self.test_function + '"' + func_call + '"'))
 
     def write_changes(self):
         f = open(self.file_name, 'a')
@@ -112,8 +112,8 @@ def asn1_mutate(data):
             length = int(data[leng_i], 16)
 
         tag = data[tag_i]
-        print(f"Looking at ans1: offset {i}, tag = {tag}, length = {length}:")
-        print(f"{''.join(data[data_i:data_i+length])}")
+        print("Looking at ans1: offset " + str(i) + " tag = " + tag + ", length = " + str(length)+ ":")
+        print(''.join(data[data_i:data_i+length]))
         # change tag to something else
         if tag == "02":
             # turn integers into octet strings
@@ -122,7 +122,7 @@ def asn1_mutate(data):
             # turn everything else into an integer
             new_tag = "02"
         mutations.append(data[:tag_i] + [new_tag] + data[leng_i:])
-        reasons.append(f"Change tag {tag} to {new_tag}")
+        reasons.append("Change tag " + tag + " to " + new_tag)
 
         # change lengths to too big
         # skip any edge cases which would cause carry over
@@ -131,18 +131,18 @@ def asn1_mutate(data):
             if len(new_length) == 1:
                 new_length = "0"+new_length
             mutations.append(data[:data_i -1] + [new_length] + data[data_i:])
-            reasons.append(f"Change length from {length} to {length + 1}")
+            reasons.append("Change length from " + str(length) + " to " + str(length + 1))
             # we can add another test here for tags that contain other tags where they have more data than there containing tags account for
             if tag in ["30", "a0", "31"]:
                 mutations.append(data[:data_i -1] + [new_length] + data[data_i:data_i + length] + ["00"] + data[data_i + length:])
-                reasons.append(f"Change contents of tag {tag} to contain one unaccounted extra byte")
+                reasons.append("Change contents of tag " + tag + " to contain one unaccounted extra byte")
         # change lengths to too small
         if int(data[data_i - 1], 16) > 0:
             new_length = str(hex(int(data[data_i - 1], 16) - 1))[2:]
             if len(new_length) == 1:
                 new_length = "0"+new_length
             mutations.append(data[:data_i -1] + [new_length] + data[data_i:])
-            reasons.append(f"Change length from {length} to {length - 1}")
+            reasons.append("Change length from " + str(length) + " to " + str(length - 1))
 
         # some tag types contain other tag types so we should iterate into the data
         if tag in ["30", "a0", "31"]:
@@ -153,20 +153,20 @@ def asn1_mutate(data):
     return list(zip(reasons, mutations))
 
 if len(sys.argv) < 2:
-    print(f"USAGE: {sys.argv[0]} <pkcs7_der_file>")
+    print("USAGE: " + sys.argv[0] + " <pkcs7_der_file>")
     quit(1)
 
 data_file = sys.argv[1]
 test_data = TestData(pkcs7_test_file)
 f = open(data_file, 'rb')
-data = f.read().hex()
+data_str = f.read().hex()
 f.close()
 # make data an array of byte strings eg ['de','ad','be','ef']
-data = list(map(''.join, [[data[i], data[i+1]] for i in range(0,len(data),2)]))
+data = list(map(''.join, [[data_str[i], data_str[i+1]] for i in range(0,len(data_str),2)]))
 # returns tuples of test_names and modified data buffers
 mutations = asn1_mutate(data)
 
-print(f"made {len(mutations)} new tests")
+print("made " + str(len(mutations)) + " new tests")
 for new_test in mutations:
     test_data.add(new_test[0], ''.join(new_test[1]))
 

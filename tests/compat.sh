@@ -804,7 +804,8 @@ run_client() {
     TESTS=$(( $TESTS + 1 ))
     TITLE="${1%"${1#?}"}->${SERVER_NAME%"${SERVER_NAME#?}"}"
     TITLE="$TITLE $MODE,$VERIF $2"
-    printf "%s %.*s " "$TITLE" "$((72 - ${#TITLE}))" ........................................................................
+    DOTS72="........................................................................"
+    printf "%s %.*s " "$TITLE" "$((71 - ${#TITLE}))" "$DOTS72"
 
     # should we skip?
     if [ "X$SKIP_NEXT" = "XYES" ]; then

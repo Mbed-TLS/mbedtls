@@ -95,6 +95,13 @@ int mbedtls_ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn);
 
 #endif /* MBEDTLS_ECP_DP_SECP192R1_ENABLED */
 
+#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+
+MBEDTLS_STATIC_TESTABLE
+int ecp_mod_p521_raw(mbedtls_mpi_uint *N_p, size_t N_n);
+
+#endif /* MBEDTLS_ECP_DP_SECP521R1_ENABLED */
+
 #endif /* MBEDTLS_TEST_HOOKS && MBEDTLS_ECP_C */
 
 #endif /* MBEDTLS_ECP_INVASIVE_H */

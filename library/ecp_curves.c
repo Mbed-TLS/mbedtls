@@ -4584,6 +4584,8 @@ static int ecp_mod_p384(mbedtls_mpi *);
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
 static int ecp_mod_p521(mbedtls_mpi *);
+MBEDTLS_STATIC_TESTABLE
+int ecp_mod_p521_raw(mbedtls_mpi_uint *N_p, size_t N_n);
 #endif
 
 #define NIST_MODP(P)      grp->modp = ecp_mod_ ## P;
@@ -5207,7 +5209,9 @@ static int ecp_mod_p521(mbedtls_mpi *N)
 cleanup:
     return ret;
 }
-static int ecp_mod_p521_raw(mbedtls_mpi_uint *N_p, size_t N_n)
+
+MBEDTLS_STATIC_TESTABLE
+int ecp_mod_p521_raw(mbedtls_mpi_uint *N_p, size_t N_n)
 {
     mbedtls_mpi_uint carry = 0;
 

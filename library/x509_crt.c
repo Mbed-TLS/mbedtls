@@ -751,6 +751,11 @@ static int x509_get_authority_key_id(unsigned char **p,
         return ret;
     }
 
+    if (*p + len != end) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
+    }
+
     if ((ret = mbedtls_asn1_get_tag(p, end, &len,
                                     MBEDTLS_ASN1_CONTEXT_SPECIFIC)) != 0) {
         /* KeyIdentifier is an OPTIONAL field */

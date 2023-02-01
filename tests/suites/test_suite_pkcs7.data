@@ -14,9 +14,13 @@ PKCS7 Signed Data Parse Fail with multiple certs #4
 depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
 pkcs7_parse:"data_files/pkcs7_data_multiple_certs_signed.der":MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE
 
-PKCS7 Signed Data Parse Fail with corrupted cert #5
+PKCS7 Signed Data Parse Fail with corrupted cert #5.0
 depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
 pkcs7_parse:"data_files/pkcs7_data_signed_badcert.der":MBEDTLS_ERR_PKCS7_INVALID_CERT
+
+PKCS7 Signed Data Parse Fail with disabled alg #5.1
+depends_on:MBEDTLS_RSA_C:!MBEDTLS_SHA512_C
+pkcs7_parse:"data_files/pkcs7_data_cert_signed_sha512.der":MBEDTLS_ERR_PKCS7_INVALID_ALG
 
 PKCS7 Signed Data Parse Fail with corrupted signer info #6
 depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C

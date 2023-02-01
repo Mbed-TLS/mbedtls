@@ -1304,12 +1304,12 @@ int mbedtls_ssl_tls13_key_schedule_stage_early(mbedtls_ssl_context *ssl)
  *
  *        ssl_tls13_generate_handshake_keys() generates keys necessary for
  *        protecting the handshake messages, as described in Section 7 of
- *        TLS 1.3.
+ *        RFC 8446.
  *
  * \param ssl  The SSL context to operate on. This must be in
  *             key schedule stage \c Handshake, see
  *             ssl_tls13_key_schedule_stage_handshake().
- * \param traffic_keys The address at which to store the handshake traffic key
+ * \param traffic_keys The address at which to store the handshake traffic
  *                     keys. This must be writable but may be uninitialized.
  *
  * \returns    \c 0 on success.
@@ -1532,13 +1532,13 @@ cleanup:
  * \brief Compute TLS 1.3 application traffic keys.
  *
  *        ssl_tls13_generate_application_keys() generates application traffic
- *        keys, since any records following a 1-RTT Finished message MUST be
+ *        keys, since any record following a 1-RTT Finished message MUST be
  *        encrypted under the application traffic key.
  *
  * \param ssl  The SSL context to operate on. This must be in
  *             key schedule stage \c Application, see
  *             ssl_tls13_key_schedule_stage_application().
- * \param traffic_keys The address at which to store the application traffic key
+ * \param traffic_keys The address at which to store the application traffic
  *                     keys. This must be writable but may be uninitialized.
  *
  * \returns    \c 0 on success.

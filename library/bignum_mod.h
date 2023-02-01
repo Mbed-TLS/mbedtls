@@ -444,7 +444,7 @@ int mbedtls_mpi_mod_read(mbedtls_mpi_mod_residue *r,
  *                  limbs as the modulus \p N. (\p r is an input parameter, but
  *                  its value will be modified during execution and restored
  *                  before the function returns.)
- * \param[in] N     The address of the modulus associated with \r.
+ * \param[in] N     The address of the modulus associated with \p r.
  * \param[out] buf  The output buffer to export to.
  * \param buflen    The length in bytes of \p buf.
  * \param ext_rep   The endianness in which the number should be written into

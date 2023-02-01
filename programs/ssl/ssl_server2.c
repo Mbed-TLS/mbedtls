@@ -2420,9 +2420,9 @@ usage:
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-        mbedtls_printf(" ok (key types: %s - %s)\n",
-                       mbedtls_pk_get_name(&pkey),
-                       mbedtls_pk_get_name(&pkey2));
+    mbedtls_printf(" ok (key types: %s - %s)\n",
+                   mbedtls_pk_get_name(&pkey),
+                   mbedtls_pk_get_name(&pkey2));
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)

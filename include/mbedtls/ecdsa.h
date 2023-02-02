@@ -71,6 +71,11 @@ extern "C" {
  * \warning         Performing multiple operations concurrently on the same
  *                  ECDSA context is not supported; objects of this type
  *                  should not be shared between multiple threads.
+ *
+ * \note            pk_wrap module assumes that "ecdsa_context" is identical
+ *                  to "ecp_keypair" (see for example structure
+ *                  "mbedtls_eckey_info" where ECDSA sign/verify functions
+ *                  are used also for EC key)
  */
 typedef mbedtls_ecp_keypair mbedtls_ecdsa_context;
 

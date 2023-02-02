@@ -74,15 +74,15 @@ def analyze_driver_vs_reference(outcomes, component_ref, component_driver,
     result = True
 
     for key in available:
-        # Skip ignored test suites
-        full_test_suite = key.split(';')[0] # retrieve full test suit name
-        test_string = key.split(';')[1] # retrieve the text string of this test
-        test_suite = full_test_suite.split('.')[0] # retrieve main part of test suit name
-        if test_suite in ignored_suites:
-            continue
         # Continue if test was not executed by any component
         hits = outcomes[key].hits() if key in outcomes else 0
         if hits == 0:
+            continue
+        # Skip ignored test suites
+        full_test_suite = key.split(';')[0] # retrieve full test suite name
+        test_string = key.split(';')[1] # retrieve the text string of this test
+        test_suite = full_test_suite.split('.')[0] # retrieve main part of test suite name
+        if test_suite in ignored_suites:
             continue
         if ((full_test_suite in ignored_test) and
                 (test_string in ignored_test[full_test_suite])):

@@ -901,14 +901,14 @@ struct mbedtls_ssl_handshake_params {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_hash_operation_t fin_sha256_psa;
 #else
-    mbedtls_sha256_context fin_sha256;
+    mbedtls_md_context_t fin_sha256;
 #endif
 #endif
 #if defined(MBEDTLS_MD_CAN_SHA384)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_hash_operation_t fin_sha384_psa;
 #else
-    mbedtls_sha512_context fin_sha384;
+    mbedtls_md_context_t fin_sha384;
 #endif
 #endif
 

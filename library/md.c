@@ -456,7 +456,6 @@ void mbedtls_md_free(mbedtls_md_context_t *ctx)
     mbedtls_platform_zeroize(ctx, sizeof(mbedtls_md_context_t));
 }
 
-#if defined(MBEDTLS_MD_C)
 int mbedtls_md_clone(mbedtls_md_context_t *dst,
                      const mbedtls_md_context_t *src)
 {
@@ -515,7 +514,6 @@ int mbedtls_md_clone(mbedtls_md_context_t *dst,
 
     return 0;
 }
-#endif /* MBEDTLS_MD_C */
 
 #define ALLOC(type)                                                   \
     do {                                                                \

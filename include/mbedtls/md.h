@@ -293,7 +293,6 @@ void mbedtls_md_free(mbedtls_md_context_t *ctx);
 MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_md_setup(mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_info, int hmac);
 
-#if defined(MBEDTLS_MD_C)
 /**
  * \brief           This function clones the state of a message-digest
  *                  context.
@@ -316,7 +315,6 @@ int mbedtls_md_setup(mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_info
 MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_md_clone(mbedtls_md_context_t *dst,
                      const mbedtls_md_context_t *src);
-#endif /* MBEDTLS_MD_C */
 
 /**
  * \brief           This function extracts the message-digest size from the

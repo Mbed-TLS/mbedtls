@@ -1104,15 +1104,6 @@ static int ssl_tls13_parse_server_pre_shared_key_ext(mbedtls_ssl_context *ssl,
     }
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    if (ssl->handshake->ciphersuite_info->id !=
-        ssl->session_negotiate->ciphersuite) {
-        MBEDTLS_SSL_DEBUG_MSG(
-            1, ("Invalid ciphersuite for session ticket psk."));
-
-        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
-                                     MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
-        return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
-    }
     if (selected_identity == 0 && ssl_tls13_has_configured_ticket(ssl)) {
         ret = ssl_tls13_ticket_get_psk(ssl, &hash_alg, &psk, &psk_len);
     } else
@@ -1909,7 +1900,8 @@ static int ssl_tls13_postprocess_server_hello(mbedtls_ssl_context *ssl)
             goto cleanup;
     }
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    if (ssl->handshake->sent_extensions & MBEDTLS_SSL_EXT_MASK(EARLY_DATA) &&
+    if (ssl->handshake->received_extensions &
+        MBEDTLS_SSL_EXT_MASK(EARLY_DATA) &&
         ssl->handshake->selected_identity != 0) {
         /* RFC8446 4.2.11
          * If the server supplies an "early_data" extension, the
@@ -1917,6 +1909,17 @@ static int ssl_tls13_postprocess_server_hello(mbedtls_ssl_context *ssl)
          * is 0. If any other value is returned, the client MUST
          * abort the handshake with an "illegal_parameter" alert.
          */
+        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                                     MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
+        return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+    }
+    if (ssl->handshake->received_extensions &
+        MBEDTLS_SSL_EXT_MASK(EARLY_DATA) &&
+        ssl->handshake->ciphersuite_info->id !=
+        ssl->session_negotiate->ciphersuite) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            1, ("Invalid ciphersuite for session ticket psk."));
+
         MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
                                      MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
         return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;

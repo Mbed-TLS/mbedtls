@@ -898,7 +898,6 @@ int mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
     size_t identity_len;
     size_t l_binders_len = 0;
     size_t output_len;
-
     *out_len = 0;
     *binders_len = 0;
 
@@ -962,7 +961,6 @@ int mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
 
         p += output_len;
         l_binders_len += 1 + PSA_HASH_LENGTH(hash_alg);
-
     }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
@@ -2990,6 +2988,7 @@ int mbedtls_ssl_tls13_handshake_client_step(mbedtls_ssl_context *ssl)
                 mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE);
             }
             break;
+
         case MBEDTLS_SSL_CLIENT_CCS_AFTER_CLIENT_HELLO:
             ret = mbedtls_ssl_tls13_write_change_cipher_spec(ssl);
             if (ret == 0) {

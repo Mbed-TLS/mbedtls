@@ -533,7 +533,7 @@ static const mbedtls_mpi_uint brainpoolP512r1_n[] = {
 #if defined(ECP_LOAD_GROUP)
 /*
  * Create an MPI from embedded constants
- * (assumes len is an exact multiple of sizeof mbedtls_mpi_uint)
+ * (assumes len is an exact multiple of sizeof(mbedtls_mpi_uint))
  */
 static inline void ecp_mpi_load(mbedtls_mpi *X, const mbedtls_mpi_uint *p, size_t len)
 {
@@ -1386,7 +1386,7 @@ static inline int ecp_mod_koblitz(mbedtls_mpi *N, mbedtls_mpi_uint *Rp, size_t p
     if (M.n > p_limbs + adjust) {
         M.n = p_limbs + adjust;
     }
-    memset(Mp, 0, sizeof Mp);
+    memset(Mp, 0, sizeof(Mp));
     memcpy(Mp, N->p + p_limbs - adjust, M.n * sizeof(mbedtls_mpi_uint));
     if (shift != 0) {
         MBEDTLS_MPI_CHK(mbedtls_mpi_shift_r(&M, shift));
@@ -1412,7 +1412,7 @@ static inline int ecp_mod_koblitz(mbedtls_mpi *N, mbedtls_mpi_uint *Rp, size_t p
     if (M.n > p_limbs + adjust) {
         M.n = p_limbs + adjust;
     }
-    memset(Mp, 0, sizeof Mp);
+    memset(Mp, 0, sizeof(Mp));
     memcpy(Mp, N->p + p_limbs - adjust, M.n * sizeof(mbedtls_mpi_uint));
     if (shift != 0) {
         MBEDTLS_MPI_CHK(mbedtls_mpi_shift_r(&M, shift));

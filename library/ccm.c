@@ -478,7 +478,7 @@ int mbedtls_ccm_self_test(int verbose)
     mbedtls_ccm_init(&ctx);
 
     if (mbedtls_ccm_setkey(&ctx, MBEDTLS_CIPHER_ID_AES, key_test_data,
-                           8 * sizeof key_test_data) != 0) {
+                           8 * sizeof(key_test_data)) != 0) {
         if (verbose != 0) {
             mbedtls_printf("  CCM: setup failed");
         }

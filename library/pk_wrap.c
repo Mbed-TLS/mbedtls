@@ -738,7 +738,7 @@ cleanup:
     return ret;
 }
 #endif /* MBEDTLS_ECP_RESTARTABLE */
-#endif /* MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_PK_CAN_ECDSA_SOME */
 
 static int eckey_check_pair(const void *pub, const void *prv,
                             int (*f_rng)(void *, unsigned char *, size_t),

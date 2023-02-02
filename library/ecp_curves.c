@@ -1252,7 +1252,7 @@ static int ecp_mod_p255(mbedtls_mpi *N)
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
     M.p = Mp;
-    memset(Mp, 0, sizeof Mp);
+    memset(Mp, 0, sizeof(Mp));
     memcpy(Mp, N->p + P255_WIDTH - 1, M.n * sizeof(mbedtls_mpi_uint));
     MBEDTLS_MPI_CHK(mbedtls_mpi_shift_r(&M, 255 % (8 * sizeof(mbedtls_mpi_uint))));
     M.n++; /* Make room for multiplication by 19 */

@@ -71,16 +71,16 @@ extern "C" {
 /**
  * \brief     Supported cipher types.
  *
- * \warning   DES is considered weak cipher and its use
- *            constitutes a security risk. Arm recommends considering stronger
+ * \warning   DES/3DES are considered weak ciphers and their use
+ *            constitutes a security risk. We recommend considering stronger
  *            ciphers instead.
  */
 typedef enum {
     MBEDTLS_CIPHER_ID_NONE = 0,  /**< Placeholder to mark the end of cipher ID lists. */
     MBEDTLS_CIPHER_ID_NULL,      /**< The identity cipher, treated as a stream cipher. */
     MBEDTLS_CIPHER_ID_AES,       /**< The AES cipher. */
-    MBEDTLS_CIPHER_ID_DES,       /**< The DES cipher. */
-    MBEDTLS_CIPHER_ID_3DES,      /**< The Triple DES cipher. */
+    MBEDTLS_CIPHER_ID_DES,       /**< The DES cipher. \warning DES is considered weak. */
+    MBEDTLS_CIPHER_ID_3DES,      /**< The Triple DES cipher. \warning 3DES is considered weak. */
     MBEDTLS_CIPHER_ID_CAMELLIA,  /**< The Camellia cipher. */
     MBEDTLS_CIPHER_ID_ARIA,      /**< The Aria cipher. */
     MBEDTLS_CIPHER_ID_CHACHA20,  /**< The ChaCha20 cipher. */

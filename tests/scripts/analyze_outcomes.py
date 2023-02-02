@@ -153,7 +153,6 @@ TASKS = {
             'component_driver': 'test_psa_crypto_config_accel_hash_use_psa',
             'ignored_suites': [
                 'shax', 'mdx', # the software implementations that are being excluded
-                'md',  # the legacy abstraction layer that's being excluded
             ]}},
     'analyze_driver_vs_reference_ecdsa': {
         'test_function': do_analyze_driver_vs_reference,

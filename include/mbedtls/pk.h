@@ -98,8 +98,24 @@ typedef enum {
  *                  See \c mbedtls_rsa_rsassa_pss_verify_ext()
  */
 typedef struct mbedtls_pk_rsassa_pss_options {
-    mbedtls_md_type_t MBEDTLS_PRIVATE(mgf1_hash_id);
-    int MBEDTLS_PRIVATE(expected_salt_len);
+    /** The digest to use for MGF1 in PSS.
+     *
+     * \note When #MBEDTLS_USE_PSA_CRYPTO is enabled and #MBEDTLS_RSA_C is
+     *       disabled, this must be equal to the \c md_alg argument passed
+     *       to mbedtls_pk_verify_ext(). In a future version of the library,
+     *       this constraint may apply whenever #MBEDTLS_USE_PSA_CRYPTO is
+     *       enabled regardless of the status of #MBEDTLS_RSA_C.
+     */
+    mbedtls_md_type_t mgf1_hash_id;
+
+    /** The expected length of the salt, in bytes. This may be
+     * #MBEDTLS_RSA_SALT_LEN_ANY to accept any salt length.
+     *
+     * \note When #MBEDTLS_USE_PSA_CRYPTO is enabled, only
+     *       #MBEDTLS_RSA_SALT_LEN_ANY is valid. Any other value may be
+     *       ignored (allowing any salt length).
+     */
+    int expected_salt_len;
 
 } mbedtls_pk_rsassa_pss_options;
 

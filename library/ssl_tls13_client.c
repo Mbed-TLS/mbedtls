@@ -1935,11 +1935,14 @@ static int ssl_tls13_postprocess_server_hello(mbedtls_ssl_context *ssl)
                           ("Selected key exchange mode: %s",
                            ssl_tls13_get_kex_mode_str(handshake->key_exchange_mode)));
 
-    /* Start the TLS 1.3 key schedule: Set the PSK and derive early secret.
+    /* Start the TLS 1.3 key scheduling if not already done.
      *
-     * We do this in case we didn't offer 0-RTT or even we offered 0-RTT but
-     * server selected ephemeral mode. In other cases, we could skip generating
-     * the early secret.
+     * If we proposed early data then we have already derived an
+     * early secret using the selected PSK and its associated hash.
+     * It means that if the negotiated key exchange mode is psk or
+     * psk_ephemeral, we have already correctly computed the
+     * early secret and thus we do not do it again. In all other
+     * cases we compute it here.
      */
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     if ((ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT) ||

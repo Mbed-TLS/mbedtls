@@ -2129,7 +2129,7 @@ component_test_psa_crypto_config_accel_ecdsa_use_psa () {
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
 
-    # All SHA-2 variants are needed for ECDSA signature tests,
+    # SHA-1 and all variants of SHA-2 are needed for ECDSA and X.509 tests,
     # but only SHA-256 is enabled by default, so enable the others.
     scripts/config.py -f tests/include/test/drivers/config_test_driver.h set MBEDTLS_SHA1_C
     scripts/config.py -f tests/include/test/drivers/config_test_driver.h set MBEDTLS_SHA224_C

@@ -31,6 +31,10 @@
 #include "psa/crypto.h"
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 
+#if defined(MBEDTLS_PK_CAN_ECDSA_VERIFY) || defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
+#define MBEDTLS_PK_CAN_ECDSA_SOME
+#endif
+
 struct mbedtls_pk_info_t {
     /** Public key type */
     mbedtls_pk_type_t type;
@@ -56,11 +60,7 @@ struct mbedtls_pk_info_t {
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng);
 
-#if defined(MBEDTLS_PK_CAN_ECDSA_VERIFY) || defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
-#define MBEDTLS_PK_CAN_ECDSA_SOME
-#endif
-
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME) && defined(MBEDTLS_ECP_RESTARTABLE)
     /** Verify signature (restartable) */
     int (*verify_rs_func)(void *ctx, mbedtls_md_type_t md_alg,
                           const unsigned char *hash, size_t hash_len,

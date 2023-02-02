@@ -110,6 +110,7 @@
  * 2. A module that uses it is enabled.
  */
 #if defined(MBEDTLS_MD_C) || \
+    defined(MBEDTLS_ENTROPY_C) || \
     defined(MBEDTLS_RSA_C) || \
     defined(MBEDTLS_PKCS12_C) || \
     defined(MBEDTLS_ECJPAKE_C) || \

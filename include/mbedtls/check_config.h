@@ -173,21 +173,27 @@
 #error "MBEDTLS_PKCS5_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_ENTROPY_C) && (!defined(MBEDTLS_SHA512_C) &&      \
-                                    !defined(MBEDTLS_SHA256_C))
+#if defined(MBEDTLS_ENTROPY_C) && \
+    !( defined(MBEDTLS_SHA512_C) || defined(MBEDTLS_SHA256_C) || \
+       (defined(MBEDTLS_PSA_CRYPTO_C) && \
+        (defined(PSA_WANT_ALG_SHA_512) || defined(PSA_WANT_ALG_SHA_256))))
 #error "MBEDTLS_ENTROPY_C defined, but not all prerequisites"
 #endif
-#if defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_SHA512_C) &&         \
+#if defined(MBEDTLS_ENTROPY_C) && \
     defined(MBEDTLS_CTR_DRBG_ENTROPY_LEN) && (MBEDTLS_CTR_DRBG_ENTROPY_LEN > 64)
 #error "MBEDTLS_CTR_DRBG_ENTROPY_LEN value too high"
 #endif
 #if defined(MBEDTLS_ENTROPY_C) &&                                            \
-    ( !defined(MBEDTLS_SHA512_C) || defined(MBEDTLS_ENTROPY_FORCE_SHA256) ) \
+    ( defined(MBEDTLS_ENTROPY_FORCE_SHA256) || \
+      !( defined(MBEDTLS_SHA512_C) || \
+         (defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_SHA_512)) ) ) \
     && defined(MBEDTLS_CTR_DRBG_ENTROPY_LEN) && (MBEDTLS_CTR_DRBG_ENTROPY_LEN > 32)
 #error "MBEDTLS_CTR_DRBG_ENTROPY_LEN value too high"
 #endif
 #if defined(MBEDTLS_ENTROPY_C) && \
-    defined(MBEDTLS_ENTROPY_FORCE_SHA256) && !defined(MBEDTLS_SHA256_C)
+    defined(MBEDTLS_ENTROPY_FORCE_SHA256) && \
+    !( defined(MBEDTLS_SHA256_C) || \
+       (defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_SHA_256)) )
 #error "MBEDTLS_ENTROPY_FORCE_SHA256 defined, but not all prerequisites"
 #endif
 

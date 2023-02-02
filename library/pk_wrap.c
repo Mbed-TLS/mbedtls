@@ -689,9 +689,11 @@ static int ecdsa_verify_wrap(void *ctx_arg, mbedtls_md_type_t md_alg,
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
     psa_status_t status;
     size_t key_len;
-    /* This buffer contains first the public key (consisting of two public
-     * points plus a header byte), then the signature (consisting of two
-     * public points). Size it for the public key which is one byte larger. */
+    /* This buffer will initially contain the public key and then the signature
+     * but at different points in time. For all curves except secp224k1, which
+     * is not currently supported in PSA, the public key is one byte longer
+     * (header byte + 2 numbers, while the signature is only 2 numbers),
+     * so use that as the buffer size. */
     unsigned char buf[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
     unsigned char *p;
     psa_algorithm_t psa_sig_md = PSA_ALG_ECDSA_ANY;

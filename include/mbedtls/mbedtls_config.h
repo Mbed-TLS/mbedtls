@@ -3610,7 +3610,7 @@
 //#define MBEDTLS_PLATFORM_SETBUF_MACRO      setbuf /**< Default setbuf macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_TIME_MACRO            time /**< Default time macro to use, can be undefined. MBEDTLS_HAVE_TIME must be enabled */
 //#define MBEDTLS_PLATFORM_TIME_TYPE_MACRO       time_t /**< Default time macro to use, can be undefined. MBEDTLS_HAVE_TIME must be enabled */
-//#define MBEDTLS_PLATFORM_MS_TIME_TYPE_MACRO   signed long long /**< Default millionseconds time macro to use, can be undefined. MBEDTLS_HAVE_TIME must be enabled. It MUST be signed 64bit integer at least */
+//#define MBEDTLS_PLATFORM_MS_TIME_TYPE_MACRO   int64_t /**< Default millionseconds time macro to use, can be undefined. MBEDTLS_HAVE_TIME must be enabled. It MUST be signed 64bit integer at least */
 //#define MBEDTLS_PLATFORM_FPRINTF_MACRO      fprintf /**< Default fprintf macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_PRINTF_MACRO        printf /**< Default printf macro to use, can be undefined */
 /* Note: your snprintf must correctly zero-terminate the buffer! */

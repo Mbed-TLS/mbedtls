@@ -49,14 +49,14 @@ typedef int64_t mbedtls_ms_time_t;
 /**
  * \brief   Get time in milliseconds.
  *
- * \return Current time in milliseconds which is monotonically increasing.
+ * \return Monotonically-increasing current time in milliseconds.
  *
- * \note If MBEDTLS_PLATFORM_MS_TIME_ALT defined, users can provide their own
- *       implementation.
+ * \note Define MBEDTLS_PLATFORM_MS_TIME_ALT to be able to provide an
+ *       alternative implementation
  *
- * \warning This function is used for time difference only. The start time is
- *          not defined. A well defined time function is not required in
- *          TLS negotiation.
+ * \warning This function returns a monotonically-increasing time value from a
+ *          start time that will differ from platform to platform, and possibly
+ *          from run to run of the process.
  *
  */
 mbedtls_ms_time_t mbedtls_ms_time(void);

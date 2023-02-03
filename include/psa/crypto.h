@@ -4430,7 +4430,13 @@ psa_status_t psa_sign_hash_complete(
  * \warning                     This is a beta API, and thus subject to change
  *                              at any point. It is not bound by the usual
  *                              interface stability promises.
-
+ *
+ * \note                        This function is the only function that clears
+ *                              the number of ops completed as part of the
+ *                              operation. Please ensure you copy this value via
+ *                              \c psa_sign_hash_get_num_ops() if required
+ *                              before calling.
+ *
  * \note                        Aborting an operation frees all associated
  *                              resources except for the \p operation structure
  *                              itself. Once aborted, the operation object can
@@ -4442,8 +4448,7 @@ psa_status_t psa_sign_hash_complete(
  *                              particular, calling \c psa_sign_hash_abort()
  *                              after the operation has already been terminated
  *                              by a call to \c psa_sign_hash_abort() or
- *                              psa_sign_hash_complete() is safe and has no
- *                              effect.
+ *                              psa_sign_hash_complete() is safe.
  *
  * \param[in,out] operation     Initialized sign hash operation.
  *
@@ -4620,6 +4625,12 @@ psa_status_t psa_verify_hash_complete(
  *                            any point. It is not bound by the usual interface
  *                            stability promises.
  *
+ * \note                      This function is the only function that clears the
+ *                            number of ops completed as part of the operation.
+ *                            Please ensure you copy this value via
+ *                            \c psa_verify_hash_get_num_ops() if required
+ *                            before calling.
+ *
  * \note                      Aborting an operation frees all associated
  *                            resources except for the operation structure
  *                            itself. Once aborted, the operation object can be
@@ -4631,8 +4642,7 @@ psa_status_t psa_verify_hash_complete(
  *                            In particular, calling \c psa_verify_hash_abort()
  *                            after the operation has already been terminated by
  *                            a call to \c psa_verify_hash_abort() or
- *                            psa_verify_hash_complete() is safe and has no
- *                            effect.
+ *                            psa_verify_hash_complete() is safe.
  *
  * \param[in,out] operation   Initialized verify hash operation.
  *

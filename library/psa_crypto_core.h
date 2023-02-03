@@ -611,9 +611,6 @@ psa_status_t psa_key_agreement_raw_builtin(
  * \brief Set the maximum number of ops allowed to be executed by an
  *        interruptible function in a single call.
  *
- * \warning This is a beta API, and thus subject to change at any point. It is
- *          not bound by the usual interface stability promises.
- *
  * \note The signature of this function is that of a PSA driver
  *       interruptible_set_max_ops entry point. This function behaves as an
  *       interruptible_set_max_ops entry point as defined in the PSA driver
@@ -631,9 +628,6 @@ void mbedtls_psa_interruptible_set_max_ops( uint32_t max_ops );
  * \brief Get the maximum number of ops allowed to be executed by an
  *        interruptible function in a single call.
  *
- * \warning This is a beta API, and thus subject to change at any point. It is
- *          not bound by the usual interface stability promises.
- *
  * \note The signature of this function is that of a PSA driver
  *       interruptible_get_max_ops entry point. This function behaves as an
  *       interruptible_get_max_ops entry point as defined in the PSA driver
@@ -650,9 +644,6 @@ uint32_t mbedtls_psa_interruptible_get_max_ops( void );
  *        number of ops required for the entire operation. After initialization
  *        or calling psa_sign_hash_interruptible_abort() on the operation, a
  *        value of 0 will be returned.
- *
- * \warning This is a beta API, and thus subject to change at any point. It is
- *          not bound by the usual interface stability promises.
  *
  * \note The signature of this function is that of a PSA driver
  *       sign_get_num_ops entry point. This function behaves as a
@@ -676,9 +667,6 @@ uint32_t mbedtls_psa_sign_hash_get_num_ops(
  *        or calling psa_verify_hash_interruptible_abort() on the operation, a
  *        value of 0 will be returned.
  *
- * \warning This is a beta API, and thus subject to change at any point. It is
- *          not bound by the usual interface stability promises.
- *
  * \note The signature of this function is that of a PSA driver
  *       verify_get_num_ops entry point. This function behaves as a
  *       verify_get_num_ops entry point as defined in the PSA driver interface
@@ -697,9 +685,6 @@ uint32_t mbedtls_psa_verify_hash_get_num_ops(
 /**
  * \brief  Start signing a hash or short message with a private key, in an
  *         interruptible manner.
- *
- * \warning This is a beta API, and thus subject to change at any point. It is
- *          not bound by the usual interface stability promises.
  *
  * \note The signature of this function is that of a PSA driver
  *       sign_hash_start entry point. This function behaves as a
@@ -738,9 +723,6 @@ psa_status_t mbedtls_psa_sign_hash_start(
 /**
  * \brief Continue and eventually complete the action of signing a hash or
  *        short message with a private key, in an interruptible manner.
- *
- * \warning This is a beta API, and thus subject to change at any point. It is
- *          not bound by the usual interface stability promises.
  *
  * \note The signature of this function is that of a PSA driver
  *       sign_hash_complete entry point. This function behaves as a
@@ -787,9 +769,6 @@ psa_status_t mbedtls_psa_sign_hash_complete(
 /**
  * \brief Abort a sign hash operation.
  *
- * \warning This is a beta API, and thus subject to change at any point. It is
- *          not bound by the usual interface stability promises.
- *
  * \note The signature of this function is that of a PSA driver sign_hash_abort
  *       entry point. This function behaves as a sign_hash_abort entry point as
  *       defined in the PSA driver interface specification for transparent
@@ -808,9 +787,6 @@ psa_status_t mbedtls_psa_sign_hash_abort(
 /**
  * \brief  Start reading and verifying a hash or short message, in an
  *         interruptible manner.
- *
- * \warning This is a beta API, and thus subject to change at any point. It is
- *          not bound by the usual interface stability promises.
  *
  * \note The signature of this function is that of a PSA driver
  *       verify_hash_start entry point. This function behaves as a
@@ -854,9 +830,6 @@ psa_status_t mbedtls_psa_verify_hash_start(
  * \brief Continue and eventually complete the action of signing a hash or
  *        short message with a private key, in an interruptible manner.
  *
- * \warning This is a beta API, and thus subject to change at any point. It is
- *          not bound by the usual interface stability promises.
- *
  * \note The signature of this function is that of a PSA driver
  *       sign_hash_complete entry point. This function behaves as a
  *       sign_hash_complete entry point as defined in the PSA driver interface
@@ -887,9 +860,6 @@ psa_status_t mbedtls_psa_verify_hash_complete(
 
 /**
  * \brief Abort a verify signed hash operation.
- *
- * \warning This is a beta API, and thus subject to change at any point. It is
- *          not bound by the usual interface stability promises.
  *
  * \note The signature of this function is that of a PSA driver
  *       verify_hash_abort entry point. This function behaves as a

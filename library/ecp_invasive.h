@@ -28,6 +28,7 @@
 
 #include "common.h"
 #include "mbedtls/bignum.h"
+#include "bignum_mod.h"
 #include "mbedtls/ecp.h"
 
 #if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_ECP_C)
@@ -116,6 +117,11 @@ MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 
 #endif /* MBEDTLS_ECP_DP_SECP521R1_ENABLED */
+
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
+                              const mbedtls_ecp_group_id id,
+                              const mbedtls_ecp_curve_type ctype);
 
 #endif /* MBEDTLS_TEST_HOOKS && MBEDTLS_ECP_C */
 

@@ -902,7 +902,7 @@ void pk_sign_verify(int type, int parameter, int sign_ret, int verify_ret)
     USE_PSA_INIT();
 
     memset(hash, 0x2a, hash_len);
-    memset(sig, 0, sizeof sig);
+    memset(sig, 0, sizeof(sig));
 
     TEST_ASSERT(mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(type)) == 0);
     TEST_ASSERT(pk_genkey(&pk, parameter) == 0);
@@ -1095,8 +1095,8 @@ void pk_rsa_overflow()
         return;
     }
 
-    memset(hash, 0x2a, sizeof hash);
-    memset(sig, 0, sizeof sig);
+    memset(hash, 0x2a, sizeof(hash));
+    memset(sig, 0, sizeof(sig));
 
     mbedtls_pk_init(&pk);
 
@@ -1140,11 +1140,11 @@ void pk_rsa_alt()
     mbedtls_rsa_init(&raw, MBEDTLS_RSA_PKCS_V15, MBEDTLS_MD_NONE);
     mbedtls_pk_init(&rsa); mbedtls_pk_init(&alt);
 
-    memset(hash, 0x2a, sizeof hash);
-    memset(sig, 0, sizeof sig);
-    memset(msg, 0x2a, sizeof msg);
-    memset(ciph, 0, sizeof ciph);
-    memset(test, 0, sizeof test);
+    memset(hash, 0x2a, sizeof(hash));
+    memset(sig, 0, sizeof(sig));
+    memset(msg, 0x2a, sizeof(msg));
+    memset(ciph, 0, sizeof(ciph));
+    memset(test, 0, sizeof(test));
 
     /* Initialize PK RSA context with random key */
     TEST_ASSERT(mbedtls_pk_setup(&rsa,
@@ -1172,29 +1172,29 @@ void pk_rsa_alt()
                                 &sig_len, mbedtls_test_rnd_std_rand, NULL)
                 == MBEDTLS_ERR_PK_BAD_INPUT_DATA);
 #endif /* SIZE_MAX > UINT_MAX */
-    TEST_ASSERT(mbedtls_pk_sign(&alt, MBEDTLS_MD_NONE, hash, sizeof hash, sig,
+    TEST_ASSERT(mbedtls_pk_sign(&alt, MBEDTLS_MD_NONE, hash, sizeof(hash), sig,
                                 &sig_len, mbedtls_test_rnd_std_rand, NULL)
                 == 0);
     TEST_ASSERT(sig_len == RSA_KEY_LEN);
     TEST_ASSERT(mbedtls_pk_verify(&rsa, MBEDTLS_MD_NONE,
-                                  hash, sizeof hash, sig, sig_len) == 0);
+                                  hash, sizeof(hash), sig, sig_len) == 0);
 
     /* Test decrypt */
-    TEST_ASSERT(mbedtls_pk_encrypt(&rsa, msg, sizeof msg,
-                                   ciph, &ciph_len, sizeof ciph,
+    TEST_ASSERT(mbedtls_pk_encrypt(&rsa, msg, sizeof(msg),
+                                   ciph, &ciph_len, sizeof(ciph),
                                    mbedtls_test_rnd_std_rand, NULL) == 0);
     TEST_ASSERT(mbedtls_pk_decrypt(&alt, ciph, ciph_len,
-                                   test, &test_len, sizeof test,
+                                   test, &test_len, sizeof(test),
                                    mbedtls_test_rnd_std_rand, NULL) == 0);
-    TEST_ASSERT(test_len == sizeof msg);
+    TEST_ASSERT(test_len == sizeof(msg));
     TEST_ASSERT(memcmp(test, msg, test_len) == 0);
 
     /* Test forbidden operations */
-    TEST_ASSERT(mbedtls_pk_encrypt(&alt, msg, sizeof msg,
-                                   ciph, &ciph_len, sizeof ciph,
+    TEST_ASSERT(mbedtls_pk_encrypt(&alt, msg, sizeof(msg),
+                                   ciph, &ciph_len, sizeof(ciph),
                                    mbedtls_test_rnd_std_rand, NULL) == ret);
     TEST_ASSERT(mbedtls_pk_verify(&alt, MBEDTLS_MD_NONE,
-                                  hash, sizeof hash, sig, sig_len) == ret);
+                                  hash, sizeof(hash), sig, sig_len) == ret);
     TEST_ASSERT(mbedtls_pk_debug(&alt, dbg_items) == ret);
 
 exit:
@@ -1257,11 +1257,11 @@ void pk_psa_sign(int grpid_arg,
     TEST_EQUAL(psa_get_key_lifetime(&attributes),
                PSA_KEY_LIFETIME_VOLATILE);
 
-    memset(hash, 0x2a, sizeof hash);
-    memset(sig, 0, sizeof sig);
+    memset(hash, 0x2a, sizeof(hash));
+    memset(sig, 0, sizeof(sig));
 
     TEST_ASSERT(mbedtls_pk_sign(&pk, MBEDTLS_MD_SHA256,
-                                hash, sizeof hash, sig, &sig_len,
+                                hash, sizeof(hash), sig, &sig_len,
                                 NULL, NULL) == 0);
 
     /* Export underlying public key for re-importing in a psa context. */
@@ -1282,7 +1282,7 @@ void pk_psa_sign(int grpid_arg,
     TEST_ASSERT(mbedtls_pk_parse_public_key(&pk, pkey_legacy_start,
                                             klen_legacy) == 0);
     TEST_ASSERT(mbedtls_pk_verify(&pk, MBEDTLS_MD_SHA256,
-                                  hash, sizeof hash, sig, sig_len) == 0);
+                                  hash, sizeof(hash), sig, sig_len) == 0);
 
 exit:
     /*

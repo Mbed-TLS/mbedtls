@@ -706,7 +706,7 @@ int mbedtls_entropy_self_test(int verbose)
         goto cleanup;
     }
 
-    if ((ret = mbedtls_entropy_update_manual(&ctx, buf, sizeof buf)) != 0) {
+    if ((ret = mbedtls_entropy_update_manual(&ctx, buf, sizeof(buf))) != 0) {
         goto cleanup;
     }
 

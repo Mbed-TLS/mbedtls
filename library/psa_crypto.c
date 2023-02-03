@@ -3246,10 +3246,8 @@ psa_status_t psa_sign_hash_complete(
         goto exit;
     }
 
-    /* Immediately reject a zero-length signature buffer. This guarantees
-     * that signature must be a valid pointer. (On the other hand, the input
-     * buffer can in principle be empty since it doesn't actually have
-     * to be a hash.) */
+    /* Immediately reject a zero-length signature buffer. This guarantees that
+     * signature must be a valid pointer. */
     if (signature_size == 0) {
         status = PSA_ERROR_BUFFER_TOO_SMALL;
         goto exit;

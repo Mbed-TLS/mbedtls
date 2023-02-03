@@ -43,6 +43,7 @@ typedef time_t mbedtls_time_t;
 typedef MBEDTLS_PLATFORM_MS_TIME_TYPE_MACRO mbedtls_ms_time_t;
 #else
 #include <stdint.h>
+#include <inttypes.h>
 typedef int64_t mbedtls_ms_time_t;
 #endif /* MBEDTLS_PLATFORM_MS_TIME_TYPE_MACRO */
 

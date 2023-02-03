@@ -644,7 +644,24 @@ int mbedtls_ssl_tls13_derive_resumption_master_secret(
     return 0;
 }
 
-int mbedtls_ssl_tls13_key_schedule_stage_application(mbedtls_ssl_context *ssl)
+/**
+ * \brief Transition into application stage of TLS 1.3 key schedule.
+ *
+ *        The TLS 1.3 key schedule can be viewed as a simple state machine
+ *        with states Initial -> Early -> Handshake -> Application, and
+ *        this function represents the Handshake -> Application transition.
+ *
+ *        In the handshake stage, ssl_tls13_generate_application_keys()
+ *        can be used to derive the handshake traffic keys.
+ *
+ * \param ssl  The SSL context to operate on. This must be in key schedule
+ *             stage \c Handshake.
+ *
+ * \returns    \c 0 on success.
+ * \returns    A negative error code on failure.
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_key_schedule_stage_application(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
@@ -1282,10 +1299,25 @@ int mbedtls_ssl_tls13_key_schedule_stage_early(mbedtls_ssl_context *ssl)
     return 0;
 }
 
-/* mbedtls_ssl_tls13_generate_handshake_keys() generates keys necessary for
- * protecting the handshake messages, as described in Section 7 of TLS 1.3. */
-int mbedtls_ssl_tls13_generate_handshake_keys(mbedtls_ssl_context *ssl,
-                                              mbedtls_ssl_key_set *traffic_keys)
+/**
+ * \brief Compute TLS 1.3 handshake traffic keys.
+ *
+ *        ssl_tls13_generate_handshake_keys() generates keys necessary for
+ *        protecting the handshake messages, as described in Section 7 of
+ *        RFC 8446.
+ *
+ * \param ssl  The SSL context to operate on. This must be in
+ *             key schedule stage \c Handshake, see
+ *             ssl_tls13_key_schedule_stage_handshake().
+ * \param traffic_keys The address at which to store the handshake traffic
+ *                     keys. This must be writable but may be uninitialized.
+ *
+ * \returns    \c 0 on success.
+ * \returns    A negative error code on failure.
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_generate_handshake_keys(mbedtls_ssl_context *ssl,
+                                             mbedtls_ssl_key_set *traffic_keys)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_md_type_t md_type;
@@ -1300,7 +1332,7 @@ int mbedtls_ssl_tls13_generate_handshake_keys(mbedtls_ssl_context *ssl,
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info = handshake->ciphersuite_info;
     mbedtls_ssl_tls13_handshake_secrets *tls13_hs_secrets = &handshake->tls13_hs_secrets;
 
-    MBEDTLS_SSL_DEBUG_MSG(2, ("=> mbedtls_ssl_tls13_generate_handshake_keys"));
+    MBEDTLS_SSL_DEBUG_MSG(2, ("=> ssl_tls13_generate_handshake_keys"));
 
     ret = ssl_tls13_get_cipher_key_info(ciphersuite_info, &key_len, &iv_len);
     if (ret != 0) {
@@ -1386,14 +1418,31 @@ int mbedtls_ssl_tls13_generate_handshake_keys(mbedtls_ssl_context *ssl,
                           traffic_keys->server_write_iv,
                           traffic_keys->iv_len);
 
-    MBEDTLS_SSL_DEBUG_MSG(2, ("<= mbedtls_ssl_tls13_generate_handshake_keys"));
+    MBEDTLS_SSL_DEBUG_MSG(2, ("<= ssl_tls13_generate_handshake_keys"));
 
 exit:
 
     return ret;
 }
 
-int mbedtls_ssl_tls13_key_schedule_stage_handshake(mbedtls_ssl_context *ssl)
+/**
+ * \brief Transition into handshake stage of TLS 1.3 key schedule.
+ *
+ *        The TLS 1.3 key schedule can be viewed as a simple state machine
+ *        with states Initial -> Early -> Handshake -> Application, and
+ *        this function represents the Early -> Handshake transition.
+ *
+ *        In the handshake stage, ssl_tls13_generate_handshake_keys()
+ *        can be used to derive the handshake traffic keys.
+ *
+ * \param ssl  The SSL context to operate on. This must be in key schedule
+ *             stage \c Early.
+ *
+ * \returns    \c 0 on success.
+ * \returns    A negative error code on failure.
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_key_schedule_stage_handshake(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
@@ -1479,10 +1528,24 @@ cleanup:
     return ret;
 }
 
-/* Generate application traffic keys since any records following a 1-RTT Finished message
- * MUST be encrypted under the application traffic key.
+/**
+ * \brief Compute TLS 1.3 application traffic keys.
+ *
+ *        ssl_tls13_generate_application_keys() generates application traffic
+ *        keys, since any record following a 1-RTT Finished message MUST be
+ *        encrypted under the application traffic key.
+ *
+ * \param ssl  The SSL context to operate on. This must be in
+ *             key schedule stage \c Application, see
+ *             ssl_tls13_key_schedule_stage_application().
+ * \param traffic_keys The address at which to store the application traffic
+ *                     keys. This must be writable but may be uninitialized.
+ *
+ * \returns    \c 0 on success.
+ * \returns    A negative error code on failure.
  */
-int mbedtls_ssl_tls13_generate_application_keys(
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_generate_application_keys(
     mbedtls_ssl_context *ssl,
     mbedtls_ssl_key_set *traffic_keys)
 {
@@ -1612,7 +1675,7 @@ int mbedtls_ssl_tls13_compute_handshake_transform(mbedtls_ssl_context *ssl)
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
     /* Compute handshake secret */
-    ret = mbedtls_ssl_tls13_key_schedule_stage_handshake(ssl);
+    ret = ssl_tls13_key_schedule_stage_handshake(ssl);
     if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_tls13_derive_master_secret", ret);
         goto cleanup;
@@ -1620,9 +1683,9 @@ int mbedtls_ssl_tls13_compute_handshake_transform(mbedtls_ssl_context *ssl)
 
     /* Next evolution in key schedule: Establish handshake secret and
      * key material. */
-    ret = mbedtls_ssl_tls13_generate_handshake_keys(ssl, &traffic_keys);
+    ret = ssl_tls13_generate_handshake_keys(ssl, &traffic_keys);
     if (ret != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_tls13_generate_handshake_keys",
+        MBEDTLS_SSL_DEBUG_RET(1, "ssl_tls13_generate_handshake_keys",
                               ret);
         goto cleanup;
     }
@@ -1702,17 +1765,17 @@ int mbedtls_ssl_tls13_compute_application_transform(mbedtls_ssl_context *ssl)
     mbedtls_ssl_key_set traffic_keys;
     mbedtls_ssl_transform *transform_application = NULL;
 
-    ret = mbedtls_ssl_tls13_key_schedule_stage_application(ssl);
+    ret = ssl_tls13_key_schedule_stage_application(ssl);
     if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(1,
-                              "mbedtls_ssl_tls13_key_schedule_stage_application", ret);
+                              "ssl_tls13_key_schedule_stage_application", ret);
         goto cleanup;
     }
 
-    ret = mbedtls_ssl_tls13_generate_application_keys(ssl, &traffic_keys);
+    ret = ssl_tls13_generate_application_keys(ssl, &traffic_keys);
     if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(1,
-                              "mbedtls_ssl_tls13_generate_application_keys", ret);
+                              "ssl_tls13_generate_application_keys", ret);
         goto cleanup;
     }
 

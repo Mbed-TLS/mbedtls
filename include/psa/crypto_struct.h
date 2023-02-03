@@ -493,9 +493,6 @@ static inline size_t psa_get_key_bits(
 
 /**
  * \brief The context for PSA interruptible hash signing.
- *
- * \note  Contents not yet designed as implementation specific.
- *
  */
 struct psa_sign_hash_interruptible_operation_s {
     /** Unique ID indicating which driver got assigned to do the
@@ -524,9 +521,6 @@ psa_sign_hash_interruptible_operation_init(void)
 
 /**
  * \brief The context for PSA interruptible hash verification.
- *
- * \note  Contents not yet designed as implementation specific.
- *
  */
 struct psa_verify_hash_interruptible_operation_s {
     /** Unique ID indicating which driver got assigned to do the

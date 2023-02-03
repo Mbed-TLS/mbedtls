@@ -129,9 +129,6 @@ typedef struct
     const uint8_t* MBEDTLS_PRIVATE( hash );
     size_t MBEDTLS_PRIVATE( hash_length );
 
-    mbedtls_mpi MBEDTLS_PRIVATE( r );
-    mbedtls_mpi MBEDTLS_PRIVATE( s );
-
 #else
     /* Make the struct non-empty if algs not supported. */
     unsigned MBEDTLS_PRIVATE(dummy);
@@ -144,7 +141,7 @@ typedef struct
 #if ( defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
  defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ) && \
  defined(MBEDTLS_ECP_RESTARTABLE)
-#define MBEDTLS_PSA_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT {{0}, {0}, 0, 0, 0, 0, 0, {0}, {0}}
+#define MBEDTLS_PSA_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT {{0}, {0}, 0, 0, 0, 0, 0}
 #else
 #define MBEDTLS_PSA_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT {0}
 #endif

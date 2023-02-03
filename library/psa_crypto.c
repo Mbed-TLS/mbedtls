@@ -3511,9 +3511,6 @@ psa_status_t mbedtls_psa_sign_hash_start(
 
     mbedtls_ecdsa_restart_init( &operation->restart_ctx );
 
-    mbedtls_mpi_init( &operation->r );
-    mbedtls_mpi_init( &operation->s );
-
     operation->curve_bytes = PSA_BITS_TO_BYTES(
                                             operation->ctx->grp.pbits );
 
@@ -3547,6 +3544,8 @@ psa_status_t mbedtls_psa_sign_hash_complete(
                      size_t *signature_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    mbedtls_mpi r;
+    mbedtls_mpi s;
 
 #if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
      defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ) && \
@@ -3555,14 +3554,17 @@ psa_status_t mbedtls_psa_sign_hash_complete(
     if( signature_size < 2 * operation->curve_bytes )
         return( PSA_ERROR_BUFFER_TOO_SMALL );
 
+    mbedtls_mpi_init(&r);
+    mbedtls_mpi_init(&s);
 
     if( PSA_ALG_ECDSA_IS_DETERMINISTIC( operation->alg ) )
     {
+
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
         status = mbedtls_to_psa_error(
                 mbedtls_ecdsa_sign_det_restartable( &operation->ctx->grp,
-                                                    &operation->r,
-                                                    &operation->s,
+                                                    &r,
+                                                    &s,
                                                     &operation->ctx->d,
                                                     operation->hash,
                                                     operation->hash_length,
@@ -3579,8 +3581,8 @@ psa_status_t mbedtls_psa_sign_hash_complete(
 
         status = mbedtls_to_psa_error(
                     mbedtls_ecdsa_sign_restartable( &operation->ctx->grp,
-                                                    &operation->r,
-                                                    &operation->s,
+                                                    &r,
+                                                    &s,
                                                     &operation->ctx->d,
                                                     operation->hash,
                                                     operation->hash_length,
@@ -3596,7 +3598,7 @@ psa_status_t mbedtls_psa_sign_hash_complete(
     else
     {
         status =  mbedtls_to_psa_error(
-                        mbedtls_mpi_write_binary( &operation->r,
+                        mbedtls_mpi_write_binary( &r,
                                                   signature,
                                                   operation->curve_bytes ) );
 
@@ -3604,7 +3606,7 @@ psa_status_t mbedtls_psa_sign_hash_complete(
             return status;
 
         status =  mbedtls_to_psa_error(
-                        mbedtls_mpi_write_binary( &operation->s,
+                        mbedtls_mpi_write_binary( &s,
                                                   signature +
                                                   operation->curve_bytes,
                                                   operation->curve_bytes ) );
@@ -3646,9 +3648,6 @@ psa_status_t mbedtls_psa_sign_hash_abort(
     }
 
     mbedtls_ecdsa_restart_free( &operation->restart_ctx );
-
-    mbedtls_mpi_free( &operation->r );
-    mbedtls_mpi_free( &operation->s );
 
     return PSA_SUCCESS;
 

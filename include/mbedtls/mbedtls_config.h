@@ -2428,7 +2428,7 @@
  *
  * PEM_PARSE uses DES/3DES for decrypting encrypted keys.
  *
- * \warning   DES is considered a weak cipher and its use constitutes a
+ * \warning   DES/3DES are considered weak ciphers and their use constitutes a
  *            security risk. We recommend considering stronger ciphers instead.
  */
 #define MBEDTLS_DES_C

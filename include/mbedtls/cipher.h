@@ -71,16 +71,16 @@ extern "C" {
 /**
  * \brief     Supported cipher types.
  *
- * \warning   DES is considered weak cipher and its use
- *            constitutes a security risk. Arm recommends considering stronger
+ * \warning   DES/3DES are considered weak ciphers and their use
+ *            constitutes a security risk. We recommend considering stronger
  *            ciphers instead.
  */
 typedef enum {
     MBEDTLS_CIPHER_ID_NONE = 0,  /**< Placeholder to mark the end of cipher ID lists. */
     MBEDTLS_CIPHER_ID_NULL,      /**< The identity cipher, treated as a stream cipher. */
     MBEDTLS_CIPHER_ID_AES,       /**< The AES cipher. */
-    MBEDTLS_CIPHER_ID_DES,       /**< The DES cipher. */
-    MBEDTLS_CIPHER_ID_3DES,      /**< The Triple DES cipher. */
+    MBEDTLS_CIPHER_ID_DES,       /**< The DES cipher. \warning DES is considered weak. */
+    MBEDTLS_CIPHER_ID_3DES,      /**< The Triple DES cipher. \warning 3DES is considered weak. */
     MBEDTLS_CIPHER_ID_CAMELLIA,  /**< The Camellia cipher. */
     MBEDTLS_CIPHER_ID_ARIA,      /**< The Aria cipher. */
     MBEDTLS_CIPHER_ID_CHACHA20,  /**< The ChaCha20 cipher. */
@@ -89,8 +89,8 @@ typedef enum {
 /**
  * \brief     Supported {cipher type, cipher mode} pairs.
  *
- * \warning   DES is considered weak cipher and its use
- *            constitutes a security risk. Arm recommends considering stronger
+ * \warning   DES/3DES are considered weak ciphers and their use
+ *            constitutes a security risk. We recommend considering stronger
  *            ciphers instead.
  */
 typedef enum {
@@ -126,12 +126,12 @@ typedef enum {
     MBEDTLS_CIPHER_CAMELLIA_128_GCM,     /**< Camellia cipher with 128-bit GCM mode. */
     MBEDTLS_CIPHER_CAMELLIA_192_GCM,     /**< Camellia cipher with 192-bit GCM mode. */
     MBEDTLS_CIPHER_CAMELLIA_256_GCM,     /**< Camellia cipher with 256-bit GCM mode. */
-    MBEDTLS_CIPHER_DES_ECB,              /**< DES cipher with ECB mode. */
-    MBEDTLS_CIPHER_DES_CBC,              /**< DES cipher with CBC mode. */
-    MBEDTLS_CIPHER_DES_EDE_ECB,          /**< DES cipher with EDE ECB mode. */
-    MBEDTLS_CIPHER_DES_EDE_CBC,          /**< DES cipher with EDE CBC mode. */
-    MBEDTLS_CIPHER_DES_EDE3_ECB,         /**< DES cipher with EDE3 ECB mode. */
-    MBEDTLS_CIPHER_DES_EDE3_CBC,         /**< DES cipher with EDE3 CBC mode. */
+    MBEDTLS_CIPHER_DES_ECB,              /**< DES cipher with ECB mode. \warning DES is considered weak. */
+    MBEDTLS_CIPHER_DES_CBC,              /**< DES cipher with CBC mode. \warning DES is considered weak. */
+    MBEDTLS_CIPHER_DES_EDE_ECB,          /**< DES cipher with EDE ECB mode. \warning 3DES is considered weak. */
+    MBEDTLS_CIPHER_DES_EDE_CBC,          /**< DES cipher with EDE CBC mode. \warning 3DES is considered weak. */
+    MBEDTLS_CIPHER_DES_EDE3_ECB,         /**< DES cipher with EDE3 ECB mode. \warning 3DES is considered weak. */
+    MBEDTLS_CIPHER_DES_EDE3_CBC,         /**< DES cipher with EDE3 CBC mode. \warning 3DES is considered weak. */
     MBEDTLS_CIPHER_AES_128_CCM,          /**< AES cipher with 128-bit CCM mode. */
     MBEDTLS_CIPHER_AES_192_CCM,          /**< AES cipher with 192-bit CCM mode. */
     MBEDTLS_CIPHER_AES_256_CCM,          /**< AES cipher with 256-bit CCM mode. */
@@ -217,11 +217,11 @@ typedef enum {
 enum {
     /** Undefined key length. */
     MBEDTLS_KEY_LENGTH_NONE = 0,
-    /** Key length, in bits (including parity), for DES keys. */
+    /** Key length, in bits (including parity), for DES keys. \warning DES is considered weak. */
     MBEDTLS_KEY_LENGTH_DES  = 64,
-    /** Key length in bits, including parity, for DES in two-key EDE. */
+    /** Key length in bits, including parity, for DES in two-key EDE. \warning 3DES is considered weak. */
     MBEDTLS_KEY_LENGTH_DES_EDE = 128,
-    /** Key length in bits, including parity, for DES in three-key EDE. */
+    /** Key length in bits, including parity, for DES in three-key EDE. \warning 3DES is considered weak. */
     MBEDTLS_KEY_LENGTH_DES_EDE3 = 192,
 };
 

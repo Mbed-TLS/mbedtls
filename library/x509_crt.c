@@ -616,52 +616,20 @@ static int x509_get_subject_key_id(unsigned char **p,
     return 0;
 }
 
-/*
- * SubjectAltName ::= GeneralNames
- * GeneralNames ::= SEQUENCE SIZE (1..MAX) OF GeneralName
+/* Check x509_get_subject_alt_name for detailed description.
  *
- * GeneralName ::= CHOICE {
- *      otherName                       [0]     OtherName,
- *      rfc822Name                      [1]     IA5String,
- *      dNSName                         [2]     IA5String,
- *      x400Address                     [3]     ORAddress,
- *      directoryName                   [4]     Name,
- *      ediPartyName                    [5]     EDIPartyName,
- *      uniformResourceIdentifier       [6]     IA5String,
- *      iPAddress                       [7]     OCTET STRING,
- *      registeredID                    [8]     OBJECT IDENTIFIER }
- *
- * OtherName ::= SEQUENCE {
- *      type-id    OBJECT IDENTIFIER,
- *      value      [0] EXPLICIT ANY DEFINED BY type-id }
- *
- * EDIPartyName ::= SEQUENCE {
- *      nameAssigner            [0]     DirectoryString OPTIONAL,
- *      partyName               [1]     DirectoryString }
- *
- * NOTE: we list all types, but only use dNSName and otherName
- * of type HwModuleName, as defined in RFC 4108, at this point.
- */
-static int x509_get_general_names(unsigned char **p,
-                                  const unsigned char *end,
-                                  mbedtls_x509_sequence *subject_alt_name)
+ * In some cases while parsing subject alternative names the sequence tag is optional
+ * (e.g. CertSerialNumber). This function is designed to handle such case.
+*/
+static int x509_get_subject_alt_name_internal(unsigned char **p,
+                                              const unsigned char *end,
+                                              mbedtls_x509_sequence *subject_alt_name)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t len, tag_len;
+    size_t tag_len;
     mbedtls_asn1_buf *buf;
     unsigned char tag;
     mbedtls_asn1_sequence *cur = subject_alt_name;
-
-    /* Get main sequence tag */
-    if ((ret = mbedtls_asn1_get_tag(p, end, &len,
-                                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
-    }
-
-    if (*p + len != end) {
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
-                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
-    }
 
     while (*p < end) {
         mbedtls_x509_subject_alternative_name dummy_san_buf;
@@ -673,14 +641,10 @@ static int x509_get_general_names(unsigned char **p,
             return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
         }
 
-        /* Tag shall be CONTEXT_SPECIFIC or SET */
         if ((tag & MBEDTLS_ASN1_TAG_CLASS_MASK) !=
             MBEDTLS_ASN1_CONTEXT_SPECIFIC) {
-            if ((tag & (MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) !=
-                (MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) {
-                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
-                                         MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
-            }
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                     MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
         }
 
         /*
@@ -732,6 +696,53 @@ static int x509_get_general_names(unsigned char **p,
 }
 
 /*
+ * SubjectAltName ::= GeneralNames
+ * GeneralNames ::= SEQUENCE SIZE (1..MAX) OF GeneralName
+ *
+ * GeneralName ::= CHOICE {
+ *      otherName                       [0]     OtherName,
+ *      rfc822Name                      [1]     IA5String,
+ *      dNSName                         [2]     IA5String,
+ *      x400Address                     [3]     ORAddress,
+ *      directoryName                   [4]     Name,
+ *      ediPartyName                    [5]     EDIPartyName,
+ *      uniformResourceIdentifier       [6]     IA5String,
+ *      iPAddress                       [7]     OCTET STRING,
+ *      registeredID                    [8]     OBJECT IDENTIFIER }
+ *
+ * OtherName ::= SEQUENCE {
+ *      type-id    OBJECT IDENTIFIER,
+ *      value      [0] EXPLICIT ANY DEFINED BY type-id }
+ *
+ * EDIPartyName ::= SEQUENCE {
+ *      nameAssigner            [0]     DirectoryString OPTIONAL,
+ *      partyName               [1]     DirectoryString }
+ *
+ * NOTE: we list all types, but only use dNSName and otherName
+ * of type HwModuleName, as defined in RFC 4108, at this point.
+ */
+static int x509_get_subject_alt_name(unsigned char **p,
+                                     const unsigned char *end,
+                                     mbedtls_x509_sequence *subject_alt_name)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t len;
+
+    /* Get main sequence tag */
+    if ((ret = mbedtls_asn1_get_tag(p, end, &len,
+                                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+    }
+
+    if (*p + len != end) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
+    }
+
+    return x509_get_subject_alt_name_internal(p, end, subject_alt_name);
+}
+
+/*
  * AuthorityKeyIdentifier ::= SEQUENCE {
  *        keyIdentifier [0] KeyIdentifier OPTIONAL,
  *        authorityCertIssuer [1] GeneralNames OPTIONAL,
@@ -774,29 +785,22 @@ static int x509_get_authority_key_id(unsigned char **p,
         /* Getting authorityCertIssuer using the required specific class tag [1] */
         if ((ret = mbedtls_asn1_get_tag(p, end, &len,
                                         MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED |
-                                        MBEDTLS_X509_SAN_RFC822_NAME)) != 0) {
+                                        1)) != 0) {
             /* authorityCertIssuer is an OPTIONAL field */
         } else {
-            /* Getting directoryName using the required specific class tag [4] */
-            if ((ret = mbedtls_asn1_get_tag(p, end, &len,
-                                            MBEDTLS_ASN1_CONTEXT_SPECIFIC |
-                                            MBEDTLS_ASN1_CONSTRUCTED |
-                                            MBEDTLS_X509_SAN_DIRECTORY_NAME)) != 0) {
-                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
-            } else {
-                /* "end" also includes the CertSerialNumber field so "len" shall be used */
-                ret = x509_get_general_names(p,
-                                             (*p+len),
-                                             &authority_key_id->authorityCertIssuer);
-            }
+            /* "end" also includes the CertSerialNumber field so "len" shall be used */
+                ret = x509_get_subject_alt_name_internal(p,
+                                                         (*p+len),
+                                                         &authority_key_id->authorityCertIssuer);
         }
     }
 
     if (*p < end) {
+        /* Getting authorityCertSerialNumber using the required specific class tag [2] */
         if ((ret = mbedtls_asn1_get_tag(p, end, &len,
-                                        MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_INTEGER)) !=
+                                        MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_INTEGER | 2)) !=
             0) {
-            /* authorityCertSerialNumber is an OPTIONAL field, but if there are still data it must be the serial number */
+            /* authorityCertSerialNumber is an OPTIONAL field */
             return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
         } else {
             authority_key_id->authorityCertSerialNumber.len = len;
@@ -1131,8 +1135,8 @@ static int x509_get_crt_ext(unsigned char **p,
                 /* Parse subject alt name
                  * SubjectAltName ::= GeneralNames
                  */
-                if ((ret = x509_get_general_names(p, end_ext_octet,
-                                                  &crt->subject_alt_names)) != 0) {
+                if ((ret = x509_get_subject_alt_name(p, end_ext_octet,
+                                                     &crt->subject_alt_names)) != 0) {
                     return ret;
                 }
                 break;

@@ -523,6 +523,22 @@ int tweak_tls13_certificate_msg_vector_len(
     unsigned char *buf, unsigned char **end, int tweak,
     int *expected_result, mbedtls_ssl_chk_buf_ptr_args *args);
 #endif /* MBEDTLS_TEST_HOOKS */
+
+#define ECJPAKE_TEST_PWD        "bla"
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#define ECJPAKE_TEST_SET_PASSWORD(exp_ret_val)                            \
+    ret = (use_opaque_arg) ?                                              \
+          mbedtls_ssl_set_hs_ecjpake_password_opaque(&ssl, pwd_slot) :    \
+          mbedtls_ssl_set_hs_ecjpake_password(&ssl, pwd_string, pwd_len); \
+    TEST_EQUAL(ret, exp_ret_val)
+#else
+#define ECJPAKE_TEST_SET_PASSWORD(exp_ret_val)                            \
+    ret = mbedtls_ssl_set_hs_ecjpake_password(&ssl,                       \
+                                              pwd_string, pwd_len);       \
+    TEST_EQUAL(ret, exp_ret_val)
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 #endif /* MBEDTLS_SSL_TLS_C */
 
 #endif /* SSL_HELPERS_H */

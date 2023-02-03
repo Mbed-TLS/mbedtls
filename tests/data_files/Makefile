@@ -93,6 +93,53 @@ cert_example_multi.csr: rsa_pkcs1_1024_clear.pem
 cert_example_multi.crt: cert_example_multi.csr
 	$(OPENSSL) x509 -req -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) -extfile $(test_ca_config_file) -extensions dns_alt_names -passin "pass:$(test_ca_pwd_rsa)" -set_serial 17 -days 3653 -sha256 -in $< > $@
 
+test_csr_v3_keyUsage.csr.der: rsa_pkcs1_1024_clear.pem
+	$(OPENSSL) req -new -subj '/CN=etcd' -config $(test_ca_config_file) -key rsa_pkcs1_1024_clear.pem -outform DER -out $@ -reqexts csr_ext_v3_keyUsage
+test_csr_v3_subjectAltName.csr.der: rsa_pkcs1_1024_clear.pem
+	$(OPENSSL) req -new -subj '/CN=etcd' -config $(test_ca_config_file) -key rsa_pkcs1_1024_clear.pem -outform DER -out $@ -reqexts csr_ext_v3_subjectAltName
+test_csr_v3_nsCertType.csr.der: rsa_pkcs1_1024_clear.pem
+	$(OPENSSL) req -new -subj '/CN=etcd' -config $(test_ca_config_file) -key rsa_pkcs1_1024_clear.pem -outform DER -out $@ -reqexts csr_ext_v3_nsCertType
+test_csr_v3_all.csr.der: rsa_pkcs1_1024_clear.pem
+	$(OPENSSL) req -new -subj '/CN=etcd' -config $(test_ca_config_file) -key rsa_pkcs1_1024_clear.pem -outform DER -out $@ -reqexts csr_ext_v3_all
+test_csr_v3_all_malformed_extensions_sequence_tag.csr.der: test_csr_v3_all.csr.der
+	(hexdump -ve '1/1 "%.2X"' $< | sed "s/300B0603551D0F040403/200B0603551D0F040403/" | xxd -r -p ) > $@
+test_csr_v3_all_malformed_extension_id_tag.csr.der: test_csr_v3_all.csr.der
+	(hexdump -ve '1/1 "%.2X"' $< | sed "s/0603551D0F0404030201/0703551D0F0404030201/" | xxd -r -p ) > $@
+test_csr_v3_all_malformed_extension_data_tag.csr.der: test_csr_v3_all.csr.der
+	(hexdump -ve '1/1 "%.2X"' $< | sed "s/040403020102302F0603/050403020102302F0603/" | xxd -r -p ) > $@
+test_csr_v3_all_malformed_extension_data_len1.csr.der: test_csr_v3_all.csr.der
+	(hexdump -ve '1/1 "%.2X"' $< | sed "s/040403020102302F0603/040503020102302F0603/" | xxd -r -p ) > $@
+test_csr_v3_all_malformed_extension_data_len2.csr.der: test_csr_v3_all.csr.der
+	(hexdump -ve '1/1 "%.2X"' $< | sed "s/040403020102302F0603/040303020102302F0603/" | xxd -r -p ) > $@
+test_csr_v3_all_malformed_extension_key_usage_bitstream_tag.csr.der: test_csr_v3_all.csr.der
+	(hexdump -ve '1/1 "%.2X"' $< | sed "s/03020102302F0603551D/04020102302F0603551D/" | xxd -r -p ) > $@
+test_csr_v3_all_malformed_extension_subject_alt_name_sequence_tag.csr.der: test_csr_v3_all.csr.der
+	(hexdump -ve '1/1 "%.2X"' $< | sed "s/3026A02406082B060105/4026A02406082B060105/" | xxd -r -p ) > $@
+test_csr_v3_all_malformed_extension_ns_cert_bitstream_tag.csr.der: test_csr_v3_all.csr.der
+	(hexdump -ve '1/1 "%.2X"' $< | sed "s/03020780300D06092A86/04020780300D06092A86/" | xxd -r -p ) > $@
+test_csr_v3_all_malformed_duplicated_extension.csr.der: test_csr_v3_all.csr.der
+	(hexdump -ve '1/1 "%.2X"' $< | sed "s/551D11/551D0F/" | xxd -r -p ) > $@
+test_csr_v3_all_malformed_extension_type_oid.csr.der: test_csr_v3_all.csr.der
+	(hexdump -ve '1/1 "%.2X"' $< | sed "s/551D11/551DFF/" | xxd -r -p ) > $@
+test_csr_v3_all_malformed_attributes_sequence_tag.csr.der: test_csr_v3_all.csr.der
+	(hexdump -ve '1/1 "%.2X"' $< | sed "s/306006092A864886F70D/406006092A864886F70D/" | xxd -r -p ) > $@
+test_csr_v3_all_malformed_attributes_id_tag.csr.der: test_csr_v3_all.csr.der
+	(hexdump -ve '1/1 "%.2X"' $< | sed "s/06092A864886F70D0109/07092A864886F70D0109/" | xxd -r -p ) > $@
+test_csr_v3_all_malformed_attributes_extension_request.csr.der: test_csr_v3_all.csr.der
+	(hexdump -ve '1/1 "%.2X"' $< | sed "s/2A864886F70D01090E/2A864886F70D01090F/" | xxd -r -p ) > $@
+test_csr_v3_all_malformed_attributes_extension_request_set_tag.csr.der: test_csr_v3_all.csr.der
+	(hexdump -ve '1/1 "%.2X"' $< | sed "s/31533051300B0603551D/32533051300B0603551D/" | xxd -r -p ) > $@
+test_csr_v3_all_malformed_attributes_extension_request_sequence_tag.csr.der: test_csr_v3_all.csr.der
+	(hexdump -ve '1/1 "%.2X"' $< | sed "s/3051300B0603551D0F04/3151300B0603551D0F04/" | xxd -r -p ) > $@
+test_csr_v3_all_malformed_attributes_len1.csr.der: test_csr_v3_all.csr.der
+	(hexdump -ve '1/1 "%.2X"' $< | sed "s/306006092A864886F70D/306106092A864886F70D/" | xxd -r -p ) > $@
+test_csr_v3_all_malformed_attributes_len2.csr.der: test_csr_v3_all.csr.der
+	(hexdump -ve '1/1 "%.2X"' $< | sed "s/306006092A864886F70D/305906092A864886F70D/" | xxd -r -p ) > $@
+test_csr_v3_all_malformed_attributes_extension_request_sequence_len1.csr.der: test_csr_v3_all.csr.der
+	(hexdump -ve '1/1 "%.2X"' $< | sed "s/3051300B0603551D0F04/3052300B0603551D0F04/" | xxd -r -p ) > $@
+test_csr_v3_all_malformed_attributes_extension_request_sequence_len2.csr.der: test_csr_v3_all.csr.der
+	(hexdump -ve '1/1 "%.2X"' $< | sed "s/3051300B0603551D0F04/3050300B0603551D0F04/" | xxd -r -p ) > $@
+
 $(test_ca_key_file_rsa_alt):test-ca.opensslconf
 	$(OPENSSL) genrsa -out $@ 2048
 test-ca-alt.csr: $(test_ca_key_file_rsa_alt) $(test_ca_config_file)

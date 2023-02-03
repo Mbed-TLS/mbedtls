@@ -82,3 +82,17 @@ fullname=URI:http://pki.example.com/
 # these IPs are the ascii values for 'abcd' and 'abcd.example.com'
 [tricky_ip_san]
 subjectAltName=IP:97.98.99.100,IP:6162:6364:2e65:7861:6d70:6c65:2e63:6f6d
+
+[csr_ext_v3_keyUsage]
+keyUsage = digitalSignature, keyEncipherment
+
+[csr_ext_v3_subjectAltName]
+subjectAltName=DNS:example.com, DNS:example.net, DNS:*.example.org
+
+[csr_ext_v3_nsCertType]
+nsCertType=server
+
+[csr_ext_v3_all]
+keyUsage = cRLSign
+subjectAltName=otherName:1.3.6.1.5.5.7.8.4;SEQ:nonprintable_hw_module_name
+nsCertType=client

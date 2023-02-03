@@ -1169,6 +1169,30 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CSR_PARSE_C:!MBEDTLS_X509_REMOVE_INFO */
+void mbedtls_x509_csr_parse_file(char *csr_file, char *ref_out, int ref_ret)
+{
+    mbedtls_x509_csr csr;
+    char my_out[1000];
+    int my_ret;
+
+    mbedtls_x509_csr_init(&csr);
+    memset(my_out, 0, sizeof(my_out));
+
+    my_ret = mbedtls_x509_csr_parse_file(&csr, csr_file);
+    TEST_ASSERT(my_ret == ref_ret);
+
+    if (ref_ret == 0) {
+        size_t my_out_len = mbedtls_x509_csr_info(my_out, sizeof(my_out), "", &csr);
+        TEST_ASSERT(my_out_len == strlen(ref_out));
+        TEST_ASSERT(strcmp(my_out, ref_out) == 0);
+    }
+
+exit:
+    mbedtls_x509_csr_free(&csr);
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
 void mbedtls_x509_crt_parse_path(char *crt_path, int ret, int nb_crt)
 {

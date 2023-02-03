@@ -148,7 +148,7 @@
 
 /*
  * X.509 v3 Key Usage Extension flags
- * Reminder: update x509_info_key_usage() when adding new flags.
+ * Reminder: update mbedtls_x509_info_key_usage() when adding new flags.
  */
 #define MBEDTLS_X509_KU_DIGITAL_SIGNATURE            (0x80)  /* bit 0 */
 #define MBEDTLS_X509_KU_NON_REPUDIATION              (0x40)  /* bit 1 */
@@ -250,6 +250,56 @@ typedef struct mbedtls_x509_time {
 }
 mbedtls_x509_time;
 
+/**
+ * From RFC 5280 section 4.2.1.6:
+ * OtherName ::= SEQUENCE {
+ *      type-id    OBJECT IDENTIFIER,
+ *      value      [0] EXPLICIT ANY DEFINED BY type-id }
+ *
+ * Future versions of the library may add new fields to this structure or
+ * to its embedded union and structure.
+ */
+typedef struct mbedtls_x509_san_other_name {
+    /**
+     * The type_id is an OID as defined in RFC 5280.
+     * To check the value of the type id, you should use
+     * \p MBEDTLS_OID_CMP with a known OID mbedtls_x509_buf.
+     */
+    mbedtls_x509_buf type_id;                   /**< The type id. */
+    union {
+        /**
+         * From RFC 4108 section 5:
+         * HardwareModuleName ::= SEQUENCE {
+         *                         hwType OBJECT IDENTIFIER,
+         *                         hwSerialNum OCTET STRING }
+         */
+        struct {
+            mbedtls_x509_buf oid;               /**< The object identifier. */
+            mbedtls_x509_buf val;               /**< The named value. */
+        }
+        hardware_module_name;
+    }
+    value;
+}
+mbedtls_x509_san_other_name;
+
+/**
+ * A structure for holding the parsed Subject Alternative Name,
+ * according to type.
+ *
+ * Future versions of the library may add new fields to this structure or
+ * to its embedded union and structure.
+ */
+typedef struct mbedtls_x509_subject_alternative_name {
+    int type;                              /**< The SAN type, value of MBEDTLS_X509_SAN_XXX. */
+    union {
+        mbedtls_x509_san_other_name other_name; /**< The otherName supported type. */
+        mbedtls_x509_buf   unstructured_name; /**< The buffer for the un constructed types. Only dnsName currently supported */
+    }
+    san; /**< A union of the supported SAN types */
+}
+mbedtls_x509_subject_alternative_name;
+
 /** \} name Structures for parsing X.509 certificates, CRLs and CSRs */
 
 /**
@@ -326,6 +376,36 @@ int mbedtls_x509_time_is_past(const mbedtls_x509_time *to);
  */
 int mbedtls_x509_time_is_future(const mbedtls_x509_time *from);
 
+/**
+ * \brief          This function parses an item in the SubjectAlternativeNames
+ *                 extension.
+ *
+ * \param san_buf  The buffer holding the raw data item of the subject
+ *                 alternative name.
+ * \param san      The target structure to populate with the parsed presentation
+ *                 of the subject alternative name encoded in \p san_raw.
+ *
+ * \note           Only "dnsName" and "otherName" of type hardware_module_name
+ *                 as defined in RFC 4180 is supported.
+ *
+ * \note           This function should be called on a single raw data of
+ *                 subject alternative name. For example, after successful
+ *                 certificate parsing, one must iterate on every item in the
+ *                 \p crt->subject_alt_names sequence, and pass it to
+ *                 this function.
+ *
+ * \warning        The target structure contains pointers to the raw data of the
+ *                 parsed certificate, and its lifetime is restricted by the
+ *                 lifetime of the certificate.
+ *
+ * \return         \c 0 on success
+ * \return         #MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE for an unsupported
+ *                 SAN type.
+ * \return         Another negative value for any other failure.
+ */
+int mbedtls_x509_parse_subject_alt_name(const mbedtls_x509_buf *san_buf,
+                                        mbedtls_x509_subject_alternative_name *san);
+
 /** \} addtogroup x509_module */
 
 /*
@@ -370,6 +450,23 @@ int mbedtls_x509_write_names(unsigned char **p, unsigned char *start,
 int mbedtls_x509_write_sig(unsigned char **p, unsigned char *start,
                            const char *oid, size_t oid_len,
                            unsigned char *sig, size_t size);
+int mbedtls_x509_get_ns_cert_type(unsigned char **p,
+                                  const unsigned char *end,
+                                  unsigned char *ns_cert_type);
+int mbedtls_x509_get_key_usage(unsigned char **p,
+                               const unsigned char *end,
+                               unsigned int *key_usage);
+int mbedtls_x509_get_subject_alt_name(unsigned char **p,
+                                      const unsigned char *end,
+                                      mbedtls_x509_sequence *subject_alt_name);
+int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
+                                       const mbedtls_x509_sequence
+                                       *subject_alt_name,
+                                       const char *prefix);
+int mbedtls_x509_info_cert_type(char **buf, size_t *size,
+                                unsigned char ns_cert_type);
+int mbedtls_x509_info_key_usage(char **buf, size_t *size,
+                                unsigned int key_usage);
 
 #define MBEDTLS_X509_SAFE_SNPRINTF                          \
     do {                                                    \

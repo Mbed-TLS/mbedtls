@@ -1178,10 +1178,6 @@ static int ssl_tls13_generate_early_key(mbedtls_ssl_context *ssl,
     traffic_keys->key_len = key_len;
     traffic_keys->iv_len = iv_len;
 
-    /* Erase early secrets */
-    mbedtls_platform_zeroize(
-        &tls13_early_secrets, sizeof(mbedtls_ssl_tls13_early_secrets));
-
     MBEDTLS_SSL_DEBUG_BUF(4, "client early write_key",
                           traffic_keys->client_write_key,
                           traffic_keys->key_len);

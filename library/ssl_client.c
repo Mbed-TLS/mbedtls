@@ -893,7 +893,6 @@ static int ssl_prepare_client_hello(mbedtls_ssl_context *ssl)
 
     return 0;
 }
-
 /*
  * Write ClientHello handshake message.
  * Handler for MBEDTLS_SSL_CLIENT_HELLO

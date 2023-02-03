@@ -898,6 +898,7 @@ int mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
     size_t identity_len;
     size_t l_binders_len = 0;
     size_t output_len;
+
     *out_len = 0;
     *binders_len = 0;
 

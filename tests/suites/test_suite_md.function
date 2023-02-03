@@ -132,11 +132,10 @@ void md_info(int md_type, char *md_name, int md_size)
 void md_text(int md_type, char *text_src_string, data_t *hash)
 {
     unsigned char src_str[1000];
-    unsigned char output[100];
+    unsigned char output[MBEDTLS_MD_MAX_SIZE] = {0};
     const mbedtls_md_info_t *md_info = NULL;
 
     memset(src_str, 0x00, 1000);
-    memset(output, 0x00, 100);
 
     strncpy((char *) src_str, text_src_string, sizeof(src_str) - 1);
     md_info = mbedtls_md_info_from_type(md_type);
@@ -153,10 +152,8 @@ void md_text(int md_type, char *text_src_string, data_t *hash)
 /* BEGIN_CASE */
 void md_hex(int md_type, data_t *src_str, data_t *hash)
 {
-    unsigned char output[100];
+    unsigned char output[MBEDTLS_MD_MAX_SIZE] = {0};
     const mbedtls_md_info_t *md_info = NULL;
-
-    memset(output, 0x00, 100);
 
     md_info = mbedtls_md_info_from_type(md_type);
     TEST_ASSERT(md_info != NULL);
@@ -175,7 +172,7 @@ void md_text_multi(int md_type, char *text_src_string,
                    data_t *hash)
 {
     unsigned char src_str[1000];
-    unsigned char output[100];
+    unsigned char output[MBEDTLS_MD_MAX_SIZE] = {0};
     int halfway, len;
 
     const mbedtls_md_info_t *md_info = NULL;
@@ -185,7 +182,6 @@ void md_text_multi(int md_type, char *text_src_string,
     mbedtls_md_init(&ctx_copy);
 
     memset(src_str, 0x00, 1000);
-    memset(output, 0x00, 100);
 
     strncpy((char *) src_str, text_src_string, sizeof(src_str) - 1);
     len = strlen((char *) src_str);
@@ -208,7 +204,7 @@ void md_text_multi(int md_type, char *text_src_string,
                                     hash->len) == 0);
 
     /* Test clone */
-    memset(output, 0x00, 100);
+    memset(output, 0x00, sizeof(output));
 
     TEST_ASSERT(0 == mbedtls_md_update(&ctx_copy, src_str + halfway, len - halfway));
     TEST_ASSERT(0 == mbedtls_md_finish(&ctx_copy, output));
@@ -225,15 +221,13 @@ exit:
 /* BEGIN_CASE */
 void md_hex_multi(int md_type, data_t *src_str, data_t *hash)
 {
-    unsigned char output[100];
+    unsigned char output[MBEDTLS_MD_MAX_SIZE] = {0};
     const mbedtls_md_info_t *md_info = NULL;
     mbedtls_md_context_t ctx, ctx_copy;
     int halfway;
 
     mbedtls_md_init(&ctx);
     mbedtls_md_init(&ctx_copy);
-
-    memset(output, 0x00, 100);
 
     md_info = mbedtls_md_info_from_type(md_type);
     TEST_ASSERT(md_info != NULL);
@@ -254,7 +248,7 @@ void md_hex_multi(int md_type, data_t *src_str, data_t *hash)
                                     hash->len) == 0);
 
     /* Test clone */
-    memset(output, 0x00, 100);
+    memset(output, 0x00, sizeof(output));
 
     TEST_ASSERT(0 == mbedtls_md_update(&ctx_copy, src_str->x + halfway, src_str->len - halfway));
     TEST_ASSERT(0 == mbedtls_md_finish(&ctx_copy, output));
@@ -273,10 +267,8 @@ void mbedtls_md_hmac(int md_type, int trunc_size,
                      data_t *key_str, data_t *src_str,
                      data_t *hash)
 {
-    unsigned char output[100];
+    unsigned char output[MBEDTLS_MD_MAX_SIZE] = {0};
     const mbedtls_md_info_t *md_info = NULL;
-
-    memset(output, 0x00, 100);
 
     md_info = mbedtls_md_info_from_type(md_type);
     TEST_ASSERT(md_info != NULL);
@@ -294,14 +286,12 @@ void mbedtls_md_hmac(int md_type, int trunc_size,
 void md_hmac_multi(int md_type, int trunc_size, data_t *key_str,
                    data_t *src_str, data_t *hash)
 {
-    unsigned char output[100];
+    unsigned char output[MBEDTLS_MD_MAX_SIZE] = {0};
     const mbedtls_md_info_t *md_info = NULL;
     mbedtls_md_context_t ctx;
     int halfway;
 
     mbedtls_md_init(&ctx);
-
-    memset(output, 0x00, 100);
 
     md_info = mbedtls_md_info_from_type(md_type);
     TEST_ASSERT(md_info != NULL);
@@ -319,7 +309,7 @@ void md_hmac_multi(int md_type, int trunc_size, data_t *key_str,
                                     trunc_size, hash->len) == 0);
 
     /* Test again, for reset() */
-    memset(output, 0x00, 100);
+    memset(output, 0x00, sizeof(output));
 
     TEST_ASSERT(0 == mbedtls_md_hmac_reset(&ctx));
     TEST_ASSERT(0 == mbedtls_md_hmac_update(&ctx, src_str->x, halfway));
@@ -338,10 +328,8 @@ exit:
 void mbedtls_md_file(int md_type, char *filename,
                      data_t *hash)
 {
-    unsigned char output[100];
+    unsigned char output[MBEDTLS_MD_MAX_SIZE] = {0};
     const mbedtls_md_info_t *md_info = NULL;
-
-    memset(output, 0x00, 100);
 
     md_info = mbedtls_md_info_from_type(md_type);
     TEST_ASSERT(md_info != NULL);

@@ -141,7 +141,13 @@ typedef struct
         * MBEDTLS_ECP_RESTARTABLE */
 } mbedtls_psa_sign_hash_interruptible_operation_t;
 
+#if ( defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+ defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ) && \
+ defined(MBEDTLS_ECP_RESTARTABLE)
 #define MBEDTLS_PSA_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT {{0}, {0}, 0, 0, 0, 0, 0, {0}, {0}}
+#else
+#define MBEDTLS_PSA_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT {0}
+#endif
 
 /* Context structure for the Mbed TLS interruptible verify hash
  * implementation.*/
@@ -171,7 +177,13 @@ typedef struct
 
 } mbedtls_psa_verify_hash_interruptible_operation_t;
 
+#if ( defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+ defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ) && \
+ defined(MBEDTLS_ECP_RESTARTABLE)
 #define MBEDTLS_VERIFY_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT {{0}, {0}, 0, 0, 0, {0}, {0}}
+#else
+#define MBEDTLS_VERIFY_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT {0}
+#endif
 
 
 

@@ -6634,7 +6634,7 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
 void sign_hash_interruptible( int key_type_arg, data_t *key_data,
                               int alg_arg, data_t *input_data,
-                              data_t *output_data, int max_ops )
+                              data_t *output_data, int max_ops_arg )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;
@@ -6645,11 +6645,13 @@ void sign_hash_interruptible( int key_type_arg, data_t *key_data,
     size_t signature_length = 0xdeadbeef;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status = PSA_OPERATION_INCOMPLETE;
-    size_t num_ops = 0;
+    uint32_t num_ops = 0;
+    uint32_t max_ops = max_ops_arg;
     size_t num_ops_prior = 0;
     size_t num_completes = 0;
     size_t min_completes = 0;
     size_t max_completes = 0;
+
     psa_sign_hash_interruptible_operation_t operation =
                                  psa_sign_hash_interruptible_operation_init( );
 
@@ -6792,7 +6794,7 @@ void sign_hash_fail_interruptible( int key_type_arg, data_t *key_data,
                                    int signature_size_arg,
                                    int expected_start_status_arg,
                                    int expected_complete_status_arg,
-                                   int max_ops )
+                                   int max_ops_arg )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;
@@ -6803,7 +6805,8 @@ void sign_hash_fail_interruptible( int key_type_arg, data_t *key_data,
     psa_status_t expected_complete_status = expected_complete_status_arg;
     unsigned char *signature = NULL;
     size_t signature_length = 0xdeadbeef;
-    size_t num_ops = 0;
+    uint32_t num_ops = 0;
+    uint32_t max_ops = max_ops_arg;
     size_t num_ops_prior = 0;
     size_t num_completes = 0;
     size_t min_completes = 0;
@@ -6977,7 +6980,7 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
 void sign_verify_hash_interruptible( int key_type_arg, data_t *key_data,
                                      int alg_arg, data_t *input_data,
-                                     int max_ops )
+                                     int max_ops_arg )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;
@@ -6988,6 +6991,7 @@ void sign_verify_hash_interruptible( int key_type_arg, data_t *key_data,
     size_t signature_length = 0xdeadbeef;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status = PSA_OPERATION_INCOMPLETE;
+    uint32_t max_ops = max_ops_arg;
     size_t num_completes = 0;
     size_t min_completes = 0;
     size_t max_completes = 0;
@@ -7153,14 +7157,15 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
 void verify_hash_interruptible( int key_type_arg, data_t *key_data,
                                 int alg_arg, data_t *hash_data,
-                                data_t *signature_data, int max_ops )
+                                data_t *signature_data, int max_ops_arg )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status = PSA_OPERATION_INCOMPLETE;
-    size_t num_ops = 0;
+    uint32_t num_ops = 0;
+    uint32_t max_ops = max_ops_arg;
     size_t num_ops_prior = 0;
     size_t num_completes = 0;
     size_t min_completes = 0;
@@ -7281,7 +7286,7 @@ void verify_hash_fail_interruptible( int key_type_arg, data_t *key_data,
                                      data_t *signature_data,
                                      int expected_start_status_arg,
                                      int expected_complete_status_arg,
-                                     int max_ops )
+                                     int max_ops_arg )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;
@@ -7290,7 +7295,8 @@ void verify_hash_fail_interruptible( int key_type_arg, data_t *key_data,
     psa_status_t expected_start_status = expected_start_status_arg;
     psa_status_t expected_complete_status = expected_complete_status_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    size_t num_ops = 0;
+    uint32_t num_ops = 0;
+    uint32_t max_ops = max_ops_arg;
     size_t num_ops_prior = 0;
     size_t num_completes = 0;
     size_t min_completes = 0;

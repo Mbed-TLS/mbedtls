@@ -508,9 +508,6 @@ static inline size_t psa_get_key_bits(
 
 /**
  * \brief The context for PSA interruptible hash signing.
- *
- * \note  Contents not yet designed as implementation specific.
- *
  */
 struct psa_sign_hash_interruptible_operation_s
 {
@@ -540,9 +537,6 @@ static inline struct psa_sign_hash_interruptible_operation_s
 
 /**
  * \brief The context for PSA interruptible hash verification.
- *
- * \note  Contents not yet designed as implementation specific.
- *
  */
 struct psa_verify_hash_interruptible_operation_s
 {

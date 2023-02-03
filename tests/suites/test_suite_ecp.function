@@ -811,7 +811,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECDH_C:MBEDTLS_ECDSA_C */
+/* BEGIN_CASE */
 void mbedtls_ecp_group_metadata(int id, int bit_size, int crv_type,
                                 char *P, char *A, char *B,
                                 char *G_x, char *G_y, char *N,
@@ -903,9 +903,13 @@ void mbedtls_ecp_group_metadata(int id, int bit_size, int crv_type,
 
     // Check curve type, and if it can be used for ECDH/ECDSA
     TEST_EQUAL(mbedtls_ecp_get_type(&grp), crv_type);
+#if defined(MBEDTLS_ECDH_C)
     TEST_EQUAL(mbedtls_ecdh_can_do(id), 1);
+#endif
+#if defined(MBEDTLS_ECDSA_C)
     TEST_EQUAL(mbedtls_ecdsa_can_do(id),
                crv_type == MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS);
+#endif
 
     // Copy group and compare with original
     TEST_EQUAL(mbedtls_ecp_group_copy(&grp_cpy, &grp), 0);

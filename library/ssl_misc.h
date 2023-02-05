@@ -705,8 +705,11 @@ struct mbedtls_ssl_handshake_params {
 
     mbedtls_ssl_ciphersuite_t const *ciphersuite_info;
 
+    MBEDTLS_CHECK_RETURN_CRITICAL
     int (*update_checksum)(mbedtls_ssl_context *, const unsigned char *, size_t);
+    MBEDTLS_CHECK_RETURN_CRITICAL
     int (*calc_verify)(const mbedtls_ssl_context *, unsigned char *, size_t *);
+    MBEDTLS_CHECK_RETURN_CRITICAL
     int (*calc_finished)(mbedtls_ssl_context *, unsigned char *, int);
     mbedtls_ssl_tls_prf_cb *tls_prf;
 
@@ -1317,6 +1320,7 @@ static inline void mbedtls_ssl_handshake_set_state(mbedtls_ssl_context *ssl,
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_send_fatal_handshake_failure(mbedtls_ssl_context *ssl);
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_reset_checksum(mbedtls_ssl_context *ssl);
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
@@ -1328,7 +1332,8 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_handle_message_type(mbedtls_ssl_context *ssl);
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl);
-void mbedtls_ssl_update_handshake_status(mbedtls_ssl_context *ssl);
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_update_handshake_status(mbedtls_ssl_context *ssl);
 
 /**
  * \brief       Update record layer
@@ -1461,12 +1466,14 @@ void mbedtls_ssl_optimize_checksum(mbedtls_ssl_context *ssl,
 /*
  * Update checksum of handshake messages.
  */
-void mbedtls_ssl_add_hs_msg_to_checksum(mbedtls_ssl_context *ssl,
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_add_hs_msg_to_checksum(mbedtls_ssl_context *ssl,
                                         unsigned hs_type,
                                         unsigned char const *msg,
                                         size_t msg_len);
 
-void mbedtls_ssl_add_hs_hdr_to_checksum(mbedtls_ssl_context *ssl,
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_add_hs_hdr_to_checksum(mbedtls_ssl_context *ssl,
                                         unsigned hs_type,
                                         size_t total_hs_len);
 

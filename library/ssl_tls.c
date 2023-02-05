@@ -788,7 +788,7 @@ void mbedtls_ssl_optimize_checksum(mbedtls_ssl_context *ssl,
     }
 }
 
-void mbedtls_ssl_add_hs_hdr_to_checksum(mbedtls_ssl_context *ssl,
+int mbedtls_ssl_add_hs_hdr_to_checksum(mbedtls_ssl_context *ssl,
                                         unsigned hs_type,
                                         size_t total_hs_len)
 {
@@ -800,16 +800,19 @@ void mbedtls_ssl_add_hs_hdr_to_checksum(mbedtls_ssl_context *ssl,
     hs_hdr[2] = MBEDTLS_BYTE_1(total_hs_len);
     hs_hdr[3] = MBEDTLS_BYTE_0(total_hs_len);
 
-    ssl->handshake->update_checksum(ssl, hs_hdr, sizeof(hs_hdr));
+    return ssl->handshake->update_checksum(ssl, hs_hdr, sizeof(hs_hdr));
 }
 
-void mbedtls_ssl_add_hs_msg_to_checksum(mbedtls_ssl_context *ssl,
+int mbedtls_ssl_add_hs_msg_to_checksum(mbedtls_ssl_context *ssl,
                                         unsigned hs_type,
                                         unsigned char const *msg,
                                         size_t msg_len)
 {
-    mbedtls_ssl_add_hs_hdr_to_checksum(ssl, hs_type, msg_len);
-    ssl->handshake->update_checksum(ssl, msg, msg_len);
+    int ret;
+    ret = mbedtls_ssl_add_hs_hdr_to_checksum(ssl, hs_type, msg_len);
+    if (ret != 0)
+        return ret;
+    return ssl->handshake->update_checksum(ssl, msg, msg_len);
 }
 
 int mbedtls_ssl_reset_checksum(mbedtls_ssl_context *ssl)
@@ -971,6 +974,8 @@ void mbedtls_ssl_session_init(mbedtls_ssl_session *session)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_handshake_init(mbedtls_ssl_context *ssl)
 {
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
     /* Clear old handshake information if present */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if (ssl->transform_negotiate) {
@@ -1039,7 +1044,11 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
 #endif
 
     /* Setup handshake checksums */
-    mbedtls_ssl_reset_checksum(ssl);
+    ret = mbedtls_ssl_reset_checksum(ssl);
+    if (ret != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_reset_checksum", ret);
+        return ret;
+    }
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
     defined(MBEDTLS_SSL_SRV_C) && \
@@ -6288,7 +6297,10 @@ static int ssl_compute_master(mbedtls_ssl_handshake_params *handshake,
     if (handshake->extended_ms == MBEDTLS_SSL_EXTENDED_MS_ENABLED) {
         lbl  = "extended master secret";
         seed = session_hash;
-        handshake->calc_verify(ssl, session_hash, &seed_len);
+        ret = handshake->calc_verify(ssl, session_hash, &seed_len);
+        if (ret != 0) {
+            MBEDTLS_SSL_DEBUG_RET(1, "calc_verify", ret);
+        }
 
         MBEDTLS_SSL_DEBUG_BUF(3, "session hash for extended master secret",
                               session_hash, seed_len);
@@ -7792,7 +7804,10 @@ int mbedtls_ssl_write_finished(mbedtls_ssl_context *ssl)
 
     mbedtls_ssl_update_out_pointers(ssl, ssl->transform_negotiate);
 
-    ssl->handshake->calc_finished(ssl, ssl->out_msg + 4, ssl->conf->endpoint);
+    ret = ssl->handshake->calc_finished(ssl, ssl->out_msg + 4, ssl->conf->endpoint);
+    if (ret != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "calc_finished", ret);
+    }
 
     /*
      * RFC 5246 7.4.9 (Page 63) says 12 is the default length and ciphersuites
@@ -7902,7 +7917,10 @@ int mbedtls_ssl_parse_finished(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> parse finished"));
 
-    ssl->handshake->calc_finished(ssl, buf, ssl->conf->endpoint ^ 1);
+    ret = ssl->handshake->calc_finished(ssl, buf, ssl->conf->endpoint ^ 1);
+    if (ret != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "calc_finished", ret);
+    }
 
     if ((ret = mbedtls_ssl_read_record(ssl, 1)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_read_record", ret);

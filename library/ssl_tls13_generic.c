@@ -322,8 +322,9 @@ int mbedtls_ssl_tls13_process_certificate_verify(mbedtls_ssl_context *ssl)
                                                             buf + buf_len, verify_buffer,
                                                             verify_buffer_len));
 
-    mbedtls_ssl_add_hs_msg_to_checksum(ssl, MBEDTLS_SSL_HS_CERTIFICATE_VERIFY,
-                                       buf, buf_len);
+    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(ssl,
+                         MBEDTLS_SSL_HS_CERTIFICATE_VERIFY,
+                         buf, buf_len));
 
 cleanup:
 
@@ -752,8 +753,8 @@ int mbedtls_ssl_tls13_process_certificate(mbedtls_ssl_context *ssl)
     /* Validate the certificate chain and set the verification results. */
     MBEDTLS_SSL_PROC_CHK(ssl_tls13_validate_certificate(ssl));
 
-    mbedtls_ssl_add_hs_msg_to_checksum(ssl, MBEDTLS_SSL_HS_CERTIFICATE,
-                                       buf, buf_len);
+    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(ssl,
+                         MBEDTLS_SSL_HS_CERTIFICATE, buf, buf_len));
 
 cleanup:
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
@@ -868,8 +869,8 @@ int mbedtls_ssl_tls13_write_certificate(mbedtls_ssl_context *ssl)
                                                           buf + buf_len,
                                                           &msg_len));
 
-    mbedtls_ssl_add_hs_msg_to_checksum(ssl, MBEDTLS_SSL_HS_CERTIFICATE,
-                                       buf, msg_len);
+    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(ssl,
+                             MBEDTLS_SSL_HS_CERTIFICATE, buf, msg_len));
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_finish_handshake_msg(
                              ssl, buf_len, msg_len));
@@ -1070,8 +1071,8 @@ int mbedtls_ssl_tls13_write_certificate_verify(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_PROC_CHK(ssl_tls13_write_certificate_verify_body(
                              ssl, buf, buf + buf_len, &msg_len));
 
-    mbedtls_ssl_add_hs_msg_to_checksum(ssl, MBEDTLS_SSL_HS_CERTIFICATE_VERIFY,
-                                       buf, msg_len);
+    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(ssl,
+                         MBEDTLS_SSL_HS_CERTIFICATE_VERIFY, buf, msg_len));
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_finish_handshake_msg(
                              ssl, buf_len, msg_len));
@@ -1171,8 +1172,8 @@ int mbedtls_ssl_tls13_process_finished_message(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_PROC_CHK(ssl_tls13_parse_finished_message(ssl, buf, buf + buf_len));
 
-    mbedtls_ssl_add_hs_msg_to_checksum(ssl, MBEDTLS_SSL_HS_FINISHED,
-                                       buf, buf_len);
+    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(ssl,
+                         MBEDTLS_SSL_HS_FINISHED, buf, buf_len));
 
 cleanup:
 
@@ -1248,8 +1249,8 @@ int mbedtls_ssl_tls13_write_finished_message(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_PROC_CHK(ssl_tls13_write_finished_message_body(
                              ssl, buf, buf + buf_len, &msg_len));
 
-    mbedtls_ssl_add_hs_msg_to_checksum(ssl, MBEDTLS_SSL_HS_FINISHED,
-                                       buf, msg_len);
+    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(ssl,
+                         MBEDTLS_SSL_HS_FINISHED, buf, msg_len));
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_finish_handshake_msg(
                              ssl, buf_len, msg_len));
@@ -1400,8 +1401,16 @@ int mbedtls_ssl_reset_transcript_for_hrr(mbedtls_ssl_context *ssl)
     hash_len += 4;
 
     /* Reset running hash and replace it with a hash of the transcript */
-    mbedtls_ssl_reset_checksum(ssl);
-    ssl->handshake->update_checksum(ssl, hash_transcript, hash_len);
+    ret = mbedtls_ssl_reset_checksum(ssl);
+    if (ret != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_reset_checksum", ret);
+        return ret;
+    }
+    ret = ssl->handshake->update_checksum(ssl, hash_transcript, hash_len);
+    if (ret != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "update_checksum", ret);
+        return ret;
+    }
 
     return ret;
 }

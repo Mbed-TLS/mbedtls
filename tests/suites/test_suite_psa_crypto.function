@@ -7392,6 +7392,7 @@ void hash_interruptible_state_test( int key_type_arg, data_t *key_data,
     size_t signature_size;
     size_t signature_length = 0xdeadbeef;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    uint8_t *input_buffer = NULL;
     psa_sign_hash_interruptible_operation_t sign_operation =
                                  psa_sign_hash_interruptible_operation_init( );
     psa_verify_hash_interruptible_operation_t verify_operation =
@@ -7568,6 +7569,45 @@ void hash_interruptible_state_test( int key_type_arg, data_t *key_data,
                 PSA_ERROR_BUFFER_TOO_SMALL );
 
     PSA_ASSERT( psa_sign_hash_abort( &sign_operation ) );
+
+    /* Trash the hash buffer in between start and complete, to ensure
+     * no reliance on external buffers. */
+    psa_interruptible_set_max_ops(PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED);
+
+    input_buffer = mbedtls_calloc(1, input_data->len);
+    TEST_ASSERT(input_buffer != NULL);
+
+    memcpy(input_buffer, input_data->x, input_data->len);
+
+    PSA_ASSERT(psa_sign_hash_start(&sign_operation, key, alg,
+                    input_buffer, input_data->len));
+
+    memset(input_buffer, '!', input_data->len);
+    mbedtls_free(input_buffer);
+    input_buffer = NULL;
+
+    PSA_ASSERT(psa_sign_hash_complete(&sign_operation, signature,
+                    signature_size,
+                    &signature_length));
+
+    PSA_ASSERT(psa_sign_hash_abort(&sign_operation));
+
+    input_buffer = mbedtls_calloc(1, input_data->len);
+    TEST_ASSERT(input_buffer != NULL);
+
+    memcpy(input_buffer, input_data->x, input_data->len);
+
+    PSA_ASSERT(psa_verify_hash_start(&verify_operation, key, alg,
+                    input_buffer, input_data->len,
+                    signature, signature_length));
+
+    memset(input_buffer, '!', input_data->len);
+    mbedtls_free(input_buffer);
+    input_buffer = NULL;
+
+    PSA_ASSERT(psa_verify_hash_complete(&verify_operation));
+
+    PSA_ASSERT(psa_verify_hash_abort(&verify_operation));
 
 exit:
     /*

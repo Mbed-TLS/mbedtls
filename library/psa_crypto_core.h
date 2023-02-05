@@ -712,7 +712,8 @@ uint32_t mbedtls_psa_verify_hash_get_num_ops(
  * \retval #PSA_ERROR_NOT_SUPPORTED Either no internal interruptible operations
  *         are currently supported, or the key type is currently unsupported.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- *         There was insufficient memory to load the key representation.
+ *         There was insufficient memory either to load the key representation,
+ *         or to store the hash.
  */
 psa_status_t mbedtls_psa_sign_hash_start(
     mbedtls_psa_sign_hash_interruptible_operation_t *operation,
@@ -816,7 +817,8 @@ psa_status_t mbedtls_psa_sign_hash_abort(
  *        Either no internal interruptible operations are currently supported,
  *         or the key type is currently unsupported.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- *        There was insufficient memory to load the key representation.
+ *        There was insufficient memory either to load the key representation,
+ *        or to store the hash.
  */
 psa_status_t mbedtls_psa_verify_hash_start(
     mbedtls_psa_verify_hash_interruptible_operation_t *operation,

@@ -1399,37 +1399,9 @@ int mbedtls_ssl_reset_transcript_for_hrr(mbedtls_ssl_context *ssl)
 
     hash_len += 4;
 
-#if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
-    if (ciphersuite_info->mac == MBEDTLS_MD_SHA256) {
-        MBEDTLS_SSL_DEBUG_BUF(4, "Truncated SHA-256 handshake transcript",
-                              hash_transcript, hash_len);
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-        psa_hash_abort(&ssl->handshake->fin_sha256_psa);
-        psa_hash_setup(&ssl->handshake->fin_sha256_psa, PSA_ALG_SHA_256);
-#else
-        mbedtls_sha256_starts(&ssl->handshake->fin_sha256, 0);
-#endif
-    }
-#endif /* MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
-#if defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
-    if (ciphersuite_info->mac == MBEDTLS_MD_SHA384) {
-        MBEDTLS_SSL_DEBUG_BUF(4, "Truncated SHA-384 handshake transcript",
-                              hash_transcript, hash_len);
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-        psa_hash_abort(&ssl->handshake->fin_sha384_psa);
-        psa_hash_setup(&ssl->handshake->fin_sha384_psa, PSA_ALG_SHA_384);
-#else
-        mbedtls_sha512_starts(&ssl->handshake->fin_sha384, 1);
-#endif
-    }
-#endif /* MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
-#if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA) || \
-    defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+    /* Reset running hash and replace it with a hash of the transcript */
+    mbedtls_ssl_reset_checksum(ssl);
     ssl->handshake->update_checksum(ssl, hash_transcript, hash_len);
-#endif \
-    /* MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA || MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
 
     return ret;
 }

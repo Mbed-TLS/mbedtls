@@ -123,7 +123,7 @@ typedef struct
     mbedtls_ecdsa_context * MBEDTLS_PRIVATE( ctx );
     mbedtls_ecdsa_restart_ctx MBEDTLS_PRIVATE( restart_ctx );
 
-    size_t MBEDTLS_PRIVATE( curve_bytes );
+    size_t MBEDTLS_PRIVATE( coordinate_bytes );
     psa_algorithm_t MBEDTLS_PRIVATE( alg );
     mbedtls_md_type_t MBEDTLS_PRIVATE( md_alg );
     const uint8_t* MBEDTLS_PRIVATE( hash );
@@ -157,7 +157,6 @@ typedef struct
     mbedtls_ecdsa_context * MBEDTLS_PRIVATE( ctx );
     mbedtls_ecdsa_restart_ctx MBEDTLS_PRIVATE( restart_ctx );
 
-    size_t MBEDTLS_PRIVATE( curve_bytes );
     const uint8_t* MBEDTLS_PRIVATE( hash );
     size_t MBEDTLS_PRIVATE( hash_length );
 

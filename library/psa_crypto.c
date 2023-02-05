@@ -3509,7 +3509,7 @@ psa_status_t mbedtls_psa_sign_hash_start(
 
     mbedtls_ecdsa_restart_init(&operation->restart_ctx);
 
-    operation->curve_bytes = PSA_BITS_TO_BYTES(
+    operation->coordinate_bytes = PSA_BITS_TO_BYTES(
         operation->ctx->grp.pbits);
 
     psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH(alg);
@@ -3549,7 +3549,7 @@ psa_status_t mbedtls_psa_sign_hash_complete(
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
     defined(MBEDTLS_ECP_RESTARTABLE)
 
-    if (signature_size < 2 * operation->curve_bytes) {
+    if (signature_size < 2 * operation->coordinate_bytes) {
         return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
@@ -3595,7 +3595,8 @@ psa_status_t mbedtls_psa_sign_hash_complete(
         status =  mbedtls_to_psa_error(
             mbedtls_mpi_write_binary(&r,
                                      signature,
-                                     operation->curve_bytes));
+                                     operation->coordinate_bytes)
+            );
 
         if (status != PSA_SUCCESS) {
             return status;
@@ -3604,14 +3605,15 @@ psa_status_t mbedtls_psa_sign_hash_complete(
         status =  mbedtls_to_psa_error(
             mbedtls_mpi_write_binary(&s,
                                      signature +
-                                     operation->curve_bytes,
-                                     operation->curve_bytes));
+                                     operation->coordinate_bytes,
+                                     operation->coordinate_bytes)
+            );
 
         if (status != PSA_SUCCESS) {
             return status;
         }
 
-        *signature_length = operation->curve_bytes * 2;
+        *signature_length = operation->coordinate_bytes * 2;
 
         return PSA_SUCCESS;
     }
@@ -3667,6 +3669,7 @@ psa_status_t mbedtls_psa_verify_hash_start(
     const uint8_t *signature, size_t signature_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    size_t coordinate_bytes = 0;
 
     if (!PSA_KEY_TYPE_IS_ECC(attributes->core.type)) {
         return PSA_ERROR_NOT_SUPPORTED;
@@ -3695,11 +3698,9 @@ psa_status_t mbedtls_psa_verify_hash_start(
         return status;
     }
 
-    operation->curve_bytes = PSA_BITS_TO_BYTES(
-        operation->ctx->grp.pbits);
+    coordinate_bytes = PSA_BITS_TO_BYTES(operation->ctx->grp.pbits);
 
-
-    if (signature_length != 2 * operation->curve_bytes) {
+    if (signature_length != 2 * coordinate_bytes) {
         return PSA_ERROR_INVALID_SIGNATURE;
     }
 
@@ -3707,7 +3708,7 @@ psa_status_t mbedtls_psa_verify_hash_start(
     status = mbedtls_to_psa_error(
         mbedtls_mpi_read_binary(&operation->r,
                                 signature,
-                                operation->curve_bytes));
+                                coordinate_bytes));
 
     if (status != PSA_SUCCESS) {
         return status;
@@ -3717,8 +3718,8 @@ psa_status_t mbedtls_psa_verify_hash_start(
     status = mbedtls_to_psa_error(
         mbedtls_mpi_read_binary(&operation->s,
                                 signature +
-                                operation->curve_bytes,
-                                operation->curve_bytes));
+                                coordinate_bytes,
+                                coordinate_bytes));
 
     if (status != PSA_SUCCESS) {
         return status;

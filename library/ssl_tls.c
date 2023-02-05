@@ -893,19 +893,15 @@ static void ssl_handshake_params_init(mbedtls_ssl_handshake_params *handshake)
 #if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     handshake->fin_sha256_psa = psa_hash_operation_init();
-    psa_hash_setup(&handshake->fin_sha256_psa, PSA_ALG_SHA_256);
 #else
     mbedtls_sha256_init(&handshake->fin_sha256);
-    mbedtls_sha256_starts(&handshake->fin_sha256, 0);
 #endif
 #endif
 #if defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     handshake->fin_sha384_psa = psa_hash_operation_init();
-    psa_hash_setup(&handshake->fin_sha384_psa, PSA_ALG_SHA_384);
 #else
     mbedtls_sha512_init(&handshake->fin_sha384);
-    mbedtls_sha512_starts(&handshake->fin_sha384, 1);
 #endif
 #endif
 
@@ -1041,6 +1037,9 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     mbedtls_ssl_transform_init(ssl->transform_negotiate);
 #endif
+
+    /* Setup handshake checksums */
+    mbedtls_ssl_reset_checksum(ssl);
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
     defined(MBEDTLS_SSL_SRV_C) && \

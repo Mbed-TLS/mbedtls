@@ -3487,7 +3487,7 @@ psa_status_t mbedtls_psa_sign_hash_start(
         return PSA_ERROR_NOT_SUPPORTED;
 
     if( !PSA_ALG_IS_ECDSA( alg ) )
-        return PSA_ERROR_INVALID_ARGUMENT;
+        return PSA_ERROR_NOT_SUPPORTED;
 
 #if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
      defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ) && \
@@ -3677,7 +3677,7 @@ psa_status_t mbedtls_psa_verify_hash_start(
         return PSA_ERROR_NOT_SUPPORTED;
 
     if( !PSA_ALG_IS_ECDSA( alg ) )
-        return PSA_ERROR_INVALID_ARGUMENT;
+        return PSA_ERROR_NOT_SUPPORTED;
 
 #if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
      defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ) && \

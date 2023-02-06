@@ -38,8 +38,12 @@ Auto-generation of the driver wrapper is supported for the operation entry point
 
 If the driver is accelerating operations whose entry points are in the above table, the instructions in the driver [developer](https://github.com/Mbed-TLS/mbedtls/blob/development/docs/proposed/psa-driver-developer-guide.md) and [integration](https://github.com/Mbed-TLS/mbedtls/blob/development/docs/proposed/psa-driver-integration-guide.md) guides should be followed.
 
-**TODO: Provide brief summary of the method using the Mbed TLS test driver as an example**
+There are three deliverables for creating such a driver. These are:
+ - A driver description file (in JSON format).
+ - C header files defining the types required by the driver description. The names of these header files are declared in the driver description file.
+ - An object file compiled for the target platform defining the functions required by the driver description. Implementations may allow drivers to be provided as source files and compiled with the core instead of being pre-compiled.
 
+The Mbed TLS driver tests for the aforementioned entry points provide examples of how these deliverables can be implemented. For sample driver description JSON files, see [`mbedtls_test_transparent_driver.json`](https://github.com/Mbed-TLS/mbedtls/blob/development/scripts/data_files/driver_jsons/mbedtls_test_transparent_driver.json) or [`mbedtls_test_opaque_driver.json`](https://github.com/Mbed-TLS/mbedtls/blob/development/scripts/data_files/driver_jsons/mbedtls_test_transparent_driver.json). The header file required by the driver description is [`test_driver.h`](https://github.com/Mbed-TLS/mbedtls/blob/development/tests/include/test/drivers/test_driver.h). As Mbed TLS tests are built from source, there is no object file for the test driver. However, the source for the test driver can be found under `tests/src/drivers`.
 
 ### Process for Entry Points where auto-generation is not implemented
 
@@ -126,9 +130,10 @@ The code for p256-m can be found in `3rdparty/p256-m/p256m`. In this demonstrati
 
 **NOTE:** p256-m also implements key generation. However, it's RNG is based on `stdlib`, making this feature **unsuitable for production builds**. It is included with Mbed TLS purely to be used as an example.
 
-The driver prefix for p256-m is `P256`/`p256`. The driver macro is `MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED`. To build with and use p256-m, set this macro by running the following command from the root of the `mbedtls/` directory:
+The driver prefix for p256-m is `P256`/`p256`. The driver macro is `MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED`. To build with and use p256-m, set the macro using `config.py`, then build as usual using make/cmake. From the root of the `mbedtls/` directory, run:
 
     python3 scripts/config.py set MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED
+    make
 
 p256-m implements four entry points: `generate_key`, `key_agreement`, `sign_hash`, `verify_hash`. The `sign/verify_hash` entry points are used instead of `sign/verify_message` as messages must be hashed prior to any operation, and p256-m does not implement this. The driver entry point functions can be found in `p256m_driver_entrypoints.[hc]`. These functions act as an interface between Mbed TLS and p256-m; converting between PSA and p256-m argument formats and performing sanity checks. If the driver's status codes differ from PSA's, it is recommended to implement a status code translation function. The function `p256_to_psa_error()` converts error codes returned by p256-m into PSA error codes.
 

@@ -5211,14 +5211,19 @@ static int ecp_mod_p521_raw(mbedtls_mpi_uint *N_p, size_t N_n)
 {
     mbedtls_mpi_uint carry = 0;
 
-    if (N_n > 2*P521_WIDTH) {
-        N_n = 2*P521_WIDTH;
+    if (N_n > 2 * P521_WIDTH - 1) {
+        N_n = 2 * P521_WIDTH - 1;
     }
     if (N_n < P521_WIDTH) {
         return 0;
     }
 
-    /* Step 1: Reduction to P521_WIDTH limbs */
+    /* Save and clear the A1 content of the shared limb to prevent it
+       from overwrite. */
+    mbedtls_mpi_uint remainder[P521_WIDTH] = {0};
+    remainder[0] = N_p[P521_WIDTH - 1] >> 9;
+    N_p[P521_WIDTH - 1] &= P521_MASK;
+
     if (N_n > P521_WIDTH) {
         /* Helper references for top part of N */
         mbedtls_mpi_uint *NT_p = N_p + P521_WIDTH;
@@ -5227,18 +5232,14 @@ static int ecp_mod_p521_raw(mbedtls_mpi_uint *N_p, size_t N_n)
         /* Split N as A0 + 2^(512 + biL) A1 and compute A0 + 2^(biL - 9) * A1.
          * This can be done in place. */
         mbedtls_mpi_uint shift = ((mbedtls_mpi_uint) 1u) << (biL - 9);
-        carry = MPI_CORE(mla)(N_p, P521_WIDTH, NT_p, NT_n, shift);
+        carry = mbedtls_mpi_core_mla(N_p, P521_WIDTH - 1, NT_p, NT_n, shift);
 
         /* Clear top part */
         memset(NT_p, 0, sizeof(mbedtls_mpi_uint) * NT_n);
     }
 
-    /* Step 2: Reduction to < 2p.
-     * Now split as A0 + 2^521 * c, with c a scalar, and compute A0 + c. */
-    carry <<= (biL - 9);
-    carry  += (N_p[P521_WIDTH-1] >> 9);
-    N_p[P521_WIDTH-1] &= P521_MASK;
-    (void) mbedtls_core_add_int(N_p, N_p, carry, P521_WIDTH);
+    (void)mbedtls_mpi_core_add(N_p, N_p, remainder, P521_WIDTH);
+    N_p[P521_WIDTH - 1] += carry;
 
     return 0;
 }

@@ -139,13 +139,12 @@ which will make a symbol defined with a certain value."""
     if value is False:
         log_command(['config.py', 'unset', option])
         conf.unset(option)
+    elif value is True:
+        log_command(['config.py', 'set', option])
+        conf.set(option)
     else:
-        if value is True:
-            log_command(['config.py', 'set', option])
-            conf.set(option)
-        else:
-            log_command(['config.py', 'set', option, value])
-            conf.set(option, value)
+        log_command(['config.py', 'set', option, value])
+        conf.set(option, value)
     return True
 
 def set_reference_config(conf, options, colors):

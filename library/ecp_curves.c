@@ -5224,7 +5224,7 @@ int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *N_p, size_t N_n)
 
     /* Save and clear the A1 content of the shared limb to prevent it
        from overwrite. */
-    mbedtls_mpi_uint remainder[P521_WIDTH] = {0};
+    mbedtls_mpi_uint remainder[P521_WIDTH] = { 0 };
     remainder[0] = N_p[P521_WIDTH - 1] >> 9;
     N_p[P521_WIDTH - 1] &= P521_MASK;
 
@@ -5242,7 +5242,7 @@ int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *N_p, size_t N_n)
         memset(NT_p, 0, sizeof(mbedtls_mpi_uint) * NT_n);
     }
 
-    (void)mbedtls_mpi_core_add(N_p, N_p, remainder, P521_WIDTH);
+    (void) mbedtls_mpi_core_add(N_p, N_p, remainder, P521_WIDTH);
     N_p[P521_WIDTH - 1] += carry;
 
     return 0;

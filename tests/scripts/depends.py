@@ -138,9 +138,7 @@ Remove the backup file if it was saved earlier."""
         shutil.copy(options.config_backup, options.config)
 
 def option_exists(conf, option):
-    if option not in conf.settings:
-        return False
-    return True
+    return option in conf.settings
 
 def set_config_option_value(conf, option, colors, value: Union[bool, str]):
     """Set/unset a configuration option, optionally specifying a value.

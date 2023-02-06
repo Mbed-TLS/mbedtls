@@ -2155,7 +2155,7 @@ static int ssl_tls13_write_server_hello(mbedtls_ssl_context *ssl)
                                                            0));
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(
-                         ssl, MBEDTLS_SSL_HS_SERVER_HELLO, buf, msg_len));
+                             ssl, MBEDTLS_SSL_HS_SERVER_HELLO, buf, msg_len));
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_finish_handshake_msg(
                              ssl, buf_len, msg_len));
@@ -2228,7 +2228,7 @@ static int ssl_tls13_write_hello_retry_request(mbedtls_ssl_context *ssl)
                                                            &msg_len,
                                                            1));
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(
-        ssl, MBEDTLS_SSL_HS_SERVER_HELLO, buf, msg_len));
+                             ssl, MBEDTLS_SSL_HS_SERVER_HELLO, buf, msg_len));
 
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_finish_handshake_msg(ssl, buf_len,
@@ -2327,7 +2327,7 @@ static int ssl_tls13_write_encrypted_extensions(mbedtls_ssl_context *ssl)
                              ssl, buf, buf + buf_len, &msg_len));
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(
-        ssl, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS, buf, msg_len));
+                             ssl, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS, buf, msg_len));
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_finish_handshake_msg(
                              ssl, buf_len, msg_len));
@@ -2460,7 +2460,7 @@ static int ssl_tls13_write_certificate_request(mbedtls_ssl_context *ssl)
                                  ssl, buf, buf + buf_len, &msg_len));
 
         MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(
-            ssl, MBEDTLS_SSL_HS_CERTIFICATE_REQUEST, buf, msg_len));
+                                 ssl, MBEDTLS_SSL_HS_CERTIFICATE_REQUEST, buf, msg_len));
 
         MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_finish_handshake_msg(
                                  ssl, buf_len, msg_len));

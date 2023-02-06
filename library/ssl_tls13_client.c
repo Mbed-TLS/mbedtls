@@ -1490,8 +1490,8 @@ static int ssl_tls13_preprocess_server_hello(mbedtls_ssl_context *ssl,
         ssl->keep_current_message = 1;
         ssl->tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
         MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(ssl,
-                             MBEDTLS_SSL_HS_SERVER_HELLO,
-                             buf, (size_t) (end - buf)));
+                                                                MBEDTLS_SSL_HS_SERVER_HELLO,
+                                                                buf, (size_t) (end - buf)));
 
         if (mbedtls_ssl_conf_tls13_some_ephemeral_enabled(ssl)) {
             ret = ssl_tls13_reset_key_share(ssl);
@@ -2058,7 +2058,8 @@ static int ssl_tls13_process_server_hello(mbedtls_ssl_context *ssl)
     }
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(ssl,
-                          MBEDTLS_SSL_HS_SERVER_HELLO, buf, buf_len));
+                                                            MBEDTLS_SSL_HS_SERVER_HELLO, buf,
+                                                            buf_len));
 
     if (is_hrr) {
         MBEDTLS_SSL_PROC_CHK(ssl_tls13_postprocess_hrr(ssl));
@@ -2216,7 +2217,8 @@ static int ssl_tls13_process_encrypted_extensions(mbedtls_ssl_context *ssl)
 #endif
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(ssl,
-                         MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS, buf, buf_len));
+                                                            MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS,
+                                                            buf, buf_len));
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
     if (mbedtls_ssl_tls13_key_exchange_mode_with_psk(ssl)) {
@@ -2460,7 +2462,8 @@ static int ssl_tls13_process_certificate_request(mbedtls_ssl_context *ssl)
                                                                  buf, buf + buf_len));
 
         MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(ssl,
-                             MBEDTLS_SSL_HS_CERTIFICATE_REQUEST, buf, buf_len));
+                                                                MBEDTLS_SSL_HS_CERTIFICATE_REQUEST,
+                                                                buf, buf_len));
     } else if (ret == SSL_CERTIFICATE_REQUEST_SKIP) {
         ret = 0;
     } else {

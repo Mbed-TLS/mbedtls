@@ -963,7 +963,7 @@ int mbedtls_ssl_write_client_hello(mbedtls_ssl_context *ssl)
                 mbedtls_ssl_tls13_write_binders_of_pre_shared_key_ext(
                     ssl, buf + msg_len - binders_len, buf + msg_len));
             ret = ssl->handshake->update_checksum(ssl, buf + msg_len - binders_len,
-                                            binders_len);
+                                                  binders_len);
             if (ret != 0) {
                 MBEDTLS_SSL_DEBUG_RET(1, "update_checksum", ret);
                 return ret;

@@ -2254,12 +2254,6 @@ static int ssl_tls13_write_end_of_early_data(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_PROC_CHK(
         mbedtls_ssl_finish_handshake_msg(ssl, buf_len, 0));
 
-    /* TODO: Currently switch outbound back to handshake key in the case of
-     * MBEDTLS_SSL_CLIENT_CERTIFICATE. If we refine the coordinate function
-     * of client certificate state machine, we have to move the switch
-     * outbound function.
-     */
-
     mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE);
 
 cleanup:

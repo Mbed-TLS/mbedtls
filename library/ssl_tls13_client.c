@@ -1976,6 +1976,7 @@ static int ssl_tls13_postprocess_server_hello(mbedtls_ssl_context *ssl)
 
     mbedtls_ssl_set_inbound_transform(ssl, handshake->transform_handshake);
     MBEDTLS_SSL_DEBUG_MSG(1, ("Switch to handshake keys for inbound traffic"));
+    ssl->session_negotiate->ciphersuite = handshake->ciphersuite_info->id;
     ssl->session_in = ssl->session_negotiate;
 
 cleanup:
@@ -2006,6 +2007,7 @@ static int ssl_tls13_postprocess_hrr(mbedtls_ssl_context *ssl)
         return ret;
     }
 
+    ssl->session_negotiate->ciphersuite = ssl->handshake->ciphersuite_info->id;
     return 0;
 }
 

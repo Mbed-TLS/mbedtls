@@ -6659,6 +6659,13 @@ void sign_hash_fail_interruptible(int key_type_arg, data_t *key_data,
 
     TEST_EQUAL(actual_status, expected_start_status);
 
+    if (expected_start_status != PSA_SUCCESS) {
+        actual_status = psa_sign_hash_start(&operation, key, alg,
+                                            input_data->x, input_data->len);
+
+        TEST_EQUAL(actual_status, PSA_ERROR_BAD_STATE);
+    }
+
     num_ops_prior = psa_sign_hash_get_num_ops(&operation);
     TEST_ASSERT(num_ops_prior == 0);
 
@@ -6679,12 +6686,14 @@ void sign_hash_fail_interruptible(int key_type_arg, data_t *key_data,
         }
     } while (actual_status == PSA_OPERATION_INCOMPLETE);
 
-    /* If the psa_sign_hash_start() failed, psa_sign_hash_complete()
-     * should also fail with bad state. */
-    if (expected_start_status != PSA_SUCCESS) {
+    TEST_EQUAL(actual_status, expected_complete_status);
+
+    if (expected_complete_status != PSA_SUCCESS) {
+        actual_status = psa_sign_hash_complete(&operation, signature,
+                                               signature_size,
+                                               &signature_length);
+
         TEST_EQUAL(actual_status, PSA_ERROR_BAD_STATE);
-    } else if (actual_status != PSA_OPERATION_INCOMPLETE) {
-        TEST_EQUAL(actual_status, expected_complete_status);
     }
 
     PSA_ASSERT(psa_sign_hash_abort(&operation));
@@ -7121,6 +7130,15 @@ void verify_hash_fail_interruptible(int key_type_arg, data_t *key_data,
 
     TEST_EQUAL(actual_status, expected_start_status);
 
+    if (expected_start_status != PSA_SUCCESS) {
+        actual_status = psa_verify_hash_start(&operation, key, alg,
+                                              hash_data->x, hash_data->len,
+                                              signature_data->x,
+                                              signature_data->len);
+
+        TEST_EQUAL(actual_status, PSA_ERROR_BAD_STATE);
+    }
+
     num_ops_prior = psa_verify_hash_get_num_ops(&operation);
     TEST_ASSERT(num_ops_prior == 0);
 
@@ -7139,12 +7157,12 @@ void verify_hash_fail_interruptible(int key_type_arg, data_t *key_data,
         }
     } while (actual_status == PSA_OPERATION_INCOMPLETE);
 
-    /* If the psa_verify_hash_start() failed,
-     * psa_verify_hash_complete() should also fail with bad state.*/
-    if (expected_start_status != PSA_SUCCESS) {
+    TEST_EQUAL(actual_status, expected_complete_status);
+
+    if (expected_complete_status != PSA_SUCCESS) {
+        actual_status = psa_verify_hash_complete(&operation);
+
         TEST_EQUAL(actual_status, PSA_ERROR_BAD_STATE);
-    } else if (actual_status != PSA_OPERATION_INCOMPLETE) {
-        TEST_EQUAL(actual_status, expected_complete_status);
     }
 
     TEST_LE_U(min_completes, num_completes);
@@ -7349,6 +7367,12 @@ void hash_interruptible_state_test(int key_type_arg, data_t *key_data,
                                       0,
                                       &signature_length),
                PSA_ERROR_BUFFER_TOO_SMALL);
+
+    /* And test that this invalidates the operation. */
+    TEST_EQUAL(psa_sign_hash_complete(&sign_operation, signature,
+                                      0,
+                                      &signature_length),
+               PSA_ERROR_BAD_STATE);
 
     PSA_ASSERT(psa_sign_hash_abort(&sign_operation));
 

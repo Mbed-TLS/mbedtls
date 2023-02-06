@@ -3183,14 +3183,15 @@ psa_status_t psa_sign_hash_start(
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
 
-    /* Check that start has not been previously called. */
-    if (operation->id != 0) {
+    /* Check that start has not been previously called, or operation has not
+     * previously errored. */
+    if (operation->id != 0 || operation->error_occurred) {
         return PSA_ERROR_BAD_STATE;
     }
 
-
     status = psa_sign_verify_check_alg(0, alg);
     if (status != PSA_SUCCESS) {
+        operation->error_occurred = 1;
         return status;
     }
 
@@ -3221,13 +3222,17 @@ psa_status_t psa_sign_hash_start(
 exit:
 
     if (status != PSA_SUCCESS) {
+        operation->error_occurred = 1;
         psa_sign_hash_abort_internal(operation);
     }
 
     unlock_status = psa_unlock_key_slot(slot);
 
-    return (status == PSA_SUCCESS) ? unlock_status : status;
+    if (unlock_status != PSA_SUCCESS) {
+        operation->error_occurred = 1;
+    }
 
+    return (status == PSA_SUCCESS) ? unlock_status : status;
 }
 
 
@@ -3240,8 +3245,9 @@ psa_status_t psa_sign_hash_complete(
 
     *signature_length = 0;
 
-    /* Check that start has been called first. */
-    if (operation->id == 0) {
+    /* Check that start has been called first, and that operation has not
+     * previously errored. */
+    if (operation->id == 0 || operation->error_occurred) {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
     }
@@ -3276,6 +3282,10 @@ exit:
         /* If signature_size is 0 then we have nothing to do. We must not
          * call memset because signature may be NULL in this case.*/
 
+        if (status != PSA_SUCCESS) {
+            operation->error_occurred = 1;
+        }
+
         psa_sign_hash_abort_internal(operation);
     }
 
@@ -3292,6 +3302,9 @@ psa_status_t psa_sign_hash_abort(
     /* We clear the number of ops done here, so that it is not cleared when
      * the operation fails or succeeds, only on manual abort. */
     operation->num_ops = 0;
+
+    /* Likewise, failure state. */
+    operation->error_occurred = 0;
 
     return status;
 }
@@ -3325,13 +3338,15 @@ psa_status_t psa_verify_hash_start(
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
 
-    /* Check that start has not been previously called. */
-    if (operation->id != 0) {
+    /* Check that start has not been previously called, or operation has not
+     * previously errored. */
+    if (operation->id != 0 || operation->error_occurred) {
         return PSA_ERROR_BAD_STATE;
     }
 
     status = psa_sign_verify_check_alg(0, alg);
     if (status != PSA_SUCCESS) {
+        operation->error_occurred = 1;
         return status;
     }
 
@@ -3340,6 +3355,7 @@ psa_status_t psa_verify_hash_start(
                                                    alg);
 
     if (status != PSA_SUCCESS) {
+        operation->error_occurred = 1;
         return status;
     }
 
@@ -3357,14 +3373,17 @@ psa_status_t psa_verify_hash_start(
                                                   signature, signature_length);
 
     if (status != PSA_SUCCESS) {
+        operation->error_occurred = 1;
         psa_verify_hash_abort_internal(operation);
     }
 
     unlock_status = psa_unlock_key_slot(slot);
 
-    return (status == PSA_SUCCESS) ? unlock_status : status;
+    if (unlock_status != PSA_SUCCESS) {
+        operation->error_occurred = 1;
+    }
 
-    return status;
+    return (status == PSA_SUCCESS) ? unlock_status : status;
 }
 
 psa_status_t psa_verify_hash_complete(
@@ -3372,8 +3391,9 @@ psa_status_t psa_verify_hash_complete(
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    /* Check that start has been called first. */
-    if (operation->id == 0) {
+    /* Check that start has been called first, and that operation has not
+     * previously errored. */
+    if (operation->id == 0 || operation->error_occurred) {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
     }
@@ -3387,6 +3407,10 @@ exit:
         operation);
 
     if (status != PSA_OPERATION_INCOMPLETE) {
+        if (status != PSA_SUCCESS) {
+            operation->error_occurred = 1;
+        }
+
         psa_verify_hash_abort_internal(operation);
     }
 
@@ -3403,6 +3427,9 @@ psa_status_t psa_verify_hash_abort(
     /* We clear the number of ops done here, so that it is not cleared when
      * the operation fails or succeeds, only on manual abort. */
     operation->num_ops = 0;
+
+    /* Likewise, failure state. */
+    operation->error_occurred = 0;
 
     return status;
 }

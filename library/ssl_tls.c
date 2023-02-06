@@ -863,18 +863,35 @@ int mbedtls_ssl_reset_checksum(mbedtls_ssl_context *ssl)
 static int ssl_update_checksum_start(mbedtls_ssl_context *ssl,
                                       const unsigned char *buf, size_t len)
 {
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status;
+#else
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+#endif
 #if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_hash_update(&ssl->handshake->fin_sha256_psa, buf, len);
+    status = psa_hash_update(&ssl->handshake->fin_sha256_psa, buf, len);
+    if (status != PSA_SUCCESS) {
+        return mbedtls_md_error_from_psa(status);
+    }
 #else
-    mbedtls_sha256_update(&ssl->handshake->fin_sha256, buf, len);
+    ret = mbedtls_sha256_update(&ssl->handshake->fin_sha256, buf, len);
+    if (ret != 0) {
+        return ret;
+    }
 #endif
 #endif
 #if defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_hash_update(&ssl->handshake->fin_sha384_psa, buf, len);
+    status = psa_hash_update(&ssl->handshake->fin_sha384_psa, buf, len);
+    if (status != PSA_SUCCESS) {
+        return mbedtls_md_error_from_psa(status);
+    }
 #else
-    mbedtls_sha512_update(&ssl->handshake->fin_sha384, buf, len);
+    ret = mbedtls_sha512_update(&ssl->handshake->fin_sha384, buf, len);
+    if (ret != 0) {
+        return ret;
+    }
 #endif
 #endif
 #if !defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA) && \
@@ -891,11 +908,11 @@ static int ssl_update_checksum_sha256(mbedtls_ssl_context *ssl,
                                        const unsigned char *buf, size_t len)
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_hash_update(&ssl->handshake->fin_sha256_psa, buf, len);
+    return mbedtls_md_error_from_psa(psa_hash_update(
+                             &ssl->handshake->fin_sha256_psa, buf, len));
 #else
-    mbedtls_sha256_update(&ssl->handshake->fin_sha256, buf, len);
+    return mbedtls_sha256_update(&ssl->handshake->fin_sha256, buf, len);
 #endif
-    return 0;
 }
 #endif
 
@@ -904,11 +921,11 @@ static int ssl_update_checksum_sha384(mbedtls_ssl_context *ssl,
                                        const unsigned char *buf, size_t len)
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_hash_update(&ssl->handshake->fin_sha384_psa, buf, len);
+    return mbedtls_md_error_from_psa(psa_hash_update(
+                             &ssl->handshake->fin_sha384_psa, buf, len));
 #else
-    mbedtls_sha512_update(&ssl->handshake->fin_sha384, buf, len);
+    return mbedtls_sha512_update(&ssl->handshake->fin_sha384, buf, len);
 #endif
-    return 0;
 }
 #endif
 

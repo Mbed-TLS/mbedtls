@@ -33,6 +33,17 @@ CHECK_GENERATED_FILES = "tests/scripts/check-generated-files.sh"
 def print_err(*args):
     print("Error: ", *args, file=sys.stderr)
 
+def print_warn(*args):
+    print("Warn:", *args, file=sys.stderr)
+
+# Print the file names that will be skipped and the help message
+def print_skip(files_to_skip):
+    print()
+    print(*files_to_skip, sep=", SKIP\n", end=", SKIP\n")
+    print_warn("The listed files will be skipped because\n"
+               "they are not included in the default list.")
+    print()
+
 # Match FILENAME(s) in "check SCRIPT (FILENAME...)"
 CHECK_CALL_RE = re.compile(r"\n\s*check\s+[^\s#$&*?;|]+([^\n#$&*?;|]+)",
                            re.ASCII)
@@ -187,6 +198,9 @@ def main() -> int:
     if args.subset:
         # We are to check a subset of the default list
         src_files = [f for f in args.operands if f in all_src_files]
+        skip_src_files = [f for f in args.operands if f not in src_files]
+        if skip_src_files:
+            print_skip(skip_src_files)
 
     if args.fix:
         # Fix mode

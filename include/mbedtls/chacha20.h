@@ -47,8 +47,7 @@ extern "C" {
 
 #if !defined(MBEDTLS_CHACHA20_ALT)
 
-typedef struct mbedtls_chacha20_context
-{
+typedef struct mbedtls_chacha20_context {
     uint32_t MBEDTLS_PRIVATE(state)[16];          /*! The state (before round operations). */
     uint8_t  MBEDTLS_PRIVATE(keystream8)[64];     /*! Leftover keystream bytes. */
     size_t MBEDTLS_PRIVATE(keystream_bytes_used); /*! Number of keystream bytes already used. */
@@ -74,7 +73,7 @@ mbedtls_chacha20_context;
  * \param ctx       The ChaCha20 context to initialize.
  *                  This must not be \c NULL.
  */
-void mbedtls_chacha20_init( mbedtls_chacha20_context *ctx );
+void mbedtls_chacha20_init(mbedtls_chacha20_context *ctx);
 
 /**
  * \brief           This function releases and clears the specified
@@ -85,7 +84,7 @@ void mbedtls_chacha20_init( mbedtls_chacha20_context *ctx );
  *                  \c NULL, it must point to an initialized context.
  *
  */
-void mbedtls_chacha20_free( mbedtls_chacha20_context *ctx );
+void mbedtls_chacha20_free(mbedtls_chacha20_context *ctx);
 
 /**
  * \brief           This function sets the encryption/decryption key.
@@ -103,8 +102,8 @@ void mbedtls_chacha20_free( mbedtls_chacha20_context *ctx );
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA if ctx or key is NULL.
  */
-int mbedtls_chacha20_setkey( mbedtls_chacha20_context *ctx,
-                             const unsigned char key[32] );
+int mbedtls_chacha20_setkey(mbedtls_chacha20_context *ctx,
+                            const unsigned char key[32]);
 
 /**
  * \brief           This function sets the nonce and initial counter value.
@@ -125,9 +124,9 @@ int mbedtls_chacha20_setkey( mbedtls_chacha20_context *ctx,
  * \return          #MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA if ctx or nonce is
  *                  NULL.
  */
-int mbedtls_chacha20_starts( mbedtls_chacha20_context* ctx,
-                             const unsigned char nonce[12],
-                             uint32_t counter );
+int mbedtls_chacha20_starts(mbedtls_chacha20_context *ctx,
+                            const unsigned char nonce[12],
+                            uint32_t counter);
 
 #if !defined(MBEDTLS_CHACHA20_ALT)
 /**
@@ -149,9 +148,9 @@ int mbedtls_chacha20_starts( mbedtls_chacha20_context* ctx,
  * \return          #MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA if ctx or nonce is
  *                  NULL.
  */
-int mbedtls_xchacha20_starts( mbedtls_chacha20_context* ctx,
+int mbedtls_xchacha20_starts(mbedtls_chacha20_context *ctx,
                              const unsigned char nonce[24],
-                             uint32_t counter );
+                             uint32_t counter);
  #endif /* MBEDTLS_CHACHA20_ALT */
 
 /**
@@ -183,10 +182,10 @@ int mbedtls_xchacha20_starts( mbedtls_chacha20_context* ctx,
  * \return          \c 0 on success.
  * \return          A negative error code on failure.
  */
-int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
-                             size_t size,
-                             const unsigned char *input,
-                             unsigned char *output );
+int mbedtls_chacha20_update(mbedtls_chacha20_context *ctx,
+                            size_t size,
+                            const unsigned char *input,
+                            unsigned char *output);
 
 /**
  * \brief           This function encrypts or decrypts data with ChaCha20 and
@@ -216,12 +215,12 @@ int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
  * \return          \c 0 on success.
  * \return          A negative error code on failure.
  */
-int mbedtls_chacha20_crypt( const unsigned char key[32],
-                            const unsigned char nonce[12],
-                            uint32_t counter,
-                            size_t size,
-                            const unsigned char* input,
-                            unsigned char* output );
+int mbedtls_chacha20_crypt(const unsigned char key[32],
+                           const unsigned char nonce[12],
+                           uint32_t counter,
+                           size_t size,
+                           const unsigned char *input,
+                           unsigned char *output);
 
 #if !defined(MBEDTLS_CHACHA20_ALT)
 /**
@@ -252,12 +251,12 @@ int mbedtls_chacha20_crypt( const unsigned char key[32],
  * \return          \c 0 on success.
  * \return          A negative error code on failure.
  */
-int mbedtls_xchacha20_crypt( const unsigned char key[32],
+int mbedtls_xchacha20_crypt(const unsigned char key[32],
                             const unsigned char nonce[24],
                             uint32_t counter,
                             size_t size,
-                            const unsigned char* input,
-                            unsigned char* output );
+                            const unsigned char *input,
+                            unsigned char *output);
 #endif /* MBEDTLS_CHACHA20_ALT */
 
 #if defined(MBEDTLS_SELF_TEST)
@@ -267,7 +266,7 @@ int mbedtls_xchacha20_crypt( const unsigned char key[32],
  * \return          \c 0 on success.
  * \return          \c 1 on failure.
  */
-int mbedtls_chacha20_self_test( int verbose );
+int mbedtls_chacha20_self_test(int verbose);
 
 /**
  * \brief           The XChaCha20 checkup routine.
@@ -275,7 +274,7 @@ int mbedtls_chacha20_self_test( int verbose );
  * \return          \c 0 on success.
  * \return          \c 1 on failure.
  */
-int mbedtls_xchacha20_self_test( int verbose );
+int mbedtls_xchacha20_self_test(int verbose);
 #endif /* MBEDTLS_SELF_TEST */
 
 #ifdef __cplusplus

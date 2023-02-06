@@ -404,6 +404,21 @@ cleanup:
     return mbedtls_to_psa_error(ret);
 }
 
+int mbedtls_psa_ecp_load_public_part(mbedtls_ecp_keypair *ecp)
+{
+    int ret = 0;
+
+    /* Check whether the public part is loaded. If not, load it. */
+    if (mbedtls_ecp_is_zero(&ecp->Q)) {
+        ret = mbedtls_ecp_mul(&ecp->grp, &ecp->Q,
+                              &ecp->d, &ecp->grp.G,
+                              mbedtls_psa_get_random,
+                              MBEDTLS_PSA_RANDOM_STATE);
+    }
+
+    return ret;
+}
+
 psa_status_t mbedtls_psa_ecdsa_verify_hash(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
@@ -443,12 +458,8 @@ psa_status_t mbedtls_psa_ecdsa_verify_hash(
                                             signature + curve_bytes,
                                             curve_bytes));
 
-    /* Check whether the public part is loaded. If not, load it. */
-    if (mbedtls_ecp_is_zero(&ecp->Q)) {
-        MBEDTLS_MPI_CHK(
-            mbedtls_ecp_mul(&ecp->grp, &ecp->Q, &ecp->d, &ecp->grp.G,
-                            mbedtls_psa_get_random, MBEDTLS_PSA_RANDOM_STATE));
-    }
+    MBEDTLS_MPI_CHK(mbedtls_psa_ecp_load_public_part(ecp));
+
 
     ret = mbedtls_ecdsa_verify(&ecp->grp, hash, hash_length,
                                &ecp->Q, &r, &s);

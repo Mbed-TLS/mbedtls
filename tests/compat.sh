@@ -615,7 +615,7 @@ setup_arguments()
             ;;
     esac
 
-    if [ "X$VERIFY" = "XYES" ];
+    if [ "X$VERIFY" = "XYES" ] && [ "$TYPE" != "PSK" ];
     then
         M_SERVER_ARGS="$M_SERVER_ARGS ca_file=data_files/test-ca_cat12.crt auth_mode=required"
         O_SERVER_ARGS="$O_SERVER_ARGS -CAfile data_files/test-ca_cat12.crt -Verify 10"

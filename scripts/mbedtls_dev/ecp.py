@@ -149,7 +149,9 @@ class EcpP521R1Raw(bignum_common.ModOperationCommon,
 
     @property
     def arg_a(self) -> str:
-        return super().format_arg('{:x}'.format(self.int_a)).zfill(2 * self.hex_digits - 2 * self.bits_in_limb // 8)
+        # Number of limbs: 2 * N - 1
+        hex_digits = bignum_common.hex_digits_for_limb(2 * self.limbs - 1, self.bits_in_limb)
+        return super().format_arg('{:x}'.format(self.int_a)).zfill(hex_digits)
 
     def result(self) -> List[str]:
         result = self.int_a % self.int_n

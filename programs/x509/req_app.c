@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
      */
     mbedtls_x509_csr_init(&csr);
 
-    if (argc == 0) {
+    if (argc < 2) {
 usage:
         mbedtls_printf(USAGE);
         goto exit;

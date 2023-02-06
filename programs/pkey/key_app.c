@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
     mbedtls_mpi_init(&D); mbedtls_mpi_init(&E); mbedtls_mpi_init(&DP);
     mbedtls_mpi_init(&DQ); mbedtls_mpi_init(&QP);
 
-    if (argc == 0) {
+    if (argc < 2) {
 usage:
         mbedtls_printf(USAGE);
         goto cleanup;

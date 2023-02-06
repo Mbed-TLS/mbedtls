@@ -48,6 +48,15 @@ psa_status_t mbedtls_psa_ecp_load_representation( psa_key_type_t type,
                                                   size_t data_length,
                                                   mbedtls_ecp_keypair **p_ecp );
 
+/** Load the public part of an internal ECP, if required.
+ *
+ * \param ecp               The ECP context to load the public part for.
+ *
+ * \return 0 on success, otherwise an MPI error.
+ */
+
+int mbedtls_psa_ecp_load_public_part( mbedtls_ecp_keypair *ecp );
+
 /** Import an ECP key in binary format.
  *
  * \note The signature of this function is that of a PSA driver

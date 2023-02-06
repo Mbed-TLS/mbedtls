@@ -3765,21 +3765,10 @@ psa_status_t mbedtls_psa_verify_hash_start(
     if( status != PSA_SUCCESS )
         return status;
 
-    /* Check whether the public part is loaded. If not, load it. */
-    if( mbedtls_ecp_is_zero( &operation->ctx->Q ) )
-    {
-        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    int ret = mbedtls_psa_ecp_load_public_part(operation->ctx);
 
-        ret = mbedtls_ecp_mul( &operation->ctx->grp,
-                               &operation->ctx->Q,
-                               &operation->ctx->d,
-                               &operation->ctx->grp.G,
-                               mbedtls_psa_get_random,
-                               MBEDTLS_PSA_RANDOM_STATE );
-
-        if( ret != 0 )
-            return( mbedtls_to_psa_error( ret ) );
-    }
+    if( ret != 0 )
+        return (mbedtls_to_psa_error(ret));
 
     mbedtls_ecdsa_restart_init( &operation->restart_ctx );
 

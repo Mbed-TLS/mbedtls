@@ -36,11 +36,6 @@ static int rng_get(void *p_rng, unsigned char *output, size_t output_len)
 }
 #endif
 
-/*
- * This function can be passed to mbedtls to receive output logs from it. In
- * this case, it will count the instances of a mbedtls_test_ssl_log_pattern
- * in the received logged messages.
- */
 void mbedtls_test_ssl_log_analyzer(void *ctx, int level,
                                    const char *file, int line,
                                    const char *str)
@@ -133,20 +128,11 @@ static void reset_chk_buf_ptr_args(mbedtls_ssl_chk_buf_ptr_args *args)
  * Buffer structure for custom I/O callbacks.
  */
 
-/*
- * Initialises \p buf. After calling this function it is safe to call
- * `mbedtls_test_ssl_buffer_free()` on \p buf.
- */
 void mbedtls_test_ssl_buffer_init(mbedtls_test_ssl_buffer *buf)
 {
     memset(buf, 0, sizeof(*buf));
 }
 
-/*
- * Sets up \p buf. After calling this function it is safe to call
- * `mbedtls_test_ssl_buffer_put()` and `mbedtls_test_ssl_buffer_get()`
- * on \p buf.
- */
 int mbedtls_test_ssl_buffer_setup(mbedtls_test_ssl_buffer *buf,
                                   size_t capacity)
 {
@@ -169,17 +155,6 @@ void mbedtls_test_ssl_buffer_free(mbedtls_test_ssl_buffer *buf)
     memset(buf, 0, sizeof(*buf));
 }
 
-/*
- * Puts \p input_len bytes from the \p input buffer into the ring buffer \p buf.
- *
- * \p buf must have been initialized and set up by calling
- * `mbedtls_test_ssl_buffer_init()` and `mbedtls_test_ssl_buffer_setup()`.
- *
- * \retval  \p input_len, if the data fits.
- * \retval  0 <= value < \p input_len, if the data does not fit.
- * \retval  -1, if \p buf is NULL, it hasn't been set up or \p input_len is not
- *          zero and \p input is NULL.
- */
 int mbedtls_test_ssl_buffer_put(mbedtls_test_ssl_buffer *buf,
                                 const unsigned char *input, size_t input_len)
 {
@@ -224,18 +199,6 @@ int mbedtls_test_ssl_buffer_put(mbedtls_test_ssl_buffer *buf,
     return input_len;
 }
 
-/*
- * Gets \p output_len bytes from the ring buffer \p buf into the
- * \p output buffer. The output buffer can be NULL, in this case a part of the
- * ring buffer will be dropped, if the requested length is available.
- *
- * \p buf must have been initialized and set up by calling
- * `mbedtls_test_ssl_buffer_init()` and `mbedtls_test_ssl_buffer_setup()`.
- *
- * \retval  \p output_len, if the data is available.
- * \retval  0 <= value < \p output_len, if the data is not available.
- * \retval  -1, if \buf is NULL or it hasn't been set up.
- */
 int mbedtls_test_ssl_buffer_get(mbedtls_test_ssl_buffer *buf,
                                 unsigned char *output, size_t output_len)
 {
@@ -270,15 +233,6 @@ int mbedtls_test_ssl_buffer_get(mbedtls_test_ssl_buffer *buf,
     return output_len;
 }
 
-/*
- * Setup and free functions for the message metadata queue.
- *
- * \p capacity describes the number of message metadata chunks that can be held
- *    within the queue.
- *
- * \retval  0, if a metadata queue of a given length can be allocated.
- * \retval  MBEDTLS_ERR_SSL_ALLOC_FAILED, if allocation failed.
- */
 int mbedtls_test_ssl_message_queue_setup(mbedtls_test_ssl_message_queue *queue,
                                          size_t capacity)
 {
@@ -307,14 +261,6 @@ void mbedtls_test_ssl_message_queue_free(mbedtls_test_ssl_message_queue *queue)
     memset(queue, 0, sizeof(*queue));
 }
 
-/*
- * Push message length information onto the message metadata queue.
- * This will become the last element to leave it (fifo).
- *
- * \retval  MBEDTLS_TEST_ERROR_ARG_NULL, if the queue is null.
- * \retval  MBEDTLS_ERR_SSL_WANT_WRITE, if the queue is full.
- * \retval  \p len, if the push was successful.
- */
 int mbedtls_test_ssl_message_queue_push_info(
     mbedtls_test_ssl_message_queue *queue, size_t len)
 {
@@ -333,16 +279,6 @@ int mbedtls_test_ssl_message_queue_push_info(
     return len;
 }
 
-/*
- * Pop information about the next message length from the queue. This will be
- * the oldest inserted message length(fifo). \p msg_len can be null, in which
- * case the data will be popped from the queue but not copied anywhere.
- *
- * \retval  MBEDTLS_TEST_ERROR_ARG_NULL, if the queue is null.
- * \retval  MBEDTLS_ERR_SSL_WANT_READ, if the queue is empty.
- * \retval  message length, if the pop was successful, up to the given
-            \p buf_len.
- */
 int mbedtls_test_ssl_message_queue_pop_info(
     mbedtls_test_ssl_message_queue *queue, size_t buf_len)
 {
@@ -392,27 +328,11 @@ int mbedtls_test_message_queue_peek_info(mbedtls_test_ssl_message_queue *queue,
     return (*msg_len > buf_len) ? MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED : 0;
 }
 
-/*
- * Setup and teardown functions for mock sockets.
- */
 void mbedtls_mock_socket_init(mbedtls_test_mock_socket *socket)
 {
     memset(socket, 0, sizeof(*socket));
 }
 
-/*
- * Closes the socket \p socket.
- *
- * \p socket must have been previously initialized by calling
- * mbedtls_mock_socket_init().
- *
- * This function frees all allocated resources and both sockets are aware of the
- * new connection state.
- *
- * That is, this function does not simulate half-open TCP connections and the
- * phenomenon that when closing a UDP connection the peer is not aware of the
- * connection having been closed.
- */
 void mbedtls_test_mock_socket_close(mbedtls_test_mock_socket *socket)
 {
     if (socket == NULL) {
@@ -436,16 +356,6 @@ void mbedtls_test_mock_socket_close(mbedtls_test_mock_socket *socket)
     memset(socket, 0, sizeof(*socket));
 }
 
-/*
- * Establishes a connection between \p peer1 and \p peer2.
- *
- * \p peer1 and \p peer2 must have been previously initialized by calling
- * mbedtls_mock_socket_init().
- *
- * The capacities of the internal buffers are set to \p bufsize. Setting this to
- * the correct value allows for simulation of MTU, sanity testing the mock
- * implementation and mocking TCP connections with lower memory cost.
- */
 int mbedtls_test_mock_socket_connect(mbedtls_test_mock_socket *peer1,
                                      mbedtls_test_mock_socket *peer2,
                                      size_t bufsize)
@@ -494,10 +404,6 @@ exit:
     return ret;
 }
 
-/*
- * Callbacks for simulating blocking I/O over connection-oriented transport.
- */
-
 int mbedtls_test_mock_tcp_send_b(void *ctx, const unsigned char *buf,
                                  size_t len)
 {
@@ -520,10 +426,6 @@ int mbedtls_test_mock_tcp_recv_b(void *ctx, unsigned char *buf, size_t len)
 
     return mbedtls_test_ssl_buffer_get(socket->input, buf, len);
 }
-
-/*
- * Callbacks for simulating non-blocking I/O over connection-oriented transport.
- */
 
 int mbedtls_test_mock_tcp_send_nb(void *ctx, const unsigned char *buf,
                                   size_t len)
@@ -563,15 +465,6 @@ void mbedtls_test_message_socket_init(mbedtls_test_message_socket_context *ctx)
     ctx->socket = NULL;
 }
 
-/*
- * Setup a given message socket context including initialization of
- * input/output queues to a chosen capacity of messages. Also set the
- * corresponding mock socket.
- *
- * \retval  0, if everything succeeds.
- * \retval  MBEDTLS_ERR_SSL_ALLOC_FAILED, if allocation of a message
- *          queue failed.
- */
 int mbedtls_test_message_socket_setup(
     mbedtls_test_ssl_message_queue *queue_input,
     mbedtls_test_ssl_message_queue *queue_output,
@@ -591,10 +484,6 @@ int mbedtls_test_message_socket_setup(
     return 0;
 }
 
-/*
- * Close a given message socket context, along with the socket itself. Free the
- * memory allocated by the input queue.
- */
 void mbedtls_test_message_socket_close(mbedtls_test_message_socket_context *ctx)
 {
     if (ctx == NULL) {
@@ -606,19 +495,6 @@ void mbedtls_test_message_socket_close(mbedtls_test_message_socket_context *ctx)
     memset(ctx, 0, sizeof(*ctx));
 }
 
-/*
- * Send one message through a given message socket context.
- *
- * \retval  \p len, if everything succeeds.
- * \retval  MBEDTLS_TEST_ERROR_CONTEXT_ERROR, if any of the needed context
- *          elements or the context itself is null.
- * \retval  MBEDTLS_TEST_ERROR_SEND_FAILED if
- *          mbedtls_test_mock_tcp_send_b failed.
- * \retval  MBEDTLS_ERR_SSL_WANT_WRITE, if the output queue is full.
- *
- * This function will also return any error from
- * mbedtls_test_ssl_message_queue_push_info.
- */
 int mbedtls_test_mock_tcp_send_msg(void *ctx, const unsigned char *buf,
                                    size_t len)
 {
@@ -646,20 +522,6 @@ int mbedtls_test_mock_tcp_send_msg(void *ctx, const unsigned char *buf,
     return mbedtls_test_ssl_message_queue_push_info(queue, len);
 }
 
-/*
- * Receive one message from a given message socket context and return message
- * length or an error.
- *
- * \retval  message length, if everything succeeds.
- * \retval  MBEDTLS_TEST_ERROR_CONTEXT_ERROR, if any of the needed context
- *          elements or the context itself is null.
- * \retval  MBEDTLS_TEST_ERROR_RECV_FAILED if
- *          mbedtls_test_mock_tcp_recv_b failed.
- *
- * This function will also return any error other than
- * MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED from
- * mbedtls_test_message_queue_peek_info.
- */
 int mbedtls_test_mock_tcp_recv_msg(void *ctx, unsigned char *buf,
                                    size_t buf_len)
 {
@@ -743,12 +605,6 @@ void mbedtls_endpoint_certificate_free(mbedtls_test_ssl_endpoint *ep)
     }
 }
 
-/*
- * Initializes \p ep_cert structure and assigns it to endpoint
- * represented by \p ep.
- *
- * \retval  0 on success, otherwise error code.
- */
 int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
                                                int pk_alg,
                                                int opaque_alg, int opaque_alg2,
@@ -879,21 +735,6 @@ exit:
     return ret;
 }
 
-/*
- * Initializes \p ep structure. It is important to call
- * `mbedtls_test_ssl_endpoint_free()` after calling this function
- * even if it fails.
- *
- * \p endpoint_type must be set as MBEDTLS_SSL_IS_SERVER or
- * MBEDTLS_SSL_IS_CLIENT.
- * \p pk_alg the algorithm to use, currently only MBEDTLS_PK_RSA and
- * MBEDTLS_PK_ECDSA are supported.
- * \p dtls_context - in case of DTLS - this is the context handling metadata.
- * \p input_queue - used only in case of DTLS.
- * \p output_queue - used only in case of DTLS.
- *
- * \retval  0 on success, otherwise error code.
- */
 int mbedtls_test_ssl_endpoint_init(
     mbedtls_test_ssl_endpoint *ep, int endpoint_type,
     mbedtls_test_handshake_test_options *options,
@@ -1000,9 +841,6 @@ exit:
     return ret;
 }
 
-/*
- * Deinitializes endpoint represented by \p ep.
- */
 void mbedtls_test_ssl_endpoint_free(
     mbedtls_test_ssl_endpoint *ep,
     mbedtls_test_message_socket_context *context)
@@ -1019,13 +857,6 @@ void mbedtls_test_ssl_endpoint_free(
     }
 }
 
-/*
- * This function moves ssl handshake from \p ssl to prescribed \p state.
- * /p second_ssl is used as second endpoint and their sockets have to be
- * connected before calling this function.
- *
- * \retval  0 on success, otherwise error code.
- */
 int mbedtls_test_move_handshake_to_state(mbedtls_ssl_context *ssl,
                                          mbedtls_ssl_context *second_ssl,
                                          int state)
@@ -1067,8 +898,9 @@ int mbedtls_test_move_handshake_to_state(mbedtls_ssl_context *ssl,
 /*
  * Write application data. Increase write counter if necessary.
  */
-int mbedtls_ssl_write_fragment(mbedtls_ssl_context *ssl, unsigned char *buf,
-                               int buf_len, int *written,
+int mbedtls_ssl_write_fragment(mbedtls_ssl_context *ssl,
+                               unsigned char *buf, int buf_len,
+                               int *written,
                                const int expected_fragments)
 {
     /* Verify that calling mbedtls_ssl_write with a NULL buffer and zero length is
@@ -1112,9 +944,10 @@ exit:
  * Read application data and increase read counter and fragments counter
  * if necessary.
  */
-int mbedtls_ssl_read_fragment(mbedtls_ssl_context *ssl, unsigned char *buf,
-                              int buf_len, int *read,
-                              int *fragments, const int expected_fragments)
+int mbedtls_ssl_read_fragment(mbedtls_ssl_context *ssl,
+                              unsigned char *buf, int buf_len,
+                              int *read, int *fragments,
+                              const int expected_fragments)
 {
     /* Verify that calling mbedtls_ssl_write with a NULL buffer and zero length is
      * a valid no-op for TLS connections. */
@@ -1147,22 +980,6 @@ exit:
     /* Some of the tests failed */
     return -1;
 }
-
-/*
- * Helper function setting up inverse record transformations
- * using given cipher, hash, EtM mode, authentication tag length,
- * and version.
- */
-
-#define CHK(x)                                  \
-    do                                          \
-    {                                           \
-        if (!(x))                               \
-        {                                       \
-            ret = -1;                           \
-            goto cleanup;                       \
-        }                                       \
-    } while (0)
 
 void set_ciphersuite(mbedtls_ssl_config *conf, const char *cipher,
                      int *forced_ciphersuite)
@@ -1611,10 +1428,6 @@ cleanup:
     return ret;
 }
 
-/*
- * Populate a session structure for serialization tests.
- * Choose dummy values, mostly non-0 to distinguish from the init default.
- */
 int mbedtls_test_ssl_tls12_populate_session(mbedtls_ssl_session *session,
                                             int ticket_len,
                                             const char *crt_file)
@@ -1756,28 +1569,6 @@ int mbedtls_test_ssl_tls13_populate_session(mbedtls_ssl_session *session,
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
-/*
- * Perform data exchanging between \p ssl_1 and \p ssl_2 and check if the
- * message was sent in the correct number of fragments.
- *
- * /p ssl_1 and /p ssl_2    Endpoints represented by mbedtls_ssl_context. Both
- *                          of them must be initialized and connected
- *                          beforehand.
- * /p msg_len_1 and /p msg_len_2 specify the size of the message to send.
- * /p expected_fragments_1 and /p expected_fragments_2 determine in how many
- *                          fragments the message should be sent.
- *      expected_fragments is 0: can be used for DTLS testing while the message
- *                          size is larger than MFL. In that case the message
- *                          cannot be fragmented and sent to the second
- *                          endpoint.
- *                          This value can be used for negative tests.
- *      expected_fragments is 1: can be used for TLS/DTLS testing while the
- *                          message size is below MFL
- *      expected_fragments > 1: can be used for TLS testing while the message
- *                          size is larger than MFL
- *
- * \retval  0 on success, otherwise error code.
- */
 int mbedtls_exchange_data(mbedtls_ssl_context *ssl_1,
                           int msg_len_1, const int expected_fragments_1,
                           mbedtls_ssl_context *ssl_2,
@@ -2326,17 +2117,6 @@ exit:
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_TEST_HOOKS)
-/*
- * Tweak vector lengths in a TLS 1.3 Certificate message
- *
- * \param[in]       buf    Buffer containing the Certificate message to tweak
- * \param[in]]out]  end    End of the buffer to parse
- * \param           tweak  Tweak identifier (from 1 to the number of tweaks).
- * \param[out]  expected_result  Error code expected from the parsing function
- * \param[out]  args  Arguments of the MBEDTLS_SSL_CHK_BUF_READ_PTR call that
- *                    is expected to fail. All zeroes if no
- *                    MBEDTLS_SSL_CHK_BUF_READ_PTR failure is expected.
- */
 int tweak_tls13_certificate_msg_vector_len(
     unsigned char *buf, unsigned char **end, int tweak,
     int *expected_result, mbedtls_ssl_chk_buf_ptr_args *args)

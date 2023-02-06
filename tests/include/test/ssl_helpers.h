@@ -188,7 +188,6 @@ int mbedtls_test_ssl_buffer_setup(mbedtls_test_ssl_buffer *buf,
 void mbedtls_test_ssl_buffer_free(mbedtls_test_ssl_buffer *buf);
 
 /*
- *
  * Puts \p input_len bytes from the \p input buffer into the ring buffer \p buf.
  *
  * \p buf must have been initialized and set up by calling
@@ -300,7 +299,6 @@ int mbedtls_test_mock_socket_connect(mbedtls_test_mock_socket *peer1,
 /*
  * Callbacks for simulating blocking I/O over connection-oriented transport.
  */
-
 int mbedtls_test_mock_tcp_send_b(void *ctx, const unsigned char *buf,
                                  size_t len);
 
@@ -309,7 +307,6 @@ int mbedtls_test_mock_tcp_recv_b(void *ctx, unsigned char *buf, size_t len);
 /*
  * Callbacks for simulating non-blocking I/O over connection-oriented transport.
  */
-
 int mbedtls_test_mock_tcp_send_nb(void *ctx, const unsigned char *buf,
                                   size_t len);
 
@@ -428,6 +425,21 @@ int mbedtls_test_move_handshake_to_state(mbedtls_ssl_context *ssl,
                                          int state);
 
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
+
+/*
+ * Helper function setting up inverse record transformations
+ * using given cipher, hash, EtM mode, authentication tag length,
+ * and version.
+ */
+#define CHK(x)                                  \
+    do                                          \
+    {                                           \
+        if (!(x))                               \
+        {                                       \
+            ret = -1;                           \
+            goto cleanup;                       \
+        }                                       \
+    } while (0)
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_AES_C)

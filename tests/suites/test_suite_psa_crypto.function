@@ -1220,6 +1220,31 @@ typedef enum {
     INJECT_ANTICIPATE_KEY_DERIVATION_2,
 } ecjpake_injected_failure_t;
 
+static void interruptible_signverify_get_minmax_completes(uint32_t max_ops,
+                                                          psa_status_t expected_status,
+                                                          size_t *min_completes,
+                                                          size_t *max_completes)
+{
+
+    /* This is slightly contrived, but we only really know that with a minimum
+       value of max_ops that a successful operation should take more than one op
+       to complete, and likewise that with a max_ops of
+       PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED, it should complete in one go. */
+    if (max_ops == 0 || max_ops == 1) {
+        /* Failure test cases will fail on the first op. */
+        if (expected_status == PSA_SUCCESS) {
+            *min_completes = 2;
+        } else {
+            *min_completes = 1;
+        }
+
+        *max_completes = PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED;
+    } else {
+        *min_completes = 1;
+        *max_completes = 1;
+    }
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -6489,13 +6514,8 @@ void sign_hash_interruptible(int key_type_arg, data_t *key_data,
 
     psa_interruptible_set_max_ops(max_ops);
 
-    if (max_ops == PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED) {
-        min_completes = 1;
-        max_completes = 1;
-    } else {
-        min_completes = 2;
-        max_completes = PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED;
-    }
+    interruptible_signverify_get_minmax_completes(max_ops, PSA_SUCCESS,
+                                                  &min_completes, &max_completes);
 
     num_ops_prior = psa_sign_hash_get_num_ops(&operation);
     TEST_ASSERT(num_ops_prior == 0);
@@ -6636,19 +6656,10 @@ void sign_hash_fail_interruptible(int key_type_arg, data_t *key_data,
 
     psa_interruptible_set_max_ops(max_ops);
 
-    if (max_ops == PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED) {
-        min_completes = 1;
-        max_completes = 1;
-    } else {
-        /* Unfortunate, but failure cases tend to fail on the first op. */
-        if (expected_complete_status == PSA_SUCCESS) {
-            min_completes = 2;
-        } else {
-            min_completes = 1;
-        }
-
-        max_completes = PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED;
-    }
+    interruptible_signverify_get_minmax_completes(max_ops,
+                                                  expected_complete_status,
+                                                  &min_completes,
+                                                  &max_completes);
 
     num_ops_prior = psa_sign_hash_get_num_ops(&operation);
     TEST_ASSERT(num_ops_prior == 0);
@@ -6834,13 +6845,8 @@ void sign_verify_hash_interruptible(int key_type_arg, data_t *key_data,
 
     psa_interruptible_set_max_ops(max_ops);
 
-    if (max_ops == PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED) {
-        min_completes = 1;
-        max_completes = 1;
-    } else {
-        min_completes = 2;
-        max_completes = PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED;
-    }
+    interruptible_signverify_get_minmax_completes(max_ops, PSA_SUCCESS,
+                                                  &min_completes, &max_completes);
 
     /* Start performing the signature. */
     PSA_ASSERT(psa_sign_hash_start(&sign_operation, key, alg,
@@ -6989,13 +6995,8 @@ void verify_hash_interruptible(int key_type_arg, data_t *key_data,
 
     psa_interruptible_set_max_ops(max_ops);
 
-    if (max_ops == PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED) {
-        min_completes = 1;
-        max_completes = 1;
-    } else {
-        min_completes = 2;
-        max_completes = PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED;
-    }
+    interruptible_signverify_get_minmax_completes(max_ops, PSA_SUCCESS,
+                                                  &min_completes, &max_completes);
 
     num_ops_prior = psa_verify_hash_get_num_ops(&operation);
 
@@ -7111,13 +7112,10 @@ void verify_hash_fail_interruptible(int key_type_arg, data_t *key_data,
 
     psa_interruptible_set_max_ops(max_ops);
 
-    if (max_ops == PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED) {
-        min_completes = 1;
-        max_completes = 1;
-    } else {
-        min_completes = 2;
-        max_completes = PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED;
-    }
+    interruptible_signverify_get_minmax_completes(max_ops,
+                                                  expected_complete_status,
+                                                  &min_completes,
+                                                  &max_completes);
 
     num_ops_prior = psa_verify_hash_get_num_ops(&operation);
     TEST_ASSERT(num_ops_prior == 0);

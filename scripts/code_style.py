@@ -174,22 +174,19 @@ def main() -> int:
     parser.add_argument('-f', '--fix', action='store_true',
                         help=('modify source files to fix the code style '
                               '(default: print diff, do not modify files)'))
-    # --files is almost useless: it only matters if there are no files
-    # ('code_style.py' without arguments checks all files known to Git,
-    # 'code_style.py --files' does nothing). In particular,
-    # 'code_style.py --fix --files ...' is intended as a stable ("porcelain")
-    # way to restyle a possibly empty set of files.
-    parser.add_argument('--files', action='store_true',
-                        help='only check the specified files (default with non-option arguments)')
+    parser.add_argument('--subset', action='store_true',
+                        help=('check a subset of the files known to git '
+                              '(default: empty FILE means full set)'))
     parser.add_argument('operands', nargs='*', metavar='FILE',
-                        help='files to check (if none: check files that are known to git)')
+                        help='files to check')
 
     args = parser.parse_args()
 
-    if args.files or args.operands:
-        src_files = args.operands
-    else:
-        src_files = get_src_files()
+    all_src_files = get_src_files()
+    src_files = args.operands if args.operands else all_src_files
+    if args.subset:
+        # We are to check a subset of the default list
+        src_files = [f for f in args.operands if f in all_src_files]
 
     if args.fix:
         # Fix mode

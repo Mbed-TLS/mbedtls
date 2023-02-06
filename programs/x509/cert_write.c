@@ -329,7 +329,7 @@ int main(int argc, char *argv[])
     memset(buf, 0, sizeof(buf));
     memset(serial, 0, sizeof(serial));
 
-    if (argc == 0) {
+    if (argc < 2) {
 usage:
         mbedtls_printf(USAGE);
         goto exit;

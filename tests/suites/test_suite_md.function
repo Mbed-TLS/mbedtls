@@ -131,7 +131,7 @@ void md_text(int md_type, char *text_src_string, data_t *hash)
 {
     unsigned char *src = (unsigned char *) text_src_string;
     size_t src_len = strlen(text_src_string);
-    unsigned char output[MBEDTLS_MD_MAX_SIZE] = {0};
+    unsigned char output[MBEDTLS_MD_MAX_SIZE] = { 0 };
     const mbedtls_md_info_t *md_info = NULL;
 
     md_info = mbedtls_md_info_from_type(md_type);
@@ -148,7 +148,7 @@ void md_text(int md_type, char *text_src_string, data_t *hash)
 /* BEGIN_CASE */
 void md_hex(int md_type, data_t *src_str, data_t *hash)
 {
-    unsigned char output[MBEDTLS_MD_MAX_SIZE] = {0};
+    unsigned char output[MBEDTLS_MD_MAX_SIZE] = { 0 };
     const mbedtls_md_info_t *md_info = NULL;
 
     md_info = mbedtls_md_info_from_type(md_type);
@@ -169,7 +169,7 @@ void md_text_multi(int md_type, char *text_src_string,
 {
     unsigned char *src = (unsigned char *) text_src_string;
     size_t src_len = strlen(text_src_string);
-    unsigned char output[MBEDTLS_MD_MAX_SIZE] = {0};
+    unsigned char output[MBEDTLS_MD_MAX_SIZE] = { 0 };
     size_t halfway;
 
     const mbedtls_md_info_t *md_info = NULL;
@@ -214,7 +214,7 @@ exit:
 /* BEGIN_CASE */
 void md_hex_multi(int md_type, data_t *src_str, data_t *hash)
 {
-    unsigned char output[MBEDTLS_MD_MAX_SIZE] = {0};
+    unsigned char output[MBEDTLS_MD_MAX_SIZE] = { 0 };
     const mbedtls_md_info_t *md_info = NULL;
     mbedtls_md_context_t ctx, ctx_copy;
     int halfway;
@@ -260,7 +260,7 @@ void mbedtls_md_hmac(int md_type, int trunc_size,
                      data_t *key_str, data_t *src_str,
                      data_t *hash)
 {
-    unsigned char output[MBEDTLS_MD_MAX_SIZE] = {0};
+    unsigned char output[MBEDTLS_MD_MAX_SIZE] = { 0 };
     const mbedtls_md_info_t *md_info = NULL;
 
     md_info = mbedtls_md_info_from_type(md_type);
@@ -268,7 +268,7 @@ void mbedtls_md_hmac(int md_type, int trunc_size,
 
 
     TEST_EQUAL(0, mbedtls_md_hmac(md_info, key_str->x, key_str->len,
-                                   src_str->x, src_str->len, output));
+                                  src_str->x, src_str->len, output));
 
     TEST_ASSERT(mbedtls_test_hexcmp(output, hash->x,
                                     trunc_size, hash->len) == 0);
@@ -279,7 +279,7 @@ void mbedtls_md_hmac(int md_type, int trunc_size,
 void md_hmac_multi(int md_type, int trunc_size, data_t *key_str,
                    data_t *src_str, data_t *hash)
 {
-    unsigned char output[MBEDTLS_MD_MAX_SIZE] = {0};
+    unsigned char output[MBEDTLS_MD_MAX_SIZE] = { 0 };
     const mbedtls_md_info_t *md_info = NULL;
     mbedtls_md_context_t ctx;
     int halfway;
@@ -321,7 +321,7 @@ exit:
 void mbedtls_md_file(int md_type, char *filename,
                      data_t *hash)
 {
-    unsigned char output[MBEDTLS_MD_MAX_SIZE] = {0};
+    unsigned char output[MBEDTLS_MD_MAX_SIZE] = { 0 };
     const mbedtls_md_info_t *md_info = NULL;
 
     md_info = mbedtls_md_info_from_type(md_type);

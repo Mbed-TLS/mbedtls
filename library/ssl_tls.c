@@ -818,12 +818,16 @@ int mbedtls_ssl_add_hs_msg_to_checksum(mbedtls_ssl_context *ssl,
 
 int mbedtls_ssl_reset_checksum(mbedtls_ssl_context *ssl)
 {
+#if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA) || \
+    defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_status_t status;
 #else
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 #endif
+#else /* SHA-256 or SHA-384 */
     ((void) ssl);
+#endif /* SHA-256 or SHA-384 */
 #if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     status = psa_hash_abort(&ssl->handshake->fin_sha256_psa);
@@ -864,11 +868,18 @@ int mbedtls_ssl_reset_checksum(mbedtls_ssl_context *ssl)
 static int ssl_update_checksum_start(mbedtls_ssl_context *ssl,
                                      const unsigned char *buf, size_t len)
 {
+#if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA) || \
+    defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_status_t status;
 #else
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 #endif
+#else /* SHA-256 or SHA-384 */
+    ((void) ssl);
+    (void) buf;
+    (void) len;
+#endif /* SHA-256 or SHA-384 */
 #if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     status = psa_hash_update(&ssl->handshake->fin_sha256_psa, buf, len);
@@ -894,12 +905,6 @@ static int ssl_update_checksum_start(mbedtls_ssl_context *ssl,
         return ret;
     }
 #endif
-#endif
-#if !defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA) && \
-    !defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
-    (void) ssl;
-    (void) buf;
-    (void) len;
 #endif
     return 0;
 }

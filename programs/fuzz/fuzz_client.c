@@ -46,7 +46,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     uint16_t options;
 
     if (initialized == 0) {
-#if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C) && \
+        defined(MBEDTLS_CERTS_C)
         mbedtls_x509_crt_init(&cacert);
         if (mbedtls_x509_crt_parse(&cacert, (const unsigned char *) mbedtls_test_cas_pem,
                                    mbedtls_test_cas_pem_len) != 0) {

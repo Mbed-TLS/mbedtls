@@ -1040,6 +1040,18 @@ component_test_no_renegotiation () {
     tests/ssl-opt.sh
 }
 
+component_test_no_certs () {
+    msg "build: full minus MBEDTLS_CERTS_C"
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_CERTS_C
+    # Quick build+test (we're checking for stray uses of the test certs,
+    # not expecting their absence to lead to subtle problems).
+    make
+
+    msg "test: full minus MBEDTLS_CERTS_C - main suites"
+    make test
+}
+
 component_test_no_pem_no_fs () {
     msg "build: Default + !MBEDTLS_PEM_PARSE_C + !MBEDTLS_FS_IO (ASan build)"
     scripts/config.py unset MBEDTLS_PEM_PARSE_C

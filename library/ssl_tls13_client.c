@@ -1231,7 +1231,7 @@ int mbedtls_ssl_tls13_write_client_hello_exts(mbedtls_ssl_context *ssl,
     return 0;
 }
 
-int mbedtls_ssl_tls13_finalize_write_client_hello(mbedtls_ssl_context *ssl)
+int mbedtls_ssl_tls13_finalize_client_hello(mbedtls_ssl_context *ssl)
 {
     ((void) ssl);
 

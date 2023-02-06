@@ -2741,7 +2741,7 @@ static inline void mbedtls_ssl_session_clear_ticket_flags(
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */
 
 #if defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
-int mbedtls_ssl_tls13_finalize_write_client_hello(mbedtls_ssl_context *ssl);
+int mbedtls_ssl_tls13_finalize_client_hello(mbedtls_ssl_context *ssl);
 #endif
 
 #endif /* ssl_misc.h */

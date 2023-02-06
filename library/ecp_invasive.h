@@ -104,7 +104,7 @@ int mbedtls_ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn);
  * \param[in]       N_n     The length of \p N_p in limbs.
  */
 MBEDTLS_STATIC_TESTABLE
-int ecp_mod_p521_raw(mbedtls_mpi_uint *N_p, size_t N_n);
+int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *N_p, size_t N_n);
 
 #endif /* MBEDTLS_ECP_DP_SECP521R1_ENABLED */
 

@@ -200,17 +200,6 @@ filter()
   echo "$NEW_LIST" | sed -e 's/[[:space:]][[:space:]]*/ /g' -e 's/^ //' -e 's/ $//'
 }
 
-# OpenSSL 1.0.1h with -Verify wants a ClientCertificate message even for
-# PSK ciphersuites with DTLS, which is incorrect, so disable them for now
-check_openssl_server_bug()
-{
-    if test "X$VERIFY" = "XYES" && is_dtls "$MODE" && \
-        test "$TYPE" = "PSK";
-    then
-        SKIP_NEXT="YES"
-    fi
-}
-
 filter_ciphersuites()
 {
     if [ "X" != "X$FILTER" -o "X" != "X$EXCLUDE" ];
@@ -1045,7 +1034,6 @@ for MODE in $MODES; do
                         start_server "OpenSSL"
                         translate_ciphers m $M_CIPHERS
                         for i in $ciphers; do
-                            check_openssl_server_bug
                             run_client mbedTLS ${i%%=*} ${i#*=}
                         done
                         stop_server

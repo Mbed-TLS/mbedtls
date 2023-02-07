@@ -1009,7 +1009,7 @@ static int ecdsa_sign_wrap(void *ctx, mbedtls_md_type_t md_alg,
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 #endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
 
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
+#if defined(MBEDTLS_ECDSA_C)
 #if defined(MBEDTLS_ECP_RESTARTABLE)
 /* Forward declarations */
 static int ecdsa_verify_rs_wrap(void *ctx, mbedtls_md_type_t md_alg,
@@ -1117,7 +1117,7 @@ cleanup:
     return ret;
 }
 #endif /* MBEDTLS_ECP_RESTARTABLE */
-#endif /* MBEDTLS_PK_CAN_ECDSA_SOME */
+#endif /* MBEDTLS_ECDSA_C */
 
 static int eckey_check_pair(const void *pub, const void *prv,
                             int (*f_rng)(void *, unsigned char *, size_t),
@@ -1167,7 +1167,7 @@ const mbedtls_pk_info_t mbedtls_eckey_info = {
 #else
     NULL,
 #endif
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME) && defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     eckey_verify_rs_wrap,
     eckey_sign_rs_wrap,
 #endif
@@ -1222,8 +1222,7 @@ static int ecdsa_can_do(mbedtls_pk_type_t type)
     return type == MBEDTLS_PK_ECDSA;
 }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-#if defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
 static int ecdsa_verify_rs_wrap(void *ctx, mbedtls_md_type_t md_alg,
                                 const unsigned char *hash, size_t hash_len,
                                 const unsigned char *sig, size_t sig_len,
@@ -1273,8 +1272,7 @@ static void ecdsa_rs_free(void *ctx)
     mbedtls_ecdsa_restart_free(ctx);
     mbedtls_free(ctx);
 }
-#endif /* MBEDTLS_ECP_RESTARTABLE */
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
 const mbedtls_pk_info_t mbedtls_ecdsa_info = {
     MBEDTLS_PK_ECDSA,
@@ -1291,7 +1289,7 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
 #else
     NULL,
 #endif
-#if defined(MBEDTLS_PK_CAN_ECDSA_SOME) && defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     ecdsa_verify_rs_wrap,
     ecdsa_sign_rs_wrap,
 #endif
@@ -1300,7 +1298,7 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
     eckey_check_pair,   /* Compatible key structures */
     eckey_alloc_wrap,   /* Compatible key structures */
     eckey_free_wrap,   /* Compatible key structures */
-#if defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     ecdsa_rs_alloc,
     ecdsa_rs_free,
 #endif

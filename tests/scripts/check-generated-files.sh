@@ -116,6 +116,16 @@ check()
     fi
 }
 
+# Note: if the format of calls to the "check" function changes, update
+# scripts/code_style.py accordingly. For generated C source files (*.h or *.c),
+# the format must be "check SCRIPT FILENAME...". For other source files,
+# any shell syntax is permitted (including e.g. command substitution).
+
+# Note: Instructions to generate those files are replicated in:
+#   - **/Makefile (to (re)build them with make)
+#   - **/CMakeLists.txt (to (re)build them with cmake)
+#   - scripts/make_generated_files.bat (to generate them under Windows)
+
 check scripts/generate_errors.pl library/error.c
 check scripts/generate_query_config.pl programs/test/query_config.c
 check scripts/generate_driver_wrappers.py library/psa_crypto_driver_wrappers.c
@@ -124,7 +134,7 @@ check scripts/generate_ssl_debug_helpers.py library/ssl_debug_helpers_generated.
 # generate_visualc_files enumerates source files (library/*.c). It doesn't
 # care about their content, but the files must exist. So it must run after
 # the step that creates or updates these files.
-check scripts/generate_visualc_files.pl visualc/VS2010
+check scripts/generate_visualc_files.pl visualc/VS2013
 check scripts/generate_psa_constants.py programs/psa/psa_constant_names_generated.c
 check tests/scripts/generate_bignum_tests.py $(tests/scripts/generate_bignum_tests.py --list)
 check tests/scripts/generate_psa_tests.py $(tests/scripts/generate_psa_tests.py --list)

@@ -30,6 +30,9 @@ import os
 import subprocess
 import sys
 
+from mbedtls_dev import build_tree
+
+
 class CodeSizeComparison:
     """Compare code size between two Git revisions."""
 
@@ -50,11 +53,6 @@ class CodeSizeComparison:
         self.new_rev = new_revision
         self.git_command = "git"
         self.make_command = "make"
-
-    @staticmethod
-    def check_repo_path():
-        if not all(os.path.isdir(d) for d in ["include", "library", "tests"]):
-            raise Exception("Must be run from Mbed TLS root")
 
     @staticmethod
     def validate_revision(revision):
@@ -172,7 +170,7 @@ class CodeSizeComparison:
     def get_comparision_results(self):
         """Compare size of library/*.o between self.old_rev and self.new_rev,
         and generate the result file."""
-        self.check_repo_path()
+        build_tree.check_repo_path()
         self._get_code_size_for_rev(self.old_rev)
         self._get_code_size_for_rev(self.new_rev)
         return self.compare_code_size()

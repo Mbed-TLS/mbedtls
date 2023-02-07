@@ -169,9 +169,17 @@ SHA-1 Selftest
 depends_on:MBEDTLS_SELF_TEST:MBEDTLS_SHA1_C
 sha1_selftest:
 
+SHA-224 Selftest
+depends_on:MBEDTLS_SELF_TEST:MBEDTLS_SHA224_C
+sha224_selftest:
+
 SHA-256 Selftest
 depends_on:MBEDTLS_SELF_TEST:MBEDTLS_SHA256_C
 sha256_selftest:
+
+SHA-384 Selftest
+depends_on:MBEDTLS_SELF_TEST:MBEDTLS_SHA384_C
+sha384_selftest:
 
 SHA-512 Selftest
 depends_on:MBEDTLS_SELF_TEST:MBEDTLS_SHA512_C

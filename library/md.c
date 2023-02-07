@@ -277,13 +277,13 @@ const mbedtls_md_info_t *mbedtls_md_info_from_type(mbedtls_md_type_t md_type)
 #endif
 #if defined(MBEDTLS_SHA3_C)
         case MBEDTLS_MD_SHA3_224:
-            return( &mbedtls_sha3_224_info );
+            return &mbedtls_sha3_224_info;
         case MBEDTLS_MD_SHA3_256:
-            return( &mbedtls_sha3_256_info );
+            return &mbedtls_sha3_256_info;
         case MBEDTLS_MD_SHA3_384:
-            return( &mbedtls_sha3_384_info );
+            return &mbedtls_sha3_384_info;
         case MBEDTLS_MD_SHA3_512:
-            return( &mbedtls_sha3_512_info );
+            return &mbedtls_sha3_512_info;
 #endif
         default:
             return NULL;
@@ -353,7 +353,7 @@ void mbedtls_md_free(mbedtls_md_context_t *ctx)
             case MBEDTLS_MD_SHA3_256:
             case MBEDTLS_MD_SHA3_384:
             case MBEDTLS_MD_SHA3_512:
-                mbedtls_sha3_free( ctx->md_ctx );
+                mbedtls_sha3_free(ctx->md_ctx);
                 break;
 #endif
             default:
@@ -422,7 +422,7 @@ int mbedtls_md_clone(mbedtls_md_context_t *dst,
         case MBEDTLS_MD_SHA3_256:
         case MBEDTLS_MD_SHA3_384:
         case MBEDTLS_MD_SHA3_512:
-            mbedtls_sha3_clone( dst->md_ctx, src->md_ctx );
+            mbedtls_sha3_clone(dst->md_ctx, src->md_ctx);
             break;
 #endif
         default:
@@ -492,7 +492,7 @@ int mbedtls_md_setup(mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_info
         case MBEDTLS_MD_SHA3_256:
         case MBEDTLS_MD_SHA3_384:
         case MBEDTLS_MD_SHA3_512:
-            ALLOC( sha3 );
+            ALLOC(sha3);
             break;
 #endif
         default:
@@ -548,13 +548,13 @@ int mbedtls_md_starts(mbedtls_md_context_t *ctx)
 #endif
 #if defined(MBEDTLS_SHA3_C)
         case MBEDTLS_MD_SHA3_224:
-            return( mbedtls_sha3_starts( ctx->md_ctx, MBEDTLS_SHA3_224 ) );
+            return mbedtls_sha3_starts(ctx->md_ctx, MBEDTLS_SHA3_224);
         case MBEDTLS_MD_SHA3_256:
-            return( mbedtls_sha3_starts( ctx->md_ctx, MBEDTLS_SHA3_256 ) );
+            return mbedtls_sha3_starts(ctx->md_ctx, MBEDTLS_SHA3_256);
         case MBEDTLS_MD_SHA3_384:
-            return( mbedtls_sha3_starts( ctx->md_ctx, MBEDTLS_SHA3_384 ) );
+            return mbedtls_sha3_starts(ctx->md_ctx, MBEDTLS_SHA3_384);
         case MBEDTLS_MD_SHA3_512:
-            return( mbedtls_sha3_starts( ctx->md_ctx, MBEDTLS_SHA3_512 ) );
+            return mbedtls_sha3_starts(ctx->md_ctx, MBEDTLS_SHA3_512);
 #endif
         default:
             return MBEDTLS_ERR_MD_BAD_INPUT_DATA;
@@ -601,7 +601,7 @@ int mbedtls_md_update(mbedtls_md_context_t *ctx, const unsigned char *input, siz
         case MBEDTLS_MD_SHA3_256:
         case MBEDTLS_MD_SHA3_384:
         case MBEDTLS_MD_SHA3_512:
-            return( mbedtls_sha3_update( ctx->md_ctx, input, ilen ) );
+            return mbedtls_sha3_update(ctx->md_ctx, input, ilen);
 #endif
         default:
             return MBEDTLS_ERR_MD_BAD_INPUT_DATA;
@@ -648,7 +648,7 @@ int mbedtls_md_finish(mbedtls_md_context_t *ctx, unsigned char *output)
         case MBEDTLS_MD_SHA3_256:
         case MBEDTLS_MD_SHA3_384:
         case MBEDTLS_MD_SHA3_512:
-            return( mbedtls_sha3_finish( ctx->md_ctx, output, ctx->md_info->size ) );
+            return mbedtls_sha3_finish(ctx->md_ctx, output, ctx->md_info->size);
 #endif
         default:
             return MBEDTLS_ERR_MD_BAD_INPUT_DATA;
@@ -693,13 +693,13 @@ int mbedtls_md(const mbedtls_md_info_t *md_info, const unsigned char *input, siz
 #endif
 #if defined(MBEDTLS_SHA3_C)
         case MBEDTLS_MD_SHA3_224:
-            return( mbedtls_sha3( MBEDTLS_SHA3_224, input, ilen, output, md_info->size ) );
+            return mbedtls_sha3(MBEDTLS_SHA3_224, input, ilen, output, md_info->size);
         case MBEDTLS_MD_SHA3_256:
-            return( mbedtls_sha3( MBEDTLS_SHA3_256, input, ilen, output, md_info->size ) );
+            return mbedtls_sha3(MBEDTLS_SHA3_256, input, ilen, output, md_info->size);
         case MBEDTLS_MD_SHA3_384:
-            return( mbedtls_sha3( MBEDTLS_SHA3_384, input, ilen, output, md_info->size ) );
+            return mbedtls_sha3(MBEDTLS_SHA3_384, input, ilen, output, md_info->size);
         case MBEDTLS_MD_SHA3_512:
-            return( mbedtls_sha3( MBEDTLS_SHA3_512, input, ilen, output, md_info->size ) );
+            return mbedtls_sha3(MBEDTLS_SHA3_512, input, ilen, output, md_info->size);
 #endif
         default:
             return MBEDTLS_ERR_MD_BAD_INPUT_DATA;
@@ -936,7 +936,7 @@ int mbedtls_md_process(mbedtls_md_context_t *ctx, const unsigned char *data)
         case MBEDTLS_MD_SHA3_256:
         case MBEDTLS_MD_SHA3_384:
         case MBEDTLS_MD_SHA3_512:
-            return( 0 );
+            return 0;
 #endif
         default:
             return MBEDTLS_ERR_MD_BAD_INPUT_DATA;

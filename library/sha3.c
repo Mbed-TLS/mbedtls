@@ -69,10 +69,11 @@ static const uint8_t pi[24] = {
     15, 23, 19, 13, 12, 2, 20, 14, 22,  9,  6, 1,
 };
 
-#define ROT64( x , y ) ( ( ( x ) << ( y ) ) | ( ( x ) >> ( 64U - ( y ) ) ) )
-#define ABSORB( ctx, idx, v ) do { ctx->state[( idx ) >> 3] ^= ( ( uint64_t ) ( v ) ) << ( ( ( idx ) & 0x7 ) << 3 ); } while( 0 )
-#define SQUEEZE( ctx, idx ) ( ( uint8_t )( ctx->state[( idx ) >> 3] >> ( ( ( idx ) & 0x7 ) << 3 ) ) )
-#define SWAP( x, y ) do { uint64_t tmp = ( x ); ( x ) = ( y ); ( y ) = tmp; } while( 0 )
+#define ROT64(x, y) (((x) << (y)) | ((x) >> (64U - (y))))
+#define ABSORB(ctx, idx, v) do { ctx->state[(idx) >> 3] ^= ((uint64_t) (v)) << (((idx) & 0x7) << 3); \
+} while (0)
+#define SQUEEZE(ctx, idx) ((uint8_t) (ctx->state[(idx) >> 3] >> (((idx) & 0x7) << 3)))
+#define SWAP(x, y) do { uint64_t tmp = (x); (x) = (y); (y) = tmp; } while (0)
 
 /* The permutation function.  */
 static void keccak_f1600(mbedtls_sha3_context *ctx)
@@ -81,8 +82,7 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
     uint64_t *s = ctx->state;
     int i;
 
-    for( int round = 0; round < 24; round++ )
-    {
+    for (int round = 0; round < 24; round++) {
         uint64_t t;
 
         /* Theta */
@@ -92,29 +92,31 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
         lane[3] = s[3] ^ s[8] ^ s[13] ^ s[18] ^ s[23];
         lane[4] = s[4] ^ s[9] ^ s[14] ^ s[19] ^ s[24];
 
-        t = lane[4] ^ ROT64( lane[1], 1 );
+        t = lane[4] ^ ROT64(lane[1], 1);
         s[0] ^= t; s[5] ^= t; s[10] ^= t; s[15] ^= t; s[20] ^= t;
 
-        t = lane[0] ^ ROT64( lane[2], 1 );
+        t = lane[0] ^ ROT64(lane[2], 1);
         s[1] ^= t; s[6] ^= t; s[11] ^= t; s[16] ^= t; s[21] ^= t;
 
-        t = lane[1] ^ ROT64( lane[3], 1 );
+        t = lane[1] ^ ROT64(lane[3], 1);
         s[2] ^= t; s[7] ^= t; s[12] ^= t; s[17] ^= t; s[22] ^= t;
 
-        t = lane[2] ^ ROT64( lane[4], 1 );
+        t = lane[2] ^ ROT64(lane[4], 1);
         s[3] ^= t; s[8] ^= t; s[13] ^= t; s[18] ^= t; s[23] ^= t;
 
-        t = lane[3] ^ ROT64( lane[0], 1 );
+        t = lane[3] ^ ROT64(lane[0], 1);
         s[4] ^= t; s[9] ^= t; s[14] ^= t; s[19] ^= t; s[24] ^= t;
 
         /* Rho */
-        for( i = 1; i < 25; i++ )
-            s[i] = ROT64( s[i], rho[i-1] );
+        for (i = 1; i < 25; i++) {
+            s[i] = ROT64(s[i], rho[i-1]);
+        }
 
         /* Pi */
         t = s[1];
-        for( i = 0; i < 24; i++ )
-            SWAP( s[pi[i]], t );
+        for (i = 0; i < 24; i++) {
+            SWAP(s[pi[i]], t);
+        }
 
         /* Chi */
         lane[0] = s[0]; lane[1] = s[1]; lane[2] = s[2]; lane[3] = s[3]; lane[4] = s[4];
@@ -157,27 +159,30 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
     }
 }
 
-void mbedtls_sha3_init( mbedtls_sha3_context *ctx )
+void mbedtls_sha3_init(mbedtls_sha3_context *ctx)
 {
-    if( ctx == NULL )
+    if (ctx == NULL) {
         return;
+    }
 
-    memset( ctx, 0, sizeof( mbedtls_sha3_context ) );
+    memset(ctx, 0, sizeof(mbedtls_sha3_context));
 }
 
-void mbedtls_sha3_free( mbedtls_sha3_context *ctx )
+void mbedtls_sha3_free(mbedtls_sha3_context *ctx)
 {
-    if( ctx == NULL )
+    if (ctx == NULL) {
         return;
+    }
 
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha3_context ) );
+    mbedtls_platform_zeroize(ctx, sizeof(mbedtls_sha3_context));
 }
 
-void mbedtls_sha3_clone( mbedtls_sha3_context *dst,
-                                    const mbedtls_sha3_context *src )
+void mbedtls_sha3_clone(mbedtls_sha3_context *dst,
+                        const mbedtls_sha3_context *src)
 {
-    if ( dst == NULL || src == NULL )
+    if (dst == NULL || src == NULL) {
         return;
+    }
 
     *dst = *src;
 }
@@ -185,20 +190,22 @@ void mbedtls_sha3_clone( mbedtls_sha3_context *dst,
 /*
  * SHA-3 context setup
  */
-int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_id id )
+int mbedtls_sha3_starts(mbedtls_sha3_context *ctx, mbedtls_sha3_id id)
 {
     mbedtls_sha3_family_functions *p = NULL;
-    if( ctx == NULL )
-        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-
-    for( p = sha3_families; p->id != MBEDTLS_SHA3_NONE; p++ )
-    {
-        if( p->id == id )
-            break;
+    if (ctx == NULL) {
+        return MBEDTLS_ERR_SHA3_BAD_INPUT_DATA;
     }
 
-    if( p == NULL || p->id == MBEDTLS_SHA3_NONE )
-        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
+    for (p = sha3_families; p->id != MBEDTLS_SHA3_NONE; p++) {
+        if (p->id == id) {
+            break;
+        }
+    }
+
+    if (p == NULL || p->id == MBEDTLS_SHA3_NONE) {
+        return MBEDTLS_ERR_SHA3_BAD_INPUT_DATA;
+    }
 
     ctx->id = id;
     ctx->r = p->r;
@@ -206,97 +213,103 @@ int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_id id )
     ctx->xor_byte = p->xor_byte;
     ctx->max_block_size = ctx->r / 8;
 
-    memset( ctx->state, 0, sizeof( ctx->state ) );
+    memset(ctx->state, 0, sizeof(ctx->state));
     ctx->index = 0;
     ctx->finished = 0;
 
-    return( 0 );
+    return 0;
 }
 
 /*
  * SHA-3 process buffer
  */
-int mbedtls_sha3_update( mbedtls_sha3_context *ctx,
-                                   const uint8_t *input,
-                                   size_t ilen )
+int mbedtls_sha3_update(mbedtls_sha3_context *ctx,
+                        const uint8_t *input,
+                        size_t ilen)
 {
-    if( ctx == NULL )
-        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-
-    if( ilen == 0 || input == NULL )
-        return( 0 );
-
-    while( ilen-- > 0 )
-    {
-        ABSORB( ctx, ctx->index, *input++ );
-        if( ( ctx->index = ( ctx->index + 1) % ctx->max_block_size ) == 0 )
-            keccak_f1600( ctx );
+    if (ctx == NULL) {
+        return MBEDTLS_ERR_SHA3_BAD_INPUT_DATA;
     }
 
-    return( 0 );
+    if (ilen == 0 || input == NULL) {
+        return 0;
+    }
+
+    while (ilen-- > 0) {
+        ABSORB(ctx, ctx->index, *input++);
+        if ((ctx->index = (ctx->index + 1) % ctx->max_block_size) == 0) {
+            keccak_f1600(ctx);
+        }
+    }
+
+    return 0;
 }
 
-int mbedtls_sha3_finish( mbedtls_sha3_context *ctx,
-                              uint8_t *output, size_t olen )
+int mbedtls_sha3_finish(mbedtls_sha3_context *ctx,
+                        uint8_t *output, size_t olen)
 {
-    if( ctx == NULL )
-        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
+    if (ctx == NULL) {
+        return MBEDTLS_ERR_SHA3_BAD_INPUT_DATA;
+    }
 
-    if( olen == 0 || output == NULL )
-        return( 0 );
+    if (olen == 0 || output == NULL) {
+        return 0;
+    }
     /* Catch SHA-3 families, with fixed output length */
-    if( ctx->olen > 0 )
-    {
-        if ( ctx->olen > olen )
-            return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
+    if (ctx->olen > 0) {
+        if (ctx->olen > olen) {
+            return MBEDTLS_ERR_SHA3_BAD_INPUT_DATA;
+        }
         olen = ctx->olen;
     }
 
-    if( ctx->finished == 0 )
-    {
-        ABSORB( ctx, ctx->index, ctx->xor_byte );
-        ABSORB( ctx, ctx->max_block_size - 1, 0x80 );
-        keccak_f1600( ctx );
+    if (ctx->finished == 0) {
+        ABSORB(ctx, ctx->index, ctx->xor_byte);
+        ABSORB(ctx, ctx->max_block_size - 1, 0x80);
+        keccak_f1600(ctx);
         ctx->index = 0;
         ctx->finished = 1;
     }
 
-    while( olen-- > 0 )
-    {
-        *output++ = SQUEEZE( ctx, ctx->index );
+    while (olen-- > 0) {
+        *output++ = SQUEEZE(ctx, ctx->index);
 
-        if( ( ctx->index = ( ctx->index + 1) % ctx->max_block_size ) == 0 )
-            keccak_f1600( ctx );
+        if ((ctx->index = (ctx->index + 1) % ctx->max_block_size) == 0) {
+            keccak_f1600(ctx);
+        }
     }
 
-    return( 0 );
+    return 0;
 }
 
 /*
  * output = SHA3( input buffer )
  */
-int mbedtls_sha3( mbedtls_sha3_id id, const uint8_t *input,
-                                size_t ilen, uint8_t *output, size_t olen )
+int mbedtls_sha3(mbedtls_sha3_id id, const uint8_t *input,
+                 size_t ilen, uint8_t *output, size_t olen)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_sha3_context ctx;
 
-    mbedtls_sha3_init( &ctx );
+    mbedtls_sha3_init(&ctx);
 
     /* Sanity checks are performed in every mbedtls_sha3_xxx() */
-    if( ( ret = mbedtls_sha3_starts( &ctx, id ) ) != 0 )
+    if ((ret = mbedtls_sha3_starts(&ctx, id)) != 0) {
         goto exit;
+    }
 
-    if( ( ret = mbedtls_sha3_update( &ctx, input, ilen ) ) != 0 )
+    if ((ret = mbedtls_sha3_update(&ctx, input, ilen)) != 0) {
         goto exit;
+    }
 
-    if( ( ret = mbedtls_sha3_finish( &ctx, output, olen ) ) != 0 )
+    if ((ret = mbedtls_sha3_finish(&ctx, output, olen)) != 0) {
         goto exit;
+    }
 
 exit:
-    mbedtls_sha3_free( &ctx );
+    mbedtls_sha3_free(&ctx);
 
-    return( ret );
+    return ret;
 }
 
 /**************** Self-tests ****************/
@@ -429,67 +442,61 @@ static const unsigned char long_kat_hash_sha3_512[64] =
     0x0D, 0xB5, 0x96, 0xC9, 0x0B, 0x0A, 0x7B, 0x87
 };
 
-static int mbedtls_sha3_kat_test( int verbose,
-                                  const char* type_name,
-                                  mbedtls_sha3_id id,
-                                  int test_num )
+static int mbedtls_sha3_kat_test(int verbose,
+                                 const char *type_name,
+                                 mbedtls_sha3_id id,
+                                 int test_num)
 {
     uint8_t hash[64];
     int result;
 
-    result = mbedtls_sha3( id,
-                           test_data[test_num], test_data_len[test_num],
-                           hash, sizeof( hash ) );
-    if( result != 0 )
-    {
-        if( verbose != 0 )
-        {
-            mbedtls_printf( "  %s test %d error code: %d\n",
-                            type_name, test_num, result );
+    result = mbedtls_sha3(id,
+                          test_data[test_num], test_data_len[test_num],
+                          hash, sizeof(hash));
+    if (result != 0) {
+        if (verbose != 0) {
+            mbedtls_printf("  %s test %d error code: %d\n",
+                           type_name, test_num, result);
         }
 
-        return( result );
+        return result;
     }
 
-    switch( id )
-    {
+    switch (id) {
         case MBEDTLS_SHA3_224:
-            result = memcmp( hash, test_hash_sha3_224[test_num], 28 );
+            result = memcmp(hash, test_hash_sha3_224[test_num], 28);
             break;
         case MBEDTLS_SHA3_256:
-            result = memcmp( hash, test_hash_sha3_256[test_num], 32 );
+            result = memcmp(hash, test_hash_sha3_256[test_num], 32);
             break;
         case MBEDTLS_SHA3_384:
-            result = memcmp( hash, test_hash_sha3_384[test_num], 48 );
+            result = memcmp(hash, test_hash_sha3_384[test_num], 48);
             break;
         case MBEDTLS_SHA3_512:
-            result = memcmp( hash, test_hash_sha3_512[test_num], 64 );
+            result = memcmp(hash, test_hash_sha3_512[test_num], 64);
             break;
         default:
             break;
     }
 
-    if( 0 != result )
-    {
-        if( verbose != 0 )
-        {
-            mbedtls_printf( "  %s test %d failed\n", type_name, test_num );
+    if (0 != result) {
+        if (verbose != 0) {
+            mbedtls_printf("  %s test %d failed\n", type_name, test_num);
         }
 
-        return( -1 );
+        return -1;
     }
 
-    if( verbose != 0 )
-    {
-        mbedtls_printf( "  %s test %d passed\n", type_name, test_num );
+    if (verbose != 0) {
+        mbedtls_printf("  %s test %d passed\n", type_name, test_num);
     }
 
-    return( 0 );
+    return 0;
 }
 
-static int mbedtls_sha3_long_kat_test( int verbose,
-                                       const char* type_name,
-                                       mbedtls_sha3_id id )
+static int mbedtls_sha3_long_kat_test(int verbose,
+                                      const char *type_name,
+                                      mbedtls_sha3_id id)
 {
     mbedtls_sha3_context ctx;
     unsigned char buffer[1000];
@@ -497,86 +504,73 @@ static int mbedtls_sha3_long_kat_test( int verbose,
     int i;
     int result = 0;
 
-    memset( buffer, 'a', 1000 );
+    memset(buffer, 'a', 1000);
 
-    if( verbose != 0 )
-    {
-        mbedtls_printf( "  %s long KAT test ", type_name );
+    if (verbose != 0) {
+        mbedtls_printf("  %s long KAT test ", type_name);
     }
 
-    mbedtls_sha3_init( &ctx );
+    mbedtls_sha3_init(&ctx);
 
-    result = mbedtls_sha3_starts( &ctx, id );
-    if( result != 0 )
-    {
-        if( verbose != 0 )
-        {
-            mbedtls_printf( "setup failed\n " );
+    result = mbedtls_sha3_starts(&ctx, id);
+    if (result != 0) {
+        if (verbose != 0) {
+            mbedtls_printf("setup failed\n ");
         }
     }
 
     /* Process 1,000,000 (one million) 'a' characters */
-    for( i = 0; i < 1000; i++ )
-    {
-        result = mbedtls_sha3_update( &ctx, buffer, 1000 );
-        if( result != 0 )
-        {
-            if( verbose != 0 )
-            {
-                mbedtls_printf( "update error code: %i\n", result );
+    for (i = 0; i < 1000; i++) {
+        result = mbedtls_sha3_update(&ctx, buffer, 1000);
+        if (result != 0) {
+            if (verbose != 0) {
+                mbedtls_printf("update error code: %i\n", result);
             }
 
             goto cleanup;
         }
     }
 
-    result = mbedtls_sha3_finish( &ctx, hash, sizeof( hash ) );
-    if( result != 0 )
-    {
-        if( verbose != 0 )
-        {
-            mbedtls_printf( "finish error code: %d\n", result );
+    result = mbedtls_sha3_finish(&ctx, hash, sizeof(hash));
+    if (result != 0) {
+        if (verbose != 0) {
+            mbedtls_printf("finish error code: %d\n", result);
         }
 
         goto cleanup;
     }
 
-    switch( id )
-    {
+    switch (id) {
         case MBEDTLS_SHA3_224:
-            result = memcmp( hash, long_kat_hash_sha3_224, 28 );
+            result = memcmp(hash, long_kat_hash_sha3_224, 28);
             break;
         case MBEDTLS_SHA3_256:
-            result = memcmp( hash, long_kat_hash_sha3_256, 32 );
+            result = memcmp(hash, long_kat_hash_sha3_256, 32);
             break;
         case MBEDTLS_SHA3_384:
-            result = memcmp( hash, long_kat_hash_sha3_384, 48 );
+            result = memcmp(hash, long_kat_hash_sha3_384, 48);
             break;
         case MBEDTLS_SHA3_512:
-            result = memcmp( hash, long_kat_hash_sha3_512, 64 );
+            result = memcmp(hash, long_kat_hash_sha3_512, 64);
             break;
         default:
             break;
     }
 
-    if( result != 0 )
-    {
-        if( verbose != 0 )
-        {
-            mbedtls_printf( "failed\n" );
+    if (result != 0) {
+        if (verbose != 0) {
+            mbedtls_printf("failed\n");
         }
     }
 
-    if( verbose != 0 )
-    {
-        mbedtls_printf( "passed\n" );
+    if (verbose != 0) {
+        mbedtls_printf("passed\n");
     }
 
 cleanup:
-    mbedtls_sha3_free( &ctx );
-    return( result );
+    mbedtls_sha3_free(&ctx);
+    return result;
 }
-
 
 static const unsigned char shake128_test_input[2][16] =
 {
@@ -634,130 +628,124 @@ static const unsigned char shake256_test_output[2][32] =
     }
 };
 
-static int mbedtls_shake_self_test( int verbose )
+static int mbedtls_shake_self_test(int verbose)
 {
     uint8_t output[32];
     int i;
     int result;
 
-    for( i = 0; i < 2; i++ )
-    {
-        if( verbose != 0 )
-        {
-            mbedtls_printf( "  SHAKE128 test %d ", i );
+    for (i = 0; i < 2; i++) {
+        if (verbose != 0) {
+            mbedtls_printf("  SHAKE128 test %d ", i);
         }
 
-        result = mbedtls_sha3( MBEDTLS_SHA3_SHAKE128,
-                                shake128_test_input[i], 16,
-                                output, 16 );
-        if( result != 0 )
-        {
-            if( verbose != 0 )
-            {
-                mbedtls_printf( "error code: %d\n", result );
+        result = mbedtls_sha3(MBEDTLS_SHA3_SHAKE128,
+                              shake128_test_input[i], 16,
+                              output, 16);
+        if (result != 0) {
+            if (verbose != 0) {
+                mbedtls_printf("error code: %d\n", result);
             }
-            return( -1 );
+            return -1;
         }
-        if( 0 != memcmp( shake128_test_output[i], output, 16 ) )
-        {
-            if( verbose != 0 )
-            {
-                mbedtls_printf( "failed\n" );
+        if (0 != memcmp(shake128_test_output[i], output, 16)) {
+            if (verbose != 0) {
+                mbedtls_printf("failed\n");
             }
-            return( -1 );
+            return -1;
         }
 
-        if( verbose != 0 )
-        {
-            mbedtls_printf( "passed\n" );
-            mbedtls_printf( "  SHAKE256 test %d ", i );
+        if (verbose != 0) {
+            mbedtls_printf("passed\n");
+            mbedtls_printf("  SHAKE256 test %d ", i);
         }
 
-        result = mbedtls_sha3( MBEDTLS_SHA3_SHAKE256,
-                                shake256_test_input[i], 32,
-                                output, 32 );
-        if( result != 0 )
-        {
-            if( verbose != 0 )
-            {
-                mbedtls_printf( "error code: %d\n", result );
+        result = mbedtls_sha3(MBEDTLS_SHA3_SHAKE256,
+                              shake256_test_input[i], 32,
+                              output, 32);
+        if (result != 0) {
+            if (verbose != 0) {
+                mbedtls_printf("error code: %d\n", result);
             }
-            return( -1 );
+            return -1;
         }
-        if( 0 != memcmp( shake256_test_output[i], output, 32 ) )
-        {
-            if( verbose != 0 )
-            {
-                mbedtls_printf( "failed\n" );
+        if (0 != memcmp(shake256_test_output[i], output, 32)) {
+            if (verbose != 0) {
+                mbedtls_printf("failed\n");
             }
-            return( -1 );
+            return -1;
         }
 
-        if( verbose != 0 )
-        {
-            mbedtls_printf( "passed\n" );
+        if (verbose != 0) {
+            mbedtls_printf("passed\n");
         }
     }
 
-    if( verbose != 0 )
-    {
-        mbedtls_printf( "\n" );
+    if (verbose != 0) {
+        mbedtls_printf("\n");
     }
 
-    return( 0 );
+    return 0;
 }
 
-int mbedtls_sha3_self_test( int verbose )
+int mbedtls_sha3_self_test(int verbose)
 {
     int i;
 
     /* SHA3 Known Answer Tests (KAT) */
-    for( i = 0; i < 2; i++ )
-    {
-        if( 0 != mbedtls_sha3_kat_test( verbose,
-                                        "SHA3-224", MBEDTLS_SHA3_224, i ) )
-            return( 1 );
+    for (i = 0; i < 2; i++) {
+        if (0 != mbedtls_sha3_kat_test(verbose,
+                                       "SHA3-224", MBEDTLS_SHA3_224, i)) {
+            return 1;
+        }
 
-        if( 0 != mbedtls_sha3_kat_test( verbose,
-                                        "SHA3-256", MBEDTLS_SHA3_256, i ) )
-            return( 1 );
+        if (0 != mbedtls_sha3_kat_test(verbose,
+                                       "SHA3-256", MBEDTLS_SHA3_256, i)) {
+            return 1;
+        }
 
-        if( 0 != mbedtls_sha3_kat_test( verbose,
-                                        "SHA3-384", MBEDTLS_SHA3_384, i ) )
-            return( 1 );
+        if (0 != mbedtls_sha3_kat_test(verbose,
+                                       "SHA3-384", MBEDTLS_SHA3_384, i)) {
+            return 1;
+        }
 
-        if( 0 != mbedtls_sha3_kat_test( verbose,
-                                        "SHA3-512", MBEDTLS_SHA3_512, i ) )
-            return( 1 );
+        if (0 != mbedtls_sha3_kat_test(verbose,
+                                       "SHA3-512", MBEDTLS_SHA3_512, i)) {
+            return 1;
+        }
     }
 
     /* SHA3 long KAT tests */
-    if( 0 != mbedtls_sha3_long_kat_test( verbose,
-                                         "SHA3-224", MBEDTLS_SHA3_224 ) )
-        return( 1 );
-
-    if( 0 != mbedtls_sha3_long_kat_test( verbose,
-                                         "SHA3-256", MBEDTLS_SHA3_256 ) )
-        return( 1 );
-
-    if( 0 != mbedtls_sha3_long_kat_test( verbose,
-                                         "SHA3-384", MBEDTLS_SHA3_384 ) )
-        return( 1 );
-
-    if( 0 != mbedtls_sha3_long_kat_test( verbose,
-                                         "SHA3-512", MBEDTLS_SHA3_512 ) )
-        return( 1 );
-
-    if( verbose != 0 )
-    {
-        mbedtls_printf( "\n" );
+    if (0 != mbedtls_sha3_long_kat_test(verbose,
+                                        "SHA3-224", MBEDTLS_SHA3_224)) {
+        return 1;
     }
 
-    /* SHAKE and cSHAKE tests */
-    if( 0 != mbedtls_shake_self_test( verbose ) )
-        return( 1 );
+    if (0 != mbedtls_sha3_long_kat_test(verbose,
+                                        "SHA3-256", MBEDTLS_SHA3_256)) {
+        return 1;
+    }
 
-    return( 0 );
+    if (0 != mbedtls_sha3_long_kat_test(verbose,
+                                        "SHA3-384", MBEDTLS_SHA3_384)) {
+        return 1;
+    }
+
+    if (0 != mbedtls_sha3_long_kat_test(verbose,
+                                        "SHA3-512", MBEDTLS_SHA3_512)) {
+        return 1;
+    }
+
+    if (verbose != 0) {
+        mbedtls_printf("\n");
+    }
+
+
+    /* SHAKE and cSHAKE tests */
+    if (0 != mbedtls_shake_self_test(verbose))
+        return 1;
+
+    return 0;
 }
 #endif /* MBEDTLS_SELF_TEST */
 

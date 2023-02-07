@@ -657,14 +657,18 @@ int main(int argc, char *argv[])
     }
 #endif
 #if defined(MBEDTLS_SHA3_C)
-    if ( todo.sha3_224 )
-        TIME_AND_TSC( "SHA3-224", mbedtls_sha3( MBEDTLS_SHA3_224, buf, BUFSIZE, tmp, 28 ) );
-    if ( todo.sha3_256 )
-        TIME_AND_TSC( "SHA3-256", mbedtls_sha3( MBEDTLS_SHA3_256, buf, BUFSIZE, tmp, 32 ) );
-    if ( todo.sha3_384 )
-        TIME_AND_TSC( "SHA3-384", mbedtls_sha3( MBEDTLS_SHA3_384, buf, BUFSIZE, tmp, 48 ) );
-    if ( todo.sha3_512 )
-        TIME_AND_TSC( "SHA3-512", mbedtls_sha3( MBEDTLS_SHA3_512, buf, BUFSIZE, tmp, 64 ) );
+    if (todo.sha3_224) {
+        TIME_AND_TSC("SHA3-224", mbedtls_sha3(MBEDTLS_SHA3_224, buf, BUFSIZE, tmp, 28));
+    }
+    if (todo.sha3_256) {
+        TIME_AND_TSC("SHA3-256", mbedtls_sha3(MBEDTLS_SHA3_256, buf, BUFSIZE, tmp, 32));
+    }
+    if (todo.sha3_384) {
+        TIME_AND_TSC("SHA3-384", mbedtls_sha3(MBEDTLS_SHA3_384, buf, BUFSIZE, tmp, 48));
+    }
+    if (todo.sha3_512) {
+        TIME_AND_TSC("SHA3-512", mbedtls_sha3(MBEDTLS_SHA3_512, buf, BUFSIZE, tmp, 64));
+    }
 #endif
 
 #if defined(MBEDTLS_DES_C)

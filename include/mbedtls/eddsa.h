@@ -53,16 +53,16 @@
  *
  * For each of r and s, the value (V) may include an extra initial "0" bit.
  */
-#define MBEDTLS_EDDSA_MAX_SIG_LEN( bits )                               \
-    ( /*T,L of SEQUENCE*/ ( ( bits ) >= 61 * 8 ? 3 : 2 ) +              \
-      /*T,L of r,s*/        2 * ( ( ( bits ) >= 127 * 8 ? 3 : 2 ) +     \
-      /*V of r,s*/                ( ( bits ) + 8 ) / 8 ) )
+#define MBEDTLS_EDDSA_MAX_SIG_LEN(bits)                               \
+        (/*T,L of SEQUENCE*/ ((bits) >= 61 * 8 ? 3 : 2) +              \
+         /*T,L of r,s*/ 2 * (((bits) >= 127 * 8 ? 3 : 2) +     \
+                             /*V of r,s*/ ((bits) + 8) / 8))
 
 /** The maximal size of an EdDSA signature in Bytes. */
 /* EdDSA is defined for two curves: Ed25519 (256 bits) */
 
 #if defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
-#define MBEDTLS_EDDSA_MAX_LEN  MBEDTLS_EDDSA_MAX_SIG_LEN( 256 )
+#define MBEDTLS_EDDSA_MAX_LEN  MBEDTLS_EDDSA_MAX_SIG_LEN(256)
 #endif
 
 #ifdef __cplusplus
@@ -75,8 +75,7 @@ extern "C" {
  * It identifies the signature operation type (pure, ctx or prehash).
  */
 
-typedef enum
-{
+typedef enum {
     MBEDTLS_EDDSA_NONE = 0, /*!< Operation not defined. */
     MBEDTLS_EDDSA_PURE,     /*!< Pure operation (the usual). It uses the entire message, without hashing it previously. */
     MBEDTLS_EDDSA_CTX,      /*!< Operation with a deterministic context. It uses the entire message, without hashing it previously. */
@@ -91,7 +90,7 @@ typedef enum
  *
  * \return         \c 1 if the group can be used, \c 0 otherwise
  */
-int mbedtls_eddsa_can_do( mbedtls_ecp_group_id gid );
+int mbedtls_eddsa_can_do(mbedtls_ecp_group_id gid);
 
 /**
  * \brief           This function computes the EdDSA signature of a
@@ -133,12 +132,12 @@ int mbedtls_eddsa_can_do( mbedtls_ecp_group_id gid );
  * \return          An \c MBEDTLS_ERR_ECP_XXX
  *                  or \c MBEDTLS_MPI_XXX error code on failure.
  */
-int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
-                mbedtls_mpi *r, mbedtls_mpi *s,
-                const mbedtls_mpi *d, const unsigned char *buf, size_t blen,
-                mbedtls_eddsa_id eddsa_id,
-                const unsigned char *ed_ctx, size_t ed_ctx_len,
-                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
+int mbedtls_eddsa_sign(mbedtls_ecp_group *grp,
+                       mbedtls_mpi *r, mbedtls_mpi *s,
+                       const mbedtls_mpi *d, const unsigned char *buf, size_t blen,
+                       mbedtls_eddsa_id eddsa_id,
+                       const unsigned char *ed_ctx, size_t ed_ctx_len,
+                       int (*f_rng)(void *, unsigned char *, size_t), void *p_rng);
 
 /**
  * \brief           This function verifies the EdDSA signature of a
@@ -179,12 +178,12 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
  * \return          An \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_MPI_XXX
  *                  error code on failure for any other reason.
  */
-int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
-                          const unsigned char *buf, size_t blen,
-                          const mbedtls_ecp_point *Q, const mbedtls_mpi *r,
-                          const mbedtls_mpi *s,
-                          mbedtls_eddsa_id eddsa_id,
-                          const unsigned char *ed_ctx, size_t ed_ctx_len );
+int mbedtls_eddsa_verify(mbedtls_ecp_group *grp,
+                         const unsigned char *buf, size_t blen,
+                         const mbedtls_ecp_point *Q, const mbedtls_mpi *r,
+                         const mbedtls_mpi *s,
+                         mbedtls_eddsa_id eddsa_id,
+                         const unsigned char *ed_ctx, size_t ed_ctx_len);
 
 /**
  * \brief           This function computes the EdDSA signature and writes it
@@ -229,13 +228,13 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
  * \return          An \c MBEDTLS_ERR_ECP_XXX, \c MBEDTLS_ERR_MPI_XXX or
  *                  \c MBEDTLS_ERR_ASN1_XXX error code on failure.
  */
-int mbedtls_eddsa_write_signature( mbedtls_ecp_keypair *ctx,
-                           const unsigned char *hash, size_t hlen,
-                           unsigned char *sig, size_t sig_size, size_t *slen,
-                           mbedtls_eddsa_id eddsa_id,
-                           const unsigned char *ed_ctx, size_t ed_ctx_len,
-                           int (*f_rng)(void *, unsigned char *, size_t),
-                           void *p_rng );
+int mbedtls_eddsa_write_signature(mbedtls_ecp_keypair *ctx,
+                                  const unsigned char *hash, size_t hlen,
+                                  unsigned char *sig, size_t sig_size, size_t *slen,
+                                  mbedtls_eddsa_id eddsa_id,
+                                  const unsigned char *ed_ctx, size_t ed_ctx_len,
+                                  int (*f_rng)(void *, unsigned char *, size_t),
+                                  void *p_rng);
 
 /**
  * \brief           This function reads and verifies an EdDSA signature.
@@ -271,15 +270,14 @@ int mbedtls_eddsa_write_signature( mbedtls_ecp_keypair *ctx,
  * \return          An \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_ERR_MPI_XXX
  *                  error code on failure for any other reason.
  */
-int mbedtls_eddsa_read_signature( mbedtls_ecp_keypair *ctx,
-                          const unsigned char *hash, size_t hlen,
-                          const unsigned char *sig, size_t slen,
-                          mbedtls_eddsa_id eddsa_id,
-                          const unsigned char *ed_ctx, size_t ed_ctx_len );
+int mbedtls_eddsa_read_signature(mbedtls_ecp_keypair *ctx,
+                                 const unsigned char *hash, size_t hlen,
+                                 const unsigned char *sig, size_t slen,
+                                 mbedtls_eddsa_id eddsa_id,
+                                 const unsigned char *ed_ctx, size_t ed_ctx_len);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* eddsa.h */
-

@@ -3192,6 +3192,10 @@ static psa_status_t psa_sign_hash_abort_internal(
 
     operation->id = 0;
 
+    /* Do not clear either the error_occurred or num_ops elements here as they
+     * only want to be cleared by the application calling abort, not by abort
+     * being called at completion of an operation. */
+
     return status;
 }
 
@@ -3334,6 +3338,10 @@ static psa_status_t psa_verify_hash_abort_internal(
     status = psa_driver_wrapper_verify_hash_abort(operation);
 
     operation->id = 0;
+
+    /* Do not clear either the error_occurred or num_ops elements here as they
+     * only want to be cleared by the application calling abort, not by abort
+     * being called at completion of an operation. */
 
     return status;
 }

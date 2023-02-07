@@ -126,7 +126,7 @@ typedef struct
     size_t MBEDTLS_PRIVATE( coordinate_bytes );
     psa_algorithm_t MBEDTLS_PRIVATE( alg );
     mbedtls_md_type_t MBEDTLS_PRIVATE( md_alg );
-    uint8_t* MBEDTLS_PRIVATE( hash );
+    uint8_t MBEDTLS_PRIVATE(hash)[PSA_BITS_TO_BYTES(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
     size_t MBEDTLS_PRIVATE( hash_length );
 
 #else
@@ -157,7 +157,7 @@ typedef struct
     mbedtls_ecdsa_context * MBEDTLS_PRIVATE( ctx );
     mbedtls_ecdsa_restart_ctx MBEDTLS_PRIVATE( restart_ctx );
 
-    uint8_t* MBEDTLS_PRIVATE( hash );
+    uint8_t MBEDTLS_PRIVATE(hash)[PSA_BITS_TO_BYTES(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
     size_t MBEDTLS_PRIVATE( hash_length );
 
     mbedtls_mpi MBEDTLS_PRIVATE( r );

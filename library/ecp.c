@@ -716,7 +716,7 @@ int mbedtls_ecp_is_zero(mbedtls_ecp_point *pt)
  * Tell if a point is zero.
  */
 int mbedtls_ecp_is_zero_ext( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt )
-{    
+{
     if (pt == NULL) {
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }

@@ -16,38 +16,44 @@ endif()
 # generated .data files will go there
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/suites)
 
-# Get base names for generated files (starting at "suites/")
+# Get base names for generated files
 execute_process(
     COMMAND
         ${MBEDTLS_PYTHON_EXECUTABLE}
         ${CMAKE_CURRENT_SOURCE_DIR}/../tests/scripts/generate_bignum_tests.py
         --list-for-cmake
-        --directory suites
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}/..
     OUTPUT_VARIABLE
         base_bignum_generated_data_files)
+string(REGEX REPLACE "[^;]*/" ""
+       base_bignum_generated_data_files "${base_bignum_generated_data_files}")
 
 execute_process(
     COMMAND
         ${MBEDTLS_PYTHON_EXECUTABLE}
         ${CMAKE_CURRENT_SOURCE_DIR}/../tests/scripts/generate_psa_tests.py
         --list-for-cmake
-        --directory suites
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}/..
     OUTPUT_VARIABLE
         base_psa_generated_data_files)
+string(REGEX REPLACE "[^;]*/" ""
+       base_psa_generated_data_files "${base_psa_generated_data_files}")
 
-# Derive generated file paths in the build directory
-set(base_generated_data_files ${base_bignum_generated_data_files} ${base_psa_generated_data_files})
+# Derive generated file paths in the build directory. The generated data
+# files go into the suites/ subdirectory.
+set(base_generated_data_files
+    ${base_bignum_generated_data_files} ${base_psa_generated_data_files})
+string(REGEX REPLACE "([^;]+)" "suites/\\1"
+       all_generated_data_files "${base_generated_data_files}")
 set(bignum_generated_data_files "")
 set(psa_generated_data_files "")
 foreach(file ${base_bignum_generated_data_files})
-    list(APPEND bignum_generated_data_files ${CMAKE_CURRENT_BINARY_DIR}/${file})
+    list(APPEND bignum_generated_data_files ${CMAKE_CURRENT_BINARY_DIR}/suites/${file})
 endforeach()
 foreach(file ${base_psa_generated_data_files})
-    list(APPEND psa_generated_data_files ${CMAKE_CURRENT_BINARY_DIR}/${file})
+    list(APPEND psa_generated_data_files ${CMAKE_CURRENT_BINARY_DIR}/suites/${file})
 endforeach()
 
 if(GEN_FILES)
@@ -62,8 +68,12 @@ if(GEN_FILES)
             --directory ${CMAKE_CURRENT_BINARY_DIR}/suites
         DEPENDS
             ${CMAKE_CURRENT_SOURCE_DIR}/../tests/scripts/generate_bignum_tests.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/bignum_common.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/bignum_core.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/bignum_mod_raw.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/bignum_mod.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/test_case.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/test_generation.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/test_data_generation.py
     )
     add_custom_command(
         OUTPUT
@@ -80,14 +90,14 @@ if(GEN_FILES)
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/macro_collector.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/psa_storage.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/test_case.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/test_generation.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/test_data_generation.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_config.h
             ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_values.h
             ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_extra.h
     )
 
 else()
-    foreach(file ${base_generated_data_files})
+    foreach(file ${all_generated_data_files})
         link_to_source(${file})
     endforeach()
 endif()
@@ -98,6 +108,10 @@ endif()
 # the risk of a race.
 add_custom_target(test_suite_bignum_generated_data DEPENDS ${bignum_generated_data_files})
 add_custom_target(test_suite_psa_generated_data DEPENDS ${psa_generated_data_files})
+# If SKIP_TEST_SUITES is not defined with -D, get it from the environment.
+if((NOT DEFINED SKIP_TEST_SUITES) AND (DEFINED ENV{SKIP_TEST_SUITES}))
+    set(SKIP_TEST_SUITES $ENV{SKIP_TEST_SUITES})
+endif()
 # Test suites caught by SKIP_TEST_SUITES are built but not executed.
 # "foo" as a skip pattern skips "test_suite_foo" and "test_suite_foo.bar"
 # but not "test_suite_foobar".
@@ -210,9 +224,9 @@ if(MSVC)
 endif(MSVC)
 
 file(GLOB test_suites RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" suites/*.data)
-list(APPEND test_suites ${base_generated_data_files})
+list(APPEND test_suites ${all_generated_data_files})
 # If the generated .data files are present in the source tree, we just added
-# them twice, both through GLOB and through ${base_generated_data_files}.
+# them twice, both through GLOB and through ${all_generated_data_files}.
 list(REMOVE_DUPLICATES test_suites)
 list(SORT test_suites)
 foreach(test_suite ${test_suites})
@@ -229,6 +243,7 @@ if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/seedfile")
         link_to_source(seedfile)
     endif()
+    link_to_source(Descriptions.txt)
     link_to_source(compat.sh)
     link_to_source(context-info.sh)
     link_to_source(data_files)

@@ -92,8 +92,12 @@ generated_files: $(GENERATED_FILES)
 .SECONDARY: generated_bignum_test_data generated_psa_test_data
 $(GENERATED_BIGNUM_DATA_FILES): generated_bignum_test_data
 generated_bignum_test_data: scripts/generate_bignum_tests.py
+generated_bignum_test_data: ../scripts/mbedtls_dev/bignum_common.py
+generated_bignum_test_data: ../scripts/mbedtls_dev/bignum_core.py
+generated_bignum_test_data: ../scripts/mbedtls_dev/bignum_mod_raw.py
+generated_bignum_test_data: ../scripts/mbedtls_dev/bignum_mod.py
 generated_bignum_test_data: ../scripts/mbedtls_dev/test_case.py
-generated_bignum_test_data: ../scripts/mbedtls_dev/test_generation.py
+generated_bignum_test_data: ../scripts/mbedtls_dev/test_data_generation.py
 generated_bignum_test_data:
 	echo "  Gen   $(GENERATED_BIGNUM_DATA_FILES)"
 	$(PYTHON) scripts/generate_bignum_tests.py
@@ -104,7 +108,7 @@ generated_psa_test_data: ../scripts/mbedtls_dev/crypto_knowledge.py
 generated_psa_test_data: ../scripts/mbedtls_dev/macro_collector.py
 generated_psa_test_data: ../scripts/mbedtls_dev/psa_storage.py
 generated_psa_test_data: ../scripts/mbedtls_dev/test_case.py
-generated_psa_test_data: ../scripts/mbedtls_dev/test_generation.py
+generated_psa_test_data: ../scripts/mbedtls_dev/test_data_generation.py
 ## The generated file only depends on the options that are present in
 ## crypto_config.h, not on which options are set. To avoid regenerating this
 ## file all the time when switching between configurations, don't declare
@@ -161,6 +165,7 @@ src/drivers/%.o : src/drivers/%.c
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
 C_FILES := $(addsuffix .c,$(APPS))
+c: $(C_FILES)
 
 # Wildcard target for test code generation:
 # A .c file is generated for each .data file in the suites/ directory. Each .c
@@ -198,6 +203,7 @@ ifndef WINDOWS
 	rm -f src/*.o src/drivers/*.o src/libmbed*
 	rm -f include/test/instrument_record_status.h
 	rm -rf libtestdriver1
+	rm -f ../library/libtestdriver1.a
 else
 	if exist *.c del /Q /F *.c
 	if exist *.exe del /Q /F *.exe

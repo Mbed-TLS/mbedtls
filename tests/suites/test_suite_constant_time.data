@@ -1,0 +1,137 @@
+# these are the numbers we'd get with an empty plaintext and truncated HMAC
+Constant-flow memcpy from offset: small
+ssl_cf_memcpy_offset:0:5:10
+
+# we could get this with 255-bytes plaintext and untruncated SHA-256
+Constant-flow memcpy from offset: medium
+ssl_cf_memcpy_offset:0:255:32
+
+# we could get this with 255-bytes plaintext and untruncated SHA-384
+Constant-flow memcpy from offset: large
+ssl_cf_memcpy_offset:100:339:48
+
+mbedtls_ct_memcmp NULL
+mbedtls_ct_memcmp_null
+
+mbedtls_ct_memcmp len 1
+mbedtls_ct_memcmp:-1:1:0
+
+mbedtls_ct_memcmp len 3
+mbedtls_ct_memcmp:-1:3:0
+
+mbedtls_ct_memcmp len 4
+mbedtls_ct_memcmp:-1:4:0
+
+mbedtls_ct_memcmp len 5
+mbedtls_ct_memcmp:-1:5:0
+
+mbedtls_ct_memcmp len 15
+mbedtls_ct_memcmp:-1:15:0
+
+mbedtls_ct_memcmp len 16
+mbedtls_ct_memcmp:-1:16:0
+
+mbedtls_ct_memcmp len 17
+mbedtls_ct_memcmp:-1:17:0
+
+mbedtls_ct_memcmp len 1 different
+mbedtls_ct_memcmp:0:1:0
+
+mbedtls_ct_memcmp len 17 different
+mbedtls_ct_memcmp:0:17:0
+
+mbedtls_ct_memcmp len 17 different 1
+mbedtls_ct_memcmp:1:17:0
+
+mbedtls_ct_memcmp len 17 different 4
+mbedtls_ct_memcmp:4:17:0
+
+mbedtls_ct_memcmp len 17 different 10
+mbedtls_ct_memcmp:10:17:0
+
+mbedtls_ct_memcmp len 17 different 16
+mbedtls_ct_memcmp:16:17:0
+
+mbedtls_ct_memcmp len 1 offset 1 different
+mbedtls_ct_memcmp:0:1:1
+
+mbedtls_ct_memcmp len 17 offset 1 different
+mbedtls_ct_memcmp:0:17:1
+
+mbedtls_ct_memcmp len 17 offset 1 different 1
+mbedtls_ct_memcmp:1:17:1
+
+mbedtls_ct_memcmp len 17 offset 1 different 5
+mbedtls_ct_memcmp:5:17:1
+
+mbedtls_ct_memcmp len 1 offset 1
+mbedtls_ct_memcmp:-1:1:1
+
+mbedtls_ct_memcmp len 1 offset 2
+mbedtls_ct_memcmp:-1:1:2
+
+mbedtls_ct_memcmp len 1 offset 3
+mbedtls_ct_memcmp:-1:1:3
+
+mbedtls_ct_memcmp len 5 offset 1
+mbedtls_ct_memcmp:-1:5:1
+
+mbedtls_ct_memcmp len 5 offset 2
+mbedtls_ct_memcmp:-1:5:2
+
+mbedtls_ct_memcmp len 5 offset 3
+mbedtls_ct_memcmp:-1:5:3
+
+mbedtls_ct_memcmp len 17 offset 1
+mbedtls_ct_memcmp:-1:17:1
+
+mbedtls_ct_memcmp len 17 offset 2
+mbedtls_ct_memcmp:-1:17:2
+
+mbedtls_ct_memcmp len 17 offset 3
+mbedtls_ct_memcmp:-1:17:3
+
+mbedtls_ct_memcpy_if_eq len 1 offset 0
+mbedtls_ct_memcpy_if_eq:1:1:0
+
+mbedtls_ct_memcpy_if_eq len 1 offset 1
+mbedtls_ct_memcpy_if_eq:1:1:1
+
+mbedtls_ct_memcpy_if_eq len 4 offset 0
+mbedtls_ct_memcpy_if_eq:1:1:0
+
+mbedtls_ct_memcpy_if_eq len 4 offset 1
+mbedtls_ct_memcpy_if_eq:1:1:1
+
+mbedtls_ct_memcpy_if_eq len 4 offset 2
+mbedtls_ct_memcpy_if_eq:1:1:2
+
+mbedtls_ct_memcpy_if_eq len 4 offset 3
+mbedtls_ct_memcpy_if_eq:1:1:3
+
+mbedtls_ct_memcpy_if_eq len 15 offset 0
+mbedtls_ct_memcpy_if_eq:1:15:0
+
+mbedtls_ct_memcpy_if_eq len 15 offset 1
+mbedtls_ct_memcpy_if_eq:1:15:1
+
+mbedtls_ct_memcpy_if_eq len 16 offset 0
+mbedtls_ct_memcpy_if_eq:1:16:0
+
+mbedtls_ct_memcpy_if_eq len 16 offset 1
+mbedtls_ct_memcpy_if_eq:1:16:1
+
+mbedtls_ct_memcpy_if_eq len 17 offset 0
+mbedtls_ct_memcpy_if_eq:1:17:0
+
+mbedtls_ct_memcpy_if_eq len 17 offset 1
+mbedtls_ct_memcpy_if_eq:1:17:1
+
+mbedtls_ct_memcpy_if_eq len 0 not eq
+mbedtls_ct_memcpy_if_eq:0:17:0
+
+mbedtls_ct_memcpy_if_eq len 5 offset 1 not eq
+mbedtls_ct_memcpy_if_eq:0:5:1
+
+mbedtls_ct_memcpy_if_eq len 17 offset 3 not eq
+mbedtls_ct_memcpy_if_eq:0:17:3

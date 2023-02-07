@@ -15,7 +15,6 @@
  *
  * \return              The corresponding PSA error code
  */
- //no-check-names
 psa_status_t p256_to_psa_error( int ret );
 
 
@@ -38,7 +37,6 @@ psa_status_t p256_to_psa_error( int ret );
  * \retval #PSA_ERROR_GENERIC_ERROR
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  */
- //no-check-names
 psa_status_t p256_transparent_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key_buffer,
@@ -67,7 +65,6 @@ psa_status_t p256_transparent_generate_key(
  *         Success. Shared secret successfully calculated.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  */
- //no-check-names
 psa_status_t p256_transparent_key_agreement(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
@@ -100,7 +97,6 @@ psa_status_t p256_transparent_key_agreement(
  *         respectively of the key.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  */
-//no-check-names
 psa_status_t p256_transparent_sign_hash(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,

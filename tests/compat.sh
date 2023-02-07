@@ -999,6 +999,7 @@ for MODE in $MODES; do
             if [ "$TYPE" = "PSK" ]; then
                 if [ -z "$PSK_TESTS" ]; then
                     PSK_TESTS="FINISHED"
+                    VERIF="no"
                 else
                     continue;
                 fi

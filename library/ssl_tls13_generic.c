@@ -1378,9 +1378,8 @@ int mbedtls_ssl_reset_transcript_for_hrr(mbedtls_ssl_context *ssl)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char hash_transcript[PSA_HASH_MAX_SIZE + 4];
     size_t hash_len;
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
-    uint16_t cipher_suite = ssl->session_negotiate->ciphersuite;
-    ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(cipher_suite);
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
+        ssl->handshake->ciphersuite_info;
 
     MBEDTLS_SSL_DEBUG_MSG(3, ("Reset SSL session for HRR"));
 

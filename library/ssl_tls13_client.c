@@ -1712,11 +1712,6 @@ static int ssl_tls13_parse_server_hello(mbedtls_ssl_context *ssl,
     mbedtls_ssl_optimize_checksum(ssl, ciphersuite_info);
 
     handshake->ciphersuite_info = ciphersuite_info;
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    if (handshake->resume == 0)
-#endif
-    ssl->session_negotiate->ciphersuite = cipher_suite;
-
     MBEDTLS_SSL_DEBUG_MSG(3, ("server hello, chosen ciphersuite: ( %04x ) - %s",
                               cipher_suite, ciphersuite_info->name));
 

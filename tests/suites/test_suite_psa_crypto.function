@@ -7483,6 +7483,54 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
+void interruptible_signverify_hash_maxops_tests(int key_type_arg,
+                                                data_t *key_data, int alg_arg, data_t *input_data)
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_sign_hash_interruptible_operation_t sign_operation =
+        psa_sign_hash_interruptible_operation_init();
+
+    PSA_ASSERT(psa_crypto_init());
+
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH |
+                            PSA_KEY_USAGE_VERIFY_HASH);
+    psa_set_key_algorithm(&attributes, alg);
+    psa_set_key_type(&attributes, key_type);
+
+    PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len,
+                              &key));
+
+    /* Check that default max ops gets set if we don't set it. */
+    PSA_ASSERT(psa_sign_hash_start(&sign_operation, key, alg,
+                                   input_data->x, input_data->len));
+
+    TEST_EQUAL(psa_interruptible_get_max_ops(),
+               PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED);
+
+    PSA_ASSERT(psa_sign_hash_abort(&sign_operation));
+
+    /* Check that max ops gets set properly. */
+
+    psa_interruptible_set_max_ops(0xbeef);
+
+    TEST_EQUAL(psa_interruptible_get_max_ops(),
+               0xbeef);
+
+exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
+    psa_reset_key_attributes(&attributes);
+
+    psa_destroy_key(key);
+    PSA_DONE();
+}
+/* END_CASE */
 
 /* BEGIN_CASE */
 void sign_message_deterministic(int key_type_arg,

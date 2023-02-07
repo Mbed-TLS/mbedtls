@@ -1943,10 +1943,9 @@ static int ssl_tls13_postprocess_server_hello(mbedtls_ssl_context *ssl)
      * cases we compute it here.
      */
 #if defined(MBEDTLS_SSL_EARLY_DATA)
-    if ((ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT) ||
-        (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED &&
-         handshake->key_exchange_mode ==
-         MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL))
+    if (ssl->early_data_status == MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT ||
+        handshake->key_exchange_mode ==
+        MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL)
 #endif
     {
         ret = mbedtls_ssl_tls13_key_schedule_stage_early(ssl);

@@ -1107,35 +1107,26 @@ static int ssl_tls13_parse_server_pre_shared_key_ext(mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     if (selected_identity == 0 && ssl_tls13_has_configured_ticket(ssl)) {
         ret = ssl_tls13_ticket_get_psk(ssl, &hash_alg, &psk, &psk_len);
-        if (mbedtls_psa_translate_md(ssl->handshake->ciphersuite_info->mac)
-            != hash_alg) {
-            MBEDTLS_SSL_DEBUG_MSG(
-                1, ("Invalid ciphersuite for ticket psk."));
-
-            MBEDTLS_SSL_PEND_FATAL_ALERT(
-                MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
-                MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
-            return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
-        }
     } else
 #endif
     if (mbedtls_ssl_conf_has_static_psk(ssl->conf)) {
         ret = ssl_tls13_psk_get_psk(ssl, &hash_alg, &psk, &psk_len);
-        if (mbedtls_psa_translate_md(ssl->handshake->ciphersuite_info->mac)
-            != hash_alg) {
-            MBEDTLS_SSL_DEBUG_MSG(
-                1, ("Invalid ciphersuite for external psk."));
-
-            MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
-                                         MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
-            return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
-        }
     } else {
         MBEDTLS_SSL_DEBUG_MSG(1, ("should never happen"));
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }
     if (ret != 0) {
         return ret;
+    }
+
+    if (mbedtls_psa_translate_md(ssl->handshake->ciphersuite_info->mac)
+        != hash_alg) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            1, ("Invalid ciphersuite for external psk."));
+
+        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                                     MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
+        return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
     }
 
     ret = mbedtls_ssl_set_hs_psk(ssl, psk, psk_len);

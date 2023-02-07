@@ -26,9 +26,6 @@
 #include "mbedtls/oid.h"
 #include "mbedtls/error.h"
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #if defined(MBEDTLS_FS_IO)
 #include <sys/types.h>
 #include <sys/stat.h>

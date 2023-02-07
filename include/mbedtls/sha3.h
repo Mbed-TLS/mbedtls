@@ -46,8 +46,7 @@ extern "C" {
  * It identifies the family (SHA3-256, SHA3-512, etc.)
  */
 
-typedef enum
-{
+typedef enum {
     MBEDTLS_SHA3_NONE = 0, /*!< Operation not defined. */
     MBEDTLS_SHA3_224, /*!< SHA3-224 */
     MBEDTLS_SHA3_256, /*!< SHA3-256 */
@@ -60,8 +59,7 @@ typedef enum
 } mbedtls_sha3_id;
 
 struct mbedtls_sha3_context;
-typedef struct mbedtls_sha3_family_functions
-{
+typedef struct mbedtls_sha3_family_functions {
     mbedtls_sha3_id id;
 
     uint16_t r;
@@ -93,7 +91,7 @@ mbedtls_sha3_context;
  *
  * \param ctx      The SHA-3 context to initialize. This must not be \c NULL.
  */
-void mbedtls_sha3_init( mbedtls_sha3_context *ctx );
+void mbedtls_sha3_init(mbedtls_sha3_context *ctx);
 
 /**
  * \brief          This function clears a SHA-3 context.
@@ -102,7 +100,7 @@ void mbedtls_sha3_init( mbedtls_sha3_context *ctx );
  *                 case this function returns immediately. If it is not \c NULL,
  *                 it must point to an initialized SHA-3 context.
  */
-void mbedtls_sha3_free( mbedtls_sha3_context *ctx );
+void mbedtls_sha3_free(mbedtls_sha3_context *ctx);
 
 /**
  * \brief          This function clones the state of a SHA-3 context.
@@ -110,8 +108,8 @@ void mbedtls_sha3_free( mbedtls_sha3_context *ctx );
  * \param dst      The destination context. This must be initialized.
  * \param src      The context to clone. This must be initialized.
  */
-void mbedtls_sha3_clone( mbedtls_sha3_context *dst,
-                           const mbedtls_sha3_context *src );
+void mbedtls_sha3_clone(mbedtls_sha3_context *dst,
+                        const mbedtls_sha3_context *src);
 
 /**
  * \brief          This function starts a SHA-3 checksum
@@ -123,7 +121,7 @@ void mbedtls_sha3_clone( mbedtls_sha3_context *dst,
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
-int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_id id );
+int mbedtls_sha3_starts(mbedtls_sha3_context *ctx, mbedtls_sha3_id id);
 
 /**
  * \brief          This function starts a SHA-3 checksum
@@ -161,9 +159,9 @@ int mbedtls_sha3_starts_cshake( mbedtls_sha3_context *ctx,
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
-int mbedtls_sha3_update( mbedtls_sha3_context *ctx,
-                           const uint8_t *input,
-                           size_t ilen );
+int mbedtls_sha3_update(mbedtls_sha3_context *ctx,
+                        const uint8_t *input,
+                        size_t ilen);
 
 /**
  * \brief          This function finishes the SHA-3 operation, and writes
@@ -181,8 +179,8 @@ int mbedtls_sha3_update( mbedtls_sha3_context *ctx,
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
-int mbedtls_sha3_finish( mbedtls_sha3_context *ctx,
-                           uint8_t *output, size_t olen );
+int mbedtls_sha3_finish(mbedtls_sha3_context *ctx,
+                        uint8_t *output, size_t olen);
 
 /**
  * \brief          This function calculates the SHA-3
@@ -208,10 +206,10 @@ int mbedtls_sha3_finish( mbedtls_sha3_context *ctx,
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
-int mbedtls_sha3( mbedtls_sha3_id id, const uint8_t *input,
-                    size_t ilen,
-                    uint8_t *output,
-                    size_t olen );
+int mbedtls_sha3(mbedtls_sha3_id id, const uint8_t *input,
+                 size_t ilen,
+                 uint8_t *output,
+                 size_t olen);
 
 /**
  * \brief          This function calculates the SHA-3
@@ -257,7 +255,7 @@ int mbedtls_sha3_cshake( mbedtls_sha3_id id, const uint8_t *input,
  *
  * \return         0 if successful, or 1 if the test failed.
  */
-int mbedtls_sha3_self_test( int verbose );
+int mbedtls_sha3_self_test(int verbose);
 #endif /* MBEDTLS_SELF_TEST */
 
 #ifdef __cplusplus
@@ -265,4 +263,3 @@ int mbedtls_sha3_self_test( int verbose );
 #endif
 
 #endif /* mbedtls_sha3.h */
-

@@ -4771,41 +4771,42 @@ static const unsigned char ed25519_g_y[] = {
 /*
  * Specialized function for creating the Ed25519 group
  */
-static int ecp_use_ed25519( mbedtls_ecp_group *grp )
+static int ecp_use_ed25519(mbedtls_ecp_group *grp)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     /* P = 2^255 - 19 */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &grp->P, 1 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( &grp->P, 255 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &grp->P, &grp->P, 19 ) );
-    grp->pbits = mbedtls_mpi_bitlen( &grp->P );
+    MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&grp->P, 1));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_shift_l(&grp->P, 255));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_sub_int(&grp->P, &grp->P, 19));
+    grp->pbits = mbedtls_mpi_bitlen(&grp->P);
 
     /* N = 2^252 + 27742317777372353535851937790883648493 */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &grp->N,
-                        ed25519_part_of_n, sizeof( ed25519_part_of_n ) ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( &grp->N, 252, 1 ) );
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&grp->N,
+                                            ed25519_part_of_n, sizeof(ed25519_part_of_n)));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_set_bit(&grp->N, 252, 1));
 
     /* A = -1 */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &grp->A, &grp->P, 1 ) );
+    MBEDTLS_MPI_CHK(mbedtls_mpi_sub_int(&grp->A, &grp->P, 1));
 
     /* B = -121665/121666 (actually d of edwards25519) */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &grp->B,
-                        ed25519_b, sizeof( ed25519_b ) ) );
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&grp->B,
+                                            ed25519_b, sizeof(ed25519_b)));
 
     /* (X(P),Y(P)) of edwards25519 in RFC7748. Also set Z so that
      * projective coordinates can be used. */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &grp->G.X,
-                        ed25519_g_x, sizeof( ed25519_g_x ) ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &grp->G.Y,
-                        ed25519_g_y, sizeof( ed25519_g_y ) ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &grp->G.Z, 1 ) );
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&grp->G.X,
+                                            ed25519_g_x, sizeof(ed25519_g_x)));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&grp->G.Y,
+                                            ed25519_g_y, sizeof(ed25519_g_y)));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&grp->G.Z, 1));
 
 cleanup:
-    if( ret != 0 )
-        mbedtls_ecp_group_free( grp );
+    if (ret != 0) {
+        mbedtls_ecp_group_free(grp);
+    }
 
-    return( ret );
+    return ret;
 }
 #endif /* MBEDTLS_ECP_DP_ED25519_ENABLED */
 

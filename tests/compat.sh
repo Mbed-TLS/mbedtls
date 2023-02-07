@@ -216,7 +216,7 @@ filter_ciphersuites()
 
     # For GnuTLS client -> mbed TLS server,
     # we need to force IPv4 by connecting to 127.0.0.1 but then auth fails
-    if [ "X$VERIFY" = "XYES" ] && is_dtls "$MODE"; then
+    if is_dtls "$MODE" && [ "X$VERIFY" = "XYES" ] && [ "$TYPE" != "PSK" ]; then
         G_CIPHERS=""
     fi
 }

@@ -453,7 +453,11 @@ uint32_t psa_driver_wrapper_sign_hash_get_num_ops(
             return 0;
 
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            return( mbedtls_psa_sign_hash_get_num_ops(
+            /* Internal implementation returns a delta of ops completed in the
+             * last call to complete(), so need to add in ops already completed
+             * before this.*/
+            return( operation->num_ops +
+                    mbedtls_psa_sign_hash_get_num_ops(
                                                 &operation->ctx.mbedtls_ctx )
                   );
 
@@ -478,7 +482,11 @@ uint32_t psa_driver_wrapper_verify_hash_get_num_ops(
             return 0;
 
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            return( mbedtls_psa_verify_hash_get_num_ops(
+            /* Internal implementation returns a delta of ops completed in the
+             * last call to complete(), so need to add in ops already completed
+             * before this.*/
+            return ( operation->num_ops +
+                     mbedtls_psa_verify_hash_get_num_ops(
                                                 &operation->ctx.mbedtls_ctx )
                     );
 

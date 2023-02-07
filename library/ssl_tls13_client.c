@@ -1266,16 +1266,16 @@ int mbedtls_ssl_tls13_finalize_client_hello(mbedtls_ssl_context *ssl)
          * encrypted using a different ciphersuite than the one used for
          * the rejected early data.
          */
-
         ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(
             ssl->session_negotiate->ciphersuite);
         ssl->handshake->ciphersuite_info = ciphersuite_info;
+
         /* Enable psk and psk_ephermal to make stage early happy */
         ssl->handshake->key_exchange_mode =
             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL;
 
         /* Start the TLS 1.3 key schedule:
-         * Set the PSK and derive early secret.
+         *     Set the PSK and derive early secret.
          */
         ret = mbedtls_ssl_tls13_key_schedule_stage_early(ssl);
         if (ret != 0) {
@@ -1926,7 +1926,11 @@ static int ssl_tls13_postprocess_server_hello(mbedtls_ssl_context *ssl)
          * selected PSK:
          * - The TLS version number
          * - The selected cipher suite
-         * - The selected ALPN [RFC7301] protocol, if any (not checked yet)
+         * - The selected ALPN [RFC7301] protocol, if any
+         *
+         * We check here that when early data is involved the server
+         * selected the cipher suite associated to the pre-shared key
+         * as it must have.
          */
         MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
                                      MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);

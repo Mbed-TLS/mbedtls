@@ -91,6 +91,13 @@ class EcpP521R1Raw(bignum_common.ModOperationCommon,
     input_values = [
         "0", "1",
 
+        # Corner case: maximum canonical P521 multiplication result
+        ("0003ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+         "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+         "fffff800"
+         "0000000000000000000000000000000000000000000000000000000000000000"
+         "0000000000000000000000000000000000000000000000000000000000000004"),
+
         # Test case for overflow during addition
         ("0001efffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
          "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"

@@ -1,0 +1,20 @@
+Block xor, length 0
+mbedtls_xor:0
+
+Block xor, length 1
+mbedtls_xor:1
+
+Block xor, length 3
+mbedtls_xor:3
+
+Block xor, length 4
+mbedtls_xor:4
+
+Block xor, length 7
+mbedtls_xor:7
+
+Block xor, length 8
+mbedtls_xor:8
+
+Block xor, length 16
+mbedtls_xor:16

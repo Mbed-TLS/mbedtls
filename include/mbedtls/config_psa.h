@@ -7,7 +7,7 @@
  *  those definitions to define symbols used in the library code.
  *
  *  Users and integrators should not edit this file, please edit
- *  include/mbedtls/mbedtls_config.h for MBETLS_XXX settings or
+ *  include/mbedtls/mbedtls_config.h for MBEDTLS_XXX settings or
  *  include/psa/crypto_config.h for PSA_WANT_XXX settings.
  */
 /*
@@ -296,9 +296,9 @@ extern "C" {
     (defined(PSA_WANT_ALG_OFB) && !defined(MBEDTLS_PSA_ACCEL_ALG_OFB)) || \
     defined(PSA_WANT_ALG_ECB_NO_PADDING) || \
     (defined(PSA_WANT_ALG_CBC_NO_PADDING) && \
-     !defined(MBEDTLS_PSA_ACCEL_ALG_CBC_NO_PADDING)) || \
+    !defined(MBEDTLS_PSA_ACCEL_ALG_CBC_NO_PADDING)) || \
     (defined(PSA_WANT_ALG_CBC_PKCS7) && \
-     !defined(MBEDTLS_PSA_ACCEL_ALG_CBC_PKCS7)) || \
+    !defined(MBEDTLS_PSA_ACCEL_ALG_CBC_PKCS7)) || \
     (defined(PSA_WANT_ALG_CMAC) && !defined(MBEDTLS_PSA_ACCEL_ALG_CMAC))
 #define PSA_HAVE_SOFT_BLOCK_MODE 1
 #endif
@@ -843,6 +843,8 @@ extern "C" {
 
 /* These features are always enabled. */
 #define PSA_WANT_KEY_TYPE_DERIVE 1
+#define PSA_WANT_KEY_TYPE_PASSWORD 1
+#define PSA_WANT_KEY_TYPE_PASSWORD_HASH 1
 #define PSA_WANT_KEY_TYPE_RAW_DATA 1
 
 #ifdef __cplusplus

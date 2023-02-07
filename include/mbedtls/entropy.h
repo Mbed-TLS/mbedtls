@@ -99,15 +99,14 @@ extern "C" {
  *                  MBEDTLS_ERR_ENTROPY_SOURCE_FAILED otherwise
  */
 typedef int (*mbedtls_entropy_f_source_ptr)(void *data, unsigned char *output, size_t len,
-                            size_t *olen);
+                                            size_t *olen);
 
 /**
  * \brief           Entropy source state
  */
-typedef struct mbedtls_entropy_source_state
-{
+typedef struct mbedtls_entropy_source_state {
     mbedtls_entropy_f_source_ptr    MBEDTLS_PRIVATE(f_source);   /**< The entropy source callback */
-    void *          MBEDTLS_PRIVATE(p_source);   /**< The callback data pointer */
+    void *MBEDTLS_PRIVATE(p_source);             /**< The callback data pointer */
     size_t          MBEDTLS_PRIVATE(size);       /**< Amount received in bytes */
     size_t          MBEDTLS_PRIVATE(threshold);  /**< Minimum bytes required before release */
     int             MBEDTLS_PRIVATE(strong);     /**< Is the source strong? */
@@ -117,11 +116,10 @@ mbedtls_entropy_source_state;
 /**
  * \brief           Entropy context structure
  */
-typedef struct mbedtls_entropy_context
-{
+typedef struct mbedtls_entropy_context {
     int MBEDTLS_PRIVATE(accumulator_started); /* 0 after init.
-                              * 1 after the first update.
-                              * -1 after free. */
+                                               * 1 after the first update.
+                                               * -1 after free. */
 #if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
     mbedtls_sha512_context  MBEDTLS_PRIVATE(accumulator);
 #elif defined(MBEDTLS_ENTROPY_SHA256_ACCUMULATOR)
@@ -142,8 +140,8 @@ mbedtls_entropy_context;
 /**
  * \brief           Platform-specific entropy poll callback
  */
-int mbedtls_platform_entropy_poll( void *data,
-                           unsigned char *output, size_t len, size_t *olen );
+int mbedtls_platform_entropy_poll(void *data,
+                                  unsigned char *output, size_t len, size_t *olen);
 #endif
 
 /**
@@ -151,14 +149,14 @@ int mbedtls_platform_entropy_poll( void *data,
  *
  * \param ctx       Entropy context to initialize
  */
-void mbedtls_entropy_init( mbedtls_entropy_context *ctx );
+void mbedtls_entropy_init(mbedtls_entropy_context *ctx);
 
 /**
  * \brief           Free the data in the context
  *
  * \param ctx       Entropy context to free
  */
-void mbedtls_entropy_free( mbedtls_entropy_context *ctx );
+void mbedtls_entropy_free(mbedtls_entropy_context *ctx);
 
 /**
  * \brief           Adds an entropy source to poll
@@ -177,9 +175,9 @@ void mbedtls_entropy_free( mbedtls_entropy_context *ctx );
  *
  * \return          0 if successful or MBEDTLS_ERR_ENTROPY_MAX_SOURCES
  */
-int mbedtls_entropy_add_source( mbedtls_entropy_context *ctx,
-                        mbedtls_entropy_f_source_ptr f_source, void *p_source,
-                        size_t threshold, int strong );
+int mbedtls_entropy_add_source(mbedtls_entropy_context *ctx,
+                               mbedtls_entropy_f_source_ptr f_source, void *p_source,
+                               size_t threshold, int strong);
 
 /**
  * \brief           Trigger an extra gather poll for the accumulator
@@ -189,7 +187,7 @@ int mbedtls_entropy_add_source( mbedtls_entropy_context *ctx,
  *
  * \return          0 if successful, or MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
  */
-int mbedtls_entropy_gather( mbedtls_entropy_context *ctx );
+int mbedtls_entropy_gather(mbedtls_entropy_context *ctx);
 
 /**
  * \brief           Retrieve entropy from the accumulator
@@ -202,7 +200,7 @@ int mbedtls_entropy_gather( mbedtls_entropy_context *ctx );
  *
  * \return          0 if successful, or MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
  */
-int mbedtls_entropy_func( void *data, unsigned char *output, size_t len );
+int mbedtls_entropy_func(void *data, unsigned char *output, size_t len);
 
 /**
  * \brief           Add data to the accumulator manually
@@ -214,8 +212,8 @@ int mbedtls_entropy_func( void *data, unsigned char *output, size_t len );
  *
  * \return          0 if successful
  */
-int mbedtls_entropy_update_manual( mbedtls_entropy_context *ctx,
-                           const unsigned char *data, size_t len );
+int mbedtls_entropy_update_manual(mbedtls_entropy_context *ctx,
+                                  const unsigned char *data, size_t len);
 
 #if defined(MBEDTLS_ENTROPY_NV_SEED)
 /**
@@ -226,7 +224,7 @@ int mbedtls_entropy_update_manual( mbedtls_entropy_context *ctx,
  *
  * \return          0 if successful
  */
-int mbedtls_entropy_update_nv_seed( mbedtls_entropy_context *ctx );
+int mbedtls_entropy_update_nv_seed(mbedtls_entropy_context *ctx);
 #endif /* MBEDTLS_ENTROPY_NV_SEED */
 
 #if defined(MBEDTLS_FS_IO)
@@ -240,7 +238,7 @@ int mbedtls_entropy_update_nv_seed( mbedtls_entropy_context *ctx );
  *                      MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR on file error, or
  *                      MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
  */
-int mbedtls_entropy_write_seed_file( mbedtls_entropy_context *ctx, const char *path );
+int mbedtls_entropy_write_seed_file(mbedtls_entropy_context *ctx, const char *path);
 
 /**
  * \brief               Read and update a seed file. Seed is added to this
@@ -254,7 +252,7 @@ int mbedtls_entropy_write_seed_file( mbedtls_entropy_context *ctx, const char *p
  *                      MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR on file error,
  *                      MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
  */
-int mbedtls_entropy_update_seed_file( mbedtls_entropy_context *ctx, const char *path );
+int mbedtls_entropy_update_seed_file(mbedtls_entropy_context *ctx, const char *path);
 #endif /* MBEDTLS_FS_IO */
 
 #if defined(MBEDTLS_SELF_TEST)
@@ -266,7 +264,7 @@ int mbedtls_entropy_update_seed_file( mbedtls_entropy_context *ctx, const char *
  *
  * \return         0 if successful, or 1 if a test failed
  */
-int mbedtls_entropy_self_test( int verbose );
+int mbedtls_entropy_self_test(int verbose);
 
 #if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
 /**
@@ -282,7 +280,7 @@ int mbedtls_entropy_self_test( int verbose );
  *
  * \return         0 if successful, or 1 if a test failed
  */
-int mbedtls_entropy_source_self_test( int verbose );
+int mbedtls_entropy_source_self_test(int verbose);
 #endif /* MBEDTLS_ENTROPY_HARDWARE_ALT */
 #endif /* MBEDTLS_SELF_TEST */
 

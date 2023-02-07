@@ -1,0 +1,4 @@
+Bugfix
+   * The key derivation algorithm PSA_ALG_TLS12_ECJPAKE_TO_PMS cannot be
+     used on a shared secret from a key agreement since its input must be
+     an ECC public key. Reject this properly.

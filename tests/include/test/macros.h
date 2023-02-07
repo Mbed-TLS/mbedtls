@@ -28,20 +28,7 @@
 
 #include <stdlib.h>
 
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
-#include <stdio.h>
-#define mbedtls_fprintf    fprintf
-#define mbedtls_snprintf   snprintf
-#define mbedtls_calloc     calloc
-#define mbedtls_free       free
-#define mbedtls_exit       exit
-#define mbedtls_time       time
-#define mbedtls_time_t     time_t
-#define MBEDTLS_EXIT_SUCCESS EXIT_SUCCESS
-#define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
-#endif
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
 #include "mbedtls/memory_buffer_alloc.h"
@@ -64,14 +51,14 @@
  *
  * \param   TEST    The test expression to be tested.
  */
-#define TEST_ASSERT( TEST )                                 \
+#define TEST_ASSERT(TEST)                                 \
     do {                                                    \
-       if( ! (TEST) )                                       \
-       {                                                    \
-          mbedtls_test_fail( #TEST, __LINE__, __FILE__ );   \
-          goto exit;                                        \
-       }                                                    \
-    } while( 0 )
+        if (!(TEST))                                       \
+        {                                                    \
+            mbedtls_test_fail( #TEST, __LINE__, __FILE__);   \
+            goto exit;                                        \
+        }                                                    \
+    } while (0)
 
 /** Evaluate two integer expressions and fail the test case if they have
  * different values.
@@ -82,12 +69,12 @@
  * \param expr1     An integral-typed expression to evaluate.
  * \param expr2     Another integral-typed expression to evaluate.
  */
-#define TEST_EQUAL( expr1, expr2 )                                      \
+#define TEST_EQUAL(expr1, expr2)                                      \
     do {                                                                \
-        if( ! mbedtls_test_equal( #expr1 " == " #expr2, __LINE__, __FILE__, \
-                                  expr1, expr2 ) )                      \
-            goto exit;                                                  \
-    } while( 0 )
+        if (!mbedtls_test_equal( #expr1 " == " #expr2, __LINE__, __FILE__, \
+                                 expr1, expr2))                      \
+        goto exit;                                                  \
+    } while (0)
 
 /** Evaluate two unsigned integer expressions and fail the test case
  * if they are not in increasing order (left <= right).
@@ -95,12 +82,12 @@
  * \param expr1     An integral-typed expression to evaluate.
  * \param expr2     Another integral-typed expression to evaluate.
  */
-#define TEST_LE_U( expr1, expr2 )                                       \
+#define TEST_LE_U(expr1, expr2)                                       \
     do {                                                                \
-        if( ! mbedtls_test_le_u( #expr1 " <= " #expr2, __LINE__, __FILE__, \
-                                 expr1, expr2 ) )                      \
-            goto exit;                                                  \
-    } while( 0 )
+        if (!mbedtls_test_le_u( #expr1 " <= " #expr2, __LINE__, __FILE__, \
+                                expr1, expr2))                      \
+        goto exit;                                                  \
+    } while (0)
 
 /** Evaluate two signed integer expressions and fail the test case
  * if they are not in increasing order (left <= right).
@@ -108,12 +95,12 @@
  * \param expr1     An integral-typed expression to evaluate.
  * \param expr2     Another integral-typed expression to evaluate.
  */
-#define TEST_LE_S( expr1, expr2 )                                       \
+#define TEST_LE_S(expr1, expr2)                                       \
     do {                                                                \
-        if( ! mbedtls_test_le_s( #expr1 " <= " #expr2, __LINE__, __FILE__, \
-                                 expr1, expr2 ) )                      \
-            goto exit;                                                  \
-    } while( 0 )
+        if (!mbedtls_test_le_s( #expr1 " <= " #expr2, __LINE__, __FILE__, \
+                                expr1, expr2))                      \
+        goto exit;                                                  \
+    } while (0)
 
 /** Allocate memory dynamically and fail the test case if this fails.
  * The allocated memory will be filled with zeros.
@@ -135,36 +122,36 @@
  *                  This expression may be evaluated multiple times.
  *
  */
-#define ASSERT_ALLOC( pointer, length )                           \
+#define ASSERT_ALLOC(pointer, length)                           \
     do                                                            \
     {                                                             \
-        TEST_ASSERT( ( pointer ) == NULL );                       \
-        if( ( length ) != 0 )                                     \
+        TEST_ASSERT((pointer) == NULL);                       \
+        if ((length) != 0)                                     \
         {                                                         \
-            ( pointer ) = mbedtls_calloc( sizeof( *( pointer ) ), \
-                                          ( length ) );           \
-            TEST_ASSERT( ( pointer ) != NULL );                   \
+            (pointer) = mbedtls_calloc(sizeof(*(pointer)), \
+                                       (length));           \
+            TEST_ASSERT((pointer) != NULL);                   \
         }                                                         \
     }                                                             \
-    while( 0 )
+    while (0)
 
 /** Allocate memory dynamically. If the allocation fails, skip the test case.
  *
  * This macro behaves like #ASSERT_ALLOC, except that if the allocation
  * fails, it marks the test as skipped rather than failed.
  */
-#define ASSERT_ALLOC_WEAK( pointer, length )                      \
+#define ASSERT_ALLOC_WEAK(pointer, length)                      \
     do                                                            \
     {                                                             \
-        TEST_ASSERT( ( pointer ) == NULL );                       \
-        if( ( length ) != 0 )                                     \
+        TEST_ASSERT((pointer) == NULL);                       \
+        if ((length) != 0)                                     \
         {                                                         \
-            ( pointer ) = mbedtls_calloc( sizeof( *( pointer ) ), \
-                                          ( length ) );           \
-            TEST_ASSUME( ( pointer ) != NULL );                   \
+            (pointer) = mbedtls_calloc(sizeof(*(pointer)), \
+                                       (length));           \
+            TEST_ASSUME((pointer) != NULL);                   \
         }                                                         \
     }                                                             \
-    while( 0 )
+    while (0)
 
 /** Compare two buffers and fail the test case if they differ.
  *
@@ -178,14 +165,14 @@
  * \param size2     Size of the second buffer in bytes.
  *                  This expression may be evaluated multiple times.
  */
-#define ASSERT_COMPARE( p1, size1, p2, size2 )                          \
+#define ASSERT_COMPARE(p1, size1, p2, size2)                          \
     do                                                                  \
     {                                                                   \
-        TEST_ASSERT( ( size1 ) == ( size2 ) );                          \
-        if( ( size1 ) != 0 )                                            \
-            TEST_ASSERT( memcmp( ( p1 ), ( p2 ), ( size1 ) ) == 0 );    \
+        TEST_ASSERT((size1) == (size2));                          \
+        if ((size1) != 0)                                            \
+        TEST_ASSERT(memcmp((p1), (p2), (size1)) == 0);    \
     }                                                                   \
-    while( 0 )
+    while (0)
 
 /**
  * \brief   This macro tests the expression passed to it and skips the
@@ -193,21 +180,21 @@
  *
  * \param   TEST    The test expression to be tested.
  */
-#define TEST_ASSUME( TEST )                                 \
+#define TEST_ASSUME(TEST)                                 \
     do {                                                    \
-        if( ! (TEST) )                                      \
+        if (!(TEST))                                      \
         {                                                   \
-            mbedtls_test_skip( #TEST, __LINE__, __FILE__ ); \
+            mbedtls_test_skip( #TEST, __LINE__, __FILE__); \
             goto exit;                                      \
         }                                                   \
-    } while( 0 )
+    } while (0)
 
-#define TEST_HELPER_ASSERT(a) if( !( a ) )                          \
-{                                                                   \
-    mbedtls_fprintf( stderr, "Assertion Failed at %s:%d - %s\n",    \
-                             __FILE__, __LINE__, #a );              \
-    mbedtls_exit( 1 );                                              \
-}
+#define TEST_HELPER_ASSERT(a) if (!(a))                          \
+    {                                                                   \
+        mbedtls_fprintf(stderr, "Assertion Failed at %s:%d - %s\n",    \
+                        __FILE__, __LINE__, #a);              \
+        mbedtls_exit(1);                                              \
+    }
 
 /** \def ARRAY_LENGTH
  * Return the number of elements of a static or stack array.
@@ -218,34 +205,34 @@
  */
 /* A correct implementation of ARRAY_LENGTH, but which silently gives
  * a nonsensical result if called with a pointer rather than an array. */
-#define ARRAY_LENGTH_UNSAFE( array )            \
-    ( sizeof( array ) / sizeof( *( array ) ) )
+#define ARRAY_LENGTH_UNSAFE(array)            \
+    (sizeof(array) / sizeof(*(array)))
 
 #if defined(__GNUC__)
 /* Test if arg and &(arg)[0] have the same type. This is true if arg is
  * an array but not if it's a pointer. */
-#define IS_ARRAY_NOT_POINTER( arg )                                     \
-    ( ! __builtin_types_compatible_p( __typeof__( arg ),                \
-                                      __typeof__( &( arg )[0] ) ) )
+#define IS_ARRAY_NOT_POINTER(arg)                                     \
+    (!__builtin_types_compatible_p(__typeof__(arg),                \
+                                   __typeof__(&(arg)[0])))
 /* A compile-time constant with the value 0. If `const_expr` is not a
  * compile-time constant with a nonzero value, cause a compile-time error. */
-#define STATIC_ASSERT_EXPR( const_expr )                                \
-    ( 0 && sizeof( struct { unsigned int STATIC_ASSERT : 1 - 2 * ! ( const_expr ); } ) )
+#define STATIC_ASSERT_EXPR(const_expr)                                \
+    (0 && sizeof(struct { unsigned int STATIC_ASSERT : 1 - 2 * !(const_expr); }))
 
 /* Return the scalar value `value` (possibly promoted). This is a compile-time
  * constant if `value` is. `condition` must be a compile-time constant.
  * If `condition` is false, arrange to cause a compile-time error. */
-#define STATIC_ASSERT_THEN_RETURN( condition, value )   \
-    ( STATIC_ASSERT_EXPR( condition ) ? 0 : ( value ) )
+#define STATIC_ASSERT_THEN_RETURN(condition, value)   \
+    (STATIC_ASSERT_EXPR(condition) ? 0 : (value))
 
-#define ARRAY_LENGTH( array )                                           \
-    ( STATIC_ASSERT_THEN_RETURN( IS_ARRAY_NOT_POINTER( array ),         \
-                                 ARRAY_LENGTH_UNSAFE( array ) ) )
+#define ARRAY_LENGTH(array)                                           \
+    (STATIC_ASSERT_THEN_RETURN(IS_ARRAY_NOT_POINTER(array),         \
+                               ARRAY_LENGTH_UNSAFE(array)))
 
 #else
 /* If we aren't sure the compiler supports our non-standard tricks,
  * fall back to the unsafe implementation. */
-#define ARRAY_LENGTH( array ) ARRAY_LENGTH_UNSAFE( array )
+#define ARRAY_LENGTH(array) ARRAY_LENGTH_UNSAFE(array)
 #endif
 
 /** Return the smaller of two values.
@@ -255,7 +242,7 @@
  *
  * \return The smaller of \p x and \p y.
  */
-#define MIN( x, y ) ( ( x ) < ( y ) ? ( x ) : ( y ) )
+#define MIN(x, y) ((x) < (y) ? (x) : (y))
 
 /** Return the larger of two values.
  *
@@ -264,29 +251,29 @@
  *
  * \return The larger of \p x and \p y.
  */
-#define MAX( x, y ) ( ( x ) > ( y ) ? ( x ) : ( y ) )
+#define MAX(x, y) ((x) > (y) ? (x) : (y))
 
 /*
  * 32-bit integer manipulation macros (big endian)
  */
 #ifndef GET_UINT32_BE
-#define GET_UINT32_BE(n,b,i)                            \
-{                                                       \
-    (n) = ( (uint32_t) (b)[(i)    ] << 24 )             \
-        | ( (uint32_t) (b)[(i) + 1] << 16 )             \
-        | ( (uint32_t) (b)[(i) + 2] <<  8 )             \
-        | ( (uint32_t) (b)[(i) + 3]       );            \
-}
+#define GET_UINT32_BE(n, b, i)                            \
+    {                                                       \
+        (n) = ((uint32_t) (b)[(i)] << 24)             \
+              | ((uint32_t) (b)[(i) + 1] << 16)             \
+              | ((uint32_t) (b)[(i) + 2] <<  8)             \
+              | ((uint32_t) (b)[(i) + 3]);            \
+    }
 #endif
 
 #ifndef PUT_UINT32_BE
-#define PUT_UINT32_BE(n,b,i)                            \
-{                                                       \
-    (b)[(i)    ] = (unsigned char) ( (n) >> 24 );       \
-    (b)[(i) + 1] = (unsigned char) ( (n) >> 16 );       \
-    (b)[(i) + 2] = (unsigned char) ( (n) >>  8 );       \
-    (b)[(i) + 3] = (unsigned char) ( (n)       );       \
-}
+#define PUT_UINT32_BE(n, b, i)                            \
+    {                                                       \
+        (b)[(i)] = (unsigned char) ((n) >> 24);       \
+        (b)[(i) + 1] = (unsigned char) ((n) >> 16);       \
+        (b)[(i) + 2] = (unsigned char) ((n) >>  8);       \
+        (b)[(i) + 3] = (unsigned char) ((n));       \
+    }
 #endif
 
 #endif /* TEST_MACROS_H */

@@ -47,9 +47,9 @@ LOCAL_CFLAGS += -fPIC -fpic
 endif
 endif
 
-SOEXT_TLS?=so.18
+SOEXT_TLS?=so.19
 SOEXT_X509?=so.4
-SOEXT_CRYPTO?=so.12
+SOEXT_CRYPTO?=so.13
 
 # Set AR_DASH= (empty string) to use an ar implementation that does not accept
 # the - prefix for command line options (e.g. llvm-ar)
@@ -110,11 +110,11 @@ OBJS_CRYPTO= \
 	     hash_info.o \
 	     hkdf.o \
 	     hmac_drbg.o \
+	     lmots.o \
+	     lms.o \
 	     md.o \
 	     md5.o \
 	     memory_buffer_alloc.o \
-	     mps_reader.o \
-	     mps_trace.o \
 	     nist_kw.o \
 	     oid.o \
 	     padlock.o \
@@ -149,7 +149,6 @@ OBJS_CRYPTO= \
 	     sha256.o \
 	     sha512.o \
 	     sha3.o \
-	     ssl_debug_helpers_generated.o \
 	     threading.o \
 	     timing.o \
 	     version.o \
@@ -168,15 +167,19 @@ OBJS_X509= \
 	   x509_csr.o \
 	   x509write_crt.o \
 	   x509write_csr.o \
+	   pkcs7.o \
 	   # This line is intentionally left blank
 
 OBJS_TLS= \
 	  debug.o \
+	  mps_reader.o \
+	  mps_trace.o \
 	  net_sockets.o \
 	  ssl_cache.o \
 	  ssl_ciphersuites.o \
 	  ssl_client.o \
 	  ssl_cookie.o \
+	  ssl_debug_helpers_generated.o \
 	  ssl_msg.o \
 	  ssl_ticket.o \
 	  ssl_tls.o \
@@ -199,6 +202,7 @@ all: shared static
 endif
 
 static: libmbedcrypto.a libmbedx509.a libmbedtls.a
+	cd ../tests && echo "This is a seedfile that contains 64 bytes (65 on Windows)......" > seedfile
 
 shared: libmbedcrypto.$(DLEXT) libmbedx509.$(DLEXT) libmbedtls.$(DLEXT)
 

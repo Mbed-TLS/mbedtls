@@ -26,7 +26,7 @@ import struct
 from typing import Dict, List, Optional, Set, Union
 import unittest
 
-from mbedtls_dev import c_build_helper
+from . import c_build_helper
 
 
 class Expr:

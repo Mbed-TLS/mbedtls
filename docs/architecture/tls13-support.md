@@ -28,9 +28,12 @@ Support description
 
   - Mbed TLS does not support DHE key establishment.
 
-  - Mbed TLS does not support pre-shared keys, including any form of
-    session resumption. This implies that it does not support sending early
-    data (0-RTT data).
+  - Mbed TLS supports pre-shared keys for key establishment, pre-shared keys
+    provisioned externally as well as provisioned via the ticket mechanism.
+
+  - Mbed TLS supports session resumption via the ticket mechanism.
+
+  - Mbed TLS does not support sending or receiving early data (0-RTT data).
 
 - Supported cipher suites: depends on the library configuration. Potentially
   all of them:
@@ -54,8 +57,8 @@ Support description
   | server_certificate_type      | no      |
   | padding                      | no      |
   | key_share                    | YES     |
-  | pre_shared_key               | no      |
-  | psk_key_exchange_modes       | no      |
+  | pre_shared_key               | YES     |
+  | psk_key_exchange_modes       | YES     |
   | early_data                   | no      |
   | cookie                       | no      |
   | supported_versions           | YES     |
@@ -118,7 +121,7 @@ Support description
   | MBEDTLS_SSL_RENEGOTIATION                | n/a     |
   | MBEDTLS_SSL_MAX_FRAGMENT_LENGTH          | no      |
   |                                          |         |
-  | MBEDTLS_SSL_SESSION_TICKETS              | no      |
+  | MBEDTLS_SSL_SESSION_TICKETS              | yes     |
   | MBEDTLS_SSL_SERVER_NAME_INDICATION       | yes     |
   | MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH       | no      |
   |                                          |         |
@@ -141,10 +144,33 @@ Support description
   | MBEDTLS_USE_PSA_CRYPTO                   | yes     |
 
   (1) These options must remain in their default state of enabled.
-  (2) Key exchange configuration options for TLS 1.3 will likely to be
-      organized around the notion of key exchange mode along the line
-      of the MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE/PSK/PSK_EPHEMERAL/EPHEMERAL
-      runtime configuration macros.
+  (2) See the TLS 1.3 specific build options section below.
+
+- TLS 1.3 specific build options:
+
+  - MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE enables the support for middlebox
+    compatibility mode as defined in section D.4 of RFC 8446.
+
+  - MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED enables the support for
+    the PSK key exchange mode as defined by RFC 8446. If it is the only key
+    exchange mode enabled, the TLS 1.3 implementation does not contain any code
+    related to key exchange protocols, certificates and signatures.
+
+  - MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED enables the
+    support for the ephemeral key exchange mode. If it is the only key exchange
+    mode enabled, the TLS 1.3 implementation does not contain any code related
+    to PSK based key exchange. The ephemeral key exchange mode requires at least
+    one of the key exchange protocol allowed by the TLS 1.3 specification, the
+    parsing and validation of x509 certificates and at least one signature
+    algorithm allowed by the TLS 1.3 specification for signature computing and
+    verification.
+
+  - MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED enables the
+    support for the PSK ephemeral key exchange mode. If it is the only key
+    exchange mode enabled, the TLS 1.3 implementation does not contain any code
+    related to certificates and signatures. The PSK ephemeral key exchange
+    mode requires at least one of the key exchange protocol allowed by the
+    TLS 1.3 specification.
 
 
 Prototype upstreaming status
@@ -152,8 +178,7 @@ Prototype upstreaming status
 
 The following parts of the TLS 1.3 prototype remain to be upstreamed:
 
-- Pre-shared keys, session resumption and 0-RTT data (both client and server
-  side).
+- Sending (client) and receiving (server) early data (0-RTT data).
 
 - New TLS Message Processing Stack (MPS)
 
@@ -181,7 +206,7 @@ Coding rules checklist for TLS 1.3
 The following coding rules are aimed to be a checklist for TLS 1.3 upstreaming
 work to reduce review rounds and the number of comments in each round. They
 come along (do NOT replace) the project coding rules
-(https://tls.mbed.org/kb/development/mbedtls-coding-standards). They have been
+(https://mbed-tls.readthedocs.io/en/latest/kb/development/mbedtls-coding-standards). They have been
 established and discussed following the review of #4882 that was the
 PR upstreaming the first part of TLS 1.3 ClientHello writing code.
 
@@ -453,3 +478,175 @@ outbound message on server side as well.
 
 * state change: the state change is done in the main state handler to ease
 the navigation of the state machine transitions.
+
+
+Writing and reading early or 0-RTT data
+---------------------------------------
+
+An application function to write and send a buffer of data to a server through
+TLS may plausibly look like:
+
+```
+int write_data( mbedtls_ssl_context *ssl,
+                const unsigned char *data_to_write,
+                size_t data_to_write_len,
+                size_t *data_written )
+{
+    *data_written = 0;
+
+    while( *data_written < data_to_write_len )
+    {
+        ret = mbedtls_ssl_write( ssl, data_to_write + *data_written,
+                                 data_to_write_len - *data_written );
+
+        if( ret < 0 &&
+            ret != MBEDTLS_ERR_SSL_WANT_READ &&
+            ret != MBEDTLS_ERR_SSL_WANT_WRITE )
+        {
+            return( ret );
+        }
+
+        *data_written += ret;
+    }
+
+    return( 0 );
+}
+```
+where ssl is the SSL context to use, data_to_write the address of the data
+buffer and data_to_write_len the number of data bytes. The handshake may
+not be completed, not even started for the SSL context ssl when the function is
+called and in that case the mbedtls_ssl_write() API takes care transparently of
+completing the handshake before to write and send data to the server. The
+mbedtls_ssl_write() may not been able to write and send all data in one go thus
+the need for a loop calling it as long as there are still data to write and
+send.
+
+An application function to write and send early data and only early data,
+data sent during the first flight of client messages while the handshake is in
+its initial phase, would look completely similar but the call to
+mbedtls_ssl_write_early_data() instead of mbedtls_ssl_write().
+```
+int write_early_data( mbedtls_ssl_context *ssl,
+                      const unsigned char *data_to_write,
+                      size_t data_to_write_len,
+                      size_t *data_written )
+{
+    *data_written = 0;
+
+    while( *data_written < data_to_write_len )
+    {
+        ret = mbedtls_ssl_write_early_data( ssl, data_to_write + *data_written,
+                                            data_to_write_len - *data_written );
+
+        if( ret < 0 &&
+            ret != MBEDTLS_ERR_SSL_WANT_READ &&
+            ret != MBEDTLS_ERR_SSL_WANT_WRITE )
+        {
+            return( ret );
+        }
+
+        *data_written += ret;
+    }
+
+    return( 0 );
+}
+```
+Note that compared to write_data(), write_early_data() can also return
+MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA and that should be handled
+specifically by the user of write_early_data(). A fresh SSL context (typically
+just after a call to mbedtls_ssl_setup() or mbedtls_ssl_session_reset()) would
+be expected when calling `write_early_data`.
+
+All together, code to write and send a buffer of data as long as possible as
+early data and then as standard post-handshake application data could
+plausibly look like:
+
+```
+ret = write_early_data( ssl, data_to_write, data_to_write_len,
+                        &early_data_written );
+if( ret < 0 &&
+    ret != MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA )
+{
+    goto error;
+}
+
+ret = write_data( ssl, data_to_write + early_data_written,
+                  data_to_write_len - early_data_written, &data_written );
+if( ret < 0 )
+    goto error;
+
+data_written += early_data_written;
+```
+
+Finally, taking into account that the server may reject early data, application
+code to write and send a buffer of data could plausibly look like:
+```
+ret = write_early_data( ssl, data_to_write, data_to_write_len,
+                        &early_data_written );
+if( ret < 0 &&
+    ret != MBEDTLS_ERR_SSL_CANNOT_WRITE_EARLY_DATA )
+{
+    goto error;
+}
+
+/*
+ * Make sure the handshake is completed as it is a requisite to
+ * mbedtls_ssl_get_early_data_status().
+ */
+while( !mbedtls_ssl_is_handshake_over( ssl ) )
+{
+    ret = mbedtls_ssl_handshake( ssl );
+    if( ret < 0 &&
+        ret != MBEDTLS_ERR_SSL_WANT_READ &&
+        ret != MBEDTLS_ERR_SSL_WANT_WRITE )
+    {
+        goto error;
+    }
+}
+
+ret = mbedtls_ssl_get_early_data_status( ssl );
+if( ret < 0 )
+    goto error;
+
+if( ret == MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED )
+   early_data_written = 0;
+
+ret = write_data( ssl, data_to_write + early_data_written,
+                  data_to_write_len - early_data_written, &data_written );
+if( ret < 0 )
+    goto error;
+
+data_written += early_data_written;
+```
+
+Basically, the same holds for reading early data on the server side without the
+complication of possible rejection. An application function to read early data
+into a given buffer could plausibly look like:
+```
+int read_early_data( mbedtls_ssl_context *ssl,
+                     unsigned char *buffer,
+                     size_t buffer_size,
+                     size_t *data_len )
+{
+    *data_len = 0;
+
+    while( *data_len < buffer_size )
+    {
+        ret = mbedtls_ssl_read_early_data( ssl, buffer + *data_len,
+                                           buffer_size - *data_len );
+
+        if( ret < 0 &&
+            ret != MBEDTLS_ERR_SSL_WANT_READ &&
+            ret != MBEDTLS_ERR_SSL_WANT_WRITE )
+        {
+            return( ret );
+        }
+
+        *data_len += ret;
+    }
+
+    return( 0 );
+}
+```
+with again calls to read_early_data() expected to be done with a fresh SSL
+context.

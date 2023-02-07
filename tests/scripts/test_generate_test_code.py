@@ -682,12 +682,12 @@ exit:
     @patch("generate_test_code.gen_dependencies")
     @patch("generate_test_code.gen_function_wrapper")
     @patch("generate_test_code.parse_function_arguments")
-    def test_functio_name_on_newline(self, parse_function_arguments_mock,
-                                     gen_function_wrapper_mock,
-                                     gen_dependencies_mock,
-                                     gen_dispatch_mock):
+    def test_function_name_on_newline(self, parse_function_arguments_mock,
+                                      gen_function_wrapper_mock,
+                                      gen_dependencies_mock,
+                                      gen_dispatch_mock):
         """
-        Test when exit label is present.
+        Test with line break before the function name.
         :return:
         """
         parse_function_arguments_mock.return_value = ([], '', [])
@@ -717,6 +717,194 @@ void
 
 
 test_func()
+{
+    ba ba black sheep
+    have you any wool
+exit:
+    yes sir yes sir
+    3 bags full
+}
+'''
+        self.assertEqual(code, expected)
+
+    @patch("generate_test_code.gen_dispatch")
+    @patch("generate_test_code.gen_dependencies")
+    @patch("generate_test_code.gen_function_wrapper")
+    @patch("generate_test_code.parse_function_arguments")
+    def test_case_starting_with_comment(self, parse_function_arguments_mock,
+                                        gen_function_wrapper_mock,
+                                        gen_dependencies_mock,
+                                        gen_dispatch_mock):
+        """
+        Test with comments before the function signature
+        :return:
+        """
+        parse_function_arguments_mock.return_value = ([], '', [])
+        gen_function_wrapper_mock.return_value = ''
+        gen_dependencies_mock.side_effect = gen_dependencies
+        gen_dispatch_mock.side_effect = gen_dispatch
+        data = '''/* comment */
+/* more
+ * comment */
+// this is\\
+still \\
+a comment
+void func()
+{
+    ba ba black sheep
+    have you any wool
+exit:
+    yes sir yes sir
+    3 bags full
+}
+/* END_CASE */
+'''
+        stream = StringIOWrapper('test_suite_ut.function', data)
+        _, _, code, _ = parse_function_code(stream, [], [])
+
+        expected = '''#line 1 "test_suite_ut.function"
+
+
+
+
+
+
+void test_func()
+{
+    ba ba black sheep
+    have you any wool
+exit:
+    yes sir yes sir
+    3 bags full
+}
+'''
+        self.assertEqual(code, expected)
+
+    @patch("generate_test_code.gen_dispatch")
+    @patch("generate_test_code.gen_dependencies")
+    @patch("generate_test_code.gen_function_wrapper")
+    @patch("generate_test_code.parse_function_arguments")
+    def test_comment_in_prototype(self, parse_function_arguments_mock,
+                                  gen_function_wrapper_mock,
+                                  gen_dependencies_mock,
+                                  gen_dispatch_mock):
+        """
+        Test with comments in the function prototype
+        :return:
+        """
+        parse_function_arguments_mock.return_value = ([], '', [])
+        gen_function_wrapper_mock.return_value = ''
+        gen_dependencies_mock.side_effect = gen_dependencies
+        gen_dispatch_mock.side_effect = gen_dispatch
+        data = '''
+void func( int x, // (line \\
+                     comment)
+           int y /* lone closing parenthesis) */ )
+{
+    ba ba black sheep
+    have you any wool
+exit:
+    yes sir yes sir
+    3 bags full
+}
+/* END_CASE */
+'''
+        stream = StringIOWrapper('test_suite_ut.function', data)
+        _, _, code, _ = parse_function_code(stream, [], [])
+
+        expected = '''#line 1 "test_suite_ut.function"
+
+void test_func( int x,
+
+           int y                                 )
+{
+    ba ba black sheep
+    have you any wool
+exit:
+    yes sir yes sir
+    3 bags full
+}
+'''
+        self.assertEqual(code, expected)
+
+    @patch("generate_test_code.gen_dispatch")
+    @patch("generate_test_code.gen_dependencies")
+    @patch("generate_test_code.gen_function_wrapper")
+    @patch("generate_test_code.parse_function_arguments")
+    def test_line_comment_in_block_comment(self, parse_function_arguments_mock,
+                                           gen_function_wrapper_mock,
+                                           gen_dependencies_mock,
+                                           gen_dispatch_mock):
+        """
+        Test with line comment in block comment.
+        :return:
+        """
+        parse_function_arguments_mock.return_value = ([], '', [])
+        gen_function_wrapper_mock.return_value = ''
+        gen_dependencies_mock.side_effect = gen_dependencies
+        gen_dispatch_mock.side_effect = gen_dispatch
+        data = '''
+void func( int x /* // */ )
+{
+    ba ba black sheep
+    have you any wool
+exit:
+    yes sir yes sir
+    3 bags full
+}
+/* END_CASE */
+'''
+        stream = StringIOWrapper('test_suite_ut.function', data)
+        _, _, code, _ = parse_function_code(stream, [], [])
+
+        expected = '''#line 1 "test_suite_ut.function"
+
+void test_func( int x          )
+{
+    ba ba black sheep
+    have you any wool
+exit:
+    yes sir yes sir
+    3 bags full
+}
+'''
+        self.assertEqual(code, expected)
+
+    @patch("generate_test_code.gen_dispatch")
+    @patch("generate_test_code.gen_dependencies")
+    @patch("generate_test_code.gen_function_wrapper")
+    @patch("generate_test_code.parse_function_arguments")
+    def test_block_comment_in_line_comment(self, parse_function_arguments_mock,
+                                           gen_function_wrapper_mock,
+                                           gen_dependencies_mock,
+                                           gen_dispatch_mock):
+        """
+        Test with block comment in line comment.
+        :return:
+        """
+        parse_function_arguments_mock.return_value = ([], '', [])
+        gen_function_wrapper_mock.return_value = ''
+        gen_dependencies_mock.side_effect = gen_dependencies
+        gen_dispatch_mock.side_effect = gen_dispatch
+        data = '''
+// /*
+void func( int x )
+{
+    ba ba black sheep
+    have you any wool
+exit:
+    yes sir yes sir
+    3 bags full
+}
+/* END_CASE */
+'''
+        stream = StringIOWrapper('test_suite_ut.function', data)
+        _, _, code, _ = parse_function_code(stream, [], [])
+
+        expected = '''#line 1 "test_suite_ut.function"
+
+
+void test_func( int x )
 {
     ba ba black sheep
     have you any wool

@@ -42,11 +42,11 @@
  *                          contents of the context and the context itself
  *                          when done.
  */
-psa_status_t mbedtls_psa_ecp_load_representation( psa_key_type_t type,
-                                                  size_t curve_bits,
-                                                  const uint8_t *data,
-                                                  size_t data_length,
-                                                  mbedtls_ecp_keypair **p_ecp );
+psa_status_t mbedtls_psa_ecp_load_representation(psa_key_type_t type,
+                                                 size_t curve_bits,
+                                                 const uint8_t *data,
+                                                 size_t data_length,
+                                                 mbedtls_ecp_keypair **p_ecp);
 
 /** Import an ECP key in binary format.
  *
@@ -78,7 +78,7 @@ psa_status_t mbedtls_psa_ecp_import_key(
     const psa_key_attributes_t *attributes,
     const uint8_t *data, size_t data_length,
     uint8_t *key_buffer, size_t key_buffer_size,
-    size_t *key_buffer_length, size_t *bits );
+    size_t *key_buffer_length, size_t *bits);
 
 /** Export an ECP key to export representation
  *
@@ -88,11 +88,11 @@ psa_status_t mbedtls_psa_ecp_import_key(
  * \param[in] data_size     The length of the buffer to export to
  * \param[out] data_length  The amount of bytes written to \p data
  */
-psa_status_t mbedtls_psa_ecp_export_key( psa_key_type_t type,
-                                         mbedtls_ecp_keypair *ecp,
-                                         uint8_t *data,
-                                         size_t data_size,
-                                         size_t *data_length );
+psa_status_t mbedtls_psa_ecp_export_key(psa_key_type_t type,
+                                        mbedtls_ecp_keypair *ecp,
+                                        uint8_t *data,
+                                        size_t data_size,
+                                        size_t *data_length);
 
 /** Export an ECP public key or the public part of an ECP key pair in binary
  *  format.
@@ -121,7 +121,7 @@ psa_status_t mbedtls_psa_ecp_export_key( psa_key_type_t type,
 psa_status_t mbedtls_psa_ecp_export_public_key(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
-    uint8_t *data, size_t data_size, size_t *data_length );
+    uint8_t *data, size_t data_size, size_t *data_length);
 
 /**
  * \brief Generate an ECP key.
@@ -144,7 +144,7 @@ psa_status_t mbedtls_psa_ecp_export_public_key(
  */
 psa_status_t mbedtls_psa_ecp_generate_key(
     const psa_key_attributes_t *attributes,
-    uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length );
+    uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length);
 
 /** Sign an already-calculated hash with ECDSA.
  *
@@ -182,7 +182,7 @@ psa_status_t mbedtls_psa_ecdsa_sign_hash(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
-    uint8_t *signature, size_t signature_size, size_t *signature_length );
+    uint8_t *signature, size_t signature_size, size_t *signature_length);
 
 /**
  * \brief Verify an ECDSA hash or short message signature.
@@ -217,5 +217,54 @@ psa_status_t mbedtls_psa_ecdsa_verify_hash(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
-    const uint8_t *signature, size_t signature_length );
+    const uint8_t *signature, size_t signature_length);
+
+
+/** Perform a key agreement and return the raw ECDH shared secret.
+ *
+ * \note The signature of this function is that of a PSA driver
+ *       key_agreement entry point. This function behaves as a key_agreement
+ *       entry point as defined in the PSA driver interface specification for
+ *       transparent drivers.
+ *
+ * \param[in]  attributes           The attributes of the key to use for the
+ *                                  operation.
+ * \param[in]  key_buffer           The buffer containing the private key
+ *                                  context.
+ * \param[in]  key_buffer_size      Size of the \p key_buffer buffer in
+ *                                  bytes.
+ * \param[in]  alg                  A key agreement algorithm that is
+ *                                  compatible with the type of the key.
+ * \param[in]  peer_key             The buffer containing the key context
+ *                                  of the peer's public key.
+ * \param[in]  peer_key_length      Size of the \p peer_key buffer in
+ *                                  bytes.
+ * \param[out] shared_secret        The buffer to which the shared secret
+ *                                  is to be written.
+ * \param[in]  shared_secret_size   Size of the \p shared_secret buffer in
+ *                                  bytes.
+ * \param[out] shared_secret_length On success, the number of bytes that make
+ *                                  up the returned shared secret.
+ * \retval #PSA_SUCCESS
+ *         Success. Shared secret successfully calculated.
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p alg is not a key agreement algorithm, or
+ *         \p private_key is not compatible with \p alg,
+ *         or \p peer_key is not valid for \p alg or not compatible with
+ *         \p private_key.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         \p shared_secret_size is too small
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not a supported key agreement algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ */
+psa_status_t mbedtls_psa_key_agreement_ecdh(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg, const uint8_t *peer_key, size_t peer_key_length,
+    uint8_t *shared_secret, size_t shared_secret_size,
+    size_t *shared_secret_length);
 #endif /* PSA_CRYPTO_ECP_H */

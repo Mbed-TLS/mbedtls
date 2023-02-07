@@ -19,14 +19,7 @@
 
 #include "mbedtls/build_info.h"
 
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
-#include <stdio.h>
-#include <stdlib.h>
-#define mbedtls_printf       printf
-#define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
-#endif
 
 #define USAGE                                                                   \
     "usage: %s [ -all | -any | -l ] <MBEDTLS_CONFIG> ...\n\n"                   \
@@ -43,47 +36,43 @@
 #include <string.h>
 #include "query_config.h"
 
-int main( int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
     int i;
 
-    if ( argc == 1 || strcmp( argv[1], "-h" ) == 0 )
-    {
-        mbedtls_printf( USAGE, argv[0] );
-        return( MBEDTLS_EXIT_FAILURE );
+    if (argc < 2 || strcmp(argv[1], "-h") == 0) {
+        mbedtls_printf(USAGE, argv[0]);
+        return MBEDTLS_EXIT_FAILURE;
     }
 
-    if( strcmp( argv[1], "-l" ) == 0 )
-    {
+    if (strcmp(argv[1], "-l") == 0) {
         list_config();
-        return( 0 );
+        return 0;
     }
 
-    if( strcmp( argv[1], "-all" ) == 0 )
-    {
-        for( i = 2; i < argc; i++ )
-        {
-            if( query_config( argv[i] ) != 0 )
-                return( 1 );
+    if (strcmp(argv[1], "-all") == 0) {
+        for (i = 2; i < argc; i++) {
+            if (query_config(argv[i]) != 0) {
+                return 1;
+            }
         }
-        return( 0 );
+        return 0;
     }
 
-    if( strcmp( argv[1], "-any" ) == 0 )
-    {
-        for( i = 2; i < argc; i++ )
-        {
-            if( query_config( argv[i] ) == 0 )
-                return( 0 );
+    if (strcmp(argv[1], "-any") == 0) {
+        for (i = 2; i < argc; i++) {
+            if (query_config(argv[i]) == 0) {
+                return 0;
+            }
         }
-        return( 1 );
+        return 1;
     }
 
-    for( i = 1; i < argc; i++ )
-    {
-        if( query_config( argv[i] ) != 0 )
-            return( 1 );
+    for (i = 1; i < argc; i++) {
+        if (query_config(argv[i]) != 0) {
+            return 1;
+        }
     }
 
-    return( 0 );
+    return 0;
 }

@@ -1,0 +1,3 @@
+Features
+   * Add parsing of V3 extensions (key usage, Netscape cert-type,
+     Subject Alternative Names) in x509 Certificate Sign Requests.

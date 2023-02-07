@@ -1,0 +1,83 @@
+PKCS7 Signed Data Parse Pass SHA256 #1
+depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
+pkcs7_parse:"data_files/pkcs7_data_cert_signed_sha256.der":MBEDTLS_PKCS7_SIGNED_DATA
+
+PKCS7 Signed Data Parse Pass SHA1 #2
+depends_on:MBEDTLS_SHA1_C:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
+pkcs7_parse:"data_files/pkcs7_data_cert_signed_sha1.der":MBEDTLS_PKCS7_SIGNED_DATA
+
+PKCS7 Signed Data Parse Pass Without CERT #3
+depends_on:MBEDTLS_SHA256_C
+pkcs7_parse:"data_files/pkcs7_data_without_cert_signed.der":MBEDTLS_PKCS7_SIGNED_DATA
+
+PKCS7 Signed Data Parse Fail with multiple certs #4
+depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
+pkcs7_parse:"data_files/pkcs7_data_multiple_certs_signed.der":MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE
+
+PKCS7 Signed Data Parse Fail with corrupted cert #5
+depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
+pkcs7_parse:"data_files/pkcs7_data_signed_badcert.der":MBEDTLS_ERR_PKCS7_INVALID_CERT
+
+PKCS7 Signed Data Parse Fail with corrupted signer info #6
+depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
+pkcs7_parse:"data_files/pkcs7_data_signed_badsigner.der":MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO,MBEDTLS_ERR_ASN1_UNEXPECTED_TAG)
+
+PKCS7 Signed Data Parse Fail Version other than 1 #7
+depends_on:MBEDTLS_SHA256_C
+pkcs7_parse:"data_files/pkcs7_data_cert_signed_v2.der":MBEDTLS_ERR_PKCS7_INVALID_VERSION
+
+PKCS7 Signed Data Parse Fail Encrypted Content #8
+depends_on:MBEDTLS_SHA256_C
+pkcs7_parse:"data_files/pkcs7_data_cert_encrypted.der":MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE
+
+PKCS7 Signed Data Verification Pass SHA256 #9
+depends_on:MBEDTLS_SHA256_C
+pkcs7_verify:"data_files/pkcs7_data_cert_signed_sha256.der":"data_files/pkcs7-rsa-sha256-1.der":"data_files/pkcs7_data.bin":0:0
+
+PKCS7 Signed Data Verification Pass SHA256 #9.1
+depends_on:MBEDTLS_SHA256_C
+pkcs7_verify:"data_files/pkcs7_data_cert_signed_sha256.der":"data_files/pkcs7-rsa-sha256-1.der":"data_files/pkcs7_data.bin":MBEDTLS_MD_SHA256:0
+
+PKCS7 Signed Data Verification Pass SHA1 #10
+depends_on:MBEDTLS_SHA1_C:MBEDTLS_SHA256_C
+pkcs7_verify:"data_files/pkcs7_data_cert_signed_sha1.der":"data_files/pkcs7-rsa-sha256-1.der":"data_files/pkcs7_data.bin":0:0
+
+PKCS7 Signed Data Verification Pass SHA512 #11
+depends_on:MBEDTLS_SHA512_C:MBEDTLS_SHA256_C
+pkcs7_verify:"data_files/pkcs7_data_cert_signed_sha512.der":"data_files/pkcs7-rsa-sha256-1.der":"data_files/pkcs7_data.bin":0:0
+
+PKCS7 Signed Data Verification Fail because of different certificate #12
+depends_on:MBEDTLS_SHA256_C
+pkcs7_verify:"data_files/pkcs7_data_cert_signed_sha256.der":"data_files/pkcs7-rsa-sha256-2.der":"data_files/pkcs7_data.bin":0:MBEDTLS_ERR_RSA_VERIFY_FAILED
+
+PKCS7 Signed Data Verification Fail because of different data hash #13
+depends_on:MBEDTLS_SHA256_C
+pkcs7_verify:"data_files/pkcs7_data_cert_signed_sha256.der":"data_files/pkcs7-rsa-sha256-1.der":"data_files/pkcs7_data_1.bin":0:MBEDTLS_ERR_RSA_VERIFY_FAILED
+
+PKCS7 Signed Data Parse Failure Corrupt signerInfo.issuer #15.1
+depends_on:MBEDTLS_SHA256_C
+pkcs7_parse:"data_files/pkcs7_signerInfo_issuer_invalid_size.der":MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO
+
+PKCS7 Signed Data Parse Failure Corrupt signerInfo.serial #15.2
+depends_on:MBEDTLS_SHA256_C
+pkcs7_parse:"data_files/pkcs7_signerInfo_serial_invalid_size.der":MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO
+
+pkcs7_get_signers_info_set error handling (6213931373035520)
+depends_on:MBEDTLS_RIPEMD160_C
+pkcs7_parse:"data_files/pkcs7_get_signers_info_set-missing_free-fuzz_pkcs7-6213931373035520.der":MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO + MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+
+pkcs7_get_signers_info_set error handling (4541044530479104)
+depends_on:MBEDTLS_RIPEMD160_C
+pkcs7_parse:"data_files/pkcs7_get_signers_info_set-leak-fuzz_pkcs7-4541044530479104.der":MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO
+
+PKCS7 Only Signed Data Parse Pass #15
+depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
+pkcs7_parse:"data_files/pkcs7_data_cert_signeddata_sha256.der":MBEDTLS_PKCS7_SIGNED_DATA
+
+PKCS7 Signed Data Verify with multiple signers #16
+depends_on:MBEDTLS_SHA256_C
+pkcs7_verify_multiple_signers:"data_files/pkcs7_data_multiple_signed.der":"data_files/pkcs7-rsa-sha256-1.crt":"data_files/pkcs7-rsa-sha256-2.crt":"data_files/pkcs7_data.bin":0:0
+
+PKCS7 Signed Data Hash Verify with multiple signers #17
+depends_on:MBEDTLS_SHA256_C
+pkcs7_verify_multiple_signers:"data_files/pkcs7_data_multiple_signed.der":"data_files/pkcs7-rsa-sha256-1.crt":"data_files/pkcs7-rsa-sha256-2.crt":"data_files/pkcs7_data.bin":MBEDTLS_MD_SHA256:0

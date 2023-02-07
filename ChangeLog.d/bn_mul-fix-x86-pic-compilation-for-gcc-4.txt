@@ -1,4 +1,0 @@
-Bugfix
-   * Fix a long-standing build failure when building x86 PIC code with old
-     gcc (4.x). The code will be slower, but will compile. We do however
-     recommend upgrading to a more recent compiler instead. Fixes #1910.

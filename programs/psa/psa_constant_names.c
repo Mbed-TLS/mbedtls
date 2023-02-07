@@ -26,29 +26,29 @@
 /* This block is present to support Visual Studio builds prior to 2015 */
 #if defined(_MSC_VER) && _MSC_VER < 1900
 #include <stdarg.h>
-int snprintf( char *s, size_t n, const char *fmt, ... )
+int snprintf(char *s, size_t n, const char *fmt, ...)
 {
     int ret;
     va_list argp;
 
     /* Avoid calling the invalid parameter handler by checking ourselves */
-    if( s == NULL || n == 0 || fmt == NULL )
-        return( -1 );
+    if (s == NULL || n == 0 || fmt == NULL) {
+        return -1;
+    }
 
-    va_start( argp, fmt );
+    va_start(argp, fmt);
 #if defined(_TRUNCATE) && !defined(__MINGW32__)
-    ret = _vsnprintf_s( s, n, _TRUNCATE, fmt, argp );
+    ret = _vsnprintf_s(s, n, _TRUNCATE, fmt, argp);
 #else
-    ret = _vsnprintf( s, n, fmt, argp );
-    if( ret < 0 || (size_t) ret == n )
-    {
+    ret = _vsnprintf(s, n, fmt, argp);
+    if (ret < 0 || (size_t) ret == n) {
         s[n-1] = '\0';
         ret = -1;
     }
 #endif
-    va_end( argp );
+    va_end(argp);
 
-    return( ret );
+    return ret;
 }
 #endif
 
@@ -69,7 +69,9 @@ static void append_integer(char **buffer, size_t buffer_size,
                            unsigned long value)
 {
     size_t n = snprintf(*buffer, buffer_size - *required_size, format, value);
-    if (n < buffer_size - *required_size) *buffer += n;
+    if (n < buffer_size - *required_size) {
+        *buffer += n;
+    }
     *required_size += n;
 }
 
@@ -288,8 +290,7 @@ int main(int argc, char *argv[])
 {
     if (argc <= 1 ||
         !strcmp(argv[1], "help") ||
-        !strcmp(argv[1], "--help"))
-    {
+        !strcmp(argv[1], "--help")) {
         usage(argv[0]);
         return EXIT_FAILURE;
     }

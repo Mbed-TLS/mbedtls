@@ -3582,12 +3582,13 @@ psa_status_t mbedtls_psa_sign_hash_complete(
                      size_t *signature_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    mbedtls_mpi r;
-    mbedtls_mpi s;
 
 #if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
      defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ) && \
      defined( MBEDTLS_ECP_RESTARTABLE )
+
+    mbedtls_mpi r;
+    mbedtls_mpi s;
 
     if( signature_size < 2 * operation->coordinate_bytes )
         return( PSA_ERROR_BUFFER_TOO_SMALL );
@@ -3791,6 +3792,7 @@ psa_status_t mbedtls_psa_verify_hash_start(
     ( void ) signature;
     ( void ) signature_length;
     ( void ) status;
+    ( void ) coordinate_bytes;
 
     return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||

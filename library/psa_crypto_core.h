@@ -638,45 +638,45 @@ void mbedtls_psa_interruptible_set_max_ops(uint32_t max_ops);
 uint32_t mbedtls_psa_interruptible_get_max_ops(void);
 
 /**
- * \brief Get the number of ops that a hash signing operation has taken so
- *        far. If the operation has completed, then this will represent the
- *        number of ops required for the entire operation. After initialization
- *        or calling psa_sign_hash_interruptible_abort() on the operation, a
- *        value of 0 will be returned.
+ * \brief Get the number of ops that a hash signing operation has taken for the
+ *        previous call. If no call or work has taken place, this will return
+ *        zero.
  *
  * \note The signature of this function is that of a PSA driver
- *       sign_get_num_ops entry point. This function behaves as a
- *       sign_get_num_ops entry point as defined in the PSA driver interface
- *       specification for transparent drivers.
+ *       sign_get_num_ops entry point, however it differs in behaviour from the
+ *       driver function in that this function returns a delta of work done in
+ *       the last call rather than all of the ops done ever by the whole
+ *       operation, due to internal implementation differences.
  *
  * \param[in]  operation        The \c
  *                              mbedtls_psa_sign_hash_interruptible_operation_t
  *                              to use. This must be initialized first.
  *
- * \return                      Number of ops that the operation has taken so
- *                              far.
+ * \return                      Number of ops that were completed
+ *                              in the last call to \c
+ *                              mbedtls_psa_sign_hash_complete().
  */
 uint32_t mbedtls_psa_sign_hash_get_num_ops(
     const mbedtls_psa_sign_hash_interruptible_operation_t *operation);
 
 /**
- * \brief Get the number of ops that a hash verification operation has taken
- *        so far. If the operation has completed, then this will represent the
- *        number of ops required for the entire operation. After initialization
- *        or calling psa_verify_hash_interruptible_abort() on the operation, a
- *        value of 0 will be returned.
+ * \brief Get the number of ops that a hash verification operation has taken for
+ *        the previous call. If no call or work has taken place, this will
+ *        return zero.
  *
  * \note The signature of this function is that of a PSA driver
- *       verify_get_num_ops entry point. This function behaves as a
- *       verify_get_num_ops entry point as defined in the PSA driver interface
- *       specification for transparent drivers.
+ *       verify_get_num_ops entry point however it differs in behaviour from the
+ *       driver function in that this function returns a delta of work done in
+ *       the last call rather than all of the ops done ever by the whole
+ *       operation, due to internal implementation differences.
  *
  * \param[in]  operation        The \c
  *                              mbedtls_psa_verify_hash_interruptible_operation_t
  *                              to use. This must be initialized first.
  *
- * \return                      Number of ops that the operation has taken so
- *                              far.
+ * \return                      Number of ops that were completed
+ *                              in the last call to \c
+ *                              mbedtls_psa_verify_hash_complete().
  */
 uint32_t mbedtls_psa_verify_hash_get_num_ops(
     const mbedtls_psa_verify_hash_interruptible_operation_t *operation);

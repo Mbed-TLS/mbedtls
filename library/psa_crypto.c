@@ -3286,7 +3286,7 @@ psa_status_t psa_sign_hash_complete(
 exit:
 
     /* Update ops count with work done. */
-    operation->num_ops += psa_driver_wrapper_sign_hash_get_num_ops(operation);
+    operation->num_ops = psa_driver_wrapper_sign_hash_get_num_ops(operation);
 
     if (status != PSA_OPERATION_INCOMPLETE) {
         psa_wipe_output_buffer(signature, status, signature_size,
@@ -3413,7 +3413,7 @@ psa_status_t psa_verify_hash_complete(
 exit:
 
     /* Update ops count with work done. */
-    operation->num_ops += psa_driver_wrapper_verify_hash_get_num_ops(
+    operation->num_ops = psa_driver_wrapper_verify_hash_get_num_ops(
         operation);
 
     if (status != PSA_OPERATION_INCOMPLETE) {

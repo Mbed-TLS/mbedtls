@@ -2673,6 +2673,36 @@ static psa_status_t psa_sign_verify_check_alg( int input_is_message,
     return( PSA_SUCCESS );
 }
 
+/**
+ * \brief                       Fill the unused part of the output buffer(the
+ *                              whole buffer on error, the trailing part on
+ *                              success) with something that isn't a valid
+ *                              signature (barring an attack on the signature
+ *                              and deliberately-crafted input), in case the
+ *                              caller doesn't check the return status properly.
+ *
+ * \param output_buffer         pointer to buffer to wipe. May not be NULL
+ *                              unless /p output_buffer_size is zero.
+ * \param status                status of function called to generate
+ *                              output_buffer originally
+ * \param output_buffer_size    Size of output buffer. If zero, /p output_buffer
+ *                              could be NULL
+ * \param output_buffer_length  Length of data written to output_buffer, must be
+ *                              less than /p output_buffer_size
+ */
+static void psa_wipe_output_buffer(uint8_t *output_buffer, psa_status_t status,
+        size_t output_buffer_size, size_t output_buffer_length)
+{
+    if( status == PSA_SUCCESS )
+        memset(output_buffer + output_buffer_length, '!',
+                output_buffer_size - output_buffer_length);
+    else if( output_buffer_size > 0 )
+        memset(output_buffer, '!', output_buffer_size);
+    /* If output_buffer_size is 0 then we have nothing to do. We must
+     * not call memset because output_buffer may be NULL in this
+     * case.*/
+}
+
 static psa_status_t psa_sign_internal( mbedtls_svc_key_id_t key,
                                        int input_is_message,
                                        psa_algorithm_t alg,
@@ -2736,17 +2766,8 @@ static psa_status_t psa_sign_internal( mbedtls_svc_key_id_t key,
 
 
 exit:
-    /* Fill the unused part of the output buffer (the whole buffer on error,
-     * the trailing part on success) with something that isn't a valid signature
-     * (barring an attack on the signature and deliberately-crafted input),
-     * in case the caller doesn't check the return status properly. */
-    if( status == PSA_SUCCESS )
-        memset( signature + *signature_length, '!',
-                signature_size - *signature_length );
-    else
-        memset( signature, '!', signature_size );
-    /* If signature_size is 0 then we have nothing to do. We must not call
-     * memset because signature may be NULL in this case. */
+    psa_wipe_output_buffer(signature, status, signature_size,
+            *signature_length);
 
     unlock_status = psa_unlock_key_slot( slot );
 
@@ -3279,18 +3300,8 @@ exit:
 
     if( status != PSA_OPERATION_INCOMPLETE )
     {
-        /* Fill the unused part of the output buffer (the whole buffer on error,
-         * the trailing part on success) with something that isn't a valid
-         * signature (barring an attack on the signature and
-         * deliberately-crafted input), in case the caller doesn't check the
-         * return status properly.*/
-        if( status == PSA_SUCCESS )
-            memset( signature + *signature_length, '!',
-                    signature_size - *signature_length );
-        else if( signature_size > 0 )
-            memset( signature, '!', signature_size );
-            /* If signature_size is 0 then we have nothing to do. We must not
-             * call memset because signature may be NULL in this case.*/
+        psa_wipe_output_buffer(signature, status, signature_size,
+                *signature_length);
 
         if( status != PSA_SUCCESS )
             operation->error_occurred = 1;

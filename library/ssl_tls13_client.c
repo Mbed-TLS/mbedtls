@@ -1923,10 +1923,15 @@ static int ssl_tls13_postprocess_server_hello(mbedtls_ssl_context *ssl)
          * is 0. If any other value is returned, the client MUST
          * abort the handshake with an "illegal_parameter" alert.
          *
-         * Clients MUST verify that the server selected a cipher suite
-         * indicating a Hash associated with the PSK, If this value are
-         * not consistent, the client MUST abort the handshake with an
-         * "illegal_parameter" alert.
+         * RFC 8446 4.2.10
+         * In order to accept early data, the server MUST have accepted a PSK
+         * cipher suite and selected the first key offered in the client's
+         * "pre_shared_key" extension. In addition, it MUST verify that the
+         * following values are the same as those associated with the
+         * selected PSK:
+         * - The TLS version number
+         * - The selected cipher suite
+         * - The selected ALPN [RFC7301] protocol, if any (not checked yet)
          */
         MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
                                      MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);

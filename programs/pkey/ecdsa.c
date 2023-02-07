@@ -19,16 +19,7 @@
 
 #include "mbedtls/build_info.h"
 
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
-#include <stdio.h>
-#include <stdlib.h>
-#define mbedtls_printf          printf
-#define mbedtls_exit            exit
-#define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
-#define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
-#endif /* MBEDTLS_PLATFORM_C */
 
 #if defined(MBEDTLS_ECDSA_C) && \
     defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_CTR_DRBG_C)
@@ -56,46 +47,46 @@
 
 #if !defined(MBEDTLS_ECDSA_C) || !defined(MBEDTLS_SHA256_C) || \
     !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C)
-int main( void )
+int main(void)
 {
     mbedtls_printf("MBEDTLS_ECDSA_C and/or MBEDTLS_SHA256_C and/or "
-           "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C not defined\n");
-    mbedtls_exit( 0 );
+                   "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C not defined\n");
+    mbedtls_exit(0);
 }
 #else
 #if defined(VERBOSE)
-static void dump_buf( const char *title, unsigned char *buf, size_t len )
+static void dump_buf(const char *title, unsigned char *buf, size_t len)
 {
     size_t i;
 
-    mbedtls_printf( "%s", title );
-    for( i = 0; i < len; i++ )
+    mbedtls_printf("%s", title);
+    for (i = 0; i < len; i++) {
         mbedtls_printf("%c%c", "0123456789ABCDEF" [buf[i] / 16],
-                       "0123456789ABCDEF" [buf[i] % 16] );
-    mbedtls_printf( "\n" );
+                       "0123456789ABCDEF" [buf[i] % 16]);
+    }
+    mbedtls_printf("\n");
 }
 
-static void dump_pubkey( const char *title, mbedtls_ecdsa_context *key )
+static void dump_pubkey(const char *title, mbedtls_ecdsa_context *key)
 {
     unsigned char buf[300];
     size_t len;
 
-    if( mbedtls_ecp_point_write_binary( &key->MBEDTLS_PRIVATE(grp), &key->MBEDTLS_PRIVATE(Q),
-                MBEDTLS_ECP_PF_UNCOMPRESSED, &len, buf, sizeof buf ) != 0 )
-    {
+    if (mbedtls_ecp_point_write_binary(&key->MBEDTLS_PRIVATE(grp), &key->MBEDTLS_PRIVATE(Q),
+                                       MBEDTLS_ECP_PF_UNCOMPRESSED, &len, buf, sizeof(buf)) != 0) {
         mbedtls_printf("internal error\n");
         return;
     }
 
-    dump_buf( title, buf, len );
+    dump_buf(title, buf, len);
 }
 #else
-#define dump_buf( a, b, c )
-#define dump_pubkey( a, b )
+#define dump_buf(a, b, c)
+#define dump_pubkey(a, b)
 #endif
 
 
-int main( int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
     int ret = 1;
     int exit_code = MBEDTLS_EXIT_FAILURE;
@@ -109,19 +100,18 @@ int main( int argc, char *argv[] )
     const char *pers = "ecdsa";
     ((void) argv);
 
-    mbedtls_ecdsa_init( &ctx_sign );
-    mbedtls_ecdsa_init( &ctx_verify );
-    mbedtls_ctr_drbg_init( &ctr_drbg );
+    mbedtls_ecdsa_init(&ctx_sign);
+    mbedtls_ecdsa_init(&ctx_verify);
+    mbedtls_ctr_drbg_init(&ctr_drbg);
 
-    memset( sig, 0, sizeof( sig ) );
-    memset( message, 0x25, sizeof( message ) );
+    memset(sig, 0, sizeof(sig));
+    memset(message, 0x25, sizeof(message));
 
-    if( argc != 1 )
-    {
-        mbedtls_printf( "usage: ecdsa\n" );
+    if (argc != 1) {
+        mbedtls_printf("usage: ecdsa\n");
 
 #if defined(_WIN32)
-        mbedtls_printf( "\n" );
+        mbedtls_printf("\n");
 #endif
 
         goto exit;
@@ -130,65 +120,61 @@ int main( int argc, char *argv[] )
     /*
      * Generate a key pair for signing
      */
-    mbedtls_printf( "\n  . Seeding the random number generator..." );
-    fflush( stdout );
+    mbedtls_printf("\n  . Seeding the random number generator...");
+    fflush(stdout);
 
-    mbedtls_entropy_init( &entropy );
-    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
-                               (const unsigned char *) pers,
-                               strlen( pers ) ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned %d\n", ret );
+    mbedtls_entropy_init(&entropy);
+    if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
+                                     (const unsigned char *) pers,
+                                     strlen(pers))) != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_ctr_drbg_seed returned %d\n", ret);
         goto exit;
     }
 
-    mbedtls_printf( " ok\n  . Generating key pair..." );
-    fflush( stdout );
+    mbedtls_printf(" ok\n  . Generating key pair...");
+    fflush(stdout);
 
-    if( ( ret = mbedtls_ecdsa_genkey( &ctx_sign, ECPARAMS,
-                              mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_ecdsa_genkey returned %d\n", ret );
+    if ((ret = mbedtls_ecdsa_genkey(&ctx_sign, ECPARAMS,
+                                    mbedtls_ctr_drbg_random, &ctr_drbg)) != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_ecdsa_genkey returned %d\n", ret);
         goto exit;
     }
 
-    mbedtls_printf( " ok (key size: %d bits)\n", (int) ctx_sign.MBEDTLS_PRIVATE(grp).pbits );
+    mbedtls_printf(" ok (key size: %d bits)\n", (int) ctx_sign.MBEDTLS_PRIVATE(grp).pbits);
 
-    dump_pubkey( "  + Public key: ", &ctx_sign );
+    dump_pubkey("  + Public key: ", &ctx_sign);
 
     /*
      * Compute message hash
      */
-    mbedtls_printf( "  . Computing message hash..." );
-    fflush( stdout );
+    mbedtls_printf("  . Computing message hash...");
+    fflush(stdout);
 
-    if( ( ret = mbedtls_sha256( message, sizeof( message ), hash, 0 ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_sha256 returned %d\n", ret );
+    if ((ret = mbedtls_sha256(message, sizeof(message), hash, 0)) != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_sha256 returned %d\n", ret);
         goto exit;
     }
 
-    mbedtls_printf( " ok\n" );
+    mbedtls_printf(" ok\n");
 
-    dump_buf( "  + Hash: ", hash, sizeof( hash ) );
+    dump_buf("  + Hash: ", hash, sizeof(hash));
 
     /*
      * Sign message hash
      */
-    mbedtls_printf( "  . Signing message hash..." );
-    fflush( stdout );
+    mbedtls_printf("  . Signing message hash...");
+    fflush(stdout);
 
-    if( ( ret = mbedtls_ecdsa_write_signature( &ctx_sign, MBEDTLS_MD_SHA256,
-                                       hash, sizeof( hash ),
-                                       sig, sizeof( sig ), &sig_len,
-                                       mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_ecdsa_write_signature returned %d\n", ret );
+    if ((ret = mbedtls_ecdsa_write_signature(&ctx_sign, MBEDTLS_MD_SHA256,
+                                             hash, sizeof(hash),
+                                             sig, sizeof(sig), &sig_len,
+                                             mbedtls_ctr_drbg_random, &ctr_drbg)) != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_ecdsa_write_signature returned %d\n", ret);
         goto exit;
     }
-    mbedtls_printf( " ok (signature length = %u)\n", (unsigned int) sig_len );
+    mbedtls_printf(" ok (signature length = %u)\n", (unsigned int) sig_len);
 
-    dump_buf( "  + Signature: ", sig, sig_len );
+    dump_buf("  + Signature: ", sig, sig_len);
 
     /*
      * Transfer public information to verifying context
@@ -197,52 +183,47 @@ int main( int argc, char *argv[] )
      * chose to use a new one in order to make it clear that the verifying
      * context only needs the public key (Q), and not the private key (d).
      */
-    mbedtls_printf( "  . Preparing verification context..." );
-    fflush( stdout );
+    mbedtls_printf("  . Preparing verification context...");
+    fflush(stdout);
 
-    if( ( ret = mbedtls_ecp_group_copy( &ctx_verify.MBEDTLS_PRIVATE(grp), &ctx_sign.MBEDTLS_PRIVATE(grp) ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_ecp_group_copy returned %d\n", ret );
+    if ((ret =
+             mbedtls_ecp_group_copy(&ctx_verify.MBEDTLS_PRIVATE(grp),
+                                    &ctx_sign.MBEDTLS_PRIVATE(grp))) != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_ecp_group_copy returned %d\n", ret);
         goto exit;
     }
 
-    if( ( ret = mbedtls_ecp_copy( &ctx_verify.MBEDTLS_PRIVATE(Q), &ctx_sign.MBEDTLS_PRIVATE(Q) ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_ecp_copy returned %d\n", ret );
+    if ((ret =
+             mbedtls_ecp_copy(&ctx_verify.MBEDTLS_PRIVATE(Q), &ctx_sign.MBEDTLS_PRIVATE(Q))) != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_ecp_copy returned %d\n", ret);
         goto exit;
     }
 
     /*
      * Verify signature
      */
-    mbedtls_printf( " ok\n  . Verifying signature..." );
-    fflush( stdout );
+    mbedtls_printf(" ok\n  . Verifying signature...");
+    fflush(stdout);
 
-    if( ( ret = mbedtls_ecdsa_read_signature( &ctx_verify,
-                                      hash, sizeof( hash ),
-                                      sig, sig_len ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_ecdsa_read_signature returned %d\n", ret );
+    if ((ret = mbedtls_ecdsa_read_signature(&ctx_verify,
+                                            hash, sizeof(hash),
+                                            sig, sig_len)) != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_ecdsa_read_signature returned %d\n", ret);
         goto exit;
     }
 
-    mbedtls_printf( " ok\n" );
+    mbedtls_printf(" ok\n");
 
     exit_code = MBEDTLS_EXIT_SUCCESS;
 
 exit:
 
-#if defined(_WIN32)
-    mbedtls_printf( "  + Press Enter to exit this program.\n" );
-    fflush( stdout ); getchar();
-#endif
+    mbedtls_ecdsa_free(&ctx_verify);
+    mbedtls_ecdsa_free(&ctx_sign);
+    mbedtls_ctr_drbg_free(&ctr_drbg);
+    mbedtls_entropy_free(&entropy);
 
-    mbedtls_ecdsa_free( &ctx_verify );
-    mbedtls_ecdsa_free( &ctx_sign );
-    mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
-
-    mbedtls_exit( exit_code );
+    mbedtls_exit(exit_code);
 }
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C &&
           ECPARAMS */

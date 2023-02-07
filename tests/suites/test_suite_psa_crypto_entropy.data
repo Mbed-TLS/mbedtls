@@ -7,7 +7,7 @@ external_rng_failure_generate:
 # randomization for (e.g.) blinding. An external implementation could use
 # its own randomness source which is not affected by the forced failure of
 # the RNG driver.
-# Key types and non-randomized auxilary algorithms (in practice, hashes) can
+# Key types and non-randomized auxiliary algorithms (in practice, hashes) can
 # use an external implementation.
 PSA external RNG failure: randomized ECDSA
 depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR:MBEDTLS_PSA_BUILTIN_ALG_ECDSA:PSA_WANT_ECC_SECP_R1_256

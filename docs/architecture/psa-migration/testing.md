@@ -21,11 +21,11 @@ they should be when `MBEDTLS_USE_PSA_CRYPTO` is enabled.
 However, when it comes to TLS, we also have the option of using debug messages
 to confirm which code path is taken. This is generally unnecessary, except when
 a decision is made at run-time about whether to use the PSA or legacy code
-path. For example, for record protection, currently some ciphers are supported
-via PSA while some others aren't, with a run-time fallback. In this case, it's
+path. (For example, for record protection, previously (until 3.1), some ciphers were supported
+via PSA while some others weren't, with a run-time fallback. In this case, it's
 good to have a debug message checked by the test case to confirm that the
 right decision was made at run-time, i. e. that we didn't use the fallback for
-ciphers that are supposed to be supported.
+ciphers that are supposed to be supported.)
 
 
 New APIs meant for application use
@@ -54,9 +54,8 @@ In that case, we want:
     (We should have the same server-side.)
   - in `test_suite_x509write` we have a new test function
     `x509_csr_check_opaque()` checking integration of the new API with the
-    existing `mbedtls_x509write_csr_set_key()`.
-    (We should have something similar for
-    `mbedtls_x509write_crt_set_issuer_key()`.)
+    existing `mbedtls_x509write_csr_set_key()`. (And also
+    `mbedtls_x509write_crt_set_issuer_key()` since #5710.)
 
 For some APIs, for example with `mbedtls_ssl_conf_psk_opaque()`, testing in
 `test_suite_ssl` was historically not possible, so we only have testing in
@@ -65,8 +64,9 @@ For some APIs, for example with `mbedtls_ssl_conf_psk_opaque()`, testing in
 New APIs meant for internal use
 -------------------------------
 
-For example, `mbedtls_cipher_setup_psa()` is meant to be used by the TLS
-layer, but probably not directly by applications.
+For example, `mbedtls_cipher_setup_psa()` (no longer used, soon to be
+deprecated - #5261) was meant to be used by the TLS layer, but probably not
+directly by applications.
 
 In that case, we want:
 

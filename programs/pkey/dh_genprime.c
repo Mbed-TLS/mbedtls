@@ -19,27 +19,17 @@
 
 #include "mbedtls/build_info.h"
 
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
-#include <stdio.h>
-#include <stdlib.h>
-#define mbedtls_printf          printf
-#define mbedtls_time_t          time_t
-#define mbedtls_exit            exit
-#define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
-#define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
-#endif /* MBEDTLS_PLATFORM_C */
 
 #if !defined(MBEDTLS_BIGNUM_C) || !defined(MBEDTLS_ENTROPY_C) ||   \
     !defined(MBEDTLS_FS_IO) || !defined(MBEDTLS_CTR_DRBG_C) ||     \
     !defined(MBEDTLS_GENPRIME)
-int main( void )
+int main(void)
 {
     mbedtls_printf("MBEDTLS_BIGNUM_C and/or MBEDTLS_ENTROPY_C and/or "
-           "MBEDTLS_FS_IO and/or MBEDTLS_CTR_DRBG_C and/or "
-           "MBEDTLS_GENPRIME not defined.\n");
-    mbedtls_exit( 0 );
+                   "MBEDTLS_FS_IO and/or MBEDTLS_CTR_DRBG_C and/or "
+                   "MBEDTLS_GENPRIME not defined.\n");
+    mbedtls_exit(0);
 }
 #else
 
@@ -52,7 +42,7 @@ int main( void )
 
 #define USAGE \
     "\n usage: dh_genprime param=<>...\n"                                   \
-    "\n acceprable parameters:\n"                                           \
+    "\n acceptable parameters:\n"                                           \
     "    bits=%%d           default: 2048\n"
 
 #define DFL_BITS    2048
@@ -64,7 +54,7 @@ int main( void )
 #define GENERATOR "4"
 
 
-int main( int argc, char **argv )
+int main(int argc, char **argv)
 {
     int ret = 1;
     int exit_code = MBEDTLS_EXIT_FAILURE;
@@ -77,121 +67,107 @@ int main( int argc, char **argv )
     int i;
     char *p, *q;
 
-    mbedtls_mpi_init( &G ); mbedtls_mpi_init( &P ); mbedtls_mpi_init( &Q );
-    mbedtls_ctr_drbg_init( &ctr_drbg );
-    mbedtls_entropy_init( &entropy );
+    mbedtls_mpi_init(&G); mbedtls_mpi_init(&P); mbedtls_mpi_init(&Q);
+    mbedtls_ctr_drbg_init(&ctr_drbg);
+    mbedtls_entropy_init(&entropy);
 
-    if( argc == 0 )
-    {
-    usage:
-        mbedtls_printf( USAGE );
+    if (argc < 2) {
+usage:
+        mbedtls_printf(USAGE);
         goto exit;
     }
 
-    for( i = 1; i < argc; i++ )
-    {
+    for (i = 1; i < argc; i++) {
         p = argv[i];
-        if( ( q = strchr( p, '=' ) ) == NULL )
+        if ((q = strchr(p, '=')) == NULL) {
             goto usage;
+        }
         *q++ = '\0';
 
-        if( strcmp( p, "bits" ) == 0 )
-        {
-            nbits = atoi( q );
-            if( nbits < 0 || nbits > MBEDTLS_MPI_MAX_BITS )
+        if (strcmp(p, "bits") == 0) {
+            nbits = atoi(q);
+            if (nbits < 0 || nbits > MBEDTLS_MPI_MAX_BITS) {
                 goto usage;
-        }
-        else
+            }
+        } else {
             goto usage;
+        }
     }
 
-    if( ( ret = mbedtls_mpi_read_string( &G, 10, GENERATOR ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_mpi_read_string returned %d\n", ret );
+    if ((ret = mbedtls_mpi_read_string(&G, 10, GENERATOR)) != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_mpi_read_string returned %d\n", ret);
         goto exit;
     }
 
-    mbedtls_printf( "  ! Generating large primes may take minutes!\n" );
+    mbedtls_printf("  ! Generating large primes may take minutes!\n");
 
-    mbedtls_printf( "\n  . Seeding the random number generator..." );
-    fflush( stdout );
+    mbedtls_printf("\n  . Seeding the random number generator...");
+    fflush(stdout);
 
-    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
-                               (const unsigned char *) pers,
-                               strlen( pers ) ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned %d\n", ret );
+    if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
+                                     (const unsigned char *) pers,
+                                     strlen(pers))) != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_ctr_drbg_seed returned %d\n", ret);
         goto exit;
     }
 
-    mbedtls_printf( " ok\n  . Generating the modulus, please wait..." );
-    fflush( stdout );
+    mbedtls_printf(" ok\n  . Generating the modulus, please wait...");
+    fflush(stdout);
 
     /*
      * This can take a long time...
      */
-    if( ( ret = mbedtls_mpi_gen_prime( &P, nbits, 1,
-                               mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_mpi_gen_prime returned %d\n\n", ret );
+    if ((ret = mbedtls_mpi_gen_prime(&P, nbits, 1,
+                                     mbedtls_ctr_drbg_random, &ctr_drbg)) != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_mpi_gen_prime returned %d\n\n", ret);
         goto exit;
     }
 
-    mbedtls_printf( " ok\n  . Verifying that Q = (P-1)/2 is prime..." );
-    fflush( stdout );
+    mbedtls_printf(" ok\n  . Verifying that Q = (P-1)/2 is prime...");
+    fflush(stdout);
 
-    if( ( ret = mbedtls_mpi_sub_int( &Q, &P, 1 ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_mpi_sub_int returned %d\n\n", ret );
+    if ((ret = mbedtls_mpi_sub_int(&Q, &P, 1)) != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_mpi_sub_int returned %d\n\n", ret);
         goto exit;
     }
 
-    if( ( ret = mbedtls_mpi_div_int( &Q, NULL, &Q, 2 ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_mpi_div_int returned %d\n\n", ret );
+    if ((ret = mbedtls_mpi_div_int(&Q, NULL, &Q, 2)) != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_mpi_div_int returned %d\n\n", ret);
         goto exit;
     }
 
-    if( ( ret = mbedtls_mpi_is_prime_ext( &Q, 50, mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_mpi_is_prime returned %d\n\n", ret );
+    if ((ret = mbedtls_mpi_is_prime_ext(&Q, 50, mbedtls_ctr_drbg_random, &ctr_drbg)) != 0) {
+        mbedtls_printf(" failed\n  ! mbedtls_mpi_is_prime returned %d\n\n", ret);
         goto exit;
     }
 
-    mbedtls_printf( " ok\n  . Exporting the value in dh_prime.txt..." );
-    fflush( stdout );
+    mbedtls_printf(" ok\n  . Exporting the value in dh_prime.txt...");
+    fflush(stdout);
 
-    if( ( fout = fopen( "dh_prime.txt", "wb+" ) ) == NULL )
-    {
-        mbedtls_printf( " failed\n  ! Could not create dh_prime.txt\n\n" );
+    if ((fout = fopen("dh_prime.txt", "wb+")) == NULL) {
+        mbedtls_printf(" failed\n  ! Could not create dh_prime.txt\n\n");
         goto exit;
     }
 
-    if( ( ret = mbedtls_mpi_write_file( "P = ", &P, 16, fout ) != 0 ) ||
-        ( ret = mbedtls_mpi_write_file( "G = ", &G, 16, fout ) != 0 ) )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_mpi_write_file returned %d\n\n", ret );
-        fclose( fout );
+    if (((ret = mbedtls_mpi_write_file("P = ", &P, 16, fout)) != 0) ||
+        ((ret = mbedtls_mpi_write_file("G = ", &G, 16, fout)) != 0)) {
+        mbedtls_printf(" failed\n  ! mbedtls_mpi_write_file returned %d\n\n", ret);
+        fclose(fout);
         goto exit;
     }
 
-    mbedtls_printf( " ok\n\n" );
-    fclose( fout );
+    mbedtls_printf(" ok\n\n");
+    fclose(fout);
 
     exit_code = MBEDTLS_EXIT_SUCCESS;
 
 exit:
 
-    mbedtls_mpi_free( &G ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
-    mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
+    mbedtls_mpi_free(&G); mbedtls_mpi_free(&P); mbedtls_mpi_free(&Q);
+    mbedtls_ctr_drbg_free(&ctr_drbg);
+    mbedtls_entropy_free(&entropy);
 
-#if defined(_WIN32)
-    mbedtls_printf( "  Press Enter to exit this program.\n" );
-    fflush( stdout ); getchar();
-#endif
-
-    mbedtls_exit( exit_code );
+    mbedtls_exit(exit_code);
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ENTROPY_C && MBEDTLS_FS_IO &&
           MBEDTLS_CTR_DRBG_C && MBEDTLS_GENPRIME */

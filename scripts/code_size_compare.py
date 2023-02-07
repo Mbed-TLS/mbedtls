@@ -30,6 +30,9 @@ import os
 import subprocess
 import sys
 
+from mbedtls_dev import build_tree
+
+
 class CodeSizeComparison:
     """Compare code size between two Git revisions."""
 
@@ -37,7 +40,7 @@ class CodeSizeComparison:
         """
         old_revision: revision to compare against
         new_revision:
-        result_dir: directory for comparision result
+        result_dir: directory for comparison result
         """
         self.repo_path = "."
         self.result_dir = os.path.abspath(result_dir)
@@ -50,11 +53,6 @@ class CodeSizeComparison:
         self.new_rev = new_revision
         self.git_command = "git"
         self.make_command = "make"
-
-    @staticmethod
-    def check_repo_path():
-        if not all(os.path.isdir(d) for d in ["include", "library", "tests"]):
-            raise Exception("Must be run from Mbed TLS root")
 
     @staticmethod
     def validate_revision(revision):
@@ -140,7 +138,7 @@ class CodeSizeComparison:
                                      + "-" + self.new_rev + ".csv"), "w")
 
         res_file.write("file_name, this_size, old_size, change, change %\n")
-        print("Generating comparision results.")
+        print("Generating comparison results.")
 
         old_ds = {}
         for line in old_file.readlines()[1:]:
@@ -172,7 +170,7 @@ class CodeSizeComparison:
     def get_comparision_results(self):
         """Compare size of library/*.o between self.old_rev and self.new_rev,
         and generate the result file."""
-        self.check_repo_path()
+        build_tree.check_repo_path()
         self._get_code_size_for_rev(self.old_rev)
         self._get_code_size_for_rev(self.new_rev)
         return self.compare_code_size()
@@ -199,7 +197,7 @@ def main():
     parser.add_argument(
         "-n", "--new-rev", type=str, default=None,
         help="new revision for comparison, default is the current work \
-              directory, including uncommited changes."
+              directory, including uncommitted changes."
     )
     comp_args = parser.parse_args()
 

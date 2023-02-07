@@ -19,16 +19,7 @@
 
 #include "mbedtls/build_info.h"
 
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
-#include <stdio.h>
-#include <stdlib.h>
-#define mbedtls_printf          printf
-#define mbedtls_exit            exit
-#define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
-#define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
-#endif /* MBEDTLS_PLATFORM_C */
 
 #if defined(MBEDTLS_BIGNUM_C) && \
     defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_FS_IO) && \
@@ -64,12 +55,12 @@
 #if !defined(MBEDTLS_BIGNUM_C) ||                                  \
     !defined(MBEDTLS_PK_PARSE_C) || !defined(MBEDTLS_FS_IO) || \
     !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C)
-int main( void )
+int main(void)
 {
     mbedtls_printf("MBEDTLS_BIGNUM_C and/or "
-           "MBEDTLS_PK_PARSE_C and/or MBEDTLS_FS_IO and/or "
-           "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C not defined.\n");
-    mbedtls_exit( 0 );
+                   "MBEDTLS_PK_PARSE_C and/or MBEDTLS_FS_IO and/or "
+                   "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C not defined.\n");
+    mbedtls_exit(0);
 }
 #else
 
@@ -77,15 +68,14 @@ int main( void )
 /*
  * global options
  */
-struct options
-{
+struct options {
     int mode;                   /* the mode to run the application in   */
     const char *filename;       /* filename of the key file             */
     const char *password;       /* password for the private key         */
     const char *password_file;  /* password_file for the private key    */
 } opt;
 
-int main( int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
     int ret = 1;
     int exit_code = MBEDTLS_EXIT_FAILURE;
@@ -103,20 +93,19 @@ int main( int argc, char *argv[] )
     /*
      * Set to sane values
      */
-    mbedtls_entropy_init( &entropy );
-    mbedtls_ctr_drbg_init( &ctr_drbg );
+    mbedtls_entropy_init(&entropy);
+    mbedtls_ctr_drbg_init(&ctr_drbg);
 
-    mbedtls_pk_init( &pk );
-    memset( buf, 0, sizeof(buf) );
+    mbedtls_pk_init(&pk);
+    memset(buf, 0, sizeof(buf));
 
-    mbedtls_mpi_init( &N ); mbedtls_mpi_init( &P ); mbedtls_mpi_init( &Q );
-    mbedtls_mpi_init( &D ); mbedtls_mpi_init( &E ); mbedtls_mpi_init( &DP );
-    mbedtls_mpi_init( &DQ ); mbedtls_mpi_init( &QP );
+    mbedtls_mpi_init(&N); mbedtls_mpi_init(&P); mbedtls_mpi_init(&Q);
+    mbedtls_mpi_init(&D); mbedtls_mpi_init(&E); mbedtls_mpi_init(&DP);
+    mbedtls_mpi_init(&DQ); mbedtls_mpi_init(&QP);
 
-    if( argc == 0 )
-    {
-    usage:
-        mbedtls_printf( USAGE );
+    if (argc < 2) {
+usage:
+        mbedtls_printf(USAGE);
         goto cleanup;
     }
 
@@ -125,211 +114,204 @@ int main( int argc, char *argv[] )
     opt.password            = DFL_PASSWORD;
     opt.password_file       = DFL_PASSWORD_FILE;
 
-    for( i = 1; i < argc; i++ )
-    {
+    for (i = 1; i < argc; i++) {
         p = argv[i];
-        if( ( q = strchr( p, '=' ) ) == NULL )
+        if ((q = strchr(p, '=')) == NULL) {
             goto usage;
+        }
         *q++ = '\0';
 
-        if( strcmp( p, "mode" ) == 0 )
-        {
-            if( strcmp( q, "private" ) == 0 )
+        if (strcmp(p, "mode") == 0) {
+            if (strcmp(q, "private") == 0) {
                 opt.mode = MODE_PRIVATE;
-            else if( strcmp( q, "public" ) == 0 )
+            } else if (strcmp(q, "public") == 0) {
                 opt.mode = MODE_PUBLIC;
-            else
+            } else {
                 goto usage;
-        }
-        else if( strcmp( p, "filename" ) == 0 )
+            }
+        } else if (strcmp(p, "filename") == 0) {
             opt.filename = q;
-        else if( strcmp( p, "password" ) == 0 )
+        } else if (strcmp(p, "password") == 0) {
             opt.password = q;
-        else if( strcmp( p, "password_file" ) == 0 )
+        } else if (strcmp(p, "password_file") == 0) {
             opt.password_file = q;
-        else
+        } else {
             goto usage;
+        }
     }
 
-    if( opt.mode == MODE_PRIVATE )
-    {
-        if( strlen( opt.password ) && strlen( opt.password_file ) )
-        {
-            mbedtls_printf( "Error: cannot have both password and password_file\n" );
+    if (opt.mode == MODE_PRIVATE) {
+        if (strlen(opt.password) && strlen(opt.password_file)) {
+            mbedtls_printf("Error: cannot have both password and password_file\n");
             goto usage;
         }
 
-        if( strlen( opt.password_file ) )
-        {
+        if (strlen(opt.password_file)) {
             FILE *f;
 
-            mbedtls_printf( "\n  . Loading the password file ..." );
-            if( ( f = fopen( opt.password_file, "rb" ) ) == NULL )
-            {
-                mbedtls_printf( " failed\n  !  fopen returned NULL\n" );
+            mbedtls_printf("\n  . Loading the password file ...");
+            if ((f = fopen(opt.password_file, "rb")) == NULL) {
+                mbedtls_printf(" failed\n  !  fopen returned NULL\n");
                 goto cleanup;
             }
-            if( fgets( buf, sizeof(buf), f ) == NULL )
-            {
-                fclose( f );
-                mbedtls_printf( "Error: fgets() failed to retrieve password\n" );
+            if (fgets(buf, sizeof(buf), f) == NULL) {
+                fclose(f);
+                mbedtls_printf("Error: fgets() failed to retrieve password\n");
                 goto cleanup;
             }
-            fclose( f );
+            fclose(f);
 
-            i = (int) strlen( buf );
-            if( buf[i - 1] == '\n' ) buf[i - 1] = '\0';
-            if( buf[i - 2] == '\r' ) buf[i - 2] = '\0';
+            i = (int) strlen(buf);
+            if (buf[i - 1] == '\n') {
+                buf[i - 1] = '\0';
+            }
+            if (buf[i - 2] == '\r') {
+                buf[i - 2] = '\0';
+            }
             opt.password = buf;
         }
 
         /*
          * 1.1. Load the key
          */
-        mbedtls_printf( "\n  . Loading the private key ..." );
-        fflush( stdout );
+        mbedtls_printf("\n  . Loading the private key ...");
+        fflush(stdout);
 
-        if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
-                                   (const unsigned char *) pers,
-                                   strlen( pers ) ) ) != 0 )
-        {
-            mbedtls_printf( " failed\n  !  mbedtls_ctr_drbg_seed returned -0x%04x\n", (unsigned int) -ret );
+        if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
+                                         (const unsigned char *) pers,
+                                         strlen(pers))) != 0) {
+            mbedtls_printf(" failed\n  !  mbedtls_ctr_drbg_seed returned -0x%04x\n",
+                           (unsigned int) -ret);
             goto cleanup;
         }
 
-        ret = mbedtls_pk_parse_keyfile( &pk, opt.filename, opt.password,
-                                        mbedtls_ctr_drbg_random, &ctr_drbg );
+        ret = mbedtls_pk_parse_keyfile(&pk, opt.filename, opt.password,
+                                       mbedtls_ctr_drbg_random, &ctr_drbg);
 
-        if( ret != 0 )
-        {
-            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile returned -0x%04x\n", (unsigned int) -ret );
+        if (ret != 0) {
+            mbedtls_printf(" failed\n  !  mbedtls_pk_parse_keyfile returned -0x%04x\n",
+                           (unsigned int) -ret);
             goto cleanup;
         }
 
-        mbedtls_printf( " ok\n" );
+        mbedtls_printf(" ok\n");
 
         /*
          * 1.2 Print the key
          */
-        mbedtls_printf( "  . Key information    ...\n" );
+        mbedtls_printf("  . Key information    ...\n");
 #if defined(MBEDTLS_RSA_C)
-        if( mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_RSA )
-        {
-            mbedtls_rsa_context *rsa = mbedtls_pk_rsa( pk );
+        if (mbedtls_pk_get_type(&pk) == MBEDTLS_PK_RSA) {
+            mbedtls_rsa_context *rsa = mbedtls_pk_rsa(pk);
 
-            if( ( ret = mbedtls_rsa_export    ( rsa, &N, &P, &Q, &D, &E ) ) != 0 ||
-                ( ret = mbedtls_rsa_export_crt( rsa, &DP, &DQ, &QP ) )      != 0 )
-            {
-                mbedtls_printf( " failed\n  ! could not export RSA parameters\n\n" );
+            if ((ret = mbedtls_rsa_export(rsa, &N, &P, &Q, &D, &E)) != 0 ||
+                (ret = mbedtls_rsa_export_crt(rsa, &DP, &DQ, &QP))      != 0) {
+                mbedtls_printf(" failed\n  ! could not export RSA parameters\n\n");
                 goto cleanup;
             }
 
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "N:  ", &N, 16, NULL ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "E:  ", &E, 16, NULL ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "D:  ", &D, 16, NULL ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "P:  ", &P, 16, NULL ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q:  ", &Q, 16, NULL ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "DP: ", &DP, 16, NULL ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "DQ:  ", &DQ, 16, NULL ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "QP:  ", &QP, 16, NULL ) );
-        }
-        else
+            MBEDTLS_MPI_CHK(mbedtls_mpi_write_file("N:  ", &N, 16, NULL));
+            MBEDTLS_MPI_CHK(mbedtls_mpi_write_file("E:  ", &E, 16, NULL));
+            MBEDTLS_MPI_CHK(mbedtls_mpi_write_file("D:  ", &D, 16, NULL));
+            MBEDTLS_MPI_CHK(mbedtls_mpi_write_file("P:  ", &P, 16, NULL));
+            MBEDTLS_MPI_CHK(mbedtls_mpi_write_file("Q:  ", &Q, 16, NULL));
+            MBEDTLS_MPI_CHK(mbedtls_mpi_write_file("DP: ", &DP, 16, NULL));
+            MBEDTLS_MPI_CHK(mbedtls_mpi_write_file("DQ:  ", &DQ, 16, NULL));
+            MBEDTLS_MPI_CHK(mbedtls_mpi_write_file("QP:  ", &QP, 16, NULL));
+        } else
 #endif
 #if defined(MBEDTLS_ECP_C)
-        if( mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_ECKEY )
-        {
-            mbedtls_ecp_keypair *ecp = mbedtls_pk_ec( pk );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q(X): ", &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(X), 16, NULL ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q(Y): ", &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Y), 16, NULL ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q(Z): ", &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Z), 16, NULL ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "D   : ", &ecp->MBEDTLS_PRIVATE(d)  , 16, NULL ) );
-        }
-        else
+        if (mbedtls_pk_get_type(&pk) == MBEDTLS_PK_ECKEY) {
+            mbedtls_ecp_keypair *ecp = mbedtls_pk_ec(pk);
+            MBEDTLS_MPI_CHK(mbedtls_mpi_write_file("Q(X): ",
+                                                   &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(X), 16,
+                                                   NULL));
+            MBEDTLS_MPI_CHK(mbedtls_mpi_write_file("Q(Y): ",
+                                                   &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Y), 16,
+                                                   NULL));
+            MBEDTLS_MPI_CHK(mbedtls_mpi_write_file("Q(Z): ",
+                                                   &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Z), 16,
+                                                   NULL));
+            MBEDTLS_MPI_CHK(mbedtls_mpi_write_file("D   : ", &ecp->MBEDTLS_PRIVATE(d), 16, NULL));
+        } else
 #endif
         {
-            mbedtls_printf("Do not know how to print key information for this type\n" );
+            mbedtls_printf("Do not know how to print key information for this type\n");
             goto cleanup;
         }
-    }
-    else if( opt.mode == MODE_PUBLIC )
-    {
+    } else if (opt.mode == MODE_PUBLIC) {
         /*
          * 1.1. Load the key
          */
-        mbedtls_printf( "\n  . Loading the public key ..." );
-        fflush( stdout );
+        mbedtls_printf("\n  . Loading the public key ...");
+        fflush(stdout);
 
-        ret = mbedtls_pk_parse_public_keyfile( &pk, opt.filename );
+        ret = mbedtls_pk_parse_public_keyfile(&pk, opt.filename);
 
-        if( ret != 0 )
-        {
-            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_public_keyfile returned -0x%04x\n", (unsigned int) -ret );
+        if (ret != 0) {
+            mbedtls_printf(" failed\n  !  mbedtls_pk_parse_public_keyfile returned -0x%04x\n",
+                           (unsigned int) -ret);
             goto cleanup;
         }
 
-        mbedtls_printf( " ok\n" );
+        mbedtls_printf(" ok\n");
 
-        mbedtls_printf( "  . Key information    ...\n" );
+        mbedtls_printf("  . Key information    ...\n");
 #if defined(MBEDTLS_RSA_C)
-        if( mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_RSA )
-        {
-            mbedtls_rsa_context *rsa = mbedtls_pk_rsa( pk );
+        if (mbedtls_pk_get_type(&pk) == MBEDTLS_PK_RSA) {
+            mbedtls_rsa_context *rsa = mbedtls_pk_rsa(pk);
 
-            if( ( ret = mbedtls_rsa_export( rsa, &N, NULL, NULL,
-                                            NULL, &E ) ) != 0 )
-            {
-                mbedtls_printf( " failed\n  ! could not export RSA parameters\n\n" );
+            if ((ret = mbedtls_rsa_export(rsa, &N, NULL, NULL,
+                                          NULL, &E)) != 0) {
+                mbedtls_printf(" failed\n  ! could not export RSA parameters\n\n");
                 goto cleanup;
             }
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "N:  ", &N, 16, NULL ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "E:  ", &E, 16, NULL ) );
-        }
-        else
+            MBEDTLS_MPI_CHK(mbedtls_mpi_write_file("N:  ", &N, 16, NULL));
+            MBEDTLS_MPI_CHK(mbedtls_mpi_write_file("E:  ", &E, 16, NULL));
+        } else
 #endif
 #if defined(MBEDTLS_ECP_C)
-        if( mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_ECKEY )
-        {
-            mbedtls_ecp_keypair *ecp = mbedtls_pk_ec( pk );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q(X): ", &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(X), 16, NULL ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q(Y): ", &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Y), 16, NULL ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q(Z): ", &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Z), 16, NULL ) );
-        }
-        else
+        if (mbedtls_pk_get_type(&pk) == MBEDTLS_PK_ECKEY) {
+            mbedtls_ecp_keypair *ecp = mbedtls_pk_ec(pk);
+            MBEDTLS_MPI_CHK(mbedtls_mpi_write_file("Q(X): ",
+                                                   &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(X), 16,
+                                                   NULL));
+            MBEDTLS_MPI_CHK(mbedtls_mpi_write_file("Q(Y): ",
+                                                   &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Y), 16,
+                                                   NULL));
+            MBEDTLS_MPI_CHK(mbedtls_mpi_write_file("Q(Z): ",
+                                                   &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Z), 16,
+                                                   NULL));
+        } else
 #endif
         {
-            mbedtls_printf("Do not know how to print key information for this type\n" );
+            mbedtls_printf("Do not know how to print key information for this type\n");
             goto cleanup;
         }
-    }
-    else
+    } else {
         goto usage;
+    }
 
     exit_code = MBEDTLS_EXIT_SUCCESS;
 
 cleanup:
 
 #if defined(MBEDTLS_ERROR_C)
-    if( exit_code != MBEDTLS_EXIT_SUCCESS )
-    {
-        mbedtls_strerror( ret, buf, sizeof( buf ) );
-        mbedtls_printf( "  !  Last error was: %s\n", buf );
+    if (exit_code != MBEDTLS_EXIT_SUCCESS) {
+        mbedtls_strerror(ret, buf, sizeof(buf));
+        mbedtls_printf("  !  Last error was: %s\n", buf);
     }
 #endif
 
-    mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
+    mbedtls_ctr_drbg_free(&ctr_drbg);
+    mbedtls_entropy_free(&entropy);
 
-    mbedtls_pk_free( &pk );
-    mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
-    mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
-    mbedtls_mpi_free( &DQ ); mbedtls_mpi_free( &QP );
+    mbedtls_pk_free(&pk);
+    mbedtls_mpi_free(&N); mbedtls_mpi_free(&P); mbedtls_mpi_free(&Q);
+    mbedtls_mpi_free(&D); mbedtls_mpi_free(&E); mbedtls_mpi_free(&DP);
+    mbedtls_mpi_free(&DQ); mbedtls_mpi_free(&QP);
 
-#if defined(_WIN32)
-    mbedtls_printf( "  + Press Enter to exit this program.\n" );
-    fflush( stdout ); getchar();
-#endif
-
-    mbedtls_exit( exit_code );
+    mbedtls_exit(exit_code);
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_PK_PARSE_C && MBEDTLS_FS_IO &&
           MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */

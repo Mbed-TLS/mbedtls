@@ -1,4 +1,0 @@
-Features
-   * Add ALPN support in tls13 client. Client is able to write ALPN extension
-     in client hello, and able to parse the response from server encrypted
-     extension.

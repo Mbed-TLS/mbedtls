@@ -1,4 +1,0 @@
-Default behavior changes
-   * mbedtls_cipher_set_iv will now fail with ChaCha20 and ChaCha20+Poly1305
-     for IV lengths other than 12. The library was silently overwriting this
-     length with 12, but did not inform the caller about it. Fixes #4301.

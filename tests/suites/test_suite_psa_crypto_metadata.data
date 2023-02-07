@@ -118,6 +118,10 @@ Cipher: XTS
 depends_on:PSA_WANT_ALG_XTS:MBEDTLS_CIPHER_C
 cipher_algorithm:PSA_ALG_XTS:0
 
+Cipher: CCM*
+depends_on:PSA_WANT_ALG_CCM_STAR_NO_TAG
+cipher_algorithm:PSA_ALG_CCM_STAR_NO_TAG:ALG_IS_STREAM_CIPHER
+
 AEAD: CCM-AES-128
 depends_on:PSA_WANT_KEY_TYPE_AES:PSA_WANT_ALG_CCM
 aead_algorithm:PSA_ALG_CCM:ALG_IS_AEAD_ON_BLOCK_CIPHER:16:PSA_KEY_TYPE_AES:128
@@ -270,6 +274,26 @@ Key derivation: HKDF using SHA-384
 depends_on:PSA_WANT_ALG_HKDF:PSA_WANT_ALG_SHA_384
 key_derivation_algorithm:PSA_ALG_HKDF( PSA_ALG_SHA_384 ):ALG_IS_HKDF
 
+Key derivation: HKDF-Extract using SHA-256
+depends_on:PSA_WANT_ALG_HKDF_EXTRACT:PSA_WANT_ALG_SHA_256
+key_derivation_algorithm:PSA_ALG_HKDF_EXTRACT( PSA_ALG_SHA_256 ):ALG_IS_HKDF_EXTRACT
+
+Key derivation: HKDF-Extract using SHA-384
+depends_on:PSA_WANT_ALG_HKDF_EXTRACT:PSA_WANT_ALG_SHA_384
+key_derivation_algorithm:PSA_ALG_HKDF_EXTRACT( PSA_ALG_SHA_384 ):ALG_IS_HKDF_EXTRACT
+
+Key derivation: HKDF-Expand using SHA-256
+depends_on:PSA_WANT_ALG_HKDF_EXPAND:PSA_WANT_ALG_SHA_256
+key_derivation_algorithm:PSA_ALG_HKDF_EXPAND( PSA_ALG_SHA_256 ):ALG_IS_HKDF_EXPAND
+
+Key derivation: HKDF-Expand using SHA-384
+depends_on:PSA_WANT_ALG_HKDF_EXPAND:PSA_WANT_ALG_SHA_384
+key_derivation_algorithm:PSA_ALG_HKDF_EXPAND( PSA_ALG_SHA_384 ):ALG_IS_HKDF_EXPAND
+
+Key derivation: TLS1.2 ECJPAKE-to-PMS
+depends_on:PSA_WANT_ALG_TLS12_ECJPAKE_TO_PMS
+key_derivation_algorithm:PSA_ALG_TLS12_ECJPAKE_TO_PMS:0
+
 Key derivation: TLS 1.2 PRF using SHA-256
 depends_on:PSA_WANT_ALG_SHA_256:PSA_WANT_ALG_TLS12_PRF
 key_derivation_algorithm:PSA_ALG_TLS12_PRF( PSA_ALG_SHA_256 ):ALG_IS_TLS12_PRF
@@ -322,6 +346,12 @@ key_type:PSA_KEY_TYPE_HMAC:KEY_TYPE_IS_UNSTRUCTURED
 
 Key type: secret for key derivation
 key_type:PSA_KEY_TYPE_DERIVE:KEY_TYPE_IS_UNSTRUCTURED
+
+Key type: password
+key_type:PSA_KEY_TYPE_PASSWORD:KEY_TYPE_IS_UNSTRUCTURED
+
+Key type: password hash
+key_type:PSA_KEY_TYPE_PASSWORD_HASH:KEY_TYPE_IS_UNSTRUCTURED
 
 Block cipher key type: AES
 depends_on:PSA_WANT_KEY_TYPE_AES

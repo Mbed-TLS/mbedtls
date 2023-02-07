@@ -1,0 +1,3 @@
+Bugfix
+   * Fix compile error where MBEDTLS_RSA_C and MBEDTLS_X509_CRT_WRITE_C are
+     defined, but MBEDTLS_PK_RSA_ALT_SUPPORT is not defined. Fixes #3174.

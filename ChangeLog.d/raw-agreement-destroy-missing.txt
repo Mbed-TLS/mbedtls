@@ -1,3 +1,0 @@
-Bugfix
-   * Add missing key slot destruction calls when a raw key agreement or
-     a public key export fails in ssl_write_client_key_exchange.

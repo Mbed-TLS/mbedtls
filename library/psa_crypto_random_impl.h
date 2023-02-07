@@ -41,9 +41,9 @@
 typedef mbedtls_psa_external_random_context_t mbedtls_psa_random_context_t;
 
 /* Trivial wrapper around psa_generate_random(). */
-int mbedtls_psa_get_random( void *p_rng,
-                            unsigned char *output,
-                            size_t output_size );
+int mbedtls_psa_get_random(void *p_rng,
+                           unsigned char *output,
+                           size_t output_size);
 
 /* The PSA RNG API doesn't need any externally maintained state. */
 #define MBEDTLS_PSA_RANDOM_STATE NULL
@@ -89,12 +89,12 @@ int mbedtls_psa_get_random( void *p_rng,
  *
  * \param p_rng        Pointer to the Mbed TLS DRBG state.
  */
-static inline void mbedtls_psa_drbg_init( mbedtls_psa_drbg_context_t *p_rng )
+static inline void mbedtls_psa_drbg_init(mbedtls_psa_drbg_context_t *p_rng)
 {
 #if defined(MBEDTLS_CTR_DRBG_C)
-    mbedtls_ctr_drbg_init( p_rng );
+    mbedtls_ctr_drbg_init(p_rng);
 #elif defined(MBEDTLS_HMAC_DRBG_C)
-    mbedtls_hmac_drbg_init( p_rng );
+    mbedtls_hmac_drbg_init(p_rng);
 #endif
 }
 
@@ -102,12 +102,12 @@ static inline void mbedtls_psa_drbg_init( mbedtls_psa_drbg_context_t *p_rng )
  *
  * \param p_rng        Pointer to the Mbed TLS DRBG state.
  */
-static inline void mbedtls_psa_drbg_free( mbedtls_psa_drbg_context_t *p_rng )
+static inline void mbedtls_psa_drbg_free(mbedtls_psa_drbg_context_t *p_rng)
 {
 #if defined(MBEDTLS_CTR_DRBG_C)
-    mbedtls_ctr_drbg_free( p_rng );
+    mbedtls_ctr_drbg_free(p_rng);
 #elif defined(MBEDTLS_HMAC_DRBG_C)
-    mbedtls_hmac_drbg_free( p_rng );
+    mbedtls_hmac_drbg_free(p_rng);
 #endif
 }
 
@@ -116,10 +116,9 @@ static inline void mbedtls_psa_drbg_free( mbedtls_psa_drbg_context_t *p_rng )
  * The random generator context is composed of an entropy context and
  * a DRBG context.
  */
-typedef struct
-{
-    void (* entropy_init )( mbedtls_entropy_context *ctx );
-    void (* entropy_free )( mbedtls_entropy_context *ctx );
+typedef struct {
+    void (* entropy_init)(mbedtls_entropy_context *ctx);
+    void (* entropy_free)(mbedtls_entropy_context *ctx);
     mbedtls_entropy_context entropy;
     mbedtls_psa_drbg_context_t drbg;
 } mbedtls_psa_random_context_t;
@@ -182,21 +181,21 @@ extern mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state;
  */
 static inline int mbedtls_psa_drbg_seed(
     mbedtls_entropy_context *entropy,
-    const unsigned char *custom, size_t len )
+    const unsigned char *custom, size_t len)
 {
 #if defined(MBEDTLS_CTR_DRBG_C)
-    return( mbedtls_ctr_drbg_seed( MBEDTLS_PSA_RANDOM_STATE,
-                                   mbedtls_entropy_func,
-                                   entropy,
-                                   custom, len ) );
+    return mbedtls_ctr_drbg_seed(MBEDTLS_PSA_RANDOM_STATE,
+                                 mbedtls_entropy_func,
+                                 entropy,
+                                 custom, len);
 #elif defined(MBEDTLS_HMAC_DRBG_C)
     const mbedtls_md_info_t *md_info =
-        mbedtls_md_info_from_type( MBEDTLS_PSA_HMAC_DRBG_MD_TYPE );
-    return( mbedtls_hmac_drbg_seed( MBEDTLS_PSA_RANDOM_STATE,
-                                    md_info,
-                                    mbedtls_entropy_func,
-                                    entropy,
-                                    custom, len ) );
+        mbedtls_md_info_from_type(MBEDTLS_PSA_HMAC_DRBG_MD_TYPE);
+    return mbedtls_hmac_drbg_seed(MBEDTLS_PSA_RANDOM_STATE,
+                                  md_info,
+                                  mbedtls_entropy_func,
+                                  entropy,
+                                  custom, len);
 #endif
 }
 

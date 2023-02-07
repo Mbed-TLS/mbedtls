@@ -40,7 +40,7 @@ If the way certain keys are stored changes, and we don't deliberately decide to 
 
 ## Storage architecture overview
 
-The PSA subsystem provides storage on top of the PSA trusted storage interface. The state of the storage is a mapping from file identifer (a 64-bit number) to file content (a byte array). These files include:
+The PSA subsystem provides storage on top of the PSA trusted storage interface. The state of the storage is a mapping from file identifier (a 64-bit number) to file content (a byte array). These files include:
 
 * [Key files](#key-storage) (files containing one key's metadata and, except for some secure element keys, key material).
 * The [random generator injected seed or state file](#random-generator-state) (`PSA_CRYPTO_ITS_RANDOM_SEED_UID`).

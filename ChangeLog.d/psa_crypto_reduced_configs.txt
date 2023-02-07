@@ -1,5 +1,0 @@
-Changes
-   * Automatically enable MBEDTLS_PK_WRITE_C if MBEDTLS_PK_C and
-     MBEDTLS_USE_PSA_CRYPTO are enabled. This is due to ecdsa_verify_wrap
-     requirements, but will also probably be needed by RSA soon, hence the
-     broader PK_C requirement.

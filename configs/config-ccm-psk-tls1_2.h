@@ -46,10 +46,6 @@
 #define MBEDTLS_ENTROPY_C
 #define MBEDTLS_MD_C
 #define MBEDTLS_NET_C
-/* The library does not currently support enabling SHA-224 without SHA-256.
- * A future version of the library will have this option disabled
- * by default. */
-#define MBEDTLS_SHA224_C
 #define MBEDTLS_SHA256_C
 #define MBEDTLS_SSL_CLI_C
 #define MBEDTLS_SSL_SRV_C
@@ -64,8 +60,8 @@
  * save ROM and a few bytes of RAM by specifying our own ciphersuite list
  */
 #define MBEDTLS_SSL_CIPHERSUITES                        \
-        MBEDTLS_TLS_PSK_WITH_AES_256_CCM_8,             \
-        MBEDTLS_TLS_PSK_WITH_AES_128_CCM_8
+    MBEDTLS_TLS_PSK_WITH_AES_256_CCM_8,             \
+    MBEDTLS_TLS_PSK_WITH_AES_128_CCM_8
 
 /*
  * Save RAM at the expense of interoperability: do this only if you control

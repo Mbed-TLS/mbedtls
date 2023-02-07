@@ -1,0 +1,2 @@
+Bugfix
+   * Fix IAR compiler warnings. Contributed by Glenn Strauss in #3835.

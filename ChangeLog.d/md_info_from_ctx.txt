@@ -1,3 +1,0 @@
-Features
-   * Add a function to extract message digest information from a message
-     digest context.

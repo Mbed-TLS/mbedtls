@@ -1,3 +1,0 @@
-Bugfix
-   * Fix unit tests that used 0 as the file UID. This failed on some
-     implementations of PSA ITS. Fixes #3838.

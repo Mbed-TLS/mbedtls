@@ -1,4 +1,0 @@
-Features
-   * Add the function mbedtls_ssl_get_own_cid() to access our own connection id
-     within mbedtls_ssl_context, as requested in #5184
-

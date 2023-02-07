@@ -3561,12 +3561,6 @@ psa_status_t mbedtls_psa_sign_hash_start(
     operation->md_alg = mbedtls_hash_info_md_from_psa(hash_alg);
     operation->alg = alg;
 
-    operation->hash = mbedtls_calloc(1, hash_length);
-
-    if (operation->hash == NULL) {
-        return PSA_ERROR_INSUFFICIENT_MEMORY;
-    }
-
     memcpy(operation->hash, hash, hash_length);
     operation->hash_length = hash_length;
 
@@ -3698,9 +3692,6 @@ psa_status_t mbedtls_psa_sign_hash_abort(
         operation->ctx = NULL;
     }
 
-    mbedtls_free(operation->hash);
-    operation->hash = NULL;
-
     mbedtls_ecdsa_restart_free(&operation->restart_ctx);
 
     return PSA_SUCCESS;
@@ -3789,12 +3780,6 @@ psa_status_t mbedtls_psa_verify_hash_start(
 
     mbedtls_ecdsa_restart_init(&operation->restart_ctx);
 
-    operation->hash = mbedtls_calloc(1, hash_length);
-
-    if (operation->hash == NULL) {
-        return PSA_ERROR_INSUFFICIENT_MEMORY;
-    }
-
     memcpy(operation->hash, hash, hash_length);
     operation->hash_length = hash_length;
 
@@ -3857,9 +3842,6 @@ psa_status_t mbedtls_psa_verify_hash_abort(
         mbedtls_free(operation->ctx);
         operation->ctx = NULL;
     }
-
-    mbedtls_free(operation->hash);
-    operation->hash = NULL;
 
     mbedtls_ecdsa_restart_free(&operation->restart_ctx);
 

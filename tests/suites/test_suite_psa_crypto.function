@@ -7186,8 +7186,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
-void hash_interruptible_state_test(int key_type_arg, data_t *key_data,
-                                   int alg_arg, data_t *input_data)
+void interruptible_signverify_hash_state_test(int key_type_arg,
+                                              data_t *key_data, int alg_arg, data_t *input_data)
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;
@@ -7197,7 +7197,6 @@ void hash_interruptible_state_test(int key_type_arg, data_t *key_data,
     size_t signature_size;
     size_t signature_length = 0xdeadbeef;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    uint8_t *input_buffer = NULL;
     psa_sign_hash_interruptible_operation_t sign_operation =
         psa_sign_hash_interruptible_operation_init();
     psa_verify_hash_interruptible_operation_t verify_operation =
@@ -7320,6 +7319,57 @@ void hash_interruptible_state_test(int key_type_arg, data_t *key_data,
 
     PSA_ASSERT(psa_verify_hash_abort(&verify_operation));
 
+exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
+    psa_reset_key_attributes(&attributes);
+
+    psa_destroy_key(key);
+    mbedtls_free(signature);
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
+void interruptible_signverify_hash_negative_tests(int key_type_arg,
+                                                  data_t *key_data, int alg_arg, data_t *input_data)
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    size_t key_bits;
+    unsigned char *signature = NULL;
+    size_t signature_size;
+    size_t signature_length = 0xdeadbeef;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    uint8_t *input_buffer = NULL;
+    psa_sign_hash_interruptible_operation_t sign_operation =
+        psa_sign_hash_interruptible_operation_init();
+    psa_verify_hash_interruptible_operation_t verify_operation =
+        psa_verify_hash_interruptible_operation_init();
+
+    PSA_ASSERT(psa_crypto_init());
+
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH |
+                            PSA_KEY_USAGE_VERIFY_HASH);
+    psa_set_key_algorithm(&attributes, alg);
+    psa_set_key_type(&attributes, key_type);
+
+    PSA_ASSERT(psa_import_key(&attributes, key_data->x, key_data->len,
+                              &key));
+    PSA_ASSERT(psa_get_key_attributes(key, &attributes));
+    key_bits = psa_get_key_bits(&attributes);
+
+    /* Allocate a buffer which has the size advertised by the
+     * library. */
+    signature_size = PSA_SIGN_OUTPUT_SIZE(key_type,
+                                          key_bits, alg);
+    TEST_ASSERT(signature_size != 0);
+    TEST_LE_U(signature_size, PSA_SIGNATURE_MAX_SIZE);
+    ASSERT_ALLOC(signature, signature_size);
+
     /* --- Ensure changing the max ops mid operation works (operation should
      *     complete successfully after setting max ops to unlimited --- */
     psa_interruptible_set_max_ops(1);
@@ -7432,6 +7482,7 @@ exit:
     PSA_DONE();
 }
 /* END_CASE */
+
 
 /* BEGIN_CASE */
 void sign_message_deterministic(int key_type_arg,

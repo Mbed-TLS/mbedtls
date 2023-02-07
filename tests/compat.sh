@@ -1001,10 +1001,20 @@ SKIP_NEXT="NO"
 
 trap cleanup INT TERM HUP
 
-for VERIFY in $VERIFIES; do
-    VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
-    for MODE in $MODES; do
+for MODE in $MODES; do
+    PSK_TESTS=""
+    for VERIFY in $VERIFIES; do
+        VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
         for TYPE in $TYPES; do
+
+            if [ "$TYPE" = "PSK" ]; then
+                if [ -z "$PSK_TESTS" ]; then
+                    PSK_TESTS="FINISHED"
+                else
+                    continue;
+                fi
+            fi
+
             for PEER in $PEERS; do
 
             setup_arguments

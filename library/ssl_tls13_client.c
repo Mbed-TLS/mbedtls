@@ -1254,6 +1254,19 @@ int mbedtls_ssl_tls13_finalize_client_hello(mbedtls_ssl_context *ssl)
             return ret;
         }
 
+        /*
+         * Early data are going to be encrypted using the ciphersuite
+         * associated with the pre-shared key used for the handshake.
+         * Note that if the server rejects early data, the handshake
+         * based on the pre-shared key may complete successfully
+         * with a selected ciphersuite different from the ciphersuite
+         * associated with the pre-shared key. Only the hashes of the
+         * two ciphersuites have to be the same. In that case, the
+         * encrypted handshake data and application data are
+         * encrypted using a different ciphersuite than the one used for
+         * the rejected early data.
+         */
+
         ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(
             ssl->session_negotiate->ciphersuite);
         ssl->handshake->ciphersuite_info = ciphersuite_info;

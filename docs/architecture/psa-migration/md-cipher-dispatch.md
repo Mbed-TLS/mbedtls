@@ -227,6 +227,20 @@ A hash is available through the mixed-domain interface iff either of the followi
 
 We could go further and make PSA accelerators available to legacy callers that call any legacy hash interface, e.g. `md.h` or `shaX.h`. There is little point in doing this, however: callers should just use the mixed-domain interface.
 
+#### Implications between legacy availability and PSA availability
+
+* When `MBEDTLS_PSA_CRYPTO_CONFIG` is disabled, all legacy mechanisms are automatically enabled through PSA. Users can manually enable PSA mechanisms that are available through accelerators but not through legacy, but this is not officially supported (users are not supposed to manually define PSA configuration symbols when `MBEDTLS_PSA_CRYPTO_CONFIG` is disabled).
+* When `MBEDTLS_PSA_CRYPTO_CONFIG` is enabled, there is no mandatory relationship between PSA support and legacy support for a mechanism. Users can configure legacy support and PSA support independently. Legacy support is automatically enabled if PSA support is requested, but only there is no accelerator.
+
+It is strongly desirable to allow mechanisms available through PSA but not legacy: this allows saving code size when an accelerator is present.
+
+There is no strong reason to allow mechanisms available through legacy but not PSA when `MBEDTLS_PSA_CRYPTO_C` is enabled. This would only save at best a very small amount of code size in the PSA dispatch code. This may be more desirable when `MBEDTLS_PSA_CRYPTO_CLIENT` is enabled (having a mechanism available only locally and not in the crypto service), but we do not have an explicit request for this and it would be entirely reasonable to forbid it.
+
+In this analysis, we have not found a compelling reason to require all legacy mechanisms to also be available through PSA. However, this can simplify both the implementation and the use of dispatch code thanks to some simplifying properties:
+
+* Mixed-domain code can call PSA code if it knows that `psa_crypto_init()` has been called, without having to inspect the specifics of algorithm support.
+* Mixed-domain code can assume that PSA buffer calculations work correctly for all algorithms that it supports.
+
 #### Shape of the mixed-domain hash interface
 
 We now need to create an abstraction for mixed-domain hash calculation. (We could not create an abstraction, but that would require every piece of mixed-domain code to replicate the logic here. We went that route in Mbed TLS 3.3, but it made it effectively impossible to get something that works correctly.)
@@ -411,6 +425,14 @@ Optionally, code that currently tests on `MBEDTLS_USE_PSA_CRYPTO` just to determ
 #### Remove `legacy_or_psa.h`
 
 It's no longer used.
+
+### Support all legacy algorithms in PSA
+
+As discussed in [“Implications between legacy availability and PSA availability”](#implications-between-legacy-availability-and-psa-availability), we require the following property:
+
+> If an algorithm has a legacy implementation, it is also available through PSA.
+
+When `MBEDTLS_PSA_CRYPTO_CONFIG` is disabled, this is already the case. When is enabled, we will now make it so as well. Change `include/mbedtls/config_psa.h` accordingly.
 
 ### MD light optimizations
 

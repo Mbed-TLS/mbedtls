@@ -932,7 +932,6 @@ setup_arguments()
     M_CLIENT_ARGS="server_port=$PORT server_addr=127.0.0.1 force_version=$MODE"
     O_CLIENT_ARGS="-connect localhost:$PORT -$O_MODE"
     G_CLIENT_ARGS="-p $PORT --debug 3 $G_MODE"
-    G_CLIENT_PRIO="NONE:$G_PRIO_MODE:+COMP-NULL:+CURVE-ALL:+SIGN-ALL"
 
     # Newer versions of OpenSSL have a syntax to enable all "ciphers", even
     # low-security ones. This covers not just cipher suites but also protocol

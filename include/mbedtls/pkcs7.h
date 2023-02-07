@@ -46,6 +46,8 @@
  *  - The RFC allows for SignerInfo structure to optionally contain
  *    unauthenticatedAttributes and authenticatedAttributes. In Mbed TLS it is
  *    assumed these fields are empty.
+ *  - The RFC allows for the signed Data type to contain contentInfo. This
+ *    implementation assumes the type is DATA and the content is empty.
  */
 
 #ifndef MBEDTLS_PKCS7_H

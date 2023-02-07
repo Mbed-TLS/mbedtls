@@ -495,8 +495,18 @@ static int pkcs7_get_signed_data(unsigned char *buf, size_t buflen,
         return ret;
     }
 
-    if (end_content_info != p) {
-        return MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO;
+    if (p != end_content_info) {
+        /* Determine if valid content is present */
+        ret = mbedtls_asn1_get_tag(&p, end_content_info, &len, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_CONTEXT_SPECIFIC);
+        if (ret != 0) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO, ret);
+        }
+        p += len;
+        if (p != end_content_info) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO, ret);
+        }
+        /* Valid content is present - this is not supported */
+        return MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE;
     }
 
     if (MBEDTLS_OID_CMP(MBEDTLS_OID_PKCS7_DATA, &signed_data->content.oid)) {

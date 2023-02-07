@@ -46,7 +46,7 @@ def main():
     result = name_check.parse_identifiers([
         "include/mbedtls/*_internal.h",
         "library/*.h"
-    ])
+    ])[0]
     result.sort(key=lambda x: x.name)
 
     identifiers = ["{}\n".format(match.name) for match in result]

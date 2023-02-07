@@ -1,0 +1,4 @@
+Changes
+  * Visual Studio: Rename the directory containing Visual Studio files from
+    visualc/VS2010 to visualc/VS2013 as we do not support building with versions
+    older than 2013. Update the solution file to specify VS2013 as a minimum.

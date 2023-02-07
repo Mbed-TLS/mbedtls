@@ -21,23 +21,23 @@
 
 #include <windows.h>
 
-extern int main( int, const char ** );
+extern int main(int, const char **);
 
-int _tmain( int argc, _TCHAR* targv[] )
+int _tmain(int argc, _TCHAR *targv[])
 {
     char **argv;
     int i;
 
-    argv = ( char ** ) calloc( argc, sizeof( char * ) );
+    argv = (char **) calloc(argc, sizeof(char *));
 
-    for ( i = 0; i < argc; i++ ) {
+    for (i = 0; i < argc; i++) {
         size_t len;
-        len = _tcslen( targv[i] ) + 1;
-        argv[i] = ( char * ) calloc( len, sizeof( char ) );
-        wcstombs( argv[i], targv[i], len );
+        len = _tcslen(targv[i]) + 1;
+        argv[i] = (char *) calloc(len, sizeof(char));
+        wcstombs(argv[i], targv[i], len);
     }
 
-    return main( argc, argv );
+    return main(argc, argv);
 }
 
 #endif  /* defined(_WIN32_WCE) */

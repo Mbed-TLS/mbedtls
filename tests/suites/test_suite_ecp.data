@@ -227,19 +227,51 @@ ecp_read_binary:MBEDTLS_ECP_DP_SECP192R1:"0000":"01":"01":"00":MBEDTLS_ERR_ECP_B
 
 ECP read binary #2 (zero, invalid first byte)
 depends_on:MBEDTLS_ECP_DP_SECP192R1_ENABLED
-ecp_read_binary:MBEDTLS_ECP_DP_SECP192R1:"01":"01":"01":"00":MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE
+ecp_read_binary:MBEDTLS_ECP_DP_SECP192R1:"01":"01":"01":"00":MBEDTLS_ERR_ECP_BAD_INPUT_DATA
 
 ECP read binary #3 (zero, OK)
 depends_on:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 ecp_read_binary:MBEDTLS_ECP_DP_SECP192R1:"00":"01":"01":"00":0
 
-ECP read binary #4 (non-zero, invalid ilen)
+ECP read binary #4 (non-zero, invalid ilen, too short)
 depends_on:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 ecp_read_binary:MBEDTLS_ECP_DP_SECP192R1:"04001122":"01":"01":"00":MBEDTLS_ERR_ECP_BAD_INPUT_DATA
 
+ECP read binary #4a (non-zero, invalid ilen, too short)
+depends_on:MBEDTLS_ECP_DP_SECP192R1_ENABLED
+ecp_read_binary:MBEDTLS_ECP_DP_SECP192R1:"03001122":"01":"01":"00":MBEDTLS_ERR_ECP_BAD_INPUT_DATA
+
+ECP read binary #4b (non-zero, invalid ilen, too short)
+depends_on:MBEDTLS_ECP_DP_SECP192R1_ENABLED
+ecp_read_binary:MBEDTLS_ECP_DP_SECP192R1:"02001122":"01":"01":"00":MBEDTLS_ERR_ECP_BAD_INPUT_DATA
+
+ECP read binary #4c (non-zero, invalid ilen, too long)
+depends_on:MBEDTLS_ECP_DP_SECP192R1_ENABLED
+ecp_read_binary:MBEDTLS_ECP_DP_SECP192R1:"040011223344556677889900112233445566778899001122334455":"01":"01":"00":MBEDTLS_ERR_ECP_BAD_INPUT_DATA
+
+ECP read binary #4d (non-zero, invalid ilen, too long)
+depends_on:MBEDTLS_ECP_DP_SECP192R1_ENABLED
+ecp_read_binary:MBEDTLS_ECP_DP_SECP192R1:"030011223344556677889900112233445566778899001122334455":"01":"01":"00":MBEDTLS_ERR_ECP_BAD_INPUT_DATA
+
+ECP read binary #4e (non-zero, invalid ilen, too long)
+depends_on:MBEDTLS_ECP_DP_SECP192R1_ENABLED
+ecp_read_binary:MBEDTLS_ECP_DP_SECP192R1:"020011223344556677889900112233445566778899001122334455":"01":"01":"00":MBEDTLS_ERR_ECP_BAD_INPUT_DATA
+
 ECP read binary #5 (non-zero, invalid first byte)
 depends_on:MBEDTLS_ECP_DP_SECP192R1_ENABLED
-ecp_read_binary:MBEDTLS_ECP_DP_SECP192R1:"0548d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc99336ceed4d7cba482e288669ee1b6415626d6f34d28501e060c":"48d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc9933":"6ceed4d7cba482e288669ee1b6415626d6f34d28501e060c":"01":MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE
+ecp_read_binary:MBEDTLS_ECP_DP_SECP192R1:"0548d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc99336ceed4d7cba482e288669ee1b6415626d6f34d28501e060c":"48d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc9933":"6ceed4d7cba482e288669ee1b6415626d6f34d28501e060c":"01":MBEDTLS_ERR_ECP_BAD_INPUT_DATA
+
+ECP read binary #5a (non-zero, compressed format, invalid first byte)
+depends_on:MBEDTLS_ECP_DP_SECP192R1_ENABLED
+ecp_read_binary:MBEDTLS_ECP_DP_SECP192R1:"0548d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc9933":"48d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc9933":"6ceed4d7cba482e288669ee1b6415626d6f34d28501e060c":"01":MBEDTLS_ERR_ECP_BAD_INPUT_DATA
+
+ECP read binary #5b (non-zero, compressed format, parity 0, OK)
+depends_on:MBEDTLS_ECP_DP_SECP192R1_ENABLED
+ecp_read_binary:MBEDTLS_ECP_DP_SECP192R1:"0248d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc9933":"48d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc9933":"6ceed4d7cba482e288669ee1b6415626d6f34d28501e060c":"01":0
+
+ECP read binary #5c (non-zero, compressed format, parity 1, OK)
+depends_on:MBEDTLS_ECP_DP_SECP192R1_ENABLED
+ecp_read_binary:MBEDTLS_ECP_DP_SECP192R1:"0348d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc9933":"48d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc9933":"93112b28345b7d1d7799611e49bea9d8290cb2d7afe1f9f3":"01":0
 
 ECP read binary #6 (non-zero, OK)
 depends_on:MBEDTLS_ECP_DP_SECP192R1_ENABLED
@@ -284,6 +316,14 @@ ecp_read_binary:MBEDTLS_ECP_DP_CURVE448:"8f4925d1519f5775cf46b04b5800d4ee9ee8bae
 ECP read binary #16 (Curve448, non-canonical)
 depends_on:MBEDTLS_ECP_DP_CURVE448_ENABLED
 ecp_read_binary:MBEDTLS_ECP_DP_CURVE448:"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff":"0":"1":0
+
+ECP read binary #17 (non-zero, compressed format, p != 3 mod 4, secp224r1)
+depends_on:MBEDTLS_ECP_DP_SECP224R1_ENABLED
+ecp_read_binary:MBEDTLS_ECP_DP_SECP224R1:"0200000000000000000000000000000000000000000000000000000000":"01":"01":"01":MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE
+
+ECP read binary #17a (non-zero, compressed format, p != 3 mod 4, secp224k1)
+depends_on:MBEDTLS_ECP_DP_SECP224K1_ENABLED
+ecp_read_binary:MBEDTLS_ECP_DP_SECP224K1:"0200000000000000000000000000000000000000000000000000000000":"01":"01":"01":MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE
 
 ECP tls read point #1 (zero, invalid length byte)
 depends_on:MBEDTLS_ECP_DP_SECP192R1_ENABLED
@@ -998,4 +1038,3 @@ ecp_check_order:MBEDTLS_ECP_DP_SECP256K1:"fffffffffffffffffffffffffffffffebaaedc
 ECP check order for CURVE448
 depends_on:MBEDTLS_ECP_DP_CURVE448_ENABLED
 ecp_check_order:MBEDTLS_ECP_DP_CURVE448:"3fffffffffffffffffffffffffffffffffffffffffffffffffffffff7cca23e9c44edb49aed63690216cc2728dc58f552378c292ab5844f3"
-

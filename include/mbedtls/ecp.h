@@ -419,11 +419,22 @@ typedef struct mbedtls_ecp_keypair {
 }
 mbedtls_ecp_keypair;
 
-/*
- * Point formats, from RFC 4492's enum ECPointFormat
+/**
+ * The uncompressed point format for Short Weierstrass curves
+ * (MBEDTLS_ECP_DP_SECP_XXX and MBEDTLS_ECP_DP_BP_XXX).
  */
-#define MBEDTLS_ECP_PF_UNCOMPRESSED    0   /**< Uncompressed point format. */
-#define MBEDTLS_ECP_PF_COMPRESSED      1   /**< Compressed point format. */
+#define MBEDTLS_ECP_PF_UNCOMPRESSED    0
+/**
+ * The compressed point format for Short Weierstrass curves
+ * (MBEDTLS_ECP_DP_SECP_XXX and MBEDTLS_ECP_DP_BP_XXX).
+ *
+ * \warning     While this format is supported for all concerned curves for
+ *              writing, when it comes to parsing, it is not supported for all
+ *              curves. Specifically, parsing compressed points on
+ *              MBEDTLS_ECP_DP_SECP224R1 and MBEDTLS_ECP_DP_SECP224K1 is not
+ *              supported.
+ */
+#define MBEDTLS_ECP_PF_COMPRESSED      1
 
 /*
  * Some other constants from RFC 4492
@@ -751,6 +762,9 @@ int mbedtls_ecp_point_write_binary(const mbedtls_ecp_group *grp,
  * \note            This function does not check that the point actually
  *                  belongs to the given group, see mbedtls_ecp_check_pubkey()
  *                  for that.
+ *
+ * \note            For compressed points, see #MBEDTLS_ECP_PF_COMPRESSED for
+ *                  limitations.
  *
  * \param grp       The group to which the point should belong.
  *                  This must be initialized and have group parameters

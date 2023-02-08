@@ -4745,10 +4745,6 @@ cleanup:
 
 #if defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
 /* Constants used by ecp_use_ed25519() */
-static const unsigned char ed25519_part_of_n[] = {
-    0x14, 0xDE, 0xF9, 0xDE, 0xA2, 0xF7, 0x9C, 0xD6,
-    0x58, 0x12, 0x63, 0x1A, 0x5C, 0xF5, 0xD3, 0xED,
-};
 static const unsigned char ed25519_b[] = {
     0x52, 0x03, 0x6C, 0xEE, 0x2B, 0x6F, 0xFE, 0x73,
     0x8C, 0xC7, 0x40, 0x79, 0x77, 0x79, 0xE8, 0x98,
@@ -4776,15 +4772,14 @@ static int ecp_use_ed25519(mbedtls_ecp_group *grp)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     /* P = 2^255 - 19 */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&grp->P, 1));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_shift_l(&grp->P, 255));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_sub_int(&grp->P, &grp->P, 19));
+    ecp_mpi_load(&grp->P, curve25519_p, sizeof(curve25519_p));
+
     grp->pbits = mbedtls_mpi_bitlen(&grp->P);
 
-    /* N = 2^252 + 27742317777372353535851937790883648493 */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&grp->N,
-                                            ed25519_part_of_n, sizeof(ed25519_part_of_n)));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_set_bit(&grp->N, 252, 1));
+    ecp_mpi_load(&grp->N, curve25519_n, sizeof(curve25519_n));
+
+    /* Actually, the required msb for private keys */
+    grp->nbits = 254;
 
     /* A = -1 */
     MBEDTLS_MPI_CHK(mbedtls_mpi_sub_int(&grp->A, &grp->P, 1));

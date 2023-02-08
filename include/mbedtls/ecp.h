@@ -244,10 +244,10 @@ typedef struct mbedtls_ecp_group {
     /* End of public fields */
 
     unsigned int MBEDTLS_PRIVATE(h);             /*!< \internal 1 if the constants are static. */
-    int(*MBEDTLS_PRIVATE(modp))(mbedtls_mpi *);  /*!< The function for fast pseudo-reduction
-                                                    mod \p P (see above).*/
-    int(*MBEDTLS_PRIVATE(t_pre))(mbedtls_ecp_point *, void *);   /*!< Unused. */
-    int(*MBEDTLS_PRIVATE(t_post))(mbedtls_ecp_point *, void *);  /*!< Unused. */
+    int(*MBEDTLS_PRIVATE(modp))(mbedtls_mpi *);   /*!< The function for fast pseudo-reduction
+                                                     mod \p P (see above).*/
+    int(*MBEDTLS_PRIVATE(t_pre))(mbedtls_ecp_point *, void *);    /*!< Unused. */
+    int(*MBEDTLS_PRIVATE(t_post))(mbedtls_ecp_point *, void *);   /*!< Unused. */
     void *MBEDTLS_PRIVATE(t_data);               /*!< Unused. */
     mbedtls_ecp_point *MBEDTLS_PRIVATE(T);       /*!< Pre-computed points for ecp_mul_comb(). */
     size_t MBEDTLS_PRIVATE(T_size);              /*!< The number of dynamic allocated pre-computed points. */
@@ -706,7 +706,7 @@ int MBEDTLS_DEPRECATED mbedtls_ecp_set_zero(mbedtls_ecp_point *pt);
  * \return          #MBEDTLS_ERR_MPI_ALLOC_FAILED on memory-allocation failure.
  * \return          Another negative error code on other kinds of failure.
  */
-int mbedtls_ecp_set_zero_ext( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt );
+int mbedtls_ecp_set_zero_ext(const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt);
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**

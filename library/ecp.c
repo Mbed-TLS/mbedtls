@@ -678,7 +678,7 @@ cleanup:
 /*
  * Set point to zero.
  */
-int mbedtls_ecp_set_zero_ext( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt )
+int mbedtls_ecp_set_zero_ext(const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     if (pt == NULL) {
@@ -727,7 +727,7 @@ int mbedtls_ecp_is_zero(mbedtls_ecp_point *pt)
 /*
  * Tell if a point is zero.
  */
-int mbedtls_ecp_is_zero_ext( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt )
+int mbedtls_ecp_is_zero_ext(const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt)
 {
     if (pt == NULL) {
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
@@ -888,9 +888,9 @@ cleanup:
 /*
  * Import and Edward point from binary data (RFC8032)
  */
-static int mbedtls_ecp_point_read_binary_edwards( const mbedtls_ecp_group *grp,
-                                             mbedtls_ecp_point *pt,
-                                             const unsigned char *buf, size_t ilen );
+static int mbedtls_ecp_point_read_binary_edwards(const mbedtls_ecp_group *grp,
+                                                 mbedtls_ecp_point *pt,
+                                                 const unsigned char *buf, size_t ilen);
 #endif
 
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
@@ -918,7 +918,7 @@ int mbedtls_ecp_point_read_binary(const mbedtls_ecp_group *grp,
     switch (mbedtls_ecp_get_type(grp)) {
 #if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
         case MBEDTLS_ECP_TYPE_MONTGOMERY:
-             if (plen != ilen) {
+            if (plen != ilen) {
                 return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
             }
 
@@ -1303,9 +1303,9 @@ cleanup:
     !(defined(MBEDTLS_ECP_NO_FALLBACK) && \
     defined(MBEDTLS_ECP_DOUBLE_JAC_ALT) && \
     defined(MBEDTLS_ECP_ADD_MIXED_ALT)) || \
-   (defined(MBEDTLS_ECP_EDWARDS_ENABLED) && \
-   !(defined(MBEDTLS_ECP_NO_FALLBACK) && \
-   defined(MBEDTLS_ECP_ADD_MIXED_ALT)))
+    (defined(MBEDTLS_ECP_EDWARDS_ENABLED) && \
+    !(defined(MBEDTLS_ECP_NO_FALLBACK) && \
+    defined(MBEDTLS_ECP_ADD_MIXED_ALT)))
 static inline int mbedtls_mpi_shift_l_mod(const mbedtls_ecp_group *grp,
                                           mbedtls_mpi *X,
                                           size_t count)
@@ -1370,7 +1370,7 @@ cleanup:
         unsigned char nonzero = mbedtls_mpi_cmp_int((X), 0) != 0;        \
         MBEDTLS_MPI_CHK(mbedtls_mpi_sub_mpi(&tmp, &grp->P, (X)));      \
         MBEDTLS_MPI_CHK(mbedtls_mpi_safe_cond_assign((X), &tmp,          \
-                                                     nonzero & cond)); \
+                                                     nonzero &cond)); \
     } while (0)
 
 #define MPI_ECP_NEG(X) MPI_ECP_COND_NEG((X), 1)
@@ -3432,10 +3432,10 @@ cleanup:
  * NOT constant-time - ONLY for short Weierstrass!
  */
 static int mbedtls_ecp_muladd_restartable_sw(
-           mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
-           const mbedtls_mpi *m, const mbedtls_ecp_point *P,
-           const mbedtls_mpi *n, const mbedtls_ecp_point *Q,
-           mbedtls_ecp_restart_ctx *rs_ctx)
+    mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+    const mbedtls_mpi *m, const mbedtls_ecp_point *P,
+    const mbedtls_mpi *n, const mbedtls_ecp_point *Q,
+    mbedtls_ecp_restart_ctx *rs_ctx)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecp_point mP;
@@ -3809,7 +3809,7 @@ int mbedtls_ecp_check_pubkey(const mbedtls_ecp_group *grp,
 
     switch (mbedtls_ecp_get_type(grp)) {
 #if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
-         case MBEDTLS_ECP_TYPE_MONTGOMERY:
+        case MBEDTLS_ECP_TYPE_MONTGOMERY:
             return ecp_check_pubkey_mx(grp, pt);
 #endif
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
@@ -4030,7 +4030,7 @@ int mbedtls_ecp_expand_edwards(mbedtls_ecp_group *grp,
         ret = mbedtls_ecp_expand_ed448(d, q, prefix);
     }
 #endif
-    return ret ;
+    return ret;
 }
 int mbedtls_ecp_point_edwards(mbedtls_ecp_group *grp,
                               mbedtls_ecp_point *Q,
@@ -4062,14 +4062,13 @@ int mbedtls_ecp_gen_keypair_base(mbedtls_ecp_group *grp,
                                  void *p_rng)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    MBEDTLS_MPI_CHK(mbedtls_ecp_gen_privkey( grp, d, f_rng, p_rng));
+    MBEDTLS_MPI_CHK(mbedtls_ecp_gen_privkey(grp, d, f_rng, p_rng));
 #ifdef MBEDTLS_ECP_EDWARDS_ENABLED
     if (mbedtls_ecp_get_type(grp) == MBEDTLS_ECP_TYPE_EDWARDS) {
         MBEDTLS_MPI_CHK(mbedtls_ecp_point_edwards(grp, Q, d, f_rng, p_rng));
-    }
-    else
+    } else
 #endif
-        MBEDTLS_MPI_CHK(mbedtls_ecp_mul(grp, Q, d, G, f_rng, p_rng));
+    MBEDTLS_MPI_CHK(mbedtls_ecp_mul(grp, Q, d, G, f_rng, p_rng));
 
 cleanup:
     return ret;

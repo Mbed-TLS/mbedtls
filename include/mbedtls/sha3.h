@@ -141,10 +141,10 @@ int mbedtls_sha3_starts(mbedtls_sha3_context *ctx, mbedtls_sha3_id id);
  * \note           If no name and no custom strings are provided (are \c NULL),
  *                 it is equivalent to mbedtls_sha3_starts().
  */
-int mbedtls_sha3_starts_cshake( mbedtls_sha3_context *ctx,
-                            mbedtls_sha3_id id,
-                            const char *name, size_t name_len,
-                            const char *custom, size_t custom_len );
+int mbedtls_sha3_starts_cshake(mbedtls_sha3_context *ctx,
+                               mbedtls_sha3_id id,
+                               const char *name, size_t name_len,
+                               const char *custom, size_t custom_len);
 
 /**
  * \brief          This function starts a SHA-3 checksum calculation for KMAC
@@ -283,10 +283,10 @@ int mbedtls_sha3(mbedtls_sha3_id id, const uint8_t *input,
  * \note           If no name and no custom strings are provided (are \c NULL),
  *                 it is equivalent to mbedtls_sha3().
  */
-int mbedtls_sha3_cshake( mbedtls_sha3_id id, const uint8_t *input,
-                    size_t ilen, const char *name, size_t name_len,
-                    const char *custom, size_t custom_len,
-                    uint8_t *output, size_t olen );
+int mbedtls_sha3_cshake(mbedtls_sha3_id id, const uint8_t *input,
+                        size_t ilen, const char *name, size_t name_len,
+                        const char *custom, size_t custom_len,
+                        uint8_t *output, size_t olen);
 
 /**
  * \brief          This function calculates the SHA-3 KMAC

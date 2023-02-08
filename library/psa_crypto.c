@@ -3617,10 +3617,10 @@ psa_status_t mbedtls_psa_sign_hash_complete(
                                                MBEDTLS_PSA_RANDOM_STATE,
                                                &operation->restart_ctx));
 #else /* defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
-        return PSA_ERROR_NOT_SUPPORTED;
+        status = PSA_ERROR_NOT_SUPPORTED;
+        goto exit;
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
     } else {
-
         status = mbedtls_to_psa_error(
             mbedtls_ecdsa_sign_restartable(&operation->ctx->grp,
                                            &r,
@@ -3635,9 +3635,7 @@ psa_status_t mbedtls_psa_sign_hash_complete(
                                            &operation->restart_ctx));
     }
 
-    if (status != PSA_SUCCESS) {
-        return status;
-    } else {
+    if (status == PSA_SUCCESS) {
         status =  mbedtls_to_psa_error(
             mbedtls_mpi_write_binary(&r,
                                      signature,
@@ -3645,7 +3643,7 @@ psa_status_t mbedtls_psa_sign_hash_complete(
             );
 
         if (status != PSA_SUCCESS) {
-            return status;
+            goto exit;
         }
 
         status =  mbedtls_to_psa_error(
@@ -3656,13 +3654,20 @@ psa_status_t mbedtls_psa_sign_hash_complete(
             );
 
         if (status != PSA_SUCCESS) {
-            return status;
+            goto exit;
         }
 
         *signature_length = operation->coordinate_bytes * 2;
 
-        return PSA_SUCCESS;
+        status = PSA_SUCCESS;
     }
+
+exit:
+
+    mbedtls_mpi_free(&r);
+    mbedtls_mpi_free(&s);
+    return status;
+
  #else
 
     (void) operation;

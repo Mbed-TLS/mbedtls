@@ -702,7 +702,7 @@ int MBEDTLS_DEPRECATED mbedtls_ecp_set_zero(mbedtls_ecp_point *pt);
  * \return          #MBEDTLS_ERR_MPI_ALLOC_FAILED on memory-allocation failure.
  * \return          Another negative error code on other kinds of failure.
  */
-int mbedtls_ecp_set_zero_ext( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt );
+int mbedtls_ecp_set_zero_ext(const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt);
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**

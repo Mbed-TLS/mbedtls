@@ -54,9 +54,9 @@
  * For each of r and s, the value (V) may include an extra initial "0" bit.
  */
 #define MBEDTLS_EDDSA_MAX_SIG_LEN(bits)                               \
-        (/*T,L of SEQUENCE*/ ((bits) >= 61 * 8 ? 3 : 2) +              \
-         /*T,L of r,s*/ 2 * (((bits) >= 127 * 8 ? 3 : 2) +     \
-                             /*V of r,s*/ ((bits) + 8) / 8))
+    (/*T,L of SEQUENCE*/ ((bits) >= 61 * 8 ? 3 : 2) +              \
+     /*T,L of r,s*/ 2 * (((bits) >= 127 * 8 ? 3 : 2) +     \
+                         /*V of r,s*/ ((bits) + 8) / 8))
 
 /** The maximal size of an EdDSA signature in Bytes. */
 /* EdDSA is defined for two curves: Ed25519 (256 bits) */

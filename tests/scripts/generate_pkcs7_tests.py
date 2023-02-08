@@ -57,6 +57,7 @@ class TestData:
         self.last_test_num, self.old_tests = self.read_test_file(file_name)
         self.new_tests = []
 
+    # pylint: disable=no-self-use
     def read_test_file(self, file):
         """
         Parse the test_suite_pkcs7.data file.

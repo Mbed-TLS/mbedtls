@@ -1,5 +1,5 @@
 /**
- * \file build_info.h
+ * \file mbedtls/build_info.h
  *
  * \brief Build-time configuration info
  *

@@ -1,5 +1,5 @@
 /**
- * \file build_info.h
+ * \file psa/build_info.h
  *
  * \brief Build-time PSA configuration info
  *

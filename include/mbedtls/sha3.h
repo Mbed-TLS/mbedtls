@@ -164,10 +164,10 @@ int mbedtls_sha3_starts_cshake(mbedtls_sha3_context *ctx,
  * \note           If no name and no custom strings are provided (are \c NULL),
  *                 it is equivalent to mbedtls_sha3_starts().
  */
-int mbedtls_sha3_starts_kmac( mbedtls_sha3_context *ctx,
-                            mbedtls_sha3_id id,
-                            const uint8_t *key, size_t key_len,
-                            const char *custom, size_t custom_len );
+int mbedtls_sha3_starts_kmac(mbedtls_sha3_context *ctx,
+                             mbedtls_sha3_id id,
+                             const uint8_t *key, size_t key_len,
+                             const char *custom, size_t custom_len);
 
 /**
  * \brief          This function feeds an input buffer into an ongoing
@@ -220,8 +220,8 @@ int mbedtls_sha3_finish(mbedtls_sha3_context *ctx,
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
-int mbedtls_sha3_finish_kmac( mbedtls_sha3_context *ctx,
-                           uint8_t *output, size_t olen, int xof );
+int mbedtls_sha3_finish_kmac(mbedtls_sha3_context *ctx,
+                             uint8_t *output, size_t olen, int xof);
 
 /**
  * \brief          This function calculates the SHA-3
@@ -320,10 +320,10 @@ int mbedtls_sha3_cshake(mbedtls_sha3_id id, const uint8_t *input,
  * \note           If no name and no custom strings are provided (are \c NULL),
  *                 it is equivalent to mbedtls_sha3().
  */
-int mbedtls_sha3_kmac( mbedtls_sha3_id id, const uint8_t *input,
-                    size_t ilen, const uint8_t *key, size_t key_len,
-                    const char *custom, size_t custom_len,
-                    uint8_t *output, size_t olen, int xof );
+int mbedtls_sha3_kmac(mbedtls_sha3_id id, const uint8_t *input,
+                      size_t ilen, const uint8_t *key, size_t key_len,
+                      const char *custom, size_t custom_len,
+                      uint8_t *output, size_t olen, int xof);
 
 #if defined(MBEDTLS_SELF_TEST)
 /**

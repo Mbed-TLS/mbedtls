@@ -489,6 +489,7 @@ run_test "TLS 1.3 m->m: Resumption with ticket flags, psk_all/psk_all." \
 
 EARLY_DATA_INPUT_LEN_BLOCKS=$(( ( $( cat $EARLY_DATA_INPUT | wc -c ) + 31 ) / 32 ))
 EARLY_DATA_INPUT_LEN=$(( $EARLY_DATA_INPUT_LEN_BLOCKS * 32 ))
+EARLY_DATA_INPUT_LINE1_LEN=$(head -1 $EARLY_DATA_INPUT | wc -c)
 
 requires_gnutls_next
 requires_all_configs_enabled MBEDTLS_SSL_EARLY_DATA MBEDTLS_SSL_SESSION_TICKETS \
@@ -497,6 +498,7 @@ requires_all_configs_enabled MBEDTLS_SSL_EARLY_DATA MBEDTLS_SSL_SESSION_TICKETS 
                              MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+requires_config_value_at_least MBEDTLS_SSL_MAX_EARLY_DATA_SIZE $EARLY_DATA_INPUT_LEN
 run_test "TLS 1.3 G->m: EarlyData: feature is enabled, good." \
          "$P_SRV force_version=tls13 debug_level=4 max_early_data_size=$EARLY_DATA_INPUT_LEN early_data=enable" \
          "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+GROUP-ALL:+KX-ALL \

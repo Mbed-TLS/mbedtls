@@ -37,7 +37,7 @@
 #if !defined(MBEDTLS_CHACHA20_ALT)
 
 #define ROTL32(value, amount) \
-        ((uint32_t) ((value) << (amount)) | ((value) >> (32 - (amount))))
+    ((uint32_t) ((value) << (amount)) | ((value) >> (32 - (amount))))
 
 #define CHACHA20_CTR_INDEX (12U)
 
@@ -315,7 +315,7 @@ static int chacha20_crypt(int is_xchacha20, const unsigned char key[32],
 
     ret = mbedtls_chacha20_update(&ctx, data_len, input, output);
 
-    cleanup:
+cleanup:
     mbedtls_chacha20_free(&ctx);
     return ret;
 }
@@ -514,17 +514,17 @@ static const size_t test_lengths[2] =
 #undef ASSERT
 
 #define ASSERT(cond, args)            \
-        do                                  \
-        {                                   \
-            if (!(cond))                \
-            {                               \
-                if (verbose != 0)          \
-                mbedtls_printf args;    \
+    do                                  \
+    {                                   \
+        if (!(cond))                \
+        {                               \
+            if (verbose != 0)          \
+            mbedtls_printf args;    \
                                         \
-                return -1;               \
-            }                               \
-        }                                   \
-        while (0)
+            return -1;               \
+        }                               \
+    }                                   \
+    while (0)
 
 int mbedtls_chacha20_self_test(int verbose)
 {

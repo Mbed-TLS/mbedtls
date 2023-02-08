@@ -130,13 +130,13 @@ static int chachapoly_starts(int is_xchacha20, mbedtls_chachapoly_context *ctx,
     }
 
     /* Generate the Poly1305 key by getting the ChaCha20 keystream output with
-    * counter = 0.  This is the same as encrypting a buffer of zeroes.
-    * Only the first 256-bits (32 bytes) of the key is used for Poly1305.
-    * The other 256 bits are discarded.
-    */
+     * counter = 0.  This is the same as encrypting a buffer of zeroes.
+     * Only the first 256-bits (32 bytes) of the key is used for Poly1305.
+     * The other 256 bits are discarded.
+     */
     memset(poly1305_key, 0, sizeof(poly1305_key));
     ret = mbedtls_chacha20_update(&ctx->chacha20_ctx, sizeof(poly1305_key),
-                                poly1305_key, poly1305_key);
+                                  poly1305_key, poly1305_key);
     if (ret != 0) {
         goto cleanup;
     }
@@ -150,7 +150,7 @@ static int chachapoly_starts(int is_xchacha20, mbedtls_chachapoly_context *ctx,
         ctx->mode           = mode;
     }
 
-    cleanup:
+cleanup:
     mbedtls_platform_zeroize(poly1305_key, 64U);
     return ret;
 }
@@ -304,7 +304,7 @@ static int chachapoly_crypt_and_tag(int is_xchacha20,
 
     ret = mbedtls_chachapoly_finish(ctx, tag);
 
-    cleanup:
+cleanup:
     return ret;
 }
 
@@ -489,17 +489,17 @@ static const unsigned char test_mac[1][16] =
 #undef ASSERT
 
 #define ASSERT(cond, args)            \
-        do                                  \
-        {                                   \
-            if (!(cond))                \
-            {                               \
-                if (verbose != 0)          \
-                mbedtls_printf args;    \
+    do                                  \
+    {                                   \
+        if (!(cond))                \
+        {                               \
+            if (verbose != 0)          \
+            mbedtls_printf args;    \
                                         \
-                return -1;               \
-            }                               \
-        }                                   \
-        while (0)
+            return -1;               \
+        }                               \
+    }                                   \
+    while (0)
 
 int mbedtls_chachapoly_self_test(int verbose)
 {

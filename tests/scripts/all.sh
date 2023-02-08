@@ -2108,6 +2108,10 @@ config_psa_crypto_config_ecdsa_use_psa () {
     # TODO: make these work - #6862
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
+    # Restartable feature is not yet supported by PSA. Once it will in
+    # the future, the following line could be removed (see issues
+    # 6061, 6332 and following ones)
+    scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
 }
 
 # Keep in sync with component_test_psa_crypto_config_reference_ecdsa_use_psa

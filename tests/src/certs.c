@@ -25,6 +25,8 @@
 
 #include "mbedtls/legacy_or_psa.h"
 
+#include "pk_wrap.c"
+
 /*
  * Test CA Certificates
  *
@@ -1678,7 +1680,7 @@ const char *mbedtls_test_cas[] = {
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
     mbedtls_test_ca_crt_rsa_sha256,
 #endif
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
     mbedtls_test_ca_crt_ec,
 #endif
     NULL
@@ -1690,7 +1692,7 @@ const size_t mbedtls_test_cas_len[] = {
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
     sizeof(mbedtls_test_ca_crt_rsa_sha256),
 #endif
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
     sizeof(mbedtls_test_ca_crt_ec),
 #endif
     0
@@ -1706,9 +1708,9 @@ const unsigned char *mbedtls_test_cas_der[] = {
     mbedtls_test_ca_crt_rsa_sha1_der,
 #endif /* MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
     mbedtls_test_ca_crt_ec_der,
-#endif /* MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_PK_CAN_ECDSA_SOME */
     NULL
 };
 
@@ -1721,9 +1723,9 @@ const size_t mbedtls_test_cas_der_len[] = {
     sizeof(mbedtls_test_ca_crt_rsa_sha1_der),
 #endif /* MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
     sizeof(mbedtls_test_ca_crt_ec_der),
-#endif /* MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_PK_CAN_ECDSA_SOME */
     0
 };
 
@@ -1738,9 +1740,9 @@ const char mbedtls_test_cas_pem[] =
     TEST_CA_CRT_RSA_SHA1_PEM
 #endif /* MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
     TEST_CA_CRT_EC_PEM
-#endif /* MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_PK_CAN_ECDSA_SOME */
     "";
 const size_t mbedtls_test_cas_pem_len = sizeof(mbedtls_test_cas_pem);
 #endif /* MBEDTLS_PEM_PARSE_C */

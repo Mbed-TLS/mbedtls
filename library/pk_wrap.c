@@ -45,7 +45,7 @@
 #include "mbedtls/psa_util.h"
 #include "hash_info.h"
 
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
 #include "mbedtls/asn1write.h"
 #include "mbedtls/asn1.h"
 #endif
@@ -950,8 +950,7 @@ static int ecdsa_sign_wrap(void *ctx, mbedtls_md_type_t md_alg,
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 #endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
 
-#if defined(MBEDTLS_ECDSA_C)
-#if defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
 /* Forward declarations */
 static int ecdsa_verify_rs_wrap(void *ctx, mbedtls_md_type_t md_alg,
                                 const unsigned char *hash, size_t hash_len,
@@ -1057,8 +1056,7 @@ static int eckey_sign_rs_wrap(void *ctx, mbedtls_md_type_t md_alg,
 cleanup:
     return ret;
 }
-#endif /* MBEDTLS_ECP_RESTARTABLE */
-#endif /* MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
 static int eckey_check_pair(const void *pub, const void *prv,
                             int (*f_rng)(void *, unsigned char *, size_t),

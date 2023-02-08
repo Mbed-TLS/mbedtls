@@ -2619,13 +2619,6 @@ config_psa_crypto_hash_use_psa () {
         scripts/config.py unset MBEDTLS_SHA512_C
         scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
     fi
-    # Use an external RNG as currently internal RNGs depend on entropy.c
-    # which in turn hard-depends on SHA256_C (or SHA512_C).
-    # See component_test_psa_external_rng_no_drbg_use_psa.
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
-    scripts/config.py unset MBEDTLS_ENTROPY_C
-    scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED # depends on ENTROPY_C
-    scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT # depends on former
 
     # Dynamic secure element support is a deprecated feature and needs to be disabled here.
     # This is done to have the same form of psa_key_attributes_s for libdriver and library.

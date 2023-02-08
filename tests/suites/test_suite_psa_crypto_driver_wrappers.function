@@ -1828,11 +1828,13 @@ void hash_compute(int alg_arg,
     unsigned char *output = NULL;
     size_t output_length;
 
-    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
-    mbedtls_test_driver_hash_hooks.forced_status = forced_status;
 
     PSA_ASSERT(psa_crypto_init());
     ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
+
+    /* Do this after psa_crypto_init() which may call hash drivers */
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
+    mbedtls_test_driver_hash_hooks.forced_status = forced_status;
 
     TEST_EQUAL(psa_hash_compute(alg, input->x, input->len,
                                 output, PSA_HASH_LENGTH(alg),
@@ -1864,12 +1866,14 @@ void hash_multipart_setup(int alg_arg,
     psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     size_t output_length;
 
-    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
-    ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
 
     PSA_ASSERT(psa_crypto_init());
+    ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
 
+    /* Do this after psa_crypto_init() which may call hash drivers */
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
     mbedtls_test_driver_hash_hooks.forced_status = forced_status;
+
     TEST_EQUAL(psa_hash_setup(&operation, alg), expected_status);
     TEST_EQUAL(mbedtls_test_driver_hash_hooks.hits, 1);
     TEST_EQUAL(mbedtls_test_driver_hash_hooks.driver_status, forced_status);
@@ -1909,10 +1913,12 @@ void hash_multipart_update(int alg_arg,
     psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     size_t output_length;
 
-    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
-    ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
 
     PSA_ASSERT(psa_crypto_init());
+    ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
+
+    /* Do this after psa_crypto_init() which may call hash drivers */
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
 
     /*
      * Update inactive operation, the driver shouldn't be called.
@@ -1964,10 +1970,11 @@ void hash_multipart_finish(int alg_arg,
     psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     size_t output_length;
 
-    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
+    PSA_ASSERT(psa_crypto_init());
     ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
 
-    PSA_ASSERT(psa_crypto_init());
+    /* Do this after psa_crypto_init() which may call hash drivers */
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
 
     /*
      * Finish inactive operation, the driver shouldn't be called.
@@ -2018,10 +2025,11 @@ void hash_clone(int alg_arg,
     psa_hash_operation_t target_operation = PSA_HASH_OPERATION_INIT;
     size_t output_length;
 
-    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
+    PSA_ASSERT(psa_crypto_init());
     ASSERT_ALLOC(output, PSA_HASH_LENGTH(alg));
 
-    PSA_ASSERT(psa_crypto_init());
+    /* Do this after psa_crypto_init() which may call hash drivers */
+    mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
 
     /*
      * Clone inactive operation, the driver shouldn't be called.

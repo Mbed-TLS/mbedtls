@@ -274,53 +274,58 @@ int mbedtls_sha3_starts(mbedtls_sha3_context *ctx, mbedtls_sha3_id id)
  * SHA-3 starts with name and customization (for CSHAKE)
  */
 /* If this function receives an id != CSHAKE, it fallsback to mbedtls_sha3_starts() */
-int mbedtls_sha3_starts_cshake( mbedtls_sha3_context *ctx, mbedtls_sha3_id id,
-                                const char *name, size_t name_len,
-                                const char *custom, size_t custom_len )
+int mbedtls_sha3_starts_cshake(mbedtls_sha3_context *ctx, mbedtls_sha3_id id,
+                              const char *name, size_t name_len,
+                              const char *custom, size_t custom_len)
 {
     int ret = 0;
     size_t encbuf_len = 0;
-    uint8_t encbuf[sizeof( size_t ) + 1];
+    uint8_t encbuf[sizeof(size_t) + 1];
 
     /* If name and custom are NULL, the context equals to SHAKE version */
     /* If name or custom are NOT NULL and id is not EQUAL to CSHAKE, it fallsback to SHA-3 */
-    if( ( ( name == NULL || name_len == 0 ) &&
-        ( custom == NULL || custom_len == 0 ) ) ||
-        ( id != MBEDTLS_SHA3_CSHAKE128 && id != MBEDTLS_SHA3_CSHAKE256 ) )
-    {
-        if( id == MBEDTLS_SHA3_CSHAKE128 )
-            return( mbedtls_sha3_starts( ctx, MBEDTLS_SHA3_SHAKE128 ) );
-        else if( id == MBEDTLS_SHA3_CSHAKE256 )
-            return( mbedtls_sha3_starts( ctx, MBEDTLS_SHA3_SHAKE256 ) );
+    if (((name == NULL || name_len == 0) &&
+         (custom == NULL || custom_len == 0)) ||
+        (id != MBEDTLS_SHA3_CSHAKE128 && id != MBEDTLS_SHA3_CSHAKE256)) {
+        if (id == MBEDTLS_SHA3_CSHAKE128) {
+            return mbedtls_sha3_starts(ctx, MBEDTLS_SHA3_SHAKE128);
+        } else if (id == MBEDTLS_SHA3_CSHAKE256) {
+            return mbedtls_sha3_starts(ctx, MBEDTLS_SHA3_SHAKE256);
+        }
         /* If other id is provided, silently start the context */
-        return( mbedtls_sha3_starts( ctx, id ) );
+        return mbedtls_sha3_starts(ctx, id);
     }
 
-    if( name == NULL )
+    if (name == NULL) {
         name_len = 0;
-    if( custom == NULL )
+    }
+    if (custom == NULL) {
         custom_len = 0;
+    }
 
     /* At this point, name or custom are not NULL, we start the context with id CSHAKE */
-    if( ( ret = mbedtls_sha3_starts( ctx, id ) ) != 0 )
-        return( ret );
+    if ((ret = mbedtls_sha3_starts(ctx, id)) != 0) {
+        return ret;
+    }
 
-    encbuf_len = left_encode( encbuf, ctx->r / 8 );
-    mbedtls_sha3_update( ctx, encbuf, encbuf_len );
+    encbuf_len = left_encode(encbuf, ctx->r / 8);
+    mbedtls_sha3_update(ctx, encbuf, encbuf_len);
 
-    encbuf_len = left_encode( encbuf, name_len * 8 );
-    mbedtls_sha3_update( ctx, encbuf, encbuf_len );
-    if( name != NULL && name_len > 0 )
-        mbedtls_sha3_update( ctx, (const uint8_t *)name, name_len );
+    encbuf_len = left_encode(encbuf, name_len * 8);
+    mbedtls_sha3_update(ctx, encbuf, encbuf_len);
+    if (name != NULL && name_len > 0) {
+        mbedtls_sha3_update(ctx, (const uint8_t *) name, name_len);
+    }
 
-    encbuf_len = left_encode( encbuf, custom_len * 8 );
-    mbedtls_sha3_update( ctx, encbuf, encbuf_len );
-    if( custom != NULL && custom_len > 0 )
-        mbedtls_sha3_update( ctx, (const uint8_t *)custom, custom_len );
+    encbuf_len = left_encode(encbuf, custom_len * 8);
+    mbedtls_sha3_update(ctx, encbuf, encbuf_len);
+    if (custom != NULL && custom_len > 0) {
+        mbedtls_sha3_update(ctx, (const uint8_t *) custom, custom_len);
+    }
 
-    keccak_pad( ctx );
+    keccak_pad(ctx);
 
-    return( 0 );
+    return 0;
 }
 
 /*

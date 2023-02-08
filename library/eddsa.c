@@ -343,7 +343,6 @@ int mbedtls_eddsa_verify(mbedtls_ecp_group *grp,
     switch (grp->id) {
 #ifdef MBEDTLS_ECP_DP_ED25519_ENABLED
         case MBEDTLS_ECP_DP_ED25519:
-        {
             mbedtls_sha512_context sha_ctx;
             unsigned char sha_buf[64], tmp_buf[32];
             size_t olen = 0;
@@ -376,11 +375,9 @@ int mbedtls_eddsa_verify(mbedtls_ecp_group *grp,
             mbedtls_platform_zeroize(sha_buf, sizeof(sha_buf));
 
             break;
-        }
 #endif
 #ifdef MBEDTLS_ECP_DP_ED448_ENABLED
         case MBEDTLS_ECP_DP_ED448:
-        {
             mbedtls_sha3_context sha_ctx;
             unsigned char sha_buf[114], tmp_buf[57];
             size_t olen = 0;
@@ -413,7 +410,6 @@ int mbedtls_eddsa_verify(mbedtls_ecp_group *grp,
             mbedtls_platform_zeroize(sha_buf, sizeof(sha_buf));
 
             break;
-        }
 #endif
         default:
             break;

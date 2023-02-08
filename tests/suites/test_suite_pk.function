@@ -1251,10 +1251,10 @@ void pk_psa_sign(int parameter_arg,
     pkey_legacy_start = pkey_legacy + sizeof(pkey_legacy) - klen_legacy;
 #else
     ret = mbedtls_ecp_point_write_binary(&(mbedtls_pk_ec(pk)->grp),
-                                        &(mbedtls_pk_ec(pk)->Q),
-                                        MBEDTLS_ECP_PF_UNCOMPRESSED,
-                                        &klen_legacy, pkey_legacy,
-                                        sizeof(pkey_legacy));
+                                         &(mbedtls_pk_ec(pk)->Q),
+                                         MBEDTLS_ECP_PF_UNCOMPRESSED,
+                                         &klen_legacy, pkey_legacy,
+                                         sizeof(pkey_legacy));
     TEST_EQUAL(ret, 0);
     pkey_legacy_start = pkey_legacy;
 #endif /* MBEDTLS_PK_WRITE_C */
@@ -1289,7 +1289,7 @@ void pk_psa_sign(int parameter_arg,
     psa_status_t status;
 
     status = psa_export_public_key(key_id, pkey_psa, sizeof(pkey_psa),
-                                &klen_psa);
+                                   &klen_psa);
     TEST_EQUAL(status, PSA_SUCCESS);
     pkey_psa_start = pkey_psa;
 #endif /* MBEDTLS_PK_WRITE_C */
@@ -1308,16 +1308,16 @@ void pk_psa_sign(int parameter_arg,
      * on "PK_WRITE" and "PK_PARSE" if required */
 #if defined(MBEDTLS_PK_WRITE_C) && defined(MBEDTLS_PK_PARSE_C)
     TEST_EQUAL(mbedtls_pk_parse_public_key(&pk, pkey_legacy_start,
-                                            klen_legacy), 0);
+                                           klen_legacy), 0);
 #else
     TEST_EQUAL(mbedtls_pk_setup(&pk,
-                        mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY)), 0);
+                                mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY)), 0);
     TEST_EQUAL(mbedtls_ecp_group_load(
-                                &(mbedtls_pk_ec(pk)->grp),
-                                (mbedtls_ecp_group_id) parameter_arg), 0);
-    TEST_EQUAL(mbedtls_ecp_point_read_binary(&(mbedtls_pk_ec(pk)->grp) ,
-                                        &(mbedtls_pk_ec(pk)->Q),
-                                        pkey_legacy_start, klen_legacy), 0);
+                   &(mbedtls_pk_ec(pk)->grp),
+                   (mbedtls_ecp_group_id) parameter_arg), 0);
+    TEST_EQUAL(mbedtls_ecp_point_read_binary(&(mbedtls_pk_ec(pk)->grp),
+                                             &(mbedtls_pk_ec(pk)->Q),
+                                             pkey_legacy_start, klen_legacy), 0);
 #endif
     TEST_ASSERT(mbedtls_pk_verify(&pk, MBEDTLS_MD_SHA256,
                                   hash, sizeof(hash), sig, sig_len) == 0);

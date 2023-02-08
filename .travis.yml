@@ -101,7 +101,7 @@ jobs:
         - programs/test/selftest
         - tests/scripts/test_psa_constant_names.py
         # Modern OpenSSL does not support fixed ECDH or null ciphers.
-        - tests/compat.sh -p OpenSSL -e 'NULL\|ECDH-'
+        - tests/compat.sh -p OpenSSL -e 'NULL\|ECDH_'
         - tests/scripts/travis-log-failure.sh
         - tests/context-info.sh
 

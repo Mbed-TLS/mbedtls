@@ -1803,7 +1803,7 @@ struct mbedtls_ssl_context {
                                              *   and #MBEDTLS_SSL_CID_DISABLED. */
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
-#if defined(MBEDTLS_SSL_EARLY_DATA) && defined(MBEDTLS_SSL_CLI_C)
+#if defined(MBEDTLS_SSL_EARLY_DATA)
     int MBEDTLS_PRIVATE(early_data_status);
 #endif /* MBEDTLS_SSL_EARLY_DATA && MBEDTLS_SSL_CLI_C */
 
@@ -4939,6 +4939,10 @@ int mbedtls_ssl_close_notify(mbedtls_ssl_context *ssl);
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT  0
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED  1
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED  2
+
 #if defined(MBEDTLS_SSL_SRV_C)
 /**
  * \brief          Read at most 'len' application data bytes while performing
@@ -5048,9 +5052,6 @@ int mbedtls_ssl_read_early_data(mbedtls_ssl_context *ssl,
 int mbedtls_ssl_write_early_data(mbedtls_ssl_context *ssl,
                                  const unsigned char *buf, size_t len);
 
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT  0
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_ACCEPTED  1
-#define MBEDTLS_SSL_EARLY_DATA_STATUS_REJECTED  2
 /**
  * \brief Get the status of the negotiation of the use of early data.
  *

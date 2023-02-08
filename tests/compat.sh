@@ -231,7 +231,7 @@ filter_ciphersuites()
 
     # For GnuTLS client -> mbed TLS server,
     # we need to force IPv4 by connecting to 127.0.0.1 but then auth fails
-    if is_dtls "$MODE" && [ "X$VERIFY" = "XYES" ] && [ "$TYPE" != "PSK" ]; then
+    if is_dtls "$MODE" && [ "X$VERIFY" = "XYES" ]; then
         G_CIPHERS=""
     fi
 }
@@ -947,7 +947,7 @@ setup_arguments()
             ;;
     esac
 
-    if [ "X$VERIFY" = "XYES" ] && [ "$TYPE" != "PSK" ];
+    if [ "X$VERIFY" = "XYES" ];
     then
         M_SERVER_ARGS="$M_SERVER_ARGS ca_file=data_files/test-ca_cat12.crt auth_mode=required"
         O_SERVER_ARGS="$O_SERVER_ARGS -CAfile data_files/test-ca_cat12.crt -Verify 10"
@@ -1134,7 +1134,6 @@ wait_client_done() {
 run_client() {
     # announce what we're going to do
     TESTS=$(( $TESTS + 1 ))
-    VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
     TITLE="`echo $1 | head -c1`->`echo $SERVER_NAME | head -c1`"
     TITLE="$TITLE $MODE,$VERIF $2"
     printf "%s " "$TITLE"
@@ -1332,20 +1331,19 @@ SKIP_NEXT="NO"
 trap cleanup INT TERM HUP
 
 for MODE in $MODES; do
-    PSK_TESTS=""
-    for VERIFY in $VERIFIES; do
-        VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
-        for TYPE in $TYPES; do
+    for TYPE in $TYPES; do
 
-            if [ "$TYPE" = "PSK" ]; then
-                if [ -z "$PSK_TESTS" ]; then
-                    PSK_TESTS="FINISHED"
-                    VERIF="no"
-                else
-                    continue;
-                fi
-            fi
+        # PSK cipher suites do not allow client certificate verification.
+        # This means PSK test cases with VERIFY=YES should be replaced by
+        # VERIFY=NO or be ignored. SUB_VERIFIES variable is used to constrain
+        # verification option for PSK test cases.
+        SUB_VERIFIES=$VERIFIES
+        if [ "$TYPE" = "PSK" ]; then
+            SUB_VERIFIES="NO"
+        fi
 
+        for VERIFY in $SUB_VERIFIES; do
+            VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
             for PEER in $PEERS; do
 
             setup_arguments

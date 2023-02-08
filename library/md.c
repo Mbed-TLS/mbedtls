@@ -144,10 +144,10 @@ const mbedtls_md_info_t mbedtls_sha3_512_info = {
 static const int supported_digests[] = {
 
 #if defined(MBEDTLS_SHA3_C)
-        MBEDTLS_MD_SHA3_512,
-        MBEDTLS_MD_SHA3_384,
-        MBEDTLS_MD_SHA3_256,
-        MBEDTLS_MD_SHA3_224,
+    MBEDTLS_MD_SHA3_512,
+    MBEDTLS_MD_SHA3_384,
+    MBEDTLS_MD_SHA3_256,
+    MBEDTLS_MD_SHA3_224,
 #endif
 
 #if defined(MBEDTLS_SHA512_C)

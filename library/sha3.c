@@ -742,8 +742,9 @@ int mbedtls_sha3_self_test(int verbose)
 
 
     /* SHAKE and cSHAKE tests */
-    if (0 != mbedtls_shake_self_test(verbose))
+    if (0 != mbedtls_shake_self_test(verbose)) {
         return 1;
+    }
 
     return 0;
 }

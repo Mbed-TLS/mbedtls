@@ -256,8 +256,8 @@ int mbedtls_sha3_starts(mbedtls_sha3_context *ctx, mbedtls_sha3_id id)
  */
 /* If this function receives an id != CSHAKE, it fallsback to mbedtls_sha3_starts() */
 int mbedtls_sha3_starts_cshake(mbedtls_sha3_context *ctx, mbedtls_sha3_id id,
-                              const char *name, size_t name_len,
-                              const char *custom, size_t custom_len)
+                               const char *name, size_t name_len,
+                               const char *custom, size_t custom_len)
 {
     int ret = 0;
     size_t encbuf_len = 0;
@@ -383,7 +383,7 @@ int mbedtls_sha3_cshake(mbedtls_sha3_id id,
     mbedtls_sha3_init(&ctx);
 
     if ((ret = mbedtls_sha3_starts_cshake(&ctx, id, name, name_len,
-                                custom, custom_len)) != 0) {
+                                          custom, custom_len)) != 0) {
         goto exit;
     }
 
@@ -411,7 +411,7 @@ int mbedtls_sha3(mbedtls_sha3_id id,
                  size_t olen)
 {
     return mbedtls_sha3_cshake(id, input, ilen,
-                                NULL, 0, NULL, 0, output, olen);
+                               NULL, 0, NULL, 0, output, olen);
 }
 
 /**************** Self-tests ****************/

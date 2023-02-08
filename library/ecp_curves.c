@@ -5262,12 +5262,22 @@ int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *X, size_t X_limbs)
     /* Keep the top 9 bits and reduce the rest, using 2^521 = 1 mod P521. */
     addend += (X[P521_WIDTH - 1] >> 9);
     X[P521_WIDTH - 1] &= P521_MASK;
-    /* Declare a helper array for carrying out the addition. */
-    mbedtls_mpi_uint addend_arr[P521_WIDTH] = { 0 };
+
+    /* Resuse the top part of X (already zeroed) as a helper array for
+     * carrying out the addition. */
+    mbedtls_mpi_uint *addend_arr = X + P521_WIDTH;
     addend_arr[0] = addend;
-    (void) mbedtls_mpi_core_add(X, X, addend_arr, P521_WIDTH);
-    /* Both addends were less than P521 therefore X < 2 P521. (This also means
-     * that the result fit in P521_WIDTH limbs and there won't be any carry.) */
+    /* The unused part of X is P521_WIDTH - 1 limbs in size and only that
+     * size can be used for addition. Due to the addend fit in a limb
+     * the limbs other the first in the helper array are only used for
+     * propagating the carry. By adding the carry of the P521_WIDTH - 1 limb
+     * addition to the last limb of X makes the addition of X and the addend
+     * complete. */
+    carry = mbedtls_mpi_core_add(X, X, addend_arr, P521_WIDTH - 1);
+    X[P521_WIDTH - 1] += carry;
+
+    /* Clear the reused part of X. */
+    addend_arr[0] = 0;
 
     return 0;
 }

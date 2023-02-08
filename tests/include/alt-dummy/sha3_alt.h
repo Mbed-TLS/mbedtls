@@ -19,12 +19,10 @@
 #ifndef SHA3_ALT_H
 #define SHA3_ALT_H
 
-typedef struct mbedtls_sha3_context
-{
+typedef struct mbedtls_sha3_context {
     int dummy;
 }
 mbedtls_sha3_context;
 
 
 #endif /* sha3_alt.h */
-

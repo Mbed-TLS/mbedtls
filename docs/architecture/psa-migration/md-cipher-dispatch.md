@@ -230,7 +230,7 @@ We could go further and make PSA accelerators available to legacy callers that c
 #### Implications between legacy availability and PSA availability
 
 * When `MBEDTLS_PSA_CRYPTO_CONFIG` is disabled, all legacy mechanisms are automatically enabled through PSA. Users can manually enable PSA mechanisms that are available through accelerators but not through legacy, but this is not officially supported (users are not supposed to manually define PSA configuration symbols when `MBEDTLS_PSA_CRYPTO_CONFIG` is disabled).
-* When `MBEDTLS_PSA_CRYPTO_CONFIG` is enabled, there is no mandatory relationship between PSA support and legacy support for a mechanism. Users can configure legacy support and PSA support independently. Legacy support is automatically enabled if PSA support is requested, but only there is no accelerator.
+* When `MBEDTLS_PSA_CRYPTO_CONFIG` is enabled, there is no mandatory relationship between PSA support and legacy support for a mechanism. Users can configure legacy support and PSA support independently. Legacy support is automatically enabled if PSA support is requested, but only if there is no accelerator.
 
 It is strongly desirable to allow mechanisms available through PSA but not legacy: this allows saving code size when an accelerator is present.
 

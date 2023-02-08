@@ -1279,16 +1279,16 @@ int mbedtls_ssl_tls13_finalize_client_hello(mbedtls_ssl_context *ssl)
          */
         ret = mbedtls_ssl_tls13_key_schedule_stage_early(ssl);
         if (ret != 0) {
-            MBEDTLS_SSL_DEBUG_RET(1,
-                                  "mbedtls_ssl_tls13_key_schedule_stage_early", ret);
+            MBEDTLS_SSL_DEBUG_RET(
+                1, "mbedtls_ssl_tls13_key_schedule_stage_early", ret);
             return ret;
         }
 
         /* Derive early data key material */
         ret = mbedtls_ssl_tls13_compute_early_transform(ssl);
         if (ret != 0) {
-            MBEDTLS_SSL_DEBUG_RET(1,
-                                  "mbedtls_ssl_tls13_compute_early_transform", ret);
+            MBEDTLS_SSL_DEBUG_RET(
+                1, "mbedtls_ssl_tls13_compute_early_transform", ret);
             return ret;
         }
 
@@ -1938,7 +1938,8 @@ static int ssl_tls13_postprocess_server_hello(mbedtls_ssl_context *ssl)
     }
 #endif
 
-    if (!mbedtls_ssl_conf_tls13_check_kex_modes(ssl, handshake->key_exchange_mode)) {
+    if (!mbedtls_ssl_conf_tls13_check_kex_modes(
+            ssl, handshake->key_exchange_mode)) {
         ret = MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
         MBEDTLS_SSL_DEBUG_MSG(2,
                               ("Key exchange mode(%s) is not supported.",
@@ -2255,7 +2256,8 @@ static int ssl_tls13_write_end_of_early_data(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write EndOfEarlyData"));
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_start_handshake_msg(
-                             ssl, MBEDTLS_SSL_HS_END_OF_EARLY_DATA, &buf, &buf_len));
+                             ssl, MBEDTLS_SSL_HS_END_OF_EARLY_DATA,
+                             &buf, &buf_len));
 
     mbedtls_ssl_add_hs_hdr_to_checksum(
         ssl, MBEDTLS_SSL_HS_END_OF_EARLY_DATA, 0);

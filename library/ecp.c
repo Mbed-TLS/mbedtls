@@ -925,7 +925,7 @@ int mbedtls_ecp_point_read_binary(const mbedtls_ecp_group *grp,
         case MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS:
             if (buf[0] == 0x00) {
                 if (ilen == 1) {
-                    return mbedtls_ecp_set_zero(pt);
+                    return mbedtls_ecp_set_zero_ext(grp, pt);
                 } else {
                     return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
                 }

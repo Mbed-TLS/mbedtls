@@ -24,6 +24,9 @@ subjectAltName=otherName:1.2.3.4;UTF8:some other identifier
 [dns_alt_names]
 subjectAltName=DNS:example.com, DNS:example.net, DNS:*.example.org
 
+[rfc822name_names]
+subjectAltName=email:my@other.address,email:second@other.address
+
 [alt_names]
 DNS.1=example.com
 otherName.1=1.3.6.1.5.5.7.8.4;SEQ:hw_module_name

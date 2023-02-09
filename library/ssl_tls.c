@@ -6623,8 +6623,8 @@ exit:
 
 exit:
     mbedtls_sha256_free(&sha256);
+    return ret;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-    return 0;
 }
 #endif /* MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
 

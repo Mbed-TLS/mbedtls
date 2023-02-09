@@ -1421,7 +1421,17 @@ int mbedtls_x509_parse_subject_alt_name(const mbedtls_x509_buf *san_buf,
 
             memcpy(&san->san.unstructured_name,
                    san_buf, sizeof(*san_buf));
+        }
+        break;
 
+        /*
+         * RFC822 Name
+         */
+        case (MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_RFC822_NAME):
+        {
+            memset(san, 0, sizeof(mbedtls_x509_subject_alternative_name));
+            san->type = MBEDTLS_X509_SAN_RFC822_NAME;
+            memcpy(&san->san.unstructured_name, san_buf, sizeof(*san_buf));
         }
         break;
 

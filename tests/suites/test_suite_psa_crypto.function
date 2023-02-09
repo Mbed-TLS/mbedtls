@@ -1337,9 +1337,7 @@ typedef enum
     INJECT_ANTICIPATE_KEY_DERIVATION_2,
 } ecjpake_injected_failure_t;
 
-#if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
-     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ) && \
-     defined( MBEDTLS_ECP_RESTARTABLE )
+#if defined( MBEDTLS_ECP_RESTARTABLE)
 
 static void interruptible_signverify_get_minmax_completes(uint32_t max_ops,
         psa_status_t expected_status, size_t *min_completes,
@@ -1365,9 +1363,7 @@ static void interruptible_signverify_get_minmax_completes(uint32_t max_ops,
         *max_completes = 1;
     }
 }
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
-        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) &&
-        * defined( MBEDTLS_ECP_RESTARTABLE ) */
+#endif /* MBEDTLS_ECP_RESTARTABLE */
 
 /* END_HEADER */
 

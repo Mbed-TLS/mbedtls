@@ -50,7 +50,7 @@ void md_null_args()
     mbedtls_md_init(&ctx);
 
     TEST_EQUAL(0, mbedtls_md_get_size(NULL));
-    TEST_ASSERT(mbedtls_md_get_type(NULL) == MBEDTLS_MD_NONE);
+    TEST_EQUAL(mbedtls_md_get_type(NULL), MBEDTLS_MD_NONE);
     TEST_ASSERT(mbedtls_md_get_name(NULL) == NULL);
 
     TEST_ASSERT(mbedtls_md_info_from_string(NULL) == NULL);

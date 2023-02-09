@@ -139,9 +139,7 @@ void md_text(int md_type, char *text_src_string, data_t *hash)
 
     TEST_EQUAL(0, mbedtls_md(md_info, src, src_len, output));
 
-    TEST_ASSERT(mbedtls_test_hexcmp(output, hash->x,
-                                    mbedtls_md_get_size(md_info),
-                                    hash->len) == 0);
+    ASSERT_COMPARE(output, mbedtls_md_get_size(md_info), hash->x, hash->len);
 }
 /* END_CASE */
 
@@ -157,9 +155,7 @@ void md_hex(int md_type, data_t *src_str, data_t *hash)
     TEST_EQUAL(0, mbedtls_md(md_info, src_str->x, src_str->len, output));
 
 
-    TEST_ASSERT(mbedtls_test_hexcmp(output, hash->x,
-                                    mbedtls_md_get_size(md_info),
-                                    hash->len) == 0);
+    ASSERT_COMPARE(output, mbedtls_md_get_size(md_info), hash->x, hash->len);
 }
 /* END_CASE */
 
@@ -192,18 +188,14 @@ void md_text_multi(int md_type, char *text_src_string,
 
     TEST_EQUAL(0, mbedtls_md_update(&ctx, src + halfway, src_len - halfway));
     TEST_EQUAL(0, mbedtls_md_finish(&ctx, output));
-    TEST_ASSERT(mbedtls_test_hexcmp(output, hash->x,
-                                    mbedtls_md_get_size(md_info),
-                                    hash->len) == 0);
+    ASSERT_COMPARE(output, mbedtls_md_get_size(md_info), hash->x, hash->len);
 
     /* Test clone */
     memset(output, 0x00, sizeof(output));
 
     TEST_EQUAL(0, mbedtls_md_update(&ctx_copy, src + halfway, src_len - halfway));
     TEST_EQUAL(0, mbedtls_md_finish(&ctx_copy, output));
-    TEST_ASSERT(mbedtls_test_hexcmp(output, hash->x,
-                                    mbedtls_md_get_size(md_info),
-                                    hash->len) == 0);
+    ASSERT_COMPARE(output, mbedtls_md_get_size(md_info), hash->x, hash->len);
 
 exit:
     mbedtls_md_free(&ctx);
@@ -236,18 +228,14 @@ void md_hex_multi(int md_type, data_t *src_str, data_t *hash)
 
     TEST_EQUAL(0, mbedtls_md_update(&ctx, src_str->x + halfway, src_str->len - halfway));
     TEST_EQUAL(0, mbedtls_md_finish(&ctx, output));
-    TEST_ASSERT(mbedtls_test_hexcmp(output, hash->x,
-                                    mbedtls_md_get_size(md_info),
-                                    hash->len) == 0);
+    ASSERT_COMPARE(output, mbedtls_md_get_size(md_info), hash->x, hash->len);
 
     /* Test clone */
     memset(output, 0x00, sizeof(output));
 
     TEST_EQUAL(0, mbedtls_md_update(&ctx_copy, src_str->x + halfway, src_str->len - halfway));
     TEST_EQUAL(0, mbedtls_md_finish(&ctx_copy, output));
-    TEST_ASSERT(mbedtls_test_hexcmp(output, hash->x,
-                                    mbedtls_md_get_size(md_info),
-                                    hash->len) == 0);
+    ASSERT_COMPARE(output, mbedtls_md_get_size(md_info), hash->x, hash->len);
 
 exit:
     mbedtls_md_free(&ctx);
@@ -270,8 +258,7 @@ void mbedtls_md_hmac(int md_type, int trunc_size,
     TEST_EQUAL(0, mbedtls_md_hmac(md_info, key_str->x, key_str->len,
                                   src_str->x, src_str->len, output));
 
-    TEST_ASSERT(mbedtls_test_hexcmp(output, hash->x,
-                                    trunc_size, hash->len) == 0);
+    ASSERT_COMPARE(output, trunc_size, hash->x, hash->len);
 }
 /* END_CASE */
 
@@ -298,8 +285,7 @@ void md_hmac_multi(int md_type, int trunc_size, data_t *key_str,
     TEST_EQUAL(0, mbedtls_md_hmac_update(&ctx, src_str->x + halfway, src_str->len - halfway));
     TEST_EQUAL(0, mbedtls_md_hmac_finish(&ctx, output));
 
-    TEST_ASSERT(mbedtls_test_hexcmp(output, hash->x,
-                                    trunc_size, hash->len) == 0);
+    ASSERT_COMPARE(output, trunc_size, hash->x, hash->len);
 
     /* Test again, for reset() */
     memset(output, 0x00, sizeof(output));
@@ -309,8 +295,7 @@ void md_hmac_multi(int md_type, int trunc_size, data_t *key_str,
     TEST_EQUAL(0, mbedtls_md_hmac_update(&ctx, src_str->x + halfway, src_str->len - halfway));
     TEST_EQUAL(0, mbedtls_md_hmac_finish(&ctx, output));
 
-    TEST_ASSERT(mbedtls_test_hexcmp(output, hash->x,
-                                    trunc_size, hash->len) == 0);
+    ASSERT_COMPARE(output, trunc_size, hash->x, hash->len);
 
 exit:
     mbedtls_md_free(&ctx);
@@ -329,8 +314,6 @@ void mbedtls_md_file(int md_type, char *filename,
 
     TEST_EQUAL(0, mbedtls_md_file(md_info, filename, output));
 
-    TEST_ASSERT(mbedtls_test_hexcmp(output, hash->x,
-                                    mbedtls_md_get_size(md_info),
-                                    hash->len) == 0);
+    ASSERT_COMPARE(output, mbedtls_md_get_size(md_info), hash->x, hash->len);
 }
 /* END_CASE */

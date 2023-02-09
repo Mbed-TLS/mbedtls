@@ -3536,6 +3536,7 @@ psa_status_t mbedtls_psa_sign_hash_start(
               const uint8_t *hash, size_t hash_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    size_t required_hash_length;
 
     if( !PSA_KEY_TYPE_IS_ECC( attributes->core.type ) )
         return PSA_ERROR_NOT_SUPPORTED;
@@ -3570,8 +3571,13 @@ psa_status_t mbedtls_psa_sign_hash_start(
     operation->md_alg = mbedtls_hash_info_md_from_psa( hash_alg );
     operation->alg = alg;
 
-    memcpy(operation->hash, hash, hash_length);
-    operation->hash_length = hash_length;
+    /* We only need to store the same length of hash as the private key size
+     * here, it would be truncated by the internal implementation anyway. */
+    required_hash_length = (hash_length < operation->coordinate_bytes ?
+                            hash_length : operation->coordinate_bytes);
+
+    memcpy(operation->hash, hash, required_hash_length);
+    operation->hash_length = required_hash_length;
 
     return( PSA_SUCCESS );
 
@@ -3583,6 +3589,7 @@ psa_status_t mbedtls_psa_sign_hash_start(
     ( void ) hash;
     ( void ) hash_length;
     ( void ) status;
+    ( void ) required_hash_length;
 
     return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
@@ -3733,6 +3740,7 @@ psa_status_t mbedtls_psa_verify_hash_start(
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t coordinate_bytes = 0;
+    size_t required_hash_length = 0;
 
     if( !PSA_KEY_TYPE_IS_ECC( attributes->core.type ) )
         return PSA_ERROR_NOT_SUPPORTED;
@@ -3789,8 +3797,13 @@ psa_status_t mbedtls_psa_verify_hash_start(
 
     mbedtls_ecdsa_restart_init( &operation->restart_ctx );
 
-    memcpy(operation->hash, hash, hash_length);
-    operation->hash_length = hash_length;
+    /* We only need to store the same length of hash as the private key size
+     * here, it would be truncated by the internal implementation anyway. */
+    required_hash_length = (hash_length < coordinate_bytes ? hash_length :
+                            coordinate_bytes);
+
+    memcpy(operation->hash, hash, required_hash_length);
+    operation->hash_length = required_hash_length;
 
     return( PSA_SUCCESS );
 #else
@@ -3804,6 +3817,7 @@ psa_status_t mbedtls_psa_verify_hash_start(
     ( void ) signature_length;
     ( void ) status;
     ( void ) coordinate_bytes;
+    ( void ) required_hash_length;
 
     return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||

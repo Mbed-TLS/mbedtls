@@ -465,7 +465,7 @@ static int pkcs7_get_signed_data(unsigned char *buf, size_t buflen,
 {
     unsigned char *p = buf;
     unsigned char *end = buf + buflen;
-    unsigned char *end_content_info;
+    unsigned char *end_content_info = NULL;
     size_t len = 0;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_md_type_t md_alg;
@@ -500,6 +500,7 @@ static int pkcs7_get_signed_data(unsigned char *buf, size_t buflen,
     }
 
     mbedtls_pkcs7_buf content_type;
+    memset(&content_type, 0, sizeof(content_type));
     ret = pkcs7_get_content_info_type(&p, end, &end_content_info, &content_type);
     if (ret != 0) {
         return ret;

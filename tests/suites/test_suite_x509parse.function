@@ -1506,6 +1506,8 @@ void x509_crt_parse_authoritykeyid(data_t *buf,
     int bufferCounter = 0;
     size_t issuerCounter = 0;
     unsigned int result = 0;
+    mbedtls_x509_subject_alternative_name san = { 0 };
+    mbedtls_x509_name *pname = NULL;
 
     mbedtls_x509_crt_init(&crt);
 
@@ -1518,14 +1520,18 @@ void x509_crt_parse_authoritykeyid(data_t *buf,
 
         /* Issuer test */
         mbedtls_x509_sequence *issuerPtr = &crt.authority_key_id.authorityCertIssuer;
-        while (issuerPtr != NULL) {
-            /* First 9 bytes are always ASN1 coding related information that does not matter right now. Only the values are asserted */
-            for (issuerCounter = 9u; issuerCounter < issuerPtr->buf.len; issuerCounter++) {
+
+        TEST_ASSERT(mbedtls_x509_parse_subject_alt_name(&issuerPtr->buf, &san) == 0);
+
+        pname = &san.san.directory_name;
+
+        while (pname != NULL) {
+            for (issuerCounter = 0; issuerCounter < pname->val.len; issuerCounter++) {
                 result |=
-                    (authorityKeyId_issuer[bufferCounter++] != issuerPtr->buf.p[issuerCounter]);
+                    (authorityKeyId_issuer[bufferCounter++] != pname->val.p[issuerCounter]);
             }
             bufferCounter++; /* Skipping the slash */
-            issuerPtr = issuerPtr->next;
+            pname = pname->next;
         }
         TEST_ASSERT(result == 0);
 

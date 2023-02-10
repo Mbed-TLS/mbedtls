@@ -184,9 +184,10 @@ def main() -> int:
                               '(default: print diff, do not modify files)'))
     parser.add_argument('--subset', action='store_true',
                         help=('check a subset of the files known to git '
-                              '(default: empty FILE means full set)'))
+                              '(default: check all files passed as arguments, '
+                              'known to git or not)'))
     parser.add_argument('operands', nargs='*', metavar='FILE',
-                        help='files to check')
+                        help='files to check (if none: check files that are known to git)')
 
     args = parser.parse_args()
 

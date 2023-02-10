@@ -89,7 +89,7 @@ The option `MBEDTLS_USE_PSA_CRYPTO` causes parts of the library to call the PSA 
 
 In this work, we want two things:
 
-* Make non-covered modules call PSA, but only [when this will actually work](#why-psa-is-not-always-possible). This effectively brings those modules to a partial use-PSA behavior regardless of whether the option is enabled.
+* Make non-covered modules call PSA, but only [when this will actually work](#why-psa-is-not-always-possible). This effectively brings those modules to a partial use-PSA behavior (benefiting from PSA accelerators when they're usable) regardless of whether the option is enabled.
 * Call PSA when a covered module calls a non-covered module which calls another module, for example X.509 calling pk for PSS verification which calls RSA which calculates a hash ([see issue \#6497](https://github.com/Mbed-TLS/mbedtls/issues/6497)). This effectively extends the option to modules that aren't directly covered.
 
 #### Classification of callers
@@ -181,7 +181,7 @@ Let us work through the example of RSA-PSS which calculates a hash, as in [see i
 RSA is in the [mixed domain](#classification-of-callers). So:
 
 * When called from `psa_sign_hash` and other PSA functions, it must call the PSA hash accelerator if there is one.
-* When called from user code, it must call the built-in hash implementation if PSA is not available.
+* When called from user code, it must call the built-in hash implementation if PSA is not available (regardless of whether this is because `MBEDTLS_PSA_CRYPTO_C` is disabled, or because `PSA_WANT_ALG_xxx` is disabled for this hash, or because there is an accelerator driver which has not been initialized yet).
 
 RSA knows which hash algorithm to use based on a parameter of type `mbedtls_md_type_t`. (More generally, all mixed-domain modules that take an algorithm specification as a parameter take it via a numerical type, except HMAC\_DRBG and HKDF which take a `const mbedtls_md_info_t*` instead, and CMAC which takes a `const mbedtls_cipher_info_t *`.)
 

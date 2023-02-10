@@ -264,6 +264,7 @@ Mbed TLS is mostly written in portable C99; however, it has a few platform requi
 - `int` and `size_t` must be at least 32 bits wide.
 - The types `uint8_t`, `uint16_t`, `uint32_t` and their signed equivalents must be available.
 - Mixed-endian platforms are not supported.
+- SIZE_MAX must be at least as big as INT_MAX and UINT_MAX.
 
 PSA cryptography API
 --------------------

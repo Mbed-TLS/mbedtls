@@ -561,6 +561,7 @@ int mbedtls_chacha20_self_test(int verbose)
     return 0;
 }
 
+#if !defined(MBEDTLS_CHACHA20_ALT)
 static const unsigned char test_xkeys[32] =
 {
     0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87,
@@ -736,7 +737,7 @@ int mbedtls_xchacha20_self_test(int verbose)
 
     return 0;
 }
-
+#endif  /* !MBEDTLS_CHACHA20_ALT */
 
 #endif /* MBEDTLS_SELF_TEST */
 

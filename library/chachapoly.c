@@ -550,6 +550,7 @@ int mbedtls_chachapoly_self_test(int verbose)
     return 0;
 }
 
+#if !defined(MBEDTLS_CHACHAPOLY_ALT)
 static const unsigned char test_xnonce[1][24] =
 {
     {
@@ -636,6 +637,7 @@ int mbedtls_xchachapoly_self_test(int verbose)
 
     return 0;
 }
+#endif /* MBEDTLS_CHACHAPOLY_ALT */
 
 #endif /* MBEDTLS_SELF_TEST */
 

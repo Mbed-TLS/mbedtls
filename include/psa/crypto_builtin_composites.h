@@ -127,9 +127,9 @@ typedef struct {
     /* Make the struct non-empty if algs not supported. */
     unsigned MBEDTLS_PRIVATE(dummy);
 
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
-        * MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA &&
-        * MBEDTLS_ECP_RESTARTABLE */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) &&
+        * defined( MBEDTLS_ECP_RESTARTABLE ) */
 } mbedtls_psa_sign_hash_interruptible_operation_t;
 
 #if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
@@ -160,9 +160,9 @@ typedef struct {
     /* Make the struct non-empty if algs not supported. */
     unsigned MBEDTLS_PRIVATE(dummy);
 
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
-        * MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA &&
-        * MBEDTLS_ECP_RESTARTABLE */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) &&
+        * defined( MBEDTLS_ECP_RESTARTABLE ) */
 
 } mbedtls_psa_verify_hash_interruptible_operation_t;
 

@@ -3302,11 +3302,11 @@ exit:
     /* Update ops count with work done. */
     operation->num_ops = psa_driver_wrapper_sign_hash_get_num_ops( operation );
 
+    psa_wipe_output_buffer(signature, status, signature_size,
+            *signature_length);
+
     if( status != PSA_OPERATION_INCOMPLETE )
     {
-        psa_wipe_output_buffer(signature, status, signature_size,
-                *signature_length);
-
         if( status != PSA_SUCCESS )
             operation->error_occurred = 1;
 

@@ -9,6 +9,7 @@
 #include "mbedtls/base64.h"
 #include "mbedtls/error.h"
 #include "string.h"
+#include "pk_wrap.h"
 
 #include "mbedtls/legacy_or_psa.h"
 

@@ -2674,7 +2674,7 @@ static psa_status_t psa_sign_verify_check_alg( int input_is_message,
 }
 
 /**
- * \brief                       Fill the unused part of the output buffer(the
+ * \brief                       Fill the unused part of the output buffer (the
  *                              whole buffer on error, the trailing part on
  *                              success) with something that isn't a valid
  *                              signature (barring an attack on the signature
@@ -2682,13 +2682,13 @@ static psa_status_t psa_sign_verify_check_alg( int input_is_message,
  *                              caller doesn't check the return status properly.
  *
  * \param output_buffer         pointer to buffer to wipe. May not be NULL
- *                              unless /p output_buffer_size is zero.
+ *                              unless \p output_buffer_size is zero.
  * \param status                status of function called to generate
  *                              output_buffer originally
- * \param output_buffer_size    Size of output buffer. If zero, /p output_buffer
+ * \param output_buffer_size    Size of output buffer. If zero, \p output_buffer
  *                              could be NULL
  * \param output_buffer_length  Length of data written to output_buffer, must be
- *                              less than /p output_buffer_size
+ *                              less than \p output_buffer_size
  */
 static void psa_wipe_output_buffer(uint8_t *output_buffer, psa_status_t status,
         size_t output_buffer_size, size_t output_buffer_length)

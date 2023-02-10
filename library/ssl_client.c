@@ -961,9 +961,20 @@ int mbedtls_ssl_write_client_hello(mbedtls_ssl_context *ssl)
         MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_finish_handshake_msg(ssl,
                                                               buf_len,
                                                               msg_len));
-        mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_SERVER_HELLO);
-    }
 
+        /*
+         * Set next state. Note that if TLS 1.3 is proposed, this may be
+         * overwritten by mbedtls_ssl_tls13_finalize_client_hello().
+         */
+        mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_SERVER_HELLO);
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+        if (ssl->handshake->min_tls_version <=  MBEDTLS_SSL_VERSION_TLS1_3 &&
+            MBEDTLS_SSL_VERSION_TLS1_3 <= ssl->tls_version) {
+            ret = mbedtls_ssl_tls13_finalize_client_hello(ssl);
+        }
+#endif
+    }
 
 cleanup:
 

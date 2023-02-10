@@ -275,14 +275,16 @@ requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_
 run_test    "TLS 1.3 m->G: EarlyData: basic check, good" \
             "$G_NEXT_SRV -d 10 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:+ECDHE-PSK:+PSK --earlydata --disable-client-cert" \
             "$P_CLI debug_level=4 early_data=1 reco_mode=1 reconnect=1 reco_delay=900" \
-            1 \
+            0 \
             -c "Reconnecting with saved session" \
             -c "NewSessionTicket: early_data(42) extension received." \
             -c "ClientHello: early_data(42) extension exists." \
             -c "EncryptedExtensions: early_data(42) extension received." \
             -c "EncryptedExtensions: early_data(42) extension exists." \
+            -c "<= write EndOfEarlyData" \
             -s "Parsing extension 'Early Data/42' (0 bytes)" \
             -s "Sending extension Early Data/42 (0 bytes)" \
+            -s "END OF EARLY DATA (5) was received." \
             -s "early data accepted"
 
 requires_gnutls_tls1_3

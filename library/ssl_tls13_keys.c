@@ -1238,7 +1238,7 @@ int mbedtls_ssl_tls13_compute_early_transform(mbedtls_ssl_context *ssl)
     ret = mbedtls_ssl_tls13_populate_transform(
         transform_earlydata,
         ssl->conf->endpoint,
-        ssl->session_negotiate->ciphersuite,
+        handshake->ciphersuite_info->id,
         &traffic_keys,
         ssl);
     if (ret != 0) {
@@ -1699,7 +1699,7 @@ int mbedtls_ssl_tls13_compute_handshake_transform(mbedtls_ssl_context *ssl)
     ret = mbedtls_ssl_tls13_populate_transform(
         transform_handshake,
         ssl->conf->endpoint,
-        ssl->session_negotiate->ciphersuite,
+        handshake->ciphersuite_info->id,
         &traffic_keys,
         ssl);
     if (ret != 0) {
@@ -1789,7 +1789,7 @@ int mbedtls_ssl_tls13_compute_application_transform(mbedtls_ssl_context *ssl)
     ret = mbedtls_ssl_tls13_populate_transform(
         transform_application,
         ssl->conf->endpoint,
-        ssl->session_negotiate->ciphersuite,
+        ssl->handshake->ciphersuite_info->id,
         &traffic_keys,
         ssl);
     if (ret != 0) {

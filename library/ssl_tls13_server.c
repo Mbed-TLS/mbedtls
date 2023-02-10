@@ -2100,7 +2100,7 @@ static int ssl_tls13_write_server_hello_body(mbedtls_ssl_context *ssl,
 }
 
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_finalize_write_server_hello(mbedtls_ssl_context *ssl)
+static int ssl_tls13_finalize_server_hello(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     ret = mbedtls_ssl_tls13_compute_handshake_transform(ssl);
@@ -2140,7 +2140,7 @@ static int ssl_tls13_write_server_hello(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_finish_handshake_msg(
                              ssl, buf_len, msg_len));
 
-    MBEDTLS_SSL_PROC_CHK(ssl_tls13_finalize_write_server_hello(ssl));
+    MBEDTLS_SSL_PROC_CHK(ssl_tls13_finalize_server_hello(ssl));
 
 #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
     /* The server sends a dummy change_cipher_spec record immediately

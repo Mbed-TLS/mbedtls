@@ -4545,7 +4545,7 @@ int mbedtls_ssl_get_max_out_record_payload(const mbedtls_ssl_context *ssl);
 /**
  * \brief          Return the current maximum incoming record payload in bytes.
  *
- * \note           The logic to determine the maximum outgoing record payload is
+ * \note           The logic to determine the maximum incoming record payload is
  *                 version-specific. It takes into account various factors, such as
  *                 the mbedtls_config.h setting \c MBEDTLS_SSL_IN_CONTENT_LEN, extensions
  *                 such as the max fragment length extension or record size limit
@@ -4557,7 +4557,7 @@ int mbedtls_ssl_get_max_out_record_payload(const mbedtls_ssl_context *ssl);
  *
  * \param ssl      SSL context
  *
- * \return         Current maximum payload for an outgoing record,
+ * \return         Current maximum payload for an incoming record,
  *                 or a negative error code.
  */
 int mbedtls_ssl_get_max_in_record_payload(const mbedtls_ssl_context *ssl);

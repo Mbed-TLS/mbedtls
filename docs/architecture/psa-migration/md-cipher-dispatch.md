@@ -143,7 +143,7 @@ Here are some reasons why calling `psa_xxx()` to perform a hash or cipher calcul
 
 #### Indirect knowledge
 
-Consider for example the code in `rsa.c` to perform an RSA-PSS signature. It needs to calculate a hash. If `mbedtls_rsa_rsassa_pss_sign()` is called directly by application code, it is supposed to call the built-in implementation: calling a PSA accelerator would be a behavior change, acceptable only if this does not add a risk of failure or performance degradation ([PSA is impossible or undesirable in some circumstances](#why-psa-is-not-always-possible)). Note that this holds regardless of the state of `MBEDTLS_USE_PSA_CRYPTO`, since `rsa.h` is outside the scopre of `MBEDTLS_USE_PSA_CRYPTO`. On the other hand, if `mbedtls_rsa_rsassa_pss_sign()` is called from X.509 code, it should use PSA to calculate hashes. It doesn't, currently, which is [bug \#6497](https://github.com/Mbed-TLS/mbedtls/issues/6497).
+Consider for example the code in `rsa.c` to perform an RSA-PSS signature. It needs to calculate a hash. If `mbedtls_rsa_rsassa_pss_sign()` is called directly by application code, it is supposed to call the built-in implementation: calling a PSA accelerator would be a behavior change, acceptable only if this does not add a risk of failure or performance degradation ([PSA is impossible or undesirable in some circumstances](#why-psa-is-not-always-possible)). Note that this holds regardless of the state of `MBEDTLS_USE_PSA_CRYPTO`, since `rsa.h` is outside the scope of `MBEDTLS_USE_PSA_CRYPTO`. On the other hand, if `mbedtls_rsa_rsassa_pss_sign()` is called from X.509 code, it should use PSA to calculate hashes. It doesn't, currently, which is [bug \#6497](https://github.com/Mbed-TLS/mbedtls/issues/6497).
 
 Generally speaking, modules in the mixed domain:
 
@@ -158,7 +158,7 @@ If `PSA_WANT_xxx` is disabled, this should guarantee that attempting xxx through
 
 ### Technical requirements
 
-Based on the preceding analysis, the core of the problem is: for code in the mixed domain (see [“Classification of callers”](#classification-of-callers)), how do we handle a cryptographic mechanisms? This has several related subproblems:
+Based on the preceding analysis, the core of the problem is: for code in the mixed domain (see [“Classification of callers”](#classification-of-callers)), how do we handle a cryptographic mechanism? This has several related subproblems:
 
 * How the mechanism is encoded (e.g. `mbedtls_md_type_t` vs `const *mbedtls_md_info_t` vs `psa_algorithm_t` for hashes).
 * How to decide whether a specific algorithm or key type is supported (eventually based on `MBEDTLS_xxx_C` vs `PSA_WANT_xxx`).

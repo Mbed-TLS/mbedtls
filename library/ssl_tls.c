@@ -593,6 +593,9 @@ uint32_t mbedtls_ssl_get_extension_id(unsigned int extension_type)
         case MBEDTLS_TLS_EXT_EXTENDED_MASTER_SECRET:
             return MBEDTLS_SSL_EXT_ID_EXTENDED_MASTER_SECRET;
 
+        case MBEDTLS_TLS_EXT_RECORD_SIZE_LIMIT:
+            return MBEDTLS_SSL_EXT_ID_RECORD_SIZE_LIMIT;
+
         case MBEDTLS_TLS_EXT_SESSION_TICKET:
             return MBEDTLS_SSL_EXT_ID_SESSION_TICKET;
 
@@ -635,7 +638,8 @@ static const char *extension_name_table[] = {
     [MBEDTLS_SSL_EXT_ID_SUPPORTED_POINT_FORMATS] = "supported_point_formats",
     [MBEDTLS_SSL_EXT_ID_ENCRYPT_THEN_MAC] = "encrypt_then_mac",
     [MBEDTLS_SSL_EXT_ID_EXTENDED_MASTER_SECRET] = "extended_master_secret",
-    [MBEDTLS_SSL_EXT_ID_SESSION_TICKET] = "session_ticket"
+    [MBEDTLS_SSL_EXT_ID_SESSION_TICKET] = "session_ticket",
+    [MBEDTLS_SSL_EXT_ID_RECORD_SIZE_LIMIT] = "record_size_limit"
 };
 
 static unsigned int extension_type_table[] = {
@@ -666,7 +670,8 @@ static unsigned int extension_type_table[] = {
     [MBEDTLS_SSL_EXT_ID_SUPPORTED_POINT_FORMATS] = MBEDTLS_TLS_EXT_SUPPORTED_POINT_FORMATS,
     [MBEDTLS_SSL_EXT_ID_ENCRYPT_THEN_MAC] = MBEDTLS_TLS_EXT_ENCRYPT_THEN_MAC,
     [MBEDTLS_SSL_EXT_ID_EXTENDED_MASTER_SECRET] = MBEDTLS_TLS_EXT_EXTENDED_MASTER_SECRET,
-    [MBEDTLS_SSL_EXT_ID_SESSION_TICKET] = MBEDTLS_TLS_EXT_SESSION_TICKET
+    [MBEDTLS_SSL_EXT_ID_SESSION_TICKET] = MBEDTLS_TLS_EXT_SESSION_TICKET,
+    [MBEDTLS_SSL_EXT_ID_RECORD_SIZE_LIMIT] = MBEDTLS_TLS_EXT_RECORD_SIZE_LIMIT
 };
 
 const char *mbedtls_ssl_get_extension_name(unsigned int extension_type)

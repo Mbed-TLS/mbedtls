@@ -1567,4 +1567,59 @@ int mbedtls_ssl_tls13_check_received_extension(
     return MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION;
 }
 
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+/* From RFC 8449:
+ * The ExtensionData of the "record_size_limit" extension is
+ * RecordSizeLimit:
+ *     uint16 RecordSizeLimit;
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_tls13_parse_record_size_limit_ext(mbedtls_ssl_context *ssl,
+                                                  const unsigned char *buf,
+                                                  const unsigned char *end)
+{
+    const ptrdiff_t extension_data_len = end - buf;
+    if (extension_data_len != 2) {
+        MBEDTLS_SSL_DEBUG_MSG(2,
+                              ("record_size_limit extension has invalid length: %td Bytes",
+                               extension_data_len));
+
+        MBEDTLS_SSL_PEND_FATAL_ALERT(
+            MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+            MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
+        return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+    }
+
+    const unsigned char *p = buf;
+    uint16_t record_size_limit;
+
+    MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, 2);
+    record_size_limit = MBEDTLS_GET_UINT16_BE(p, 0);
+
+    MBEDTLS_SSL_DEBUG_MSG(2, ("RecordSizeLimit: %u Bytes", record_size_limit));
+
+    /* RFC 8449 section 4
+     *
+     * Endpoints MUST NOT send a "record_size_limit" extension with a value
+     * smaller than 64.  An endpoint MUST treat receipt of a smaller value
+     * as a fatal error and generate an "illegal_parameter" alert.
+     */
+    if (record_size_limit < 64) {
+        MBEDTLS_SSL_PEND_FATAL_ALERT(
+            MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+            MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
+        return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+    }
+
+    MBEDTLS_SSL_DEBUG_MSG(2,
+                          (
+                              "record_size_limit extension is still in development. Aborting handshake."));
+
+    MBEDTLS_SSL_PEND_FATAL_ALERT(
+        MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT,
+        MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION);
+    return MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION;
+}
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
+
 #endif /* MBEDTLS_SSL_TLS_C && MBEDTLS_SSL_PROTO_TLS1_3 */

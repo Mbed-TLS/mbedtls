@@ -3825,6 +3825,21 @@ component_test_tls13_no_compatibility_mode () {
     tests/ssl-opt.sh
 }
 
+component_test_tls13_only_record_size_limit () {
+    msg "build: TLS 1.3 only from default, record size limit extension enabled"
+    scripts/config.py set MBEDTLS_SSL_RECORD_SIZE_LIMIT
+    make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
+
+    msg "test_suite_ssl: TLS 1.3 only, record size limit extension enabled"
+    cd tests; ./test_suite_ssl; cd ..
+
+    msg "ssl-opt.sh: (TLS 1.3 only, record size limit extension tests only)"
+    # Both the server and the client will currently abort the handshake when they encounter the
+    # record size limit extension. There is no way to prevent gnutls-cli from sending the extension
+    # which makes all G_NEXT_CLI + P_SRV tests fail. Thus, run only the tests for the this extension.
+    tests/ssl-opt.sh -f "Record Size Limit"
+}
+
 component_build_mingw () {
     msg "build: Windows cross build - mingw64, make (Link Library)" # ~ 30s
     make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 lib programs

@@ -1585,6 +1585,17 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                 break;
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
 
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+            case MBEDTLS_TLS_EXT_RECORD_SIZE_LIMIT:
+                MBEDTLS_SSL_DEBUG_MSG(3, ("found record_size_limit extension"));
+
+                ret = mbedtls_ssl_tls13_parse_record_size_limit_ext(ssl, p, extension_data_end);
+
+                return ret;
+
+                break;
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
+
             default:
                 MBEDTLS_SSL_PRINT_EXT(
                     3, MBEDTLS_SSL_HS_CLIENT_HELLO,

@@ -3287,10 +3287,11 @@ psa_status_t psa_sign_hash_complete(
     status = psa_driver_wrapper_sign_hash_complete(operation, signature,
                                                    signature_size,
                                                    signature_length);
-exit:
 
     /* Update ops count with work done. */
     operation->num_ops = psa_driver_wrapper_sign_hash_get_num_ops(operation);
+
+exit:
 
     psa_wipe_output_buffer(signature, status, signature_size,
                            *signature_length);
@@ -3418,11 +3419,11 @@ psa_status_t psa_verify_hash_complete(
 
     status = psa_driver_wrapper_verify_hash_complete(operation);
 
-exit:
-
     /* Update ops count with work done. */
     operation->num_ops = psa_driver_wrapper_verify_hash_get_num_ops(
         operation);
+
+exit:
 
     if (status != PSA_OPERATION_INCOMPLETE) {
         if (status != PSA_SUCCESS) {

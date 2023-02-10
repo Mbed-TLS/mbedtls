@@ -3556,7 +3556,7 @@ psa_status_t mbedtls_psa_sign_hash_start(
     mbedtls_ecdsa_restart_init(&operation->restart_ctx);
 
     operation->coordinate_bytes = PSA_BITS_TO_BYTES(
-        operation->ctx->grp.pbits);
+        operation->ctx->grp.nbits);
 
     psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH(alg);
     operation->md_alg = mbedtls_hash_info_md_from_psa(hash_alg);
@@ -3758,7 +3758,7 @@ psa_status_t mbedtls_psa_verify_hash_start(
         return status;
     }
 
-    coordinate_bytes = PSA_BITS_TO_BYTES(operation->ctx->grp.pbits);
+    coordinate_bytes = PSA_BITS_TO_BYTES(operation->ctx->grp.nbits);
 
     if (signature_length != 2 * coordinate_bytes) {
         return PSA_ERROR_INVALID_SIGNATURE;

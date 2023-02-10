@@ -337,6 +337,32 @@ int main(int argc, char *argv[])
     void *pointer;
 
     /*
+     * Check some basic platform requirements as specified in README.md
+     */
+    if (SIZE_MAX < INT_MAX || SIZE_MAX < UINT_MAX) {
+        mbedtls_printf("SIZE_MAX must be at least as big as INT_MAX and UINT_MAX\n");
+        mbedtls_exit(MBEDTLS_EXIT_FAILURE);
+    }
+
+    if (sizeof(int) < 4) {
+        mbedtls_printf("int must be at least 32 bits\n");
+        mbedtls_exit(MBEDTLS_EXIT_FAILURE);
+    }
+
+    if (sizeof(size_t) < 4) {
+        mbedtls_printf("size_t must be at least 32 bits\n");
+        mbedtls_exit(MBEDTLS_EXIT_FAILURE);
+    }
+
+    uint32_t endian_test = 0x12345678;
+    char *p = (char *) &endian_test;
+    if (!(p[0] == 0x12 && p[1] == 0x34 && p[2] == 0x56 && p[3] == 0x78) &&
+        !(p[3] == 0x12 && p[2] == 0x34 && p[1] == 0x56 && p[0] == 0x78)) {
+        mbedtls_printf("Mixed-endian platforms are not supported\n");
+        mbedtls_exit(MBEDTLS_EXIT_FAILURE);
+    }
+
+    /*
      * The C standard doesn't guarantee that all-bits-0 is the representation
      * of a NULL pointer. We do however use that in our code for initializing
      * structures, which should work on every modern platform. Let's be sure.

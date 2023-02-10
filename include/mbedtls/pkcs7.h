@@ -46,6 +46,8 @@
  *  - The RFC allows for SignerInfo structure to optionally contain
  *    unauthenticatedAttributes and authenticatedAttributes. In Mbed TLS it is
  *    assumed these fields are empty.
+ *  - The RFC allows for the signed Data type to contain contentInfo. This
+ *    implementation assumes the type is DATA and the content is empty.
  */
 
 #ifndef MBEDTLS_PKCS7_H
@@ -66,7 +68,7 @@
 #define MBEDTLS_ERR_PKCS7_INVALID_FORMAT                   -0x5300  /**< The format is invalid, e.g. different type expected. */
 #define MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE              -0x5380  /**< Unavailable feature, e.g. anything other than signed data. */
 #define MBEDTLS_ERR_PKCS7_INVALID_VERSION                  -0x5400  /**< The PKCS7 version element is invalid or cannot be parsed. */
-#define MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO             -0x5480  /**< The PKCS7 content info invalid or cannot be parsed. */
+#define MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO             -0x5480  /**< The PKCS7 content info is invalid or cannot be parsed. */
 #define MBEDTLS_ERR_PKCS7_INVALID_ALG                      -0x5500  /**< The algorithm tag or value is invalid or cannot be parsed. */
 #define MBEDTLS_ERR_PKCS7_INVALID_CERT                     -0x5580  /**< The certificate tag or value is invalid or cannot be parsed. */
 #define MBEDTLS_ERR_PKCS7_INVALID_SIGNATURE                -0x5600  /**< Error parsing the signature */
@@ -179,8 +181,9 @@ void mbedtls_pkcs7_init(mbedtls_pkcs7 *pkcs7);
  * \brief          Parse a single DER formatted pkcs7 content.
  *
  * \param pkcs7    The pkcs7 structure to be filled by parser for the output.
- * \param buf      The buffer holding the DER encoded pkcs7.
- * \param buflen   The size in bytes of \p buf.
+ * \param buf      The buffer holding only the DER encoded pkcs7.
+ * \param buflen   The size in bytes of \p buf. The size must be exactly the
+ *                 length of the DER encoded pkcs7.
  *
  * \note           This function makes an internal copy of the PKCS7 buffer
  *                 \p buf. In particular, \p buf may be destroyed or reused

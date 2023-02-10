@@ -4504,7 +4504,7 @@ static const mbedtls_ecp_point brainpoolP512r1_T[32] = {
 
 
 #if defined(ECP_LOAD_GROUP) || defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) || \
-    defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+    defined(MBEDTLS_ECP_DP_CURVE448_ENABLED) || defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
 /*
  * Create an MPI from embedded constants
  * (assumes len is an exact multiple of sizeof(mbedtls_mpi_uint))
@@ -4629,10 +4629,7 @@ static int ecp_mod_p256k1(mbedtls_mpi *);
                                          )
 #endif /* ECP_LOAD_GROUP */
 
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
-/* Constants used by ecp_use_curve25519() */
-static const mbedtls_mpi_sint curve25519_a24 = 0x01DB42;
-
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) || defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
 /* P = 2^255 - 19 */
 static const mbedtls_mpi_uint curve25519_p[] = {
     MBEDTLS_BYTES_TO_T_UINT_8(0xED, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF),
@@ -4648,6 +4645,10 @@ static const mbedtls_mpi_uint curve25519_n[] = {
     MBEDTLS_BYTES_TO_T_UINT_8(0X00, 0X00, 0X00, 0X00, 0x00, 0x00, 0x00, 0x00),
     MBEDTLS_BYTES_TO_T_UINT_8(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10)
 };
+
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+/* Constants used by ecp_use_curve25519() */
+static const mbedtls_mpi_sint curve25519_a24 = 0x01DB42;
 
 /*
  * Specialized function for creating the Curve25519 group
@@ -4682,6 +4683,7 @@ cleanup:
     return ret;
 }
 #endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED */
+#endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED ||  MBEDTLS_ECP_DP_ED25519_ENABLED */
 
 #if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED) || defined(MBEDTLS_ECP_DP_ED448_ENABLED)
 /* Constants used by ecp_use_curve448() */

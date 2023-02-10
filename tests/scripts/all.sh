@@ -1302,6 +1302,7 @@ component_test_full_no_bignum () {
     # Direct dependencies of ECP
     scripts/config.py unset MBEDTLS_ECDH_C
     scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_EDDSA_C
     scripts/config.py unset MBEDTLS_ECJPAKE_C
     scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
     # Indirect dependencies of ECP
@@ -2332,6 +2333,8 @@ config_psa_crypto_hash_use_psa () {
         scripts/config.py unset MBEDTLS_SHA384_C
         scripts/config.py unset MBEDTLS_SHA512_C
         scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
+        scripts/config.py unset MBEDTLS_ECP_DP_ED25519_ENABLED
+        scripts/config.py unset MBEDTLS_EDDSA_C
     fi
     # Use an external RNG as currently internal RNGs depend on entropy.c
     # which in turn hard-depends on SHA256_C (or SHA512_C).

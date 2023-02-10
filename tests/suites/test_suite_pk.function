@@ -1064,10 +1064,6 @@ void pk_rsa_overflow()
     size_t hash_len = SIZE_MAX, sig_len = SIZE_MAX;
     unsigned char hash[50], sig[100];
 
-    if (SIZE_MAX <= UINT_MAX) {
-        return;
-    }
-
     memset(hash, 0x2a, sizeof(hash));
     memset(sig, 0, sizeof(sig));
 
@@ -1143,12 +1139,10 @@ void pk_rsa_alt()
     TEST_ASSERT(strcmp(mbedtls_pk_get_name(&alt), "RSA-alt") == 0);
 
     /* Test signature */
-#if SIZE_MAX > UINT_MAX
     TEST_ASSERT(mbedtls_pk_sign(&alt, MBEDTLS_MD_NONE, hash, SIZE_MAX,
                                 sig, sizeof(sig), &sig_len,
                                 mbedtls_test_rnd_std_rand, NULL)
                 == MBEDTLS_ERR_PK_BAD_INPUT_DATA);
-#endif /* SIZE_MAX > UINT_MAX */
     TEST_ASSERT(mbedtls_pk_sign(&alt, MBEDTLS_MD_NONE, hash, sizeof(hash),
                                 sig, sizeof(sig), &sig_len,
                                 mbedtls_test_rnd_std_rand, NULL)

@@ -1139,10 +1139,12 @@ void pk_rsa_alt()
     TEST_ASSERT(strcmp(mbedtls_pk_get_name(&alt), "RSA-alt") == 0);
 
     /* Test signature */
+#if SIZE_MAX > UINT_MAX
     TEST_ASSERT(mbedtls_pk_sign(&alt, MBEDTLS_MD_NONE, hash, SIZE_MAX,
                                 sig, sizeof(sig), &sig_len,
                                 mbedtls_test_rnd_std_rand, NULL)
                 == MBEDTLS_ERR_PK_BAD_INPUT_DATA);
+#endif /* SIZE_MAX > UINT_MAX */
     TEST_ASSERT(mbedtls_pk_sign(&alt, MBEDTLS_MD_NONE, hash, sizeof(hash),
                                 sig, sizeof(sig), &sig_len,
                                 mbedtls_test_rnd_std_rand, NULL)

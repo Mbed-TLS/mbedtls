@@ -5844,6 +5844,7 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
     psa_aead_abort(&operation);
 
     /* Test for generating nonce after calling set lengths with SIZE_MAX ad_data length */
+#if SIZE_MAX > UINT32_MAX
     PSA_ASSERT(psa_aead_encrypt_setup(&operation, key, alg));
 
     if (operation.alg == PSA_ALG_CCM || operation.alg == PSA_ALG_GCM) {
@@ -5863,6 +5864,7 @@ void aead_multipart_state_test(int key_type_arg, data_t *key_data,
     }
 
     psa_aead_abort(&operation);
+#endif
 
     /* Test for calling set lengths with a UINT32_MAX ad_data length, after generating nonce */
 

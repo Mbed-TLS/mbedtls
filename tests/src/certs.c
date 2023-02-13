@@ -25,7 +25,7 @@
 
 #include "mbedtls/legacy_or_psa.h"
 
-#include "pk_wrap.c"
+#include "mbedtls/pk.h"
 
 /*
  * Test CA Certificates

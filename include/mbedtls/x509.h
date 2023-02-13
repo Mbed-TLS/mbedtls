@@ -294,7 +294,7 @@ typedef struct mbedtls_x509_subject_alternative_name {
     int type;                              /**< The SAN type, value of MBEDTLS_X509_SAN_XXX. */
     union {
         mbedtls_x509_san_other_name other_name; /**< The otherName supported type. */
-        mbedtls_x509_buf   unstructured_name; /**< The buffer for the unconstructed types. Only dnsName and uniformResourceIdentifier currently supported */ */
+        mbedtls_x509_buf   unstructured_name; /**< The buffer for the unconstructed types. Only dnsName and uniformResourceIdentifier are currently supported */
     }
     san; /**< A union of the supported SAN types */
 }

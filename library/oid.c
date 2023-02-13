@@ -26,7 +26,7 @@
 #include "mbedtls/oid.h"
 #include "mbedtls/rsa.h"
 #include "mbedtls/error.h"
-#include "pk_wrap.h"
+#include "mbedtls/pk.h"
 
 #include "mbedtls/legacy_or_psa.h"
 

@@ -669,6 +669,19 @@ requires_gnutls_next_disable_tls13_compat() {
     fi
 }
 
+# skip next test if GnuTLS does not support the record size limit extension
+requires_gnutls_record_size_limit() {
+    requires_gnutls_next
+    if [ "$GNUTLS_NEXT_AVAILABLE" = "NO" ]; then
+        GNUTLS_RECORD_SIZE_LIMIT_AVAILABLE="NO"
+    else
+        GNUTLS_RECORD_SIZE_LIMIT_AVAILABLE="YES"
+    fi
+    if [ "$GNUTLS_RECORD_SIZE_LIMIT_AVAILABLE" = "NO" ]; then
+        SKIP_NEXT="YES"
+    fi
+}
+
 # skip next test if IPv6 isn't available on this host
 requires_ipv6() {
     if [ -z "${HAS_IPV6:-}" ]; then
@@ -4651,6 +4664,35 @@ run_test    "Max fragment length: DTLS client, larger message" \
             -s "server hello, max_fragment_length extension" \
             -c "found max_fragment_length extension" \
             -c "fragment larger than.*maximum"
+
+# Tests for Record Size Limit extension
+
+# gnutls feature tests: check if the record size limit extension is supported with TLS 1.2.
+requires_gnutls_record_size_limit
+run_test    "Record Size Limit: Test gnutls record size limit feature" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:+CIPHER-ALL --disable-client-cert -d 4" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2 -V -d 4" \
+            0 \
+            -c "Preparing extension (Record Size Limit/28) for 'client hello'"\
+            -s "Parsing extension 'Record Size Limit/28' (2 bytes)" \
+            -s "Preparing extension (Record Size Limit/28) for 'TLS 1.2 server hello'" \
+            -c "Parsing extension 'Record Size Limit/28' (2 bytes)" \
+            -s "Version: TLS1.2" \
+            -c "Version: TLS1.2"
+
+# gnutls feature tests: check if the record size limit extension is supported with TLS 1.3.
+requires_gnutls_tls1_3
+requires_gnutls_record_size_limit
+run_test    "Record Size Limit: TLS 1.3: Test gnutls record size limit feature" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL --disable-client-cert -d 4" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -d 4" \
+            0 \
+            -c "Preparing extension (Record Size Limit/28) for 'client hello'"\
+            -s "Parsing extension 'Record Size Limit/28' (2 bytes)" \
+            -s "Preparing extension (Record Size Limit/28) for 'encrypted extensions'" \
+            -c "Parsing extension 'Record Size Limit/28' (2 bytes)" \
+            -s "Version: TLS1.3" \
+            -c "Version: TLS1.3"
 
 # Tests for renegotiation
 

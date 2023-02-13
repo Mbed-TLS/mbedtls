@@ -1448,14 +1448,12 @@ int mbedtls_x509_parse_subject_alt_name(const mbedtls_x509_buf *san_buf,
                                        MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE);
 
             if (ret != 0) {
-                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
-                                         ret);
+                return ret;
             }
 
             if ((ret = mbedtls_x509_get_name(&p, p + name_len,
                                              &san->san.directory_name)) != 0) {
-                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
-                                         ret);
+                return ret;
             }
         }
         break;

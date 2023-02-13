@@ -28,14 +28,14 @@
 
 #if defined(__clang__)
 #   if __clang_major__ < 4
-#       error "A more recent Clang is required for MBEDTLS_AES_C"
+#       error "A more recent Clang is required for MBEDTLS_AESCE_C"
 #   endif
 #elif defined(__GNUC__)
 #   if __GNUC__ < 6
-#       error "A more recent GCC is required for MBEDTLS_AES_C"
+#       error "A more recent GCC is required for MBEDTLS_AESCE_C"
 #   endif
 #else
-#    error "Only GCC and Clang supported for MBEDTLS_AES_C"
+#    error "Only GCC and Clang supported for MBEDTLS_AESCE_C"
 #endif
 
 #if !defined(__ARM_FEATURE_CRYPTO)

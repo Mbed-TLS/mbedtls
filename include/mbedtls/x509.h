@@ -379,7 +379,8 @@ int mbedtls_x509_time_is_future(const mbedtls_x509_time *from);
 
 /**
  * \brief          This function parses an item in the SubjectAlternativeNames
- *                 extension.
+ *                 extension. Please note that mbedtls_x509_free_subject_alt_name
+ *                 has to be called to dispose of the structure afterwards.
  *
  * \param san_buf  The buffer holding the raw data item of the subject
  *                 alternative name.
@@ -407,6 +408,12 @@ int mbedtls_x509_time_is_future(const mbedtls_x509_time *from);
  */
 int mbedtls_x509_parse_subject_alt_name(const mbedtls_x509_buf *san_buf,
                                         mbedtls_x509_subject_alternative_name *san);
+/**
+ * \brief          Unallocate all data related to subject alternative name
+ *
+ * \param san      SAN structure to free
+ */
+void mbedtls_x509_free_subject_alt_name(mbedtls_x509_subject_alternative_name *san);
 
 /** \} addtogroup x509_module */
 

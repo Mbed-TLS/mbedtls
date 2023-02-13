@@ -461,7 +461,9 @@ void x509_parse_san(char *crt_file, char *result_str)
              * If san type not supported, ignore.
              */
             if (ret == 0) {
-                TEST_ASSERT(verify_parse_san(&san, &p, &n) == 0);
+                ret = verify_parse_san(&san, &p, &n);
+                mbedtls_x509_free_subject_alt_name(&san);
+                TEST_EQUAL(ret, 0);
             }
             cur = cur->next;
         }

@@ -4926,10 +4926,13 @@ int mbedtls_ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn)
 
     RESET;
 
-    ADD_LAST; NEXT;
-    ADD_LAST; NEXT;
+    /* Use the reduction for the carry as well:
+     * 2^192 * last_carry = 2^64 * last_carry + last_carry mod P192
+     */
+    ADD_LAST; NEXT;                 // A0 += last_carry
+    ADD_LAST; NEXT;                 // A1 += last_carry
 
-    LAST;
+    LAST;                           // A2 += carry
 
     return 0;
 }

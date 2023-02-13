@@ -193,6 +193,10 @@ typedef struct mbedtls_pk_rsassa_pss_options {
 #endif /* PSA_WANT_ALG_ECDSA */
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
+#if defined(MBEDTLS_PK_CAN_ECDSA_VERIFY) || defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
+#define MBEDTLS_PK_CAN_ECDSA_SOME
+#endif
+
 /**
  * \brief           Types for interfacing with the debug module
  */

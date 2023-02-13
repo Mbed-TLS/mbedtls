@@ -8,6 +8,7 @@
 #include "mbedtls/oid.h"
 #include "mbedtls/base64.h"
 #include "mbedtls/error.h"
+#include "mbedtls/pk.h"
 #include "string.h"
 
 #include "mbedtls/legacy_or_psa.h"

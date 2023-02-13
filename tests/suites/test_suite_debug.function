@@ -2,7 +2,7 @@
 #include "mbedtls/debug.h"
 #include "string.h"
 #include "mbedtls/legacy_or_psa.h"
-#include "pk.h"
+#include "mbedtls/pk.h"
 
 struct buffer_data {
     char buf[2000];

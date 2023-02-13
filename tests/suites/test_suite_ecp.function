@@ -3,8 +3,9 @@
 #include "mbedtls/ecdsa.h"
 #include "mbedtls/ecdh.h"
 
-#include "ecp_invasive.h"
+#include "bignum_core.h"
 #include "bignum_mod_raw_invasive.h"
+#include "ecp_invasive.h"
 
 #if defined(MBEDTLS_TEST_HOOKS) &&                  \
     (defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) ||  \
@@ -1327,6 +1328,7 @@ void ecp_mod_p192_raw(char *input_N,
                    MBEDTLS_MPI_MOD_REP_MONTGOMERY), 0);
 
     TEST_EQUAL(mbedtls_ecp_mod_p192_raw(X, limbs_X), 0);
+    TEST_LE_U(mbedtls_mpi_core_bitlen(X, limbs_X), 192);
     mbedtls_mpi_mod_raw_fix_quasi_reduction(X, &m);
     ASSERT_COMPARE(X, bytes, res, bytes);
 

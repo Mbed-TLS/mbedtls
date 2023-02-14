@@ -191,12 +191,12 @@ def main() -> int:
 
     args = parser.parse_args()
 
-    all_src_files = get_src_files()
-    src_files = args.operands if args.operands else all_src_files
+    covered = frozenset(get_src_files())
+    src_files = args.operands if args.operands else covered
     if args.subset:
         # We are to check a subset of the default list
-        src_files = [f for f in args.operands if f in all_src_files]
-        skip_src_files = [f for f in args.operands if f not in src_files]
+        src_files = [f for f in args.operands if f in covered]
+        skip_src_files = [f for f in args.operands if f not in covered]
         if skip_src_files:
             print_skip(skip_src_files)
 

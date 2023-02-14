@@ -209,7 +209,7 @@ psa_status_t psa_get_and_lock_key_slot_with_policy(mbedtls_svc_key_id_t key,
  * \retval #PSA_SUCCESS
  *         Success. This includes the case of a key slot that was
  *         already fully wiped.
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
  */
 psa_status_t psa_wipe_key_slot(psa_key_slot_t *slot);
 
@@ -285,9 +285,9 @@ psa_status_t mbedtls_to_psa_error(int ret);
  * \retval #PSA_SUCCESS  The key was imported successfully.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The key data is not correctly formatted.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
  */
 psa_status_t psa_import_key_into_slot(
     const psa_key_attributes_t *attributes,
@@ -310,12 +310,12 @@ psa_status_t psa_import_key_into_slot(
  *                              \p data
  *
  * \retval #PSA_SUCCESS  The key was exported successfully.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
  */
 psa_status_t psa_export_key_internal(
     const psa_key_attributes_t *attributes,
@@ -338,12 +338,12 @@ psa_status_t psa_export_key_internal(
  *                              \p data
  *
  * \retval #PSA_SUCCESS  The public key was exported successfully.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
  */
 psa_status_t psa_export_public_key_internal(
     const psa_key_attributes_t *attributes,
@@ -364,7 +364,7 @@ psa_status_t psa_export_public_key_internal(
  *
  * \retval #PSA_SUCCESS
  *         The key was generated successfully.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
+ * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         Key size in bits or type not supported.
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
@@ -399,18 +399,18 @@ psa_status_t psa_generate_key_internal(const psa_key_attributes_t *attributes,
  * \param[out] signature_length On success, the number of bytes
  *                              that make up the returned signature value.
  *
- * \retval #PSA_SUCCESS
+ * \retval #PSA_SUCCESS \emptydescription
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p signature buffer is too small. You can
  *         determine a sufficient buffer size by calling
  *         #PSA_SIGN_OUTPUT_SIZE(\c key_type, \c key_bits, \p alg)
  *         where \c key_type and \c key_bits are the type and bit-size
  *         respectively of the key.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY \emptydescription
  */
 psa_status_t psa_sign_message_builtin(
     const psa_key_attributes_t *attributes,
@@ -445,9 +445,9 @@ psa_status_t psa_sign_message_builtin(
  * \retval #PSA_ERROR_INVALID_SIGNATURE
  *         The calculation was performed successfully, but the passed
  *         signature is not a valid signature.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
  */
 psa_status_t psa_verify_message_builtin(
     const psa_key_attributes_t *attributes,
@@ -475,18 +475,18 @@ psa_status_t psa_verify_message_builtin(
  * \param[out] signature_length On success, the number of bytes
  *                              that make up the returned signature value.
  *
- * \retval #PSA_SUCCESS
+ * \retval #PSA_SUCCESS \emptydescription
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p signature buffer is too small. You can
  *         determine a sufficient buffer size by calling
  *         #PSA_SIGN_OUTPUT_SIZE(\c key_type, \c key_bits, \p alg)
  *         where \c key_type and \c key_bits are the type and bit-size
  *         respectively of the key.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY \emptydescription
  */
 psa_status_t psa_sign_hash_builtin(
     const psa_key_attributes_t *attributes,
@@ -519,9 +519,9 @@ psa_status_t psa_sign_hash_builtin(
  * \retval #PSA_ERROR_INVALID_SIGNATURE
  *         The calculation was performed successfully, but the passed
  *         signature is not a valid signature.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
  */
 psa_status_t psa_verify_hash_builtin(
     const psa_key_attributes_t *attributes,
@@ -577,8 +577,8 @@ psa_status_t psa_validate_unstructured_key_bit_size(psa_key_type_t type,
  *                                  up the returned shared secret.
  * \retval #PSA_SUCCESS
  *         Success. Shared secret successfully calculated.
- * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_NOT_PERMITTED
+ * \retval #PSA_ERROR_INVALID_HANDLE \emptydescription
+ * \retval #PSA_ERROR_NOT_PERMITTED \emptydescription
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \p alg is not a key agreement algorithm, or
  *         \p private_key is not compatible with \p alg,
@@ -588,12 +588,12 @@ psa_status_t psa_validate_unstructured_key_bit_size(psa_key_type_t type,
  *         \p shared_secret_size is too small
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not a supported key agreement algorithm.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_BAD_STATE
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_HARDWARE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE \emptydescription
  */
 psa_status_t psa_key_agreement_raw_builtin(
     const psa_key_attributes_t *attributes,

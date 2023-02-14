@@ -7478,8 +7478,8 @@ static psa_status_t psa_pake_complete_inputs(
        with the driver context which will be setup by the driver. */
     psa_crypto_driver_pake_inputs_t inputs = operation->data.inputs;
 
-    if (operation->data.inputs.password_len == 0 ||
-        operation->data.inputs.role == PSA_PAKE_ROLE_NONE) {
+    if (inputs.password_len == 0 ||
+        inputs.role == PSA_PAKE_ROLE_NONE) {
         return PSA_ERROR_BAD_STATE;
     }
 
@@ -7503,8 +7503,8 @@ static psa_status_t psa_pake_complete_inputs(
             computation_stage->output_step = PSA_PAKE_STEP_X1_X2;
         }
     } else {
-        operation->data.inputs.password_len = 0;
-        operation->data.inputs.password = NULL;
+        inputs.password_len = 0;
+        inputs.password = NULL;
     }
 
     return status;
@@ -7888,7 +7888,7 @@ psa_status_t psa_pake_abort(
     }
 
     if (operation->stage == PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS &&
-        operation->data.inputs.password_len > 0) {
+        operation->data.inputs.password != NULL) {
         mbedtls_platform_zeroize(operation->data.inputs.password,
                                  operation->data.inputs.password_len);
         mbedtls_free(operation->data.inputs.password);

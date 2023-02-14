@@ -152,6 +152,27 @@ void x509_csr_check(char *key_file, char *cert_req_check_file, int md_type,
     int der_len = -1;
     const char *subject_name = "C=NL,O=PolarSSL,CN=PolarSSL Server 1";
     mbedtls_test_rnd_pseudo_info rnd_info;
+    mbedtls_x509_san_list san_ip;
+    mbedtls_x509_san_list san_dns;
+    mbedtls_x509_san_list san_uri;
+    mbedtls_x509_san_list *san_list = NULL;
+    const char san_ip_name[] = { 0x7f, 0x01, 0x01, 0x00 }; // 127.1.1.0
+    const char *san_dns_name = "example.com";
+    const char *san_uri_name = "http://pki.example.com/";
+
+    san_uri.node.type = MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER;
+    san_uri.node.name = (char *) san_uri_name;
+    san_uri.node.len = strlen(san_uri_name);
+    san_uri.next = NULL;
+    san_ip.node.type = MBEDTLS_X509_SAN_IP_ADDRESS;
+    san_ip.node.name = (char *) san_ip_name;
+    san_ip.node.len = sizeof(san_ip_name);
+    san_ip.next = &san_uri;
+    san_dns.node.type = MBEDTLS_X509_SAN_DNS_NAME;
+    san_dns.node.name = (char *) san_dns_name;
+    san_dns.node.len = strlen(san_dns_name);
+    san_dns.next = &san_ip;
+    san_list = &san_dns;
 
     memset(&rnd_info, 0x2a, sizeof(mbedtls_test_rnd_pseudo_info));
 
@@ -175,6 +196,8 @@ void x509_csr_check(char *key_file, char *cert_req_check_file, int md_type,
     if (set_extension != 0) {
         TEST_ASSERT(csr_set_extended_key_usage(&req, MBEDTLS_OID_SERVER_AUTH,
                                                MBEDTLS_OID_SIZE(MBEDTLS_OID_SERVER_AUTH)) == 0);
+
+        TEST_ASSERT(mbedtls_x509write_csr_set_subject_alternative_name(&req, san_list) == 0);
     }
 
     ret = mbedtls_x509write_csr_pem(&req, buf, sizeof(buf),

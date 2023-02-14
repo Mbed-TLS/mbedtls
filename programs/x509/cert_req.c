@@ -67,7 +67,7 @@ int main(void)
     "                        Comma-separated-list of values:\n"     \
     "                          DNS:value\n"            \
     "                          URI:value\n"            \
-    "                          OTHER:value\n"            \
+    "                          IP:value\n"             \
     "    key_usage=%%s        default: (empty)\n"       \
     "                        Comma-separated-list of values:\n"     \
     "                          digital_signature\n"     \
@@ -114,6 +114,19 @@ struct options {
     mbedtls_md_type_t md_alg;         /* Hash algorithm used for signature.   */
 } opt;
 
+static int ip_string_to_bytes(const char *str, uint8_t *bytes, int maxBytes)
+{
+    for (int i = 0; i < maxBytes; i++) {
+        bytes[i] = strtoul(str, NULL, 16);
+        str = strchr(str, '.');
+        if (str == NULL || *str == '\0') {
+            break;
+        }
+        str++;
+    }
+    return 0;
+}
+
 int write_certificate_request(mbedtls_x509write_csr *req, const char *output_file,
                               int (*f_rng)(void *, unsigned char *, size_t),
                               void *p_rng)
@@ -157,6 +170,7 @@ int main(int argc, char *argv[])
     mbedtls_ctr_drbg_context ctr_drbg;
     const char *pers = "csr example app";
     mbedtls_x509_san_list *cur, *prev;
+    uint8_t ip[4];
 
     /*
      * Set to sane values
@@ -229,17 +243,22 @@ usage:
                     cur->node.type = MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER;
                 } else if (strcmp(q, "DNS") == 0) {
                     cur->node.type = MBEDTLS_X509_SAN_DNS_NAME;
-                } else if (strcmp(q, "OTHER") == 0) {
-                    cur->node.type = MBEDTLS_X509_SAN_OTHER_NAME;
+                } else if (strcmp(q, "IP") == 0) {
+                    cur->node.type = MBEDTLS_X509_SAN_IP_ADDRESS;
+                    ip_string_to_bytes(r2, ip, 4);
                 } else {
                     mbedtls_free(cur);
                     goto usage;
                 }
 
-                q = r2;
-
-                cur->node.name = q;
-                cur->node.len = strlen(q);
+                if (strcmp(q, "IP") == 0) {
+                    cur->node.name = (char *) ip;
+                    cur->node.len = sizeof(ip);
+                } else {
+                    q = r2;
+                    cur->node.name = q;
+                    cur->node.len = strlen(q);
+                }
 
                 if (prev == NULL) {
                     opt.san_list = cur;

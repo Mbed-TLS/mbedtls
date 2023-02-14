@@ -84,8 +84,10 @@ int mbedtls_ecp_gen_privkey_mx(size_t n_bits,
  * is a 192 bit MPI.
  *
  * \param[in,out]   Np  The address of the MPI to be converted.
- *                      Must have twice as many limbs as the modulus so
- *                      384 bits in length.
+ *                      Must have twice as many limbs as the modulus.
+ *                      Upon return this holds the reduced value. The bitlength
+ *                      of the reduced value is the same as that of the modulus
+ *                      (192 bits).
  * \param[in]       Nn  The length of \p Np in limbs.
  */
 MBEDTLS_STATIC_TESTABLE

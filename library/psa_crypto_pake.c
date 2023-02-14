@@ -230,14 +230,12 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
             cipher_suite.family != PSA_ECC_FAMILY_SECP_R1 ||
             cipher_suite.bits != 256 ||
             cipher_suite.hash != PSA_ALG_SHA_256) {
-            status = PSA_ERROR_NOT_SUPPORTED;
-            goto error;
+            return PSA_ERROR_NOT_SUPPORTED;
         }
 
         if (role != PSA_PAKE_ROLE_CLIENT &&
             role != PSA_PAKE_ROLE_SERVER) {
-            status = PSA_ERROR_NOT_SUPPORTED;
-            goto error;
+            return PSA_ERROR_NOT_SUPPORTED;
         }
 
         mbedtls_ecjpake_init(&operation->ctx.pake);
@@ -245,13 +243,13 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
         operation->password = mbedtls_calloc(1, password_len);
         if (operation->password == NULL) {
             status = PSA_ERROR_INSUFFICIENT_MEMORY;
-            goto error;
+            return status;
         }
 
         status = psa_crypto_driver_pake_get_password(inputs, operation->password,
                                                      password_len, &actual_password_len);
         if (status != PSA_SUCCESS) {
-            goto error;
+            return status;
         }
 
         operation->password_len = actual_password_len;
@@ -265,7 +263,7 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
         status = psa_pake_ecjpake_setup(operation);
 
         if (status != PSA_SUCCESS) {
-            goto error;
+            return status;
         }
 
         return PSA_SUCCESS;
@@ -276,8 +274,6 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
 #endif
     { status = PSA_ERROR_NOT_SUPPORTED; }
 
-error:
-    mbedtls_psa_pake_abort(operation);
     return status;
 }
 
@@ -399,10 +395,6 @@ psa_status_t mbedtls_psa_pake_output(mbedtls_psa_pake_operation_t *operation,
     psa_status_t status = mbedtls_psa_pake_output_internal(
         operation, step, output, output_size, output_length);
 
-    if (status != PSA_SUCCESS) {
-        mbedtls_psa_pake_abort(operation);
-    }
-
     return status;
 }
 
@@ -506,10 +498,6 @@ psa_status_t mbedtls_psa_pake_input(mbedtls_psa_pake_operation_t *operation,
     psa_status_t status = mbedtls_psa_pake_input_internal(
         operation, step, input, input_length);
 
-    if (status != PSA_SUCCESS) {
-        mbedtls_psa_pake_abort(operation);
-    }
-
     return status;
 }
 
@@ -528,7 +516,6 @@ psa_status_t mbedtls_psa_pake_get_implicit_key(
                                                mbedtls_psa_get_random,
                                                MBEDTLS_PSA_RANDOM_STATE);
         if (ret != 0) {
-            mbedtls_psa_pake_abort(operation);
             return mbedtls_ecjpake_to_psa_error(ret);
         }
 
@@ -536,8 +523,6 @@ psa_status_t mbedtls_psa_pake_get_implicit_key(
         *output_size = operation->buffer_length;
 
         mbedtls_platform_zeroize(operation->buffer, MBEDTLS_PSA_PAKE_BUFFER_SIZE);
-
-        mbedtls_psa_pake_abort(operation);
 
         return PSA_SUCCESS;
     } else

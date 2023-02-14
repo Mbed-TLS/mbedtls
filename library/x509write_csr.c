@@ -89,7 +89,6 @@ int mbedtls_x509write_csr_set_subject_alternative_name(mbedtls_x509write_csr *ct
                                                        const mbedtls_x509_san_list *san_list)
 {
     int ret = 0;
-    size_t sandeep = 0;
     const mbedtls_x509_san_list *cur = san_list;
     unsigned char *buf;
     unsigned char *p;

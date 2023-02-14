@@ -6,7 +6,11 @@
  */
 
 #include "p256-m.h"
+#include "mbedtls/entropy.h"
+#include "mbedtls/ctr_drbg.h"
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /*
  * Zeroize memory - this should not be optimized away
@@ -1149,14 +1153,36 @@ static int scalar_from_bytes(uint32_t s[8], const uint8_t p[32])
     return -1;
 }
 
-/* test version based on stdlib - never do this in production! */
+/* Using RNG functions from Mbed TLS as p256-m does not come with a
+ * cryptographically secure RNG function.
+ */
 int p256_generate_random(uint8_t *output, unsigned output_size)
 {
-    for (unsigned i = 0; i < output_size; i++) {
-        output[i] = (uint8_t) rand();
+#if defined(MBEDTLS_CTR_DRBG_C)
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
+    char *personalization = "p256m";
+    mbedtls_entropy_init(&entropy);
+    mbedtls_ctr_drbg_init(&ctr_drbg);
+    int ret;
+
+    ret = mbedtls_ctr_drbg_seed(&ctr_drbg , mbedtls_entropy_func, &entropy,
+                                (const unsigned char *) personalization,
+                                strlen(personalization));
+    if (ret != 0) {
+        goto exit;
     }
 
-    return 0;
+    ret = mbedtls_ctr_drbg_random(&ctr_drbg, output, output_size);
+    if (ret != 0) {
+        goto exit;
+    }
+
+    return P256_SUCCESS;
+#endif
+
+exit:
+    return P256_RANDOM_FAILED;
 }
 
 /*

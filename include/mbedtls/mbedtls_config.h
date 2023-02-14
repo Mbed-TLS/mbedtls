@@ -3925,8 +3925,9 @@
  * document how a third-party driver or software accelerator can be integrated
  * to work alongside Mbed TLS.
  *
- * \warning As of now, the built-in RNG for p256-m depends on rand(). This is
- * fine for examples, but not in production.
+ * \warning p256-m has only been included to serve as a sample implementation
+ * of how a driver/accelerator can be integrated alongside Mbed TLS. It is not
+ * intented for use in production.
  * DO NOT ENABLE/USE THIS MACRO IN PRODUCTION BUILDS!
  */
 //#define MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED

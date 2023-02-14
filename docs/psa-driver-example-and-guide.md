@@ -127,9 +127,6 @@ This guide assumes you are building Mbed TLS from source alongside your project.
 [p256-m](https://github.com/mpg/p256-m) is a minimalistic implementation of ECDH and ECDSA on NIST P-256 curves, specifically optimized for use in constrained 32-bit environments. As such, it serves as a software accelerator. This section demonstrates the integration of `p256-m` as a transparent driver alongside Mbed TLS, serving as a guide for implementation.
 The code for p256-m can be found in `3rdparty/p256-m/p256m`. In this demonstration, p256-m is built from source alongside Mbed TLS.
 
-
-**NOTE:** p256-m also implements key generation. However, it's RNG is based on `stdlib`, making this feature **unsuitable for production builds**. It is included with Mbed TLS purely to be used as an example.
-
 The driver prefix for p256-m is `P256`/`p256`. The driver macro is `MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED`. To build with and use p256-m, set the macro using `config.py`, then build as usual using make/cmake. From the root of the `mbedtls/` directory, run:
 
     python3 scripts/config.py set MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED

@@ -221,13 +221,6 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
             return PSA_ERROR_NOT_SUPPORTED;
         }
 
-        if (role != PSA_PAKE_ROLE_CLIENT &&
-            role != PSA_PAKE_ROLE_SERVER) {
-            return PSA_ERROR_NOT_SUPPORTED;
-        }
-
-
-
         operation->password = mbedtls_calloc(1, password_len);
         if (operation->password == NULL) {
             status = PSA_ERROR_INSUFFICIENT_MEMORY;

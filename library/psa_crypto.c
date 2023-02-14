@@ -7483,6 +7483,12 @@ static psa_status_t psa_pake_complete_inputs(
         return PSA_ERROR_BAD_STATE;
     }
 
+    if (operation->alg == PSA_ALG_JPAKE &&
+        inputs.role != PSA_PAKE_ROLE_CLIENT &&
+        inputs.role != PSA_PAKE_ROLE_SERVER) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
     /* Clear driver context */
     mbedtls_platform_zeroize(&operation->data, sizeof(operation->data));
 

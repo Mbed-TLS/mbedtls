@@ -1064,10 +1064,6 @@ void pk_rsa_overflow()
     size_t hash_len = SIZE_MAX, sig_len = SIZE_MAX;
     unsigned char hash[50], sig[100];
 
-    if (SIZE_MAX <= UINT_MAX) {
-        return;
-    }
-
     memset(hash, 0x2a, sizeof(hash));
     memset(sig, 0, sizeof(sig));
 

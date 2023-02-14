@@ -501,11 +501,9 @@ int mbedtls_pk_verify_ext(mbedtls_pk_type_t type, const void *options,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const mbedtls_pk_rsassa_pss_options *pss_opts;
 
-#if SIZE_MAX > UINT_MAX
     if (md_alg == MBEDTLS_MD_NONE && UINT_MAX < hash_len) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
-#endif /* SIZE_MAX > UINT_MAX */
 
     if (options == NULL) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;

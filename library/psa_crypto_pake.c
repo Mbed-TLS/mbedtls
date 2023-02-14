@@ -167,19 +167,10 @@ static psa_status_t mbedtls_ecjpake_to_psa_error(int ret)
 static psa_status_t psa_pake_ecjpake_setup(mbedtls_psa_pake_operation_t *operation)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    mbedtls_ecjpake_role role;
+    mbedtls_ecjpake_role role = (operation->role == PSA_PAKE_ROLE_CLIENT) ?
+        MBEDTLS_ECJPAKE_CLIENT : MBEDTLS_ECJPAKE_SERVER;
 
-    if (operation->role == PSA_PAKE_ROLE_CLIENT) {
-        role = MBEDTLS_ECJPAKE_CLIENT;
-    } else if (operation->role == PSA_PAKE_ROLE_SERVER) {
-        role = MBEDTLS_ECJPAKE_SERVER;
-    } else {
-        return PSA_ERROR_BAD_STATE;
-    }
-
-    if (operation->password_len == 0) {
-        return PSA_ERROR_BAD_STATE;
-    }
+    mbedtls_ecjpake_init(&operation->ctx.pake);
 
     ret = mbedtls_ecjpake_setup(&operation->ctx.pake,
                                 role,
@@ -189,9 +180,6 @@ static psa_status_t psa_pake_ecjpake_setup(mbedtls_psa_pake_operation_t *operati
                                 operation->password_len);
 
     mbedtls_platform_zeroize(operation->password, operation->password_len);
-    mbedtls_free(operation->password);
-    operation->password = NULL;
-    operation->password_len = 0;
 
     if (ret != 0) {
         return mbedtls_ecjpake_to_psa_error(ret);
@@ -238,7 +226,7 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
             return PSA_ERROR_NOT_SUPPORTED;
         }
 
-        mbedtls_ecjpake_init(&operation->ctx.pake);
+
 
         operation->password = mbedtls_calloc(1, password_len);
         if (operation->password == NULL) {

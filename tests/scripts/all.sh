@@ -2044,11 +2044,8 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
 component_test_psa_crypto_config_accel_ecdsa () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDSA"
 
-    # Algorithms and key types to accelerate
-    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA KEY_TYPE_ECC_KEY_PAIR KEY_TYPE_ECC_PUBLIC_KEY"
-
-    # Configure and build the test driver library
-    # -------------------------------------------
+    # Configure the test driver library
+    # ---------------------------------
 
     # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
     # partial support for cipher operations in the driver test library.
@@ -2060,11 +2057,8 @@ component_test_psa_crypto_config_accel_ecdsa () {
     scripts/config.py -f tests/include/test/drivers/config_test_driver.h set MBEDTLS_SHA384_C
     scripts/config.py -f tests/include/test/drivers/config_test_driver.h set MBEDTLS_SHA512_C
 
-    loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
-    make -C tests libtestdriver1.a CFLAGS="$ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
-
-    # Configure and build the test driver library
-    # -------------------------------------------
+    # Configure the main libraries
+    # ----------------------------
 
     # Start from default config (no USE_PSA) + driver support + TLS 1.3
     scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
@@ -2077,6 +2071,20 @@ component_test_psa_crypto_config_accel_ecdsa () {
     # Disable things that depend on it
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
+
+    # Build the test driver library and the main libraries
+    # ----------------------------------------------------
+
+    # Algorithms and key types to accelerate
+    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA KEY_TYPE_ECC_KEY_PAIR KEY_TYPE_ECC_PUBLIC_KEY"
+
+    # Configurations for the main libraries won't affect the build of
+    # libtestdriver1.a, since preprocesssor symbols
+    # (LIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_ALG_ECDSA or
+    # LIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA)
+    # in loc_accel_flags will enable ECDSA module via config_psa.h
+    loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
+    make -C tests libtestdriver1.a CFLAGS="$ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
 
     # Build the library
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
@@ -2118,11 +2126,8 @@ config_psa_crypto_config_ecdsa_use_psa () {
 component_test_psa_crypto_config_accel_ecdsa_use_psa () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDSA + USE_PSA"
 
-    # Algorithms and key types to accelerate
-    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA KEY_TYPE_ECC_KEY_PAIR KEY_TYPE_ECC_PUBLIC_KEY"
-
-    # Configure and build the test driver library
-    # -------------------------------------------
+    # Configure the test driver library
+    # ---------------------------------
 
     # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
     # partial support for cipher operations in the driver test library.
@@ -2136,14 +2141,25 @@ component_test_psa_crypto_config_accel_ecdsa_use_psa () {
     scripts/config.py -f tests/include/test/drivers/config_test_driver.h set MBEDTLS_SHA384_C
     scripts/config.py -f tests/include/test/drivers/config_test_driver.h set MBEDTLS_SHA512_C
 
-    loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
-    make -C tests libtestdriver1.a CFLAGS="$ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
-
-    # Configure and build the main libraries with drivers enabled
-    # -----------------------------------------------------------
+    # Configure the main libraries with drivers enabled
+    # -------------------------------------------------
 
     # Use the same config as reference, only without built-in ECDSA
     config_psa_crypto_config_ecdsa_use_psa 1
+
+    # Build the test driver library and the main libraries
+    # ----------------------------------------------------
+
+    # Algorithms and key types to accelerate
+    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA KEY_TYPE_ECC_KEY_PAIR KEY_TYPE_ECC_PUBLIC_KEY"
+
+    # Configurations for the main libraries won't affect the build of
+    # libtestdriver1.a, since preprocesssor symbols
+    # (LIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_ALG_ECDSA or
+    # LIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA)
+    # in loc_accel_flags will enable ECDSA module via config_psa.h
+    loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
+    make -C tests libtestdriver1.a CFLAGS="$ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
 
     # Build the library
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"

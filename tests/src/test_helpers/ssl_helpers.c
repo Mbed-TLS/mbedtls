@@ -428,8 +428,8 @@ int mbedtls_test_mock_tcp_recv_b(void *ctx, unsigned char *buf, size_t len)
     return mbedtls_test_ssl_buffer_get(socket->input, buf, len);
 }
 
-int mbedtls_test_mock_tcp_send_nb(void *ctx, const unsigned char *buf,
-                                  size_t len)
+int mbedtls_test_mock_tcp_send_nb(void *ctx,
+                                  const unsigned char *buf, size_t len)
 {
     mbedtls_test_mock_socket *socket = (mbedtls_test_mock_socket *) ctx;
 
@@ -496,8 +496,8 @@ void mbedtls_test_message_socket_close(mbedtls_test_message_socket_context *ctx)
     memset(ctx, 0, sizeof(*ctx));
 }
 
-int mbedtls_test_mock_tcp_send_msg(void *ctx, const unsigned char *buf,
-                                   size_t len)
+int mbedtls_test_mock_tcp_send_msg(void *ctx,
+                                   const unsigned char *buf, size_t len)
 {
     mbedtls_test_ssl_message_queue *queue;
     mbedtls_test_mock_socket *socket;
@@ -523,8 +523,8 @@ int mbedtls_test_mock_tcp_send_msg(void *ctx, const unsigned char *buf,
     return mbedtls_test_ssl_message_queue_push_info(queue, len);
 }
 
-int mbedtls_test_mock_tcp_recv_msg(void *ctx, unsigned char *buf,
-                                   size_t buf_len)
+int mbedtls_test_mock_tcp_recv_msg(void *ctx,
+                                   unsigned char *buf, size_t buf_len)
 {
     mbedtls_test_ssl_message_queue *queue;
     mbedtls_test_mock_socket *socket;

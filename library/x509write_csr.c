@@ -128,16 +128,25 @@ int mbedtls_x509write_csr_set_subject_alternative_name(mbedtls_x509write_csr *ct
     cur = san_list;
     len = 0;
     while (cur != NULL) {
-        MBEDTLS_ASN1_CHK_ADD(len,
-                             mbedtls_asn1_write_raw_buffer(&p, buf,
-                                                           (const unsigned char *) cur->node.name,
-                                                           cur->node.len));
-        MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(&p, buf, cur->node.len));
-        MBEDTLS_ASN1_CHK_ADD(len,
-                             mbedtls_asn1_write_tag(&p, buf,
-                                                    MBEDTLS_ASN1_CONTEXT_SPECIFIC |
-                                                    cur->node.type));
-
+        switch (cur->node.type) {
+            case MBEDTLS_X509_SAN_DNS_NAME:
+            case MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER:
+            case MBEDTLS_X509_SAN_IP_ADDRESS:
+                MBEDTLS_ASN1_CHK_ADD(len,
+                                     mbedtls_asn1_write_raw_buffer(&p, buf,
+                                                                   (const unsigned char *) cur->node
+                                                                   .name,
+                                                                   cur->node.len));
+                MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(&p, buf, cur->node.len));
+                MBEDTLS_ASN1_CHK_ADD(len,
+                                     mbedtls_asn1_write_tag(&p, buf,
+                                                            MBEDTLS_ASN1_CONTEXT_SPECIFIC |
+                                                            cur->node.type));
+                break;
+            default:
+                /* Skip unsupported names. */
+                break;
+        }
         cur = cur->next;
     }
 

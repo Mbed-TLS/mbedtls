@@ -5051,7 +5051,7 @@ static inline int8_t extract_carry(int64_t cur)
 static int ecp_mod_p224(mbedtls_mpi *N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t expected_width = 2 * ((224 + biL - 1) / biL);
+    size_t expected_width =  2 * 224 / biL;
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
     ret = ecp_mod_p224_raw(N->p, expected_width);
 cleanup:
@@ -5061,7 +5061,7 @@ cleanup:
 MBEDTLS_STATIC_TESTABLE
 int ecp_mod_p224_raw(mbedtls_mpi_uint *Np, size_t Nn)
 {
-    if (Nn != 2 * ((224 + biL - 1) / biL)) {
+    if (Nn != 2 * 224 / biL) {
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 

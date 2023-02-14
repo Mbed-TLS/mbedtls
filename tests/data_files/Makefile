@@ -336,6 +336,12 @@ server5-tricky-ip-san.crt: server5.key
 	$(OPENSSL) req -x509 -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS Tricky IP SAN" -set_serial 77 -config $(test_ca_config_file) -extensions tricky_ip_san -days 3650 -sha256 -key server5.key -out $@
 all_final += server5-tricky-ip-san.crt
 
+rsa_single_san_uri.crt.der: rsa_single_san_uri.key
+	$(OPENSSL) req -x509 -outform der -nodes -days 7300 -newkey rsa:2048 -key $< -out $@ -addext "subjectAltName = URI:urn:example.com:5ff40f78-9210-494f-8206-c2c082f0609c" -extensions 'v3_req' -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS URI SAN"
+
+rsa_multiple_san_uri.crt.der: rsa_multiple_san_uri.key
+	$(OPENSSL) req -x509 -outform der -nodes -days 7300 -newkey rsa:2048 -key $< -out $@ -addext "subjectAltName = URI:urn:example.com:5ff40f78-9210-494f-8206-c2c082f0609c, URI:urn:example.com:5ff40f78-9210-494f-8206-abcde1234567" -extensions 'v3_req' -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS URI SAN"
+
 server10-badsign.crt: server10.crt
 	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; } > $@
 all_final += server10-badsign.crt
@@ -364,12 +370,6 @@ all_final += rsa_pkcs8_2048_public.pem
 rsa_pkcs8_2048_public.der: rsa_pkcs8_2048_public.pem
 	$(OPENSSL) rsa -pubin -in $< -outform DER -pubout -out $@
 all_final += rsa_pkcs8_2048_public.der
-
-rsa_single_san_uri.crt: rsa_single_san_uri.key
-	$(OPENSSL) req -x509 -nodes -days 7300 -newkey rsa:2048 -keyout $< -out $@ -addext "subjectAltName = URI:urn:example.com:5ff40f78-9210-494f-8206-c2c082f0609c" -extensions 'v3_req' -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS URI SAN"
-
-rsa_multiple_san_uri.crt: rsa_multiple_san_uri.key
-	$(OPENSSL) req -x509 -nodes -days 7300 -newkey rsa:2048 -keyout $< -out $@ -addext "subjectAltName = URI:urn:example.com:5ff40f78-9210-494f-8206-c2c082f0609c, URI:urn:example.com:5ff40f78-9210-494f-8206-abcde1234567" -extensions 'v3_req' -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS URI SAN"
 
 ################################################################
 #### Generate various RSA keys

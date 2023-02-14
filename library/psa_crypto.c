@@ -7508,11 +7508,7 @@ static psa_status_t psa_pake_complete_inputs(
             computation_stage->input_step = PSA_PAKE_STEP_X1_X2;
             computation_stage->output_step = PSA_PAKE_STEP_X1_X2;
         }
-    } else {
-        inputs.password_len = 0;
-        inputs.password = NULL;
     }
-
     return status;
 }
 

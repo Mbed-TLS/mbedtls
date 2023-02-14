@@ -242,7 +242,6 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
         operation->buffer_offset = 0;
 
         status = psa_pake_ecjpake_setup(operation);
-
         if (status != PSA_SUCCESS) {
             return status;
         }
@@ -503,8 +502,6 @@ psa_status_t mbedtls_psa_pake_get_implicit_key(
         memcpy(output, operation->buffer, operation->buffer_length);
         *output_size = operation->buffer_length;
 
-        mbedtls_platform_zeroize(operation->buffer, MBEDTLS_PSA_PAKE_BUFFER_SIZE);
-
         return PSA_SUCCESS;
     } else
 #else
@@ -518,9 +515,7 @@ psa_status_t mbedtls_psa_pake_abort(mbedtls_psa_pake_operation_t *operation)
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
 
     if (operation->alg == PSA_ALG_JPAKE) {
-        if (operation->password_len > 0) {
-            mbedtls_platform_zeroize(operation->password, operation->password_len);
-        }
+        mbedtls_platform_zeroize(operation->password, operation->password_len);
         mbedtls_free(operation->password);
         operation->password = NULL;
         operation->password_len = 0;

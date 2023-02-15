@@ -404,7 +404,7 @@ cleanup:
     return mbedtls_to_psa_error(ret);
 }
 
-int mbedtls_psa_ecp_load_public_part(mbedtls_ecp_keypair *ecp)
+psa_status_t mbedtls_psa_ecp_load_public_part(mbedtls_ecp_keypair *ecp)
 {
     int ret = 0;
 
@@ -416,7 +416,7 @@ int mbedtls_psa_ecp_load_public_part(mbedtls_ecp_keypair *ecp)
                               MBEDTLS_PSA_RANDOM_STATE);
     }
 
-    return ret;
+    return mbedtls_to_psa_error(ret);
 }
 
 psa_status_t mbedtls_psa_ecdsa_verify_hash(
@@ -427,7 +427,6 @@ psa_status_t mbedtls_psa_ecdsa_verify_hash(
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecp_keypair *ecp = NULL;
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t curve_bytes;
     mbedtls_mpi r, s;
 
@@ -447,30 +446,39 @@ psa_status_t mbedtls_psa_ecdsa_verify_hash(
     mbedtls_mpi_init(&s);
 
     if (signature_length != 2 * curve_bytes) {
-        ret = MBEDTLS_ERR_ECP_VERIFY_FAILED;
+        status = PSA_ERROR_INVALID_SIGNATURE;
         goto cleanup;
     }
 
-    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&r,
-                                            signature,
-                                            curve_bytes));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&s,
-                                            signature + curve_bytes,
-                                            curve_bytes));
+    status = mbedtls_to_psa_error(mbedtls_mpi_read_binary(&r,
+                                                          signature,
+                                                          curve_bytes));
+    if (status != PSA_SUCCESS) {
+        goto cleanup;
+    }
 
-    MBEDTLS_MPI_CHK(mbedtls_psa_ecp_load_public_part(ecp));
+    status = mbedtls_to_psa_error(mbedtls_mpi_read_binary(&s,
+                                                          signature + curve_bytes,
+                                                          curve_bytes));
+    if (status != PSA_SUCCESS) {
+        goto cleanup;
+    }
 
+    status = mbedtls_psa_ecp_load_public_part(ecp);
+    if (status != PSA_SUCCESS) {
+        goto cleanup;
+    }
 
-    ret = mbedtls_ecdsa_verify(&ecp->grp, hash, hash_length,
-                               &ecp->Q, &r, &s);
-
+    status = mbedtls_to_psa_error(mbedtls_ecdsa_verify(&ecp->grp, hash,
+                                                       hash_length, &ecp->Q,
+                                                       &r, &s));
 cleanup:
     mbedtls_mpi_free(&r);
     mbedtls_mpi_free(&s);
     mbedtls_ecp_keypair_free(ecp);
     mbedtls_free(ecp);
 
-    return mbedtls_to_psa_error(ret);
+    return status;
 }
 
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \

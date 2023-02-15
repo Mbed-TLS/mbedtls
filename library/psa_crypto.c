@@ -3787,10 +3787,10 @@ psa_status_t mbedtls_psa_verify_hash_start(
         return status;
     }
 
-    int ret = mbedtls_psa_ecp_load_public_part(operation->ctx);
+    status = mbedtls_psa_ecp_load_public_part(operation->ctx);
 
-    if (ret != 0) {
-        return mbedtls_to_psa_error(ret);
+    if (status != PSA_SUCCESS) {
+        return status;
     }
 
     /* We only need to store the same length of hash as the private key size

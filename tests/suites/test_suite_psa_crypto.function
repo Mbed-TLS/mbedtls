@@ -1233,7 +1233,7 @@ static void interruptible_signverify_get_minmax_completes(uint32_t max_ops,
        to complete, and likewise that with a max_ops of
        PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED, it should complete in one go. */
     if (max_ops == 0 || max_ops == 1) {
-        /* Failure test cases will fail on the first op. */
+
         if (expected_status == PSA_SUCCESS) {
             *min_completes = 2;
         } else {

@@ -2248,6 +2248,9 @@ component_test_psa_crypto_config_accel_ecdh () {
 component_test_psa_crypto_config_accel_rsa_signature () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated RSA signature"
 
+    # Configure the test driver library
+    # ---------------------------------
+
     # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
     # partial support for cipher operations in the driver test library.
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
@@ -2285,9 +2288,8 @@ component_test_psa_crypto_config_accel_rsa_signature () {
     scripts/config.py -f tests/include/test/drivers/config_test_driver.h set MBEDTLS_PEM_PARSE_C
     scripts/config.py -f tests/include/test/drivers/config_test_driver.h set MBEDTLS_BASE64_C
 
-    loc_accel_list="ALG_RSA_PKCS1V15_SIGN ALG_RSA_PSS KEY_TYPE_RSA_KEY_PAIR KEY_TYPE_RSA_PUBLIC_KEY"
-    loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
-    make -C tests libtestdriver1.a CFLAGS="$ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
+    # Configure the main libraries
+    # ----------------------------
 
     # Mbed TLS library build
     scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
@@ -2306,6 +2308,20 @@ component_test_psa_crypto_config_accel_rsa_signature () {
 
     scripts/config.py unset MBEDTLS_MD5_C
     scripts/config.py unset MBEDTLS_RIPEMD160_C
+
+    # Build the test driver library and the main libraries
+    # ----------------------------------------------------
+
+    # RSA support and key types to accelerate
+    loc_accel_list="ALG_RSA_PKCS1V15_SIGN ALG_RSA_PSS KEY_TYPE_RSA_KEY_PAIR KEY_TYPE_RSA_PUBLIC_KEY"
+
+    # Configurations for the main libraries won't affect the build of
+    # libtestdriver1.a, since preprocesssor symbols
+    # (LIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN or
+    # LIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_ALG_RSA_PSS) in loc_accel_flags will
+    # enable necessary configuration options to add RSA support via config_psa.h
+    loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
+    make -C tests libtestdriver1.a CFLAGS="$ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
 
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
     make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"

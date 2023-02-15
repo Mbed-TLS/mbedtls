@@ -644,12 +644,11 @@ uint32_t mbedtls_psa_interruptible_get_max_ops( void );
  *        zero.
  *
  * \note The signature of this function is that of a PSA driver
- *       sign_get_num_ops entry point, however it differs in behaviour from the
- *       driver function in that this function returns a delta of work done in
- *       the last call rather than all of the ops done ever by the whole
- *       operation, due to internal implementation differences.
+ *       sign_hash_get_num_ops entry point. This function behaves as an
+ *       sign_hash_get_num_ops entry point as defined in the PSA driver
+ *       interface specification for transparent drivers.
  *
- * \param[in]  operation        The \c
+ * \param   operation           The \c
  *                              mbedtls_psa_sign_hash_interruptible_operation_t
  *                              to use. This must be initialized first.
  *
@@ -658,7 +657,7 @@ uint32_t mbedtls_psa_interruptible_get_max_ops( void );
  *                              mbedtls_psa_sign_hash_complete().
  */
 uint32_t mbedtls_psa_sign_hash_get_num_ops(
-    const mbedtls_psa_sign_hash_interruptible_operation_t *operation );
+                   mbedtls_psa_sign_hash_interruptible_operation_t *operation);
 
 /**
  * \brief Get the number of ops that a hash verification operation has taken for
@@ -666,12 +665,11 @@ uint32_t mbedtls_psa_sign_hash_get_num_ops(
  *        return zero.
  *
  * \note The signature of this function is that of a PSA driver
- *       verify_get_num_ops entry point however it differs in behaviour from the
- *       driver function in that this function returns a delta of work done in
- *       the last call rather than all of the ops done ever by the whole
- *       operation, due to internal implementation differences.
+ *       verify_hash_get_num_ops entry point. This function behaves as an
+ *       verify_hash_get_num_ops entry point as defined in the PSA driver
+ *       interface specification for transparent drivers.
  *
- * \param[in]  operation        The \c
+ * \param   operation           The \c
  *                              mbedtls_psa_verify_hash_interruptible_operation_t
  *                              to use. This must be initialized first.
  *
@@ -680,7 +678,7 @@ uint32_t mbedtls_psa_sign_hash_get_num_ops(
  *                              mbedtls_psa_verify_hash_complete().
  */
 uint32_t mbedtls_psa_verify_hash_get_num_ops(
-    const mbedtls_psa_verify_hash_interruptible_operation_t *operation );
+                 mbedtls_psa_verify_hash_interruptible_operation_t *operation);
 
 /**
  * \brief  Start signing a hash or short message with a private key, in an

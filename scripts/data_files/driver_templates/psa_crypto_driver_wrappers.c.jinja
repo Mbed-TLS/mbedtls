@@ -452,7 +452,7 @@ uint32_t psa_driver_wrapper_interruptible_get_max_ops( void )
 }
 
 uint32_t psa_driver_wrapper_sign_hash_get_num_ops(
-    const psa_sign_hash_interruptible_operation_t *operation )
+    psa_sign_hash_interruptible_operation_t *operation )
 {
     switch( operation->id )
     {
@@ -461,13 +461,7 @@ uint32_t psa_driver_wrapper_sign_hash_get_num_ops(
             return 0;
 
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            /* Internal implementation returns a delta of ops completed in the
-             * last call to complete(), so need to add in ops already completed
-             * before this.*/
-            return( operation->num_ops +
-                    mbedtls_psa_sign_hash_get_num_ops(
-                                                &operation->ctx.mbedtls_ctx )
-                  );
+            return(mbedtls_psa_sign_hash_get_num_ops(&operation->ctx.mbedtls_ctx));
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
@@ -481,7 +475,7 @@ uint32_t psa_driver_wrapper_sign_hash_get_num_ops(
 }
 
 uint32_t psa_driver_wrapper_verify_hash_get_num_ops(
-    const psa_verify_hash_interruptible_operation_t *operation )
+    psa_verify_hash_interruptible_operation_t *operation )
 {
     switch( operation->id )
     {
@@ -490,13 +484,7 @@ uint32_t psa_driver_wrapper_verify_hash_get_num_ops(
             return 0;
 
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            /* Internal implementation returns a delta of ops completed in the
-             * last call to complete(), so need to add in ops already completed
-             * before this.*/
-            return ( operation->num_ops +
-                     mbedtls_psa_verify_hash_get_num_ops(
-                                                &operation->ctx.mbedtls_ctx )
-                    );
+            return (mbedtls_psa_verify_hash_get_num_ops(&operation->ctx.mbedtls_ctx));
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)

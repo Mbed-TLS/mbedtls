@@ -113,3 +113,9 @@ oid_get_numeric_string:"C080808000":MBEDTLS_ERR_OID_BUF_TOO_SMALL:""
 
 OID get numeric string - 32-bit overflow, second subidentifier
 oid_get_numeric_string:"2BC080808000":MBEDTLS_ERR_OID_BUF_TOO_SMALL:""
+
+OID get numeric string - overlong encoding
+oid_get_numeric_string:"8001":MBEDTLS_ERR_OID_BUF_TOO_SMALL:""
+
+OID get numeric string - overlong encoding, second subidentifier
+oid_get_numeric_string:"2B8001":MBEDTLS_ERR_OID_BUF_TOO_SMALL:""

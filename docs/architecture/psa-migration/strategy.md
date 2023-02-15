@@ -386,15 +386,16 @@ are expressed (sometimes in bulk), to get things wrong in a way that would
 result in more tests being skipped, which is easy to miss. Care must be
 taken to ensure this does not happen. The following criteria can be used:
 
-- the sets of tests skipped in the default config and the full config must be
-  the same before and after the PR that implements step 3;
-- the set of tests skipped in the driver-only build is the same as in an
-  equivalent software-based configuration, or the difference is small enough,
-  justified, and a github issue is created to track it.
-
-Note that the favourable case is when the number of tests skipped is 0 in the
-driver-only build. In other cases, analysis of the outcome files is needed,
-see the example script `outcome-analysis.sh` in the same directory.
+1. The sets of tests skipped in the default config and the full config must be
+  the same before and after the PR that implements step 3. This is tested
+manually for each PR that changes dependency declarations by using the script
+`outcome-analysis.sh` in the present directory.
+2. The set of tests skipped in the driver-only build is the same as in an
+  equivalent software-based configuration. This is tested automatically by the
+CI in the "Results analysis" stage, by running
+`tests/scripts/analyze_outcomes.py`. See the
+`analyze_driver_vs_reference_xxx` actions in the script and the comments above
+their declaration for how to do that locally.
 
 
 Migrating away from the legacy API

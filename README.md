@@ -19,7 +19,7 @@ Documentation
 
 The main Mbed TLS documentation is available via [ReadTheDocs](https://mbed-tls.readthedocs.io/).
 
-Documentation for the PSA Cryptography API is available [on GitHub](https://armmbed.github.io/mbed-crypto/psa/#application-programming-interface).
+Documentation for the PSA Cryptography API is available [on GitHub](https://arm-software.github.io/psa-api/crypto/).
 
 To generate a local copy of the library documentation in HTML format, tailored to your compile-time configuration:
 
@@ -220,7 +220,7 @@ subproject.
 
 ### Microsoft Visual Studio
 
-The build files for Microsoft Visual Studio are generated for Visual Studio 2010.
+The build files for Microsoft Visual Studio are generated for Visual Studio 2013.
 
 The solution file `mbedTLS.sln` contains all the basic projects needed to build the library and all the programs. The files in tests are not generated and compiled, as these need Python and perl environments as well. However, the selftest program in `programs/test/` is still available.
 
@@ -245,6 +245,8 @@ For machines with a Unix shell and OpenSSL (and optionally GnuTLS) installed, ad
 -   `tests/scripts/depends.py` test builds in configurations with a single curve, key exchange, hash, cipher, or pkalg on.
 -   `tests/scripts/all.sh` runs a combination of the above tests, plus some more, with various build options (such as ASan, full `mbedtls_config.h`, etc).
 
+Instead of manually installing the required versions of all tools required for testing, it is possible to use the Docker images from our CI systems, as explained in [our testing infrastructure repository](https://github.com/Mbed-TLS/mbedtls-test/blob/master/README.md#quick-start).
+
 Porting Mbed TLS
 ----------------
 
@@ -261,15 +263,17 @@ Mbed TLS is mostly written in portable C99; however, it has a few platform requi
 - Signed integers must be represented using two's complement.
 - `int` and `size_t` must be at least 32 bits wide.
 - The types `uint8_t`, `uint16_t`, `uint32_t` and their signed equivalents must be available.
+- Mixed-endian platforms are not supported.
+- SIZE_MAX must be at least as big as INT_MAX and UINT_MAX.
 
 PSA cryptography API
 --------------------
 
-### PSA API design
+### PSA API
 
 Arm's [Platform Security Architecture (PSA)](https://developer.arm.com/architectures/security-architectures/platform-security-architecture) is a holistic set of threat models, security analyses, hardware and firmware architecture specifications, and an open source firmware reference implementation. PSA provides a recipe, based on industry best practice, that allows security to be consistently designed in, at both a hardware and firmware level.
 
-The [PSA cryptography API](https://armmbed.github.io/mbed-crypto/psa/#application-programming-interface) provides access to a set of cryptographic primitives. It has a dual purpose. First, it can be used in a PSA-compliant platform to build services, such as secure boot, secure storage and secure communication. Second, it can also be used independently of other PSA components on any platform.
+The [PSA cryptography API](https://arm-software.github.io/psa-api/crypto/) provides access to a set of cryptographic primitives. It has a dual purpose. First, it can be used in a PSA-compliant platform to build services, such as secure boot, secure storage and secure communication. Second, it can also be used independently of other PSA components on any platform.
 
 The design goals of the PSA cryptography API include:
 
@@ -280,10 +284,6 @@ The design goals of the PSA cryptography API include:
 * The interface is designed to be easy to use and hard to accidentally misuse.
 
 Arm welcomes feedback on the design of the API. If you think something could be improved, please open an issue on our Github repository. Alternatively, if you prefer to provide your feedback privately, please email us at [`mbed-crypto@arm.com`](mailto:mbed-crypto@arm.com). All feedback received by email is treated confidentially.
-
-### PSA API documentation
-
-A browsable copy of the PSA Cryptography API documents is available on the [PSA cryptography interfaces documentation portal](https://armmbed.github.io/mbed-crypto/psa/#application-programming-interface) in [PDF](https://armmbed.github.io/mbed-crypto/PSA_Cryptography_API_Specification.pdf) and [HTML](https://armmbed.github.io/mbed-crypto/html/index.html) formats.
 
 ### PSA implementation in Mbed TLS
 

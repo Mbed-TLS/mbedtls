@@ -1,9 +1,213 @@
 Mbed TLS ChangeLog (Sorted per branch, date)
 
+= Mbed TLS 3.3.0 branch released 2022-12-14
+
+Default behavior changes
+   * Previously the macro MBEDTLS_SSL_DTLS_CONNECTION_ID implemented version 05
+     of the IETF draft, and was marked experimental and disabled by default.
+     It is now no longer experimental, and implements the final version from
+     RFC 9146, which is not interoperable with the draft-05 version.
+     If you need to communicate with peers that use earlier versions of
+     Mbed TLS, then you need to define MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT
+     to 1, but then you won't be able to communicate with peers that use the
+     standard (non-draft) version.
+     If you need to interoperate with both classes of peers with the
+     same build of Mbed TLS, please let us know about your situation on the
+     mailing list or GitHub.
+
+Requirement changes
+   * When building with PSA drivers using generate_driver_wrappers.py, or
+     when building the library from the development branch rather than
+     from a release, the Python module jsonschema is now necessary, in
+     addition to jinja2. The official list of required Python modules is
+     maintained in scripts/basic.requirements.txt and may change again
+     in the future.
+
+New deprecations
+   * Deprecate mbedtls_asn1_free_named_data().
+     Use mbedtls_asn1_free_named_data_list()
+     or mbedtls_asn1_free_named_data_list_shallow().
+
+Features
+   * Support rsa_pss_rsae_* signature algorithms in TLS 1.2.
+   * make: enable building unversioned shared library, with e.g.:
+     "SHARED=1 SOEXT_TLS=so SOEXT_X509=so SOEXT_CRYPTO=so make lib"
+     resulting in library names like "libmbedtls.so" rather than
+     "libmbedcrypto.so.11".
+   * Expose the EC J-PAKE functionality through the Draft PSA PAKE Crypto API.
+     Only the ECC primitive with secp256r1 curve and SHA-256 hash algorithm
+     are supported in this implementation.
+   * Some modules can now use PSA drivers for hashes, including with no
+     built-in implementation present, but only in some configurations.
+     - RSA OAEP and PSS (PKCS#1 v2.1), PKCS5, PKCS12 and EC J-PAKE now use
+       hashes from PSA when (and only when) MBEDTLS_MD_C is disabled.
+     - PEM parsing of encrypted files now uses MD-5 from PSA when (and only
+       when) MBEDTLS_MD5_C is disabled.
+     See the documentation of the corresponding macros in mbedtls_config.h for
+     details.
+     Note that some modules are not able to use hashes from PSA yet, including
+     the entropy module. As a consequence, for now the only way to build with
+     all hashes only provided by drivers (no built-in hash) is to use
+     MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG.
+   * When MBEDTLS_USE_PSA_CRYPTO is enabled, X.509, TLS 1.2 and TLS 1.3 now
+     properly negotiate/accept hashes based on their availability in PSA.
+     As a consequence, they now work in configurations where the built-in
+     implementations of (some) hashes are excluded and those hashes are only
+     provided by PSA drivers. (See previous entry for limitation on RSA-PSS
+     though: that module only use hashes from PSA when MBEDTLS_MD_C is off).
+   * Add support for opaque keys as the private keys associated to certificates
+     for authentication in TLS 1.3.
+   * Add the LMS post-quantum-safe stateful-hash asymmetric signature scheme.
+     Signature verification is production-ready, but generation is for testing
+     purposes only. This currently only supports one parameter set
+     (LMS_SHA256_M32_H10), meaning that each private key can be used to sign
+     1024 messages. As such, it is not intended for use in TLS, but instead
+     for verification of assets transmitted over an insecure channel,
+     particularly firmware images.
+   * Add the LM-OTS post-quantum-safe one-time signature scheme, which is
+     required for LMS. This can be used independently, but each key can only
+     be used to sign one message so is impractical for most circumstances.
+   * Mbed TLS now supports TLS 1.3 key establishment via pre-shared keys.
+     The pre-shared keys can be provisioned externally or via the ticket
+     mechanism (session resumption).
+     The ticket mechanism is supported when the configuration option
+     MBEDTLS_SSL_SESSION_TICKETS is enabled.
+     New options MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_xxx_ENABLED
+     control the support for the three possible TLS 1.3 key exchange modes.
+   * cert_write: support for setting extended key usage attributes. A
+     corresponding new public API call has been added in the library,
+     mbedtls_x509write_crt_set_ext_key_usage().
+   * cert_write: support for writing certificate files in either PEM
+     or DER format.
+   * The PSA driver wrapper generator generate_driver_wrappers.py now
+     supports a subset of the driver description language, including
+     the following entry points: import_key, export_key, export_public_key,
+     get_builtin_key, copy_key.
+   * The new functions mbedtls_asn1_free_named_data_list() and
+     mbedtls_asn1_free_named_data_list_shallow() simplify the management
+     of memory in named data lists in X.509 structures.
+   * The TLS 1.2 EC J-PAKE key exchange can now use the PSA Crypto API.
+     Additional PSA key slots will be allocated in the process of such key
+     exchange for builds that enable MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED and
+     MBEDTLS_USE_PSA_CRYPTO.
+   * Add support for DTLS Connection ID as defined by RFC 9146, controlled by
+     MBEDTLS_SSL_DTLS_CONNECTION_ID (enabled by default) and configured with
+     mbedtls_ssl_set_cid().
+   * Add a driver dispatch layer for raw key agreement, enabling alternative
+     implementations of raw key agreement through the key_agreement driver
+     entry point. This entry point is specified in the proposed PSA driver
+     interface, but had not yet been implemented.
+   * Add an ad-hoc key derivation function handling EC J-PAKE to PMS
+     calculation that can be used to derive the session secret in TLS 1.2,
+     as described in draft-cragie-tls-ecjpake-01. This can be achieved by
+     using PSA_ALG_TLS12_ECJPAKE_TO_PMS as the key derivation algorithm.
+
+Security
+   * Fix potential heap buffer overread and overwrite in DTLS if
+     MBEDTLS_SSL_DTLS_CONNECTION_ID is enabled and
+     MBEDTLS_SSL_CID_IN_LEN_MAX > 2 * MBEDTLS_SSL_CID_OUT_LEN_MAX.
+   * An adversary with access to precise enough information about memory
+     accesses (typically, an untrusted operating system attacking a secure
+     enclave) could recover an RSA private key after observing the victim
+     performing a single private-key operation if the window size used for the
+     exponentiation was 3 or smaller. Found and reported by Zili KOU,
+     Wenjian HE, Sharad Sinha, and Wei ZHANG. See "Cache Side-channel Attacks
+     and Defenses of the Sliding Window Algorithm in TEEs" - Design, Automation
+     and Test in Europe 2023.
+
+Bugfix
+   * Refactor mbedtls_aes_context to support shallow-copying. Fixes #2147.
+   * Fix an issue with in-tree CMake builds in releases with GEN_FILES
+     turned off: if a shipped file was missing from the working directory,
+     it could be turned into a symbolic link to itself.
+   * Fix a long-standing build failure when building x86 PIC code with old
+     gcc (4.x). The code will be slower, but will compile. We do however
+     recommend upgrading to a more recent compiler instead. Fixes #1910.
+   * Fix support for little-endian Microblaze when MBEDTLS_HAVE_ASM is defined.
+     Contributed by Kazuyuki Kimura to fix #2020.
+   * Use double quotes to include private header file psa_crypto_cipher.h.
+     Fixes 'file not found with <angled> include' error
+     when building with Xcode.
+   * Fix handling of broken symlinks when loading certificates using
+     mbedtls_x509_crt_parse_path(). Instead of returning an error as soon as a
+     broken link is encountered, skip the broken link and continue parsing
+     other certificate files. Contributed by Eduardo Silva in #2602.
+   * Fix an interoperability failure between an Mbed TLS client with both
+     TLS 1.2 and TLS 1.3 support, and a TLS 1.2 server that supports
+     rsa_pss_rsae_* signature algorithms. This failed because Mbed TLS
+     advertised support for PSS in both TLS 1.2 and 1.3, but only
+     actually supported PSS in TLS 1.3.
+   * Fix a compilation error when using CMake with an IAR toolchain.
+     Fixes #5964.
+   * Fix a build error due to a missing prototype warning when
+     MBEDTLS_DEPRECATED_REMOVED is enabled.
+   * Fix mbedtls_ctr_drbg_free() on an initialized but unseeded context. When
+     MBEDTLS_AES_ALT is enabled, it could call mbedtls_aes_free() on an
+     uninitialized context.
+   * Fix a build issue on Windows using CMake where the source and build
+     directories could not be on different drives. Fixes #5751.
+   * Fix bugs and missing dependencies when building and testing
+     configurations with only one encryption type enabled in TLS 1.2.
+   * Provide the missing definition of mbedtls_setbuf() in some configurations
+     with MBEDTLS_PLATFORM_C disabled. Fixes #6118, #6196.
+   * Fix compilation errors when trying to build with
+     PSA drivers for AEAD (GCM, CCM, Chacha20-Poly1305).
+   * Fix memory leak in ssl_parse_certificate_request() caused by
+     mbedtls_x509_get_name() not freeing allocated objects in case of error.
+     Change mbedtls_x509_get_name() to clean up allocated objects on error.
+   * Fix build failure with MBEDTLS_RSA_C and MBEDTLS_PSA_CRYPTO_C but not
+     MBEDTLS_USE_PSA_CRYPTO or MBEDTLS_PK_WRITE_C. Fixes #6408.
+   * Fix build failure with MBEDTLS_RSA_C and MBEDTLS_PSA_CRYPTO_C but not
+     MBEDTLS_PK_PARSE_C. Fixes #6409.
+   * Fix ECDSA verification, where it was not always validating the
+     public key. This bug meant that it was possible to verify a
+     signature with an invalid public key, in some cases. Reported by
+     Guido Vranken using Cryptofuzz in #4420.
+   * Fix a possible null pointer dereference if a memory allocation fails
+     in TLS PRF code. Reported by Michael Madsen in #6516.
+   * Fix TLS 1.3 session resumption. Fixes #6488.
+   * Add a configuration check to exclude optional client authentication
+     in TLS 1.3 (where it is forbidden).
+   * Fix a bug in which mbedtls_x509_crt_info() would produce non-printable
+     bytes when parsing certificates containing a binary RFC 4108
+     HardwareModuleName as a Subject Alternative Name extension. Hardware
+     serial numbers are now rendered in hex format. Fixes #6262.
+   * Fix bug in error reporting in dh_genprime.c where upon failure,
+     the error code returned by mbedtls_mpi_write_file() is overwritten
+     and therefore not printed.
+   * In the bignum module, operations of the form (-A) - (+A) or (-A) - (-A)
+     with A > 0 created an unintended representation of the value 0 which was
+     not processed correctly by some bignum operations. Fix this. This had no
+     consequence on cryptography code, but might affect applications that call
+     bignum directly and use negative numbers.
+   * Fix a bug whereby the list of signature algorithms sent as part of
+     the TLS 1.2 server certificate request would get corrupted, meaning the
+     first algorithm would not get sent and an entry consisting of two random
+     bytes would be sent instead. Found by Serban Bejan and Dudek Sebastian.
+   * Fix undefined behavior (typically harmless in practice) of
+     mbedtls_mpi_add_mpi(), mbedtls_mpi_add_abs() and mbedtls_mpi_add_int()
+     when both operands are 0 and the left operand is represented with 0 limbs.
+   * Fix undefined behavior (typically harmless in practice) when some bignum
+     functions receive the most negative value of mbedtls_mpi_sint. Credit
+     to OSS-Fuzz. Fixes #6597.
+   * Fix undefined behavior (typically harmless in practice) in PSA ECB
+     encryption and decryption.
+   * Move some SSL-specific code out of libmbedcrypto where it had been placed
+     accidentally.
+   * Fix a build error when compiling the bignum module for some Arm platforms.
+     Fixes #6089, #6124, #6217.
+
+Changes
+   * Add the ability to query PSA_WANT_xxx macros to query_compile_time_config.
+   * Calling AEAD tag-specific functions for non-AEAD algorithms (which
+     should not be done - they are documented for use only by AES-GCM and
+     ChaCha20+Poly1305) now returns MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE
+     instead of success (0).
+
 = Mbed TLS 3.2.1 branch released 2022-07-12
 
 Bugfix
-   *  Re-add missing generated file library/ssl_debug_helpers_generated.c
+   *  Re-add missing generated file library/psa_crypto_driver_wrappers.c
 
 = Mbed TLS 3.2.0 branch released 2022-07-11
 
@@ -249,7 +453,7 @@ Bugfix
      make to break on a clean checkout. Fixes #5340.
    * Work around an MSVC ARM64 compiler bug causing incorrect behaviour
      in mbedtls_mpi_exp_mod(). Reported by Tautvydas Žilys in #5467.
-   * Removed the prompt to exit from all windows build programs that was causing
+   * Removed the prompt to exit from all windows build programs, which was causing
      issues in CI/CD environments.
 
 Changes

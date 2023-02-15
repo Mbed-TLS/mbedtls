@@ -59,8 +59,7 @@ typedef struct mbedtls_ssl_cache_entry mbedtls_ssl_cache_entry;
 /**
  * \brief   This structure is used for storing cache entries
  */
-struct mbedtls_ssl_cache_entry
-{
+struct mbedtls_ssl_cache_entry {
 #if defined(MBEDTLS_HAVE_TIME)
     mbedtls_time_t MBEDTLS_PRIVATE(timestamp);           /*!< entry timestamp    */
 #endif
@@ -77,8 +76,7 @@ struct mbedtls_ssl_cache_entry
 /**
  * \brief Cache context
  */
-struct mbedtls_ssl_cache_context
-{
+struct mbedtls_ssl_cache_context {
     mbedtls_ssl_cache_entry *MBEDTLS_PRIVATE(chain);     /*!< start of the chain     */
     int MBEDTLS_PRIVATE(timeout);                /*!< cache entry timeout    */
     int MBEDTLS_PRIVATE(max_entries);            /*!< maximum entries        */
@@ -92,7 +90,7 @@ struct mbedtls_ssl_cache_context
  *
  * \param cache    SSL cache context
  */
-void mbedtls_ssl_cache_init( mbedtls_ssl_cache_context *cache );
+void mbedtls_ssl_cache_init(mbedtls_ssl_cache_context *cache);
 
 /**
  * \brief          Cache get callback implementation
@@ -105,10 +103,10 @@ void mbedtls_ssl_cache_init( mbedtls_ssl_cache_context *cache );
  * \param session         The address at which to store the session
  *                        associated with \p session_id, if present.
  */
-int mbedtls_ssl_cache_get( void *data,
-                           unsigned char const *session_id,
-                           size_t session_id_len,
-                           mbedtls_ssl_session *session );
+int mbedtls_ssl_cache_get(void *data,
+                          unsigned char const *session_id,
+                          size_t session_id_len,
+                          mbedtls_ssl_session *session);
 
 /**
  * \brief          Cache set callback implementation
@@ -120,10 +118,10 @@ int mbedtls_ssl_cache_get( void *data,
  * \param session_id_len  The length of \p session_id in bytes.
  * \param session         The session to store.
  */
-int mbedtls_ssl_cache_set( void *data,
-                           unsigned char const *session_id,
-                           size_t session_id_len,
-                           const mbedtls_ssl_session *session );
+int mbedtls_ssl_cache_set(void *data,
+                          unsigned char const *session_id,
+                          size_t session_id_len,
+                          const mbedtls_ssl_session *session);
 
 #if defined(MBEDTLS_HAVE_TIME)
 /**
@@ -135,7 +133,7 @@ int mbedtls_ssl_cache_set( void *data,
  * \param cache    SSL cache context
  * \param timeout  cache entry timeout in seconds
  */
-void mbedtls_ssl_cache_set_timeout( mbedtls_ssl_cache_context *cache, int timeout );
+void mbedtls_ssl_cache_set_timeout(mbedtls_ssl_cache_context *cache, int timeout);
 #endif /* MBEDTLS_HAVE_TIME */
 
 /**
@@ -145,14 +143,14 @@ void mbedtls_ssl_cache_set_timeout( mbedtls_ssl_cache_context *cache, int timeou
  * \param cache    SSL cache context
  * \param max      cache entry maximum
  */
-void mbedtls_ssl_cache_set_max_entries( mbedtls_ssl_cache_context *cache, int max );
+void mbedtls_ssl_cache_set_max_entries(mbedtls_ssl_cache_context *cache, int max);
 
 /**
  * \brief          Free referenced items in a cache context and clear memory
  *
  * \param cache    SSL cache context
  */
-void mbedtls_ssl_cache_free( mbedtls_ssl_cache_context *cache );
+void mbedtls_ssl_cache_free(mbedtls_ssl_cache_context *cache);
 
 #ifdef __cplusplus
 }

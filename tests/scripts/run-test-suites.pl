@@ -50,11 +50,13 @@ GetOptions(
            'verbose|v:1' => \$verbose,
           ) or die;
 
-# All test suites = executable files, excluding source files, debug
-# and profiling information, etc. We can't just grep {! /\./} because
-# some of our test cases' base names contain a dot.
-my @suites = grep { -x $_ || /\.exe$/ } glob 'test_suite_*';
-@suites = grep { !/\.c$/ && !/\.data$/ && -f } @suites;
+# All test suites = executable files with a .datax file.
+my @suites = ();
+for my $data_file (glob 'test_suite_*.datax') {
+    (my $base = $data_file) =~ s/\.datax$//;
+    push @suites, $base if -x $base;
+    push @suites, "$base.exe" if -e "$base.exe";
+}
 die "$0: no test suite found\n" unless @suites;
 
 # "foo" as a skip pattern skips "test_suite_foo" and "test_suite_foo.bar"

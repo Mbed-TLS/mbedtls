@@ -80,7 +80,7 @@ def automatic_dependencies(*expressions: str) -> List[str]:
 # A temporary hack: at the time of writing, not all dependency symbols
 # are implemented yet. Skip test cases for which the dependency symbols are
 # not available. Once all dependency symbols are available, this hack must
-# be removed so that a bug in the dependency symbols proprely leads to a test
+# be removed so that a bug in the dependency symbols properly leads to a test
 # failure.
 def read_implemented_dependencies(filename: str) -> FrozenSet[str]:
     return frozenset(symbol
@@ -151,14 +151,16 @@ def test_case_for_key_type_not_supported(
     tc.set_arguments([key_type] + list(args))
     return tc
 
-class NotSupported:
-    """Generate test cases for when something is not supported."""
+class KeyTypeNotSupported:
+    """Generate test cases for when a key type is not supported."""
 
     def __init__(self, info: Information) -> None:
         self.constructors = info.constructors
 
     ALWAYS_SUPPORTED = frozenset([
         'PSA_KEY_TYPE_DERIVE',
+        'PSA_KEY_TYPE_PASSWORD',
+        'PSA_KEY_TYPE_PASSWORD_HASH',
         'PSA_KEY_TYPE_RAW_DATA',
         'PSA_KEY_TYPE_HMAC'
     ])
@@ -355,7 +357,7 @@ class OpFail:
                 dependencies[i] = '!' + dep
         tc.set_dependencies(dependencies)
         tc.set_function(category.name.lower() + '_fail')
-        arguments = []
+        arguments = [] # type: List[str]
         if kt:
             key_material = kt.key_material(kt.sizes_to_test()[0])
             arguments += [key_type, test_case.hex_string(key_material)]
@@ -459,7 +461,7 @@ class StorageKey(psa_storage.Key):
         """Prepare to generate a key.
 
         * `usage`                 : The usage flags used for the key.
-        * `without_implicit_usage`: Flag to defide to apply the usage extension
+        * `without_implicit_usage`: Flag to define to apply the usage extension
         """
         usage_flags = set(usage)
         if not without_implicit_usage:
@@ -483,7 +485,7 @@ class StorageTestData(StorageKey):
     ) -> None:
         """Prepare to generate test data
 
-        * `description`   : used for the the test case names
+        * `description`   : used for the test case names
         * `expected_usage`: the usage flags generated as the expected usage flags
                             in the test cases. CAn differ from the usage flags
                             stored in the keys because of the usage flags extension.
@@ -522,7 +524,7 @@ class StorageFormat:
             key_type: psa_storage.Expr, bits: int,
             alg: psa_storage.Expr
     ) -> bool:
-        """Whether to the given key with the given algorithm.
+        """Whether to exercise the given key with the given algorithm.
 
         Normally only the type and algorithm matter for compatibility, and
         this is handled in crypto_knowledge.KeyType.can_do(). This function
@@ -900,7 +902,7 @@ class PSATestGenerator(test_data_generation.TestGenerator):
         'test_suite_psa_crypto_generate_key.generated':
         lambda info: KeyGenerate(info).test_cases_for_key_generation(),
         'test_suite_psa_crypto_not_supported.generated':
-        lambda info: NotSupported(info).test_cases_for_not_supported(),
+        lambda info: KeyTypeNotSupported(info).test_cases_for_not_supported(),
         'test_suite_psa_crypto_op_fail.generated':
         lambda info: OpFail(info).all_test_cases(),
         'test_suite_psa_crypto_storage_format.current':

@@ -31,6 +31,6 @@
  *                  to a \c psa_xxx function that returns a value of type
  *                  #psa_status_t.
  */
-#define PSA_ASSERT( expr ) TEST_EQUAL( ( expr ), PSA_SUCCESS )
+#define PSA_ASSERT(expr) TEST_EQUAL((expr), PSA_SUCCESS)
 
 #endif /* PSA_HELPERS_H */

@@ -167,9 +167,6 @@ mpi_core_lt_ct:"2B5":"2B4":0
 mbedtls_mpi_core_lt_ct: x<y (1 limb)
 mpi_core_lt_ct:"2B5":"2B6":1
 
-mbedtls_mpi_core_lt_ct: x=y (0 limbs)
-mpi_core_lt_ct:"":"":0
-
 mbedtls_mpi_core_lt_ct: x>y (63 bit x, y first byte greater)
 mpi_core_lt_ct:"7FFFFFFFFFFFFFFF":"00000000000000FF":0
 
@@ -244,6 +241,69 @@ mpi_core_lt_ct:"11FFFFFFFFFFFFFFFF":"FF1111111111111111":1
 
 mbedtls_mpi_core_lt_ct: x>y (alternating limbs)
 mpi_core_lt_ct:"FF1111111111111111":"11FFFFFFFFFFFFFFFF":0
+
+Test mbedtls_mpi_core_uint_le_mpi: 0 (1 limb)
+mpi_core_uint_le_mpi:"00"
+
+Test mbedtls_mpi_core_uint_le_mpi: 0 (>=2 limbs)
+mpi_core_uint_le_mpi:"000000000000000000"
+
+Test mbedtls_mpi_core_uint_le_mpi: 1 (1 limb)
+mpi_core_uint_le_mpi:"01"
+
+Test mbedtls_mpi_core_uint_le_mpi: 1 (>=2 limbs)
+mpi_core_uint_le_mpi:"000000000000000001"
+
+Test mbedtls_mpi_core_uint_le_mpi: 42 (1 limb)
+mpi_core_uint_le_mpi:"2a"
+
+Test mbedtls_mpi_core_uint_le_mpi: 42 (>=2 limbs)
+mpi_core_uint_le_mpi:"000000000000000042"
+
+Test mbedtls_mpi_core_uint_le_mpi: 2^31-1
+mpi_core_uint_le_mpi:"7fffffff"
+
+Test mbedtls_mpi_core_uint_le_mpi: 2^31-1 with leading zero limb
+mpi_core_uint_le_mpi:"00000000007fffffff"
+
+Test mbedtls_mpi_core_uint_le_mpi: 2^32-1
+mpi_core_uint_le_mpi:"ffffffff"
+
+Test mbedtls_mpi_core_uint_le_mpi: 2^32-1 with leading zero limb
+mpi_core_uint_le_mpi:"0000000000ffffffff"
+
+Test mbedtls_mpi_core_uint_le_mpi: 2^32
+mpi_core_uint_le_mpi:"10000000"
+
+Test mbedtls_mpi_core_uint_le_mpi: 2^32 with leading zero limb
+mpi_core_uint_le_mpi:"000000000010000000"
+
+Test mbedtls_mpi_core_uint_le_mpi: 2^32+1
+mpi_core_uint_le_mpi:"10000001"
+
+Test mbedtls_mpi_core_uint_le_mpi: 2^32+1 with leading zero limb
+mpi_core_uint_le_mpi:"000000000010000001"
+
+Test mbedtls_mpi_core_uint_le_mpi: 2^63-1
+mpi_core_uint_le_mpi:"7fffffffffffffff"
+
+Test mbedtls_mpi_core_uint_le_mpi: 2^63-1 with leading zero limb
+mpi_core_uint_le_mpi:"007fffffffffffffff"
+
+Test mbedtls_mpi_core_uint_le_mpi: 2^64-1
+mpi_core_uint_le_mpi:"ffffffffffffffff"
+
+Test mbedtls_mpi_core_uint_le_mpi: 2^64-1 with leading zero limb
+mpi_core_uint_le_mpi:"00ffffffffffffffff"
+
+Test mbedtls_mpi_core_uint_le_mpi: 2^64
+mpi_core_uint_le_mpi:"010000000000000000"
+
+Test mbedtls_mpi_core_uint_le_mpi: 2^64+1
+mpi_core_uint_le_mpi:"010000000000000001"
+
+Test mbedtls_mpi_core_uint_le_mpi: 2^64+2
+mpi_core_uint_le_mpi:"010000000000000002"
 
 mbedtls_mpi_core_cond_assign: 1 limb
 mpi_core_cond_assign:"FFFFFFFF":"11111111":4
@@ -364,3 +424,109 @@ mpi_core_get_mont_r2_unsafe:"8335616aed761f1f7f44e6bd49e807b82e3bf2bf11bfa63":"5
 
 mbedtls_mpi_core_get_mont_r2_unsafe #11
 mpi_core_get_mont_r2_unsafe:"d1cece570f2f991013f26dd5b03c4c5b65f97be5905f36cb4664f2c78ff80aa8135a4aaf57ccb8a0aca2f394909a74cef1ef6758a64d11e2c149c393659d124bfc94196f0ce88f7d7d567efa5a649e2deefaa6e10fdc3deac60d606bf63fc540ac95294347031aefd73d6a9ee10188aaeb7a90d920894553cb196881691cadc51808715a07e8b24fcb1a63df047c7cdf084dd177ba368c806f3d51ddb5d3898c863e687ecaf7d649a57a46264a582f94d3c8f2edaf59f77a7f6bdaf83c991e8f06abe220ec8507386fce8c3da84c6c3903ab8f3ad4630a204196a7dbcbd9bcca4e40ec5cc5c09938d49f5e1e6181db8896f33bb12e6ef73f12ec5c5ea7a8a337":"12d7243d92ebc8338221f6dcec8ad8a2ec64c10a98339c8721beb1cb79e629253a7aa35e25d5421e6c2b43ddc4310cf4443875c070a7a5a5cc2c4c3eefa8a133af2e477fb7bb5b5058c6120946a7f9f08f2fab51e2f243b9ba206d2bfd62e4ef647dda49100d7004794f28172be2d715905fbd2e9ab8588c774523c0e096b49b6855a10e5ce0d8498370949a29d71d293788bf10a71e2447d4b2f11959a72f7290e2950772d14c83f15532468745fa58a83fca8883b0b6169a27ec0cf922c4f39d283bb20fca5ff1de01d9c66b8a710108b951af634d56c843d9505bf2edd5a7b8f0b72a5c95672151e60075a78084e83fbe284617a90c74c8335cce38bb012e":"12d7243d92ebc8338221f6dcec8ad8a2ec64c10a98339c8721beb1cb79e629253a7aa35e25d5421e6c2b43ddc4310cf4443875c070a7a5a5cc2c4c3eefa8a133af2e477fb7bb5b5058c6120946a7f9f08f2fab51e2f243b9ba206d2bfd62e4ef647dda49100d7004794f28172be2d715905fbd2e9ab8588c774523c0e096b49b6855a10e5ce0d8498370949a29d71d293788bf10a71e2447d4b2f11959a72f7290e2950772d14c83f15532468745fa58a83fca8883b0b6169a27ec0cf922c4f39d283bb20fca5ff1de01d9c66b8a710108b951af634d56c843d9505bf2edd5a7b8f0b72a5c95672151e60075a78084e83fbe284617a90c74c8335cce38bb012e"
+
+Fill random core: 0 bytes
+mpi_core_fill_random:0:0:1:0:0
+
+Fill random core: 1 byte, RNG stops at 0
+mpi_core_fill_random:1:-1:0:0:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
+
+Fill random core: 1 byte, RNG just sufficient
+mpi_core_fill_random:1:0:0:0:0
+
+Fill random core: 1 byte, RNG not exhausted
+mpi_core_fill_random:1:1:0:0:0
+
+Fill random core: 1 byte, prior content nonzero
+mpi_core_fill_random:1:0:0:0xba:0
+
+Fill random core: 1 byte, 1 extra limb
+mpi_core_fill_random:1:0:1:0:0
+
+Fill random core: 1 byte, 1 extra limb, prior content nonzero
+mpi_core_fill_random:1:0:1:0xba:0
+
+Fill random core: 8 bytes, RNG stops before
+mpi_core_fill_random:8:-1:0:0:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
+
+Fill random core: 8 bytes, RNG just sufficient
+mpi_core_fill_random:8:0:0:0:0
+
+Fill random core: 8 bytes, RNG not exhausted
+mpi_core_fill_random:8:1:0:0:0
+
+Fill random core: 8 bytes, prior content nonzero
+mpi_core_fill_random:8:0:0:0xba:0
+
+Fill random core: 8 bytes, 1 extra limb
+mpi_core_fill_random:8:0:1:0:0
+
+Fill random core: 8 bytes, 1 extra limb, prior content nonzero
+mpi_core_fill_random:8:0:1:0xba:0
+
+Fill random core: 9 bytes, 1 missing limb
+mpi_core_fill_random:9:0:-1:0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Fill random core: 42 bytes, RNG stops before
+mpi_core_fill_random:42:-1:0:0:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
+
+Fill random core: 42 bytes, RNG just sufficient
+mpi_core_fill_random:42:0:0:0:0
+
+Fill random core: 42 bytes, RNG not exhausted
+mpi_core_fill_random:42:1:0:0:0
+
+Fill random core: 42 bytes, prior content nonzero
+mpi_core_fill_random:42:0:0:0xba:0
+
+Fill random core: 42 bytes, 1 extra limb
+mpi_core_fill_random:42:0:1:0:0
+
+Fill random core: 42 bytes, 1 extra limb, prior content nonzero
+mpi_core_fill_random:42:0:1:0xba:0
+
+Fill random core: 42 bytes, 1 missing limb
+mpi_core_fill_random:42:0:-1:0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Fill random core: 42 bytes, 5 missing limbs
+mpi_core_fill_random:42:0:-5:0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+# BEGIN MERGE SLOT 1
+
+# END MERGE SLOT 1
+
+# BEGIN MERGE SLOT 2
+
+# END MERGE SLOT 2
+
+# BEGIN MERGE SLOT 3
+
+# END MERGE SLOT 3
+
+# BEGIN MERGE SLOT 4
+
+# END MERGE SLOT 4
+
+# BEGIN MERGE SLOT 5
+
+# END MERGE SLOT 5
+
+# BEGIN MERGE SLOT 6
+
+# END MERGE SLOT 6
+
+# BEGIN MERGE SLOT 7
+
+# END MERGE SLOT 7
+
+# BEGIN MERGE SLOT 8
+
+# END MERGE SLOT 8
+
+# BEGIN MERGE SLOT 9
+
+# END MERGE SLOT 9
+
+# BEGIN MERGE SLOT 10
+
+# END MERGE SLOT 10

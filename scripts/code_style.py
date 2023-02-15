@@ -37,8 +37,8 @@ def print_err(*args):
 def print_skip(files_to_skip):
     print()
     print(*files_to_skip, sep=", SKIP\n", end=", SKIP\n")
-    print("Warn: The listed files will be skipped because\n"
-          "they are not included in the default list.")
+    print("Warning: The listed files will be skipped because\n"
+          "they are not known to git.")
     print()
 
 # Match FILENAME(s) in "check SCRIPT (FILENAME...)"
@@ -182,23 +182,27 @@ def main() -> int:
     parser.add_argument('-f', '--fix', action='store_true',
                         help=('modify source files to fix the code style '
                               '(default: print diff, do not modify files)'))
+    # --subset is almost useless: it only matters if there are no files
+    # ('code_style.py' without arguments checks all files known to Git,
+    # 'code_style.py --subset' does nothing). In particular,
+    # 'code_style.py --fix --subset ...' is intended as a stable ("porcelain")
+    # way to restyle a possibly empty set of files.
     parser.add_argument('--subset', action='store_true',
-                        help=('check a subset of the files known to git '
-                              '(default: check all files passed as arguments, '
-                              'known to git or not)'))
+                        help='only check the specified files (default with non-option arguments)')
     parser.add_argument('operands', nargs='*', metavar='FILE',
-                        help='files to check (if none: check files that are known to git)')
+                        help='files to check (files MUST be known to git, if none: check all)')
 
     args = parser.parse_args()
 
     covered = frozenset(get_src_files())
-    src_files = args.operands if args.operands else covered
-    if args.subset:
-        # We are to check a subset of the default list
+    # We only check files that are known to git
+    if args.subset or args.operands:
         src_files = [f for f in args.operands if f in covered]
         skip_src_files = [f for f in args.operands if f not in covered]
         if skip_src_files:
             print_skip(skip_src_files)
+    else:
+        src_files = covered
 
     if args.fix:
         # Fix mode

@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <string.h>
 
+/* DEBUG_BUF_SIZE must be at least 2 */
 #define DEBUG_BUF_SIZE      512
 
 static int debug_threshold = 0;

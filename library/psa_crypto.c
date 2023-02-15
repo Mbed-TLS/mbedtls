@@ -3549,6 +3549,8 @@ psa_status_t mbedtls_psa_sign_hash_start(
      defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ) && \
      defined( MBEDTLS_ECP_RESTARTABLE )
 
+    mbedtls_ecdsa_restart_init(&operation->restart_ctx);
+
     /* Ensure default is set even if
      * mbedtls_psa_interruptible_set_max_ops() has not been called. */
     mbedtls_psa_interruptible_set_max_ops(
@@ -3562,8 +3564,6 @@ psa_status_t mbedtls_psa_sign_hash_start(
 
     if( status != PSA_SUCCESS )
         return status;
-
-    mbedtls_ecdsa_restart_init( &operation->restart_ctx );
 
     operation->coordinate_bytes = PSA_BITS_TO_BYTES(
                                             operation->ctx->grp.nbits );
@@ -3603,23 +3603,24 @@ psa_status_t mbedtls_psa_sign_hash_complete(
                      uint8_t *signature, size_t signature_size,
                      size_t *signature_length )
 {
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-
 #if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
      defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ) && \
      defined( MBEDTLS_ECP_RESTARTABLE )
 
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi r;
     mbedtls_mpi s;
-
-    if( signature_size < 2 * operation->coordinate_bytes )
-        return( PSA_ERROR_BUFFER_TOO_SMALL );
 
     mbedtls_mpi_init(&r);
     mbedtls_mpi_init(&s);
 
-    if( PSA_ALG_ECDSA_IS_DETERMINISTIC( operation->alg ) )
-    {
+    if (signature_size < 2 * operation->coordinate_bytes) {
+        status = PSA_ERROR_BUFFER_TOO_SMALL;
+        goto exit;
+    }
+
+    if (PSA_ALG_ECDSA_IS_DETERMINISTIC(operation->alg)) 
+	{
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
         status = mbedtls_to_psa_error(
@@ -3689,7 +3690,6 @@ exit:
  #else
 
     ( void ) operation;
-    ( void ) status;
     ( void ) signature;
     ( void ) signature_size;
     ( void ) signature_length;
@@ -3753,6 +3753,10 @@ psa_status_t mbedtls_psa_verify_hash_start(
      defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ) && \
      defined( MBEDTLS_ECP_RESTARTABLE )
 
+    mbedtls_ecdsa_restart_init(&operation->restart_ctx);
+    mbedtls_mpi_init(&operation->r);
+    mbedtls_mpi_init(&operation->s);
+
     /* Ensure default is set even if
      * mbedtls_psa_interruptible_set_max_ops() has not been called. */
     mbedtls_psa_interruptible_set_max_ops(
@@ -3772,7 +3776,6 @@ psa_status_t mbedtls_psa_verify_hash_start(
     if( signature_length != 2 * coordinate_bytes )
         return PSA_ERROR_INVALID_SIGNATURE;
 
-    mbedtls_mpi_init( &operation->r );
     status = mbedtls_to_psa_error(
                    mbedtls_mpi_read_binary( &operation->r,
                                             signature,
@@ -3781,7 +3784,6 @@ psa_status_t mbedtls_psa_verify_hash_start(
     if( status != PSA_SUCCESS )
         return status;
 
-    mbedtls_mpi_init( &operation->s );
     status = mbedtls_to_psa_error(
                    mbedtls_mpi_read_binary( &operation->s,
                                             signature +
@@ -3795,8 +3797,6 @@ psa_status_t mbedtls_psa_verify_hash_start(
 
     if( ret != 0 )
         return (mbedtls_to_psa_error(ret));
-
-    mbedtls_ecdsa_restart_init( &operation->restart_ctx );
 
     /* We only need to store the same length of hash as the private key size
      * here, it would be truncated by the internal implementation anyway. */

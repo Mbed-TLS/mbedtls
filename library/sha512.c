@@ -58,29 +58,41 @@
  * Clang == 13.0.0 same as clang 12 (only seen on macOS)
  * Clang >= 13.0.1 has __ARM_FEATURE_SHA512 and intrinsics
  */
-#if !defined(__ARM_FEATURE_SHA512)
-   /* Test Clang first, as it defines __GNUC__ */
-#  if defined(__clang__)
-#    if __clang_major__ < 7
-#      error "A more recent Clang is required for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
-#    elif __clang_major__ < 13 || \
-         (__clang_major__ == 13 && __clang_minor__ == 0 && __clang_patchlevel__ == 0)
-       /* We implement the intrinsics with inline assembler, so don't error */
-#    else
-#      error "Must use minimum -march=armv8.2-a+sha3 for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
+#    if !defined(__ARM_FEATURE_SHA512)
+       /* Test Clang first, as it defines __GNUC__ */
+#      if defined(__clang__)
+#        if __clang_major__ < 7
+#          error "A more recent Clang is required for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
+#        elif __clang_major__ < 13 || \
+              (__clang_major__ == 13 && __clang_minor__ == 0 && \
+               __clang_patchlevel__ == 0)
+           /* We implement the intrinsics with inline assembler, so don't error */
+#        else
+#          if __clang_major__ < 18
+           /* TODO: Re-consider above after https://reviews.llvm.org/D131064
+            *       merged.
+            *
+            * The intrinsic declaration are guarded with ACLE predefined macros
+            * in clang, and those macros are only enabled with command line.
+            * Define the macros can enable those declaration and avoid compile
+            * error on it.
+            */
+#            define __ARM_FEATURE_SHA512 1
+#          endif
+#          pragma clang attribute push (__attribute__((target("sha3"))), apply_to=function)
+#          define MBEDTLS_POP_TARGET_PRAGMA
+#        endif
+#      elif defined(__GNUC__)
+#        if __GNUC__ < 8
+#          error "A more recent GCC is required for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
+#        else
+#          pragma GCC target ("arch=armv8.2-a+sha3")
+#        endif
+#      else
+#        error "Only GCC and Clang supported for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
+#      endif
 #    endif
-#  elif defined(__GNUC__)
-#    if __GNUC__ < 8
-#      error "A more recent GCC is required for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
-#    else
-#      error "Must use minimum -march=armv8.2-a+sha3 for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
-#    endif
-#  else
-#    error "Only GCC and Clang supported for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
-#  endif
-#endif
 /* *INDENT-ON* */
-
 #    include <arm_neon.h>
 #  endif
 #  if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT)

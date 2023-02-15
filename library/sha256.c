@@ -39,7 +39,29 @@
     defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY)
 /* *INDENT-OFF* */
 #    if !defined(__ARM_FEATURE_CRYPTO)
-#       error "Must use minimum -march=armv8-a+crypto for MBEDTLS_SHA256_USE_A64_CRYPTO_*"
+#      if defined(__clang__)
+#        if __clang_major__ < 18
+           /* TODO: Re-consider above after https://reviews.llvm.org/D131064
+            *       merged.
+            *
+            * The intrinsic declaration are guarded with ACLE predefined macros
+            * in clang, and those macros are only enabled with command line.
+            * Define the macros can enable those declaration and avoid compile
+            * error on it.
+            */
+#          define __ARM_FEATURE_CRYPTO 1
+#        endif
+#        pragma clang attribute push (__attribute__((target("crypto"))), apply_to=function)
+#        define MBEDTLS_POP_TARGET_PRAGMA
+#      elif defined(__GNUC__)
+#        if __GNUC__ < 6 /* TODO: check sha256 compatible for GCC */
+#          error "A more recent GCC is required for MBEDTLS_SHA256_USE_A64_CRYPTO_*"
+#        else
+#          pragma GCC target ("arch=armv8-a+crypto")
+#        endif
+#      else
+#        error "Only GCC and Clang supported for MBEDTLS_SHA256_USE_A64_CRYPTO_*"
+#      endif
 #    endif
 /* *INDENT-ON* */
 #    include <arm_neon.h>

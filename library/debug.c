@@ -68,7 +68,11 @@ void mbedtls_debug_print_msg(const mbedtls_ssl_context *ssl, int level,
     va_list argp;
     char str[DEBUG_BUF_SIZE];
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    int newline = -1;
+    int eol = -1;
+
+#if defined(static_assert)
+    static_assert(DEBUG_BUF_SIZE >= 2)
+#endif
 
     if (NULL == ssl              ||
         NULL == ssl->conf        ||
@@ -81,23 +85,21 @@ void mbedtls_debug_print_msg(const mbedtls_ssl_context *ssl, int level,
     ret = mbedtls_vsnprintf(str, DEBUG_BUF_SIZE, format, argp);
     va_end(argp);
 
-    if (DEBUG_BUF_SIZE >= 2) {
-        if (ret < 0) {
-            newline = 0;
-        } else {
-            newline = ret;
-            if (ret >= DEBUG_BUF_SIZE - 1) {
-                newline = DEBUG_BUF_SIZE - 2;
-            }
+    if (ret < 0) {
+        eol= 0;
+    } else {
+        eol= ret;
+        if (ret >= DEBUG_BUF_SIZE - 1) {
+            eol = DEBUG_BUF_SIZE - 2;
         }
     }
 
     /*
      * Send if str contains '\n'.
      */
-    if (newline >= 0) {
-        str[newline]     = '\n';
-        str[newline + 1] = '\0';
+    if (eol >= 0) {
+        str[eol]     = '\n';
+        str[eol + 1] = '\0';
 
         debug_send_line(ssl, level, file, line, str);
     }

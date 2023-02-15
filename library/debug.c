@@ -86,9 +86,9 @@ void mbedtls_debug_print_msg(const mbedtls_ssl_context *ssl, int level,
     va_end(argp);
 
     if (ret < 0) {
-        eol= 0;
+        eol = 0;
     } else {
-        eol= ret;
+        eol = ret;
         if (ret >= DEBUG_BUF_SIZE - 1) {
             eol = DEBUG_BUF_SIZE - 2;
         }

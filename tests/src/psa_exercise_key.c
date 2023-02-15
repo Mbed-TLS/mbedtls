@@ -295,7 +295,8 @@ static int exercise_signature_key(mbedtls_svc_key_id_t key,
                                   psa_key_usage_t usage,
                                   psa_algorithm_t alg)
 {
-    if (usage & (PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH)) {
+    if (usage & (PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH) &&
+        PSA_ALG_IS_SIGN_HASH(alg)) {
         unsigned char payload[PSA_HASH_MAX_SIZE] = { 1 };
         size_t payload_length = 16;
         unsigned char signature[PSA_SIGNATURE_MAX_SIZE] = { 0 };

@@ -68,7 +68,6 @@ void mbedtls_debug_print_msg(const mbedtls_ssl_context *ssl, int level,
     va_list argp;
     char str[DEBUG_BUF_SIZE];
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    int eol = -1;
 
 #if defined(static_assert)
     static_assert(DEBUG_BUF_SIZE >= 2)
@@ -86,23 +85,16 @@ void mbedtls_debug_print_msg(const mbedtls_ssl_context *ssl, int level,
     va_end(argp);
 
     if (ret < 0) {
-        eol = 0;
+        ret = 0;
     } else {
-        eol = ret;
         if (ret >= DEBUG_BUF_SIZE - 1) {
-            eol = DEBUG_BUF_SIZE - 2;
+            ret = DEBUG_BUF_SIZE - 2;
         }
     }
+    str[ret]     = '\n';
+    str[ret + 1] = '\0';
 
-    /*
-     * Send if str contains '\n'.
-     */
-    if (eol >= 0) {
-        str[eol]     = '\n';
-        str[eol + 1] = '\0';
-
-        debug_send_line(ssl, level, file, line, str);
-    }
+    debug_send_line(ssl, level, file, line, str);
 }
 
 void mbedtls_debug_print_ret(const mbedtls_ssl_context *ssl, int level,

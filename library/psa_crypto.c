@@ -3487,13 +3487,16 @@ uint32_t mbedtls_psa_interruptible_get_max_ops(void)
 }
 
 uint32_t mbedtls_psa_sign_hash_get_num_ops(
-    const mbedtls_psa_sign_hash_interruptible_operation_t *operation)
+    mbedtls_psa_sign_hash_interruptible_operation_t *operation)
 {
 #if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
     defined(MBEDTLS_ECP_RESTARTABLE)
 
-    return operation->restart_ctx.ecp.ops_done;
+    /* Hide the fact that the restart context only holds a delta of number of
+     * ops done during the last operation, not an absolute value. */
+    operation->num_ops += operation->restart_ctx.ecp.ops_done;
+    return operation->num_ops;
 #else
     (void) operation;
     return 0;
@@ -3503,13 +3506,16 @@ uint32_t mbedtls_psa_sign_hash_get_num_ops(
 }
 
 uint32_t mbedtls_psa_verify_hash_get_num_ops(
-    const mbedtls_psa_verify_hash_interruptible_operation_t *operation)
+    mbedtls_psa_verify_hash_interruptible_operation_t *operation)
 {
     #if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
     defined(MBEDTLS_ECP_RESTARTABLE)
 
-    return operation->restart_ctx.ecp.ops_done;
+    /* Hide the fact that the restart context only holds a delta of number of
+     * ops done during the last operation, not an absolute value. */
+    operation->num_ops += operation->restart_ctx.ecp.ops_done;
+    return operation->num_ops;
 #else
     (void) operation;
     return 0;
@@ -3540,6 +3546,9 @@ psa_status_t mbedtls_psa_sign_hash_start(
     defined(MBEDTLS_ECP_RESTARTABLE)
 
     mbedtls_ecdsa_restart_init(&operation->restart_ctx);
+
+    /* Ensure num_ops is zero'ed in case of context re-use. */
+    operation->num_ops = 0;
 
     /* Ensure default is set even if
      * mbedtls_psa_interruptible_set_max_ops() has not been called. */
@@ -3706,6 +3715,8 @@ psa_status_t mbedtls_psa_sign_hash_abort(
 
     mbedtls_ecdsa_restart_free(&operation->restart_ctx);
 
+    operation->num_ops = 0;
+
     return PSA_SUCCESS;
 
 #else
@@ -3746,6 +3757,9 @@ psa_status_t mbedtls_psa_verify_hash_start(
     mbedtls_ecdsa_restart_init(&operation->restart_ctx);
     mbedtls_mpi_init(&operation->r);
     mbedtls_mpi_init(&operation->s);
+
+    /* Ensure num_ops is zero'ed in case of context re-use. */
+    operation->num_ops = 0;
 
     /* Ensure default is set even if
      * mbedtls_psa_interruptible_set_max_ops() has not been called. */
@@ -3863,6 +3877,8 @@ psa_status_t mbedtls_psa_verify_hash_abort(
     }
 
     mbedtls_ecdsa_restart_free(&operation->restart_ctx);
+
+    operation->num_ops = 0;
 
     mbedtls_mpi_free(&operation->r);
     mbedtls_mpi_free(&operation->s);

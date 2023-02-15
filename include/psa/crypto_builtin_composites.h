@@ -117,6 +117,8 @@ typedef struct {
     mbedtls_ecdsa_context *MBEDTLS_PRIVATE(ctx);
     mbedtls_ecdsa_restart_ctx MBEDTLS_PRIVATE(restart_ctx);
 
+    uint32_t MBEDTLS_PRIVATE(num_ops);
+
     size_t MBEDTLS_PRIVATE(coordinate_bytes);
     psa_algorithm_t MBEDTLS_PRIVATE(alg);
     mbedtls_md_type_t MBEDTLS_PRIVATE(md_alg);
@@ -135,7 +137,7 @@ typedef struct {
 #if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
     defined(MBEDTLS_ECP_RESTARTABLE)
-#define MBEDTLS_PSA_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT { { 0 }, { 0 }, 0, 0, 0, 0, 0 }
+#define MBEDTLS_PSA_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT { { 0 }, { 0 }, 0, 0, 0, 0, 0, 0 }
 #else
 #define MBEDTLS_PSA_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT { 0 }
 #endif
@@ -149,6 +151,8 @@ typedef struct {
 
     mbedtls_ecdsa_context *MBEDTLS_PRIVATE(ctx);
     mbedtls_ecdsa_restart_ctx MBEDTLS_PRIVATE(restart_ctx);
+
+    uint32_t MBEDTLS_PRIVATE(num_ops);
 
     uint8_t MBEDTLS_PRIVATE(hash)[PSA_BITS_TO_BYTES(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
     size_t MBEDTLS_PRIVATE(hash_length);
@@ -169,7 +173,7 @@ typedef struct {
 #if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
     defined(MBEDTLS_ECP_RESTARTABLE)
-#define MBEDTLS_VERIFY_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT { { 0 }, { 0 }, 0, 0, 0, { 0 }, \
+#define MBEDTLS_VERIFY_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT { { 0 }, { 0 }, 0, 0, 0, 0, { 0 }, \
         { 0 } }
 #else
 #define MBEDTLS_VERIFY_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT { 0 }

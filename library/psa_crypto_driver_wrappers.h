@@ -75,10 +75,10 @@ void psa_driver_wrapper_interruptible_set_max_ops(uint32_t max_ops);
 uint32_t psa_driver_wrapper_interruptible_get_max_ops(void);
 
 uint32_t psa_driver_wrapper_sign_hash_get_num_ops(
-    const psa_sign_hash_interruptible_operation_t *operation);
+    psa_sign_hash_interruptible_operation_t *operation);
 
 uint32_t psa_driver_wrapper_verify_hash_get_num_ops(
-    const psa_verify_hash_interruptible_operation_t *operation);
+    psa_verify_hash_interruptible_operation_t *operation);
 
 psa_status_t psa_driver_wrapper_sign_hash_start(
     psa_sign_hash_interruptible_operation_t *operation,

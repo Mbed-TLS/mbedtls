@@ -1367,7 +1367,7 @@ void ecp_mod_p521_raw(char *input_N,
     size_t limbs = limbs_N;
     size_t bytes = limbs * sizeof(mbedtls_mpi_uint);
 
-    TEST_EQUAL(limbs_X, 2 * limbs - 1);
+    TEST_EQUAL(limbs_X, 2 * limbs);
     TEST_EQUAL(limbs_res, limbs);
 
     TEST_EQUAL(mbedtls_mpi_mod_modulus_setup(

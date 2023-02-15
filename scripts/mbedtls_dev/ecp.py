@@ -81,7 +81,7 @@ class EcpP521R1Raw(bignum_common.ModOperationCommon,
     """Test cases for ecp quasi_reduction()."""
     test_function = "ecp_mod_p521_raw"
     test_name = "ecp_mod_p521_raw"
-    input_style = "arch_split"
+    input_style = "fixed"
     arity = 1
 
     moduli = [("01ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
@@ -156,9 +156,8 @@ class EcpP521R1Raw(bignum_common.ModOperationCommon,
 
     @property
     def arg_a(self) -> str:
-        # Number of limbs: 2 * N - 1
-        hex_digits = bignum_common.hex_digits_for_limb(2 * self.limbs - 1, self.bits_in_limb)
-        return super().format_arg('{:x}'.format(self.int_a)).zfill(hex_digits)
+        # Number of limbs: 2 * N
+        return super().format_arg('{:x}'.format(self.int_a)).zfill(2 * self.hex_digits)
 
     def result(self) -> List[str]:
         result = self.int_a % self.int_n

@@ -52,10 +52,10 @@ psa_status_t mbedtls_psa_ecp_load_representation( psa_key_type_t type,
  *
  * \param ecp               The ECP context to load the public part for.
  *
- * \return 0 on success, otherwise an MPI error.
+ * \return PSA_SUCCESS on success, otherwise an MPI error.
  */
 
-int mbedtls_psa_ecp_load_public_part( mbedtls_ecp_keypair *ecp );
+psa_status_t mbedtls_psa_ecp_load_public_part(mbedtls_ecp_keypair *ecp);
 
 /** Import an ECP key in binary format.
  *

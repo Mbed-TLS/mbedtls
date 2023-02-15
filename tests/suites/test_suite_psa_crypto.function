@@ -6894,14 +6894,12 @@ void sign_hash_fail_interruptible( int key_type_arg, data_t *key_data,
 
     TEST_EQUAL( actual_status, expected_complete_status );
 
-    if( expected_complete_status != PSA_SUCCESS )
-    {
-        actual_status = psa_sign_hash_complete(&operation, signature,
-                signature_size,
-                &signature_length);
+	/* Check that another complete returns BAD_STATE. */
+    actual_status = psa_sign_hash_complete(&operation, signature,
+                                               signature_size,
+                                               &signature_length);
 
-        TEST_EQUAL(actual_status, PSA_ERROR_BAD_STATE);
-    }
+    TEST_EQUAL(actual_status, PSA_ERROR_BAD_STATE);
 
     PSA_ASSERT( psa_sign_hash_abort( &operation ) );
 
@@ -7366,12 +7364,9 @@ void verify_hash_fail_interruptible( int key_type_arg, data_t *key_data,
 
     TEST_EQUAL( actual_status, expected_complete_status );
 
-    if( expected_complete_status != PSA_SUCCESS )
-    {
-        actual_status = psa_verify_hash_complete(&operation);
-
-        TEST_EQUAL(actual_status, PSA_ERROR_BAD_STATE);
-    }
+    /* Check that another complete returns BAD_STATE. */
+    actual_status = psa_verify_hash_complete(&operation);
+    TEST_EQUAL(actual_status, PSA_ERROR_BAD_STATE);
 
     TEST_LE_U( min_completes, num_completes );
     TEST_LE_U( num_completes, max_completes );

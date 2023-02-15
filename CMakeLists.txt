@@ -118,13 +118,9 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
         FORCE)
 endif()
 
-# If set, make MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE into PATHs
-if(DEFINED MBEDTLS_CONFIG_FILE)
-    set(MBEDTLS_CONFIG_FILE "" CACHE PATH "Mbed TLS config file (overrides default).")
-endif()
-if(DEFINED MBEDTLS_USER_CONFIG_FILE)
-    set(MBEDTLS_USER_CONFIG_FILE "" CACHE PATH "Mbed TLS user config file (appended to default).")
-endif()
+# Make MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE into PATHs
+set(MBEDTLS_CONFIG_FILE "" CACHE FILEPATH "Mbed TLS config file (overrides default).")
+set(MBEDTLS_USER_CONFIG_FILE "" CACHE FILEPATH "Mbed TLS user config file (appended to default).")
 
 # Create a symbolic link from ${base_name} in the binary directory
 # to the corresponding path in the source directory.
@@ -307,13 +303,13 @@ if(ENABLE_TESTING OR ENABLE_PROGRAMS)
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/everest/include)
 
     # Pass-through MBEDTLS_CONFIG_FILE and MBEDTLS_USER_CONFIG_FILE
-    if(DEFINED MBEDTLS_CONFIG_FILE)
+    if(MBEDTLS_CONFIG_FILE)
         target_compile_definitions(mbedtls_test
             PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
         target_compile_definitions(mbedtls_test_helpers
             PUBLIC MBEDTLS_CONFIG_FILE="${MBEDTLS_CONFIG_FILE}")
     endif()
-    if(DEFINED MBEDTLS_USER_CONFIG_FILE)
+    if(MBEDTLS_USER_CONFIG_FILE)
         target_compile_definitions(mbedtls_test
             PUBLIC MBEDTLS_USER_CONFIG_FILE="${MBEDTLS_USER_CONFIG_FILE}")
         target_compile_definitions(mbedtls_test_helpers

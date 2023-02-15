@@ -1530,10 +1530,16 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
             break;
             /*
              * dNSName
+             * RFC822 Name
              */
             case MBEDTLS_X509_SAN_DNS_NAME:
+            case MBEDTLS_X509_SAN_RFC822_NAME:
             {
-                ret = mbedtls_snprintf(p, n, "\n%s    dNSName : ", prefix);
+                char * dns_name = "dNSName";
+                char * rfc822_name = "rfc822Name";
+
+                ret = mbedtls_snprintf(p, n, "\n%s    %s : ", prefix,
+                        san.type == MBEDTLS_X509_SAN_DNS_NAME ? dns_name : rfc822_name);
                 MBEDTLS_X509_SAFE_SNPRINTF;
                 if (san.san.unstructured_name.len >= n) {
                     *p = '\0';

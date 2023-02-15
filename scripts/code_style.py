@@ -202,7 +202,7 @@ def main() -> int:
         if skip_src_files:
             print_skip(skip_src_files)
     else:
-        src_files = covered
+        src_files = list(covered)
 
     if args.fix:
         # Fix mode

@@ -2274,7 +2274,6 @@ component_test_psa_crypto_config_accel_rsa_signature () {
     #   algorithm based on the hashes supported by the library is also
     #   supported by the test library.
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_MD5
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_RIPEMD160_C
 
     scripts/config.py -f tests/include/test/drivers/config_test_driver.h set MBEDTLS_SHA1_C
     scripts/config.py -f tests/include/test/drivers/config_test_driver.h set MBEDTLS_SHA224_C
@@ -2307,9 +2306,6 @@ component_test_psa_crypto_config_accel_rsa_signature () {
 
     scripts/config.py unset MBEDTLS_MD5_C
     scripts/config.py unset MBEDTLS_RIPEMD160_C
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_1
-    scripts/config.py unset MBEDTLS_SSL_CBC_RECORD_SPLITTING
 
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
     make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"

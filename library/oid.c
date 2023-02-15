@@ -810,7 +810,7 @@ int mbedtls_oid_get_numeric_string(char *buf, size_t size,
             return MBEDTLS_ERR_OID_BUF_TOO_SMALL;
         }
 
-        value += oid->p[i] & 0x7F;
+        value |= oid->p[i] & 0x7F;
         value <<= 7;
         i++;
     }
@@ -818,7 +818,7 @@ int mbedtls_oid_get_numeric_string(char *buf, size_t size,
         return MBEDTLS_ERR_OID_BUF_TOO_SMALL;
     }
     /* Last byte of first subidentifier */
-    value += oid->p[i] & 0x7F;
+    value |= oid->p[i] & 0x7F;
     i++;
 
     unsigned int component1 = value / 40;
@@ -844,7 +844,7 @@ int mbedtls_oid_get_numeric_string(char *buf, size_t size,
         }
 
         value <<= 7;
-        value += oid->p[i] & 0x7F;
+        value |= oid->p[i] & 0x7F;
 
         if (!(oid->p[i] & 0x80)) {
             /* Last byte */

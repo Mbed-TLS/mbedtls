@@ -131,6 +131,7 @@ EXCLUDE='^$'
 
 SHOW_TEST_NUMBER=0
 RUN_TEST_NUMBER=''
+RUN_TEST_SUITE=''
 
 PRESERVE_LOGS=0
 
@@ -154,6 +155,8 @@ print_usage() {
     printf "     --port     \tTCP/UDP port (default: randomish 1xxxx)\n"
     printf "     --proxy-port\tTCP/UDP proxy port (default: randomish 2xxxx)\n"
     printf "     --seed     \tInteger seed value to use for this test run\n"
+    printf "     --test-suite\tOnly matching test suites are executed\n"
+    printf "                 \t(comma-separated, e.g. 'ssl-opt,tls13-compat')\n\n"
 }
 
 get_options() {
@@ -185,6 +188,9 @@ get_options() {
                 ;;
             --seed)
                 shift; SEED="$1"
+                ;;
+            --test-suite)
+                shift; RUN_TEST_SUITE="$1"
                 ;;
             -h|--help)
                 print_usage
@@ -1410,6 +1416,13 @@ run_test() {
         return
     fi
 
+    # Use ssl-opt as default test suite name. Also see record_outcome function
+    if is_excluded_test_suite "${TEST_SUITE_NAME:-ssl-opt}"; then
+        # Do not skip next test and skip current test.
+        SKIP_NEXT="NO"
+        return
+    fi
+
     print_name "$NAME"
 
     # Do we only run numbered tests?
@@ -1640,6 +1653,20 @@ else
         esac
     }
 fi
+
+# Filter tests according to TEST_SUITE_NAME
+is_excluded_test_suite () {
+    if [ -n "$RUN_TEST_SUITE" ]
+    then
+        case ",$RUN_TEST_SUITE," in
+            *",$1,"*) false;;
+            *) true;;
+        esac
+    else
+        false
+    fi
+
+}
 
 # sanity checks, avoid an avalanche of errors
 P_SRV_BIN="${P_SRV%%[  ]*}"
@@ -2515,63 +2542,6 @@ requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "SHA-256 allowed by default in client certificate" \
             "$P_SRV auth_mode=required allow_sha1=0" \
             "$P_CLI key_file=data_files/cli-rsa.key crt_file=data_files/cli-rsa-sha256.crt" \
-            0
-
-# Dummy TLS 1.3 test
-# Currently only checking that passing TLS 1.3 key exchange modes to
-# ssl_client2/ssl_server2 example programs works.
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-run_test    "TLS 1.3: key exchange mode parameter passing: PSK only" \
-            "$P_SRV tls13_kex_modes=psk debug_level=4" \
-            "$P_CLI tls13_kex_modes=psk debug_level=4" \
-            0
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-run_test    "TLS 1.3: key exchange mode parameter passing: PSK-ephemeral only" \
-            "$P_SRV tls13_kex_modes=psk_ephemeral" \
-            "$P_CLI tls13_kex_modes=psk_ephemeral" \
-            0
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-run_test    "TLS 1.3: key exchange mode parameter passing: Pure-ephemeral only" \
-            "$P_SRV tls13_kex_modes=ephemeral" \
-            "$P_CLI tls13_kex_modes=ephemeral" \
-            0
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-run_test    "TLS 1.3: key exchange mode parameter passing: All ephemeral" \
-            "$P_SRV tls13_kex_modes=ephemeral_all" \
-            "$P_CLI tls13_kex_modes=ephemeral_all" \
-            0
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-run_test    "TLS 1.3: key exchange mode parameter passing: All PSK" \
-            "$P_SRV tls13_kex_modes=psk_all" \
-            "$P_CLI tls13_kex_modes=psk_all" \
-            0
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-run_test    "TLS 1.3: key exchange mode parameter passing: All" \
-            "$P_SRV tls13_kex_modes=all" \
-            "$P_CLI tls13_kex_modes=all" \
             0
 
 # Tests for datagram packing

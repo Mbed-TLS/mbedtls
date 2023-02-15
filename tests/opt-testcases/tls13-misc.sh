@@ -59,7 +59,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKET
                              MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: Multiple PSKs: valid ticket, reconnect with ticket" \
-         "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70 tickets=8" \
+         "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list) tickets=8" \
          "$P_CLI force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70 reco_mode=1 reconnect=1" \
          0 \
          -c "Pre-configured PSK number = 2" \
@@ -73,7 +73,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKET
                              MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 m->m: Multiple PSKs: invalid ticket, reconnect with PSK" \
-         "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70 tickets=8 dummy_ticket=1" \
+         "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list) tickets=8 dummy_ticket=1" \
          "$P_CLI force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70 reco_mode=1 reconnect=1" \
          0 \
          -c "Pre-configured PSK number = 2" \

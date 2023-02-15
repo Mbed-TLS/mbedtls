@@ -74,10 +74,6 @@ def combination_pairs(values: List[T]) -> List[Tuple[T, T]]:
     """Return all pair combinations from input values."""
     return [(x, y) for x in values for y in values]
 
-def hex_digits_for_limb(limbs: int, bits_in_limb: int) -> int:
-    """ Retrun the hex digits need for a number of limbs. """
-    return 2 * (limbs * bits_in_limb // 8)
-
 class OperationCommon(test_data_generation.BaseTest):
     """Common features for bignum binary operations.
 
@@ -142,7 +138,7 @@ class OperationCommon(test_data_generation.BaseTest):
 
     @property
     def hex_digits(self) -> int:
-        return hex_digits_for_limb(self.limbs, self.bits_in_limb)
+        return 2 * (self.limbs * self.bits_in_limb // 8)
 
     def format_arg(self, val: str) -> str:
         if self.input_style not in self.input_styles:

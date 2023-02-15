@@ -806,7 +806,7 @@ int mbedtls_oid_get_numeric_string(char *buf, size_t size,
 
     while (i < oid->len && ((oid->p[i] & 0x80) != 0)) {
         /* Prevent overflow in value. */
-        if (((value << 7) >> 7) != value) {
+        if (value > (UINT_MAX >> 7)) {
             return MBEDTLS_ERR_OID_BUF_TOO_SMALL;
         }
 
@@ -835,7 +835,7 @@ int mbedtls_oid_get_numeric_string(char *buf, size_t size,
     value = 0;
     for (; i < oid->len; i++) {
         /* Prevent overflow in value. */
-        if (((value << 7) >> 7) != value) {
+        if (value > (UINT_MAX >> 7)) {
             return MBEDTLS_ERR_OID_BUF_TOO_SMALL;
         }
         if ((value == 0) && ((oid->p[i]) == 0x80)) {

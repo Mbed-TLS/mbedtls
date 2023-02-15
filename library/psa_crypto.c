@@ -3586,6 +3586,11 @@ psa_status_t mbedtls_psa_sign_hash_start(
     required_hash_length = (hash_length < operation->coordinate_bytes ?
                             hash_length : operation->coordinate_bytes);
 
+    if (required_hash_length > sizeof(operation->hash)) {
+        /* Shouldn't happen, but better safe than sorry. */
+        return PSA_ERROR_CORRUPTION_DETECTED;
+    }
+
     memcpy(operation->hash, hash, required_hash_length);
     operation->hash_length = required_hash_length;
 
@@ -3817,6 +3822,11 @@ psa_status_t mbedtls_psa_verify_hash_start(
      * here, it would be truncated by the internal implementation anyway. */
     required_hash_length = (hash_length < coordinate_bytes ? hash_length :
                             coordinate_bytes);
+
+    if (required_hash_length > sizeof(operation->hash)) {
+        /* Shouldn't happen, but better safe than sorry. */
+        return PSA_ERROR_CORRUPTION_DETECTED;
+    }
 
     memcpy(operation->hash, hash, required_hash_length);
     operation->hash_length = required_hash_length;

@@ -2503,9 +2503,8 @@ component_test_psa_crypto_config_reference_hash_use_psa() {
 component_test_psa_crypto_config_accel_cipher () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated cipher"
 
-    loc_accel_list="ALG_CBC_NO_PADDING ALG_CBC_PKCS7 ALG_CTR ALG_CFB ALG_OFB ALG_XTS KEY_TYPE_DES"
-    loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
-    make -C tests libtestdriver1.a CFLAGS="$ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
+    # Configure the main libraries
+    # ----------------------------
 
     scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
@@ -2519,6 +2518,7 @@ component_test_psa_crypto_config_accel_cipher () {
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_CMAC
 
+    # Disable the modules that's accelerated
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
     scripts/config.py unset MBEDTLS_CIPHER_PADDING_PKCS7
     scripts/config.py unset MBEDTLS_CIPHER_MODE_CTR
@@ -2526,6 +2526,19 @@ component_test_psa_crypto_config_accel_cipher () {
     scripts/config.py unset MBEDTLS_CIPHER_MODE_OFB
     scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
     scripts/config.py unset MBEDTLS_DES_C
+
+    # Build the test driver library and the main libraries
+    # ----------------------------------------------------
+
+    # Cipher modes and key types to accelerate
+    loc_accel_list="ALG_CBC_NO_PADDING ALG_CBC_PKCS7 ALG_CTR ALG_CFB ALG_OFB ALG_XTS KEY_TYPE_DES"
+
+    # Configurations for the main libraries won't affect the build of
+    # libtestdriver1.a, since preprocesssor symbols
+    # (LIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_ALG_XXX) in loc_accel_flags will
+    # enable corresponding cipher modes via config_psa.h
+    loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
+    make -C tests libtestdriver1.a CFLAGS="$ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
 
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
     make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"

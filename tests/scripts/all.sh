@@ -2552,24 +2552,40 @@ component_test_psa_crypto_config_accel_cipher () {
 component_test_psa_crypto_config_accel_aead () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated AEAD"
 
+    # Configure the test driver library
+    # ---------------------------------
+
     # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
     # partial support for cipher operations in the driver test library.
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
 
-    loc_accel_list="ALG_GCM ALG_CCM ALG_CHACHA20_POLY1305 KEY_TYPE_AES KEY_TYPE_CHACHA20 KEY_TYPE_ARIA KEY_TYPE_CAMELLIA"
-    loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
-    make -C tests libtestdriver1.a CFLAGS="$ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
+    # Configure the main libraries
+    # ----------------------------
 
     scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
 
+    # Disable the modules that's accelerated
     scripts/config.py unset MBEDTLS_GCM_C
     scripts/config.py unset MBEDTLS_CCM_C
     scripts/config.py unset MBEDTLS_CHACHAPOLY_C
     # Features that depend on AEAD
     scripts/config.py unset MBEDTLS_SSL_CONTEXT_SERIALIZATION
     scripts/config.py unset MBEDTLS_SSL_TICKET_C
+
+    # Build the test driver library and the main libraries
+    # ----------------------------------------------------
+
+    # AEAD algorithms and key types to accelerate
+    loc_accel_list="ALG_GCM ALG_CCM ALG_CHACHA20_POLY1305 KEY_TYPE_AES KEY_TYPE_CHACHA20 KEY_TYPE_ARIA KEY_TYPE_CAMELLIA"
+
+    # Configurations for the main libraries won't affect the build of
+    # libtestdriver1.a, since preprocesssor symbols
+    # (LIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_ALG_XXX) in loc_accel_flags will
+    # enable configuration options to support AEAD algorithms via config_psa.h
+    loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
+    make -C tests libtestdriver1.a CFLAGS="$ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
 
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
     make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"

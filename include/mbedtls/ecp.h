@@ -142,10 +142,11 @@ typedef enum {
 } mbedtls_ecp_curve_type;
 
 /*
- * Curve moduli types
+ * Curve modulus types
  */
 typedef enum {
-    MBEDTLS_ECP_MOD_COORDINATE = 0,
+    MBEDTLS_ECP_MOD_NONE = 0,
+    MBEDTLS_ECP_MOD_COORDINATE,
     MBEDTLS_ECP_MOD_SCALAR
 } mbedtls_ecp_modulus_type;
 

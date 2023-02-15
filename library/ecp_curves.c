@@ -5535,22 +5535,6 @@ static int ecp_mod_p256k1(mbedtls_mpi *N)
 #endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */
 
 #if defined(MBEDTLS_TEST_HOOKS)
-
-/** Initialise a modulus with hard-coded const curve data.
- *
- * \param[out] N    The address of the modulus structure to populate.
- *                  Must be initialized.
- * \param[in] id    The mbedtls_ecp_group_id for which to initialise the modulus.
- * \param[in] ctype The mbedtls_ecp_curve_type identifier for a coordinate modulus (P)
- *                  or a scalar modulus (N).
- *
- * \return          \c 0 if successful.
- * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if the given MPIs do not
- *                  have the correct number of limbs.
- *
- * \note            The caller is responsible for the \p N moduli lifecycle.
- *
- */
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
                               const mbedtls_ecp_group_id id,
@@ -5728,7 +5712,7 @@ int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
 
     if (mbedtls_mpi_mod_modulus_setup(N, p, p_limbs,
                                       MBEDTLS_MPI_MOD_REP_MONTGOMERY)) {
-        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     }
     return 0;
 }

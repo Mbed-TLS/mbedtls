@@ -593,7 +593,6 @@ static int x509_date_is_valid(const mbedtls_x509_time *t)
     int ret = MBEDTLS_ERR_X509_INVALID_DATE;
     int month_len;
 
-    CHECK_RANGE(0, 9999, t->year);
     CHECK_RANGE(0, 23,   t->hour);
     CHECK_RANGE(0, 59,   t->min);
     CHECK_RANGE(0, 59,   t->sec);

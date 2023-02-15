@@ -37,6 +37,11 @@
 #if defined(__aarch64__)
 #  if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) || \
     defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY)
+/* *INDENT-OFF* */
+#    if !defined(__ARM_FEATURE_CRYPTO)
+#       error "Must use minimum -march=armv8-a+crypto for MBEDTLS_SHA256_USE_A64_CRYPTO_*"
+#    endif
+/* *INDENT-ON* */
 #    include <arm_neon.h>
 #  endif
 #  if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT)

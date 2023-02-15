@@ -6728,6 +6728,10 @@ void sign_hash_interruptible( int key_type_arg, data_t *key_data,
         if( status == PSA_SUCCESS || status == PSA_OPERATION_INCOMPLETE )
         {
             num_ops = psa_sign_hash_get_num_ops( &operation );
+            /* We are asserting here that every complete makes progress
+             * (completes some ops), which is true of the internal
+             * implementation and probably any implementation, however this is
+             * not mandated by the PSA specification. */
             TEST_ASSERT( num_ops > num_ops_prior );
 
             num_ops_prior = num_ops;
@@ -6885,6 +6889,10 @@ void sign_hash_fail_interruptible( int key_type_arg, data_t *key_data,
             actual_status == PSA_OPERATION_INCOMPLETE )
         {
             num_ops = psa_sign_hash_get_num_ops( &operation );
+            /* We are asserting here that every complete makes progress
+             * (completes some ops), which is true of the internal
+             * implementation and probably any implementation, however this is
+             * not mandated by the PSA specification. */
             TEST_ASSERT( num_ops > num_ops_prior );
 
             num_ops_prior = num_ops;
@@ -7224,6 +7232,10 @@ void verify_hash_interruptible( int key_type_arg, data_t *key_data,
         if( status == PSA_SUCCESS || status == PSA_OPERATION_INCOMPLETE )
         {
             num_ops = psa_verify_hash_get_num_ops( &operation );
+            /* We are asserting here that every complete makes progress
+             * (completes some ops), which is true of the internal
+             * implementation and probably any implementation, however this is
+             * not mandated by the PSA specification. */
             TEST_ASSERT( num_ops > num_ops_prior );
 
             num_ops_prior = num_ops;
@@ -7355,6 +7367,10 @@ void verify_hash_fail_interruptible( int key_type_arg, data_t *key_data,
             actual_status == PSA_OPERATION_INCOMPLETE )
         {
             num_ops = psa_verify_hash_get_num_ops( &operation );
+            /* We are asserting here that every complete makes progress
+             * (completes some ops), which is true of the internal
+             * implementation and probably any implementation, however this is
+             * not mandated by the PSA specification. */
             TEST_ASSERT( num_ops > num_ops_prior );
 
             num_ops_prior = num_ops;

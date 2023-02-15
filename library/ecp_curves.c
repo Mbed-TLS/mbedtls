@@ -4570,6 +4570,8 @@ static int ecp_group_load(mbedtls_ecp_group *grp,
 /* Forward declarations */
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
 static int ecp_mod_p192(mbedtls_mpi *);
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn);
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
 static int ecp_mod_p224(mbedtls_mpi *);
@@ -4884,10 +4886,12 @@ static inline void carry64(mbedtls_mpi_uint *dst, mbedtls_mpi_uint *carry)
 }
 
 #define WIDTH       8 / sizeof(mbedtls_mpi_uint)
-#define A(i)      N->p + (i) * WIDTH
-#define ADD(i)    add64(p, A(i), &c)
+#define A(i)        Np + (i) * WIDTH
+#define ADD(i)      add64(p, A(i), &c)
 #define NEXT        p += WIDTH; carry64(p, &c)
 #define LAST        p += WIDTH; *p = c; while (++p < end) *p = 0
+#define RESET       last_carry[0] = c; c = 0; p = Np
+#define ADD_LAST    add64(p, last_carry, &c)
 
 /*
  * Fast quasi-reduction modulo p192 (FIPS 186-3 D.2.1)
@@ -4895,21 +4899,42 @@ static inline void carry64(mbedtls_mpi_uint *dst, mbedtls_mpi_uint *carry)
 static int ecp_mod_p192(mbedtls_mpi *N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    mbedtls_mpi_uint c = 0;
-    mbedtls_mpi_uint *p, *end;
-
-    /* Make sure we have enough blocks so that A(5) is legal */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, 6 * WIDTH));
-
-    p = N->p;
-    end = p + N->n;
-
-    ADD(3); ADD(5);             NEXT;     // A0 += A3 + A5
-    ADD(3); ADD(4); ADD(5);   NEXT;       // A1 += A3 + A4 + A5
-    ADD(4); ADD(5);             LAST;     // A2 += A4 + A5
+    size_t expected_width = 2 * ((192 + biL - 1) / biL);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
+    ret = mbedtls_ecp_mod_p192_raw(N->p, expected_width);
 
 cleanup:
     return ret;
+}
+
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn)
+{
+    mbedtls_mpi_uint c = 0, last_carry[WIDTH] = { 0 };
+    mbedtls_mpi_uint *p, *end;
+
+    if (Nn != 2*((192 + biL - 1)/biL)) {
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+
+    p = Np;
+    end = p + Nn;
+
+    ADD(3); ADD(5);         NEXT;   // A0 += A3 + A5
+    ADD(3); ADD(4); ADD(5); NEXT;   // A1 += A3 + A4 + A5
+    ADD(4); ADD(5);                 // A2 += A4 + A5
+
+    RESET;
+
+    /* Use the reduction for the carry as well:
+     * 2^192 * last_carry = 2^64 * last_carry + last_carry mod P192
+     */
+    ADD_LAST; NEXT;                 // A0 += last_carry
+    ADD_LAST; NEXT;                 // A1 += last_carry
+
+    LAST;                           // A2 += carry
+
+    return 0;
 }
 
 #undef WIDTH
@@ -4917,6 +4942,8 @@ cleanup:
 #undef ADD
 #undef NEXT
 #undef LAST
+#undef RESET
+#undef ADD_LAST
 #endif /* MBEDTLS_ECP_DP_SECP192R1_ENABLED */
 
 #if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) ||   \

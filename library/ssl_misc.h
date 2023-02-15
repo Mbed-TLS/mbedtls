@@ -2094,6 +2094,12 @@ int mbedtls_ssl_tls13_write_early_data_ext(mbedtls_ssl_context *ssl,
                                            unsigned char *buf,
                                            const unsigned char *end,
                                            size_t *out_len);
+
+#if defined(MBEDTLS_SSL_SRV_C)
+#define MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_RECEIVED \
+    MBEDTLS_SSL_EARLY_DATA_STATUS_NOT_SENT
+#endif /* MBEDTLS_SSL_SRV_C */
+
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */

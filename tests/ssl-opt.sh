@@ -72,6 +72,7 @@ guess_config_name() {
 : ${MBEDTLS_TEST_OUTCOME_FILE=}
 : ${MBEDTLS_TEST_CONFIGURATION:="$(guess_config_name)"}
 : ${MBEDTLS_TEST_PLATFORM:="$(uname -s | tr -c \\n0-9A-Za-z _)-$(uname -m | tr -c \\n0-9A-Za-z _)"}
+: ${EARLY_DATA_INPUT:=data_files/early_data.txt}
 
 O_SRV="$OPENSSL s_server -www -cert data_files/server5.crt -key data_files/server5.key"
 O_CLI="echo 'GET / HTTP/1.0' | $OPENSSL s_client"

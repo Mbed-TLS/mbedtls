@@ -472,6 +472,12 @@ mbedtls_ecp_keypair;
  *                  only enabled for specific sides and key exchanges
  *                  (currently only for clients and ECDHE-ECDSA).
  *
+ * \warning         Using the PSA interruptible interfaces with keys in local
+ *                  storage and no accelerator driver will also call this
+ *                  function to set the values specified via those interfaces,
+ *                  overwriting values previously set. Care should be taken if
+ *                  mixing these two interfaces.
+ *
  * \param max_ops   Maximum number of basic operations done in a row.
  *                  Default: 0 (unlimited).
  *                  Lower (non-zero) values mean ECC functions will block for

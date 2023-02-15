@@ -4165,6 +4165,12 @@ typedef struct psa_verify_hash_interruptible_operation_s psa_verify_hash_interru
  *                              or equals as regards to ops executed in a
  *                              single call is implementation defined.
  *
+ * \note                        For keys in local storage when no accelerator
+ *                              driver applies, please see also the
+ *                              documentation for \c mbedtls_ecp_set_max_ops(),
+ *                              which is the internal implementation in these
+ *                              cases.
+ *
  * \warning                     With implementations that interpret this number
  *                              as a hard limit, setting this number too small
  *                              may result in an infinite loop, whereby each

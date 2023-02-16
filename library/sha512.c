@@ -566,6 +566,11 @@ int mbedtls_internal_sha512_process_a64_crypto(mbedtls_sha512_context *ctx,
             SHA512_BLOCK_SIZE) ? 0 : -1;
 }
 
+#if defined(MBEDTLS_POP_TARGET_PRAGMA)
+#pragma clang attribute pop
+#undef MBEDTLS_POP_TARGET_PRAGMA
+#endif
+
 #endif /* MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT || MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY */
 
 

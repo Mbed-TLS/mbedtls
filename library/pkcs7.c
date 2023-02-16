@@ -684,8 +684,8 @@ static int mbedtls_pkcs7_data_or_hash_verify(mbedtls_pkcs7 *pkcs7,
     if (hash == NULL) {
         return MBEDTLS_ERR_PKCS7_ALLOC_FAILED;
     }
-    /* BEGIN must free hash before jumping out */
 
+    /* BEGIN must free hash before jumping out */
     if (is_data_hash) {
         if (datalen != mbedtls_md_get_size(md_info)) {
             ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;

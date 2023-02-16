@@ -3633,8 +3633,8 @@ psa_status_t mbedtls_psa_sign_hash_complete(
         goto exit;
     }
 
-    if (PSA_ALG_ECDSA_IS_DETERMINISTIC(operation->alg)) 
-	{
+    if (PSA_ALG_ECDSA_IS_DETERMINISTIC(operation->alg))
+    {
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
         status = mbedtls_to_psa_error(

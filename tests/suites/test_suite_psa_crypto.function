@@ -6902,7 +6902,7 @@ void sign_hash_fail_interruptible( int key_type_arg, data_t *key_data,
 
     TEST_EQUAL( actual_status, expected_complete_status );
 
-	/* Check that another complete returns BAD_STATE. */
+    /* Check that another complete returns BAD_STATE. */
     actual_status = psa_sign_hash_complete(&operation, signature,
                                                signature_size,
                                                &signature_length);

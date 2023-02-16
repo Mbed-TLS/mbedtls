@@ -5216,7 +5216,7 @@ int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *X, size_t X_limbs)
     mbedtls_mpi_uint carry = 0;
 
     if (X_limbs != 2 * P521_WIDTH || X[2 * P521_WIDTH - 1] != 0) {
-       return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 
     /* Step 1: Reduction to P521_WIDTH limbs */

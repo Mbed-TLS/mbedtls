@@ -81,7 +81,7 @@ class EcpP521R1Raw(bignum_common.ModOperationCommon,
     """Test cases for ecp quasi_reduction()."""
     test_function = "ecp_mod_p521_raw"
     test_name = "ecp_mod_p521_raw"
-    input_style = "fixed"
+    input_style = "arch_split"
     arity = 1
 
     moduli = [("01ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"

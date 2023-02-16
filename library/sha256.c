@@ -40,7 +40,9 @@
 /* *INDENT-OFF* */
 #    if !defined(__ARM_FEATURE_CRYPTO)
 #      if defined(__clang__)
-#        if __clang_major__ < 18
+#        if __clang_major__ < 4
+#          error "A more recent Clang is required for MBEDTLS_SHA256_USE_A64_CRYPTO_*"
+#        elif __clang_major__ < 18
            /* TODO: Re-consider above after https://reviews.llvm.org/D131064
             *       merged.
             *

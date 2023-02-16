@@ -2068,7 +2068,7 @@
 /**
  * \def MBEDTLS_AESCE_C
  *
- * Enable AES crypto engine support on Arm64.
+ * Enable AES crypto extension support on Arm64.
  *
  * Module:  library/aesce.c
  * Caller:  library/aes.c

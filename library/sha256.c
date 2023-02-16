@@ -54,7 +54,10 @@
 #        pragma clang attribute push (__attribute__((target("crypto"))), apply_to=function)
 #        define MBEDTLS_POP_TARGET_PRAGMA
 #      elif defined(__GNUC__)
-#        if __GNUC__ < 6 /* TODO: check sha256 compatible for GCC */
+         /* FIXME: GCC-5 annouce crypto extension, but some intrinsic are missed.
+          *        Known miss intrinsic can be workaround.
+          */
+#        if __GNUC__ < 6
 #          error "A more recent GCC is required for MBEDTLS_SHA256_USE_A64_CRYPTO_*"
 #        else
 #          pragma GCC push_options

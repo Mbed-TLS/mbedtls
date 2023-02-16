@@ -50,6 +50,7 @@
 #      if defined(__linux__)
 /* Our preferred method of detection is getauxval() */
 #        include <sys/auxv.h>
+#        define HAVE_GETAUXVAL
 #      endif
 /* Use SIGILL on Unix, and fall back to it on Linux */
 #      include <signal.h>
@@ -70,7 +71,13 @@
  * Capability detection code comes early, so we can disable
  * MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT if no detection mechanism found
  */
-#if defined(HWCAP_SHA512)
+#if defined(HAVE_GETAUXVAL)
+/* The same header that declares getauxval() should provide the HWCAP_xxx
+ * constants to analyze its return value. However, the libc may be too
+ * old to have the constant that we need. So if it's missing, assume that
+ * the value is the same one used by the Linux kernel ABI.
+ */
+#define HWCAP_SHA512 (1 << 21)
 static int mbedtls_a64_crypto_sha512_determine_support(void)
 {
     return (getauxval(AT_HWCAP) & HWCAP_SHA512) ? 1 : 0;
@@ -146,7 +153,7 @@ static int mbedtls_a64_crypto_sha512_determine_support(void)
 #else
 #warning "No mechanism to detect A64_CRYPTO found, using C code only"
 #undef MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
-#endif  /* HWCAP_SHA512, __APPLE__, __unix__ && SIG_SETMASK */
+#endif  /* HAVE_GETAUXVAL, __APPLE__, __unix__ && SIG_SETMASK */
 
 #endif  /* MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT */
 

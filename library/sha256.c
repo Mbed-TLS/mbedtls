@@ -22,7 +22,30 @@
  *  http://csrc.nist.gov/publications/fips/fips180-2/fips180-2.pdf
  */
 
+#if defined(__aarch64__) && !defined(__ARM_FEATURE_CRYPTO) && \
+    defined(__clang__) &&  __clang_major__ < 18 && __clang_major__ > 3
+/* TODO: Re-consider above after https://reviews.llvm.org/D131064 merged.
+ *
+ * The intrinsic declaration are guarded with ACLE predefined macros in clang,
+ * and those macros are only enabled with command line. Define the macros can
+ * enable those declaration and avoid compile error on it.
+ */
+#define __ARM_FEATURE_CRYPTO 1
+#pragma clang attribute push (__attribute__((target("crypto"))), apply_to=function)
+#define MBEDTLS_POP_TARGET_PRAGMA
+#endif /* __aarch64__ && __clang__ &&
+         !__ARM_FEATURE_CRYPTO && __clang_major__ < 18 && __clang_major__ > 3 */
+
 #include "common.h"
+
+#if defined(MBEDTLS_POP_TARGET_PRAGMA) && \
+    !(defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) || \
+      defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY))
+#if defined(__clang__)
+#pragma clang attribute pop
+#endif
+#undef MBEDTLS_POP_TARGET_PRAGMA
+#endif
 
 #if defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA224_C)
 
@@ -42,16 +65,6 @@
 #      if defined(__clang__)
 #        if __clang_major__ < 4
 #          error "A more recent Clang is required for MBEDTLS_SHA256_USE_A64_CRYPTO_*"
-#        elif __clang_major__ < 18
-           /* TODO: Re-consider above after https://reviews.llvm.org/D131064
-            *       merged.
-            *
-            * The intrinsic declaration are guarded with ACLE predefined macros
-            * in clang, and those macros are only enabled with command line.
-            * Define the macros can enable those declaration and avoid compile
-            * error on it.
-            */
-#          define __ARM_FEATURE_CRYPTO 1
 #        endif
 #        pragma clang attribute push (__attribute__((target("crypto"))), apply_to=function)
 #        define MBEDTLS_POP_TARGET_PRAGMA
@@ -397,7 +410,6 @@ int mbedtls_internal_sha256_process_a64_crypto(mbedtls_sha256_context *ctx,
 #endif
 
 #endif /* MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT || MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY */
-
 
 #if !defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT)
 #define mbedtls_internal_sha256_process_many_c mbedtls_internal_sha256_process_many

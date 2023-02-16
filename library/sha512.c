@@ -22,7 +22,33 @@
  *  http://csrc.nist.gov/publications/fips/fips180-2/fips180-2.pdf
  */
 
+#if defined(__aarch64__) && !defined(__ARM_FEATURE_SHA512) && \
+    defined(__clang__) &&  __clang_major__ < 18 && \
+    __clang_major__ >= 13 && __clang_minor__ > 0 && __clang_patchlevel__ > 0
+/* TODO: Re-consider above after https://reviews.llvm.org/D131064 merged.
+ *
+ * The intrinsic declaration are guarded with ACLE predefined macros in clang,
+ * and those macros are only enabled with command line. Define the macros can
+ * enable those declaration and avoid compile error on it.
+ */
+#define __ARM_FEATURE_SHA512 1
+#pragma clang attribute push (__attribute__((target("crypto"))), apply_to=function)
+#define MBEDTLS_POP_TARGET_PRAGMA
+#endif /* __aarch64__ && __clang__ &&
+         !__ARM_FEATURE_SHA512 && __clang_major__ < 18 &&
+         __clang_major__ >= 13 && __clang_minor__ > 0 &&
+         __clang_patchlevel__ > 0 */
+
 #include "common.h"
+
+#if defined(MBEDTLS_POP_TARGET_PRAGMA) && \
+    !(defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT) || \
+      defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY))
+#if defined(__clang__)
+#pragma clang attribute pop
+#endif
+#undef MBEDTLS_POP_TARGET_PRAGMA
+#endif
 
 #if defined(MBEDTLS_SHA512_C) || defined(MBEDTLS_SHA384_C)
 
@@ -68,17 +94,6 @@
                __clang_patchlevel__ == 0)
            /* We implement the intrinsics with inline assembler, so don't error */
 #        else
-#          if __clang_major__ < 18
-           /* TODO: Re-consider above after https://reviews.llvm.org/D131064
-            *       merged.
-            *
-            * The intrinsic declaration are guarded with ACLE predefined macros
-            * in clang, and those macros are only enabled with command line.
-            * Define the macros can enable those declaration and avoid compile
-            * error on it.
-            */
-#            define __ARM_FEATURE_SHA512 1
-#          endif
 #          pragma clang attribute push (__attribute__((target("sha3"))), apply_to=function)
 #          define MBEDTLS_POP_TARGET_PRAGMA
 #        endif

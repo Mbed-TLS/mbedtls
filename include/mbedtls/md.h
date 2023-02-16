@@ -1,7 +1,15 @@
 /**
  * \file md.h
  *
- * \brief This file contains the generic message-digest wrapper.
+ * \brief   This file contains the generic functions for message-digest
+ *          (hashing) and HMAC.
+ *
+ *          Availability of function in this modules is controled by two
+ *          feature macros:
+ *          - MBEDTLS_MD_C enables the whole module;
+ *          - MBEDTLS_MD_LIGHT enables only functions for hashing an accessing
+ *          some hash metadata; is it automatically set whenever MBEDTLS_MD_C
+ *          is set.
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  */
@@ -107,6 +115,7 @@ typedef struct mbedtls_md_context_t {
     void *MBEDTLS_PRIVATE(hmac_ctx);
 } mbedtls_md_context_t;
 
+#if defined(MBEDTLS_MD_C)
 /**
  * \brief           This function returns the list of digests supported by the
  *                  generic digest module.
@@ -130,6 +139,7 @@ const int *mbedtls_md_list(void);
  * \return          NULL if the associated message-digest information is not found.
  */
 const mbedtls_md_info_t *mbedtls_md_info_from_string(const char *md_name);
+#endif /* MBEDTLS_MD_C */
 
 /**
  * \brief           This function returns the message-digest information
@@ -142,6 +152,7 @@ const mbedtls_md_info_t *mbedtls_md_info_from_string(const char *md_name);
  */
 const mbedtls_md_info_t *mbedtls_md_info_from_type(mbedtls_md_type_t md_type);
 
+#if defined(MBEDTLS_MD_C)
 /**
  * \brief           This function returns the message-digest information
  *                  from the given context.
@@ -154,6 +165,7 @@ const mbedtls_md_info_t *mbedtls_md_info_from_type(mbedtls_md_type_t md_type);
  */
 const mbedtls_md_info_t *mbedtls_md_info_from_ctx(
     const mbedtls_md_context_t *ctx);
+#endif /* MBEDTLS_MD_C */
 
 /**
  * \brief           This function initializes a message-digest context without
@@ -248,6 +260,7 @@ unsigned char mbedtls_md_get_size(const mbedtls_md_info_t *md_info);
  */
 mbedtls_md_type_t mbedtls_md_get_type(const mbedtls_md_info_t *md_info);
 
+#if defined(MBEDTLS_MD_C)
 /**
  * \brief           This function extracts the message-digest name from the
  *                  message-digest information structure.
@@ -258,6 +271,7 @@ mbedtls_md_type_t mbedtls_md_get_type(const mbedtls_md_info_t *md_info);
  * \return          The name of the message digest.
  */
 const char *mbedtls_md_get_name(const mbedtls_md_info_t *md_info);
+#endif /* MBEDTLS_MD_C */
 
 /**
  * \brief           This function starts a message-digest computation.
@@ -337,7 +351,7 @@ MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_md(const mbedtls_md_info_t *md_info, const unsigned char *input, size_t ilen,
                unsigned char *output);
 
-#if defined(MBEDTLS_FS_IO)
+#if defined(MBEDTLS_FS_IO) && defined(MBEDTLS_MD_C)
 /**
  * \brief          This function calculates the message-digest checksum
  *                 result of the contents of the provided file.
@@ -358,8 +372,9 @@ int mbedtls_md(const mbedtls_md_info_t *md_info, const unsigned char *input, siz
 MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_md_file(const mbedtls_md_info_t *md_info, const char *path,
                     unsigned char *output);
-#endif /* MBEDTLS_FS_IO */
+#endif /* MBEDTLS_FS_IO && MBEDTLS_MD_C */
 
+#if defined(MBEDTLS_MD_C)
 /**
  * \brief           This function sets the HMAC key and prepares to
  *                  authenticate a new message.
@@ -470,6 +485,7 @@ MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_md_hmac(const mbedtls_md_info_t *md_info, const unsigned char *key, size_t keylen,
                     const unsigned char *input, size_t ilen,
                     unsigned char *output);
+#endif /* MBEDTLS_MD_C */
 
 #ifdef __cplusplus
 }

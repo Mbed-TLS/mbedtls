@@ -23,7 +23,7 @@
 
 #include "common.h"
 
-#if defined(MBEDTLS_MD_C)
+#if defined(MBEDTLS_MD_LIGHT)
 
 #include "mbedtls/md.h"
 #include "md_wrap.h"
@@ -110,6 +110,7 @@ const mbedtls_md_info_t mbedtls_sha512_info = {
 /*
  * Reminder: update profiles in x509_crt.c when adding a new hash!
  */
+#if defined(MBEDTLS_MD_C)
 static const int supported_digests[] = {
 
 #if defined(MBEDTLS_SHA512_C)
@@ -191,6 +192,7 @@ const mbedtls_md_info_t *mbedtls_md_info_from_string(const char *md_name)
 #endif
     return NULL;
 }
+#endif /* MBEDTLS_MD_C */
 
 const mbedtls_md_info_t *mbedtls_md_info_from_type(mbedtls_md_type_t md_type)
 {
@@ -228,6 +230,7 @@ const mbedtls_md_info_t *mbedtls_md_info_from_type(mbedtls_md_type_t md_type)
     }
 }
 
+#if defined(MBEDTLS_MD_C)
 const mbedtls_md_info_t *mbedtls_md_info_from_ctx(
     const mbedtls_md_context_t *ctx)
 {
@@ -237,6 +240,7 @@ const mbedtls_md_info_t *mbedtls_md_info_from_ctx(
 
     return ctx->MBEDTLS_PRIVATE(md_info);
 }
+#endif /* MBEDTLS_MD_C */
 
 void mbedtls_md_init(mbedtls_md_context_t *ctx)
 {
@@ -586,7 +590,7 @@ int mbedtls_md(const mbedtls_md_info_t *md_info, const unsigned char *input, siz
     }
 }
 
-#if defined(MBEDTLS_FS_IO)
+#if defined(MBEDTLS_FS_IO) && defined(MBEDTLS_MD_C)
 int mbedtls_md_file(const mbedtls_md_info_t *md_info, const char *path, unsigned char *output)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -635,8 +639,9 @@ cleanup:
 
     return ret;
 }
-#endif /* MBEDTLS_FS_IO */
+#endif /* MBEDTLS_FS_IO && MBEDTLS_MD_C */
 
+#if defined(MBEDTLS_MD_C)
 int mbedtls_md_hmac_starts(mbedtls_md_context_t *ctx, const unsigned char *key, size_t keylen)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -773,6 +778,7 @@ cleanup:
 
     return ret;
 }
+#endif /* MBEDTLS_MD_C */
 
 unsigned char mbedtls_md_get_size(const mbedtls_md_info_t *md_info)
 {
@@ -792,6 +798,7 @@ mbedtls_md_type_t mbedtls_md_get_type(const mbedtls_md_info_t *md_info)
     return md_info->type;
 }
 
+#if defined(MBEDTLS_MD_C)
 const char *mbedtls_md_get_name(const mbedtls_md_info_t *md_info)
 {
     if (md_info == NULL) {
@@ -800,5 +807,6 @@ const char *mbedtls_md_get_name(const mbedtls_md_info_t *md_info)
 
     return md_info->name;
 }
-
 #endif /* MBEDTLS_MD_C */
+
+#endif /* MBEDTLS_MD_LIGHT */

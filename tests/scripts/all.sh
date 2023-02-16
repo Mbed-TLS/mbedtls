@@ -1219,19 +1219,25 @@ component_test_psa_external_rng_no_drbg_use_psa () {
     tests/ssl-opt.sh -f 'Default\|opaque'
 }
 
-component_test_crypto_full_no_md () {
-    msg "build: crypto_full minus MD"
+component_test_crypto_full_md_light_only () {
+    msg "build: crypto_full with only the light subset of MD"
     scripts/config.py crypto_full
+    # Disable MD
     scripts/config.py unset MBEDTLS_MD_C
-    # Direct dependencies
+    # Disable direct dependencies of MD
     scripts/config.py unset MBEDTLS_HKDF_C
     scripts/config.py unset MBEDTLS_HMAC_DRBG_C
     scripts/config.py unset MBEDTLS_PKCS7_C
-    # Indirect dependencies
-    scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC
-    make
+    # Disable indirect dependencies of MD
+    scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC # needs HMAC_DRBG
+    # Enable "light" subset of MD
+    scripts/config.py set MBEDTLS_MD_LIGHT
+    make CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
-    msg "test: crypto_full minus MD"
+    # Make sure we don't have the HMAC functions
+    not grep mbedtls_md_hmac library/md.o
+
+    msg "test: crypto_full with only the light subset of MD"
     make test
 }
 

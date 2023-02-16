@@ -80,6 +80,13 @@
 #include MBEDTLS_USER_CONFIG_FILE
 #endif
 
+/* Auto-enable MBEDTLS_MD_LIGHT based on MBEDTLS_MD_C.
+ * This allows checking for MD_LIGHT rather than MD_LIGHT || MD_C.
+ */
+#if defined(MBEDTLS_MD_C)
+#define MBEDTLS_MD_LIGHT
+#endif
+
 /* The PK wrappers need pk_write functions to format RSA key objects
  * when they are dispatching to the PSA API. This happens under USE_PSA_CRYPTO,
  * and also even without USE_PSA_CRYPTO for mbedtls_pk_sign_ext().

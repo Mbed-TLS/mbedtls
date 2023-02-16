@@ -1,0 +1,5 @@
+Bugfix
+   * Fix a build error on some Linux environments when enabling ARMv8
+     SHA-2 or SHA-512 acceleration. Now, the CPU feature flags can be
+     correctly identified. Bug reported and fix contributed by valord577.
+     Fixes #6224.

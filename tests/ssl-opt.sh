@@ -11468,6 +11468,21 @@ run_test    "TLS 1.3: Test gnutls tls1_3 feature" \
             -c "Version: TLS1.3"
 
 # TLS1.3 test cases
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_ciphersuite_enabled TLS1-3-AES-128-GCM-SHA256
+requires_config_enabled MBEDTLS_ECP_DP_CURVE25519_ENABLED
+requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled MBEDTLS_ECDSA_C
+run_test    "TLS 1.3: Default" \
+            "$P_SRV allow_sha1=0 debug_level=3 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13" \
+            "$P_CLI allow_sha1=0" \
+            0 \
+            -s "Protocol is TLSv1.3" \
+            -s "Ciphersuite is TLS1-3-AES-128-GCM-SHA256" \
+            -s "ECDH group: x25519" \
+            -s "selected signature algorithm ecdsa_secp256r1_sha256"
+
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C

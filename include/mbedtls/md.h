@@ -471,10 +471,6 @@ int mbedtls_md_hmac(const mbedtls_md_info_t *md_info, const unsigned char *key, 
                     const unsigned char *input, size_t ilen,
                     unsigned char *output);
 
-/* Internal use */
-MBEDTLS_CHECK_RETURN_TYPICAL
-int mbedtls_md_process(mbedtls_md_context_t *ctx, const unsigned char *data);
-
 #ifdef __cplusplus
 }
 #endif

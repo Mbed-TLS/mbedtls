@@ -1,6 +1,6 @@
 # Tests of the generic message digest interface
-MD process
-mbedtls_md_process:
+MD list
+mbedtls_md_list:
 
 MD NULL/uninitialised arguments
 md_null_args:

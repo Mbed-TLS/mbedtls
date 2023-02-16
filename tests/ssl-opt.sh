@@ -11470,7 +11470,7 @@ run_test    "TLS 1.3: Test gnutls tls1_3 feature" \
 # TLS1.3 test cases
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_ciphersuite_enabled TLS1-3-AES-128-GCM-SHA256
+requires_ciphersuite_enabled TLS1-3-CHACHA20-POLY1305-SHA256
 requires_config_enabled MBEDTLS_ECP_DP_CURVE25519_ENABLED
 requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -11479,7 +11479,7 @@ run_test    "TLS 1.3: Default" \
             "$P_CLI allow_sha1=0" \
             0 \
             -s "Protocol is TLSv1.3" \
-            -s "Ciphersuite is TLS1-3-AES-128-GCM-SHA256" \
+            -s "Ciphersuite is TLS1-3-CHACHA20-POLY1305-SHA256" \
             -s "ECDH group: x25519" \
             -s "selected signature algorithm ecdsa_secp256r1_sha256"
 
@@ -11503,7 +11503,7 @@ run_test    "TLS 1.3: minimal feature sets - openssl" \
             -c "client state: MBEDTLS_SSL_FLUSH_BUFFERS" \
             -c "client state: MBEDTLS_SSL_HANDSHAKE_WRAPUP" \
             -c "<= ssl_tls13_process_server_hello" \
-            -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
+            -c "server hello, chosen ciphersuite: ( 1303 ) - TLS1-3-CHACHA20-POLY1305-SHA256" \
             -c "ECDH curve: x25519" \
             -c "=> ssl_tls13_process_server_hello" \
             -c "<= parse encrypted extensions" \
@@ -11537,7 +11537,7 @@ run_test    "TLS 1.3: minimal feature sets - gnutls" \
             -c "client state: MBEDTLS_SSL_FLUSH_BUFFERS" \
             -c "client state: MBEDTLS_SSL_HANDSHAKE_WRAPUP" \
             -c "<= ssl_tls13_process_server_hello" \
-            -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
+            -c "server hello, chosen ciphersuite: ( 1303 ) - TLS1-3-CHACHA20-POLY1305-SHA256" \
             -c "ECDH curve: x25519" \
             -c "=> ssl_tls13_process_server_hello" \
             -c "<= parse encrypted extensions" \
@@ -11570,7 +11570,7 @@ run_test    "TLS 1.3: alpn - openssl" \
             -c "client state: MBEDTLS_SSL_FLUSH_BUFFERS" \
             -c "client state: MBEDTLS_SSL_HANDSHAKE_WRAPUP" \
             -c "<= ssl_tls13_process_server_hello" \
-            -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
+            -c "server hello, chosen ciphersuite: ( 1303 ) - TLS1-3-CHACHA20-POLY1305-SHA256" \
             -c "ECDH curve: x25519" \
             -c "=> ssl_tls13_process_server_hello" \
             -c "<= parse encrypted extensions" \
@@ -11606,7 +11606,7 @@ run_test    "TLS 1.3: alpn - gnutls" \
             -c "client state: MBEDTLS_SSL_FLUSH_BUFFERS" \
             -c "client state: MBEDTLS_SSL_HANDSHAKE_WRAPUP" \
             -c "<= ssl_tls13_process_server_hello" \
-            -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
+            -c "server hello, chosen ciphersuite: ( 1303 ) - TLS1-3-CHACHA20-POLY1305-SHA256" \
             -c "ECDH curve: x25519" \
             -c "=> ssl_tls13_process_server_hello" \
             -c "<= parse encrypted extensions" \

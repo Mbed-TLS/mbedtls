@@ -1227,8 +1227,9 @@ static int x509_get_other_name(const mbedtls_x509_buf *subject_alt_name,
  *      nameAssigner            [0]     DirectoryString OPTIONAL,
  *      partyName               [1]     DirectoryString }
  *
- * NOTE: we list all types, but only use "dnsName", "otherName" and
- * "uniformResourceIdentifier", as defined in RFC 5280, at this point.
+ * We list all types, but use the following GeneralName types from RFC 5280:
+ * "dnsName", "uniformResourceIdentifier" and "hardware_module_name"
+ * of type "otherName", as defined in RFC 4108.
  */
 int mbedtls_x509_get_subject_alt_name(unsigned char **p,
                                       const unsigned char *end,

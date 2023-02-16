@@ -385,8 +385,9 @@ int mbedtls_x509_time_is_future(const mbedtls_x509_time *from);
  * \param san      The target structure to populate with the parsed presentation
  *                 of the subject alternative name encoded in \p san_raw.
  *
- * \note           Only "dnsName", "uniformResourceIdentifier" and "otherName",
- *                 as defined in RFC 5280, is supported.
+ * \note           Supported GeneralName types, as defined in RFC 5280:
+ *                 "dnsName", "uniformResourceIdentifier" and "hardware_module_name"
+ *                 of type "otherName", as defined in RFC 4108.
  *
  * \note           This function should be called on a single raw data of
  *                 subject alternative name. For example, after successful

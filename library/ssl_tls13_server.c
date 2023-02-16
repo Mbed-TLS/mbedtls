@@ -1333,6 +1333,15 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     cipher_suites_len = MBEDTLS_GET_UINT16_BE(p, 0);
     p += 2;
 
+    /*
+     * The length of the ciphersuite list has to be even.
+     */
+    if (cipher_suites_len & 1) {
+        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
+                                     MBEDTLS_ERR_SSL_DECODE_ERROR);
+        return MBEDTLS_ERR_SSL_DECODE_ERROR;
+    }
+
     /* Check we have enough data for the ciphersuite list, the legacy
      * compression methods and the length of the extensions.
      *
@@ -1361,8 +1370,6 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     for (; p < cipher_suites_end; p += 2) {
         uint16_t cipher_suite;
         const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
-
-        MBEDTLS_SSL_CHK_BUF_READ_PTR(p, cipher_suites_end, 2);
 
         cipher_suite = MBEDTLS_GET_UINT16_BE(p, 0);
         ciphersuite_info = ssl_tls13_validate_peer_ciphersuite(

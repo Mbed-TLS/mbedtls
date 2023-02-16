@@ -1383,6 +1383,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG(2, ("selected ciphersuite: %04x - %s",
                                   cipher_suite,
                                   ciphersuite_info->name));
+        break;
     }
 
     if (handshake->ciphersuite_info == NULL) {
@@ -1390,6 +1391,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                                      MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE);
         return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
     }
+    p = cipher_suites_end;
 
     /* ...
      * opaque legacy_compression_methods<1..2^8-1>;

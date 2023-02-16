@@ -13222,7 +13222,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test    "TLS 1.3: NewSessionTicket: Basic check, G->m" \
+run_test    "TLS 1.3: NewSessionTicket: resumption failure, PSK len too big, G->m" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=4" \
             "$G_NEXT_CLI localhost -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -r" \
             0 \
@@ -13231,9 +13231,9 @@ run_test    "TLS 1.3: NewSessionTicket: Basic check, G->m" \
             -s "=> write NewSessionTicket msg" \
             -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
             -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH" \
+            -s "mbedtls_ssl_set_hs_psk() returned" \
             -s "key exchange mode: ephemeral" \
-            -s "key exchange mode: psk_ephemeral" \
-            -s "found pre_shared_key extension"
+            -S "key exchange mode: psk_ephemeral"
 
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 requires_config_enabled MBEDTLS_SSL_SRV_C

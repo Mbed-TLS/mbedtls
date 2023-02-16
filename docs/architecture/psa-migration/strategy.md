@@ -345,18 +345,28 @@ available. Data related to a certain hash (OID, sizes, translations) should
 only be included in the build if it is possible to use that hash in some way.
 
 In order to cater to these new needs, new families of macros are introduced in
-`library/legacy_or_psa.h`, see its documentation for details.
+`legacy_or_psa.h`, see its documentation for details.
 
 It should be noted that there are currently:
 - too many different ways of computing a hash (low-level, MD, PSA);
 - too many different ways to configure the library that influence which of
   these ways is available and will be used (`MBEDTLS_USE_PSA_CRYPTO`,
-`MBEDTLS_PSA_CRYPTO_CONFIG`, `mbedtls_config.h` + `psa/crypto_config.h`).
+  `MBEDTLS_PSA_CRYPTO_CONFIG`, `mbedtls_config.h` + `psa/crypto_config.h`).
 
 As a result, we need more families of dependency macros than we'd like to.
 This is a temporary situation until we move to a place where everything is
 based on PSA Crypto. In the meantime, long and explicit names where chosen for
 the new macros in the hope of avoiding confusion.
+
+Note: the new macros supplement but do not replace the existing macros:
+- code that always uses PSA Crypto (for example, code specific to TLS 1.3)
+  should use `PSA_WANT_xxx`;
+- code that always uses the legacy API (for example, crypto modules that have
+  not undergone step 1 yet) should use `MBEDTLS_xxx_C`;
+- code that may use one of the two APIs, either based on
+  `MBEDTLS_USE_PSA_CRYPTO` (X.509, TLS 1.2, shared between TLS 1.2 and 1.3),
+  or based on availability (crypto modules after step 1), should use one of
+  the new macros from `legacy_or_psa.h`.
 
 Executing step 3 will mostly consist of using the right dependency macros in
 the right places (once the previous steps are done).
@@ -376,15 +386,16 @@ are expressed (sometimes in bulk), to get things wrong in a way that would
 result in more tests being skipped, which is easy to miss. Care must be
 taken to ensure this does not happen. The following criteria can be used:
 
-- the sets of tests skipped in the default config and the full config must be
-  the same before and after the PR that implements step 3;
-- the set of tests skipped in the driver-only build is the same as in an
-  equivalent software-based configuration, or the difference is small enough,
-  justified, and a github issue is created to track it.
-
-Note that the favourable case is when the number of tests skipped is 0 in the
-driver-only build. In other cases, analysis of the outcome files is needed,
-see the example script `outcome-analysis.sh` in the same directory.
+1. The sets of tests skipped in the default config and the full config must be
+  the same before and after the PR that implements step 3. This is tested
+manually for each PR that changes dependency declarations by using the script
+`outcome-analysis.sh` in the present directory.
+2. The set of tests skipped in the driver-only build is the same as in an
+  equivalent software-based configuration. This is tested automatically by the
+CI in the "Results analysis" stage, by running
+`tests/scripts/analyze_outcomes.py`. See the
+`analyze_driver_vs_reference_xxx` actions in the script and the comments above
+their declaration for how to do that locally.
 
 
 Migrating away from the legacy API

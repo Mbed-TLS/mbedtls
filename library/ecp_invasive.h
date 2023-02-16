@@ -44,7 +44,7 @@
  * Behavior:
  * Set N to c * 2^bits + old_value_of_N.
  */
-void mbedtls_ecp_fix_negative( mbedtls_mpi *N, signed char c, size_t bits );
+void mbedtls_ecp_fix_negative(mbedtls_mpi *N, signed char c, size_t bits);
 #endif
 
 #if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
@@ -69,12 +69,31 @@ void mbedtls_ecp_fix_negative( mbedtls_mpi *N, signed char c, size_t bits );
  * \return          \c 0 on success.
  * \return          \c MBEDTLS_ERR_ECP_xxx or MBEDTLS_ERR_MPI_xxx on failure.
  */
-int mbedtls_ecp_gen_privkey_mx( size_t n_bits,
-                                mbedtls_mpi *d,
-                                int (*f_rng)(void *, unsigned char *, size_t),
-                                void *p_rng );
+int mbedtls_ecp_gen_privkey_mx(size_t n_bits,
+                               mbedtls_mpi *d,
+                               int (*f_rng)(void *, unsigned char *, size_t),
+                               void *p_rng);
 
 #endif /* MBEDTLS_ECP_MONTGOMERY_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
+
+/** Fast quasi-reduction modulo p192 (FIPS 186-3 D.2.1)
+ *
+ * This operation expects a 384 bit MPI and the result of the reduction
+ * is a 192 bit MPI.
+ *
+ * \param[in,out]   Np  The address of the MPI to be converted.
+ *                      Must have twice as many limbs as the modulus.
+ *                      Upon return this holds the reduced value. The bitlength
+ *                      of the reduced value is the same as that of the modulus
+ *                      (192 bits).
+ * \param[in]       Nn  The length of \p Np in limbs.
+ */
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn);
+
+#endif /* MBEDTLS_ECP_DP_SECP192R1_ENABLED */
 
 #endif /* MBEDTLS_TEST_HOOKS && MBEDTLS_ECP_C */
 

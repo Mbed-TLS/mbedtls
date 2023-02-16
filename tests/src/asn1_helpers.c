@@ -27,48 +27,48 @@
 
 #include <mbedtls/asn1.h>
 
-int mbedtls_test_asn1_skip_integer( unsigned char **p, const unsigned char *end,
-                                    size_t min_bits, size_t max_bits,
-                                    int must_be_odd )
+int mbedtls_test_asn1_skip_integer(unsigned char **p, const unsigned char *end,
+                                   size_t min_bits, size_t max_bits,
+                                   int must_be_odd)
 {
     size_t len;
     size_t actual_bits;
     unsigned char msb;
-    TEST_EQUAL( mbedtls_asn1_get_tag( p, end, &len,
-                                      MBEDTLS_ASN1_INTEGER ),
-                0 );
+    TEST_EQUAL(mbedtls_asn1_get_tag(p, end, &len,
+                                    MBEDTLS_ASN1_INTEGER),
+               0);
 
     /* Check if the retrieved length doesn't extend the actual buffer's size.
      * It is assumed here, that end >= p, which validates casting to size_t. */
-    TEST_ASSERT( len <= (size_t)( end - *p) );
+    TEST_ASSERT(len <= (size_t) (end - *p));
 
     /* Tolerate a slight departure from DER encoding:
      * - 0 may be represented by an empty string or a 1-byte string.
      * - The sign bit may be used as a value bit. */
-    if( ( len == 1 && ( *p )[0] == 0 ) ||
-        ( len > 1 && ( *p )[0] == 0 && ( ( *p )[1] & 0x80 ) != 0 ) )
-    {
-        ++( *p );
+    if ((len == 1 && (*p)[0] == 0) ||
+        (len > 1 && (*p)[0] == 0 && ((*p)[1] & 0x80) != 0)) {
+        ++(*p);
         --len;
     }
-    if( min_bits == 0 && len == 0 )
-        return( 1 );
-    msb = ( *p )[0];
-    TEST_ASSERT( msb != 0 );
-    actual_bits = 8 * ( len - 1 );
-    while( msb != 0 )
-    {
+    if (min_bits == 0 && len == 0) {
+        return 1;
+    }
+    msb = (*p)[0];
+    TEST_ASSERT(msb != 0);
+    actual_bits = 8 * (len - 1);
+    while (msb != 0) {
         msb >>= 1;
         ++actual_bits;
     }
-    TEST_ASSERT( actual_bits >= min_bits );
-    TEST_ASSERT( actual_bits <= max_bits );
-    if( must_be_odd )
-        TEST_ASSERT( ( ( *p )[len-1] & 1 ) != 0 );
+    TEST_ASSERT(actual_bits >= min_bits);
+    TEST_ASSERT(actual_bits <= max_bits);
+    if (must_be_odd) {
+        TEST_ASSERT(((*p)[len-1] & 1) != 0);
+    }
     *p += len;
-    return( 1 );
+    return 1;
 exit:
-    return( 0 );
+    return 0;
 }
 
 #endif /* MBEDTLS_ASN1_PARSE_C */

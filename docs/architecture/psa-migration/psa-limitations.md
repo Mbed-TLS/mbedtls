@@ -17,8 +17,11 @@ Restartable ECC operations
 There is currently no support for that in PSA at all, but it will be added at
 some point, see <https://github.com/orgs/Mbed-TLS/projects/1#column-18816849>.
 
-Currently, `MBEDTLS_USE_PSA_CRYPTO` is simply incompatible with
-`MBEDTLS_ECP_RESTARTABLE`.
+Currently, when `MBEDTLS_USE_PSA_CRYPTO` and `MBEDTLS_ECP_RESTARTABLE` are
+both enabled, some operations that should be restartable are not (ECDH in TLS
+1.2 clients using ECDHE-ECDSA), as they are using PSA instead, and some
+operations that should use PSA do not (signature generation & verification) as
+they use the legacy API instead, in order to get restartable behaviour.
 
 Things that are in the API but not implemented yet
 --------------------------------------------------
@@ -28,11 +31,6 @@ PSA Crypto has an API for FFDH, but it's not implemented in Mbed TLS yet.
 github.
 
 [ffdh]: https://github.com/Mbed-TLS/mbedtls/issues/3261
-
-PSA Crypto has an experimental API for EC J-PAKE, but it's not implemented in
-Mbed TLS yet. See the [EC J-PAKE follow-up EPIC][ecjp] on github.
-
-[ecjp]: https://github.com/orgs/Mbed-TLS/projects/1#column-17950140
 
 Arbitrary parameters for FFDH
 -----------------------------

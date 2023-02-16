@@ -6,9 +6,13 @@
 # -------
 # This runs ssl-opt.sh in a Docker container.
 #
+# WARNING: the Dockerfile used by this script is no longer maintained! See
+# https://github.com/Mbed-TLS/mbedtls-test/blob/master/README.md#quick-start
+# for the set of Docker images we use on the CI.
+#
 # Notes for users
 # ---------------
-# If OPENSSL_CMD, GNUTLS_CLI, or GNUTLS_SERV are specified, the path must
+# If OPENSSL, GNUTLS_CLI, or GNUTLS_SERV are specified, the path must
 # correspond to an executable inside the Docker container. The special
 # values "next" and "legacy" are also allowed as shorthand for the
 # installations inside the container.
@@ -34,9 +38,9 @@
 
 source tests/scripts/docker_env.sh
 
-case "${OPENSSL_CMD:-default}" in
-    "legacy")  export OPENSSL_CMD="/usr/local/openssl-1.0.1j/bin/openssl";;
-    "next")    export OPENSSL_CMD="/usr/local/openssl-1.1.1a/bin/openssl";;
+case "${OPENSSL:-default}" in
+    "legacy")  export OPENSSL="/usr/local/openssl-1.0.1j/bin/openssl";;
+    "next")    export OPENSSL="/usr/local/openssl-1.1.1a/bin/openssl";;
     *) ;;
 esac
 
@@ -58,6 +62,6 @@ run_in_docker \
     -e P_PXY \
     -e GNUTLS_CLI \
     -e GNUTLS_SERV \
-    -e OPENSSL_CMD \
+    -e OPENSSL \
     tests/ssl-opt.sh \
     $@

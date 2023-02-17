@@ -258,6 +258,8 @@ static int ssl_tls13_offered_psks_check_identity_match(
     int *psk_type,
     mbedtls_ssl_session *session)
 {
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
     ((void) session);
     ((void) obfuscated_ticket_age);
     *psk_type = MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL;
@@ -271,9 +273,13 @@ static int ssl_tls13_offered_psks_check_identity_match(
             session) == SSL_TLS1_3_OFFERED_PSK_MATCH) {
         ssl->handshake->resume = 1;
         *psk_type = MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION;
-        mbedtls_ssl_set_hs_psk(ssl,
-                               session->resumption_key,
-                               session->resumption_key_len);
+        ret = mbedtls_ssl_set_hs_psk(ssl,
+                                     session->resumption_key,
+                                     session->resumption_key_len);
+        if (ret != 0) {
+            MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_set_hs_psk", ret);
+            return ret;
+        }
 
         MBEDTLS_SSL_DEBUG_BUF(4, "Ticket-resumed PSK:",
                               session->resumption_key,
@@ -299,7 +305,11 @@ static int ssl_tls13_offered_psks_check_identity_match(
         identity_len == ssl->conf->psk_identity_len &&
         mbedtls_ct_memcmp(ssl->conf->psk_identity,
                           identity, identity_len) == 0) {
-        mbedtls_ssl_set_hs_psk(ssl, ssl->conf->psk, ssl->conf->psk_len);
+        ret = mbedtls_ssl_set_hs_psk(ssl, ssl->conf->psk, ssl->conf->psk_len);
+        if (ret != 0) {
+            MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_set_hs_psk", ret);
+            return ret;
+        }
         return SSL_TLS1_3_OFFERED_PSK_MATCH;
     }
 

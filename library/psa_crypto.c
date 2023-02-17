@@ -4289,11 +4289,13 @@ psa_status_t psa_key_derivation_abort(psa_key_derivation_operation_t *operation)
             mbedtls_free(operation->ctx.tls12_prf.label);
         }
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
         if (operation->ctx.tls12_prf.other_secret != NULL) {
             mbedtls_platform_zeroize(operation->ctx.tls12_prf.other_secret,
                                      operation->ctx.tls12_prf.other_secret_length);
             mbedtls_free(operation->ctx.tls12_prf.other_secret);
         }
+#endif
 
         status = PSA_SUCCESS;
 

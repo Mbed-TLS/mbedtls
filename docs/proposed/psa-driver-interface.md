@@ -410,7 +410,7 @@ The pointer output by `psa_crypto_driver_pake_get_password_key` is only valid un
 
 ```
 psa_status_t acme_pake_output(acme_pake_operation_t *operation,
-                              psa_pake_driver_step_t step,
+                              psa_crypto_driver_pake_step_t step,
                               uint8_t *output,
                               size_t output_size,
                               size_t *output_length);
@@ -437,7 +437,7 @@ For `PSA_ALG_JPAKE` the following steps are available for output operation:
 #### PAKE driver input
 ```
 psa_status_t acme_pake_input(acme_pake_operation_t *operation,
-                             psa_pake_driver_step_t step,
+                             psa_crypto_driver_pake_step_t step,
                              uint8_t *input,
                              size_t input_size);
 ```

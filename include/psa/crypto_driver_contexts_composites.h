@@ -93,7 +93,7 @@ typedef mbedtls_psa_aead_operation_t
 
 typedef libtestdriver1_mbedtls_psa_pake_operation_t
     mbedtls_transparent_test_driver_pake_operation_t;
-typedef libtestdriver1_psa_pake_operation_t
+typedef libtestdriver1_mbedtls_psa_pake_operation_t
     mbedtls_opaque_test_driver_pake_operation_t;
 
 #define MBEDTLS_TRANSPARENT_TEST_DRIVER_PAKE_OPERATION_INIT \

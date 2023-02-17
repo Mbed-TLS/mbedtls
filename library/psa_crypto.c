@@ -7407,7 +7407,7 @@ exit:
 }
 
 /* Auxiliary function to convert core computation stage(step, sequence, state) to single driver step. */
-static psa_pake_driver_step_t convert_jpake_computation_stage_to_driver_step(
+static psa_crypto_driver_pake_step_t convert_jpake_computation_stage_to_driver_step(
     psa_jpake_computation_stage_t *stage)
 {
     switch (stage->state) {
@@ -7843,7 +7843,7 @@ psa_status_t psa_pake_get_implicit_key(
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t abort_status = PSA_ERROR_CORRUPTION_DETECTED;
-    uint8_t shared_key[MBEDTLS_PSA_PAKE_BUFFER_SIZE];
+    uint8_t shared_key[MBEDTLS_PSA_JPAKE_BUFFER_SIZE];
     size_t shared_key_len = 0;
 
     if (operation->stage != PSA_PAKE_OPERATION_STAGE_COMPUTATION) {
@@ -7874,7 +7874,7 @@ psa_status_t psa_pake_get_implicit_key(
                                             shared_key,
                                             shared_key_len);
 
-    mbedtls_platform_zeroize(shared_key, MBEDTLS_PSA_PAKE_BUFFER_SIZE);
+    mbedtls_platform_zeroize(shared_key, MBEDTLS_PSA_JPAKE_BUFFER_SIZE);
 exit:
     abort_status = psa_pake_abort(operation);
     return status == PSA_SUCCESS ? abort_status : status;

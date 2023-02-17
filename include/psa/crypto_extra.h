@@ -429,7 +429,7 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  */
 #define PSA_DH_FAMILY_CUSTOM             ((psa_dh_family_t) 0x7e)
 
-/** EC-JPAKE operation stages. */
+/** PAKE operation stages. */
 #define PSA_PAKE_OPERATION_STAGE_SETUP 0
 #define PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS 1
 #define PSA_PAKE_OPERATION_STAGE_COMPUTATION 2
@@ -1895,7 +1895,7 @@ psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
  * psa_pake_operation_t.
  */
 #define PSA_PAKE_OPERATION_INIT { 0, PSA_ALG_NONE, PSA_PAKE_OPERATION_STAGE_SETUP, \
-                                  { { 0, 0, 0, 0 } }, { { 0 } } }
+                                  { 0 }, { { 0 } } }
 
 struct psa_pake_cipher_suite_s {
     psa_algorithm_t algorithm;
@@ -2002,7 +2002,7 @@ enum psa_jpake_sequence {
     PSA_PAKE_SEQ_END            = 7,
 };
 
-typedef enum psa_pake_driver_step {
+typedef enum psa_crypto_driver_pake_step {
     PSA_JPAKE_STEP_INVALID        = 0,  /* Invalid step */
     PSA_JPAKE_X1_STEP_KEY_SHARE   = 1,  /* Round 1: input/output key share (for ephemeral private key X1).*/
     PSA_JPAKE_X1_STEP_ZK_PUBLIC   = 2,  /* Round 1: input/output Schnorr NIZKP public key for the X1 key */
@@ -2016,7 +2016,7 @@ typedef enum psa_pake_driver_step {
     PSA_JPAKE_X4S_STEP_KEY_SHARE  = 10, /* Round 2: input X4S key (from peer) */
     PSA_JPAKE_X4S_STEP_ZK_PUBLIC  = 11, /* Round 2: input Schnorr NIZKP public key for the X4S key (from peer) */
     PSA_JPAKE_X4S_STEP_ZK_PROOF   = 12  /* Round 2: input Schnorr NIZKP proof for the X4S key (from peer) */
-} psa_pake_driver_step_t;
+} psa_crypto_driver_pake_step_t;
 
 
 struct psa_jpake_computation_stage_s {
@@ -2042,7 +2042,10 @@ struct psa_pake_operation_s {
     uint8_t MBEDTLS_PRIVATE(stage);
     /* Holds computation stage of the PAKE algorithms. */
     union {
+        uint8_t MBEDTLS_PRIVATE(dummy);
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
         psa_jpake_computation_stage_t MBEDTLS_PRIVATE(jpake);
+#endif
     } MBEDTLS_PRIVATE(computation_stage);
     union {
         psa_driver_pake_context_t MBEDTLS_PRIVATE(ctx);

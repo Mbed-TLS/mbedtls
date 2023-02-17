@@ -191,23 +191,25 @@ typedef struct {
 /* Note: the format for mbedtls_ecjpake_read/write function has an extra
  * length byte for each step, plus an extra 3 bytes for ECParameters in the
  * server's 2nd round. */
-#define MBEDTLS_PSA_PAKE_BUFFER_SIZE ((3 + 1 + 65 + 1 + 65 + 1 + 32) * 2)
+#define MBEDTLS_PSA_JPAKE_BUFFER_SIZE ((3 + 1 + 65 + 1 + 65 + 1 + 32) * 2)
 
 typedef struct {
     psa_algorithm_t MBEDTLS_PRIVATE(alg);
 
-#if defined(MBEDTLS_PSA_BUILTIN_PAKE)
     uint8_t *MBEDTLS_PRIVATE(password);
     size_t MBEDTLS_PRIVATE(password_len);
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     uint8_t MBEDTLS_PRIVATE(role);
-    uint8_t MBEDTLS_PRIVATE(buffer[MBEDTLS_PSA_PAKE_BUFFER_SIZE]);
+    uint8_t MBEDTLS_PRIVATE(buffer[MBEDTLS_PSA_JPAKE_BUFFER_SIZE]);
     size_t MBEDTLS_PRIVATE(buffer_length);
     size_t MBEDTLS_PRIVATE(buffer_offset);
 #endif
     /* Context structure for the Mbed TLS EC-JPAKE implementation. */
     union {
         unsigned int MBEDTLS_PRIVATE(dummy);
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
         mbedtls_ecjpake_context MBEDTLS_PRIVATE(pake);
+#endif
     } MBEDTLS_PRIVATE(ctx);
 
 } mbedtls_psa_pake_operation_t;

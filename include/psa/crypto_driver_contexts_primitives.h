@@ -45,8 +45,6 @@
 #include <libtestdriver1/include/psa/crypto.h>
 #endif
 
-#include "mbedtls/ecjpake.h"
-
 #if defined(PSA_CRYPTO_DRIVER_TEST)
 
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \

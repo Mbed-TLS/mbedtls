@@ -163,6 +163,7 @@ static psa_status_t mbedtls_ecjpake_to_psa_error(int ret)
 }
 #endif
 
+#if defined(MBEDTLS_PSA_BUILTIN_PAKE)
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
 static psa_status_t psa_pake_ecjpake_setup(mbedtls_psa_pake_operation_t *operation)
 {
@@ -187,6 +188,7 @@ static psa_status_t psa_pake_ecjpake_setup(mbedtls_psa_pake_operation_t *operati
 
     return PSA_SUCCESS;
 }
+#endif
 
 psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
                                     const psa_crypto_driver_pake_inputs_t *inputs)
@@ -237,7 +239,7 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
         operation->role = role;
         operation->alg = cipher_suite.algorithm;
 
-        mbedtls_platform_zeroize(operation->buffer, MBEDTLS_PSA_PAKE_BUFFER_SIZE);
+        mbedtls_platform_zeroize(operation->buffer, MBEDTLS_PSA_JPAKE_BUFFER_SIZE);
         operation->buffer_length = 0;
         operation->buffer_offset = 0;
 
@@ -259,7 +261,7 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
 
 static psa_status_t mbedtls_psa_pake_output_internal(
     mbedtls_psa_pake_operation_t *operation,
-    psa_pake_driver_step_t step,
+    psa_crypto_driver_pake_step_t step,
     uint8_t *output,
     size_t output_size,
     size_t *output_length)
@@ -288,7 +290,7 @@ static psa_status_t mbedtls_psa_pake_output_internal(
         if (step == PSA_JPAKE_X1_STEP_KEY_SHARE) {
             ret = mbedtls_ecjpake_write_round_one(&operation->ctx.pake,
                                                   operation->buffer,
-                                                  MBEDTLS_PSA_PAKE_BUFFER_SIZE,
+                                                  MBEDTLS_PSA_JPAKE_BUFFER_SIZE,
                                                   &operation->buffer_length,
                                                   mbedtls_psa_get_random,
                                                   MBEDTLS_PSA_RANDOM_STATE);
@@ -300,7 +302,7 @@ static psa_status_t mbedtls_psa_pake_output_internal(
         } else if (step == PSA_JPAKE_X2S_STEP_KEY_SHARE) {
             ret = mbedtls_ecjpake_write_round_two(&operation->ctx.pake,
                                                   operation->buffer,
-                                                  MBEDTLS_PSA_PAKE_BUFFER_SIZE,
+                                                  MBEDTLS_PSA_JPAKE_BUFFER_SIZE,
                                                   &operation->buffer_length,
                                                   mbedtls_psa_get_random,
                                                   MBEDTLS_PSA_RANDOM_STATE);
@@ -350,7 +352,7 @@ static psa_status_t mbedtls_psa_pake_output_internal(
         /* Reset buffer after ZK_PROOF sequence */
         if ((step == PSA_JPAKE_X2_STEP_ZK_PROOF) ||
             (step == PSA_JPAKE_X2S_STEP_ZK_PROOF)) {
-            mbedtls_platform_zeroize(operation->buffer, MBEDTLS_PSA_PAKE_BUFFER_SIZE);
+            mbedtls_platform_zeroize(operation->buffer, MBEDTLS_PSA_JPAKE_BUFFER_SIZE);
             operation->buffer_length = 0;
             operation->buffer_offset = 0;
         }
@@ -367,7 +369,7 @@ static psa_status_t mbedtls_psa_pake_output_internal(
 }
 
 psa_status_t mbedtls_psa_pake_output(mbedtls_psa_pake_operation_t *operation,
-                                     psa_pake_driver_step_t step,
+                                     psa_crypto_driver_pake_step_t step,
                                      uint8_t *output,
                                      size_t output_size,
                                      size_t *output_length)
@@ -380,7 +382,7 @@ psa_status_t mbedtls_psa_pake_output(mbedtls_psa_pake_operation_t *operation,
 
 static psa_status_t mbedtls_psa_pake_input_internal(
     mbedtls_psa_pake_operation_t *operation,
-    psa_pake_driver_step_t step,
+    psa_crypto_driver_pake_step_t step,
     const uint8_t *input,
     size_t input_length)
 {
@@ -441,7 +443,7 @@ static psa_status_t mbedtls_psa_pake_input_internal(
                                                  operation->buffer,
                                                  operation->buffer_length);
 
-            mbedtls_platform_zeroize(operation->buffer, MBEDTLS_PSA_PAKE_BUFFER_SIZE);
+            mbedtls_platform_zeroize(operation->buffer, MBEDTLS_PSA_JPAKE_BUFFER_SIZE);
             operation->buffer_length = 0;
 
             if (ret != 0) {
@@ -452,7 +454,7 @@ static psa_status_t mbedtls_psa_pake_input_internal(
                                                  operation->buffer,
                                                  operation->buffer_length);
 
-            mbedtls_platform_zeroize(operation->buffer, MBEDTLS_PSA_PAKE_BUFFER_SIZE);
+            mbedtls_platform_zeroize(operation->buffer, MBEDTLS_PSA_JPAKE_BUFFER_SIZE);
             operation->buffer_length = 0;
 
             if (ret != 0) {
@@ -471,7 +473,7 @@ static psa_status_t mbedtls_psa_pake_input_internal(
 }
 
 psa_status_t mbedtls_psa_pake_input(mbedtls_psa_pake_operation_t *operation,
-                                    psa_pake_driver_step_t step,
+                                    psa_crypto_driver_pake_step_t step,
                                     const uint8_t *input,
                                     size_t input_length)
 {
@@ -491,7 +493,7 @@ psa_status_t mbedtls_psa_pake_get_implicit_key(
     if (operation->alg == PSA_ALG_JPAKE) {
         ret = mbedtls_ecjpake_write_shared_key(&operation->ctx.pake,
                                                operation->buffer,
-                                               MBEDTLS_PSA_PAKE_BUFFER_SIZE,
+                                               MBEDTLS_PSA_JPAKE_BUFFER_SIZE,
                                                &operation->buffer_length,
                                                mbedtls_psa_get_random,
                                                MBEDTLS_PSA_RANDOM_STATE);
@@ -520,7 +522,7 @@ psa_status_t mbedtls_psa_pake_abort(mbedtls_psa_pake_operation_t *operation)
         operation->password = NULL;
         operation->password_len = 0;
         operation->role = PSA_PAKE_ROLE_NONE;
-        mbedtls_platform_zeroize(operation->buffer, MBEDTLS_PSA_PAKE_BUFFER_SIZE);
+        mbedtls_platform_zeroize(operation->buffer, MBEDTLS_PSA_JPAKE_BUFFER_SIZE);
         operation->buffer_length = 0;
         operation->buffer_offset = 0;
         mbedtls_ecjpake_free(&operation->ctx.pake);

@@ -421,14 +421,14 @@ psa_status_t psa_driver_wrapper_pake_setup(
 
 psa_status_t psa_driver_wrapper_pake_output(
     psa_pake_operation_t *operation,
-    psa_pake_driver_step_t step,
+    psa_crypto_driver_pake_step_t step,
     uint8_t *output,
     size_t output_size,
     size_t *output_length);
 
 psa_status_t psa_driver_wrapper_pake_input(
     psa_pake_operation_t *operation,
-    psa_pake_driver_step_t step,
+    psa_crypto_driver_pake_step_t step,
     const uint8_t *input,
     size_t input_length);
 

@@ -96,7 +96,7 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
  *         results in this error code.
  */
 psa_status_t mbedtls_psa_pake_output(mbedtls_psa_pake_operation_t *operation,
-                                     psa_pake_driver_step_t step,
+                                     psa_crypto_driver_pake_step_t step,
                                      uint8_t *output,
                                      size_t output_size,
                                      size_t *output_length);
@@ -143,7 +143,7 @@ psa_status_t mbedtls_psa_pake_output(mbedtls_psa_pake_operation_t *operation,
  *         results in this error code.
  */
 psa_status_t mbedtls_psa_pake_input(mbedtls_psa_pake_operation_t *operation,
-                                    psa_pake_driver_step_t step,
+                                    psa_crypto_driver_pake_step_t step,
                                     const uint8_t *input,
                                     size_t input_length);
 

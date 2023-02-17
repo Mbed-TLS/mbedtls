@@ -64,7 +64,7 @@ psa_status_t mbedtls_test_transparent_pake_setup(
 
 psa_status_t mbedtls_test_transparent_pake_output(
     mbedtls_transparent_test_driver_pake_operation_t *operation,
-    psa_pake_driver_step_t step,
+    psa_crypto_driver_pake_step_t step,
     uint8_t *output,
     size_t output_size,
     size_t *output_length)
@@ -112,7 +112,7 @@ psa_status_t mbedtls_test_transparent_pake_output(
 
 psa_status_t mbedtls_test_transparent_pake_input(
     mbedtls_transparent_test_driver_pake_operation_t *operation,
-    psa_pake_driver_step_t step,
+    psa_crypto_driver_pake_step_t step,
     const uint8_t *input,
     size_t input_length)
 {
@@ -260,7 +260,7 @@ psa_status_t mbedtls_test_opaque_pake_set_role(
 
 psa_status_t mbedtls_test_opaque_pake_output(
     mbedtls_opaque_test_driver_pake_operation_t *operation,
-    psa_pake_driver_step_t step,
+    psa_crypto_driver_pake_step_t step,
     uint8_t *output,
     size_t output_size,
     size_t *output_length)
@@ -276,7 +276,7 @@ psa_status_t mbedtls_test_opaque_pake_output(
 
 psa_status_t mbedtls_test_opaque_pake_input(
     mbedtls_opaque_test_driver_pake_operation_t *operation,
-    psa_pake_driver_step_t step,
+    psa_crypto_driver_pake_step_t step,
     const uint8_t *input,
     size_t input_length)
 {

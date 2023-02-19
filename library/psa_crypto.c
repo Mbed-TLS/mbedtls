@@ -7863,6 +7863,7 @@ psa_status_t psa_pake_get_implicit_key(
 
     status = psa_driver_wrapper_pake_get_implicit_key(operation,
                                                       shared_key,
+                                                      sizeof(shared_key),
                                                       &shared_key_len);
 
     if (status != PSA_SUCCESS) {

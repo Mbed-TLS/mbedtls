@@ -43,6 +43,8 @@
  *         compatible with the PAKE algorithm, or the hash algorithm in
  *         \p cipher_suite is not supported or not compatible with the PAKE
  *         algorithm and primitive.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
  */
 psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
                                     const psa_crypto_driver_pake_inputs_t *inputs);
@@ -59,10 +61,9 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
  * \param step                 The step of the algorithm for which the output is
  *                             requested.
  * \param[out] output          Buffer where the output is to be written in the
- *                             format appropriate for this \p step. Refer to
- *                             the documentation of the individual
- *                             \c PSA_PAKE_STEP_XXX constants for more
- *                             information.
+ *                             format appropriate for this driver \p step. Refer to
+ *                             the documentation of psa_crypto_driver_pake_step_t for
+ *                             more information.
  * \param output_size          Size of the \p output buffer in bytes. This must
  *                             be at least #PSA_PAKE_OUTPUT_SIZE(\p alg, \p
  *                             primitive, \p step) where \p alg and
@@ -77,23 +78,10 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
  *         Success.
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p output buffer is too small.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p step is not compatible with the operation's algorithm.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- *         \p step is not supported with the operation's algorithm.
  * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_STORAGE_FAILURE
  * \retval #PSA_ERROR_DATA_CORRUPT
  * \retval #PSA_ERROR_DATA_INVALID
- * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be active, and fully set
- *         up, and this call must conform to the algorithm's requirements
- *         for ordering of input and output steps).
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
  */
 psa_status_t mbedtls_psa_pake_output(mbedtls_psa_pake_operation_t *operation,
                                      psa_crypto_driver_pake_step_t step,
@@ -104,43 +92,32 @@ psa_status_t mbedtls_psa_pake_output(mbedtls_psa_pake_operation_t *operation,
 /** Provide input for a step of a password-authenticated key exchange.
  *
  * \note The signature of this function is that of a PSA driver
- *       key_agreement entry point. This function behaves as a key_agreement
+ *       pake_input entry point. This function behaves as a pake_input
  *       entry point as defined in the PSA driver interface specification for
  *       transparent drivers.
  *
  * \param[in,out] operation    Active PAKE operation.
- * \param step                 The step for which the input is provided.
+ * \param step                 The driver step for which the input is provided.
  * \param[in] input            Buffer containing the input in the format
  *                             appropriate for this \p step. Refer to the
- *                             documentation of the individual
- *                             \c PSA_PAKE_STEP_XXX constants for more
- *                             information.
+ *                             documentation of psa_crypto_driver_pake_step_t
+ *                             for more information.
  * \param input_length         Size of the \p input buffer in bytes.
  *
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_INVALID_SIGNATURE
- *         The verification fails for a #PSA_PAKE_STEP_ZK_PROOF input step.
+ *         The verification fails for a zero-knowledge input step.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p step is not compatible with the \p operation’s algorithm, or the
- *         \p input is not valid for the \p operation's algorithm, cipher suite
+ *         the \p input is not valid for the \p operation's algorithm, cipher suite
  *         or \p step.
  * \retval #PSA_ERROR_NOT_SUPPORTED
- *         \p step p is not supported with the \p operation's algorithm, or the
- *         \p input is not supported for the \p operation's algorithm, cipher
+ *         the \p input is not supported for the \p operation's algorithm, cipher
  *         suite or \p step.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_STORAGE_FAILURE
  * \retval #PSA_ERROR_DATA_CORRUPT
  * \retval #PSA_ERROR_DATA_INVALID
- * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be active, and fully set
- *         up, and this call must conform to the algorithm's requirements
- *         for ordering of input and output steps).
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
  */
 psa_status_t mbedtls_psa_pake_input(mbedtls_psa_pake_operation_t *operation,
                                     psa_crypto_driver_pake_step_t step,
@@ -155,8 +132,9 @@ psa_status_t mbedtls_psa_pake_input(mbedtls_psa_pake_operation_t *operation,
  *       interface specification for transparent drivers.
  *
  * \param[in,out] operation    Active PAKE operation.
- * \param[out] output          Output buffer for implicit key
- * \param[out] output_size     Size of the returned implicit key
+ * \param[out] output          Output buffer for implicit key.
+ * \param      output_size     Size of the output buffer in bytes.
+ * \param[out] output_length   On success, the number of bytes of the implicit key.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -164,24 +142,14 @@ psa_status_t mbedtls_psa_pake_input(mbedtls_psa_pake_operation_t *operation,
  *         Input from a PAKE is not supported by the algorithm in the \p output
  *         key derivation operation.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_STORAGE_FAILURE
  * \retval #PSA_ERROR_DATA_CORRUPT
  * \retval #PSA_ERROR_DATA_INVALID
- * \retval #PSA_ERROR_BAD_STATE
- *         The PAKE operation state is not valid (it must be active, but beyond
- *         that validity is specific to the algorithm),
- *         or the state of \p output is not valid for
- *         the #PSA_KEY_DERIVATION_INPUT_SECRET step. This can happen if the
- *         step is out of order or the application has done this step already
- *         and it may not be repeated.
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
  */
 psa_status_t mbedtls_psa_pake_get_implicit_key(
     mbedtls_psa_pake_operation_t *operation,
-    uint8_t *output, size_t *output_size);
+    uint8_t *output, size_t output_size,
+    size_t *output_length);
 
 /** Abort a PAKE operation.
  *
@@ -194,11 +162,7 @@ psa_status_t mbedtls_psa_pake_get_implicit_key(
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_BAD_STATE
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
  */
 psa_status_t mbedtls_psa_pake_abort(mbedtls_psa_pake_operation_t *operation);
 

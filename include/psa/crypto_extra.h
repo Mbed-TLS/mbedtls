@@ -1318,8 +1318,8 @@ psa_status_t psa_crypto_driver_pake_get_password_len(
  *
  * \param[in]  inputs           Operation inputs.
  * \param[out] buffer           Return buffer for password.
- * \param[in]  buffer_size      Size of the return buffer in bytes.
- * \param[in]  buffer_length    Actual size of the password in bytes.
+ * \param      buffer_size      Size of the return buffer in bytes.
+ * \param[out] buffer_length    Actual size of the password in bytes.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -2034,11 +2034,10 @@ struct psa_pake_operation_s {
      * ID value zero means the context is not valid or not assigned to
      * any driver (i.e. none of the driver contexts are active). */
     unsigned int MBEDTLS_PRIVATE(id);
-    /* Algorithm used for PAKE operation */
+    /* Algorithm of the PAKE operation */
     psa_algorithm_t MBEDTLS_PRIVATE(alg);
-    /* Based on stage (collecting inputs/computation) we select active structure of data union.
-     * While switching stage (when driver setup is called) collected inputs
-       are copied to the corresponding operation context. */
+    /* Stage of the PAKE operation: waiting for the setup, collecting inputs
+     * or computing. */
     uint8_t MBEDTLS_PRIVATE(stage);
     /* Holds computation stage of the PAKE algorithms. */
     union {

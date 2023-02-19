@@ -485,7 +485,8 @@ psa_status_t mbedtls_psa_pake_input(mbedtls_psa_pake_operation_t *operation,
 
 psa_status_t mbedtls_psa_pake_get_implicit_key(
     mbedtls_psa_pake_operation_t *operation,
-    uint8_t *output, size_t *output_size)
+    uint8_t *output, size_t output_size,
+    size_t *output_length)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
@@ -493,7 +494,7 @@ psa_status_t mbedtls_psa_pake_get_implicit_key(
     if (operation->alg == PSA_ALG_JPAKE) {
         ret = mbedtls_ecjpake_write_shared_key(&operation->ctx.pake,
                                                operation->buffer,
-                                               MBEDTLS_PSA_JPAKE_BUFFER_SIZE,
+                                               output_size,
                                                &operation->buffer_length,
                                                mbedtls_psa_get_random,
                                                MBEDTLS_PSA_RANDOM_STATE);
@@ -502,7 +503,7 @@ psa_status_t mbedtls_psa_pake_get_implicit_key(
         }
 
         memcpy(output, operation->buffer, operation->buffer_length);
-        *output_size = operation->buffer_length;
+        *output_length = operation->buffer_length;
 
         return PSA_SUCCESS;
     } else

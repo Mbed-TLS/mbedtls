@@ -2938,13 +2938,15 @@ psa_status_t psa_driver_wrapper_pake_input(
 
 psa_status_t psa_driver_wrapper_pake_get_implicit_key(
     psa_pake_operation_t *operation,
-    uint8_t *output, size_t *output_size )
+    uint8_t *output, size_t output_size,
+    size_t *output_length )
 {
     switch( operation->id )
     {
 #if defined(MBEDTLS_PSA_BUILTIN_PAKE)
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            return( mbedtls_psa_pake_get_implicit_key( &operation->data.ctx.mbedtls_ctx, output, output_size ) );
+            return( mbedtls_psa_pake_get_implicit_key( &operation->data.ctx.mbedtls_ctx,
+                                                       output, output_size, output_length ) );
 #endif /* MBEDTLS_PSA_BUILTIN_PAKE */
 
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
@@ -2952,11 +2954,11 @@ psa_status_t psa_driver_wrapper_pake_get_implicit_key(
         case MBEDTLS_TEST_TRANSPARENT_DRIVER_ID:
             return( mbedtls_test_transparent_pake_get_implicit_key(
                         &operation->data.ctx.transparent_test_driver_ctx,
-                        output, output_size ) );
+                        output, output_size, output_length ) );
         case MBEDTLS_TEST_OPAQUE_DRIVER_ID:
             return( mbedtls_test_opaque_pake_get_implicit_key(
                         &operation->data.ctx.opaque_test_driver_ctx,
-                        output, output_size ) );
+                        output, output_size, output_length ) );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
         default:

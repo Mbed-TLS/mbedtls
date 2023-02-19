@@ -463,12 +463,14 @@ For `PSA_ALG_JPAKE` the following steps are available for input operation:
 ```
 psa_status_t acme_pake_get_implicit_key(
                             acme_pake_operation_t *operation,
-                            uint8_t *output, size_t *output_size );
+                            uint8_t *output, size_t output_size,
+                            size_t *output_length );
 ```
 
-* `operation` is an operation object
-* `output` output buffer for implicit key
-* `output_size` size of the returned implicit key
+* `operation` The driver PAKE operation object to use.
+* `output` Buffer where the implicit key is to be written.
+* `output_size` Size of the output buffer in bytes.
+* `output_length` On success, the number of bytes of the implicit key.
 
 ### Driver entry points for key management
 

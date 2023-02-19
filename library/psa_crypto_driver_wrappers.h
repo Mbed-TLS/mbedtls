@@ -434,7 +434,8 @@ psa_status_t psa_driver_wrapper_pake_input(
 
 psa_status_t psa_driver_wrapper_pake_get_implicit_key(
     psa_pake_operation_t *operation,
-    uint8_t *output, size_t *output_size);
+    uint8_t *output, size_t output_size,
+    size_t *output_length);
 
 psa_status_t psa_driver_wrapper_pake_abort(
     psa_pake_operation_t *operation);

@@ -70,7 +70,7 @@ psa_status_t mbedtls_test_transparent_pake_input(
 
 psa_status_t mbedtls_test_transparent_pake_get_implicit_key(
     mbedtls_transparent_test_driver_pake_operation_t *operation,
-    uint8_t *output, size_t *output_size);
+    uint8_t *output, size_t output_size, size_t *output_length);
 
 psa_status_t mbedtls_test_transparent_pake_abort(
     mbedtls_transparent_test_driver_pake_operation_t *operation);
@@ -114,7 +114,7 @@ psa_status_t mbedtls_test_opaque_pake_input(
 
 psa_status_t mbedtls_test_opaque_pake_get_implicit_key(
     mbedtls_opaque_test_driver_pake_operation_t *operation,
-    uint8_t *output, size_t *output_size);
+    uint8_t *output, size_t output_size, size_t *output_length);
 
 psa_status_t mbedtls_test_opaque_pake_abort(
     mbedtls_opaque_test_driver_pake_operation_t *operation);

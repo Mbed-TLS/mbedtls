@@ -6546,6 +6546,12 @@ void sign_hash_interruptible(int key_type_arg, data_t *key_data,
             TEST_ASSERT(num_ops > num_ops_prior);
 
             num_ops_prior = num_ops;
+
+            /* Ensure calling get_num_ops() twice still returns the same
+             * number of ops as previously reported. */
+            num_ops = psa_sign_hash_get_num_ops(&operation);
+
+            TEST_EQUAL(num_ops, num_ops_prior);
         }
     } while (status == PSA_OPERATION_INCOMPLETE);
 
@@ -7037,6 +7043,12 @@ void verify_hash_interruptible(int key_type_arg, data_t *key_data,
             TEST_ASSERT(num_ops > num_ops_prior);
 
             num_ops_prior = num_ops;
+
+            /* Ensure calling get_num_ops() twice still returns the same
+             * number of ops as previously reported. */
+            num_ops = psa_verify_hash_get_num_ops(&operation);
+
+            TEST_EQUAL(num_ops, num_ops_prior);
         }
     } while (status == PSA_OPERATION_INCOMPLETE);
 

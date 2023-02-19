@@ -3499,15 +3499,12 @@ uint32_t mbedtls_psa_interruptible_get_max_ops( void )
 }
 
 uint32_t mbedtls_psa_sign_hash_get_num_ops(
-                    mbedtls_psa_sign_hash_interruptible_operation_t *operation)
+    const mbedtls_psa_sign_hash_interruptible_operation_t *operation)
 {
 #if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
     defined(MBEDTLS_ECP_RESTARTABLE)
 
-    /* Hide the fact that the restart context only holds a delta of number of
-     * ops done during the last operation, not an absolute value. */
-    operation->num_ops += operation->restart_ctx.ecp.ops_done;
     return operation->num_ops;
 #else
     (void) operation;
@@ -3518,15 +3515,12 @@ uint32_t mbedtls_psa_sign_hash_get_num_ops(
 }
 
 uint32_t mbedtls_psa_verify_hash_get_num_ops(
-                mbedtls_psa_verify_hash_interruptible_operation_t *operation)
+    const mbedtls_psa_verify_hash_interruptible_operation_t *operation)
 {
     #if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
     defined(MBEDTLS_ECP_RESTARTABLE)
 
-    /* Hide the fact that the restart context only holds a delta of number of
-     * ops done during the last operation, not an absolute value. */
-    operation->num_ops += operation->restart_ctx.ecp.ops_done;
     return operation->num_ops;
 #else
     (void) operation;
@@ -3668,6 +3662,10 @@ psa_status_t mbedtls_psa_sign_hash_complete(
                                                     MBEDTLS_PSA_RANDOM_STATE,
                                                     &operation->restart_ctx ) );
     }
+
+    /* Hide the fact that the restart context only holds a delta of number of
+     * ops done during the last operation, not an absolute value. */
+    operation->num_ops += operation->restart_ctx.ecp.ops_done;
 
     if( status == PSA_SUCCESS )
     {
@@ -3856,22 +3854,29 @@ psa_status_t mbedtls_psa_verify_hash_complete(
 {
 
 #if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
-     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ) && \
-     defined( MBEDTLS_ECP_RESTARTABLE )
+    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
+    defined(MBEDTLS_ECP_RESTARTABLE)
 
-    return( mbedtls_to_psa_error(
-                 mbedtls_ecdsa_verify_restartable( &operation->ctx->grp,
-                                                   operation->hash,
-                                                   operation->hash_length,
-                                                   &operation->ctx->Q,
-                                                   &operation->r,
-                                                   &operation->s,
-                                                   &operation->restart_ctx ) ) );
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
+    status = mbedtls_to_psa_error(
+        mbedtls_ecdsa_verify_restartable(&operation->ctx->grp,
+                                         operation->hash,
+                                         operation->hash_length,
+                                         &operation->ctx->Q,
+                                         &operation->r,
+                                         &operation->s,
+                                         &operation->restart_ctx));
+
+    /* Hide the fact that the restart context only holds a delta of number of
+     * ops done during the last operation, not an absolute value. */
+    operation->num_ops += operation->restart_ctx.ecp.ops_done;
+
+    return status;
 #else
-    ( void ) operation;
+    (void) operation;
 
-    return( PSA_ERROR_NOT_SUPPORTED );
+    return PSA_ERROR_NOT_SUPPORTED;
 
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) &&

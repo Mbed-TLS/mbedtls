@@ -657,7 +657,7 @@ uint32_t mbedtls_psa_interruptible_get_max_ops( void );
  *                              mbedtls_psa_sign_hash_complete().
  */
 uint32_t mbedtls_psa_sign_hash_get_num_ops(
-                   mbedtls_psa_sign_hash_interruptible_operation_t *operation);
+    const mbedtls_psa_sign_hash_interruptible_operation_t *operation);
 
 /**
  * \brief Get the number of ops that a hash verification operation has taken for
@@ -678,7 +678,7 @@ uint32_t mbedtls_psa_sign_hash_get_num_ops(
  *                              mbedtls_psa_verify_hash_complete().
  */
 uint32_t mbedtls_psa_verify_hash_get_num_ops(
-                 mbedtls_psa_verify_hash_interruptible_operation_t *operation);
+    const mbedtls_psa_verify_hash_interruptible_operation_t *operation);
 
 /**
  * \brief  Start signing a hash or short message with a private key, in an

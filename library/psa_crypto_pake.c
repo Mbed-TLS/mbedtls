@@ -214,38 +214,38 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
         return status;
     }
 
+    operation->password = mbedtls_calloc(1, password_len);
+    if (operation->password == NULL) {
+        return PSA_ERROR_INSUFFICIENT_MEMORY;
+    }
+
+    status = psa_crypto_driver_pake_get_password(inputs, operation->password,
+                                                password_len, &actual_password_len);
+    if (status != PSA_SUCCESS) {
+        goto error;
+    }
+
+    operation->password_len = actual_password_len;
+    operation->alg = cipher_suite.algorithm;
+
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     if (cipher_suite.algorithm == PSA_ALG_JPAKE) {
         if (cipher_suite.type != PSA_PAKE_PRIMITIVE_TYPE_ECC ||
             cipher_suite.family != PSA_ECC_FAMILY_SECP_R1 ||
             cipher_suite.bits != 256 ||
             cipher_suite.hash != PSA_ALG_SHA_256) {
-            return PSA_ERROR_NOT_SUPPORTED;
+            status = PSA_ERROR_NOT_SUPPORTED;
+            goto error;
         }
 
-        operation->password = mbedtls_calloc(1, password_len);
-        if (operation->password == NULL) {
-            status = PSA_ERROR_INSUFFICIENT_MEMORY;
-            return status;
-        }
-
-        status = psa_crypto_driver_pake_get_password(inputs, operation->password,
-                                                     password_len, &actual_password_len);
-        if (status != PSA_SUCCESS) {
-            return status;
-        }
-
-        operation->password_len = actual_password_len;
         operation->role = role;
-        operation->alg = cipher_suite.algorithm;
 
-        mbedtls_platform_zeroize(operation->buffer, MBEDTLS_PSA_JPAKE_BUFFER_SIZE);
         operation->buffer_length = 0;
         operation->buffer_offset = 0;
 
         status = psa_pake_ecjpake_setup(operation);
         if (status != PSA_SUCCESS) {
-            return status;
+            goto error;
         }
 
         return PSA_SUCCESS;
@@ -254,8 +254,11 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
     (void) operation;
     (void) inputs;
 #endif
-    { status = PSA_ERROR_NOT_SUPPORTED; }
+    { return PSA_ERROR_NOT_SUPPORTED; }
 
+error:
+    mbedtls_platform_zeroize(operation->password, operation->password_len);
+    mbedtls_free(operation->password);
     return status;
 }
 

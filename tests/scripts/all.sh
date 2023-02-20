@@ -2351,10 +2351,10 @@ config_psa_crypto_hash_use_psa () {
     scripts/config.py unset MBEDTLS_ENTROPY_C
     scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED # depends on ENTROPY_C
     scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT # depends on former
-    # Also unset MD_C and things that depend on it;
-    # see component_test_crypto_full_no_md.
+    # Also unset MD_C and things that depend on it.
     if [ "$DRIVER_ONLY" -eq 1 ]; then
         scripts/config.py unset MBEDTLS_MD_C
+        scripts/config.py unset MBEDTLS_MD_LIGHT
     fi
     scripts/config.py unset MBEDTLS_HKDF_C # has independent PSA implementation
     scripts/config.py unset MBEDTLS_HMAC_DRBG_C

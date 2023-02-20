@@ -902,7 +902,7 @@ static int oid_parse_number(const char **p, const char *bound)
     while (*p < bound && **p >= '0' && **p <= '9') {
         ret = 0;
         if (num > (INT_MAX / 10)) {
-            return MBEDTLS_ERR_OID_BUF_TOO_SMALL;
+            return MBEDTLS_ERR_ASN1_INVALID_DATA;
         }
         num *= 10;
         num += **p - '0';
@@ -988,7 +988,7 @@ int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid,
 
     if ((UINT_MAX - (unsigned int) component2) <=
         ((unsigned int) component1 * 40)) {
-        return MBEDTLS_ERR_OID_BUF_TOO_SMALL;
+        return MBEDTLS_ERR_ASN1_INVALID_DATA;
     }
     encoded_len = oid_subidentifier_num_bytes(((unsigned int) component1 * 40)
                                               + (unsigned int) component2);
@@ -1008,7 +1008,7 @@ int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid,
 
         size_t num_bytes = oid_subidentifier_num_bytes(val);
         if ((SIZE_MAX - encoded_len) <= num_bytes) {
-            return MBEDTLS_ERR_OID_BUF_TOO_SMALL;
+            return MBEDTLS_ERR_ASN1_INVALID_DATA;
         }
         encoded_len += num_bytes;
     }

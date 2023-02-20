@@ -839,13 +839,13 @@ int mbedtls_oid_get_numeric_string(char *buf, size_t size,
     value = 0;
     if ((oid->p[0]) == 0x80) {
         /* Overlong encoding is not allowed */
-        return MBEDTLS_ERR_OID_BUF_TOO_SMALL;
+        return MBEDTLS_ERR_ASN1_INVALID_DATA;
     }
 
     while (i < oid->len && ((oid->p[i] & 0x80) != 0)) {
         /* Prevent overflow in value. */
         if (value > (UINT_MAX >> 7)) {
-            return MBEDTLS_ERR_OID_BUF_TOO_SMALL;
+            return MBEDTLS_ERR_ASN1_INVALID_DATA;
         }
 
         value |= oid->p[i] & 0x7F;
@@ -853,7 +853,7 @@ int mbedtls_oid_get_numeric_string(char *buf, size_t size,
         i++;
     }
     if (i >= oid->len) {
-        return MBEDTLS_ERR_OID_BUF_TOO_SMALL;
+        return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
     }
     /* Last byte of first subidentifier */
     value |= oid->p[i] & 0x7F;
@@ -874,11 +874,11 @@ int mbedtls_oid_get_numeric_string(char *buf, size_t size,
     for (; i < oid->len; i++) {
         /* Prevent overflow in value. */
         if (value > (UINT_MAX >> 7)) {
-            return MBEDTLS_ERR_OID_BUF_TOO_SMALL;
+            return MBEDTLS_ERR_ASN1_INVALID_DATA;
         }
         if ((value == 0) && ((oid->p[i]) == 0x80)) {
             /* Overlong encoding is not allowed */
-            return MBEDTLS_ERR_OID_BUF_TOO_SMALL;
+            return MBEDTLS_ERR_ASN1_INVALID_DATA;
         }
 
         value <<= 7;

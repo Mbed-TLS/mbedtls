@@ -95,6 +95,28 @@ int mbedtls_ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn);
 
 #endif /* MBEDTLS_ECP_DP_SECP192R1_ENABLED */
 
+#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+
+/** Fast quasi-reduction modulo p521 = 2^521 - 1 (FIPS 186-3 D.2.5)
+ *
+ * \param[in,out]   X       The address of the MPI to be converted.
+ *                          Must have twice as many limbs as the modulus
+ *                          (the modulus is 521 bits long). Upon return this
+ *                          holds the reduced value. The reduced value is
+ *                          in range `0 <= X < 2 * N` (where N is the modulus).
+ *                          and its the bitlength is one plus the bitlength
+ *                          of the modulus.
+ * \param[in]       X_limbs The length of \p X in limbs.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if \p X_limbs does not have
+ *                  twice as many limbs as the modulus.
+ */
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *X, size_t X_limbs);
+
+#endif /* MBEDTLS_ECP_DP_SECP521R1_ENABLED */
+
 #endif /* MBEDTLS_TEST_HOOKS && MBEDTLS_ECP_C */
 
 #endif /* MBEDTLS_ECP_INVASIVE_H */

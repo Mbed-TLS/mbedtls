@@ -4584,6 +4584,8 @@ static int ecp_mod_p384(mbedtls_mpi *);
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
 static int ecp_mod_p521(mbedtls_mpi *);
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *N_p, size_t N_n);
 #endif
 
 #define NIST_MODP(P)      grp->modp = ecp_mod_ ## P;
@@ -5189,11 +5191,6 @@ cleanup:
           MBEDTLS_ECP_DP_SECP384R1_ENABLED */
 
 #if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
-/*
- * Here we have an actual Mersenne prime, so things are more straightforward.
- * However, chunks are aligned on a 'weird' boundary (521 bits).
- */
-
 /* Size of p521 in terms of mbedtls_mpi_uint */
 #define P521_WIDTH      (521 / 8 / sizeof(mbedtls_mpi_uint) + 1)
 
@@ -5201,48 +5198,81 @@ cleanup:
 #define P521_MASK       0x01FF
 
 /*
- * Fast quasi-reduction modulo p521 (FIPS 186-3 D.2.5)
- * Write N as A1 + 2^521 A0, return A0 + A1
+ * Fast quasi-reduction modulo p521 = 2^521 - 1 (FIPS 186-3 D.2.5)
  */
 static int ecp_mod_p521(mbedtls_mpi *N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t i;
-    mbedtls_mpi M;
-    mbedtls_mpi_uint Mp[P521_WIDTH + 1];
-    /* Worst case for the size of M is when mbedtls_mpi_uint is 16 bits:
-     * we need to hold bits 513 to 1056, which is 34 limbs, that is
-     * P521_WIDTH + 1. Otherwise P521_WIDTH is enough. */
-
-    if (N->n < P521_WIDTH) {
-        return 0;
-    }
-
-    /* M = A1 */
-    M.s = 1;
-    M.n = N->n - (P521_WIDTH - 1);
-    if (M.n > P521_WIDTH + 1) {
-        M.n = P521_WIDTH + 1;
-    }
-    M.p = Mp;
-    memcpy(Mp, N->p + P521_WIDTH - 1, M.n * sizeof(mbedtls_mpi_uint));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_shift_r(&M, 521 % (8 * sizeof(mbedtls_mpi_uint))));
-
-    /* N = A0 */
-    N->p[P521_WIDTH - 1] &= P521_MASK;
-    for (i = P521_WIDTH; i < N->n; i++) {
-        N->p[i] = 0;
-    }
-
-    /* N = A0 + A1 */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_add_abs(N, N, &M));
-
+    size_t expected_width = 2 * P521_WIDTH;
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
+    ret = mbedtls_ecp_mod_p521_raw(N->p, expected_width);
 cleanup:
     return ret;
 }
 
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *X, size_t X_limbs)
+{
+    mbedtls_mpi_uint carry = 0;
+
+    if (X_limbs != 2 * P521_WIDTH || X[2 * P521_WIDTH - 1] != 0) {
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+
+    /* Step 1: Reduction to P521_WIDTH limbs */
+    /* Helper references for bottom part of X */
+    mbedtls_mpi_uint *X0 = X;
+    size_t X0_limbs = P521_WIDTH;
+    /* Helper references for top part of X */
+    mbedtls_mpi_uint *X1 = X + X0_limbs;
+    size_t X1_limbs = X_limbs - X0_limbs;
+    /* Split X as X0 + 2^P521_WIDTH X1 and compute X0 + 2^(biL - 9) X1.
+     * (We are using that 2^P521_WIDTH = 2^(512 + biL) and that
+     * 2^(512 + biL) X1 = 2^(biL - 9) X1 mod P521.)
+     * The high order limb of the result will be held in carry and the rest
+     * in X0 (that is the result will be represented as
+     * 2^P521_WIDTH carry + X0).
+     *
+     * Also, note that the resulting carry is either 0 or 1:
+     * X0 < 2^P521_WIDTH = 2^(512 + biL) and X1 < 2^(P521_WIDTH-biL) = 2^512
+     * therefore
+     * X0 + 2^(biL - 9) X1 < 2^(512 + biL) + 2^(512 + biL - 9)
+     * which in turn is less than 2 * 2^(512 + biL).
+     */
+    mbedtls_mpi_uint shift = ((mbedtls_mpi_uint) 1u) << (biL - 9);
+    carry = mbedtls_mpi_core_mla(X0, X0_limbs, X1, X1_limbs, shift);
+    /* Set X to X0 (by clearing the top part). */
+    memset(X1, 0, X1_limbs * sizeof(mbedtls_mpi_uint));
+
+    /* Step 2: Reduction modulo P521
+     *
+     * At this point X is reduced to P521_WIDTH limbs. What remains is to add
+     * the carry (that is 2^P521_WIDTH carry) and to reduce mod P521. */
+
+    /* 2^P521_WIDTH carry = 2^(512 + biL) carry = 2^(biL - 9) carry mod P521.
+     * Also, recall that carry is either 0 or 1. */
+    mbedtls_mpi_uint addend = carry << (biL - 9);
+    /* Keep the top 9 bits and reduce the rest, using 2^521 = 1 mod P521. */
+    addend += (X[P521_WIDTH - 1] >> 9);
+    X[P521_WIDTH - 1] &= P521_MASK;
+
+    /* Resuse the top part of X (already zeroed) as a helper array for
+     * carrying out the addition. */
+    mbedtls_mpi_uint *addend_arr = X + P521_WIDTH;
+    addend_arr[0] = addend;
+    (void) mbedtls_mpi_core_add(X, X, addend_arr, P521_WIDTH);
+    /* Both addends were less than P521 therefore X < 2 * P521. (This also means
+     * that the result fit in P521_WIDTH limbs and there won't be any carry.) */
+
+    /* Clear the reused part of X. */
+    addend_arr[0] = 0;
+
+    return 0;
+}
+
 #undef P521_WIDTH
 #undef P521_MASK
+
 #endif /* MBEDTLS_ECP_DP_SECP521R1_ENABLED */
 
 #endif /* MBEDTLS_ECP_NIST_OPTIM */

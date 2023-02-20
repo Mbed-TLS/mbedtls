@@ -974,8 +974,8 @@ int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid,
     if (component2 < 0) {
         return component2;
     }
-    if ((component1 < 2) && (component2 > 38)) {
-        /* Root nodes 0 and 1 may have up to 39 children */
+    if ((component1 < 2) && (component2 > 39)) {
+        /* Root nodes 0 and 1 may have up to 40 children, numbered 0-39 */
         return MBEDTLS_ERR_ASN1_INVALID_DATA;
     }
     if (str_ptr < str_bound && *str_ptr != '\0') {

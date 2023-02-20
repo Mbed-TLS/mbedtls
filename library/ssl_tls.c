@@ -2145,9 +2145,12 @@ int mbedtls_ssl_set_hs_psk(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 
-    if (psk_len > MBEDTLS_PSK_MAX_LEN) {
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    if (ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_2 &&
+        psk_len > MBEDTLS_PSK_MAX_LEN) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
     ssl_remove_psk(ssl);
 

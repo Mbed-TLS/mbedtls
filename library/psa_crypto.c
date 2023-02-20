@@ -7256,6 +7256,7 @@ psa_status_t psa_pake_setup(
     operation->alg = cipher_suite->algorithm;
     operation->data.inputs.cipher_suite = *cipher_suite;
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     if (operation->alg == PSA_ALG_JPAKE) {
         psa_jpake_computation_stage_t *computation_stage =
             &operation->computation_stage.jpake;
@@ -7264,6 +7265,12 @@ psa_status_t psa_pake_setup(
         computation_stage->sequence = PSA_PAKE_SEQ_INVALID;
         computation_stage->input_step = PSA_PAKE_STEP_X1_X2;
         computation_stage->output_step = PSA_PAKE_STEP_X1_X2;
+    } else
+#else
+#endif
+    {
+        status = PSA_ERROR_NOT_SUPPORTED;
+        goto exit;
     }
 
     operation->stage = PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS;
@@ -7407,6 +7414,7 @@ exit:
 }
 
 /* Auxiliary function to convert core computation stage(step, sequence, state) to single driver step. */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
 static psa_crypto_driver_pake_step_t convert_jpake_computation_stage_to_driver_step(
     psa_jpake_computation_stage_t *stage)
 {
@@ -7469,6 +7477,7 @@ static psa_crypto_driver_pake_step_t convert_jpake_computation_stage_to_driver_s
     }
     return PSA_JPAKE_STEP_INVALID;
 }
+#endif
 
 static psa_status_t psa_pake_complete_inputs(
     psa_pake_operation_t *operation)
@@ -7501,6 +7510,7 @@ static psa_status_t psa_pake_complete_inputs(
     mbedtls_free(inputs.password);
 
     if (status == PSA_SUCCESS) {
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
         if (operation->alg == PSA_ALG_JPAKE) {
             psa_jpake_computation_stage_t *computation_stage =
                 &operation->computation_stage.jpake;
@@ -7508,102 +7518,114 @@ static psa_status_t psa_pake_complete_inputs(
             computation_stage->sequence = PSA_PAKE_SEQ_INVALID;
             computation_stage->input_step = PSA_PAKE_STEP_X1_X2;
             computation_stage->output_step = PSA_PAKE_STEP_X1_X2;
+        } else
+#endif
+        {
+            status = PSA_ERROR_NOT_SUPPORTED;
         }
     }
     return status;
 }
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
 static psa_status_t psa_jpake_output_prologue(
     psa_pake_operation_t *operation,
     psa_pake_step_t step)
 {
-    psa_jpake_computation_stage_t *computation_stage =
-        &operation->computation_stage.jpake;
-
-    if (computation_stage->state == PSA_PAKE_STATE_INVALID) {
-        return PSA_ERROR_BAD_STATE;
-    }
-
     if (step != PSA_PAKE_STEP_KEY_SHARE &&
         step != PSA_PAKE_STEP_ZK_PUBLIC &&
         step != PSA_PAKE_STEP_ZK_PROOF) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
-    if (computation_stage->state != PSA_PAKE_STATE_READY &&
-        computation_stage->state != PSA_PAKE_OUTPUT_X1_X2 &&
-        computation_stage->state != PSA_PAKE_OUTPUT_X2S) {
-        return PSA_ERROR_BAD_STATE;
-    }
+    if (operation->alg == PSA_ALG_JPAKE) {
+        psa_jpake_computation_stage_t *computation_stage =
+            &operation->computation_stage.jpake;
 
-    if (computation_stage->state == PSA_PAKE_STATE_READY) {
-        if (step != PSA_PAKE_STEP_KEY_SHARE) {
+        if (computation_stage->state == PSA_PAKE_STATE_INVALID) {
             return PSA_ERROR_BAD_STATE;
         }
 
-        switch (computation_stage->output_step) {
-            case PSA_PAKE_STEP_X1_X2:
-                computation_stage->state = PSA_PAKE_OUTPUT_X1_X2;
-                break;
-            case PSA_PAKE_STEP_X2S:
-                computation_stage->state = PSA_PAKE_OUTPUT_X2S;
-                break;
-            default:
-                return PSA_ERROR_BAD_STATE;
+        if (computation_stage->state != PSA_PAKE_STATE_READY &&
+            computation_stage->state != PSA_PAKE_OUTPUT_X1_X2 &&
+            computation_stage->state != PSA_PAKE_OUTPUT_X2S) {
+            return PSA_ERROR_BAD_STATE;
         }
 
-        computation_stage->sequence = PSA_PAKE_X1_STEP_KEY_SHARE;
-    }
-
-    /* Check if step matches current sequence */
-    switch (computation_stage->sequence) {
-        case PSA_PAKE_X1_STEP_KEY_SHARE:
-        case PSA_PAKE_X2_STEP_KEY_SHARE:
+        if (computation_stage->state == PSA_PAKE_STATE_READY) {
             if (step != PSA_PAKE_STEP_KEY_SHARE) {
                 return PSA_ERROR_BAD_STATE;
             }
-            break;
 
-        case PSA_PAKE_X1_STEP_ZK_PUBLIC:
-        case PSA_PAKE_X2_STEP_ZK_PUBLIC:
-            if (step != PSA_PAKE_STEP_ZK_PUBLIC) {
-                return PSA_ERROR_BAD_STATE;
+            switch (computation_stage->output_step) {
+                case PSA_PAKE_STEP_X1_X2:
+                    computation_stage->state = PSA_PAKE_OUTPUT_X1_X2;
+                    break;
+                case PSA_PAKE_STEP_X2S:
+                    computation_stage->state = PSA_PAKE_OUTPUT_X2S;
+                    break;
+                default:
+                    return PSA_ERROR_BAD_STATE;
             }
-            break;
 
-        case PSA_PAKE_X1_STEP_ZK_PROOF:
-        case PSA_PAKE_X2_STEP_ZK_PROOF:
-            if (step != PSA_PAKE_STEP_ZK_PROOF) {
+            computation_stage->sequence = PSA_PAKE_X1_STEP_KEY_SHARE;
+        }
+
+        /* Check if step matches current sequence */
+        switch (computation_stage->sequence) {
+            case PSA_PAKE_X1_STEP_KEY_SHARE:
+            case PSA_PAKE_X2_STEP_KEY_SHARE:
+                if (step != PSA_PAKE_STEP_KEY_SHARE) {
+                    return PSA_ERROR_BAD_STATE;
+                }
+                break;
+
+            case PSA_PAKE_X1_STEP_ZK_PUBLIC:
+            case PSA_PAKE_X2_STEP_ZK_PUBLIC:
+                if (step != PSA_PAKE_STEP_ZK_PUBLIC) {
+                    return PSA_ERROR_BAD_STATE;
+                }
+                break;
+
+            case PSA_PAKE_X1_STEP_ZK_PROOF:
+            case PSA_PAKE_X2_STEP_ZK_PROOF:
+                if (step != PSA_PAKE_STEP_ZK_PROOF) {
+                    return PSA_ERROR_BAD_STATE;
+                }
+                break;
+
+            default:
                 return PSA_ERROR_BAD_STATE;
-            }
-            break;
-
-        default:
-            return PSA_ERROR_BAD_STATE;
+        }
     }
 
     return PSA_SUCCESS;
 }
+#endif
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
 static psa_status_t psa_jpake_output_epilogue(
     psa_pake_operation_t *operation)
 {
-    psa_jpake_computation_stage_t *computation_stage =
-        &operation->computation_stage.jpake;
+    if (operation->alg == PSA_ALG_JPAKE) {
+        psa_jpake_computation_stage_t *computation_stage =
+            &operation->computation_stage.jpake;
 
-    if ((computation_stage->state == PSA_PAKE_OUTPUT_X1_X2 &&
-         computation_stage->sequence == PSA_PAKE_X2_STEP_ZK_PROOF) ||
-        (computation_stage->state == PSA_PAKE_OUTPUT_X2S &&
-         computation_stage->sequence == PSA_PAKE_X1_STEP_ZK_PROOF)) {
-        computation_stage->state = PSA_PAKE_STATE_READY;
-        computation_stage->output_step++;
-        computation_stage->sequence = PSA_PAKE_SEQ_INVALID;
-    } else {
-        computation_stage->sequence++;
+        if ((computation_stage->state == PSA_PAKE_OUTPUT_X1_X2 &&
+            computation_stage->sequence == PSA_PAKE_X2_STEP_ZK_PROOF) ||
+            (computation_stage->state == PSA_PAKE_OUTPUT_X2S &&
+            computation_stage->sequence == PSA_PAKE_X1_STEP_ZK_PROOF)) {
+            computation_stage->state = PSA_PAKE_STATE_READY;
+            computation_stage->output_step++;
+            computation_stage->sequence = PSA_PAKE_SEQ_INVALID;
+        } else {
+            computation_stage->sequence++;
+        }
     }
 
     return PSA_SUCCESS;
 }
+#endif
 
 psa_status_t psa_pake_output(
     psa_pake_operation_t *operation,
@@ -7634,35 +7656,45 @@ psa_status_t psa_pake_output(
     }
 
     switch (operation->alg) {
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
         case PSA_ALG_JPAKE:
             status = psa_jpake_output_prologue(operation, step);
             if (status != PSA_SUCCESS) {
                 goto exit;
             }
             break;
+#endif
         default:
+            (void) step;
             status = PSA_ERROR_NOT_SUPPORTED;
             goto exit;
     }
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     status = psa_driver_wrapper_pake_output(operation,
                                             convert_jpake_computation_stage_to_driver_step(
                                                 &operation->computation_stage.jpake),
                                             output,
                                             output_size,
                                             output_length);
+#else
+    (void) output;
+    status = PSA_ERROR_NOT_SUPPORTED;
+#endif
 
     if (status != PSA_SUCCESS) {
         goto exit;
     }
 
     switch (operation->alg) {
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
         case PSA_ALG_JPAKE:
             status = psa_jpake_output_epilogue(operation);
             if (status != PSA_SUCCESS) {
                 goto exit;
             }
             break;
+#endif
         default:
             status = PSA_ERROR_NOT_SUPPORTED;
             goto exit;
@@ -7674,104 +7706,112 @@ exit:
     return status == PSA_SUCCESS ? abort_status : status;
 }
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
 static psa_status_t psa_jpake_input_prologue(
     psa_pake_operation_t *operation,
     psa_pake_step_t step,
     size_t input_length)
 {
-    psa_jpake_computation_stage_t *computation_stage =
-        &operation->computation_stage.jpake;
-
-    if (computation_stage->state == PSA_PAKE_STATE_INVALID) {
-        return PSA_ERROR_BAD_STATE;
-    }
-
     if (step != PSA_PAKE_STEP_KEY_SHARE &&
         step != PSA_PAKE_STEP_ZK_PUBLIC &&
         step != PSA_PAKE_STEP_ZK_PROOF) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
-    const psa_pake_primitive_t prim = PSA_PAKE_PRIMITIVE(
-        PSA_PAKE_PRIMITIVE_TYPE_ECC, PSA_ECC_FAMILY_SECP_R1, 256);
-    if (input_length > (size_t) PSA_PAKE_INPUT_SIZE(PSA_ALG_JPAKE, prim, step)) {
-        return PSA_ERROR_INVALID_ARGUMENT;
-    }
+    if (operation->alg == PSA_ALG_JPAKE) {
+        psa_jpake_computation_stage_t *computation_stage =
+            &operation->computation_stage.jpake;
 
-    if (computation_stage->state != PSA_PAKE_STATE_READY &&
-        computation_stage->state != PSA_PAKE_INPUT_X1_X2 &&
-        computation_stage->state != PSA_PAKE_INPUT_X4S) {
-        return PSA_ERROR_BAD_STATE;
-    }
-
-    if (computation_stage->state == PSA_PAKE_STATE_READY) {
-        if (step != PSA_PAKE_STEP_KEY_SHARE) {
+        if (computation_stage->state == PSA_PAKE_STATE_INVALID) {
             return PSA_ERROR_BAD_STATE;
         }
 
-        switch (computation_stage->input_step) {
-            case PSA_PAKE_STEP_X1_X2:
-                computation_stage->state = PSA_PAKE_INPUT_X1_X2;
-                break;
-            case PSA_PAKE_STEP_X2S:
-                computation_stage->state = PSA_PAKE_INPUT_X4S;
-                break;
-            default:
-                return PSA_ERROR_BAD_STATE;
+        const psa_pake_primitive_t prim = PSA_PAKE_PRIMITIVE(
+            PSA_PAKE_PRIMITIVE_TYPE_ECC, PSA_ECC_FAMILY_SECP_R1, 256);
+        if (input_length > (size_t) PSA_PAKE_INPUT_SIZE(PSA_ALG_JPAKE, prim, step)) {
+            return PSA_ERROR_INVALID_ARGUMENT;
         }
 
-        computation_stage->sequence = PSA_PAKE_X1_STEP_KEY_SHARE;
-    }
+        if (computation_stage->state != PSA_PAKE_STATE_READY &&
+            computation_stage->state != PSA_PAKE_INPUT_X1_X2 &&
+            computation_stage->state != PSA_PAKE_INPUT_X4S) {
+            return PSA_ERROR_BAD_STATE;
+        }
 
-    /* Check if step matches current sequence */
-    switch (computation_stage->sequence) {
-        case PSA_PAKE_X1_STEP_KEY_SHARE:
-        case PSA_PAKE_X2_STEP_KEY_SHARE:
+        if (computation_stage->state == PSA_PAKE_STATE_READY) {
             if (step != PSA_PAKE_STEP_KEY_SHARE) {
                 return PSA_ERROR_BAD_STATE;
             }
-            break;
 
-        case PSA_PAKE_X1_STEP_ZK_PUBLIC:
-        case PSA_PAKE_X2_STEP_ZK_PUBLIC:
-            if (step != PSA_PAKE_STEP_ZK_PUBLIC) {
-                return PSA_ERROR_BAD_STATE;
+            switch (computation_stage->input_step) {
+                case PSA_PAKE_STEP_X1_X2:
+                    computation_stage->state = PSA_PAKE_INPUT_X1_X2;
+                    break;
+                case PSA_PAKE_STEP_X2S:
+                    computation_stage->state = PSA_PAKE_INPUT_X4S;
+                    break;
+                default:
+                    return PSA_ERROR_BAD_STATE;
             }
-            break;
 
-        case PSA_PAKE_X1_STEP_ZK_PROOF:
-        case PSA_PAKE_X2_STEP_ZK_PROOF:
-            if (step != PSA_PAKE_STEP_ZK_PROOF) {
+            computation_stage->sequence = PSA_PAKE_X1_STEP_KEY_SHARE;
+        }
+
+        /* Check if step matches current sequence */
+        switch (computation_stage->sequence) {
+            case PSA_PAKE_X1_STEP_KEY_SHARE:
+            case PSA_PAKE_X2_STEP_KEY_SHARE:
+                if (step != PSA_PAKE_STEP_KEY_SHARE) {
+                    return PSA_ERROR_BAD_STATE;
+                }
+                break;
+
+            case PSA_PAKE_X1_STEP_ZK_PUBLIC:
+            case PSA_PAKE_X2_STEP_ZK_PUBLIC:
+                if (step != PSA_PAKE_STEP_ZK_PUBLIC) {
+                    return PSA_ERROR_BAD_STATE;
+                }
+                break;
+
+            case PSA_PAKE_X1_STEP_ZK_PROOF:
+            case PSA_PAKE_X2_STEP_ZK_PROOF:
+                if (step != PSA_PAKE_STEP_ZK_PROOF) {
+                    return PSA_ERROR_BAD_STATE;
+                }
+                break;
+
+            default:
                 return PSA_ERROR_BAD_STATE;
-            }
-            break;
-
-        default:
-            return PSA_ERROR_BAD_STATE;
+        }
     }
 
     return PSA_SUCCESS;
 }
+#endif
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
 static psa_status_t psa_jpake_input_epilogue(
     psa_pake_operation_t *operation)
 {
-    psa_jpake_computation_stage_t *computation_stage =
-        &operation->computation_stage.jpake;
+    if (operation->alg == PSA_ALG_JPAKE) {
+        psa_jpake_computation_stage_t *computation_stage =
+            &operation->computation_stage.jpake;
 
-    if ((computation_stage->state == PSA_PAKE_INPUT_X1_X2 &&
-         computation_stage->sequence == PSA_PAKE_X2_STEP_ZK_PROOF) ||
-        (computation_stage->state == PSA_PAKE_INPUT_X4S &&
-         computation_stage->sequence == PSA_PAKE_X1_STEP_ZK_PROOF)) {
-        computation_stage->state = PSA_PAKE_STATE_READY;
-        computation_stage->input_step++;
-        computation_stage->sequence = PSA_PAKE_SEQ_INVALID;
-    } else {
-        computation_stage->sequence++;
+        if ((computation_stage->state == PSA_PAKE_INPUT_X1_X2 &&
+            computation_stage->sequence == PSA_PAKE_X2_STEP_ZK_PROOF) ||
+            (computation_stage->state == PSA_PAKE_INPUT_X4S &&
+            computation_stage->sequence == PSA_PAKE_X1_STEP_ZK_PROOF)) {
+            computation_stage->state = PSA_PAKE_STATE_READY;
+            computation_stage->input_step++;
+            computation_stage->sequence = PSA_PAKE_SEQ_INVALID;
+        } else {
+            computation_stage->sequence++;
+        }
     }
 
     return PSA_SUCCESS;
 }
+#endif
 
 psa_status_t psa_pake_input(
     psa_pake_operation_t *operation,
@@ -7800,33 +7840,43 @@ psa_status_t psa_pake_input(
     }
 
     switch (operation->alg) {
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
         case PSA_ALG_JPAKE:
             status = psa_jpake_input_prologue(operation, step, input_length);
             if (status != PSA_SUCCESS) {
                 goto exit;
             }
             break;
+#endif
         default:
+            (void) step;
             return PSA_ERROR_NOT_SUPPORTED;
     }
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     status = psa_driver_wrapper_pake_input(operation,
                                            convert_jpake_computation_stage_to_driver_step(
                                                 &operation->computation_stage.jpake),
                                            input,
                                            input_length);
+#else
+    (void) input;
+    status = PSA_ERROR_NOT_SUPPORTED;
+#endif
 
     if (status != PSA_SUCCESS) {
         goto exit;
     }
 
     switch (operation->alg) {
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
         case PSA_ALG_JPAKE:
             status = psa_jpake_input_epilogue(operation);
             if (status != PSA_SUCCESS) {
                 goto exit;
             }
             break;
+#endif
         default:
             status = PSA_ERROR_NOT_SUPPORTED;
             goto exit;
@@ -7852,6 +7902,7 @@ psa_status_t psa_pake_get_implicit_key(
         goto exit;
     }
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     if (operation->alg == PSA_ALG_JPAKE) {
         psa_jpake_computation_stage_t *computation_stage =
                 &operation->computation_stage.jpake;
@@ -7860,6 +7911,13 @@ psa_status_t psa_pake_get_implicit_key(
             status = PSA_ERROR_BAD_STATE;
             goto exit;
         }
+    } else
+#else
+
+#endif
+    {
+        status = PSA_ERROR_NOT_SUPPORTED;
+        goto exit;
     }
 
     status = psa_driver_wrapper_pake_get_implicit_key(operation,

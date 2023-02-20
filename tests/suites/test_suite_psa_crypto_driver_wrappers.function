@@ -2976,7 +2976,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_BUILTIN_ALG_JPAKE */
 void pake_operations(data_t *pw_data, int forced_status_setup_arg, int forced_status_arg,
                      data_t *forced_output, int expected_status_setup_arg,
                      int expected_status_input_arg, int expected_status_output_arg,

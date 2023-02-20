@@ -607,13 +607,16 @@ int mbedtls_pkcs7_parse_der(mbedtls_pkcs7 *pkcs7, const unsigned char *buf,
     }
 
     if (MBEDTLS_OID_CMP_RAW(MBEDTLS_OID_PKCS7_SIGNED_DATA, p, len)) {
+        /* OID is not MBEDTLS_OID_PKCS7_SIGNED_DATA, which is the only supported feature */
         if (!MBEDTLS_OID_CMP_RAW(MBEDTLS_OID_PKCS7_DATA, p, len)
             || !MBEDTLS_OID_CMP_RAW(MBEDTLS_OID_PKCS7_ENCRYPTED_DATA, p, len)
             || !MBEDTLS_OID_CMP_RAW(MBEDTLS_OID_PKCS7_ENVELOPED_DATA, p, len)
             || !MBEDTLS_OID_CMP_RAW(MBEDTLS_OID_PKCS7_SIGNED_AND_ENVELOPED_DATA, p, len)
             || !MBEDTLS_OID_CMP_RAW(MBEDTLS_OID_PKCS7_DIGESTED_DATA, p, len)) {
+            /* OID is valid according to the spec, but unsupported */
             ret =  MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE;
         } else {
+            /* OID is invalid according to the spec */
             ret = MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA;
         }
         goto out;

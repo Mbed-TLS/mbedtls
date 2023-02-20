@@ -790,6 +790,22 @@ wait_client_done() {
     echo "EXIT: $EXIT" >> $CLI_OUT
 }
 
+# display additional information if test case fails
+report_fail() {
+    echo "FAIL"
+    cp $SRV_OUT c-srv-${TESTS}.log
+    cp $CLI_OUT c-cli-${TESTS}.log
+    echo "  ! outputs saved to c-srv-${TESTS}.log, c-cli-${TESTS}.log"
+
+    if [ "${LOG_FAILURE_ON_STDOUT:-0}" != 0 ]; then
+        echo "  ! server output:"
+        cat c-srv-${TESTS}.log
+        echo "  ! ==================================================="
+        echo "  ! client output:"
+        cat c-cli-${TESTS}.log
+    fi
+}
+
 # run_client PROGRAM_NAME STANDARD_CIPHER_SUITE PROGRAM_CIPHER_SUITE
 run_client() {
     # announce what we're going to do
@@ -903,19 +919,7 @@ run_client() {
             SKIPPED=$(( $SKIPPED + 1 ))
             ;;
         "2")
-            echo FAIL
-            cp $SRV_OUT c-srv-${TESTS}.log
-            cp $CLI_OUT c-cli-${TESTS}.log
-            echo "  ! outputs saved to c-srv-${TESTS}.log, c-cli-${TESTS}.log"
-
-            if [ "${LOG_FAILURE_ON_STDOUT:-0}" != 0 ]; then
-                echo "  ! server output:"
-                cat c-srv-${TESTS}.log
-                echo "  ! ==================================================="
-                echo "  ! client output:"
-                cat c-cli-${TESTS}.log
-            fi
-
+            report_fail
             FAILED=$(( $FAILED + 1 ))
             ;;
     esac

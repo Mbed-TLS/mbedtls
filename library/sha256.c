@@ -34,13 +34,13 @@
 #pragma clang attribute push (__attribute__((target("crypto"))), apply_to=function)
 #define MBEDTLS_POP_TARGET_PRAGMA
 #endif /* __aarch64__ && __clang__ &&
-         !__ARM_FEATURE_CRYPTO && __clang_major__ < 18 && __clang_major__ > 3 */
+          !__ARM_FEATURE_CRYPTO && __clang_major__ < 18 && __clang_major__ > 3 */
 
 #include "common.h"
 
 #if defined(MBEDTLS_POP_TARGET_PRAGMA) && \
     !(defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) || \
-      defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY))
+    defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY))
 #if defined(__clang__)
 #pragma clang attribute pop
 #endif

@@ -950,7 +950,7 @@ int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid,
 
     const char *str_ptr = oid_str;
     const char *str_bound = oid_str + size;
-    int val = 0;
+    unsigned int val = 0;
     size_t encoded_len;
     unsigned int component1, component2;
 

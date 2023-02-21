@@ -954,6 +954,8 @@ int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid,
     size_t encoded_len;
     unsigned int component1, component2;
 
+    /* First pass - parse the string to get the length of buffer required */
+
     ret = oid_parse_number(&component1, &str_ptr, str_bound);
     if (ret != 0) {
         return ret;
@@ -1014,7 +1016,9 @@ int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid,
     }
     oid->len = encoded_len;
 
-    /* Now that we've allocated the buffer, go back to the start and encode */
+    /* Second pass - now that we've allocated the buffer, go back to the
+     * start and encode */
+
     str_ptr = oid_str;
     unsigned char *out_ptr = oid->p;
     unsigned char *out_bound = oid->p + oid->len;

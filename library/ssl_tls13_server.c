@@ -1371,6 +1371,11 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
         uint16_t cipher_suite;
         const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
 
+        /*
+         * "cipher_suite_end - p is even" is an invariant of the loop. As
+         * cipher_suites_end - p > 0, we have cipher_suites_end - p >= 2 and
+         * it is thus safe to read two bytes.
+         */
         cipher_suite = MBEDTLS_GET_UINT16_BE(p, 0);
         ciphersuite_info = ssl_tls13_validate_peer_ciphersuite(
             ssl, cipher_suite);

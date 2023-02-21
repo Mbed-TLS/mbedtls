@@ -13237,7 +13237,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-run_test    "TLS 1.3: NewSessionTicket: Basic check" \
+run_test    "TLS 1.3: NewSessionTicket: Basic check, G->m" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=4" \
             "$G_NEXT_CLI localhost -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -r" \
             0 \
@@ -13257,6 +13257,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+# Test the session resumption when the cipher suite for the original session is
+# TLS1-3-AES-256-GCM-SHA384. In that case, the PSK is 384 bits long and not
+# 256 bits long as with all the other TLS 1.3 cipher suites.
 requires_ciphersuite_enabled TLS1-3-AES-256-GCM-SHA384
 run_test    "TLS 1.3: NewSessionTicket: Basic check with AES-256-GCM only, G->m" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=4" \

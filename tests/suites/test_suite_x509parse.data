@@ -207,7 +207,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R
 x509_parse_san:"data_files/server5-unsupported_othername.crt":""
 
 X509 SAN parsing rfc822Name
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA
 x509_parse_san:"data_files/test_cert_rfc822name.crt.der":"type \: 1\nrfc822Name \: my@other.address\ntype \: 1\nrfc822Name \: second@other.address\n"
 
 X509 CRL information #1

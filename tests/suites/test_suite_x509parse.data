@@ -2578,7 +2578,7 @@ X509 OID numstring #4 (larger number)
 x509_oid_numstr:"2a864886f70d":"1.2.840.113549":15:14
 
 X509 OID numstring #5 (arithmetic overflow)
-x509_oid_numstr:"2a8648f9f8f7f6f5f4f3f2f1f001":"":100:MBEDTLS_ERR_OID_BUF_TOO_SMALL
+x509_oid_numstr:"2a8648f9f8f7f6f5f4f3f2f1f001":"":100:MBEDTLS_ERR_ASN1_INVALID_DATA
 
 X509 CRT keyUsage #1 (no extension, expected KU)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA1_C

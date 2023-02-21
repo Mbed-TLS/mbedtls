@@ -107,4 +107,78 @@ typedef struct {
 
 #define MBEDTLS_PSA_AEAD_OPERATION_INIT { 0, 0, 0, 0, { 0 } }
 
+#include "mbedtls/ecdsa.h"
+
+/* Context structure for the Mbed TLS interruptible sign hash implementation. */
+typedef struct {
+#if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
+    defined(MBEDTLS_ECP_RESTARTABLE)
+    mbedtls_ecdsa_context *MBEDTLS_PRIVATE(ctx);
+    mbedtls_ecdsa_restart_ctx MBEDTLS_PRIVATE(restart_ctx);
+
+    uint32_t MBEDTLS_PRIVATE(num_ops);
+
+    size_t MBEDTLS_PRIVATE(coordinate_bytes);
+    psa_algorithm_t MBEDTLS_PRIVATE(alg);
+    mbedtls_md_type_t MBEDTLS_PRIVATE(md_alg);
+    uint8_t MBEDTLS_PRIVATE(hash)[PSA_BITS_TO_BYTES(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
+    size_t MBEDTLS_PRIVATE(hash_length);
+
+#else
+    /* Make the struct non-empty if algs not supported. */
+    unsigned MBEDTLS_PRIVATE(dummy);
+
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) &&
+        * defined( MBEDTLS_ECP_RESTARTABLE ) */
+} mbedtls_psa_sign_hash_interruptible_operation_t;
+
+#if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
+    defined(MBEDTLS_ECP_RESTARTABLE)
+#define MBEDTLS_PSA_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT { { 0 }, { 0 }, 0, 0, 0, 0, 0, 0 }
+#else
+#define MBEDTLS_PSA_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT { 0 }
+#endif
+
+/* Context structure for the Mbed TLS interruptible verify hash
+ * implementation.*/
+typedef struct {
+#if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
+    defined(MBEDTLS_ECP_RESTARTABLE)
+
+    mbedtls_ecdsa_context *MBEDTLS_PRIVATE(ctx);
+    mbedtls_ecdsa_restart_ctx MBEDTLS_PRIVATE(restart_ctx);
+
+    uint32_t MBEDTLS_PRIVATE(num_ops);
+
+    uint8_t MBEDTLS_PRIVATE(hash)[PSA_BITS_TO_BYTES(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
+    size_t MBEDTLS_PRIVATE(hash_length);
+
+    mbedtls_mpi MBEDTLS_PRIVATE(r);
+    mbedtls_mpi MBEDTLS_PRIVATE(s);
+
+#else
+    /* Make the struct non-empty if algs not supported. */
+    unsigned MBEDTLS_PRIVATE(dummy);
+
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) &&
+        * defined( MBEDTLS_ECP_RESTARTABLE ) */
+
+} mbedtls_psa_verify_hash_interruptible_operation_t;
+
+#if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
+    defined(MBEDTLS_ECP_RESTARTABLE)
+#define MBEDTLS_VERIFY_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT { { 0 }, { 0 }, 0, 0, 0, 0, { 0 }, \
+        { 0 } }
+#else
+#define MBEDTLS_VERIFY_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT { 0 }
+#endif
+
+
+
 #endif /* PSA_CRYPTO_BUILTIN_COMPOSITES_H */

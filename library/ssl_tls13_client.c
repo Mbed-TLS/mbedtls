@@ -2262,8 +2262,8 @@ static int ssl_tls13_write_end_of_early_data(mbedtls_ssl_context *ssl)
                              ssl, MBEDTLS_SSL_HS_END_OF_EARLY_DATA,
                              &buf, &buf_len));
 
-    mbedtls_ssl_add_hs_hdr_to_checksum(
-        ssl, MBEDTLS_SSL_HS_END_OF_EARLY_DATA, 0);
+    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_hdr_to_checksum(
+                             ssl, MBEDTLS_SSL_HS_END_OF_EARLY_DATA, 0));
 
     MBEDTLS_SSL_PROC_CHK(
         mbedtls_ssl_finish_handshake_msg(ssl, buf_len, 0));

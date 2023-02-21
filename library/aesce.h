@@ -2,7 +2,7 @@
  * \file aesce.h
  *
  * \brief AES-CE for hardware AES acceleration on ARMv8 processors with crypto
- *        engine.
+ *        extension.
  *
  * \warning These functions are only for internal use by other library
  *          functions; you must not call them directly.
@@ -43,7 +43,7 @@ extern "C" {
 #endif
 
 /**
- * \brief          Internal function to detect the crypto engine in CPUs.
+ * \brief          Internal function to detect the crypto extension in CPUs.
  *
  * \return         1 if CPU has support for the feature, 0 otherwise
  */

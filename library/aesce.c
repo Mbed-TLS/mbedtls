@@ -1,5 +1,5 @@
 /*
- *  Arm64 crypto engine support functions
+ *  Arm64 crypto extension support functions
  *
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
@@ -70,15 +70,18 @@ static uint8x16_t aesce_encrypt_block(uint8x16_t block,
                                       int rounds)
 {
     for (int i = 0; i < rounds - 1; i++) {
+        /* AES AddRoundKey, SubBytes, ShiftRows (in this order).
+         * AddRoundKey adds the round key for the previous round. */
         block = vaeseq_u8(block, vld1q_u8(keys + i * 16));
         /* AES mix columns */
         block = vaesmcq_u8(block);
     }
 
-    /* AES single round encryption */
+    /* AES AddRoundKey for the previous round.
+     * SubBytes, ShiftRows for the final round.  */
     block = vaeseq_u8(block, vld1q_u8(keys + (rounds -1) * 16));
 
-    /* Final Add (bitwise Xor) */
+    /* Final round: no MixColumns */
     block = veorq_u8(block, vld1q_u8(keys + rounds  * 16));
 
     return block;
@@ -90,15 +93,28 @@ static uint8x16_t aesce_decrypt_block(uint8x16_t block,
 {
 
     for (int i = 0; i < rounds - 1; i++) {
+        /* AES AddRoundKey, SubBytes, ShiftRows */
         block = vaesdq_u8(block, vld1q_u8(keys + i * 16));
-        /* AES inverse mix columns */
+        /* AES inverse MixColumns for the next round.
+         *
+         * This means that we switch the order of the inverse AddRoundKey and
+         * inverse MixColumns operations. We have to do this as AddRoundKey is
+         * done in an atomic instruction together with the inverses of SubBytes
+         * and ShiftRows.
+         *
+         * It works because MixColumns is a linear operation over GF(2^8) and
+         * AddRoundKey is an exclusive or, which is equivalent to addition over
+         * GF(2^8). (The inverse of MixColumns needs to be applied to the
+         * affected round keys separately which has been done when the
+         * decryption round keys were calculated.) */
         block = vaesimcq_u8(block);
     }
 
-    /* AES single round encryption */
+    /* The inverses of AES AddRoundKey, SubBytes, ShiftRows finishing up the
+     * last full round. */
     block = vaesdq_u8(block, vld1q_u8(keys + (rounds - 1) * 16));
 
-    /* Final Add (bitwise Xor) */
+    /* Inverse AddRoundKey for inverting the initial round key addition. */
     block = veorq_u8(block, vld1q_u8(keys + rounds * 16));
 
     return block;
@@ -147,18 +163,20 @@ void mbedtls_aesce_inverse_key(unsigned char *invkey,
 static uint8_t const rcon[] = { 0x01, 0x02, 0x04, 0x08, 0x10,
                                 0x20, 0x40, 0x80, 0x1b, 0x36 };
 
-static inline uint32_t ror32_8(uint32_t word)
+static inline uint32_t aes_rot_word(uint32_t word)
 {
     return (word << (32 - 8)) | (word >> 8);
 }
 
-static inline uint32_t aes_sub(uint32_t in)
+static inline uint32_t aes_sub_word(uint32_t in)
 {
-    uint32x4_t _in = vdupq_n_u32(in);
-    uint32x4_t v;
+    uint8x16_t v = vreinterpretq_u8_u32(vdupq_n_u32(in));
     uint8x16_t zero = vdupq_n_u8(0);
-    v = vreinterpretq_u32_u8(vaeseq_u8(zero, vreinterpretq_u8_u32(_in)));
-    return vgetq_lane_u32(v, 0);
+
+    /* vaeseq_u8 does both SubBytes and ShiftRows. Taking the first row yields
+     * the correct result as ShiftRows doesn't change the first row. */
+    v = vaeseq_u8(zero, v);
+    return vgetq_lane_u32(vreinterpretq_u32_u8(v), 0);
 }
 
 /*
@@ -170,12 +188,13 @@ static void aesce_setkey_enc_128(unsigned char *rk,
     uint32_t *rki;
     uint32_t *rko;
     uint32_t *rk_u32 = (uint32_t *) rk;
+
     memcpy(rk, key, (128 / 8));
 
     for (size_t i = 0; i < sizeof(rcon); i++) {
         rki = rk_u32 + i * (128 / 32);
         rko = rki + (128 / 32);
-        rko[0] = ror32_8(aes_sub(rki[(128 / 32) - 1])) ^ rcon[i] ^ rki[0];
+        rko[0] = aes_rot_word(aes_sub_word(rki[(128 / 32) - 1])) ^ rcon[i] ^ rki[0];
         rko[1] = rko[0] ^ rki[1];
         rko[2] = rko[1] ^ rki[2];
         rko[3] = rko[2] ^ rki[3];
@@ -196,7 +215,7 @@ static void aesce_setkey_enc_192(unsigned char *rk,
     for (size_t i = 0; i < 8; i++) {
         rki = rk_u32 + i * (192 / 32);
         rko = rki + (192 / 32);
-        rko[0] = ror32_8(aes_sub(rki[(192 / 32) - 1])) ^ rcon[i] ^ rki[0];
+        rko[0] = aes_rot_word(aes_sub_word(rki[(192 / 32) - 1])) ^ rcon[i] ^ rki[0];
         rko[1] = rko[0] ^ rki[1];
         rko[2] = rko[1] ^ rki[2];
         rko[3] = rko[2] ^ rki[3];
@@ -221,12 +240,12 @@ static void aesce_setkey_enc_256(unsigned char *rk,
     for (size_t i = 0; i < 7; i++) {
         rki = rk_u32 + i * (256 / 32);
         rko = rki + (256 / 32);
-        rko[0] = ror32_8(aes_sub(rki[(256 / 32) - 1])) ^ rcon[i] ^ rki[0];
+        rko[0] = aes_rot_word(aes_sub_word(rki[(256 / 32) - 1])) ^ rcon[i] ^ rki[0];
         rko[1] = rko[0] ^ rki[1];
         rko[2] = rko[1] ^ rki[2];
         rko[3] = rko[2] ^ rki[3];
         if (i < 6) {
-            rko[4] = aes_sub(rko[3]) ^ rki[4];
+            rko[4] = aes_sub_word(rko[3]) ^ rki[4];
             rko[5] = rko[4] ^ rki[5];
             rko[6] = rko[5] ^ rki[6];
             rko[7] = rko[6] ^ rki[7];

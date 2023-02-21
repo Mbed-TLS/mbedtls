@@ -2080,7 +2080,7 @@
  *
  * \warning `MBEDTLS_SHA512_USE_A64_CRYPTO_*` should be disabled when enabled
  *
- * This modules adds support for the AES crypto instructions on Arm64
+ * This module adds support for the AES crypto instructions on Arm64
  */
 #define MBEDTLS_AESCE_C
 

@@ -254,11 +254,13 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
     (void) operation;
     (void) inputs;
 #endif
-    { return PSA_ERROR_NOT_SUPPORTED; }
+    { status = PSA_ERROR_NOT_SUPPORTED; }
 
 error:
-    mbedtls_platform_zeroize(operation->password, operation->password_len);
-    mbedtls_free(operation->password);
+    /* When driver fails with PSA_ERROR_NOT_SUPPORTED the built-in implementation is executed (if available)
+       and it will reallocate the password leading to the memory leak.
+       Call abort explicitly to clean up allocated memory for password on failure. */
+    mbedtls_psa_pake_abort(operation);
     return status;
 }
 
@@ -518,13 +520,13 @@ psa_status_t mbedtls_psa_pake_get_implicit_key(
 
 psa_status_t mbedtls_psa_pake_abort(mbedtls_psa_pake_operation_t *operation)
 {
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
+    mbedtls_platform_zeroize(operation->password, operation->password_len);
+    mbedtls_free(operation->password);
+    operation->password = NULL;
+    operation->password_len = 0;
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     if (operation->alg == PSA_ALG_JPAKE) {
-        mbedtls_platform_zeroize(operation->password, operation->password_len);
-        mbedtls_free(operation->password);
-        operation->password = NULL;
-        operation->password_len = 0;
         operation->role = PSA_PAKE_ROLE_NONE;
         mbedtls_platform_zeroize(operation->buffer, MBEDTLS_PSA_JPAKE_BUFFER_SIZE);
         operation->buffer_length = 0;

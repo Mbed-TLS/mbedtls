@@ -2080,6 +2080,9 @@
  *
  * \warning `MBEDTLS_SHA512_USE_A64_CRYPTO_*` should be disabled when enabled
  *
+ * \warning Runtime detection only works on linux. For non-linux operation
+ *          system, crypto extension MUST be supported by CPU.
+ *
  * This module adds support for the AES crypto instructions on Arm64
  */
 #define MBEDTLS_AESCE_C

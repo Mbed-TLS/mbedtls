@@ -6,8 +6,7 @@
  */
 
 #include "p256-m.h"
-#include "mbedtls/entropy.h"
-#include "mbedtls/ctr_drbg.h"
+#include "psa/crypto.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1158,31 +1157,13 @@ static int scalar_from_bytes(uint32_t s[8], const uint8_t p[32])
  */
 int p256_generate_random(uint8_t *output, unsigned output_size)
 {
-#if defined(MBEDTLS_CTR_DRBG_C)
-    mbedtls_entropy_context entropy;
-    mbedtls_ctr_drbg_context ctr_drbg;
-    char *personalization = "p256m";
-    mbedtls_entropy_init(&entropy);
-    mbedtls_ctr_drbg_init(&ctr_drbg);
     int ret;
+    ret = psa_generate_random(output, output_size);
 
-    ret = mbedtls_ctr_drbg_seed(&ctr_drbg , mbedtls_entropy_func, &entropy,
-                                (const unsigned char *) personalization,
-                                strlen(personalization));
-    if (ret != 0) {
-        goto exit;
+    if (ret != 0){
+        return P256_RANDOM_FAILED;
     }
-
-    ret = mbedtls_ctr_drbg_random(&ctr_drbg, output, output_size);
-    if (ret != 0) {
-        goto exit;
-    }
-
     return P256_SUCCESS;
-#endif
-
-exit:
-    return P256_RANDOM_FAILED;
 }
 
 /*

@@ -7538,65 +7538,63 @@ static psa_status_t psa_jpake_output_prologue(
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
-    if (operation->alg == PSA_ALG_JPAKE) {
-        psa_jpake_computation_stage_t *computation_stage =
-            &operation->computation_stage.jpake;
+    psa_jpake_computation_stage_t *computation_stage =
+        &operation->computation_stage.jpake;
 
-        if (computation_stage->state == PSA_PAKE_STATE_INVALID) {
+    if (computation_stage->state == PSA_PAKE_STATE_INVALID) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    if (computation_stage->state != PSA_PAKE_STATE_READY &&
+        computation_stage->state != PSA_PAKE_OUTPUT_X1_X2 &&
+        computation_stage->state != PSA_PAKE_OUTPUT_X2S) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    if (computation_stage->state == PSA_PAKE_STATE_READY) {
+        if (step != PSA_PAKE_STEP_KEY_SHARE) {
             return PSA_ERROR_BAD_STATE;
         }
 
-        if (computation_stage->state != PSA_PAKE_STATE_READY &&
-            computation_stage->state != PSA_PAKE_OUTPUT_X1_X2 &&
-            computation_stage->state != PSA_PAKE_OUTPUT_X2S) {
-            return PSA_ERROR_BAD_STATE;
-        }
-
-        if (computation_stage->state == PSA_PAKE_STATE_READY) {
-            if (step != PSA_PAKE_STEP_KEY_SHARE) {
-                return PSA_ERROR_BAD_STATE;
-            }
-
-            switch (computation_stage->output_step) {
-                case PSA_PAKE_STEP_X1_X2:
-                    computation_stage->state = PSA_PAKE_OUTPUT_X1_X2;
-                    break;
-                case PSA_PAKE_STEP_X2S:
-                    computation_stage->state = PSA_PAKE_OUTPUT_X2S;
-                    break;
-                default:
-                    return PSA_ERROR_BAD_STATE;
-            }
-
-            computation_stage->sequence = PSA_PAKE_X1_STEP_KEY_SHARE;
-        }
-
-        /* Check if step matches current sequence */
-        switch (computation_stage->sequence) {
-            case PSA_PAKE_X1_STEP_KEY_SHARE:
-            case PSA_PAKE_X2_STEP_KEY_SHARE:
-                if (step != PSA_PAKE_STEP_KEY_SHARE) {
-                    return PSA_ERROR_BAD_STATE;
-                }
+        switch (computation_stage->output_step) {
+            case PSA_PAKE_STEP_X1_X2:
+                computation_stage->state = PSA_PAKE_OUTPUT_X1_X2;
                 break;
-
-            case PSA_PAKE_X1_STEP_ZK_PUBLIC:
-            case PSA_PAKE_X2_STEP_ZK_PUBLIC:
-                if (step != PSA_PAKE_STEP_ZK_PUBLIC) {
-                    return PSA_ERROR_BAD_STATE;
-                }
+            case PSA_PAKE_STEP_X2S:
+                computation_stage->state = PSA_PAKE_OUTPUT_X2S;
                 break;
-
-            case PSA_PAKE_X1_STEP_ZK_PROOF:
-            case PSA_PAKE_X2_STEP_ZK_PROOF:
-                if (step != PSA_PAKE_STEP_ZK_PROOF) {
-                    return PSA_ERROR_BAD_STATE;
-                }
-                break;
-
             default:
                 return PSA_ERROR_BAD_STATE;
         }
+
+        computation_stage->sequence = PSA_PAKE_X1_STEP_KEY_SHARE;
+    }
+
+    /* Check if step matches current sequence */
+    switch (computation_stage->sequence) {
+        case PSA_PAKE_X1_STEP_KEY_SHARE:
+        case PSA_PAKE_X2_STEP_KEY_SHARE:
+            if (step != PSA_PAKE_STEP_KEY_SHARE) {
+                return PSA_ERROR_BAD_STATE;
+            }
+            break;
+
+        case PSA_PAKE_X1_STEP_ZK_PUBLIC:
+        case PSA_PAKE_X2_STEP_ZK_PUBLIC:
+            if (step != PSA_PAKE_STEP_ZK_PUBLIC) {
+                return PSA_ERROR_BAD_STATE;
+            }
+            break;
+
+        case PSA_PAKE_X1_STEP_ZK_PROOF:
+        case PSA_PAKE_X2_STEP_ZK_PROOF:
+            if (step != PSA_PAKE_STEP_ZK_PROOF) {
+                return PSA_ERROR_BAD_STATE;
+            }
+            break;
+
+        default:
+            return PSA_ERROR_BAD_STATE;
     }
 
     return PSA_SUCCESS;
@@ -7607,20 +7605,18 @@ static psa_status_t psa_jpake_output_prologue(
 static psa_status_t psa_jpake_output_epilogue(
     psa_pake_operation_t *operation)
 {
-    if (operation->alg == PSA_ALG_JPAKE) {
-        psa_jpake_computation_stage_t *computation_stage =
-            &operation->computation_stage.jpake;
+    psa_jpake_computation_stage_t *computation_stage =
+        &operation->computation_stage.jpake;
 
-        if ((computation_stage->state == PSA_PAKE_OUTPUT_X1_X2 &&
-            computation_stage->sequence == PSA_PAKE_X2_STEP_ZK_PROOF) ||
-            (computation_stage->state == PSA_PAKE_OUTPUT_X2S &&
-            computation_stage->sequence == PSA_PAKE_X1_STEP_ZK_PROOF)) {
-            computation_stage->state = PSA_PAKE_STATE_READY;
-            computation_stage->output_step++;
-            computation_stage->sequence = PSA_PAKE_SEQ_INVALID;
-        } else {
-            computation_stage->sequence++;
-        }
+    if ((computation_stage->state == PSA_PAKE_OUTPUT_X1_X2 &&
+        computation_stage->sequence == PSA_PAKE_X2_STEP_ZK_PROOF) ||
+        (computation_stage->state == PSA_PAKE_OUTPUT_X2S &&
+        computation_stage->sequence == PSA_PAKE_X1_STEP_ZK_PROOF)) {
+        computation_stage->state = PSA_PAKE_STATE_READY;
+        computation_stage->output_step++;
+        computation_stage->sequence = PSA_PAKE_SEQ_INVALID;
+    } else {
+        computation_stage->sequence++;
     }
 
     return PSA_SUCCESS;
@@ -7718,71 +7714,69 @@ static psa_status_t psa_jpake_input_prologue(
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
-    if (operation->alg == PSA_ALG_JPAKE) {
-        psa_jpake_computation_stage_t *computation_stage =
-            &operation->computation_stage.jpake;
+    psa_jpake_computation_stage_t *computation_stage =
+        &operation->computation_stage.jpake;
 
-        if (computation_stage->state == PSA_PAKE_STATE_INVALID) {
+    if (computation_stage->state == PSA_PAKE_STATE_INVALID) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    const psa_pake_primitive_t prim = PSA_PAKE_PRIMITIVE(
+        PSA_PAKE_PRIMITIVE_TYPE_ECC, PSA_ECC_FAMILY_SECP_R1, 256);
+    if (input_length > (size_t) PSA_PAKE_INPUT_SIZE(PSA_ALG_JPAKE, prim, step)) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    if (computation_stage->state != PSA_PAKE_STATE_READY &&
+        computation_stage->state != PSA_PAKE_INPUT_X1_X2 &&
+        computation_stage->state != PSA_PAKE_INPUT_X4S) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    if (computation_stage->state == PSA_PAKE_STATE_READY) {
+        if (step != PSA_PAKE_STEP_KEY_SHARE) {
             return PSA_ERROR_BAD_STATE;
         }
 
-        const psa_pake_primitive_t prim = PSA_PAKE_PRIMITIVE(
-            PSA_PAKE_PRIMITIVE_TYPE_ECC, PSA_ECC_FAMILY_SECP_R1, 256);
-        if (input_length > (size_t) PSA_PAKE_INPUT_SIZE(PSA_ALG_JPAKE, prim, step)) {
-            return PSA_ERROR_INVALID_ARGUMENT;
-        }
-
-        if (computation_stage->state != PSA_PAKE_STATE_READY &&
-            computation_stage->state != PSA_PAKE_INPUT_X1_X2 &&
-            computation_stage->state != PSA_PAKE_INPUT_X4S) {
-            return PSA_ERROR_BAD_STATE;
-        }
-
-        if (computation_stage->state == PSA_PAKE_STATE_READY) {
-            if (step != PSA_PAKE_STEP_KEY_SHARE) {
-                return PSA_ERROR_BAD_STATE;
-            }
-
-            switch (computation_stage->input_step) {
-                case PSA_PAKE_STEP_X1_X2:
-                    computation_stage->state = PSA_PAKE_INPUT_X1_X2;
-                    break;
-                case PSA_PAKE_STEP_X2S:
-                    computation_stage->state = PSA_PAKE_INPUT_X4S;
-                    break;
-                default:
-                    return PSA_ERROR_BAD_STATE;
-            }
-
-            computation_stage->sequence = PSA_PAKE_X1_STEP_KEY_SHARE;
-        }
-
-        /* Check if step matches current sequence */
-        switch (computation_stage->sequence) {
-            case PSA_PAKE_X1_STEP_KEY_SHARE:
-            case PSA_PAKE_X2_STEP_KEY_SHARE:
-                if (step != PSA_PAKE_STEP_KEY_SHARE) {
-                    return PSA_ERROR_BAD_STATE;
-                }
+        switch (computation_stage->input_step) {
+            case PSA_PAKE_STEP_X1_X2:
+                computation_stage->state = PSA_PAKE_INPUT_X1_X2;
                 break;
-
-            case PSA_PAKE_X1_STEP_ZK_PUBLIC:
-            case PSA_PAKE_X2_STEP_ZK_PUBLIC:
-                if (step != PSA_PAKE_STEP_ZK_PUBLIC) {
-                    return PSA_ERROR_BAD_STATE;
-                }
+            case PSA_PAKE_STEP_X2S:
+                computation_stage->state = PSA_PAKE_INPUT_X4S;
                 break;
-
-            case PSA_PAKE_X1_STEP_ZK_PROOF:
-            case PSA_PAKE_X2_STEP_ZK_PROOF:
-                if (step != PSA_PAKE_STEP_ZK_PROOF) {
-                    return PSA_ERROR_BAD_STATE;
-                }
-                break;
-
             default:
                 return PSA_ERROR_BAD_STATE;
         }
+
+        computation_stage->sequence = PSA_PAKE_X1_STEP_KEY_SHARE;
+    }
+
+    /* Check if step matches current sequence */
+    switch (computation_stage->sequence) {
+        case PSA_PAKE_X1_STEP_KEY_SHARE:
+        case PSA_PAKE_X2_STEP_KEY_SHARE:
+            if (step != PSA_PAKE_STEP_KEY_SHARE) {
+                return PSA_ERROR_BAD_STATE;
+            }
+            break;
+
+        case PSA_PAKE_X1_STEP_ZK_PUBLIC:
+        case PSA_PAKE_X2_STEP_ZK_PUBLIC:
+            if (step != PSA_PAKE_STEP_ZK_PUBLIC) {
+                return PSA_ERROR_BAD_STATE;
+            }
+            break;
+
+        case PSA_PAKE_X1_STEP_ZK_PROOF:
+        case PSA_PAKE_X2_STEP_ZK_PROOF:
+            if (step != PSA_PAKE_STEP_ZK_PROOF) {
+                return PSA_ERROR_BAD_STATE;
+            }
+            break;
+
+        default:
+            return PSA_ERROR_BAD_STATE;
     }
 
     return PSA_SUCCESS;
@@ -7793,20 +7787,18 @@ static psa_status_t psa_jpake_input_prologue(
 static psa_status_t psa_jpake_input_epilogue(
     psa_pake_operation_t *operation)
 {
-    if (operation->alg == PSA_ALG_JPAKE) {
-        psa_jpake_computation_stage_t *computation_stage =
-            &operation->computation_stage.jpake;
+    psa_jpake_computation_stage_t *computation_stage =
+        &operation->computation_stage.jpake;
 
-        if ((computation_stage->state == PSA_PAKE_INPUT_X1_X2 &&
-            computation_stage->sequence == PSA_PAKE_X2_STEP_ZK_PROOF) ||
-            (computation_stage->state == PSA_PAKE_INPUT_X4S &&
-            computation_stage->sequence == PSA_PAKE_X1_STEP_ZK_PROOF)) {
-            computation_stage->state = PSA_PAKE_STATE_READY;
-            computation_stage->input_step++;
-            computation_stage->sequence = PSA_PAKE_SEQ_INVALID;
-        } else {
-            computation_stage->sequence++;
-        }
+    if ((computation_stage->state == PSA_PAKE_INPUT_X1_X2 &&
+        computation_stage->sequence == PSA_PAKE_X2_STEP_ZK_PROOF) ||
+        (computation_stage->state == PSA_PAKE_INPUT_X4S &&
+        computation_stage->sequence == PSA_PAKE_X1_STEP_ZK_PROOF)) {
+        computation_stage->state = PSA_PAKE_STATE_READY;
+        computation_stage->input_step++;
+        computation_stage->sequence = PSA_PAKE_SEQ_INVALID;
+    } else {
+        computation_stage->sequence++;
     }
 
     return PSA_SUCCESS;

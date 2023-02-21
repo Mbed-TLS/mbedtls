@@ -1008,7 +1008,7 @@ int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid,
         encoded_len += num_bytes;
     }
 
-    oid->p = mbedtls_calloc(encoded_len, sizeof(unsigned char));
+    oid->p = mbedtls_calloc(encoded_len, 1);
     if (oid->p == NULL) {
         return MBEDTLS_ERR_ASN1_ALLOC_FAILED;
     }

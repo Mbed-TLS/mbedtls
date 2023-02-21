@@ -165,6 +165,8 @@ psa_status_t mbedtls_test_transparent_pake_get_implicit_key(
 #else
         (void) operation;
         (void) output;
+        (void) output_size;
+        (void) output_length;
         mbedtls_test_driver_pake_hooks.driver_status = PSA_ERROR_NOT_SUPPORTED;
 #endif
     }
@@ -200,109 +202,6 @@ psa_status_t mbedtls_test_transparent_pake_abort(
 
 
     return mbedtls_test_driver_pake_hooks.driver_status;
-}
-
-/*
- * opaque versions, to do
- */
-psa_status_t mbedtls_test_opaque_pake_setup(
-    mbedtls_opaque_test_driver_pake_operation_t *operation,
-    const psa_crypto_driver_pake_inputs_t *inputs)
-{
-    (void) operation;
-    (void) inputs;
-    return PSA_ERROR_NOT_SUPPORTED;
-}
-
-psa_status_t mbedtls_test_opaque_set_password_key(
-    const psa_key_attributes_t *attributes,
-    mbedtls_opaque_test_driver_pake_operation_t *operation,
-    uint8_t *key_buffer,
-    size_t key_size)
-{
-    (void) attributes;
-    (void) operation;
-    (void) key_buffer;
-    (void) key_size;
-    return PSA_ERROR_NOT_SUPPORTED;
-}
-
-psa_status_t mbedtls_test_opaque_pake_set_user(
-    mbedtls_opaque_test_driver_pake_operation_t *operation,
-    const uint8_t *user_id,
-    size_t user_id_len)
-{
-    (void) operation;
-    (void) user_id;
-    (void) user_id_len;
-    return PSA_ERROR_NOT_SUPPORTED;
-}
-
-psa_status_t mbedtls_test_opaque_pake_set_peer(
-    mbedtls_opaque_test_driver_pake_operation_t *operation,
-    const uint8_t *peer_id,
-    size_t peer_id_len)
-{
-    (void) operation;
-    (void) peer_id;
-    (void) peer_id_len;
-    return PSA_ERROR_NOT_SUPPORTED;
-}
-
-psa_status_t mbedtls_test_opaque_pake_set_role(
-    mbedtls_opaque_test_driver_pake_operation_t *operation,
-    psa_pake_role_t role)
-{
-    (void) operation;
-    (void) role;
-    return PSA_ERROR_NOT_SUPPORTED;
-}
-
-psa_status_t mbedtls_test_opaque_pake_output(
-    mbedtls_opaque_test_driver_pake_operation_t *operation,
-    psa_crypto_driver_pake_step_t step,
-    uint8_t *output,
-    size_t output_size,
-    size_t *output_length)
-{
-    (void) operation;
-    (void) step;
-    (void) output;
-    (void) output_size;
-    (void) output_length;
-
-    return PSA_ERROR_NOT_SUPPORTED;
-}
-
-psa_status_t mbedtls_test_opaque_pake_input(
-    mbedtls_opaque_test_driver_pake_operation_t *operation,
-    psa_crypto_driver_pake_step_t step,
-    const uint8_t *input,
-    size_t input_length)
-{
-    (void) operation;
-    (void) step;
-    (void) input;
-    (void) input_length;
-    return PSA_ERROR_NOT_SUPPORTED;
-}
-
-psa_status_t mbedtls_test_opaque_pake_get_implicit_key(
-    mbedtls_opaque_test_driver_pake_operation_t *operation,
-    uint8_t *output, size_t output_size, size_t *output_length)
-{
-    (void) operation;
-    (void) output;
-    (void) output_size;
-    (void) output_length;
-    return PSA_ERROR_NOT_SUPPORTED;
-}
-
-psa_status_t mbedtls_test_opaque_pake_abort(
-    mbedtls_opaque_test_driver_pake_operation_t *operation)
-{
-    (void) operation;
-    return PSA_ERROR_NOT_SUPPORTED;
 }
 
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */

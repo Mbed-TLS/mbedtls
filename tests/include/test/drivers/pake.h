@@ -75,49 +75,5 @@ psa_status_t mbedtls_test_transparent_pake_get_implicit_key(
 psa_status_t mbedtls_test_transparent_pake_abort(
     mbedtls_transparent_test_driver_pake_operation_t *operation);
 
-psa_status_t mbedtls_test_opaque_pake_setup(
-    mbedtls_opaque_test_driver_pake_operation_t *operation,
-    const psa_crypto_driver_pake_inputs_t *inputs);
-
-psa_status_t mbedtls_test_opaque_set_password_key(
-    const psa_key_attributes_t *attributes,
-    mbedtls_opaque_test_driver_pake_operation_t *operation,
-    uint8_t *key_buffer,
-    size_t key_size);
-
-psa_status_t mbedtls_test_opaque_pake_set_user(
-    mbedtls_opaque_test_driver_pake_operation_t *operation,
-    const uint8_t *user_id,
-    size_t user_id_len);
-
-psa_status_t mbedtls_test_opaque_pake_set_peer(
-    mbedtls_opaque_test_driver_pake_operation_t *operation,
-    const uint8_t *peer_id,
-    size_t peer_id_len);
-
-psa_status_t mbedtls_test_opaque_pake_set_role(
-    mbedtls_opaque_test_driver_pake_operation_t *operation,
-    psa_pake_role_t role);
-
-psa_status_t mbedtls_test_opaque_pake_output(
-    mbedtls_opaque_test_driver_pake_operation_t *operation,
-    psa_crypto_driver_pake_step_t step,
-    uint8_t *output,
-    size_t output_size,
-    size_t *output_length);
-
-psa_status_t mbedtls_test_opaque_pake_input(
-    mbedtls_opaque_test_driver_pake_operation_t *operation,
-    psa_crypto_driver_pake_step_t step,
-    const uint8_t *input,
-    size_t input_length);
-
-psa_status_t mbedtls_test_opaque_pake_get_implicit_key(
-    mbedtls_opaque_test_driver_pake_operation_t *operation,
-    uint8_t *output, size_t output_size, size_t *output_length);
-
-psa_status_t mbedtls_test_opaque_pake_abort(
-    mbedtls_opaque_test_driver_pake_operation_t *operation);
-
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_TEST_DRIVERS_PAKE_H */

@@ -3153,16 +3153,17 @@ exit:
 /* Asymmetric interruptible cryptography                        */
 /****************************************************************/
 
+static uint32_t psa_interruptible_max_ops = PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED;
+
 void psa_interruptible_set_max_ops(uint32_t max_ops)
 {
-    psa_driver_wrapper_interruptible_set_max_ops(max_ops);
+    psa_interruptible_max_ops = max_ops;
 }
 
 uint32_t psa_interruptible_get_max_ops(void)
 {
-    return psa_driver_wrapper_interruptible_get_max_ops();
+    return psa_interruptible_max_ops;
 }
-
 
 uint32_t psa_sign_hash_get_num_ops(
     const psa_sign_hash_interruptible_operation_t *operation)
@@ -3458,12 +3459,8 @@ psa_status_t psa_verify_hash_abort(
 /* implementations                                              */
 /****************************************************************/
 
-static uint32_t mbedtls_psa_interruptible_max_ops =
-    PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED;
-
 void mbedtls_psa_interruptible_set_max_ops(uint32_t max_ops)
 {
-    mbedtls_psa_interruptible_max_ops = max_ops;
 
 #if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
@@ -3476,14 +3473,11 @@ void mbedtls_psa_interruptible_set_max_ops(uint32_t max_ops)
     }
 
     mbedtls_ecp_set_max_ops(max_ops);
+#else
+    (void) max_ops;
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) &&
         * defined( MBEDTLS_ECP_RESTARTABLE ) */
-}
-
-uint32_t mbedtls_psa_interruptible_get_max_ops(void)
-{
-    return mbedtls_psa_interruptible_max_ops;
 }
 
 uint32_t mbedtls_psa_sign_hash_get_num_ops(
@@ -3543,11 +3537,6 @@ psa_status_t mbedtls_psa_sign_hash_start(
 
     /* Ensure num_ops is zero'ed in case of context re-use. */
     operation->num_ops = 0;
-
-    /* Ensure default is set even if
-     * mbedtls_psa_interruptible_set_max_ops() has not been called. */
-    mbedtls_psa_interruptible_set_max_ops(
-        mbedtls_psa_interruptible_get_max_ops());
 
     status = mbedtls_psa_ecp_load_representation(attributes->core.type,
                                                  attributes->core.bits,
@@ -3612,6 +3601,9 @@ psa_status_t mbedtls_psa_sign_hash_complete(
 
     mbedtls_mpi_init(&r);
     mbedtls_mpi_init(&s);
+
+    /* Ensure max_ops is set to the current value (or default). */
+    mbedtls_psa_interruptible_set_max_ops(psa_interruptible_get_max_ops());
 
     if (signature_size < 2 * operation->coordinate_bytes) {
         status = PSA_ERROR_BUFFER_TOO_SMALL;
@@ -3764,11 +3756,6 @@ psa_status_t mbedtls_psa_verify_hash_start(
     /* Ensure num_ops is zero'ed in case of context re-use. */
     operation->num_ops = 0;
 
-    /* Ensure default is set even if
-     * mbedtls_psa_interruptible_set_max_ops() has not been called. */
-    mbedtls_psa_interruptible_set_max_ops(
-        mbedtls_psa_interruptible_get_max_ops());
-
     status = mbedtls_psa_ecp_load_representation(attributes->core.type,
                                                  attributes->core.bits,
                                                  key_buffer,
@@ -3852,6 +3839,9 @@ psa_status_t mbedtls_psa_verify_hash_complete(
     defined(MBEDTLS_ECP_RESTARTABLE)
 
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    /* Ensure max_ops is set to the current value (or default). */
+    mbedtls_psa_interruptible_set_max_ops(psa_interruptible_get_max_ops());
 
     status = mbedtls_to_psa_error(
         mbedtls_ecdsa_verify_restartable(&operation->ctx->grp,

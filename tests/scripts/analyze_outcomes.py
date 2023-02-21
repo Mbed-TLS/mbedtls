@@ -192,11 +192,6 @@ TASKS = {
                 'ecdh', # the software implementation that's excluded
             ],
             'ignored_tests': {
-                # temporary
-                'test_suite_psa_crypto': [
-                    'PSA key agreement setup: ECDH, unknown KDF',
-                    'PSA key policy: raw agreement, key permits raw agreement, but algorithm is not raw',
-                ],
             }
         }
     },

@@ -948,12 +948,12 @@ static int oid_subidentifier_encode_into(unsigned char **p,
 
 /* Return the OID for the given x.y.z.... style numeric string  */
 int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid,
-                                    const char *buf, size_t size)
+                                    const char *oid_str, size_t size)
 {
     int ret = MBEDTLS_ERR_ASN1_INVALID_DATA;
 
-    const char *str_ptr = buf;
-    const char *str_bound = buf + size;
+    const char *str_ptr = oid_str;
+    const char *str_bound = oid_str + size;
     int val = 0;
     size_t encoded_len;
 
@@ -1020,7 +1020,7 @@ int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid,
     oid->len = encoded_len;
 
     /* Now that we've allocated the buffer, go back to the start and encode */
-    str_ptr = buf;
+    str_ptr = oid_str;
     unsigned char *out_ptr = oid->p;
     unsigned char *out_bound = oid->p + oid->len;
 

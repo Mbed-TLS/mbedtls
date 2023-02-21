@@ -1392,7 +1392,7 @@ int mbedtls_ssl_reset_transcript_for_hrr(mbedtls_ssl_context *ssl)
                                                PSA_HASH_MAX_SIZE,
                                                &hash_len);
     if (ret != 0) {
-        MBEDTLS_SSL_DEBUG_RET(4, "mbedtls_ssl_get_handshake_transcript", ret);
+        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_get_handshake_transcript", ret);
         return ret;
     }
 
@@ -1402,6 +1402,9 @@ int mbedtls_ssl_reset_transcript_for_hrr(mbedtls_ssl_context *ssl)
     hash_transcript[3] = (unsigned char) hash_len;
 
     hash_len += 4;
+
+    MBEDTLS_SSL_DEBUG_BUF(4, "Truncated handshake transcript",
+                          hash_transcript, hash_len);
 
     /* Reset running hash and replace it with a hash of the transcript */
     ret = mbedtls_ssl_reset_checksum(ssl);

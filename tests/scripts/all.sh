@@ -2228,6 +2228,40 @@ component_test_psa_crypto_config_accel_ecdh () {
     make test
 }
 
+# Auxiliary function to build config for ECDH with and without drivers
+config_psa_crypto_config_ecdh_use_psa () {
+    DRIVER_ONLY="$1"
+    # start with config full for maximum coverage (also enables USE_PSA)
+    scripts/config.py full
+    # enable support for drivers and configuring PSA-only algorithms
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
+    if [ "$DRIVER_ONLY" -eq 1 ]; then
+        # Disable the module that's accelerated
+        scripts/config.py unset MBEDTLS_ECDH_C
+    fi
+    # Disable things that depend on it
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+
+    scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+    scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+    # Note: the above two lines should be enough, but currently there's a bug
+    # that prevents tests from passing TLS 1.3 with only PSK (no ephemeral)
+    # when TLS 1.2 is also enabled, see #6848.
+    # So, as a temporary measure disable all of TLS 1.3.
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
+
+    # Restartable feature is not yet supported by PSA. Once it will in
+    # the future, the following line could be removed (see issues
+    # 6061, 6332 and following ones)
+    scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
+}
+
+# Keep in sync with component_test_psa_crypto_config_reference_ecdh_use_psa
 component_test_psa_crypto_config_accel_ecdh_use_psa () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDH + USE_PSA"
 
@@ -2248,27 +2282,8 @@ component_test_psa_crypto_config_accel_ecdh_use_psa () {
     # Configure and build the main libraries
     # --------------------------------------
 
-    # Start from full config (USE_PSA and TLS 1.3) + driver support
-    scripts/config.py full
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
-
-    # Disable the module that's accelerated
-    scripts/config.py unset MBEDTLS_ECDH_C
-
-    # Disable things that depend on it
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-    scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-    scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-    # Note: the above two lines should be enough, but currently there's a bug
-    # that prevents tests from passing TLS 1.3 with only PSK (no ephemeral)
-    # when TLS 1.2 is also enabled, see #6848.
-    # So, as a temporary measure disable all of TLS 1.3.
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
+    # Use the same config as reference, only without built-in ECDH
+    config_psa_crypto_config_ecdh_use_psa 1
 
     # Build the library
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
@@ -2284,6 +2299,25 @@ component_test_psa_crypto_config_accel_ecdh_use_psa () {
     make test
 
     # ssl-opt.sh later (probably doesn't pass right now)
+}
+
+# Keep in sync with component_test_psa_crypto_config_accel_ecdh_use_psa.
+# Used by tests/scripts/analyze_outcomes.py for comparison purposes.
+component_test_psa_crypto_config_reference_ecdh_use_psa () {
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDH + USE_PSA"
+
+    # To be aligned with the accel component that needs this
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+
+    config_psa_crypto_config_ecdh_use_psa 0
+
+    make
+
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDH + USE_PSA"
+    make test
+
+    # ssl-opt.sh later when the accel component is ready
 }
 
 component_test_psa_crypto_config_accel_rsa_signature () {

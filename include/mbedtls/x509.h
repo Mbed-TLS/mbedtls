@@ -481,6 +481,9 @@ int mbedtls_x509_get_key_usage(unsigned char **p,
 int mbedtls_x509_get_subject_alt_name(unsigned char **p,
                                       const unsigned char *end,
                                       mbedtls_x509_sequence *subject_alt_name);
+int mbedtls_x509_get_subject_alt_name_ext(unsigned char **p,
+                                          const unsigned char *end,
+                                          mbedtls_x509_sequence *subject_alt_name);
 int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
                                        const mbedtls_x509_sequence
                                        *subject_alt_name,

@@ -5534,6 +5534,188 @@ static int ecp_mod_p256k1(mbedtls_mpi *N)
 }
 #endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */
 
-#endif /* !MBEDTLS_ECP_ALT */
+#if defined(MBEDTLS_TEST_HOOKS)
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
+                              const mbedtls_ecp_group_id id,
+                              const mbedtls_ecp_curve_type ctype)
+{
+    mbedtls_mpi_uint *p = NULL;
+    size_t p_limbs;
 
+    if (!(ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE || \
+          ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_SCALAR)) {
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+
+    switch (id) {
+#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
+        case MBEDTLS_ECP_DP_SECP192R1:
+            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                p = (mbedtls_mpi_uint *) secp192r1_p;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp192r1_p));
+            } else {
+                p = (mbedtls_mpi_uint *) secp192r1_n;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp192r1_n));
+            }
+            break;
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
+        case MBEDTLS_ECP_DP_SECP224R1:
+            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                p = (mbedtls_mpi_uint *) secp224r1_p;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp224r1_p));
+            } else {
+                p = (mbedtls_mpi_uint *) secp224r1_n;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp224r1_n));
+            }
+            break;
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+        case MBEDTLS_ECP_DP_SECP256R1:
+            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                p = (mbedtls_mpi_uint *) secp256r1_p;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp256r1_p));
+            } else {
+                p = (mbedtls_mpi_uint *) secp256r1_n;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp256r1_n));
+            }
+            break;
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+        case MBEDTLS_ECP_DP_SECP384R1:
+            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                p = (mbedtls_mpi_uint *) secp384r1_p;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp384r1_p));
+            } else {
+                p = (mbedtls_mpi_uint *) secp384r1_n;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp384r1_n));
+            }
+            break;
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+        case MBEDTLS_ECP_DP_SECP521R1:
+            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                p = (mbedtls_mpi_uint *) secp521r1_p;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp521r1_p));
+            } else {
+                p = (mbedtls_mpi_uint *) secp521r1_n;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp521r1_n));
+            }
+            break;
+#endif
+
+#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
+        case MBEDTLS_ECP_DP_BP256R1:
+            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                p = (mbedtls_mpi_uint *) brainpoolP256r1_p;
+                p_limbs = CHARS_TO_LIMBS(sizeof(brainpoolP256r1_p));
+            } else {
+                p = (mbedtls_mpi_uint *) brainpoolP256r1_n;
+                p_limbs = CHARS_TO_LIMBS(sizeof(brainpoolP256r1_n));
+            }
+            break;
+#endif
+
+#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
+        case MBEDTLS_ECP_DP_BP384R1:
+            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                p = (mbedtls_mpi_uint *) brainpoolP384r1_p;
+                p_limbs = CHARS_TO_LIMBS(sizeof(brainpoolP384r1_p));
+            } else {
+                p = (mbedtls_mpi_uint *) brainpoolP384r1_n;
+                p_limbs = CHARS_TO_LIMBS(sizeof(brainpoolP384r1_n));
+            }
+            break;
+#endif
+
+#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
+        case MBEDTLS_ECP_DP_BP512R1:
+            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                p = (mbedtls_mpi_uint *) brainpoolP512r1_p;
+                p_limbs = CHARS_TO_LIMBS(sizeof(brainpoolP512r1_p));
+            } else {
+                p = (mbedtls_mpi_uint *) brainpoolP512r1_n;
+                p_limbs = CHARS_TO_LIMBS(sizeof(brainpoolP512r1_n));
+            }
+            break;
+#endif
+
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+        case MBEDTLS_ECP_DP_CURVE25519:
+            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                p = (mbedtls_mpi_uint *) curve25519_p;
+                p_limbs = CHARS_TO_LIMBS(sizeof(curve25519_p));
+            } else {
+                p = (mbedtls_mpi_uint *) curve25519_n;
+                p_limbs = CHARS_TO_LIMBS(sizeof(curve25519_n));
+            }
+            break;
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
+        case MBEDTLS_ECP_DP_SECP192K1:
+            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                p = (mbedtls_mpi_uint *) secp192k1_p;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp192k1_p));
+            } else {
+                p = (mbedtls_mpi_uint *) secp192k1_n;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp192k1_n));
+            }
+            break;
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
+        case MBEDTLS_ECP_DP_SECP224K1:
+            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                p = (mbedtls_mpi_uint *) secp224k1_p;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp224k1_p));
+            } else {
+                p = (mbedtls_mpi_uint *) secp224k1_n;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp224k1_n));
+            }
+            break;
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
+        case MBEDTLS_ECP_DP_SECP256K1:
+            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                p = (mbedtls_mpi_uint *) secp256k1_p;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp256k1_p));
+            } else {
+                p = (mbedtls_mpi_uint *) secp256k1_n;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp256k1_n));
+            }
+            break;
+#endif
+
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+        case MBEDTLS_ECP_DP_CURVE448:
+            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                p = (mbedtls_mpi_uint *) curve448_p;
+                p_limbs = CHARS_TO_LIMBS(sizeof(curve448_p));
+            } else {
+                p = (mbedtls_mpi_uint *) curve448_n;
+                p_limbs = CHARS_TO_LIMBS(sizeof(curve448_n));
+            }
+            break;
+#endif
+
+        default:
+        case MBEDTLS_ECP_DP_NONE:
+            return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+
+    if (mbedtls_mpi_mod_modulus_setup(N, p, p_limbs,
+                                      MBEDTLS_MPI_MOD_REP_MONTGOMERY)) {
+        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    }
+    return 0;
+}
+#endif /* MBEDTLS_TEST_HOOKS */
+#endif /* !MBEDTLS_ECP_ALT */
 #endif /* MBEDTLS_ECP_C */

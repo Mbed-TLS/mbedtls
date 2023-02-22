@@ -141,6 +141,15 @@ typedef enum {
     MBEDTLS_ECP_TYPE_MONTGOMERY,           /* y^2 = x^3 + a x^2 + x    */
 } mbedtls_ecp_curve_type;
 
+/*
+ * Curve modulus types
+ */
+typedef enum {
+    MBEDTLS_ECP_MOD_NONE = 0,
+    MBEDTLS_ECP_MOD_COORDINATE,
+    MBEDTLS_ECP_MOD_SCALAR
+} mbedtls_ecp_modulus_type;
+
 /**
  * Curve information, for use by other modules.
  *

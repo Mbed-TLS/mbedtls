@@ -1,5 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/ecp.h"
+#include "ecp_invasive.h"
 #include "mbedtls/ecdsa.h"
 #include "mbedtls/ecdh.h"
 
@@ -1385,5 +1386,45 @@ exit:
 
     mbedtls_mpi_mod_modulus_free(&m);
     mbedtls_free(N);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
+void ecp_mod_setup(char *input_A, int id, int ctype, int iret)
+{
+    int ret;
+    mbedtls_mpi_mod_modulus m;
+    mbedtls_mpi_mod_modulus_init(&m);
+    mbedtls_mpi_uint *p = NULL;
+    size_t p_limbs;
+    size_t bytes;
+
+    TEST_EQUAL(mbedtls_test_read_mpi_core(&p, &p_limbs, input_A), 0);
+
+    ret = mbedtls_ecp_modulus_setup(&m, id, ctype);
+    TEST_EQUAL(ret, iret);
+
+    if (ret == 0) {
+
+        /* Test for limb sizes */
+        TEST_EQUAL(m.limbs, p_limbs);
+        bytes = p_limbs * sizeof(mbedtls_mpi_uint);
+
+        /* Test for validity of moduli by the presence of Montgomery consts */
+
+        TEST_ASSERT(m.rep.mont.mm != 0);
+        TEST_ASSERT(m.rep.mont.rr != NULL);
+
+
+        /* Compare output byte-by-byte */
+        ASSERT_COMPARE(p, bytes, m.p, bytes);
+
+        /* Test for user free-ing allocated memory */
+        mbedtls_mpi_mod_modulus_free(&m);
+    }
+
+exit:
+    mbedtls_mpi_mod_modulus_free(&m);
+    mbedtls_free(p);
 }
 /* END_CASE */

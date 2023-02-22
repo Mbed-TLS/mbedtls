@@ -28,6 +28,7 @@
 
 #include "common.h"
 #include "mbedtls/bignum.h"
+#include "bignum_mod.h"
 #include "mbedtls/ecp.h"
 
 #if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_ECP_C)
@@ -116,6 +117,28 @@ MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 
 #endif /* MBEDTLS_ECP_DP_SECP521R1_ENABLED */
+
+/** Initialise a modulus with hard-coded const curve data.
+ *
+ * \note            The caller is responsible for the \p N modulus' memory.
+ *                  mbedtls_mpi_mod_modulus_free(&N) should be invoked at the
+ *                  end of its lifecycle.
+ *
+ * \param[in,out] N The address of the modulus structure to populate.
+ *                  Must be initialized.
+ * \param[in] id    The mbedtls_ecp_group_id for which to initialise the modulus.
+ * \param[in] ctype The mbedtls_ecp_curve_type identifier for a coordinate modulus (P)
+ *                  or a scalar modulus (N).
+ *
+ * \return          \c 0 if successful.
+ * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if the given MPIs do not
+ *                  have the correct number of limbs.
+ *
+ */
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
+                              const mbedtls_ecp_group_id id,
+                              const mbedtls_ecp_curve_type ctype);
 
 #endif /* MBEDTLS_TEST_HOOKS && MBEDTLS_ECP_C */
 

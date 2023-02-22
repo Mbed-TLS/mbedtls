@@ -169,12 +169,11 @@ extern inline void mbedtls_put_unaligned_uint64(void *p, uint64_t x);
 #if defined(MBEDTLS_HAVE_TIME) && !defined(MBEDTLS_PLATFORM_MS_TIME_ALT)
 
 #include <time.h>
-#if !defined(_WIN32) && (defined(unix) || \
-    defined(__unix) || defined(__unix__) || (defined(__APPLE__) && \
-    defined(__MACH__)))
+#if !defined(_WIN32) && \
+    (defined(unix) || defined(__unix) || defined(__unix__) || \
+    (defined(__APPLE__) && defined(__MACH__)))
 #include <unistd.h>
-#endif /* !_WIN32 && (unix || __unix || __unix__ ||
-        * (__APPLE__ && __MACH__)) */
+#endif /* !_WIN32 && (unix || __unix || __unix__ || (__APPLE__ && __MACH__)) */
 #if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 199309L)
 mbedtls_ms_time_t mbedtls_ms_time(void)
 {

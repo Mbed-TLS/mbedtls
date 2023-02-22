@@ -32,6 +32,10 @@
 
 #ifndef PSA_CRYPTO_TYPES_H
 #define PSA_CRYPTO_TYPES_H
+
+/* Make sure the Mbed TLS configuration is visible. */
+#include "mbedtls/build_info.h"
+/* Define the MBEDTLS_PRIVATE macro. */
 #include "mbedtls/private_access.h"
 
 #if defined(MBEDTLS_PSA_CRYPTO_PLATFORM_FILE)

@@ -3537,6 +3537,53 @@
  */
 //#define MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE "/dev/null"
 
+/**
+ * \def MBEDTLS_PSA_CRYPTO_PLATFORM_FILE
+ *
+ * If defined, this is a header which will be included instead of
+ * `"psa/crypto_platform.h"`. This file should declare the same identifiers
+ * as the one in Mbed TLS, but with definitions adapted to the platform on
+ * which the library code will run.
+ *
+ * \note The required content of this header can vary from one version of
+ *       Mbed TLS to the next. Integrators who provide an alternative file
+ *       should review the changes in the original file whenever they
+ *       upgrade Mbed TLS.
+ *
+ * This macro is expanded after an <tt>\#include</tt> directive. This is a popular but
+ * non-standard feature of the C language, so this feature is only available
+ * with compilers that perform macro expansion on an <tt>\#include</tt> line.
+ *
+ * The value of this symbol is typically a path in double quotes, either
+ * absolute or relative to a directory on the include search path.
+ */
+//#define MBEDTLS_PSA_CRYPTO_PLATFORM_FILE "psa/crypto_platform_alt.h"
+
+/**
+ * \def MBEDTLS_PSA_CRYPTO_STRUCT_FILE
+ *
+ * If defined, this is a header which will be included instead of
+ * `"psa/crypto_struct.h"`. This file should declare the same identifiers
+ * as the one in Mbed TLS, but with definitions adapted to the environment
+ * in which the library code will run. The typical use for this feature
+ * is to provide alternative type definitions on the client side in
+ * client-server integrations of PSA crypto, where operation structures
+ * contain handles instead of cryptographic data.
+ *
+ * \note The required content of this header can vary from one version of
+ *       Mbed TLS to the next. Integrators who provide an alternative file
+ *       should review the changes in the original file whenever they
+ *       upgrade Mbed TLS.
+ *
+ * This macro is expanded after an <tt>\#include</tt> directive. This is a popular but
+ * non-standard feature of the C language, so this feature is only available
+ * with compilers that perform macro expansion on an <tt>\#include</tt> line.
+ *
+ * The value of this symbol is typically a path in double quotes, either
+ * absolute or relative to a directory on the include search path.
+ */
+//#define MBEDTLS_PSA_CRYPTO_STRUCT_FILE "psa/crypto_struct_alt.h"
+
 /** \} name SECTION: General configuration options */
 
 /**

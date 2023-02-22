@@ -34,7 +34,11 @@
 #define PSA_CRYPTO_TYPES_H
 #include "mbedtls/private_access.h"
 
+#if defined(MBEDTLS_PSA_CRYPTO_PLATFORM_FILE)
+#include MBEDTLS_PSA_CRYPTO_PLATFORM_FILE
+#else
 #include "crypto_platform.h"
+#endif
 
 /* If MBEDTLS_PSA_CRYPTO_C is defined, make sure MBEDTLS_PSA_CRYPTO_CLIENT
  * is defined as well to include all PSA code.

@@ -537,9 +537,10 @@ add_mbedtls_ciphersuites()
 # o_check_ciphersuite STANDARD_CIPHER_SUITE
 o_check_ciphersuite()
 {
-    if [ "${1#*ECDH_ECDSA*}" != "$1" ] && \
-       [ "X${O_SUPPORT_ECDH}" = "XNO" ]; then
-            SKIP_NEXT="YES"
+    if [ "${O_SUPPORT_ECDH}" = "NO" ]; then
+        case "$1" in
+            *ECDH_*) SKIP_NEXT="YES"
+        esac
     fi
 }
 
@@ -614,7 +615,7 @@ setup_arguments()
 
     case $($OPENSSL ciphers ALL) in
         *ECDH-ECDSA*) O_SUPPORT_ECDH="YES";;
-        *)O_SUPPORT_ECDH="NO";;
+        *) O_SUPPORT_ECDH="NO";;
     esac
 
     if [ "X$VERIFY" = "XYES" ];

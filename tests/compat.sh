@@ -1058,6 +1058,7 @@ for MODE in $MODES; do
                         start_server "mbedTLS"
                         translate_ciphers o $O_CIPHERS
                         for i in $ciphers; do
+                            o_check_ciphersuite "${i%%=*}"
                             run_client OpenSSL ${i%%=*} ${i#*=}
                         done
                         stop_server

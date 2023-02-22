@@ -30,10 +30,12 @@
  * The intrinsic declaration are guarded with ACLE predefined macros in clang,
  * and those macros are only enabled with command line. Define the macros can
  * enable those declaration and avoid compile error on it.
+ *
+ * `arm_neon.h` might be included in any head files. On the top of this file, we
+ * can guarantee this workaround always work.
  */
 #define __ARM_FEATURE_SHA512 1
-#pragma clang attribute push (__attribute__((target("crypto"))), apply_to=function)
-#define MBEDTLS_POP_TARGET_PRAGMA
+#define NEED_TARGET_OPTIONS
 #endif /* __aarch64__ && __clang__ &&
           !__ARM_FEATURE_SHA512 && __clang_major__ < 18 &&
           __clang_major__ >= 13 && __clang_minor__ > 0 &&
@@ -84,7 +86,7 @@
  * Clang == 13.0.0 same as clang 12 (only seen on macOS)
  * Clang >= 13.0.1 has __ARM_FEATURE_SHA512 and intrinsics
  */
-#    if !defined(__ARM_FEATURE_SHA512)
+#    if !defined(__ARM_FEATURE_SHA512) || defined(NEED_TARGET_OPTIONS)
        /* Test Clang first, as it defines __GNUC__ */
 #      if defined(__clang__)
 #        if __clang_major__ < 7

@@ -29,23 +29,16 @@
  * The intrinsic declaration are guarded with ACLE predefined macros in clang,
  * and those macros are only enabled with command line. Define the macros can
  * enable those declaration and avoid compile error on it.
+ *
+ * `arm_neon.h` might be included in any head files. On the top of this file, we
+ * can guarantee this workaround always work.
  */
 #define __ARM_FEATURE_CRYPTO 1
-#pragma clang attribute push (__attribute__((target("crypto"))), apply_to=function)
-#define MBEDTLS_POP_TARGET_PRAGMA
+#define NEED_TARGET_OPTIONS
 #endif /* __aarch64__ && __clang__ &&
           !__ARM_FEATURE_CRYPTO && __clang_major__ < 18 && __clang_major__ > 3 */
 
 #include "common.h"
-
-#if defined(MBEDTLS_POP_TARGET_PRAGMA) && \
-    !(defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) || \
-    defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY))
-#if defined(__clang__)
-#pragma clang attribute pop
-#endif
-#undef MBEDTLS_POP_TARGET_PRAGMA
-#endif
 
 #if defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA224_C)
 
@@ -61,7 +54,7 @@
 #  if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) || \
     defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY)
 /* *INDENT-OFF* */
-#    if !defined(__ARM_FEATURE_CRYPTO)
+#    if !defined(__ARM_FEATURE_CRYPTO) || defined(NEED_TARGET_OPTIONS)
 #      if defined(__clang__)
 #        if __clang_major__ < 4
 #          error "A more recent Clang is required for MBEDTLS_SHA256_USE_A64_CRYPTO_*"

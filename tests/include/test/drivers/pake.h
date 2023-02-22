@@ -33,7 +33,14 @@ typedef struct {
        pake_output/pake_input (added to distinguish forced statuses). */
     psa_status_t forced_setup_status;
     /* Count the amount of times PAKE driver functions are called. */
-    unsigned long hits;
+    struct {
+        unsigned long total;
+        unsigned long setup;
+        unsigned long input;
+        unsigned long output;
+        unsigned long implicit_key;
+        unsigned long abort;
+    } hits;
     /* Status returned by the last PAKE driver function call. */
     psa_status_t driver_status;
     /* Output returned by pake_output */
@@ -41,7 +48,7 @@ typedef struct {
     size_t forced_output_length;
 } mbedtls_test_driver_pake_hooks_t;
 
-#define MBEDTLS_TEST_DRIVER_PAKE_INIT { PSA_SUCCESS, PSA_SUCCESS, 0, PSA_SUCCESS, NULL, 0 }
+#define MBEDTLS_TEST_DRIVER_PAKE_INIT { PSA_SUCCESS, PSA_SUCCESS, {0, 0, 0, 0, 0, 0}, PSA_SUCCESS, NULL, 0 }
 static inline mbedtls_test_driver_pake_hooks_t
 mbedtls_test_driver_pake_hooks_init(void)
 {

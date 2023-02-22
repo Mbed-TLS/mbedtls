@@ -37,7 +37,8 @@ psa_status_t mbedtls_test_transparent_pake_setup(
     mbedtls_transparent_test_driver_pake_operation_t *operation,
     const psa_crypto_driver_pake_inputs_t *inputs)
 {
-    mbedtls_test_driver_pake_hooks.hits++;
+    mbedtls_test_driver_pake_hooks.hits.total++;
+    mbedtls_test_driver_pake_hooks.hits.setup++;
 
     if (mbedtls_test_driver_pake_hooks.forced_setup_status != PSA_SUCCESS) {
         mbedtls_test_driver_pake_hooks.driver_status =
@@ -69,7 +70,8 @@ psa_status_t mbedtls_test_transparent_pake_output(
     size_t output_size,
     size_t *output_length)
 {
-    mbedtls_test_driver_pake_hooks.hits++;
+    mbedtls_test_driver_pake_hooks.hits.total++;
+    mbedtls_test_driver_pake_hooks.hits.output++;
 
     if (mbedtls_test_driver_pake_hooks.forced_output != NULL) {
         if (output_size < mbedtls_test_driver_pake_hooks.forced_output_length) {
@@ -116,7 +118,8 @@ psa_status_t mbedtls_test_transparent_pake_input(
     const uint8_t *input,
     size_t input_length)
 {
-    mbedtls_test_driver_pake_hooks.hits++;
+    mbedtls_test_driver_pake_hooks.hits.total++;
+    mbedtls_test_driver_pake_hooks.hits.input++;
 
     if (mbedtls_test_driver_pake_hooks.forced_status != PSA_SUCCESS) {
         mbedtls_test_driver_pake_hooks.driver_status =
@@ -147,7 +150,8 @@ psa_status_t mbedtls_test_transparent_pake_get_implicit_key(
     mbedtls_transparent_test_driver_pake_operation_t *operation,
     uint8_t *output, size_t output_size, size_t *output_length)
 {
-    mbedtls_test_driver_pake_hooks.hits++;
+    mbedtls_test_driver_pake_hooks.hits.total++;
+    mbedtls_test_driver_pake_hooks.hits.implicit_key++;
 
     if (mbedtls_test_driver_pake_hooks.forced_status != PSA_SUCCESS) {
         mbedtls_test_driver_pake_hooks.driver_status =
@@ -177,7 +181,8 @@ psa_status_t mbedtls_test_transparent_pake_get_implicit_key(
 psa_status_t mbedtls_test_transparent_pake_abort(
     mbedtls_transparent_test_driver_pake_operation_t *operation)
 {
-    mbedtls_test_driver_pake_hooks.hits++;
+    mbedtls_test_driver_pake_hooks.hits.total++;
+    mbedtls_test_driver_pake_hooks.hits.abort++;
 
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
         defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_PAKE)

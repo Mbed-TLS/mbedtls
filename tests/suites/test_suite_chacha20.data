@@ -24,3 +24,21 @@ chacha20_crypt:"1c9240a5eb55d38af333888604f6b5f0473917c1402b80099dca5cbc207075c0
 
 ChaCha20 Selftest
 chacha20_self_test:
+
+ChaCha20 IV length 0
+chacha20_set_iv:0:MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA
+
+ChaCha20 IV length 5
+chacha20_set_iv:5:MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA
+
+ChaCha20 IV length 8
+chacha20_set_iv:8:0
+
+ChaCha20 IV length 10
+chacha20_set_iv:10:MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA
+
+ChaCha20 IV length 12
+chacha20_set_iv:12:0
+
+ChaCha20 IV length 15
+chacha20_set_iv:15:MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA

@@ -1231,11 +1231,11 @@ component_test_crypto_full_md_light_only () {
     # Disable indirect dependencies of MD
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC # needs HMAC_DRBG
     # Enable "light" subset of MD
-    scripts/config.py set MBEDTLS_MD_LIGHT
-    make CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
+    make CFLAGS="$ASAN_CFLAGS -DMBEDTLS_MD_LIGHT" LDFLAGS="$ASAN_CFLAGS"
 
-    # Make sure we don't have the HMAC functions
+    # Make sure we don't have the HMAC functions, but the hashing functions
     not grep mbedtls_md_hmac library/md.o
+    grep mbedtls_md library/md.o
 
     msg "test: crypto_full with only the light subset of MD"
     make test

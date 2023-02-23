@@ -23,6 +23,20 @@
 
 #include "common.h"
 
+/*
+ * Availability of functions in this module is controlled by two
+ * feature macros:
+ * - MBEDTLS_MD_C enables the whole module;
+ * - MBEDTLS_MD_LIGHT enables only functions for hashing and accessing
+ * most hash metadata (everything except string names); is it
+ * automatically set whenever MBEDTLS_MD_C is defined.
+ *
+ * In the future we may want to change the contract of some functions
+ * (behaviour with NULL arguments) depending on whether MD_C is defined or
+ * only MD_LIGHT. Also, the exact scope of MD_LIGHT might vary.
+ *
+ * For these reasons, we're keeping MD_LIGHT internal for now.
+ */
 #if defined(MBEDTLS_MD_LIGHT)
 
 #include "mbedtls/md.h"

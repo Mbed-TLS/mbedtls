@@ -4,16 +4,6 @@
  * \brief   This file contains the generic functions for message-digest
  *          (hashing) and HMAC.
  *
- *          Availability of functions in this module is controlled by two
- *          feature macros:
- *          - #MBEDTLS_MD_C enables the whole module;
- *          - #MBEDTLS_MD_LIGHT enables only functions for hashing and accessing
- *          most hash metadata (everything except string names); is it
- *          automatically set whenever #MBEDTLS_MD_C is defined.
- *
- *          The functions that are only available when #MBEDTLS_MD_C is defined
- *          are grouped at the end of the file and guarded by this macro.
- *
  * \author Adriaan de Jong <dejong@fox-it.com>
  */
 /*
@@ -300,12 +290,6 @@ MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_md(const mbedtls_md_info_t *md_info, const unsigned char *input, size_t ilen,
                unsigned char *output);
 
-/************************************************************************
- * Functions below this separator are not part of MBEDTLS_MD_LIGHT      *
- * and require MBEDTLS_MD_C                                             *
- ************************************************************************/
-
-#if defined(MBEDTLS_MD_C)
 /**
  * \brief           This function returns the list of digests supported by the
  *                  generic digest module.
@@ -487,7 +471,6 @@ MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_md_hmac(const mbedtls_md_info_t *md_info, const unsigned char *key, size_t keylen,
                     const unsigned char *input, size_t ilen,
                     unsigned char *output);
-#endif /* MBEDTLS_MD_C */
 
 #ifdef __cplusplus
 }

@@ -2644,7 +2644,6 @@
  * \def MBEDTLS_MD_C
  *
  * Enable the generic layer for message digest (hashing) and HMAC.
- * This will automatically enable #MBEDTLS_MD_LIGHT
  *
  * Requires: one of: MBEDTLS_MD5_C, MBEDTLS_RIPEMD160_C, MBEDTLS_SHA1_C,
  *                   MBEDTLS_SHA224_C, MBEDTLS_SHA256_C, MBEDTLS_SHA384_C,
@@ -2672,25 +2671,6 @@
  * Uncomment to enable generic message digest wrappers.
  */
 #define MBEDTLS_MD_C
-
-/**
- * \def MBEDTLS_MD_LIGHT
- *
- * Enable the "light" subset of #MBEDTLS_MD_C: just hashing and basic
- * meta-data (see md.h for details).
- *
- * This is automatically enabled whenever #MBEDTLS_MD_C is enabled, but it is
- * possible to enable this without #MBEDTLS_MD_C if support for HMAC or extra
- * metadata functions is not needed.
- *
- * Requires: one of: MBEDTLS_MD5_C, MBEDTLS_RIPEMD160_C, MBEDTLS_SHA1_C,
- *                   MBEDTLS_SHA224_C, MBEDTLS_SHA256_C, MBEDTLS_SHA384_C,
- *                   MBEDTLS_SHA512_C.
- * Module:  library/md.c
- *
- * Uncomment to enabled the "light" subsect of MD.
- */
-#define MBEDTLS_MD_LIGHT
 
 /**
  * \def MBEDTLS_MD5_C

@@ -48,7 +48,8 @@ typedef struct {
     size_t forced_output_length;
 } mbedtls_test_driver_pake_hooks_t;
 
-#define MBEDTLS_TEST_DRIVER_PAKE_INIT { PSA_SUCCESS, PSA_SUCCESS, {0, 0, 0, 0, 0, 0}, PSA_SUCCESS, NULL, 0 }
+#define MBEDTLS_TEST_DRIVER_PAKE_INIT { PSA_SUCCESS, PSA_SUCCESS, { 0, 0, 0, 0, 0, 0 }, PSA_SUCCESS, \
+                                        NULL, 0 }
 static inline mbedtls_test_driver_pake_hooks_t
 mbedtls_test_driver_pake_hooks_init(void)
 {

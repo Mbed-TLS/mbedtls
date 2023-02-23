@@ -7609,9 +7609,9 @@ static psa_status_t psa_jpake_output_epilogue(
         &operation->computation_stage.jpake;
 
     if ((computation_stage->state == PSA_PAKE_OUTPUT_X1_X2 &&
-        computation_stage->sequence == PSA_PAKE_X2_STEP_ZK_PROOF) ||
+         computation_stage->sequence == PSA_PAKE_X2_STEP_ZK_PROOF) ||
         (computation_stage->state == PSA_PAKE_OUTPUT_X2S &&
-        computation_stage->sequence == PSA_PAKE_X1_STEP_ZK_PROOF)) {
+         computation_stage->sequence == PSA_PAKE_X1_STEP_ZK_PROOF)) {
         computation_stage->state = PSA_PAKE_STATE_READY;
         computation_stage->output_step++;
         computation_stage->sequence = PSA_PAKE_SEQ_INVALID;
@@ -7791,9 +7791,9 @@ static psa_status_t psa_jpake_input_epilogue(
         &operation->computation_stage.jpake;
 
     if ((computation_stage->state == PSA_PAKE_INPUT_X1_X2 &&
-        computation_stage->sequence == PSA_PAKE_X2_STEP_ZK_PROOF) ||
+         computation_stage->sequence == PSA_PAKE_X2_STEP_ZK_PROOF) ||
         (computation_stage->state == PSA_PAKE_INPUT_X4S &&
-        computation_stage->sequence == PSA_PAKE_X1_STEP_ZK_PROOF)) {
+         computation_stage->sequence == PSA_PAKE_X1_STEP_ZK_PROOF)) {
         computation_stage->state = PSA_PAKE_STATE_READY;
         computation_stage->input_step++;
         computation_stage->sequence = PSA_PAKE_SEQ_INVALID;
@@ -7848,7 +7848,7 @@ psa_status_t psa_pake_input(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     status = psa_driver_wrapper_pake_input(operation,
                                            convert_jpake_computation_stage_to_driver_step(
-                                                &operation->computation_stage.jpake),
+                                               &operation->computation_stage.jpake),
                                            input,
                                            input_length);
 #else
@@ -7897,7 +7897,7 @@ psa_status_t psa_pake_get_implicit_key(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     if (operation->alg == PSA_ALG_JPAKE) {
         psa_jpake_computation_stage_t *computation_stage =
-                &operation->computation_stage.jpake;
+            &operation->computation_stage.jpake;
         if (computation_stage->input_step != PSA_PAKE_STEP_DERIVE ||
             computation_stage->output_step != PSA_PAKE_STEP_DERIVE) {
             status = PSA_ERROR_BAD_STATE;

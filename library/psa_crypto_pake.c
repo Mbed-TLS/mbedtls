@@ -169,7 +169,7 @@ static psa_status_t psa_pake_ecjpake_setup(mbedtls_psa_pake_operation_t *operati
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecjpake_role role = (operation->role == PSA_PAKE_ROLE_CLIENT) ?
-        MBEDTLS_ECJPAKE_CLIENT : MBEDTLS_ECJPAKE_SERVER;
+                                MBEDTLS_ECJPAKE_CLIENT : MBEDTLS_ECJPAKE_SERVER;
 
     mbedtls_ecjpake_init(&operation->ctx.pake);
 
@@ -220,7 +220,7 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
     }
 
     status = psa_crypto_driver_pake_get_password(inputs, operation->password,
-                                                password_len, &actual_password_len);
+                                                 password_len, &actual_password_len);
     if (status != PSA_SUCCESS) {
         goto error;
     }

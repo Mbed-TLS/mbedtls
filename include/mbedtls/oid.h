@@ -471,7 +471,7 @@ int mbedtls_oid_get_numeric_string(char *buf, size_t size, const mbedtls_asn1_bu
  *                  of an ASN.1 OID into its encoded form
  *                  (e.g. "1.2.840.113549" into "\x2A\x86\x48\x86\xF7\x0D")
  *                  On success, this function allocates oid->buf from the
- *                  heap. It must be free'd by the caller.
+ *                  heap. It must be freed by the caller using mbedtls_free().
  *
  * \param oid       mbedtls_asn1_buf to populate with the DER-encoded OID
  * \param oid_str   string representation of the OID to parse

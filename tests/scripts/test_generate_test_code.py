@@ -1298,17 +1298,20 @@ dhm_selftest:
         # List of (name, function_name, dependencies, args)
         tests = list(parse_test_data(stream))
         test1, test2, test3, test4 = tests
+        self.assertEqual(test1[0], 3)
         self.assertEqual(test1[1], 'Diffie-Hellman full exchange #1')
         self.assertEqual(test1[2], 'dhm_do_dhm')
         self.assertEqual(test1[3], [])
         self.assertEqual(test1[4], ['10', '"23"', '10', '"5"'])
 
+        self.assertEqual(test2[0], 6)
         self.assertEqual(test2[1], 'Diffie-Hellman full exchange #2')
         self.assertEqual(test2[2], 'dhm_do_dhm')
         self.assertEqual(test2[3], [])
         self.assertEqual(test2[4], ['10', '"93450983094850938450983409623"',
                                     '10', '"9345098304850938450983409622"'])
 
+        self.assertEqual(test3[0], 9)
         self.assertEqual(test3[1], 'Diffie-Hellman full exchange #3')
         self.assertEqual(test3[2], 'dhm_do_dhm')
         self.assertEqual(test3[3], [])
@@ -1317,6 +1320,7 @@ dhm_selftest:
                                     '10',
                                     '"9345098792137312973297123912791271"'])
 
+        self.assertEqual(test4[0], 12)
         self.assertEqual(test4[1], 'Diffie-Hellman selftest')
         self.assertEqual(test4[2], 'dhm_selftest')
         self.assertEqual(test4[3], [])
@@ -1340,11 +1344,13 @@ dhm_do_dhm:10:"93450983094850938450983409623":10:"9345098304850938450983409622"
         # List of (name, function_name, dependencies, args)
         tests = list(parse_test_data(stream))
         test1, test2 = tests
+        self.assertEqual(test1[0], 4)
         self.assertEqual(test1[1], 'Diffie-Hellman full exchange #1')
         self.assertEqual(test1[2], 'dhm_do_dhm')
         self.assertEqual(test1[3], ['YAHOO'])
         self.assertEqual(test1[4], ['10', '"23"', '10', '"5"'])
 
+        self.assertEqual(test2[0], 7)
         self.assertEqual(test2[1], 'Diffie-Hellman full exchange #2')
         self.assertEqual(test2[2], 'dhm_do_dhm')
         self.assertEqual(test2[3], [])

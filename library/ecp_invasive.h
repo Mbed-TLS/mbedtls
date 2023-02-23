@@ -96,6 +96,21 @@ int mbedtls_ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn);
 
 #if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
 
+/** Fast quasi-reduction modulo p224 (FIPS 186-3 D.2.2)
+ *
+ * \param[in,out]   Np  The address of the MPI to be converted.
+ *                      Must have exact limb size that stores a 448-bit MPI
+ *                      (double the bitlength of the modulus).
+ *                      Upon return holds the reduced value which is
+ *                      in range `0 <= X < 2 * N` (where N is the modulus).
+ *                      The bitlength of the reduced value is the same as
+ *                      that of the modulus (224 bits).
+ * \param[in]       Nn  The length of \p Nn in limbs.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if \p Nn is not the limb
+ *                  size that sores a 448-bit MPI.
+ */
 MBEDTLS_STATIC_TESTABLE
 int ecp_mod_p224_raw(mbedtls_mpi_uint *Np, size_t Nn);
 

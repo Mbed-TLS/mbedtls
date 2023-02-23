@@ -1849,7 +1849,7 @@ static const mbedtls_cipher_info_t chacha20_info = {
     256,
     "CHACHA20",
     12,
-    0,
+    MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     1,
     &chacha20_base_info
 };
@@ -1924,7 +1924,7 @@ static const mbedtls_cipher_info_t chachapoly_info = {
     256,
     "CHACHA20-POLY1305",
     12,
-    0,
+    MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     1,
     &chachapoly_base_info
 };

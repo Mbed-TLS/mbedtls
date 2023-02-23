@@ -62,22 +62,22 @@ printf_long_max:"%lx":LONG_MAX
 
 # The next few test cases exercise how the test framework handles special
 # characters in strings.
-printf "%c", SPACE, SPACE
+printf "%c%c", SPACE, SPACE
 printf_char2:"%c%c":SPACE_CHAR:SPACE_CHAR:"  "
 
-printf "%c", NEWLINE, SPACE
+printf "%c%c", NEWLINE, SPACE
 printf_char2:"%c%c":NEWLINE_CHAR:SPACE_CHAR:"\n "
 
-printf "%c", DOUBLE QUOTE, SPACE
+printf "%c%c", DOUBLE QUOTE, SPACE
 printf_char2:"%c%c":DOUBLE_QUOTE_CHAR:SPACE_CHAR:"\" "
 
-printf "%c", COLON, SPACE
+printf "%c%c", COLON, SPACE
 printf_char2:"%c%c":COLON_CHAR:SPACE_CHAR:"\: "
 
-printf "%c", BACKSLASH, SPACE
+printf "%c%c", BACKSLASH, SPACE
 printf_char2:"%c%c":BACKSLASH_CHAR:SPACE_CHAR:"\\ "
 
-printf "%c", SPACE, BACKSLASH
+printf "%c%c", SPACE, BACKSLASH
 printf_char2:"%c%c":SPACE_CHAR:BACKSLASH_CHAR:" \\"
 
 printf "%c%c", COLON, COLON

@@ -392,8 +392,9 @@ int mbedtls_cipher_set_iv(mbedtls_cipher_context_t *ctx,
             return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
         }
 
-        if (0 != mbedtls_chacha20_starts((mbedtls_chacha20_context *) ctx->cipher_ctx,
+        if (0 != mbedtls_chacha20_set_iv((mbedtls_chacha20_context *) ctx->cipher_ctx,
                                          iv,
+                                         actual_iv_size,
                                          0U)) {   /* Initial counter value */
             return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
         }
@@ -500,8 +501,9 @@ int mbedtls_cipher_update_ad(mbedtls_cipher_context_t *ctx,
                 ? MBEDTLS_CHACHAPOLY_ENCRYPT
                 : MBEDTLS_CHACHAPOLY_DECRYPT;
 
-        result = mbedtls_chachapoly_starts((mbedtls_chachapoly_context *) ctx->cipher_ctx,
+        result = mbedtls_chachapoly_set_iv((mbedtls_chachapoly_context *) ctx->cipher_ctx,
                                            ctx->iv,
+                                           ctx->iv_size,
                                            mode);
         if (result != 0) {
             return result;

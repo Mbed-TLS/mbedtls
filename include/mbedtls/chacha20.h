@@ -106,6 +106,32 @@ int mbedtls_chacha20_setkey(mbedtls_chacha20_context *ctx,
                             const unsigned char key[32]);
 
 /**
+ * \brief           This function sets the variable length nonce and initial
+ *                  counter value.
+ *
+ * \note            A ChaCha20 context can be re-used with the same key by
+ *                  calling this function to change the nonce.
+ *
+ * \warning         You must never use the same nonce twice with the same key.
+ *                  This would void any confidentiality guarantees for the
+ *                  messages encrypted with the same nonce and key.
+ *
+ * \param ctx       The ChaCha20 context to which the nonce should be bound.
+ *                  It must be initialized and bound to a key.
+ * \param nonce     The nonce.
+ * \param nlen      The nonce length. This must have value of \c 12 or \c 8.
+ * \param counter   The initial counter value. This is usually \c 0.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA if ctx or nonce is
+ *                  NULL, or if nlen is not equal to \c 12 or \c 8.
+ */
+int mbedtls_chacha20_set_iv(mbedtls_chacha20_context *ctx,
+                            const unsigned char *nonce,
+                            size_t nlen,
+                            uint32_t counter);
+
+/**
  * \brief           This function sets the nonce and initial counter value.
  *
  * \note            A ChaCha20 context can be re-used with the same key by

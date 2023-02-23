@@ -139,6 +139,37 @@ int mbedtls_chachapoly_setkey(mbedtls_chachapoly_context *ctx,
                               const unsigned char key[32]);
 
 /**
+ * \brief           This function sets the nonce and starts a ChaCha20-Poly1305
+ *                  encryption or decryption operation.
+ *
+ * \warning         You must never use the same nonce twice with the same key.
+ *                  This would void any confidentiality and authenticity
+ *                  guarantees for the messages encrypted with the same nonce
+ *                  and key.
+ *
+ * \note            If the context is being used for AAD only (no data to
+ *                  encrypt or decrypt) then \p mode can be set to any value.
+ *
+ * \warning         Decryption with the piecewise API is discouraged, see the
+ *                  warning on \c mbedtls_chachapoly_init().
+ *
+ * \param ctx       The ChaCha20-Poly1305 context. This must be initialized
+ *                  and bound to a key.
+ * \param nonce     The nonce/IV to use for the message.
+ *                  This must be a readable buffer.
+ * \param nlen      The nonce length. This must have value of \c 12 or \c 8.
+ * \param mode      The operation to perform: #MBEDTLS_CHACHAPOLY_ENCRYPT or
+ *                  #MBEDTLS_CHACHAPOLY_DECRYPT (discouraged, see warning).
+ *
+ * \return          \c 0 on success.
+ * \return          A negative error code on failure.
+ */
+int mbedtls_chachapoly_set_iv(mbedtls_chachapoly_context *ctx,
+                              const unsigned char *nonce,
+                              size_t nlen,
+                              mbedtls_chachapoly_mode_t mode);
+
+/**
  * \brief           This function starts a ChaCha20-Poly1305 encryption or
  *                  decryption operation.
  *

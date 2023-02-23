@@ -414,8 +414,9 @@ psa_status_t mbedtls_psa_aead_set_nonce(
         }
 
         status = mbedtls_to_psa_error(
-            mbedtls_chachapoly_starts(&operation->ctx.chachapoly,
+            mbedtls_chachapoly_set_iv(&operation->ctx.chachapoly,
                                       nonce,
+                                      nonce_length,
                                       operation->is_encrypt ?
                                       MBEDTLS_CHACHAPOLY_ENCRYPT :
                                       MBEDTLS_CHACHAPOLY_DECRYPT));

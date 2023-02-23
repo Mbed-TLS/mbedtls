@@ -210,6 +210,26 @@ int mbedtls_chacha20_starts(mbedtls_chacha20_context *ctx,
     return 0;
 }
 
+int mbedtls_chacha20_set_iv(mbedtls_chacha20_context *ctx,
+                            const unsigned char *nonce,
+                            size_t nlen,
+                            uint32_t counter)
+{
+    unsigned char iv[12] = { 0 };
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    if (nlen == 8) {
+        memcpy(iv + 4 * sizeof(unsigned char), (void *) nonce, nlen * sizeof(unsigned char));
+    } else if (nlen == 12) {
+        memcpy(iv, (void *) nonce, nlen * sizeof(unsigned char));
+    } else {
+        return MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA;
+    }
+
+    ret = mbedtls_chacha20_starts(ctx, iv, counter);
+    return ret;
+}
+
 int mbedtls_chacha20_update(mbedtls_chacha20_context *ctx,
                             size_t size,
                             const unsigned char *input,

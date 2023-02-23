@@ -2117,9 +2117,10 @@ static int ssl_tls13_parse_encrypted_extensions(mbedtls_ssl_context *ssl,
     extensions_len = MBEDTLS_GET_UINT16_BE(p, 0);
     p += 2;
 
-    MBEDTLS_SSL_DEBUG_BUF(3, "encrypted extensions", p, extensions_len);
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, extensions_len);
     extensions_end = p + extensions_len;
+
+    MBEDTLS_SSL_DEBUG_BUF(3, "encrypted extensions", p, extensions_len);
 
     handshake->received_extensions = MBEDTLS_SSL_EXT_MASK_NONE;
 

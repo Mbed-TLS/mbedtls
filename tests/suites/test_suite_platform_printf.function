@@ -1,4 +1,14 @@
 /* BEGIN_HEADER */
+
+/* The printf test functions take a format argument from the test data
+ * for several reasons:
+ * - For some tests, it makes sense to vary the format.
+ * - For all tests, it means we're testing the actual printf function
+ *   that parses the format at runtime, and not a compiler optimization.
+ *   (It may be useful to add tests that allow compiler optimizations.
+ *   There aren't any yet at the time of writing.)
+ */
+
 #include "mbedtls/platform.h"
 
 #include <stdio.h>
@@ -14,7 +24,8 @@
 /* END_HEADER */
 
 /* BEGIN_CASE */
-void printf_int(char *format, int x, char *result)
+void printf_int(char *format, /* any format expecting one int argument, e.g. "%d" */
+                int x, char *result)
 {
     char *output = NULL;
     const size_t n = strlen(result);
@@ -32,7 +43,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void printf_long_max(const char *format, long value)
+void printf_long_max(const char *format, /* "%lx" or longer type */
+                     long value)
 {
     char *expected = NULL;
     char *output = NULL;
@@ -57,7 +69,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void printf_char2(char *format, int arg1, int arg2, char *result)
+void printf_char2(char *format, /* "%c%c" */
+                  int arg1, int arg2, char *result)
 {
     char *output = NULL;
     const size_t n = strlen(result);

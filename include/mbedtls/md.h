@@ -6,12 +6,12 @@
  *
  *          Availability of functions in this modules is controled by two
  *          feature macros:
- *          - MBEDTLS_MD_C enables the whole module;
- *          - MBEDTLS_MD_LIGHT enables only functions for hashing and accessing
+ *          - #MBEDTLS_MD_C enables the whole module;
+ *          - #MBEDTLS_MD_LIGHT enables only functions for hashing and accessing
  *          most hash metadata (everything except string names); is it
- *          automatically set whenever MBEDTLS_MD_C is defined.
+ *          automatically set whenever #MBEDTLS_MD_C is defined.
  *
- *          The functions that are only available when MBEDTLS_MD_C is defined
+ *          The functions that are only available when #MBEDTLS_MD_C is defined
  *          are grouped at the end of the file and guarded by this macro.
  *
  * \author Adriaan de Jong <dejong@fox-it.com>

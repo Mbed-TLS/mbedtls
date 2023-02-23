@@ -26,7 +26,7 @@ DOT_GRAPH_MAX_NODES    = 200
 MAX_DOT_GRAPH_DEPTH    = 1000
 DOT_TRANSPARENT        = YES
 
-# We mostly \retval declarations to document which error codes a function
+# We mostly use \retval declarations to document which error codes a function
 # can return. The reader can follow the hyperlink to the definition of the
 # constant to get the generic documentation of that error code. If we don't
 # have anything to say about the specific error code for the specific

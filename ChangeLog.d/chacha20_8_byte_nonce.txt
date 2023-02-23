@@ -1,0 +1,6 @@
+Features
+   * ChaCha20 and ChaChaPoly-1305 now support 8 byte nonces.
+     Fixes #5615.
+Changes
+   * mbedtls_cipher_set_iv() now calls mbedtls_chacha20_set_iv() internally
+     to pad iv incase of 8 byte nonce for ChaCha20 and ChaChaPoly-1305.

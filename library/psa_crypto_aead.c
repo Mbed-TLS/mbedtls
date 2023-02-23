@@ -403,7 +403,7 @@ psa_status_t mbedtls_psa_aead_set_nonce(
     } else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
-    if (operation->alg == PSA_ALG_CHACHA20_POLY1305) {s
+    if (operation->alg == PSA_ALG_CHACHA20_POLY1305) {
         if (nonce_length != 12 && nonce_length != 8) {
             return PSA_ERROR_INVALID_ARGUMENT;
         }

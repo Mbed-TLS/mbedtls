@@ -183,7 +183,7 @@ mbedtls_ms_time_t mbedtls_ms_time(void)
 
     ret = clock_gettime(CLOCK_REALTIME, &tv);
     if (ret) {
-        return 0;
+        return time(NULL) * 1000;
     }
 
     current_ms = tv.tv_sec;

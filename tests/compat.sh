@@ -614,7 +614,7 @@ setup_arguments()
     esac
 
     case $($OPENSSL ciphers ALL) in
-        *ECDH-ECDSA*) O_SUPPORT_ECDH="YES";;
+        *ECDH-ECDSA*|*ECDH-RSA*) O_SUPPORT_ECDH="YES";;
         *) O_SUPPORT_ECDH="NO";;
     esac
 
@@ -834,7 +834,7 @@ run_client() {
             if [ $EXIT -eq 0 ]; then
                 RESULT=0
             else
-                # If the cipher isn't supported...
+                # If it is NULL cipher ...
                 if grep 'Cipher is (NONE)' $CLI_OUT >/dev/null; then
                     RESULT=1
                 else

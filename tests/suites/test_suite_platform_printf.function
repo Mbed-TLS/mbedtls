@@ -48,7 +48,7 @@ void printf_long_max(const char *format, /* "%lx" or longer type */
 {
     char *expected = NULL;
     char *output = NULL;
-    /* "0x" plus 2 hex digits per byte */
+    /* 2 hex digits per byte */
     const size_t n = sizeof(value) * 2;
 
     /* We assume that long has no padding bits! */

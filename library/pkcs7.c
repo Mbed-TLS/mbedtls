@@ -170,6 +170,91 @@ static int pkcs7_get_digest_algorithm_set(unsigned char **p,
 }
 
 /**
+ * SignedAttributes ::= SET SIZE (1..MAX) OF Attribute
+ *
+ * Attribute ::= SEQUENCE {
+ *      attrType OBJECT IDENTIFIER,
+ *      attrValues SET OF AttributeValue }
+ **/
+static int pkcs7_get_signed_attrs(unsigned char **p,
+                                  unsigned char *end,
+                                  mbedtls_x509_buf *attrs_raw,
+                                  mbedtls_asn1_named_data *attrs)
+{
+    mbedtls_asn1_named_data *cur = attrs;
+    unsigned char *seq_end;
+    size_t len;
+    int ret = 0;
+
+    attrs_raw->p = *p;
+    attrs_raw->len = 0;
+
+    ret = mbedtls_asn1_get_tag(p, end, &len, MBEDTLS_ASN1_CONSTRUCTED
+                               | MBEDTLS_ASN1_CONTEXT_SPECIFIC);
+    if (ret != 0) {
+        *p = attrs_raw->p;
+        attrs_raw->p = NULL;
+        return 0;
+    }
+    end = *p + len;
+
+    while (*p < end) {
+        ret = mbedtls_asn1_get_tag(p, end, &len, MBEDTLS_ASN1_CONSTRUCTED
+                                   | MBEDTLS_ASN1_SEQUENCE);
+        if (ret != 0) {
+            goto err;
+        }
+        seq_end = *p + len;
+
+        ret = mbedtls_asn1_get_tag(p, seq_end, &len, MBEDTLS_ASN1_OID);
+        if (ret != 0) {
+            goto err;
+        }
+        cur->oid.p = *p;
+        cur->oid.len = len;
+        *p += len;
+
+        ret = mbedtls_asn1_get_tag(p, seq_end, &len, MBEDTLS_ASN1_CONSTRUCTED
+                                   | MBEDTLS_ASN1_SET);
+        if (ret != 0) {
+            goto err;
+        }
+        cur->val.tag = MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SET;
+        cur->val.p = *p;
+        cur->val.len = len;
+        *p += len;
+
+        if (*p != seq_end) {
+            ret = MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
+            goto err;
+        }
+        if (*p != end) {
+            cur->next = mbedtls_calloc(1, sizeof(*cur->next));
+            if (cur->next == NULL) {
+                ret = MBEDTLS_ERR_PKCS7_ALLOC_FAILED;
+                goto err;
+            }
+            cur = cur->next;
+        }
+    }
+
+    if (*p != end) {
+        ret = MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
+        goto err;
+    }
+
+    attrs_raw->len = *p - attrs_raw->p;
+
+    return 0;
+
+err:
+    mbedtls_asn1_free_named_data_list_shallow(attrs->next);
+    attrs->next = NULL;
+
+    return ret;
+}
+
+/**
  * certificates :: SET OF ExtendedCertificateOrCertificate,
  * ExtendedCertificateOrCertificate ::= CHOICE {
  *      certificate Certificate -- x509,
@@ -268,6 +353,9 @@ static void pkcs7_free_signer_info(mbedtls_pkcs7_signer_info *signer)
         mbedtls_free(name_prv);
     }
     signer->issuer.next = NULL;
+
+    mbedtls_asn1_free_named_data_list_shallow(signer->signed_attrs.next);
+    signer->signed_attrs.next = NULL;
 }
 
 /**
@@ -338,7 +426,11 @@ static int pkcs7_get_signer_info(unsigned char **p, unsigned char *end,
         goto out;
     }
 
-    /* Assume authenticatedAttributes is nonexistent */
+    ret = pkcs7_get_signed_attrs(p, end_signer, &signer->signed_attrs_raw,
+                                 &signer->signed_attrs);
+    if (ret != 0) {
+        goto out;
+    }
 
     ret = pkcs7_get_digest_algorithm(p, end_signer, &signer->sig_alg_identifier);
     if (ret != 0) {
@@ -596,6 +688,37 @@ out:
     return ret;
 }
 
+
+static int pkcs7_signed_attrs_match(mbedtls_asn1_named_data *attrs,
+                                    const unsigned char *hash,
+                                    size_t hashlen)
+{
+    mbedtls_asn1_named_data *attr;
+    unsigned char *p;
+    size_t len;
+    int has_digest = 0;
+
+    for (attr = attrs; attr != NULL; attr = attr->next) {
+        if (MBEDTLS_OID_CMP(MBEDTLS_OID_PKCS9_MESSAGE_DIGEST, &attr->oid) == 0) {
+            p = attr->val.p;
+            if (mbedtls_asn1_get_tag(&p, p + attr->val.len, &len,
+                                     MBEDTLS_ASN1_OCTET_STRING) != 0) {
+                return MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+            }
+            if (len != hashlen || memcmp(p, hash, hashlen) != 0) {
+                return MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+            }
+            has_digest = 1;
+        }
+    }
+
+    if (!has_digest) {
+        return MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+    }
+
+    return 0;
+}
+
 static int mbedtls_pkcs7_data_or_hash_verify(mbedtls_pkcs7 *pkcs7,
                                              const mbedtls_x509_crt *cert,
                                              const unsigned char *data,
@@ -607,6 +730,7 @@ static int mbedtls_pkcs7_data_or_hash_verify(mbedtls_pkcs7 *pkcs7,
     mbedtls_pk_context pk_cxt = cert->pk;
     const mbedtls_md_info_t *md_info;
     mbedtls_md_type_t md_alg;
+    mbedtls_md_context_t md_ctx;
     mbedtls_pkcs7_signer_info *signer;
 
     if (pkcs7->signed_data.no_of_signers == 0) {
@@ -662,6 +786,30 @@ static int mbedtls_pkcs7_data_or_hash_verify(mbedtls_pkcs7 *pkcs7,
             ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
             mbedtls_free(hash);
             continue;
+        }
+
+        if (signer->signed_attrs_raw.len > 0)
+        {
+            ret = pkcs7_signed_attrs_match(&signer->signed_attrs, hash,
+                                           mbedtls_md_get_size(md_info));
+            if (ret != 0) {
+                mbedtls_free(hash);
+                continue;
+            }
+
+            mbedtls_md_init(&md_ctx);
+            if (mbedtls_md_setup(&md_ctx, md_info, 0) != 0 ||
+                mbedtls_md_starts(&md_ctx) != 0 ||
+                mbedtls_md_update(&md_ctx, &(unsigned char){0x31}, 1) != 0 ||
+                mbedtls_md_update(&md_ctx, signer->signed_attrs_raw.p + 1,
+                                  signer->signed_attrs_raw.len - 1) != 0 ||
+                mbedtls_md_finish(&md_ctx, hash) != 0) {
+                mbedtls_md_free(&md_ctx);
+                mbedtls_free(hash);
+                ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+                continue;
+            }
+            mbedtls_md_free(&md_ctx);
         }
 
         ret = mbedtls_pk_verify(&pk_cxt, md_alg, hash,

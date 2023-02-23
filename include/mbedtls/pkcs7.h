@@ -127,6 +127,8 @@ typedef struct mbedtls_pkcs7_signer_info {
     mbedtls_x509_name MBEDTLS_PRIVATE(issuer);
     mbedtls_x509_buf MBEDTLS_PRIVATE(issuer_raw);
     mbedtls_x509_buf MBEDTLS_PRIVATE(alg_identifier);
+    mbedtls_asn1_named_data MBEDTLS_PRIVATE(signed_attrs);
+    mbedtls_x509_buf MBEDTLS_PRIVATE(signed_attrs_raw);
     mbedtls_x509_buf MBEDTLS_PRIVATE(sig_alg_identifier);
     mbedtls_x509_buf MBEDTLS_PRIVATE(sig);
     struct mbedtls_pkcs7_signer_info *MBEDTLS_PRIVATE(next);

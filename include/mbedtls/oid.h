@@ -316,6 +316,7 @@
 #define MBEDTLS_OID_PKCS7_SIGNED_AND_ENVELOPED_DATA   MBEDTLS_OID_PKCS7 "\x04" /**< Content type is Signed and Enveloped Data OBJECT IDENTIFIER ::= {pkcs-7 4} */
 #define MBEDTLS_OID_PKCS7_DIGESTED_DATA               MBEDTLS_OID_PKCS7 "\x05" /**< Content type is Digested Data OBJECT IDENTIFIER ::= {pkcs-7 5} */
 #define MBEDTLS_OID_PKCS7_ENCRYPTED_DATA              MBEDTLS_OID_PKCS7 "\x06" /**< Content type is Encrypted Data OBJECT IDENTIFIER ::= {pkcs-7 6} */
+#define MBEDTLS_OID_PKCS9_MESSAGE_DIGEST              MBEDTLS_OID_PKCS9 "\x04" /**< id-messageDigest OCTET STRING ::= {pkcs-9 4} */
 
 /*
  * PKCS#8 OIDs

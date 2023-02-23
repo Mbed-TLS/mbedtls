@@ -753,7 +753,13 @@ void constant_sizes()
 #define curve_bits 0
 #define input_length 0
 #define key_bits 0
-#define key_type 0
+    /* We need something that looks like a block cipher to avoid a division
+     * by zero in
+     * PSA_ROUND_UP_TO_MULTIPLE(PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type), (input_length))
+     * which would be undefined behavior and, in practice, causes a
+     * compilation failure when building with `gcc -Werror=vla -fundefined`.
+     */
+#define key_type PSA_KEY_TYPE_AES
 #define length 0
 #define plaintext_length 0
     union all_sizes_must_be_constant {

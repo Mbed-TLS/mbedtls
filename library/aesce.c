@@ -193,7 +193,7 @@ static void aesce_setkey_enc(unsigned char *rk,
     /* Require max(key_len_in_words, round_key_len_len_in_words) + 7 */
     const size_t round_keys_needed = key_len_in_words + 7;
     const size_t key_expansion_size_in_words =
-        round_keys_needed  * round_key_len_in_words;
+        round_keys_needed * round_key_len_in_words;
     const uint32_t *rko_end = (uint32_t *) rk + key_expansion_size_in_words;
 
     memcpy(rk, key, key_len_in_words * 4);
@@ -202,7 +202,7 @@ static void aesce_setkey_enc(unsigned char *rk,
          rki + key_len_in_words < rko_end;
          rki += key_len_in_words) {
 
-        size_t iteration = (rki- (uint32_t *) rk)/key_len_in_words;
+        size_t iteration = (rki - (uint32_t *) rk) / key_len_in_words;
         uint32_t *rko;
         rko = rki + key_len_in_words;
         rko[0] = aes_rot_word(aes_sub_word(rki[key_len_in_words - 1]));
@@ -210,7 +210,7 @@ static void aesce_setkey_enc(unsigned char *rk,
         rko[1] = rko[0] ^ rki[1];
         rko[2] = rko[1] ^ rki[2];
         rko[3] = rko[2] ^ rki[3];
-        if (rko+key_len_in_words > rko_end) {
+        if (rko + key_len_in_words > rko_end) {
             /* Do not write overflow words.*/
             continue;
         }

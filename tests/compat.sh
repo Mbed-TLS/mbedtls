@@ -128,8 +128,38 @@ print_usage() {
     printf "            \tAlso available: GnuTLS (needs v3.2.15 or higher)\n"
     printf "  -M|--memcheck\tCheck memory leaks and errors.\n"
     printf "  -v|--verbose\tSet verbose output.\n"
+    printf "     --list-test-case\tList all potential test cases (No Execution)\n"
     printf "     --outcome-file\tFile where test outcomes are written\n"
     printf "                   \t(default: \$MBEDTLS_TEST_OUTCOME_FILE, none if empty)\n"
+}
+
+# print_test_title <CLIENT> <SERVER> <STANDARD_CIPHER_SUITE>
+print_test_title() {
+    for i in $3; do
+        TITLE="$1->$2 $MODE,$VERIF $i"
+        echo "$TITLE"
+    done
+}
+
+list_test_case() {
+    reset_ciphersuites
+    for TYPE in $TYPES; do
+        add_common_ciphersuites
+        add_openssl_ciphersuites
+        add_gnutls_ciphersuites
+        add_mbedtls_ciphersuites
+    done
+
+    for VERIFY in $VERIFIES; do
+        VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
+        for MODE in $MODES; do
+            print_test_title m o "$O_CIPHERS"
+            print_test_title o m "$O_CIPHERS"
+            print_test_title m g "$G_CIPHERS"
+            print_test_title g m "$G_CIPHERS"
+            print_test_title m m "$M_CIPHERS"
+        done
+    done
 }
 
 get_options() {
@@ -158,6 +188,10 @@ get_options() {
                 ;;
             -M|--memcheck)
                 MEMCHECK=1
+                ;;
+            --list-test-case)
+                list_test_case
+                exit 0
                 ;;
             --outcome-file)
                 shift; MBEDTLS_TEST_OUTCOME_FILE=$1

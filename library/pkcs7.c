@@ -270,6 +270,7 @@ static int pkcs7_get_certificates(unsigned char **p, unsigned char *end,
     size_t len1 = 0;
     size_t len2 = 0;
     unsigned char *end_set, *end_cert, *start;
+    int n = 0;
 
     if ((ret = mbedtls_asn1_get_tag(p, end, &len1, MBEDTLS_ASN1_CONSTRUCTED
                                     | MBEDTLS_ASN1_CONTEXT_SPECIFIC)) != 0) {
@@ -279,39 +280,30 @@ static int pkcs7_get_certificates(unsigned char **p, unsigned char *end,
             return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_FORMAT, ret);
         }
     }
-    start = *p;
     end_set = *p + len1;
 
-    ret = mbedtls_asn1_get_tag(p, end_set, &len2, MBEDTLS_ASN1_CONSTRUCTED
-                               | MBEDTLS_ASN1_SEQUENCE);
-    if (ret != 0) {
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_CERT, ret);
+    while (*p != end_set) {
+        start = *p;
+        ret = mbedtls_asn1_get_tag(p, end_set, &len2, MBEDTLS_ASN1_CONSTRUCTED
+                                   | MBEDTLS_ASN1_SEQUENCE);
+        if (ret != 0) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_CERT, ret);
+        }
+
+        end_cert = *p + len2;
+
+        *p = start;
+        if ((ret = mbedtls_x509_crt_parse_der(certs, *p,
+                                              (size_t)(end_cert - *p))) < 0) {
+            return MBEDTLS_ERR_PKCS7_INVALID_CERT;
+        }
+        *p = end_cert;
+        n++;
     }
 
-    end_cert = *p + len2;
+    *p = end_set;
 
-    /*
-     * This is to verify that there is only one signer certificate. It seems it is
-     * not easy to differentiate between the chain vs different signer's certificate.
-     * So, we support only the root certificate and the single signer.
-     * The behaviour would be improved with addition of multiple signer support.
-     */
-    if (end_cert != end_set) {
-        return MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE;
-    }
-
-    *p = start;
-    if ((ret = mbedtls_x509_crt_parse_der(certs, *p, len1)) < 0) {
-        return MBEDTLS_ERR_PKCS7_INVALID_CERT;
-    }
-
-    *p = *p + len1;
-
-    /*
-     * Since in this version we strictly support single certificate, and reaching
-     * here implies we have parsed successfully, we return 1.
-     */
-    return 1;
+    return n;
 }
 
 /**
@@ -719,27 +711,38 @@ static int pkcs7_signed_attrs_match(mbedtls_asn1_named_data *attrs,
     return 0;
 }
 
+static mbedtls_x509_crt *pkcs7_find_cert(mbedtls_x509_buf *serial,
+                                         mbedtls_x509_crt *cert)
+{
+    for (; cert != NULL; cert = cert->next)
+    {
+        if (serial->len == cert->serial.len &&
+            memcmp(serial->p, cert->serial.p, serial->len) == 0) {
+            return cert;
+        }
+    }
+
+    return NULL;
+}
+
 static int mbedtls_pkcs7_data_or_hash_verify(mbedtls_pkcs7 *pkcs7,
-                                             const mbedtls_x509_crt *cert,
+                                             mbedtls_x509_crt *cert,
                                              const unsigned char *data,
                                              size_t datalen,
                                              const int is_data_hash)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *hash;
-    mbedtls_pk_context pk_cxt = cert->pk;
+    mbedtls_pk_context pk_ctx;
+    mbedtls_x509_crt *pk_cert;
     const mbedtls_md_info_t *md_info;
     mbedtls_md_type_t md_alg;
     mbedtls_md_context_t md_ctx;
     mbedtls_pkcs7_signer_info *signer;
+    uint32_t flags;
 
     if (pkcs7->signed_data.no_of_signers == 0) {
         return MBEDTLS_ERR_PKCS7_INVALID_CERT;
-    }
-
-    if (mbedtls_x509_time_is_past(&cert->valid_to) ||
-        mbedtls_x509_time_is_future(&cert->valid_from)) {
-        return MBEDTLS_ERR_PKCS7_CERT_DATE_INVALID;
     }
 
     /*
@@ -812,9 +815,50 @@ static int mbedtls_pkcs7_data_or_hash_verify(mbedtls_pkcs7 *pkcs7,
             mbedtls_md_free(&md_ctx);
         }
 
-        ret = mbedtls_pk_verify(&pk_cxt, md_alg, hash,
-                                mbedtls_md_get_size(md_info),
-                                signer->sig.p, signer->sig.len);
+        ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+
+        /* try trusted certificates */
+        for (pk_cert = pkcs7_find_cert(&signer->serial, cert);
+             pk_cert != NULL;
+             pk_cert = pkcs7_find_cert(&signer->serial, pk_cert->next)) {
+            if (mbedtls_x509_time_is_past(&pk_cert->valid_to) ||
+                mbedtls_x509_time_is_future(&pk_cert->valid_from)) {
+                ret = MBEDTLS_ERR_PKCS7_CERT_DATE_INVALID;
+                continue;
+            }
+            pk_ctx = pk_cert->pk;
+            ret = mbedtls_pk_verify(&pk_ctx, md_alg, hash,
+                                    mbedtls_md_get_size(md_info),
+                                    signer->sig.p, signer->sig.len);
+            if (ret == 0) {
+                break;
+            }
+            ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+        }
+
+        /* try embedded certs with a chain of trust back to a trusted cert */
+        if (ret != 0) {
+            for (pk_cert = pkcs7_find_cert(&signer->serial,
+                                           &pkcs7->signed_data.certs);
+                 pk_cert != NULL;
+                 pk_cert = pkcs7_find_cert(&signer->serial, pk_cert->next)) {
+                if (mbedtls_x509_crt_verify(pk_cert, cert,
+                                            &pkcs7->signed_data.crl, NULL,
+                                            &flags, NULL, NULL) != 0) {
+                    ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+                    continue;
+                }
+                pk_ctx = pk_cert->pk;
+                ret = mbedtls_pk_verify(&pk_ctx, md_alg, hash,
+                                        mbedtls_md_get_size(md_info),
+                                        signer->sig.p, signer->sig.len);
+                if (ret == 0) {
+                    break;
+                }
+                ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+            }
+        }
+
         mbedtls_free(hash);
         /* END must free hash before jumping out */
 
@@ -826,7 +870,7 @@ static int mbedtls_pkcs7_data_or_hash_verify(mbedtls_pkcs7 *pkcs7,
     return ret;
 }
 int mbedtls_pkcs7_signed_data_verify(mbedtls_pkcs7 *pkcs7,
-                                     const mbedtls_x509_crt *cert,
+                                     mbedtls_x509_crt *cert,
                                      const unsigned char *data,
                                      size_t datalen)
 {
@@ -834,7 +878,7 @@ int mbedtls_pkcs7_signed_data_verify(mbedtls_pkcs7 *pkcs7,
 }
 
 int mbedtls_pkcs7_signed_hash_verify(mbedtls_pkcs7 *pkcs7,
-                                     const mbedtls_x509_crt *cert,
+                                     mbedtls_x509_crt *cert,
                                      const unsigned char *hash,
                                      size_t hashlen)
 {

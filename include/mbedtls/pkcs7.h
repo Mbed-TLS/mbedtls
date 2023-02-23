@@ -209,7 +209,9 @@ int mbedtls_pkcs7_parse_der(mbedtls_pkcs7 *pkcs7, const unsigned char *buf,
  *                 PKCS7 structure itself.
  *
  * \param pkcs7    PKCS7 structure containing signature.
- * \param cert     Certificate containing key to verify signature.
+ * \param cert     Trusted certificates either containing keys to verify the
+ *                 signature or to verify an embedded certificate containing
+ *                 the key.
  * \param data     Plain data on which signature has to be verified.
  * \param datalen  Length of the data.
  *
@@ -219,7 +221,7 @@ int mbedtls_pkcs7_parse_der(mbedtls_pkcs7 *pkcs7, const unsigned char *buf,
  * \return         0 if the signature verifies, or a negative error code on failure.
  */
 int mbedtls_pkcs7_signed_data_verify(mbedtls_pkcs7 *pkcs7,
-                                     const mbedtls_x509_crt *cert,
+                                     mbedtls_x509_crt *cert,
                                      const unsigned char *data,
                                      size_t datalen);
 
@@ -238,7 +240,9 @@ int mbedtls_pkcs7_signed_data_verify(mbedtls_pkcs7 *pkcs7,
  *                 PKCS7 structure itself.
  *
  * \param pkcs7    PKCS7 structure containing signature.
- * \param cert     Certificate containing key to verify signature.
+ * \param cert     Trusted certificates either containing keys to verify the
+ *                 signature or to verify an embedded certificate containing
+ *                 the key.
  * \param hash     Hash of the plain data on which signature has to be verified.
  * \param hashlen  Length of the hash.
  *
@@ -248,7 +252,7 @@ int mbedtls_pkcs7_signed_data_verify(mbedtls_pkcs7 *pkcs7,
  * \return         0 if the signature verifies, or a negative error code on failure.
  */
 int mbedtls_pkcs7_signed_hash_verify(mbedtls_pkcs7 *pkcs7,
-                                     const mbedtls_x509_crt *cert,
+                                     mbedtls_x509_crt *cert,
                                      const unsigned char *hash, size_t hashlen);
 
 /**

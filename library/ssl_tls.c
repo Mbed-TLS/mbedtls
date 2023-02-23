@@ -1206,7 +1206,7 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
             if (mbedtls_ssl_hash_from_md_alg(*md) == MBEDTLS_SSL_HASH_NONE) {
                 continue;
             }
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
             sig_algs_len += sizeof(uint16_t);
 #endif
 
@@ -1234,7 +1234,7 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
             if (hash == MBEDTLS_SSL_HASH_NONE) {
                 continue;
             }
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
             *p = ((hash << 8) | MBEDTLS_SSL_SIG_ECDSA);
             p++;
 #endif
@@ -4979,22 +4979,25 @@ static int ssl_preset_suiteb_ciphersuites[] = {
  */
 static uint16_t ssl_preset_default_sig_algs[] = {
 
-#if defined(MBEDTLS_ECDSA_C) &&  defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA) && \
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME) &&  \
+    defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA) && \
     defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
     MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256,
-#endif /* MBEDTLS_ECDSA_C && MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA &&
+#endif /* MBEDTLS_PK_CAN_ECDSA_SOME && MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA &&
           MBEDTLS_ECP_DP_SECP256R1_ENABLED */
 
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA) && \
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME) && \
+    defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA) && \
     defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
     MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384,
-#endif /* MBEDTLS_ECDSA_C && MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA&&
+#endif /* MBEDTLS_PK_CAN_ECDSA_SOME && MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA&&
           MBEDTLS_ECP_DP_SECP384R1_ENABLED */
 
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_HAS_ALG_SHA_512_VIA_MD_OR_PSA_BASED_ON_USE_PSA) && \
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME) && \
+    defined(MBEDTLS_HAS_ALG_SHA_512_VIA_MD_OR_PSA_BASED_ON_USE_PSA) && \
     defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
     MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512,
-#endif /* MBEDTLS_ECDSA_C && MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA&&
+#endif /* MBEDTLS_PK_CAN_ECDSA_SOME && MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA&&
           MBEDTLS_ECP_DP_SECP521R1_ENABLED */
 
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && \
@@ -5034,7 +5037,7 @@ static uint16_t ssl_preset_default_sig_algs[] = {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 static uint16_t ssl_tls12_preset_default_sig_algs[] = {
 #if defined(MBEDTLS_HAS_ALG_SHA_512_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA512),
 #endif
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
@@ -5045,7 +5048,7 @@ static uint16_t ssl_tls12_preset_default_sig_algs[] = {
 #endif
 #endif /* MBEDTLS_HAS_ALG_SHA_512_VIA_MD_OR_PSA_BASED_ON_USE_PSA*/
 #if defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA384),
 #endif
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
@@ -5056,7 +5059,7 @@ static uint16_t ssl_tls12_preset_default_sig_algs[] = {
 #endif
 #endif /* MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA*/
 #if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA256),
 #endif
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)

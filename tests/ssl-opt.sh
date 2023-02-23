@@ -363,9 +363,12 @@ requires_ciphersuite_enabled() {
     esac
 }
 
-# detect_required_features CMD [RUN_TEST_OPTION...]
-# If CMD (call to a TLS client or server program) requires certain features,
-# arrange to only run the following test case if those features are enabled.
+# Automatically detect required features based on command line parameters.
+# Parameters are:
+# - $1 = command line (call to a TLS client or server program)
+# - $2 = client/server
+# - $3 = TLS version (TLS12 or TLS13)
+# - $4 = run test options
 detect_required_features() {
     case "$1" in
         *\ force_version=*)
@@ -388,6 +391,27 @@ detect_required_features() {
     case " $1 " in
         *[-_\ =]alpn=*)
             requires_config_enabled MBEDTLS_SSL_ALPN;;
+    esac
+
+    case "$1" in
+        *server5*)
+            if [ "$3" = "TLS13" ]; then
+                # In case of TLS13 the support for ECDSA is enough
+                requires_pk_alg "ECDSA"
+            else
+                # For TLS12 requirements are different between server and client
+                if [ "$2" = "server" ]; then
+                    # If the server uses "server5*" cerificates, then an ECDSA based
+                    # key exchange is required
+                    requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
+                elif [ "$2" = "client" ]; then
+                    # Otherwise for the client it is enough to have any certificate
+                    # based authentication + support for ECDSA
+                    requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+                    requires_pk_alg "ECDSA"
+                fi
+            fi
+            ;;
     esac
 
     unset tmp
@@ -1416,6 +1440,22 @@ do_run_test_once() {
     fi
 }
 
+# Detect if the current test is going to use TLS 1.3.
+# $1 and $2 contains the server and client command lines, respectively.
+get_tls_version() {
+    case $1 in
+        *tls1_3*|*tls13*)
+            echo "TLS13"
+            return;;
+    esac
+    case $2 in
+        *tls1_3*|*tls13*)
+            echo "TLS13"
+            return;;
+    esac
+    echo "TLS12"
+}
+
 # Usage: run_test name [-p proxy_cmd] srv_cmd cli_cmd cli_exit [option [...]]
 # Options:  -s pattern  pattern that must be present in server output
 #           -c pattern  pattern that must be present in client output
@@ -1474,8 +1514,9 @@ run_test() {
 
     # If the client or server requires certain features that can be detected
     # from their command-line arguments, check that they're enabled.
-    detect_required_features "$SRV_CMD" "$@"
-    detect_required_features "$CLI_CMD" "$@"
+    TLS_VERSION=$(get_tls_version "$SRV_CMD" "$CLI_CMD")
+    detect_required_features "$SRV_CMD" "server" "$TLS_VERSION" "$@"
+    detect_required_features "$CLI_CMD" "client" "$TLS_VERSION" "$@"
 
     # If we're in a PSK-only build and the test can be adapted to PSK, do that.
     maybe_adapt_for_psk "$@"
@@ -1839,8 +1880,6 @@ run_test    "key size: TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_pk_alg "ECDSA"
 requires_hash_alg SHA_256
 run_test    "TLS: password protected client key" \
             "$P_SRV auth_mode=required" \
@@ -1849,7 +1888,6 @@ run_test    "TLS: password protected client key" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 requires_hash_alg SHA_256
 run_test    "TLS: password protected server key" \
             "$P_SRV crt_file=data_files/server5.crt key_file=data_files/server5.key.enc key_pwd=PolarSSLTest" \
@@ -1858,7 +1896,6 @@ run_test    "TLS: password protected server key" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_256
 run_test    "TLS: password protected server key, two certificates" \
@@ -1881,8 +1918,6 @@ run_test    "CA callback on client" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_pk_alg "ECDSA"
 requires_hash_alg SHA_256
 run_test    "CA callback on server" \
             "$P_SRV auth_mode=required" \
@@ -1972,7 +2007,6 @@ run_test    "Opaque key for server authentication: ECDHE-ECDSA" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 requires_hash_alg SHA_256
 run_test    "Opaque key for server authentication: ECDH-" \
             "$P_SRV force_version=tls12 auth_mode=required key_opaque=1\
@@ -1990,7 +2024,6 @@ run_test    "Opaque key for server authentication: ECDH-" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 requires_config_disabled MBEDTLS_SSL_ASYNC_PRIVATE
 requires_hash_alg SHA_256
 run_test    "Opaque key for server authentication: invalid key: decrypt with ECC key, no async" \
@@ -2025,7 +2058,6 @@ run_test    "Opaque key for server authentication: invalid key: ecdh with RSA ke
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 requires_hash_alg SHA_256
 run_test    "Opaque key for server authentication: invalid alg: decrypt with ECC key, async" \
@@ -5253,7 +5285,6 @@ run_test    "Renego ext: gnutls client unsafe, server break legacy" \
 
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "DER format: no trailing bytes" \
             "$P_SRV crt_file=data_files/server5-der0.crt \
              key_file=data_files/server5.key" \
@@ -5263,7 +5294,6 @@ run_test    "DER format: no trailing bytes" \
 
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "DER format: with a trailing zero byte" \
             "$P_SRV crt_file=data_files/server5-der1a.crt \
              key_file=data_files/server5.key" \
@@ -5273,7 +5303,6 @@ run_test    "DER format: with a trailing zero byte" \
 
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "DER format: with a trailing random byte" \
             "$P_SRV crt_file=data_files/server5-der1b.crt \
              key_file=data_files/server5.key" \
@@ -5283,7 +5312,6 @@ run_test    "DER format: with a trailing random byte" \
 
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "DER format: with 2 trailing random bytes" \
             "$P_SRV crt_file=data_files/server5-der2.crt \
              key_file=data_files/server5.key" \
@@ -5293,7 +5321,6 @@ run_test    "DER format: with 2 trailing random bytes" \
 
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "DER format: with 4 trailing random bytes" \
             "$P_SRV crt_file=data_files/server5-der4.crt \
              key_file=data_files/server5.key" \
@@ -5303,7 +5330,6 @@ run_test    "DER format: with 4 trailing random bytes" \
 
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "DER format: with 8 trailing random bytes" \
             "$P_SRV crt_file=data_files/server5-der8.crt \
              key_file=data_files/server5.key" \
@@ -5313,7 +5339,6 @@ run_test    "DER format: with 8 trailing random bytes" \
 
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "DER format: with 9 trailing random bytes" \
             "$P_SRV crt_file=data_files/server5-der9.crt \
              key_file=data_files/server5.key" \
@@ -5380,7 +5405,6 @@ run_test    "Authentication: server goodcert, client required, no trusted CA" \
 
 requires_config_enabled MBEDTLS_ECP_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication: server ECDH p256v1, client required, p256v1 unsupported" \
             "$P_SRV debug_level=1 key_file=data_files/server5.key \
              crt_file=data_files/server5.ku-ka.crt" \
@@ -5392,7 +5416,6 @@ run_test    "Authentication: server ECDH p256v1, client required, p256v1 unsuppo
 
 requires_config_enabled MBEDTLS_ECP_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication: server ECDH p256v1, client optional, p256v1 unsupported" \
             "$P_SRV debug_level=1 key_file=data_files/server5.key \
              crt_file=data_files/server5.ku-ka.crt" \
@@ -5403,7 +5426,6 @@ run_test    "Authentication: server ECDH p256v1, client optional, p256v1 unsuppo
             -c "bad server certificate (ECDH curve)" # Expect failure only at ECDH params check
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication: server badcert, client none" \
             "$P_SRV crt_file=data_files/server5-badsign.crt \
              key_file=data_files/server5.key" \
@@ -5712,7 +5734,6 @@ run_test    "Authentication: do not send CA list in CertificateRequest" \
             -S "requested DN"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication: send CA list in CertificateRequest, client self signed" \
             "$P_SRV debug_level=3 auth_mode=required cert_req_ca_list=0" \
             "$P_CLI debug_level=3 crt_file=data_files/server5-selfsigned.crt \
@@ -5766,7 +5787,6 @@ run_test    "Authentication: send alt hs DN hints in CertificateRequest" \
 
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication, CA callback: server badcert, client required" \
             "$P_SRV crt_file=data_files/server5-badsign.crt \
              key_file=data_files/server5.key" \
@@ -5780,7 +5800,6 @@ run_test    "Authentication, CA callback: server badcert, client required" \
 
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication, CA callback: server badcert, client optional" \
             "$P_SRV crt_file=data_files/server5-badsign.crt \
              key_file=data_files/server5.key" \
@@ -5802,7 +5821,6 @@ run_test    "Authentication, CA callback: server badcert, client optional" \
 requires_config_enabled MBEDTLS_ECP_C
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication, CA callback: server ECDH p256v1, client required, p256v1 unsupported" \
             "$P_SRV debug_level=1 key_file=data_files/server5.key \
              crt_file=data_files/server5.ku-ka.crt" \
@@ -5816,7 +5834,6 @@ run_test    "Authentication, CA callback: server ECDH p256v1, client required, p
 requires_config_enabled MBEDTLS_ECP_C
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication, CA callback: server ECDH p256v1, client optional, p256v1 unsupported" \
             "$P_SRV debug_level=1 key_file=data_files/server5.key \
              crt_file=data_files/server5.ku-ka.crt" \
@@ -5855,7 +5872,6 @@ run_test    "Authentication, CA callback: client SHA384, server required" \
 
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication, CA callback: client badcert, server required" \
             "$P_SRV ca_callback=1 debug_level=3 auth_mode=required" \
             "$P_CLI debug_level=3 crt_file=data_files/server5-badsign.crt \
@@ -5880,7 +5896,6 @@ run_test    "Authentication, CA callback: client badcert, server required" \
 
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication, CA callback: client cert not trusted, server required" \
             "$P_SRV ca_callback=1 debug_level=3 auth_mode=required" \
             "$P_CLI debug_level=3 crt_file=data_files/server5-selfsigned.crt \
@@ -5901,7 +5916,6 @@ run_test    "Authentication, CA callback: client cert not trusted, server requir
 
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication, CA callback: client badcert, server optional" \
             "$P_SRV ca_callback=1 debug_level=3 auth_mode=optional" \
             "$P_CLI debug_level=3 crt_file=data_files/server5-badsign.crt \
@@ -6842,7 +6856,6 @@ run_test    "keyUsage cli 1.3: KeyAgreement, RSA: fail" \
 requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "keyUsage cli 1.3: DigitalSignature, ECDSA: OK" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server5.key \
              -cert data_files/server5.ku-ds.crt" \
@@ -6855,7 +6868,6 @@ run_test    "keyUsage cli 1.3: DigitalSignature, ECDSA: OK" \
 requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "keyUsage cli 1.3: KeyEncipherment, ECDSA: fail" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server5.key \
              -cert data_files/server5.ku-ke.crt" \
@@ -6868,7 +6880,6 @@ run_test    "keyUsage cli 1.3: KeyEncipherment, ECDSA: fail" \
 requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "keyUsage cli 1.3: KeyAgreement, ECDSA: fail" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server5.key \
              -cert data_files/server5.ku-ka.crt" \
@@ -6910,8 +6921,6 @@ run_test    "keyUsage cli-auth: RSA, KeyEncipherment: fail (hard)" \
             -s "Processing of the Certificate handshake message failed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_pk_alg "ECDSA"
 run_test    "keyUsage cli-auth: ECDSA, DigitalSignature: OK" \
             "$P_SRV debug_level=1 auth_mode=optional" \
             "$O_CLI -key data_files/server5.key \
@@ -6922,8 +6931,6 @@ run_test    "keyUsage cli-auth: ECDSA, DigitalSignature: OK" \
             -S "Processing of the Certificate handshake message failed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_pk_alg "ECDSA"
 run_test    "keyUsage cli-auth: ECDSA, KeyAgreement: fail (soft)" \
             "$P_SRV debug_level=1 auth_mode=optional" \
             "$O_CLI -key data_files/server5.key \
@@ -6958,7 +6965,6 @@ run_test    "keyUsage cli-auth 1.3: RSA, KeyEncipherment: fail (soft)" \
 requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "keyUsage cli-auth 1.3: ECDSA, DigitalSignature: OK" \
             "$P_SRV debug_level=1 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key data_files/server5.key \
@@ -6971,7 +6977,6 @@ run_test    "keyUsage cli-auth 1.3: ECDSA, DigitalSignature: OK" \
 requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "keyUsage cli-auth 1.3: ECDSA, KeyAgreement: fail (soft)" \
             "$P_SRV debug_level=1 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key data_files/server5.key \
@@ -7013,7 +7018,6 @@ run_test    "extKeyUsage srv: codeSign -> fail" \
 # Tests for extendedKeyUsage, part 2: client-side checking of server cert
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "extKeyUsage cli: serverAuth -> OK" \
             "$O_SRV -tls1_2 -key data_files/server5.key \
              -cert data_files/server5.eku-srv.crt" \
@@ -7024,7 +7028,6 @@ run_test    "extKeyUsage cli: serverAuth -> OK" \
             -c "Ciphersuite is TLS-"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "extKeyUsage cli: serverAuth,clientAuth -> OK" \
             "$O_SRV -tls1_2 -key data_files/server5.key \
              -cert data_files/server5.eku-srv_cli.crt" \
@@ -7035,7 +7038,6 @@ run_test    "extKeyUsage cli: serverAuth,clientAuth -> OK" \
             -c "Ciphersuite is TLS-"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "extKeyUsage cli: codeSign,anyEKU -> OK" \
             "$O_SRV -tls1_2 -key data_files/server5.key \
              -cert data_files/server5.eku-cs_any.crt" \
@@ -7046,7 +7048,6 @@ run_test    "extKeyUsage cli: codeSign,anyEKU -> OK" \
             -c "Ciphersuite is TLS-"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "extKeyUsage cli: codeSign -> fail" \
             "$O_SRV -tls1_2 -key data_files/server5.key \
              -cert data_files/server5.eku-cs.crt" \
@@ -7059,7 +7060,6 @@ run_test    "extKeyUsage cli: codeSign -> fail" \
 requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "extKeyUsage cli 1.3: serverAuth -> OK" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server5.key \
              -cert data_files/server5.eku-srv.crt" \
@@ -7072,7 +7072,6 @@ run_test    "extKeyUsage cli 1.3: serverAuth -> OK" \
 requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "extKeyUsage cli 1.3: serverAuth,clientAuth -> OK" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server5.key \
              -cert data_files/server5.eku-srv_cli.crt" \
@@ -7085,7 +7084,6 @@ run_test    "extKeyUsage cli 1.3: serverAuth,clientAuth -> OK" \
 requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "extKeyUsage cli 1.3: codeSign,anyEKU -> OK" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server5.key \
              -cert data_files/server5.eku-cs_any.crt" \
@@ -7098,7 +7096,6 @@ run_test    "extKeyUsage cli 1.3: codeSign,anyEKU -> OK" \
 requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "extKeyUsage cli 1.3: codeSign -> fail" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server5.key \
              -cert data_files/server5.eku-cs.crt" \
@@ -7111,8 +7108,6 @@ run_test    "extKeyUsage cli 1.3: codeSign -> fail" \
 # Tests for extendedKeyUsage, part 3: server-side checking of client cert
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_pk_alg "ECDSA"
 run_test    "extKeyUsage cli-auth: clientAuth -> OK" \
             "$P_SRV debug_level=1 auth_mode=optional" \
             "$O_CLI -key data_files/server5.key \
@@ -7122,8 +7117,6 @@ run_test    "extKeyUsage cli-auth: clientAuth -> OK" \
             -S "Processing of the Certificate handshake message failed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_pk_alg "ECDSA"
 run_test    "extKeyUsage cli-auth: serverAuth,clientAuth -> OK" \
             "$P_SRV debug_level=1 auth_mode=optional" \
             "$O_CLI -key data_files/server5.key \
@@ -7133,8 +7126,6 @@ run_test    "extKeyUsage cli-auth: serverAuth,clientAuth -> OK" \
             -S "Processing of the Certificate handshake message failed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_pk_alg "ECDSA"
 run_test    "extKeyUsage cli-auth: codeSign,anyEKU -> OK" \
             "$P_SRV debug_level=1 auth_mode=optional" \
             "$O_CLI -key data_files/server5.key \
@@ -7144,8 +7135,6 @@ run_test    "extKeyUsage cli-auth: codeSign,anyEKU -> OK" \
             -S "Processing of the Certificate handshake message failed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_pk_alg "ECDSA"
 run_test    "extKeyUsage cli-auth: codeSign -> fail (soft)" \
             "$P_SRV debug_level=1 auth_mode=optional" \
             "$O_CLI -key data_files/server5.key \
@@ -7155,8 +7144,6 @@ run_test    "extKeyUsage cli-auth: codeSign -> fail (soft)" \
             -S "Processing of the Certificate handshake message failed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_pk_alg "ECDSA"
 run_test    "extKeyUsage cli-auth: codeSign -> fail (hard)" \
             "$P_SRV debug_level=1 auth_mode=required" \
             "$O_CLI -key data_files/server5.key \
@@ -7201,7 +7188,6 @@ run_test    "extKeyUsage cli-auth 1.3: codeSign,anyEKU -> OK" \
 requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "extKeyUsage cli-auth 1.3: codeSign -> fail (soft)" \
             "$P_SRV debug_level=1 force_version=tls13 auth_mode=optional" \
             "$O_NEXT_CLI_NO_CERT -key data_files/server5.key \
@@ -12652,7 +12638,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Server side check - openssl with sni" \
             "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0 \
              sni=localhost,data_files/server5.crt,data_files/server5.key,data_files/test-ca_cat12.crt,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
@@ -12666,7 +12651,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Server side check - gnutls with sni" \
             "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0 \
              sni=localhost,data_files/server5.crt,data_files/server5.key,data_files/test-ca_cat12.crt,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
@@ -12680,7 +12664,6 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Server side check - mbedtls with sni" \
             "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0 \
              sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
@@ -13023,7 +13006,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3 O->m HRR server with middlebox compat support, not client" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 curves=secp384r1 tickets=0" \
             "$O_NEXT_CLI -msg -debug -groups P-256:P-384 -no_middlebox" \
@@ -13036,7 +13018,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3 O->m HRR both with middlebox compat support" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 curves=secp384r1 tickets=0" \
             "$O_NEXT_CLI -msg -debug -groups P-256:P-384" \
@@ -13067,7 +13048,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3 G->m HRR server with middlebox compat support, not client" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 curves=secp384r1 tickets=0" \
             "$G_NEXT_CLI localhost --debug=10 --priority=NORMAL:-GROUP-ALL:+GROUP-SECP256R1:+GROUP-SECP384R1:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
@@ -13084,7 +13064,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3 G->m HRR both with middlebox compat support" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 curves=secp384r1 tickets=0" \
             "$G_NEXT_CLI localhost --debug=10 --priority=NORMAL:-GROUP-ALL:+GROUP-SECP256R1:+GROUP-SECP384R1:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
@@ -13394,7 +13373,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: NewSessionTicket: Basic check, m->m" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=4" \
             "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \

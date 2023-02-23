@@ -4,7 +4,7 @@
  * \brief   This file contains the generic functions for message-digest
  *          (hashing) and HMAC.
  *
- *          Availability of functions in this modules is controled by two
+ *          Availability of functions in this module is controlled by two
  *          feature macros:
  *          - #MBEDTLS_MD_C enables the whole module;
  *          - #MBEDTLS_MD_LIGHT enables only functions for hashing and accessing

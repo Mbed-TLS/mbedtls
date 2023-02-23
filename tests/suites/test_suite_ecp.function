@@ -1347,9 +1347,10 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
-void ecp_mod_p521_raw(char *input_N,
-                      char *input_X,
-                      char *result)
+void ecp_mod_px_raw(int id,
+                    char *input_N,
+                    char *input_X,
+                    char *result)
 {
     mbedtls_mpi_uint *X = NULL;
     mbedtls_mpi_uint *N = NULL;
@@ -1375,7 +1376,14 @@ void ecp_mod_p521_raw(char *input_N,
                    &m, N, limbs,
                    MBEDTLS_MPI_MOD_REP_MONTGOMERY), 0);
 
-    TEST_EQUAL(mbedtls_ecp_mod_p521_raw(X, limbs_X), 0);
+    switch (id) {
+        case MBEDTLS_ECP_DP_SECP521R1:
+            TEST_EQUAL(mbedtls_ecp_mod_p521_raw(X, limbs_X), 0);
+            break;
+        default:
+            mbedtls_test_fail("Invalid ECP Curve ID", __LINE__, __FILE__);
+    }
+
     TEST_LE_U(mbedtls_mpi_core_bitlen(X, limbs_X), 522);
     mbedtls_mpi_mod_raw_fix_quasi_reduction(X, &m);
     ASSERT_COMPARE(X, bytes, res, bytes);

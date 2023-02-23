@@ -79,7 +79,7 @@ class EcpP192R1Raw(bignum_common.ModOperationCommon,
 class EcpP521R1Raw(bignum_common.ModOperationCommon,
                    EcpTarget):
     """Test cases for ecp quasi_reduction()."""
-    test_function = "ecp_mod_p521_raw"
+    test_function = "ecp_mod_px_raw"
     test_name = "ecp_mod_p521_raw"
     input_style = "arch_split"
     arity = 1
@@ -162,6 +162,9 @@ class EcpP521R1Raw(bignum_common.ModOperationCommon,
     def result(self) -> List[str]:
         result = self.int_a % self.int_n
         return [self.format_result(result)]
+
+    def arguments(self) -> List[str]:
+        return ["MBEDTLS_ECP_DP_SECP521R1"] +  super().arguments()
 
     @property
     def is_valid(self) -> bool:

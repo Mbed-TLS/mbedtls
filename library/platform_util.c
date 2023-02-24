@@ -76,7 +76,7 @@
  * (refer to http://www.daemonology.net/blog/2014-09-05-erratum.html for
  * details), optimizations of the following form are still possible:
  *
- * if(memset_func != memset)
+ * if (memset_func != memset)
  *     memset_func(buf, 0, len);
  *
  * Note that it is extremely difficult to guarantee that

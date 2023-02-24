@@ -11468,6 +11468,21 @@ run_test    "TLS 1.3: Test gnutls tls1_3 feature" \
             -c "Version: TLS1.3"
 
 # TLS1.3 test cases
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_ciphersuite_enabled TLS1-3-CHACHA20-POLY1305-SHA256
+requires_config_enabled MBEDTLS_ECP_DP_CURVE25519_ENABLED
+requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
+requires_config_enabled MBEDTLS_ECDSA_C
+run_test    "TLS 1.3: Default" \
+            "$P_SRV allow_sha1=0 debug_level=3 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13" \
+            "$P_CLI allow_sha1=0" \
+            0 \
+            -s "Protocol is TLSv1.3" \
+            -s "Ciphersuite is TLS1-3-CHACHA20-POLY1305-SHA256" \
+            -s "ECDH group: x25519" \
+            -s "selected signature algorithm ecdsa_secp256r1_sha256"
+
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
@@ -11488,7 +11503,7 @@ run_test    "TLS 1.3: minimal feature sets - openssl" \
             -c "client state: MBEDTLS_SSL_FLUSH_BUFFERS" \
             -c "client state: MBEDTLS_SSL_HANDSHAKE_WRAPUP" \
             -c "<= ssl_tls13_process_server_hello" \
-            -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
+            -c "server hello, chosen ciphersuite: ( 1303 ) - TLS1-3-CHACHA20-POLY1305-SHA256" \
             -c "ECDH curve: x25519" \
             -c "=> ssl_tls13_process_server_hello" \
             -c "<= parse encrypted extensions" \
@@ -11522,7 +11537,7 @@ run_test    "TLS 1.3: minimal feature sets - gnutls" \
             -c "client state: MBEDTLS_SSL_FLUSH_BUFFERS" \
             -c "client state: MBEDTLS_SSL_HANDSHAKE_WRAPUP" \
             -c "<= ssl_tls13_process_server_hello" \
-            -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
+            -c "server hello, chosen ciphersuite: ( 1303 ) - TLS1-3-CHACHA20-POLY1305-SHA256" \
             -c "ECDH curve: x25519" \
             -c "=> ssl_tls13_process_server_hello" \
             -c "<= parse encrypted extensions" \
@@ -11555,7 +11570,7 @@ run_test    "TLS 1.3: alpn - openssl" \
             -c "client state: MBEDTLS_SSL_FLUSH_BUFFERS" \
             -c "client state: MBEDTLS_SSL_HANDSHAKE_WRAPUP" \
             -c "<= ssl_tls13_process_server_hello" \
-            -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
+            -c "server hello, chosen ciphersuite: ( 1303 ) - TLS1-3-CHACHA20-POLY1305-SHA256" \
             -c "ECDH curve: x25519" \
             -c "=> ssl_tls13_process_server_hello" \
             -c "<= parse encrypted extensions" \
@@ -11591,7 +11606,7 @@ run_test    "TLS 1.3: alpn - gnutls" \
             -c "client state: MBEDTLS_SSL_FLUSH_BUFFERS" \
             -c "client state: MBEDTLS_SSL_HANDSHAKE_WRAPUP" \
             -c "<= ssl_tls13_process_server_hello" \
-            -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
+            -c "server hello, chosen ciphersuite: ( 1303 ) - TLS1-3-CHACHA20-POLY1305-SHA256" \
             -c "ECDH curve: x25519" \
             -c "=> ssl_tls13_process_server_hello" \
             -c "<= parse encrypted extensions" \
@@ -13228,6 +13243,31 @@ run_test    "TLS 1.3: NewSessionTicket: Basic check, G->m" \
             0 \
             -c "Connecting again- trying to resume previous session" \
             -c "NEW SESSION TICKET (4) was received" \
+            -s "=> write NewSessionTicket msg" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
+            -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH" \
+            -s "key exchange mode: ephemeral" \
+            -s "key exchange mode: psk_ephemeral" \
+            -s "found pre_shared_key extension"
+
+requires_gnutls_tls1_3
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
+                             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+# Test the session resumption when the cipher suite for the original session is
+# TLS1-3-AES-256-GCM-SHA384. In that case, the PSK is 384 bits long and not
+# 256 bits long as with all the other TLS 1.3 cipher suites.
+requires_ciphersuite_enabled TLS1-3-AES-256-GCM-SHA384
+run_test    "TLS 1.3: NewSessionTicket: Basic check with AES-256-GCM only, G->m" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=4" \
+            "$G_NEXT_CLI localhost -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-CIPHER-ALL:+AES-256-GCM -V -r" \
+            0 \
+            -c "Connecting again- trying to resume previous session" \
+            -c "NEW SESSION TICKET (4) was received" \
+            -s "Ciphersuite is TLS1-3-AES-256-GCM-SHA384" \
             -s "=> write NewSessionTicket msg" \
             -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET" \
             -s "server state: MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET_FLUSH" \

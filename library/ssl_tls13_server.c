@@ -258,6 +258,8 @@ static int ssl_tls13_offered_psks_check_identity_match(
     int *psk_type,
     mbedtls_ssl_session *session)
 {
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
     ((void) session);
     ((void) obfuscated_ticket_age);
     *psk_type = MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL;
@@ -271,9 +273,13 @@ static int ssl_tls13_offered_psks_check_identity_match(
             session) == SSL_TLS1_3_OFFERED_PSK_MATCH) {
         ssl->handshake->resume = 1;
         *psk_type = MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION;
-        mbedtls_ssl_set_hs_psk(ssl,
-                               session->resumption_key,
-                               session->resumption_key_len);
+        ret = mbedtls_ssl_set_hs_psk(ssl,
+                                     session->resumption_key,
+                                     session->resumption_key_len);
+        if (ret != 0) {
+            MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_set_hs_psk", ret);
+            return ret;
+        }
 
         MBEDTLS_SSL_DEBUG_BUF(4, "Ticket-resumed PSK:",
                               session->resumption_key,
@@ -299,7 +305,11 @@ static int ssl_tls13_offered_psks_check_identity_match(
         identity_len == ssl->conf->psk_identity_len &&
         mbedtls_ct_memcmp(ssl->conf->psk_identity,
                           identity, identity_len) == 0) {
-        mbedtls_ssl_set_hs_psk(ssl, ssl->conf->psk, ssl->conf->psk_len);
+        ret = mbedtls_ssl_set_hs_psk(ssl, ssl->conf->psk, ssl->conf->psk_len);
+        if (ret != 0) {
+            MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_set_hs_psk", ret);
+            return ret;
+        }
         return SSL_TLS1_3_OFFERED_PSK_MATCH;
     }
 
@@ -1323,6 +1333,15 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     cipher_suites_len = MBEDTLS_GET_UINT16_BE(p, 0);
     p += 2;
 
+    /*
+     * The length of the ciphersuite list has to be even.
+     */
+    if (cipher_suites_len & 1) {
+        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
+                                     MBEDTLS_ERR_SSL_DECODE_ERROR);
+        return MBEDTLS_ERR_SSL_DECODE_ERROR;
+    }
+
     /* Check we have enough data for the ciphersuite list, the legacy
      * compression methods and the length of the extensions.
      *
@@ -1352,8 +1371,11 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
         uint16_t cipher_suite;
         const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
 
-        MBEDTLS_SSL_CHK_BUF_READ_PTR(p, cipher_suites_end, 2);
-
+        /*
+         * "cipher_suite_end - p is even" is an invariant of the loop. As
+         * cipher_suites_end - p > 0, we have cipher_suites_end - p >= 2 and
+         * it is thus safe to read two bytes.
+         */
         cipher_suite = MBEDTLS_GET_UINT16_BE(p, 0);
         ciphersuite_info = ssl_tls13_validate_peer_ciphersuite(
             ssl, cipher_suite);
@@ -1366,6 +1388,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG(2, ("selected ciphersuite: %04x - %s",
                                   cipher_suite,
                                   ciphersuite_info->name));
+        break;
     }
 
     if (handshake->ciphersuite_info == NULL) {
@@ -1373,6 +1396,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                                      MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE);
         return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
     }
+    p = cipher_suites_end;
 
     /* ...
      * opaque legacy_compression_methods<1..2^8-1>;

@@ -7675,16 +7675,13 @@ static int ssl_calc_finished_tls_sha256(
      *               Hash( handshake ) )[0.11]
      */
 
-#if !defined(MBEDTLS_SHA256_ALT)
-    MBEDTLS_SSL_DEBUG_BUF(4, "finished sha2 state", (unsigned char *)
-                          sha256.state, sizeof(sha256.state));
-#endif
-
     ret = mbedtls_sha256_finish(&sha256, padbuf);
     if (ret != 0) {
         goto exit;
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+    MBEDTLS_SSL_DEBUG_BUF(4, "finished sha256 output", padbuf, 32);
 
     ssl->handshake->tls_prf(session->master, 48, sender,
                             padbuf, 32, buf, len);
@@ -7760,15 +7757,13 @@ static int ssl_calc_finished_tls_sha384(
      *               Hash( handshake ) )[0.11]
      */
 
-#if !defined(MBEDTLS_SHA512_ALT)
-    MBEDTLS_SSL_DEBUG_BUF(4, "finished sha512 state", (unsigned char *)
-                          sha512.state, sizeof(sha512.state));
-#endif
     ret = mbedtls_sha512_finish(&sha512, padbuf);
     if (ret != 0) {
         goto exit;
     }
 #endif
+
+    MBEDTLS_SSL_DEBUG_BUF(4, "finished sha384 output", padbuf, 48);
 
     ssl->handshake->tls_prf(session->master, 48, sender,
                             padbuf, 48, buf, len);

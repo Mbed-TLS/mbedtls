@@ -89,7 +89,9 @@ jobs:
           packages:
           - gcc
       script:
-        # See above
+        # Do a manual build+test sequence rather than using all.sh, because
+        # there's no all.sh component that does what we want. We should set
+        # CFLAGS for arm64 host CC.
         - scripts/config.py full
         - scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
         - scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY
@@ -115,7 +117,9 @@ jobs:
           - clang
           - gnutls-bin
       script:
-        # See above
+        # Do a manual build+test sequence rather than using all.sh, because
+        # there's no all.sh component that does what we want. We should set
+        # CFLAGS for arm64 host CC.
         - scripts/config.py full
         - scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
         - scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY
@@ -127,7 +131,6 @@ jobs:
         - tests/compat.sh -p GnuTLS -e 'CAMELLIA'
         - tests/scripts/travis-log-failure.sh
         - tests/context-info.sh
-
 
 after_failure:
 - tests/scripts/travis-log-failure.sh

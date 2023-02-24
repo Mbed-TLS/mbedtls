@@ -95,7 +95,7 @@ void mbedtls_platform_zeroize(void *buf, size_t len)
     if (len > 0) {
 #if defined(MBEDTLS_PLATFORM_HAS_EXPLICIT_BZERO)
         explicit_bzero(buf, len);
-#elif(__STDC_LIB_EXT1__)
+#elif defined(__STDC_LIB_EXT1__)
         memset_s(buf, len, 0, len);
 #elif defined(_WIN32)
         SecureZeroMemory(buf, len);

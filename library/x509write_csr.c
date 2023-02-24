@@ -99,7 +99,7 @@ int mbedtls_x509write_csr_set_subject_alternative_name(mbedtls_x509write_csr *ct
     /* Determine the maximum size of the SubjectAltName list */
     while (cur != NULL) {
         /* Calculate size of the required buffer */
-        switch(cur->node.type) {
+        switch (cur->node.type) {
             case MBEDTLS_X509_SAN_DNS_NAME:
             case MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER:
             case MBEDTLS_X509_SAN_IP_ADDRESS:
@@ -139,15 +139,20 @@ int mbedtls_x509write_csr_set_subject_alternative_name(mbedtls_x509write_csr *ct
             case MBEDTLS_X509_SAN_DNS_NAME:
             case MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER:
             case MBEDTLS_X509_SAN_IP_ADDRESS:
-                MBEDTLS_ASN1_CHK_ADD(len,
-                                     mbedtls_asn1_write_raw_buffer(&p, buf,
-                                                                   (const unsigned char *) cur->node.san.unstructured_name.p,
-                                                                   cur->node.san.unstructured_name.len));
-                MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(&p, buf, cur->node.san.unstructured_name.len));
-                MBEDTLS_ASN1_CHK_ADD(len,
-                                     mbedtls_asn1_write_tag(&p, buf,
-                                                            MBEDTLS_ASN1_CONTEXT_SPECIFIC |
-                                                            cur->node.type));
+                MBEDTLS_ASN1_CHK_CLEANUP_ADD(len,
+                                             mbedtls_asn1_write_raw_buffer(&p, buf,
+                                                                           (const unsigned char *)
+                                                                           cur->node.san.
+                                                                           unstructured_name.p,
+                                                                           cur->node.san.
+                                                                           unstructured_name.len));
+                MBEDTLS_ASN1_CHK_CLEANUP_ADD(len, mbedtls_asn1_write_len(&p, buf,
+                                                                         cur->node.san.
+                                                                         unstructured_name.len));
+                MBEDTLS_ASN1_CHK_CLEANUP_ADD(len,
+                                             mbedtls_asn1_write_tag(&p, buf,
+                                                                    MBEDTLS_ASN1_CONTEXT_SPECIFIC |
+                                                                    cur->node.type));
                 break;
             default:
                 /* Skip unsupported names. */
@@ -156,10 +161,11 @@ int mbedtls_x509write_csr_set_subject_alternative_name(mbedtls_x509write_csr *ct
         cur = cur->next;
     }
 
-    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(&p, buf, len));
-    MBEDTLS_ASN1_CHK_ADD(len,
-                         mbedtls_asn1_write_tag(&p, buf,
-                                                MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE));
+    MBEDTLS_ASN1_CHK_CLEANUP_ADD(len, mbedtls_asn1_write_len(&p, buf, len));
+    MBEDTLS_ASN1_CHK_CLEANUP_ADD(len,
+                                 mbedtls_asn1_write_tag(&p, buf,
+                                                        MBEDTLS_ASN1_CONSTRUCTED |
+                                                        MBEDTLS_ASN1_SEQUENCE));
 
     ret = mbedtls_x509write_csr_set_extension(
         ctx,
@@ -169,6 +175,7 @@ int mbedtls_x509write_csr_set_subject_alternative_name(mbedtls_x509write_csr *ct
         buf + buflen - len,
         len);
 
+cleanup:
     mbedtls_free(buf);
     return ret;
 }

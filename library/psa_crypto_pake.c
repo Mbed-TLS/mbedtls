@@ -257,9 +257,11 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
     { status = PSA_ERROR_NOT_SUPPORTED; }
 
 error:
-    /* When driver fails with PSA_ERROR_NOT_SUPPORTED the built-in implementation is executed (if available)
-       and it will reallocate the password leading to the memory leak.
-       Call abort explicitly to clean up allocated memory for password on failure. */
+    /* In case of failure of the setup of a multipart operation, the PSA driver interface
+     * specifies that the core does not call any other driver entry point thus does not
+     * call mbedtls_psa_pake_abort(). Therefore call it here to do the needed clean
+     * up like freeing the memory that may have been allocated to store the password.
+     */
     mbedtls_psa_pake_abort(operation);
     return status;
 }

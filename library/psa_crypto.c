@@ -7503,8 +7503,6 @@ static psa_status_t psa_pake_complete_inputs(
 
     status = psa_driver_wrapper_pake_setup(operation, &inputs);
 
-    operation->stage = PSA_PAKE_OPERATION_STAGE_COMPUTATION;
-
     /* Driver is responsible for creating its own copy of the password. */
     mbedtls_platform_zeroize(inputs.password, inputs.password_len);
     mbedtls_free(inputs.password);
@@ -7512,6 +7510,7 @@ static psa_status_t psa_pake_complete_inputs(
     if (status == PSA_SUCCESS) {
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
         if (operation->alg == PSA_ALG_JPAKE) {
+            operation->stage = PSA_PAKE_OPERATION_STAGE_COMPUTATION;
             psa_jpake_computation_stage_t *computation_stage =
                 &operation->computation_stage.jpake;
             computation_stage->state = PSA_PAKE_STATE_READY;

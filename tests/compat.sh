@@ -40,6 +40,7 @@ TESTS=0
 FAILED=0
 SKIPPED=0
 SRVMEM=0
+LIST_TEST_CASE=0
 
 # default commands, can be overridden by the environment
 : ${M_SRV:=../programs/ssl/ssl_server2}
@@ -133,14 +134,6 @@ print_usage() {
     printf "                   \t(default: \$MBEDTLS_TEST_OUTCOME_FILE, none if empty)\n"
 }
 
-# print_test_title <CLIENT> <SERVER> <STANDARD_CIPHER_SUITE>
-print_test_title() {
-    for i in $3; do
-        TITLE="$1->$2 $MODE,$VERIF $i"
-        echo "$TITLE"
-    done
-}
-
 list_test_case() {
     reset_ciphersuites
     for TYPE in $TYPES; do
@@ -190,6 +183,7 @@ get_options() {
                 MEMCHECK=1
                 ;;
             --list-test-case)
+                LIST_TEST_CASE=1
                 list_test_case
                 exit 0
                 ;;
@@ -1233,15 +1227,21 @@ report_fail() {
     fi
 }
 
+# print_test_title <CLIENT> <SERVER> <STANDARD_CIPHER_SUITE>
+print_test_title() {
+    for i in $3; do
+        TITLE="$1->$2 $MODE,$VERIF $i"
+        DOTS72="........................................................................"
+        printf "%s %.*s " "$TITLE" "$((71 - ${#TITLE}))" "$DOTS72"
+        [ $LIST_TEST_CASE -eq 1 ] && printf "\n"
+    done
+}
+
 # run_client <name> <cipher>
 run_client() {
     # announce what we're going to do
     TESTS=$(( $TESTS + 1 ))
-    TITLE="`echo $1 | head -c1`->`echo $SERVER_NAME | head -c1`"
-    TITLE="$TITLE $MODE,$VERIF $2"
-    printf "%s " "$TITLE"
-    LEN=$(( 72 - `echo "$TITLE" | wc -c` ))
-    for i in `seq 1 $LEN`; do printf '.'; done; printf ' '
+    print_test_title ${1%"${1#?}"} ${SERVER_NAME%"${SERVER_NAME#?}"} $2
 
     # should we skip?
     if [ "X$SKIP_NEXT" = "XYES" ]; then

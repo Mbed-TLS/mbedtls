@@ -194,14 +194,29 @@ PSA PAKE: ecjpake size macros
 depends_on:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR:PSA_WANT_ECC_SECP_R1_256
 ecjpake_size_macros:
 
-PSA PAKE: input getters: ok #1
-pake_input_getters:"aabbccddee":PSA_PAKE_ROLE_SERVER:5:PSA_ALG_JPAKE:PSA_PAKE_PRIMITIVE(PSA_PAKE_PRIMITIVE_TYPE_ECC, PSA_ECC_FAMILY_SECP_R1, 256):PSA_ALG_SHA_256:PSA_SUCCESS:PSA_SUCCESS:PSA_SUCCESS:PSA_SUCCESS
+PSA PAKE: input getters password: ok #1
+pake_input_getters_password:"aabbccddee":5:PSA_SUCCESS:PSA_SUCCESS
 
-PSA PAKE: input getters: ok #2
-pake_input_getters:"ddccbbaa":PSA_PAKE_ROLE_CLIENT:5:PSA_ALG_JPAKE:PSA_PAKE_PRIMITIVE(PSA_PAKE_PRIMITIVE_TYPE_ECC, PSA_ECC_FAMILY_SECP_R1, 256):PSA_ALG_SHA_512:PSA_SUCCESS:PSA_SUCCESS:PSA_SUCCESS:PSA_SUCCESS
+PSA PAKE: input getters password: ok #2
+pake_input_getters_password:"11223344556677889900":10:PSA_SUCCESS:PSA_SUCCESS
 
-PSA PAKE: input getters: buffer for password to small
-pake_input_getters:"aabbccddee":PSA_PAKE_ROLE_SERVER:4:PSA_ALG_JPAKE:PSA_PAKE_PRIMITIVE(PSA_PAKE_PRIMITIVE_TYPE_ECC, PSA_ECC_FAMILY_SECP_R1, 256):PSA_ALG_SHA_256:PSA_ERROR_BUFFER_TOO_SMALL:PSA_SUCCESS:PSA_SUCCESS:PSA_SUCCESS
+PSA PAKE: input getters password: buffer to small
+pake_input_getters_password:"aabbccddee":4:PSA_ERROR_BUFFER_TOO_SMALL:PSA_SUCCESS
 
-PSA PAKE: input getters: inputs not ready
-pake_input_getters:"":0:5:0:0:0:PSA_ERROR_BAD_STATE:PSA_ERROR_BAD_STATE:PSA_ERROR_BAD_STATE:PSA_ERROR_BAD_STATE
+PSA PAKE: input getters password: not set
+pake_input_getters_password:"":0:PSA_ERROR_BAD_STATE:PSA_ERROR_BAD_STATE
+
+PSA PAKE: input getters cipher suite: ok
+pake_input_getters_cipher_suite:PSA_SUCCESS:1
+
+PSA PAKE: input getters cipher suite: not set
+pake_input_getters_cipher_suite:PSA_ERROR_BAD_STATE:0
+
+PSA PAKE: input getters role client: ok
+pake_input_getters_role:PSA_PAKE_ROLE_CLIENT:PSA_SUCCESS
+
+PSA PAKE: input getters role server: ok
+pake_input_getters_role:PSA_PAKE_ROLE_SERVER:PSA_SUCCESS
+
+PSA PAKE: input getters role: not set
+pake_input_getters_role:PSA_PAKE_ROLE_NONE:PSA_ERROR_BAD_STATE

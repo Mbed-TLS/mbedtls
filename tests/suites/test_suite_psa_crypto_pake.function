@@ -909,75 +909,129 @@ void ecjpake_size_macros()
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PSA_BUILTIN_ALG_JPAKE */
-void pake_input_getters(data_t *password, int role_arg, int password_buffer_size,
-                        int alg_arg, int primitive_arg, int hash_arg,
-                        int expected_status_pass,  int expected_status_pass_len,
-                        int expected_status_role,  int expected_status_cs)
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE */
+void pake_input_getters_password(data_t *password, int password_buffer_size,
+                                 int expected_status_pass, int expected_status_pass_len)
 {
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
     psa_pake_operation_t operation = psa_pake_operation_init();
-    psa_pake_role_t role = role_arg;
-    psa_algorithm_t alg = alg_arg;
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_pake_role_t role_ret = PSA_PAKE_ROLE_NONE;
     uint8_t password_ret[20] = { 0 }; // max key length is 20 bytes
     size_t password_len_ret = 0;
-    psa_pake_cipher_suite_t cipher_suite_ret = psa_pake_cipher_suite_init();
     size_t buffer_len_ret = 0;
+
+    psa_pake_primitive_t primitive = PSA_PAKE_PRIMITIVE(
+        PSA_PAKE_PRIMITIVE_TYPE_ECC,
+        PSA_ECC_FAMILY_SECP_R1, 256);
 
     PSA_INIT();
 
-    /* alg equal to 0 indicates case when inputs are not set yet. */
-    if (alg != 0) {
-        psa_pake_cs_set_algorithm(&cipher_suite, alg);
-        psa_pake_cs_set_primitive(&cipher_suite, primitive_arg);
-        psa_pake_cs_set_hash(&cipher_suite, hash_arg);
+    psa_pake_cs_set_algorithm(&cipher_suite, PSA_ALG_JPAKE);
+    psa_pake_cs_set_primitive(&cipher_suite, primitive);
+    psa_pake_cs_set_hash(&cipher_suite, PSA_ALG_SHA_256);
 
-        psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_DERIVE);
-        psa_set_key_algorithm(&attributes, alg);
-        psa_set_key_type(&attributes, PSA_KEY_TYPE_PASSWORD);
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_DERIVE);
+    psa_set_key_algorithm(&attributes, PSA_ALG_JPAKE);
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_PASSWORD);
 
+    PSA_ASSERT(psa_pake_setup(&operation, &cipher_suite));
+
+    if (password_buffer_size > 0) {
         PSA_ASSERT(psa_import_key(&attributes, password->x, password->len, &key));
-
-        PSA_ASSERT(psa_pake_setup(&operation, &cipher_suite));
         PSA_ASSERT(psa_pake_set_password_key(&operation, key));
-        PSA_ASSERT(psa_pake_set_role(&operation, role));
     }
 
     TEST_EQUAL(psa_crypto_driver_pake_get_password_len(&operation.data.inputs, &password_len_ret),
                expected_status_pass_len);
 
-    TEST_EQUAL(psa_crypto_driver_pake_get_password(&operation.data.inputs,
-                                                   (uint8_t *) &password_ret,
-                                                   password_buffer_size, &buffer_len_ret),
-               expected_status_pass);
-
-    TEST_EQUAL(psa_crypto_driver_pake_get_role(&operation.data.inputs, &role_ret),
-               expected_status_role);
-
-    TEST_EQUAL(psa_crypto_driver_pake_get_cipher_suite(&operation.data.inputs, &cipher_suite_ret),
-               expected_status_cs);
-
     if (expected_status_pass_len == PSA_SUCCESS) {
         TEST_EQUAL(password_len_ret, password->len);
-    }
 
-    if (expected_status_pass == PSA_SUCCESS) {
-        PSA_ASSERT(memcmp(password_ret, password->x, password->len));
-    }
+        TEST_EQUAL(psa_crypto_driver_pake_get_password(&operation.data.inputs,
+                                                       (uint8_t *) &password_ret,
+                                                       password_buffer_size, &buffer_len_ret),
+                   expected_status_pass);
 
-    if (expected_status_role == PSA_SUCCESS) {
-        TEST_EQUAL(role_ret, role);
-    }
-
-    if (expected_status_pass == PSA_SUCCESS) {
-        PSA_ASSERT(memcmp(&cipher_suite_ret, &cipher_suite, sizeof(cipher_suite)));
+        if (expected_status_pass == PSA_SUCCESS) {
+            TEST_EQUAL(buffer_len_ret, password->len);
+            PSA_ASSERT(memcmp(password_ret, password->x, buffer_len_ret));
+        }
     }
 
 exit:
     PSA_ASSERT(psa_destroy_key(key));
+    PSA_ASSERT(psa_pake_abort(&operation));
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE */
+void pake_input_getters_cipher_suite(int expected_status, int setup_done)
+{
+    psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
+    psa_pake_operation_t operation = psa_pake_operation_init();
+    psa_pake_cipher_suite_t cipher_suite_ret = psa_pake_cipher_suite_init();
+
+    psa_pake_primitive_t primitive = PSA_PAKE_PRIMITIVE(
+        PSA_PAKE_PRIMITIVE_TYPE_ECC,
+        PSA_ECC_FAMILY_SECP_R1, 256);
+
+    PSA_INIT();
+
+    if (setup_done == 1) {
+        psa_pake_cs_set_algorithm(&cipher_suite, PSA_ALG_JPAKE);
+        psa_pake_cs_set_primitive(&cipher_suite, primitive);
+        psa_pake_cs_set_hash(&cipher_suite, PSA_ALG_SHA_256);
+
+        PSA_ASSERT(psa_pake_setup(&operation, &cipher_suite));
+    }
+
+    TEST_EQUAL(psa_crypto_driver_pake_get_cipher_suite(&operation.data.inputs, &cipher_suite_ret),
+               expected_status);
+
+    if (expected_status == PSA_SUCCESS) {
+        PSA_ASSERT(memcmp(&cipher_suite_ret, &cipher_suite, sizeof(cipher_suite)));
+    }
+
+exit:
+    PSA_ASSERT(psa_pake_abort(&operation));
+    PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE */
+void pake_input_getters_role(int role_arg, int expected_status)
+{
+    psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
+    psa_pake_operation_t operation = psa_pake_operation_init();
+    psa_pake_role_t role_ret = PSA_PAKE_ROLE_NONE;
+    psa_pake_role_t role = role_arg;
+
+    psa_pake_primitive_t primitive = PSA_PAKE_PRIMITIVE(
+        PSA_PAKE_PRIMITIVE_TYPE_ECC,
+        PSA_ECC_FAMILY_SECP_R1, 256);
+
+    PSA_INIT();
+
+    psa_pake_cs_set_algorithm(&cipher_suite, PSA_ALG_JPAKE);
+    psa_pake_cs_set_primitive(&cipher_suite, primitive);
+    psa_pake_cs_set_hash(&cipher_suite, PSA_ALG_SHA_256);
+
+    PSA_ASSERT(psa_pake_setup(&operation, &cipher_suite));
+
+    if (role != PSA_PAKE_ROLE_NONE) {
+        PSA_ASSERT(psa_pake_set_role(&operation, role));
+    }
+
+    TEST_EQUAL(psa_crypto_driver_pake_get_role(&operation.data.inputs, &role_ret),
+               expected_status);
+
+    if (expected_status == PSA_SUCCESS) {
+        TEST_EQUAL(role_ret, role);
+    }
+
+exit:
     PSA_ASSERT(psa_pake_abort(&operation));
     PSA_DONE();
 }

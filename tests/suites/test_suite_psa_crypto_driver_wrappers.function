@@ -3050,8 +3050,6 @@ void pake_operations(data_t *pw_data, int forced_status_setup_arg, int forced_st
             /* --- psa_pake_input (driver: setup, input) --- */
             mbedtls_test_driver_pake_hooks.forced_setup_status = forced_status_setup;
             mbedtls_test_driver_pake_hooks.forced_status = forced_status;
-            memset(&mbedtls_test_driver_pake_hooks.hits, 0,
-                   sizeof(mbedtls_test_driver_pake_hooks.hits));
             TEST_EQUAL(psa_pake_input(&operation, PSA_PAKE_STEP_KEY_SHARE,
                                       input_buffer, size_key_share),
                        expected_status);
@@ -3063,8 +3061,6 @@ void pake_operations(data_t *pw_data, int forced_status_setup_arg, int forced_st
             /* --- psa_pake_output (driver: setup, output) --- */
             mbedtls_test_driver_pake_hooks.forced_setup_status = forced_status_setup;
             mbedtls_test_driver_pake_hooks.forced_status = forced_status;
-            memset(&mbedtls_test_driver_pake_hooks.hits, 0,
-                   sizeof(mbedtls_test_driver_pake_hooks.hits));
             TEST_EQUAL(psa_pake_output(&operation, PSA_PAKE_STEP_KEY_SHARE,
                                        output_buffer, output_size, &output_len),
                        expected_status);
@@ -3073,11 +3069,9 @@ void pake_operations(data_t *pw_data, int forced_status_setup_arg, int forced_st
             break;
 
         case 2: /* input */
-            /* --- psa_pake_input (driver: setup, input, (abort)) --- */
+            /* --- psa_pake_input (driver: setup, input, abort) --- */
             mbedtls_test_driver_pake_hooks.forced_setup_status = forced_status_setup;
             mbedtls_test_driver_pake_hooks.forced_status = forced_status;
-            memset(&mbedtls_test_driver_pake_hooks.hits, 0,
-                   sizeof(mbedtls_test_driver_pake_hooks.hits));
             TEST_EQUAL(psa_pake_input(&operation, PSA_PAKE_STEP_KEY_SHARE,
                                       input_buffer, size_key_share),
                        expected_status);
@@ -3091,8 +3085,6 @@ void pake_operations(data_t *pw_data, int forced_status_setup_arg, int forced_st
             /* --- psa_pake_output (driver: setup, output, (abort)) --- */
             mbedtls_test_driver_pake_hooks.forced_setup_status = forced_status_setup;
             mbedtls_test_driver_pake_hooks.forced_status = forced_status;
-            memset(&mbedtls_test_driver_pake_hooks.hits, 0,
-                   sizeof(mbedtls_test_driver_pake_hooks.hits));
             if (forced_output->len > 0) {
                 mbedtls_test_driver_pake_hooks.forced_output = forced_output->x;
                 mbedtls_test_driver_pake_hooks.forced_output_length = forced_output->len;

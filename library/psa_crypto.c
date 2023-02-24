@@ -2370,9 +2370,9 @@ static psa_status_t psa_mac_finalize_alg_and_key_validation(
     }
 
     /* Get the output length for the algorithm and key combination */
-    *mac_size = PSA_MAC_LENGTH(key_type, key_bits, alg);
+    size_t mac_length = PSA_MAC_LENGTH(key_type, key_bits, alg);
 
-    if (*mac_size < 4) {
+    if (mac_length < 4) {
         /* A very short MAC is too short for security since it can be
          * brute-forced. Ancient protocols with 32-bit MACs do exist,
          * so we make this our minimum, even though 32 bits is still
@@ -2380,14 +2380,14 @@ static psa_status_t psa_mac_finalize_alg_and_key_validation(
         return PSA_ERROR_NOT_SUPPORTED;
     }
 
-    if (*mac_size > PSA_MAC_LENGTH(key_type, key_bits,
-                                   PSA_ALG_FULL_LENGTH_MAC(alg))) {
+    if (mac_length > PSA_MAC_LENGTH(key_type, key_bits,
+                                    PSA_ALG_FULL_LENGTH_MAC(alg))) {
         /* It's impossible to "truncate" to a larger length than the full length
          * of the algorithm. */
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
-    if (*mac_size > PSA_MAC_MAX_SIZE) {
+    if (mac_length > PSA_MAC_MAX_SIZE) {
         /* PSA_MAC_LENGTH returns the correct length even for a MAC algorithm
          * that is disabled in the compile-time configuration. The result can
          * therefore be larger than PSA_MAC_MAX_SIZE, which does take the
@@ -2399,6 +2399,11 @@ static psa_status_t psa_mac_finalize_alg_and_key_validation(
          * systematically generated tests. */
         return PSA_ERROR_NOT_SUPPORTED;
     }
+#if defined(static_assert)
+    static_assert(PSA_MAC_MAX_SIZE <= 255,
+                  "A MAC larger than 255 bytes is not currently supported");
+#endif
+    *mac_size = (uint8_t) mac_length;
 
     return PSA_SUCCESS;
 }

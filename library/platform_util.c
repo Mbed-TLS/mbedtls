@@ -56,7 +56,12 @@
 
 #if !defined(MBEDTLS_PLATFORM_ZEROIZE_ALT)
 /*
- * This implementation should never be optimized out by the compiler
+ * Where possible, we try to detect the presence of a platform-provided
+ * secure memset, such as explicit_bzero(), that is safe against being optimized
+ * out, and use that.
+ *
+ * For other platforms, we provide an implementation that aims not to be
+ * optimized out by the compiler.
  *
  * This implementation for mbedtls_platform_zeroize() was inspired from Colin
  * Percival's blog article at:
@@ -71,11 +76,11 @@
  * (refer to http://www.daemonology.net/blog/2014-09-05-erratum.html for
  * details), optimizations of the following form are still possible:
  *
- * if( memset_func != memset )
- *     memset_func( buf, 0, len );
+ * if(memset_func != memset)
+ *     memset_func(buf, 0, len);
  *
  * Note that it is extremely difficult to guarantee that
- * mbedtls_platform_zeroize() will not be optimized out by aggressive compilers
+ * the memset() call will not be optimized out by aggressive compilers
  * in a portable way. For this reason, Mbed TLS also provides the configuration
  * option MBEDTLS_PLATFORM_ZEROIZE_ALT, which allows users to configure
  * mbedtls_platform_zeroize() to use a suitable implementation for their

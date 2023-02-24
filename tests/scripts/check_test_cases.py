@@ -25,6 +25,7 @@ import argparse
 import glob
 import os
 import re
+import subprocess
 import sys
 
 class Results:
@@ -111,6 +112,24 @@ state may override this method.
                 self.process_test_case(descriptions,
                                        file_name, line_number, description)
 
+    def walk_compat_sh(self, file_name):
+        """Iterate over the test cases compat.sh with a similar format."""
+        descriptions = self.new_per_file_state() # pylint: disable=assignment-from-none
+        compat_cmd = ['sh', file_name, '--list-test-case']
+        result = subprocess.run(compat_cmd,
+                                stdout=subprocess.PIPE,
+                                check=False)
+        if result.returncode != 0:
+            print(*compat_cmd, 'returned', str(result.returncode))
+            return
+        else:
+            # Pattern: g->m dtls12,no TLS_DHE_PSK_WITH_AES_128_CBC_SHA\n
+            m = re.findall(br'[^ogm]*((?:[ogm]->[ogm]\s*\w*.\w*\s\w*)*)\n',
+                           result.stdout)
+            if m:
+                for i in m:
+                    self.process_test_case(descriptions, file_name, 1, i)
+
     @staticmethod
     def collect_test_directories():
         """Get the relative path for the TLS and Crypto test directories."""
@@ -136,6 +155,9 @@ state may override this method.
             for ssl_opt_file_name in glob.glob(os.path.join(directory, 'opt-testcases',
                                                             '*.sh')):
                 self.walk_ssl_opt_sh(ssl_opt_file_name)
+            compat_sh = os.path.join(directory, 'compat.sh')
+            if os.path.exists(compat_sh):
+                self.walk_compat_sh(compat_sh)
 
 class TestDescriptions(TestDescriptionExplorer):
     """Collect the available test cases."""

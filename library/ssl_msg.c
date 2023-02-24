@@ -5508,7 +5508,9 @@ static int ssl_write_real(mbedtls_ssl_context *ssl,
          */
         ssl->out_msglen  = len;
         ssl->out_msgtype = MBEDTLS_SSL_MSG_APPLICATION_DATA;
-        memcpy(ssl->out_msg, buf, len);
+        if (len > 0) {
+            memcpy(ssl->out_msg, buf, len);
+        }
 
         if ((ret = mbedtls_ssl_write_record(ssl, SSL_FORCE_FLUSH)) != 0) {
             MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_write_record", ret);

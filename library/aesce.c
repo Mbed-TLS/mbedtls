@@ -60,7 +60,7 @@ int mbedtls_aesce_has_support(void)
     return (auxval & (HWCAP_ASIMD | HWCAP_AES)) ==
            (HWCAP_ASIMD | HWCAP_AES);
 #else
-    /* Suppose aes instructions are supported. */
+    /* Assume AES instructions are supported. */
     return 1;
 #endif
 }
@@ -142,7 +142,6 @@ int mbedtls_aesce_crypt_ecb(mbedtls_aes_context *ctx,
 
     return 0;
 }
-
 
 /*
  * Compute decryption round keys from encryption round keys
@@ -244,8 +243,10 @@ int mbedtls_aesce_setkey_enc(unsigned char *rk,
         case 128:
         case 192:
         case 256:
-            aesce_setkey_enc(rk, key, bits); break;
-        default: return MBEDTLS_ERR_AES_INVALID_KEY_LENGTH;
+            aesce_setkey_enc(rk, key, bits);
+            break;
+        default:
+            return MBEDTLS_ERR_AES_INVALID_KEY_LENGTH;
     }
 
     return 0;

@@ -2079,6 +2079,10 @@
  * of \c -march=armv8-a+crypto .
  *
  * \warning `MBEDTLS_SHA512_USE_A64_CRYPTO_*` should be disabled when enabled
+ *          because unexpected instruction will be generated in AESCE module.
+ *          `MBEDTLS_SHA512_USE_A64_CRYPTO_*` requires \c -march=armv8.2-a+sha3,
+ *          compiler optimizes the code with `eor3` that is part of sha3
+ *          extension and unexpected in AESCE.
  *
  * \warning Runtime detection only works on linux. For non-linux operation
  *          system, crypto extension MUST be supported by CPU.

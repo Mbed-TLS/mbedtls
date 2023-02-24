@@ -33,7 +33,26 @@
 #include "mbedtls/threading.h"
 
 #include <stddef.h>
+
+#ifndef __STDC_WANT_LIB_EXT1__
+#define __STDC_WANT_LIB_EXT1__ 1
+#endif
 #include <string.h>
+
+#if defined(_WIN32)
+#include <Windows.h>
+#endif
+
+// Detect platforms known to support explicit_bzero()
+#if defined(__GLIBC__) && (__GLIBC__ >= 2) && (__GLIBC_MINOR__ >= 25)
+#define MBEDTLS_PLATFORM_HAS_EXPLICIT_BZERO 1
+#endif
+#if defined(__FreeBSD__) && __FreeBSD_version >= 1100037
+#define MBEDTLS_PLATFORM_HAS_EXPLICIT_BZERO 1
+#endif
+#if defined(__NEWLIB__)
+#define MBEDTLS_PLATFORM_HAS_EXPLICIT_BZERO 1
+#endif
 
 #if !defined(MBEDTLS_PLATFORM_ZEROIZE_ALT)
 /*
@@ -69,7 +88,15 @@ void mbedtls_platform_zeroize(void *buf, size_t len)
     MBEDTLS_INTERNAL_VALIDATE(len == 0 || buf != NULL);
 
     if (len > 0) {
+#if defined(MBEDTLS_PLATFORM_HAS_EXPLICIT_BZERO)
+        explicit_bzero(buf, len);
+#elif(__STDC_LIB_EXT1__)
+        memset_s(buf, len, 0, len);
+#elif defined(_WIN32)
+        SecureZeroMemory(buf, len);
+#else
         memset_func(buf, 0, len);
+#endif
     }
 }
 #endif /* MBEDTLS_PLATFORM_ZEROIZE_ALT */

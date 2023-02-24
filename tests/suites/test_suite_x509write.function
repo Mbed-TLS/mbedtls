@@ -161,16 +161,16 @@ void x509_csr_check(char *key_file, char *cert_req_check_file, int md_type,
     const char *san_uri_name = "http://pki.example.com/";
 
     san_uri.node.type = MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER;
-    san_uri.node.name = (char *) san_uri_name;
-    san_uri.node.len = strlen(san_uri_name);
+    san_uri.node.san.unstructured_name.p = (unsigned char *) san_uri_name;
+    san_uri.node.san.unstructured_name.len = strlen(san_uri_name);
     san_uri.next = NULL;
     san_ip.node.type = MBEDTLS_X509_SAN_IP_ADDRESS;
-    san_ip.node.name = (char *) san_ip_name;
-    san_ip.node.len = sizeof(san_ip_name);
+    san_ip.node.san.unstructured_name.p = (unsigned char *) san_ip_name;
+    san_ip.node.san.unstructured_name.len = sizeof(san_ip_name);
     san_ip.next = &san_uri;
     san_dns.node.type = MBEDTLS_X509_SAN_DNS_NAME;
-    san_dns.node.name = (char *) san_dns_name;
-    san_dns.node.len = strlen(san_dns_name);
+    san_dns.node.san.unstructured_name.p = (unsigned char *) san_dns_name;
+    san_dns.node.san.unstructured_name.len = strlen(san_dns_name);
     san_dns.next = &san_ip;
     san_list = &san_dns;
 

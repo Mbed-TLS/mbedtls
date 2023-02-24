@@ -26,6 +26,7 @@
 
 #if defined(MBEDTLS_X509_CSR_WRITE_C)
 
+#include "mbedtls/x509.h"
 #include "mbedtls/x509_csr.h"
 #include "mbedtls/asn1write.h"
 #include "mbedtls/error.h"
@@ -97,16 +98,23 @@ int mbedtls_x509write_csr_set_subject_alternative_name(mbedtls_x509write_csr *ct
 
     /* Determine the maximum size of the SubjectAltName list */
     while (cur != NULL) {
-        if (cur->node.len <= 0) {
-            return 0;
+        /* Calculate size of the required buffer */
+        switch(cur->node.type) {
+            case MBEDTLS_X509_SAN_DNS_NAME:
+            case MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER:
+            case MBEDTLS_X509_SAN_IP_ADDRESS:
+                /* + length of value for each name entry,
+                 * + maximum 4 bytes for the length field,
+                 * + 1 byte for the tag/type.
+                 */
+                buflen += cur->node.san.unstructured_name.len + 4 + 1;
+                break;
+
+            default:
+                /* Not supported - skip. */
+                break;
         }
 
-        /* Calculate size of the required buffer:
-         * + length of value for each name entry,
-         * + maximum 4 bytes for the length field,
-         * + 1 byte for the tag/type.
-         */
-        buflen += cur->node.len + 4 + 1;
 
         cur = cur->next;
     }
@@ -133,10 +141,9 @@ int mbedtls_x509write_csr_set_subject_alternative_name(mbedtls_x509write_csr *ct
             case MBEDTLS_X509_SAN_IP_ADDRESS:
                 MBEDTLS_ASN1_CHK_ADD(len,
                                      mbedtls_asn1_write_raw_buffer(&p, buf,
-                                                                   (const unsigned char *) cur->node
-                                                                   .name,
-                                                                   cur->node.len));
-                MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(&p, buf, cur->node.len));
+                                                                   (const unsigned char *) cur->node.san.unstructured_name.p,
+                                                                   cur->node.san.unstructured_name.len));
+                MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(&p, buf, cur->node.san.unstructured_name.len));
                 MBEDTLS_ASN1_CHK_ADD(len,
                                      mbedtls_asn1_write_tag(&p, buf,
                                                             MBEDTLS_ASN1_CONTEXT_SPECIFIC |

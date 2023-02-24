@@ -252,12 +252,12 @@ usage:
                 }
 
                 if (strcmp(q, "IP") == 0) {
-                    cur->node.name = (char *) ip;
-                    cur->node.len = sizeof(ip);
+                    cur->node.san.unstructured_name.p = (unsigned char *) ip;
+                    cur->node.san.unstructured_name.len = sizeof(ip);
                 } else {
                     q = r2;
-                    cur->node.name = q;
-                    cur->node.len = strlen(q);
+                    cur->node.san.unstructured_name.p = (unsigned char *) q;
+                    cur->node.san.unstructured_name.len = strlen(q);
                 }
 
                 if (prev == NULL) {

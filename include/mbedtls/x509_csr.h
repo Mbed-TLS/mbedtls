@@ -83,15 +83,8 @@ typedef struct mbedtls_x509write_csr {
 }
 mbedtls_x509write_csr;
 
-typedef struct mbedtls_x509_san_node {
-    int type;                       /**< Subject Alternative Name types */
-    char *name;                     /**< Value, following the syntax allowed bythe type */
-    size_t len;                     /**< Length of the provided value */
-}
-mbedtls_x509_san_node;
-
 typedef struct mbedtls_x509_san_list {
-    mbedtls_x509_san_node node;
+    mbedtls_x509_subject_alternative_name node;
     struct mbedtls_x509_san_list *next;
 }
 mbedtls_x509_san_list;

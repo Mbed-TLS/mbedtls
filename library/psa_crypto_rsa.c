@@ -172,6 +172,9 @@ psa_status_t mbedtls_psa_rsa_export_key(psa_key_type_t type,
                                         size_t data_size,
                                         size_t *data_length)
 {
+/* Currently this is always true due to the fact that build_info.h auto-enables
+ * MBEDTLS_PK_WRITE_C whenever both PSA and RSA_C are enabled.
+ * However we keep the guard here to emphasize this dependency explicitly. */
 #if defined(MBEDTLS_PK_WRITE_C)
     int ret;
     mbedtls_pk_context pk;

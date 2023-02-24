@@ -603,8 +603,8 @@
  * If the library supports TLS 1.3 tickets and the cipher suite
  * TLS1-3-AES-256-GCM-SHA384, set the PSK maximum length to 48 instead of 32.
  * That way, the TLS 1.3 client and server are able to resume sessions where
- * the cipher suite was TLS1-3-AES-256-GCM-SHA384 (pre-shared keys are 48
- * bytes long is that case).
+ * the cipher suite is TLS1-3-AES-256-GCM-SHA384 (pre-shared keys are 48
+ * bytes long in that case).
  */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
     defined(MBEDTLS_SSL_SESSION_TICKETS) && \

@@ -322,6 +322,43 @@ psa_status_t mbedtls_to_psa_error(int ret)
     }
 }
 
+/**
+ * \brief                       For output buffers which contain "tags"
+ *                              (outputs that may be checked for validity like
+ *                              hashes, MACs and signatures), fill the unused
+ *                              part of the output buffer (the whole buffer on
+ *                              error, the trailing part on success) with
+ *                              something that isn't a valid tag (barring an
+ *                              attack on the tag and deliberately-crafted
+ *                              input), in case the caller doesn't check the
+ *                              return status properly.
+ *
+ * \param output_buffer         Pointer to buffer to wipe. May not be NULL
+ *                              unless \p output_buffer_size is zero.
+ * \param status                Status of function called to generate
+ *                              output_buffer originally
+ * \param output_buffer_size    Size of output buffer. If zero, \p output_buffer
+ *                              could be NULL.
+ * \param output_buffer_length  Length of data written to output_buffer, must be
+ *                              less than \p output_buffer_size
+ */
+static void psa_wipe_tag_output_buffer(uint8_t *output_buffer, psa_status_t status,
+                                       size_t output_buffer_size, size_t output_buffer_length) {
+    size_t offset = 0;
+
+    if (output_buffer_size == 0) {
+        /* If output_buffer_size is 0 then we have nothing to do. We must not
+           call memset because output_buffer may be NULL in this case */
+        return;
+    }
+
+    if (status == PSA_SUCCESS) {
+        offset = output_buffer_length;
+    }
+
+    memset(output_buffer + offset, '!', output_buffer_size - offset);
+}
+
 
 
 
@@ -2504,10 +2541,7 @@ exit:
         operation->mac_size = 0;
     }
 
-    if (mac_size > operation->mac_size) {
-        memset(&mac[operation->mac_size], '!',
-               mac_size - operation->mac_size);
-    }
+    psa_wipe_tag_output_buffer(mac, status, mac_size, *mac_length);
 
     abort_status = psa_mac_abort(operation);
 
@@ -2601,9 +2635,8 @@ exit:
         *mac_length = mac_size;
         operation_mac_size = 0;
     }
-    if (mac_size > operation_mac_size) {
-        memset(&mac[operation_mac_size], '!', mac_size - operation_mac_size);
-    }
+
+    psa_wipe_tag_output_buffer(mac, status, mac_size, *mac_length);
 
     unlock_status = psa_unlock_key_slot(slot);
 
@@ -2681,44 +2714,6 @@ static psa_status_t psa_sign_verify_check_alg(int input_is_message,
     }
 
     return PSA_SUCCESS;
-}
-
-/**
- * \brief                       For output buffers which contain "tags"
- *                              (outputs that may be checked for validity like
- *                              hashes, MACs and signatures), fill the unused
- *                              part of the output buffer (the whole buffer on
- *                              error, the trailing part on success) with
- *                              something that isn't a valid tag (barring an
- *                              attack on the tag and deliberately-crafted
- *                              input), in case the caller doesn't check the
- *                              return status properly.
- *
- * \param output_buffer         Pointer to buffer to wipe. May not be NULL
- *                              unless \p output_buffer_size is zero.
- * \param status                Status of function called to generate
- *                              output_buffer originally
- * \param output_buffer_size    Size of output buffer. If zero, \p output_buffer
- *                              could be NULL.
- * \param output_buffer_length  Length of data written to output_buffer, must be
- *                              less than \p output_buffer_size
- */
-static void psa_wipe_tag_output_buffer(uint8_t *output_buffer, psa_status_t status,
-                                       size_t output_buffer_size, size_t output_buffer_length)
-{
-    size_t offset = 0;
-
-    if (output_buffer_size == 0) {
-        /* If output_buffer_size is 0 then we have nothing to do. We must not
-           call memset because output_buffer may be NULL in this case */
-        return;
-    }
-
-    if (status == PSA_SUCCESS) {
-        offset = output_buffer_length;
-    }
-
-    memset(output_buffer + offset, '!', output_buffer_size - offset);
 }
 
 static psa_status_t psa_sign_internal(mbedtls_svc_key_id_t key,
@@ -4917,18 +4912,14 @@ psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
                                             tag, tag_size, tag_length);
 
 exit:
+
+
     /* In case the operation fails and the user fails to check for failure or
      * the zero tag size, make sure the tag is set to something implausible.
      * Even if the operation succeeds, make sure we clear the rest of the
      * buffer to prevent potential leakage of anything previously placed in
      * the same buffer.*/
-    if (tag != NULL) {
-        if (status != PSA_SUCCESS) {
-            memset(tag, '!', tag_size);
-        } else if (*tag_length < tag_size) {
-            memset(tag + *tag_length, '!', (tag_size - *tag_length));
-        }
-    }
+    psa_wipe_tag_output_buffer(tag, status, tag_size, *tag_length);
 
     psa_aead_abort(operation);
 

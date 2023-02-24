@@ -123,8 +123,8 @@ state may override this method.
             print(*compat_cmd, 'returned', str(result.returncode))
             return
         else:
-            # Pattern: g->m dtls12,no TLS_DHE_PSK_WITH_AES_128_CBC_SHA\n
-            m = re.findall(br'[^ogm]*((?:[ogm]->[ogm]\s*\w*.\w*\s\w*)*)\n',
+            # Pattern: g->m dtls12,no TLS_DHE_PSK_WITH_AES_128_CBC_SHA .......... \n
+            m = re.findall(br'[^ogm]*((?:[ogm]->[ogm]\s*\w*.\w*\s\w*)*)\s*\.*\s*\n',
                            result.stdout)
             if m:
                 for i in m:

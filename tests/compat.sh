@@ -35,6 +35,7 @@ TESTS=0
 FAILED=0
 SKIPPED=0
 SRVMEM=0
+LIST_TEST_CASE=0
 
 # default commands, can be overridden by the environment
 : ${M_SRV:=../programs/ssl/ssl_server2}
@@ -113,14 +114,6 @@ print_usage() {
     printf "     --list-test-case\tList all potential test cases (No Execution)\n"
 }
 
-# print_test_title <CLIENT> <SERVER> <STANDARD_CIPHER_SUITE>
-print_test_title() {
-    for i in $3; do
-        TITLE="$1->$2 $MODE,$VERIF $i"
-        echo "$TITLE"
-    done
-}
-
 list_test_case() {
     reset_ciphersuites
     for TYPE in $TYPES; do
@@ -170,6 +163,7 @@ get_options() {
                 MEMCHECK=1
                 ;;
             --list-test-case)
+                LIST_TEST_CASE=1
                 list_test_case
                 exit 0
                 ;;
@@ -824,14 +818,21 @@ wait_client_done() {
     echo "EXIT: $EXIT" >> $CLI_OUT
 }
 
+# print_test_title <CLIENT> <SERVER> <STANDARD_CIPHER_SUITE>
+print_test_title() {
+    for i in $3; do
+        TITLE="$1->$2 $MODE,$VERIF $i"
+        DOTS72="........................................................................"
+        printf "%s %.*s " "$TITLE" "$((71 - ${#TITLE}))" "$DOTS72"
+        [ $LIST_TEST_CASE -eq 1 ] && printf "\n"
+    done
+}
+
 # run_client PROGRAM_NAME STANDARD_CIPHER_SUITE PROGRAM_CIPHER_SUITE
 run_client() {
     # announce what we're going to do
     TESTS=$(( $TESTS + 1 ))
-    TITLE="${1%"${1#?}"}->${SERVER_NAME%"${SERVER_NAME#?}"}"
-    TITLE="$TITLE $MODE,$VERIF $2"
-    DOTS72="........................................................................"
-    printf "%s %.*s " "$TITLE" "$((71 - ${#TITLE}))" "$DOTS72"
+    print_test_title "${1%"${1#?}"}" "${SERVER_NAME%"${SERVER_NAME#?}"}" $2
 
     # should we skip?
     if [ "X$SKIP_NEXT" = "XYES" ]; then

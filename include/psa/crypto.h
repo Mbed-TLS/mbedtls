@@ -39,13 +39,21 @@
 /**@}*/
 #endif /* __DOXYGEN_ONLY__ */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* The file "crypto_types.h" declares types that encode errors,
  * algorithms, key types, policies, etc. */
 #include "crypto_types.h"
+
+ /* The file "crypto_values.h" declares macros to build and analyze values
+ * of integral types defined in "crypto_types.h". */
+#include "crypto_values.h"
+
+ /* The file "crypto_sizes.h" contains definitions for size calculation
+ * macros whose definitions are implementation-specific. */
+#include "crypto_sizes.h"
+
+ /* The file "crypto_struct.h" contains definitions for
+ * implementation-specific structs that are declared below. */
+#include "crypto_struct.h"
 
 /** \defgroup version API version
  * @{
@@ -63,9 +71,9 @@ extern "C" {
 
 /**@}*/
 
-/* The file "crypto_values.h" declares macros to build and analyze values
- * of integral types defined in "crypto_types.h". */
-#include "crypto_values.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** \defgroup initialization Library initialization
  * @{
@@ -4670,14 +4678,6 @@ psa_status_t psa_verify_hash_abort(
 #ifdef __cplusplus
 }
 #endif
-
-/* The file "crypto_sizes.h" contains definitions for size calculation
- * macros whose definitions are implementation-specific. */
-#include "crypto_sizes.h"
-
-/* The file "crypto_struct.h" contains definitions for
- * implementation-specific structs that are declared above. */
-#include "crypto_struct.h"
 
 /* The file "crypto_extra.h" contains vendor-specific definitions. This
  * can include vendor-defined algorithms, extra functions, etc. */

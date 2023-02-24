@@ -2686,7 +2686,7 @@ static psa_status_t psa_sign_verify_check_alg(int input_is_message,
 /**
  * \brief                       For output buffers which contain "tags"
  *                              (outputs that may be checked for validity like
- *                              Hashes, MACs and signatures), fill the unused
+ *                              hashes, MACs and signatures), fill the unused
  *                              part of the output buffer (the whole buffer on
  *                              error, the trailing part on success) with
  *                              something that isn't a valid tag (barring an
@@ -2694,9 +2694,9 @@ static psa_status_t psa_sign_verify_check_alg(int input_is_message,
  *                              input), in case the caller doesn't check the
  *                              return status properly.
  *
- * \param output_buffer         pointer to buffer to wipe. May not be NULL
+ * \param output_buffer         Pointer to buffer to wipe. May not be NULL
  *                              unless \p output_buffer_size is zero.
- * \param status                status of function called to generate
+ * \param status                Status of function called to generate
  *                              output_buffer originally
  * \param output_buffer_size    Size of output buffer. If zero, \p output_buffer
  *                              could be NULL.

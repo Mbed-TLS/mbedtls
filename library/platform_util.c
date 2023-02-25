@@ -48,7 +48,7 @@
     && !defined(__ARM_EABI__)
 #define MBEDTLS_PLATFORM_HAS_EXPLICIT_BZERO 1
 #endif
-#if defined(__FreeBSD__) && __FreeBSD_version >= 1100037
+#if defined(__FreeBSD__) && (__FreeBSD_version >= 1100037)
 #define MBEDTLS_PLATFORM_HAS_EXPLICIT_BZERO 1
 #endif
 #if defined(__NEWLIB__)

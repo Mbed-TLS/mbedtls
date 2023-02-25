@@ -43,15 +43,15 @@
  * algorithms, key types, policies, etc. */
 #include "crypto_types.h"
 
- /* The file "crypto_values.h" declares macros to build and analyze values
+/* The file "crypto_values.h" declares macros to build and analyze values
  * of integral types defined in "crypto_types.h". */
 #include "crypto_values.h"
 
- /* The file "crypto_sizes.h" contains definitions for size calculation
+/* The file "crypto_sizes.h" contains definitions for size calculation
  * macros whose definitions are implementation-specific. */
 #include "crypto_sizes.h"
 
- /* The file "crypto_struct.h" contains definitions for
+/* The file "crypto_struct.h" contains definitions for
  * implementation-specific structs that are declared below. */
 #include "crypto_struct.h"
 

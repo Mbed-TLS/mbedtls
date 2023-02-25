@@ -26,6 +26,11 @@
 #define _POSIX_C_SOURCE 200112L
 #endif
 
+#if !defined (_GNU_SOURCE)
+/* Clang requires this to get support for explicit_bzero */
+#define _GNU_SOURCE
+#endif
+
 #include "common.h"
 
 #include "mbedtls/platform_util.h"
@@ -84,7 +89,10 @@
  * mbedtls_platform_zeroize() to use a suitable implementation for their
  * platform and needs.
  */
+ #if !defined(MBEDTLS_PLATFORM_HAS_EXPLICIT_BZERO) && !defined(__STDC_LIB_EXT1__) \
+    && !defined(_WIN32)
 static void *(*const volatile memset_func)(void *, int, size_t) = memset;
+#endif
 
 void mbedtls_platform_zeroize(void *buf, size_t len)
 {

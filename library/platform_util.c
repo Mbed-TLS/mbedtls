@@ -26,7 +26,7 @@
 #define _POSIX_C_SOURCE 200112L
 #endif
 
-#if !defined (_GNU_SOURCE)
+#if !defined(_GNU_SOURCE)
 /* Clang requires this to get support for explicit_bzero */
 #define _GNU_SOURCE
 #endif

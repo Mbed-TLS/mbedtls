@@ -51,9 +51,6 @@
 #if defined(__FreeBSD__) && (__FreeBSD_version >= 1100037)
 #define MBEDTLS_PLATFORM_HAS_EXPLICIT_BZERO 1
 #endif
-#if defined(__NEWLIB__)
-#define MBEDTLS_PLATFORM_HAS_EXPLICIT_BZERO 1
-#endif
 
 #if !defined(MBEDTLS_PLATFORM_ZEROIZE_ALT)
 /*

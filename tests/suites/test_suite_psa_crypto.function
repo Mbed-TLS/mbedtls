@@ -7443,14 +7443,14 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
 /**
- * interruptible_signverify_hash_negative_tests() test intentions:
+ * interruptible_signverify_hash_edgecase_tests() test intentions:
  *
  * Note: This test can currently only handle ECDSA.
  *
  * 1. Test various edge cases in the interruptible sign and verify hash
  *    interfaces.
  */
-void interruptible_signverify_hash_negative_tests(int key_type_arg,
+void interruptible_signverify_hash_edgecase_tests(int key_type_arg,
                                                   data_t *key_data, int alg_arg, data_t *input_data)
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;

@@ -77,11 +77,11 @@ static psa_storage_uid_t psa_its_identifier_of_slot(mbedtls_svc_key_id_t key)
  * \param[out] data         Buffer where the data is to be written.
  * \param data_size         Size of the \c data buffer in bytes.
  *
- * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_DATA_INVALID
- * \retval #PSA_ERROR_DATA_CORRUPT
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_DOES_NOT_EXIST
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_DOES_NOT_EXIST \emptydescription
  */
 static psa_status_t psa_crypto_storage_load(
     const mbedtls_svc_key_id_t key, uint8_t *data, size_t data_size)
@@ -129,11 +129,11 @@ int psa_is_key_present_in_storage(const mbedtls_svc_key_id_t key)
  * \param data_length   The number of bytes
  *                      that make up the data.
  *
- * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
- * \retval #PSA_ERROR_ALREADY_EXISTS
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_DATA_INVALID
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE \emptydescription
+ * \retval #PSA_ERROR_ALREADY_EXISTS \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID \emptydescription
  */
 static psa_status_t psa_crypto_storage_store(const mbedtls_svc_key_id_t key,
                                              const uint8_t *data,
@@ -203,10 +203,10 @@ psa_status_t psa_destroy_persistent_key(const mbedtls_svc_key_id_t key)
  *                          is to be obtained.
  * \param[out] data_length  The number of bytes that make up the data.
  *
- * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_DOES_NOT_EXIST
- * \retval #PSA_ERROR_DATA_CORRUPT
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_DOES_NOT_EXIST \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
  */
 static psa_status_t psa_crypto_storage_get_data_length(
     const mbedtls_svc_key_id_t key,

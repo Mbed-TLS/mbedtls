@@ -7602,15 +7602,17 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
 /**
- * interruptible_signverify_hash_maxops_tests() test intentions:
+ * interruptible_signverify_hash_ops_tests() test intentions:
  *
  * Note: This test can currently only handle ECDSA.
  *
  * 1. Test that setting max ops is reflected in both interruptible sign and
  *    verify hash
+ 
  */
-void interruptible_signverify_hash_maxops_tests(int key_type_arg,
-                                                data_t *key_data, int alg_arg, data_t *input_data)
+void interruptible_signverify_hash_ops_tests(int key_type_arg,
+                                             data_t *key_data, int alg_arg,
+                                             data_t *input_data)
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;

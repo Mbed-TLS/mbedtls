@@ -7575,6 +7575,9 @@ exit:
  *    verify hash
  * 2. Test that changing the value of max_ops to unlimited during an operation
  *    causes that operation to complete in the next call.
+ *
+ * 3. Test that calling get_num_ops() between complete calls gives the same
+ *    result as calling get_num_ops() once at the end of the operation.
  */
 void interruptible_signverify_hash_ops_tests(int key_type_arg,
                                              data_t *key_data, int alg_arg,
@@ -7588,6 +7591,9 @@ void interruptible_signverify_hash_ops_tests(int key_type_arg,
     unsigned char *signature = NULL;
     size_t signature_size;
     size_t signature_length = 0xdeadbeef;
+    uint32_t num_ops = 0;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
     psa_sign_hash_interruptible_operation_t sign_operation =
         psa_sign_hash_interruptible_operation_init();
     psa_verify_hash_interruptible_operation_t verify_operation =
@@ -7668,6 +7674,76 @@ void interruptible_signverify_hash_ops_tests(int key_type_arg,
     psa_interruptible_set_max_ops(PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED);
 
     PSA_ASSERT(psa_verify_hash_complete(&verify_operation));
+
+    PSA_ASSERT(psa_verify_hash_abort(&verify_operation));
+
+    /* --- Test that not calling get_num_ops inbetween complete calls does not
+     *     result in lost ops. ---*/
+
+    psa_interruptible_set_max_ops(1);
+
+    PSA_ASSERT(psa_sign_hash_start(&sign_operation, key, alg,
+                                   input_data->x, input_data->len));
+
+    /* Continue performing the signature until complete. */
+    do {
+        status = psa_sign_hash_complete(&sign_operation, signature,
+                                        signature_size,
+                                        &signature_length);
+
+        num_ops = psa_sign_hash_get_num_ops(&sign_operation);
+
+    } while (status == PSA_OPERATION_INCOMPLETE);
+
+    PSA_ASSERT(status);
+
+    PSA_ASSERT(psa_sign_hash_abort(&sign_operation));
+
+    PSA_ASSERT(psa_sign_hash_start(&sign_operation, key, alg,
+                                   input_data->x, input_data->len));
+
+    /* Continue performing the signature until complete. */
+    do {
+        status = psa_sign_hash_complete(&sign_operation, signature,
+                                        signature_size,
+                                        &signature_length);
+    } while (status == PSA_OPERATION_INCOMPLETE);
+
+    PSA_ASSERT(status);
+
+    TEST_EQUAL(num_ops, psa_sign_hash_get_num_ops(&sign_operation));
+
+    PSA_ASSERT(psa_sign_hash_abort(&sign_operation));
+
+    PSA_ASSERT(psa_verify_hash_start(&verify_operation, key, alg,
+                                     input_data->x, input_data->len,
+                                     signature, signature_length));
+
+    /* Continue performing the verification until complete. */
+    do {
+        status = psa_verify_hash_complete(&verify_operation);
+
+        num_ops = psa_verify_hash_get_num_ops(&verify_operation);
+
+    } while (status == PSA_OPERATION_INCOMPLETE);
+
+    PSA_ASSERT(status);
+
+    PSA_ASSERT(psa_verify_hash_abort(&verify_operation));
+
+    PSA_ASSERT(psa_verify_hash_start(&verify_operation, key, alg,
+                                     input_data->x, input_data->len,
+                                     signature, signature_length));
+
+    /* Continue performing the verification until complete. */
+    do {
+        status = psa_verify_hash_complete(&verify_operation);
+
+    } while (status == PSA_OPERATION_INCOMPLETE);
+
+    PSA_ASSERT(status);
+
+    TEST_EQUAL(num_ops, psa_verify_hash_get_num_ops(&verify_operation));
 
     PSA_ASSERT(psa_verify_hash_abort(&verify_operation));
 

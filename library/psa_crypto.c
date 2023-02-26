@@ -343,7 +343,8 @@ psa_status_t mbedtls_to_psa_error(int ret)
  *                              less than \p output_buffer_size
  */
 static void psa_wipe_tag_output_buffer(uint8_t *output_buffer, psa_status_t status,
-                                       size_t output_buffer_size, size_t output_buffer_length) {
+                                       size_t output_buffer_size, size_t output_buffer_length)
+{
     size_t offset = 0;
 
     if (output_buffer_size == 0) {

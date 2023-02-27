@@ -208,7 +208,7 @@ typedef struct {
     union {
         unsigned int MBEDTLS_PRIVATE(dummy);
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
-        mbedtls_ecjpake_context MBEDTLS_PRIVATE(pake);
+        mbedtls_ecjpake_context MBEDTLS_PRIVATE(jpake);
 #endif
     } MBEDTLS_PRIVATE(ctx);
 

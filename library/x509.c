@@ -1590,10 +1590,15 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
             case MBEDTLS_X509_SAN_DIRECTORY_NAME:
             {
                 ret = mbedtls_snprintf(p, n, "\n%s    directoryName : ", prefix);
+                if (ret < 0 || (size_t) ret >= n) {
+                    mbedtls_x509_free_subject_alt_name(&san);
+                }
+
                 MBEDTLS_X509_SAFE_SNPRINTF;
                 ret = mbedtls_x509_dn_gets(p, n, &san.san.directory_name);
 
                 if (ret < 0) {
+                    mbedtls_x509_free_subject_alt_name(&san);
                     return ret;
                 }
 
@@ -1611,7 +1616,7 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
         }
 
         /* So far memory is freed only in the case of directoryName
-         * parsing succeeding, as mbedtls_x509_dn_gets allocates memory. */
+         * parsing succeeding, as mbedtls_x509_get_name allocates memory. */
         mbedtls_x509_free_subject_alt_name(&san);
         cur = cur->next;
     }

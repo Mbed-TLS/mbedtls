@@ -1373,7 +1373,7 @@ void ecp_mod_p224_raw(char *input_N,
                    &m, N, limbs,
                    MBEDTLS_MPI_MOD_REP_MONTGOMERY), 0);
 
-    TEST_EQUAL(ecp_mod_p224_raw(X, limbs_X), 0);
+    TEST_EQUAL(mbedtls_ecp_mod_p224_raw(X, limbs_X), 0);
     TEST_LE_U(mbedtls_mpi_core_bitlen(X, limbs_X), 224);
     mbedtls_mpi_mod_raw_fix_quasi_reduction(X, &m);
     ASSERT_COMPARE(X, bytes, res, bytes);

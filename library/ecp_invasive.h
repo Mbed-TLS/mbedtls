@@ -112,7 +112,7 @@ int mbedtls_ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn);
  *                  size that sores a 448-bit MPI.
  */
 MBEDTLS_STATIC_TESTABLE
-int ecp_mod_p224_raw(mbedtls_mpi_uint *Np, size_t Nn);
+int mbedtls_ecp_mod_p224_raw(mbedtls_mpi_uint *Np, size_t Nn);
 
 #endif /* MBEDTLS_ECP_DP_SECP224R1_ENABLED */
 

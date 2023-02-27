@@ -228,7 +228,7 @@ x509_parse_san:"data_files/server5-unsupported_othername.crt":"":0
 
 X509 SAN parsing rfc822Name
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA256
-x509_parse_san:"data_files/test_cert_rfc822name.crt.der":"type \: 1\nrfc822Name \: my@other.address\ntype \: 1\nrfc822Name \: second@other.address\n"
+x509_parse_san:"data_files/test_cert_rfc822name.crt.der":"type \: 1\nrfc822Name \: my@other.address\ntype \: 1\nrfc822Name \: second@other.address\n":0
 
 X509 CRL information #1
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO

@@ -7255,7 +7255,7 @@ psa_status_t psa_pake_setup(
     operation->alg = cipher_suite->algorithm;
     operation->data.inputs.cipher_suite = *cipher_suite;
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
+#if defined(PSA_WANT_ALG_JPAKE)
     if (operation->alg == PSA_ALG_JPAKE) {
         psa_jpake_computation_stage_t *computation_stage =
             &operation->computation_stage.jpake;
@@ -7405,7 +7405,7 @@ exit:
 }
 
 /* Auxiliary function to convert core computation stage(step, sequence, state) to single driver step. */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
+#if defined(PSA_WANT_ALG_JPAKE)
 static psa_crypto_driver_pake_step_t convert_jpake_computation_stage_to_driver_step(
     psa_jpake_computation_stage_t *stage)
 {
@@ -7499,7 +7499,7 @@ static psa_status_t psa_pake_complete_inputs(
     mbedtls_free(inputs.password);
 
     if (status == PSA_SUCCESS) {
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
+#if defined(PSA_WANT_ALG_JPAKE)
         if (operation->alg == PSA_ALG_JPAKE) {
             operation->stage = PSA_PAKE_OPERATION_STAGE_COMPUTATION;
             psa_jpake_computation_stage_t *computation_stage =
@@ -7517,7 +7517,7 @@ static psa_status_t psa_pake_complete_inputs(
     return status;
 }
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
+#if defined(PSA_WANT_ALG_JPAKE)
 static psa_status_t psa_jpake_output_prologue(
     psa_pake_operation_t *operation,
     psa_pake_step_t step)
@@ -7639,7 +7639,7 @@ psa_status_t psa_pake_output(
     }
 
     switch (operation->alg) {
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
+#if defined(PSA_WANT_ALG_JPAKE)
         case PSA_ALG_JPAKE:
             status = psa_jpake_output_prologue(operation, step);
             if (status != PSA_SUCCESS) {
@@ -7653,7 +7653,7 @@ psa_status_t psa_pake_output(
             goto exit;
     }
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
+#if defined(PSA_WANT_ALG_JPAKE)
     status = psa_driver_wrapper_pake_output(operation,
                                             convert_jpake_computation_stage_to_driver_step(
                                                 &operation->computation_stage.jpake),
@@ -7670,7 +7670,7 @@ psa_status_t psa_pake_output(
     }
 
     switch (operation->alg) {
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
+#if defined(PSA_WANT_ALG_JPAKE)
         case PSA_ALG_JPAKE:
             status = psa_jpake_output_epilogue(operation);
             if (status != PSA_SUCCESS) {
@@ -7689,7 +7689,7 @@ exit:
     return status;
 }
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
+#if defined(PSA_WANT_ALG_JPAKE)
 static psa_status_t psa_jpake_input_prologue(
     psa_pake_operation_t *operation,
     psa_pake_step_t step,
@@ -7816,7 +7816,7 @@ psa_status_t psa_pake_input(
     }
 
     switch (operation->alg) {
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
+#if defined(PSA_WANT_ALG_JPAKE)
         case PSA_ALG_JPAKE:
             status = psa_jpake_input_prologue(operation, step, input_length);
             if (status != PSA_SUCCESS) {
@@ -7830,7 +7830,7 @@ psa_status_t psa_pake_input(
             goto exit;
     }
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
+#if defined(PSA_WANT_ALG_JPAKE)
     status = psa_driver_wrapper_pake_input(operation,
                                            convert_jpake_computation_stage_to_driver_step(
                                                &operation->computation_stage.jpake),
@@ -7846,7 +7846,7 @@ psa_status_t psa_pake_input(
     }
 
     switch (operation->alg) {
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
+#if defined(PSA_WANT_ALG_JPAKE)
         case PSA_ALG_JPAKE:
             status = psa_jpake_input_epilogue(operation);
             if (status != PSA_SUCCESS) {
@@ -7879,7 +7879,7 @@ psa_status_t psa_pake_get_implicit_key(
         goto exit;
     }
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
+#if defined(PSA_WANT_ALG_JPAKE)
     if (operation->alg == PSA_ALG_JPAKE) {
         psa_jpake_computation_stage_t *computation_stage =
             &operation->computation_stage.jpake;

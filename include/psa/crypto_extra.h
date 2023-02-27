@@ -2042,7 +2042,7 @@ struct psa_pake_operation_s {
     /* Holds computation stage of the PAKE algorithms. */
     union {
         uint8_t MBEDTLS_PRIVATE(dummy);
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
+#if defined(PSA_WANT_ALG_JPAKE)
         psa_jpake_computation_stage_t MBEDTLS_PRIVATE(jpake);
 #endif
     } MBEDTLS_PRIVATE(computation_stage);

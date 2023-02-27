@@ -158,6 +158,14 @@
 #endif
 #endif
 
+#if defined(PSA_WANT_ALG_JPAKE)
+#if defined(MBEDTLS_PSA_ACCEL_ALG_JPAKE)
+#undef MBEDTLS_PSA_ACCEL_ALG_JPAKE
+#else
+#define MBEDTLS_PSA_ACCEL_ALG_JPAKE 1
+#endif
+#endif
+
 #if defined(PSA_WANT_KEY_TYPE_AES)
 #if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES)
 #undef MBEDTLS_PSA_ACCEL_KEY_TYPE_AES

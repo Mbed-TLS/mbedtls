@@ -909,7 +909,7 @@ void ecjpake_size_macros()
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE:PSA_ALG_SHA_256 */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE */
 void pake_input_getters_password()
 {
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
@@ -975,7 +975,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE:PSA_ALG_SHA_256 */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE */
 void pake_input_getters_cipher_suite()
 {
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
@@ -1008,7 +1008,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE:PSA_ALG_SHA_256 */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE */
 void pake_input_getters_role()
 {
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();

@@ -4982,8 +4982,10 @@ int mbedtls_ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn)
 #else /* 64 bit */
 
 #define MAX32   Nn * 2
-#define A(j)    (j) % 2 ? (uint32_t) (Np[(j) / 2] >> 32) :  \
-                          (uint32_t) (Np[(j) / 2])
+#define A(j)                                                \
+    (j) % 2 ?                                               \
+    (uint32_t) (Np[(j) / 2] >> 32) :                        \
+    (uint32_t) (Np[(j) / 2])
 #define STORE32                                             \
     if (i % 2) {                                            \
         Np[i/2] &= 0x00000000FFFFFFFF;                      \
@@ -5067,23 +5069,23 @@ int mbedtls_ecp_mod_p224_raw(mbedtls_mpi_uint *Np, size_t Nn)
 
     INIT(224);
 
-    SUB( 7); SUB(11);           NEXT;   // A0 += -A7  - A11
-    SUB( 8); SUB(12);           NEXT;   // A1 += -A8  - A12
-    SUB( 9); SUB(13);           NEXT;   // A2 += -A9  - A13
-    SUB(10); ADD( 7); ADD(11);  NEXT;   // A3 += -A10 + A7 + A11
-    SUB(11); ADD( 8); ADD(12);  NEXT;   // A4 += -A11 + A8 + A12
-    SUB(12); ADD( 9); ADD(13);  NEXT;   // A5 += -A12 + A9 + A13
+    SUB(7);  SUB(11);           NEXT;   // A0 += -A7  - A11
+    SUB(8);  SUB(12);           NEXT;   // A1 += -A8  - A12
+    SUB(9);  SUB(13);           NEXT;   // A2 += -A9  - A13
+    SUB(10); ADD(7);  ADD(11);  NEXT;   // A3 += -A10 + A7 + A11
+    SUB(11); ADD(8);  ADD(12);  NEXT;   // A4 += -A11 + A8 + A12
+    SUB(12); ADD(9);  ADD(13);  NEXT;   // A5 += -A12 + A9 + A13
     SUB(13); ADD(10);                   // A6 += -A13 + A10
 
     RESET;
 
     /* Use 2^224 = P + 2^96 - 1 to modulo reduce the final carry */
     SUB_LAST; NEXT;                     // A0 += -last_c
-              NEXT;                     // A1
-              NEXT;                     // A2
+    ;         NEXT;                     // A1
+    ;         NEXT;                     // A2
     ADD_LAST; NEXT;                     // A3 += last_c
-              NEXT;                     // A4
-              NEXT;                     // A5
+    ;         NEXT;                     // A4
+    ;         NEXT;                     // A5
                                         // A6
 
     LAST;

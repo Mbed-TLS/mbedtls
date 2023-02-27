@@ -26,12 +26,13 @@
     defined(__clang__) &&  __clang_major__ < 18 && __clang_major__ > 3
 /* TODO: Re-consider above after https://reviews.llvm.org/D131064 merged.
  *
- * The intrinsic declaration are guarded with ACLE predefined macros in clang,
- * and those macros are only enabled with command line. Define the macros can
- * enable those declaration and avoid compile error on it.
+ * The intrinsic declaration are guarded by predefined ACLE macros in clang:
+ * these are normally only enabled by the -march option on the command line.
+ * By defining the macros ourselves we gain access to those declarations without
+ * requiring -march on the command line.
  *
- * `arm_neon.h` might be included in any head files. On the top of this file, we
- * can guarantee this workaround always work.
+ * `arm_neon.h` could be included by any header file, so we put these defines
+ * at the top of this file, before any includes.
  */
 #define __ARM_FEATURE_CRYPTO 1
 #define NEED_TARGET_OPTIONS

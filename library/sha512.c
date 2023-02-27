@@ -27,12 +27,13 @@
     __clang_major__ >= 13 && __clang_minor__ > 0 && __clang_patchlevel__ > 0
 /* TODO: Re-consider above after https://reviews.llvm.org/D131064 merged.
  *
- * The intrinsic declaration are guarded with ACLE predefined macros in clang,
- * and those macros are only enabled with command line. Define the macros can
- * enable those declaration and avoid compile error on it.
+ * The intrinsic declaration are guarded by predefined ACLE macros in clang:
+ * these are normally only enabled by the -march option on the command line.
+ * By defining the macros ourselves we gain access to those declarations without
+ * requiring -march on the command line.
  *
- * `arm_neon.h` might be included in any head files. On the top of this file, we
- * can guarantee this workaround always work.
+ * `arm_neon.h` could be included by any header file, so we put these defines
+ * at the top of this file, before any includes.
  */
 #define __ARM_FEATURE_SHA512 1
 #define NEED_TARGET_OPTIONS
@@ -42,15 +43,6 @@
           __clang_patchlevel__ > 0 */
 
 #include "common.h"
-
-#if defined(MBEDTLS_POP_TARGET_PRAGMA) && \
-    !(defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT) || \
-    defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY))
-#if defined(__clang__)
-#pragma clang attribute pop
-#endif
-#undef MBEDTLS_POP_TARGET_PRAGMA
-#endif
 
 #if defined(MBEDTLS_SHA512_C) || defined(MBEDTLS_SHA384_C)
 

@@ -1421,7 +1421,17 @@ int mbedtls_x509_parse_subject_alt_name(const mbedtls_x509_buf *san_buf,
 
             memcpy(&san->san.unstructured_name,
                    san_buf, sizeof(*san_buf));
+        }
+        break;
 
+        /*
+         * RFC822 Name
+         */
+        case (MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_RFC822_NAME):
+        {
+            memset(san, 0, sizeof(mbedtls_x509_subject_alternative_name));
+            san->type = MBEDTLS_X509_SAN_RFC822_NAME;
+            memcpy(&san->san.unstructured_name, san_buf, sizeof(*san_buf));
         }
         break;
 
@@ -1520,10 +1530,19 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
             break;
             /*
              * dNSName
+             * RFC822 Name
              */
             case MBEDTLS_X509_SAN_DNS_NAME:
+            case MBEDTLS_X509_SAN_RFC822_NAME:
             {
-                ret = mbedtls_snprintf(p, n, "\n%s    dNSName : ", prefix);
+                const char *dns_name = "dNSName";
+                const char *rfc822_name = "rfc822Name";
+
+                ret = mbedtls_snprintf(p, n,
+                                       "\n%s    %s : ",
+                                       prefix,
+                                       san.type ==
+                                       MBEDTLS_X509_SAN_DNS_NAME ? dns_name : rfc822_name);
                 MBEDTLS_X509_SAFE_SNPRINTF;
                 if (san.san.unstructured_name.len >= n) {
                     *p = '\0';

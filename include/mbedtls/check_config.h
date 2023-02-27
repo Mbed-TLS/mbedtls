@@ -961,7 +961,7 @@
 
 #if defined(MBEDTLS_THREADING_SRWLOCK)
 #if !defined(MBEDTLS_THREADING_C) || defined(MBEDTLS_THREADING_IMPL)
-#error "MBEDTLS_THREADING_PTHREAD defined, but not all prerequisites"
+#error "MBEDTLS_THREADING_SRWLOCK defined, but not all prerequisites"
 #endif
 #define MBEDTLS_THREADING_IMPL
 #endif

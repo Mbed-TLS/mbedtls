@@ -5070,50 +5070,14 @@ int ecp_mod_p224_raw(mbedtls_mpi_uint *Np, size_t Nn)
     SUB( 7); SUB(11);           NEXT;   // A0 += -A7  - A11
     SUB( 8); SUB(12);           NEXT;   // A1 += -A8  - A12
     SUB( 9); SUB(13);           NEXT;   // A2 += -A9  - A13
-    // 2^32 + MAX32 = 2 * MAX32 + 1 = A3 + A7 - A10 + c
-    // A3 = MAX32, A7 = MAX32, A10 = 0, c = 1
-    SUB( 10 ); ADD(  7 ); ADD( 11 );    NEXT; // A3 += -A10 + A7 + A11
-    // 2^32 + MAX32 = 2 * MAX32 + 1 = A4 + A8 - A11 + c
-    // A4 = MAX32, A8 = MAX32, A11 = 0, c = 1
-    SUB( 11 ); ADD(  8 ); ADD( 12 );    NEXT; // A4 += -A11 + A8 + A12
-    // 2^32 + MAX32 = 2 * MAX32 + 1 = A5 + A9 - A12 + c
-    // A5 = MAX32, A9 = MAX32, A12 = 0, c = 1
-    SUB( 12 ); ADD(  9 ); ADD( 13 );    NEXT; // A5 += -A12 + A9 + A13
-    // 2^32 + MAX32 = 2 * MAX32 + 1 = A6 + A10 - A13 + c
-    // A6 = MAX32, A10 = MAX32, A13 = 0, c = 1
-    SUB( 13 ); ADD( 10 );                     // A6 += -A13 + A10
-    // A6 = MAX32, c = 1
+    SUB(10); ADD( 7); ADD(11);  NEXT;   // A3 += -A10 + A7 + A11
+    SUB(11); ADD( 8); ADD(12);  NEXT;   // A4 += -A11 + A8 + A12
+    SUB(12); ADD( 9); ADD(13);  NEXT;   // A5 += -A12 + A9 + A13
+    SUB(13); ADD(10);                   // A6 += -A13 + A10
 
-    // c =1
     RESET;
-    // c = 0
 
-    // Use 2^224 = P + 2^96 - 1 to modulo reduce the final carry
-
-              // last_c = 1, c = 0, A0 anything
-    SUB_LAST; NEXT;                           // A0
-              // last_c = 1, c anything, A1 anything
-              NEXT;                           // A1
-              // last_c = 1, c = -1, A2 > 0
-              // last_c = 1, c = 0, A2 anything
-              // last_c = 1, c = 1 -> can't be because SUB_LAST
-              NEXT;                           // A2
-              // 1a. last_c = 1, c = 0, A3 = MAX32
-              // 1b. last_c = 1, c = -1, A3 = MAX32 -> cancel/ no carry
-              // 2. last_c = -1, c = 1, A3 = MAX32 -> cancel/ no carry
-    ADD_LAST;
-              // c = 1, A4 = MAX32
-              NEXT;                           // A3
-              // c = 1, A5 = MAX32
-              NEXT;                           // A4
-              // c = 1, A6 = MAX32
-              NEXT;                           // A5
-                                              // A6
-
-    // c = 1
-    RESET;
-    // last_c = 1
-
+    /* Use 2^224 = P + 2^96 - 1 to modulo reduce the final carry */
     SUB_LAST; NEXT;                     // A0 += -last_c
               NEXT;                     // A1
               NEXT;                     // A2

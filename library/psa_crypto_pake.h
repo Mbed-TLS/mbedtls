@@ -96,6 +96,12 @@ psa_status_t mbedtls_psa_pake_output(mbedtls_psa_pake_operation_t *operation,
  *       entry point as defined in the PSA driver interface specification for
  *       transparent drivers.
  *
+ * \note The core has checked that input_length is smaller than
+         PSA_PAKE_INPUT_SIZE(PSA_ALG_JPAKE, primitive, step)
+         where primitive is the JPAKE algorithm primitive and step
+         the PSA API level input step. Thus no risk of integer overflow while
+         checking operation buffer overflow.
+ *
  * \param[in,out] operation    Active PAKE operation.
  * \param step                 The driver step for which the input is provided.
  * \param[in] input            Buffer containing the input in the format

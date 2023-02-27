@@ -430,9 +430,24 @@ static psa_status_t mbedtls_psa_pake_input_internal(
                 3, /* named_curve */
                 0, 23 /* secp256r1 */
             };
+
+            if (operation->buffer_length + sizeof(ecparameters) > sizeof(operation->buffer)) {
+                return PSA_ERROR_BUFFER_TOO_SMALL;
+            }
+
             memcpy(operation->buffer + operation->buffer_length,
                    ecparameters, sizeof(ecparameters));
             operation->buffer_length += sizeof(ecparameters);
+        }
+
+        /*
+         * The core has checked that input_length is smaller than
+         * PSA_PAKE_INPUT_SIZE(PSA_ALG_JPAKE, primitive, step)
+         * where primitive is the JPAKE algorithm primitive and step
+         * the PSA API level input step. Thus no risk of integer overflow here.
+         */
+        if (operation->buffer_length + input_length + 1 > sizeof(operation->buffer)) {
+            return PSA_ERROR_BUFFER_TOO_SMALL;
         }
 
         /* Write the length byte */

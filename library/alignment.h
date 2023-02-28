@@ -155,13 +155,13 @@ inline void mbedtls_put_unaligned_uint64(void *p, uint64_t x)
  * Detect Clang built-in byteswap routines
  */
 #if defined(__clang__) && defined(__has_builtin)
-#if __has_builtin(__builtin_bswap16)
+#if __has_builtin(__builtin_bswap16) && !defined(MBEDTLS_BSWAP16)
 #define MBEDTLS_BSWAP16 __builtin_bswap16
 #endif /* __has_builtin(__builtin_bswap16) */
-#if __has_builtin(__builtin_bswap32)
+#if __has_builtin(__builtin_bswap32) && !defined(MBEDTLS_BSWAP32)
 #define MBEDTLS_BSWAP32 __builtin_bswap32
 #endif /* __has_builtin(__builtin_bswap32) */
-#if __has_builtin(__builtin_bswap64)
+#if __has_builtin(__builtin_bswap64) && !defined(MBEDTLS_BSWAP64)
 #define MBEDTLS_BSWAP64 __builtin_bswap64
 #endif /* __has_builtin(__builtin_bswap64) */
 #endif /* defined(__clang__) && defined(__has_builtin) */
@@ -170,13 +170,19 @@ inline void mbedtls_put_unaligned_uint64(void *p, uint64_t x)
  * Detect MSVC built-in byteswap routines
  */
 #if defined(_MSC_VER)
+#if !defined(MBEDTLS_BSWAP16)
 #define MBEDTLS_BSWAP16 _byteswap_ushort
+#endif
+#if !defined(MBEDTLS_BSWAP32)
 #define MBEDTLS_BSWAP32 _byteswap_ulong
+#endif
+#if !defined(MBEDTLS_BSWAP64)
 #define MBEDTLS_BSWAP64 _byteswap_uint64
+#endif
 #endif /* defined(_MSC_VER) */
 
 /* Detect armcc built-in byteswap routine */
-#if defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= 410000)
+#if defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= 410000) && !defined(MBEDTLS_BSWAP32)
 #define MBEDTLS_BSWAP32 __rev
 #endif
 

@@ -82,22 +82,11 @@
 
 /* The PK wrappers need pk_write functions to format RSA key objects
  * when they are dispatching to the PSA API. This happens under USE_PSA_CRYPTO,
- * and also even without USE_PSA_CRYPTO for mbedtls_pk_sign_ext().
- * PSA crypto also needs pk_write to export RSA keys (otherwise the build
- * goes through but psa_export_key() and psa_export_public_key() fail on
- * RSA keys), and pk_parse to work with RSA keys in almost any way.
- */
+ * and also even without USE_PSA_CRYPTO for mbedtls_pk_sign_ext(). */
 #if defined(MBEDTLS_PSA_CRYPTO_C) && defined(MBEDTLS_RSA_C)
 #define MBEDTLS_PK_C
 #define MBEDTLS_PK_WRITE_C
 #define MBEDTLS_PK_PARSE_C
-#endif
-
-/* Under MBEDTLS_USE_PSA_CRYPTO, the pk module needs pk_write functions
- * to pass ECC keys to PSA. */
-#if defined(MBEDTLS_PK_C) &&                                    \
-    defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_ECP_C)
-#define MBEDTLS_PK_WRITE_C
 #endif
 
 #if !defined(MBEDTLS_SSL_PROTO_TLS1_2)

@@ -6473,6 +6473,24 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
+/**
+ * sign_hash_interruptible() test intentions:
+ *
+ * Note: This test can currently only handle ECDSA.
+ *
+ * 1. Test interruptible sign hash with known outcomes (deterministic ECDSA
+ *    only).
+ *
+ * 2. Test the number of calls to psa_sign_hash_complete() required are as
+ *    expected for different max_ops values.
+ *
+ * 3. Test that the number of ops done prior to start and after abort is zero
+ *    and that each successful stage completes some ops (this is not mandated by
+ *    the PSA specification, but is currently the case).
+ *
+ * 4. Test that calling psa_sign_hash_get_num_ops() multiple times between
+ *    complete() calls does not alter the number of ops returned.
+ */
 void sign_hash_interruptible(int key_type_arg, data_t *key_data,
                              int alg_arg, data_t *input_data,
                              data_t *output_data, int max_ops_arg)
@@ -6629,6 +6647,22 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
+/**
+ * sign_hash_fail_interruptible() test intentions:
+ *
+ * Note: This test can currently only handle ECDSA.
+ *
+ * 1. Test that various failure cases for interruptible sign hash fail with the
+ *    correct error codes, and at the correct point (at start or during
+ *    complete).
+ *
+ * 2. Test the number of calls to psa_sign_hash_complete() required are as
+ *    expected for different max_ops values.
+ *
+ * 3. Test that the number of ops done prior to start and after abort is zero
+ *    and that each successful stage completes some ops (this is not mandated by
+ *    the PSA specification, but is currently the case).
+ */
 void sign_hash_fail_interruptible(int key_type_arg, data_t *key_data,
                                   int alg_arg, data_t *input_data,
                                   int signature_size_arg,
@@ -6816,6 +6850,21 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
+/**
+ * sign_verify_hash_interruptible() test intentions:
+ *
+ * Note: This test can currently only handle ECDSA.
+ *
+ * 1. Test that we can sign an input hash with the given key and then afterwards
+ *    verify that signature. This is currently the only way to test non
+ *    deterministic ECDSA, but this test can also handle deterministic.
+ *
+ * 2. Test that after corrupting the hash, the verification detects an invalid
+ *    signature.
+ *
+ * 3. Test the number of calls to psa_sign_hash_complete() required are as
+ *    expected for different max_ops values.
+ */
 void sign_verify_hash_interruptible(int key_type_arg, data_t *key_data,
                                     int alg_arg, data_t *input_data,
                                     int max_ops_arg)
@@ -6979,6 +7028,21 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
+/**
+ * verify_hash_interruptible() test intentions:
+ *
+ * Note: This test can currently only handle ECDSA.
+ *
+ * 1. Test interruptible verify hash with known outcomes (deterministic ECDSA
+ *    only).
+ *
+ * 2. Test the number of calls to psa_verify_hash_complete() required are as
+ *    expected for different max_ops values.
+ *
+ * 3. Test that the number of ops done prior to start and after abort is zero
+ *    and that each successful stage completes some ops (this is not mandated by
+ *    the PSA specification, but is currently the case).
+ */
 void verify_hash_interruptible(int key_type_arg, data_t *key_data,
                                int alg_arg, data_t *hash_data,
                                data_t *signature_data, int max_ops_arg)
@@ -7104,6 +7168,22 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
+/**
+ * verify_hash_fail_interruptible() test intentions:
+ *
+ * Note: This test can currently only handle ECDSA.
+ *
+ * 1. Test that various failure cases for interruptible verify hash fail with
+ *    the correct error codes, and at the correct point (at start or during
+ *    complete).
+ *
+ * 2. Test the number of calls to psa_verify_hash_complete() required are as
+ *    expected for different max_ops values.
+ *
+ * 3. Test that the number of ops done prior to start and after abort is zero
+ *    and that each successful stage completes some ops (this is not mandated by
+ *    the PSA specification, but is currently the case).
+ */
 void verify_hash_fail_interruptible(int key_type_arg, data_t *key_data,
                                     int alg_arg, data_t *hash_data,
                                     data_t *signature_data,
@@ -7207,6 +7287,14 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
+/**
+ * interruptible_signverify_hash_state_test() test intentions:
+ *
+ * Note: This test can currently only handle ECDSA.
+ *
+ * 1. Test that calling the various interruptible sign and verify hash functions
+ *    in incorrect orders returns BAD_STATE errors.
+ */
 void interruptible_signverify_hash_state_test(int key_type_arg,
                                               data_t *key_data, int alg_arg, data_t *input_data)
 {
@@ -7354,7 +7442,15 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
-void interruptible_signverify_hash_negative_tests(int key_type_arg,
+/**
+ * interruptible_signverify_hash_edgecase_tests() test intentions:
+ *
+ * Note: This test can currently only handle ECDSA.
+ *
+ * 1. Test various edge cases in the interruptible sign and verify hash
+ *    interfaces.
+ */
+void interruptible_signverify_hash_edgecase_tests(int key_type_arg,
                                                   data_t *key_data, int alg_arg, data_t *input_data)
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
@@ -7505,6 +7601,14 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
+/**
+ * interruptible_signverify_hash_maxops_tests() test intentions:
+ *
+ * Note: This test can currently only handle ECDSA.
+ *
+ * 1. Test that setting max ops is reflected in both interruptible sign and
+ *    verify hash
+ */
 void interruptible_signverify_hash_maxops_tests(int key_type_arg,
                                                 data_t *key_data, int alg_arg, data_t *input_data)
 {

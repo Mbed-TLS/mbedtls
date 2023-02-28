@@ -1347,6 +1347,70 @@ psa_status_t psa_crypto_driver_pake_get_role(
     const psa_crypto_driver_pake_inputs_t *inputs,
     psa_pake_role_t *role);
 
+/** Get the lengths of the user in bytes from given inputs.
+ *
+ * \param[in]  inputs           Operation inputs.
+ * \param[out] user_len         Return buffer for user length.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         User hasn't been set yet.
+ */
+psa_status_t psa_crypto_driver_pake_get_user_len(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    size_t *user_len);
+
+/** Get the lengths of the peer in bytes from given inputs.
+ *
+ * \param[in]  inputs           Operation inputs.
+ * \param[out] peer_len         Return buffer for peer length.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         Peer hasn't been set yet.
+ */
+psa_status_t psa_crypto_driver_pake_get_peer_len(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    size_t *peer_len);
+
+/** Get the user from given inputs.
+ *
+ * \param[in]  inputs           Operation inputs.
+ * \param[out] buffer           Return buffer for user.
+ * \param      buffer_size      Size of the return buffer in bytes.
+ * \param[out] buffer_length    Actual size of the password in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         User hasn't been set yet.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p buffer is too small.
+ */
+psa_status_t psa_crypto_driver_pake_get_user(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    uint8_t *buffer, size_t buffer_size, size_t *buffer_length);
+
+/** Get the peer from given inputs.
+ *
+ * \param[in]  inputs           Operation inputs.
+ * \param[out] buffer           Return buffer for user.
+ * \param      buffer_size      Size of the return buffer in bytes.
+ * \param[out] buffer_length    Actual size of the password in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         Peer hasn't been set yet.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p buffer is too small.
+ */
+psa_status_t psa_crypto_driver_pake_get_peer(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    uint8_t *buffer, size_t buffer_size, size_t *buffer_length);
+
 /** Get the cipher suite from given inputs.
  *
  * \param[in]  inputs           Operation inputs.

@@ -218,3 +218,9 @@ pake_input_getters_cipher_suite
 
 PSA PAKE: input getters: role
 pake_input_getters_role
+
+PSA PAKE: input getters: user
+pake_input_getters_user
+
+PSA PAKE: input getters: peer
+pake_input_getters_peer

@@ -4974,32 +4974,32 @@ int mbedtls_ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn)
 
 #if defined(MBEDTLS_HAVE_INT32)  /* 32 bit */
 
-#define MAX32       Nn
-#define A(j)        Np[j]
-#define STORE32     Np[i] = cur;
-#define STORE0      Np[i] = 0;
+#define MAX32       X_limbs
+#define A(j)        X[j]
+#define STORE32     X[i] = cur;
+#define STORE0      X[i] = 0;
 
 #else /* 64 bit */
 
-#define MAX32   Nn * 2
+#define MAX32   X_limbs * 2
 #define A(j)                                                \
     (j) % 2 ?                                               \
-    (uint32_t) (Np[(j) / 2] >> 32) :                        \
-    (uint32_t) (Np[(j) / 2])
+    (uint32_t) (X[(j) / 2] >> 32) :                         \
+    (uint32_t) (X[(j) / 2])
 #define STORE32                                             \
     if (i % 2) {                                            \
-        Np[i/2] &= 0x00000000FFFFFFFF;                      \
-        Np[i/2] |= (uint64_t) (cur) << 32;                  \
+        X[i/2] &= 0x00000000FFFFFFFF;                       \
+        X[i/2] |= (uint64_t) (cur) << 32;                   \
     } else {                                                \
-        Np[i/2] &= 0xFFFFFFFF00000000;                      \
-        Np[i/2] |= (uint32_t) cur;                          \
+        X[i/2] &= 0xFFFFFFFF00000000;                       \
+        X[i/2] |= (uint32_t) cur;                           \
     }
 
 #define STORE0                                              \
     if (i % 2) {                                            \
-        Np[i/2] &= 0x00000000FFFFFFFF;                      \
+        X[i/2] &= 0x00000000FFFFFFFF;                       \
     } else {                                                \
-        Np[i/2] &= 0xFFFFFFFF00000000;                      \
+        X[i/2] &= 0xFFFFFFFF00000000;                       \
     }
 
 #endif
@@ -5061,9 +5061,9 @@ cleanup:
 }
 
 MBEDTLS_STATIC_TESTABLE
-int mbedtls_ecp_mod_p224_raw(mbedtls_mpi_uint *Np, size_t Nn)
+int mbedtls_ecp_mod_p224_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 {
-    if (Nn != 2 * 224 / biL) {
+    if (X_limbs != 2 * 224 / biL) {
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 

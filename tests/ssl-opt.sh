@@ -177,6 +177,9 @@ get_options() {
             -p|--preserve-logs)
                 PRESERVE_LOGS=1
                 ;;
+            --outcome-file)
+                shift; MBEDTLS_TEST_OUTCOME_FILE=$1
+                ;;
             --port)
                 shift; SRV_PORT=$1
                 ;;
@@ -199,14 +202,6 @@ get_options() {
         shift
     done
 }
-
-# Make the outcome file path relative to the original directory, not
-# to .../tests
-case "$MBEDTLS_TEST_OUTCOME_FILE" in
-    [!/]*)
-        MBEDTLS_TEST_OUTCOME_FILE="$ORIGINAL_PWD/$MBEDTLS_TEST_OUTCOME_FILE"
-        ;;
-esac
 
 # Read boolean configuration options from mbedtls_config.h for easy and quick
 # testing. Skip non-boolean options (with something other than spaces
@@ -1598,6 +1593,14 @@ cleanup() {
 #
 
 get_options "$@"
+
+# Make the outcome file path relative to the original directory, not
+# to .../tests
+case "$MBEDTLS_TEST_OUTCOME_FILE" in
+    [!/]*)
+        MBEDTLS_TEST_OUTCOME_FILE="$ORIGINAL_PWD/$MBEDTLS_TEST_OUTCOME_FILE"
+        ;;
+esac
 
 populate_enabled_hash_algs
 

@@ -345,38 +345,48 @@ extern mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state;
 #endif /* !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) */
 
 /* PSA errors use int32_t, while Mbed TLS ones use int16_t. psa_status_t
- * is enough to store either of them. */
+ * is enough to store either of them. The arrays below consist
+ * of corresponding pairs: [psa_error1, mbedtls_error1, psa_error2,
+ * mbedtls_error2, ...]*/
 #if !defined(MBEDTLS_MD_C) || !defined(MBEDTLS_MD5_C)
-extern psa_status_t psa_to_md_errors[8];
+extern const psa_status_t psa_to_md_errors[8];
 #endif
 
 #if defined(MBEDTLS_LMS_C)
-extern psa_status_t psa_to_lms_errors[6];
+extern const psa_status_t psa_to_lms_errors[6];
 #endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
-extern psa_status_t psa_to_ssl_errors[14];
+extern const psa_status_t psa_to_ssl_errors[14];
 #endif
 
 #if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY) ||    \
     defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR)
-extern psa_status_t psa_to_pk_rsa_errors[16];
+extern const psa_status_t psa_to_pk_rsa_errors[16];
 #endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && \
     defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-extern psa_status_t psa_to_pk_ecdsa_errors[14];
+extern const psa_status_t psa_to_pk_ecdsa_errors[14];
 #endif
 
+/* Generic fallback function for error translation,
+ * when the received state was not module-specific. */
 int psa_generic_status_to_mbedtls(psa_status_t status);
 
+/* This function iterates over provided local error translations,
+ * and if no match was found - calls the fallback error translation function. */
 int psa_status_to_mbedtls(psa_status_t status,
-                          psa_status_t *local_translations,
+                          const psa_status_t *local_translations,
                           size_t local_errors_num,
                           int (*fallback_f)(psa_status_t));
 
+/* The second out of three-stage error handling functions of the pk module,
+ * acts as a fallback after RSA / ECDSA error translation, and if no match
+ * is found, it itself calls psa_generic_status_to_mbedtls. */
 int psa_pk_status_to_mbedtls(psa_status_t status);
 
+/* Utility macro to shorten the defines of error translator in modules. */
 #define PSA_TO_MBEDTLS_ERR_LIST(status, error_list, fallback_f) \
     psa_status_to_mbedtls(status, error_list, sizeof(error_list), fallback_f)
 

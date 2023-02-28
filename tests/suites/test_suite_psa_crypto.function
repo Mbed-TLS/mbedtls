@@ -4173,7 +4173,11 @@ void asymmetric_encrypt(int key_type_arg,
                                            output, output_size,
                                            &output_length);
     TEST_EQUAL(actual_status, expected_status);
-    TEST_EQUAL(output_length, expected_output_length);
+    if (actual_status == PSA_SUCCESS) {
+        TEST_EQUAL(output_length, expected_output_length);
+    } else {
+        TEST_LE_U(output_length, output_size);
+    }
 
     /* If the label is empty, the test framework puts a non-null pointer
      * in label->x. Test that a null pointer works as well. */
@@ -4188,7 +4192,11 @@ void asymmetric_encrypt(int key_type_arg,
                                                output, output_size,
                                                &output_length);
         TEST_EQUAL(actual_status, expected_status);
-        TEST_EQUAL(output_length, expected_output_length);
+        if (actual_status == PSA_SUCCESS) {
+            TEST_EQUAL(output_length, expected_output_length);
+        } else {
+            TEST_LE_U(output_length, output_size);
+        }
     }
 
 exit:

@@ -752,11 +752,11 @@ psa_status_t mbedtls_psa_sign_hash_start(
  *         where \c key_type and \c key_bits are the type and bit-size
  *         respectively of \p key.
  *
- * \retval #PSA_ERROR_NOT_SUPPORTED
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY \emptydescription
  */
 psa_status_t mbedtls_psa_sign_hash_complete(
     mbedtls_psa_sign_hash_interruptible_operation_t *operation,
@@ -849,9 +849,9 @@ psa_status_t mbedtls_psa_verify_hash_start(
  *         The calculation was performed successfully, but the passed
  *         signature is not a valid signature.
  *
- * \retval #PSA_ERROR_NOT_SUPPORTED
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
  */
 psa_status_t mbedtls_psa_verify_hash_complete(
     mbedtls_psa_verify_hash_interruptible_operation_t *operation);

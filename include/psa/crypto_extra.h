@@ -434,6 +434,9 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
 #define PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS 1
 #define PSA_PAKE_OPERATION_STAGE_COMPUTATION 2
 
+/** JPAKE operation stages. */
+#define PSA_JPAKE_SERVER_ID "server"
+#define PSA_JPAKE_CLIENT_ID "client"
 /**
  * \brief Set domain parameters for a key.
  *
@@ -1970,6 +1973,10 @@ struct psa_crypto_driver_pake_inputs_s {
     uint8_t *MBEDTLS_PRIVATE(password);
     size_t MBEDTLS_PRIVATE(password_len);
     psa_pake_role_t MBEDTLS_PRIVATE(role);
+    uint8_t *MBEDTLS_PRIVATE(user);
+    size_t MBEDTLS_PRIVATE(user_len);
+    uint8_t *MBEDTLS_PRIVATE(peer);
+    size_t MBEDTLS_PRIVATE(peer_len);
     psa_key_attributes_t MBEDTLS_PRIVATE(attributes);
     psa_pake_cipher_suite_t MBEDTLS_PRIVATE(cipher_suite);
 };

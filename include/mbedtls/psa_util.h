@@ -344,30 +344,31 @@ extern mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state;
 
 #endif /* !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) */
 
-/* PSA errors use int32_t, while Mbed TLS ones use int16_t. psa_status_t
- * is enough to store either of them. The arrays below consist
- * of corresponding pairs: [psa_error1, mbedtls_error1, psa_error2,
- * mbedtls_error2, ...]*/
+typedef struct {
+    psa_status_t psa_status;
+    int16_t mbedtls_error;
+} error_pair_t;
+
 #if !defined(MBEDTLS_MD_C) || !defined(MBEDTLS_MD5_C)
-extern const psa_status_t psa_to_md_errors[8];
+extern const error_pair_t psa_to_md_errors[4];
 #endif
 
 #if defined(MBEDTLS_LMS_C)
-extern const psa_status_t psa_to_lms_errors[6];
+extern const error_pair_t psa_to_lms_errors[3];
 #endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
-extern const psa_status_t psa_to_ssl_errors[14];
+extern const error_pair_t psa_to_ssl_errors[7];
 #endif
 
 #if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY) ||    \
     defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR)
-extern const psa_status_t psa_to_pk_rsa_errors[16];
+extern const error_pair_t psa_to_pk_rsa_errors[8];
 #endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && \
     defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-extern const psa_status_t psa_to_pk_ecdsa_errors[14];
+extern const error_pair_t psa_to_pk_ecdsa_errors[7];
 #endif
 
 /* Generic fallback function for error translation,
@@ -377,7 +378,7 @@ int psa_generic_status_to_mbedtls(psa_status_t status);
 /* This function iterates over provided local error translations,
  * and if no match was found - calls the fallback error translation function. */
 int psa_status_to_mbedtls(psa_status_t status,
-                          const psa_status_t *local_translations,
+                          const error_pair_t *local_translations,
                           size_t local_errors_num,
                           int (*fallback_f)(psa_status_t));
 

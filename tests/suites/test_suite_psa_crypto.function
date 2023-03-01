@@ -6864,6 +6864,10 @@ exit:
  *
  * 3. Test the number of calls to psa_sign_hash_complete() required are as
  *    expected for different max_ops values.
+ *
+ * 4. Test that the number of ops done prior to starting signing and after abort
+ *    is zero and that each successful signing stage completes some ops (this is
+ *    not mandated by the PSA specification, but is currently the case).
  */
 void sign_verify_hash_interruptible(int key_type_arg, data_t *key_data,
                                     int alg_arg, data_t *input_data,
@@ -6879,6 +6883,8 @@ void sign_verify_hash_interruptible(int key_type_arg, data_t *key_data,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status = PSA_OPERATION_INCOMPLETE;
     uint32_t max_ops = max_ops_arg;
+    uint32_t num_ops = 0;
+    uint32_t num_ops_prior = 0;
     size_t num_completes = 0;
     size_t min_completes = 0;
     size_t max_completes = 0;
@@ -6913,9 +6919,15 @@ void sign_verify_hash_interruptible(int key_type_arg, data_t *key_data,
     interruptible_signverify_get_minmax_completes(max_ops, PSA_SUCCESS,
                                                   &min_completes, &max_completes);
 
+    num_ops_prior = psa_sign_hash_get_num_ops(&sign_operation);
+    TEST_ASSERT(num_ops_prior == 0);
+
     /* Start performing the signature. */
     PSA_ASSERT(psa_sign_hash_start(&sign_operation, key, alg,
                                    input_data->x, input_data->len));
+
+    num_ops_prior = psa_sign_hash_get_num_ops(&sign_operation);
+    TEST_ASSERT(num_ops_prior == 0);
 
     /* Continue performing the signature until complete. */
     do {
@@ -6925,6 +6937,17 @@ void sign_verify_hash_interruptible(int key_type_arg, data_t *key_data,
                                         &signature_length);
 
         num_completes++;
+
+        if (status == PSA_SUCCESS || status == PSA_OPERATION_INCOMPLETE) {
+            num_ops = psa_sign_hash_get_num_ops(&sign_operation);
+            /* We are asserting here that every complete makes progress
+             * (completes some ops), which is true of the internal
+             * implementation and probably any implementation, however this is
+             * not mandated by the PSA specification. */
+            TEST_ASSERT(num_ops > num_ops_prior);
+
+            num_ops_prior = num_ops;
+        }
     } while (status == PSA_OPERATION_INCOMPLETE);
 
     TEST_ASSERT(status == PSA_SUCCESS);
@@ -6933,6 +6956,9 @@ void sign_verify_hash_interruptible(int key_type_arg, data_t *key_data,
     TEST_LE_U(num_completes, max_completes);
 
     PSA_ASSERT(psa_sign_hash_abort(&sign_operation));
+
+    num_ops = psa_sign_hash_get_num_ops(&sign_operation);
+    TEST_ASSERT(num_ops == 0);
 
     /* Check that the signature length looks sensible. */
     TEST_LE_U(signature_length, signature_size);
@@ -7042,6 +7068,12 @@ exit:
  * 3. Test that the number of ops done prior to start and after abort is zero
  *    and that each successful stage completes some ops (this is not mandated by
  *    the PSA specification, but is currently the case).
+ *
+ * 4. Test that calling psa_sign_hash_get_num_ops() multiple times between
+ *    complete() calls does not alter the number of ops returned.
+ *
+ * 5. Test that after corrupting the hash, the verification detects an invalid
+ *    signature.
  */
 void verify_hash_interruptible(int key_type_arg, data_t *key_data,
                                int alg_arg, data_t *hash_data,
@@ -7125,6 +7157,25 @@ void verify_hash_interruptible(int key_type_arg, data_t *key_data,
 
     num_ops = psa_verify_hash_get_num_ops(&operation);
     TEST_ASSERT(num_ops == 0);
+
+    if (hash_data->len != 0) {
+        /* Flip a bit in the hash and verify that the signature is now detected
+         * as invalid. Flip a bit at the beginning, not at the end, because
+         * ECDSA may ignore the last few bits of the input. */
+        hash_data->x[0] ^= 1;
+
+        /* Start verification. */
+        PSA_ASSERT(psa_verify_hash_start(&operation, key, alg,
+                                         hash_data->x, hash_data->len,
+                                         signature_data->x, signature_data->len));
+
+        /* Continue performing the signature until complete. */
+        do {
+            status = psa_verify_hash_complete(&operation);
+        } while (status == PSA_OPERATION_INCOMPLETE);
+
+        TEST_ASSERT(status ==  PSA_ERROR_INVALID_SIGNATURE);
+    }
 
 exit:
     psa_reset_key_attributes(&attributes);

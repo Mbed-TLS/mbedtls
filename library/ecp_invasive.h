@@ -119,7 +119,7 @@ int mbedtls_ecp_mod_p224_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 #if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
 
 MBEDTLS_STATIC_TESTABLE
-int ecp_mod_p256_raw(mbedtls_mpi_uint *Np, size_t Nn);
+int mbedtls_ecp_mod_p256_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 
 #endif
 

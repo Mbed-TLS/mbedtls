@@ -52,8 +52,7 @@
 #if defined(__GLIBC__) && (__GLIBC__ >= 2) && (__GLIBC_MINOR__ >= 25) \
     && !defined(__ARM_EABI__)
 #define MBEDTLS_PLATFORM_HAS_EXPLICIT_BZERO 1
-#endif
-#if defined(__FreeBSD__) && (__FreeBSD_version >= 1100037)
+#elif defined(__FreeBSD__) && (__FreeBSD_version >= 1100037)
 #define MBEDTLS_PLATFORM_HAS_EXPLICIT_BZERO 1
 #endif
 

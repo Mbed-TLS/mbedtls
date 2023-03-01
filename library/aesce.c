@@ -212,14 +212,14 @@ static void aesce_setkey_enc(unsigned char *rk,
                                     0x20, 0x40, 0x80, 0x1b, 0x36 };
     /* See https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197.pdf
      *   - Section 5, Nr = Nk + 6
-     *   - Section 5.2, the key expansion size is Nb*(Nr+1)
+     *   - Section 5.2, the length of round keys is Nb*(Nr+1)
      */
     const uint32_t key_len_in_words = key_bit_length / 32;  /* Nk */
     const size_t round_key_len_in_words = 4;                /* Nb */
-    const size_t round_keys_needed = key_len_in_words + 6;  /* Nr */
-    const size_t key_expansion_size_in_words =
-        round_key_len_in_words * (round_keys_needed + 1);   /* Nb*(Nr+1) */
-    const uint32_t *rko_end = (uint32_t *) rk + key_expansion_size_in_words;
+    const size_t rounds_needed = key_len_in_words + 6;      /* Nr */
+    const size_t round_keys_len_in_words =
+        round_key_len_in_words * (rounds_needed + 1);       /* Nb*(Nr+1) */
+    const uint32_t *rko_end = (uint32_t *) rk + round_keys_len_in_words;
 
     memcpy(rk, key, key_len_in_words * 4);
 

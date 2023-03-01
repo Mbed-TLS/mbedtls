@@ -433,24 +433,6 @@ psa_status_t psa_driver_wrapper_verify_hash(
     }
 }
 
-void psa_driver_wrapper_interruptible_set_max_ops( uint32_t max_ops )
-{
-    /* TODO - dispatch to drivers dynamically registered for this
-     * service when registering is implemented. For now, fall
-     * through to internal implementation. */
-
-    mbedtls_psa_interruptible_set_max_ops( max_ops );
-}
-
-uint32_t psa_driver_wrapper_interruptible_get_max_ops( void )
-{
-    /* TODO - dispatch to drivers dynamically registered for this
-     * service when registering is implemented. For now, fall
-     * through to internal implementation. */
-
-    return mbedtls_psa_interruptible_get_max_ops( );
-}
-
 uint32_t psa_driver_wrapper_sign_hash_get_num_ops(
     psa_sign_hash_interruptible_operation_t *operation )
 {

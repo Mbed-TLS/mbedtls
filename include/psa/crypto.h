@@ -4217,6 +4217,9 @@ uint32_t psa_interruptible_get_max_ops(void);
  *                              \c psa_sign_hash_interruptible_abort() on
  *                              the operation, a value of 0 will be returned.
  *
+ * \note                        This interface is guaranteed re-entrant and
+ *                              thus may be called from driver code.
+ *
  * \warning                     This is a beta API, and thus subject to change
  *                              at any point. It is not bound by the usual
  *                              interface stability promises.

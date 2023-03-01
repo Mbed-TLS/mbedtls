@@ -434,7 +434,7 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
 #define PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS 1
 #define PSA_PAKE_OPERATION_STAGE_COMPUTATION 2
 
-/** JPAKE operation stages. */
+/** JPAKE user/peer ids. */
 #define PSA_JPAKE_SERVER_ID "server"
 #define PSA_JPAKE_CLIENT_ID "client"
 /**
@@ -1565,6 +1565,7 @@ psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
  *                              been set (psa_pake_set_user() hasn't been
  *                              called yet).
  * \param[in] user_id           The user ID to authenticate with.
+ *                              ("client" or "server")
  * \param user_id_len           Size of the \p user_id buffer in bytes.
  *
  * \retval #PSA_SUCCESS
@@ -1606,6 +1607,7 @@ psa_status_t psa_pake_set_user(psa_pake_operation_t *operation,
  *                              been set (psa_pake_set_peer() hasn't been
  *                              called yet).
  * \param[in] peer_id           The peer's ID to authenticate.
+ *                              ("client" or "server")
  * \param peer_id_len           Size of the \p peer_id buffer in bytes.
  *
  * \retval #PSA_SUCCESS

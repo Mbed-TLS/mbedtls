@@ -6662,6 +6662,12 @@ exit:
  * 3. Test that the number of ops done prior to start and after abort is zero
  *    and that each successful stage completes some ops (this is not mandated by
  *    the PSA specification, but is currently the case).
+ *
+ * 4. Check that calling complete() when start() fails and complete()
+ *    after completion results in a BAD_STATE error.
+ *
+ * 5. Check that calling start() again after start fails results in a BAD_STATE
+ *    error.
  */
 void sign_hash_fail_interruptible(int key_type_arg, data_t *key_data,
                                   int alg_arg, data_t *input_data,
@@ -6718,6 +6724,15 @@ void sign_hash_fail_interruptible(int key_type_arg, data_t *key_data,
     TEST_EQUAL(actual_status, expected_start_status);
 
     if (expected_start_status != PSA_SUCCESS) {
+        /* Emulate poor application code, and call complete anyway, even though
+         * start failed. */
+        actual_status = psa_sign_hash_complete(&operation, signature,
+                                               signature_size,
+                                               &signature_length);
+
+        TEST_EQUAL(actual_status, PSA_ERROR_BAD_STATE);
+
+        /* Test that calling start again after failure also causes BAD_STATE. */
         actual_status = psa_sign_hash_start(&operation, key, alg,
                                             input_data->x, input_data->len);
 
@@ -7234,6 +7249,12 @@ exit:
  * 3. Test that the number of ops done prior to start and after abort is zero
  *    and that each successful stage completes some ops (this is not mandated by
  *    the PSA specification, but is currently the case).
+ *
+ * 4. Check that calling complete() when start() fails and complete()
+ *    after completion results in a BAD_STATE error.
+ *
+ * 5. Check that calling start() again after start fails results in a BAD_STATE
+ *    error.
  */
 void verify_hash_fail_interruptible(int key_type_arg, data_t *key_data,
                                     int alg_arg, data_t *hash_data,
@@ -7286,6 +7307,13 @@ void verify_hash_fail_interruptible(int key_type_arg, data_t *key_data,
     TEST_EQUAL(actual_status, expected_start_status);
 
     if (expected_start_status != PSA_SUCCESS) {
+        /* Emulate poor application code, and call complete anyway, even though
+         * start failed. */
+        actual_status = psa_verify_hash_complete(&operation);
+
+        TEST_EQUAL(actual_status, PSA_ERROR_BAD_STATE);
+
+        /* Test that calling start again after failure also causes BAD_STATE. */
         actual_status = psa_verify_hash_start(&operation, key, alg,
                                               hash_data->x, hash_data->len,
                                               signature_data->x,

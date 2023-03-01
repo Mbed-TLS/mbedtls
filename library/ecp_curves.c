@@ -5108,7 +5108,7 @@ int mbedtls_ecp_mod_p224_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 static int ecp_mod_p256(mbedtls_mpi *N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t expected_width = 2 * ((256 + biL - 1) / biL);
+    size_t expected_width = 2 * 256 / biL;
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
     ret = mbedtls_ecp_mod_p256_raw(N->p, expected_width);
 cleanup:
@@ -5118,7 +5118,7 @@ cleanup:
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p256_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 {
-    if (X_limbs != 2*((256 + biL - 1)/biL)) {
+    if (X_limbs != 2 * 256 / biL) {
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 

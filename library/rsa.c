@@ -508,6 +508,14 @@ int mbedtls_rsa_get_padding_mode(const mbedtls_rsa_context *ctx)
 }
 
 /*
+ * Get hash identifier of mbedtls_md_type_t type
+ */
+int mbedtls_rsa_get_hash_id(const mbedtls_rsa_context *ctx)
+{
+    return ctx->MBEDTLS_PRIVATE(hash_id);
+}
+
+/*
  * Get length in bytes of RSA modulus
  */
 size_t mbedtls_rsa_get_len(const mbedtls_rsa_context *ctx)

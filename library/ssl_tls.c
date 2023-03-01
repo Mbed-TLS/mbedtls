@@ -1954,9 +1954,11 @@ static psa_status_t mbedtls_ssl_set_hs_ecjpake_password_common(
     mbedtls_svc_key_id_t pwd)
 {
     psa_status_t status;
-    psa_pake_role_t psa_role;
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
-
+    uint8_t *user = NULL;
+    size_t user_len = 0;
+    uint8_t *peer = NULL;
+    size_t peer_len = 0;
     psa_pake_cs_set_algorithm(&cipher_suite, PSA_ALG_JPAKE);
     psa_pake_cs_set_primitive(&cipher_suite,
                               PSA_PAKE_PRIMITIVE(PSA_PAKE_PRIMITIVE_TYPE_ECC,
@@ -1970,12 +1972,23 @@ static psa_status_t mbedtls_ssl_set_hs_ecjpake_password_common(
     }
 
     if (ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER) {
-        psa_role = PSA_PAKE_ROLE_SERVER;
+        user = (uint8_t *) PSA_JPAKE_SERVER_ID;
+        user_len = strlen(PSA_JPAKE_SERVER_ID);
+        peer = (uint8_t *) PSA_JPAKE_CLIENT_ID;
+        peer_len = strlen(PSA_JPAKE_CLIENT_ID);
     } else {
-        psa_role = PSA_PAKE_ROLE_CLIENT;
+        user = (uint8_t *) PSA_JPAKE_CLIENT_ID;
+        user_len = strlen(PSA_JPAKE_CLIENT_ID);
+        peer = (uint8_t *) PSA_JPAKE_SERVER_ID;
+        peer_len = strlen(PSA_JPAKE_SERVER_ID);
     }
 
-    status = psa_pake_set_role(&ssl->handshake->psa_pake_ctx, psa_role);
+    status = psa_pake_set_user(&ssl->handshake->psa_pake_ctx, user, user_len);
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
+
+    status = psa_pake_set_peer(&ssl->handshake->psa_pake_ctx, peer, peer_len);
     if (status != PSA_SUCCESS) {
         return status;
     }

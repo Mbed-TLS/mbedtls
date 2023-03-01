@@ -4580,7 +4580,8 @@ int mbedtls_ecp_mod_p224_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
 static int ecp_mod_p256(mbedtls_mpi *);
-static int ecp_mod_p256_raw(mbedtls_mpi_uint *Np, size_t Nn);
+MBEDTLS_STATIC_TESTABLE
+int ecp_mod_p256_raw(mbedtls_mpi_uint *Np, size_t Nn);
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
 static int ecp_mod_p384(mbedtls_mpi *);
@@ -5113,7 +5114,9 @@ static int ecp_mod_p256(mbedtls_mpi *N)
 cleanup:
     return ret;
 }
-static int ecp_mod_p256_raw(mbedtls_mpi_uint *Np, size_t Nn)
+
+MBEDTLS_STATIC_TESTABLE
+int ecp_mod_p256_raw(mbedtls_mpi_uint *Np, size_t Nn)
 {
     if (Nn != 2*((256 + biL - 1)/biL)) {
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;

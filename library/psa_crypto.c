@@ -7415,22 +7415,16 @@ static psa_crypto_driver_pake_step_t convert_jpake_computation_stage_to_driver_s
             switch (stage->sequence) {
                 case PSA_PAKE_X1_STEP_KEY_SHARE:
                     return PSA_JPAKE_X1_STEP_KEY_SHARE;
-                    break;
                 case PSA_PAKE_X1_STEP_ZK_PUBLIC:
                     return PSA_JPAKE_X1_STEP_ZK_PUBLIC;
-                    break;
                 case PSA_PAKE_X1_STEP_ZK_PROOF:
                     return PSA_JPAKE_X1_STEP_ZK_PROOF;
-                    break;
                 case PSA_PAKE_X2_STEP_KEY_SHARE:
                     return PSA_JPAKE_X2_STEP_KEY_SHARE;
-                    break;
                 case PSA_PAKE_X2_STEP_ZK_PUBLIC:
                     return PSA_JPAKE_X2_STEP_ZK_PUBLIC;
-                    break;
                 case PSA_PAKE_X2_STEP_ZK_PROOF:
                     return PSA_JPAKE_X2_STEP_ZK_PROOF;
-                    break;
                 default:
                     return PSA_JPAKE_STEP_INVALID;
             }
@@ -7439,13 +7433,11 @@ static psa_crypto_driver_pake_step_t convert_jpake_computation_stage_to_driver_s
             switch (stage->sequence) {
                 case PSA_PAKE_X1_STEP_KEY_SHARE:
                     return PSA_JPAKE_X2S_STEP_KEY_SHARE;
-                    break;
                 case PSA_PAKE_X1_STEP_ZK_PUBLIC:
                     return PSA_JPAKE_X2S_STEP_ZK_PUBLIC;
-                    break;
                 case PSA_PAKE_X1_STEP_ZK_PROOF:
                     return PSA_JPAKE_X2S_STEP_ZK_PROOF;
-                    break;
+                default:
                     return PSA_JPAKE_STEP_INVALID;
             }
             break;
@@ -7453,13 +7445,11 @@ static psa_crypto_driver_pake_step_t convert_jpake_computation_stage_to_driver_s
             switch (stage->sequence) {
                 case PSA_PAKE_X1_STEP_KEY_SHARE:
                     return PSA_JPAKE_X4S_STEP_KEY_SHARE;
-                    break;
                 case PSA_PAKE_X1_STEP_ZK_PUBLIC:
                     return PSA_JPAKE_X4S_STEP_ZK_PUBLIC;
-                    break;
                 case PSA_PAKE_X1_STEP_ZK_PROOF:
                     return PSA_JPAKE_X4S_STEP_ZK_PROOF;
-                    break;
+                default:
                     return PSA_JPAKE_STEP_INVALID;
             }
             break;

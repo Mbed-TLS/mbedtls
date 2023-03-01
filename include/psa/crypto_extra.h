@@ -1974,14 +1974,14 @@ struct psa_crypto_driver_pake_inputs_s {
     psa_pake_cipher_suite_t MBEDTLS_PRIVATE(cipher_suite);
 };
 
-enum psa_jpake_step {
+typedef enum psa_jpake_step {
     PSA_PAKE_STEP_INVALID       = 0,
     PSA_PAKE_STEP_X1_X2         = 1,
     PSA_PAKE_STEP_X2S           = 2,
     PSA_PAKE_STEP_DERIVE        = 3,
-};
+} psa_jpake_step_t;
 
-enum psa_jpake_state {
+typedef enum psa_jpake_state {
     PSA_PAKE_STATE_INVALID      = 0,
     PSA_PAKE_STATE_SETUP        = 1,
     PSA_PAKE_STATE_READY        = 2,
@@ -1989,9 +1989,9 @@ enum psa_jpake_state {
     PSA_PAKE_OUTPUT_X2S         = 4,
     PSA_PAKE_INPUT_X1_X2        = 5,
     PSA_PAKE_INPUT_X4S          = 6,
-};
+} psa_jpake_state_t;
 
-enum psa_jpake_sequence {
+typedef enum psa_jpake_sequence {
     PSA_PAKE_SEQ_INVALID        = 0,
     PSA_PAKE_X1_STEP_KEY_SHARE  = 1,    /* also X2S & X4S KEY_SHARE */
     PSA_PAKE_X1_STEP_ZK_PUBLIC  = 2,    /* also X2S & X4S ZK_PUBLIC */
@@ -2000,7 +2000,7 @@ enum psa_jpake_sequence {
     PSA_PAKE_X2_STEP_ZK_PUBLIC  = 5,
     PSA_PAKE_X2_STEP_ZK_PROOF   = 6,
     PSA_PAKE_SEQ_END            = 7,
-};
+} psa_jpake_sequence_t;
 
 typedef enum psa_crypto_driver_pake_step {
     PSA_JPAKE_STEP_INVALID        = 0,  /* Invalid step */
@@ -2020,10 +2020,10 @@ typedef enum psa_crypto_driver_pake_step {
 
 
 struct psa_jpake_computation_stage_s {
-    unsigned int MBEDTLS_PRIVATE(state);
-    unsigned int MBEDTLS_PRIVATE(sequence);
-    unsigned int MBEDTLS_PRIVATE(input_step);
-    unsigned int MBEDTLS_PRIVATE(output_step);
+    psa_jpake_state_t MBEDTLS_PRIVATE(state);
+    psa_jpake_sequence_t MBEDTLS_PRIVATE(sequence);
+    psa_jpake_step_t MBEDTLS_PRIVATE(input_step);
+    psa_jpake_step_t MBEDTLS_PRIVATE(output_step);
 };
 
 struct psa_pake_operation_s {

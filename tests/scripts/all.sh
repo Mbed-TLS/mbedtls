@@ -3506,9 +3506,9 @@ component_build_armcc () {
     armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8.2-a+crypto"
 }
 support_build_armcc () {
-    arm5_cc="$ARMC5_BIN_DIR/armcc"
-    arm6_cc="$ARMC6_BIN_DIR/armclang"
-    `check_tools "$arm5_cc" "$arm6_cc" > /dev/null 2>&1`
+    armc5_cc="$ARMC5_BIN_DIR/armcc"
+    armc6_cc="$ARMC6_BIN_DIR/armclang"
+    (check_tools "$armc5_cc" "$armc6_cc" > /dev/null 2>&1)
 }
 
 component_test_tls13_only () {

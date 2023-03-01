@@ -182,6 +182,16 @@ int mbedtls_rsa_set_padding(mbedtls_rsa_context *ctx, int padding,
                             mbedtls_md_type_t hash_id);
 
 /**
+ * \brief          This function retrieves padding mode of RSA modulus.
+ *
+ * \param ctx      The initialized RSA context.
+ *
+ * \return         RSA padding mode.
+ *
+ */
+int mbedtls_rsa_get_padding_mode(const mbedtls_rsa_context *ctx);
+
+/**
  * \brief          This function imports a set of core parameters into an
  *                 RSA context.
  *

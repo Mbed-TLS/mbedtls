@@ -3196,7 +3196,7 @@ component_test_cmake_shared () {
 }
 
 test_build_opt () {
-    info=$1 cc=$2; shift 2
+    info=$1 cc=$2 cxx=$3; shift 3
     for opt in "$@"; do
           msg "build/test: $cc $opt, $info" # ~ 30s
           make CC="$cc" CFLAGS="$opt -std=c99 -pedantic -Wall -Wextra -Werror"
@@ -3205,18 +3205,23 @@ test_build_opt () {
           # optimizations use inline assembly whereas runs with -O0
           # skip inline assembly.
           make test # ~30s
+
+          if [ -n "$cxx" ]; then
+              make TEST_CPP=1 CXX="$cxx" CFLAGS="$opt -std=c++11 -pedantic -Wall -Wextra -Werror"
+              programs/test/cpp_dummy_build
+          fi
           make clean
     done
 }
 
 component_test_clang_opt () {
     scripts/config.py full
-    test_build_opt 'full config' clang -O0 -Os -O2
+    test_build_opt 'full config' clang clang++ -O0 -Os -O2
 }
 
 component_test_gcc_opt () {
     scripts/config.py full
-    test_build_opt 'full config' gcc -O0 -Os -O2
+    test_build_opt 'full config' gcc g++ -O0 -Os -O2
 }
 
 component_build_mbedtls_config_file () {

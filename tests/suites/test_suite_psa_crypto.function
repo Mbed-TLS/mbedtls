@@ -6724,7 +6724,7 @@ void sign_hash_fail_interruptible(int key_type_arg, data_t *key_data,
     TEST_EQUAL(actual_status, expected_start_status);
 
     if (expected_start_status != PSA_SUCCESS) {
-        /* Emulate poor implementation, and call complete anyway, even though
+        /* Emulate poor application code, and call complete anyway, even though
          * start failed. */
         actual_status = psa_sign_hash_complete(&operation, signature,
                                                signature_size,
@@ -7256,7 +7256,7 @@ void verify_hash_fail_interruptible(int key_type_arg, data_t *key_data,
     TEST_EQUAL(actual_status, expected_start_status);
 
     if (expected_start_status != PSA_SUCCESS) {
-        /* Emulate poor implementation, and call complete anyway, even though
+        /* Emulate poor application code, and call complete anyway, even though
          * start failed. */
         actual_status = psa_verify_hash_complete(&operation);
 

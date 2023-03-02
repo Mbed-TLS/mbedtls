@@ -1,0 +1,4 @@
+Bugfix
+   * Allow setting user and peer identity for EC J-PAKE operation
+     instead role in PAKE PSA Crypto API as described in the specification.
+     This is partial fix that allows only "client"/"server" ids.

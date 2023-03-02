@@ -232,12 +232,20 @@ typedef struct mbedtls_pk_debug_item {
  */
 typedef struct mbedtls_pk_info_t mbedtls_pk_info_t;
 
+#define MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN \
+        PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)
 /**
  * \brief           Public key container
  */
 typedef struct mbedtls_pk_context {
     const mbedtls_pk_info_t *MBEDTLS_PRIVATE(pk_info);    /**< Public key information         */
     void *MBEDTLS_PRIVATE(pk_ctx);                        /**< Underlying public key context  */
+#if defined(MBEDTLS_ECP_C) && defined(MBEDTLS_USE_PSA_CRYPTO)
+    uint8_t MBEDTLS_PRIVATE(pk_raw)[MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN];  /**< Raw public key   */
+    size_t MBEDTLS_PRIVATE(pk_raw_len);                         /**< Valid bytes in "pk_raw" */
+    psa_ecc_family_t MBEDTLS_PRIVATE(pk_ec_family);             /**< EC family of pk */
+    size_t MBEDTLS_PRIVATE(pk_bits);                            /**< Curve's bits of pk */
+#endif /* MBEDTLS_ECP_C && MBEDTLS_USE_PSA_CRYPTO */
 } mbedtls_pk_context;
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
@@ -387,6 +395,13 @@ int mbedtls_pk_setup_rsa_alt(mbedtls_pk_context *ctx, void *key,
                              mbedtls_pk_rsa_alt_sign_func sign_func,
                              mbedtls_pk_rsa_alt_key_len_func key_len_func);
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
+
+#if defined(MBEDTLS_ECP_C) && defined(MBEDTLS_USE_PSA_CRYPTO)
+int mbedtls_pk_gen_ec_keypair(mbedtls_pk_context *pk,
+                              mbedtls_ecp_group_id grp_id,
+                              int (*f_rng)(void *, unsigned char *, size_t),
+                              void *p_rng);
+#endif /* MBEDTLS_ECP_C && MBEDTLS_USE_PSA_CRYPTO */
 
 /**
  * \brief           Get the size in bits of the underlying key
@@ -794,6 +809,14 @@ static inline mbedtls_ecp_keypair *mbedtls_pk_ec(const mbedtls_pk_context pk)
             return NULL;
     }
 }
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+int mbedtls_pk_get_public_key(mbedtls_pk_context *pk, unsigned char *buf,
+                            size_t buf_size, size_t *key_len);
+
+int mbedtls_pk_get_ec_public_key_props(mbedtls_pk_context *pk,
+                            psa_ecc_family_t *ec_curve,
+                            size_t *bits);
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 #endif /* MBEDTLS_ECP_LIGHT */
 
 #if defined(MBEDTLS_PK_PARSE_C)
@@ -868,6 +891,32 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *ctx,
  */
 int mbedtls_pk_parse_public_key(mbedtls_pk_context *ctx,
                                 const unsigned char *key, size_t keylen);
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+/**
+ * \brief   Copy the public key content in raw format from "ctx->pk_ctx"
+ *          (which is an ecp_keypair) into the internal "ctx->pk_raw" buffer.
+ *
+ * \note    This is a temporary function that can be removed as soon as the pk
+ *          module is free from ECP_C
+ *
+ * \param pk   It is the pk_context which is going to be updated. It acts both
+ *             as input and output.
+ */
+int mbedtls_pk_update_public_key_from_keypair(mbedtls_pk_context *pk);
+
+/**
+ * \brief   Copy the public key content from ther internal raw buffer, "ctx->pk_raw",
+ *          to the ecp_keypair structure, "ctx->pk_ctx".
+ *
+ * \note    This is a temporary function that can be removed as soon as the pk
+ *          module is free from ECP_C
+ *
+ * \param pk   It is the pk_context which is going to be updated. It acts both
+ *             as input and output.
+ */
+int mbedtls_pk_update_keypair_from_public_key(mbedtls_pk_context *pk);
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_FS_IO)
 /** \ingroup pk_module */

@@ -2034,13 +2034,11 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
     ssl->handshake->ecdh_psa_type = PSA_KEY_TYPE_ECC_KEY_PAIR(ecc_family);
 
     /* Store peer's public key in psa format. */
-    ret = mbedtls_ecp_point_write_binary(&peer_key->grp, &peer_key->Q,
-                                         MBEDTLS_ECP_PF_UNCOMPRESSED, &olen,
-                                         ssl->handshake->ecdh_psa_peerkey,
-                                         MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH);
+    ret = mbedtls_pk_get_public_key(peer_pk, ssl->handshake->ecdh_psa_peerkey,
+                                    MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH, &olen);
 
     if (ret != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, ("mbedtls_ecp_point_write_binary"), ret);
+        MBEDTLS_SSL_DEBUG_RET(1, ("mbedtls_pk_get_public_key"), ret);
         return ret;
     }
 

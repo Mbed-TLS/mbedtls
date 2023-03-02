@@ -60,6 +60,13 @@ void mbedtls_pk_init(mbedtls_pk_context *ctx)
 {
     ctx->pk_info = NULL;
     ctx->pk_ctx = NULL;
+#if defined(MBEDTLS_ECP_C) && defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_platform_zeroize(ctx->MBEDTLS_PRIVATE(pk_raw),
+                                    MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN);
+    ctx->pk_raw_len = 0;
+    ctx->pk_ec_family = 0;
+    ctx->pk_bits = 0;
+#endif /* MBEDTLS_ECP_C && MBEDTLS_USE_PSA_CRYPTO */
 }
 
 /*
@@ -75,6 +82,7 @@ void mbedtls_pk_free(mbedtls_pk_context *ctx)
         ctx->pk_info->ctx_free_func(ctx->pk_ctx);
     }
 
+    /* The zeroizing process also clears data associated with raw pk */
     mbedtls_platform_zeroize(ctx, sizeof(mbedtls_pk_context));
 }
 
@@ -224,6 +232,40 @@ int mbedtls_pk_setup_rsa_alt(mbedtls_pk_context *ctx, void *key,
     return 0;
 }
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
+
+#if defined(MBEDTLS_ECP_C) && defined(MBEDTLS_USE_PSA_CRYPTO)
+int mbedtls_pk_gen_ec_keypair(mbedtls_pk_context *pk,
+                              mbedtls_ecp_group_id grp_id,
+                              int (*f_rng)(void *, unsigned char *, size_t),
+                              void *p_rng)
+{
+    mbedtls_ecp_keypair *keypair;
+    int ret;
+
+    if (pk == NULL) {
+        return MBEDTLS_PK_NONE;
+    }
+    if ((pk->pk_info == NULL) || (pk->pk_info->type == MBEDTLS_PK_RSA)) {
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+    }
+
+    keypair = mbedtls_pk_ec(*pk);
+
+    ret = mbedtls_ecp_group_load(&keypair->grp, grp_id);
+    if (ret != 0) {
+        return ret;
+    }
+
+    ret = mbedtls_ecp_gen_keypair(&keypair->grp, &keypair->d, &keypair->Q,
+                                    f_rng, p_rng);
+    if (ret != 0) {
+        return ret;
+    }
+
+    /* Copy the public key to the raw buffer */
+    return mbedtls_pk_update_public_key_from_keypair(pk);
+}
+#endif /* MBEDTLS_ECP_C && MBEDTLS_USE_PSA_CRYPTO */
 
 /*
  * Tell if a PK can do the operations of the given type
@@ -442,7 +484,18 @@ int mbedtls_pk_verify_restartable(mbedtls_pk_context *ctx,
         if ((ret = pk_restart_setup(rs_ctx, ctx->pk_info)) != 0) {
             return ret;
         }
-
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        /* PSA crypto does not support restartable functions yet, so we are
+         * falling back to the mbedtls implementation. Therefore copy the
+         * raw content of the public key back to the ecp_keypair structure */
+        if ((mbedtls_ecp_is_zero(&(mbedtls_pk_ec(*ctx)->Q)) == 1) &&
+            (ctx->pk_raw_len != 0)){
+            ret = mbedtls_pk_update_keypair_from_public_key(ctx);
+            if (ret < 0) {
+                return ret;
+            }
+        }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
         ret = ctx->pk_info->verify_rs_func(ctx->pk_ctx,
                                            md_alg, hash, hash_len, sig, sig_len, rs_ctx->rs_ctx);
 
@@ -460,8 +513,19 @@ int mbedtls_pk_verify_restartable(mbedtls_pk_context *ctx,
         return MBEDTLS_ERR_PK_TYPE_MISMATCH;
     }
 
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if (ctx->pk_info->type == MBEDTLS_PK_RSA) {
+        return ctx->pk_info->verify_func(ctx->pk_ctx, md_alg, hash, hash_len,
+                                     sig, sig_len);
+    } else {
+        return ctx->pk_info->verify_func(ctx, md_alg, hash, hash_len,
+                                     sig, sig_len);
+    }
+#else /* MBEDTLS_USE_PSA_CRYPTO */
     return ctx->pk_info->verify_func(ctx->pk_ctx, md_alg, hash, hash_len,
                                      sig, sig_len);
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 }
 
 /*
@@ -791,7 +855,15 @@ int mbedtls_pk_check_pair(const mbedtls_pk_context *pub,
         }
     }
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if (pub->pk_info->type == MBEDTLS_PK_RSA) {
+        return prv->pk_info->check_pair_func(pub->pk_ctx, prv->pk_ctx, f_rng, p_rng);
+    } else {
+        return prv->pk_info->check_pair_func(pub, prv, f_rng, p_rng);
+    }
+#else
     return prv->pk_info->check_pair_func(pub->pk_ctx, prv->pk_ctx, f_rng, p_rng);
+#endif
 }
 
 /*
@@ -850,6 +922,96 @@ mbedtls_pk_type_t mbedtls_pk_get_type(const mbedtls_pk_context *ctx)
 }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
+int mbedtls_pk_get_public_key(mbedtls_pk_context *pk, unsigned char *buf,
+                            size_t buf_size, size_t *key_len)
+{
+    if ((pk == NULL) || (pk->MBEDTLS_PRIVATE(pk_raw_len) == 0)) {
+        return MBEDTLS_PK_NONE;
+    }
+    if (buf_size < MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN) {
+        return MBEDTLS_ERR_PK_BUFFER_TOO_SMALL;
+    }
+
+    memcpy(buf, pk->MBEDTLS_PRIVATE(pk_raw), MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN);
+    *key_len = pk->MBEDTLS_PRIVATE(pk_raw_len);
+
+    return 0;
+}
+
+int mbedtls_pk_get_ec_public_key_props(mbedtls_pk_context *pk,
+                            psa_ecc_family_t *ec_curve, size_t *bits)
+{
+    if ((pk == NULL) || (ec_curve == NULL) || (bits == NULL)) {
+        return MBEDTLS_PK_NONE;
+    }
+
+    *ec_curve = pk->MBEDTLS_PRIVATE(pk_ec_family);
+    *bits = pk->MBEDTLS_PRIVATE(pk_bits);
+
+    return 0;
+}
+
+#if defined(MBEDTLS_ECP_C)
+int mbedtls_pk_update_public_key_from_keypair(mbedtls_pk_context *pk)
+{
+    int ret = MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+    mbedtls_ecp_keypair *ecp_keypair;
+
+    if (pk == NULL) {
+        return MBEDTLS_PK_NONE;
+    }
+    /* RSA does not support raw public keys inside the pk_context structure,
+     * so we quit silently in this case */
+    if (pk->pk_info->type == MBEDTLS_PK_RSA) {
+        return 0;
+    }
+
+    ecp_keypair = mbedtls_pk_ec(*pk);
+
+    ret = mbedtls_ecp_point_write_binary(&ecp_keypair->grp, &ecp_keypair->Q,
+                            MBEDTLS_ECP_PF_UNCOMPRESSED,
+                            &pk->MBEDTLS_PRIVATE(pk_raw_len),
+                            pk->MBEDTLS_PRIVATE(pk_raw),
+                            MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN);
+    if (ret != 0) {
+        return ret;
+    }
+
+    pk->MBEDTLS_PRIVATE(pk_ec_family) = mbedtls_ecc_group_to_psa(
+                        ecp_keypair->grp.id, &pk->MBEDTLS_PRIVATE(pk_bits));
+
+    return 0;
+}
+
+int mbedtls_pk_update_keypair_from_public_key(mbedtls_pk_context *pk)
+{
+    int ret = MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+    mbedtls_ecp_keypair *ecp_keypair;
+    mbedtls_ecp_group_id group_id;
+
+    if (pk == NULL) {
+        return MBEDTLS_PK_NONE;
+    }
+    /* RSA does not support raw public keys inside the pk_context structure,
+     * so we quit silently in this case */
+    if (pk->pk_info->type == MBEDTLS_PK_RSA) {
+        return 0;
+    }
+
+    ecp_keypair = mbedtls_pk_ec(*pk);
+
+    group_id = mbedtls_ecc_group_of_psa(pk->pk_ec_family, pk->pk_bits, 0);
+    ret = mbedtls_ecp_group_load(&(ecp_keypair->grp), group_id);
+    if (ret < 0) {
+        return ret;
+    }
+    ret = mbedtls_ecp_point_read_binary(&(ecp_keypair->grp), &(ecp_keypair->Q),
+                                    pk->pk_raw, pk->pk_raw_len);
+
+    return ret;
+}
+#endif
+
 /*
  * Load the key to a PSA key slot,
  * then turn the PK context into a wrapper for that key slot.

@@ -720,7 +720,7 @@ static int ecdsa_verify_wrap(void *ctx_arg, mbedtls_md_type_t md_alg,
                              const unsigned char *hash, size_t hash_len,
                              const unsigned char *sig, size_t sig_len)
 {
-    mbedtls_ecp_keypair *ctx = ctx_arg;
+    mbedtls_pk_context *pk = ctx_arg;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
@@ -735,22 +735,21 @@ static int ecdsa_verify_wrap(void *ctx_arg, mbedtls_md_type_t md_alg,
     unsigned char *p;
     psa_algorithm_t psa_sig_md = PSA_ALG_ECDSA_ANY;
     size_t curve_bits;
-    psa_ecc_family_t curve =
-        mbedtls_ecc_group_to_psa(ctx->grp.id, &curve_bits);
-    const size_t signature_part_size = (ctx->grp.nbits + 7) / 8;
+    psa_ecc_family_t curve = 0;
+    size_t signature_part_size;
     ((void) md_alg);
 
-    if (curve == 0) {
+    if (mbedtls_pk_get_ec_public_key_props(pk, &curve, &curve_bits) ||
+        (curve == 0)) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
+    signature_part_size = (curve_bits + 7)/8;
 
     psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_PUBLIC_KEY(curve));
     psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_VERIFY_HASH);
     psa_set_key_algorithm(&attributes, psa_sig_md);
 
-    ret = mbedtls_ecp_point_write_binary(&ctx->grp, &ctx->Q,
-                                         MBEDTLS_ECP_PF_UNCOMPRESSED,
-                                         &key_len, buf, sizeof(buf));
+    ret = mbedtls_pk_get_public_key(pk, buf, sizeof(buf), &key_len);
     if (ret != 0) {
         goto cleanup;
     }

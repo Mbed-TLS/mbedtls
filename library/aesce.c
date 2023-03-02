@@ -278,6 +278,18 @@ int mbedtls_aesce_setkey_enc(unsigned char *rk,
 
 #if defined(MBEDTLS_GCM_C)
 
+#if !defined(__clang__) && defined(__GNUC__) && __GNUC__ == 5
+/* GCC 5.X miss some intrinsics, we add them here. */
+#define vreinterpretq_p64_u8(a) ((poly64x2_t) a)
+#define vreinterpretq_u8_p128(a) ((uint8x16_t) a)
+static inline poly64_t vget_low_p64(poly64x2_t __a)
+{
+    uint64x2_t tmp = (uint64x2_t) (__a);
+    uint64x1_t lo = vcreate_u64(vgetq_lane_u64(tmp, 0));
+    return (poly64_t) (lo);
+}
+#endif /* !__clang__ && __GNUC__ && __GNUC__ == 5*/
+
 static inline uint8x16_t pmull_low(uint8x16_t a, uint8x16_t b)
 {
     return vreinterpretq_u8_p128(

@@ -712,41 +712,6 @@
 #if defined(MBEDTLS_SHA512_ALT) || defined(MBEDTLS_SHA512_PROCESS_ALT)
 #error "MBEDTLS_SHA512_*ALT can't be used with MBEDTLS_SHA512_USE_A64_CRYPTO_*"
 #endif
-/*
- * Best performance comes from most recent compilers, with intrinsics and -O3.
- * Must compile with -march=armv8.2-a+sha3, but we can't detect armv8.2-a, and
- * can't always detect __ARM_FEATURE_SHA512 (notably clang 7-12).
- *
- * GCC < 8 won't work at all (lacks the sha512 instructions)
- * GCC >= 8 uses intrinsics, sets __ARM_FEATURE_SHA512
- *
- * Clang < 7 won't work at all (lacks the sha512 instructions)
- * Clang 7-12 don't have intrinsics (but we work around that with inline
- *            assembler) or __ARM_FEATURE_SHA512
- * Clang == 13.0.0 same as clang 12 (only seen on macOS)
- * Clang >= 13.0.1 has __ARM_FEATURE_SHA512 and intrinsics
- */
-#if defined(__aarch64__) && !defined(__ARM_FEATURE_SHA512)
-   /* Test Clang first, as it defines __GNUC__ */
-#  if defined(__clang__)
-#    if __clang_major__ < 7
-#      error "A more recent Clang is required for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
-#    elif __clang_major__ < 13 || \
-         (__clang_major__ == 13 && __clang_minor__ == 0 && __clang_patchlevel__ == 0)
-       /* We implement the intrinsics with inline assembler, so don't error */
-#    else
-#      error "Must use minimum -march=armv8.2-a+sha3 for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
-#    endif
-#  elif defined(__GNUC__)
-#    if __GNUC__ < 8
-#      error "A more recent GCC is required for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
-#    else
-#      error "Must use minimum -march=armv8.2-a+sha3 for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
-#    endif
-#  else
-#    error "Only GCC and Clang supported for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
-#  endif
-#endif
 
 #endif /* MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT || MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY */
 
@@ -767,9 +732,7 @@
 #if defined(MBEDTLS_SHA256_ALT) || defined(MBEDTLS_SHA256_PROCESS_ALT)
 #error "MBEDTLS_SHA256_*ALT can't be used with MBEDTLS_SHA256_USE_A64_CRYPTO_*"
 #endif
-#if defined(__aarch64__) && !defined(__ARM_FEATURE_CRYPTO)
-#error "Must use minimum -march=armv8-a+crypto for MBEDTLS_SHA256_USE_A64_CRYPTO_*"
-#endif
+
 #endif
 
 #if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY) && \

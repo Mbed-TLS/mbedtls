@@ -126,10 +126,10 @@ list_test_case() {
     for VERIFY in $VERIFIES; do
         VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
         for MODE in $MODES; do
-            print_test_title m o "$O_CIPHERS"
-            print_test_title o m "$O_CIPHERS"
-            print_test_title m g "$G_CIPHERS"
-            print_test_title g m "$G_CIPHERS"
+            print_test_title m O "$O_CIPHERS"
+            print_test_title O m "$O_CIPHERS"
+            print_test_title m G "$G_CIPHERS"
+            print_test_title G m "$G_CIPHERS"
             print_test_title m m "$M_CIPHERS"
         done
     done

@@ -88,7 +88,7 @@
  * mbedtls_platform_zeroize() to use a suitable implementation for their
  * platform and needs.
  */
- #if !defined(MBEDTLS_PLATFORM_HAS_EXPLICIT_BZERO) && !defined(__STDC_LIB_EXT1__) \
+#if !defined(MBEDTLS_PLATFORM_HAS_EXPLICIT_BZERO) && !defined(__STDC_LIB_EXT1__) \
     && !defined(_WIN32)
 static void *(*const volatile memset_func)(void *, int, size_t) = memset;
 #endif

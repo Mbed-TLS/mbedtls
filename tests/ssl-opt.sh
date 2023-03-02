@@ -401,7 +401,7 @@ detect_required_features() {
             else
                 # For TLS12 requirements are different between server and client
                 if [ "$2" = "server" ]; then
-                    # If the server uses "server5*" cerificates, then an ECDSA based
+                    # If the server uses "server5*" certificates, then an ECDSA based
                     # key exchange is required
                     requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
                 elif [ "$2" = "client" ]; then
@@ -1441,7 +1441,7 @@ do_run_test_once() {
 }
 
 # Detect if the current test is going to use TLS 1.3.
-# $1 and $2 contains the server and client command lines, respectively.
+# $1 and $2 contain the server and client command lines, respectively.
 get_tls_version() {
     case $1 in
         *tls1_3*|*tls13*)

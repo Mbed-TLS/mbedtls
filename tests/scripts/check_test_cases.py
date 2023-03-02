@@ -123,12 +123,11 @@ state may override this method.
             print(*compat_cmd, 'returned', str(result.returncode))
             return
         else:
-            # Pattern: g->m dtls12,no TLS_DHE_PSK_WITH_AES_128_CBC_SHA .......... \n
-            m = re.findall(br'[^ogm]*((?:[ogm]->[ogm]\s*\w*.\w*\s\w*)*)\s*\.*\s*\n',
-                           result.stdout)
-            if m:
-                for i in m:
-                    self.process_test_case(descriptions, file_name, 1, i)
+            # Assume compat.sh is responsible for printing identical format of
+            # test case description between --list-test-case and its OUTCOME.CSV
+            description = result.stdout.strip().split(b'\n')
+            for idx, descrip in enumerate(description):
+                self.process_test_case(descriptions, file_name, idx, descrip)
 
     @staticmethod
     def collect_test_directories():

@@ -40,7 +40,6 @@ TESTS=0
 FAILED=0
 SKIPPED=0
 SRVMEM=0
-LIST_TEST_CASE=0
 
 # default commands, can be overridden by the environment
 : ${M_SRV:=../programs/ssl/ssl_server2}
@@ -134,6 +133,14 @@ print_usage() {
     printf "                   \t(default: \$MBEDTLS_TEST_OUTCOME_FILE, none if empty)\n"
 }
 
+# print_test_case <CLIENT> <SERVER> <STANDARD_CIPHER_SUITE>
+print_test_case() {
+    for i in $3; do
+        uniform_title $1 $2 $i
+        echo $TITLE
+    done
+}
+
 list_test_case() {
     reset_ciphersuites
     for TYPE in $TYPES; do
@@ -146,11 +153,11 @@ list_test_case() {
     for VERIFY in $VERIFIES; do
         VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
         for MODE in $MODES; do
-            print_test_title m O "$O_CIPHERS"
-            print_test_title O m "$O_CIPHERS"
-            print_test_title m G "$G_CIPHERS"
-            print_test_title G m "$G_CIPHERS"
-            print_test_title m m "$M_CIPHERS"
+            print_test_case m O "$O_CIPHERS"
+            print_test_case O m "$O_CIPHERS"
+            print_test_case m G "$G_CIPHERS"
+            print_test_case G m "$G_CIPHERS"
+            print_test_case m m "$M_CIPHERS"
         done
     done
 }
@@ -183,7 +190,6 @@ get_options() {
                 MEMCHECK=1
                 ;;
             --list-test-case)
-                LIST_TEST_CASE=1
                 list_test_case
                 exit 0
                 ;;
@@ -1227,21 +1233,21 @@ report_fail() {
     fi
 }
 
-# print_test_title <CLIENT> <SERVER> <STANDARD_CIPHER_SUITE>
-print_test_title() {
-    for i in $3; do
-        TITLE="$1->$2 $MODE,$VERIF $i"
-        DOTS72="........................................................................"
-        printf "%s %.*s " "$TITLE" "$((71 - ${#TITLE}))" "$DOTS72"
-        [ $LIST_TEST_CASE -eq 1 ] && printf "\n"
-    done
+# uniform_title <CLIENT> <SERVER> <STANDARD_CIPHER_SUITE>
+# $TITLE is considered as test case description for both --list-test-case and
+# MBEDTLS_TEST_OUTCOME_FILE. This function aims to control the format of
+# each test case description.
+uniform_title() {
+    TITLE="$1->$2 $MODE,$VERIF $3"
 }
 
 # run_client <name> <cipher>
 run_client() {
     # announce what we're going to do
     TESTS=$(( $TESTS + 1 ))
-    print_test_title ${1%"${1#?}"} ${SERVER_NAME%"${SERVER_NAME#?}"} $2
+    uniform_title "${1%"${1#?}"}" "${SERVER_NAME%"${SERVER_NAME#?}"}" $2
+    DOTS72="........................................................................"
+    printf "%s %.*s " "$TITLE" "$((71 - ${#TITLE}))" "$DOTS72"
 
     # should we skip?
     if [ "X$SKIP_NEXT" = "XYES" ]; then

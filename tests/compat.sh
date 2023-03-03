@@ -121,6 +121,7 @@ print_test_case() {
     done
 }
 
+# list_test_case lists all potential test cases in compat.sh without execution
 list_test_case() {
     reset_ciphersuites
     for TYPE in $TYPES; do
@@ -169,6 +170,8 @@ get_options() {
             -M|--memcheck)
                 MEMCHECK=1
                 ;;
+            # Please check scripts/check_test_cases.py correspondingly
+            # if you have to modify option, --list-test-case
             --list-test-case)
                 list_test_case
                 exit 0

@@ -116,18 +116,13 @@ state may override this method.
         """Iterate over the test cases compat.sh with a similar format."""
         descriptions = self.new_per_file_state() # pylint: disable=assignment-from-none
         compat_cmd = ['sh', file_name, '--list-test-case']
-        result = subprocess.run(compat_cmd,
-                                stdout=subprocess.PIPE,
-                                check=False)
-        if result.returncode != 0:
-            print(*compat_cmd, 'returned', str(result.returncode))
-            return
-        else:
-            # Assume compat.sh is responsible for printing identical format of
-            # test case description between --list-test-case and its OUTCOME.CSV
-            description = result.stdout.strip().split(b'\n')
-            for idx, descrip in enumerate(description):
-                self.process_test_case(descriptions, file_name, idx, descrip)
+        compat_output = subprocess.check_output(compat_cmd,
+                                                stderr=subprocess.STDOUT)
+        # Assume compat.sh is responsible for printing identical format of
+        # test case description between --list-test-case and its OUTCOME.CSV
+        description = compat_output.strip().split(b'\n')
+        for idx, descrip in enumerate(description):
+            self.process_test_case(descriptions, file_name, idx, descrip)
 
     @staticmethod
     def collect_test_directories():

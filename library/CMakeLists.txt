@@ -13,6 +13,7 @@ endif()
 set(src_crypto
     aes.c
     aesni.c
+    aesce.c
     aria.c
     asn1parse.c
     asn1write.c

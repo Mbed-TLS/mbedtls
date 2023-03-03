@@ -1,0 +1,5 @@
+Bugfix
+   * Fix the handling of renegotiation attempts in TLS 1.3. They are now
+     systematically rejected.
+   * Fix an unused-variable warning in TLS 1.3-only builds if
+     MBEDTLS_SSL_RENEGOTIATION was enabled. Fixes #6200.

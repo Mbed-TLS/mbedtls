@@ -1,2 +1,2 @@
 Bugfix
-   * Fix IAR compiler warnings. Contributed by Glenn Strauss in #3835.
+   * Fix IAR compiler warnings. Fixes #6924.

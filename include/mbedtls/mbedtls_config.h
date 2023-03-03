@@ -2072,6 +2072,34 @@
 #define MBEDTLS_AESNI_C
 
 /**
+ * \def MBEDTLS_AESCE_C
+ *
+ * Enable AES crypto extension support on Arm64.
+ *
+ * Module:  library/aesce.c
+ * Caller:  library/aes.c
+ *
+ * Requires: MBEDTLS_HAVE_ASM, MBEDTLS_AES_C
+ *
+ * \note The code uses Neon intrinsics, so \c CFLAGS must be set to a minimum
+ * of \c -march=armv8-a+crypto .
+ *
+ * \warning If the target architecture is set to something that includes the
+ *          SHA3 feature (e.g. `-march=armv8.2-a+sha3`), for example because
+ *          `MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT` is desired, compilers
+ *          generate code for `MBEDTLS_AESCE_C` that includes instructions
+ *          only present with the (optional) SHA3 feature. This will lead to an
+ *          undefined instruction exception if the code is run on a CPU without
+ *          that feature.
+ *
+ * \warning Runtime detection only works on linux. For non-linux operation
+ *          system, crypto extension MUST be supported by CPU.
+ *
+ * This module adds support for the AES crypto instructions on Arm64
+ */
+#define MBEDTLS_AESCE_C
+
+/**
  * \def MBEDTLS_AES_C
  *
  * Enable the AES block cipher.
@@ -3108,9 +3136,6 @@
  * \note If MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT is defined when building
  * for a non-Aarch64 build it will be silently ignored.
  *
- * \note The code uses Neon intrinsics, so \c CFLAGS must be set to a minimum
- * of \c -march=armv8-a+crypto.
- *
  * \warning MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT cannot be defined at the
  * same time as MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY.
  *
@@ -3132,9 +3157,6 @@
  *
  * \note This allows builds with a smaller code size than with
  * MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
- *
- * \note The code uses Neon intrinsics, so \c CFLAGS must be set to a minimum
- * of \c -march=armv8-a+crypto.
  *
  * \warning MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY cannot be defined at the same
  * time as MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT.
@@ -3201,9 +3223,7 @@
  * for a non-Aarch64 build it will be silently ignored.
  *
  * \note The code uses the SHA-512 Neon intrinsics, so requires GCC >= 8 or
- * Clang >= 7, and \c CFLAGS must be set to a minimum of
- * \c -march=armv8.2-a+sha3. An optimisation level of \c -O3 generates the
- * fastest code.
+ * Clang >= 7.
  *
  * \warning MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT cannot be defined at the
  * same time as MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY.
@@ -3228,9 +3248,7 @@
  * MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
  *
  * \note The code uses the SHA-512 Neon intrinsics, so requires GCC >= 8 or
- * Clang >= 7, and \c CFLAGS must be set to a minimum of
- * \c -march=armv8.2-a+sha3. An optimisation level of \c -O3 generates the
- * fastest code.
+ * Clang >= 7.
  *
  * \warning MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY cannot be defined at the same
  * time as MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT.
@@ -3569,6 +3587,53 @@
  */
 //#define MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE "/dev/null"
 
+/**
+ * \def MBEDTLS_PSA_CRYPTO_PLATFORM_FILE
+ *
+ * If defined, this is a header which will be included instead of
+ * `"psa/crypto_platform.h"`. This file should declare the same identifiers
+ * as the one in Mbed TLS, but with definitions adapted to the platform on
+ * which the library code will run.
+ *
+ * \note The required content of this header can vary from one version of
+ *       Mbed TLS to the next. Integrators who provide an alternative file
+ *       should review the changes in the original file whenever they
+ *       upgrade Mbed TLS.
+ *
+ * This macro is expanded after an <tt>\#include</tt> directive. This is a popular but
+ * non-standard feature of the C language, so this feature is only available
+ * with compilers that perform macro expansion on an <tt>\#include</tt> line.
+ *
+ * The value of this symbol is typically a path in double quotes, either
+ * absolute or relative to a directory on the include search path.
+ */
+//#define MBEDTLS_PSA_CRYPTO_PLATFORM_FILE "psa/crypto_platform_alt.h"
+
+/**
+ * \def MBEDTLS_PSA_CRYPTO_STRUCT_FILE
+ *
+ * If defined, this is a header which will be included instead of
+ * `"psa/crypto_struct.h"`. This file should declare the same identifiers
+ * as the one in Mbed TLS, but with definitions adapted to the environment
+ * in which the library code will run. The typical use for this feature
+ * is to provide alternative type definitions on the client side in
+ * client-server integrations of PSA crypto, where operation structures
+ * contain handles instead of cryptographic data.
+ *
+ * \note The required content of this header can vary from one version of
+ *       Mbed TLS to the next. Integrators who provide an alternative file
+ *       should review the changes in the original file whenever they
+ *       upgrade Mbed TLS.
+ *
+ * This macro is expanded after an <tt>\#include</tt> directive. This is a popular but
+ * non-standard feature of the C language, so this feature is only available
+ * with compilers that perform macro expansion on an <tt>\#include</tt> line.
+ *
+ * The value of this symbol is typically a path in double quotes, either
+ * absolute or relative to a directory on the include search path.
+ */
+//#define MBEDTLS_PSA_CRYPTO_STRUCT_FILE "psa/crypto_struct_alt.h"
+
 /** \} name SECTION: General configuration options */
 
 /**
@@ -3591,7 +3656,7 @@
  * comment in the specific module. */
 
 /* MPI / BIGNUM options */
-//#define MBEDTLS_MPI_WINDOW_SIZE            6 /**< Maximum window size used. */
+//#define MBEDTLS_MPI_WINDOW_SIZE            2 /**< Maximum window size used. */
 //#define MBEDTLS_MPI_MAX_SIZE            1024 /**< Maximum number of bytes for usable MPIs. */
 
 /* CTR_DRBG options */

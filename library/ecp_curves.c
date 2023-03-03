@@ -4570,6 +4570,8 @@ static int ecp_group_load(mbedtls_ecp_group *grp,
 /* Forward declarations */
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
 static int ecp_mod_p192(mbedtls_mpi *);
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn);
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
 static int ecp_mod_p224(mbedtls_mpi *);
@@ -4582,6 +4584,8 @@ static int ecp_mod_p384(mbedtls_mpi *);
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
 static int ecp_mod_p521(mbedtls_mpi *);
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *N_p, size_t N_n);
 #endif
 
 #define NIST_MODP(P)      grp->modp = ecp_mod_ ## P;
@@ -4954,10 +4958,12 @@ static inline void carry64(mbedtls_mpi_uint *dst, mbedtls_mpi_uint *carry)
 }
 
 #define WIDTH       8 / sizeof(mbedtls_mpi_uint)
-#define A(i)      N->p + (i) * WIDTH
-#define ADD(i)    add64(p, A(i), &c)
+#define A(i)        Np + (i) * WIDTH
+#define ADD(i)      add64(p, A(i), &c)
 #define NEXT        p += WIDTH; carry64(p, &c)
 #define LAST        p += WIDTH; *p = c; while (++p < end) *p = 0
+#define RESET       last_carry[0] = c; c = 0; p = Np
+#define ADD_LAST    add64(p, last_carry, &c)
 
 /*
  * Fast quasi-reduction modulo p192 (FIPS 186-3 D.2.1)
@@ -4965,21 +4971,42 @@ static inline void carry64(mbedtls_mpi_uint *dst, mbedtls_mpi_uint *carry)
 static int ecp_mod_p192(mbedtls_mpi *N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    mbedtls_mpi_uint c = 0;
-    mbedtls_mpi_uint *p, *end;
-
-    /* Make sure we have enough blocks so that A(5) is legal */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, 6 * WIDTH));
-
-    p = N->p;
-    end = p + N->n;
-
-    ADD(3); ADD(5);             NEXT;     // A0 += A3 + A5
-    ADD(3); ADD(4); ADD(5);   NEXT;       // A1 += A3 + A4 + A5
-    ADD(4); ADD(5);             LAST;     // A2 += A4 + A5
+    size_t expected_width = 2 * ((192 + biL - 1) / biL);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
+    ret = mbedtls_ecp_mod_p192_raw(N->p, expected_width);
 
 cleanup:
     return ret;
+}
+
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn)
+{
+    mbedtls_mpi_uint c = 0, last_carry[WIDTH] = { 0 };
+    mbedtls_mpi_uint *p, *end;
+
+    if (Nn != 2*((192 + biL - 1)/biL)) {
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+
+    p = Np;
+    end = p + Nn;
+
+    ADD(3); ADD(5);         NEXT;   // A0 += A3 + A5
+    ADD(3); ADD(4); ADD(5); NEXT;   // A1 += A3 + A4 + A5
+    ADD(4); ADD(5);                 // A2 += A4 + A5
+
+    RESET;
+
+    /* Use the reduction for the carry as well:
+     * 2^192 * last_carry = 2^64 * last_carry + last_carry mod P192
+     */
+    ADD_LAST; NEXT;                 // A0 += last_carry
+    ADD_LAST; NEXT;                 // A1 += last_carry
+
+    LAST;                           // A2 += carry
+
+    return 0;
 }
 
 #undef WIDTH
@@ -4987,6 +5014,8 @@ cleanup:
 #undef ADD
 #undef NEXT
 #undef LAST
+#undef RESET
+#undef ADD_LAST
 #endif /* MBEDTLS_ECP_DP_SECP192R1_ENABLED */
 
 #if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) ||   \
@@ -5232,11 +5261,6 @@ cleanup:
           MBEDTLS_ECP_DP_SECP384R1_ENABLED */
 
 #if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
-/*
- * Here we have an actual Mersenne prime, so things are more straightforward.
- * However, chunks are aligned on a 'weird' boundary (521 bits).
- */
-
 /* Size of p521 in terms of mbedtls_mpi_uint */
 #define P521_WIDTH      (521 / 8 / sizeof(mbedtls_mpi_uint) + 1)
 
@@ -5244,48 +5268,81 @@ cleanup:
 #define P521_MASK       0x01FF
 
 /*
- * Fast quasi-reduction modulo p521 (FIPS 186-3 D.2.5)
- * Write N as A1 + 2^521 A0, return A0 + A1
+ * Fast quasi-reduction modulo p521 = 2^521 - 1 (FIPS 186-3 D.2.5)
  */
 static int ecp_mod_p521(mbedtls_mpi *N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t i;
-    mbedtls_mpi M;
-    mbedtls_mpi_uint Mp[P521_WIDTH + 1];
-    /* Worst case for the size of M is when mbedtls_mpi_uint is 16 bits:
-     * we need to hold bits 513 to 1056, which is 34 limbs, that is
-     * P521_WIDTH + 1. Otherwise P521_WIDTH is enough. */
-
-    if (N->n < P521_WIDTH) {
-        return 0;
-    }
-
-    /* M = A1 */
-    M.s = 1;
-    M.n = N->n - (P521_WIDTH - 1);
-    if (M.n > P521_WIDTH + 1) {
-        M.n = P521_WIDTH + 1;
-    }
-    M.p = Mp;
-    memcpy(Mp, N->p + P521_WIDTH - 1, M.n * sizeof(mbedtls_mpi_uint));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_shift_r(&M, 521 % (8 * sizeof(mbedtls_mpi_uint))));
-
-    /* N = A0 */
-    N->p[P521_WIDTH - 1] &= P521_MASK;
-    for (i = P521_WIDTH; i < N->n; i++) {
-        N->p[i] = 0;
-    }
-
-    /* N = A0 + A1 */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_add_abs(N, N, &M));
-
+    size_t expected_width = 2 * P521_WIDTH;
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
+    ret = mbedtls_ecp_mod_p521_raw(N->p, expected_width);
 cleanup:
     return ret;
 }
 
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *X, size_t X_limbs)
+{
+    mbedtls_mpi_uint carry = 0;
+
+    if (X_limbs != 2 * P521_WIDTH || X[2 * P521_WIDTH - 1] != 0) {
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+
+    /* Step 1: Reduction to P521_WIDTH limbs */
+    /* Helper references for bottom part of X */
+    mbedtls_mpi_uint *X0 = X;
+    size_t X0_limbs = P521_WIDTH;
+    /* Helper references for top part of X */
+    mbedtls_mpi_uint *X1 = X + X0_limbs;
+    size_t X1_limbs = X_limbs - X0_limbs;
+    /* Split X as X0 + 2^P521_WIDTH X1 and compute X0 + 2^(biL - 9) X1.
+     * (We are using that 2^P521_WIDTH = 2^(512 + biL) and that
+     * 2^(512 + biL) X1 = 2^(biL - 9) X1 mod P521.)
+     * The high order limb of the result will be held in carry and the rest
+     * in X0 (that is the result will be represented as
+     * 2^P521_WIDTH carry + X0).
+     *
+     * Also, note that the resulting carry is either 0 or 1:
+     * X0 < 2^P521_WIDTH = 2^(512 + biL) and X1 < 2^(P521_WIDTH-biL) = 2^512
+     * therefore
+     * X0 + 2^(biL - 9) X1 < 2^(512 + biL) + 2^(512 + biL - 9)
+     * which in turn is less than 2 * 2^(512 + biL).
+     */
+    mbedtls_mpi_uint shift = ((mbedtls_mpi_uint) 1u) << (biL - 9);
+    carry = mbedtls_mpi_core_mla(X0, X0_limbs, X1, X1_limbs, shift);
+    /* Set X to X0 (by clearing the top part). */
+    memset(X1, 0, X1_limbs * sizeof(mbedtls_mpi_uint));
+
+    /* Step 2: Reduction modulo P521
+     *
+     * At this point X is reduced to P521_WIDTH limbs. What remains is to add
+     * the carry (that is 2^P521_WIDTH carry) and to reduce mod P521. */
+
+    /* 2^P521_WIDTH carry = 2^(512 + biL) carry = 2^(biL - 9) carry mod P521.
+     * Also, recall that carry is either 0 or 1. */
+    mbedtls_mpi_uint addend = carry << (biL - 9);
+    /* Keep the top 9 bits and reduce the rest, using 2^521 = 1 mod P521. */
+    addend += (X[P521_WIDTH - 1] >> 9);
+    X[P521_WIDTH - 1] &= P521_MASK;
+
+    /* Resuse the top part of X (already zeroed) as a helper array for
+     * carrying out the addition. */
+    mbedtls_mpi_uint *addend_arr = X + P521_WIDTH;
+    addend_arr[0] = addend;
+    (void) mbedtls_mpi_core_add(X, X, addend_arr, P521_WIDTH);
+    /* Both addends were less than P521 therefore X < 2 * P521. (This also means
+     * that the result fit in P521_WIDTH limbs and there won't be any carry.) */
+
+    /* Clear the reused part of X. */
+    addend_arr[0] = 0;
+
+    return 0;
+}
+
 #undef P521_WIDTH
 #undef P521_MASK
+
 #endif /* MBEDTLS_ECP_DP_SECP521R1_ENABLED */
 
 #endif /* MBEDTLS_ECP_NIST_OPTIM */
@@ -5547,6 +5604,188 @@ static int ecp_mod_p256k1(mbedtls_mpi *N)
 }
 #endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */
 
-#endif /* !MBEDTLS_ECP_ALT */
+#if defined(MBEDTLS_TEST_HOOKS)
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
+                              const mbedtls_ecp_group_id id,
+                              const mbedtls_ecp_curve_type ctype)
+{
+    mbedtls_mpi_uint *p = NULL;
+    size_t p_limbs;
 
+    if (!(ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE || \
+          ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_SCALAR)) {
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+
+    switch (id) {
+#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
+        case MBEDTLS_ECP_DP_SECP192R1:
+            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                p = (mbedtls_mpi_uint *) secp192r1_p;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp192r1_p));
+            } else {
+                p = (mbedtls_mpi_uint *) secp192r1_n;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp192r1_n));
+            }
+            break;
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
+        case MBEDTLS_ECP_DP_SECP224R1:
+            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                p = (mbedtls_mpi_uint *) secp224r1_p;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp224r1_p));
+            } else {
+                p = (mbedtls_mpi_uint *) secp224r1_n;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp224r1_n));
+            }
+            break;
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+        case MBEDTLS_ECP_DP_SECP256R1:
+            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                p = (mbedtls_mpi_uint *) secp256r1_p;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp256r1_p));
+            } else {
+                p = (mbedtls_mpi_uint *) secp256r1_n;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp256r1_n));
+            }
+            break;
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+        case MBEDTLS_ECP_DP_SECP384R1:
+            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                p = (mbedtls_mpi_uint *) secp384r1_p;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp384r1_p));
+            } else {
+                p = (mbedtls_mpi_uint *) secp384r1_n;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp384r1_n));
+            }
+            break;
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+        case MBEDTLS_ECP_DP_SECP521R1:
+            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                p = (mbedtls_mpi_uint *) secp521r1_p;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp521r1_p));
+            } else {
+                p = (mbedtls_mpi_uint *) secp521r1_n;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp521r1_n));
+            }
+            break;
+#endif
+
+#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
+        case MBEDTLS_ECP_DP_BP256R1:
+            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                p = (mbedtls_mpi_uint *) brainpoolP256r1_p;
+                p_limbs = CHARS_TO_LIMBS(sizeof(brainpoolP256r1_p));
+            } else {
+                p = (mbedtls_mpi_uint *) brainpoolP256r1_n;
+                p_limbs = CHARS_TO_LIMBS(sizeof(brainpoolP256r1_n));
+            }
+            break;
+#endif
+
+#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
+        case MBEDTLS_ECP_DP_BP384R1:
+            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                p = (mbedtls_mpi_uint *) brainpoolP384r1_p;
+                p_limbs = CHARS_TO_LIMBS(sizeof(brainpoolP384r1_p));
+            } else {
+                p = (mbedtls_mpi_uint *) brainpoolP384r1_n;
+                p_limbs = CHARS_TO_LIMBS(sizeof(brainpoolP384r1_n));
+            }
+            break;
+#endif
+
+#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
+        case MBEDTLS_ECP_DP_BP512R1:
+            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                p = (mbedtls_mpi_uint *) brainpoolP512r1_p;
+                p_limbs = CHARS_TO_LIMBS(sizeof(brainpoolP512r1_p));
+            } else {
+                p = (mbedtls_mpi_uint *) brainpoolP512r1_n;
+                p_limbs = CHARS_TO_LIMBS(sizeof(brainpoolP512r1_n));
+            }
+            break;
+#endif
+
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+        case MBEDTLS_ECP_DP_CURVE25519:
+            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                p = (mbedtls_mpi_uint *) curve25519_p;
+                p_limbs = CHARS_TO_LIMBS(sizeof(curve25519_p));
+            } else {
+                p = (mbedtls_mpi_uint *) curve25519_n;
+                p_limbs = CHARS_TO_LIMBS(sizeof(curve25519_n));
+            }
+            break;
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
+        case MBEDTLS_ECP_DP_SECP192K1:
+            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                p = (mbedtls_mpi_uint *) secp192k1_p;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp192k1_p));
+            } else {
+                p = (mbedtls_mpi_uint *) secp192k1_n;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp192k1_n));
+            }
+            break;
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
+        case MBEDTLS_ECP_DP_SECP224K1:
+            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                p = (mbedtls_mpi_uint *) secp224k1_p;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp224k1_p));
+            } else {
+                p = (mbedtls_mpi_uint *) secp224k1_n;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp224k1_n));
+            }
+            break;
+#endif
+
+#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
+        case MBEDTLS_ECP_DP_SECP256K1:
+            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                p = (mbedtls_mpi_uint *) secp256k1_p;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp256k1_p));
+            } else {
+                p = (mbedtls_mpi_uint *) secp256k1_n;
+                p_limbs = CHARS_TO_LIMBS(sizeof(secp256k1_n));
+            }
+            break;
+#endif
+
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+        case MBEDTLS_ECP_DP_CURVE448:
+            if (ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE) {
+                p = (mbedtls_mpi_uint *) curve448_p;
+                p_limbs = CHARS_TO_LIMBS(sizeof(curve448_p));
+            } else {
+                p = (mbedtls_mpi_uint *) curve448_n;
+                p_limbs = CHARS_TO_LIMBS(sizeof(curve448_n));
+            }
+            break;
+#endif
+
+        default:
+        case MBEDTLS_ECP_DP_NONE:
+            return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+
+    if (mbedtls_mpi_mod_modulus_setup(N, p, p_limbs,
+                                      MBEDTLS_MPI_MOD_REP_MONTGOMERY)) {
+        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    }
+    return 0;
+}
+#endif /* MBEDTLS_TEST_HOOKS */
+#endif /* !MBEDTLS_ECP_ALT */
 #endif /* MBEDTLS_ECP_C */

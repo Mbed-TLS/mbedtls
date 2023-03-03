@@ -1020,7 +1020,11 @@ read_record_header:
 
     MBEDTLS_SSL_DEBUG_BUF(4, "record contents", buf, msg_len);
 
-    ssl->handshake->update_checksum(ssl, buf, msg_len);
+    ret = ssl->handshake->update_checksum(ssl, buf, msg_len);
+    if (0 != ret) {
+        MBEDTLS_SSL_DEBUG_RET(1, ("update_checksum"), ret);
+        return ret;
+    }
 
     /*
      * Handshake layer:
@@ -4129,7 +4133,11 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl)
     /* Calculate hash and verify signature */
     {
         size_t dummy_hlen;
-        ssl->handshake->calc_verify(ssl, hash, &dummy_hlen);
+        ret = ssl->handshake->calc_verify(ssl, hash, &dummy_hlen);
+        if (0 != ret) {
+            MBEDTLS_SSL_DEBUG_RET(1, ("calc_verify"), ret);
+            return ret;
+        }
     }
 
     if ((ret = mbedtls_pk_verify(peer_pk,
@@ -4139,7 +4147,11 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl)
         return ret;
     }
 
-    mbedtls_ssl_update_handshake_status(ssl);
+    ret = mbedtls_ssl_update_handshake_status(ssl);
+    if (0 != ret) {
+        MBEDTLS_SSL_DEBUG_RET(1, ("mbedtls_ssl_update_handshake_status"), ret);
+        return ret;
+    }
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("<= parse certificate verify"));
 

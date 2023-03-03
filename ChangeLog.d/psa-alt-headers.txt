@@ -1,0 +1,4 @@
+Features
+   * The configuration macros MBEDTLS_PSA_CRYPTO_PLATFORM_FILE and
+     MBEDTLS_PSA_CRYPTO_STRUCT_FILE specify alternative locations for
+     the headers "psa/crypto_platform.h" and "psa/crypto_struct.h".

@@ -533,7 +533,8 @@
 #define MBEDTLS_SSL_HS_SERVER_HELLO             2
 #define MBEDTLS_SSL_HS_HELLO_VERIFY_REQUEST     3
 #define MBEDTLS_SSL_HS_NEW_SESSION_TICKET       4
-#define MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS     8 // NEW IN TLS 1.3
+#define MBEDTLS_SSL_HS_END_OF_EARLY_DATA        5
+#define MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS     8
 #define MBEDTLS_SSL_HS_CERTIFICATE             11
 #define MBEDTLS_SSL_HS_SERVER_KEY_EXCHANGE     12
 #define MBEDTLS_SSL_HS_CERTIFICATE_REQUEST     13
@@ -671,10 +672,12 @@ typedef enum {
     MBEDTLS_SSL_SERVER_HELLO_VERIFY_REQUEST_SENT,
     MBEDTLS_SSL_HELLO_RETRY_REQUEST,
     MBEDTLS_SSL_ENCRYPTED_EXTENSIONS,
+    MBEDTLS_SSL_END_OF_EARLY_DATA,
     MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY,
     MBEDTLS_SSL_CLIENT_CCS_AFTER_SERVER_FINISHED,
     MBEDTLS_SSL_CLIENT_CCS_BEFORE_2ND_CLIENT_HELLO,
     MBEDTLS_SSL_SERVER_CCS_AFTER_SERVER_HELLO,
+    MBEDTLS_SSL_CLIENT_CCS_AFTER_CLIENT_HELLO,
     MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REQUEST,
     MBEDTLS_SSL_HANDSHAKE_OVER,
     MBEDTLS_SSL_TLS1_3_NEW_SESSION_TICKET,
@@ -4542,7 +4545,7 @@ int mbedtls_ssl_get_max_out_record_payload(const mbedtls_ssl_context *ssl);
 /**
  * \brief          Return the current maximum incoming record payload in bytes.
  *
- * \note           The logic to determine the maximum outgoing record payload is
+ * \note           The logic to determine the maximum incoming record payload is
  *                 version-specific. It takes into account various factors, such as
  *                 the mbedtls_config.h setting \c MBEDTLS_SSL_IN_CONTENT_LEN, extensions
  *                 such as the max fragment length extension or record size limit
@@ -4554,7 +4557,7 @@ int mbedtls_ssl_get_max_out_record_payload(const mbedtls_ssl_context *ssl);
  *
  * \param ssl      SSL context
  *
- * \return         Current maximum payload for an outgoing record,
+ * \return         Current maximum payload for an incoming record,
  *                 or a negative error code.
  */
 int mbedtls_ssl_get_max_in_record_payload(const mbedtls_ssl_context *ssl);

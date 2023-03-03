@@ -147,6 +147,15 @@ typedef enum {
     MBEDTLS_ECP_TYPE_EDWARDS,              /* a x^2 + y^2 = 1 + d x^2 y^2 */
 } mbedtls_ecp_curve_type;
 
+/*
+ * Curve modulus types
+ */
+typedef enum {
+    MBEDTLS_ECP_MOD_NONE = 0,
+    MBEDTLS_ECP_MOD_COORDINATE,
+    MBEDTLS_ECP_MOD_SCALAR
+} mbedtls_ecp_modulus_type;
+
 /**
  * Curve information, for use by other modules.
  *
@@ -427,11 +436,22 @@ typedef struct mbedtls_ecp_keypair {
 }
 mbedtls_ecp_keypair;
 
-/*
- * Point formats, from RFC 4492's enum ECPointFormat
+/**
+ * The uncompressed point format for Short Weierstrass curves
+ * (MBEDTLS_ECP_DP_SECP_XXX and MBEDTLS_ECP_DP_BP_XXX).
  */
-#define MBEDTLS_ECP_PF_UNCOMPRESSED    0   /**< Uncompressed point format. */
-#define MBEDTLS_ECP_PF_COMPRESSED      1   /**< Compressed point format. */
+#define MBEDTLS_ECP_PF_UNCOMPRESSED    0
+/**
+ * The compressed point format for Short Weierstrass curves
+ * (MBEDTLS_ECP_DP_SECP_XXX and MBEDTLS_ECP_DP_BP_XXX).
+ *
+ * \warning     While this format is supported for all concerned curves for
+ *              writing, when it comes to parsing, it is not supported for all
+ *              curves. Specifically, parsing compressed points on
+ *              MBEDTLS_ECP_DP_SECP224R1 and MBEDTLS_ECP_DP_SECP224K1 is not
+ *              supported.
+ */
+#define MBEDTLS_ECP_PF_COMPRESSED      1
 
 /*
  * Some other constants from RFC 4492
@@ -468,6 +488,12 @@ mbedtls_ecp_keypair;
  *                  that context. For function in the SSL module, restart is
  *                  only enabled for specific sides and key exchanges
  *                  (currently only for clients and ECDHE-ECDSA).
+ *
+ * \warning         Using the PSA interruptible interfaces with keys in local
+ *                  storage and no accelerator driver will also call this
+ *                  function to set the values specified via those interfaces,
+ *                  overwriting values previously set. Care should be taken if
+ *                  mixing these two interfaces.
  *
  * \param max_ops   Maximum number of basic operations done in a row.
  *                  Default: 0 (unlimited).
@@ -835,6 +861,9 @@ int mbedtls_ecp_point_write_binary(const mbedtls_ecp_group *grp,
  * \note            This function does not check that the point actually
  *                  belongs to the given group, see mbedtls_ecp_check_pubkey()
  *                  for that.
+ *
+ * \note            For compressed points, see #MBEDTLS_ECP_PF_COMPRESSED for
+ *                  limitations.
  *
  * \param grp       The group to which the point should belong.
  *                  This must be initialized and have group parameters

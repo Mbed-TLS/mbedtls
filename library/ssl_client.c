@@ -945,25 +945,49 @@ int mbedtls_ssl_write_client_hello(mbedtls_ssl_context *ssl)
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_SSL_PROTO_DTLS */
     {
 
-        mbedtls_ssl_add_hs_hdr_to_checksum(ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
-                                           msg_len);
-        ssl->handshake->update_checksum(ssl, buf, msg_len - binders_len);
+        ret = mbedtls_ssl_add_hs_hdr_to_checksum(ssl,
+                                                 MBEDTLS_SSL_HS_CLIENT_HELLO,
+                                                 msg_len);
+        if (ret != 0) {
+            MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_add_hs_hdr_to_checksum", ret);
+            return ret;
+        }
+        ret = ssl->handshake->update_checksum(ssl, buf, msg_len - binders_len);
+        if (ret != 0) {
+            MBEDTLS_SSL_DEBUG_RET(1, "update_checksum", ret);
+            return ret;
+        }
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
         if (binders_len > 0) {
             MBEDTLS_SSL_PROC_CHK(
                 mbedtls_ssl_tls13_write_binders_of_pre_shared_key_ext(
                     ssl, buf + msg_len - binders_len, buf + msg_len));
-            ssl->handshake->update_checksum(ssl, buf + msg_len - binders_len,
-                                            binders_len);
+            ret = ssl->handshake->update_checksum(ssl, buf + msg_len - binders_len,
+                                                  binders_len);
+            if (ret != 0) {
+                MBEDTLS_SSL_DEBUG_RET(1, "update_checksum", ret);
+                return ret;
+            }
         }
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED */
 
         MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_finish_handshake_msg(ssl,
                                                               buf_len,
                                                               msg_len));
-        mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_SERVER_HELLO);
-    }
 
+        /*
+         * Set next state. Note that if TLS 1.3 is proposed, this may be
+         * overwritten by mbedtls_ssl_tls13_finalize_client_hello().
+         */
+        mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_SERVER_HELLO);
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+        if (ssl->handshake->min_tls_version <=  MBEDTLS_SSL_VERSION_TLS1_3 &&
+            MBEDTLS_SSL_VERSION_TLS1_3 <= ssl->tls_version) {
+            ret = mbedtls_ssl_tls13_finalize_client_hello(ssl);
+        }
+#endif
+    }
 
 cleanup:
 

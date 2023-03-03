@@ -32,6 +32,18 @@ string(REGEX REPLACE "[^;]*/" ""
 execute_process(
     COMMAND
         ${MBEDTLS_PYTHON_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/../tests/scripts/generate_ecp_tests.py
+        --list-for-cmake
+    WORKING_DIRECTORY
+        ${CMAKE_CURRENT_SOURCE_DIR}/..
+    OUTPUT_VARIABLE
+        base_ecp_generated_data_files)
+string(REGEX REPLACE "[^;]*/" ""
+       base_ecp_generated_data_files "${base_ecp_generated_data_files}")
+
+execute_process(
+    COMMAND
+        ${MBEDTLS_PYTHON_EXECUTABLE}
         ${CMAKE_CURRENT_SOURCE_DIR}/../tests/scripts/generate_psa_tests.py
         --list-for-cmake
     WORKING_DIRECTORY
@@ -44,13 +56,17 @@ string(REGEX REPLACE "[^;]*/" ""
 # Derive generated file paths in the build directory. The generated data
 # files go into the suites/ subdirectory.
 set(base_generated_data_files
-    ${base_bignum_generated_data_files} ${base_psa_generated_data_files})
+    ${base_bignum_generated_data_files} ${base_ecp_generated_data_files} ${base_psa_generated_data_files})
 string(REGEX REPLACE "([^;]+)" "suites/\\1"
        all_generated_data_files "${base_generated_data_files}")
 set(bignum_generated_data_files "")
+set(ecp_generated_data_files "")
 set(psa_generated_data_files "")
 foreach(file ${base_bignum_generated_data_files})
     list(APPEND bignum_generated_data_files ${CMAKE_CURRENT_BINARY_DIR}/suites/${file})
+endforeach()
+foreach(file ${base_ecp_generated_data_files})
+    list(APPEND ecp_generated_data_files ${CMAKE_CURRENT_BINARY_DIR}/suites/${file})
 endforeach()
 foreach(file ${base_psa_generated_data_files})
     list(APPEND psa_generated_data_files ${CMAKE_CURRENT_BINARY_DIR}/suites/${file})
@@ -72,6 +88,22 @@ if(GEN_FILES)
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/bignum_core.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/bignum_mod_raw.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/bignum_mod.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/test_case.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/test_data_generation.py
+    )
+    add_custom_command(
+        OUTPUT
+            ${ecp_generated_data_files}
+        WORKING_DIRECTORY
+            ${CMAKE_CURRENT_SOURCE_DIR}/..
+        COMMAND
+            ${MBEDTLS_PYTHON_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/../tests/scripts/generate_ecp_tests.py
+            --directory ${CMAKE_CURRENT_BINARY_DIR}/suites
+        DEPENDS
+            ${CMAKE_CURRENT_SOURCE_DIR}/../tests/scripts/generate_ecp_tests.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/bignum_common.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/ecp.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/test_case.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/test_data_generation.py
     )
@@ -107,6 +139,7 @@ endif()
 # With this line, only 4 sub-makefiles include the above command, that reduces
 # the risk of a race.
 add_custom_target(test_suite_bignum_generated_data DEPENDS ${bignum_generated_data_files})
+add_custom_target(test_suite_ecp_generated_data DEPENDS ${ecp_generated_data_files})
 add_custom_target(test_suite_psa_generated_data DEPENDS ${psa_generated_data_files})
 # If SKIP_TEST_SUITES is not defined with -D, get it from the environment.
 if((NOT DEFINED SKIP_TEST_SUITES) AND (DEFINED ENV{SKIP_TEST_SUITES}))
@@ -129,6 +162,7 @@ function(add_test_suite suite_name)
     # Get the test names of the tests with generated .data files
     # from the generated_data_files list in parent scope.
     set(bignum_generated_data_names "")
+    set(ecp_generated_data_names "")
     set(psa_generated_data_names "")
     foreach(generated_data_file ${bignum_generated_data_files})
         # Get the plain filename
@@ -138,6 +172,15 @@ function(add_test_suite suite_name)
         # Remove leading "test_suite_"
         string(SUBSTRING ${generated_data_name} 11 -1 generated_data_name)
         list(APPEND bignum_generated_data_names ${generated_data_name})
+    endforeach()
+    foreach(generated_data_file ${ecp_generated_data_files})
+        # Get the plain filename
+        get_filename_component(generated_data_name ${generated_data_file} NAME)
+        # Remove the ".data" extension
+        get_name_without_last_ext(generated_data_name ${generated_data_name})
+        # Remove leading "test_suite_"
+        string(SUBSTRING ${generated_data_name} 11 -1 generated_data_name)
+        list(APPEND ecp_generated_data_names ${generated_data_name})
     endforeach()
     foreach(generated_data_file ${psa_generated_data_files})
         # Get the plain filename
@@ -153,6 +196,10 @@ function(add_test_suite suite_name)
         set(data_file
             ${CMAKE_CURRENT_BINARY_DIR}/suites/test_suite_${data_name}.data)
         set(dependency test_suite_bignum_generated_data)
+    elseif(";${ecp_generated_data_names};" MATCHES ";${data_name};")
+        set(data_file
+            ${CMAKE_CURRENT_BINARY_DIR}/suites/test_suite_${data_name}.data)
+        set(dependency test_suite_ecp_generated_data)
     elseif(";${psa_generated_data_names};" MATCHES ";${data_name};")
         set(data_file
             ${CMAKE_CURRENT_BINARY_DIR}/suites/test_suite_${data_name}.data)
@@ -160,7 +207,7 @@ function(add_test_suite suite_name)
     else()
         set(data_file
             ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${data_name}.data)
-        set(dependency test_suite_bignum_generated_data test_suite_psa_generated_data)
+        set(dependency test_suite_bignum_generated_data test_suite_ecp_generated_data test_suite_psa_generated_data)
     endif()
 
     add_custom_command(

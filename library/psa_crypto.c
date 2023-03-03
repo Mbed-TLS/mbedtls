@@ -81,6 +81,7 @@
 #include "mbedtls/sha1.h"
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
+#include "hash_info.h"
 
 #define ARRAY_LENGTH(array) (sizeof(array) / sizeof(*(array)))
 
@@ -310,12 +311,53 @@ psa_status_t mbedtls_to_psa_error(int ret)
         case MBEDTLS_ERR_ECP_RANDOM_FAILED:
             return PSA_ERROR_INSUFFICIENT_ENTROPY;
 
+        case MBEDTLS_ERR_ECP_IN_PROGRESS:
+            return PSA_OPERATION_INCOMPLETE;
+
         case MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED:
             return PSA_ERROR_CORRUPTION_DETECTED;
 
         default:
             return PSA_ERROR_GENERIC_ERROR;
     }
+}
+
+/**
+ * \brief                       For output buffers which contain "tags"
+ *                              (outputs that may be checked for validity like
+ *                              hashes, MACs and signatures), fill the unused
+ *                              part of the output buffer (the whole buffer on
+ *                              error, the trailing part on success) with
+ *                              something that isn't a valid tag (barring an
+ *                              attack on the tag and deliberately-crafted
+ *                              input), in case the caller doesn't check the
+ *                              return status properly.
+ *
+ * \param output_buffer         Pointer to buffer to wipe. May not be NULL
+ *                              unless \p output_buffer_size is zero.
+ * \param status                Status of function called to generate
+ *                              output_buffer originally
+ * \param output_buffer_size    Size of output buffer. If zero, \p output_buffer
+ *                              could be NULL.
+ * \param output_buffer_length  Length of data written to output_buffer, must be
+ *                              less than \p output_buffer_size
+ */
+static void psa_wipe_tag_output_buffer(uint8_t *output_buffer, psa_status_t status,
+                                       size_t output_buffer_size, size_t output_buffer_length)
+{
+    size_t offset = 0;
+
+    if (output_buffer_size == 0) {
+        /* If output_buffer_size is 0 then we have nothing to do. We must not
+           call memset because output_buffer may be NULL in this case */
+        return;
+    }
+
+    if (status == PSA_SUCCESS) {
+        offset = output_buffer_length;
+    }
+
+    memset(output_buffer + offset, '!', output_buffer_size - offset);
 }
 
 
@@ -1673,12 +1715,12 @@ static psa_status_t psa_start_key_creation(
  *
  * \retval #PSA_SUCCESS
  *         The key was successfully created.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
- * \retval #PSA_ERROR_ALREADY_EXISTS
- * \retval #PSA_ERROR_DATA_INVALID
- * \retval #PSA_ERROR_DATA_CORRUPT
- * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE \emptydescription
+ * \retval #PSA_ERROR_ALREADY_EXISTS \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
  *
  * \return If this function fails, the key slot is an invalid state.
  *         You must call psa_fail_key_creation() to wipe and free the slot.
@@ -2500,10 +2542,7 @@ exit:
         operation->mac_size = 0;
     }
 
-    if (mac_size > operation->mac_size) {
-        memset(&mac[operation->mac_size], '!',
-               mac_size - operation->mac_size);
-    }
+    psa_wipe_tag_output_buffer(mac, status, mac_size, *mac_length);
 
     abort_status = psa_mac_abort(operation);
 
@@ -2597,9 +2636,8 @@ exit:
         *mac_length = mac_size;
         operation_mac_size = 0;
     }
-    if (mac_size > operation_mac_size) {
-        memset(&mac[operation_mac_size], '!', mac_size - operation_mac_size);
-    }
+
+    psa_wipe_tag_output_buffer(mac, status, mac_size, *mac_length);
 
     unlock_status = psa_unlock_key_slot(slot);
 
@@ -2741,18 +2779,8 @@ static psa_status_t psa_sign_internal(mbedtls_svc_key_id_t key,
 
 
 exit:
-    /* Fill the unused part of the output buffer (the whole buffer on error,
-     * the trailing part on success) with something that isn't a valid signature
-     * (barring an attack on the signature and deliberately-crafted input),
-     * in case the caller doesn't check the return status properly. */
-    if (status == PSA_SUCCESS) {
-        memset(signature + *signature_length, '!',
-               signature_size - *signature_length);
-    } else {
-        memset(signature, '!', signature_size);
-    }
-    /* If signature_size is 0 then we have nothing to do. We must not call
-     * memset because signature may be NULL in this case. */
+    psa_wipe_tag_output_buffer(signature, status, signature_size,
+                               *signature_length);
 
     unlock_status = psa_unlock_key_slot(slot);
 
@@ -3124,7 +3152,756 @@ exit:
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
 
+/****************************************************************/
+/* Asymmetric interruptible cryptography                        */
+/****************************************************************/
 
+static uint32_t psa_interruptible_max_ops = PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED;
+
+void psa_interruptible_set_max_ops(uint32_t max_ops)
+{
+    psa_interruptible_max_ops = max_ops;
+}
+
+uint32_t psa_interruptible_get_max_ops(void)
+{
+    return psa_interruptible_max_ops;
+}
+
+uint32_t psa_sign_hash_get_num_ops(
+    const psa_sign_hash_interruptible_operation_t *operation)
+{
+    return operation->num_ops;
+}
+
+uint32_t psa_verify_hash_get_num_ops(
+    const psa_verify_hash_interruptible_operation_t *operation)
+{
+    return operation->num_ops;
+}
+
+static psa_status_t psa_sign_hash_abort_internal(
+    psa_sign_hash_interruptible_operation_t *operation)
+{
+    if (operation->id == 0) {
+        /* The object has (apparently) been initialized but it is not (yet)
+         * in use. It's ok to call abort on such an object, and there's
+         * nothing to do. */
+        return PSA_SUCCESS;
+    }
+
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    status = psa_driver_wrapper_sign_hash_abort(operation);
+
+    operation->id = 0;
+
+    /* Do not clear either the error_occurred or num_ops elements here as they
+     * only want to be cleared by the application calling abort, not by abort
+     * being called at completion of an operation. */
+
+    return status;
+}
+
+psa_status_t psa_sign_hash_start(
+    psa_sign_hash_interruptible_operation_t *operation,
+    mbedtls_svc_key_id_t key, psa_algorithm_t alg,
+    const uint8_t *hash, size_t hash_length)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_slot_t *slot;
+
+    /* Check that start has not been previously called, or operation has not
+     * previously errored. */
+    if (operation->id != 0 || operation->error_occurred) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    status = psa_sign_verify_check_alg(0, alg);
+    if (status != PSA_SUCCESS) {
+        operation->error_occurred = 1;
+        return status;
+    }
+
+    status = psa_get_and_lock_key_slot_with_policy(key, &slot,
+                                                   PSA_KEY_USAGE_SIGN_HASH,
+                                                   alg);
+
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+
+    if (!PSA_KEY_TYPE_IS_KEY_PAIR(slot->attr.type)) {
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto exit;
+    }
+
+    psa_key_attributes_t attributes = {
+        .core = slot->attr
+    };
+
+    /* Ensure ops count gets reset, in case of operation re-use. */
+    operation->num_ops = 0;
+
+    status = psa_driver_wrapper_sign_hash_start(operation, &attributes,
+                                                slot->key.data,
+                                                slot->key.bytes, alg,
+                                                hash, hash_length);
+exit:
+
+    if (status != PSA_SUCCESS) {
+        operation->error_occurred = 1;
+        psa_sign_hash_abort_internal(operation);
+    }
+
+    unlock_status = psa_unlock_key_slot(slot);
+
+    if (unlock_status != PSA_SUCCESS) {
+        operation->error_occurred = 1;
+    }
+
+    return (status == PSA_SUCCESS) ? unlock_status : status;
+}
+
+
+psa_status_t psa_sign_hash_complete(
+    psa_sign_hash_interruptible_operation_t *operation,
+    uint8_t *signature, size_t signature_size,
+    size_t *signature_length)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    *signature_length = 0;
+
+    /* Check that start has been called first, and that operation has not
+     * previously errored. */
+    if (operation->id == 0 || operation->error_occurred) {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
+    /* Immediately reject a zero-length signature buffer. This guarantees that
+     * signature must be a valid pointer. */
+    if (signature_size == 0) {
+        status = PSA_ERROR_BUFFER_TOO_SMALL;
+        goto exit;
+    }
+
+    status = psa_driver_wrapper_sign_hash_complete(operation, signature,
+                                                   signature_size,
+                                                   signature_length);
+
+    /* Update ops count with work done. */
+    operation->num_ops = psa_driver_wrapper_sign_hash_get_num_ops(operation);
+
+exit:
+
+    psa_wipe_tag_output_buffer(signature, status, signature_size,
+                               *signature_length);
+
+    if (status != PSA_OPERATION_INCOMPLETE) {
+        if (status != PSA_SUCCESS) {
+            operation->error_occurred = 1;
+        }
+
+        psa_sign_hash_abort_internal(operation);
+    }
+
+    return status;
+}
+
+psa_status_t psa_sign_hash_abort(
+    psa_sign_hash_interruptible_operation_t *operation)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    status = psa_sign_hash_abort_internal(operation);
+
+    /* We clear the number of ops done here, so that it is not cleared when
+     * the operation fails or succeeds, only on manual abort. */
+    operation->num_ops = 0;
+
+    /* Likewise, failure state. */
+    operation->error_occurred = 0;
+
+    return status;
+}
+
+static psa_status_t psa_verify_hash_abort_internal(
+    psa_verify_hash_interruptible_operation_t *operation)
+{
+    if (operation->id == 0) {
+        /* The object has (apparently) been initialized but it is not (yet)
+         * in use. It's ok to call abort on such an object, and there's
+         * nothing to do. */
+        return PSA_SUCCESS;
+    }
+
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    status = psa_driver_wrapper_verify_hash_abort(operation);
+
+    operation->id = 0;
+
+    /* Do not clear either the error_occurred or num_ops elements here as they
+     * only want to be cleared by the application calling abort, not by abort
+     * being called at completion of an operation. */
+
+    return status;
+}
+
+psa_status_t psa_verify_hash_start(
+    psa_verify_hash_interruptible_operation_t *operation,
+    mbedtls_svc_key_id_t key, psa_algorithm_t alg,
+    const uint8_t *hash, size_t hash_length,
+    const uint8_t *signature, size_t signature_length)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_slot_t *slot;
+
+    /* Check that start has not been previously called, or operation has not
+     * previously errored. */
+    if (operation->id != 0 || operation->error_occurred) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    status = psa_sign_verify_check_alg(0, alg);
+    if (status != PSA_SUCCESS) {
+        operation->error_occurred = 1;
+        return status;
+    }
+
+    status = psa_get_and_lock_key_slot_with_policy(key, &slot,
+                                                   PSA_KEY_USAGE_VERIFY_HASH,
+                                                   alg);
+
+    if (status != PSA_SUCCESS) {
+        operation->error_occurred = 1;
+        return status;
+    }
+
+    psa_key_attributes_t attributes = {
+        .core = slot->attr
+    };
+
+    /* Ensure ops count gets reset, in case of operation re-use. */
+    operation->num_ops = 0;
+
+    status = psa_driver_wrapper_verify_hash_start(operation, &attributes,
+                                                  slot->key.data,
+                                                  slot->key.bytes,
+                                                  alg, hash, hash_length,
+                                                  signature, signature_length);
+
+    if (status != PSA_SUCCESS) {
+        operation->error_occurred = 1;
+        psa_verify_hash_abort_internal(operation);
+    }
+
+    unlock_status = psa_unlock_key_slot(slot);
+
+    if (unlock_status != PSA_SUCCESS) {
+        operation->error_occurred = 1;
+    }
+
+    return (status == PSA_SUCCESS) ? unlock_status : status;
+}
+
+psa_status_t psa_verify_hash_complete(
+    psa_verify_hash_interruptible_operation_t *operation)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    /* Check that start has been called first, and that operation has not
+     * previously errored. */
+    if (operation->id == 0 || operation->error_occurred) {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
+    status = psa_driver_wrapper_verify_hash_complete(operation);
+
+    /* Update ops count with work done. */
+    operation->num_ops = psa_driver_wrapper_verify_hash_get_num_ops(
+        operation);
+
+exit:
+
+    if (status != PSA_OPERATION_INCOMPLETE) {
+        if (status != PSA_SUCCESS) {
+            operation->error_occurred = 1;
+        }
+
+        psa_verify_hash_abort_internal(operation);
+    }
+
+    return status;
+}
+
+psa_status_t psa_verify_hash_abort(
+    psa_verify_hash_interruptible_operation_t *operation)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    status = psa_verify_hash_abort_internal(operation);
+
+    /* We clear the number of ops done here, so that it is not cleared when
+     * the operation fails or succeeds, only on manual abort. */
+    operation->num_ops = 0;
+
+    /* Likewise, failure state. */
+    operation->error_occurred = 0;
+
+    return status;
+}
+
+/****************************************************************/
+/* Asymmetric interruptible cryptography internal               */
+/* implementations                                              */
+/****************************************************************/
+
+void mbedtls_psa_interruptible_set_max_ops(uint32_t max_ops)
+{
+
+#if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
+    defined(MBEDTLS_ECP_RESTARTABLE)
+
+    /* Internal implementation uses zero to indicate infinite number max ops,
+     * therefore avoid this value, and set to minimum possible. */
+    if (max_ops == 0) {
+        max_ops = 1;
+    }
+
+    mbedtls_ecp_set_max_ops(max_ops);
+#else
+    (void) max_ops;
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) &&
+        * defined( MBEDTLS_ECP_RESTARTABLE ) */
+}
+
+uint32_t mbedtls_psa_sign_hash_get_num_ops(
+    const mbedtls_psa_sign_hash_interruptible_operation_t *operation)
+{
+#if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
+    defined(MBEDTLS_ECP_RESTARTABLE)
+
+    return operation->num_ops;
+#else
+    (void) operation;
+    return 0;
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) &&
+        * defined( MBEDTLS_ECP_RESTARTABLE ) */
+}
+
+uint32_t mbedtls_psa_verify_hash_get_num_ops(
+    const mbedtls_psa_verify_hash_interruptible_operation_t *operation)
+{
+    #if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
+    defined(MBEDTLS_ECP_RESTARTABLE)
+
+    return operation->num_ops;
+#else
+    (void) operation;
+    return 0;
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) &&
+        * defined( MBEDTLS_ECP_RESTARTABLE ) */
+}
+
+psa_status_t mbedtls_psa_sign_hash_start(
+    mbedtls_psa_sign_hash_interruptible_operation_t *operation,
+    const psa_key_attributes_t *attributes, const uint8_t *key_buffer,
+    size_t key_buffer_size, psa_algorithm_t alg,
+    const uint8_t *hash, size_t hash_length)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    size_t required_hash_length;
+
+    if (!PSA_KEY_TYPE_IS_ECC(attributes->core.type)) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    if (!PSA_ALG_IS_ECDSA(alg)) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+#if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
+    defined(MBEDTLS_ECP_RESTARTABLE)
+
+    mbedtls_ecdsa_restart_init(&operation->restart_ctx);
+
+    /* Ensure num_ops is zero'ed in case of context re-use. */
+    operation->num_ops = 0;
+
+    status = mbedtls_psa_ecp_load_representation(attributes->core.type,
+                                                 attributes->core.bits,
+                                                 key_buffer,
+                                                 key_buffer_size,
+                                                 &operation->ctx);
+
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
+
+    operation->coordinate_bytes = PSA_BITS_TO_BYTES(
+        operation->ctx->grp.nbits);
+
+    psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH(alg);
+    operation->md_alg = mbedtls_hash_info_md_from_psa(hash_alg);
+    operation->alg = alg;
+
+    /* We only need to store the same length of hash as the private key size
+     * here, it would be truncated by the internal implementation anyway. */
+    required_hash_length = (hash_length < operation->coordinate_bytes ?
+                            hash_length : operation->coordinate_bytes);
+
+    if (required_hash_length > sizeof(operation->hash)) {
+        /* Shouldn't happen, but better safe than sorry. */
+        return PSA_ERROR_CORRUPTION_DETECTED;
+    }
+
+    memcpy(operation->hash, hash, required_hash_length);
+    operation->hash_length = required_hash_length;
+
+    return PSA_SUCCESS;
+
+#else
+    (void) operation;
+    (void) key_buffer;
+    (void) key_buffer_size;
+    (void) alg;
+    (void) hash;
+    (void) hash_length;
+    (void) status;
+    (void) required_hash_length;
+
+    return PSA_ERROR_NOT_SUPPORTED;
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) &&
+        * defined( MBEDTLS_ECP_RESTARTABLE ) */
+}
+
+psa_status_t mbedtls_psa_sign_hash_complete(
+    mbedtls_psa_sign_hash_interruptible_operation_t *operation,
+    uint8_t *signature, size_t signature_size,
+    size_t *signature_length)
+{
+#if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
+    defined(MBEDTLS_ECP_RESTARTABLE)
+
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    mbedtls_mpi r;
+    mbedtls_mpi s;
+
+    mbedtls_mpi_init(&r);
+    mbedtls_mpi_init(&s);
+
+    /* Ensure max_ops is set to the current value (or default). */
+    mbedtls_psa_interruptible_set_max_ops(psa_interruptible_get_max_ops());
+
+    if (signature_size < 2 * operation->coordinate_bytes) {
+        status = PSA_ERROR_BUFFER_TOO_SMALL;
+        goto exit;
+    }
+
+    if (PSA_ALG_ECDSA_IS_DETERMINISTIC(operation->alg)) {
+
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
+        status = mbedtls_to_psa_error(
+            mbedtls_ecdsa_sign_det_restartable(&operation->ctx->grp,
+                                               &r,
+                                               &s,
+                                               &operation->ctx->d,
+                                               operation->hash,
+                                               operation->hash_length,
+                                               operation->md_alg,
+                                               mbedtls_psa_get_random,
+                                               MBEDTLS_PSA_RANDOM_STATE,
+                                               &operation->restart_ctx));
+#else /* defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
+        status = PSA_ERROR_NOT_SUPPORTED;
+        goto exit;
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
+    } else {
+        status = mbedtls_to_psa_error(
+            mbedtls_ecdsa_sign_restartable(&operation->ctx->grp,
+                                           &r,
+                                           &s,
+                                           &operation->ctx->d,
+                                           operation->hash,
+                                           operation->hash_length,
+                                           mbedtls_psa_get_random,
+                                           MBEDTLS_PSA_RANDOM_STATE,
+                                           mbedtls_psa_get_random,
+                                           MBEDTLS_PSA_RANDOM_STATE,
+                                           &operation->restart_ctx));
+    }
+
+    /* Hide the fact that the restart context only holds a delta of number of
+     * ops done during the last operation, not an absolute value. */
+    operation->num_ops += operation->restart_ctx.ecp.ops_done;
+
+    if (status == PSA_SUCCESS) {
+        status =  mbedtls_to_psa_error(
+            mbedtls_mpi_write_binary(&r,
+                                     signature,
+                                     operation->coordinate_bytes)
+            );
+
+        if (status != PSA_SUCCESS) {
+            goto exit;
+        }
+
+        status =  mbedtls_to_psa_error(
+            mbedtls_mpi_write_binary(&s,
+                                     signature +
+                                     operation->coordinate_bytes,
+                                     operation->coordinate_bytes)
+            );
+
+        if (status != PSA_SUCCESS) {
+            goto exit;
+        }
+
+        *signature_length = operation->coordinate_bytes * 2;
+
+        status = PSA_SUCCESS;
+    }
+
+exit:
+
+    mbedtls_mpi_free(&r);
+    mbedtls_mpi_free(&s);
+    return status;
+
+ #else
+
+    (void) operation;
+    (void) signature;
+    (void) signature_size;
+    (void) signature_length;
+
+    return PSA_ERROR_NOT_SUPPORTED;
+
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) &&
+        * defined( MBEDTLS_ECP_RESTARTABLE ) */
+}
+
+psa_status_t mbedtls_psa_sign_hash_abort(
+    mbedtls_psa_sign_hash_interruptible_operation_t *operation)
+{
+
+#if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
+    defined(MBEDTLS_ECP_RESTARTABLE)
+
+    if (operation->ctx) {
+        mbedtls_ecdsa_free(operation->ctx);
+        mbedtls_free(operation->ctx);
+        operation->ctx = NULL;
+    }
+
+    mbedtls_ecdsa_restart_free(&operation->restart_ctx);
+
+    operation->num_ops = 0;
+
+    return PSA_SUCCESS;
+
+#else
+
+    (void) operation;
+
+    return PSA_ERROR_NOT_SUPPORTED;
+
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) &&
+        * defined( MBEDTLS_ECP_RESTARTABLE ) */
+}
+
+psa_status_t mbedtls_psa_verify_hash_start(
+    mbedtls_psa_verify_hash_interruptible_operation_t *operation,
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg,
+    const uint8_t *hash, size_t hash_length,
+    const uint8_t *signature, size_t signature_length)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    size_t coordinate_bytes = 0;
+    size_t required_hash_length = 0;
+
+    if (!PSA_KEY_TYPE_IS_ECC(attributes->core.type)) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    if (!PSA_ALG_IS_ECDSA(alg)) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+#if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
+    defined(MBEDTLS_ECP_RESTARTABLE)
+
+    mbedtls_ecdsa_restart_init(&operation->restart_ctx);
+    mbedtls_mpi_init(&operation->r);
+    mbedtls_mpi_init(&operation->s);
+
+    /* Ensure num_ops is zero'ed in case of context re-use. */
+    operation->num_ops = 0;
+
+    status = mbedtls_psa_ecp_load_representation(attributes->core.type,
+                                                 attributes->core.bits,
+                                                 key_buffer,
+                                                 key_buffer_size,
+                                                 &operation->ctx);
+
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
+
+    coordinate_bytes = PSA_BITS_TO_BYTES(operation->ctx->grp.nbits);
+
+    if (signature_length != 2 * coordinate_bytes) {
+        return PSA_ERROR_INVALID_SIGNATURE;
+    }
+
+    status = mbedtls_to_psa_error(
+        mbedtls_mpi_read_binary(&operation->r,
+                                signature,
+                                coordinate_bytes));
+
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
+
+    status = mbedtls_to_psa_error(
+        mbedtls_mpi_read_binary(&operation->s,
+                                signature +
+                                coordinate_bytes,
+                                coordinate_bytes));
+
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
+
+    status = mbedtls_psa_ecp_load_public_part(operation->ctx);
+
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
+
+    /* We only need to store the same length of hash as the private key size
+     * here, it would be truncated by the internal implementation anyway. */
+    required_hash_length = (hash_length < coordinate_bytes ? hash_length :
+                            coordinate_bytes);
+
+    if (required_hash_length > sizeof(operation->hash)) {
+        /* Shouldn't happen, but better safe than sorry. */
+        return PSA_ERROR_CORRUPTION_DETECTED;
+    }
+
+    memcpy(operation->hash, hash, required_hash_length);
+    operation->hash_length = required_hash_length;
+
+    return PSA_SUCCESS;
+#else
+    (void) operation;
+    (void) key_buffer;
+    (void) key_buffer_size;
+    (void) alg;
+    (void) hash;
+    (void) hash_length;
+    (void) signature;
+    (void) signature_length;
+    (void) status;
+    (void) coordinate_bytes;
+    (void) required_hash_length;
+
+    return PSA_ERROR_NOT_SUPPORTED;
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) &&
+        * defined( MBEDTLS_ECP_RESTARTABLE ) */
+}
+
+psa_status_t mbedtls_psa_verify_hash_complete(
+    mbedtls_psa_verify_hash_interruptible_operation_t *operation)
+{
+
+#if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
+    defined(MBEDTLS_ECP_RESTARTABLE)
+
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    /* Ensure max_ops is set to the current value (or default). */
+    mbedtls_psa_interruptible_set_max_ops(psa_interruptible_get_max_ops());
+
+    status = mbedtls_to_psa_error(
+        mbedtls_ecdsa_verify_restartable(&operation->ctx->grp,
+                                         operation->hash,
+                                         operation->hash_length,
+                                         &operation->ctx->Q,
+                                         &operation->r,
+                                         &operation->s,
+                                         &operation->restart_ctx));
+
+    /* Hide the fact that the restart context only holds a delta of number of
+     * ops done during the last operation, not an absolute value. */
+    operation->num_ops += operation->restart_ctx.ecp.ops_done;
+
+    return status;
+#else
+    (void) operation;
+
+    return PSA_ERROR_NOT_SUPPORTED;
+
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) &&
+        * defined( MBEDTLS_ECP_RESTARTABLE ) */
+}
+
+psa_status_t mbedtls_psa_verify_hash_abort(
+    mbedtls_psa_verify_hash_interruptible_operation_t *operation)
+{
+
+#if (defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)) && \
+    defined(MBEDTLS_ECP_RESTARTABLE)
+
+    if (operation->ctx) {
+        mbedtls_ecdsa_free(operation->ctx);
+        mbedtls_free(operation->ctx);
+        operation->ctx = NULL;
+    }
+
+    mbedtls_ecdsa_restart_free(&operation->restart_ctx);
+
+    operation->num_ops = 0;
+
+    mbedtls_mpi_free(&operation->r);
+    mbedtls_mpi_free(&operation->s);
+
+    return PSA_SUCCESS;
+
+#else
+    (void) operation;
+
+    return PSA_ERROR_NOT_SUPPORTED;
+
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) &&
+        * defined( MBEDTLS_ECP_RESTARTABLE ) */
+}
 
 /****************************************************************/
 /* Symmetric cryptography */
@@ -4126,18 +4903,14 @@ psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
                                             tag, tag_size, tag_length);
 
 exit:
+
+
     /* In case the operation fails and the user fails to check for failure or
      * the zero tag size, make sure the tag is set to something implausible.
      * Even if the operation succeeds, make sure we clear the rest of the
      * buffer to prevent potential leakage of anything previously placed in
      * the same buffer.*/
-    if (tag != NULL) {
-        if (status != PSA_SUCCESS) {
-            memset(tag, '!', tag_size);
-        } else if (*tag_length < tag_size) {
-            memset(tag + *tag_length, '!', (tag_size - *tag_length));
-        }
-    }
+    psa_wipe_tag_output_buffer(tag, status, tag_size, *tag_length);
 
     psa_aead_abort(operation);
 

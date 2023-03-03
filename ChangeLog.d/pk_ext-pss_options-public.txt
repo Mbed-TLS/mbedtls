@@ -1,0 +1,4 @@
+Bugfix
+   * Make the fields of mbedtls_pk_rsassa_pss_options public. This makes it
+     possible to verify RSA PSS signatures with the pk module, which was
+     inadvertently broken since Mbed TLS 3.0.

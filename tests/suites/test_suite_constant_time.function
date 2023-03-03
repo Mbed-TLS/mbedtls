@@ -18,7 +18,7 @@
 /* BEGIN_CASE */
 void mbedtls_ct_memcmp_null()
 {
-    uint32_t x;
+    uint32_t x = 0;
     TEST_ASSERT(mbedtls_ct_memcmp(&x, NULL, 0) == 0);
     TEST_ASSERT(mbedtls_ct_memcmp(NULL, &x, 0) == 0);
     TEST_ASSERT(mbedtls_ct_memcmp(NULL, NULL, 0) == 0);

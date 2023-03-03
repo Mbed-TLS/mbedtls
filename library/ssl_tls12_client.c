@@ -1090,6 +1090,7 @@ static int ssl_parse_use_srtp_ext(mbedtls_ssl_context *ssl,
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_parse_hello_verify_request(mbedtls_ssl_context *ssl)
 {
+    int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     const unsigned char *p = ssl->in_msg + mbedtls_ssl_hs_hdr_len(ssl);
     uint16_t dtls_legacy_version;
 
@@ -1160,7 +1161,11 @@ static int ssl_parse_hello_verify_request(mbedtls_ssl_context *ssl)
 
     /* Start over at ClientHello */
     ssl->state = MBEDTLS_SSL_CLIENT_HELLO;
-    mbedtls_ssl_reset_checksum(ssl);
+    ret = mbedtls_ssl_reset_checksum(ssl);
+    if (0 != ret) {
+        MBEDTLS_SSL_DEBUG_RET(1, ("mbedtls_ssl_reset_checksum"), ret);
+        return ret;
+    }
 
     mbedtls_ssl_recv_flight_completed(ssl);
 
@@ -3283,7 +3288,11 @@ static int ssl_write_certificate_verify(mbedtls_ssl_context *ssl)
 sign:
 #endif
 
-    ssl->handshake->calc_verify(ssl, hash, &hashlen);
+    ret = ssl->handshake->calc_verify(ssl, hash, &hashlen);
+    if (0 != ret) {
+        MBEDTLS_SSL_DEBUG_RET(1, ("calc_verify"), ret);
+        return ret;
+    }
 
     /*
      * digitally-signed struct {

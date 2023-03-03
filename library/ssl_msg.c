@@ -2090,7 +2090,7 @@ int mbedtls_ssl_fetch_input(mbedtls_ssl_context *ssl, size_t nb_want)
                 return ret;
             }
 
-            if ((size_t) ret > len || (INT_MAX > SIZE_MAX && ret > (int) SIZE_MAX)) {
+            if ((size_t) ret > len) {
                 MBEDTLS_SSL_DEBUG_MSG(1,
                                       ("f_recv returned %d bytes but only %" MBEDTLS_PRINTF_SIZET
                                        " were requested",
@@ -2142,7 +2142,7 @@ int mbedtls_ssl_flush_output(mbedtls_ssl_context *ssl)
             return ret;
         }
 
-        if ((size_t) ret > ssl->out_left || (INT_MAX > SIZE_MAX && ret > (int) SIZE_MAX)) {
+        if ((size_t) ret > ssl->out_left) {
             MBEDTLS_SSL_DEBUG_MSG(1,
                                   ("f_send returned %d bytes but only %" MBEDTLS_PRINTF_SIZET
                                    " bytes were sent",
@@ -2639,7 +2639,12 @@ int mbedtls_ssl_write_handshake_msg_ext(mbedtls_ssl_context *ssl,
 
         /* Update running hashes of handshake messages seen */
         if (hs_type != MBEDTLS_SSL_HS_HELLO_REQUEST && update_checksum != 0) {
-            ssl->handshake->update_checksum(ssl, ssl->out_msg, ssl->out_msglen);
+            ret = ssl->handshake->update_checksum(ssl, ssl->out_msg,
+                                                  ssl->out_msglen);
+            if (ret != 0) {
+                MBEDTLS_SSL_DEBUG_RET(1, "update_checksum", ret);
+                return ret;
+            }
         }
     }
 
@@ -3067,12 +3072,17 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
     return 0;
 }
 
-void mbedtls_ssl_update_handshake_status(mbedtls_ssl_context *ssl)
+int mbedtls_ssl_update_handshake_status(mbedtls_ssl_context *ssl)
 {
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ssl_handshake_params * const hs = ssl->handshake;
 
     if (mbedtls_ssl_is_handshake_over(ssl) == 0 && hs != NULL) {
-        ssl->handshake->update_checksum(ssl, ssl->in_msg, ssl->in_hslen);
+        ret = ssl->handshake->update_checksum(ssl, ssl->in_msg, ssl->in_hslen);
+        if (ret != 0) {
+            MBEDTLS_SSL_DEBUG_RET(1, "update_checksum", ret);
+            return ret;
+        }
     }
 
     /* Handshake message is complete, increment counter */
@@ -3103,6 +3113,7 @@ void mbedtls_ssl_update_handshake_status(mbedtls_ssl_context *ssl)
         memset(hs_buf, 0, sizeof(mbedtls_ssl_hs_buffer));
     }
 #endif
+    return 0;
 }
 
 /*
@@ -3928,7 +3939,11 @@ int mbedtls_ssl_read_record(mbedtls_ssl_context *ssl,
 
         if (ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE &&
             update_hs_digest == 1) {
-            mbedtls_ssl_update_handshake_status(ssl);
+            ret = mbedtls_ssl_update_handshake_status(ssl);
+            if (0 != ret) {
+                MBEDTLS_SSL_DEBUG_RET(1, ("mbedtls_ssl_update_handshake_status"), ret);
+                return ret;
+            }
         }
     } else {
         MBEDTLS_SSL_DEBUG_MSG(2, ("reuse previously read message"));

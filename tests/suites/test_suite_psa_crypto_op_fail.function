@@ -221,6 +221,13 @@ void sign_fail(int key_type_arg, data_t *key_data,
     uint8_t input[1] = { 'A' };
     uint8_t output[PSA_SIGNATURE_MAX_SIZE] = { 0 };
     size_t length = SIZE_MAX;
+    psa_sign_hash_interruptible_operation_t sign_operation =
+        psa_sign_hash_interruptible_operation_init();
+
+    psa_verify_hash_interruptible_operation_t verify_operation =
+        psa_verify_hash_interruptible_operation_init();
+
+
 
     PSA_INIT();
 
@@ -237,6 +244,13 @@ void sign_fail(int key_type_arg, data_t *key_data,
                 psa_sign_hash(key_id, alg,
                               input, sizeof(input),
                               output, sizeof(output), &length));
+
+    TEST_STATUS(expected_status,
+                psa_sign_hash_start(&sign_operation, key_id, alg,
+                                    input, sizeof(input)));
+
+    PSA_ASSERT(psa_sign_hash_abort(&sign_operation));
+
     if (!private_only) {
         /* Determine a plausible signature size to avoid an INVALID_SIGNATURE
          * error based on this. */
@@ -253,6 +267,13 @@ void sign_fail(int key_type_arg, data_t *key_data,
                     psa_verify_hash(key_id, alg,
                                     input, sizeof(input),
                                     output, output_length));
+
+        TEST_STATUS(expected_status,
+                    psa_verify_hash_start(&verify_operation, key_id, alg,
+                                          input, sizeof(input),
+                                          output, output_length));
+
+        PSA_ASSERT(psa_verify_hash_abort(&verify_operation));
     }
 
 exit:

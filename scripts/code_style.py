@@ -33,6 +33,14 @@ CHECK_GENERATED_FILES = "tests/scripts/check-generated-files.sh"
 def print_err(*args):
     print("Error: ", *args, file=sys.stderr)
 
+# Print the file names that will be skipped and the help message
+def print_skip(files_to_skip):
+    print()
+    print(*files_to_skip, sep=", SKIP\n", end=", SKIP\n")
+    print("Warning: The listed files will be skipped because\n"
+          "they are not known to git.")
+    print()
+
 # Match FILENAME(s) in "check SCRIPT (FILENAME...)"
 CHECK_CALL_RE = re.compile(r"\n\s*check\s+[^\s#$&*?;|]+([^\n#$&*?;|]+)",
                            re.ASCII)
@@ -174,22 +182,27 @@ def main() -> int:
     parser.add_argument('-f', '--fix', action='store_true',
                         help=('modify source files to fix the code style '
                               '(default: print diff, do not modify files)'))
-    # --files is almost useless: it only matters if there are no files
+    # --subset is almost useless: it only matters if there are no files
     # ('code_style.py' without arguments checks all files known to Git,
-    # 'code_style.py --files' does nothing). In particular,
-    # 'code_style.py --fix --files ...' is intended as a stable ("porcelain")
+    # 'code_style.py --subset' does nothing). In particular,
+    # 'code_style.py --fix --subset ...' is intended as a stable ("porcelain")
     # way to restyle a possibly empty set of files.
-    parser.add_argument('--files', action='store_true',
+    parser.add_argument('--subset', action='store_true',
                         help='only check the specified files (default with non-option arguments)')
     parser.add_argument('operands', nargs='*', metavar='FILE',
-                        help='files to check (if none: check files that are known to git)')
+                        help='files to check (files MUST be known to git, if none: check all)')
 
     args = parser.parse_args()
 
-    if args.files or args.operands:
-        src_files = args.operands
+    covered = frozenset(get_src_files())
+    # We only check files that are known to git
+    if args.subset or args.operands:
+        src_files = [f for f in args.operands if f in covered]
+        skip_src_files = [f for f in args.operands if f not in covered]
+        if skip_src_files:
+            print_skip(skip_src_files)
     else:
-        src_files = get_src_files()
+        src_files = list(covered)
 
     if args.fix:
         # Fix mode

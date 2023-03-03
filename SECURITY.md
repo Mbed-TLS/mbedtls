@@ -26,8 +26,8 @@ We use the following classification of attacks:
 - **Remote Attacks:** The attacker can observe and modify data sent over the
   network. This includes observing timing of individual packets and potentially
   delaying legitimate messages.
-- **Timing Attacks:** The attacker can gain information about the time certain
-  sets of instructions in Mbed TLS operations take.
+- **Timing Attacks:** The attacker can gain information about the time taken
+  by certain sets of instructions in Mbed TLS operations.
 - **Physical Attacks:** The attacker has access to physical information about
   the hardware Mbed TLS is running on and/or can alter the physical state of
   the hardware.
@@ -47,14 +47,14 @@ Mbed TLS and Mbed Crypto provide limited protection against timing attacks. The
 cost of protecting against timing attacks widely varies depending on the
 granularity of the measurements and the noise present. Therefore the protection
 in Mbed TLS and Mbed Crypto is limited. We are only aiming to provide protection
-against publicly documented attacks.
+against publicly documented attacks, and this protection is not currently complete.
 
-**Warning!** Block ciphers constitute an exception from this protection. For
+**Warning!** Block ciphers do not yet achieve full protection. For
 details and workarounds see the section below.
 
 #### Block Ciphers
 
-Currently there are 4 block ciphers in Mbed TLS: AES, CAMELLIA, ARIA and DES.
+Currently there are four block ciphers in Mbed TLS: AES, CAMELLIA, ARIA and DES.
 The Mbed TLS implementation uses lookup tables, which are vulnerable to timing
 attacks.
 
@@ -63,7 +63,7 @@ attacks.
 - Turn on hardware acceleration for AES. This is supported only on selected
   architectures and currently only available for AES. See configuration options
   `MBEDTLS_AESCE_C`, `MBEDTLS_AESNI_C` and `MBEDTLS_PADLOCK_C` for details.
-- Add a secure alternative implementation (typically bitslice implementation or
+- Add a secure alternative implementation (typically a bitsliced implementation or
   hardware acceleration) for the vulnerable cipher. See the [Alternative
 Implementations Guide](docs/architecture/alternative-implementations.md) for
   more information.

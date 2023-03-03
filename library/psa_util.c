@@ -34,7 +34,7 @@
 /* PSA_SUCCESS is kept at the top of each error table since
  * it's the most common status when everything functions properly. */
 #if !defined(MBEDTLS_MD_C) || !defined(MBEDTLS_MD5_C) || defined(MBEDTLS_USE_PSA_CRYPTO)
-const error_pair_t psa_to_md_errors[] =
+const mbedtls_error_pair_t psa_to_md_errors[] =
 {
     { PSA_SUCCESS,                     0 },
     { PSA_ERROR_NOT_SUPPORTED,         MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE },
@@ -43,7 +43,7 @@ const error_pair_t psa_to_md_errors[] =
 };
 #endif
 #if defined(MBEDTLS_LMS_C)
-const error_pair_t psa_to_lms_errors[] =
+const mbedtls_error_pair_t psa_to_lms_errors[] =
 {
     { PSA_SUCCESS,                     0 },
     { PSA_ERROR_BUFFER_TOO_SMALL,      MBEDTLS_ERR_LMS_BUFFER_TOO_SMALL },
@@ -51,7 +51,7 @@ const error_pair_t psa_to_lms_errors[] =
 };
 #endif
 #if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
-const error_pair_t psa_to_ssl_errors[] =
+const mbedtls_error_pair_t psa_to_ssl_errors[] =
 {
     { PSA_SUCCESS,                     0 },
     { PSA_ERROR_INSUFFICIENT_MEMORY,   MBEDTLS_ERR_SSL_ALLOC_FAILED },
@@ -65,7 +65,7 @@ const error_pair_t psa_to_ssl_errors[] =
 
 #if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY) ||    \
     defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR)
-const error_pair_t psa_to_pk_rsa_errors[] =
+const mbedtls_error_pair_t psa_to_pk_rsa_errors[] =
 {
     { PSA_SUCCESS,                     0 },
     { PSA_ERROR_NOT_PERMITTED,         MBEDTLS_ERR_RSA_BAD_INPUT_DATA },
@@ -80,7 +80,7 @@ const error_pair_t psa_to_pk_rsa_errors[] =
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && \
     defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-const error_pair_t psa_to_pk_ecdsa_errors[] =
+const mbedtls_error_pair_t psa_to_pk_ecdsa_errors[] =
 {
     { PSA_SUCCESS,                     0 },
     { PSA_ERROR_NOT_PERMITTED,         MBEDTLS_ERR_ECP_BAD_INPUT_DATA },
@@ -111,7 +111,7 @@ int psa_generic_status_to_mbedtls(psa_status_t status)
 }
 
 int psa_status_to_mbedtls(psa_status_t status,
-                          const error_pair_t *local_translations,
+                          const mbedtls_error_pair_t *local_translations,
                           size_t local_errors_size,
                           int (*fallback_f)(psa_status_t))
 {

@@ -13,6 +13,8 @@ data_files/hmac_drbg_seed
 data_files/ctr_drbg_seed
 data_files/entropy_seed
 
+include/alt-extra/psa/crypto_platform_alt.h
+include/alt-extra/psa/crypto_struct_alt.h
 include/test/instrument_record_status.h
 
 src/*.o

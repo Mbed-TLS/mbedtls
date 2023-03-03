@@ -3259,6 +3259,27 @@ component_build_psa_config_file () {
     rm -f psa_test_config.h psa_user_config.h
 }
 
+component_build_psa_alt_headers () {
+    msg "build: make with PSA alt headers" # ~20s
+
+    # Generate alternative versions of the substitutable headers with the
+    # same content except different include guards.
+    make -C tests include/alt-extra/psa/crypto_platform_alt.h include/alt-extra/psa/crypto_struct_alt.h
+
+    # Build the library and some programs.
+    # Don't build the fuzzers to avoid having to go through hoops to set
+    # a correct include path for programs/fuzz/Makefile.
+    make CFLAGS="-I ../tests/include/alt-extra -DMBEDTLS_PSA_CRYPTO_PLATFORM_FILE='\"psa/crypto_platform_alt.h\"' -DMBEDTLS_PSA_CRYPTO_STRUCT_FILE='\"psa/crypto_struct_alt.h\"'" lib
+    make -C programs -o fuzz CFLAGS="-I ../tests/include/alt-extra -DMBEDTLS_PSA_CRYPTO_PLATFORM_FILE='\"psa/crypto_platform_alt.h\"' -DMBEDTLS_PSA_CRYPTO_STRUCT_FILE='\"psa/crypto_struct_alt.h\"'"
+
+    # Check that we're getting the alternative include guards and not the
+    # original include guards.
+    programs/test/query_included_headers | grep -x PSA_CRYPTO_PLATFORM_ALT_H
+    programs/test/query_included_headers | grep -x PSA_CRYPTO_STRUCT_ALT_H
+    programs/test/query_included_headers | not grep -x PSA_CRYPTO_PLATFORM_H
+    programs/test/query_included_headers | not grep -x PSA_CRYPTO_STRUCT_H
+}
+
 component_test_m32_o0 () {
     # Build without optimization, so as to use portable C code (in a 32-bit
     # build) and not the i386-specific inline assembly.

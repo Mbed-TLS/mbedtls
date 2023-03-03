@@ -219,6 +219,7 @@ ifndef WINDOWS
 	rm -rf $(BINARIES) *.c *.datax
 	rm -f src/*.o src/drivers/*.o src/libmbed*
 	rm -f include/test/instrument_record_status.h
+	rm -f include/alt-extra/*/*_alt.h
 	rm -rf libtestdriver1
 	rm -f ../library/libtestdriver1.a
 else
@@ -243,6 +244,10 @@ check: $(BINARIES)
 	perl scripts/run-test-suites.pl $(TEST_FLAGS) --skip=$(SKIP_TEST_SUITES)
 
 test: check
+
+# Generate variants of some headers for testing
+include/alt-extra/%_alt.h: ../include/%.h
+	perl -p -e 's/^(# *(define|ifndef) +\w+_)H\b/$${1}ALT_H/' $< >$@
 
 # Generate test library
 

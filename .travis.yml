@@ -90,15 +90,10 @@ jobs:
           - gcc
       script:
         # Do a manual build+test sequence rather than using all.sh, because
-        # there's no all.sh component that does what we want. We should set
-        # CFLAGS for arm64 host CC.
+        # there's no all.sh component that does what we want.
         - scripts/config.py full
-        - scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
-        - scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY
-        - scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
-        - scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY
         - make generated_files
-        - make CFLAGS='-march=armv8-a+crypto -O3 -Werror -fsanitize=address,undefined -fno-sanitize-recover=all' LDFLAGS='-Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
+        - make CFLAGS='-O3 -Werror -fsanitize=address,undefined -fno-sanitize-recover=all' LDFLAGS='-Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
         - make test
         - programs/test/selftest
         - tests/scripts/test_psa_constant_names.py
@@ -118,15 +113,10 @@ jobs:
           - gnutls-bin
       script:
         # Do a manual build+test sequence rather than using all.sh, because
-        # there's no all.sh component that does what we want. We should set
-        # CFLAGS for arm64 host CC.
+        # there's no all.sh component that does what we want.
         - scripts/config.py full
-        - scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
-        - scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY
-        - scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
-        - scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY
         - make generated_files
-        - make CC=clang CFLAGS='-march=armv8-a+crypto -O3 -Werror -fsanitize=address,undefined -fno-sanitize-recover=all' LDFLAGS='-Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
+        - make CC=clang CFLAGS='-O3 -Werror -fsanitize=address,undefined -fno-sanitize-recover=all' LDFLAGS='-Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
         # GnuTLS supports CAMELLIA but compat.sh doesn't properly enable it.
         - tests/compat.sh -p GnuTLS -e 'CAMELLIA'
         - tests/scripts/travis-log-failure.sh

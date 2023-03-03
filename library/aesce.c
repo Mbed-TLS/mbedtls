@@ -30,6 +30,11 @@
  * at the top of this file, before any includes.
  */
 #define __ARM_FEATURE_CRYPTO 1
+/* See: https://arm-software.github.io/acle/main/acle.html#cryptographic-extensions
+ *
+ * `__ARM_FEATURE_CRYPTO` is deprecated. Reserve it for older compilers.
+ */
+#define __ARM_FEATURE_AES    1
 #define NEED_TARGET_OPTIONS
 #endif /* __aarch64__ && __clang__ &&
           !__ARM_FEATURE_CRYPTO && __clang_major__ < 18 && __clang_major__ > 3 */

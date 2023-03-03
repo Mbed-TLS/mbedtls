@@ -739,7 +739,7 @@ void lifetime(int lifetime_arg, int classification_flags,
 /* BEGIN_CASE */
 void constant_sizes()
 {
-    /* The goal of this test function is to verify that sizez macros
+    /* The goal of this test function is to verify that size macros
      * are compile-time constants. If they aren't, the build will fail
      * if the compiler doesn't accept variable-length arrays. */
     /* Define each argument name as a compile-time constant. This can be

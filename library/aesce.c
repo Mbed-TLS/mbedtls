@@ -17,6 +17,23 @@
  *  limitations under the License.
  */
 
+#if defined(__aarch64__) && !defined(__ARM_FEATURE_CRYPTO) && \
+    defined(__clang__) &&  __clang_major__ < 18 && __clang_major__ > 3
+/* TODO: Re-consider above after https://reviews.llvm.org/D131064 merged.
+ *
+ * The intrinsic declaration are guarded by predefined ACLE macros in clang:
+ * these are normally only enabled by the -march option on the command line.
+ * By defining the macros ourselves we gain access to those declarations without
+ * requiring -march on the command line.
+ *
+ * `arm_neon.h` could be included by any header file, so we put these defines
+ * at the top of this file, before any includes.
+ */
+#define __ARM_FEATURE_CRYPTO 1
+#define NEED_TARGET_OPTIONS
+#endif /* __aarch64__ && __clang__ &&
+          !__ARM_FEATURE_CRYPTO && __clang_major__ < 18 && __clang_major__ > 3 */
+
 #include <string.h>
 #include "common.h"
 
@@ -30,18 +47,18 @@
 #   if __clang_major__ < 4
 #       error "A more recent Clang is required for MBEDTLS_AESCE_C"
 #   endif
+#        pragma clang attribute push (__attribute__((target("crypto"))), apply_to=function)
+#        define MBEDTLS_POP_TARGET_PRAGMA
 #elif defined(__GNUC__)
 #   if __GNUC__ < 6
 #       error "A more recent GCC is required for MBEDTLS_AESCE_C"
 #   endif
+#          pragma GCC push_options
+#          pragma GCC target ("arch=armv8-a+crypto")
+#          define MBEDTLS_POP_TARGET_PRAGMA
 #else
 #    error "Only GCC and Clang supported for MBEDTLS_AESCE_C"
 #endif
-
-#if !defined(__ARM_FEATURE_CRYPTO)
-#   error "`crypto` feature modifier MUST be enabled for MBEDTLS_AESCE_C."
-#   error "Typical option for GCC and Clang is `-march=armv8-a+crypto`."
-#endif /* !__ARM_FEATURE_CRYPTO */
 
 #include <arm_neon.h>
 
@@ -251,6 +268,16 @@ int mbedtls_aesce_setkey_enc(unsigned char *rk,
 
     return 0;
 }
+
+
+#if defined(MBEDTLS_POP_TARGET_PRAGMA)
+#if defined(__clang__)
+#pragma clang attribute pop
+#elif defined(__GNUC__)
+#pragma GCC pop_options
+#endif
+#undef MBEDTLS_POP_TARGET_PRAGMA
+#endif
 
 #endif /* MBEDTLS_HAVE_ARM64 */
 

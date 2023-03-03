@@ -23,8 +23,7 @@
  */
 
 #if defined(__aarch64__) && !defined(__ARM_FEATURE_SHA512) && \
-    defined(__clang__) &&  __clang_major__ < 18 && \
-    __clang_major__ >= 13 && __clang_minor__ > 0 && __clang_patchlevel__ > 0
+    defined(__clang__) &&  __clang_major__ < 18 && __clang_major__ > 7
 /* TODO: Re-consider above after https://reviews.llvm.org/D131064 merged.
  *
  * The intrinsic declaration are guarded by predefined ACLE macros in clang:
@@ -37,10 +36,8 @@
  */
 #define __ARM_FEATURE_SHA512 1
 #define NEED_TARGET_OPTIONS
-#endif /* __aarch64__ && __clang__ &&
-          !__ARM_FEATURE_SHA512 && __clang_major__ < 18 &&
-          __clang_major__ >= 13 && __clang_minor__ > 0 &&
-          __clang_patchlevel__ > 0 */
+#endif /* __aarch64__ &&  !__ARM_FEATURE_SHA512 &&
+          __clang__ && __clang_major__ < 18 && __clang_major__ > 7 */
 
 #include "common.h"
 
@@ -83,10 +80,6 @@
 #      if defined(__clang__)
 #        if __clang_major__ < 7
 #          error "A more recent Clang is required for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
-#        elif __clang_major__ < 13 || \
-              (__clang_major__ == 13 && __clang_minor__ == 0 && \
-               __clang_patchlevel__ == 0)
-           /* We implement the intrinsics with inline assembler, so don't error */
 #        else
 #          pragma clang attribute push (__attribute__((target("sha3"))), apply_to=function)
 #          define MBEDTLS_POP_TARGET_PRAGMA

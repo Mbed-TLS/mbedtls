@@ -17,7 +17,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Abort on errors (and uninitiliased variables)
+# Abort on errors (and uninitialised variables)
 set -eu
 
 if [ -d library -a -d include -a -d tests ]; then :; else

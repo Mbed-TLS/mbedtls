@@ -73,6 +73,13 @@ GENERATED_BIGNUM_DATA_FILES := $(patsubst tests/%,%,$(shell \
 ifeq ($(GENERATED_BIGNUM_DATA_FILES),FAILED)
 $(error "$(PYTHON) scripts/generate_bignum_tests.py --list" failed)
 endif
+GENERATED_ECP_DATA_FILES := $(patsubst tests/%,%,$(shell \
+	$(PYTHON) scripts/generate_ecp_tests.py --list || \
+	echo FAILED \
+))
+ifeq ($(GENERATED_ECP_DATA_FILES),FAILED)
+$(error "$(PYTHON) scripts/generate_ecp_tests.py --list" failed)
+endif
 GENERATED_PSA_DATA_FILES := $(patsubst tests/%,%,$(shell \
 	$(PYTHON) scripts/generate_psa_tests.py --list || \
 	echo FAILED \
@@ -80,7 +87,7 @@ GENERATED_PSA_DATA_FILES := $(patsubst tests/%,%,$(shell \
 ifeq ($(GENERATED_PSA_DATA_FILES),FAILED)
 $(error "$(PYTHON) scripts/generate_psa_tests.py --list" failed)
 endif
-GENERATED_FILES := $(GENERATED_PSA_DATA_FILES) $(GENERATED_BIGNUM_DATA_FILES)
+GENERATED_FILES := $(GENERATED_PSA_DATA_FILES) $(GENERATED_ECP_DATA_FILES) $(GENERATED_BIGNUM_DATA_FILES)
 generated_files: $(GENERATED_FILES)
 
 # generate_bignum_tests.py and generate_psa_tests.py spend more time analyzing
@@ -89,7 +96,7 @@ generated_files: $(GENERATED_FILES)
 # It's rare not to want all the outputs. So always generate all of its outputs.
 # Use an intermediate phony dependency so that parallel builds don't run
 # a separate instance of the recipe for each output file.
-.SECONDARY: generated_bignum_test_data generated_psa_test_data
+.SECONDARY: generated_bignum_test_data generated_ecp_test_data generated_psa_test_data
 $(GENERATED_BIGNUM_DATA_FILES): generated_bignum_test_data
 generated_bignum_test_data: scripts/generate_bignum_tests.py
 generated_bignum_test_data: ../scripts/mbedtls_dev/bignum_common.py
@@ -101,6 +108,16 @@ generated_bignum_test_data: ../scripts/mbedtls_dev/test_data_generation.py
 generated_bignum_test_data:
 	echo "  Gen   $(GENERATED_BIGNUM_DATA_FILES)"
 	$(PYTHON) scripts/generate_bignum_tests.py
+
+$(GENERATED_ECP_DATA_FILES): generated_ecp_test_data
+generated_ecp_test_data: scripts/generate_ecp_tests.py
+generated_ecp_test_data: ../scripts/mbedtls_dev/bignum_common.py
+generated_ecp_test_data: ../scripts/mbedtls_dev/ecp.py
+generated_ecp_test_data: ../scripts/mbedtls_dev/test_case.py
+generated_ecp_test_data: ../scripts/mbedtls_dev/test_data_generation.py
+generated_ecp_test_data:
+	echo "  Gen   $(GENERATED_ECP_DATA_FILES)"
+	$(PYTHON) scripts/generate_ecp_tests.py
 
 $(GENERATED_PSA_DATA_FILES): generated_psa_test_data
 generated_psa_test_data: scripts/generate_psa_tests.py
@@ -202,6 +219,7 @@ ifndef WINDOWS
 	rm -rf $(BINARIES) *.c *.datax
 	rm -f src/*.o src/drivers/*.o src/libmbed*
 	rm -f include/test/instrument_record_status.h
+	rm -f include/alt-extra/*/*_alt.h
 	rm -rf libtestdriver1
 	rm -f ../library/libtestdriver1.a
 else
@@ -226,6 +244,10 @@ check: $(BINARIES)
 	perl scripts/run-test-suites.pl $(TEST_FLAGS) --skip=$(SKIP_TEST_SUITES)
 
 test: check
+
+# Generate variants of some headers for testing
+include/alt-extra/%_alt.h: ../include/%.h
+	perl -p -e 's/^(# *(define|ifndef) +\w+_)H\b/$${1}ALT_H/' $< >$@
 
 # Generate test library
 

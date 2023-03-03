@@ -6,6 +6,7 @@
 #include "mbedtls/oid.h"
 #include "mbedtls/rsa.h"
 #include "mbedtls/asn1write.h"
+#include "mbedtls/pk.h"
 
 #include "hash_info.h"
 #include "mbedtls/legacy_or_psa.h"

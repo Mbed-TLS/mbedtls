@@ -114,5 +114,15 @@ typedef union {
 #endif
 } psa_driver_aead_context_t;
 
+typedef union {
+    unsigned dummy; /* Make sure this union is always non-empty */
+    mbedtls_psa_sign_hash_interruptible_operation_t mbedtls_ctx;
+} psa_driver_sign_hash_interruptible_context_t;
+
+typedef union {
+    unsigned dummy; /* Make sure this union is always non-empty */
+    mbedtls_psa_verify_hash_interruptible_operation_t mbedtls_ctx;
+} psa_driver_verify_hash_interruptible_context_t;
+
 #endif /* PSA_CRYPTO_DRIVER_CONTEXTS_COMPOSITES_H */
 /* End of automatically generated file. */

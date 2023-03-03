@@ -122,6 +122,14 @@ X509 CRT information, Subject Alt Name + Key Usage
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA
 x509_cert_info:"data_files/cert_example_multi_nocn.crt":"cert. version     \: 3\nserial number     \: F7\:C6\:7F\:F8\:E9\:A9\:63\:F9\nissuer name       \: C=NL\nsubject name      \: C=NL\nissued  on        \: 2014-01-22 10\:04\:33\nexpires on        \: 2024-01-22 10\:04\:33\nsigned using      \: RSA with SHA1\nRSA key size      \: 1024 bits\nbasic constraints \: CA=false\nsubject alt name  \:\n    dNSName \: www.shotokan-braunschweig.de\n    dNSName \: www.massimo-abate.eu\n    <unsupported>\n    <unsupported>\nkey usage         \: Digital Signature, Non Repudiation, Key Encipherment\n"
 
+X509 CRT information, Subject Alt Name with uniformResourceIdentifier
+depends_on:MBEDTLS_RSA_C:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA
+x509_cert_info:"data_files/rsa_single_san_uri.crt.der":"cert. version     \: 3\nserial number     \: 6F\:75\:EB\:E9\:6D\:25\:BC\:88\:82\:62\:A3\:E0\:68\:A7\:37\:3B\:EC\:75\:8F\:9C\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS URI SAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS URI SAN\nissued  on        \: 2023-02-14 10\:38\:05\nexpires on        \: 2043-02-09 10\:38\:05\nsigned using      \: RSA with SHA-256\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\nsubject alt name  \:\n    uniformResourceIdentifier \: urn\:example.com\:5ff40f78-9210-494f-8206-c2c082f0609c\nkey usage         \: Digital Signature, Non Repudiation, Key Encipherment\n"
+
+X509 CRT information, Subject Alt Name with two uniformResourceIdentifiers
+depends_on:MBEDTLS_RSA_C:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA
+x509_cert_info:"data_files/rsa_multiple_san_uri.crt.der":"cert. version     \: 3\nserial number     \: 08\:E2\:93\:18\:91\:26\:D8\:46\:88\:90\:10\:4F\:B5\:86\:CB\:C4\:78\:E6\:EA\:0D\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS URI SAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS URI SAN\nissued  on        \: 2023-02-14 10\:37\:50\nexpires on        \: 2043-02-09 10\:37\:50\nsigned using      \: RSA with SHA-256\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\nsubject alt name  \:\n    uniformResourceIdentifier \: urn\:example.com\:5ff40f78-9210-494f-8206-c2c082f0609c\n    uniformResourceIdentifier \: urn\:example.com\:5ff40f78-9210-494f-8206-abcde1234567\nkey usage         \: Digital Signature, Non Repudiation, Key Encipherment\n"
+
 X509 CRT information, RSA Certificate Policy any
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA
 x509_cert_info:"data_files/test-ca-any_policy.crt":"cert. version     \: 3\nserial number     \: 00\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nissued  on        \: 2019-03-21 16\:40\:59\nexpires on        \: 2029-03-21 16\:40\:59\nsigned using      \: RSA with SHA-256\nRSA key size      \: 2048 bits\nbasic constraints \: CA=true\ncertificate policies \: Any Policy\n"
@@ -168,7 +176,7 @@ x509_cert_info:"data_files/server3.crt":"cert. version     \: 3\nserial number  
 
 X509 CRT information Bitstring in subject name
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA
-x509_cert_info:"data_files/bitstring-in-dn.pem":"cert. version     \: 3\nserial number     \: 02\nissuer name       \: CN=Test CA 01, ST=Ecnivorp, C=XX, emailAddress=tca@example.com, O=Test CA Authority\nsubject name      \: C=XX, O=tca, ST=Ecnivorp, OU=TCA, CN=Client, emailAddress=client@example.com, serialNumber=7101012255, uniqueIdentifier=?7101012255\nissued  on        \: 2015-03-11 12\:06\:51\nexpires on        \: 2025-03-08 12\:06\:51\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\nsubject alt name  \:\n    <unsupported>\next key usage     \: TLS Web Client Authentication\n"
+x509_cert_info:"data_files/bitstring-in-dn.pem":"cert. version     \: 3\nserial number     \: 02\nissuer name       \: CN=Test CA 01, ST=Ecnivorp, C=XX, emailAddress=tca@example.com, O=Test CA Authority\nsubject name      \: C=XX, O=tca, ST=Ecnivorp, OU=TCA, CN=Client, emailAddress=client@example.com, serialNumber=7101012255, uniqueIdentifier=?7101012255\nissued  on        \: 2015-03-11 12\:06\:51\nexpires on        \: 2025-03-08 12\:06\:51\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\nsubject alt name  \:\n    rfc822Name \: client@example.com\next key usage     \: TLS Web Client Authentication\n"
 
 X509 CRT information Non-ASCII string in issuer name and subject name
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA
@@ -197,6 +205,10 @@ x509_parse_san:"data_files/server4.crt":""
 X509 SAN parsing, unsupported otherName name
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA
 x509_parse_san:"data_files/server5-unsupported_othername.crt":""
+
+X509 SAN parsing rfc822Name
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA
+x509_parse_san:"data_files/test_cert_rfc822name.crt.der":"type \: 1\nrfc822Name \: my@other.address\ntype \: 1\nrfc822Name \: second@other.address\n"
 
 X509 CRL information #1
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO
@@ -2550,7 +2562,7 @@ X509 OID numstring #4 (larger number)
 x509_oid_numstr:"2a864886f70d":"1.2.840.113549":15:14
 
 X509 OID numstring #5 (arithmetic overflow)
-x509_oid_numstr:"2a8648f9f8f7f6f5f4f3f2f1f001":"":100:MBEDTLS_ERR_OID_BUF_TOO_SMALL
+x509_oid_numstr:"2a8648f9f8f7f6f5f4f3f2f1f001":"":100:MBEDTLS_ERR_ASN1_INVALID_DATA
 
 X509 CRT keyUsage #1 (no extension, expected KU)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA

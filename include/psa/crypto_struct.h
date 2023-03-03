@@ -491,6 +491,66 @@ static inline size_t psa_get_key_bits(
     return attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(bits);
 }
 
+/**
+ * \brief The context for PSA interruptible hash signing.
+ */
+struct psa_sign_hash_interruptible_operation_s {
+    /** Unique ID indicating which driver got assigned to do the
+     * operation. Since driver contexts are driver-specific, swapping
+     * drivers halfway through the operation is not supported.
+     * ID values are auto-generated in psa_crypto_driver_wrappers.h
+     * ID value zero means the context is not valid or not assigned to
+     * any driver (i.e. none of the driver contexts are active). */
+    unsigned int MBEDTLS_PRIVATE(id);
+
+    psa_driver_sign_hash_interruptible_context_t MBEDTLS_PRIVATE(ctx);
+
+    unsigned int MBEDTLS_PRIVATE(error_occurred) : 1;
+
+    uint32_t MBEDTLS_PRIVATE(num_ops);
+};
+
+#define PSA_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT { 0, { 0 }, 0, 0 }
+
+static inline struct psa_sign_hash_interruptible_operation_s
+psa_sign_hash_interruptible_operation_init(void)
+{
+    const struct psa_sign_hash_interruptible_operation_s v =
+        PSA_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT;
+
+    return v;
+}
+
+/**
+ * \brief The context for PSA interruptible hash verification.
+ */
+struct psa_verify_hash_interruptible_operation_s {
+    /** Unique ID indicating which driver got assigned to do the
+     * operation. Since driver contexts are driver-specific, swapping
+     * drivers halfway through the operation is not supported.
+     * ID values are auto-generated in psa_crypto_driver_wrappers.h
+     * ID value zero means the context is not valid or not assigned to
+     * any driver (i.e. none of the driver contexts are active). */
+    unsigned int MBEDTLS_PRIVATE(id);
+
+    psa_driver_verify_hash_interruptible_context_t MBEDTLS_PRIVATE(ctx);
+
+    unsigned int MBEDTLS_PRIVATE(error_occurred) : 1;
+
+    uint32_t MBEDTLS_PRIVATE(num_ops);
+};
+
+#define PSA_VERIFY_HASH_INTERRUPTIBLE_OPERATION_INIT { 0, { 0 }, 0, 0 }
+
+static inline struct psa_verify_hash_interruptible_operation_s
+psa_verify_hash_interruptible_operation_init(void)
+{
+    const struct psa_verify_hash_interruptible_operation_s v =
+        PSA_VERIFY_HASH_INTERRUPTIBLE_OPERATION_INIT;
+
+    return v;
+}
+
 #ifdef __cplusplus
 }
 #endif

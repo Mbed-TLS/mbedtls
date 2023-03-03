@@ -64,6 +64,7 @@ test/cpp_dummy_build.cpp
 test/dlopen
 test/ecp-bench
 test/query_compile_time_config
+test/query_included_headers
 test/selftest
 test/ssl_cert_test
 test/udp_proxy

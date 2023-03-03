@@ -71,10 +71,10 @@
  * \retval #PSA_SUCCESS Success.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not supported.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         ciphertext_size is too small.
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
  */
 psa_status_t mbedtls_psa_aead_encrypt(
     const psa_key_attributes_t *attributes,
@@ -134,10 +134,10 @@ psa_status_t mbedtls_psa_aead_encrypt(
  *         The cipher is not authentic.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not supported.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         plaintext_size is too small.
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
  */
 psa_status_t mbedtls_psa_aead_decrypt(
     const psa_key_attributes_t *attributes,

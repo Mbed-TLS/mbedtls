@@ -1,0 +1,3 @@
+Features
+   * Add parsing of uniformResourceIdentifier subtype for subjectAltName
+     extension in x509 certificates.

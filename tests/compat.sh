@@ -534,6 +534,16 @@ add_mbedtls_ciphersuites()
     esac
 }
 
+# o_check_ciphersuite STANDARD_CIPHER_SUITE
+o_check_ciphersuite()
+{
+    if [ "${O_SUPPORT_ECDH}" = "NO" ]; then
+        case "$1" in
+            *ECDH_*) SKIP_NEXT="YES"
+        esac
+    fi
+}
+
 setup_arguments()
 {
     O_MODE=""
@@ -601,6 +611,11 @@ setup_arguments()
             O_CLIENT_ARGS="$O_CLIENT_ARGS -cipher ALL@SECLEVEL=0"
             O_SERVER_ARGS="$O_SERVER_ARGS -cipher ALL@SECLEVEL=0"
             ;;
+    esac
+
+    case $($OPENSSL ciphers ALL) in
+        *ECDH-ECDSA*|*ECDH-RSA*) O_SUPPORT_ECDH="YES";;
+        *) O_SUPPORT_ECDH="NO";;
     esac
 
     if [ "X$VERIFY" = "XYES" ];
@@ -819,7 +834,7 @@ run_client() {
             if [ $EXIT -eq 0 ]; then
                 RESULT=0
             else
-                # If the cipher isn't supported...
+                # If it is NULL cipher ...
                 if grep 'Cipher is (NONE)' $CLI_OUT >/dev/null; then
                     RESULT=1
                 else
@@ -1033,6 +1048,7 @@ for MODE in $MODES; do
                         start_server "OpenSSL"
                         translate_ciphers m $M_CIPHERS
                         for i in $ciphers; do
+                            o_check_ciphersuite "${i%%=*}"
                             run_client mbedTLS ${i%%=*} ${i#*=}
                         done
                         stop_server
@@ -1042,6 +1058,7 @@ for MODE in $MODES; do
                         start_server "mbedTLS"
                         translate_ciphers o $O_CIPHERS
                         for i in $ciphers; do
+                            o_check_ciphersuite "${i%%=*}"
                             run_client OpenSSL ${i%%=*} ${i#*=}
                         done
                         stop_server

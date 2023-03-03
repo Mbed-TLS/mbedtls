@@ -140,6 +140,9 @@ test_csr_v3_all_malformed_attributes_extension_request_sequence_len1.csr.der: te
 test_csr_v3_all_malformed_attributes_extension_request_sequence_len2.csr.der: test_csr_v3_all.csr.der
 	(hexdump -ve '1/1 "%.2X"' $< | sed "s/3051300B0603551D0F04/3050300B0603551D0F04/" | xxd -r -p ) > $@
 
+test_cert_rfc822name.crt.der: cert_example_multi.csr
+	$(OPENSSL) x509 -req -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) -extfile $(test_ca_config_file) -outform DER -extensions rfc822name_names -passin "pass:$(test_ca_pwd_rsa)" -set_serial 17 -days 3653 -sha256 -in $< > $@
+
 $(test_ca_key_file_rsa_alt):test-ca.opensslconf
 	$(OPENSSL) genrsa -out $@ 2048
 test-ca-alt.csr: $(test_ca_key_file_rsa_alt) $(test_ca_config_file)
@@ -335,6 +338,12 @@ server5-fan.crt: server5.key
 server5-tricky-ip-san.crt: server5.key
 	$(OPENSSL) req -x509 -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS Tricky IP SAN" -set_serial 77 -config $(test_ca_config_file) -extensions tricky_ip_san -days 3650 -sha256 -key server5.key -out $@
 all_final += server5-tricky-ip-san.crt
+
+rsa_single_san_uri.crt.der: rsa_single_san_uri.key
+	$(OPENSSL) req -x509 -outform der -nodes -days 7300 -newkey rsa:2048 -key $< -out $@ -addext "subjectAltName = URI:urn:example.com:5ff40f78-9210-494f-8206-c2c082f0609c" -extensions 'v3_req' -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS URI SAN"
+
+rsa_multiple_san_uri.crt.der: rsa_multiple_san_uri.key
+	$(OPENSSL) req -x509 -outform der -nodes -days 7300 -newkey rsa:2048 -key $< -out $@ -addext "subjectAltName = URI:urn:example.com:5ff40f78-9210-494f-8206-c2c082f0609c, URI:urn:example.com:5ff40f78-9210-494f-8206-abcde1234567" -extensions 'v3_req' -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS URI SAN"
 
 server10-badsign.crt: server10.crt
 	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; } > $@
@@ -1266,11 +1275,15 @@ pkcs7_test_cert_3 = pkcs7-rsa-sha256-3.crt
 pkcs7_test_file = pkcs7_data.bin
 
 $(pkcs7_test_file):
-	echo -e "Hello\xd" > $@
+	printf "Hello\15\n" > $@
 all_final += $(pkcs7_test_file)
 
+pkcs7_zerolendata.bin:
+	printf '' > $@
+all_final += pkcs7_zerolendata.bin
+
 pkcs7_data_1.bin:
-	echo -e "2\xd" > $@
+	printf "2\15\n" > $@
 all_final += pkcs7_data_1.bin
 
 # Generate signing cert
@@ -1301,6 +1314,11 @@ all_final += pkcs7-rsa-sha256-1.der
 pkcs7-rsa-sha256-2.der: $(pkcs7_test_cert_2)
 	$(OPENSSL) x509 -in pkcs7-rsa-sha256-2.crt -out $@ -outform DER
 all_final += pkcs7-rsa-sha256-2.der
+
+# pkcs7 signature file over zero-len data
+pkcs7_zerolendata_detached.der: pkcs7_zerolendata.bin pkcs7-rsa-sha256-1.key pkcs7-rsa-sha256-1.crt
+	$(OPENSSL) smime -sign -md sha256 -nocerts -noattr -in pkcs7_zerolendata.bin -inkey pkcs7-rsa-sha256-1.key -outform DER -binary -signer pkcs7-rsa-sha256-1.crt -out pkcs7_zerolendata_detached.der
+all_final += pkcs7_zerolendata_detached.der
 
 # pkcs7 signature file with CERT
 pkcs7_data_cert_signed_sha256.der: $(pkcs7_test_file) $(pkcs7_test_cert_1)
@@ -1345,19 +1363,31 @@ all_final += pkcs7_data_multiple_certs_signed.der
 # pkcs7 signature file with corrupted CERT
 pkcs7_data_signed_badcert.der: pkcs7_data_cert_signed_sha256.der
 	cp pkcs7_data_cert_signed_sha256.der $@
-	echo -en '\xa1' | dd of=$@ bs=1 seek=547 conv=notrunc
+	echo 'a1' | xxd -r -p | dd of=$@ bs=1 seek=547 conv=notrunc
 all_final += pkcs7_data_signed_badcert.der
 
 # pkcs7 signature file with corrupted signer info
 pkcs7_data_signed_badsigner.der: pkcs7_data_cert_signed_sha256.der
 	cp pkcs7_data_cert_signed_sha256.der $@
-	echo -en '\xa1' | dd of=$@ bs=1 seek=918 conv=notrunc
+	echo 'a1' | xxd -r -p | dd of=$@ bs=1 seek=918 conv=notrunc
 all_final += pkcs7_data_signed_badsigner.der
+
+# pkcs7 signature file with invalid tag in signerInfo[1].serial after long issuer name
+pkcs7_signerInfo_1_serial_invalid_tag_after_long_name.der: pkcs7_data_multiple_signed.der
+	cp $< $@
+	echo 'a1' | xxd -r -p | dd of=$@ bs=1 seek=498 conv=notrunc
+all_final += pkcs7_signerInfo_1_serial_invalid_tag_after_long_name.der
+
+# pkcs7 signature file with invalid tag in signerInfo[2]
+pkcs7_signerInfo_2_invalid_tag.der: pkcs7_data_3_signed.der
+	cp $< $@
+	echo 'a1' | xxd -r -p | dd of=$@ bs=1 seek=810 conv=notrunc
+all_final += pkcs7_signerInfo_2_invalid_tag.der
 
 # pkcs7 file with version 2
 pkcs7_data_cert_signed_v2.der: pkcs7_data_cert_signed_sha256.der
 	cp pkcs7_data_cert_signed_sha256.der $@
-	echo -en '\x02' | dd of=$@ bs=1 seek=25 conv=notrunc
+	echo '02' | xxd -r -p | dd of=$@ bs=1 seek=25 conv=notrunc
 all_final += pkcs7_data_cert_signed_v2.der
 
 pkcs7_data_cert_encrypted.der: $(pkcs7_test_file) $(pkcs7_test_cert_1)
@@ -1368,12 +1398,12 @@ all_final += pkcs7_data_cert_encrypted.der
 # For some interesting sizes, what happens if we make them off-by-one?
 pkcs7_signerInfo_issuer_invalid_size.der: pkcs7_data_cert_signed_sha256.der
 	cp $< $@
-	echo -en '\x35' | dd of=$@ seek=919 bs=1 conv=notrunc
+	echo '35' | xxd -r -p | dd of=$@ seek=919 bs=1 conv=notrunc
 all_final += pkcs7_signerInfo_issuer_invalid_size.der
 
 pkcs7_signerInfo_serial_invalid_size.der: pkcs7_data_cert_signed_sha256.der
 	cp $< $@
-	echo -en '\x15' | dd of=$@ seek=973 bs=1 conv=notrunc
+	echo '15' | xxd -r -p | dd of=$@ seek=973 bs=1 conv=notrunc
 all_final += pkcs7_signerInfo_serial_invalid_size.der
 
 # pkcs7 signature file just with signed data

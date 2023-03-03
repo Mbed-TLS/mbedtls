@@ -1156,11 +1156,6 @@ static int x509_get_other_name(const mbedtls_x509_buf *subject_alt_name,
         return MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE;
     }
 
-    if (p + len >= end) {
-        mbedtls_platform_zeroize(other_name, sizeof(*other_name));
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
-                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
-    }
     p += len;
     if ((ret = mbedtls_asn1_get_tag(&p, end, &len,
                                     MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_CONTEXT_SPECIFIC)) !=
@@ -1168,9 +1163,19 @@ static int x509_get_other_name(const mbedtls_x509_buf *subject_alt_name,
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
     }
 
+    if (end != p + len) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
+    }
+
     if ((ret = mbedtls_asn1_get_tag(&p, end, &len,
                                     MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+    }
+
+    if (end != p + len) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
     }
 
     if ((ret = mbedtls_asn1_get_tag(&p, end, &len, MBEDTLS_ASN1_OID)) != 0) {
@@ -1181,11 +1186,6 @@ static int x509_get_other_name(const mbedtls_x509_buf *subject_alt_name,
     other_name->value.hardware_module_name.oid.p = p;
     other_name->value.hardware_module_name.oid.len = len;
 
-    if (p + len >= end) {
-        mbedtls_platform_zeroize(other_name, sizeof(*other_name));
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
-                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
-    }
     p += len;
     if ((ret = mbedtls_asn1_get_tag(&p, end, &len,
                                     MBEDTLS_ASN1_OCTET_STRING)) != 0) {
@@ -1197,8 +1197,6 @@ static int x509_get_other_name(const mbedtls_x509_buf *subject_alt_name,
     other_name->value.hardware_module_name.val.len = len;
     p += len;
     if (p != end) {
-        mbedtls_platform_zeroize(other_name,
-                                 sizeof(*other_name));
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
                                  MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
     }
@@ -1229,8 +1227,9 @@ static int x509_get_other_name(const mbedtls_x509_buf *subject_alt_name,
  *      nameAssigner            [0]     DirectoryString OPTIONAL,
  *      partyName               [1]     DirectoryString }
  *
- * NOTE: we list all types, but only use dNSName and otherName
- * of type HwModuleName, as defined in RFC 4108, at this point.
+ * We list all types, but use the following GeneralName types from RFC 5280:
+ * "dnsName", "uniformResourceIdentifier" and "hardware_module_name"
+ * of type "otherName", as defined in RFC 4108.
  */
 int mbedtls_x509_get_subject_alt_name(unsigned char **p,
                                       const unsigned char *end,
@@ -1238,8 +1237,6 @@ int mbedtls_x509_get_subject_alt_name(unsigned char **p,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len, tag_len;
-    mbedtls_asn1_buf *buf;
-    unsigned char tag;
     mbedtls_asn1_sequence *cur = subject_alt_name;
 
     /* Get main sequence tag */
@@ -1255,15 +1252,20 @@ int mbedtls_x509_get_subject_alt_name(unsigned char **p,
 
     while (*p < end) {
         mbedtls_x509_subject_alternative_name dummy_san_buf;
+        mbedtls_x509_buf tmp_san_buf;
         memset(&dummy_san_buf, 0, sizeof(dummy_san_buf));
 
-        tag = **p;
+        tmp_san_buf.tag = **p;
         (*p)++;
+
         if ((ret = mbedtls_asn1_get_len(p, end, &tag_len)) != 0) {
             return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
         }
 
-        if ((tag & MBEDTLS_ASN1_TAG_CLASS_MASK) !=
+        tmp_san_buf.p = *p;
+        tmp_san_buf.len = tag_len;
+
+        if ((tmp_san_buf.tag & MBEDTLS_ASN1_TAG_CLASS_MASK) !=
             MBEDTLS_ASN1_CONTEXT_SPECIFIC) {
             return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
                                      MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
@@ -1272,7 +1274,7 @@ int mbedtls_x509_get_subject_alt_name(unsigned char **p,
         /*
          * Check that the SAN is structured correctly.
          */
-        ret = mbedtls_x509_parse_subject_alt_name(&(cur->buf), &dummy_san_buf);
+        ret = mbedtls_x509_parse_subject_alt_name(&tmp_san_buf, &dummy_san_buf);
         /*
          * In case the extension is malformed, return an error,
          * and clear the allocated sequences.
@@ -1299,11 +1301,8 @@ int mbedtls_x509_get_subject_alt_name(unsigned char **p,
             cur = cur->next;
         }
 
-        buf = &(cur->buf);
-        buf->tag = tag;
-        buf->p = *p;
-        buf->len = tag_len;
-        *p += buf->len;
+        cur->buf = tmp_san_buf;
+        *p += tmp_san_buf.len;
     }
 
     /* Set final sequence entry's next pointer to NULL */
@@ -1399,7 +1398,19 @@ int mbedtls_x509_parse_subject_alt_name(const mbedtls_x509_buf *san_buf,
 
         }
         break;
+        /*
+         * uniformResourceIdentifier
+         */
+        case (MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER):
+        {
+            memset(san, 0, sizeof(mbedtls_x509_subject_alternative_name));
+            san->type = MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER;
 
+            memcpy(&san->san.unstructured_name,
+                   san_buf, sizeof(*san_buf));
+
+        }
+        break;
         /*
          * dNSName
          */
@@ -1410,7 +1421,17 @@ int mbedtls_x509_parse_subject_alt_name(const mbedtls_x509_buf *san_buf,
 
             memcpy(&san->san.unstructured_name,
                    san_buf, sizeof(*san_buf));
+        }
+        break;
 
+        /*
+         * RFC822 Name
+         */
+        case (MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_RFC822_NAME):
+        {
+            memset(san, 0, sizeof(mbedtls_x509_subject_alternative_name));
+            san->type = MBEDTLS_X509_SAN_RFC822_NAME;
+            memcpy(&san->san.unstructured_name, san_buf, sizeof(*san_buf));
         }
         break;
 
@@ -1490,13 +1511,38 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
                 }/* MBEDTLS_OID_ON_HW_MODULE_NAME */
             }
             break;
+            /*
+             * uniformResourceIdentifier
+             */
+            case MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER:
+            {
+                ret = mbedtls_snprintf(p, n, "\n%s    uniformResourceIdentifier : ", prefix);
+                MBEDTLS_X509_SAFE_SNPRINTF;
+                if (san.san.unstructured_name.len >= n) {
+                    *p = '\0';
+                    return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+                }
 
+                memcpy(p, san.san.unstructured_name.p, san.san.unstructured_name.len);
+                p += san.san.unstructured_name.len;
+                n -= san.san.unstructured_name.len;
+            }
+            break;
             /*
              * dNSName
+             * RFC822 Name
              */
             case MBEDTLS_X509_SAN_DNS_NAME:
+            case MBEDTLS_X509_SAN_RFC822_NAME:
             {
-                ret = mbedtls_snprintf(p, n, "\n%s    dNSName : ", prefix);
+                const char *dns_name = "dNSName";
+                const char *rfc822_name = "rfc822Name";
+
+                ret = mbedtls_snprintf(p, n,
+                                       "\n%s    %s : ",
+                                       prefix,
+                                       san.type ==
+                                       MBEDTLS_X509_SAN_DNS_NAME ? dns_name : rfc822_name);
                 MBEDTLS_X509_SAFE_SNPRINTF;
                 if (san.san.unstructured_name.len >= n) {
                     *p = '\0';

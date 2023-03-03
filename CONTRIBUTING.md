@@ -14,8 +14,8 @@ More details on all of these points may be found in the sections below.
 
 Coding Standards
 ----------------
-- We would ask that contributions conform to [our coding standards](https://mbed-tls.readthedocs.io/en/latest/kb/development/mbedtls-coding-standards/), and that contributions are fully tested before submission, as mentioned in the [Tests](#tests) and [Continuous Integration](#continuous-integration-tests) sections.
-- The code should be written in a clean and readable style.
+- Contributions should include tests, as mentioned in the [Tests](#tests) and [Continuous Integration](#continuous-integration-tests) sections. Please check that your contribution passes basic tests before submission, and check the CI results after making a pull request.
+- The code should be written in a clean and readable style, and must follow [our coding standards](https://mbed-tls.readthedocs.io/en/latest/kb/development/mbedtls-coding-standards/).
 - The code should be written in a portable generic way, that will benefit the whole community, and not only your own needs.
 - The code should be secure, and will be reviewed from a security point of view as well.
 

@@ -1,0 +1,7 @@
+Changes
+   * Changed the default MBEDTLS_ECP_WINDOW_SIZE from 6 to 2.
+     As tested in issue 6790, the correlation between this define and
+     RSA decryption performance has changed lately due to security fixes.
+     To fix the performance degradation when using default values the
+     window was reduced from 6 to 2, a value that gives the best or close
+     to best results when tested on Cortex-M4 and Intel i7.

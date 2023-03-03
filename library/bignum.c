@@ -1656,6 +1656,7 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
     size_t window_bitsize;
     size_t i, j, nblimbs;
     size_t bufsize, nbits;
+    size_t exponent_bits_in_window = 0;
     mbedtls_mpi_uint ei, mm, state;
     mbedtls_mpi RR, T, W[(size_t) 1 << MBEDTLS_MPI_WINDOW_SIZE], WW, Apos;
     int neg;
@@ -1829,7 +1830,6 @@ int mbedtls_mpi_exp_mod(mbedtls_mpi *X, const mbedtls_mpi *A,
     nblimbs = E->n;
     bufsize = 0;
     nbits   = 0;
-    size_t exponent_bits_in_window = 0;
     state   = 0;
 
     while (1) {

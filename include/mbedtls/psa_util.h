@@ -349,7 +349,7 @@ typedef struct {
     int16_t mbedtls_error;
 } error_pair_t;
 
-#if !defined(MBEDTLS_MD_C) || !defined(MBEDTLS_MD5_C)
+#if !defined(MBEDTLS_MD_C) || !defined(MBEDTLS_MD5_C) || defined(MBEDTLS_USE_PSA_CRYPTO)
 extern const error_pair_t psa_to_md_errors[4];
 #endif
 

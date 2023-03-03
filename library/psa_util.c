@@ -33,7 +33,7 @@
 
 /* PSA_SUCCESS is kept at the top of each error table since
  * it's the most common status when everything functions properly. */
-#if !defined(MBEDTLS_MD_C) || !defined(MBEDTLS_MD5_C)
+#if !defined(MBEDTLS_MD_C) || !defined(MBEDTLS_MD5_C) || defined(MBEDTLS_USE_PSA_CRYPTO)
 const error_pair_t psa_to_md_errors[] =
 {
     { PSA_SUCCESS,                     0 },

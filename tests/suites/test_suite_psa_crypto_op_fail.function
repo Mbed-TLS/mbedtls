@@ -245,13 +245,11 @@ void sign_fail(int key_type_arg, data_t *key_data,
                               input, sizeof(input),
                               output, sizeof(output), &length));
 
-    if (PSA_KEY_TYPE_IS_ECC(key_type)) {
-        TEST_STATUS(expected_status,
-                    psa_sign_hash_start(&sign_operation, key_id, alg,
-                                        input, sizeof(input)));
+    TEST_STATUS(expected_status,
+                psa_sign_hash_start(&sign_operation, key_id, alg,
+                                    input, sizeof(input)));
 
-        PSA_ASSERT(psa_sign_hash_abort(&sign_operation));
-    }
+    PSA_ASSERT(psa_sign_hash_abort(&sign_operation));
 
     if (!private_only) {
         /* Determine a plausible signature size to avoid an INVALID_SIGNATURE
@@ -270,14 +268,12 @@ void sign_fail(int key_type_arg, data_t *key_data,
                                     input, sizeof(input),
                                     output, output_length));
 
-        if (PSA_KEY_TYPE_IS_ECC(key_type)) {
-            TEST_STATUS(expected_status,
-                        psa_verify_hash_start(&verify_operation, key_id, alg,
-                                              input, sizeof(input),
-                                              output, output_length));
+        TEST_STATUS(expected_status,
+                    psa_verify_hash_start(&verify_operation, key_id, alg,
+                                          input, sizeof(input),
+                                          output, output_length));
 
-            PSA_ASSERT(psa_verify_hash_abort(&verify_operation));
-        }
+        PSA_ASSERT(psa_verify_hash_abort(&verify_operation));
     }
 
 exit:

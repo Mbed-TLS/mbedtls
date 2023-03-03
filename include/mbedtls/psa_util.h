@@ -257,6 +257,9 @@ static inline int mbedtls_psa_get_ecc_oid_from_id(
 #define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH \
     PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)
 
+#define MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH \
+    PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)
+
 /* Expose whatever RNG the PSA subsystem uses to applications using the
  * mbedtls_xxx API. The declarations and definitions here need to be
  * consistent with the implementation in library/psa_crypto_random_impl.h.

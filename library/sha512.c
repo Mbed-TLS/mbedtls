@@ -22,6 +22,26 @@
  *  http://csrc.nist.gov/publications/fips/fips180-2/fips180-2.pdf
  */
 
+#if defined(__aarch64__) && !defined(__ARM_FEATURE_SHA512) && \
+    defined(__clang__) &&  __clang_major__ < 18 && \
+    __clang_major__ >= 13 && __clang_minor__ > 0 && __clang_patchlevel__ > 0
+/* TODO: Re-consider above after https://reviews.llvm.org/D131064 merged.
+ *
+ * The intrinsic declaration are guarded by predefined ACLE macros in clang:
+ * these are normally only enabled by the -march option on the command line.
+ * By defining the macros ourselves we gain access to those declarations without
+ * requiring -march on the command line.
+ *
+ * `arm_neon.h` could be included by any header file, so we put these defines
+ * at the top of this file, before any includes.
+ */
+#define __ARM_FEATURE_SHA512 1
+#define NEED_TARGET_OPTIONS
+#endif /* __aarch64__ && __clang__ &&
+          !__ARM_FEATURE_SHA512 && __clang_major__ < 18 &&
+          __clang_major__ >= 13 && __clang_minor__ > 0 &&
+          __clang_patchlevel__ > 0 */
+
 #include "common.h"
 
 #if defined(MBEDTLS_SHA512_C) || defined(MBEDTLS_SHA384_C)
@@ -43,6 +63,47 @@
 #if defined(__aarch64__)
 #  if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT) || \
     defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY)
+/* *INDENT-OFF* */
+/*
+ * Best performance comes from most recent compilers, with intrinsics and -O3.
+ * Must compile with -march=armv8.2-a+sha3, but we can't detect armv8.2-a, and
+ * can't always detect __ARM_FEATURE_SHA512 (notably clang 7-12).
+ *
+ * GCC < 8 won't work at all (lacks the sha512 instructions)
+ * GCC >= 8 uses intrinsics, sets __ARM_FEATURE_SHA512
+ *
+ * Clang < 7 won't work at all (lacks the sha512 instructions)
+ * Clang 7-12 don't have intrinsics (but we work around that with inline
+ *            assembler) or __ARM_FEATURE_SHA512
+ * Clang == 13.0.0 same as clang 12 (only seen on macOS)
+ * Clang >= 13.0.1 has __ARM_FEATURE_SHA512 and intrinsics
+ */
+#    if !defined(__ARM_FEATURE_SHA512) || defined(NEED_TARGET_OPTIONS)
+       /* Test Clang first, as it defines __GNUC__ */
+#      if defined(__clang__)
+#        if __clang_major__ < 7
+#          error "A more recent Clang is required for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
+#        elif __clang_major__ < 13 || \
+              (__clang_major__ == 13 && __clang_minor__ == 0 && \
+               __clang_patchlevel__ == 0)
+           /* We implement the intrinsics with inline assembler, so don't error */
+#        else
+#          pragma clang attribute push (__attribute__((target("sha3"))), apply_to=function)
+#          define MBEDTLS_POP_TARGET_PRAGMA
+#        endif
+#      elif defined(__GNUC__)
+#        if __GNUC__ < 8
+#          error "A more recent GCC is required for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
+#        else
+#          pragma GCC push_options
+#          pragma GCC target ("arch=armv8.2-a+sha3")
+#          define MBEDTLS_POP_TARGET_PRAGMA
+#        endif
+#      else
+#        error "Only GCC and Clang supported for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
+#      endif
+#    endif
+/* *INDENT-ON* */
 #    include <arm_neon.h>
 #  endif
 #  if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT)
@@ -515,6 +576,15 @@ int mbedtls_internal_sha512_process_a64_crypto(mbedtls_sha512_context *ctx,
                                                             SHA512_BLOCK_SIZE) ==
             SHA512_BLOCK_SIZE) ? 0 : -1;
 }
+
+#if defined(MBEDTLS_POP_TARGET_PRAGMA)
+#if defined(__clang__)
+#pragma clang attribute pop
+#elif defined(__GNUC__)
+#pragma GCC pop_options
+#endif
+#undef MBEDTLS_POP_TARGET_PRAGMA
+#endif
 
 #endif /* MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT || MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY */
 

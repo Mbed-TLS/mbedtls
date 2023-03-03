@@ -168,7 +168,7 @@
 #define ASSERT_COMPARE(p1, size1, p2, size2)                          \
     do                                                                  \
     {                                                                   \
-        TEST_ASSERT((size1) == (size2));                          \
+        TEST_EQUAL((size1), (size2));                          \
         if ((size1) != 0)                                            \
         TEST_ASSERT(memcmp((p1), (p2), (size1)) == 0);    \
     }                                                                   \

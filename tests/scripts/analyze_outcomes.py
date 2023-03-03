@@ -175,13 +175,6 @@ TASKS = {
             'component_driver': 'test_psa_crypto_config_accel_ecdsa_use_psa',
             'ignored_suites': [
                 'ecdsa', # the software implementation that's excluded
-                # the following lines should not be needed,
-                # they will be removed by upcoming work
-                'pk', # #6857
-                'x509parse', # #6858
-                'x509write', # #6858
-                'debug', # #6860
-                'ssl', # #6860
             ],
             'ignored_tests': {
                 'test_suite_random': [

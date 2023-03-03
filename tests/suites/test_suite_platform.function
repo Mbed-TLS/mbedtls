@@ -1,0 +1,38 @@
+/* BEGIN_HEADER */
+
+/* This test module exercises the platform_* module. Since, depending on the
+ * underlying operating system, the time routines are not always reliable,
+ * this suite only performs very basic sanity checks of the timing API.
+ */
+
+#include <limits.h>
+
+#if defined(MBEDTLS_HAVE_TIME)
+#include "mbedtls/platform_time.h"
+#endif
+
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE depends_on:MBEDTLS_HAVE_TIME */
+void time_get_milliseconds()
+{
+    mbedtls_ms_time_t  current = mbedtls_ms_time();
+    (void) current;
+    /* This goto is added to avoid warnings from the generated code. */
+    goto exit;
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_HAVE_TIME */
+void time_get_seconds()
+{
+    mbedtls_time_t  current = mbedtls_time(NULL);
+    (void) current;
+    /* This goto is added to avoid warnings from the generated code. */
+    goto exit;
+}
+/* END_CASE */

@@ -409,7 +409,7 @@ psa_status_t mbedtls_psa_ecp_load_public_part(mbedtls_ecp_keypair *ecp)
     int ret = 0;
 
     /* Check whether the public part is loaded. If not, load it. */
-    if (mbedtls_ecp_is_zero(&ecp->Q)) {
+    if (mbedtls_ecp_is_zero_ext(&ecp->grp, &ecp->Q)) {
         ret = mbedtls_ecp_mul(&ecp->grp, &ecp->Q,
                               &ecp->d, &ecp->grp.G,
                               mbedtls_psa_get_random,

@@ -5,6 +5,11 @@
    Global to silent the compiler when unused. */
 size_t pake_expected_hit_count = 0;
 int pake_in_driver = 0;
+
+/* JPAKE user/peer ids. */
+#define JPAKE_SERVER_ID "server"
+#define JPAKE_CLIENT_ID "client"
+
 #if defined(PSA_WANT_ALG_JPAKE) && defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) && \
     defined(PSA_WANT_ECC_SECP_R1_256) && defined(PSA_WANT_ALG_SHA_256)
 static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
@@ -2994,10 +2999,10 @@ void pake_operations(data_t *pw_data, int forced_status_setup_arg, int forced_st
         PSA_ECC_FAMILY_SECP_R1, 256);
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     unsigned char *input_buffer = NULL;
-    const uint8_t server_id[] = PSA_JPAKE_SERVER_ID;
-    const uint8_t client_id[] = PSA_JPAKE_CLIENT_ID;
-    const size_t server_id_len = strlen(PSA_JPAKE_SERVER_ID);
-    const size_t client_id_len = strlen(PSA_JPAKE_CLIENT_ID);
+    const uint8_t server_id[] = JPAKE_SERVER_ID;
+    const uint8_t client_id[] = JPAKE_CLIENT_ID;
+    const size_t server_id_len = strlen(JPAKE_SERVER_ID);
+    const size_t client_id_len = strlen(JPAKE_CLIENT_ID);
     const size_t size_key_share = PSA_PAKE_INPUT_SIZE(PSA_ALG_JPAKE, primitive,
                                                       PSA_PAKE_STEP_KEY_SHARE);
     unsigned char *output_buffer = NULL;
@@ -3188,10 +3193,10 @@ void ecjpake_rounds(int alg_arg, int primitive_arg, int hash_arg,
         PSA_KEY_DERIVATION_OPERATION_INIT;
     psa_key_derivation_operation_t client_derive =
         PSA_KEY_DERIVATION_OPERATION_INIT;
-    const uint8_t server_id[] = PSA_JPAKE_SERVER_ID;
-    const uint8_t client_id[] = PSA_JPAKE_CLIENT_ID;
-    const size_t server_id_len = strlen(PSA_JPAKE_SERVER_ID);
-    const size_t client_id_len = strlen(PSA_JPAKE_CLIENT_ID);
+    const uint8_t server_id[] = JPAKE_SERVER_ID;
+    const uint8_t client_id[] = JPAKE_CLIENT_ID;
+    const size_t server_id_len = strlen(JPAKE_SERVER_ID);
+    const size_t client_id_len = strlen(JPAKE_CLIENT_ID);
     pake_in_driver = in_driver;
     /* driver setup is called indirectly through pake_output/pake_input */
     if (pake_in_driver) {

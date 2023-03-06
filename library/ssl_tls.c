@@ -61,6 +61,10 @@
                                                       psa_generic_status_to_mbedtls)
 #endif
 
+/* JPAKE user/peer ids. */
+#define JPAKE_SERVER_ID "server"
+#define JPAKE_CLIENT_ID "client"
+
 #if defined(MBEDTLS_TEST_HOOKS)
 static mbedtls_ssl_chk_buf_ptr_args chk_buf_ptr_fail_args;
 
@@ -1972,15 +1976,15 @@ static psa_status_t mbedtls_ssl_set_hs_ecjpake_password_common(
     }
 
     if (ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER) {
-        user = (uint8_t *) PSA_JPAKE_SERVER_ID;
-        user_len = strlen(PSA_JPAKE_SERVER_ID);
-        peer = (uint8_t *) PSA_JPAKE_CLIENT_ID;
-        peer_len = strlen(PSA_JPAKE_CLIENT_ID);
+        user = (uint8_t *) JPAKE_SERVER_ID;
+        user_len = strlen(JPAKE_SERVER_ID);
+        peer = (uint8_t *) JPAKE_CLIENT_ID;
+        peer_len = strlen(JPAKE_CLIENT_ID);
     } else {
-        user = (uint8_t *) PSA_JPAKE_CLIENT_ID;
-        user_len = strlen(PSA_JPAKE_CLIENT_ID);
-        peer = (uint8_t *) PSA_JPAKE_SERVER_ID;
-        peer_len = strlen(PSA_JPAKE_SERVER_ID);
+        user = (uint8_t *) JPAKE_CLIENT_ID;
+        user_len = strlen(JPAKE_CLIENT_ID);
+        peer = (uint8_t *) JPAKE_SERVER_ID;
+        peer_len = strlen(JPAKE_SERVER_ID);
     }
 
     status = psa_pake_set_user(&ssl->handshake->psa_pake_ctx, user, user_len);

@@ -434,9 +434,6 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
 #define PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS 1
 #define PSA_PAKE_OPERATION_STAGE_COMPUTATION 2
 
-/** JPAKE user/peer ids. */
-#define PSA_JPAKE_SERVER_ID "server"
-#define PSA_JPAKE_CLIENT_ID "client"
 /**
  * \brief Set domain parameters for a key.
  *

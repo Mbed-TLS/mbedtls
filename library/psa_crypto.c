@@ -91,6 +91,10 @@
 #define BUILTIN_ALG_ANY_HKDF 1
 #endif
 
+/* JPAKE user/peer ids. */
+#define JPAKE_SERVER_ID "server"
+#define JPAKE_CLIENT_ID "client"
+
 /****************************************************************/
 /* Global data, support functions and library management */
 /****************************************************************/
@@ -7402,8 +7406,8 @@ psa_status_t psa_pake_set_user(
     }
 
     /* Allow only "client" or "server" values (temporary restriction). */
-    if (memcmp(peer_id, PSA_JPAKE_SERVER_ID, peer_id_len) != 0 &&
-        memcmp(peer_id, PSA_JPAKE_CLIENT_ID, peer_id_len) != 0) {
+    if (memcmp(user_id, JPAKE_SERVER_ID, user_id_len) != 0 &&
+        memcmp(user_id, JPAKE_CLIENT_ID, user_id_len) != 0) {
         status = PSA_ERROR_NOT_SUPPORTED;
         goto exit;
     }
@@ -7446,8 +7450,8 @@ psa_status_t psa_pake_set_peer(
     }
 
     /* Allow only "client" or "server" values (temporary restriction). */
-    if (memcmp(user_id, PSA_JPAKE_SERVER_ID, user_id_len) != 0 &&
-        memcmp(user_id, PSA_JPAKE_CLIENT_ID, user_id_len) != 0) {
+    if (memcmp(peer_id, JPAKE_SERVER_ID, peer_id_len) != 0 &&
+        memcmp(peer_id, JPAKE_CLIENT_ID, peer_id_len) != 0) {
         status = PSA_ERROR_NOT_SUPPORTED;
         goto exit;
     }
@@ -7568,12 +7572,12 @@ static psa_status_t psa_pake_complete_inputs(
     }
 
     if (operation->alg == PSA_ALG_JPAKE) {
-        if (memcmp(inputs.user, PSA_JPAKE_CLIENT_ID, inputs.user_len) == 0 &&
-            memcmp(inputs.peer, PSA_JPAKE_SERVER_ID, inputs.peer_len) == 0) {
+        if (memcmp(inputs.user, JPAKE_CLIENT_ID, inputs.user_len) == 0 &&
+            memcmp(inputs.peer, JPAKE_SERVER_ID, inputs.peer_len) == 0) {
             inputs.role = PSA_PAKE_ROLE_CLIENT;
         } else
-        if (memcmp(inputs.user, PSA_JPAKE_SERVER_ID, inputs.user_len) == 0 &&
-            memcmp(inputs.peer, PSA_JPAKE_CLIENT_ID, inputs.peer_len) == 0) {
+        if (memcmp(inputs.user, JPAKE_SERVER_ID, inputs.user_len) == 0 &&
+            memcmp(inputs.peer, JPAKE_CLIENT_ID, inputs.peer_len) == 0) {
             inputs.role = PSA_PAKE_ROLE_SERVER;
         }
 

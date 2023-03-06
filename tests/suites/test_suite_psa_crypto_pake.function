@@ -53,6 +53,10 @@ typedef enum {
     PAKE_ROUND_TWO
 } pake_round_t;
 
+/* JPAKE user/peer ids. */
+#define JPAKE_SERVER_ID "server"
+#define JPAKE_CLIENT_ID "client"
+
 /*
  * Inject an error on the specified buffer ONLY it this is the correct stage.
  * Offset 7 is arbitrary, but chosen because it's "in the middle" of the part
@@ -733,10 +737,10 @@ void ecjpake_rounds_inject(int alg_arg, int primitive_arg, int hash_arg,
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     ecjpake_error_stage_t err_stage = err_stage_arg;
-    const uint8_t server_id[] = PSA_JPAKE_SERVER_ID;
-    const uint8_t client_id[] = PSA_JPAKE_CLIENT_ID;
-    const size_t server_id_len = strlen(PSA_JPAKE_SERVER_ID);
-    const size_t client_id_len = strlen(PSA_JPAKE_CLIENT_ID);
+    const uint8_t server_id[] = JPAKE_SERVER_ID;
+    const uint8_t client_id[] = JPAKE_CLIENT_ID;
+    const size_t server_id_len = strlen(JPAKE_SERVER_ID);
+    const size_t client_id_len = strlen(JPAKE_CLIENT_ID);
 
     PSA_INIT();
 
@@ -801,10 +805,10 @@ void ecjpake_rounds(int alg_arg, int primitive_arg, int hash_arg,
     psa_key_derivation_operation_t client_derive =
         PSA_KEY_DERIVATION_OPERATION_INIT;
     ecjpake_error_stage_t err_stage = err_stage_arg;
-    const uint8_t server_id[] = PSA_JPAKE_SERVER_ID;
-    const uint8_t client_id[] = PSA_JPAKE_CLIENT_ID;
-    const size_t server_id_len = strlen(PSA_JPAKE_SERVER_ID);
-    const size_t client_id_len = strlen(PSA_JPAKE_CLIENT_ID);
+    const uint8_t server_id[] = JPAKE_SERVER_ID;
+    const uint8_t client_id[] = JPAKE_CLIENT_ID;
+    const size_t server_id_len = strlen(JPAKE_SERVER_ID);
+    const size_t client_id_len = strlen(JPAKE_CLIENT_ID);
 
     PSA_INIT();
 

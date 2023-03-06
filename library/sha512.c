@@ -36,8 +36,7 @@
  */
 #define __ARM_FEATURE_SHA512 1
 #define NEED_TARGET_OPTIONS
-#endif /* __aarch64__ &&  !__ARM_FEATURE_SHA512 &&
-          __clang__ && __clang_major__ < 18 && __clang_major__ > 7 */
+#endif
 
 #include "common.h"
 

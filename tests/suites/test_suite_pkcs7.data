@@ -34,6 +34,10 @@ PKCS7 Signed Data Parse Fail with corrupted signer info[1] invalid size #6.1
 depends_on:MBEDTLS_SHA256_C
 pkcs7_parse:"data_files/pkcs7_data_signed_badsigner1_badsize.der":MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO
 
+PKCS7 Signed Data Parse Fail with corrupted signer info[2] invalid size #6.2
+depends_on:MBEDTLS_SHA256_C
+pkcs7_parse:"data_files/pkcs7_data_signed_badsigner2_badsize.der":MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO
+
 PKCS7 Signed Data Parse Fail Version other than 1 #7
 depends_on:MBEDTLS_SHA256_C
 pkcs7_parse:"data_files/pkcs7_data_cert_signed_v2.der":MBEDTLS_ERR_PKCS7_INVALID_VERSION

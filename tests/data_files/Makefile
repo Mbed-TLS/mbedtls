@@ -1390,6 +1390,12 @@ pkcs7_data_signed_badsigner1_badsize.der: pkcs7_data_3_signed.der
 	echo '\x72' | xxd -p -r | dd of=$@ bs=1 seek=438 conv=notrunc
 all_final += pkcs7_data_signed_badsigner1_badsize.der
 
+# pkcs7 signature file with corrupted signer info[2]
+pkcs7_data_signed_badsigner2_badsize.der: pkcs7_data_3_signed.der
+	cp pkcs7_data_3_signed.der $@
+	echo '\x72'| xxd -p -r | dd of=$@ bs=1 seek=813 conv=notrunc
+all_final += pkcs7_data_signed_badsigner2_badsize
+
 # pkcs7 file with version 2
 pkcs7_data_cert_signed_v2.der: pkcs7_data_cert_signed_sha256.der
 	cp pkcs7_data_cert_signed_sha256.der $@

@@ -19,10 +19,12 @@ from typing import List
 from . import test_data_generation
 from . import bignum_common
 
+
 class EcpTarget(test_data_generation.BaseTarget):
     #pylint: disable=abstract-method, too-few-public-methods
     """Target for ecp test case generation."""
     target_basename = 'test_suite_ecp.generated'
+
 
 class EcpP192R1Raw(bignum_common.ModOperationCommon,
                    EcpTarget):
@@ -71,6 +73,7 @@ class EcpP192R1Raw(bignum_common.ModOperationCommon,
     def result(self) -> List[str]:
         result = self.int_a % self.int_n
         return [self.format_result(result)]
+
 
 class EcpP224R1Raw(bignum_common.ModOperationCommon,
                    EcpTarget):
@@ -132,6 +135,7 @@ class EcpP224R1Raw(bignum_common.ModOperationCommon,
     def result(self) -> List[str]:
         result = self.int_a % self.int_n
         return [self.format_result(result)]
+
 
 class EcpP521R1Raw(bignum_common.ModOperationCommon,
                    EcpTarget):

@@ -20,17 +20,24 @@ class Results:
         self.error_count = 0
         self.warning_count = 0
 
+    # Private method
     @staticmethod
-    def log(fmt, *args, **kwargs):
+    def __log(fmt, *args, **kwargs):
         sys.stderr.write((fmt + '\n').format(*args, **kwargs))
 
     def error(self, fmt, *args, **kwargs):
-        self.log('Error: ' + fmt, *args, **kwargs)
+        self.__log('Error: ' + fmt, *args, **kwargs)
         self.error_count += 1
 
     def warning(self, fmt, *args, **kwargs):
-        self.log('Warning: ' + fmt, *args, **kwargs)
+        self.__log('Warning: ' + fmt, *args, **kwargs)
         self.warning_count += 1
+
+    # This is a static method because we don't need to track any data about
+    # the number of times it is called
+    @staticmethod
+    def info(fmt, *args, **kwargs):
+        Results.__log(fmt, *args, **kwargs)
 
 class TestCaseOutcomes:
     """The outcomes of one test case across many configurations."""
@@ -96,7 +103,7 @@ def analyze_driver_vs_reference(outcomes, component_ref, component_driver,
             if component_ref in entry:
                 reference_test_passed = True
         if(reference_test_passed and not driver_test_passed):
-            print(key)
+            Results.info(key)
             result = False
     return result
 
@@ -131,7 +138,7 @@ def do_analyze_coverage(outcome_file, args):
     """Perform coverage analysis."""
     del args # unused
     outcomes = read_outcome_file(outcome_file)
-    print("\n*** Analyze coverage ***\n")
+    Results.info("\n*** Analyze coverage ***\n")
     results = analyze_outcomes(outcomes)
     return results.error_count == 0
 
@@ -140,7 +147,7 @@ def do_analyze_driver_vs_reference(outcome_file, args):
     ignored_suites = ['test_suite_' + x for x in args['ignored_suites']]
 
     outcomes = read_outcome_file(outcome_file)
-    print("\n*** Analyze driver {} vs reference {} ***\n".format(
+    Results.info("\n*** Analyze driver {} vs reference {} ***\n".format(
         args['component_driver'], args['component_ref']))
     return analyze_driver_vs_reference(outcomes, args['component_ref'],
                                        args['component_driver'], ignored_suites,
@@ -201,7 +208,7 @@ def main():
 
         if options.list:
             for task in TASKS:
-                print(task)
+                Results.info(task)
             sys.exit(0)
 
         result = True
@@ -213,7 +220,7 @@ def main():
 
             for task in tasks:
                 if task not in TASKS:
-                    print('Error: invalid task: {}'.format(task))
+                    Results.info('Error: invalid task: {}'.format(task))
                     sys.exit(1)
 
         for task in TASKS:
@@ -223,7 +230,7 @@ def main():
 
         if result is False:
             sys.exit(1)
-        print("SUCCESS :-)")
+        Results.info("SUCCESS :-)")
     except Exception: # pylint: disable=broad-except
         # Print the backtrace and exit explicitly with our chosen status.
         traceback.print_exc()

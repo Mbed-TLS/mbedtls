@@ -9672,7 +9672,7 @@ void persistent_key_load_key_from_storage(data_t *data,
     unsigned char *first_export = NULL;
     unsigned char *second_export = NULL;
     size_t export_size = PSA_EXPORT_KEY_OUTPUT_SIZE(type, bits);
-    size_t first_exported_length;
+    size_t first_exported_length = 0;
     size_t second_exported_length;
 
     if (usage_flags & PSA_KEY_USAGE_EXPORT) {

@@ -246,7 +246,7 @@ int mbedtls_ssl_cache_set(void *data,
     mbedtls_ssl_cache_context *cache = (mbedtls_ssl_cache_context *) data;
     mbedtls_ssl_cache_entry *cur;
 
-    size_t session_serialized_len;
+    size_t session_serialized_len = 0;
     unsigned char *session_serialized = NULL;
 
 #if defined(MBEDTLS_THREADING_C)

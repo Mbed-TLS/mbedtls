@@ -6479,7 +6479,7 @@ exit:
  * Note: This test can currently only handle ECDSA.
  *
  * 1. Test interruptible sign hash with known outcomes (deterministic ECDSA
- *    only).
+ *    and private keys / keypairs only).
  *
  * 2. Test the number of calls to psa_sign_hash_complete() required are as
  *    expected for different max_ops values.
@@ -6870,9 +6870,9 @@ exit:
  *
  * Note: This test can currently only handle ECDSA.
  *
- * 1. Test that we can sign an input hash with the given key and then afterwards
- *    verify that signature. This is currently the only way to test non
- *    deterministic ECDSA, but this test can also handle deterministic.
+ * 1. Test that we can sign an input hash with the given keypair and then
+ *    afterwards verify that signature. This is currently the only way to test
+ *    non deterministic ECDSA, but this test can also handle deterministic.
  *
  * 2. Test that after corrupting the hash, the verification detects an invalid
  *    signature.
@@ -7075,7 +7075,8 @@ exit:
  * Note: This test can currently only handle ECDSA.
  *
  * 1. Test interruptible verify hash with known outcomes (deterministic ECDSA
- *    only).
+ *    only). Given this test only does verification it can accept public keys as
+ *    well as private keys / keypairs.
  *
  * 2. Test the number of calls to psa_verify_hash_complete() required are as
  *    expected for different max_ops values.

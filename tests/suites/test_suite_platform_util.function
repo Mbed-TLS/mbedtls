@@ -1,0 +1,41 @@
+/* BEGIN_HEADER */
+#include "mbedtls/platform_util.h"
+/* END_HEADER */
+
+/* BEGIN_CASE */
+void mbedtls_platform_zeroize(int len, int null)
+{
+    char buf[130];
+    char *p = NULL;
+
+    TEST_ASSERT(len <= 128);
+
+    /* Write sentinel values */
+    buf[0] = 2;
+    buf[len + 1] = 2;
+
+    /* Write non-zero content */
+    if (!null) {
+        p = &buf[1];
+        for (int i = 0; i < len; i++) {
+            p[i] = 1;
+        }
+    }
+
+    /* Check content is non-zero */
+    TEST_EQUAL(buf[0], 2);
+    for (int i = 0; i < len; i++) {
+        TEST_ASSERT(p[i] == 1);
+    }
+    TEST_EQUAL(buf[len + 1], 2);
+
+    mbedtls_platform_zeroize(p, len);
+
+    /* Check content is zero and sentinels un-changed */
+    TEST_EQUAL(buf[0], 2);
+    for (int i = 0; i < len; i++) {
+        TEST_ASSERT(p[i] == 0);
+    }
+    TEST_EQUAL(buf[len + 1], 2);
+}
+/* END_CASE */

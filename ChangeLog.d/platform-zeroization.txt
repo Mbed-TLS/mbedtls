@@ -1,0 +1,3 @@
+Security
+  * Use platform-provided secure zeroization function where possible, such as
+    explicit_bzero().

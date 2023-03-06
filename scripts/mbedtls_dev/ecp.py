@@ -72,10 +72,6 @@ class EcpP192R1Raw(bignum_common.ModOperationCommon,
         result = self.int_a % self.int_n
         return [self.format_result(result)]
 
-    @property
-    def is_valid(self) -> bool:
-        return True
-
 class EcpP224R1Raw(bignum_common.ModOperationCommon,
                    EcpTarget):
     """Test cases for ecp quasi_reduction()."""
@@ -136,10 +132,6 @@ class EcpP224R1Raw(bignum_common.ModOperationCommon,
     def result(self) -> List[str]:
         result = self.int_a % self.int_n
         return [self.format_result(result)]
-
-    @property
-    def is_valid(self) -> bool:
-        return True
 
 class EcpP521R1Raw(bignum_common.ModOperationCommon,
                    EcpTarget):
@@ -227,7 +219,3 @@ class EcpP521R1Raw(bignum_common.ModOperationCommon,
     def result(self) -> List[str]:
         result = self.int_a % self.int_n
         return [self.format_result(result)]
-
-    @property
-    def is_valid(self) -> bool:
-        return True

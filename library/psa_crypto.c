@@ -7401,7 +7401,7 @@ psa_status_t psa_pake_set_user(
         goto exit;
     }
 
-    /* Allow only "client" or "server" values. */
+    /* Allow only "client" or "server" values (temporary restriction). */
     if (memcmp(peer_id, PSA_JPAKE_SERVER_ID, peer_id_len) != 0 &&
         memcmp(peer_id, PSA_JPAKE_CLIENT_ID, peer_id_len) != 0) {
         status = PSA_ERROR_NOT_SUPPORTED;
@@ -7445,7 +7445,7 @@ psa_status_t psa_pake_set_peer(
         goto exit;
     }
 
-    /* Allow only "client" or "server" values. */
+    /* Allow only "client" or "server" values (temporary restriction). */
     if (memcmp(user_id, PSA_JPAKE_SERVER_ID, user_id_len) != 0 &&
         memcmp(user_id, PSA_JPAKE_CLIENT_ID, user_id_len) != 0) {
         status = PSA_ERROR_NOT_SUPPORTED;
@@ -7591,6 +7591,8 @@ static psa_status_t psa_pake_complete_inputs(
     /* User and peer are translated to role. */
     mbedtls_free(inputs.user);
     mbedtls_free(inputs.peer);
+    inputs.user = NULL; inputs.user_len = 0;
+    inputs.peer = NULL; inputs.peer_len = 0;
 
     if (status == PSA_SUCCESS) {
 #if defined(PSA_WANT_ALG_JPAKE)

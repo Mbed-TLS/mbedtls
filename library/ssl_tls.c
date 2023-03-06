@@ -839,6 +839,8 @@ int mbedtls_ssl_reset_checksum(mbedtls_ssl_context *ssl)
         return mbedtls_md_error_from_psa(status);
     }
 #else
+    mbedtls_md_free(&ssl->handshake->fin_sha256);
+    mbedtls_md_init(&ssl->handshake->fin_sha256);
     ret = mbedtls_md_setup(&ssl->handshake->fin_sha256,
                            mbedtls_md_info_from_type(MBEDTLS_MD_SHA256),
                            0);
@@ -862,6 +864,8 @@ int mbedtls_ssl_reset_checksum(mbedtls_ssl_context *ssl)
         return mbedtls_md_error_from_psa(status);
     }
 #else
+    mbedtls_md_free(&ssl->handshake->fin_sha384);
+    mbedtls_md_init(&ssl->handshake->fin_sha384);
     ret = mbedtls_md_setup(&ssl->handshake->fin_sha384,
                            mbedtls_md_info_from_type(MBEDTLS_MD_SHA384), 0);
     if (ret != 0) {

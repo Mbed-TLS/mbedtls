@@ -2302,8 +2302,7 @@ component_test_psa_crypto_config_accel_ecdh_use_psa () {
     # -------------
 
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDH + USE_PSA"
-    #make test
-    tests/ssl-opt.sh
+    make test
 
     # ssl-opt.sh later (probably doesn't pass right now)
 }

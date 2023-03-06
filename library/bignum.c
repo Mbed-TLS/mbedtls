@@ -1426,8 +1426,7 @@ void mpi_mul_hlp(size_t i,
                  mbedtls_mpi_uint *d,
                  mbedtls_mpi_uint b)
 {
-    mbedtls_mpi_uint c = 0, t = 0;
-    (void) t;                   /* Unused in some architectures */
+    mbedtls_mpi_uint c = 0;
 
 #if defined(MULADDC_HUIT)
     for (; i >= 8; i -= 8) {

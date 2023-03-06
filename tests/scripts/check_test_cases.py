@@ -116,8 +116,7 @@ state may override this method.
         """Iterate over the test cases compat.sh with a similar format."""
         descriptions = self.new_per_file_state() # pylint: disable=assignment-from-none
         compat_cmd = ['sh', file_name, '--list-test-case']
-        compat_output = subprocess.check_output(compat_cmd,
-                                                stderr=subprocess.STDOUT)
+        compat_output = subprocess.check_output(compat_cmd)
         # Assume compat.sh is responsible for printing identical format of
         # test case description between --list-test-case and its OUTCOME.CSV
         description = compat_output.strip().split(b'\n')

@@ -2214,7 +2214,7 @@ component_test_psa_crypto_config_accel_ecdh () {
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 
-    # Build the library
+    # Build the main library
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
     make CFLAGS="$ASAN_CFLAGS -O -Werror -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
 
@@ -2291,7 +2291,7 @@ component_test_psa_crypto_config_accel_ecdh_use_psa () {
     # Use the same config as reference, only without built-in ECDH
     config_psa_crypto_config_ecdh_use_psa 1
 
-    # Build the library
+    # Build the main library
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
     make CFLAGS="$ASAN_CFLAGS -O -Werror -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
 
@@ -2301,7 +2301,7 @@ component_test_psa_crypto_config_accel_ecdh_use_psa () {
     # Run the tests
     # -------------
 
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDH"
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDH + USE_PSA"
     #make test
     tests/ssl-opt.sh
 
@@ -2311,7 +2311,7 @@ component_test_psa_crypto_config_accel_ecdh_use_psa () {
 # Keep in sync with component_test_psa_crypto_config_accel_ecdh_use_psa.
 # Used by tests/scripts/analyze_outcomes.py for comparison purposes.
 component_test_psa_crypto_config_reference_ecdh_use_psa () {
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDH + USE_PSA"
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with reference ECDH + USE_PSA"
 
     # To be aligned with the accel component that needs this
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
@@ -2321,7 +2321,7 @@ component_test_psa_crypto_config_reference_ecdh_use_psa () {
 
     make
 
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDH + USE_PSA"
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with reference ECDH + USE_PSA"
     make test
 
     # ssl-opt.sh later when the accel component is ready

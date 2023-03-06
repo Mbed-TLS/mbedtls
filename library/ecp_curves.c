@@ -5080,13 +5080,16 @@ int mbedtls_ecp_mod_p224_raw(mbedtls_mpi_uint *X, size_t X_limbs)
     RESET;
 
     /* Use 2^224 = P + 2^96 - 1 to modulo reduce the final carry */
-    SUB_LAST; NEXT;                     // A0 += -last_c
+    SUB_LAST; NEXT;                     // A0 -= last_c
     ;         NEXT;                     // A1
     ;         NEXT;                     // A2
     ADD_LAST; NEXT;                     // A3 += last_c
     ;         NEXT;                     // A4
     ;         NEXT;                     // A5
                                         // A6
+
+    /* The carry reduction cannot generate a carry
+     * (see commit 73e8553 for details)*/
 
     LAST;
 

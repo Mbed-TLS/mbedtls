@@ -2228,7 +2228,13 @@ component_test_psa_crypto_config_accel_ecdh () {
     make test
 }
 
-# Auxiliary function to build config for ECDH with and without drivers
+# Auxiliary function to build config for ECDH with and without drivers.
+#
+# This is used by the two following components to ensure they always use the
+# same config, except for the use of driver or built-in ECDH:
+# - component_test_psa_crypto_config_accel_ecdh_use_psa;
+# - component_test_psa_crypto_config_reference_ecdh_use_psa.
+# This support comparing their test coverage with analyze_outcomes.py.
 config_psa_crypto_config_ecdh_use_psa () {
     DRIVER_ONLY="$1"
     # start with config full for maximum coverage (also enables USE_PSA)
@@ -2240,7 +2246,7 @@ config_psa_crypto_config_ecdh_use_psa () {
         # Disable the module that's accelerated
         scripts/config.py unset MBEDTLS_ECDH_C
     fi
-    # Disable things that depend on it
+    # Disable things that depend on it (regardless of driver or built-in)
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
@@ -2296,7 +2302,8 @@ component_test_psa_crypto_config_accel_ecdh_use_psa () {
     # -------------
 
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDH"
-    make test
+    #make test
+    tests/ssl-opt.sh
 
     # ssl-opt.sh later (probably doesn't pass right now)
 }

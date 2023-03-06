@@ -194,7 +194,7 @@ get_options() {
             # if you have to modify option, --list-test-case
             --list-test-case)
                 list_test_case
-                exit 0
+                exit $?
                 ;;
             --outcome-file)
                 shift; MBEDTLS_TEST_OUTCOME_FILE=$1

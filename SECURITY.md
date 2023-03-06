@@ -23,16 +23,11 @@ Users are urged to always use the latest version of a maintained branch.
 
 We use the following classification of attacks:
 
-- **Remote Attacks:** The attacker can observe and modify data sent over the
-  network. This includes observing the content and timing of individual packets,
-  as well as suppressing or delaying legitimate messages, and injecting messages.
-- **Timing Attacks:** The attacker can gain information about the time taken
-  by certain sets of instructions in Mbed TLS operations.
-- **Physical Attacks:** The attacker has access to physical information about
-  the hardware Mbed TLS is running on and/or can alter the physical state of
-  the hardware.
-
 ### Remote attacks
+
+The attacker can observe and modify data sent over the network. This includes
+observing the content and timing of individual packets, as well as suppressing
+or delaying legitimate messages, and injecting messages.
 
 Mbed TLS aims to fully protect against remote attacks and to enable the user
 application in providing full protection against remote attacks. Said
@@ -41,6 +36,9 @@ in question. (For example Mbed TLS alone won't guarantee that the messages will
 arrive without delay, as the TLS protocol doesn't guarantee that either.)
 
 ### Timing attacks
+
+The attacker can gain information about the time taken by certain sets of
+instructions in Mbed TLS operations.
 
 Mbed TLS provides limited protection against timing attacks. The cost of
 protecting against timing attacks widely varies depending on the granularity of
@@ -70,6 +68,9 @@ Guide](docs/architecture/alternative-implementations.md) for more information.
   block cipher modes. For random generation, use HMAC\_DRBG instead of CTR\_DRBG.
 
 ### Physical attacks
+
+The attacker has access to physical information about the hardware Mbed TLS is
+running on and/or can alter the physical state of the hardware.
 
 Physical attacks are out of scope (eg. power analysis or radio emissions). Any
 attack using information about or influencing the physical state of the

@@ -25,7 +25,7 @@
 #include "mbedtls/base64.h"
 #include "mbedtls/des.h"
 #include "mbedtls/aes.h"
-#include "mbedtls/md5.h"
+#include "mbedtls/md.h"
 #include "mbedtls/cipher.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
@@ -99,26 +99,33 @@ static int pem_pbkdf1(unsigned char *key, size_t keylen,
                       unsigned char *iv,
                       const unsigned char *pwd, size_t pwdlen)
 {
-    mbedtls_md5_context md5_ctx;
+    mbedtls_md_context_t md5_ctx;
+    const mbedtls_md_info_t *md5_info;
     unsigned char md5sum[16];
     size_t use_len;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    mbedtls_md5_init(&md5_ctx);
+    mbedtls_md_init(&md5_ctx);
+
+    /* Prepare the context. (setup() errors gracefully on NULL info.) */
+    md5_info = mbedtls_md_info_from_type(MBEDTLS_MD_MD5);
+    if ((ret = mbedtls_md_setup(&md5_ctx, md5_info, 0)) != 0) {
+        goto exit;
+    }
 
     /*
      * key[ 0..15] = MD5(pwd || IV)
      */
-    if ((ret = mbedtls_md5_starts(&md5_ctx)) != 0) {
+    if ((ret = mbedtls_md_starts(&md5_ctx)) != 0) {
         goto exit;
     }
-    if ((ret = mbedtls_md5_update(&md5_ctx, pwd, pwdlen)) != 0) {
+    if ((ret = mbedtls_md_update(&md5_ctx, pwd, pwdlen)) != 0) {
         goto exit;
     }
-    if ((ret = mbedtls_md5_update(&md5_ctx, iv,  8)) != 0) {
+    if ((ret = mbedtls_md_update(&md5_ctx, iv,  8)) != 0) {
         goto exit;
     }
-    if ((ret = mbedtls_md5_finish(&md5_ctx, md5sum)) != 0) {
+    if ((ret = mbedtls_md_finish(&md5_ctx, md5sum)) != 0) {
         goto exit;
     }
 
@@ -132,19 +139,19 @@ static int pem_pbkdf1(unsigned char *key, size_t keylen,
     /*
      * key[16..23] = MD5(key[ 0..15] || pwd || IV])
      */
-    if ((ret = mbedtls_md5_starts(&md5_ctx)) != 0) {
+    if ((ret = mbedtls_md_starts(&md5_ctx)) != 0) {
         goto exit;
     }
-    if ((ret = mbedtls_md5_update(&md5_ctx, md5sum, 16)) != 0) {
+    if ((ret = mbedtls_md_update(&md5_ctx, md5sum, 16)) != 0) {
         goto exit;
     }
-    if ((ret = mbedtls_md5_update(&md5_ctx, pwd, pwdlen)) != 0) {
+    if ((ret = mbedtls_md_update(&md5_ctx, pwd, pwdlen)) != 0) {
         goto exit;
     }
-    if ((ret = mbedtls_md5_update(&md5_ctx, iv, 8)) != 0) {
+    if ((ret = mbedtls_md_update(&md5_ctx, iv, 8)) != 0) {
         goto exit;
     }
-    if ((ret = mbedtls_md5_finish(&md5_ctx, md5sum)) != 0) {
+    if ((ret = mbedtls_md_finish(&md5_ctx, md5sum)) != 0) {
         goto exit;
     }
 
@@ -156,7 +163,7 @@ static int pem_pbkdf1(unsigned char *key, size_t keylen,
     memcpy(key + 16, md5sum, use_len);
 
 exit:
-    mbedtls_md5_free(&md5_ctx);
+    mbedtls_md_free(&md5_ctx);
     mbedtls_platform_zeroize(md5sum, 16);
 
     return ret;

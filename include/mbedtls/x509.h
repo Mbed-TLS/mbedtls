@@ -382,7 +382,7 @@ int mbedtls_x509_time_is_future(const mbedtls_x509_time *from);
  *                 extension. Please note that this function might allocate
  *                 additional memory for a subject alternative name, thus
  *                 mbedtls_x509_free_subject_alt_name has to be called
- *                 to dispose of the structure afterwards.
+ *                 to dispose of this additional memory afterwards.
  *
  * \param san_buf  The buffer holding the raw data item of the subject
  *                 alternative name.
@@ -413,7 +413,7 @@ int mbedtls_x509_parse_subject_alt_name(const mbedtls_x509_buf *san_buf,
 /**
  * \brief          Unallocate all data related to subject alternative name
  *
- * \param san      SAN structure to free
+ * \param san      SAN structure - extra memory owned by this structure will be freed
  */
 void mbedtls_x509_free_subject_alt_name(mbedtls_x509_subject_alternative_name *san);
 

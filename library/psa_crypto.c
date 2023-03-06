@@ -7478,16 +7478,20 @@ psa_status_t psa_pake_set_role(
         goto exit;
     }
 
-    if (role != PSA_PAKE_ROLE_NONE &&
-        role != PSA_PAKE_ROLE_FIRST &&
-        role != PSA_PAKE_ROLE_SECOND &&
-        role != PSA_PAKE_ROLE_CLIENT &&
-        role != PSA_PAKE_ROLE_SERVER) {
-        status = PSA_ERROR_INVALID_ARGUMENT;
-        goto exit;
+    switch (operation->alg) {
+#if defined(PSA_WANT_ALG_JPAKE)
+        case PSA_ALG_JPAKE:
+            if (role == PSA_PAKE_ROLE_NONE) {
+                return PSA_SUCCESS;
+            }
+            status = PSA_ERROR_INVALID_ARGUMENT;
+            break;
+#endif
+        default:
+            (void) role;
+            status = PSA_ERROR_NOT_SUPPORTED;
+            goto exit;
     }
-
-    status = PSA_ERROR_NOT_SUPPORTED;
 exit:
     psa_pake_abort(operation);
     return status;

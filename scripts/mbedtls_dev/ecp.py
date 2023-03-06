@@ -93,8 +93,8 @@ class EcpP224R1Raw(bignum_common.ModOperationCommon,
         "ffffffffffffffffffffffffffffffff000000000000000000000000",
 
         # Maximum canonical P224 multiplication result
-        ("ffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-         "ffffffffffffffffffffffffffffffffffffffffffffffffffffffff"),
+        ("fffffffffffffffffffffffffffffffe000000000000000000000000"
+         "00000001000000000000000000000000000000000000000000000000"),
 
         # Generate an overflow during reduction
         ("00000000000000000000000000010000000070000000002000001000"

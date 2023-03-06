@@ -8,14 +8,11 @@ typedef enum {
     /* errors forced internally in the code */
     ERR_INJECT_UNINITIALIZED_ACCESS,
     ERR_INJECT_DUPLICATE_SETUP,
-    ERR_INJECT_INVALID_USER,
-    ERR_INJECT_INVALID_PEER,
     ERR_INJECT_SET_USER,
     ERR_INJECT_SET_PEER,
+    ERR_INJECT_SET_ROLE,
     ERR_DUPLICATE_SET_USER,
     ERR_DUPLICATE_SET_PEER,
-    ERR_SET_USER_PEER_BOTH_SERVERS,
-    ERR_SET_USER_PEER_BOTH_CLIENTS,
     ERR_INJECT_EMPTY_IO_BUFFER,
     ERR_INJECT_UNKNOWN_STEP,
     ERR_INJECT_INVALID_FIRST_STEP,
@@ -43,7 +40,6 @@ typedef enum {
     ERR_INJECT_ROUND2_SERVER_ZK_PROOF,
     /* erros issued from the .data file */
     ERR_IN_SETUP,
-    ERR_IN_SET_ROLE,
     ERR_IN_SET_USER,
     ERR_IN_SET_PEER,
     ERR_IN_SET_PASSWORD_KEY,
@@ -616,25 +612,19 @@ void ecjpake_setup(int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
                                  ERR_INJECT_DUPLICATE_SETUP);
 
     SETUP_CONDITIONAL_CHECK_STEP(psa_pake_set_role(&operation, PSA_PAKE_ROLE_SERVER),
-                                 ERR_IN_SET_ROLE);
-
-    SETUP_CONDITIONAL_CHECK_STEP(psa_pake_set_user(&operation, user, user_len),
-                                 ERR_INJECT_INVALID_USER);
-
-    SETUP_CONDITIONAL_CHECK_STEP(psa_pake_set_peer(&operation, peer, peer_len),
-                                 ERR_INJECT_INVALID_PEER);
-
-    SETUP_CONDITIONAL_CHECK_STEP(psa_pake_set_user(&operation, user, user_len),
-                                 ERR_INJECT_SET_USER);
-
-    SETUP_CONDITIONAL_CHECK_STEP(psa_pake_set_peer(&operation, peer, peer_len),
-                                 ERR_INJECT_SET_PEER);
+                                 ERR_INJECT_SET_ROLE);
 
     SETUP_ALWAYS_CHECK_STEP(psa_pake_set_user(&operation, user, user_len),
-                                ERR_IN_SET_USER);
+                                 ERR_IN_SET_USER);
 
     SETUP_ALWAYS_CHECK_STEP(psa_pake_set_peer(&operation, peer, peer_len),
-                                ERR_IN_SET_PEER);
+                                 ERR_IN_SET_PEER);
+
+    SETUP_CONDITIONAL_CHECK_STEP(psa_pake_set_user(&operation, user, user_len),
+                                 ERR_DUPLICATE_SET_USER);
+
+    SETUP_CONDITIONAL_CHECK_STEP(psa_pake_set_peer(&operation, peer, peer_len),
+                                 ERR_DUPLICATE_SET_PEER);
 
     SETUP_ALWAYS_CHECK_STEP(psa_pake_set_password_key(&operation, key),
                             ERR_IN_SET_PASSWORD_KEY);

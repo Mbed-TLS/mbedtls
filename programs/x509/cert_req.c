@@ -67,7 +67,7 @@ int main(void)
     "                        Comma-separated-list of values:\n"     \
     "                          DNS:value\n"            \
     "                          URI:value\n"            \
-    "                          IP:value\n"             \
+    "                          IP:value (Only IPv4 is supported)\n"             \
     "    key_usage=%%s        default: (empty)\n"       \
     "                        Comma-separated-list of values:\n"     \
     "                          digital_signature\n"     \
@@ -114,7 +114,7 @@ struct options {
     mbedtls_md_type_t md_alg;         /* Hash algorithm used for signature.   */
 } opt;
 
-static int ip_string_to_bytes(const char *str, uint8_t *bytes, int maxBytes)
+static void ip_string_to_bytes(const char *str, uint8_t *bytes, int maxBytes)
 {
     for (int i = 0; i < maxBytes; i++) {
         bytes[i] = strtoul(str, NULL, 16);
@@ -124,7 +124,6 @@ static int ip_string_to_bytes(const char *str, uint8_t *bytes, int maxBytes)
         }
         str++;
     }
-    return 0;
 }
 
 int write_certificate_request(mbedtls_x509write_csr *req, const char *output_file,

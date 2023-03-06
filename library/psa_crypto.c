@@ -8009,7 +8009,7 @@ psa_status_t psa_pake_abort(
     if (operation->stage == PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS) {
         if (operation->data.inputs.password != NULL) {
             mbedtls_platform_zeroize(operation->data.inputs.password,
-                                 operation->data.inputs.password_len);
+                                     operation->data.inputs.password_len);
             mbedtls_free(operation->data.inputs.password);
         }
         if (operation->data.inputs.user != NULL) {

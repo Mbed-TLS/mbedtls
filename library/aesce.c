@@ -36,7 +36,7 @@
  * for older compilers.
  */
 #define __ARM_FEATURE_AES    1
-#define NEED_TARGET_OPTIONS
+#define MBEDTLS_NEED_TAGET_OPTIONS
 #endif
 
 #include <string.h>

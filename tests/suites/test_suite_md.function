@@ -3,35 +3,29 @@
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_MD_C
+ * depends_on:MBEDTLS_MD_LIGHT
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE */
-void mbedtls_md_process()
+/* BEGIN_CASE depends_on:MBEDTLS_MD_C */
+void mbedtls_md_list()
 {
     const int *md_type_ptr;
     const mbedtls_md_info_t *info;
     mbedtls_md_context_t ctx;
-    unsigned char buf[150];
+    unsigned char out[MBEDTLS_MD_MAX_SIZE] = { 0 };
 
     mbedtls_md_init(&ctx);
-    memset(buf, 0, sizeof(buf));
 
     /*
-     * Very minimal testing of mbedtls_md_process, just make sure the various
-     * xxx_process_wrap() function pointers are valid. (Testing that they
-     * indeed do the right thing would require messing with the internal
-     * state of the underlying mbedtls_md/sha context.)
-     *
-     * Also tests that mbedtls_md_list() only returns valid MDs.
+     * Test that mbedtls_md_list() only returns valid MDs.
      */
     for (md_type_ptr = mbedtls_md_list(); *md_type_ptr != 0; md_type_ptr++) {
         info = mbedtls_md_info_from_type(*md_type_ptr);
         TEST_ASSERT(info != NULL);
         TEST_EQUAL(0, mbedtls_md_setup(&ctx, info, 0));
         TEST_EQUAL(0, mbedtls_md_starts(&ctx));
-        TEST_EQUAL(0, mbedtls_md_process(&ctx, buf));
+        TEST_EQUAL(0, mbedtls_md_finish(&ctx, out));
         mbedtls_md_free(&ctx);
     }
 
@@ -44,21 +38,27 @@ exit:
 void md_null_args()
 {
     mbedtls_md_context_t ctx;
+#if defined(MBEDTLS_MD_C)
     const mbedtls_md_info_t *info = mbedtls_md_info_from_type(*(mbedtls_md_list()));
+#endif
     unsigned char buf[1] = { 0 };
 
     mbedtls_md_init(&ctx);
 
     TEST_EQUAL(0, mbedtls_md_get_size(NULL));
+#if defined(MBEDTLS_MD_C)
     TEST_EQUAL(mbedtls_md_get_type(NULL), MBEDTLS_MD_NONE);
     TEST_ASSERT(mbedtls_md_get_name(NULL) == NULL);
 
     TEST_ASSERT(mbedtls_md_info_from_string(NULL) == NULL);
     TEST_ASSERT(mbedtls_md_info_from_ctx(NULL) == NULL);
     TEST_ASSERT(mbedtls_md_info_from_ctx(&ctx) == NULL);
+#endif /* MBEDTLS_MD_C */
 
     TEST_EQUAL(mbedtls_md_setup(&ctx, NULL, 0), MBEDTLS_ERR_MD_BAD_INPUT_DATA);
+#if defined(MBEDTLS_MD_C)
     TEST_EQUAL(mbedtls_md_setup(NULL, info, 0), MBEDTLS_ERR_MD_BAD_INPUT_DATA);
+#endif
 
     TEST_EQUAL(mbedtls_md_starts(NULL), MBEDTLS_ERR_MD_BAD_INPUT_DATA);
     TEST_EQUAL(mbedtls_md_starts(&ctx), MBEDTLS_ERR_MD_BAD_INPUT_DATA);
@@ -71,6 +71,7 @@ void md_null_args()
 
     TEST_EQUAL(mbedtls_md(NULL, buf, 1, buf), MBEDTLS_ERR_MD_BAD_INPUT_DATA);
 
+#if defined(MBEDTLS_MD_C)
 #if defined(MBEDTLS_FS_IO)
     TEST_EQUAL(mbedtls_md_file(NULL, "", buf), MBEDTLS_ERR_MD_BAD_INPUT_DATA);
 #endif
@@ -93,13 +94,13 @@ void md_null_args()
 
     TEST_EQUAL(mbedtls_md_hmac(NULL, buf, 1, buf, 1, buf),
                MBEDTLS_ERR_MD_BAD_INPUT_DATA);
-
-    TEST_EQUAL(mbedtls_md_process(NULL, buf), MBEDTLS_ERR_MD_BAD_INPUT_DATA);
-    TEST_EQUAL(mbedtls_md_process(&ctx, buf), MBEDTLS_ERR_MD_BAD_INPUT_DATA);
+#endif /* MBEDTLS_MD_C */
 
     /* Ok, this is not NULL arg but NULL return... */
     TEST_ASSERT(mbedtls_md_info_from_type(MBEDTLS_MD_NONE) == NULL);
+#if defined(MBEDTLS_MD_C)
     TEST_ASSERT(mbedtls_md_info_from_string("no such md") == NULL);
+#endif
 }
 /* END_CASE */
 
@@ -107,24 +108,31 @@ void md_null_args()
 void md_info(int md_type, char *md_name, int md_size)
 {
     const mbedtls_md_info_t *md_info;
+#if defined(MBEDTLS_MD_C)
     const int *md_type_ptr;
-    int found;
+#else
+    (void) md_name;
+#endif
 
     md_info = mbedtls_md_info_from_type(md_type);
     TEST_ASSERT(md_info != NULL);
+#if defined(MBEDTLS_MD_C)
     TEST_ASSERT(md_info == mbedtls_md_info_from_string(md_name));
+#endif
 
     TEST_EQUAL(mbedtls_md_get_type(md_info), (mbedtls_md_type_t) md_type);
     TEST_EQUAL(mbedtls_md_get_size(md_info), (unsigned char) md_size);
+#if defined(MBEDTLS_MD_C)
     TEST_EQUAL(0, strcmp(mbedtls_md_get_name(md_info), md_name));
 
-    found = 0;
+    int found = 0;
     for (md_type_ptr = mbedtls_md_list(); *md_type_ptr != 0; md_type_ptr++) {
         if (*md_type_ptr == md_type) {
             found = 1;
         }
     }
     TEST_EQUAL(found, 1);
+#endif /* MBEDTLS_MD_C */
 }
 /* END_CASE */
 
@@ -182,8 +190,10 @@ void md_text_multi(int md_type, char *text_src_string,
     TEST_ASSERT(md_info != NULL);
     TEST_EQUAL(0, mbedtls_md_setup(&ctx, md_info, 0));
     TEST_EQUAL(0, mbedtls_md_setup(&ctx_copy, md_info, 0));
+#if defined(MBEDTLS_MD_C)
     TEST_ASSERT(mbedtls_md_info_from_ctx(&ctx) == md_info);
     TEST_ASSERT(mbedtls_md_info_from_ctx(&ctx_copy) == md_info);
+#endif /* MBEDTLS_MD_C */
 
     TEST_EQUAL(0, mbedtls_md_starts(&ctx));
     TEST_ASSERT(ctx.md_ctx != NULL);
@@ -222,8 +232,10 @@ void md_hex_multi(int md_type, data_t *src_str, data_t *hash)
     TEST_ASSERT(md_info != NULL);
     TEST_EQUAL(0, mbedtls_md_setup(&ctx, md_info, 0));
     TEST_EQUAL(0, mbedtls_md_setup(&ctx_copy, md_info, 0));
+#if defined(MBEDTLS_MD_C)
     TEST_ASSERT(mbedtls_md_info_from_ctx(&ctx) == md_info);
     TEST_ASSERT(mbedtls_md_info_from_ctx(&ctx_copy) == md_info);
+#endif /* MBEDTLS_MD_C */
 
     halfway = src_str->len / 2;
 
@@ -249,7 +261,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_MD_C */
 void mbedtls_md_hmac(int md_type, int trunc_size,
                      data_t *key_str, data_t *src_str,
                      data_t *hash)
@@ -268,7 +280,7 @@ void mbedtls_md_hmac(int md_type, int trunc_size,
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_MD_C */
 void md_hmac_multi(int md_type, int trunc_size, data_t *key_str,
                    data_t *src_str, data_t *hash)
 {
@@ -282,7 +294,9 @@ void md_hmac_multi(int md_type, int trunc_size, data_t *key_str,
     md_info = mbedtls_md_info_from_type(md_type);
     TEST_ASSERT(md_info != NULL);
     TEST_EQUAL(0, mbedtls_md_setup(&ctx, md_info, 1));
+#if defined(MBEDTLS_MD_C)
     TEST_ASSERT(mbedtls_md_info_from_ctx(&ctx) == md_info);
+#endif
 
     halfway = src_str->len / 2;
 
@@ -309,7 +323,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_FS_IO */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_MD_C */
 void mbedtls_md_file(int md_type, char *filename,
                      data_t *hash)
 {

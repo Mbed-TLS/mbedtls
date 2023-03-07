@@ -3777,6 +3777,21 @@ void mbedtls_ssl_conf_sig_algs(mbedtls_ssl_config *conf,
  *                 On too long input failure, old hostname is unchanged.
  */
 int mbedtls_ssl_set_hostname(mbedtls_ssl_context *ssl, const char *hostname);
+
+/**
+ * \brief          Get the hostname that checked against the received
+ *                 server certificate. It is used to set the ServerName
+ *                 TLS extension, too, if that extension is enabled.
+ *                 (client-side only)
+ *
+ * \param ssl      SSL context
+ *
+ * \return         const pointer to the hostname value
+ */
+static inline const char *mbedtls_ssl_get_hostname(mbedtls_ssl_context *ssl)
+{
+    return ssl->MBEDTLS_PRIVATE(hostname);
+}
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)

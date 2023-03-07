@@ -1544,6 +1544,10 @@ void mbedtls_ssl_init(mbedtls_ssl_context *ssl);
  *                 Calling mbedtls_ssl_setup again is not supported, even
  *                 if no session is active.
  *
+ * \note           If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
+ *                 subsystem must have been initialized by calling
+ *                 psa_crypto_init() before calling this function.
+ *
  * \param ssl      SSL context
  * \param conf     SSL configuration to use
  *
@@ -3980,6 +3984,10 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl, mbedtls_ssl_session 
  *                 in which case the datagram of the underlying transport that is
  *                 currently being processed might or might not contain further
  *                 DTLS records.
+ *
+ * \note           If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
+ *                 subsystem must have been initialized by calling
+ *                 psa_crypto_init() before calling this function.
  */
 int mbedtls_ssl_handshake(mbedtls_ssl_context *ssl);
 

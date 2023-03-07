@@ -55,7 +55,7 @@
 #include "mbedtls/ecjpake.h"
 #endif
 
-#include "pk_wrap.h"
+#include "mbedtls/pk.h"
 #include "common.h"
 
 /* Shorthand for restartable ECC */

@@ -52,8 +52,6 @@
 #include "mbedtls/oid.h"
 #endif
 
-#include "pk_wrap.h"
-
 #if defined(MBEDTLS_TEST_HOOKS)
 static mbedtls_ssl_chk_buf_ptr_args chk_buf_ptr_fail_args;
 

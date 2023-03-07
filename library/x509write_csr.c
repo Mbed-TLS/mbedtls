@@ -141,14 +141,10 @@ int mbedtls_x509write_csr_set_subject_alternative_name(mbedtls_x509write_csr *ct
             case MBEDTLS_X509_SAN_IP_ADDRESS:
                 MBEDTLS_ASN1_CHK_CLEANUP_ADD(len,
                                              mbedtls_asn1_write_raw_buffer(&p, buf,
-                                                                           (const unsigned char *)
-                                                                           cur->node.san.
-                                                                           unstructured_name.p,
-                                                                           cur->node.san.
-                                                                           unstructured_name.len));
+                                                                           (const unsigned char *) cur->node.san.unstructured_name.p,
+                                                                           cur->node.san.unstructured_name.len));
                 MBEDTLS_ASN1_CHK_CLEANUP_ADD(len, mbedtls_asn1_write_len(&p, buf,
-                                                                         cur->node.san.
-                                                                         unstructured_name.len));
+                                                                         cur->node.san.unstructured_name.len));
                 MBEDTLS_ASN1_CHK_CLEANUP_ADD(len,
                                              mbedtls_asn1_write_tag(&p, buf,
                                                                     MBEDTLS_ASN1_CONTEXT_SPECIFIC |
@@ -174,6 +170,12 @@ int mbedtls_x509write_csr_set_subject_alternative_name(mbedtls_x509write_csr *ct
         0,
         buf + buflen - len,
         len);
+
+    /* If we exceeded the allocated buffer it means that maximum size of the SubjectAltName list
+     * was incorrectly calculated and memory is corrupted. */
+    if ( p < buf ) {
+        ret = MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
+    }
 
 cleanup:
     mbedtls_free(buf);

@@ -63,7 +63,7 @@
 #        pragma clang attribute push (__attribute__((target("crypto"))), apply_to=function)
 #        define MBEDTLS_POP_TARGET_PRAGMA
 #      elif defined(__GNUC__)
-         /* FIXME: GCC-5 annouce crypto extension, but some intrinsic are missed.
+         /* FIXME: GCC-5 claims crypto extension, but some intrinsic are missed.
           *        Known miss intrinsic can be workaround.
           */
 #        if __GNUC__ < 6

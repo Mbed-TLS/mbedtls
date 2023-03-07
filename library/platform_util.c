@@ -20,9 +20,10 @@
 
 /*
  * Ensure gmtime_r is available even with -std=c99; must be defined before
- * mbedtls_config.h, which pulls in glibc's features.h. Harmless on other platforms.
+ * mbedtls_config.h, which pulls in glibc's features.h. Harmless on other platforms
+ * except OpenBSD, where it stops us accessing explicit_bzero.
  */
-#if !defined(_POSIX_C_SOURCE)
+#if !defined(_POSIX_C_SOURCE) && !defined(__OpenBSD__)
 #define _POSIX_C_SOURCE 200112L
 #endif
 
@@ -51,7 +52,7 @@
 // Detect platforms known to support explicit_bzero()
 #if defined(__GLIBC__) && (__GLIBC__ >= 2) && (__GLIBC_MINOR__ >= 25)
 #define MBEDTLS_PLATFORM_HAS_EXPLICIT_BZERO 1
-#elif defined(__FreeBSD__) && (__FreeBSD_version >= 1100037)
+#elif (defined(__FreeBSD__) && (__FreeBSD_version >= 1100037)) || defined(__OpenBSD__)
 #define MBEDTLS_PLATFORM_HAS_EXPLICIT_BZERO 1
 #endif
 

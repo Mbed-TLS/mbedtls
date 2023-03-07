@@ -458,9 +458,7 @@ For `PSA_ALG_JPAKE` the following steps are available for input operation:
 * `PSA_JPAKE_X4S_STEP_ZK_PUBLIC`    Round 2: input Schnorr NIZKP public key for the X4S key
 * `PSA_JPAKE_X4S_STEP_ZK_PROOF`     Round 2: input Schnorr NIZKP proof for the X4S key
 
-The core has checked that input_length is smaller than PSA_PAKE_INPUT_SIZE(PSA_ALG_JPAKE, primitive, step)
-where primitive is the JPAKE algorithm primitive and step the PSA API level input step.
-Thus no risk of integer overflow while checking operation buffer overflow.
+The core checks that input_length is smaller than PSA_PAKE_INPUT_MAX_SIZE.
 
 ### PAKE driver get implicit key
 

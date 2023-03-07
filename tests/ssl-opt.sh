@@ -1442,6 +1442,17 @@ do_run_test_once() {
 
 # Detect if the current test is going to use TLS 1.3.
 # $1 and $2 contain the server and client command lines, respectively.
+#
+# Note: this function only provides some guess about TLS version by simply
+#       looking at the server/client command lines. Even thought this works
+#       for the sake of tests' filtering (especially in conjunction with the
+#       detect_required_features() function), it does NOT guarantee that the
+#       result is accurate. It does not check other conditions, such as:
+#       - MBEDTLS_SSL_PROTO_TLS1_x can be disabled to selectively remove
+#         TLS 1.2/1.3 suppport
+#       - we can force a ciphersuite which contains "WITH" in its name, meaning
+#         that we are going to use TLS 1.2
+#       - etc etc
 get_tls_version() {
     case $1 in
         *tls1_3*|*tls13*)

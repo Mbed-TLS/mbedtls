@@ -738,7 +738,7 @@ static int ssl_tls13_parse_supported_versions_ext(mbedtls_ssl_context *ssl,
     size_t versions_len;
     const unsigned char *versions_end;
     uint16_t tls_version;
-    int tls13_supported = 0;
+    int found_supported_version = 0;
 
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, 1);
     versions_len = p[0];
@@ -751,25 +751,30 @@ static int ssl_tls13_parse_supported_versions_ext(mbedtls_ssl_context *ssl,
         tls_version = mbedtls_ssl_read_version(p, ssl->conf->transport);
         p += 2;
 
-        /* In this implementation we only support TLS 1.3 and DTLS 1.3. */
-        if (tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
-            tls13_supported = 1;
+        if ((MBEDTLS_SSL_VERSION_TLS1_2 == tls_version) &&
+            mbedtls_ssl_conf_is_tls12_enabled(ssl->conf)) {
+            found_supported_version = 1;
+            break;
+        }
+
+        if (MBEDTLS_SSL_VERSION_TLS1_3 == tls_version) {
+            found_supported_version = 1;
             break;
         }
     }
 
-    if (!tls13_supported) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("TLS 1.3 is not supported by the client"));
+    if (!found_supported_version) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("No supported version found."));
 
         MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION,
                                      MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION);
         return MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION;
     }
 
-    MBEDTLS_SSL_DEBUG_MSG(1, ("Negotiated version. Supported is [%04x]",
+    MBEDTLS_SSL_DEBUG_MSG(1, ("Negotiated version: [%04x]",
                               (unsigned int) tls_version));
 
-    return 0;
+    return (int) tls_version;
 }
 
 #if defined(PSA_WANT_ALG_ECDH)
@@ -1233,6 +1238,7 @@ static int ssl_tls13_pick_key_cert(mbedtls_ssl_context *ssl)
 
 #define SSL_CLIENT_HELLO_OK           0
 #define SSL_CLIENT_HELLO_HRR_REQUIRED 1
+#define SSL_CLIENT_HELLO_TLS1_2       2
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
@@ -1362,20 +1368,22 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     }
 
     if (ret == 0) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("TLS 1.3 is not supported by the client"));
-
-        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION,
-                                     MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION);
-        return MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION;
+        return SSL_CLIENT_HELLO_TLS1_2;
     }
 
-    ret = ssl_tls13_parse_supported_versions_ext(ssl,
-                                                 supported_versions_ext,
-                                                 supported_versions_ext_end);
-    if (ret != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1,
-                              ("ssl_tls13_parse_supported_versions_ext"), ret);
-        return ret;
+    if (ret == 1) {
+        ret = ssl_tls13_parse_supported_versions_ext(ssl,
+                                                     supported_versions_ext,
+                                                     supported_versions_ext_end);
+        if (ret < 0) {
+            MBEDTLS_SSL_DEBUG_RET(1,
+                                  ("ssl_tls13_parse_supported_versions_ext"), ret);
+            return ret;
+        }
+
+        if (MBEDTLS_SSL_VERSION_TLS1_2 == ret) {
+            return SSL_CLIENT_HELLO_TLS1_2;
+        }
     }
 
     /*
@@ -1770,15 +1778,20 @@ static int ssl_tls13_process_client_hello(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_PROC_CHK_NEG(ssl_tls13_parse_client_hello(ssl, buf,
                                                           buf + buflen));
-    parse_client_hello_ret = ret; /* Store return value of parse_client_hello,
-                                   * only SSL_CLIENT_HELLO_OK or
-                                   * SSL_CLIENT_HELLO_HRR_REQUIRED at this
-                                   * stage as negative error codes are handled
+    parse_client_hello_ret = ret; /* Store positive return value of
+                                   * parse_client_hello,
+                                   * as negative error codes are handled
                                    * by MBEDTLS_SSL_PROC_CHK_NEG. */
+
+    if (SSL_CLIENT_HELLO_TLS1_2 == parse_client_hello_ret) {
+        ssl->keep_current_message = 1;
+        ssl->tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
+        return 0;
+    }
 
     MBEDTLS_SSL_PROC_CHK(ssl_tls13_postprocess_client_hello(ssl));
 
-    if (parse_client_hello_ret == SSL_CLIENT_HELLO_OK) {
+    if (SSL_CLIENT_HELLO_OK == parse_client_hello_ret) {
         mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_SERVER_HELLO);
     } else {
         mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_HELLO_RETRY_REQUEST);

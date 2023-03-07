@@ -1243,6 +1243,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     const unsigned char *p = buf;
     const unsigned char *random;
     size_t legacy_session_id_len;
+    const unsigned char *legacy_session_id;
     size_t cipher_suites_len;
     const unsigned char *cipher_suites_end;
     size_t extensions_len;
@@ -1305,24 +1306,14 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
      * opaque legacy_session_id<0..32>;
      * ...
      */
-    legacy_session_id_len = p[0];
-    p++;
+    legacy_session_id_len = *(p++);
+    legacy_session_id = p;
 
-    if (legacy_session_id_len > sizeof(ssl->session_negotiate->id)) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message"));
-        return MBEDTLS_ERR_SSL_DECODE_ERROR;
-    }
-
-    ssl->session_negotiate->id_len = legacy_session_id_len;
-    MBEDTLS_SSL_DEBUG_BUF(3, "client hello, session id",
-                          p, legacy_session_id_len);
     /*
      * Check we have enough data for the legacy session identifier
      * and the ciphersuite list length.
      */
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, legacy_session_id_len + 2);
-
-    memcpy(&ssl->session_negotiate->id[0], p, legacy_session_id_len);
     p += legacy_session_id_len;
 
     cipher_suites_len = MBEDTLS_GET_UINT16_BE(p, 0);
@@ -1372,11 +1363,22 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
 
     /*
      * We are negotiation the version 1.3 of the protocol. Do what we have
-     * postponed: copy of the client random bytes.
+     * postponed: copy of the client random bytes, copy of the legacy session
+     * identifier.
      */
     MBEDTLS_SSL_DEBUG_BUF(3, "client hello, random bytes",
                           random, MBEDTLS_CLIENT_HELLO_RANDOM_LEN);
     memcpy(&handshake->randbytes[0], random, MBEDTLS_CLIENT_HELLO_RANDOM_LEN);
+
+    if (legacy_session_id_len > sizeof(ssl->session_negotiate->id)) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message"));
+        return MBEDTLS_ERR_SSL_DECODE_ERROR;
+    }
+    ssl->session_negotiate->id_len = legacy_session_id_len;
+    MBEDTLS_SSL_DEBUG_BUF(3, "client hello, session id",
+                          legacy_session_id, legacy_session_id_len);
+    memcpy(&ssl->session_negotiate->id[0],
+           legacy_session_id, legacy_session_id_len);
 
     /*
      * Search for a matching ciphersuite

@@ -796,6 +796,10 @@ static inline mbedtls_ecp_keypair *mbedtls_pk_ec(const mbedtls_pk_context pk)
 /**
  * \brief           Parse a private key in PEM or DER format
  *
+ * \note            If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
+ *                  subsystem must have been initialized by calling
+ *                  psa_crypto_init() before calling this function.
+ *
  * \param ctx       The PK context to fill. It must have been initialized
  *                  but not set up.
  * \param key       Input buffer to parse.
@@ -832,6 +836,10 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *ctx,
 /**
  * \brief           Parse a public key in PEM or DER format
  *
+ * \note            If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
+ *                  subsystem must have been initialized by calling
+ *                  psa_crypto_init() before calling this function.
+ *
  * \param ctx       The PK context to fill. It must have been initialized
  *                  but not set up.
  * \param key       Input buffer to parse.
@@ -860,6 +868,10 @@ int mbedtls_pk_parse_public_key(mbedtls_pk_context *ctx,
 /** \ingroup pk_module */
 /**
  * \brief           Load and parse a private key
+ *
+ * \note            If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
+ *                  subsystem must have been initialized by calling
+ *                  psa_crypto_init() before calling this function.
  *
  * \param ctx       The PK context to fill. It must have been initialized
  *                  but not set up.

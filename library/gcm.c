@@ -197,6 +197,7 @@ static void gcm_mult(mbedtls_gcm_context *ctx, const unsigned char x[16],
     if (mbedtls_aesni_has_support(MBEDTLS_AESNI_CLMUL)) {
         unsigned char h[16];
 
+        /* mbedtls_aesni_gcm_mult needs big-endian input */
         MBEDTLS_PUT_UINT32_BE(ctx->HH[8] >> 32, h,  0);
         MBEDTLS_PUT_UINT32_BE(ctx->HH[8],       h,  4);
         MBEDTLS_PUT_UINT32_BE(ctx->HL[8] >> 32, h,  8);
@@ -211,6 +212,7 @@ static void gcm_mult(mbedtls_gcm_context *ctx, const unsigned char x[16],
     if (mbedtls_aesce_has_support()) {
         unsigned char h[16];
 
+        /* mbedtls_aesce_gcm_mult needs big-endian input */
         MBEDTLS_PUT_UINT32_BE(ctx->HH[8] >> 32, h,  0);
         MBEDTLS_PUT_UINT32_BE(ctx->HH[8],       h,  4);
         MBEDTLS_PUT_UINT32_BE(ctx->HL[8] >> 32, h,  8);

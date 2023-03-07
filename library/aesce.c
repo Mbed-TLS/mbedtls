@@ -279,7 +279,7 @@ int mbedtls_aesce_setkey_enc(unsigned char *rk,
 #if defined(MBEDTLS_GCM_C)
 
 #if !defined(__clang__) && defined(__GNUC__) && __GNUC__ == 5
-/* GCC 5.X miss some intrinsics, we add them here. */
+/* Some intrinsics are not available for GCC 5.X. */
 #define vreinterpretq_p64_u8(a) ((poly64x2_t) a)
 #define vreinterpretq_u8_p128(a) ((uint8x16_t) a)
 static inline poly64_t vget_low_p64(poly64x2_t __a)
@@ -290,6 +290,11 @@ static inline poly64_t vget_low_p64(poly64x2_t __a)
 }
 #endif /* !__clang__ && __GNUC__ && __GNUC__ == 5*/
 
+/* vmull_p64/vmull_high_p64 wrappers.
+ *
+ * Older compilers miss some intrinsic functions for `poly*_t`. We use
+ * uint8x16_t and uint8x16x3_t as input/output parameters.
+ */
 static inline uint8x16_t pmull_low(uint8x16_t a, uint8x16_t b)
 {
     return vreinterpretq_u8_p128(
@@ -305,35 +310,75 @@ static inline uint8x16_t pmull_high(uint8x16_t a, uint8x16_t b)
                        vreinterpretq_p64_u8(b)));
 }
 
+/* GHASH do 128b karatsuba polynomial multiplication on block on GF(2^128)
+ * defined by `x^128 + x^7 + x^2 + x + 1`.
+ *
+ * Arm64 only has 64b->128b polynomial multipliers, we need to do 4 64b
+ * multiplies to generate a 128b.
+ *
+ * `poly_mult_128` executes polynomial multiplication and outputs 256b that
+ * represented by 3 128b due to code size optimization.
+ *
+ * Output layout:
+ * |            |             |             |
+ * |------------|-------------|-------------|
+ * | ret.val[0] | h3:h2:00:00 | high   128b |
+ * | ret.val[1] |   :m2:m1:00 | median 128b |
+ * | ret.val[2] |   :  :l1:l0 | low    128b |
+ */
 static inline uint8x16x3_t poly_mult_128(uint8x16_t a, uint8x16_t b)
 {
     uint8x16x3_t ret;
-    uint8x16_t c = vextq_u8(b, b, 8);
-    ret.val[0] = pmull_high(a, b);              /* a1*b1 */
-    ret.val[1] = veorq_u8(pmull_high(a, c),     /* a1*b0 + a0*b1 */
-                          pmull_low(a, c));
-    ret.val[2] = pmull_low(a, b);               /* a0*b0 */
+    uint8x16_t h, m, l; /* retval high/median/low */
+    uint8x16_t c, d, e;
+
+    h = pmull_high(a, b);                       /* h3:h2:00:00 = a1*b1 */
+    l = pmull_low(a, b);                        /*   :  :l1:l0 = a0*b0 */
+    c = vextq_u8(b, b, 8);                      /*      :c1:c0 = b0:b1 */
+    d = pmull_high(a, c);                       /*   :d2:d1:00 = a1*b0 */
+    e = pmull_low(a, c);                        /*   :e2:e1:00 = a0*b1 */
+    m = veorq_u8(d, e);                         /*   :m2:m1:00 = d + e */
+
+    ret.val[0] = h;
+    ret.val[1] = m;
+    ret.val[2] = l;
     return ret;
 }
 
-static inline uint8x16_t poly_mult_reduce(uint8x16x3_t a)
+/*
+ * Modulo reduction.
+ *
+ * See: https://www.researchgate.net/publication/285612706_Implementing_GCM_on_ARMv8
+ *
+ * Section 4.3
+ *
+ * Modular reduction is slightly more complex. Write the GCM modulus as f(z) =
+ * z^128 +r(z), where r(z) = z^7+z^2+z+ 1. The well known approach is to
+ * consider that z128 ≡r(z) (mod z128 +r(z)), allowing us to write the 256-bit
+ * operand to be reduced as a(z) = h(z)z128 +`(z)≡h(z)r(z) + `(z). That is, we
+ * simply multiply the higher part of the operand by r(z) and add it to `(z). If
+ * the result is still larger than 128 bits, we reduce again.
+ */
+static inline uint8x16_t poly_mult_reduce(uint8x16x3_t input)
 {
-    uint8x16_t const Z = vdupq_n_u8(0);
-    /* use 'asm' as an optimisation barrier to prevent loading R from memory */
+    uint8x16_t const ZERO = vdupq_n_u8(0);
+    /* use 'asm' as an optimisation barrier to prevent loading MODULO from memory */
     uint64x2_t r = vreinterpretq_u64_u8(vdupq_n_u8(0x87));
     asm ("" : "+w" (r));
-    uint8x16_t const R = vreinterpretq_u8_u64(vshrq_n_u64(r, 64 - 8));
-    uint8x16_t d = a.val[0];          /* d3:d2:00:00                         */
-    uint8x16_t j = a.val[1];          /*    j2:j1:00                         */
-    uint8x16_t g = a.val[2];          /*       g1:g0 = a0*b0                 */
-    uint8x16_t h = pmull_high(d, R);  /*    h2:h1:00 = reduction of d3       */
-    uint8x16_t i = pmull_low(d, R);   /*       i1:i0 = reduction of d2       */
-    uint8x16_t k = veorq_u8(j, h);    /*    k2:k1:00 = j2:j1 + h2:h1         */
-    uint8x16_t l = pmull_high(k, R);  /*       l1:l0 = reduction of k2       */
-    uint8x16_t m = vextq_u8(Z, k, 8); /*       m1:00 = k1:00                 */
-    uint8x16_t n = veorq_u8(g, i);    /*       n1:n0 = g1:g0 + i1:i0         */
-    uint8x16_t o = veorq_u8(n, l);    /*       o1:o0 = l1:l0 + n1:n0         */
-    return veorq_u8(o, m);            /*             = o1:o0 + m1:00         */
+    uint8x16_t const MODULO = vreinterpretq_u8_u64(vshrq_n_u64(r, 64 - 8));
+    uint8x16_t h, m, l; /* input high/median/low 128b */
+    uint8x16_t c, d, e, f, g, n, o;
+    h = input.val[0];            /* h3:h2:00:00                          */
+    m = input.val[1];            /*   :m2:m1:00                          */
+    l = input.val[2];            /*   :  :l1:l0                          */
+    c = pmull_high(h, MODULO);   /*   :c2:c1:00 = reduction of h3        */
+    d = pmull_low(h, MODULO);    /*   :  :d1:d0 = reduction of h2        */
+    e = veorq_u8(c, m);          /*   :e2:e1:00 = m2:m1:00 + c2:c1:00    */
+    f = pmull_high(e, MODULO);   /*   :  :f1:f0 = reduction of e2        */
+    g = vextq_u8(ZERO, e, 8);    /*   :  :g1:00 = e1:00                  */
+    n = veorq_u8(d, l);          /*   :  :n1:n0 = d1:d0 + l1:l0          */
+    o = veorq_u8(n, f);          /*       o1:o0 = f1:f0 + n1:n0          */
+    return veorq_u8(o, g);       /*             = o1:o0 + g1:00          */
 }
 
 /*

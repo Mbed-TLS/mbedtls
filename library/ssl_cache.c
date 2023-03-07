@@ -314,6 +314,59 @@ exit:
     return ret;
 }
 
+int mbedtls_ssl_cache_remove(void *data,
+                             unsigned char const *session_id,
+                             size_t session_id_len)
+{
+    int ret = 1;
+    mbedtls_ssl_cache_context *cache = (mbedtls_ssl_cache_context *) data;
+    mbedtls_ssl_cache_entry *entry;
+    mbedtls_ssl_cache_entry *prev;
+
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_lock(&cache->mutex) != 0) {
+        return 1;
+    }
+#endif
+
+    ret = ssl_cache_find_entry(cache, session_id, session_id_len, &entry);
+    /* No valid entry found, exit with success */
+    if (ret != 0) {
+        ret = 0;
+        goto exit;
+    }
+
+    /* Now we remove the entry from the chain */
+    if (entry == cache->chain) {
+        cache->chain = entry->next;
+        goto free;
+    }
+    for (prev = cache->chain; prev->next != NULL; prev = prev->next) {
+        if (prev->next == entry) {
+            prev->next = entry->next;
+            break;
+        }
+    }
+
+free:
+    if (entry->session != NULL) {
+        mbedtls_platform_zeroize(entry->session, entry->session_len);
+        mbedtls_free(entry->session);
+    }
+    mbedtls_platform_zeroize(entry, sizeof(mbedtls_ssl_cache_entry));
+    mbedtls_free(entry);
+    ret = 0;
+
+exit:
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&cache->mutex) != 0) {
+        ret = 1;
+    }
+#endif
+
+    return ret;
+}
+
 #if defined(MBEDTLS_HAVE_TIME)
 void mbedtls_ssl_cache_set_timeout(mbedtls_ssl_cache_context *cache, int timeout)
 {

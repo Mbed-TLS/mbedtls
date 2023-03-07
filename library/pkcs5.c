@@ -47,6 +47,12 @@
 #include "hash_info.h"
 #include "mbedtls/psa_util.h"
 
+#if !defined(MBEDTLS_MD_C)
+#define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
+                                                           psa_to_md_errors,              \
+                                                           psa_generic_status_to_mbedtls)
+#endif
+
 #if defined(MBEDTLS_ASN1_PARSE_C)
 static int pkcs5_parse_pbkdf2_params(const mbedtls_asn1_buf *params,
                                      mbedtls_asn1_buf *salt, int *iterations,
@@ -452,7 +458,7 @@ cleanup:
         status = status_destruction;
     }
 
-    return mbedtls_md_error_from_psa(status);
+    return PSA_TO_MBEDTLS_ERR(status);
 #endif /* !MBEDTLS_MD_C */
 }
 

@@ -344,6 +344,52 @@ extern mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state;
 
 #endif /* !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) */
 
-#endif /* MBEDTLS_PSA_CRYPTO_C */
+typedef struct {
+    psa_status_t psa_status;
+    int16_t mbedtls_error;
+} mbedtls_error_pair_t;
 
+#if !defined(MBEDTLS_MD_C) || !defined(MBEDTLS_MD5_C) || defined(MBEDTLS_USE_PSA_CRYPTO)
+extern const mbedtls_error_pair_t psa_to_md_errors[4];
+#endif
+
+#if defined(MBEDTLS_LMS_C)
+extern const mbedtls_error_pair_t psa_to_lms_errors[3];
+#endif
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
+extern const mbedtls_error_pair_t psa_to_ssl_errors[7];
+#endif
+
+#if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY) ||    \
+    defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR)
+extern const mbedtls_error_pair_t psa_to_pk_rsa_errors[8];
+#endif
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && \
+    defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
+extern const mbedtls_error_pair_t psa_to_pk_ecdsa_errors[7];
+#endif
+
+/* Generic fallback function for error translation,
+ * when the received state was not module-specific. */
+int psa_generic_status_to_mbedtls(psa_status_t status);
+
+/* This function iterates over provided local error translations,
+ * and if no match was found - calls the fallback error translation function. */
+int psa_status_to_mbedtls(psa_status_t status,
+                          const mbedtls_error_pair_t *local_translations,
+                          size_t local_errors_num,
+                          int (*fallback_f)(psa_status_t));
+
+/* The second out of three-stage error handling functions of the pk module,
+ * acts as a fallback after RSA / ECDSA error translation, and if no match
+ * is found, it itself calls psa_generic_status_to_mbedtls. */
+int psa_pk_status_to_mbedtls(psa_status_t status);
+
+/* Utility macro to shorten the defines of error translator in modules. */
+#define PSA_TO_MBEDTLS_ERR_LIST(status, error_list, fallback_f) \
+    psa_status_to_mbedtls(status, error_list, sizeof(error_list), fallback_f)
+
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 #endif /* MBEDTLS_PSA_UTIL_H */

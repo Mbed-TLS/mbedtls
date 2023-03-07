@@ -34,6 +34,7 @@
 
 #include "mbedtls/md.h"
 #include "psa/crypto.h"
+#include "mbedtls/platform_util.h"
 
 /** \def MBEDTLS_HASH_MAX_SIZE
  *
@@ -88,12 +89,13 @@ psa_algorithm_t mbedtls_hash_info_psa_from_md(mbedtls_md_type_t md_type);
  */
 mbedtls_md_type_t mbedtls_hash_info_md_from_psa(psa_algorithm_t psa_alg);
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /** Convert PSA status to MD error code.
  *
  * \param status    PSA status.
  *
  * \return          The corresponding MD error code,
  */
-int mbedtls_md_error_from_psa(psa_status_t status);
-
+int MBEDTLS_DEPRECATED mbedtls_md_error_from_psa(psa_status_t status);
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_HASH_INFO_H */

@@ -40,9 +40,19 @@
 #include "pkwrite.h"
 #endif
 
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+#include "mbedtls/psa_util.h"
+#define PSA_PK_TO_MBEDTLS_ERR(status) psa_pk_status_to_mbedtls(status)
+#define PSA_PK_RSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,     \
+                                                                  psa_to_pk_rsa_errors,            \
+                                                                  psa_pk_status_to_mbedtls)
+#define PSA_PK_ECDSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
+                                                                    psa_to_pk_ecdsa_errors,        \
+                                                                    psa_pk_status_to_mbedtls)
+#endif
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
-#include "mbedtls/psa_util.h"
 #include "hash_info.h"
 
 #if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
@@ -57,6 +67,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 int mbedtls_pk_error_from_psa(psa_status_t status)
 {
@@ -108,16 +119,31 @@ int mbedtls_pk_error_from_psa_rsa(psa_status_t status)
             return MBEDTLS_ERR_RSA_VERIFY_FAILED;
         case PSA_ERROR_INVALID_PADDING:
             return MBEDTLS_ERR_RSA_INVALID_PADDING;
+        case PSA_SUCCESS:
+            return 0;
+        case PSA_ERROR_NOT_SUPPORTED:
+            return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+        case PSA_ERROR_INSUFFICIENT_MEMORY:
+            return MBEDTLS_ERR_PK_ALLOC_FAILED;
+        case PSA_ERROR_BAD_STATE:
+            return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+        case PSA_ERROR_COMMUNICATION_FAILURE:
+        case PSA_ERROR_HARDWARE_FAILURE:
+            return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        case PSA_ERROR_DATA_CORRUPT:
+        case PSA_ERROR_DATA_INVALID:
+        case PSA_ERROR_STORAGE_FAILURE:
+            return MBEDTLS_ERR_PK_FILE_IO_ERROR;
+        case PSA_ERROR_CORRUPTION_DETECTED:
+            return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         default:
-            return mbedtls_pk_error_from_psa(status);
+            return MBEDTLS_ERR_ERROR_GENERIC_ERROR;
     }
 }
 #endif /* PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY || PSA_WANT_KEY_TYPE_RSA_KEY_PAIR */
-
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-
 #if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 int mbedtls_pk_error_from_psa_ecdsa(psa_status_t status)
 {
@@ -133,13 +159,30 @@ int mbedtls_pk_error_from_psa_ecdsa(psa_status_t status)
             return MBEDTLS_ERR_ECP_RANDOM_FAILED;
         case PSA_ERROR_INVALID_SIGNATURE:
             return MBEDTLS_ERR_ECP_VERIFY_FAILED;
+        case PSA_SUCCESS:
+            return 0;
+        case PSA_ERROR_NOT_SUPPORTED:
+            return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+        case PSA_ERROR_INSUFFICIENT_MEMORY:
+            return MBEDTLS_ERR_PK_ALLOC_FAILED;
+        case PSA_ERROR_BAD_STATE:
+            return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+        case PSA_ERROR_COMMUNICATION_FAILURE:
+        case PSA_ERROR_HARDWARE_FAILURE:
+            return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        case PSA_ERROR_DATA_CORRUPT:
+        case PSA_ERROR_DATA_INVALID:
+        case PSA_ERROR_STORAGE_FAILURE:
+            return MBEDTLS_ERR_PK_FILE_IO_ERROR;
+        case PSA_ERROR_CORRUPTION_DETECTED:
+            return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         default:
-            return mbedtls_pk_error_from_psa(status);
+            return MBEDTLS_ERR_ERROR_GENERIC_ERROR;
     }
 }
 #endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
-
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 #if defined(MBEDTLS_RSA_C)
 static int rsa_can_do(mbedtls_pk_type_t type)
@@ -196,14 +239,14 @@ static int rsa_verify_wrap(void *ctx, mbedtls_md_type_t md_alg,
                             buf + sizeof(buf) - key_len, key_len,
                             &key_id);
     if (status != PSA_SUCCESS) {
-        ret = mbedtls_pk_error_from_psa(status);
+        ret = PSA_PK_TO_MBEDTLS_ERR(status);
         goto cleanup;
     }
 
     status = psa_verify_hash(key_id, psa_alg_md, hash, hash_len,
                              sig, sig_len);
     if (status != PSA_SUCCESS) {
-        ret = mbedtls_pk_error_from_psa_rsa(status);
+        ret = PSA_PK_RSA_TO_MBEDTLS_ERR(status);
         goto cleanup;
     }
     ret = 0;
@@ -211,7 +254,7 @@ static int rsa_verify_wrap(void *ctx, mbedtls_md_type_t md_alg,
 cleanup:
     status = psa_destroy_key(key_id);
     if (ret == 0 && status != PSA_SUCCESS) {
-        ret = mbedtls_pk_error_from_psa(status);
+        ret = PSA_PK_TO_MBEDTLS_ERR(status);
     }
 
     return ret;
@@ -289,13 +332,13 @@ int  mbedtls_pk_psa_rsa_sign_ext(psa_algorithm_t alg,
                             buf + sizeof(buf) - key_len, key_len,
                             &key_id);
     if (status != PSA_SUCCESS) {
-        ret = mbedtls_pk_error_from_psa(status);
+        ret = PSA_PK_TO_MBEDTLS_ERR(status);
         goto cleanup;
     }
     status = psa_sign_hash(key_id, alg, hash, hash_len,
                            sig, sig_size, sig_len);
     if (status != PSA_SUCCESS) {
-        ret = mbedtls_pk_error_from_psa_rsa(status);
+        ret = PSA_PK_RSA_TO_MBEDTLS_ERR(status);
         goto cleanup;
     }
 
@@ -304,7 +347,7 @@ int  mbedtls_pk_psa_rsa_sign_ext(psa_algorithm_t alg,
 cleanup:
     status = psa_destroy_key(key_id);
     if (ret == 0 && status != PSA_SUCCESS) {
-        ret = mbedtls_pk_error_from_psa(status);
+        ret = PSA_PK_TO_MBEDTLS_ERR(status);
     }
     return ret;
 }
@@ -398,7 +441,7 @@ static int rsa_decrypt_wrap(void *ctx,
                             buf + sizeof(buf) - key_len, key_len,
                             &key_id);
     if (status != PSA_SUCCESS) {
-        ret = mbedtls_pk_error_from_psa(status);
+        ret = PSA_PK_TO_MBEDTLS_ERR(status);
         goto cleanup;
     }
 
@@ -407,7 +450,7 @@ static int rsa_decrypt_wrap(void *ctx,
                                     NULL, 0,
                                     output, osize, olen);
     if (status != PSA_SUCCESS) {
-        ret = mbedtls_pk_error_from_psa_rsa(status);
+        ret = PSA_PK_RSA_TO_MBEDTLS_ERR(status);
         goto cleanup;
     }
 
@@ -417,7 +460,7 @@ cleanup:
     mbedtls_platform_zeroize(buf, sizeof(buf));
     status = psa_destroy_key(key_id);
     if (ret == 0 && status != PSA_SUCCESS) {
-        ret = mbedtls_pk_error_from_psa(status);
+        ret = PSA_PK_TO_MBEDTLS_ERR(status);
     }
 
     return ret;
@@ -484,7 +527,7 @@ static int rsa_encrypt_wrap(void *ctx,
                             buf + sizeof(buf) - key_len, key_len,
                             &key_id);
     if (status != PSA_SUCCESS) {
-        ret = mbedtls_pk_error_from_psa(status);
+        ret = PSA_PK_TO_MBEDTLS_ERR(status);
         goto cleanup;
     }
 
@@ -493,7 +536,7 @@ static int rsa_encrypt_wrap(void *ctx,
                                     NULL, 0,
                                     output, osize, olen);
     if (status != PSA_SUCCESS) {
-        ret = mbedtls_pk_error_from_psa_rsa(status);
+        ret = PSA_PK_RSA_TO_MBEDTLS_ERR(status);
         goto cleanup;
     }
 
@@ -502,7 +545,7 @@ static int rsa_encrypt_wrap(void *ctx,
 cleanup:
     status = psa_destroy_key(key_id);
     if (ret == 0 && status != PSA_SUCCESS) {
-        ret = mbedtls_pk_error_from_psa(status);
+        ret = PSA_PK_TO_MBEDTLS_ERR(status);
     }
 
     return ret;
@@ -716,7 +759,7 @@ static int ecdsa_verify_wrap(void *ctx_arg, mbedtls_md_type_t md_alg,
                             buf, key_len,
                             &key_id);
     if (status != PSA_SUCCESS) {
-        ret = mbedtls_pk_error_from_psa(status);
+        ret = PSA_PK_TO_MBEDTLS_ERR(status);
         goto cleanup;
     }
 
@@ -737,7 +780,7 @@ static int ecdsa_verify_wrap(void *ctx_arg, mbedtls_md_type_t md_alg,
                              hash, hash_len,
                              buf, 2 * signature_part_size);
     if (status != PSA_SUCCESS) {
-        ret = mbedtls_pk_error_from_psa_ecdsa(status);
+        ret = PSA_PK_ECDSA_TO_MBEDTLS_ERR(status);
         goto cleanup;
     }
 
@@ -750,7 +793,7 @@ static int ecdsa_verify_wrap(void *ctx_arg, mbedtls_md_type_t md_alg,
 cleanup:
     status = psa_destroy_key(key_id);
     if (ret == 0 && status != PSA_SUCCESS) {
-        ret = mbedtls_pk_error_from_psa(status);
+        ret = PSA_PK_TO_MBEDTLS_ERR(status);
     }
 
     return ret;
@@ -908,14 +951,14 @@ static int ecdsa_sign_wrap(void *ctx_arg, mbedtls_md_type_t md_alg,
                             buf, key_len,
                             &key_id);
     if (status != PSA_SUCCESS) {
-        ret = mbedtls_pk_error_from_psa(status);
+        ret = PSA_PK_TO_MBEDTLS_ERR(status);
         goto cleanup;
     }
 
     status = psa_sign_hash(key_id, psa_sig_md, hash, hash_len,
                            sig, sig_size, sig_len);
     if (status != PSA_SUCCESS) {
-        ret = mbedtls_pk_error_from_psa_ecdsa(status);
+        ret = PSA_PK_ECDSA_TO_MBEDTLS_ERR(status);
         goto cleanup;
     }
 
@@ -925,7 +968,7 @@ cleanup:
     mbedtls_platform_zeroize(buf, sizeof(buf));
     status = psa_destroy_key(key_id);
     if (ret == 0 && status != PSA_SUCCESS) {
-        ret = mbedtls_pk_error_from_psa(status);
+        ret = PSA_PK_TO_MBEDTLS_ERR(status);
     }
 
     return ret;
@@ -1448,7 +1491,7 @@ static int pk_opaque_sign_wrap(void *ctx, mbedtls_md_type_t md_alg,
 
     status = psa_get_key_attributes(*key, &attributes);
     if (status != PSA_SUCCESS) {
-        return mbedtls_pk_error_from_psa(status);
+        return PSA_PK_TO_MBEDTLS_ERR(status);
     }
 
     type = psa_get_key_type(&attributes);
@@ -1472,15 +1515,15 @@ static int pk_opaque_sign_wrap(void *ctx, mbedtls_md_type_t md_alg,
     if (status != PSA_SUCCESS) {
 #if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
         if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(type)) {
-            return mbedtls_pk_error_from_psa_ecdsa(status);
+            return PSA_PK_ECDSA_TO_MBEDTLS_ERR(status);
         } else
 #endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
 #if defined(MBEDTLS_RSA_C)
         if (PSA_KEY_TYPE_IS_RSA(type)) {
-            return mbedtls_pk_error_from_psa_rsa(status);
+            return PSA_PK_RSA_TO_MBEDTLS_ERR(status);
         } else
 #endif /* MBEDTLS_RSA_C */
-        return mbedtls_pk_error_from_psa(status);
+        return PSA_PK_TO_MBEDTLS_ERR(status);
     }
 
 #if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
@@ -1535,7 +1578,7 @@ static int pk_opaque_rsa_decrypt(void *ctx,
                                     NULL, 0,
                                     output, osize, olen);
     if (status != PSA_SUCCESS) {
-        return mbedtls_pk_error_from_psa_rsa(status);
+        return PSA_PK_RSA_TO_MBEDTLS_ERR(status);
     }
 
     return 0;

@@ -778,6 +778,10 @@ int mbedtls_test_psa_exported_key_sanity_check(
             /* The representation of an ECC Montgomery public key is
              * the raw compressed point */
             TEST_EQUAL(PSA_BITS_TO_BYTES(bits), exported_length);
+        } else if (PSA_KEY_TYPE_ECC_GET_FAMILY(type) == PSA_ECC_FAMILY_TWISTED_EDWARDS) {
+            /* The representation of an ECC Edwards public key is
+             * the raw compressed point */
+            TEST_EQUAL(PSA_BITS_TO_BYTES(bits + 1), exported_length);
         } else {
             /* The representation of an ECC Weierstrass public key is:
              *      - The byte 0x04;

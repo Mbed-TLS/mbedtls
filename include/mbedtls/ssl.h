@@ -1919,6 +1919,19 @@ int mbedtls_ssl_session_reset(mbedtls_ssl_context *ssl);
 void mbedtls_ssl_conf_endpoint(mbedtls_ssl_config *conf, int endpoint);
 
 /**
+ * \brief          Get the current endpoint type
+ *
+ * \param conf     SSL configuration
+ *
+ * \return         Endpoint type, either MBEDTLS_SSL_IS_CLIENT
+ *                 or MBEDTLS_SSL_IS_SERVER
+ */
+static inline int mbedtls_ssl_conf_get_endpoint(mbedtls_ssl_config *conf)
+{
+    return conf->MBEDTLS_PRIVATE(endpoint);
+}
+
+/**
  * \brief           Set the transport type (TLS or DTLS).
  *                  Default: TLS
  *

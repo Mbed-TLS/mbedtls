@@ -1241,6 +1241,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const unsigned char *p = buf;
+    const unsigned char *random;
     size_t legacy_session_id_len;
     size_t cipher_suites_len;
     const unsigned char *cipher_suites_end;
@@ -1297,10 +1298,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
      * with Random defined as:
      * opaque Random[32];
      */
-    MBEDTLS_SSL_DEBUG_BUF(3, "client hello, random bytes",
-                          p, MBEDTLS_CLIENT_HELLO_RANDOM_LEN);
-
-    memcpy(&handshake->randbytes[0], p, MBEDTLS_CLIENT_HELLO_RANDOM_LEN);
+    random = p;
     p += MBEDTLS_CLIENT_HELLO_RANDOM_LEN;
 
     /* ...
@@ -1371,6 +1369,14 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     ssl->session_negotiate->tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
     ssl->session_negotiate->endpoint = ssl->conf->endpoint;
 #endif
+
+    /*
+     * We are negotiation the version 1.3 of the protocol. Do what we have
+     * postponed: copy of the client random bytes.
+     */
+    MBEDTLS_SSL_DEBUG_BUF(3, "client hello, random bytes",
+                          random, MBEDTLS_CLIENT_HELLO_RANDOM_LEN);
+    memcpy(&handshake->randbytes[0], random, MBEDTLS_CLIENT_HELLO_RANDOM_LEN);
 
     /*
      * Search for a matching ciphersuite

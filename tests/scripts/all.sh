@@ -3642,13 +3642,8 @@ component_build_mingw () {
     make WINDOWS_BUILD=1 clean
 
     msg "build: Windows cross build - mingw64, make (Link Library)" # ~ 30s
-    cp "$CONFIG_H" "$CONFIG_BAK"
-    scripts/config.pl set MBEDTLS_THREADING_C
-    scripts/config.pl set MBEDTLS_THREADING_SRWLOCK
-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 lib programs
-    make WINDOWS_BUILD=1 clean
-
-    msg "build: Windows cross build - mingw64, make (DLL)" # ~ 30s
+    scripts/config.py set MBEDTLS_THREADING_C
+    scripts/config.py set MBEDTLS_THREADING_SRWLOCK
     make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 lib programs
     make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 tests
     make WINDOWS_BUILD=1 clean

@@ -1291,17 +1291,6 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     }
     p += 2;
 
-    /*
-     * Only support TLS 1.3 currently, temporarily set the version.
-     */
-    ssl->tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
-
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    /* Store minor version for later use with ticket serialization. */
-    ssl->session_negotiate->tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
-    ssl->session_negotiate->endpoint = ssl->conf->endpoint;
-#endif
-
     /* ...
      * Random random;
      * ...
@@ -1371,6 +1360,17 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     cipher_suites_end = p + cipher_suites_len;
     MBEDTLS_SSL_DEBUG_BUF(3, "client hello, ciphersuitelist",
                           p, cipher_suites_len);
+
+    /*
+     * Only support TLS 1.3 currently, temporarily set the version.
+     */
+    ssl->tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    /* Store minor version for later use with ticket serialization. */
+    ssl->session_negotiate->tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    ssl->session_negotiate->endpoint = ssl->conf->endpoint;
+#endif
 
     /*
      * Search for a matching ciphersuite

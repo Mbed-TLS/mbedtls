@@ -871,7 +871,7 @@
  * - Changes the behaviour of TLS 1.2 clients (not servers) when using the
  *   ECDHE-ECDSA key exchange (not other key exchanges) to make all ECC
  *   computations restartable:
- *   - ECDH operations from the key exchange, only for Short Weierstass
+ *   - ECDH operations from the key exchange, only for Short Weierstrass
  *     curves;
  *   - verification of the server's key exchange signature;
  *   - verification of the server's certificate chain;

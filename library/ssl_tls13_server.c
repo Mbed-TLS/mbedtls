@@ -1249,6 +1249,8 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     const unsigned char *cipher_suites_end;
     size_t extensions_len;
     const unsigned char *extensions_end;
+    const unsigned char *supported_versions_ext;
+    const unsigned char *supported_versions_ext_end;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
     int hrr_required = 0;
 
@@ -1343,10 +1345,41 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
      * extensions_len                               2 bytes
      */
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, cipher_suites_len + 2 + 2);
-    cipher_suites_end = p + cipher_suites_len;
+    p += cipher_suites_len;
+    cipher_suites_end = p;
 
     /*
-     * Only support TLS 1.3 currently, temporarily set the version.
+     * Search for the supported versions extension and parse it to determine
+     * if the client supports TLS 1.3.
+     */
+    ret = mbedtls_ssl_tls13_is_supported_versions_ext_present_in_exts(
+        ssl, p + 2, end,
+        &supported_versions_ext, &supported_versions_ext_end);
+    if (ret < 0) {
+        MBEDTLS_SSL_DEBUG_RET(1,
+                              ("mbedtls_ssl_tls13_is_supported_versions_ext_present_in_exts"), ret);
+        return ret;
+    }
+
+    if (ret == 0) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("TLS 1.3 is not supported by the client"));
+
+        MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION,
+                                     MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION);
+        return MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION;
+    }
+
+    ret = ssl_tls13_parse_supported_versions_ext(ssl,
+                                                 supported_versions_ext,
+                                                 supported_versions_ext_end);
+    if (ret != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1,
+                              ("ssl_tls13_parse_supported_versions_ext"), ret);
+        return ret;
+    }
+
+    /*
+     * We negotiate TLS 1.3.
      */
     ssl->tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
 
@@ -1539,15 +1572,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
 #endif /* PSA_WANT_ALG_ECDH */
 
             case MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS:
-                MBEDTLS_SSL_DEBUG_MSG(3, ("found supported versions extension"));
-
-                ret = ssl_tls13_parse_supported_versions_ext(
-                    ssl, p, extension_data_end);
-                if (ret != 0) {
-                    MBEDTLS_SSL_DEBUG_RET(1,
-                                          ("ssl_tls13_parse_supported_versions_ext"), ret);
-                    return ret;
-                }
+                /* Already parsed */
                 break;
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)

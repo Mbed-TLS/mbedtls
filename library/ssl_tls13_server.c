@@ -1245,6 +1245,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     size_t legacy_session_id_len;
     const unsigned char *legacy_session_id;
     size_t cipher_suites_len;
+    const unsigned char *cipher_suites;
     const unsigned char *cipher_suites_end;
     size_t extensions_len;
     const unsigned char *extensions_end;
@@ -1252,7 +1253,6 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     int hrr_required = 0;
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
-    const unsigned char *cipher_suites;
     const unsigned char *pre_shared_key_ext = NULL;
     const unsigned char *pre_shared_key_ext_end = NULL;
 #endif
@@ -1316,8 +1316,15 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, legacy_session_id_len + 2);
     p += legacy_session_id_len;
 
+    /* ...
+     * CipherSuite cipher_suites<2..2^16-2>;
+     * ...
+     * with CipherSuite defined as:
+     * uint8 CipherSuite[2];
+     */
     cipher_suites_len = MBEDTLS_GET_UINT16_BE(p, 0);
     p += 2;
+    cipher_suites = p;
 
     /*
      * The length of the ciphersuite list has to be even.
@@ -1336,19 +1343,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
      * extensions_len                               2 bytes
      */
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, cipher_suites_len + 2 + 2);
-
-    /* ...
-     * CipherSuite cipher_suites<2..2^16-2>;
-     * ...
-     * with CipherSuite defined as:
-     * uint8 CipherSuite[2];
-     */
-#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
-    cipher_suites = p;
-#endif
     cipher_suites_end = p + cipher_suites_len;
-    MBEDTLS_SSL_DEBUG_BUF(3, "client hello, ciphersuitelist",
-                          p, cipher_suites_len);
 
     /*
      * Only support TLS 1.3 currently, temporarily set the version.
@@ -1364,7 +1359,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     /*
      * We are negotiation the version 1.3 of the protocol. Do what we have
      * postponed: copy of the client random bytes, copy of the legacy session
-     * identifier.
+     * identifier and selection of the TLS 1.3 cipher suite.
      */
     MBEDTLS_SSL_DEBUG_BUF(3, "client hello, random bytes",
                           random, MBEDTLS_CLIENT_HELLO_RANDOM_LEN);
@@ -1383,7 +1378,9 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     /*
      * Search for a matching ciphersuite
      */
-    for (; p < cipher_suites_end; p += 2) {
+    MBEDTLS_SSL_DEBUG_BUF(3, "client hello, list of cipher suites",
+                          cipher_suites, cipher_suites_len);
+    for (p = cipher_suites; p < cipher_suites_end; p += 2) {
         uint16_t cipher_suite;
         const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
 
@@ -1441,7 +1438,6 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     extensions_end = p + extensions_len;
 
     MBEDTLS_SSL_DEBUG_BUF(3, "client hello extensions", p, extensions_len);
-
     handshake->received_extensions = MBEDTLS_SSL_EXT_MASK_NONE;
 
     while (p < extensions_end) {

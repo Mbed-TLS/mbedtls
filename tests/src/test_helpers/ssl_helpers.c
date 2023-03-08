@@ -65,7 +65,7 @@ void mbedtls_test_init_handshake_options(
     opts->client_max_version = MBEDTLS_SSL_VERSION_UNKNOWN;
     opts->server_min_version = MBEDTLS_SSL_VERSION_UNKNOWN;
     opts->server_max_version = MBEDTLS_SSL_VERSION_UNKNOWN;
-    opts->expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    opts->expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_3;
     opts->expected_handshake_result = 0;
     opts->expected_ciphersuite = 0;
     opts->pk_alg = MBEDTLS_PK_RSA;

@@ -1488,7 +1488,7 @@ do_run_test_once() {
     fi
 }
 
-# Detect if the current test is going to use TLS 1.3.
+# Detect if the current test is going to use TLS 1.3 or TLS 1.2.
 # $1 and $2 contain the server and client command lines, respectively.
 #
 # Note: this function only provides some guess about TLS version by simply
@@ -1496,23 +1496,52 @@ do_run_test_once() {
 #       for the sake of tests' filtering (especially in conjunction with the
 #       detect_required_features() function), it does NOT guarantee that the
 #       result is accurate. It does not check other conditions, such as:
-#       - MBEDTLS_SSL_PROTO_TLS1_x can be disabled to selectively remove
-#         TLS 1.2/1.3 support
 #       - we can force a ciphersuite which contains "WITH" in its name, meaning
 #         that we are going to use TLS 1.2
 #       - etc etc
 get_tls_version() {
+    # First check if the version is forced on an Mbed TLS peer
     case $1 in
-        *tls1_3*|*tls13*)
+        *tls12*)
+            echo "TLS12"
+            return;;
+        *tls13*)
             echo "TLS13"
             return;;
     esac
     case $2 in
-        *tls1_3*|*tls13*)
+        *tls12*)
+            echo "TLS12"
+            return;;
+        *tls13*)
             echo "TLS13"
             return;;
     esac
-    echo "TLS12"
+    # Second check if the version is forced on an OpenSSL or GnuTLS peer
+    case $1 in
+        tls1_2*)
+            echo "TLS12"
+            return;;
+        *tls1_3)
+            echo "TLS13"
+            return;;
+    esac
+    case $2 in
+        *tls1_2)
+            echo "TLS12"
+            return;;
+        *tls1_3)
+            echo "TLS13"
+            return;;
+    esac
+    # Third if the version is not forced, if TLS 1.3 is enabled then the test
+    # is aimed to run a TLS 1.3 handshake.
+    if $P_QUERY -all MBEDTLS_SSL_PROTO_TLS1_3
+    then
+        echo "TLS13"
+    else
+        echo "TLS12"
+    fi
 }
 
 # Usage: run_test name [-p proxy_cmd] srv_cmd cli_cmd cli_exit [option [...]]

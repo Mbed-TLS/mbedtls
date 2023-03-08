@@ -5300,14 +5300,8 @@ int mbedtls_ssl_config_defaults(mbedtls_ssl_config *conf,
 #endif
     } else {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
-        if (endpoint == MBEDTLS_SSL_IS_CLIENT) {
-            conf->min_tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
-            conf->max_tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
-        } else {
-            /* Hybrid TLS 1.2 / 1.3 is not supported on server side yet */
-            conf->min_tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
-            conf->max_tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
-        }
+        conf->min_tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
+        conf->max_tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
 #elif defined(MBEDTLS_SSL_PROTO_TLS1_3)
         conf->min_tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
         conf->max_tls_version = MBEDTLS_SSL_VERSION_TLS1_3;

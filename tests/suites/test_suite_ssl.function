@@ -2533,13 +2533,18 @@ void move_handshake_to_state(int endpoint_type, int tls_version, int state, int 
     options.pk_alg = MBEDTLS_PK_RSA;
 
     /*
-     * If both TLS 1.2 and 1.3 are enabled and we want to do a TLS 1.3
-     * handshake, force the TLS 1.3 version on the server.
+     * If both TLS 1.2 and 1.3 are enabled and we want to do a TLS 1.2
+     * handshake, force the TLS 1.2 version on endpoint under test.
      */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    if (MBEDTLS_SSL_VERSION_TLS1_3 == tls_version) {
-        options.server_min_version = MBEDTLS_SSL_VERSION_TLS1_3;
-        options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    if (MBEDTLS_SSL_VERSION_TLS1_2 == tls_version) {
+        if (MBEDTLS_SSL_IS_CLIENT == endpoint_type) {
+            options.client_min_version = MBEDTLS_SSL_VERSION_TLS1_2;
+            options.client_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
+        } else {
+            options.server_min_version = MBEDTLS_SSL_VERSION_TLS1_2;
+            options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
+        }
     }
 #endif
 
@@ -2623,6 +2628,10 @@ void handshake_psk_cipher(char *cipher, int pk_alg, data_t *psk_str, int dtls)
     options.psk_str = psk_str;
     options.pk_alg = pk_alg;
 
+    options.client_min_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    options.client_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    options.expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_2;
+
     mbedtls_test_ssl_perform_handshake(&options);
 
     /* The goto below is used to avoid an "unused label" warning.*/
@@ -2663,6 +2672,11 @@ void handshake_ciphersuite_select(char *cipher, int pk_alg, data_t *psk_str,
     options.opaque_usage = psa_usage;
     options.expected_handshake_result = expected_handshake_result;
     options.expected_ciphersuite = expected_ciphersuite;
+
+    options.server_min_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    options.expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_2;
+
     mbedtls_test_ssl_perform_handshake(&options);
 
     /* The goto below is used to avoid an "unused label" warning.*/
@@ -2687,9 +2701,10 @@ void app_data(int mfl, int cli_msg_len, int srv_msg_len,
     options.expected_cli_fragments = expected_cli_fragments;
     options.expected_srv_fragments = expected_srv_fragments;
     options.dtls = dtls;
-#if !defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    options.expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_3;
-#endif
+
+    options.client_min_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    options.client_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    options.expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_2;
 
     mbedtls_test_ssl_perform_handshake(&options);
 
@@ -2701,7 +2716,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_C:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_C:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY */
 void app_data_tls(int mfl, int cli_msg_len, int srv_msg_len,
                   int expected_cli_fragments,
                   int expected_srv_fragments)
@@ -2735,7 +2750,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SSL_PROTO_DTLS:MBEDTLS_SSL_RENEGOTIATION:MBEDTLS_SSL_CONTEXT_SERIALIZATION:MBEDTLS_MD_CAN_SHA256:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SSL_PROTO_DTLS:MBEDTLS_SSL_RENEGOTIATION:MBEDTLS_SSL_CONTEXT_SERIALIZATION:MBEDTLS_MD_CAN_SHA256:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY */
 void handshake_serialization()
 {
     mbedtls_test_handshake_test_options options;
@@ -2743,6 +2758,7 @@ void handshake_serialization()
 
     options.serialize = 1;
     options.dtls = 1;
+    options.expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_2;
     mbedtls_test_ssl_perform_handshake(&options);
     /* The goto below is used to avoid an "unused label" warning.*/
     goto exit;
@@ -2751,7 +2767,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_AES_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_DEBUG_C:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_MD_CAN_SHA256:MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_AES_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_DEBUG_C:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_MD_CAN_SHA256:MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED */
 void handshake_fragmentation(int mfl,
                              int expected_srv_hs_fragmentation,
                              int expected_cli_hs_fragmentation)
@@ -2765,6 +2781,7 @@ void handshake_fragmentation(int mfl,
 
     mbedtls_test_init_handshake_options(&options);
     options.dtls = 1;
+    options.expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_2;
     options.mfl = mfl;
     /* Set cipher to one using CBC so that record splitting can be tested */
     options.cipher = "TLS-DHE-RSA-WITH-AES-256-CBC-SHA256";
@@ -2799,6 +2816,7 @@ void renegotiation(int legacy_renegotiation)
     options.renegotiate = 1;
     options.legacy_renegotiation = legacy_renegotiation;
     options.dtls = 1;
+    options.expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_2;
 
     mbedtls_test_ssl_perform_handshake(&options);
 
@@ -2809,7 +2827,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_MD_CAN_SHA256 */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_MD_CAN_SHA256 */
 void resize_buffers(int mfl, int renegotiation, int legacy_renegotiation,
                     int serialize, int dtls, char *cipher)
 {
@@ -2822,6 +2840,9 @@ void resize_buffers(int mfl, int renegotiation, int legacy_renegotiation,
     options.legacy_renegotiation = legacy_renegotiation;
     options.serialize = serialize;
     options.dtls = dtls;
+    if (dtls) {
+        options.expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    }
     options.resize_buffers = 1;
 
     mbedtls_test_ssl_perform_handshake(&options);
@@ -3291,6 +3312,8 @@ void raw_key_agreement_fail(int bad_server_ecdhe_key)
 
     mbedtls_test_init_handshake_options(&options);
     options.pk_alg = MBEDTLS_PK_ECDSA;
+    options.server_min_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_2;
 
     /* Client side, force SECP256R1 to make one key bitflip fail
      * the raw key agreement. Flipping the first byte makes the

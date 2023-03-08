@@ -1393,6 +1393,7 @@ int mbedtls_ssl_setup(mbedtls_ssl_context *ssl,
     if ((ret = ssl_conf_check(ssl)) != 0) {
         return ret;
     }
+    ssl->tls_version = ssl->conf->max_tls_version;
 
     /*
      * Prepare base structures

@@ -394,7 +394,8 @@ detect_required_features() {
     esac
 
     case "$1" in
-        *server5*)
+        *server5*|\
+        *server7*)
             if [ "$3" = "TLS13" ]; then
                 # In case of TLS13 the support for ECDSA is enough
                 requires_pk_alg "ECDSA"
@@ -2506,8 +2507,6 @@ run_test    "Single supported algorithm sending: mbedtls client" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_pk_alg "ECDSA"
 requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
 requires_hash_alg SHA_256
 run_test    "Single supported algorithm sending: openssl client" \
@@ -3745,7 +3744,6 @@ run_test    "Session resume using tickets: session copy" \
             -c "a session has been resumed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "Session resume using tickets: openssl server" \
             "$O_SRV -tls1_2" \
             "$P_CLI debug_level=3 tickets=1 reconnect=1" \
@@ -4056,7 +4054,6 @@ run_test    "Session resume using tickets, DTLS: session copy" \
             -c "a session has been resumed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "Session resume using tickets, DTLS: openssl server" \
             "$O_SRV -dtls" \
             "$P_CLI dtls=1 debug_level=3 tickets=1 reconnect=1" \
@@ -4198,7 +4195,6 @@ run_test    "Session resume using cache: openssl client" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CACHE_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "Session resume using cache: openssl server" \
             "$O_SRV -tls1_2" \
             "$P_CLI debug_level=3 tickets=0 reconnect=1" \
@@ -4349,7 +4345,6 @@ run_test    "Session resume using cache, DTLS: openssl client" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CACHE_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "Session resume using cache, DTLS: openssl server" \
             "$O_SRV -dtls" \
             "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1" \
@@ -4667,7 +4662,6 @@ requires_max_content_len 4096
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "Max fragment length: gnutls server" \
             "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2" \
             "$P_CLI debug_level=3 max_frag_len=4096" \
@@ -5096,7 +5090,6 @@ run_test    "Renegotiation: nbio, server-initiated" \
 
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "Renegotiation: openssl server, client-initiated" \
             "$O_SRV -www -tls1_2" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1" \
@@ -5111,7 +5104,6 @@ run_test    "Renegotiation: openssl server, client-initiated" \
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "Renegotiation: gnutls server strict, client-initiated" \
             "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1" \
@@ -5126,7 +5118,6 @@ run_test    "Renegotiation: gnutls server strict, client-initiated" \
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "Renegotiation: gnutls server unsafe, client-initiated default" \
             "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1" \
@@ -5141,7 +5132,6 @@ run_test    "Renegotiation: gnutls server unsafe, client-initiated default" \
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "Renegotiation: gnutls server unsafe, client-inititated no legacy" \
             "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1 \
@@ -5157,7 +5147,6 @@ run_test    "Renegotiation: gnutls server unsafe, client-inititated no legacy" \
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "Renegotiation: gnutls server unsafe, client-inititated legacy" \
             "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1 \
@@ -5219,7 +5208,6 @@ run_test    "Renegotiation: DTLS, renego_period overflow" \
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "Renegotiation: DTLS, gnutls server, client-initiated" \
             "$G_SRV -u --mtu 4096" \
             "$P_CLI debug_level=3 dtls=1 exchanges=1 renegotiation=1 renegotiate=1" \
@@ -5235,7 +5223,6 @@ run_test    "Renegotiation: DTLS, gnutls server, client-initiated" \
 
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "Renego ext: gnutls server strict, client default" \
             "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3" \
@@ -5246,7 +5233,6 @@ run_test    "Renego ext: gnutls server strict, client default" \
 
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "Renego ext: gnutls server unsafe, client default" \
             "$G_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:%DISABLE_SAFE_RENEGOTIATION" \
             "$P_CLI debug_level=3" \
@@ -5372,7 +5358,6 @@ run_test    "Authentication: server badcert, client required" \
             -c "X509 - Certificate verification failed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication: server badcert, client optional" \
             "$P_SRV crt_file=data_files/server5-badsign.crt \
              key_file=data_files/server5.key" \
@@ -5593,7 +5578,6 @@ run_test    "Authentication: client no cert, server optional" \
             -S "X509 - Certificate verification failed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication: openssl client no cert, server optional" \
             "$P_SRV debug_level=3 auth_mode=optional" \
             "$O_CLI" \
@@ -5605,8 +5589,6 @@ run_test    "Authentication: openssl client no cert, server optional" \
             -S "X509 - Certificate verification failed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "Authentication: client no cert, openssl server optional" \
             "$O_SRV -verify 10 -tls1_2" \
             "$P_CLI debug_level=3 crt_file=none key_file=none" \
@@ -5618,8 +5600,6 @@ run_test    "Authentication: client no cert, openssl server optional" \
             -C "! mbedtls_ssl_handshake returned"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "Authentication: client no cert, openssl server required" \
             "$O_SRV -Verify 10 -tls1_2" \
             "$P_CLI debug_level=3 crt_file=none key_file=none" \
@@ -6567,7 +6547,6 @@ run_test    "Not supported version check: cli TLS 1.1" \
             -C "Handshake was completed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "Not supported version check: srv max TLS 1.0" \
             "$G_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0" \
             "$P_CLI" \
@@ -6578,7 +6557,6 @@ run_test    "Not supported version check: srv max TLS 1.0" \
             -C "Protocol is TLSv1.0"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "Not supported version check: srv max TLS 1.1" \
             "$G_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.1" \
             "$P_CLI" \
@@ -9412,7 +9390,6 @@ run_test    "DTLS wrong PSK: badmac alert" \
 
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "DTLS reassembly: no fragmentation (gnutls server)" \
             "$G_SRV -u --mtu 2048 -a" \
             "$P_CLI dtls=1 debug_level=2" \
@@ -9422,7 +9399,6 @@ run_test    "DTLS reassembly: no fragmentation (gnutls server)" \
 
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "DTLS reassembly: some fragmentation (gnutls server)" \
             "$G_SRV -u --mtu 512" \
             "$P_CLI dtls=1 debug_level=2" \
@@ -9432,7 +9408,6 @@ run_test    "DTLS reassembly: some fragmentation (gnutls server)" \
 
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "DTLS reassembly: more fragmentation (gnutls server)" \
             "$G_SRV -u --mtu 128" \
             "$P_CLI dtls=1 debug_level=2" \
@@ -9442,7 +9417,6 @@ run_test    "DTLS reassembly: more fragmentation (gnutls server)" \
 
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "DTLS reassembly: more fragmentation, nbio (gnutls server)" \
             "$G_SRV -u --mtu 128" \
             "$P_CLI dtls=1 nbio=2 debug_level=2" \
@@ -9453,7 +9427,6 @@ run_test    "DTLS reassembly: more fragmentation, nbio (gnutls server)" \
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "DTLS reassembly: fragmentation, renego (gnutls server)" \
             "$G_SRV -u --mtu 256" \
             "$P_CLI debug_level=3 dtls=1 renegotiation=1 renegotiate=1" \
@@ -9469,7 +9442,6 @@ run_test    "DTLS reassembly: fragmentation, renego (gnutls server)" \
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "DTLS reassembly: fragmentation, nbio, renego (gnutls server)" \
             "$G_SRV -u --mtu 256" \
             "$P_CLI debug_level=3 nbio=2 dtls=1 renegotiation=1 renegotiate=1" \
@@ -9483,7 +9455,6 @@ run_test    "DTLS reassembly: fragmentation, nbio, renego (gnutls server)" \
             -s "Extra-header:"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "DTLS reassembly: no fragmentation (openssl server)" \
             "$O_SRV -dtls -mtu 2048" \
             "$P_CLI dtls=1 debug_level=2" \
@@ -9492,7 +9463,6 @@ run_test    "DTLS reassembly: no fragmentation (openssl server)" \
             -C "error"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "DTLS reassembly: some fragmentation (openssl server)" \
             "$O_SRV -dtls -mtu 768" \
             "$P_CLI dtls=1 debug_level=2" \
@@ -9501,7 +9471,6 @@ run_test    "DTLS reassembly: some fragmentation (openssl server)" \
             -C "error"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "DTLS reassembly: more fragmentation (openssl server)" \
             "$O_SRV -dtls -mtu 256" \
             "$P_CLI dtls=1 debug_level=2" \
@@ -9510,7 +9479,6 @@ run_test    "DTLS reassembly: more fragmentation (openssl server)" \
             -C "error"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "DTLS reassembly: fragmentation, nbio (openssl server)" \
             "$O_SRV -dtls -mtu 256" \
             "$P_CLI dtls=1 nbio=2 debug_level=2" \
@@ -9532,8 +9500,6 @@ run_test    "DTLS reassembly: fragmentation, nbio (openssl server)" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_pk_alg "ECDSA"
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 requires_max_content_len 4096
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
@@ -9555,8 +9521,6 @@ run_test    "DTLS fragmenting: none (for reference)" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_pk_alg "ECDSA"
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 requires_max_content_len 2048
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
@@ -9582,8 +9546,6 @@ run_test    "DTLS fragmenting: server only (max_frag_len)" \
 # `client-initiated, server only (max_frag_len)` below.
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_pk_alg "ECDSA"
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 requires_max_content_len 4096
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
@@ -9605,8 +9567,6 @@ run_test    "DTLS fragmenting: server only (more) (max_frag_len)" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_pk_alg "ECDSA"
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 requires_max_content_len 2048
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
@@ -9635,8 +9595,6 @@ run_test    "DTLS fragmenting: client-initiated, server only (max_frag_len)" \
 # negotiated MFL are sent.
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_pk_alg "ECDSA"
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 requires_max_content_len 2048
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
@@ -9659,8 +9617,6 @@ run_test    "DTLS fragmenting: client-initiated, server only (max_frag_len), pro
 
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_pk_alg "ECDSA"
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 requires_max_content_len 2048
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
@@ -9689,8 +9645,6 @@ run_test    "DTLS fragmenting: client-initiated, both (max_frag_len)" \
 # negotiated MFL are sent.
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_pk_alg "ECDSA"
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 requires_max_content_len 2048
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
@@ -9713,8 +9667,6 @@ run_test    "DTLS fragmenting: client-initiated, both (max_frag_len), proxy MTU"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_pk_alg "ECDSA"
 requires_max_content_len 4096
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: none (for reference) (MTU)" \
@@ -9735,8 +9687,6 @@ run_test    "DTLS fragmenting: none (for reference) (MTU)" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_pk_alg "ECDSA"
 requires_max_content_len 4096
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: client (MTU)" \
@@ -9757,8 +9707,6 @@ run_test    "DTLS fragmenting: client (MTU)" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_pk_alg "ECDSA"
 requires_max_content_len 2048
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: server (MTU)" \
@@ -9779,8 +9727,6 @@ run_test    "DTLS fragmenting: server (MTU)" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_pk_alg "ECDSA"
 requires_max_content_len 2048
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: both (MTU=1024)" \
@@ -9885,8 +9831,6 @@ run_test    "DTLS fragmenting: proxy MTU: auto-reduction (with valgrind)" \
 not_with_valgrind # spurious autoreduction due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_pk_alg "ECDSA"
 requires_max_content_len 2048
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: proxy MTU, simple handshake (MTU=1024)" \
@@ -9940,8 +9884,6 @@ run_test    "DTLS fragmenting: proxy MTU, simple handshake (MTU=512)" \
 not_with_valgrind # spurious autoreduction due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_pk_alg "ECDSA"
 requires_max_content_len 2048
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: proxy MTU, simple handshake, nbio (MTU=1024)" \
@@ -10239,7 +10181,6 @@ run_test    "DTLS fragmenting: proxy MTU + 3d, nbio" \
 # pleases other implementations, so we don't need the peer to fragment
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 requires_gnutls
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: gnutls server, DTLS 1.2" \
@@ -10261,7 +10202,6 @@ run_test    "DTLS fragmenting: gnutls server, DTLS 1.2" \
 # GnuTLS continue the connection nonetheless.
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 requires_gnutls
 requires_not_i686
 requires_max_content_len 2048
@@ -10276,7 +10216,6 @@ run_test    "DTLS fragmenting: gnutls client, DTLS 1.2" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: openssl server, DTLS 1.2" \
             "$O_SRV -dtls1_2 -verify 10" \
@@ -10290,8 +10229,6 @@ run_test    "DTLS fragmenting: openssl server, DTLS 1.2" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_pk_alg "ECDSA"
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: openssl client, DTLS 1.2" \
             "$P_SRV dtls=1 debug_level=2 \
@@ -10309,7 +10246,6 @@ run_test    "DTLS fragmenting: openssl client, DTLS 1.2" \
 requires_gnutls_next
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 client_needs_more_time 4
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.2" \
@@ -10326,7 +10262,6 @@ run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.2" \
 requires_gnutls_next
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 client_needs_more_time 4
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.2" \
@@ -10344,7 +10279,6 @@ run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.2" \
 requires_openssl_next
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 client_needs_more_time 4
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.2" \
@@ -10363,8 +10297,6 @@ run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.2" \
 skip_next_test
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-requires_pk_alg "ECDSA"
 client_needs_more_time 4
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: 3d, openssl client, DTLS 1.2" \
@@ -10632,7 +10564,6 @@ run_test  "DTLS-SRTP server doesn't support use_srtp extension. openssl client" 
 
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test  "DTLS-SRTP all profiles supported. openssl server" \
           "$O_SRV -dtls -verify 0 -use_srtp SRTP_AES128_CM_SHA1_80:SRTP_AES128_CM_SHA1_32 -keymatexport 'EXTRACTOR-dtls_srtp' -keymatexportlen 60" \
           "$P_CLI dtls=1 use_srtp=1 debug_level=3" \
@@ -10646,7 +10577,6 @@ run_test  "DTLS-SRTP all profiles supported. openssl server" \
 
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test  "DTLS-SRTP server supports all profiles. Client supports all profiles, in different order. openssl server." \
           "$O_SRV -dtls -verify 0 -use_srtp SRTP_AES128_CM_SHA1_32:SRTP_AES128_CM_SHA1_80 -keymatexport 'EXTRACTOR-dtls_srtp' -keymatexportlen 60" \
           "$P_CLI dtls=1 use_srtp=1 debug_level=3" \
@@ -10660,7 +10590,6 @@ run_test  "DTLS-SRTP server supports all profiles. Client supports all profiles,
 
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test  "DTLS-SRTP server supports all profiles. Client supports one profile. openssl server." \
           "$O_SRV -dtls -verify 0 -use_srtp SRTP_AES128_CM_SHA1_80:SRTP_AES128_CM_SHA1_32 -keymatexport 'EXTRACTOR-dtls_srtp' -keymatexportlen 60" \
           "$P_CLI dtls=1 use_srtp=1 srtp_force_profile=2 debug_level=3" \
@@ -10674,7 +10603,6 @@ run_test  "DTLS-SRTP server supports all profiles. Client supports one profile. 
 
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test  "DTLS-SRTP server supports one profile. Client supports all profiles. openssl server." \
           "$O_SRV -dtls -verify 0 -use_srtp SRTP_AES128_CM_SHA1_32 -keymatexport 'EXTRACTOR-dtls_srtp' -keymatexportlen 60" \
           "$P_CLI dtls=1 use_srtp=1 debug_level=3" \
@@ -10688,7 +10616,6 @@ run_test  "DTLS-SRTP server supports one profile. Client supports all profiles. 
 
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test  "DTLS-SRTP server and Client support only one matching profile. openssl server." \
           "$O_SRV -dtls -verify 0 -use_srtp SRTP_AES128_CM_SHA1_32 -keymatexport 'EXTRACTOR-dtls_srtp' -keymatexportlen 60" \
           "$P_CLI dtls=1 use_srtp=1 srtp_force_profile=2 debug_level=3" \
@@ -10702,7 +10629,6 @@ run_test  "DTLS-SRTP server and Client support only one matching profile. openss
 
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test  "DTLS-SRTP server and Client support only one different profile. openssl server." \
           "$O_SRV -dtls -verify 0 -use_srtp SRTP_AES128_CM_SHA1_32 -keymatexport 'EXTRACTOR-dtls_srtp' -keymatexportlen 60" \
           "$P_CLI dtls=1 use_srtp=1 srtp_force_profile=6 debug_level=3" \
@@ -10716,7 +10642,6 @@ run_test  "DTLS-SRTP server and Client support only one different profile. opens
 
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test  "DTLS-SRTP server doesn't support use_srtp extension. openssl server" \
           "$O_SRV -dtls" \
           "$P_CLI dtls=1 use_srtp=1 debug_level=3" \
@@ -10730,7 +10655,6 @@ run_test  "DTLS-SRTP server doesn't support use_srtp extension. openssl server" 
 
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test  "DTLS-SRTP all profiles supported. server doesn't support mki. openssl server." \
           "$O_SRV -dtls -verify 0 -use_srtp SRTP_AES128_CM_SHA1_80:SRTP_AES128_CM_SHA1_32 -keymatexport 'EXTRACTOR-dtls_srtp' -keymatexportlen 60" \
           "$P_CLI dtls=1 use_srtp=1 mki=542310ab34290481 debug_level=3" \
@@ -10844,7 +10768,6 @@ run_test  "DTLS-SRTP server doesn't support use_srtp extension. gnutls client" \
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test  "DTLS-SRTP all profiles supported. gnutls server" \
           "$G_SRV -u --srtp-profiles=SRTP_AES128_CM_HMAC_SHA1_80:SRTP_AES128_CM_HMAC_SHA1_32:SRTP_NULL_HMAC_SHA1_80:SRTP_NULL_SHA1_32" \
           "$P_CLI dtls=1 use_srtp=1 debug_level=3" \
@@ -10859,7 +10782,6 @@ run_test  "DTLS-SRTP all profiles supported. gnutls server" \
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test  "DTLS-SRTP server supports all profiles. Client supports all profiles, in different order. gnutls server." \
           "$G_SRV -u --srtp-profiles=SRTP_NULL_SHA1_32:SRTP_AES128_CM_HMAC_SHA1_32:SRTP_AES128_CM_HMAC_SHA1_80:SRTP_NULL_HMAC_SHA1_80:SRTP_NULL_SHA1_32" \
           "$P_CLI dtls=1 use_srtp=1 debug_level=3" \
@@ -10874,7 +10796,6 @@ run_test  "DTLS-SRTP server supports all profiles. Client supports all profiles,
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test  "DTLS-SRTP server supports all profiles. Client supports one profile. gnutls server." \
           "$G_SRV -u --srtp-profiles=SRTP_NULL_SHA1_32:SRTP_AES128_CM_HMAC_SHA1_32:SRTP_AES128_CM_HMAC_SHA1_80:SRTP_NULL_HMAC_SHA1_80:SRTP_NULL_SHA1_32" \
           "$P_CLI dtls=1 use_srtp=1 srtp_force_profile=2 debug_level=3" \
@@ -10889,7 +10810,6 @@ run_test  "DTLS-SRTP server supports all profiles. Client supports one profile. 
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test  "DTLS-SRTP server supports one profile. Client supports all profiles. gnutls server." \
           "$G_SRV -u --srtp-profiles=SRTP_NULL_HMAC_SHA1_80" \
           "$P_CLI dtls=1 use_srtp=1 debug_level=3" \
@@ -10904,7 +10824,6 @@ run_test  "DTLS-SRTP server supports one profile. Client supports all profiles. 
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test  "DTLS-SRTP server and Client support only one matching profile. gnutls server." \
           "$G_SRV -u --srtp-profiles=SRTP_AES128_CM_HMAC_SHA1_32" \
           "$P_CLI dtls=1 use_srtp=1 srtp_force_profile=2 debug_level=3" \
@@ -10919,7 +10838,6 @@ run_test  "DTLS-SRTP server and Client support only one matching profile. gnutls
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test  "DTLS-SRTP server and Client support only one different profile. gnutls server." \
           "$G_SRV -u --srtp-profiles=SRTP_AES128_CM_HMAC_SHA1_32" \
           "$P_CLI dtls=1 use_srtp=1 srtp_force_profile=6 debug_level=3" \
@@ -10934,7 +10852,6 @@ run_test  "DTLS-SRTP server and Client support only one different profile. gnutl
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test  "DTLS-SRTP server doesn't support use_srtp extension. gnutls server" \
           "$G_SRV -u" \
           "$P_CLI dtls=1 use_srtp=1 debug_level=3" \
@@ -10949,7 +10866,6 @@ run_test  "DTLS-SRTP server doesn't support use_srtp extension. gnutls server" \
 requires_config_enabled MBEDTLS_SSL_DTLS_SRTP
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test  "DTLS-SRTP all profiles supported. mki used. gnutls server." \
           "$G_SRV -u --srtp-profiles=SRTP_AES128_CM_HMAC_SHA1_80:SRTP_AES128_CM_HMAC_SHA1_32:SRTP_NULL_HMAC_SHA1_80:SRTP_NULL_SHA1_32" \
           "$P_CLI dtls=1 use_srtp=1 mki=542310ab34290481 debug_level=3" \
@@ -11461,7 +11377,6 @@ requires_openssl_next
 client_needs_more_time 6
 not_with_valgrind # risk of non-mbedtls peer timing out
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "DTLS proxy: 3d, openssl server" \
             -p "$P_PXY drop=5 delay=5 duplicate=5 protect_hvr=1" \
             "$O_NEXT_SRV -dtls1_2 -mtu 2048" \
@@ -11473,7 +11388,6 @@ requires_openssl_next
 client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "DTLS proxy: 3d, openssl server, fragmentation" \
             -p "$P_PXY drop=5 delay=5 duplicate=5 protect_hvr=1" \
             "$O_NEXT_SRV -dtls1_2 -mtu 768" \
@@ -11485,7 +11399,6 @@ requires_openssl_next
 client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "DTLS proxy: 3d, openssl server, fragmentation, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5 protect_hvr=1" \
             "$O_NEXT_SRV -dtls1_2 -mtu 768" \
@@ -11497,7 +11410,6 @@ requires_gnutls
 client_needs_more_time 6
 not_with_valgrind # risk of non-mbedtls peer timing out
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "DTLS proxy: 3d, gnutls server" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$G_SRV -u --mtu 2048 -a" \
@@ -11510,7 +11422,6 @@ requires_gnutls_next
 client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "DTLS proxy: 3d, gnutls server, fragmentation" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$G_NEXT_SRV -u --mtu 512" \
@@ -11523,7 +11434,6 @@ requires_gnutls_next
 client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "DTLS proxy: 3d, gnutls server, fragmentation, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$G_NEXT_SRV -u --mtu 512" \
@@ -11568,7 +11478,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: minimal feature sets - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
             "$P_CLI debug_level=3" \
@@ -11602,7 +11511,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: minimal feature sets - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS --disable-client-cert" \
             "$P_CLI debug_level=3" \
@@ -11637,7 +11545,6 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_ALPN
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: alpn - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -alpn h2" \
             "$P_CLI debug_level=3 alpn=h2" \
@@ -11673,7 +11580,6 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_ALPN
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: alpn - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS --disable-client-cert --alpn=h2" \
             "$P_CLI debug_level=3 alpn=h2" \
@@ -11708,7 +11614,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_ALPN
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: server alpn - openssl" \
             "$P_SRV debug_level=3 tickets=0 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 alpn=h2" \
             "$O_NEXT_CLI -msg -tls1_3 -no_middlebox -alpn h2" \
@@ -11724,7 +11629,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_ALPN
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: server alpn - gnutls" \
             "$P_SRV debug_level=3 tickets=0 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 alpn=h2" \
             "$G_NEXT_CLI localhost -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V --alpn h2" \
@@ -11822,7 +11726,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Client authentication, no client certificate - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -verify 10" \
             "$P_CLI debug_level=4 crt_file=none key_file=none" \
@@ -11839,7 +11742,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Client authentication, no client certificate - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS --verify-client-cert" \
             "$P_CLI debug_level=3 crt_file=none key_file=none" \
@@ -11855,7 +11757,6 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Client authentication, no server middlebox compat - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10 -no_middlebox" \
             "$P_CLI debug_level=4 crt_file=data_files/cli2.crt key_file=data_files/cli2.key" \
@@ -11870,7 +11771,6 @@ requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Client authentication, no server middlebox compat - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
             "$P_CLI debug_level=3 crt_file=data_files/cli2.crt \
@@ -11886,7 +11786,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Client authentication, ecdsa_secp256r1_sha256 - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10" \
             "$P_CLI debug_level=4 crt_file=data_files/ecdsa_secp256r1.crt \
@@ -11903,7 +11802,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Client authentication, ecdsa_secp256r1_sha256 - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS" \
             "$P_CLI debug_level=3 crt_file=data_files/ecdsa_secp256r1.crt \
@@ -11919,7 +11817,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Client authentication, ecdsa_secp384r1_sha384 - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10" \
             "$P_CLI debug_level=4 crt_file=data_files/ecdsa_secp384r1.crt \
@@ -11936,7 +11833,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Client authentication, ecdsa_secp384r1_sha384 - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS" \
             "$P_CLI debug_level=3 crt_file=data_files/ecdsa_secp384r1.crt \
@@ -11952,7 +11848,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Client authentication, ecdsa_secp521r1_sha512 - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10" \
             "$P_CLI debug_level=4 crt_file=data_files/ecdsa_secp521r1.crt \
@@ -11969,7 +11864,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Client authentication, ecdsa_secp521r1_sha512 - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS" \
             "$P_CLI debug_level=3 crt_file=data_files/ecdsa_secp521r1.crt \
@@ -12121,7 +12015,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Client authentication - opaque key, no server middlebox compat - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10 -no_middlebox" \
             "$P_CLI debug_level=4 crt_file=data_files/cli2.crt key_file=data_files/cli2.key key_opaque=1" \
@@ -12137,7 +12030,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Client authentication - opaque key, no server middlebox compat - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
             "$P_CLI debug_level=3 crt_file=data_files/cli2.crt \
@@ -12154,7 +12046,6 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Client authentication - opaque key, ecdsa_secp256r1_sha256 - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10" \
             "$P_CLI debug_level=4 crt_file=data_files/ecdsa_secp256r1.crt \
@@ -12172,7 +12063,6 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Client authentication - opaque key, ecdsa_secp256r1_sha256 - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS" \
             "$P_CLI debug_level=3 crt_file=data_files/ecdsa_secp256r1.crt \
@@ -12189,7 +12079,6 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Client authentication - opaque key, ecdsa_secp384r1_sha384 - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10" \
             "$P_CLI debug_level=4 crt_file=data_files/ecdsa_secp384r1.crt \
@@ -12207,7 +12096,6 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Client authentication - opaque key, ecdsa_secp384r1_sha384 - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS" \
             "$P_CLI debug_level=3 crt_file=data_files/ecdsa_secp384r1.crt \
@@ -12224,7 +12112,6 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Client authentication - opaque key, ecdsa_secp521r1_sha512 - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10" \
             "$P_CLI debug_level=4 crt_file=data_files/ecdsa_secp521r1.crt \
@@ -12242,7 +12129,6 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Client authentication - opaque key, ecdsa_secp521r1_sha512 - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS" \
             "$P_CLI debug_level=3 crt_file=data_files/ecdsa_secp521r1.crt \
@@ -12401,7 +12287,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: HRR check, ciphersuite TLS_AES_128_GCM_SHA256 - openssl" \
             "$O_NEXT_SRV -ciphersuites TLS_AES_128_GCM_SHA256  -sigalgs ecdsa_secp256r1_sha256 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
             "$P_CLI debug_level=4" \
@@ -12417,7 +12302,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: HRR check, ciphersuite TLS_AES_256_GCM_SHA384 - openssl" \
             "$O_NEXT_SRV -ciphersuites TLS_AES_256_GCM_SHA384  -sigalgs ecdsa_secp256r1_sha256 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
             "$P_CLI debug_level=4" \
@@ -12434,7 +12318,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: HRR check, ciphersuite TLS_AES_128_GCM_SHA256 - gnutls" \
             "$G_NEXT_SRV -d 4 --priority=NONE:+GROUP-SECP256R1:+AES-128-GCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS --disable-client-cert" \
             "$P_CLI debug_level=4" \
@@ -12451,7 +12334,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: HRR check, ciphersuite TLS_AES_256_GCM_SHA384 - gnutls" \
             "$G_NEXT_SRV -d 4 --priority=NONE:+GROUP-SECP256R1:+AES-256-GCM:+SHA384:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS --disable-client-cert" \
             "$P_CLI debug_level=4" \
@@ -12466,7 +12348,6 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Server side check - openssl" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
             "$O_NEXT_CLI -msg -debug -tls1_3 -no_middlebox" \
@@ -12484,7 +12365,6 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Server side check - openssl with client authentication" \
             "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
             "$O_NEXT_CLI -msg -debug -cert data_files/server5.crt -key data_files/server5.key -tls1_3 -no_middlebox" \
@@ -12505,7 +12385,6 @@ requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Server side check - gnutls" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
             "$G_NEXT_CLI localhost -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
@@ -12525,7 +12404,6 @@ requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Server side check - gnutls with client authentication" \
             "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
             "$G_NEXT_CLI localhost -d 4 --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
@@ -12545,7 +12423,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Server side check - mbedtls" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
             "$P_CLI debug_level=4 force_version=tls13" \
@@ -12565,7 +12442,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Server side check - mbedtls with client authentication" \
             "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
             "$P_CLI debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13" \
@@ -12583,7 +12459,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Server side check - mbedtls with client empty certificate" \
             "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
             "$P_CLI debug_level=4 crt_file=none key_file=none force_version=tls13" \
@@ -12602,7 +12477,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: Server side check - mbedtls with optional client authentication" \
             "$P_SRV debug_level=4 auth_mode=optional crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
             "$P_CLI debug_level=4 force_version=tls13 crt_file=none key_file=none" \
@@ -12750,7 +12624,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3 m->O both with middlebox compat support" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
             "$P_CLI debug_level=4" \
@@ -12791,7 +12664,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3 m->G both with middlebox compat support" \
             "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS --disable-client-cert" \
             "$P_CLI debug_level=4" \
@@ -12817,7 +12689,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3 O->m server with middlebox compat support, not client" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
             "$O_NEXT_CLI -msg -debug -no_middlebox" \
@@ -12830,7 +12701,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3 O->m both with middlebox compat support" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
             "$O_NEXT_CLI -msg -debug" \
@@ -12861,7 +12731,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3 G->m server with middlebox compat support, not client" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
             "$G_NEXT_CLI localhost --debug=10 --priority=NORMAL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
@@ -12878,7 +12747,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3 G->m both with middlebox compat support" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
             "$G_NEXT_CLI localhost --debug=10 --priority=NORMAL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
@@ -12948,7 +12816,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3 m->O HRR both with middlebox compat support" \
             "$O_NEXT_SRV -msg -tls1_3 -groups P-384 -num_tickets 0 -no_resume_ephemeral -no_cache" \
             "$P_CLI debug_level=4 curves=secp256r1,secp384r1" \
@@ -12991,7 +12858,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3 m->G HRR both with middlebox compat support" \
             "$G_NEXT_SRV --priority=NORMAL:-GROUP-ALL:+GROUP-SECP384R1:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS --disable-client-cert" \
             "$P_CLI debug_level=4 curves=secp256r1,secp384r1" \
@@ -13309,7 +13175,6 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: NewSessionTicket: Basic check, m->O" \
             "$O_NEXT_SRV -msg -tls1_3 -no_resume_ephemeral -no_cache --num_tickets 4" \
             "$P_CLI debug_level=1 reco_mode=1 reconnect=1" \
@@ -13326,7 +13191,6 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: NewSessionTicket: Basic check, m->G" \
             "$G_NEXT_SRV -d 10 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 --disable-client-cert" \
             "$P_CLI debug_level=1 reco_mode=1 reconnect=1" \
@@ -13363,7 +13227,6 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-requires_pk_alg "ECDSA"
 run_test    "TLS 1.3: NewSessionTicket: Basic check, G->m" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=4" \
             "$G_NEXT_CLI localhost -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -r" \

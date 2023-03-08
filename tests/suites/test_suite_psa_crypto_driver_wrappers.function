@@ -5,8 +5,8 @@
    Global to silent the compiler when unused. */
 size_t pake_expected_hit_count = 0;
 int pake_in_driver = 0;
-
-#if defined(PSA_WANT_ALG_JPAKE)
+#if defined(PSA_WANT_ALG_JPAKE) && defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) && \
+    defined(PSA_WANT_ECC_SECP_R1_256) && defined(PSA_WANT_ALG_SHA_256)
 static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
                              psa_pake_operation_t *server,
                              psa_pake_operation_t *client,
@@ -3167,7 +3167,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256 */
 void ecjpake_rounds(int alg_arg, int primitive_arg, int hash_arg,
                     int derive_alg_arg, data_t *pw_data,
                     int client_input_first, int in_driver)

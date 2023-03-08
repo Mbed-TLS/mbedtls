@@ -154,7 +154,6 @@ extern "C" {
 #define MBEDTLS_BIGNUM_C
 #define MBEDTLS_ECP_C
 #define MBEDTLS_ECJPAKE_C
-#define MBEDTLS_SHA256_C
 #endif /* MBEDTLS_PSA_ACCEL_ALG_JPAKE */
 #endif /* PSA_WANT_ALG_JPAKE */
 

@@ -217,14 +217,14 @@ static inline uint32_t mbedtls_bswap32(uint32_t x)
 static inline uint64_t mbedtls_bswap64(uint64_t x)
 {
     return
-        (x & 0x00000000000000ff) << 56 |
-        (x & 0x000000000000ff00) << 40 |
-        (x & 0x0000000000ff0000) << 24 |
-        (x & 0x00000000ff000000) <<  8 |
-        (x & 0x000000ff00000000) >>  8 |
-        (x & 0x0000ff0000000000) >> 24 |
-        (x & 0x00ff000000000000) >> 40 |
-        (x & 0xff00000000000000) >> 56;
+        (x & 0x00000000000000ffULL) << 56 |
+        (x & 0x000000000000ff00ULL) << 40 |
+        (x & 0x0000000000ff0000ULL) << 24 |
+        (x & 0x00000000ff000000ULL) <<  8 |
+        (x & 0x000000ff00000000ULL) >>  8 |
+        (x & 0x0000ff0000000000ULL) >> 24 |
+        (x & 0x00ff000000000000ULL) >> 40 |
+        (x & 0xff00000000000000ULL) >> 56;
 }
 #define MBEDTLS_BSWAP64 mbedtls_bswap64
 #endif /* !defined(MBEDTLS_BSWAP64) */

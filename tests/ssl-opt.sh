@@ -10266,7 +10266,7 @@ requires_gnutls
 requires_not_i686
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: gnutls client, DTLS 1.2" \
-            "$P_SRV dtls=1 debug_level=4 \
+            "$P_SRV dtls=1 debug_level=2 \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
              mtu=512 force_version=dtls12" \

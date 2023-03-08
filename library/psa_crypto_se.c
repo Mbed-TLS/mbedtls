@@ -22,7 +22,6 @@
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
 
-#include <assert.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -315,10 +314,8 @@ psa_status_t psa_register_se_driver(
     }
     /* Driver table entries are 0-initialized. 0 is not a valid driver
      * location because it means a transparent key. */
-#if defined(static_assert)
-    static_assert(PSA_KEY_LOCATION_LOCAL_STORAGE == 0,
-                  "Secure element support requires 0 to mean a local key");
-#endif
+    MBEDTLS_STATIC_ASSERT(PSA_KEY_LOCATION_LOCAL_STORAGE == 0,
+                          "Secure element support requires 0 to mean a local key");
     if (location == PSA_KEY_LOCATION_LOCAL_STORAGE) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }

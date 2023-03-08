@@ -39,7 +39,7 @@
 #endif
 
 #if !defined(__ARM_FEATURE_CRYPTO)
-#   error "`crypto` feature moddifier MUST be enabled for MBEDTLS_AESCE_C."
+#   error "`crypto` feature modifier MUST be enabled for MBEDTLS_AESCE_C."
 #   error "Typical option for GCC and Clang is `-march=armv8-a+crypto`."
 #endif /* !__ARM_FEATURE_CRYPTO */
 

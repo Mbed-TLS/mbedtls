@@ -5403,7 +5403,7 @@ int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *X, size_t X_limbs)
     addend += (X[P521_WIDTH - 1] >> 9);
     X[P521_WIDTH - 1] &= P521_MASK;
 
-    /* Resuse the top part of X (already zeroed) as a helper array for
+    /* Reuse the top part of X (already zeroed) as a helper array for
      * carrying out the addition. */
     mbedtls_mpi_uint *addend_arr = X + P521_WIDTH;
     addend_arr[0] = addend;

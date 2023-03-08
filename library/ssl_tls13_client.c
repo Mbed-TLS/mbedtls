@@ -1274,7 +1274,7 @@ int mbedtls_ssl_tls13_finalize_client_hello(mbedtls_ssl_context *ssl)
             ssl->session_negotiate->ciphersuite);
         ssl->handshake->ciphersuite_info = ciphersuite_info;
 
-        /* Enable psk and psk_ephermal to make stage early happy */
+        /* Enable psk and psk_ephemeral to make stage early happy */
         ssl->handshake->key_exchange_mode =
             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL;
 

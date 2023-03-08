@@ -25,8 +25,6 @@
 
 #if defined(MBEDTLS_SSL_TLS_C)
 
-#include <assert.h>
-
 #include "mbedtls/platform.h"
 
 #include "mbedtls/ssl.h"
@@ -1196,11 +1194,9 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
         size_t sig_algs_len = 0;
         uint16_t *p;
 
-#if defined(static_assert)
-        static_assert(MBEDTLS_SSL_MAX_SIG_ALG_LIST_LEN
-                      <= (SIZE_MAX - (2 * sizeof(uint16_t))),
-                      "MBEDTLS_SSL_MAX_SIG_ALG_LIST_LEN too big");
-#endif
+        MBEDTLS_STATIC_ASSERT(MBEDTLS_SSL_MAX_SIG_ALG_LIST_LEN
+                              <= (SIZE_MAX - (2 * sizeof(uint16_t))),
+                              "MBEDTLS_SSL_MAX_SIG_ALG_LIST_LEN too big");
 
         for (md = sig_hashes; *md != MBEDTLS_MD_NONE; md++) {
             if (mbedtls_ssl_hash_from_md_alg(*md) == MBEDTLS_SSL_HASH_NONE) {

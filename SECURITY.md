@@ -42,14 +42,14 @@ Ciphers](#block-ciphers) section.
 
 ### Local attacks
 
-The attacker is capable of running code on the same hardware as Mbed TLS, but
-there is still a security boundary between them (ie. the attacker can't for
-example read secrets from Mbed TLS' memory directly).
+The attacker can run software on the same machine. The attacker has
+insufficient privileges to directly access Mbed TLS assets such as memory and
+files.
 
 #### Timing attacks
 
-The attacker can gain information about the time taken by certain sets of
-instructions in Mbed TLS operations. (See for example the [Flush+Reload
+The attacker is able to observe the timing of instructions executed by Mbed
+TLS.(See for example the [Flush+Reload
 paper](https://eprint.iacr.org/2013/448.pdf).)
 
 (Technically, timing information can be observed over the network or through

@@ -3883,22 +3883,23 @@ int mbedtls_ssl_handshake_step(mbedtls_ssl_context *ssl)
 #endif
         }
     }
-#endif
+#endif /* MBEDTLS_SSL_CLI_C */
+
 #if defined(MBEDTLS_SSL_SRV_C)
     if (ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER) {
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-        if (mbedtls_ssl_conf_is_tls13_only(ssl->conf)) {
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
+        if (ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
             ret = mbedtls_ssl_tls13_handshake_server_step(ssl);
-        }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-        if (mbedtls_ssl_conf_is_tls12_only(ssl->conf)) {
+        } else {
             ret = mbedtls_ssl_handshake_server_step(ssl);
         }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-    }
+#elif defined(MBEDTLS_SSL_PROTO_TLS1_2)
+        ret = mbedtls_ssl_handshake_server_step(ssl);
+#else
+        ret = mbedtls_ssl_tls13_handshake_server_step(ssl);
 #endif
+    }
+#endif /* MBEDTLS_SSL_SRV_C */
 
     if (ret != 0) {
         /* handshake_step return error. And it is same

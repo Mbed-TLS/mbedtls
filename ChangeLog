@@ -106,11 +106,11 @@ Security
    * Fix potential heap buffer overread and overwrite in DTLS if
      MBEDTLS_SSL_DTLS_CONNECTION_ID is enabled and
      MBEDTLS_SSL_CID_IN_LEN_MAX > 2 * MBEDTLS_SSL_CID_OUT_LEN_MAX.
-   * An adversary with access to precise enough information about memory
-     accesses (typically, an untrusted operating system attacking a secure
-     enclave) could recover an RSA private key after observing the victim
-     performing a single private-key operation if the window size used for the
-     exponentiation was 3 or smaller. Found and reported by Zili KOU,
+   * Fix an issue where an adversary with access to precise enough information
+     about memory accesses (typically, an untrusted operating system attacking
+     a secure enclave) could recover an RSA private key after observing the
+     victim performing a single private-key operation if the window size used
+     for the exponentiation was 3 or smaller. Found and reported by Zili KOU,
      Wenjian HE, Sharad Sinha, and Wei ZHANG. See "Cache Side-channel Attacks
      and Defenses of the Sliding Window Algorithm in TEEs" - Design, Automation
      and Test in Europe 2023.
@@ -969,16 +969,17 @@ Security
      signature, allowing the recovery of the private key after observing a
      large number of signature operations. This completes a partial fix in
      Mbed TLS 2.20.0.
-   * An adversary with access to precise enough information about memory
-     accesses (typically, an untrusted operating system attacking a secure
-     enclave) could recover an RSA private key after observing the victim
-     performing a single private-key operation. Found and reported by
+   * Fix an issue where an adversary with access to precise enough information
+     about memory accesses (typically, an untrusted operating system attacking
+     a secure enclave) could recover an RSA private key after observing the
+     victim performing a single private-key operation. Found and reported by
      Zili KOU, Wenjian HE, Sharad Sinha, and Wei ZHANG.
-   * An adversary with access to precise enough timing information (typically, a
-     co-located process) could recover a Curve25519 or Curve448 static ECDH key
-     after inputting a chosen public key and observing the victim performing the
-     corresponding private-key operation. Found and reported by Leila Batina,
-     Lukas Chmielewski, Björn Haase, Niels Samwel and Peter Schwabe.
+   * Fix an issue where an adversary with access to precise enough timing
+     information (typically, a co-located process) could recover a Curve25519
+     or Curve448 static ECDH key after inputting a chosen public key and
+     observing the victim performing the corresponding private-key operation.
+     Found and reported by Leila Batina, Lukas Chmielewski, Björn Haase, Niels
+     Samwel and Peter Schwabe.
 
 Bugfix
    * Fix premature fopen() call in mbedtls_entropy_write_seed_file which may

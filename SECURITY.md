@@ -35,21 +35,32 @@ protection is limited to providing security guarantees offered by the protocol
 in question. (For example Mbed TLS alone won't guarantee that the messages will
 arrive without delay, as the TLS protocol doesn't guarantee that either.)
 
-### Timing attacks
+### Local attacks
+
+The attacker is capable of running code on the same hardware as Mbed TLS, but
+there is still a security boundary between them (ie. the attacker can't for
+example read secrets from Mbed TLS' memory directly).
+
+#### Timing attacks
 
 The attacker can gain information about the time taken by certain sets of
-instructions in Mbed TLS operations.
+instructions in Mbed TLS operations. (See for example the [Flush+Reload
+paper](https://eprint.iacr.org/2013/448.pdf).)
+
+(Technically, timing information can be observed over the network or through
+physical side channels as well. Network timing attacks are less powerful than
+local and countermeasures protecting against local attacks prevent network
+attacks as well. If the timing information is gained through physical side
+channels, we consider them physical attacks and as such they are out of scope.)
 
 Mbed TLS provides limited protection against timing attacks. The cost of
 protecting against timing attacks widely varies depending on the granularity of
 the measurements and the noise present. Therefore the protection in Mbed TLS is
-limited. We are only aiming to provide protection against publicly documented
-attacks, and this protection is not currently complete.
+limited. We are only aiming to provide protection against **publicly
+documented** attacks, and this protection is not currently complete.
 
 **Warning!** Block ciphers do not yet achieve full protection. For
 details and workarounds see the section below.
-
-#### Block Ciphers
 
 Currently there are four block ciphers in Mbed TLS: AES, CAMELLIA, ARIA and DES.
 The pure software implementation in Mbed TLS implementation uses lookup tables,
@@ -67,14 +78,35 @@ Guide](docs/architecture/alternative-implementations.md) for more information.
   particular, for authenticated encryption, use ChaCha20/Poly1305 instead of
   block cipher modes. For random generation, use HMAC\_DRBG instead of CTR\_DRBG.
 
+#### Local non-timing side channels
+
+The attacker code running on the platform has access to some sensor capable of
+picking up information on the physical state of the hardware while Mbed TLS is
+running. This can for example be any analogue to digital converter on the
+platform that is located unfortunately enough to pick up the CPU noise. (See
+for example the [Leaky Noise
+paper](https://tches.iacr.org/index.php/TCHES/article/view/8297).)
+
+Mbed TLS doesn't offer any security guarantees against local non-timing based
+side channel attacks. If local non-timing attacks are present in a use case or
+a user application's threat model, it needs to be mitigated by the platform.
+
+#### Local fault injection attacks
+
+Software running on the same hardware can affect the physical state of the
+device and introduce faults. (See for example the [Row Hammer
+paper](https://users.ece.cmu.edu/~yoonguk/papers/kim-isca14.pdf).)
+
+Mbed TLS doesn't offer any security guarantees against local fault injection
+attacks. If local fault injection attacks are present in a use case or a user
+application's threat model, it needs to be mitigated by the platform.
+
 ### Physical attacks
 
 The attacker has access to physical information about the hardware Mbed TLS is
-running on and/or can alter the physical state of the hardware.
+running on and/or can alter the physical state of the hardware (eg. power
+analysis, radio emissions or fault injection).
 
-Physical attacks are out of scope (eg. power analysis or radio emissions). Any
-attack using information about or influencing the physical state of the
-hardware is considered physical, independently of the attack vector. (For
-example Row Hammer and Screaming Channels are considered physical attacks.) If
+Mbed TLS doesn't offer any security guarantees against physical attacks. If
 physical attacks are present in a use case or a user application's threat
 model, it needs to be mitigated by physical countermeasures.

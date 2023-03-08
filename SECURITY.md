@@ -52,17 +52,16 @@ The attacker is able to observe the timing of instructions executed by Mbed
 TLS.(See for example the [Flush+Reload
 paper](https://eprint.iacr.org/2013/448.pdf).)
 
-(Technically, timing information can be observed over the network or through
-physical side channels as well. Network timing attacks are less powerful than
-local and countermeasures protecting against local attacks prevent network
-attacks as well. If the timing information is gained through physical side
-channels, we consider them physical attacks and as such they are out of scope.)
-
 Mbed TLS provides limited protection against timing attacks. The cost of
 protecting against timing attacks widely varies depending on the granularity of
 the measurements and the noise present. Therefore the protection in Mbed TLS is
 limited. We are only aiming to provide protection against **publicly
-documented** attacks, and this protection is not currently complete.
+documented** attacks.
+
+**Remark:** Timing information can be observed over the network or through
+physical side channels as well. Remote and physical timing attacks are covered
+in the [Remote attacks](remote-attacks) and [Physical
+attacks](physical-attacks) sections respectively.
 
 **Warning!** Block ciphers do not yet achieve full protection. For
 details and workarounds see the [Block Ciphers](#block-ciphers) section.

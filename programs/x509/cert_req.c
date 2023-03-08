@@ -198,13 +198,11 @@ usage:
     opt.san_list            = NULL;
 
     for (i = 1; i < argc; i++) {
-
         p = argv[i];
         if ((q = strchr(p, '=')) == NULL) {
             goto usage;
         }
         *q++ = '\0';
-
         if (strcmp(p, "filename") == 0) {
             opt.filename = q;
         } else if (strcmp(p, "password") == 0) {
@@ -222,7 +220,7 @@ usage:
             prev = NULL;
 
             while (q != NULL) {
-                if ((r = strchr(q, ',')) != NULL) {
+                if ((r = strchr(q, ';')) != NULL) {
                     *r++ = '\0';
                 }
 

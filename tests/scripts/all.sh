@@ -2165,7 +2165,8 @@ component_test_psa_crypto_config_accel_ecdsa_use_psa () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDSA + USE_PSA"
     make test
 
-    # TODO: ssl-opt.sh (currently doesn't pass) - #6861
+    msg "test: ssl-opt.sh"
+    tests/ssl-opt.sh
 }
 
 # Keep in sync with component_test_psa_crypto_config_accel_ecdsa_use_psa.
@@ -2184,7 +2185,8 @@ component_test_psa_crypto_config_reference_ecdsa_use_psa () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDSA + USE_PSA"
     make test
 
-    # TODO: ssl-opt.sh (when the accel component is ready) - #6861
+    msg "test: ssl-opt.sh"
+    tests/ssl-opt.sh
 }
 
 component_test_psa_crypto_config_accel_ecdh () {

@@ -110,3 +110,16 @@ analysis, radio emissions or fault injection).
 Mbed TLS doesn't offer any security guarantees against physical attacks. If
 physical attacks are present in a use case or a user application's threat
 model, it needs to be mitigated by physical countermeasures.
+
+### Caveats
+
+#### Out of scope countermeasures
+
+Mbed TLS has evolved organically and a well defined threat model hasn't always
+been present. Therefore, Mbed TLS might have countermeasures against attacks
+outside the above defined threat model.
+
+The presence of such countermeasures don't mean that Mbed TLS provides
+protection against a class of attacks outside of the above described threat
+model. Neither does it mean that the failure of such a countermeasure is
+considered a vulnerability.

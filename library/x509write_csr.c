@@ -90,22 +90,22 @@ int mbedtls_x509write_csr_set_subject_alternative_name(mbedtls_x509write_csr *ct
                                                        const mbedtls_x509_san_list *san_list)
 {
     int ret = 0;
-    const mbedtls_x509_san_list *cur = san_list;
+    const mbedtls_x509_san_list *cur;
     unsigned char *buf;
     unsigned char *p;
     size_t len;
     size_t buflen = 0;
 
     /* Determine the maximum size of the SubjectAltName list */
-    while (cur != NULL) {
+    for(cur = san_list; cur != NULL; cur = cur->next) {
         /* Calculate size of the required buffer */
         switch (cur->node.type) {
             case MBEDTLS_X509_SAN_DNS_NAME:
             case MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER:
             case MBEDTLS_X509_SAN_IP_ADDRESS:
-                /* + length of value for each name entry,
-                 * + maximum 4 bytes for the length field,
-                 * + 1 byte for the tag/type.
+                /* length of value for each name entry,
+                 * maximum 4 bytes for the length field,
+                 * 1 byte for the tag/type.
                  */
                 buflen += cur->node.san.unstructured_name.len + 4 + 1;
                 break;
@@ -114,9 +114,6 @@ int mbedtls_x509write_csr_set_subject_alternative_name(mbedtls_x509write_csr *ct
                 /* Not supported - skip. */
                 break;
         }
-
-
-        cur = cur->next;
     }
 
     /* Add the extra length field and tag */

@@ -3616,7 +3616,7 @@ void signature_size(int type_arg,
     TEST_EQUAL(actual_size, (size_t) expected_size_arg);
 #if defined(MBEDTLS_TEST_DEPRECATED)
     TEST_EQUAL(actual_size,
-               PSA_ASYMMETRIC_SIGN_OUTPUT_SIZE(type, bits, alg));
+               PSA_ASYMMETRIC_SIGN_OUTPUT_SIZE(type, (size_t) bits, alg));
 #endif /* MBEDTLS_TEST_DEPRECATED */
 
 exit:

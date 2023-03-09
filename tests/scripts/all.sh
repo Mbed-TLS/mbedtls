@@ -2328,7 +2328,8 @@ component_test_psa_crypto_config_reference_ecdh_use_psa () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with reference ECDH + USE_PSA"
     make test
 
-    # ssl-opt.sh later when the accel component is ready
+    msg "test: ssl-opt.sh"
+    tests/ssl-opt.sh
 }
 
 component_test_psa_crypto_config_accel_rsa_signature () {

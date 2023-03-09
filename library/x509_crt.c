@@ -2579,7 +2579,7 @@ static int x509_inet_pton_ipv6(const char *src, void *dst)
             ;
         }
         if (j != 0) {
-            addr[i++] = (x << 8) | (x >> 8);     /* htons(x) */
+            addr[i++] = MBEDTLS_IS_BIG_ENDIAN ? x : (x << 8) | (x >> 8);
             if (*v == '\0') {
                 break;
             } else if (*v == '.' && (i != 0 || dc != -1) && (i < 7) &&

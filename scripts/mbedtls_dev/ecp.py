@@ -147,7 +147,7 @@ class EcpP224R1Raw(bignum_common.ModOperationCommon,
 
 class EcpP256R1Raw(bignum_common.ModOperationCommon,
                    EcpTarget):
-    """Test cases for ecp quasi_reduction()."""
+    """Test cases for ECP P256 fast reduction."""
     symbol = "-"
     test_function = "ecp_mod_p256_raw"
     test_name = "ecp_mod_p256_raw"

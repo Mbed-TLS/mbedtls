@@ -4586,7 +4586,7 @@ int mbedtls_ecp_mod_p256_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 #if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
 static int ecp_mod_p384(mbedtls_mpi *);
 MBEDTLS_STATIC_TESTABLE
-int mbedtls_ecp_mod_p384_raw(mbedtls_mpi_uint *N_p, size_t N_n);
+int mbedtls_ecp_mod_p384_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
 static int ecp_mod_p521(mbedtls_mpi *);
@@ -5207,69 +5207,70 @@ int mbedtls_ecp_mod_p384_raw(mbedtls_mpi_uint *X, size_t X_limbs)
     INIT(384);
 
     ADD(12); ADD(21); ADD(20);
-    SUB(23);                                              NEXT;   // A0
+    SUB(23);                                                NEXT; // A0
 
     ADD(13); ADD(22); ADD(23);
-    SUB(12); SUB(20);                                   NEXT;     // A1
+    SUB(12); SUB(20);                                       NEXT; // A1
 
     ADD(14); ADD(23);
-    SUB(13); SUB(21);                                   NEXT;     // A2
+    SUB(13); SUB(21);                                       NEXT; // A2
 
     ADD(15); ADD(12); ADD(20); ADD(21);
-    SUB(14); SUB(22); SUB(23);                        NEXT;       // A3
+    SUB(14); SUB(22); SUB(23);                              NEXT; // A3
 
     ADD(21); ADD(21); ADD(16); ADD(13); ADD(12); ADD(20); ADD(22);
-    SUB(15); SUB(23); SUB(23);                        NEXT;       // A4
+    SUB(15); SUB(23); SUB(23);                              NEXT; // A4
 
     ADD(22); ADD(22); ADD(17); ADD(14); ADD(13); ADD(21); ADD(23);
-    SUB(16);                                              NEXT;   // A5
+    SUB(16);                                                NEXT; // A5
 
     ADD(23); ADD(23); ADD(18); ADD(15); ADD(14); ADD(22);
-    SUB(17);                                              NEXT;   // A6
+    SUB(17);                                                NEXT; // A6
 
     ADD(19); ADD(16); ADD(15); ADD(23);
-    SUB(18);                                              NEXT;   // A7
+    SUB(18);                                                NEXT; // A7
 
     ADD(20); ADD(17); ADD(16);
-    SUB(19);                                              NEXT;   // A8
+    SUB(19);                                                NEXT; // A8
 
     ADD(21); ADD(18); ADD(17);
-    SUB(20);                                              NEXT;   // A9
+    SUB(20);                                                NEXT; // A9
 
     ADD(22); ADD(19); ADD(18);
-    SUB(21);                                              NEXT;   // A10
+    SUB(21);                                                NEXT; // A10
 
     ADD(23); ADD(20); ADD(19);
     SUB(22);                                                      // A11
 
     RESET;
 
+    /* Use 2^384 = P + 2^128 + 2^96 - 2^32 + 1 to modulo reduce the final carry */
     ADD_LAST; NEXT;                                               // A0
     SUB_LAST; NEXT;                                               // A1
-    NEXT;                                                         // A2
+    ;         NEXT;                                               // A2
     ADD_LAST; NEXT;                                               // A3
     ADD_LAST; NEXT;                                               // A4
-    NEXT;                                                         // A5
-    NEXT;                                                         // A6
-    NEXT;                                                         // A7
-    NEXT;                                                         // A8
-    NEXT;                                                         // A9
-    NEXT;                                                         // A10
+    ;         NEXT;                                               // A5
+    ;         NEXT;                                               // A6
+    ;         NEXT;                                               // A7
+    ;         NEXT;                                               // A8
+    ;         NEXT;                                               // A9
+    ;         NEXT;                                               // A10
                                                                   // A11
 
     RESET;
 
     ADD_LAST; NEXT;                                               // A0
     SUB_LAST; NEXT;                                               // A1
-    NEXT;                                                         // A2
+    ;         NEXT;                                               // A2
     ADD_LAST; NEXT;                                               // A3
     ADD_LAST; NEXT;                                               // A4
-    NEXT;                                                         // A5
-    NEXT;                                                         // A6
-    NEXT;                                                         // A7
-    NEXT;                                                         // A8
-    NEXT;                                                         // A9
-    NEXT;                                                         // A10
+    ;         NEXT;                                               // A5
+    ;         NEXT;                                               // A6
+    ;         NEXT;                                               // A7
+    ;         NEXT;                                               // A8
+    ;         NEXT;                                               // A9
+    ;         NEXT;                                               // A10
                                                                   // A11
 
     LAST;

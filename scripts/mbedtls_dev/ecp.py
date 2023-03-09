@@ -163,8 +163,8 @@ class EcpP256R1Raw(bignum_common.ModOperationCommon,
         "ffffffff00000001000000000000000000000000fffffffffffffffffffffffe",
 
         # Maximum canonical P256 multiplication result
-        ("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-         "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"),
+        ("fffffffe00000002fffffffe0000000100000001fffffffe00000001fffffffc"
+         "00000003fffffffcfffffffffffffffffffffffc000000000000000000000004"),
 
         # Generate an overflow during reduction
         ("0000000000000000000000010000000000000000000000000000000000000000"

@@ -181,13 +181,28 @@ typedef enum {
 typedef struct mbedtls_md_info_t mbedtls_md_info_t;
 
 /**
+ * Used internally to indicate whether a context uses legacy or PSA.
+ *
+ * Internal use only.
+ */
+typedef enum {
+    MBEDTLS_MD_ENGINE_LEGACY = 0,
+    MBEDTLS_MD_ENGINE_PSA,
+} mbedtls_md_engine_t;
+
+/**
  * The generic message-digest context.
  */
 typedef struct mbedtls_md_context_t {
     /** Information about the associated message digest. */
     const mbedtls_md_info_t *MBEDTLS_PRIVATE(md_info);
 
-    /** The digest-specific context. */
+#if defined(MBEDTLS_MD_SOME_PSA)
+    /** Are hash operations dispatched to PSA or legacy? */
+    mbedtls_md_engine_t MBEDTLS_PRIVATE(engine);
+#endif
+
+    /** The digest-specific context (legacy) or the PSA operation. */
     void *MBEDTLS_PRIVATE(md_ctx);
 
     /** The HMAC part of the context. */

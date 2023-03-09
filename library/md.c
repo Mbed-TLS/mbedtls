@@ -222,6 +222,7 @@ static int mbedtls_md_error_from_psa(psa_status_t status)
 
 void mbedtls_md_init(mbedtls_md_context_t *ctx)
 {
+    /* Note: this sets engine (if present) to MBEDTLS_MD_ENGINE_LEGACY */
     memset(ctx, 0, sizeof(mbedtls_md_context_t));
 }
 
@@ -233,7 +234,7 @@ void mbedtls_md_free(mbedtls_md_context_t *ctx)
 
     if (ctx->md_ctx != NULL) {
 #if defined(MBEDTLS_MD_SOME_PSA)
-        if (md_uses_psa(ctx->md_info) && ctx->md_ctx != NULL) {
+        if (ctx->engine == MBEDTLS_MD_ENGINE_PSA) {
             psa_hash_abort(ctx->md_ctx);
         } else
 #endif
@@ -299,7 +300,15 @@ int mbedtls_md_clone(mbedtls_md_context_t *dst,
     }
 
 #if defined(MBEDTLS_MD_SOME_PSA)
-    if (md_uses_psa(src->md_info)) {
+    if (src->engine != dst->engine) {
+        /* This can happen with src set to legacy because PSA wasn't ready
+         * yet, and dst to PSA because it became ready in the meantime.
+         * We currently don't support that case (we'd need to re-allocate
+         * md_ctx to the size of the appropriate MD context). */
+        return MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE;
+    }
+
+    if (src->engine == MBEDTLS_MD_ENGINE_PSA) {
         psa_status_t status = psa_hash_clone(src->md_ctx, dst->md_ctx);
         return mbedtls_md_error_from_psa(status);
     }
@@ -373,6 +382,7 @@ int mbedtls_md_setup(mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_info
         if (ctx->md_ctx == NULL) {
             return MBEDTLS_ERR_MD_ALLOC_FAILED;
         }
+        ctx->engine = MBEDTLS_MD_ENGINE_PSA;
     } else
 #endif
     switch (md_info->type) {
@@ -434,8 +444,8 @@ int mbedtls_md_starts(mbedtls_md_context_t *ctx)
     }
 
 #if defined(MBEDTLS_MD_SOME_PSA)
-    psa_algorithm_t alg = psa_alg_of_md(ctx->md_info);
-    if (alg != PSA_ALG_NONE) {
+    if (ctx->engine == MBEDTLS_MD_ENGINE_PSA) {
+        psa_algorithm_t alg = psa_alg_of_md(ctx->md_info);
         psa_hash_abort(ctx->md_ctx);
         psa_status_t status = psa_hash_setup(ctx->md_ctx, alg);
         return mbedtls_md_error_from_psa(status);
@@ -483,7 +493,7 @@ int mbedtls_md_update(mbedtls_md_context_t *ctx, const unsigned char *input, siz
     }
 
 #if defined(MBEDTLS_MD_SOME_PSA)
-    if (md_uses_psa(ctx->md_info)) {
+    if (ctx->engine == MBEDTLS_MD_ENGINE_PSA) {
         psa_status_t status = psa_hash_update(ctx->md_ctx, input, ilen);
         return mbedtls_md_error_from_psa(status);
     }
@@ -530,7 +540,7 @@ int mbedtls_md_finish(mbedtls_md_context_t *ctx, unsigned char *output)
     }
 
 #if defined(MBEDTLS_MD_SOME_PSA)
-    if (md_uses_psa(ctx->md_info)) {
+    if (ctx->engine == MBEDTLS_MD_ENGINE_PSA) {
         size_t size = ctx->md_info->size;
         psa_status_t status = psa_hash_finish(ctx->md_ctx,
                                               output, size, &size);
@@ -580,10 +590,9 @@ int mbedtls_md(const mbedtls_md_info_t *md_info, const unsigned char *input, siz
     }
 
 #if defined(MBEDTLS_MD_SOME_PSA)
-    psa_algorithm_t alg = psa_alg_of_md(md_info);
-    if (alg != PSA_ALG_NONE) {
+    if (md_uses_psa(md_info)) {
         size_t size = md_info->size;
-        psa_status_t status = psa_hash_compute(alg,
+        psa_status_t status = psa_hash_compute(psa_alg_of_md(md_info),
                                                input, ilen,
                                                output, size, &size);
         return mbedtls_md_error_from_psa(status);

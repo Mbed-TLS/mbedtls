@@ -82,6 +82,10 @@ mbedtls_x509write_csr;
  *
  * \note           CSR attributes (if any) are currently silently ignored.
  *
+ * \note           If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
+ *                 subsystem must have been initialized by calling
+ *                 psa_crypto_init() before calling this function.
+ *
  * \param csr      CSR context to fill
  * \param buf      buffer holding the CRL data
  * \param buflen   size of the buffer
@@ -95,6 +99,10 @@ int mbedtls_x509_csr_parse_der(mbedtls_x509_csr *csr,
  * \brief          Load a Certificate Signing Request (CSR), DER or PEM format
  *
  * \note           See notes for \c mbedtls_x509_csr_parse_der()
+ *
+ * \note           If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
+ *                 subsystem must have been initialized by calling
+ *                 psa_crypto_init() before calling this function.
  *
  * \param csr      CSR context to fill
  * \param buf      buffer holding the CRL data

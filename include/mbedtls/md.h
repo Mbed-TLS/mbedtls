@@ -286,6 +286,10 @@ int mbedtls_md_setup(mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_info
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_MD_BAD_INPUT_DATA on parameter-verification failure.
+ * \return          #MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE if both contexts are
+ *                  not using the same engine. This can be avoided by moving
+ *                  the call to psa_crypto_init() before the first call to
+ *                  mbedtls_md_setup().
  */
 MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_md_clone(mbedtls_md_context_t *dst,

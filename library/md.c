@@ -54,6 +54,7 @@
 
 #if defined(MBEDTLS_MD_SOME_PSA)
 #include <psa/crypto.h>
+#include "psa_crypto_core.h"
 #endif
 
 #include "mbedtls/platform.h"
@@ -202,7 +203,12 @@ static psa_algorithm_t psa_alg_of_md(const mbedtls_md_info_t *info)
 
 static int md_uses_psa(const mbedtls_md_info_t *info)
 {
-    return psa_alg_of_md(info) != PSA_ALG_NONE;
+    psa_algorithm_t alg = psa_alg_of_md(info);
+    if (alg == PSA_ALG_NONE) {
+        return 0;
+    }
+
+    return psa_can_do_hash(alg);
 }
 
 static int mbedtls_md_error_from_psa(psa_status_t status)

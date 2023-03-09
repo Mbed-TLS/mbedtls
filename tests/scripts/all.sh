@@ -2111,10 +2111,6 @@ config_psa_crypto_config_ecdsa_use_psa () {
         # Disable the module that's accelerated
         scripts/config.py unset MBEDTLS_ECDSA_C
     fi
-    # Disable things that depend on it
-    # TODO: make these work - #6862
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
     # Restartable feature is not yet supported by PSA. Once it will in
     # the future, the following line could be removed (see issues
     # 6061, 6332 and following ones)

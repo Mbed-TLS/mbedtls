@@ -280,7 +280,8 @@
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) &&                 \
-    ( !defined(MBEDTLS_ECDH_C) || !defined(MBEDTLS_ECDSA_C) ||          \
+    ( !defined(MBEDTLS_ECDH_C) ||                                       \
+      !(defined(MBEDTLS_ECDSA_C) || defined(PSA_HAVE_FULL_ECDSA)) ||     \
       !defined(MBEDTLS_X509_CRT_PARSE_C) )
 #error "MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED defined, but not all prerequisites"
 #endif
@@ -313,7 +314,8 @@
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) &&                 \
-    ( !defined(MBEDTLS_ECDH_C) || !defined(MBEDTLS_ECDSA_C) ||          \
+    ( !defined(MBEDTLS_ECDH_C) ||                                       \
+      !(defined(MBEDTLS_ECDSA_C) || defined(PSA_HAVE_FULL_ECDSA)) ||     \
       !defined(MBEDTLS_X509_CRT_PARSE_C) )
 #error "MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED defined, but not all prerequisites"
 #endif

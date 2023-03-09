@@ -1450,7 +1450,7 @@ do_run_test_once() {
 #       detect_required_features() function), it does NOT guarantee that the
 #       result is accurate. It does not check other conditions, such as:
 #       - MBEDTLS_SSL_PROTO_TLS1_x can be disabled to selectively remove
-#         TLS 1.2/1.3 suppport
+#         TLS 1.2/1.3 support
 #       - we can force a ciphersuite which contains "WITH" in its name, meaning
 #         that we are going to use TLS 1.2
 #       - etc etc

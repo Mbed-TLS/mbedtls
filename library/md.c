@@ -287,11 +287,13 @@ void mbedtls_md_free(mbedtls_md_context_t *ctx)
         mbedtls_free(ctx->md_ctx);
     }
 
+#if defined(MBEDTLS_MD_C)
     if (ctx->hmac_ctx != NULL) {
         mbedtls_platform_zeroize(ctx->hmac_ctx,
                                  2 * ctx->md_info->block_size);
         mbedtls_free(ctx->hmac_ctx);
     }
+#endif
 
     mbedtls_platform_zeroize(ctx, sizeof(mbedtls_md_context_t));
 }
@@ -380,7 +382,13 @@ int mbedtls_md_setup(mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_info
 
     ctx->md_info = md_info;
     ctx->md_ctx = NULL;
+#if defined(MBEDTLS_MD_C)
     ctx->hmac_ctx = NULL;
+#else
+    if (hmac != 0) {
+        return MBEDTLS_ERR_MD_BAD_INPUT_DATA;
+    }
+#endif
 
 #if defined(MBEDTLS_MD_SOME_PSA)
     if (md_uses_psa(ctx->md_info)) {
@@ -431,6 +439,7 @@ int mbedtls_md_setup(mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_info
             return MBEDTLS_ERR_MD_BAD_INPUT_DATA;
     }
 
+#if defined(MBEDTLS_MD_C)
     if (hmac != 0) {
         ctx->hmac_ctx = mbedtls_calloc(2, md_info->block_size);
         if (ctx->hmac_ctx == NULL) {
@@ -438,6 +447,7 @@ int mbedtls_md_setup(mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_info
             return MBEDTLS_ERR_MD_ALLOC_FAILED;
         }
     }
+#endif
 
     return 0;
 }

@@ -205,8 +205,10 @@ typedef struct mbedtls_md_context_t {
     /** The digest-specific context (legacy) or the PSA operation. */
     void *MBEDTLS_PRIVATE(md_ctx);
 
+#if defined(MBEDTLS_MD_C)
     /** The HMAC part of the context. */
     void *MBEDTLS_PRIVATE(hmac_ctx);
+#endif
 } mbedtls_md_context_t;
 
 /**

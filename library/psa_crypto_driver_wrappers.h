@@ -408,6 +408,34 @@ psa_status_t psa_driver_wrapper_key_agreement(
     size_t shared_secret_size,
     size_t *shared_secret_length);
 
+/*
+ * PAKE functions.
+ */
+psa_status_t psa_driver_wrapper_pake_setup(
+    psa_pake_operation_t *operation,
+    const psa_crypto_driver_pake_inputs_t *inputs);
+
+psa_status_t psa_driver_wrapper_pake_output(
+    psa_pake_operation_t *operation,
+    psa_crypto_driver_pake_step_t step,
+    uint8_t *output,
+    size_t output_size,
+    size_t *output_length);
+
+psa_status_t psa_driver_wrapper_pake_input(
+    psa_pake_operation_t *operation,
+    psa_crypto_driver_pake_step_t step,
+    const uint8_t *input,
+    size_t input_length);
+
+psa_status_t psa_driver_wrapper_pake_get_implicit_key(
+    psa_pake_operation_t *operation,
+    uint8_t *output, size_t output_size,
+    size_t *output_length);
+
+psa_status_t psa_driver_wrapper_pake_abort(
+    psa_pake_operation_t *operation);
+
 #endif /* PSA_CRYPTO_DRIVER_WRAPPERS_H */
 
 /* End of automatically generated file. */

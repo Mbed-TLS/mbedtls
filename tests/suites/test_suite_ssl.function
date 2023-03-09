@@ -2520,14 +2520,28 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_C */
-void move_handshake_to_state(int endpoint_type, int state, int need_pass)
+void move_handshake_to_state(int endpoint_type, int tls_version, int state, int need_pass)
 {
     enum { BUFFSIZE = 1024 };
     mbedtls_test_ssl_endpoint base_ep, second_ep;
     int ret = -1;
+    (void) tls_version;
+
     mbedtls_test_handshake_test_options options;
     mbedtls_test_init_handshake_options(&options);
+
     options.pk_alg = MBEDTLS_PK_RSA;
+
+    /*
+     * If both TLS 1.2 and 1.3 are enabled and we want to do a TLS 1.3
+     * handshake, force the TLS 1.3 version on the server.
+     */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    if (MBEDTLS_SSL_VERSION_TLS1_3 == tls_version) {
+        options.server_min_version = MBEDTLS_SSL_VERSION_TLS1_3;
+        options.server_max_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    }
+#endif
 
     MD_OR_USE_PSA_INIT();
     mbedtls_platform_zeroize(&base_ep, sizeof(base_ep));

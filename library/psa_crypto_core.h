@@ -26,6 +26,18 @@
 #include "psa/crypto.h"
 #include "psa/crypto_se_driver.h"
 
+/**
+ * Tell if PSA is ready for this hash.
+ *
+ * \note            For now, only checks the state of the driver subsystem,
+ *                  not the algorithm. Might do more in the future.
+ *
+ * \param hash_alg  The hash algorithm (ignored for now).
+ *
+ * \return 1 if the driver subsytem is ready, 0 otherwise.
+ */
+int psa_can_do_hash(psa_algorithm_t hash_alg);
+
 /** Constant-time buffer comparison
  *
  * \param[in]  a    Left-hand buffer for comparison.

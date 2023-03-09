@@ -1823,18 +1823,6 @@ psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
  */
 #define PSA_PAKE_CIPHER_SUITE_INIT { PSA_ALG_NONE, 0, 0, 0, PSA_ALG_NONE }
 
-/** Returns a suitable initializer for a PAKE operation object of type
- * psa_pake_operation_t.
- */
-#if defined(MBEDTLS_PSA_BUILTIN_PAKE)
-#define PSA_PAKE_OPERATION_INIT { PSA_ALG_NONE, 0, 0, 0, 0,              \
-                                  NULL, 0,               \
-                                  PSA_PAKE_ROLE_NONE, { 0 }, 0, 0,         \
-                                  { .dummy = 0 } }
-#else
-#define PSA_PAKE_OPERATION_INIT { PSA_ALG_NONE, 0, 0, { 0 } }
-#endif
-
 struct psa_pake_cipher_suite_s {
     psa_algorithm_t algorithm;
     psa_pake_primitive_type_t type;
@@ -1927,13 +1915,26 @@ struct psa_pake_operation_s {
     size_t MBEDTLS_PRIVATE(buffer_offset);
 #endif
     union {
+        /* A variant that's easy to initialize.
+         * Also, make the union non-empty even with no supported algorithms. */
+        uint8_t dummy;
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
         mbedtls_ecjpake_context ecjpake;
 #endif
-        /* Make the union non-empty even with no supported algorithms. */
-        uint8_t dummy;
     } MBEDTLS_PRIVATE(ctx);
 };
+
+/** Returns a suitable initializer for a PAKE operation object of type
+ * psa_pake_operation_t.
+ */
+#if defined(MBEDTLS_PSA_BUILTIN_PAKE)
+#define PSA_PAKE_OPERATION_INIT                 \
+    { PSA_ALG_NONE, 0, 0,                       \
+      0, 0, NULL, 0, 0, { 0 } , 0, 0,           \
+      { 0 } }
+#else
+#define PSA_PAKE_OPERATION_INIT { PSA_ALG_NONE, 0, 0, { 0 } }
+#endif
 
 static inline struct psa_pake_cipher_suite_s psa_pake_cipher_suite_init(void)
 {

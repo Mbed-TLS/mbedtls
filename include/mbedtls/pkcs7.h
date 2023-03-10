@@ -1,7 +1,7 @@
 /**
  * \file pkcs7.h
  *
- * \brief PKCS7 generic defines and structures
+ * \brief PKCS #7 generic defines and structures
  *  https://tools.ietf.org/html/rfc2315
  */
 /*
@@ -22,12 +22,12 @@
  */
 
 /**
- * Note: For the time being, this implementation of the PKCS #7 Cryptographic
- * Message Syntax is a partial implementation of RFC 2315.
- * Differences include:
+ * Note: For the time being, this implementation of the PKCS #7 cryptographic
+ * message syntax is a partial implementation of RFC 2315.
+ * Differences include:#
  *  - The RFC specifies 6 different content types. The only type currently
  *    supported in Mbed TLS is the signed data content type.
- *  - The only supported PKCS7 Signed Data syntax version is version 1
+ *  - The only supported PKCS #7 Signed Data syntax version is version 1
  *  - The RFC specifies support for BER. This implementation is limited to
  *    DER only.
  *  - The RFC specifies that multiple digest algorithms can be specified
@@ -57,13 +57,13 @@
 #include "mbedtls/x509_crt.h"
 
 /**
- * \name PKCS7 Module Error codes
+ * \name PKCS #7 Module Error codes
  * \{
  */
 #define MBEDTLS_ERR_PKCS7_INVALID_FORMAT                   -0x5300  /**< The format is invalid, e.g. different type expected. */
 #define MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE              -0x5380  /**< Unavailable feature, e.g. anything other than signed data. */
-#define MBEDTLS_ERR_PKCS7_INVALID_VERSION                  -0x5400  /**< The PKCS7 version element is invalid or cannot be parsed. */
-#define MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO             -0x5480  /**< The PKCS7 content info is invalid or cannot be parsed. */
+#define MBEDTLS_ERR_PKCS7_INVALID_VERSION                  -0x5400  /**< The PKCS #7 version element is invalid or cannot be parsed. */
+#define MBEDTLS_ERR_PKCS7_INVALID_CONTENT_INFO             -0x5480  /**< The PKCS #7 content info is invalid or cannot be parsed. */
 #define MBEDTLS_ERR_PKCS7_INVALID_ALG                      -0x5500  /**< The algorithm tag or value is invalid or cannot be parsed. */
 #define MBEDTLS_ERR_PKCS7_INVALID_CERT                     -0x5580  /**< The certificate tag or value is invalid or cannot be parsed. */
 #define MBEDTLS_ERR_PKCS7_INVALID_SIGNATURE                -0x5600  /**< Error parsing the signature */
@@ -71,11 +71,11 @@
 #define MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA                   -0x5700  /**< Input invalid. */
 #define MBEDTLS_ERR_PKCS7_ALLOC_FAILED                     -0x5780  /**< Allocation of memory failed. */
 #define MBEDTLS_ERR_PKCS7_VERIFY_FAIL                      -0x5800  /**< Verification Failed */
-#define MBEDTLS_ERR_PKCS7_CERT_DATE_INVALID                -0x5880  /**< The PKCS7 date issued/expired dates are invalid */
+#define MBEDTLS_ERR_PKCS7_CERT_DATE_INVALID                -0x5880  /**< The PKCS #7 date issued/expired dates are invalid */
 /* \} name */
 
 /**
- * \name PKCS7 Supported Version
+ * \name PKCS #7 Supported Version
  * \{
  */
 #define MBEDTLS_PKCS7_SUPPORTED_VERSION                           0x01
@@ -86,12 +86,12 @@ extern "C" {
 #endif
 
 /**
- * Type-length-value structure that allows for ASN1 using DER.
+ * Type-length-value structure that allows for ASN.1 using DER.
  */
 typedef mbedtls_asn1_buf mbedtls_pkcs7_buf;
 
 /**
- * Container for ASN1 named information objects.
+ * Container for ASN.1 named information objects.
  * It allows for Relative Distinguished Names (e.g. cn=localhost,ou=code,etc.).
  */
 typedef mbedtls_asn1_named_data mbedtls_pkcs7_name;
@@ -102,7 +102,7 @@ typedef mbedtls_asn1_named_data mbedtls_pkcs7_name;
 typedef mbedtls_asn1_sequence mbedtls_pkcs7_sequence;
 
 /**
- * PKCS7 types
+ * PKCS #7 types
  */
 typedef enum {
     MBEDTLS_PKCS7_NONE=0,
@@ -116,7 +116,7 @@ typedef enum {
 mbedtls_pkcs7_type;
 
 /**
- * Structure holding PKCS7 signer info
+ * Structure holding PKCS #7 signer info
  */
 typedef struct mbedtls_pkcs7_signer_info {
     int MBEDTLS_PRIVATE(version);
@@ -146,7 +146,7 @@ typedef struct mbedtls_pkcs7_signed_data {
 mbedtls_pkcs7_signed_data;
 
 /**
- * Structure holding PKCS7 structure, only signed data for now
+ * Structure holding PKCS #7 structure, only signed data for now
  */
 typedef struct mbedtls_pkcs7 {
     mbedtls_pkcs7_buf MBEDTLS_PRIVATE(raw);
@@ -155,21 +155,21 @@ typedef struct mbedtls_pkcs7 {
 mbedtls_pkcs7;
 
 /**
- * \brief          Initialize pkcs7 structure.
+ * \brief          Initialize mbedtls_pkcs7 structure.
  *
- * \param pkcs7    pkcs7 structure.
+ * \param pkcs7    mbedtls_pkcs7 structure.
  */
 void mbedtls_pkcs7_init(mbedtls_pkcs7 *pkcs7);
 
 /**
- * \brief          Parse a single DER formatted pkcs7 detached signature.
+ * \brief          Parse a single DER formatted PKCS #7 detached signature.
  *
- * \param pkcs7    The pkcs7 structure to be filled by parser for the output.
- * \param buf      The buffer holding only the DER encoded pkcs7.
+ * \param pkcs7    The mbedtls_pkcs7 structure to be filled by the parser.
+ * \param buf      The buffer holding only the DER encoded PKCS #7 content.
  * \param buflen   The size in bytes of \p buf. The size must be exactly the
- *                 length of the DER encoded pkcs7.
+ *                 length of the DER encoded PKCS #7 content.
  *
- * \note           This function makes an internal copy of the PKCS7 buffer
+ * \note           This function makes an internal copy of the PKCS #7 buffer
  *                 \p buf. In particular, \p buf may be destroyed or reused
  *                 after this call returns.
  * \note           Signatures with internal data are not supported.
@@ -181,7 +181,7 @@ int mbedtls_pkcs7_parse_der(mbedtls_pkcs7 *pkcs7, const unsigned char *buf,
                             const size_t buflen);
 
 /**
- * \brief          Verification of PKCS7 signature against a caller-supplied
+ * \brief          Verification of PKCS #7 signature against a caller-supplied
  *                 certificate.
  *
  *                 For each signer in the PKCS structure, this function computes
@@ -192,10 +192,10 @@ int mbedtls_pkcs7_parse_der(mbedtls_pkcs7 *pkcs7, const unsigned char *buf,
  *                 matches.
  *
  *                 This function does not use the certificates held within the
- *                 PKCS7 structure itself, and does not check that the
+ *                 PKCS #7 structure itself, and does not check that the
  *                 certificate is signed by a trusted certification authority.
  *
- * \param pkcs7    PKCS7 structure containing signature.
+ * \param pkcs7    mbedtls_pkcs7 structure containing signature.
  * \param cert     Certificate containing key to verify signature.
  * \param data     Plain data on which signature has to be verified.
  * \param datalen  Length of the data.
@@ -211,7 +211,7 @@ int mbedtls_pkcs7_signed_data_verify(mbedtls_pkcs7 *pkcs7,
                                      size_t datalen);
 
 /**
- * \brief          Verification of PKCS7 signature against a caller-supplied
+ * \brief          Verification of PKCS #7 signature against a caller-supplied
  *                 certificate.
  *
  *                 For each signer in the PKCS structure, this function
@@ -221,10 +221,10 @@ int mbedtls_pkcs7_signed_data_verify(mbedtls_pkcs7 *pkcs7,
  *                 signature is good.
  *
  *                 This function does not use the certificates held within the
- *                 PKCS7 structure itself, and does not check that the
+ *                 PKCS #7 structure itself, and does not check that the
  *                 certificate is signed by a trusted certification authority.
  *
- * \param pkcs7    PKCS7 structure containing signature.
+ * \param pkcs7    PKCS #7 structure containing signature.
  * \param cert     Certificate containing key to verify signature.
  * \param hash     Hash of the plain data on which signature has to be verified.
  * \param hashlen  Length of the hash.
@@ -239,10 +239,10 @@ int mbedtls_pkcs7_signed_hash_verify(mbedtls_pkcs7 *pkcs7,
                                      const unsigned char *hash, size_t hashlen);
 
 /**
- * \brief          Unallocate all PKCS7 data and zeroize the memory.
- *                 It doesn't free pkcs7 itself. It should be done by the caller.
+ * \brief          Unallocate all PKCS #7 data and zeroize the memory.
+ *                 It doesn't free \p pkcs7 itself. This should be done by the caller.
  *
- * \param pkcs7    PKCS7 structure to free.
+ * \param pkcs7    mbedtls_pkcs7 structure to free.
  */
 void mbedtls_pkcs7_free(mbedtls_pkcs7 *pkcs7);
 

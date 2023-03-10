@@ -591,7 +591,8 @@ static int pk_get_ecpubkey(unsigned char **p, const unsigned char *end,
                     pk->MBEDTLS_PRIVATE(pk_raw_len), &key);
     psa_destroy_key(key);
     if (status != PSA_SUCCESS) {
-        memset(pk->MBEDTLS_PRIVATE(pk_raw), 0, PSA_EXPORT_PUBLIC_KEY_MAX_SIZE);
+        mbedtls_platform_zeroize(pk->MBEDTLS_PRIVATE(pk_raw),
+                                    MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN);
         pk->MBEDTLS_PRIVATE(pk_raw_len) = 0;
         return  MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }

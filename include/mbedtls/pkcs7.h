@@ -22,8 +22,8 @@
  */
 
 /**
- * Note: For the time being, this implementation of the PKCS #7 cryptographic
- * message syntax is a partial implementation of RFC 2315.
+ * Note: For the time being, this implementation of the PKCS #7 Cryptographic
+ * Message Syntax is a partial implementation of RFC 2315.
  * Differences include:
  *  - The RFC specifies 6 different content types. The only type currently
  *    supported in Mbed TLS is the signed data content type.

@@ -1,15 +1,15 @@
 Features
-   * Added partial support for parsing the PKCS #7 cryptographic message
-     syntax, as defined in RFC 2315. Currently, support is limited to the
+   * Added partial support for parsing the PKCS #7 Cryptographic Message
+     Syntax, as defined in RFC 2315. Currently, support is limited to the
      following:
-     - Only the signed data content type, version 1 is supported.
+     - Only the signed-data content type, version 1 is supported.
      - Only DER encoding is supported.
      - Only a single digest algorithm per message is supported.
      - Only 0 or 1 certificates are supported per message, which must be in
        X.509 format.
-     - There is no support for certificate-revocation lists.
+     - There is no support for certificate revocation lists.
      - The authenticated and unauthenticated attribute fields of SignerInfo
        must be empty.
      Many thanks to Daniel Axtens, Nayna Jain, and Nick Child from IBM for
      contributing this feature. Thanks to Demi-Marie Obenour for contributing
-     various improvements, tests and bug-fixes.
+     various improvements, tests and bug fixes.

@@ -36,6 +36,7 @@
 #include <string.h>
 
 #include <mbedtls/entropy.h>
+#include "../../library/alignment.h"
 
 int mbedtls_test_rnd_std_rand(void *rng_state,
                               unsigned char *output,
@@ -137,7 +138,7 @@ int mbedtls_test_rnd_pseudo_rand(void *rng_state,
                          + info->v0) ^ (sum + k[(sum>>11) & 3]);
         }
 
-        PUT_UINT32_BE(info->v0, result, 0);
+        MBEDTLS_PUT_UINT32_BE(info->v0, result, 0);
         memcpy(out, result, use_len);
         len -= use_len;
         out += 4;

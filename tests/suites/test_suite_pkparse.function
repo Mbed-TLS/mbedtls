@@ -77,6 +77,10 @@ void pk_parse_public_keyfile_ec(char *key_file, int result)
     mbedtls_pk_context ctx;
     int res;
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    PSA_INIT();
+#endif
+
     mbedtls_pk_init(&ctx);
 
     res = mbedtls_pk_parse_public_keyfile(&ctx, key_file);
@@ -84,14 +88,23 @@ void pk_parse_public_keyfile_ec(char *key_file, int result)
     TEST_ASSERT(res == result);
 
     if (res == 0) {
-        mbedtls_ecp_keypair *eckey;
         TEST_ASSERT(mbedtls_pk_can_do(&ctx, MBEDTLS_PK_ECKEY));
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        /* No need to check whether the parsed public point is on the curve or
+         * not because this is already done by the internal "pk_get_ecpubkey()"
+         * function */
+#else
+        mbedtls_ecp_keypair *eckey;
         eckey = mbedtls_pk_ec(ctx);
         TEST_ASSERT(mbedtls_ecp_check_pubkey(&eckey->grp, &eckey->Q) == 0);
+#endif
     }
 
 exit:
     mbedtls_pk_free(&ctx);
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    PSA_DONE();
+#endif
 }
 /* END_CASE */
 

@@ -447,6 +447,10 @@ void x509_parse_san(char *crt_file, char *result_str, int parse_result)
     char *p = buf;
     size_t n = sizeof(buf);
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    PSA_INIT();
+#endif
+
     mbedtls_x509_crt_init(&crt);
     memset(buf, 0, 2000);
 
@@ -477,6 +481,9 @@ void x509_parse_san(char *crt_file, char *result_str, int parse_result)
 exit:
 
     mbedtls_x509_crt_free(&crt);
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    PSA_DONE();
+#endif
 }
 /* END_CASE */
 
@@ -486,6 +493,10 @@ void x509_cert_info(char *crt_file, char *result_str)
     mbedtls_x509_crt   crt;
     char buf[2000];
     int res;
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    PSA_INIT();
+#endif
 
     mbedtls_x509_crt_init(&crt);
     memset(buf, 0, 2000);
@@ -500,6 +511,9 @@ void x509_cert_info(char *crt_file, char *result_str)
 
 exit:
     mbedtls_x509_crt_free(&crt);
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    PSA_DONE();
+#endif
 }
 /* END_CASE */
 
@@ -549,6 +563,10 @@ void mbedtls_x509_csr_info(char *csr_file, char *result_str)
     char buf[2000];
     int res;
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    PSA_INIT();
+#endif
+
     mbedtls_x509_csr_init(&csr);
     memset(buf, 0, 2000);
 
@@ -562,6 +580,9 @@ void mbedtls_x509_csr_info(char *csr_file, char *result_str)
 
 exit:
     mbedtls_x509_csr_free(&csr);
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    PSA_DONE();
+#endif
 }
 /* END_CASE */
 
@@ -957,6 +978,10 @@ void mbedtls_x509_time_is_past(char *crt_file, char *entity, int result)
 {
     mbedtls_x509_crt   crt;
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    PSA_INIT();
+#endif
+
     mbedtls_x509_crt_init(&crt);
 
     TEST_ASSERT(mbedtls_x509_crt_parse_file(&crt, crt_file) == 0);
@@ -971,6 +996,9 @@ void mbedtls_x509_time_is_past(char *crt_file, char *entity, int result)
 
 exit:
     mbedtls_x509_crt_free(&crt);
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    PSA_DONE();
+#endif
 }
 /* END_CASE */
 
@@ -1001,12 +1029,19 @@ void x509parse_crt_file(char *crt_file, int result)
 {
     mbedtls_x509_crt crt;
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    PSA_INIT();
+#endif
+
     mbedtls_x509_crt_init(&crt);
 
     TEST_ASSERT(mbedtls_x509_crt_parse_file(&crt, crt_file) == result);
 
 exit:
     mbedtls_x509_crt_free(&crt);
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    PSA_DONE();
+#endif
 }
 /* END_CASE */
 
@@ -1019,6 +1054,10 @@ void x509parse_crt(data_t *buf, char *result_str, int result)
     int res;
 #else
     ((void) result_str);
+#endif
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    PSA_INIT();
 #endif
 
     mbedtls_x509_crt_init(&crt);
@@ -1088,6 +1127,9 @@ void x509parse_crt(data_t *buf, char *result_str, int result)
 
 exit:
     mbedtls_x509_crt_free(&crt);
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    PSA_DONE();
+#endif
 }
 /* END_CASE */
 
@@ -1178,6 +1220,10 @@ void mbedtls_x509_csr_parse(data_t *csr_der, char *ref_out, int ref_ret)
     char my_out[1000];
     int my_ret;
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    PSA_INIT();
+#endif
+
     mbedtls_x509_csr_init(&csr);
     memset(my_out, 0, sizeof(my_out));
 
@@ -1192,6 +1238,9 @@ void mbedtls_x509_csr_parse(data_t *csr_der, char *ref_out, int ref_ret)
 
 exit:
     mbedtls_x509_csr_free(&csr);
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    PSA_DONE();
+#endif
 }
 /* END_CASE */
 
@@ -1225,6 +1274,10 @@ void mbedtls_x509_crt_parse_path(char *crt_path, int ret, int nb_crt)
     mbedtls_x509_crt chain, *cur;
     int i;
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    PSA_INIT();
+#endif
+
     mbedtls_x509_crt_init(&chain);
 
     TEST_ASSERT(mbedtls_x509_crt_parse_path(&chain, crt_path) == ret);
@@ -1240,6 +1293,9 @@ void mbedtls_x509_crt_parse_path(char *crt_path, int ret, int nb_crt)
 
 exit:
     mbedtls_x509_crt_free(&chain);
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    PSA_DONE();
+#endif
 }
 /* END_CASE */
 
@@ -1392,6 +1448,9 @@ void x509_check_key_usage(char *crt_file, int usage, int ret)
 
 exit:
     mbedtls_x509_crt_free(&crt);
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    PSA_DONE();
+#endif
 }
 /* END_CASE */
 
@@ -1401,6 +1460,9 @@ void x509_check_extended_key_usage(char *crt_file, data_t *oid, int ret
 {
     mbedtls_x509_crt crt;
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    PSA_INIT();
+#endif
     mbedtls_x509_crt_init(&crt);
 
 

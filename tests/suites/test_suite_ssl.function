@@ -2111,6 +2111,7 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file,
     unsigned char *buf = NULL;
     size_t len;
 
+    USE_PSA_INIT();
     /*
      * Test that a save-load pair is the identity
      */
@@ -2248,6 +2249,7 @@ exit:
     mbedtls_ssl_session_free(&original);
     mbedtls_ssl_session_free(&restored);
     mbedtls_free(buf);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -2259,6 +2261,7 @@ void ssl_serialize_session_load_save(int ticket_len, char *crt_file,
     unsigned char *buf1 = NULL, *buf2 = NULL;
     size_t len0, len1, len2;
 
+    USE_PSA_INIT();
     /*
      * Test that a load-save pair is the identity
      */
@@ -2310,6 +2313,7 @@ exit:
     mbedtls_ssl_session_free(&session);
     mbedtls_free(buf1);
     mbedtls_free(buf2);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -2321,6 +2325,7 @@ void ssl_serialize_session_save_buf_size(int ticket_len, char *crt_file,
     unsigned char *buf = NULL;
     size_t good_len, bad_len, test_len;
 
+    USE_PSA_INIT();
     /*
      * Test that session_save() fails cleanly on small buffers
      */
@@ -2357,6 +2362,7 @@ void ssl_serialize_session_save_buf_size(int ticket_len, char *crt_file,
 exit:
     mbedtls_ssl_session_free(&session);
     mbedtls_free(buf);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -2368,6 +2374,7 @@ void ssl_serialize_session_load_buf_size(int ticket_len, char *crt_file,
     unsigned char *good_buf = NULL, *bad_buf = NULL;
     size_t good_len, bad_len;
 
+    USE_PSA_INIT();
     /*
      * Test that session_load() fails cleanly on small buffers
      */
@@ -2410,6 +2417,7 @@ exit:
     mbedtls_ssl_session_free(&session);
     mbedtls_free(good_buf);
     mbedtls_free(bad_buf);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 

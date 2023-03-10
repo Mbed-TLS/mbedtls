@@ -100,6 +100,10 @@ static int pk_genkey(mbedtls_pk_context *pk, int parameter)
     if (mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECKEY ||
         mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECKEY_DH ||
         mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECDSA) {
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        return mbedtls_pk_gen_ec_keypair(pk, parameter,
+                                mbedtls_test_rnd_std_rand, NULL);
+#else /* MBEDTLS_USE_PSA_CRYPTO */
         int ret;
         if ((ret = mbedtls_ecp_group_load(&mbedtls_pk_ec(*pk)->grp,
                                           parameter)) != 0) {
@@ -580,6 +584,7 @@ void mbedtls_pk_check_pair(char *pub_file, char *prv_file, int ret)
     }
 #endif
 
+exit:
     mbedtls_pk_free(&pub);
     mbedtls_pk_free(&prv);
     mbedtls_pk_free(&alt);
@@ -713,6 +718,10 @@ void pk_ec_test_vec(int type, int id, data_t *key, data_t *hash,
     TEST_ASSERT(mbedtls_ecp_point_read_binary(&eckey->grp, &eckey->Q,
                                               key->x, key->len) == 0);
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    TEST_ASSERT(mbedtls_pk_update_public_key_from_keypair(&pk) == 0);
+#endif
+
     // MBEDTLS_MD_NONE is used since it will be ignored.
     TEST_ASSERT(mbedtls_pk_verify(&pk, MBEDTLS_MD_NONE,
                                   hash->x, hash->len, sig->x, sig->len) == ret);
@@ -749,6 +758,9 @@ void pk_sign_verify_restart(int pk_type, int grp_id, char *d_str,
     TEST_ASSERT(mbedtls_pk_setup(&pub, mbedtls_pk_info_from_type(pk_type)) == 0);
     TEST_ASSERT(mbedtls_ecp_group_load(&mbedtls_pk_ec(pub)->grp, grp_id) == 0);
     TEST_ASSERT(mbedtls_ecp_point_read_string(&mbedtls_pk_ec(pub)->Q, 16, QX_str, QY_str) == 0);
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    TEST_ASSERT(mbedtls_pk_update_public_key_from_keypair(&pub) == 0);
+#endif
 
     mbedtls_ecp_set_max_ops(max_ops);
 
@@ -1298,6 +1310,9 @@ void pk_psa_sign(int parameter_arg,
                                      mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY)) == 0);
         TEST_ASSERT(pk_genkey(&pk, grpid) == 0);
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        TEST_ASSERT(mbedtls_pk_update_public_key_from_keypair(&pk) == 0);
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
         alg_psa = PSA_ALG_ECDSA(PSA_ALG_SHA_256);
     } else
 #endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
@@ -1383,6 +1398,9 @@ void pk_psa_sign(int parameter_arg,
     TEST_EQUAL(mbedtls_ecp_point_read_binary(&(mbedtls_pk_ec(pk)->grp),
                                              &(mbedtls_pk_ec(pk)->Q),
                                              pkey_legacy_start, klen_legacy), 0);
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    TEST_ASSERT(mbedtls_pk_update_public_key_from_keypair(&pk) == 0);
+#endif
 #endif
     TEST_ASSERT(mbedtls_pk_verify(&pk, MBEDTLS_MD_SHA256,
                                   hash, sizeof(hash), sig, sig_len) == 0);

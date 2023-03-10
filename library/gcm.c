@@ -754,6 +754,20 @@ int mbedtls_gcm_self_test(int verbose)
     int i, j, ret;
     mbedtls_cipher_id_t cipher = MBEDTLS_CIPHER_ID_AES;
 
+    if (verbose != 0)
+    {
+#if defined(MBEDTLS_GCM_ALT)
+        mbedtls_printf("  GCM note: alternative implementation.\n");
+#else /* MBEDTLS_GCM_ALT */
+#if defined(MBEDTLS_AESNI_HAVE_CODE)
+        if (mbedtls_aesni_has_support(MBEDTLS_AESNI_CLMUL)) {
+            mbedtls_printf("  GCM note: using AESNI.\n");
+        } else
+#endif
+        mbedtls_printf("  GCM note: built-in implementation.\n");
+#endif /* MBEDTLS_GCM_ALT */
+    }
+
     for (j = 0; j < 3; j++) {
         int key_len = 128 + 64 * j;
 

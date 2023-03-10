@@ -1925,7 +1925,6 @@ run_test    "TLS client auth: required" \
             0 \
             -s "Verifying peer X.509 certificate... ok"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "key size: TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256" \
             "$P_SRV" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256" \
@@ -1933,7 +1932,6 @@ run_test    "key size: TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256" \
             -c "Ciphersuite is TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256" \
             -c "Key size is 256"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "key size: TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
             "$P_SRV" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
@@ -2031,7 +2029,6 @@ run_test    "Opaque key for client authentication: ECDHE-RSA" \
             -S "error" \
             -C "error"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
@@ -2068,7 +2065,6 @@ run_test    "Opaque key for server authentication: ECDHE-ECDSA" \
             -S "error" \
             -C "error"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_hash_alg SHA_256
@@ -2152,7 +2148,6 @@ run_test    "Opaque key for server authentication: invalid alg: ecdh with RSA ke
             -s "error" \
             -c "error"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_hash_alg SHA_256
@@ -2189,7 +2184,6 @@ run_test    "Opaque keys for server authentication: EC keys with different algs,
             -S "error" \
             -C "error"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_hash_alg SHA_384
@@ -2209,7 +2203,6 @@ run_test    "Opaque keys for server authentication: EC keys with different algs,
             -S "error" \
             -C "error"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_hash_alg SHA_384
@@ -2310,7 +2303,6 @@ run_test    "Opaque key for server authentication: ECDHE-RSA" \
             -S "error" \
             -C "error"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
@@ -2327,7 +2319,6 @@ run_test    "Opaque key for server authentication: DHE-RSA" \
             -S "error" \
             -C "error"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
@@ -2345,7 +2336,6 @@ run_test    "Opaque key for server authentication: RSA-PSK" \
             -S "error" \
             -C "error"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
@@ -2361,7 +2351,6 @@ run_test    "Opaque key for server authentication: RSA-" \
             -S "error" \
             -C "error"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
@@ -2399,7 +2388,6 @@ run_test    "Opaque keys for server authentication: RSA keys with different algs
             -S "error" \
             -C "error"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
@@ -2464,7 +2452,6 @@ run_test    "Opaque key for client/server authentication: ECDHE-RSA" \
             -S "error" \
             -C "error"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
@@ -2537,7 +2524,6 @@ run_test    "ServerHello contains gmt_unix_time" \
             -F "check_server_hello_time"
 
 # Test for uniqueness of IVs in AEAD ciphersuites
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Unique IV in GCM" \
             "$P_SRV exchanges=20 debug_level=4" \
             "$P_CLI exchanges=20 debug_level=4 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384" \
@@ -2667,7 +2653,6 @@ run_test    "DTLS: multiple records in same datagram, neither client nor server"
 
 # Tests for Context serialization
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
 run_test    "Context serialization, client serializes, CCM" \
             "$P_SRV dtls=1 serialize=0 exchanges=2" \
@@ -2676,7 +2661,6 @@ run_test    "Context serialization, client serializes, CCM" \
             -c "Deserializing connection..." \
             -S "Deserializing connection..."
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
 run_test    "Context serialization, client serializes, ChaChaPoly" \
             "$P_SRV dtls=1 serialize=0 exchanges=2" \
@@ -2685,7 +2669,6 @@ run_test    "Context serialization, client serializes, ChaChaPoly" \
             -c "Deserializing connection..." \
             -S "Deserializing connection..."
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
 run_test    "Context serialization, client serializes, GCM" \
             "$P_SRV dtls=1 serialize=0 exchanges=2" \
@@ -2712,7 +2695,6 @@ run_test    "Context serialization, server serializes, CCM" \
             -C "Deserializing connection..." \
             -s "Deserializing connection..."
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
 run_test    "Context serialization, server serializes, ChaChaPoly" \
             "$P_SRV dtls=1 serialize=1 exchanges=2" \
@@ -2721,7 +2703,6 @@ run_test    "Context serialization, server serializes, ChaChaPoly" \
             -C "Deserializing connection..." \
             -s "Deserializing connection..."
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
 run_test    "Context serialization, server serializes, GCM" \
             "$P_SRV dtls=1 serialize=1 exchanges=2" \
@@ -2740,7 +2721,6 @@ run_test    "Context serialization, server serializes, with CID" \
             -C "Deserializing connection..." \
             -s "Deserializing connection..."
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
 run_test    "Context serialization, both serialize, CCM" \
             "$P_SRV dtls=1 serialize=1 exchanges=2" \
@@ -2749,7 +2729,6 @@ run_test    "Context serialization, both serialize, CCM" \
             -c "Deserializing connection..." \
             -s "Deserializing connection..."
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
 run_test    "Context serialization, both serialize, ChaChaPoly" \
             "$P_SRV dtls=1 serialize=1 exchanges=2" \
@@ -2758,7 +2737,6 @@ run_test    "Context serialization, both serialize, ChaChaPoly" \
             -c "Deserializing connection..." \
             -s "Deserializing connection..."
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
 run_test    "Context serialization, both serialize, GCM" \
             "$P_SRV dtls=1 serialize=1 exchanges=2" \
@@ -2794,7 +2772,6 @@ run_test    "Context serialization, re-init, client serializes, ChaChaPoly" \
             -c "Deserializing connection..." \
             -S "Deserializing connection..."
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
 run_test    "Context serialization, re-init, client serializes, GCM" \
             "$P_SRV dtls=1 serialize=0 exchanges=2" \
@@ -2821,7 +2798,6 @@ run_test    "Context serialization, re-init, server serializes, CCM" \
             -C "Deserializing connection..." \
             -s "Deserializing connection..."
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
 run_test    "Context serialization, re-init, server serializes, ChaChaPoly" \
             "$P_SRV dtls=1 serialize=2 exchanges=2" \
@@ -2830,7 +2806,6 @@ run_test    "Context serialization, re-init, server serializes, ChaChaPoly" \
             -C "Deserializing connection..." \
             -s "Deserializing connection..."
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
 run_test    "Context serialization, re-init, server serializes, GCM" \
             "$P_SRV dtls=1 serialize=2 exchanges=2" \
@@ -2849,7 +2824,6 @@ run_test    "Context serialization, re-init, server serializes, with CID" \
             -C "Deserializing connection..." \
             -s "Deserializing connection..."
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
 run_test    "Context serialization, re-init, both serialize, CCM" \
             "$P_SRV dtls=1 serialize=2 exchanges=2" \
@@ -2858,7 +2832,6 @@ run_test    "Context serialization, re-init, both serialize, CCM" \
             -c "Deserializing connection..." \
             -s "Deserializing connection..."
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
 run_test    "Context serialization, re-init, both serialize, ChaChaPoly" \
             "$P_SRV dtls=1 serialize=2 exchanges=2" \
@@ -2867,7 +2840,6 @@ run_test    "Context serialization, re-init, both serialize, ChaChaPoly" \
             -c "Deserializing connection..." \
             -s "Deserializing connection..."
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
 run_test    "Context serialization, re-init, both serialize, GCM" \
             "$P_SRV dtls=1 serialize=2 exchanges=2" \
@@ -3088,7 +3060,6 @@ run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID empty" \
             -S "Use of Connection ID has been negotiated" \
             -C "Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID nonempty, AES-128-CCM-8" \
             "$P_SRV debug_level=3 dtls=1 cid=1 cid_val=dead" \
@@ -3109,7 +3080,6 @@ run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID nonempty, AES-128-CCM-8
             -s "Use of Connection ID has been negotiated" \
             -c "Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID: Cli+Srv enabled, Cli CID empty, AES-128-CCM-8" \
             "$P_SRV debug_level=3 dtls=1 cid=1 cid_val=deadbeef" \
@@ -3130,7 +3100,6 @@ run_test    "Connection ID: Cli+Srv enabled, Cli CID empty, AES-128-CCM-8" \
             -s "Use of Connection ID has been negotiated" \
             -c "Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID: Cli+Srv enabled, Srv CID empty, AES-128-CCM-8" \
             "$P_SRV debug_level=3 dtls=1 cid=1" \
@@ -3151,7 +3120,6 @@ run_test    "Connection ID: Cli+Srv enabled, Srv CID empty, AES-128-CCM-8" \
             -s "Use of Connection ID has been negotiated" \
             -c "Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID empty, AES-128-CCM-8" \
             "$P_SRV debug_level=3 dtls=1 cid=1" \
@@ -3170,7 +3138,6 @@ run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID empty, AES-128-CCM-8" \
             -S "Use of Connection ID has been negotiated" \
             -C "Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID nonempty, AES-128-CBC" \
             "$P_SRV debug_level=3 dtls=1 cid=1 cid_val=dead" \
@@ -3191,7 +3158,6 @@ run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID nonempty, AES-128-CBC" 
             -s "Use of Connection ID has been negotiated" \
             -c "Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID: Cli+Srv enabled, Cli CID empty, AES-128-CBC" \
             "$P_SRV debug_level=3 dtls=1 cid=1 cid_val=deadbeef" \
@@ -3212,7 +3178,6 @@ run_test    "Connection ID: Cli+Srv enabled, Cli CID empty, AES-128-CBC" \
             -s "Use of Connection ID has been negotiated" \
             -c "Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID: Cli+Srv enabled, Srv CID empty, AES-128-CBC" \
             "$P_SRV debug_level=3 dtls=1 cid=1" \
@@ -3233,7 +3198,6 @@ run_test    "Connection ID: Cli+Srv enabled, Srv CID empty, AES-128-CBC" \
             -s "Use of Connection ID has been negotiated" \
             -c "Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID empty, AES-128-CBC" \
             "$P_SRV debug_level=3 dtls=1 cid=1" \
@@ -3492,7 +3456,6 @@ run_test    "Connection ID, 3D: Cli+Srv enabled, Srv disables on renegotiation" 
 # This and the test below it require MAX_CONTENT_LEN to be at least MFL+1, because the
 # tests check that the buffer contents are reallocated when the message is
 # larger than the buffer.
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
 requires_max_content_len 513
@@ -3507,7 +3470,6 @@ run_test    "Connection ID: Cli+Srv enabled, variable buffer lengths, MFL=512" \
             -s "Reallocating in_buf" \
             -s "Reallocating out_buf"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
 requires_max_content_len 1025
@@ -3524,7 +3486,6 @@ run_test    "Connection ID: Cli+Srv enabled, variable buffer lengths, MFL=1024" 
 
 # Tests for Encrypt-then-MAC extension
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Encrypt then MAC: default" \
             "$P_SRV debug_level=3 \
              force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
@@ -3537,7 +3498,6 @@ run_test    "Encrypt then MAC: default" \
             -c "using encrypt then mac" \
             -s "using encrypt then mac"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Encrypt then MAC: client enabled, server disabled" \
             "$P_SRV debug_level=3 etm=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
@@ -3550,7 +3510,6 @@ run_test    "Encrypt then MAC: client enabled, server disabled" \
             -C "using encrypt then mac" \
             -S "using encrypt then mac"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Encrypt then MAC: client enabled, aead cipher" \
             "$P_SRV debug_level=3 etm=1 \
              force_ciphersuite=TLS-RSA-WITH-AES-128-GCM-SHA256" \
@@ -3563,7 +3522,6 @@ run_test    "Encrypt then MAC: client enabled, aead cipher" \
             -C "using encrypt then mac" \
             -S "using encrypt then mac"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Encrypt then MAC: client disabled, server enabled" \
             "$P_SRV debug_level=3 etm=1 \
              force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
@@ -3619,7 +3577,6 @@ run_test    "Extended Master Secret: client disabled, server enabled" \
 
 # Test sending and receiving empty application data records
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Encrypt then MAC: empty application data record" \
             "$P_SRV auth_mode=none debug_level=4 etm=1" \
             "$P_CLI auth_mode=none etm=1 request_size=0 force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA" \
@@ -3636,7 +3593,6 @@ run_test    "Encrypt then MAC: disabled, empty application data record" \
             -s "dumping 'input payload after decrypt' (0 bytes)" \
             -c "0 bytes written in 1 fragments"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Encrypt then MAC, DTLS: empty application data record" \
             "$P_SRV auth_mode=none debug_level=4 etm=1 dtls=1" \
             "$P_CLI auth_mode=none etm=1 request_size=0 force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA dtls=1" \
@@ -4876,7 +4832,6 @@ run_test    "Renegotiation: double" \
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 requires_max_content_len 2048
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation with max fragment length: client 2048, server 512" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional renegotiate=1 max_frag_len=512" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 max_frag_len=2048 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
@@ -5451,7 +5406,6 @@ run_test    "Authentication: server badcert, client none" \
             -C "! mbedtls_ssl_handshake returned" \
             -C "X509 - Certificate verification failed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication: client SHA256, server required" \
             "$P_SRV auth_mode=required" \
@@ -5462,7 +5416,6 @@ run_test    "Authentication: client SHA256, server required" \
             -c "Supported Signature Algorithm found: 04 " \
             -c "Supported Signature Algorithm found: 05 "
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication: client SHA384, server required" \
             "$P_SRV auth_mode=required" \
@@ -5845,7 +5798,6 @@ run_test    "Authentication, CA callback: server ECDH p256v1, client optional, p
             -c "bad server certificate (ECDH curve)" # Expect failure only at ECDH params check
 
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication, CA callback: client SHA256, server required" \
             "$P_SRV ca_callback=1 debug_level=3 auth_mode=required" \
@@ -5858,7 +5810,6 @@ run_test    "Authentication, CA callback: client SHA256, server required" \
             -c "Supported Signature Algorithm found: 05 "
 
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication, CA callback: client SHA384, server required" \
             "$P_SRV ca_callback=1 debug_level=3 auth_mode=required" \
@@ -6713,7 +6664,6 @@ run_test    "keyUsage srv: ECDSA, keyEncipherment -> fail" \
 # Tests for keyUsage in leaf certificates, part 2:
 # client-side checking of server cert
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "keyUsage cli: DigitalSignature+KeyEncipherment, RSA: OK" \
             "$O_SRV -tls1_2 -key data_files/server2.key \
              -cert data_files/server2.ku-ds_ke.crt" \
@@ -6724,7 +6674,6 @@ run_test    "keyUsage cli: DigitalSignature+KeyEncipherment, RSA: OK" \
             -C "Processing of the Certificate handshake message failed" \
             -c "Ciphersuite is TLS-"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "keyUsage cli: DigitalSignature+KeyEncipherment, DHE-RSA: OK" \
             "$O_SRV -tls1_2 -key data_files/server2.key \
              -cert data_files/server2.ku-ds_ke.crt" \
@@ -6735,7 +6684,6 @@ run_test    "keyUsage cli: DigitalSignature+KeyEncipherment, DHE-RSA: OK" \
             -C "Processing of the Certificate handshake message failed" \
             -c "Ciphersuite is TLS-"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "keyUsage cli: KeyEncipherment, RSA: OK" \
             "$O_SRV -tls1_2 -key data_files/server2.key \
              -cert data_files/server2.ku-ke.crt" \
@@ -6746,7 +6694,6 @@ run_test    "keyUsage cli: KeyEncipherment, RSA: OK" \
             -C "Processing of the Certificate handshake message failed" \
             -c "Ciphersuite is TLS-"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "keyUsage cli: KeyEncipherment, DHE-RSA: fail" \
             "$O_SRV -tls1_2 -key data_files/server2.key \
              -cert data_files/server2.ku-ke.crt" \
@@ -6757,7 +6704,6 @@ run_test    "keyUsage cli: KeyEncipherment, DHE-RSA: fail" \
             -c "Processing of the Certificate handshake message failed" \
             -C "Ciphersuite is TLS-"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "keyUsage cli: KeyEncipherment, DHE-RSA: fail, soft" \
             "$O_SRV -tls1_2 -key data_files/server2.key \
              -cert data_files/server2.ku-ke.crt" \
@@ -6769,7 +6715,6 @@ run_test    "keyUsage cli: KeyEncipherment, DHE-RSA: fail, soft" \
             -c "Ciphersuite is TLS-" \
             -c "! Usage does not match the keyUsage extension"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "keyUsage cli: DigitalSignature, DHE-RSA: OK" \
             "$O_SRV -tls1_2 -key data_files/server2.key \
              -cert data_files/server2.ku-ds.crt" \
@@ -6780,7 +6725,6 @@ run_test    "keyUsage cli: DigitalSignature, DHE-RSA: OK" \
             -C "Processing of the Certificate handshake message failed" \
             -c "Ciphersuite is TLS-"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "keyUsage cli: DigitalSignature, RSA: fail" \
             "$O_SRV -tls1_2 -key data_files/server2.key \
              -cert data_files/server2.ku-ds.crt" \
@@ -6791,7 +6735,6 @@ run_test    "keyUsage cli: DigitalSignature, RSA: fail" \
             -c "Processing of the Certificate handshake message failed" \
             -C "Ciphersuite is TLS-"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "keyUsage cli: DigitalSignature, RSA: fail, soft" \
             "$O_SRV -tls1_2 -key data_files/server2.key \
              -cert data_files/server2.ku-ds.crt" \
@@ -7184,7 +7127,6 @@ run_test    "extKeyUsage cli-auth 1.3: codeSign -> fail (soft)" \
 
 # Tests for DHM parameters loading
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DHM parameters: reference" \
             "$P_SRV" \
             "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
@@ -7193,7 +7135,6 @@ run_test    "DHM parameters: reference" \
             -c "value of 'DHM: P ' (2048 bits)" \
             -c "value of 'DHM: G ' (2 bits)"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DHM parameters: other parameters" \
             "$P_SRV dhm_file=data_files/dhparams.pem" \
             "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
@@ -7204,7 +7145,6 @@ run_test    "DHM parameters: other parameters" \
 
 # Tests for DHM client-side size checking
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DHM size: server default, client default, OK" \
             "$P_SRV" \
             "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
@@ -7212,7 +7152,6 @@ run_test    "DHM size: server default, client default, OK" \
             0 \
             -C "DHM prime too short:"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DHM size: server default, client 2048, OK" \
             "$P_SRV" \
             "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
@@ -7220,7 +7159,6 @@ run_test    "DHM size: server default, client 2048, OK" \
             0 \
             -C "DHM prime too short:"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DHM size: server 1024, client default, OK" \
             "$P_SRV dhm_file=data_files/dhparams.pem" \
             "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
@@ -7228,7 +7166,6 @@ run_test    "DHM size: server 1024, client default, OK" \
             0 \
             -C "DHM prime too short:"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DHM size: server 999, client 999, OK" \
             "$P_SRV dhm_file=data_files/dh.999.pem" \
             "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
@@ -7236,7 +7173,6 @@ run_test    "DHM size: server 999, client 999, OK" \
             0 \
             -C "DHM prime too short:"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DHM size: server 1000, client 1000, OK" \
             "$P_SRV dhm_file=data_files/dh.1000.pem" \
             "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
@@ -7244,7 +7180,6 @@ run_test    "DHM size: server 1000, client 1000, OK" \
             0 \
             -C "DHM prime too short:"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DHM size: server 1000, client default, rejected" \
             "$P_SRV dhm_file=data_files/dh.1000.pem" \
             "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
@@ -7252,7 +7187,6 @@ run_test    "DHM size: server 1000, client default, rejected" \
             1 \
             -c "DHM prime too short:"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DHM size: server 1000, client 1001, rejected" \
             "$P_SRV dhm_file=data_files/dh.1000.pem" \
             "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
@@ -7260,7 +7194,6 @@ run_test    "DHM size: server 1000, client 1001, rejected" \
             1 \
             -c "DHM prime too short:"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DHM size: server 999, client 1000, rejected" \
             "$P_SRV dhm_file=data_files/dh.999.pem" \
             "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
@@ -7268,7 +7201,6 @@ run_test    "DHM size: server 999, client 1000, rejected" \
             1 \
             -c "DHM prime too short:"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DHM size: server 998, client 999, rejected" \
             "$P_SRV dhm_file=data_files/dh.998.pem" \
             "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
@@ -7276,7 +7208,6 @@ run_test    "DHM size: server 998, client 999, rejected" \
             1 \
             -c "DHM prime too short:"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DHM size: server default, client 2049, rejected" \
             "$P_SRV" \
             "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
@@ -7286,7 +7217,6 @@ run_test    "DHM size: server default, client 2049, rejected" \
 
 # Tests for PSK callback
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: psk, no callback" \
             "$P_SRV psk=abc123 psk_identity=foo" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
@@ -7297,7 +7227,6 @@ run_test    "PSK callback: psk, no callback" \
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: opaque psk on client, no callback" \
             "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
@@ -7310,7 +7239,6 @@ run_test    "PSK callback: opaque psk on client, no callback" \
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: opaque psk on client, no callback, SHA-384" \
             "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 \
@@ -7323,7 +7251,6 @@ run_test    "PSK callback: opaque psk on client, no callback, SHA-384" \
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: opaque psk on client, no callback, EMS" \
             "$P_SRV extended_ms=1 debug_level=3 psk=abc123 psk_identity=foo" \
             "$P_CLI extended_ms=1 debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
@@ -7336,7 +7263,6 @@ run_test    "PSK callback: opaque psk on client, no callback, EMS" \
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: opaque psk on client, no callback, SHA-384, EMS" \
             "$P_SRV extended_ms=1 debug_level=3 psk=abc123 psk_identity=foo" \
             "$P_CLI extended_ms=1 debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 \
@@ -7349,7 +7275,6 @@ run_test    "PSK callback: opaque psk on client, no callback, SHA-384, EMS" \
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: opaque rsa-psk on client, no callback" \
             "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA256 \
@@ -7362,7 +7287,6 @@ run_test    "PSK callback: opaque rsa-psk on client, no callback" \
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: opaque rsa-psk on client, no callback, SHA-384" \
             "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384 \
@@ -7375,7 +7299,6 @@ run_test    "PSK callback: opaque rsa-psk on client, no callback, SHA-384" \
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: opaque rsa-psk on client, no callback, EMS" \
             "$P_SRV extended_ms=1 debug_level=3 psk=abc123 psk_identity=foo" \
             "$P_CLI extended_ms=1 debug_level=3 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA \
@@ -7388,7 +7311,6 @@ run_test    "PSK callback: opaque rsa-psk on client, no callback, EMS" \
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: opaque rsa-psk on client, no callback, SHA-384, EMS" \
             "$P_SRV extended_ms=1 debug_level=3 psk=abc123 psk_identity=foo" \
             "$P_CLI extended_ms=1 debug_level=3 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384 \
@@ -7401,7 +7323,6 @@ run_test    "PSK callback: opaque rsa-psk on client, no callback, SHA-384, EMS" 
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: opaque ecdhe-psk on client, no callback" \
             "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA256 \
@@ -7414,7 +7335,6 @@ run_test    "PSK callback: opaque ecdhe-psk on client, no callback" \
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: opaque ecdhe-psk on client, no callback, SHA-384" \
             "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA384 \
@@ -7427,7 +7347,6 @@ run_test    "PSK callback: opaque ecdhe-psk on client, no callback, SHA-384" \
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: opaque ecdhe-psk on client, no callback, EMS" \
             "$P_SRV extended_ms=1 debug_level=3 psk=abc123 psk_identity=foo" \
             "$P_CLI extended_ms=1 debug_level=3 min_version=tls12 force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA \
@@ -7440,7 +7359,6 @@ run_test    "PSK callback: opaque ecdhe-psk on client, no callback, EMS" \
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: opaque ecdhe-psk on client, no callback, SHA-384, EMS" \
             "$P_SRV extended_ms=1 debug_level=3 psk=abc123 psk_identity=foo" \
             "$P_CLI extended_ms=1 debug_level=3 min_version=tls12 force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA384 \
@@ -7453,7 +7371,6 @@ run_test    "PSK callback: opaque ecdhe-psk on client, no callback, SHA-384, EMS
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: opaque dhe-psk on client, no callback" \
             "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-DHE-PSK-WITH-AES-128-CBC-SHA256 \
@@ -7466,7 +7383,6 @@ run_test    "PSK callback: opaque dhe-psk on client, no callback" \
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: opaque dhe-psk on client, no callback, SHA-384" \
             "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-DHE-PSK-WITH-AES-256-CBC-SHA384 \
@@ -7479,7 +7395,6 @@ run_test    "PSK callback: opaque dhe-psk on client, no callback, SHA-384" \
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: opaque dhe-psk on client, no callback, EMS" \
             "$P_SRV extended_ms=1 debug_level=3 psk=abc123 psk_identity=foo" \
             "$P_CLI extended_ms=1 debug_level=3 min_version=tls12 force_ciphersuite=TLS-DHE-PSK-WITH-AES-128-CBC-SHA \
@@ -7492,7 +7407,6 @@ run_test    "PSK callback: opaque dhe-psk on client, no callback, EMS" \
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: opaque dhe-psk on client, no callback, SHA-384, EMS" \
             "$P_SRV extended_ms=1 debug_level=3 psk=abc123 psk_identity=foo" \
             "$P_CLI extended_ms=1 debug_level=3 min_version=tls12 force_ciphersuite=TLS-DHE-PSK-WITH-AES-256-CBC-SHA384 \
@@ -7505,7 +7419,6 @@ run_test    "PSK callback: opaque dhe-psk on client, no callback, SHA-384, EMS" 
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw psk on client, static opaque on server, no callback" \
             "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
@@ -7518,7 +7431,6 @@ run_test    "PSK callback: raw psk on client, static opaque on server, no callba
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw psk on client, static opaque on server, no callback, SHA-384" \
             "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 \
@@ -7531,7 +7443,6 @@ run_test    "PSK callback: raw psk on client, static opaque on server, no callba
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw psk on client, static opaque on server, no callback, EMS" \
             "$P_SRV debug_level=3 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA extended_ms=1" \
@@ -7545,7 +7456,6 @@ run_test    "PSK callback: raw psk on client, static opaque on server, no callba
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw psk on client, static opaque on server, no callback, EMS, SHA384" \
             "$P_SRV debug_level=3 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 extended_ms=1" \
@@ -7559,7 +7469,6 @@ run_test    "PSK callback: raw psk on client, static opaque on server, no callba
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw rsa-psk on client, static opaque on server, no callback" \
             "$P_SRV extended_ms=0 debug_level=5 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA" \
             "$P_CLI extended_ms=0 debug_level=5 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA \
@@ -7572,7 +7481,6 @@ run_test    "PSK callback: raw rsa-psk on client, static opaque on server, no ca
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw rsa-psk on client, static opaque on server, no callback, SHA-384" \
             "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384 \
@@ -7585,7 +7493,6 @@ run_test    "PSK callback: raw rsa-psk on client, static opaque on server, no ca
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw rsa-psk on client, static opaque on server, no callback, EMS" \
             "$P_SRV debug_level=3 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA extended_ms=1" \
@@ -7599,7 +7506,6 @@ run_test    "PSK callback: raw rsa-psk on client, static opaque on server, no ca
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw rsa-psk on client, static opaque on server, no callback, EMS, SHA384" \
             "$P_SRV debug_level=3 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384 extended_ms=1" \
@@ -7613,7 +7519,6 @@ run_test    "PSK callback: raw rsa-psk on client, static opaque on server, no ca
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw ecdhe-psk on client, static opaque on server, no callback" \
             "$P_SRV extended_ms=0 debug_level=5 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA" \
             "$P_CLI extended_ms=0 debug_level=5 min_version=tls12 force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA \
@@ -7626,7 +7531,6 @@ run_test    "PSK callback: raw ecdhe-psk on client, static opaque on server, no 
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw ecdhe-psk on client, static opaque on server, no callback, SHA-384" \
             "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA384" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA384 \
@@ -7639,7 +7543,6 @@ run_test    "PSK callback: raw ecdhe-psk on client, static opaque on server, no 
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw ecdhe-psk on client, static opaque on server, no callback, EMS" \
             "$P_SRV debug_level=3 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA extended_ms=1" \
@@ -7653,7 +7556,6 @@ run_test    "PSK callback: raw ecdhe-psk on client, static opaque on server, no 
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw ecdhe-psk on client, static opaque on server, no callback, EMS, SHA384" \
             "$P_SRV debug_level=3 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA384 extended_ms=1" \
@@ -7667,7 +7569,6 @@ run_test    "PSK callback: raw ecdhe-psk on client, static opaque on server, no 
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw dhe-psk on client, static opaque on server, no callback" \
             "$P_SRV extended_ms=0 debug_level=5 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-DHE-PSK-WITH-AES-128-CBC-SHA" \
             "$P_CLI extended_ms=0 debug_level=5 min_version=tls12 force_ciphersuite=TLS-DHE-PSK-WITH-AES-128-CBC-SHA \
@@ -7680,7 +7581,6 @@ run_test    "PSK callback: raw dhe-psk on client, static opaque on server, no ca
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw dhe-psk on client, static opaque on server, no callback, SHA-384" \
             "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-DHE-PSK-WITH-AES-256-CBC-SHA384" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-DHE-PSK-WITH-AES-256-CBC-SHA384 \
@@ -7693,7 +7593,6 @@ run_test    "PSK callback: raw dhe-psk on client, static opaque on server, no ca
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw dhe-psk on client, static opaque on server, no callback, EMS" \
             "$P_SRV debug_level=3 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-DHE-PSK-WITH-AES-128-CBC-SHA extended_ms=1" \
@@ -7707,7 +7606,6 @@ run_test    "PSK callback: raw dhe-psk on client, static opaque on server, no ca
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw dhe-psk on client, static opaque on server, no callback, EMS, SHA384" \
             "$P_SRV debug_level=3 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-DHE-PSK-WITH-AES-256-CBC-SHA384 extended_ms=1" \
@@ -7721,7 +7619,6 @@ run_test    "PSK callback: raw dhe-psk on client, static opaque on server, no ca
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PSK from callback" \
             "$P_SRV extended_ms=0 debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
             "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
@@ -7734,7 +7631,6 @@ run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PS
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PSK from callback, SHA-384" \
             "$P_SRV extended_ms=0 debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384" \
             "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 \
@@ -7747,7 +7643,6 @@ run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PS
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PSK from callback, EMS" \
             "$P_SRV debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA extended_ms=1" \
@@ -7761,7 +7656,6 @@ run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PS
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PSK from callback, EMS, SHA384" \
             "$P_SRV debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 extended_ms=1" \
@@ -7775,7 +7669,6 @@ run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PS
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw rsa-psk on client, no static RSA-PSK on server, opaque RSA-PSK from callback" \
             "$P_SRV extended_ms=0 debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA" \
             "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA \
@@ -7788,7 +7681,6 @@ run_test    "PSK callback: raw rsa-psk on client, no static RSA-PSK on server, o
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw rsa-psk on client, no static RSA-PSK on server, opaque RSA-PSK from callback, SHA-384" \
             "$P_SRV extended_ms=0 debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384" \
             "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384 \
@@ -7801,7 +7693,6 @@ run_test    "PSK callback: raw rsa-psk on client, no static RSA-PSK on server, o
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw rsa-psk on client, no static RSA-PSK on server, opaque RSA-PSK from callback, EMS" \
             "$P_SRV debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA extended_ms=1" \
@@ -7815,7 +7706,6 @@ run_test    "PSK callback: raw rsa-psk on client, no static RSA-PSK on server, o
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw rsa-psk on client, no static RSA-PSK on server, opaque RSA-PSK from callback, EMS, SHA384" \
             "$P_SRV debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384 extended_ms=1" \
@@ -7829,7 +7719,6 @@ run_test    "PSK callback: raw rsa-psk on client, no static RSA-PSK on server, o
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw ecdhe-psk on client, no static ECDHE-PSK on server, opaque ECDHE-PSK from callback" \
             "$P_SRV extended_ms=0 debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA" \
             "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA \
@@ -7842,7 +7731,6 @@ run_test    "PSK callback: raw ecdhe-psk on client, no static ECDHE-PSK on serve
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw ecdhe-psk on client, no static ECDHE-PSK on server, opaque ECDHE-PSK from callback, SHA-384" \
             "$P_SRV extended_ms=0 debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA384" \
             "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA384 \
@@ -7855,7 +7743,6 @@ run_test    "PSK callback: raw ecdhe-psk on client, no static ECDHE-PSK on serve
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw ecdhe-psk on client, no static ECDHE-PSK on server, opaque ECDHE-PSK from callback, EMS" \
             "$P_SRV debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA extended_ms=1" \
@@ -7869,7 +7756,6 @@ run_test    "PSK callback: raw ecdhe-psk on client, no static ECDHE-PSK on serve
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw ecdhe-psk on client, no static ECDHE-PSK on server, opaque ECDHE-PSK from callback, EMS, SHA384" \
             "$P_SRV debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA384 extended_ms=1" \
@@ -7883,7 +7769,6 @@ run_test    "PSK callback: raw ecdhe-psk on client, no static ECDHE-PSK on serve
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw dhe-psk on client, no static DHE-PSK on server, opaque DHE-PSK from callback" \
             "$P_SRV extended_ms=0 debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 force_ciphersuite=TLS-DHE-PSK-WITH-AES-128-CBC-SHA" \
             "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-DHE-PSK-WITH-AES-128-CBC-SHA \
@@ -7896,7 +7781,6 @@ run_test    "PSK callback: raw dhe-psk on client, no static DHE-PSK on server, o
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw dhe-psk on client, no static DHE-PSK on server, opaque DHE-PSK from callback, SHA-384" \
             "$P_SRV extended_ms=0 debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 force_ciphersuite=TLS-DHE-PSK-WITH-AES-256-CBC-SHA384" \
             "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-DHE-PSK-WITH-AES-256-CBC-SHA384 \
@@ -7909,7 +7793,6 @@ run_test    "PSK callback: raw dhe-psk on client, no static DHE-PSK on server, o
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw dhe-psk on client, no static DHE-PSK on server, opaque DHE-PSK from callback, EMS" \
             "$P_SRV debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-DHE-PSK-WITH-AES-128-CBC-SHA extended_ms=1" \
@@ -7923,7 +7806,6 @@ run_test    "PSK callback: raw dhe-psk on client, no static DHE-PSK on server, o
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw dhe-psk on client, no static DHE-PSK on server, opaque DHE-PSK from callback, EMS, SHA384" \
             "$P_SRV debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-DHE-PSK-WITH-AES-256-CBC-SHA384 extended_ms=1" \
@@ -7937,7 +7819,6 @@ run_test    "PSK callback: raw dhe-psk on client, no static DHE-PSK on server, o
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw psk on client, mismatching static raw PSK on server, opaque PSK from callback" \
             "$P_SRV extended_ms=0 psk_identity=foo psk=abc123 debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
             "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
@@ -7950,7 +7831,6 @@ run_test    "PSK callback: raw psk on client, mismatching static raw PSK on serv
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw psk on client, mismatching static opaque PSK on server, opaque PSK from callback" \
             "$P_SRV extended_ms=0 psk_opaque=1 psk_identity=foo psk=abc123 debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
             "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
@@ -7963,7 +7843,6 @@ run_test    "PSK callback: raw psk on client, mismatching static opaque PSK on s
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw psk on client, mismatching static opaque PSK on server, raw PSK from callback" \
             "$P_SRV extended_ms=0 psk_opaque=1 psk_identity=foo psk=abc123 debug_level=3 psk_list=abc,dead,def,beef min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
             "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
@@ -7976,7 +7855,6 @@ run_test    "PSK callback: raw psk on client, mismatching static opaque PSK on s
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw psk on client, id-matching but wrong raw PSK on server, opaque PSK from callback" \
             "$P_SRV extended_ms=0 psk_opaque=1 psk_identity=def psk=abc123 debug_level=3 psk_list=abc,dead,def,beef min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
             "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
@@ -7989,7 +7867,6 @@ run_test    "PSK callback: raw psk on client, id-matching but wrong raw PSK on s
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw psk on client, matching opaque PSK on server, wrong opaque PSK from callback" \
             "$P_SRV extended_ms=0 psk_opaque=1 psk_identity=def psk=beef debug_level=3 psk_list=abc,dead,def,abc123 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
             "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
@@ -7997,7 +7874,6 @@ run_test    "PSK callback: raw psk on client, matching opaque PSK on server, wro
             1 \
             -s "SSL - Verification of the message MAC failed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: no psk, no callback" \
             "$P_SRV" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
@@ -8007,7 +7883,6 @@ run_test    "PSK callback: no psk, no callback" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: callback overrides other settings" \
             "$P_SRV psk=abc123 psk_identity=foo psk_list=abc,dead,def,beef" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
@@ -8017,7 +7892,6 @@ run_test    "PSK callback: callback overrides other settings" \
             -s "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: first id matches" \
             "$P_SRV psk_list=abc,dead,def,beef" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
@@ -8027,7 +7901,6 @@ run_test    "PSK callback: first id matches" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: second id matches" \
             "$P_SRV psk_list=abc,dead,def,beef" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
@@ -8037,7 +7910,6 @@ run_test    "PSK callback: second id matches" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: no match" \
             "$P_SRV psk_list=abc,dead,def,beef" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
@@ -8047,7 +7919,6 @@ run_test    "PSK callback: no match" \
             -s "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: wrong key" \
             "$P_SRV psk_list=abc,dead,def,beef" \
             "$P_CLI force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
@@ -8075,7 +7946,6 @@ run_test    "ECJPAKE: client not configured" \
             -S "SSL - The handshake negotiation failed"
 
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "ECJPAKE: server not configured" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3 ecjpake_pw=bla \
@@ -8093,7 +7963,6 @@ run_test    "ECJPAKE: server not configured" \
 # Note: if the name of this test is changed, then please adjust the corresponding
 #       filtering label in "test_tls1_2_ecjpake_compatibility" (in "all.sh")
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "ECJPAKE: working, TLS" \
             "$P_SRV debug_level=3 ecjpake_pw=bla" \
             "$P_CLI debug_level=3 ecjpake_pw=bla \
@@ -8112,7 +7981,6 @@ run_test    "ECJPAKE: working, TLS" \
 
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "ECJPAKE: opaque password client+server, working, TLS" \
             "$P_SRV debug_level=3 ecjpake_pw=bla ecjpake_pw_opaque=1" \
             "$P_CLI debug_level=3 ecjpake_pw=bla ecjpake_pw_opaque=1\
@@ -8135,7 +8003,6 @@ run_test    "ECJPAKE: opaque password client+server, working, TLS" \
 #       filtering label in "test_tls1_2_ecjpake_compatibility" (in "all.sh")
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "ECJPAKE: opaque password client only, working, TLS" \
             "$P_SRV debug_level=3 ecjpake_pw=bla" \
             "$P_CLI debug_level=3 ecjpake_pw=bla ecjpake_pw_opaque=1\
@@ -8158,7 +8025,6 @@ run_test    "ECJPAKE: opaque password client only, working, TLS" \
 #       filtering label in "test_tls1_2_ecjpake_compatibility" (in "all.sh")
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "ECJPAKE: opaque password server only, working, TLS" \
             "$P_SRV debug_level=3 ecjpake_pw=bla ecjpake_pw_opaque=1" \
             "$P_CLI debug_level=3 ecjpake_pw=bla\
@@ -8179,7 +8045,6 @@ run_test    "ECJPAKE: opaque password server only, working, TLS" \
 
 server_needs_more_time 1
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "ECJPAKE: password mismatch, TLS" \
             "$P_SRV debug_level=3 ecjpake_pw=bla" \
             "$P_CLI debug_level=3 ecjpake_pw=bad \
@@ -8191,7 +8056,6 @@ run_test    "ECJPAKE: password mismatch, TLS" \
 server_needs_more_time 1
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "ECJPAKE_OPAQUE_PW: opaque password mismatch, TLS" \
             "$P_SRV debug_level=3 ecjpake_pw=bla ecjpake_pw_opaque=1" \
             "$P_CLI debug_level=3 ecjpake_pw=bad ecjpake_pw_opaque=1 \
@@ -8203,7 +8067,6 @@ run_test    "ECJPAKE_OPAQUE_PW: opaque password mismatch, TLS" \
             -s "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "ECJPAKE: working, DTLS" \
             "$P_SRV debug_level=3 dtls=1 ecjpake_pw=bla" \
             "$P_CLI debug_level=3 dtls=1 ecjpake_pw=bla \
@@ -8213,7 +8076,6 @@ run_test    "ECJPAKE: working, DTLS" \
             -S "SSL - Verification of the message MAC failed"
 
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "ECJPAKE: working, DTLS, no cookie" \
             "$P_SRV debug_level=3 dtls=1 ecjpake_pw=bla cookies=0" \
             "$P_CLI debug_level=3 dtls=1 ecjpake_pw=bla \
@@ -8224,7 +8086,6 @@ run_test    "ECJPAKE: working, DTLS, no cookie" \
 
 server_needs_more_time 1
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "ECJPAKE: password mismatch, DTLS" \
             "$P_SRV debug_level=3 dtls=1 ecjpake_pw=bla" \
             "$P_CLI debug_level=3 dtls=1 ecjpake_pw=bad \
@@ -8235,7 +8096,6 @@ run_test    "ECJPAKE: password mismatch, DTLS" \
 
 # for tests with configs/config-thread.h
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "ECJPAKE: working, DTLS, nolog" \
             "$P_SRV dtls=1 ecjpake_pw=bla" \
             "$P_CLI dtls=1 ecjpake_pw=bla \
@@ -8542,7 +8402,6 @@ run_test    "Large server packet TLS 1.3 AEAD shorter tag" \
 
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "EC restart: TLS, default" \
             "$P_SRV curves=secp256r1 auth_mode=required" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
@@ -8556,7 +8415,6 @@ run_test    "EC restart: TLS, default" \
 
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "EC restart: TLS, max_ops=0" \
             "$P_SRV curves=secp256r1 auth_mode=required" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
@@ -8570,7 +8428,6 @@ run_test    "EC restart: TLS, max_ops=0" \
 
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "EC restart: TLS, max_ops=65535" \
             "$P_SRV curves=secp256r1 auth_mode=required" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
@@ -8585,7 +8442,6 @@ run_test    "EC restart: TLS, max_ops=65535" \
 # With USE_PSA disabled we expect full restartable behaviour.
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "EC restart: TLS, max_ops=1000 (no USE_PSA)" \
             "$P_SRV curves=secp256r1 auth_mode=required" \
@@ -8602,7 +8458,6 @@ run_test    "EC restart: TLS, max_ops=1000 (no USE_PSA)" \
 # everything except ECDH (where TLS calls PSA directly).
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "EC restart: TLS, max_ops=1000 (USE_PSA)" \
             "$P_SRV curves=secp256r1 auth_mode=required" \
@@ -8619,7 +8474,6 @@ run_test    "EC restart: TLS, max_ops=1000 (USE_PSA)" \
 # we abort as soon as we determined the cert is bad.
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "EC restart: TLS, max_ops=1000, badsign" \
             "$P_SRV curves=secp256r1 auth_mode=required \
              crt_file=data_files/server5-badsign.crt \
@@ -8639,7 +8493,6 @@ run_test    "EC restart: TLS, max_ops=1000, badsign" \
 # With USE_PSA disabled we expect full restartable behaviour.
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "EC restart: TLS, max_ops=1000, auth_mode=optional badsign (no USE_PSA)" \
             "$P_SRV curves=secp256r1 auth_mode=required \
@@ -8661,7 +8514,6 @@ run_test    "EC restart: TLS, max_ops=1000, auth_mode=optional badsign (no USE_P
 # everything except ECDH (where TLS calls PSA directly).
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "EC restart: TLS, max_ops=1000, auth_mode=optional badsign (USE_PSA)" \
             "$P_SRV curves=secp256r1 auth_mode=required \
@@ -8682,7 +8534,6 @@ run_test    "EC restart: TLS, max_ops=1000, auth_mode=optional badsign (USE_PSA)
 # With USE_PSA disabled we expect full restartable behaviour.
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "EC restart: TLS, max_ops=1000, auth_mode=none badsign (no USE_PSA)" \
             "$P_SRV curves=secp256r1 auth_mode=required \
@@ -8704,7 +8555,6 @@ run_test    "EC restart: TLS, max_ops=1000, auth_mode=none badsign (no USE_PSA)"
 # everything except ECDH (where TLS calls PSA directly).
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "EC restart: TLS, max_ops=1000, auth_mode=none badsign (USE_PSA)" \
             "$P_SRV curves=secp256r1 auth_mode=required \
@@ -8725,7 +8575,6 @@ run_test    "EC restart: TLS, max_ops=1000, auth_mode=none badsign (USE_PSA)" \
 # With USE_PSA disabled we expect full restartable behaviour.
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "EC restart: DTLS, max_ops=1000 (no USE_PSA)" \
             "$P_SRV curves=secp256r1 auth_mode=required dtls=1" \
@@ -8742,7 +8591,6 @@ run_test    "EC restart: DTLS, max_ops=1000 (no USE_PSA)" \
 # everything except ECDH (where TLS calls PSA directly).
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "EC restart: DTLS, max_ops=1000 (USE_PSA)" \
             "$P_SRV curves=secp256r1 auth_mode=required dtls=1" \
@@ -8758,7 +8606,6 @@ run_test    "EC restart: DTLS, max_ops=1000 (USE_PSA)" \
 # With USE_PSA disabled we expect full restartable behaviour.
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "EC restart: TLS, max_ops=1000 no client auth (no USE_PSA)" \
             "$P_SRV curves=secp256r1" \
@@ -8775,7 +8622,6 @@ run_test    "EC restart: TLS, max_ops=1000 no client auth (no USE_PSA)" \
 # everything except ECDH (where TLS calls PSA directly).
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "EC restart: TLS, max_ops=1000 no client auth (USE_PSA)" \
             "$P_SRV curves=secp256r1" \
@@ -8793,7 +8639,6 @@ run_test    "EC restart: TLS, max_ops=1000 no client auth (USE_PSA)" \
 # and all 4 assertions negated.
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "EC restart: TLS, max_ops=1000, ECDHE-RSA" \
             "$P_SRV curves=secp256r1 auth_mode=required" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256 \
@@ -8858,7 +8703,6 @@ run_test    "SSL async private: sign, SNI" \
             -c "subject name *: C=NL, O=PolarSSL, CN=polarssl.example"
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "SSL async private: decrypt, delay=0" \
             "$P_SRV \
              async_operations=d async_private_delay1=0 async_private_delay2=0" \
@@ -8868,7 +8712,6 @@ run_test    "SSL async private: decrypt, delay=0" \
             -s "Async resume (slot [0-9]): decrypt done, status=0"
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "SSL async private: decrypt, delay=1" \
             "$P_SRV \
              async_operations=d async_private_delay1=1 async_private_delay2=1" \
@@ -8879,7 +8722,6 @@ run_test    "SSL async private: decrypt, delay=1" \
             -s "Async resume (slot [0-9]): decrypt done, status=0"
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "SSL async private: decrypt RSA-PSK, delay=0" \
             "$P_SRV psk=abc123 \
              async_operations=d async_private_delay1=0 async_private_delay2=0" \
@@ -8890,7 +8732,6 @@ run_test    "SSL async private: decrypt RSA-PSK, delay=0" \
             -s "Async resume (slot [0-9]): decrypt done, status=0"
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "SSL async private: decrypt RSA-PSK, delay=1" \
             "$P_SRV psk=abc123 \
              async_operations=d async_private_delay1=1 async_private_delay2=1" \
@@ -8902,7 +8743,6 @@ run_test    "SSL async private: decrypt RSA-PSK, delay=1" \
             -s "Async resume (slot [0-9]): decrypt done, status=0"
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "SSL async private: sign callback not present" \
             "$P_SRV \
              async_operations=d async_private_delay1=1 async_private_delay2=1" \
@@ -8916,7 +8756,6 @@ run_test    "SSL async private: sign callback not present" \
             -s "Successful connection"
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "SSL async private: decrypt callback not present" \
             "$P_SRV debug_level=1 \
              async_operations=s async_private_delay1=1 async_private_delay2=1" \
@@ -8931,7 +8770,6 @@ run_test    "SSL async private: decrypt callback not present" \
 
 # key1: ECDSA, key2: RSA; use key1 from slot 0
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "SSL async private: slot 0 used with key1" \
             "$P_SRV \
              async_operations=s async_private_delay1=1 \
@@ -8945,7 +8783,6 @@ run_test    "SSL async private: slot 0 used with key1" \
 
 # key1: ECDSA, key2: RSA; use key2 from slot 0
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "SSL async private: slot 0 used with key2" \
             "$P_SRV \
              async_operations=s async_private_delay2=1 \
@@ -8959,7 +8796,6 @@ run_test    "SSL async private: slot 0 used with key2" \
 
 # key1: ECDSA, key2: RSA; use key2 from slot 1
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "SSL async private: slot 1 used with key2" \
             "$P_SRV \
              async_operations=s async_private_delay1=1 async_private_delay2=1 \
@@ -8973,7 +8809,6 @@ run_test    "SSL async private: slot 1 used with key2" \
 
 # key1: ECDSA, key2: RSA; use key2 directly
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "SSL async private: fall back to transparent key" \
             "$P_SRV \
              async_operations=s async_private_delay1=1 \
@@ -9022,7 +8857,6 @@ run_test    "SSL async private: sign, error in resume" \
             -s "! mbedtls_ssl_handshake returned"
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "SSL async private: decrypt, error in start" \
             "$P_SRV \
              async_operations=d async_private_delay1=1 async_private_delay2=1 \
@@ -9035,7 +8869,6 @@ run_test    "SSL async private: decrypt, error in start" \
             -s "! mbedtls_ssl_handshake returned"
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "SSL async private: decrypt, cancel after start" \
             "$P_SRV \
              async_operations=d async_private_delay1=1 async_private_delay2=1 \
@@ -9047,7 +8880,6 @@ run_test    "SSL async private: decrypt, cancel after start" \
             -s "Async cancel"
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "SSL async private: decrypt, error in resume" \
             "$P_SRV \
              async_operations=d async_private_delay1=1 async_private_delay2=1 \
@@ -9086,7 +8918,6 @@ run_test    "SSL async private: error in resume then operate correctly" \
 
 # key1: ECDSA, key2: RSA; use key1 through async, then key2 directly
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 # Note: the function "detect_required_features()" is not able to detect more than
 #       one "force_ciphersuite" per client/server and it only picks the 2nd one.
 #       Therefore the 1st one is added explicitly here
@@ -9109,7 +8940,6 @@ run_test    "SSL async private: cancel after start then fall back to transparent
 
 # key1: ECDSA, key2: RSA; use key1 through async, then key2 directly
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 # Note: the function "detect_required_features()" is not able to detect more than
 #       one "force_ciphersuite" per client/server and it only picks the 2nd one.
 #       Therefore the 1st one is added explicitly here
@@ -9154,7 +8984,6 @@ run_test    "SSL async private: renegotiation: server-initiated, sign" \
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "SSL async private: renegotiation: client-initiated, decrypt" \
             "$P_SRV \
              async_operations=d async_private_delay1=1 async_private_delay2=1 \
@@ -9167,7 +8996,6 @@ run_test    "SSL async private: renegotiation: client-initiated, decrypt" \
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "SSL async private: renegotiation: server-initiated, decrypt" \
             "$P_SRV \
              async_operations=d async_private_delay1=1 async_private_delay2=1 \
@@ -9184,7 +9012,6 @@ requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
 requires_hash_alg SHA_256
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Force a non ECC ciphersuite in the client side" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA256" \
@@ -9198,7 +9025,6 @@ requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
 requires_hash_alg SHA_256
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Force a non ECC ciphersuite in the server side" \
             "$P_SRV debug_level=3 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA256" \
             "$P_CLI debug_level=3" \
@@ -9209,7 +9035,6 @@ run_test    "Force a non ECC ciphersuite in the server side" \
 requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
 requires_hash_alg SHA_256
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Force an ECC ciphersuite in the client side" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
@@ -9222,7 +9047,6 @@ run_test    "Force an ECC ciphersuite in the client side" \
 requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
 requires_hash_alg SHA_256
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Force an ECC ciphersuite in the server side" \
             "$P_SRV debug_level=3 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
             "$P_CLI debug_level=3" \
@@ -9375,7 +9199,6 @@ run_test    "DTLS client auth: none, client has no cert" \
             -c "skip write certificate$" \
             -s "! Certificate verification was skipped"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS wrong PSK: badmac alert" \
             "$P_SRV dtls=1 psk=abc123 force_ciphersuite=TLS-PSK-WITH-AES-128-GCM-SHA256" \
             "$P_CLI dtls=1 psk=abc124" \
@@ -9750,7 +9573,6 @@ requires_hash_alg SHA_256
 requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_GCM_C
 requires_max_content_len 2048
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: both (MTU=512)" \
             -p "$P_PXY mtu=512" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -9781,7 +9603,6 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_GCM_C
 requires_max_content_len 2048
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: proxy MTU: auto-reduction (not valgrind)" \
             -p "$P_PXY mtu=508" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -9805,7 +9626,6 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_GCM_C
 requires_max_content_len 2048
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: proxy MTU: auto-reduction (with valgrind)" \
             -p "$P_PXY mtu=508" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -9858,7 +9678,6 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_GCM_C
 requires_max_content_len 2048
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: proxy MTU, simple handshake (MTU=512)" \
             -p "$P_PXY mtu=512" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -9908,7 +9727,6 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_GCM_C
 requires_max_content_len 2048
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: proxy MTU, simple handshake, nbio (MTU=512)" \
             -p "$P_PXY mtu=512" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -9944,7 +9762,6 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_GCM_C
 requires_max_content_len 2048
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: proxy MTU, resumed handshake" \
             -p "$P_PXY mtu=1450" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -9973,7 +9790,6 @@ requires_hash_alg SHA_256
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_CHACHAPOLY_C
 requires_max_content_len 2048
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: proxy MTU, ChachaPoly renego" \
             -p "$P_PXY mtu=512" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -10005,7 +9821,6 @@ requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_GCM_C
 requires_max_content_len 2048
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: proxy MTU, AES-GCM renego" \
             -p "$P_PXY mtu=512" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -10037,7 +9852,6 @@ requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_CCM_C
 requires_max_content_len 2048
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: proxy MTU, AES-CCM renego" \
             -p "$P_PXY mtu=1024" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -10070,7 +9884,6 @@ requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
 requires_config_enabled MBEDTLS_SSL_ENCRYPT_THEN_MAC
 requires_max_content_len 2048
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: proxy MTU, AES-CBC EtM renego" \
             -p "$P_PXY mtu=1024" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -10102,7 +9915,6 @@ requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
 requires_max_content_len 2048
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: proxy MTU, AES-CBC non-EtM renego" \
             -p "$P_PXY mtu=1024" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -10131,7 +9943,6 @@ requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_GCM_C
 client_needs_more_time 2
 requires_max_content_len 2048
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: proxy MTU + 3d" \
             -p "$P_PXY mtu=512 drop=8 delay=8 duplicate=8" \
             "$P_SRV dgram_packing=0 dtls=1 debug_level=2 auth_mode=required \
@@ -10155,7 +9966,6 @@ requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_GCM_C
 client_needs_more_time 2
 requires_max_content_len 2048
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: proxy MTU + 3d, nbio" \
             -p "$P_PXY mtu=512 drop=8 delay=8 duplicate=8" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
@@ -11181,7 +10991,6 @@ run_test    "DTLS reordering: Buffer encrypted Finished message" \
 #   handshake, omitting CRTs.
 requires_config_value_at_least "MBEDTLS_SSL_DTLS_MAX_BUFFERING" 190
 requires_config_value_at_most "MBEDTLS_SSL_DTLS_MAX_BUFFERING" 230
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS reordering: Buffer encrypted Finished message, drop for fragmented NewSessionTicket" \
             -p "$P_PXY delay_srv=NewSessionTicket delay_srv=NewSessionTicket delay_ccs=1" \
             "$P_SRV mtu=140 response_size=90 dgram_packing=0 psk=abc123 psk_identity=foo cookies=0 dtls=1 debug_level=2" \
@@ -11196,7 +11005,6 @@ run_test    "DTLS reordering: Buffer encrypted Finished message, drop for fragme
 # Tests for "randomly unreliable connection": try a variety of flows and peers
 
 client_needs_more_time 2
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS proxy: 3d (drop, delay, duplicate), \"short\" PSK handshake" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=none \
@@ -11208,7 +11016,6 @@ run_test    "DTLS proxy: 3d (drop, delay, duplicate), \"short\" PSK handshake" \
             -c "HTTP/1.0 200 OK"
 
 client_needs_more_time 2
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS proxy: 3d, \"short\" RSA handshake" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=none" \
@@ -11270,7 +11077,6 @@ run_test    "DTLS proxy: 3d, max handshake, nbio" \
             -c "HTTP/1.0 200 OK"
 
 client_needs_more_time 4
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CACHE_C
 run_test    "DTLS proxy: 3d, min handshake, resumption" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
@@ -11286,7 +11092,6 @@ run_test    "DTLS proxy: 3d, min handshake, resumption" \
             -c "HTTP/1.0 200 OK"
 
 client_needs_more_time 4
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CACHE_C
 run_test    "DTLS proxy: 3d, min handshake, resumption, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
@@ -11303,7 +11108,6 @@ run_test    "DTLS proxy: 3d, min handshake, resumption, nbio" \
 
 client_needs_more_time 4
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS proxy: 3d, min handshake, client-initiated renego" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=none \
@@ -11319,7 +11123,6 @@ run_test    "DTLS proxy: 3d, min handshake, client-initiated renego" \
 
 client_needs_more_time 4
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS proxy: 3d, min handshake, client-initiated renego, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=none \
@@ -11335,7 +11138,6 @@ run_test    "DTLS proxy: 3d, min handshake, client-initiated renego, nbio" \
 
 client_needs_more_time 4
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS proxy: 3d, min handshake, server-initiated renego" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=none \
@@ -11352,7 +11154,6 @@ run_test    "DTLS proxy: 3d, min handshake, server-initiated renego" \
 
 client_needs_more_time 4
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS proxy: 3d, min handshake, server-initiated renego, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=none \

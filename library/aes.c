@@ -1729,6 +1729,29 @@ int mbedtls_aes_self_test(int verbose)
     memset(key, 0, 32);
     mbedtls_aes_init(&ctx);
 
+    if (verbose != 0) {
+#if defined(MBEDTLS_AES_ALT)
+        mbedtls_printf("  AES note: alternative implementation.\n");
+#else /* MBEDTLS_AES_ALT */
+#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)
+        if (mbedtls_padlock_has_support(MBEDTLS_PADLOCK_ACE)) {
+            mbedtls_printf("  AES note: using VIA Padlock.\n");
+        } else
+#endif
+#if defined(MBEDTLS_AESNI_HAVE_CODE)
+        if (mbedtls_aesni_has_support(MBEDTLS_AESNI_AES)) {
+            mbedtls_printf("  AES note: using AESNI.\n");
+        } else
+#endif
+#if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
+        if (mbedtls_aesce_has_support()) {
+            mbedtls_printf("  AES note: using AESCE.\n");
+        } else
+#endif
+        mbedtls_printf("  AES note: built-in implementation.\n");
+#endif /* MBEDTLS_AES_ALT */
+    }
+
     /*
      * ECB mode
      */

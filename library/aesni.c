@@ -30,7 +30,12 @@
 
 #include <string.h>
 
-#if defined(MBEDTLS_HAVE_X86_64)
+#if defined(MBEDTLS_HAVE_AESNI_INTRINSICS) || defined(MBEDTLS_HAVE_X86_64)
+
+#if defined(MBEDTLS_HAVE_AESNI_INTRINSICS)
+#include <cpuid.h>
+#include <immintrin.h>
+#endif
 
 /*
  * AES-NI support detection routine
@@ -41,16 +46,346 @@ int mbedtls_aesni_has_support(unsigned int what)
     static unsigned int c = 0;
 
     if (!done) {
+#if defined(MBEDTLS_HAVE_AESNI_INTRINSICS)
+        static unsigned info[4] = { 0, 0, 0, 0 };
+#if defined(_MSC_VER)
+        __cpuid(info, 1);
+#else
+        __cpuid(1, info[0], info[1], info[2], info[3]);
+#endif
+        c = info[2];
+#else
         asm ("movl  $1, %%eax   \n\t"
              "cpuid             \n\t"
              : "=c" (c)
              :
              : "eax", "ebx", "edx");
+#endif
         done = 1;
     }
 
     return (c & what) != 0;
 }
+
+#if defined(MBEDTLS_HAVE_AESNI_INTRINSICS)
+
+/*
+ * AES-NI AES-ECB block en(de)cryption
+ */
+int mbedtls_aesni_crypt_ecb(mbedtls_aes_context *ctx,
+                            int mode,
+                            const unsigned char input[16],
+                            unsigned char output[16])
+{
+    const __m128i *rk = (const __m128i *) (ctx->buf + ctx->rk_offset);
+    unsigned nr = ctx->nr; // Number of remaining rounds
+    // Load round key 0
+    __m128i xmm0;
+    memcpy(&xmm0, input, 16);
+    xmm0 ^= *rk;
+    ++rk;
+    --nr;
+
+    if (mode == 0) {
+        while (nr != 0) {
+            xmm0 = _mm_aesdec_si128(xmm0, *rk);
+            ++rk;
+            --nr;
+        }
+        xmm0 = _mm_aesdeclast_si128(xmm0, *rk);
+    } else {
+        while (nr != 0) {
+            xmm0 = _mm_aesenc_si128(xmm0, *rk);
+            ++rk;
+            --nr;
+        }
+        xmm0 = _mm_aesenclast_si128(xmm0, *rk);
+    }
+
+    memcpy(output, &xmm0, 16);
+    return 0;
+}
+
+/*
+ * GCM multiplication: c = a times b in GF(2^128)
+ * Based on [CLMUL-WP] algorithms 1 (with equation 27) and 5.
+ */
+
+static void gcm_clmul(const __m128i aa, const __m128i bb,
+                      __m128i *cc, __m128i *dd)
+{
+    /*
+     * Caryless multiplication dd:cc = aa * bb
+     * using [CLMUL-WP] algorithm 1 (p. 12).
+     */
+    *cc = _mm_clmulepi64_si128(aa, bb, 0x00); // a0*b0 = c1:c0
+    *dd = _mm_clmulepi64_si128(aa, bb, 0x11); // a1*b1 = d1:d0
+    __m128i ee = _mm_clmulepi64_si128(aa, bb, 0x10); // a0*b1 = e1:e0
+    __m128i ff = _mm_clmulepi64_si128(aa, bb, 0x01); // a1*b0 = f1:f0
+    ff ^= ee;                                        // e1+f1:e0+f0
+    ee = ff;                                         // e1+f1:e0+f0
+    ff = _mm_srli_si128(ff, 8);                      // 0:e1+f1
+    ee = _mm_slli_si128(ee, 8);                      // e0+f0:0
+    *dd ^= ff;                                       // d1:d0+e1+f1
+    *cc ^= ee;                                       // c1+e0+f1:c0
+}
+
+static void gcm_shift(__m128i *cc, __m128i *dd)
+{
+    /*
+     * Now shift the result one bit to the left,
+     * taking advantage of [CLMUL-WP] eq 27 (p. 18)
+     */
+    //                                       // *cc = r1:r0
+    //                                       // *dd = r3:r2
+    __m128i xmm1 = _mm_slli_epi64(*cc, 1);   // r1<<1:r0<<1
+    __m128i xmm2 = _mm_slli_epi64(*dd, 1);   // r3<<1:r2<<1
+    __m128i xmm3 = _mm_srli_epi64(*cc, 63);  // r1>>63:r0>>63
+    __m128i xmm4 = _mm_srli_epi64(*dd, 63);  // r3>>63:r2>>63
+    __m128i xmm5 = _mm_srli_si128(xmm3, 8);  // 0:r1>>63
+    xmm3 = _mm_slli_si128(xmm3, 8);          // r0>>63:0
+    xmm4 = _mm_slli_si128(xmm4, 8);          // 0:r1>>63
+
+    *cc = xmm1 | xmm3;                       // r1<<1|r0>>63:r0<<1
+    *dd = xmm2 | xmm4 | xmm5;                // r3<<1|r2>>62:r2<<1|r1>>63
+}
+
+static __m128i gcm_reduce1(__m128i xx)
+{
+    //                                            // xx = x1:x0
+    /* [CLMUL-WP] Algorithm 5 Step 2 */
+    __m128i aa = _mm_slli_epi64(xx, 63);          // x1<<63:x0<<63 = stuff:a
+    __m128i bb = _mm_slli_epi64(xx, 62);          // x1<<62:x0<<62 = stuff:b
+    __m128i cc = _mm_slli_epi64(xx, 57);          // x1<<57:x0<<57 = stuff:c
+    __m128i dd = _mm_slli_si128(aa ^ bb ^ cc, 8); // a+b+c:0
+    return dd ^ xx;                               // x1+a+b+c:x0 = d:x0
+}
+
+static __m128i gcm_reduce2(__m128i dx)
+{
+    /* [CLMUL-WP] Algorithm 5 Steps 3 and 4 */
+    __m128i ee = _mm_srli_epi64(dx, 1);           // e1:x0>>1 = e1:e0'
+    __m128i ff = _mm_srli_epi64(dx, 2);           // f1:x0>>2 = f1:f0'
+    __m128i gg = _mm_srli_epi64(dx, 7);           // g1:x0>>7 = g1:g0'
+
+    // e0'+f0'+g0' is almost e0+f0+g0, except for some missing
+    // bits carried from d. Now get those bits back in.
+    __m128i eh = _mm_slli_epi64(dx, 63);          // d<<63:stuff
+    __m128i fh = _mm_slli_epi64(dx, 62);          // d<<62:stuff
+    __m128i gh = _mm_slli_epi64(dx, 57);          // d<<57:stuff
+    __m128i hh = _mm_srli_si128(eh ^ fh ^ gh, 8); // 0:missing bits of d
+
+    return ee ^ ff ^ gg ^ hh ^ dx;
+}
+
+void mbedtls_aesni_gcm_mult(unsigned char c[16],
+                            const unsigned char a[16],
+                            const unsigned char b[16])
+{
+    __m128i aa, bb, cc, dd;
+
+    /* The inputs are in big-endian order, so byte-reverse them */
+    for (size_t i = 0; i < 16; i++) {
+        ((uint8_t *) &aa)[i] = a[15 - i];
+        ((uint8_t *) &bb)[i] = b[15 - i];
+    }
+
+    gcm_clmul(aa, bb, &cc, &dd);
+    gcm_shift(&cc, &dd);
+    /*
+     * Now reduce modulo the GCM polynomial x^128 + x^7 + x^2 + x + 1
+     * using [CLMUL-WP] algorithm 5 (p. 18).
+     * Currently dd:cc holds x3:x2:x1:x0 (already shifted).
+     */
+    __m128i dx = gcm_reduce1(cc);
+    __m128i xh = gcm_reduce2(dx);
+    cc = xh ^ dd; // x3+h1:x2+h0
+
+    /* Now byte-reverse the outputs */
+    for (size_t i = 0; i < 16; i++) {
+        c[i] = ((uint8_t *) &cc)[15 - i];
+    }
+
+    return;
+}
+
+/*
+ * Compute decryption round keys from encryption round keys
+ */
+void mbedtls_aesni_inverse_key(unsigned char *invkey,
+                               const unsigned char *fwdkey, int nr)
+{
+    __m128i *ik = (__m128i *) invkey;
+    const __m128i *fk = (const __m128i *) fwdkey + nr;
+
+    *ik = *fk;
+    for (--fk, ++ik; fk > (const __m128i *) fwdkey; --fk, ++ik) {
+        *ik = _mm_aesimc_si128(*fk);
+    }
+    *ik = *fk;
+}
+
+/*
+ * Key expansion, 128-bit case
+ */
+static __m128i aesni_set_rk_128(__m128i xmm0, __m128i xmm1)
+{
+    /*
+     * Finish generating the next round key.
+     *
+     * On entry xmm0 is r3:r2:r1:r0 and xmm1 is X:stuff:stuff:stuff
+     * with X = rot( sub( r3 ) ) ^ RCON.
+     *
+     * On exit, xmm1 is r7:r6:r5:r4
+     * with r4 = X + r0, r5 = r4 + r1, r6 = r5 + r2, r7 = r6 + r3
+     * and this is returned, to be written to the round key buffer.
+     */
+    xmm1 = _mm_shuffle_epi32(xmm1, 0xff);   // X:X:X:X
+    xmm1 ^= xmm0;                           // X+r3:X+r2:X+r1:r4
+    xmm0 = _mm_slli_si128(xmm0, 4);         // r2:r1:r0:0
+    xmm1 ^= xmm0;                           // X+r3+r2:X+r2+r1:r5:r4
+    xmm0 = _mm_slli_si128(xmm0, 4);         // r1:r0:0:0
+    xmm1 ^= xmm0;                           // X+r3+r2+r1:r6:r5:r4
+    xmm0 = _mm_slli_si128(xmm0, 4);         // r0:0:0:0
+    xmm1 ^= xmm0;                           // r7:r6:r5:r4
+    return xmm1;
+}
+
+static void aesni_setkey_enc_128(unsigned char *rk_bytes,
+                                 const unsigned char *key)
+{
+    __m128i *rk = (__m128i *) rk_bytes;
+
+    memcpy(&rk[0], key, 16);
+    rk[1] = aesni_set_rk_128(rk[0], _mm_aeskeygenassist_si128(rk[0], 0x01));
+    rk[2] = aesni_set_rk_128(rk[1], _mm_aeskeygenassist_si128(rk[1], 0x02));
+    rk[3] = aesni_set_rk_128(rk[2], _mm_aeskeygenassist_si128(rk[2], 0x04));
+    rk[4] = aesni_set_rk_128(rk[3], _mm_aeskeygenassist_si128(rk[3], 0x08));
+    rk[5] = aesni_set_rk_128(rk[4], _mm_aeskeygenassist_si128(rk[4], 0x10));
+    rk[6] = aesni_set_rk_128(rk[5], _mm_aeskeygenassist_si128(rk[5], 0x20));
+    rk[7] = aesni_set_rk_128(rk[6], _mm_aeskeygenassist_si128(rk[6], 0x40));
+    rk[8] = aesni_set_rk_128(rk[7], _mm_aeskeygenassist_si128(rk[7], 0x80));
+    rk[9] = aesni_set_rk_128(rk[8], _mm_aeskeygenassist_si128(rk[8], 0x1B));
+    rk[10] = aesni_set_rk_128(rk[9], _mm_aeskeygenassist_si128(rk[9], 0x36));
+}
+
+/*
+ * Key expansion, 192-bit case
+ */
+static void aesni_set_rk_192(__m128i *xmm0, __m128i *xmm1, __m128i xmm2,
+                             unsigned char *rk)
+{
+    /*
+     * Finish generating the next 6 quarter-keys.
+     *
+     * On entry xmm0 is r3:r2:r1:r0, xmm1 is stuff:stuff:r5:r4
+     * and xmm2 is stuff:stuff:X:stuff with X = rot( sub( r3 ) ) ^ RCON.
+     *
+     * On exit, xmm0 is r9:r8:r7:r6 and xmm1 is stuff:stuff:r11:r10
+     * and those are written to the round key buffer.
+     */
+    xmm2 = _mm_shuffle_epi32(xmm2, 0x55);     // X:X:X:X
+    xmm2 = _mm_xor_si128(xmm2, *xmm0);        // X+r3:X+r2:X+r1:X+r0
+    *xmm0 = _mm_slli_si128(*xmm0, 4);         // r2:r1:r0:0
+    xmm2 = _mm_xor_si128(xmm2, *xmm0);        // X+r3+r2:X+r2+r1:X+r1+r0:X+r0
+    *xmm0 = _mm_slli_si128(*xmm0, 4);         // r1:r0:0:0
+    xmm2 = _mm_xor_si128(xmm2, *xmm0);        // X+r3+r2+r1:X+r2+r1+r0:X+r1+r0:X+r0
+    *xmm0 = _mm_slli_si128(*xmm0, 4);         // r0:0:0:0
+    xmm2 = _mm_xor_si128(xmm2, *xmm0);        // X+r3+r2+r1+r0:X+r2+r1+r0:X+r1+r0:X+r0
+    *xmm0 = xmm2;                             // = r9:r8:r7:r6
+
+    xmm2 = _mm_shuffle_epi32(xmm2, 0xff);     // r9:r9:r9:r9
+    xmm2 = _mm_xor_si128(xmm2, *xmm1);        // stuff:stuff:r9+r5:r9+r4
+    *xmm1 = _mm_slli_si128(*xmm1, 4);         // stuff:stuff:r4:0
+    xmm2 = _mm_xor_si128(xmm2, *xmm1);        // stuff:stuff:r9+r5+r4:r9+r4
+    *xmm1 = xmm2;                             // = stuff:stuff:r11:r10
+
+    /* Store xmm0 and the low half of xmm1 into rk, which is conceptually
+     * an array of 24-byte elements. Since 24 is not a multiple of 16,
+     * rk is not necessarily aligned so just `*rk = *xmm0` doesn't work. */
+    memcpy(rk, xmm0, 16);
+    _mm_storeu_si64(rk + 16, *xmm1);
+}
+
+static void aesni_setkey_enc_192(unsigned char *rk,
+                                 const unsigned char *key)
+{
+    /* First round: use original key */
+    memcpy(rk, key, 24);
+    /* aes.c guarantees that rk is aligned on a 16-byte boundary. */
+    __m128i xmm0 = ((__m128i *) rk)[0];
+    __m128i xmm1 = _mm_loadl_epi64(((__m128i *) rk) + 1);
+
+    aesni_set_rk_192(&xmm0, &xmm1, _mm_aeskeygenassist_si128(xmm1, 0x01), rk + 24 * 1);
+    aesni_set_rk_192(&xmm0, &xmm1, _mm_aeskeygenassist_si128(xmm1, 0x02), rk + 24 * 2);
+    aesni_set_rk_192(&xmm0, &xmm1, _mm_aeskeygenassist_si128(xmm1, 0x04), rk + 24 * 3);
+    aesni_set_rk_192(&xmm0, &xmm1, _mm_aeskeygenassist_si128(xmm1, 0x08), rk + 24 * 4);
+    aesni_set_rk_192(&xmm0, &xmm1, _mm_aeskeygenassist_si128(xmm1, 0x10), rk + 24 * 5);
+    aesni_set_rk_192(&xmm0, &xmm1, _mm_aeskeygenassist_si128(xmm1, 0x20), rk + 24 * 6);
+    aesni_set_rk_192(&xmm0, &xmm1, _mm_aeskeygenassist_si128(xmm1, 0x40), rk + 24 * 7);
+    aesni_set_rk_192(&xmm0, &xmm1, _mm_aeskeygenassist_si128(xmm1, 0x80), rk + 24 * 8);
+}
+
+/*
+ * Key expansion, 256-bit case
+ */
+static void aesni_set_rk_256(__m128i xmm0, __m128i xmm1, __m128i xmm2,
+                             __m128i *rk0, __m128i *rk1)
+{
+    /*
+     * Finish generating the next two round keys.
+     *
+     * On entry xmm0 is r3:r2:r1:r0, xmm1 is r7:r6:r5:r4 and
+     * xmm2 is X:stuff:stuff:stuff with X = rot( sub( r7 )) ^ RCON
+     *
+     * On exit, *rk0 is r11:r10:r9:r8 and *rk1 is r15:r14:r13:r12
+     */
+    xmm2 = _mm_shuffle_epi32(xmm2, 0xff);
+    xmm2 ^= xmm0;
+    xmm0 = _mm_slli_si128(xmm0, 4);
+    xmm2 ^= xmm0;
+    xmm0 = _mm_slli_si128(xmm0, 4);
+    xmm2 ^= xmm0;
+    xmm0 = _mm_slli_si128(xmm0, 4);
+    xmm0 ^= xmm2;
+    *rk0 = xmm0;
+
+    /* Set xmm2 to stuff:Y:stuff:stuff with Y = subword( r11 )
+     * and proceed to generate next round key from there */
+    xmm2 = _mm_aeskeygenassist_si128(xmm0, 0x00);
+    xmm2 = _mm_shuffle_epi32(xmm2, 0xaa);
+    xmm2 ^= xmm1;
+    xmm1 = _mm_slli_si128(xmm1, 4);
+    xmm2 ^= xmm1;
+    xmm1 = _mm_slli_si128(xmm1, 4);
+    xmm2 ^= xmm1;
+    xmm1 = _mm_slli_si128(xmm1, 4);
+    xmm1 ^= xmm2;
+    *rk1 = xmm1;
+}
+
+static void aesni_setkey_enc_256(unsigned char *rk_bytes,
+                                 const unsigned char *key)
+{
+    __m128i *rk = (__m128i *) rk_bytes;
+
+    memcpy(&rk[0], key, 16);
+    memcpy(&rk[1], key + 16, 16);
+
+    /*
+     * Main "loop" - Generating one more key than necessary,
+     * see definition of mbedtls_aes_context.buf
+     */
+    aesni_set_rk_256(rk[0], rk[1], _mm_aeskeygenassist_si128(rk[1], 0x01), &rk[2], &rk[3]);
+    aesni_set_rk_256(rk[2], rk[3], _mm_aeskeygenassist_si128(rk[3], 0x02), &rk[4], &rk[5]);
+    aesni_set_rk_256(rk[4], rk[5], _mm_aeskeygenassist_si128(rk[5], 0x04), &rk[6], &rk[7]);
+    aesni_set_rk_256(rk[6], rk[7], _mm_aeskeygenassist_si128(rk[7], 0x08), &rk[8], &rk[9]);
+    aesni_set_rk_256(rk[8], rk[9], _mm_aeskeygenassist_si128(rk[9], 0x10), &rk[10], &rk[11]);
+    aesni_set_rk_256(rk[10], rk[11], _mm_aeskeygenassist_si128(rk[11], 0x20), &rk[12], &rk[13]);
+    aesni_set_rk_256(rk[12], rk[13], _mm_aeskeygenassist_si128(rk[13], 0x40), &rk[14], &rk[15]);
+}
+
+#else  /* MBEDTLS_HAVE_AESNI_INTRINSICS */
 
 #if defined(__has_feature)
 #if __has_feature(memory_sanitizer)
@@ -437,6 +772,8 @@ static void aesni_setkey_enc_256(unsigned char *rk,
          : "r" (rk), "r" (key)
          : "memory", "cc", "0");
 }
+
+#endif  /* MBEDTLS_HAVE_AESNI_INTRINSICS */
 
 /*
  * Key expansion, wrapper

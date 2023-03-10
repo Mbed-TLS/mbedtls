@@ -543,6 +543,13 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
 
 #if defined(MBEDTLS_AESNI_HAVE_CODE)
     if (mbedtls_aesni_has_support(MBEDTLS_AESNI_AES)) {
+        /* The intrinsics-based implementation needs 16-byte alignment
+         * for the round key array. */
+        unsigned delta = (uintptr_t) ctx->buf & 0x0000000f;
+        if (delta != 0) {
+            ctx->rk_offset = 4 - delta / 4; // 16 bytes = 4 uint32_t
+        }
+        RK = ctx->buf + ctx->rk_offset;
         return mbedtls_aesni_setkey_enc((unsigned char *) RK, key, keybits);
     }
 #endif
@@ -642,6 +649,16 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
 
     if (aes_padlock_ace) {
         ctx->rk_offset = MBEDTLS_PADLOCK_ALIGN16(ctx->buf) - ctx->buf;
+    }
+#endif
+#if defined(MBEDTLS_AESNI_HAVE_CODE)
+    if (mbedtls_aesni_has_support(MBEDTLS_AESNI_AES)) {
+        /* The intrinsics-based implementation needs 16-byte alignment
+         * for the round key array. */
+        unsigned delta = (uintptr_t) ctx->buf & 0x0000000f;
+        if (delta != 0) {
+            ctx->rk_offset = 4 - delta / 4; // 16 bytes = 4 uint32_t
+        }
     }
 #endif
     RK = ctx->buf + ctx->rk_offset;

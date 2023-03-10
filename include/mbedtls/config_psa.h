@@ -310,11 +310,6 @@ extern "C" {
 #define PSA_HAVE_SOFT_BLOCK_AEAD 1
 #endif
 
-#if defined(PSA_WANT_ALG_ECDSA) && defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) && \
-    defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-#define PSA_HAVE_FULL_ECDSA 1
-#endif
-
 #if defined(PSA_WANT_KEY_TYPE_AES)
 #if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_AES)
 #define PSA_HAVE_SOFT_KEY_TYPE_AES 1
@@ -847,6 +842,11 @@ extern "C" {
 #endif
 
 #endif /* MBEDTLS_PSA_CRYPTO_CONFIG */
+
+#if defined(PSA_WANT_ALG_ECDSA) && defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) && \
+    defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
+#define PSA_HAVE_FULL_ECDSA 1
+#endif
 
 /* These features are always enabled. */
 #define PSA_WANT_KEY_TYPE_DERIVE 1

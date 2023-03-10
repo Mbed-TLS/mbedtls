@@ -1918,7 +1918,7 @@ run_test    "Default, DTLS" \
             -s "Protocol is DTLSv1.2" \
             -s "Ciphersuite is TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "TLS client auth: required" \
             "$P_SRV auth_mode=required" \
             "$P_CLI" \
@@ -5549,10 +5549,11 @@ run_test    "Authentication: client no cert, server optional" \
             -C "! mbedtls_ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_openssl_tls1_3
+requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Authentication: openssl client no cert, server optional" \
             "$P_SRV debug_level=3 auth_mode=optional" \
-            "$O_CLI" \
+            "$O_NEXT_CLI_NO_CERT -no_middlebox" \
             0 \
             -S "skip write certificate request" \
             -s "skip parse certificate verify" \
@@ -6280,8 +6281,7 @@ run_test    "Non-blocking I/O: client auth" \
             -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Non-blocking I/O: ticket" \
             "$P_SRV nbio=2 tickets=1 auth_mode=none" \
             "$P_CLI nbio=2 tickets=1" \
@@ -6290,8 +6290,7 @@ run_test    "Non-blocking I/O: ticket" \
             -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Non-blocking I/O: ticket + client auth" \
             "$P_SRV nbio=2 tickets=1 auth_mode=required" \
             "$P_CLI nbio=2 tickets=1" \
@@ -6300,21 +6299,41 @@ run_test    "Non-blocking I/O: ticket + client auth" \
             -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-run_test    "Non-blocking I/O: ticket + client auth + resume" \
+run_test    "Non-blocking I/O: TLS 1.2 + ticket + client auth + resume" \
             "$P_SRV nbio=2 tickets=1 auth_mode=required" \
-            "$P_CLI nbio=2 tickets=1 reconnect=1" \
+            "$P_CLI force_version=tls12 nbio=2 tickets=1 reconnect=1" \
             0 \
             -S "mbedtls_ssl_handshake returned" \
             -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test    "Non-blocking I/O: TLS 1.3 + ticket + client auth + resume" \
+            "$P_SRV nbio=2 tickets=1 auth_mode=required" \
+            "$P_CLI force_version=tls13 nbio=2 tickets=1 reconnect=1" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-run_test    "Non-blocking I/O: ticket + resume" \
+run_test    "Non-blocking I/O: TLS 1.2 + ticket + resume" \
             "$P_SRV nbio=2 tickets=1 auth_mode=none" \
-            "$P_CLI nbio=2 tickets=1 reconnect=1" \
+            "$P_CLI force_version=tls12 nbio=2 tickets=1 reconnect=1" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test    "Non-blocking I/O: TLS 1.3 + ticket + resume" \
+            "$P_SRV nbio=2 tickets=1 auth_mode=none" \
+            "$P_CLI force_version=tls13 nbio=2 tickets=1 reconnect=1" \
             0 \
             -S "mbedtls_ssl_handshake returned" \
             -C "mbedtls_ssl_handshake returned" \
@@ -6350,8 +6369,7 @@ run_test    "Event-driven I/O: client auth" \
             -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Event-driven I/O: ticket" \
             "$P_SRV event=1 tickets=1 auth_mode=none" \
             "$P_CLI event=1 tickets=1" \
@@ -6360,8 +6378,7 @@ run_test    "Event-driven I/O: ticket" \
             -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Event-driven I/O: ticket + client auth" \
             "$P_SRV event=1 tickets=1 auth_mode=required" \
             "$P_CLI event=1 tickets=1" \
@@ -6370,21 +6387,41 @@ run_test    "Event-driven I/O: ticket + client auth" \
             -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-run_test    "Event-driven I/O: ticket + client auth + resume" \
+run_test    "Event-driven I/O: TLS 1.2 + ticket + client auth + resume" \
             "$P_SRV event=1 tickets=1 auth_mode=required" \
-            "$P_CLI event=1 tickets=1 reconnect=1" \
+            "$P_CLI force_version=tls12 event=1 tickets=1 reconnect=1" \
             0 \
             -S "mbedtls_ssl_handshake returned" \
             -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test    "Event-driven I/O: TLS 1.3 + ticket + client auth + resume" \
+            "$P_SRV event=1 tickets=1 auth_mode=required" \
+            "$P_CLI force_version=tls13 event=1 tickets=1 reconnect=1" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
-run_test    "Event-driven I/O: ticket + resume" \
+run_test    "Event-driven I/O: TLS 1.2 + ticket + resume" \
             "$P_SRV event=1 tickets=1 auth_mode=none" \
-            "$P_CLI event=1 tickets=1 reconnect=1" \
+            "$P_CLI force_version=tls12 event=1 tickets=1 reconnect=1" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+run_test    "Event-driven I/O: TLS 1.3 + ticket + resume" \
+            "$P_SRV event=1 tickets=1 auth_mode=none" \
+            "$P_CLI force_version=tls13 event=1 tickets=1 reconnect=1" \
             0 \
             -S "mbedtls_ssl_handshake returned" \
             -C "mbedtls_ssl_handshake returned" \
@@ -6916,28 +6953,28 @@ run_test    "keyUsage cli-auth 1.3: ECDSA, KeyAgreement: fail (soft)" \
 
 # Tests for extendedKeyUsage, part 1: server-side certificate/suite selection
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "extKeyUsage srv: serverAuth -> OK" \
             "$P_SRV key_file=data_files/server5.key \
              crt_file=data_files/server5.eku-srv.crt" \
             "$P_CLI" \
             0
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "extKeyUsage srv: serverAuth,clientAuth -> OK" \
             "$P_SRV key_file=data_files/server5.key \
              crt_file=data_files/server5.eku-srv.crt" \
             "$P_CLI" \
             0
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "extKeyUsage srv: codeSign,anyEKU -> OK" \
             "$P_SRV key_file=data_files/server5.key \
              crt_file=data_files/server5.eku-cs_any.crt" \
             "$P_CLI" \
             0
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "extKeyUsage srv: codeSign -> fail" \
             "$P_SRV key_file=data_files/server5.key \
              crt_file=data_files/server5.eku-cli.crt" \

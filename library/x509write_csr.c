@@ -97,7 +97,7 @@ int mbedtls_x509write_csr_set_subject_alternative_name(mbedtls_x509write_csr *ct
     size_t buflen = 0;
 
     /* Determine the maximum size of the SubjectAltName list */
-    for(cur = san_list; cur != NULL; cur = cur->next) {
+    for (cur = san_list; cur != NULL; cur = cur->next) {
         /* Calculate size of the required buffer */
         switch (cur->node.type) {
             case MBEDTLS_X509_SAN_DNS_NAME:
@@ -136,17 +136,23 @@ int mbedtls_x509write_csr_set_subject_alternative_name(mbedtls_x509write_csr *ct
             case MBEDTLS_X509_SAN_DNS_NAME:
             case MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER:
             case MBEDTLS_X509_SAN_IP_ADDRESS:
+            {
+                const unsigned char *unstructured_name =
+                    (const unsigned char *) cur->node.san.unstructured_name.p;
+                size_t unstructured_name_len = cur->node.san.unstructured_name.len;
+
                 MBEDTLS_ASN1_CHK_CLEANUP_ADD(len,
-                                             mbedtls_asn1_write_raw_buffer(&p, buf,
-                                                                           (const unsigned char *) cur->node.san.unstructured_name.p,
-                                                                           cur->node.san.unstructured_name.len));
-                MBEDTLS_ASN1_CHK_CLEANUP_ADD(len, mbedtls_asn1_write_len(&p, buf,
-                                                                         cur->node.san.unstructured_name.len));
+                                             mbedtls_asn1_write_raw_buffer(
+                                                 &p, buf,
+                                                 unstructured_name, unstructured_name_len));
+                MBEDTLS_ASN1_CHK_CLEANUP_ADD(len, mbedtls_asn1_write_len(
+                                                 &p, buf, unstructured_name_len));
                 MBEDTLS_ASN1_CHK_CLEANUP_ADD(len,
-                                             mbedtls_asn1_write_tag(&p, buf,
-                                                                    MBEDTLS_ASN1_CONTEXT_SPECIFIC |
-                                                                    cur->node.type));
-                break;
+                                             mbedtls_asn1_write_tag(
+                                                 &p, buf,
+                                                 MBEDTLS_ASN1_CONTEXT_SPECIFIC | cur->node.type));
+            }
+            break;
             default:
                 /* Skip unsupported names. */
                 break;
@@ -170,7 +176,7 @@ int mbedtls_x509write_csr_set_subject_alternative_name(mbedtls_x509write_csr *ct
 
     /* If we exceeded the allocated buffer it means that maximum size of the SubjectAltName list
      * was incorrectly calculated and memory is corrupted. */
-    if ( p < buf ) {
+    if (p < buf) {
         ret = MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
     }
 

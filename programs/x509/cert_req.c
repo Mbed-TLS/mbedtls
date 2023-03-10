@@ -169,7 +169,6 @@ int main(int argc, char *argv[])
     mbedtls_ctr_drbg_context ctr_drbg;
     const char *pers = "csr example app";
     mbedtls_x509_san_list *cur, *prev;
-    uint8_t ip[4];
 
     /*
      * Set to sane values
@@ -220,6 +219,8 @@ usage:
             prev = NULL;
 
             while (q != NULL) {
+                uint8_t ip[4] = { 0 };
+
                 if ((r = strchr(q, ';')) != NULL) {
                     *r++ = '\0';
                 }

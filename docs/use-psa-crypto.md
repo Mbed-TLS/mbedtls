@@ -11,12 +11,15 @@ General considerations
 `psa_crypto_init()` before calling any function from the SSL/TLS, X.509 or PK
 module.
 
-**Scope:** `MBEDTLS_USE_PSA_CRYPTO` has no effect on the parts of the code that
-are specific to TLS 1.3; those parts always use PSA Crypto. The parts of the
-TLS 1.3 code that are common with TLS 1.2, however, follow this option;
-currently this is the record protection code, computation of the running
-handshake hash, and X.509. You need to enable `MBEDTLS_USE_PSA_CRYPTO` if you
-want TLS 1.3 to use PSA everywhere.
+**Scope:** `MBEDTLS_USE_PSA_CRYPTO` has no effect on the most of the TLS 1.3
+code, which always uses PSA crypto. The parts of the TLS 1.3 code that will
+use PSA Crypto or not depending on the value of this option are:
+- record protection;
+- running handshake hash;
+- asymmetric signature verification & generation;
+- X.509 certificate chain verification.
+You need to enable `MBEDTLS_USE_PSA_CRYPTO` if you want TLS 1.3 to use PSA
+everywhere.
 
 New APIs / API extensions
 -------------------------

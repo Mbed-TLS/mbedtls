@@ -166,9 +166,9 @@ static psa_status_t psa_aead_setup(
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
-    operation->tag_length = PSA_AEAD_TAG_LENGTH(attributes->core.type,
-                                                key_bits,
-                                                alg);
+    operation->tag_length = (uint8_t) PSA_AEAD_TAG_LENGTH(attributes->core.type,
+                                                          key_bits,
+                                                          alg);
 
     return PSA_SUCCESS;
 }

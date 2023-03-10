@@ -32,13 +32,30 @@
 #define MBEDTLS_AESNI_AES      0x02000000u
 #define MBEDTLS_AESNI_CLMUL    0x00000002u
 
-#if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) &&  \
+#if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) && \
     (defined(__amd64__) || defined(__x86_64__))   &&  \
     !defined(MBEDTLS_HAVE_X86_64)
 #define MBEDTLS_HAVE_X86_64
 #endif
 
+#if defined(MBEDTLS_AESNI_C)
+
 #if defined(MBEDTLS_HAVE_X86_64)
+#define MBEDTLS_AESNI_HAVE_CODE // via assembly
+#endif
+
+#if defined(_MSC_VER)
+#define MBEDTLS_HAVE_AESNI_INTRINSICS
+#endif
+#if defined(__GNUC__) && defined(__AES__)
+#define MBEDTLS_HAVE_AESNI_INTRINSICS
+#endif
+
+#if defined(MBEDTLS_HAVE_AESNI_INTRINSICS)
+#define MBEDTLS_AESNI_HAVE_CODE // via intrinsics
+#endif
+
+#if defined(MBEDTLS_AESNI_HAVE_CODE)
 
 #ifdef __cplusplus
 extern "C" {
@@ -127,6 +144,7 @@ int mbedtls_aesni_setkey_enc(unsigned char *rk,
 }
 #endif
 
-#endif /* MBEDTLS_HAVE_X86_64 */
+#endif /* MBEDTLS_AESNI_HAVE_CODE */
+#endif  /* MBEDTLS_AESNI_C */
 
 #endif /* MBEDTLS_AESNI_H */

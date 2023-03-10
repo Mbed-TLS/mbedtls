@@ -541,7 +541,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
 #endif
     RK = ctx->buf + ctx->rk_offset;
 
-#if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
+#if defined(MBEDTLS_AESNI_HAVE_CODE)
     if (mbedtls_aesni_has_support(MBEDTLS_AESNI_AES)) {
         return mbedtls_aesni_setkey_enc((unsigned char *) RK, key, keybits);
     }
@@ -653,7 +653,7 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
 
     ctx->nr = cty.nr;
 
-#if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
+#if defined(MBEDTLS_AESNI_HAVE_CODE)
     if (mbedtls_aesni_has_support(MBEDTLS_AESNI_AES)) {
         mbedtls_aesni_inverse_key((unsigned char *) RK,
                                   (const unsigned char *) (cty.buf + cty.rk_offset), ctx->nr);
@@ -957,7 +957,7 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
         return MBEDTLS_ERR_AES_BAD_INPUT_DATA;
     }
 
-#if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
+#if defined(MBEDTLS_AESNI_HAVE_CODE)
     if (mbedtls_aesni_has_support(MBEDTLS_AESNI_AES)) {
         return mbedtls_aesni_crypt_ecb(ctx, mode, input, output);
     }

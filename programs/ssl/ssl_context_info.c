@@ -937,6 +937,10 @@ int main(int argc, char *argv[])
      * file name is correct */
     parse_arguments(argc, argv);
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_crypto_init();
+#endif
+
     if (NULL != b64_file) {
         b64_buf = malloc(SSL_INIT_LEN);
         ssl_buf = malloc(SSL_INIT_LEN);

@@ -12,7 +12,7 @@ pkcs7_parse:"data_files/pkcs7_data_without_cert_signed.der":MBEDTLS_PKCS7_SIGNED
 
 PKCS7 Signed Data Parse with zero signers
 depends_on:MBEDTLS_SHA256_C
-pkcs7_parse:"data_files/pkcs7_data_no_signers.pem":MBEDTLS_PKCS7_SIGNED_DATA
+pkcs7_parse:"data_files/pkcs7_data_no_signers.der":MBEDTLS_PKCS7_SIGNED_DATA
 
 PKCS7 Signed Data Parse Fail with multiple certs #4
 depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C

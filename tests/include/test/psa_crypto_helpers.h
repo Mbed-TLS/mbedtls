@@ -295,6 +295,7 @@ int mbedtls_test_fail_if_psa_leaking(int line_no, const char *filename);
 #define PSA_INIT_IF_NO_MD() ((void) 0)
 #define PSA_DONE_IF_NO_MD() ((void) 0)
 #endif
+
 /** \def USE_PSA_INIT
  *
  * Call this macro to initialize the PSA subsystem if #MBEDTLS_USE_PSA_CRYPTO
@@ -320,5 +321,10 @@ int mbedtls_test_fail_if_psa_leaking(int line_no, const char *filename);
 #define USE_PSA_INIT() ((void) 0)
 #define USE_PSA_DONE() ((void) 0)
 #endif /* !MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_SSL_PROTO_TLS1_3 */
+
+#if !defined(MBEDTLS_PSA_CRYPTO_C)
+#define PSA_INIT() ((void) 0)
+#define PSA_DONE() ((void) 0)
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 #endif /* PSA_CRYPTO_HELPERS_H */

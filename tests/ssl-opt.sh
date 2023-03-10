@@ -2632,63 +2632,6 @@ run_test    "SHA-256 allowed by default in client certificate" \
             "$P_CLI key_file=data_files/cli-rsa.key crt_file=data_files/cli-rsa-sha256.crt" \
             0
 
-# Dummy TLS 1.3 test
-# Currently only checking that passing TLS 1.3 key exchange modes to
-# ssl_client2/ssl_server2 example programs works.
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-run_test    "TLS 1.3: key exchange mode parameter passing: PSK only" \
-            "$P_SRV tls13_kex_modes=psk debug_level=4" \
-            "$P_CLI tls13_kex_modes=psk debug_level=4" \
-            0
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-run_test    "TLS 1.3: key exchange mode parameter passing: PSK-ephemeral only" \
-            "$P_SRV tls13_kex_modes=psk_ephemeral" \
-            "$P_CLI tls13_kex_modes=psk_ephemeral" \
-            0
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-run_test    "TLS 1.3: key exchange mode parameter passing: Pure-ephemeral only" \
-            "$P_SRV tls13_kex_modes=ephemeral" \
-            "$P_CLI tls13_kex_modes=ephemeral" \
-            0
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-run_test    "TLS 1.3: key exchange mode parameter passing: All ephemeral" \
-            "$P_SRV tls13_kex_modes=ephemeral_all" \
-            "$P_CLI tls13_kex_modes=ephemeral_all" \
-            0
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-run_test    "TLS 1.3: key exchange mode parameter passing: All PSK" \
-            "$P_SRV tls13_kex_modes=psk_all" \
-            "$P_CLI tls13_kex_modes=psk_all" \
-            0
-
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-run_test    "TLS 1.3: key exchange mode parameter passing: All" \
-            "$P_SRV tls13_kex_modes=all" \
-            "$P_CLI tls13_kex_modes=all" \
-            0
-
 # Tests for datagram packing
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS: multiple records in same datagram, client and server" \

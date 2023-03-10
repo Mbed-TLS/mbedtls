@@ -22,12 +22,7 @@
  */
 
 /**
- * This feature is a work in progress and not ready for production. The API may
- * change. Furthermore, please note that the implementation has only been
- * validated with well-formed inputs, not yet with untrusted inputs (which is
- * almost always the case in practice).
- *
- * Note: For the time being, this implementation of the PKCS7 cryptographic
+ * Note: For the time being, this implementation of the PKCS #7 cryptographic
  * message syntax is a partial implementation of RFC 2315.
  * Differences include:
  *  - The RFC specifies 6 different content types. The only type currently

@@ -1306,6 +1306,11 @@ pkcs7-rsa-expired.crt:
 	$(FAKETIME) -f -3650d $(OPENSSL) req -x509 -subj="/C=NL/O=PKCS7/CN=PKCS7 Cert Expired" -sha256 -nodes -days 365  -newkey rsa:2048 -keyout pkcs7-rsa-expired.key -out pkcs7-rsa-expired.crt
 all_final += pkcs7-rsa-expired.crt
 
+# File with an otherwise valid signature signed with an expired cert
+pkcs7_data_rsa_expired.der: pkcs7-rsa-expired.key pkcs7-rsa-expired.crt pkcs7_data.bin
+	$(OPENSSL) smime -sign -binary -in pkcs7_data.bin -out $@ -md sha256 -inkey pkcs7-rsa-expired.key -signer pkcs7-rsa-expired.crt -noattr -outform DER -out $@
+all_final += pkcs7_data_rsa_expired.der
+
 # Convert signing certs to DER for testing PEM-free builds
 pkcs7-rsa-sha256-1.der: $(pkcs7_test_cert_1)
 	$(OPENSSL) x509 -in pkcs7-rsa-sha256-1.crt -out $@ -outform DER
@@ -1314,6 +1319,10 @@ all_final += pkcs7-rsa-sha256-1.der
 pkcs7-rsa-sha256-2.der: $(pkcs7_test_cert_2)
 	$(OPENSSL) x509 -in pkcs7-rsa-sha256-2.crt -out $@ -outform DER
 all_final += pkcs7-rsa-sha256-2.der
+
+pkcs7-rsa-expired.der: pkcs7-rsa-expired.crt
+	$(OPENSSL) x509 -in pkcs7-rsa-expired.crt -out $@ -outform DER
+all_final += pkcs7-rsa-expired.der
 
 # pkcs7 signature file over zero-len data
 pkcs7_zerolendata_detached.der: pkcs7_zerolendata.bin pkcs7-rsa-sha256-1.key pkcs7-rsa-sha256-1.crt

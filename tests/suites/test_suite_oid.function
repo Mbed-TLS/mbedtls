@@ -105,13 +105,16 @@ void oid_get_numeric_string(data_t *oid, int error_ret, char *result_str)
     int ret;
 
     input_oid.tag = MBEDTLS_ASN1_OID;
-    input_oid.p = oid->x;
+    /* Test that an empty OID is not dereferenced */
+    input_oid.p = oid->len ? oid->x : (void *) 1;
     input_oid.len = oid->len;
 
     ret = mbedtls_oid_get_numeric_string(buf, sizeof(buf), &input_oid);
 
     if (error_ret == 0) {
-        TEST_ASSERT(strcmp(buf, result_str) == 0);
+        TEST_EQUAL(ret, strlen(result_str));
+        TEST_ASSERT(ret >= 3);
+        TEST_EQUAL(strcmp(buf, result_str), 0);
     } else {
         TEST_EQUAL(ret, error_ret);
     }

@@ -3,4 +3,8 @@ Bugfix
      mbedtls_oid_get_numeric_string(). OIDs such as 2.40.0.25 are now printed
      correctly.
    * Reject OIDs with overlong-encoded subidentifiers when converting
-     OID-to-string.
+     them to a string.
+   * Reject OIDs with subidentifier values exceeding UINT_MAX.  Such
+     subidentifiers can be valid, but Mbed TLS cannot currently handle them.
+   * Reject OIDs that have unterminated subidentifiers, or (equivalently)
+     have the most-significant bit set in their last byte.

@@ -30,6 +30,10 @@ PKCS7 Parse Fail with Inlined Content Info #5.2
 depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
 pkcs7_parse:"data_files/pkcs7_data_with_signature.der":MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE
 
+PKCS7 Signed Data Parse Fail with no RSA #5.3
+depends_on:MBEDTLS_SHA256_C:!MBEDTLS_RSA_C
+pkcs7_parse:"data_files/pkcs7_data_cert_signed_sha256.der":MBEDTLS_ERR_PKCS7_INVALID_CERT
+
 PKCS7 Signed Data Parse Fail with corrupted signer info #6
 depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
 pkcs7_parse:"data_files/pkcs7_data_signed_badsigner.der":MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO,MBEDTLS_ERR_ASN1_UNEXPECTED_TAG)

@@ -127,7 +127,7 @@ depends_on:MBEDTLS_SHA256_C
 pkcs7_verify:"data_files/pkcs7_data_multiple_signed.der":"data_files/pkcs7-rsa-sha256-1.crt data_files/pkcs7-rsa-sha256-2.crt":"data_files/pkcs7_data.bin":0:0
 
 PKCS7 Signed Data Verify with multiple(3) signers #16.1
-depends_on:MBEDTLS_SHA256_C
+depends_on:MBEDTLS_SHA256_C:!MBEDTLS_MEMORY_BUFFER_ALLOC_C
 pkcs7_verify:"data_files/pkcs7_data_3_signed.der":"data_files/pkcs7-rsa-sha256-1.crt data_files/pkcs7-rsa-sha256-2.crt data_files/pkcs7-rsa-sha256-3.crt":"data_files/pkcs7_data.bin":0:0
 
 PKCS7 Signed Data Hash Verify with multiple signers #17

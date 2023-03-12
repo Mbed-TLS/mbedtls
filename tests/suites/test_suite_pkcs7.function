@@ -7,10 +7,11 @@
 #include "mbedtls/oid.h"
 #include "sys/types.h"
 #include "sys/stat.h"
+#include "mbedtls/rsa.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_PKCS7_C:MBEDTLS_RSA_C
+ * depends_on:MBEDTLS_PKCS7_C
  * END_DEPENDENCIES
  */
 /* BEGIN_SUITE_HELPERS */

@@ -284,16 +284,10 @@ TLS1_2_KEY_EXCHANGES_WITH_CERT="MBEDTLS_KEY_EXCHANGE_RSA_ENABLED \
 TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT="MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED \
                                       MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED"
 
-# An optional parameter can be specified in order to limit key exchanges in
-# TLS 1.2 (in TLS 1.3 it has no effect).
 requires_key_exchange_with_cert_in_tls12_or_tls13_enabled() {
-    KEX_SUBSET=${1:-}
     if $P_QUERY -all MBEDTLS_SSL_PROTO_TLS1_2
     then
-        case $KEX_SUBSET in
-            ECDSA) requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT ;;
-            *) requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT ;;
-        esac
+            requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
     elif ! $P_QUERY -all MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
     then
         SKIP_NEXT="YES"
@@ -530,7 +524,7 @@ populate_enabled_hash_algs()
             hash_alg_variable=HAS_ALG_${hash_alg}
             eval ${hash_alg_variable}=YES
         fi
-    done
+    done 
 }
 
 # skip next test if the given hash alg is not supported
@@ -5632,7 +5626,8 @@ MAX_IM_CA='8'
 # are in place so that the semantics are consistent with the test description.
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled ECDSA
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "Authentication: server max_int chain, client default" \
             "$P_SRV crt_file=data_files/dir-maxpath/c09.pem \
                     key_file=data_files/dir-maxpath/09.key" \
@@ -5642,7 +5637,8 @@ run_test    "Authentication: server max_int chain, client default" \
 
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled ECDSA
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT
 run_test    "Authentication: server max_int+1 chain, client default" \
             "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \

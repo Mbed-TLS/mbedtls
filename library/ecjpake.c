@@ -35,6 +35,11 @@
 #if !defined(MBEDTLS_MD_C)
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
+#if !defined(MBEDTLS_ECJPAKE_ALT)
+#define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
+                                                           psa_to_md_errors,              \
+                                                           psa_generic_status_to_mbedtls)
+#endif /* !MBEDTLS_ECJPAKE_ALT */
 #endif /* !MBEDTLS_MD_C */
 
 #include "hash_info.h"
@@ -72,7 +77,7 @@ static int mbedtls_ecjpake_compute_hash(mbedtls_md_type_t md_type,
 
     status = psa_hash_compute(alg, input, ilen, output, out_size, &out_len);
 
-    return mbedtls_md_error_from_psa(status);
+    return PSA_TO_MBEDTLS_ERR(status);
 #endif /* !MBEDTLS_MD_C */
 }
 

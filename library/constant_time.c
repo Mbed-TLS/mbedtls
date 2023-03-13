@@ -46,6 +46,11 @@
 #endif
 
 #include <string.h>
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,    \
+                                                           psa_to_ssl_errors,              \
+                                                           psa_generic_status_to_mbedtls)
+#endif
 
 /*
  * Define MBEDTLS_EFFICIENT_UNALIGNED_VOLATILE_ACCESS where assembly is present to
@@ -620,7 +625,7 @@ cleanup:
 
     psa_hash_abort(&operation);
     psa_hash_abort(&aux_operation);
-    return psa_ssl_status_to_mbedtls(status);
+    return PSA_TO_MBEDTLS_ERR(status);
 }
 
 #undef MAX_HASH_BLOCK_LENGTH

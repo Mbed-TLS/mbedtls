@@ -1,0 +1,3 @@
+Bugfix
+   * Fix undefined behavior in mbedtls_ssl_read() and mbedtls_ssl_write() if
+     len argument is 0 and buffer is NULL.

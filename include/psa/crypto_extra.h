@@ -189,12 +189,12 @@ static inline void psa_clear_key_slot_number(
  *         or the specified slot number is not valid.
  * \retval #PSA_ERROR_NOT_PERMITTED
  *         The caller is not authorized to register the specified key slot.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_DATA_INVALID
- * \retval #PSA_ERROR_DATA_CORRUPT
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
@@ -429,6 +429,10 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  */
 #define PSA_DH_FAMILY_CUSTOM             ((psa_dh_family_t) 0x7e)
 
+/** PAKE operation stages. */
+#define PSA_PAKE_OPERATION_STAGE_SETUP 0
+#define PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS 1
+#define PSA_PAKE_OPERATION_STAGE_COMPUTATION 2
 
 /**
  * \brief Set domain parameters for a key.
@@ -491,10 +495,10 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  *                              according to \p type as described above.
  * \param data_length           Size of the \p data buffer in bytes.
  *
- * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- * \retval #PSA_ERROR_NOT_SUPPORTED
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_INVALID_ARGUMENT \emptydescription
+ * \retval #PSA_ERROR_NOT_SUPPORTED \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
  */
 psa_status_t psa_set_key_domain_parameters(psa_key_attributes_t *attributes,
                                            psa_key_type_t type,
@@ -521,8 +525,8 @@ psa_status_t psa_set_key_domain_parameters(psa_key_attributes_t *attributes,
  * \param[out] data_length      On success, the number of bytes
  *                              that make up the key domain parameters data.
  *
- * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL \emptydescription
  */
 psa_status_t psa_get_key_domain_parameters(
     const psa_key_attributes_t *attributes,
@@ -1286,9 +1290,73 @@ static void psa_pake_cs_set_hash(psa_pake_cipher_suite_t *cipher_suite,
  * Implementation details can change in future versions without notice. */
 typedef struct psa_pake_operation_s psa_pake_operation_t;
 
+/** The type of input values for PAKE operations. */
+typedef struct psa_crypto_driver_pake_inputs_s psa_crypto_driver_pake_inputs_t;
+
+/** The type of computation stage for J-PAKE operations. */
+typedef struct psa_jpake_computation_stage_s psa_jpake_computation_stage_t;
+
 /** Return an initial value for a PAKE operation object.
  */
 static psa_pake_operation_t psa_pake_operation_init(void);
+
+/** Get the lengths of the password in bytes from given inputs.
+ *
+ * \param[in]  inputs           Operation inputs.
+ * \param[out] password_len     Return buffer for password length.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         Password hasn't been set yet.
+ */
+psa_status_t psa_crypto_driver_pake_get_password_len(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    size_t *password_len);
+
+/** Get the password from given inputs.
+ *
+ * \param[in]  inputs           Operation inputs.
+ * \param[out] buffer           Return buffer for password.
+ * \param      buffer_size      Size of the return buffer in bytes.
+ * \param[out] buffer_length    Actual size of the password in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         Password hasn't been set yet.
+ */
+psa_status_t psa_crypto_driver_pake_get_password(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    uint8_t *buffer, size_t buffer_size, size_t *buffer_length);
+
+/** Get the role from given inputs.
+ *
+ * \param[in]  inputs           Operation inputs.
+ * \param[out] role             Return buffer for role.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         Role hasn't been set yet.
+ */
+psa_status_t psa_crypto_driver_pake_get_role(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    psa_pake_role_t *role);
+
+/** Get the cipher suite from given inputs.
+ *
+ * \param[in]  inputs           Operation inputs.
+ * \param[out] cipher_suite     Return buffer for role.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         Cipher_suite hasn't been set yet.
+ */
+psa_status_t psa_crypto_driver_pake_get_cipher_suite(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    psa_pake_cipher_suite_t *cipher_suite);
 
 /** Set the session information for a password-authenticated key exchange.
  *
@@ -1352,8 +1420,8 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  *         compatible with the PAKE algorithm, or the hash algorithm in
  *         \p cipher_suite is not supported or not compatible with the PAKE
  *         algorithm and primitive.
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid, or
  *         the library has not been previously initialized by psa_crypto_init().
@@ -1397,11 +1465,11 @@ psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         The key type or key size of \p password is not supported with the
  *         \p operation's cipher suite.
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_DATA_CORRUPT
- * \retval #PSA_ERROR_DATA_INVALID
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID \emptydescription
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (it must have been set up.), or
  *         the library has not been previously initialized by psa_crypto_init().
@@ -1439,9 +1507,9 @@ psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
  *         suite.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         The value of \p user_id is not supported by the implementation.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid, or
  *         the library has not been previously initialized by psa_crypto_init().
@@ -1480,9 +1548,9 @@ psa_status_t psa_pake_set_user(psa_pake_operation_t *operation,
  *         suite.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         The algorithm doesn't associate a second identity with the session.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
  * \retval #PSA_ERROR_BAD_STATE
  *         Calling psa_pake_set_peer() is invalid with the \p operation's
  *         algorithm, the operation state is not valid, or the library has not
@@ -1524,8 +1592,8 @@ psa_status_t psa_pake_set_peer(psa_pake_operation_t *operation,
  *         The \p role is not a valid PAKE role in the \p operation’s algorithm.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         The \p role for this algorithm is not supported or is not valid.
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid, or
  *         the library has not been previously initialized by psa_crypto_init().
@@ -1575,13 +1643,13 @@ psa_status_t psa_pake_set_role(psa_pake_operation_t *operation,
  *         \p step is not compatible with the operation's algorithm.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p step is not supported with the operation's algorithm.
- * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_DATA_CORRUPT
- * \retval #PSA_ERROR_DATA_INVALID
+ * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID \emptydescription
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (it must be active, and fully set
  *         up, and this call must conform to the algorithm's requirements
@@ -1631,12 +1699,12 @@ psa_status_t psa_pake_output(psa_pake_operation_t *operation,
  *         \p step p is not supported with the \p operation's algorithm, or the
  *         \p input is not supported for the \p operation's algorithm, cipher
  *         suite or \p step.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_DATA_CORRUPT
- * \retval #PSA_ERROR_DATA_INVALID
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID \emptydescription
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (it must be active, and fully set
  *         up, and this call must conform to the algorithm's requirements
@@ -1691,12 +1759,12 @@ psa_status_t psa_pake_input(psa_pake_operation_t *operation,
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         Input from a PAKE is not supported by the algorithm in the \p output
  *         key derivation operation.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_DATA_CORRUPT
- * \retval #PSA_ERROR_DATA_INVALID
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID \emptydescription
  * \retval #PSA_ERROR_BAD_STATE
  *         The PAKE operation state is not valid (it must be active, but beyond
  *         that validity is specific to the algorithm), or
@@ -1728,8 +1796,8 @@ psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
@@ -1826,14 +1894,8 @@ psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
 /** Returns a suitable initializer for a PAKE operation object of type
  * psa_pake_operation_t.
  */
-#if defined(MBEDTLS_PSA_BUILTIN_PAKE)
-#define PSA_PAKE_OPERATION_INIT { PSA_ALG_NONE, 0, 0, 0, 0,              \
-                                  NULL, 0,               \
-                                  PSA_PAKE_ROLE_NONE, { 0 }, 0, 0,         \
-                                  { .dummy = 0 } }
-#else
-#define PSA_PAKE_OPERATION_INIT { PSA_ALG_NONE, 0, 0, { 0 } }
-#endif
+#define PSA_PAKE_OPERATION_INIT { 0, PSA_ALG_NONE, PSA_PAKE_OPERATION_STAGE_SETUP, \
+                                  { 0 }, { { 0 } } }
 
 struct psa_pake_cipher_suite_s {
     psa_algorithm_t algorithm;
@@ -1904,35 +1966,90 @@ static inline void psa_pake_cs_set_hash(psa_pake_cipher_suite_t *cipher_suite,
     }
 }
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
-#include <mbedtls/ecjpake.h>
-/* Note: the format for mbedtls_ecjpake_read/write function has an extra
- * length byte for each step, plus an extra 3 bytes for ECParameters in the
- * server's 2nd round. */
-#define MBEDTLS_PSA_PAKE_BUFFER_SIZE ((3 + 1 + 65 + 1 + 65 + 1 + 32) * 2)
-#endif
-
-struct psa_pake_operation_s {
-    psa_algorithm_t MBEDTLS_PRIVATE(alg);
-    unsigned int MBEDTLS_PRIVATE(state);
-    unsigned int MBEDTLS_PRIVATE(sequence);
-#if defined(MBEDTLS_PSA_BUILTIN_PAKE)
-    unsigned int MBEDTLS_PRIVATE(input_step);
-    unsigned int MBEDTLS_PRIVATE(output_step);
+struct psa_crypto_driver_pake_inputs_s {
     uint8_t *MBEDTLS_PRIVATE(password);
     size_t MBEDTLS_PRIVATE(password_len);
     psa_pake_role_t MBEDTLS_PRIVATE(role);
-    uint8_t MBEDTLS_PRIVATE(buffer[MBEDTLS_PSA_PAKE_BUFFER_SIZE]);
-    size_t MBEDTLS_PRIVATE(buffer_length);
-    size_t MBEDTLS_PRIVATE(buffer_offset);
-#endif
+    psa_key_attributes_t MBEDTLS_PRIVATE(attributes);
+    psa_pake_cipher_suite_t MBEDTLS_PRIVATE(cipher_suite);
+};
+
+typedef enum psa_jpake_step {
+    PSA_PAKE_STEP_INVALID       = 0,
+    PSA_PAKE_STEP_X1_X2         = 1,
+    PSA_PAKE_STEP_X2S           = 2,
+    PSA_PAKE_STEP_DERIVE        = 3,
+} psa_jpake_step_t;
+
+typedef enum psa_jpake_state {
+    PSA_PAKE_STATE_INVALID      = 0,
+    PSA_PAKE_STATE_SETUP        = 1,
+    PSA_PAKE_STATE_READY        = 2,
+    PSA_PAKE_OUTPUT_X1_X2       = 3,
+    PSA_PAKE_OUTPUT_X2S         = 4,
+    PSA_PAKE_INPUT_X1_X2        = 5,
+    PSA_PAKE_INPUT_X4S          = 6,
+} psa_jpake_state_t;
+
+typedef enum psa_jpake_sequence {
+    PSA_PAKE_SEQ_INVALID        = 0,
+    PSA_PAKE_X1_STEP_KEY_SHARE  = 1,    /* also X2S & X4S KEY_SHARE */
+    PSA_PAKE_X1_STEP_ZK_PUBLIC  = 2,    /* also X2S & X4S ZK_PUBLIC */
+    PSA_PAKE_X1_STEP_ZK_PROOF   = 3,    /* also X2S & X4S ZK_PROOF */
+    PSA_PAKE_X2_STEP_KEY_SHARE  = 4,
+    PSA_PAKE_X2_STEP_ZK_PUBLIC  = 5,
+    PSA_PAKE_X2_STEP_ZK_PROOF   = 6,
+    PSA_PAKE_SEQ_END            = 7,
+} psa_jpake_sequence_t;
+
+typedef enum psa_crypto_driver_pake_step {
+    PSA_JPAKE_STEP_INVALID        = 0,  /* Invalid step */
+    PSA_JPAKE_X1_STEP_KEY_SHARE   = 1,  /* Round 1: input/output key share (for ephemeral private key X1).*/
+    PSA_JPAKE_X1_STEP_ZK_PUBLIC   = 2,  /* Round 1: input/output Schnorr NIZKP public key for the X1 key */
+    PSA_JPAKE_X1_STEP_ZK_PROOF    = 3,  /* Round 1: input/output Schnorr NIZKP proof for the X1 key */
+    PSA_JPAKE_X2_STEP_KEY_SHARE   = 4,  /* Round 1: input/output key share (for ephemeral private key X2).*/
+    PSA_JPAKE_X2_STEP_ZK_PUBLIC   = 5,  /* Round 1: input/output Schnorr NIZKP public key for the X2 key */
+    PSA_JPAKE_X2_STEP_ZK_PROOF    = 6,  /* Round 1: input/output Schnorr NIZKP proof for the X2 key */
+    PSA_JPAKE_X2S_STEP_KEY_SHARE  = 7,  /* Round 2: output X2S key (our key) */
+    PSA_JPAKE_X2S_STEP_ZK_PUBLIC  = 8,  /* Round 2: output Schnorr NIZKP public key for the X2S key (our key) */
+    PSA_JPAKE_X2S_STEP_ZK_PROOF   = 9,  /* Round 2: output Schnorr NIZKP proof for the X2S key (our key) */
+    PSA_JPAKE_X4S_STEP_KEY_SHARE  = 10, /* Round 2: input X4S key (from peer) */
+    PSA_JPAKE_X4S_STEP_ZK_PUBLIC  = 11, /* Round 2: input Schnorr NIZKP public key for the X4S key (from peer) */
+    PSA_JPAKE_X4S_STEP_ZK_PROOF   = 12  /* Round 2: input Schnorr NIZKP proof for the X4S key (from peer) */
+} psa_crypto_driver_pake_step_t;
+
+
+struct psa_jpake_computation_stage_s {
+    psa_jpake_state_t MBEDTLS_PRIVATE(state);
+    psa_jpake_sequence_t MBEDTLS_PRIVATE(sequence);
+    psa_jpake_step_t MBEDTLS_PRIVATE(input_step);
+    psa_jpake_step_t MBEDTLS_PRIVATE(output_step);
+};
+
+struct psa_pake_operation_s {
+    /** Unique ID indicating which driver got assigned to do the
+     * operation. Since driver contexts are driver-specific, swapping
+     * drivers halfway through the operation is not supported.
+     * ID values are auto-generated in psa_crypto_driver_wrappers.h
+     * ID value zero means the context is not valid or not assigned to
+     * any driver (i.e. none of the driver contexts are active). */
+    unsigned int MBEDTLS_PRIVATE(id);
+    /* Algorithm of the PAKE operation */
+    psa_algorithm_t MBEDTLS_PRIVATE(alg);
+    /* Stage of the PAKE operation: waiting for the setup, collecting inputs
+     * or computing. */
+    uint8_t MBEDTLS_PRIVATE(stage);
+    /* Holds computation stage of the PAKE algorithms. */
     union {
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
-        mbedtls_ecjpake_context ecjpake;
+        uint8_t MBEDTLS_PRIVATE(dummy);
+#if defined(PSA_WANT_ALG_JPAKE)
+        psa_jpake_computation_stage_t MBEDTLS_PRIVATE(jpake);
 #endif
-        /* Make the union non-empty even with no supported algorithms. */
-        uint8_t dummy;
-    } MBEDTLS_PRIVATE(ctx);
+    } MBEDTLS_PRIVATE(computation_stage);
+    union {
+        psa_driver_pake_context_t MBEDTLS_PRIVATE(ctx);
+        psa_crypto_driver_pake_inputs_t MBEDTLS_PRIVATE(inputs);
+    } MBEDTLS_PRIVATE(data);
 };
 
 static inline struct psa_pake_cipher_suite_s psa_pake_cipher_suite_init(void)

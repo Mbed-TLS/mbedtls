@@ -1,7 +1,8 @@
 /**
  * \file md.h
  *
- * \brief This file contains the generic message-digest wrapper.
+ * \brief   This file contains the generic functions for message-digest
+ *          (hashing) and HMAC.
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  */
@@ -108,30 +109,6 @@ typedef struct mbedtls_md_context_t {
 } mbedtls_md_context_t;
 
 /**
- * \brief           This function returns the list of digests supported by the
- *                  generic digest module.
- *
- * \note            The list starts with the strongest available hashes.
- *
- * \return          A statically allocated array of digests. Each element
- *                  in the returned list is an integer belonging to the
- *                  message-digest enumeration #mbedtls_md_type_t.
- *                  The last entry is 0.
- */
-const int *mbedtls_md_list(void);
-
-/**
- * \brief           This function returns the message-digest information
- *                  associated with the given digest name.
- *
- * \param md_name   The name of the digest to search for.
- *
- * \return          The message-digest information associated with \p md_name.
- * \return          NULL if the associated message-digest information is not found.
- */
-const mbedtls_md_info_t *mbedtls_md_info_from_string(const char *md_name);
-
-/**
  * \brief           This function returns the message-digest information
  *                  associated with the given digest type.
  *
@@ -141,19 +118,6 @@ const mbedtls_md_info_t *mbedtls_md_info_from_string(const char *md_name);
  * \return          NULL if the associated message-digest information is not found.
  */
 const mbedtls_md_info_t *mbedtls_md_info_from_type(mbedtls_md_type_t md_type);
-
-/**
- * \brief           This function returns the message-digest information
- *                  from the given context.
- *
- * \param ctx       The context from which to extract the information.
- *                  This must be initialized (or \c NULL).
- *
- * \return          The message-digest information associated with \p ctx.
- * \return          \c NULL if \p ctx is \c NULL.
- */
-const mbedtls_md_info_t *mbedtls_md_info_from_ctx(
-    const mbedtls_md_context_t *ctx);
 
 /**
  * \brief           This function initializes a message-digest context without
@@ -249,17 +213,6 @@ unsigned char mbedtls_md_get_size(const mbedtls_md_info_t *md_info);
 mbedtls_md_type_t mbedtls_md_get_type(const mbedtls_md_info_t *md_info);
 
 /**
- * \brief           This function extracts the message-digest name from the
- *                  message-digest information structure.
- *
- * \param md_info   The information structure of the message-digest algorithm
- *                  to use.
- *
- * \return          The name of the message digest.
- */
-const char *mbedtls_md_get_name(const mbedtls_md_info_t *md_info);
-
-/**
  * \brief           This function starts a message-digest computation.
  *
  *                  You must call this function after setting up the context
@@ -336,6 +289,54 @@ int mbedtls_md_finish(mbedtls_md_context_t *ctx, unsigned char *output);
 MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_md(const mbedtls_md_info_t *md_info, const unsigned char *input, size_t ilen,
                unsigned char *output);
+
+/**
+ * \brief           This function returns the list of digests supported by the
+ *                  generic digest module.
+ *
+ * \note            The list starts with the strongest available hashes.
+ *
+ * \return          A statically allocated array of digests. Each element
+ *                  in the returned list is an integer belonging to the
+ *                  message-digest enumeration #mbedtls_md_type_t.
+ *                  The last entry is 0.
+ */
+const int *mbedtls_md_list(void);
+
+/**
+ * \brief           This function returns the message-digest information
+ *                  associated with the given digest name.
+ *
+ * \param md_name   The name of the digest to search for.
+ *
+ * \return          The message-digest information associated with \p md_name.
+ * \return          NULL if the associated message-digest information is not found.
+ */
+const mbedtls_md_info_t *mbedtls_md_info_from_string(const char *md_name);
+
+/**
+ * \brief           This function extracts the message-digest name from the
+ *                  message-digest information structure.
+ *
+ * \param md_info   The information structure of the message-digest algorithm
+ *                  to use.
+ *
+ * \return          The name of the message digest.
+ */
+const char *mbedtls_md_get_name(const mbedtls_md_info_t *md_info);
+
+/**
+ * \brief           This function returns the message-digest information
+ *                  from the given context.
+ *
+ * \param ctx       The context from which to extract the information.
+ *                  This must be initialized (or \c NULL).
+ *
+ * \return          The message-digest information associated with \p ctx.
+ * \return          \c NULL if \p ctx is \c NULL.
+ */
+const mbedtls_md_info_t *mbedtls_md_info_from_ctx(
+    const mbedtls_md_context_t *ctx);
 
 #if defined(MBEDTLS_FS_IO)
 /**
@@ -470,10 +471,6 @@ MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_md_hmac(const mbedtls_md_info_t *md_info, const unsigned char *key, size_t keylen,
                     const unsigned char *input, size_t ilen,
                     unsigned char *output);
-
-/* Internal use */
-MBEDTLS_CHECK_RETURN_TYPICAL
-int mbedtls_md_process(mbedtls_md_context_t *ctx, const unsigned char *data);
 
 #ifdef __cplusplus
 }

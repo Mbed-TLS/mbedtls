@@ -183,6 +183,18 @@ TASKS = {
             }
         }
     },
+    'analyze_driver_vs_reference_ecdh': {
+        'test_function': do_analyze_driver_vs_reference,
+        'args': {
+            'component_ref': 'test_psa_crypto_config_reference_ecdh_use_psa',
+            'component_driver': 'test_psa_crypto_config_accel_ecdh_use_psa',
+            'ignored_suites': [
+                'ecdh', # the software implementation that's excluded
+            ],
+            'ignored_tests': {
+            }
+        }
+    },
 }
 
 def main():

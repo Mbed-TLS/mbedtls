@@ -1,0 +1,23 @@
+Zeroize len 0, null
+mbedtls_platform_zeroize:0:1
+
+Zeroize len 0, non-null
+mbedtls_platform_zeroize:0:0
+
+Zeroize len 1
+mbedtls_platform_zeroize:1:0
+
+Zeroize len 4
+mbedtls_platform_zeroize:1:0
+
+Zeroize len 5
+mbedtls_platform_zeroize:1:0
+
+Zeroize len 32
+mbedtls_platform_zeroize:32:0
+
+Zeroize len 127
+mbedtls_platform_zeroize:127:0
+
+Zeroize len 128
+mbedtls_platform_zeroize:128:0

@@ -28,12 +28,12 @@
 
 #include "common.h"
 #include "mbedtls/bignum.h"
+#include "bignum_mod.h"
 #include "mbedtls/ecp.h"
 
 #if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_ECP_C)
 
-#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) ||   \
-    defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) ||   \
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) ||   \
     defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
 /* Preconditions:
  *   - bits is a multiple of 64 or is 224
@@ -94,6 +94,72 @@ MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn);
 
 #endif /* MBEDTLS_ECP_DP_SECP192R1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
+
+/** Fast quasi-reduction modulo p224 (FIPS 186-3 D.2.2)
+ *
+ * \param[in,out]   X       The address of the MPI to be converted.
+ *                          Must have exact limb size that stores a 448-bit MPI
+ *                          (double the bitlength of the modulus).
+ *                          Upon return holds the reduced value which is
+ *                          in range `0 <= X < 2 * N` (where N is the modulus).
+ *                          The bitlength of the reduced value is the same as
+ *                          that of the modulus (224 bits).
+ * \param[in]       X_limbs The length of \p X in limbs.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if \p X_limbs is not the
+ *                  limb size that sores a 448-bit MPI.
+ */
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p224_raw(mbedtls_mpi_uint *X, size_t X_limbs);
+
+#endif /* MBEDTLS_ECP_DP_SECP224R1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+
+/** Fast quasi-reduction modulo p521 = 2^521 - 1 (FIPS 186-3 D.2.5)
+ *
+ * \param[in,out]   X       The address of the MPI to be converted.
+ *                          Must have twice as many limbs as the modulus
+ *                          (the modulus is 521 bits long). Upon return this
+ *                          holds the reduced value. The reduced value is
+ *                          in range `0 <= X < 2 * N` (where N is the modulus).
+ *                          and its the bitlength is one plus the bitlength
+ *                          of the modulus.
+ * \param[in]       X_limbs The length of \p X in limbs.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if \p X_limbs does not have
+ *                  twice as many limbs as the modulus.
+ */
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *X, size_t X_limbs);
+
+#endif /* MBEDTLS_ECP_DP_SECP521R1_ENABLED */
+
+/** Initialise a modulus with hard-coded const curve data.
+ *
+ * \note            The caller is responsible for the \p N modulus' memory.
+ *                  mbedtls_mpi_mod_modulus_free(&N) should be invoked at the
+ *                  end of its lifecycle.
+ *
+ * \param[in,out] N The address of the modulus structure to populate.
+ *                  Must be initialized.
+ * \param[in] id    The mbedtls_ecp_group_id for which to initialise the modulus.
+ * \param[in] ctype The mbedtls_ecp_curve_type identifier for a coordinate modulus (P)
+ *                  or a scalar modulus (N).
+ *
+ * \return          \c 0 if successful.
+ * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if the given MPIs do not
+ *                  have the correct number of limbs.
+ *
+ */
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
+                              const mbedtls_ecp_group_id id,
+                              const mbedtls_ecp_curve_type ctype);
 
 #endif /* MBEDTLS_TEST_HOOKS && MBEDTLS_ECP_C */
 

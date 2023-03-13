@@ -61,10 +61,11 @@ The source code of Mbed TLS includes some files that are automatically generated
 The following tools are required:
 
 * Perl, for some library source files and for Visual Studio build files.
-* Python 3 and some Python packages, for some library source files, sample programs and test data. To install the necessary packages, run
+* Python 3 and some Python packages, for some library source files, sample programs and test data. To install the necessary packages, run:
     ```
-    python -m pip install -r scripts/basic.requirements.txt
+    python3 -m pip install --user -r scripts/basic.requirements.txt
     ```
+    Depending on your Python installation, you may need to invoke `python` instead of `python3`. To install the packages system-wide, omit the `--user` option.
 * A C compiler for the host platform, for some test data.
 
 If you are cross-compiling, you must set the `CC` environment variable to a C compiler for the host platform when generating the configuration-independent files.

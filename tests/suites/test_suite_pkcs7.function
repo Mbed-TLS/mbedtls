@@ -125,7 +125,8 @@ void pkcs7_verify(char *pkcs7_file,
     TEST_ASSERT(file != NULL);
 
     datalen = st.st_size;
-    ASSERT_ALLOC(data, datalen);
+    /* Special-case for zero-length input so that data will be non-NULL */
+    ASSERT_ALLOC(data, datalen == 0 ? 1 : datalen);
     buflen = fread((void *) data, sizeof(unsigned char), datalen, file);
     TEST_EQUAL(buflen, datalen);
 

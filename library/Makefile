@@ -78,6 +78,7 @@ endif
 OBJS_CRYPTO= \
 	     aes.o \
 	     aesni.o \
+	     aesce.o \
 	     aria.o \
 	     asn1parse.o \
 	     asn1write.o \
@@ -141,6 +142,7 @@ OBJS_CRYPTO= \
 	     psa_crypto_slot_management.o \
 	     psa_crypto_storage.o \
 	     psa_its_file.o \
+	     psa_util.o \
 	     ripemd160.o \
 	     rsa.o \
 	     rsa_alt_helpers.o \

@@ -48,6 +48,12 @@
 #include "mbedtls/oid.h"
 #endif
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
+                                                           psa_to_ssl_errors,             \
+                                                           psa_generic_status_to_mbedtls)
+#endif
+
 static uint32_t ssl_get_hs_total_len(mbedtls_ssl_context const *ssl);
 
 /*
@@ -879,10 +885,10 @@ int mbedtls_ssl_encrypt_buf(mbedtls_ssl_context *ssl,
 hmac_failed_etm_disabled:
         mbedtls_platform_zeroize(mac, transform->maclen);
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        ret = psa_ssl_status_to_mbedtls(status);
+        ret = PSA_TO_MBEDTLS_ERR(status);
         status = psa_mac_abort(&operation);
         if (ret == 0 && status != PSA_SUCCESS) {
-            ret = psa_ssl_status_to_mbedtls(status);
+            ret = PSA_TO_MBEDTLS_ERR(status);
         }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
         if (ret != 0) {
@@ -979,7 +985,7 @@ hmac_failed_etm_disabled:
                                   &rec->data_len);
 
         if (status != PSA_SUCCESS) {
-            ret = psa_ssl_status_to_mbedtls(status);
+            ret = PSA_TO_MBEDTLS_ERR(status);
             MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_encrypt_buf", ret);
             return ret;
         }
@@ -1089,7 +1095,7 @@ hmac_failed_etm_disabled:
                                           transform->psa_key_enc, transform->psa_alg);
 
         if (status != PSA_SUCCESS) {
-            ret = psa_ssl_status_to_mbedtls(status);
+            ret = PSA_TO_MBEDTLS_ERR(status);
             MBEDTLS_SSL_DEBUG_RET(1, "psa_cipher_encrypt_setup", ret);
             return ret;
         }
@@ -1097,7 +1103,7 @@ hmac_failed_etm_disabled:
         status = psa_cipher_set_iv(&cipher_op, transform->iv_enc, transform->ivlen);
 
         if (status != PSA_SUCCESS) {
-            ret = psa_ssl_status_to_mbedtls(status);
+            ret = PSA_TO_MBEDTLS_ERR(status);
             MBEDTLS_SSL_DEBUG_RET(1, "psa_cipher_set_iv", ret);
             return ret;
 
@@ -1108,7 +1114,7 @@ hmac_failed_etm_disabled:
                                    data, rec->data_len, &olen);
 
         if (status != PSA_SUCCESS) {
-            ret = psa_ssl_status_to_mbedtls(status);
+            ret = PSA_TO_MBEDTLS_ERR(status);
             MBEDTLS_SSL_DEBUG_RET(1, "psa_cipher_update", ret);
             return ret;
 
@@ -1119,7 +1125,7 @@ hmac_failed_etm_disabled:
                                    &part_len);
 
         if (status != PSA_SUCCESS) {
-            ret = psa_ssl_status_to_mbedtls(status);
+            ret = PSA_TO_MBEDTLS_ERR(status);
             MBEDTLS_SSL_DEBUG_RET(1, "psa_cipher_finish", ret);
             return ret;
 
@@ -1222,10 +1228,10 @@ hmac_failed_etm_disabled:
 hmac_failed_etm_enabled:
             mbedtls_platform_zeroize(mac, transform->maclen);
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-            ret = psa_ssl_status_to_mbedtls(status);
+            ret = PSA_TO_MBEDTLS_ERR(status);
             status = psa_mac_abort(&operation);
             if (ret == 0 && status != PSA_SUCCESS) {
-                ret = psa_ssl_status_to_mbedtls(status);
+                ret = PSA_TO_MBEDTLS_ERR(status);
             }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
             if (ret != 0) {
@@ -1399,7 +1405,7 @@ int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
                                   &olen);
 
         if (status != PSA_SUCCESS) {
-            ret = psa_ssl_status_to_mbedtls(status);
+            ret = PSA_TO_MBEDTLS_ERR(status);
             MBEDTLS_SSL_DEBUG_RET(1, "psa_aead_decrypt", ret);
             return ret;
         }
@@ -1571,10 +1577,10 @@ int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
 
 hmac_failed_etm_enabled:
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-            ret = psa_ssl_status_to_mbedtls(status);
+            ret = PSA_TO_MBEDTLS_ERR(status);
             status = psa_mac_abort(&operation);
             if (ret == 0 && status != PSA_SUCCESS) {
-                ret = psa_ssl_status_to_mbedtls(status);
+                ret = PSA_TO_MBEDTLS_ERR(status);
             }
 #else
             mbedtls_platform_zeroize(mac_expect, transform->maclen);
@@ -1621,7 +1627,7 @@ hmac_failed_etm_enabled:
                                           transform->psa_key_dec, transform->psa_alg);
 
         if (status != PSA_SUCCESS) {
-            ret = psa_ssl_status_to_mbedtls(status);
+            ret = PSA_TO_MBEDTLS_ERR(status);
             MBEDTLS_SSL_DEBUG_RET(1, "psa_cipher_decrypt_setup", ret);
             return ret;
         }
@@ -1629,7 +1635,7 @@ hmac_failed_etm_enabled:
         status = psa_cipher_set_iv(&cipher_op, transform->iv_dec, transform->ivlen);
 
         if (status != PSA_SUCCESS) {
-            ret = psa_ssl_status_to_mbedtls(status);
+            ret = PSA_TO_MBEDTLS_ERR(status);
             MBEDTLS_SSL_DEBUG_RET(1, "psa_cipher_set_iv", ret);
             return ret;
         }
@@ -1639,7 +1645,7 @@ hmac_failed_etm_enabled:
                                    data, rec->data_len, &olen);
 
         if (status != PSA_SUCCESS) {
-            ret = psa_ssl_status_to_mbedtls(status);
+            ret = PSA_TO_MBEDTLS_ERR(status);
             MBEDTLS_SSL_DEBUG_RET(1, "psa_cipher_update", ret);
             return ret;
         }
@@ -1649,7 +1655,7 @@ hmac_failed_etm_enabled:
                                    &part_len);
 
         if (status != PSA_SUCCESS) {
-            ret = psa_ssl_status_to_mbedtls(status);
+            ret = PSA_TO_MBEDTLS_ERR(status);
             MBEDTLS_SSL_DEBUG_RET(1, "psa_cipher_finish", ret);
             return ret;
         }
@@ -2639,7 +2645,12 @@ int mbedtls_ssl_write_handshake_msg_ext(mbedtls_ssl_context *ssl,
 
         /* Update running hashes of handshake messages seen */
         if (hs_type != MBEDTLS_SSL_HS_HELLO_REQUEST && update_checksum != 0) {
-            ssl->handshake->update_checksum(ssl, ssl->out_msg, ssl->out_msglen);
+            ret = ssl->handshake->update_checksum(ssl, ssl->out_msg,
+                                                  ssl->out_msglen);
+            if (ret != 0) {
+                MBEDTLS_SSL_DEBUG_RET(1, "update_checksum", ret);
+                return ret;
+            }
         }
     }
 
@@ -3067,12 +3078,17 @@ int mbedtls_ssl_prepare_handshake_record(mbedtls_ssl_context *ssl)
     return 0;
 }
 
-void mbedtls_ssl_update_handshake_status(mbedtls_ssl_context *ssl)
+int mbedtls_ssl_update_handshake_status(mbedtls_ssl_context *ssl)
 {
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ssl_handshake_params * const hs = ssl->handshake;
 
     if (mbedtls_ssl_is_handshake_over(ssl) == 0 && hs != NULL) {
-        ssl->handshake->update_checksum(ssl, ssl->in_msg, ssl->in_hslen);
+        ret = ssl->handshake->update_checksum(ssl, ssl->in_msg, ssl->in_hslen);
+        if (ret != 0) {
+            MBEDTLS_SSL_DEBUG_RET(1, "update_checksum", ret);
+            return ret;
+        }
     }
 
     /* Handshake message is complete, increment counter */
@@ -3103,6 +3119,7 @@ void mbedtls_ssl_update_handshake_status(mbedtls_ssl_context *ssl)
         memset(hs_buf, 0, sizeof(mbedtls_ssl_hs_buffer));
     }
 #endif
+    return 0;
 }
 
 /*
@@ -3928,7 +3945,11 @@ int mbedtls_ssl_read_record(mbedtls_ssl_context *ssl,
 
         if (ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE &&
             update_hs_digest == 1) {
-            mbedtls_ssl_update_handshake_status(ssl);
+            ret = mbedtls_ssl_update_handshake_status(ssl);
+            if (0 != ret) {
+                MBEDTLS_SSL_DEBUG_RET(1, ("mbedtls_ssl_update_handshake_status"), ret);
+                return ret;
+            }
         }
     } else {
         MBEDTLS_SSL_DEBUG_MSG(2, ("reuse previously read message"));
@@ -5578,8 +5599,10 @@ int mbedtls_ssl_read(mbedtls_ssl_context *ssl, unsigned char *buf, size_t len)
     n = (len < ssl->in_msglen)
         ? len : ssl->in_msglen;
 
-    memcpy(buf, ssl->in_offt, n);
-    ssl->in_msglen -= n;
+    if (len != 0) {
+        memcpy(buf, ssl->in_offt, n);
+        ssl->in_msglen -= n;
+    }
 
     /* Zeroising the plaintext buffer to erase unused application data
        from the memory. */
@@ -5655,7 +5678,9 @@ static int ssl_write_real(mbedtls_ssl_context *ssl,
          */
         ssl->out_msglen  = len;
         ssl->out_msgtype = MBEDTLS_SSL_MSG_APPLICATION_DATA;
-        memcpy(ssl->out_msg, buf, len);
+        if (len > 0) {
+            memcpy(ssl->out_msg, buf, len);
+        }
 
         if ((ret = mbedtls_ssl_write_record(ssl, SSL_FORCE_FLUSH)) != 0) {
             MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_write_record", ret);

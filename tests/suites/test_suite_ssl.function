@@ -18,6 +18,12 @@
 #include <constant_time_internal.h>
 #include <test/constant_flow.h>
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status, \
+                                                           psa_to_ssl_errors, \
+                                                           psa_generic_status_to_mbedtls)
+#endif
+
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) || \
     defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
@@ -1159,6 +1165,12 @@ int mbedtls_ssl_write_fragment(mbedtls_ssl_context *ssl, unsigned char *buf,
                                int buf_len, int *written,
                                const int expected_fragments)
 {
+    /* Verify that calling mbedtls_ssl_write with a NULL buffer and zero length is
+     * a valid no-op for TLS connections. */
+    if (ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
+        TEST_ASSERT(mbedtls_ssl_write(ssl, NULL, 0) == 0);
+    }
+
     int ret = mbedtls_ssl_write(ssl, buf + *written, buf_len - *written);
     if (ret > 0) {
         *written += ret;
@@ -1197,6 +1209,12 @@ int mbedtls_ssl_read_fragment(mbedtls_ssl_context *ssl, unsigned char *buf,
                               int buf_len, int *read,
                               int *fragments, const int expected_fragments)
 {
+    /* Verify that calling mbedtls_ssl_write with a NULL buffer and zero length is
+     * a valid no-op for TLS connections. */
+    if (ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
+        TEST_ASSERT(mbedtls_ssl_read(ssl, NULL, 0) == 0);
+    }
+
     int ret = mbedtls_ssl_read(ssl, buf + *read, buf_len - *read);
     if (ret > 0) {
         (*fragments)++;
@@ -1299,27 +1317,27 @@ static int psa_cipher_encrypt_helper(mbedtls_ssl_transform *transform,
                                       transform->psa_key_enc, transform->psa_alg);
 
     if (status != PSA_SUCCESS) {
-        return psa_ssl_status_to_mbedtls(status);
+        return PSA_TO_MBEDTLS_ERR(status);
     }
 
     status = psa_cipher_set_iv(&cipher_op, iv, iv_len);
 
     if (status != PSA_SUCCESS) {
-        return psa_ssl_status_to_mbedtls(status);
+        return PSA_TO_MBEDTLS_ERR(status);
     }
 
     status = psa_cipher_update(&cipher_op,
                                input, ilen, output, ilen, olen);
 
     if (status != PSA_SUCCESS) {
-        return psa_ssl_status_to_mbedtls(status);
+        return PSA_TO_MBEDTLS_ERR(status);
     }
 
     status = psa_cipher_finish(&cipher_op,
                                output + *olen, ilen - *olen, &part_len);
 
     if (status != PSA_SUCCESS) {
-        return psa_ssl_status_to_mbedtls(status);
+        return PSA_TO_MBEDTLS_ERR(status);
     }
 
     *olen += part_len;
@@ -1614,7 +1632,7 @@ static int build_transforms(mbedtls_ssl_transform *t_in,
                                        &key_bits);
 
     if (status != PSA_SUCCESS) {
-        ret = psa_ssl_status_to_mbedtls(status);
+        ret = PSA_TO_MBEDTLS_ERR(status);
         goto cleanup;
     }
 
@@ -1633,7 +1651,7 @@ static int build_transforms(mbedtls_ssl_transform *t_in,
                                 &t_in->psa_key_enc);
 
         if (status != PSA_SUCCESS) {
-            ret = psa_ssl_status_to_mbedtls(status);
+            ret = PSA_TO_MBEDTLS_ERR(status);
             goto cleanup;
         }
 
@@ -1643,7 +1661,7 @@ static int build_transforms(mbedtls_ssl_transform *t_in,
                                 &t_out->psa_key_enc);
 
         if (status != PSA_SUCCESS) {
-            ret = psa_ssl_status_to_mbedtls(status);
+            ret = PSA_TO_MBEDTLS_ERR(status);
             goto cleanup;
         }
 
@@ -1655,7 +1673,7 @@ static int build_transforms(mbedtls_ssl_transform *t_in,
                                 &t_in->psa_key_dec);
 
         if (status != PSA_SUCCESS) {
-            ret = psa_ssl_status_to_mbedtls(status);
+            ret = PSA_TO_MBEDTLS_ERR(status);
             goto cleanup;
         }
 
@@ -1665,7 +1683,7 @@ static int build_transforms(mbedtls_ssl_transform *t_in,
                                 &t_out->psa_key_dec);
 
         if (status != PSA_SUCCESS) {
-            ret = psa_ssl_status_to_mbedtls(status);
+            ret = PSA_TO_MBEDTLS_ERR(status);
             goto cleanup;
         }
     }
@@ -1735,7 +1753,7 @@ static int ssl_tls12_populate_session(mbedtls_ssl_session *session,
                                                session->peer_cert_digest,
                                                MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN,
                                                &hash_size);
-        ret = psa_ssl_status_to_mbedtls(status);
+        ret = PSA_TO_MBEDTLS_ERR(status);
 #else
         ret = mbedtls_md(mbedtls_md_info_from_type(
                              MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE),
@@ -5679,7 +5697,7 @@ void cid_sanity()
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_ECDSA_C */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_PK_CAN_ECDSA_SOME */
 void raw_key_agreement_fail(int bad_server_ecdhe_key)
 {
     enum { BUFFSIZE = 17000 };

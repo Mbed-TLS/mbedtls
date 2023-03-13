@@ -69,6 +69,8 @@ int main(void)
 #include "test/psa_crypto_helpers.h"
 #endif
 
+#include "mbedtls/pk.h"
+
 /* Size of memory to be allocated for the heap, when using the library's memory
  * management and MBEDTLS_MEMORY_BUFFER_ALLOC_C is enabled. */
 #define MEMORY_HEAP_SIZE        120000
@@ -2652,7 +2654,7 @@ usage:
         }
         key_cert_init = 2;
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
         if ((ret = mbedtls_x509_crt_parse(&srvcert2,
                                           (const unsigned char *) mbedtls_test_srv_crt_ec,
                                           mbedtls_test_srv_crt_ec_len)) != 0) {
@@ -2669,7 +2671,7 @@ usage:
             goto exit;
         }
         key_cert_init2 = 2;
-#endif /* MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_PK_CAN_ECDSA_SOME */
     }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)

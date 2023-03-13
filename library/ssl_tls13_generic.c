@@ -36,6 +36,13 @@
 #include "ssl_tls13_keys.h"
 #include "ssl_debug_helpers.h"
 
+#include "psa/crypto.h"
+#include "mbedtls/psa_util.h"
+
+#define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
+                                                           psa_to_ssl_errors,             \
+                                                           psa_generic_status_to_mbedtls)
+
 const uint8_t mbedtls_ssl_tls13_hello_retry_request_magic[
     MBEDTLS_SERVER_HELLO_RANDOM_LEN] =
 { 0xCF, 0x21, 0xAD, 0x74, 0xE5, 0x9A, 0x61, 0x11,
@@ -322,8 +329,9 @@ int mbedtls_ssl_tls13_process_certificate_verify(mbedtls_ssl_context *ssl)
                                                             buf + buf_len, verify_buffer,
                                                             verify_buffer_len));
 
-    mbedtls_ssl_add_hs_msg_to_checksum(ssl, MBEDTLS_SSL_HS_CERTIFICATE_VERIFY,
-                                       buf, buf_len);
+    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(ssl,
+                                                            MBEDTLS_SSL_HS_CERTIFICATE_VERIFY,
+                                                            buf, buf_len));
 
 cleanup:
 
@@ -752,8 +760,9 @@ int mbedtls_ssl_tls13_process_certificate(mbedtls_ssl_context *ssl)
     /* Validate the certificate chain and set the verification results. */
     MBEDTLS_SSL_PROC_CHK(ssl_tls13_validate_certificate(ssl));
 
-    mbedtls_ssl_add_hs_msg_to_checksum(ssl, MBEDTLS_SSL_HS_CERTIFICATE,
-                                       buf, buf_len);
+    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(ssl,
+                                                            MBEDTLS_SSL_HS_CERTIFICATE, buf,
+                                                            buf_len));
 
 cleanup:
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
@@ -868,8 +877,9 @@ int mbedtls_ssl_tls13_write_certificate(mbedtls_ssl_context *ssl)
                                                           buf + buf_len,
                                                           &msg_len));
 
-    mbedtls_ssl_add_hs_msg_to_checksum(ssl, MBEDTLS_SSL_HS_CERTIFICATE,
-                                       buf, msg_len);
+    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(ssl,
+                                                            MBEDTLS_SSL_HS_CERTIFICATE, buf,
+                                                            msg_len));
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_finish_handshake_msg(
                              ssl, buf_len, msg_len));
@@ -1013,7 +1023,7 @@ static int ssl_tls13_write_certificate_verify_body(mbedtls_ssl_context *ssl,
                                   verify_hash, sizeof(verify_hash),
                                   &verify_hash_len);
         if (status != PSA_SUCCESS) {
-            return psa_ssl_status_to_mbedtls(status);
+            return PSA_TO_MBEDTLS_ERR(status);
         }
 
         MBEDTLS_SSL_DEBUG_BUF(3, "verify hash", verify_hash, verify_hash_len);
@@ -1070,8 +1080,9 @@ int mbedtls_ssl_tls13_write_certificate_verify(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_PROC_CHK(ssl_tls13_write_certificate_verify_body(
                              ssl, buf, buf + buf_len, &msg_len));
 
-    mbedtls_ssl_add_hs_msg_to_checksum(ssl, MBEDTLS_SSL_HS_CERTIFICATE_VERIFY,
-                                       buf, msg_len);
+    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(ssl,
+                                                            MBEDTLS_SSL_HS_CERTIFICATE_VERIFY, buf,
+                                                            msg_len));
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_finish_handshake_msg(
                              ssl, buf_len, msg_len));
@@ -1171,8 +1182,8 @@ int mbedtls_ssl_tls13_process_finished_message(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_PROC_CHK(ssl_tls13_parse_finished_message(ssl, buf, buf + buf_len));
 
-    mbedtls_ssl_add_hs_msg_to_checksum(ssl, MBEDTLS_SSL_HS_FINISHED,
-                                       buf, buf_len);
+    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(ssl,
+                                                            MBEDTLS_SSL_HS_FINISHED, buf, buf_len));
 
 cleanup:
 
@@ -1248,8 +1259,8 @@ int mbedtls_ssl_tls13_write_finished_message(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_PROC_CHK(ssl_tls13_write_finished_message_body(
                              ssl, buf, buf + buf_len, &msg_len));
 
-    mbedtls_ssl_add_hs_msg_to_checksum(ssl, MBEDTLS_SSL_HS_FINISHED,
-                                       buf, msg_len);
+    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(ssl,
+                                                            MBEDTLS_SSL_HS_FINISHED, buf, msg_len));
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_finish_handshake_msg(
                              ssl, buf_len, msg_len));
@@ -1388,7 +1399,7 @@ int mbedtls_ssl_reset_transcript_for_hrr(mbedtls_ssl_context *ssl)
                                                PSA_HASH_MAX_SIZE,
                                                &hash_len);
     if (ret != 0) {
-        MBEDTLS_SSL_DEBUG_RET(4, "mbedtls_ssl_get_handshake_transcript", ret);
+        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_get_handshake_transcript", ret);
         return ret;
     }
 
@@ -1399,37 +1410,20 @@ int mbedtls_ssl_reset_transcript_for_hrr(mbedtls_ssl_context *ssl)
 
     hash_len += 4;
 
-#if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
-    if (ciphersuite_info->mac == MBEDTLS_MD_SHA256) {
-        MBEDTLS_SSL_DEBUG_BUF(4, "Truncated SHA-256 handshake transcript",
-                              hash_transcript, hash_len);
+    MBEDTLS_SSL_DEBUG_BUF(4, "Truncated handshake transcript",
+                          hash_transcript, hash_len);
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-        psa_hash_abort(&ssl->handshake->fin_sha256_psa);
-        psa_hash_setup(&ssl->handshake->fin_sha256_psa, PSA_ALG_SHA_256);
-#else
-        mbedtls_sha256_starts(&ssl->handshake->fin_sha256, 0);
-#endif
+    /* Reset running hash and replace it with a hash of the transcript */
+    ret = mbedtls_ssl_reset_checksum(ssl);
+    if (ret != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_reset_checksum", ret);
+        return ret;
     }
-#endif /* MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
-#if defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
-    if (ciphersuite_info->mac == MBEDTLS_MD_SHA384) {
-        MBEDTLS_SSL_DEBUG_BUF(4, "Truncated SHA-384 handshake transcript",
-                              hash_transcript, hash_len);
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-        psa_hash_abort(&ssl->handshake->fin_sha384_psa);
-        psa_hash_setup(&ssl->handshake->fin_sha384_psa, PSA_ALG_SHA_384);
-#else
-        mbedtls_sha512_starts(&ssl->handshake->fin_sha384, 1);
-#endif
+    ret = ssl->handshake->update_checksum(ssl, hash_transcript, hash_len);
+    if (ret != 0) {
+        MBEDTLS_SSL_DEBUG_RET(1, "update_checksum", ret);
+        return ret;
     }
-#endif /* MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
-#if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA) || \
-    defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
-    ssl->handshake->update_checksum(ssl, hash_transcript, hash_len);
-#endif \
-    /* MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA || MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
 
     return ret;
 }
@@ -1495,7 +1489,7 @@ int mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
     status = psa_generate_key(&key_attributes,
                               &handshake->ecdh_psa_privkey);
     if (status != PSA_SUCCESS) {
-        ret = psa_ssl_status_to_mbedtls(status);
+        ret = PSA_TO_MBEDTLS_ERR(status);
         MBEDTLS_SSL_DEBUG_RET(1, "psa_generate_key", ret);
         return ret;
 
@@ -1506,7 +1500,7 @@ int mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
                                    buf, (size_t) (end - buf),
                                    &own_pubkey_len);
     if (status != PSA_SUCCESS) {
-        ret = psa_ssl_status_to_mbedtls(status);
+        ret = PSA_TO_MBEDTLS_ERR(status);
         MBEDTLS_SSL_DEBUG_RET(1, "psa_export_public_key", ret);
         return ret;
 

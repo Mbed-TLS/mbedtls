@@ -13,6 +13,7 @@ endif()
 set(src_crypto
     aes.c
     aesni.c
+    aesce.c
     aria.c
     asn1parse.c
     asn1write.c
@@ -76,6 +77,7 @@ set(src_crypto
     psa_crypto_slot_management.c
     psa_crypto_storage.c
     psa_its_file.c
+    psa_util.c
     ripemd160.c
     rsa.c
     rsa_alt_helpers.c

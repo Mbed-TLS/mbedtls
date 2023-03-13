@@ -41,6 +41,13 @@
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 #include "mbedtls/psa_util.h"
+#define PSA_PK_TO_MBEDTLS_ERR(status) psa_pk_status_to_mbedtls(status)
+#define PSA_PK_RSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,     \
+                                                                  psa_to_pk_rsa_errors,            \
+                                                                  psa_pk_status_to_mbedtls)
+#define PSA_PK_ECDSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
+                                                                    psa_to_pk_ecdsa_errors,        \
+                                                                    psa_pk_status_to_mbedtls)
 #endif
 
 #include <limits.h>
@@ -540,7 +547,7 @@ int mbedtls_pk_verify_ext(mbedtls_pk_type_t type, const void *options,
                                 &key_id);
         if (status != PSA_SUCCESS) {
             psa_destroy_key(key_id);
-            return mbedtls_pk_error_from_psa(status);
+            return PSA_PK_TO_MBEDTLS_ERR(status);
         }
 
         /* This function requires returning MBEDTLS_ERR_PK_SIG_LEN_MISMATCH
@@ -562,7 +569,7 @@ int mbedtls_pk_verify_ext(mbedtls_pk_type_t type, const void *options,
             status = destruction_status;
         }
 
-        return mbedtls_pk_error_from_psa_rsa(status);
+        return PSA_PK_RSA_TO_MBEDTLS_ERR(status);
     } else
 #endif
     {
@@ -700,7 +707,7 @@ int mbedtls_pk_sign_ext(mbedtls_pk_type_t pk_type,
         status = psa_sign_hash(*key, PSA_ALG_RSA_PSS(psa_md_alg),
                                hash, hash_len,
                                sig, sig_size, sig_len);
-        return mbedtls_pk_error_from_psa_rsa(status);
+        return PSA_PK_RSA_TO_MBEDTLS_ERR(status);
     }
 
     return mbedtls_pk_psa_rsa_sign_ext(PSA_ALG_RSA_PSS(psa_md_alg),
@@ -896,7 +903,7 @@ int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
         /* import private key into PSA */
         status = psa_import_key(&attributes, d, d_len, key);
         if (status != PSA_SUCCESS) {
-            return mbedtls_pk_error_from_psa(status);
+            return PSA_PK_TO_MBEDTLS_ERR(status);
         }
 
         /* make PK context wrap the key slot */
@@ -936,7 +943,7 @@ int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
         mbedtls_platform_zeroize(buf, sizeof(buf));
 
         if (status != PSA_SUCCESS) {
-            return mbedtls_pk_error_from_psa(status);
+            return PSA_PK_TO_MBEDTLS_ERR(status);
         }
 
         /* make PK context wrap the key slot */

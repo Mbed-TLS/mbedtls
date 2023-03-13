@@ -141,6 +141,15 @@ typedef enum {
     MBEDTLS_ECP_TYPE_MONTGOMERY,           /* y^2 = x^3 + a x^2 + x    */
 } mbedtls_ecp_curve_type;
 
+/*
+ * Curve modulus types
+ */
+typedef enum {
+    MBEDTLS_ECP_MOD_NONE = 0,
+    MBEDTLS_ECP_MOD_COORDINATE,
+    MBEDTLS_ECP_MOD_SCALAR
+} mbedtls_ecp_modulus_type;
+
 /**
  * Curve information, for use by other modules.
  *
@@ -471,6 +480,12 @@ mbedtls_ecp_keypair;
  *                  that context. For function in the SSL module, restart is
  *                  only enabled for specific sides and key exchanges
  *                  (currently only for clients and ECDHE-ECDSA).
+ *
+ * \warning         Using the PSA interruptible interfaces with keys in local
+ *                  storage and no accelerator driver will also call this
+ *                  function to set the values specified via those interfaces,
+ *                  overwriting values previously set. Care should be taken if
+ *                  mixing these two interfaces.
  *
  * \param max_ops   Maximum number of basic operations done in a row.
  *                  Default: 0 (unlimited).

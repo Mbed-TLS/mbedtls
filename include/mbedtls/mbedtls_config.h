@@ -705,7 +705,7 @@
  * - Changes the behaviour of TLS 1.2 clients (not servers) when using the
  *   ECDHE-ECDSA key exchange (not other key exchanges) to make all ECC
  *   computations restartable:
- *   - ECDH operations from the key exchange, only for Short Weierstass
+ *   - ECDH operations from the key exchange, only for Short Weierstrass
  *     curves, only when MBEDTLS_USE_PSA_CRYPTO is not enabled.
  *   - verification of the server's key exchange signature;
  *   - verification of the server's certificate chain;
@@ -1578,11 +1578,14 @@
  * Requires: MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
  * Requires: MBEDTLS_PSA_CRYPTO_C
  *
- * Note: even though TLS 1.3 depends on PSA Crypto, and uses it unconditionally
- * for most operations, if you want it to only use PSA for all crypto
- * operations, you need to also enable MBEDTLS_USE_PSA_CRYPTO; otherwise X.509
- * operations, and functions that are common with TLS 1.2 (record protection,
- * running handshake hash) will still use non-PSA crypto.
+ * \note TLS 1.3 uses PSA crypto for cryptographic operations that are
+ *       directly performed by TLS 1.3 code. As a consequence, you must
+ *       call psa_crypto_init() before the first TLS 1.3 handshake.
+ *
+ * \note Cryptographic operations performed indirectly via another module
+ *       (X.509, PK) or by code shared with TLS 1.2 (record protection,
+ *       running handshake hash) only use PSA crypto if
+ *       #MBEDTLS_USE_PSA_CRYPTO is enabled.
  *
  * Uncomment this macro to enable the support for TLS 1.3.
  */
@@ -1650,45 +1653,6 @@
  *
  */
 #define MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-
-/**
- * \def MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE
- *
- * Maximum time difference in milliseconds tolerated between the age of a
- * ticket from the server and client point of view.
- * From the client point of view, the age of a ticket is the time difference
- * between the time when the client proposes to the server to use the ticket
- * (time of writing of the Pre-Shared Key Extension including the ticket) and
- * the time the client received the ticket from the server.
- * From the server point of view, the age of a ticket is the time difference
- * between the time when the server receives a proposition from the client
- * to use the ticket and the time when the ticket was created by the server.
- * The server age is expected to be always greater than the client one and
- * MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE defines the
- * maximum difference tolerated for the server to accept the ticket.
- * This is not used in TLS 1.2.
- *
- */
-#define MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE 6000
-
-/**
- * \def MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH
- *
- * Size in bytes of a ticket nonce. This is not used in TLS 1.2.
- *
- * This must be less than 256.
- */
-#define MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH 32
-
-/**
- * \def MBEDTLS_SSL_TLS1_3_DEFAULT_NEW_SESSION_TICKETS
- *
- * Default number of NewSessionTicket messages to be sent by a TLS 1.3 server
- * after handshake completion. This is not used in TLS 1.2 and relevant only if
- * the MBEDTLS_SSL_SESSION_TICKETS option is enabled.
- *
- */
-#define MBEDTLS_SSL_TLS1_3_DEFAULT_NEW_SESSION_TICKETS 1
 
 /**
  * \def MBEDTLS_SSL_EARLY_DATA
@@ -2064,6 +2028,34 @@
  * This modules adds support for the AES-NI instructions on x86-64
  */
 #define MBEDTLS_AESNI_C
+
+/**
+ * \def MBEDTLS_AESCE_C
+ *
+ * Enable AES crypto extension support on Arm64.
+ *
+ * Module:  library/aesce.c
+ * Caller:  library/aes.c
+ *
+ * Requires: MBEDTLS_HAVE_ASM, MBEDTLS_AES_C
+ *
+ * \note The code uses Neon intrinsics, so \c CFLAGS must be set to a minimum
+ * of \c -march=armv8-a+crypto .
+ *
+ * \warning If the target architecture is set to something that includes the
+ *          SHA3 feature (e.g. `-march=armv8.2-a+sha3`), for example because
+ *          `MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT` is desired, compilers
+ *          generate code for `MBEDTLS_AESCE_C` that includes instructions
+ *          only present with the (optional) SHA3 feature. This will lead to an
+ *          undefined instruction exception if the code is run on a CPU without
+ *          that feature.
+ *
+ * \warning Runtime detection only works on linux. For non-linux operation
+ *          system, crypto extension MUST be supported by CPU.
+ *
+ * This module adds support for the AES crypto instructions on Arm64
+ */
+#define MBEDTLS_AESCE_C
 
 /**
  * \def MBEDTLS_AES_C
@@ -2643,7 +2635,7 @@
 /**
  * \def MBEDTLS_MD_C
  *
- * Enable the generic message digest layer.
+ * Enable the generic layer for message digest (hashing) and HMAC.
  *
  * Requires: one of: MBEDTLS_MD5_C, MBEDTLS_RIPEMD160_C, MBEDTLS_SHA1_C,
  *                   MBEDTLS_SHA224_C, MBEDTLS_SHA256_C, MBEDTLS_SHA384_C,
@@ -3087,9 +3079,6 @@
  * \note If MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT is defined when building
  * for a non-Aarch64 build it will be silently ignored.
  *
- * \note The code uses Neon intrinsics, so \c CFLAGS must be set to a minimum
- * of \c -march=armv8-a+crypto.
- *
  * \warning MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT cannot be defined at the
  * same time as MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY.
  *
@@ -3111,9 +3100,6 @@
  *
  * \note This allows builds with a smaller code size than with
  * MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
- *
- * \note The code uses Neon intrinsics, so \c CFLAGS must be set to a minimum
- * of \c -march=armv8-a+crypto.
  *
  * \warning MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY cannot be defined at the same
  * time as MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT.
@@ -3169,9 +3155,7 @@
  * for a non-Aarch64 build it will be silently ignored.
  *
  * \note The code uses the SHA-512 Neon intrinsics, so requires GCC >= 8 or
- * Clang >= 7, and \c CFLAGS must be set to a minimum of
- * \c -march=armv8.2-a+sha3. An optimisation level of \c -O3 generates the
- * fastest code.
+ * Clang >= 7.
  *
  * \warning MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT cannot be defined at the
  * same time as MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY.
@@ -3196,9 +3180,7 @@
  * MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
  *
  * \note The code uses the SHA-512 Neon intrinsics, so requires GCC >= 8 or
- * Clang >= 7, and \c CFLAGS must be set to a minimum of
- * \c -march=armv8.2-a+sha3. An optimisation level of \c -O3 generates the
- * fastest code.
+ * Clang >= 7.
  *
  * \warning MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY cannot be defined at the same
  * time as MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT.
@@ -3537,6 +3519,53 @@
  */
 //#define MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE "/dev/null"
 
+/**
+ * \def MBEDTLS_PSA_CRYPTO_PLATFORM_FILE
+ *
+ * If defined, this is a header which will be included instead of
+ * `"psa/crypto_platform.h"`. This file should declare the same identifiers
+ * as the one in Mbed TLS, but with definitions adapted to the platform on
+ * which the library code will run.
+ *
+ * \note The required content of this header can vary from one version of
+ *       Mbed TLS to the next. Integrators who provide an alternative file
+ *       should review the changes in the original file whenever they
+ *       upgrade Mbed TLS.
+ *
+ * This macro is expanded after an <tt>\#include</tt> directive. This is a popular but
+ * non-standard feature of the C language, so this feature is only available
+ * with compilers that perform macro expansion on an <tt>\#include</tt> line.
+ *
+ * The value of this symbol is typically a path in double quotes, either
+ * absolute or relative to a directory on the include search path.
+ */
+//#define MBEDTLS_PSA_CRYPTO_PLATFORM_FILE "psa/crypto_platform_alt.h"
+
+/**
+ * \def MBEDTLS_PSA_CRYPTO_STRUCT_FILE
+ *
+ * If defined, this is a header which will be included instead of
+ * `"psa/crypto_struct.h"`. This file should declare the same identifiers
+ * as the one in Mbed TLS, but with definitions adapted to the environment
+ * in which the library code will run. The typical use for this feature
+ * is to provide alternative type definitions on the client side in
+ * client-server integrations of PSA crypto, where operation structures
+ * contain handles instead of cryptographic data.
+ *
+ * \note The required content of this header can vary from one version of
+ *       Mbed TLS to the next. Integrators who provide an alternative file
+ *       should review the changes in the original file whenever they
+ *       upgrade Mbed TLS.
+ *
+ * This macro is expanded after an <tt>\#include</tt> directive. This is a popular but
+ * non-standard feature of the C language, so this feature is only available
+ * with compilers that perform macro expansion on an <tt>\#include</tt> line.
+ *
+ * The value of this symbol is typically a path in double quotes, either
+ * absolute or relative to a directory on the include search path.
+ */
+//#define MBEDTLS_PSA_CRYPTO_STRUCT_FILE "psa/crypto_struct_alt.h"
+
 /** \} name SECTION: General configuration options */
 
 /**
@@ -3559,7 +3588,7 @@
  * comment in the specific module. */
 
 /* MPI / BIGNUM options */
-//#define MBEDTLS_MPI_WINDOW_SIZE            6 /**< Maximum window size used. */
+//#define MBEDTLS_MPI_WINDOW_SIZE            2 /**< Maximum window size used. */
 //#define MBEDTLS_MPI_MAX_SIZE            1024 /**< Maximum number of bytes for usable MPIs. */
 
 /* CTR_DRBG options */
@@ -3777,6 +3806,45 @@
  * The value below is only an example, not the default.
  */
 //#define MBEDTLS_SSL_CIPHERSUITES MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+
+/**
+ * \def MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE
+ *
+ * Maximum time difference in milliseconds tolerated between the age of a
+ * ticket from the server and client point of view.
+ * From the client point of view, the age of a ticket is the time difference
+ * between the time when the client proposes to the server to use the ticket
+ * (time of writing of the Pre-Shared Key Extension including the ticket) and
+ * the time the client received the ticket from the server.
+ * From the server point of view, the age of a ticket is the time difference
+ * between the time when the server receives a proposition from the client
+ * to use the ticket and the time when the ticket was created by the server.
+ * The server age is expected to be always greater than the client one and
+ * MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE defines the
+ * maximum difference tolerated for the server to accept the ticket.
+ * This is not used in TLS 1.2.
+ *
+ */
+#define MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE 6000
+
+/**
+ * \def MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH
+ *
+ * Size in bytes of a ticket nonce. This is not used in TLS 1.2.
+ *
+ * This must be less than 256.
+ */
+#define MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH 32
+
+/**
+ * \def MBEDTLS_SSL_TLS1_3_DEFAULT_NEW_SESSION_TICKETS
+ *
+ * Default number of NewSessionTicket messages to be sent by a TLS 1.3 server
+ * after handshake completion. This is not used in TLS 1.2 and relevant only if
+ * the MBEDTLS_SSL_SESSION_TICKETS option is enabled.
+ *
+ */
+#define MBEDTLS_SSL_TLS1_3_DEFAULT_NEW_SESSION_TICKETS 1
 
 /* X509 options */
 //#define MBEDTLS_X509_MAX_INTERMEDIATE_CA   8   /**< Maximum number of intermediate CAs in a verification chain. */

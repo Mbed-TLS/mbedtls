@@ -137,26 +137,30 @@ extern const mbedtls_pk_info_t mbedtls_rsa_alt_info;
 extern const mbedtls_pk_info_t mbedtls_pk_ecdsa_opaque_info;
 extern const mbedtls_pk_info_t mbedtls_pk_rsa_opaque_info;
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 #if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-int mbedtls_pk_error_from_psa_ecdsa(psa_status_t status);
+int MBEDTLS_DEPRECATED mbedtls_pk_error_from_psa_ecdsa(psa_status_t status);
+#endif
 #endif
 
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
-int mbedtls_pk_error_from_psa(psa_status_t status);
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+int MBEDTLS_DEPRECATED mbedtls_pk_error_from_psa(psa_status_t status);
 
 #if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY) ||    \
     defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR)
-int mbedtls_pk_error_from_psa_rsa(psa_status_t status);
+int MBEDTLS_DEPRECATED mbedtls_pk_error_from_psa_rsa(psa_status_t status);
 #endif /* PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY || PSA_WANT_KEY_TYPE_RSA_KEY_PAIR */
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 #if defined(MBEDTLS_RSA_C)
-int  mbedtls_pk_psa_rsa_sign_ext(psa_algorithm_t psa_alg_md,
-                                 mbedtls_rsa_context *rsa_ctx,
-                                 const unsigned char *hash, size_t hash_len,
-                                 unsigned char *sig, size_t sig_size,
-                                 size_t *sig_len);
+int mbedtls_pk_psa_rsa_sign_ext(psa_algorithm_t psa_alg_md,
+                                mbedtls_rsa_context *rsa_ctx,
+                                const unsigned char *hash, size_t hash_len,
+                                unsigned char *sig, size_t sig_size,
+                                size_t *sig_len);
 #endif /* MBEDTLS_RSA_C */
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

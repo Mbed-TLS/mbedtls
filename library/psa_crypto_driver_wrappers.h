@@ -67,6 +67,43 @@ psa_status_t psa_driver_wrapper_verify_hash(
     const uint8_t *signature, size_t signature_length);
 
 /*
+ * Interruptible Signature functions
+ */
+
+uint32_t psa_driver_wrapper_sign_hash_get_num_ops(
+    psa_sign_hash_interruptible_operation_t *operation);
+
+uint32_t psa_driver_wrapper_verify_hash_get_num_ops(
+    psa_verify_hash_interruptible_operation_t *operation);
+
+psa_status_t psa_driver_wrapper_sign_hash_start(
+    psa_sign_hash_interruptible_operation_t *operation,
+    const psa_key_attributes_t *attributes, const uint8_t *key_buffer,
+    size_t key_buffer_size, psa_algorithm_t alg,
+    const uint8_t *hash, size_t hash_length);
+
+psa_status_t psa_driver_wrapper_sign_hash_complete(
+    psa_sign_hash_interruptible_operation_t *operation,
+    uint8_t *signature, size_t signature_size,
+    size_t *signature_length);
+
+psa_status_t psa_driver_wrapper_sign_hash_abort(
+    psa_sign_hash_interruptible_operation_t *operation);
+
+psa_status_t psa_driver_wrapper_verify_hash_start(
+    psa_verify_hash_interruptible_operation_t *operation,
+    const psa_key_attributes_t *attributes, const uint8_t *key_buffer,
+    size_t key_buffer_size, psa_algorithm_t alg,
+    const uint8_t *hash, size_t hash_length,
+    const uint8_t *signature, size_t signature_length);
+
+psa_status_t psa_driver_wrapper_verify_hash_complete(
+    psa_verify_hash_interruptible_operation_t *operation);
+
+psa_status_t psa_driver_wrapper_verify_hash_abort(
+    psa_verify_hash_interruptible_operation_t *operation);
+
+/*
  * Key handling functions
  */
 
@@ -370,6 +407,34 @@ psa_status_t psa_driver_wrapper_key_agreement(
     uint8_t *shared_secret,
     size_t shared_secret_size,
     size_t *shared_secret_length);
+
+/*
+ * PAKE functions.
+ */
+psa_status_t psa_driver_wrapper_pake_setup(
+    psa_pake_operation_t *operation,
+    const psa_crypto_driver_pake_inputs_t *inputs);
+
+psa_status_t psa_driver_wrapper_pake_output(
+    psa_pake_operation_t *operation,
+    psa_crypto_driver_pake_step_t step,
+    uint8_t *output,
+    size_t output_size,
+    size_t *output_length);
+
+psa_status_t psa_driver_wrapper_pake_input(
+    psa_pake_operation_t *operation,
+    psa_crypto_driver_pake_step_t step,
+    const uint8_t *input,
+    size_t input_length);
+
+psa_status_t psa_driver_wrapper_pake_get_implicit_key(
+    psa_pake_operation_t *operation,
+    uint8_t *output, size_t output_size,
+    size_t *output_length);
+
+psa_status_t psa_driver_wrapper_pake_abort(
+    psa_pake_operation_t *operation);
 
 #endif /* PSA_CRYPTO_DRIVER_WRAPPERS_H */
 

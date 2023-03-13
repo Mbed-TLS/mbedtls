@@ -89,8 +89,11 @@ jobs:
           packages:
           - gcc
       script:
-        # Do a manual build+test sequence rather than using all.sh, because
-        # there's no all.sh component that does what we want.
+        # Do a manual build+test sequence rather than using all.sh.
+        #
+        # On Arm64 host of Travis CI, the time of `test_full_cmake_*` exceeds
+        # limitation of Travis CI. Base on `test_full_cmake_*`, we removed
+        # `ssl-opt.sh` and GnuTLS compat.sh here to meet the time limitation.
         - scripts/config.py full
         - make generated_files
         - make CFLAGS='-O3 -Werror -fsanitize=address,undefined -fno-sanitize-recover=all' LDFLAGS='-Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
@@ -112,8 +115,11 @@ jobs:
           - clang
           - gnutls-bin
       script:
-        # Do a manual build+test sequence rather than using all.sh, because
-        # there's no all.sh component that does what we want.
+        # Do a manual build+test sequence rather than using all.sh.
+        #
+        # On Arm64 host of Travis CI, the time of `test_full_cmake_*` exceeds
+        # limitation of Travis CI. Base on `test_full_cmake_*`, we removed
+        # `ssl-opt.sh` and OpenSSl compat.sh here to meet the time limitation.
         - scripts/config.py full
         - make generated_files
         - make CC=clang CFLAGS='-O3 -Werror -fsanitize=address,undefined -fno-sanitize-recover=all' LDFLAGS='-Werror -fsanitize=address,undefined -fno-sanitize-recover=all'

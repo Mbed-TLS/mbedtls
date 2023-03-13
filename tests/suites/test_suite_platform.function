@@ -9,13 +9,36 @@
 
 #if defined(MBEDTLS_HAVE_TIME)
 #include "mbedtls/platform_time.h"
+
+#ifdef WIN32
+#include <windows.h>
+#elif _POSIX_C_SOURCE >= 199309L
+#include <time.h>
+#else
+#include <unistd.h>
+#endif
+void sleep_ms(int milliseconds)
+{
+#ifdef WIN32
+    Sleep(milliseconds);
+#elif _POSIX_C_SOURCE >= 199309L
+    struct timespec ts;
+    ts.tv_sec = milliseconds / 1000;
+    ts.tv_nsec = (milliseconds % 1000) * 1000000;
+    nanosleep(&ts, NULL);
+#else
+    usleep(milliseconds * 1000);
+#endif
+}
 #endif
 
 /* END_HEADER */
 
-/* BEGIN_DEPENDENCIES
- * END_DEPENDENCIES
- */
+/* BEGIN_DEPENDENCIES */
+
+/* END_DEPENDENCIES */
+
+
 
 /* BEGIN_CASE depends_on:MBEDTLS_HAVE_TIME */
 void time_get_milliseconds()
@@ -32,6 +55,32 @@ void time_get_seconds()
 {
     mbedtls_time_t  current = mbedtls_time(NULL);
     (void) current;
+    /* This goto is added to avoid warnings from the generated code. */
+    goto exit;
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_HAVE_TIME */
+void time_delay_milliseconds(int delay_ms)
+{
+    mbedtls_ms_time_t  current = mbedtls_ms_time();
+
+    sleep_ms(delay_ms);
+
+    current = mbedtls_ms_time() - current;
+    TEST_ASSERT(current == delay_ms || current == delay_ms + 1);
+    /* This goto is added to avoid warnings from the generated code. */
+    goto exit;
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_HAVE_TIME */
+void time_delay_seconds(int delay)
+{
+    mbedtls_time_t  current = mbedtls_time(NULL);
+    sleep_ms(delay*1000);
+    current = mbedtls_time(NULL) - current;
+    TEST_ASSERT(current == delay);
     /* This goto is added to avoid warnings from the generated code. */
     goto exit;
 }

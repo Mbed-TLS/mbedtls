@@ -4,3 +4,9 @@ time_get_milliseconds:
 
 Time: get seconds
 time_get_seconds:
+
+Time: delay milliseconds
+time_delay_milliseconds:20
+
+Time: delay seconds
+time_delay_seconds:1

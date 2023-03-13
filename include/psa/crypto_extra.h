@@ -1562,7 +1562,7 @@ psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
  *                              been set (psa_pake_set_user() hasn't been
  *                              called yet).
  * \param[in] user_id           The user ID to authenticate with.
- *                              ("client" or "server")
+ *                              (temporary limitation: "client" or "server" only)
  * \param user_id_len           Size of the \p user_id buffer in bytes.
  *
  * \retval #PSA_SUCCESS
@@ -1604,7 +1604,7 @@ psa_status_t psa_pake_set_user(psa_pake_operation_t *operation,
  *                              been set (psa_pake_set_peer() hasn't been
  *                              called yet).
  * \param[in] peer_id           The peer's ID to authenticate.
- *                              ("client" or "server")
+ *                              (temporary limitation: "client" or "server" only)
  * \param peer_id_len           Size of the \p peer_id buffer in bytes.
  *
  * \retval #PSA_SUCCESS

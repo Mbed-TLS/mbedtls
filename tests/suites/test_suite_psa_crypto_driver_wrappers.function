@@ -6,9 +6,9 @@
 size_t pake_expected_hit_count = 0;
 int pake_in_driver = 0;
 
-/* JPAKE user/peer ids. */
-#define JPAKE_SERVER_ID "server"
-#define JPAKE_CLIENT_ID "client"
+/* The only two JPAKE user/peer identifiers supported for the time being. */
+static const uint8_t jpake_server_id[] = { 's', 'e', 'r', 'v', 'e', 'r' };
+static const uint8_t jpake_client_id[] = { 'c', 'l', 'i', 'e', 'n', 't' };
 
 #if defined(PSA_WANT_ALG_JPAKE) && defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) && \
     defined(PSA_WANT_ECC_SECP_R1_256) && defined(PSA_WANT_ALG_SHA_256)
@@ -2999,10 +2999,6 @@ void pake_operations(data_t *pw_data, int forced_status_setup_arg, int forced_st
         PSA_ECC_FAMILY_SECP_R1, 256);
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     unsigned char *input_buffer = NULL;
-    const uint8_t server_id[] = JPAKE_SERVER_ID;
-    const uint8_t client_id[] = JPAKE_CLIENT_ID;
-    const size_t server_id_len = strlen(JPAKE_SERVER_ID);
-    const size_t client_id_len = strlen(JPAKE_CLIENT_ID);
     const size_t size_key_share = PSA_PAKE_INPUT_SIZE(PSA_ALG_JPAKE, primitive,
                                                       PSA_PAKE_STEP_KEY_SHARE);
     unsigned char *output_buffer = NULL;
@@ -3044,8 +3040,8 @@ void pake_operations(data_t *pw_data, int forced_status_setup_arg, int forced_st
     TEST_EQUAL(psa_pake_setup(&operation, &cipher_suite),
                PSA_SUCCESS);
 
-    PSA_ASSERT(psa_pake_set_user(&operation, server_id, server_id_len));
-    PSA_ASSERT(psa_pake_set_peer(&operation, client_id, client_id_len));
+    PSA_ASSERT(psa_pake_set_user(&operation, jpake_server_id, sizeof(jpake_server_id)));
+    PSA_ASSERT(psa_pake_set_peer(&operation, jpake_client_id, sizeof(jpake_client_id)));
 
     TEST_EQUAL(psa_pake_set_password_key(&operation, key),
                PSA_SUCCESS);
@@ -3193,10 +3189,6 @@ void ecjpake_rounds(int alg_arg, int primitive_arg, int hash_arg,
         PSA_KEY_DERIVATION_OPERATION_INIT;
     psa_key_derivation_operation_t client_derive =
         PSA_KEY_DERIVATION_OPERATION_INIT;
-    const uint8_t server_id[] = JPAKE_SERVER_ID;
-    const uint8_t client_id[] = JPAKE_CLIENT_ID;
-    const size_t server_id_len = strlen(JPAKE_SERVER_ID);
-    const size_t client_id_len = strlen(JPAKE_CLIENT_ID);
     pake_in_driver = in_driver;
     /* driver setup is called indirectly through pake_output/pake_input */
     if (pake_in_driver) {
@@ -3242,11 +3234,11 @@ void ecjpake_rounds(int alg_arg, int primitive_arg, int hash_arg,
     TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total, 0);
 
 
-    PSA_ASSERT(psa_pake_set_user(&server, server_id, server_id_len));
-    PSA_ASSERT(psa_pake_set_peer(&server, client_id, client_id_len));
+    PSA_ASSERT(psa_pake_set_user(&server, jpake_server_id, sizeof(jpake_server_id)));
+    PSA_ASSERT(psa_pake_set_peer(&server, jpake_client_id, sizeof(jpake_client_id)));
     TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total, 0);
-    PSA_ASSERT(psa_pake_set_user(&client, client_id, client_id_len));
-    PSA_ASSERT(psa_pake_set_peer(&client, server_id, server_id_len));
+    PSA_ASSERT(psa_pake_set_user(&client, jpake_client_id, sizeof(jpake_client_id)));
+    PSA_ASSERT(psa_pake_set_peer(&client, jpake_server_id, sizeof(jpake_server_id)));
     TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total, 0);
     PSA_ASSERT(psa_pake_set_password_key(&server, key));
     TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total, 0);

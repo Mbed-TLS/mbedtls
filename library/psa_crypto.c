@@ -91,9 +91,9 @@
 #define BUILTIN_ALG_ANY_HKDF 1
 #endif
 
-/* JPAKE user/peer ids. */
-#define JPAKE_SERVER_ID "server"
-#define JPAKE_CLIENT_ID "client"
+/* The only two JPAKE user/peer identifiers supported for the time being. */
+static const uint8_t jpake_server_id[] = { 's', 'e', 'r', 'v', 'e', 'r' };
+static const uint8_t jpake_client_id[] = { 'c', 'l', 'i', 'e', 'n', 't' };
 
 /****************************************************************/
 /* Global data, support functions and library management */
@@ -7406,8 +7406,10 @@ psa_status_t psa_pake_set_user(
     }
 
     /* Allow only "client" or "server" values (temporary restriction). */
-    if (memcmp(user_id, JPAKE_SERVER_ID, user_id_len) != 0 &&
-        memcmp(user_id, JPAKE_CLIENT_ID, user_id_len) != 0) {
+    if ((user_id_len != sizeof(jpake_server_id) ||
+         memcmp(user_id, jpake_server_id, user_id_len) != 0) &&
+        (user_id_len != sizeof(jpake_client_id) ||
+         memcmp(user_id, jpake_client_id, user_id_len) != 0)) {
         status = PSA_ERROR_NOT_SUPPORTED;
         goto exit;
     }
@@ -7450,8 +7452,10 @@ psa_status_t psa_pake_set_peer(
     }
 
     /* Allow only "client" or "server" values (temporary restriction). */
-    if (memcmp(peer_id, JPAKE_SERVER_ID, peer_id_len) != 0 &&
-        memcmp(peer_id, JPAKE_CLIENT_ID, peer_id_len) != 0) {
+    if ((peer_id_len != sizeof(jpake_server_id) ||
+         memcmp(peer_id, jpake_server_id, peer_id_len) != 0) &&
+        (peer_id_len != sizeof(jpake_client_id) ||
+         memcmp(peer_id, jpake_client_id, peer_id_len) != 0)) {
         status = PSA_ERROR_NOT_SUPPORTED;
         goto exit;
     }
@@ -7565,19 +7569,20 @@ static psa_status_t psa_pake_complete_inputs(
        with the driver context which will be setup by the driver. */
     psa_crypto_driver_pake_inputs_t inputs = operation->data.inputs;
 
-    if (inputs.password_len == 0 ||
-        inputs.user_len == 0 ||
-        inputs.peer_len == 0) {
+    if (inputs.password_len == 0) {
         return PSA_ERROR_BAD_STATE;
     }
 
     if (operation->alg == PSA_ALG_JPAKE) {
-        if (memcmp(inputs.user, JPAKE_CLIENT_ID, inputs.user_len) == 0 &&
-            memcmp(inputs.peer, JPAKE_SERVER_ID, inputs.peer_len) == 0) {
+        if (inputs.user_len == 0 || inputs.peer_len == 0) {
+            return PSA_ERROR_BAD_STATE;
+        }
+        if (memcmp(inputs.user, jpake_client_id, inputs.user_len) == 0 &&
+            memcmp(inputs.peer, jpake_server_id, inputs.peer_len) == 0) {
             inputs.role = PSA_PAKE_ROLE_CLIENT;
         } else
-        if (memcmp(inputs.user, JPAKE_SERVER_ID, inputs.user_len) == 0 &&
-            memcmp(inputs.peer, JPAKE_CLIENT_ID, inputs.peer_len) == 0) {
+        if (memcmp(inputs.user, jpake_server_id, inputs.user_len) == 0 &&
+            memcmp(inputs.peer, jpake_client_id, inputs.peer_len) == 0) {
             inputs.role = PSA_PAKE_ROLE_SERVER;
         }
 
@@ -7599,8 +7604,6 @@ static psa_status_t psa_pake_complete_inputs(
     /* User and peer are translated to role. */
     mbedtls_free(inputs.user);
     mbedtls_free(inputs.peer);
-    inputs.user = NULL; inputs.user_len = 0;
-    inputs.peer = NULL; inputs.peer_len = 0;
 
     if (status == PSA_SUCCESS) {
 #if defined(PSA_WANT_ALG_JPAKE)

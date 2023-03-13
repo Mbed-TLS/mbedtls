@@ -287,7 +287,7 @@ TLS1_2_KEY_EXCHANGES_WITH_ECDSA_CERT="MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED \
 requires_key_exchange_with_cert_in_tls12_or_tls13_enabled() {
     if $P_QUERY -all MBEDTLS_SSL_PROTO_TLS1_2
     then
-            requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+        requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
     elif ! $P_QUERY -all MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
     then
         SKIP_NEXT="YES"
@@ -525,7 +525,7 @@ populate_enabled_hash_algs()
             hash_alg_variable=HAS_ALG_${hash_alg}
             eval ${hash_alg_variable}=YES
         fi
-    done 
+    done
 }
 
 # skip next test if the given hash alg is not supported

@@ -18,7 +18,7 @@
  */
 
 #if defined(__aarch64__) && !defined(__ARM_FEATURE_CRYPTO) && \
-    defined(__clang__) && __clang_major__ > 3
+    defined(__clang__) && __clang_major__ >= 4
 /* TODO: Re-consider above after https://reviews.llvm.org/D131064 merged.
  *
  * The intrinsic declaration are guarded by predefined ACLE macros in clang:

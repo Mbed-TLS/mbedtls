@@ -499,7 +499,7 @@ static int pk_use_ecparams(const mbedtls_asn1_buf *params, mbedtls_pk_context *p
      * the private key is kept as raw data on the "mbedtls_pk_context"
      * structure */
     if ((ret = mbedtls_ecp_group_load(&(mbedtls_pk_ec(*pk)->grp),
-                                        grp_id)) != 0) {
+                                      grp_id)) != 0) {
         return ret;
     }
 
@@ -515,7 +515,7 @@ static int pk_use_ecparams(const mbedtls_asn1_buf *params, mbedtls_pk_context *p
  */
 static int pk_convert_compressed_ec(mbedtls_pk_context *pk,
                                     unsigned char *in_start, size_t in_len,
-                                    size_t *out_buf_len, unsigned char* out_buf,
+                                    size_t *out_buf_len, unsigned char *out_buf,
                                     size_t out_buf_size)
 {
     mbedtls_ecp_keypair ecp_key;
@@ -537,8 +537,8 @@ static int pk_convert_compressed_ec(mbedtls_pk_context *pk,
         return ret;
     }
     ret = mbedtls_ecp_point_write_binary(&(ecp_key.grp), &ecp_key.Q,
-                                    MBEDTLS_ECP_PF_UNCOMPRESSED,
-                                    out_buf_len, out_buf, out_buf_size);
+                                         MBEDTLS_ECP_PF_UNCOMPRESSED,
+                                         out_buf_len, out_buf, out_buf_size);
     if (ret < 0) {
         mbedtls_ecp_keypair_free(&ecp_key);
         return ret;
@@ -559,7 +559,7 @@ static int pk_get_ecpubkey(unsigned char **p, const unsigned char *end,
 
     if ((len > PSA_EXPORT_PUBLIC_KEY_MAX_SIZE) ||
         (*p == NULL) || (end == NULL) ||
-        (pk == NULL))  {
+        (pk == NULL)) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
 
@@ -568,9 +568,9 @@ static int pk_get_ecpubkey(unsigned char **p, const unsigned char *end,
      * uncompressed format */
     if ((**p == 0x02) || (**p == 0x03)) {
         ret = pk_convert_compressed_ec(pk, *p, len,
-                            &(pk->MBEDTLS_PRIVATE(pk_raw_len)),
-                            pk->MBEDTLS_PRIVATE(pk_raw),
-                            PSA_EXPORT_PUBLIC_KEY_MAX_SIZE);
+                                       &(pk->MBEDTLS_PRIVATE(pk_raw_len)),
+                                       pk->MBEDTLS_PRIVATE(pk_raw),
+                                       PSA_EXPORT_PUBLIC_KEY_MAX_SIZE);
         if (ret < 0) {
             return ret;
         }
@@ -584,17 +584,17 @@ static int pk_get_ecpubkey(unsigned char **p, const unsigned char *end,
     psa_set_key_usage_flags(&key_attrs, 0);
     psa_set_key_algorithm(&key_attrs, PSA_ALG_ECDSA_ANY);
     psa_set_key_type(&key_attrs,
-                PSA_KEY_TYPE_ECC_PUBLIC_KEY(pk->MBEDTLS_PRIVATE(pk_ec_family)));
+                     PSA_KEY_TYPE_ECC_PUBLIC_KEY(pk->MBEDTLS_PRIVATE(pk_ec_family)));
     psa_set_key_bits(&key_attrs, pk->MBEDTLS_PRIVATE(pk_bits));
 
     status = psa_import_key(&key_attrs, pk->MBEDTLS_PRIVATE(pk_raw),
-                    pk->MBEDTLS_PRIVATE(pk_raw_len), &key);
+                            pk->MBEDTLS_PRIVATE(pk_raw_len), &key);
     psa_destroy_key(key);
     if (status != PSA_SUCCESS) {
         mbedtls_platform_zeroize(pk->MBEDTLS_PRIVATE(pk_raw),
-                                    MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN);
+                                 MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN);
         pk->MBEDTLS_PRIVATE(pk_raw_len) = 0;
-        return  MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
 
     *p = (unsigned char *) end;
@@ -1089,7 +1089,7 @@ static int pk_derive_public_key(mbedtls_ecp_group *grp, mbedtls_ecp_point *Q,
  * Parse a SEC1 encoded private EC key
  */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-static int pk_parse_key_sec1_der(mbedtls_pk_context* pk,
+static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
                                  const unsigned char *key, size_t keylen,
                                  int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
 #else /* MBEDTLS_USE_PSA_CRYPTO */

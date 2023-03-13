@@ -208,7 +208,7 @@ int mbedtls_pk_write_pubkey(unsigned char **p, unsigned char *start,
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if (mbedtls_pk_get_type(key) == MBEDTLS_PK_ECKEY) {
         MBEDTLS_ASN1_CHK_ADD(len, pk_write_ec_pubkey(p, start,
-                             (mbedtls_pk_context*)key));
+                                                     (mbedtls_pk_context *) key));
     } else
 #else /* MBEDTLS_USE_PSA_CRYPTO */
     if (mbedtls_pk_get_type(key) == MBEDTLS_PK_ECKEY) {
@@ -454,7 +454,7 @@ end_of_export:
         /* publicKey */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         MBEDTLS_ASN1_CHK_ADD(pub_len, pk_write_ec_pubkey(&c, buf,
-                             (mbedtls_pk_context*)key));
+                                                         (mbedtls_pk_context *) key));
 #else /* MBEDTLS_USE_PSA_CRYPTO */
         MBEDTLS_ASN1_CHK_ADD(pub_len, pk_write_ec_pubkey(&c, buf, ec));
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

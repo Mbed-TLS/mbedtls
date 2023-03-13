@@ -233,7 +233,7 @@ typedef struct mbedtls_pk_debug_item {
 typedef struct mbedtls_pk_info_t mbedtls_pk_info_t;
 
 #define MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN \
-        PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)
+    PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)
 /**
  * \brief           Public key container
  */
@@ -811,11 +811,11 @@ static inline mbedtls_ecp_keypair *mbedtls_pk_ec(const mbedtls_pk_context pk)
 }
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 int mbedtls_pk_get_public_key(mbedtls_pk_context *pk, unsigned char *buf,
-                            size_t buf_size, size_t *key_len);
+                              size_t buf_size, size_t *key_len);
 
 int mbedtls_pk_get_ec_public_key_props(mbedtls_pk_context *pk,
-                            psa_ecc_family_t *ec_curve,
-                            size_t *bits);
+                                       psa_ecc_family_t *ec_curve,
+                                       size_t *bits);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 #endif /* MBEDTLS_ECP_LIGHT */
 

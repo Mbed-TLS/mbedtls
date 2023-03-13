@@ -62,7 +62,7 @@ void mbedtls_pk_init(mbedtls_pk_context *ctx)
     ctx->pk_ctx = NULL;
 #if defined(MBEDTLS_ECP_C) && defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_platform_zeroize(ctx->MBEDTLS_PRIVATE(pk_raw),
-                                    MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN);
+                             MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN);
     ctx->pk_raw_len = 0;
     ctx->pk_ec_family = 0;
     ctx->pk_bits = 0;
@@ -257,7 +257,7 @@ int mbedtls_pk_gen_ec_keypair(mbedtls_pk_context *pk,
     }
 
     ret = mbedtls_ecp_gen_keypair(&keypair->grp, &keypair->d, &keypair->Q,
-                                    f_rng, p_rng);
+                                  f_rng, p_rng);
     if (ret != 0) {
         return ret;
     }
@@ -489,7 +489,7 @@ int mbedtls_pk_verify_restartable(mbedtls_pk_context *ctx,
          * falling back to the mbedtls implementation. Therefore copy the
          * raw content of the public key back to the ecp_keypair structure */
         if ((mbedtls_ecp_is_zero(&(mbedtls_pk_ec(*ctx)->Q)) == 1) &&
-            (ctx->pk_raw_len != 0)){
+            (ctx->pk_raw_len != 0)) {
             ret = mbedtls_pk_update_keypair_from_public_key(ctx);
             if (ret < 0) {
                 return ret;
@@ -517,10 +517,10 @@ int mbedtls_pk_verify_restartable(mbedtls_pk_context *ctx,
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if (ctx->pk_info->type == MBEDTLS_PK_RSA) {
         return ctx->pk_info->verify_func(ctx->pk_ctx, md_alg, hash, hash_len,
-                                     sig, sig_len);
+                                         sig, sig_len);
     } else {
         return ctx->pk_info->verify_func(ctx, md_alg, hash, hash_len,
-                                     sig, sig_len);
+                                         sig, sig_len);
     }
 #else /* MBEDTLS_USE_PSA_CRYPTO */
     return ctx->pk_info->verify_func(ctx->pk_ctx, md_alg, hash, hash_len,
@@ -924,7 +924,7 @@ mbedtls_pk_type_t mbedtls_pk_get_type(const mbedtls_pk_context *ctx)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #if defined(MBEDTLS_ECP_C)
 int mbedtls_pk_get_public_key(mbedtls_pk_context *pk, unsigned char *buf,
-                            size_t buf_size, size_t *key_len)
+                              size_t buf_size, size_t *key_len)
 {
     if ((pk == NULL) || (pk->MBEDTLS_PRIVATE(pk_raw_len) == 0)) {
         return MBEDTLS_PK_NONE;
@@ -940,7 +940,7 @@ int mbedtls_pk_get_public_key(mbedtls_pk_context *pk, unsigned char *buf,
 }
 
 int mbedtls_pk_get_ec_public_key_props(mbedtls_pk_context *pk,
-                            psa_ecc_family_t *ec_curve, size_t *bits)
+                                       psa_ecc_family_t *ec_curve, size_t *bits)
 {
     if ((pk == NULL) || (ec_curve == NULL) || (bits == NULL)) {
         return MBEDTLS_PK_NONE;
@@ -969,16 +969,16 @@ int mbedtls_pk_update_public_key_from_keypair(mbedtls_pk_context *pk)
     ecp_keypair = mbedtls_pk_ec(*pk);
 
     ret = mbedtls_ecp_point_write_binary(&ecp_keypair->grp, &ecp_keypair->Q,
-                            MBEDTLS_ECP_PF_UNCOMPRESSED,
-                            &pk->MBEDTLS_PRIVATE(pk_raw_len),
-                            pk->MBEDTLS_PRIVATE(pk_raw),
-                            MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN);
+                                         MBEDTLS_ECP_PF_UNCOMPRESSED,
+                                         &pk->MBEDTLS_PRIVATE(pk_raw_len),
+                                         pk->MBEDTLS_PRIVATE(pk_raw),
+                                         MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN);
     if (ret != 0) {
         return ret;
     }
 
     pk->MBEDTLS_PRIVATE(pk_ec_family) = mbedtls_ecc_group_to_psa(
-                        ecp_keypair->grp.id, &pk->MBEDTLS_PRIVATE(pk_bits));
+        ecp_keypair->grp.id, &pk->MBEDTLS_PRIVATE(pk_bits));
 
     return 0;
 }
@@ -1006,7 +1006,7 @@ int mbedtls_pk_update_keypair_from_public_key(mbedtls_pk_context *pk)
         return ret;
     }
     ret = mbedtls_ecp_point_read_binary(&(ecp_keypair->grp), &(ecp_keypair->Q),
-                                    pk->pk_raw, pk->pk_raw_len);
+                                        pk->pk_raw, pk->pk_raw_len);
 
     return ret;
 }

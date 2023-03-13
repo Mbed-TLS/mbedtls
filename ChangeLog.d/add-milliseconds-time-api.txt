@@ -1,7 +1,5 @@
 API changes
-   * Add `mbedtls_ms_time` function, `mbedtls_ms_time_t` type to get
-     milliseconds. That is required for TLS 1.3 ticket lifetime. And
-     `mbedtls_ms_time` allows alternative implementation with
-     `MBEDTLS_PLATFORM_MS_TIME_ALT`, `MBEDTLS_PLATFORM_MS_TIME_TYPE_MACRO` and
-     `MBEDTLS_PRINTF_MS_TIME`.
+   * Add new millisecond time type `mbedtls_ms_time_t` and `mbedtls_ms_time()`
+     function, needed for TLS 1.3 ticket lifetimes. Alternative implementations
+     can be created using an ALT interface.
 

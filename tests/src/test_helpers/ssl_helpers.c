@@ -405,8 +405,8 @@ exit:
     return ret;
 }
 
-int mbedtls_test_mock_tcp_send_b(void *ctx, const unsigned char *buf,
-                                 size_t len)
+int mbedtls_test_mock_tcp_send_b(void *ctx,
+                                 const unsigned char *buf, size_t len)
 {
     mbedtls_test_mock_socket *socket = (mbedtls_test_mock_socket *) ctx;
 
@@ -561,8 +561,8 @@ int mbedtls_test_mock_tcp_recv_msg(void *ctx,
 
     if (ret == MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED) {
         /* Drop the remaining part of the message */
-        if (mbedtls_test_mock_tcp_recv_b(socket, NULL, drop_len)
-            != (int) drop_len) {
+        if (mbedtls_test_mock_tcp_recv_b(socket, NULL, drop_len) !=
+            (int) drop_len) {
             /* Inconsistent state - part of the message was read,
              * and a part couldn't. Not much we can do here, but it should not
              * happen in test environment, unless forced manually. */
@@ -2106,11 +2106,9 @@ void mbedtls_test_ssl_perform_handshake(
 
 exit:
     mbedtls_test_ssl_endpoint_free(&client,
-                                   options->dtls != 0 ?
-                                   &client_context : NULL);
+                                   options->dtls != 0 ? &client_context : NULL);
     mbedtls_test_ssl_endpoint_free(&server,
-                                   options->dtls != 0 ?
-                                   &server_context : NULL);
+                                   options->dtls != 0 ? &server_context : NULL);
 #if defined(MBEDTLS_DEBUG_C)
     if (options->cli_log_fun || options->srv_log_fun) {
         mbedtls_debug_set_threshold(0);

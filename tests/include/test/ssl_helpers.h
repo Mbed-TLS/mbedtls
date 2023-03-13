@@ -317,16 +317,16 @@ int mbedtls_test_mock_socket_connect(mbedtls_test_mock_socket *peer1,
 /*
  * Callbacks for simulating blocking I/O over connection-oriented transport.
  */
-int mbedtls_test_mock_tcp_send_b(void *ctx, const unsigned char *buf,
-                                 size_t len);
+int mbedtls_test_mock_tcp_send_b(void *ctx,
+                                 const unsigned char *buf, size_t len);
 
 int mbedtls_test_mock_tcp_recv_b(void *ctx, unsigned char *buf, size_t len);
 
 /*
  * Callbacks for simulating non-blocking I/O over connection-oriented transport.
  */
-int mbedtls_test_mock_tcp_send_nb(void *ctx, const unsigned char *buf,
-                                  size_t len);
+int mbedtls_test_mock_tcp_send_nb(void *ctx,
+                                  const unsigned char *buf, size_t len);
 
 int mbedtls_test_mock_tcp_recv_nb(void *ctx, unsigned char *buf, size_t len);
 
@@ -368,8 +368,8 @@ void mbedtls_test_message_socket_close(
  * This function will also return any error from
  * mbedtls_test_ssl_message_queue_push_info.
  */
-int mbedtls_test_mock_tcp_send_msg(void *ctx, const unsigned char *buf,
-                                   size_t len);
+int mbedtls_test_mock_tcp_send_msg(void *ctx,
+                                   const unsigned char *buf, size_t len);
 
 /*
  * Receive one message from a given message socket context and return message
@@ -385,8 +385,8 @@ int mbedtls_test_mock_tcp_send_msg(void *ctx, const unsigned char *buf,
  * MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED from
  * mbedtls_test_message_queue_peek_info.
  */
-int mbedtls_test_mock_tcp_recv_msg(void *ctx, unsigned char *buf,
-                                   size_t buf_len);
+int mbedtls_test_mock_tcp_recv_msg(void *ctx,
+                                   unsigned char *buf, size_t buf_len);
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 

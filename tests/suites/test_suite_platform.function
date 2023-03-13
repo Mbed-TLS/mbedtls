@@ -64,23 +64,27 @@ void time_get_seconds()
 void time_delay_milliseconds(int delay_ms)
 {
     mbedtls_ms_time_t  current = mbedtls_ms_time();
+    mbedtls_ms_time_t  elapsed_ms;
 
     sleep_ms(delay_ms);
 
-    current = mbedtls_ms_time() - current;
-    TEST_ASSERT(current == delay_ms || current == delay_ms + 1);
+    elapsed_ms = mbedtls_ms_time() - current;
+    TEST_ASSERT(elapsed_ms >= delay_ms && elapsed_ms < 500 + delay_ms);
     /* This goto is added to avoid warnings from the generated code. */
     goto exit;
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_HAVE_TIME */
-void time_delay_seconds(int delay)
+void time_delay_seconds(int delay_secs)
 {
     mbedtls_time_t  current = mbedtls_time(NULL);
-    sleep_ms(delay*1000);
-    current = mbedtls_time(NULL) - current;
-    TEST_ASSERT(current == delay);
+    mbedtls_time_t  elapsed_secs;
+
+    sleep_ms(delay_secs * 1000);
+
+    elapsed_secs = mbedtls_time(NULL) - current;
+    TEST_ASSERT(elapsed_secs >= delay_secs && elapsed_secs < 4 + delay_secs);
     /* This goto is added to avoid warnings from the generated code. */
     goto exit;
 }

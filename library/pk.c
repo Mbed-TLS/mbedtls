@@ -922,6 +922,7 @@ mbedtls_pk_type_t mbedtls_pk_get_type(const mbedtls_pk_context *ctx)
 }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_ECP_C)
 int mbedtls_pk_get_public_key(mbedtls_pk_context *pk, unsigned char *buf,
                             size_t buf_size, size_t *key_len)
 {
@@ -951,7 +952,6 @@ int mbedtls_pk_get_ec_public_key_props(mbedtls_pk_context *pk,
     return 0;
 }
 
-#if defined(MBEDTLS_ECP_C)
 int mbedtls_pk_update_public_key_from_keypair(mbedtls_pk_context *pk)
 {
     int ret = MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
@@ -1010,7 +1010,7 @@ int mbedtls_pk_update_keypair_from_public_key(mbedtls_pk_context *pk)
 
     return ret;
 }
-#endif
+#endif /* MBEDTLS_ECP_C */
 
 /*
  * Load the key to a PSA key slot,

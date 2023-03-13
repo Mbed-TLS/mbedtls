@@ -32,12 +32,12 @@
  *    DER only.
  *  - The RFC specifies that multiple digest algorithms can be specified
  *    in the Signed Data type. Only one digest algorithm is supported in Mbed TLS.
- *  - The RFC specifies the Signed Data type can contain multiple X509 or PKCS6
+ *  - The RFC specifies the Signed Data type can contain multiple X.509 or PKCS #6
  *    certificates. In Mbed TLS, this list can only contain 0 or 1 certificates
- *    and they must be in X509 format.
+ *    and they must be in X.509 format.
  *  - The RFC specifies the Signed Data type can contain
- *    certificate-revocation lists (crls). This implementation has no support
- *    for crls so it is assumed to be an empty list.
+ *    certificate-revocation lists (CRLs). This implementation has no support
+ *    for CRLs so it is assumed to be an empty list.
  *  - The RFC allows for SignerInfo structure to optionally contain
  *    unauthenticatedAttributes and authenticatedAttributes. In Mbed TLS it is
  *    assumed these fields are empty.

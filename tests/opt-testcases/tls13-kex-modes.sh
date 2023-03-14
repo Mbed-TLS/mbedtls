@@ -25,7 +25,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test    "TLS 1.3: G->m: all/psk, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -44,7 +44,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test    "TLS 1.3: G->m: all/psk, fail, key id mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername wrong_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -62,7 +62,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test    "TLS 1.3: G->m: all/psk, fail, key material mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
                          localhost" \
@@ -80,7 +80,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test    "TLS 1.3: G->m: psk_or_ephemeral/psk, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -99,7 +99,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test    "TLS 1.3: G->m: psk_or_ephemeral/psk, fail, key id mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername wrong_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -117,7 +117,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test    "TLS 1.3: G->m: psk_or_ephemeral/psk, fail, key material mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
                          localhost" \
@@ -135,7 +135,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: ephemeral_all/psk_ephemeral, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -154,7 +154,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: ephemeral_all/psk_ephemeral, fail, key id mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername wrong_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -172,7 +172,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: ephemeral_all/psk_ephemeral, fail, key material mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
                          localhost" \
@@ -190,7 +190,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: all/psk_ephemeral, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -209,7 +209,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: all/psk_ephemeral, fail, key id mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername wrong_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -227,7 +227,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: all/psk_ephemeral, fail, key material mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
                          localhost" \
@@ -245,7 +245,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: psk_or_ephemeral/psk_ephemeral, fail, no common kex mode" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -263,7 +263,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: ephemeral_all/psk_all, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -283,7 +283,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: ephemeral_all/psk_all, fail, key id mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername wrong_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -302,7 +302,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: ephemeral_all/psk_all, fail, key material mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
                          localhost" \
@@ -321,7 +321,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: all/psk_all, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -341,7 +341,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: all/psk_all, fail, key id mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername wrong_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -360,7 +360,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: all/psk_all, fail, key material mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
                          localhost" \
@@ -379,7 +379,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: psk_or_ephemeral/psk_all, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -399,7 +399,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: psk_or_ephemeral/psk_all, fail, key id mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername wrong_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -418,7 +418,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: psk_or_ephemeral/psk_all, fail, key material mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
                          localhost" \
@@ -437,7 +437,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: ephemeral_all/ephemeral_all, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=ephemeral_all debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -457,7 +457,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: ephemeral_all/ephemeral_all, good, key id mismatch, dhe." \
-            "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=ephemeral_all debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername wrong_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -476,7 +476,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: ephemeral_all/ephemeral_all, fail, key material mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=ephemeral_all debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
                          localhost" \
@@ -495,7 +495,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: all/ephemeral_all, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=ephemeral_all debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -515,7 +515,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: all/ephemeral_all, good, key id mismatch, dhe." \
-            "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=ephemeral_all debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername wrong_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -534,7 +534,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: all/ephemeral_all, fail, key material mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=ephemeral_all debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
                          localhost" \
@@ -553,7 +553,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: psk_or_ephemeral/ephemeral_all, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=ephemeral_all debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -574,7 +574,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: ephemeral_all/all, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -595,7 +595,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: ephemeral_all/all, good, key id mismatch, dhe." \
-            "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername wrong_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -615,7 +615,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: ephemeral_all/all, fail, key material mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
                          localhost" \
@@ -635,7 +635,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: all/all, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -656,7 +656,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: all/all, good, key id mismatch, dhe." \
-            "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername wrong_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -676,7 +676,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: all/all, fail, key material mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
                          localhost" \
@@ -696,7 +696,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: psk_or_ephemeral/all, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -717,7 +717,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: psk_or_ephemeral/all, fail, key material mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
                          localhost" \
@@ -736,7 +736,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: ephemeral_all/psk_or_ephemeral, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_or_ephemeral debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_or_ephemeral debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -756,7 +756,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: all/psk_or_ephemeral, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_or_ephemeral debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_or_ephemeral debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -776,7 +776,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: all/psk_or_ephemeral, fail, key material mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_or_ephemeral debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_or_ephemeral debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
                          localhost" \
@@ -795,7 +795,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: psk_or_ephemeral/psk_or_ephemeral, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_or_ephemeral debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_or_ephemeral debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -815,7 +815,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: psk_or_ephemeral/psk_or_ephemeral, fail, key material mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_or_ephemeral debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_or_ephemeral debug_level=5 $(get_srv_psk_list)" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
                          localhost" \
@@ -833,7 +833,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: psk_ephemeral group(secp256r1) check, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
+            "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3:-GROUP-ALL:+GROUP-SECP256R1 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -847,7 +847,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: psk_ephemeral group(secp384r1) check, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
+            "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3:-GROUP-ALL:+GROUP-SECP384R1 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -861,7 +861,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: psk_ephemeral group(secp521r1) check, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
+            "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3:-GROUP-ALL:+GROUP-SECP521R1 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -875,7 +875,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: psk_ephemeral group(x25519) check, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
+            "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3:-GROUP-ALL:+GROUP-X25519 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -889,7 +889,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: G->m: psk_ephemeral group(x448) check, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
+            "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3:-GROUP-ALL:+GROUP-X448 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
@@ -903,7 +903,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test    "TLS 1.3: O->m: ephemeral_all/psk, fail, no common kex mode" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
             1 \
@@ -919,7 +919,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test    "TLS 1.3: O->m: all/psk, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
             0 \
@@ -937,7 +937,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test    "TLS 1.3: O->m: all/psk, fail, key id mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity wrong_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
             1 \
@@ -954,7 +954,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test    "TLS 1.3: O->m: all/psk, fail, key material mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f71" \
             1 \
@@ -971,7 +971,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: ephemeral_all/psk_ephemeral, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
             0 \
@@ -989,7 +989,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: ephemeral_all/psk_ephemeral, fail, key id mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity wrong_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
             1 \
@@ -1006,7 +1006,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: ephemeral_all/psk_ephemeral, fail, key material mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f71" \
             1 \
@@ -1023,7 +1023,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: all/psk_ephemeral, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
             0 \
@@ -1041,7 +1041,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: all/psk_ephemeral, fail, key id mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity wrong_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
             1 \
@@ -1058,7 +1058,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: all/psk_ephemeral, fail, key material mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f71" \
             1 \
@@ -1076,7 +1076,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: ephemeral_all/psk_all, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
             0 \
@@ -1095,7 +1095,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: ephemeral_all/psk_all, fail, key id mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity wrong_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
             1 \
@@ -1113,7 +1113,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: ephemeral_all/psk_all, fail, key material mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f71" \
             1 \
@@ -1131,7 +1131,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: all/psk_all, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
             0 \
@@ -1150,7 +1150,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: all/psk_all, fail, key id mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity wrong_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
             1 \
@@ -1168,7 +1168,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: all/psk_all, fail, key material mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_all debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f71" \
             1 \
@@ -1186,7 +1186,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: ephemeral_all/ephemeral_all, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=ephemeral_all debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
             0 \
@@ -1205,7 +1205,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: ephemeral_all/ephemeral_all, good, key id mismatch, dhe." \
-            "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=ephemeral_all debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity wrong_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
             0 \
@@ -1223,7 +1223,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: ephemeral_all/ephemeral_all, fail, key material mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=ephemeral_all debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f71" \
             1 \
@@ -1241,7 +1241,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: all/ephemeral_all, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=ephemeral_all debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
             0 \
@@ -1260,7 +1260,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: all/ephemeral_all, good, key id mismatch, dhe." \
-            "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=ephemeral_all debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity wrong_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
             0 \
@@ -1278,7 +1278,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: all/ephemeral_all, fail, key material mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral_all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=ephemeral_all debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f71" \
             1 \
@@ -1297,7 +1297,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: ephemeral_all/all, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
             0 \
@@ -1317,7 +1317,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: ephemeral_all/all, good, key id mismatch, dhe." \
-            "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity wrong_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
             0 \
@@ -1336,7 +1336,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: ephemeral_all/all, fail, key material mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f71" \
             1 \
@@ -1355,7 +1355,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: all/all, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
             0 \
@@ -1375,7 +1375,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: all/all, good, key id mismatch, dhe." \
-            "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity wrong_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
             0 \
@@ -1394,7 +1394,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: all/all, fail, key material mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=all debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f71" \
             1 \
@@ -1412,7 +1412,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: ephemeral_all/psk_or_ephemeral, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_or_ephemeral debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_or_ephemeral debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
             0 \
@@ -1431,7 +1431,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: all/psk_or_ephemeral, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_or_ephemeral debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_or_ephemeral debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
             0 \
@@ -1450,7 +1450,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: all/psk_or_ephemeral, fail, key material mismatch" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_or_ephemeral debug_level=5 $(get_srv_psk_list)" \
+            "$P_SRV tls13_kex_modes=psk_or_ephemeral debug_level=5 $(get_srv_psk_list)" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f71" \
             1 \
@@ -1467,7 +1467,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: psk_ephemeral group(secp256r1) check, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
+            "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex -groups P-256 \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
             0 \
@@ -1480,7 +1480,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: psk_ephemeral group(secp384r1) check, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
+            "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex -groups secp384r1 \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
             0 \
@@ -1493,7 +1493,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: psk_ephemeral group(secp521r1) check, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
+            "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex -groups secp521r1 \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
             0 \
@@ -1506,7 +1506,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: psk_ephemeral group(x25519) check, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
+            "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex -groups X25519 \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
             0 \
@@ -1519,7 +1519,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: O->m: psk_ephemeral group(x448) check, good" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
+            "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex -groups X448 \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
             0 \
@@ -1532,7 +1532,7 @@ requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATI
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 O->m: psk_ephemeral group(secp256r1->secp384r1) check, good" \
-         "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_list=Client_identity,6162636465666768696a6b6c6d6e6f70,abc,dead,def,beef curves=secp384r1" \
+         "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 psk_list=Client_identity,6162636465666768696a6b6c6d6e6f70,abc,dead,def,beef curves=secp384r1" \
          "$O_NEXT_CLI_NO_CERT -tls1_3 -msg -allow_no_dhe_kex -psk_identity Client_identity -psk 6162636465666768696a6b6c6d6e6f70 -groups P-256:P-384" \
          0 \
          -s "write selected_group: secp384r1" \
@@ -1547,7 +1547,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test "TLS 1.3 G->m: psk_ephemeral group(secp256r1->secp384r1) check, good" \
-         "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_list=Client_identity,6162636465666768696a6b6c6d6e6f70,abc,dead,def,beef curves=secp384r1" \
+         "$P_SRV tls13_kex_modes=psk_ephemeral debug_level=5 psk_list=Client_identity,6162636465666768696a6b6c6d6e6f70,abc,dead,def,beef curves=secp384r1" \
          "$G_NEXT_CLI_NO_CERT --debug=4 --single-key-share --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3:-GROUP-ALL:+GROUP-SECP256R1:+GROUP-SECP384R1 --pskusername Client_identity --pskkey 6162636465666768696a6b6c6d6e6f70 localhost" \
          0 \
          -s "write selected_group: secp384r1" \
@@ -1566,7 +1566,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test    "TLS 1.3: m->m: psk/psk, good" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1580,7 +1580,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test    "TLS 1.3: m->m: psk/psk, fail, key id mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1593,7 +1593,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test    "TLS 1.3: m->m: psk/psk, fail, key material mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             "$P_CLI nbio=2 debug_level=5 psk_identity=0a0b0c psk=040506 tls13_kex_modes=psk" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1607,7 +1607,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk/psk_ephemeral, fail - no common kex mode" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1621,7 +1621,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk/ephemeral, fail - no common kex mode" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1636,7 +1636,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk/ephemeral_all, fail - no common kex mode" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1650,7 +1650,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk/psk_all, good" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1665,7 +1665,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk/psk_all, fail, key id mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1680,7 +1680,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk/psk_all, fail, key material mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             "$P_CLI nbio=2 debug_level=5 psk_identity=0a0b0c psk=040506 tls13_kex_modes=psk" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1695,7 +1695,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk/all, good" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1711,7 +1711,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk/all, fail, key id mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1727,7 +1727,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk/all, fail, key material mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             "$P_CLI nbio=2 debug_level=5 psk=040506 psk_identity=0a0b0c psk=040506 tls13_kex_modes=psk" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1742,7 +1742,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_ephemeral/psk, fail - no common kex mode" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1755,7 +1755,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_ephemeral/psk_ephemeral, good" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1769,7 +1769,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_ephemeral/psk_ephemeral, fail, key id mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk_ephemeral" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1783,7 +1783,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_ephemeral/psk_ephemeral, fail, key material mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             "$P_CLI nbio=2 debug_level=5 psk=040506 psk_identity=0a0b0c psk=040506 tls13_kex_modes=psk_ephemeral" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1798,7 +1798,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_ephemeral/ephemeral, fail - no common kex mode" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1811,7 +1811,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_ephemeral/ephemeral_all, good" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1827,7 +1827,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_ephemeral/ephemeral_all, fail, key id mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk_ephemeral" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1841,7 +1841,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_ephemeral/ephemeral_all, fail, key material mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             "$P_CLI nbio=2 debug_level=5 psk=040506 psk_identity=0a0b0c psk=040506 tls13_kex_modes=psk_ephemeral" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1855,7 +1855,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_ephemeral/psk_all, good" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1870,7 +1870,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_ephemeral/psk_all, fail, key id mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk_ephemeral" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1885,7 +1885,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_ephemeral/psk_all, fail, key material mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             "$P_CLI nbio=2 debug_level=5 psk=040506 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1900,7 +1900,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_ephemeral/all, good" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1916,7 +1916,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_ephemeral/all, fail, key id mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk_ephemeral" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1931,7 +1931,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_ephemeral/all, fail, key material mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             "$P_CLI nbio=2 debug_level=5 psk=040506 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1946,7 +1946,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: ephemeral/psk, fail - no common kex mode" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
             1 \
             -s "ClientHello message misses mandatory extensions."
@@ -1957,7 +1957,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: ephemeral/psk_ephemeral, fail - no common kex mode" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
             1 \
             -s "ClientHello message misses mandatory extensions."
@@ -1967,7 +1967,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: ephemeral/ephemeral, good" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
             0 \
             -c "Selected key exchange mode: ephemeral" \
@@ -1979,7 +1979,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: ephemeral/ephemeral_all, good" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
             0 \
             -c "Selected key exchange mode: ephemeral" \
@@ -1992,7 +1992,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: ephemeral/psk_all, fail - no common kex mode" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
             1 \
             -s "ClientHello message misses mandatory extensions."
@@ -2004,7 +2004,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: ephemeral/all, good" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
             0 \
             -c "Selected key exchange mode: ephemeral" \
@@ -2018,7 +2018,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: ephemeral_all/psk, fail - no common kex mode" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2032,7 +2032,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: ephemeral_all/psk_ephemeral, good" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2047,7 +2047,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: ephemeral_all/psk_ephemeral, fail, key id mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0d0e0f tls13_kex_modes=ephemeral_all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2061,7 +2061,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: ephemeral_all/psk_ephemeral, fail, key material mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             "$P_CLI nbio=2 debug_level=5 psk=040506 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2075,7 +2075,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: ephemeral_all/ephemeral, good" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2091,7 +2091,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: ephemeral_all/ephemeral_all, good" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2106,7 +2106,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: ephemeral_all/ephemeral_all,good,key id mismatch,fallback" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0d0e0f tls13_kex_modes=ephemeral_all" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2121,7 +2121,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: ephemeral_all/ephemeral_all, fail, key material mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             "$P_CLI nbio=2 debug_level=5 psk=040506 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2136,7 +2136,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: ephemeral_all/psk_all, good" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2152,7 +2152,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: ephemeral_all/psk_all, fail, key id mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0d0e0f tls13_kex_modes=ephemeral_all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2168,7 +2168,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: ephemeral_all/psk_all, fail, key material mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             "$P_CLI nbio=2 debug_level=5 psk=040506 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2183,7 +2183,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: ephemeral_all/all, good" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2199,7 +2199,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: ephemeral_all/all, good, key id mismatch, fallback" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0d0e0f tls13_kex_modes=ephemeral_all" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2215,7 +2215,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: ephemeral_all/all, fail, key material mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             "$P_CLI nbio=2 debug_level=5 psk=040506 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2230,7 +2230,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_all/psk, good" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2245,7 +2245,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_all/psk, fail, key id mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk_all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2259,7 +2259,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_all/psk, fail, key material mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             "$P_CLI nbio=2 debug_level=5 psk=040506 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2273,7 +2273,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_all/psk_ephemeral, good" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2288,7 +2288,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_all/psk_ephemeral, fail, key id mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk_all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2303,7 +2303,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_all/psk_ephemeral, fail, key material mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             "$P_CLI nbio=2 debug_level=5 psk=040506 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2318,7 +2318,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_all/ephemeral, fail - no common kex mode" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2332,7 +2332,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_all/ephemeral_all, good" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2348,7 +2348,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_all/ephemeral_all, fail, key id mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk_all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2363,7 +2363,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_all/ephemeral_all, fail, key material mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             "$P_CLI nbio=2 debug_level=5 psk=040506 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2377,7 +2377,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_all/psk_all, good" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2392,7 +2392,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_all/psk_all, fail, key id mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk_all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2407,7 +2407,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_all/psk_all, fail, key material mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             "$P_CLI nbio=2 debug_level=5 psk=040506 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2422,7 +2422,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_all/all, good" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2438,7 +2438,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_all/all, fail, key id mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk_all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2453,7 +2453,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: psk_all/all, fail, key material mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             "$P_CLI nbio=2 debug_level=5 psk=040506 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2469,7 +2469,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: all/psk, good" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2485,7 +2485,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: all/psk, fail, key id mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0d0e0f tls13_kex_modes=all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2501,7 +2501,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: all/psk, fail, key material mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             "$P_CLI nbio=2 debug_level=5 psk=040506 psk_identity=0a0b0c tls13_kex_modes=all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2516,7 +2516,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: all/psk_ephemeral, good" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2532,7 +2532,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: all/psk_ephemeral, fail, key id mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0d0e0f tls13_kex_modes=all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2548,7 +2548,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: all/psk_ephemeral, fail, key material mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             "$P_CLI nbio=2 debug_level=5 psk=040506 psk_identity=0a0b0c tls13_kex_modes=all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2563,7 +2563,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: all/ephemeral, good" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2579,7 +2579,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: all/ephemeral_all, good" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2595,7 +2595,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: all/ephemeral_all, good, key id mismatch, fallback" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0d0e0f tls13_kex_modes=all" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2612,7 +2612,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: all/ephemeral_all, fail, key material mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             "$P_CLI nbio=2 debug_level=5 psk=040506 psk_identity=0a0b0c tls13_kex_modes=all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2627,7 +2627,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: all/psk_all, good" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2643,7 +2643,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: all/psk_all, fail, key id mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0d0e0f tls13_kex_modes=all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2659,7 +2659,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: all/psk_all, fail, key material mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             "$P_CLI nbio=2 debug_level=5 psk=040506 psk_identity=0a0b0c tls13_kex_modes=all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2674,7 +2674,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: all/all, good" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2690,7 +2690,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: all/all, good, key id mismatch, fallback" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0d0e0f tls13_kex_modes=all" \
             0 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2706,7 +2706,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->m: all/all, fail, key material mismatch" \
-            "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
+            "$P_SRV nbio=2 debug_level=5 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             "$P_CLI nbio=2 debug_level=5 psk=040506 psk_identity=0a0b0c tls13_kex_modes=all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2723,7 +2723,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test    "TLS 1.3: m->O: psk/all, good" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -allow_no_dhe_kex -nocert" \
-            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2760,7 +2760,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->O: psk_all/all, good" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -allow_no_dhe_kex -nocert" \
-            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2798,7 +2798,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->O: psk_ephemeral/all, good" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -allow_no_dhe_kex -nocert" \
-            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2835,7 +2835,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->O: ephemeral/all, good" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -allow_no_dhe_kex" \
-            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
             0 \
             -c "Selected key exchange mode: ephemeral" \
             -c "HTTP/1.0 200 ok"
@@ -2863,7 +2863,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->O: ephemeral_all/all, good" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -allow_no_dhe_kex -nocert" \
-            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2903,7 +2903,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->O: all/all, good" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -allow_no_dhe_kex -nocert" \
-            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2942,7 +2942,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test    "TLS 1.3: m->G: psk/all, good" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2962,7 +2962,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 run_test    "TLS 1.3: m->G: psk/ephemeral_all, fail - no common kex mode" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             1 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2983,7 +2983,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->G: psk_all/all, good" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -3004,7 +3004,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->G: psk_all/ephemeral_all, good" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -3025,7 +3025,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->G: psk_ephemeral/all, good" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -3045,7 +3045,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->G: psk_ephemeral/ephemeral_all, good" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -3066,7 +3066,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->G: ephemeral/all, good" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
             0 \
             -c "Selected key exchange mode: ephemeral" \
             -c "HTTP/1.0 200 OK"
@@ -3079,7 +3079,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->G: ephemeral/ephemeral_all, good" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
             0 \
             -c "Selected key exchange mode: ephemeral" \
             -c "HTTP/1.0 200 OK"
@@ -3094,7 +3094,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->G: ephemeral_all/all, good" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -3115,7 +3115,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->G: ephemeral_all/ephemeral_all, good" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -3138,7 +3138,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->G: all/all, good" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -3160,7 +3160,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: m->G: all/ephemeral_all, good" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \

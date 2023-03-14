@@ -2244,10 +2244,9 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3 opaque key: no suitable algorithm found" \
-            "$P_SRV debug_level=4 force_version=tls13 auth_mode=required key_opaque=1 key_opaque_algs=rsa-decrypt,none" \
+            "$P_SRV debug_level=4 auth_mode=required key_opaque=1 key_opaque_algs=rsa-decrypt,none" \
             "$P_CLI debug_level=4 key_opaque=1 key_opaque_algs=rsa-decrypt,rsa-sign-pss" \
             1 \
-            -s "The SSL configuration is tls13 only" \
             -c "key type: Opaque" \
             -s "key types: Opaque, Opaque" \
             -c "error" \
@@ -2259,10 +2258,9 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3 opaque key: suitable algorithm found" \
-            "$P_SRV debug_level=4 force_version=tls13 auth_mode=required key_opaque=1 key_opaque_algs=rsa-decrypt,rsa-sign-pss" \
+            "$P_SRV debug_level=4 auth_mode=required key_opaque=1 key_opaque_algs=rsa-decrypt,rsa-sign-pss" \
             "$P_CLI debug_level=4 key_opaque=1 key_opaque_algs=rsa-decrypt,rsa-sign-pss" \
             0 \
-            -s "The SSL configuration is tls13 only" \
             -c "key type: Opaque" \
             -s "key types: Opaque, Opaque" \
             -C "error" \
@@ -2274,10 +2272,9 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3 opaque key: first client sig alg not suitable" \
-            "$P_SRV debug_level=4 force_version=tls13 auth_mode=required key_opaque=1 key_opaque_algs=rsa-sign-pss-sha512,none" \
+            "$P_SRV debug_level=4 auth_mode=required key_opaque=1 key_opaque_algs=rsa-sign-pss-sha512,none" \
             "$P_CLI debug_level=4 sig_algs=rsa_pss_rsae_sha256,rsa_pss_rsae_sha512" \
             0 \
-            -s "The SSL configuration is tls13 only" \
             -s "key types: Opaque, Opaque" \
             -s "CertificateVerify signature failed with rsa_pss_rsae_sha256" \
             -s "CertificateVerify signature with rsa_pss_rsae_sha512" \
@@ -2290,10 +2287,9 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3 opaque key: 2 keys on server, suitable algorithm found" \
-            "$P_SRV debug_level=4 force_version=tls13 auth_mode=required key_opaque=1 key_opaque_algs2=ecdsa-sign,none key_opaque_algs=rsa-decrypt,rsa-sign-pss" \
+            "$P_SRV debug_level=4 auth_mode=required key_opaque=1 key_opaque_algs2=ecdsa-sign,none key_opaque_algs=rsa-decrypt,rsa-sign-pss" \
             "$P_CLI debug_level=4 key_opaque=1 key_opaque_algs=rsa-decrypt,rsa-sign-pss" \
             0 \
-            -s "The SSL configuration is tls13 only" \
             -c "key type: Opaque" \
             -s "key types: Opaque, Opaque" \
             -C "error" \
@@ -6230,7 +6226,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "Non-blocking I/O: TLS 1.3 + ticket + client auth + resume" \
             "$P_SRV nbio=2 tickets=1 auth_mode=required" \
-            "$P_CLI force_version=tls13 nbio=2 tickets=1 reconnect=1" \
+            "$P_CLI nbio=2 tickets=1 reconnect=1" \
             0 \
             -S "mbedtls_ssl_handshake returned" \
             -C "mbedtls_ssl_handshake returned" \
@@ -6250,7 +6246,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "Non-blocking I/O: TLS 1.3 + ticket + resume" \
             "$P_SRV nbio=2 tickets=1 auth_mode=none" \
-            "$P_CLI force_version=tls13 nbio=2 tickets=1 reconnect=1" \
+            "$P_CLI nbio=2 tickets=1 reconnect=1" \
             0 \
             -S "mbedtls_ssl_handshake returned" \
             -C "mbedtls_ssl_handshake returned" \
@@ -6317,7 +6313,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "Event-driven I/O: TLS 1.3 + ticket + client auth + resume" \
             "$P_SRV event=1 tickets=1 auth_mode=required" \
-            "$P_CLI force_version=tls13 event=1 tickets=1 reconnect=1" \
+            "$P_CLI event=1 tickets=1 reconnect=1" \
             0 \
             -S "mbedtls_ssl_handshake returned" \
             -C "mbedtls_ssl_handshake returned" \
@@ -6337,7 +6333,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "Event-driven I/O: TLS 1.3 + ticket + resume" \
             "$P_SRV event=1 tickets=1 auth_mode=none" \
-            "$P_CLI force_version=tls13 event=1 tickets=1 reconnect=1" \
+            "$P_CLI event=1 tickets=1 reconnect=1" \
             0 \
             -S "mbedtls_ssl_handshake returned" \
             -C "mbedtls_ssl_handshake returned" \
@@ -8127,7 +8123,7 @@ run_test    "Small client packet TLS 1.2 AEAD shorter tag" \
 
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Small client packet TLS 1.3 AEAD" \
-            "$P_SRV force_version=tls13" \
+            "$P_SRV" \
             "$P_CLI request_size=1 \
              force_ciphersuite=TLS1-3-AES-128-CCM-SHA256" \
             0 \
@@ -8135,7 +8131,7 @@ run_test    "Small client packet TLS 1.3 AEAD" \
 
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Small client packet TLS 1.3 AEAD shorter tag" \
-            "$P_SRV force_version=tls13" \
+            "$P_SRV" \
             "$P_CLI request_size=1 \
              force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256" \
             0 \
@@ -8193,14 +8189,14 @@ run_test    "Small server packet TLS 1.2 AEAD shorter tag" \
 
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Small server packet TLS 1.3 AEAD" \
-            "$P_SRV response_size=1 force_version=tls13" \
+            "$P_SRV response_size=1" \
             "$P_CLI force_ciphersuite=TLS1-3-AES-128-CCM-SHA256" \
             0 \
             -c "Read from server: 1 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Small server packet TLS 1.3 AEAD shorter tag" \
-            "$P_SRV response_size=1 force_version=tls13" \
+            "$P_SRV response_size=1" \
             "$P_CLI force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256" \
             0 \
             -c "Read from server: 1 bytes read"
@@ -8271,7 +8267,7 @@ run_test    "Large client packet TLS 1.2 AEAD shorter tag" \
 
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Large client packet TLS 1.3 AEAD" \
-            "$P_SRV force_version=tls13" \
+            "$P_SRV" \
             "$P_CLI request_size=16384 \
              force_ciphersuite=TLS1-3-AES-128-CCM-SHA256" \
             0 \
@@ -8280,7 +8276,7 @@ run_test    "Large client packet TLS 1.3 AEAD" \
 
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Large client packet TLS 1.3 AEAD shorter tag" \
-            "$P_SRV force_version=tls13" \
+            "$P_SRV" \
             "$P_CLI request_size=16384 \
              force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256" \
             0 \
@@ -8328,14 +8324,14 @@ run_test    "Large server packet TLS 1.2 AEAD shorter tag" \
 
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Large server packet TLS 1.3 AEAD" \
-            "$P_SRV response_size=16384 force_version=tls13" \
+            "$P_SRV response_size=16384" \
             "$P_CLI force_ciphersuite=TLS1-3-AES-128-CCM-SHA256" \
             0 \
             -c "Read from server: 16384 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "Large server packet TLS 1.3 AEAD shorter tag" \
-            "$P_SRV response_size=16384 force_version=tls13" \
+            "$P_SRV response_size=16384" \
             "$P_CLI force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256" \
             0 \
             -c "Read from server: 16384 bytes read"
@@ -11360,7 +11356,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_ALPN
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: server alpn - openssl" \
-            "$P_SRV debug_level=3 tickets=0 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 alpn=h2" \
+            "$P_SRV debug_level=3 tickets=0 crt_file=data_files/server5.crt key_file=data_files/server5.key alpn=h2" \
             "$O_NEXT_CLI -msg -tls1_3 -no_middlebox -alpn h2" \
             0 \
             -s "found alpn extension" \
@@ -11375,7 +11371,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_ALPN
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: server alpn - gnutls" \
-            "$P_SRV debug_level=3 tickets=0 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 alpn=h2" \
+            "$P_SRV debug_level=3 tickets=0 crt_file=data_files/server5.crt key_file=data_files/server5.key alpn=h2" \
             "$G_NEXT_CLI localhost -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V --alpn h2" \
             0 \
             -s "found alpn extension" \
@@ -12094,7 +12090,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Server side check - openssl" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=0" \
             "$O_NEXT_CLI -msg -debug -tls1_3 -no_middlebox" \
             0 \
             -s "tls13 server state: MBEDTLS_SSL_CLIENT_HELLO" \
@@ -12111,7 +12107,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Server side check - openssl with client authentication" \
-            "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
+            "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=0" \
             "$O_NEXT_CLI -msg -debug -cert data_files/server5.crt -key data_files/server5.key -tls1_3 -no_middlebox" \
             0 \
             -s "tls13 server state: MBEDTLS_SSL_CLIENT_HELLO" \
@@ -12131,7 +12127,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Server side check - gnutls" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=0" \
             "$G_NEXT_CLI localhost -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
             0 \
             -s "tls13 server state: MBEDTLS_SSL_CLIENT_HELLO" \
@@ -12150,7 +12146,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Server side check - gnutls with client authentication" \
-            "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
+            "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=0" \
             "$G_NEXT_CLI localhost -d 4 --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
             0 \
             -s "tls13 server state: MBEDTLS_SSL_CLIENT_HELLO" \
@@ -12169,7 +12165,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Server side check - mbedtls" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=0" \
             "$P_CLI debug_level=4" \
             0 \
             -s "tls13 server state: MBEDTLS_SSL_CLIENT_HELLO" \
@@ -12188,7 +12184,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Server side check - mbedtls with client authentication" \
-            "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
+            "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=0" \
             "$P_CLI debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key" \
             0 \
             -s "tls13 server state: MBEDTLS_SSL_CLIENT_HELLO" \
@@ -12205,7 +12201,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Server side check - mbedtls with client empty certificate" \
-            "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
+            "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=0" \
             "$P_CLI debug_level=4 crt_file=none key_file=none" \
             1 \
             -s "tls13 server state: MBEDTLS_SSL_CLIENT_HELLO" \
@@ -12223,7 +12219,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Server side check - mbedtls with optional client authentication" \
-            "$P_SRV debug_level=4 auth_mode=optional crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
+            "$P_SRV debug_level=4 auth_mode=optional crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=0" \
             "$P_CLI debug_level=4 crt_file=none key_file=none" \
             0 \
             -s "tls13 server state: MBEDTLS_SSL_CLIENT_HELLO" \
@@ -12240,7 +12236,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test "TLS 1.3: server: HRR check - mbedtls" \
-         "$P_SRV debug_level=4 force_version=tls13 curves=secp384r1" \
+         "$P_SRV debug_level=4 curves=secp384r1" \
          "$P_CLI debug_level=4 curves=secp256r1,secp384r1" \
          0 \
         -s "tls13 server state: MBEDTLS_SSL_CLIENT_HELLO" \
@@ -12257,7 +12253,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Server side check, no server certificate available" \
-            "$P_SRV debug_level=4 crt_file=none key_file=none force_version=tls13" \
+            "$P_SRV debug_level=4 crt_file=none key_file=none" \
             "$P_CLI debug_level=4" \
             1 \
             -s "tls13 server state: MBEDTLS_SSL_SERVER_CERTIFICATE" \
@@ -12269,7 +12265,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Server side check - openssl with sni" \
-            "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0 \
+            "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=0 \
              sni=localhost,data_files/server5.crt,data_files/server5.key,data_files/test-ca_cat12.crt,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
             "$O_NEXT_CLI -msg -debug -servername localhost -CAfile data_files/test-ca_cat12.crt -cert data_files/server5.crt -key data_files/server5.key -tls1_3" \
             0 \
@@ -12282,7 +12278,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Server side check - gnutls with sni" \
-            "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0 \
+            "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=0 \
              sni=localhost,data_files/server5.crt,data_files/server5.key,data_files/test-ca_cat12.crt,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
             "$G_NEXT_CLI localhost -d 4 --sni-hostname=localhost --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS -V" \
             0 \
@@ -12295,7 +12291,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Server side check - mbedtls with sni" \
-            "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0 \
+            "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=0 \
              sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
             "$P_CLI debug_level=4 server_name=localhost crt_file=data_files/server5.crt key_file=data_files/server5.key" \
             0 \
@@ -12317,7 +12313,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 m->m both peers do not support middlebox compatibility" \
-            "$P_SRV debug_level=4 force_version=tls13 tickets=0" \
+            "$P_SRV debug_level=4 tickets=0" \
             "$P_CLI debug_level=4" \
             0 \
             -s "Protocol is TLSv1.3" \
@@ -12331,7 +12327,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 m->m both with middlebox compat support" \
-            "$P_SRV debug_level=4 force_version=tls13 tickets=0" \
+            "$P_SRV debug_level=4 tickets=0" \
             "$P_CLI debug_level=4" \
             0 \
             -s "Protocol is TLSv1.3" \
@@ -12421,7 +12417,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 O->m both peers do not support middlebox compatibility" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=0" \
             "$O_NEXT_CLI -msg -debug -no_middlebox" \
             0 \
             -s "Protocol is TLSv1.3" \
@@ -12434,7 +12430,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 O->m server with middlebox compat support, not client" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=0" \
             "$O_NEXT_CLI -msg -debug -no_middlebox" \
             0 \
             -s "Protocol is TLSv1.3" \
@@ -12446,7 +12442,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 O->m both with middlebox compat support" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=0" \
             "$O_NEXT_CLI -msg -debug" \
             0 \
             -s "Protocol is TLSv1.3" \
@@ -12461,7 +12457,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 G->m both peers do not support middlebox compatibility" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=0" \
             "$G_NEXT_CLI localhost --priority=NORMAL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
             0 \
             -s "Protocol is TLSv1.3" \
@@ -12476,7 +12472,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 G->m server with middlebox compat support, not client" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=0" \
             "$G_NEXT_CLI localhost --debug=10 --priority=NORMAL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
             0 \
             -s "Protocol is TLSv1.3" \
@@ -12492,7 +12488,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 G->m both with middlebox compat support" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=0" \
             "$G_NEXT_CLI localhost --debug=10 --priority=NORMAL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
             0 \
             -s "Protocol is TLSv1.3" \
@@ -12505,7 +12501,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 m->m HRR both peers do not support middlebox compatibility" \
-            "$P_SRV debug_level=4 force_version=tls13 curves=secp384r1 tickets=0" \
+            "$P_SRV debug_level=4 curves=secp384r1 tickets=0" \
             "$P_CLI debug_level=4 curves=secp256r1,secp384r1" \
             0 \
             -s "Protocol is TLSv1.3" \
@@ -12520,7 +12516,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 m->m HRR both with middlebox compat support" \
-            "$P_SRV debug_level=4 force_version=tls13 curves=secp384r1 tickets=0" \
+            "$P_SRV debug_level=4 curves=secp384r1 tickets=0" \
             "$P_CLI debug_level=4 curves=secp256r1,secp384r1" \
             0 \
             -s "Protocol is TLSv1.3" \
@@ -12615,7 +12611,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 O->m HRR both peers do not support middlebox compatibility" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 curves=secp384r1 tickets=0" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key curves=secp384r1 tickets=0" \
             "$O_NEXT_CLI -msg -debug -groups P-256:P-384 -no_middlebox" \
             0 \
             -s "Protocol is TLSv1.3" \
@@ -12628,7 +12624,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 O->m HRR server with middlebox compat support, not client" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 curves=secp384r1 tickets=0" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key curves=secp384r1 tickets=0" \
             "$O_NEXT_CLI -msg -debug -groups P-256:P-384 -no_middlebox" \
             0 \
             -s "Protocol is TLSv1.3" \
@@ -12640,7 +12636,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 O->m HRR both with middlebox compat support" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 curves=secp384r1 tickets=0" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key curves=secp384r1 tickets=0" \
             "$O_NEXT_CLI -msg -debug -groups P-256:P-384" \
             0 \
             -s "Protocol is TLSv1.3" \
@@ -12655,7 +12651,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 G->m HRR both peers do not support middlebox compatibility" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 curves=secp384r1 tickets=0" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key curves=secp384r1 tickets=0" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-GROUP-ALL:+GROUP-SECP256R1:+GROUP-SECP384R1:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
             0 \
             -s "Protocol is TLSv1.3" \
@@ -12670,7 +12666,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 G->m HRR server with middlebox compat support, not client" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 curves=secp384r1 tickets=0" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key curves=secp384r1 tickets=0" \
             "$G_NEXT_CLI localhost --debug=10 --priority=NORMAL:-GROUP-ALL:+GROUP-SECP256R1:+GROUP-SECP384R1:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
             0 \
             -s "Protocol is TLSv1.3" \
@@ -12686,7 +12682,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 G->m HRR both with middlebox compat support" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 curves=secp384r1 tickets=0" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key curves=secp384r1 tickets=0" \
             "$G_NEXT_CLI localhost --debug=10 --priority=NORMAL:-GROUP-ALL:+GROUP-SECP256R1:+GROUP-SECP384R1:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
             0 \
             -s "Protocol is TLSv1.3" \
@@ -12731,7 +12727,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Check signature algorithm order, m->m" \
-            "$P_SRV debug_level=4 force_version=tls13 auth_mode=required
+            "$P_SRV debug_level=4 auth_mode=required
                     crt_file2=data_files/server2-sha256.crt key_file2=data_files/server2.key
                     crt_file=data_files/server5.crt key_file=data_files/server5.key
                     sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp256r1_sha256 " \
@@ -12750,7 +12746,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Check signature algorithm order, O->m" \
-            "$P_SRV debug_level=4 force_version=tls13 auth_mode=required
+            "$P_SRV debug_level=4 auth_mode=required
                     crt_file2=data_files/server2-sha256.crt key_file2=data_files/server2.key
                     crt_file=data_files/server5.crt key_file=data_files/server5.key
                     sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp256r1_sha256 " \
@@ -12768,7 +12764,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Check signature algorithm order, G->m" \
-            "$P_SRV debug_level=4 force_version=tls13 auth_mode=required
+            "$P_SRV debug_level=4 auth_mode=required
                     crt_file2=data_files/server2-sha256.crt key_file2=data_files/server2.key
                     crt_file=data_files/server5.crt key_file=data_files/server5.key
                     sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp256r1_sha256 " \
@@ -12787,7 +12783,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Check server no suitable signature algorithm, G->m" \
-            "$P_SRV debug_level=4 force_version=tls13 auth_mode=required
+            "$P_SRV debug_level=4 auth_mode=required
                     crt_file2=data_files/server2-sha256.crt key_file2=data_files/server2.key
                     crt_file=data_files/server5.crt key_file=data_files/server5.key
                     sig_algs=rsa_pkcs1_sha512,ecdsa_secp256r1_sha256 " \
@@ -12803,7 +12799,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Check server no suitable signature algorithm, O->m" \
-            "$P_SRV debug_level=4 force_version=tls13 auth_mode=required
+            "$P_SRV debug_level=4 auth_mode=required
                     crt_file2=data_files/server2-sha256.crt key_file2=data_files/server2.key
                     crt_file=data_files/server5.crt key_file=data_files/server5.key
                     sig_algs=rsa_pkcs1_sha512,ecdsa_secp256r1_sha256" \
@@ -12819,7 +12815,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Check server no suitable signature algorithm, m->m" \
-            "$P_SRV debug_level=4 force_version=tls13 auth_mode=required
+            "$P_SRV debug_level=4 auth_mode=required
                     crt_file2=data_files/server2-sha256.crt key_file2=data_files/server2.key
                     crt_file=data_files/server5.crt key_file=data_files/server5.key
                     sig_algs=rsa_pkcs1_sha512,ecdsa_secp256r1_sha256 " \
@@ -12834,7 +12830,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Check server no suitable certificate, G->m" \
-            "$P_SRV debug_level=4 force_version=tls13
+            "$P_SRV debug_level=4
                     crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key
                     sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp256r1_sha256 " \
             "$G_NEXT_CLI_NO_CERT localhost -d 4 --x509cafile data_files/test-ca_cat12.crt \
@@ -12848,7 +12844,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Check server no suitable certificate, O->m" \
-            "$P_SRV debug_level=4 force_version=tls13
+            "$P_SRV debug_level=4
                     crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key
                     sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp256r1_sha256 " \
             "$O_NEXT_CLI_NO_CERT -msg -CAfile data_files/test-ca_cat12.crt \
@@ -12862,7 +12858,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Check server no suitable certificate, m->m" \
-            "$P_SRV debug_level=4 force_version=tls13
+            "$P_SRV debug_level=4
                     crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key
                     sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp256r1_sha256 " \
             "$P_CLI allow_sha1=0 debug_level=4 \
@@ -12904,7 +12900,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: Check client no signature algorithm, m->m" \
-            "$P_SRV debug_level=4 force_version=tls13 auth_mode=required
+            "$P_SRV debug_level=4 auth_mode=required
                     crt_file2=data_files/server2-sha256.crt key_file2=data_files/server2.key
                     crt_file=data_files/server5.crt key_file=data_files/server5.key
                     sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp521r1_sha512" \
@@ -12957,7 +12953,7 @@ requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
 # Until now, OpenSSL client does not support reconnect.
 skip_next_test
 run_test    "TLS 1.3: NewSessionTicket: Basic check, O->m" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=4" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=4" \
             "$O_NEXT_CLI -msg -debug -tls1_3 -reconnect" \
             0 \
             -s "=> write NewSessionTicket msg" \
@@ -12972,7 +12968,7 @@ requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: NewSessionTicket: Basic check, G->m" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=4" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=4" \
             "$G_NEXT_CLI localhost -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V -r" \
             0 \
             -c "Connecting again- trying to resume previous session" \
@@ -13017,7 +13013,7 @@ requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: NewSessionTicket: Basic check, m->m" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=4" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=4" \
             "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
             0 \
             -c "Protocol is TLSv1.3" \
@@ -13071,7 +13067,7 @@ requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: NewSessionTicket: servername check, m->m" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=4 \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=4 \
             sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
             "$P_CLI debug_level=4 server_name=localhost reco_mode=1 reconnect=1" \
             0 \
@@ -13095,7 +13091,7 @@ requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: NewSessionTicket: servername negative check, m->m" \
-            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=4 \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key tickets=4 \
             sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
             "$P_CLI debug_level=4 server_name=localhost reco_server_name=remote reco_mode=1 reconnect=1" \
             1 \

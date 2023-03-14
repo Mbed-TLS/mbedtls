@@ -26,7 +26,7 @@
  * message syntax is a partial implementation of RFC 2315.
  * Differences include:
  *  - The RFC specifies 6 different content types. The only type currently
- *    supported in Mbed TLS is the signed data content type.
+ *    supported in Mbed TLS is the signed-data content type.
  *  - The only supported PKCS #7 Signed Data syntax version is version 1
  *  - The RFC specifies support for BER. This implementation is limited to
  *    DER only.

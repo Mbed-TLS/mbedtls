@@ -48,15 +48,20 @@ files.
 
 #### Timing attacks
 
-The attacker is able to observe the timing of instructions executed by Mbed
-TLS.(See for example the [Flush+Reload
-paper](https://eprint.iacr.org/2013/448.pdf).)
+The attacker is able to observe the timing of instructions executed by Mbed TLS
+by leveraging shared hardware that both Mbed TLS and the attacker have access
+to. Typical attack vectors include cache timings, memory bus contention and
+branch prediction.
 
 Mbed TLS provides limited protection against timing attacks. The cost of
 protecting against timing attacks widely varies depending on the granularity of
 the measurements and the noise present. Therefore the protection in Mbed TLS is
 limited. We are only aiming to provide protection against **publicly
-documented** attacks.
+documented attack techniques**.
+
+As attacks keep improving, so does Mbed TLS's protection. Mbed TLS is moving
+towards a model of fully timing-invariant code, but has not reached this point
+yet.
 
 **Remark:** Timing information can be observed over the network or through
 physical side channels as well. Remote and physical timing attacks are covered

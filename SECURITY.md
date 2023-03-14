@@ -25,9 +25,10 @@ We classify attacks based on the capabilities of the attacker.
 
 ### Remote attacks
 
-The attacker can observe and modify data sent over the network. This includes
-observing the content and timing of individual packets, as well as suppressing
-or delaying legitimate messages, and injecting messages.
+In this section, we consider an attacker who can observe and modify data sent
+over the network. This includes observing the content and timing of individual
+packets, as well as suppressing or delaying legitimate messages, and injecting
+messages.
 
 Mbed TLS aims to fully protect against remote attacks and to enable the user
 application in providing full protection against remote attacks. Said
@@ -42,9 +43,9 @@ and workarounds see the [Block Ciphers](#block-ciphers) section.
 
 ### Local attacks
 
-The attacker can run software on the same machine. The attacker has
-insufficient privileges to directly access Mbed TLS assets such as memory and
-files.
+In this section, we consider an attacker who can run software on the same
+machine. The attacker has insufficient privileges to directly access Mbed TLS
+assets such as memory and files.
 
 #### Timing attacks
 
@@ -93,9 +94,10 @@ application's threat model, they need to be mitigated by the platform.
 
 ### Physical attacks
 
-The attacker has access to physical information about the hardware Mbed TLS is
-running on and/or can alter the physical state of the hardware (e.g. power
-analysis, radio emissions or fault injection).
+In this section, we consider an attacker who can attacker has access to
+physical information about the hardware Mbed TLS is running on and/or can alter
+the physical state of the hardware (e.g. power analysis, radio emissions or
+fault injection).
 
 Mbed TLS doesn't make any security guarantees against physical attacks. If
 physical attacks are present in a use case or a user application's threat

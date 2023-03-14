@@ -2042,9 +2042,6 @@
  * \warning Runtime detection only works on linux. For non-linux operation
  *          system, crypto extension MUST be supported by CPU.
  *
- * \warning This option is experimental. For time being, we can not guarantee
- *          it with CI tests.
- *
  * This module adds support for the AES crypto instructions on Arm64
  */
 #define MBEDTLS_AESCE_C
@@ -3074,9 +3071,6 @@
  * \warning MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT cannot be defined at the
  * same time as MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY.
  *
- * \warning This option is experimental. For time being, we can not guarantee
- *          it with CI tests.
- *
  * Requires: MBEDTLS_SHA256_C.
  *
  * Module:  library/sha256.c
@@ -3098,9 +3092,6 @@
  *
  * \warning MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY cannot be defined at the same
  * time as MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT.
- *
- * \warning This option is experimental. For time being, we can not guarantee
- *          it with CI tests.
  *
  * Requires: MBEDTLS_SHA256_C.
  *
@@ -3158,9 +3149,6 @@
  * \warning MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT cannot be defined at the
  * same time as MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY.
  *
- * \warning This option is experimental. For time being, we can not guarantee
- *          it with CI tests.
- *
  * Requires: MBEDTLS_SHA512_C.
  *
  * Module:  library/sha512.c
@@ -3185,9 +3173,6 @@
  *
  * \warning MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY cannot be defined at the same
  * time as MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT.
- *
- * \warning This option is experimental. For time being, we can not guarantee
- *          it with CI tests.
  *
  * Requires: MBEDTLS_SHA512_C.
  *

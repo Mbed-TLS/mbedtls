@@ -3697,6 +3697,11 @@ component_build_armcc () {
     # ARM Compiler 6 - Target ARMv8.2-A - AArch64
     armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8.2-a+crypto"
 }
+support_build_armcc () {
+    armc5_cc="$ARMC5_BIN_DIR/armcc"
+    armc6_cc="$ARMC6_BIN_DIR/armclang"
+    (check_tools "$armc5_cc" "$armc6_cc" > /dev/null 2>&1)
+}
 
 component_test_tls13_only () {
     msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3, without MBEDTLS_SSL_PROTO_TLS1_2"
@@ -3839,8 +3844,8 @@ component_build_mingw () {
     make WINDOWS_BUILD=1 clean
 }
 support_build_mingw() {
-    case $(i686-w64-mingw32-gcc -dumpversion) in
-        [0-5]*) false;;
+    case $(i686-w64-mingw32-gcc -dumpversion 2>/dev/null) in
+        [0-5]*|"") false;;
         *) true;;
     esac
 }

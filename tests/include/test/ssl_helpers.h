@@ -424,9 +424,24 @@ int mbedtls_test_move_handshake_to_state(mbedtls_ssl_context *ssl,
                                          mbedtls_ssl_context *second_ssl,
                                          int state);
 
-#endif \
-    /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED && MBEDTLS_CERTS_C &&
-       MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED && MBEDTLS_CERTS_C &&
+          MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */
+
+/*
+ * Helper function setting up inverse record transformations
+ * using given cipher, hash, EtM mode, authentication tag length,
+ * and version.
+ */
+
+#define CHK(x)                                  \
+    do                                          \
+    {                                           \
+        if (!(x))                               \
+        {                                       \
+            ret = -1;                           \
+            goto cleanup;                       \
+        }                                       \
+    } while (0)
 
 int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
                                       mbedtls_ssl_transform *t_out,
@@ -476,8 +491,8 @@ int mbedtls_exchange_data(mbedtls_ssl_context *ssl_1,
     defined(MBEDTLS_CTR_DRBG_C)
 void mbedtls_test_ssl_perform_handshake(
     mbedtls_test_handshake_test_options *options);
-#endif \
-    /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED && MBEDTLS_CERTS_C && MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED && MBEDTLS_CERTS_C &&
+          MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */
 #endif /* MBEDTLS_SSL_TLS_C */
 
 #endif /* SSL_HELPERS_H */

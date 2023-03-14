@@ -395,7 +395,8 @@ detect_required_features() {
 
     case "$1" in
         *server5*|\
-        *server7*)
+        *server7*|\
+        *dir-maxpath*)
             if [ "$3" = "TLS13" ]; then
                 # In case of TLS13 the support for ECDSA is enough
                 requires_pk_alg "ECDSA"
@@ -1965,6 +1966,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
 requires_hash_alg SHA_256
 run_test    "Opaque key for client authentication: ECDHE-RSA" \
             "$P_SRV auth_mode=required crt_file=data_files/server2-sha256.crt \
@@ -2244,6 +2246,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
 requires_hash_alg SHA_256
 run_test    "Opaque key for server authentication: ECDHE-RSA" \
             "$P_SRV key_opaque=1 crt_file=data_files/server2-sha256.crt \
@@ -2330,6 +2333,7 @@ requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_256
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
 run_test    "Opaque keys for server authentication: RSA keys with different algs" \
             "$P_SRV auth_mode=required key_opaque=1 crt_file=data_files/server2-sha256.crt \
              key_file=data_files/server2.key key_opaque_algs=rsa-sign-pss,none \
@@ -2394,6 +2398,7 @@ requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_256
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
 run_test    "Opaque key for client/server authentication: ECDHE-RSA" \
             "$P_SRV auth_mode=required key_opaque=1 crt_file=data_files/server2-sha256.crt \
              key_file=data_files/server2.key  key_opaque_algs=rsa-sign-pkcs1,none" \
@@ -5622,7 +5627,6 @@ MAX_IM_CA='8'
 # are in place so that the semantics are consistent with the test description.
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Authentication: server max_int chain, client default" \
             "$P_SRV crt_file=data_files/dir-maxpath/c09.pem \
                     key_file=data_files/dir-maxpath/09.key" \
@@ -5632,7 +5636,6 @@ run_test    "Authentication: server max_int chain, client default" \
 
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Authentication: server max_int+1 chain, client default" \
             "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
@@ -5642,8 +5645,6 @@ run_test    "Authentication: server max_int+1 chain, client default" \
 
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication: server max_int+1 chain, client optional" \
             "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
@@ -5654,8 +5655,6 @@ run_test    "Authentication: server max_int+1 chain, client optional" \
 
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication: server max_int+1 chain, client none" \
             "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
@@ -5666,7 +5665,6 @@ run_test    "Authentication: server max_int+1 chain, client none" \
 
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Authentication: client max_int+1 chain, server default" \
             "$P_SRV ca_file=data_files/dir-maxpath/00.crt" \
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
@@ -5676,7 +5674,6 @@ run_test    "Authentication: client max_int+1 chain, server default" \
 
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Authentication: client max_int+1 chain, server optional" \
             "$P_SRV ca_file=data_files/dir-maxpath/00.crt auth_mode=optional" \
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
@@ -5686,7 +5683,6 @@ run_test    "Authentication: client max_int+1 chain, server optional" \
 
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Authentication: client max_int+1 chain, server required" \
             "$P_SRV ca_file=data_files/dir-maxpath/00.crt auth_mode=required" \
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
@@ -5696,7 +5692,6 @@ run_test    "Authentication: client max_int+1 chain, server required" \
 
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
-requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
 run_test    "Authentication: client max_int chain, server required" \
             "$P_SRV ca_file=data_files/dir-maxpath/00.crt auth_mode=required" \
             "$P_CLI crt_file=data_files/dir-maxpath/c09.pem \
@@ -5928,8 +5923,6 @@ run_test    "Authentication, CA callback: client badcert, server optional" \
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication, CA callback: server max_int chain, client default" \
             "$P_SRV crt_file=data_files/dir-maxpath/c09.pem \
                     key_file=data_files/dir-maxpath/09.key" \
@@ -5941,8 +5934,6 @@ run_test    "Authentication, CA callback: server max_int chain, client default" 
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication, CA callback: server max_int+1 chain, client default" \
             "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
@@ -5954,8 +5945,6 @@ run_test    "Authentication, CA callback: server max_int+1 chain, client default
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication, CA callback: server max_int+1 chain, client optional" \
             "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
@@ -5968,8 +5957,6 @@ run_test    "Authentication, CA callback: server max_int+1 chain, client optiona
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication, CA callback: client max_int+1 chain, server optional" \
             "$P_SRV ca_callback=1 debug_level=3 ca_file=data_files/dir-maxpath/00.crt auth_mode=optional" \
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
@@ -5981,8 +5968,6 @@ run_test    "Authentication, CA callback: client max_int+1 chain, server optiona
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication, CA callback: client max_int+1 chain, server required" \
             "$P_SRV ca_callback=1 debug_level=3 ca_file=data_files/dir-maxpath/00.crt auth_mode=required" \
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
@@ -5994,8 +5979,6 @@ run_test    "Authentication, CA callback: client max_int+1 chain, server require
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication, CA callback: client max_int chain, server required" \
             "$P_SRV ca_callback=1 debug_level=3 ca_file=data_files/dir-maxpath/00.crt auth_mode=required" \
             "$P_CLI crt_file=data_files/dir-maxpath/c09.pem \

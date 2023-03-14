@@ -349,7 +349,7 @@ static inline const unsigned char *mbedtls_buffer_offset_const(
 #endif
 
 /* Always provide a static assert macro, so it can be used unconditionally.
- * Note that it will expand to nothing on some systems.
+ * It will expand to nothing on some systems.
  * Can be used outside functions (but don't add a trailing ';' in that case:
  * the semicolon is included here to avoid triggering -Wextra-semi when
  * MBEDTLS_STATIC_ASSERT() expands to nothing).
@@ -358,22 +358,6 @@ static inline const unsigned char *mbedtls_buffer_offset_const(
  */
 #if defined(static_assert) && !defined(__FreeBSD__)
 #define MBEDTLS_STATIC_ASSERT(expr, msg)    static_assert(expr, msg);
-#elif defined(__COUNTER__)
-/* gcc will say "size of array ‘mbedtls_static_assert_failedN’ is negative"
- * (and with -pedantic will complain further);
- * clang will say "'mbedtls_static_assert_failedN' declared as an array with a
- * negative size";
- * Visual Studio will just say "error C2118: negative subscript" (without the
- * mbedtls_static_assert_failedN part)
- */
-#if defined(__GNUC__)
-#define MBEDTLS_UNUSED __attribute__((unused))
-#else
-#define MBEDTLS_UNUSED
-#endif
-#define MBEDTLS_STATIC_ASSERT2(expr, count) extern int MBEDTLS_UNUSED mbedtls_static_assert_failed ## count [2 * !!(expr) - 1];
-#define MBEDTLS_STATIC_ASSERT1(expr, count) MBEDTLS_STATIC_ASSERT2(expr, count)
-#define MBEDTLS_STATIC_ASSERT(expr, msg)    MBEDTLS_STATIC_ASSERT1(expr, __COUNTER__)
 #else
 #define MBEDTLS_STATIC_ASSERT(expr, msg)
 #endif

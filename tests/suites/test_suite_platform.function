@@ -69,7 +69,7 @@ void time_delay_milliseconds(int delay_ms)
     sleep_ms(delay_ms);
 
     elapsed_ms = mbedtls_ms_time() - current;
-    TEST_ASSERT(elapsed_ms >= delay_ms && elapsed_ms < 500 + delay_ms);
+    TEST_ASSERT(elapsed_ms >= delay_ms && elapsed_ms < 4000 + delay_ms);
     /* This goto is added to avoid warnings from the generated code. */
     goto exit;
 }

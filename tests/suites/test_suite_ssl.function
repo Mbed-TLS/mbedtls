@@ -1,9 +1,4 @@
 /* BEGIN_HEADER */
-#include <mbedtls/ssl_internal.h>
-#include <mbedtls/certs.h>
-#include <mbedtls/timing.h>
-#include <mbedtls/debug.h>
-#include <ssl_tls13_keys.h>
 #include <test/ssl_helpers.h>
 
 #include <constant_time_internal.h>

@@ -22,6 +22,8 @@
 
 #include <test/ssl_helpers.h>
 
+#if defined(MBEDTLS_SSL_TLS_C)
+
 /*
  * This function can be passed to mbedtls to receive output logs from it. In
  * this case, it will count the instances of a mbedtls_test_ssl_log_pattern
@@ -208,12 +210,6 @@ int mbedtls_test_ssl_buffer_get(mbedtls_test_ssl_buffer *buf,
 
     return output_len;
 }
-
-/*
- * Errors used in the message transport mock tests
- */
- #define MBEDTLS_TEST_ERROR_ARG_NULL -11
- #define MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED -44
 
 /*
  * Setup and free functions for the message metadata queue.
@@ -1964,3 +1960,4 @@ exit:
 #endif \
     /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED && MBEDTLS_CERTS_C && MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */
 
+#endif /* MBEDTLS_SSL_TLS_C */

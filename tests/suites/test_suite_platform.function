@@ -43,7 +43,7 @@ void sleep_ms(int milliseconds)
 /* BEGIN_CASE depends_on:MBEDTLS_HAVE_TIME */
 void time_get_milliseconds()
 {
-    mbedtls_ms_time_t  current = mbedtls_ms_time();
+    mbedtls_ms_time_t current = mbedtls_ms_time();
     (void) current;
     /* This goto is added to avoid warnings from the generated code. */
     goto exit;
@@ -53,7 +53,7 @@ void time_get_milliseconds()
 /* BEGIN_CASE depends_on:MBEDTLS_HAVE_TIME */
 void time_get_seconds()
 {
-    mbedtls_time_t  current = mbedtls_time(NULL);
+    mbedtls_time_t current = mbedtls_time(NULL);
     (void) current;
     /* This goto is added to avoid warnings from the generated code. */
     goto exit;
@@ -63,8 +63,8 @@ void time_get_seconds()
 /* BEGIN_CASE depends_on:MBEDTLS_HAVE_TIME */
 void time_delay_milliseconds(int delay_ms)
 {
-    mbedtls_ms_time_t  current = mbedtls_ms_time();
-    mbedtls_ms_time_t  elapsed_ms;
+    mbedtls_ms_time_t current = mbedtls_ms_time();
+    mbedtls_ms_time_t elapsed_ms;
 
     sleep_ms(delay_ms);
 
@@ -78,8 +78,8 @@ void time_delay_milliseconds(int delay_ms)
 /* BEGIN_CASE depends_on:MBEDTLS_HAVE_TIME */
 void time_delay_seconds(int delay_secs)
 {
-    mbedtls_time_t  current = mbedtls_time(NULL);
-    mbedtls_time_t  elapsed_secs;
+    mbedtls_time_t current = mbedtls_time(NULL);
+    mbedtls_time_t elapsed_secs;
 
     sleep_ms(delay_secs * 1000);
 

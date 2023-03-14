@@ -1894,13 +1894,12 @@ trap cleanup INT TERM HUP
 # Checks that:
 # - things work with all ciphersuites active (used with config-full in all.sh)
 # - the expected parameters are selected
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_ciphersuite_enabled TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256
 requires_hash_alg SHA_512 # "signature_algorithm ext: 6"
 requires_config_enabled MBEDTLS_ECP_DP_CURVE25519_ENABLED
-run_test    "Default" \
+run_test    "Default, TLS 1.2" \
             "$P_SRV debug_level=3" \
-            "$P_CLI" \
+            "$P_CLI force_version=tls12" \
             0 \
             -s "Protocol is TLSv1.2" \
             -s "Ciphersuite is TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256" \
@@ -1939,28 +1938,25 @@ run_test    "key size: TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
             -c "Ciphersuite is TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
             -c "Key size is 128"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_hash_alg SHA_256
 run_test    "TLS: password protected client key" \
-            "$P_SRV auth_mode=required" \
+            "$P_SRV force_version=tls12 auth_mode=required" \
             "$P_CLI crt_file=data_files/server5.crt key_file=data_files/server5.key.enc key_pwd=PolarSSLTest" \
             0
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_hash_alg SHA_256
 run_test    "TLS: password protected server key" \
             "$P_SRV crt_file=data_files/server5.crt key_file=data_files/server5.key.enc key_pwd=PolarSSLTest" \
-            "$P_CLI" \
+            "$P_CLI force_version=tls12" \
             0
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_256
 run_test    "TLS: password protected server key, two certificates" \
-            "$P_SRV \
+            "$P_SRV force_version=tls12\
               key_file=data_files/server5.key.enc key_pwd=PolarSSLTest crt_file=data_files/server5.crt \
               key_file2=data_files/server2.key.enc key_pwd2=PolarSSLTest crt_file2=data_files/server2.crt" \
             "$P_CLI" \
@@ -1989,13 +1985,12 @@ run_test    "CA callback on server" \
             -C "error"
 
 # Test using an EC opaque private key for client authentication
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 requires_hash_alg SHA_256
 run_test    "Opaque key for client authentication: ECDHE-ECDSA" \
-            "$P_SRV auth_mode=required crt_file=data_files/server5.crt \
+            "$P_SRV force_version=tls12 auth_mode=required crt_file=data_files/server5.crt \
              key_file=data_files/server5.key" \
             "$P_CLI key_opaque=1 crt_file=data_files/server5.crt \
              key_file=data_files/server5.key key_opaque_algs=ecdsa-sign,none" \
@@ -2008,14 +2003,13 @@ run_test    "Opaque key for client authentication: ECDHE-ECDSA" \
             -C "error"
 
 # Test using a RSA opaque private key for client authentication
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
 requires_hash_alg SHA_256
 run_test    "Opaque key for client authentication: ECDHE-RSA" \
-            "$P_SRV auth_mode=required crt_file=data_files/server2-sha256.crt \
+            "$P_SRV force_version=tls12 auth_mode=required crt_file=data_files/server2-sha256.crt \
              key_file=data_files/server2.key" \
             "$P_CLI key_opaque=1 crt_file=data_files/server2-sha256.crt \
              key_file=data_files/server2.key key_opaque_algs=rsa-sign-pkcs1,none" \
@@ -2032,7 +2026,7 @@ requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_256
 run_test    "Opaque key for client authentication: DHE-RSA" \
-            "$P_SRV auth_mode=required crt_file=data_files/server2-sha256.crt \
+            "$P_SRV force_version=tls12 auth_mode=required crt_file=data_files/server2-sha256.crt \
              key_file=data_files/server2.key" \
             "$P_CLI key_opaque=1 crt_file=data_files/server2-sha256.crt \
              key_file=data_files/server2.key force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA \
@@ -2046,7 +2040,6 @@ run_test    "Opaque key for client authentication: DHE-RSA" \
             -C "error"
 
 # Test using an EC opaque private key for server authentication
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
@@ -2054,7 +2047,7 @@ requires_hash_alg SHA_256
 run_test    "Opaque key for server authentication: ECDHE-ECDSA" \
             "$P_SRV key_opaque=1 crt_file=data_files/server5.crt \
              key_file=data_files/server5.key  key_opaque_algs=ecdsa-sign,none" \
-            "$P_CLI" \
+            "$P_CLI force_version=tls12" \
             0 \
             -c "Verifying peer X.509 certificate... ok" \
             -c "Ciphersuite is TLS-ECDHE-ECDSA" \
@@ -2067,10 +2060,10 @@ requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_hash_alg SHA_256
 run_test    "Opaque key for server authentication: ECDH-" \
-            "$P_SRV force_version=tls12 auth_mode=required key_opaque=1\
+            "$P_SRV auth_mode=required key_opaque=1\
              crt_file=data_files/server5.ku-ka.crt\
              key_file=data_files/server5.key key_opaque_algs=ecdh,none" \
-            "$P_CLI" \
+            "$P_CLI force_version=tls12" \
             0 \
             -c "Verifying peer X.509 certificate... ok" \
             -c "Ciphersuite is TLS-ECDH-" \
@@ -2079,7 +2072,6 @@ run_test    "Opaque key for server authentication: ECDH-" \
             -S "error" \
             -C "error"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_disabled MBEDTLS_SSL_ASYNC_PRIVATE
@@ -2088,14 +2080,13 @@ run_test    "Opaque key for server authentication: invalid key: decrypt with ECC
             "$P_SRV key_opaque=1 crt_file=data_files/server5.crt \
              key_file=data_files/server5.key key_opaque_algs=rsa-decrypt,none \
              debug_level=1" \
-            "$P_CLI" \
+            "$P_CLI force_version=tls12" \
             1 \
             -s "key types: Opaque, none" \
             -s "error" \
             -c "error" \
             -c "Public key type mismatch"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -2106,14 +2097,13 @@ run_test    "Opaque key for server authentication: invalid key: ecdh with RSA ke
             "$P_SRV key_opaque=1 crt_file=data_files/server2-sha256.crt \
              key_file=data_files/server2.key key_opaque_algs=ecdh,none \
              debug_level=1" \
-            "$P_CLI" \
+            "$P_CLI force_version=tls12" \
             1 \
             -s "key types: Opaque, none" \
             -s "error" \
             -c "error" \
             -c "Public key type mismatch"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
@@ -2122,14 +2112,13 @@ run_test    "Opaque key for server authentication: invalid alg: decrypt with ECC
             "$P_SRV key_opaque=1 crt_file=data_files/server5.crt \
              key_file=data_files/server5.key key_opaque_algs=rsa-decrypt,none \
              debug_level=1" \
-            "$P_CLI" \
+            "$P_CLI force_version=tls12" \
             1 \
             -s "key types: Opaque, none" \
             -s "got ciphersuites in common, but none of them usable" \
             -s "error" \
             -c "error"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
@@ -2139,7 +2128,7 @@ run_test    "Opaque key for server authentication: invalid alg: ecdh with RSA ke
             "$P_SRV key_opaque=1 crt_file=data_files/server2-sha256.crt \
              key_file=data_files/server2.key key_opaque_algs=ecdh,none \
              debug_level=1" \
-            "$P_CLI" \
+            "$P_CLI force_version=tls12" \
             1 \
             -s "key types: Opaque, none" \
             -s "got ciphersuites in common, but none of them usable" \
@@ -2154,25 +2143,24 @@ run_test    "Opaque key for server authentication: invalid alg: ECDHE-ECDSA with
             "$P_SRV key_opaque=1 crt_file=data_files/server5.crt \
              key_file=data_files/server5.key key_opaque_algs=ecdh,none \
              debug_level=1" \
-            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-256-CCM" \
+            "$P_CLI force_version=tls12 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-256-CCM" \
             1 \
             -s "key types: Opaque, none" \
             -s "got ciphersuites in common, but none of them usable" \
             -s "error" \
             -c "error"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 requires_hash_alg SHA_256
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "Opaque keys for server authentication: EC keys with different algs, force ECDHE-ECDSA" \
-            "$P_SRV key_opaque=1 crt_file=data_files/server7.crt \
+            "$P_SRV force_version=tls12 key_opaque=1 crt_file=data_files/server7.crt \
              key_file=data_files/server7.key key_opaque_algs=ecdh,none \
              crt_file2=data_files/server5.crt key_file2=data_files/server5.key \
              key_opaque_algs2=ecdsa-sign,none" \
-            "$P_CLI" \
+            "$P_CLI force_version=tls12" \
             0 \
             -c "Verifying peer X.509 certificate... ok" \
             -c "Ciphersuite is TLS-ECDHE-ECDSA" \
@@ -2191,7 +2179,7 @@ run_test    "Opaque keys for server authentication: EC keys with different algs,
              key_file=data_files/server7.key key_opaque_algs=ecdsa-sign,none \
              crt_file2=data_files/server5.crt key_file2=data_files/server5.key \
              key_opaque_algs2=ecdh,none debug_level=3" \
-            "$P_CLI force_ciphersuite=TLS-ECDH-ECDSA-WITH-CAMELLIA-256-CBC-SHA384" \
+            "$P_CLI force_version=tls12 force_ciphersuite=TLS-ECDH-ECDSA-WITH-CAMELLIA-256-CBC-SHA384" \
             0 \
             -c "Verifying peer X.509 certificate... ok" \
             -c "Ciphersuite is TLS-ECDH-ECDSA" \
@@ -2211,7 +2199,7 @@ run_test    "Opaque keys for server authentication: EC + RSA, force ECDHE-ECDSA"
              key_file=data_files/server5.key key_opaque_algs=ecdsa-sign,none \
              crt_file2=data_files/server2-sha256.crt \
              key_file2=data_files/server2.key key_opaque_algs2=rsa-sign-pkcs1,none" \
-            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-256-CCM" \
+            "$P_CLI force_version=tls12 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-256-CCM" \
             0 \
             -c "Verifying peer X.509 certificate... ok" \
             -c "Ciphersuite is TLS-ECDHE-ECDSA" \
@@ -2283,7 +2271,6 @@ run_test    "TLS 1.3 opaque key: 2 keys on server, suitable algorithm found" \
             -S "error" \
 
 # Test using a RSA opaque private key for server authentication
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
@@ -2292,7 +2279,7 @@ requires_hash_alg SHA_256
 run_test    "Opaque key for server authentication: ECDHE-RSA" \
             "$P_SRV key_opaque=1 crt_file=data_files/server2-sha256.crt \
              key_file=data_files/server2.key key_opaque_algs=rsa-sign-pkcs1,none" \
-            "$P_CLI" \
+            "$P_CLI force_version=tls12" \
             0 \
             -c "Verifying peer X.509 certificate... ok" \
             -c "Ciphersuite is TLS-ECDHE-RSA" \
@@ -2308,7 +2295,7 @@ requires_hash_alg SHA_256
 run_test    "Opaque key for server authentication: DHE-RSA" \
             "$P_SRV key_opaque=1 crt_file=data_files/server2-sha256.crt \
              key_file=data_files/server2.key key_opaque_algs=rsa-sign-pkcs1,none" \
-            "$P_CLI force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA" \
+            "$P_CLI force_version=tls12 force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA" \
             0 \
             -c "Verifying peer X.509 certificate... ok" \
             -c "Ciphersuite is TLS-DHE-RSA" \
@@ -2324,7 +2311,7 @@ requires_hash_alg SHA_256
 run_test    "Opaque key for server authentication: RSA-PSK" \
             "$P_SRV debug_level=1 key_opaque=1 key_opaque_algs=rsa-decrypt,none \
              psk=abc123 psk_identity=foo" \
-            "$P_CLI force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA256 \
+            "$P_CLI force_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA256 \
              psk=abc123 psk_identity=foo" \
             0 \
             -c "Verifying peer X.509 certificate... ok" \
@@ -2340,7 +2327,7 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_hash_alg SHA_256
 run_test    "Opaque key for server authentication: RSA-" \
             "$P_SRV debug_level=3 key_opaque=1 key_opaque_algs=rsa-decrypt,none " \
-            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA256" \
+            "$P_CLI force_version=tls12 force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA256" \
             0 \
             -c "Verifying peer X.509 certificate... ok" \
             -c "Ciphersuite is TLS-RSA-" \
@@ -2364,7 +2351,6 @@ run_test    "Opaque key for server authentication: DHE-RSA, PSS instead of PKCS1
             -s "error" \
             -c "error"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
@@ -2372,11 +2358,11 @@ requires_hash_alg SHA_256
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
 run_test    "Opaque keys for server authentication: RSA keys with different algs" \
-            "$P_SRV auth_mode=required key_opaque=1 crt_file=data_files/server2-sha256.crt \
+            "$P_SRV force_version=tls12 auth_mode=required key_opaque=1 crt_file=data_files/server2-sha256.crt \
              key_file=data_files/server2.key key_opaque_algs=rsa-sign-pss,none \
              crt_file2=data_files/server4.crt \
              key_file2=data_files/server4.key key_opaque_algs2=rsa-sign-pkcs1,none" \
-            "$P_CLI" \
+            "$P_CLI force_version=tls12" \
             0 \
             -c "Verifying peer X.509 certificate... ok" \
             -c "Ciphersuite is TLS-ECDHE-RSA" \
@@ -2408,13 +2394,12 @@ run_test    "Opaque keys for server authentication: EC + RSA, force DHE-RSA" \
             -C "error"
 
 # Test using an EC opaque private key for client/server authentication
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 requires_hash_alg SHA_256
 run_test    "Opaque key for client/server authentication: ECDHE-ECDSA" \
-            "$P_SRV auth_mode=required key_opaque=1 crt_file=data_files/server5.crt \
+            "$P_SRV force_version=tls12 auth_mode=required key_opaque=1 crt_file=data_files/server5.crt \
              key_file=data_files/server5.key key_opaque_algs=ecdsa-sign,none" \
             "$P_CLI key_opaque=1 crt_file=data_files/server5.crt \
              key_file=data_files/server5.key key_opaque_algs=ecdsa-sign,none" \
@@ -2429,7 +2414,6 @@ run_test    "Opaque key for client/server authentication: ECDHE-ECDSA" \
             -C "error"
 
 # Test using a RSA opaque private key for client/server authentication
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
@@ -2438,7 +2422,7 @@ requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
 run_test    "Opaque key for client/server authentication: ECDHE-RSA" \
             "$P_SRV auth_mode=required key_opaque=1 crt_file=data_files/server2-sha256.crt \
              key_file=data_files/server2.key  key_opaque_algs=rsa-sign-pkcs1,none" \
-            "$P_CLI key_opaque=1 crt_file=data_files/server2-sha256.crt \
+            "$P_CLI force_version=tls12 key_opaque=1 crt_file=data_files/server2-sha256.crt \
              key_file=data_files/server2.key  key_opaque_algs=rsa-sign-pkcs1,none" \
             0 \
             -c "key type: Opaque" \
@@ -2512,11 +2496,10 @@ requires_config_enabled MBEDTLS_ECP_DP_SECP192K1_ENABLED
 run_test_psa_force_curve "secp192k1"
 
 # Test current time in ServerHello
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_HAVE_TIME
 run_test    "ServerHello contains gmt_unix_time" \
             "$P_SRV debug_level=3" \
-            "$P_CLI debug_level=3" \
+            "$P_CLI force_version=tls12 debug_level=3" \
             0 \
             -f "check_server_hello_time" \
             -F "check_server_hello_time"
@@ -2531,7 +2514,6 @@ run_test    "Unique IV in GCM" \
 
 # Test for correctness of sent single supported algorithm
 requires_config_enabled MBEDTLS_ECP_DP_SECP256R1_ENABLED
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2540,7 +2522,7 @@ requires_pk_alg "ECDSA"
 requires_hash_alg SHA_256
 run_test    "Single supported algorithm sending: mbedtls client" \
             "$P_SRV sig_algs=ecdsa_secp256r1_sha256 auth_mode=required" \
-            "$P_CLI sig_algs=ecdsa_secp256r1_sha256 debug_level=3" \
+            "$P_CLI force_version=tls12 sig_algs=ecdsa_secp256r1_sha256 debug_level=3" \
             0 \
             -c "Supported Signature Algorithm found: 04 03"
 
@@ -2576,41 +2558,35 @@ run_test    "Context-specific CRT verification callback" \
             -C "error"
 
 # Tests for SHA-1 support
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "SHA-1 forbidden by default in server certificate" \
             "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2.crt" \
-            "$P_CLI debug_level=2 allow_sha1=0" \
+            "$P_CLI debug_level=2 force_version=tls12 allow_sha1=0" \
             1 \
             -c "The certificate is signed with an unacceptable hash"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "SHA-1 explicitly allowed in server certificate" \
             "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2.crt" \
-            "$P_CLI allow_sha1=1" \
+            "$P_CLI force_version=tls12 allow_sha1=1" \
             0
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "SHA-256 allowed by default in server certificate" \
             "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2-sha256.crt" \
-            "$P_CLI allow_sha1=0" \
+            "$P_CLI force_version=tls12 allow_sha1=0" \
             0
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "SHA-1 forbidden by default in client certificate" \
-            "$P_SRV auth_mode=required allow_sha1=0" \
+            "$P_SRV force_version=tls12 auth_mode=required allow_sha1=0" \
             "$P_CLI key_file=data_files/cli-rsa.key crt_file=data_files/cli-rsa-sha1.crt" \
             1 \
             -s "The certificate is signed with an unacceptable hash"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "SHA-1 explicitly allowed in client certificate" \
-            "$P_SRV auth_mode=required allow_sha1=1" \
+            "$P_SRV force_version=tls12 auth_mode=required allow_sha1=1" \
             "$P_CLI key_file=data_files/cli-rsa.key crt_file=data_files/cli-rsa-sha1.crt" \
             0
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "SHA-256 allowed by default in client certificate" \
-            "$P_SRV auth_mode=required allow_sha1=0" \
+            "$P_SRV force_version=tls12 auth_mode=required allow_sha1=0" \
             "$P_CLI key_file=data_files/cli-rsa.key crt_file=data_files/cli-rsa-sha256.crt" \
             0
 
@@ -3532,11 +3508,10 @@ run_test    "Encrypt then MAC: client disabled, server enabled" \
 
 # Tests for Extended Master Secret extension
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_EXTENDED_MASTER_SECRET
 run_test    "Extended Master Secret: default" \
             "$P_SRV debug_level=3" \
-            "$P_CLI debug_level=3" \
+            "$P_CLI force_version=tls12 debug_level=3" \
             0 \
             -c "client hello, adding extended_master_secret extension" \
             -s "found extended master secret extension" \
@@ -3545,11 +3520,10 @@ run_test    "Extended Master Secret: default" \
             -c "session hash for extended master secret" \
             -s "session hash for extended master secret"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_EXTENDED_MASTER_SECRET
 run_test    "Extended Master Secret: client enabled, server disabled" \
             "$P_SRV debug_level=3 extended_ms=0" \
-            "$P_CLI debug_level=3 extended_ms=1" \
+            "$P_CLI force_version=tls12 debug_level=3 extended_ms=1" \
             0 \
             -c "client hello, adding extended_master_secret extension" \
             -s "found extended master secret extension" \
@@ -3558,10 +3532,9 @@ run_test    "Extended Master Secret: client enabled, server disabled" \
             -C "session hash for extended master secret" \
             -S "session hash for extended master secret"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_EXTENDED_MASTER_SECRET
 run_test    "Extended Master Secret: client disabled, server enabled" \
-            "$P_SRV debug_level=3 extended_ms=1" \
+            "$P_SRV force_version=tls12 debug_level=3 extended_ms=1" \
             "$P_CLI debug_level=3 extended_ms=0" \
             0 \
             -C "client hello, adding extended_master_secret extension" \
@@ -3618,10 +3591,9 @@ run_test    "CBC Record splitting: TLS 1.2, no splitting" \
 
 # Tests for Session Tickets
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Session resume using tickets: basic" \
             "$P_SRV debug_level=3 tickets=1" \
-            "$P_CLI debug_level=3 tickets=1 reconnect=1" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -3633,10 +3605,9 @@ run_test    "Session resume using tickets: basic" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Session resume using tickets: manual rotation" \
             "$P_SRV debug_level=3 tickets=1 ticket_rotate=1" \
-            "$P_CLI debug_level=3 tickets=1 reconnect=1" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -3648,10 +3619,9 @@ run_test    "Session resume using tickets: manual rotation" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Session resume using tickets: cache disabled" \
             "$P_SRV debug_level=3 tickets=1 cache_max=0" \
-            "$P_CLI debug_level=3 tickets=1 reconnect=1" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -3663,10 +3633,9 @@ run_test    "Session resume using tickets: cache disabled" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Session resume using tickets: timeout" \
             "$P_SRV debug_level=3 tickets=1 cache_max=0 ticket_timeout=1" \
-            "$P_CLI debug_level=3 tickets=1 reconnect=1 reco_delay=2000" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1 reco_delay=2000" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -3678,10 +3647,9 @@ run_test    "Session resume using tickets: timeout" \
             -S "a session has been resumed" \
             -C "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Session resume using tickets: session copy" \
             "$P_SRV debug_level=3 tickets=1 cache_max=0" \
-            "$P_CLI debug_level=3 tickets=1 reconnect=1 reco_mode=0" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1 reco_mode=0" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -3716,10 +3684,9 @@ run_test    "Session resume using tickets: openssl client" \
             -s "session successfully restored from ticket" \
             -s "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Session resume using tickets: AES-128-GCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=AES-128-GCM" \
-            "$P_CLI debug_level=3 tickets=1 reconnect=1" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -3731,10 +3698,9 @@ run_test    "Session resume using tickets: AES-128-GCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Session resume using tickets: AES-192-GCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=AES-192-GCM" \
-            "$P_CLI debug_level=3 tickets=1 reconnect=1" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -3746,10 +3712,9 @@ run_test    "Session resume using tickets: AES-192-GCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Session resume using tickets: AES-128-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=AES-128-CCM" \
-            "$P_CLI debug_level=3 tickets=1 reconnect=1" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -3761,10 +3726,9 @@ run_test    "Session resume using tickets: AES-128-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Session resume using tickets: AES-192-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=AES-192-CCM" \
-            "$P_CLI debug_level=3 tickets=1 reconnect=1" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -3776,10 +3740,9 @@ run_test    "Session resume using tickets: AES-192-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Session resume using tickets: AES-256-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=AES-256-CCM" \
-            "$P_CLI debug_level=3 tickets=1 reconnect=1" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -3791,10 +3754,9 @@ run_test    "Session resume using tickets: AES-256-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Session resume using tickets: CAMELLIA-128-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=CAMELLIA-128-CCM" \
-            "$P_CLI debug_level=3 tickets=1 reconnect=1" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -3806,10 +3768,9 @@ run_test    "Session resume using tickets: CAMELLIA-128-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Session resume using tickets: CAMELLIA-192-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=CAMELLIA-192-CCM" \
-            "$P_CLI debug_level=3 tickets=1 reconnect=1" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -3821,10 +3782,9 @@ run_test    "Session resume using tickets: CAMELLIA-192-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Session resume using tickets: CAMELLIA-256-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=CAMELLIA-256-CCM" \
-            "$P_CLI debug_level=3 tickets=1 reconnect=1" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -3836,10 +3796,9 @@ run_test    "Session resume using tickets: CAMELLIA-256-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Session resume using tickets: ARIA-128-GCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=ARIA-128-GCM" \
-            "$P_CLI debug_level=3 tickets=1 reconnect=1" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -3851,10 +3810,9 @@ run_test    "Session resume using tickets: ARIA-128-GCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Session resume using tickets: ARIA-192-GCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=ARIA-192-GCM" \
-            "$P_CLI debug_level=3 tickets=1 reconnect=1" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -3866,10 +3824,9 @@ run_test    "Session resume using tickets: ARIA-192-GCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Session resume using tickets: ARIA-256-GCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=ARIA-256-GCM" \
-            "$P_CLI debug_level=3 tickets=1 reconnect=1" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -3881,10 +3838,9 @@ run_test    "Session resume using tickets: ARIA-256-GCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Session resume using tickets: ARIA-128-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=ARIA-128-CCM" \
-            "$P_CLI debug_level=3 tickets=1 reconnect=1" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -3896,10 +3852,9 @@ run_test    "Session resume using tickets: ARIA-128-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Session resume using tickets: ARIA-192-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=ARIA-192-CCM" \
-            "$P_CLI debug_level=3 tickets=1 reconnect=1" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -3911,10 +3866,9 @@ run_test    "Session resume using tickets: ARIA-192-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Session resume using tickets: ARIA-256-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=ARIA-256-CCM" \
-            "$P_CLI debug_level=3 tickets=1 reconnect=1" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -3926,10 +3880,9 @@ run_test    "Session resume using tickets: ARIA-256-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Session resume using tickets: CHACHA20-POLY1305" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=CHACHA20-POLY1305" \
-            "$P_CLI debug_level=3 tickets=1 reconnect=1" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -4031,11 +3984,10 @@ run_test    "Session resume using tickets, DTLS: openssl client" \
 
 # Tests for Session Resume based on session-ID and cache
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CACHE_C
 run_test    "Session resume using cache: tickets enabled on client" \
             "$P_SRV debug_level=3 tickets=0" \
-            "$P_CLI debug_level=3 tickets=1 reconnect=1" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -4047,11 +3999,10 @@ run_test    "Session resume using cache: tickets enabled on client" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CACHE_C
 run_test    "Session resume using cache: tickets enabled on server" \
             "$P_SRV debug_level=3 tickets=1" \
-            "$P_CLI debug_level=3 tickets=0 reconnect=1" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=0 reconnect=1" \
             0 \
             -C "client hello, adding session ticket extension" \
             -S "found session ticket extension" \
@@ -4063,33 +4014,30 @@ run_test    "Session resume using cache: tickets enabled on server" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CACHE_C
 run_test    "Session resume using cache: cache_max=0" \
             "$P_SRV debug_level=3 tickets=0 cache_max=0" \
-            "$P_CLI debug_level=3 tickets=0 reconnect=1" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=0 reconnect=1" \
             0 \
             -S "session successfully restored from cache" \
             -S "session successfully restored from ticket" \
             -S "a session has been resumed" \
             -C "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CACHE_C
 run_test    "Session resume using cache: cache_max=1" \
             "$P_SRV debug_level=3 tickets=0 cache_max=1" \
-            "$P_CLI debug_level=3 tickets=0 reconnect=1" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=0 reconnect=1" \
             0 \
             -s "session successfully restored from cache" \
             -S "session successfully restored from ticket" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CACHE_C
 run_test    "Session resume using cache: cache removed" \
             "$P_SRV debug_level=3 tickets=0 cache_remove=1" \
-            "$P_CLI debug_level=3 tickets=0 reconnect=1" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=0 reconnect=1" \
             0 \
             -C "client hello, adding session ticket extension" \
             -S "found session ticket extension" \
@@ -4105,50 +4053,46 @@ requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CACHE_C
 run_test    "Session resume using cache: timeout > delay" \
             "$P_SRV debug_level=3 tickets=0" \
-            "$P_CLI debug_level=3 tickets=0 reconnect=1 reco_delay=0" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=0 reconnect=1 reco_delay=0" \
             0 \
             -s "session successfully restored from cache" \
             -S "session successfully restored from ticket" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CACHE_C
 run_test    "Session resume using cache: timeout < delay" \
             "$P_SRV debug_level=3 tickets=0 cache_timeout=1" \
-            "$P_CLI debug_level=3 tickets=0 reconnect=1 reco_delay=2000" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=0 reconnect=1 reco_delay=2000" \
             0 \
             -S "session successfully restored from cache" \
             -S "session successfully restored from ticket" \
             -S "a session has been resumed" \
             -C "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CACHE_C
 run_test    "Session resume using cache: no timeout" \
             "$P_SRV debug_level=3 tickets=0 cache_timeout=0" \
-            "$P_CLI debug_level=3 tickets=0 reconnect=1 reco_delay=2000" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=0 reconnect=1 reco_delay=2000" \
             0 \
             -s "session successfully restored from cache" \
             -S "session successfully restored from ticket" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CACHE_C
 run_test    "Session resume using cache: session copy" \
             "$P_SRV debug_level=3 tickets=0" \
-            "$P_CLI debug_level=3 tickets=0 reconnect=1 reco_mode=0" \
+            "$P_CLI force_version=tls12 debug_level=3 tickets=0 reconnect=1 reco_mode=0" \
             0 \
             -s "session successfully restored from cache" \
             -S "session successfully restored from ticket" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CACHE_C
 run_test    "Session resume using cache: openssl client" \
-            "$P_SRV debug_level=3 tickets=0" \
+            "$P_SRV force_version=tls12 debug_level=3 tickets=0" \
             "( $O_CLI -sess_out $SESSION; \
                $O_CLI -sess_in $SESSION; \
                rm -f $SESSION )" \
@@ -4712,10 +4656,9 @@ run_test    "Record Size Limit: TLS 1.3: Client-side parsing, debug output and f
 # Tests for renegotiation
 
 # Renegotiation SCSV always added, regardless of SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: none, for reference" \
             "$P_SRV debug_level=3 exchanges=2 auth_mode=optional" \
-            "$P_CLI debug_level=3 exchanges=2" \
+            "$P_CLI force_version=tls12 debug_level=3 exchanges=2" \
             0 \
             -C "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -4727,10 +4670,9 @@ run_test    "Renegotiation: none, for reference" \
             -S "write hello request"
 
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: client-initiated" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional" \
-            "$P_CLI debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_CLI force_version=tls12 debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -4742,9 +4684,8 @@ run_test    "Renegotiation: client-initiated" \
             -S "write hello request"
 
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: server-initiated" \
-            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional renegotiate=1" \
+            "$P_SRV force_version=tls12 debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional renegotiate=1" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
@@ -4760,10 +4701,9 @@ run_test    "Renegotiation: server-initiated" \
 # the server did not parse the Signature Algorithm extension. This test is valid only if an MD
 # algorithm stronger than SHA-1 is enabled in mbedtls_config.h
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: Signature Algorithms parsing, client-initiated" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional" \
-            "$P_CLI debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_CLI force_version=tls12 debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -4779,9 +4719,8 @@ run_test    "Renegotiation: Signature Algorithms parsing, client-initiated" \
 # the server did not parse the Signature Algorithm extension. This test is valid only if an MD
 # algorithm stronger than SHA-1 is enabled in mbedtls_config.h
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: Signature Algorithms parsing, server-initiated" \
-            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional renegotiate=1" \
+            "$P_SRV force_version=tls12 debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional renegotiate=1" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
@@ -4795,10 +4734,9 @@ run_test    "Renegotiation: Signature Algorithms parsing, server-initiated" \
             -S "client hello v3, signature_algorithm ext: 2" # Is SHA-1 negotiated?
 
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: double" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional renegotiate=1" \
-            "$P_CLI debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_CLI force_version=tls12 debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -4813,7 +4751,7 @@ requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 requires_max_content_len 2048
 run_test    "Renegotiation with max fragment length: client 2048, server 512" \
-            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional renegotiate=1 max_frag_len=512" \
+            "$P_SRV force_version=tls12 debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional renegotiate=1 max_frag_len=512" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 max_frag_len=2048 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
             0 \
             -c "Maximum incoming record payload length is 2048" \
@@ -4834,10 +4772,9 @@ run_test    "Renegotiation with max fragment length: client 2048, server 512" \
             -s "write hello request"
 
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: client-initiated, server-rejected" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=0 auth_mode=optional" \
-            "$P_CLI debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_CLI force_version=tls12 debug_level=3 exchanges=2 renegotiation=1 renegotiate=1" \
             1 \
             -c "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -4851,9 +4788,8 @@ run_test    "Renegotiation: client-initiated, server-rejected" \
             -c "failed"
 
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: server-initiated, client-rejected, default" \
-            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 auth_mode=optional" \
+            "$P_SRV force_version=tls12 debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=0" \
             0 \
             -C "client hello, adding renegotiation extension" \
@@ -4868,9 +4804,8 @@ run_test    "Renegotiation: server-initiated, client-rejected, default" \
             -S "failed"
 
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: server-initiated, client-rejected, not enforced" \
-            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 \
+            "$P_SRV force_version=tls12 debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 \
              renego_delay=-1 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=0" \
             0 \
@@ -4887,9 +4822,8 @@ run_test    "Renegotiation: server-initiated, client-rejected, not enforced" \
 
 # delay 2 for 1 alert record + 1 application data record
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: server-initiated, client-rejected, delay 2" \
-            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 \
+            "$P_SRV force_version=tls12 debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 \
              renego_delay=2 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=0" \
             0 \
@@ -4905,9 +4839,8 @@ run_test    "Renegotiation: server-initiated, client-rejected, delay 2" \
             -S "failed"
 
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: server-initiated, client-rejected, delay 0" \
-            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 \
+            "$P_SRV force_version=tls12 debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 \
              renego_delay=0 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=0" \
             0 \
@@ -4922,9 +4855,8 @@ run_test    "Renegotiation: server-initiated, client-rejected, delay 0" \
             -s "SSL - An unexpected message was received from our peer"
 
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: server-initiated, client-accepted, delay 0" \
-            "$P_SRV debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 \
+            "$P_SRV force_version=tls12 debug_level=3 exchanges=2 renegotiation=1 renegotiate=1 \
              renego_delay=0 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=2 renegotiation=1" \
             0 \
@@ -4940,10 +4872,9 @@ run_test    "Renegotiation: server-initiated, client-accepted, delay 0" \
             -S "failed"
 
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: periodic, just below period" \
             "$P_SRV debug_level=3 exchanges=9 renegotiation=1 renego_period=3 auth_mode=optional" \
-            "$P_CLI debug_level=3 exchanges=2 renegotiation=1" \
+            "$P_CLI force_version=tls12 debug_level=3 exchanges=2 renegotiation=1" \
             0 \
             -C "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -4959,9 +4890,8 @@ run_test    "Renegotiation: periodic, just below period" \
 
 # one extra exchange to be able to complete renego
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: periodic, just above period" \
-            "$P_SRV debug_level=3 exchanges=9 renegotiation=1 renego_period=3 auth_mode=optional" \
+            "$P_SRV force_version=tls12 debug_level=3 exchanges=9 renegotiation=1 renego_period=3 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=4 renegotiation=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
@@ -4977,10 +4907,9 @@ run_test    "Renegotiation: periodic, just above period" \
             -S "failed"
 
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: periodic, two times period" \
             "$P_SRV debug_level=3 exchanges=9 renegotiation=1 renego_period=3 auth_mode=optional" \
-            "$P_CLI debug_level=3 exchanges=7 renegotiation=1" \
+            "$P_CLI force_version=tls12 debug_level=3 exchanges=7 renegotiation=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -4995,9 +4924,8 @@ run_test    "Renegotiation: periodic, two times period" \
             -S "failed"
 
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: periodic, above period, disabled" \
-            "$P_SRV debug_level=3 exchanges=9 renegotiation=0 renego_period=3 auth_mode=optional" \
+            "$P_SRV force_version=tls12 debug_level=3 exchanges=9 renegotiation=0 renego_period=3 auth_mode=optional" \
             "$P_CLI debug_level=3 exchanges=4 renegotiation=1" \
             0 \
             -C "client hello, adding renegotiation extension" \
@@ -5013,10 +4941,9 @@ run_test    "Renegotiation: periodic, above period, disabled" \
             -S "failed"
 
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: nbio, client-initiated" \
             "$P_SRV debug_level=3 nbio=2 exchanges=2 renegotiation=1 auth_mode=optional" \
-            "$P_CLI debug_level=3 nbio=2 exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_CLI force_version=tls12 debug_level=3 nbio=2 exchanges=2 renegotiation=1 renegotiate=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO" \
@@ -5028,9 +4955,8 @@ run_test    "Renegotiation: nbio, client-initiated" \
             -S "write hello request"
 
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Renegotiation: nbio, server-initiated" \
-            "$P_SRV debug_level=3 nbio=2 exchanges=2 renegotiation=1 renegotiate=1 auth_mode=optional" \
+            "$P_SRV force_version=tls12 debug_level=3 nbio=2 exchanges=2 renegotiation=1 renegotiate=1 auth_mode=optional" \
             "$P_CLI debug_level=3 nbio=2 exchanges=2 renegotiation=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
@@ -5311,22 +5237,20 @@ run_test    "Authentication: server badcert, client required" \
             -c "! mbedtls_ssl_handshake returned" \
             -c "X509 - Certificate verification failed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Authentication: server badcert, client optional" \
             "$P_SRV crt_file=data_files/server5-badsign.crt \
              key_file=data_files/server5.key" \
-            "$P_CLI debug_level=1 auth_mode=optional" \
+            "$P_CLI force_version=tls12 debug_level=1 auth_mode=optional" \
             0 \
             -c "x509_verify_cert() returned" \
             -c "! The certificate is not correctly signed by the trusted CA" \
             -C "! mbedtls_ssl_handshake returned" \
             -C "X509 - Certificate verification failed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication: server goodcert, client optional, no trusted CA" \
             "$P_SRV" \
-            "$P_CLI debug_level=3 auth_mode=optional ca_file=none ca_path=none" \
+            "$P_CLI force_version=tls12 debug_level=3 auth_mode=optional ca_file=none ca_path=none" \
             0 \
             -c "x509_verify_cert() returned" \
             -c "! The certificate is not correctly signed by the trusted CA" \
@@ -5354,32 +5278,29 @@ run_test    "Authentication: server goodcert, client required, no trusted CA" \
 # different means to have the server ignoring the client's supported curve list.
 
 requires_config_enabled MBEDTLS_ECP_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Authentication: server ECDH p256v1, client required, p256v1 unsupported" \
             "$P_SRV debug_level=1 key_file=data_files/server5.key \
              crt_file=data_files/server5.ku-ka.crt" \
-            "$P_CLI debug_level=3 auth_mode=required curves=secp521r1" \
+            "$P_CLI force_version=tls12 debug_level=3 auth_mode=required curves=secp521r1" \
             1 \
             -c "bad certificate (EC key curve)"\
             -c "! Certificate verification flags"\
             -C "bad server certificate (ECDH curve)" # Expect failure at earlier verification stage
 
 requires_config_enabled MBEDTLS_ECP_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Authentication: server ECDH p256v1, client optional, p256v1 unsupported" \
             "$P_SRV debug_level=1 key_file=data_files/server5.key \
              crt_file=data_files/server5.ku-ka.crt" \
-            "$P_CLI debug_level=3 auth_mode=optional curves=secp521r1" \
+            "$P_CLI force_version=tls12 debug_level=3 auth_mode=optional curves=secp521r1" \
             1 \
             -c "bad certificate (EC key curve)"\
             -c "! Certificate verification flags"\
             -c "bad server certificate (ECDH curve)" # Expect failure only at ECDH params check
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Authentication: server badcert, client none" \
             "$P_SRV crt_file=data_files/server5-badsign.crt \
              key_file=data_files/server5.key" \
-            "$P_CLI debug_level=1 auth_mode=none" \
+            "$P_CLI force_version=tls12 debug_level=1 auth_mode=none" \
             0 \
             -C "x509_verify_cert() returned" \
             -C "! The certificate is not correctly signed by the trusted CA" \
@@ -5596,7 +5517,7 @@ requires_full_size_output_buffer
 run_test    "Authentication: server max_int+1 chain, client optional" \
             "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
-            "$P_CLI server_name=CA10 ca_file=data_files/dir-maxpath/00.crt \
+            "$P_CLI force_version=tls12 server_name=CA10 ca_file=data_files/dir-maxpath/00.crt \
                     auth_mode=optional" \
             1 \
             -c "X509 - A fatal error occurred"
@@ -5606,7 +5527,7 @@ requires_full_size_output_buffer
 run_test    "Authentication: server max_int+1 chain, client none" \
             "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
-            "$P_CLI server_name=CA10 ca_file=data_files/dir-maxpath/00.crt \
+            "$P_CLI force_version=tls12 server_name=CA10 ca_file=data_files/dir-maxpath/00.crt \
                     auth_mode=none" \
             0 \
             -C "X509 - A fatal error occurred"
@@ -5649,27 +5570,24 @@ run_test    "Authentication: client max_int chain, server required" \
 
 # Tests for CA list in CertificateRequest messages
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication: send CA list in CertificateRequest  (default)" \
             "$P_SRV debug_level=3 auth_mode=required" \
-            "$P_CLI crt_file=data_files/server6.crt \
+            "$P_CLI force_version=tls12 crt_file=data_files/server6.crt \
              key_file=data_files/server6.key" \
             0 \
             -s "requested DN"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication: do not send CA list in CertificateRequest" \
             "$P_SRV debug_level=3 auth_mode=required cert_req_ca_list=0" \
-            "$P_CLI crt_file=data_files/server6.crt \
+            "$P_CLI force_version=tls12 crt_file=data_files/server6.crt \
              key_file=data_files/server6.key" \
             0 \
             -S "requested DN"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Authentication: send CA list in CertificateRequest, client self signed" \
-            "$P_SRV debug_level=3 auth_mode=required cert_req_ca_list=0" \
+            "$P_SRV force_version=tls12 debug_level=3 auth_mode=required cert_req_ca_list=0" \
             "$P_CLI debug_level=3 crt_file=data_files/server5-selfsigned.crt \
              key_file=data_files/server5.key" \
             1 \
@@ -5680,37 +5598,34 @@ run_test    "Authentication: send CA list in CertificateRequest, client self sig
             -c "! mbedtls_ssl_handshake returned" \
             -s "X509 - Certificate verification failed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication: send alt conf DN hints in CertificateRequest" \
             "$P_SRV debug_level=3 auth_mode=optional cert_req_ca_list=2 \
              crt_file2=data_files/server1.crt \
              key_file2=data_files/server1.key" \
-            "$P_CLI debug_level=3 auth_mode=optional \
+            "$P_CLI force_version=tls12 debug_level=3 auth_mode=optional \
              crt_file=data_files/server6.crt \
              key_file=data_files/server6.key" \
             0 \
             -c "DN hint: C=NL, O=PolarSSL, CN=PolarSSL Server 1"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication: send alt conf DN hints in CertificateRequest (2)" \
             "$P_SRV debug_level=3 auth_mode=optional cert_req_ca_list=2 \
              crt_file2=data_files/server2.crt \
              key_file2=data_files/server2.key" \
-            "$P_CLI debug_level=3 auth_mode=optional \
+            "$P_CLI force_version=tls12 debug_level=3 auth_mode=optional \
              crt_file=data_files/server6.crt \
              key_file=data_files/server6.key" \
             0 \
             -c "DN hint: C=NL, O=PolarSSL, CN=localhost"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Authentication: send alt hs DN hints in CertificateRequest" \
             "$P_SRV debug_level=3 auth_mode=optional cert_req_ca_list=3 \
              crt_file2=data_files/server1.crt \
              key_file2=data_files/server1.key" \
-            "$P_CLI debug_level=3 auth_mode=optional \
+            "$P_CLI force_version=tls12 debug_level=3 auth_mode=optional \
              crt_file=data_files/server6.crt \
              key_file=data_files/server6.key" \
             0 \
@@ -6312,11 +6227,10 @@ run_test    "Non-blocking I/O: TLS 1.3 + ticket + resume" \
             -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Non-blocking I/O: session-id resume" \
             "$P_SRV nbio=2 tickets=0 auth_mode=none" \
-            "$P_CLI nbio=2 tickets=0 reconnect=1" \
+            "$P_CLI force_version=tls12 nbio=2 tickets=0 reconnect=1" \
             0 \
             -S "mbedtls_ssl_handshake returned" \
             -C "mbedtls_ssl_handshake returned" \
@@ -6400,11 +6314,10 @@ run_test    "Event-driven I/O: TLS 1.3 + ticket + resume" \
             -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
 run_test    "Event-driven I/O: session-id resume" \
             "$P_SRV event=1 tickets=0 auth_mode=none" \
-            "$P_CLI event=1 tickets=0 reconnect=1" \
+            "$P_CLI force_version=tls12 event=1 tickets=0 reconnect=1" \
             0 \
             -S "mbedtls_ssl_handshake returned" \
             -C "mbedtls_ssl_handshake returned" \
@@ -6474,10 +6387,9 @@ run_test    "Event-driven I/O, DTLS: session-id resume, UDP packing" \
 
 # Tests for version negotiation
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Version check: all -> 1.2" \
             "$P_SRV" \
-            "$P_CLI" \
+            "$P_CLI force_version=tls12" \
             0 \
             -S "mbedtls_ssl_handshake returned" \
             -C "mbedtls_ssl_handshake returned" \
@@ -6621,51 +6533,45 @@ run_test    "ALPN: both, no common" \
 # Tests for keyUsage in leaf certificates, part 1:
 # server-side certificate/suite selection
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "keyUsage srv: RSA, digitalSignature -> (EC)DHE-RSA" \
-            "$P_SRV key_file=data_files/server2.key \
+            "$P_SRV force_version=tls12 key_file=data_files/server2.key \
              crt_file=data_files/server2.ku-ds.crt" \
             "$P_CLI" \
             0 \
             -c "Ciphersuite is TLS-[EC]*DHE-RSA-WITH-"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "keyUsage srv: RSA, keyEncipherment -> RSA" \
-            "$P_SRV key_file=data_files/server2.key \
+            "$P_SRV force_version=tls12 key_file=data_files/server2.key \
              crt_file=data_files/server2.ku-ke.crt" \
             "$P_CLI" \
             0 \
             -c "Ciphersuite is TLS-RSA-WITH-"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "keyUsage srv: RSA, keyAgreement -> fail" \
-            "$P_SRV key_file=data_files/server2.key \
+            "$P_SRV force_version=tls12 key_file=data_files/server2.key \
              crt_file=data_files/server2.ku-ka.crt" \
             "$P_CLI" \
             1 \
             -C "Ciphersuite is "
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 run_test    "keyUsage srv: ECDSA, digitalSignature -> ECDHE-ECDSA" \
-            "$P_SRV key_file=data_files/server5.key \
+            "$P_SRV force_version=tls12 key_file=data_files/server5.key \
              crt_file=data_files/server5.ku-ds.crt" \
             "$P_CLI" \
             0 \
             -c "Ciphersuite is TLS-ECDHE-ECDSA-WITH-"
 
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "keyUsage srv: ECDSA, keyAgreement -> ECDH-" \
-            "$P_SRV key_file=data_files/server5.key \
+            "$P_SRV force_version=tls12 key_file=data_files/server5.key \
              crt_file=data_files/server5.ku-ka.crt" \
             "$P_CLI" \
             0 \
             -c "Ciphersuite is TLS-ECDH-"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "keyUsage srv: ECDSA, keyEncipherment -> fail" \
-            "$P_SRV key_file=data_files/server5.key \
+            "$P_SRV force_version=tls12 key_file=data_files/server5.key \
              crt_file=data_files/server5.ku-ke.crt" \
             "$P_CLI" \
             1 \
@@ -8115,9 +8021,8 @@ run_test    "ECJPAKE: working, DTLS, nolog" \
 # Test for ClientHello without extensions
 
 requires_gnutls
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "ClientHello without extensions" \
-            "$P_SRV debug_level=3" \
+            "$P_SRV force_version=tls12 debug_level=3" \
             "$G_CLI --priority=NORMAL:%NO_EXTENSIONS:%DISABLE_SAFE_RENEGOTIATION localhost" \
             0 \
             -s "dumping 'client hello extensions' (0 bytes)"
@@ -11242,7 +11147,7 @@ run_test    "DTLS proxy: 3d, gnutls server, fragmentation, nbio" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "export keys functionality" \
             "$P_SRV eap_tls=1 debug_level=3" \
-            "$P_CLI eap_tls=1 debug_level=3" \
+            "$P_CLI force_version=tls12 eap_tls=1 debug_level=3" \
             0 \
             -c "EAP-TLS key material is:"\
             -s "EAP-TLS key material is:"\

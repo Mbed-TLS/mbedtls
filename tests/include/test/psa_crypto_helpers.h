@@ -24,14 +24,42 @@
 #include "test/helpers.h"
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
-
 #include "test/psa_helpers.h"
-
 #include <psa/crypto.h>
+#endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "mbedtls/psa_util.h"
 #endif
+
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+/** Initialize the PSA Crypto subsystem. */
+#define PSA_INIT() PSA_ASSERT(psa_crypto_init())
+
+/** Shut down the PSA Crypto subsystem and destroy persistent keys.
+ * Expect a clean shutdown, with no slots in use.
+ *
+ * If some key slots are still in use, record the test case as failed,
+ * but continue executing. This macro is suitable (and primarily intended)
+ * for use in the cleanup section of test functions.
+ *
+ * \note Persistent keys must be recorded with #TEST_USES_KEY_ID before
+ *       creating them.
+ */
+#define PSA_DONE()                                                      \
+    do                                                                  \
+    {                                                                   \
+        mbedtls_test_fail_if_psa_leaking(__LINE__, __FILE__);           \
+        mbedtls_test_psa_purge_key_storage();                           \
+        mbedtls_psa_crypto_free();                                      \
+    }                                                                   \
+    while (0)
+#else /*MBEDTLS_PSA_CRYPTO_C */
+#define PSA_INIT() ((void) 0)
+#define PSA_DONE() ((void) 0)
+#endif /* MBEDTLS_PSA_CRYPTO_C */
+
+#if defined(MBEDTLS_PSA_CRYPTO_C)
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
 
@@ -86,8 +114,6 @@ void mbedtls_test_psa_purge_key_cache(void);
 
 #endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
 
-#define PSA_INIT() PSA_ASSERT(psa_crypto_init())
-
 /** Check for things that have not been cleaned up properly in the
  * PSA subsystem.
  *
@@ -109,25 +135,6 @@ const char *mbedtls_test_helper_is_psa_leaking(void);
     {                                                                   \
         if (mbedtls_test_fail_if_psa_leaking(__LINE__, __FILE__))       \
         goto exit;                                                      \
-    }                                                                   \
-    while (0)
-
-/** Shut down the PSA Crypto subsystem and destroy persistent keys.
- * Expect a clean shutdown, with no slots in use.
- *
- * If some key slots are still in use, record the test case as failed,
- * but continue executing. This macro is suitable (and primarily intended)
- * for use in the cleanup section of test functions.
- *
- * \note Persistent keys must be recorded with #TEST_USES_KEY_ID before
- *       creating them.
- */
-#define PSA_DONE()                                                      \
-    do                                                                  \
-    {                                                                   \
-        mbedtls_test_fail_if_psa_leaking(__LINE__, __FILE__);           \
-        mbedtls_test_psa_purge_key_storage();                           \
-        mbedtls_psa_crypto_free();                                      \
     }                                                                   \
     while (0)
 
@@ -321,10 +328,5 @@ int mbedtls_test_fail_if_psa_leaking(int line_no, const char *filename);
 #define USE_PSA_INIT() ((void) 0)
 #define USE_PSA_DONE() ((void) 0)
 #endif /* !MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_SSL_PROTO_TLS1_3 */
-
-#if !defined(MBEDTLS_PSA_CRYPTO_C)
-#define PSA_INIT() ((void) 0)
-#define PSA_DONE() ((void) 0)
-#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 #endif /* PSA_CRYPTO_HELPERS_H */

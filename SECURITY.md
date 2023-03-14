@@ -21,7 +21,7 @@ Users are urged to always use the latest version of a maintained branch.
 
 ## Threat model
 
-We use the following classification of attacks:
+We classify attacks based on the capabilities of the attacker.
 
 ### Remote attacks
 
@@ -32,13 +32,13 @@ or delaying legitimate messages, and injecting messages.
 Mbed TLS aims to fully protect against remote attacks and to enable the user
 application in providing full protection against remote attacks. Said
 protection is limited to providing security guarantees offered by the protocol
-in question. (For example Mbed TLS alone won't guarantee that the messages will
-arrive without delay, as the TLS protocol doesn't guarantee that either.)
+being implemented. (For example Mbed TLS alone won't guarantee that the
+messages will arrive without delay, as the TLS protocol doesn't guarantee that
+either.)
 
-**Warning!** Depending on network latency, the timing of messages might be
-enough to launch some timing attacks. Block ciphers do not yet achieve full
-protection against these. For details and workarounds see the [Block
-Ciphers](#block-ciphers) section.
+**Warning!** Block ciphers do not yet achieve full protection against attackers
+who can measure the timing of packets with sufficient precision. For details
+and workarounds see the [Block Ciphers](#block-ciphers) section.
 
 ### Local attacks
 
@@ -70,14 +70,14 @@ details and workarounds see the [Block Ciphers](#block-ciphers) section.
 
 The attacker code running on the platform has access to some sensor capable of
 picking up information on the physical state of the hardware while Mbed TLS is
-running. This can for example be any analogue to digital converter on the
+running. This could for example be an analogue-to-digital converter on the
 platform that is located unfortunately enough to pick up the CPU noise. (See
 for example the [Leaky Noise
 paper](https://tches.iacr.org/index.php/TCHES/article/view/8297).)
 
-Mbed TLS doesn't offer any security guarantees against local non-timing based
+Mbed TLS doesn't make any security guarantees against local non-timing-based
 side channel attacks. If local non-timing attacks are present in a use case or
-a user application's threat model, it needs to be mitigated by the platform.
+a user application's threat model, they need to be mitigated by the platform.
 
 #### Local fault injection attacks
 
@@ -85,23 +85,23 @@ Software running on the same hardware can affect the physical state of the
 device and introduce faults. (See for example the [Row Hammer
 paper](https://users.ece.cmu.edu/~yoonguk/papers/kim-isca14.pdf).)
 
-Mbed TLS doesn't offer any security guarantees against local fault injection
+Mbed TLS doesn't make any security guarantees against local fault injection
 attacks. If local fault injection attacks are present in a use case or a user
-application's threat model, it needs to be mitigated by the platform.
+application's threat model, they need to be mitigated by the platform.
 
 ### Physical attacks
 
 The attacker has access to physical information about the hardware Mbed TLS is
-running on and/or can alter the physical state of the hardware (eg. power
+running on and/or can alter the physical state of the hardware (e.g. power
 analysis, radio emissions or fault injection).
 
-Mbed TLS doesn't offer any security guarantees against physical attacks. If
+Mbed TLS doesn't make any security guarantees against physical attacks. If
 physical attacks are present in a use case or a user application's threat
-model, it needs to be mitigated by physical countermeasures.
+model, they need to be mitigated by physical countermeasures.
 
 ### Caveats
 
-#### Out of scope countermeasures
+#### Out-of-scope countermeasures
 
 Mbed TLS has evolved organically and a well defined threat model hasn't always
 been present. Therefore, Mbed TLS might have countermeasures against attacks

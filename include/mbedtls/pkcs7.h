@@ -32,7 +32,7 @@
  *    DER only.
  *  - The RFC specifies that multiple digest algorithms can be specified
  *    in the Signed Data type. Only one digest algorithm is supported in Mbed TLS.
- *  - The RFC specifies the Signed Data type can contain multiple X.509 or PKCS #6
+ *  - The RFC specifies the Signed Data type can contain multiple X.509 or PKCS #6 extended
  *    certificates. In Mbed TLS, this list can only contain 0 or 1 certificates
  *    and they must be in X.509 format.
  *  - The RFC specifies the Signed Data type can contain

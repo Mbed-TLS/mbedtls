@@ -36,7 +36,8 @@
 
 /*
  * - MBEDTLS_MD_CAN_xxx is defined if the md module can perform xxx.
- * - MBEDTLS_MD_xxx_VIA_PSA is defined if the md module performs xxx via PSA.
+ * - MBEDTLS_MD_xxx_VIA_PSA is defined if the md module performs xxx via PSA
+ *   (when PSA Crypto is initialized).
  * - MBEDTLS_MD_SOME_PSA is defined if at least one algorithm is performed
  *   via PSA.
  * - MBEDTLS_MD_SOME_LEGACY is defined if at least one algorithm is performed

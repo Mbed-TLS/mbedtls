@@ -40,3 +40,5 @@ DOT_TRANSPARENT        = YES
 #     \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
 # This avoids writing redundant text and keeps Clang happy.
 ALIASES += emptydescription=""
+
+GENERATE_XML           = YES

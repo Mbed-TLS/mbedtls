@@ -201,7 +201,7 @@ static psa_algorithm_t psa_alg_of_md(const mbedtls_md_info_t *info)
     }
 }
 
-static int md_uses_psa(const mbedtls_md_info_t *info)
+static int md_can_use_psa(const mbedtls_md_info_t *info)
 {
     psa_algorithm_t alg = psa_alg_of_md(info);
     if (alg == PSA_ALG_NONE) {
@@ -391,7 +391,7 @@ int mbedtls_md_setup(mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_info
 #endif
 
 #if defined(MBEDTLS_MD_SOME_PSA)
-    if (md_uses_psa(ctx->md_info)) {
+    if (md_can_use_psa(ctx->md_info)) {
         ctx->md_ctx = mbedtls_calloc(1, sizeof(psa_hash_operation_t));
         if (ctx->md_ctx == NULL) {
             return MBEDTLS_ERR_MD_ALLOC_FAILED;
@@ -606,7 +606,7 @@ int mbedtls_md(const mbedtls_md_info_t *md_info, const unsigned char *input, siz
     }
 
 #if defined(MBEDTLS_MD_SOME_PSA)
-    if (md_uses_psa(md_info)) {
+    if (md_can_use_psa(md_info)) {
         size_t size = md_info->size;
         psa_status_t status = psa_hash_compute(psa_alg_of_md(md_info),
                                                input, ilen,

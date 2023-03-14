@@ -35,7 +35,7 @@
  * at the top of this file, before any includes.
  */
 #define __ARM_FEATURE_SHA512 1
-#define MBEDTLS_NEED_TAGET_OPTIONS
+#define MBEDTLS_NEED_TARGET_OPTIONS
 #endif
 
 #include "common.h"
@@ -74,7 +74,7 @@
  * Clang == 13.0.0 same as clang 12 (only seen on macOS)
  * Clang >= 13.0.1 has __ARM_FEATURE_SHA512 and intrinsics
  */
-#    if !defined(__ARM_FEATURE_SHA512) || defined(MBEDTLS_NEED_TAGET_OPTIONS)
+#    if !defined(__ARM_FEATURE_SHA512) || defined(MBEDTLS_NEED_TARGET_OPTIONS)
        /* Test Clang first, as it defines __GNUC__ */
 #      if defined(__clang__)
 #        if __clang_major__ < 7

@@ -41,7 +41,7 @@
  * for older compilers.
  */
 #define __ARM_FEATURE_SHA2   1
-#define MBEDTLS_NEED_TAGET_OPTIONS
+#define MBEDTLS_NEED_TARGET_OPTIONS
 #endif
 
 #include "common.h"
@@ -60,7 +60,7 @@
 #  if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) || \
     defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY)
 /* *INDENT-OFF* */
-#    if !defined(__ARM_FEATURE_CRYPTO) || defined(MBEDTLS_NEED_TAGET_OPTIONS)
+#    if !defined(__ARM_FEATURE_CRYPTO) || defined(MBEDTLS_NEED_TARGET_OPTIONS)
 #      if defined(__clang__)
 #        if __clang_major__ < 4
 #          error "A more recent Clang is required for MBEDTLS_SHA256_USE_A64_CRYPTO_*"

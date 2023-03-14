@@ -36,7 +36,7 @@
  * for older compilers.
  */
 #define __ARM_FEATURE_AES    1
-#define MBEDTLS_NEED_TAGET_OPTIONS
+#define MBEDTLS_NEED_TARGET_OPTIONS
 #endif
 
 #include <string.h>
@@ -58,9 +58,9 @@
 #   if __GNUC__ < 6
 #       error "A more recent GCC is required for MBEDTLS_AESCE_C"
 #   endif
-#          pragma GCC push_options
-#          pragma GCC target ("arch=armv8-a+crypto")
-#          define MBEDTLS_POP_TARGET_PRAGMA
+#   pragma GCC push_options
+#   pragma GCC target ("arch=armv8-a+crypto")
+#   define MBEDTLS_POP_TARGET_PRAGMA
 #else
 #    error "Only GCC and Clang supported for MBEDTLS_AESCE_C"
 #endif

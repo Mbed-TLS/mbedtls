@@ -89,7 +89,8 @@
 
 /* Auto-enable MBEDTLS_MD_LIGHT if some module needs it.
  */
-#if defined(MBEDTLS_PEM_PARSE_C) || \
+#if defined(MBEDTLS_ECJPAKE_C) || \
+    defined(MBEDTLS_PEM_PARSE_C) || \
     defined(MBEDTLS_RSA_C)
 #define MBEDTLS_MD_LIGHT
 #endif

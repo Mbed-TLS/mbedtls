@@ -32,6 +32,18 @@
 #include "mbedtls/psa_util.h"
 #endif
 
+#if defined(MBEDTLS_MD_LIGHT)
+#include "mbedtls/md.h"
+#endif
+
+#if defined(MBEDTLS_MD_SOME_PSA)
+#define MD_PSA_INIT()   PSA_INIT()
+#define MD_PSA_DONE()   PSA_DONE()
+#else /* MBEDTLS_MD_SOME_PSA */
+#define MD_PSA_INIT() ((void) 0)
+#define MD_PSA_DONE() ((void) 0)
+#endif /* MBEDTLS_MD_SOME_PSA */
+
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 /** Initialize the PSA Crypto subsystem. */
 #define PSA_INIT() PSA_ASSERT(psa_crypto_init())

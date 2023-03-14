@@ -310,7 +310,7 @@ static inline uint8x16_t pmull_high(uint8x16_t a, uint8x16_t b)
                        vreinterpretq_p64_u8(b)));
 }
 
-/* GHASH do 128b polynomial multiplication on block on GF(2^128) defined by
+/* GHASH does 128b polynomial multiplication on block in GF(2^128) defined by
  * `x^128 + x^7 + x^2 + x + 1`.
  *
  * Arm64 only has 64b->128b polynomial multipliers, we need to do 4 64b

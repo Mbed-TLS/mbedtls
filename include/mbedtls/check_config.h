@@ -398,7 +398,15 @@
     defined(MBEDTLS_SHA224_C) || \
     defined(MBEDTLS_SHA256_C) || \
     defined(MBEDTLS_SHA384_C) || \
-    defined(MBEDTLS_SHA512_C) )
+    defined(MBEDTLS_SHA512_C) || \
+    (defined(MBEDTLS_PSA_CRYPTO_C) && \
+     (defined(PSA_WANT_ALG_MD5) || \
+      defined(PSA_WANT_ALG_RIPEMD160) || \
+      defined(PSA_WANT_ALG_SHA_1) || \
+      defined(PSA_WANT_ALG_SHA_224) || \
+      defined(PSA_WANT_ALG_SHA_256) || \
+      defined(PSA_WANT_ALG_SHA_384) || \
+      defined(PSA_WANT_ALG_SHA_512))))
 #error "MBEDTLS_MD_C defined, but not all prerequisites"
 #endif
 

@@ -96,7 +96,7 @@ def analyze_driver_vs_reference(outcomes, component_ref, component_driver,
             if component_ref in entry:
                 reference_test_passed = True
         if(reference_test_passed and not driver_test_passed):
-            print(key)
+            Results.log(key)
             result = False
     return result
 
@@ -131,7 +131,7 @@ def do_analyze_coverage(outcome_file, args):
     """Perform coverage analysis."""
     del args # unused
     outcomes = read_outcome_file(outcome_file)
-    print("\n*** Analyze coverage ***\n")
+    Results.log("\n*** Analyze coverage ***\n")
     results = analyze_outcomes(outcomes)
     return results.error_count == 0
 
@@ -140,7 +140,7 @@ def do_analyze_driver_vs_reference(outcome_file, args):
     ignored_suites = ['test_suite_' + x for x in args['ignored_suites']]
 
     outcomes = read_outcome_file(outcome_file)
-    print("\n*** Analyze driver {} vs reference {} ***\n".format(
+    Results.log("\n*** Analyze driver {} vs reference {} ***\n".format(
         args['component_driver'], args['component_ref']))
     return analyze_driver_vs_reference(outcomes, args['component_ref'],
                                        args['component_driver'], ignored_suites,
@@ -213,7 +213,7 @@ def main():
 
         if options.list:
             for task in TASKS:
-                print(task)
+                Results.log(task)
             sys.exit(0)
 
         result = True
@@ -225,7 +225,7 @@ def main():
 
             for task in tasks:
                 if task not in TASKS:
-                    print('Error: invalid task: {}'.format(task))
+                    Results.log('Error: invalid task: {}'.format(task))
                     sys.exit(1)
 
         for task in TASKS:
@@ -235,7 +235,7 @@ def main():
 
         if result is False:
             sys.exit(1)
-        print("SUCCESS :-)")
+        Results.log("SUCCESS :-)")
     except Exception: # pylint: disable=broad-except
         # Print the backtrace and exit explicitly with our chosen status.
         traceback.print_exc()

@@ -43,6 +43,19 @@
 #include "mbedtls/ssl_cache.h"
 #endif
 
+#if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED) || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) || \
+    defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
+#define MBEDTLS_CAN_HANDLE_RSA_TEST_KEY
+#endif
+
+enum {
+#define MBEDTLS_SSL_TLS1_3_LABEL(name, string)   \
+    tls1_3_label_ ## name,
+    MBEDTLS_SSL_TLS1_3_LABEL_LIST
+#undef MBEDTLS_SSL_TLS1_3_LABEL
+};
+
 typedef struct mbedtls_test_ssl_log_pattern {
     const char *pattern;
     size_t counter;

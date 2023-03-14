@@ -1949,7 +1949,6 @@ void mbedtls_ssl_set_verify(mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-/* The only two JPAKE user/peer identifiers supported for the time being. */
 static const uint8_t jpake_server_id[] = { 's', 'e', 'r', 'v', 'e', 'r' };
 static const uint8_t jpake_client_id[] = { 'c', 'l', 'i', 'e', 'n', 't' };
 

@@ -7228,18 +7228,18 @@ psa_status_t psa_crypto_driver_pake_get_user_len(
 
 psa_status_t psa_crypto_driver_pake_get_user(
     const psa_crypto_driver_pake_inputs_t *inputs,
-    uint8_t *buffer, size_t buffer_size, size_t *buffer_length)
+    uint8_t *user_id, size_t user_id_size, size_t *user_id_len)
 {
     if (inputs->user_len == 0) {
         return PSA_ERROR_BAD_STATE;
     }
 
-    if (buffer_size < inputs->user_len) {
+    if (user_id_size < inputs->user_len) {
         return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
-    memcpy(buffer, inputs->user, inputs->user_len);
-    *buffer_length = inputs->user_len;
+    memcpy(user_id, inputs->user, inputs->user_len);
+    *user_id_len = inputs->user_len;
 
     return PSA_SUCCESS;
 }
@@ -7259,18 +7259,18 @@ psa_status_t psa_crypto_driver_pake_get_peer_len(
 
 psa_status_t psa_crypto_driver_pake_get_peer(
     const psa_crypto_driver_pake_inputs_t *inputs,
-    uint8_t *buffer, size_t buffer_size, size_t *buffer_length)
+    uint8_t *peer_id, size_t peer_id_size, size_t *peer_id_length)
 {
     if (inputs->peer_len == 0) {
         return PSA_ERROR_BAD_STATE;
     }
 
-    if (buffer_size < inputs->peer_len) {
+    if (peer_id_size < inputs->peer_len) {
         return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
-    memcpy(buffer, inputs->peer, inputs->peer_len);
-    *buffer_length = inputs->peer_len;
+    memcpy(peer_id, inputs->peer, inputs->peer_len);
+    *peer_id_length = inputs->peer_len;
 
     return PSA_SUCCESS;
 }

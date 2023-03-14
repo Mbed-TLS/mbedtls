@@ -1060,13 +1060,13 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE:PSA_ALG_SHA_256 */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE */
 void pake_input_getters_user()
 {
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
     psa_pake_operation_t operation = psa_pake_operation_init();
-    const uint8_t user[] = "server";
-    const size_t user_len = strlen("server");
+    const uint8_t user[] = { 's', 'e', 'r', 'v', 'e', 'r' };
+    const size_t user_len = sizeof(user);
     uint8_t user_ret[20] = { 0 }; // max user length is 20 bytes
     size_t user_len_ret = 0;
     size_t buffer_len_ret = 0;
@@ -1118,13 +1118,13 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE:PSA_ALG_SHA_256 */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE */
 void pake_input_getters_peer()
 {
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
     psa_pake_operation_t operation = psa_pake_operation_init();
-    const uint8_t peer[] = "server";
-    const size_t peer_len = strlen("server");
+    const uint8_t peer[] = { 's', 'e', 'r', 'v', 'e', 'r' };
+    const size_t peer_len = sizeof(peer);
     uint8_t peer_ret[20] = { 0 }; // max peer length is 20 bytes
     size_t peer_len_ret = 0;
     size_t buffer_len_ret = 0;

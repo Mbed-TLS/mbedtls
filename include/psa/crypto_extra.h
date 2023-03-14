@@ -1300,10 +1300,10 @@ typedef struct psa_jpake_computation_stage_s psa_jpake_computation_stage_t;
  */
 static psa_pake_operation_t psa_pake_operation_init(void);
 
-/** Get the lengths of the password in bytes from given inputs.
+/** Get the length of the password in bytes from given inputs.
  *
  * \param[in]  inputs           Operation inputs.
- * \param[out] password_len     Return buffer for password length.
+ * \param[out] password_len     Password length.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -1344,10 +1344,10 @@ psa_status_t psa_crypto_driver_pake_get_role(
     const psa_crypto_driver_pake_inputs_t *inputs,
     psa_pake_role_t *role);
 
-/** Get the lengths of the user id in bytes from given inputs.
+/** Get the length of the user id in bytes from given inputs.
  *
  * \param[in]  inputs           Operation inputs.
- * \param[out] user_len         Return buffer for user id length.
+ * \param[out] user_len         User id length.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -1358,10 +1358,10 @@ psa_status_t psa_crypto_driver_pake_get_user_len(
     const psa_crypto_driver_pake_inputs_t *inputs,
     size_t *user_len);
 
-/** Get the lengths of the peer id in bytes from given inputs.
+/** Get the length of the peer id in bytes from given inputs.
  *
  * \param[in]  inputs           Operation inputs.
- * \param[out] peer_len         Return buffer for peer id length.
+ * \param[out] peer_len         Peer id length.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -1375,38 +1375,38 @@ psa_status_t psa_crypto_driver_pake_get_peer_len(
 /** Get the user id from given inputs.
  *
  * \param[in]  inputs           Operation inputs.
- * \param[out] buffer           Return buffer for user id.
- * \param      buffer_size      Size of the return buffer in bytes.
- * \param[out] buffer_length    Actual size of the password in bytes.
+ * \param[out] user_id          User id.
+ * \param      user_id_size     Size of \p user_id in bytes.
+ * \param[out] user_id_len      Size of the user id in bytes.
  *
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
  *         User id hasn't been set yet.
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
- *         The size of the \p buffer is too small.
+ *         The size of the \p user_id is too small.
  */
 psa_status_t psa_crypto_driver_pake_get_user(
     const psa_crypto_driver_pake_inputs_t *inputs,
-    uint8_t *buffer, size_t buffer_size, size_t *buffer_length);
+    uint8_t *user_id, size_t user_id_size, size_t *user_id_len);
 
 /** Get the peer id from given inputs.
  *
  * \param[in]  inputs           Operation inputs.
- * \param[out] buffer           Return buffer for user id.
- * \param      buffer_size      Size of the return buffer in bytes.
- * \param[out] buffer_length    Actual size of the password in bytes.
+ * \param[out] peer_id          Peer id.
+ * \param      peer_id_size     Size of \p peer_id in bytes.
+ * \param[out] peer_id_length   Size of the peer id in bytes.
  *
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
  *         Peer id hasn't been set yet.
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
- *         The size of the \p buffer is too small.
+ *         The size of the \p peer_id is too small.
  */
 psa_status_t psa_crypto_driver_pake_get_peer(
     const psa_crypto_driver_pake_inputs_t *inputs,
-    uint8_t *buffer, size_t buffer_size, size_t *buffer_length);
+    uint8_t *peer_id, size_t peer_id_size, size_t *peer_id_length);
 
 /** Get the cipher suite from given inputs.
  *

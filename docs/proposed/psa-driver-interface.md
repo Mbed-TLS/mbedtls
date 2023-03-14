@@ -379,16 +379,16 @@ psa_status_t psa_crypto_driver_pake_get_user_len(
     size_t *user_len);
 
 psa_status_t psa_crypto_driver_pake_get_user(
-    const psa_crypto_driver_pake_inputs_t *inputs,
-    uint8_t *buffer, size_t buffer_size, size_t *buffer_length);
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    uint8_t *user_id, size_t user_id_size, size_t *user_id_len);
 
 psa_status_t psa_crypto_driver_pake_get_peer_len(
     const psa_crypto_driver_pake_inputs_t *inputs,
     size_t *peer_len);
 
 psa_status_t psa_crypto_driver_pake_get_peer(
-    const psa_crypto_driver_pake_inputs_t *inputs,
-    uint8_t *buffer, size_t buffer_size, size_t *buffer_length);
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    uint8_t *peer_id, size_t peer_id_size, size_t *peer_id_length);
 
 psa_status_t psa_crypto_driver_pake_get_role(
     const psa_crypto_driver_pake_inputs_t *inputs,

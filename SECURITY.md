@@ -76,9 +76,7 @@ details and workarounds see the [Block Ciphers](#block-ciphers) section.
 The attacker code running on the platform has access to some sensor capable of
 picking up information on the physical state of the hardware while Mbed TLS is
 running. This could for example be an analogue-to-digital converter on the
-platform that is located unfortunately enough to pick up the CPU noise. (See
-for example the [Leaky Noise
-paper](https://tches.iacr.org/index.php/TCHES/article/view/8297).)
+platform that is located unfortunately enough to pick up the CPU noise.
 
 Mbed TLS doesn't make any security guarantees against local non-timing-based
 side channel attacks. If local non-timing attacks are present in a use case or
@@ -87,8 +85,7 @@ a user application's threat model, they need to be mitigated by the platform.
 #### Local fault injection attacks
 
 Software running on the same hardware can affect the physical state of the
-device and introduce faults. (See for example the [Row Hammer
-paper](https://users.ece.cmu.edu/~yoonguk/papers/kim-isca14.pdf).)
+device and introduce faults.
 
 Mbed TLS doesn't make any security guarantees against local fault injection
 attacks. If local fault injection attacks are present in a use case or a user

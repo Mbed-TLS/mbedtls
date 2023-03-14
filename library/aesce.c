@@ -36,7 +36,7 @@
  * for older compilers.
  */
 #define __ARM_FEATURE_AES    1
-#define MBEDTLS_NEED_TARGET_OPTIONS
+#define MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG
 #endif
 
 #include <string.h>
@@ -48,7 +48,7 @@
 
 #if defined(MBEDTLS_HAVE_ARM64)
 
-#if !defined(__ARM_FEATURE_AES) || defined(MBEDTLS_NEED_TARGET_OPTIONS)
+#if !defined(__ARM_FEATURE_AES) || defined(MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG)
 #   if defined(__clang__)
 #       if __clang_major__ < 4
 #           error "A more recent Clang is required for MBEDTLS_AESCE_C"
@@ -65,7 +65,7 @@
 #   else
 #       error "Only GCC and Clang supported for MBEDTLS_AESCE_C"
 #   endif
-#endif /* !__ARM_FEATURE_AES || MBEDTLS_NEED_TARGET_OPTIONS */
+#endif /* !__ARM_FEATURE_AES || MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG */
 
 #include <arm_neon.h>
 

@@ -2039,17 +2039,6 @@
  *
  * Requires: MBEDTLS_HAVE_ASM, MBEDTLS_AES_C
  *
- * \note The code uses Neon intrinsics, so \c CFLAGS must be set to a minimum
- * of \c -march=armv8-a+crypto .
- *
- * \warning If the target architecture is set to something that includes the
- *          SHA3 feature (e.g. `-march=armv8.2-a+sha3`), for example because
- *          `MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT` is desired, compilers
- *          generate code for `MBEDTLS_AESCE_C` that includes instructions
- *          only present with the (optional) SHA3 feature. This will lead to an
- *          undefined instruction exception if the code is run on a CPU without
- *          that feature.
- *
  * \warning Runtime detection only works on linux. For non-linux operation
  *          system, crypto extension MUST be supported by CPU.
  *

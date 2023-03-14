@@ -89,16 +89,14 @@ jobs:
           packages:
           - gcc
       script:
-        # Do a manual build+test sequence rather than using all.sh, because
-        # there's no all.sh component that does what we want. We should set
-        # CFLAGS for arm64 host CC.
+        # Do a manual build+test sequence rather than using all.sh.
+        #
+        # On Arm64 host of Travis CI, the time of `test_full_cmake_*` exceeds
+        # limitation of Travis CI. Base on `test_full_cmake_*`, we removed
+        # `ssl-opt.sh` and GnuTLS compat.sh here to meet the time limitation.
         - scripts/config.py full
-        - scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
-        - scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY
-        - scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
-        - scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY
         - make generated_files
-        - make CFLAGS='-march=armv8-a+crypto -O3 -Werror -fsanitize=address,undefined -fno-sanitize-recover=all' LDFLAGS='-Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
+        - make CFLAGS='-O3 -Werror -fsanitize=address,undefined -fno-sanitize-recover=all' LDFLAGS='-Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
         - make test
         - programs/test/selftest
         - tests/scripts/test_psa_constant_names.py
@@ -117,16 +115,14 @@ jobs:
           - clang
           - gnutls-bin
       script:
-        # Do a manual build+test sequence rather than using all.sh, because
-        # there's no all.sh component that does what we want. We should set
-        # CFLAGS for arm64 host CC.
+        # Do a manual build+test sequence rather than using all.sh.
+        #
+        # On Arm64 host of Travis CI, the time of `test_full_cmake_*` exceeds
+        # limitation of Travis CI. Base on `test_full_cmake_*`, we removed
+        # `ssl-opt.sh` and OpenSSl compat.sh here to meet the time limitation.
         - scripts/config.py full
-        - scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
-        - scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY
-        - scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
-        - scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY
         - make generated_files
-        - make CC=clang CFLAGS='-march=armv8-a+crypto -O3 -Werror -fsanitize=address,undefined -fno-sanitize-recover=all' LDFLAGS='-Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
+        - make CC=clang CFLAGS='-O3 -Werror -fsanitize=address,undefined -fno-sanitize-recover=all' LDFLAGS='-Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
         # GnuTLS supports CAMELLIA but compat.sh doesn't properly enable it.
         - tests/compat.sh -p GnuTLS -e 'CAMELLIA'
         - tests/scripts/travis-log-failure.sh

@@ -23,7 +23,7 @@
  */
 
 #if defined(__aarch64__) && !defined(__ARM_FEATURE_CRYPTO) && \
-    defined(__clang__) &&  __clang_major__ < 18 && __clang_major__ > 3
+    defined(__clang__) && __clang_major__ >= 4
 /* TODO: Re-consider above after https://reviews.llvm.org/D131064 merged.
  *
  * The intrinsic declaration are guarded by predefined ACLE macros in clang:
@@ -35,9 +35,14 @@
  * at the top of this file, before any includes.
  */
 #define __ARM_FEATURE_CRYPTO 1
-#define NEED_TARGET_OPTIONS
-#endif /* __aarch64__ && __clang__ &&
-          !__ARM_FEATURE_CRYPTO && __clang_major__ < 18 && __clang_major__ > 3 */
+/* See: https://arm-software.github.io/acle/main/acle.html#cryptographic-extensions
+ *
+ * `__ARM_FEATURE_CRYPTO` is deprecated, but we need to continue to specify it
+ * for older compilers.
+ */
+#define __ARM_FEATURE_SHA2   1
+#define MBEDTLS_NEED_TARGET_OPTIONS
+#endif
 
 #include "common.h"
 
@@ -55,7 +60,7 @@
 #  if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) || \
     defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY)
 /* *INDENT-OFF* */
-#    if !defined(__ARM_FEATURE_CRYPTO) || defined(NEED_TARGET_OPTIONS)
+#    if !defined(__ARM_FEATURE_CRYPTO) || defined(MBEDTLS_NEED_TARGET_OPTIONS)
 #      if defined(__clang__)
 #        if __clang_major__ < 4
 #          error "A more recent Clang is required for MBEDTLS_SHA256_USE_A64_CRYPTO_*"

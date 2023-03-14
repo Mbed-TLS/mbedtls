@@ -36,15 +36,16 @@
 
 /*
  * - MBEDTLS_MD_CAN_xxx is defined if the md module can perform xxx.
- * - MBEDTLS_MD_xxx_VIA_PSA is defined if the md module performs xxx via PSA
- *   (when PSA Crypto is initialized).
- * - MBEDTLS_MD_SOME_PSA is defined if at least one algorithm is performed
- *   via PSA.
- * - MBEDTLS_MD_SOME_LEGACY is defined if at least one algorithm is performed
- *   via a direct legacy call.
+ * - MBEDTLS_MD_xxx_VIA_PSA is defined if the md module may perform xxx via PSA
+ *   (see below).
+ * - MBEDTLS_MD_SOME_PSA is defined if at least one algorithm may be performed
+ *   via PSA (see below).
+ * - MBEDTLS_MD_SOME_LEGACY is defined if at least one algorithm may be performed
+ *   via a direct legacy call (see below).
  *
  * The md module performs an algorithm via PSA if there is a PSA hash
- * accelerator, and makes a direct legacy call otherwise.
+ * accelerator and the PSA driver subsytem is initialized at the time the
+ * operation is started, and makes a direct legacy call otherwise.
  */
 
 /* PSA accelerated implementations */

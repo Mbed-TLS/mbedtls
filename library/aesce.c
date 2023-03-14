@@ -323,13 +323,13 @@ static inline uint8x16_t pmull_high(uint8x16_t a, uint8x16_t b)
  * |            |             |             |
  * |------------|-------------|-------------|
  * | ret.val[0] | h3:h2:00:00 | high   128b |
- * | ret.val[1] |   :m2:m1:00 | median 128b |
+ * | ret.val[1] |   :m2:m1:00 | middle 128b |
  * | ret.val[2] |   :  :l1:l0 | low    128b |
  */
 static inline uint8x16x3_t poly_mult_128(uint8x16_t a, uint8x16_t b)
 {
     uint8x16x3_t ret;
-    uint8x16_t h, m, l; /* retval high/median/low */
+    uint8x16_t h, m, l; /* retval high/middle/low */
     uint8x16_t c, d, e;
 
     h = pmull_high(a, b);                       /* h3:h2:00:00 = a1*b1 */
@@ -366,7 +366,7 @@ static inline uint8x16_t poly_mult_reduce(uint8x16x3_t input)
     uint64x2_t r = vreinterpretq_u64_u8(vdupq_n_u8(0x87));
     asm ("" : "+w" (r));
     uint8x16_t const MODULO = vreinterpretq_u8_u64(vshrq_n_u64(r, 64 - 8));
-    uint8x16_t h, m, l; /* input high/median/low 128b */
+    uint8x16_t h, m, l; /* input high/middle/low 128b */
     uint8x16_t c, d, e, f, g, n, o;
     h = input.val[0];            /* h3:h2:00:00                          */
     m = input.val[1];            /*   :m2:m1:00                          */

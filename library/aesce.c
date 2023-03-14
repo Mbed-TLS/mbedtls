@@ -48,22 +48,24 @@
 
 #if defined(MBEDTLS_HAVE_ARM64)
 
-#if defined(__clang__)
-#   if __clang_major__ < 4
-#       error "A more recent Clang is required for MBEDTLS_AESCE_C"
+#if !defined(__ARM_FEATURE_AES) || defined(MBEDTLS_NEED_TARGET_OPTIONS)
+#   if defined(__clang__)
+#       if __clang_major__ < 4
+#           error "A more recent Clang is required for MBEDTLS_AESCE_C"
+#       endif
+#       pragma clang attribute push (__attribute__((target("crypto"))), apply_to=function)
+#       define MBEDTLS_POP_TARGET_PRAGMA
+#   elif defined(__GNUC__)
+#       if __GNUC__ < 6
+#           error "A more recent GCC is required for MBEDTLS_AESCE_C"
+#       endif
+#       pragma GCC push_options
+#       pragma GCC target ("arch=armv8-a+crypto")
+#       define MBEDTLS_POP_TARGET_PRAGMA
+#   else
+#       error "Only GCC and Clang supported for MBEDTLS_AESCE_C"
 #   endif
-#        pragma clang attribute push (__attribute__((target("crypto"))), apply_to=function)
-#        define MBEDTLS_POP_TARGET_PRAGMA
-#elif defined(__GNUC__)
-#   if __GNUC__ < 6
-#       error "A more recent GCC is required for MBEDTLS_AESCE_C"
-#   endif
-#   pragma GCC push_options
-#   pragma GCC target ("arch=armv8-a+crypto")
-#   define MBEDTLS_POP_TARGET_PRAGMA
-#else
-#    error "Only GCC and Clang supported for MBEDTLS_AESCE_C"
-#endif
+#endif /* !__ARM_FEATURE_AES || MBEDTLS_NEED_TARGET_OPTIONS */
 
 #include <arm_neon.h>
 

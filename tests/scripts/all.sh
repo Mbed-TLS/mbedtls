@@ -386,7 +386,13 @@ msg()
     echo ""
     echo "******************************************************************"
     echo "* $current_section "
-    printf "* "; date
+    if [[ -n ${FAKETIME:-} ]]; then
+        # Print the true date once for performance logging, and the fake date
+        # used by tests for functional debugging.
+        echo "* $(unset FAKETIME; date) FAKETIME: $(date)"
+    else
+        echo "* $(date)"
+    fi
     echo "******************************************************************"
 }
 
@@ -790,6 +796,21 @@ pre_check_tools () {
         *) set "$@" RUN_ARMCC=0;;
     esac
     "$@" scripts/output_env.sh
+}
+
+pre_faketime() {
+    mkdir -p faketime
+    cd faketime
+    wget -nc https://github.com/wolfcw/libfaketime/archive/refs/tags/v0.9.10.tar.gz
+    tar xf v0.9.10.tar.gz
+    cd libfaketime-0.9.10
+    make PREFIX= LIBDIRNAME=$PWD
+    LIBFAKETIME="$PWD/src/libfaketime.so.1"
+    cd ../..
+
+    # Edit here to change the date at which tests pretend to run
+    : ${FAKETIME="2024-01-01 00:00:00"}
+    export FAKETIME
 }
 
 pre_generate_files() {
@@ -4357,6 +4378,11 @@ run_component () {
             echo "${current_component#component_}"
             exec >/dev/null
         fi
+        if [[ $current_component = component_test_* ]]; then
+            export LD_PRELOAD="$LIBFAKETIME"
+        else
+            unset FAKETIME
+        fi
         if [ $KEEP_GOING -eq 1 ]; then
             # Keep "set -e" off, and run an ERR trap instead to record failures.
             set -E
@@ -4398,6 +4424,7 @@ fi
 pre_prepare_outcome_file
 pre_print_configuration
 pre_check_tools
+pre_faketime
 cleanup
 pre_generate_files
 

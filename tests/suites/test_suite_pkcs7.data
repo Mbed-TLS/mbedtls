@@ -23,12 +23,16 @@ depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
 pkcs7_parse:"data_files/pkcs7_data_signed_badcert.der":MBEDTLS_ERR_PKCS7_INVALID_CERT
 
 PKCS7 Signed Data Parse Fail with disabled alg #5.1
-depends_on:MBEDTLS_RSA_C:!MBEDTLS_SHA512_C
+depends_on:MBEDTLS_RSA_C:!MBEDTLS_HAS_ALG_SHA_512_VIA_LOWLEVEL_OR_PSA
 pkcs7_parse:"data_files/pkcs7_data_cert_signed_sha512.der":MBEDTLS_ERR_PKCS7_INVALID_ALG
 
 PKCS7 Parse Fail with Inlined Content Info #5.2
 depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
 pkcs7_parse:"data_files/pkcs7_data_with_signature.der":MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE
+
+PKCS7 Signed Data Parse Fail with no RSA #5.3
+depends_on:MBEDTLS_SHA256_C:!MBEDTLS_RSA_C
+pkcs7_parse:"data_files/pkcs7_data_cert_signed_sha256.der":MBEDTLS_ERR_PKCS7_INVALID_CERT
 
 PKCS7 Signed Data Parse Fail with corrupted signer info #6
 depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
@@ -71,7 +75,7 @@ depends_on:MBEDTLS_SHA1_C:MBEDTLS_SHA256_C
 pkcs7_verify:"data_files/pkcs7_zerolendata_detached.der":"data_files/pkcs7-rsa-sha256-1.der":"data_files/pkcs7_zerolendata.bin":0:0
 
 PKCS7 Signed Data Verification Fail zero-len data
-depends_on:MBEDTLS_SHA1_C:MBEDTLS_SHA256_C
+depends_on:MBEDTLS_SHA1_C:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
 pkcs7_verify:"data_files/pkcs7_zerolendata_detached.der":"data_files/pkcs7-rsa-sha256-2.der":"data_files/pkcs7_zerolendata.bin":0:MBEDTLS_ERR_RSA_VERIFY_FAILED
 
 PKCS7 Signed Data Verification Pass SHA256 #9
@@ -91,19 +95,19 @@ depends_on:MBEDTLS_SHA512_C:MBEDTLS_SHA256_C
 pkcs7_verify:"data_files/pkcs7_data_cert_signed_sha512.der":"data_files/pkcs7-rsa-sha256-1.der":"data_files/pkcs7_data.bin":0:0
 
 PKCS7 Signed Data Verification Fail because of different certificate #12
-depends_on:MBEDTLS_SHA256_C
+depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
 pkcs7_verify:"data_files/pkcs7_data_cert_signed_sha256.der":"data_files/pkcs7-rsa-sha256-2.der":"data_files/pkcs7_data.bin":0:MBEDTLS_ERR_RSA_VERIFY_FAILED
 
 PKCS7 Signed Data Verification Fail because of different data hash #13
-depends_on:MBEDTLS_SHA256_C
+depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
 pkcs7_verify:"data_files/pkcs7_data_cert_signed_sha256.der":"data_files/pkcs7-rsa-sha256-1.der":"data_files/pkcs7_data_1.bin":0:MBEDTLS_ERR_RSA_VERIFY_FAILED
 
 PKCS7 Signed Data Parse Failure Corrupt signerInfo.issuer #15.1
-depends_on:MBEDTLS_SHA256_C
+depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
 pkcs7_parse:"data_files/pkcs7_signerInfo_issuer_invalid_size.der":MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO
 
 PKCS7 Signed Data Parse Failure Corrupt signerInfo.serial #15.2
-depends_on:MBEDTLS_SHA256_C
+depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
 pkcs7_parse:"data_files/pkcs7_signerInfo_serial_invalid_size.der":MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO
 
 PKCS7 Signed Data Parse Fail Corrupt signerInfos[2] (6213931373035520)
@@ -123,7 +127,7 @@ depends_on:MBEDTLS_SHA256_C
 pkcs7_verify:"data_files/pkcs7_data_multiple_signed.der":"data_files/pkcs7-rsa-sha256-1.crt data_files/pkcs7-rsa-sha256-2.crt":"data_files/pkcs7_data.bin":0:0
 
 PKCS7 Signed Data Verify with multiple(3) signers #16.1
-depends_on:MBEDTLS_SHA256_C
+depends_on:MBEDTLS_SHA256_C:!MBEDTLS_MEMORY_BUFFER_ALLOC_C
 pkcs7_verify:"data_files/pkcs7_data_3_signed.der":"data_files/pkcs7-rsa-sha256-1.crt data_files/pkcs7-rsa-sha256-2.crt data_files/pkcs7-rsa-sha256-3.crt":"data_files/pkcs7_data.bin":0:0
 
 PKCS7 Signed Data Hash Verify with multiple signers #17
@@ -143,11 +147,11 @@ depends_on:MBEDTLS_SHA256_C:MBEDTLS_HAVE_TIME_DATE
 pkcs7_verify:"data_files/pkcs7_data_cert_signed_sha256.der":"data_files/pkcs7-rsa-expired.crt":"data_files/pkcs7_data.bin":0:MBEDTLS_ERR_PKCS7_CERT_DATE_INVALID
 
 PKCS7 Signed Data Verify Fail Expired Cert #19 no DATE_TIME 1
-depends_on:MBEDTLS_SHA256_C:!MBEDTLS_HAVE_TIME_DATE
+depends_on:MBEDTLS_SHA256_C:!MBEDTLS_HAVE_TIME_DATE:MBEDTLS_RSA_C
 pkcs7_verify:"data_files/pkcs7_data_cert_signed_sha256.der":"data_files/pkcs7-rsa-expired.crt":"data_files/pkcs7_data.bin":0:MBEDTLS_ERR_RSA_VERIFY_FAILED
 
 PKCS7 Signed Data Verify Fail Expired Cert #19 no TIME_DATE 2
-depends_on:MBEDTLS_SHA256_C:!MBEDTLS_HAVE_TIME_DATE
+depends_on:MBEDTLS_SHA256_C:!MBEDTLS_HAVE_TIME_DATE:MBEDTLS_RSA_C
 pkcs7_verify:"data_files/pkcs7_data_rsa_expired.der":"data_files/pkcs7-rsa-expired.crt":"data_files/pkcs7_data_1.bin":0:MBEDTLS_ERR_RSA_VERIFY_FAILED
 
 PKCS7 Parse Failure Invalid ASN1: Add null byte to start #20.0

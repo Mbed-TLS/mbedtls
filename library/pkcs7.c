@@ -42,7 +42,7 @@
 #endif
 
 /**
- * Initializes the pkcs7 structure.
+ * Initializes the mbedtls_pkcs7 structure.
  */
 void mbedtls_pkcs7_init(mbedtls_pkcs7 *pkcs7)
 {

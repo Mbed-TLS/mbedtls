@@ -2666,6 +2666,9 @@ int mbedtls_ssl_parse_server_name_ext(mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
 #if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+#define MBEDTLS_SSL_RECORD_SIZE_LIMIT_EXTENSION_DATA_LENGTH (2)
+#define MBEDTLS_SSL_RECORD_SIZE_LIMIT_MIN (64)
+
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_parse_record_size_limit_ext(mbedtls_ssl_context *ssl,
                                                   const unsigned char *buf,

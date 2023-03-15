@@ -1550,7 +1550,7 @@
 /**
  * \def MBEDTLS_SSL_RECORD_SIZE_LIMIT
  *
- * Enable support for RFC 8449 record_size_limit extension in SSL.
+ * Enable support for RFC 8449 record_size_limit extension in SSL (TLS 1.3 only).
  *
  * \warning This extension is currently in development and must NOT be used except
  *          for testing purposes.

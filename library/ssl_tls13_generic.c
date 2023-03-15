@@ -1578,10 +1578,10 @@ int mbedtls_ssl_tls13_parse_record_size_limit_ext(mbedtls_ssl_context *ssl,
                                                   const unsigned char *buf,
                                                   const unsigned char *end)
 {
-    const ptrdiff_t extension_data_len = end - buf;
-    if (extension_data_len != 2) {
+    const size_t extension_data_len = end - buf;
+    if (extension_data_len != MBEDTLS_SSL_RECORD_SIZE_LIMIT_EXTENSION_DATA_LENGTH) {
         MBEDTLS_SSL_DEBUG_MSG(2,
-                              ("record_size_limit extension has invalid length: %td Bytes",
+                              ("record_size_limit extension has invalid length: %zu Bytes",
                                extension_data_len));
 
         MBEDTLS_SSL_PEND_FATAL_ALERT(
@@ -1604,7 +1604,7 @@ int mbedtls_ssl_tls13_parse_record_size_limit_ext(mbedtls_ssl_context *ssl,
      * smaller than 64.  An endpoint MUST treat receipt of a smaller value
      * as a fatal error and generate an "illegal_parameter" alert.
      */
-    if (record_size_limit < 64) {
+    if (record_size_limit < MBEDTLS_SSL_RECORD_SIZE_LIMIT_MIN) {
         MBEDTLS_SSL_PEND_FATAL_ALERT(
             MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
             MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);

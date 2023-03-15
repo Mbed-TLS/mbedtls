@@ -181,7 +181,7 @@ mbedtls_ms_time_t mbedtls_ms_time(void)
     struct timespec tv;
     mbedtls_ms_time_t current_ms;
 
-    ret = clock_gettime(CLOCK_REALTIME, &tv);
+    ret = clock_gettime(CLOCK_MONOTONIC, &tv);
     if (ret) {
         return time(NULL) * 1000;
     }

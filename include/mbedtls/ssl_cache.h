@@ -134,7 +134,7 @@ int mbedtls_ssl_cache_set(void *data,
  *
  * \return                0: The cache entry for session with provided ID
  *                           is removed or does not exist.
- *                        1: Internal error.
+ *                        Otherwise: fail.
  */
 int mbedtls_ssl_cache_remove(void *data,
                              unsigned char const *session_id,

@@ -92,8 +92,8 @@ int mbedtls_ssl_cache_get(void *data,
     mbedtls_ssl_cache_entry *entry;
 
 #if defined(MBEDTLS_THREADING_C)
-    if (mbedtls_mutex_lock(&cache->mutex) != 0) {
-        return 1;
+    if ((ret = mbedtls_mutex_lock(&cache->mutex)) != 0) {
+        return ret;
     }
 #endif
 
@@ -114,7 +114,7 @@ int mbedtls_ssl_cache_get(void *data,
 exit:
 #if defined(MBEDTLS_THREADING_C)
     if (mbedtls_mutex_unlock(&cache->mutex) != 0) {
-        ret = 1;
+        ret = MBEDTLS_ERR_THREADING_MUTEX_ERROR;
     }
 #endif
 
@@ -318,7 +318,7 @@ int mbedtls_ssl_cache_set(void *data,
 exit:
 #if defined(MBEDTLS_THREADING_C)
     if (mbedtls_mutex_unlock(&cache->mutex) != 0) {
-        ret = 1;
+        ret = MBEDTLS_ERR_THREADING_MUTEX_ERROR;
     }
 #endif
 
@@ -341,8 +341,8 @@ int mbedtls_ssl_cache_remove(void *data,
     mbedtls_ssl_cache_entry *prev;
 
 #if defined(MBEDTLS_THREADING_C)
-    if (mbedtls_mutex_lock(&cache->mutex) != 0) {
-        return 1;
+    if ((ret = mbedtls_mutex_lock(&cache->mutex)) != 0) {
+        return ret;
     }
 #endif
 
@@ -373,7 +373,7 @@ free:
 exit:
 #if defined(MBEDTLS_THREADING_C)
     if (mbedtls_mutex_unlock(&cache->mutex) != 0) {
-        ret = 1;
+        ret = MBEDTLS_ERR_THREADING_MUTEX_ERROR;
     }
 #endif
 

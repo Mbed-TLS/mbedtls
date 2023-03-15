@@ -500,7 +500,7 @@ int mbedtls_rsa_set_padding(mbedtls_rsa_context *ctx, int padding,
 }
 
 /*
- * Get padding mode of RSA modulus
+ * Get padding mode of initialized RSA context
  */
 int mbedtls_rsa_get_padding_mode(const mbedtls_rsa_context *ctx)
 {

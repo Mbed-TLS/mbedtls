@@ -121,6 +121,23 @@ exit:
     return ret;
 }
 
+/* zeroize a cache entry */
+static void ssl_cache_entry_zeroize(mbedtls_ssl_cache_entry *entry)
+{
+    if (entry == NULL) {
+        return;
+    }
+
+    /* zeroize and free session structure */
+    if (entry->session != NULL) {
+        mbedtls_platform_zeroize(entry->session, entry->session_len);
+        mbedtls_free(entry->session);
+    }
+
+    /* zeroize the whole entry structure */
+    mbedtls_platform_zeroize(entry, sizeof(mbedtls_ssl_cache_entry));
+}
+
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_cache_pick_writing_slot(mbedtls_ssl_cache_context *cache,
                                        unsigned char const *session_id,
@@ -220,18 +237,18 @@ static int ssl_cache_pick_writing_slot(mbedtls_ssl_cache_context *cache,
 
 found:
 
+    /* If we're reusing an entry, free it first. */
+    if (cur->session != NULL) {
+        /* `ssl_cache_entry_zeroize` would break the chain,
+         * so we reuse `old` to record `next` temporarily. */
+        old = cur->next;
+        ssl_cache_entry_zeroize(cur);
+        cur->next = old;
+    }
+
 #if defined(MBEDTLS_HAVE_TIME)
     cur->timestamp = t;
 #endif
-
-    /* If we're reusing an entry, free it first. */
-    if (cur->session != NULL) {
-        mbedtls_free(cur->session);
-        cur->session = NULL;
-        cur->session_len = 0;
-        memset(cur->session_id, 0, sizeof(cur->session_id));
-        cur->session_id_len = 0;
-    }
 
     *dst = cur;
     return 0;
@@ -349,11 +366,7 @@ int mbedtls_ssl_cache_remove(void *data,
     }
 
 free:
-    if (entry->session != NULL) {
-        mbedtls_platform_zeroize(entry->session, entry->session_len);
-        mbedtls_free(entry->session);
-    }
-    mbedtls_platform_zeroize(entry, sizeof(mbedtls_ssl_cache_entry));
+    ssl_cache_entry_zeroize(entry);
     mbedtls_free(entry);
     ret = 0;
 
@@ -397,7 +410,7 @@ void mbedtls_ssl_cache_free(mbedtls_ssl_cache_context *cache)
         prv = cur;
         cur = cur->next;
 
-        mbedtls_free(prv->session);
+        ssl_cache_entry_zeroize(prv);
         mbedtls_free(prv);
     }
 

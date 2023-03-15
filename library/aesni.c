@@ -83,29 +83,29 @@ int mbedtls_aesni_crypt_ecb(mbedtls_aes_context *ctx,
     unsigned nr = ctx->nr; // Number of remaining rounds
 
     // Load round key 0
-    __m128i xmm0;
-    memcpy(&xmm0, input, 16);
-    xmm0 = _mm_xor_si128(xmm0, rk[0]);  // xmm0 ^= *rk;
+    __m128i state;
+    memcpy(&state, input, 16);
+    state = _mm_xor_si128(state, rk[0]);  // state ^= *rk;
     ++rk;
     --nr;
 
     if (mode == 0) {
         while (nr != 0) {
-            xmm0 = _mm_aesdec_si128(xmm0, *rk);
+            state = _mm_aesdec_si128(state, *rk);
             ++rk;
             --nr;
         }
-        xmm0 = _mm_aesdeclast_si128(xmm0, *rk);
+        state = _mm_aesdeclast_si128(state, *rk);
     } else {
         while (nr != 0) {
-            xmm0 = _mm_aesenc_si128(xmm0, *rk);
+            state = _mm_aesenc_si128(state, *rk);
             ++rk;
             --nr;
         }
-        xmm0 = _mm_aesenclast_si128(xmm0, *rk);
+        state = _mm_aesenclast_si128(state, *rk);
     }
 
-    memcpy(output, &xmm0, 16);
+    memcpy(output, &state, 16);
     return 0;
 }
 
@@ -135,25 +135,23 @@ static void gcm_clmul(const __m128i aa, const __m128i bb,
 
 static void gcm_shift(__m128i *cc, __m128i *dd)
 {
-    /*
-     * Now shift the result one bit to the left,
-     * taking advantage of [CLMUL-WP] eq 27 (p. 18)
-     */
-    //                                       // *cc = r1:r0
-    //                                       // *dd = r3:r2
-    __m128i xmm1 = _mm_slli_epi64(*cc, 1);   // r1<<1:r0<<1
-    __m128i xmm2 = _mm_slli_epi64(*dd, 1);   // r3<<1:r2<<1
-    __m128i xmm3 = _mm_srli_epi64(*cc, 63);  // r1>>63:r0>>63
-    __m128i xmm4 = _mm_srli_epi64(*dd, 63);  // r3>>63:r2>>63
-    __m128i xmm5 = _mm_srli_si128(xmm3, 8);  // 0:r1>>63
-    xmm3 = _mm_slli_si128(xmm3, 8);          // r0>>63:0
-    xmm4 = _mm_slli_si128(xmm4, 8);          // 0:r1>>63
+    /* [CMUCL-WP] Algorithm 5 Step 1: shift cc:dd one bit to the left,
+     * taking advantage of [CLMUL-WP] eq 27 (p. 18). */
+    //                                        // *cc = r1:r0
+    //                                        // *dd = r3:r2
+    __m128i cc_lo = _mm_slli_epi64(*cc, 1);   // r1<<1:r0<<1
+    __m128i dd_lo = _mm_slli_epi64(*dd, 1);   // r3<<1:r2<<1
+    __m128i cc_hi = _mm_srli_epi64(*cc, 63);  // r1>>63:r0>>63
+    __m128i dd_hi = _mm_srli_epi64(*dd, 63);  // r3>>63:r2>>63
+    __m128i xmm5 = _mm_srli_si128(cc_hi, 8);  // 0:r1>>63
+    cc_hi = _mm_slli_si128(cc_hi, 8);         // r0>>63:0
+    dd_hi = _mm_slli_si128(dd_hi, 8);         // 0:r1>>63
 
-    *cc = _mm_or_si128(xmm1, xmm3);          // r1<<1|r0>>63:r0<<1
-    *dd = _mm_or_si128(_mm_or_si128(xmm2, xmm4), xmm5); // r3<<1|r2>>62:r2<<1|r1>>63
+    *cc = _mm_or_si128(cc_lo, cc_hi);         // r1<<1|r0>>63:r0<<1
+    *dd = _mm_or_si128(_mm_or_si128(dd_lo, dd_hi), xmm5); // r3<<1|r2>>62:r2<<1|r1>>63
 }
 
-static __m128i gcm_reduce1(__m128i xx)
+static __m128i gcm_reduce(__m128i xx)
 {
     //                                            // xx = x1:x0
     /* [CLMUL-WP] Algorithm 5 Step 2 */
@@ -164,7 +162,7 @@ static __m128i gcm_reduce1(__m128i xx)
     return _mm_xor_si128(dd, xx);                 // x1+a+b+c:x0 = d:x0
 }
 
-static __m128i gcm_reduce2(__m128i dx)
+static __m128i gcm_mix(__m128i dx)
 {
     /* [CLMUL-WP] Algorithm 5 Steps 3 and 4 */
     __m128i ee = _mm_srli_epi64(dx, 1);           // e1:x0>>1 = e1:e0'
@@ -200,8 +198,8 @@ void mbedtls_aesni_gcm_mult(unsigned char c[16],
      * using [CLMUL-WP] algorithm 5 (p. 18).
      * Currently dd:cc holds x3:x2:x1:x0 (already shifted).
      */
-    __m128i dx = gcm_reduce1(cc);
-    __m128i xh = gcm_reduce2(dx);
+    __m128i dx = gcm_reduce(cc);
+    __m128i xh = gcm_mix(dx);
     cc = _mm_xor_si128(xh, dd); // x3+h1:x2+h0
 
     /* Now byte-reverse the outputs */
@@ -231,27 +229,27 @@ void mbedtls_aesni_inverse_key(unsigned char *invkey,
 /*
  * Key expansion, 128-bit case
  */
-static __m128i aesni_set_rk_128(__m128i xmm0, __m128i xmm1)
+static __m128i aesni_set_rk_128(__m128i state, __m128i xword)
 {
     /*
      * Finish generating the next round key.
      *
-     * On entry xmm0 is r3:r2:r1:r0 and xmm1 is X:stuff:stuff:stuff
-     * with X = rot( sub( r3 ) ) ^ RCON.
+     * On entry state is r3:r2:r1:r0 and xword is X:stuff:stuff:stuff
+     * with X = rot( sub( r3 ) ) ^ RCON (obtained with AESKEYGENASSIST).
      *
-     * On exit, xmm1 is r7:r6:r5:r4
+     * On exit, xword is r7:r6:r5:r4
      * with r4 = X + r0, r5 = r4 + r1, r6 = r5 + r2, r7 = r6 + r3
      * and this is returned, to be written to the round key buffer.
      */
-    xmm1 = _mm_shuffle_epi32(xmm1, 0xff);   // X:X:X:X
-    xmm1 = _mm_xor_si128(xmm1, xmm0);       // X+r3:X+r2:X+r1:r4
-    xmm0 = _mm_slli_si128(xmm0, 4);         // r2:r1:r0:0
-    xmm1 = _mm_xor_si128(xmm1, xmm0);       // X+r3+r2:X+r2+r1:r5:r4
-    xmm0 = _mm_slli_si128(xmm0, 4);         // r1:r0:0:0
-    xmm1 = _mm_xor_si128(xmm1, xmm0);       // X+r3+r2+r1:r6:r5:r4
-    xmm0 = _mm_slli_si128(xmm0, 4);         // r0:0:0:0
-    xmm1 = _mm_xor_si128(xmm1, xmm0);       // r7:r6:r5:r4
-    return xmm1;
+    xword = _mm_shuffle_epi32(xword, 0xff);   // X:X:X:X
+    xword = _mm_xor_si128(xword, state);      // X+r3:X+r2:X+r1:r4
+    state = _mm_slli_si128(state, 4);         // r2:r1:r0:0
+    xword = _mm_xor_si128(xword, state);      // X+r3+r2:X+r2+r1:r5:r4
+    state = _mm_slli_si128(state, 4);         // r1:r0:0:0
+    xword = _mm_xor_si128(xword, state);      // X+r3+r2+r1:r6:r5:r4
+    state = _mm_slli_si128(state, 4);         // r0:0:0:0
+    state = _mm_xor_si128(xword, state);      // r7:r6:r5:r4
+    return state;
 }
 
 static void aesni_setkey_enc_128(unsigned char *rk_bytes,
@@ -275,39 +273,40 @@ static void aesni_setkey_enc_128(unsigned char *rk_bytes,
 /*
  * Key expansion, 192-bit case
  */
-static void aesni_set_rk_192(__m128i *xmm0, __m128i *xmm1, __m128i xmm2,
+static void aesni_set_rk_192(__m128i *state0, __m128i *state1, __m128i xword,
                              unsigned char *rk)
 {
     /*
      * Finish generating the next 6 quarter-keys.
      *
-     * On entry xmm0 is r3:r2:r1:r0, xmm1 is stuff:stuff:r5:r4
-     * and xmm2 is stuff:stuff:X:stuff with X = rot( sub( r3 ) ) ^ RCON.
+     * On entry state0 is r3:r2:r1:r0, state1 is stuff:stuff:r5:r4
+     * and xword is stuff:stuff:X:stuff with X = rot( sub( r3 ) ) ^ RCON
+     * (obtained with AESKEYGENASSIST).
      *
-     * On exit, xmm0 is r9:r8:r7:r6 and xmm1 is stuff:stuff:r11:r10
+     * On exit, state0 is r9:r8:r7:r6 and state1 is stuff:stuff:r11:r10
      * and those are written to the round key buffer.
      */
-    xmm2 = _mm_shuffle_epi32(xmm2, 0x55);     // X:X:X:X
-    xmm2 = _mm_xor_si128(xmm2, *xmm0);        // X+r3:X+r2:X+r1:X+r0
-    *xmm0 = _mm_slli_si128(*xmm0, 4);         // r2:r1:r0:0
-    xmm2 = _mm_xor_si128(xmm2, *xmm0);        // X+r3+r2:X+r2+r1:X+r1+r0:X+r0
-    *xmm0 = _mm_slli_si128(*xmm0, 4);         // r1:r0:0:0
-    xmm2 = _mm_xor_si128(xmm2, *xmm0);        // X+r3+r2+r1:X+r2+r1+r0:X+r1+r0:X+r0
-    *xmm0 = _mm_slli_si128(*xmm0, 4);         // r0:0:0:0
-    xmm2 = _mm_xor_si128(xmm2, *xmm0);        // X+r3+r2+r1+r0:X+r2+r1+r0:X+r1+r0:X+r0
-    *xmm0 = xmm2;                             // = r9:r8:r7:r6
+    xword = _mm_shuffle_epi32(xword, 0x55);   // X:X:X:X
+    xword = _mm_xor_si128(xword, *state0);    // X+r3:X+r2:X+r1:X+r0
+    *state0 = _mm_slli_si128(*state0, 4);     // r2:r1:r0:0
+    xword = _mm_xor_si128(xword, *state0);    // X+r3+r2:X+r2+r1:X+r1+r0:X+r0
+    *state0 = _mm_slli_si128(*state0, 4);     // r1:r0:0:0
+    xword = _mm_xor_si128(xword, *state0);    // X+r3+r2+r1:X+r2+r1+r0:X+r1+r0:X+r0
+    *state0 = _mm_slli_si128(*state0, 4);     // r0:0:0:0
+    xword = _mm_xor_si128(xword, *state0);    // X+r3+r2+r1+r0:X+r2+r1+r0:X+r1+r0:X+r0
+    *state0 = xword;                          // = r9:r8:r7:r6
 
-    xmm2 = _mm_shuffle_epi32(xmm2, 0xff);     // r9:r9:r9:r9
-    xmm2 = _mm_xor_si128(xmm2, *xmm1);        // stuff:stuff:r9+r5:r9+r4
-    *xmm1 = _mm_slli_si128(*xmm1, 4);         // stuff:stuff:r4:0
-    xmm2 = _mm_xor_si128(xmm2, *xmm1);        // stuff:stuff:r9+r5+r4:r9+r4
-    *xmm1 = xmm2;                             // = stuff:stuff:r11:r10
+    xword = _mm_shuffle_epi32(xword, 0xff);   // r9:r9:r9:r9
+    xword = _mm_xor_si128(xword, *state1);    // stuff:stuff:r9+r5:r9+r4
+    *state1 = _mm_slli_si128(*state1, 4);     // stuff:stuff:r4:0
+    xword = _mm_xor_si128(xword, *state1);    // stuff:stuff:r9+r5+r4:r9+r4
+    *state1 = xword;                          // = stuff:stuff:r11:r10
 
-    /* Store xmm0 and the low half of xmm1 into rk, which is conceptually
+    /* Store state0 and the low half of state1 into rk, which is conceptually
      * an array of 24-byte elements. Since 24 is not a multiple of 16,
-     * rk is not necessarily aligned so just `*rk = *xmm0` doesn't work. */
-    memcpy(rk, xmm0, 16);
-    _mm_storeu_si64(rk + 16, *xmm1);
+     * rk is not necessarily aligned so just `*rk = *state0` doesn't work. */
+    memcpy(rk, state0, 16);
+    _mm_storeu_si64(rk + 16, *state1);
 }
 
 static void aesni_setkey_enc_192(unsigned char *rk,
@@ -316,55 +315,56 @@ static void aesni_setkey_enc_192(unsigned char *rk,
     /* First round: use original key */
     memcpy(rk, key, 24);
     /* aes.c guarantees that rk is aligned on a 16-byte boundary. */
-    __m128i xmm0 = ((__m128i *) rk)[0];
-    __m128i xmm1 = _mm_loadl_epi64(((__m128i *) rk) + 1);
+    __m128i state0 = ((__m128i *) rk)[0];
+    __m128i state1 = _mm_loadl_epi64(((__m128i *) rk) + 1);
 
-    aesni_set_rk_192(&xmm0, &xmm1, _mm_aeskeygenassist_si128(xmm1, 0x01), rk + 24 * 1);
-    aesni_set_rk_192(&xmm0, &xmm1, _mm_aeskeygenassist_si128(xmm1, 0x02), rk + 24 * 2);
-    aesni_set_rk_192(&xmm0, &xmm1, _mm_aeskeygenassist_si128(xmm1, 0x04), rk + 24 * 3);
-    aesni_set_rk_192(&xmm0, &xmm1, _mm_aeskeygenassist_si128(xmm1, 0x08), rk + 24 * 4);
-    aesni_set_rk_192(&xmm0, &xmm1, _mm_aeskeygenassist_si128(xmm1, 0x10), rk + 24 * 5);
-    aesni_set_rk_192(&xmm0, &xmm1, _mm_aeskeygenassist_si128(xmm1, 0x20), rk + 24 * 6);
-    aesni_set_rk_192(&xmm0, &xmm1, _mm_aeskeygenassist_si128(xmm1, 0x40), rk + 24 * 7);
-    aesni_set_rk_192(&xmm0, &xmm1, _mm_aeskeygenassist_si128(xmm1, 0x80), rk + 24 * 8);
+    aesni_set_rk_192(&state0, &state1, _mm_aeskeygenassist_si128(state1, 0x01), rk + 24 * 1);
+    aesni_set_rk_192(&state0, &state1, _mm_aeskeygenassist_si128(state1, 0x02), rk + 24 * 2);
+    aesni_set_rk_192(&state0, &state1, _mm_aeskeygenassist_si128(state1, 0x04), rk + 24 * 3);
+    aesni_set_rk_192(&state0, &state1, _mm_aeskeygenassist_si128(state1, 0x08), rk + 24 * 4);
+    aesni_set_rk_192(&state0, &state1, _mm_aeskeygenassist_si128(state1, 0x10), rk + 24 * 5);
+    aesni_set_rk_192(&state0, &state1, _mm_aeskeygenassist_si128(state1, 0x20), rk + 24 * 6);
+    aesni_set_rk_192(&state0, &state1, _mm_aeskeygenassist_si128(state1, 0x40), rk + 24 * 7);
+    aesni_set_rk_192(&state0, &state1, _mm_aeskeygenassist_si128(state1, 0x80), rk + 24 * 8);
 }
 
 /*
  * Key expansion, 256-bit case
  */
-static void aesni_set_rk_256(__m128i xmm0, __m128i xmm1, __m128i xmm2,
+static void aesni_set_rk_256(__m128i state0, __m128i state1, __m128i xword,
                              __m128i *rk0, __m128i *rk1)
 {
     /*
      * Finish generating the next two round keys.
      *
-     * On entry xmm0 is r3:r2:r1:r0, xmm1 is r7:r6:r5:r4 and
-     * xmm2 is X:stuff:stuff:stuff with X = rot( sub( r7 )) ^ RCON
+     * On entry state0 is r3:r2:r1:r0, state1 is r7:r6:r5:r4 and
+     * xword is X:stuff:stuff:stuff with X = rot( sub( r7 )) ^ RCON
+     * (obtained with AESKEYGENASSIST).
      *
      * On exit, *rk0 is r11:r10:r9:r8 and *rk1 is r15:r14:r13:r12
      */
-    xmm2 = _mm_shuffle_epi32(xmm2, 0xff);
-    xmm2 = _mm_xor_si128(xmm2, xmm0);
-    xmm0 = _mm_slli_si128(xmm0, 4);
-    xmm2 = _mm_xor_si128(xmm2, xmm0);
-    xmm0 = _mm_slli_si128(xmm0, 4);
-    xmm2 = _mm_xor_si128(xmm2, xmm0);
-    xmm0 = _mm_slli_si128(xmm0, 4);
-    xmm0 = _mm_xor_si128(xmm0, xmm2);
-    *rk0 = xmm0;
+    xword = _mm_shuffle_epi32(xword, 0xff);
+    xword = _mm_xor_si128(xword, state0);
+    state0 = _mm_slli_si128(state0, 4);
+    xword = _mm_xor_si128(xword, state0);
+    state0 = _mm_slli_si128(state0, 4);
+    xword = _mm_xor_si128(xword, state0);
+    state0 = _mm_slli_si128(state0, 4);
+    state0 = _mm_xor_si128(state0, xword);
+    *rk0 = state0;
 
-    /* Set xmm2 to stuff:Y:stuff:stuff with Y = subword( r11 )
+    /* Set xword to stuff:Y:stuff:stuff with Y = subword( r11 )
      * and proceed to generate next round key from there */
-    xmm2 = _mm_aeskeygenassist_si128(xmm0, 0x00);
-    xmm2 = _mm_shuffle_epi32(xmm2, 0xaa);
-    xmm2 = _mm_xor_si128(xmm2, xmm1);
-    xmm1 = _mm_slli_si128(xmm1, 4);
-    xmm2 = _mm_xor_si128(xmm2, xmm1);
-    xmm1 = _mm_slli_si128(xmm1, 4);
-    xmm2 = _mm_xor_si128(xmm2, xmm1);
-    xmm1 = _mm_slli_si128(xmm1, 4);
-    xmm1 = _mm_xor_si128(xmm1, xmm2);
-    *rk1 = xmm1;
+    xword = _mm_aeskeygenassist_si128(state0, 0x00);
+    xword = _mm_shuffle_epi32(xword, 0xaa);
+    xword = _mm_xor_si128(xword, state1);
+    state1 = _mm_slli_si128(state1, 4);
+    xword = _mm_xor_si128(xword, state1);
+    state1 = _mm_slli_si128(state1, 4);
+    xword = _mm_xor_si128(xword, state1);
+    state1 = _mm_slli_si128(state1, 4);
+    state1 = _mm_xor_si128(state1, xword);
+    *rk1 = state1;
 }
 
 static void aesni_setkey_enc_256(unsigned char *rk_bytes,

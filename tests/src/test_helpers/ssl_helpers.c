@@ -272,7 +272,7 @@ static int test_ssl_message_queue_peek_info(
     return (*msg_len > buf_len) ? MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED : 0;
 }
 
-void mbedtls_mock_socket_init(mbedtls_test_mock_socket *socket)
+void mbedtls_test_mock_socket_init(mbedtls_test_mock_socket *socket)
 {
     memset(socket, 0, sizeof(*socket));
 }
@@ -424,7 +424,7 @@ int mbedtls_test_message_socket_setup(
     ctx->queue_input = queue_input;
     ctx->queue_output = queue_output;
     ctx->socket = socket;
-    mbedtls_mock_socket_init(socket);
+    mbedtls_test_mock_socket_init(socket);
 
     return 0;
 }
@@ -688,7 +688,7 @@ int mbedtls_test_ssl_endpoint_init(
                                                       100, &(ep->socket),
                                                       dtls_context) == 0);
     } else {
-        mbedtls_mock_socket_init(&(ep->socket));
+        mbedtls_test_mock_socket_init(&(ep->socket));
     }
 
     ret = mbedtls_ctr_drbg_seed(&(ep->ctr_drbg), mbedtls_entropy_func,

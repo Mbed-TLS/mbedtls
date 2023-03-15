@@ -277,13 +277,13 @@ int mbedtls_test_ssl_message_queue_pop_info(
 /*
  * Setup and teardown functions for mock sockets.
  */
-void mbedtls_mock_socket_init(mbedtls_test_mock_socket *socket);
+void mbedtls_test_mock_socket_init(mbedtls_test_mock_socket *socket);
 
 /*
  * Closes the socket \p socket.
  *
  * \p socket must have been previously initialized by calling
- * mbedtls_mock_socket_init().
+ * mbedtls_test_mock_socket_init().
  *
  * This function frees all allocated resources and both sockets are aware of the
  * new connection state.
@@ -298,7 +298,7 @@ void mbedtls_test_mock_socket_close(mbedtls_test_mock_socket *socket);
  * Establishes a connection between \p peer1 and \p peer2.
  *
  * \p peer1 and \p peer2 must have been previously initialized by calling
- * mbedtls_mock_socket_init().
+ * mbedtls_test_mock_socket_init().
  *
  * The capacities of the internal buffers are set to \p bufsize. Setting this to
  * the correct value allows for simulation of MTU, sanity testing the mock

@@ -124,10 +124,6 @@ static void reset_chk_buf_ptr_args(mbedtls_ssl_chk_buf_ptr_args *args)
 }
 #endif /* MBEDTLS_TEST_HOOKS */
 
-/*
- * Buffer structure for custom I/O callbacks.
- */
-
 void mbedtls_test_ssl_buffer_init(mbedtls_test_ssl_buffer *buf)
 {
     memset(buf, 0, sizeof(*buf));
@@ -1023,12 +1019,6 @@ int psk_dummy_callback(void *p_info, mbedtls_ssl_context *ssl,
     return 0;
 }
 
-#if MBEDTLS_SSL_CID_OUT_LEN_MAX > MBEDTLS_SSL_CID_IN_LEN_MAX
-#define SSL_CID_LEN_MIN MBEDTLS_SSL_CID_IN_LEN_MAX
-#else
-#define SSL_CID_LEN_MIN MBEDTLS_SSL_CID_OUT_LEN_MAX
-#endif
-
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_AES_C)
 int mbedtls_test_psa_cipher_encrypt_helper(mbedtls_ssl_transform *transform,
@@ -1735,7 +1725,6 @@ exit:
     return 0;
 }
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
-
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 void mbedtls_test_ssl_perform_handshake(

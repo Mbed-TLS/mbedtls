@@ -101,6 +101,9 @@ typedef struct mbedtls_test_handshake_test_options {
 #endif
 } mbedtls_test_handshake_test_options;
 
+/*
+ * Buffer structure for custom I/O callbacks.
+ */
 typedef struct mbedtls_test_ssl_buffer {
     size_t start;
     size_t content_length;
@@ -459,6 +462,12 @@ int mbedtls_test_move_handshake_to_state(mbedtls_ssl_context *ssl,
             goto cleanup;                       \
         }                                       \
     } while (0)
+
+#if MBEDTLS_SSL_CID_OUT_LEN_MAX > MBEDTLS_SSL_CID_IN_LEN_MAX
+#define SSL_CID_LEN_MIN MBEDTLS_SSL_CID_IN_LEN_MAX
+#else
+#define SSL_CID_LEN_MIN MBEDTLS_SSL_CID_OUT_LEN_MAX
+#endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_AES_C)

@@ -5,6 +5,11 @@
    Global to silent the compiler when unused. */
 size_t pake_expected_hit_count = 0;
 int pake_in_driver = 0;
+
+/* The only two JPAKE user/peer identifiers supported for the time being. */
+static const uint8_t jpake_server_id[] = { 's', 'e', 'r', 'v', 'e', 'r' };
+static const uint8_t jpake_client_id[] = { 'c', 'l', 'i', 'e', 'n', 't' };
+
 #if defined(PSA_WANT_ALG_JPAKE) && defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) && \
     defined(PSA_WANT_ECC_SECP_R1_256) && defined(PSA_WANT_ALG_SHA_256)
 static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
@@ -3035,8 +3040,8 @@ void pake_operations(data_t *pw_data, int forced_status_setup_arg, int forced_st
     TEST_EQUAL(psa_pake_setup(&operation, &cipher_suite),
                PSA_SUCCESS);
 
-    TEST_EQUAL(psa_pake_set_role(&operation, PSA_PAKE_ROLE_SERVER),
-               PSA_SUCCESS);
+    PSA_ASSERT(psa_pake_set_user(&operation, jpake_server_id, sizeof(jpake_server_id)));
+    PSA_ASSERT(psa_pake_set_peer(&operation, jpake_client_id, sizeof(jpake_client_id)));
 
     TEST_EQUAL(psa_pake_set_password_key(&operation, key),
                PSA_SUCCESS);
@@ -3229,9 +3234,11 @@ void ecjpake_rounds(int alg_arg, int primitive_arg, int hash_arg,
     TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total, 0);
 
 
-    PSA_ASSERT(psa_pake_set_role(&server, PSA_PAKE_ROLE_SERVER));
+    PSA_ASSERT(psa_pake_set_user(&server, jpake_server_id, sizeof(jpake_server_id)));
+    PSA_ASSERT(psa_pake_set_peer(&server, jpake_client_id, sizeof(jpake_client_id)));
     TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total, 0);
-    PSA_ASSERT(psa_pake_set_role(&client, PSA_PAKE_ROLE_CLIENT));
+    PSA_ASSERT(psa_pake_set_user(&client, jpake_client_id, sizeof(jpake_client_id)));
+    PSA_ASSERT(psa_pake_set_peer(&client, jpake_server_id, sizeof(jpake_server_id)));
     TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total, 0);
     PSA_ASSERT(psa_pake_set_password_key(&server, key));
     TEST_EQUAL(mbedtls_test_driver_pake_hooks.hits.total, 0);

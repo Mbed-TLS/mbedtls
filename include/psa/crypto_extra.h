@@ -1300,10 +1300,10 @@ typedef struct psa_jpake_computation_stage_s psa_jpake_computation_stage_t;
  */
 static psa_pake_operation_t psa_pake_operation_init(void);
 
-/** Get the lengths of the password in bytes from given inputs.
+/** Get the length of the password in bytes from given inputs.
  *
  * \param[in]  inputs           Operation inputs.
- * \param[out] password_len     Return buffer for password length.
+ * \param[out] password_len     Password length.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -1343,6 +1343,70 @@ psa_status_t psa_crypto_driver_pake_get_password(
 psa_status_t psa_crypto_driver_pake_get_role(
     const psa_crypto_driver_pake_inputs_t *inputs,
     psa_pake_role_t *role);
+
+/** Get the length of the user id in bytes from given inputs.
+ *
+ * \param[in]  inputs           Operation inputs.
+ * \param[out] user_len         User id length.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         User id hasn't been set yet.
+ */
+psa_status_t psa_crypto_driver_pake_get_user_len(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    size_t *user_len);
+
+/** Get the length of the peer id in bytes from given inputs.
+ *
+ * \param[in]  inputs           Operation inputs.
+ * \param[out] peer_len         Peer id length.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         Peer id hasn't been set yet.
+ */
+psa_status_t psa_crypto_driver_pake_get_peer_len(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    size_t *peer_len);
+
+/** Get the user id from given inputs.
+ *
+ * \param[in]  inputs           Operation inputs.
+ * \param[out] user_id          User id.
+ * \param      user_id_size     Size of \p user_id in bytes.
+ * \param[out] user_id_len      Size of the user id in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         User id hasn't been set yet.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p user_id is too small.
+ */
+psa_status_t psa_crypto_driver_pake_get_user(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    uint8_t *user_id, size_t user_id_size, size_t *user_id_len);
+
+/** Get the peer id from given inputs.
+ *
+ * \param[in]  inputs           Operation inputs.
+ * \param[out] peer_id          Peer id.
+ * \param      peer_id_size     Size of \p peer_id in bytes.
+ * \param[out] peer_id_length   Size of the peer id in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         Peer id hasn't been set yet.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p peer_id is too small.
+ */
+psa_status_t psa_crypto_driver_pake_get_peer(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    uint8_t *peer_id, size_t peer_id_size, size_t *peer_id_length);
 
 /** Get the cipher suite from given inputs.
  *
@@ -1498,6 +1562,7 @@ psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
  *                              been set (psa_pake_set_user() hasn't been
  *                              called yet).
  * \param[in] user_id           The user ID to authenticate with.
+ *                              (temporary limitation: "client" or "server" only)
  * \param user_id_len           Size of the \p user_id buffer in bytes.
  *
  * \retval #PSA_SUCCESS
@@ -1539,6 +1604,7 @@ psa_status_t psa_pake_set_user(psa_pake_operation_t *operation,
  *                              been set (psa_pake_set_peer() hasn't been
  *                              called yet).
  * \param[in] peer_id           The peer's ID to authenticate.
+ *                              (temporary limitation: "client" or "server" only)
  * \param peer_id_len           Size of the \p peer_id buffer in bytes.
  *
  * \retval #PSA_SUCCESS
@@ -1970,6 +2036,10 @@ struct psa_crypto_driver_pake_inputs_s {
     uint8_t *MBEDTLS_PRIVATE(password);
     size_t MBEDTLS_PRIVATE(password_len);
     psa_pake_role_t MBEDTLS_PRIVATE(role);
+    uint8_t *MBEDTLS_PRIVATE(user);
+    size_t MBEDTLS_PRIVATE(user_len);
+    uint8_t *MBEDTLS_PRIVATE(peer);
+    size_t MBEDTLS_PRIVATE(peer_len);
     psa_key_attributes_t MBEDTLS_PRIVATE(attributes);
     psa_pake_cipher_suite_t MBEDTLS_PRIVATE(cipher_suite);
 };

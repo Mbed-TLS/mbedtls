@@ -210,17 +210,17 @@ void ssl_mock_sanity()
     unsigned char received[MSGLEN] = { 0 };
     mbedtls_test_mock_socket socket;
 
-    mbedtls_mock_socket_init(&socket);
+    mbedtls_test_mock_socket_init(&socket);
     TEST_ASSERT(mbedtls_test_mock_tcp_send_b(&socket, message, MSGLEN) < 0);
     mbedtls_test_mock_socket_close(&socket);
-    mbedtls_mock_socket_init(&socket);
+    mbedtls_test_mock_socket_init(&socket);
     TEST_ASSERT(mbedtls_test_mock_tcp_recv_b(&socket, received, MSGLEN) < 0);
     mbedtls_test_mock_socket_close(&socket);
 
-    mbedtls_mock_socket_init(&socket);
+    mbedtls_test_mock_socket_init(&socket);
     TEST_ASSERT(mbedtls_test_mock_tcp_send_nb(&socket, message, MSGLEN) < 0);
     mbedtls_test_mock_socket_close(&socket);
-    mbedtls_mock_socket_init(&socket);
+    mbedtls_test_mock_socket_init(&socket);
     TEST_ASSERT(mbedtls_test_mock_tcp_recv_nb(&socket, received, MSGLEN) < 0);
     mbedtls_test_mock_socket_close(&socket);
 
@@ -258,8 +258,8 @@ void ssl_mock_tcp(int blocking)
         recv = mbedtls_test_mock_tcp_recv_b;
     }
 
-    mbedtls_mock_socket_init(&client);
-    mbedtls_mock_socket_init(&server);
+    mbedtls_test_mock_socket_init(&client);
+    mbedtls_test_mock_socket_init(&server);
 
     /* Fill up the buffer with structured data so that unwanted changes
      * can be detected */
@@ -356,8 +356,8 @@ void ssl_mock_tcp_interleaving(int blocking)
         recv = mbedtls_test_mock_tcp_recv_b;
     }
 
-    mbedtls_mock_socket_init(&client);
-    mbedtls_mock_socket_init(&server);
+    mbedtls_test_mock_socket_init(&client);
+    mbedtls_test_mock_socket_init(&server);
 
     /* Fill up the buffers with structured data so that unwanted changes
      * can be detected */

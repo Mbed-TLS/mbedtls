@@ -504,7 +504,7 @@ int mbedtls_rsa_set_padding(mbedtls_rsa_context *ctx, int padding,
  */
 int mbedtls_rsa_get_padding_mode(const mbedtls_rsa_context *ctx)
 {
-    return ctx->MBEDTLS_PRIVATE(padding);
+    return ctx->padding;
 }
 
 /*
@@ -512,7 +512,7 @@ int mbedtls_rsa_get_padding_mode(const mbedtls_rsa_context *ctx)
  */
 int mbedtls_rsa_get_hash_id(const mbedtls_rsa_context *ctx)
 {
-    return ctx->MBEDTLS_PRIVATE(hash_id);
+    return ctx->hash_id;
 }
 
 /*

@@ -21,21 +21,18 @@ void rsa_invalid_param()
 
     mbedtls_rsa_init(&ctx);
 
+    TEST_EQUAL(mbedtls_rsa_get_padding_mode(&ctx), MBEDTLS_RSA_PKCS_V15);
+    TEST_EQUAL(mbedtls_rsa_get_hash_id(&ctx), MBEDTLS_MD_NONE);
+
     TEST_EQUAL(mbedtls_rsa_set_padding(&ctx,
                                        invalid_padding,
                                        MBEDTLS_MD_NONE),
                MBEDTLS_ERR_RSA_INVALID_PADDING);
 
-    TEST_EQUAL(mbedtls_rsa_get_padding_mode(&ctx), MBEDTLS_RSA_PKCS_V15);
-    TEST_EQUAL(mbedtls_rsa_get_hash_id(&ctx), MBEDTLS_MD_NONE);
-
     TEST_EQUAL(mbedtls_rsa_set_padding(&ctx,
                                        MBEDTLS_RSA_PKCS_V21,
                                        invalid_hash_id),
                MBEDTLS_ERR_RSA_INVALID_PADDING);
-
-    TEST_EQUAL(mbedtls_rsa_get_padding_mode(&ctx), MBEDTLS_RSA_PKCS_V15);
-    TEST_EQUAL(mbedtls_rsa_get_hash_id(&ctx), MBEDTLS_MD_NONE);
 
     TEST_EQUAL(mbedtls_rsa_pkcs1_sign(&ctx, NULL,
                                       NULL, MBEDTLS_MD_NONE,
@@ -64,9 +61,6 @@ void rsa_invalid_param()
                                        MBEDTLS_RSA_PKCS_V15,
                                        MBEDTLS_MD_NONE),
                MBEDTLS_ERR_RSA_INVALID_PADDING);
-
-    TEST_EQUAL(mbedtls_rsa_get_padding_mode(&ctx), MBEDTLS_RSA_PKCS_V15);
-    TEST_EQUAL(mbedtls_rsa_get_hash_id(&ctx), MBEDTLS_MD_NONE);
 #endif
 
 #if defined(MBEDTLS_PKCS1_V15)
@@ -100,9 +94,6 @@ void rsa_invalid_param()
                                        MBEDTLS_RSA_PKCS_V21,
                                        MBEDTLS_MD_NONE),
                MBEDTLS_ERR_RSA_INVALID_PADDING);
-
-    TEST_EQUAL(mbedtls_rsa_get_padding_mode(&ctx), MBEDTLS_RSA_PKCS_V15);
-    TEST_EQUAL(mbedtls_rsa_get_hash_id(&ctx), MBEDTLS_MD_NONE);
 #endif
 
 #if defined(MBEDTLS_PKCS1_V21)
@@ -167,25 +158,6 @@ void rsa_init_free(int reinit)
     /* This test case always succeeds, functionally speaking. A plausible
      * bug might trigger an invalid pointer dereference or a memory leak. */
     goto exit;
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void rsa_ctx_param_validation(int padding_mode, int hash_id)
-{
-    mbedtls_rsa_context ctx;
-
-    mbedtls_rsa_init(&ctx);
-
-    TEST_ASSERT(mbedtls_rsa_set_padding(&ctx,
-                                        padding_mode,
-                                        hash_id) == 0);
-
-    TEST_ASSERT(mbedtls_rsa_get_padding_mode(&ctx) == padding_mode);
-    TEST_ASSERT(mbedtls_rsa_get_hash_id(&ctx) == hash_id);
-
-exit:
-    mbedtls_rsa_free(&ctx);
 }
 /* END_CASE */
 

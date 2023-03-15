@@ -17,6 +17,13 @@
 
 /* End of compile-time configuration. */
 
+static size_t mbedtls_mps_rand(void)
+{
+    size_t ret;
+    mbedtls_test_rnd_std_rand(NULL, (unsigned char *) &ret, sizeof(ret));
+    return ret;
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -847,10 +854,6 @@ void mbedtls_mps_reader_random_usage(int num_out_chunks,
         ASSERT_ALLOC(acc, acc_size);
     }
 
-    /* This probably needs to be changed because we want
-     * our tests to be deterministic. */
-    //    srand( time( NULL ) );
-
     ASSERT_ALLOC(outgoing, num_out_chunks * max_chunk_size);
     ASSERT_ALLOC(incoming, num_out_chunks * max_chunk_size);
 
@@ -863,7 +866,7 @@ void mbedtls_mps_reader_random_usage(int num_out_chunks,
     while (cur_out_chunk < (unsigned) num_out_chunks) {
         if (mode == 0) {
             /* Choose randomly between reclaim and feed */
-            rand_op = rand() % 2;
+            rand_op = mbedtls_mps_rand() % 2;
 
             if (rand_op == 0) {
                 /* Reclaim */
@@ -883,7 +886,7 @@ void mbedtls_mps_reader_random_usage(int num_out_chunks,
                     continue;
                 }
 
-                tmp_size = (rand() % max_chunk_size) + 1;
+                tmp_size = (mbedtls_mps_rand() % max_chunk_size) + 1;
                 ASSERT_ALLOC(tmp, tmp_size);
 
                 TEST_ASSERT(mbedtls_test_rnd_std_rand(NULL, tmp, tmp_size) == 0);
@@ -906,18 +909,18 @@ void mbedtls_mps_reader_random_usage(int num_out_chunks,
 
             /* Randomly switch to consumption mode if reclaim
              * was called at least once. */
-            if (reclaimed == 1 && rand() % 3 == 0) {
+            if (reclaimed == 1 && mbedtls_mps_rand() % 3 == 0) {
                 in_fetch = 0;
                 mode = 1;
             }
         } else {
             /* Choose randomly between get tolerating fewer data,
              * get not tolerating fewer data, and commit. */
-            rand_op = rand() % 3;
+            rand_op = mbedtls_mps_rand() % 3;
             if (rand_op == 0 || rand_op == 1) {
                 mbedtls_mps_size_t get_size, real_size;
                 unsigned char *chunk_get;
-                get_size = (rand() % max_request) + 1;
+                get_size = (mbedtls_mps_rand() % max_request) + 1;
                 if (rand_op == 0) {
                     ret = mbedtls_mps_reader_get(&rd, get_size, &chunk_get,
                                                  &real_size);
@@ -944,7 +947,7 @@ void mbedtls_mps_reader_random_usage(int num_out_chunks,
             }
 
             /* Randomly switch back to preparation */
-            if (rand() % 3 == 0) {
+            if (mbedtls_mps_rand() % 3 == 0) {
                 reclaimed = 0;
                 mode = 0;
             }

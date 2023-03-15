@@ -41,19 +41,6 @@ typedef struct log_pattern {
     size_t counter;
 } log_pattern;
 
-#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
-static int rng_seed = 0xBEEF;
-static int rng_get(void *p_rng, unsigned char *output, size_t output_len)
-{
-    (void) p_rng;
-    for (size_t i = 0; i < output_len; i++) {
-        output[i] = rand();
-    }
-
-    return 0;
-}
-#endif
-
 /*
  * This function can be passed to mbedtls to receive output logs from it. In
  * this case, it will count the instances of a log_pattern in the received
@@ -112,10 +99,6 @@ typedef struct handshake_test_options {
 
 void init_handshake_options(handshake_test_options *opts)
 {
-#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
-    srand(rng_seed);
-    rng_seed += 0xD0;
-#endif
     opts->cipher = "";
     opts->client_min_version = MBEDTLS_SSL_VERSION_UNKNOWN;
     opts->client_max_version = MBEDTLS_SSL_VERSION_UNKNOWN;
@@ -1016,7 +999,7 @@ int mbedtls_endpoint_init(mbedtls_endpoint *ep, int endpoint_type,
 
     mbedtls_ssl_init(&(ep->ssl));
     mbedtls_ssl_config_init(&(ep->conf));
-    mbedtls_ssl_conf_rng(&(ep->conf), rng_get, NULL);
+    mbedtls_ssl_conf_rng(&(ep->conf), mbedtls_test_rnd_pseudo_rand, NULL);
 
     TEST_ASSERT(mbedtls_ssl_conf_get_user_data_p(&ep->conf) == NULL);
     TEST_EQUAL(mbedtls_ssl_conf_get_user_data_n(&ep->conf), 0);

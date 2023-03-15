@@ -42,25 +42,11 @@ int mbedtls_test_rnd_std_rand(void *rng_state,
                               unsigned char *output,
                               size_t len)
 {
-#if !defined(__OpenBSD__) && !defined(__NetBSD__)
-    size_t i;
-
-    if (rng_state != NULL) {
-        rng_state  = NULL;
-    }
-
-    for (i = 0; i < len; ++i) {
-        output[i] = rand();
-    }
-#else
     if (rng_state != NULL) {
         rng_state = NULL;
     }
 
-    arc4random_buf(output, len);
-#endif /* !OpenBSD && !NetBSD */
-
-    return 0;
+    return mbedtls_test_rnd_pseudo_rand(NULL, output, len);
 }
 
 int mbedtls_test_rnd_zero_rand(void *rng_state,
@@ -84,7 +70,7 @@ int mbedtls_test_rnd_buffer_rand(void *rng_state,
     size_t use_len;
 
     if (rng_state == NULL) {
-        return mbedtls_test_rnd_std_rand(NULL, output, len);
+        return mbedtls_test_rnd_pseudo_rand(NULL, output, len);
     }
 
     use_len = len;
@@ -111,6 +97,13 @@ int mbedtls_test_rnd_buffer_rand(void *rng_state,
     return 0;
 }
 
+static mbedtls_test_rnd_pseudo_info global_info;
+
+void mbedtls_test_rnd_pseudo_reset_state(void)
+{
+    memset(&global_info, 0x00, sizeof(global_info));
+}
+
 int mbedtls_test_rnd_pseudo_rand(void *rng_state,
                                  unsigned char *output,
                                  size_t len)
@@ -121,7 +114,7 @@ int mbedtls_test_rnd_pseudo_rand(void *rng_state,
     unsigned char result[4], *out = output;
 
     if (rng_state == NULL) {
-        return mbedtls_test_rnd_std_rand(NULL, output, len);
+        info = &global_info;
     }
 
     k = info->key;

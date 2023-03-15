@@ -2398,8 +2398,8 @@ component_test_psa_crypto_config_accel_ecjpake_use_psa () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated JPAKE + USE_PSA"
     make test
 
-    # ssl-opt will be added later. Please check issue 7255 for a list of
-    # follow up activities
+    msg "test: ssl-opt.sh"
+    tests/ssl-opt.sh
 }
 
 # Keep in sync with component_test_psa_crypto_config_accel_ecjpake_use_psa.
@@ -2418,8 +2418,8 @@ component_test_psa_crypto_config_reference_ecjpake_use_psa () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with reference ECJPAKE + USE_PSA"
     make test
 
-    # ssl-opt will be added later. Please check issue 7255 for a list of
-    # follow up activities
+    msg "test: ssl-opt.sh"
+    tests/ssl-opt.sh
 }
 
 component_test_psa_crypto_config_accel_rsa_signature () {

@@ -1,0 +1,5 @@
+Features
+   * Add new API mbedtls_ssl_cache_remove for cache entry removal by
+     its session id.
+Security
+   * Zeroize SSL cache entries when they are freed.

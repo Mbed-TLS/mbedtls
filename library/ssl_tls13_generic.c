@@ -1568,7 +1568,8 @@ int mbedtls_ssl_tls13_check_received_extension(
 }
 
 #if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
-/* From RFC 8449:
+/* RFC 8449, section 4:
+ *
  * The ExtensionData of the "record_size_limit" extension is
  * RecordSizeLimit:
  *     uint16 RecordSizeLimit;
@@ -1578,10 +1579,14 @@ int mbedtls_ssl_tls13_parse_record_size_limit_ext(mbedtls_ssl_context *ssl,
                                                   const unsigned char *buf,
                                                   const unsigned char *end)
 {
+    const unsigned char *p = buf;
+    uint16_t record_size_limit;
     const size_t extension_data_len = end - buf;
+
     if (extension_data_len != MBEDTLS_SSL_RECORD_SIZE_LIMIT_EXTENSION_DATA_LENGTH) {
         MBEDTLS_SSL_DEBUG_MSG(2,
-                              ("record_size_limit extension has invalid length: %zu Bytes",
+                              ("record_size_limit extension has invalid length: %"
+                               MBEDTLS_PRINTF_SIZET " Bytes",
                                extension_data_len));
 
         MBEDTLS_SSL_PEND_FATAL_ALERT(
@@ -1590,15 +1595,12 @@ int mbedtls_ssl_tls13_parse_record_size_limit_ext(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
     }
 
-    const unsigned char *p = buf;
-    uint16_t record_size_limit;
-
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, 2);
     record_size_limit = MBEDTLS_GET_UINT16_BE(p, 0);
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("RecordSizeLimit: %u Bytes", record_size_limit));
 
-    /* RFC 8449 section 4
+    /* RFC 8449, section 4
      *
      * Endpoints MUST NOT send a "record_size_limit" extension with a value
      * smaller than 64.  An endpoint MUST treat receipt of a smaller value

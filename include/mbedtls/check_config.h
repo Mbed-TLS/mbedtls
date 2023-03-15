@@ -304,15 +304,26 @@
 #endif
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
+/* Helper for ECDH dependencies, will be undefined at the end of the file */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(PSA_HAVE_FULL_ECDH)
+#define MBEDTLS_PK_HAVE_ECDH
+#endif
+#else /* MBEDTLS_USE_PSA_CRYPTO */
+#if defined(MBEDTLS_ECDH_C)
+#define MBEDTLS_PK_HAVE_ECDH
+#endif
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) &&                 \
-    ( !defined(MBEDTLS_ECDH_C) ||                                       \
+    ( !defined(MBEDTLS_PK_HAVE_ECDH) ||                                       \
       !defined(MBEDTLS_PK_HAVE_ECDSA) ||                                \
       !defined(MBEDTLS_X509_CRT_PARSE_C) )
 #error "MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) &&                 \
-    ( !defined(MBEDTLS_ECDH_C) || !defined(MBEDTLS_RSA_C) ||          \
+    ( !defined(MBEDTLS_PK_HAVE_ECDH) || !defined(MBEDTLS_RSA_C) ||          \
       !defined(MBEDTLS_X509_CRT_PARSE_C) )
 #error "MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED defined, but not all prerequisites"
 #endif
@@ -1100,6 +1111,7 @@
 /* Undefine helper symbols */
 #undef MBEDTLS_PK_HAVE_ECDSA
 #undef MBEDTLS_PK_HAVE_JPAKE
+#undef MBEDTLS_PK_HAVE_ECDH
 
 /*
  * Avoid warning from -pedantic. This is a convenient place for this

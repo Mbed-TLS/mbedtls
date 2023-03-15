@@ -320,19 +320,17 @@ int main(void)
 
 #if defined(MBEDTLS_SSL_CACHE_C)
 #define USAGE_CACHE                                             \
-    "    cache_max=%%d        default: cache default (50)\n"
+    "    cache_max=%%d        default: cache default (50)\n"    \
+    "    cache_remove=%%d     default: 0 (don't remove)\n"
 #if defined(MBEDTLS_HAVE_TIME)
 #define USAGE_CACHE_TIME \
     "    cache_timeout=%%d    default: cache default (1d)\n"
 #else
 #define USAGE_CACHE_TIME ""
 #endif
-#define USAGE_CACHE_REMOVE                                      \
-    "    cache_remove=%%d     default: 0 (disabled)\n"
 #else
 #define USAGE_CACHE ""
 #define USAGE_CACHE_TIME ""
-#define USAGE_CACHE_REMOVE ""
 #endif /* MBEDTLS_SSL_CACHE_C */
 
 #if defined(SNI_OPTION)
@@ -553,7 +551,6 @@ int main(void)
     USAGE_NSS_KEYLOG_FILE                                   \
     USAGE_CACHE                                             \
     USAGE_CACHE_TIME                                        \
-    USAGE_CACHE_REMOVE                                      \
     USAGE_MAX_FRAG_LEN                                      \
     USAGE_ALPN                                              \
     USAGE_EMS                                               \

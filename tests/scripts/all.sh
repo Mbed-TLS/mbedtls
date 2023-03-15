@@ -5709,11 +5709,8 @@ component_test_tls13_only_record_size_limit () {
     msg "test_suite_ssl: TLS 1.3 only, record size limit extension enabled"
     cd tests; ./test_suite_ssl; cd ..
 
-    msg "ssl-opt.sh: (TLS 1.3 only, record size limit extension tests only)"
-    # Both the server and the client will currently abort the handshake when they encounter the
-    # record size limit extension. There is no way to prevent gnutls-cli from sending the extension
-    # which makes all G_NEXT_CLI + P_SRV tests fail. Thus, run only the tests for the this extension.
-    tests/ssl-opt.sh -f "Record Size Limit"
+    msg "ssl-opt.sh: (TLS 1.3 only, record size limit extension enabled)"
+    tests/ssl-opt.sh
 }
 
 component_build_mingw () {

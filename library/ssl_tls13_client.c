@@ -2113,12 +2113,11 @@ static int ssl_tls13_parse_encrypted_extensions(mbedtls_ssl_context *ssl,
 
                 ret = mbedtls_ssl_tls13_parse_record_size_limit_ext(
                     ssl, p, p + extension_data_len);
-
-                /* TODO: Return unconditionally here until we handle the record
-                 * size limit correctly. Once handled correctly, only return in
-                 * case of errors. */
-                return ret;
-
+                if (ret != 0) {
+                    MBEDTLS_SSL_DEBUG_RET(
+                        1, ("mbedtls_ssl_tls13_parse_record_size_limit_ext"), ret);
+                    return ret;
+                }
                 break;
 #endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 

@@ -2455,6 +2455,7 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
  *       uint8 ticket_flags;
  *       opaque resumption_key<0..255>;
  *       uint32 max_early_data_size;
+ *       uint16 record_size_limit;
  *       select ( endpoint ) {
  *            case client: ClientOnlyData;
  *            case server: uint64 ticket_creation_time;
@@ -2490,6 +2491,9 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
 #if defined(MBEDTLS_SSL_EARLY_DATA)
     needed += 4;                            /* max_early_data_size */
 #endif
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+    needed += 2; /* record_size_limit */
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
 #if defined(MBEDTLS_HAVE_TIME)
     needed += 8; /* ticket_creation_time or ticket_reception_time */
@@ -2534,6 +2538,10 @@ static int ssl_tls13_session_save(const mbedtls_ssl_session *session,
     MBEDTLS_PUT_UINT32_BE(session->max_early_data_size, p, 0);
     p += 4;
 #endif
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+    MBEDTLS_PUT_UINT16_BE(session->record_size_limit, p, 0);
+    p += 2;
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
 #if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
     if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
@@ -2610,6 +2618,13 @@ static int ssl_tls13_session_load(mbedtls_ssl_session *session,
     session->max_early_data_size = MBEDTLS_GET_UINT32_BE(p, 0);
     p += 4;
 #endif
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+    if (end - p < 2) {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+    session->record_size_limit = MBEDTLS_GET_UINT16_BE(p, 0);
+    p += 2;
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
 #if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
     if (session->endpoint == MBEDTLS_SSL_IS_SERVER) {
@@ -3458,6 +3473,7 @@ int mbedtls_ssl_get_max_out_record_payload(const mbedtls_ssl_context *ssl)
     size_t max_len = MBEDTLS_SSL_OUT_CONTENT_LEN;
 
 #if !defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH) && \
+    !defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT) && \
     !defined(MBEDTLS_SSL_PROTO_DTLS)
     (void) ssl;
 #endif
@@ -3467,6 +3483,14 @@ int mbedtls_ssl_get_max_out_record_payload(const mbedtls_ssl_context *ssl)
 
     if (max_len > mfl) {
         max_len = mfl;
+    }
+#endif
+
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+    const size_t record_size_limit = mbedtls_ssl_get_output_record_size_limit(ssl);
+
+    if (max_len > record_size_limit) {
+        max_len = record_size_limit;
     }
 #endif
 

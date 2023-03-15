@@ -439,6 +439,24 @@ size_t mbedtls_ssl_get_output_max_frag_len(const mbedtls_ssl_context *ssl);
 size_t mbedtls_ssl_get_input_max_frag_len(const mbedtls_ssl_context *ssl);
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+/**
+ * \brief          Return the record size limit (in bytes) for
+ *                 the output buffer. This is less than the value requested by the
+ *                 peer (using RFC 8449), since it subtracts the space required for the
+ *                 content type and padding of the TLSInnerPlaintext struct (RFC 8446).
+ *                 Returns MBEDTLS_SSL_OUT_CONTENT_LEN if no limit was requested by the peer.
+ *
+ * \sa             mbedtls_ssl_get_max_out_record_payload()
+ *                 ssl_compute_internal_record_size_limit()
+ *
+ * \param ssl      SSL context
+ *
+ * \return         Current record size limit for the output buffer.
+ */
+size_t mbedtls_ssl_get_output_record_size_limit(const mbedtls_ssl_context *ssl);
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
+
 #if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
 static inline size_t mbedtls_ssl_get_output_buflen(const mbedtls_ssl_context *ctx)
 {

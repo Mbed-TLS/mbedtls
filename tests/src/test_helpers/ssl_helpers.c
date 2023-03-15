@@ -525,7 +525,7 @@ int mbedtls_test_mock_tcp_recv_msg(void *ctx,
 /*
  * Deinitializes certificates from endpoint represented by \p ep.
  */
-void mbedtls_endpoint_certificate_free(mbedtls_test_ssl_endpoint *ep)
+static void test_ssl_endpoint_certificate_free(mbedtls_test_ssl_endpoint *ep)
 {
     mbedtls_test_ssl_endpoint_certificate *cert = &(ep->cert);
     if (cert != NULL) {
@@ -647,7 +647,7 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
 
 exit:
     if (ret != 0) {
-        mbedtls_endpoint_certificate_free(ep);
+        test_ssl_endpoint_certificate_free(ep);
     }
 
     return ret;
@@ -744,7 +744,7 @@ void mbedtls_test_ssl_endpoint_free(
     mbedtls_test_ssl_endpoint *ep,
     mbedtls_test_message_socket_context *context)
 {
-    mbedtls_endpoint_certificate_free(ep);
+    test_ssl_endpoint_certificate_free(ep);
 
     mbedtls_ssl_free(&(ep->ssl));
     mbedtls_ssl_config_free(&(ep->conf));

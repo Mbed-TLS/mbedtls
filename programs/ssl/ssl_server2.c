@@ -129,6 +129,7 @@ int main(void)
 #define DFL_TICKET_AEAD         MBEDTLS_CIPHER_AES_256_GCM
 #define DFL_CACHE_MAX           -1
 #define DFL_CACHE_TIMEOUT       -1
+#define DFL_CACHE_REMOVE        0
 #define DFL_SNI                 NULL
 #define DFL_ALPN_STRING         NULL
 #define DFL_CURVES              NULL
@@ -321,7 +322,8 @@ int main(void)
 
 #if defined(MBEDTLS_SSL_CACHE_C)
 #define USAGE_CACHE                                             \
-    "    cache_max=%%d        default: cache default (50)\n"
+    "    cache_max=%%d        default: cache default (50)\n"    \
+    "    cache_remove=%%d     default: 0 (don't remove)\n"
 #if defined(MBEDTLS_HAVE_TIME)
 #define USAGE_CACHE_TIME \
     "    cache_timeout=%%d    default: cache default (1d)\n"
@@ -669,6 +671,7 @@ struct options {
 #if defined(MBEDTLS_HAVE_TIME)
     int cache_timeout;          /* expiration delay of session cache entries*/
 #endif
+    int cache_remove;           /* enable / disable cache removement        */
     char *sni;                  /* string describing sni information        */
     const char *curves;         /* list of supported elliptic curves        */
     const char *sig_algs;       /* supported TLS 1.3 signature algorithms   */
@@ -1731,6 +1734,7 @@ usage:
 #if defined(MBEDTLS_HAVE_TIME)
     opt.cache_timeout       = DFL_CACHE_TIMEOUT;
 #endif
+    opt.cache_remove        = DFL_CACHE_REMOVE;
     opt.sni                 = DFL_SNI;
     opt.alpn_string         = DFL_ALPN_STRING;
     opt.curves              = DFL_CURVES;
@@ -2144,7 +2148,12 @@ usage:
             }
         }
 #endif
-        else if (strcmp(p, "cookies") == 0) {
+        else if (strcmp(p, "cache_remove") == 0) {
+            opt.cache_remove = atoi(q);
+            if (opt.cache_remove < 0 || opt.cache_remove > 1) {
+                goto usage;
+            }
+        } else if (strcmp(p, "cookies") == 0) {
             opt.cookies = atoi(q);
             if (opt.cookies < -1 || opt.cookies > 1) {
                 goto usage;
@@ -4126,6 +4135,12 @@ close_notify:
     ret = 0;
 
     mbedtls_printf(" done\n");
+
+#if defined(MBEDTLS_SSL_CACHE_C)
+    if (opt.cache_remove > 0) {
+        mbedtls_ssl_cache_remove(&cache, ssl.session->id, ssl.session->id_len);
+    }
+#endif
 
     goto reset;
 

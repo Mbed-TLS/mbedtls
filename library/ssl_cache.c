@@ -92,8 +92,8 @@ int mbedtls_ssl_cache_get(void *data,
     mbedtls_ssl_cache_entry *entry;
 
 #if defined(MBEDTLS_THREADING_C)
-    if (mbedtls_mutex_lock(&cache->mutex) != 0) {
-        return 1;
+    if ((ret = mbedtls_mutex_lock(&cache->mutex)) != 0) {
+        return ret;
     }
 #endif
 
@@ -114,11 +114,28 @@ int mbedtls_ssl_cache_get(void *data,
 exit:
 #if defined(MBEDTLS_THREADING_C)
     if (mbedtls_mutex_unlock(&cache->mutex) != 0) {
-        ret = 1;
+        ret = MBEDTLS_ERR_THREADING_MUTEX_ERROR;
     }
 #endif
 
     return ret;
+}
+
+/* zeroize a cache entry */
+static void ssl_cache_entry_zeroize(mbedtls_ssl_cache_entry *entry)
+{
+    if (entry == NULL) {
+        return;
+    }
+
+    /* zeroize and free session structure */
+    if (entry->session != NULL) {
+        mbedtls_platform_zeroize(entry->session, entry->session_len);
+        mbedtls_free(entry->session);
+    }
+
+    /* zeroize the whole entry structure */
+    mbedtls_platform_zeroize(entry, sizeof(mbedtls_ssl_cache_entry));
 }
 
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -220,18 +237,18 @@ static int ssl_cache_pick_writing_slot(mbedtls_ssl_cache_context *cache,
 
 found:
 
+    /* If we're reusing an entry, free it first. */
+    if (cur->session != NULL) {
+        /* `ssl_cache_entry_zeroize` would break the chain,
+         * so we reuse `old` to record `next` temporarily. */
+        old = cur->next;
+        ssl_cache_entry_zeroize(cur);
+        cur->next = old;
+    }
+
 #if defined(MBEDTLS_HAVE_TIME)
     cur->timestamp = t;
 #endif
-
-    /* If we're reusing an entry, free it first. */
-    if (cur->session != NULL) {
-        mbedtls_free(cur->session);
-        cur->session = NULL;
-        cur->session_len = 0;
-        memset(cur->session_id, 0, sizeof(cur->session_id));
-        cur->session_id_len = 0;
-    }
 
     *dst = cur;
     return 0;
@@ -301,7 +318,7 @@ int mbedtls_ssl_cache_set(void *data,
 exit:
 #if defined(MBEDTLS_THREADING_C)
     if (mbedtls_mutex_unlock(&cache->mutex) != 0) {
-        ret = 1;
+        ret = MBEDTLS_ERR_THREADING_MUTEX_ERROR;
     }
 #endif
 
@@ -310,6 +327,55 @@ exit:
         mbedtls_free(session_serialized);
         session_serialized = NULL;
     }
+
+    return ret;
+}
+
+int mbedtls_ssl_cache_remove(void *data,
+                             unsigned char const *session_id,
+                             size_t session_id_len)
+{
+    int ret = 1;
+    mbedtls_ssl_cache_context *cache = (mbedtls_ssl_cache_context *) data;
+    mbedtls_ssl_cache_entry *entry;
+    mbedtls_ssl_cache_entry *prev;
+
+#if defined(MBEDTLS_THREADING_C)
+    if ((ret = mbedtls_mutex_lock(&cache->mutex)) != 0) {
+        return ret;
+    }
+#endif
+
+    ret = ssl_cache_find_entry(cache, session_id, session_id_len, &entry);
+    /* No valid entry found, exit with success */
+    if (ret != 0) {
+        ret = 0;
+        goto exit;
+    }
+
+    /* Now we remove the entry from the chain */
+    if (entry == cache->chain) {
+        cache->chain = entry->next;
+        goto free;
+    }
+    for (prev = cache->chain; prev->next != NULL; prev = prev->next) {
+        if (prev->next == entry) {
+            prev->next = entry->next;
+            break;
+        }
+    }
+
+free:
+    ssl_cache_entry_zeroize(entry);
+    mbedtls_free(entry);
+    ret = 0;
+
+exit:
+#if defined(MBEDTLS_THREADING_C)
+    if (mbedtls_mutex_unlock(&cache->mutex) != 0) {
+        ret = MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+    }
+#endif
 
     return ret;
 }
@@ -344,7 +410,7 @@ void mbedtls_ssl_cache_free(mbedtls_ssl_cache_context *cache)
         prv = cur;
         cur = cur->next;
 
-        mbedtls_free(prv->session);
+        ssl_cache_entry_zeroize(prv);
         mbedtls_free(prv);
     }
 

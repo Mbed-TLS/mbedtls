@@ -123,6 +123,23 @@ int mbedtls_ssl_cache_set(void *data,
                           size_t session_id_len,
                           const mbedtls_ssl_session *session);
 
+/**
+ * \brief          Remove the cache entry by the session ID
+ *                 (Thread-safe if MBEDTLS_THREADING_C is enabled)
+ *
+ * \param data            The SSL cache context to use.
+ * \param session_id      The pointer to the buffer holding the session ID
+ *                        associated to \p session.
+ * \param session_id_len  The length of \p session_id in bytes.
+ *
+ * \return                0: The cache entry for session with provided ID
+ *                           is removed or does not exist.
+ *                        Otherwise: fail.
+ */
+int mbedtls_ssl_cache_remove(void *data,
+                             unsigned char const *session_id,
+                             size_t session_id_len);
+
 #if defined(MBEDTLS_HAVE_TIME)
 /**
  * \brief          Set the cache timeout

@@ -354,9 +354,9 @@ static inline uint8x16x3_t poly_mult_128(uint8x16_t a, uint8x16_t b)
  *
  * Modular reduction is slightly more complex. Write the GCM modulus as f(z) =
  * z^128 +r(z), where r(z) = z^7+z^2+z+ 1. The well known approach is to
- * consider that z128 ≡r(z) (mod z128 +r(z)), allowing us to write the 256-bit
- * operand to be reduced as a(z) = h(z)z128 +`(z)≡h(z)r(z) + `(z). That is, we
- * simply multiply the higher part of the operand by r(z) and add it to `(z). If
+ * consider that z^128 ≡r(z) (mod z^128 +r(z)), allowing us to write the 256-bit
+ * operand to be reduced as a(z) = h(z)z^128 +l(z)≡h(z)r(z) + l(z). That is, we
+ * simply multiply the higher part of the operand by r(z) and add it to l(z). If
  * the result is still larger than 128 bits, we reduce again.
  */
 static inline uint8x16_t poly_mult_reduce(uint8x16x3_t input)

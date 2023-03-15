@@ -348,9 +348,9 @@ class TabIssueTracker(LineIssueTracker):
     suffix_exemptions = frozenset([
         ".pem", # some openssl dumps have tabs
         ".sln",
+        ".jinja2",
         "/Makefile",
         "/Makefile.inc",
-        "/generate_visualc_files.pl",
     ])
 
     def issue_with_line(self, line, _filepath, _line_number):

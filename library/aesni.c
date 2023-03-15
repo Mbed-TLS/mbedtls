@@ -312,7 +312,7 @@ static void aesni_set_rk_192(__m128i *state0, __m128i *state1, __m128i xword,
      * an array of 24-byte elements. Since 24 is not a multiple of 16,
      * rk is not necessarily aligned so just `*rk = *state0` doesn't work. */
     memcpy(rk, state0, 16);
-    _mm_storeu_si64(rk + 16, *state1);
+    memcpy(rk + 16, state1, 8);
 }
 
 static void aesni_setkey_enc_192(unsigned char *rk,

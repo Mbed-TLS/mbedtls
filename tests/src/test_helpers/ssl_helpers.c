@@ -883,8 +883,12 @@ exit:
     return -1;
 }
 
-void set_ciphersuite(mbedtls_ssl_config *conf, const char *cipher,
-                     int *forced_ciphersuite)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED) && \
+    defined(MBEDTLS_CERTS_C)                        && \
+    defined(MBEDTLS_ENTROPY_C)                      && \
+    defined(MBEDTLS_CTR_DRBG_C)
+static void set_ciphersuite(mbedtls_ssl_config *conf, const char *cipher,
+                            int *forced_ciphersuite)
 {
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
     forced_ciphersuite[0] = mbedtls_ssl_get_ciphersuite_id(cipher);
@@ -909,9 +913,16 @@ void set_ciphersuite(mbedtls_ssl_config *conf, const char *cipher,
 exit:
     return;
 }
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED && MBEDTLS_CERTS_C &&
+          MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */
 
-int psk_dummy_callback(void *p_info, mbedtls_ssl_context *ssl,
-                       const unsigned char *name, size_t name_len)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED) && \
+    defined(MBEDTLS_CERTS_C)                        && \
+    defined(MBEDTLS_ENTROPY_C)                      && \
+    defined(MBEDTLS_CTR_DRBG_C)                     && \
+    defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+static int psk_dummy_callback(void *p_info, mbedtls_ssl_context *ssl,
+                              const unsigned char *name, size_t name_len)
 {
     (void) p_info;
     (void) ssl;
@@ -920,6 +931,9 @@ int psk_dummy_callback(void *p_info, mbedtls_ssl_context *ssl,
 
     return 0;
 }
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED && MBEDTLS_CERTS_C &&
+          MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C &&
+          MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
 int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
                                       mbedtls_ssl_transform *t_out,
@@ -1373,16 +1387,26 @@ exit:
  *
  * \retval  0 on success, otherwise error code.
  */
-int exchange_data(mbedtls_ssl_context *ssl_1,
-                  mbedtls_ssl_context *ssl_2)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED) && \
+    defined(MBEDTLS_CERTS_C)                        && \
+    defined(MBEDTLS_ENTROPY_C)                      && \
+    defined(MBEDTLS_CTR_DRBG_C)                     && \
+    (defined(MBEDTLS_SSL_RENEGOTIATION)             || \
+    defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH))
+static int exchange_data(mbedtls_ssl_context *ssl_1,
+                         mbedtls_ssl_context *ssl_2)
 {
     return mbedtls_exchange_data(ssl_1, 256, 1,
                                  ssl_2, 256, 1);
 }
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED && MBEDTLS_CERTS_C &&
+          MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C &&
+          (MBEDTLS_SSL_RENEGOTIATION              ||
+          MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH) */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED) && \
-    defined(MBEDTLS_CERTS_C) && \
-    defined(MBEDTLS_ENTROPY_C) && \
+    defined(MBEDTLS_CERTS_C)                        && \
+    defined(MBEDTLS_ENTROPY_C)                      && \
     defined(MBEDTLS_CTR_DRBG_C)
 void mbedtls_test_ssl_perform_handshake(
     mbedtls_test_handshake_test_options *options)

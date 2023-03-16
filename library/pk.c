@@ -61,8 +61,7 @@ void mbedtls_pk_init(mbedtls_pk_context *ctx)
     ctx->pk_info = NULL;
     ctx->pk_ctx = NULL;
 #if defined(MBEDTLS_ECP_C) && defined(MBEDTLS_USE_PSA_CRYPTO)
-    mbedtls_platform_zeroize(ctx->MBEDTLS_PRIVATE(pk_raw),
-                             MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN);
+    mbedtls_platform_zeroize(ctx->pk_raw, sizeof(ctx->pk_raw));
     ctx->pk_raw_len = 0;
     ctx->pk_ec_family = 0;
     ctx->pk_bits = 0;
@@ -82,7 +81,6 @@ void mbedtls_pk_free(mbedtls_pk_context *ctx)
         ctx->pk_info->ctx_free_func(ctx->pk_ctx);
     }
 
-    /* The zeroizing process also clears data associated with raw pk */
     mbedtls_platform_zeroize(ctx, sizeof(mbedtls_pk_context));
 }
 
@@ -457,7 +455,7 @@ int mbedtls_pk_verify_restartable(mbedtls_pk_context *ctx,
         if ((mbedtls_ecp_is_zero(&(mbedtls_pk_ec(*ctx)->Q)) == 1) &&
             (ctx->pk_raw_len != 0)) {
             ret = mbedtls_pk_update_keypair_from_public_key(ctx);
-            if (ret < 0) {
+            if (ret != 0) {
                 return ret;
             }
         }
@@ -893,7 +891,7 @@ int mbedtls_pk_get_public_key(mbedtls_pk_context *pk, unsigned char *buf,
                               size_t buf_size, size_t *key_len)
 {
     if ((pk == NULL) || (pk->MBEDTLS_PRIVATE(pk_raw_len) == 0)) {
-        return MBEDTLS_PK_NONE;
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
     if (buf_size < MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN) {
         return MBEDTLS_ERR_PK_BUFFER_TOO_SMALL;
@@ -909,7 +907,11 @@ int mbedtls_pk_get_ec_public_key_props(mbedtls_pk_context *pk,
                                        psa_ecc_family_t *ec_curve, size_t *bits)
 {
     if ((pk == NULL) || (ec_curve == NULL) || (bits == NULL)) {
-        return MBEDTLS_PK_NONE;
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+    }
+    if ((pk->MBEDTLS_PRIVATE(pk_ec_family) == 0) || 
+        (pk->MBEDTLS_PRIVATE(pk_bits) == 0)) {
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
 
     *ec_curve = pk->MBEDTLS_PRIVATE(pk_ec_family);
@@ -924,7 +926,7 @@ int mbedtls_pk_update_public_key_from_keypair(mbedtls_pk_context *pk)
     mbedtls_ecp_keypair *ecp_keypair;
 
     if (pk == NULL) {
-        return MBEDTLS_PK_NONE;
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
     /* RSA does not support raw public keys inside the pk_context structure,
      * so we quit silently in this case */

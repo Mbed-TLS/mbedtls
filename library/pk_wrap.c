@@ -739,11 +739,10 @@ static int ecdsa_verify_wrap(void *ctx_arg, mbedtls_md_type_t md_alg,
     size_t signature_part_size;
     ((void) md_alg);
 
-    if (mbedtls_pk_get_ec_public_key_props(pk, &curve, &curve_bits) ||
-        (curve == 0)) {
+    if (mbedtls_pk_get_ec_public_key_props(pk, &curve, &curve_bits) != 0) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
-    signature_part_size = (curve_bits + 7)/8;
+    signature_part_size = PSA_BITS_TO_BYTES(curve_bits);
 
     psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_PUBLIC_KEY(curve));
     psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_VERIFY_HASH);

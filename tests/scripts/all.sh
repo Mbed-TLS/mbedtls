@@ -2352,8 +2352,6 @@ config_psa_crypto_config_ecjpake_use_psa () {
         # Disable the module that's accelerated
         scripts/config.py unset MBEDTLS_ECJPAKE_C
     fi
-    # Disable things that depend on it (regardless of driver or built-in)
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 
     # Dynamic secure element support is a deprecated feature and needs to be disabled here.
     # This is done to have the same form of psa_key_attributes_s for libdriver and library.

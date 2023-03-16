@@ -821,7 +821,7 @@ int mbedtls_ssl_write_fragment(mbedtls_ssl_context *ssl,
         /* Used for DTLS and the message size larger than MFL. In that case
          * the message can not be fragmented and the library should return
          * MBEDTLS_ERR_SSL_BAD_INPUT_DATA error. This error must be returned
-         * to prevent a dead loop inside mbedtls_exchange_data(). */
+         * to prevent a dead loop inside mbedtls_test_ssl_exchange_data(). */
         return ret;
     } else if (expected_fragments == 1) {
         /* Used for TLS/DTLS and the message size lower than MFL */
@@ -1279,10 +1279,11 @@ int mbedtls_test_ssl_populate_session(mbedtls_ssl_session *session,
     return 0;
 }
 
-int mbedtls_exchange_data(mbedtls_ssl_context *ssl_1,
-                          int msg_len_1, const int expected_fragments_1,
-                          mbedtls_ssl_context *ssl_2,
-                          int msg_len_2, const int expected_fragments_2)
+int mbedtls_test_ssl_exchange_data(
+    mbedtls_ssl_context *ssl_1,
+    int msg_len_1, const int expected_fragments_1,
+    mbedtls_ssl_context *ssl_2,
+    int msg_len_2, const int expected_fragments_2)
 {
     unsigned char *msg_buf_1 = malloc(msg_len_1);
     unsigned char *msg_buf_2 = malloc(msg_len_2);
@@ -1397,8 +1398,8 @@ exit:
 static int exchange_data(mbedtls_ssl_context *ssl_1,
                          mbedtls_ssl_context *ssl_2)
 {
-    return mbedtls_exchange_data(ssl_1, 256, 1,
-                                 ssl_2, 256, 1);
+    return mbedtls_test_ssl_exchange_data(ssl_1, 256, 1,
+                                          ssl_2, 256, 1);
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED && MBEDTLS_CERTS_C &&
           MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C &&
@@ -1622,10 +1623,11 @@ void mbedtls_test_ssl_perform_handshake(
 
     if (options->cli_msg_len != 0 || options->srv_msg_len != 0) {
         /* Start data exchanging test */
-        TEST_ASSERT(mbedtls_exchange_data(&(client.ssl), options->cli_msg_len,
-                                          options->expected_cli_fragments,
-                                          &(server.ssl), options->srv_msg_len,
-                                          options->expected_srv_fragments)
+        TEST_ASSERT(mbedtls_test_ssl_exchange_data(
+                        &(client.ssl), options->cli_msg_len,
+                        options->expected_cli_fragments,
+                        &(server.ssl), options->srv_msg_len,
+                        options->expected_srv_fragments)
                     == 0);
     }
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
@@ -1680,12 +1682,10 @@ void mbedtls_test_ssl_perform_handshake(
 #endif
         /* Retest writing/reading */
         if (options->cli_msg_len != 0 || options->srv_msg_len != 0) {
-            TEST_ASSERT(mbedtls_exchange_data(
-                            &(client.ssl),
-                            options->cli_msg_len,
+            TEST_ASSERT(mbedtls_test_ssl_exchange_data(
+                            &(client.ssl), options->cli_msg_len,
                             options->expected_cli_fragments,
-                            &(server.ssl),
-                            options->srv_msg_len,
+                            &(server.ssl), options->srv_msg_len,
                             options->expected_srv_fragments)
                         == 0);
         }

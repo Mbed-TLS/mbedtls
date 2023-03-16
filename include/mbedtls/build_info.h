@@ -80,6 +80,13 @@
 #include MBEDTLS_USER_CONFIG_FILE
 #endif
 
+/* Auto-enable MBEDTLS_MD_C if needed by a module that didn't require it
+ * in a previous release, to ensure backwards compatibility.
+ */
+#if defined(MBEDTLS_PKCS5_C)
+#define MBEDTLS_MD_C
+#endif
+
 /* Auto-enable MBEDTLS_MD_LIGHT based on MBEDTLS_MD_C.
  * This allows checking for MD_LIGHT rather than MD_LIGHT || MD_C.
  */
@@ -87,7 +94,8 @@
 #define MBEDTLS_MD_LIGHT
 #endif
 
-/* Auto-enable MBEDTLS_MD_LIGHT if some module needs it.
+/* Auto-enable MBEDTLS_MD_LIGHT if needed by a module that didn't require it
+ * in a previous release, to ensure backwards compatibility.
  */
 #if defined(MBEDTLS_ECJPAKE_C) || \
     defined(MBEDTLS_PEM_PARSE_C) || \

@@ -169,8 +169,7 @@
 #endif
 
 #if defined(MBEDTLS_PKCS5_C) && \
-    ( !( defined(MBEDTLS_MD_C) || defined(MBEDTLS_PSA_CRYPTO_C) ) || \
-        !defined(MBEDTLS_CIPHER_C) )
+    !defined(MBEDTLS_CIPHER_C)
 #error "MBEDTLS_PKCS5_C defined, but not all prerequisites"
 #endif
 

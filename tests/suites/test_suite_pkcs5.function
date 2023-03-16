@@ -14,14 +14,16 @@ void pbkdf2_hmac(int hash, data_t *pw_str, data_t *salt_str,
 {
     unsigned char key[100];
 
-    PSA_INIT_IF_NO_MD();
+    MD_PSA_INIT();
     TEST_ASSERT(mbedtls_pkcs5_pbkdf2_hmac_ext(hash, pw_str->x, pw_str->len,
                                               salt_str->x, salt_str->len,
                                               it_cnt, key_len, key) == 0);
 
     TEST_ASSERT(mbedtls_test_hexcmp(key, result_key_string->x,
                                     key_len, result_key_string->len) == 0);
-    PSA_DONE_IF_NO_MD();
+
+exit:
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
@@ -33,7 +35,7 @@ void mbedtls_pkcs5_pbes2(int params_tag, data_t *params_hex, data_t *pw,
     mbedtls_asn1_buf params;
     unsigned char *my_out = NULL;
 
-    PSA_INIT_IF_NO_MD();
+    MD_PSA_INIT();
 
     params.tag = params_tag;
     params.p = params_hex->x;
@@ -51,13 +53,17 @@ void mbedtls_pkcs5_pbes2(int params_tag, data_t *params_hex, data_t *pw,
 
 exit:
     mbedtls_free(my_out);
-    PSA_DONE_IF_NO_MD();
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void pkcs5_selftest()
 {
+    MD_PSA_INIT();
     TEST_ASSERT(mbedtls_pkcs5_self_test(1) == 0);
+
+exit:
+    MD_PSA_DONE();
 }
 /* END_CASE */

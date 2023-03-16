@@ -42,3 +42,12 @@ DOT_TRANSPARENT        = YES
 ALIASES += emptydescription=""
 
 GENERATE_XML           = YES
+
+# Define away Mbed TLS macros that make parsing definitions difficult.
+# MBEDTLS_DEPRECATED is not included in this list as it's important to
+# display deprecated status in the documentation.
+PREDEFINED             = "MBEDTLS_CHECK_RETURN_CRITICAL="   \
+                         "MBEDTLS_CHECK_RETURN_TYPICAL="    \
+                         "MBEDTLS_CHECK_RETURN_OPTIONAL="   \
+                         "MBEDTLS_PRINTF_ATTRIBUTE(a,b)="   \
+

@@ -94,10 +94,9 @@ application's threat model, they need to be mitigated by the platform.
 
 ### Physical attacks
 
-In this section, we consider an attacker who can attacker has access to
-physical information about the hardware Mbed TLS is running on and/or can alter
-the physical state of the hardware (e.g. power analysis, radio emissions or
-fault injection).
+In this section, we consider an attacker who has access to physical information
+about the hardware Mbed TLS is running on and/or can alter the physical state
+of the hardware (e.g. power analysis, radio emissions or fault injection).
 
 Mbed TLS doesn't make any security guarantees against physical attacks. If
 physical attacks are present in a use case or a user application's threat

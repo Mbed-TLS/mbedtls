@@ -1,5 +1,61 @@
 /* BEGIN_HEADER */
 #include "mbedtls/aes.h"
+
+/* Test AES with a copied context.
+ *
+ * master, enc and dec must be AES context objects. They don't need to
+ * be initialized, and are left freed.
+ */
+static int test_copy(const data_t *key,
+                     mbedtls_aes_context *master,
+                     mbedtls_aes_context *enc,
+                     mbedtls_aes_context *dec)
+{
+    unsigned char plaintext[16] = {
+        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+        0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+    };
+    unsigned char ciphertext[16];
+    unsigned char output[16];
+
+    // Set key and encrypt with original context
+    mbedtls_aes_init(master);
+    TEST_ASSERT(mbedtls_aes_setkey_enc(master, key->x,
+                                       key->len * 8) == 0);
+    TEST_ASSERT(mbedtls_aes_crypt_ecb(master, MBEDTLS_AES_ENCRYPT,
+                                      plaintext, ciphertext) == 0);
+    *enc = *master;
+
+    // Set key for decryption with original context
+    mbedtls_aes_init(master);
+    TEST_ASSERT(mbedtls_aes_setkey_dec(master, key->x,
+                                       key->len * 8) == 0);
+    *dec = *master;
+
+    // Wipe the original context to make sure nothing from it is used
+    memset(master, 0, sizeof(*master));
+
+    // Encrypt with copied context
+    TEST_ASSERT(mbedtls_aes_crypt_ecb(enc, MBEDTLS_AES_ENCRYPT,
+                                      plaintext, output) == 0);
+    ASSERT_COMPARE(ciphertext, 16, output, 16);
+    mbedtls_aes_free(enc);
+
+    // Decrypt with copied context
+    TEST_ASSERT(mbedtls_aes_crypt_ecb(dec, MBEDTLS_AES_DECRYPT,
+                                      ciphertext, output) == 0);
+    ASSERT_COMPARE(plaintext, 16, output, 16);
+    mbedtls_aes_free(dec);
+
+    return 1;
+
+exit:
+    /* Bug: we may be leaving something unfreed. This is harmless
+     * in our built-in implementations, but might cause a memory leak
+     * with alternative implementations. */
+    return 0;
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -468,38 +524,12 @@ void aes_misc_params()
 /* END_CASE */
 
 /* BEGIN_CASE */
-void aes_ecb_copy_context(data_t *key, data_t *src)
+void aes_ecb_copy_context(data_t *key)
 {
-    unsigned char output1[16], output2[16], plain[16];
     mbedtls_aes_context ctx1, ctx2, ctx3;
-
-    TEST_EQUAL(src->len, 16);
-
-    // Set key and encrypt with original context
-    mbedtls_aes_init(&ctx1);
-    TEST_ASSERT(mbedtls_aes_setkey_enc(&ctx1, key->x,
-                                       key->len * 8) == 0);
-    TEST_ASSERT(mbedtls_aes_crypt_ecb(&ctx1, MBEDTLS_AES_ENCRYPT,
-                                      src->x, output1) == 0);
-    ctx2 = ctx1;
-
-    // Set key for decryption with original context
-    TEST_ASSERT(mbedtls_aes_setkey_dec(&ctx1, key->x,
-                                       key->len * 8) == 0);
-    ctx3 = ctx1;
-
-    // Wipe the original context to make sure nothing from it is used
-    memset(&ctx1, 0, sizeof(ctx1));
-
-    // Encrypt with copied context
-    TEST_ASSERT(mbedtls_aes_crypt_ecb(&ctx2, MBEDTLS_AES_ENCRYPT,
-                                      src->x, output2) == 0);
-    ASSERT_COMPARE(output1, 16, output2, 16);
-
-    // Decrypt with copied context
-    TEST_ASSERT(mbedtls_aes_crypt_ecb(&ctx3, MBEDTLS_AES_DECRYPT,
-                                      output1, plain) == 0);
-    ASSERT_COMPARE(src->x, 16, plain, 16);
+    if (!test_copy(key, &ctx1, &ctx2, &ctx3)) {
+        goto exit;
+    }
 }
 /* END_CASE */
 

@@ -184,7 +184,7 @@ static int ssl_tls13_reset_key_share(mbedtls_ssl_context *ssl)
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }
 
-#if defined(MBEDTLS_ECDH_C)
+#if defined(MBEDTLS_PK_CAN_ECDH)
     if (mbedtls_ssl_tls13_named_group_is_ecdhe(group_id)) {
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
@@ -219,7 +219,7 @@ static int ssl_tls13_get_default_group_id(mbedtls_ssl_context *ssl,
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
 
 
-#if defined(MBEDTLS_ECDH_C)
+#if defined(MBEDTLS_PK_CAN_ECDH)
     const uint16_t *group_list = mbedtls_ssl_get_groups(ssl);
     /* Pick first available ECDHE group compatible with TLS 1.3 */
     if (group_list == NULL) {
@@ -301,7 +301,7 @@ static int ssl_tls13_write_key_share_ext(mbedtls_ssl_context *ssl,
      * only one key share entry is allowed.
      */
     client_shares = p;
-#if defined(MBEDTLS_ECDH_C)
+#if defined(MBEDTLS_PK_CAN_ECDH)
     if (mbedtls_ssl_tls13_named_group_is_ecdhe(group_id)) {
         /* Pointer to group */
         unsigned char *group = p;

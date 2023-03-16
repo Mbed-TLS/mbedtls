@@ -1428,7 +1428,7 @@ int mbedtls_ssl_reset_transcript_for_hrr(mbedtls_ssl_context *ssl)
     return ret;
 }
 
-#if defined(MBEDTLS_ECDH_C)
+#if defined(MBEDTLS_PK_CAN_ECDH)
 
 int mbedtls_ssl_tls13_read_public_ecdhe_share(mbedtls_ssl_context *ssl,
                                               const unsigned char *buf,

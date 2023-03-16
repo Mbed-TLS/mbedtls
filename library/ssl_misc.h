@@ -2089,7 +2089,7 @@ int mbedtls_ssl_tls13_write_change_cipher_spec(mbedtls_ssl_context *ssl);
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_reset_transcript_for_hrr(mbedtls_ssl_context *ssl);
 
-#if defined(MBEDTLS_ECDH_C)
+#if defined(MBEDTLS_PK_CAN_ECDH)
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
     mbedtls_ssl_context *ssl,

@@ -511,7 +511,7 @@ void mbedtls_aes_xts_free(mbedtls_aes_xts_context *ctx)
  * i.e. an offset of 1 means 4 bytes and so on.
  */
 #if (defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)) ||        \
-    defined(MBEDTLS_HAVE_AESNI_INTRINSICS)
+    (defined(MBEDTLS_AESNI_C) && MBEDTLS_AESNI_HAVE_CODE == 2)
 #define MAY_NEED_TO_ALIGN
 #endif
 static unsigned mbedtls_aes_rk_offset(uint32_t *buf)
@@ -528,7 +528,7 @@ static unsigned mbedtls_aes_rk_offset(uint32_t *buf)
     }
 #endif
 
-#if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_AESNI_INTRINSICS)
+#if defined(MBEDTLS_AESNI_C) && MBEDTLS_AESNI_HAVE_CODE == 2
     if (mbedtls_aesni_has_support(MBEDTLS_AESNI_AES)) {
         align_16_bytes = 1;
     }

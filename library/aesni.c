@@ -30,9 +30,9 @@
 
 #include <string.h>
 
-#if defined(MBEDTLS_HAVE_AESNI_INTRINSICS) || defined(MBEDTLS_HAVE_X86_64)
+#if defined(MBEDTLS_AESNI_HAVE_CODE)
 
-#if defined(MBEDTLS_HAVE_AESNI_INTRINSICS)
+#if MBEDTLS_AESNI_HAVE_CODE == 2
 #if !defined(_WIN32)
 #include <cpuid.h>
 #endif
@@ -48,7 +48,7 @@ int mbedtls_aesni_has_support(unsigned int what)
     static unsigned int c = 0;
 
     if (!done) {
-#if defined(MBEDTLS_HAVE_AESNI_INTRINSICS)
+#if MBEDTLS_AESNI_HAVE_CODE == 2
         static unsigned info[4] = { 0, 0, 0, 0 };
 #if defined(_MSC_VER)
         __cpuid(info, 1);
@@ -56,20 +56,20 @@ int mbedtls_aesni_has_support(unsigned int what)
         __cpuid(1, info[0], info[1], info[2], info[3]);
 #endif
         c = info[2];
-#else
+#else /* AESNI using asm */
         asm ("movl  $1, %%eax   \n\t"
              "cpuid             \n\t"
              : "=c" (c)
              :
              : "eax", "ebx", "edx");
-#endif
+#endif /* MBEDTLS_AESNI_HAVE_CODE */
         done = 1;
     }
 
     return (c & what) != 0;
 }
 
-#if defined(MBEDTLS_HAVE_AESNI_INTRINSICS)
+#if MBEDTLS_AESNI_HAVE_CODE == 2
 
 /*
  * AES-NI AES-ECB block en(de)cryption
@@ -388,7 +388,7 @@ static void aesni_setkey_enc_256(unsigned char *rk_bytes,
     aesni_set_rk_256(rk[12], rk[13], _mm_aeskeygenassist_si128(rk[13], 0x40), &rk[14], &rk[15]);
 }
 
-#else  /* MBEDTLS_HAVE_AESNI_INTRINSICS */
+#else /* MBEDTLS_AESNI_HAVE_CODE == 1 */
 
 #if defined(__has_feature)
 #if __has_feature(memory_sanitizer)
@@ -776,7 +776,7 @@ static void aesni_setkey_enc_256(unsigned char *rk,
          : "memory", "cc", "0");
 }
 
-#endif  /* MBEDTLS_HAVE_AESNI_INTRINSICS */
+#endif  /* MBEDTLS_AESNI_HAVE_CODE */
 
 /*
  * Key expansion, wrapper
@@ -795,6 +795,6 @@ int mbedtls_aesni_setkey_enc(unsigned char *rk,
     return 0;
 }
 
-#endif /* MBEDTLS_HAVE_X86_64 */
+#endif /* MBEDTLS_AESNI_HAVE_CODE */
 
 #endif /* MBEDTLS_AESNI_C */

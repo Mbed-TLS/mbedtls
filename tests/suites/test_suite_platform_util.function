@@ -43,6 +43,16 @@ void mbedtls_platform_zeroize(int len, int null)
 /* BEGIN_CASE */
 void mbedtls_platform_zeroize_uninitialised(int len, int p)
 {
+    /*
+     * As per #7301: on some platforms, including modern Linux, Clang with Msan
+     * does not recognize that explicit_bzero() writes well-defined content to
+     * its output buffer. For us, this causes CMAC operations to fail in Msan
+     * builds when mbedtls_platform_zeroize() is implemented over
+     * explicit_bzero().
+     *
+     * This test ensures we have a simple/obvious MSan test rather than
+     * spurious errors in crypto code that are hard to track down.
+     */
     char buf[128];
     mbedtls_platform_zeroize(buf, len);
 

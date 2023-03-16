@@ -3358,7 +3358,7 @@ void tls13_server_certificate_msg_invalid_vector_len()
          * Tweak server Certificate message and parse it.
          */
 
-        ret = tweak_tls13_certificate_msg_vector_len(
+        ret = mbedtls_test_tweak_tls13_certificate_msg_vector_len(
             buf, &end, step, &expected_result, &expected_chk_buf_ptr_args);
 
         if (ret != 0) {

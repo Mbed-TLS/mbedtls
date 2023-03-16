@@ -547,7 +547,7 @@ void mbedtls_test_ssl_perform_handshake(
  *                    is expected to fail. All zeroes if no
  *                    MBEDTLS_SSL_CHK_BUF_READ_PTR failure is expected.
  */
-int tweak_tls13_certificate_msg_vector_len(
+int mbedtls_test_tweak_tls13_certificate_msg_vector_len(
     unsigned char *buf, unsigned char **end, int tweak,
     int *expected_result, mbedtls_ssl_chk_buf_ptr_args *args);
 #endif /* MBEDTLS_TEST_HOOKS */

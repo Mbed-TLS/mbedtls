@@ -200,7 +200,7 @@ mbedtls_ms_time_t mbedtls_ms_time(void)
 
     GetSystemTimeAsFileTime(&ct);
     current_ms = ((mbedtls_ms_time_t) ct.dwLowDateTime +
-                  ((mbedtls_ms_time_t) (ct.dwHighDateTime) << 32LL))/10;
+                  ((mbedtls_ms_time_t) (ct.dwHighDateTime) << 32LL))/10000;
     return current_ms;
 }
 #else

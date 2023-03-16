@@ -132,9 +132,9 @@ int mbedtls_ssl_cache_set(void *data,
  *                        associated to \p session.
  * \param session_id_len  The length of \p session_id in bytes.
  *
- * \return                0: The cache entry for session with provided ID
+ * \return                \c 0: The cache entry for session with provided ID
  *                           is removed or does not exist.
- *                        Otherwise: fail.
+ *                        A negative error code on failure.
  */
 int mbedtls_ssl_cache_remove(void *data,
                              unsigned char const *session_id,

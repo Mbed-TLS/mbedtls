@@ -29,6 +29,7 @@
 
 #include "mbedtls/ssl_cache.h"
 #include "ssl_misc.h"
+#include "mbedtls/error.h"
 
 #include <string.h>
 
@@ -335,7 +336,7 @@ int mbedtls_ssl_cache_remove(void *data,
                              unsigned char const *session_id,
                              size_t session_id_len)
 {
-    int ret = 1;
+    int ret = MBEDTLS_ERR_ERROR_GENERIC_ERROR;
     mbedtls_ssl_cache_context *cache = (mbedtls_ssl_cache_context *) data;
     mbedtls_ssl_cache_entry *entry;
     mbedtls_ssl_cache_entry *prev;

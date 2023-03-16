@@ -136,7 +136,7 @@ static void gcm_clmul(const __m128i aa, const __m128i bb,
     ff = _mm_srli_si128(ff, 8);                      // 0:e1+f1
     ee = _mm_slli_si128(ee, 8);                      // e0+f0:0
     *dd = _mm_xor_si128(*dd, ff);                    // d1:d0+e1+f1
-    *cc = _mm_xor_si128(*cc, ee);                    // c1+e0+f1:c0
+    *cc = _mm_xor_si128(*cc, ee);                    // c1+e0+f0:c0
 }
 
 static void gcm_shift(__m128i *cc, __m128i *dd)

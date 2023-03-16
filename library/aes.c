@@ -50,8 +50,7 @@
 #define AES_VALIDATE(cond)        \
     MBEDTLS_INTERNAL_VALIDATE(cond)
 
-#if defined(MBEDTLS_PADLOCK_C) &&                      \
-    (defined(MBEDTLS_HAVE_X86) || defined(MBEDTLS_PADLOCK_ALIGN16))
+#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)
 static int aes_padlock_ace = -1;
 #endif
 
@@ -539,7 +538,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
     }
 #endif
 
-#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_PADLOCK_ALIGN16)
+#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)
     if (aes_padlock_ace == -1) {
         aes_padlock_ace = mbedtls_padlock_has_support(MBEDTLS_PADLOCK_ACE);
     }
@@ -648,7 +647,7 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
 
     mbedtls_aes_init(&cty);
 
-#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_PADLOCK_ALIGN16)
+#if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)
     if (aes_padlock_ace == -1) {
         aes_padlock_ace = mbedtls_padlock_has_support(MBEDTLS_PADLOCK_ACE);
     }

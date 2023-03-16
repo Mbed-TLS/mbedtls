@@ -111,7 +111,7 @@ static int pk_genkey(mbedtls_pk_context *pk, int parameter)
                             &mbedtls_pk_ec(*pk)->d,
                             &mbedtls_pk_ec(*pk)->Q);
         if (ret != 0) {
-           return ret;
+            return ret;
         }
         return mbedtls_pk_update_public_key_from_keypair(pk);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

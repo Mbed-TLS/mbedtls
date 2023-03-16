@@ -805,7 +805,7 @@ static inline mbedtls_ecp_keypair *mbedtls_pk_ec(const mbedtls_pk_context pk)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 /**
  * Return the raw public key content on the provided buffer.
- * 
+ *
  * \param pk        The PK context that will be used to extract the public key.
  * \param buf       The output buffer into which the key will be copied
  * \param buf_size  The size of the output buffer
@@ -823,7 +823,7 @@ int mbedtls_pk_get_public_key(mbedtls_pk_context *pk, unsigned char *buf,
 
 /**
  * Return EC parameter used in the given PK context.
- * 
+ *
  * \param pk        The PK context that from which the EC's key properties will
  *                  be get.
  * \param ec_curve  Output variable that will get the EC family.

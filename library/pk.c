@@ -479,17 +479,13 @@ int mbedtls_pk_verify_restartable(mbedtls_pk_context *ctx,
 
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if (ctx->pk_info->type == MBEDTLS_PK_RSA) {
-        return ctx->pk_info->verify_func(ctx->pk_ctx, md_alg, hash, hash_len,
-                                         sig, sig_len);
-    } else {
+    if (ctx->pk_info->type != MBEDTLS_PK_RSA) {
         return ctx->pk_info->verify_func(ctx, md_alg, hash, hash_len,
                                          sig, sig_len);
-    }
-#else /* MBEDTLS_USE_PSA_CRYPTO */
+    } else
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     return ctx->pk_info->verify_func(ctx->pk_ctx, md_alg, hash, hash_len,
                                      sig, sig_len);
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 }
 
 /*
@@ -820,14 +816,11 @@ int mbedtls_pk_check_pair(const mbedtls_pk_context *pub,
     }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if (pub->pk_info->type == MBEDTLS_PK_RSA) {
-        return prv->pk_info->check_pair_func(pub->pk_ctx, prv->pk_ctx, f_rng, p_rng);
-    } else {
+    if (pub->pk_info->type != MBEDTLS_PK_RSA) {
         return prv->pk_info->check_pair_func(pub, prv, f_rng, p_rng);
-    }
-#else
-    return prv->pk_info->check_pair_func(pub->pk_ctx, prv->pk_ctx, f_rng, p_rng);
+    } else
 #endif
+    return prv->pk_info->check_pair_func(pub->pk_ctx, prv->pk_ctx, f_rng, p_rng);
 }
 
 /*
@@ -909,7 +902,7 @@ int mbedtls_pk_get_ec_public_key_props(mbedtls_pk_context *pk,
     if ((pk == NULL) || (ec_curve == NULL) || (bits == NULL)) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
-    if ((pk->MBEDTLS_PRIVATE(pk_ec_family) == 0) || 
+    if ((pk->MBEDTLS_PRIVATE(pk_ec_family) == 0) ||
         (pk->MBEDTLS_PRIVATE(pk_bits) == 0)) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }

@@ -396,13 +396,6 @@ int mbedtls_pk_setup_rsa_alt(mbedtls_pk_context *ctx, void *key,
                              mbedtls_pk_rsa_alt_key_len_func key_len_func);
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
 
-#if defined(MBEDTLS_ECP_C) && defined(MBEDTLS_USE_PSA_CRYPTO)
-int mbedtls_pk_gen_ec_keypair(mbedtls_pk_context *pk,
-                              mbedtls_ecp_group_id grp_id,
-                              int (*f_rng)(void *, unsigned char *, size_t),
-                              void *p_rng);
-#endif /* MBEDTLS_ECP_C && MBEDTLS_USE_PSA_CRYPTO */
-
 /**
  * \brief           Get the size in bits of the underlying key
  *

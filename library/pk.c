@@ -233,40 +233,6 @@ int mbedtls_pk_setup_rsa_alt(mbedtls_pk_context *ctx, void *key,
 }
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
 
-#if defined(MBEDTLS_ECP_C) && defined(MBEDTLS_USE_PSA_CRYPTO)
-int mbedtls_pk_gen_ec_keypair(mbedtls_pk_context *pk,
-                              mbedtls_ecp_group_id grp_id,
-                              int (*f_rng)(void *, unsigned char *, size_t),
-                              void *p_rng)
-{
-    mbedtls_ecp_keypair *keypair;
-    int ret;
-
-    if (pk == NULL) {
-        return MBEDTLS_PK_NONE;
-    }
-    if ((pk->pk_info == NULL) || (pk->pk_info->type == MBEDTLS_PK_RSA)) {
-        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
-    }
-
-    keypair = mbedtls_pk_ec(*pk);
-
-    ret = mbedtls_ecp_group_load(&keypair->grp, grp_id);
-    if (ret != 0) {
-        return ret;
-    }
-
-    ret = mbedtls_ecp_gen_keypair(&keypair->grp, &keypair->d, &keypair->Q,
-                                  f_rng, p_rng);
-    if (ret != 0) {
-        return ret;
-    }
-
-    /* Copy the public key to the raw buffer */
-    return mbedtls_pk_update_public_key_from_keypair(pk);
-}
-#endif /* MBEDTLS_ECP_C && MBEDTLS_USE_PSA_CRYPTO */
-
 /*
  * Tell if a PK can do the operations of the given type
  */

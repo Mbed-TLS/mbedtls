@@ -257,8 +257,9 @@ int mbedtls_test_ssl_message_queue_pop_info(
  *          set to the full message length so that the
  *          caller knows what portion of the message can be dropped.
  */
-int mbedtls_test_message_queue_peek_info(mbedtls_test_ssl_message_queue *queue,
-                                         size_t buf_len, size_t *msg_len)
+static int test_ssl_message_queue_peek_info(
+    mbedtls_test_ssl_message_queue *queue,
+    size_t buf_len, size_t *msg_len)
 {
     if (queue == NULL || msg_len == NULL) {
         return MBEDTLS_TEST_ERROR_ARG_NULL;
@@ -488,7 +489,7 @@ int mbedtls_test_mock_tcp_recv_msg(void *ctx,
 
     /* Peek first, so that in case of a socket error the data remains in
      * the queue. */
-    ret = mbedtls_test_message_queue_peek_info(queue, buf_len, &msg_len);
+    ret = test_ssl_message_queue_peek_info(queue, buf_len, &msg_len);
     if (ret == MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED) {
         /* Calculate how much to drop */
         drop_len = msg_len - buf_len;

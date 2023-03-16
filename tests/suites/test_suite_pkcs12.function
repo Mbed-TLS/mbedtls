@@ -32,6 +32,8 @@ void pkcs12_derive_key(int md_type, int key_size_arg,
     size_t salt_len = 0;
     size_t key_size = key_size_arg;
 
+    MD_PSA_INIT();
+
     if (password_usage == USE_GIVEN_INPUT) {
         password = password_arg->x;
     }
@@ -65,6 +67,6 @@ void pkcs12_derive_key(int md_type, int key_size_arg,
 
 exit:
     mbedtls_free(output_data);
-
+    MD_PSA_DONE();
 }
 /* END_CASE */

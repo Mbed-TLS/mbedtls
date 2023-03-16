@@ -2892,13 +2892,8 @@
  * Requires: MBEDTLS_ASN1_PARSE_C, MBEDTLS_CIPHER_C and either
  * MBEDTLS_MD_C or MBEDTLS_PSA_CRYPTO_C.
  *
- * \warning If building without MBEDTLS_MD_C, you must call psa_crypto_init()
- * before doing any PKCS12 operation.
- *
- * \warning When building with MBEDTLS_MD_C, all hashes used with this
- * need to be available as built-ins (that is, for SHA-256, MBEDTLS_SHA256_C,
- * etc.) as opposed to just PSA drivers. So far, PSA drivers are only used by
- * this module in builds where MBEDTLS_MD_C is disabled.
+ * \warning If using a hash that is only provided by PSA drivers, you must
+ * call psa_crypto_init() before doing any PKCS12 operations.
  *
  * This module enables PKCS#12 functions.
  */

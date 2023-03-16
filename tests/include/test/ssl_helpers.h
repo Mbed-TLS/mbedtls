@@ -524,10 +524,11 @@ int mbedtls_test_ssl_tls13_populate_session(mbedtls_ssl_session *session,
  *
  * \retval  0 on success, otherwise error code.
  */
-int mbedtls_exchange_data(mbedtls_ssl_context *ssl_1,
-                          int msg_len_1, const int expected_fragments_1,
-                          mbedtls_ssl_context *ssl_2,
-                          int msg_len_2, const int expected_fragments_2);
+int mbedtls_test_ssl_exchange_data(
+    mbedtls_ssl_context *ssl_1,
+    int msg_len_1, const int expected_fragments_1,
+    mbedtls_ssl_context *ssl_2,
+    int msg_len_2, const int expected_fragments_2);
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 void mbedtls_test_ssl_perform_handshake(

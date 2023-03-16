@@ -3085,10 +3085,11 @@ void force_bad_session_id_len()
     server.ssl.session_negotiate->id_len = 33;
     if (options.cli_msg_len != 0 || options.srv_msg_len != 0) {
         /* Start data exchanging test */
-        TEST_ASSERT(mbedtls_exchange_data(&(client.ssl), options.cli_msg_len,
-                                          options.expected_cli_fragments,
-                                          &(server.ssl), options.srv_msg_len,
-                                          options.expected_srv_fragments)
+        TEST_ASSERT(mbedtls_test_ssl_exchange_data(
+                        &(client.ssl), options.cli_msg_len,
+                        options.expected_cli_fragments,
+                        &(server.ssl), options.srv_msg_len,
+                        options.expected_srv_fragments)
                     == 0);
     }
 

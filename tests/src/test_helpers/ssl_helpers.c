@@ -233,8 +233,8 @@ int mbedtls_test_ssl_buffer_get(mbedtls_test_ssl_buffer *buf,
     return (output_len > INT_MAX) ? INT_MAX : (int) output_len;
 }
 
-int mbedtls_test_ssl_message_queue_setup(mbedtls_test_ssl_message_queue *queue,
-                                         size_t capacity)
+int mbedtls_test_ssl_message_queue_setup(
+    mbedtls_test_ssl_message_queue *queue, size_t capacity)
 {
     queue->messages = (size_t *) mbedtls_calloc(capacity, sizeof(size_t));
     if (NULL == queue->messages) {
@@ -248,7 +248,8 @@ int mbedtls_test_ssl_message_queue_setup(mbedtls_test_ssl_message_queue *queue,
     return 0;
 }
 
-void mbedtls_test_ssl_message_queue_free(mbedtls_test_ssl_message_queue *queue)
+void mbedtls_test_ssl_message_queue_free(
+    mbedtls_test_ssl_message_queue *queue)
 {
     if (queue == NULL) {
         return;
@@ -459,7 +460,8 @@ int mbedtls_test_mock_tcp_recv_nb(void *ctx, unsigned char *buf, size_t len)
     return mbedtls_test_ssl_buffer_get(socket->input, buf, len);
 }
 
-void mbedtls_test_message_socket_init(mbedtls_test_message_socket_context *ctx)
+void mbedtls_test_message_socket_init(
+    mbedtls_test_message_socket_context *ctx)
 {
     ctx->queue_input = NULL;
     ctx->queue_output = NULL;
@@ -485,7 +487,8 @@ int mbedtls_test_message_socket_setup(
     return 0;
 }
 
-void mbedtls_test_message_socket_close(mbedtls_test_message_socket_context *ctx)
+void mbedtls_test_message_socket_close(
+    mbedtls_test_message_socket_context *ctx)
 {
     if (ctx == NULL) {
         return;

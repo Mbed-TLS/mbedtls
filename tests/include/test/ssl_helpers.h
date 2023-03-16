@@ -345,7 +345,8 @@ void mbedtls_test_message_socket_init(
 int mbedtls_test_message_socket_setup(
     mbedtls_test_ssl_message_queue *queue_input,
     mbedtls_test_ssl_message_queue *queue_output,
-    size_t queue_capacity, mbedtls_test_mock_socket *socket,
+    size_t queue_capacity,
+    mbedtls_test_mock_socket *socket,
     mbedtls_test_message_socket_context *ctx);
 
 /*

@@ -981,8 +981,9 @@ exit:
     return -1;
 }
 
-void set_ciphersuite(mbedtls_ssl_config *conf, const char *cipher,
-                     int *forced_ciphersuite)
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
+static void set_ciphersuite(mbedtls_ssl_config *conf, const char *cipher,
+                            int *forced_ciphersuite)
 {
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
     forced_ciphersuite[0] = mbedtls_ssl_get_ciphersuite_id(cipher);
@@ -1007,9 +1008,13 @@ void set_ciphersuite(mbedtls_ssl_config *conf, const char *cipher,
 exit:
     return;
 }
+#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
-int psk_dummy_callback(void *p_info, mbedtls_ssl_context *ssl,
-                       const unsigned char *name, size_t name_len)
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) && \
+    defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)  && \
+    defined(MBEDTLS_SSL_SRV_C)
+static int psk_dummy_callback(void *p_info, mbedtls_ssl_context *ssl,
+                              const unsigned char *name, size_t name_len)
 {
     (void) p_info;
     (void) ssl;
@@ -1018,6 +1023,9 @@ int psk_dummy_callback(void *p_info, mbedtls_ssl_context *ssl,
 
     return 0;
 }
+#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED &&
+          MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED  &&
+          MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_AES_C)
@@ -1680,12 +1688,18 @@ exit:
  *
  * \retval  0 on success, otherwise error code.
  */
-int exchange_data(mbedtls_ssl_context *ssl_1,
-                  mbedtls_ssl_context *ssl_2)
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) && \
+    (defined(MBEDTLS_SSL_RENEGOTIATION)              || \
+    defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH))
+static int exchange_data(mbedtls_ssl_context *ssl_1,
+                         mbedtls_ssl_context *ssl_2)
 {
     return mbedtls_exchange_data(ssl_1, 256, 1,
                                  ssl_2, 256, 1);
 }
+#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED &&
+          (MBEDTLS_SSL_RENEGOTIATION              ||
+          MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH) */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 static int check_ssl_version(

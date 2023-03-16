@@ -39,13 +39,6 @@
 #include "psa/crypto.h"
 #endif
 
-#if !defined(MBEDTLS_MD5_C)
-#include "mbedtls/psa_util.h"
-#define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,          \
-                                                           psa_to_md_errors,                     \
-                                                           psa_generic_status_to_mbedtls)
-#endif
-
 #include "mbedtls/legacy_or_psa.h"
 
 #if defined(MBEDTLS_HAS_ALG_MD5_VIA_MD_OR_PSA_BASED_ON_USE_PSA) &&  \
@@ -94,7 +87,6 @@ static int pem_get_iv(const unsigned char *s, unsigned char *iv,
     return 0;
 }
 
-#if defined(MBEDTLS_MD5_C)
 static int pem_pbkdf1(unsigned char *key, size_t keylen,
                       unsigned char *iv,
                       const unsigned char *pwd, size_t pwdlen)
@@ -168,91 +160,6 @@ exit:
 
     return ret;
 }
-#else
-static int pem_pbkdf1(unsigned char *key, size_t keylen,
-                      unsigned char *iv,
-                      const unsigned char *pwd, size_t pwdlen)
-{
-    unsigned char md5sum[16];
-    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
-    size_t output_length = 0;
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-
-
-    if ((status = psa_hash_setup(&operation, PSA_ALG_MD5)) != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    if ((status = psa_hash_update(&operation, pwd, pwdlen)) != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    if ((status = psa_hash_update(&operation, iv, 8)) != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    if ((status = psa_hash_finish(&operation, md5sum,
-                                  PSA_HASH_LENGTH(PSA_ALG_MD5),
-                                  &output_length)) != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    if ((status = psa_hash_abort(&operation)) != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    /*
-     * key[ 0..15] = MD5(pwd || IV)
-     */
-    if (keylen <= 16) {
-        memcpy(key, md5sum, keylen);
-        goto exit;
-    }
-
-    memcpy(key, md5sum, 16);
-
-    /*
-     * key[16..23] = MD5(key[ 0..15] || pwd || IV])
-     */
-    if ((status = psa_hash_setup(&operation, PSA_ALG_MD5)) != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    if ((status = psa_hash_update(&operation, md5sum, 16)) != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    if ((status = psa_hash_update(&operation, pwd, pwdlen)) != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    if ((status = psa_hash_update(&operation, iv, 8)) != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    if ((status = psa_hash_finish(&operation, md5sum,
-                                  PSA_HASH_LENGTH(PSA_ALG_MD5),
-                                  &output_length)) != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    if ((status = psa_hash_abort(&operation)) != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    size_t use_len = 16;
-    if (keylen < 32) {
-        use_len = keylen - 16;
-    }
-
-    memcpy(key + 16, md5sum, use_len);
-
-exit:
-    mbedtls_platform_zeroize(md5sum, 16);
-
-    return PSA_TO_MBEDTLS_ERR(status);
-}
-#endif /* MBEDTLS_MD5_C */
 
 #if defined(MBEDTLS_DES_C)
 /*

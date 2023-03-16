@@ -529,81 +529,84 @@ void aes_ecb_copy_context(data_t *key)
     /* We test context copying multiple times, with different alignments
      * of the original and of the copies. */
 
-    void *src = NULL; // Memory block containing the original context
-    void *enc = NULL; // Memory block containing the copy doing encryption
-    void *dec = NULL; // Memory block containing the copy doing decryption
+    struct align0 {
+        mbedtls_aes_context ctx;
+    };
+    struct align0 *src0 = NULL;
+    struct align0 *enc0 = NULL;
+    struct align0 *dec0 = NULL;
 
     struct align1 {
         char bump;
         mbedtls_aes_context ctx;
     };
+    struct align1 *src1 = NULL;
+    struct align1 *enc1 = NULL;
+    struct align1 *dec1 = NULL;
 
     /* All peak alignment */
-    ASSERT_ALLOC(src, sizeof(mbedtls_aes_context));
-    ASSERT_ALLOC(enc, sizeof(mbedtls_aes_context));
-    ASSERT_ALLOC(dec, sizeof(mbedtls_aes_context));
-    if (!test_copy(key, src, enc, dec)) {
+    ASSERT_ALLOC(src0, 1);
+    ASSERT_ALLOC(enc0, 1);
+    ASSERT_ALLOC(dec0, 1);
+    if (!test_copy(key, &src0->ctx, &enc0->ctx, &dec0->ctx)) {
         goto exit;
     }
-    mbedtls_free(src);
-    src = NULL;
-    mbedtls_free(enc);
-    enc = NULL;
-    mbedtls_free(dec);
-    dec = NULL;
+    mbedtls_free(src0);
+    src0 = NULL;
+    mbedtls_free(enc0);
+    enc0 = NULL;
+    mbedtls_free(dec0);
+    dec0 = NULL;
 
     /* Original shifted */
-    ASSERT_ALLOC(src, sizeof(struct align1));
-    ASSERT_ALLOC(enc, sizeof(mbedtls_aes_context));
-    ASSERT_ALLOC(dec, sizeof(mbedtls_aes_context));
-    if (!test_copy(key, &((struct align1 *) src)->ctx, enc, dec)) {
+    ASSERT_ALLOC(src1, 1);
+    ASSERT_ALLOC(enc0, 1);
+    ASSERT_ALLOC(dec0, 1);
+    if (!test_copy(key, &src1->ctx, &enc0->ctx, &dec0->ctx)) {
         goto exit;
     }
-    mbedtls_free(src);
-    src = NULL;
-    mbedtls_free(enc);
-    enc = NULL;
-    mbedtls_free(dec);
-    dec = NULL;
+    mbedtls_free(src1);
+    src1 = NULL;
+    mbedtls_free(enc0);
+    enc0 = NULL;
+    mbedtls_free(dec0);
+    dec0 = NULL;
 
     /* Copies shifted */
-    ASSERT_ALLOC(src, sizeof(mbedtls_aes_context));
-    ASSERT_ALLOC(enc, sizeof(struct align1));
-    ASSERT_ALLOC(dec, sizeof(struct align1));
-    if (!test_copy(key,
-                   src,
-                   &((struct align1 *) enc)->ctx,
-                   &((struct align1 *) dec)->ctx)) {
+    ASSERT_ALLOC(src0, 1);
+    ASSERT_ALLOC(enc1, 1);
+    ASSERT_ALLOC(dec1, 1);
+    if (!test_copy(key, &src0->ctx, &enc1->ctx, &dec1->ctx)) {
         goto exit;
     }
-    mbedtls_free(src);
-    src = NULL;
-    mbedtls_free(enc);
-    enc = NULL;
-    mbedtls_free(dec);
-    dec = NULL;
+    mbedtls_free(src0);
+    src0 = NULL;
+    mbedtls_free(enc1);
+    enc1 = NULL;
+    mbedtls_free(dec1);
+    dec1 = NULL;
 
     /* Source and copies shifted */
-    ASSERT_ALLOC(src, sizeof(struct align1));
-    ASSERT_ALLOC(enc, sizeof(struct align1));
-    ASSERT_ALLOC(dec, sizeof(struct align1));
-    if (!test_copy(key,
-                   &((struct align1 *) src)->ctx,
-                   &((struct align1 *) enc)->ctx,
-                   &((struct align1 *) dec)->ctx)) {
+    ASSERT_ALLOC(src1, 1);
+    ASSERT_ALLOC(enc1, 1);
+    ASSERT_ALLOC(dec1, 1);
+    if (!test_copy(key, &src1->ctx, &enc1->ctx, &dec1->ctx)) {
         goto exit;
     }
-    mbedtls_free(src);
-    src = NULL;
-    mbedtls_free(enc);
-    enc = NULL;
-    mbedtls_free(dec);
-    dec = NULL;
+    mbedtls_free(src1);
+    src1 = NULL;
+    mbedtls_free(enc1);
+    enc1 = NULL;
+    mbedtls_free(dec1);
+    dec1 = NULL;
 
 exit:
-    mbedtls_free(src);
-    mbedtls_free(enc);
-    mbedtls_free(dec);
+    mbedtls_free(src0);
+    mbedtls_free(enc0);
+    mbedtls_free(dec0);
+    mbedtls_free(src1);
+    mbedtls_free(enc1);
+    mbedtls_free(dec1);
 }
 /* END_CASE */
 

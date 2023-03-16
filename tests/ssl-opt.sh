@@ -1126,8 +1126,8 @@ is_gnutls() {
     esac
 }
 
-# Some external tools (gnutls or openssl) might not have support for ECDH and
-# this limit the tests that can be run with them. This function checks server
+# Some external tools (gnutls or openssl) might not have support for static ECDH
+# and this limit the tests that can be run with them. This function checks server
 # and client command lines, given as input, to verify if the current test
 # is using one of these tools.
 use_ext_tool_without_ecdh_support() {
@@ -11433,8 +11433,8 @@ not_with_valgrind # risk of non-mbedtls peer timing out
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS proxy: 3d, openssl server" \
             -p "$P_PXY drop=5 delay=5 duplicate=5 protect_hvr=1" \
-            "$O_NEXT_SRV -dtls1_2 -mtu 2048 -debug -msg -state" \
-            "$P_CLI dgram_packing=0 dtls=1 hs_timeout=500-60000 tickets=0 debug_level=4" \
+            "$O_NEXT_SRV -dtls1_2 -mtu 2048" \
+            "$P_CLI dgram_packing=0 dtls=1 hs_timeout=500-60000 tickets=0" \
             0 \
             -c "HTTP/1.0 200 OK"
 

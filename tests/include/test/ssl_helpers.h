@@ -386,8 +386,7 @@ int mbedtls_test_mock_tcp_send_msg(void *ctx,
  *          mbedtls_test_mock_tcp_recv_b failed.
  *
  * This function will also return any error other than
- * MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED from
- * mbedtls_test_message_queue_peek_info.
+ * MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED from test_ssl_message_queue_peek_info.
  */
 int mbedtls_test_mock_tcp_recv_msg(void *ctx,
                                    unsigned char *buf, size_t buf_len);

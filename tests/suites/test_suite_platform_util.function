@@ -39,3 +39,13 @@ void mbedtls_platform_zeroize(int len, int null)
     TEST_EQUAL(buf[len + 1], 2);
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void mbedtls_platform_zeroize_uninitialised(int len, int p)
+{
+    char buf[128];
+    mbedtls_platform_zeroize(buf, len);
+
+    TEST_EQUAL(buf[p], 0);
+}
+/* END_CASE */

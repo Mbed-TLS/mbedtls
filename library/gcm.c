@@ -845,8 +845,7 @@ int mbedtls_gcm_self_test(int verbose)
     mbedtls_cipher_id_t cipher = MBEDTLS_CIPHER_ID_AES;
     size_t olen;
 
-    if (verbose != 0)
-    {
+    if (verbose != 0) {
 #if defined(MBEDTLS_GCM_ALT)
         mbedtls_printf("  GCM note: alternative implementation.\n");
 #else /* MBEDTLS_GCM_ALT */

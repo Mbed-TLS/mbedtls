@@ -174,11 +174,6 @@
 #error "MBEDTLS_PKCS5_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_PKCS1_V21) && \
-    !( defined(MBEDTLS_MD_C) || defined(MBEDTLS_PSA_CRYPTO_C) )
-#error "MBEDTLS_PKCS1_V21 defined, but not all prerequisites"
-#endif
-
 #if defined(MBEDTLS_ENTROPY_C) && (!defined(MBEDTLS_SHA512_C) &&      \
                                     !defined(MBEDTLS_SHA256_C))
 #error "MBEDTLS_ENTROPY_C defined, but not all prerequisites"

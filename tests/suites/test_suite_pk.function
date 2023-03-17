@@ -576,7 +576,7 @@ void pk_rsa_verify_ext_test_vec(data_t *message_str, int digest,
     void *options;
     int ret;
 
-    USE_PSA_INIT();
+    MD_OR_USE_PSA_INIT();
     mbedtls_pk_init(&pk);
 
     TEST_ASSERT(mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA)) == 0);
@@ -620,7 +620,7 @@ void pk_rsa_verify_ext_test_vec(data_t *message_str, int digest,
 
 exit:
     mbedtls_pk_free(&pk);
-    USE_PSA_DONE();
+    MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */
 

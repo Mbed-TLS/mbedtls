@@ -18,7 +18,8 @@ void pk_parse_keyfile_rsa(char *key_file, char *password, int result)
     int res;
     char *pwd = password;
 
-    PSA_INIT_IF_NO_MD();
+    MD_PSA_INIT();
+
     mbedtls_pk_init(&ctx);
 
     if (strcmp(pwd, "NULL") == 0) {
@@ -39,8 +40,9 @@ void pk_parse_keyfile_rsa(char *key_file, char *password, int result)
 
 exit:
     mbedtls_pk_free(&ctx);
-    PSA_DONE_IF_NO_MD();
+    MD_PSA_DONE();
 }
+
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_RSA_C:MBEDTLS_FS_IO */
@@ -49,7 +51,8 @@ void pk_parse_public_keyfile_rsa(char *key_file, int result)
     mbedtls_pk_context ctx;
     int res;
 
-    PSA_INIT_IF_NO_MD();
+    MD_PSA_INIT();
+
     mbedtls_pk_init(&ctx);
 
     res = mbedtls_pk_parse_public_keyfile(&ctx, key_file);
@@ -65,7 +68,7 @@ void pk_parse_public_keyfile_rsa(char *key_file, int result)
 
 exit:
     mbedtls_pk_free(&ctx);
-    PSA_DONE_IF_NO_MD();
+    MD_PSA_DONE();
 }
 /* END_CASE */
 

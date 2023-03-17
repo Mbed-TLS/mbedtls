@@ -71,8 +71,7 @@
  * likely remove the assembly implementation. */
 #if defined(MBEDTLS_HAVE_X86_64)
 #define MBEDTLS_AESNI_HAVE_CODE 1 // via assembly
-#endif
-#if defined(MBEDTLS_AESNI_HAVE_INTRINSICS)
+#elif defined(MBEDTLS_AESNI_HAVE_INTRINSICS)
 #define MBEDTLS_AESNI_HAVE_CODE 2 // via intrinsics
 #endif
 

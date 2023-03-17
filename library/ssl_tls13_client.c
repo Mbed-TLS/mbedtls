@@ -2117,9 +2117,10 @@ static int ssl_tls13_parse_encrypted_extensions(mbedtls_ssl_context *ssl,
     extensions_len = MBEDTLS_GET_UINT16_BE(p, 0);
     p += 2;
 
-    MBEDTLS_SSL_DEBUG_BUF(3, "encrypted extensions", p, extensions_len);
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, extensions_len);
     extensions_end = p + extensions_len;
+
+    MBEDTLS_SSL_DEBUG_BUF(3, "encrypted extensions", p, extensions_len);
 
     handshake->received_extensions = MBEDTLS_SSL_EXT_MASK_NONE;
 
@@ -2171,6 +2172,19 @@ static int ssl_tls13_parse_encrypted_extensions(mbedtls_ssl_context *ssl,
 
                 break;
 #endif /* MBEDTLS_SSL_EARLY_DATA */
+
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT)
+            case MBEDTLS_TLS_EXT_RECORD_SIZE_LIMIT:
+                MBEDTLS_SSL_DEBUG_MSG(3, ("found record_size_limit extension"));
+
+                ret = mbedtls_ssl_tls13_parse_record_size_limit_ext(ssl, p, p + extension_data_len);
+
+                /* TODO: Return unconditionally here until we handle the record size limit correctly.
+                 *            Once handled correctly, only return in case of errors. */
+                return ret;
+
+                break;
+#endif /* MBEDTLS_SSL_RECORD_SIZE_LIMIT */
 
             default:
                 MBEDTLS_SSL_PRINT_EXT(

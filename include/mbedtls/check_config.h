@@ -1023,6 +1023,10 @@
 #error "MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_SSL_RECORD_SIZE_LIMIT) && ( !defined(MBEDTLS_SSL_PROTO_TLS1_3) )
+#error "MBEDTLS_SSL_RECORD_SIZE_LIMIT defined, but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION) && !( defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C) || defined(MBEDTLS_CHACHAPOLY_C) )
 #error "MBEDTLS_SSL_CONTEXT_SERIALIZATION defined, but not all prerequisites"
 #endif

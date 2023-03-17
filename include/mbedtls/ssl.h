@@ -571,6 +571,8 @@
 #define MBEDTLS_TLS_EXT_ENCRYPT_THEN_MAC            22 /* 0x16 */
 #define MBEDTLS_TLS_EXT_EXTENDED_MASTER_SECRET  0x0017 /* 23 */
 
+#define MBEDTLS_TLS_EXT_RECORD_SIZE_LIMIT           28 /* RFC 8449 (implemented for TLS 1.3 only) */
+
 #define MBEDTLS_TLS_EXT_SESSION_TICKET              35
 
 #define MBEDTLS_TLS_EXT_PRE_SHARED_KEY              41 /* RFC 8446 TLS 1.3 */

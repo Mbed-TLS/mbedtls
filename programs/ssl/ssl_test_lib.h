@@ -32,7 +32,7 @@
 #elif defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_CTR_DRBG_C)
 #define HAVE_RNG
 #elif defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_HMAC_DRBG_C) &&     \
-    (defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA512_C))
+    (defined(MBEDTLS_MD_CAN_SHA256) || defined(MBEDTLS_MD_CAN_SHA512))
 #define HAVE_RNG
 #endif
 

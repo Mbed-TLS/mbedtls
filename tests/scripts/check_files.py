@@ -350,6 +350,7 @@ class TabIssueTracker(LineIssueTracker):
         ".sln",
         "/Makefile",
         "/Makefile.inc",
+        "/make.bat",
         "/generate_visualc_files.pl",
     ])
 

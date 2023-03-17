@@ -128,7 +128,7 @@ void md_info(int md_type, char *md_name, int md_size)
     (void) md_name;
 #endif
 
-    /* Note: PSA Crypto init not needed to info functions */
+    /* Note: PSA Crypto init not needed for info functions */
 
     md_info = mbedtls_md_info_from_type(md_type);
     TEST_ASSERT(md_info != NULL);

@@ -775,49 +775,70 @@ FN_OID_GET_ATTR2(mbedtls_oid_get_pkcs12_pbe_alg,
                  cipher_alg)
 #endif /* MBEDTLS_PKCS12_C */
 
-#define OID_SAFE_SNPRINTF                               \
-    do {                                                \
-        if (ret < 0 || (size_t) ret >= n)              \
-        return MBEDTLS_ERR_OID_BUF_TOO_SMALL;    \
-                                                      \
-        n -= (size_t) ret;                              \
-        p += (size_t) ret;                              \
-    } while (0)
-
 /* Return the x.y.z.... style numeric string for the given OID */
 int mbedtls_oid_get_numeric_string(char *buf, size_t size,
                                    const mbedtls_asn1_buf *oid)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t i, n;
-    unsigned int value;
-    char *p;
+    char *p = buf;
+    size_t n = size;
+    unsigned int value = 0;
 
-    p = buf;
-    n = size;
-
-    /* First byte contains first two dots */
-    if (oid->len > 0) {
-        ret = mbedtls_snprintf(p, n, "%d.%d", oid->p[0] / 40, oid->p[0] % 40);
-        OID_SAFE_SNPRINTF;
+    if (size > INT_MAX) {
+        /* Avoid overflow computing return value */
+        return MBEDTLS_ERR_ASN1_INVALID_LENGTH;
     }
 
-    value = 0;
-    for (i = 1; i < oid->len; i++) {
+    if (oid->len <= 0) {
+        /* OID must not be empty */
+        return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
+    }
+
+    for (size_t i = 0; i < oid->len; i++) {
         /* Prevent overflow in value. */
-        if (((value << 7) >> 7) != value) {
-            return MBEDTLS_ERR_OID_BUF_TOO_SMALL;
+        if (value > (UINT_MAX >> 7)) {
+            return MBEDTLS_ERR_ASN1_INVALID_DATA;
+        }
+        if ((value == 0) && ((oid->p[i]) == 0x80)) {
+            /* Overlong encoding is not allowed */
+            return MBEDTLS_ERR_ASN1_INVALID_DATA;
         }
 
         value <<= 7;
-        value += oid->p[i] & 0x7F;
+        value |= oid->p[i] & 0x7F;
 
         if (!(oid->p[i] & 0x80)) {
             /* Last byte */
-            ret = mbedtls_snprintf(p, n, ".%u", value);
-            OID_SAFE_SNPRINTF;
+            if (n == size) {
+                int component1;
+                unsigned int component2;
+                /* First subidentifier contains first two OID components */
+                if (value >= 80) {
+                    component1 = '2';
+                    component2 = value - 80;
+                } else if (value >= 40) {
+                    component1 = '1';
+                    component2 = value - 40;
+                } else {
+                    component1 = '0';
+                    component2 = value;
+                }
+                ret = mbedtls_snprintf(p, n, "%c.%u", component1, component2);
+            } else {
+                ret = mbedtls_snprintf(p, n, ".%u", value);
+            }
+            if (ret < 2 || (size_t) ret >= n) {
+                return MBEDTLS_ERR_OID_BUF_TOO_SMALL;
+            }
+            n -= (size_t) ret;
+            p += ret;
             value = 0;
         }
+    }
+
+    if (value != 0) {
+        /* Unterminated subidentifier */
+        return MBEDTLS_ERR_ASN1_OUT_OF_DATA;
     }
 
     return (int) (size - n);

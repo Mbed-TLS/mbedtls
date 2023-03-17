@@ -57,8 +57,8 @@ const mbedtls_md_info_t *mbedtls_md_info_from_psa(psa_algorithm_t alg);
  *         \p alg is not supported
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         \p hash_size is too small
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
  */
 psa_status_t mbedtls_psa_hash_compute(
     psa_algorithm_t alg,
@@ -97,8 +97,8 @@ psa_status_t mbedtls_psa_hash_compute(
  *         \p alg is not supported
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (it must be inactive).
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
  */
 psa_status_t mbedtls_psa_hash_setup(
     mbedtls_psa_hash_operation_t *operation,
@@ -124,13 +124,13 @@ psa_status_t mbedtls_psa_hash_setup(
  * \param[in,out] target_operation  The operation object to set up.
  *                                  It must be initialized but not active.
  *
- * \retval #PSA_SUCCESS
+ * \retval #PSA_SUCCESS \emptydescription
  * \retval #PSA_ERROR_BAD_STATE
  *         The \p source_operation state is not valid (it must be active).
  * \retval #PSA_ERROR_BAD_STATE
  *         The \p target_operation state is not valid (it must be inactive).
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
  */
 psa_status_t mbedtls_psa_hash_clone(
     const mbedtls_psa_hash_operation_t *source_operation,
@@ -156,8 +156,8 @@ psa_status_t mbedtls_psa_hash_clone(
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (it must be active).
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
  */
 psa_status_t mbedtls_psa_hash_update(
     mbedtls_psa_hash_operation_t *operation,
@@ -195,8 +195,8 @@ psa_status_t mbedtls_psa_hash_update(
  *         The size of the \p hash buffer is too small. You can determine a
  *         sufficient buffer size by calling #PSA_HASH_LENGTH(\c alg)
  *         where \c alg is the hash algorithm that is calculated.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
  */
 psa_status_t mbedtls_psa_hash_finish(
     mbedtls_psa_hash_operation_t *operation,
@@ -225,8 +225,8 @@ psa_status_t mbedtls_psa_hash_finish(
  *
  * \param[in,out] operation     Initialized hash operation.
  *
- * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_SUCCESS \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
  */
 psa_status_t mbedtls_psa_hash_abort(
     mbedtls_psa_hash_operation_t *operation);

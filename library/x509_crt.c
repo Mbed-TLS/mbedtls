@@ -1601,8 +1601,8 @@ int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path)
         }
 
         w_ret = WideCharToMultiByte(CP_ACP, 0, file_data.cFileName,
-                                    lstrlenW(file_data.cFileName),
-                                    p, (int) len - 1,
+                                    -1,
+                                    p, (int) len,
                                     NULL, NULL);
         if (w_ret == 0) {
             ret = MBEDTLS_ERR_X509_FILE_IO_ERROR;

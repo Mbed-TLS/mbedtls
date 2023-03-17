@@ -55,8 +55,8 @@ jobs:
         # Exclude a few test cases that are failing mysteriously.
         # https://github.com/Mbed-TLS/mbedtls/issues/6660
         - tests/ssl-opt.sh -e 'Fallback SCSV:\ .*list'
-        # Modern OpenSSL does not support fixed ECDH, null or ancient ciphers.
-        - tests/compat.sh -p OpenSSL -e 'NULL\|ECDH-\|DES\|RC4'
+        # Modern OpenSSL does not support null or ancient ciphers.
+        - tests/compat.sh -p OpenSSL -e 'NULL\|DES\|RC4'
         - tests/scripts/travis-log-failure.sh
         # GnuTLS supports CAMELLIA but compat.sh doesn't properly enable it.
         # Modern GnuTLS does not support DES.

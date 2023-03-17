@@ -11,7 +11,6 @@
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/timing.h"
 #include "mbedtls/ssl_cookie.h"
-#include "mbedtls/legacy_or_psa.h"
 
 #if defined(MBEDTLS_SSL_SRV_C) && \
     defined(MBEDTLS_ENTROPY_C) && \

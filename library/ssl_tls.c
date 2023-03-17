@@ -44,7 +44,6 @@
 #include "mbedtls/psa_util.h"
 #include "psa/crypto.h"
 #endif
-#include "mbedtls/legacy_or_psa.h"
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #include "mbedtls/oid.h"

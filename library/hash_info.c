@@ -21,7 +21,6 @@
  */
 
 #include "hash_info.h"
-#include "mbedtls/legacy_or_psa.h"
 #include "mbedtls/error.h"
 
 typedef struct {

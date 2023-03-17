@@ -28,8 +28,6 @@
 #include "mbedtls/error.h"
 #include "mbedtls/pk.h"
 
-#include "mbedtls/legacy_or_psa.h"
-
 #include <stdio.h>
 #include <string.h>
 

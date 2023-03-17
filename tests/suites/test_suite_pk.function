@@ -8,7 +8,6 @@
 #include "mbedtls/rsa.h"
 
 #include "hash_info.h"
-#include "mbedtls/legacy_or_psa.h"
 
 #include <limits.h>
 #include <stdint.h>

@@ -32,7 +32,6 @@
 #include "mbedtls/psa_util.h"
 #include "hash_info.h"
 #endif
-#include "mbedtls/legacy_or_psa.h"
 
 #if defined(MBEDTLS_MD_CAN_MD5)
 #include "mbedtls/md5.h"

@@ -33,8 +33,6 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/constant_time.h"
 
-#include "mbedtls/legacy_or_psa.h"
-
 #include <string.h>
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)

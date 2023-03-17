@@ -39,8 +39,6 @@
 #include "psa/crypto.h"
 #endif
 
-#include "mbedtls/legacy_or_psa.h"
-
 #if defined(MBEDTLS_MD_CAN_MD5) &&  \
     defined(MBEDTLS_CIPHER_MODE_CBC) &&                             \
     (defined(MBEDTLS_DES_C) || defined(MBEDTLS_AES_C))

@@ -23,8 +23,6 @@
 
 #include "mbedtls/build_info.h"
 
-#include "mbedtls/legacy_or_psa.h"
-
 #include "mbedtls/pk.h"
 
 /*

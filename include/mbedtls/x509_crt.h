@@ -24,7 +24,6 @@
 #include "mbedtls/private_access.h"
 
 #include "mbedtls/build_info.h"
-#include "mbedtls/legacy_or_psa.h"
 
 #include "mbedtls/x509.h"
 #include "mbedtls/x509_crl.h"

@@ -7,7 +7,6 @@
 #include <ssl_tls13_invasive.h>
 #include <test/ssl_helpers.h>
 
-#include <mbedtls/legacy_or_psa.h>
 #include "hash_info.h"
 
 #include <constant_time_internal.h>

@@ -510,7 +510,7 @@ int mbedtls_rsa_get_padding_mode(const mbedtls_rsa_context *ctx)
 /*
  * Get hash identifier of mbedtls_md_type_t type
  */
-int mbedtls_rsa_get_hash_id(const mbedtls_rsa_context *ctx)
+int mbedtls_rsa_get_md_alg(const mbedtls_rsa_context *ctx)
 {
     return ctx->hash_id;
 }

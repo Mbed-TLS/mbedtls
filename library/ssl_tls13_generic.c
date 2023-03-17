@@ -1510,7 +1510,7 @@ int mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
 
     return 0;
 }
-#endif /* MBEDTLS_ECDH_C */
+#endif /* MBEDTLS_PK_CAN_ECDH */
 
 /* RFC 8446 section 4.2
  *

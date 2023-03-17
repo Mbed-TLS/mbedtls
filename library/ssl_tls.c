@@ -4224,7 +4224,7 @@ void mbedtls_ssl_handshake_free(mbedtls_ssl_context *ssl)
     if (handshake->ecdh_psa_privkey_is_external == 0) {
         psa_destroy_key(handshake->ecdh_psa_privkey);
     }
-#endif /* MBEDTLS_ECDH_C && MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_PK_CAN_ECDH && MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     mbedtls_ssl_transform_free(handshake->transform_handshake);

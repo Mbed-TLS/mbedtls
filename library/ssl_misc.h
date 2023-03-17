@@ -2215,7 +2215,7 @@ static inline int mbedtls_ssl_named_group_is_offered(
 
 static inline int mbedtls_ssl_named_group_is_supported(uint16_t named_group)
 {
-#if defined(MBEDTLS_ECDH_C)
+#if defined(MBEDTLS_PK_CAN_ECDH)
     if (mbedtls_ssl_tls13_named_group_is_ecdhe(named_group)) {
         if (mbedtls_ssl_get_ecp_group_id_from_tls_id(named_group) !=
             MBEDTLS_ECP_DP_NONE) {
@@ -2224,7 +2224,7 @@ static inline int mbedtls_ssl_named_group_is_supported(uint16_t named_group)
     }
 #else
     ((void) named_group);
-#endif /* MBEDTLS_ECDH_C */
+#endif /* MBEDTLS_PK_CAN_ECDH */
     return 0;
 }
 
@@ -2617,14 +2617,14 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
     const mbedtls_ssl_ciphersuite_t *suite);
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM */
 
-#if defined(MBEDTLS_ECDH_C)
+#if defined(MBEDTLS_PK_CAN_ECDH)
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_read_public_ecdhe_share(mbedtls_ssl_context *ssl,
                                               const unsigned char *buf,
                                               size_t buf_len);
 
-#endif /* MBEDTLS_ECDH_C */
+#endif /* MBEDTLS_PK_CAN_ECDH */
 
 static inline int mbedtls_ssl_tls13_cipher_suite_is_offered(
     mbedtls_ssl_context *ssl, int cipher_suite)

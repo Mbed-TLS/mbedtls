@@ -35,6 +35,15 @@
         (g) += ret;                                 \
     } while (0)
 
+#define MBEDTLS_ASN1_CHK_CLEANUP_ADD(g, f)                      \
+    do                                                  \
+    {                                                   \
+        if ((ret = (f)) < 0)                         \
+        goto cleanup;                              \
+        else                                            \
+        (g) += ret;                                 \
+    } while (0)
+
 #ifdef __cplusplus
 extern "C" {
 #endif

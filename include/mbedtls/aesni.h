@@ -48,7 +48,7 @@
 #if defined(MBEDTLS_AESNI_C)
 
 /* Can we do AESNI with intrinsics?
- * (Only implemented with certain compilers, .)
+ * (Only implemented with certain compilers, only for certain targets.)
  */
 #undef MBEDTLS_AESNI_HAVE_INTRINSICS
 #if defined(_MSC_VER)

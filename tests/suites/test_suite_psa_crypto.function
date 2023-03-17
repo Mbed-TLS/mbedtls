@@ -13,6 +13,9 @@
 #include "psa/crypto.h"
 #include "psa_crypto_slot_management.h"
 
+/* For psa_can_do_hash() */
+#include "psa_crypto_core.h"
+
 #include "test/asn1_helpers.h"
 #include "test/psa_crypto_helpers.h"
 #include "test/psa_exercise_key.h"
@@ -1254,6 +1257,18 @@ static void interruptible_signverify_get_minmax_completes(uint32_t max_ops,
  * depends_on:MBEDTLS_PSA_CRYPTO_C
  * END_DEPENDENCIES
  */
+
+/* BEGIN_CASE */
+void psa_can_do_hash()
+{
+    /* We can't test that this is specific to drivers until partial init has
+     * been implemented, but we can at least test before/after full init. */
+    TEST_EQUAL(0, psa_can_do_hash(PSA_ALG_NONE));
+    PSA_INIT();
+    TEST_EQUAL(1, psa_can_do_hash(PSA_ALG_NONE));
+    PSA_DONE();
+}
+/* END_CASE */
 
 /* BEGIN_CASE */
 void static_checks()

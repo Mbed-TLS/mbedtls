@@ -312,12 +312,15 @@ Note that some algorithms have different spellings in legacy and PSA. Since MD i
 ```
 #if defined(MBEDTLS_MD_LIGHT)
 #if defined(MBEDTLS_SHA256_C) || \
-    ((defined(MBEDTLS_PSA_CRYPTO_C) || defined(MBEDTLS_PSA_CRYPTO_CLIENT)) && \
-     PSA_WANT_ALG_SHA_256)
+    (defined(MBEDTLS_PSA_CRYPTO_C) && PSA_WANT_ALG_SHA_256)
 #define MBEDTLS_MD_CAN_SHA256
 #endif
 #endif
 ```
+
+Note: in the future, we may want to replace `defined(MBEDTLS_PSA_CRYPTO_C)`
+with `defined(MBEDTLS_PSA_CRYTO_C) || defined(MBEDTLS_PSA_CRYPTO_CLIENT)` but
+for now this is out of scope.
 
 #### MD light internal support macros
 
@@ -337,16 +340,11 @@ enum {
 } mbedtls_md_engine_t; // private type
 
 typedef struct mbedtls_md_context_t {
-    const mbedtls_md_type_t type;
-    const mbedtls_md_engine_t engine;
-    union {
-#if defined(MBEDTLS_MD_SOME_LEGACY)
-        void *legacy; // used if engine == LEGACY
-#endif
+    mbedtls_md_type_t type;
 #if defined(MBEDTLS_MD_SOME_PSA)
-        psa_hash_operation_t *psa; // used if engine == PSA
+    mbedtls_md_engine_t engine;
 #endif
-    } digest;
+    void *md_ctx; // mbedtls_xxx_context or psa_hash_operation
 #if defined(MBEDTLS_MD_C)
     void *hmac_ctx;
 #endif

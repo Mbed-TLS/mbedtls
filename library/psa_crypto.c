@@ -111,6 +111,7 @@ static int key_type_is_raw_bytes(psa_key_type_t type)
 typedef struct {
     unsigned initialized : 1;
     unsigned rng_state : 2;
+    unsigned drivers_initialized : 1;
     mbedtls_psa_random_context_t rng;
 } psa_global_data_t;
 
@@ -124,6 +125,12 @@ mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state =
 #define GUARD_MODULE_INITIALIZED        \
     if (global_data.initialized == 0)  \
     return PSA_ERROR_BAD_STATE;
+
+int psa_can_do_hash(psa_algorithm_t hash_alg)
+{
+    (void) hash_alg;
+    return global_data.drivers_initialized;
+}
 
 psa_status_t mbedtls_to_psa_error(int ret)
 {
@@ -7124,6 +7131,13 @@ psa_status_t psa_crypto_init(void)
         return PSA_SUCCESS;
     }
 
+    /* Init drivers */
+    status = psa_driver_wrapper_init();
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+    global_data.drivers_initialized = 1;
+
     /* Initialize and seed the random generator. */
     mbedtls_psa_random_init(&global_data.rng);
     global_data.rng_state = RNG_INITIALIZED;
@@ -7134,12 +7148,6 @@ psa_status_t psa_crypto_init(void)
     global_data.rng_state = RNG_SEEDED;
 
     status = psa_initialize_key_slots();
-    if (status != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    /* Init drivers */
-    status = psa_driver_wrapper_init();
     if (status != PSA_SUCCESS) {
         goto exit;
     }

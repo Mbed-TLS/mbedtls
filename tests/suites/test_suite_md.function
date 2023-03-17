@@ -1,5 +1,13 @@
 /* BEGIN_HEADER */
 #include "mbedtls/md.h"
+
+#if defined(MBEDTLS_MD_SOME_PSA)
+#define MD_PSA_INIT()   PSA_INIT()
+#define MD_PSA_DONE()   PSA_DONE()
+#else /* MBEDTLS_MD_SOME_PSA */
+#define MD_PSA_INIT() ((void) 0)
+#define MD_PSA_DONE() ((void) 0)
+#endif /* MBEDTLS_MD_SOME_PSA */
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -15,6 +23,7 @@ void mbedtls_md_list()
     mbedtls_md_context_t ctx;
     unsigned char out[MBEDTLS_MD_MAX_SIZE] = { 0 };
 
+    MD_PSA_INIT();
     mbedtls_md_init(&ctx);
 
     /*
@@ -31,6 +40,7 @@ void mbedtls_md_list()
 
 exit:
     mbedtls_md_free(&ctx);
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
@@ -43,6 +53,7 @@ void md_null_args()
 #endif
     unsigned char buf[1] = { 0 };
 
+    MD_PSA_INIT();
     mbedtls_md_init(&ctx);
 
     TEST_EQUAL(0, mbedtls_md_get_size(NULL));
@@ -101,6 +112,9 @@ void md_null_args()
 #if defined(MBEDTLS_MD_C)
     TEST_ASSERT(mbedtls_md_info_from_string("no such md") == NULL);
 #endif
+
+exit:
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
@@ -113,6 +127,8 @@ void md_info(int md_type, char *md_name, int md_size)
 #else
     (void) md_name;
 #endif
+
+    /* Note: PSA Crypto init not needed to info functions */
 
     md_info = mbedtls_md_info_from_type(md_type);
     TEST_ASSERT(md_info != NULL);
@@ -144,12 +160,17 @@ void md_text(int md_type, char *text_src_string, data_t *hash)
     unsigned char output[MBEDTLS_MD_MAX_SIZE] = { 0 };
     const mbedtls_md_info_t *md_info = NULL;
 
+    MD_PSA_INIT();
+
     md_info = mbedtls_md_info_from_type(md_type);
     TEST_ASSERT(md_info != NULL);
 
     TEST_EQUAL(0, mbedtls_md(md_info, src, src_len, output));
 
     ASSERT_COMPARE(output, mbedtls_md_get_size(md_info), hash->x, hash->len);
+
+exit:
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
@@ -159,6 +180,8 @@ void md_hex(int md_type, data_t *src_str, data_t *hash)
     unsigned char output[MBEDTLS_MD_MAX_SIZE] = { 0 };
     const mbedtls_md_info_t *md_info = NULL;
 
+    MD_PSA_INIT();
+
     md_info = mbedtls_md_info_from_type(md_type);
     TEST_ASSERT(md_info != NULL);
 
@@ -166,6 +189,9 @@ void md_hex(int md_type, data_t *src_str, data_t *hash)
 
 
     ASSERT_COMPARE(output, mbedtls_md_get_size(md_info), hash->x, hash->len);
+
+exit:
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
@@ -180,6 +206,8 @@ void md_text_multi(int md_type, char *text_src_string,
 
     const mbedtls_md_info_t *md_info = NULL;
     mbedtls_md_context_t ctx, ctx_copy;
+
+    MD_PSA_INIT();
 
     mbedtls_md_init(&ctx);
     mbedtls_md_init(&ctx_copy);
@@ -214,6 +242,7 @@ void md_text_multi(int md_type, char *text_src_string,
 exit:
     mbedtls_md_free(&ctx);
     mbedtls_md_free(&ctx_copy);
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
@@ -224,6 +253,8 @@ void md_hex_multi(int md_type, data_t *src_str, data_t *hash)
     const mbedtls_md_info_t *md_info = NULL;
     mbedtls_md_context_t ctx, ctx_copy;
     int halfway;
+
+    MD_PSA_INIT();
 
     mbedtls_md_init(&ctx);
     mbedtls_md_init(&ctx_copy);
@@ -258,6 +289,7 @@ void md_hex_multi(int md_type, data_t *src_str, data_t *hash)
 exit:
     mbedtls_md_free(&ctx);
     mbedtls_md_free(&ctx_copy);
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
@@ -269,6 +301,8 @@ void mbedtls_md_hmac(int md_type, int trunc_size,
     unsigned char output[MBEDTLS_MD_MAX_SIZE] = { 0 };
     const mbedtls_md_info_t *md_info = NULL;
 
+    MD_PSA_INIT();
+
     md_info = mbedtls_md_info_from_type(md_type);
     TEST_ASSERT(md_info != NULL);
 
@@ -277,6 +311,9 @@ void mbedtls_md_hmac(int md_type, int trunc_size,
                                   src_str->x, src_str->len, output));
 
     ASSERT_COMPARE(output, trunc_size, hash->x, hash->len);
+
+exit:
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
@@ -288,6 +325,8 @@ void md_hmac_multi(int md_type, int trunc_size, data_t *key_str,
     const mbedtls_md_info_t *md_info = NULL;
     mbedtls_md_context_t ctx;
     int halfway;
+
+    MD_PSA_INIT();
 
     mbedtls_md_init(&ctx);
 
@@ -320,6 +359,7 @@ void md_hmac_multi(int md_type, int trunc_size, data_t *key_str,
 
 exit:
     mbedtls_md_free(&ctx);
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
@@ -330,11 +370,65 @@ void mbedtls_md_file(int md_type, char *filename,
     unsigned char output[MBEDTLS_MD_MAX_SIZE] = { 0 };
     const mbedtls_md_info_t *md_info = NULL;
 
+    MD_PSA_INIT();
+
     md_info = mbedtls_md_info_from_type(md_type);
     TEST_ASSERT(md_info != NULL);
 
     TEST_EQUAL(0, mbedtls_md_file(md_info, filename, output));
 
     ASSERT_COMPARE(output, mbedtls_md_get_size(md_info), hash->x, hash->len);
+
+exit:
+    MD_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void md_psa_dynamic_dispatch(int md_type, int pre_psa_ret, int post_psa_engine)
+{
+    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type(md_type);
+    TEST_ASSERT(md_info != NULL);
+    mbedtls_md_context_t ctx1, ctx2;
+
+    /* Intentionally no PSA init here! (Will be done later.) */
+
+    mbedtls_md_init(&ctx1);
+    mbedtls_md_init(&ctx2);
+
+    /* Before PSA crypto init */
+    TEST_EQUAL(pre_psa_ret, mbedtls_md_setup(&ctx1, md_info, 0));
+    TEST_EQUAL(pre_psa_ret, mbedtls_md_setup(&ctx2, md_info, 0));
+
+#if defined(MBEDTLS_MD_SOME_PSA)
+    TEST_EQUAL(ctx1.engine, MBEDTLS_MD_ENGINE_LEGACY);
+    TEST_EQUAL(ctx2.engine, MBEDTLS_MD_ENGINE_LEGACY);
+#endif
+
+    /* Reset ctx1 but keep ctx2 for the cloning test */
+    mbedtls_md_free(&ctx1);
+    mbedtls_md_init(&ctx1);
+
+    /* Now initilize PSA Crypto */
+    MD_PSA_INIT();
+
+    /* After PSA Crypto init */
+    TEST_EQUAL(0, mbedtls_md_setup(&ctx1, md_info, 0));
+#if defined(MBEDTLS_MD_SOME_PSA)
+    TEST_EQUAL(ctx1.engine, post_psa_engine);
+#endif
+
+    /* Cloning test */
+    if (pre_psa_ret == 0) {
+        int exp_clone_ret = post_psa_engine == MBEDTLS_MD_ENGINE_PSA
+                          ? MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE
+                          : 0;
+        TEST_EQUAL(exp_clone_ret, mbedtls_md_clone(&ctx2, &ctx1));
+    }
+
+exit:
+    mbedtls_md_free(&ctx1);
+    mbedtls_md_free(&ctx2);
+    MD_PSA_DONE();
 }
 /* END_CASE */

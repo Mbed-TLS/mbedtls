@@ -82,7 +82,7 @@ def analyze_driver_vs_reference(outcomes, component_ref, component_driver,
         full_test_suite = key.split(';')[0] # retrieve full test suite name
         test_string = key.split(';')[1] # retrieve the text string of this test
         test_suite = full_test_suite.split('.')[0] # retrieve main part of test suite name
-        if test_suite in ignored_suites:
+        if test_suite in ignored_suites or full_test_suite in ignored_suites:
             continue
         if ((full_test_suite in ignored_test) and
                 (test_string in ignored_test[full_test_suite])):
@@ -162,7 +162,7 @@ TASKS = {
             'component_driver': 'test_psa_crypto_config_accel_hash_use_psa',
             'ignored_suites': [
                 'shax', 'mdx', # the software implementations that are being excluded
-                'md',  # the legacy abstraction layer that's being excluded
+                'md.psa',  # purposefully depends on whether drivers are present
             ],
             'ignored_tests': {
             }

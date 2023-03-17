@@ -693,17 +693,6 @@ int mbedtls_aes_setkey_dec(mbedtls_aes_context *ctx, const unsigned char *key,
         goto exit;
     }
 #endif
-#if defined(MBEDTLS_AESNI_HAVE_CODE)
-    if (mbedtls_aesni_has_support(MBEDTLS_AESNI_AES)) {
-        /* The intrinsics-based implementation needs 16-byte alignment
-         * for the round key array. */
-        unsigned delta = (uintptr_t) ctx->buf & 0x0000000f;
-        if (delta != 0) {
-            size_t rk_offset = 4 - delta / 4; // 16 bytes = 4 uint32_t
-            ctx->rk = RK = ctx->buf + rk_offset;
-        }
-    }
-#endif
 
     SK = cty.rk + cty.nr * 4;
 
@@ -1016,9 +1005,6 @@ void mbedtls_aes_decrypt(mbedtls_aes_context *ctx,
  */
 static void aes_maybe_realign(mbedtls_aes_context *ctx)
 {
-    /* We want a 16-byte alignment. Note that rk and buf are pointers to uint32_t
-     * and offset is in units of uint32_t words = 4 bytes. We want a
-     * 4-word alignment. */
     unsigned current_offset = (unsigned)(ctx->rk - ctx->buf);
     unsigned new_offset = mbedtls_aes_rk_offset(ctx->buf);
     if (new_offset != current_offset) {

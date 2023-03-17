@@ -29,8 +29,8 @@ void pkcs1_rsaes_oaep_encrypt(int mod, data_t *input_N, data_t *input_E,
                                         MBEDTLS_RSA_PKCS_V21, hash) == 0);
     memset(output, 0x00, sizeof(output));
 
-    TEST_ASSERT(mbedtls_rsa_get_padding_mode(&ctx) == MBEDTLS_RSA_PKCS_V21);
-    TEST_ASSERT(mbedtls_rsa_get_md_alg(&ctx) == hash);
+    TEST_EQUAL(mbedtls_rsa_get_padding_mode(&ctx), MBEDTLS_RSA_PKCS_V21);
+    TEST_EQUAL(mbedtls_rsa_get_md_alg(&ctx), hash);
 
     TEST_ASSERT(mbedtls_mpi_read_binary(&N, input_N->x, input_N->len) == 0);
     TEST_ASSERT(mbedtls_mpi_read_binary(&E, input_E->x, input_E->len) == 0);
@@ -76,8 +76,8 @@ void pkcs1_rsaes_oaep_decrypt(int mod, data_t *input_P, data_t *input_Q,
     TEST_ASSERT(mbedtls_rsa_set_padding(&ctx,
                                         MBEDTLS_RSA_PKCS_V21, hash) == 0);
 
-    TEST_ASSERT(mbedtls_rsa_get_padding_mode(&ctx) == MBEDTLS_RSA_PKCS_V21);
-    TEST_ASSERT(mbedtls_rsa_get_md_alg(&ctx) == hash);
+    TEST_EQUAL(mbedtls_rsa_get_padding_mode(&ctx), MBEDTLS_RSA_PKCS_V21);
+    TEST_EQUAL(mbedtls_rsa_get_md_alg(&ctx), hash);
 
     memset(output, 0x00, sizeof(output));
     memset(&rnd_info, 0, sizeof(mbedtls_test_rnd_pseudo_info));
@@ -140,8 +140,8 @@ void pkcs1_rsassa_pss_sign(int mod, data_t *input_P, data_t *input_Q,
     TEST_ASSERT(mbedtls_rsa_set_padding(&ctx,
                                         MBEDTLS_RSA_PKCS_V21, hash) == 0);
 
-    TEST_ASSERT(mbedtls_rsa_get_padding_mode(&ctx) == MBEDTLS_RSA_PKCS_V21);
-    TEST_ASSERT(mbedtls_rsa_get_md_alg(&ctx) == hash);
+    TEST_EQUAL(mbedtls_rsa_get_padding_mode(&ctx), MBEDTLS_RSA_PKCS_V21);
+    TEST_EQUAL(mbedtls_rsa_get_md_alg(&ctx), hash);
 
     memset(output, 0x00, sizeof(output));
 
@@ -196,8 +196,8 @@ void pkcs1_rsassa_pss_verify(int mod, data_t *input_N, data_t *input_E,
     TEST_ASSERT(mbedtls_rsa_set_padding(&ctx,
                                         MBEDTLS_RSA_PKCS_V21, hash) == 0);
 
-    TEST_ASSERT(mbedtls_rsa_get_padding_mode(&ctx) == MBEDTLS_RSA_PKCS_V21);
-    TEST_ASSERT(mbedtls_rsa_get_md_alg(&ctx) == hash);
+    TEST_EQUAL(mbedtls_rsa_get_padding_mode(&ctx), MBEDTLS_RSA_PKCS_V21);
+    TEST_EQUAL(mbedtls_rsa_get_md_alg(&ctx), hash);
 
     TEST_ASSERT(mbedtls_mpi_read_binary(&N, input_N->x, input_N->len) == 0);
     TEST_ASSERT(mbedtls_mpi_read_binary(&E, input_E->x, input_E->len) == 0);
@@ -232,8 +232,8 @@ void pkcs1_rsassa_pss_verify_ext(int mod, data_t *input_N, data_t *input_E,
     TEST_ASSERT(mbedtls_rsa_set_padding(&ctx,
                                         MBEDTLS_RSA_PKCS_V21, ctx_hash) == 0);
 
-    TEST_ASSERT(mbedtls_rsa_get_padding_mode(&ctx) == MBEDTLS_RSA_PKCS_V21);
-    TEST_ASSERT(mbedtls_rsa_get_md_alg(&ctx) == ctx_hash);
+    TEST_EQUAL(mbedtls_rsa_get_padding_mode(&ctx), MBEDTLS_RSA_PKCS_V21);
+    TEST_EQUAL(mbedtls_rsa_get_md_alg(&ctx), ctx_hash);
 
     TEST_ASSERT(mbedtls_mpi_read_binary(&N, input_N->x, input_N->len) == 0);
     TEST_ASSERT(mbedtls_mpi_read_binary(&E, input_E->x, input_E->len) == 0);

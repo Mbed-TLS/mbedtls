@@ -178,7 +178,7 @@ void x509_csr_check(char *key_file, char *cert_req_check_file, int md_type,
 
     mbedtls_x509write_csr_init(&req);
 
-    USE_PSA_INIT();
+    MD_OR_USE_PSA_INIT();
 
     mbedtls_pk_init(&key);
     TEST_ASSERT(mbedtls_pk_parse_keyfile(&key, key_file, NULL,
@@ -249,7 +249,7 @@ void x509_csr_check(char *key_file, char *cert_req_check_file, int md_type,
 exit:
     mbedtls_x509write_csr_free(&req);
     mbedtls_pk_free(&key);
-    USE_PSA_DONE();
+    MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -271,7 +271,7 @@ void x509_csr_check_opaque(char *key_file, int md_type, int key_usage,
 
     mbedtls_x509write_csr_init(&req);
 
-    USE_PSA_INIT();
+    MD_OR_USE_PSA_INIT();
 
     md_alg_psa = mbedtls_hash_info_psa_from_md((mbedtls_md_type_t) md_type);
     TEST_ASSERT(md_alg_psa != MBEDTLS_MD_NONE);
@@ -357,7 +357,7 @@ void x509_crt_check(char *subject_key_file, char *subject_pwd,
     mbedtls_mpi_init(&serial_mpi);
 #endif
 
-    USE_PSA_INIT();
+    MD_OR_USE_PSA_INIT();
 
     mbedtls_pk_init(&subject_key);
     mbedtls_pk_init(&issuer_key);
@@ -588,7 +588,7 @@ exit:
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_destroy_key(key_id);
 #endif
-    USE_PSA_DONE();
+    MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */
 

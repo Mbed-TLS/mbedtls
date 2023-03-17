@@ -32,6 +32,9 @@ void pkcs1_rsaes_v15_encrypt(int mod, char *input_N,
                                         MBEDTLS_RSA_PKCS_V15, hash) == 0);
     memset(output, 0x00, sizeof(output));
 
+    TEST_ASSERT(mbedtls_rsa_get_padding_mode(&ctx) == MBEDTLS_RSA_PKCS_V15);
+    TEST_ASSERT(mbedtls_rsa_get_md_alg(&ctx) == hash);
+
     TEST_ASSERT(mbedtls_test_read_mpi(&N, input_N) == 0);
     TEST_ASSERT(mbedtls_test_read_mpi(&E, input_E) == 0);
     TEST_ASSERT(mbedtls_rsa_import(&ctx, &N, NULL, NULL, NULL, &E) == 0);
@@ -76,6 +79,9 @@ void pkcs1_rsaes_v15_decrypt(int mod, char *input_P, char *input_Q,
     mbedtls_rsa_init(&ctx);
     TEST_ASSERT(mbedtls_rsa_set_padding(&ctx,
                                         MBEDTLS_RSA_PKCS_V15, hash) == 0);
+
+    TEST_ASSERT(mbedtls_rsa_get_padding_mode(&ctx) == MBEDTLS_RSA_PKCS_V15);
+    TEST_ASSERT(mbedtls_rsa_get_md_alg(&ctx) == hash);
 
     memset(output, 0x00, sizeof(output));
     memset(&rnd_info, 0, sizeof(mbedtls_test_rnd_pseudo_info));
@@ -281,6 +287,9 @@ void pkcs1_rsassa_v15_sign(int mod, char *input_P,
 
     memset(output, 0x00, sizeof(output));
 
+    TEST_ASSERT(mbedtls_rsa_get_padding_mode(&ctx) == MBEDTLS_RSA_PKCS_V15);
+    TEST_ASSERT(mbedtls_rsa_get_md_alg(&ctx) == hash);
+
     TEST_ASSERT(mbedtls_test_read_mpi(&P, input_P) == 0);
     TEST_ASSERT(mbedtls_test_read_mpi(&Q, input_Q) == 0);
     TEST_ASSERT(mbedtls_test_read_mpi(&N, input_N) == 0);
@@ -321,6 +330,9 @@ void pkcs1_rsassa_v15_verify(int mod, char *input_N, char *input_E,
     mbedtls_rsa_init(&ctx);
     TEST_ASSERT(mbedtls_rsa_set_padding(&ctx,
                                         MBEDTLS_RSA_PKCS_V15, hash) == 0);
+
+    TEST_ASSERT(mbedtls_rsa_get_padding_mode(&ctx) == MBEDTLS_RSA_PKCS_V15);
+    TEST_ASSERT(mbedtls_rsa_get_md_alg(&ctx) == hash);
 
     TEST_ASSERT(mbedtls_test_read_mpi(&N, input_N) == 0);
     TEST_ASSERT(mbedtls_test_read_mpi(&E, input_E) == 0);

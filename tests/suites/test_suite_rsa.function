@@ -21,9 +21,6 @@ void rsa_invalid_param()
 
     mbedtls_rsa_init(&ctx);
 
-    TEST_EQUAL(mbedtls_rsa_get_padding_mode(&ctx), MBEDTLS_RSA_PKCS_V15);
-    TEST_EQUAL(mbedtls_rsa_get_md_alg(&ctx), MBEDTLS_MD_NONE);
-
     TEST_EQUAL(mbedtls_rsa_set_padding(&ctx,
                                        invalid_padding,
                                        MBEDTLS_MD_NONE),

@@ -49,6 +49,9 @@
 
 /* Can we do AESNI with intrinsics?
  * (Only implemented with certain compilers, only for certain targets.)
+ *
+ * NOTE: MBEDTLS_AESNI_HAVE_INTRINSICS and MBEDTLS_AESNI_HAVE_CODE are internal
+ *       macros that may change in future releases.
  */
 #undef MBEDTLS_AESNI_HAVE_INTRINSICS
 #if defined(_MSC_VER)

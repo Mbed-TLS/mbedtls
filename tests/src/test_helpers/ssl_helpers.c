@@ -1757,7 +1757,7 @@ void mbedtls_test_ssl_perform_handshake(
 #endif
     int expected_handshake_result = options->expected_handshake_result;
 
-    USE_PSA_INIT();
+    MD_OR_USE_PSA_INIT();
     mbedtls_platform_zeroize(&client, sizeof(client));
     mbedtls_platform_zeroize(&server, sizeof(server));
     mbedtls_test_ssl_message_queue server_queue, client_queue;
@@ -2119,7 +2119,7 @@ exit:
         mbedtls_free(context_buf);
     }
 #endif
-    USE_PSA_DONE();
+    MD_OR_USE_PSA_DONE();
 }
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 

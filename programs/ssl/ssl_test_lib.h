@@ -23,6 +23,7 @@
 #include "mbedtls/build_info.h"
 
 #include "mbedtls/platform.h"
+#include "mbedtls/md.h"
 
 #undef HAVE_RNG
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) &&         \

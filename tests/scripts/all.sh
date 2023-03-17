@@ -2335,6 +2335,93 @@ component_test_psa_crypto_config_reference_ecdh_use_psa () {
     tests/ssl-opt.sh
 }
 
+# Auxiliary function to build config for EC JPAKE with and without drivers.
+#
+# This is used by the two following components to ensure they always use the
+# same config, except for the use of driver or built-in ECJPAKE:
+# - component_test_psa_crypto_config_accel_ecjpake_use_psa;
+# - component_test_psa_crypto_config_reference_ecjpake_use_psa.
+# This support comparing their test coverage with analyze_outcomes.py.
+config_psa_crypto_config_ecjpake_use_psa () {
+    DRIVER_ONLY="$1"
+    # start with config full for maximum coverage (also enables USE_PSA)
+    scripts/config.py full
+    # enable support for drivers and configuring PSA-only algorithms
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
+    if [ "$DRIVER_ONLY" -eq 1 ]; then
+        # Disable the module that's accelerated
+        scripts/config.py unset MBEDTLS_ECJPAKE_C
+    fi
+    # Disable things that depend on it (regardless of driver or built-in)
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
+
+    # Dynamic secure element support is a deprecated feature and needs to be disabled here.
+    # This is done to have the same form of psa_key_attributes_s for libdriver and library.
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
+}
+
+# Keep in sync with component_test_psa_crypto_config_reference_ecjpake_use_psa
+component_test_psa_crypto_config_accel_ecjpake_use_psa () {
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECJPAKE + USE_PSA"
+
+    # Algorithms and key types to accelerate
+    loc_accel_list="ALG_JPAKE KEY_TYPE_ECC_KEY_PAIR KEY_TYPE_ECC_PUBLIC_KEY"
+
+    # Configure and build the test driver library
+    # -------------------------------------------
+
+    # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
+    # partial support for cipher operations in the driver test library.
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+
+    loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
+    make -C tests libtestdriver1.a CFLAGS=" $ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
+
+    # Configure and build the main libraries
+    # --------------------------------------
+
+    # Use the same config as reference, only without built-in JPAKE
+    config_psa_crypto_config_ecjpake_use_psa 1
+
+    # Build the main library
+    loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
+    make CFLAGS="$ASAN_CFLAGS -O -Werror -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
+
+    # Make sure this was not re-enabled by accident (additive config)
+    not grep mbedtls_ecjpake_ library/ecjpake.o
+
+    # Run the tests
+    # -------------
+
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated JPAKE + USE_PSA"
+    make test
+
+    # ssl-opt will be added later. Please check issue 7255 for a list of
+    # follow up activities
+}
+
+# Keep in sync with component_test_psa_crypto_config_accel_ecjpake_use_psa.
+# Used by tests/scripts/analyze_outcomes.py for comparison purposes.
+component_test_psa_crypto_config_reference_ecjpake_use_psa () {
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with reference ECJPAKE + USE_PSA"
+
+    # To be aligned with the accel component that needs this
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+
+    config_psa_crypto_config_ecjpake_use_psa 0
+
+    make
+
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with reference ECJPAKE + USE_PSA"
+    make test
+
+    # ssl-opt will be added later. Please check issue 7255 for a list of
+    # follow up activities
+}
+
 component_test_psa_crypto_config_accel_rsa_signature () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated RSA signature"
 

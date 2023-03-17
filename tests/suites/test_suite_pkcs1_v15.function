@@ -28,6 +28,10 @@ void pkcs1_rsaes_v15_encrypt(int mod, char *input_N,
 
     mbedtls_mpi_init(&N); mbedtls_mpi_init(&E);
     mbedtls_rsa_init(&ctx);
+
+    TEST_ASSERT(mbedtls_rsa_get_padding_mode(&ctx) == MBEDTLS_RSA_PKCS_V15);
+    TEST_ASSERT(mbedtls_rsa_get_md_alg(&ctx) == MBEDTLS_MD_NONE);
+
     TEST_ASSERT(mbedtls_rsa_set_padding(&ctx,
                                         MBEDTLS_RSA_PKCS_V15, hash) == 0);
     memset(output, 0x00, sizeof(output));

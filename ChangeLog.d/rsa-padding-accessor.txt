@@ -1,0 +1,4 @@
+Features
+   * Add functions mbedtls_rsa_get_padding_mode() and mbedtls_rsa_get_md_alg() to read
+     non-public fields for padding mode and hash id from an mbedtls_rsa_context, as
+     requested in #6917.

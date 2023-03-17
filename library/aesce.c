@@ -1,5 +1,5 @@
 /*
- *  Arm64 crypto extension support functions
+ *  Armv8-A Cryptographic Extension support functions for Aarch64
  *
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0

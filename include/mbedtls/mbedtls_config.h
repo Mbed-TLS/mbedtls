@@ -2039,24 +2039,25 @@
  *
  * Requires: MBEDTLS_HAVE_ASM
  *
- * This modules adds support for the AES-NI instructions on x86-64
+ * This module adds support for the AES-NI instructions on x86-64
  */
 #define MBEDTLS_AESNI_C
 
 /**
  * \def MBEDTLS_AESCE_C
  *
- * Enable AES crypto extension support on Arm64.
+ * Enable AES cryptographic extension support on 64-bit Arm.
  *
  * Module:  library/aesce.c
  * Caller:  library/aes.c
  *
  * Requires: MBEDTLS_HAVE_ASM, MBEDTLS_AES_C
  *
- * \warning Runtime detection only works on linux. For non-linux operation
- *          system, crypto extension MUST be supported by CPU.
+ * \warning Runtime detection only works on Linux. For non-Linux operating
+ *          system, Armv8-A Cryptographic Extensions must be supported by
+ *          the CPU when this option is enabled.
  *
- * This module adds support for the AES crypto instructions on Arm64
+ * This module adds support for the AES Armv8-A Cryptographic Extensions on Aarch64 systems.
  */
 #define MBEDTLS_AESCE_C
 

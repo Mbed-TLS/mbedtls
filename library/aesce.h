@@ -1,8 +1,8 @@
 /**
  * \file aesce.h
  *
- * \brief AES-CE for hardware AES acceleration on ARMv8 processors with crypto
- *        extension.
+ * \brief Support hardware AES acceleration on Armv8-A processors with
+ *        the Armv8-A Cryptographic Extension in AArch64 execution state.
  *
  * \warning These functions are only for internal use by other library
  *          functions; you must not call them directly.

@@ -70,7 +70,7 @@ jobs:
       os: windows
       script:
         - scripts/windows_msbuild.bat v141 # Visual Studio 2017
-        - visualc/VS2013/x64/Release/selftest.exe
+        - visualc/VS2010/x64/Release/selftest.exe
 
 after_failure:
 - tests/scripts/travis-log-failure.sh

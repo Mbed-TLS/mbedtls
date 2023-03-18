@@ -1846,7 +1846,15 @@ int mbedtls_aes_self_test(int verbose)
 #endif
 #if defined(MBEDTLS_AESNI_HAVE_CODE)
         if (mbedtls_aesni_has_support(MBEDTLS_AESNI_AES)) {
-            mbedtls_printf("  AES note: using AESNI.\n");
+            mbedtls_printf("  AES note: using AESNI via ");
+#if MBEDTLS_AESNI_HAVE_CODE == 1
+            mbedtls_printf("assembly");
+#elif MBEDTLS_AESNI_HAVE_CODE == 2
+            mbedtls_printf("intrinsics");
+#else
+            mbedtls_printf("(unknown)");
+#endif
+            mbedtls_printf(".\n");
         } else
 #endif
         mbedtls_printf("  AES note: built-in implementation.\n");

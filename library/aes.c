@@ -1005,7 +1005,7 @@ void mbedtls_aes_decrypt(mbedtls_aes_context *ctx,
  */
 static void aes_maybe_realign(mbedtls_aes_context *ctx)
 {
-    unsigned current_offset = (unsigned)(ctx->rk - ctx->buf);
+    unsigned current_offset = (unsigned) (ctx->rk - ctx->buf);
     unsigned new_offset = mbedtls_aes_rk_offset(ctx->buf);
     if (new_offset != current_offset) {
         memmove(ctx->buf + new_offset,     // new address

@@ -112,7 +112,7 @@ static int pk_write_ec_pubkey(unsigned char **p, unsigned char *start,
 
     len = pk->pk_raw_len;
 
-    if ((*p - start) < (long int) len) {
+    if (((size_t) (*p - start)) < len) {
         return MBEDTLS_ERR_PK_BUFFER_TOO_SMALL;
     }
 

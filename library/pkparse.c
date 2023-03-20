@@ -479,9 +479,9 @@ static int pk_use_ecparams(const mbedtls_asn1_buf *params, mbedtls_pk_context *p
         if ((ret = pk_group_id_from_specified(params, &grp_id)) != 0) {
             return ret;
         }
-#else
+#else /* MBEDTLS_PK_PARSE_EC_EXTENDED */
         return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
-#endif
+#endif /* MBEDTLS_PK_PARSE_EC_EXTENDED */
     }
 
     ec_family = mbedtls_ecc_group_to_psa(grp_id, &bits);
@@ -596,7 +596,7 @@ static int pk_get_ecpubkey(unsigned char **p, const unsigned char *end,
 
     return 0;
 }
-#else /* MBEDTLS_USE_PSA_CRYPTO*/
+#else /* MBEDTLS_USE_PSA_CRYPTO */
 /*
  * Use EC parameters to initialise an EC group
  *
@@ -1184,9 +1184,9 @@ static int pk_parse_key_sec1_der(mbedtls_ecp_keypair *eck,
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
             if ((ret = pk_get_ecpubkey(&p, end2, pk)) == 0) {
-#else
+#else /* MBEDTLS_USE_PSA_CRYPTO */
             if ((ret = pk_get_ecpubkey(&p, end2, eck)) == 0) {
-#endif
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
                 pubkey_done = 1;
             } else {
                 /*

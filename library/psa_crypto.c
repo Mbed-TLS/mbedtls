@@ -47,7 +47,6 @@
 
 #include "psa_crypto_random_impl.h"
 
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include "mbedtls/platform.h"
@@ -1512,14 +1511,15 @@ exit:
     return (status == PSA_SUCCESS) ? unlock_status : status;
 }
 
-#if defined(static_assert)
-static_assert((MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY & MBEDTLS_PSA_KA_MASK_DUAL_USE) == 0,
-              "One or more key attribute flag is listed as both external-only and dual-use");
-static_assert((PSA_KA_MASK_INTERNAL_ONLY & MBEDTLS_PSA_KA_MASK_DUAL_USE) == 0,
-              "One or more key attribute flag is listed as both internal-only and dual-use");
-static_assert((PSA_KA_MASK_INTERNAL_ONLY & MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY) == 0,
-              "One or more key attribute flag is listed as both internal-only and external-only");
-#endif
+MBEDTLS_STATIC_ASSERT(
+    (MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY & MBEDTLS_PSA_KA_MASK_DUAL_USE) == 0,
+    "One or more key attribute flag is listed as both external-only and dual-use")
+MBEDTLS_STATIC_ASSERT(
+    (PSA_KA_MASK_INTERNAL_ONLY & MBEDTLS_PSA_KA_MASK_DUAL_USE) == 0,
+    "One or more key attribute flag is listed as both internal-only and dual-use")
+MBEDTLS_STATIC_ASSERT(
+    (PSA_KA_MASK_INTERNAL_ONLY & MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY) == 0,
+    "One or more key attribute flag is listed as both internal-only and external-only")
 
 /** Validate that a key policy is internally well-formed.
  *
@@ -1782,11 +1782,10 @@ static psa_status_t psa_finish_key_creation(
             psa_key_slot_number_t slot_number =
                 psa_key_slot_get_slot_number(slot);
 
-#if defined(static_assert)
-            static_assert(sizeof(slot_number) ==
-                          sizeof(data.slot_number),
-                          "Slot number size does not match psa_se_key_data_storage_t");
-#endif
+            MBEDTLS_STATIC_ASSERT(sizeof(slot_number) ==
+                                  sizeof(data.slot_number),
+                                  "Slot number size does not match psa_se_key_data_storage_t");
+
             memcpy(&data.slot_number, &slot_number, sizeof(slot_number));
             status = psa_save_persistent_key(&slot->attr,
                                              (uint8_t *) &data,

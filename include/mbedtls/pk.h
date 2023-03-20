@@ -193,12 +193,6 @@ typedef struct mbedtls_pk_rsassa_pss_options {
 #endif /* PSA_WANT_ALG_ECDSA */
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-/* Symbol for ECDH capabilities, no matter how it is provided */
-#if (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_HAVE_FULL_ECDH)) || \
-    (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_ECDH_C))
-#define MBEDTLS_PK_CAN_ECDH
-#endif
-
 #if defined(MBEDTLS_PK_CAN_ECDSA_VERIFY) || defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
 #define MBEDTLS_PK_CAN_ECDSA_SOME
 #endif

@@ -1428,7 +1428,7 @@ int mbedtls_ssl_reset_transcript_for_hrr(mbedtls_ssl_context *ssl)
     return ret;
 }
 
-#if defined(MBEDTLS_PK_CAN_ECDH)
+#if defined(PSA_WANT_ALG_ECDH)
 
 int mbedtls_ssl_tls13_read_public_ecdhe_share(mbedtls_ssl_context *ssl,
                                               const unsigned char *buf,
@@ -1510,7 +1510,7 @@ int mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
 
     return 0;
 }
-#endif /* MBEDTLS_PK_CAN_ECDH */
+#endif /* PSA_WANT_ALG_ECDH */
 
 /* RFC 8446 section 4.2
  *

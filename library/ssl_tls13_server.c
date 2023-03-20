@@ -762,7 +762,7 @@ static int ssl_tls13_parse_supported_versions_ext(mbedtls_ssl_context *ssl,
     return 0;
 }
 
-#if defined(MBEDTLS_PK_CAN_ECDH)
+#if defined(PSA_WANT_ALG_ECDH)
 /*
  *
  * From RFC 8446:
@@ -818,11 +818,11 @@ static int ssl_tls13_parse_supported_groups_ext(mbedtls_ssl_context *ssl,
     return 0;
 
 }
-#endif /* MBEDTLS_PK_CAN_ECDH */
+#endif /* PSA_WANT_ALG_ECDH */
 
 #define SSL_TLS1_3_PARSE_KEY_SHARES_EXT_NO_MATCH 1
 
-#if defined(MBEDTLS_PK_CAN_ECDH)
+#if defined(PSA_WANT_ALG_ECDH)
 /*
  *  ssl_tls13_parse_key_shares_ext() verifies whether the information in the
  *  extension is correct and stores the first acceptable key share and its associated group.
@@ -923,7 +923,7 @@ static int ssl_tls13_parse_key_shares_ext(mbedtls_ssl_context *ssl,
     }
     return 0;
 }
-#endif /* MBEDTLS_PK_CAN_ECDH */
+#endif /* PSA_WANT_ALG_ECDH */
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_client_hello_has_exts(mbedtls_ssl_context *ssl,
@@ -1462,7 +1462,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                 break;
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
-#if defined(MBEDTLS_PK_CAN_ECDH)
+#if defined(PSA_WANT_ALG_ECDH)
             case MBEDTLS_TLS_EXT_SUPPORTED_GROUPS:
                 MBEDTLS_SSL_DEBUG_MSG(3, ("found supported group extension"));
 
@@ -1481,9 +1481,9 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                 }
 
                 break;
-#endif /* MBEDTLS_PK_CAN_ECDH */
+#endif /* PSA_WANT_ALG_ECDH */
 
-#if defined(MBEDTLS_PK_CAN_ECDH)
+#if defined(PSA_WANT_ALG_ECDH)
             case MBEDTLS_TLS_EXT_KEY_SHARE:
                 MBEDTLS_SSL_DEBUG_MSG(3, ("found key share extension"));
 
@@ -1508,7 +1508,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                 }
 
                 break;
-#endif /* MBEDTLS_PK_CAN_ECDH */
+#endif /* PSA_WANT_ALG_ECDH */
 
             case MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS:
                 MBEDTLS_SSL_DEBUG_MSG(3, ("found supported versions extension"));
@@ -1826,7 +1826,7 @@ static int ssl_tls13_generate_and_write_key_share(mbedtls_ssl_context *ssl,
 
     *out_len = 0;
 
-#if defined(MBEDTLS_PK_CAN_ECDH)
+#if defined(PSA_WANT_ALG_ECDH)
     if (mbedtls_ssl_tls13_named_group_is_ecdhe(named_group)) {
         ret = mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
             ssl, named_group, buf, end, out_len);
@@ -1837,7 +1837,7 @@ static int ssl_tls13_generate_and_write_key_share(mbedtls_ssl_context *ssl,
             return ret;
         }
     } else
-#endif /* MBEDTLS_PK_CAN_ECDH */
+#endif /* PSA_WANT_ALG_ECDH */
     if (0 /* Other kinds of KEMs */) {
     } else {
         ((void) ssl);

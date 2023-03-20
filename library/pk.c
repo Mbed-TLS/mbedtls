@@ -883,15 +883,15 @@ mbedtls_pk_type_t mbedtls_pk_get_type(const mbedtls_pk_context *ctx)
 int mbedtls_pk_get_public_key(mbedtls_pk_context *pk, unsigned char *buf,
                               size_t buf_size, size_t *key_len)
 {
-    if ((pk == NULL) || (pk->MBEDTLS_PRIVATE(pk_raw_len) == 0)) {
+    if ((pk == NULL) || (pk->pk_raw_len == 0)) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
     if (buf_size < MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN) {
         return MBEDTLS_ERR_PK_BUFFER_TOO_SMALL;
     }
 
-    memcpy(buf, pk->MBEDTLS_PRIVATE(pk_raw), MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN);
-    *key_len = pk->MBEDTLS_PRIVATE(pk_raw_len);
+    memcpy(buf, pk->pk_raw, MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN);
+    *key_len = pk->pk_raw_len;
 
     return 0;
 }
@@ -902,13 +902,13 @@ int mbedtls_pk_get_ec_public_key_props(mbedtls_pk_context *pk,
     if ((pk == NULL) || (ec_curve == NULL) || (bits == NULL)) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
-    if ((pk->MBEDTLS_PRIVATE(pk_ec_family) == 0) ||
-        (pk->MBEDTLS_PRIVATE(pk_bits) == 0)) {
+    if ((pk->pk_ec_family == 0) ||
+        (pk->pk_bits == 0)) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
 
-    *ec_curve = pk->MBEDTLS_PRIVATE(pk_ec_family);
-    *bits = pk->MBEDTLS_PRIVATE(pk_bits);
+    *ec_curve = pk->pk_ec_family;
+    *bits = pk->pk_bits;
 
     return 0;
 }
@@ -931,15 +931,15 @@ int mbedtls_pk_update_public_key_from_keypair(mbedtls_pk_context *pk)
 
     ret = mbedtls_ecp_point_write_binary(&ecp_keypair->grp, &ecp_keypair->Q,
                                          MBEDTLS_ECP_PF_UNCOMPRESSED,
-                                         &pk->MBEDTLS_PRIVATE(pk_raw_len),
-                                         pk->MBEDTLS_PRIVATE(pk_raw),
+                                         &pk->pk_raw_len,
+                                         pk->pk_raw,
                                          MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN);
     if (ret != 0) {
         return ret;
     }
 
-    pk->MBEDTLS_PRIVATE(pk_ec_family) = mbedtls_ecc_group_to_psa(
-        ecp_keypair->grp.id, &pk->MBEDTLS_PRIVATE(pk_bits));
+    pk->pk_ec_family = mbedtls_ecc_group_to_psa(ecp_keypair->grp.id,
+                                                &pk->pk_bits);
 
     return 0;
 }

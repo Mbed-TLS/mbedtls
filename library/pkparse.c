@@ -522,8 +522,7 @@ static int pk_convert_compressed_ec(mbedtls_pk_context *pk,
     mbedtls_ecp_group_id ecp_group_id;
     int ret;
 
-    ecp_group_id = mbedtls_ecc_group_of_psa(pk->MBEDTLS_PRIVATE(pk_ec_family),
-                                            pk->MBEDTLS_PRIVATE(pk_bits), 0);
+    ecp_group_id = mbedtls_ecc_group_of_psa(pk->pk_ec_family, pk->pk_bits, 0);
 
     mbedtls_ecp_keypair_init(&ecp_key);
     ret = mbedtls_ecp_group_load(&(ecp_key.grp), ecp_group_id);
@@ -568,32 +567,28 @@ static int pk_get_ecpubkey(unsigned char **p, const unsigned char *end,
      * uncompressed format */
     if ((**p == 0x02) || (**p == 0x03)) {
         ret = pk_convert_compressed_ec(pk, *p, len,
-                                       &(pk->MBEDTLS_PRIVATE(pk_raw_len)),
-                                       pk->MBEDTLS_PRIVATE(pk_raw),
+                                       &(pk->pk_raw_len), pk->pk_raw,
                                        PSA_EXPORT_PUBLIC_KEY_MAX_SIZE);
         if (ret != 0) {
             return ret;
         }
     } else {
         /* Uncompressed format */
-        memcpy(pk->MBEDTLS_PRIVATE(pk_raw), *p, (end - *p));
-        pk->MBEDTLS_PRIVATE(pk_raw_len) = end - *p;
+        memcpy(pk->pk_raw, *p, (end - *p));
+        pk->pk_raw_len = end - *p;
     }
 
     /* Validate the key by trying to importing it */
     psa_set_key_usage_flags(&key_attrs, 0);
     psa_set_key_algorithm(&key_attrs, PSA_ALG_ECDSA_ANY);
-    psa_set_key_type(&key_attrs,
-                     PSA_KEY_TYPE_ECC_PUBLIC_KEY(pk->MBEDTLS_PRIVATE(pk_ec_family)));
-    psa_set_key_bits(&key_attrs, pk->MBEDTLS_PRIVATE(pk_bits));
+    psa_set_key_type(&key_attrs, PSA_KEY_TYPE_ECC_PUBLIC_KEY(pk->pk_ec_family));
+    psa_set_key_bits(&key_attrs, pk->pk_bits);
 
-    status = psa_import_key(&key_attrs, pk->MBEDTLS_PRIVATE(pk_raw),
-                            pk->MBEDTLS_PRIVATE(pk_raw_len), &key);
+    status = psa_import_key(&key_attrs, pk->pk_raw, pk->pk_raw_len, &key);
     psa_destroy_key(key);
     if (status != PSA_SUCCESS) {
-        mbedtls_platform_zeroize(pk->MBEDTLS_PRIVATE(pk_raw),
-                                 MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN);
-        pk->MBEDTLS_PRIVATE(pk_raw_len) = 0;
+        mbedtls_platform_zeroize(pk->pk_raw, MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN);
+        pk->pk_raw_len = 0;
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
 

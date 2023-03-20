@@ -110,13 +110,13 @@ static int pk_write_ec_pubkey(unsigned char **p, unsigned char *start,
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
 
-    len = pk->MBEDTLS_PRIVATE(pk_raw_len);
+    len = pk->pk_raw_len;
 
     if ((*p - start) < (long int) len) {
         return MBEDTLS_ERR_PK_BUFFER_TOO_SMALL;
     }
 
-    memcpy(*p - len, pk->MBEDTLS_PRIVATE(pk_raw), len);
+    memcpy(*p - len, pk->pk_raw, len);
     *p -= len;
 
     return (int) len;

@@ -377,8 +377,8 @@ static void psa_wipe_tag_output_buffer(uint8_t *output_buffer, psa_status_t stat
 /* Key management */
 /****************************************************************/
 
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) || \
+#if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) || \
+    defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
@@ -473,8 +473,8 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
     (void) bits_is_sloppy;
     return MBEDTLS_ECP_DP_NONE;
 }
-#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
-          defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) ||
+#endif /* defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) ||
+          defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) ||
           defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
           defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ||
           defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) */
@@ -5547,8 +5547,8 @@ static void psa_des_set_key_parity(uint8_t *data, size_t data_size)
  * Note: Function allocates memory for *data buffer, so given *data should be
  *       always NULL.
  */
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) || \
+#if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) || \
+    defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
@@ -5559,6 +5559,7 @@ static psa_status_t psa_generate_derived_ecc_key_weierstrass_helper(
     uint8_t **data
     )
 {
+#if defined(MBEDTLS_ECP_C)
     unsigned key_out_of_range = 1;
     mbedtls_mpi k;
     mbedtls_mpi diff_N_2;
@@ -5642,6 +5643,13 @@ cleanup:
     mbedtls_mpi_free(&k);
     mbedtls_mpi_free(&diff_N_2);
     return status;
+#else /* MBEDTLS_ECP_C */
+    (void) slot;
+    (void) bits;
+    (void) operation;
+    (void) data;
+    return PSA_ERROR_NOT_SUPPORTED;
+#endif /* MBEDTLS_ECP_C */
 }
 
 /* ECC keys on a Montgomery elliptic curve draws a byte string whose length
@@ -5708,8 +5716,8 @@ static psa_status_t psa_generate_derived_ecc_key_montgomery_helper(
 
     return status;
 }
-#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
-          defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) ||
+#endif /* defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) ||
+          defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) ||
           defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
           defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ||
           defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) */
@@ -5728,8 +5736,8 @@ static psa_status_t psa_generate_derived_key_internal(
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) || \
+#if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) || \
+    defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
@@ -5749,8 +5757,8 @@ static psa_status_t psa_generate_derived_key_internal(
             }
         }
     } else
-#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
-          defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) ||
+#endif /* defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) ||
+          defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) ||
           defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
           defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ||
           defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) */

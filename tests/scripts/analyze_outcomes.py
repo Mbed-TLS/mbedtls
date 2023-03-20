@@ -207,6 +207,24 @@ TASKS = {
             }
         }
     },
+    'analyze_driver_vs_reference_all_ec_algs': {
+        'test_function': do_analyze_driver_vs_reference,
+        'args': {
+            'component_ref': 'test_psa_crypto_config_reference_all_ec_algs_use_psa',
+            'component_driver': 'test_psa_crypto_config_accel_all_ec_algs_use_psa',
+            # ignore the suites of the accelerated components
+            'ignored_suites': [
+                'ecdsa',
+                'ecdh',
+                'ecjpake',
+            ],
+            'ignored_tests': {
+                'test_suite_random': [
+                    'PSA classic wrapper: ECDSA signature (SECP256R1)',
+                ],
+            }
+        }
+    },
 }
 
 def main():

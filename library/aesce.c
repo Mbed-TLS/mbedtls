@@ -212,14 +212,14 @@ static void aesce_setkey_enc(unsigned char *rk,
                                     0x20, 0x40, 0x80, 0x1b, 0x36 };
     /* See https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197.pdf
      *   - Section 5, Nr = Nk + 6
-     *   - Section 5.2, the key expansion size is Nb*(Nr+1)
+     *   - Section 5.2, the length of round keys is Nb*(Nr+1)
      */
     const uint32_t key_len_in_words = key_bit_length / 32;  /* Nk */
     const size_t round_key_len_in_words = 4;                /* Nb */
-    const size_t round_keys_needed = key_len_in_words + 6;  /* Nr */
-    const size_t key_expansion_size_in_words =
-        round_key_len_in_words * (round_keys_needed + 1);   /* Nb*(Nr+1) */
-    const uint32_t *rko_end = (uint32_t *) rk + key_expansion_size_in_words;
+    const size_t rounds_needed = key_len_in_words + 6;      /* Nr */
+    const size_t round_keys_len_in_words =
+        round_key_len_in_words * (rounds_needed + 1);       /* Nb*(Nr+1) */
+    const uint32_t *rko_end = (uint32_t *) rk + round_keys_len_in_words;
 
     memcpy(rk, key, key_len_in_words * 4);
 
@@ -276,6 +276,126 @@ int mbedtls_aesce_setkey_enc(unsigned char *rk,
     return 0;
 }
 
+#if defined(MBEDTLS_GCM_C)
+
+#if !defined(__clang__) && defined(__GNUC__) && __GNUC__ == 5
+/* Some intrinsics are not available for GCC 5.X. */
+#define vreinterpretq_p64_u8(a) ((poly64x2_t) a)
+#define vreinterpretq_u8_p128(a) ((uint8x16_t) a)
+static inline poly64_t vget_low_p64(poly64x2_t __a)
+{
+    uint64x2_t tmp = (uint64x2_t) (__a);
+    uint64x1_t lo = vcreate_u64(vgetq_lane_u64(tmp, 0));
+    return (poly64_t) (lo);
+}
+#endif /* !__clang__ && __GNUC__ && __GNUC__ == 5*/
+
+/* vmull_p64/vmull_high_p64 wrappers.
+ *
+ * Older compilers miss some intrinsic functions for `poly*_t`. We use
+ * uint8x16_t and uint8x16x3_t as input/output parameters.
+ */
+static inline uint8x16_t pmull_low(uint8x16_t a, uint8x16_t b)
+{
+    return vreinterpretq_u8_p128(
+        vmull_p64(
+            (poly64_t) vget_low_p64(vreinterpretq_p64_u8(a)),
+            (poly64_t) vget_low_p64(vreinterpretq_p64_u8(b))));
+}
+
+static inline uint8x16_t pmull_high(uint8x16_t a, uint8x16_t b)
+{
+    return vreinterpretq_u8_p128(
+        vmull_high_p64(vreinterpretq_p64_u8(a),
+                       vreinterpretq_p64_u8(b)));
+}
+
+/* GHASH does 128b polynomial multiplication on block in GF(2^128) defined by
+ * `x^128 + x^7 + x^2 + x + 1`.
+ *
+ * Arm64 only has 64b->128b polynomial multipliers, we need to do 4 64b
+ * multiplies to generate a 128b.
+ *
+ * `poly_mult_128` executes polynomial multiplication and outputs 256b that
+ * represented by 3 128b due to code size optimization.
+ *
+ * Output layout:
+ * |            |             |             |
+ * |------------|-------------|-------------|
+ * | ret.val[0] | h3:h2:00:00 | high   128b |
+ * | ret.val[1] |   :m2:m1:00 | middle 128b |
+ * | ret.val[2] |   :  :l1:l0 | low    128b |
+ */
+static inline uint8x16x3_t poly_mult_128(uint8x16_t a, uint8x16_t b)
+{
+    uint8x16x3_t ret;
+    uint8x16_t h, m, l; /* retval high/middle/low */
+    uint8x16_t c, d, e;
+
+    h = pmull_high(a, b);                       /* h3:h2:00:00 = a1*b1 */
+    l = pmull_low(a, b);                        /*   :  :l1:l0 = a0*b0 */
+    c = vextq_u8(b, b, 8);                      /*      :c1:c0 = b0:b1 */
+    d = pmull_high(a, c);                       /*   :d2:d1:00 = a1*b0 */
+    e = pmull_low(a, c);                        /*   :e2:e1:00 = a0*b1 */
+    m = veorq_u8(d, e);                         /*   :m2:m1:00 = d + e */
+
+    ret.val[0] = h;
+    ret.val[1] = m;
+    ret.val[2] = l;
+    return ret;
+}
+
+/*
+ * Modulo reduction.
+ *
+ * See: https://www.researchgate.net/publication/285612706_Implementing_GCM_on_ARMv8
+ *
+ * Section 4.3
+ *
+ * Modular reduction is slightly more complex. Write the GCM modulus as f(z) =
+ * z^128 +r(z), where r(z) = z^7+z^2+z+ 1. The well known approach is to
+ * consider that z^128 ≡r(z) (mod z^128 +r(z)), allowing us to write the 256-bit
+ * operand to be reduced as a(z) = h(z)z^128 +l(z)≡h(z)r(z) + l(z). That is, we
+ * simply multiply the higher part of the operand by r(z) and add it to l(z). If
+ * the result is still larger than 128 bits, we reduce again.
+ */
+static inline uint8x16_t poly_mult_reduce(uint8x16x3_t input)
+{
+    uint8x16_t const ZERO = vdupq_n_u8(0);
+    /* use 'asm' as an optimisation barrier to prevent loading MODULO from memory */
+    uint64x2_t r = vreinterpretq_u64_u8(vdupq_n_u8(0x87));
+    asm ("" : "+w" (r));
+    uint8x16_t const MODULO = vreinterpretq_u8_u64(vshrq_n_u64(r, 64 - 8));
+    uint8x16_t h, m, l; /* input high/middle/low 128b */
+    uint8x16_t c, d, e, f, g, n, o;
+    h = input.val[0];            /* h3:h2:00:00                          */
+    m = input.val[1];            /*   :m2:m1:00                          */
+    l = input.val[2];            /*   :  :l1:l0                          */
+    c = pmull_high(h, MODULO);   /*   :c2:c1:00 = reduction of h3        */
+    d = pmull_low(h, MODULO);    /*   :  :d1:d0 = reduction of h2        */
+    e = veorq_u8(c, m);          /*   :e2:e1:00 = m2:m1:00 + c2:c1:00    */
+    f = pmull_high(e, MODULO);   /*   :  :f1:f0 = reduction of e2        */
+    g = vextq_u8(ZERO, e, 8);    /*   :  :g1:00 = e1:00                  */
+    n = veorq_u8(d, l);          /*   :  :n1:n0 = d1:d0 + l1:l0          */
+    o = veorq_u8(n, f);          /*       o1:o0 = f1:f0 + n1:n0          */
+    return veorq_u8(o, g);       /*             = o1:o0 + g1:00          */
+}
+
+/*
+ * GCM multiplication: c = a times b in GF(2^128)
+ */
+void mbedtls_aesce_gcm_mult(unsigned char c[16],
+                            const unsigned char a[16],
+                            const unsigned char b[16])
+{
+    uint8x16_t va, vb, vc;
+    va = vrbitq_u8(vld1q_u8(&a[0]));
+    vb = vrbitq_u8(vld1q_u8(&b[0]));
+    vc = vrbitq_u8(poly_mult_reduce(poly_mult_128(va, vb)));
+    vst1q_u8(&c[0], vc);
+}
+
+#endif /* MBEDTLS_GCM_C */
 
 #if defined(MBEDTLS_POP_TARGET_PRAGMA)
 #if defined(__clang__)

@@ -65,6 +65,24 @@ int mbedtls_aesce_crypt_ecb(mbedtls_aes_context *ctx,
                             unsigned char output[16]);
 
 /**
+ * \brief          Internal GCM multiplication: c = a * b in GF(2^128)
+ *
+ * \note           This function is only for internal use by other library
+ *                 functions; you must not call it directly.
+ *
+ * \param c        Result
+ * \param a        First operand
+ * \param b        Second operand
+ *
+ * \note           Both operands and result are bit strings interpreted as
+ *                 elements of GF(2^128) as per the GCM spec.
+ */
+void mbedtls_aesce_gcm_mult(unsigned char c[16],
+                            const unsigned char a[16],
+                            const unsigned char b[16]);
+
+
+/**
  * \brief           Internal round key inversion. This function computes
  *                  decryption round keys from the encryption round keys.
  *

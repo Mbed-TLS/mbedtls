@@ -42,6 +42,10 @@
 #include "aesni.h"
 #endif
 
+#if defined(MBEDTLS_AESCE_C)
+#include "aesce.h"
+#endif
+
 #if !defined(MBEDTLS_GCM_ALT)
 
 /*
@@ -89,6 +93,12 @@ static int gcm_gen_table(mbedtls_gcm_context *ctx)
 #if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
     /* With CLMUL support, we need only h, not the rest of the table */
     if (mbedtls_aesni_has_support(MBEDTLS_AESNI_CLMUL)) {
+        return 0;
+    }
+#endif
+
+#if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
+    if (mbedtls_aesce_has_support()) {
         return 0;
     }
 #endif
@@ -187,6 +197,7 @@ static void gcm_mult(mbedtls_gcm_context *ctx, const unsigned char x[16],
     if (mbedtls_aesni_has_support(MBEDTLS_AESNI_CLMUL)) {
         unsigned char h[16];
 
+        /* mbedtls_aesni_gcm_mult needs big-endian input */
         MBEDTLS_PUT_UINT32_BE(ctx->HH[8] >> 32, h,  0);
         MBEDTLS_PUT_UINT32_BE(ctx->HH[8],       h,  4);
         MBEDTLS_PUT_UINT32_BE(ctx->HL[8] >> 32, h,  8);
@@ -196,6 +207,21 @@ static void gcm_mult(mbedtls_gcm_context *ctx, const unsigned char x[16],
         return;
     }
 #endif /* MBEDTLS_AESNI_C && MBEDTLS_HAVE_X86_64 */
+
+#if defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_HAVE_ARM64)
+    if (mbedtls_aesce_has_support()) {
+        unsigned char h[16];
+
+        /* mbedtls_aesce_gcm_mult needs big-endian input */
+        MBEDTLS_PUT_UINT32_BE(ctx->HH[8] >> 32, h,  0);
+        MBEDTLS_PUT_UINT32_BE(ctx->HH[8],       h,  4);
+        MBEDTLS_PUT_UINT32_BE(ctx->HL[8] >> 32, h,  8);
+        MBEDTLS_PUT_UINT32_BE(ctx->HL[8],       h, 12);
+
+        mbedtls_aesce_gcm_mult(output, x, h);
+        return;
+    }
+#endif
 
     lo = x[15] & 0xf;
 

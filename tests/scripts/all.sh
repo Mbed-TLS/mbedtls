@@ -2642,7 +2642,6 @@ config_psa_crypto_hash_use_psa () {
     if [ "$DRIVER_ONLY" -eq 1 ]; then
         scripts/config.py unset MBEDTLS_MD_C
     fi
-    scripts/config.py unset MBEDTLS_HKDF_C # has independent PSA implementation
     scripts/config.py unset MBEDTLS_HMAC_DRBG_C
     scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC

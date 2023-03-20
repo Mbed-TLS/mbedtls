@@ -377,11 +377,7 @@ static void psa_wipe_tag_output_buffer(uint8_t *output_buffer, psa_status_t stat
 /* Key management */
 /****************************************************************/
 
-#if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) || \
-    defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
+#if defined(MBEDTLS_ECP_C)
 mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
                                               size_t bits,
                                               int bits_is_sloppy)
@@ -473,11 +469,7 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
     (void) bits_is_sloppy;
     return MBEDTLS_ECP_DP_NONE;
 }
-#endif /* defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) ||
-          defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) ||
-          defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
-          defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ||
-          defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) */
+#endif /* defined(MBEDTLS_ECP_C) */
 
 psa_status_t psa_validate_unstructured_key_bit_size(psa_key_type_t type,
                                                     size_t bits)

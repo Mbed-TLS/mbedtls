@@ -527,19 +527,19 @@ static int pk_convert_compressed_ec(mbedtls_pk_context *pk,
 
     mbedtls_ecp_keypair_init(&ecp_key);
     ret = mbedtls_ecp_group_load(&(ecp_key.grp), ecp_group_id);
-    if (ret < 0) {
+    if (ret != 0) {
         return ret;
     }
     ret = mbedtls_ecp_point_read_binary(&(ecp_key.grp), &ecp_key.Q,
                                         in_start, in_len);
-    if (ret < 0) {
+    if (ret != 0) {
         mbedtls_ecp_keypair_free(&ecp_key);
         return ret;
     }
     ret = mbedtls_ecp_point_write_binary(&(ecp_key.grp), &ecp_key.Q,
                                          MBEDTLS_ECP_PF_UNCOMPRESSED,
                                          out_buf_len, out_buf, out_buf_size);
-    if (ret < 0) {
+    if (ret != 0) {
         mbedtls_ecp_keypair_free(&ecp_key);
         return ret;
     }
@@ -571,7 +571,7 @@ static int pk_get_ecpubkey(unsigned char **p, const unsigned char *end,
                                        &(pk->MBEDTLS_PRIVATE(pk_raw_len)),
                                        pk->MBEDTLS_PRIVATE(pk_raw),
                                        PSA_EXPORT_PUBLIC_KEY_MAX_SIZE);
-        if (ret < 0) {
+        if (ret != 0) {
             return ret;
         }
     } else {

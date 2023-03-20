@@ -963,7 +963,7 @@ int mbedtls_pk_update_keypair_from_public_key(mbedtls_pk_context *pk)
 
     group_id = mbedtls_ecc_group_of_psa(pk->pk_ec_family, pk->pk_bits, 0);
     ret = mbedtls_ecp_group_load(&(ecp_keypair->grp), group_id);
-    if (ret < 0) {
+    if (ret != 0) {
         return ret;
     }
     ret = mbedtls_ecp_point_read_binary(&(ecp_keypair->grp), &(ecp_keypair->Q),

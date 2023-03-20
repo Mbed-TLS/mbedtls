@@ -1230,8 +1230,9 @@ component_test_crypto_full_md_light_only () {
     scripts/config.py unset MBEDTLS_PKCS7_C
     # Disable indirect dependencies of MD
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC # needs HMAC_DRBG
-    # Enable "light" subset of MD
-    make CFLAGS="$ASAN_CFLAGS -DMBEDTLS_MD_LIGHT" LDFLAGS="$ASAN_CFLAGS"
+    # Note: MD-light is auto-enabled in build_info.h by modules that need it,
+    # which we haven't disabled, so no need to explicitly enable it.
+    make CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
     # Make sure we don't have the HMAC functions, but the hashing functions
     not grep mbedtls_md_hmac library/md.o
@@ -2616,8 +2617,9 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
     make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS" all
 
     # There's a risk of something getting re-enabled via config_psa.h;
-    # make sure it did not happen.
-    not grep mbedtls_md library/md.o
+    # make sure it did not happen. Note: it's OK for MD_LIGHT to be enabled,
+    # but not the full MD_C (for now), so check mbedtls_md_hmac for that.
+    not grep mbedtls_md_hmac library/md.o
     not grep mbedtls_md5 library/md5.o
     not grep mbedtls_sha1 library/sha1.o
     not grep mbedtls_sha256 library/sha256.o

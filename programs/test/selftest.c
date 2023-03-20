@@ -353,6 +353,9 @@ int main(int argc, char *argv[])
     unsigned char buf[1000000];
 #endif
     void *pointer;
+#if defined(_WIN32)
+    int ci = 0; /* ci = 1 => running in CI, so don't wait for a key press */
+#endif
 
     /*
      * The C standard doesn't guarantee that all-bits-0 is the representation
@@ -380,6 +383,10 @@ int main(int argc, char *argv[])
         } else if (strcmp(*argp, "--exclude") == 0 ||
                    strcmp(*argp, "-x") == 0) {
             exclude_mode = 1;
+#if defined(_WIN32)
+        } else if (strcmp(*argp, "--ci") == 0) {
+            ci = 1;
+#endif
         } else {
             break;
         }
@@ -450,8 +457,10 @@ int main(int argc, char *argv[])
             mbedtls_printf("  [ All tests PASS ]\n\n");
         }
 #if defined(_WIN32)
-        mbedtls_printf("  Press Enter to exit this program.\n");
-        fflush(stdout); getchar();
+        if (!ci) {
+            mbedtls_printf("  Press Enter to exit this program.\n");
+            fflush(stdout); getchar();
+        }
 #endif
     }
 

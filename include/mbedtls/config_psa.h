@@ -848,6 +848,11 @@ extern "C" {
 #define PSA_HAVE_FULL_ECDSA 1
 #endif
 
+#if defined(PSA_WANT_ALG_JPAKE) && defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) && \
+    defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
+#define PSA_HAVE_FULL_JPAKE 1
+#endif
+
 /* These features are always enabled. */
 #define PSA_WANT_KEY_TYPE_DERIVE 1
 #define PSA_WANT_KEY_TYPE_PASSWORD 1

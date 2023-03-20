@@ -2303,7 +2303,7 @@ component_test_psa_crypto_config_accel_ecc () {
     # Configure and build the main libraries
     # ---------------------------------------
 
-    # start with default + driver support
+    # start with default (no TLS 1.3 or USE_PSA) + driver support
     scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
 
@@ -2313,7 +2313,6 @@ component_test_psa_crypto_config_accel_ecc () {
     scripts/config.py unset MBEDTLS_ECJPAKE_C
 
     # dependencies
-    #scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3 # not in default anyway
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED

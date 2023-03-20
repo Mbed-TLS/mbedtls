@@ -62,8 +62,9 @@
 #       pragma GCC push_options
 #       pragma GCC target ("arch=armv8-a+crypto")
 #       define MBEDTLS_POP_TARGET_PRAGMA
+#   elif defined(_MSC_VER)
 #   else
-#       error "Only GCC and Clang supported for MBEDTLS_AESCE_C"
+#       error "Only MSVC, GCC and Clang supported for MBEDTLS_AESCE_C"
 #   endif
 #endif /* !__ARM_FEATURE_AES || MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG */
 

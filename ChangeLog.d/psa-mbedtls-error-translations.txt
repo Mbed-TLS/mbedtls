@@ -1,0 +1,6 @@
+New deprecations
+   * PSA to mbedtls error translation is now unified in psa_util.h,
+     deprecating mbedtls_md_error_from_psa. Each file that performs error
+     translation should define its own version of PSA_TO_MBEDTLS_ERR,
+     optionally providing file-specific error pairs. Please see psa_util.h for
+     more details.

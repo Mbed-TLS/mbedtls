@@ -35,7 +35,7 @@
  *
  * \return              The corresponding PSA error code
  */
-psa_status_t p256_to_psa_error( int ret );
+psa_status_t p256_to_psa_error(int ret);
 
 
 /** Generate SECP256R1 ECC Key Pair.
@@ -61,7 +61,7 @@ psa_status_t p256_transparent_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key_buffer,
     size_t key_buffer_size,
-    size_t *key_buffer_length );
+    size_t *key_buffer_length);
 
 /** Perform raw key agreement using p256-m's ECDH implementation
  * \param[in]  attributes           The attributes of the key to use for the
@@ -94,7 +94,7 @@ psa_status_t p256_transparent_key_agreement(
     size_t peer_key_length,
     uint8_t *shared_secret,
     size_t shared_secret_size,
-    size_t *shared_secret_length );
+    size_t *shared_secret_length);
 
 /** Sign an already-calculated hash with a private key using p256-m's ECDSA
  *  implementation
@@ -126,7 +126,7 @@ psa_status_t p256_transparent_sign_hash(
     size_t hash_length,
     uint8_t *signature,
     size_t signature_size,
-    size_t *signature_length );
+    size_t *signature_length);
 
 /** Verify the signature of a hash using a SECP256R1 public key using p256-m's
  *  ECDSA implementation.
@@ -166,6 +166,6 @@ psa_status_t p256_transparent_verify_hash(
     const uint8_t *hash,
     size_t hash_length,
     const uint8_t *signature,
-    size_t signature_length );
+    size_t signature_length);
 
 #endif /* P256M_DRIVER_ENTRYPOINTS_H */

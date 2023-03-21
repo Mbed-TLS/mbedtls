@@ -375,9 +375,14 @@ static inline uint8x16x3_t poly_mult_128(uint8x16_t a, uint8x16_t b)
 static inline uint8x16_t poly_mult_reduce(uint8x16x3_t input)
 {
     uint8x16_t const ZERO = vdupq_n_u8(0);
-    /* use 'asm' as an optimisation barrier to prevent loading MODULO from memory */
+
     uint64x2_t r = vreinterpretq_u64_u8(vdupq_n_u8(0x87));
+#if defined(__GNUC__)
+    /* use 'asm' as an optimisation barrier to prevent loading MODULO from
+     * memory. It is for GNUC compatible compilers.
+     */
     asm ("" : "+w" (r));
+#endif
     uint8x16_t const MODULO = vreinterpretq_u8_u64(vshrq_n_u64(r, 64 - 8));
     uint8x16_t h, m, l; /* input high/middle/low 128b */
     uint8x16_t c, d, e, f, g, n, o;

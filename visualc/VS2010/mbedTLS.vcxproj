@@ -246,6 +246,7 @@
     <ClInclude Include="..\..\tests\include\test\psa_exercise_key.h" />
     <ClInclude Include="..\..\tests\include\test\psa_helpers.h" />
     <ClInclude Include="..\..\tests\include\test\random.h" />
+    <ClInclude Include="..\..\tests\include\test\ssl_helpers.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\aead.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\cipher.h" />
     <ClInclude Include="..\..\tests\include\test\drivers\config_test_driver.h" />

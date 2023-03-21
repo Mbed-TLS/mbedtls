@@ -1,0 +1,4 @@
+Bugfix
+   * Fix #5758. Compilers might generate unexpected instructions when CPU
+     modifiers were specified as global flags( command line or global headers).
+     It is fixed with reducing the scope of CPU modifier flags.

@@ -173,10 +173,23 @@
 #error "MBEDTLS_PKCS5_C defined, but not all prerequisites"
 #endif
 
+/* Helpers for hash dependencies, will be undefined at the end of the file */
+/* Do SHA-256, 384, 512 to cover Entropy and TLS. */
+#if defined(MBEDTLS_SHA256_C) || \
+    (defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_SHA_256))
+#define MBEDTLS_MD_HAVE_SHA256
+#endif
+#if defined(MBEDTLS_SHA384_C) || \
+    (defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_SHA_384))
+#define MBEDTLS_MD_HAVE_SHA384
+#endif
+#if defined(MBEDTLS_SHA512_C) || \
+    (defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_SHA_512))
+#define MBEDTLS_MD_HAVE_SHA512
+#endif
+
 #if defined(MBEDTLS_ENTROPY_C) && \
-    !( defined(MBEDTLS_SHA512_C) || defined(MBEDTLS_SHA256_C) || \
-       (defined(MBEDTLS_PSA_CRYPTO_C) && \
-        (defined(PSA_WANT_ALG_SHA_512) || defined(PSA_WANT_ALG_SHA_256))))
+    !(defined(MBEDTLS_MD_HAVE_SHA512) || defined(MBEDTLS_MD_HAVE_SHA256))
 #error "MBEDTLS_ENTROPY_C defined, but not all prerequisites"
 #endif
 #if defined(MBEDTLS_ENTROPY_C) && \
@@ -184,16 +197,12 @@
 #error "MBEDTLS_CTR_DRBG_ENTROPY_LEN value too high"
 #endif
 #if defined(MBEDTLS_ENTROPY_C) &&                                            \
-    ( defined(MBEDTLS_ENTROPY_FORCE_SHA256) || \
-      !( defined(MBEDTLS_SHA512_C) || \
-         (defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_SHA_512)) ) ) \
+    (defined(MBEDTLS_ENTROPY_FORCE_SHA256) || !defined(MBEDTLS_MD_HAVE_SHA512)) \
     && defined(MBEDTLS_CTR_DRBG_ENTROPY_LEN) && (MBEDTLS_CTR_DRBG_ENTROPY_LEN > 32)
 #error "MBEDTLS_CTR_DRBG_ENTROPY_LEN value too high"
 #endif
 #if defined(MBEDTLS_ENTROPY_C) && \
-    defined(MBEDTLS_ENTROPY_FORCE_SHA256) && \
-    !( defined(MBEDTLS_SHA256_C) || \
-       (defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_SHA_256)) )
+    defined(MBEDTLS_ENTROPY_FORCE_SHA256) && !defined(MBEDTLS_MD_HAVE_SHA256)
 #error "MBEDTLS_ENTROPY_FORCE_SHA256 defined, but not all prerequisites"
 #endif
 
@@ -371,8 +380,7 @@
 
 /* Use of EC J-PAKE in TLS requires SHA-256. */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) &&                    \
-    !(defined(MBEDTLS_SHA256_C) || \
-      (defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_SHA_256)))
+    !defined(MBEDTLS_MD_HAVE_SHA256)
 #error "MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED defined, but not all prerequisites"
 #endif
 
@@ -1113,6 +1121,9 @@
 #undef MBEDTLS_PK_HAVE_ECDSA
 #undef MBEDTLS_PK_HAVE_JPAKE
 #undef MBEDTLS_PK_HAVE_ECDH
+#undef MBEDTLS_MD_HAVE_SHA256
+#undef MBEDTLS_MD_HAVE_SHA384
+#undef MBEDTLS_MD_HAVE_SHA512
 
 /*
  * Avoid warning from -pedantic. This is a convenient place for this

@@ -324,14 +324,14 @@ psa_status_t psa_driver_wrapper_sign_hash(
                 attributes->core.bits == 256 )
             {
                 status = p256_transparent_sign_hash( attributes,
-                                                      key_buffer,
-                                                      key_buffer_size,
-                                                      alg,
-                                                      hash,
-                                                      hash_length,
-                                                      signature,
-                                                      signature_size,
-                                                      signature_length );
+                                                     key_buffer,
+                                                     key_buffer_size,
+                                                     alg,
+                                                     hash,
+                                                     hash_length,
+                                                     signature,
+                                                     signature_size,
+                                                     signature_length );
                 if( status != PSA_ERROR_NOT_SUPPORTED )
                 return( status );
             }
@@ -428,13 +428,13 @@ psa_status_t psa_driver_wrapper_verify_hash(
                 attributes->core.bits == 256 )
             {
                 status = p256_transparent_verify_hash( attributes,
-                                                        key_buffer,
-                                                        key_buffer_size,
-                                                        alg,
-                                                        hash,
-                                                        hash_length,
-                                                        signature,
-                                                        signature_length );
+                                                       key_buffer,
+                                                       key_buffer_size,
+                                                       alg,
+                                                       hash,
+                                                       hash_length,
+                                                       signature,
+                                                       signature_length );
                 if( status != PSA_ERROR_NOT_SUPPORTED )
                 return( status );
             }
@@ -859,9 +859,9 @@ psa_status_t psa_driver_wrapper_generate_key(
                     attributes->core.bits == 256 )
                 {
                     status = p256_transparent_generate_key( attributes,
-                                                             key_buffer,
-                                                             key_buffer_size,
-                                                             key_buffer_length );
+                                                            key_buffer,
+                                                            key_buffer_size,
+                                                            key_buffer_length );
                     if( status != PSA_ERROR_NOT_SUPPORTED )
                         break;
                 }
@@ -2812,14 +2812,14 @@ psa_status_t psa_driver_wrapper_key_agreement(
                 attributes->core.bits == 256 )
             {
                 status = p256_transparent_key_agreement( attributes,
-                                                          key_buffer,
-                                                          key_buffer_size,
-                                                          alg,
-                                                          peer_key,
-                                                          peer_key_length,
-                                                          shared_secret,
-                                                          shared_secret_size,
-                                                          shared_secret_length );
+                                                         key_buffer,
+                                                         key_buffer_size,
+                                                         alg,
+                                                         peer_key,
+                                                         peer_key_length,
+                                                         shared_secret,
+                                                         shared_secret_size,
+                                                         shared_secret_length );
                 if( status != PSA_ERROR_NOT_SUPPORTED)
                     return( status );
             }

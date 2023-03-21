@@ -187,7 +187,7 @@ pre_initialize_variables () {
 
     # CFLAGS and LDFLAGS for Asan builds that don't use CMake
     # default to -O2, use -Ox _after_ this if you want another level
-    ASAN_CFLAGS='-O2 -Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
+    ASAN_CFLAGS='-O0 -g -Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
 
     # Gather the list of available components. These are the functions
     # defined in this script whose name starts with "component_".
@@ -2283,6 +2283,163 @@ component_test_psa_crypto_config_reference_all_ec_algs_use_psa () {
 
     msg "ssl-opt: MBEDTLS_PSA_CRYPTO_CONFIG with non-accelerated EC algs + USE_PSA"
     tests/ssl-opt.sh
+}
+
+component_test_psa_crypto_config_accel_ecc () {
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECC"
+
+    # Algorithms and key types to accelerate
+    loc_accel_list="ALG_ECDH ALG_ECDSA ALG_DETERMINISTIC_ECDSA ALG_JPAKE KEY_TYPE_ECC_KEY_PAIR KEY_TYPE_ECC_PUBLIC_KEY"
+
+    # Configure and build the test driver library
+    # --------------------------------------------
+
+    # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
+    # partial support for cipher operations in the driver test library.
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+
+    loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
+    # These hashes are needed for some ECDSA signature tests.
+    loc_accel_flags="$loc_accel_flags -DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_ALG_SHA_224"
+    loc_accel_flags="$loc_accel_flags -DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_ALG_SHA_256"
+    loc_accel_flags="$loc_accel_flags -DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_ALG_SHA_384"
+    loc_accel_flags="$loc_accel_flags -DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_ALG_SHA_512"
+    make -C tests libtestdriver1.a CFLAGS="$ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
+
+    # Configure and build the main libraries
+    # ---------------------------------------
+
+    # start with default + driver support
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+
+    # disable modules for which we have drivers
+    scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_ECDH_C
+    scripts/config.py unset MBEDTLS_ECJPAKE_C
+
+    # dependencies
+    #scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3 # not in default anyway
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+
+    # build and link with test drivers
+    loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
+    make CFLAGS="$ASAN_CFLAGS -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
+
+    # make sure these were not auto-re-enabled by accident
+    not grep mbedtls_ecdh_ library/ecdh.o
+    not grep mbedtls_ecdsa_ library/ecdsa.o
+    not grep mbedtls_ecjpake_ library/ecjpake.o
+
+    # Run the tests
+    # -------------
+
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECC"
+    make test
+}
+
+component_test_verify_ec_max_size () {
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG + accel EC algs + USE_PSA_CRYPTO"
+
+    # Accelerate all EC algs (all EC curves are automatically accelerated as
+    # well in the built-in version due to the "PSA_WANT_xxx" symbols in
+    # "crypto_config.h")
+    loc_accel_list="ALG_ECDH \
+                    ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
+                    ALG_JPAKE \
+                    KEY_TYPE_ECC_KEY_PAIR KEY_TYPE_ECC_PUBLIC_KEY"
+
+    # Configure and build the test driver library
+    # --------------------------------------------
+
+    # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
+    # partial support for cipher operations in the driver test library.
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+
+    loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
+    # These hashes are needed for some ECDSA signature tests.
+    loc_accel_flags="$loc_accel_flags -DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_ALG_SHA_224"
+    loc_accel_flags="$loc_accel_flags -DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_ALG_SHA_256"
+    loc_accel_flags="$loc_accel_flags -DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_ALG_SHA_384"
+    loc_accel_flags="$loc_accel_flags -DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_ALG_SHA_512"
+    make -C tests libtestdriver1.a CFLAGS="$ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
+
+    # Configure and build the main libraries
+    # ---------------------------------------
+
+    # start with default + driver support + USE_PSA_CRYPTO
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
+
+    # disable modules for which we have drivers
+    scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_ECDH_C
+    scripts/config.py unset MBEDTLS_ECJPAKE_C
+
+    # disable key exchanges dependencies from the modules above
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
+
+    # Ensure also RSA_C is disabled so that the size of the public/private
+    # keys cannot be taken from there
+    scripts/config.py unset MBEDTLS_RSA_C
+
+    # Explicitly disable all SW implementation for elliptic curves and enable
+    # their accelerated version (this excludes the built-in automatic inclusion
+    # from "config_psa.h")
+    # Just leave SW implementation for the curve with the smallest bit size
+    # (MBEDTLS_ECP_DP_SECP192R1_ENABLED) for allowing to build with ECP_C.
+    # scripts/config.py unset MBEDTLS_ECP_DP_SECP192R1_ENABLED
+    scripts/config.py unset MBEDTLS_ECP_DP_SECP224R1_ENABLED
+    scripts/config.py unset MBEDTLS_ECP_DP_SECP256R1_ENABLED
+    scripts/config.py unset MBEDTLS_ECP_DP_SECP384R1_ENABLED
+    scripts/config.py unset MBEDTLS_ECP_DP_SECP521R1_ENABLED
+    scripts/config.py unset MBEDTLS_ECP_DP_SECP192K1_ENABLED
+    scripts/config.py unset MBEDTLS_ECP_DP_SECP224K1_ENABLED
+    scripts/config.py unset MBEDTLS_ECP_DP_SECP256K1_ENABLED
+    scripts/config.py unset MBEDTLS_ECP_DP_BP256R1_ENABLED
+    scripts/config.py unset MBEDTLS_ECP_DP_BP384R1_ENABLED
+    scripts/config.py unset MBEDTLS_ECP_DP_BP512R1_ENABLED
+    scripts/config.py unset MBEDTLS_ECP_DP_CURVE25519_ENABLED
+    scripts/config.py unset MBEDTLS_ECP_DP_CURVE448_ENABLED
+    loc_accel_list="$loc_accel_list ECC_SECP_R1_521"
+    loc_accel_list="$loc_accel_list ECC_BRAINPOOL_P_R1_512"
+    loc_accel_list="$loc_accel_list ECC_MONTGOMERY_448"
+    loc_accel_list="$loc_accel_list ECC_SECP_R1_384"
+    loc_accel_list="$loc_accel_list ECC_BRAINPOOL_P_R1_384"
+    loc_accel_list="$loc_accel_list ECC_SECP_R1_256"
+    loc_accel_list="$loc_accel_list ECC_SECP_K1_256"
+    loc_accel_list="$loc_accel_list ECC_BRAINPOOL_P_R1_256"
+    loc_accel_list="$loc_accel_list ECC_MONTGOMERY_255"
+    loc_accel_list="$loc_accel_list ECC_SECP_R1_224"
+    loc_accel_list="$loc_accel_list ECC_SECP_K1_224"
+    loc_accel_list="$loc_accel_list ECC_SECP_R1_192"
+    loc_accel_list="$loc_accel_list ECC_SECP_K1_192"
+
+    # build and link with test drivers
+    loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
+    make CFLAGS="$ASAN_CFLAGS -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
+
+    # make sure excluded modules were not auto-re-enabled by accident
+    not grep mbedtls_ecdh_ library/ecdh.o
+    not grep mbedtls_ecdsa_ library/ecdsa.o
+    not grep mbedtls_ecjpake_ library/ecjpake.o
+
+    # Run the tests
+    # -------------
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECC"
+    make test
 }
 
 component_test_psa_crypto_config_accel_rsa_signature () {

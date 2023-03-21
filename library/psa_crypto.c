@@ -90,10 +90,6 @@
 #define BUILTIN_ALG_ANY_HKDF 1
 #endif
 
-/* The only two JPAKE user/peer identifiers supported for the time being. */
-static const uint8_t jpake_server_id[] = { 's', 'e', 'r', 'v', 'e', 'r' };
-static const uint8_t jpake_client_id[] = { 'c', 'l', 'i', 'e', 'n', 't' };
-
 /****************************************************************/
 /* Global data, support functions and library management */
 /****************************************************************/
@@ -7420,15 +7416,6 @@ psa_status_t psa_pake_set_user(
         goto exit;
     }
 
-    /* Allow only "client" or "server" values (temporary restriction). */
-    if ((user_id_len != sizeof(jpake_server_id) ||
-         memcmp(user_id, jpake_server_id, user_id_len) != 0) &&
-        (user_id_len != sizeof(jpake_client_id) ||
-         memcmp(user_id, jpake_client_id, user_id_len) != 0)) {
-        status = PSA_ERROR_NOT_SUPPORTED;
-        goto exit;
-    }
-
     operation->data.inputs.user = mbedtls_calloc(1, user_id_len);
     if (operation->data.inputs.user == NULL) {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
@@ -7463,15 +7450,6 @@ psa_status_t psa_pake_set_peer(
 
     if (operation->data.inputs.peer_len != 0) {
         status = PSA_ERROR_BAD_STATE;
-        goto exit;
-    }
-
-    /* Allow only "client" or "server" values (temporary restriction). */
-    if ((peer_id_len != sizeof(jpake_server_id) ||
-         memcmp(peer_id, jpake_server_id, peer_id_len) != 0) &&
-        (peer_id_len != sizeof(jpake_client_id) ||
-         memcmp(peer_id, jpake_client_id, peer_id_len) != 0)) {
-        status = PSA_ERROR_NOT_SUPPORTED;
         goto exit;
     }
 
@@ -7591,19 +7569,6 @@ static psa_status_t psa_pake_complete_inputs(
     if (operation->alg == PSA_ALG_JPAKE) {
         if (inputs.user_len == 0 || inputs.peer_len == 0) {
             return PSA_ERROR_BAD_STATE;
-        }
-        if (memcmp(inputs.user, jpake_client_id, inputs.user_len) == 0 &&
-            memcmp(inputs.peer, jpake_server_id, inputs.peer_len) == 0) {
-            inputs.role = PSA_PAKE_ROLE_CLIENT;
-        } else
-        if (memcmp(inputs.user, jpake_server_id, inputs.user_len) == 0 &&
-            memcmp(inputs.peer, jpake_client_id, inputs.peer_len) == 0) {
-            inputs.role = PSA_PAKE_ROLE_SERVER;
-        }
-
-        if (inputs.role != PSA_PAKE_ROLE_CLIENT &&
-            inputs.role != PSA_PAKE_ROLE_SERVER) {
-            return PSA_ERROR_NOT_SUPPORTED;
         }
     }
 

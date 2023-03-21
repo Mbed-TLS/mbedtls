@@ -388,7 +388,13 @@ class CodeParser():
         """
         macro_regex = re.compile(r"# *define +(?P<macro>\w+)")
         exclusions = (
-            "asm", "inline", "EMIT", "_CRT_SECURE_NO_DEPRECATE", "MULADDC_", "_WIN32_WINNT", "WIN32_LEAN_AND_MEAN"
+            "asm",
+            "inline",
+            "EMIT",
+            "_CRT_SECURE_NO_DEPRECATE",
+            "MULADDC_",
+            "_WIN32_WINNT",
+            "WIN32_LEAN_AND_MEAN"
         )
 
         files = self.get_included_files(include, exclude)

@@ -51,7 +51,7 @@
  *      include/mbedtls/bn_mul.h
  *
  * Required by:
- *      MBEDTLS_AESNI_C
+ *      MBEDTLS_AESNI_C (on some platforms)
  *      MBEDTLS_PADLOCK_C
  *
  * Comment to disable the use of assembly code.
@@ -2344,14 +2344,32 @@
 /**
  * \def MBEDTLS_AESNI_C
  *
- * Enable AES-NI support on x86-64.
+ * Enable AES-NI support on x86-64 or x86-32.
+ *
+ * \note AESNI is only supported with certain compilers and target options:
+ * - Visual Studio 2013: supported.
+ * - GCC, x86-64, target not explicitly supporting AESNI:
+ *   requires MBEDTLS_HAVE_ASM.
+ * - GCC, x86-32, target not explicitly supporting AESNI:
+ *   not supported.
+ * - GCC, x86-64 or x86-32, target supporting AESNI: supported.
+ *   For this assembly-less implementation, you must currently compile
+ *   `library/aesni.c` and `library/aes.c` with machine options to enable
+ *   SSE2 and AESNI instructions: `gcc -msse2 -maes -mpclmul` or
+ *   `clang -maes -mpclmul`.
+ * - Non-x86 targets: this option is silently ignored.
+ * - Other compilers: this option is silently ignored.
+ *
+ * \note
+ * Above, "GCC" includes compatible compilers such as Clang.
+ * The limitations on target support are likely to be relaxed in the future.
  *
  * Module:  library/aesni.c
  * Caller:  library/aes.c
  *
- * Requires: MBEDTLS_HAVE_ASM
+ * Requires: MBEDTLS_HAVE_ASM (on some platforms, see note)
  *
- * This modules adds support for the AES-NI instructions on x86-64
+ * This modules adds support for the AES-NI instructions on x86.
  */
 #define MBEDTLS_AESNI_C
 

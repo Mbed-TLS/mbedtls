@@ -69,10 +69,6 @@
 #error "MBEDTLS_HAVE_TIME_DATE without MBEDTLS_HAVE_TIME does not make sense"
 #endif
 
-#if defined(MBEDTLS_AESNI_C) && !defined(MBEDTLS_HAVE_ASM)
-#error "MBEDTLS_AESNI_C defined, but not all prerequisites"
-#endif
-
 #if defined(MBEDTLS_CTR_DRBG_C) && !defined(MBEDTLS_AES_C)
 #error "MBEDTLS_CTR_DRBG_C defined, but not all prerequisites"
 #endif

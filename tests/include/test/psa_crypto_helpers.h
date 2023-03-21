@@ -352,7 +352,7 @@ int mbedtls_test_fail_if_psa_leaking(int line_no, const char *filename);
 /** \def MD_OR_USE_PSA_INIT
  *
  * Call this macro to initialize the PSA subsystem if MD uses a driver,
- * of if #MBEDTLS_USE_PSA_CRYPTO or #MBEDTLS_SSL_PROTO_TLS1_3 is enabled,
+ * or if #MBEDTLS_USE_PSA_CRYPTO or #MBEDTLS_SSL_PROTO_TLS1_3 is enabled,
  * and do nothing otherwise.
  *
  * If the initialization fails, mark the test case as failed and jump to the

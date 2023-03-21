@@ -2638,7 +2638,7 @@
  *
  * Requires: one of: MBEDTLS_MD5_C, MBEDTLS_RIPEMD160_C, MBEDTLS_SHA1_C,
  *                   MBEDTLS_SHA224_C, MBEDTLS_SHA256_C, MBEDTLS_SHA384_C,
- *                   MBEDTLS_SHA512_C, or MBEDTLS_PSA_CRYPTO_C with a least
+ *                   MBEDTLS_SHA512_C, or MBEDTLS_PSA_CRYPTO_C with at least
  *                   one hash.
  * Module:  library/md.c
  * Caller:  library/constant_time.c
@@ -2850,7 +2850,7 @@
  * Module:  library/pkcs5.c
  *
  * Requires: MBEDTLS_CIPHER_C
- *           (auto-enables MBEDTLS_MD_C)
+ * Auto-enables: MBEDTLS_MD_C
  *
  * \warning If using a hash that is only provided by PSA drivers, you must
  * call psa_crypto_init() before doing any PKCS5 operations.

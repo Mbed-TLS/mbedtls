@@ -296,12 +296,24 @@ static inline poly64_t vget_low_p64(poly64x2_t __a)
  * Older compilers miss some intrinsic functions for `poly*_t`. We use
  * uint8x16_t and uint8x16x3_t as input/output parameters.
  */
+#if defined(__GNUC__) && !defined(__clang__)
+/* GCC reports incompatible type error without cast. GCC think poly64_t and
+ * poly64x1_t are different, that is different with MSVC and Clang. */
+#define MBEDTLS_VMULL_P64(a, b) vmull_p64((poly64_t) a, (poly64_t) b)
+#else
+/* MSVC reports `error C2440: 'type cast'` with cast. Clang does not report
+ * error with/without cast. And I think poly64_t and poly64x1_t are same, no
+ * cast for clang also. */
+#define MBEDTLS_VMULL_P64(a, b) vmull_p64(a, b)
+#endif
 static inline uint8x16_t pmull_low(uint8x16_t a, uint8x16_t b)
 {
+
     return vreinterpretq_u8_p128(
-        vmull_p64(
-            (poly64_t) vget_low_p64(vreinterpretq_p64_u8(a)),
-            (poly64_t) vget_low_p64(vreinterpretq_p64_u8(b))));
+        MBEDTLS_VMULL_P64(
+            vget_low_p64(vreinterpretq_p64_u8(a)),
+            vget_low_p64(vreinterpretq_p64_u8(b))
+            ));
 }
 
 static inline uint8x16_t pmull_high(uint8x16_t a, uint8x16_t b)

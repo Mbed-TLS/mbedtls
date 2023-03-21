@@ -62,13 +62,13 @@
 #include <psa/crypto.h>
 
 /* If the build options we need are not enabled, compile a placeholder. */
-#if !defined(MBEDTLS_SHA256_C) || !defined(MBEDTLS_MD_C) ||      \
+#if !defined(PSA_WANT_ALG_SHA_256) || !defined(MBEDTLS_MD_C) ||      \
     !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_CCM_C) ||        \
     !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_FS_IO) || \
     defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 int main(void)
 {
-    printf("MBEDTLS_SHA256_C and/or MBEDTLS_MD_C and/or "
+    printf("PSA_WANT_ALG_SHA_256 and/or MBEDTLS_MD_C and/or "
            "MBEDTLS_AES_C and/or MBEDTLS_CCM_C and/or "
            "MBEDTLS_PSA_CRYPTO_C and/or MBEDTLS_FS_IO "
            "not defined and/or MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER "
@@ -698,6 +698,6 @@ usage_failure:
     usage();
     return EXIT_FAILURE;
 }
-#endif /* MBEDTLS_SHA256_C && MBEDTLS_MD_C &&
+#endif /* PSA_WANT_ALG_SHA_256 && MBEDTLS_MD_C &&
           MBEDTLS_AES_C && MBEDTLS_CCM_C &&
           MBEDTLS_PSA_CRYPTO_C && MBEDTLS_FS_IO */

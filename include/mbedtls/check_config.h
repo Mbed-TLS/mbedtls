@@ -787,33 +787,19 @@
 #error "MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY defined on non-Aarch64 system"
 #endif
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && !defined(MBEDTLS_USE_PSA_CRYPTO) && \
-    !( defined(MBEDTLS_SHA1_C) || defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA512_C) )
-#error "MBEDTLS_SSL_PROTO_TLS1_2 defined, but not all prerequisites"
-#endif
-
-/* TLS 1.3 requires separate HKDF parts from PSA */
+/* TLS 1.3 requires separate HKDF parts from PSA,
+ * and at least one ciphersuite, so at least SHA-256 or SHA-384
+ * from PSA to use with HKDF.
+ *
+ * Note: for dependencies common with TLS 1.2 (running handshake hash),
+ * see MBEDTLS_SSL_TLS_C. */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
-        !( defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_HKDF_EXTRACT) && defined(PSA_WANT_ALG_HKDF_EXPAND) )
+    !(defined(MBEDTLS_PSA_CRYPTO_C) && \
+      defined(PSA_WANT_ALG_HKDF_EXTRACT) && \
+      defined(PSA_WANT_ALG_HKDF_EXPAND) && \
+      (defined(PSA_WANT_ALG_SHA_256) || defined(PSA_WANT_ALG_SHA_384)))
 #error "MBEDTLS_SSL_PROTO_TLS1_3 defined, but not all prerequisites"
 #endif
-
-/* TLS 1.3 requires at least one ciphersuite, so at least SHA-256 or SHA-384 */
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-/* We always need at least one of the hashes via PSA (for use with HKDF) */
-#if !( defined(PSA_WANT_ALG_SHA_256) || defined(PSA_WANT_ALG_SHA_384) )
-#error "MBEDTLS_SSL_PROTO_TLS1_3 defined, but not all prerequisites"
-#endif /* !(PSA_WANT_ALG_SHA_256 || PSA_WANT_ALG_SHA_384) */
-#if !defined(MBEDTLS_USE_PSA_CRYPTO)
-/* When USE_PSA_CRYPTO is not defined, we also need SHA-256 or SHA-384 via the
- * legacy interface, including via the MD layer, for the parts of the code
- * that are shared with TLS 1.2 (running handshake hash). */
-#if !defined(MBEDTLS_MD_C) || \
-    !( defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA384_C) )
-#error "MBEDTLS_SSL_PROTO_TLS1_3 defined, but not all prerequisites"
-#endif /* !MBEDTLS_MD_C || !(MBEDTLS_SHA256_C || MBEDTLS_SHA384_C) */
-#endif /* !MBEDTLS_USE_PSA_CRYPTO */
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
 #if !( defined(MBEDTLS_PK_HAVE_ECDH) && defined(MBEDTLS_X509_CRT_PARSE_C) && \
@@ -878,10 +864,23 @@
 #error "MBEDTLS_SSL_ASYNC_PRIVATE defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_SSL_TLS_C) && ( !defined(MBEDTLS_CIPHER_C) ||     \
-    ( !defined(MBEDTLS_MD_C) && !defined(MBEDTLS_USE_PSA_CRYPTO) ) )
+#if defined(MBEDTLS_SSL_TLS_C) && !defined(MBEDTLS_CIPHER_C)
 #error "MBEDTLS_SSL_TLS_C defined, but not all prerequisites"
 #endif
+
+/* TLS 1.2 and 1.3 require SHA-256 or SHA-384 (running handshake hash) */
+#if defined(MBEDTLS_SSL_TLS_C)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if !(defined(PSA_WANT_ALG_SHA_256) || defined(PSA_WANT_ALG_SHA_384))
+#error "MBEDTLS_SSL_PROTO_TLS1_2 defined, but not all prerequisites"
+#endif
+#else /* MBEDTLS_USE_PSA_CRYPTO */
+#if !defined(MBEDTLS_MD_C) || \
+    !(defined(MBEDTLS_MD_HAVE_SHA256) || defined(MBEDTLS_MD_HAVE_SHA384))
+#error "MBEDTLS_SSL_PROTO_TLS1_2 defined, but not all prerequisites"
+#endif
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_SSL_TLS_C */
 
 #if defined(MBEDTLS_SSL_SRV_C) && !defined(MBEDTLS_SSL_TLS_C)
 #error "MBEDTLS_SSL_SRV_C defined, but not all prerequisites"

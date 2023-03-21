@@ -1,3 +1,7 @@
+*This is the original README for the p256-m repository. Please note that as
+only a subset of p256-m's files are present in Mbed TLS, this README may refer
+to files that are not present/relevant here.*
+
 p256-m is a minimalistic implementation of ECDH and ECDSA on NIST P-256,
 especially suited to constrained 32-bit environments. It's written in standard
 C, with optional bits of assembly for Arm Cortex-M and Cortex-A CPUs.

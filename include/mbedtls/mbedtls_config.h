@@ -3927,7 +3927,8 @@
  *
  * \warning p256-m has only been included to serve as a sample implementation
  * of how a driver/accelerator can be integrated alongside Mbed TLS. It is not
- * intented for use in production.
+ * intended for use in production. p256-m files in Mbed TLS are not updated
+ * regularly, so they may not contain upstream fixes/improvements.
  * DO NOT ENABLE/USE THIS MACRO IN PRODUCTION BUILDS!
  */
 //#define MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED

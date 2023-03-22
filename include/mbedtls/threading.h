@@ -52,22 +52,18 @@ typedef struct mbedtls_threading_mutex_t {
 #if !defined(WIN32_LEAN_AND_MEAN)
 /* Avoid exposing a temporary definition for files that includes threading.h */
 #define MBEDTLS_LOCAL_HEADER_WIN32_LEAN_AND_MEAN
+/* Needed to avoid redefinition errors from winsock.h */
+#define WIN32_LEAN_AND_MEAN
 #endif /* !WIN32_LEAN_AND_MEAN */
 
 #if !defined(_WIN32_WINNT)
 /* Avoid exposing a temporary definition for files that includes threading.h */
 #define MBEDTLS_LOCAL_HEADER_WIN32_WINNT
-#endif /* !_WIN32_WINNT */
-
-#if defined(MBEDTLS_LOCAL_HEADER_WIN32_LEAN_AND_MEAN)
-/* Needed to avoid redefinition errors from winsock.h */
-#define WIN32_LEAN_AND_MEAN
-#endif /* MBEDTLS_LOCAL_HEADER_WIN32_LEAN_AND_MEAN */
-
-#if defined(MBEDTLS_LOCAL_HEADER_WIN32_WINNT)
 /* Needed to enable srwlock api in synchapi.h */
 #define _WIN32_WINNT 0x0600
-#endif /* MBEDTLS_LOCAL_HEADER_WIN32_LEAN_AND_MEAN */
+#elif _WIN32_WINNT < 0x0600
+#error "SRWLock api is supported from _WIN32_WINNT==0x0600 (Vista)"
+#endif /* !_WIN32_WINNT */
 
 #include <windows.h>
 #include <synchapi.h>

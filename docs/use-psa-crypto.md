@@ -21,6 +21,19 @@ use PSA Crypto or not depending on the value of this option are:
 You need to enable `MBEDTLS_USE_PSA_CRYPTO` if you want TLS 1.3 to use PSA
 everywhere.
 
+**Important note:** Even with this option disabled, some modules may still use
+PSA Crypto. However, it is then their responsibility to make sure it's safe to
+do so; in particular those modules do not require `psa_crypto_init()` to be
+called. So, enabling `MBEDTLS_USE_PSA_CRYPTO` basically means:
+- as a user, you promise to call `psa_crypto_init()` before using any function
+  from PK, X.509 or TLS;
+- in return, those modules will use PSA Crypto as much as possible (see
+  exceptions belos).
+Conversely, not enabling this option means you have no obligation to call
+`psa_crypto_init()` (unless as documented by other options  such as TLS 1.3),
+but modules can still decide to use PSA if they can determine it is available
+and initialized.
+
 New APIs / API extensions
 -------------------------
 

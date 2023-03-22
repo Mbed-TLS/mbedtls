@@ -887,7 +887,7 @@ extern "C" {
 #define PSA_HAVE_FULL_JPAKE 1
 #endif
 
-/* Having suppor for ECDH implicitly includes support for private and
+/* Having support for ECDH implicitly includes support for private and
  * public keys, so we don't specify that requirement here. */
 #if defined(PSA_WANT_ALG_ECDH)
 #define PSA_HAVE_FULL_ECDH 1

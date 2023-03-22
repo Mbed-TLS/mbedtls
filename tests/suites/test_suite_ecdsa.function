@@ -1,11 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/ecdsa.h"
 #include "hash_info.h"
-#include "mbedtls/legacy_or_psa.h"
-#if (defined(MBEDTLS_ECDSA_DETERMINISTIC) && defined(MBEDTLS_SHA256_C)) || \
-    (!defined(MBEDTLS_ECDSA_DETERMINISTIC) && defined(MBEDTLS_HAS_ALG_SHA_256_VIA_LOWLEVEL_OR_PSA))
-#define MBEDTLS_HAS_ALG_SHA_256_VIA_MD_IF_DETERMINISTIC
-#endif
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -203,6 +198,8 @@ void ecdsa_det_test_vectors(int id, char *d_str, int md_alg, data_t *hash,
     mbedtls_ecp_group grp;
     mbedtls_mpi d, r, s, r_check, s_check;
 
+    MD_PSA_INIT();
+
     mbedtls_ecp_group_init(&grp);
     mbedtls_mpi_init(&d); mbedtls_mpi_init(&r); mbedtls_mpi_init(&s);
     mbedtls_mpi_init(&r_check); mbedtls_mpi_init(&s_check);
@@ -226,10 +223,11 @@ exit:
     mbedtls_ecp_group_free(&grp);
     mbedtls_mpi_free(&d); mbedtls_mpi_free(&r); mbedtls_mpi_free(&s);
     mbedtls_mpi_free(&r_check); mbedtls_mpi_free(&s_check);
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_IF_DETERMINISTIC */
+/* BEGIN_CASE depends_on:MBEDTLS_MD_CAN_SHA256 */
 void ecdsa_write_read_zero(int id)
 {
     mbedtls_ecdsa_context ctx;
@@ -291,7 +289,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_MD_IF_DETERMINISTIC */
+/* BEGIN_CASE depends_on:MBEDTLS_MD_CAN_SHA256 */
 void ecdsa_write_read_random(int id)
 {
     mbedtls_ecdsa_context ctx;

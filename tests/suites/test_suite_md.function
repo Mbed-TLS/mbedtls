@@ -1,13 +1,5 @@
 /* BEGIN_HEADER */
 #include "mbedtls/md.h"
-
-#if defined(MBEDTLS_MD_SOME_PSA)
-#define MD_PSA_INIT()   PSA_INIT()
-#define MD_PSA_DONE()   PSA_DONE()
-#else /* MBEDTLS_MD_SOME_PSA */
-#define MD_PSA_INIT() ((void) 0)
-#define MD_PSA_DONE() ((void) 0)
-#endif /* MBEDTLS_MD_SOME_PSA */
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

@@ -32,6 +32,10 @@
 #include "mbedtls/psa_util.h"
 #endif
 
+#if defined(MBEDTLS_MD_LIGHT)
+#include "mbedtls/md.h"
+#endif
+
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 /** Initialize the PSA Crypto subsystem. */
 #define PSA_INIT() PSA_ASSERT(psa_crypto_init())
@@ -292,31 +296,24 @@ int mbedtls_test_fail_if_psa_leaking(int line_no, const char *filename);
     }                                                                      \
     while (0)
 
-#if !defined(MBEDTLS_MD_C)
-#define PSA_INIT_IF_NO_MD() PSA_INIT()
-#define PSA_DONE_IF_NO_MD() PSA_DONE()
-#endif
 #endif /* MBEDTLS_PSA_CRYPTO_C */
-
-#if defined(MBEDTLS_MD_C)
-#define PSA_INIT_IF_NO_MD() ((void) 0)
-#define PSA_DONE_IF_NO_MD() ((void) 0)
-#endif
 
 /** \def USE_PSA_INIT
  *
  * Call this macro to initialize the PSA subsystem if #MBEDTLS_USE_PSA_CRYPTO
  * or #MBEDTLS_SSL_PROTO_TLS1_3 (In contrast to TLS 1.2 implementation, the
  * TLS 1.3 one uses PSA independently of the definition of
- * #MBEDTLS_USE_PSA_CRYPTO) is enabled and do nothing otherwise. If the
- * initialization fails, mark the test case as failed and jump to the \p exit
- * label.
+ * #MBEDTLS_USE_PSA_CRYPTO) is enabled and do nothing otherwise.
+ *
+ * If the initialization fails, mark the test case as failed and jump to the
+ * \p exit label.
  */
 /** \def USE_PSA_DONE
  *
  * Call this macro at the end of a test case if you called #USE_PSA_INIT.
- * This is like #PSA_DONE, except that it does nothing if
- * #MBEDTLS_USE_PSA_CRYPTO is disabled.
+ *
+ * This is like #PSA_DONE except it does nothing under the same conditions as
+ * #USE_PSA_INIT.
  */
 #if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #define USE_PSA_INIT() PSA_INIT()
@@ -328,5 +325,53 @@ int mbedtls_test_fail_if_psa_leaking(int line_no, const char *filename);
 #define USE_PSA_INIT() ((void) 0)
 #define USE_PSA_DONE() ((void) 0)
 #endif /* !MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_SSL_PROTO_TLS1_3 */
+
+/** \def MD_PSA_INIT
+ *
+ * Call this macro to initialize the PSA subsystem if MD uses a driver,
+ * and do nothing otherwise.
+ *
+ * If the initialization fails, mark the test case as failed and jump to the
+ * \p exit label.
+ */
+/** \def MD_PSA_DONE
+ *
+ * Call this macro at the end of a test case if you called #MD_PSA_INIT.
+ *
+ * This is like #PSA_DONE except it does nothing under the same conditions as
+ * #MD_PSA_INIT.
+ */
+#if defined(MBEDTLS_MD_SOME_PSA)
+#define MD_PSA_INIT()   PSA_INIT()
+#define MD_PSA_DONE()   PSA_DONE()
+#else /* MBEDTLS_MD_SOME_PSA */
+#define MD_PSA_INIT() ((void) 0)
+#define MD_PSA_DONE() ((void) 0)
+#endif /* MBEDTLS_MD_SOME_PSA */
+
+/** \def MD_OR_USE_PSA_INIT
+ *
+ * Call this macro to initialize the PSA subsystem if MD uses a driver,
+ * or if #MBEDTLS_USE_PSA_CRYPTO or #MBEDTLS_SSL_PROTO_TLS1_3 is enabled,
+ * and do nothing otherwise.
+ *
+ * If the initialization fails, mark the test case as failed and jump to the
+ * \p exit label.
+ */
+/** \def MD_OR_USE_PSA_DONE
+ *
+ * Call this macro at the end of a test case if you called #MD_OR_USE_PSA_INIT.
+ *
+ * This is like #PSA_DONE except it does nothing under the same conditions as
+ * #MD_OR_USE_PSA_INIT.
+ */
+#if defined(MBEDTLS_MD_SOME_PSA) || \
+    defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#define MD_OR_USE_PSA_INIT()   PSA_INIT()
+#define MD_OR_USE_PSA_DONE()   PSA_DONE()
+#else
+#define MD_OR_USE_PSA_INIT() ((void) 0)
+#define MD_OR_USE_PSA_DONE() ((void) 0)
+#endif
 
 #endif /* PSA_CRYPTO_HELPERS_H */

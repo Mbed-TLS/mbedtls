@@ -3,8 +3,6 @@
 #include "mbedtls/pem.h"
 #include "mbedtls/des.h"
 #include "mbedtls/aes.h"
-#include "mbedtls/legacy_or_psa.h"
-
 /* END_HEADER */
 
 /* BEGIN_CASE depends_on:MBEDTLS_PEM_WRITE_C */
@@ -44,6 +42,8 @@ void mbedtls_pem_read_buffer(char *header, char *footer, char *data,
     size_t pwd_len = strlen(pwd);
     const unsigned char *buf;
 
+    MD_PSA_INIT();
+
     mbedtls_pem_init(&ctx);
 
     ret = mbedtls_pem_read_buffer(&ctx, header, footer, (unsigned char *) data,
@@ -60,5 +60,6 @@ void mbedtls_pem_read_buffer(char *header, char *footer, char *data,
 
 exit:
     mbedtls_pem_free(&ctx);
+    MD_PSA_DONE();
 }
 /* END_CASE */

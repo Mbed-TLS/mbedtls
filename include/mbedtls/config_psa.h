@@ -77,6 +77,40 @@ extern "C" {
 #endif
 
 
+/****************************************************************/
+/* Hashes that are built in are also enabled in PSA.
+ * This simplifies dependency declarations especially
+ * for modules that obey MBEDTLS_USE_PSA_CRYPTO. */
+/****************************************************************/
+
+#if defined(MBEDTLS_MD5_C)
+#define PSA_WANT_ALG_MD5 1
+#endif
+
+#if defined(MBEDTLS_RIPEMD160_C)
+#define PSA_WANT_ALG_RIPEMD160 1
+#endif
+
+#if defined(MBEDTLS_SHA1_C)
+#define PSA_WANT_ALG_SHA_1 1
+#endif
+
+#if defined(MBEDTLS_SHA224_C)
+#define PSA_WANT_ALG_SHA_224 1
+#endif
+
+#if defined(MBEDTLS_SHA256_C)
+#define PSA_WANT_ALG_SHA_256 1
+#endif
+
+#if defined(MBEDTLS_SHA384_C)
+#define PSA_WANT_ALG_SHA_384 1
+#endif
+
+#if defined(MBEDTLS_SHA512_C)
+#define PSA_WANT_ALG_SHA_512 1
+#endif
+
 
 /****************************************************************/
 /* Require built-in implementations based on PSA requirements */

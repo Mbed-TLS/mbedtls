@@ -169,19 +169,8 @@
 #endif
 
 #if defined(MBEDTLS_PKCS5_C) && \
-    ( !( defined(MBEDTLS_MD_C) || defined(MBEDTLS_PSA_CRYPTO_C) ) || \
-        !defined(MBEDTLS_CIPHER_C) )
+    !defined(MBEDTLS_CIPHER_C)
 #error "MBEDTLS_PKCS5_C defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_PKCS12_C) && \
-    !( defined(MBEDTLS_MD_C) || defined(MBEDTLS_PSA_CRYPTO_C) )
-#error "MBEDTLS_PKCS12_C defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_PKCS1_V21) && \
-    !( defined(MBEDTLS_MD_C) || defined(MBEDTLS_PSA_CRYPTO_C) )
-#error "MBEDTLS_PKCS1_V21 defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_ENTROPY_C) && (!defined(MBEDTLS_SHA512_C) &&      \
@@ -374,12 +363,10 @@
 #error "MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED defined, but not all prerequisites"
 #endif
 
-/* Use of EC J-PAKE in TLS requires SHA-256.
- * This will be taken from MD if it is present, or from PSA if MD is absent.
- * Note: MBEDTLS_ECJPAKE_C depends on MBEDTLS_MD_C || MBEDTLS_PSA_CRYPTO_C. */
+/* Use of EC J-PAKE in TLS requires SHA-256. */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) &&                    \
-    !( defined(MBEDTLS_MD_C) && defined(MBEDTLS_SHA256_C) ) &&          \
-    !( !defined(MBEDTLS_MD_C) && defined(PSA_WANT_ALG_SHA_256) )
+    !(defined(MBEDTLS_SHA256_C) || \
+      (defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_SHA_256)))
 #error "MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED defined, but not all prerequisites"
 #endif
 
@@ -398,7 +385,15 @@
     defined(MBEDTLS_SHA224_C) || \
     defined(MBEDTLS_SHA256_C) || \
     defined(MBEDTLS_SHA384_C) || \
-    defined(MBEDTLS_SHA512_C) )
+    defined(MBEDTLS_SHA512_C) || \
+    (defined(MBEDTLS_PSA_CRYPTO_C) && \
+     (defined(PSA_WANT_ALG_MD5) || \
+      defined(PSA_WANT_ALG_RIPEMD160) || \
+      defined(PSA_WANT_ALG_SHA_1) || \
+      defined(PSA_WANT_ALG_SHA_224) || \
+      defined(PSA_WANT_ALG_SHA_256) || \
+      defined(PSA_WANT_ALG_SHA_384) || \
+      defined(PSA_WANT_ALG_SHA_512))))
 #error "MBEDTLS_MD_C defined, but not all prerequisites"
 #endif
 

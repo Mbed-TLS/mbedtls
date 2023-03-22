@@ -75,6 +75,7 @@ void pkcs7_verify(char *pkcs7_file,
     mbedtls_pkcs7 pkcs7;
     mbedtls_x509_crt **crts = NULL;
 
+    MD_OR_USE_PSA_INIT();
 
     /* crt_files are space seprated list */
     for (i = 0; i < strlen(crt_files); i++) {
@@ -103,8 +104,6 @@ void pkcs7_verify(char *pkcs7_file,
         ASSERT_ALLOC(crts[i], sizeof(*crts[i]));
         mbedtls_x509_crt_init(crts[i]);
     }
-
-    USE_PSA_INIT();
 
     res = mbedtls_pk_load_file(pkcs7_file, &pkcs7_buf, &buflen);
     TEST_EQUAL(res, 0);
@@ -164,6 +163,6 @@ exit:
     mbedtls_free(crts);
     mbedtls_free(data);
     mbedtls_free(pkcs7_buf);
-    USE_PSA_DONE();
+    MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */

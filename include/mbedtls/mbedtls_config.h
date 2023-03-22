@@ -993,8 +993,12 @@
  * might still happen. For this reason, this is disabled by default.
  *
  * Requires: MBEDTLS_ECJPAKE_C
- *           SHA-256 (via MD if present, or via PSA, see MBEDTLS_ECJPAKE_C)
+ *           SHA-256 (via MBEDTLS_SHA256_C or a PSA driver)
  *           MBEDTLS_ECP_DP_SECP256R1_ENABLED
+ *
+ * \warning If SHA-256 is provided only by a PSA driver, you must call
+ * psa_crypto_init() before the first hanshake (even if
+ * MBEDTLS_USE_PSA_CRYPTO is disabled).
  *
  * This enables the following ciphersuites (if other requisites are
  * enabled as well):
@@ -1176,15 +1180,10 @@
  *
  * Enable support for PKCS#1 v2.1 encoding.
  *
- * Requires: MBEDTLS_RSA_C and (MBEDTLS_MD_C or MBEDTLS_PSA_CRYPTO_C).
+ * Requires: MBEDTLS_RSA_C
  *
- * \warning If building without MBEDTLS_MD_C, you must call psa_crypto_init()
- * before doing any PKCS#1 v2.1 operation.
- *
- * \warning When building with MBEDTLS_MD_C, all hashes used with this
- * need to be available as built-ins (that is, for SHA-256, MBEDTLS_SHA256_C,
- * etc.) as opposed to just PSA drivers. So far, PSA drivers are only used by
- * this module in builds where MBEDTLS_MD_C is disabled.
+ * \warning If using a hash that is only provided by PSA drivers, you must
+ * call psa_crypto_init() before doing any PKCS#1 v2.1 operation.
  *
  * This enables support for RSAES-OAEP and RSASSA-PSS operations.
  */
@@ -2504,13 +2503,8 @@
  *
  * Requires: MBEDTLS_ECP_C and either MBEDTLS_MD_C or MBEDTLS_PSA_CRYPTO_C
  *
- * \warning If building without MBEDTLS_MD_C, you must call psa_crypto_init()
- * before doing any EC J-PAKE operations.
- *
- * \warning When building with MBEDTLS_MD_C, all hashes used with this
- * need to be available as built-ins (that is, for SHA-256, MBEDTLS_SHA256_C,
- * etc.) as opposed to just PSA drivers. So far, PSA drivers are only used by
- * this module in builds where MBEDTLS_MD_C is disabled.
+ * \warning If using a hash that is only provided by PSA drivers, you must
+ * call psa_crypto_init() before doing any EC J-PAKE operations.
  */
 #define MBEDTLS_ECJPAKE_C
 
@@ -2644,7 +2638,8 @@
  *
  * Requires: one of: MBEDTLS_MD5_C, MBEDTLS_RIPEMD160_C, MBEDTLS_SHA1_C,
  *                   MBEDTLS_SHA224_C, MBEDTLS_SHA256_C, MBEDTLS_SHA384_C,
- *                   MBEDTLS_SHA512_C.
+ *                   MBEDTLS_SHA512_C, or MBEDTLS_PSA_CRYPTO_C with at least
+ *                   one hash.
  * Module:  library/md.c
  * Caller:  library/constant_time.c
  *          library/ecdsa.c
@@ -2775,6 +2770,10 @@
  *          library/x509_csr.c
  *
  * Requires: MBEDTLS_BASE64_C
+ *           optionally MBEDTLS_MD5_C, or PSA Crypto with MD5 (see below)
+ *
+ * \warning When parsing password-protected files, if MD5 is provided only by
+ * a PSA driver, you must call psa_crypto_init() before the first file.
  *
  * This modules adds support for decoding / parsing PEM files.
  */
@@ -2850,15 +2849,11 @@
  *
  * Module:  library/pkcs5.c
  *
- * Requires: MBEDTLS_CIPHER_C and either MBEDTLS_MD_C or MBEDTLS_PSA_CRYPTO_C.
+ * Requires: MBEDTLS_CIPHER_C
+ * Auto-enables: MBEDTLS_MD_C
  *
- * \warning If building without MBEDTLS_MD_C, you must call psa_crypto_init()
- * before doing any PKCS5 operation.
- *
- * \warning When building with MBEDTLS_MD_C, all hashes used with this
- * need to be available as built-ins (that is, for SHA-256, MBEDTLS_SHA256_C,
- * etc.) as opposed to just PSA drivers. So far, PSA drivers are only used by
- * this module in builds where MBEDTLS_MD_C is disabled.
+ * \warning If using a hash that is only provided by PSA drivers, you must
+ * call psa_crypto_init() before doing any PKCS5 operations.
  *
  * This module adds support for the PKCS#5 functions.
  */
@@ -2892,13 +2887,8 @@
  * Requires: MBEDTLS_ASN1_PARSE_C, MBEDTLS_CIPHER_C and either
  * MBEDTLS_MD_C or MBEDTLS_PSA_CRYPTO_C.
  *
- * \warning If building without MBEDTLS_MD_C, you must call psa_crypto_init()
- * before doing any PKCS12 operation.
- *
- * \warning When building with MBEDTLS_MD_C, all hashes used with this
- * need to be available as built-ins (that is, for SHA-256, MBEDTLS_SHA256_C,
- * etc.) as opposed to just PSA drivers. So far, PSA drivers are only used by
- * this module in builds where MBEDTLS_MD_C is disabled.
+ * \warning If using a hash that is only provided by PSA drivers, you must
+ * call psa_crypto_init() before doing any PKCS12 operations.
  *
  * This module enables PKCS#12 functions.
  */

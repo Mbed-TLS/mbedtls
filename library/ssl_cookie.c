@@ -33,8 +33,6 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/constant_time.h"
 
-#include "mbedtls/legacy_or_psa.h"
-
 #include <string.h>
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -47,11 +45,11 @@
  * If DTLS is in use, then at least one of SHA-256 or SHA-384 is
  * available. Try SHA-256 first as 384 wastes resources
  */
-#if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_LOWLEVEL_OR_PSA)
+#if defined(MBEDTLS_MD_CAN_SHA256)
 #define COOKIE_MD           MBEDTLS_MD_SHA256
 #define COOKIE_MD_OUTLEN    32
 #define COOKIE_HMAC_LEN     28
-#elif defined(MBEDTLS_HAS_ALG_SHA_384_VIA_LOWLEVEL_OR_PSA)
+#elif defined(MBEDTLS_MD_CAN_SHA384)
 #define COOKIE_MD           MBEDTLS_MD_SHA384
 #define COOKIE_MD_OUTLEN    48
 #define COOKIE_HMAC_LEN     28

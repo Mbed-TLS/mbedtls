@@ -1,0 +1,6 @@
+Security
+   * MBEDTLS_AESNI_C, which is enabled by default, was silently ignored on
+     builds that couldn't compile the GCC-style assembly implementation
+     (most notably builds with Visual Studio), leaving them vulnerable to
+     timing side-channel attacks. There is now an intrinsics-based AES-NI
+     implementation as a fallback for when the assembly one cannot be used.

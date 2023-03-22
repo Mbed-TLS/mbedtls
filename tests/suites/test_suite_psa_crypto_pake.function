@@ -1030,8 +1030,7 @@ void pake_input_getters_user()
 {
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
     psa_pake_operation_t operation = psa_pake_operation_init();
-    const uint8_t user[] = { 's', 'e', 'r', 'v', 'e', 'r' };
-    const size_t user_len = sizeof(user);
+    const char *users[] = { "client", "server", "other" };
     uint8_t user_ret[20] = { 0 }; // max user length is 20 bytes
     size_t user_len_ret = 0;
     size_t buffer_len_ret = 0;
@@ -1046,37 +1045,44 @@ void pake_input_getters_user()
     psa_pake_cs_set_primitive(&cipher_suite, primitive);
     psa_pake_cs_set_hash(&cipher_suite, PSA_ALG_SHA_256);
 
-    PSA_ASSERT(psa_pake_setup(&operation, &cipher_suite));
+    for (size_t i = 0; i < ARRAY_LENGTH(users); i++) {
+        uint8_t *user = (uint8_t *) users[i];
+        uint8_t user_len = strlen(users[i]);
 
-    TEST_EQUAL(psa_crypto_driver_pake_get_user(&operation.data.inputs,
-                                               (uint8_t *) &user_ret,
-                                               10, &buffer_len_ret),
-               PSA_ERROR_BAD_STATE);
+        PSA_ASSERT(psa_pake_abort(&operation));
 
-    TEST_EQUAL(psa_crypto_driver_pake_get_user_len(&operation.data.inputs, &user_len_ret),
-               PSA_ERROR_BAD_STATE);
+        PSA_ASSERT(psa_pake_setup(&operation, &cipher_suite));
 
-    PSA_ASSERT(psa_pake_set_user(&operation, user, user_len));
+        TEST_EQUAL(psa_crypto_driver_pake_get_user(&operation.data.inputs,
+                                                   (uint8_t *) &user_ret,
+                                                   10, &buffer_len_ret),
+                   PSA_ERROR_BAD_STATE);
 
-    TEST_EQUAL(psa_crypto_driver_pake_get_user_len(&operation.data.inputs, &user_len_ret),
-               PSA_SUCCESS);
+        TEST_EQUAL(psa_crypto_driver_pake_get_user_len(&operation.data.inputs, &user_len_ret),
+                   PSA_ERROR_BAD_STATE);
 
-    TEST_EQUAL(user_len_ret, user_len);
+        PSA_ASSERT(psa_pake_set_user(&operation, user, user_len));
 
-    TEST_EQUAL(psa_crypto_driver_pake_get_user(&operation.data.inputs,
-                                               (uint8_t *) &user_ret,
-                                               user_len_ret - 1,
-                                               &buffer_len_ret),
-               PSA_ERROR_BUFFER_TOO_SMALL);
+        TEST_EQUAL(psa_crypto_driver_pake_get_user_len(&operation.data.inputs, &user_len_ret),
+                   PSA_SUCCESS);
 
-    TEST_EQUAL(psa_crypto_driver_pake_get_user(&operation.data.inputs,
-                                               (uint8_t *) &user_ret,
-                                               user_len_ret,
-                                               &buffer_len_ret),
-               PSA_SUCCESS);
+        TEST_EQUAL(user_len_ret, user_len);
 
-    TEST_EQUAL(buffer_len_ret, user_len);
-    PSA_ASSERT(memcmp(user_ret, user, buffer_len_ret));
+        TEST_EQUAL(psa_crypto_driver_pake_get_user(&operation.data.inputs,
+                                                   (uint8_t *) &user_ret,
+                                                   user_len_ret - 1,
+                                                   &buffer_len_ret),
+                   PSA_ERROR_BUFFER_TOO_SMALL);
+
+        TEST_EQUAL(psa_crypto_driver_pake_get_user(&operation.data.inputs,
+                                                   (uint8_t *) &user_ret,
+                                                   user_len_ret,
+                                                   &buffer_len_ret),
+                   PSA_SUCCESS);
+
+        TEST_EQUAL(buffer_len_ret, user_len);
+        PSA_ASSERT(memcmp(user_ret, user, buffer_len_ret));
+    }
 exit:
     PSA_ASSERT(psa_pake_abort(&operation));
     PSA_DONE();
@@ -1088,8 +1094,7 @@ void pake_input_getters_peer()
 {
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
     psa_pake_operation_t operation = psa_pake_operation_init();
-    const uint8_t peer[] = { 's', 'e', 'r', 'v', 'e', 'r' };
-    const size_t peer_len = sizeof(peer);
+    const char *peers[] = { "client", "server", "other" };
     uint8_t peer_ret[20] = { 0 }; // max peer length is 20 bytes
     size_t peer_len_ret = 0;
     size_t buffer_len_ret = 0;
@@ -1104,37 +1109,44 @@ void pake_input_getters_peer()
     psa_pake_cs_set_primitive(&cipher_suite, primitive);
     psa_pake_cs_set_hash(&cipher_suite, PSA_ALG_SHA_256);
 
-    PSA_ASSERT(psa_pake_setup(&operation, &cipher_suite));
+    for (size_t i = 0; i < ARRAY_LENGTH(peers); i++) {
+        uint8_t *peer = (uint8_t *) peers[i];
+        uint8_t peer_len = strlen(peers[i]);
 
-    TEST_EQUAL(psa_crypto_driver_pake_get_peer(&operation.data.inputs,
-                                               (uint8_t *) &peer_ret,
-                                               10, &buffer_len_ret),
-               PSA_ERROR_BAD_STATE);
+        PSA_ASSERT(psa_pake_abort(&operation));
 
-    TEST_EQUAL(psa_crypto_driver_pake_get_peer_len(&operation.data.inputs, &peer_len_ret),
-               PSA_ERROR_BAD_STATE);
+        PSA_ASSERT(psa_pake_setup(&operation, &cipher_suite));
 
-    PSA_ASSERT(psa_pake_set_peer(&operation, peer, peer_len));
+        TEST_EQUAL(psa_crypto_driver_pake_get_peer(&operation.data.inputs,
+                                                   (uint8_t *) &peer_ret,
+                                                   10, &buffer_len_ret),
+                   PSA_ERROR_BAD_STATE);
 
-    TEST_EQUAL(psa_crypto_driver_pake_get_peer_len(&operation.data.inputs, &peer_len_ret),
-               PSA_SUCCESS);
+        TEST_EQUAL(psa_crypto_driver_pake_get_peer_len(&operation.data.inputs, &peer_len_ret),
+                   PSA_ERROR_BAD_STATE);
 
-    TEST_EQUAL(peer_len_ret, peer_len);
+        PSA_ASSERT(psa_pake_set_peer(&operation, peer, peer_len));
 
-    TEST_EQUAL(psa_crypto_driver_pake_get_peer(&operation.data.inputs,
-                                               (uint8_t *) &peer_ret,
-                                               peer_len_ret - 1,
-                                               &buffer_len_ret),
-               PSA_ERROR_BUFFER_TOO_SMALL);
+        TEST_EQUAL(psa_crypto_driver_pake_get_peer_len(&operation.data.inputs, &peer_len_ret),
+                   PSA_SUCCESS);
 
-    TEST_EQUAL(psa_crypto_driver_pake_get_peer(&operation.data.inputs,
-                                               (uint8_t *) &peer_ret,
-                                               peer_len_ret,
-                                               &buffer_len_ret),
-               PSA_SUCCESS);
+        TEST_EQUAL(peer_len_ret, peer_len);
 
-    TEST_EQUAL(buffer_len_ret, peer_len);
-    PSA_ASSERT(memcmp(peer_ret, peer, buffer_len_ret));
+        TEST_EQUAL(psa_crypto_driver_pake_get_peer(&operation.data.inputs,
+                                                   (uint8_t *) &peer_ret,
+                                                   peer_len_ret - 1,
+                                                   &buffer_len_ret),
+                   PSA_ERROR_BUFFER_TOO_SMALL);
+
+        TEST_EQUAL(psa_crypto_driver_pake_get_peer(&operation.data.inputs,
+                                                   (uint8_t *) &peer_ret,
+                                                   peer_len_ret,
+                                                   &buffer_len_ret),
+                   PSA_SUCCESS);
+
+        TEST_EQUAL(buffer_len_ret, peer_len);
+        PSA_ASSERT(memcmp(peer_ret, peer, buffer_len_ret));
+    }
 exit:
     PSA_ASSERT(psa_pake_abort(&operation));
     PSA_DONE();

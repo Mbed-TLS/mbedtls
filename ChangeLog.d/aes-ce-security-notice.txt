@@ -1,0 +1,5 @@
+Security
+   * Add support for AES with the Armv8-A Cryptographic Extension on 64-bit
+     Arm, so that these systems are no longer vulnerable to timing side-channel
+     attacks. This is configured by MBEDTLS_AESCE_C, which is on by default.
+     Reported by Demi Marie Obenour.

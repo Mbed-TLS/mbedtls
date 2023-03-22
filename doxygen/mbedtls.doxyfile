@@ -19,6 +19,9 @@ HTML_OUTPUT            = .
 HTML_TIMESTAMP         = YES
 SEARCHENGINE           = YES
 GENERATE_LATEX         = NO
+GENERATE_XML           = YES
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = YES
 INCLUDE_PATH           = ../include
 CLASS_DIAGRAMS         = NO
 HAVE_DOT               = YES
@@ -40,8 +43,6 @@ DOT_TRANSPARENT        = YES
 #     \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
 # This avoids writing redundant text and keeps Clang happy.
 ALIASES += emptydescription=""
-
-GENERATE_XML           = YES
 
 # Define away Mbed TLS macros that make parsing definitions difficult.
 # MBEDTLS_DEPRECATED is not included in this list as it's important to

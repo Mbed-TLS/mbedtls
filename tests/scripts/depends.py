@@ -277,7 +277,7 @@ REVERSE_DEPENDENCIES = {
 # if a given define is the only one enabled from an exclusive group.
 EXCLUSIVE_GROUPS = {
     'MBEDTLS_SHA512_C': ['-MBEDTLS_SSL_COOKIE_C',
-                         '-MBEDTLS_SSL_PROTO_TLS1_3'],
+                         '-MBEDTLS_SSL_TLS_C'],
     'MBEDTLS_ECP_DP_CURVE448_ENABLED': ['-MBEDTLS_ECDSA_C',
                                         '-MBEDTLS_ECDSA_DETERMINISTIC',
                                         '-MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED',

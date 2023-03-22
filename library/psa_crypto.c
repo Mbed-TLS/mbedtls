@@ -7211,19 +7211,6 @@ psa_status_t psa_crypto_driver_pake_get_password(
     return PSA_SUCCESS;
 }
 
-psa_status_t psa_crypto_driver_pake_get_role(
-    const psa_crypto_driver_pake_inputs_t *inputs,
-    psa_pake_role_t *role)
-{
-    if (inputs->role == PSA_PAKE_ROLE_NONE) {
-        return PSA_ERROR_BAD_STATE;
-    }
-
-    *role = inputs->role;
-
-    return PSA_SUCCESS;
-}
-
 psa_status_t psa_crypto_driver_pake_get_user_len(
     const psa_crypto_driver_pake_inputs_t *inputs,
     size_t *user_len)

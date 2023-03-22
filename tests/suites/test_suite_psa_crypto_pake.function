@@ -1026,41 +1026,6 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE */
-void pake_input_getters_role()
-{
-    psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
-    psa_pake_operation_t operation = psa_pake_operation_init();
-    psa_pake_role_t role_ret = PSA_PAKE_ROLE_NONE;
-
-    psa_pake_primitive_t primitive = PSA_PAKE_PRIMITIVE(
-        PSA_PAKE_PRIMITIVE_TYPE_ECC,
-        PSA_ECC_FAMILY_SECP_R1, 256);
-
-    PSA_INIT();
-
-    psa_pake_cs_set_algorithm(&cipher_suite, PSA_ALG_JPAKE);
-    psa_pake_cs_set_primitive(&cipher_suite, primitive);
-    psa_pake_cs_set_hash(&cipher_suite, PSA_ALG_SHA_256);
-
-    PSA_ASSERT(psa_pake_setup(&operation, &cipher_suite));
-
-    TEST_EQUAL(psa_crypto_driver_pake_get_role(&operation.data.inputs, &role_ret),
-               PSA_ERROR_BAD_STATE);
-
-    /* Role can not be set directly using psa_pake_set_role(). It is set by the core
-       based on given user/peer identifiers. Simulate that Role is already set. */
-    operation.data.inputs.role = PSA_PAKE_ROLE_SERVER;
-    TEST_EQUAL(psa_crypto_driver_pake_get_role(&operation.data.inputs, &role_ret),
-               PSA_SUCCESS);
-
-    TEST_EQUAL(role_ret, PSA_PAKE_ROLE_SERVER);
-exit:
-    PSA_ASSERT(psa_pake_abort(&operation));
-    PSA_DONE();
-}
-/* END_CASE */
-
-/* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE */
 void pake_input_getters_user()
 {
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();

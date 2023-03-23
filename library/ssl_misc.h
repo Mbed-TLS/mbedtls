@@ -760,16 +760,18 @@ struct mbedtls_ssl_handshake_params {
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
 #endif /* !MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C */
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(PSA_WANT_ALG_ECDH) && \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3))
     psa_key_type_t ecdh_psa_type;
     size_t ecdh_bits;
     mbedtls_svc_key_id_t ecdh_psa_privkey;
     uint8_t ecdh_psa_privkey_is_external;
     unsigned char ecdh_psa_peerkey[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
     size_t ecdh_psa_peerkey_len;
-#endif /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */
-#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C */
+#endif /* PSA_WANT_ALG_ECDH &&
+          (MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3) */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)

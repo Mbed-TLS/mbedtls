@@ -7909,6 +7909,9 @@ psa_status_t psa_pake_input(
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_crypto_driver_pake_step_t driver_step = PSA_JPAKE_STEP_INVALID;
+    const size_t max_input_length = (size_t) PSA_PAKE_INPUT_SIZE(operation->alg,
+                                                                 operation->primitive,
+                                                                 step);
 
     if (operation->stage == PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS) {
         status = psa_pake_complete_inputs(operation);
@@ -7922,9 +7925,8 @@ psa_status_t psa_pake_input(
         goto exit;
     }
 
-    if (input_length == 0 || input_length > PSA_PAKE_INPUT_SIZE(operation->alg,
-                                                                operation->primitive,
-                                                                step)) {
+
+    if (input_length == 0 || input_length > max_input_length) {
         status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;
     }

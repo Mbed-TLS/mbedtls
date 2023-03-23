@@ -236,6 +236,8 @@ void ecdsa_write_read_zero(int id)
     unsigned char sig[200];
     size_t sig_len, i;
 
+    MD_PSA_INIT();
+
     mbedtls_ecdsa_init(&ctx);
     memset(&rnd_info, 0x00, sizeof(mbedtls_test_rnd_pseudo_info));
     memset(hash, 0, sizeof(hash));
@@ -286,6 +288,7 @@ void ecdsa_write_read_zero(int id)
 
 exit:
     mbedtls_ecdsa_free(&ctx);
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
@@ -297,6 +300,8 @@ void ecdsa_write_read_random(int id)
     unsigned char hash[32];
     unsigned char sig[200];
     size_t sig_len, i;
+
+    MD_PSA_INIT();
 
     mbedtls_ecdsa_init(&ctx);
     memset(&rnd_info, 0x00, sizeof(mbedtls_test_rnd_pseudo_info));
@@ -352,6 +357,7 @@ void ecdsa_write_read_random(int id)
 
 exit:
     mbedtls_ecdsa_free(&ctx);
+    MD_PSA_DONE();
 }
 /* END_CASE */
 
@@ -431,6 +437,8 @@ void ecdsa_write_restart(int id, char *d_str, int md_alg,
     unsigned char sig[MBEDTLS_ECDSA_MAX_LEN];
     size_t slen;
 
+    MD_PSA_INIT();
+
     mbedtls_ecdsa_restart_init(&rs_ctx);
     mbedtls_ecdsa_init(&ctx);
     memset(sig, 0, sizeof(sig));
@@ -481,6 +489,7 @@ void ecdsa_write_restart(int id, char *d_str, int md_alg,
 exit:
     mbedtls_ecdsa_restart_free(&rs_ctx);
     mbedtls_ecdsa_free(&ctx);
+    MD_PSA_DONE();
 }
 /* END_CASE */
 

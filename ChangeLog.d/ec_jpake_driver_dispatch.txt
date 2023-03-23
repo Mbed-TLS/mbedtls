@@ -1,3 +1,0 @@
-Features
-   * Add a driver dispatch layer for EC J-PAKE, enabling alternative
-     implementations of EC J-PAKE through the driver entry points.

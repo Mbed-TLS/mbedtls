@@ -1,3 +1,0 @@
-Security
-   * Fix a potential heap buffer overread in TLS 1.3 client-side when
-     MBEDTLS_DEBUG_C is enabled. This may result in an application crash.

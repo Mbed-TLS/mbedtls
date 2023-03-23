@@ -1,4 +1,0 @@
-Features
-   * It is now possible to use a PSA-held (opaque) password with the TLS 1.2
-     ECJPAKE key exchange, using the new API function
-     mbedtls_ssl_set_hs_ecjpake_password_opaque().

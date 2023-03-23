@@ -187,7 +187,7 @@ pre_initialize_variables () {
 
     # CFLAGS and LDFLAGS for Asan builds that don't use CMake
     # default to -O2, use -Ox _after_ this if you want another level
-    ASAN_CFLAGS='-O0 -g -Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
+    ASAN_CFLAGS='-O2 -Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
 
     # Gather the list of available components. These are the functions
     # defined in this script whose name starts with "component_".
@@ -2343,8 +2343,8 @@ component_test_psa_crypto_config_accel_ecc () {
     make test
 }
 
-component_test_verify_ec_max_size () {
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG + accel EC algs + USE_PSA_CRYPTO"
+component_test_psa_crypto_config_accel_all_curves_except_p192 () {
+    msg "build: PSA_CRYPTO_CONFIG + all accelerated EC algs (excl secp192r1) + USE_PSA_CRYPTO"
 
     # Accelerate all EC algs (all EC curves are automatically accelerated as
     # well in the built-in version due to the "PSA_WANT_xxx" symbols in
@@ -2438,7 +2438,7 @@ component_test_verify_ec_max_size () {
 
     # Run the tests
     # -------------
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECC"
+    msg "test: PSA_CRYPTO_CONFIG + all accelerated EC algs (excl secp192r1) + USE_PSA_CRYPTO"
     make test
 }
 

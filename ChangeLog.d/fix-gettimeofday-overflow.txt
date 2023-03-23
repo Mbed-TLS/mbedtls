@@ -1,4 +1,0 @@
-Bugfix
-   * Fix possible integer overflow in mbedtls_timing_hardclock(), which
-     could cause a crash for certain platforms & compiler options.
-

@@ -1,7 +1,0 @@
-Features
-   * AES-NI is now supported with Visual Studio.
-   * AES-NI is now supported in 32-bit builds, or when MBEDTLS_HAVE_ASM
-     is disabled, when compiling with GCC or Clang or a compatible compiler
-     for a target CPU that supports the requisite instructions (for example
-     gcc -m32 -msse2 -maes -mpclmul). (Generic x86 builds with GCC-like
-     compilers still require MBEDTLS_HAVE_ASM and a 64-bit target.)

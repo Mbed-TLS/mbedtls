@@ -2258,14 +2258,6 @@ config_psa_crypto_config_ecdh_use_psa () {
         scripts/config.py unset MBEDTLS_ECDH_C
     fi
 
-    scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-    scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
-    # Note: the above two lines should be enough, but currently there's a bug
-    # that prevents tests from passing TLS 1.3 with only PSK (no ephemeral)
-    # when TLS 1.2 is also enabled, see #6848.
-    # So, as a temporary measure disable all of TLS 1.3.
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-
     # Restartable feature is not yet supported by PSA. Once it will in
     # the future, the following line could be removed (see issues
     # 6061, 6332 and following ones)

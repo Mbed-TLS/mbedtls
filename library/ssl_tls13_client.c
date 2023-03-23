@@ -184,7 +184,7 @@ static int ssl_tls13_reset_key_share(mbedtls_ssl_context *ssl)
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }
 
-#if defined(MBEDTLS_ECDH_C)
+#if defined(PSA_WANT_ALG_ECDH)
     if (mbedtls_ssl_tls13_named_group_is_ecdhe(group_id)) {
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
@@ -200,7 +200,7 @@ static int ssl_tls13_reset_key_share(mbedtls_ssl_context *ssl)
         ssl->handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
         return 0;
     } else
-#endif /* MBEDTLS_ECDH_C */
+#endif /* PSA_WANT_ALG_ECDH */
     if (0 /* other KEMs? */) {
         /* Do something */
     }
@@ -219,7 +219,7 @@ static int ssl_tls13_get_default_group_id(mbedtls_ssl_context *ssl,
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
 
 
-#if defined(MBEDTLS_ECDH_C)
+#if defined(PSA_WANT_ALG_ECDH)
     const uint16_t *group_list = mbedtls_ssl_get_groups(ssl);
     /* Pick first available ECDHE group compatible with TLS 1.3 */
     if (group_list == NULL) {
@@ -237,7 +237,7 @@ static int ssl_tls13_get_default_group_id(mbedtls_ssl_context *ssl,
 #else
     ((void) ssl);
     ((void) group_id);
-#endif /* MBEDTLS_ECDH_C */
+#endif /* PSA_WANT_ALG_ECDH */
 
     /*
      * Add DHE named groups here.
@@ -301,7 +301,7 @@ static int ssl_tls13_write_key_share_ext(mbedtls_ssl_context *ssl,
      * only one key share entry is allowed.
      */
     client_shares = p;
-#if defined(MBEDTLS_ECDH_C)
+#if defined(PSA_WANT_ALG_ECDH)
     if (mbedtls_ssl_tls13_named_group_is_ecdhe(group_id)) {
         /* Pointer to group */
         unsigned char *group = p;
@@ -326,7 +326,7 @@ static int ssl_tls13_write_key_share_ext(mbedtls_ssl_context *ssl,
         /* Write key_exchange_length */
         MBEDTLS_PUT_UINT16_BE(key_exchange_len, group, 2);
     } else
-#endif /* MBEDTLS_ECDH_C */
+#endif /* PSA_WANT_ALG_ECDH */
     if (0 /* other KEMs? */) {
         /* Do something */
     } else {
@@ -375,7 +375,7 @@ static int ssl_tls13_parse_hrr_key_share_ext(mbedtls_ssl_context *ssl,
                                              const unsigned char *buf,
                                              const unsigned char *end)
 {
-#if defined(MBEDTLS_ECDH_C)
+#if defined(PSA_WANT_ALG_ECDH)
     const unsigned char *p = buf;
     int selected_group;
     int found = 0;
@@ -480,7 +480,7 @@ static int ssl_tls13_parse_key_share_ext(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
     }
 
-#if defined(MBEDTLS_ECDH_C)
+#if defined(PSA_WANT_ALG_ECDH)
     if (mbedtls_ssl_tls13_named_group_is_ecdhe(group)) {
         if (mbedtls_ssl_get_psa_curve_info_from_tls_id(group, NULL, NULL)
             == PSA_ERROR_NOT_SUPPORTED) {
@@ -496,7 +496,7 @@ static int ssl_tls13_parse_key_share_ext(mbedtls_ssl_context *ssl,
             return ret;
         }
     } else
-#endif /* MBEDTLS_ECDH_C */
+#endif /* PSA_WANT_ALG_ECDH */
     if (0 /* other KEMs? */) {
         /* Do something */
     } else {

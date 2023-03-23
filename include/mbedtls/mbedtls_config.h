@@ -1567,13 +1567,14 @@
  * Enable support for TLS 1.2 (and DTLS 1.2 if DTLS is enabled).
  *
  * Requires: Without MBEDTLS_USE_PSA_CRYPTO: MBEDTLS_MD_C and
- *              (MBEDTLS_SHA1_C or MBEDTLS_SHA256_C or MBEDTLS_SHA512_C)
+ *              (MBEDTLS_SHA256_C or MBEDTLS_SHA384_C or
+ *               SHA-256 or SHA-512 provided by a PSA driver)
  *           With MBEDTLS_USE_PSA_CRYPTO:
- *              PSA_WANT_ALG_SHA_1 or PSA_WANT_ALG_SHA_256 or
- *              PSA_WANT_ALG_SHA_512
+ *              PSA_WANT_ALG_SHA_256 or PSA_WANT_ALG_SHA_384
  *
- * \warning If building with MBEDTLS_USE_PSA_CRYPTO, you must call
- * psa_crypto_init() before doing any TLS operations.
+ * \warning If building with MBEDTLS_USE_PSA_CRYPTO, or if the hash(es) used
+ * are only provided by PSA drivers, you must call psa_crypto_init() before
+ * doing any TLS operations.
  *
  * Comment this macro to disable support for TLS 1.2 / DTLS 1.2
  */

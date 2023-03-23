@@ -165,7 +165,8 @@ int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 /** Fast quasi-reduction modulo p384 (FIPS 186-3 D.2.4)
  *
  * \param[in,out]   X       The address of the MPI to be converted.
- *                          Must have exact limb size of `768 / biL`.
+ *                          Must have exact limb size that stores a 768-bit MPI
+ *                          (double the bitlength of the modulus).
  *                          Upon return holds the reduced value which is
  *                          in range `0 <= X < 2 * N` (where N is the modulus).
  *                          The bitlength of the reduced value is the same as

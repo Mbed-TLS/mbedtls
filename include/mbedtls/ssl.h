@@ -110,7 +110,8 @@
 /* Error space gap */
 /* Error space gap */
 /* Error space gap */
-/* Error space gap */
+/** Cache entry not found */
+#define MBEDTLS_ERR_SSL_CACHE_NOT_FOUND                   -0x7E80
 /** Memory allocation failed */
 #define MBEDTLS_ERR_SSL_ALLOC_FAILED                      -0x7F00
 /** Hardware acceleration function returned with error */

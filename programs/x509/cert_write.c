@@ -24,12 +24,12 @@
 #if !defined(MBEDTLS_X509_CRT_WRITE_C) || \
     !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_FS_IO) || \
     !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C) || \
-    !defined(MBEDTLS_ERROR_C) || !defined(MBEDTLS_SHA256_C) || \
+    !defined(MBEDTLS_ERROR_C) || !defined(MBEDTLS_MD_CAN_SHA256) || \
     !defined(MBEDTLS_PEM_WRITE_C)
 int main(void)
 {
     mbedtls_printf("MBEDTLS_X509_CRT_WRITE_C and/or MBEDTLS_X509_CRT_PARSE_C and/or "
-                   "MBEDTLS_FS_IO and/or MBEDTLS_SHA256_C and/or "
+                   "MBEDTLS_FS_IO and/or MBEDTLS_MD_CAN_SHA256 and/or "
                    "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C and/or "
                    "MBEDTLS_ERROR_C not defined.\n");
     mbedtls_exit(0);
@@ -771,7 +771,7 @@ usage:
         mbedtls_printf(" ok\n");
     }
 
-#if defined(MBEDTLS_SHA1_C)
+#if defined(MBEDTLS_MD_CAN_SHA1)
     if (opt.version == MBEDTLS_X509_CRT_VERSION_3 &&
         opt.subject_identifier != 0) {
         mbedtls_printf("  . Adding the Subject Key Identifier ...");
@@ -805,7 +805,7 @@ usage:
 
         mbedtls_printf(" ok\n");
     }
-#endif /* MBEDTLS_SHA1_C */
+#endif /* MBEDTLS_MD_CAN_SHA1 */
 
     if (opt.version == MBEDTLS_X509_CRT_VERSION_3 &&
         opt.key_usage != 0) {

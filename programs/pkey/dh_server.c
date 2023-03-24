@@ -23,9 +23,9 @@
 
 #if defined(MBEDTLS_AES_C) && defined(MBEDTLS_DHM_C) && \
     defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_NET_C) && \
-    defined(MBEDTLS_RSA_C) && defined(MBEDTLS_SHA256_C) && \
+    defined(MBEDTLS_RSA_C) && defined(MBEDTLS_MD_CAN_SHA256) && \
     defined(MBEDTLS_FS_IO) && defined(MBEDTLS_CTR_DRBG_C) && \
-    defined(MBEDTLS_SHA1_C)
+    defined(MBEDTLS_MD_CAN_SHA1)
 #include "mbedtls/net_sockets.h"
 #include "mbedtls/aes.h"
 #include "mbedtls/dhm.h"
@@ -43,14 +43,14 @@
 
 #if !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_DHM_C) ||     \
     !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_NET_C) ||  \
-    !defined(MBEDTLS_RSA_C) || !defined(MBEDTLS_SHA256_C) ||    \
+    !defined(MBEDTLS_RSA_C) || !defined(MBEDTLS_MD_CAN_SHA256) ||    \
     !defined(MBEDTLS_FS_IO) || !defined(MBEDTLS_CTR_DRBG_C) || \
-    !defined(MBEDTLS_SHA1_C)
+    !defined(MBEDTLS_MD_CAN_SHA1)
 int main(void)
 {
     mbedtls_printf("MBEDTLS_AES_C and/or MBEDTLS_DHM_C and/or MBEDTLS_ENTROPY_C "
                    "and/or MBEDTLS_NET_C and/or MBEDTLS_RSA_C and/or "
-                   "MBEDTLS_SHA256_C and/or MBEDTLS_FS_IO and/or "
+                   "MBEDTLS_MD_CAN_SHA256 and/or MBEDTLS_FS_IO and/or "
                    "MBEDTLS_CTR_DRBG_C not defined.\n");
     mbedtls_exit(0);
 }
@@ -302,5 +302,5 @@ exit:
     mbedtls_exit(exit_code);
 }
 #endif /* MBEDTLS_AES_C && MBEDTLS_DHM_C && MBEDTLS_ENTROPY_C &&
-          MBEDTLS_NET_C && MBEDTLS_RSA_C && MBEDTLS_SHA256_C &&
+          MBEDTLS_NET_C && MBEDTLS_RSA_C && MBEDTLS_MD_CAN_SHA256 &&
           MBEDTLS_FS_IO && MBEDTLS_CTR_DRBG_C */

@@ -760,7 +760,7 @@ void pk_sign_verify(int type, int parameter, int sign_ret, int verify_ret)
 #endif
 
     mbedtls_pk_init(&pk);
-    USE_PSA_INIT();
+    MD_OR_USE_PSA_INIT();
 
     memset(hash, 0x2a, sizeof(hash));
     memset(sig, 0, sizeof(sig));
@@ -824,7 +824,7 @@ exit:
     mbedtls_pk_restart_free(rs_ctx);
 #endif
     mbedtls_pk_free(&pk);
-    USE_PSA_DONE();
+    MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */
 

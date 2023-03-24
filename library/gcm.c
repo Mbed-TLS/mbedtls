@@ -93,7 +93,7 @@ static int gcm_gen_table(mbedtls_gcm_context *ctx)
     ctx->HL[8] = vl;
     ctx->HH[8] = vh;
 
-#if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
+#if defined(MBEDTLS_AESNI_HAVE_CODE)
     /* With CLMUL support, we need only h, not the rest of the table */
     if (mbedtls_aesni_has_support(MBEDTLS_AESNI_CLMUL)) {
         return 0;
@@ -190,7 +190,7 @@ static void gcm_mult(mbedtls_gcm_context *ctx, const unsigned char x[16],
     unsigned char lo, hi, rem;
     uint64_t zh, zl;
 
-#if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
+#if defined(MBEDTLS_AESNI_HAVE_CODE)
     if (mbedtls_aesni_has_support(MBEDTLS_AESNI_CLMUL)) {
         unsigned char h[16];
 
@@ -202,7 +202,7 @@ static void gcm_mult(mbedtls_gcm_context *ctx, const unsigned char x[16],
         mbedtls_aesni_gcm_mult(output, x, h);
         return;
     }
-#endif /* MBEDTLS_AESNI_C && MBEDTLS_HAVE_X86_64 */
+#endif /* MBEDTLS_AESNI_HAVE_CODE */
 
     lo = x[15] & 0xf;
 
@@ -753,6 +753,27 @@ int mbedtls_gcm_self_test(int verbose)
     unsigned char tag_buf[16];
     int i, j, ret;
     mbedtls_cipher_id_t cipher = MBEDTLS_CIPHER_ID_AES;
+
+    if (verbose != 0) {
+#if defined(MBEDTLS_GCM_ALT)
+        mbedtls_printf("  GCM note: alternative implementation.\n");
+#else /* MBEDTLS_GCM_ALT */
+#if defined(MBEDTLS_AESNI_HAVE_CODE)
+        if (mbedtls_aesni_has_support(MBEDTLS_AESNI_CLMUL)) {
+            mbedtls_printf("  GCM note: using AESNI via ");
+#if MBEDTLS_AESNI_HAVE_CODE == 1
+            mbedtls_printf("assembly");
+#elif MBEDTLS_AESNI_HAVE_CODE == 2
+            mbedtls_printf("intrinsics");
+#else
+            mbedtls_printf("(unknown)");
+#endif
+            mbedtls_printf(".\n");
+        } else
+#endif
+        mbedtls_printf("  GCM note: built-in implementation.\n");
+#endif /* MBEDTLS_GCM_ALT */
+    }
 
     for (j = 0; j < 3; j++) {
         int key_len = 128 + 64 * j;

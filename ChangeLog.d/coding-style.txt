@@ -1,5 +1,0 @@
-Changes
-   * The C code follows a new coding style. This is transparent for users but
-     affects contributors and maintainers of local patches. For more
-     information, see
-     https://mbed-tls.readthedocs.io/en/latest/kb/how-to/rewrite-branch-for-coding-style/

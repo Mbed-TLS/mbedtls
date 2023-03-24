@@ -11,6 +11,7 @@ data_files/entropy_seed
 include/test/instrument_record_status.h
 
 src/*.o
+src/test_helpers/*.o
 src/drivers/*.o
 src/libmbed*
 

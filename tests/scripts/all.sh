@@ -2203,10 +2203,10 @@ component_test_psa_crypto_config_accel_all_ec_algs_use_psa () {
     loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
     # SHA-1 and all variants of SHA-2 are needed for ECDSA and X.509 tests.
     # Note = we are NOT adding these ALG_SHA_xxx to the "loc_accel_flags" list
-    #       because we need that support on the driver side (ex: hash-and-sign
-    #       algorithms), but we do not want to accelerate other hash only tests.
-    #       Indeed the same "loc_accel_list" variable is also used later when
-    #       building the library.
+    #       because that list is used to define accelerated components both on
+    #       the driver and main library sides. Now, albeit we need SHA_xxx to be
+    #       available on the driver side (ex: hash-and-sign algorithms), we do
+    #       not want the main library to use such accelerators.
     loc_accel_flags="$loc_accel_flags -DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_ALG_SHA_1"
     loc_accel_flags="$loc_accel_flags -DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_ALG_SHA_224"
     loc_accel_flags="$loc_accel_flags -DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_ALG_SHA_256"
@@ -2243,7 +2243,7 @@ component_test_psa_crypto_config_accel_all_ec_algs_use_psa () {
 component_test_psa_crypto_config_reference_all_ec_algs_use_psa () {
     msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with non-accelerated EC algs + USE_PSA"
 
-    # To be aligned with the accel component that needs this
+    # To be aligned with component_test_psa_crypto_config_accel_all_ec_algs_use_psa()
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
 

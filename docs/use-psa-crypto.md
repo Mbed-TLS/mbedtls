@@ -98,6 +98,19 @@ register a PSA key for use with a PSK key exchange.
 **Use in TLS:** opt-in. The application needs to register the key using one of
 the new APIs to get the benefits.
 
+### PSA-held (opaque) keys for TLS 1.2 EC J-PAKE key exchange
+
+**New API function:** `mbedtls_ssl_set_hs_ecjpake_password_opaque()`.
+Call this function from an application to register a PSA key for use with the
+TLS 1.2 EC J-PAKE key exchange.
+
+**Benefits:** isolation of long-term secrets.
+
+**Limitations:** none.
+
+**Use in TLS:** opt-in. The application needs to register the key using one of
+the new APIs to get the benefits.
+
 ### PSA-based operations in the Cipher layer
 
 There is a new API function `mbedtls_cipher_setup_psa()` to set up a context

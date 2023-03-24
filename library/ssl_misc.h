@@ -751,16 +751,9 @@ struct mbedtls_ssl_handshake_params {
     mbedtls_dhm_context dhm_ctx;                /*!<  DHM key exchange        */
 #endif
 
-/* Adding guard for MBEDTLS_ECDSA_C to ensure no compile errors due
- * to guards in client and server code. There is a gap in functionality that
- * access to ecdh_ctx structure is needed for MBEDTLS_ECDSA_C which does not
- * seem correct.
- */
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_PK_CAN_ECDSA_SOME)
-#if !defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_ECDH_C) && !defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
-#endif /* !MBEDTLS_USE_PSA_CRYPTO */
-#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_ECDH_C && !MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(PSA_WANT_ALG_ECDH) && \
     (defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3))

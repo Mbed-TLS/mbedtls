@@ -1301,7 +1301,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_ECP_DP_SECP192R1_ENABLED */
 void ecp_mod_p192_raw(char *input_N,
                       char *input_X,
                       char *result)

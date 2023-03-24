@@ -2343,7 +2343,13 @@ component_test_psa_crypto_config_accel_ecc () {
     make test
 }
 
-component_test_psa_crypto_config_accel_all_curves_except_p192 () {
+# Helper function used in:
+# - component_test_psa_crypto_config_accel_all_curves_except_p192
+# - component_test_psa_crypto_config_accel_all_curves_except_x25519
+# to build and test with all accelerated curves a part from the specified one.
+psa_crypto_config_accel_all_curves_except_one () {
+    BUILTIN_CURVE=$1
+
     msg "build: PSA_CRYPTO_CONFIG + all accelerated EC algs (excl secp192r1) + USE_PSA_CRYPTO"
 
     # Accelerate all EC algs (all EC curves are automatically accelerated as
@@ -2402,9 +2408,7 @@ component_test_psa_crypto_config_accel_all_curves_except_p192 () {
     # Explicitly disable all SW implementation for elliptic curves and enable
     # their accelerated version (this excludes the built-in automatic inclusion
     # from "config_psa.h")
-    # Just leave SW implementation for the curve with the smallest bit size
-    # (MBEDTLS_ECP_DP_SECP192R1_ENABLED) for allowing to build with ECP_C.
-    # scripts/config.py unset MBEDTLS_ECP_DP_SECP192R1_ENABLED
+    scripts/config.py unset MBEDTLS_ECP_DP_SECP192R1_ENABLED
     scripts/config.py unset MBEDTLS_ECP_DP_SECP224R1_ENABLED
     scripts/config.py unset MBEDTLS_ECP_DP_SECP256R1_ENABLED
     scripts/config.py unset MBEDTLS_ECP_DP_SECP384R1_ENABLED
@@ -2430,6 +2434,9 @@ component_test_psa_crypto_config_accel_all_curves_except_p192 () {
     loc_accel_list="$loc_accel_list ECC_SECP_K1_224"
     loc_accel_list="$loc_accel_list ECC_SECP_R1_192"
     loc_accel_list="$loc_accel_list ECC_SECP_K1_192"
+    # Just leave SW implementation for the curve with the smallest bit size
+    # (MBEDTLS_ECP_DP_SECP192R1_ENABLED) for allowing to build with ECP_C.
+    scripts/config.py set $BUILTIN_CURVE
 
     # build and link with test drivers
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
@@ -2439,11 +2446,26 @@ component_test_psa_crypto_config_accel_all_curves_except_p192 () {
     not grep mbedtls_ecdh_ library/ecdh.o
     not grep mbedtls_ecdsa_ library/ecdsa.o
     not grep mbedtls_ecjpake_ library/ecjpake.o
+    if [ $BUILTIN_CURVE == "MBEDTLS_ECP_DP_SECP192R1_ENABLED" ]; then
+        # The only built-in curve is Short Weierstrass, so ECP shouldn't have support for Montgomery curves.
+        # Functions with mxz in their name are specific to Montgomery curves.
+        not grep mxz library/ecp.o
+    else
+        not grep mbedtls_ecp_muladd library/ecp.o
+    fi
 
     # Run the tests
     # -------------
     msg "test: PSA_CRYPTO_CONFIG + all accelerated EC algs (excl secp192r1) + USE_PSA_CRYPTO"
     make test
+}
+
+component_test_psa_crypto_config_accel_all_curves_except_p192 () {
+    psa_crypto_config_accel_all_curves_except_one MBEDTLS_ECP_DP_SECP192R1_ENABLED
+}
+
+component_test_psa_crypto_config_accel_all_curves_except_x25519 () {
+    psa_crypto_config_accel_all_curves_except_one MBEDTLS_ECP_DP_CURVE25519_ENABLED
 }
 
 component_test_psa_crypto_config_accel_rsa_signature () {

@@ -297,7 +297,7 @@ Regarding libmbedcrypto:
   ECJPAKE), however they all depend on `ECP_C` which in turn depends on
 `BIGNUM_C`. So, direct calls from TLS, X.509 and PK to ECP and Bignum will
 need to be replaced; see <https://github.com/Mbed-TLS/mbedtls/issues/6839> and
-liked issues for a summary of intermediate steps and open points.
+linked issues for a summary of intermediate steps and open points.
 
 **Strategy for step 2:**
 

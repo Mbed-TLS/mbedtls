@@ -168,45 +168,6 @@ TASKS = {
             }
         }
     },
-    'analyze_driver_vs_reference_ecdsa': {
-        'test_function': do_analyze_driver_vs_reference,
-        'args': {
-            'component_ref': 'test_psa_crypto_config_reference_ecdsa_use_psa',
-            'component_driver': 'test_psa_crypto_config_accel_ecdsa_use_psa',
-            'ignored_suites': [
-                'ecdsa', # the software implementation that's excluded
-            ],
-            'ignored_tests': {
-                'test_suite_random': [
-                    'PSA classic wrapper: ECDSA signature (SECP256R1)',
-                ],
-            }
-        }
-    },
-    'analyze_driver_vs_reference_ecdh': {
-        'test_function': do_analyze_driver_vs_reference,
-        'args': {
-            'component_ref': 'test_psa_crypto_config_reference_ecdh_use_psa',
-            'component_driver': 'test_psa_crypto_config_accel_ecdh_use_psa',
-            'ignored_suites': [
-                'ecdh', # the software implementation that's excluded
-            ],
-            'ignored_tests': {
-            }
-        }
-    },
-    'analyze_driver_vs_reference_ecjpake': {
-        'test_function': do_analyze_driver_vs_reference,
-        'args': {
-            'component_ref': 'test_psa_crypto_config_reference_ecjpake_use_psa',
-            'component_driver': 'test_psa_crypto_config_accel_ecjpake_use_psa',
-            'ignored_suites': [
-                'ecjpake', # the software implementation that's excluded
-            ],
-            'ignored_tests': {
-            }
-        }
-    },
     'analyze_driver_vs_reference_all_ec_algs': {
         'test_function': do_analyze_driver_vs_reference,
         'args': {

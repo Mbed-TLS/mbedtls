@@ -1,2 +1,0 @@
-Features
-   * Add support to include the SubjectAltName extension to a CSR.

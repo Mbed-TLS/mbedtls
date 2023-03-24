@@ -79,6 +79,7 @@ jobs:
         # Logs appear out of sequence on Windows. Give time to catch up.
         - sleep 5
         - scripts/windows_msbuild.bat v141 # Visual Studio 2017
+        - visualc/VS2013/x64/Release/selftest.exe
 
     - name: full configuration on arm64
       os: linux

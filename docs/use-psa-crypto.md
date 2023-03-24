@@ -1,8 +1,12 @@
 This document describes the compile-time configuration option
 `MBEDTLS_USE_PSA_CRYPTO` from a user's perspective.
 
-This option makes the X.509 and TLS library use PSA for cryptographic
-operations, and enables new APIs for using keys handled by PSA Crypto.
+This option:
+- makes the X.509 and TLS libraries use PSA for cryptographic operations as
+  much as possible, see "Internal changes" below;
+- enables new APIs for using keys handled by PSA Crypto, such as
+  `mbedtls_pk_setup_opaque()` and `mbedtls_ssl_conf_psk_opaque()`, see
+"New APIs / API extensions" below.
 
 General considerations
 ----------------------
@@ -11,9 +15,25 @@ General considerations
 `psa_crypto_init()` before calling any function from the SSL/TLS, X.509 or PK
 module.
 
-**Scope:** `MBEDTLS_USE_PSA_CRYPTO` has no effect on the most of the TLS 1.3
-code, which always uses PSA crypto. The parts of the TLS 1.3 code that will
-use PSA Crypto or not depending on the value of this option are:
+**Relationship with other options:** This option depends on
+`MBEDTLS_PSA_CRYPTO_C`. These two options differ in the following way:
+- `MBEDTLS_PSA_CRYPTO_C` enables the implementation of the PSA Crypto API.
+  When it is enabled, `psa_xxx()` APIs are available and you must call
+`psa_crypto_init()` before you call any other `psa_xxx()` function. Other
+modules in the library (non-PSA crypto APIs, X.509, TLS) may or may not use
+PSA Crypto but you're not required to call `psa_crypto_init()` before calling
+non-PSA functions, unless when explicitly documented (TLS 1.3).
+- `MBEDTLS_USE_PSA_CRYPTO` means that X.509 and TLS will use PSA Crypto as
+  much as possible (that is, everywhere except for features that are not
+supported by PSA Crypto, see "Internal Changes" below for a complete list of
+exceptions). When it is enabled, you need to call `psa_crypto_init()` before
+calling any function from PK, X.509 or TLS; however it doesn't change anything
+for the rest of the library.
+
+**Scope:** `MBEDTLS_USE_PSA_CRYPTO` has no effect on modules other than PK,
+X.509 and TLS. It also has no effect on most of the TLS 1.3 code, which always
+uses PSA crypto. The parts of the TLS 1.3 code that will use PSA Crypto or not
+depending on this option being set or not are:
 - record protection;
 - running handshake hash;
 - asymmetric signature verification & generation;
@@ -21,18 +41,20 @@ use PSA Crypto or not depending on the value of this option are:
 You need to enable `MBEDTLS_USE_PSA_CRYPTO` if you want TLS 1.3 to use PSA
 everywhere.
 
-**Important note:** Even with this option disabled, some modules may still use
-PSA Crypto. However, it is then their responsibility to make sure it's safe to
-do so; in particular those modules do not require `psa_crypto_init()` to be
-called. So, enabling `MBEDTLS_USE_PSA_CRYPTO` basically means:
-- as a user, you promise to call `psa_crypto_init()` before using any function
-  from PK, X.509 or TLS;
-- in return, those modules will use PSA Crypto as much as possible (see
-  exceptions belos).
-Conversely, not enabling this option means you have no obligation to call
-`psa_crypto_init()` (unless as documented by other options  such as TLS 1.3),
-but modules can still decide to use PSA if they can determine it is available
-and initialized.
+**Historical note:** This option was introduced at a time when PSA Crypto was
+still beta and not ready for production, so we made its use in X.509 and TLS
+opt-in: by default, these modules would keep using the stable,
+production-ready legacy (pre-PSA) crypto APIs. So, the scope of was X.509 and
+TLS, as well as some of PK for technical reasons. Nowadays PSA Crypto is no
+longer beta, and production quality, so there's no longer any reason to make
+its use in other modules opt-in. However, PSA Crypto functions require that
+`psa_crypto_init()` has been called before their use, and for backwards
+compatibility reasons we can't impose this requirement on non-PSA functions
+that didn't have such a requirement before. So, nowadays the main meaning of
+`MBEDTLS_USE_PSA_CRYPTO` is that the user promises to call `psa_crypto_init()`
+before calling any PK, X.509 or TLS functions. For the same compatibility
+reasons, we can't extend its scope. However, new modules in the library, such
+as TLS 1.3, can be introduced with a requirement to call `psa_crypto_init()`.
 
 New APIs / API extensions
 -------------------------

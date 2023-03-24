@@ -2373,10 +2373,16 @@ component_test_psa_crypto_config_accel_all_curves_except_p192 () {
     # Configure and build the main libraries
     # ---------------------------------------
 
-    # start with default + driver support + USE_PSA_CRYPTO
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
+    # full config + USE_PSA_CRYPTO
+    scripts/config.py full
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
-    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
+
+    # Dynamic secure element support is a deprecated feature and needs to be disabled here.
+    # This is done to have the same form of psa_key_attributes_s for libdriver and library.
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
+
+    # restartable is not yet supported in PSA
+    scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
 
     # disable modules for which we have drivers
     scripts/config.py unset MBEDTLS_ECDSA_C

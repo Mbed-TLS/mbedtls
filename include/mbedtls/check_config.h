@@ -370,7 +370,8 @@
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) &&                    \
     ( !defined(MBEDTLS_PK_HAVE_JPAKE) ||                                    \
-      !defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) )
+      !(defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) || \
+        defined(PSA_WANT_ECC_SECP_R1_256) ) )
 #error "MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED defined, but not all prerequisites"
 #endif
 

@@ -872,12 +872,12 @@
 #if defined(MBEDTLS_SSL_TLS_C)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #if !(defined(PSA_WANT_ALG_SHA_256) || defined(PSA_WANT_ALG_SHA_384))
-#error "MBEDTLS_SSL_PROTO_TLS1_2 defined, but not all prerequisites"
+#error "MBEDTLS_SSL_TLS_C defined, but not all prerequisites"
 #endif
 #else /* MBEDTLS_USE_PSA_CRYPTO */
 #if !defined(MBEDTLS_MD_C) || \
     !(defined(MBEDTLS_MD_HAVE_SHA256) || defined(MBEDTLS_MD_HAVE_SHA384))
-#error "MBEDTLS_SSL_PROTO_TLS1_2 defined, but not all prerequisites"
+#error "MBEDTLS_SSL_TLS_C defined, but not all prerequisites"
 #endif
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 #endif /* MBEDTLS_SSL_TLS_C */

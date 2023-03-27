@@ -388,8 +388,10 @@ int psa_status_to_mbedtls(psa_status_t status,
 int psa_pk_status_to_mbedtls(psa_status_t status);
 
 /* Utility macro to shorten the defines of error translator in modules. */
-#define PSA_TO_MBEDTLS_ERR_LIST(status, error_list, fallback_f) \
-    psa_status_to_mbedtls(status, error_list, sizeof(error_list), fallback_f)
+#define PSA_TO_MBEDTLS_ERR_LIST(status, error_list, fallback_f)       \
+    psa_status_to_mbedtls(status, error_list,                         \
+                          sizeof(error_list)/sizeof(error_list[0]),   \
+                          fallback_f)
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 #endif /* MBEDTLS_PSA_UTIL_H */

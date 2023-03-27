@@ -112,10 +112,9 @@ int psa_generic_status_to_mbedtls(psa_status_t status)
 
 int psa_status_to_mbedtls(psa_status_t status,
                           const mbedtls_error_pair_t *local_translations,
-                          size_t local_errors_size,
+                          size_t local_errors_num,
                           int (*fallback_f)(psa_status_t))
 {
-    size_t local_errors_num = (size_t) local_errors_size / 2;
     for (size_t i = 0; i < local_errors_num; i++) {
         if (status == local_translations[i].psa_status) {
             return local_translations[i].mbedtls_error;

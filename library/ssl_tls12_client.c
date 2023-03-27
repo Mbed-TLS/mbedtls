@@ -831,7 +831,7 @@ static int ssl_parse_supported_point_formats_ext(mbedtls_ssl_context *ssl,
     while (list_size > 0) {
         if (p[0] == MBEDTLS_ECP_PF_UNCOMPRESSED ||
             p[0] == MBEDTLS_ECP_PF_COMPRESSED) {
-#if !defined(MBEDTLS_USE_PSA_CRYPTO) && (defined(MBEDTLS_ECDH_C))
+#if !defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_ECDH_C)
             ssl->handshake->ecdh_ctx.point_format = p[0];
 #endif /* !MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_ECDH_C */
 #if !defined(MBEDTLS_USE_PSA_CRYPTO) &&                             \

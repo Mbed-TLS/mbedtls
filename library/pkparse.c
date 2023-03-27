@@ -514,7 +514,7 @@ static int pk_use_ecparams(const mbedtls_asn1_buf *params, mbedtls_pk_context *p
  * format to an uncompressed one
  */
 static int pk_convert_compressed_ec(mbedtls_pk_context *pk,
-                                    unsigned char *in_start, size_t in_len,
+                                    const unsigned char *in_start, size_t in_len,
                                     size_t *out_buf_len, unsigned char *out_buf,
                                     size_t out_buf_size)
 {
@@ -552,7 +552,6 @@ static int pk_get_ecpubkey(unsigned char **p, const unsigned char *end,
 {
     mbedtls_svc_key_id_t key;
     psa_key_attributes_t key_attrs = PSA_KEY_ATTRIBUTES_INIT;
-    psa_status_t status;
     size_t len = (end - *p);
     int ret;
 
@@ -584,9 +583,9 @@ static int pk_get_ecpubkey(unsigned char **p, const unsigned char *end,
     psa_set_key_type(&key_attrs, PSA_KEY_TYPE_ECC_PUBLIC_KEY(pk->pk_ec_family));
     psa_set_key_bits(&key_attrs, pk->pk_bits);
 
-    status = psa_import_key(&key_attrs, pk->pk_raw, pk->pk_raw_len, &key);
-    psa_destroy_key(key);
-    if (status != PSA_SUCCESS) {
+    if ((psa_import_key(&key_attrs, pk->pk_raw, pk->pk_raw_len,
+                        &key) != PSA_SUCCESS) ||
+        psa_destroy_key(key)) {
         mbedtls_platform_zeroize(pk->pk_raw, MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN);
         pk->pk_raw_len = 0;
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;

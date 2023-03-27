@@ -886,11 +886,11 @@ int mbedtls_pk_get_public_key(mbedtls_pk_context *pk, unsigned char *buf,
     if ((pk == NULL) || (pk->pk_raw_len == 0)) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
-    if (buf_size < MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN) {
+    if (buf_size < pk->pk_raw_len) {
         return MBEDTLS_ERR_PK_BUFFER_TOO_SMALL;
     }
 
-    memcpy(buf, pk->pk_raw, MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN);
+    memcpy(buf, pk->pk_raw, pk->pk_raw_len);
     *key_len = pk->pk_raw_len;
 
     return 0;

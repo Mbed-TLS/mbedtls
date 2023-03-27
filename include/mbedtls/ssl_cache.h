@@ -102,6 +102,9 @@ void mbedtls_ssl_cache_init(mbedtls_ssl_cache_context *cache);
  * \param session_id_len  The length of \p session_id in bytes.
  * \param session         The address at which to store the session
  *                        associated with \p session_id, if present.
+ *
+ * \return                \c 0 on success.
+ * \return                A negative error code on failure.
  */
 int mbedtls_ssl_cache_get(void *data,
                           unsigned char const *session_id,
@@ -117,6 +120,9 @@ int mbedtls_ssl_cache_get(void *data,
  *                        associated to \p session.
  * \param session_id_len  The length of \p session_id in bytes.
  * \param session         The session to store.
+ *
+ * \return                \c 0 on success.
+ * \return                A negative error code on failure.
  */
 int mbedtls_ssl_cache_set(void *data,
                           unsigned char const *session_id,

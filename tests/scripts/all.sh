@@ -2237,7 +2237,7 @@ component_test_psa_crypto_config_accel_all_ec_algs_use_psa () {
 
     # Things we wanted supported in libtestdriver1, but not accelerated in the main library:
     # SHA-1 and all SHA-2 variants, as they are used by ECDSA deterministic.
-    loc_extra_list="ALG_SHA1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512"
+    loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512"
     loc_accel_flags=$( echo "$loc_accel_list $loc_extra_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
     make -C tests libtestdriver1.a CFLAGS="$ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
 

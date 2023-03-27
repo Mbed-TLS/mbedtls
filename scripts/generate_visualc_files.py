@@ -36,7 +36,7 @@ build_tree.chdir_to_root()
 
 
 CONFIGURATIONS = list(itertools.product(
-    ['Debug', 'Release'], ['Win32', 'x64']))
+    ['Debug', 'Release'], ['Win32', 'x64', 'ARM64']))
 
 # Directories to add to the include path.
 # Order matters in case there are files with the same name in more than

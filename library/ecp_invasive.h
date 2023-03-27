@@ -160,6 +160,28 @@ int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 
 #endif /* MBEDTLS_ECP_DP_SECP521R1_ENABLED */
 
+#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+
+/** Fast quasi-reduction modulo p384 (FIPS 186-3 D.2.4)
+ *
+ * \param[in,out]   X       The address of the MPI to be converted.
+ *                          Must have exact limb size that stores a 768-bit MPI
+ *                          (double the bitlength of the modulus).
+ *                          Upon return holds the reduced value which is
+ *                          in range `0 <= X < 2 * N` (where N is the modulus).
+ *                          The bitlength of the reduced value is the same as
+ *                          that of the modulus (384 bits).
+ * \param[in]       X_limbs The length of \p N in limbs.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if \p N_n does not have
+ *                  twice as many limbs as the modulus.
+ */
+MBEDTLS_STATIC_TESTABLE
+int  mbedtls_ecp_mod_p384_raw(mbedtls_mpi_uint *X, size_t X_limbs);
+
+#endif /* MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+
 /** Initialise a modulus with hard-coded const curve data.
  *
  * \note            The caller is responsible for the \p N modulus' memory.

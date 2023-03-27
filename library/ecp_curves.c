@@ -4585,6 +4585,8 @@ int mbedtls_ecp_mod_p256_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
 static int ecp_mod_p384(mbedtls_mpi *);
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p384_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
 static int ecp_mod_p521(mbedtls_mpi *);
@@ -5181,6 +5183,102 @@ int mbedtls_ecp_mod_p256_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 
 #endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED */
 
+#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+/*
+ * Fast quasi-reduction modulo p384 (FIPS 186-3 D.2.4)
+ */
+static int ecp_mod_p384(mbedtls_mpi *N)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t expected_width = 2 * ((384 + biL - 1) / biL);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
+    ret = mbedtls_ecp_mod_p384_raw(N->p, expected_width);
+cleanup:
+    return ret;
+}
+
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p384_raw(mbedtls_mpi_uint *X, size_t X_limbs)
+{
+    if (X_limbs != 2*((384 + biL - 1)/biL)) {
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+
+    INIT(384);
+
+    ADD(12); ADD(21); ADD(20);
+    SUB(23);                                                NEXT; // A0
+
+    ADD(13); ADD(22); ADD(23);
+    SUB(12); SUB(20);                                       NEXT; // A1
+
+    ADD(14); ADD(23);
+    SUB(13); SUB(21);                                       NEXT; // A2
+
+    ADD(15); ADD(12); ADD(20); ADD(21);
+    SUB(14); SUB(22); SUB(23);                              NEXT; // A3
+
+    ADD(21); ADD(21); ADD(16); ADD(13); ADD(12); ADD(20); ADD(22);
+    SUB(15); SUB(23); SUB(23);                              NEXT; // A4
+
+    ADD(22); ADD(22); ADD(17); ADD(14); ADD(13); ADD(21); ADD(23);
+    SUB(16);                                                NEXT; // A5
+
+    ADD(23); ADD(23); ADD(18); ADD(15); ADD(14); ADD(22);
+    SUB(17);                                                NEXT; // A6
+
+    ADD(19); ADD(16); ADD(15); ADD(23);
+    SUB(18);                                                NEXT; // A7
+
+    ADD(20); ADD(17); ADD(16);
+    SUB(19);                                                NEXT; // A8
+
+    ADD(21); ADD(18); ADD(17);
+    SUB(20);                                                NEXT; // A9
+
+    ADD(22); ADD(19); ADD(18);
+    SUB(21);                                                NEXT; // A10
+
+    ADD(23); ADD(20); ADD(19);
+    SUB(22);                                                      // A11
+
+    RESET;
+
+    /* Use 2^384 = P + 2^128 + 2^96 - 2^32 + 1 to modulo reduce the final carry */
+    ADD_LAST; NEXT;                                               // A0
+    SUB_LAST; NEXT;                                               // A1
+    ;         NEXT;                                               // A2
+    ADD_LAST; NEXT;                                               // A3
+    ADD_LAST; NEXT;                                               // A4
+    ;         NEXT;                                               // A5
+    ;         NEXT;                                               // A6
+    ;         NEXT;                                               // A7
+    ;         NEXT;                                               // A8
+    ;         NEXT;                                               // A9
+    ;         NEXT;                                               // A10
+                                                                  // A11
+
+    RESET;
+
+    ADD_LAST; NEXT;                                               // A0
+    SUB_LAST; NEXT;                                               // A1
+    ;         NEXT;                                               // A2
+    ADD_LAST; NEXT;                                               // A3
+    ADD_LAST; NEXT;                                               // A4
+    ;         NEXT;                                               // A5
+    ;         NEXT;                                               // A6
+    ;         NEXT;                                               // A7
+    ;         NEXT;                                               // A8
+    ;         NEXT;                                               // A9
+    ;         NEXT;                                               // A10
+                                                                  // A11
+
+    LAST;
+
+    return 0;
+}
+#endif /* MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+
 #undef LOAD32
 #undef MAX32
 #undef A
@@ -5201,96 +5299,7 @@ int mbedtls_ecp_mod_p256_raw(mbedtls_mpi_uint *X, size_t X_limbs)
           MBEDTLS_ECP_DP_SECP256R1_ENABLED ||
           MBEDTLS_ECP_DP_SECP384R1_ENABLED */
 
-#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
-/*
- * The reader is advised to first understand ecp_mod_p192() since the same
- * general structure is used here, but with additional complications:
- * (1) chunks of 32 bits, and (2) subtractions.
- */
-
-/*
- * For these primes, we need to handle data in chunks of 32 bits.
- * This makes it more complicated if we use 64 bits limbs in MPI,
- * which prevents us from using a uniform access method as for p192.
- *
- * So, we define a mini abstraction layer to access 32 bit chunks,
- * load them in 'cur' for work, and store them back from 'cur' when done.
- *
- * While at it, also define the size of N in terms of 32-bit chunks.
- */
-#define LOAD32      cur = A(i);
-
-#if defined(MBEDTLS_HAVE_INT32)  /* 32 bit */
-
-#define MAX32       N->n
-#define A(j)      N->p[j]
-#define STORE32     N->p[i] = cur;
-
-#else                               /* 64-bit */
-
-#define MAX32       N->n * 2
-#define A(j) (j) % 2 ? (uint32_t) (N->p[(j)/2] >> 32) : \
-    (uint32_t) (N->p[(j)/2])
-#define STORE32                                   \
-    if (i % 2) {                                 \
-        N->p[i/2] &= 0x00000000FFFFFFFF;          \
-        N->p[i/2] |= ((mbedtls_mpi_uint) cur) << 32;        \
-    } else {                                      \
-        N->p[i/2] &= 0xFFFFFFFF00000000;          \
-        N->p[i/2] |= (mbedtls_mpi_uint) cur;                \
-    }
-
-#endif /* sizeof( mbedtls_mpi_uint ) */
-
-/*
- * Helpers for addition and subtraction of chunks, with signed carry.
- */
-static inline void add32(uint32_t *dst, uint32_t src, signed char *carry)
-{
-    *dst += src;
-    *carry += (*dst < src);
-}
-
-static inline void sub32(uint32_t *dst, uint32_t src, signed char *carry)
-{
-    *carry -= (*dst < src);
-    *dst -= src;
-}
-
-#define ADD(j)    add32(&cur, A(j), &c);
-#define SUB(j)    sub32(&cur, A(j), &c);
-
-/*
- * Helpers for the main 'loop'
- */
-#define INIT(b)                                                       \
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;                    \
-    signed char c = 0, cc;                                              \
-    uint32_t cur;                                                       \
-    size_t i = 0, bits = (b);                                           \
-    /* N is the size of the product of two b-bit numbers, plus one */   \
-    /* limb for fix_negative */                                         \
-    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, (b) * 2 / biL + 1));      \
-    LOAD32;
-
-#define NEXT                    \
-    STORE32; i++; LOAD32;       \
-    cc = c; c = 0;              \
-    if (cc < 0)                \
-    sub32(&cur, -cc, &c); \
-    else                        \
-    add32(&cur, cc, &c);  \
-
-#define LAST                                    \
-    STORE32; i++;                               \
-    cur = c > 0 ? c : 0; STORE32;               \
-    cur = 0; while (++i < MAX32) { STORE32; }  \
-    if (c < 0) mbedtls_ecp_fix_negative(N, c, bits);
-
-/*
- * If the result is negative, we get it in the form
- * c * 2^bits + N, with c negative and N positive shorter than 'bits'
- */
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_ECP_C)
 MBEDTLS_STATIC_TESTABLE
 void mbedtls_ecp_fix_negative(mbedtls_mpi *N, signed char c, size_t bits)
 {
@@ -5321,66 +5330,7 @@ void mbedtls_ecp_fix_negative(mbedtls_mpi *N, signed char c, size_t bits)
 #endif
     N->p[bits / 8 / sizeof(mbedtls_mpi_uint)] += msw;
 }
-
-#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
-/*
- * Fast quasi-reduction modulo p384 (FIPS 186-3 D.2.4)
- */
-static int ecp_mod_p384(mbedtls_mpi *N)
-{
-    INIT(384);
-
-    ADD(12); ADD(21); ADD(20);
-    SUB(23);                                              NEXT;   // A0
-
-    ADD(13); ADD(22); ADD(23);
-    SUB(12); SUB(20);                                   NEXT;     // A2
-
-    ADD(14); ADD(23);
-    SUB(13); SUB(21);                                   NEXT;     // A2
-
-    ADD(15); ADD(12); ADD(20); ADD(21);
-    SUB(14); SUB(22); SUB(23);                        NEXT;       // A3
-
-    ADD(21); ADD(21); ADD(16); ADD(13); ADD(12); ADD(20); ADD(22);
-    SUB(15); SUB(23); SUB(23);                        NEXT;       // A4
-
-    ADD(22); ADD(22); ADD(17); ADD(14); ADD(13); ADD(21); ADD(23);
-    SUB(16);                                              NEXT;   // A5
-
-    ADD(23); ADD(23); ADD(18); ADD(15); ADD(14); ADD(22);
-    SUB(17);                                              NEXT;   // A6
-
-    ADD(19); ADD(16); ADD(15); ADD(23);
-    SUB(18);                                              NEXT;   // A7
-
-    ADD(20); ADD(17); ADD(16);
-    SUB(19);                                              NEXT;   // A8
-
-    ADD(21); ADD(18); ADD(17);
-    SUB(20);                                              NEXT;   // A9
-
-    ADD(22); ADD(19); ADD(18);
-    SUB(21);                                              NEXT;   // A10
-
-    ADD(23); ADD(20); ADD(19);
-    SUB(22);                                              LAST;   // A11
-
-cleanup:
-    return ret;
-}
-#endif /* MBEDTLS_ECP_DP_SECP384R1_ENABLED */
-
-#undef A
-#undef LOAD32
-#undef STORE32
-#undef MAX32
-#undef INIT
-#undef NEXT
-#undef LAST
-
-#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED ||
-          MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+#endif /* MBEDTLS_TEST_HOOKS & MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
 /* Size of p521 in terms of mbedtls_mpi_uint */

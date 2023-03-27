@@ -2379,7 +2379,7 @@ psa_crypto_config_accel_all_curves_except_one () {
     # Configure and build the main libraries
     # ---------------------------------------
 
-    # full config + USE_PSA_CRYPTO
+    # full config (includes USE_PSA, TLS 1.3 and driver support)
     scripts/config.py full
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
 
@@ -2405,38 +2405,19 @@ psa_crypto_config_accel_all_curves_except_one () {
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
 
-    # Explicitly disable all SW implementation for elliptic curves and enable
-    # their accelerated version (this excludes the built-in automatic inclusion
-    # from "config_psa.h")
-    scripts/config.py unset MBEDTLS_ECP_DP_SECP192R1_ENABLED
-    scripts/config.py unset MBEDTLS_ECP_DP_SECP224R1_ENABLED
-    scripts/config.py unset MBEDTLS_ECP_DP_SECP256R1_ENABLED
-    scripts/config.py unset MBEDTLS_ECP_DP_SECP384R1_ENABLED
-    scripts/config.py unset MBEDTLS_ECP_DP_SECP521R1_ENABLED
-    scripts/config.py unset MBEDTLS_ECP_DP_SECP192K1_ENABLED
-    scripts/config.py unset MBEDTLS_ECP_DP_SECP224K1_ENABLED
-    scripts/config.py unset MBEDTLS_ECP_DP_SECP256K1_ENABLED
-    scripts/config.py unset MBEDTLS_ECP_DP_BP256R1_ENABLED
-    scripts/config.py unset MBEDTLS_ECP_DP_BP384R1_ENABLED
-    scripts/config.py unset MBEDTLS_ECP_DP_BP512R1_ENABLED
-    scripts/config.py unset MBEDTLS_ECP_DP_CURVE25519_ENABLED
-    scripts/config.py unset MBEDTLS_ECP_DP_CURVE448_ENABLED
-    loc_accel_list="$loc_accel_list ECC_SECP_R1_521"
-    loc_accel_list="$loc_accel_list ECC_BRAINPOOL_P_R1_512"
-    loc_accel_list="$loc_accel_list ECC_MONTGOMERY_448"
-    loc_accel_list="$loc_accel_list ECC_SECP_R1_384"
-    loc_accel_list="$loc_accel_list ECC_BRAINPOOL_P_R1_384"
-    loc_accel_list="$loc_accel_list ECC_SECP_R1_256"
-    loc_accel_list="$loc_accel_list ECC_SECP_K1_256"
-    loc_accel_list="$loc_accel_list ECC_BRAINPOOL_P_R1_256"
-    loc_accel_list="$loc_accel_list ECC_MONTGOMERY_255"
-    loc_accel_list="$loc_accel_list ECC_SECP_R1_224"
-    loc_accel_list="$loc_accel_list ECC_SECP_K1_224"
-    loc_accel_list="$loc_accel_list ECC_SECP_R1_192"
-    loc_accel_list="$loc_accel_list ECC_SECP_K1_192"
-    # Just leave SW implementation for the curve with the smallest bit size
-    # (MBEDTLS_ECP_DP_SECP192R1_ENABLED) for allowing to build with ECP_C.
+    # Explicitly disable all SW implementation for elliptic curves
+    for CURVE in $(sed -n 's/#define \(MBEDTLS_ECP_DP_[0-9A-Z_a-z]*_ENABLED\).*/\1/p' <"$CONFIG_H"); do
+        scripts/config.py unset "$CURVE"
+    done
+    # Just leave SW implementation for the specified curve for allowing to
+    # build with ECP_C.
     scripts/config.py set $BUILTIN_CURVE
+    # Accelerate all curves listed in "crypto_config.h" (skipping the ones that
+    # are commented out)
+    for CURVE in $(sed -n 's/^#define \(PSA_WANT_ECC_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
+        CURVE=$(echo $CURVE | sed 's/PSA_WANT_//')
+        loc_accel_list="$loc_accel_list $CURVE"
+    done
 
     # build and link with test drivers
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
@@ -2447,11 +2428,18 @@ psa_crypto_config_accel_all_curves_except_one () {
     not grep mbedtls_ecdsa_ library/ecdsa.o
     not grep mbedtls_ecjpake_ library/ecjpake.o
     if [ $BUILTIN_CURVE == "MBEDTLS_ECP_DP_SECP192R1_ENABLED" ]; then
-        # The only built-in curve is Short Weierstrass, so ECP shouldn't have support for Montgomery curves.
-        # Functions with mxz in their name are specific to Montgomery curves.
+        # The only built-in curve is Short Weierstrass, so ECP shouldn't have
+        # support for Montgomery curves. Functions with mxz in their name
+        # are specific to Montgomery curves.
         not grep mxz library/ecp.o
-    else
+    elif [ $BUILTIN_CURVE == "MBEDTLS_ECP_DP_CURVE25519_ENABLED" ]; then
+        # The only built-in curve is Montgomery, so ECP shouldn't have
+        # support for Short Weierstrass curves. Functions with mbedtls_ecp_muladd
+        # in their name are specific to Short Weierstrass curves.
         not grep mbedtls_ecp_muladd library/ecp.o
+    else
+        err_msg "Error: $BUILTIN_CURVE is not supported in psa_crypto_config_accel_all_curves_except_one()"
+        exit 1
     fi
 
     # Run the tests

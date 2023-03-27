@@ -315,6 +315,17 @@
 #endif
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
+/* Helper for curve SECP256R1 */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(PSA_WANT_ECC_SECP_R1_256)
+#define MBEDTLS_PK_HAVE_CURVE_SECP256R1
+#endif
+#else /* MBEDTLS_USE_PSA_CRYPTO */
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+#define MBEDTLS_PK_HAVE_CURVE_SECP256R1
+#endif
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) &&                 \
     ( !defined(MBEDTLS_PK_HAVE_ECDH) ||                                       \
       !defined(MBEDTLS_PK_HAVE_ECDSA) ||                                \
@@ -369,9 +380,8 @@
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) &&                    \
-    ( !defined(MBEDTLS_PK_HAVE_JPAKE) ||                                    \
-      !(defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) || \
-        defined(PSA_WANT_ECC_SECP_R1_256) ) )
+    ( !defined(MBEDTLS_PK_HAVE_JPAKE) ||                                \
+      !defined(MBEDTLS_PK_HAVE_CURVE_SECP256R1) )
 #error "MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED defined, but not all prerequisites"
 #endif
 
@@ -1120,6 +1130,7 @@
 #undef MBEDTLS_MD_HAVE_SHA256
 #undef MBEDTLS_MD_HAVE_SHA384
 #undef MBEDTLS_MD_HAVE_SHA512
+#undef MBEDTLS_PK_HAVE_CURVE_SECP256R1
 
 /*
  * Avoid warning from -pedantic. This is a convenient place for this

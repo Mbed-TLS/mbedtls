@@ -928,7 +928,7 @@ int mbedtls_pk_parse_public_key(mbedtls_pk_context *ctx,
 int mbedtls_pk_update_public_key_from_keypair(mbedtls_pk_context *pk);
 
 /**
- * \brief   Copy the public key content from ther internal raw buffer, "ctx->pk_raw",
+ * \brief   Copy the public key content from the internal raw buffer, "ctx->pk_raw",
  *          to the ecp_keypair structure, "ctx->pk_ctx".
  *
  * \note    This is a temporary function that can be removed as soon as the pk

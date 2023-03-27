@@ -2414,8 +2414,7 @@ psa_crypto_config_accel_all_curves_except_one () {
     scripts/config.py set $BUILTIN_CURVE
     # Accelerate all curves listed in "crypto_config.h" (skipping the ones that
     # are commented out)
-    for CURVE in $(sed -n 's/^#define \(PSA_WANT_ECC_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
-        CURVE=$(echo $CURVE | sed 's/PSA_WANT_//')
+    for CURVE in $(sed -n 's/^#define PSA_WANT_\(ECC_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
         loc_accel_list="$loc_accel_list $CURVE"
     done
 

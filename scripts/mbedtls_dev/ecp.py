@@ -28,7 +28,7 @@ class EcpTarget(test_data_generation.BaseTarget):
 
 class EcpP192R1Raw(bignum_common.ModOperationCommon,
                    EcpTarget):
-    """Test cases for ecp quasi_reduction()."""
+    """Test cases for ECP P192 fast reduction."""
     symbol = "-"
     test_function = "ecp_mod_p192_raw"
     test_name = "ecp_mod_p192_raw"
@@ -99,7 +99,7 @@ class EcpP192R1Raw(bignum_common.ModOperationCommon,
 
 class EcpP224R1Raw(bignum_common.ModOperationCommon,
                    EcpTarget):
-    """Test cases for ecp quasi_reduction()."""
+    """Test cases for ECP P224 fast reduction."""
     symbol = "-"
     test_function = "ecp_mod_p224_raw"
     test_name = "ecp_mod_p224_raw"
@@ -250,7 +250,7 @@ class EcpP256R1Raw(bignum_common.ModOperationCommon,
 
 class EcpP384R1Raw(bignum_common.ModOperationCommon,
                    EcpTarget):
-    """Test cases for ecp quasi_reduction modulo p384."""
+    """Test cases for ECP P384 fast reduction."""
     test_function = "ecp_mod_p384_raw"
     test_name = "ecp_mod_p384_raw"
     input_style = "fixed"
@@ -366,7 +366,7 @@ class EcpP384R1Raw(bignum_common.ModOperationCommon,
 
 class EcpP521R1Raw(bignum_common.ModOperationCommon,
                    EcpTarget):
-    """Test cases for ecp quasi_reduction()."""
+    """Test cases for ECP P521 fast reduction."""
     test_function = "ecp_mod_p521_raw"
     test_name = "ecp_mod_p521_raw"
     input_style = "arch_split"

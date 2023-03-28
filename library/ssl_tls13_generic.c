@@ -29,7 +29,7 @@
 #include "mbedtls/platform.h"
 #include "mbedtls/constant_time.h"
 #include "psa/crypto.h"
-#include "mbedtls/psa_util.h"
+#include "md_psa.h"
 
 #include "ssl_misc.h"
 #include "ssl_tls13_invasive.h"

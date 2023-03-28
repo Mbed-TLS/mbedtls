@@ -16,6 +16,7 @@
  * but the test code generator requires test case data to be valid C code
  * unconditionally (https://github.com/Mbed-TLS/mbedtls/issues/2023). */
 #include "psa/crypto.h"
+#include "md_psa.h"
 
 /* Used for properly sizing the key buffer in pk_genkey_ec() */
 #include "mbedtls/psa_util.h"

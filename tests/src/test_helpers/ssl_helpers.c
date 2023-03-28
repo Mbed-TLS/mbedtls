@@ -21,6 +21,7 @@
  */
 
 #include <test/ssl_helpers.h>
+#include "md_psa.h"
 
 #if defined(MBEDTLS_SSL_TLS_C)
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)

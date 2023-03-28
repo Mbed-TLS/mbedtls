@@ -7,6 +7,7 @@
 #include "mbedtls/rsa.h"
 #include "mbedtls/asn1write.h"
 #include "mbedtls/pk.h"
+#include "md_psa.h"
 
 #if defined(MBEDTLS_RSA_C)
 int mbedtls_rsa_decrypt_func(void *ctx, size_t *olen,

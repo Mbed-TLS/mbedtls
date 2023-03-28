@@ -1,5 +1,52 @@
 /* BEGIN_HEADER */
 #include "mbedtls/aes.h"
+
+/* Test AES with a copied context.
+ *
+ * enc and dec must be AES context objects. They don't need to
+ * be initialized, and are left freed.
+ */
+static int test_ctx_alignment(const data_t *key,
+                              mbedtls_aes_context *enc,
+                              mbedtls_aes_context *dec)
+{
+    unsigned char plaintext[16] = {
+        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+        0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+    };
+    unsigned char ciphertext[16];
+    unsigned char output[16];
+
+    // Set key and encrypt with original context
+    mbedtls_aes_init(enc);
+    TEST_ASSERT(mbedtls_aes_setkey_enc(enc, key->x, key->len * 8) == 0);
+    TEST_ASSERT(mbedtls_aes_crypt_ecb(enc, MBEDTLS_AES_ENCRYPT,
+                                      plaintext, ciphertext) == 0);
+
+    // Set key for decryption with original context
+    mbedtls_aes_init(dec);
+    TEST_ASSERT(mbedtls_aes_setkey_dec(dec, key->x, key->len * 8) == 0);
+
+    // Wipe the original context to make sure nothing from it is used
+    memset(enc, 0, sizeof(*enc));
+    mbedtls_aes_free(enc);
+
+    // Decrypt
+    TEST_ASSERT(mbedtls_aes_crypt_ecb(dec, MBEDTLS_AES_DECRYPT,
+                                      ciphertext, output) == 0);
+    ASSERT_COMPARE(plaintext, 16, output, 16);
+
+    mbedtls_aes_free(dec);
+
+    return 1;
+
+exit:
+    /* Bug: we may be leaving something unfreed. This is harmless
+     * in our built-in implementations, but might cause a memory leak
+     * with alternative implementations. */
+    return 0;
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -618,6 +665,77 @@ void aes_misc_params()
     TEST_ASSERT(mbedtls_aes_crypt_ofb(&aes_ctx, 16, &size, out, in, out)
                 == MBEDTLS_ERR_AES_BAD_INPUT_DATA);
 #endif
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void aes_ecb_context_alignment(data_t *key)
+{
+    /* We test alignment multiple times, with different alignments
+     * of the context and of the plaintext/ciphertext. */
+
+    struct align0 {
+        mbedtls_aes_context ctx;
+    };
+    struct align0 *enc0 = NULL;
+    struct align0 *dec0 = NULL;
+
+    struct align1 {
+        char bump;
+        mbedtls_aes_context ctx;
+    };
+    struct align1 *enc1 = NULL;
+    struct align1 *dec1 = NULL;
+
+    /* All peak alignment */
+    ASSERT_ALLOC(enc0, 1);
+    ASSERT_ALLOC(dec0, 1);
+    if (!test_ctx_alignment(key, &enc0->ctx, &dec0->ctx)) {
+        goto exit;
+    }
+    mbedtls_free(enc0);
+    enc0 = NULL;
+    mbedtls_free(dec0);
+    dec0 = NULL;
+
+    /* Enc aligned, dec not */
+    ASSERT_ALLOC(enc0, 1);
+    ASSERT_ALLOC(dec1, 1);
+    if (!test_ctx_alignment(key, &enc0->ctx, &dec1->ctx)) {
+        goto exit;
+    }
+    mbedtls_free(enc0);
+    enc0 = NULL;
+    mbedtls_free(dec1);
+    dec1 = NULL;
+
+    /* Dec aligned, enc not */
+    ASSERT_ALLOC(enc1, 1);
+    ASSERT_ALLOC(dec0, 1);
+    if (!test_ctx_alignment(key, &enc1->ctx, &dec0->ctx)) {
+        goto exit;
+    }
+    mbedtls_free(enc1);
+    enc1 = NULL;
+    mbedtls_free(dec0);
+    dec0 = NULL;
+
+    /* Both shifted */
+    ASSERT_ALLOC(enc1, 1);
+    ASSERT_ALLOC(dec1, 1);
+    if (!test_ctx_alignment(key, &enc1->ctx, &dec1->ctx)) {
+        goto exit;
+    }
+    mbedtls_free(enc1);
+    enc1 = NULL;
+    mbedtls_free(dec1);
+    dec1 = NULL;
+
+exit:
+    mbedtls_free(enc0);
+    mbedtls_free(dec0);
+    mbedtls_free(enc1);
+    mbedtls_free(dec1);
 }
 /* END_CASE */
 

@@ -1,3 +1,0 @@
-Bugfix
-   * Silence a warning about an unused local variable in bignum.c on
-     some architectures. Fixes #7166.

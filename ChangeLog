@@ -1,5 +1,84 @@
 Mbed TLS ChangeLog (Sorted per branch, date)
 
+= Mbed TLS 2.28.3 branch released 2023-03-28
+
+Features
+   * Use HOSTCC (if it is set) when compiling C code during generation of the
+     configuration-independent files. This allows them to be generated when
+     CC is set for cross compilation.
+   * AES-NI is now supported with Visual Studio.
+   * AES-NI is now supported in 32-bit builds, or when MBEDTLS_HAVE_ASM
+     is disabled, when compiling with GCC or Clang or a compatible compiler
+     for a target CPU that supports the requisite instructions (for example
+     gcc -m32 -msse2 -maes -mpclmul). (Generic x86 builds with GCC-like
+     compilers still require MBEDTLS_HAVE_ASM and a 64-bit target.)
+
+Security
+   * MBEDTLS_AESNI_C, which is enabled by default, was silently ignored on
+     builds that couldn't compile the GCC-style assembly implementation
+     (most notably builds with Visual Studio), leaving them vulnerable to
+     timing side-channel attacks. There is now an intrinsics-based AES-NI
+     implementation as a fallback for when the assembly one cannot be used.
+
+Bugfix
+   * Fix a build issue on Windows where the source and build directory could
+     not be on different drives (#5751).
+   * Fix possible integer overflow in mbedtls_timing_hardclock(), which
+     could cause a crash for certain platforms & compiler options.
+   * Fix IAR compiler warnings. Fixes #6924.
+   * Fix a bug in the build where directory names containing spaces were
+     causing generate_errors.pl to error out resulting in a build failure.
+     Fixes issue #6879.
+   * Fix compile error where MBEDTLS_RSA_C and MBEDTLS_X509_CRT_WRITE_C are
+     defined, but MBEDTLS_PK_RSA_ALT_SUPPORT is not defined. Fixes #3174.
+   * Fix a build issue when defining MBEDTLS_TIMING_ALT and MBEDTLS_SELF_TEST.
+     The library would not link if the user didn't provide an external self-test
+     function. The self-test is now provided regardless of the choice of
+     internal/alternative timing implementation. Fixes #6923.
+   * mbedtls_x509write_crt_set_serial() now explicitly rejects serial numbers
+     whose binary representation is longer than 20 bytes. This was already
+     forbidden by the standard (RFC5280 - section 4.1.2.2) and now it's being
+     enforced also at code level.
+   * Fix potential undefined behavior in mbedtls_mpi_sub_abs().  Reported by
+     Pascal Cuoq using TrustInSoft Analyzer in #6701; observed independently by
+     Aaron Ucko under Valgrind.
+   * Fix behavior of certain sample programs which could, when run with no
+     arguments, access uninitialized memory in some cases. Fixes #6700 (which
+     was found by TrustInSoft Analyzer during REDOCS'22) and #1120.
+   * Fix build errors in test programs when MBEDTLS_CERTS_C is disabled.
+     Fixes #6243.
+   * Fix parsing of X.509 SubjectAlternativeName extension. Previously,
+     malformed alternative name components were not caught during initial
+     certificate parsing, but only on subsequent calls to
+     mbedtls_x509_parse_subject_alt_name(). Fixes #2838.
+   * Fix bug in conversion from OID to string in
+     mbedtls_oid_get_numeric_string(). OIDs such as 2.40.0.25 are now printed
+     correctly.
+   * Reject OIDs with overlong-encoded subidentifiers when converting
+     them to a string.
+   * Reject OIDs with subidentifier values exceeding UINT_MAX.  Such
+     subidentifiers can be valid, but Mbed TLS cannot currently handle them.
+   * Reject OIDs that have unterminated subidentifiers, or (equivalently)
+     have the most-significant bit set in their last byte.
+   * Silence a warning about an unused local variable in bignum.c on
+     some architectures. Fixes #7166.
+   * Silence warnings from clang -Wdocumentation about empty \retval
+     descriptions, which started appearing with Clang 15. Fixes #6960.
+   * Fix undefined behavior in mbedtls_ssl_read() and mbedtls_ssl_write() if
+     len argument is 0 and buffer is NULL.
+
+Changes
+   * The C code follows a new coding style. This is transparent for users but
+     affects contributors and maintainers of local patches. For more
+     information, see
+     https://mbed-tls.readthedocs.io/en/latest/kb/how-to/rewrite-branch-for-coding-style/
+   * Changed the default MBEDTLS_ECP_WINDOW_SIZE from 6 to 2.
+     As tested in issue 6790, the correlation between this define and
+     RSA decryption performance has changed lately due to security fixes.
+     To fix the performance degradation when using default values the
+     window was reduced from 6 to 2, a value that gives the best or close
+     to best results when tested on Cortex-M4 and Intel i7.
+
 = Mbed TLS 2.28.2 branch released 2022-12-14
 
 Security

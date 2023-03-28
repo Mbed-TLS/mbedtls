@@ -2350,7 +2350,7 @@ component_test_psa_crypto_config_accel_ecc () {
 psa_crypto_config_accel_all_curves_except_one () {
     BUILTIN_CURVE=$1
 
-    msg "build: PSA_CRYPTO_CONFIG + all accelerated EC algs (excl secp192r1) + USE_PSA_CRYPTO"
+    msg "build: PSA_CRYPTO_CONFIG + all accelerated EC algs (excl $BUILTIN_CURVE) + USE_PSA_CRYPTO"
 
     # Accelerate all EC algs (all EC curves are automatically accelerated as
     # well in the built-in version due to the "PSA_WANT_xxx" symbols in
@@ -2443,7 +2443,7 @@ psa_crypto_config_accel_all_curves_except_one () {
 
     # Run the tests
     # -------------
-    msg "test: PSA_CRYPTO_CONFIG + all accelerated EC algs (excl secp192r1) + USE_PSA_CRYPTO"
+    msg "test: PSA_CRYPTO_CONFIG + all accelerated EC algs (excl $BUILTIN_CURVE) + USE_PSA_CRYPTO"
     make test
 }
 

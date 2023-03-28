@@ -1,5 +1,0 @@
-Features
-   * Add support for the Armv8-A Cryptographic Extension in AES on
-     64-bit Arm. A new configuration option, MBEDTLS_AESCE_C, can
-     be used to enable this feature. Run-time detection is supported
-     under Linux only.

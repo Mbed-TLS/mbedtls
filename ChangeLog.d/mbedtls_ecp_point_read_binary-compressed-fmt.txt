@@ -1,6 +1,0 @@
-Features
-   * Add support for reading points in compressed format
-     (MBEDTLS_ECP_PF_COMPRESSED) with mbedtls_ecp_point_read_binary()
-     (and callers) for Short Weierstrass curves with prime p where p = 3 mod 4
-     (all mbedtls MBEDTLS_ECP_DP_SECP* and MBEDTLS_ECP_DP_BP* curves
-      except MBEDTLS_ECP_DP_SECP224R1 and MBEDTLS_ECP_DP_SECP224K1)

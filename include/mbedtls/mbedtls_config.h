@@ -56,7 +56,7 @@
  *
  * Required by:
  *      MBEDTLS_AESCE_C
- *      MBEDTLS_AESNI_C
+ *      MBEDTLS_AESNI_C (on some platforms)
  *      MBEDTLS_PADLOCK_C
  *
  * Comment to disable the use of assembly code.
@@ -2036,14 +2036,32 @@
 /**
  * \def MBEDTLS_AESNI_C
  *
- * Enable AES-NI support on x86-64.
+ * Enable AES-NI support on x86-64 or x86-32.
+ *
+ * \note AESNI is only supported with certain compilers and target options:
+ * - Visual Studio 2013: supported.
+ * - GCC, x86-64, target not explicitly supporting AESNI:
+ *   requires MBEDTLS_HAVE_ASM.
+ * - GCC, x86-32, target not explicitly supporting AESNI:
+ *   not supported.
+ * - GCC, x86-64 or x86-32, target supporting AESNI: supported.
+ *   For this assembly-less implementation, you must currently compile
+ *   `library/aesni.c` and `library/aes.c` with machine options to enable
+ *   SSE2 and AESNI instructions: `gcc -msse2 -maes -mpclmul` or
+ *   `clang -maes -mpclmul`.
+ * - Non-x86 targets: this option is silently ignored.
+ * - Other compilers: this option is silently ignored.
+ *
+ * \note
+ * Above, "GCC" includes compatible compilers such as Clang.
+ * The limitations on target support are likely to be relaxed in the future.
  *
  * Module:  library/aesni.c
  * Caller:  library/aes.c
  *
- * Requires: MBEDTLS_HAVE_ASM
+ * Requires: MBEDTLS_HAVE_ASM (on some platforms, see note)
  *
- * This module adds support for the AES-NI instructions on x86-64
+ * This modules adds support for the AES-NI instructions on x86.
  */
 #define MBEDTLS_AESNI_C
 
@@ -3785,7 +3803,7 @@
  */
 //#define MBEDTLS_SSL_DTLS_MAX_BUFFERING             32768
 
-//#define MBEDTLS_PSK_MAX_LEN               32 /**< Max size of TLS pre-shared keys, in bytes (default 256 bits) */
+//#define MBEDTLS_PSK_MAX_LEN               32 /**< Max size of TLS pre-shared keys, in bytes (default 256 or 384 bits) */
 //#define MBEDTLS_SSL_COOKIE_TIMEOUT        60 /**< Default expiration delay of DTLS cookies, in seconds if HAVE_TIME, or in number of cookies issued */
 
 /**

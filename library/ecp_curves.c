@@ -4897,7 +4897,7 @@ static inline void carry64(mbedtls_mpi_uint *dst, mbedtls_mpi_uint *carry)
 #define A(i)        Np + (i) * WIDTH
 #define ADD(i)      add64(p, A(i), &c)
 #define NEXT        p += WIDTH; carry64(p, &c)
-#define LAST        p += WIDTH; *p = c; while (++p < end) *p = 0
+#define LAST        p += WIDTH; do *p = 0; while (++p < end)
 #define RESET       last_carry[0] = c; c = 0; p = Np
 #define ADD_LAST    add64(p, last_carry, &c)
 
@@ -4936,11 +4936,21 @@ int mbedtls_ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn)
 
     /* Use the reduction for the carry as well:
      * 2^192 * last_carry = 2^64 * last_carry + last_carry mod P192
+     * It can generate a carry. */
+    ADD_LAST; NEXT;                 // A0 += last_carry
+    ADD_LAST; NEXT;                 // A1 += last_carry
+                                    // A2 += carry
+
+    RESET;
+
+    /* Use the reduction for the carry as well:
+     * 2^192 * last_carry = 2^64 * last_carry + last_carry mod P192
      */
     ADD_LAST; NEXT;                 // A0 += last_carry
     ADD_LAST; NEXT;                 // A1 += last_carry
+                                    // A2 += carry
 
-    LAST;                           // A2 += carry
+    LAST;
 
     return 0;
 }

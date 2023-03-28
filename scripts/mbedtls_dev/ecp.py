@@ -188,6 +188,14 @@ class EcpP384R1Raw(bignum_common.ModOperationCommon,
         ("ffffffffffffffffffffffffffffffffffffffffffffffff"
          "fffffffffffffffeffffffff0000000000000000fffffffe"),
 
+        # Modulus + 1
+        ("ffffffffffffffffffffffffffffffffffffffffffffffff"
+         "fffffffffffffffeffffffff000000000000000100000000"),
+
+        # 2^384 - 1
+        ("ffffffffffffffffffffffffffffffffffffffffffffffff"
+         "ffffffffffffffffffffffffffffffffffffffffffffffff"),
+
         # Maximum canonical P384 multiplication result
         ("ffffffffffffffffffffffffffffffffffffffffffffffff"
          "fffffffffffffffdfffffffe0000000000000001fffffffc"

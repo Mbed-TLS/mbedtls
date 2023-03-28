@@ -114,6 +114,12 @@ class EcpP224R1Raw(bignum_common.ModOperationCommon,
         # Modulus - 1
         "ffffffffffffffffffffffffffffffff000000000000000000000000",
 
+        # Modulus + 1
+        "ffffffffffffffffffffffffffffffff000000000000000000000002",
+
+        # 2^224 - 1
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+
         # Maximum canonical P224 multiplication result
         ("fffffffffffffffffffffffffffffffe000000000000000000000000"
          "00000001000000000000000000000000000000000000000000000000"),

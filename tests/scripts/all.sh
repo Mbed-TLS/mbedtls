@@ -2392,12 +2392,54 @@ psa_crypto_config_accel_all_curves_except_one () {
     make test
 }
 
+# The 2 following components can be seen as a single one with the goal to
+# accelerate all curves while disabling RSA and run tests.
+# Keep in sync with test_psa_crypto_config_reference_curves() since these
+# are used for driver's coverage analysis in "analyze_outcomes.py".
 component_test_psa_crypto_config_accel_all_curves_except_p192 () {
     psa_crypto_config_accel_all_curves_except_one MBEDTLS_ECP_DP_SECP192R1_ENABLED
 }
-
 component_test_psa_crypto_config_accel_all_curves_except_x25519 () {
     psa_crypto_config_accel_all_curves_except_one MBEDTLS_ECP_DP_CURVE25519_ENABLED
+}
+
+# Reference component to be used in conjunction with:
+# - component_test_psa_crypto_config_accel_all_curves_except_p192
+# - component_test_psa_crypto_config_accel_all_curves_except_x25519
+component_test_psa_crypto_config_reference_curves () {
+    msg "build: PSA_CRYPTO_CONFIG + USE_PSA_CRYPTO"
+
+    # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
+    # partial support for cipher operations in the driver test library.
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+
+    # full config (includes USE_PSA, TLS 1.3 and driver support)
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+
+    # Dynamic secure element support is a deprecated feature and needs to be disabled here.
+    # This is done to have the same form of psa_key_attributes_s for libdriver and library.
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
+
+    # restartable is not yet supported in PSA, so this support is removed
+    # also on the reference component
+    scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
+
+    # Ensure also RSA_C is disabled so that the size of the public/private
+    # keys cannot be taken from there
+    scripts/config.py unset MBEDTLS_RSA_C
+    # disable key exchanges dependencies on it
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
+
+    # Run the tests
+    # -------------
+    msg "test: PSA_CRYPTO_CONFIG + USE_PSA_CRYPTO"
+    make test
 }
 
 component_test_psa_crypto_config_accel_rsa_signature () {

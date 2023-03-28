@@ -186,6 +186,64 @@ TASKS = {
             }
         }
     },
+    'analyze_driver_vs_reference_curves_except_p192': {
+        'test_function': do_analyze_driver_vs_reference,
+        'args': {
+            'component_ref': 'test_psa_crypto_config_reference_curves',
+            'component_driver': 'test_psa_crypto_config_accel_all_curves_except_p192',
+            'ignored_suites': [
+                # Following ones are skipped because these are the software
+                # implementations that are intentionally excluded from the 
+                # driver build, so disparities are expected here.
+                'ecdh',
+                'ecdsa',
+                'ecjpake',
+                'ecp',
+                # Following ones, instead, should be removed by #6622 follow up
+                # tasks
+                'debug',
+                'pk',
+                'pkparse',
+                'pkwrite',
+                'psa_crypto',
+                'random',
+                'ssl',
+                'x509write',
+                'x509parse',
+            ],
+            'ignored_tests': {
+            }
+        }
+    },
+    'analyze_driver_vs_reference_curves_except_x25519': {
+        'test_function': do_analyze_driver_vs_reference,
+        'args': {
+            'component_ref': 'test_psa_crypto_config_reference_curves',
+            'component_driver': 'test_psa_crypto_config_accel_all_curves_except_x25519',
+            'ignored_suites': [
+                # Following ones are skipped because these are the software
+                # implementations that are intentionally excluded from the 
+                # driver build, so disparities are expected here.
+                'ecdh',
+                'ecdsa',
+                'ecjpake',
+                'ecp',
+                # Following ones, instead, should be removed by #6622 follow up
+                # tasks
+                'debug',
+                'pk',
+                'pkparse',
+                'pkwrite',
+                'psa_crypto',
+                'random',
+                'ssl',
+                'x509write',
+                'x509parse',
+            ],
+            'ignored_tests': {
+            }
+        }
+    },
 }
 
 def main():

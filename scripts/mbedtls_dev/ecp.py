@@ -302,6 +302,12 @@ class EcpP256R1Raw(bignum_common.ModOperationCommon,
         # Modulus - 1
         "ffffffff00000001000000000000000000000000fffffffffffffffffffffffe",
 
+        # Modulus + 1
+        "ffffffff00000001000000000000000000000001000000000000000000000000",
+
+        # 2^256 - 1
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+
         # Maximum canonical P256 multiplication result
         ("fffffffe00000002fffffffe0000000100000001fffffffe00000001fffffffc"
          "00000003fffffffcfffffffffffffffffffffffc000000000000000000000004"),

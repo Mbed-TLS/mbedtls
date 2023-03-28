@@ -29,6 +29,8 @@
 
 #include "mbedtls/build_info.h"
 
+#include "mbedtls/platform_util.h"
+
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 
 #include "psa/crypto.h"
@@ -125,7 +127,8 @@ static inline psa_key_usage_t mbedtls_psa_translate_cipher_operation(
 /* Note: this function should not be used from inside the library, use
  * mbedtls_md_psa_alg_from_type() from the internal md_psa.h instead.
  * It is kept only for compatibility in case applications were using it. */
-static inline psa_algorithm_t mbedtls_psa_translate_md(mbedtls_md_type_t md_alg)
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+static inline MBEDTLS_DEPRECATED psa_algorithm_t mbedtls_psa_translate_md(mbedtls_md_type_t md_alg)
 {
     switch (md_alg) {
 #if defined(MBEDTLS_MD5_C) || defined(PSA_WANT_ALG_MD5)
@@ -162,6 +165,7 @@ static inline psa_algorithm_t mbedtls_psa_translate_md(mbedtls_md_type_t md_alg)
             return 0;
     }
 }
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 /* Translations for ECC. */
 

@@ -50,8 +50,6 @@
 #include "mbedtls/platform_util.h"
 #endif
 
-#include "hash_info.h"
-
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_write_renegotiation_ext(mbedtls_ssl_context *ssl,

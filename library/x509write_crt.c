@@ -47,8 +47,6 @@
 #include "mbedtls/psa_util.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-#include "hash_info.h"
-
 #define CHECK_OVERFLOW_ADD(a, b) \
     do                         \
     {                           \

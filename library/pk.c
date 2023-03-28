@@ -25,8 +25,6 @@
 #include "pkwrite.h"
 #include "pk_internal.h"
 
-#include "hash_info.h"
-
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 

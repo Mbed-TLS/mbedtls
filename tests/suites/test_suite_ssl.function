@@ -7,8 +7,6 @@
 #include <ssl_tls13_invasive.h>
 #include <test/ssl_helpers.h>
 
-#include "hash_info.h"
-
 #include <constant_time_internal.h>
 #include <test/constant_flow.h>
 

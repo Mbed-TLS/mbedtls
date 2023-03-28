@@ -47,7 +47,6 @@
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
-#include "hash_info.h"
 
 #if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
 #include "mbedtls/asn1write.h"

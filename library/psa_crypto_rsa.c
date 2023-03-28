@@ -38,7 +38,6 @@
 #include <mbedtls/error.h>
 #include <mbedtls/pk.h>
 #include "pk_wrap.h"
-#include "hash_info.h"
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) || \

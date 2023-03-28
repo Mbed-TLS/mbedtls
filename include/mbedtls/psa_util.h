@@ -123,7 +123,7 @@ static inline psa_key_usage_t mbedtls_psa_translate_cipher_operation(
 /* Translations for hashing. */
 
 /* Note: this function should not be used from inside the library, use
- * mbedtls_md_psa_alg_from_type() from the internal hash_info.h instead.
+ * mbedtls_md_psa_alg_from_type() from the internal md_psa.h instead.
  * It is kept only for compatibility in case applications were using it. */
 static inline psa_algorithm_t mbedtls_psa_translate_md(mbedtls_md_type_t md_alg)
 {

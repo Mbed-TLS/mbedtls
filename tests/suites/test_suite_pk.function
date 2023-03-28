@@ -9,8 +9,6 @@
 #include "mbedtls/rsa.h"
 #include "pk_internal.h"
 
-#include "hash_info.h"
-
 #include <limits.h>
 #include <stdint.h>
 

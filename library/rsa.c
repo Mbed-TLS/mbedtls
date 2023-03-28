@@ -46,7 +46,6 @@
 #include "mbedtls/error.h"
 #include "constant_time_internal.h"
 #include "mbedtls/constant_time.h"
-#include "hash_info.h"
 #include "md_psa.h"
 
 #include <string.h>

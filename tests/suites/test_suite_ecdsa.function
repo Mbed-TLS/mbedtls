@@ -1,6 +1,5 @@
 /* BEGIN_HEADER */
 #include "mbedtls/ecdsa.h"
-#include "hash_info.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

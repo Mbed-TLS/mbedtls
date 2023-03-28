@@ -36,31 +36,4 @@
 #include "psa/crypto.h"
 #include "mbedtls/platform_util.h"
 
-/** Get the PSA alg from the MD type.
- *
- * \param md_type   The hash MD type.
- *
- * \return          The corresponding PSA algorithm identifier,
- *                  or PSA_ALG_NONE if not known.
- */
-psa_algorithm_t mbedtls_hash_info_psa_from_md(mbedtls_md_type_t md_type);
-
-/** Get the MD type alg from the PSA algorithm identifier.
- *
- * \param psa_alg   The PSA hash algorithm.
- *
- * \return          The corresponding MD type,
- *                  or MBEDTLS_MD_NONE if not known.
- */
-mbedtls_md_type_t mbedtls_hash_info_md_from_psa(psa_algorithm_t psa_alg);
-
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-/** Convert PSA status to MD error code.
- *
- * \param status    PSA status.
- *
- * \return          The corresponding MD error code,
- */
-int MBEDTLS_DEPRECATED mbedtls_md_error_from_psa(psa_status_t status);
-#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_HASH_INFO_H */

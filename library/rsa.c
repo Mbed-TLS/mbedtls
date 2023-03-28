@@ -47,6 +47,7 @@
 #include "constant_time_internal.h"
 #include "mbedtls/constant_time.h"
 #include "hash_info.h"
+#include "md_psa.h"
 
 #include <string.h>
 
@@ -478,7 +479,7 @@ int mbedtls_rsa_set_padding(mbedtls_rsa_context *ctx, int padding,
     if ((padding == MBEDTLS_RSA_PKCS_V21) &&
         (hash_id != MBEDTLS_MD_NONE)) {
         /* Just make sure this hash is supported in this build. */
-        if (mbedtls_hash_info_psa_from_md(hash_id) == PSA_ALG_NONE) {
+        if (mbedtls_md_psa_alg_from_type(hash_id) == PSA_ALG_NONE) {
             return MBEDTLS_ERR_RSA_INVALID_PADDING;
         }
     }

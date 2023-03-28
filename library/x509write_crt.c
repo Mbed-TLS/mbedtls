@@ -728,7 +728,7 @@ int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx,
 
     /* Compute hash of CRT. */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_algorithm = mbedtls_hash_info_psa_from_md(ctx->md_alg);
+    psa_algorithm = mbedtls_md_psa_alg_from_type(ctx->md_alg);
 
     status = psa_hash_compute(psa_algorithm,
                               c,

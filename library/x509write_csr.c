@@ -249,7 +249,7 @@ static int x509write_csr_der_internal(mbedtls_x509write_csr *ctx,
     mbedtls_pk_type_t pk_alg;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     size_t hash_len;
-    psa_algorithm_t hash_alg = mbedtls_hash_info_psa_from_md(ctx->md_alg);
+    psa_algorithm_t hash_alg = mbedtls_md_psa_alg_from_type(ctx->md_alg);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     /* Write the CSR backwards starting from the end of buf */

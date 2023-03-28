@@ -274,7 +274,7 @@ static int ssl_tls13_parse_certificate_verify(mbedtls_ssl_context *ssl,
         goto error;
     }
 
-    hash_alg = mbedtls_hash_info_psa_from_md(md_alg);
+    hash_alg = mbedtls_md_psa_alg_from_type(md_alg);
     if (hash_alg == 0) {
         goto error;
     }
@@ -1076,7 +1076,7 @@ static int ssl_tls13_write_certificate_verify_body(mbedtls_ssl_context *ssl,
         }
 
         /* Hash verify buffer with indicated hash function */
-        psa_algorithm = mbedtls_hash_info_psa_from_md(md_alg);
+        psa_algorithm = mbedtls_md_psa_alg_from_type(md_alg);
         status = psa_hash_compute(psa_algorithm,
                                   verify_buffer,
                                   verify_buffer_len,

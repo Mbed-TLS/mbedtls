@@ -1491,7 +1491,7 @@ void pk_psa_wrap_sign_ext(int pk_type, int parameter, int key_pk_type, int md_al
     unsigned char pkey[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
     unsigned char *pkey_start;
     unsigned char hash[PSA_HASH_MAX_SIZE];
-    psa_algorithm_t psa_md_alg = mbedtls_hash_info_psa_from_md(md_alg);
+    psa_algorithm_t psa_md_alg = mbedtls_md_psa_alg_from_type(md_alg);
     psa_algorithm_t psa_alg;
     size_t hash_len = PSA_HASH_LENGTH(psa_md_alg);
     void const *options = NULL;

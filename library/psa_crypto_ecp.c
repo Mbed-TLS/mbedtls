@@ -27,6 +27,7 @@
 #include "psa_crypto_ecp.h"
 #include "psa_crypto_random_impl.h"
 #include "hash_info.h"
+#include "md_psa.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -366,7 +367,7 @@ psa_status_t mbedtls_psa_ecdsa_sign_hash(
     if (PSA_ALG_ECDSA_IS_DETERMINISTIC(alg)) {
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
         psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH(alg);
-        mbedtls_md_type_t md_alg = mbedtls_hash_info_md_from_psa(hash_alg);
+        mbedtls_md_type_t md_alg = mbedtls_md_type_from_psa_alg(hash_alg);
         MBEDTLS_MPI_CHK(mbedtls_ecdsa_sign_det_ext(
                             &ecp->grp, &r, &s,
                             &ecp->d, hash,

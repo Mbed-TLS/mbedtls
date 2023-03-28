@@ -844,11 +844,11 @@ int mbedtls_ssl_reset_checksum(mbedtls_ssl_context *ssl)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     status = psa_hash_abort(&ssl->handshake->fin_sha256_psa);
     if (status != PSA_SUCCESS) {
-        return PSA_TO_MD_ERR(status);
+        return mbedtls_md_error_from_psa(status);
     }
     status = psa_hash_setup(&ssl->handshake->fin_sha256_psa, PSA_ALG_SHA_256);
     if (status != PSA_SUCCESS) {
-        return PSA_TO_MD_ERR(status);
+        return mbedtls_md_error_from_psa(status);
     }
 #else
     mbedtls_md_free(&ssl->handshake->fin_sha256);
@@ -869,11 +869,11 @@ int mbedtls_ssl_reset_checksum(mbedtls_ssl_context *ssl)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     status = psa_hash_abort(&ssl->handshake->fin_sha384_psa);
     if (status != PSA_SUCCESS) {
-        return PSA_TO_MD_ERR(status);
+        return mbedtls_md_error_from_psa(status);
     }
     status = psa_hash_setup(&ssl->handshake->fin_sha384_psa, PSA_ALG_SHA_384);
     if (status != PSA_SUCCESS) {
-        return PSA_TO_MD_ERR(status);
+        return mbedtls_md_error_from_psa(status);
     }
 #else
     mbedtls_md_free(&ssl->handshake->fin_sha384);
@@ -911,7 +911,7 @@ static int ssl_update_checksum_start(mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     status = psa_hash_update(&ssl->handshake->fin_sha256_psa, buf, len);
     if (status != PSA_SUCCESS) {
-        return PSA_TO_MD_ERR(status);
+        return mbedtls_md_error_from_psa(status);
     }
 #else
     ret = mbedtls_md_update(&ssl->handshake->fin_sha256, buf, len);
@@ -924,7 +924,7 @@ static int ssl_update_checksum_start(mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     status = psa_hash_update(&ssl->handshake->fin_sha384_psa, buf, len);
     if (status != PSA_SUCCESS) {
-        return PSA_TO_MD_ERR(status);
+        return mbedtls_md_error_from_psa(status);
     }
 #else
     ret = mbedtls_md_update(&ssl->handshake->fin_sha384, buf, len);
@@ -941,8 +941,8 @@ static int ssl_update_checksum_sha256(mbedtls_ssl_context *ssl,
                                       const unsigned char *buf, size_t len)
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    return PSA_TO_MD_ERR(psa_hash_update(
-                             &ssl->handshake->fin_sha256_psa, buf, len));
+    return mbedtls_md_error_from_psa(psa_hash_update(
+                                         &ssl->handshake->fin_sha256_psa, buf, len));
 #else
     return mbedtls_md_update(&ssl->handshake->fin_sha256, buf, len);
 #endif
@@ -954,8 +954,8 @@ static int ssl_update_checksum_sha384(mbedtls_ssl_context *ssl,
                                       const unsigned char *buf, size_t len)
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    return PSA_TO_MD_ERR(psa_hash_update(
-                             &ssl->handshake->fin_sha384_psa, buf, len));
+    return mbedtls_md_error_from_psa(psa_hash_update(
+                                         &ssl->handshake->fin_sha384_psa, buf, len));
 #else
     return mbedtls_md_update(&ssl->handshake->fin_sha384, buf, len);
 #endif
@@ -6627,7 +6627,7 @@ int ssl_calc_verify_tls_sha256(const mbedtls_ssl_context *ssl,
 
 exit:
     psa_hash_abort(&sha256_psa);
-    return PSA_TO_MD_ERR(status);
+    return mbedtls_md_error_from_psa(status);
 #else
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_md_context_t sha256;
@@ -6689,7 +6689,7 @@ int ssl_calc_verify_tls_sha384(const mbedtls_ssl_context *ssl,
 
 exit:
     psa_hash_abort(&sha384_psa);
-    return PSA_TO_MD_ERR(status);
+    return mbedtls_md_error_from_psa(status);
 #else
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_md_context_t sha384;
@@ -7742,7 +7742,7 @@ static int ssl_calc_finished_tls_sha256(
 exit:
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_hash_abort(&sha256_psa);
-    return PSA_TO_MD_ERR(status);
+    return mbedtls_md_error_from_psa(status);
 #else
     mbedtls_md_free(&sha256);
     return ret;
@@ -7831,7 +7831,7 @@ static int ssl_calc_finished_tls_sha384(
 exit:
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_hash_abort(&sha384_psa);
-    return PSA_TO_MD_ERR(status);
+    return mbedtls_md_error_from_psa(status);
 #else
     mbedtls_md_free(&sha384);
     return ret;

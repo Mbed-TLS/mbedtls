@@ -193,7 +193,7 @@ TASKS = {
             'component_driver': 'test_psa_crypto_config_accel_all_curves_except_p192',
             'ignored_suites': [
                 # Following ones are skipped because these are the software
-                # implementations that are intentionally excluded from the 
+                # implementations that are intentionally excluded from the
                 # driver build, so disparities are expected here.
                 'ecdh',
                 'ecdsa',
@@ -205,7 +205,6 @@ TASKS = {
                 'pk',
                 'pkparse',
                 'pkwrite',
-                'psa_crypto',
                 'random',
                 'ssl',
                 'x509write',
@@ -222,7 +221,7 @@ TASKS = {
             'component_driver': 'test_psa_crypto_config_accel_all_curves_except_x25519',
             'ignored_suites': [
                 # Following ones are skipped because these are the software
-                # implementations that are intentionally excluded from the 
+                # implementations that are intentionally excluded from the
                 # driver build, so disparities are expected here.
                 'ecdh',
                 'ecdsa',

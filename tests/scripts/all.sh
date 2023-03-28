@@ -187,7 +187,7 @@ pre_initialize_variables () {
 
     # CFLAGS and LDFLAGS for Asan builds that don't use CMake
     # default to -O2, use -Ox _after_ this if you want another level
-    ASAN_CFLAGS='-O0 -g -Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
+    ASAN_CFLAGS='-O2 -Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
 
     # Gather the list of available components. These are the functions
     # defined in this script whose name starts with "component_".
@@ -2288,6 +2288,34 @@ component_test_psa_crypto_config_reference_all_ec_algs_use_psa () {
     tests/ssl-opt.sh
 }
 
+# Helper function for (un)setting common configurations used for driver's
+# coverage analysis in:
+# - psa_crypto_config_accel_all_curves_except_one
+# - component_test_psa_crypto_config_reference_curves
+common_config_for_accelerated_curves_analysis() {
+    # full config (includes USE_PSA, TLS 1.3 and driver support)
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+
+    # Dynamic secure element support is a deprecated feature and needs to be disabled here.
+    # This is done to have the same form of psa_key_attributes_s for libdriver and library.
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
+
+    # restartable is not yet supported in PSA, so this support is removed
+    # also on the reference component
+    scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
+
+    # Ensure also RSA_C is disabled so that the size of the public/private
+    # keys cannot be taken from there
+    scripts/config.py unset MBEDTLS_RSA_C
+    # disable key exchanges dependencies on it
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
+}
+
 # Helper function used in:
 # - component_test_psa_crypto_config_accel_all_curves_except_p192
 # - component_test_psa_crypto_config_accel_all_curves_except_x25519
@@ -2324,31 +2352,12 @@ psa_crypto_config_accel_all_curves_except_one () {
     # Configure and build the main libraries
     # ---------------------------------------
 
-    # full config (includes USE_PSA, TLS 1.3 and driver support)
-    scripts/config.py full
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
-
-    # Dynamic secure element support is a deprecated feature and needs to be disabled here.
-    # This is done to have the same form of psa_key_attributes_s for libdriver and library.
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
-
-    # restartable is not yet supported in PSA
-    scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
+    common_config_for_accelerated_curves_analysis
 
     # disable modules for which we have drivers
     scripts/config.py unset MBEDTLS_ECDSA_C
     scripts/config.py unset MBEDTLS_ECDH_C
     scripts/config.py unset MBEDTLS_ECJPAKE_C
-
-    # Ensure also RSA_C is disabled so that the size of the public/private
-    # keys cannot be taken from there
-    scripts/config.py unset MBEDTLS_RSA_C
-    # disable key exchanges dependencies on it
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
 
     # Explicitly disable all SW implementation for elliptic curves
     for CURVE in $(sed -n 's/#define \(MBEDTLS_ECP_DP_[0-9A-Z_a-z]*_ENABLED\).*/\1/p' <"$CONFIG_H"); do
@@ -2414,27 +2423,7 @@ component_test_psa_crypto_config_reference_curves () {
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
 
-    # full config (includes USE_PSA, TLS 1.3 and driver support)
-    scripts/config.py full
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
-
-    # Dynamic secure element support is a deprecated feature and needs to be disabled here.
-    # This is done to have the same form of psa_key_attributes_s for libdriver and library.
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
-
-    # restartable is not yet supported in PSA, so this support is removed
-    # also on the reference component
-    scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
-
-    # Ensure also RSA_C is disabled so that the size of the public/private
-    # keys cannot be taken from there
-    scripts/config.py unset MBEDTLS_RSA_C
-    # disable key exchanges dependencies on it
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
+    common_config_for_accelerated_curves_analysis
 
     # Run the tests
     # -------------

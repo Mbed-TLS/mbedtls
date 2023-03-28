@@ -18,6 +18,8 @@ help:
 clean:
 	@# Clean the apidoc
 	$(MAKE) -C .. apidoc_clean
+	@# Clean the breathe-apidoc generated files
+	rm -rf ./api
 	@# Clean the sphinx docs
 	@$(SPHINXBUILD) -M clean "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 

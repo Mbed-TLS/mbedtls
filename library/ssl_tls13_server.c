@@ -406,7 +406,7 @@ static int ssl_tls13_select_ciphersuite_for_psk(
         /* MAC of selected ciphersuite MUST be same with PSK binder if exist.
          * Otherwise, client should reject.
          */
-        if (psk_hash_alg == mbedtls_psa_translate_md(ciphersuite_info->mac)) {
+        if (psk_hash_alg == mbedtls_md_psa_alg_from_type(ciphersuite_info->mac)) {
             *selected_ciphersuite = cipher_suite;
             *selected_ciphersuite_info = ciphersuite_info;
             return 0;
@@ -612,7 +612,7 @@ static int ssl_tls13_parse_pre_shared_key_ext(
 
         ret = ssl_tls13_offered_psks_check_binder_match(
             ssl, binder, binder_len, psk_type,
-            mbedtls_psa_translate_md(ciphersuite_info->mac));
+            mbedtls_md_psa_alg_from_type(ciphersuite_info->mac));
         if (ret != SSL_TLS1_3_OFFERED_PSK_MATCH) {
             /* For security reasons, the handshake should be aborted when we
              * fail to validate a binder value. See RFC 8446 section 4.2.11.2
@@ -2783,7 +2783,7 @@ static int ssl_tls13_prepare_new_session_ticket(mbedtls_ssl_context *ssl,
 
     ciphersuite_info =
         (mbedtls_ssl_ciphersuite_t *) ssl->handshake->ciphersuite_info;
-    psa_hash_alg = mbedtls_psa_translate_md(ciphersuite_info->mac);
+    psa_hash_alg = mbedtls_md_psa_alg_from_type(ciphersuite_info->mac);
     hash_length = PSA_HASH_LENGTH(psa_hash_alg);
     if (hash_length == -1 ||
         (size_t) hash_length > sizeof(session->resumption_key)) {

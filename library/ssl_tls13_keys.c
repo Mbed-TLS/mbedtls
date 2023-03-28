@@ -1766,7 +1766,7 @@ int mbedtls_ssl_tls13_compute_resumption_master_secret(mbedtls_ssl_context *ssl)
     }
 
     ret = mbedtls_ssl_tls13_derive_resumption_master_secret(
-        mbedtls_psa_translate_md(md_type),
+        mbedtls_md_psa_alg_from_type(md_type),
         handshake->tls13_master_secrets.app,
         transcript, transcript_len,
         &ssl->session_negotiate->app_secrets);
@@ -1781,7 +1781,7 @@ int mbedtls_ssl_tls13_compute_resumption_master_secret(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_DEBUG_BUF(
         4, "Resumption master secret",
         ssl->session_negotiate->app_secrets.resumption_master_secret,
-        PSA_HASH_LENGTH(mbedtls_psa_translate_md(md_type)));
+        PSA_HASH_LENGTH(mbedtls_md_psa_alg_from_type(md_type)));
 
     MBEDTLS_SSL_DEBUG_MSG(
         2, ("<= mbedtls_ssl_tls13_compute_resumption_master_secret"));

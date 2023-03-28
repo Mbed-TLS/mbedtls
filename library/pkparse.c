@@ -532,19 +532,15 @@ static int pk_convert_compressed_ec(mbedtls_pk_context *pk,
     ret = mbedtls_ecp_point_read_binary(&(ecp_key.grp), &ecp_key.Q,
                                         in_start, in_len);
     if (ret != 0) {
-        mbedtls_ecp_keypair_free(&ecp_key);
-        return ret;
+        goto exit;
     }
     ret = mbedtls_ecp_point_write_binary(&(ecp_key.grp), &ecp_key.Q,
                                          MBEDTLS_ECP_PF_UNCOMPRESSED,
                                          out_buf_len, out_buf, out_buf_size);
-    if (ret != 0) {
-        mbedtls_ecp_keypair_free(&ecp_key);
-        return ret;
-    }
-    mbedtls_ecp_keypair_free(&ecp_key);
 
-    return 0;
+exit:
+    mbedtls_ecp_keypair_free(&ecp_key);
+    return ret;
 }
 
 static int pk_get_ecpubkey(unsigned char **p, const unsigned char *end,

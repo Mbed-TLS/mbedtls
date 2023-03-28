@@ -55,18 +55,6 @@ static const hash_entry hash_table[] = {
     { PSA_ALG_NONE, MBEDTLS_MD_NONE, 0, 0 },
 };
 
-/* Get size from MD type */
-unsigned char mbedtls_hash_info_get_size(mbedtls_md_type_t md_type)
-{
-    const hash_entry *entry = hash_table;
-    while (entry->md_type != MBEDTLS_MD_NONE &&
-           entry->md_type != md_type) {
-        entry++;
-    }
-
-    return entry->size;
-}
-
 /* Get block size from MD type */
 unsigned char mbedtls_hash_info_get_block_size(mbedtls_md_type_t md_type)
 {

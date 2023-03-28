@@ -418,7 +418,7 @@ static inline int pk_hashlen_helper(mbedtls_md_type_t md_alg, size_t *hash_len)
         return 0;
     }
 
-    *hash_len = mbedtls_hash_info_get_size(md_alg);
+    *hash_len = mbedtls_md_get_size_from_type(md_alg);
 
     if (*hash_len == 0) {
         return -1;

@@ -332,7 +332,7 @@ static psa_status_t psa_rsa_decode_md_type(psa_algorithm_t alg,
         if (*md_alg == MBEDTLS_MD_NONE) {
             return PSA_ERROR_NOT_SUPPORTED;
         }
-        if (mbedtls_hash_info_get_size(*md_alg) != hash_length) {
+        if (mbedtls_md_get_size_from_type(*md_alg) != hash_length) {
             return PSA_ERROR_INVALID_ARGUMENT;
         }
     }

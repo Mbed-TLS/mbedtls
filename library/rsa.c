@@ -1229,7 +1229,7 @@ int mbedtls_rsa_rsaes_oaep_encrypt(mbedtls_rsa_context *ctx,
         return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     }
 
-    hlen = mbedtls_hash_info_get_size((mbedtls_md_type_t) ctx->hash_id);
+    hlen = mbedtls_md_get_size_from_type((mbedtls_md_type_t) ctx->hash_id);
     if (hlen == 0) {
         return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     }
@@ -1396,7 +1396,7 @@ int mbedtls_rsa_rsaes_oaep_decrypt(mbedtls_rsa_context *ctx,
         return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     }
 
-    hlen = mbedtls_hash_info_get_size((mbedtls_md_type_t) ctx->hash_id);
+    hlen = mbedtls_md_get_size_from_type((mbedtls_md_type_t) ctx->hash_id);
     if (hlen == 0) {
         return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     }
@@ -1596,7 +1596,7 @@ static int rsa_rsassa_pss_sign(mbedtls_rsa_context *ctx,
 
     if (md_alg != MBEDTLS_MD_NONE) {
         /* Gather length of hash to sign */
-        size_t exp_hashlen = mbedtls_hash_info_get_size(md_alg);
+        size_t exp_hashlen = mbedtls_md_get_size_from_type(md_alg);
         if (exp_hashlen == 0) {
             return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
         }
@@ -1606,7 +1606,7 @@ static int rsa_rsassa_pss_sign(mbedtls_rsa_context *ctx,
         }
     }
 
-    hlen = mbedtls_hash_info_get_size((mbedtls_md_type_t) ctx->hash_id);
+    hlen = mbedtls_md_get_size_from_type((mbedtls_md_type_t) ctx->hash_id);
     if (hlen == 0) {
         return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     }
@@ -1744,7 +1744,7 @@ static int rsa_rsassa_pkcs1_v15_encode(mbedtls_md_type_t md_alg,
 
     /* Are we signing hashed or raw data? */
     if (md_alg != MBEDTLS_MD_NONE) {
-        unsigned char md_size = mbedtls_hash_info_get_size(md_alg);
+        unsigned char md_size = mbedtls_md_get_size_from_type(md_alg);
         if (md_size == 0) {
             return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
         }
@@ -1995,7 +1995,7 @@ int mbedtls_rsa_rsassa_pss_verify_ext(mbedtls_rsa_context *ctx,
 
     if (md_alg != MBEDTLS_MD_NONE) {
         /* Gather length of hash to sign */
-        size_t exp_hashlen = mbedtls_hash_info_get_size(md_alg);
+        size_t exp_hashlen = mbedtls_md_get_size_from_type(md_alg);
         if (exp_hashlen == 0) {
             return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
         }
@@ -2005,7 +2005,7 @@ int mbedtls_rsa_rsassa_pss_verify_ext(mbedtls_rsa_context *ctx,
         }
     }
 
-    hlen = mbedtls_hash_info_get_size(mgf1_hash_id);
+    hlen = mbedtls_md_get_size_from_type(mgf1_hash_id);
     if (hlen == 0) {
         return MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
     }

@@ -1200,7 +1200,7 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
         mbedtls_md_info_t const *md_info = mbedtls_md_info_from_type(hash_id);
         CHK(md_info != NULL);
 #endif
-        maclen = mbedtls_hash_info_get_size(hash_id);
+        maclen = mbedtls_md_get_size_from_type(hash_id);
         CHK(maclen != 0);
         /* Pick hash keys */
         CHK((md0 = mbedtls_calloc(1, maclen)) != NULL);

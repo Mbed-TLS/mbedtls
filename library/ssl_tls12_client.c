@@ -2408,7 +2408,7 @@ start_processing:
             mbedtls_pk_rsassa_pss_options rsassa_pss_options;
             rsassa_pss_options.mgf1_hash_id = md_alg;
             rsassa_pss_options.expected_salt_len =
-                mbedtls_hash_info_get_size(md_alg);
+                mbedtls_md_get_size_from_type(md_alg);
             if (rsassa_pss_options.expected_salt_len == 0) {
                 return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
             }

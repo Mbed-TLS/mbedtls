@@ -244,7 +244,7 @@ static int ecjpake_hash(const mbedtls_md_type_t md_type,
 
     /* Turn it into an integer mod n */
     MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(h, hash,
-                                            mbedtls_hash_info_get_size(md_type)));
+                                            mbedtls_md_get_size_from_type(md_type)));
     MBEDTLS_MPI_CHK(mbedtls_mpi_mod_mpi(h, h, &grp->N));
 
 cleanup:
@@ -780,7 +780,7 @@ int mbedtls_ecjpake_derive_secret(mbedtls_ecjpake_context *ctx,
     unsigned char kx[MBEDTLS_ECP_MAX_BYTES];
     size_t x_bytes;
 
-    *olen = mbedtls_hash_info_get_size(ctx->md_type);
+    *olen = mbedtls_md_get_size_from_type(ctx->md_type);
     if (len < *olen) {
         return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
     }

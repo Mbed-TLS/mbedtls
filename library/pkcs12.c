@@ -314,7 +314,7 @@ int mbedtls_pkcs12_derivation(unsigned char *data, size_t datalen,
     use_password = (pwd && pwdlen != 0);
     use_salt = (salt && saltlen != 0);
 
-    hlen = mbedtls_hash_info_get_size(md_type);
+    hlen = mbedtls_md_get_size_from_type(md_type);
 
     if (hlen <= 32) {
         v = 64;

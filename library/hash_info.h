@@ -50,16 +50,6 @@
 #define MBEDTLS_HASH_MAX_SIZE PSA_HASH_MAX_SIZE
 #endif
 
-/** Get the output length of the given hash type from its MD type.
- *
- * \note To get the output length from the PSA alg, use \c PSA_HASH_LENGTH().
- *
- * \param md_type   The hash MD type.
- *
- * \return          The output length in bytes, or 0 if not known.
- */
-unsigned char mbedtls_hash_info_get_size(mbedtls_md_type_t md_type);
-
 /** Get the block size of the given hash type from its MD type.
  *
  * \note To get the output length from the PSA alg, use

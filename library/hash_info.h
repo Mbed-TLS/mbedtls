@@ -36,17 +36,6 @@
 #include "psa/crypto.h"
 #include "mbedtls/platform_util.h"
 
-/** Get the block size of the given hash type from its MD type.
- *
- * \note To get the output length from the PSA alg, use
- *       \c PSA_HASH_BLOCK_LENGTH().
- *
- * \param md_type   The hash MD type.
- *
- * \return          The block size in bytes, or 0 if not known.
- */
-unsigned char mbedtls_hash_info_get_block_size(mbedtls_md_type_t md_type);
-
 /** Get the PSA alg from the MD type.
  *
  * \param md_type   The hash MD type.

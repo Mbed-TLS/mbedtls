@@ -585,7 +585,7 @@ static int pk_get_ecpubkey(unsigned char **p, const unsigned char *end,
 
     if ((psa_import_key(&key_attrs, pk->pk_raw, pk->pk_raw_len,
                         &key) != PSA_SUCCESS) ||
-        psa_destroy_key(key)) {
+        (psa_destroy_key(key) != PSA_SUCCESS)) {
         mbedtls_platform_zeroize(pk->pk_raw, MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN);
         pk->pk_raw_len = 0;
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;

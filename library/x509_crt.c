@@ -2024,7 +2024,7 @@ static int x509_crt_verifycrl(mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
                               const mbedtls_x509_crt_profile *profile)
 {
     int flags = 0;
-    unsigned char hash[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_algorithm_t psa_algorithm;
 #else
@@ -2133,7 +2133,7 @@ static int x509_crt_check_signature(const mbedtls_x509_crt *child,
                                     mbedtls_x509_crt_restart_ctx *rs_ctx)
 {
     size_t hash_len;
-    unsigned char hash[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
     const mbedtls_md_info_t *md_info;
     md_info = mbedtls_md_info_from_type(child->sig_md);

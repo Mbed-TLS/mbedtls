@@ -569,7 +569,7 @@ int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx,
     unsigned char *c, *c2;
     unsigned char sig[MBEDTLS_PK_SIGNATURE_MAX_SIZE];
     size_t hash_length = 0;
-    unsigned char hash[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_algorithm_t psa_algorithm;

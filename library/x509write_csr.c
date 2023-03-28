@@ -243,7 +243,7 @@ static int x509write_csr_der_internal(mbedtls_x509write_csr *ctx,
     const char *sig_oid;
     size_t sig_oid_len = 0;
     unsigned char *c, *c2;
-    unsigned char hash[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     size_t pub_len = 0, sig_and_oid_len = 0, sig_len;
     size_t len = 0;
     mbedtls_pk_type_t pk_alg;

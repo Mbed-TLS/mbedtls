@@ -1076,7 +1076,7 @@ static int mgf_mask(unsigned char *dst, size_t dlen, unsigned char *src,
     unsigned char *p;
     unsigned int hlen;
     size_t i, use_len;
-    unsigned char mask[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char mask[MBEDTLS_MD_MAX_SIZE];
     int ret = 0;
     const mbedtls_md_info_t *md_info;
     mbedtls_md_context_t md_ctx;
@@ -1380,7 +1380,7 @@ int mbedtls_rsa_rsaes_oaep_decrypt(mbedtls_rsa_context *ctx,
     size_t ilen, i, pad_len;
     unsigned char *p, bad, pad_done;
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
-    unsigned char lhash[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char lhash[MBEDTLS_MD_MAX_SIZE];
     unsigned int hlen;
 
     /*
@@ -1966,7 +1966,7 @@ int mbedtls_rsa_rsassa_pss_verify_ext(mbedtls_rsa_context *ctx,
     size_t siglen;
     unsigned char *p;
     unsigned char *hash_start;
-    unsigned char result[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char result[MBEDTLS_MD_MAX_SIZE];
     unsigned int hlen;
     size_t observed_salt_len, msb;
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE] = { 0 };

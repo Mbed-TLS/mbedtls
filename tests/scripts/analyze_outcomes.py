@@ -66,7 +66,7 @@ def execute_reference_driver_tests(ref_component, driver_component, outcome_file
 
     shell_command = "tests/scripts/all.sh --outcome-file " + outcome_file + \
                     " " + ref_component + " " + driver_component
-    print("Running: " + shell_command)
+    Results.log("Running: " + shell_command)
     ret_val = subprocess.run(shell_command.split(), check=False).returncode
 
     if ret_val != 0:

@@ -2,10 +2,16 @@ PANDOC = pandoc
 
 default: all
 
-all_markdown = $(wildcard *.md testing/*.md)
+all_markdown = $(wildcard *.md)
 
 html: $(all_markdown:.md=.html)
+	$(MAKE) -C architecture html
+	$(MAKE) -C proposed html
+
 pdf: $(all_markdown:.md=.pdf)
+	$(MAKE) -C architecture pdf
+	$(MAKE) -C proposed pdf
+
 all: html pdf
 
 .SUFFIXES:
@@ -18,4 +24,5 @@ all: html pdf
 
 clean:
 	rm -f *.html *.pdf
-	rm -f testing/*.html testing/*.pdf
+	$(MAKE) -C architecture clean
+	$(MAKE) -C proposed clean

@@ -12,7 +12,7 @@ Interoperability is not a goal: PSA crypto implementations are not intended to h
 
 ### Limitations of a direct approach
 
-The goal of storage format stability testing is: as a user of Mbed TLS, I want to store a key under version V and read it back under version W, with W ≥ V.
+The goal of storage format stability testing is: as a user of Mbed TLS, I want to store a key under version V and read it back under version W, with W >= V.
 
 Doing the testing this way would be difficult because we'd need to have version V of Mbed TLS available when testing version W.
 
@@ -24,7 +24,7 @@ Importing and saving a key is deterministic. Therefore we can ensure the stabili
 
 In addition, the test case also loads the key and checks that it has the expected data and metadata. Import-and-save testing and load-and-check testing can be split into separate test functions with the same payloads.
 
-If the test passes with version V, this means that the test data is consistent with what the implementation does. When the test later runs under version W ≥ V, it creates and reads back a storage state which is known to be identical to the state that V would have produced. Thus, this approach validates that W can read storage states created by V.
+If the test passes with version V, this means that the test data is consistent with what the implementation does. When the test later runs under version W >= V, it creates and reads back a storage state which is known to be identical to the state that V would have produced. Thus, this approach validates that W can read storage states created by V.
 
 Note that it is the combination of import-and-save passing on version V and load-and-check passing on version W with the same data that proves that version W can read back what version V wrote. From the perspective of a particular version of the library, the import-and-save tests guarantee forward compatibility while the load-and-check tests guarantee backward compatibility.
 

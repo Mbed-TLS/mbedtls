@@ -39,7 +39,8 @@ Mbed TLS calls driver entry points [as specified in the PSA Cryptography Driver 
 ## Mbed TLS extensions
 
 The driver description can include Mbed TLS extensions (marked by the namespace "mbedtls"). Mbed TLS extensions are meant to extend/help integrating the driver into the library's infrastructure.
-* `"mbedtls/h_condition"` (optional, string) can include complex preprocessor definitions to conditionally include header files for a given driver. 
+
+* `"mbedtls/h_condition"` (optional, string) can include complex preprocessor definitions to conditionally include header files for a given driver.
 * `"mbedtls/c_condition"` (optional, string) can include complex preprocessor definitions to conditionally enable dispatch capabilities for a driver.
 
 ## Building and testing your driver

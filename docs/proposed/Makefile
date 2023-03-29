@@ -2,12 +2,7 @@ PANDOC = pandoc
 
 default: all
 
-all_markdown = \
-	       psa-conditional-inclusion-c.md \
-	       psa-driver-developer-guide.md \
-	       psa-driver-integration-guide.md \
-	       psa-driver-interface.md \
-	       # This line is intentionally left blank
+all_markdown = $(wildcard *.md)
 
 html: $(all_markdown:.md=.html)
 pdf: $(all_markdown:.md=.pdf)

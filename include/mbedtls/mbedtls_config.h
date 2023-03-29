@@ -1933,9 +1933,12 @@
  * \warning If you enable this option, you need to call `psa_crypto_init()`
  * before calling any function from the SSL/TLS, X.509 or PK modules.
  *
- * \note Even with this option disabled, some code in PK, X.509, TLS or the
- * crypto library might still use PSA drivers, if it can determine it's safe
- * to do so.
+ * \note An important and desirable effect of this option is that it allows
+ * PK, X.509 and TLS to take advantage of PSA drivers. For example, enabling
+ * this option is what allows use of drivers for ECDSA, ECDH and EC J-PAKE in
+ * those modules. However, note that ven with this option disabled, some code
+ * in PK, X.509, TLS or the crypto library might still use PSA drivers, if it
+ * can determine it's safe to do so; currently that's the case for hashes.
  *
  * \note See docs/use-psa-crypto.md for a complete description this option.
  *

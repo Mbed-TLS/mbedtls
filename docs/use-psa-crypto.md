@@ -29,7 +29,7 @@ that's the case for hashes.
 `psa_crypto_init()` before you call any other `psa_xxx()` function. Other
 modules in the library (non-PSA crypto APIs, X.509, TLS) may or may not use
 PSA Crypto but you're not required to call `psa_crypto_init()` before calling
-non-PSA functions, unless when explicitly documented (TLS 1.3).
+non-PSA functions, unless explicitly documented (TLS 1.3).
 - `MBEDTLS_USE_PSA_CRYPTO` means that X.509 and TLS will use PSA Crypto as
   much as possible (that is, everywhere except for features that are not
 supported by PSA Crypto, see "Internal Changes" below for a complete list of

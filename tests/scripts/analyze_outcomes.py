@@ -54,7 +54,8 @@ class TestCaseOutcomes:
         return len(self.successes) + len(self.failures)
 
 def execute_reference_driver_tests(ref_component, driver_component, outcome_file):
-    """Run the tests that will fullfill the outcome file used for the following
+    """Run the tests specified in ref_component and driver_component. Results
+    are stored in the output_file and they will be used for the following
     coverage analysis"""
     # If the outcome file already exists, we assume that the user wants to
     # perform the comparison analysis again without repeating the tests.

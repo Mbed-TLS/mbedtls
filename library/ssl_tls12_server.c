@@ -140,7 +140,7 @@ static int ssl_parse_renegotiation_info(mbedtls_ssl_context *ssl,
     return 0;
 }
 
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
+#if defined(MBEDTLS_PK_CAN_ECDH) || defined(MBEDTLS_PK_CAN_ECDSA_SOME) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 /*
  * Function for parsing a supported groups (TLS 1.3) or supported elliptic
@@ -266,11 +266,9 @@ static int ssl_parse_supported_point_formats(mbedtls_ssl_context *ssl,
     while (list_size > 0) {
         if (p[0] == MBEDTLS_ECP_PF_UNCOMPRESSED ||
             p[0] == MBEDTLS_ECP_PF_COMPRESSED) {
-#if !defined(MBEDTLS_USE_PSA_CRYPTO) &&                             \
-            (defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C))
+#if !defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_ECDH_C)
             ssl->handshake->ecdh_ctx.point_format = p[0];
-#endif /* !MBEDTLS_USE_PSA_CRYPTO &&
-          ( MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ) */
+#endif /* !MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_ECDH_C */
 #if !defined(MBEDTLS_USE_PSA_CRYPTO) &&                             \
             defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
             mbedtls_ecjpake_set_point_format(&ssl->handshake->ecjpake_ctx,
@@ -286,7 +284,7 @@ static int ssl_parse_supported_point_formats(mbedtls_ssl_context *ssl,
 
     return 0;
 }
-#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
+#endif /* MBEDTLS_PK_CAN_ECDH || MBEDTLS_PK_CAN_ECDSA_SOME ||
           MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
@@ -662,7 +660,7 @@ static int ssl_parse_use_srtp_ext(mbedtls_ssl_context *ssl,
 /*
  * Return 0 if the given key uses one of the acceptable curves, -1 otherwise
  */
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_check_key_curve(mbedtls_pk_context *pk,
                                uint16_t *curves_tls_id)
@@ -681,7 +679,7 @@ static int ssl_check_key_curve(mbedtls_pk_context *pk,
 
     return -1;
 }
-#endif /* MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_PK_CAN_ECDSA_SOME */
 
 /*
  * Try picking a certificate for this ciphersuite,
@@ -766,7 +764,7 @@ static int ssl_pick_cert(mbedtls_ssl_context *ssl,
             continue;
         }
 
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
         if (pk_alg == MBEDTLS_PK_ECDSA &&
             ssl_check_key_curve(&cur->cert->pk,
                                 ssl->handshake->curves_tls_id) != 0) {
@@ -830,7 +828,7 @@ static int ssl_ciphersuite_match(mbedtls_ssl_context *ssl, int suite_id,
 #endif
 
 
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_PK_CAN_ECDH) || defined(MBEDTLS_PK_CAN_ECDSA_SOME)
     if (mbedtls_ssl_ciphersuite_uses_ec(suite_info) &&
         (ssl->handshake->curves_tls_id == NULL ||
          ssl->handshake->curves_tls_id[0] == 0)) {
@@ -1369,7 +1367,7 @@ read_record_header:
                 break;
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
+#if defined(MBEDTLS_PK_CAN_ECDH) || defined(MBEDTLS_PK_CAN_ECDSA_SOME) || \
                 defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
             case MBEDTLS_TLS_EXT_SUPPORTED_GROUPS:
                 MBEDTLS_SSL_DEBUG_MSG(3, ("found supported elliptic curves extension"));
@@ -1389,7 +1387,7 @@ read_record_header:
                     return ret;
                 }
                 break;
-#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
+#endif /* MBEDTLS_PK_CAN_ECDH || MBEDTLS_PK_CAN_ECDSA_SOME ||
           MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
@@ -1499,7 +1497,7 @@ read_record_header:
     if (!sig_hash_alg_ext_present) {
         uint16_t *received_sig_algs = ssl->handshake->received_sig_algs;
         const uint16_t default_sig_algs[] = {
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
             MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG(MBEDTLS_SSL_SIG_ECDSA,
                                                MBEDTLS_SSL_HASH_SHA1),
 #endif

@@ -215,12 +215,6 @@ static int md_can_use_psa(const mbedtls_md_info_t *info)
 
     return psa_can_do_hash(alg);
 }
-
-static int mbedtls_md_error_from_psa(psa_status_t status)
-{
-    return PSA_TO_MBEDTLS_ERR_LIST(status, psa_to_md_errors,
-                                   psa_generic_status_to_mbedtls);
-}
 #endif /* MBEDTLS_MD_SOME_PSA */
 
 void mbedtls_md_init(mbedtls_md_context_t *ctx)
@@ -750,18 +744,8 @@ mbedtls_md_type_t mbedtls_md_type_from_psa_alg(psa_algorithm_t psa_alg)
 
 int mbedtls_md_error_from_psa(psa_status_t status)
 {
-    switch (status) {
-        case PSA_SUCCESS:
-            return 0;
-        case PSA_ERROR_NOT_SUPPORTED:
-            return MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE;
-        case PSA_ERROR_INVALID_ARGUMENT:
-            return MBEDTLS_ERR_MD_BAD_INPUT_DATA;
-        case PSA_ERROR_INSUFFICIENT_MEMORY:
-            return MBEDTLS_ERR_MD_ALLOC_FAILED;
-        default:
-            return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-    }
+    return PSA_TO_MBEDTLS_ERR_LIST(status, psa_to_md_errors,
+                                   psa_generic_status_to_mbedtls);
 }
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 

@@ -2053,7 +2053,7 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
 }
 
 component_test_psa_crypto_config_accel_ecdsa () {
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDSA"
+    msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDSA"
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA KEY_TYPE_ECC_KEY_PAIR KEY_TYPE_ECC_PUBLIC_KEY"
@@ -2104,7 +2104,7 @@ component_test_psa_crypto_config_accel_ecdsa () {
 }
 
 component_test_psa_crypto_config_accel_ecdh () {
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDH"
+    msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDH"
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_ECDH KEY_TYPE_ECC_KEY_PAIR KEY_TYPE_ECC_PUBLIC_KEY"
@@ -2152,7 +2152,7 @@ component_test_psa_crypto_config_accel_ecdh () {
 }
 
 component_test_psa_crypto_config_accel_pake() {
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated PAKE"
+    msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated PAKE"
 
     # Start with full
     scripts/config.py full
@@ -2169,7 +2169,7 @@ component_test_psa_crypto_config_accel_pake() {
     scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
 
-    # Make build-in fallback not available
+    # Make built-in fallback not available
     scripts/config.py unset MBEDTLS_ECJPAKE_C
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 
@@ -2188,6 +2188,9 @@ component_test_psa_crypto_config_accel_pake() {
 
 # Auxiliary function to build config for all EC based algorithms (EC-JPAKE,
 # ECDH, ECDSA) with and without drivers.
+# The input parameter is a boolean value which indicates:
+# - 0 keep built-in EC algs,
+# - 1 exclude built-in EC algs (driver only).
 #
 # This is used by the two following components to ensure they always use the
 # same config, except for the use of driver or built-in EC algorithms:
@@ -2286,7 +2289,7 @@ component_test_psa_crypto_config_reference_all_ec_algs_use_psa () {
 }
 
 component_test_psa_crypto_config_accel_ecc () {
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECC"
+    msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECC"
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_ECDH ALG_ECDSA ALG_DETERMINISTIC_ECDSA ALG_JPAKE KEY_TYPE_ECC_KEY_PAIR KEY_TYPE_ECC_PUBLIC_KEY"

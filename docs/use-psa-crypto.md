@@ -17,7 +17,7 @@ module.
 
 **Why enable this option:** to fully take advantage of PSA drivers in PK,
 X.509 and TLS. For example, enabling this option is what allows use of drivers
-for ECDSA, ECDH and EC J-PAKE in those modules. However, note that ven with
+for ECDSA, ECDH and EC J-PAKE in those modules. However, note that even with
 this option disabled, some code in PK, X.509, TLS or the crypto library might
 still use PSA drivers, if it can determine it's safe to do so; currently
 that's the case for hashes.

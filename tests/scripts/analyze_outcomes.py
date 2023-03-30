@@ -10,6 +10,8 @@ import argparse
 import sys
 import traceback
 import re
+import subprocess
+import os
 
 import check_test_cases
 
@@ -50,6 +52,26 @@ class TestCaseOutcomes:
         This includes passes and failures, but not skips.
         """
         return len(self.successes) + len(self.failures)
+
+def execute_reference_driver_tests(ref_component, driver_component, outcome_file):
+    """Run the tests specified in ref_component and driver_component. Results
+    are stored in the output_file and they will be used for the following
+    coverage analysis"""
+    # If the outcome file already exists, we assume that the user wants to
+    # perform the comparison analysis again without repeating the tests.
+    if os.path.exists(outcome_file):
+        Results.log("Outcome file (" + outcome_file + ") already exists. " + \
+                    "Tests will be skipped.")
+        return
+
+    shell_command = "tests/scripts/all.sh --outcome-file " + outcome_file + \
+                    " " + ref_component + " " + driver_component
+    Results.log("Running: " + shell_command)
+    ret_val = subprocess.run(shell_command.split(), check=False).returncode
+
+    if ret_val != 0:
+        Results.log("Error: failed to run reference/driver components")
+        sys.exit(ret_val)
 
 def analyze_coverage(results, outcomes):
     """Check that all available test cases are executed at least once."""
@@ -137,6 +159,9 @@ def do_analyze_coverage(outcome_file, args):
 
 def do_analyze_driver_vs_reference(outcome_file, args):
     """Perform driver vs reference analyze."""
+    execute_reference_driver_tests(args['component_ref'], \
+                                    args['component_driver'], outcome_file)
+
     ignored_suites = ['test_suite_' + x for x in args['ignored_suites']]
 
     outcomes = read_outcome_file(outcome_file)
@@ -152,9 +177,12 @@ TASKS = {
         'test_function': do_analyze_coverage,
         'args': {}
         },
-    # How to use analyze_driver_vs_reference_xxx locally:
-    # 1. tests/scripts/all.sh --outcome-file "$PWD/out.csv" <component_ref> <component_driver>
-    # 2. tests/scripts/analyze_outcomes.py out.csv analyze_driver_vs_reference_xxx
+    # There are 2 options to use analyze_driver_vs_reference_xxx locally:
+    # 1. Run tests and then analysis:
+    #   - tests/scripts/all.sh --outcome-file "$PWD/out.csv" <component_ref> <component_driver>
+    #   - tests/scripts/analyze_outcomes.py out.csv analyze_driver_vs_reference_xxx
+    # 2. Let this script run both automatically:
+    #   - tests/scripts/analyze_outcomes.py out.csv analyze_driver_vs_reference_xxx
     'analyze_driver_vs_reference_hash': {
         'test_function': do_analyze_driver_vs_reference,
         'args': {

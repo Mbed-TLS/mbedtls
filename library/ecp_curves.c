@@ -5299,39 +5299,6 @@ int mbedtls_ecp_mod_p384_raw(mbedtls_mpi_uint *X, size_t X_limbs)
           MBEDTLS_ECP_DP_SECP256R1_ENABLED ||
           MBEDTLS_ECP_DP_SECP384R1_ENABLED */
 
-#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_ECP_C)
-MBEDTLS_STATIC_TESTABLE
-void mbedtls_ecp_fix_negative(mbedtls_mpi *N, signed char c, size_t bits)
-{
-    size_t i;
-
-    /* Set N := 2^bits - 1 - N. We know that 0 <= N < 2^bits, so
-     * set the absolute value to 0xfff...fff - N. There is no carry
-     * since we're subtracting from all-bits-one.  */
-    for (i = 0; i <= bits / 8 / sizeof(mbedtls_mpi_uint); i++) {
-        N->p[i] = ~(mbedtls_mpi_uint) 0 - N->p[i];
-    }
-    /* Add 1, taking care of the carry. */
-    i = 0;
-    do {
-        ++N->p[i];
-    } while (N->p[i++] == 0 && i <= bits / 8 / sizeof(mbedtls_mpi_uint));
-    /* Invert the sign.
-     * Now N = N0 - 2^bits where N0 is the initial value of N. */
-    N->s = -1;
-
-    /* Add |c| * 2^bits to the absolute value. Since c and N are
-     * negative, this adds c * 2^bits. */
-    mbedtls_mpi_uint msw = (mbedtls_mpi_uint) -c;
-#if defined(MBEDTLS_HAVE_INT64)
-    if (bits == 224) {
-        msw <<= 32;
-    }
-#endif
-    N->p[bits / 8 / sizeof(mbedtls_mpi_uint)] += msw;
-}
-#endif /* MBEDTLS_TEST_HOOKS & MBEDTLS_ECP_C */
-
 #if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
 /* Size of p521 in terms of mbedtls_mpi_uint */
 #define P521_WIDTH      (521 / 8 / sizeof(mbedtls_mpi_uint) + 1)

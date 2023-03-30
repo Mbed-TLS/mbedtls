@@ -33,19 +33,6 @@
 
 #if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_ECP_C)
 
-#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
-/* Preconditions:
- *   - bits is a multiple of 64 or is 224
- *   - c is -1 or -2
- *   - 0 <= N < 2^bits
- *   - N has room for bits plus one limb
- *
- * Behavior:
- * Set N to c * 2^bits + old_value_of_N.
- */
-void mbedtls_ecp_fix_negative(mbedtls_mpi *N, signed char c, size_t bits);
-#endif
-
 #if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
 /** Generate a private key on a Montgomery curve (Curve25519 or Curve448).
  *

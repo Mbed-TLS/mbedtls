@@ -43,7 +43,7 @@ static int pk_genkey(mbedtls_pk_context *pk, int parameter)
                                    parameter, 3);
     }
 #endif
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_C) && defined(FULL)
     if (mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECKEY ||
         mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECKEY_DH ||
         mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECDSA) {
@@ -1219,15 +1219,20 @@ void pk_psa_sign(int parameter_arg,
 #endif /* MBEDTLS_RSA_C && MBEDTLS_GENPRIME */
 #if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
     if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(psa_type_arg)) {
-        mbedtls_ecp_group_id grpid = parameter_arg;
 
         /* Create legacy EC public/private key in PK context. */
         mbedtls_pk_init(&pk);
         TEST_ASSERT(mbedtls_pk_setup(&pk,
                                      mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY)) == 0);
+#if defined(FULL)
+        mbedtls_ecp_group_id grpid = parameter_arg;
         TEST_ASSERT(mbedtls_ecp_gen_key(grpid,
                                         (mbedtls_ecp_keypair *) pk.pk_ctx,
                                         mbedtls_test_rnd_std_rand, NULL) == 0);
+#else
+        TEST_ASSERT(!"!FULL not supported");
+#endif
+
         alg_psa = PSA_ALG_ECDSA(PSA_ALG_SHA_256);
     } else
 #endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */

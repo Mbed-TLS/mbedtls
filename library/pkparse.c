@@ -975,11 +975,18 @@ static int pk_parse_key_sec1_der(mbedtls_ecp_keypair *eck,
         }
     }
 
-    if (!pubkey_done &&
-        (ret = mbedtls_ecp_mul(&eck->grp, &eck->Q, &eck->d, &eck->grp.G,
-                               f_rng, p_rng)) != 0) {
-        mbedtls_ecp_keypair_free(eck);
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
+    if (!pubkey_done) {
+#if defined(FULL)
+        if ((ret = mbedtls_ecp_mul(&eck->grp, &eck->Q, &eck->d, &eck->grp.G,
+                                   f_rng, p_rng)) != 0) {
+            mbedtls_ecp_keypair_free(eck);
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
+        }
+#else
+        (void) f_rng;
+        (void) p_rng;
+        return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+#endif
     }
 
     if ((ret = mbedtls_ecp_check_privkey(&eck->grp, &eck->d)) != 0) {

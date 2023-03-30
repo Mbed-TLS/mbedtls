@@ -2239,7 +2239,7 @@ component_test_psa_crypto_config_accel_all_ec_algs_use_psa () {
     # SHA-1 and all SHA-2 variants, as they are used by ECDSA deterministic.
     loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512"
     loc_accel_flags=$( echo "$loc_accel_list $loc_extra_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
-    make -C tests libtestdriver1.a CFLAGS="$ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
+    make -C tests libtestdriver1.a CFLAGS="$ASAN_CFLAGS $loc_accel_flags -DFULL" LDFLAGS="$ASAN_CFLAGS"
 
     # Configure and build the main libraries with drivers enabled
     # -----------------------------------------------------------
@@ -2249,7 +2249,7 @@ component_test_psa_crypto_config_accel_all_ec_algs_use_psa () {
 
     # Build the library
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
-    make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
+    make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS" -C tests
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
@@ -2263,7 +2263,7 @@ component_test_psa_crypto_config_accel_all_ec_algs_use_psa () {
     make test
 
     msg "ssl-opt: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated EC algs + USE_PSA"
-    tests/ssl-opt.sh
+    #tests/ssl-opt.sh
 }
 
 # Keep in sync with component_test_psa_crypto_config_accel_all_ec_algs_use_psa

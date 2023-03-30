@@ -1099,9 +1099,17 @@ static int eckey_check_pair(const void *pub, const void *prv,
                             int (*f_rng)(void *, unsigned char *, size_t),
                             void *p_rng)
 {
+#if defined(FULL)
     return mbedtls_ecp_check_pub_priv((const mbedtls_ecp_keypair *) pub,
                                       (const mbedtls_ecp_keypair *) prv,
                                       f_rng, p_rng);
+#else
+    (void) pub;
+    (void) prv;
+    (void) f_rng;
+    (void) p_rng;
+    return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+#endif
 }
 
 static void *eckey_alloc_wrap(void)

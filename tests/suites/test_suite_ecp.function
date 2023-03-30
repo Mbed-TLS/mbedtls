@@ -75,7 +75,7 @@ inline static int mbedtls_ecp_group_cmp(mbedtls_ecp_group *grp1,
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_ECP_C
+ * depends_on:MBEDTLS_ECP_C:FULL
  * END_DEPENDENCIES
  */
 

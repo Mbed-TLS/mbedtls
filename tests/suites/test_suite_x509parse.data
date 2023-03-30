@@ -94,6 +94,14 @@ X509 CRT information EC, SHA256 Digest, binary hardware module name SAN
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
 x509_cert_info:"data_files/server5-nonprintable_othername.crt":"cert. version     \: 3\nserial number     \: 4D\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS non-printable othername SAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS non-printable othername SAN\nissued  on        \: 2022-09-06 15\:56\:47\nexpires on        \: 2032-09-03 15\:56\:47\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\nsubject alt name  \:\n    otherName \:\n        hardware module name \:\n            hardware type          \: 1.3.6.1.4.1.17.3\n            hardware serial number \: 3132338081008180333231\n"
 
+X509 CRT information EC, SHA256 Digest, directoryName SAN
+depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
+x509_cert_info:"data_files/server5-directoryname.crt.der":"cert. version     \: 3\nserial number     \: 4D\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS directoryName SAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS directoryName SAN\nissued  on        \: 2023-01-10 16\:59\:29\nexpires on        \: 2033-01-07 16\:59\:29\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\nsubject alt name  \:\n    directoryName \: C=UK, O=Mbed TLS, CN=Mbed TLS directoryName SAN\n"
+
+X509 CRT information EC, SHA256 Digest, two directoryName SANs
+depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
+x509_cert_info:"data_files/server5-two-directorynames.crt.der":"cert. version     \: 3\nserial number     \: 4D\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS directoryName SAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS directoryName SAN\nissued  on        \: 2023-01-12 10\:34\:11\nexpires on        \: 2033-01-09 10\:34\:11\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\nsubject alt name  \:\n    directoryName \: C=UK, O=Mbed TLS, CN=Mbed TLS directoryName SAN\n    directoryName \: O=MALFORM_ME\n"
+
 X509 CRT information EC, SHA256 Digest, Wisun Fan device
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
 x509_cert_info:"data_files/server5-fan.crt":"cert. version     \: 3\nserial number     \: 4D\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS FAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS FAN\nissued  on        \: 2019-03-25 09\:03\:46\nexpires on        \: 2029-03-22 09\:03\:46\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\next key usage     \: Wi-SUN Alliance Field Area Network (FAN)\n"
@@ -184,31 +192,43 @@ x509_cert_info:"data_files/non-ascii-string-in-issuer.crt":"cert. version     \:
 
 X509 SAN parsing otherName
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
-x509_parse_san:"data_files/server5-othername.crt":"type \: 0\notherName \: hardware module name \: hardware type \: 1.3.6.1.4.1.17.3, hardware serial number \: 313233343536\n"
+x509_parse_san:"data_files/server5-othername.crt":"type \: 0\notherName \: hardware module name \: hardware type \: 1.3.6.1.4.1.17.3, hardware serial number \: 313233343536\n":0
 
 X509 SAN parsing binary otherName
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
-x509_parse_san:"data_files/server5-nonprintable_othername.crt":"type \: 0\notherName \: hardware module name \: hardware type \: 1.3.6.1.4.1.17.3, hardware serial number \: 3132338081008180333231\n"
+x509_parse_san:"data_files/server5-nonprintable_othername.crt":"type \: 0\notherName \: hardware module name \: hardware type \: 1.3.6.1.4.1.17.3, hardware serial number \: 3132338081008180333231\n":0
+
+X509 SAN parsing directoryName
+depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
+x509_parse_san:"data_files/server5-directoryname.crt.der":"type \: 4\ndirectoryName \: C=UK, O=Mbed TLS, CN=Mbed TLS directoryName SAN\n":0
+
+X509 SAN parsing directoryName, seq malformed
+depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
+x509_parse_san:"data_files/server5-directoryname-seq-malformed.crt.der":"":MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+
+X509 SAN parsing two directoryNames, second DN OID malformed
+depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
+x509_parse_san:"data_files/server5-second-directoryname-oid-malformed.crt.der":"":MBEDTLS_ERR_X509_INVALID_NAME + MBEDTLS_ERR_ASN1_OUT_OF_DATA
 
 X509 SAN parsing dNSName
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA256
-x509_parse_san:"data_files/cert_example_multi.crt":"type \: 2\ndNSName \: example.com\ntype \: 2\ndNSName \: example.net\ntype \: 2\ndNSName \: *.example.org\n"
+x509_parse_san:"data_files/cert_example_multi.crt":"type \: 2\ndNSName \: example.com\ntype \: 2\ndNSName \: example.net\ntype \: 2\ndNSName \: *.example.org\n":0
 
 X509 SAN parsing  Multiple different types
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
-x509_parse_san:"data_files/multiple_san.crt":"type \: 2\ndNSName \: example.com\ntype \: 0\notherName \: hardware module name \: hardware type \: 1.3.6.1.4.1.17.3, hardware serial number \: 313233343536\ntype \: 2\ndNSName \: example.net\ntype \: 2\ndNSName \: *.example.org\n"
+x509_parse_san:"data_files/multiple_san.crt":"type \: 2\ndNSName \: example.com\ntype \: 0\notherName \: hardware module name \: hardware type \: 1.3.6.1.4.1.17.3, hardware serial number \: 313233343536\ntype \: 2\ndNSName \: example.net\ntype \: 2\ndNSName \: *.example.org\n":0
 
 X509 SAN parsing, no subject alt name
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA256:MBEDTLS_PK_CAN_ECDSA_SOME
-x509_parse_san:"data_files/server4.crt":""
+x509_parse_san:"data_files/server4.crt":"":0
 
 X509 SAN parsing, unsupported otherName name
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
-x509_parse_san:"data_files/server5-unsupported_othername.crt":""
+x509_parse_san:"data_files/server5-unsupported_othername.crt":"":0
 
 X509 SAN parsing rfc822Name
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA256
-x509_parse_san:"data_files/test_cert_rfc822name.crt.der":"type \: 1\nrfc822Name \: my@other.address\ntype \: 1\nrfc822Name \: second@other.address\n"
+x509_parse_san:"data_files/test_cert_rfc822name.crt.der":"type \: 1\nrfc822Name \: my@other.address\ntype \: 1\nrfc822Name \: second@other.address\n":0
 
 X509 CRL information #1
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO

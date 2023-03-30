@@ -151,6 +151,7 @@ typedef enum {
     MBEDTLS_MD_RIPEMD160, /**< The RIPEMD-160 message digest. */
 } mbedtls_md_type_t;
 
+/* Note: this should be kept in sync with PSA_HASH_MAX_SIZE */
 #if defined(MBEDTLS_MD_CAN_SHA512)
 #define MBEDTLS_MD_MAX_SIZE         64  /* longest known is SHA512 */
 #elif defined(MBEDTLS_MD_CAN_SHA384)

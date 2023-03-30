@@ -15,7 +15,7 @@ Restartable (aka interruptible) ECC operations
 ----------------------------------------------
 
 Support for interruptible ECDSA sign/verify was added to PSA in Mbed TLS 3.4.
-However support for interruptible ECDH is not present yet. Also, PK, X.509 and
+However, support for interruptible ECDH is not present yet. Also, PK, X.509 and
 TLS have not yet been adapted to take advantage of the new PSA APIs. See:
 - <https://github.com/Mbed-TLS/mbedtls/issues/7292>;
 - <https://github.com/Mbed-TLS/mbedtls/issues/7293>;

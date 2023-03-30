@@ -15,6 +15,13 @@ General considerations
 `psa_crypto_init()` before calling any function from the SSL/TLS, X.509 or PK
 module.
 
+**Why enable this option:** to fully take advantage of PSA drivers in PK,
+X.509 and TLS. For example, enabling this option is what allows use of drivers
+for ECDSA, ECDH and EC J-PAKE in those modules. However, note that even with
+this option disabled, some code in PK, X.509, TLS or the crypto library might
+still use PSA drivers, if it can determine it's safe to do so; currently
+that's the case for hashes.
+
 **Relationship with other options:** This option depends on
 `MBEDTLS_PSA_CRYPTO_C`. These two options differ in the following way:
 - `MBEDTLS_PSA_CRYPTO_C` enables the implementation of the PSA Crypto API.
@@ -22,7 +29,7 @@ module.
 `psa_crypto_init()` before you call any other `psa_xxx()` function. Other
 modules in the library (non-PSA crypto APIs, X.509, TLS) may or may not use
 PSA Crypto but you're not required to call `psa_crypto_init()` before calling
-non-PSA functions, unless when explicitly documented (TLS 1.3).
+non-PSA functions, unless explicitly documented (TLS 1.3).
 - `MBEDTLS_USE_PSA_CRYPTO` means that X.509 and TLS will use PSA Crypto as
   much as possible (that is, everywhere except for features that are not
 supported by PSA Crypto, see "Internal Changes" below for a complete list of

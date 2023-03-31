@@ -41,7 +41,6 @@
 /* Some versions of ASan result in errors about not enough registers */
 #if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) && defined(__i386__) && \
     !defined(MBEDTLS_HAVE_ASAN)
-
 #ifndef MBEDTLS_HAVE_X86
 #define MBEDTLS_HAVE_X86
 #endif
@@ -69,7 +68,11 @@ extern "C" {
  *
  * \return         non-zero if CPU has support for the feature, 0 otherwise
  */
+#if !defined(MBEDTLS_AES_HAS_NO_BUILTIN)
 int mbedtls_padlock_has_support(int feature);
+#else
+#define /* no-check-names */ mbedtls_padlock_has_support(feature) 1
+#endif
 
 /**
  * \brief          Internal PadLock AES-ECB block en(de)cryption

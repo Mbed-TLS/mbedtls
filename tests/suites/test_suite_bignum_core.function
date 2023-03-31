@@ -1058,77 +1058,69 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mpi_core_mul(char *input_A_hex, char *input_B_hex,
-                  char *expected_hex)
+void mpi_core_mul(char *input_A,
+                  char *input_B,
+                  char *result)
 {
-    mbedtls_mpi A, B, Expected;
-    mbedtls_mpi_uint *a = NULL;
-    mbedtls_mpi_uint *b = NULL;
-    mbedtls_mpi_uint *expected = NULL;
-    mbedtls_mpi_uint *r = NULL;
+    mbedtls_mpi_uint *A      = NULL;
+    mbedtls_mpi_uint *A_orig = NULL;
+    mbedtls_mpi_uint *B      = NULL;
+    mbedtls_mpi_uint *B_orig = NULL;
+    mbedtls_mpi_uint *R      = NULL;
+    mbedtls_mpi_uint *X      = NULL;
+    size_t A_limbs, B_limbs, R_limbs;
 
-    mbedtls_mpi_init(&A);
-    mbedtls_mpi_init(&B);
-    mbedtls_mpi_init(&Expected);
+    TEST_EQUAL(mbedtls_test_read_mpi_core(&A, &A_limbs, input_A), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi_core(&B, &B_limbs, input_B), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi_core(&R, &R_limbs, result ), 0);
 
-    TEST_EQUAL(mbedtls_test_read_mpi(&A, input_A_hex), 0);
-    TEST_EQUAL(mbedtls_test_read_mpi(&B, input_B_hex), 0);
-    TEST_EQUAL(mbedtls_test_read_mpi(&Expected, expected_hex), 0);
+    TEST_EQUAL(R_limbs, A_limbs + B_limbs);
 
-    /* All of the inputs are +ve (or zero) */
-    TEST_EQUAL(A.s, 1);
-    TEST_EQUAL(B.s, 1);
-    TEST_EQUAL(Expected.s, 1);
+    const size_t X_limbs = A_limbs + B_limbs;
+    const size_t X_bytes = X_limbs * sizeof(mbedtls_mpi_uint);
+    ASSERT_ALLOC(X, X_limbs);
 
-    /* Test cases are such that A <= B, so #limbs should be <= */
-    TEST_ASSERT(A.n <= B.n);
-    TEST_ASSERT(A.n + B.n >= Expected.n);
+    const size_t A_bytes = A_limbs * sizeof(mbedtls_mpi_uint);
+    ASSERT_ALLOC(A_orig, A_limbs);
+    memcpy(A_orig, A, A_bytes);
 
-    size_t output_limbs = A.n + B.n;
-    TEST_EQUAL(mbedtls_mpi_grow(&Expected, output_limbs), 0);
-    TEST_EQUAL(Expected.n, output_limbs);
-
-    /* Now let's get arrays of mbedtls_mpi_uints, rather than MPI structures */
-    a = mbedtls_calloc(A.n, sizeof(mbedtls_mpi_uint));
-    b = mbedtls_calloc(B.n, sizeof(mbedtls_mpi_uint));
-    expected = mbedtls_calloc(Expected.n, sizeof(mbedtls_mpi_uint));
-    r = mbedtls_calloc(output_limbs, sizeof(mbedtls_mpi_uint));
-
-    TEST_ASSERT(a != NULL);
-    TEST_ASSERT(b != NULL);
-    TEST_ASSERT(expected != NULL);
-    TEST_ASSERT(r != NULL);
-
-    /* Populate the arrays */
-    memcpy(a, A.p, A.n * sizeof(mbedtls_mpi_uint));
-    memcpy(b, B.p, B.n * sizeof(mbedtls_mpi_uint));
-    memcpy(expected, Expected.p, Expected.n * sizeof(mbedtls_mpi_uint));
+    const size_t B_bytes = B_limbs * sizeof(mbedtls_mpi_uint);
+    ASSERT_ALLOC(B_orig, B_limbs);
+    memcpy(B_orig, B, B_bytes);
 
     /* Set result to something that is unlikely to be correct */
-    memset(r, '!', output_limbs * sizeof(mbedtls_mpi_uint));
+    memset(X, '!', X_bytes);
 
-    /* 1. r = a * b - result should be correct, a and b unchanged */
-    mbedtls_mpi_core_mul(r, A.p, A.n, B.p, B.n);
-    TEST_EQUAL(memcmp(r, expected, output_limbs * sizeof(mbedtls_mpi_uint)), 0);
-    TEST_EQUAL(memcmp(a, A.p, A.n * sizeof(mbedtls_mpi_uint)), 0);
-    TEST_EQUAL(memcmp(b, B.p, B.n * sizeof(mbedtls_mpi_uint)), 0);
+    /* 1. X = A * B - result should be correct, A and B unchanged */
+    mbedtls_mpi_core_mul(X, A, A_limbs, B, B_limbs);
+    ASSERT_COMPARE(X, X_bytes, R, X_bytes);
+    ASSERT_COMPARE(A, A_bytes, A_orig, A_bytes);
+    ASSERT_COMPARE(B, B_bytes, B_orig, B_bytes);
 
-    /* 2. r = b * a - result should be correct, a and b unchanged */
-    memset(r, '!', output_limbs * sizeof(mbedtls_mpi_uint));
-    mbedtls_mpi_core_mul(r, B.p, B.n, A.p, A.n);
-    TEST_EQUAL(memcmp(r, expected, output_limbs * sizeof(mbedtls_mpi_uint)), 0);
-    TEST_EQUAL(memcmp(a, A.p, A.n * sizeof(mbedtls_mpi_uint)), 0);
-    TEST_EQUAL(memcmp(b, B.p, B.n * sizeof(mbedtls_mpi_uint)), 0);
+    /* 2. A == B: alias A and B - result should be correct, A and B unchanged */
+    if (A_bytes == B_bytes && memcmp(A, B, A_bytes) == 0) {
+        memset(X, '!', X_bytes);
+        mbedtls_mpi_core_mul(X, A, A_limbs, A, A_limbs);
+        ASSERT_COMPARE(X, X_bytes, R, X_bytes);
+        ASSERT_COMPARE(A, A_bytes, A_orig, A_bytes);
+    }
+
+    /* 3. X = B * A - result should be correct, A and B unchanged */
+    else {
+        memset(X, '!', X_bytes);
+        mbedtls_mpi_core_mul(X, B, B_limbs, A, A_limbs);
+        ASSERT_COMPARE(X, X_bytes, R, X_bytes);
+        ASSERT_COMPARE(A, A_bytes, A_orig, A_bytes);
+        ASSERT_COMPARE(B, B_bytes, B_orig, B_bytes);
+    }
 
 exit:
-    mbedtls_free(a);
-    mbedtls_free(b);
-    mbedtls_free(expected);
-    mbedtls_free(r);
-
-    mbedtls_mpi_free(&A);
-    mbedtls_mpi_free(&B);
-    mbedtls_mpi_free(&Expected);
+    mbedtls_free(A);
+    mbedtls_free(A_orig);
+    mbedtls_free(B);
+    mbedtls_free(B_orig);
+    mbedtls_free(R);
+    mbedtls_free(X);
 }
 /* END_CASE */
 

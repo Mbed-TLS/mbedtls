@@ -1095,6 +1095,103 @@ cleanup:
 }
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
+#if !defined(ECP_FULL)
+/*
+ * Alternative function used to verify that the EC private/public key pair 
+ * is valid using PSA functions instead of ECP ones.
+ * The flow is:
+ * - sign a hash message using the provided private key
+ * - verify the signature using the public key
+ */
+static int eckey_alt_check_pair(const void *pub, const void *prv,
+                              int (*f_rng)(void *, unsigned char *, size_t),
+                              void *p_rng)
+{
+    (void)f_rng;
+    (void)p_rng;
+    psa_status_t status;
+    psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
+    mbedtls_ecp_keypair *prv_ctx = (mbedtls_ecp_keypair *) prv;
+    mbedtls_ecp_keypair *pub_ctx = (mbedtls_ecp_keypair *) pub;
+    unsigned char sig[MBEDTLS_MPI_MAX_SIZE];
+    size_t sig_len = 0;
+    unsigned char hash[32];
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t curve_bits;
+    psa_ecc_family_t curve =
+                    mbedtls_ecc_group_to_psa(prv_ctx->grp.id, &curve_bits);
+    unsigned char key_buf[MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH];
+    size_t key_len = PSA_BITS_TO_BYTES(curve_bits);
+    mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
+
+    memset(hash, 0x2a, sizeof(hash));
+
+    psa_set_key_type(&key_attr, PSA_KEY_TYPE_ECC_KEY_PAIR(curve));
+    psa_set_key_usage_flags(&key_attr, PSA_KEY_USAGE_SIGN_HASH);
+    // TODO: forcing SHA256 because this is included by default when building
+    // the library (even though it's not granted that the built-in version
+    // is supported). Is there a more general purpose solution?
+    psa_set_key_algorithm(&key_attr, PSA_ALG_ECDSA(PSA_ALG_SHA_256));
+
+    ret = mbedtls_mpi_write_binary(&prv_ctx->d, key_buf, key_len);
+    if (ret != 0) {
+        return ret;
+    }
+
+    status = psa_import_key(&key_attr, key_buf, key_len, &key_id);
+    if (status != PSA_SUCCESS) {
+        ret = PSA_PK_TO_MBEDTLS_ERR(status);
+        return ret;
+    }
+
+    status = psa_sign_hash(key_id, PSA_ALG_ECDSA(PSA_ALG_SHA_256),
+                           hash, sizeof(hash), sig, sizeof(sig), &sig_len);
+    if (status != PSA_SUCCESS) {
+        ret = PSA_PK_TO_MBEDTLS_ERR(status);
+        status = psa_destroy_key(key_id);
+        return (status != PSA_SUCCESS) ? PSA_PK_TO_MBEDTLS_ERR(status) : ret;
+    }
+
+    status = psa_destroy_key(key_id);
+    if (status != PSA_SUCCESS) {
+        return PSA_PK_TO_MBEDTLS_ERR(status);
+    }
+    psa_reset_key_attributes(&key_attr);
+    mbedtls_platform_zeroize(key_buf, sizeof(key_buf));
+
+    psa_set_key_type(&key_attr, PSA_KEY_TYPE_ECC_PUBLIC_KEY(curve));
+    psa_set_key_usage_flags(&key_attr, PSA_KEY_USAGE_VERIFY_HASH);
+    psa_set_key_algorithm(&key_attr, PSA_ALG_ECDSA(PSA_ALG_SHA_256));
+
+    ret = mbedtls_ecp_point_write_binary(&pub_ctx->grp, &pub_ctx->Q,
+                                         MBEDTLS_ECP_PF_UNCOMPRESSED,
+                                         &key_len, key_buf, sizeof(key_buf));
+    if (ret != 0) {
+        return ret;
+    }
+
+    status = psa_import_key(&key_attr, key_buf, key_len, &key_id);
+    if (status != PSA_SUCCESS) {
+        ret = PSA_PK_TO_MBEDTLS_ERR(status);
+        return ret;
+    }
+
+    status = psa_verify_hash(key_id, PSA_ALG_ECDSA(PSA_ALG_SHA_256),
+                             hash, sizeof(hash), sig, sig_len);
+    if (status != PSA_SUCCESS) {
+        ret = PSA_PK_TO_MBEDTLS_ERR(status);
+        status = psa_destroy_key(key_id);
+        return (status != PSA_SUCCESS) ? PSA_PK_TO_MBEDTLS_ERR(status) : ret;
+    }
+    status = psa_destroy_key(key_id);
+    if (status != PSA_SUCCESS) {
+        return PSA_PK_TO_MBEDTLS_ERR(status);
+    }
+
+    return 0;
+}
+#endif /* ECP_HAS_CHECK_PAIR */
+
 static int eckey_check_pair(const void *pub, const void *prv,
                             int (*f_rng)(void *, unsigned char *, size_t),
                             void *p_rng)
@@ -1104,12 +1201,11 @@ static int eckey_check_pair(const void *pub, const void *prv,
                                       (const mbedtls_ecp_keypair *) prv,
                                       f_rng, p_rng);
 #else /* ECP_FULL */
-    (void) pub;
-    (void) prv;
-    (void) f_rng;
-    (void) p_rng;
-    return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+    return eckey_alt_check_pair((const mbedtls_ecp_keypair *) pub,
+                              (const mbedtls_ecp_keypair *) prv,
+                              f_rng, p_rng);
 #endif /* ECP_FULL */
+    return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
 }
 
 static void *eckey_alloc_wrap(void)

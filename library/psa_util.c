@@ -138,6 +138,8 @@ int psa_pk_status_to_mbedtls(psa_status_t status)
             return MBEDTLS_ERR_PK_ALLOC_FAILED;
         case PSA_ERROR_BAD_STATE:
             return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+        case PSA_ERROR_INVALID_SIGNATURE:
+            return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
         case PSA_ERROR_DATA_CORRUPT:
         case PSA_ERROR_DATA_INVALID:
         case PSA_ERROR_STORAGE_FAILURE:

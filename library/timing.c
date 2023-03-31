@@ -233,9 +233,7 @@ volatile int mbedtls_timing_alarmed = 0;
 
 unsigned long mbedtls_timing_get_timer(struct mbedtls_timing_hr_time *val, int reset)
 {
-    /* We can't safely cast val because it may not be aligned, so use memcpy */
     struct _hr_time t;
-    memcpy(&t, val, sizeof(struct _hr_time));
 
     if (reset) {
         QueryPerformanceCounter(&t.start);
@@ -244,6 +242,8 @@ unsigned long mbedtls_timing_get_timer(struct mbedtls_timing_hr_time *val, int r
     } else {
         unsigned long delta;
         LARGE_INTEGER now, hfreq;
+        /* We can't safely cast val because it may not be aligned, so use memcpy */
+        memcpy(&t, val, sizeof(struct _hr_time));
         QueryPerformanceCounter(&now);
         QueryPerformanceFrequency(&hfreq);
         delta = (unsigned long) ((now.QuadPart - t.start.QuadPart) * 1000ul
@@ -282,9 +282,7 @@ void mbedtls_set_alarm(int seconds)
 
 unsigned long mbedtls_timing_get_timer(struct mbedtls_timing_hr_time *val, int reset)
 {
-    /* We can't safely cast val because it may not be aligned, so use memcpy */
     struct _hr_time t;
-    memcpy(&t, val, sizeof(struct _hr_time));
 
     if (reset) {
         gettimeofday(&t.start, NULL);
@@ -293,6 +291,8 @@ unsigned long mbedtls_timing_get_timer(struct mbedtls_timing_hr_time *val, int r
     } else {
         unsigned long delta;
         struct timeval now;
+        /* We can't safely cast val because it may not be aligned, so use memcpy */ 
+        memcpy(&t, val, sizeof(struct _hr_time));
         gettimeofday(&now, NULL);
         delta = (now.tv_sec  - t.start.tv_sec) * 1000ul
                 + (now.tv_usec - t.start.tv_usec) / 1000;

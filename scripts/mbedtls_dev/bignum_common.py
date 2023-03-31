@@ -68,7 +68,8 @@ def bound_mpi_limbs(limbs: int, bits_in_limb: int) -> int:
 
 def limbs_mpi(val: int, bits_in_limb: int) -> int:
     """Return the number of limbs required to store value."""
-    return (val.bit_length() + bits_in_limb - 1) // bits_in_limb
+    bit_length = max(val.bit_length(), 1)
+    return (bit_length + bits_in_limb - 1) // bits_in_limb
 
 def combination_pairs(values: List[T]) -> List[Tuple[T, T]]:
     """Return all pair combinations from input values."""

@@ -1224,13 +1224,13 @@ void pk_psa_sign(int parameter_arg,
         mbedtls_pk_init(&pk);
         TEST_ASSERT(mbedtls_pk_setup(&pk,
                                      mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY)) == 0);
-#if defined(FULL)
+#if defined(ECP_FULL)
         mbedtls_ecp_group_id grpid = parameter_arg;
         TEST_ASSERT(mbedtls_ecp_gen_key(grpid,
                                         (mbedtls_ecp_keypair *) pk.pk_ctx,
                                         mbedtls_test_rnd_std_rand, NULL) == 0);
 #else
-        TEST_ASSERT(!"!FULL not supported");
+        TEST_ASSERT(!"ECP_HAS_KEY_GENERATION required");
 #endif
 
         alg_psa = PSA_ALG_ECDSA(PSA_ALG_SHA_256);

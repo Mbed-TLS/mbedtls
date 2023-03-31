@@ -101,6 +101,10 @@ void pk_parse_keyfile_ec(char *key_file, char *password, int result)
     mbedtls_pk_context ctx;
     int res;
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    PSA_INIT();
+#endif
+
     mbedtls_pk_init(&ctx);
 
     res = mbedtls_pk_parse_keyfile(&ctx, key_file, password,
@@ -117,6 +121,9 @@ void pk_parse_keyfile_ec(char *key_file, char *password, int result)
 
 exit:
     mbedtls_pk_free(&ctx);
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    PSA_DONE();
+#endif
 }
 /* END_CASE */
 

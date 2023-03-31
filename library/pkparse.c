@@ -868,6 +868,60 @@ cleanup:
 }
 #endif /* MBEDTLS_RSA_C */
 
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+#include "mbedtls/psa_util.h"
+#endif
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "psa/crypto.h"
+#endif
+
+#if !defined(MBEDTLS_ECP_FULL)
+static int pk_derive_public_key(mbedtls_ecp_group *grp, mbedtls_ecp_point *Q,
+                                const mbedtls_mpi *d)
+{
+    psa_status_t status;
+    psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
+    size_t curve_bits;
+    psa_ecc_family_t curve = mbedtls_ecc_group_to_psa(grp->id, &curve_bits);
+    unsigned char key_buf[MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH];
+    size_t key_len = PSA_BITS_TO_BYTES(curve_bits);
+    mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
+    int ret;
+    
+    psa_set_key_type(&key_attr, PSA_KEY_TYPE_ECC_KEY_PAIR(curve));
+    psa_set_key_usage_flags(&key_attr, PSA_KEY_USAGE_EXPORT);
+
+    ret = mbedtls_mpi_write_binary(d, key_buf, key_len);
+    if (ret != 0) {
+        return ret;
+    }
+
+    status = psa_import_key(&key_attr, key_buf, key_len, &key_id);
+    if (status != PSA_SUCCESS) {
+        ret = psa_pk_status_to_mbedtls(status);
+        return ret;
+    }
+
+    mbedtls_platform_zeroize(key_buf, sizeof(key_buf));
+    status = psa_export_public_key(key_id, key_buf, sizeof(key_buf), &key_len);
+    if (status != PSA_SUCCESS) {
+        ret = psa_pk_status_to_mbedtls(status);
+        status = psa_destroy_key(key_id);
+        return (status != PSA_SUCCESS) ? psa_pk_status_to_mbedtls(status) : ret;
+    }
+
+    ret = mbedtls_ecp_point_read_binary(grp, Q, key_buf, key_len);
+    
+    status = psa_destroy_key(key_id);
+    if (status != PSA_SUCCESS) {
+        return psa_pk_status_to_mbedtls(status);
+    }
+    
+    return ret;
+}
+#endif /* MBEDTLS_ECP_FULL */
+
 #if defined(MBEDTLS_ECP_C)
 /*
  * Parse a SEC1 encoded private EC key
@@ -983,9 +1037,12 @@ static int pk_parse_key_sec1_der(mbedtls_ecp_keypair *eck,
             return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
         }
 #else /* ECP_FULL */
-        (void) f_rng;
-        (void) p_rng;
-        return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+        (void)f_rng;
+        (void)p_rng;
+        if ((ret = pk_derive_public_key(&eck->grp, &eck->Q, &eck->d)) != 0) {
+            mbedtls_ecp_keypair_free(eck);
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
+        }
 #endif /* ECP_FULL */
     }
 

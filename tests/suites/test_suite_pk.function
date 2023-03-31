@@ -43,7 +43,7 @@ static int pk_genkey(mbedtls_pk_context *pk, int parameter)
                                    parameter, 3);
     }
 #endif
-#if defined(MBEDTLS_ECP_C) && defined(ECP_FULL)
+#if defined(MBEDTLS_ECP_C)
     if (mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECKEY ||
         mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECKEY_DH ||
         mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECDSA) {
@@ -53,12 +53,18 @@ static int pk_genkey(mbedtls_pk_context *pk, int parameter)
             return ret;
         }
 
+#if defined(ECP_FULL)
         return mbedtls_ecp_gen_keypair(&mbedtls_pk_ec(*pk)->grp,
                                        &mbedtls_pk_ec(*pk)->d,
                                        &mbedtls_pk_ec(*pk)->Q,
                                        mbedtls_test_rnd_std_rand, NULL);
+#else /* ECP_FULL */
+        return mbedtls_ecp_alt_gen_keypair(&mbedtls_pk_ec(*pk)->grp,
+                                           &mbedtls_pk_ec(*pk)->d,
+                                           &mbedtls_pk_ec(*pk)->Q);
+#endif /* ECP_FULL */
     }
-#endif
+#endif /* MBEDTLS_ECP_C */
     return -1;
 }
 
@@ -462,6 +468,10 @@ void pk_utils(int type, int parameter, int bitlen, int len, char *name)
 {
     mbedtls_pk_context pk;
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    PSA_INIT();
+#endif
+
     mbedtls_pk_init(&pk);
 
     TEST_ASSERT(mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(type)) == 0);
@@ -475,6 +485,9 @@ void pk_utils(int type, int parameter, int bitlen, int len, char *name)
 
 exit:
     mbedtls_pk_free(&pk);
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    PSA_DONE();
+#endif
 }
 /* END_CASE */
 
@@ -1224,14 +1237,10 @@ void pk_psa_sign(int parameter_arg,
         mbedtls_pk_init(&pk);
         TEST_ASSERT(mbedtls_pk_setup(&pk,
                                      mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY)) == 0);
-#if defined(ECP_FULL)
         mbedtls_ecp_group_id grpid = parameter_arg;
         TEST_ASSERT(mbedtls_ecp_gen_key(grpid,
                                         (mbedtls_ecp_keypair *) pk.pk_ctx,
                                         mbedtls_test_rnd_std_rand, NULL) == 0);
-#else
-        TEST_ASSERT(!"ECP_HAS_KEY_GENERATION required");
-#endif
 
         alg_psa = PSA_ALG_ECDSA(PSA_ALG_SHA_256);
     } else

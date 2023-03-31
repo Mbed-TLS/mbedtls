@@ -1190,7 +1190,7 @@ static int eckey_alt_check_pair(const void *pub, const void *prv,
 
     return 0;
 }
-#endif /* ECP_HAS_CHECK_PAIR */
+#endif /* ECP_FULL */
 
 static int eckey_check_pair(const void *pub, const void *prv,
                             int (*f_rng)(void *, unsigned char *, size_t),

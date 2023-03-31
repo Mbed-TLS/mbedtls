@@ -48,6 +48,14 @@
 #include "mbedtls/pkcs12.h"
 #endif
 
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+#include "mbedtls/psa_util.h"
+#endif
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "psa/crypto.h"
+#endif
+
 #include "mbedtls/platform.h"
 
 #if defined(MBEDTLS_FS_IO)
@@ -867,14 +875,6 @@ cleanup:
     return ret;
 }
 #endif /* MBEDTLS_RSA_C */
-
-#if defined(MBEDTLS_PSA_CRYPTO_C)
-#include "mbedtls/psa_util.h"
-#endif
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-#include "psa/crypto.h"
-#endif
 
 #if !defined(MBEDTLS_ECP_FULL)
 static int pk_derive_public_key(mbedtls_ecp_group *grp, mbedtls_ecp_point *Q,

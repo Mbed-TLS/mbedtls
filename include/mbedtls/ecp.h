@@ -1214,10 +1214,15 @@ int mbedtls_ecp_gen_keypair_base(mbedtls_ecp_group *grp,
  * \return          An \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_MPI_XXX error code
  *                  on failure.
  */
+#if defined(ECP_FULL)
 int mbedtls_ecp_gen_keypair(mbedtls_ecp_group *grp, mbedtls_mpi *d,
                             mbedtls_ecp_point *Q,
                             int (*f_rng)(void *, unsigned char *, size_t),
                             void *p_rng);
+#else
+int mbedtls_ecp_alt_gen_keypair(mbedtls_ecp_group *grp, mbedtls_mpi *d,
+                                mbedtls_ecp_point *Q);
+#endif
 
 /**
  * \brief           This function generates an ECP key.

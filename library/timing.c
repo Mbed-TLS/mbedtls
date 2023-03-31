@@ -240,7 +240,7 @@ unsigned long mbedtls_timing_get_timer(struct mbedtls_timing_hr_time *val, int r
 
     if (reset) {
         QueryPerformanceCounter(&t->start);
-        memcpy(val, t, sizeof(struct _hr_time));
+        memcpy(val, val_aligned, sizeof(struct mbedtls_timing_hr_time));
         return 0;
     } else {
         unsigned long delta;
@@ -290,7 +290,7 @@ unsigned long mbedtls_timing_get_timer(struct mbedtls_timing_hr_time *val, int r
 
     if (reset) {
         gettimeofday(&t->start, NULL);
-        memcpy(val, t, sizeof(struct _hr_time));
+        memcpy(val, val_aligned, sizeof(struct mbedtls_timing_hr_time));
         return 0;
     } else {
         unsigned long delta;

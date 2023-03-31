@@ -43,7 +43,7 @@ static int pk_genkey(mbedtls_pk_context *pk, int parameter)
                                    parameter, 3);
     }
 #endif
-#if defined(MBEDTLS_ECP_C) && defined(FULL)
+#if defined(MBEDTLS_ECP_C) && defined(ECP_FULL)
     if (mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECKEY ||
         mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECKEY_DH ||
         mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECDSA) {

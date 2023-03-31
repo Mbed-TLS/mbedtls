@@ -93,9 +93,9 @@
  * Counts of point addition and doubling, and field multiplications.
  * Used to test resistance of point multiplication to simple timing attacks.
  */
-#if defined(FULL)
+#if defined(ECP_FULL)
 static unsigned long add_count, dbl_count;
-#endif /* FULL */
+#endif /* ECP_FULL */
 static unsigned long mul_count;
 #endif
 
@@ -323,7 +323,7 @@ int mbedtls_ecp_check_budget(const mbedtls_ecp_group *grp,
 
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
-#if defined(FULL)
+#if defined(ECP_FULL)
 static void mpi_init_many(mbedtls_mpi *arr, size_t size)
 {
     while (size--) {
@@ -337,7 +337,7 @@ static void mpi_free_many(mbedtls_mpi *arr, size_t size)
         mbedtls_mpi_free(arr++);
     }
 }
-#endif /* FULL */
+#endif /* ECP_FULL */
 
 /*
  * List of supported curves:
@@ -1313,7 +1313,7 @@ cleanup:
 }
 #endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 
-#if defined(FULL)
+#if defined(ECP_FULL)
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
 /*
  * For curves in short Weierstrass form, we do all the internal operations in
@@ -2731,7 +2731,7 @@ int mbedtls_ecp_mul(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 {
     return mbedtls_ecp_mul_restartable(grp, R, m, P, f_rng, p_rng, NULL);
 }
-#endif /* FULL */
+#endif /* ECP_FULL */
 
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
 /*
@@ -2772,7 +2772,7 @@ cleanup:
 }
 #endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 
-#if defined(FULL)
+#if defined(ECP_FULL)
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
 /*
  * R = m * P with shortcuts for m == 0, m == 1 and m == -1
@@ -2924,7 +2924,7 @@ int mbedtls_ecp_muladd(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     return mbedtls_ecp_muladd_restartable(grp, R, m, P, n, Q, NULL);
 }
 #endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
-#endif /* FULL */
+#endif /* ECP_FULL */
 
 #if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
 #if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
@@ -3170,7 +3170,7 @@ int mbedtls_ecp_gen_privkey(const mbedtls_ecp_group *grp,
     return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
 }
 
-#if defined(FULL)
+#if defined(ECP_FULL)
 /*
  * Generate a keypair with configurable base point
  */
@@ -3212,7 +3212,7 @@ int mbedtls_ecp_gen_key(mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
 
     return mbedtls_ecp_gen_keypair(&key->grp, &key->d, &key->Q, f_rng, p_rng);
 }
-#endif /* FULL */
+#endif /* ECP_FULL */
 
 #define ECP_CURVE25519_KEY_SIZE 32
 #define ECP_CURVE448_KEY_SIZE   56
@@ -3329,7 +3329,7 @@ cleanup:
     return ret;
 }
 
-#if defined(FULL)
+#if defined(ECP_FULL)
 /*
  * Check a public-private key pair
  */
@@ -3370,7 +3370,7 @@ cleanup:
 
     return ret;
 }
-#endif /* FULL */
+#endif /* ECP_FULL */
 
 /*
  * Export generic key-pair parameters.
@@ -3397,7 +3397,7 @@ int mbedtls_ecp_export(const mbedtls_ecp_keypair *key, mbedtls_ecp_group *grp,
 
 #if defined(MBEDTLS_SELF_TEST)
 
-#if defined(FULL)
+#if defined(ECP_FULL)
 /*
  * PRNG for test - !!!INSECURE NEVER USE IN PRODUCTION!!!
  *
@@ -3505,14 +3505,14 @@ cleanup:
     }
     return ret;
 }
-#endif /* FULL */
+#endif /* ECP_FULL */
 
 /*
  * Checkup routine
  */
 int mbedtls_ecp_self_test(int verbose)
 {
-#if defined(FULL)
+#if defined(ECP_FULL)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecp_group grp;
     mbedtls_ecp_point R, P;
@@ -3626,10 +3626,10 @@ cleanup:
     }
 
     return ret;
-#else /* FULL */
+#else /* ECP_FULL */
     (void) verbose;
     return 0;
-#endif /* FULL */
+#endif /* ECP_FULL */
 }
 
 #endif /* MBEDTLS_SELF_TEST */

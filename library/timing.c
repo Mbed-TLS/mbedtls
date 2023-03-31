@@ -291,7 +291,7 @@ unsigned long mbedtls_timing_get_timer(struct mbedtls_timing_hr_time *val, int r
     } else {
         unsigned long delta;
         struct timeval now;
-        /* We can't safely cast val because it may not be aligned, so use memcpy */ 
+        /* We can't safely cast val because it may not be aligned, so use memcpy */
         memcpy(&t, val, sizeof(struct _hr_time));
         gettimeofday(&now, NULL);
         delta = (now.tv_sec  - t.start.tv_sec) * 1000ul

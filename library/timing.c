@@ -233,21 +233,20 @@ volatile int mbedtls_timing_alarmed = 0;
 
 unsigned long mbedtls_timing_get_timer(struct mbedtls_timing_hr_time *val, int reset)
 {
-    /* Copy val to an 8-byte-aligned address, so that we can safely cast it */
-    uint64_t val_aligned[(sizeof(struct mbedtls_timing_hr_time) + sizeof(uint64_t) - 1) / sizeof(uint64_t)];
-    memcpy(val_aligned, val, sizeof(struct mbedtls_timing_hr_time));
-    struct _hr_time *t = (struct _hr_time *)val_aligned;
+    /* We can't safely cast val because it may not be aligned, so use memcpy */
+    struct _hr_time t;
+    memcpy(&t, val, sizeof(struct _hr_time));
 
     if (reset) {
-        QueryPerformanceCounter(&t->start);
-        memcpy(val, val_aligned, sizeof(struct mbedtls_timing_hr_time));
+        QueryPerformanceCounter(&t.start);
+        memcpy(val, &t, sizeof(struct _hr_time));
         return 0;
     } else {
         unsigned long delta;
         LARGE_INTEGER now, hfreq;
         QueryPerformanceCounter(&now);
         QueryPerformanceFrequency(&hfreq);
-        delta = (unsigned long) ((now.QuadPart - t->start.QuadPart) * 1000ul
+        delta = (unsigned long) ((now.QuadPart - t.start.QuadPart) * 1000ul
                                  / hfreq.QuadPart);
         return delta;
     }
@@ -283,21 +282,20 @@ void mbedtls_set_alarm(int seconds)
 
 unsigned long mbedtls_timing_get_timer(struct mbedtls_timing_hr_time *val, int reset)
 {
-    /* Copy val to an 8-byte-aligned address, so that we can safely cast it */
-    uint64_t val_aligned[(sizeof(struct mbedtls_timing_hr_time) + sizeof(uint64_t) - 1) / sizeof(uint64_t)];
-    memcpy(val_aligned, val, sizeof(struct mbedtls_timing_hr_time));
-    struct _hr_time *t = (struct _hr_time *)val_aligned;
+    /* We can't safely cast val because it may not be aligned, so use memcpy */
+    struct _hr_time t;
+    memcpy(&t, val, sizeof(struct _hr_time));
 
     if (reset) {
-        gettimeofday(&t->start, NULL);
-        memcpy(val, val_aligned, sizeof(struct mbedtls_timing_hr_time));
+        gettimeofday(&t.start, NULL);
+        memcpy(val, &t, sizeof(struct _hr_time));
         return 0;
     } else {
         unsigned long delta;
         struct timeval now;
         gettimeofday(&now, NULL);
-        delta = (now.tv_sec  - t->start.tv_sec) * 1000ul
-                + (now.tv_usec - t->start.tv_usec) / 1000;
+        delta = (now.tv_sec  - t.start.tv_sec) * 1000ul
+                + (now.tv_usec - t.start.tv_usec) / 1000;
         return delta;
     }
 }

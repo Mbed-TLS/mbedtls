@@ -234,12 +234,13 @@ volatile int mbedtls_timing_alarmed = 0;
 unsigned long mbedtls_timing_get_timer(struct mbedtls_timing_hr_time *val, int reset)
 {
     /* Copy val to an 8-byte-aligned address, so that we can safely cast it */
-    uint64_t val_aligned[(sizeof(struct mbedtls_timing_hr_time) + 7) / 8];
-    memcpy(val_aligned, val, sizeof(struct _hr_time));
+    uint64_t val_aligned[(sizeof(struct mbedtls_timing_hr_time) + sizeof(uint64_t) - 1) / sizeof(uint64_t)];
+    memcpy(val_aligned, val, sizeof(struct mbedtls_timing_hr_time));
     struct _hr_time *t = (struct _hr_time *)val_aligned;
 
     if (reset) {
         QueryPerformanceCounter(&t->start);
+        memcpy(val, t, sizeof(struct _hr_time));
         return 0;
     } else {
         unsigned long delta;
@@ -283,12 +284,13 @@ void mbedtls_set_alarm(int seconds)
 unsigned long mbedtls_timing_get_timer(struct mbedtls_timing_hr_time *val, int reset)
 {
     /* Copy val to an 8-byte-aligned address, so that we can safely cast it */
-    uint64_t val_aligned[(sizeof(struct mbedtls_timing_hr_time) + 7) / 8];
-    memcpy(val_aligned, val, sizeof(struct _hr_time));
+    uint64_t val_aligned[(sizeof(struct mbedtls_timing_hr_time) + sizeof(uint64_t) - 1) / sizeof(uint64_t)];
+    memcpy(val_aligned, val, sizeof(struct mbedtls_timing_hr_time));
     struct _hr_time *t = (struct _hr_time *)val_aligned;
 
     if (reset) {
         gettimeofday(&t->start, NULL);
+        memcpy(val, t, sizeof(struct _hr_time));
         return 0;
     } else {
         unsigned long delta;

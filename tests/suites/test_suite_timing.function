@@ -29,8 +29,20 @@ void timing_hardclock()
 void timing_get_timer()
 {
     struct mbedtls_timing_hr_time time;
+
+    memset(&time, 0, sizeof(time));
+
     (void) mbedtls_timing_get_timer(&time, 1);
+
+    /* Check that a non-zero time was written back */
+    int all_zero = 1;
+    for (size_t i = 0; i < sizeof(time); i++) {
+        all_zero &= ((unsigned char *) &time)[i] == 0;
+    }
+    TEST_ASSERT(!all_zero);
+
     (void) mbedtls_timing_get_timer(&time, 0);
+
     /* This goto is added to avoid warnings from the generated code. */
     goto exit;
 }

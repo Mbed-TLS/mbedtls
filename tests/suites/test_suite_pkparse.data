@@ -995,11 +995,11 @@ depends_on:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8.der":"NULL":0
 
 Parse EC Key #4a (PKCS8 DER, no public key)
-depends_on:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+depends_on:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:ECP_HAS_KEY_GENERATION
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8nopub.der":"NULL":0
 
 Parse EC Key #4b (PKCS8 DER, no public key, with parameters)
-depends_on:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+depends_on:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:ECP_HAS_KEY_GENERATION
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8nopubparam.der":"NULL":0
 
 Parse EC Key #4c (PKCS8 DER, with parameters)
@@ -1011,11 +1011,11 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8.pem":"NULL":0
 
 Parse EC Key #5a (PKCS8 PEM, no public key)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:ECP_HAS_KEY_GENERATION
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8nopub.pem":"NULL":0
 
 Parse EC Key #5b (PKCS8 PEM, no public key, with parameters)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:ECP_HAS_KEY_GENERATION
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8nopubparam.pem":"NULL":0
 
 Parse EC Key #5c (PKCS8 PEM, with parameters)
@@ -1027,7 +1027,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP224R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_224_prv.pem":"NULL":0
 
 Parse EC Key #8a (SEC1 PEM, secp224r1, compressed)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP224R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP224R1_ENABLED:ECP_HAS_KEY_GENERATION
 pk_parse_keyfile_ec:"data_files/ec_224_prv.comp.pem":"NULL":0
 
 Parse EC Key #9 (SEC1 PEM, secp256r1)

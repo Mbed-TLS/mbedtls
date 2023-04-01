@@ -79,6 +79,7 @@ int main(void)
 #define DFL_NOT_AFTER           "20301231235959"
 #define DFL_SERIAL              "1"
 #define DFL_SERIAL_HEX          "1"
+#define DFL_EXT_SUBJECTALTNAME  ""
 #define DFL_SELFSIGN            0
 #define DFL_IS_CA               0
 #define DFL_MAX_PATHLEN         -1
@@ -134,6 +135,13 @@ int main(void)
     "    subject_identifier=%%s   default: 1\n"             \
     "                            Possible values: 0, 1\n"   \
     "                            (Considered for v3 only)\n" \
+    "    san=%%s                   default: (none)\n"       \
+    "                            Comma-separated-list of values:\n" \
+    "                             DNS:value\n"            \
+    "                             URI:value\n"            \
+    "                             RFC822:value\n"         \
+    "                             IP:value (Only IPv4 is supported)\n" \
+    "                             DN:value\n"             \
     "    authority_identifier=%%s default: 1\n"             \
     "                            Possible values: 0, 1\n"   \
     "                            (Considered for v3 only)\n" \
@@ -188,6 +196,7 @@ struct options {
     const char *issuer_pwd;     /* password for the issuer key file     */
     const char *output_file;    /* where to store the constructed CRT   */
     const char *subject_name;   /* subject name for certificate         */
+    mbedtls_x509_san_list *san_list; /* subjectAltName for certificate  */
     const char *issuer_name;    /* issuer name for certificate          */
     const char *not_before;     /* validity period not before           */
     const char *not_after;      /* validity period not after            */
@@ -206,6 +215,19 @@ struct options {
     unsigned char ns_cert_type; /* NS cert type                         */
     int format;                 /* format                               */
 } opt;
+
+static int ip_string_to_bytes(const char *str, uint8_t *bytes, int maxBytes)
+{
+    for (int i = 0; i < maxBytes; i++) {
+        bytes[i] = strtoul(str, NULL, 16);
+        str = strchr(str, '.');
+        if (str == NULL || *str == '\0') {
+            break;
+        }
+        str++;
+    }
+    return 0;
+}
 
 int write_certificate(mbedtls_x509write_cert *crt, const char *output_file,
                       int (*f_rng)(void *, unsigned char *, size_t),
@@ -301,7 +323,7 @@ int main(int argc, char *argv[])
     char buf[1024];
     char issuer_name[256];
     int i;
-    char *p, *q, *r;
+    char *p, *q, *r, *r2;
 #if defined(MBEDTLS_X509_CSR_PARSE_C)
     char subject_name[256];
     mbedtls_x509_csr csr;
@@ -314,7 +336,8 @@ int main(int argc, char *argv[])
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     const char *pers = "crt example app";
-
+    mbedtls_x509_san_list *cur, *prev;
+    uint8_t ip[4] = { 0 };
     /*
      * Set to sane values
      */
@@ -370,6 +393,7 @@ usage:
     opt.authority_identifier = DFL_AUTH_IDENT;
     opt.basic_constraints    = DFL_CONSTRAINTS;
     opt.format              = DFL_FORMAT;
+    opt.san_list            = NULL;
 
     for (i = 1; i < argc; i++) {
 
@@ -526,6 +550,69 @@ usage:
                 *tail = ext_key_usage;
                 tail = &ext_key_usage->next;
 
+                q = r;
+            }
+        } else if (strcmp(p, "san") == 0) {
+            prev = NULL;
+
+            while (q != NULL) {
+                if ((r = strchr(q, ';')) != NULL) {
+                    *r++ = '\0';
+                }
+
+                cur = mbedtls_calloc(1, sizeof(mbedtls_x509_san_list));
+                if (cur == NULL) {
+                    mbedtls_printf("Not enough memory for subjectAltName list\n");
+                    goto usage;
+                }
+
+                cur->next = NULL;
+
+                if ((r2 = strchr(q, ':')) != NULL) {
+                    *r2++ = '\0';
+                }
+                if (strcmp(q, "RFC822") == 0) {
+                    cur->node.type = MBEDTLS_X509_SAN_RFC822_NAME;
+                } else if (strcmp(q, "URI") == 0) {
+                    cur->node.type = MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER;
+                } else if (strcmp(q, "DNS") == 0) {
+                    cur->node.type = MBEDTLS_X509_SAN_DNS_NAME;
+                } else if (strcmp(q, "IP") == 0) {
+                    cur->node.type = MBEDTLS_X509_SAN_IP_ADDRESS;
+                    ip_string_to_bytes(r2, ip, 4);
+                    cur->node.san.unstructured_name.p = (unsigned char *) ip;
+                    cur->node.san.unstructured_name.len = sizeof(ip);
+                } else if (strcmp(q, "DN") == 0) {
+                    mbedtls_asn1_named_data *ext_san_dirname = NULL;
+                    cur->node.type = MBEDTLS_X509_SAN_DIRECTORY_NAME;
+                    if ((ret = mbedtls_x509_string_to_names(&ext_san_dirname,
+                                                            r2)) != 0) {
+                        mbedtls_strerror(ret, buf, sizeof(buf));
+                        mbedtls_printf(
+                            " failed\n  !  mbedtls_x509_string_to_names "
+                            "returned -0x%04x - %s\n\n",
+                            (unsigned int) -ret, buf);
+                        goto exit;
+                    }
+                    cur->node.san.directory_name = *ext_san_dirname;
+                } else {
+                    mbedtls_free(cur);
+                    goto usage;
+                }
+
+                if (strcmp(q, "IP") != 0 && strcmp(q, "DN") != 0) {
+                    q = r2;
+                    cur->node.san.unstructured_name.p = (unsigned char *) q;
+                    cur->node.san.unstructured_name.len = strlen(q);
+                }
+
+                if (prev == NULL) {
+                    opt.san_list = cur;
+                } else {
+                    prev->next = cur;
+                }
+
+                prev = cur;
                 q = r;
             }
         } else if (strcmp(p, "ns_cert_type") == 0) {
@@ -831,6 +918,17 @@ usage:
         }
 
         mbedtls_printf(" ok\n");
+    }
+
+    if (opt.san_list != NULL) {
+        ret = mbedtls_x509write_crt_set_subject_alternative_name(&crt, opt.san_list);
+
+        if (ret != 0) {
+            mbedtls_printf(
+                " failed\n  !  mbedtls_x509write_csr_set_subject_alternative_name returned %d",
+                ret);
+            goto exit;
+        }
     }
 
     if (opt.ext_key_usage) {

@@ -117,7 +117,8 @@ static int ssl_tls13_parse_supported_versions_ext(mbedtls_ssl_context *ssl,
     }
 
     if (&buf[2] != end) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("supported_versions ext data length incorrect"));
+        MBEDTLS_SSL_DEBUG_MSG(
+            1, ("supported_versions ext data length incorrect"));
         MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
                                      MBEDTLS_ERR_SSL_DECODE_ERROR);
         return MBEDTLS_ERR_SSL_DECODE_ERROR;
@@ -352,7 +353,8 @@ static int ssl_tls13_write_key_share_ext(mbedtls_ssl_context *ssl,
     /* Output the total length of key_share extension. */
     *out_len = p - buf;
 
-    MBEDTLS_SSL_DEBUG_BUF(3, "client hello, key_share extension", buf, *out_len);
+    MBEDTLS_SSL_DEBUG_BUF(
+        3, "client hello, key_share extension", buf, *out_len);
 
     mbedtls_ssl_tls13_set_hs_sent_ext_mask(ssl, MBEDTLS_TLS_EXT_KEY_SHARE);
 
@@ -488,8 +490,9 @@ static int ssl_tls13_parse_key_share_ext(mbedtls_ssl_context *ssl,
             return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
         }
 
-        MBEDTLS_SSL_DEBUG_MSG(2, ("ECDH curve: %s",
-                                  mbedtls_ssl_get_curve_name_from_tls_id(group)));
+        MBEDTLS_SSL_DEBUG_MSG(
+            2,
+            ("ECDH curve: %s", mbedtls_ssl_get_curve_name_from_tls_id(group)));
 
         ret = mbedtls_ssl_tls13_read_public_ecdhe_share(ssl, p, end - p);
         if (ret != 0) {

@@ -3159,6 +3159,7 @@ int mbedtls_ecp_gen_privkey(const mbedtls_ecp_group *grp,
     return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
 }
 
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
 /*
  * Generate a keypair with configurable base point
  */
@@ -3200,6 +3201,7 @@ int mbedtls_ecp_gen_key(mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
 
     return mbedtls_ecp_gen_keypair(&key->grp, &key->d, &key->Q, f_rng, p_rng);
 }
+#endif /* !MBEDTLS_USE_PSA_CRYPTO */
 
 #define ECP_CURVE25519_KEY_SIZE 32
 #define ECP_CURVE448_KEY_SIZE   56

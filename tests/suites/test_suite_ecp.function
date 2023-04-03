@@ -987,7 +987,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:!MBEDTLS_USE_PSA_CRYPTO */
 void mbedtls_ecp_gen_keypair(int id)
 {
     mbedtls_ecp_group grp;
@@ -1016,7 +1016,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:!MBEDTLS_USE_PSA_CRYPTO */
 void mbedtls_ecp_gen_key(int id)
 {
     mbedtls_ecp_keypair key;

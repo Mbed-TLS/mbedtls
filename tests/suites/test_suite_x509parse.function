@@ -1506,7 +1506,7 @@ void x509_crt_parse_authoritykeyid(data_t *buf,
     int bufferCounter = 0;
     size_t issuerCounter = 0;
     unsigned int result = 0;
-    mbedtls_x509_subject_alternative_name san = { 0 };
+    mbedtls_x509_subject_alternative_name san;
     mbedtls_x509_name *pname = NULL;
 
     mbedtls_x509_crt_init(&crt);
@@ -1533,6 +1533,7 @@ void x509_crt_parse_authoritykeyid(data_t *buf,
             bufferCounter++; /* Skipping the slash */
             pname = pname->next;
         }
+        mbedtls_x509_free_subject_alt_name(&san);
         TEST_ASSERT(result == 0);
 
         /* Serial test */

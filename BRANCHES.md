@@ -24,7 +24,7 @@ compatibility on major version changes (e.g. from 3.x to 4.0). We also maintain
 ABI compatibility within LTS branches; see the next section for details.
 
 New LTS branches are usually created around the time of a new major version.
-After a new LTS branch is created, it remains supported for at least 3 years.
+When a new LTS branch is created, it usually remains supported for three years.
 
 ## Backwards Compatibility for application code
 

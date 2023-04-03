@@ -238,6 +238,7 @@ class BignumCoreMul(BignumCoreTarget, bignum_common.OperationCommon):
     test_function = "mpi_core_mul"
     test_name = "mbedtls_mpi_core_mul"
     arity = 2
+    unique_combinations_only = True
 
     def format_arg(self, val: str) -> str:
         return val

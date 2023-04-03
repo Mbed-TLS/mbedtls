@@ -23,6 +23,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+/* Reserverd by internal runtime detection module to check if cpu features have
+ * been profiled. */
+#define MBEDTLS_HWCAP_PROFILED  (1ULL << 63)
+
 typedef uint64_t mbedtls_hwcap_mask_t;
 /**
  * \brief Definition of core CPU feature sets detection on x64/i386.

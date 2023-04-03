@@ -82,14 +82,6 @@
 
 #include <string.h>
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
-#include "mbedtls/psa_util.h"
-#endif
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-#include "psa/crypto.h"
-#endif
-
 #if !defined(MBEDTLS_ECP_ALT)
 
 #include "mbedtls/platform.h"
@@ -3206,57 +3198,6 @@ int mbedtls_ecp_gen_keypair(mbedtls_ecp_group *grp,
 {
     return mbedtls_ecp_gen_keypair_base(grp, &grp->G, d, Q, f_rng, p_rng);
 }
-#else /* ECP_FULL */
-int mbedtls_ecp_alt_gen_keypair(mbedtls_ecp_group *grp,
-                                mbedtls_mpi *d, mbedtls_ecp_point *Q)
-{
-    psa_status_t status;
-    psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
-    mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
-    size_t curve_bits;
-    psa_ecc_family_t curve = mbedtls_ecc_group_to_psa(grp->id,
-                                                      &curve_bits);
-    unsigned char key_buf[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
-    size_t key_len;
-    int ret;
-
-    psa_set_key_type(&key_attr, PSA_KEY_TYPE_ECC_KEY_PAIR(curve));
-    psa_set_key_bits(&key_attr, curve_bits);
-    psa_set_key_usage_flags(&key_attr, PSA_KEY_USAGE_EXPORT);
-
-    status = psa_generate_key(&key_attr, &key_id);
-    if (status != PSA_SUCCESS) {
-        return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
-    }
-
-    status = psa_export_key(key_id, key_buf, sizeof(key_buf), &key_len);
-    if (status != PSA_SUCCESS) {
-        psa_destroy_key(key_id);
-        return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
-    }
-
-    ret = mbedtls_mpi_read_binary(d, key_buf, key_len);
-    if (ret != 0) {
-        return ret;
-    }
-
-    status = psa_export_public_key(key_id, key_buf, sizeof(key_buf),
-                                    &key_len);
-    if (status != PSA_SUCCESS) {
-        psa_destroy_key(key_id);
-        return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
-    }
-
-    ret = mbedtls_ecp_point_read_binary(grp, Q, key_buf, key_len);
-    if (ret != 0) {
-        return ret;
-    }
-
-    psa_destroy_key(key_id);
-
-    return 0;
-}
-#endif /* ECP_FULL */
 
 /*
  * Generate a keypair, prettier wrapper
@@ -3269,14 +3210,9 @@ int mbedtls_ecp_gen_key(mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
         return ret;
     }
 
-#if defined(ECP_FULL)
     return mbedtls_ecp_gen_keypair(&key->grp, &key->d, &key->Q, f_rng, p_rng);
-#else
-    (void)f_rng;
-    (void)p_rng;
-    return mbedtls_ecp_alt_gen_keypair(&key->grp, &key->d, &key->Q);
-#endif
 }
+#endif /* ECP_FULL */
 
 #define ECP_CURVE25519_KEY_SIZE 32
 #define ECP_CURVE448_KEY_SIZE   56

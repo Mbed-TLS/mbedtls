@@ -19,7 +19,7 @@ details.
 Every major version will become an LTS branch when the next major version is
 released. We may occasionally create LTS branches from other releases at our
 discretion.
-After a new LTS branch is created, it remains supported for at least 3 years.
+When a new LTS branch is created, it usually remains supported for three years.
 
 ## Backwards Compatibility for application code
 

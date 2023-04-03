@@ -1072,7 +1072,7 @@ void mpi_core_mul(char *input_A,
 
     TEST_EQUAL(mbedtls_test_read_mpi_core(&A, &A_limbs, input_A), 0);
     TEST_EQUAL(mbedtls_test_read_mpi_core(&B, &B_limbs, input_B), 0);
-    TEST_EQUAL(mbedtls_test_read_mpi_core(&R, &R_limbs, result ), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi_core(&R, &R_limbs, result), 0);
 
     TEST_EQUAL(R_limbs, A_limbs + B_limbs);
 
@@ -1104,7 +1104,6 @@ void mpi_core_mul(char *input_A,
         ASSERT_COMPARE(X, X_bytes, R, X_bytes);
         ASSERT_COMPARE(A, A_bytes, A_orig, A_bytes);
     }
-
     /* 3. X = B * A - result should be correct, A and B unchanged */
     else {
         memset(X, '!', X_bytes);

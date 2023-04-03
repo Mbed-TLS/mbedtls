@@ -1455,6 +1455,13 @@ static int ssl_tls13_preprocess_server_hello(mbedtls_ssl_context *ssl,
             return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
         }
 
+        /*
+         * Version 1.2 of the protocol has been negotiated, set the
+         * ssl->keep_current_message flag for the ServerHello to be kept and
+         * parsed as a TLS 1.2 ServerHello. We also change ssl->tls_version to
+         * MBEDTLS_SSL_VERSION_TLS1_2 thus from now on mbedtls_ssl_handshake_step()
+         * will dispatch to the TLS 1.2 state machine.
+         */
         ssl->keep_current_message = 1;
         ssl->tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
         MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(ssl,

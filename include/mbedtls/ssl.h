@@ -1615,11 +1615,11 @@ struct mbedtls_ssl_context {
      *  ClientHello writing preparation stage with the previously negotiated
      *  TLS version.
      *
-     *  On client side, updated to the TLS version selected by the server for
-     *  the handshake when the ServerHello is received.
+     *  On client side, it is updated to the TLS version selected by the server
+     *  for the handshake when the ServerHello is received.
      *
-     *  On server side, updated to the TLS version the server selects for the
-     *  handshake when the ClientHello is received.
+     *  On server side, it is updated to the TLS version the server selects for
+     *  the handshake when the ClientHello is received.
      */
     mbedtls_ssl_protocol_version MBEDTLS_PRIVATE(tls_version);
 

@@ -1381,6 +1381,13 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
             return ret;
         }
 
+        /*
+         * The supported versions extension was parsed successfully as the
+         * value returned by ssl_tls13_parse_supported_versions_ext() is
+         * positive. The return value is then equal to
+         * MBEDTLS_SSL_VERSION_TLS1_2 or MBEDTLS_SSL_VERSION_TLS1_3, defining
+         * the TLS version to negotiate.
+         */
         if (MBEDTLS_SSL_VERSION_TLS1_2 == ret) {
             return SSL_CLIENT_HELLO_TLS1_2;
         }
@@ -1783,6 +1790,13 @@ static int ssl_tls13_process_client_hello(mbedtls_ssl_context *ssl)
                                    * as negative error codes are handled
                                    * by MBEDTLS_SSL_PROC_CHK_NEG. */
 
+    /*
+     * Version 1.2 of the protocol has been chosen, set the
+     * ssl->keep_current_message flag for the ClientHello to be kept and parsed
+     * as a TLS 1.2 ClientHello. We also change ssl->tls_version to
+     * MBEDTLS_SSL_VERSION_TLS1_2 thus from now on mbedtls_ssl_handshake_step()
+     * will dispatch to the TLS 1.2 state machine.
+     */
     if (SSL_CLIENT_HELLO_TLS1_2 == parse_client_hello_ret) {
         ssl->keep_current_message = 1;
         ssl->tls_version = MBEDTLS_SSL_VERSION_TLS1_2;

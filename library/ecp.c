@@ -3316,7 +3316,7 @@ cleanup:
     return ret;
 }
 
-
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
 /*
  * Check a public-private key pair
  */
@@ -3357,6 +3357,7 @@ cleanup:
 
     return ret;
 }
+#endif /* !MBEDTLS_USE_PSA_CRYPTO */
 
 /*
  * Export generic key-pair parameters.

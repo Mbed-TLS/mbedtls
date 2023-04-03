@@ -1296,9 +1296,12 @@ int mbedtls_ecp_write_key(mbedtls_ecp_keypair *key,
  * \return          An \c MBEDTLS_ERR_ECP_XXX or an \c MBEDTLS_ERR_MPI_XXX
  *                  error code on calculation failure.
  */
+
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
 int mbedtls_ecp_check_pub_priv(
     const mbedtls_ecp_keypair *pub, const mbedtls_ecp_keypair *prv,
     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng);
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /**
  * \brief           This function exports generic key-pair parameters.

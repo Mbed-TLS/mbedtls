@@ -955,7 +955,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:!MBEDTLS_USE_PSA_CRYPTO */
 void mbedtls_ecp_check_pub_priv(int id_pub, char *Qx_pub, char *Qy_pub,
                                 int id, char *d, char *Qx, char *Qy,
                                 int ret)

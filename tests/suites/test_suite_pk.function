@@ -489,6 +489,15 @@ void mbedtls_pk_check_pair(char *pub_file, char *prv_file, int ret)
     mbedtls_pk_init(&prv);
     mbedtls_pk_init(&alt);
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    /* mbedtls_pk_check_pair() returns either PK or ECP error codes depending
+       on MBEDTLS_USE_PSA_CRYPTO so here we dynamically translate between the
+       two */
+    if (ret == MBEDTLS_ERR_ECP_BAD_INPUT_DATA) {
+        ret = MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+    }
+#endif
+
     TEST_ASSERT(mbedtls_pk_parse_public_keyfile(&pub, pub_file) == 0);
     TEST_ASSERT(mbedtls_pk_parse_keyfile(&prv, prv_file, NULL,
                                          mbedtls_test_rnd_std_rand, NULL)

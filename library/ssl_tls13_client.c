@@ -1324,8 +1324,8 @@ static int ssl_tls13_is_supported_versions_ext_present(
 {
     const unsigned char *p = buf;
     size_t legacy_session_id_echo_len;
-    const unsigned char *supported_versions_ext;
-    const unsigned char *supported_versions_ext_end;
+    const unsigned char *supported_versions_data;
+    const unsigned char *supported_versions_data_end;
 
     /*
      * Check there is enough data to access the legacy_session_id_echo vector
@@ -1349,7 +1349,7 @@ static int ssl_tls13_is_supported_versions_ext_present(
 
     return mbedtls_ssl_tls13_is_supported_versions_ext_present_in_exts(
         ssl, p, end,
-        &supported_versions_ext, &supported_versions_ext_end);
+        &supported_versions_data, &supported_versions_data_end);
 }
 
 /* Returns a negative value on failure, and otherwise

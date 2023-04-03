@@ -1255,8 +1255,8 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     const unsigned char *cipher_suites_end;
     size_t extensions_len;
     const unsigned char *extensions_end;
-    const unsigned char *supported_versions_ext;
-    const unsigned char *supported_versions_ext_end;
+    const unsigned char *supported_versions_data;
+    const unsigned char *supported_versions_data_end;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
     int hrr_required = 0;
 
@@ -1360,7 +1360,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
      */
     ret = mbedtls_ssl_tls13_is_supported_versions_ext_present_in_exts(
         ssl, p + 2, end,
-        &supported_versions_ext, &supported_versions_ext_end);
+        &supported_versions_data, &supported_versions_data_end);
     if (ret < 0) {
         MBEDTLS_SSL_DEBUG_RET(1,
                               ("mbedtls_ssl_tls13_is_supported_versions_ext_present_in_exts"), ret);
@@ -1373,8 +1373,8 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
 
     if (ret == 1) {
         ret = ssl_tls13_parse_supported_versions_ext(ssl,
-                                                     supported_versions_ext,
-                                                     supported_versions_ext_end);
+                                                     supported_versions_data,
+                                                     supported_versions_data_end);
         if (ret < 0) {
             MBEDTLS_SSL_DEBUG_RET(1,
                                   ("ssl_tls13_parse_supported_versions_ext"), ret);

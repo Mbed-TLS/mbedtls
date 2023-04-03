@@ -89,15 +89,15 @@ cleanup:
 int mbedtls_ssl_tls13_is_supported_versions_ext_present_in_exts(
     mbedtls_ssl_context *ssl,
     const unsigned char *buf, const unsigned char *end,
-    const unsigned char **extension_data,
-    const unsigned char **extension_data_end)
+    const unsigned char **supported_versions_data,
+    const unsigned char **supported_versions_data_end)
 {
     const unsigned char *p = buf;
     size_t extensions_len;
     const unsigned char *extensions_end;
 
-    *extension_data = NULL;
-    *extension_data_end = NULL;
+    *supported_versions_data = NULL;
+    *supported_versions_data_end = NULL;
 
     /* Case of no extension */
     if (p == end) {
@@ -131,8 +131,8 @@ int mbedtls_ssl_tls13_is_supported_versions_ext_present_in_exts(
         MBEDTLS_SSL_CHK_BUF_READ_PTR(p, extensions_end, extension_data_len);
 
         if (extension_type == MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS) {
-            *extension_data = p;
-            *extension_data_end = p + extension_data_len;
+            *supported_versions_data = p;
+            *supported_versions_data_end = p + extension_data_len;
             return 1;
         }
         p += extension_data_len;

@@ -2055,11 +2055,12 @@ int mbedtls_ssl_tls13_fetch_handshake_msg(mbedtls_ssl_context *ssl,
  * \param[in] ssl  SSL context
  * \param[in] buf  Address of the first byte of the extensions vector.
  * \param[in] end  End of the buffer containing the list of extensions.
- * \param[out] extension_data  If the extension is present, address of its first
- *                             byte of data, NULL otherwise.
- * \param[out] extension_data_end  If the extension is present, address of the
- *                                 first byte immediately following the extension
- *                                 data, NULL otherwise.
+ * \param[out] supported_versions_data  If the extension is present, address of
+ *                                      its first byte of data, NULL otherwise.
+ * \param[out] supported_versions_data_end  If the extension is present, address
+ *                                          of the first byte immediately
+ *                                          following the extension data, NULL
+ *                                          otherwise.
  * \return 0  if the list of extensions does not contain a supported_versions
  *            extension.
  * \return 1  if the list of extensions contains a supported_versions
@@ -2071,8 +2072,8 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_is_supported_versions_ext_present_in_exts(
     mbedtls_ssl_context *ssl,
     const unsigned char *buf, const unsigned char *end,
-    const unsigned char **extension_data,
-    const unsigned char **extension_data_end);
+    const unsigned char **supported_versions_data,
+    const unsigned char **supported_versions_data_end);
 
 /*
  * Handler of TLS 1.3 server certificate message

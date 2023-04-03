@@ -751,13 +751,13 @@ static int ssl_tls13_parse_supported_versions_ext(mbedtls_ssl_context *ssl,
         tls_version = mbedtls_ssl_read_version(p, ssl->conf->transport);
         p += 2;
 
-        if ((MBEDTLS_SSL_VERSION_TLS1_2 == tls_version) &&
-            mbedtls_ssl_conf_is_tls12_enabled(ssl->conf)) {
+        if (MBEDTLS_SSL_VERSION_TLS1_3 == tls_version) {
             found_supported_version = 1;
             break;
         }
 
-        if (MBEDTLS_SSL_VERSION_TLS1_3 == tls_version) {
+        if ((MBEDTLS_SSL_VERSION_TLS1_2 == tls_version) &&
+            mbedtls_ssl_conf_is_tls12_enabled(ssl->conf)) {
             found_supported_version = 1;
             break;
         }

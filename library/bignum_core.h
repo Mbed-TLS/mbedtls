@@ -401,6 +401,7 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla(mbedtls_mpi_uint *X, size_t X_limbs,
 /**
  * \brief Perform a known-size multiplication
  *
+ * \p X may not be aliased to any of the inputs for this function.
  * \p A may be aliased to \p B.
  *
  * \param[out] X     The pointer to the (little-endian) array to receive

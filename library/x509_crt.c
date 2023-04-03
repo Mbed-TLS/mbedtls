@@ -2962,8 +2962,6 @@ void mbedtls_x509_crt_free(mbedtls_x509_crt *crt)
 {
     mbedtls_x509_crt *cert_cur = crt;
     mbedtls_x509_crt *cert_prv;
-    mbedtls_x509_sequence *seq_cur;
-    mbedtls_x509_sequence *seq_prv;
 
     while (cert_cur != NULL) {
         mbedtls_pk_free(&cert_cur->pk);
@@ -2977,15 +2975,6 @@ void mbedtls_x509_crt_free(mbedtls_x509_crt *crt)
         mbedtls_asn1_sequence_free(cert_cur->ext_key_usage.next);
         mbedtls_asn1_sequence_free(cert_cur->subject_alt_names.next);
         mbedtls_asn1_sequence_free(cert_cur->certificate_policies.next);
-
-        seq_cur = cert_cur->authority_key_id.authorityCertIssuer.next;
-        while (seq_cur != NULL) {
-            seq_prv = seq_cur;
-            seq_cur = seq_cur->next;
-            mbedtls_platform_zeroize(seq_prv,
-                                     sizeof(mbedtls_x509_sequence));
-            mbedtls_free(seq_prv);
-        }
 
         if (cert_cur->raw.p != NULL && cert_cur->own_buffer) {
             mbedtls_platform_zeroize(cert_cur->raw.p, cert_cur->raw.len);

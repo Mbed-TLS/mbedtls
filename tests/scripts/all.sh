@@ -2053,7 +2053,7 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
 }
 
 component_test_psa_crypto_config_accel_ecdsa () {
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDSA"
+    msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDSA"
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA KEY_TYPE_ECC_KEY_PAIR KEY_TYPE_ECC_PUBLIC_KEY"
@@ -2104,7 +2104,7 @@ component_test_psa_crypto_config_accel_ecdsa () {
 }
 
 component_test_psa_crypto_config_accel_ecdh () {
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDH"
+    msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDH"
 
     # Algorithms and key types to accelerate
     loc_accel_list="ALG_ECDH KEY_TYPE_ECC_KEY_PAIR KEY_TYPE_ECC_PUBLIC_KEY"
@@ -2152,7 +2152,7 @@ component_test_psa_crypto_config_accel_ecdh () {
 }
 
 component_test_psa_crypto_config_accel_pake() {
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated PAKE"
+    msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated PAKE"
 
     # Start with full
     scripts/config.py full
@@ -2169,7 +2169,7 @@ component_test_psa_crypto_config_accel_pake() {
     scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
 
-    # Make build-in fallback not available
+    # Make built-in fallback not available
     scripts/config.py unset MBEDTLS_ECJPAKE_C
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 
@@ -2188,6 +2188,9 @@ component_test_psa_crypto_config_accel_pake() {
 
 # Auxiliary function to build config for all EC based algorithms (EC-JPAKE,
 # ECDH, ECDSA) with and without drivers.
+# The input parameter is a boolean value which indicates:
+# - 0 keep built-in EC algs,
+# - 1 exclude built-in EC algs (driver only).
 #
 # This is used by the two following components to ensure they always use the
 # same config, except for the use of driver or built-in EC algorithms:
@@ -2283,6 +2286,130 @@ component_test_psa_crypto_config_reference_all_ec_algs_use_psa () {
 
     msg "ssl-opt: MBEDTLS_PSA_CRYPTO_CONFIG with non-accelerated EC algs + USE_PSA"
     tests/ssl-opt.sh
+}
+
+# Helper function used in:
+# - component_test_psa_crypto_config_accel_all_curves_except_p192
+# - component_test_psa_crypto_config_accel_all_curves_except_x25519
+# to build and test with all accelerated curves a part from the specified one.
+psa_crypto_config_accel_all_curves_except_one () {
+    BUILTIN_CURVE=$1
+
+    msg "build: PSA_CRYPTO_CONFIG + all accelerated EC algs (excl $BUILTIN_CURVE) + USE_PSA_CRYPTO"
+
+    # Accelerate all EC algs (all EC curves are automatically accelerated as
+    # well in the built-in version due to the "PSA_WANT_xxx" symbols in
+    # "crypto_config.h")
+    loc_accel_list="ALG_ECDH \
+                    ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
+                    ALG_JPAKE \
+                    KEY_TYPE_ECC_KEY_PAIR KEY_TYPE_ECC_PUBLIC_KEY"
+
+    # Configure and build the test driver library
+    # --------------------------------------------
+
+    # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
+    # partial support for cipher operations in the driver test library.
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+
+    # RSA support is intentionally disabled on this test (see below for
+    # explanation) so lets disable it also on the driver side
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
+    for ALG in $(sed -n 's/^#define \(PSA_WANT_ALG_RSA_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
+        echo $ALG
+        scripts/config.py -f include/psa/crypto_config.h unset $ALG
+    done
+
+    loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
+    # These hashes are needed for some ECDSA signature tests.
+    loc_accel_flags="$loc_accel_flags -DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_ALG_SHA_224"
+    loc_accel_flags="$loc_accel_flags -DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_ALG_SHA_256"
+    loc_accel_flags="$loc_accel_flags -DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_ALG_SHA_384"
+    loc_accel_flags="$loc_accel_flags -DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_ALG_SHA_512"
+    make -C tests libtestdriver1.a CFLAGS="$ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
+
+    # Configure and build the main libraries
+    # ---------------------------------------
+
+    # full config (includes USE_PSA, TLS 1.3 and driver support)
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+
+    # Dynamic secure element support is a deprecated feature and needs to be disabled here.
+    # This is done to have the same form of psa_key_attributes_s for libdriver and library.
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
+
+    # restartable is not yet supported in PSA
+    scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
+
+    # disable modules for which we have drivers
+    scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_ECDH_C
+    scripts/config.py unset MBEDTLS_ECJPAKE_C
+
+    # Ensure also RSA and asssociated algs are disabled so that the size of
+    # the public/private keys cannot be taken from there
+    scripts/config.py unset MBEDTLS_RSA_C
+    scripts/config.py unset MBEDTLS_PKCS1_V15
+    scripts/config.py unset MBEDTLS_PKCS1_V21
+    scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
+    # Also disable key exchanges that depend on RSA
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
+
+    # Explicitly disable all SW implementation for elliptic curves
+    for CURVE in $(sed -n 's/#define \(MBEDTLS_ECP_DP_[0-9A-Z_a-z]*_ENABLED\).*/\1/p' <"$CONFIG_H"); do
+        scripts/config.py unset "$CURVE"
+    done
+    # Just leave SW implementation for the specified curve for allowing to
+    # build with ECP_C.
+    scripts/config.py set $BUILTIN_CURVE
+    # Accelerate all curves listed in "crypto_config.h" (skipping the ones that
+    # are commented out)
+    for CURVE in $(sed -n 's/^#define PSA_WANT_\(ECC_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
+        loc_accel_list="$loc_accel_list $CURVE"
+    done
+
+    # build and link with test drivers
+    loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
+    make CFLAGS="$ASAN_CFLAGS -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
+
+    # make sure excluded modules were not auto-re-enabled by accident
+    not grep mbedtls_ecdh_ library/ecdh.o
+    not grep mbedtls_ecdsa_ library/ecdsa.o
+    not grep mbedtls_ecjpake_ library/ecjpake.o
+    if [ $BUILTIN_CURVE == "MBEDTLS_ECP_DP_SECP192R1_ENABLED" ]; then
+        # The only built-in curve is Short Weierstrass, so ECP shouldn't have
+        # support for Montgomery curves. Functions with mxz in their name
+        # are specific to Montgomery curves.
+        not grep mxz library/ecp.o
+    elif [ $BUILTIN_CURVE == "MBEDTLS_ECP_DP_CURVE25519_ENABLED" ]; then
+        # The only built-in curve is Montgomery, so ECP shouldn't have
+        # support for Short Weierstrass curves. Functions with mbedtls_ecp_muladd
+        # in their name are specific to Short Weierstrass curves.
+        not grep mbedtls_ecp_muladd library/ecp.o
+    else
+        err_msg "Error: $BUILTIN_CURVE is not supported in psa_crypto_config_accel_all_curves_except_one()"
+        exit 1
+    fi
+
+    # Run the tests
+    # -------------
+    msg "test: PSA_CRYPTO_CONFIG + all accelerated EC algs (excl $BUILTIN_CURVE) + USE_PSA_CRYPTO"
+    make test
+}
+
+component_test_psa_crypto_config_accel_all_curves_except_p192 () {
+    psa_crypto_config_accel_all_curves_except_one MBEDTLS_ECP_DP_SECP192R1_ENABLED
+}
+
+component_test_psa_crypto_config_accel_all_curves_except_x25519 () {
+    psa_crypto_config_accel_all_curves_except_one MBEDTLS_ECP_DP_CURVE25519_ENABLED
 }
 
 component_test_psa_crypto_config_accel_rsa_signature () {

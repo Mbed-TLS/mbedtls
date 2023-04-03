@@ -2313,6 +2313,15 @@ psa_crypto_config_accel_all_curves_except_one () {
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
 
+    # RSA support is intentionally disabled on this test (see below for
+    # explanation) so lets disable it also on the driver side
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
+    for ALG in $(sed -n 's/^#define \(PSA_WANT_ALG_RSA_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
+        echo $ALG
+        scripts/config.py -f include/psa/crypto_config.h unset $ALG
+    done
+
     loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
     # These hashes are needed for some ECDSA signature tests.
     loc_accel_flags="$loc_accel_flags -DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_ALG_SHA_224"
@@ -2340,10 +2349,13 @@ psa_crypto_config_accel_all_curves_except_one () {
     scripts/config.py unset MBEDTLS_ECDH_C
     scripts/config.py unset MBEDTLS_ECJPAKE_C
 
-    # Ensure also RSA_C is disabled so that the size of the public/private
-    # keys cannot be taken from there
+    # Ensure also RSA and asssociated algs are disabled so that the size of
+    # the public/private keys cannot be taken from there
     scripts/config.py unset MBEDTLS_RSA_C
-    # disable key exchanges dependencies on it
+    scripts/config.py unset MBEDTLS_PKCS1_V15
+    scripts/config.py unset MBEDTLS_PKCS1_V21
+    scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
+    # Also disable key exchanges that depend on RSA
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED

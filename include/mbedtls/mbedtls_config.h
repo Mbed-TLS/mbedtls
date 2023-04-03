@@ -410,6 +410,11 @@
 //#define MBEDTLS_SHA512_ALT
 
 /*
+ * Uncomment to enable alternative core CPU feature sets detection function.
+ */
+//#define MBEDTLS_CPU_HAS_FEATURES_ALT
+
+/*
  * When replacing the elliptic curve module, please consider, that it is
  * implemented with two .c files:
  *      - ecp.c

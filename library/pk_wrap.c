@@ -1111,7 +1111,10 @@ static int eckey_check_pair_psa(const void *pub, const void *prv)
     mbedtls_ecp_keypair *prv_ctx = (mbedtls_ecp_keypair *) prv;
     mbedtls_ecp_keypair *pub_ctx = (mbedtls_ecp_keypair *) pub;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    uint8_t prv_key_buf[MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH];
+    /* We are using MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH for the size of this
+     * buffer because it will be used to hold the private key at first and
+     * then its public part (but not at the same time). */
+    uint8_t prv_key_buf[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
     size_t prv_key_len;
     uint8_t pub_key_buf[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
     size_t pub_key_len;

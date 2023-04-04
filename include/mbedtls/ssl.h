@@ -40,6 +40,8 @@
 #include "mbedtls/dhm.h"
 #endif
 
+#include "mbedtls/md.h"
+
 #if defined(MBEDTLS_ECDH_C)
 #include "mbedtls/ecdh.h"
 #endif

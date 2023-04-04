@@ -20,6 +20,7 @@
 #include "mbedtls/build_info.h"
 
 #include "mbedtls/platform.h"
+#include "mbedtls/md.h"
 
 #if defined(MBEDTLS_AES_C) && defined(MBEDTLS_DHM_C) && \
     defined(MBEDTLS_ENTROPY_C) && defined(MBEDTLS_NET_C) && \

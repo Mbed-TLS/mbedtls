@@ -58,6 +58,7 @@
 
 #include "mbedtls/platform.h" // for mbedtls_setbuf
 #include "mbedtls/platform_util.h" // for mbedtls_platform_zeroize
+#include "mbedtls/md.h"
 
 #include <psa/crypto.h>
 

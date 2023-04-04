@@ -20,6 +20,7 @@
 #include "mbedtls/build_info.h"
 
 #include "mbedtls/platform.h"
+#include "mbedtls/md.h"
 
 #if !defined(MBEDTLS_X509_CRT_WRITE_C) || \
     !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_FS_IO) || \

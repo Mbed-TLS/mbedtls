@@ -241,6 +241,9 @@ typedef struct mbedtls_x509write_cert {
 }
 mbedtls_x509write_cert;
 
+int mbedtls_x509write_crt_set_subject_alternative_name(mbedtls_x509write_cert *ctx,
+                                                       const mbedtls_x509_san_list *san_list);
+
 /**
  * Item in a verification chain: cert and flags for it
  */

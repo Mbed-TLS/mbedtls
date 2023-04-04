@@ -1951,7 +1951,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
-run_test    "Server selecting preferred TLS 1.2 over TLS 1.3" \
+run_test    "Server selecting TLS 1.2, over TLS 1.3 if supported" \
             "$P_SRV crt_file=data_files/server5.crt key_file=data_files/server5.key" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2:+VERS-TLS1.3" \
             0 \
@@ -1963,7 +1963,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test    "Server selecting preferred TLS 1.3 over TLS 1.2" \
+run_test    "Server selecting TLS 1.3, over TLS 1.2 if supported" \
             "$P_SRV crt_file=data_files/server5.crt key_file=data_files/server5.key" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+VERS-TLS1.2:%DISABLE_TLS13_COMPAT_MODE" \
             0 \
@@ -1976,7 +1976,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-run_test    "Server selecting preferred TLS 1.3 over TLS 1.2 - compat mode enabled" \
+run_test    "Server selecting TLS 1.3, over TLS 1.2 if supported - compat mode enabled" \
             "$P_SRV crt_file=data_files/server5.crt key_file=data_files/server5.key" \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+VERS-TLS1.2" \
             0 \

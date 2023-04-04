@@ -1205,7 +1205,7 @@ static int x509_get_other_name(const mbedtls_x509_buf *subject_alt_name,
  *
  * In some cases while parsing subject alternative names the sequence tag is optional
  * (e.g. CertSerialNumber). This function is designed to handle such case.
-*/
+ */
 int mbedtls_x509_get_subject_alt_name_ext(unsigned char **p,
                                           const unsigned char *end,
                                           mbedtls_x509_sequence *subject_alt_name)

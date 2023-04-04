@@ -663,16 +663,17 @@ static int x509_get_authority_key_id(unsigned char **p,
             /* authorityCertIssuer is an OPTIONAL field */
         } else {
             /* "end" also includes the CertSerialNumber field so "len" shall be used */
-                ret = mbedtls_x509_get_subject_alt_name_ext(p,
-                                                            (*p+len),
-                                                            &authority_key_id->authorityCertIssuer);
+            ret = mbedtls_x509_get_subject_alt_name_ext(p,
+                                                        (*p+len),
+                                                        &authority_key_id->authorityCertIssuer);
         }
     }
 
     if (*p < end) {
         /* Getting authorityCertSerialNumber using the required specific class tag [2] */
         if ((ret = mbedtls_asn1_get_tag(p, end, &len,
-                                        MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_INTEGER | 2)) !=
+                                        MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_INTEGER |
+                                        2)) !=
             0) {
             /* authorityCertSerialNumber is an OPTIONAL field */
             return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);

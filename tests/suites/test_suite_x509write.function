@@ -364,7 +364,7 @@ void x509_crt_check(char *subject_key_file, char *subject_pwd,
     if (set_subjectAltNames) {
         san_mail.node.type = MBEDTLS_X509_SAN_RFC822_NAME;
         san_mail.node.san.unstructured_name.p = (unsigned char *) san_mail_name;
-        san_mail.node.san.unstructured_name.len = sizeof(san_mail_name);
+        san_mail.node.san.unstructured_name.len = strlen(san_mail_name);
         san_mail.next = NULL;
 
         san_dns.node.type = MBEDTLS_X509_SAN_DNS_NAME;

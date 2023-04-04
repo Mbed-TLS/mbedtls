@@ -29,8 +29,6 @@
 #define PSA_CRYPTO_EXTRA_H
 #include "mbedtls/private_access.h"
 
-#include "mbedtls/platform_util.h"
-
 #include "crypto_types.h"
 #include "crypto_compat.h"
 

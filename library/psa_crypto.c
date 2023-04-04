@@ -19,6 +19,7 @@
  */
 
 #include "common.h"
+#include "psa_crypto_core_common.h"
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 
@@ -4226,7 +4227,7 @@ psa_status_t psa_cipher_encrypt(mbedtls_svc_key_id_t key,
     status = psa_driver_wrapper_cipher_encrypt(
         &attributes, slot->key.data, slot->key.bytes,
         alg, local_iv, default_iv_length, input, input_length,
-        mbedtls_buffer_offset(output, default_iv_length),
+        psa_crypto_buffer_offset(output, default_iv_length),
         output_size - default_iv_length, output_length);
 
 exit:

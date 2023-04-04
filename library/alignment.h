@@ -27,8 +27,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "mbedtls/build_info.h"
-
 /*
  * Define MBEDTLS_EFFICIENT_UNALIGNED_ACCESS for architectures where unaligned memory
  * accesses are known to be efficient.

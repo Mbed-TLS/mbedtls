@@ -37,7 +37,6 @@
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 
 /* BEGIN-driver headers */
-#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS)
 {% for driver in drivers -%}
 /* Headers for {{driver.prefix}} {{driver.type}} driver */
 {% if driver['mbedtls/h_condition'] is defined -%}
@@ -50,7 +49,6 @@
 #endif
 {% endif -%}
 {% endfor %}
-#endif /* MBEDTLS_PSA_CRYPTO_DRIVERS */
 /* END-driver headers */
 
 /* Auto-generated values depending on which drivers are registered.

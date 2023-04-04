@@ -1554,7 +1554,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                     ssl, p, extension_data_end);
                 if (ret != 0) {
                     MBEDTLS_SSL_DEBUG_RET(
-                        1, "mbedtls_ssl_parse_supported_groups_ext", ret);
+                        1, "ssl_tls13_parse_supported_groups_ext", ret);
                     return ret;
                 }
 

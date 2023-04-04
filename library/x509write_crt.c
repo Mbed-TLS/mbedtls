@@ -177,6 +177,7 @@ int mbedtls_x509write_crt_set_subject_alternative_name(mbedtls_x509write_cert *c
                 buflen += cur->node.san.unstructured_name.len + 4 + 1;
                 break;
             case MBEDTLS_X509_SAN_DIRECTORY_NAME:
+            {
                 const mbedtls_asn1_named_data *chunk = &cur->node.san.directory_name;
                 while (chunk != NULL) {
                     // 5 bytes for OID, max 4 bytes for length, +1 for tag,
@@ -187,6 +188,7 @@ int mbedtls_x509write_crt_set_subject_alternative_name(mbedtls_x509write_cert *c
                 }
                 buflen += cur->node.san.unstructured_name.len + 4 + 1;
                 break;
+            }
             default:
                 /* Not supported - skip. */
                 break;

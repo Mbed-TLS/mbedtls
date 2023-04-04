@@ -84,8 +84,8 @@ void pkcs7_verify(char *pkcs7_file,
         }
     }
 
-    ASSERT_ALLOC(crts, sizeof(*crts)*n_crts);
-    ASSERT_ALLOC(crt_files_arr, sizeof(*crt_files_arr)*n_crts);
+    ASSERT_ALLOC(crts, n_crts);
+    ASSERT_ALLOC(crt_files_arr, n_crts);
 
     for (i = 0; i < strlen(crt_files); i++) {
         for (k = i; k < strlen(crt_files); k++) {
@@ -101,7 +101,7 @@ void pkcs7_verify(char *pkcs7_file,
 
     mbedtls_pkcs7_init(&pkcs7);
     for (i = 0; i < n_crts; i++) {
-        ASSERT_ALLOC(crts[i], sizeof(*crts[i]));
+        ASSERT_ALLOC(crts[i], 1);
         mbedtls_x509_crt_init(crts[i]);
     }
 

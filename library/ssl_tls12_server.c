@@ -2213,11 +2213,36 @@ static int ssl_write_server_hello(mbedtls_ssl_context *ssl)
     p += 4;
 #endif /* MBEDTLS_HAVE_TIME */
 
-    if ((ret = ssl->conf->f_rng(ssl->conf->p_rng, p, 28)) != 0) {
+    if ((ret = ssl->conf->f_rng(ssl->conf->p_rng, p, 20)) != 0) {
         return ret;
     }
+    p += 20;
 
-    p += 28;
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    /*
+     * RFC 8446
+     * TLS 1.3 has a downgrade protection mechanism embedded in the server's
+     * random value. TLS 1.3 servers which negotiate TLS 1.2 or below in
+     * response to a ClientHello MUST set the last 8 bytes of their Random
+     * value specially in their ServerHello.
+     */
+    if (mbedtls_ssl_conf_is_tls13_enabled(ssl->conf)) {
+        static const unsigned char magic_tls12_downgrade_string[] =
+        { 'D', 'O', 'W', 'N', 'G', 'R', 'D', 1 };
+
+        MBEDTLS_STATIC_ASSERT(
+            sizeof(magic_tls12_downgrade_string) == 8,
+            "magic_tls12_downgrade_string does not have the expected size");
+
+        memcpy(p, magic_tls12_downgrade_string, 8);
+    } else
+#endif
+    {
+        if ((ret = ssl->conf->f_rng(ssl->conf->p_rng, p, 8)) != 0) {
+            return ret;
+        }
+    }
+    p += 8;
 
     memcpy(ssl->handshake->randbytes + 32, buf + 6, 32);
 

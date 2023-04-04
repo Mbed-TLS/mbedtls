@@ -473,7 +473,6 @@ int mbedtls_x509_set_extension(mbedtls_asn1_named_data **head, const char *oid, 
                                size_t val_len);
 int mbedtls_x509_write_extensions(unsigned char **p, unsigned char *start,
                                   mbedtls_asn1_named_data *first);
-
 int mbedtls_x509_write_names(unsigned char **p, unsigned char *start,
                              mbedtls_asn1_named_data *first);
 int mbedtls_x509_write_sig(unsigned char **p, unsigned char *start,

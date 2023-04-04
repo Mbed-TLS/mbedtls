@@ -153,7 +153,6 @@ int mbedtls_x509write_crt_set_validity(mbedtls_x509write_cert *ctx,
     return 0;
 }
 
-
 int mbedtls_x509write_crt_set_subject_alternative_name(mbedtls_x509write_cert *ctx,
                                                        const mbedtls_x509_san_list *san_list)
 {

@@ -925,7 +925,7 @@ usage:
 
         if (ret != 0) {
             mbedtls_printf(
-                " failed\n  !  mbedtls_x509write_csr_set_subject_alternative_name returned %d",
+                " failed\n  !  mbedtls_x509write_crt_set_subject_alternative_name returned %d",
                 ret);
             goto exit;
         }

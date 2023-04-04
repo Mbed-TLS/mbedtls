@@ -230,6 +230,31 @@ class BignumCoreMLA(BignumCoreTarget, bignum_common.OperationCommon):
                 yield cur_op.create_test_case()
 
 
+class BignumCoreMul(BignumCoreTarget, bignum_common.OperationCommon):
+    """Test cases for bignum core multiplication."""
+    count = 0
+    input_style = "arch_split"
+    symbol = "*"
+    test_function = "mpi_core_mul"
+    test_name = "mbedtls_mpi_core_mul"
+    arity = 2
+    unique_combinations_only = True
+
+    def format_arg(self, val: str) -> str:
+        return val
+
+    def format_result(self, res: int) -> str:
+        res_str = '{:x}'.format(res)
+        a_limbs = bignum_common.limbs_mpi(self.int_a, self.bits_in_limb)
+        b_limbs = bignum_common.limbs_mpi(self.int_b, self.bits_in_limb)
+        hex_digits = bignum_common.hex_digits_for_limb(a_limbs + b_limbs, self.bits_in_limb)
+        return bignum_common.quote_str(self.format_arg(res_str).zfill(hex_digits))
+
+    def result(self) -> List[str]:
+        result = self.int_a * self.int_b
+        return [self.format_result(result)]
+
+
 class BignumCoreMontmul(BignumCoreTarget, test_data_generation.BaseTest):
     """Test cases for Montgomery multiplication."""
     count = 0

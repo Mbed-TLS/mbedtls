@@ -1057,6 +1057,72 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void mpi_core_mul(char *input_A,
+                  char *input_B,
+                  char *result)
+{
+    mbedtls_mpi_uint *A      = NULL;
+    mbedtls_mpi_uint *A_orig = NULL;
+    mbedtls_mpi_uint *B      = NULL;
+    mbedtls_mpi_uint *B_orig = NULL;
+    mbedtls_mpi_uint *R      = NULL;
+    mbedtls_mpi_uint *X      = NULL;
+    size_t A_limbs, B_limbs, R_limbs;
+
+    TEST_EQUAL(mbedtls_test_read_mpi_core(&A, &A_limbs, input_A), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi_core(&B, &B_limbs, input_B), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi_core(&R, &R_limbs, result), 0);
+
+    TEST_EQUAL(R_limbs, A_limbs + B_limbs);
+
+    const size_t X_limbs = A_limbs + B_limbs;
+    const size_t X_bytes = X_limbs * sizeof(mbedtls_mpi_uint);
+    ASSERT_ALLOC(X, X_limbs);
+
+    const size_t A_bytes = A_limbs * sizeof(mbedtls_mpi_uint);
+    ASSERT_ALLOC(A_orig, A_limbs);
+    memcpy(A_orig, A, A_bytes);
+
+    const size_t B_bytes = B_limbs * sizeof(mbedtls_mpi_uint);
+    ASSERT_ALLOC(B_orig, B_limbs);
+    memcpy(B_orig, B, B_bytes);
+
+    /* Set result to something that is unlikely to be correct */
+    memset(X, '!', X_bytes);
+
+    /* 1. X = A * B - result should be correct, A and B unchanged */
+    mbedtls_mpi_core_mul(X, A, A_limbs, B, B_limbs);
+    ASSERT_COMPARE(X, X_bytes, R, X_bytes);
+    ASSERT_COMPARE(A, A_bytes, A_orig, A_bytes);
+    ASSERT_COMPARE(B, B_bytes, B_orig, B_bytes);
+
+    /* 2. A == B: alias A and B - result should be correct, A and B unchanged */
+    if (A_bytes == B_bytes && memcmp(A, B, A_bytes) == 0) {
+        memset(X, '!', X_bytes);
+        mbedtls_mpi_core_mul(X, A, A_limbs, A, A_limbs);
+        ASSERT_COMPARE(X, X_bytes, R, X_bytes);
+        ASSERT_COMPARE(A, A_bytes, A_orig, A_bytes);
+    }
+    /* 3. X = B * A - result should be correct, A and B unchanged */
+    else {
+        memset(X, '!', X_bytes);
+        mbedtls_mpi_core_mul(X, B, B_limbs, A, A_limbs);
+        ASSERT_COMPARE(X, X_bytes, R, X_bytes);
+        ASSERT_COMPARE(A, A_bytes, A_orig, A_bytes);
+        ASSERT_COMPARE(B, B_bytes, B_orig, B_bytes);
+    }
+
+exit:
+    mbedtls_free(A);
+    mbedtls_free(A_orig);
+    mbedtls_free(B);
+    mbedtls_free(B_orig);
+    mbedtls_free(R);
+    mbedtls_free(X);
+}
+/* END_CASE */
+
 /* BEGIN MERGE SLOT 1 */
 
 /* BEGIN_CASE */

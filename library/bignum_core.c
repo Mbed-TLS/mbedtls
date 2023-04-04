@@ -448,6 +448,17 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla(mbedtls_mpi_uint *d, size_t d_len,
     return c;
 }
 
+void mbedtls_mpi_core_mul(mbedtls_mpi_uint *X,
+                          const mbedtls_mpi_uint *A, size_t A_limbs,
+                          const mbedtls_mpi_uint *B, size_t B_limbs)
+{
+    memset(X, 0, (A_limbs + B_limbs) * ciL);
+
+    for (size_t i = 0; i < B_limbs; i++) {
+        (void) mbedtls_mpi_core_mla(X + i, A_limbs + 1, A, A_limbs, B[i]);
+    }
+}
+
 /*
  * Fast Montgomery initialization (thanks to Tom St Denis).
  */

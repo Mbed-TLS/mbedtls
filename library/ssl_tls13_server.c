@@ -1661,9 +1661,11 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                 ret = mbedtls_ssl_tls13_parse_record_size_limit_ext(
                     ssl, p, extension_data_end);
 
-                /* TODO: Return unconditionally here until we handle the record
-                 * size limit correctly.
-                 * Once handled correctly, only return in case of errors. */
+                /*
+                 * TODO: Return unconditionally here until we handle the record
+                 *       size limit correctly.
+                 *       Once handled correctly, only return in case of errors.
+                 */
                 return ret;
 
                 break;

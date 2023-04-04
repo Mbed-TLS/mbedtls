@@ -522,10 +522,7 @@ void pk_utils(int type, int parameter, int bitlen, int len, char *name)
 {
     mbedtls_pk_context pk;
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    PSA_INIT();
-#endif
-
+    USE_PSA_INIT();
     mbedtls_pk_init(&pk);
 
     TEST_ASSERT(mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(type)) == 0);
@@ -539,9 +536,7 @@ void pk_utils(int type, int parameter, int bitlen, int len, char *name)
 
 exit:
     mbedtls_pk_free(&pk);
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    PSA_DONE();
-#endif
+    USE_PSA_DONE();
 }
 /* END_CASE */
 

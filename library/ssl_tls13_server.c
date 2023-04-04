@@ -1428,16 +1428,18 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
      */
     MBEDTLS_SSL_DEBUG_BUF(3, "client hello, list of cipher suites",
                           cipher_suites, cipher_suites_len);
-    for (p = cipher_suites; p < cipher_suites_end; p += 2) {
+    for (const unsigned char *cipher_suites_p = cipher_suites;
+         cipher_suites_p < cipher_suites_end; cipher_suites_p += 2) {
         uint16_t cipher_suite;
         const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
 
         /*
-         * "cipher_suite_end - p is even" is an invariant of the loop. As
-         * cipher_suites_end - p > 0, we have cipher_suites_end - p >= 2 and
-         * it is thus safe to read two bytes.
+         * "cipher_suites_end - cipher_suites_p is even" is an invariant of the
+         * loop. As cipher_suites_end - cipher_suites_p > 0, we have
+         * cipher_suites_end - cipher_suites_p >= 2 and it is thus safe to read
+         * two bytes.
          */
-        cipher_suite = MBEDTLS_GET_UINT16_BE(p, 0);
+        cipher_suite = MBEDTLS_GET_UINT16_BE(cipher_suites_p, 0);
         ciphersuite_info = ssl_tls13_validate_peer_ciphersuite(
             ssl, cipher_suite);
         if (ciphersuite_info == NULL) {
@@ -1457,7 +1459,6 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                                      MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE);
         return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
     }
-    p = cipher_suites_end;
 
     /* ...
      * opaque legacy_compression_methods<1..2^8-1>;

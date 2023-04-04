@@ -48,30 +48,28 @@ static int pk_genkey_ec(mbedtls_ecp_group *grp,
 
     status = psa_export_key(key_id, key_buf, sizeof(key_buf), &key_len);
     if (status != PSA_SUCCESS) {
-        psa_destroy_key(key_id);
-        return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+        ret = MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+        goto exit;
     }
 
     ret = mbedtls_mpi_read_binary(d, key_buf, key_len);
     if (ret != 0) {
-        return ret;
+        goto exit;
     }
 
     status = psa_export_public_key(key_id, key_buf, sizeof(key_buf),
                                    &key_len);
     if (status != PSA_SUCCESS) {
-        psa_destroy_key(key_id);
-        return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+        ret = MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+        goto exit;
     }
 
     ret = mbedtls_ecp_point_read_binary(grp, Q, key_buf, key_len);
-    if (ret != 0) {
-        return ret;
-    }
 
+exit:
     psa_destroy_key(key_id);
 
-    return 0;
+    return ret;
 }
 
 /** Generate a key of the desired type.

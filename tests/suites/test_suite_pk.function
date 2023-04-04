@@ -17,13 +17,13 @@
  * unconditionally (https://github.com/Mbed-TLS/mbedtls/issues/2023). */
 #include "psa/crypto.h"
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+/* Used for properly sizing the key buffer in pk_genkey_ec() */
 #include "mbedtls/psa_util.h"
-#endif
 
 #define RSA_KEY_SIZE 512
 #define RSA_KEY_LEN   64
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_ECP_C)
 static int pk_genkey_ec(mbedtls_ecp_group *grp,
                         mbedtls_mpi *d, mbedtls_ecp_point *Q)
 {
@@ -71,6 +71,7 @@ exit:
 
     return ret;
 }
+#endif /* MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_ECP_C */
 
 /** Generate a key of the desired type.
  *

@@ -1276,7 +1276,6 @@ int mbedtls_ecp_read_key(mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
 int mbedtls_ecp_write_key(mbedtls_ecp_keypair *key,
                           unsigned char *buf, size_t buflen);
 
-#if !defined(MBEDTLS_USE_PSA_CRYPTO)
 /**
  * \brief           This function checks that the keypair objects
  *                  \p pub and \p prv have the same group and the
@@ -1300,7 +1299,6 @@ int mbedtls_ecp_write_key(mbedtls_ecp_keypair *key,
 int mbedtls_ecp_check_pub_priv(
     const mbedtls_ecp_keypair *pub, const mbedtls_ecp_keypair *prv,
     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng);
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /**
  * \brief           This function exports generic key-pair parameters.

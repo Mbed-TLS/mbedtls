@@ -888,7 +888,10 @@ static int pk_derive_public_key(mbedtls_ecp_group *grp, mbedtls_ecp_point *Q,
     psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
     size_t curve_bits;
     psa_ecc_family_t curve = mbedtls_ecc_group_to_psa(grp->id, &curve_bits);
-    unsigned char key_buf[MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH];
+    /* This buffer is used to store the private key at first and then the
+     * public one (but not at the same time). Therefore we size it for the
+     * latter since it's bigger. */
+    unsigned char key_buf[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
     size_t key_len = PSA_BITS_TO_BYTES(curve_bits);
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
     int ret;

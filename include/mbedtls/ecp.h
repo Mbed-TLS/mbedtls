@@ -1214,7 +1214,6 @@ int mbedtls_ecp_gen_keypair_base(mbedtls_ecp_group *grp,
  * \return          An \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_MPI_XXX error code
  *                  on failure.
  */
-#if !defined(MBEDTLS_USE_PSA_CRYPTO)
 int mbedtls_ecp_gen_keypair(mbedtls_ecp_group *grp, mbedtls_mpi *d,
                             mbedtls_ecp_point *Q,
                             int (*f_rng)(void *, unsigned char *, size_t),
@@ -1236,7 +1235,6 @@ int mbedtls_ecp_gen_keypair(mbedtls_ecp_group *grp, mbedtls_mpi *d,
 int mbedtls_ecp_gen_key(mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
                         int (*f_rng)(void *, unsigned char *, size_t),
                         void *p_rng);
-#endif /* !MBEDTLS_USE_PSA_CRYPTO */
 
 /**
  * \brief           This function reads an elliptic curve private key.

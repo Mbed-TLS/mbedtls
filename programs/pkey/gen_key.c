@@ -321,7 +321,7 @@ usage:
         }
     } else
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_ECP_C)
     if (opt.type == MBEDTLS_PK_ECKEY) {
         ret = mbedtls_ecp_gen_key((mbedtls_ecp_group_id) opt.ec_curve,
                                   mbedtls_pk_ec(key),

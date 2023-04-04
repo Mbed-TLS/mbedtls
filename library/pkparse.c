@@ -876,10 +876,11 @@ cleanup:
 }
 #endif /* MBEDTLS_RSA_C */
 
+#if defined(MBEDTLS_ECP_C)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 /*
  * Helper function for deriving a public key from its private counterpart by
- * using PSA functions
+ * using PSA functions.
  */
 static int pk_derive_public_key(mbedtls_ecp_group *grp, mbedtls_ecp_point *Q,
                                 const mbedtls_mpi *d)
@@ -929,7 +930,6 @@ static int pk_derive_public_key(mbedtls_ecp_group *grp, mbedtls_ecp_point *Q,
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-#if defined(MBEDTLS_ECP_C)
 /*
  * Parse a SEC1 encoded private EC key
  */

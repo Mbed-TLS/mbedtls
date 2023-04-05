@@ -19,7 +19,7 @@
 
 #include "common.h"
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 
 #include "mbedtls/ecp.h"
 #include "mbedtls/platform_util.h"
@@ -5837,4 +5837,4 @@ int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
 }
 #endif /* MBEDTLS_TEST_HOOKS */
 #endif /* !MBEDTLS_ECP_ALT */
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */

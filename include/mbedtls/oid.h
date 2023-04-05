@@ -509,7 +509,7 @@ int mbedtls_oid_get_pk_alg(const mbedtls_asn1_buf *oid, mbedtls_pk_type_t *pk_al
 int mbedtls_oid_get_oid_by_pk_alg(mbedtls_pk_type_t pk_alg,
                                   const char **oid, size_t *olen);
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 /**
  * \brief          Translate NamedCurve OID into an EC group identifier
  *
@@ -531,7 +531,7 @@ int mbedtls_oid_get_ec_grp(const mbedtls_asn1_buf *oid, mbedtls_ecp_group_id *gr
  */
 int mbedtls_oid_get_oid_by_ec_grp(mbedtls_ecp_group_id grp_id,
                                   const char **oid, size_t *olen);
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
 
 /**
  * \brief          Translate SignatureAlgorithm OID into md_type and pk_type

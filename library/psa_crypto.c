@@ -378,7 +378,7 @@ static void psa_wipe_tag_output_buffer(uint8_t *output_buffer, psa_status_t stat
 /* Key management */
 /****************************************************************/
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
                                               size_t bits,
                                               int bits_is_sloppy)
@@ -470,7 +470,7 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
     (void) bits_is_sloppy;
     return MBEDTLS_ECP_DP_NONE;
 }
-#endif /* defined(MBEDTLS_ECP_C) */
+#endif /* MBEDTLS_ECP_LIGHT */
 
 psa_status_t psa_validate_unstructured_key_bit_size(psa_key_type_t type,
                                                     size_t bits)

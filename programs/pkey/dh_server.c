@@ -46,13 +46,13 @@
     !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_NET_C) ||  \
     !defined(MBEDTLS_RSA_C) || !defined(MBEDTLS_MD_CAN_SHA256) ||    \
     !defined(MBEDTLS_FS_IO) || !defined(MBEDTLS_CTR_DRBG_C) || \
-    !defined(MBEDTLS_MD_CAN_SHA1)
+    !defined(MBEDTLS_SHA1_C)
 int main(void)
 {
     mbedtls_printf("MBEDTLS_AES_C and/or MBEDTLS_DHM_C and/or MBEDTLS_ENTROPY_C "
                    "and/or MBEDTLS_NET_C and/or MBEDTLS_RSA_C and/or "
                    "MBEDTLS_MD_CAN_SHA256 and/or MBEDTLS_FS_IO and/or "
-                   "MBEDTLS_CTR_DRBG_C not defined.\n");
+                   "MBEDTLS_CTR_DRBG_C and/or MBEDTLS_SHA1_C not defined.\n");
     mbedtls_exit(0);
 }
 #else

@@ -216,17 +216,16 @@ struct options {
     int format;                 /* format                               */
 } opt;
 
-static int ip_string_to_bytes(const char *str, uint8_t *bytes, int maxBytes)
+static void ip_string_to_bytes(const char *str, uint8_t *bytes, int maxBytes)
 {
     for (int i = 0; i < maxBytes; i++) {
-        bytes[i] = strtoul(str, NULL, 16);
+        bytes[i] = (uint8_t) strtoul(str, NULL, 16);
         str = strchr(str, '.');
         if (str == NULL || *str == '\0') {
             break;
         }
         str++;
     }
-    return 0;
 }
 
 int write_certificate(mbedtls_x509write_cert *crt, const char *output_file,

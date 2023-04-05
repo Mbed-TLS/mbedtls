@@ -638,7 +638,7 @@ const mbedtls_pk_info_t mbedtls_rsa_info = {
 };
 #endif /* MBEDTLS_RSA_C */
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 /*
  * Generic EC key
  */
@@ -1179,7 +1179,7 @@ static int eckey_check_pair(const void *pub, const void *prv,
     return mbedtls_ecp_check_pub_priv((const mbedtls_ecp_keypair *) pub,
                                       (const mbedtls_ecp_keypair *) prv,
                                       f_rng, p_rng);
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_ECP_C */
     return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
 }
 
@@ -1269,7 +1269,7 @@ const mbedtls_pk_info_t mbedtls_eckeydh_info = {
 #endif
     eckey_debug,            /* Same underlying key structure */
 };
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
 
 #if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
 static int ecdsa_can_do(mbedtls_pk_type_t type)

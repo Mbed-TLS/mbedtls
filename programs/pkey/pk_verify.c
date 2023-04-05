@@ -35,7 +35,6 @@ int main(void)
 #else
 
 #include "mbedtls/error.h"
-#include "mbedtls/md.h"
 #include "mbedtls/pk.h"
 
 #include <stdio.h>

@@ -42,7 +42,6 @@ int main(void)
 #include "mbedtls/oid.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
-#include "mbedtls/md.h"
 #include "mbedtls/error.h"
 #include "test/helpers.h"
 

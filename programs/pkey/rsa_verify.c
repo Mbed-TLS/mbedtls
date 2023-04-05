@@ -35,7 +35,6 @@ int main(void)
 #else
 
 #include "mbedtls/rsa.h"
-#include "mbedtls/md.h"
 
 #include <stdio.h>
 #include <string.h>

@@ -20,6 +20,7 @@
 #include "mbedtls/build_info.h"
 
 #include "mbedtls/platform.h"
+// md.h is included this early since MD_CAN_XXX macros are defined there.
 #include "mbedtls/md.h"
 
 #if !defined(MBEDTLS_BIGNUM_C) || !defined(MBEDTLS_ENTROPY_C) ||  \

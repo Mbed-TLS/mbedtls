@@ -23,7 +23,7 @@
 #define RSA_KEY_SIZE 512
 #define RSA_KEY_LEN   64
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_ECP_LIGHT)
 static int pk_genkey_ec(mbedtls_ecp_group *grp,
                         mbedtls_mpi *d, mbedtls_ecp_point *Q)
 {
@@ -71,7 +71,7 @@ exit:
 
     return ret;
 }
-#endif /* MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_ECP_C */
+#endif /* MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_ECP_LIGHT */
 
 /** Generate a key of the desired type.
  *
@@ -96,7 +96,7 @@ static int pk_genkey(mbedtls_pk_context *pk, int parameter)
                                    parameter, 3);
     }
 #endif
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
     if (mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECKEY ||
         mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECKEY_DH ||
         mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECDSA) {
@@ -110,14 +110,15 @@ static int pk_genkey(mbedtls_pk_context *pk, int parameter)
         return pk_genkey_ec(&mbedtls_pk_ec(*pk)->grp,
                             &mbedtls_pk_ec(*pk)->d,
                             &mbedtls_pk_ec(*pk)->Q);
-#else /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#if defined(MBEDTLS_ECP_C)
         return mbedtls_ecp_gen_keypair(&mbedtls_pk_ec(*pk)->grp,
                                        &mbedtls_pk_ec(*pk)->d,
                                        &mbedtls_pk_ec(*pk)->Q,
                                        mbedtls_test_rnd_std_rand, NULL);
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-    }
 #endif /* MBEDTLS_ECP_C */
+    }
+#endif /* MBEDTLS_ECP_LIGHT */
     return -1;
 }
 

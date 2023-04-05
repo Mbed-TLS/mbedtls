@@ -618,6 +618,7 @@ void x509_crt_check(char *subject_key_file, char *subject_pwd,
     TEST_ASSERT(ret == MBEDTLS_ERR_ASN1_BUF_TOO_SMALL);
 
 exit:
+    mbedtls_asn1_free_named_data_list(&ext_san_dirname);
     mbedtls_x509write_crt_free(&crt);
     mbedtls_pk_free(&issuer_key_alt);
     mbedtls_pk_free(&subject_key);

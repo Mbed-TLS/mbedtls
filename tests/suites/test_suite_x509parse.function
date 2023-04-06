@@ -1550,14 +1550,14 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C */
-void x509_crt_parse_subjectkeyid(data_t *buf, int subjectKeyIdLength_arg, int ref_ret)
+void x509_crt_parse_subjectkeyid(char *file, int subjectKeyIdLength, int ref_ret)
 {
     size_t subjectKeyIdLength = subjectKeyIdLength_arg;
     mbedtls_x509_crt crt;
 
     mbedtls_x509_crt_init(&crt);
 
-    TEST_ASSERT(mbedtls_x509_crt_parse_der(&crt, buf->x, buf->len) == ref_ret);
+    TEST_ASSERT(mbedtls_x509_crt_parse_file(&crt, file) == ref_ret);
 
     if (ref_ret == 0) {
         TEST_ASSERT(crt.subject_key_id.tag == MBEDTLS_ASN1_OCTET_STRING);
@@ -1573,8 +1573,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C */
-void x509_crt_parse_authoritykeyid(data_t *buf,
-                                   int keyIdLength_arg,
+void x509_crt_parse_authoritykeyid(char *file,
+                                   int keyIdLength,
                                    char *authorityKeyId_issuer,
                                    int serialLength_arg,
                                    int ref_ret)
@@ -1590,7 +1590,7 @@ void x509_crt_parse_authoritykeyid(data_t *buf,
 
     mbedtls_x509_crt_init(&crt);
 
-    TEST_ASSERT(mbedtls_x509_crt_parse_der(&crt, buf->x, buf->len) == ref_ret);
+    TEST_ASSERT(mbedtls_x509_crt_parse_file(&crt, file) == ref_ret);
 
     if (ref_ret == 0) {
         /* KeyId test */

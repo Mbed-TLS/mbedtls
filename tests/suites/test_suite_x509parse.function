@@ -1550,7 +1550,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C */
-void x509_crt_parse_subjectkeyid(char *file, int subjectKeyIdLength, int ref_ret)
+void x509_crt_parse_subjectkeyid(char *file, data_t *subjectKeyId, int ref_ret)
 {
     size_t subjectKeyIdLength = subjectKeyIdLength_arg;
     mbedtls_x509_crt crt;
@@ -1561,7 +1561,8 @@ void x509_crt_parse_subjectkeyid(char *file, int subjectKeyIdLength, int ref_ret
 
     if (ref_ret == 0) {
         TEST_ASSERT(crt.subject_key_id.tag == MBEDTLS_ASN1_OCTET_STRING);
-        TEST_ASSERT(crt.subject_key_id.len == subjectKeyIdLength);
+        TEST_ASSERT(memcmp(crt.subject_key_id.p, subjectKeyId->x, subjectKeyId->len) == 0);
+        TEST_ASSERT(crt.subject_key_id.len == subjectKeyId->len);
     } else {
         TEST_ASSERT(crt.subject_key_id.tag == 0);
         TEST_ASSERT(crt.subject_key_id.len == 0);
@@ -1574,9 +1575,9 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C */
 void x509_crt_parse_authoritykeyid(char *file,
-                                   int keyIdLength,
+                                   data_t* keyId,
                                    char *authorityKeyId_issuer,
-                                   int serialLength_arg,
+                                   data_t* serial,
                                    int ref_ret)
 {
     mbedtls_x509_crt crt;
@@ -1595,7 +1596,8 @@ void x509_crt_parse_authoritykeyid(char *file,
     if (ref_ret == 0) {
         /* KeyId test */
         TEST_ASSERT(crt.authority_key_id.keyIdentifier.tag == MBEDTLS_ASN1_OCTET_STRING);
-        TEST_ASSERT(crt.authority_key_id.keyIdentifier.len == keyIdLength);
+        TEST_ASSERT(memcmp(crt.authority_key_id.keyIdentifier.p, keyId->x, keyId->len) == 0);
+        TEST_ASSERT(crt.authority_key_id.keyIdentifier.len == keyId->len);
 
         /* Issuer test */
         mbedtls_x509_sequence *issuerPtr = &crt.authority_key_id.authorityCertIssuer;
@@ -1618,7 +1620,10 @@ void x509_crt_parse_authoritykeyid(char *file,
         /* Serial test */
         TEST_ASSERT(crt.authority_key_id.authorityCertSerialNumber.tag ==
                     MBEDTLS_ASN1_INTEGER);
-        TEST_ASSERT(crt.authority_key_id.authorityCertSerialNumber.len == serialLength);
+        TEST_ASSERT(memcmp(crt.authority_key_id.authorityCertSerialNumber.p,
+                           serial->x, serial->len) == 0);
+        TEST_ASSERT(crt.authority_key_id.authorityCertSerialNumber.len == serial->len);
+
     } else {
         TEST_ASSERT(crt.authority_key_id.keyIdentifier.tag == 0);
         TEST_ASSERT(crt.authority_key_id.keyIdentifier.len == 0);

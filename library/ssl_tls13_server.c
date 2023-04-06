@@ -1647,8 +1647,8 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                 ret = mbedtls_ssl_parse_sig_alg_ext(
                     ssl, p, extension_data_end);
                 if (ret != 0) {
-                    MBEDTLS_SSL_DEBUG_MSG(
-                        1, ("mbedtls_ssl_parse_sig_alg_ext ( %d )", ret));
+                    MBEDTLS_SSL_DEBUG_RET(
+                        1, "mbedtls_ssl_parse_sig_alg_ext", ret);
                     return ret;
                 }
                 break;

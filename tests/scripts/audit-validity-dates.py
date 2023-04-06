@@ -29,6 +29,7 @@ import typing
 import types
 import argparse
 import datetime
+import glob
 from enum import Enum
 
 from cryptography import x509
@@ -226,7 +227,7 @@ class TestDataAuditor(Auditor):
         self.default_files = self.collect_default_files()
 
     def collect_default_files(self):
-        """collect all files in tests/data_files/"""
+        """Collect all files in tests/data_files/"""
         test_dir = self.find_test_dir()
         test_data_folder = os.path.join(test_dir, 'data_files')
         data_files = []
@@ -235,6 +236,38 @@ class TestDataAuditor(Auditor):
                               for file_name in file_names)
         return data_files
 
+class SuiteDataAuditor(Auditor):
+    """Class for auditing files in tests/suites/*.data"""
+    def __init__(self, options):
+        super().__init__(options)
+        self.default_files = self.collect_default_files()
+
+    def collect_default_files(self):
+        """Collect all files in tests/suites/*.data"""
+        test_dir = self.find_test_dir()
+        suites_data_folder = os.path.join(test_dir, 'suites')
+        # collect all data files in tests/suites (114 in total)
+        data_files = glob.glob(os.path.join(suites_data_folder, '*.data'))
+        return data_files
+
+    def parse_file(self, filename: str):
+        """Parse AuditData from file."""
+        with open(filename, 'r') as f:
+            data = f.read()
+        audit_data_list = []
+        # extract hex strings from the data file.
+        hex_strings = re.findall(r'"(?P<data>[0-9a-fA-F]+)"', data)
+        for hex_str in hex_strings:
+            # We regard hex string with odd number length as invaild data.
+            if len(hex_str) & 1:
+                continue
+            bytes_data = bytes.fromhex(hex_str)
+            audit_data = self.parse_bytes(bytes_data)
+            if audit_data is None:
+                continue
+            audit_data.filename = filename
+            audit_data_list.append(audit_data)
+        return audit_data_list
 
 def list_all(audit_data: AuditData):
     print("{}\t{}\t{}\t{}".format(
@@ -265,16 +298,24 @@ def main():
 
     # start main routine
     td_auditor = TestDataAuditor(args.verbose)
+    sd_auditor = SuiteDataAuditor(args.verbose)
 
     if args.file:
         data_files = [args.file]
+        suite_data_files = [args.file]
     else:
         data_files = td_auditor.default_files
+        suite_data_files = sd_auditor.default_files
 
     td_auditor.walk_all(data_files)
+    # TODO: Improve the method for auditing test suite data files
+    #       It takes 6 times longer than td_auditor.walk_all(),
+    #       typically 0.827 s VS 0.147 s.
+    sd_auditor.walk_all(suite_data_files)
 
     if args.all:
         td_auditor.for_each(list_all)
+        sd_auditor.for_each(list_all)
 
     print("\nDone!\n")
 

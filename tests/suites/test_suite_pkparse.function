@@ -77,9 +77,7 @@ void pk_parse_public_keyfile_ec(char *key_file, int result)
     mbedtls_pk_context ctx;
     int res;
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    PSA_INIT();
-#endif
+    USE_PSA_INIT();
 
     mbedtls_pk_init(&ctx);
 
@@ -102,9 +100,7 @@ void pk_parse_public_keyfile_ec(char *key_file, int result)
 
 exit:
     mbedtls_pk_free(&ctx);
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    PSA_DONE();
-#endif
+    USE_PSA_DONE();
 }
 /* END_CASE */
 

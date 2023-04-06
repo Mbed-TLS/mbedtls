@@ -22,9 +22,7 @@ void pk_write_pubkey_check(char *key_file)
     memset(buf, 0, sizeof(buf));
     memset(check_buf, 0, sizeof(check_buf));
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    PSA_INIT();
-#endif
+    USE_PSA_INIT();
 
     mbedtls_pk_init(&key);
     TEST_ASSERT(mbedtls_pk_parse_public_keyfile(&key, key_file) == 0);
@@ -49,9 +47,7 @@ void pk_write_pubkey_check(char *key_file)
 
 exit:
     mbedtls_pk_free(&key);
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    PSA_DONE();
-#endif
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -68,9 +64,7 @@ void pk_write_key_check(char *key_file)
     memset(buf, 0, sizeof(buf));
     memset(check_buf, 0, sizeof(check_buf));
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    PSA_INIT();
-#endif
+    USE_PSA_INIT();
 
     mbedtls_pk_init(&key);
     TEST_ASSERT(mbedtls_pk_parse_keyfile(&key, key_file, NULL,
@@ -96,8 +90,6 @@ void pk_write_key_check(char *key_file)
 
 exit:
     mbedtls_pk_free(&key);
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    PSA_DONE();
-#endif
+    USE_PSA_DONE();
 }
 /* END_CASE */

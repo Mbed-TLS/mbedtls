@@ -550,6 +550,27 @@ crl_cat_rsa-ec.pem:crl.pem crl-ec-sha256.pem
 
 all_final += crl_cat_ec-rsa.pem crl_cat_rsa-ec.pem
 
+authorityKeyId_subjectKeyId.crt.der:
+	$(OPENSSL) req -x509 -nodes -days 7300 -key server5.key -outform DER -out authorityKeyId_subjectKeyId.crt.der -config authorityKeyId_subjectKeyId.conf -extensions 'v3_req'
+
+authorityKeyId_subjectKeyId_tag_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/04145061A58FD407D9D782010CE5657F8C6346A713BE/01145061A58FD407D9D782010CE5657F8C6346A713BE/" | xxd -r -p > $@
+
+authorityKeyId_subjectKeyId_length_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/306D80145061A58FD407/306C80145061A58FD407/" | xxd -r -p > $@
+
+authorityKeyId_subjectKeyId_sequence_tag_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/6F306D80145061A58FD4/6F006D80145061A58FD4/" | xxd -r -p > $@
+
+authorityKeyId_subjectKeyId_keyid_tag_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/306D80145061A58FD407/306D00145061A58FD407/" | xxd -r -p > $@
+
+authorityKeyId_subjectKeyId_issuer_tag1_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/A13FA43D303B310B3009/003FA43D303B310B3009/" | xxd -r -p > $@
+
+authorityKeyId_subjectKeyId_issuer_tag2_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/A43D303B310B30090603/003D303B310B30090603/" | xxd -r -p > $@
+
 ################################################################
 #### Generate various RSA keys
 ################################################################

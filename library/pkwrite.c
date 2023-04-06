@@ -99,12 +99,12 @@ end_of_export:
 #endif /* MBEDTLS_RSA_C */
 
 #if defined(MBEDTLS_ECP_LIGHT)
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
 static int pk_write_ec_pubkey(unsigned char **p, unsigned char *start,
                               const mbedtls_pk_context *pk)
 {
     size_t len = 0;
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
     if ((*p == NULL) || (start == NULL) ||
         (pk == NULL)) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
@@ -112,25 +112,16 @@ static int pk_write_ec_pubkey(unsigned char **p, unsigned char *start,
 
     len = pk->pk_raw_len;
 
-    if (((size_t) (*p - start)) < len) {
-        return MBEDTLS_ERR_PK_BUFFER_TOO_SMALL;
+    if (*p < start || (size_t) (*p - start) < len) {
+        return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
     }
 
     memcpy(*p - len, pk->pk_raw, len);
     *p -= len;
-
-    return (int) len;
-}
-#else
-/*
- * EC public key is an EC point
- */
-static int pk_write_ec_pubkey(unsigned char **p, unsigned char *start,
-                              mbedtls_ecp_keypair *ec)
-{
+#else /* MBEDTLS_USE_PSA_CRYPTO */
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t len = 0;
     unsigned char buf[MBEDTLS_ECP_MAX_PT_LEN];
+    mbedtls_ecp_keypair *ec = mbedtls_pk_ec(*pk);
 
     if ((ret = mbedtls_ecp_point_write_binary(&ec->grp, &ec->Q,
                                               MBEDTLS_ECP_PF_UNCOMPRESSED,
@@ -144,10 +135,10 @@ static int pk_write_ec_pubkey(unsigned char **p, unsigned char *start,
 
     *p -= len;
     memcpy(*p, buf, len);
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     return (int) len;
 }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /*
  * ECParameters ::= CHOICE {
@@ -205,15 +196,9 @@ int mbedtls_pk_write_pubkey(unsigned char **p, unsigned char *start,
     } else
 #endif
 #if defined(MBEDTLS_ECP_LIGHT)
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     if (mbedtls_pk_get_type(key) == MBEDTLS_PK_ECKEY) {
         MBEDTLS_ASN1_CHK_ADD(len, pk_write_ec_pubkey(p, start, key));
     } else
-#else /* MBEDTLS_USE_PSA_CRYPTO */
-    if (mbedtls_pk_get_type(key) == MBEDTLS_PK_ECKEY) {
-        MBEDTLS_ASN1_CHK_ADD(len, pk_write_ec_pubkey(p, start, mbedtls_pk_ec(*key)));
-    } else
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 #endif
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if (mbedtls_pk_get_type(key) == MBEDTLS_PK_OPAQUE) {
@@ -451,11 +436,7 @@ end_of_export:
          */
 
         /* publicKey */
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
         MBEDTLS_ASN1_CHK_ADD(pub_len, pk_write_ec_pubkey(&c, buf, key));
-#else /* MBEDTLS_USE_PSA_CRYPTO */
-        MBEDTLS_ASN1_CHK_ADD(pub_len, pk_write_ec_pubkey(&c, buf, ec));
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
         if (c - buf < 1) {
             return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;

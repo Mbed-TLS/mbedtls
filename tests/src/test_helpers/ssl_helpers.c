@@ -46,6 +46,8 @@ void mbedtls_test_ssl_log_analyzer(void *ctx, int level,
     (void) line;
     (void) file;
 
+    mbedtls_fprintf(stderr, "%s", str);
+
     if (NULL != p &&
         NULL != p->pattern &&
         NULL != strstr(str, p->pattern)) {

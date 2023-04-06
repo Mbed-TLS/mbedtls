@@ -2234,7 +2234,8 @@ static int ssl_write_server_hello(mbedtls_ssl_context *ssl)
             sizeof(magic_tls12_downgrade_string) == 8,
             "magic_tls12_downgrade_string does not have the expected size");
 
-        memcpy(p, magic_tls12_downgrade_string, 8);
+        memcpy(p, magic_tls12_downgrade_string,
+               sizeof(magic_tls12_downgrade_string));
     } else
 #endif
     {

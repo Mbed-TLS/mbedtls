@@ -25,11 +25,6 @@ class BignumModTarget(test_data_generation.BaseTarget):
     """Target for bignum mod test case generation."""
     target_basename = 'test_suite_bignum_mod.generated'
 
-# BEGIN MERGE SLOT 1
-
-# END MERGE SLOT 1
-
-# BEGIN MERGE SLOT 2
 
 class BignumModMul(bignum_common.ModOperationCommon,
                    BignumModTarget):
@@ -51,9 +46,6 @@ class BignumModMul(bignum_common.ModOperationCommon,
         result = (self.int_a * self.int_b) % self.int_n
         return [self.format_result(self.to_montgomery(result))]
 
-# END MERGE SLOT 2
-
-# BEGIN MERGE SLOT 3
 
 class BignumModSub(bignum_common.ModOperationCommon, BignumModTarget):
     """Test cases for bignum mpi_mod_sub()."""
@@ -105,13 +97,7 @@ class BignumModInvMont(bignum_common.ModOperationCommon, BignumModTarget):
         # generated cases
         return [self.format_result(mont_result), "0"]
 
-# END MERGE SLOT 3
 
-# BEGIN MERGE SLOT 4
-
-# END MERGE SLOT 4
-
-# BEGIN MERGE SLOT 5
 class BignumModAdd(bignum_common.ModOperationCommon, BignumModTarget):
     """Test cases for bignum mpi_mod_add()."""
     count = 0
@@ -125,26 +111,3 @@ class BignumModAdd(bignum_common.ModOperationCommon, BignumModTarget):
         # To make negative tests easier, append "0" for success to the
         # generated cases
         return [self.format_result(result), "0"]
-
-
-# END MERGE SLOT 5
-
-# BEGIN MERGE SLOT 6
-
-# END MERGE SLOT 6
-
-# BEGIN MERGE SLOT 7
-
-# END MERGE SLOT 7
-
-# BEGIN MERGE SLOT 8
-
-# END MERGE SLOT 8
-
-# BEGIN MERGE SLOT 9
-
-# END MERGE SLOT 9
-
-# BEGIN MERGE SLOT 10
-
-# END MERGE SLOT 10

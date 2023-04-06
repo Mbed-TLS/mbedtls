@@ -171,12 +171,6 @@ exit:
     return ret;
 }
 
-/* BEGIN MERGE SLOT 1 */
-
-/* END MERGE SLOT 1 */
-
-/* BEGIN MERGE SLOT 2 */
-
 int mbedtls_mpi_mod_mul(mbedtls_mpi_mod_residue *X,
                         const mbedtls_mpi_mod_residue *A,
                         const mbedtls_mpi_mod_residue *B,
@@ -202,9 +196,6 @@ int mbedtls_mpi_mod_mul(mbedtls_mpi_mod_residue *X,
     return 0;
 }
 
-/* END MERGE SLOT 2 */
-
-/* BEGIN MERGE SLOT 3 */
 int mbedtls_mpi_mod_sub(mbedtls_mpi_mod_residue *X,
                         const mbedtls_mpi_mod_residue *A,
                         const mbedtls_mpi_mod_residue *B,
@@ -309,13 +300,7 @@ int mbedtls_mpi_mod_inv(mbedtls_mpi_mod_residue *X,
 
     return ret;
 }
-/* END MERGE SLOT 3 */
 
-/* BEGIN MERGE SLOT 4 */
-
-/* END MERGE SLOT 4 */
-
-/* BEGIN MERGE SLOT 5 */
 int mbedtls_mpi_mod_add(mbedtls_mpi_mod_residue *X,
                         const mbedtls_mpi_mod_residue *A,
                         const mbedtls_mpi_mod_residue *B,
@@ -329,9 +314,6 @@ int mbedtls_mpi_mod_add(mbedtls_mpi_mod_residue *X,
 
     return 0;
 }
-/* END MERGE SLOT 5 */
-
-/* BEGIN MERGE SLOT 6 */
 
 int mbedtls_mpi_mod_random(mbedtls_mpi_mod_residue *X,
                            mbedtls_mpi_uint min,
@@ -345,9 +327,6 @@ int mbedtls_mpi_mod_random(mbedtls_mpi_mod_residue *X,
     return mbedtls_mpi_mod_raw_random(X->p, min, N, f_rng, p_rng);
 }
 
-/* END MERGE SLOT 6 */
-
-/* BEGIN MERGE SLOT 7 */
 int mbedtls_mpi_mod_read(mbedtls_mpi_mod_residue *r,
                          const mbedtls_mpi_mod_modulus *N,
                          const unsigned char *buf,
@@ -417,18 +396,5 @@ cleanup:
 
     return ret;
 }
-/* END MERGE SLOT 7 */
-
-/* BEGIN MERGE SLOT 8 */
-
-/* END MERGE SLOT 8 */
-
-/* BEGIN MERGE SLOT 9 */
-
-/* END MERGE SLOT 9 */
-
-/* BEGIN MERGE SLOT 10 */
-
-/* END MERGE SLOT 10 */
 
 #endif /* MBEDTLS_BIGNUM_C */

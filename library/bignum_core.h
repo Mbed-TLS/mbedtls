@@ -569,8 +569,6 @@ int mbedtls_mpi_core_random(mbedtls_mpi_uint *X,
                             int (*f_rng)(void *, unsigned char *, size_t),
                             void *p_rng);
 
-/* BEGIN MERGE SLOT 1 */
-
 /**
  * \brief          Returns the number of limbs of working memory required for
  *                 a call to `mbedtls_mpi_core_exp_mod()`.
@@ -623,14 +621,6 @@ void mbedtls_mpi_core_exp_mod(mbedtls_mpi_uint *X,
                               const mbedtls_mpi_uint *E, size_t E_limbs,
                               const mbedtls_mpi_uint *RR,
                               mbedtls_mpi_uint *T);
-
-/* END MERGE SLOT 1 */
-
-/* BEGIN MERGE SLOT 2 */
-
-/* END MERGE SLOT 2 */
-
-/* BEGIN MERGE SLOT 3 */
 
 /**
  * \brief Subtract unsigned integer from known-size large unsigned integers.
@@ -753,35 +743,5 @@ void mbedtls_mpi_core_from_mont_rep(mbedtls_mpi_uint *X,
                                     size_t AN_limbs,
                                     mbedtls_mpi_uint mm,
                                     mbedtls_mpi_uint *T);
-
-/* END MERGE SLOT 3 */
-
-/* BEGIN MERGE SLOT 4 */
-
-/* END MERGE SLOT 4 */
-
-/* BEGIN MERGE SLOT 5 */
-
-/* END MERGE SLOT 5 */
-
-/* BEGIN MERGE SLOT 6 */
-
-/* END MERGE SLOT 6 */
-
-/* BEGIN MERGE SLOT 7 */
-
-/* END MERGE SLOT 7 */
-
-/* BEGIN MERGE SLOT 8 */
-
-/* END MERGE SLOT 8 */
-
-/* BEGIN MERGE SLOT 9 */
-
-/* END MERGE SLOT 9 */
-
-/* BEGIN MERGE SLOT 10 */
-
-/* END MERGE SLOT 10 */
 
 #endif /* MBEDTLS_BIGNUM_CORE_H */

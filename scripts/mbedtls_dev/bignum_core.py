@@ -774,7 +774,6 @@ def mpi_modmul_case_generate() -> None:
             i += 1
     print(generated_inputs)
 
-# BEGIN MERGE SLOT 1
 
 class BignumCoreExpMod(BignumCoreTarget, bignum_common.ModOperationCommon):
     """Test cases for bignum core exponentiation."""
@@ -796,13 +795,6 @@ class BignumCoreExpMod(BignumCoreTarget, bignum_common.ModOperationCommon):
         # the modulus (see for example exponent blinding)
         return bool(self.int_a < self.int_n)
 
-# END MERGE SLOT 1
-
-# BEGIN MERGE SLOT 2
-
-# END MERGE SLOT 2
-
-# BEGIN MERGE SLOT 3
 
 class BignumCoreSubInt(BignumCoreTarget, bignum_common.OperationCommon):
     """Test cases for bignum core sub int."""
@@ -848,33 +840,3 @@ class BignumCoreZeroCheckCT(BignumCoreTarget, bignum_common.OperationCommon):
     def result(self) -> List[str]:
         result = 1 if self.int_a == 0 else 0
         return [str(result)]
-
-# END MERGE SLOT 3
-
-# BEGIN MERGE SLOT 4
-
-# END MERGE SLOT 4
-
-# BEGIN MERGE SLOT 5
-
-# END MERGE SLOT 5
-
-# BEGIN MERGE SLOT 6
-
-# END MERGE SLOT 6
-
-# BEGIN MERGE SLOT 7
-
-# END MERGE SLOT 7
-
-# BEGIN MERGE SLOT 8
-
-# END MERGE SLOT 8
-
-# BEGIN MERGE SLOT 9
-
-# END MERGE SLOT 9
-
-# BEGIN MERGE SLOT 10
-
-# END MERGE SLOT 10

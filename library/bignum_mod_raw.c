@@ -104,12 +104,6 @@ int mbedtls_mpi_mod_raw_write(const mbedtls_mpi_uint *A,
     }
 }
 
-/* BEGIN MERGE SLOT 1 */
-
-/* END MERGE SLOT 1 */
-
-/* BEGIN MERGE SLOT 2 */
-
 void mbedtls_mpi_mod_raw_sub(mbedtls_mpi_uint *X,
                              const mbedtls_mpi_uint *A,
                              const mbedtls_mpi_uint *B,
@@ -143,10 +137,6 @@ void mbedtls_mpi_mod_raw_mul(mbedtls_mpi_uint *X,
                              N->rep.mont.mm, T);
 }
 
-/* END MERGE SLOT 2 */
-
-/* BEGIN MERGE SLOT 3 */
-
 size_t mbedtls_mpi_mod_raw_inv_prime_working_limbs(size_t AN_limbs)
 {
     /* mbedtls_mpi_mod_raw_inv_prime() needs a temporary for the exponent,
@@ -178,13 +168,6 @@ void mbedtls_mpi_mod_raw_inv_prime(mbedtls_mpi_uint *X,
                              RR, T + AN_limbs);
 }
 
-/* END MERGE SLOT 3 */
-
-/* BEGIN MERGE SLOT 4 */
-
-/* END MERGE SLOT 4 */
-
-/* BEGIN MERGE SLOT 5 */
 void mbedtls_mpi_mod_raw_add(mbedtls_mpi_uint *X,
                              const mbedtls_mpi_uint *A,
                              const mbedtls_mpi_uint *B,
@@ -195,9 +178,6 @@ void mbedtls_mpi_mod_raw_add(mbedtls_mpi_uint *X,
     borrow = mbedtls_mpi_core_sub(X, X, N->p, N->limbs);
     (void) mbedtls_mpi_core_add_if(X, N->p, N->limbs, (unsigned) (carry ^ borrow));
 }
-/* END MERGE SLOT 5 */
-
-/* BEGIN MERGE SLOT 6 */
 
 int mbedtls_mpi_mod_raw_canonical_to_modulus_rep(
     mbedtls_mpi_uint *X,
@@ -240,9 +220,6 @@ int mbedtls_mpi_mod_raw_random(mbedtls_mpi_uint *X,
     return mbedtls_mpi_mod_raw_canonical_to_modulus_rep(X, N);
 }
 
-/* END MERGE SLOT 6 */
-
-/* BEGIN MERGE SLOT 7 */
 int mbedtls_mpi_mod_raw_to_mont_rep(mbedtls_mpi_uint *X,
                                     const mbedtls_mpi_mod_modulus *N)
 {
@@ -289,18 +266,5 @@ void mbedtls_mpi_mod_raw_neg(mbedtls_mpi_uint *X,
     mbedtls_mpi_uint borrow = mbedtls_mpi_core_sub(X, X, N->p, N->limbs);
     (void) mbedtls_mpi_core_add_if(X, N->p, N->limbs, (unsigned) borrow);
 }
-/* END MERGE SLOT 7 */
-
-/* BEGIN MERGE SLOT 8 */
-
-/* END MERGE SLOT 8 */
-
-/* BEGIN MERGE SLOT 9 */
-
-/* END MERGE SLOT 9 */
-
-/* BEGIN MERGE SLOT 10 */
-
-/* END MERGE SLOT 10 */
 
 #endif /* MBEDTLS_BIGNUM_C */

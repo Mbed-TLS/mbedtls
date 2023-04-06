@@ -62,7 +62,7 @@ void mbedtls_pk_init(mbedtls_pk_context *ctx)
     ctx->pk_info = NULL;
     ctx->pk_ctx = NULL;
 #if defined(MBEDTLS_ECP_C) && defined(MBEDTLS_USE_PSA_CRYPTO)
-    mbedtls_platform_zeroize(ctx->pk_raw, sizeof(ctx->pk_raw));
+    memset(ctx->pk_raw, 0, sizeof(ctx->pk_raw));
     ctx->pk_raw_len = 0;
     ctx->pk_ec_family = 0;
     ctx->pk_bits = 0;

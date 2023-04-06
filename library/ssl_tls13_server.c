@@ -1405,7 +1405,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
 #endif
 
     /*
-     * We are negotiation the version 1.3 of the protocol. Do what we have
+     * We are negotiating the version 1.3 of the protocol. Do what we have
      * postponed: copy of the client random bytes, copy of the legacy session
      * identifier and selection of the TLS 1.3 cipher suite.
      */

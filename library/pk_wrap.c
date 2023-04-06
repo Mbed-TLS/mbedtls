@@ -1120,9 +1120,9 @@ static int eckey_check_pair_psa(const void *pub, const void *prv)
     size_t pub_key_len;
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
     size_t curve_bits;
-    psa_ecc_family_t curve =
+    const psa_ecc_family_t curve =
         mbedtls_ecc_group_to_psa(prv_ctx->grp.id, &curve_bits);
-    size_t curve_bytes = PSA_BITS_TO_BYTES(curve_bits);
+    const size_t curve_bytes = PSA_BITS_TO_BYTES(curve_bits);
 
     psa_set_key_type(&key_attr, PSA_KEY_TYPE_ECC_KEY_PAIR(curve));
     psa_set_key_usage_flags(&key_attr, PSA_KEY_USAGE_EXPORT);
@@ -1140,17 +1140,13 @@ static int eckey_check_pair_psa(const void *pub, const void *prv)
 
     mbedtls_platform_zeroize(prv_key_buf, sizeof(prv_key_buf));
 
-    status = psa_export_public_key(key_id, prv_key_buf, sizeof(prv_key_buf),
-                                   &prv_key_len);
-    if (status != PSA_SUCCESS) {
-        ret = PSA_PK_TO_MBEDTLS_ERR(status);
-        status = psa_destroy_key(key_id);
-        return (status != PSA_SUCCESS) ? PSA_PK_TO_MBEDTLS_ERR(status) : ret;
-    }
-
+    ret = PSA_PK_TO_MBEDTLS_ERR(psa_export_public_key(key_id,
+                                                      prv_key_buf,
+                                                      sizeof(prv_key_buf),
+                                                      &prv_key_len));
     status = psa_destroy_key(key_id);
-    if (status != PSA_SUCCESS) {
-        return PSA_PK_TO_MBEDTLS_ERR(status);
+    if (ret != 0 || status != PSA_SUCCESS) {
+        return (ret != 0) ? ret : PSA_PK_TO_MBEDTLS_ERR(status);
     }
 
     ret = mbedtls_ecp_point_write_binary(&pub_ctx->grp, &pub_ctx->Q,

@@ -8447,17 +8447,18 @@ exit:
 
 /* BEGIN_CASE */
 void derive_input(int alg_arg,
-                  int step_arg1, int key_type_arg1, data_t *input1,
-                  int expected_status_arg1,
-                  int step_arg2, int key_type_arg2, data_t *input2,
-                  int expected_status_arg2,
-                  int step_arg3, int key_type_arg3, data_t *input3,
-                  int expected_status_arg3,
+                  int step_arg1, int key_type_arg1, int input_type_arg1,
+                  data_t *input1, int expected_status_arg1,
+                  int step_arg2, int key_type_arg2, int input_type_arg2,
+                  data_t *input2, int expected_status_arg2,
+                  int step_arg3, int key_type_arg3, int input_type_arg3,
+                  data_t *input3, int expected_status_arg3,
                   int output_key_type_arg, int expected_output_status_arg)
 {
     psa_algorithm_t alg = alg_arg;
     psa_key_derivation_step_t steps[] = { step_arg1, step_arg2, step_arg3 };
     psa_key_type_t key_types[] = { key_type_arg1, key_type_arg2, key_type_arg3 };
+    uint8_t input_types[] = { input_type_arg1, input_type_arg2, input_type_arg3 };
     psa_status_t expected_statuses[] = { expected_status_arg1,
                                          expected_status_arg2,
                                          expected_status_arg3 };
@@ -8502,10 +8503,17 @@ void derive_input(int alg_arg,
                            expected_statuses[i]);
             }
         } else {
-            TEST_EQUAL(psa_key_derivation_input_bytes(
-                           &operation, steps[i],
-                           inputs[i]->x, inputs[i]->len),
-                       expected_statuses[i]);
+            if (input_types[i] == 0) {
+                TEST_EQUAL(psa_key_derivation_input_bytes(
+                               &operation, steps[i],
+                               inputs[i]->x, inputs[i]->len),
+                           expected_statuses[i]);
+            } else if (input_types[i] == 1) {
+                TEST_EQUAL(psa_key_derivation_input_integer(
+                               &operation, steps[i],
+                               *(inputs[i]->x)),
+                           expected_statuses[i]);
+            }
         }
     }
 

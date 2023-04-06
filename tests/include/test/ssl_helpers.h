@@ -50,6 +50,35 @@
                                                            psa_generic_status_to_mbedtls)
 #endif
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(MBEDTLS_AES_C)
+#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_MD_CAN_SHA384)
+#define MBEDTLS_TEST_HAS_TLS1_3_AES_256_GCM_SHA384
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA256)
+#define MBEDTLS_TEST_HAS_TLS1_3_AES_128_GCM_SHA256
+#endif
+#endif /* MBEDTLS_GCM_C */
+#if defined(MBEDTLS_CCM_C) && defined(MBEDTLS_MD_CAN_SHA256)
+#define MBEDTLS_TEST_HAS_TLS1_3_AES_128_CCM_SHA256
+#define MBEDTLS_TEST_HAS_TLS1_3_AES_128_CCM_8_SHA256
+#endif
+#endif /* MBEDTLS_AES_C */
+#if defined(MBEDTLS_CHACHAPOLY_C) && defined(MBEDTLS_MD_CAN_SHA256)
+#define MBEDTLS_TEST_HAS_TLS1_3_CHACHA20_POLY1305_SHA256
+#endif
+
+#if defined(MBEDTLS_TEST_HAS_TLS1_3_AES_256_GCM_SHA384) || \
+    defined(MBEDTLS_TEST_HAS_TLS1_3_AES_128_GCM_SHA256) || \
+    defined(MBEDTLS_TEST_HAS_TLS1_3_AES_128_CCM_SHA256) || \
+    defined(MBEDTLS_TEST_HAS_TLS1_3_AES_128_CCM_8_SHA256) || \
+    defined(MBEDTLS_TEST_HAS_TLS1_3_CHACHA20_POLY1305_SHA256)
+#define MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE
+#endif
+
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED) ||    \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||  \
     defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)

@@ -769,7 +769,6 @@ static int ssl_prepare_client_hello(mbedtls_ssl_context *ssl)
             ssl->tls_version = session_negotiate->tls_version;
             ssl->handshake->min_tls_version = ssl->tls_version;
         } else {
-            ssl->tls_version = ssl->conf->max_tls_version;
             ssl->handshake->min_tls_version = ssl->conf->min_tls_version;
         }
     }

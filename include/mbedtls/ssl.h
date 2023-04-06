@@ -1605,19 +1605,21 @@ struct mbedtls_ssl_context {
                                                     renego_max_records is < 0           */
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
-    /** Server: Negotiated TLS protocol version.
-     *  Client: Maximum TLS version to be negotiated, then negotiated TLS
-     *          version.
+    /**
+     *  Maximum TLS version to be negotiated, then negotiated TLS version.
      *
-     *  It is initialized as the maximum TLS version to be negotiated in the
-     *  ClientHello writing preparation stage and used throughout the
-     *  ClientHello writing. For a fresh handshake not linked to any previous
-     *  handshake, it is initialized to the configured maximum TLS version
-     *  to be negotiated. When renegotiating or resuming a session, it is
-     *  initialized to the previously negotiated TLS version.
+     *  It is initialized as the configured maximum TLS version to be
+     *  negotiated by mbedtls_ssl_setup().
      *
-     *  Updated to the negotiated TLS version as soon as the ServerHello is
-     *  received.
+     *  When renegotiating or resuming a session, it is overwritten in the
+     *  ClientHello writing preparation stage with the previously negotiated
+     *  TLS version.
+     *
+     *  On client side, it is updated to the TLS version selected by the server
+     *  for the handshake when the ServerHello is received.
+     *
+     *  On server side, it is updated to the TLS version the server selects for
+     *  the handshake when the ClientHello is received.
      */
     mbedtls_ssl_protocol_version MBEDTLS_PRIVATE(tls_version);
 

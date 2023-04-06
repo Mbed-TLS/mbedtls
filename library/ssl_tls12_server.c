@@ -920,12 +920,15 @@ read_record_header:
      * If renegotiating, then the input was read with mbedtls_ssl_read_record(),
      * otherwise read it ourselves manually in order to support SSLv2
      * ClientHello, which doesn't use the same record layer format.
+     * Otherwise in a scenario of TLS 1.3/TLS 1.2 version negotiation, the
+     * ClientHello has been already fully fetched by the TLS 1.3 code and the
+     * flag ssl->keep_current_message is raised.
      */
     renegotiating = 0;
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     renegotiating = (ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE);
 #endif
-    if (!renegotiating) {
+    if (!renegotiating && !ssl->keep_current_message) {
         if ((ret = mbedtls_ssl_fetch_input(ssl, 5)) != 0) {
             /* No alert on a read error. */
             MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_fetch_input", ret);
@@ -1000,24 +1003,28 @@ read_record_header:
     } else
 #endif
     {
-        if (msg_len > MBEDTLS_SSL_IN_CONTENT_LEN) {
-            MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message"));
-            return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
-        }
+        if (ssl->keep_current_message) {
+            ssl->keep_current_message = 0;
+        } else {
+            if (msg_len > MBEDTLS_SSL_IN_CONTENT_LEN) {
+                MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message"));
+                return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+            }
 
-        if ((ret = mbedtls_ssl_fetch_input(ssl,
-                                           mbedtls_ssl_in_hdr_len(ssl) + msg_len)) != 0) {
-            MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_fetch_input", ret);
-            return ret;
-        }
+            if ((ret = mbedtls_ssl_fetch_input(ssl,
+                                               mbedtls_ssl_in_hdr_len(ssl) + msg_len)) != 0) {
+                MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_fetch_input", ret);
+                return ret;
+            }
 
-        /* Done reading this record, get ready for the next one */
+            /* Done reading this record, get ready for the next one */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-        if (ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
-            ssl->next_record_offset = msg_len + mbedtls_ssl_in_hdr_len(ssl);
-        } else
+            if (ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
+                ssl->next_record_offset = msg_len + mbedtls_ssl_in_hdr_len(ssl);
+            } else
 #endif
-        ssl->in_left = 0;
+            ssl->in_left = 0;
+        }
     }
 
     buf = ssl->in_msg;
@@ -2206,11 +2213,37 @@ static int ssl_write_server_hello(mbedtls_ssl_context *ssl)
     p += 4;
 #endif /* MBEDTLS_HAVE_TIME */
 
-    if ((ret = ssl->conf->f_rng(ssl->conf->p_rng, p, 28)) != 0) {
+    if ((ret = ssl->conf->f_rng(ssl->conf->p_rng, p, 20)) != 0) {
         return ret;
     }
+    p += 20;
 
-    p += 28;
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    /*
+     * RFC 8446
+     * TLS 1.3 has a downgrade protection mechanism embedded in the server's
+     * random value. TLS 1.3 servers which negotiate TLS 1.2 or below in
+     * response to a ClientHello MUST set the last 8 bytes of their Random
+     * value specially in their ServerHello.
+     */
+    if (mbedtls_ssl_conf_is_tls13_enabled(ssl->conf)) {
+        static const unsigned char magic_tls12_downgrade_string[] =
+        { 'D', 'O', 'W', 'N', 'G', 'R', 'D', 1 };
+
+        MBEDTLS_STATIC_ASSERT(
+            sizeof(magic_tls12_downgrade_string) == 8,
+            "magic_tls12_downgrade_string does not have the expected size");
+
+        memcpy(p, magic_tls12_downgrade_string,
+               sizeof(magic_tls12_downgrade_string));
+    } else
+#endif
+    {
+        if ((ret = ssl->conf->f_rng(ssl->conf->p_rng, p, 8)) != 0) {
+            return ret;
+        }
+    }
+    p += 8;
 
     memcpy(ssl->handshake->randbytes + 32, buf + 6, 32);
 

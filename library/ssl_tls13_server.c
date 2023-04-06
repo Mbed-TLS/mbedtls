@@ -738,7 +738,7 @@ static int ssl_tls13_parse_supported_versions_ext(mbedtls_ssl_context *ssl,
     size_t versions_len;
     const unsigned char *versions_end;
     uint16_t tls_version;
-    int tls13_supported = 0;
+    int found_supported_version = 0;
 
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, 1);
     versions_len = p[0];
@@ -751,25 +751,30 @@ static int ssl_tls13_parse_supported_versions_ext(mbedtls_ssl_context *ssl,
         tls_version = mbedtls_ssl_read_version(p, ssl->conf->transport);
         p += 2;
 
-        /* In this implementation we only support TLS 1.3 and DTLS 1.3. */
-        if (tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
-            tls13_supported = 1;
+        if (MBEDTLS_SSL_VERSION_TLS1_3 == tls_version) {
+            found_supported_version = 1;
+            break;
+        }
+
+        if ((MBEDTLS_SSL_VERSION_TLS1_2 == tls_version) &&
+            mbedtls_ssl_conf_is_tls12_enabled(ssl->conf)) {
+            found_supported_version = 1;
             break;
         }
     }
 
-    if (!tls13_supported) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("TLS 1.3 is not supported by the client"));
+    if (!found_supported_version) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("No supported version found."));
 
         MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION,
                                      MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION);
         return MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION;
     }
 
-    MBEDTLS_SSL_DEBUG_MSG(1, ("Negotiated version. Supported is [%04x]",
+    MBEDTLS_SSL_DEBUG_MSG(1, ("Negotiated version: [%04x]",
                               (unsigned int) tls_version));
 
-    return 0;
+    return (int) tls_version;
 }
 
 #if defined(PSA_WANT_ALG_ECDH)
@@ -1233,6 +1238,7 @@ static int ssl_tls13_pick_key_cert(mbedtls_ssl_context *ssl)
 
 #define SSL_CLIENT_HELLO_OK           0
 #define SSL_CLIENT_HELLO_HRR_REQUIRED 1
+#define SSL_CLIENT_HELLO_TLS1_2       2
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
@@ -1241,16 +1247,20 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const unsigned char *p = buf;
+    const unsigned char *random;
     size_t legacy_session_id_len;
+    const unsigned char *legacy_session_id;
     size_t cipher_suites_len;
+    const unsigned char *cipher_suites;
     const unsigned char *cipher_suites_end;
     size_t extensions_len;
     const unsigned char *extensions_end;
+    const unsigned char *supported_versions_data;
+    const unsigned char *supported_versions_data_end;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
     int hrr_required = 0;
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
-    const unsigned char *cipher_suites;
     const unsigned char *pre_shared_key_ext = NULL;
     const unsigned char *pre_shared_key_ext_end = NULL;
 #endif
@@ -1291,55 +1301,38 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     }
     p += 2;
 
-    /*
-     * Only support TLS 1.3 currently, temporarily set the version.
-     */
-    ssl->tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
-
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    /* Store minor version for later use with ticket serialization. */
-    ssl->session_negotiate->tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
-    ssl->session_negotiate->endpoint = ssl->conf->endpoint;
-#endif
-
     /* ...
      * Random random;
      * ...
      * with Random defined as:
      * opaque Random[32];
      */
-    MBEDTLS_SSL_DEBUG_BUF(3, "client hello, random bytes",
-                          p, MBEDTLS_CLIENT_HELLO_RANDOM_LEN);
-
-    memcpy(&handshake->randbytes[0], p, MBEDTLS_CLIENT_HELLO_RANDOM_LEN);
+    random = p;
     p += MBEDTLS_CLIENT_HELLO_RANDOM_LEN;
 
     /* ...
      * opaque legacy_session_id<0..32>;
      * ...
      */
-    legacy_session_id_len = p[0];
-    p++;
+    legacy_session_id_len = *(p++);
+    legacy_session_id = p;
 
-    if (legacy_session_id_len > sizeof(ssl->session_negotiate->id)) {
-        MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message"));
-        return MBEDTLS_ERR_SSL_DECODE_ERROR;
-    }
-
-    ssl->session_negotiate->id_len = legacy_session_id_len;
-    MBEDTLS_SSL_DEBUG_BUF(3, "client hello, session id",
-                          p, legacy_session_id_len);
     /*
      * Check we have enough data for the legacy session identifier
      * and the ciphersuite list length.
      */
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, legacy_session_id_len + 2);
-
-    memcpy(&ssl->session_negotiate->id[0], p, legacy_session_id_len);
     p += legacy_session_id_len;
 
+    /* ...
+     * CipherSuite cipher_suites<2..2^16-2>;
+     * ...
+     * with CipherSuite defined as:
+     * uint8 CipherSuite[2];
+     */
     cipher_suites_len = MBEDTLS_GET_UINT16_BE(p, 0);
     p += 2;
+    cipher_suites = p;
 
     /*
      * The length of the ciphersuite list has to be even.
@@ -1358,33 +1351,95 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
      * extensions_len                               2 bytes
      */
     MBEDTLS_SSL_CHK_BUF_READ_PTR(p, end, cipher_suites_len + 2 + 2);
+    p += cipher_suites_len;
+    cipher_suites_end = p;
 
-    /* ...
-     * CipherSuite cipher_suites<2..2^16-2>;
-     * ...
-     * with CipherSuite defined as:
-     * uint8 CipherSuite[2];
+    /*
+     * Search for the supported versions extension and parse it to determine
+     * if the client supports TLS 1.3.
      */
-#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
-    cipher_suites = p;
+    ret = mbedtls_ssl_tls13_is_supported_versions_ext_present_in_exts(
+        ssl, p + 2, end,
+        &supported_versions_data, &supported_versions_data_end);
+    if (ret < 0) {
+        MBEDTLS_SSL_DEBUG_RET(1,
+                              ("mbedtls_ssl_tls13_is_supported_versions_ext_present_in_exts"), ret);
+        return ret;
+    }
+
+    if (ret == 0) {
+        return SSL_CLIENT_HELLO_TLS1_2;
+    }
+
+    if (ret == 1) {
+        ret = ssl_tls13_parse_supported_versions_ext(ssl,
+                                                     supported_versions_data,
+                                                     supported_versions_data_end);
+        if (ret < 0) {
+            MBEDTLS_SSL_DEBUG_RET(1,
+                                  ("ssl_tls13_parse_supported_versions_ext"), ret);
+            return ret;
+        }
+
+        /*
+         * The supported versions extension was parsed successfully as the
+         * value returned by ssl_tls13_parse_supported_versions_ext() is
+         * positive. The return value is then equal to
+         * MBEDTLS_SSL_VERSION_TLS1_2 or MBEDTLS_SSL_VERSION_TLS1_3, defining
+         * the TLS version to negotiate.
+         */
+        if (MBEDTLS_SSL_VERSION_TLS1_2 == ret) {
+            return SSL_CLIENT_HELLO_TLS1_2;
+        }
+    }
+
+    /*
+     * We negotiate TLS 1.3.
+     */
+    ssl->tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    /* Store minor version for later use with ticket serialization. */
+    ssl->session_negotiate->tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    ssl->session_negotiate->endpoint = ssl->conf->endpoint;
 #endif
-    cipher_suites_end = p + cipher_suites_len;
-    MBEDTLS_SSL_DEBUG_BUF(3, "client hello, ciphersuitelist",
-                          p, cipher_suites_len);
+
+    /*
+     * We are negotiating the version 1.3 of the protocol. Do what we have
+     * postponed: copy of the client random bytes, copy of the legacy session
+     * identifier and selection of the TLS 1.3 cipher suite.
+     */
+    MBEDTLS_SSL_DEBUG_BUF(3, "client hello, random bytes",
+                          random, MBEDTLS_CLIENT_HELLO_RANDOM_LEN);
+    memcpy(&handshake->randbytes[0], random, MBEDTLS_CLIENT_HELLO_RANDOM_LEN);
+
+    if (legacy_session_id_len > sizeof(ssl->session_negotiate->id)) {
+        MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message"));
+        return MBEDTLS_ERR_SSL_DECODE_ERROR;
+    }
+    ssl->session_negotiate->id_len = legacy_session_id_len;
+    MBEDTLS_SSL_DEBUG_BUF(3, "client hello, session id",
+                          legacy_session_id, legacy_session_id_len);
+    memcpy(&ssl->session_negotiate->id[0],
+           legacy_session_id, legacy_session_id_len);
 
     /*
      * Search for a matching ciphersuite
      */
-    for (; p < cipher_suites_end; p += 2) {
+    MBEDTLS_SSL_DEBUG_BUF(3, "client hello, list of cipher suites",
+                          cipher_suites, cipher_suites_len);
+    for (const unsigned char *cipher_suites_p = cipher_suites;
+         cipher_suites_p < cipher_suites_end; cipher_suites_p += 2) {
         uint16_t cipher_suite;
         const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
 
         /*
-         * "cipher_suite_end - p is even" is an invariant of the loop. As
-         * cipher_suites_end - p > 0, we have cipher_suites_end - p >= 2 and
-         * it is thus safe to read two bytes.
+         * "cipher_suites_end - cipher_suites_p is even" is an invariant of the
+         * loop. As cipher_suites_end - cipher_suites_p > 0, we have
+         * cipher_suites_end - cipher_suites_p >= 2 and it is thus safe to read
+         * two bytes.
          */
-        cipher_suite = MBEDTLS_GET_UINT16_BE(p, 0);
+        cipher_suite = MBEDTLS_GET_UINT16_BE(cipher_suites_p, 0);
         ciphersuite_info = ssl_tls13_validate_peer_ciphersuite(
             ssl, cipher_suite);
         if (ciphersuite_info == NULL) {
@@ -1404,7 +1459,6 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                                      MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE);
         return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
     }
-    p = cipher_suites_end;
 
     /* ...
      * opaque legacy_compression_methods<1..2^8-1>;
@@ -1433,7 +1487,6 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     extensions_end = p + extensions_len;
 
     MBEDTLS_SSL_DEBUG_BUF(3, "client hello extensions", p, extensions_len);
-
     handshake->received_extensions = MBEDTLS_SSL_EXT_MASK_NONE;
 
     while (p < extensions_end) {
@@ -1535,15 +1588,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
 #endif /* PSA_WANT_ALG_ECDH */
 
             case MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS:
-                MBEDTLS_SSL_DEBUG_MSG(3, ("found supported versions extension"));
-
-                ret = ssl_tls13_parse_supported_versions_ext(
-                    ssl, p, extension_data_end);
-                if (ret != 0) {
-                    MBEDTLS_SSL_DEBUG_RET(1,
-                                          ("ssl_tls13_parse_supported_versions_ext"), ret);
-                    return ret;
-                }
+                /* Already parsed */
                 break;
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
@@ -1741,15 +1786,27 @@ static int ssl_tls13_process_client_hello(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_PROC_CHK_NEG(ssl_tls13_parse_client_hello(ssl, buf,
                                                           buf + buflen));
-    parse_client_hello_ret = ret; /* Store return value of parse_client_hello,
-                                   * only SSL_CLIENT_HELLO_OK or
-                                   * SSL_CLIENT_HELLO_HRR_REQUIRED at this
-                                   * stage as negative error codes are handled
+    parse_client_hello_ret = ret; /* Store positive return value of
+                                   * parse_client_hello,
+                                   * as negative error codes are handled
                                    * by MBEDTLS_SSL_PROC_CHK_NEG. */
+
+    /*
+     * Version 1.2 of the protocol has been chosen, set the
+     * ssl->keep_current_message flag for the ClientHello to be kept and parsed
+     * as a TLS 1.2 ClientHello. We also change ssl->tls_version to
+     * MBEDTLS_SSL_VERSION_TLS1_2 thus from now on mbedtls_ssl_handshake_step()
+     * will dispatch to the TLS 1.2 state machine.
+     */
+    if (SSL_CLIENT_HELLO_TLS1_2 == parse_client_hello_ret) {
+        ssl->keep_current_message = 1;
+        ssl->tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
+        return 0;
+    }
 
     MBEDTLS_SSL_PROC_CHK(ssl_tls13_postprocess_client_hello(ssl));
 
-    if (parse_client_hello_ret == SSL_CLIENT_HELLO_OK) {
+    if (SSL_CLIENT_HELLO_OK == parse_client_hello_ret) {
         mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_SERVER_HELLO);
     } else {
         mbedtls_ssl_handshake_set_state(ssl, MBEDTLS_SSL_HELLO_RETRY_REQUEST);

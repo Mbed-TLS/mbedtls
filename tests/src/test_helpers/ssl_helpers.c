@@ -65,7 +65,7 @@ void mbedtls_test_init_handshake_options(
     opts->client_max_version = MBEDTLS_SSL_VERSION_UNKNOWN;
     opts->server_min_version = MBEDTLS_SSL_VERSION_UNKNOWN;
     opts->server_max_version = MBEDTLS_SSL_VERSION_UNKNOWN;
-    opts->expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    opts->expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_3;
     opts->expected_handshake_result = 0;
     opts->expected_ciphersuite = 0;
     opts->pk_alg = MBEDTLS_PK_RSA;
@@ -803,6 +803,28 @@ int mbedtls_test_ssl_endpoint_init(
                                       MBEDTLS_SSL_TRANSPORT_STREAM,
                                       MBEDTLS_SSL_PRESET_DEFAULT);
     TEST_ASSERT(ret == 0);
+
+    if (MBEDTLS_SSL_IS_CLIENT == endpoint_type) {
+        if (options->client_min_version != MBEDTLS_SSL_VERSION_UNKNOWN) {
+            mbedtls_ssl_conf_min_tls_version(&(ep->conf),
+                                             options->client_min_version);
+        }
+
+        if (options->client_max_version != MBEDTLS_SSL_VERSION_UNKNOWN) {
+            mbedtls_ssl_conf_max_tls_version(&(ep->conf),
+                                             options->client_max_version);
+        }
+    } else {
+        if (options->server_min_version != MBEDTLS_SSL_VERSION_UNKNOWN) {
+            mbedtls_ssl_conf_min_tls_version(&(ep->conf),
+                                             options->server_min_version);
+        }
+
+        if (options->server_max_version != MBEDTLS_SSL_VERSION_UNKNOWN) {
+            mbedtls_ssl_conf_max_tls_version(&(ep->conf),
+                                             options->server_max_version);
+        }
+    }
 
     if (group_list != NULL) {
         mbedtls_ssl_conf_groups(&(ep->conf), group_list);
@@ -1784,16 +1806,6 @@ void mbedtls_test_ssl_perform_handshake(
                                                    NULL, NULL) == 0);
     }
 
-    if (options->client_min_version != MBEDTLS_SSL_VERSION_UNKNOWN) {
-        mbedtls_ssl_conf_min_tls_version(&client.conf,
-                                         options->client_min_version);
-    }
-
-    if (options->client_max_version != MBEDTLS_SSL_VERSION_UNKNOWN) {
-        mbedtls_ssl_conf_max_tls_version(&client.conf,
-                                         options->client_max_version);
-    }
-
     if (strlen(options->cipher) > 0) {
         set_ciphersuite(&client.conf, options->cipher, forced_ciphersuite);
     }
@@ -1826,16 +1838,6 @@ void mbedtls_test_ssl_perform_handshake(
     }
 
     mbedtls_ssl_conf_authmode(&server.conf, options->srv_auth_mode);
-
-    if (options->server_min_version != MBEDTLS_SSL_VERSION_UNKNOWN) {
-        mbedtls_ssl_conf_min_tls_version(&server.conf,
-                                         options->server_min_version);
-    }
-
-    if (options->server_max_version != MBEDTLS_SSL_VERSION_UNKNOWN) {
-        mbedtls_ssl_conf_max_tls_version(&server.conf,
-                                         options->server_max_version);
-    }
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     TEST_ASSERT(mbedtls_ssl_conf_max_frag_len(&(server.conf),

@@ -481,7 +481,7 @@ int mbedtls_pk_verify_restartable(mbedtls_pk_context *ctx,
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if ((ctx->pk_info->type == MBEDTLS_PK_ECKEY) ||
-        (ctx->pk_info->type == MBEDTLS_PK_ECKEY_DH) || 
+        (ctx->pk_info->type == MBEDTLS_PK_ECKEY_DH) ||
         (ctx->pk_info->type == MBEDTLS_PK_ECDSA)) {
         return ctx->pk_info->verify_func(ctx, md_alg, hash, hash_len,
                                          sig, sig_len);
@@ -818,12 +818,6 @@ int mbedtls_pk_check_pair(const mbedtls_pk_context *pub,
         }
     }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if ((pub->pk_info->type == MBEDTLS_PK_ECKEY) ||
-        (pub->pk_info->type == MBEDTLS_PK_ECKEY_DH)) {
-        return prv->pk_info->check_pair_func(pub, prv, f_rng, p_rng);
-    } else
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
     return prv->pk_info->check_pair_func(pub->pk_ctx, prv->pk_ctx, f_rng, p_rng);
 }
 
@@ -928,7 +922,7 @@ int mbedtls_pk_update_public_key_from_keypair(mbedtls_pk_context *pk)
     /* RSA does not support raw public keys inside the pk_context structure,
      * so we quit silently in this case */
     if ((pk->pk_info->type != MBEDTLS_PK_ECKEY) &&
-        (pk->pk_info->type != MBEDTLS_PK_ECKEY_DH) && 
+        (pk->pk_info->type != MBEDTLS_PK_ECKEY_DH) &&
         (pk->pk_info->type != MBEDTLS_PK_ECDSA)) {
         return 0;
     }

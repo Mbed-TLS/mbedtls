@@ -20,7 +20,7 @@
 #include "mbedtls/build_info.h"
 
 #include "mbedtls/platform.h"
-// md.h is included this early since MD_CAN_XXX macros are defined there.
+/* md.h is included this early since MD_CAN_XXX macros are defined there. */
 #include "mbedtls/md.h"
 
 #if !defined(MBEDTLS_X509_CSR_WRITE_C) || !defined(MBEDTLS_FS_IO) ||  \

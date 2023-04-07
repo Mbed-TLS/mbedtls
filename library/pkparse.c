@@ -1040,7 +1040,7 @@ static int pk_parse_key_sec1_der(mbedtls_ecp_keypair *eck,
         (void) p_rng;
         if ((ret = pk_derive_public_key(&eck->grp, &eck->Q, &eck->d)) != 0) {
             mbedtls_ecp_keypair_free(eck);
-            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
+            return ret;
         }
 #else /* MBEDTLS_USE_PSA_CRYPTO */
         if ((ret = mbedtls_ecp_mul(&eck->grp, &eck->Q, &eck->d, &eck->grp.G,

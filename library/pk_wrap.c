@@ -1175,12 +1175,13 @@ static int eckey_check_pair(const void *pub, const void *prv,
     (void) f_rng;
     (void) p_rng;
     return eckey_check_pair_psa(pub, prv);
-#else /* MBEDTLS_USE_PSA_CRYPTO */
+#elif defined(MBEDTLS_ECP_C)
     return mbedtls_ecp_check_pub_priv((const mbedtls_ecp_keypair *) pub,
                                       (const mbedtls_ecp_keypair *) prv,
                                       f_rng, p_rng);
-#endif /* MBEDTLS_ECP_C */
+#else
     return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+#endif
 }
 
 static void *eckey_alloc_wrap(void)

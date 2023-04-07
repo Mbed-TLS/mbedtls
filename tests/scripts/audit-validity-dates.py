@@ -34,6 +34,9 @@ from enum import Enum
 
 from cryptography import x509
 
+# reuse the function to parse *.data file in tests/suites/
+from generate_test_code import parse_test_data as parse_suite_data
+
 class DataType(Enum):
     CRT = 1 # Certificate
     CRL = 2 # Certificate Revocation List
@@ -128,6 +131,32 @@ class X509Parser():
             return m.group('type').decode('UTF-8')
         else:
             return ""
+
+    @staticmethod
+    def check_hex_string(hex_str: str) -> bool:
+        """Check if the hex string is possibly DER data."""
+        hex_len = len(hex_str)
+        # At least 6 hex char for 3 bytes: Type + Length + Content
+        if hex_len < 6:
+            return False
+        # Check if Type (1 byte) is SEQUENCE.
+        if hex_str[0:2] != '30':
+            return False
+        # Check LENGTH (1 byte) value
+        content_len = int(hex_str[2:4], base=16)
+        consumed = 4
+        if content_len in (128, 255):
+            # Indefinite or Reserved
+            return False
+        elif content_len > 127:
+            # Definite, Long
+            length_len = (content_len - 128) * 2
+            content_len = int(hex_str[consumed:consumed+length_len], base=16)
+            consumed += length_len
+        # Check LENGTH
+        if hex_len != content_len * 2 + consumed:
+            return False
+        return True
 
 class Auditor:
     """A base class for audit."""
@@ -236,6 +265,64 @@ class TestDataAuditor(Auditor):
                               for file_name in file_names)
         return data_files
 
+class FileWrapper():
+    """
+    This a stub class of generate_test_code.FileWrapper.
+
+    This class reads the whole file to memory before iterating
+    over the lines.
+    """
+
+    def __init__(self, file_name):
+        """
+        Read the file and initialize the line number to 0.
+
+        :param file_name: File path to open.
+        """
+        with open(file_name, 'rb') as f:
+            self.buf = f.read()
+        self.buf_len = len(self.buf)
+        self._line_no = 0
+        self._line_start = 0
+
+    def __iter__(self):
+        """Make the class iterable."""
+        return self
+
+    def __next__(self):
+        """
+        This method for returning a line of the file per iteration.
+
+        :return: Line read from file.
+        """
+        # If we reach the end of the file.
+        if not self._line_start < self.buf_len:
+            raise StopIteration
+
+        line_end = self.buf.find(b'\n', self._line_start) + 1
+        if line_end > 0:
+            # Find the first LF as the end of the new line.
+            line = self.buf[self._line_start:line_end]
+            self._line_start = line_end
+            self._line_no += 1
+        else:
+            # No LF found. We are at the last line without LF.
+            line = self.buf[self._line_start:]
+            self._line_start = self.buf_len
+            self._line_no += 1
+
+        # Convert byte array to string with correct encoding and
+        # strip any whitespaces added in the decoding process.
+        return line.decode(sys.getdefaultencoding()).rstrip() + '\n'
+
+    def get_line_no(self):
+        """
+        Gives current line number.
+        """
+        return self._line_no
+
+    line_no = property(get_line_no)
+
 class SuiteDataAuditor(Auditor):
     """Class for auditing files in tests/suites/*.data"""
     def __init__(self, options):
@@ -246,27 +333,31 @@ class SuiteDataAuditor(Auditor):
         """Collect all files in tests/suites/*.data"""
         test_dir = self.find_test_dir()
         suites_data_folder = os.path.join(test_dir, 'suites')
-        # collect all data files in tests/suites (114 in total)
         data_files = glob.glob(os.path.join(suites_data_folder, '*.data'))
         return data_files
 
     def parse_file(self, filename: str):
-        """Parse AuditData from file."""
-        with open(filename, 'r') as f:
-            data = f.read()
+        """
+        Parse a list of AuditData from file.
+
+        :param filename: name of the file to parse.
+        :return list of AuditData parsed from the file.
+        """
         audit_data_list = []
-        # extract hex strings from the data file.
-        hex_strings = re.findall(r'"(?P<data>[0-9a-fA-F]+)"', data)
-        for hex_str in hex_strings:
-            # We regard hex string with odd number length as invaild data.
-            if len(hex_str) & 1:
-                continue
-            bytes_data = bytes.fromhex(hex_str)
-            audit_data = self.parse_bytes(bytes_data)
-            if audit_data is None:
-                continue
-            audit_data.filename = filename
-            audit_data_list.append(audit_data)
+        data_f = FileWrapper(filename)
+        for _, _, _, test_args in parse_suite_data(data_f):
+            for test_arg in test_args:
+                match = re.match(r'"(?P<data>[0-9a-fA-F]+)"', test_arg)
+                if not match:
+                    continue
+                if not X509Parser.check_hex_string(match.group('data')):
+                    continue
+                audit_data = self.parse_bytes(bytes.fromhex(match.group('data')))
+                if audit_data is None:
+                    continue
+                audit_data.filename = filename
+                audit_data_list.append(audit_data)
+
         return audit_data_list
 
 def list_all(audit_data: AuditData):
@@ -308,9 +399,6 @@ def main():
         suite_data_files = sd_auditor.default_files
 
     td_auditor.walk_all(data_files)
-    # TODO: Improve the method for auditing test suite data files
-    #       It takes 6 times longer than td_auditor.walk_all(),
-    #       typically 0.827 s VS 0.147 s.
     sd_auditor.walk_all(suite_data_files)
 
     if args.all:

@@ -885,7 +885,7 @@ cleanup:
 static int pk_derive_public_key(mbedtls_ecp_group *grp, mbedtls_ecp_point *Q,
                                 const mbedtls_mpi *d)
 {
-    psa_status_t status;
+    psa_status_t status, destruction_status;
     psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
     size_t curve_bits;
     psa_ecc_family_t curve = mbedtls_ecc_group_to_psa(grp->id, &curve_bits);
@@ -906,25 +906,23 @@ static int pk_derive_public_key(mbedtls_ecp_group *grp, mbedtls_ecp_point *Q,
     }
 
     status = psa_import_key(&key_attr, key_buf, key_len, &key_id);
-    if (status != PSA_SUCCESS) {
-        ret = psa_pk_status_to_mbedtls(status);
+    ret = psa_pk_status_to_mbedtls(status);
+    if (ret != 0) {
         return ret;
     }
 
     mbedtls_platform_zeroize(key_buf, sizeof(key_buf));
+
     status = psa_export_public_key(key_id, key_buf, sizeof(key_buf), &key_len);
-    if (status != PSA_SUCCESS) {
-        ret = psa_pk_status_to_mbedtls(status);
-        status = psa_destroy_key(key_id);
-        return (status != PSA_SUCCESS) ? psa_pk_status_to_mbedtls(status) : ret;
+    ret = psa_pk_status_to_mbedtls(status);
+    destruction_status = psa_destroy_key(key_id);
+    if (ret != 0) {
+        return ret;
+    } else if (destruction_status != PSA_SUCCESS) {
+        return psa_pk_status_to_mbedtls(destruction_status);
     }
 
     ret = mbedtls_ecp_point_read_binary(grp, Q, key_buf, key_len);
-
-    status = psa_destroy_key(key_id);
-    if (status != PSA_SUCCESS) {
-        return psa_pk_status_to_mbedtls(status);
-    }
 
     return ret;
 }

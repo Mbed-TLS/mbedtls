@@ -1104,7 +1104,8 @@ cleanup:
  * - write the raw content of public key "pub" to a local buffer
  * - compare the two buffers
  */
-static int eckey_check_pair_psa(const void *pub, const void *prv)
+static int eckey_check_pair_psa(const mbedtls_ecp_keypair *pub,
+                                const mbedtls_ecp_keypair *prv)
 {
     psa_status_t status;
     psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
@@ -1172,8 +1173,7 @@ static int eckey_check_pair(const void *pub, const void *prv,
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     (void) f_rng;
     (void) p_rng;
-    return eckey_check_pair_psa((const mbedtls_ecp_keypair *) pub,
-                                (const mbedtls_ecp_keypair *) prv);
+    return eckey_check_pair_psa(pub, prv);
 #else /* MBEDTLS_USE_PSA_CRYPTO */
     return mbedtls_ecp_check_pub_priv((const mbedtls_ecp_keypair *) pub,
                                       (const mbedtls_ecp_keypair *) prv,

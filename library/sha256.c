@@ -185,6 +185,23 @@ static int mbedtls_a64_crypto_sha256_determine_support(void)
 
 #define SHA256_BLOCK_SIZE 64
 
+static inline void sha256_put_uint32_be(uint32_t n,
+                                        unsigned char *data,
+                                        uint8_t offset)
+{
+    if (MBEDTLS_IS_BIG_ENDIAN) {
+        data[offset + 0] = MBEDTLS_BYTE_0(n);
+        data[offset + 1] = MBEDTLS_BYTE_1(n);
+        data[offset + 2] = MBEDTLS_BYTE_2(n);
+        data[offset + 3] = MBEDTLS_BYTE_3(n);
+    } else {
+        data[offset + 0] = MBEDTLS_BYTE_3(n);
+        data[offset + 1] = MBEDTLS_BYTE_2(n);
+        data[offset + 2] = MBEDTLS_BYTE_1(n);
+        data[offset + 3] = MBEDTLS_BYTE_0(n);
+    }
+}
+
 void mbedtls_sha256_init(mbedtls_sha256_context *ctx)
 {
     memset(ctx, 0, sizeof(mbedtls_sha256_context));
@@ -695,8 +712,8 @@ int mbedtls_sha256_finish(mbedtls_sha256_context *ctx,
            | (ctx->total[1] <<  3);
     low  = (ctx->total[0] <<  3);
 
-    MBEDTLS_PUT_UINT32_BE(high, ctx->buffer, 56);
-    MBEDTLS_PUT_UINT32_BE(low,  ctx->buffer, 60);
+    sha256_put_uint32_be(high, ctx->buffer, 56);
+    sha256_put_uint32_be(low,  ctx->buffer, 60);
 
     if ((ret = mbedtls_internal_sha256_process(ctx, ctx->buffer)) != 0) {
         return ret;
@@ -705,20 +722,20 @@ int mbedtls_sha256_finish(mbedtls_sha256_context *ctx,
     /*
      * Output final state
      */
-    MBEDTLS_PUT_UINT32_BE(ctx->state[0], output,  0);
-    MBEDTLS_PUT_UINT32_BE(ctx->state[1], output,  4);
-    MBEDTLS_PUT_UINT32_BE(ctx->state[2], output,  8);
-    MBEDTLS_PUT_UINT32_BE(ctx->state[3], output, 12);
-    MBEDTLS_PUT_UINT32_BE(ctx->state[4], output, 16);
-    MBEDTLS_PUT_UINT32_BE(ctx->state[5], output, 20);
-    MBEDTLS_PUT_UINT32_BE(ctx->state[6], output, 24);
+    sha256_put_uint32_be(ctx->state[0], output,  0);
+    sha256_put_uint32_be(ctx->state[1], output,  4);
+    sha256_put_uint32_be(ctx->state[2], output,  8);
+    sha256_put_uint32_be(ctx->state[3], output, 12);
+    sha256_put_uint32_be(ctx->state[4], output, 16);
+    sha256_put_uint32_be(ctx->state[5], output, 20);
+    sha256_put_uint32_be(ctx->state[6], output, 24);
 
     int truncated = 0;
 #if defined(MBEDTLS_SHA224_C)
     truncated = ctx->is224;
 #endif
     if (!truncated) {
-        MBEDTLS_PUT_UINT32_BE(ctx->state[7], output, 28);
+        sha256_put_uint32_be(ctx->state[7], output, 28);
     }
 
     return 0;

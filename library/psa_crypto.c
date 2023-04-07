@@ -6511,6 +6511,7 @@ static psa_status_t psa_key_derivation_input_integer_internal(
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS */
     {
         /* This can't happen unless the operation object was not initialized */
+        (void) step;
         (void) value;
         (void) kdf_alg;
         return PSA_ERROR_BAD_STATE;

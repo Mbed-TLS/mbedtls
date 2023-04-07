@@ -5552,7 +5552,7 @@ static psa_status_t psa_generate_derived_ecc_key_weierstrass_helper(
     uint8_t **data
     )
 {
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
     unsigned key_out_of_range = 1;
     mbedtls_mpi k;
     mbedtls_mpi diff_N_2;
@@ -5636,13 +5636,13 @@ cleanup:
     mbedtls_mpi_free(&k);
     mbedtls_mpi_free(&diff_N_2);
     return status;
-#else /* MBEDTLS_ECP_C */
+#else /* MBEDTLS_ECP_LIGHT */
     (void) slot;
     (void) bits;
     (void) operation;
     (void) data;
     return PSA_ERROR_NOT_SUPPORTED;
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
 }
 
 /* ECC keys on a Montgomery elliptic curve draws a byte string whose length

@@ -31,7 +31,7 @@
 #include "bignum_mod.h"
 #include "mbedtls/ecp.h"
 
-#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_ECP_LIGHT)
 
 #if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
 /** Generate a private key on a Montgomery curve (Curve25519 or Curve448).

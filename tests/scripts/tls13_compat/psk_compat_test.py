@@ -151,7 +151,7 @@ class PSKMbedTLSServ(MbedTLSServ):
 
     def cmd(self):
 
-        ret = super().pre_cmd() + ['force_version=tls13', 'debug_level=5']
+        ret = super().pre_cmd() + ['debug_level=5']
         if self._kex_mode:
             ret.append('tls13_kex_modes={}'.format(self._kex_mode.name))
 
@@ -216,6 +216,8 @@ class PSKMbedTLSCli(MbedTLSCli):
 
         if self._kex_mode:
             if self._kex_mode & KexMode.ephemeral == 0:
+                # When both are enabled and ephemeral disabled, signature_algorithm is sent to
+                # server. That does not match client's configuration.
                 ret.append('force_version=tls13')
             ret.append('tls13_kex_modes={}'.format(self._kex_mode.name))
         else:

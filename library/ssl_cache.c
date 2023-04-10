@@ -51,7 +51,7 @@ static int ssl_cache_find_entry(mbedtls_ssl_cache_context *cache,
                                 size_t session_id_len,
                                 mbedtls_ssl_cache_entry **dst)
 {
-    int ret = MBEDTLS_ERR_SSL_CACHE_NOT_FOUND;
+    int ret = MBEDTLS_ERR_SSL_CACHE_ENTRY_NOT_FOUND;
 #if defined(MBEDTLS_HAVE_TIME)
     mbedtls_time_t t = mbedtls_time(NULL);
 #endif

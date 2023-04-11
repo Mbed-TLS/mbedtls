@@ -108,8 +108,8 @@ static int pk_genkey(mbedtls_pk_context *pk, int parameter)
         }
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         ret = pk_genkey_ec(&mbedtls_pk_ec(*pk)->grp,
-                            &mbedtls_pk_ec(*pk)->d,
-                            &mbedtls_pk_ec(*pk)->Q);
+                           &mbedtls_pk_ec(*pk)->d,
+                           &mbedtls_pk_ec(*pk)->Q);
         if (ret != 0) {
             return ret;
         }

@@ -4608,6 +4608,8 @@ static int ecp_mod_p448(mbedtls_mpi *);
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
 static int ecp_mod_p192k1(mbedtls_mpi *);
+MBEDTLS_TEST_HOOKS
+int mbedtls_ecp_mod_p192k1(mbedtls_mpi *);
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
 static int ecp_mod_p224k1(mbedtls_mpi *);
@@ -5604,6 +5606,12 @@ cleanup:
  * with R = 2^32 + 2^12 + 2^8 + 2^7 + 2^6 + 2^3 + 1 = 0x0100001119
  */
 static int ecp_mod_p192k1(mbedtls_mpi *N)
+{
+    return mbedtls_ecp_mod_p192k1(N);
+}
+
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p192k1(mbedtls_mpi *N)
 {
     static mbedtls_mpi_uint Rp[] = {
         MBEDTLS_BYTES_TO_T_UINT_8(0xC9, 0x11, 0x00, 0x00, 0x01, 0x00, 0x00,

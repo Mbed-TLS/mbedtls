@@ -191,6 +191,9 @@ int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
                               const mbedtls_ecp_group_id id,
                               const mbedtls_ecp_curve_type ctype);
 
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p192k1(mbedtls_mpi *N);
+
 #endif /* MBEDTLS_TEST_HOOKS && MBEDTLS_ECP_C */
 
 #endif /* MBEDTLS_ECP_INVASIVE_H */

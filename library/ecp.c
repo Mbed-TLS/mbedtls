@@ -20,7 +20,7 @@
 /*
  * References:
  *
- * SEC1 http://www.secg.org/index.php?action=secg,docs_secg
+ * SEC1 https://www.secg.org/sec1-v2.pdf
  * GECC = Guide to Elliptic Curve Cryptography - Hankerson, Menezes, Vanstone
  * FIPS 186-3 http://csrc.nist.gov/publications/fips/fips186-3/fips_186-3.pdf
  * RFC 4492 for the related TLS structures and constants

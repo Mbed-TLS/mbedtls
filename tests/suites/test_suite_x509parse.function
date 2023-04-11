@@ -990,6 +990,7 @@ exit:
 void mbedtls_x509_time_is_future(char *crt_file, char *entity, int result)
 {
     mbedtls_x509_crt   crt;
+    USE_PSA_INIT();
 
     mbedtls_x509_crt_init(&crt);
 
@@ -1005,6 +1006,7 @@ void mbedtls_x509_time_is_future(char *crt_file, char *entity, int result)
 
 exit:
     mbedtls_x509_crt_free(&crt);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -1438,6 +1440,7 @@ void x509_check_extended_key_usage(char *crt_file, data_t *oid, int ret
 
 exit:
     mbedtls_x509_crt_free(&crt);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 

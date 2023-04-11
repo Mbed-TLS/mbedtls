@@ -124,10 +124,6 @@ static void reset_chk_buf_ptr_args(mbedtls_ssl_chk_buf_ptr_args *args)
 }
 #endif /* MBEDTLS_TEST_HOOKS */
 
-/*
- * Buffer structure for custom I/O callbacks.
- */
-
 void mbedtls_test_ssl_buffer_init(mbedtls_test_ssl_buffer *buf)
 {
     memset(buf, 0, sizeof(*buf));
@@ -233,8 +229,8 @@ int mbedtls_test_ssl_buffer_get(mbedtls_test_ssl_buffer *buf,
     return (output_len > INT_MAX) ? INT_MAX : (int) output_len;
 }
 
-int mbedtls_test_ssl_message_queue_setup(mbedtls_test_ssl_message_queue *queue,
-                                         size_t capacity)
+int mbedtls_test_ssl_message_queue_setup(
+    mbedtls_test_ssl_message_queue *queue, size_t capacity)
 {
     queue->messages = (size_t *) mbedtls_calloc(capacity, sizeof(size_t));
     if (NULL == queue->messages) {
@@ -248,7 +244,8 @@ int mbedtls_test_ssl_message_queue_setup(mbedtls_test_ssl_message_queue *queue,
     return 0;
 }
 
-void mbedtls_test_ssl_message_queue_free(mbedtls_test_ssl_message_queue *queue)
+void mbedtls_test_ssl_message_queue_free(
+    mbedtls_test_ssl_message_queue *queue)
 {
     if (queue == NULL) {
         return;
@@ -315,8 +312,9 @@ int mbedtls_test_ssl_message_queue_pop_info(
  *          set to the full message length so that the
  *          caller knows what portion of the message can be dropped.
  */
-int mbedtls_test_message_queue_peek_info(mbedtls_test_ssl_message_queue *queue,
-                                         size_t buf_len, size_t *msg_len)
+static int test_ssl_message_queue_peek_info(
+    mbedtls_test_ssl_message_queue *queue,
+    size_t buf_len, size_t *msg_len)
 {
     if (queue == NULL || msg_len == NULL) {
         return MBEDTLS_TEST_ERROR_ARG_NULL;
@@ -329,7 +327,7 @@ int mbedtls_test_message_queue_peek_info(mbedtls_test_ssl_message_queue *queue,
     return (*msg_len > buf_len) ? MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED : 0;
 }
 
-void mbedtls_mock_socket_init(mbedtls_test_mock_socket *socket)
+void mbedtls_test_mock_socket_init(mbedtls_test_mock_socket *socket)
 {
     memset(socket, 0, sizeof(*socket));
 }
@@ -459,7 +457,8 @@ int mbedtls_test_mock_tcp_recv_nb(void *ctx, unsigned char *buf, size_t len)
     return mbedtls_test_ssl_buffer_get(socket->input, buf, len);
 }
 
-void mbedtls_test_message_socket_init(mbedtls_test_message_socket_context *ctx)
+void mbedtls_test_message_socket_init(
+    mbedtls_test_message_socket_context *ctx)
 {
     ctx->queue_input = NULL;
     ctx->queue_output = NULL;
@@ -480,12 +479,13 @@ int mbedtls_test_message_socket_setup(
     ctx->queue_input = queue_input;
     ctx->queue_output = queue_output;
     ctx->socket = socket;
-    mbedtls_mock_socket_init(socket);
+    mbedtls_test_mock_socket_init(socket);
 
     return 0;
 }
 
-void mbedtls_test_message_socket_close(mbedtls_test_message_socket_context *ctx)
+void mbedtls_test_message_socket_close(
+    mbedtls_test_message_socket_context *ctx)
 {
     if (ctx == NULL) {
         return;
@@ -544,7 +544,7 @@ int mbedtls_test_mock_tcp_recv_msg(void *ctx,
 
     /* Peek first, so that in case of a socket error the data remains in
      * the queue. */
-    ret = mbedtls_test_message_queue_peek_info(queue, buf_len, &msg_len);
+    ret = test_ssl_message_queue_peek_info(queue, buf_len, &msg_len);
     if (ret == MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED) {
         /* Calculate how much to drop */
         drop_len = msg_len - buf_len;
@@ -578,7 +578,7 @@ int mbedtls_test_mock_tcp_recv_msg(void *ctx,
 /*
  * Deinitializes certificates from endpoint represented by \p ep.
  */
-void mbedtls_endpoint_certificate_free(mbedtls_test_ssl_endpoint *ep)
+static void test_ssl_endpoint_certificate_free(mbedtls_test_ssl_endpoint *ep)
 {
     mbedtls_test_ssl_endpoint_certificate *cert = &(ep->cert);
     if (cert != NULL) {
@@ -730,7 +730,7 @@ int mbedtls_test_ssl_endpoint_certificate_init(mbedtls_test_ssl_endpoint *ep,
 
 exit:
     if (ret != 0) {
-        mbedtls_endpoint_certificate_free(ep);
+        test_ssl_endpoint_certificate_free(ep);
     }
 
     return ret;
@@ -781,7 +781,7 @@ int mbedtls_test_ssl_endpoint_init(
                                                       100, &(ep->socket),
                                                       dtls_context) == 0);
     } else {
-        mbedtls_mock_socket_init(&(ep->socket));
+        mbedtls_test_mock_socket_init(&(ep->socket));
     }
 
     /* Non-blocking callbacks without timeout */
@@ -868,7 +868,7 @@ void mbedtls_test_ssl_endpoint_free(
     mbedtls_test_ssl_endpoint *ep,
     mbedtls_test_message_socket_context *context)
 {
-    mbedtls_endpoint_certificate_free(ep);
+    test_ssl_endpoint_certificate_free(ep);
 
     mbedtls_ssl_free(&(ep->ssl));
     mbedtls_ssl_config_free(&(ep->conf));
@@ -941,7 +941,7 @@ int mbedtls_ssl_write_fragment(mbedtls_ssl_context *ssl,
         /* Used for DTLS and the message size larger than MFL. In that case
          * the message can not be fragmented and the library should return
          * MBEDTLS_ERR_SSL_BAD_INPUT_DATA error. This error must be returned
-         * to prevent a dead loop inside mbedtls_exchange_data(). */
+         * to prevent a dead loop inside mbedtls_test_ssl_exchange_data(). */
         return ret;
     } else if (expected_fragments == 1) {
         /* Used for TLS/DTLS and the message size lower than MFL */
@@ -1004,8 +1004,9 @@ exit:
     return -1;
 }
 
-void set_ciphersuite(mbedtls_ssl_config *conf, const char *cipher,
-                     int *forced_ciphersuite)
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
+static void set_ciphersuite(mbedtls_ssl_config *conf, const char *cipher,
+                            int *forced_ciphersuite)
 {
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
     forced_ciphersuite[0] = mbedtls_ssl_get_ciphersuite_id(cipher);
@@ -1030,9 +1031,13 @@ void set_ciphersuite(mbedtls_ssl_config *conf, const char *cipher,
 exit:
     return;
 }
+#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
-int psk_dummy_callback(void *p_info, mbedtls_ssl_context *ssl,
-                       const unsigned char *name, size_t name_len)
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) && \
+    defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)  && \
+    defined(MBEDTLS_SSL_SRV_C)
+static int psk_dummy_callback(void *p_info, mbedtls_ssl_context *ssl,
+                              const unsigned char *name, size_t name_len)
 {
     (void) p_info;
     (void) ssl;
@@ -1041,12 +1046,9 @@ int psk_dummy_callback(void *p_info, mbedtls_ssl_context *ssl,
 
     return 0;
 }
-
-#if MBEDTLS_SSL_CID_OUT_LEN_MAX > MBEDTLS_SSL_CID_IN_LEN_MAX
-#define SSL_CID_LEN_MIN MBEDTLS_SSL_CID_IN_LEN_MAX
-#else
-#define SSL_CID_LEN_MIN MBEDTLS_SSL_CID_OUT_LEN_MAX
-#endif
+#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED &&
+          MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED  &&
+          MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_AES_C)
@@ -1600,10 +1602,11 @@ int mbedtls_test_ssl_tls13_populate_session(mbedtls_ssl_session *session,
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
-int mbedtls_exchange_data(mbedtls_ssl_context *ssl_1,
-                          int msg_len_1, const int expected_fragments_1,
-                          mbedtls_ssl_context *ssl_2,
-                          int msg_len_2, const int expected_fragments_2)
+int mbedtls_test_ssl_exchange_data(
+    mbedtls_ssl_context *ssl_1,
+    int msg_len_1, const int expected_fragments_1,
+    mbedtls_ssl_context *ssl_2,
+    int msg_len_2, const int expected_fragments_2)
 {
     unsigned char *msg_buf_1 = malloc(msg_len_1);
     unsigned char *msg_buf_2 = malloc(msg_len_2);
@@ -1709,12 +1712,18 @@ exit:
  *
  * \retval  0 on success, otherwise error code.
  */
-int exchange_data(mbedtls_ssl_context *ssl_1,
-                  mbedtls_ssl_context *ssl_2)
+#if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED) && \
+    (defined(MBEDTLS_SSL_RENEGOTIATION)              || \
+    defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH))
+static int exchange_data(mbedtls_ssl_context *ssl_1,
+                         mbedtls_ssl_context *ssl_2)
 {
-    return mbedtls_exchange_data(ssl_1, 256, 1,
-                                 ssl_2, 256, 1);
+    return mbedtls_test_ssl_exchange_data(ssl_1, 256, 1,
+                                          ssl_2, 256, 1);
 }
+#endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED &&
+          (MBEDTLS_SSL_RENEGOTIATION              ||
+          MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH) */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 static int check_ssl_version(
@@ -1754,7 +1763,6 @@ exit:
     return 0;
 }
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
-
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 void mbedtls_test_ssl_perform_handshake(
@@ -1964,10 +1972,11 @@ void mbedtls_test_ssl_perform_handshake(
 
     if (options->cli_msg_len != 0 || options->srv_msg_len != 0) {
         /* Start data exchanging test */
-        TEST_ASSERT(mbedtls_exchange_data(&(client.ssl), options->cli_msg_len,
-                                          options->expected_cli_fragments,
-                                          &(server.ssl), options->srv_msg_len,
-                                          options->expected_srv_fragments)
+        TEST_ASSERT(mbedtls_test_ssl_exchange_data(
+                        &(client.ssl), options->cli_msg_len,
+                        options->expected_cli_fragments,
+                        &(server.ssl), options->srv_msg_len,
+                        options->expected_srv_fragments)
                     == 0);
     }
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
@@ -2024,12 +2033,10 @@ void mbedtls_test_ssl_perform_handshake(
 #endif
         /* Retest writing/reading */
         if (options->cli_msg_len != 0 || options->srv_msg_len != 0) {
-            TEST_ASSERT(mbedtls_exchange_data(
-                            &(client.ssl),
-                            options->cli_msg_len,
+            TEST_ASSERT(mbedtls_test_ssl_exchange_data(
+                            &(client.ssl), options->cli_msg_len,
                             options->expected_cli_fragments,
-                            &(server.ssl),
-                            options->srv_msg_len,
+                            &(server.ssl), options->srv_msg_len,
                             options->expected_srv_fragments)
                         == 0);
         }
@@ -2126,7 +2133,7 @@ exit:
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_TEST_HOOKS)
-int tweak_tls13_certificate_msg_vector_len(
+int mbedtls_test_tweak_tls13_certificate_msg_vector_len(
     unsigned char *buf, unsigned char **end, int tweak,
     int *expected_result, mbedtls_ssl_chk_buf_ptr_args *args)
 {

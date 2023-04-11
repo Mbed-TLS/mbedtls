@@ -209,17 +209,17 @@ void ssl_mock_sanity()
     unsigned char received[MSGLEN] = { 0 };
     mbedtls_test_mock_socket socket;
 
-    mbedtls_mock_socket_init(&socket);
+    mbedtls_test_mock_socket_init(&socket);
     TEST_ASSERT(mbedtls_test_mock_tcp_send_b(&socket, message, MSGLEN) < 0);
     mbedtls_test_mock_socket_close(&socket);
-    mbedtls_mock_socket_init(&socket);
+    mbedtls_test_mock_socket_init(&socket);
     TEST_ASSERT(mbedtls_test_mock_tcp_recv_b(&socket, received, MSGLEN) < 0);
     mbedtls_test_mock_socket_close(&socket);
 
-    mbedtls_mock_socket_init(&socket);
+    mbedtls_test_mock_socket_init(&socket);
     TEST_ASSERT(mbedtls_test_mock_tcp_send_nb(&socket, message, MSGLEN) < 0);
     mbedtls_test_mock_socket_close(&socket);
-    mbedtls_mock_socket_init(&socket);
+    mbedtls_test_mock_socket_init(&socket);
     TEST_ASSERT(mbedtls_test_mock_tcp_recv_nb(&socket, received, MSGLEN) < 0);
     mbedtls_test_mock_socket_close(&socket);
 
@@ -257,8 +257,8 @@ void ssl_mock_tcp(int blocking)
         recv = mbedtls_test_mock_tcp_recv_b;
     }
 
-    mbedtls_mock_socket_init(&client);
-    mbedtls_mock_socket_init(&server);
+    mbedtls_test_mock_socket_init(&client);
+    mbedtls_test_mock_socket_init(&server);
 
     /* Fill up the buffer with structured data so that unwanted changes
      * can be detected */
@@ -355,8 +355,8 @@ void ssl_mock_tcp_interleaving(int blocking)
         recv = mbedtls_test_mock_tcp_recv_b;
     }
 
-    mbedtls_mock_socket_init(&client);
-    mbedtls_mock_socket_init(&server);
+    mbedtls_test_mock_socket_init(&client);
+    mbedtls_test_mock_socket_init(&server);
 
     /* Fill up the buffers with structured data so that unwanted changes
      * can be detected */
@@ -3153,10 +3153,11 @@ void force_bad_session_id_len()
     server.ssl.session_negotiate->id_len = 33;
     if (options.cli_msg_len != 0 || options.srv_msg_len != 0) {
         /* Start data exchanging test */
-        TEST_ASSERT(mbedtls_exchange_data(&(client.ssl), options.cli_msg_len,
-                                          options.expected_cli_fragments,
-                                          &(server.ssl), options.srv_msg_len,
-                                          options.expected_srv_fragments)
+        TEST_ASSERT(mbedtls_test_ssl_exchange_data(
+                        &(client.ssl), options.cli_msg_len,
+                        options.expected_cli_fragments,
+                        &(server.ssl), options.srv_msg_len,
+                        options.expected_srv_fragments)
                     == 0);
     }
 
@@ -3431,7 +3432,7 @@ void tls13_server_certificate_msg_invalid_vector_len()
          * Tweak server Certificate message and parse it.
          */
 
-        ret = tweak_tls13_certificate_msg_vector_len(
+        ret = mbedtls_test_tweak_tls13_certificate_msg_vector_len(
             buf, &end, step, &expected_result, &expected_chk_buf_ptr_args);
 
         if (ret != 0) {

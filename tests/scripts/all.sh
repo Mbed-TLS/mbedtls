@@ -6061,6 +6061,17 @@ component_test_tls13_no_compatibility_mode () {
     tests/ssl-opt.sh
 }
 
+component_test_default_minus_session_tickets() {
+    msg "build: default config without session tickets"
+    scripts/config.py unset MBEDTLS_SSL_SESSION_TICKETS
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+    msg "test: default config without session tickets"
+    make test
+    msg "ssl-opt.sh (default config without session tickets)"
+    tests/ssl-opt.sh
+}
+
 component_build_mingw () {
     msg "build: Windows cross build - mingw64, make (Link Library)" # ~ 30s
     make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra -maes -msse2 -mpclmul' WINDOWS_BUILD=1 lib programs

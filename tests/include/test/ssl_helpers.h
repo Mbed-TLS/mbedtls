@@ -277,13 +277,13 @@ int mbedtls_test_ssl_message_queue_pop_info(
 /*
  * Setup and teardown functions for mock sockets.
  */
-void mbedtls_mock_socket_init(mbedtls_test_mock_socket *socket);
+void mbedtls_test_mock_socket_init(mbedtls_test_mock_socket *socket);
 
 /*
  * Closes the socket \p socket.
  *
  * \p socket must have been previously initialized by calling
- * mbedtls_mock_socket_init().
+ * mbedtls_test_mock_socket_init().
  *
  * This function frees all allocated resources and both sockets are aware of the
  * new connection state.
@@ -298,7 +298,7 @@ void mbedtls_test_mock_socket_close(mbedtls_test_mock_socket *socket);
  * Establishes a connection between \p peer1 and \p peer2.
  *
  * \p peer1 and \p peer2 must have been previously initialized by calling
- * mbedtls_mock_socket_init().
+ * mbedtls_test_mock_socket_init().
  *
  * The capacities of the internal buffers are set to \p bufsize. Setting this to
  * the correct value allows for simulation of MTU, sanity testing the mock
@@ -377,8 +377,7 @@ int mbedtls_test_mock_tcp_send_msg(void *ctx,
  *          mbedtls_test_mock_tcp_recv_b failed.
  *
  * This function will also return any error other than
- * MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED from
- * mbedtls_test_message_queue_peek_info.
+ * MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED from test_ssl_message_queue_peek_info.
  */
 int mbedtls_test_mock_tcp_recv_msg(void *ctx,
                                    unsigned char *buf, size_t buf_len);
@@ -456,6 +455,12 @@ int mbedtls_test_move_handshake_to_state(mbedtls_ssl_context *ssl,
         }                                       \
     } while (0)
 
+#if MBEDTLS_SSL_CID_OUT_LEN_MAX > MBEDTLS_SSL_CID_IN_LEN_MAX
+#define SSL_CID_LEN_MIN MBEDTLS_SSL_CID_IN_LEN_MAX
+#else
+#define SSL_CID_LEN_MIN MBEDTLS_SSL_CID_OUT_LEN_MAX
+#endif
+
 int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
                                       mbedtls_ssl_transform *t_out,
                                       int cipher_type, int hash_id,
@@ -493,10 +498,11 @@ int mbedtls_test_ssl_populate_session(mbedtls_ssl_session *session,
  *
  * \retval  0 on success, otherwise error code.
  */
-int mbedtls_exchange_data(mbedtls_ssl_context *ssl_1,
-                          int msg_len_1, const int expected_fragments_1,
-                          mbedtls_ssl_context *ssl_2,
-                          int msg_len_2, const int expected_fragments_2);
+int mbedtls_test_ssl_exchange_data(
+    mbedtls_ssl_context *ssl_1,
+    int msg_len_1, const int expected_fragments_1,
+    mbedtls_ssl_context *ssl_2,
+    int msg_len_2, const int expected_fragments_2);
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED) && \
     defined(MBEDTLS_CERTS_C) && \

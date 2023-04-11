@@ -5759,7 +5759,7 @@ run_test    "Authentication, CA callback: server ECDH p256v1, client required, p
 
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: server ECDH p256v1, client optional, p256v1 unsupported" \
-            "$P_SRV debug_level=4 key_file=data_files/server5.key \
+            "$P_SRV debug_level=1 key_file=data_files/server5.key \
              crt_file=data_files/server5.ku-ka.crt" \
             "$P_CLI force_version=tls12 ca_callback=1 debug_level=3 auth_mode=optional curves=secp521r1" \
             1 \

@@ -4608,7 +4608,7 @@ static int ecp_mod_p448(mbedtls_mpi *);
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
 static int ecp_mod_p192k1(mbedtls_mpi *);
-MBEDTLS_TEST_HOOKS
+MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p192k1(mbedtls_mpi *);
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)

@@ -31,7 +31,10 @@ import datetime
 import glob
 from enum import Enum
 
-from cryptography import x509
+# The script requires cryptography >= 35.0.0 which is only available
+# for Python >= 3.6. Disable the pylint error here until we were
+# using modern system on our CI.
+from cryptography import x509 #pylint: disable=import-error
 
 # reuse the function to parse *.data file in tests/suites/
 from generate_test_code import parse_test_data as parse_suite_data

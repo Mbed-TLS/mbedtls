@@ -29,8 +29,6 @@
 #ifndef PROFILE_M_MBEDTLS_CONFIG_H
 #define PROFILE_M_MBEDTLS_CONFIG_H
 
-#include "config_tfm.h"
-
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
 #define _CRT_SECURE_NO_DEPRECATE 1
 #endif
@@ -239,7 +237,9 @@
  * \note The entropy collector will write to the seed file before entropy is
  *       given to an external source, to update it.
  */
-#define MBEDTLS_ENTROPY_NV_SEED
+// This macro is enabled in TFM Medium but is disabled here because it is
+// incompatible with baremetal builds in Mbed TLS.
+//#define MBEDTLS_ENTROPY_NV_SEED
 
 /* MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
  *
@@ -251,8 +251,10 @@
  * mbedtls_svc_key_id_t to file name in all the storage backends that you
  * you wish to support.
  *
- * Note that this option is meant for internal use only and may be removed
- * without notice.
+ * Note that while this define has been removed from TF-M's copy of this config
+ * file, TF-M still passes this option to Mbed TLS during the build via CMake.
+ * Therefore we keep it in our copy. See discussion on PR #7426 for more info.
+ *
  */
 #define MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
 
@@ -480,15 +482,6 @@
  */
 #define MBEDTLS_PLATFORM_C
 
-#define MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
-#define MBEDTLS_PLATFORM_STD_MEM_HDR   <stdlib.h>
-
-#include <stdio.h>
-
-#define MBEDTLS_PLATFORM_SNPRINTF_MACRO      snprintf
-#define MBEDTLS_PLATFORM_PRINTF_ALT
-#define MBEDTLS_PLATFORM_STD_EXIT_SUCCESS  EXIT_SUCCESS
-#define MBEDTLS_PLATFORM_STD_EXIT_FAILURE  EXIT_FAILURE
 
 /**
  * \def MBEDTLS_PSA_CRYPTO_C
@@ -513,7 +506,9 @@
  *           either MBEDTLS_PSA_ITS_FILE_C or a native implementation of
  *           the PSA ITS interface
  */
-#define MBEDTLS_PSA_CRYPTO_STORAGE_C
+// This macro is enabled in TFM Medium but is disabled here because it is
+// incompatible with baremetal builds in Mbed TLS.
+//#define MBEDTLS_PSA_CRYPTO_STORAGE_C
 
 /* \} name SECTION: mbed TLS modules */
 

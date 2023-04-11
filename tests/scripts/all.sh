@@ -3878,6 +3878,19 @@ component_test_tls13_no_compatibility_mode () {
     tests/ssl-opt.sh
 }
 
+component_test_tls13_no_session_ticket() {
+    msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3, without session tickets"
+    scripts/config.py unset MBEDTLS_SSL_SESSION_TICKETS
+    scripts/config.py set MBEDTLS_SSL_PROTO_TLS1_3
+    scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+    msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3, without session tickets"
+    make test
+    msg "ssl-opt.sh (default config with MBEDTLS_SSL_PROTO_TLS1_3, without session tickets)"
+    tests/ssl-opt.sh
+}
+
 component_test_tls13_only_record_size_limit () {
     msg "build: TLS 1.3 only from default, record size limit extension enabled"
     scripts/config.py set MBEDTLS_SSL_RECORD_SIZE_LIMIT

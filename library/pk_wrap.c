@@ -1103,31 +1103,28 @@ cleanup:
  * - write the raw content of public key "pub" to a local buffer
  * - compare the two buffers
  */
-static int eckey_check_pair_psa(const mbedtls_ecp_keypair *pub,
-                                const mbedtls_ecp_keypair *prv)
+static int eckey_check_pair_psa(const mbedtls_pk_context *pub,
+                                const mbedtls_pk_context *prv)
 {
-    psa_status_t status, destruction_status;
+    psa_status_t status, destroy_status;
     psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
-    mbedtls_ecp_keypair *prv_ctx = (mbedtls_ecp_keypair *) prv;
-    mbedtls_ecp_keypair *pub_ctx = (mbedtls_ecp_keypair *) pub;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     /* We are using MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH for the size of this
      * buffer because it will be used to hold the private key at first and
      * then its public part (but not at the same time). */
     uint8_t prv_key_buf[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
     size_t prv_key_len;
-    uint8_t pub_key_buf[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
-    size_t pub_key_len;
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
     size_t curve_bits;
     const psa_ecc_family_t curve =
-        mbedtls_ecc_group_to_psa(prv_ctx->grp.id, &curve_bits);
+        mbedtls_ecc_group_to_psa(mbedtls_pk_ec(*prv)->grp.id, &curve_bits);
     const size_t curve_bytes = PSA_BITS_TO_BYTES(curve_bits);
 
     psa_set_key_type(&key_attr, PSA_KEY_TYPE_ECC_KEY_PAIR(curve));
     psa_set_key_usage_flags(&key_attr, PSA_KEY_USAGE_EXPORT);
 
-    ret = mbedtls_mpi_write_binary(&prv_ctx->d, prv_key_buf, curve_bytes);
+    ret = mbedtls_mpi_write_binary(&mbedtls_pk_ec(*prv)->d,
+                                   prv_key_buf, curve_bytes);
     if (ret != 0) {
         return ret;
     }
@@ -1143,22 +1140,14 @@ static int eckey_check_pair_psa(const mbedtls_ecp_keypair *pub,
     status = psa_export_public_key(key_id, prv_key_buf, sizeof(prv_key_buf),
                                    &prv_key_len);
     ret = PSA_PK_TO_MBEDTLS_ERR(status);
-    destruction_status = psa_destroy_key(key_id);
+    destroy_status = psa_destroy_key(key_id);
     if (ret != 0) {
         return ret;
-    } else if (destruction_status != PSA_SUCCESS) {
-        return PSA_PK_TO_MBEDTLS_ERR(destruction_status);
+    } else if (destroy_status != PSA_SUCCESS) {
+        return PSA_PK_TO_MBEDTLS_ERR(status);
     }
 
-    ret = mbedtls_ecp_point_write_binary(&pub_ctx->grp, &pub_ctx->Q,
-                                         MBEDTLS_ECP_PF_UNCOMPRESSED,
-                                         &pub_key_len, pub_key_buf,
-                                         sizeof(pub_key_buf));
-    if (ret != 0) {
-        return ret;
-    }
-
-    if (memcmp(prv_key_buf, pub_key_buf, curve_bytes) != 0) {
+    if (memcmp(prv_key_buf, pub->pk_raw, pub->pk_raw_len) != 0) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
 
@@ -1173,7 +1162,8 @@ static int eckey_check_pair(const void *pub, const void *prv,
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     (void) f_rng;
     (void) p_rng;
-    return eckey_check_pair_psa(pub, prv);
+    return eckey_check_pair_psa((const mbedtls_pk_context *) pub,
+                                (const mbedtls_pk_context *) prv);
 #elif defined(MBEDTLS_ECP_C)
     return mbedtls_ecp_check_pub_priv((const mbedtls_ecp_keypair *) pub,
                                       (const mbedtls_ecp_keypair *) prv,

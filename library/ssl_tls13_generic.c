@@ -247,15 +247,17 @@ static int ssl_tls13_parse_certificate_verify(mbedtls_ssl_context *ssl,
 
     /* RFC 8446 section 4.4.3
      *
-     * If the CertificateVerify message is sent by a server, the signature algorithm
-     * MUST be one offered in the client's "signature_algorithms" extension unless
-     * no valid certificate chain can be produced without unsupported algorithms
+     * If the CertificateVerify message is sent by a server, the signature
+     * algorithm MUST be one offered in the client's "signature_algorithms"
+     * extension unless no valid certificate chain can be produced without
+     * unsupported algorithms
      *
      * RFC 8446 section 4.4.2.2
      *
      * If the client cannot construct an acceptable chain using the provided
-     * certificates and decides to abort the handshake, then it MUST abort the handshake
-     * with an appropriate certificate-related alert (by default, "unsupported_certificate").
+     * certificates and decides to abort the handshake, then it MUST abort the
+     * handshake with an appropriate certificate-related alert
+     * (by default, "unsupported_certificate").
      *
      * Check if algorithm is an offered signature algorithm.
      */
@@ -350,17 +352,18 @@ int mbedtls_ssl_tls13_process_certificate_verify(mbedtls_ssl_context *ssl)
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> parse certificate verify"));
 
     MBEDTLS_SSL_PROC_CHK(
-        mbedtls_ssl_tls13_fetch_handshake_msg(ssl,
-                                              MBEDTLS_SSL_HS_CERTIFICATE_VERIFY, &buf, &buf_len));
+        mbedtls_ssl_tls13_fetch_handshake_msg(
+            ssl, MBEDTLS_SSL_HS_CERTIFICATE_VERIFY, &buf, &buf_len));
 
     /* Need to calculate the hash of the transcript first
      * before reading the message since otherwise it gets
      * included in the transcript
      */
-    ret = mbedtls_ssl_get_handshake_transcript(ssl,
-                                               ssl->handshake->ciphersuite_info->mac,
-                                               transcript, sizeof(transcript),
-                                               &transcript_len);
+    ret = mbedtls_ssl_get_handshake_transcript(
+        ssl,
+        ssl->handshake->ciphersuite_info->mac,
+        transcript, sizeof(transcript),
+        &transcript_len);
     if (ret != 0) {
         MBEDTLS_SSL_PEND_FATAL_ALERT(
             MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR,
@@ -380,13 +383,13 @@ int mbedtls_ssl_tls13_process_certificate_verify(mbedtls_ssl_context *ssl)
                                       MBEDTLS_SSL_IS_CLIENT);
 
     /* Process the message contents */
-    MBEDTLS_SSL_PROC_CHK(ssl_tls13_parse_certificate_verify(ssl, buf,
-                                                            buf + buf_len, verify_buffer,
-                                                            verify_buffer_len));
+    MBEDTLS_SSL_PROC_CHK(ssl_tls13_parse_certificate_verify(
+                             ssl, buf, buf + buf_len,
+                             verify_buffer, verify_buffer_len));
 
-    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(ssl,
-                                                            MBEDTLS_SSL_HS_CERTIFICATE_VERIFY,
-                                                            buf, buf_len));
+    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(
+                             ssl, MBEDTLS_SSL_HS_CERTIFICATE_VERIFY,
+                             buf, buf_len));
 
 cleanup:
 
@@ -600,7 +603,8 @@ exit:
         return MBEDTLS_ERR_SSL_DECODE_ERROR;
     }
 
-    MBEDTLS_SSL_DEBUG_CRT(3, "peer certificate", ssl->session_negotiate->peer_cert);
+    MBEDTLS_SSL_DEBUG_CRT(3, "peer certificate",
+                          ssl->session_negotiate->peer_cert);
 
     return ret;
 }
@@ -666,8 +670,9 @@ static int ssl_tls13_validate_certificate(mbedtls_ssl_context *ssl)
             if (authmode == MBEDTLS_SSL_VERIFY_OPTIONAL) {
                 return 0;
             } else {
-                MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_NO_CERT,
-                                             MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE);
+                MBEDTLS_SSL_PEND_FATAL_ALERT(
+                    MBEDTLS_SSL_ALERT_MSG_NO_CERT,
+                    MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE);
                 return MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE;
             }
         }
@@ -754,7 +759,8 @@ static int ssl_tls13_validate_certificate(mbedtls_ssl_context *ssl)
            Pick one and send the corresponding alert. Which alert to send
            may be a subject of debate in some cases. */
         if (verify_result & MBEDTLS_X509_BADCERT_OTHER) {
-            MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_ACCESS_DENIED, ret);
+            MBEDTLS_SSL_PEND_FATAL_ALERT(
+                MBEDTLS_SSL_ALERT_MSG_ACCESS_DENIED, ret);
         } else if (verify_result & MBEDTLS_X509_BADCERT_CN_MISMATCH) {
             MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_BAD_CERT, ret);
         } else if (verify_result & (MBEDTLS_X509_BADCERT_KEY_USAGE |
@@ -762,15 +768,19 @@ static int ssl_tls13_validate_certificate(mbedtls_ssl_context *ssl)
                                     MBEDTLS_X509_BADCERT_NS_CERT_TYPE |
                                     MBEDTLS_X509_BADCERT_BAD_PK |
                                     MBEDTLS_X509_BADCERT_BAD_KEY)) {
-            MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT, ret);
+            MBEDTLS_SSL_PEND_FATAL_ALERT(
+                MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT, ret);
         } else if (verify_result & MBEDTLS_X509_BADCERT_EXPIRED) {
-            MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_CERT_EXPIRED, ret);
+            MBEDTLS_SSL_PEND_FATAL_ALERT(
+                MBEDTLS_SSL_ALERT_MSG_CERT_EXPIRED, ret);
         } else if (verify_result & MBEDTLS_X509_BADCERT_REVOKED) {
-            MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_CERT_REVOKED, ret);
+            MBEDTLS_SSL_PEND_FATAL_ALERT(
+                MBEDTLS_SSL_ALERT_MSG_CERT_REVOKED, ret);
         } else if (verify_result & MBEDTLS_X509_BADCERT_NOT_TRUSTED) {
             MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_UNKNOWN_CA, ret);
         } else {
-            MBEDTLS_SSL_PEND_FATAL_ALERT(MBEDTLS_SSL_ALERT_MSG_CERT_UNKNOWN, ret);
+            MBEDTLS_SSL_PEND_FATAL_ALERT(
+                MBEDTLS_SSL_ALERT_MSG_CERT_UNKNOWN, ret);
         }
     }
 
@@ -815,9 +825,8 @@ int mbedtls_ssl_tls13_process_certificate(mbedtls_ssl_context *ssl)
     /* Validate the certificate chain and set the verification results. */
     MBEDTLS_SSL_PROC_CHK(ssl_tls13_validate_certificate(ssl));
 
-    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(ssl,
-                                                            MBEDTLS_SSL_HS_CERTIFICATE, buf,
-                                                            buf_len));
+    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(
+                             ssl, MBEDTLS_SSL_HS_CERTIFICATE, buf, buf_len));
 
 cleanup:
 #endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED */
@@ -923,18 +932,16 @@ int mbedtls_ssl_tls13_write_certificate(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write certificate"));
 
-    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_start_handshake_msg(ssl,
-                                                         MBEDTLS_SSL_HS_CERTIFICATE, &buf,
-                                                         &buf_len));
+    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_start_handshake_msg(
+                             ssl, MBEDTLS_SSL_HS_CERTIFICATE, &buf, &buf_len));
 
     MBEDTLS_SSL_PROC_CHK(ssl_tls13_write_certificate_body(ssl,
                                                           buf,
                                                           buf + buf_len,
                                                           &msg_len));
 
-    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(ssl,
-                                                            MBEDTLS_SSL_HS_CERTIFICATE, buf,
-                                                            msg_len));
+    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(
+                             ssl, MBEDTLS_SSL_HS_CERTIFICATE, buf, msg_len));
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_finish_handshake_msg(
                              ssl, buf_len, msg_len));
@@ -1017,11 +1024,9 @@ static int ssl_tls13_write_certificate_verify_body(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }
 
-    ret = mbedtls_ssl_get_handshake_transcript(ssl,
-                                               ssl->handshake->ciphersuite_info->mac,
-                                               handshake_hash,
-                                               sizeof(handshake_hash),
-                                               &handshake_hash_len);
+    ret = mbedtls_ssl_get_handshake_transcript(
+        ssl, ssl->handshake->ciphersuite_info->mac,
+        handshake_hash, sizeof(handshake_hash), &handshake_hash_len);
     if (ret != 0) {
         return ret;
     }
@@ -1128,16 +1133,16 @@ int mbedtls_ssl_tls13_write_certificate_verify(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> write certificate verify"));
 
-    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_start_handshake_msg(ssl,
-                                                         MBEDTLS_SSL_HS_CERTIFICATE_VERIFY, &buf,
-                                                         &buf_len));
+    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_start_handshake_msg(
+                             ssl, MBEDTLS_SSL_HS_CERTIFICATE_VERIFY,
+                             &buf, &buf_len));
 
     MBEDTLS_SSL_PROC_CHK(ssl_tls13_write_certificate_verify_body(
                              ssl, buf, buf + buf_len, &msg_len));
 
-    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(ssl,
-                                                            MBEDTLS_SSL_HS_CERTIFICATE_VERIFY, buf,
-                                                            msg_len));
+    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(
+                             ssl, MBEDTLS_SSL_HS_CERTIFICATE_VERIFY,
+                             buf, msg_len));
 
     MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_finish_handshake_msg(
                              ssl, buf_len, msg_len));
@@ -1163,13 +1168,13 @@ static int ssl_tls13_preprocess_finished_message(mbedtls_ssl_context *ssl)
 {
     int ret;
 
-    ret = mbedtls_ssl_tls13_calculate_verify_data(ssl,
-                                                  ssl->handshake->state_local.finished_in.digest,
-                                                  sizeof(ssl->handshake->state_local.finished_in.
-                                                         digest),
-                                                  &ssl->handshake->state_local.finished_in.digest_len,
-                                                  ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT ?
-                                                  MBEDTLS_SSL_IS_SERVER : MBEDTLS_SSL_IS_CLIENT);
+    ret = mbedtls_ssl_tls13_calculate_verify_data(
+        ssl,
+        ssl->handshake->state_local.finished_in.digest,
+        sizeof(ssl->handshake->state_local.finished_in.digest),
+        &ssl->handshake->state_local.finished_in.digest_len,
+        ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT ?
+        MBEDTLS_SSL_IS_SERVER : MBEDTLS_SSL_IS_CLIENT);
     if (ret != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_tls13_calculate_verify_data", ret);
         return ret;
@@ -1228,17 +1233,17 @@ int mbedtls_ssl_tls13_process_finished_message(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> parse finished message"));
 
-    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_tls13_fetch_handshake_msg(ssl,
-                                                               MBEDTLS_SSL_HS_FINISHED,
-                                                               &buf, &buf_len));
+    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_tls13_fetch_handshake_msg(
+                             ssl, MBEDTLS_SSL_HS_FINISHED, &buf, &buf_len));
 
     /* Preprocessing step: Compute handshake digest */
     MBEDTLS_SSL_PROC_CHK(ssl_tls13_preprocess_finished_message(ssl));
 
-    MBEDTLS_SSL_PROC_CHK(ssl_tls13_parse_finished_message(ssl, buf, buf + buf_len));
+    MBEDTLS_SSL_PROC_CHK(ssl_tls13_parse_finished_message(
+                             ssl, buf, buf + buf_len));
 
-    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(ssl,
-                                                            MBEDTLS_SSL_HS_FINISHED, buf, buf_len));
+    MBEDTLS_SSL_PROC_CHK(mbedtls_ssl_add_hs_msg_to_checksum(
+                             ssl, MBEDTLS_SSL_HS_FINISHED, buf, buf_len));
 
 cleanup:
 
@@ -1526,9 +1531,8 @@ int mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
     MBEDTLS_SSL_DEBUG_MSG(1, ("Perform PSA-based ECDH computation."));
 
     /* Convert EC's TLS ID to PSA key type. */
-    if (mbedtls_ssl_get_psa_curve_info_from_tls_id(named_group,
-                                                   &ec_psa_family,
-                                                   &ec_bits) == PSA_ERROR_NOT_SUPPORTED) {
+    if (mbedtls_ssl_get_psa_curve_info_from_tls_id(
+            named_group, &ec_psa_family, &ec_bits) == PSA_ERROR_NOT_SUPPORTED) {
         return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
     }
     handshake->ecdh_psa_type = PSA_KEY_TYPE_ECC_KEY_PAIR(ec_psa_family);
@@ -1638,7 +1642,8 @@ int mbedtls_ssl_tls13_parse_record_size_limit_ext(mbedtls_ssl_context *ssl,
     uint16_t record_size_limit;
     const size_t extension_data_len = end - buf;
 
-    if (extension_data_len != MBEDTLS_SSL_RECORD_SIZE_LIMIT_EXTENSION_DATA_LENGTH) {
+    if (extension_data_len !=
+        MBEDTLS_SSL_RECORD_SIZE_LIMIT_EXTENSION_DATA_LENGTH) {
         MBEDTLS_SSL_DEBUG_MSG(2,
                               ("record_size_limit extension has invalid length: %"
                                MBEDTLS_PRINTF_SIZET " Bytes",
@@ -1668,9 +1673,8 @@ int mbedtls_ssl_tls13_parse_record_size_limit_ext(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
     }
 
-    MBEDTLS_SSL_DEBUG_MSG(2,
-                          (
-                              "record_size_limit extension is still in development. Aborting handshake."));
+    MBEDTLS_SSL_DEBUG_MSG(
+        2, ("record_size_limit extension is still in development. Aborting handshake."));
 
     MBEDTLS_SSL_PEND_FATAL_ALERT(
         MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT,

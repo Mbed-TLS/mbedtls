@@ -26,7 +26,6 @@ import os
 import sys
 import re
 import typing
-import types
 import argparse
 import datetime
 import glob
@@ -227,15 +226,6 @@ class Auditor:
             data_list = self.parse_file(filename)
             self.audit_data.extend(data_list)
 
-    def for_each(self, do, *args, **kwargs):
-        """
-        Sort the audit data and iterate over them.
-        """
-        if not isinstance(do, types.FunctionType):
-            return
-        for d in self.audit_data:
-            do(d, *args, **kwargs)
-
     @staticmethod
     def find_test_dir():
         """Get the relative path for the MbedTLS test directory."""
@@ -381,6 +371,12 @@ def main():
     parser.add_argument('-v', '--verbose',
                         action='store_true', dest='verbose',
                         help='Show warnings')
+    parser.add_argument('--not-before', dest='not_before',
+                        help='not valid before this date(UTC), YYYY-MM-DD',
+                        metavar='DATE')
+    parser.add_argument('--not-after', dest='not_after',
+                        help='not valid after this date(UTC), YYYY-MM-DD',
+                        metavar='DATE')
     parser.add_argument('-f', '--file', dest='file',
                         help='file to audit (Debug only)',
                         metavar='FILE')
@@ -398,12 +394,29 @@ def main():
         data_files = td_auditor.default_files
         suite_data_files = sd_auditor.default_files
 
+    if args.not_before:
+        not_before_date = datetime.datetime.fromisoformat(args.not_before)
+    else:
+        not_before_date = datetime.datetime.today()
+    if args.not_after:
+        not_after_date = datetime.datetime.fromisoformat(args.not_after)
+    else:
+        not_after_date = not_before_date
+
     td_auditor.walk_all(data_files)
     sd_auditor.walk_all(suite_data_files)
+    audit_results = td_auditor.audit_data + sd_auditor.audit_data
+
+    # we filter out the files whose validity duration covers the provide
+    # duration.
+    filter_func = lambda d: (not_before_date < d.not_valid_before) or \
+                            (d.not_valid_after < not_after_date)
 
     if args.all:
-        td_auditor.for_each(list_all)
-        sd_auditor.for_each(list_all)
+        filter_func = None
+
+    for d in filter(filter_func, audit_results):
+        list_all(d)
 
     print("\nDone!\n")
 

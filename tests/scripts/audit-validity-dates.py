@@ -48,11 +48,10 @@ class DataFormat(Enum):
 class AuditData:
     """Store file, type and expiration date for audit."""
     #pylint: disable=too-few-public-methods
-    def __init__(self, data_type: DataType):
+    def __init__(self, data_type: DataType, x509_obj):
         self.data_type = data_type
         self.filename = ""
-        self.not_valid_after: datetime.datetime
-        self.not_valid_before: datetime.datetime
+        self.fill_validity_duration(x509_obj)
 
     def fill_validity_duration(self, x509_obj):
         """Fill expiration_date field from a x509 object"""
@@ -211,8 +210,7 @@ class Auditor:
                 result = None
                 self.warn(val_error)
             if result is not None:
-                audit_data = AuditData(data_type)
-                audit_data.fill_validity_duration(result)
+                audit_data = AuditData(data_type, result)
                 return audit_data
         return None
 

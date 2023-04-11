@@ -20,6 +20,8 @@
 #include "mbedtls/build_info.h"
 
 #include "mbedtls/platform.h"
+/* md.h is included this early since MD_CAN_XXX macros are defined there. */
+#include "mbedtls/md.h"
 
 #if !defined(MBEDTLS_MD_C) || !defined(MBEDTLS_ENTROPY_C) ||  \
     !defined(MBEDTLS_RSA_C) || !defined(MBEDTLS_MD_CAN_SHA256) ||        \
@@ -38,7 +40,6 @@ int main(void)
 #include "mbedtls/md.h"
 #include "mbedtls/pem.h"
 #include "mbedtls/pk.h"
-#include "mbedtls/md.h"
 
 #include <stdio.h>
 #include <string.h>

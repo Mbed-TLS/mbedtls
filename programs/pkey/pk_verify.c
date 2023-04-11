@@ -20,6 +20,8 @@
 #include "mbedtls/build_info.h"
 
 #include "mbedtls/platform.h"
+/* md.h is included this early since MD_CAN_XXX macros are defined there. */
+#include "mbedtls/md.h"
 
 #if !defined(MBEDTLS_BIGNUM_C) || !defined(MBEDTLS_MD_C) || \
     !defined(MBEDTLS_MD_CAN_SHA256) || !defined(MBEDTLS_PK_PARSE_C) ||   \
@@ -34,7 +36,6 @@ int main(void)
 #else
 
 #include "mbedtls/error.h"
-#include "mbedtls/md.h"
 #include "mbedtls/pk.h"
 
 #include <stdio.h>

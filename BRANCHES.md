@@ -23,7 +23,9 @@ the API of 3.(x+1) is backward compatible with 3.x). We only break API
 compatibility on major version changes (e.g. from 3.x to 4.0). We also maintain
 ABI compatibility within LTS branches; see the next section for details.
 
-New LTS branches are usually created around the time of a new major version.
+Every major version will become an LTS branch when the next major version is
+released. We may occasionally create LTS branches from other releases at our
+discretion.
 When a new LTS branch is created, it usually remains supported for three years.
 
 ## Backwards Compatibility for application code

@@ -877,7 +877,8 @@ extern "C" {
 
 #endif /* MBEDTLS_PSA_CRYPTO_CONFIG */
 
-#if defined(PSA_WANT_ALG_ECDSA) && defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) && \
+#if (defined(PSA_WANT_ALG_ECDSA) || defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA)) \
+    && defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) && \
     defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 #define PSA_HAVE_FULL_ECDSA 1
 #endif

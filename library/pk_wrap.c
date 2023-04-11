@@ -1104,9 +1104,10 @@ cleanup:
  * - write the raw content of public key "pub" to a local buffer
  * - compare the two buffers
  */
-static int eckey_check_pair_psa(const void *pub, const void *prv)
+static int eckey_check_pair_psa(const mbedtls_ecp_keypair *pub,
+                                const mbedtls_ecp_keypair *prv)
 {
-    psa_status_t status;
+    psa_status_t status, destruction_status;
     psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
     mbedtls_ecp_keypair *prv_ctx = (mbedtls_ecp_keypair *) prv;
     mbedtls_ecp_keypair *pub_ctx = (mbedtls_ecp_keypair *) pub;
@@ -1133,20 +1134,21 @@ static int eckey_check_pair_psa(const void *pub, const void *prv)
     }
 
     status = psa_import_key(&key_attr, prv_key_buf, curve_bytes, &key_id);
-    if (status != PSA_SUCCESS) {
-        ret = PSA_PK_TO_MBEDTLS_ERR(status);
+    ret = PSA_PK_TO_MBEDTLS_ERR(status);
+    if (ret != 0) {
         return ret;
     }
 
     mbedtls_platform_zeroize(prv_key_buf, sizeof(prv_key_buf));
 
-    ret = PSA_PK_TO_MBEDTLS_ERR(psa_export_public_key(key_id,
-                                                      prv_key_buf,
-                                                      sizeof(prv_key_buf),
-                                                      &prv_key_len));
-    status = psa_destroy_key(key_id);
-    if (ret != 0 || status != PSA_SUCCESS) {
-        return (ret != 0) ? ret : PSA_PK_TO_MBEDTLS_ERR(status);
+    status = psa_export_public_key(key_id, prv_key_buf, sizeof(prv_key_buf),
+                                   &prv_key_len);
+    ret = PSA_PK_TO_MBEDTLS_ERR(status);
+    destruction_status = psa_destroy_key(key_id);
+    if (ret != 0) {
+        return ret;
+    } else if (destruction_status != PSA_SUCCESS) {
+        return PSA_PK_TO_MBEDTLS_ERR(destruction_status);
     }
 
     ret = mbedtls_ecp_point_write_binary(&pub_ctx->grp, &pub_ctx->Q,
@@ -1172,8 +1174,7 @@ static int eckey_check_pair(const void *pub, const void *prv,
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     (void) f_rng;
     (void) p_rng;
-    return eckey_check_pair_psa((const mbedtls_ecp_keypair *) pub,
-                                (const mbedtls_ecp_keypair *) prv);
+    return eckey_check_pair_psa(pub, prv);
 #else /* MBEDTLS_USE_PSA_CRYPTO */
     return mbedtls_ecp_check_pub_priv((const mbedtls_ecp_keypair *) pub,
                                       (const mbedtls_ecp_keypair *) prv,

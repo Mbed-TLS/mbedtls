@@ -102,6 +102,11 @@ void mbedtls_ssl_cache_init(mbedtls_ssl_cache_context *cache);
  * \param session_id_len  The length of \p session_id in bytes.
  * \param session         The address at which to store the session
  *                        associated with \p session_id, if present.
+ *
+ * \return                \c 0 on success.
+ * \return                #MBEDTLS_ERR_SSL_CACHE_ENTRY_NOT_FOUND if there is
+ *                        no cache entry with specified session ID found, or
+ *                        any other negative error code for other failures.
  */
 int mbedtls_ssl_cache_get(void *data,
                           unsigned char const *session_id,
@@ -117,6 +122,9 @@ int mbedtls_ssl_cache_get(void *data,
  *                        associated to \p session.
  * \param session_id_len  The length of \p session_id in bytes.
  * \param session         The session to store.
+ *
+ * \return                \c 0 on success.
+ * \return                A negative error code on failure.
  */
 int mbedtls_ssl_cache_set(void *data,
                           unsigned char const *session_id,
@@ -132,9 +140,10 @@ int mbedtls_ssl_cache_set(void *data,
  *                        associated to \p session.
  * \param session_id_len  The length of \p session_id in bytes.
  *
- * \return                0: The cache entry for session with provided ID
- *                           is removed or does not exist.
- *                        Otherwise: fail.
+ * \return                \c 0 on success. This indicates the cache entry for
+ *                        the session with provided ID is removed or does not
+ *                        exist.
+ * \return                A negative error code on failure.
  */
 int mbedtls_ssl_cache_remove(void *data,
                              unsigned char const *session_id,

@@ -671,7 +671,7 @@ struct options {
 #if defined(MBEDTLS_HAVE_TIME)
     int cache_timeout;          /* expiration delay of session cache entries*/
 #endif
-    int cache_remove;           /* enable / disable cache removement        */
+    int cache_remove;           /* enable / disable cache entry removal     */
     char *sni;                  /* string describing sni information        */
     const char *curves;         /* list of supported elliptic curves        */
     const char *sig_algs;       /* supported TLS 1.3 signature algorithms   */

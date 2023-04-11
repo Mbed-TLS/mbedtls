@@ -284,8 +284,7 @@
 
 /* Helper for ECDSA dependencies, will be undefined at the end of the file */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-#if defined(PSA_WANT_ALG_ECDSA) && defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) && \
-    defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
+#if defined(PSA_WANT_ALG_ECDSA) && defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR)
 #define MBEDTLS_PK_HAVE_ECDSA
 #endif
 #else /* MBEDTLS_USE_PSA_CRYPTO */
@@ -296,8 +295,7 @@
 
 /* Helper for JPAKE dependencies, will be undefined at the end of the file */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-#if defined(PSA_WANT_ALG_JPAKE) && defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) && \
-    defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
+#if defined(PSA_WANT_ALG_JPAKE) && defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR)
 #define MBEDTLS_PK_HAVE_JPAKE
 #endif
 #else /* MBEDTLS_USE_PSA_CRYPTO */

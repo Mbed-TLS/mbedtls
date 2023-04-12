@@ -100,6 +100,7 @@ class CodeSizeComparison:
 
         self.old_rev = old_revision
         self.new_rev = new_revision
+        self.config = config
         self.git_command = "git"
         self.pre_build_commands, self.make_command = CONFIG_CMDS[config]
 
@@ -192,7 +193,7 @@ class CodeSizeComparison:
     def _gen_code_size_csv(self, revision, git_worktree_path):
         """Generate code size csv file."""
 
-        csv_fname = revision + ".csv"
+        csv_fname = revision + "-" + self.config + ".csv"
         if revision == "current":
             print("Measuring code size in current work directory.")
         else:
@@ -240,8 +241,8 @@ class CodeSizeComparison:
         old and new. Measured code size results of these two revisions
         must be available."""
 
-        res_file = open(os.path.join(self.result_dir, "compare-" + self.old_rev
-                                     + "-" + self.new_rev + ".csv"), "w")
+        res_file = open(os.path.join(self.result_dir, "compare-" + self.config + "-" +
+                                     self.old_rev + "-" + self.new_rev + ".csv"), "w")
         def write_dict_to_csv(old_d, new_d):
             tot_change_pct = ""
             for (f,s) in new_d.items():

@@ -1073,6 +1073,9 @@ x509_crt_parse_cn_inet_pton:"10.10..10.10.":"":0
 X509 CRT parse CN: IPv4 overlarge octet 256
 x509_crt_parse_cn_inet_pton:"10.256.10.10":"":0
 
+X509 CRT parse CN: IPv4 overlarge octet 999
+x509_crt_parse_cn_inet_pton:"10.10.10.999":"":0
+
 X509 CRT parse CN: IPv4 overlarge octet 1000
 x509_crt_parse_cn_inet_pton:"10.1000.10.10":"":0
 

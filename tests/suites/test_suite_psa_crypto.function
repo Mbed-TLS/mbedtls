@@ -8906,7 +8906,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_WANT_ALG_SHA_256:MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_SHA_256:PSA_WANT_ALG_TLS12_ECJPAKE_TO_PMS */
 void derive_ecjpake_to_pms(data_t *input, int expected_input_status_arg,
                            int derivation_step,
                            int capacity, int expected_capacity_status_arg,

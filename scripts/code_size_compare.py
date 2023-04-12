@@ -72,20 +72,20 @@ class Size:
         total = self.total - __o.total
         return Size(text,data,bss,total)
 
-CONFIG_CMDS = {
-    'default': ('','make -j lib'),
-    'full': ('scripts/config.py full', 'make -j lib'),
-    'baremetal': ('scripts/config.py baremetal', 'make -j lib'),
-    'tfm': ('', 'make lib CC=armclang CFLAGS=\"--target=arm-arm-none-eabi \
-                 -mcpu=cortex-m33 \
-                 -DMBEDTLS_CONFIG_FILE=\\\\\\"../configs/tfm_mbedcrypto_config_profile_medium.h\\\\\\" \
-                 -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE=\\\\\\"../configs/crypto_config_profile_medium.h\\\\\\" \"')
+ALLOWED_ARCH = ['x86', 'aarch32' ,'aarch64']
+ALLOWED_CONFIG = ['default', 'full', 'baremetal', 'tfm-medium']
+
+PRE_BUILD_CMDS = {
+    'default': '',
+    'full': 'scripts/config.py full',
+    'baremetal': 'scripts/config.py baremetal',
+    'tfm-medium': ''
 }
 
 class CodeSizeComparison:
     """Compare code size between two Git revisions."""
 
-    def __init__(self, old_revision, new_revision, result_dir, config):
+    def __init__(self, old_revision, new_revision, result_dir, arch, config):
         """
         old_revision: revision to compare against
         new_revision:
@@ -100,9 +100,12 @@ class CodeSizeComparison:
 
         self.old_rev = old_revision
         self.new_rev = new_revision
+        self.arch = arch
         self.config = config
         self.git_command = "git"
-        self.pre_build_commands, self.make_command = CONFIG_CMDS[config]
+        self.pre_build_commands = PRE_BUILD_CMDS[config]
+        self.make_command = ''
+        self._set_make_command()
 
         self.old_sizes = {}
         self.new_sizes = {}
@@ -113,6 +116,42 @@ class CodeSizeComparison:
         result = subprocess.check_output(["git", "rev-parse", "--verify",
                                           revision + "^{commit}"], shell=False)
         return result
+
+    def _set_make_command(self):
+        if self.arch == 'x86' and (self.config == 'default' or \
+                                   self.config == 'full' or \
+                                   self.config == 'baremetal'):
+            self.make_command = 'make -j lib'
+            return
+
+        # Default just takes the current config, which may or may not work
+        # with baremetal targets. Warn the user.
+        if self.config == 'default':
+            print("Assuming that the current config is compatible with \
+                   baremetal targets. If it isn't the build may fail!")
+
+        if self.config == 'default' or self.config == 'baremetal':
+            if self.arch == 'aarch32':
+                self.make_command = 'make -j lib CC=armclang\
+                                    CFLAGS=\"--target=arm-arm-none-eabi \
+                                    -mcpu=cortex-m33 -Os\"'
+            if self.arch == 'aarch64':
+                self.make_command = 'make -j lib CC=armclang\
+                                    CFLAGS=\"--target=aarch64-arm-none-eabi\"'
+            return
+
+        if self.arch == 'aarch32' and self.config == 'tfm-medium':
+            self.make_command = \
+                 'make -j lib CC=armclang CFLAGS=\'--target=arm-arm-none-eabi \
+                 -mcpu=cortex-m33 -Os \
+                 -DMBEDTLS_CONFIG_FILE=\\\"../configs/tfm_mbedcrypto_config_profile_medium.h\\\" \
+                 -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE=\\\"../configs/crypto_config_profile_medium.h\\\" \''
+            return
+
+        # Any remaining supported combinations are incompatible with each other
+        print('Config option {} is incompatble with architecture {}'.format(self.config, self.arch))
+        sys.exit(-1)
+
 
     def _create_git_worktree(self, revision):
         """Make a separate worktree for revision.
@@ -241,8 +280,9 @@ class CodeSizeComparison:
         old and new. Measured code size results of these two revisions
         must be available."""
 
-        res_file = open(os.path.join(self.result_dir, "compare-" + self.config + "-" +
-                                     self.old_rev + "-" + self.new_rev + ".csv"), "w")
+        res_file = open(os.path.join(self.result_dir, "compare-" + self.config +
+                                     "-" + self.arch + "-" + self.old_rev + "-"
+                                     + self.new_rev + ".csv"), "w")
         def write_dict_to_csv(old_d, new_d):
             tot_change_pct = ""
             for (f,s) in new_d.items():
@@ -250,7 +290,7 @@ class CodeSizeComparison:
                 if f in old_d:
                     old_size = int(old_d[f].total)
                     change = new_size - old_size
-                    if change != 0:
+                    if old_size != 0:
                         change_pct = change / old_size
                     else:
                         change_pct = 0
@@ -306,9 +346,14 @@ def main():
               directory, including uncommitted changes."
     )
     parser.add_argument(
-        "-c", "--config", type=str, default="default",
+        "-a", "--arch", type=str, default="x86", choices=ALLOWED_ARCH,
+        help="optional architecture specification for Mbed TLS. Default \
+              is whatever $CC targets. Options: x86, aarch32, aarch64"
+    )
+    parser.add_argument(
+        "-c", "--config", type=str, default="default", choices=ALLOWED_CONFIG,
         help="optional configuration for Mbed TLS. Default uses current \
-              config. Options: full, baremetal, tfm."
+              config. Options: full, baremetal, tfm-medium."
     )
     comp_args = parser.parse_args()
 
@@ -327,7 +372,7 @@ def main():
 
     result_dir = comp_args.result_dir
     size_compare = CodeSizeComparison(old_revision, new_revision, result_dir,
-                                      comp_args.config)
+                                      comp_args.arch, comp_args.config)
     return_code = size_compare.get_comparision_results()
     sys.exit(return_code)
 

@@ -4617,8 +4617,9 @@ MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p224k1(mbedtls_mpi *);
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
+static int ecp_mod_p256k1(mbedtls_mpi *);
 MBEDTLS_STATIC_TESTABLE
-int ecp_mod_p256k1(mbedtls_mpi *);
+int mbedtls_ecp_mod_p256k1(mbedtls_mpi *);
 #endif
 
 #if defined(ECP_LOAD_GROUP)
@@ -5656,12 +5657,18 @@ int mbedtls_ecp_mod_p224k1(mbedtls_mpi *N)
 #endif /* MBEDTLS_ECP_DP_SECP224K1_ENABLED */
 
 #if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
+
+static int ecp_mod_p256k1(mbedtls_mpi *N)
+{
+    return mbedtls_ecp_mod_p256k1(N);
+}
+
 /*
  * Fast quasi-reduction modulo p256k1 = 2^256 - R,
  * with R = 2^32 + 2^9 + 2^8 + 2^7 + 2^6 + 2^4 + 1 = 0x01000003D1
  */
 MBEDTLS_STATIC_TESTABLE
-int ecp_mod_p256k1(mbedtls_mpi *N)
+int mbedtls_ecp_mod_p256k1(mbedtls_mpi *N)
 {
     static mbedtls_mpi_uint Rp[] = {
         MBEDTLS_BYTES_TO_T_UINT_8(0xD1, 0x03, 0x00, 0x00, 0x01, 0x00, 0x00,

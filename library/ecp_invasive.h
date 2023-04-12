@@ -189,7 +189,7 @@ int mbedtls_ecp_mod_p224k1(mbedtls_mpi *N);
 #if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
 
 MBEDTLS_STATIC_TESTABLE
-int ecp_mod_p256k1(mbedtls_mpi *N);
+int mbedtls_ecp_mod_p256k1(mbedtls_mpi *N);
 
 #endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */
 

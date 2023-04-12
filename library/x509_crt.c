@@ -2558,10 +2558,11 @@ find_parent:
  * dependencies, and Solaris requires additional link dependencies.
  * Also, as a coarse heuristic, use the local implementation if the compiler
  * does not support __has_include(), or if the definition of AF_INET6 is not
- * provided by headers included (or not) via __has_include() above. */
-#ifndef AF_INET6
-
-/* definition located further below to possibly reduce compiler inlining */
+ * provided by headers included (or not) via __has_include() above.
+ * MBEDTLS_TEST_SW_INET_PTON is a bypass define to force testing of this code //no-check-names
+ * despite having a platform that has inet_pton. */
+#if !defined(AF_INET6) || defined(MBEDTLS_TEST_SW_INET_PTON) //no-check-names
+/* Definition located further below to possibly reduce compiler inlining */
 static int x509_inet_pton_ipv4(const char *src, void *dst);
 
 #define li_cton(c, n) \
@@ -2654,7 +2655,7 @@ static int x509_inet_pton_ipv4(const char *src, void *dst)
     return inet_pton(AF_INET, src, dst) == 1 ? 0 : -1;
 }
 
-#endif /* AF_INET6 */
+#endif /* !AF_INET6 || MBEDTLS_TEST_SW_INET_PTON */ //no-check-names
 
 MBEDTLS_STATIC_TESTABLE
 size_t mbedtls_x509_crt_parse_cn_inet_pton(const char *cn, void *dst)

@@ -3674,6 +3674,7 @@ run_test    "CBC Record splitting: TLS 1.2, no splitting" \
 
 # Tests for Session Tickets
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: basic" \
             "$P_SRV debug_level=3 tickets=1" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3688,6 +3689,7 @@ run_test    "Session resume using tickets: basic" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: manual rotation" \
             "$P_SRV debug_level=3 tickets=1 ticket_rotate=1" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3702,6 +3704,7 @@ run_test    "Session resume using tickets: manual rotation" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: cache disabled" \
             "$P_SRV debug_level=3 tickets=1 cache_max=0" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3716,6 +3719,7 @@ run_test    "Session resume using tickets: cache disabled" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: timeout" \
             "$P_SRV debug_level=3 tickets=1 cache_max=0 ticket_timeout=1" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1 reco_delay=2000" \
@@ -3730,6 +3734,7 @@ run_test    "Session resume using tickets: timeout" \
             -S "a session has been resumed" \
             -C "a session has been resumed"
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: session copy" \
             "$P_SRV debug_level=3 tickets=1 cache_max=0" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1 reco_mode=0" \
@@ -3745,6 +3750,7 @@ run_test    "Session resume using tickets: session copy" \
             -c "a session has been resumed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: openssl server" \
             "$O_SRV -tls1_2" \
             "$P_CLI debug_level=3 tickets=1 reconnect=1" \
@@ -3755,6 +3761,7 @@ run_test    "Session resume using tickets: openssl server" \
             -c "a session has been resumed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: openssl client" \
             "$P_SRV debug_level=3 tickets=1" \
             "( $O_CLI -sess_out $SESSION; \
@@ -3767,6 +3774,7 @@ run_test    "Session resume using tickets: openssl client" \
             -s "session successfully restored from ticket" \
             -s "a session has been resumed"
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: AES-128-GCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=AES-128-GCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3781,6 +3789,7 @@ run_test    "Session resume using tickets: AES-128-GCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: AES-192-GCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=AES-192-GCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3795,6 +3804,7 @@ run_test    "Session resume using tickets: AES-192-GCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: AES-128-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=AES-128-CCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3809,6 +3819,7 @@ run_test    "Session resume using tickets: AES-128-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: AES-192-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=AES-192-CCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3823,6 +3834,7 @@ run_test    "Session resume using tickets: AES-192-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: AES-256-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=AES-256-CCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3837,6 +3849,7 @@ run_test    "Session resume using tickets: AES-256-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: CAMELLIA-128-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=CAMELLIA-128-CCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3851,6 +3864,7 @@ run_test    "Session resume using tickets: CAMELLIA-128-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: CAMELLIA-192-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=CAMELLIA-192-CCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3865,6 +3879,7 @@ run_test    "Session resume using tickets: CAMELLIA-192-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: CAMELLIA-256-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=CAMELLIA-256-CCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3879,6 +3894,7 @@ run_test    "Session resume using tickets: CAMELLIA-256-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: ARIA-128-GCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=ARIA-128-GCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3893,6 +3909,7 @@ run_test    "Session resume using tickets: ARIA-128-GCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: ARIA-192-GCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=ARIA-192-GCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3907,6 +3924,7 @@ run_test    "Session resume using tickets: ARIA-192-GCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: ARIA-256-GCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=ARIA-256-GCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3921,6 +3939,7 @@ run_test    "Session resume using tickets: ARIA-256-GCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: ARIA-128-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=ARIA-128-CCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3935,6 +3954,7 @@ run_test    "Session resume using tickets: ARIA-128-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: ARIA-192-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=ARIA-192-CCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3949,6 +3969,7 @@ run_test    "Session resume using tickets: ARIA-192-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: ARIA-256-CCM" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=ARIA-256-CCM" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3963,6 +3984,7 @@ run_test    "Session resume using tickets: ARIA-256-CCM" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: CHACHA20-POLY1305" \
             "$P_SRV debug_level=3 tickets=1 ticket_aead=CHACHA20-POLY1305" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -3980,6 +4002,7 @@ run_test    "Session resume using tickets: CHACHA20-POLY1305" \
 # Tests for Session Tickets with DTLS
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets, DTLS: basic" \
             "$P_SRV debug_level=3 dtls=1 tickets=1" \
             "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1 skip_close_notify=1" \
@@ -3995,6 +4018,7 @@ run_test    "Session resume using tickets, DTLS: basic" \
             -c "a session has been resumed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets, DTLS: cache disabled" \
             "$P_SRV debug_level=3 dtls=1 tickets=1 cache_max=0" \
             "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1 skip_close_notify=1" \
@@ -4010,6 +4034,7 @@ run_test    "Session resume using tickets, DTLS: cache disabled" \
             -c "a session has been resumed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets, DTLS: timeout" \
             "$P_SRV debug_level=3 dtls=1 tickets=1 cache_max=0 ticket_timeout=1" \
             "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1 skip_close_notify=1 reco_delay=2000" \
@@ -4025,6 +4050,7 @@ run_test    "Session resume using tickets, DTLS: timeout" \
             -C "a session has been resumed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets, DTLS: session copy" \
             "$P_SRV debug_level=3 dtls=1 tickets=1 cache_max=0" \
             "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1 skip_close_notify=1 reco_mode=0" \
@@ -4040,6 +4066,7 @@ run_test    "Session resume using tickets, DTLS: session copy" \
             -c "a session has been resumed"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets, DTLS: openssl server" \
             "$O_SRV -dtls" \
             "$P_CLI dtls=1 debug_level=3 tickets=1 reconnect=1" \
@@ -4053,6 +4080,7 @@ run_test    "Session resume using tickets, DTLS: openssl server" \
 # probability with OpenSSL 1.0.2g on the CI, see #5012.
 requires_openssl_next
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets, DTLS: openssl client" \
             "$P_SRV dtls=1 debug_level=3 tickets=1" \
             "( $O_NEXT_CLI -dtls -sess_out $SESSION; \
@@ -4068,6 +4096,7 @@ run_test    "Session resume using tickets, DTLS: openssl client" \
 # Tests for Session Resume based on session-ID and cache
 
 requires_config_enabled MBEDTLS_SSL_CACHE_C
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using cache: tickets enabled on client" \
             "$P_SRV debug_level=3 tickets=0" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=1 reconnect=1" \
@@ -4083,6 +4112,7 @@ run_test    "Session resume using cache: tickets enabled on client" \
             -c "a session has been resumed"
 
 requires_config_enabled MBEDTLS_SSL_CACHE_C
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using cache: tickets enabled on server" \
             "$P_SRV debug_level=3 tickets=1" \
             "$P_CLI force_version=tls12 debug_level=3 tickets=0 reconnect=1" \
@@ -4174,6 +4204,7 @@ run_test    "Session resume using cache: session copy" \
             -c "a session has been resumed"
 
 requires_config_enabled MBEDTLS_SSL_CACHE_C
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using cache: openssl client" \
             "$P_SRV force_version=tls12 debug_level=3 tickets=0" \
             "( $O_CLI -sess_out $SESSION; \
@@ -4223,6 +4254,7 @@ run_test    "Session resume and connection ID" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CACHE_C
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using cache, DTLS: tickets enabled on client" \
             "$P_SRV dtls=1 debug_level=3 tickets=0" \
             "$P_CLI dtls=1 debug_level=3 tickets=1 reconnect=1 skip_close_notify=1" \
@@ -4239,6 +4271,7 @@ run_test    "Session resume using cache, DTLS: tickets enabled on client" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CACHE_C
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using cache, DTLS: tickets enabled on server" \
             "$P_SRV dtls=1 debug_level=3 tickets=1" \
             "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 skip_close_notify=1" \
@@ -4324,6 +4357,7 @@ run_test    "Session resume using cache, DTLS: session copy" \
 requires_openssl_next
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_CACHE_C
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using cache, DTLS: openssl client" \
             "$P_SRV dtls=1 debug_level=3 tickets=0" \
             "( $O_NEXT_CLI -dtls -sess_out $SESSION; \
@@ -6253,6 +6287,7 @@ run_test    "Non-blocking I/O: client auth" \
             -c "Read from server: .* bytes read"
 
 requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Non-blocking I/O: ticket" \
             "$P_SRV nbio=2 tickets=1 auth_mode=none" \
             "$P_CLI nbio=2 tickets=1" \
@@ -6262,6 +6297,7 @@ run_test    "Non-blocking I/O: ticket" \
             -c "Read from server: .* bytes read"
 
 requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Non-blocking I/O: ticket + client auth" \
             "$P_SRV nbio=2 tickets=1 auth_mode=required" \
             "$P_CLI nbio=2 tickets=1" \
@@ -6271,6 +6307,7 @@ run_test    "Non-blocking I/O: ticket + client auth" \
             -c "Read from server: .* bytes read"
 
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Non-blocking I/O: TLS 1.2 + ticket + client auth + resume" \
             "$P_SRV nbio=2 tickets=1 auth_mode=required" \
             "$P_CLI force_version=tls12 nbio=2 tickets=1 reconnect=1" \
@@ -6292,6 +6329,7 @@ run_test    "Non-blocking I/O: TLS 1.3 + ticket + client auth + resume" \
             -c "Read from server: .* bytes read"
 
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Non-blocking I/O: TLS 1.2 + ticket + resume" \
             "$P_SRV nbio=2 tickets=1 auth_mode=none" \
             "$P_CLI force_version=tls12 nbio=2 tickets=1 reconnect=1" \
@@ -6303,6 +6341,7 @@ run_test    "Non-blocking I/O: TLS 1.2 + ticket + resume" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Non-blocking I/O: TLS 1.3 + ticket + resume" \
             "$P_SRV nbio=2 tickets=1 auth_mode=none" \
             "$P_CLI nbio=2 tickets=1 reconnect=1" \
@@ -6341,6 +6380,7 @@ run_test    "Event-driven I/O: client auth" \
             -c "Read from server: .* bytes read"
 
 requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Event-driven I/O: ticket" \
             "$P_SRV event=1 tickets=1 auth_mode=none" \
             "$P_CLI event=1 tickets=1" \
@@ -6350,6 +6390,7 @@ run_test    "Event-driven I/O: ticket" \
             -c "Read from server: .* bytes read"
 
 requires_key_exchange_with_cert_in_tls12_or_tls13_enabled
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Event-driven I/O: ticket + client auth" \
             "$P_SRV event=1 tickets=1 auth_mode=required" \
             "$P_CLI event=1 tickets=1" \
@@ -6359,6 +6400,7 @@ run_test    "Event-driven I/O: ticket + client auth" \
             -c "Read from server: .* bytes read"
 
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Event-driven I/O: TLS 1.2 + ticket + client auth + resume" \
             "$P_SRV event=1 tickets=1 auth_mode=required" \
             "$P_CLI force_version=tls12 event=1 tickets=1 reconnect=1" \
@@ -6370,6 +6412,7 @@ run_test    "Event-driven I/O: TLS 1.2 + ticket + client auth + resume" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Event-driven I/O: TLS 1.3 + ticket + client auth + resume" \
             "$P_SRV event=1 tickets=1 auth_mode=required" \
             "$P_CLI event=1 tickets=1 reconnect=1" \
@@ -6379,6 +6422,7 @@ run_test    "Event-driven I/O: TLS 1.3 + ticket + client auth + resume" \
             -c "Read from server: .* bytes read"
 
 requires_any_configs_enabled $TLS1_2_KEY_EXCHANGES_WITH_CERT
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Event-driven I/O: TLS 1.2 + ticket + resume" \
             "$P_SRV event=1 tickets=1 auth_mode=none" \
             "$P_CLI force_version=tls12 event=1 tickets=1 reconnect=1" \
@@ -6390,6 +6434,7 @@ run_test    "Event-driven I/O: TLS 1.2 + ticket + resume" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Event-driven I/O: TLS 1.3 + ticket + resume" \
             "$P_SRV event=1 tickets=1 auth_mode=none" \
             "$P_CLI event=1 tickets=1 reconnect=1" \
@@ -6422,6 +6467,7 @@ run_test    "Event-driven I/O, DTLS: client auth" \
             -c "Read from server: .* bytes read"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Event-driven I/O, DTLS: ticket" \
             "$P_SRV dtls=1 event=1 tickets=1 auth_mode=none" \
             "$P_CLI dtls=1 event=1 tickets=1" \
@@ -6429,6 +6475,7 @@ run_test    "Event-driven I/O, DTLS: ticket" \
             -c "Read from server: .* bytes read"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Event-driven I/O, DTLS: ticket + client auth" \
             "$P_SRV dtls=1 event=1 tickets=1 auth_mode=required" \
             "$P_CLI dtls=1 event=1 tickets=1" \
@@ -6436,6 +6483,7 @@ run_test    "Event-driven I/O, DTLS: ticket + client auth" \
             -c "Read from server: .* bytes read"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Event-driven I/O, DTLS: ticket + client auth + resume" \
             "$P_SRV dtls=1 event=1 tickets=1 auth_mode=required" \
             "$P_CLI dtls=1 event=1 tickets=1 reconnect=1 skip_close_notify=1" \
@@ -6443,6 +6491,7 @@ run_test    "Event-driven I/O, DTLS: ticket + client auth + resume" \
             -c "Read from server: .* bytes read"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Event-driven I/O, DTLS: ticket + resume" \
             "$P_SRV dtls=1 event=1 tickets=1 auth_mode=none" \
             "$P_CLI dtls=1 event=1 tickets=1 reconnect=1 skip_close_notify=1" \
@@ -11035,6 +11084,7 @@ run_test    "DTLS proxy: 3d, FS, client auth" \
 
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "DTLS proxy: 3d, FS, ticket" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=1 auth_mode=none" \
@@ -11045,6 +11095,7 @@ run_test    "DTLS proxy: 3d, FS, ticket" \
 
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "DTLS proxy: 3d, max handshake (FS, ticket + client auth)" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=1 auth_mode=required" \
@@ -11055,6 +11106,7 @@ run_test    "DTLS proxy: 3d, max handshake (FS, ticket + client auth)" \
 
 client_needs_more_time 2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "DTLS proxy: 3d, max handshake, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 nbio=2 tickets=1 \

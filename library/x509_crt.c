@@ -2623,24 +2623,23 @@ static int x509_inet_pton_ipv6(const char *src, void *dst)
 static int x509_inet_pton_ipv4(const char *src, void *dst)
 {
     /* note: allows leading 0's, e.g. 000.000.000.000 */
-    const unsigned char *v = (const unsigned char *) src;
+    const unsigned char *character = (const unsigned char *) src;
     uint8_t *res = (uint8_t *) dst;
-    uint8_t d1, d2, d3, i = 0;
-    int ii;
-    const uint8_t tens[] = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90 };
+    uint8_t digit1, digit2, digit3, num_octets = 0;
+    uint16_t octet;
+
     do {
-        if ((d1 = *(uint8_t *)  v - '0') > 9) {
+        if ((digit1 = *(uint8_t *)  character - '0') > 9) {
             break;
-        } else if ((d2 = *(uint8_t *) ++v - '0') > 9) {
-            *res++ = d1;
-        } else if ((d3 = *(uint8_t *) ++v - '0') > 9) {
-            *res++ = tens[d1] + d2;
-        } else if ((ii = (d1 < 2 ? d1 == 1 ? 100 : 0 : d1 == 2 ? 200 : 999)
-                         + tens[d2] + d3) < 256) {
-            *res++ = (uint8_t) ii, ++v;
+        } else if ((digit2 = *(uint8_t *) ++character - '0') > 9) {
+            *res++ = digit1;
+        } else if ((digit3 = *(uint8_t *) ++character - '0') > 9) {
+            *res++ = digit1 * 10 + digit2;
+        } else if ((octet = digit1 * 100 + digit2 * 10 + digit3) < 256) {
+            *res++ = (uint8_t) octet, ++character;
         }
-    } while (++i < 4 && *v++ == '.');
-    return i == 4 && *v == '\0' ? 0 : -1;
+    } while (++num_octets < 4 && *character++ == '.');
+    return num_octets == 4 && *character == '\0' ? 0 : -1;
 }
 
 #else

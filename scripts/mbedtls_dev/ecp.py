@@ -30,10 +30,11 @@ class EcpP192R1Raw(bignum_common.ModOperationCommon,
                    EcpTarget):
     """Test cases for ECP P192 fast reduction."""
     symbol = "-"
-    test_function = "ecp_mod_p192_raw"
+    test_function = "ecp_mod_p_generic_raw"
     test_name = "ecp_mod_p192_raw"
     input_style = "fixed"
     arity = 1
+    dependencies = ["MBEDTLS_ECP_DP_SECP192R1_ENABLED"]
 
     moduli = ["fffffffffffffffffffffffffffffffeffffffffffffffff"] # type: List[str]
 
@@ -96,15 +97,20 @@ class EcpP192R1Raw(bignum_common.ModOperationCommon,
     def is_valid(self) -> bool:
         return True
 
+    def arguments(self):
+        args = super().arguments()
+        return  ["MBEDTLS_ECP_DP_SECP192R1"] + args
+
 
 class EcpP224R1Raw(bignum_common.ModOperationCommon,
                    EcpTarget):
     """Test cases for ECP P224 fast reduction."""
     symbol = "-"
-    test_function = "ecp_mod_p224_raw"
+    test_function = "ecp_mod_p_generic_raw"
     test_name = "ecp_mod_p224_raw"
     input_style = "arch_split"
     arity = 1
+    dependencies = ["MBEDTLS_ECP_DP_SECP224R1_ENABLED"]
 
     moduli = ["ffffffffffffffffffffffffffffffff000000000000000000000001"] # type: List[str]
 
@@ -168,15 +174,20 @@ class EcpP224R1Raw(bignum_common.ModOperationCommon,
     def is_valid(self) -> bool:
         return True
 
+    def arguments(self):
+        args = super().arguments()
+        return  ["MBEDTLS_ECP_DP_SECP224R1"] + args
+
 
 class EcpP256R1Raw(bignum_common.ModOperationCommon,
                    EcpTarget):
     """Test cases for ECP P256 fast reduction."""
     symbol = "-"
-    test_function = "ecp_mod_p256_raw"
+    test_function = "ecp_mod_p_generic_raw"
     test_name = "ecp_mod_p256_raw"
     input_style = "fixed"
     arity = 1
+    dependencies = ["MBEDTLS_ECP_DP_SECP256R1_ENABLED"]
 
     moduli = ["ffffffff00000001000000000000000000000000ffffffffffffffffffffffff"] # type: List[str]
 
@@ -247,14 +258,19 @@ class EcpP256R1Raw(bignum_common.ModOperationCommon,
     def is_valid(self) -> bool:
         return True
 
+    def arguments(self):
+        args = super().arguments()
+        return  ["MBEDTLS_ECP_DP_SECP256R1"] + args
+
 
 class EcpP384R1Raw(bignum_common.ModOperationCommon,
                    EcpTarget):
     """Test cases for ECP P384 fast reduction."""
-    test_function = "ecp_mod_p384_raw"
+    test_function = "ecp_mod_p_generic_raw"
     test_name = "ecp_mod_p384_raw"
     input_style = "fixed"
     arity = 1
+    dependencies = ["MBEDTLS_ECP_DP_SECP384R1_ENABLED"]
 
     moduli = [("ffffffffffffffffffffffffffffffffffffffffffffffff"
                "fffffffffffffffeffffffff0000000000000000ffffffff")
@@ -364,13 +380,19 @@ class EcpP384R1Raw(bignum_common.ModOperationCommon,
     def is_valid(self) -> bool:
         return True
 
+    def arguments(self):
+        args = super().arguments()
+        return  ["MBEDTLS_ECP_DP_SECP384R1"] + args
+
+
 class EcpP521R1Raw(bignum_common.ModOperationCommon,
                    EcpTarget):
     """Test cases for ECP P521 fast reduction."""
-    test_function = "ecp_mod_p521_raw"
+    test_function = "ecp_mod_p_generic_raw"
     test_name = "ecp_mod_p521_raw"
     input_style = "arch_split"
     arity = 1
+    dependencies = ["MBEDTLS_ECP_DP_SECP521R1_ENABLED"]
 
     moduli = [("01ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
                "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
@@ -462,3 +484,7 @@ class EcpP521R1Raw(bignum_common.ModOperationCommon,
     @property
     def is_valid(self) -> bool:
         return True
+
+    def arguments(self):
+        args = super().arguments()
+        return  ["MBEDTLS_ECP_DP_SECP521R1"] + args

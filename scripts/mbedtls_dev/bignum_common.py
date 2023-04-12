@@ -17,6 +17,7 @@
 from abc import abstractmethod
 import enum
 from typing import Iterator, List, Tuple, TypeVar, Any
+from copy import deepcopy
 from itertools import chain
 
 from . import test_case
@@ -104,6 +105,7 @@ class OperationCommon(test_data_generation.BaseTest):
     symbol = ""
     input_values = INPUTS_DEFAULT # type: List[str]
     input_cases = [] # type: List[Any]
+    dependencies = [] # type: List[Any]
     unique_combinations_only = False
     input_styles = ["variable", "fixed", "arch_split"] # type: List[str]
     input_style = "variable" # type: str
@@ -119,10 +121,11 @@ class OperationCommon(test_data_generation.BaseTest):
         # provides earlier/more robust input validation.
         self.int_a = hex_to_int(val_a)
         self.int_b = hex_to_int(val_b)
+        self.dependencies = deepcopy(self.dependencies)
         if bits_in_limb not in self.limb_sizes:
             raise ValueError("Invalid number of bits in limb!")
         if self.input_style == "arch_split":
-            self.dependencies = ["MBEDTLS_HAVE_INT{:d}".format(bits_in_limb)]
+            self.dependencies.append("MBEDTLS_HAVE_INT{:d}".format(bits_in_limb))
         self.bits_in_limb = bits_in_limb
 
     @property

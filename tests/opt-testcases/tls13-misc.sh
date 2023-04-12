@@ -813,6 +813,7 @@ run_test "TLS 1.3 m->m: resumption, cli/tkt kex modes psk_all/psk_all" \
 
 requires_openssl_tls1_3_with_compatible_ephemeral
 requires_all_configs_enabled MBEDTLS_SSL_CLI_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
                              MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
@@ -858,6 +859,7 @@ run_test    "TLS 1.3 m->O: resumption with early data" \
 
 requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_CLI_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
                              MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \
@@ -873,6 +875,7 @@ run_test    "TLS 1.3 m->G: resumption" \
 
 requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_CLI_C \
+                             MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_HAVE_TIME \
                              MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 requires_any_configs_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED \

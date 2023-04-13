@@ -2570,52 +2570,58 @@ static int x509_inet_pton_ipv4(const char *src, void *dst);
 
 static int x509_inet_pton_ipv6(const char *src, void *dst)
 {
-    const unsigned char *v = (const unsigned char *) src;
-    int i = 0, j, dc = -1;
+    const unsigned char *character = (const unsigned char *) src;
+    int num_groups = 0, num_digits, zero_group_start = -1;
     uint16_t addr[8];
     do {
         /* note: allows excess leading 0's, e.g. 1:0002:3:... */
-        uint16_t x = j = 0;
-        for (uint8_t n; j < 4 && li_cton(*v, n); x <<= 4, x |= n, ++v, ++j) {
+        uint16_t group = num_digits = 0;
+        for (uint8_t digit; num_digits < 4 && li_cton(*character, digit);
+             group <<= 4, group |= digit, ++character, ++num_digits) {
             ;
         }
-        if (j != 0) {
-            addr[i++] = MBEDTLS_IS_BIG_ENDIAN ? x : (x << 8) | (x >> 8);
-            if (*v == '\0') {
+        if (num_digits != 0) {
+            addr[num_groups++] = MBEDTLS_IS_BIG_ENDIAN ? group : (group << 8) | (group >> 8);
+            if (*character == '\0') {
                 break;
-            } else if (*v == '.' && (i != 0 || dc != -1) && (i < 7) &&
+            } else if (*character == '.' && (num_groups != 0 || zero_group_start != -1) &&
+                       (num_groups < 7) &&
                        /* walk back to prior ':', then parse as IPv4-mapped */
-                       (*--v == ':' || *--v == ':' ||
-                        *--v == ':' || *--v == ':') &&
-                       x509_inet_pton_ipv4((const char *) ++v, addr + --i) == 0) {
-                i += 2;
-                v = (const unsigned char *) "";
+                       (*--character == ':' || *--character == ':' ||
+                        *--character == ':' || *--character == ':') &&
+                       x509_inet_pton_ipv4((const char *) ++character, addr + --num_groups) == 0) {
+                num_groups += 2;
+                character = (const unsigned char *) "";
                 break;
-            } else if (*v != ':') {
+            } else if (*character != ':') {
                 return -1;
             }
         } else {
-            if (dc != -1 || *v != ':' || ((dc = i) == 0 && *++v != ':')) {
+            if (zero_group_start != -1 || *character != ':' ||
+                ((zero_group_start = num_groups) == 0 && *++character != ':')) {
                 return -1;
             }
-            if (v[1] == '\0') {
-                ++v;
+            if (character[1] == '\0') {
+                ++character;
                 break;
             }
         }
-        ++v;
-    } while (i < 8);
-    if ((dc != -1 ? i > 6 : i != 8) || *v != '\0') {
+        ++character;
+    } while (num_groups < 8);
+    if ((zero_group_start != -1 ? num_groups > 6 : num_groups != 8) || *character != '\0') {
         return -1;
     }
 
-    if (dc != -1) {
-        i -= dc;
-        j = 8 - i - dc;
-        if (i) {
-            memmove(addr + dc + j, addr + dc, i * sizeof(*addr));
+    if (zero_group_start != -1) {
+        int num_zero_groups = 0;
+        num_groups -= zero_group_start;
+        num_zero_groups = 8 - num_groups - zero_group_start;
+        if (num_groups) {
+            memmove(addr + zero_group_start + num_zero_groups,
+                    addr + zero_group_start,
+                    num_groups * sizeof(*addr));
         }
-        memset(addr + dc, 0, j * sizeof(*addr));
+        memset(addr + zero_group_start, 0, num_zero_groups * sizeof(*addr));
     }
     memcpy(dst, addr, sizeof(addr));
     return 0;

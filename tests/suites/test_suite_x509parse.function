@@ -1280,6 +1280,32 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
+void mbedtls_x509_crt_parse_file(char *crt_path, int ret, int nb_crt)
+{
+    mbedtls_x509_crt chain, *cur;
+    int i;
+
+    mbedtls_x509_crt_init(&chain);
+    USE_PSA_INIT();
+
+    TEST_EQUAL(mbedtls_x509_crt_parse_file(&chain, crt_path), ret);
+
+    /* Check how many certs we got */
+    for (i = 0, cur = &chain; cur != NULL; cur = cur->next) {
+        if (cur->raw.p != NULL) {
+            i++;
+        }
+    }
+
+    TEST_EQUAL(i, nb_crt);
+
+exit:
+    mbedtls_x509_crt_free(&chain);
+    USE_PSA_DONE();
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
 void mbedtls_x509_crt_parse_path(char *crt_path, int ret, int nb_crt)
 {
     mbedtls_x509_crt chain, *cur;

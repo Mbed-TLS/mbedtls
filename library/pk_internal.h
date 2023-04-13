@@ -69,6 +69,30 @@ int mbedtls_pk_get_public_key(mbedtls_pk_context *pk, unsigned char *buf,
 int mbedtls_pk_get_ec_public_key_props(mbedtls_pk_context *pk,
                                        psa_ecc_family_t *ec_curve,
                                        size_t *bits);
+
+/**
+ * \brief   Copy the public key content in raw format from "ctx->pk_ctx"
+ *          (which is an ecp_keypair) into the internal "ctx->pk_raw" buffer.
+ *
+ * \note    This is a temporary function that can be removed as soon as the pk
+ *          module is free from ECP_C
+ *
+ * \param pk   It is the pk_context which is going to be updated. It acts both
+ *             as input and output.
+ */
+int mbedtls_pk_update_public_key_from_keypair(mbedtls_pk_context *pk);
+
+/**
+ * \brief   Copy the public key content from the internal raw buffer, "ctx->pk_raw",
+ *          to the ecp_keypair structure, "ctx->pk_ctx".
+ *
+ * \note    This is a temporary function that can be removed as soon as the pk
+ *          module is free from ECP_C
+ *
+ * \param pk   It is the pk_context which is going to be updated. It acts both
+ *             as input and output.
+ */
+int mbedtls_pk_update_keypair_from_public_key(mbedtls_pk_context *pk);
 #endif /* MBEDTLS_ECP_C && MBEDTLS_USE_PSA_CRYPTO */
 
 #endif /* MBEDTLS_PK_INTERNAL_H */

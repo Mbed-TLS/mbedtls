@@ -877,32 +877,6 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *ctx,
 int mbedtls_pk_parse_public_key(mbedtls_pk_context *ctx,
                                 const unsigned char *key, size_t keylen);
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-/**
- * \brief   Copy the public key content in raw format from "ctx->pk_ctx"
- *          (which is an ecp_keypair) into the internal "ctx->pk_raw" buffer.
- *
- * \note    This is a temporary function that can be removed as soon as the pk
- *          module is free from ECP_C
- *
- * \param pk   It is the pk_context which is going to be updated. It acts both
- *             as input and output.
- */
-int mbedtls_pk_update_public_key_from_keypair(mbedtls_pk_context *pk);
-
-/**
- * \brief   Copy the public key content from the internal raw buffer, "ctx->pk_raw",
- *          to the ecp_keypair structure, "ctx->pk_ctx".
- *
- * \note    This is a temporary function that can be removed as soon as the pk
- *          module is free from ECP_C
- *
- * \param pk   It is the pk_context which is going to be updated. It acts both
- *             as input and output.
- */
-int mbedtls_pk_update_keypair_from_public_key(mbedtls_pk_context *pk);
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
 #if defined(MBEDTLS_FS_IO)
 /** \ingroup pk_module */
 /**

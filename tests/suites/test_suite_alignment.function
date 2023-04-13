@@ -19,15 +19,13 @@ int parse_hex_string(char *hex_string, uint64_t *result)
     }
 
     /* If < 8 bytes, shift right and pad with leading zeros for big-endian */
-    if (MBEDTLS_IS_BIG_ENDIAN) {
-        if (olen < 8) {
-            int offset = 8 - olen;
-            for (int i = olen - 1; i >= 0; i--) {
-                raw[i + offset] = raw[i];
-            }
-            for (int i = 0; i < offset; i++) {
-                raw[i] = 0;
-            }
+    if (MBEDTLS_IS_BIG_ENDIAN && olen < 8) {
+        int offset = 8 - olen;
+        for (int i = olen - 1; i >= 0; i--) {
+            raw[i + offset] = raw[i];
+        }
+        for (int i = 0; i < offset; i++) {
+            raw[i] = 0;
         }
     }
 
@@ -73,13 +71,8 @@ void mbedtls_unaligned_access(int size, int offset)
 
     /* Define expected result by manually aligning the raw bytes, and
      * reading back with a normal pointer access. */
-    uint64_t raw_aligned = 0;
-    uint8_t *e8 = (uint8_t *) &raw_aligned;
-    uint8_t *r8 = ((uint8_t *) &raw) + offset;
-    /* Make aligned copy */
-    for (int i = 0; i < size / 8; i++) {
-        e8[i] = r8[i];
-    }
+    uint64_t raw_aligned;
+    memcpy(&raw_aligned, ((uint8_t*)&raw) + offset, size / 8);
     /* Make a 16/32/64 byte read from the aligned location, and copy to expected */
     uint64_t expected = 0;
     switch (size) {
@@ -98,7 +91,7 @@ void mbedtls_unaligned_access(int size, int offset)
 
     TEST_EQUAL(r, expected);
 
-    /* Write sentinel to the part of the array we will testing writing to */
+    /* Write sentinel to the part of the array we will test writing to */
     for (size_t i = 0; i < (size_t) (size / 8); i++) {
         x[i + offset] = 0xff;
     }
@@ -319,7 +312,7 @@ void unaligned_access_endian_aware(int size, int offset, int big_endian)
     /* Verify read */
     TEST_EQUAL(read, expected);
 
-    /* Test writing back to memory. First write sentiel */
+    /* Test writing back to memory. First write sentinel */
     for (size_t i = 0; i < (size_t) (size / 8); i++) {
         x[i + offset] = 0xff;
     }

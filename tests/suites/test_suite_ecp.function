@@ -1363,9 +1363,6 @@ void ecp_mod_p192k1(char *input_N,
     mbedtls_mpi X;
     mbedtls_mpi N;
     mbedtls_mpi res;
-    size_t limbs_X;
-    size_t limbs_N;
-    size_t limbs_res;
 
     mbedtls_mpi_init(&X);
     mbedtls_mpi_init(&N);
@@ -1375,22 +1372,19 @@ void ecp_mod_p192k1(char *input_N,
     TEST_EQUAL(mbedtls_test_read_mpi(&N,   input_N), 0);
     TEST_EQUAL(mbedtls_test_read_mpi(&res, result),  0);
 
-    limbs_X = X.n;
-    limbs_N = N.n;
-    limbs_res = res.n;
     TEST_ASSERT(mbedtls_mpi_core_uint_le_mpi(0, X.p, X.n));
     TEST_ASSERT(mbedtls_mpi_core_uint_le_mpi(0, N.p, N.n));
     TEST_ASSERT(mbedtls_mpi_core_uint_le_mpi(0, res.p, res.n));
 
-    size_t limbs = limbs_N;
+    size_t limbs = N.n;
     size_t bytes = limbs * sizeof(mbedtls_mpi_uint);
 
-    TEST_EQUAL(limbs_X, 2 * limbs);
-    TEST_EQUAL(limbs_res, limbs);
+    TEST_EQUAL(X.n, 2 * limbs);
+    TEST_EQUAL(res.n, limbs);
 
     TEST_EQUAL(mbedtls_ecp_mod_p192k1(&X), 0);
     TEST_EQUAL(mbedtls_mpi_mod_mpi(&X, &X, &N), 0);
-    TEST_LE_U(mbedtls_mpi_core_bitlen(X.p, limbs_X), 192);
+    TEST_LE_U(mbedtls_mpi_core_bitlen(X.p, X.n), 192);
     ASSERT_COMPARE(X.p, bytes, res.p, bytes);
 
 exit:

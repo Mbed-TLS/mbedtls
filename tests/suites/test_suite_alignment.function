@@ -71,21 +71,21 @@ void mbedtls_unaligned_access(int size, int offset)
 
     /* Define expected result by manually aligning the raw bytes, and
      * reading back with a normal pointer access. */
-    uint64_t raw_aligned;
-    memcpy(&raw_aligned, ((uint8_t*)&raw) + offset, size / 8);
+    uint64_t raw_aligned_64;
+    uint16_t *raw_aligned_16 = (uint16_t *) &raw_aligned_64;
+    uint32_t *raw_aligned_32 = (uint32_t *) &raw_aligned_64;
+    memcpy(&raw_aligned_64, ((uint8_t *) &raw) + offset, size / 8);
     /* Make a 16/32/64 byte read from the aligned location, and copy to expected */
     uint64_t expected = 0;
     switch (size) {
         case 16:
-            uint16_t *e16 = (uint16_t *) &raw_aligned;
-            expected = *e16;
+            expected = *raw_aligned_16;
             break;
         case 32:
-            uint32_t *e32 = (uint32_t *) &raw_aligned;
-            expected = *e32;
+            expected = *raw_aligned_32;
             break;
         case 64:
-            expected = raw_aligned;
+            expected = raw_aligned_64;
             break;
     }
 

@@ -15,11 +15,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Audit validity date of X509 crt/crl/csr
+"""Audit validity date of X509 crt/crl/csr.
 
 This script is used to audit the validity date of crt/crl/csr used for testing.
-The files are in tests/data_files/ while some data are in test suites data in
-tests/suites/*.data files.
+It prints the information of X509 data whose validity duration does not cover
+the provided validity duration. The data are collected from tests/data_files/
+and tests/suites/*.data files by default.
 """
 
 import os
@@ -362,24 +363,23 @@ def main():
     """
     Perform argument parsing.
     """
-    parser = argparse.ArgumentParser(
-        description='Audit script for X509 crt/crl/csr files.'
-    )
+    parser = argparse.ArgumentParser(description=__doc__)
 
     parser.add_argument('-a', '--all',
                         action='store_true',
-                        help='list the information of all files')
+                        help='list the information of all the files')
     parser.add_argument('-v', '--verbose',
                         action='store_true', dest='verbose',
-                        help='Show warnings')
+                        help='show warnings')
     parser.add_argument('--not-before', dest='not_before',
-                        help='not valid before this date(UTC), YYYY-MM-DD',
+                        help=('not valid before this date (UTC, YYYY-MM-DD). '
+                              'Default: today'),
                         metavar='DATE')
     parser.add_argument('--not-after', dest='not_after',
-                        help='not valid after this date(UTC), YYYY-MM-DD',
+                        help=('not valid after this date (UTC, YYYY-MM-DD). '
+                              'Default: not-before'),
                         metavar='DATE')
-    parser.add_argument('-f', '--file', dest='file',
-                        help='file to audit (Debug only)',
+    parser.add_argument('files', nargs='*', help='files to audit',
                         metavar='FILE')
 
     args = parser.parse_args()
@@ -388,9 +388,9 @@ def main():
     td_auditor = TestDataAuditor(args.verbose)
     sd_auditor = SuiteDataAuditor(args.verbose)
 
-    if args.file:
-        data_files = [args.file]
-        suite_data_files = [args.file]
+    if args.files:
+        data_files = args.files
+        suite_data_files = args.files
     else:
         data_files = td_auditor.default_files
         suite_data_files = sd_auditor.default_files
@@ -408,7 +408,7 @@ def main():
     sd_auditor.walk_all(suite_data_files)
     audit_results = td_auditor.audit_data + sd_auditor.audit_data
 
-    # we filter out the files whose validity duration covers the provide
+    # we filter out the files whose validity duration covers the provided
     # duration.
     filter_func = lambda d: (not_before_date < d.not_valid_before) or \
                             (d.not_valid_after < not_after_date)

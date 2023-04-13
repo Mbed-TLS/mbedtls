@@ -1896,11 +1896,11 @@ x509parse_crt:"3081b030819aa0030201028204deadbeef300d06092a864886f70d01010b05003
 
 X509 CRT ASN1 (inv extBasicConstraint, pathlen is INT_MAX)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA256_C:MBEDTLS_SHA1_C
-x509parse_crt_file:"data_files/server1_pathlen_int_max.crt":MBEDTLS_ERR_X509_INVALID_EXTENSIONS + MBEDTLS_ERR_ASN1_INVALID_LENGTH
+mbedtls_x509_crt_parse_file:"data_files/server1_pathlen_int_max.crt":MBEDTLS_ERR_X509_INVALID_EXTENSIONS + MBEDTLS_ERR_ASN1_INVALID_LENGTH:0
 
 X509 CRT ASN1 (pathlen is INT_MAX-1)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA256_C:MBEDTLS_SHA1_C
-x509parse_crt_file:"data_files/server1_pathlen_int_max-1.crt":0
+mbedtls_x509_crt_parse_file:"data_files/server1_pathlen_int_max-1.crt":0:1
 
 X509 CRT ASN1 (TBS, inv extBasicConstraint, pathlen inv length encoding)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
@@ -2858,23 +2858,23 @@ mbedtls_x509_csr_parse:"3008300602047fffffff":"":MBEDTLS_ERR_X509_UNKNOWN_VERSIO
 
 X509 File parse (no issues)
 depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
-x509parse_crt_file:"data_files/server7_int-ca.crt":0
+mbedtls_x509_crt_parse_file:"data_files/server7_int-ca.crt":0:2
 
 X509 File parse (extra space in one certificate)
 depends_on:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
-x509parse_crt_file:"data_files/server7_pem_space.crt":1
+mbedtls_x509_crt_parse_file:"data_files/server7_pem_space.crt":1:1
 
 X509 File parse (all certificates fail)
 depends_on:MBEDTLS_ECDSA_C:MBEDTLS_RSA_C
-x509parse_crt_file:"data_files/server7_all_space.crt":MBEDTLS_ERR_PEM_INVALID_DATA + MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+mbedtls_x509_crt_parse_file:"data_files/server7_all_space.crt":MBEDTLS_ERR_PEM_INVALID_DATA + MBEDTLS_ERR_BASE64_INVALID_CHARACTER:0
 
 X509 File parse (trailing spaces, OK)
 depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
-x509parse_crt_file:"data_files/server7_trailing_space.crt":0
+mbedtls_x509_crt_parse_file:"data_files/server7_trailing_space.crt":0:2
 
 X509 File parse (Algorithm Params Tag mismatch)
 depends_on:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
-x509parse_crt_file:"data_files/cli-rsa-sha256-badalg.crt.der":MBEDTLS_ERR_X509_SIG_MISMATCH
+mbedtls_x509_crt_parse_file:"data_files/cli-rsa-sha256-badalg.crt.der":MBEDTLS_ERR_X509_SIG_MISMATCH:0
 
 X509 Get time (UTC no issues)
 depends_on:MBEDTLS_X509_USE_C

@@ -2571,7 +2571,7 @@ static int x509_inet_pton_ipv4(const char *src, void *dst);
 static int x509_inet_pton_ipv6(const char *src, void *dst)
 {
     const unsigned char *character = (const unsigned char *) src;
-    int num_groups = 0, num_digits, zero_group_start = -1;
+    int nonzero_groups = 0, num_digits, zero_group_start = -1;
     uint16_t addr[8];
     do {
         /* note: allows excess leading 0's, e.g. 1:0002:3:... */
@@ -2581,16 +2581,19 @@ static int x509_inet_pton_ipv6(const char *src, void *dst)
             ;
         }
         if (num_digits != 0) {
-            addr[num_groups++] = MBEDTLS_IS_BIG_ENDIAN ? group : (group << 8) | (group >> 8);
+            addr[nonzero_groups++] = MBEDTLS_IS_BIG_ENDIAN ? group :
+                                     (group << 8) | (group >> 8);
             if (*character == '\0') {
                 break;
-            } else if (*character == '.' && (num_groups != 0 || zero_group_start != -1) &&
-                       (num_groups < 7) &&
+            } else if (*character == '.' && (nonzero_groups != 0 ||
+                                             zero_group_start != -1) &&
+                       (nonzero_groups < 7) &&
                        /* walk back to prior ':', then parse as IPv4-mapped */
                        (*--character == ':' || *--character == ':' ||
                         *--character == ':' || *--character == ':') &&
-                       x509_inet_pton_ipv4((const char *) ++character, addr + --num_groups) == 0) {
-                num_groups += 2;
+                       x509_inet_pton_ipv4((const char *) ++character,
+                                           addr + --nonzero_groups) == 0) {
+                nonzero_groups += 2;
                 character = (const unsigned char *) "";
                 break;
             } else if (*character != ':') {
@@ -2598,7 +2601,8 @@ static int x509_inet_pton_ipv6(const char *src, void *dst)
             }
         } else {
             if (zero_group_start != -1 || *character != ':' ||
-                ((zero_group_start = num_groups) == 0 && *++character != ':')) {
+                ((zero_group_start = nonzero_groups) == 0 &&
+                 *++character != ':')) {
                 return -1;
             }
             if (character[1] == '\0') {
@@ -2607,21 +2611,23 @@ static int x509_inet_pton_ipv6(const char *src, void *dst)
             }
         }
         ++character;
-    } while (num_groups < 8);
-    if ((zero_group_start != -1 ? num_groups > 6 : num_groups != 8) || *character != '\0') {
+    } while (nonzero_groups < 8);
+    if ((zero_group_start != -1 ? nonzero_groups > 6 : nonzero_groups != 8) ||
+        *character != '\0') {
         return -1;
     }
 
     if (zero_group_start != -1) {
-        int num_zero_groups = 0;
-        num_groups -= zero_group_start;
-        num_zero_groups = 8 - num_groups - zero_group_start;
-        if (num_groups) {
-            memmove(addr + zero_group_start + num_zero_groups,
+        int zero_groups = 8 - nonzero_groups;
+        int groups_after_zero = nonzero_groups - zero_group_start;
+
+        /* Move the non-zero part to after the zeroes */
+        if (groups_after_zero) {
+            memmove(addr + zero_group_start + zero_groups,
                     addr + zero_group_start,
-                    num_groups * sizeof(*addr));
+                    groups_after_zero * sizeof(*addr));
         }
-        memset(addr + zero_group_start, 0, num_zero_groups * sizeof(*addr));
+        memset(addr + zero_group_start, 0, zero_groups * sizeof(*addr));
     }
     memcpy(dst, addr, sizeof(addr));
     return 0;

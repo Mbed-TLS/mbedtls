@@ -141,16 +141,20 @@ class CodeSizeComparison:
                  git_worktree_path, revision], cwd=self.repo_path,
                 stderr=subprocess.STDOUT
             )
+
         return git_worktree_path
 
     def _build_libraries(self, git_worktree_path):
         """Build libraries in the specified worktree."""
 
         my_environment = os.environ.copy()
-        subprocess.check_output(
-            self.make_command, env=my_environment, shell=True,
-            cwd=git_worktree_path, stderr=subprocess.STDOUT,
-        )
+        try:
+            subprocess.check_output(
+                self.make_command, env=my_environment, shell=True,
+                cwd=git_worktree_path, stderr=subprocess.STDOUT,
+            )
+        except subprocess.CalledProcessError as e:
+            self._handle_called_process_error(e, git_worktree_path)
 
     def _gen_code_size_csv(self, revision, git_worktree_path):
         """Generate code size csv file."""
@@ -240,6 +244,20 @@ class CodeSizeComparison:
         self._get_code_size_for_rev(self.old_rev)
         self._get_code_size_for_rev(self.new_rev)
         return self.compare_code_size()
+
+    def _handle_called_process_error(self, e: subprocess.CalledProcessError,
+                                     git_worktree_path):
+        """Handle a CalledProcessError and quit the program gracefully.
+        Remove any extra worktrees so that the script may be called again."""
+
+        # Tell the user what went wrong
+        print("The following command: {} failed and exited with code {}"
+              .format(e.cmd, e.returncode))
+        print("Process output:\n {}".format(str(e.output, "utf-8")))
+
+        # Quit gracefully by removing the existing worktree
+        self._remove_worktree(git_worktree_path)
+        sys.exit(-1)
 
 def main():
     parser = argparse.ArgumentParser(

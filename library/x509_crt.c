@@ -2570,50 +2570,50 @@ static int x509_inet_pton_ipv4(const char *src, void *dst);
 
 static int x509_inet_pton_ipv6(const char *src, void *dst)
 {
-    const unsigned char *character = (const unsigned char *) src;
+    const unsigned char *p = (const unsigned char *) src;
     int nonzero_groups = 0, num_digits, zero_group_start = -1;
     uint16_t addr[8];
     do {
         /* note: allows excess leading 0's, e.g. 1:0002:3:... */
         uint16_t group = num_digits = 0;
-        for (uint8_t digit; num_digits < 4 && li_cton(*character, digit);
-             group <<= 4, group |= digit, ++character, ++num_digits) {
+        for (uint8_t digit; num_digits < 4 && li_cton(*p, digit);
+             group <<= 4, group |= digit, ++p, ++num_digits) {
             ;
         }
         if (num_digits != 0) {
             addr[nonzero_groups++] = MBEDTLS_IS_BIG_ENDIAN ? group :
                                      (group << 8) | (group >> 8);
-            if (*character == '\0') {
+            if (*p == '\0') {
                 break;
-            } else if (*character == '.' && (nonzero_groups != 0 ||
-                                             zero_group_start != -1) &&
+            } else if (*p == '.' && (nonzero_groups != 0 ||
+                                     zero_group_start != -1) &&
                        (nonzero_groups < 7) &&
                        /* walk back to prior ':', then parse as IPv4-mapped */
-                       (*--character == ':' || *--character == ':' ||
-                        *--character == ':' || *--character == ':') &&
-                       x509_inet_pton_ipv4((const char *) ++character,
+                       (*--p == ':' || *--p == ':' ||
+                        *--p == ':' || *--p == ':') &&
+                       x509_inet_pton_ipv4((const char *) ++p,
                                            addr + --nonzero_groups) == 0) {
                 nonzero_groups += 2;
-                character = (const unsigned char *) "";
+                p = (const unsigned char *) "";
                 break;
-            } else if (*character != ':') {
+            } else if (*p != ':') {
                 return -1;
             }
         } else {
-            if (zero_group_start != -1 || *character != ':' ||
+            if (zero_group_start != -1 || *p != ':' ||
                 ((zero_group_start = nonzero_groups) == 0 &&
-                 *++character != ':')) {
+                 *++p != ':')) {
                 return -1;
             }
-            if (character[1] == '\0') {
-                ++character;
+            if (p[1] == '\0') {
+                ++p;
                 break;
             }
         }
-        ++character;
+        ++p;
     } while (nonzero_groups < 8);
     if ((zero_group_start != -1 ? nonzero_groups > 6 : nonzero_groups != 8) ||
-        *character != '\0') {
+        *p != '\0') {
         return -1;
     }
 
@@ -2636,23 +2636,23 @@ static int x509_inet_pton_ipv6(const char *src, void *dst)
 static int x509_inet_pton_ipv4(const char *src, void *dst)
 {
     /* note: allows leading 0's, e.g. 000.000.000.000 */
-    const unsigned char *character = (const unsigned char *) src;
+    const unsigned char *p = (const unsigned char *) src;
     uint8_t *res = (uint8_t *) dst;
     uint8_t digit1, digit2, digit3, num_octets = 0;
     uint16_t octet;
 
     do {
-        if ((digit1 = *(uint8_t *)  character - '0') > 9) {
+        if ((digit1 = *(uint8_t *)  p - '0') > 9) {
             break;
-        } else if ((digit2 = *(uint8_t *) ++character - '0') > 9) {
+        } else if ((digit2 = *(uint8_t *) ++p - '0') > 9) {
             *res++ = digit1;
-        } else if ((digit3 = *(uint8_t *) ++character - '0') > 9) {
+        } else if ((digit3 = *(uint8_t *) ++p - '0') > 9) {
             *res++ = digit1 * 10 + digit2;
         } else if ((octet = digit1 * 100 + digit2 * 10 + digit3) < 256) {
-            *res++ = (uint8_t) octet, ++character;
+            *res++ = (uint8_t) octet, ++p;
         }
-    } while (++num_octets < 4 && *character++ == '.');
-    return num_octets == 4 && *character == '\0' ? 0 : -1;
+    } while (++num_octets < 4 && *p++ == '.');
+    return num_octets == 4 && *p == '\0' ? 0 : -1;
 }
 
 #else

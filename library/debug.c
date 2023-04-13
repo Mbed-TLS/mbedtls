@@ -331,9 +331,6 @@ void mbedtls_debug_print_crt(const mbedtls_ssl_context *ssl, int level,
         mbedtls_x509_crt_info(buf, sizeof(buf) - 1, "", crt);
         debug_print_line_by_line(ssl, level, file, line, buf);
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_ECP_C)
-        mbedtls_pk_update_keypair_from_public_key((mbedtls_pk_context *) &crt->pk);
-#endif /* MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_ECP_C */
         debug_print_pk(ssl, level, file, line, "crt->", &crt->pk);
 
         crt = crt->next;

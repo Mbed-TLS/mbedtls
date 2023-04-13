@@ -33,46 +33,47 @@ import sys
 from mbedtls_dev import build_tree
 
 class Size:
+    """Represent code size; split into text, data, and bss"""
     def __init__(self, text: int, data: int, bss: int, total: int):
         self.text = text
         self.data = data
         self.bss = bss
         self.total = total
-    def __eq__(self, __o: object) -> bool:
+    def __eq__(self, __o) -> bool:
         return (self.text == __o.text) and \
                (self.data == __o.data) and \
                (self.bss == __o.bss)
 
-    def __ne__(self, __o: object) -> bool:
+    def __ne__(self, __o) -> bool:
         return not self.__eq__(__o)
 
-    def __lt__(self, __o: object) -> bool:
+    def __lt__(self, __o) -> bool:
         return self.total < __o.total
 
-    def __le__(self, __o: object) -> bool:
+    def __le__(self, __o) -> bool:
         return self.__lt__(__o) or self.__eq__(__o)
 
-    def __gt__(self, __o: object) -> bool:
+    def __gt__(self, __o) -> bool:
         return self.total > __o.total
 
-    def __ge__(self, __o: object) -> bool:
+    def __ge__(self, __o) -> bool:
         return self.__gt__(__o) or self.__eq__(__o)
 
-    def __add__(self, __o: object) -> object:
+    def __add__(self, __o) -> object:
         text = self.text + __o.text
         data = self.data + __o.data
         bss = self.bss + __o.bss
         total = self.total + __o.total
-        return Size(text,data,bss,total)
+        return Size(text, data, bss, total)
 
-    def __sub__(self, __o: object) -> object:
+    def __sub__(self, __o) -> object:
         text = self.text - __o.text
         data = self.data - __o.data
         bss = self.bss - __o.bss
         total = self.total - __o.total
-        return Size(text,data,bss,total)
+        return Size(text, data, bss, total)
 
-ALLOWED_ARCH = ['x86', 'aarch32' ,'aarch64']
+ALLOWED_ARCH = ['x86', 'aarch32', 'aarch64']
 ALLOWED_CONFIG = ['default', 'full', 'baremetal', 'tfm-medium']
 
 PRE_BUILD_CMDS = {
@@ -85,6 +86,7 @@ PRE_BUILD_CMDS = {
 class CodeSizeComparison:
     """Compare code size between two Git revisions."""
 
+    #pylint: disable=R0913
     def __init__(self, old_revision, new_revision, result_dir, arch, config):
         """
         old_revision: revision to compare against
@@ -118,9 +120,10 @@ class CodeSizeComparison:
         return result
 
     def _set_make_command(self):
-        if self.arch == 'x86' and (self.config == 'default' or \
-                                   self.config == 'full' or \
-                                   self.config == 'baremetal'):
+        """Use the config and arch options passed to the object to determine
+           and set the correct build command."""
+        if self.arch == 'x86' and (self.config in {'default', 'full',\
+                                                   'baremetal'}):
             self.make_command = 'make -j lib'
             return
 
@@ -130,7 +133,7 @@ class CodeSizeComparison:
             print("Assuming that the current config is compatible with \
                    baremetal targets. If it isn't the build may fail!")
 
-        if self.config == 'default' or self.config == 'baremetal':
+        if self.config in {'default', 'baremetal'}:
             if self.arch == 'aarch32':
                 self.make_command = 'make -j lib CC=armclang\
                                     CFLAGS=\"--target=arm-arm-none-eabi \
@@ -141,6 +144,7 @@ class CodeSizeComparison:
             return
 
         if self.arch == 'aarch32' and self.config == 'tfm-medium':
+            # pylint: disable=C0301
             self.make_command = \
                  'make -j lib CC=armclang CFLAGS=\'--target=arm-arm-none-eabi \
                  -mcpu=cortex-m33 -Os \
@@ -182,14 +186,14 @@ class CodeSizeComparison:
                     cwd=git_worktree_path, stderr=subprocess.STDOUT,
                 )
             except subprocess.CalledProcessError as e:
-                self._handle_CalledProcessError(e,git_worktree_path)
+                self._handle_called_process_error(e, git_worktree_path)
         try:
             subprocess.check_output(
                 self.make_command, env=my_environment, shell=True,
                 cwd=git_worktree_path, stderr=subprocess.STDOUT,
             )
         except subprocess.CalledProcessError as e:
-            self._handle_CalledProcessError(e,git_worktree_path)
+            self._handle_called_process_error(e, git_worktree_path)
 
     def _gen_code_size_report(self, revision, git_worktree_path):
         """Generate a code size report for each executable and store them
@@ -201,7 +205,7 @@ class CodeSizeComparison:
                 ["size -t library/libmbedcrypto.a"], cwd=git_worktree_path, shell=True
             )
         except subprocess.CalledProcessError as e:
-            self._handle_CalledProcessError(e,git_worktree_path)
+            self._handle_called_process_error(e, git_worktree_path)
         crypto_text = result.decode()
         # Size for libmbedx509.a
         try:
@@ -209,7 +213,7 @@ class CodeSizeComparison:
                 ["size -t library/libmbedx509.a"], cwd=git_worktree_path, shell=True
             )
         except subprocess.CalledProcessError as e:
-            self._handle_CalledProcessError(e,git_worktree_path)
+            self._handle_called_process_error(e, git_worktree_path)
         x509_text = result.decode()
         # Size for libmbedtls.a
         try:
@@ -217,7 +221,7 @@ class CodeSizeComparison:
                 ["size -t library/libmbedtls.a"], cwd=git_worktree_path, shell=True
             )
         except subprocess.CalledProcessError as e:
-            self._handle_CalledProcessError(e,git_worktree_path)
+            self._handle_called_process_error(e, git_worktree_path)
         tls_text = result.decode()
 
         def size_text_to_dict(txt):
@@ -226,10 +230,10 @@ class CodeSizeComparison:
             for line in txt.splitlines()[1:]:
                 data = line.split()
                 exe_size = Size(data[0], data[1], data[2], data[3])
-                size_dict[f'{data[5]}'] = exe_size
+                size_dict[data[5]] = exe_size
             return size_dict
 
-        lst = [(crypto_text),(x509_text),(tls_text)]
+        lst = [(crypto_text), (x509_text), (tls_text)]
         size_lst = [size_text_to_dict(t) for t in lst]
         size_dicts = {
             'crypto': size_lst[0],
@@ -255,13 +259,15 @@ class CodeSizeComparison:
         sizes_dict = self._gen_code_size_report(revision, git_worktree_path)
 
         def write_dict_to_csv(d):
-            for (f,s) in d.items():
-                csv_file.write(f'{f}, {s.text}, {s.data}, {s.bss}, {s.total}\n')
+            for (f, s) in d.items():
+                csv_file.write('{}, {}, {}, {}, {}\n'\
+                                .format(f, s.text, s.data, s.bss, s.total))
 
-        csv_file = open(os.path.join(self.csv_dir, csv_fname), "w")
+        csv_file = open(os.path.join(self.csv_dir, csv_fname), "w",
+                        encoding='utf-8')
         csv_file.write('file, text, data, bss, TOTAL\n')
-        for (n,d) in sizes_dict.items():
-            csv_file.write(f'{n}\n')
+        for (n, d) in sizes_dict.items():
+            csv_file.write(n + '\n')
             write_dict_to_csv(d)
             csv_file.write('\n')
 
@@ -297,10 +303,10 @@ class CodeSizeComparison:
 
         res_file = open(os.path.join(self.result_dir, "compare-" + self.config +
                                      "-" + self.arch + "-" + self.old_rev + "-"
-                                     + self.new_rev + ".csv"), "w")
+                                     + self.new_rev + ".csv"), "w", encoding='utf-8')
         def write_dict_to_csv(old_d, new_d):
             tot_change_pct = ""
-            for (f,s) in new_d.items():
+            for (f, s) in new_d.items():
                 new_size = int(s.total)
                 if f in old_d:
                     old_size = int(old_d[f].total)
@@ -321,10 +327,10 @@ class CodeSizeComparison:
         print("Generating comparison results.")
 
         for exe in self.new_sizes:
-            res_file.write(f"{exe}\n")
-            tot = write_dict_to_csv(self.old_sizes[f'{exe}'], self.new_sizes[f'{exe}'])
+            res_file.write(exe + '\n')
+            tot = write_dict_to_csv(self.old_sizes[exe], self.new_sizes[exe])
             res_file.write('\n')
-            self.change_pcts[f'{exe}'] = tot
+            self.change_pcts[exe] = tot
 
         return 0
 
@@ -336,7 +342,7 @@ class CodeSizeComparison:
         self._get_code_size_for_rev(self.new_rev)
         return self.compare_code_size()
 
-    def _handle_CalledProcessError(self, e: subprocess.CalledProcessError, git_worktree_path):
+    def _handle_called_process_error(self, e: subprocess.CalledProcessError, git_worktree_path):
         """Handle a CalledProcessError and quit the program gracefully. Remove any
         extra worktrees so that the script may be called again."""
 

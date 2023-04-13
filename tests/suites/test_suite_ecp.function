@@ -1378,6 +1378,9 @@ void ecp_mod_p192k1(char *input_N,
     limbs_X = X.n;
     limbs_N = N.n;
     limbs_res = res.n;
+    TEST_ASSERT(mbedtls_mpi_core_uint_le_mpi(0, X.p, X.n));
+    TEST_ASSERT(mbedtls_mpi_core_uint_le_mpi(0, N.p, N.n));
+    TEST_ASSERT(mbedtls_mpi_core_uint_le_mpi(0, res.p, res.n));
 
     size_t limbs = limbs_N;
     size_t bytes = limbs * sizeof(mbedtls_mpi_uint);

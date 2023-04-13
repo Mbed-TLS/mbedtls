@@ -338,7 +338,7 @@ class SuiteDataAuditor(Auditor):
         audit_data_list = []
         data_f = FileWrapper(filename)
         for _, _, _, test_args in parse_suite_data(data_f):
-            for test_arg in test_args:
+            for idx, test_arg in enumerate(test_args):
                 match = re.match(r'"(?P<data>[0-9a-fA-F]+)"', test_arg)
                 if not match:
                     continue
@@ -347,7 +347,9 @@ class SuiteDataAuditor(Auditor):
                 audit_data = self.parse_bytes(bytes.fromhex(match.group('data')))
                 if audit_data is None:
                     continue
-                audit_data.filename = filename
+                audit_data.filename = "{}:{}:{}".format(filename,
+                                                        data_f.line_no,
+                                                        idx + 1)
                 audit_data_list.append(audit_data)
 
         return audit_data_list

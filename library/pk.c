@@ -449,18 +449,7 @@ int mbedtls_pk_verify_restartable(mbedtls_pk_context *ctx,
         if ((ret = pk_restart_setup(rs_ctx, ctx->pk_info)) != 0) {
             return ret;
         }
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-        /* PSA crypto does not support restartable functions yet, so we are
-         * falling back to the mbedtls implementation. Therefore copy the
-         * raw content of the public key back to the ecp_keypair structure */
-        if ((mbedtls_ecp_is_zero(&(mbedtls_pk_ec(*ctx)->Q)) == 1) &&
-            (ctx->pk_raw_len != 0)) {
-            ret = mbedtls_pk_update_keypair_from_public_key(ctx);
-            if (ret != 0) {
-                return ret;
-            }
-        }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
         ret = ctx->pk_info->verify_rs_func(ctx->pk_ctx,
                                            md_alg, hash, hash_len, sig, sig_len, rs_ctx->rs_ctx);
 

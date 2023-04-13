@@ -203,7 +203,8 @@ static int rsa_verify_wrap(void *ctx, mbedtls_md_type_t md_alg,
                            const unsigned char *hash, size_t hash_len,
                            const unsigned char *sig, size_t sig_len)
 {
-    mbedtls_rsa_context *rsa = (mbedtls_rsa_context *) ctx;
+    mbedtls_pk_context *pk = (mbedtls_pk_context *) ctx;
+    mbedtls_rsa_context *rsa = (mbedtls_rsa_context *) pk->pk_ctx;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
@@ -226,7 +227,7 @@ static int rsa_verify_wrap(void *ctx, mbedtls_md_type_t md_alg,
     /* mbedtls_pk_write_pubkey_der() expects a full PK context;
      * re-construct one to make it happy */
     key.pk_info = &mbedtls_rsa_info;
-    key.pk_ctx = ctx;
+    key.pk_ctx = rsa;
     key_len = mbedtls_pk_write_pubkey_der(&key, buf, sizeof(buf));
     if (key_len <= 0) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
@@ -575,8 +576,10 @@ static int rsa_check_pair_wrap(const void *pub, const void *prv,
 {
     (void) f_rng;
     (void) p_rng;
-    return mbedtls_rsa_check_pub_priv((const mbedtls_rsa_context *) pub,
-                                      (const mbedtls_rsa_context *) prv);
+    mbedtls_pk_context *pub_pk = (mbedtls_pk_context *) pub;
+    mbedtls_pk_context *prv_pk = (mbedtls_pk_context *) prv;
+    return mbedtls_rsa_check_pub_priv(mbedtls_pk_rsa(*pub_pk),
+                                      mbedtls_pk_rsa(*prv_pk));
 }
 
 static void *rsa_alloc_wrap(void)
@@ -1419,13 +1422,16 @@ static int rsa_alt_check_pair(const void *pub, const void *prv,
     size_t sig_len = 0;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    if (rsa_alt_get_bitlen(prv) != rsa_get_bitlen(pub)) {
+    mbedtls_rsa_context *pub_pk = mbedtls_pk_rsa(*((mbedtls_pk_context *) pub));
+    mbedtls_rsa_context *prv_pk = mbedtls_pk_rsa(*((mbedtls_pk_context *) prv));
+
+    if (rsa_alt_get_bitlen(prv_pk) != rsa_get_bitlen(pub_pk)) {
         return MBEDTLS_ERR_RSA_KEY_CHECK_FAILED;
     }
 
     memset(hash, 0x2a, sizeof(hash));
 
-    if ((ret = rsa_alt_sign_wrap((void *) prv, MBEDTLS_MD_NONE,
+    if ((ret = rsa_alt_sign_wrap((void *) prv_pk, MBEDTLS_MD_NONE,
                                  hash, sizeof(hash),
                                  sig, sizeof(sig), &sig_len,
                                  f_rng, p_rng)) != 0) {

@@ -478,16 +478,7 @@ int mbedtls_pk_verify_restartable(mbedtls_pk_context *ctx,
         return MBEDTLS_ERR_PK_TYPE_MISMATCH;
     }
 
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if ((ctx->pk_info->type == MBEDTLS_PK_ECKEY) ||
-        (ctx->pk_info->type == MBEDTLS_PK_ECKEY_DH) ||
-        (ctx->pk_info->type == MBEDTLS_PK_ECDSA)) {
-        return ctx->pk_info->verify_func(ctx, md_alg, hash, hash_len,
-                                         sig, sig_len);
-    } else
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-    return ctx->pk_info->verify_func(ctx->pk_ctx, md_alg, hash, hash_len,
+    return ctx->pk_info->verify_func(ctx, md_alg, hash, hash_len,
                                      sig, sig_len);
 }
 
@@ -818,14 +809,7 @@ int mbedtls_pk_check_pair(const mbedtls_pk_context *pub,
         }
     }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if ((prv->pk_info->type == MBEDTLS_PK_ECKEY) ||
-        (prv->pk_info->type == MBEDTLS_PK_ECKEY_DH) ||
-        (prv->pk_info->type == MBEDTLS_PK_ECDSA)) {
-        return prv->pk_info->check_pair_func(pub, prv, f_rng, p_rng);
-    }
-#endif
-    return prv->pk_info->check_pair_func(pub->pk_ctx, prv->pk_ctx, f_rng, p_rng);
+    return prv->pk_info->check_pair_func(pub, prv, f_rng, p_rng);
 }
 
 /*

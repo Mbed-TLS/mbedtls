@@ -1,5 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/pk.h"
+#include "pk_internal.h"
 
 /* For error codes */
 #include "mbedtls/asn1.h"
@@ -24,14 +25,14 @@
 #define RSA_KEY_LEN   64
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_ECP_LIGHT)
-static int pk_genkey_ec(mbedtls_ecp_group *grp,
-                        mbedtls_mpi *d, mbedtls_ecp_point *Q)
+static int pk_genkey_ec(mbedtls_pk_context *pk)
 {
     psa_status_t status;
+    mbedtls_ecp_keypair *eck = mbedtls_pk_ec(*pk);
     psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
     size_t curve_bits;
-    psa_ecc_family_t curve = mbedtls_ecc_group_to_psa(grp->id,
+    psa_ecc_family_t curve = mbedtls_ecc_group_to_psa(eck->grp.id,
                                                       &curve_bits);
     unsigned char key_buf[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
     size_t key_len;
@@ -52,7 +53,7 @@ static int pk_genkey_ec(mbedtls_ecp_group *grp,
         goto exit;
     }
 
-    ret = mbedtls_mpi_read_binary(d, key_buf, key_len);
+    ret = mbedtls_mpi_read_binary(&eck->d, key_buf, key_len);
     if (ret != 0) {
         goto exit;
     }
@@ -64,12 +65,26 @@ static int pk_genkey_ec(mbedtls_ecp_group *grp,
         goto exit;
     }
 
-    ret = mbedtls_ecp_point_read_binary(grp, Q, key_buf, key_len);
+    status = psa_destroy_key(key_id);
+    if (status != PSA_SUCCESS) {
+        return psa_pk_status_to_mbedtls(status);
+    }
+
+    ret = mbedtls_ecp_point_read_binary(&eck->grp, &eck->Q, key_buf, key_len);
+    if (ret != 0) {
+        return ret;
+    }
+
+    ret = mbedtls_pk_update_public_key_from_keypair(pk);
+    if (ret != 0) {
+        return ret;
+    }
+
+    return 0;
 
 exit:
-    psa_destroy_key(key_id);
-
-    return ret;
+    status = psa_destroy_key(key_id);
+    return (ret != 0) ? ret : psa_pk_status_to_mbedtls(status);
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_ECP_LIGHT */
 
@@ -107,16 +122,9 @@ static int pk_genkey(mbedtls_pk_context *pk, int parameter)
             return ret;
         }
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        ret = pk_genkey_ec(&mbedtls_pk_ec(*pk)->grp,
-                           &mbedtls_pk_ec(*pk)->d,
-                           &mbedtls_pk_ec(*pk)->Q);
-        if (ret != 0) {
-            return ret;
-        }
-        return mbedtls_pk_update_public_key_from_keypair(pk);
+        return pk_genkey_ec(pk);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 #if defined(MBEDTLS_ECP_C)
-
         return mbedtls_ecp_gen_keypair(&mbedtls_pk_ec(*pk)->grp,
                                        &mbedtls_pk_ec(*pk)->d,
                                        &mbedtls_pk_ec(*pk)->Q,

@@ -18,19 +18,9 @@ int parse_hex_string(char *hex_string, uint64_t *result)
         return 0;
     }
 
-    /* If < 8 bytes, shift right and pad with leading zeros for big-endian */
-    if (MBEDTLS_IS_BIG_ENDIAN && olen < 8) {
-        memmove(raw + 8 - olen, raw, olen);
-        memset(raw, 0, 8 - olen);
-    }
-
     *result = 0;
     for (size_t i = 0; i < olen; i++) {
-        if (MBEDTLS_IS_BIG_ENDIAN) {
-            *result |= ((uint64_t) raw[i]) << (i * 8);
-        } else {
-            *result |= ((uint64_t) raw[i]) << ((olen - i - 1) * 8);
-        }
+        *result |= ((uint64_t) raw[i]) << ((olen - i - 1) * 8);
     }
     return 1;
 }

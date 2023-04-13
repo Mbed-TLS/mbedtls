@@ -12,7 +12,7 @@
  */
 int parse_hex_string(char *hex_string, uint64_t *result)
 {
-    uint8_t raw[8] = {0};
+    uint8_t raw[8] = { 0 };
     size_t olen;
     if (mbedtls_test_unhexify(raw, sizeof(raw), hex_string, &olen) != 0) {
         return 0;

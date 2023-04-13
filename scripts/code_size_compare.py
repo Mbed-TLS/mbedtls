@@ -165,9 +165,10 @@ class CodeSizeComparison:
             git_worktree_path = os.path.join(self.repo_path, "temp-" + revision)
             subprocess.check_output(
                 [self.git_command, "worktree", "add", "--detach",
-                 git_worktree_path, revision], cwd=self.repo_path,
+                git_worktree_path, revision], cwd=self.repo_path,
                 stderr=subprocess.STDOUT
             )
+
         return git_worktree_path
 
     def _build_libraries(self, git_worktree_path):
@@ -175,34 +176,48 @@ class CodeSizeComparison:
 
         my_environment = os.environ.copy()
         if self.pre_build_commands != '':
+            try:
+                subprocess.check_output(
+                    self.pre_build_commands, env=my_environment, shell=True,
+                    cwd=git_worktree_path, stderr=subprocess.STDOUT,
+                )
+            except subprocess.CalledProcessError as e:
+                self._handle_CalledProcessError(e,git_worktree_path)
+        try:
             subprocess.check_output(
-                self.pre_build_commands, env=my_environment, shell=True,
+                self.make_command, env=my_environment, shell=True,
                 cwd=git_worktree_path, stderr=subprocess.STDOUT,
-        )
-
-        subprocess.check_output(
-            self.make_command, env=my_environment, shell=True,
-            cwd=git_worktree_path, stderr=subprocess.STDOUT,
-        )
+            )
+        except subprocess.CalledProcessError as e:
+            self._handle_CalledProcessError(e,git_worktree_path)
 
     def _gen_code_size_report(self, revision, git_worktree_path):
         """Generate a code size report for each executable and store them
         in a dictionary"""
 
         # Size for libmbedcrypto.a
-        result = subprocess.check_output(
-            ["size -t library/libmbedcrypto.a"], cwd=git_worktree_path, shell=True
-        )
+        try:
+            result = subprocess.check_output(
+                ["size -t library/libmbedcrypto.a"], cwd=git_worktree_path, shell=True
+            )
+        except subprocess.CalledProcessError as e:
+            self._handle_CalledProcessError(e,git_worktree_path)
         crypto_text = result.decode()
         # Size for libmbedx509.a
-        result = subprocess.check_output(
-            ["size -t library/libmbedx509.a"], cwd=git_worktree_path, shell=True
-        )
+        try:
+            result = subprocess.check_output(
+                ["size -t library/libmbedx509.a"], cwd=git_worktree_path, shell=True
+            )
+        except subprocess.CalledProcessError as e:
+            self._handle_CalledProcessError(e,git_worktree_path)
         x509_text = result.decode()
         # Size for libmbedtls.a
-        result = subprocess.check_output(
-            ["size -t library/libmbedtls.a"], cwd=git_worktree_path, shell=True
-        )
+        try:
+            result = subprocess.check_output(
+                ["size -t library/libmbedtls.a"], cwd=git_worktree_path, shell=True
+            )
+        except subprocess.CalledProcessError as e:
+            self._handle_CalledProcessError(e,git_worktree_path)
         tls_text = result.decode()
 
         def size_text_to_dict(txt):
@@ -320,6 +335,19 @@ class CodeSizeComparison:
         self._get_code_size_for_rev(self.old_rev)
         self._get_code_size_for_rev(self.new_rev)
         return self.compare_code_size()
+
+    def _handle_CalledProcessError(self, e: subprocess.CalledProcessError, git_worktree_path):
+        """Handle a CalledProcessError and quit the program gracefully. Remove any
+        extra worktrees so that the script may be called again."""
+
+        # Tell the user what went wrong
+        print("The following command: {} failed and exited with code {}"\
+            .format(e.cmd, e.returncode))
+        print("Process output:\n {}".format(e.output))
+
+        # Quit gracefully by removing the existing worktree
+        self._remove_worktree(git_worktree_path)
+        sys.exit(-1)
 
 def main():
     parser = argparse.ArgumentParser(

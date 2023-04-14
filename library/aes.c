@@ -563,8 +563,10 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
 
     switch (keybits) {
         case 128: ctx->nr = 10; break;
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
         case 192: ctx->nr = 12; break;
         case 256: ctx->nr = 14; break;
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
         default: return MBEDTLS_ERR_AES_INVALID_KEY_LENGTH;
     }
 
@@ -610,6 +612,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
             }
             break;
 
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
         case 12:
 
             for (i = 0; i < 8; i++, RK += 6) {
@@ -651,6 +654,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx, const unsigned char *key,
                 RK[15] = RK[7] ^ RK[14];
             }
             break;
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
     }
 
     return 0;

@@ -132,6 +132,15 @@ int main(int argc, char *argv[])
         goto exit;
     }
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        mbedtls_fprintf(stderr, "Failed to initialize PSA Crypto implementation: %d\n",
+                        (int) status);
+        goto exit;
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
     opt.filenames = NULL;
     opt.iterations = DFL_ITERATIONS;
     opt.prime_cache = DFL_PRIME_CACHE;

@@ -87,6 +87,15 @@ int main(void)
     mbedtls_debug_set_threshold(DEBUG_LEVEL);
 #endif
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        mbedtls_fprintf(stderr, "Failed to initialize PSA Crypto implementation: %d\n",
+                        (int) status);
+        goto exit;
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
     /*
      * 0. Initialize the RNG and the session data
      */

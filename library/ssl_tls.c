@@ -1148,7 +1148,7 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
  * mbedtls_ssl_conf_curves returns void and so can't return
  * any error codes.
  */
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
     /* Heap allocate and translate curve_list from internal to IANA group ids */
     if (ssl->conf->curve_list != NULL) {
@@ -1184,7 +1184,7 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
         ssl->handshake->group_list_heap_allocated = 0;
     }
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
@@ -2923,7 +2923,7 @@ void mbedtls_ssl_conf_sig_algs(mbedtls_ssl_config *conf,
 }
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /*
  * Set the allowed elliptic curves
@@ -2940,7 +2940,7 @@ void mbedtls_ssl_conf_curves(mbedtls_ssl_config *conf,
     conf->group_list = NULL;
 }
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
 
 /*
  * Set the allowed groups
@@ -4083,14 +4083,14 @@ void mbedtls_ssl_handshake_free(mbedtls_ssl_context *ssl)
         return;
     }
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
     if (ssl->handshake->group_list_heap_allocated) {
         mbedtls_free((void *) handshake->group_list);
     }
     handshake->group_list = NULL;
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
@@ -5555,7 +5555,7 @@ int mbedtls_ssl_check_curve_tls_id(const mbedtls_ssl_context *ssl, uint16_t tls_
     return -1;
 }
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 /*
  * Same as mbedtls_ssl_check_curve_tls_id() but with a mbedtls_ecp_group_id.
  */
@@ -5569,7 +5569,7 @@ int mbedtls_ssl_check_curve(const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id
 
     return mbedtls_ssl_check_curve_tls_id(ssl, tls_id);
 }
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
 
 #if defined(MBEDTLS_DEBUG_C)
 #define EC_NAME(_name_)     _name_
@@ -7377,7 +7377,7 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl,
      * Secondary checks: always done, but change 'ret' only if it was 0
      */
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
     {
         const mbedtls_pk_context *pk = &chain->pk;
 
@@ -7405,7 +7405,7 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl,
             }
         }
     }
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
 
     if (mbedtls_ssl_check_cert_usage(chain,
                                      ciphersuite_info,

@@ -2205,6 +2205,7 @@ config_psa_crypto_config_all_ec_algs_use_psa () {
         scripts/config.py unset MBEDTLS_ECDSA_C
         scripts/config.py unset MBEDTLS_ECDH_C
         scripts/config.py unset MBEDTLS_ECJPAKE_C
+        scripts/config.py unset MBEDTLS_ECP_C
     fi
 
     # Restartable feature is not yet supported by PSA. Once it will in
@@ -2248,12 +2249,16 @@ component_test_psa_crypto_config_accel_all_ec_algs_use_psa () {
 
     # Build the library
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
-    make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
+    loc_symbols="-DPSA_CRYPTO_DRIVER_TEST \
+                 -DMBEDTLS_TEST_LIBTESTDRIVER1 \
+                 -DMBEDTLS_ECP_LIGHT"
+    make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -I../../tests $loc_symbols $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
     not grep mbedtls_ecdh_ library/ecdh.o
     not grep mbedtls_ecjpake_ library/ecjpake.o
+    not grep mbedtls_ecp_mul library/ecp.o
 
     # Run the tests
     # -------------

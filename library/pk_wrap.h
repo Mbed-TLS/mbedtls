@@ -120,7 +120,7 @@ typedef struct {
 extern const mbedtls_pk_info_t mbedtls_rsa_info;
 #endif
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 extern const mbedtls_pk_info_t mbedtls_eckey_info;
 extern const mbedtls_pk_info_t mbedtls_eckeydh_info;
 #endif

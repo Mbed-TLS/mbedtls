@@ -98,7 +98,7 @@ end_of_export:
 }
 #endif /* MBEDTLS_RSA_C */
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 /*
  * EC public key is an EC point
  */
@@ -167,7 +167,7 @@ exit:
     mbedtls_platform_zeroize(tmp, byte_length);
     return ret;
 }
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
 
 int mbedtls_pk_write_pubkey(unsigned char **p, unsigned char *start,
                             const mbedtls_pk_context *key)
@@ -180,7 +180,7 @@ int mbedtls_pk_write_pubkey(unsigned char **p, unsigned char *start,
         MBEDTLS_ASN1_CHK_ADD(len, pk_write_rsa_pubkey(p, start, mbedtls_pk_rsa(*key)));
     } else
 #endif
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
     if (mbedtls_pk_get_type(key) == MBEDTLS_PK_ECKEY) {
         MBEDTLS_ASN1_CHK_ADD(len, pk_write_ec_pubkey(p, start, mbedtls_pk_ec(*key)));
     } else
@@ -241,11 +241,11 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
     MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_tag(&c, buf, MBEDTLS_ASN1_BIT_STRING));
 
     pk_type = mbedtls_pk_get_type(key);
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
     if (pk_type == MBEDTLS_PK_ECKEY) {
         MBEDTLS_ASN1_CHK_ADD(par_len, pk_write_ec_param(&c, buf, mbedtls_pk_ec(*key)));
     }
-#endif
+#endif /* MBEDTLS_ECP_LIGHT */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if (pk_type == MBEDTLS_PK_OPAQUE) {
         psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -404,7 +404,7 @@ end_of_export:
                                                          MBEDTLS_ASN1_SEQUENCE));
     } else
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
     if (mbedtls_pk_get_type(key) == MBEDTLS_PK_ECKEY) {
         mbedtls_ecp_keypair *ec = mbedtls_pk_ec(*key);
         size_t pub_len = 0, par_len = 0;
@@ -517,7 +517,7 @@ int mbedtls_pk_write_key_pem(const mbedtls_pk_context *key, unsigned char *buf, 
         end = PEM_END_PRIVATE_KEY_RSA;
     } else
 #endif
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
     if (mbedtls_pk_get_type(key) == MBEDTLS_PK_ECKEY) {
         begin = PEM_BEGIN_PRIVATE_KEY_EC;
         end = PEM_END_PRIVATE_KEY_EC;

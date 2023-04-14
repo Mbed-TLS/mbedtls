@@ -32,7 +32,7 @@
 #if defined(MBEDTLS_RSA_C)
 #include "mbedtls/rsa.h"
 #endif
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 #include "mbedtls/ecp.h"
 #endif
 #if defined(MBEDTLS_ECDSA_C)
@@ -114,17 +114,17 @@ const mbedtls_pk_info_t *mbedtls_pk_info_from_type(mbedtls_pk_type_t pk_type)
 #if defined(MBEDTLS_RSA_C)
         case MBEDTLS_PK_RSA:
             return &mbedtls_rsa_info;
-#endif
-#if defined(MBEDTLS_ECP_C)
+#endif /* MBEDTLS_RSA_C */
+#if defined(MBEDTLS_ECP_LIGHT)
         case MBEDTLS_PK_ECKEY:
             return &mbedtls_eckey_info;
         case MBEDTLS_PK_ECKEY_DH:
             return &mbedtls_eckeydh_info;
-#endif
+#endif /* MBEDTLS_ECP_LIGHT */
 #if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
         case MBEDTLS_PK_ECDSA:
             return &mbedtls_ecdsa_info;
-#endif
+#endif /* MBEDTLS_PK_CAN_ECDSA_SOME */
         /* MBEDTLS_PK_RSA_ALT omitted on purpose */
         default:
             return NULL;
@@ -862,14 +862,14 @@ int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
                               psa_key_usage_t usage,
                               psa_algorithm_t alg2)
 {
-#if !defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_RSA_C)
+#if !defined(MBEDTLS_ECP_LIGHT) && !defined(MBEDTLS_RSA_C)
     ((void) pk);
     ((void) key);
     ((void) alg);
     ((void) usage);
     ((void) alg2);
-#else
-#if defined(MBEDTLS_ECP_C)
+#else /* !MBEDTLS_ECP_LIGHT && !MBEDTLS_RSA_C */
+#if defined(MBEDTLS_ECP_LIGHT)
     if (mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECKEY) {
         const mbedtls_ecp_keypair *ec;
         unsigned char d[MBEDTLS_ECP_MAX_BYTES];
@@ -912,7 +912,7 @@ int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
 
         return mbedtls_pk_setup_opaque(pk, *key);
     } else
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
 #if defined(MBEDTLS_RSA_C)
     if (mbedtls_pk_get_type(pk) == MBEDTLS_PK_RSA) {
         unsigned char buf[MBEDTLS_PK_RSA_PRV_DER_MAX_BYTES];
@@ -953,7 +953,7 @@ int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
         return mbedtls_pk_setup_opaque(pk, *key);
     } else
 #endif /* MBEDTLS_RSA_C */
-#endif /* !MBEDTLS_ECP_C && !MBEDTLS_RSA_C */
+#endif /* !MBEDTLS_ECP_LIGHT && !MBEDTLS_RSA_C */
     return MBEDTLS_ERR_PK_TYPE_MISMATCH;
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

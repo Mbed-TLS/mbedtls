@@ -71,7 +71,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_ECP_C */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_ECP_LIGHT */
 void pk_parse_public_keyfile_ec(char *key_file, int result)
 {
     mbedtls_pk_context ctx;
@@ -95,7 +95,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_ECP_C */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_ECP_LIGHT */
 void pk_parse_keyfile_ec(char *key_file, char *password, int result)
 {
     mbedtls_pk_context ctx;

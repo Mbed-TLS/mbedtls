@@ -70,7 +70,7 @@ inline static int mbedtls_ecp_group_cmp(mbedtls_ecp_group *grp1,
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_ECP_C
+ * depends_on:MBEDTLS_ECP_LIGHT
  * END_DEPENDENCIES
  */
 
@@ -318,7 +318,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_C */
 void ecp_test_vect(int id, char *dA_str, char *xA_str, char *yA_str,
                    char *dB_str, char *xB_str, char *yB_str,
                    char *xZ_str, char *yZ_str)
@@ -375,7 +375,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_C */
 void ecp_test_vec_x(int id, char *dA_hex, char *xA_hex, char *dB_hex,
                     char *xB_hex, char *xS_hex)
 {
@@ -428,7 +428,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_C */
 void ecp_test_mul(int id, data_t *n_hex,
                   data_t *Px_hex, data_t *Py_hex, data_t *Pz_hex,
                   data_t *nPx_hex, data_t *nPy_hex, data_t *nPz_hex,
@@ -477,7 +477,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_C */
 void ecp_test_mul_rng(int id, data_t *d_hex)
 {
     mbedtls_ecp_group grp;
@@ -503,7 +503,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED:MBEDTLS_ECP_C */
 void ecp_muladd(int id,
                 data_t *u1_bin, data_t *P1_bin,
                 data_t *u2_bin, data_t *P2_bin,
@@ -955,7 +955,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_C */
 void mbedtls_ecp_check_pub_priv(int id_pub, char *Qx_pub, char *Qy_pub,
                                 int id, char *d, char *Qx, char *Qy,
                                 int ret)
@@ -987,7 +987,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_C */
 void mbedtls_ecp_gen_keypair(int id)
 {
     mbedtls_ecp_group grp;
@@ -1016,7 +1016,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_C */
 void mbedtls_ecp_gen_key(int id)
 {
     mbedtls_ecp_keypair key;
@@ -1086,7 +1086,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_ECP_MONTGOMERY_ENABLED */
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_ECP_MONTGOMERY_ENABLED:MBBEDTLS_ECP_C */
 void genkey_mx_known_answer(int bits, data_t *seed, data_t *expected)
 {
     mbedtls_test_rnd_buf_info rnd_info;

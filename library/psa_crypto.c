@@ -7925,7 +7925,6 @@ psa_status_t psa_pake_input(
         goto exit;
     }
 
-
     if (input_length == 0 || input_length > max_input_length) {
         status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;

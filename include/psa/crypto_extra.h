@@ -1939,6 +1939,9 @@ psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
  *
  * This macro must expand to a compile-time constant integer.
  *
+ * The value of this macro must be at least as large as the largest value
+ * returned by PSA_PAKE_OUTPUT_SIZE()
+ *
  * See also #PSA_PAKE_OUTPUT_SIZE(\p alg, \p primitive, \p step).
  */
 #define PSA_PAKE_OUTPUT_MAX_SIZE 65
@@ -1947,6 +1950,9 @@ psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
  * algorithm and primitive suites and input step.
  *
  * This macro must expand to a compile-time constant integer.
+ *
+ * The value of this macro must be at least as large as the largest value
+ * returned by PSA_PAKE_INPUT_SIZE()
  *
  * See also #PSA_PAKE_INPUT_SIZE(\p alg, \p primitive, \p step).
  */

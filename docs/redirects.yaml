@@ -1,0 +1,10 @@
+# Readthedocs redirects
+# See https://docs.readthedocs.io/en/stable/user-defined-redirects.html
+#
+# In order to prevent exposing the API token, PR jobs do not update the
+# redirects - changes to this file are only applied when they are merged
+# into the main branch.
+
+- type: exact
+  from_url: /projects/api/en/latest/$rest
+  to_url: /projects/api/en/development/

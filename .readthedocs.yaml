@@ -12,8 +12,11 @@ build:
     python: "3.9"
   jobs:
     pre_build:
-      - make apidoc
-      - breathe-apidoc -o docs/api apidoc/xml
+    - make apidoc
+    - breathe-apidoc -o docs/api apidoc/xml
+    post_build:
+    - '[ "$READTHEDOCS_VERSION" != "development" ] || "$READTHEDOCS_VIRTUALENV_PATH/bin/rtd" projects "Mbed TLS API" redirects sync --wet-run -f docs/redirects.yaml'
+
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:

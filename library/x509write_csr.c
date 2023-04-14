@@ -232,6 +232,71 @@ int mbedtls_x509write_csr_set_ns_cert_type(mbedtls_x509write_csr *ctx,
     return 0;
 }
 
+int mbedtls_x509write_csr_set_challenge_password(mbedtls_x509write_csr *ctx,
+                                                 unsigned char *chal_pw,
+                                                 size_t chal_pw_len,
+                                                 int printable)
+{
+    if (chal_pw_len == 0 || chal_pw == NULL) {
+        return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
+    }
+
+    /* pkcs-9-ub-challengePassword INTEGER ::= pkcs-9-ub-pkcs9String */
+    if (chal_pw_len > MBEDTLS_X509_MAX_PKCS9_STR) {
+        return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
+    }
+
+    if (printable == 0) {
+        ctx->chal_pw.tag = MBEDTLS_ASN1_UTF8_STRING;
+    } else {
+        ctx->chal_pw.tag = MBEDTLS_ASN1_PRINTABLE_STRING;
+    }
+
+    ctx->chal_pw.len = chal_pw_len;
+    ctx->chal_pw.p = chal_pw;
+
+    return 0;
+}
+
+/*
+ * RFC 2986 - 4.1 CertificationRequestInfo
+ *
+ * Attributes { ATTRIBUTE:IOSet } ::= SET OF Attribute{{ IOSet }}
+ *
+ * CRIAttributes  ATTRIBUTE  ::= {
+ * ... -- add any locally defined attributes here -- }
+ *
+ * Attribute { ATTRIBUTE:IOSet } ::= SEQUENCE {
+ *      type   ATTRIBUTE.&id({IOSet}),
+ *      values SET SIZE(1..MAX) OF ATTRIBUTE.&Type({IOSet}{@type})
+ * }
+ *
+ */
+static int x509write_csr_attribute(unsigned char **p,
+                                   unsigned char *start,
+                                   const char *oid, size_t oid_len,
+                                   size_t val_len)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t len = val_len;
+
+    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(p, start, len));
+    MBEDTLS_ASN1_CHK_ADD(len,
+                         mbedtls_asn1_write_tag(
+                             p, start,
+                             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SET));
+
+    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_oid(p, start, oid, oid_len));
+
+    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(p, start, len));
+    MBEDTLS_ASN1_CHK_ADD(len,
+                         mbedtls_asn1_write_tag(
+                             p, start,
+                             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE));
+
+    return (int) (len - val_len);
+}
+
 static int x509write_csr_der_internal(mbedtls_x509write_csr *ctx,
                                       unsigned char *buf,
                                       size_t size,
@@ -255,32 +320,34 @@ static int x509write_csr_der_internal(mbedtls_x509write_csr *ctx,
     /* Write the CSR backwards starting from the end of buf */
     c = buf + size;
 
-    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_x509_write_extensions(&c, buf,
-                                                            ctx->extensions));
+    if (ctx->extensions != NULL) {
+        size_t attr_len = 0;
 
-    if (len) {
-        MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(&c, buf, len));
-        MBEDTLS_ASN1_CHK_ADD(len,
-                             mbedtls_asn1_write_tag(
+        MBEDTLS_ASN1_CHK_ADD(attr_len,
+                             mbedtls_x509_write_extensions(&c, buf, ctx->extensions));
+        MBEDTLS_ASN1_CHK_ADD(attr_len,
+                             x509write_csr_attribute(
                                  &c, buf,
-                                 MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE));
+                                 MBEDTLS_OID_PKCS9_CSR_EXT_REQ,
+                                 MBEDTLS_OID_SIZE(MBEDTLS_OID_PKCS9_CSR_EXT_REQ),
+                                 attr_len));
 
-        MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(&c, buf, len));
-        MBEDTLS_ASN1_CHK_ADD(len,
-                             mbedtls_asn1_write_tag(
+        len += attr_len;
+    }
+
+    if (ctx->chal_pw.p != NULL) {
+        size_t attr_len = 0;
+
+        MBEDTLS_ASN1_CHK_ADD(attr_len,
+                             mbedtls_x509_write_challenge_password(&c, buf, &(ctx->chal_pw)));
+        MBEDTLS_ASN1_CHK_ADD(attr_len,
+                             x509write_csr_attribute(
                                  &c, buf,
-                                 MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SET));
+                                 MBEDTLS_OID_PKCS9_CSR_CHAL_PW,
+                                 MBEDTLS_OID_SIZE(MBEDTLS_OID_PKCS9_CSR_CHAL_PW),
+                                 attr_len));
 
-        MBEDTLS_ASN1_CHK_ADD(len,
-                             mbedtls_asn1_write_oid(
-                                 &c, buf, MBEDTLS_OID_PKCS9_CSR_EXT_REQ,
-                                 MBEDTLS_OID_SIZE(MBEDTLS_OID_PKCS9_CSR_EXT_REQ)));
-
-        MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(&c, buf, len));
-        MBEDTLS_ASN1_CHK_ADD(len,
-                             mbedtls_asn1_write_tag(
-                                 &c, buf,
-                                 MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE));
+        len += attr_len;
     }
 
     MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(&c, buf, len));

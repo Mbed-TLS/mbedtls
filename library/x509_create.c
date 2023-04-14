@@ -362,6 +362,37 @@ int mbedtls_x509_write_extensions(unsigned char **p, unsigned char *start,
         cur_ext = cur_ext->next;
     }
 
+    MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(p, start, len));
+    MBEDTLS_ASN1_CHK_ADD(len,
+                         mbedtls_asn1_write_tag(p, start,
+                                                MBEDTLS_ASN1_CONSTRUCTED |
+                                                MBEDTLS_ASN1_SEQUENCE));
+
+    return (int) len;
+}
+
+/*
+ * challengePassword ATTRIBUTE ::= {
+ *      WITH SYNTAX PKCS9String
+ *      EQUALITY MATCHING RULE caseExactMatch
+ *      SINGLE VALUE TRUE
+ *      ID pkcs-9-at-challengePassword
+ */
+int mbedtls_x509_write_challenge_password(unsigned char **p, unsigned char *start,
+                                          mbedtls_asn1_buf *chal_pw)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t len = 0;
+    int (*str_writer)(unsigned char **, const unsigned char *,
+                      const char *, size_t) = &mbedtls_asn1_write_printable_string;
+
+    if (chal_pw->tag == MBEDTLS_ASN1_UTF8_STRING) {
+        str_writer = &mbedtls_asn1_write_utf8_string;
+    }
+
+    MBEDTLS_ASN1_CHK_ADD(len,
+                         (*str_writer)(p, start, (const char *) chal_pw->p, chal_pw->len));
+
     return (int) len;
 }
 

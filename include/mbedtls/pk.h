@@ -772,7 +772,6 @@ static inline mbedtls_rsa_context *mbedtls_pk_rsa(const mbedtls_pk_context pk)
 {
     switch (mbedtls_pk_get_type(&pk)) {
         case MBEDTLS_PK_RSA:
-        case MBEDTLS_PK_RSA_ALT:
             return (mbedtls_rsa_context *) (pk).MBEDTLS_PRIVATE(pk_ctx);
         default:
             return NULL;

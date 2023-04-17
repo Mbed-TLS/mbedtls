@@ -498,7 +498,7 @@ class EcpP192K1Raw(bignum_common.ModOperationCommon,
     test_name = "ecp_mod_p192k1"
     input_style = "fixed"
     arity = 1
-    dependencies = ["MBEDTLS_ECP_DP_SECP119K1_ENABLED"]
+    dependencies = ["MBEDTLS_ECP_DP_SECP192K1_ENABLED"]
 
     moduli = ["fffffffffffffffffffffffffffffffffffffffeffffee37"] # type: List[str]
 

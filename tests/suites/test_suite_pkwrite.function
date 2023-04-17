@@ -2,6 +2,42 @@
 #include "mbedtls/pk.h"
 #include "mbedtls/pem.h"
 #include "mbedtls/oid.h"
+
+static void pk_write_check_common(char *key_file, int is_public_key)
+{
+    mbedtls_pk_context key;
+    unsigned char *buf = NULL;
+    unsigned char *check_buf = NULL;
+    size_t check_buf_len;
+    int ret;
+
+    /* Note: if mbedtls_pk_load_file() successfully reads the file, then
+       it also allocates check_buf, which should be freed on exit */
+    TEST_ASSERT(mbedtls_pk_load_file(key_file, &check_buf, &check_buf_len) == 0);
+    TEST_ASSERT(check_buf_len > 0);
+
+    ASSERT_ALLOC(buf, check_buf_len);
+
+    mbedtls_pk_init(&key);
+    if (is_public_key) {
+        TEST_ASSERT(mbedtls_pk_parse_public_keyfile(&key, key_file) == 0);
+        ret = mbedtls_pk_write_pubkey_pem(&key, buf, check_buf_len);
+    } else {
+        TEST_ASSERT(mbedtls_pk_parse_keyfile(&key, key_file, NULL,
+                                             mbedtls_test_rnd_std_rand, NULL) == 0);
+        ret = mbedtls_pk_write_key_pem(&key, buf, check_buf_len);
+    }
+    TEST_ASSERT(ret == 0);
+
+    /* check_buf_len also includes the NULL termination char */
+    TEST_EQUAL(check_buf_len - 1, strlen((char *) buf));
+    TEST_ASSERT(memcmp((char *) buf, (char *) check_buf, check_buf_len) == 0);
+
+exit:
+    mbedtls_free(buf);
+    mbedtls_free(check_buf);
+    mbedtls_pk_free(&key);
+}
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -12,78 +48,15 @@
 /* BEGIN_CASE depends_on:MBEDTLS_PEM_WRITE_C */
 void pk_write_pubkey_check(char *key_file)
 {
-    mbedtls_pk_context key;
-    unsigned char buf[5000];
-    unsigned char check_buf[5000];
-    int ret;
-    FILE *f;
-    size_t ilen, pem_len, buf_index;
-
-    memset(buf, 0, sizeof(buf));
-    memset(check_buf, 0, sizeof(check_buf));
-
-    mbedtls_pk_init(&key);
-    TEST_ASSERT(mbedtls_pk_parse_public_keyfile(&key, key_file) == 0);
-
-    ret = mbedtls_pk_write_pubkey_pem(&key, buf, sizeof(buf));
-    TEST_ASSERT(ret == 0);
-
-    pem_len = strlen((char *) buf);
-
-    // check that the rest of the buffer remains clear
-    for (buf_index = pem_len; buf_index < sizeof(buf); ++buf_index) {
-        TEST_ASSERT(buf[buf_index] == 0);
-    }
-
-    f = fopen(key_file, "r");
-    TEST_ASSERT(f != NULL);
-    ilen = fread(check_buf, 1, sizeof(check_buf), f);
-    fclose(f);
-
-    TEST_ASSERT(ilen == pem_len);
-    TEST_ASSERT(memcmp((char *) buf, (char *) check_buf, ilen) == 0);
-
-exit:
-    mbedtls_pk_free(&key);
+    pk_write_check_common(key_file, 1);
+    goto exit; /* make the compiler happy */
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_PEM_WRITE_C */
 void pk_write_key_check(char *key_file)
 {
-    mbedtls_pk_context key;
-    unsigned char buf[5000];
-    unsigned char check_buf[5000];
-    int ret;
-    FILE *f;
-    size_t ilen, pem_len, buf_index;
-
-    memset(buf, 0, sizeof(buf));
-    memset(check_buf, 0, sizeof(check_buf));
-
-    mbedtls_pk_init(&key);
-    TEST_ASSERT(mbedtls_pk_parse_keyfile(&key, key_file, NULL,
-                                         mbedtls_test_rnd_std_rand, NULL) == 0);
-
-    ret = mbedtls_pk_write_key_pem(&key, buf, sizeof(buf));
-    TEST_ASSERT(ret == 0);
-
-    pem_len = strlen((char *) buf);
-
-    // check that the rest of the buffer remains clear
-    for (buf_index = pem_len; buf_index < sizeof(buf); ++buf_index) {
-        TEST_ASSERT(buf[buf_index] == 0);
-    }
-
-    f = fopen(key_file, "r");
-    TEST_ASSERT(f != NULL);
-    ilen = fread(check_buf, 1, sizeof(check_buf), f);
-    fclose(f);
-
-    TEST_ASSERT(ilen == strlen((char *) buf));
-    TEST_ASSERT(memcmp((char *) buf, (char *) check_buf, ilen) == 0);
-
-exit:
-    mbedtls_pk_free(&key);
+    pk_write_check_common(key_file, 0);
+    goto exit; /* make the compiler happy */
 }
 /* END_CASE */

@@ -450,8 +450,8 @@ int mbedtls_pk_verify_restartable(mbedtls_pk_context *ctx,
             return ret;
         }
 
-        ret = ctx->pk_info->verify_rs_func(ctx->pk_ctx,
-                                           md_alg, hash, hash_len, sig, sig_len, rs_ctx->rs_ctx);
+        ret = ctx->pk_info->verify_rs_func(ctx, md_alg, hash, hash_len,
+                                           sig, sig_len, rs_ctx->rs_ctx);
 
         if (ret != MBEDTLS_ERR_ECP_IN_PROGRESS) {
             mbedtls_pk_restart_free(rs_ctx);
@@ -633,7 +633,7 @@ int mbedtls_pk_sign_restartable(mbedtls_pk_context *ctx,
             return ret;
         }
 
-        ret = ctx->pk_info->sign_rs_func(ctx->pk_ctx, md_alg,
+        ret = ctx->pk_info->sign_rs_func(ctx, md_alg,
                                          hash, hash_len,
                                          sig, sig_size, sig_len,
                                          f_rng, p_rng, rs_ctx->rs_ctx);
@@ -652,7 +652,7 @@ int mbedtls_pk_sign_restartable(mbedtls_pk_context *ctx,
         return MBEDTLS_ERR_PK_TYPE_MISMATCH;
     }
 
-    return ctx->pk_info->sign_func(ctx->pk_ctx, md_alg,
+    return ctx->pk_info->sign_func(ctx, md_alg,
                                    hash, hash_len,
                                    sig, sig_size, sig_len,
                                    f_rng, p_rng);
@@ -743,7 +743,7 @@ int mbedtls_pk_decrypt(mbedtls_pk_context *ctx,
         return MBEDTLS_ERR_PK_TYPE_MISMATCH;
     }
 
-    return ctx->pk_info->decrypt_func(ctx->pk_ctx, input, ilen,
+    return ctx->pk_info->decrypt_func(ctx, input, ilen,
                                       output, olen, osize, f_rng, p_rng);
 }
 
@@ -763,7 +763,7 @@ int mbedtls_pk_encrypt(mbedtls_pk_context *ctx,
         return MBEDTLS_ERR_PK_TYPE_MISMATCH;
     }
 
-    return ctx->pk_info->encrypt_func(ctx->pk_ctx, input, ilen,
+    return ctx->pk_info->encrypt_func(ctx, input, ilen,
                                       output, olen, osize, f_rng, p_rng);
 }
 
@@ -812,7 +812,7 @@ size_t mbedtls_pk_get_bitlen(const mbedtls_pk_context *ctx)
         return 0;
     }
 
-    return ctx->pk_info->get_bitlen(ctx->pk_ctx);
+    return ctx->pk_info->get_bitlen((mbedtls_pk_context *) ctx);
 }
 
 /*

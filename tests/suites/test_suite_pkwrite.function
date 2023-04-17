@@ -3,11 +3,12 @@
 #include "mbedtls/pem.h"
 #include "mbedtls/oid.h"
 
-static void pk_write_check_common(char *key_file, int is_public_key)
+static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
 {
     mbedtls_pk_context key;
     unsigned char *buf = NULL;
     unsigned char *check_buf = NULL;
+    unsigned char *start_buf;
     size_t check_buf_len;
     int ret;
 
@@ -21,17 +22,30 @@ static void pk_write_check_common(char *key_file, int is_public_key)
     mbedtls_pk_init(&key);
     if (is_public_key) {
         TEST_ASSERT(mbedtls_pk_parse_public_keyfile(&key, key_file) == 0);
-        ret = mbedtls_pk_write_pubkey_pem(&key, buf, check_buf_len);
+        if (is_der) {
+            ret = mbedtls_pk_write_pubkey_der(&key, buf, check_buf_len);
+        } else {
+            ret = mbedtls_pk_write_pubkey_pem(&key, buf, check_buf_len);
+        }
     } else {
         TEST_ASSERT(mbedtls_pk_parse_keyfile(&key, key_file, NULL,
                                              mbedtls_test_rnd_std_rand, NULL) == 0);
-        ret = mbedtls_pk_write_key_pem(&key, buf, check_buf_len);
+        if (is_der) {
+            ret = mbedtls_pk_write_key_der(&key, buf, check_buf_len);
+        } else {
+            ret = mbedtls_pk_write_key_pem(&key, buf, check_buf_len);
+        }
     }
-    TEST_ASSERT(ret == 0);
 
-    /* check_buf_len also includes the NULL termination char */
-    TEST_EQUAL(check_buf_len - 1, strlen((char *) buf));
-    TEST_ASSERT(memcmp((char *) buf, (char *) check_buf, check_buf_len) == 0);
+    if (is_der) {
+        TEST_ASSERT(ret > 0);
+        start_buf = buf + check_buf_len - ret;
+    } else {
+        TEST_ASSERT(ret == 0);
+        start_buf = buf;
+    }
+
+    TEST_ASSERT(memcmp((char *) start_buf, (char *) check_buf, check_buf_len) == 0);
 
 exit:
     mbedtls_free(buf);
@@ -46,17 +60,17 @@ exit:
  */
 
 /* BEGIN_CASE depends_on:MBEDTLS_PEM_WRITE_C */
-void pk_write_pubkey_check(char *key_file)
+void pk_write_pubkey_check(char *key_file, int is_der)
 {
-    pk_write_check_common(key_file, 1);
+    pk_write_check_common(key_file, 1, is_der);
     goto exit; /* make the compiler happy */
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_PEM_WRITE_C */
-void pk_write_key_check(char *key_file)
+void pk_write_key_check(char *key_file, int is_der)
 {
-    pk_write_check_common(key_file, 0);
+    pk_write_check_common(key_file, 0, is_der);
     goto exit; /* make the compiler happy */
 }
 /* END_CASE */

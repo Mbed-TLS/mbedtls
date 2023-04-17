@@ -86,8 +86,11 @@ void time_delay_seconds(int delay_secs)
     elapsed_secs = mbedtls_time(NULL) - current;
 
     /* Built-in mbedtls_time function returns the number of seconds since the
-     * Epoch. That is affected by discontinuous jumps and cause test fail.
-     * Workaround it with 1 seconds tollerance.
+     * Epoch. That is affected by discontinuous jumps. And `nanosleep` use
+     * CLOCK_MONOTONIC(monotonically-increasing time source), That will cause
+     * negative elapsed time difference.
+     *
+     * Workaround it with 1 second tolerance.
      */
     TEST_ASSERT(elapsed_secs >= delay_secs - 1);
     TEST_ASSERT(elapsed_secs < 4 + delay_secs);

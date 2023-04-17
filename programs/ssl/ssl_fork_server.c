@@ -96,15 +96,6 @@ int main(void)
     mbedtls_x509_crt srvcert;
     mbedtls_pk_context pkey;
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_status_t status = psa_crypto_init();
-    if (status != PSA_SUCCESS) {
-        mbedtls_fprintf(stderr, "Failed to initialize PSA Crypto implementation: %d\n",
-                        (int) status);
-        goto exit;
-    }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
     mbedtls_net_init(&listen_fd);
     mbedtls_net_init(&client_fd);
     mbedtls_ssl_init(&ssl);
@@ -113,6 +104,15 @@ int main(void)
     mbedtls_pk_init(&pkey);
     mbedtls_x509_crt_init(&srvcert);
     mbedtls_ctr_drbg_init(&ctr_drbg);
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        mbedtls_fprintf(stderr, "Failed to initialize PSA Crypto implementation: %d\n",
+                        (int) status);
+        goto exit;
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     signal(SIGCHLD, SIG_IGN);
 

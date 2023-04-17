@@ -649,7 +649,7 @@ static int x509_get_authority_key_id(unsigned char **p,
         authority_key_id->keyIdentifier.p = *p;
         /* Setting tag of the keyIdentfier intentionally to 0x04.
          * Although the .keyIdentfier field is CONTEXT_SPECIFIC ([0] OPTIONAL),
-         * its tag with the content is the payload of on OCTET STRING primitive   */
+         * its tag with the content is the payload of on OCTET STRING primitive */
         authority_key_id->keyIdentifier.tag = MBEDTLS_ASN1_OCTET_STRING;
 
         *p += len;
@@ -673,8 +673,7 @@ static int x509_get_authority_key_id(unsigned char **p,
         /* Getting authorityCertSerialNumber using the required specific class tag [2] */
         if ((ret = mbedtls_asn1_get_tag(p, end, &len,
                                         MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_INTEGER |
-                                        2)) !=
-            0) {
+                                        2)) != 0) {
             /* authorityCertSerialNumber is an OPTIONAL field */
             return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
         } else {

@@ -32,7 +32,7 @@
 #include "mbedtls/rsa.h"
 #endif
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 #include "mbedtls/ecp.h"
 #endif
 
@@ -240,12 +240,12 @@ typedef struct mbedtls_pk_info_t mbedtls_pk_info_t;
 typedef struct mbedtls_pk_context {
     const mbedtls_pk_info_t *MBEDTLS_PRIVATE(pk_info);    /**< Public key information         */
     void *MBEDTLS_PRIVATE(pk_ctx);                        /**< Underlying public key context  */
-#if defined(MBEDTLS_ECP_C) && defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_ECP_LIGHT) && defined(MBEDTLS_USE_PSA_CRYPTO)
     uint8_t MBEDTLS_PRIVATE(pk_raw)[MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN];  /**< Raw public key   */
     size_t MBEDTLS_PRIVATE(pk_raw_len);                         /**< Valid bytes in "pk_raw" */
     psa_ecc_family_t MBEDTLS_PRIVATE(pk_ec_family);             /**< EC family of pk */
     size_t MBEDTLS_PRIVATE(pk_bits);                            /**< Curve's bits of pk */
-#endif /* MBEDTLS_ECP_C && MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_ECP_LIGHT && MBEDTLS_USE_PSA_CRYPTO */
 } mbedtls_pk_context;
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)

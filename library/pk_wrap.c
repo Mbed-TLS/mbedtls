@@ -29,7 +29,7 @@
 /* Even if RSA not activated, for the sake of RSA-alt */
 #include "mbedtls/rsa.h"
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 #include "mbedtls/ecp.h"
 #endif
 

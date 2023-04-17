@@ -61,12 +61,12 @@ void mbedtls_pk_init(mbedtls_pk_context *ctx)
 {
     ctx->pk_info = NULL;
     ctx->pk_ctx = NULL;
-#if defined(MBEDTLS_ECP_C) && defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_ECP_LIGHT) && defined(MBEDTLS_USE_PSA_CRYPTO)
     memset(ctx->pk_raw, 0, sizeof(ctx->pk_raw));
     ctx->pk_raw_len = 0;
     ctx->pk_ec_family = 0;
     ctx->pk_bits = 0;
-#endif /* MBEDTLS_ECP_C && MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_ECP_LIGHT && MBEDTLS_USE_PSA_CRYPTO */
 }
 
 /*
@@ -857,7 +857,7 @@ mbedtls_pk_type_t mbedtls_pk_get_type(const mbedtls_pk_context *ctx)
 }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 int mbedtls_pk_get_public_key(mbedtls_pk_context *pk, unsigned char *buf,
                               size_t buf_size, size_t *key_len)
 {
@@ -951,7 +951,7 @@ int mbedtls_pk_update_keypair_from_public_key(mbedtls_pk_context *pk)
 
     return ret;
 }
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
 
 /*
  * Load the key to a PSA key slot,

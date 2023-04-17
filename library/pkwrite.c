@@ -32,12 +32,12 @@
 #if defined(MBEDTLS_RSA_C)
 #include "mbedtls/rsa.h"
 #endif
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 #include "mbedtls/bignum.h"
 #include "mbedtls/ecp.h"
 #include "mbedtls/platform_util.h"
 #endif
-#if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECP_LIGHT)
 #include "pkwrite.h"
 #endif
 #if defined(MBEDTLS_ECDSA_C)
@@ -472,7 +472,7 @@ end_of_export:
         MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_tag(&c, buf, MBEDTLS_ASN1_CONSTRUCTED |
                                                          MBEDTLS_ASN1_SEQUENCE));
     } else
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
     return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
 
     return (int) len;

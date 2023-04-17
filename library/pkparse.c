@@ -32,7 +32,7 @@
 #if defined(MBEDTLS_RSA_C)
 #include "mbedtls/rsa.h"
 #endif
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 #include "mbedtls/ecp.h"
 #endif
 #if defined(MBEDTLS_ECDSA_C)
@@ -1179,7 +1179,7 @@ static int pk_parse_key_pkcs8_unencrypted_der(
     mbedtls_pk_type_t pk_alg = MBEDTLS_PK_NONE;
     const mbedtls_pk_info_t *pk_info;
 
-#if !defined(MBEDTLS_ECP_C)
+#if !defined(MBEDTLS_ECP_LIGHT)
     (void) f_rng;
     (void) p_rng;
 #endif
@@ -1564,11 +1564,11 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *pk,
     mbedtls_pk_free(pk);
 #endif /* MBEDTLS_ECP_LIGHT */
 
-    /* If MBEDTLS_RSA_C is defined but MBEDTLS_ECP_C isn't,
+    /* If MBEDTLS_RSA_C is defined but MBEDTLS_ECP_LIGHT isn't,
      * it is ok to leave the PK context initialized but not
      * freed: It is the caller's responsibility to call pk_init()
      * before calling this function, and to call pk_free()
-     * when it fails. If MBEDTLS_ECP_C is defined but MBEDTLS_RSA_C
+     * when it fails. If MBEDTLS_ECP_LIGHT is defined but MBEDTLS_RSA_C
      * isn't, this leads to mbedtls_pk_free() being called
      * twice, once here and once by the caller, but this is
      * also ok and in line with the mbedtls_pk_free() calls

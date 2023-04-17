@@ -25,7 +25,7 @@
 
 #include "mbedtls/pk.h"
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 #include "mbedtls/ecp.h"
 #endif
 
@@ -33,7 +33,7 @@
 #include "psa/crypto.h"
 #endif
 
-#if defined(MBEDTLS_ECP_C) && defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_ECP_LIGHT) && defined(MBEDTLS_USE_PSA_CRYPTO)
 /**
  * Return the raw public key content on the provided buffer.
  *
@@ -93,6 +93,6 @@ int mbedtls_pk_update_public_key_from_keypair(mbedtls_pk_context *pk);
  *             as input and output.
  */
 int mbedtls_pk_update_keypair_from_public_key(mbedtls_pk_context *pk);
-#endif /* MBEDTLS_ECP_C && MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_ECP_LIGHT && MBEDTLS_USE_PSA_CRYPTO */
 
 #endif /* MBEDTLS_PK_INTERNAL_H */

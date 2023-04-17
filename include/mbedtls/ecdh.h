@@ -105,8 +105,7 @@ typedef struct mbedtls_ecdh_context_mbed {
  *                  should not be shared between multiple threads.
  * \brief           The ECDH context structure.
  */
-typedef struct mbedtls_ecdh_context
-{
+typedef struct mbedtls_ecdh_context {
     uint8_t MBEDTLS_PRIVATE(point_format);       /*!< The format of point export in TLS messages
                                                     as defined in RFC 4492. */
     mbedtls_ecp_group_id MBEDTLS_PRIVATE(grp_id);/*!< The elliptic curve used. */

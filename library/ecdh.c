@@ -38,7 +38,7 @@
 static mbedtls_ecp_group_id mbedtls_ecdh_grp_id(
     const mbedtls_ecdh_context *ctx)
 {
-    return( ctx->grp_id );
+    return ctx->grp_id;
 }
 
 int mbedtls_ecdh_can_do(mbedtls_ecp_group_id gid)
@@ -141,7 +141,7 @@ int mbedtls_ecdh_compute_shared(mbedtls_ecp_group *grp, mbedtls_mpi *z,
  */
 void mbedtls_ecdh_init(mbedtls_ecdh_context *ctx)
 {
-    memset( ctx, 0, sizeof( mbedtls_ecdh_context ) );
+    memset(ctx, 0, sizeof(mbedtls_ecdh_context));
 
     ctx->var = MBEDTLS_ECDH_VARIANT_NONE;
     ctx->point_format = MBEDTLS_ECP_PF_UNCOMPRESSED;
@@ -168,8 +168,7 @@ static int ecdh_setup_internal(mbedtls_ecdh_context_mbed *ctx,
  */
 int mbedtls_ecdh_setup(mbedtls_ecdh_context *ctx, mbedtls_ecp_group_id grp_id)
 {
-    switch( grp_id )
-    {
+    switch (grp_id) {
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECP_DP_CURVE25519:
             ctx->point_format = MBEDTLS_ECP_PF_COMPRESSED;
@@ -181,7 +180,7 @@ int mbedtls_ecdh_setup(mbedtls_ecdh_context *ctx, mbedtls_ecp_group_id grp_id)
             ctx->point_format = MBEDTLS_ECP_PF_UNCOMPRESSED;
             ctx->var = MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0;
             ctx->grp_id = grp_id;
-            return( ecdh_setup_internal( &ctx->ctx.mbed_ecdh, grp_id ) );
+            return ecdh_setup_internal(&ctx->ctx.mbed_ecdh, grp_id);
     }
 }
 
@@ -217,8 +216,7 @@ void mbedtls_ecdh_free(mbedtls_ecdh_context *ctx)
         return;
     }
 
-    switch( ctx->var )
-    {
+    switch (ctx->var) {
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECDH_VARIANT_EVEREST:
             mbedtls_everest_free(&ctx->ctx.everest_ecdh);
@@ -312,8 +310,7 @@ int mbedtls_ecdh_make_params(mbedtls_ecdh_context *ctx, size_t *olen,
     (void) restart_enabled;
 #endif
 
-    switch( ctx->var )
-    {
+    switch (ctx->var) {
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECDH_VARIANT_EVEREST:
             return mbedtls_everest_make_params(&ctx->ctx.everest_ecdh, olen,
@@ -359,8 +356,7 @@ int mbedtls_ecdh_read_params(mbedtls_ecdh_context *ctx,
         return ret;
     }
 
-    switch( ctx->var )
-    {
+    switch (ctx->var) {
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECDH_VARIANT_EVEREST:
             return mbedtls_everest_read_params(&ctx->ctx.everest_ecdh,
@@ -425,8 +421,7 @@ int mbedtls_ecdh_get_params(mbedtls_ecdh_context *ctx,
         }
     }
 
-    switch( ctx->var )
-    {
+    switch (ctx->var) {
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECDH_VARIANT_EVEREST:
         {
@@ -500,8 +495,7 @@ int mbedtls_ecdh_make_public(mbedtls_ecdh_context *ctx, size_t *olen,
     restart_enabled = ctx->restart_enabled;
 #endif
 
-    switch( ctx->var )
-    {
+    switch (ctx->var) {
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECDH_VARIANT_EVEREST:
             return mbedtls_everest_make_public(&ctx->ctx.everest_ecdh, olen,
@@ -541,8 +535,7 @@ static int ecdh_read_public_internal(mbedtls_ecdh_context_mbed *ctx,
 int mbedtls_ecdh_read_public(mbedtls_ecdh_context *ctx,
                              const unsigned char *buf, size_t blen)
 {
-    switch( ctx->var )
-    {
+    switch (ctx->var) {
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECDH_VARIANT_EVEREST:
             return mbedtls_everest_read_public(&ctx->ctx.everest_ecdh,
@@ -621,8 +614,7 @@ int mbedtls_ecdh_calc_secret(mbedtls_ecdh_context *ctx, size_t *olen,
     restart_enabled = ctx->restart_enabled;
 #endif
 
-    switch( ctx->var )
-    {
+    switch (ctx->var) {
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECDH_VARIANT_EVEREST:
             return mbedtls_everest_calc_secret(&ctx->ctx.everest_ecdh, olen,

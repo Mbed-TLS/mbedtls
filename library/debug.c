@@ -345,7 +345,7 @@ static void mbedtls_debug_printf_ecdh_internal(const mbedtls_ssl_context *ssl,
                                                const mbedtls_ecdh_context *ecdh,
                                                mbedtls_debug_ecdh_attr attr)
 {
-    const mbedtls_ecdh_context_mbed* ctx = &ecdh->ctx.mbed_ecdh;
+    const mbedtls_ecdh_context_mbed *ctx = &ecdh->ctx.mbed_ecdh;
 
     switch (attr) {
         case MBEDTLS_DEBUG_ECDH_Q:
@@ -370,8 +370,7 @@ void mbedtls_debug_printf_ecdh(const mbedtls_ssl_context *ssl, int level,
                                const mbedtls_ecdh_context *ecdh,
                                mbedtls_debug_ecdh_attr attr)
 {
-    switch( ecdh->var )
-    {
+    switch (ecdh->var) {
         default:
             mbedtls_debug_printf_ecdh_internal(ssl, level, file, line, ecdh,
                                                attr);

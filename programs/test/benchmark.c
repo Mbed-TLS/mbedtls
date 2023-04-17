@@ -1086,8 +1086,7 @@ int main(int argc, char *argv[])
 #endif
 
 #if defined(MBEDTLS_ECDH_C)
-    if( todo.ecdh )
-    {
+    if (todo.ecdh) {
         mbedtls_ecdh_context ecdh;
         mbedtls_mpi z;
         const mbedtls_ecp_curve_info montgomery_curve_list[] = {
@@ -1127,10 +1126,10 @@ int main(int argc, char *argv[])
 
             mbedtls_ecdh_init(&ecdh);
 
-            CHECK_AND_CONTINUE( mbedtls_ecdh_setup( &ecdh, curve_info->grp_id ) );
-            CHECK_AND_CONTINUE( mbedtls_ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
-                                                    myrand, NULL ) );
-            CHECK_AND_CONTINUE( mbedtls_ecp_copy( &ecdh.ctx.mbed_ecdh.Qp, &ecdh.ctx.mbed_ecdh.Q ) );
+            CHECK_AND_CONTINUE(mbedtls_ecdh_setup(&ecdh, curve_info->grp_id));
+            CHECK_AND_CONTINUE(mbedtls_ecdh_make_public(&ecdh, &olen, buf, sizeof(buf),
+                                                        myrand, NULL));
+            CHECK_AND_CONTINUE(mbedtls_ecp_copy(&ecdh.ctx.mbed_ecdh.Qp, &ecdh.ctx.mbed_ecdh.Q));
 
             mbedtls_snprintf(title, sizeof(title), "ECDHE-%s",
                              curve_info->name);
@@ -1149,16 +1148,22 @@ int main(int argc, char *argv[])
             mbedtls_ecdh_init(&ecdh);
             mbedtls_mpi_init(&z);
 
-            CHECK_AND_CONTINUE( mbedtls_ecdh_setup( &ecdh, curve_info->grp_id ) );
-            CHECK_AND_CONTINUE( mbedtls_ecdh_gen_public( &ecdh.ctx.mbed_ecdh.grp, &ecdh.ctx.mbed_ecdh.d, &ecdh.ctx.mbed_ecdh.Qp, myrand, NULL ) );
+            CHECK_AND_CONTINUE(mbedtls_ecdh_setup(&ecdh, curve_info->grp_id));
+            CHECK_AND_CONTINUE(mbedtls_ecdh_gen_public(&ecdh.ctx.mbed_ecdh.grp,
+                                                       &ecdh.ctx.mbed_ecdh.d,
+                                                       &ecdh.ctx.mbed_ecdh.Qp, myrand, NULL));
 
-            mbedtls_snprintf( title, sizeof(title), "ECDHE-%s",
-                              curve_info->name );
-            TIME_PUBLIC(  title, "handshake",
-                    CHECK_AND_CONTINUE( mbedtls_ecdh_gen_public( &ecdh.ctx.mbed_ecdh.grp, &ecdh.ctx.mbed_ecdh.d, &ecdh.ctx.mbed_ecdh.Q,
-                                            myrand, NULL ) );
-                    CHECK_AND_CONTINUE( mbedtls_ecdh_compute_shared( &ecdh.ctx.mbed_ecdh.grp, &z, &ecdh.ctx.mbed_ecdh.Qp, &ecdh.ctx.mbed_ecdh.d,
-                                                myrand, NULL ) ) );
+            mbedtls_snprintf(title, sizeof(title), "ECDHE-%s",
+                             curve_info->name);
+            TIME_PUBLIC(title, "handshake",
+                        CHECK_AND_CONTINUE(mbedtls_ecdh_gen_public(&ecdh.ctx.mbed_ecdh.grp,
+                                                                   &ecdh.ctx.mbed_ecdh.d,
+                                                                   &ecdh.ctx.mbed_ecdh.Q,
+                                                                   myrand, NULL));
+                        CHECK_AND_CONTINUE(mbedtls_ecdh_compute_shared(&ecdh.ctx.mbed_ecdh.grp, &z,
+                                                                       &ecdh.ctx.mbed_ecdh.Qp,
+                                                                       &ecdh.ctx.mbed_ecdh.d,
+                                                                       myrand, NULL)));
 
             mbedtls_ecdh_free(&ecdh);
             mbedtls_mpi_free(&z);
@@ -1173,12 +1178,12 @@ int main(int argc, char *argv[])
 
             mbedtls_ecdh_init(&ecdh);
 
-            CHECK_AND_CONTINUE( mbedtls_ecdh_setup( &ecdh, curve_info->grp_id ) );
-            CHECK_AND_CONTINUE( mbedtls_ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
-                                  myrand, NULL ) );
-            CHECK_AND_CONTINUE( mbedtls_ecp_copy( &ecdh.ctx.mbed_ecdh.Qp, &ecdh.ctx.mbed_ecdh.Q ) );
-            CHECK_AND_CONTINUE( mbedtls_ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
-                                  myrand, NULL ) );
+            CHECK_AND_CONTINUE(mbedtls_ecdh_setup(&ecdh, curve_info->grp_id));
+            CHECK_AND_CONTINUE(mbedtls_ecdh_make_public(&ecdh, &olen, buf, sizeof(buf),
+                                                        myrand, NULL));
+            CHECK_AND_CONTINUE(mbedtls_ecp_copy(&ecdh.ctx.mbed_ecdh.Qp, &ecdh.ctx.mbed_ecdh.Q));
+            CHECK_AND_CONTINUE(mbedtls_ecdh_make_public(&ecdh, &olen, buf, sizeof(buf),
+                                                        myrand, NULL));
 
             mbedtls_snprintf(title, sizeof(title), "ECDH-%s",
                              curve_info->name);
@@ -1195,16 +1200,22 @@ int main(int argc, char *argv[])
             mbedtls_ecdh_init(&ecdh);
             mbedtls_mpi_init(&z);
 
-            CHECK_AND_CONTINUE( mbedtls_ecdh_setup( &ecdh, curve_info->grp_id ) );
-            CHECK_AND_CONTINUE( mbedtls_ecdh_gen_public( &ecdh.ctx.mbed_ecdh.grp, &ecdh.ctx.mbed_ecdh.d, &ecdh.ctx.mbed_ecdh.Qp,
-                                 myrand, NULL ) );
-            CHECK_AND_CONTINUE( mbedtls_ecdh_gen_public( &ecdh.ctx.mbed_ecdh.grp, &ecdh.ctx.mbed_ecdh.d, &ecdh.ctx.mbed_ecdh.Q, myrand, NULL ) );
+            CHECK_AND_CONTINUE(mbedtls_ecdh_setup(&ecdh, curve_info->grp_id));
+            CHECK_AND_CONTINUE(mbedtls_ecdh_gen_public(&ecdh.ctx.mbed_ecdh.grp,
+                                                       &ecdh.ctx.mbed_ecdh.d,
+                                                       &ecdh.ctx.mbed_ecdh.Qp,
+                                                       myrand, NULL));
+            CHECK_AND_CONTINUE(mbedtls_ecdh_gen_public(&ecdh.ctx.mbed_ecdh.grp,
+                                                       &ecdh.ctx.mbed_ecdh.d, &ecdh.ctx.mbed_ecdh.Q,
+                                                       myrand, NULL));
 
-            mbedtls_snprintf( title, sizeof(title), "ECDH-%s",
-                              curve_info->name );
-            TIME_PUBLIC(  title, "handshake",
-                    CHECK_AND_CONTINUE( mbedtls_ecdh_compute_shared( &ecdh.ctx.mbed_ecdh.grp, &z, &ecdh.ctx.mbed_ecdh.Qp, &ecdh.ctx.mbed_ecdh.d,
-                                                myrand, NULL ) ) );
+            mbedtls_snprintf(title, sizeof(title), "ECDH-%s",
+                             curve_info->name);
+            TIME_PUBLIC(title, "handshake",
+                        CHECK_AND_CONTINUE(mbedtls_ecdh_compute_shared(&ecdh.ctx.mbed_ecdh.grp, &z,
+                                                                       &ecdh.ctx.mbed_ecdh.Qp,
+                                                                       &ecdh.ctx.mbed_ecdh.d,
+                                                                       myrand, NULL)));
 
             mbedtls_ecdh_free(&ecdh);
             mbedtls_mpi_free(&z);

@@ -17,6 +17,7 @@ typedef enum {
     ERR_INJECT_UNKNOWN_STEP,
     ERR_INJECT_INVALID_FIRST_STEP,
     ERR_INJECT_WRONG_BUFFER_SIZE,
+    ERR_INJECT_WRONG_BUFFER_SIZE_2,
     ERR_INJECT_VALID_OPERATION_AFTER_FAILURE,
     ERR_INJECT_ANTICIPATE_KEY_DERIVATION_1,
     ERR_INJECT_ANTICIPATE_KEY_DERIVATION_2,
@@ -669,6 +670,11 @@ void ecjpake_setup(int alg_arg, int key_type_pw_arg, int key_usage_pw_arg,
                                                     PSA_PAKE_STEP_ZK_PUBLIC,
                                                     output_buffer, size_zk_public + 1),
                                      ERR_INJECT_WRONG_BUFFER_SIZE);
+
+        SETUP_CONDITIONAL_CHECK_STEP(psa_pake_input(&operation,
+                                                    PSA_PAKE_STEP_ZK_PROOF,
+                                                    output_buffer, size_zk_proof + 1),
+                                     ERR_INJECT_WRONG_BUFFER_SIZE_2);
 
         SETUP_CONDITIONAL_CHECK_STEP(
             (psa_pake_input(&operation, PSA_PAKE_STEP_ZK_PUBLIC,

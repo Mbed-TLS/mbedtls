@@ -226,15 +226,6 @@ int main(int argc, char *argv[])
     mbedtls_ctr_drbg_context ctr_drbg;
     const char *pers = "crt example app";
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_status_t status = psa_crypto_init();
-    if (status != PSA_SUCCESS) {
-        mbedtls_fprintf(stderr, "Failed to initialize PSA Crypto implementation: %d\n",
-                        (int) status);
-        goto exit;
-    }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
     /*
      * Set to sane values
      */
@@ -249,6 +240,15 @@ int main(int argc, char *argv[])
 #endif
     mbedtls_x509_crt_init(&issuer_crt);
     memset(buf, 0, 1024);
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        mbedtls_fprintf(stderr, "Failed to initialize PSA Crypto implementation: %d\n",
+                        (int) status);
+        goto exit;
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     if (argc < 2) {
 usage:

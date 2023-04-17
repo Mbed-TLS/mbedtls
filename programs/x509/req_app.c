@@ -67,6 +67,11 @@ int main(int argc, char *argv[])
     int i;
     char *p, *q;
 
+    /*
+     * Set to sane values
+     */
+    mbedtls_x509_csr_init(&csr);
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_status_t status = psa_crypto_init();
     if (status != PSA_SUCCESS) {
@@ -75,11 +80,6 @@ int main(int argc, char *argv[])
         goto exit;
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-
-    /*
-     * Set to sane values
-     */
-    mbedtls_x509_csr_init(&csr);
 
     if (argc < 2) {
 usage:

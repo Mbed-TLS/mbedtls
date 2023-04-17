@@ -170,6 +170,17 @@ int main(void)
     mbedtls_ssl_config conf;
     mbedtls_ctr_drbg_init(&ctr_drbg);
 
+    /*
+     * 0. Initialize and setup stuff
+     */
+    mbedtls_net_init(&server_fd);
+    mbedtls_ssl_init(&ssl);
+    mbedtls_ssl_config_init(&conf);
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    mbedtls_x509_crt_init(&ca);
+#endif
+    mbedtls_entropy_init(&entropy);
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_status_t status = psa_crypto_init();
     if (status != PSA_SUCCESS) {
@@ -180,17 +191,6 @@ int main(void)
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-    /*
-     * 0. Initialize and setup stuff
-     */
-    mbedtls_net_init(&server_fd);
-    mbedtls_ssl_init(&ssl);
-    mbedtls_ssl_config_init(&conf);
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
-    mbedtls_x509_crt_init(&ca);
-#endif
-
-    mbedtls_entropy_init(&entropy);
     if (mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
                               (const unsigned char *) pers, strlen(pers)) != 0) {
         ret = ctr_drbg_seed_failed;

@@ -551,7 +551,16 @@ crl_cat_rsa-ec.pem:crl.pem crl-ec-sha256.pem
 all_final += crl_cat_ec-rsa.pem crl_cat_rsa-ec.pem
 
 authorityKeyId_subjectKeyId.crt.der:
-	$(OPENSSL) req -x509 -nodes -days 7300 -key server5.key -outform DER -out authorityKeyId_subjectKeyId.crt.der -config authorityKeyId_subjectKeyId.conf -extensions 'v3_req'
+	$(OPENSSL) req -x509 -nodes -days 7300 -key server5.key -outform DER -out $@ -config authorityKeyId_subjectKeyId.conf -extensions 'v3_req'
+
+authorityKeyId_no_keyid.crt.der:
+	$(OPENSSL) req -x509 -nodes -days 7300 -key server5.key -outform DER -out $@ -config authorityKeyId_subjectKeyId.conf -extensions 'v3_req_authorityKeyId_no_keyid'
+
+authorityKeyId_no_issuer_serial.crt.der:
+	$(OPENSSL) req -x509 -nodes -days 7300 -key server5.key -outform DER -out $@ -config authorityKeyId_subjectKeyId.conf -extensions 'v3_req_authorityKeyId_no_issuer_serial'
+
+authorityKeyId_empty.crt.der:
+	$(OPENSSL) req -x509 -nodes -days 7300 -key server5.key -outform DER -out $@ -config authorityKeyId_subjectKeyId.conf -extensions 'v3_req_authorityKeyId_empty'
 
 authorityKeyId_subjectKeyId_tag_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
 	hexdump -ve '1/1 "%.2X"' $< | sed "s/04145061A58FD407D9D782010CE5657F8C6346A713BE/01145061A58FD407D9D782010CE5657F8C6346A713BE/" | xxd -r -p > $@

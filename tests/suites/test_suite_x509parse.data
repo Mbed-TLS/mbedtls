@@ -2439,7 +2439,7 @@ X509 CRT parse file dir3/test-ca2.crt
 depends_on:MBEDTLS_SHA256_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED
 mbedtls_x509_crt_parse_file:"data_files/dir3/test-ca2.crt":0:1
 
-# The parse_path tests are known to fail when compiled for a 32-btt architecture
+# The parse_path tests are known to fail when compiled for a 32-bit architecture
 # and run via qemu-user on Linux on a 64-bit host. This is due to a known
 # bug in Qemu: https://gitlab.com/qemu-project/qemu/-/issues/263
 X509 CRT parse path #1 (one cert)

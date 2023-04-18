@@ -23,6 +23,7 @@
 #include "p256-m/p256-m.h"
 #include "psa/crypto.h"
 #include "psa_crypto_driver_wrappers.h"
+#include <stddef.h>
 
 #if defined(MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED)
 
@@ -66,23 +67,13 @@ psa_status_t p256_transparent_generate_key(
      *  keys. Allocate a buffer to which the public key will be written. The
      *  private key will be written to key_buffer, which is passed to this
      *  function as an argument. */
-    uint8_t *public_key_buffer = NULL;
-    public_key_buffer = mbedtls_calloc(1, 64);
-    if (public_key_buffer == NULL) {
-        return PSA_ERROR_INSUFFICIENT_MEMORY;
-    }
+    uint8_t public_key_buffer[64];
 
     status = p256_to_psa_error(
         p256_gen_keypair(key_buffer, public_key_buffer));
     if (status == PSA_SUCCESS) {
         *key_buffer_length = 32;
     }
-
-    /*
-     *  The storage format for a SECP256R1 keypair is just the private key, so
-     *  the public key does not need to be passed back to the caller. Therefore
-     *  the buffer containing it can be freed. */
-    free(public_key_buffer);
 
     return status;
 }
@@ -190,18 +181,14 @@ psa_status_t p256_transparent_verify_hash(
     (void) alg;
 
     psa_status_t status;
-    uint8_t *public_key_buffer = NULL;
+    uint8_t public_key_buffer[65];
     size_t public_key_buffer_size = 65;
-    public_key_buffer = mbedtls_calloc(1, public_key_buffer_size);
-    if (public_key_buffer == NULL) {
-        return PSA_ERROR_INSUFFICIENT_MEMORY;
-    }
-    size_t *public_key_length = NULL;
-    public_key_length = mbedtls_calloc(1, sizeof(size_t));
-    if (public_key_length == NULL) {
-        return PSA_ERROR_INSUFFICIENT_MEMORY;
-    }
-    *public_key_length = 65;
+
+    size_t public_key_length = 65;
+    /* As p256-m doesn't require dynamic allocation, we want to avoid it in
+     * the entrypoint functions as well. psa_driver_wrapper_export_public_key()
+     * requires size_t*, so we use a pointer to a stack variable. */
+    size_t *public_key_length_ptr = &public_key_length;
 
     /*  The contents of key_buffer may either be the 32 byte private key
      *  (keypair representation), or the 65 byte public key. To ensure the
@@ -212,7 +199,7 @@ psa_status_t p256_transparent_verify_hash(
         key_buffer_size,
         public_key_buffer,
         public_key_buffer_size,
-        public_key_length);
+        public_key_length_ptr);
     if (status != PSA_SUCCESS) {
         goto exit;
     }
@@ -226,8 +213,6 @@ psa_status_t p256_transparent_verify_hash(
         signature_length);
 
 exit:
-    free(public_key_buffer);
-    free(public_key_length);
     return status;
 }
 

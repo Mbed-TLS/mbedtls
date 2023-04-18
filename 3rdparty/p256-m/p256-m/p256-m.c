@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined (MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED)
+
 /*
  * Zeroize memory - this should not be optimized away
  */
@@ -1464,3 +1466,5 @@ int p256_ecdsa_verify(const uint8_t sig[64], const uint8_t pub[64],
 
     return P256_INVALID_SIGNATURE;
 }
+
+#endif

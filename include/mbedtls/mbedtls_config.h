@@ -4008,7 +4008,8 @@
 
 /*
  * Platform independent implementation for crypto algorithms.
+ * Disable plain c implementation for AES.
  */
-//#define MBEDTLS_AES_HAS_NO_PLAIN_C /* Uncomment to disable built-in platform independent code of AES */
+//#define MBEDTLS_AES_HAS_NO_PLAIN_C /* Uncomment to disable plain c implementation of AES */
 
 /** \} name SECTION: Module configuration options */

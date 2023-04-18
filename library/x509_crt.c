@@ -2576,23 +2576,42 @@ static int x509_inet_pton_ipv6(const char *src, void *dst)
     do {
         /* note: allows excess leading 0's, e.g. 1:0002:3:... */
         uint16_t group = num_digits = 0;
-        for (uint8_t digit; num_digits < 4 && li_cton(*p, digit);
-             group <<= 4, group |= digit, ++p, ++num_digits) {
-            ;
+        for (uint8_t digit; num_digits < 4; num_digits++) {
+            if (li_cton(*p, digit) == 0) {
+                break;
+            }
+            group = (group << 4) | digit;
+            p++;
         }
         if (num_digits != 0) {
             addr[nonzero_groups++] = MBEDTLS_IS_BIG_ENDIAN ? group :
                                      (group << 8) | (group >> 8);
             if (*p == '\0') {
                 break;
-            } else if (*p == '.' && (nonzero_groups != 0 ||
-                                     zero_group_start != -1) &&
-                       (nonzero_groups < 7) &&
-                       /* walk back to prior ':', then parse as IPv4-mapped */
-                       (*--p == ':' || *--p == ':' ||
-                        *--p == ':' || *--p == ':') &&
-                       x509_inet_pton_ipv4((const char *) ++p,
-                                           addr + --nonzero_groups) == 0) {
+            } else if (*p == '.') {
+                /* Don't accept IPv4 too early or late */
+                if ((nonzero_groups == 0 && zero_group_start == -1) ||
+                    nonzero_groups >= 7) {
+                    break;
+                }
+
+                /* Walk back to prior ':', then parse as IPv4-mapped */
+                int steps = 4;
+                do {
+                    p--;
+                    steps--;
+                } while (*p != ':' && steps > 0);
+
+                if (*p != ':') {
+                    break;
+                }
+                p++;
+                nonzero_groups--;
+                if (x509_inet_pton_ipv4((const char *) p,
+                                        addr + nonzero_groups) != 0) {
+                    break;
+                }
+
                 nonzero_groups += 2;
                 p = (const unsigned char *) "";
                 break;
@@ -2600,11 +2619,17 @@ static int x509_inet_pton_ipv6(const char *src, void *dst)
                 return -1;
             }
         } else {
-            if (zero_group_start != -1 || *p != ':' ||
-                ((zero_group_start = nonzero_groups) == 0 &&
-                 *++p != ':')) {
+            /* Don't accept a second zero group or an invalid delimiter */
+            if (zero_group_start != -1 || *p != ':') {
                 return -1;
             }
+            zero_group_start = nonzero_groups;
+
+            /* Accept a zero group at start, but it has to be a double colon */
+            if (zero_group_start == 0 && *++p != ':') {
+                return -1;
+            }
+
             if (p[1] == '\0') {
                 ++p;
                 break;

@@ -10,13 +10,33 @@
 #if defined(MBEDTLS_HAVE_TIME)
 #include "mbedtls/platform_time.h"
 
+#ifdef WIN32
+#include <windows.h>
+#elif _POSIX_C_SOURCE >= 199309L
+#include <time.h>
+#else
+#include <unistd.h>
+#endif
+void sleep_ms(int milliseconds)
+{
+#ifdef WIN32
+    Sleep(milliseconds);
+#elif _POSIX_C_SOURCE >= 199309L
+    struct timespec ts;
+    ts.tv_sec = milliseconds / 1000;
+    ts.tv_nsec = (milliseconds % 1000) * 1000000;
+    nanosleep(&ts, NULL);
+#else
+    usleep(milliseconds * 1000);
+#endif
+}
+#endif
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES */
 
 /* END_DEPENDENCIES */
-
-
 
 /* BEGIN_CASE depends_on:MBEDTLS_HAVE_TIME */
 void time_get_milliseconds()
@@ -33,6 +53,51 @@ void time_get_seconds()
 {
     mbedtls_time_t current = mbedtls_time(NULL);
     (void) current;
+    /* This goto is added to avoid warnings from the generated code. */
+    goto exit;
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_HAVE_TIME */
+void time_delay_milliseconds(int delay_ms)
+{
+    mbedtls_ms_time_t current = mbedtls_ms_time();
+    mbedtls_ms_time_t elapsed_ms;
+
+    sleep_ms(delay_ms);
+
+    elapsed_ms = mbedtls_ms_time() - current;
+    TEST_ASSERT(elapsed_ms >= delay_ms && elapsed_ms < 4000 + delay_ms);
+    /* This goto is added to avoid warnings from the generated code. */
+    goto exit;
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_HAVE_TIME */
+void time_delay_seconds(int delay_secs)
+{
+    mbedtls_time_t current = mbedtls_time(NULL);
+    mbedtls_time_t elapsed_secs;
+
+    sleep_ms(delay_secs * 1000);
+
+    elapsed_secs = mbedtls_time(NULL) - current;
+
+    /*
+     * `mbedtls_time` was defined as c99 function `time`, it uses
+     * CLOCK_REALTIME and returns the number of seconds since the Epoch. And
+     * `nanosleep` uses CLOCK_MONOTONIC. The time sources are out of sync.
+     *
+     * If CLOCK_MONOTONIC is faster than CLOCK_REALTIME and `nanosleep` exits at
+     * the end of a second, `elapsed_secs` will be less than `delay_secs`.
+     *
+     * Workaround it with 1 second tolerance.
+     */
+    TEST_ASSERT(elapsed_secs >= delay_secs - 1);
+    /* If CLOCK_MONOTONIC is slower than CLOCK_REALTIME or nanosleep does not
+     * exit on time.
+     */
+    TEST_ASSERT(elapsed_secs < 4 + delay_secs);
     /* This goto is added to avoid warnings from the generated code. */
     goto exit;
 }

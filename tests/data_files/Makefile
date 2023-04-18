@@ -889,6 +889,57 @@ ec_prv.pk8param.pem: ec_prv.pk8param.der
 all_final += ec_prv.pk8param.pem
 
 ################################################################
+#### Convert PEM keys in DER format
+################################################################
+server1.pubkey.der: server1.pubkey
+	$(OPENSSL) pkey -pubin -in $< -out $@ -outform DER
+all_final += server1.pubkey.der
+
+rsa4096_pub.der: rsa4096_pub.pem
+	$(OPENSSL) pkey -pubin -in $< -out $@ -outform DER
+all_final += rsa4096_pub.der
+
+ec_pub.der: ec_pub.pem
+	$(OPENSSL) pkey -pubin -in $< -out $@ -outform DER
+all_final += ec_pub.der
+
+ec_521_pub.der: ec_521_pub.pem
+	$(OPENSSL) pkey -pubin -in $< -out $@ -outform DER
+all_final += ec_521_pub.der
+
+ec_bp512_pub.der: ec_bp512_pub.pem
+	$(OPENSSL) pkey -pubin -in $< -out $@ -outform DER
+all_final += ec_bp512_pub.der
+
+server1.key.der: server1.key
+	$(OPENSSL) pkey -in $< -out $@ -outform DER
+all_final += server1.key.der
+
+rsa4096_prv.der: rsa4096_prv.pem
+	$(OPENSSL) pkey -in $< -out $@ -outform DER
+all_final += rsa4096_prv.der
+
+ec_prv.sec1.der: ec_prv.sec1.pem
+	$(OPENSSL) pkey -in $< -out $@ -outform DER
+all_final += ec_prv.sec1.der
+
+ec_256_long_prv.der: ec_256_long_prv.pem
+	$(OPENSSL) pkey -in $< -out $@ -outform DER
+all_final += ec_256_long_prv.der
+
+ec_521_prv.der: ec_521_prv.pem
+	$(OPENSSL) pkey -in $< -out $@ -outform DER
+all_final += ec_521_prv.der
+
+ec_521_short_prv.der: ec_521_short_prv.pem
+	$(OPENSSL) pkey -in $< -out $@ -outform DER
+all_final += ec_521_short_prv.der
+
+ec_bp512_prv.der: ec_bp512_prv.pem
+	$(OPENSSL) pkey -in $< -out $@ -outform DER
+all_final += ec_bp512_prv.der
+
+################################################################
 ### Generate CSRs for X.509 write test suite
 ################################################################
 

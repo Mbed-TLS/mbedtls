@@ -99,7 +99,7 @@
 #include <sys/auxv.h>
 #endif
 
-#if !defined(MBEDTLS_AES_HAS_NO_BUILTIN)
+#if !defined(MBEDTLS_AES_HAS_NO_PLAIN_C)
 /*
  * AES instruction support detection routine
  */

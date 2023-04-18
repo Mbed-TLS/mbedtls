@@ -68,7 +68,7 @@ extern "C" {
  *
  * \return         non-zero if CPU has support for the feature, 0 otherwise
  */
-#if !defined(MBEDTLS_AES_HAS_NO_BUILTIN)
+#if !defined(MBEDTLS_AES_HAS_NO_PLAIN_C)
 int mbedtls_padlock_has_support(int feature);
 #else
 #define /* no-check-names */ mbedtls_padlock_has_support(feature) 1

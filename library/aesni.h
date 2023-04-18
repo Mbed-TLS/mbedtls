@@ -88,7 +88,7 @@ extern "C" {
  *
  * \return         1 if CPU has support for the feature, 0 otherwise
  */
-#if !defined(MBEDTLS_AES_HAS_NO_BUILTIN)
+#if !defined(MBEDTLS_AES_HAS_NO_PLAIN_C)
 int mbedtls_aesni_has_support(unsigned int what);
 #else
 #define /* no-check-names */ mbedtls_aesni_has_support(what) 1

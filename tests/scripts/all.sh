@@ -4946,7 +4946,7 @@ component_test_aes_builtin_only () {
     scripts/config.py unset MBEDTLS_AESNI_C
     scripts/config.py unset MBEDTLS_PADLOCK_C
     scripts/config.py unset MBEDTLS_AESCE_C
-    scripts/config.py unset MBEDTLS_AES_HAS_NO_BUILTIN
+    scripts/config.py unset MBEDTLS_AES_HAS_NO_PLAIN_C
     msg "build: make, AES built-in only" # ~10s
     make
 
@@ -4959,7 +4959,7 @@ component_test_aes_aesni_only () {
     scripts/config.py set MBEDTLS_AESNI_C
     scripts/config.py unset MBEDTLS_PADLOCK_C
     scripts/config.py unset MBEDTLS_AESCE_C
-    scripts/config.py set MBEDTLS_AES_HAS_NO_BUILTIN
+    scripts/config.py set MBEDTLS_AES_HAS_NO_PLAIN_C
     msg "build:  AESNI only" # ~10s
     make
 
@@ -4972,7 +4972,7 @@ component_test_aes_padlock_only () {
     scripts/config.py unset MBEDTLS_AESNI_C
     scripts/config.py set MBEDTLS_PADLOCK_C
     scripts/config.py unset MBEDTLS_AESCE_C
-    scripts/config.py set MBEDTLS_AES_HAS_NO_BUILTIN
+    scripts/config.py set MBEDTLS_AES_HAS_NO_PLAIN_C
     msg "build: AES, VIA padlock only" # ~10s
     make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2" LDFLAGS="-m32 $ASAN_CFLAGS"
 

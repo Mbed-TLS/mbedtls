@@ -4009,6 +4009,6 @@
 /*
  * Platform independent implementation for crypto algorithms.
  */
-//#define MBEDTLS_AES_HAS_NO_BUILTIN /* Uncomment to disable built-in platform independent code of AES */
+//#define MBEDTLS_AES_HAS_NO_PLAIN_C /* Uncomment to disable built-in platform independent code of AES */
 
 /** \} name SECTION: Module configuration options */

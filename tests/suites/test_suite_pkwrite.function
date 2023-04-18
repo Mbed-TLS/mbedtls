@@ -30,7 +30,11 @@ static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
         if (is_der) {
             ret = mbedtls_pk_write_pubkey_der(&key, buf, check_buf_len);
         } else {
+#if defined(MBEDTLS_PEM_WRITE_C)
             ret = mbedtls_pk_write_pubkey_pem(&key, buf, check_buf_len);
+#else
+            ret = MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+#endif
         }
     } else {
         TEST_EQUAL(mbedtls_pk_parse_keyfile(&key, key_file, NULL,
@@ -38,7 +42,11 @@ static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
         if (is_der) {
             ret = mbedtls_pk_write_key_der(&key, buf, check_buf_len);
         } else {
+#if defined(MBEDTLS_PEM_WRITE_C)
             ret = mbedtls_pk_write_key_pem(&key, buf, check_buf_len);
+#else
+            ret = MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+#endif
         }
     }
 
@@ -66,7 +74,7 @@ exit:
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PEM_WRITE_C */
+/* BEGIN_CASE */
 void pk_write_pubkey_check(char *key_file, int is_der)
 {
     pk_write_check_common(key_file, 1, is_der);
@@ -74,7 +82,7 @@ void pk_write_pubkey_check(char *key_file, int is_der)
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PEM_WRITE_C */
+/* BEGIN_CASE */
 void pk_write_key_check(char *key_file, int is_der)
 {
     pk_write_check_common(key_file, 0, is_der);

@@ -1,95 +1,95 @@
 Public key write check RSA
-depends_on:MBEDTLS_RSA_C:MBEDTLS_BASE64_C
+depends_on:MBEDTLS_RSA_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C
 pk_write_pubkey_check:"data_files/server1.pubkey":TEST_PEM
 
 Public key write check RSA (DER)
-depends_on:MBEDTLS_RSA_C:MBEDTLS_BASE64_C
+depends_on:MBEDTLS_RSA_C
 pk_write_pubkey_check:"data_files/server1.pubkey.der":TEST_DER
 
 Public key write check RSA 4096
-depends_on:MBEDTLS_RSA_C:MBEDTLS_BASE64_C
+depends_on:MBEDTLS_RSA_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C
 pk_write_pubkey_check:"data_files/rsa4096_pub.pem":TEST_PEM
 
 Public key write check RSA 4096 (DER)
-depends_on:MBEDTLS_RSA_C:MBEDTLS_BASE64_C
+depends_on:MBEDTLS_RSA_C
 pk_write_pubkey_check:"data_files/rsa4096_pub.pem.der":TEST_DER
 
 Public key write check EC 192 bits
-depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED
+depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 pk_write_pubkey_check:"data_files/ec_pub.pem":TEST_PEM
 
 Public key write check EC 192 bits (DER)
-depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED
+depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 pk_write_pubkey_check:"data_files/ec_pub.pem.der":TEST_DER
 
 Public key write check EC 521 bits
-depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_SECP521R1_ENABLED
+depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:MBEDTLS_ECP_DP_SECP521R1_ENABLED
 pk_write_pubkey_check:"data_files/ec_521_pub.pem":TEST_PEM
 
 Public key write check EC 521 bits (DER)
-depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_SECP521R1_ENABLED
+depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP521R1_ENABLED
 pk_write_pubkey_check:"data_files/ec_521_pub.pem.der":TEST_DER
 
 Public key write check EC Brainpool 512 bits
-depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_BP512R1_ENABLED
+depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:MBEDTLS_ECP_DP_BP512R1_ENABLED
 pk_write_pubkey_check:"data_files/ec_bp512_pub.pem":TEST_PEM
 
 Public key write check EC Brainpool 512 bits (DER)
-depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_BP512R1_ENABLED
+depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_BP512R1_ENABLED
 pk_write_pubkey_check:"data_files/ec_bp512_pub.pem.der":TEST_DER
 
 Private key write check RSA
-depends_on:MBEDTLS_RSA_C:MBEDTLS_BASE64_C
+depends_on:MBEDTLS_RSA_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C
 pk_write_key_check:"data_files/server1.key":TEST_PEM
 
 Private key write check RSA (DER)
-depends_on:MBEDTLS_RSA_C:MBEDTLS_BASE64_C
+depends_on:MBEDTLS_RSA_C
 pk_write_key_check:"data_files/server1.key.der":TEST_DER
 
 Private key write check RSA 4096
-depends_on:MBEDTLS_RSA_C:MBEDTLS_BASE64_C
+depends_on:MBEDTLS_RSA_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C
 pk_write_key_check:"data_files/rsa4096_prv.pem":TEST_PEM
 
 Private key write check RSA 4096 (DER)
-depends_on:MBEDTLS_RSA_C:MBEDTLS_BASE64_C
+depends_on:MBEDTLS_RSA_C
 pk_write_key_check:"data_files/rsa4096_prv.pem.der":TEST_DER
 
 Private key write check EC 192 bits
-depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED
+depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 pk_write_key_check:"data_files/ec_prv.sec1.pem":TEST_PEM
 
 Private key write check EC 192 bits (DER)
-depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED
+depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 pk_write_key_check:"data_files/ec_prv.sec1.pem.der":TEST_DER
 
 Private key write check EC 256 bits (top bit set)
-depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 pk_write_key_check:"data_files/ec_256_long_prv.pem":TEST_PEM
 
 Private key write check EC 256 bits (top bit set) (DER)
-depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 pk_write_key_check:"data_files/ec_256_long_prv.pem.der":TEST_DER
 
 Private key write check EC 521 bits
-depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_SECP521R1_ENABLED
+depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:MBEDTLS_ECP_DP_SECP521R1_ENABLED
 pk_write_key_check:"data_files/ec_521_prv.pem":TEST_PEM
 
 Private key write check EC 521 bits (DER)
-depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_SECP521R1_ENABLED
+depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP521R1_ENABLED
 pk_write_key_check:"data_files/ec_521_prv.pem.der":TEST_DER
 
 Private key write check EC 521 bits (top byte is 0)
-depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_SECP521R1_ENABLED
+depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:MBEDTLS_ECP_DP_SECP521R1_ENABLED
 pk_write_key_check:"data_files/ec_521_short_prv.pem":TEST_PEM
 
 Private key write check EC 521 bits (top byte is 0) (DER)
-depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_SECP521R1_ENABLED
+depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP521R1_ENABLED
 pk_write_key_check:"data_files/ec_521_short_prv.pem.der":TEST_DER
 
 Private key write check EC Brainpool 512 bits
-depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_BP512R1_ENABLED
+depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_PEM_PARSE_C:MBEDTLS_PEM_WRITE_C:MBEDTLS_ECP_DP_BP512R1_ENABLED
 pk_write_key_check:"data_files/ec_bp512_prv.pem":TEST_PEM
 
 Private key write check EC Brainpool 512 bits (DER)
-depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_BP512R1_ENABLED
+depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_BP512R1_ENABLED
 pk_write_key_check:"data_files/ec_bp512_prv.pem.der":TEST_DER

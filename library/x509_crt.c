@@ -2637,12 +2637,15 @@ static int x509_inet_pton_ipv6(const char *src, void *dst)
         }
         ++p;
     } while (nonzero_groups < 8);
-    if ((zero_group_start != -1 ? nonzero_groups > 6 : nonzero_groups != 8) ||
-        *p != '\0') {
+
+    if (*p != '\0') {
         return -1;
     }
 
     if (zero_group_start != -1) {
+        if (nonzero_groups > 6) {
+            return -1;
+        }
         int zero_groups = 8 - nonzero_groups;
         int groups_after_zero = nonzero_groups - zero_group_start;
 
@@ -2653,6 +2656,10 @@ static int x509_inet_pton_ipv6(const char *src, void *dst)
                     groups_after_zero * sizeof(*addr));
         }
         memset(addr + zero_group_start, 0, zero_groups * sizeof(*addr));
+    } else {
+        if (nonzero_groups != 8) {
+            return -1;
+        }
     }
     memcpy(dst, addr, sizeof(addr));
     return 0;

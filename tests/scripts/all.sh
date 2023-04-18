@@ -2374,22 +2374,6 @@ config_psa_crypto_full_all_ec_algs_no_ecp_use_psa () {
         scripts/config.py unset MBEDTLS_ECP_LIGHT
     fi
 
-    # Disable PK module since it depends on ECP
-    scripts/config.py unset MBEDTLS_PK_C
-    scripts/config.py unset MBEDTLS_PK_PARSE_C
-    scripts/config.py unset MBEDTLS_PK_WRITE_C
-    # Disable also RSA_C that would re-enable PK
-    scripts/config.py unset MBEDTLS_RSA_C
-    scripts/config.py unset MBEDTLS_PKCS1_V15
-    scripts/config.py unset MBEDTLS_PKCS1_V21
-    scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
-    # Disable also key exchanges that depend on RSA for completeness
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
-
     # Restartable feature is not yet supported by PSA. Once it will in
     # the future, the following line could be removed (see issues
     # 6061, 6332 and following ones)
@@ -2402,13 +2386,6 @@ config_psa_crypto_full_all_ec_algs_no_ecp_use_psa () {
     # partial support for cipher operations in the driver test library.
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
-
-    # Disable PSA_WANT symbols that would re-enable PK
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
-    for ALG in $(sed -n 's/^#define \(PSA_WANT_ALG_RSA_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
-        scripts/config.py -f include/psa/crypto_config.h unset $ALG
-    done
 }
 
 # Build and test a configuration where driver accelerates all EC algs while
@@ -2452,7 +2429,6 @@ component_test_psa_crypto_full_accel_all_ec_algs_no_ecp_use_psa () {
     not grep mbedtls_ecjpake_ library/ecjpake.o
     # Also ensure that ECP or RSA modules were not re-enabled
     not grep mbedtls_ecp_ library/ecp.o
-    not grep mbedtls_rsa_ library/rsa.o
 
     # Run the tests
     # -------------
@@ -2470,9 +2446,6 @@ component_test_psa_crypto_full_reference_all_ec_algs_no_ecp_use_psa () {
     config_psa_crypto_full_all_ec_algs_no_ecp_use_psa 0
 
     make
-
-    # Esure that the RSA module was not re-enabled
-    not grep mbedtls_rsa_ library/rsa.o
 
     msg "test suites: crypto_full + non accelerated EC algs + USE_PSA"
     make test

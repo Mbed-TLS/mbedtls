@@ -39,7 +39,7 @@
 #include <immintrin.h>
 #endif
 
-#if !defined(MBEDTLS_AES_HAS_NO_PLAIN_C)
+#if !defined(MBEDTLS_AES_DONT_USE_SOFTWARE_CRYPTO)
 /*
  * AES-NI support detection routine
  */
@@ -69,7 +69,7 @@ int mbedtls_aesni_has_support(unsigned int what)
 
     return (c & what) != 0;
 }
-#endif /* !MBEDTLS_AES_HAS_NO_PLAIN_C */
+#endif /* !MBEDTLS_AES_DONT_USE_SOFTWARE_CRYPTO */
 
 #if MBEDTLS_AESNI_HAVE_CODE == 2
 

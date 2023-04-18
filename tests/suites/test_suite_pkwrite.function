@@ -9,27 +9,27 @@ static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
     unsigned char *buf = NULL;
     unsigned char *check_buf = NULL;
     unsigned char *start_buf;
-    size_t check_buf_len;
+    size_t buf_len, check_buf_len;
     int ret;
 
     /* Note: if mbedtls_pk_load_file() successfully reads the file, then
        it also allocates check_buf, which should be freed on exit */
-    TEST_ASSERT(mbedtls_pk_load_file(key_file, &check_buf, &check_buf_len) == 0);
+    TEST_EQUAL(mbedtls_pk_load_file(key_file, &check_buf, &check_buf_len), 0);
     TEST_ASSERT(check_buf_len > 0);
 
     ASSERT_ALLOC(buf, check_buf_len);
 
     mbedtls_pk_init(&key);
     if (is_public_key) {
-        TEST_ASSERT(mbedtls_pk_parse_public_keyfile(&key, key_file) == 0);
+        TEST_EQUAL(mbedtls_pk_parse_public_keyfile(&key, key_file), 0);
         if (is_der) {
             ret = mbedtls_pk_write_pubkey_der(&key, buf, check_buf_len);
         } else {
             ret = mbedtls_pk_write_pubkey_pem(&key, buf, check_buf_len);
         }
     } else {
-        TEST_ASSERT(mbedtls_pk_parse_keyfile(&key, key_file, NULL,
-                                             mbedtls_test_rnd_std_rand, NULL) == 0);
+        TEST_EQUAL(mbedtls_pk_parse_keyfile(&key, key_file, NULL,
+                                             mbedtls_test_rnd_std_rand, NULL), 0);
         if (is_der) {
             ret = mbedtls_pk_write_key_der(&key, buf, check_buf_len);
         } else {
@@ -38,14 +38,16 @@ static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
     }
 
     if (is_der) {
-        TEST_ASSERT(ret > 0);
-        start_buf = buf + check_buf_len - ret;
+        TEST_LE_U(1, ret);
+        buf_len = ret;
+        start_buf = buf + check_buf_len - buf_len;
     } else {
-        TEST_ASSERT(ret == 0);
+        TEST_EQUAL(ret, 0);
+        buf_len = check_buf_len;
         start_buf = buf;
     }
 
-    TEST_ASSERT(memcmp((char *) start_buf, (char *) check_buf, check_buf_len) == 0);
+    ASSERT_COMPARE(start_buf, buf_len, check_buf, check_buf_len);
 
 exit:
     mbedtls_free(buf);

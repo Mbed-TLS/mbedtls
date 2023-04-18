@@ -2638,20 +2638,28 @@ static int x509_inet_pton_ipv4(const char *src, void *dst)
     /* note: allows leading 0's, e.g. 000.000.000.000 */
     const unsigned char *p = (const unsigned char *) src;
     uint8_t *res = (uint8_t *) dst;
-    uint8_t digit1, digit2, digit3, num_octets = 0;
+    uint8_t digit, num_digits = 0;
+    uint8_t num_octets = 0;
     uint16_t octet;
 
     do {
-        if ((digit1 = *(uint8_t *)  p - '0') > 9) {
+        octet = num_digits = 0;
+        do {
+            digit = *p - '0';
+            if (digit > 9) {
+                break;
+            }
+            octet = octet * 10 + digit;
+            num_digits++;
+            p++;
+        } while (num_digits < 3);
+
+        if (octet >= 256 || num_digits > 3 || num_digits == 0) {
             break;
-        } else if ((digit2 = *(uint8_t *) ++p - '0') > 9) {
-            *res++ = digit1;
-        } else if ((digit3 = *(uint8_t *) ++p - '0') > 9) {
-            *res++ = digit1 * 10 + digit2;
-        } else if ((octet = digit1 * 100 + digit2 * 10 + digit3) < 256) {
-            *res++ = (uint8_t) octet, ++p;
         }
-    } while (++num_octets < 4 && *p++ == '.');
+        *res++ = (uint8_t) octet;
+        num_octets++;
+    } while (num_octets < 4 && *p++ == '.');
     return num_octets == 4 && *p == '\0' ? 0 : -1;
 }
 

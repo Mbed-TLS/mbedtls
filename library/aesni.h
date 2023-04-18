@@ -39,6 +39,9 @@
     (defined(__amd64__) || defined(__x86_64__))   &&  \
     !defined(MBEDTLS_HAVE_X86_64)
 #define MBEDTLS_HAVE_X86_64
+#if !defined(MBEDTLS_AESNI_C) && !defined(MBEDTLS_AES_HAS_NO_PLAIN_C)
+#error "MBEDTLS_AESCE_C defined, but not all prerequisites"
+#endif
 #endif
 
 #if defined(MBEDTLS_AESNI_C)

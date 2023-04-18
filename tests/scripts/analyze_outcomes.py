@@ -251,6 +251,41 @@ TASKS = {
             }
         }
     },
+    'analyze_driver_vs_reference_all_ec_algs_no_ecp': {
+        'test_function': do_analyze_driver_vs_reference,
+        'args': {
+            'component_ref': 'test_psa_crypto_full_reference_all_ec_algs_no_ecp_use_psa',
+            'component_driver': 'test_psa_crypto_full_accel_all_ec_algs_no_ecp_use_psa',
+            'ignored_suites': [
+                # Ignore test suites for the modules that are disabled in the
+                # accelerated test case.
+                'ecp',
+                'ecdsa',
+                'ecdh',
+                'ecjpake',
+            ],
+            'ignored_tests': {
+                'test_suite_random': [
+                    'PSA classic wrapper: ECDSA signature (SECP256R1)',
+                ],
+                'test_suite_psa_crypto': [
+                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1',
+                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1 (1 redraw)',
+                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1, exercise ECDSA',
+                    'PSA key derivation: HKDF-SHA-256 -> ECC secp384r1',
+                    'PSA key derivation: HKDF-SHA-256 -> ECC secp521r1 #0',
+                    'PSA key derivation: HKDF-SHA-256 -> ECC secp521r1 #1',
+                    'PSA key derivation: bits=7 invalid for ECC BRAINPOOL_P_R1 (ECC enabled)',
+                    'PSA key derivation: bits=7 invalid for ECC SECP_K1 (ECC enabled)',
+                    'PSA key derivation: bits=7 invalid for ECC SECP_R1 (ECC enabled)',
+                    'PSA key derivation: bits=7 invalid for ECC SECP_R2 (ECC enabled)',
+                    'PSA key derivation: bits=7 invalid for ECC SECT_K1 (ECC enabled)',
+                    'PSA key derivation: bits=7 invalid for ECC SECT_R1 (ECC enabled)',
+                    'PSA key derivation: bits=7 invalid for ECC SECT_R2 (ECC enabled)',
+                ]
+            }
+        }
+    },
 }
 
 def main():

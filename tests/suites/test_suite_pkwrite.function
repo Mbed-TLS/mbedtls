@@ -38,7 +38,7 @@ static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
         }
     } else {
         TEST_EQUAL(mbedtls_pk_parse_keyfile(&key, key_file, NULL,
-                                             mbedtls_test_rnd_std_rand, NULL), 0);
+                                            mbedtls_test_rnd_std_rand, NULL), 0);
         if (is_der) {
             ret = mbedtls_pk_write_key_der(&key, buf, check_buf_len);
         } else {
@@ -56,7 +56,7 @@ static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
         start_buf = buf + check_buf_len - buf_len;
     } else {
         TEST_EQUAL(ret, 0);
-        buf_len = check_buf_len;
+        buf_len = strlen((char *) buf) + 1; /* +1 takes the string terminator into account */
         start_buf = buf;
     }
 

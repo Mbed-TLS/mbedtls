@@ -3,6 +3,11 @@
 #include "mbedtls/pem.h"
 #include "mbedtls/oid.h"
 
+typedef enum {
+    TEST_PEM,
+    TEST_DER
+} pkwrite_file_format_t;
+
 static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
 {
     mbedtls_pk_context key;

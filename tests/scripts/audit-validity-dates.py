@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 #
-# copyright the mbed tls contributors
-# spdx-license-identifier: apache-2.0
+# Copyright The Mbed TLS Contributors
+# SPDX-License-Identifier: Apache-2.0
 #
-# licensed under the apache license, version 2.0 (the "license"); you may
-# not use this file except in compliance with the license.
-# you may obtain a copy of the license at
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 # http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -18,9 +18,9 @@
 """Audit validity date of X509 crt/crl/csr.
 
 This script is used to audit the validity date of crt/crl/csr used for testing.
-It prints the information of X509 data whose validity duration does not cover
-the provided validity duration. The data are collected from tests/data_files/
-and tests/suites/*.data files by default.
+It would print the information about X.509 data if the validity period of the
+X.509 data didn't cover the provided validity period. The data are collected
+from tests/data_files/ and tests/suites/*.data files by default.
 """
 
 import os
@@ -50,15 +50,15 @@ class DataFormat(Enum):
     DER = 2 # Distinguished Encoding Rules
 
 class AuditData:
-    """Store file, type and expiration date for audit."""
+    """Store data location, type and validity period of X.509 objects."""
     #pylint: disable=too-few-public-methods
     def __init__(self, data_type: DataType, x509_obj):
         self.data_type = data_type
-        self.filename = ""
+        self.location = ""
         self.fill_validity_duration(x509_obj)
 
     def fill_validity_duration(self, x509_obj):
-        """Fill expiration_date field from a x509 object"""
+        """Read validity period from an X.509 object."""
         # Certificate expires after "not_valid_after"
         # Certificate is invalid before "not_valid_before"
         if self.data_type == DataType.CRT:
@@ -76,7 +76,7 @@ class AuditData:
         else:
             raise ValueError("Unsupported file_type: {}".format(self.data_type))
 
-class X509Parser():
+class X509Parser:
     """A parser class to parse crt/crl/csr file or data in PEM/DER format."""
     PEM_REGEX = br'-{5}BEGIN (?P<type>.*?)-{5}\n(?P<data>.*?)-{5}END (?P=type)-{5}\n'
     PEM_TAG_REGEX = br'-{5}BEGIN (?P<type>.*?)-{5}\n'
@@ -201,7 +201,7 @@ class Auditor:
         result_list = []
         result = self.parse_bytes(data)
         if result is not None:
-            result.filename = filename
+            result.location = filename
             result_list.append(result)
         return result_list
 
@@ -347,9 +347,9 @@ class SuiteDataAuditor(Auditor):
                 audit_data = self.parse_bytes(bytes.fromhex(match.group('data')))
                 if audit_data is None:
                     continue
-                audit_data.filename = "{}:{}:{}".format(filename,
-                                                        data_f.line_no,
-                                                        idx + 1)
+                audit_data.location = "{}:{}:#{}".format(filename,
+                                                         data_f.line_no,
+                                                         idx + 1)
                 audit_data_list.append(audit_data)
 
         return audit_data_list
@@ -359,7 +359,7 @@ def list_all(audit_data: AuditData):
         audit_data.not_valid_before.isoformat(timespec='seconds'),
         audit_data.not_valid_after.isoformat(timespec='seconds'),
         audit_data.data_type.name,
-        audit_data.filename))
+        audit_data.location))
 
 def main():
     """

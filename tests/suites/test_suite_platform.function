@@ -74,6 +74,13 @@ void time_delay_milliseconds(int delay_ms)
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_HAVE_TIME */
+
+/*
+ * WARNING: DONOT ENABLE THIS TEST. RESERVE IT HERE TO KEEP THE REASON.
+ *
+ *          The test often failed on the CI. See #1517. CI failures cannot be
+ *          completely avoided due to out-of-sync clock sources.
+ */
 void time_delay_seconds(int delay_secs)
 {
     mbedtls_time_t current = mbedtls_time(NULL);

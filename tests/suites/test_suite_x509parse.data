@@ -1131,6 +1131,9 @@ X509 CRT parse CN: IPv6 invalid address IPv4-mapped #1
 x509_crt_parse_cn_inet_pton:"\:\:ffff\:999.2.3.4":"":0
 
 X509 CRT parse CN: IPv6 invalid address IPv4-mapped #2
+x509_crt_parse_cn_inet_pton:"\:\:ffff\:1111.2.3.4":"":0
+
+X509 CRT parse CN: IPv6 invalid address IPv4-mapped #3
 x509_crt_parse_cn_inet_pton:"\:\:1.2.3.4\:ffff":"":0
 
 X509 CRT verification with ca callback: failure

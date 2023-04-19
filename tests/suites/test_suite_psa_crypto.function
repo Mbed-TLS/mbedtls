@@ -8476,7 +8476,7 @@ void derive_input(int alg_arg,
     psa_key_derivation_step_t steps[] = { step_arg1, step_arg2, step_arg3 };
     psa_key_type_t key_types[] = { key_type_arg1, key_type_arg2, key_type_arg3 };
     key_derivation_input_method_t input_types[] =
-        { input_type_arg1, input_type_arg2, input_type_arg3 };
+    { input_type_arg1, input_type_arg2, input_type_arg3 };
     psa_status_t expected_statuses[] = { expected_status_arg1,
                                          expected_status_arg2,
                                          expected_status_arg3 };

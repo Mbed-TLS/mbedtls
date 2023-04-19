@@ -91,20 +91,21 @@ void time_delay_seconds(int delay_secs)
     elapsed_secs = mbedtls_time(NULL) - current;
 
     /*
-     * `mbedtls_time` was defined as c99 function `time`, it uses
-     * CLOCK_REALTIME and returns the number of seconds since the Epoch. And
-     * `nanosleep` uses CLOCK_MONOTONIC. The time sources are out of sync.
+     * `mbedtls_time()` was defined as c99 function `time()`, returns the number
+     * of seconds since the Epoch. And it is affected by discontinuous changes
+     * from automatic drift adjustment or time setting system call. The POSIX.1
+     * specification for clock_settime says that discontinuous changes in
+     * CLOCK_REALTIME should not affect `nanosleep()`.
      *
-     * If CLOCK_MONOTONIC is faster than CLOCK_REALTIME and `nanosleep` exits at
-     * the end of a second, `elapsed_secs` will be less than `delay_secs`.
+     * If discontinuous changes occur during `nanosleep()`, we will get
+     * `elapsed_secs < delay_secs` for backward and `elapsed_secs > delay_secs`
+     * for forward.
      *
-     * Workaround it with 1 second tolerance.
+     * The following tolerance windows cannot be guaranteed.
+     * PLEASE DO NOT ENABLE IT IN CI TEST.
      */
-    TEST_ASSERT(elapsed_secs >= delay_secs - 1);
-    /* If CLOCK_MONOTONIC is slower than CLOCK_REALTIME or nanosleep does not
-     * exit on time.
-     */
-    TEST_ASSERT(elapsed_secs < 4 + delay_secs);
+    TEST_ASSERT(elapsed_secs - delay_secs >= -1 &&
+                elapsed_secs - delay_secs <   4);
     /* This goto is added to avoid warnings from the generated code. */
     goto exit;
 }

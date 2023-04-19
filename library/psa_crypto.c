@@ -6489,32 +6489,12 @@ static psa_status_t psa_key_derivation_input_integer_internal(
     psa_status_t status;
     psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg(operation);
 
-#if defined(BUILTIN_ALG_ANY_HKDF)
-    if (PSA_ALG_IS_ANY_HKDF(kdf_alg)) {
-        status = PSA_ERROR_INVALID_ARGUMENT;
-    } else
-#endif /* BUILTIN_ALG_ANY_HKDF */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF)
-    if (PSA_ALG_IS_TLS12_PRF(kdf_alg)) {
-        status = PSA_ERROR_INVALID_ARGUMENT;
-    } else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
-    if (PSA_ALG_IS_TLS12_PSK_TO_MS(kdf_alg)) {
-        status = PSA_ERROR_INVALID_ARGUMENT;
-    } else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS)
-    if (kdf_alg == PSA_ALG_TLS12_ECJPAKE_TO_PMS) {
-        status = PSA_ERROR_INVALID_ARGUMENT;
-    } else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS */
     {
         /* This can't happen unless the operation object was not initialized */
         (void) step;
         (void) value;
         (void) kdf_alg;
-        return PSA_ERROR_BAD_STATE;
+        status = PSA_ERROR_INVALID_ARGUMENT;
     }
 
     if (status != PSA_SUCCESS) {

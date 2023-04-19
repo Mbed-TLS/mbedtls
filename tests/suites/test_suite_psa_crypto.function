@@ -16,6 +16,7 @@
 /* For psa_can_do_hash() */
 #include "psa_crypto_core.h"
 
+#include "../library/alignment.h"
 #include "test/asn1_helpers.h"
 #include "test/psa_crypto_helpers.h"
 #include "test/psa_exercise_key.h"
@@ -294,6 +295,19 @@ exit:
     ((void) 0)
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
+uint64_t parse_hex_string(data_t *hex_string)
+{
+    uint64_t result = 0;
+    for (size_t i = 0; i < hex_string->len; i++) {
+        if (MBEDTLS_IS_BIG_ENDIAN) {
+            result |= ((hex_string->x)[i]) << (i * 8);
+        } else {
+            result |= ((hex_string->x)[i]) << ((hex_string->len - i - 1) * 8);
+        }
+    }
+    return result;
+}
+
 /* An overapproximation of the amount of storage needed for a key of the
  * given type and with the given content. The API doesn't make it easy
  * to find a good value for the size. The current implementation doesn't
@@ -317,6 +331,11 @@ typedef enum {
     USE_NULL_TAG = 0,
     USE_GIVEN_TAG = 1,
 } tag_usage_method_t;
+
+typedef enum {
+    INPUT_BYTES = 0,
+    INPUT_INTEGER = 1
+} key_derivation_input_method_t;
 
 /*!
  * \brief                           Internal Function for AEAD multipart tests.
@@ -8458,7 +8477,8 @@ void derive_input(int alg_arg,
     psa_algorithm_t alg = alg_arg;
     psa_key_derivation_step_t steps[] = { step_arg1, step_arg2, step_arg3 };
     psa_key_type_t key_types[] = { key_type_arg1, key_type_arg2, key_type_arg3 };
-    uint8_t input_types[] = { input_type_arg1, input_type_arg2, input_type_arg3 };
+    key_derivation_input_method_t input_types[] =
+        { input_type_arg1, input_type_arg2, input_type_arg3 };
     psa_status_t expected_statuses[] = { expected_status_arg1,
                                          expected_status_arg2,
                                          expected_status_arg3 };
@@ -8503,15 +8523,15 @@ void derive_input(int alg_arg,
                            expected_statuses[i]);
             }
         } else {
-            if (input_types[i] == 0) {
+            if (input_types[i] == INPUT_BYTES) {
                 TEST_EQUAL(psa_key_derivation_input_bytes(
                                &operation, steps[i],
                                inputs[i]->x, inputs[i]->len),
                            expected_statuses[i]);
-            } else if (input_types[i] == 1) {
+            } else if (input_types[i] == INPUT_INTEGER) {
                 TEST_EQUAL(psa_key_derivation_input_integer(
                                &operation, steps[i],
-                               *(inputs[i]->x)),
+                               parse_hex_string(inputs[i])),
                            expected_statuses[i]);
             }
         }

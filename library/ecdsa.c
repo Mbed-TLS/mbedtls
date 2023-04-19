@@ -20,7 +20,7 @@
 /*
  * References:
  *
- * SEC1 https://www.secg.org/sec1-v2.pdf 
+ * SEC1 https://www.secg.org/sec1-v2.pdf
  */
 
 #include "common.h"

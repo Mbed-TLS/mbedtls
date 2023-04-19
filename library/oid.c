@@ -951,111 +951,112 @@ int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid,
     const char *str_ptr = oid_str;
     const char *str_bound = oid_str + size;
     unsigned int val = 0;
-    size_t encoded_len;
     unsigned int component1, component2;
 
-    /* First pass - parse the string to get the length of buffer required */
+    /* Count the number of dots to get a worst-case allocation size. */
+    size_t num_dots = 0;
+    for (size_t i = 0; (i < size) && (oid_str[i] != '\0'); i++) {
+        if (oid_str[i] == '.') {
+            num_dots++;
+        }
+    }
+    /* Allocate maximum possible required memory:
+     * There are (num_dots + 1) integer components, but the first 2 share the
+     * same subidentifier, so we only need num_dots subidentifiers maximum. */
+    if (num_dots == 0 || (num_dots > SIZE_MAX / sizeof(unsigned int))) {
+        return MBEDTLS_ERR_ASN1_INVALID_DATA;
+    }
+    size_t max_possible_bytes = num_dots * sizeof(unsigned int);
+    oid->p = mbedtls_calloc(max_possible_bytes, 1);
+    if (oid->p == NULL) {
+        return MBEDTLS_ERR_ASN1_ALLOC_FAILED;
+    }
+    unsigned char *out_ptr = oid->p;
+    unsigned char *out_bound = oid->p + max_possible_bytes;
 
     ret = oid_parse_number(&component1, &str_ptr, str_bound);
     if (ret != 0) {
-        return ret;
+        goto error;
     }
     if (component1 > 2) {
         /* First component can't be > 2 */
-        return MBEDTLS_ERR_ASN1_INVALID_DATA;
+        ret = MBEDTLS_ERR_ASN1_INVALID_DATA;
+        goto error;
     }
     if (str_ptr >= str_bound || *str_ptr != '.') {
-        return MBEDTLS_ERR_ASN1_INVALID_DATA;
+        ret = MBEDTLS_ERR_ASN1_INVALID_DATA;
+        goto error;
     }
     str_ptr++;
 
     ret = oid_parse_number(&component2, &str_ptr, str_bound);
     if (ret != 0) {
-        return ret;
+        goto error;
     }
     if ((component1 < 2) && (component2 > 39)) {
         /* Root nodes 0 and 1 may have up to 40 children, numbered 0-39 */
-        return MBEDTLS_ERR_ASN1_INVALID_DATA;
+        ret = MBEDTLS_ERR_ASN1_INVALID_DATA;
+        goto error;
     }
     if (str_ptr < str_bound && *str_ptr != '\0') {
         if (*str_ptr == '.') {
             str_ptr++;
         } else {
-            return MBEDTLS_ERR_ASN1_INVALID_DATA;
+            ret = MBEDTLS_ERR_ASN1_INVALID_DATA;
+            goto error;
         }
     }
 
     if ((UINT_MAX - component2) <= (component1 * 40)) {
-        return MBEDTLS_ERR_ASN1_INVALID_DATA;
+        ret = MBEDTLS_ERR_ASN1_INVALID_DATA;
+        goto error;
     }
-    encoded_len = oid_subidentifier_num_bytes((component1 * 40) + component2);
+    ret = oid_subidentifier_encode_into(&out_ptr, out_bound,
+                                        (component1 * 40) + component2);
+    if (ret != 0) {
+        goto error;
+    }
 
     while (str_ptr < str_bound && *str_ptr != '\0') {
-        oid_parse_number(&val, &str_ptr, str_bound);
+        ret = oid_parse_number(&val, &str_ptr, str_bound);
         if (ret != 0) {
-            return ret;
+            goto error;
         }
         if (str_ptr < str_bound && *str_ptr != '\0') {
             if (*str_ptr == '.') {
                 str_ptr++;
             } else {
-                return MBEDTLS_ERR_ASN1_INVALID_DATA;
+                ret = MBEDTLS_ERR_ASN1_INVALID_DATA;
+                goto error;
             }
-        }
-
-        size_t num_bytes = oid_subidentifier_num_bytes(val);
-        if ((SIZE_MAX - encoded_len) <= num_bytes) {
-            return MBEDTLS_ERR_ASN1_INVALID_DATA;
-        }
-        encoded_len += num_bytes;
-    }
-
-    oid->p = mbedtls_calloc(encoded_len, 1);
-    if (oid->p == NULL) {
-        return MBEDTLS_ERR_ASN1_ALLOC_FAILED;
-    }
-    oid->len = encoded_len;
-
-    /* Second pass - now that we've allocated the buffer, go back to the
-     * start and encode */
-
-    str_ptr = oid_str;
-    unsigned char *out_ptr = oid->p;
-    unsigned char *out_bound = oid->p + oid->len;
-
-    /* No need to do validation this time, as we did it on the first pass */
-    oid_parse_number(&component1, &str_ptr, str_bound);
-    /* Skip past the '.' */
-    str_ptr++;
-    oid_parse_number(&component2, &str_ptr, str_bound);
-    /* Skip past the '.' */
-    str_ptr++;
-    ret = oid_subidentifier_encode_into(&out_ptr, out_bound,
-                                        (component1 * 40) + component2);
-    if (ret != 0) {
-        mbedtls_free(oid->p);
-        oid->p = NULL;
-        oid->len = 0;
-        return ret;
-    }
-    while (str_ptr < str_bound && *str_ptr != '\0') {
-        oid_parse_number(&val, &str_ptr, str_bound);
-        if (str_ptr < str_bound && *str_ptr == '.') {
-            /* Skip past the '.' */
-            str_ptr++;
         }
 
         ret = oid_subidentifier_encode_into(&out_ptr, out_bound, val);
         if (ret != 0) {
-            mbedtls_free(oid->p);
-            oid->p = NULL;
-            oid->len = 0;
-            return ret;
+            goto error;
         }
     }
+
+    size_t encoded_len = out_ptr - oid->p;
+    unsigned char *minimum_mem = mbedtls_calloc(encoded_len, 1);
+    if (minimum_mem == NULL) {
+        ret = MBEDTLS_ERR_ASN1_ALLOC_FAILED;
+        goto error;
+    }
+    memcpy(minimum_mem, oid->p, encoded_len);
+    mbedtls_free(oid->p);
+    oid->p = minimum_mem;
+    oid->len = encoded_len;
+
     oid->tag = MBEDTLS_ASN1_OID;
 
     return 0;
+
+error:
+    mbedtls_free(oid->p);
+    oid->p = NULL;
+    oid->len = 0;
+    return ret;
 }
 
 #endif /* MBEDTLS_OID_C */

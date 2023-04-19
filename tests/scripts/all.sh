@@ -4960,10 +4960,10 @@ component_test_aes_aesni_only () {
     scripts/config.py unset MBEDTLS_PADLOCK_C
     scripts/config.py unset MBEDTLS_AESCE_C
     scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
-    msg "build:  AESNI only" # ~10s
+    msg "build: AESNI only" # ~10s
     make
 
-    msg "selftest:  AESNI only" # ~10s
+    msg "selftest: AESNI only" # ~10s
     programs/test/selftest
 }
 
@@ -4975,7 +4975,6 @@ component_test_aes_padlock_only () {
     scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
     msg "build: AES, VIA padlock only" # ~10s
     make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2" LDFLAGS="-m32 $ASAN_CFLAGS"
-
 }
 
 ################################################################

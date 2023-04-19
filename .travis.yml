@@ -151,7 +151,6 @@ jobs:
         - make generated_files
         - make
         - programs/test/selftest
-        - tests/scripts/travis-log-failure.sh
         - tests/context-info.sh
 
 after_failure:

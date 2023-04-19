@@ -35,6 +35,36 @@
 
 size_t mbedtls_mpi_core_clz(mbedtls_mpi_uint a)
 {
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_clz)
+    if (sizeof(mbedtls_mpi_uint) == sizeof(unsigned int)) {
+        // __builtin_clz is undefined if a == 0
+        if (a == 0) {
+            return sizeof(mbedtls_mpi_uint) * 8;
+        } else {
+            return (size_t) __builtin_clz(a);
+        }
+    }
+#endif
+#if __has_builtin(__builtin_clzl)
+    if (sizeof(mbedtls_mpi_uint) == sizeof(unsigned long)) {
+        if (a == 0) {
+            return sizeof(mbedtls_mpi_uint) * 8;
+        } else {
+            return (size_t) __builtin_clzl(a);
+        }
+    }
+#endif
+#if __has_builtin(__builtin_clzll)
+    if (sizeof(mbedtls_mpi_uint) == sizeof(unsigned long long)) {
+        if (a == 0) {
+            return sizeof(mbedtls_mpi_uint) * 8;
+        } else {
+            return (size_t) __builtin_clzll(a);
+        }
+    }
+#endif
+#endif
     size_t j;
     mbedtls_mpi_uint mask = (mbedtls_mpi_uint) 1 << (biL - 1);
 

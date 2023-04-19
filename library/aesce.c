@@ -99,7 +99,7 @@
 #include <sys/auxv.h>
 #endif
 
-#if !defined(MBEDTLS_AES_DONT_USE_SOFTWARE_CRYPTO)
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 /*
  * AES instruction support detection routine
  */

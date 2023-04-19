@@ -4941,12 +4941,12 @@ component_check_test_helpers () {
     python3 -m unittest tests/scripts/translate_ciphers.py 2>&1
 }
 
-component_test_aes_builtin_only () {
+component_test_aes_donot_use_hardware () {
     msg "Test: AES builtin only"
     scripts/config.py unset MBEDTLS_AESNI_C
     scripts/config.py unset MBEDTLS_PADLOCK_C
     scripts/config.py unset MBEDTLS_AESCE_C
-    scripts/config.py unset MBEDTLS_AES_DONT_USE_SOFTWARE_CRYPTO
+    scripts/config.py unset MBEDTLS_AES_USE_HARDWARE_ONLY
     msg "build: make, AES built-in only" # ~10s
     make
 
@@ -4959,7 +4959,7 @@ component_test_aes_aesni_only () {
     scripts/config.py set MBEDTLS_AESNI_C
     scripts/config.py unset MBEDTLS_PADLOCK_C
     scripts/config.py unset MBEDTLS_AESCE_C
-    scripts/config.py set MBEDTLS_AES_DONT_USE_SOFTWARE_CRYPTO
+    scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
     msg "build:  AESNI only" # ~10s
     make
 
@@ -4972,7 +4972,7 @@ component_test_aes_padlock_only () {
     scripts/config.py unset MBEDTLS_AESNI_C
     scripts/config.py set MBEDTLS_PADLOCK_C
     scripts/config.py unset MBEDTLS_AESCE_C
-    scripts/config.py set MBEDTLS_AES_DONT_USE_SOFTWARE_CRYPTO
+    scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
     msg "build: AES, VIA padlock only" # ~10s
     make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2" LDFLAGS="-m32 $ASAN_CFLAGS"
 

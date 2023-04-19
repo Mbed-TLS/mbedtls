@@ -47,7 +47,7 @@
 
 #include <stdint.h>
 
-#if !defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_AES_DONT_USE_SOFTWARE_CRYPTO)
+#if !defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 #error "MBEDTLS_AES_C defined, but not all prerequisites"
 #endif
 
@@ -72,7 +72,7 @@ extern "C" {
  *
  * \return         non-zero if CPU has support for the feature, 0 otherwise
  */
-#if !defined(MBEDTLS_AES_DONT_USE_SOFTWARE_CRYPTO)
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 int mbedtls_padlock_has_support(int feature);
 #else
 #define /* no-check-names */ mbedtls_padlock_has_support(feature) 1

@@ -33,7 +33,7 @@
 
 #if defined(MBEDTLS_HAVE_X86)
 
-#if !defined(MBEDTLS_AES_DONT_USE_SOFTWARE_CRYPTO)
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 /*
  * PadLock detection routine
  */

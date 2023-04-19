@@ -33,7 +33,7 @@
 #if !defined(MBEDTLS_HAVE_ARM64)
 #if defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM64EC)
 #define MBEDTLS_HAVE_ARM64
-#if !defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_AES_DONT_USE_SOFTWARE_CRYPTO)
+#if !defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 #error "MBEDTLS_AES_C defined, but not all prerequisites"
 #endif
 #endif
@@ -50,7 +50,7 @@ extern "C" {
  *
  * \return         1 if CPU has support for the feature, 0 otherwise
  */
-#if !defined(MBEDTLS_AES_DONT_USE_SOFTWARE_CRYPTO)
+#if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
 int mbedtls_aesce_has_support(void);
 #else
 #define /* no-check-names */ mbedtls_aesce_has_support() 1

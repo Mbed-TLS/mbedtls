@@ -147,7 +147,7 @@ jobs:
         - scripts/config.py unset MBEDTLS_AESNI_C
         - scripts/config.py unset MBEDTLS_PADLOCK_C
         - scripts/config.py set MBEDTLS_AESCE_C
-        - scripts/config.py set MBEDTLS_AES_DONT_USE_SOFTWARE_CRYPTO
+        - scripts/config.py set MBEDTLS_AES_USE_HARDWARE_ONLY
         - make generated_files
         - make
         - programs/test/selftest

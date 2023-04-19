@@ -4008,8 +4008,14 @@
 
 /*
  * Platform independent implementation for crypto algorithms.
- * Disable plain c implementation for AES.
+ * Disable plain C implementation for AES.
+ *
+ * If the plain C implementation is enabled, and an implementation using a
+ * special CPU feature (such as MBEDTLS_AESCE_C) is also enabled, runtime
+ * detection will be used to select between them.
+ *
+ * If only one implementation is present, runtime detection will not be used.
  */
-//#define MBEDTLS_AES_DONT_USE_SOFTWARE_CRYPTO /* Uncomment to disable plain c implementation of AES */
+//#define MBEDTLS_AES_USE_HARDWARE_ONLY
 
 /** \} name SECTION: Module configuration options */

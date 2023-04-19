@@ -159,6 +159,8 @@ void x509_csr_check(char *key_file, char *cert_req_check_file, int md_type,
     const char *san_dns_name = "example.com";
     const char *san_uri_name = "http://pki.example.com/";
 
+    MD_OR_USE_PSA_INIT();
+
     san_uri.node.type = MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER;
     san_uri.node.san.unstructured_name.p = (unsigned char *) san_uri_name;
     san_uri.node.san.unstructured_name.len = strlen(san_uri_name);
@@ -176,8 +178,6 @@ void x509_csr_check(char *key_file, char *cert_req_check_file, int md_type,
     memset(&rnd_info, 0x2a, sizeof(mbedtls_test_rnd_pseudo_info));
 
     mbedtls_x509write_csr_init(&req);
-
-    MD_OR_USE_PSA_INIT();
 
     mbedtls_pk_init(&key);
     TEST_ASSERT(mbedtls_pk_parse_keyfile(&key, key_file, NULL,
@@ -266,11 +266,11 @@ void x509_csr_check_opaque(char *key_file, int md_type, int key_usage,
     const char *subject_name = "C=NL,O=PolarSSL,CN=PolarSSL Server 1";
     mbedtls_test_rnd_pseudo_info rnd_info;
 
+    MD_OR_USE_PSA_INIT();
+
     memset(&rnd_info, 0x2a, sizeof(mbedtls_test_rnd_pseudo_info));
 
     mbedtls_x509write_csr_init(&req);
-
-    MD_OR_USE_PSA_INIT();
 
     md_alg_psa = mbedtls_hash_info_psa_from_md((mbedtls_md_type_t) md_type);
     TEST_ASSERT(md_alg_psa != MBEDTLS_MD_NONE);
@@ -315,7 +315,7 @@ exit:
     mbedtls_x509write_csr_free(&req);
     mbedtls_pk_free(&key);
     psa_destroy_key(key_id);
-    PSA_DONE();
+    MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -351,12 +351,12 @@ void x509_crt_check(char *subject_key_file, char *subject_pwd,
 #endif
     mbedtls_pk_type_t issuer_key_type;
 
+    MD_OR_USE_PSA_INIT();
+
     memset(&rnd_info, 0x2a, sizeof(mbedtls_test_rnd_pseudo_info));
 #if defined(MBEDTLS_TEST_DEPRECATED) && defined(MBEDTLS_BIGNUM_C)
     mbedtls_mpi_init(&serial_mpi);
 #endif
-
-    MD_OR_USE_PSA_INIT();
 
     mbedtls_pk_init(&subject_key);
     mbedtls_pk_init(&issuer_key);
@@ -597,6 +597,7 @@ void x509_set_serial_check()
     mbedtls_x509write_cert ctx;
     uint8_t invalid_serial[MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN + 1];
 
+    USE_PSA_INIT();
     memset(invalid_serial, 0x01, sizeof(invalid_serial));
 
 #if defined(MBEDTLS_TEST_DEPRECATED) && defined(MBEDTLS_BIGNUM_C)
@@ -619,6 +620,7 @@ exit:
 #else
     ;
 #endif
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -631,6 +633,8 @@ void mbedtls_x509_string_to_names(char *name, char *parsed_name, int result
     mbedtls_asn1_named_data *names = NULL;
     mbedtls_x509_name parsed, *parsed_cur, *parsed_prv;
     unsigned char buf[1024], out[1024], *c;
+
+    USE_PSA_INIT();
 
     memset(&parsed, 0, sizeof(parsed));
     memset(out, 0, sizeof(out));
@@ -665,5 +669,6 @@ exit:
         parsed_cur = parsed_cur->next;
         mbedtls_free(parsed_prv);
     }
+    USE_PSA_DONE();
 }
 /* END_CASE */

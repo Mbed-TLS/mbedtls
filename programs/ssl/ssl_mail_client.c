@@ -801,6 +801,7 @@ exit:
     mbedtls_ssl_config_free(&conf);
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);
+    mbedtls_psa_crypto_free();
 
 #if defined(_WIN32)
     mbedtls_printf("  + Press Enter to exit this program.\n");

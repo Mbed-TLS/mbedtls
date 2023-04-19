@@ -134,6 +134,7 @@ usage:
 
 exit:
     mbedtls_x509_crl_free(&crl);
+    mbedtls_psa_crypto_free();
 
     mbedtls_exit(exit_code);
 }

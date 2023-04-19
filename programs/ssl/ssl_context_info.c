@@ -1011,6 +1011,8 @@ int main(int argc, char *argv[])
         printf("Finished. No valid base64 code found\n");
     }
 
+    mbedtls_psa_crypto_free();
+
     return 0;
 }
 

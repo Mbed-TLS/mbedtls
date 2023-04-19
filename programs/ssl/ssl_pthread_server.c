@@ -483,14 +483,12 @@ exit:
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);
     mbedtls_ssl_config_free(&conf);
-
     mbedtls_net_free(&listen_fd);
-
     mbedtls_mutex_free(&debug_mutex);
-
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     mbedtls_memory_buffer_alloc_free();
 #endif
+    mbedtls_psa_crypto_free();
 
     mbedtls_exit(ret);
 }

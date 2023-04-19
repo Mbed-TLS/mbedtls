@@ -270,7 +270,6 @@ int main(void)
 
 exit:
     mbedtls_net_free(&server_fd);
-
     mbedtls_ssl_free(&ssl);
     mbedtls_ssl_config_free(&conf);
     mbedtls_ctr_drbg_free(&ctr_drbg);
@@ -278,6 +277,7 @@ exit:
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt_free(&ca);
 #endif
+    mbedtls_psa_crypto_free();
 
     mbedtls_exit(ret);
 }

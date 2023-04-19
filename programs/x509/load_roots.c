@@ -123,11 +123,6 @@ int main(int argc, char *argv[])
     struct mbedtls_timing_hr_time timer;
     unsigned long ms;
 
-    if (argc <= 1) {
-        mbedtls_printf(USAGE);
-        goto exit;
-    }
-
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_status_t status = psa_crypto_init();
     if (status != PSA_SUCCESS) {
@@ -136,6 +131,11 @@ int main(int argc, char *argv[])
         goto exit;
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+    if (argc <= 1) {
+        mbedtls_printf(USAGE);
+        goto exit;
+    }
 
     opt.filenames = NULL;
     opt.iterations = DFL_ITERATIONS;
@@ -196,6 +196,7 @@ int main(int argc, char *argv[])
     exit_code = MBEDTLS_EXIT_SUCCESS;
 
 exit:
+    mbedtls_psa_crypto_free();
     mbedtls_exit(exit_code);
 }
 #endif /* necessary configuration */

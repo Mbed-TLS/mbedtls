@@ -894,6 +894,7 @@ exit:
     mbedtls_pk_free(&loaded_issuer_key);
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);
+    mbedtls_psa_crypto_free();
 
     mbedtls_exit(exit_code);
 }

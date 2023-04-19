@@ -284,12 +284,12 @@ exit:
 #endif
 
     mbedtls_net_free(&server_fd);
-
     mbedtls_x509_crt_free(&cacert);
     mbedtls_ssl_free(&ssl);
     mbedtls_ssl_config_free(&conf);
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);
+    mbedtls_psa_crypto_free();
 
     mbedtls_exit(exit_code);
 }

@@ -404,6 +404,7 @@ exit:
 #endif
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);
+    mbedtls_psa_crypto_free();
 
     /* Shell can not handle large exit numbers -> 1 for errors */
     if (ret < 0) {

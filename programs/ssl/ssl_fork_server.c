@@ -375,13 +375,13 @@ int main(void)
 exit:
     mbedtls_net_free(&client_fd);
     mbedtls_net_free(&listen_fd);
-
     mbedtls_x509_crt_free(&srvcert);
     mbedtls_pk_free(&pkey);
     mbedtls_ssl_free(&ssl);
     mbedtls_ssl_config_free(&conf);
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);
+    mbedtls_psa_crypto_free();
 
     mbedtls_exit(exit_code);
 }

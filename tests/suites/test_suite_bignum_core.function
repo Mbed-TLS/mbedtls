@@ -331,10 +331,10 @@ void mpi_core_clz(int lz, int tz)
         if ((lz + tz) > 0) {
             // some zero bits
             uint32_t s = (sizeof(mbedtls_mpi_uint) * 8 - lz - tz);
-            x = ((1ULL << s) - 1) << tz;
+            x = ((((mbedtls_mpi_uint) 1) << s) - 1) << tz;
         } else {
             // all bits set
-            x = ~0ULL;
+            x = ~((mbedtls_mpi_uint) 0);
         }
     }
 

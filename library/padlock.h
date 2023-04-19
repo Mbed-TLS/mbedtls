@@ -47,8 +47,8 @@
 
 #include <stdint.h>
 
-#if !defined(MBEDTLS_PADLOCK_C) && !defined(MBEDTLS_AES_DONT_USE_SOFTWARE_CRYPTO)
-#error "MBEDTLS_AESCE_C defined, but not all prerequisites"
+#if !defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_AES_DONT_USE_SOFTWARE_CRYPTO)
+#error "MBEDTLS_AES_C defined, but not all prerequisites"
 #endif
 
 #define MBEDTLS_PADLOCK_RNG 0x000C

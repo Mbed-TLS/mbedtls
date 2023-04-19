@@ -33,8 +33,8 @@
 #if !defined(MBEDTLS_HAVE_ARM64)
 #if defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM64EC)
 #define MBEDTLS_HAVE_ARM64
-#if !defined(MBEDTLS_AESCE_C) && !defined(MBEDTLS_AES_DONT_USE_SOFTWARE_CRYPTO)
-#error "MBEDTLS_AESCE_C defined, but not all prerequisites"
+#if !defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_AES_DONT_USE_SOFTWARE_CRYPTO)
+#error "MBEDTLS_AES_C defined, but not all prerequisites"
 #endif
 #endif
 #endif

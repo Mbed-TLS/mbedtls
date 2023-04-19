@@ -29,15 +29,6 @@
 
 #include "psa/crypto_types.h"
 
-/** Convert an internal p256-m error code to a PSA error code
- *
- * \param ret           An error code thrown by p256-m
- *
- * \return              The corresponding PSA error code
- */
-psa_status_t p256_to_psa_error(int ret);
-
-
 /** Generate SECP256R1 ECC Key Pair.
  *  Interface function which calls the p256-m key generation function and
  *  places it in the key buffer provided by the caller (mbed TLS) in the

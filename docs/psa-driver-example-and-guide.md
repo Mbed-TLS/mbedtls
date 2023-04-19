@@ -47,36 +47,41 @@ The Mbed TLS driver tests for the aforementioned entry points provide examples o
 
 ### Process for Entry Points where auto-generation is not implemented
 
-If the driver is accelerating operations whose entry points are not present in the table, a different process is followed where the developer manually edits the driver dispatch layer. In general, the following steps must be taken **for each single-part operation** or **for each sub-part of a multi-part operation**:
+If the driver is accelerating operations whose entry points are not present in the table, a different process is followed where the developer manually edits the driver dispatch layer. The following steps describe this process. Steps 1, 2, 3, and 7 only need to be done once *per driver*. Steps 4, 5, and 6 must be done *for each single-part operation* or *for each sub-part of a multi-part operation* implemented by the driver.
 
 **1. Choose a driver prefix and a macro name that indicates whether the driver is enabled** \
-A driver prefix is simply a word (often the name of the driver) that all functions/macros associated with the driver should begin with. This is similar to how most functions/macros in Mbed TLS begin with `PSA_XXX/psa_xx` or `MBEDTLS_XXX/mbedtls_xxx`. The macro name can follow the form `DRIVER_PREFIX_ENABLED` or something similar; it will be used to indicate the driver is available to be called. When building with the driver present, define this macro at compile time. For example, when using `make`, this is done using the `-D` flag.
+A driver prefix is simply a word (often the name of the driver) that all functions/macros associated with the driver should begin with. This is similar to how most functions/macros in Mbed TLS begin with `PSA_XXX/psa_xxx` or `MBEDTLS_XXX/mbedtls_xxx`. The macro name can follow the form `DRIVER_PREFIX_ENABLED` or something similar; it will be used to indicate the driver is available to be called. When building with the driver present, define this macro at compile time.
 
-**2. Locate the function in the driver dispatch layer that corresponds to the entry point of the operation being accelerated.** \
-The file `psa_crypto_driver_wrappers.c.jinja` contains the driver wrapper functions. For the entry points that have driver wrapper auto-generation implemented, the functions have been replaced with `jinja` templating logic. While the file has a `.jinja` extension, the driver wrapper functions for the remaining entry points are simple C functions. The names of these functions are of the form `psa_driver_wrapper` followed by the entry point name. So, for example, the function `psa_driver_wrapper_sign_hash()` corresponds to the `sign_hash` entry point.
-
-**3. If a driver entry point function has been provided then ensure it has the same signature as the driver wrapper function.** \
-If one has not been provided then write one. Its name should begin with the driver prefix, followed by transparent/opaque (depending on driver type), and end with the entry point name. It should have the same signature as the driver wrapper function. The purpose of the entry point function is to take arguments in PSA format for the implemented operation and return outputs/status codes in PSA format. \
-*Return Codes:*
-* `PSA_SUCCESS`: Successful Execution
-* `PSA_ERROR_NOT_SUPPORTED`: Input arguments are correct, but the driver does not support the operation. If a transparent driver returns this
-* `PSA_ERROR_XXX`: Any other PSA error code, see API documentation
-
-**4. Include the following in one of the driver header files:**
+**2. Include the following in one of the driver header files:**
 ```
 #if defined(DRIVER_PREFIX_ENABLED)
 #ifndef PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT
 #define PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT
 #endif
+
+// other definitions here
+
+#endif
 ```
 
-**5. Conditionally include header files required by the driver**
+**3. Conditionally include header files required by the driver**
 Include any header files required by the driver in `psa_crypto_driver_wrappers.h`, placing the `#include` statements within an `#if defined` block which checks if the driver is available:
 ```
 #if defined(DRIVER_PREFIX_ENABLED)
 #include ...
 #endif
 ```
+
+
+**4. For each operation being accelerated, locate the function in the driver dispatch layer that corresponds to the entry point of that operation.** \
+The file `psa_crypto_driver_wrappers.c.jinja` contains the driver wrapper functions. For the entry points that have driver wrapper auto-generation implemented, the functions have been replaced with `jinja` templating logic. While the file has a `.jinja` extension, the driver wrapper functions for the remaining entry points are simple C functions. The names of these functions are of the form `psa_driver_wrapper` followed by the entry point name. So, for example, the function `psa_driver_wrapper_sign_hash()` corresponds to the `sign_hash` entry point.
+
+**5. If a driver entry point function has been provided then ensure it has the same signature as the driver wrapper function.** \
+If one has not been provided then write one. Its name should begin with the driver prefix, followed by transparent/opaque (depending on driver type), and end with the entry point name. It should have the same signature as the driver wrapper function. The purpose of the entry point function is to take arguments in PSA format for the implemented operation and return outputs/status codes in PSA format. \
+*Return Codes:*
+* `PSA_SUCCESS`: Successful Execution
+* `PSA_ERROR_NOT_SUPPORTED`: Input arguments are correct, but the driver does not support the operation. If a transparent driver returns this then it allows fallback to another driver or software implementation.
+* `PSA_ERROR_XXX`: Any other PSA error code, see API documentation
 
 **6. Modify the driver wrapper function** \
 Each driver wrapper function contains a `switch` statement which checks the location of the key. If the key is stored in local storage, then operations are performed by a transparent driver. If it is stored elsewhere, then operations are performed by an opaque driver.
@@ -119,12 +124,21 @@ All code related to driver calls within each `case` must be contained between `#
 
 **7. Build Mbed TLS with the driver**
 This guide assumes you are building Mbed TLS from source alongside your project. If building with a driver present, the chosen driver macro (`DRIVER_PREFIX_ENABLED`) must be defined. This can be done in two ways:
-* *At compile time via flags.* This is the preferred option when your project uses Mbed TLS mostly out-of-the-box without significantly modifying the configuration. When building with Make this can be done by passing the macro name to Make with the `-D` flag. When building with CMake this can be done by modifying `CMakeLists.txt`.
+* *At compile time via flags.* This is the preferred option when your project uses Mbed TLS mostly out-of-the-box without significantly modifying the configuration. This can be done by passing the option via `CFLAGS`.
+  * **Make**:
+    ```
+    make CFLAGS="-DDRIVER_PREFIX_ENABLED"
+    ```
+  * **CMake**: CFLAGS must be passed to CMake when it is invoked. Invoke CMake with
+
+    ```
+    CFLAGS="-DDRIVER_PREFIX_ENABLED" cmake path/to/source
+    ```
 * *Providing a user config file.* This is the preferred option when your project requires a custom configuration that is significantly different to the default. Define the macro for the driver, along with any other custom configurations in a separate header file, then use `config.py`, to set `MBEDTLS_USER_CONFIG_FILE`, providing the path to the defined header file. This will include your custom config file after the default. If you wish to completely replace the default config file, set `MBEDTLS_CONFIG_FILE` instead.
 
 ### Example: Manually integrating a software accelerator alongside Mbed TLS
 
-[p256-m](https://github.com/mpg/p256-m) is a minimalistic implementation of ECDH and ECDSA on NIST P-256 curves, specifically optimized for use in constrained 32-bit environments. As such, it serves as a software accelerator. This section demonstrates the integration of `p256-m` as a transparent driver alongside Mbed TLS, serving as a guide for implementation.
+[p256-m](https://github.com/mpg/p256-m) is a minimalistic implementation of ECDH and ECDSA on the NIST P-256 curve, specifically optimized for use in constrained 32-bit environments. As such, it serves as a software accelerator. This section demonstrates the integration of `p256-m` as a transparent driver alongside Mbed TLS, serving as a guide for implementation.
 The code for p256-m can be found in `3rdparty/p256-m/p256m`. In this demonstration, p256-m is built from source alongside Mbed TLS.
 
 The driver prefix for p256-m is `P256`/`p256`. The driver macro is `MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED`. To build with and use p256-m, set the macro using `config.py`, then build as usual using make/cmake. From the root of the `mbedtls/` directory, run:
@@ -134,7 +148,7 @@ The driver prefix for p256-m is `P256`/`p256`. The driver macro is `MBEDTLS_P256
 
 p256-m implements four entry points: `generate_key`, `key_agreement`, `sign_hash`, `verify_hash`. The `sign/verify_hash` entry points are used instead of `sign/verify_message` as messages must be hashed prior to any operation, and p256-m does not implement this. The driver entry point functions can be found in `p256m_driver_entrypoints.[hc]`. These functions act as an interface between Mbed TLS and p256-m; converting between PSA and p256-m argument formats and performing sanity checks. If the driver's status codes differ from PSA's, it is recommended to implement a status code translation function. The function `p256_to_psa_error()` converts error codes returned by p256-m into PSA error codes.
 
-The driver wrapper functions in `psa_crypto_driver_wrappers.c.jinja` for all four entry points have also been modified. The code block below shows the additions made to `psa_driver_wrapper_sign_hash()`. In adherence to the defined process, all code related to the driver call is placed within a check for `MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED`. p256-m only supports non-deterministic ECDSA using keys based on NIST P256; these constraints are enforced through checks (see the `if` statement). Checks that involve accessing key material, (e.g. checking key type or bits) **must** be performed in the driver wrapper. This is because this information is marked private and may not be accessed outside the library. Other checks can be performed here or in the entry point function. The status returned by the driver is propagated up the call hierarchy **unless** the driver does not support the operation (i.e. return `PSA_ERROR_NOT_SUPPORTED`). In that case the next available driver/built-in implementation is called.
+The driver wrapper functions in `psa_crypto_driver_wrappers.c.jinja` for all four entry points have also been modified. The code block below shows the additions made to `psa_driver_wrapper_sign_hash()`. In adherence to the defined process, all code related to the driver call is placed within a check for `MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED`. p256-m only supports non-deterministic ECDSA using keys based on NIST P256; these constraints are enforced through checks (see the `if` statement). Checks that involve accessing key attributes, (e.g. checking key type or bits) **must** be performed in the driver wrapper. This is because this information is marked private and may not be accessed outside the library. Other checks can be performed here or in the entry point function. The status returned by the driver is propagated up the call hierarchy **unless** the driver does not support the operation (i.e. return `PSA_ERROR_NOT_SUPPORTED`). In that case the next available driver/built-in implementation is called.
 
 ```
 #if defined (MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED)

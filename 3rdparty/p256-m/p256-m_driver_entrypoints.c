@@ -27,7 +27,23 @@
 
 #if defined(MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED)
 
-psa_status_t p256_to_psa_error(int ret)
+/* INFORMATION ON PSA KEY EXPORT FORMATS:
+ *
+ * PSA exports SECP256R1 keys in two formats:
+ * 1. Keypair format: 32 byte string which is just the private key (public key
+ *                    can be calculated from the private key)
+ * 2. Public Key format: A leading byte 0x04 (indicating uncompressed format),
+ *                       followed by the 64 byte public key. This results in a
+ *                       total of 65 bytes.
+ *
+ * p256-m's internal format for private keys matches PSA. Its format for public
+ * keys is only 64 bytes; the same as PSA but without the leading byte (0x04).
+ * Hence, when passing public keys from PSA to p256-m, the leading byte is
+ * removed.
+ */
+
+/* Convert between p256-m and PSA error codes */
+static psa_status_t p256_to_psa_error(int ret)
 {
     switch (ret) {
         case P256_SUCCESS:
@@ -104,6 +120,9 @@ psa_status_t p256_transparent_key_agreement(
         return status;
     }
 
+    /* We add 1 to peer_key pointer to omit the leading byte of the public key
+     * representation (0x04). See information about PSA key formats at the top
+     * of the file. */
     status = p256_to_psa_error(
         p256_ecdh_shared_secret(shared_secret, key_buffer, peer_key+1));
     if (status == PSA_SUCCESS) {
@@ -159,6 +178,9 @@ static psa_status_t p256_verify_hash_with_public_key(
         return status;
     }
 
+    /* We add 1 to public_key_buffer pointer to omit the leading byte of the
+     * public key representation (0x04). See information about PSA key formats
+     * at the top of the file. */
     const uint8_t *public_key_buffer = key_buffer + 1;
     status = p256_to_psa_error(
         p256_ecdsa_verify(signature, public_key_buffer, hash, hash_length));
@@ -190,9 +212,10 @@ psa_status_t p256_transparent_verify_hash(
      * requires size_t*, so we use a pointer to a stack variable. */
     size_t *public_key_length_ptr = &public_key_length;
 
-    /*  The contents of key_buffer may either be the 32 byte private key
-     *  (keypair representation), or the 65 byte public key. To ensure the
-     *  latter is obtained, the public key is exported. */
+    /* The contents of key_buffer may either be the 32 byte private key
+     * (keypair format), or 0x04 followed by the 64 byte public key (public
+     * key format). To ensure the key is in the latter format, the public key
+     * is exported. */
     status = psa_driver_wrapper_export_public_key(
         attributes,
         key_buffer,

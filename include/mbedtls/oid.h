@@ -90,6 +90,9 @@
 #define MBEDTLS_OID_OIW_SECSIG                  MBEDTLS_OID_ORG_OIW "\x03"
 #define MBEDTLS_OID_OIW_SECSIG_ALG              MBEDTLS_OID_OIW_SECSIG "\x02"
 #define MBEDTLS_OID_OIW_SECSIG_SHA1             MBEDTLS_OID_OIW_SECSIG_ALG "\x1a"
+#define MBEDTLS_OID_ORG_THAWTE                  "\x65"          /* thawte(101) */
+#define MBEDTLS_OID_THAWTE                      MBEDTLS_OID_ISO_IDENTIFIED_ORG \
+        MBEDTLS_OID_ORG_THAWTE
 #define MBEDTLS_OID_ORG_CERTICOM                "\x81\x04"  /* certicom(132) */
 #define MBEDTLS_OID_CERTICOM                    MBEDTLS_OID_ISO_IDENTIFIED_ORG \
         MBEDTLS_OID_ORG_CERTICOM
@@ -437,6 +440,15 @@
  *   ecdsa-with-SHA2(3) 4 } */
 #define MBEDTLS_OID_ECDSA_SHA512            MBEDTLS_OID_ANSI_X9_62_SIG_SHA2 "\x04"
 
+/*
+ * EC key algorithms from RFC 8410
+ */
+
+#define MBEDTLS_OID_X25519                  MBEDTLS_OID_THAWTE "\x6e" /**< id-X25519    OBJECT IDENTIFIER ::= { 1 3 101 110 } */
+#define MBEDTLS_OID_X448                    MBEDTLS_OID_THAWTE "\x6f" /**< id-X448      OBJECT IDENTIFIER ::= { 1 3 101 111 } */
+#define MBEDTLS_OID_ED25519                 MBEDTLS_OID_THAWTE "\x70" /**< id-Ed25519   OBJECT IDENTIFIER ::= { 1 3 101 112 } */
+#define MBEDTLS_OID_ED448                   MBEDTLS_OID_THAWTE "\x71" /**< id-Ed448     OBJECT IDENTIFIER ::= { 1 3 101 113 } */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -531,6 +543,30 @@ int mbedtls_oid_get_ec_grp(const mbedtls_asn1_buf *oid, mbedtls_ecp_group_id *gr
  */
 int mbedtls_oid_get_oid_by_ec_grp(mbedtls_ecp_group_id grp_id,
                                   const char **oid, size_t *olen);
+
+/**
+ * \brief          Translate AlgorithmIdentifier OID into an EC group identifier,
+ *                 for curves that are directly encoded at this level
+ *
+ * \param oid      OID to use
+ * \param grp_id   place to store group id
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
+ */
+int mbedtls_oid_get_ec_grp_algid(const mbedtls_asn1_buf *oid, mbedtls_ecp_group_id *grp_id);
+
+/**
+ * \brief          Translate EC group identifier into AlgorithmIdentifier OID,
+ *                 for curves that are directly encoded at this level
+ *
+ * \param grp_id   EC group identifier
+ * \param oid      place to store ASN.1 OID string pointer
+ * \param olen     length of the OID
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
+ */
+int mbedtls_oid_get_oid_by_ec_grp_algid(mbedtls_ecp_group_id grp_id,
+                                        const char **oid, size_t *olen);
 #endif /* MBEDTLS_ECP_LIGHT */
 
 /**

@@ -1003,6 +1003,38 @@ ec_bp512_pub.comp.pem: ec_bp512_pub.pem
 	$(OPENSSL) ec -pubin -in $< -out $@ -conv_form compressed
 all_final += ec_bp512_pub.comp.pem
 
+ec_x25519_prv.der:
+	$(OPENSSL) genpkey -algorithm X25519 -out $@ -outform DER
+all_final += ec_x25519_prv.der
+
+ec_x25519_pub.der: ec_x25519_pub.der
+	$(OPENSSL) pkey -in $< -inform DER -out $@ -outform DER
+all_final += ec_x25519_pub.der
+
+ec_x25519_prv.pem: ec_x25519_prv.pem
+	$(OPENSSL) pkey -in $< -inform DER -out $@
+all_final += ec_x25519_prv.pem
+
+ec_x25519_pub.pem: ec_x25519_pub.pem
+	$(OPENSSL) pkey -in $< -inform DER -out $@
+all_final += ec_x25519_pub.pem
+
+ec_x448_prv.der:
+	$(OPENSSL) genpkey -algorithm X448 -out $@ -outform DER
+all_final += ec_x448_prv.der
+
+ec_x448_pub.der: ec_x448_pub.der
+	$(OPENSSL) pkey -in $< -inform DER -out $@ -outform DER
+all_final += ec_x448_pub.der
+
+ec_x448_prv.pem: ec_x448_prv.pem
+	$(OPENSSL) pkey -in $< -inform DER -out $@
+all_final += ec_x448_prv.pem
+
+ec_x448_pub.pem: ec_x448_pub.pem
+	$(OPENSSL) pkey -in $< -inform DER -out $@
+all_final += ec_x448_pub.pem
+
 ################################################################
 #### Convert PEM keys to DER format
 ################################################################

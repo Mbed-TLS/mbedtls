@@ -16,7 +16,6 @@
 /* For psa_can_do_hash() */
 #include "psa_crypto_core.h"
 
-#include "../library/alignment.h"
 #include "test/asn1_helpers.h"
 #include "test/psa_crypto_helpers.h"
 #include "test/psa_exercise_key.h"
@@ -298,12 +297,11 @@ exit:
 uint64_t parse_hex_string(data_t *hex_string)
 {
     uint64_t result = 0;
+    if (hex_string->len > 8) {
+        return 0;
+    }
     for (size_t i = 0; i < hex_string->len; i++) {
-        if (MBEDTLS_IS_BIG_ENDIAN) {
-            result |= ((hex_string->x)[i]) << (i * 8);
-        } else {
-            result |= ((hex_string->x)[i]) << ((hex_string->len - i - 1) * 8);
-        }
+        result |= ((hex_string->x)[i]) << (i * 8);
     }
     return result;
 }

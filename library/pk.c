@@ -858,22 +858,6 @@ mbedtls_pk_type_t mbedtls_pk_get_type(const mbedtls_pk_context *ctx)
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #if defined(MBEDTLS_ECP_LIGHT)
-int mbedtls_pk_get_public_key(mbedtls_pk_context *pk, unsigned char *buf,
-                              size_t buf_size, size_t *key_len)
-{
-    if ((pk == NULL) || (pk->pk_raw_len == 0)) {
-        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
-    }
-    if (buf_size < pk->pk_raw_len) {
-        return MBEDTLS_ERR_PK_BUFFER_TOO_SMALL;
-    }
-
-    memcpy(buf, pk->pk_raw, pk->pk_raw_len);
-    *key_len = pk->pk_raw_len;
-
-    return 0;
-}
-
 int mbedtls_pk_get_ec_public_key_props(mbedtls_pk_context *pk,
                                        psa_ecc_family_t *ec_curve, size_t *bits)
 {
@@ -935,7 +919,9 @@ int mbedtls_pk_update_keypair_from_public_key(mbedtls_pk_context *pk)
     }
     /* RSA does not support raw public keys inside the pk_context structure,
      * so we quit silently in this case */
-    if (pk->pk_info->type == MBEDTLS_PK_RSA) {
+    if ((pk->pk_info->type != MBEDTLS_PK_ECKEY) &&
+        (pk->pk_info->type != MBEDTLS_PK_ECKEY_DH) &&
+        (pk->pk_info->type != MBEDTLS_PK_ECDSA)) {
         return 0;
     }
 

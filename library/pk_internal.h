@@ -35,24 +35,6 @@
 
 #if defined(MBEDTLS_ECP_LIGHT) && defined(MBEDTLS_USE_PSA_CRYPTO)
 /**
- * Return the raw public key content on the provided buffer.
- *
- * \param pk        The PK context that will be used to extract the public key.
- * \param buf       The output buffer into which the key will be copied
- * \param buf_size  The size of the output buffer
- * \param key_len   The effective length of the key copied into the output
- *                  buffer.
- *
- * \return          0, on success;
- *                  MBEDTLS_ERR_PK_BAD_INPUT_DATA if the provided PK context
- *                      is not valid or if there is no public key stored in it;
- *                  MBEDTLS_ERR_PK_BUFFER_TOO_SMALL if the provided output
- *                      buffer is too small to contain the public key.
- */
-int mbedtls_pk_get_public_key(mbedtls_pk_context *pk, unsigned char *buf,
-                              size_t buf_size, size_t *key_len);
-
-/**
  * Return EC parameter used in the given PK context.
  *
  * \param pk        The PK context that from which the EC's key properties will

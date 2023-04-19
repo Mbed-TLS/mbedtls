@@ -726,12 +726,9 @@ static int ecdsa_verify_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
     psa_status_t status;
-    size_t key_len;
-    /* This buffer will initially contain the public key and then the signature
-     * but at different points in time. For all curves except secp224k1, which
-     * is not currently supported in PSA, the public key is one byte longer
-     * (header byte + 2 numbers, while the signature is only 2 numbers),
-     * so use that as the buffer size. */
+    /* For all curves except secp224k1, which is not currently supported in PSA,
+     * the public key is one byte longer (header byte + 2 numbers, while the
+     * signature is only 2 numbers), so use that as the buffer size. */
     unsigned char buf[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
     unsigned char *p;
     psa_algorithm_t psa_sig_md = PSA_ALG_ECDSA_ANY;
@@ -740,7 +737,8 @@ static int ecdsa_verify_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
     size_t signature_part_size;
     ((void) md_alg);
 
-    if (mbedtls_pk_get_ec_public_key_props(pk, &curve, &curve_bits) != 0) {
+    if ((mbedtls_pk_get_ec_public_key_props(pk, &curve, &curve_bits) != 0) ||
+        (pk->pk_raw_len == 0)) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
     signature_part_size = PSA_BITS_TO_BYTES(curve_bits);
@@ -749,13 +747,8 @@ static int ecdsa_verify_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
     psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_VERIFY_HASH);
     psa_set_key_algorithm(&attributes, psa_sig_md);
 
-    ret = mbedtls_pk_get_public_key(pk, buf, sizeof(buf), &key_len);
-    if (ret != 0) {
-        goto cleanup;
-    }
-
     status = psa_import_key(&attributes,
-                            buf, key_len,
+                            pk->pk_raw, pk->pk_raw_len,
                             &key_id);
     if (status != PSA_SUCCESS) {
         ret = PSA_PK_TO_MBEDTLS_ERR(status);

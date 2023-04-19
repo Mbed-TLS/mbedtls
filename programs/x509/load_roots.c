@@ -200,7 +200,9 @@ int main(int argc, char *argv[])
     exit_code = MBEDTLS_EXIT_SUCCESS;
 
 exit:
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_psa_crypto_free();
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     mbedtls_exit(exit_code);
 }
 #endif /* necessary configuration */

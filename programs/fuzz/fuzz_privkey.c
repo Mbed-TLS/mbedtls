@@ -71,9 +71,11 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
             abort();
         }
     }
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
 exit:
-    mbedtls_pk_free(&pk);
     mbedtls_psa_crypto_free();
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+    mbedtls_pk_free(&pk);
 #else
     (void) Data;
     (void) Size;

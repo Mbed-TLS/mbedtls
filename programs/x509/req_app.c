@@ -136,7 +136,9 @@ usage:
 
 exit:
     mbedtls_x509_csr_free(&csr);
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_psa_crypto_free();
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(_WIN32)
     mbedtls_printf("  + Press Enter to exit this program.\n");

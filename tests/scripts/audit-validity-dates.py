@@ -39,6 +39,7 @@ from cryptography import x509 #pylint: disable=import-error
 
 # reuse the function to parse *.data file in tests/suites/
 from generate_test_code import parse_test_data as parse_suite_data
+from generate_test_code import FileWrapper
 
 class DataType(Enum):
     CRT = 1 # Certificate
@@ -260,64 +261,6 @@ class TestDataAuditor(Auditor):
         data_files = [f for f in glob.glob(test_data_glob, recursive=True)
                       if os.path.isfile(f)]
         return data_files
-
-class FileWrapper():
-    """
-    This a stub class of generate_test_code.FileWrapper.
-
-    This class reads the whole file to memory before iterating
-    over the lines.
-    """
-
-    def __init__(self, file_name):
-        """
-        Read the file and initialize the line number to 0.
-
-        :param file_name: File path to open.
-        """
-        with open(file_name, 'rb') as f:
-            self.buf = f.read()
-        self.buf_len = len(self.buf)
-        self._line_no = 0
-        self._line_start = 0
-
-    def __iter__(self):
-        """Make the class iterable."""
-        return self
-
-    def __next__(self):
-        """
-        This method for returning a line of the file per iteration.
-
-        :return: Line read from file.
-        """
-        # If we reach the end of the file.
-        if not self._line_start < self.buf_len:
-            raise StopIteration
-
-        line_end = self.buf.find(b'\n', self._line_start) + 1
-        if line_end > 0:
-            # Find the first LF as the end of the new line.
-            line = self.buf[self._line_start:line_end]
-            self._line_start = line_end
-            self._line_no += 1
-        else:
-            # No LF found. We are at the last line without LF.
-            line = self.buf[self._line_start:]
-            self._line_start = self.buf_len
-            self._line_no += 1
-
-        # Convert byte array to string with correct encoding and
-        # strip any whitespaces added in the decoding process.
-        return line.decode(sys.getdefaultencoding()).rstrip() + '\n'
-
-    def get_line_no(self):
-        """
-        Gives current line number.
-        """
-        return self._line_no
-
-    line_no = property(get_line_no)
 
 class SuiteDataAuditor(Auditor):
     """Class for auditing files in tests/suites/*.data"""

@@ -294,6 +294,18 @@ void mbedtls_mpi_core_shift_r(mbedtls_mpi_uint *X, size_t limbs,
                               size_t count);
 
 /**
+ * \brief          Perform a left-shift on an MPI: X <<= count
+ *
+ * \param X        The MPI to shift. This must point to an initialized MPI.
+ * \param count    The number of bits to shift by.
+ *
+ * \return         \c 0 if successful.
+ * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if a memory allocation failed.
+ * \return         Another negative error code on different kinds of failure.
+ */
+int mbedtls_mpi_shift_l( mbedtls_mpi *X, size_t count );
+
+/**
  * \brief Add two fixed-size large unsigned integers, returning the carry.
  *
  * Calculates `A + B` where `A` and `B` have the same size.

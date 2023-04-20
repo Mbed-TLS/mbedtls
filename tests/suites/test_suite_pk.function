@@ -216,10 +216,9 @@ void pk_psa_utils(int key_is_rsa)
     size_t len;
     mbedtls_pk_debug_item dbg;
 
-    USE_PSA_INIT();
-
     mbedtls_pk_init(&pk);
     mbedtls_pk_init(&pk2);
+    USE_PSA_INIT();
 
     TEST_ASSERT(psa_crypto_init() == PSA_SUCCESS);
 
@@ -314,9 +313,8 @@ void pk_can_do_ext(int opaque_key, int key_type, int key_usage, int key_alg,
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
-    USE_PSA_INIT();
-
     mbedtls_pk_init(&pk);
+    USE_PSA_INIT();
 
     if (opaque_key == 1) {
         psa_set_key_usage_flags(&attributes, key_usage);
@@ -361,9 +359,8 @@ void pk_invalid_param()
     unsigned char buf[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
     size_t buf_size = sizeof(buf);
 
-    USE_PSA_INIT();
-
     mbedtls_pk_init(&ctx);
+    USE_PSA_INIT();
 
     TEST_EQUAL(MBEDTLS_ERR_PK_BAD_INPUT_DATA,
                mbedtls_pk_verify_restartable(&ctx, MBEDTLS_MD_NONE,
@@ -411,8 +408,8 @@ void valid_parameters()
     size_t len;
     void *options = NULL;
 
-    USE_PSA_INIT();
     mbedtls_pk_init(&pk);
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_pk_setup(&pk, NULL) ==
                 MBEDTLS_ERR_PK_BAD_INPUT_DATA);
@@ -497,9 +494,10 @@ void valid_parameters_pkwrite(data_t *key_data)
 {
     mbedtls_pk_context pk;
 
-    USE_PSA_INIT();
     /* For the write tests to be effective, we need a valid key pair. */
     mbedtls_pk_init(&pk);
+    USE_PSA_INIT();
+
     TEST_ASSERT(mbedtls_pk_parse_key(&pk,
                                      key_data->x, key_data->len, NULL, 0,
                                      mbedtls_test_rnd_std_rand, NULL) == 0);
@@ -529,8 +527,8 @@ void pk_utils(int type, int parameter, int bitlen, int len, char *name)
 {
     mbedtls_pk_context pk;
 
-    USE_PSA_INIT();
     mbedtls_pk_init(&pk);
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(type)) == 0);
     TEST_ASSERT(pk_genkey(&pk, parameter) == 0);
@@ -552,11 +550,10 @@ void mbedtls_pk_check_pair(char *pub_file, char *prv_file, int ret)
 {
     mbedtls_pk_context pub, prv, alt;
 
-    USE_PSA_INIT();
-
     mbedtls_pk_init(&pub);
     mbedtls_pk_init(&prv);
     mbedtls_pk_init(&alt);
+    USE_PSA_INIT();
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     /* mbedtls_pk_check_pair() returns either PK or ECP error codes depending
@@ -611,10 +608,8 @@ void pk_rsa_verify_test_vec(data_t *message_str, int digest, int mod,
     mbedtls_ecp_set_max_ops(1);
 #endif
 
-    USE_PSA_INIT();
-
     mbedtls_pk_init(&pk);
-
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA)) == 0);
     rsa = mbedtls_pk_rsa(pk);
@@ -653,8 +648,8 @@ void pk_rsa_verify_ext_test_vec(data_t *message_str, int digest,
     void *options;
     int ret;
 
-    MD_OR_USE_PSA_INIT();
     mbedtls_pk_init(&pk);
+    MD_OR_USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA)) == 0);
     rsa = mbedtls_pk_rsa(pk);
@@ -708,8 +703,8 @@ void pk_ec_test_vec(int type, int id, data_t *key, data_t *hash,
     mbedtls_pk_context pk;
     mbedtls_ecp_keypair *eckey;
 
-    USE_PSA_INIT();
     mbedtls_pk_init(&pk);
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(type)) == 0);
 
@@ -742,11 +737,11 @@ void pk_sign_verify_restart(int pk_type, int grp_id, char *d_str,
     unsigned char sig[MBEDTLS_ECDSA_MAX_LEN];
     size_t slen;
 
-    USE_PSA_INIT();
-
     mbedtls_pk_restart_init(&rs_ctx);
     mbedtls_pk_init(&prv);
     mbedtls_pk_init(&pub);
+    USE_PSA_INIT();
+
     memset(sig, 0, sizeof(sig));
 
     TEST_ASSERT(mbedtls_pk_setup(&prv, mbedtls_pk_info_from_type(pk_type)) == 0);
@@ -837,8 +832,8 @@ void pk_sign_verify(int type, int parameter, int sign_ret, int verify_ret)
     mbedtls_ecp_set_max_ops(42000);
 #endif
 
-    MD_OR_USE_PSA_INIT();
     mbedtls_pk_init(&pk);
+    MD_OR_USE_PSA_INIT();
 
     memset(hash, 0x2a, sizeof(hash));
     memset(sig, 0, sizeof(sig));
@@ -919,11 +914,10 @@ void pk_rsa_encrypt_decrypt_test(data_t *message, int mod,
     mbedtls_pk_context pk;
     size_t olen, rlen;
 
-    USE_PSA_INIT();
-
     mbedtls_pk_init(&pk);
     mbedtls_mpi_init(&N); mbedtls_mpi_init(&P);
     mbedtls_mpi_init(&Q); mbedtls_mpi_init(&E);
+    USE_PSA_INIT();
 
     memset(&rnd_info,  0, sizeof(mbedtls_test_rnd_pseudo_info));
     memset(output,     0, sizeof(output));
@@ -995,14 +989,12 @@ void pk_rsa_decrypt_test_vec(data_t *cipher, int mod,
     mbedtls_pk_context pk;
     size_t olen;
 
-    USE_PSA_INIT();
-
     mbedtls_pk_init(&pk);
     mbedtls_mpi_init(&N); mbedtls_mpi_init(&P);
     mbedtls_mpi_init(&Q); mbedtls_mpi_init(&E);
+    USE_PSA_INIT();
 
     memset(&rnd_info,  0, sizeof(mbedtls_test_rnd_pseudo_info));
-
 
     /* init pk-rsa context */
     TEST_ASSERT(mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA)) == 0);
@@ -1052,11 +1044,10 @@ void pk_wrap_rsa_decrypt_test_vec(data_t *cipher, int mod,
     mbedtls_svc_key_id_t key_id;
     size_t olen;
 
-    USE_PSA_INIT();
-
     mbedtls_pk_init(&pk);
     mbedtls_mpi_init(&N); mbedtls_mpi_init(&P);
     mbedtls_mpi_init(&Q); mbedtls_mpi_init(&E);
+    USE_PSA_INIT();
 
     memset(&rnd_info,  0, sizeof(mbedtls_test_rnd_pseudo_info));
 
@@ -1113,8 +1104,8 @@ void pk_ec_nocrypt(int type)
     size_t olen = 0;
     int ret = MBEDTLS_ERR_PK_TYPE_MISMATCH;
 
-    USE_PSA_INIT();
     mbedtls_pk_init(&pk);
+    USE_PSA_INIT();
 
     memset(&rnd_info,  0, sizeof(mbedtls_test_rnd_pseudo_info));
     memset(output,     0, sizeof(output));
@@ -1143,11 +1134,11 @@ void pk_rsa_overflow()
     size_t hash_len = SIZE_MAX, sig_len = SIZE_MAX;
     unsigned char hash[50], sig[100];
 
+    mbedtls_pk_init(&pk);
     USE_PSA_INIT();
+
     memset(hash, 0x2a, sizeof(hash));
     memset(sig, 0, sizeof(sig));
-
-    mbedtls_pk_init(&pk);
 
     TEST_ASSERT(mbedtls_pk_setup(&pk,
                                  mbedtls_pk_info_from_type(MBEDTLS_PK_RSA)) == 0);
@@ -1188,10 +1179,10 @@ void pk_rsa_alt()
     size_t sig_len, ciph_len, test_len;
     int ret = MBEDTLS_ERR_PK_TYPE_MISMATCH;
 
-    USE_PSA_INIT();
-
     mbedtls_rsa_init(&raw);
-    mbedtls_pk_init(&rsa); mbedtls_pk_init(&alt);
+    mbedtls_pk_init(&rsa);
+    mbedtls_pk_init(&alt);
+    USE_PSA_INIT();
 
     memset(hash, 0x2a, sizeof(hash));
     memset(sig, 0, sizeof(sig));
@@ -1285,12 +1276,12 @@ void pk_psa_sign(int parameter_arg,
      * - parse it to a PK context and verify the signature this way
      */
 
+    mbedtls_pk_init(&pk);
     USE_PSA_INIT();
 
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_GENPRIME)
     if (PSA_KEY_TYPE_IS_RSA(psa_type_arg)) {
         /* Create legacy RSA public/private key in PK context. */
-        mbedtls_pk_init(&pk);
         TEST_ASSERT(mbedtls_pk_setup(&pk,
                                      mbedtls_pk_info_from_type(MBEDTLS_PK_RSA)) == 0);
         TEST_ASSERT(mbedtls_rsa_gen_key(mbedtls_pk_rsa(pk),
@@ -1304,7 +1295,6 @@ void pk_psa_sign(int parameter_arg,
         mbedtls_ecp_group_id grpid = parameter_arg;
 
         /* Create legacy EC public/private key in PK context. */
-        mbedtls_pk_init(&pk);
         TEST_ASSERT(mbedtls_pk_setup(&pk,
                                      mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY)) == 0);
         TEST_ASSERT(pk_genkey(&pk, grpid) == 0);
@@ -1424,8 +1414,8 @@ void pk_psa_sign_ext(int pk_type, int parameter, int key_pk_type, int md_alg)
     memset(hash, 0x2a, sizeof(hash));
     memset(sig, 0, sizeof(sig));
 
-    PSA_INIT();
     mbedtls_pk_init(&pk);
+    PSA_INIT();
 
     TEST_ASSERT(mbedtls_pk_setup(&pk,
                                  mbedtls_pk_info_from_type(pk_type)) == 0);
@@ -1468,8 +1458,8 @@ void pk_psa_wrap_sign_ext(int pk_type, int parameter, int key_pk_type, int md_al
     mbedtls_pk_rsassa_pss_options rsassa_pss_options;
     int ret;
 
-    PSA_INIT();
     mbedtls_pk_init(&pk);
+    PSA_INIT();
 
     /* Create legacy RSA public/private key in PK context. */
     mbedtls_pk_init(&pk);

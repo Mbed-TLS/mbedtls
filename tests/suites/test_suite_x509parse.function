@@ -837,7 +837,7 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C */
 void mbedtls_x509_get_name(char *rdn_sequence, int exp_ret)
 {
-    unsigned char *name;
+    unsigned char *name = NULL;
     unsigned char *p;
     size_t name_len;
     mbedtls_x509_name head;

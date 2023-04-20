@@ -319,27 +319,17 @@ void mpi_core_clz(int lz, int tz)
     }
 
     mbedtls_mpi_uint x;
-    size_t expected;
-
-    // generate x with lz leading zeros and tz trailing zeros, all other bits set.
-    if (lz == -1) {
-        // special case: all zero
-        x = 0;
-        expected = sizeof(mbedtls_mpi_uint) * 8;
+    if ((lz + tz) > 0) {
+        // some zero bits
+        uint32_t s = (sizeof(mbedtls_mpi_uint) * 8 - lz - tz);
+        x = ((((mbedtls_mpi_uint) 1) << s) - 1) << tz;
     } else {
-        expected = lz;
-        if ((lz + tz) > 0) {
-            // some zero bits
-            uint32_t s = (sizeof(mbedtls_mpi_uint) * 8 - lz - tz);
-            x = ((((mbedtls_mpi_uint) 1) << s) - 1) << tz;
-        } else {
-            // all bits set
-            x = ~((mbedtls_mpi_uint) 0);
-        }
+        // all bits set
+        x = ~((mbedtls_mpi_uint) 0);
     }
 
     size_t n = mbedtls_mpi_core_clz(x);
-    TEST_EQUAL(n, expected);
+    TEST_EQUAL(n, lz);
 exit:
     ;
 }

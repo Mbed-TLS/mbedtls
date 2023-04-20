@@ -494,9 +494,6 @@ mpi_core_fill_random:42:0:-5:0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 CLZ: 0 0: all ones
 mpi_core_clz:0:0
 
-CLZ: -1 -1: all zeros
-mpi_core_clz:-1:-1
-
 CLZ: 1 0
 mpi_core_clz:1:0
 

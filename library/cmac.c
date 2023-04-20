@@ -760,6 +760,13 @@ static int cmac_test_subkeys(int verbose,
             mbedtls_printf("  %s CMAC subkey #%d: ", testname, i + 1);
         }
 
+#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
+        if (keybits > 128) {
+            mbedtls_printf("skipped\n");
+            continue;
+        }
+#endif /* MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
+
         mbedtls_cipher_init(&ctx);
 
         if ((ret = mbedtls_cipher_setup(&ctx, cipher_info)) != 0) {
@@ -854,6 +861,13 @@ static int cmac_test_wth_cipher(int verbose,
         if (verbose != 0) {
             mbedtls_printf("  %s CMAC #%d: ", testname, i + 1);
         }
+
+#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
+        if (keybits > 128) {
+            mbedtls_printf("skipped\n");
+            continue;
+        }
+#endif /* MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
 
         if ((ret = mbedtls_cipher_cmac(cipher_info, key, keybits, messages,
                                        message_lengths[i], output)) != 0) {

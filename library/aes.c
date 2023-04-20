@@ -1815,6 +1815,13 @@ int mbedtls_aes_self_test(int verbose)
                            (mode == MBEDTLS_AES_DECRYPT) ? "dec" : "enc");
         }
 
+#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
+        if (keybits > 128) {
+            mbedtls_printf("skipped\n");
+            continue;
+        }
+#endif /* MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
+
         memset(buf, 0, 16);
 
         if (mode == MBEDTLS_AES_DECRYPT) {
@@ -1871,6 +1878,13 @@ int mbedtls_aes_self_test(int verbose)
             mbedtls_printf("  AES-CBC-%3u (%s): ", keybits,
                            (mode == MBEDTLS_AES_DECRYPT) ? "dec" : "enc");
         }
+
+#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
+        if (keybits > 128) {
+            mbedtls_printf("skipped\n");
+            continue;
+        }
+#endif /* MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
 
         memset(iv, 0, 16);
         memset(prv, 0, 16);
@@ -1941,6 +1955,13 @@ int mbedtls_aes_self_test(int verbose)
                            (mode == MBEDTLS_AES_DECRYPT) ? "dec" : "enc");
         }
 
+#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
+        if (keybits > 128) {
+            mbedtls_printf("skipped\n");
+            continue;
+        }
+#endif /* MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
+
         memcpy(iv,  aes_test_cfb128_iv, 16);
         memcpy(key, aes_test_cfb128_key[u], keybits / 8);
 
@@ -1999,6 +2020,13 @@ int mbedtls_aes_self_test(int verbose)
             mbedtls_printf("  AES-OFB-%3u (%s): ", keybits,
                            (mode == MBEDTLS_AES_DECRYPT) ? "dec" : "enc");
         }
+
+#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
+        if (keybits > 128) {
+            mbedtls_printf("skipped\n");
+            continue;
+        }
+#endif /* MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
 
         memcpy(iv,  aes_test_ofb_iv, 16);
         memcpy(key, aes_test_ofb_key[u], keybits / 8);

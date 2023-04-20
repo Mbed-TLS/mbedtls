@@ -33,35 +33,25 @@
 #include "bn_mul.h"
 #include "constant_time_internal.h"
 
-size_t mbedtls_mpi_core_clz(mbedtls_mpi_uint a)
+inline size_t mbedtls_mpi_core_clz(mbedtls_mpi_uint a)
 {
+    /* Note: the result is undefined for a == 0
+     * (because this is the behaviour of __builtin_clz).
+     */
 #if defined(__has_builtin)
 #if __has_builtin(__builtin_clz)
     if (sizeof(mbedtls_mpi_uint) == sizeof(unsigned int)) {
-        // __builtin_clz is undefined if a == 0
-        if (a == 0) {
-            return sizeof(mbedtls_mpi_uint) * 8;
-        } else {
-            return (size_t) __builtin_clz(a);
-        }
+        return (size_t) __builtin_clz(a);
     }
 #endif
 #if __has_builtin(__builtin_clzl)
     if (sizeof(mbedtls_mpi_uint) == sizeof(unsigned long)) {
-        if (a == 0) {
-            return sizeof(mbedtls_mpi_uint) * 8;
-        } else {
-            return (size_t) __builtin_clzl(a);
-        }
+        return (size_t) __builtin_clzl(a);
     }
 #endif
 #if __has_builtin(__builtin_clzll)
     if (sizeof(mbedtls_mpi_uint) == sizeof(unsigned long long)) {
-        if (a == 0) {
-            return sizeof(mbedtls_mpi_uint) * 8;
-        } else {
-            return (size_t) __builtin_clzll(a);
-        }
+        return (size_t) __builtin_clzll(a);
     }
 #endif
 #endif
@@ -81,21 +71,19 @@ size_t mbedtls_mpi_core_clz(mbedtls_mpi_uint a)
 
 size_t mbedtls_mpi_core_bitlen(const mbedtls_mpi_uint *A, size_t A_limbs)
 {
-    size_t i, j;
+    int i;
+    size_t j;
 
-    if (A_limbs == 0) {
-        return 0;
-    }
-
-    for (i = A_limbs - 1; i > 0; i--) {
-        if (A[i] != 0) {
-            break;
+    if (A_limbs != 0) {
+        for (i = (int) A_limbs - 1; i >= 0; i--) {
+            if (A[i] != 0) {
+                j = biL - mbedtls_mpi_core_clz(A[i]);
+                return (i * biL) + j;
+            }
         }
     }
 
-    j = biL - mbedtls_mpi_core_clz(A[i]);
-
-    return (i * biL) + j;
+    return 0;
 }
 
 /* Convert a big-endian byte array aligned to the size of mbedtls_mpi_uint

@@ -278,7 +278,7 @@ int mbedtls_mpi_core_write_be(const mbedtls_mpi_uint *A,
                               unsigned char *output,
                               size_t output_length);
 
-/** \brief              Shift an MPI right in place by a number of bits.
+/** \brief              Shift an MPI in-place right by a number of bits.
  *
  *                      Shifting by more bits than there are bit positions
  *                      in \p X is valid and results in setting \p X to 0.
@@ -294,16 +294,19 @@ void mbedtls_mpi_core_shift_r(mbedtls_mpi_uint *X, size_t limbs,
                               size_t count);
 
 /**
- * \brief          Perform a left-shift on an MPI: X <<= count
+ * \brief               Shift an MPI in-place left by a number of bits.
  *
- * \param X        The MPI to shift. This must point to an initialized MPI.
- * \param count    The number of bits to shift by.
+ *                      Shifting by more bits than there are bit positions
+ *                      in \p X is valid and results in setting \p X to 0.
  *
- * \return         \c 0 if successful.
- * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if a memory allocation failed.
- * \return         Another negative error code on different kinds of failure.
+ *                      This function's execution time depends on the value
+ *                      of \p count (and of course \p limbs).
+ * \param[in,out] X     The number to shift.
+ * \param limbs         The number of limbs of \p X. This must be at least 1.
+ * \param count         The number of bits to shift by.
  */
-int mbedtls_mpi_shift_l( mbedtls_mpi *X, size_t count );
+void mbedtls_mpi_core_shift_l(mbedtls_mpi_uint *X, size_t limbs,
+                              size_t count);
 
 /**
  * \brief Add two fixed-size large unsigned integers, returning the carry.

@@ -353,52 +353,44 @@ void mbedtls_mpi_core_shift_r(mbedtls_mpi_uint *X, size_t limbs,
     }
 }
 
-int mbedtls_mpi_shift_l( mbedtls_mpi *X, size_t count )
+void mbedtls_mpi_core_shift_l(mbedtls_mpi_uint *X, size_t limbs,
+                              size_t count)
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t i, v0, t1;
+    size_t i, v0, v1;
     mbedtls_mpi_uint r0 = 0, r1;
-    MPI_VALIDATE_RET( X != NULL );
 
-    v0 = count / (biL    );
-    t1 = count & (biL - 1);
+    v0 = count / (biL);
+    v1 = count & (biL - 1);
 
-    i = mbedtls_mpi_bitlen( X ) + count;
-
-    if( X->n * biL < i )
-        MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, BITS_TO_LIMBS( i ) ) );
-
-    ret = 0;
+    if (v0 > limbs || (v0 == limbs && v1 > 0)) {
+        memset(X, 0, limbs * ciL);
+        return;
+    }
 
     /*
      * shift by count / limb_size
      */
-    if( v0 > 0 )
-    {
-        for( i = X->n; i > v0; i-- )
-            X->p[i - 1] = X->p[i - v0 - 1];
+    if (v0 > 0) {
+        for (i = limbs; i > v0; i--) {
+            X[i - 1] = X[i - v0 - 1];
+        }
 
-        for( ; i > 0; i-- )
-            X->p[i - 1] = 0;
+        for (; i > 0; i--) {
+            X[i - 1] = 0;
+        }
     }
 
     /*
      * shift by count % limb_size
      */
-    if( t1 > 0 )
-    {
-        for( i = v0; i < X->n; i++ )
-        {
-            r1 = X->p[i] >> (biL - t1);
-            X->p[i] <<= t1;
-            X->p[i] |= r0;
+    if (v1 > 0) {
+        for (i = v0; i < limbs; i++) {
+            r1 = X[i] >> (biL - v1);
+            X[i] <<= v1;
+            X[i] |= r0;
             r0 = r1;
         }
     }
-
-cleanup:
-
-    return( ret );
 }
 
 mbedtls_mpi_uint mbedtls_mpi_core_add(mbedtls_mpi_uint *X,

@@ -1931,7 +1931,8 @@
  * break backwards compatibility.
  *
  * \warning If you enable this option, you need to call `psa_crypto_init()`
- * before calling any function from the SSL/TLS, X.509 or PK modules.
+ * before calling any function from the SSL/TLS, X.509 or PK modules, except
+ * for the various mbedtls_xxx_init() functions which can be called at any time.
  *
  * \note An important and desirable effect of this option is that it allows
  * PK, X.509 and TLS to take advantage of PSA drivers. For example, enabling

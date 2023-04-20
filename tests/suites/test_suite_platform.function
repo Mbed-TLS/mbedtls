@@ -76,7 +76,8 @@ void time_delay_milliseconds(int delay_ms)
 /* BEGIN_CASE depends_on:MBEDTLS_HAVE_TIME */
 
 /*
- * WARNING: DONOT ENABLE THIS TEST. RESERVE IT HERE TO KEEP THE REASON.
+ * WARNING: DO NOT ENABLE THIS TEST. We keep the code here to document the
+ *          reason.
  *
  *          The test often failed on the CI. See #1517. CI failures cannot be
  *          completely avoided due to out-of-sync clock sources.
@@ -98,7 +99,7 @@ void time_delay_seconds(int delay_secs)
      * CLOCK_REALTIME should not affect `nanosleep()`.
      *
      * If discontinuous changes occur during `nanosleep()`, we will get
-     * `elapsed_secs < delay_secs` for backward and `elapsed_secs > delay_secs`
+     * `elapsed_secs < delay_secs` for backward or `elapsed_secs > delay_secs`
      * for forward.
      *
      * The following tolerance windows cannot be guaranteed.

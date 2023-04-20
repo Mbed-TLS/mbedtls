@@ -443,7 +443,7 @@ int mbedtls_pk_verify_restartable(mbedtls_pk_context *ctx,
             return ret;
         }
 
-        ret = ctx->pk_info->verify_rs_func(ctx->pk_ctx,
+        ret = ctx->pk_info->verify_rs_func(ctx,
                                            md_alg, hash, hash_len, sig, sig_len, rs_ctx->rs_ctx);
 
         if (ret != MBEDTLS_ERR_ECP_IN_PROGRESS) {
@@ -460,7 +460,7 @@ int mbedtls_pk_verify_restartable(mbedtls_pk_context *ctx,
         return MBEDTLS_ERR_PK_TYPE_MISMATCH;
     }
 
-    return ctx->pk_info->verify_func(ctx->pk_ctx, md_alg, hash, hash_len,
+    return ctx->pk_info->verify_func(ctx, md_alg, hash, hash_len,
                                      sig, sig_len);
 }
 
@@ -626,7 +626,7 @@ int mbedtls_pk_sign_restartable(mbedtls_pk_context *ctx,
             return ret;
         }
 
-        ret = ctx->pk_info->sign_rs_func(ctx->pk_ctx, md_alg,
+        ret = ctx->pk_info->sign_rs_func(ctx, md_alg,
                                          hash, hash_len,
                                          sig, sig_size, sig_len,
                                          f_rng, p_rng, rs_ctx->rs_ctx);
@@ -645,7 +645,7 @@ int mbedtls_pk_sign_restartable(mbedtls_pk_context *ctx,
         return MBEDTLS_ERR_PK_TYPE_MISMATCH;
     }
 
-    return ctx->pk_info->sign_func(ctx->pk_ctx, md_alg,
+    return ctx->pk_info->sign_func(ctx, md_alg,
                                    hash, hash_len,
                                    sig, sig_size, sig_len,
                                    f_rng, p_rng);
@@ -736,7 +736,7 @@ int mbedtls_pk_decrypt(mbedtls_pk_context *ctx,
         return MBEDTLS_ERR_PK_TYPE_MISMATCH;
     }
 
-    return ctx->pk_info->decrypt_func(ctx->pk_ctx, input, ilen,
+    return ctx->pk_info->decrypt_func(ctx, input, ilen,
                                       output, olen, osize, f_rng, p_rng);
 }
 
@@ -756,7 +756,7 @@ int mbedtls_pk_encrypt(mbedtls_pk_context *ctx,
         return MBEDTLS_ERR_PK_TYPE_MISMATCH;
     }
 
-    return ctx->pk_info->encrypt_func(ctx->pk_ctx, input, ilen,
+    return ctx->pk_info->encrypt_func(ctx, input, ilen,
                                       output, olen, osize, f_rng, p_rng);
 }
 
@@ -791,7 +791,9 @@ int mbedtls_pk_check_pair(const mbedtls_pk_context *pub,
         }
     }
 
-    return prv->pk_info->check_pair_func(pub->pk_ctx, prv->pk_ctx, f_rng, p_rng);
+    return prv->pk_info->check_pair_func((mbedtls_pk_context *) pub,
+                                         (mbedtls_pk_context *) prv,
+                                         f_rng, p_rng);
 }
 
 /*
@@ -805,7 +807,7 @@ size_t mbedtls_pk_get_bitlen(const mbedtls_pk_context *ctx)
         return 0;
     }
 
-    return ctx->pk_info->get_bitlen(ctx->pk_ctx);
+    return ctx->pk_info->get_bitlen((mbedtls_pk_context *) ctx);
 }
 
 /*
@@ -821,7 +823,7 @@ int mbedtls_pk_debug(const mbedtls_pk_context *ctx, mbedtls_pk_debug_item *items
         return MBEDTLS_ERR_PK_TYPE_MISMATCH;
     }
 
-    ctx->pk_info->debug_func(ctx->pk_ctx, items);
+    ctx->pk_info->debug_func((mbedtls_pk_context *) ctx, items);
     return 0;
 }
 

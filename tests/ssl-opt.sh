@@ -950,7 +950,11 @@ provide_input() {
     fi
 
     while true; do
-        echo "HTTP/1.0 200 OK"
+        if ! echo "HTTP/1.0 200 OK" 2>/dev/null
+        then
+            return
+        fi
+
         sleep 1
     done
 }

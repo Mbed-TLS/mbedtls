@@ -49,6 +49,7 @@
 #include "mbedtls/psa_util.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 #include "hash_info.h"
+#include "x509_invasive.h"
 
 #include "mbedtls/platform.h"
 
@@ -58,6 +59,10 @@
 
 #if defined(MBEDTLS_HAVE_TIME)
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
+#define WIN32_LEAN_AND_MEAN
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0600
+#endif
 #include <windows.h>
 #else
 #include <time.h>
@@ -2524,6 +2529,194 @@ find_parent:
     }
 }
 
+#ifdef _WIN32
+#ifdef _MSC_VER
+#pragma comment(lib, "ws2_32.lib")
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#elif (defined(__MINGW32__) || defined(__MINGW64__)) && _WIN32_WINNT >= 0x0600
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#endif
+#elif defined(__sun)
+/* Solaris requires -lsocket -lnsl for inet_pton() */
+#elif defined(__has_include)
+#if __has_include(<sys/socket.h>)
+#include <sys/socket.h>
+#endif
+#if __has_include(<arpa/inet.h>)
+#include <arpa/inet.h>
+#endif
+#endif
+
+/* Use whether or not AF_INET6 is defined to indicate whether or not to use
+ * the platform inet_pton() or a local implementation (below).  The local
+ * implementation may be used even in cases where the platform provides
+ * inet_pton(), e.g. when there are different includes required and/or the
+ * platform implementation requires dependencies on additional libraries.
+ * Specifically, Windows requires custom includes and additional link
+ * dependencies, and Solaris requires additional link dependencies.
+ * Also, as a coarse heuristic, use the local implementation if the compiler
+ * does not support __has_include(), or if the definition of AF_INET6 is not
+ * provided by headers included (or not) via __has_include() above.
+ * MBEDTLS_TEST_SW_INET_PTON is a bypass define to force testing of this code //no-check-names
+ * despite having a platform that has inet_pton. */
+#if !defined(AF_INET6) || defined(MBEDTLS_TEST_SW_INET_PTON) //no-check-names
+/* Definition located further below to possibly reduce compiler inlining */
+static int x509_inet_pton_ipv4(const char *src, void *dst);
+
+#define li_cton(c, n) \
+    (((n) = (c) - '0') <= 9 || (((n) = ((c)&0xdf) - 'A') <= 5 ? ((n) += 10) : 0))
+
+static int x509_inet_pton_ipv6(const char *src, void *dst)
+{
+    const unsigned char *p = (const unsigned char *) src;
+    int nonzero_groups = 0, num_digits, zero_group_start = -1;
+    uint16_t addr[8];
+    do {
+        /* note: allows excess leading 0's, e.g. 1:0002:3:... */
+        uint16_t group = num_digits = 0;
+        for (uint8_t digit; num_digits < 4; num_digits++) {
+            if (li_cton(*p, digit) == 0) {
+                break;
+            }
+            group = (group << 4) | digit;
+            p++;
+        }
+        if (num_digits != 0) {
+            addr[nonzero_groups++] = MBEDTLS_IS_BIG_ENDIAN ? group :
+                                     (group << 8) | (group >> 8);
+            if (*p == '\0') {
+                break;
+            } else if (*p == '.') {
+                /* Don't accept IPv4 too early or late */
+                if ((nonzero_groups == 0 && zero_group_start == -1) ||
+                    nonzero_groups >= 7) {
+                    break;
+                }
+
+                /* Walk back to prior ':', then parse as IPv4-mapped */
+                int steps = 4;
+                do {
+                    p--;
+                    steps--;
+                } while (*p != ':' && steps > 0);
+
+                if (*p != ':') {
+                    break;
+                }
+                p++;
+                nonzero_groups--;
+                if (x509_inet_pton_ipv4((const char *) p,
+                                        addr + nonzero_groups) != 0) {
+                    break;
+                }
+
+                nonzero_groups += 2;
+                p = (const unsigned char *) "";
+                break;
+            } else if (*p != ':') {
+                return -1;
+            }
+        } else {
+            /* Don't accept a second zero group or an invalid delimiter */
+            if (zero_group_start != -1 || *p != ':') {
+                return -1;
+            }
+            zero_group_start = nonzero_groups;
+
+            /* Accept a zero group at start, but it has to be a double colon */
+            if (zero_group_start == 0 && *++p != ':') {
+                return -1;
+            }
+
+            if (p[1] == '\0') {
+                ++p;
+                break;
+            }
+        }
+        ++p;
+    } while (nonzero_groups < 8);
+
+    if (*p != '\0') {
+        return -1;
+    }
+
+    if (zero_group_start != -1) {
+        if (nonzero_groups > 6) {
+            return -1;
+        }
+        int zero_groups = 8 - nonzero_groups;
+        int groups_after_zero = nonzero_groups - zero_group_start;
+
+        /* Move the non-zero part to after the zeroes */
+        if (groups_after_zero) {
+            memmove(addr + zero_group_start + zero_groups,
+                    addr + zero_group_start,
+                    groups_after_zero * sizeof(*addr));
+        }
+        memset(addr + zero_group_start, 0, zero_groups * sizeof(*addr));
+    } else {
+        if (nonzero_groups != 8) {
+            return -1;
+        }
+    }
+    memcpy(dst, addr, sizeof(addr));
+    return 0;
+}
+
+static int x509_inet_pton_ipv4(const char *src, void *dst)
+{
+    /* note: allows leading 0's, e.g. 000.000.000.000 */
+    const unsigned char *p = (const unsigned char *) src;
+    uint8_t *res = (uint8_t *) dst;
+    uint8_t digit, num_digits = 0;
+    uint8_t num_octets = 0;
+    uint16_t octet;
+
+    do {
+        octet = num_digits = 0;
+        do {
+            digit = *p - '0';
+            if (digit > 9) {
+                break;
+            }
+            octet = octet * 10 + digit;
+            num_digits++;
+            p++;
+        } while (num_digits < 3);
+
+        if (octet >= 256 || num_digits > 3 || num_digits == 0) {
+            break;
+        }
+        *res++ = (uint8_t) octet;
+        num_octets++;
+    } while (num_octets < 4 && *p++ == '.');
+    return num_octets == 4 && *p == '\0' ? 0 : -1;
+}
+
+#else
+
+static int x509_inet_pton_ipv6(const char *src, void *dst)
+{
+    return inet_pton(AF_INET6, src, dst) == 1 ? 0 : -1;
+}
+
+static int x509_inet_pton_ipv4(const char *src, void *dst)
+{
+    return inet_pton(AF_INET, src, dst) == 1 ? 0 : -1;
+}
+
+#endif /* !AF_INET6 || MBEDTLS_TEST_SW_INET_PTON */ //no-check-names
+
+MBEDTLS_STATIC_TESTABLE
+size_t mbedtls_x509_crt_parse_cn_inet_pton(const char *cn, void *dst)
+{
+    return strchr(cn, ':') == NULL
+            ? x509_inet_pton_ipv4(cn, dst) == 0 ? 4 : 0
+            : x509_inet_pton_ipv6(cn, dst) == 0 ? 16 : 0;
+}
+
 /*
  * Check for CN match
  */
@@ -2544,24 +2737,51 @@ static int x509_crt_check_cn(const mbedtls_x509_buf *name,
     return -1;
 }
 
+static int x509_crt_check_san_ip(const mbedtls_x509_sequence *san,
+                                 const char *cn, size_t cn_len)
+{
+    uint32_t ip[4];
+    cn_len = mbedtls_x509_crt_parse_cn_inet_pton(cn, ip);
+    if (cn_len == 0) {
+        return -1;
+    }
+
+    for (const mbedtls_x509_sequence *cur = san; cur != NULL; cur = cur->next) {
+        const unsigned char san_type = (unsigned char) cur->buf.tag &
+                                       MBEDTLS_ASN1_TAG_VALUE_MASK;
+        if (san_type == MBEDTLS_X509_SAN_IP_ADDRESS &&
+            cur->buf.len == cn_len && memcmp(cur->buf.p, ip, cn_len) == 0) {
+            return 0;
+        }
+    }
+
+    return -1;
+}
+
 /*
  * Check for SAN match, see RFC 5280 Section 4.2.1.6
  */
-static int x509_crt_check_san(const mbedtls_x509_buf *name,
+static int x509_crt_check_san(const mbedtls_x509_sequence *san,
                               const char *cn, size_t cn_len)
 {
-    const unsigned char san_type = (unsigned char) name->tag &
-                                   MBEDTLS_ASN1_TAG_VALUE_MASK;
-
-    /* dNSName */
-    if (san_type == MBEDTLS_X509_SAN_DNS_NAME) {
-        return x509_crt_check_cn(name, cn, cn_len);
+    int san_ip = 0;
+    for (const mbedtls_x509_sequence *cur = san; cur != NULL; cur = cur->next) {
+        switch ((unsigned char) cur->buf.tag & MBEDTLS_ASN1_TAG_VALUE_MASK) {
+            case MBEDTLS_X509_SAN_DNS_NAME:                /* dNSName */
+                if (x509_crt_check_cn(&cur->buf, cn, cn_len) == 0) {
+                    return 0;
+                }
+                break;
+            case MBEDTLS_X509_SAN_IP_ADDRESS:              /* iPAddress */
+                san_ip = 1;
+                break;
+            /* (We may handle other types here later.) */
+            default: /* Unrecognized type */
+                break;
+        }
     }
 
-    /* (We may handle other types here later.) */
-
-    /* Unrecognized type */
-    return -1;
+    return san_ip ? x509_crt_check_san_ip(san, cn, cn_len) : -1;
 }
 
 /*
@@ -2572,31 +2792,23 @@ static void x509_crt_verify_name(const mbedtls_x509_crt *crt,
                                  uint32_t *flags)
 {
     const mbedtls_x509_name *name;
-    const mbedtls_x509_sequence *cur;
     size_t cn_len = strlen(cn);
 
     if (crt->ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME) {
-        for (cur = &crt->subject_alt_names; cur != NULL; cur = cur->next) {
-            if (x509_crt_check_san(&cur->buf, cn, cn_len) == 0) {
-                break;
-            }
-        }
-
-        if (cur == NULL) {
-            *flags |= MBEDTLS_X509_BADCERT_CN_MISMATCH;
+        if (x509_crt_check_san(&crt->subject_alt_names, cn, cn_len) == 0) {
+            return;
         }
     } else {
         for (name = &crt->subject; name != NULL; name = name->next) {
             if (MBEDTLS_OID_CMP(MBEDTLS_OID_AT_CN, &name->oid) == 0 &&
                 x509_crt_check_cn(&name->val, cn, cn_len) == 0) {
-                break;
+                return;
             }
         }
 
-        if (name == NULL) {
-            *flags |= MBEDTLS_X509_BADCERT_CN_MISMATCH;
-        }
     }
+
+    *flags |= MBEDTLS_X509_BADCERT_CN_MISMATCH;
 }
 
 /*

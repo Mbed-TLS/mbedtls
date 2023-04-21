@@ -1023,6 +1023,119 @@ X509 CRT verification: domain identical to IPv6 in SubjectAltName
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C
 x509_verify:"data_files/server5-tricky-ip-san.crt":"data_files/server5-tricky-ip-san.crt":"data_files/crl_sha256.pem":"abcd.example.com":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"":"NULL"
 
+X509 CRT verification: matching IPv4 in SubjectAltName
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C
+x509_verify:"data_files/server5-tricky-ip-san.crt":"data_files/server5-tricky-ip-san.crt":"data_files/crl_sha256.pem":"97.98.99.100":0:0:"":"NULL"
+
+X509 CRT verification: mismatching IPv4 in SubjectAltName
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C
+x509_verify:"data_files/server5-tricky-ip-san.crt":"data_files/server5-tricky-ip-san.crt":"data_files/crl_sha256.pem":"7.8.9.10":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"":"NULL"
+
+X509 CRT verification: IPv4 with trailing data in SubjectAltName
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C
+x509_verify:"data_files/server5-tricky-ip-san.crt":"data_files/server5-tricky-ip-san.crt":"data_files/crl_sha256.pem":"97.98.99.100?":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"":"NULL"
+
+X509 CRT verification: matching IPv6 in SubjectAltName
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C
+x509_verify:"data_files/server5-tricky-ip-san.crt":"data_files/server5-tricky-ip-san.crt":"data_files/crl_sha256.pem":"6162\:6364\:2E65\:7861\:6D70\:6C65\:2E63\:6F6D":0:0:"":"NULL"
+
+X509 CRT verification: mismatching IPv6 in SubjectAltName
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C
+x509_verify:"data_files/server5-tricky-ip-san.crt":"data_files/server5-tricky-ip-san.crt":"data_files/crl_sha256.pem":"6162\:6364\:\:6F6D":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"":"NULL"
+
+X509 CRT parse CN: IPv4 valid address
+x509_crt_parse_cn_inet_pton:"10.10.10.10":"0A0A0A0A":4
+
+X509 CRT parse CN: IPv4 excess 0s
+x509_crt_parse_cn_inet_pton:"10.0000.10.10":"":0
+
+X509 CRT parse CN: IPv4 short address
+x509_crt_parse_cn_inet_pton:"10.10.10":"":0
+
+X509 CRT parse CN: IPv4 invalid ? char
+x509_crt_parse_cn_inet_pton:"10.10?10.10":"":0
+
+X509 CRT parse CN: IPv4 invalid - char
+x509_crt_parse_cn_inet_pton:"10.-10.10.10":"":0
+
+X509 CRT parse CN: IPv4 invalid + char
+x509_crt_parse_cn_inet_pton:"10.+10.10.10":"":0
+
+X509 CRT parse CN: IPv4 begin dot
+x509_crt_parse_cn_inet_pton:".10.10.10.10":"":0
+
+X509 CRT parse CN: IPv4 end dot
+x509_crt_parse_cn_inet_pton:"10.10.10.10.":"":0
+
+X509 CRT parse CN: IPv4 consecutive dots
+x509_crt_parse_cn_inet_pton:"10.10..10.10.":"":0
+
+X509 CRT parse CN: IPv4 overlarge octet 256
+x509_crt_parse_cn_inet_pton:"10.256.10.10":"":0
+
+X509 CRT parse CN: IPv4 overlarge octet 999
+x509_crt_parse_cn_inet_pton:"10.10.10.999":"":0
+
+X509 CRT parse CN: IPv4 overlarge octet 1000
+x509_crt_parse_cn_inet_pton:"10.1000.10.10":"":0
+
+X509 CRT parse CN: IPv4 additional octet
+x509_crt_parse_cn_inet_pton:"10.10.10.10.10":"":0
+
+X509 CRT parse CN: IPv6 valid address
+x509_crt_parse_cn_inet_pton:"1\:2\:3\:4\:5\:6\:7\:8":"00010002000300040005000600070008":16
+
+X509 CRT parse CN: IPv6 valid address shorthand
+x509_crt_parse_cn_inet_pton:"6263\:\:1":"62630000000000000000000000000001":16
+
+X509 CRT parse CN: IPv6 valid address shorthand start
+x509_crt_parse_cn_inet_pton:"\:\:1":"00000000000000000000000000000001":16
+
+X509 CRT parse CN: IPv6 valid address extra 0s
+x509_crt_parse_cn_inet_pton:"0001\:\:0001\:0001":"00010000000000000000000000010001":16
+
+X509 CRT parse CN: IPv6 invalid address excess 0s
+x509_crt_parse_cn_inet_pton:"1\:00000\:1\:0":"":0
+
+X509 CRT parse CN: IPv6 invalid address - start single colon
+x509_crt_parse_cn_inet_pton:"\:6263\:\:1":"":0
+
+X509 CRT parse CN: IPv6 invalid address - end single colon
+x509_crt_parse_cn_inet_pton:"6263\:\:1\:":"":0
+
+X509 CRT parse CN: IPv6 short address
+x509_crt_parse_cn_inet_pton:"1\:1\:1":"":0
+
+X509 CRT parse CN: IPv6 wildcard address
+x509_crt_parse_cn_inet_pton:"\:\:":"00000000000000000000000000000000":16
+
+X509 CRT parse CN: IPv6 address too long
+x509_crt_parse_cn_inet_pton:"1\:2\:3\:4\:5\:6\:7\:8\:9":"":0
+
+X509 CRT parse CN: IPv6 long hextet
+x509_crt_parse_cn_inet_pton:"12345\:\:1":"":0
+
+X509 CRT parse CN: IPv6 invalid char
+x509_crt_parse_cn_inet_pton:"\:\:\:1":"":0
+
+X509 CRT parse CN: IPv6 invalid - char
+x509_crt_parse_cn_inet_pton:"\:\:-1\:1":"":0
+
+X509 CRT parse CN: IPv6 invalid + char
+x509_crt_parse_cn_inet_pton:"\:\:+1\:1":"":0
+
+X509 CRT parse CN: IPv6 valid address IPv4-mapped
+x509_crt_parse_cn_inet_pton:"\:\:ffff\:1.2.3.4":"00000000000000000000ffff01020304":16
+
+X509 CRT parse CN: IPv6 invalid address IPv4-mapped #1
+x509_crt_parse_cn_inet_pton:"\:\:ffff\:999.2.3.4":"":0
+
+X509 CRT parse CN: IPv6 invalid address IPv4-mapped #2
+x509_crt_parse_cn_inet_pton:"\:\:ffff\:1111.2.3.4":"":0
+
+X509 CRT parse CN: IPv6 invalid address IPv4-mapped #3
+x509_crt_parse_cn_inet_pton:"\:\:1.2.3.4\:ffff":"":0
+
 X509 CRT verification with ca callback: failure
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 x509_verify_ca_cb_failure:"data_files/server1.crt":"data_files/test-ca.crt":"NULL":MBEDTLS_ERR_X509_FATAL_ERROR

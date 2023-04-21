@@ -1219,6 +1219,17 @@ component_test_psa_external_rng_no_drbg_use_psa () {
     tests/ssl-opt.sh -f 'Default\|opaque'
 }
 
+component_test_sw_inet_pton () {
+    msg "build: default plus MBEDTLS_TEST_SW_INET_PTON"
+
+    # MBEDTLS_TEST_HOOKS required for x509_crt_parse_cn_inet_pton
+    scripts/config.py set MBEDTLS_TEST_HOOKS
+    make CFLAGS="-DMBEDTLS_TEST_SW_INET_PTON"
+
+    msg "test: default plus MBEDTLS_TEST_SW_INET_PTON"
+    make test
+}
+
 component_test_crypto_full_md_light_only () {
     msg "build: crypto_full with only the light subset of MD"
     scripts/config.py crypto_full

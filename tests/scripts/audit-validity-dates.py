@@ -42,14 +42,19 @@ from cryptography import x509 #pylint: disable=import-error
 from generate_test_code import parse_test_data as parse_suite_data
 from generate_test_code import FileWrapper
 
+import scripts_path # pylint: disable=unused-import
+from mbedtls_dev import build_tree
+
 class DataType(Enum):
     CRT = 1 # Certificate
     CRL = 2 # Certificate Revocation List
     CSR = 3 # Certificate Signing Request
 
+
 class DataFormat(Enum):
     PEM = 1 # Privacy-Enhanced Mail
     DER = 2 # Distinguished Encoding Rules
+
 
 class AuditData:
     """Store data location, type and validity period of X.509 objects."""
@@ -77,6 +82,7 @@ class AuditData:
             self.not_valid_before = datetime.datetime.min
         else:
             raise ValueError("Unsupported file_type: {}".format(self.data_type))
+
 
 class X509Parser:
     """A parser class to parse crt/crl/csr file or data in PEM/DER format."""
@@ -167,6 +173,7 @@ class X509Parser:
             return False
         return True
 
+
 class Auditor:
     """A base class for audit."""
     def __init__(self, logger):
@@ -231,15 +238,8 @@ class Auditor:
     @staticmethod
     def find_test_dir():
         """Get the relative path for the MbedTLS test directory."""
-        if os.path.isdir('tests'):
-            tests_dir = 'tests'
-        elif os.path.isdir('suites'):
-            tests_dir = '.'
-        elif os.path.isdir('../suites'):
-            tests_dir = '..'
-        else:
-            raise Exception("Mbed TLS source tree not found")
-        return tests_dir
+        return os.path.relpath(build_tree.guess_mbedtls_root() + '/tests')
+
 
 class TestDataAuditor(Auditor):
     """Class for auditing files in tests/data_files/"""
@@ -254,6 +254,7 @@ class TestDataAuditor(Auditor):
         data_files = [f for f in glob.glob(test_data_glob, recursive=True)
                       if os.path.isfile(f)]
         return data_files
+
 
 class SuiteDataAuditor(Auditor):
     """Class for auditing files in tests/suites/*.data"""
@@ -293,6 +294,7 @@ class SuiteDataAuditor(Auditor):
                 audit_data_list.append(audit_data)
 
         return audit_data_list
+
 
 def list_all(audit_data: AuditData):
     print("{}\t{}\t{}\t{}".format(

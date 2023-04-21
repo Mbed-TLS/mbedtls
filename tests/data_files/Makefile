@@ -1294,7 +1294,7 @@ server2.key.der: server2.key
 all_final += server2.key.der
 
 server2.key.enc: server2.key
-	$(OPENSSL) rsa -aes256 -in $< -out $@ -passout "pass:$(server2_pwd_ec)"
+	$(OPENSSL) rsa -aes256 -in $< -out $@ -passout "pass:$(server2_pwd_ec)" -traditional
 all_final += server2.key.enc
 
 # server5*

@@ -421,11 +421,11 @@ depends_on:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SSL_PROTO_DTLS
 handshake_serialization
 
 DTLS Handshake fragmentation, MFL=512
-depends_on:MBEDTLS_SSL_PROTO_DTLS
+depends_on:MBEDTLS_SSL_PROTO_DTLS:!MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
 handshake_fragmentation:MBEDTLS_SSL_MAX_FRAG_LEN_512:1:1
 
 DTLS Handshake fragmentation, MFL=1024
-depends_on:MBEDTLS_SSL_PROTO_DTLS
+depends_on:MBEDTLS_SSL_PROTO_DTLS:!MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
 handshake_fragmentation:MBEDTLS_SSL_MAX_FRAG_LEN_1024:0:1
 
 Handshake min/max version check, all -> 1.2

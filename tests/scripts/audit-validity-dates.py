@@ -30,6 +30,7 @@ import typing
 import argparse
 import datetime
 import glob
+import logging
 from enum import Enum
 
 # The script requires cryptography >= 35.0.0 which is only available
@@ -168,8 +169,8 @@ class X509Parser:
 
 class Auditor:
     """A base class for audit."""
-    def __init__(self, verbose):
-        self.verbose = verbose
+    def __init__(self, logger):
+        self.logger = logger
         self.default_files = []
         # A list to store the parsed audit_data.
         self.audit_data = []
@@ -187,14 +188,6 @@ class Auditor:
                 DataFormat.DER: x509.load_der_x509_csr
             },
         })
-
-    def error(self, *args):
-        #pylint: disable=no-self-use
-        print("Error: ", *args, file=sys.stderr)
-
-    def warn(self, *args):
-        if self.verbose:
-            print("Warn: ", *args, file=sys.stderr)
 
     def parse_file(self, filename: str) -> typing.List[AuditData]:
         """
@@ -219,7 +212,7 @@ class Auditor:
                 result = self.parser[data_type](data)
             except ValueError as val_error:
                 result = None
-                self.warn(val_error)
+                self.logger.warning(val_error)
             if result is not None:
                 audit_data = AuditData(data_type, result)
                 return audit_data
@@ -308,6 +301,39 @@ def list_all(audit_data: AuditData):
         audit_data.data_type.name,
         audit_data.location))
 
+
+def configure_logger(logger: logging.Logger) -> None:
+    """
+    Configure the logging.Logger instance so that:
+        - Format is set to "[%(levelname)s]: %(message)s".
+        - loglevel >= WARNING are printed to stderr.
+        - loglevel <  WARNING are printed to stdout.
+    """
+    class MaxLevelFilter(logging.Filter):
+        # pylint: disable=too-few-public-methods
+        def __init__(self, max_level, name=''):
+            super().__init__(name)
+            self.max_level = max_level
+
+        def filter(self, record: logging.LogRecord) -> bool:
+            return record.levelno <= self.max_level
+
+    log_formatter = logging.Formatter("[%(levelname)s]: %(message)s")
+
+    # set loglevel >= WARNING to be printed to stderr
+    stderr_hdlr = logging.StreamHandler(sys.stderr)
+    stderr_hdlr.setLevel(logging.WARNING)
+    stderr_hdlr.setFormatter(log_formatter)
+
+    # set loglevel <= INFO to be printed to stdout
+    stdout_hdlr = logging.StreamHandler(sys.stdout)
+    stdout_hdlr.addFilter(MaxLevelFilter(logging.INFO))
+    stdout_hdlr.setFormatter(log_formatter)
+
+    logger.addHandler(stderr_hdlr)
+    logger.addHandler(stdout_hdlr)
+
+
 def main():
     """
     Perform argument parsing.
@@ -319,7 +345,7 @@ def main():
                         help='list the information of all the files')
     parser.add_argument('-v', '--verbose',
                         action='store_true', dest='verbose',
-                        help='show warnings')
+                        help='show logs')
     parser.add_argument('--not-before', dest='not_before',
                         help=('not valid before this date (UTC, YYYY-MM-DD). '
                               'Default: today'),
@@ -334,8 +360,13 @@ def main():
     args = parser.parse_args()
 
     # start main routine
-    td_auditor = TestDataAuditor(args.verbose)
-    sd_auditor = SuiteDataAuditor(args.verbose)
+    # setup logger
+    logger = logging.getLogger()
+    configure_logger(logger)
+    logger.setLevel(logging.DEBUG if args.verbose else logging.ERROR)
+
+    td_auditor = TestDataAuditor(logger)
+    sd_auditor = SuiteDataAuditor(logger)
 
     if args.files:
         data_files = args.files
@@ -368,7 +399,7 @@ def main():
     for d in filter(filter_func, audit_results):
         list_all(d)
 
-    print("\nDone!\n")
+    logger.debug("Done!")
 
 if __name__ == "__main__":
     main()

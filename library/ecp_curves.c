@@ -5597,7 +5597,13 @@ cleanup:
  */
 static int ecp_mod_p192k1(mbedtls_mpi *N)
 {
-    return mbedtls_ecp_mod_p192k1(N);
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t expected_width = 2 * ((192 + biL - 1) / biL);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
+    ret = mbedtls_ecp_mod_p192k1(N);
+
+cleanup:
+    return ret;
 }
 
 MBEDTLS_STATIC_TESTABLE
@@ -5618,7 +5624,13 @@ int mbedtls_ecp_mod_p192k1(mbedtls_mpi *N)
 
 static int ecp_mod_p224k1(mbedtls_mpi *N)
 {
-    return mbedtls_ecp_mod_p224k1(N);
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t expected_width =  2 * 224 / biL;
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
+    ret = mbedtls_ecp_mod_p224k1(N);
+
+cleanup:
+    return ret;
 }
 
 /*
@@ -5647,7 +5659,13 @@ int mbedtls_ecp_mod_p224k1(mbedtls_mpi *N)
 
 static int ecp_mod_p256k1(mbedtls_mpi *N)
 {
-    return mbedtls_ecp_mod_p256k1(N);
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t expected_width = 2 * ((256 + biL - 1) / biL);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
+    ret = mbedtls_ecp_mod_p256k1(N);
+
+cleanup:
+    return ret;
 }
 
 /*

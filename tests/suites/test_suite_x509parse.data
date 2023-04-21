@@ -2564,7 +2564,7 @@ depends_on:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C
 mbedtls_x509_crt_parse_path:"data_files/dir1":0:1
 
 X509 CRT parse path #2 (two certs)
-depends_ondepends_on:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA256:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP384R1_ENABLED
+depends_on:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA256:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP384R1_ENABLED
 mbedtls_x509_crt_parse_path:"data_files/dir2":0:2
 
 X509 CRT parse path #3 (two certs, one non-cert)

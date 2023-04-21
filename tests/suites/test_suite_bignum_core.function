@@ -311,25 +311,28 @@ exit:
 
 
 /* BEGIN_CASE */
-void mpi_core_clz(int lz, int tz)
+void mpi_core_clz(int leading_zeros, int trailing_zeros)
 {
-    if ((size_t) (lz + tz) >= (sizeof(mbedtls_mpi_uint) * 8)) {
+    if ((size_t) (leading_zeros + trailing_zeros) >= (sizeof(mbedtls_mpi_uint) * 8)) {
         // can't fit required number of leading and trailing zeros - skip test
         goto exit;
     }
 
+    // Construct a test input value where the count of leading zeros and
+    // trailing zeros is given in the test case, and we add ones to fill
+    // the gap.
     mbedtls_mpi_uint x;
-    if ((lz + tz) > 0) {
+    if ((leading_zeros + trailing_zeros) > 0) {
         // some zero bits
-        uint32_t s = (sizeof(mbedtls_mpi_uint) * 8 - lz - tz);
-        x = ((((mbedtls_mpi_uint) 1) << s) - 1) << tz;
+        uint32_t s = (sizeof(mbedtls_mpi_uint) * 8 - leading_zeros - trailing_zeros);
+        x = ((((mbedtls_mpi_uint) 1) << s) - 1) << trailing_zeros;
     } else {
         // all bits set
         x = ~((mbedtls_mpi_uint) 0);
     }
 
     size_t n = mbedtls_mpi_core_clz(x);
-    TEST_EQUAL(n, lz);
+    TEST_EQUAL(n, leading_zeros);
 exit:
     ;
 }

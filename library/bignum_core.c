@@ -33,11 +33,18 @@
 #include "bn_mul.h"
 #include "constant_time_internal.h"
 
+/**
+ * \brief          Count leading zeros
+ *
+ * \warning        The result is undefined if \p a == 0
+ *
+ * \param a        The value to operate on
+ *
+ * \return         The number of leading zeros, if \p a != 0. If \p a == 0, the result
+ *                 is undefined.
+ */
 inline size_t mbedtls_mpi_core_clz(mbedtls_mpi_uint a)
 {
-    /* Note: the result is undefined for a == 0
-     * (because this is the behaviour of __builtin_clz).
-     */
 #if defined(__has_builtin)
 #if __has_builtin(__builtin_clz)
     if (sizeof(mbedtls_mpi_uint) == sizeof(unsigned int)) {

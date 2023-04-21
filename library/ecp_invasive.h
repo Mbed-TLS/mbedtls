@@ -179,6 +179,12 @@ MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p192k1(mbedtls_mpi *N);
 
 #endif /* MBEDTLS_ECP_DP_SECP192K1_ENABLED */
+#if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
+
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p224k1(mbedtls_mpi *N);
+
+#endif /* MBEDTLS_ECP_DP_SECP224K1_ENABLED */
 
 /** Initialise a modulus with hard-coded const curve data.
  *

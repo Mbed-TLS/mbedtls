@@ -1,0 +1,4 @@
+New deprecations
+   * Calling psa_aead_set_lengths() after setting the nonce is deprecated.
+     This possibility existed in an early draft of the PSA Crypto API
+     specification, but was removed before the first official release.

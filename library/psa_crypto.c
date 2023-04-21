@@ -4717,6 +4717,9 @@ psa_status_t psa_aead_set_lengths(psa_aead_operation_t *operation,
         goto exit;
     }
 
+    /* Don't check operation->nonce_set here because Mbed TLS supports
+     * psa_aead_set_lengths() after setting the nonce for backward
+     * compatibility. */
     if (operation->lengths_set || operation->ad_started ||
         operation->body_started) {
         status = PSA_ERROR_BAD_STATE;

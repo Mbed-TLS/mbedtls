@@ -310,6 +310,9 @@ typedef enum {
 typedef enum {
     DO_NOT_SET_LENGTHS = 0,
     SET_LENGTHS_BEFORE_NONCE = 1,
+    /* psa_aead_set_lengths() after psa_aead_set_nonce() or
+     * psa_aead_generate_nonce() is not allowed by the PSA specification,
+     * but Mbed TLS supports it for backward compatibility. */
     SET_LENGTHS_AFTER_NONCE = 2
 } set_lengths_method_t;
 

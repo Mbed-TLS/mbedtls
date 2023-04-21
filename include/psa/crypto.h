@@ -2415,7 +2415,9 @@ psa_status_t psa_aead_generate_nonce(psa_aead_operation_t *operation,
  * encryption or decryption operation.
  *
  * The application must call psa_aead_encrypt_setup() or
- * psa_aead_decrypt_setup() before calling this function.
+ * psa_aead_decrypt_setup(),
+ * as well as psa_aead_set_lengths() if desired,
+ * before calling this function.
  *
  * If this function returns an error status, the operation enters an error
  * state and must be aborted by calling psa_aead_abort().
@@ -2451,13 +2453,10 @@ psa_status_t psa_aead_set_nonce(psa_aead_operation_t *operation,
 /** Declare the lengths of the message and additional data for AEAD.
  *
  * The application must call this function before calling
- * psa_aead_update_ad() or psa_aead_update() if the algorithm for
+ * psa_aead_set_nonce() or psa_aead_generate_nonce() if the algorithm for
  * the operation requires it. If the algorithm does not require it,
  * calling this function is optional, but if this function is called
  * then the implementation must enforce the lengths.
- *
- * You may call this function before or after setting the nonce with
- * psa_aead_set_nonce() or psa_aead_generate_nonce().
  *
  * - For #PSA_ALG_CCM, calling this function is required.
  * - For the other AEAD algorithms defined in this specification, calling
@@ -2466,6 +2465,12 @@ psa_status_t psa_aead_set_nonce(psa_aead_operation_t *operation,
  *
  * If this function returns an error status, the operation enters an error
  * state and must be aborted by calling psa_aead_abort().
+ *
+ * \deprecated
+ * You may call this function after calling psa_aead_set_nonce() or
+ * psa_aead_generate_nonce() (but before calling any update or finish function).
+ * This possibility is deprecated and will be removed in a future version of
+ * the library.
  *
  * \param[in,out] operation     Active AEAD operation.
  * \param ad_length             Size of the non-encrypted additional

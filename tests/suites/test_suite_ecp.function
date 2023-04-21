@@ -1550,3 +1550,70 @@ exit:
     mbedtls_free(p);
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
+void ecp_mod_mul_inv(char *input_A, int id, int ctype, int iret)
+{
+    int ret;
+    mbedtls_mpi_mod_modulus m;
+    mbedtls_mpi_mod_modulus_init(&m);
+    mbedtls_mpi_mod_residue A = { NULL, 0 };
+    mbedtls_mpi_mod_residue A_inverse = { NULL, 0 };
+    mbedtls_mpi_mod_residue rX = { NULL, 0 };
+    mbedtls_mpi_uint *rX_raw = NULL;
+    mbedtls_mpi_uint *p_inverse = NULL;
+    mbedtls_mpi_uint *p = NULL;
+    mbedtls_mpi_uint *bufx = NULL;
+    mbedtls_mpi_uint Result = 1;
+    size_t p_limbs;
+
+    ret = mbedtls_ecp_modulus_setup(&m, id, ctype);
+    TEST_EQUAL(ret, iret);
+
+    TEST_EQUAL(mbedtls_test_read_mpi_core(&p, &p_limbs, input_A), 0);
+    TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&A, &m, p, p_limbs));
+
+    if (ret == 0) {
+
+        /* Test for limb sizes */
+        TEST_EQUAL(m.limbs, p_limbs);
+
+        /* Test for validity of moduli by the presence of Montgomery consts */
+
+        TEST_ASSERT(m.rep.mont.mm != 0);
+        TEST_ASSERT(m.rep.mont.rr != NULL);
+
+        size_t limbs = m.limbs;
+
+        ASSERT_ALLOC(p_inverse, limbs);
+
+        TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&A_inverse, &m, p_inverse, limbs));
+
+        ASSERT_ALLOC(rX_raw, limbs);
+
+        TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&rX, &m, rX_raw, limbs));
+
+        TEST_EQUAL(0, mbedtls_mpi_mod_inv(&A_inverse, &A, &m));
+
+        TEST_EQUAL(mbedtls_mpi_mod_mul(&rX, &A, &A_inverse, &m), 0);
+
+        ASSERT_ALLOC(bufx, limbs);
+        TEST_EQUAL(mbedtls_mpi_mod_write(&rX, &m, (unsigned char *)bufx, p_limbs * sizeof(mbedtls_mpi_uint), MBEDTLS_MPI_MOD_EXT_REP_LE), 0);
+
+        TEST_EQUAL(memcmp(bufx, &Result, sizeof(mbedtls_mpi_uint)), 0);
+
+        /* Test for user free-ing allocated memory */
+        mbedtls_mpi_mod_modulus_free(&m);
+    }
+
+exit:
+    mbedtls_mpi_mod_modulus_free(&m);
+    mbedtls_mpi_mod_residue_release(&A);
+    mbedtls_mpi_mod_residue_release(&A_inverse);
+    mbedtls_mpi_mod_residue_release(&rX);
+    mbedtls_free(p);
+    mbedtls_free(p_inverse);
+    mbedtls_free(rX_raw);
+    mbedtls_free(bufx);
+}
+/* END_CASE */

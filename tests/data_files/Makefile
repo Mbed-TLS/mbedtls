@@ -1303,6 +1303,14 @@ all_final += server2.key.enc
 
 # server5*
 
+server5.csr: server5.key
+	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
+					-key $< -out $@
+all_intermediate += server5.csr
+server5.crt: server5.csr
+	$(OPENSSL) x509 -req -CA $(test_ca_crt_cat21) -CAkey $(test_ca_key_file_ec) \
+				-extfile server5.crt.openssl.v3_ext -set_serial 9 -days 3650 -sha256 -in $< -out $@
+# server5.crt: server5.key
 # The use of 'Server 1' in the DN is intentional here, as the DN is hardcoded in the x509_write test suite.'
 server5.req.ku.sha1: server5.key
 	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< key_usage=digital_signature,non_repudiation subject_name="C=NL,O=PolarSSL,CN=PolarSSL Server 1" md=SHA1

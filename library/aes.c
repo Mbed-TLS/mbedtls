@@ -33,6 +33,33 @@
 #include "mbedtls/platform.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
+
+#if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) && \
+    defined(__aarch64__) && !defined(MBEDTLS_HAVE_ARM64)
+#define MBEDTLS_HAVE_ARM64
+#if !defined(MBEDTLS_AESCE_C) && defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+#error "MBEDTLS_AES_C defined, but not all prerequisites"
+#endif
+#endif
+
+#if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) && \
+    (defined(__amd64__) || defined(__x86_64__))   &&  \
+    !defined(MBEDTLS_HAVE_X86_64)
+#define MBEDTLS_HAVE_X86_64
+#if !defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+#error "MBEDTLS_AES_C defined, but not all prerequisites"
+#endif
+#endif
+
+#if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) && defined(__i386__) && \
+    !defined(MBEDTLS_HAVE_ASAN)
+#define MBEDTLS_HAVE_X86
+
+#if !defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+#error "MBEDTLS_AES_C defined, but not all prerequisites"
+#endif
+#endif
+
 #if defined(MBEDTLS_PADLOCK_C)
 #include "padlock.h"
 #endif

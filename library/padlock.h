@@ -48,10 +48,6 @@
 
 #include <stdint.h>
 
-#if !defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
-#error "MBEDTLS_AES_C defined, but not all prerequisites"
-#endif
-
 #define MBEDTLS_PADLOCK_RNG 0x000C
 #define MBEDTLS_PADLOCK_ACE 0x00C0
 #define MBEDTLS_PADLOCK_PHE 0x0C00

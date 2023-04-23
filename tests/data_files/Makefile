@@ -30,7 +30,15 @@ default: all_final
 all_intermediate := # temporary files
 all_final := # files used by tests
 
-
+################################################################
+#### Generate test certificate macros
+################################################################
+../src/test_ca_certs.h: $(shell ../scripts/generate_test_cert_macros.py --list) \
+                        ../scripts/generate_test_cert_macros.py \
+						test_ca_certs.h.jinja2
+	../scripts/generate_test_cert_macros.py
+test_ca_certs:../src/test_ca_certs.h
+all_final += test_ca_certs
 
 ################################################################
 #### Generate certificates from existing keys

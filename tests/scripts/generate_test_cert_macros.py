@@ -24,6 +24,7 @@ Generate `tests/src/test_ca_certs.h` which includes certficaties for testing.
 import os
 import sys
 import jinja2
+import argparse
 
 MACROS = [
     ("comment1", None, None),
@@ -66,7 +67,7 @@ MACROS = [
 ]
 
 
-def main():
+def write_cert_macros():
     this_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.abspath(os.path.join(this_dir, '..', '..'))
     template_loader = jinja2.FileSystemLoader(
@@ -100,6 +101,27 @@ def main():
     template = template_env.get_template('test_ca_certs.h.jinja2')
     with open(os.path.join(this_dir, '..', 'src', 'test_ca_certs.h'), 'w') as f:
         f.write(template.render(macros=MACROS))
+
+
+def main():
+    parser = argparse.ArgumentParser(__doc__)
+    parser.add_argument('-l', '--list', action='store_true',
+                        help='List certificate source files')
+    args = parser.parse_args()
+    if args.list:
+        this_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.abspath(os.path.join(this_dir, '..', '..'))
+        for i, _, name in MACROS:
+            if i not in ('string', 'binary'):
+                continue
+            a=os.path.join(
+                project_root, 'tests', 'data_files')
+            b=os.path.abspath(os.path.join(project_root,name))
+
+            print(os.path.relpath(b,a))
+    else:
+        write_cert_macros()
+    return 0
 
 
 if __name__ == '__main__':

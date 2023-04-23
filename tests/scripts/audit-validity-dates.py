@@ -38,8 +38,6 @@ from enum import Enum
 # using modern system on our CI.
 from cryptography import x509 #pylint: disable=import-error
 
-# reuse the function to parse *.data file in tests/suites/
-from generate_test_code import parse_test_data as parse_suite_data
 from generate_test_code import FileWrapper
 
 import scripts_path # pylint: disable=unused-import
@@ -256,6 +254,31 @@ class TestDataAuditor(Auditor):
         return data_files
 
 
+def parse_suite_data(data_f):
+    """
+    Parses .data file for test arguments that possiblly have a
+    valid X.509 data. If you need a more precise parser, please
+    use generate_test_code.parse_test_data instead.
+
+    :param data_f: file object of the data file.
+    :return: Generator that yields test function argument list.
+    """
+    for line in data_f:
+        line = line.strip()
+        # Skip comments
+        if line.startswith('#'):
+            continue
+
+        # Check parameters line
+        match = re.search(r'\A\w+(.*:)?\"', line)
+        if match:
+            # Read test vectors
+            parts = re.split(r'(?<!\\):', line)
+            parts = [x for x in parts if x]
+            args = parts[1:]
+            yield args
+
+
 class SuiteDataAuditor(Auditor):
     """Class for auditing files in tests/suites/*.data"""
     def __init__(self, options):
@@ -278,7 +301,7 @@ class SuiteDataAuditor(Auditor):
         """
         audit_data_list = []
         data_f = FileWrapper(filename)
-        for _, _, _, test_args in parse_suite_data(data_f):
+        for test_args in parse_suite_data(data_f):
             for idx, test_arg in enumerate(test_args):
                 match = re.match(r'"(?P<data>[0-9a-fA-F]+)"', test_arg)
                 if not match:

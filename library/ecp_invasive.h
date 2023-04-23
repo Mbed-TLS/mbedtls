@@ -193,6 +193,13 @@ int mbedtls_ecp_mod_p256k1(mbedtls_mpi *N);
 
 #endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */
 
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p448(mbedtls_mpi *N);
+
+#endif /* MBEDTLS_ECP_DP_CURVE448_ENABLED */
+
 /** Initialise a modulus with hard-coded const curve data.
  *
  * \note            The caller is responsible for the \p N modulus' memory.

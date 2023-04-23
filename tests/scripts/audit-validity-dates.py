@@ -173,10 +173,25 @@ class X509Parser:
 
 
 class Auditor:
-    """A base class for audit."""
+    """
+    A base class that uses X509Parser to parse files to a list of AuditData.
+
+    A subclass must implement the following methods:
+      - collect_default_files: Return a list of file names that are defaultly
+        used for parsing (auditing). The list will be stored in
+        Auditor.default_files.
+      - parse_file: Method that parses a single file to a list of AuditData.
+
+    A subclass may override the following methods:
+      - parse_bytes: Defaultly, it parses `bytes` that contains only one valid
+        X.509 data(DER/PEM format) to an X.509 object.
+      - walk_all: Defaultly, it iterates over all the files in the provided
+        file name list, calls `parse_file` for each file and stores the results
+        by extending Auditor.audit_data.
+    """
     def __init__(self, logger):
         self.logger = logger
-        self.default_files = [] # type: typing.List[str]
+        self.default_files = self.collect_default_files()
         # A list to store the parsed audit_data.
         self.audit_data = [] # type: typing.List[AuditData]
         self.parser = X509Parser({
@@ -194,6 +209,10 @@ class Auditor:
             },
         })
 
+    def collect_default_files(self) -> typing.List[str]:
+        """Collect the default files for parsing."""
+        raise NotImplementedError
+
     def parse_file(self, filename: str) -> typing.List[AuditData]:
         """
         Parse a list of AuditData from file.
@@ -201,14 +220,7 @@ class Auditor:
         :param filename: name of the file to parse.
         :return list of AuditData parsed from the file.
         """
-        with open(filename, 'rb') as f:
-            data = f.read()
-        result = self.parse_bytes(data)
-        if result is not None:
-            result.location = filename
-            return [result]
-        else:
-            return []
+        raise NotImplementedError
 
     def parse_bytes(self, data: bytes):
         """Parse AuditData from bytes."""
@@ -240,18 +252,31 @@ class Auditor:
 
 
 class TestDataAuditor(Auditor):
-    """Class for auditing files in tests/data_files/"""
-    def __init__(self, verbose):
-        super().__init__(verbose)
-        self.default_files = self.collect_default_files()
+    """Class for auditing files in `tests/data_files/`"""
 
     def collect_default_files(self):
-        """Collect all files in tests/data_files/"""
+        """Collect all files in `tests/data_files/`"""
         test_dir = self.find_test_dir()
         test_data_glob = os.path.join(test_dir, 'data_files/**')
         data_files = [f for f in glob.glob(test_data_glob, recursive=True)
                       if os.path.isfile(f)]
         return data_files
+
+    def parse_file(self, filename: str) -> typing.List[AuditData]:
+        """
+        Parse a list of AuditData from data file.
+
+        :param filename: name of the file to parse.
+        :return list of AuditData parsed from the file.
+        """
+        with open(filename, 'rb') as f:
+            data = f.read()
+        result = self.parse_bytes(data)
+        if result is not None:
+            result.location = filename
+            return [result]
+        else:
+            return []
 
 
 def parse_suite_data(data_f):
@@ -280,13 +305,10 @@ def parse_suite_data(data_f):
 
 
 class SuiteDataAuditor(Auditor):
-    """Class for auditing files in tests/suites/*.data"""
-    def __init__(self, options):
-        super().__init__(options)
-        self.default_files = self.collect_default_files()
+    """Class for auditing files in `tests/suites/*.data`"""
 
     def collect_default_files(self):
-        """Collect all files in tests/suites/*.data"""
+        """Collect all files in `tests/suites/*.data`"""
         test_dir = self.find_test_dir()
         suites_data_folder = os.path.join(test_dir, 'suites')
         data_files = glob.glob(os.path.join(suites_data_folder, '*.data'))
@@ -294,7 +316,7 @@ class SuiteDataAuditor(Auditor):
 
     def parse_file(self, filename: str):
         """
-        Parse a list of AuditData from file.
+        Parse a list of AuditData from test suite data file.
 
         :param filename: name of the file to parse.
         :return list of AuditData parsed from the file.

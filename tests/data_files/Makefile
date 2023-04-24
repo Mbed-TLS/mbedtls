@@ -293,6 +293,30 @@ server5-tricky-ip-san.crt: server5.key
 	$(OPENSSL) req -x509 -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS Tricky IP SAN" -set_serial 77 -config $(test_ca_config_file) -extensions tricky_ip_san -days 3650 -sha256 -key server5.key -out $@
 all_final += server5-tricky-ip-san.crt
 
+server5-der0.crt: server5.crt.der
+	cp $< $@
+server5-der1a.crt: server5.crt.der
+	cp $< $@
+	echo '00' | xxd -r -p | dd of=$@ bs=1 seek=$$(wc -c <$<) conv=notrunc
+server5-der1b.crt: server5.crt.der
+	cp $< $@
+	echo 'c1' | xxd -r -p | dd of=$@ bs=1 seek=$$(wc -c <$<) conv=notrunc
+server5-der2.crt: server5.crt.der
+	cp $< $@
+	echo 'b90a' | xxd -r -p | dd of=$@ bs=1 seek=$$(wc -c <$<) conv=notrunc
+server5-der4.crt: server5.crt.der
+	cp $< $@
+	echo 'a710945f' | xxd -r -p | dd of=$@ bs=1 seek=$$(wc -c <$<) conv=notrunc
+server5-der8.crt: server5.crt.der
+	cp $< $@
+	echo 'a4a7ff27267aaa0f' | xxd -r -p | dd of=$@ bs=1 seek=$$(wc -c <$<) conv=notrunc
+server5-der9.crt: server5.crt.der
+	cp $< $@
+	echo 'cff8303376ffa47a29' | xxd -r -p | dd of=$@ bs=1 seek=$$(wc -c <$<) conv=notrunc
+all_final += server5-der0.crt server5-der1b.crt server5-der4.crt \
+			 server5-der9.crt server5-der1a.crt server5-der2.crt \
+			 server5-der8.crt
+
 server10-badsign.crt: server10.crt
 	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; } > $@
 all_final += server10-badsign.crt

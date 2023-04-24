@@ -2,6 +2,102 @@
 #include "mbedtls/pk.h"
 #include "mbedtls/pem.h"
 #include "mbedtls/oid.h"
+
+typedef enum {
+    TEST_PEM,
+    TEST_DER
+} pkwrite_file_format_t;
+
+/* Helper function for removing "\r" chars from a buffer. */
+static void fix_new_lines(unsigned char *in_str, size_t *len)
+{
+    size_t chars_left;
+    unsigned int i;
+
+    for (i = 0; (i < *len) && (*len > 0); i++) {
+        if (in_str[i] == '\r') {
+            if (i < (*len - 1)) {
+                chars_left = *len - i - 1;
+                memmove(&in_str[i], &in_str[i+1], chars_left);
+            } else {
+                in_str[i] = '\0';
+            }
+            *len = *len - 1;
+        }
+    }
+}
+
+static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
+{
+    mbedtls_pk_context key;
+    unsigned char *buf = NULL;
+    unsigned char *check_buf = NULL;
+    unsigned char *start_buf;
+    size_t buf_len, check_buf_len;
+    int ret;
+
+    /* Note: if mbedtls_pk_load_file() successfully reads the file, then
+       it also allocates check_buf, which should be freed on exit */
+    TEST_EQUAL(mbedtls_pk_load_file(key_file, &check_buf, &check_buf_len), 0);
+    TEST_ASSERT(check_buf_len > 0);
+
+    /* Windows' line ending is different from the Linux's one ("\r\n" vs "\n").
+     * Git treats PEM files as text, so when on Windows, it replaces new lines
+     * with "\r\n" on checkout.
+     * Unfortunately mbedtls_pk_load_file() loads files in binary format,
+     * while mbedtls_pk_write_pubkey_pem() goes through the I/O layer which
+     * uses "\n" for newlines in both Windows and Linux.
+     * Here we remove the extra "\r" so that "buf" and "check_buf" can be
+     * easily compared later. */
+    if (!is_der) {
+        fix_new_lines(check_buf, &check_buf_len);
+    }
+    TEST_ASSERT(check_buf_len > 0);
+
+    ASSERT_ALLOC(buf, check_buf_len);
+
+    mbedtls_pk_init(&key);
+    if (is_public_key) {
+        TEST_EQUAL(mbedtls_pk_parse_public_keyfile(&key, key_file), 0);
+        if (is_der) {
+            ret = mbedtls_pk_write_pubkey_der(&key, buf, check_buf_len);
+        } else {
+#if defined(MBEDTLS_PEM_WRITE_C)
+            ret = mbedtls_pk_write_pubkey_pem(&key, buf, check_buf_len);
+#else
+            ret = MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+#endif
+        }
+    } else {
+        TEST_EQUAL(mbedtls_pk_parse_keyfile(&key, key_file, NULL), 0);
+        if (is_der) {
+            ret = mbedtls_pk_write_key_der(&key, buf, check_buf_len);
+        } else {
+#if defined(MBEDTLS_PEM_WRITE_C)
+            ret = mbedtls_pk_write_key_pem(&key, buf, check_buf_len);
+#else
+            ret = MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+#endif
+        }
+    }
+
+    if (is_der) {
+        TEST_LE_U(1, ret);
+        buf_len = ret;
+        start_buf = buf + check_buf_len - buf_len;
+    } else {
+        TEST_EQUAL(ret, 0);
+        buf_len = strlen((char *) buf) + 1; /* +1 takes the string terminator into account */
+        start_buf = buf;
+    }
+
+    ASSERT_COMPARE(start_buf, buf_len, check_buf, check_buf_len);
+
+exit:
+    mbedtls_free(buf);
+    mbedtls_free(check_buf);
+    mbedtls_pk_free(&key);
+}
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -9,80 +105,18 @@
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PEM_WRITE_C */
-void pk_write_pubkey_check(char *key_file)
+/* BEGIN_CASE */
+void pk_write_pubkey_check(char *key_file, int is_der)
 {
-    mbedtls_pk_context key;
-    unsigned char buf[5000];
-    unsigned char check_buf[5000];
-    int ret;
-    FILE *f;
-    size_t ilen, pem_len, buf_index;
-
-    memset(buf, 0, sizeof(buf));
-    memset(check_buf, 0, sizeof(check_buf));
-
-    mbedtls_pk_init(&key);
-    TEST_ASSERT(mbedtls_pk_parse_public_keyfile(&key, key_file) == 0);
-
-    ret = mbedtls_pk_write_pubkey_pem(&key, buf, sizeof(buf));
-    TEST_ASSERT(ret == 0);
-
-    pem_len = strlen((char *) buf);
-
-    // check that the rest of the buffer remains clear
-    for (buf_index = pem_len; buf_index < sizeof(buf); ++buf_index) {
-        TEST_ASSERT(buf[buf_index] == 0);
-    }
-
-    f = fopen(key_file, "r");
-    TEST_ASSERT(f != NULL);
-    ilen = fread(check_buf, 1, sizeof(check_buf), f);
-    fclose(f);
-
-    TEST_ASSERT(ilen == pem_len);
-    TEST_ASSERT(memcmp((char *) buf, (char *) check_buf, ilen) == 0);
-
-exit:
-    mbedtls_pk_free(&key);
+    pk_write_check_common(key_file, 1, is_der);
+    goto exit; /* make the compiler happy */
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PEM_WRITE_C */
-void pk_write_key_check(char *key_file)
+/* BEGIN_CASE */
+void pk_write_key_check(char *key_file, int is_der)
 {
-    mbedtls_pk_context key;
-    unsigned char buf[5000];
-    unsigned char check_buf[5000];
-    int ret;
-    FILE *f;
-    size_t ilen, pem_len, buf_index;
-
-    memset(buf, 0, sizeof(buf));
-    memset(check_buf, 0, sizeof(check_buf));
-
-    mbedtls_pk_init(&key);
-    TEST_ASSERT(mbedtls_pk_parse_keyfile(&key, key_file, NULL) == 0);
-
-    ret = mbedtls_pk_write_key_pem(&key, buf, sizeof(buf));
-    TEST_ASSERT(ret == 0);
-
-    pem_len = strlen((char *) buf);
-
-    // check that the rest of the buffer remains clear
-    for (buf_index = pem_len; buf_index < sizeof(buf); ++buf_index) {
-        TEST_ASSERT(buf[buf_index] == 0);
-    }
-
-    f = fopen(key_file, "r");
-    TEST_ASSERT(f != NULL);
-    ilen = fread(check_buf, 1, sizeof(check_buf), f);
-    fclose(f);
-
-    TEST_ASSERT(ilen == strlen((char *) buf));
-    TEST_ASSERT(memcmp((char *) buf, (char *) check_buf, ilen) == 0);
-
-exit:
-    mbedtls_pk_free(&key);
+    pk_write_check_common(key_file, 0, is_der);
+    goto exit; /* make the compiler happy */
 }
 /* END_CASE */

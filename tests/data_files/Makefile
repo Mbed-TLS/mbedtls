@@ -348,6 +348,30 @@ server5-directoryname.crt.der: server5.key
 server5-two-directorynames.crt.der: server5.key
 	$(OPENSSL) req -x509 -outform der -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS directoryName SAN" -set_serial 77 -config $(test_ca_config_file) -extensions two_directorynames -days 3650 -sha256 -key server5.key -out $@
 
+server5-der0.crt: server5.crt.der
+	cp $< $@
+server5-der1a.crt: server5.crt.der
+	cp $< $@
+	echo '00' | xxd -r -p | dd of=$@ bs=1 seek=$(shell du -b $< | cut -f1) conv=notrunc
+server5-der1b.crt: server5.crt.der
+	cp $< $@
+	echo 'c1' | xxd -r -p | dd of=$@ bs=1 seek=$(shell du -b $< | cut -f1) conv=notrunc
+server5-der2.crt: server5.crt.der
+	cp $< $@
+	echo 'b90a' | xxd -r -p | dd of=$@ bs=1 seek=$(shell du -b $< | cut -f1) conv=notrunc
+server5-der4.crt: server5.crt.der
+	cp $< $@
+	echo 'a710945f' | xxd -r -p | dd of=$@ bs=1 seek=$(shell du -b $< | cut -f1) conv=notrunc
+server5-der8.crt: server5.crt.der
+	cp $< $@
+	echo 'a4a7ff27267aaa0f' | xxd -r -p | dd of=$@ bs=1 seek=$(shell du -b $< | cut -f1) conv=notrunc
+server5-der9.crt: server5.crt.der
+	cp $< $@
+	echo 'cff8303376ffa47a29' | xxd -r -p | dd of=$@ bs=1 seek=$(shell du -b $< | cut -f1) conv=notrunc
+all_final += server5-der0.crt server5-der1b.crt server5-der4.crt \
+			 server5-der9.crt server5-der1a.crt server5-der2.crt \
+			 server5-der8.crt
+
 # directoryname sequence tag malformed
 server5-directoryname-seq-malformed.crt.der: server5-two-directorynames.crt.der
 	hexdump -ve '1/1 "%.2X"' $< | sed "s/62A4473045310B/62A4473145310B/" | xxd -r -p > $@

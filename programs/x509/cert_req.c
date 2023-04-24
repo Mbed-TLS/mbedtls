@@ -66,7 +66,7 @@ int main(void)
     "    output_file=%%s      default: cert.req\n"      \
     "    subject_name=%%s     default: CN=Cert,O=mbed TLS,C=UK\n"   \
     "    san=%%s              default: (none)\n"       \
-    "                        Comma-separated-list of values:\n"     \
+    "                        Semicolon-separated-list of values:\n"     \
     "                          DNS:value\n"            \
     "                          URI:value\n"            \
     "                          IP:value (Only IPv4 is supported)\n"             \
@@ -119,7 +119,7 @@ struct options {
 static void ip_string_to_bytes(const char *str, uint8_t *bytes, int maxBytes)
 {
     for (int i = 0; i < maxBytes; i++) {
-        bytes[i] = (uint8_t) strtoul(str, NULL, 16);
+        bytes[i] = (uint8_t) strtoul(str, NULL, 10);
         str = strchr(str, '.');
         if (str == NULL || *str == '\0') {
             break;

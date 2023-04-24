@@ -136,12 +136,12 @@ int main(void)
     "                            Possible values: 0, 1\n"   \
     "                            (Considered for v3 only)\n" \
     "    san=%%s                   default: (none)\n"       \
-    "                            Comma-separated-list of values:\n" \
+    "                            Semicolon-separated-list of values:\n" \
     "                             DNS:value\n"            \
     "                             URI:value\n"            \
     "                             RFC822:value\n"         \
     "                             IP:value (Only IPv4 is supported)\n" \
-    "                             DN:value\n"             \
+    "                             DN:list of comma separated key=value pairs\n"\
     "    authority_identifier=%%s default: 1\n"             \
     "                            Possible values: 0, 1\n"   \
     "                            (Considered for v3 only)\n" \
@@ -219,7 +219,7 @@ struct options {
 static void ip_string_to_bytes(const char *str, uint8_t *bytes, int maxBytes)
 {
     for (int i = 0; i < maxBytes; i++) {
-        bytes[i] = (uint8_t) strtoul(str, NULL, 16);
+        bytes[i] = (uint8_t) strtoul(str, NULL, 10);
         str = strchr(str, '.');
         if (str == NULL || *str == '\0') {
             break;

@@ -18,7 +18,7 @@ static void fix_new_lines(unsigned char *in_str, size_t *len)
         if (in_str[i] == '\r') {
             if (i < (*len - 1)) {
                 chars_left = *len - i - 1;
-                memcpy(&in_str[i], &in_str[i+1], chars_left);
+                memmove(&in_str[i], &in_str[i+1], chars_left);
             } else {
                 in_str[i] = '\0';
             }

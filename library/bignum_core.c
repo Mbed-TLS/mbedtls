@@ -33,16 +33,6 @@
 #include "bn_mul.h"
 #include "constant_time_internal.h"
 
-/**
- * \brief          Count leading zeros
- *
- * \warning        The result is undefined if \p a == 0
- *
- * \param a        The value to operate on
- *
- * \return         The number of leading zeros, if \p a != 0. If \p a == 0, the result
- *                 is undefined.
- */
 inline size_t mbedtls_mpi_core_clz(mbedtls_mpi_uint a)
 {
 #if defined(__has_builtin)

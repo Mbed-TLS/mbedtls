@@ -102,9 +102,12 @@
 
 /** Count leading zero bits in a given integer.
  *
+ * \warning     The result is undefined if \p a == 0
+ *
  * \param a     Integer to count leading zero bits.
  *
- * \return      The number of leading zero bits in \p a.
+ * \return      The number of leading zero bits in \p a, if \p a != 0.
+ *              If \p a == 0, the result is undefined.
  */
 size_t mbedtls_mpi_core_clz(mbedtls_mpi_uint a);
 

@@ -1000,7 +1000,7 @@ ec_bp512_pub.comp.pem: ec_bp512_pub.pem
 all_final += ec_bp512_pub.comp.pem
 
 ################################################################
-#### Convert PEM keys in DER format
+#### Convert PEM keys to DER format
 ################################################################
 server1.pubkey.der: server1.pubkey
 	$(OPENSSL) pkey -pubin -in $< -out $@ -outform DER

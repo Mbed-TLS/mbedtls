@@ -5575,7 +5575,14 @@ static inline int ecp_mod_koblitz(mbedtls_mpi_uint *X,
 
         /* X = A0 + R * A1 */
         mbedtls_mpi_core_mul(M, A1, A1_limbs, R, R_limbs);
-        mbedtls_mpi_core_add(X, X, M, A1_limbs + R_limbs);
+        (void) mbedtls_mpi_core_add(X, X, M, A1_limbs + R_limbs);
+
+        /* Carry can not be generated since R is a 33-bit value and stored in
+         * 64 bits. The result value of the multiplication is at most
+         * P length + 33 bits in length and the result value of the addition
+         * is at most P length + 34 bits in length. So the result of the
+         * addition always fits in P length + 64 bits.
+         */
     }
 
 cleanup:

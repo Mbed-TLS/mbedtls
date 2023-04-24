@@ -1131,7 +1131,7 @@ exit:
 void pk_rsa_overflow()
 {
     mbedtls_pk_context pk;
-    size_t hash_len = SIZE_MAX, sig_len = SIZE_MAX;
+    size_t hash_len = UINT_MAX + 1, sig_len = UINT_MAX + 1;
     unsigned char hash[50], sig[100];
 
     mbedtls_pk_init(&pk);

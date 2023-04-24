@@ -4015,6 +4015,7 @@
  * detection will be used to select between them.
  *
  * If only one implementation is present, runtime detection will not be used.
+ * This configuration will crash if running on the CPU without needed features.
  */
 //#define MBEDTLS_AES_USE_HARDWARE_ONLY
 

@@ -423,6 +423,30 @@ server5-directoryname.crt.der: server5.key
 server5-two-directorynames.crt.der: server5.key
 	$(OPENSSL) req -x509 -outform der -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS directoryName SAN" -set_serial 77 -config $(test_ca_config_file) -extensions two_directorynames -days 3650 -sha256 -key server5.key -out $@
 
+server5-der0.crt: server5.crt.der
+	cp $< $@
+server5-der1a.crt: server5.crt.der
+	cp $< $@
+	echo '00' | xxd -r -p | dd of=$@ bs=1 seek=$(shell du -b $< | cut -f1) conv=notrunc
+server5-der1b.crt: server5.crt.der
+	cp $< $@
+	echo 'c1' | xxd -r -p | dd of=$@ bs=1 seek=$(shell du -b $< | cut -f1) conv=notrunc
+server5-der2.crt: server5.crt.der
+	cp $< $@
+	echo 'b90a' | xxd -r -p | dd of=$@ bs=1 seek=$(shell du -b $< | cut -f1) conv=notrunc
+server5-der4.crt: server5.crt.der
+	cp $< $@
+	echo 'a710945f' | xxd -r -p | dd of=$@ bs=1 seek=$(shell du -b $< | cut -f1) conv=notrunc
+server5-der8.crt: server5.crt.der
+	cp $< $@
+	echo 'a4a7ff27267aaa0f' | xxd -r -p | dd of=$@ bs=1 seek=$(shell du -b $< | cut -f1) conv=notrunc
+server5-der9.crt: server5.crt.der
+	cp $< $@
+	echo 'cff8303376ffa47a29' | xxd -r -p | dd of=$@ bs=1 seek=$(shell du -b $< | cut -f1) conv=notrunc
+all_final += server5-der0.crt server5-der1b.crt server5-der4.crt \
+			 server5-der9.crt server5-der1a.crt server5-der2.crt \
+			 server5-der8.crt
+
 # directoryname sequence tag malformed
 server5-directoryname-seq-malformed.crt.der: server5-two-directorynames.crt.der
 	hexdump -ve '1/1 "%.2X"' $< | sed "s/62A4473045310B/62A4473145310B/" | xxd -r -p > $@
@@ -1310,7 +1334,9 @@ all_intermediate += server5.csr
 server5.crt: server5.csr
 	$(OPENSSL) x509 -req -CA $(test_ca_crt_cat21) -CAkey $(test_ca_key_file_ec) \
 				-extfile server5.crt.openssl.v3_ext -set_serial 9 -days 3650 -sha256 -in $< -out $@
-# server5.crt: server5.key
+all_final += server5.crt
+
+
 # The use of 'Server 1' in the DN is intentional here, as the DN is hardcoded in the x509_write test suite.'
 server5.req.ku.sha1: server5.key
 	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< key_usage=digital_signature,non_repudiation subject_name="C=NL,O=PolarSSL,CN=PolarSSL Server 1" md=SHA1

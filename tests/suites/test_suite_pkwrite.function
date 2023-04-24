@@ -8,7 +8,7 @@ typedef enum {
     TEST_DER
 } pkwrite_file_format_t;
 
-/* Helper function for removing "\r" chars from a buffer. This i */
+/* Helper function for removing "\r" chars from a buffer. */
 static void fix_new_lines(unsigned char *in_str, size_t *len)
 {
     size_t chars_left;

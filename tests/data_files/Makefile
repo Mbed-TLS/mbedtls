@@ -889,7 +889,7 @@ ec_prv.pk8param.pem: ec_prv.pk8param.der
 all_final += ec_prv.pk8param.pem
 
 ################################################################
-#### Convert PEM keys in DER format
+#### Convert PEM keys to DER format
 ################################################################
 server1.pubkey.der: server1.pubkey
 	$(OPENSSL) pkey -pubin -in $< -out $@ -outform DER

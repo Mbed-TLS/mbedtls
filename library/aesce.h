@@ -35,7 +35,11 @@
 #define MBEDTLS_HAVE_ARM64
 #endif
 
-/* MSVC */
+/* MSVC
+ * TODO: We haven't verified msvc from 1920 to 1928. If someone verified that,
+ *       please update this and document of `MBEDTLS_AESCE_C` in
+ *       `mbedtls_config.h`
+ */
 #if defined(_MSC_VER) && _MSC_VER >=1929 && \
     (defined(_M_ARM64) || defined(_M_ARM64EC))
 #define MBEDTLS_HAVE_ARM64

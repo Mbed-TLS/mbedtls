@@ -2076,11 +2076,14 @@
  * Module:  library/aesce.c
  * Caller:  library/aes.c
  *
- * Requires: MBEDTLS_HAVE_ASM, MBEDTLS_AES_C
+ * Requires: MBEDTLS_AES_C
  *
  * \warning Runtime detection only works on Linux. For non-Linux operating
  *          system, Armv8-A Cryptographic Extensions must be supported by
  *          the CPU when this option is enabled.
+ *
+ * \note    The minimum version of MSVC for building this module is "Visual
+ *          Studio 2019 version 16.11.2"(`_MSC_VER >= 1929`)
  *
  * This module adds support for the AES Armv8-A Cryptographic Extensions on Aarch64 systems.
  */

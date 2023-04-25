@@ -104,9 +104,6 @@ void mbedtls_mpi_core_bigendian_to_host(mbedtls_mpi_uint *A,
 {
     mbedtls_mpi_uint *cur_limb_left;
     mbedtls_mpi_uint *cur_limb_right;
-    if (A_limbs == 0) {
-        return;
-    }
 
     /*
      * Traverse limbs and
@@ -193,13 +190,10 @@ int mbedtls_mpi_core_read_le(mbedtls_mpi_uint *X,
         return MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL;
     }
 
-    if (X != NULL) {
-        memset(X, 0, X_limbs * ciL);
-
-        for (size_t i = 0; i < input_length; i++) {
-            size_t offset = ((i % ciL) << 3);
-            X[i / ciL] |= ((mbedtls_mpi_uint) input[i]) << offset;
-        }
+    memset(X, 0, X_limbs * ciL);
+    for (size_t i = 0; i < input_length; i++) {
+        size_t offset = ((i % ciL) << 3);
+        X[i / ciL] |= ((mbedtls_mpi_uint) input[i]) << offset;
     }
 
     return 0;
@@ -214,12 +208,6 @@ int mbedtls_mpi_core_read_be(mbedtls_mpi_uint *X,
 
     if (X_limbs < limbs) {
         return MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL;
-    }
-
-    /* If X_limbs is 0, input_length must also be 0 (from previous test).
-     * Nothing to do. */
-    if (X_limbs == 0) {
-        return 0;
     }
 
     memset(X, 0, X_limbs * ciL);

@@ -190,8 +190,8 @@ int mbedtls_x509write_crt_set_subject_alternative_name(mbedtls_x509write_cert *c
                 break;
             }
             default:
-                /* Not supported - skip. */
-                break;
+                /* Not supported - return. */
+                return MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE;
         }
     }
 
@@ -249,8 +249,9 @@ int mbedtls_x509write_crt_set_subject_alternative_name(mbedtls_x509write_cert *c
                                                                     MBEDTLS_X509_SAN_DIRECTORY_NAME));
                 break;
             default:
-                /* Skip unsupported names. */
-                break;
+                /* Error out on an unsupported SAN */
+                ret = MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE;
+                goto cleanup;
         }
         cur = cur->next;
         len += single_san_len;

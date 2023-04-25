@@ -4015,7 +4015,9 @@
  * detection will be used to select between them.
  *
  * If only one implementation is present, runtime detection will not be used.
- * This configuration will crash if running on the CPU without needed features.
+ * This configuration will crash at runtime if running on a CPU without the
+ * necessary features. It will not build unless at least one of MBEDTLS_AESCE_C,
+ * MBEDTLS_AESNI_C and/or MBEDTLS_PADLOCK_C is enabled & present in the build.
  */
 //#define MBEDTLS_AES_USE_HARDWARE_ONLY
 

@@ -120,3 +120,17 @@ void time_delay_seconds(int delay_secs)
     goto exit;
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void check_mbedtls_calloc_zeroization()
+{
+    unsigned int buf_size = 256;
+    unsigned char *buf;
+    buf = mbedtls_calloc(buf_size, sizeof(unsigned char));
+    for (unsigned int i = 0; i < buf_size; i++) {
+        TEST_EQUAL(buf[i], 0);
+    }
+exit:
+    mbedtls_free(buf);
+}
+/* END_CASE */

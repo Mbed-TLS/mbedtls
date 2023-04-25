@@ -349,6 +349,8 @@ size_t mbedtls_mpi_lsb(const mbedtls_mpi *X)
  */
 size_t mbedtls_mpi_bitlen(const mbedtls_mpi *X)
 {
+    if (X->n == 0)
+        return 0;
     return mbedtls_mpi_core_bitlen(X->p, X->n);
 }
 

@@ -53,10 +53,6 @@ size_t mbedtls_mpi_core_bitlen(const mbedtls_mpi_uint *A, size_t A_limbs)
 {
     size_t i, j;
 
-    if (A_limbs == 0) {
-        return 0;
-    }
-
     for (i = A_limbs - 1; i > 0; i--) {
         if (A[i] != 0) {
             break;

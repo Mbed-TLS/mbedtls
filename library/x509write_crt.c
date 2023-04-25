@@ -170,6 +170,7 @@ int mbedtls_x509write_crt_set_subject_alternative_name(mbedtls_x509write_cert *c
             case MBEDTLS_X509_SAN_DNS_NAME:
             case MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER:
             case MBEDTLS_X509_SAN_IP_ADDRESS:
+            case MBEDTLS_X509_SAN_RFC822_NAME:
                 /* length of value for each name entry,
                  * maximum 4 bytes for the length field,
                  * 1 byte for the tag/type.

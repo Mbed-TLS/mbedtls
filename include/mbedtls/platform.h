@@ -140,6 +140,7 @@ extern "C" {
 
 /*
  * The function pointers for calloc and free.
+ * mbedtls_calloc will allocate and zeroize the buffer.
  */
 #if defined(MBEDTLS_PLATFORM_MEMORY)
 #if defined(MBEDTLS_PLATFORM_FREE_MACRO) && \

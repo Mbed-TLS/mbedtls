@@ -141,7 +141,7 @@ int main(void)
     "                             URI:value\n"            \
     "                             RFC822:value\n"         \
     "                             IP:value (Only IPv4 is supported)\n" \
-    "                             DN:list of comma separated key=value pairs\n"\
+    "                             DN:list of comma separated key=value pairs\n" \
     "    authority_identifier=%%s default: 1\n"             \
     "                            Possible values: 0, 1\n"   \
     "                            (Considered for v3 only)\n" \

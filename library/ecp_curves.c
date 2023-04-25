@@ -5528,7 +5528,6 @@ static inline int ecp_mod_koblitz(mbedtls_mpi *N, mbedtls_mpi_uint *Rp, size_t p
                                   size_t adjust, size_t shift, mbedtls_mpi_uint mask)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t i;
     mbedtls_mpi M, R;
     mbedtls_mpi_uint Mp[P_KOBLITZ_MAX + P_KOBLITZ_R + 1];
 
@@ -5545,55 +5544,31 @@ static inline int ecp_mod_koblitz(mbedtls_mpi *N, mbedtls_mpi_uint *Rp, size_t p
     M.s = 1;
     M.p = Mp;
 
-    /* M = A1 */
-    M.n = N->n - (p_limbs - adjust);
-    if (M.n > p_limbs + adjust) {
-        M.n = p_limbs + adjust;
-    }
-    memset(Mp, 0, sizeof(Mp));
-    memcpy(Mp, N->p + p_limbs - adjust, M.n * sizeof(mbedtls_mpi_uint));
-    if (shift != 0) {
-        MBEDTLS_MPI_CHK(mbedtls_mpi_shift_r(&M, shift));
-    }
-    M.n += R.n; /* Make room for multiplication by R */
+    for (size_t pass = 0; pass < 2; pass++) {
+        /* M = A1 */
+        M.n = N->n - (p_limbs - adjust);
+        if (M.n > p_limbs + adjust) {
+            M.n = p_limbs + adjust;
+        }
+        memset(Mp, 0, sizeof(Mp));
+        memcpy(Mp, N->p + p_limbs - adjust, M.n * sizeof(mbedtls_mpi_uint));
+        if (shift != 0) {
+            MBEDTLS_MPI_CHK(mbedtls_mpi_shift_r(&M, shift));
+        }
+        M.n += R.n; /* Make room for multiplication by R */
 
-    /* N = A0 */
-    if (mask != 0) {
-        N->p[p_limbs - 1] &= mask;
-    }
-    for (i = p_limbs; i < N->n; i++) {
-        N->p[i] = 0;
-    }
+        /* N = A0 */
+        if (mask != 0) {
+            N->p[p_limbs - 1] &= mask;
+        }
+        for (size_t i = p_limbs; i < N->n; i++) {
+            N->p[i] = 0;
+        }
 
-    /* N = A0 + R * A1 */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_mul_mpi(&M, &M, &R));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_add_abs(N, N, &M));
-
-    /* Second pass */
-
-    /* M = A1 */
-    M.n = N->n - (p_limbs - adjust);
-    if (M.n > p_limbs + adjust) {
-        M.n = p_limbs + adjust;
+        /* N = A0 + R * A1 */
+        MBEDTLS_MPI_CHK(mbedtls_mpi_mul_mpi(&M, &M, &R));
+        MBEDTLS_MPI_CHK(mbedtls_mpi_add_abs(N, N, &M));
     }
-    memset(Mp, 0, sizeof(Mp));
-    memcpy(Mp, N->p + p_limbs - adjust, M.n * sizeof(mbedtls_mpi_uint));
-    if (shift != 0) {
-        MBEDTLS_MPI_CHK(mbedtls_mpi_shift_r(&M, shift));
-    }
-    M.n += R.n; /* Make room for multiplication by R */
-
-    /* N = A0 */
-    if (mask != 0) {
-        N->p[p_limbs - 1] &= mask;
-    }
-    for (i = p_limbs; i < N->n; i++) {
-        N->p[i] = 0;
-    }
-
-    /* N = A0 + R * A1 */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_mul_mpi(&M, &M, &R));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_add_abs(N, N, &M));
 
 cleanup:
     return ret;

@@ -301,11 +301,7 @@ void mpi_core_bitlen(char *input_X, int nr_bits)
     mbedtls_mpi_uint *X = NULL;
     size_t limbs;
 
-    if (strlen(input_X) == 0) {
-        limbs = 0;
-    } else {
-        TEST_EQUAL(mbedtls_test_read_mpi_core(&X, &limbs, input_X), 0);
-    }
+    TEST_EQUAL(mbedtls_test_read_mpi_core(&X, &limbs, input_X), 0);
     TEST_EQUAL(mbedtls_mpi_core_bitlen(X, limbs), nr_bits);
 
 exit:

@@ -167,6 +167,23 @@ static int run_test_snprintf(void)
            test_snprintf(5, "123",         3) != 0;
 }
 
+static int run_test_mbedtls_calloc(void)
+{
+    unsigned int buf_size = 256;
+    unsigned char *buf;
+    int ret = -1;
+    buf = mbedtls_calloc(buf_size, sizeof(unsigned char));
+    for (unsigned int i = 0; i < buf_size; i++) {
+        if (buf[i] != 0) {
+            ret = -1;
+            goto exit;
+        }
+    }
+    ret = 0;
+exit:
+    mbedtls_free(buf);
+    return ret;
+}
 /*
  * Check if a seed file is present, and if not create one for the entropy
  * self-test. If this fails, we attempt the test anyway, so no error is passed
@@ -373,6 +390,12 @@ int main(int argc, char *argv[])
      */
     if (run_test_snprintf() != 0) {
         mbedtls_printf("the snprintf implementation is broken\n");
+        mbedtls_exit(MBEDTLS_EXIT_FAILURE);
+    }
+
+    /* Make sure that mbedtls_calloc zeroizes the buffer */
+    if (run_test_mbedtls_calloc() != 0) {
+        mbedtls_printf("the calloc implementation does not zeroize the buffer\n");
         mbedtls_exit(MBEDTLS_EXIT_FAILURE);
     }
 

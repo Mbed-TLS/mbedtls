@@ -52,7 +52,8 @@ extern "C" {
  * Roles in the EC J-PAKE exchange
  */
 typedef enum {
-    MBEDTLS_ECJPAKE_CLIENT = 0,         /**< Client                         */
+    MBEDTLS_ECJPAKE_NONE = 0,           /**< Undefined                      */
+    MBEDTLS_ECJPAKE_CLIENT,             /**< Client                         */
     MBEDTLS_ECJPAKE_SERVER,             /**< Server                         */
 } mbedtls_ecjpake_role;
 

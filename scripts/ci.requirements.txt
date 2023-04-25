@@ -10,3 +10,8 @@ pylint == 2.4.4
 # Use the earliest version of mypy that works with our code base.
 # See https://github.com/Mbed-TLS/mbedtls/pull/3953 .
 mypy >= 0.780
+
+# Install cryptography to avoid import-error reported by pylint.
+# What we really need is cryptography >= 35.0.0, which is only
+# available for Python >= 3.6.
+cryptography # >= 35.0.0

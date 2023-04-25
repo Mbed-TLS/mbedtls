@@ -34,14 +34,20 @@ import logging
 from enum import Enum
 
 # The script requires cryptography >= 35.0.0 which is only available
-# for Python >= 3.6. Disable the pylint error here until we were
-# using modern system on our CI.
-from cryptography import x509 #pylint: disable=import-error
+# for Python >= 3.6.
+import cryptography
+from cryptography import x509
 
 from generate_test_code import FileWrapper
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import build_tree
+
+def check_cryptography_version():
+    match = re.match(r'^[0-9]+', cryptography.__version__)
+    if match is None or int(match[0]) < 35:
+        raise Exception("audit-validity-dates requires cryptography >= 35.0.0"
+                        + "({} is too old)".format(cryptography.__version__))
 
 class DataType(Enum):
     CRT = 1 # Certificate
@@ -460,5 +466,6 @@ def main():
 
     logger.debug("Done!")
 
+check_cryptography_version()
 if __name__ == "__main__":
     main()

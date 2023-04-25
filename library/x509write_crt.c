@@ -203,8 +203,6 @@ int mbedtls_x509write_crt_set_subject_alternative_name(mbedtls_x509write_cert *c
     if (buf == NULL) {
         return MBEDTLS_ERR_ASN1_ALLOC_FAILED;
     }
-
-    mbedtls_platform_zeroize(buf, buflen);
     p = buf + buflen;
 
     /* Write ASN.1-based structure */

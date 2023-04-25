@@ -289,9 +289,6 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
             goto error;
         }
 
-        /* Role has been set, release user/peer buffers. */
-        mbedtls_free(user); mbedtls_free(peer);
-
         operation->buffer_length = 0;
         operation->buffer_offset = 0;
 
@@ -299,6 +296,9 @@ psa_status_t mbedtls_psa_pake_setup(mbedtls_psa_pake_operation_t *operation,
         if (status != PSA_SUCCESS) {
             goto error;
         }
+
+        /* Role has been set, release user/peer buffers. */
+        mbedtls_free(user); mbedtls_free(peer);
 
         return PSA_SUCCESS;
     } else

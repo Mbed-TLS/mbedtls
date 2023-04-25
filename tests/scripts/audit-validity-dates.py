@@ -18,8 +18,8 @@
 """Audit validity date of X509 crt/crl/csr.
 
 This script is used to audit the validity date of crt/crl/csr used for testing.
-It would print the information about X.509 data if the validity period of the
-X.509 data didn't cover the provided validity period. The data are collected
+It prints the information about X.509 objects excluding the objects that
+are valid throughout the desired validity period. The data are collected
 from tests/data_files/ and tests/suites/*.data files by default.
 """
 
@@ -399,13 +399,13 @@ def main():
     parser.add_argument('-v', '--verbose',
                         action='store_true', dest='verbose',
                         help='show logs')
-    parser.add_argument('--not-before', dest='not_before',
-                        help=('not valid before this date (UTC, YYYY-MM-DD). '
+    parser.add_argument('--from', dest='start_date',
+                        help=('Start of desired validity period (UTC, YYYY-MM-DD). '
                               'Default: today'),
                         metavar='DATE')
-    parser.add_argument('--not-after', dest='not_after',
-                        help=('not valid after this date (UTC, YYYY-MM-DD). '
-                              'Default: not-before'),
+    parser.add_argument('--to', dest='end_date',
+                        help=('End of desired validity period (UTC, YYYY-MM-DD). '
+                              'Default: --from'),
                         metavar='DATE')
     parser.add_argument('--data-files', action='append', nargs='*',
                         help='data files to audit',
@@ -437,15 +437,15 @@ def main():
             suite_data_files = [x for l in args.suite_data_files for x in l]
 
     # validity period start date
-    if args.not_before:
-        not_before_date = datetime.datetime.fromisoformat(args.not_before)
+    if args.start_date:
+        start_date = datetime.datetime.fromisoformat(args.start_date)
     else:
-        not_before_date = datetime.datetime.today()
+        start_date = datetime.datetime.today()
     # validity period end date
-    if args.not_after:
-        not_after_date = datetime.datetime.fromisoformat(args.not_after)
+    if args.end_date:
+        end_date = datetime.datetime.fromisoformat(args.end_date)
     else:
-        not_after_date = not_before_date
+        end_date = start_date
 
     # go through all the files
     td_auditor.walk_all(data_files)
@@ -454,8 +454,8 @@ def main():
 
     # we filter out the files whose validity duration covers the provided
     # duration.
-    filter_func = lambda d: (not_before_date < d.not_valid_before) or \
-                            (d.not_valid_after < not_after_date)
+    filter_func = lambda d: (start_date < d.not_valid_before) or \
+                            (d.not_valid_after < end_date)
 
     if args.all:
         filter_func = None

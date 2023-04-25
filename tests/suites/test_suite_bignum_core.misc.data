@@ -155,6 +155,9 @@ mpi_core_bitlen:"10":5
 Test mbedtls_mpi_core_bitlen 0x0a
 mpi_core_bitlen:"a":4
 
+Test mbedtls_mpi_core_bitlen: 0 limbs
+mpi_core_bitlen:"":0
+
 Test mbedtls_mpi_core_bitlen: 0 (1 limb)
 mpi_core_bitlen:"0":0
 

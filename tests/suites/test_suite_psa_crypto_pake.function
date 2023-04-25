@@ -983,8 +983,7 @@ void pake_input_getters_password()
                                                    &buffer_len_ret),
                PSA_SUCCESS);
 
-    TEST_EQUAL(buffer_len_ret, strlen(password));
-    PSA_ASSERT(memcmp(password_ret, password, buffer_len_ret));
+    ASSERT_COMPARE(password_ret, buffer_len_ret, password, strlen(password));
 exit:
     PSA_ASSERT(psa_destroy_key(key));
     PSA_ASSERT(psa_pake_abort(&operation));
@@ -1017,7 +1016,8 @@ void pake_input_getters_cipher_suite()
     TEST_EQUAL(psa_crypto_driver_pake_get_cipher_suite(&operation.data.inputs, &cipher_suite_ret),
                PSA_SUCCESS);
 
-    PSA_ASSERT(memcmp(&cipher_suite_ret, &cipher_suite, sizeof(cipher_suite)));
+    ASSERT_COMPARE(&cipher_suite_ret, sizeof(cipher_suite_ret),
+                   &cipher_suite, sizeof(cipher_suite));
 
 exit:
     PSA_ASSERT(psa_pake_abort(&operation));
@@ -1080,8 +1080,7 @@ void pake_input_getters_user()
                                                    &buffer_len_ret),
                    PSA_SUCCESS);
 
-        TEST_EQUAL(buffer_len_ret, user_len);
-        PSA_ASSERT(memcmp(user_ret, user, buffer_len_ret));
+        ASSERT_COMPARE(user_ret, buffer_len_ret, user, user_len);
     }
 exit:
     PSA_ASSERT(psa_pake_abort(&operation));
@@ -1144,8 +1143,7 @@ void pake_input_getters_peer()
                                                    &buffer_len_ret),
                    PSA_SUCCESS);
 
-        TEST_EQUAL(buffer_len_ret, peer_len);
-        PSA_ASSERT(memcmp(peer_ret, peer, buffer_len_ret));
+        ASSERT_COMPARE(peer_ret, buffer_len_ret, peer, peer_len);
     }
 exit:
     PSA_ASSERT(psa_pake_abort(&operation));

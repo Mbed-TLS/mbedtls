@@ -1565,41 +1565,40 @@ void ecp_mod_mul_inv(char *input_A, int id, int ctype, int iret)
     mbedtls_mpi_uint *p = NULL;
     mbedtls_mpi_uint *bufx = NULL;
     mbedtls_mpi_uint Result = 1;
-    size_t p_limbs;
 
     ret = mbedtls_ecp_modulus_setup(&m, id, ctype);
     TEST_EQUAL(ret, iret);
 
-    TEST_EQUAL(mbedtls_test_read_mpi_core(&p, &p_limbs, input_A), 0);
-    TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&A, &m, p, p_limbs));
-
     if (ret == 0) {
 
+        size_t limbs;
+
+        TEST_EQUAL(mbedtls_test_read_mpi_core(&p, &limbs, input_A), 0);
+        TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&A, &m, p, limbs));
+
         /* Test for limb sizes */
-        TEST_EQUAL(m.limbs, p_limbs);
+        TEST_EQUAL(m.limbs, limbs);
 
         /* Test for validity of moduli by the presence of Montgomery consts */
 
         TEST_ASSERT(m.rep.mont.mm != 0);
         TEST_ASSERT(m.rep.mont.rr != NULL);
 
-        size_t limbs = m.limbs;
-
         ASSERT_ALLOC(p_inverse, limbs);
-
         TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&A_inverse, &m, p_inverse, limbs));
 
         ASSERT_ALLOC(rX_raw, limbs);
-
         TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&rX, &m, rX_raw, limbs));
 
+        /* Get inverse of A mode m, and multiply it with itself,
+         * to see whether the result equal to '1' */
         TEST_EQUAL(0, mbedtls_mpi_mod_inv(&A_inverse, &A, &m));
-
         TEST_EQUAL(mbedtls_mpi_mod_mul(&rX, &A, &A_inverse, &m), 0);
 
         ASSERT_ALLOC(bufx, limbs);
-        TEST_EQUAL(mbedtls_mpi_mod_write(&rX, &m, (unsigned char *)bufx, p_limbs * sizeof(mbedtls_mpi_uint), MBEDTLS_MPI_MOD_EXT_REP_LE), 0);
-
+        TEST_EQUAL(mbedtls_mpi_mod_write(&rX, &m, (unsigned char *)bufx,
+                                         limbs * sizeof(mbedtls_mpi_uint),
+                                         MBEDTLS_MPI_MOD_EXT_REP_LE), 0);
         TEST_EQUAL(memcmp(bufx, &Result, sizeof(mbedtls_mpi_uint)), 0);
 
         /* Test for user free-ing allocated memory */

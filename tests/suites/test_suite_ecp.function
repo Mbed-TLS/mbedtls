@@ -1433,6 +1433,45 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_ECP_DP_SECP256K1_ENABLED */
+void ecp_mod_p256k1(char *input_N,
+                    char *input_X,
+                    char *result)
+{
+    mbedtls_mpi X;
+    mbedtls_mpi N;
+    mbedtls_mpi res;
+
+    mbedtls_mpi_init(&X);
+    mbedtls_mpi_init(&N);
+    mbedtls_mpi_init(&res);
+
+    TEST_EQUAL(mbedtls_test_read_mpi(&X,   input_X), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&N,   input_N), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&res, result),  0);
+
+    TEST_ASSERT(mbedtls_mpi_core_uint_le_mpi(0, X.p, X.n));
+    TEST_ASSERT(mbedtls_mpi_core_uint_le_mpi(0, N.p, N.n));
+    TEST_ASSERT(mbedtls_mpi_core_uint_le_mpi(0, res.p, res.n));
+
+    size_t limbs = N.n;
+    size_t bytes = limbs * sizeof(mbedtls_mpi_uint);
+
+    TEST_LE_U(X.n, 2 * limbs);
+    TEST_EQUAL(res.n, limbs);
+
+    TEST_EQUAL(mbedtls_ecp_mod_p256k1(&X), 0);
+    TEST_EQUAL(mbedtls_mpi_mod_mpi(&X, &X, &N), 0);
+    TEST_LE_U(mbedtls_mpi_core_bitlen(X.p, X.n), 256);
+    ASSERT_COMPARE(X.p, bytes, res.p, bytes);
+
+exit:
+    mbedtls_mpi_free(&X);
+    mbedtls_mpi_free(&N);
+    mbedtls_mpi_free(&res);
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
 void ecp_mod_setup(char *input_A, int id, int ctype, int iret)
 {

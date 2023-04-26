@@ -187,15 +187,7 @@ pre_initialize_variables () {
 
     # CFLAGS and LDFLAGS for Asan builds that don't use CMake
     # default to -O2, use -Ox _after_ this if you want another level
-    : ${LD_PRELOAD:=}
-    if [ -z "$LD_PRELOAD" ]
-    then
-        ASAN_CFLAGS='-O2 -Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
-        CMAKE_BUILD_TYPE_WITH_ASAN="-D CMAKE_BUILD_TYPE:String=Asan"
-    else
-        ASAN_CFLAGS=
-        CMAKE_BUILD_TYPE_WITH_ASAN=
-    fi
+    ASAN_CFLAGS='-O2 -Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
 
     # Gather the list of available components. These are the functions
     # defined in this script whose name starts with "component_".
@@ -801,7 +793,7 @@ pre_check_tools () {
 pre_faketime() {
     mkdir -p faketime
     cd faketime
-    wget -nc https://github.com/wolfcw/libfaketime/archive/refs/tags/v0.9.10.tar.gz
+    wget -nc --no-check-certificate https://github.com/wolfcw/libfaketime/archive/refs/tags/v0.9.10.tar.gz
     tar xf v0.9.10.tar.gz
     cd libfaketime-0.9.10
     make PREFIX= LIBDIRNAME=$PWD
@@ -809,7 +801,7 @@ pre_faketime() {
     cd ../..
 
     # Edit here to change the date at which tests pretend to run
-    : ${FAKETIME="2024-01-01 00:00:00"}
+    : ${FAKETIME="+4y"}
     export FAKETIME
 }
 
@@ -4380,8 +4372,14 @@ run_component () {
         fi
         if [[ $current_component = component_test_* ]]; then
             export LD_PRELOAD="$LIBFAKETIME"
+            export FAKETIME="+4y"
+            ASAN_CFLAGS=
+            CMAKE_BUILD_TYPE_WITH_ASAN=
         else
+            ASAN_CFLAGS='-O2 -Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
+            CMAKE_BUILD_TYPE_WITH_ASAN="-D CMAKE_BUILD_TYPE:String=Asan"
             unset FAKETIME
+            unset LD_PRELOAD
         fi
         if [ $KEEP_GOING -eq 1 ]; then
             # Keep "set -e" off, and run an ERR trap instead to record failures.

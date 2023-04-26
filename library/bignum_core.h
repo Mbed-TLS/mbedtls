@@ -109,7 +109,38 @@
  * \return      The number of leading zero bits in \p a, if \p a != 0.
  *              If \p a == 0, the result is undefined.
  */
-size_t mbedtls_mpi_core_clz(mbedtls_mpi_uint a);
+static inline size_t mbedtls_mpi_core_clz(mbedtls_mpi_uint a)
+{
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_clz)
+    if (sizeof(mbedtls_mpi_uint) == sizeof(unsigned int)) {
+        return (size_t) __builtin_clz(a);
+    }
+#endif
+#if __has_builtin(__builtin_clzl)
+    if (sizeof(mbedtls_mpi_uint) == sizeof(unsigned long)) {
+        return (size_t) __builtin_clzl(a);
+    }
+#endif
+#if __has_builtin(__builtin_clzll)
+    if (sizeof(mbedtls_mpi_uint) == sizeof(unsigned long long)) {
+        return (size_t) __builtin_clzll(a);
+    }
+#endif
+#endif
+    size_t j;
+    mbedtls_mpi_uint mask = (mbedtls_mpi_uint) 1 << (biL - 1);
+
+    for (j = 0; j < biL; j++) {
+        if (a & mask) {
+            break;
+        }
+
+        mask >>= 1;
+    }
+
+    return j;
+}
 
 /** Return the minimum number of bits required to represent the value held
  * in the MPI.

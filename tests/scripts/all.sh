@@ -781,7 +781,7 @@ pre_check_tools () {
 pre_faketime() {
     mkdir -p faketime
     cd faketime
-    wget -nc https://github.com/wolfcw/libfaketime/archive/refs/tags/v0.9.10.tar.gz
+    wget -nc --no-check-certificate https://github.com/wolfcw/libfaketime/archive/refs/tags/v0.9.10.tar.gz
     tar xf v0.9.10.tar.gz
     cd libfaketime-0.9.10
     make PREFIX= LIBDIRNAME=$PWD
@@ -789,7 +789,7 @@ pre_faketime() {
     cd ../..
 
     # Edit here to change the date at which tests pretend to run
-    : ${FAKETIME="2024-01-01 00:00:00"}
+    : ${FAKETIME="+4y"}
     export FAKETIME
 }
 

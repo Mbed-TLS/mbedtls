@@ -31,21 +31,10 @@
 #include "mbedtls/aes.h"
 
 #if !defined(MBEDTLS_HAVE_ARM64)
-#if defined(__GNUC__) && defined(__aarch64__)
-#define MBEDTLS_HAVE_ARM64
-#endif
-
-/* MSVC
- * TODO: We haven't verified msvc from 1920 to 1928. If someone verified that,
- *       please update this and document of `MBEDTLS_AESCE_C` in
- *       `mbedtls_config.h`
- */
-#if defined(_MSC_VER) && _MSC_VER >=1929 && \
-    (defined(_M_ARM64) || defined(_M_ARM64EC))
+#if defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM64EC)
 #define MBEDTLS_HAVE_ARM64
 #endif
 #endif
-
 
 #if defined(MBEDTLS_HAVE_ARM64)
 

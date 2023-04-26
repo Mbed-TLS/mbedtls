@@ -48,23 +48,28 @@
 
 #if defined(MBEDTLS_HAVE_ARM64)
 
+/* Compiler version checks. */
+#if defined(__clang__) && (__clang_major__ < 4)
+#   error "Minimum version of Clang for MBEDTLS_AESCE_C is 4.0."
+#elif defined(__GNUC__) && (__GNUC__ < 6)
+#   error "Minimum version of GCC for MBEDTLS_AESCE_C is 6.0."
+#elif defined(_MSC_VER) && (_MSC_VER < 1929)
+/* TODO: We haven't verified MSVC from 1920 to 1928. If someone verified that,
+ *       please update this and document of `MBEDTLS_AESCE_C` in
+ *       `mbedtls_config.h`. */
+#   error "Minimum version of MSVC for MBEDTLS_AESCE_C is 2019 version 16.11.2."
+#endif
+
 #if !defined(__ARM_FEATURE_AES) || defined(MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG)
 #   if defined(__clang__)
-#       if __clang_major__ < 4
-#           error "A more recent Clang is required for MBEDTLS_AESCE_C"
-#       endif
 #       pragma clang attribute push (__attribute__((target("crypto"))), apply_to=function)
 #       define MBEDTLS_POP_TARGET_PRAGMA
 #   elif defined(__GNUC__)
-#       if __GNUC__ < 6
-#           error "A more recent GCC is required for MBEDTLS_AESCE_C"
-#       endif
 #       pragma GCC push_options
 #       pragma GCC target ("arch=armv8-a+crypto")
 #       define MBEDTLS_POP_TARGET_PRAGMA
 #   elif defined(_MSC_VER)
-#   else
-#       error "Only MSVC, GCC and Clang supported for MBEDTLS_AESCE_C"
+#       error "Required feature(__ARM_FEATURE_AES) is not enabled."
 #   endif
 #endif /* !__ARM_FEATURE_AES || MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG */
 

@@ -171,7 +171,7 @@ import string
 import argparse
 
 
-# Types regognized as signed integer arguments in test functions.
+# Types recognized as signed integer arguments in test functions.
 SIGNED_INTEGER_TYPES = frozenset([
     'char',
     'short',

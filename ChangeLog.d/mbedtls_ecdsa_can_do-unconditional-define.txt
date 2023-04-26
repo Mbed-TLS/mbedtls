@@ -1,0 +1,4 @@
+Bugfix
+   * Removes !ECDSA_SIGN_ALT condition around mbedtls_ecdsa_can_do 
+     definition, so that mbedtls_ecdsa_verify_restartable will not 
+     automatically fail.

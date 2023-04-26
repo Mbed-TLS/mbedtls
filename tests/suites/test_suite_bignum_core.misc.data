@@ -491,3 +491,35 @@ mpi_core_fill_random:42:0:-1:0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 Fill random core: 42 bytes, 5 missing limbs
 mpi_core_fill_random:42:0:-5:0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
+CLZ: 0 0: all ones
+mpi_core_clz:0:0
+
+CLZ: 1 0
+mpi_core_clz:1:0
+
+CLZ: 1 1
+mpi_core_clz:1:1
+
+CLZ: 4 5
+mpi_core_clz:4:5
+
+CLZ: 8 16
+mpi_core_clz:8:16
+
+CLZ: 31 0
+mpi_core_clz:31:0
+
+CLZ: 32 0
+mpi_core_clz:32:0
+
+CLZ: 33 0
+mpi_core_clz:33:0
+
+CLZ: 63 0
+mpi_core_clz:63:0
+
+CLZ: 64 0
+mpi_core_clz:64:0
+
+CLZ: 100000 0: skip overly long input
+mpi_core_clz:100000:0

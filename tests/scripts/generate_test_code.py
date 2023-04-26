@@ -322,7 +322,7 @@ def gen_function_wrapper(name, local_vars, args_dispatch):
     :param name: Test function name
     :param local_vars: Local variables declaration code
     :param args_dispatch: List of dispatch arguments.
-           Ex: ['(char *)params[0]', '*((int *)params[1])']
+           Ex: ['(char *) params[0]', '*((int *) params[1])']
     :return: Test function wrapper.
     """
     # Then create the wrapper
@@ -488,7 +488,7 @@ def parse_function_argument(arg, arg_idx, args, local_vars, args_dispatch):
     typ, _ = m.groups()
     if typ in SIGNED_INTEGER_TYPES:
         args.append('int')
-        args_dispatch.append('((mbedtls_test_argument_t*)params[%d])->sint' % arg_idx)
+        args_dispatch.append('((mbedtls_test_argument_t *) params[%d])->sint' % arg_idx)
         return 1
     if typ in STRING_TYPES:
         args.append('char*')
@@ -498,7 +498,7 @@ def parse_function_argument(arg, arg_idx, args, local_vars, args_dispatch):
         args.append('hex')
         # create a structure
         pointer_initializer = '(uint8_t *) params[%d]' % arg_idx
-        len_initializer = '((mbedtls_test_argument_t*)params[%d])->len' % (arg_idx+1)
+        len_initializer = '((mbedtls_test_argument_t *) params[%d])->len' % (arg_idx+1)
         local_vars.append('    data_t data%d = {%s, %s};\n' %
                           (arg_idx, pointer_initializer, len_initializer))
         args_dispatch.append('&data%d' % arg_idx)

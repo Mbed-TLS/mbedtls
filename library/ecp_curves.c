@@ -5538,19 +5538,19 @@ static inline int ecp_mod_koblitz(mbedtls_mpi_uint *X,
 {
     int ret = 0;
 
-    size_t R_limbs = P_KOBLITZ_R;
-    size_t M_limbs = X_limbs + R_limbs + adjust;
-    mbedtls_mpi_uint *M = mbedtls_calloc(M_limbs, ciL);
-    if (M == NULL) {
-        return MBEDTLS_ERR_ECP_ALLOC_FAILED;
-    }
-
     size_t A1_limbs = X_limbs - (P_limbs - adjust);
     if (A1_limbs > P_limbs + adjust) {
         A1_limbs = P_limbs + adjust;
     }
     mbedtls_mpi_uint *A1 = mbedtls_calloc(A1_limbs, ciL);
     if (A1 == NULL) {
+        return MBEDTLS_ERR_ECP_ALLOC_FAILED;
+    }
+
+    size_t R_limbs = P_KOBLITZ_R;
+    size_t M_limbs = A1_limbs + R_limbs;
+    mbedtls_mpi_uint *M = mbedtls_calloc(M_limbs, ciL);
+    if (M == NULL) {
         ret = MBEDTLS_ERR_ECP_ALLOC_FAILED;
         goto cleanup;
     }

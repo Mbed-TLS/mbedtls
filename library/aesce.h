@@ -30,10 +30,10 @@
 
 #include "mbedtls/aes.h"
 
-
-#if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) && \
-    defined(__aarch64__) && !defined(MBEDTLS_HAVE_ARM64)
+#if !defined(MBEDTLS_HAVE_ARM64)
+#if defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM64EC)
 #define MBEDTLS_HAVE_ARM64
+#endif
 #endif
 
 #if defined(MBEDTLS_HAVE_ARM64)

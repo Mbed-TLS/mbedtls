@@ -186,9 +186,14 @@ pre_initialize_variables () {
 
     # CFLAGS and LDFLAGS for Asan builds that don't use CMake
     # default to -O2, use -Ox _after_ this if you want another level
+    : ${LD_PRELOAD:=}
     if [ -z "$LD_PRELOAD" ]
     then
         ASAN_CFLAGS='-O2 -Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
+        CMAKE_BUILD_TYPE_WITH_ASAN="-D CMAKE_BUILD_TYPE:String=Asan"
+    else
+        ASAN_CFLAGS=
+        CMAKE_BUILD_TYPE_WITH_ASAN=
     fi
 
     # Gather the list of available components. These are the functions
@@ -866,7 +871,7 @@ component_test_default_out_of_box () {
 
 component_test_default_cmake_gcc_asan () {
     msg "build: cmake, gcc, ASan" # ~ 1 min 50s
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: main suites (inc. selftests) (ASan build)" # ~ 50s
@@ -888,7 +893,7 @@ component_test_default_cmake_gcc_asan () {
 component_test_full_cmake_gcc_asan () {
     msg "build: full config, cmake, gcc, ASan"
     scripts/config.py full
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: main suites (inc. selftests) (full config, ASan build)"
@@ -912,7 +917,7 @@ component_test_psa_crypto_key_id_encodes_owner () {
     scripts/config.py full
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py set MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: full config - USE_PSA_CRYPTO + PSA_CRYPTO_KEY_ID_ENCODES_OWNER, cmake, gcc, ASan"
@@ -1006,14 +1011,14 @@ component_test_psa_crypto_rsa_no_genprime() {
 
 component_test_ref_configs () {
     msg "test/build: ref-configs (ASan build)" # ~ 6 min 20s
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     tests/scripts/test-ref-configs.pl
 }
 
 component_test_sslv3 () {
     msg "build: Default + SSLv3 (ASan build)" # ~ 6 min
     scripts/config.py set MBEDTLS_SSL_PROTO_SSL3
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: SSLv3 - main suites (inc. selftests) (ASan build)" # ~ 50s
@@ -1033,7 +1038,7 @@ component_test_sslv3 () {
 component_test_no_renegotiation () {
     msg "build: Default + !MBEDTLS_SSL_RENEGOTIATION (ASan build)" # ~ 6 min
     scripts/config.py unset MBEDTLS_SSL_RENEGOTIATION
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: !MBEDTLS_SSL_RENEGOTIATION - main suites (inc. selftests) (ASan build)" # ~ 50s
@@ -1061,7 +1066,7 @@ component_test_no_pem_no_fs () {
     scripts/config.py unset MBEDTLS_FS_IO
     scripts/config.py unset MBEDTLS_PSA_ITS_FILE_C # requires a filesystem
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C # requires PSA ITS
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: !MBEDTLS_PEM_PARSE_C !MBEDTLS_FS_IO - main suites (inc. selftests) (ASan build)" # ~ 50s
@@ -1074,7 +1079,7 @@ component_test_no_pem_no_fs () {
 component_test_rsa_no_crt () {
     msg "build: Default + RSA_NO_CRT (ASan build)" # ~ 6 min
     scripts/config.py set MBEDTLS_RSA_NO_CRT
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: RSA_NO_CRT - main suites (inc. selftests) (ASan build)" # ~ 50s
@@ -1096,7 +1101,7 @@ component_test_no_ctr_drbg_classic () {
     scripts/config.py unset MBEDTLS_CTR_DRBG_C
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
 
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: Full minus CTR_DRBG, classic crypto - main suites"
@@ -1118,7 +1123,7 @@ component_test_no_ctr_drbg_use_psa () {
     scripts/config.py unset MBEDTLS_CTR_DRBG_C
     scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
 
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: Full minus CTR_DRBG, USE_PSA_CRYPTO - main suites"
@@ -1141,7 +1146,7 @@ component_test_no_hmac_drbg_classic () {
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC # requires HMAC_DRBG
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
 
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: Full minus HMAC_DRBG, classic crypto - main suites"
@@ -1168,7 +1173,7 @@ component_test_no_hmac_drbg_use_psa () {
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC # requires HMAC_DRBG
     scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
 
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: Full minus HMAC_DRBG, USE_PSA_CRYPTO - main suites"
@@ -1256,7 +1261,7 @@ component_test_ecp_no_internal_rng () {
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_C # requires a DRBG
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C # requires PSA Crypto
 
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: ECP_NO_INTERNAL_RNG, no DRBG module"
@@ -1275,7 +1280,7 @@ component_test_ecp_restartable_no_internal_rng () {
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_C # requires CTR_DRBG
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C # requires PSA Crypto
 
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: ECP_RESTARTABLE and ECP_NO_INTERNAL_RNG, no DRBG module"
@@ -1444,7 +1449,7 @@ component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only_use_psa () {
 component_test_new_ecdh_context () {
     msg "build: new ECDH context (ASan build)" # ~ 6 min
     scripts/config.py unset MBEDTLS_ECDH_LEGACY_CONTEXT
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: new ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
@@ -1462,7 +1467,7 @@ component_test_everest () {
     msg "build: Everest ECDH context (ASan build)" # ~ 6 min
     scripts/config.py unset MBEDTLS_ECDH_LEGACY_CONTEXT
     scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
-    CC=clang cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=clang cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: Everest ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
@@ -1499,7 +1504,7 @@ component_test_small_ssl_out_content_len () {
     msg "build: small SSL_OUT_CONTENT_LEN (ASan build)"
     scripts/config.py set MBEDTLS_SSL_IN_CONTENT_LEN 16384
     scripts/config.py set MBEDTLS_SSL_OUT_CONTENT_LEN 4096
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: small SSL_OUT_CONTENT_LEN - ssl-opt.sh MFL and large packet tests"
@@ -1510,7 +1515,7 @@ component_test_small_ssl_in_content_len () {
     msg "build: small SSL_IN_CONTENT_LEN (ASan build)"
     scripts/config.py set MBEDTLS_SSL_IN_CONTENT_LEN 4096
     scripts/config.py set MBEDTLS_SSL_OUT_CONTENT_LEN 16384
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: small SSL_IN_CONTENT_LEN - ssl-opt.sh MFL tests"
@@ -1520,7 +1525,7 @@ component_test_small_ssl_in_content_len () {
 component_test_small_ssl_dtls_max_buffering () {
     msg "build: small MBEDTLS_SSL_DTLS_MAX_BUFFERING #0"
     scripts/config.py set MBEDTLS_SSL_DTLS_MAX_BUFFERING 1000
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: small MBEDTLS_SSL_DTLS_MAX_BUFFERING #0 - ssl-opt.sh specific reordering test"
@@ -1530,7 +1535,7 @@ component_test_small_ssl_dtls_max_buffering () {
 component_test_small_mbedtls_ssl_dtls_max_buffering () {
     msg "build: small MBEDTLS_SSL_DTLS_MAX_BUFFERING #1"
     scripts/config.py set MBEDTLS_SSL_DTLS_MAX_BUFFERING 190
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: small MBEDTLS_SSL_DTLS_MAX_BUFFERING #1 - ssl-opt.sh specific reordering test"
@@ -1843,7 +1848,7 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
     scripts/config.py unset MBEDTLS_PSA_ITS_FILE_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: main suites (full minus MBEDTLS_USE_PSA_CRYPTO)"
@@ -2593,7 +2598,7 @@ component_test_no_max_fragment_length () {
     # Run max fragment length tests with MFL disabled
     msg "build: default config except MFL extension (ASan build)" # ~ 30s
     scripts/config.py unset MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: ssl-opt.sh, MFL-related tests"
@@ -2603,7 +2608,7 @@ component_test_no_max_fragment_length () {
 component_test_asan_remove_peer_certificate () {
     msg "build: default config with MBEDTLS_SSL_KEEP_PEER_CERTIFICATE disabled (ASan build)"
     scripts/config.py unset MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
@@ -2624,7 +2629,7 @@ component_test_no_max_fragment_length_small_ssl_out_content_len () {
     scripts/config.py unset MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
     scripts/config.py set MBEDTLS_SSL_IN_CONTENT_LEN 16384
     scripts/config.py set MBEDTLS_SSL_OUT_CONTENT_LEN 4096
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: MFL tests (disabled MFL extension case) & large packet tests"
@@ -2637,7 +2642,7 @@ component_test_no_max_fragment_length_small_ssl_out_content_len () {
 component_test_variable_ssl_in_out_buffer_len () {
     msg "build: MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH enabled (ASan build)"
     scripts/config.py set MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH enabled"
@@ -2655,7 +2660,7 @@ component_test_variable_ssl_in_out_buffer_len_CID () {
     scripts/config.py set MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
     scripts/config.py set MBEDTLS_SSL_DTLS_CONNECTION_ID
 
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_DTLS_CONNECTION_ID"
@@ -2673,7 +2678,7 @@ component_test_variable_ssl_in_out_buffer_len_record_splitting () {
     scripts/config.py set MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
     scripts/config.py set MBEDTLS_SSL_CBC_RECORD_SPLITTING
 
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH and MBEDTLS_SSL_CBC_RECORD_SPLITTING"
@@ -2726,7 +2731,7 @@ component_test_null_entropy () {
     scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
     scripts/config.py unset MBEDTLS_ENTROPY_HARDWARE_ALT
     scripts/config.py unset MBEDTLS_HAVEGE_C
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan -D UNSAFE_BUILD=ON .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} -D UNSAFE_BUILD=ON .
     make
 
     msg "test: MBEDTLS_TEST_NULL_ENTROPY - main suites (inc. selftests) (ASan build)"
@@ -2761,7 +2766,7 @@ component_test_platform_calloc_macro () {
     scripts/config.py set MBEDTLS_PLATFORM_MEMORY
     scripts/config.py set MBEDTLS_PLATFORM_CALLOC_MACRO calloc
     scripts/config.py set MBEDTLS_PLATFORM_FREE_MACRO   free
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: MBEDTLS_PLATFORM_{CALLOC/FREE}_MACRO enabled (ASan build)"
@@ -2823,7 +2828,7 @@ component_test_ctr_drbg_aes_256_sha_256 () {
     scripts/config.py full
     scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.py set MBEDTLS_ENTROPY_FORCE_SHA256
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: full + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
@@ -2835,7 +2840,7 @@ component_test_ctr_drbg_aes_128_sha_512 () {
     scripts/config.py full
     scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.py set MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: full + MBEDTLS_CTR_DRBG_USE_128_BIT_KEY (ASan build)"
@@ -2848,7 +2853,7 @@ component_test_ctr_drbg_aes_128_sha_256 () {
     scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.py set MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
     scripts/config.py set MBEDTLS_ENTROPY_FORCE_SHA256
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: full + MBEDTLS_CTR_DRBG_USE_128_BIT_KEY + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
@@ -3031,7 +3036,7 @@ support_test_mx32 () {
 component_test_min_mpi_window_size () {
     msg "build: Default + MBEDTLS_MPI_WINDOW_SIZE=1 (ASan build)" # ~ 10s
     scripts/config.py set MBEDTLS_MPI_WINDOW_SIZE 1
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
 
     msg "test: MBEDTLS_MPI_WINDOW_SIZE=1 - main suites (inc. selftests) (ASan build)" # ~ 10s
@@ -3227,7 +3232,7 @@ component_build_ssl_hw_record_accel() {
 component_test_tls13_experimental () {
     msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL enabled"
     scripts/config.pl set MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake ${CMAKE_BUILD_TYPE_WITH_ASAN} .
     make
     msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL enabled"
     make test

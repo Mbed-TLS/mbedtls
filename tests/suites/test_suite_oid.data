@@ -158,3 +158,6 @@ oid_from_numeric_string:"1.2/3.4":MBEDTLS_ERR_ASN1_INVALID_DATA:""
 
 OID from numeric string - non-'.' separator between third and fourth
 oid_from_numeric_string:"1.2.3/4":MBEDTLS_ERR_ASN1_INVALID_DATA:""
+
+OID from numeric string - OID greater than max length (129 components)
+oid_from_numeric_string:"1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1.2.3.4.5.6.7.8.1":MBEDTLS_ERR_ASN1_INVALID_DATA:""

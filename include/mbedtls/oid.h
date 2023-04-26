@@ -64,6 +64,11 @@
 #define MBEDTLS_OID_X509_EXT_NS_CERT_TYPE                (1 << 16)
 
 /*
+ * Maximum number of OID components allowed
+ */
+#define MBEDTLS_OID_MAX_COMPONENTS              128
+
+/*
  * Top level OID tuples
  */
 #define MBEDTLS_OID_ISO_MEMBER_BODIES           "\x2a"          /* {iso(1) member-body(2)} */

@@ -963,7 +963,7 @@ int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid,
     /* Allocate maximum possible required memory:
      * There are (num_dots + 1) integer components, but the first 2 share the
      * same subidentifier, so we only need num_dots subidentifiers maximum. */
-    if (num_dots == 0 || (num_dots > SIZE_MAX / sizeof(unsigned int))) {
+    if (num_dots == 0 || (num_dots > MBEDTLS_OID_MAX_COMPONENTS - 1)) {
         return MBEDTLS_ERR_ASN1_INVALID_DATA;
     }
     size_t max_possible_bytes = num_dots * sizeof(unsigned int);

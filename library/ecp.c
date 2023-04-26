@@ -20,13 +20,15 @@
 /*
  * References:
  *
- * SEC1 http://www.secg.org/index.php?action=secg,docs_secg
+ * SEC1 https://www.secg.org/sec1-v2.pdf
  * GECC = Guide to Elliptic Curve Cryptography - Hankerson, Menezes, Vanstone
  * FIPS 186-3 http://csrc.nist.gov/publications/fips/fips186-3/fips_186-3.pdf
  * RFC 4492 for the related TLS structures and constants
+ * - https://www.rfc-editor.org/rfc/rfc4492
  * RFC 7748 for the Curve448 and Curve25519 curve definitions
+ * - https://www.rfc-editor.org/rfc/rfc7748
  *
- * [Curve25519] http://cr.yp.to/ecdh/curve25519-20060209.pdf
+ * [Curve25519] https://cr.yp.to/ecdh/curve25519-20060209.pdf
  *
  * [2] CORON, Jean-S'ebastien. Resistance against differential power analysis
  *     for elliptic curve cryptosystems. In : Cryptographic Hardware and

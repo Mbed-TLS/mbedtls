@@ -19,6 +19,7 @@
 #define SPACE_CHAR ' '
 #define DOUBLE_QUOTE_CHAR '"'
 #define COLON_CHAR ':'
+#define QUESTION_CHAR '?'
 #define BACKSLASH_CHAR '\\'
 #define LOWERCASE_N_CHAR 'n'
 /* END_HEADER */

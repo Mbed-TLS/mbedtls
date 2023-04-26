@@ -74,6 +74,9 @@ printf_char2:"%c%c":DOUBLE_QUOTE_CHAR:SPACE_CHAR:"\" "
 printf "%c%c", COLON, SPACE
 printf_char2:"%c%c":COLON_CHAR:SPACE_CHAR:"\: "
 
+printf "%c%c", QUESTION, SPACE
+printf_char2:"%c%c":QUESTION_CHAR:SPACE_CHAR:"? "
+
 printf "%c%c", BACKSLASH, SPACE
 printf_char2:"%c%c":BACKSLASH_CHAR:SPACE_CHAR:"\\ "
 
@@ -86,6 +89,12 @@ printf_char2:"%c%c":COLON_CHAR:COLON_CHAR:"\:\:"
 printf "%c%c", COLON, NEWLINE
 printf_char2:"%c%c":COLON_CHAR:NEWLINE_CHAR:"\:\n"
 
+printf "%c%c", QUESTION, QUESTION
+printf_char2:"%c%c":QUESTION_CHAR:QUESTION_CHAR:"??"
+
+printf "%c%c", QUESTION, NEWLINE
+printf_char2:"%c%c":QUESTION_CHAR:NEWLINE_CHAR:"?\n"
+
 printf "%c%c", BACKSLASH, NEWLINE
 printf_char2:"%c%c":BACKSLASH_CHAR:NEWLINE_CHAR:"\\\n"
 
@@ -94,6 +103,9 @@ printf_char2:"%c%c":BACKSLASH_CHAR:DOUBLE_QUOTE_CHAR:"\\\""
 
 printf "%c%c", BACKSLASH, COLON
 printf_char2:"%c%c":BACKSLASH_CHAR:COLON_CHAR:"\\\:"
+
+printf "%c%c", BACKSLASH, QUESTION
+printf_char2:"%c%c":BACKSLASH_CHAR:QUESTION_CHAR:"\\?"
 
 printf "%c%c", BACKSLASH, BACKSLASH
 printf_char2:"%c%c":BACKSLASH_CHAR:BACKSLASH_CHAR:"\\\\"

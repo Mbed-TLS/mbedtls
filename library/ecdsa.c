@@ -240,9 +240,6 @@ cleanup:
 }
 #endif /* ECDSA_DETERMINISTIC || !ECDSA_SIGN_ALT || !ECDSA_VERIFY_ALT */
 
-#if !defined(MBEDTLS_ECDSA_SIGN_ALT)     || \
-    !defined(MBEDTLS_ECDSA_VERIFY_ALT)
-
 int mbedtls_ecdsa_can_do(mbedtls_ecp_group_id gid)
 {
     switch (gid) {
@@ -255,8 +252,6 @@ int mbedtls_ecdsa_can_do(mbedtls_ecp_group_id gid)
         default: return 1;
     }
 }
-
-#endif /* !ECDSA_SIGN_ALT || !ECDSA_VERIFY_ALT */
 
 #if !defined(MBEDTLS_ECDSA_SIGN_ALT)
 /*

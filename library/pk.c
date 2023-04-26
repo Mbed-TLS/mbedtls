@@ -908,6 +908,8 @@ int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
             return PSA_PK_TO_MBEDTLS_ERR(status);
         }
 
+        mbedtls_platform_zeroize(d, sizeof(d));
+
         /* make PK context wrap the key slot */
         mbedtls_pk_free(pk);
         mbedtls_pk_init(pk);

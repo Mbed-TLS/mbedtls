@@ -187,7 +187,10 @@ pre_initialize_variables () {
 
     # CFLAGS and LDFLAGS for Asan builds that don't use CMake
     # default to -O2, use -Ox _after_ this if you want another level
-    ASAN_CFLAGS='-O2 -Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
+    if [ -z "$LD_PRELOAD" ]
+    then
+        ASAN_CFLAGS='-O2 -Werror -fsanitize=address,undefined -fno-sanitize-recover=all'
+    fi
 
     # Gather the list of available components. These are the functions
     # defined in this script whose name starts with "component_".

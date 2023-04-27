@@ -36,6 +36,7 @@
 #include "mbedtls/md.h"
 
 #include <string.h>
+#include <stdint.h>
 
 #if defined(MBEDTLS_PEM_WRITE_C)
 #include "mbedtls/pem.h"
@@ -47,6 +48,16 @@
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #include "hash_info.h"
+
+#define CHECK_OVERFLOW_ADD(a, b) \
+    do                         \
+    {                           \
+        if (a > SIZE_MAX - (b)) \
+        { \
+            return MBEDTLS_ERR_X509_BAD_INPUT_DATA; \
+        }                            \
+        a += b; \
+    } while (0)
 
 void mbedtls_x509write_crt_init(mbedtls_x509write_cert *ctx)
 {
@@ -175,7 +186,7 @@ int mbedtls_x509write_crt_set_subject_alternative_name(mbedtls_x509write_cert *c
                  * maximum 4 bytes for the length field,
                  * 1 byte for the tag/type.
                  */
-                buflen += cur->node.san.unstructured_name.len + 4 + 1;
+                CHECK_OVERFLOW_ADD(buflen, cur->node.san.unstructured_name.len + 4 + 1);
                 break;
             case MBEDTLS_X509_SAN_DIRECTORY_NAME:
             {
@@ -184,10 +195,10 @@ int mbedtls_x509write_crt_set_subject_alternative_name(mbedtls_x509write_cert *c
                     // 5 bytes for OID, max 4 bytes for length, +1 for tag,
                     // additional 4 max for length, +1 for tag.
                     // See x509_write_name for more information.
-                    buflen += chunk->val.len + 5 + 4 + 1 + 4 + 1;
+                    CHECK_OVERFLOW_ADD(buflen, chunk->val.len + 5 + 4 + 1 + 4 + 1);
                     chunk = chunk->next;
                 }
-                buflen += cur->node.san.unstructured_name.len + 4 + 1;
+                CHECK_OVERFLOW_ADD(buflen, cur->node.san.unstructured_name.len + 4 + 1);
                 break;
             }
             default:
@@ -197,7 +208,7 @@ int mbedtls_x509write_crt_set_subject_alternative_name(mbedtls_x509write_cert *c
     }
 
     /* Add the extra length field and tag */
-    buflen += 4 + 1;
+    CHECK_OVERFLOW_ADD(buflen, 4 + 1);
 
     /* Allocate buffer */
     buf = mbedtls_calloc(1, buflen);
@@ -253,6 +264,11 @@ int mbedtls_x509write_crt_set_subject_alternative_name(mbedtls_x509write_cert *c
                 goto cleanup;
         }
         cur = cur->next;
+        /* check for overflow */
+        if (len > SIZE_MAX - single_san_len) {
+            ret = MBEDTLS_ERR_X509_BAD_INPUT_DATA;
+            goto cleanup;
+        }
         len += single_san_len;
     }
 

@@ -134,6 +134,15 @@ int psa_can_do_hash(psa_algorithm_t hash_alg)
     return global_data.drivers_initialized;
 }
 
+static int psa_is_dh_key_size_valid(size_t bits) {
+    if (bits != 2048 && bits != 3072 && bits != 4096 &&
+        bits != 6144 && bits != 8192) {
+        return 0;
+    }
+
+    return 1;
+}
+
 psa_status_t mbedtls_to_psa_error(int ret)
 {
     /* Mbed TLS error codes can combine a high-level error code and a
@@ -632,9 +641,7 @@ psa_status_t psa_import_key_into_slot(
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR) || \
         defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_PUBLIC_KEY)
         if (PSA_KEY_TYPE_IS_DH(type)) {
-            if (data_length != 256 && data_length != 384 &&
-                data_length != 512 && data_length != 768 &&
-                data_length != 1024) {
+            if (psa_is_dh_key_size_valid(PSA_BYTES_TO_BITS(data_length)) == 0) {
                 return PSA_ERROR_INVALID_ARGUMENT;
             }
 
@@ -6980,8 +6987,7 @@ static psa_status_t psa_validate_key_type_and_size_for_key_generation(
 
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR)
     if (PSA_KEY_TYPE_IS_DH(type) && PSA_KEY_TYPE_IS_KEY_PAIR(type)) {
-        if (bits != 2048 && bits != 3072 && bits != 4096 &&
-            bits != 6144 && bits != 8192) {
+        if (psa_is_dh_key_size_valid(bits) == 0) {
             return PSA_ERROR_NOT_SUPPORTED;
         }
     } else

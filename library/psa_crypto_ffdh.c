@@ -64,27 +64,27 @@ static psa_status_t mbedtls_psa_ffdh_set_prime_generator(size_t key_size,
     static const unsigned char dhm_G_8192[] =
         MBEDTLS_DHM_RFC7919_FFDHE8192_G_BIN;
 
-    if (key_size <= 256) {
+    if (key_size == sizeof(dhm_P_2048)) {
         dhm_P = dhm_P_2048;
         dhm_G = dhm_G_2048;
         dhm_size_P = sizeof(dhm_P_2048);
         dhm_size_G = sizeof(dhm_G_2048);
-    } else if (key_size <= 384) {
+    } else if (key_size == sizeof(dhm_P_3072)) {
         dhm_P = dhm_P_3072;
         dhm_G = dhm_G_3072;
         dhm_size_P = sizeof(dhm_P_3072);
         dhm_size_G = sizeof(dhm_G_3072);
-    } else if (key_size <= 512) {
+    } else if (key_size == sizeof(dhm_P_4096)) {
         dhm_P = dhm_P_4096;
         dhm_G = dhm_G_4096;
         dhm_size_P = sizeof(dhm_P_4096);
         dhm_size_G = sizeof(dhm_G_4096);
-    } else if (key_size <= 768) {
+    } else if (key_size == sizeof(dhm_P_6144)) {
         dhm_P = dhm_P_6144;
         dhm_G = dhm_G_6144;
         dhm_size_P = sizeof(dhm_P_6144);
         dhm_size_G = sizeof(dhm_G_6144);
-    } else if (key_size <= 1024) {
+    } else if (key_size == sizeof(dhm_P_8192)) {
         dhm_P = dhm_P_8192;
         dhm_G = dhm_G_8192;
         dhm_size_P = sizeof(dhm_P_8192);

@@ -1596,7 +1596,7 @@ void ecp_mod_mul_inv(char *input_A, int id, int ctype, int iret)
         TEST_EQUAL(mbedtls_mpi_mod_mul(&rX, &A, &A_inverse, &m), 0);
 
         ASSERT_ALLOC(bufx, limbs);
-        TEST_EQUAL(mbedtls_mpi_mod_write(&rX, &m, (unsigned char *)bufx,
+        TEST_EQUAL(mbedtls_mpi_mod_write(&rX, &m, (unsigned char *) bufx,
                                          limbs * sizeof(mbedtls_mpi_uint),
                                          MBEDTLS_MPI_MOD_EXT_REP_LE), 0);
         TEST_EQUAL(memcmp(bufx, &Result, sizeof(mbedtls_mpi_uint)), 0);

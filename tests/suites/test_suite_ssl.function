@@ -115,8 +115,8 @@ void test_callback_buffer(int size, int put1, int put1_ret,
     size_t output_len;
     size_t i, j, written, read;
 
-    USE_PSA_INIT();
     mbedtls_test_ssl_buffer_init(&buf);
+    USE_PSA_INIT();
     TEST_ASSERT(mbedtls_test_ssl_buffer_setup(&buf, size) == 0);
 
     /* Check the sanity of input parameters and initialise local variables. That
@@ -211,8 +211,8 @@ void ssl_mock_sanity()
     unsigned char received[MSGLEN] = { 0 };
     mbedtls_test_mock_socket socket;
 
-    USE_PSA_INIT();
     mbedtls_test_mock_socket_init(&socket);
+    USE_PSA_INIT();
     TEST_ASSERT(mbedtls_test_mock_tcp_send_b(&socket, message, MSGLEN) < 0);
     mbedtls_test_mock_socket_close(&socket);
     mbedtls_test_mock_socket_init(&socket);
@@ -252,7 +252,6 @@ void ssl_mock_tcp(int blocking)
     mbedtls_ssl_recv_t *recv;
     unsigned i;
 
-    USE_PSA_INIT();
     if (blocking == 0) {
         send = mbedtls_test_mock_tcp_send_nb;
         recv = mbedtls_test_mock_tcp_recv_nb;
@@ -263,6 +262,7 @@ void ssl_mock_tcp(int blocking)
 
     mbedtls_test_mock_socket_init(&client);
     mbedtls_test_mock_socket_init(&server);
+    USE_PSA_INIT();
 
     /* Fill up the buffer with structured data so that unwanted changes
      * can be detected */
@@ -351,7 +351,6 @@ void ssl_mock_tcp_interleaving(int blocking)
     mbedtls_ssl_send_t *send;
     mbedtls_ssl_recv_t *recv;
 
-    USE_PSA_INIT();
     if (blocking == 0) {
         send = mbedtls_test_mock_tcp_send_nb;
         recv = mbedtls_test_mock_tcp_recv_nb;
@@ -362,6 +361,7 @@ void ssl_mock_tcp_interleaving(int blocking)
 
     mbedtls_test_mock_socket_init(&client);
     mbedtls_test_mock_socket_init(&server);
+    USE_PSA_INIT();
 
     /* Fill up the buffers with structured data so that unwanted changes
      * can be detected */
@@ -459,7 +459,7 @@ exit:
 /* BEGIN_CASE */
 void ssl_message_queue_sanity()
 {
-    mbedtls_test_ssl_message_queue queue;
+    mbedtls_test_ssl_message_queue queue = {NULL, 0, 0, 0};
 
     USE_PSA_INIT();
     /* Trying to push/pull to an empty queue */
@@ -481,7 +481,7 @@ exit:
 /* BEGIN_CASE */
 void ssl_message_queue_basic()
 {
-    mbedtls_test_ssl_message_queue queue;
+    mbedtls_test_ssl_message_queue queue = {NULL, 0, 0, 0};
 
     USE_PSA_INIT();
     TEST_ASSERT(mbedtls_test_ssl_message_queue_setup(&queue, 3) == 0);
@@ -510,7 +510,7 @@ exit:
 /* BEGIN_CASE */
 void ssl_message_queue_overflow_underflow()
 {
-    mbedtls_test_ssl_message_queue queue;
+    mbedtls_test_ssl_message_queue queue = {NULL, 0, 0, 0};
 
     USE_PSA_INIT();
     TEST_ASSERT(mbedtls_test_ssl_message_queue_setup(&queue, 3) == 0);
@@ -538,7 +538,7 @@ exit:
 /* BEGIN_CASE */
 void ssl_message_queue_interleaved()
 {
-    mbedtls_test_ssl_message_queue queue;
+    mbedtls_test_ssl_message_queue queue = {NULL, 0, 0, 0};
 
     USE_PSA_INIT();
     TEST_ASSERT(mbedtls_test_ssl_message_queue_setup(&queue, 3) == 0);
@@ -574,7 +574,7 @@ exit:
 /* BEGIN_CASE */
 void ssl_message_queue_insufficient_buffer()
 {
-    mbedtls_test_ssl_message_queue queue;
+    mbedtls_test_ssl_message_queue queue = {NULL, 0, 0, 0};
     size_t message_len = 10;
     size_t buffer_len = 5;
 
@@ -656,9 +656,9 @@ void ssl_message_mock_basic()
     mbedtls_test_ssl_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;
 
-    USE_PSA_INIT();
     mbedtls_test_message_socket_init(&server_context);
     mbedtls_test_message_socket_init(&client_context);
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_test_message_socket_setup(&server_queue,
                                                   &client_queue, 1,
@@ -718,9 +718,9 @@ void ssl_message_mock_queue_overflow_underflow()
     mbedtls_test_ssl_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;
 
-    USE_PSA_INIT();
     mbedtls_test_message_socket_init(&server_context);
     mbedtls_test_message_socket_init(&client_context);
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_test_message_socket_setup(&server_queue,
                                                   &client_queue, 2,
@@ -785,9 +785,9 @@ void ssl_message_mock_socket_overflow()
     mbedtls_test_ssl_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;
 
-    USE_PSA_INIT();
     mbedtls_test_message_socket_init(&server_context);
     mbedtls_test_message_socket_init(&client_context);
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_test_message_socket_setup(&server_queue,
                                                   &client_queue, 2,
@@ -840,9 +840,9 @@ void ssl_message_mock_truncated()
     mbedtls_test_ssl_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;
 
-    USE_PSA_INIT();
     mbedtls_test_message_socket_init(&server_context);
     mbedtls_test_message_socket_init(&client_context);
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_test_message_socket_setup(&server_queue,
                                                   &client_queue, 2,
@@ -907,9 +907,9 @@ void ssl_message_mock_socket_read_error()
     mbedtls_test_ssl_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;
 
-    USE_PSA_INIT();
     mbedtls_test_message_socket_init(&server_context);
     mbedtls_test_message_socket_init(&client_context);
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_test_message_socket_setup(&server_queue,
                                                   &client_queue, 1,
@@ -968,9 +968,9 @@ void ssl_message_mock_interleaved_one_way()
     mbedtls_test_ssl_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;
 
-    USE_PSA_INIT();
     mbedtls_test_message_socket_init(&server_context);
     mbedtls_test_message_socket_init(&client_context);
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_test_message_socket_setup(&server_queue,
                                                   &client_queue, 3,
@@ -1031,9 +1031,9 @@ void ssl_message_mock_interleaved_two_ways()
     mbedtls_test_ssl_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;
 
-    USE_PSA_INIT();
     mbedtls_test_message_socket_init(&server_context);
     mbedtls_test_message_socket_init(&client_context);
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_test_message_socket_setup(&server_queue,
                                                   &client_queue, 3,
@@ -2019,8 +2019,6 @@ void ssl_tls13_record_protection(int ciphersuite,
     size_t buf_len;
     int other_endpoint;
 
-    MD_OR_USE_PSA_INIT();
-
     TEST_ASSERT(endpoint == MBEDTLS_SSL_IS_CLIENT ||
                 endpoint == MBEDTLS_SSL_IS_SERVER);
 
@@ -2048,6 +2046,7 @@ void ssl_tls13_record_protection(int ciphersuite,
 
     mbedtls_ssl_transform_init(&transform_recv);
     mbedtls_ssl_transform_init(&transform_send);
+    MD_OR_USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_ssl_tls13_populate_transform(
                     &transform_send, endpoint,
@@ -2701,15 +2700,10 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_MD_CAN_SHA256 */
 void handshake_cipher(char *cipher, int pk_alg, int dtls)
 {
-    MD_OR_USE_PSA_INIT();
-
     test_handshake_psk_cipher(cipher, pk_alg, NULL, dtls);
 
     /* The goto below is used to avoid an "unused label" warning.*/
     goto exit;
-
-exit:
-    MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -2779,15 +2773,10 @@ void app_data_tls(int mfl, int cli_msg_len, int srv_msg_len,
                   int expected_cli_fragments,
                   int expected_srv_fragments)
 {
-    MD_OR_USE_PSA_INIT();
-
     test_app_data(mfl, cli_msg_len, srv_msg_len, expected_cli_fragments,
                   expected_srv_fragments, 0);
     /* The goto below is used to avoid an "unused label" warning.*/
     goto exit;
-
-exit:
-    MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -2796,15 +2785,10 @@ void app_data_dtls(int mfl, int cli_msg_len, int srv_msg_len,
                    int expected_cli_fragments,
                    int expected_srv_fragments)
 {
-    MD_OR_USE_PSA_INIT();
-
     test_app_data(mfl, cli_msg_len, srv_msg_len, expected_cli_fragments,
                   expected_srv_fragments, 1);
     /* The goto below is used to avoid an "unused label" warning.*/
     goto exit;
-
-exit:
-    MD_OR_USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -2915,14 +2899,10 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH:MBEDTLS_SSL_CONTEXT_SERIALIZATION:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SSL_PROTO_DTLS:MBEDTLS_MD_CAN_SHA256:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY */
 void resize_buffers_serialize_mfl(int mfl)
 {
-    USE_PSA_INIT();
     test_resize_buffers(mfl, 0, MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION, 1, 1,
                         (char *) "");
     /* The goto below is used to avoid an "unused label" warning.*/
     goto exit;
-
-exit:
-    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -2930,13 +2910,9 @@ exit:
 void resize_buffers_renegotiate_mfl(int mfl, int legacy_renegotiation,
                                     char *cipher)
 {
-    USE_PSA_INIT();
     test_resize_buffers(mfl, 1, legacy_renegotiation, 0, 1, cipher);
     /* The goto below is used to avoid an "unused label" warning.*/
     goto exit;
-
-exit:
-    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -3181,12 +3157,12 @@ void force_bad_session_id_len()
     options.srv_log_obj = &srv_pattern;
     options.srv_log_fun = mbedtls_test_ssl_log_analyzer;
 
-    MD_OR_USE_PSA_INIT();
     mbedtls_platform_zeroize(&client, sizeof(client));
     mbedtls_platform_zeroize(&server, sizeof(server));
 
     mbedtls_test_message_socket_init(&server_context);
     mbedtls_test_message_socket_init(&client_context);
+    MD_OR_USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_test_ssl_endpoint_init(&client, MBEDTLS_SSL_IS_CLIENT,
                                                &options, NULL, NULL,

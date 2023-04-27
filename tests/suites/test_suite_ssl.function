@@ -108,8 +108,8 @@ void test_callback_buffer(int size, int put1, int put1_ret,
     size_t output_len;
     size_t i, j, written, read;
 
-    USE_PSA_INIT();
     mbedtls_test_ssl_buffer_init(&buf);
+    USE_PSA_INIT();
     TEST_ASSERT(mbedtls_test_ssl_buffer_setup(&buf, size) == 0);
 
     /* Check the sanity of input parameters and initialise local variables. That
@@ -204,8 +204,8 @@ void ssl_mock_sanity()
     unsigned char received[MSGLEN] = { 0 };
     mbedtls_test_mock_socket socket;
 
-    USE_PSA_INIT();
     mbedtls_test_mock_socket_init(&socket);
+    USE_PSA_INIT();
     TEST_ASSERT(mbedtls_test_mock_tcp_send_b(&socket, message, MSGLEN) < 0);
     mbedtls_test_mock_socket_close(&socket);
     mbedtls_test_mock_socket_init(&socket);
@@ -245,7 +245,6 @@ void ssl_mock_tcp(int blocking)
     mbedtls_ssl_recv_t *recv;
     unsigned i;
 
-    USE_PSA_INIT();
     if (blocking == 0) {
         send = mbedtls_test_mock_tcp_send_nb;
         recv = mbedtls_test_mock_tcp_recv_nb;
@@ -256,6 +255,7 @@ void ssl_mock_tcp(int blocking)
 
     mbedtls_test_mock_socket_init(&client);
     mbedtls_test_mock_socket_init(&server);
+    USE_PSA_INIT();
 
     /* Fill up the buffer with structured data so that unwanted changes
      * can be detected */
@@ -343,7 +343,6 @@ void ssl_mock_tcp_interleaving(int blocking)
     mbedtls_ssl_send_t *send;
     mbedtls_ssl_recv_t *recv;
 
-    USE_PSA_INIT();
     if (blocking == 0) {
         send = mbedtls_test_mock_tcp_send_nb;
         recv = mbedtls_test_mock_tcp_recv_nb;
@@ -354,6 +353,7 @@ void ssl_mock_tcp_interleaving(int blocking)
 
     mbedtls_test_mock_socket_init(&client);
     mbedtls_test_mock_socket_init(&server);
+    USE_PSA_INIT();
 
     /* Fill up the buffers with structured data so that unwanted changes
      * can be detected */
@@ -451,7 +451,7 @@ exit:
 /* BEGIN_CASE */
 void ssl_message_queue_sanity()
 {
-    mbedtls_test_ssl_message_queue queue;
+    mbedtls_test_ssl_message_queue queue = {NULL, 0, 0, 0};
 
     USE_PSA_INIT();
     /* Trying to push/pull to an empty queue */
@@ -473,7 +473,7 @@ exit:
 /* BEGIN_CASE */
 void ssl_message_queue_basic()
 {
-    mbedtls_test_ssl_message_queue queue;
+    mbedtls_test_ssl_message_queue queue = {NULL, 0, 0, 0};
 
     USE_PSA_INIT();
     TEST_ASSERT(mbedtls_test_ssl_message_queue_setup(&queue, 3) == 0);
@@ -502,7 +502,7 @@ exit:
 /* BEGIN_CASE */
 void ssl_message_queue_overflow_underflow()
 {
-    mbedtls_test_ssl_message_queue queue;
+    mbedtls_test_ssl_message_queue queue = {NULL, 0, 0, 0};
 
     USE_PSA_INIT();
     TEST_ASSERT(mbedtls_test_ssl_message_queue_setup(&queue, 3) == 0);
@@ -530,7 +530,7 @@ exit:
 /* BEGIN_CASE */
 void ssl_message_queue_interleaved()
 {
-    mbedtls_test_ssl_message_queue queue;
+    mbedtls_test_ssl_message_queue queue = {NULL, 0, 0, 0};
 
     USE_PSA_INIT();
     TEST_ASSERT(mbedtls_test_ssl_message_queue_setup(&queue, 3) == 0);
@@ -566,7 +566,7 @@ exit:
 /* BEGIN_CASE */
 void ssl_message_queue_insufficient_buffer()
 {
-    mbedtls_test_ssl_message_queue queue;
+    mbedtls_test_ssl_message_queue queue = {NULL, 0, 0, 0};
     size_t message_len = 10;
     size_t buffer_len = 5;
 
@@ -648,9 +648,9 @@ void ssl_message_mock_basic()
     mbedtls_test_ssl_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;
 
-    USE_PSA_INIT();
     mbedtls_test_message_socket_init(&server_context);
     mbedtls_test_message_socket_init(&client_context);
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_test_message_socket_setup(&server_queue,
                                                   &client_queue, 1,
@@ -710,9 +710,9 @@ void ssl_message_mock_queue_overflow_underflow()
     mbedtls_test_ssl_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;
 
-    USE_PSA_INIT();
     mbedtls_test_message_socket_init(&server_context);
     mbedtls_test_message_socket_init(&client_context);
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_test_message_socket_setup(&server_queue,
                                                   &client_queue, 2,
@@ -777,9 +777,9 @@ void ssl_message_mock_socket_overflow()
     mbedtls_test_ssl_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;
 
-    USE_PSA_INIT();
     mbedtls_test_message_socket_init(&server_context);
     mbedtls_test_message_socket_init(&client_context);
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_test_message_socket_setup(&server_queue,
                                                   &client_queue, 2,
@@ -832,9 +832,9 @@ void ssl_message_mock_truncated()
     mbedtls_test_ssl_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;
 
-    USE_PSA_INIT();
     mbedtls_test_message_socket_init(&server_context);
     mbedtls_test_message_socket_init(&client_context);
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_test_message_socket_setup(&server_queue,
                                                   &client_queue, 2,
@@ -899,9 +899,9 @@ void ssl_message_mock_socket_read_error()
     mbedtls_test_ssl_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;
 
-    USE_PSA_INIT();
     mbedtls_test_message_socket_init(&server_context);
     mbedtls_test_message_socket_init(&client_context);
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_test_message_socket_setup(&server_queue,
                                                   &client_queue, 1,
@@ -960,9 +960,9 @@ void ssl_message_mock_interleaved_one_way()
     mbedtls_test_ssl_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;
 
-    USE_PSA_INIT();
     mbedtls_test_message_socket_init(&server_context);
     mbedtls_test_message_socket_init(&client_context);
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_test_message_socket_setup(&server_queue,
                                                   &client_queue, 3,
@@ -1023,9 +1023,9 @@ void ssl_message_mock_interleaved_two_ways()
     mbedtls_test_ssl_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;
 
-    USE_PSA_INIT();
     mbedtls_test_message_socket_init(&server_context);
     mbedtls_test_message_socket_init(&client_context);
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_test_message_socket_setup(&server_queue,
                                                   &client_queue, 3,
@@ -1142,8 +1142,8 @@ void ssl_set_hostname_twice(char *hostname0, char *hostname1)
 {
     mbedtls_ssl_context ssl;
 
-    USE_PSA_INIT();
     mbedtls_ssl_init(&ssl);
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_ssl_set_hostname(&ssl, hostname0) == 0);
     TEST_ASSERT(mbedtls_ssl_set_hostname(&ssl, hostname1) == 0);
@@ -1326,9 +1326,9 @@ void ssl_crypt_record_small(int cipher_type, int hash_id,
                        * already seen a successful test. */
 
     mbedtls_ssl_init(&ssl);
-    USE_PSA_INIT();
     mbedtls_ssl_transform_init(&t0);
     mbedtls_ssl_transform_init(&t1);
+    USE_PSA_INIT();
     TEST_ASSERT(mbedtls_test_ssl_build_transforms(&t0, &t1, cipher_type, hash_id,
                                                   etm, tag_mode, ver,
                                                   (size_t) cid0_len,
@@ -1477,9 +1477,9 @@ void ssl_decrypt_non_etm_cbc(int cipher_type, int hash_id, int trunc_hmac,
     const unsigned char pad_max_len = 255; /* Per the standard */
 
     mbedtls_ssl_init(&ssl);
-    USE_PSA_INIT();
     mbedtls_ssl_transform_init(&t0);
     mbedtls_ssl_transform_init(&t1);
+    USE_PSA_INIT();
 
     /* Set up transforms with dummy keys */
     TEST_ASSERT(mbedtls_test_ssl_build_transforms(&t0, &t1, cipher_type, hash_id,
@@ -1838,9 +1838,9 @@ void ssl_serialize_session_save_load(int ticket_len, char *crt_file)
     /*
      * Test that a save-load pair is the identity
      */
-    USE_PSA_INIT();
     mbedtls_ssl_session_init(&original);
     mbedtls_ssl_session_init(&restored);
+    USE_PSA_INIT();
 
     /* Prepare a dummy session to work on */
     TEST_ASSERT(mbedtls_test_ssl_populate_session(
@@ -1939,8 +1939,8 @@ void ssl_serialize_session_load_save(int ticket_len, char *crt_file)
     /*
      * Test that a load-save pair is the identity
      */
-    USE_PSA_INIT();
     mbedtls_ssl_session_init(&session);
+    USE_PSA_INIT();
 
     /* Prepare a dummy session to work on */
     TEST_ASSERT(mbedtls_test_ssl_populate_session(
@@ -1991,8 +1991,8 @@ void ssl_serialize_session_save_buf_size(int ticket_len, char *crt_file)
     /*
      * Test that session_save() fails cleanly on small buffers
      */
-    USE_PSA_INIT();
     mbedtls_ssl_session_init(&session);
+    USE_PSA_INIT();
 
     /* Prepare dummy session and get serialized size */
     TEST_ASSERT(mbedtls_test_ssl_populate_session(
@@ -2028,8 +2028,8 @@ void ssl_serialize_session_load_buf_size(int ticket_len, char *crt_file)
     /*
      * Test that session_load() fails cleanly on small buffers
      */
-    USE_PSA_INIT();
     mbedtls_ssl_session_init(&session);
+    USE_PSA_INIT();
 
     /* Prepare serialized session data */
     TEST_ASSERT(mbedtls_test_ssl_populate_session(
@@ -2077,8 +2077,8 @@ void ssl_session_serialize_version_check(int corrupt_major,
                                       corrupt_config == 1,
                                       corrupt_config == 1 };
 
-    USE_PSA_INIT();
     mbedtls_ssl_session_init(&session);
+    USE_PSA_INIT();
 
     /* Infer length of serialized session. */
     TEST_ASSERT(mbedtls_ssl_session_save(&session,
@@ -2156,7 +2156,6 @@ void move_handshake_to_state(int endpoint_type, int state, int need_pass)
     mbedtls_test_ssl_endpoint base_ep, second_ep;
     int ret = -1;
 
-    USE_PSA_INIT();
     mbedtls_platform_zeroize(&base_ep, sizeof(base_ep));
     mbedtls_platform_zeroize(&second_ep, sizeof(second_ep));
 
@@ -2171,6 +2170,8 @@ void move_handshake_to_state(int endpoint_type, int state, int need_pass)
         MBEDTLS_SSL_IS_CLIENT : MBEDTLS_SSL_IS_SERVER,
         MBEDTLS_PK_RSA, NULL, NULL, NULL, NULL);
     TEST_ASSERT(ret == 0);
+
+    USE_PSA_INIT();
 
     ret = mbedtls_test_mock_socket_connect(&(base_ep.socket),
                                            &(second_ep.socket),
@@ -2388,10 +2389,8 @@ void resize_buffers(int mfl, int renegotiation, int legacy_renegotiation,
 /* BEGIN_CASE depends_on:MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED:MBEDTLS_CERTS_C:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH:MBEDTLS_SSL_CONTEXT_SERIALIZATION:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SSL_PROTO_DTLS:MBEDTLS_ENTROPY_C:MBEDTLS_CTR_DRBG_C:MBEDTLS_SHA256_C:MBEDTLS_CAN_HANDLE_RSA_TEST_KEY */
 void resize_buffers_serialize_mfl(int mfl)
 {
-    USE_PSA_INIT();
     test_resize_buffers(mfl, 0, MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION, 1, 1,
                         (char *) "");
-    USE_PSA_DONE();
     /* The goto below is used to avoid an "unused label" warning.*/
     goto exit;
 }
@@ -2401,9 +2400,7 @@ void resize_buffers_serialize_mfl(int mfl)
 void resize_buffers_renegotiate_mfl(int mfl, int legacy_renegotiation,
                                     char *cipher)
 {
-    USE_PSA_INIT();
     test_resize_buffers(mfl, 1, legacy_renegotiation, 0, 1, cipher);
-    USE_PSA_DONE();
     /* The goto below is used to avoid an "unused label" warning.*/
     goto exit;
 }
@@ -2419,7 +2416,7 @@ void raw_key_agreement_fail(int bad_server_ecdhe_key)
 
     mbedtls_ecp_group_id curve_list[] = { MBEDTLS_ECP_DP_SECP256R1,
                                           MBEDTLS_ECP_DP_NONE };
-    USE_PSA_INIT();
+
     mbedtls_platform_zeroize(&client, sizeof(client));
     mbedtls_platform_zeroize(&server, sizeof(server));
 
@@ -2434,6 +2431,8 @@ void raw_key_agreement_fail(int bad_server_ecdhe_key)
     TEST_EQUAL(mbedtls_test_ssl_endpoint_init(&server, MBEDTLS_SSL_IS_SERVER,
                                               MBEDTLS_PK_ECDSA, NULL, NULL,
                                               NULL, NULL), 0);
+
+    USE_PSA_INIT();
 
     TEST_EQUAL(mbedtls_test_mock_socket_connect(&(client.socket),
                                                 &(server.socket),

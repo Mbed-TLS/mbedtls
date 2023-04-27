@@ -73,23 +73,49 @@ static int calloc_self_test(int verbose)
     void *empty2 = mbedtls_calloc(0, 1);
     void *buffer1 = mbedtls_calloc(1, 1);
     void *buffer2 = mbedtls_calloc(1, 1);
+    unsigned int buf_size = 256;
+    unsigned char *buffer3 = mbedtls_calloc(buf_size, sizeof(unsigned char));
 
     if (empty1 == NULL && empty2 == NULL) {
         if (verbose) {
-            mbedtls_printf("  CALLOC(0): passed (NULL)\n");
+            mbedtls_printf("  CALLOC(0,1): passed (NULL)\n");
         }
     } else if (empty1 == NULL || empty2 == NULL) {
         if (verbose) {
-            mbedtls_printf("  CALLOC(0): failed (mix of NULL and non-NULL)\n");
+            mbedtls_printf("  CALLOC(0,1): failed (mix of NULL and non-NULL)\n");
         }
         ++failures;
     } else if (empty1 == empty2) {
         if (verbose) {
-            mbedtls_printf("  CALLOC(0): passed (same non-null)\n");
+            mbedtls_printf("  CALLOC(0,1): passed (same non-null)\n");
         }
     } else {
         if (verbose) {
-            mbedtls_printf("  CALLOC(0): passed (distinct non-null)\n");
+            mbedtls_printf("  CALLOC(0,1): passed (distinct non-null)\n");
+        }
+    }
+
+    mbedtls_free(empty1);
+    mbedtls_free(empty2);
+
+    empty1 = mbedtls_calloc(1, 0);
+    empty2 = mbedtls_calloc(1, 0);
+    if (empty1 == NULL && empty2 == NULL) {
+        if (verbose) {
+            mbedtls_printf("  CALLOC(1,0): passed (NULL)\n");
+        }
+    } else if (empty1 == NULL || empty2 == NULL) {
+        if (verbose) {
+            mbedtls_printf("  CALLOC(1,0): failed (mix of NULL and non-NULL)\n");
+        }
+        ++failures;
+    } else if (empty1 == empty2) {
+        if (verbose) {
+            mbedtls_printf("  CALLOC(1,0): passed (same non-null)\n");
+        }
+    } else {
+        if (verbose) {
+            mbedtls_printf("  CALLOC(1,0): passed (distinct non-null)\n");
         }
     }
 
@@ -122,6 +148,16 @@ static int calloc_self_test(int verbose)
         }
     }
 
+    for (unsigned int i = 0; i < buf_size; i++) {
+        if (buffer3[i] != 0) {
+            ++failures;
+            if (verbose) {
+                mbedtls_printf("  CALLOC(%u): failed (memory not initialized to 0)\n", buf_size);
+            }
+            break;
+        }
+    }
+
     if (verbose) {
         mbedtls_printf("\n");
     }
@@ -129,6 +165,7 @@ static int calloc_self_test(int verbose)
     mbedtls_free(empty2);
     mbedtls_free(buffer1);
     mbedtls_free(buffer2);
+    mbedtls_free(buffer3);
     return failures;
 }
 #endif /* MBEDTLS_SELF_TEST */

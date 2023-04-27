@@ -142,31 +142,36 @@ psa_status_t mbedtls_psa_key_agreement_ffdh(
     status = mbedtls_psa_ffdh_set_prime_generator(
         PSA_BITS_TO_BYTES(attributes->core.bits), &P, &G);
 
-    if (status == PSA_SUCCESS) {
-        MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&X, key_buffer,
-                                                key_buffer_size));
-
-        MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&GY, peer_key,
-                                                peer_key_length));
-
-        /* Calculate shared secret public key: K = G^(XY) mod P = GY^X mod P */
-        MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod(&K, &GY, &X, &P, NULL));
-
-        MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&K, shared_secret,
-                                                 calculated_shared_secret_size));
-
-        *shared_secret_length = calculated_shared_secret_size;
+    if(status != PSA_SUCCESS) {
+        goto cleanup;
     }
+
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&X, key_buffer,
+                                            key_buffer_size));
+
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&GY, peer_key,
+                                            peer_key_length));
+
+    /* Calculate shared secret public key: K = G^(XY) mod P = GY^X mod P */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod(&K, &GY, &X, &P, NULL));
+
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&K, shared_secret,
+                                                calculated_shared_secret_size));
+
+    *shared_secret_length = calculated_shared_secret_size;
+
+    ret = 0;
+
 cleanup:
     mbedtls_mpi_free(&P); mbedtls_mpi_free(&G);
     mbedtls_mpi_free(&X); mbedtls_mpi_free(&GY);
     mbedtls_mpi_free(&K);
 
-    if (status == PSA_SUCCESS && ret != 0) {
-        return mbedtls_to_psa_error(ret);
+    if(status == PSA_SUCCESS && ret != 0) {
+        status = mbedtls_to_psa_error(ret);
     }
 
-    return PSA_SUCCESS;
+    return status;
 }
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_FFDH */
 
@@ -188,21 +193,25 @@ psa_status_t mbedtls_psa_export_ffdh_public_key(
     status = mbedtls_psa_ffdh_set_prime_generator(
         PSA_BITS_TO_BYTES(attributes->core.bits), &P, &G);
 
-    if (status == PSA_SUCCESS) {
-        MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&X, key_buffer,
-                                                key_buffer_size));
-
-        MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod(&GX, &G, &X, &P, NULL));
-        MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&GX, data, data_size));
-
-        *data_length = mbedtls_mpi_size(&GX);
+    if(status != PSA_SUCCESS) {
+        goto cleanup;
     }
+
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&X, key_buffer,
+                                            key_buffer_size));
+
+    MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod(&GX, &G, &X, &P, NULL));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&GX, data, data_size));
+
+    *data_length = mbedtls_mpi_size(&GX);
+
+    ret = 0;
 cleanup:
     mbedtls_mpi_free(&P); mbedtls_mpi_free(&G);
     mbedtls_mpi_free(&X); mbedtls_mpi_free(&GX);
 
     if (status == PSA_SUCCESS && ret != 0) {
-        return mbedtls_to_psa_error(ret);
+        status = mbedtls_to_psa_error(ret);
     }
 
     return status;

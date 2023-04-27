@@ -1417,16 +1417,14 @@ psa_status_t psa_export_public_key_internal(
 {
     psa_key_type_t type = attributes->core.type;
 
-    if (PSA_KEY_TYPE_IS_RSA(type) || PSA_KEY_TYPE_IS_ECC(type) ||
-        PSA_KEY_TYPE_IS_DH(type)) {
-        if (PSA_KEY_TYPE_IS_PUBLIC_KEY(type)) {
-            /* Exporting public -> public */
-            return psa_export_key_buffer_internal(
-                key_buffer, key_buffer_size,
-                data, data_size, data_length);
-        }
-
-        if (PSA_KEY_TYPE_IS_RSA(type)) {
+    if (PSA_KEY_TYPE_IS_PUBLIC_KEY(type) &&
+            (PSA_KEY_TYPE_IS_RSA(type) || PSA_KEY_TYPE_IS_ECC(type) ||
+             PSA_KEY_TYPE_IS_DH(type))) {
+        /* Exporting public -> public */
+        return psa_export_key_buffer_internal(
+            key_buffer, key_buffer_size,
+            data, data_size, data_length);
+    } else if (PSA_KEY_TYPE_IS_RSA(type)) {
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || \
             defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
             return mbedtls_psa_rsa_export_public_key(attributes,
@@ -1440,7 +1438,7 @@ psa_status_t psa_export_public_key_internal(
             return PSA_ERROR_NOT_SUPPORTED;
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) ||
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
-        } else if (PSA_KEY_TYPE_IS_ECC(type)) {
+    } else if (PSA_KEY_TYPE_IS_ECC(type)) {
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
             defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
             return mbedtls_psa_ecp_export_public_key(attributes,
@@ -1454,26 +1452,19 @@ psa_status_t psa_export_public_key_internal(
             return PSA_ERROR_NOT_SUPPORTED;
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) */
-        }
+    } else if (PSA_KEY_TYPE_IS_DH(type)) {
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR) || \
         defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_PUBLIC_KEY)
-        else if (PSA_KEY_TYPE_IS_DH(type)) {
             return mbedtls_psa_export_ffdh_public_key(attributes,
                                                       key_buffer,
                                                       key_buffer_size,
                                                       data, data_size,
                                                       data_length);
-        } else {
-            return PSA_ERROR_NOT_SUPPORTED;
-        }
 #else
         return PSA_ERROR_NOT_SUPPORTED;
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR) ||
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_PUBLIC_KEY) */
     } else {
-        /* This shouldn't happen in the reference implementation, but
-           it is valid for a special-purpose implementation to omit
-           support for exporting certain key types. */
         return PSA_ERROR_NOT_SUPPORTED;
     }
 }

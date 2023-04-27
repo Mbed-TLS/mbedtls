@@ -322,7 +322,7 @@ int main(int argc, char *argv[])
     char buf[1024];
     char issuer_name[256];
     int i;
-    char *p, *q, *r, *r2;
+    char *p, *q, *r;
 #if defined(MBEDTLS_X509_CSR_PARSE_C)
     char subject_name[256];
     mbedtls_x509_csr csr;
@@ -553,11 +553,34 @@ usage:
                 q = r;
             }
         } else if (strcmp(p, "san") == 0) {
+            char *subtype_value;
             prev = NULL;
 
             while (q != NULL) {
-                if ((r = strchr(q, ';')) != NULL) {
+                char *semicolon;
+                r = q;
+
+                /* Find the first non-escaped ; occurrence and remove escaped ones */
+                do {
+                    if ((semicolon = strchr(r, ';')) != NULL) {
+                        if (*(semicolon-1) != '\\') {
+                            r = semicolon;
+                            break;
+                        }
+                        /* Remove the escape character */
+                        size_t size_left = strlen(semicolon);
+                        memmove(semicolon-1, semicolon, size_left);
+                        *(semicolon + size_left - 1) = '\0';
+                        /* r will now point at the character after the semicolon */
+                        r = semicolon;
+                    }
+
+                } while (semicolon != NULL);
+
+                if (semicolon != NULL) {
                     *r++ = '\0';
+                } else {
+                    r = NULL;
                 }
 
                 cur = mbedtls_calloc(1, sizeof(mbedtls_x509_san_list));
@@ -568,8 +591,8 @@ usage:
 
                 cur->next = NULL;
 
-                if ((r2 = strchr(q, ':')) != NULL) {
-                    *r2++ = '\0';
+                if ((subtype_value = strchr(q, ':')) != NULL) {
+                    *subtype_value++ = '\0';
                 }
                 if (strcmp(q, "RFC822") == 0) {
                     cur->node.type = MBEDTLS_X509_SAN_RFC822_NAME;
@@ -579,13 +602,13 @@ usage:
                     cur->node.type = MBEDTLS_X509_SAN_DNS_NAME;
                 } else if (strcmp(q, "IP") == 0) {
                     cur->node.type = MBEDTLS_X509_SAN_IP_ADDRESS;
-                    ip_string_to_bytes(r2, ip, 4);
+                    ip_string_to_bytes(subtype_value, ip, 4);
                     cur->node.san.unstructured_name.p = (unsigned char *) ip;
                     cur->node.san.unstructured_name.len = sizeof(ip);
                 } else if (strcmp(q, "DN") == 0) {
                     cur->node.type = MBEDTLS_X509_SAN_DIRECTORY_NAME;
                     if ((ret = mbedtls_x509_string_to_names(&ext_san_dirname,
-                                                            r2)) != 0) {
+                                                            subtype_value)) != 0) {
                         mbedtls_strerror(ret, buf, sizeof(buf));
                         mbedtls_printf(
                             " failed\n  !  mbedtls_x509_string_to_names "
@@ -600,9 +623,8 @@ usage:
                 }
 
                 if (strcmp(q, "IP") != 0 && strcmp(q, "DN") != 0) {
-                    q = r2;
-                    cur->node.san.unstructured_name.p = (unsigned char *) q;
-                    cur->node.san.unstructured_name.len = strlen(q);
+                    cur->node.san.unstructured_name.p = (unsigned char *) subtype_value;
+                    cur->node.san.unstructured_name.len = strlen(subtype_value);
                 }
 
                 if (prev == NULL) {

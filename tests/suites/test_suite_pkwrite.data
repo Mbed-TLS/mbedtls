@@ -96,7 +96,7 @@ pk_write_key_check:"data_files/ec_bp512_prv.der":TEST_DER
 
 Derive public key RSA
 depends_on:MBEDTLS_RSA_C
-pk_write_check_public_key_derivation:"data_files/server1.key":"data_files/server1.pubkey.der"
+pk_write_check_public_key_derivation:"data_files/server1.key.der":"data_files/server1.pubkey.der"
 
 Derive public key RSA 4096
 depends_on:MBEDTLS_RSA_C

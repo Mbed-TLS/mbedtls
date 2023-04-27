@@ -135,7 +135,8 @@ extern "C" {
 
 /*
  * The function pointers for calloc and free.
- * mbedtls_calloc will allocate and zeroize the buffer.
+ * please see MBEDTLS_PLATFORM_STD_CALLOC and MBEDTLS_PLATFORM_STD_FREE
+ * in mbedtls_config.h for more information about behaviour and requirements.
  */
 #if defined(MBEDTLS_PLATFORM_MEMORY)
 #if defined(MBEDTLS_PLATFORM_FREE_MACRO) && \

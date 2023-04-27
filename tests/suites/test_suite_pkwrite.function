@@ -148,8 +148,8 @@ void pk_write_public_from_private(char *priv_key_file, char *pub_key_file)
     derived_key_len = pub_key_len;
     ASSERT_ALLOC(derived_key_raw, derived_key_len);
 
-    TEST_LE_U(1, mbedtls_pk_write_pubkey_der(&priv_key, derived_key_raw,
-                                             derived_key_len));
+    TEST_EQUAL(mbedtls_pk_write_pubkey_der(&priv_key, derived_key_raw,
+                                           derived_key_len), pub_key_len);
 
     ASSERT_COMPARE(derived_key_raw, derived_key_len,
                    pub_key_raw, pub_key_len);
@@ -161,8 +161,8 @@ void pk_write_public_from_private(char *priv_key_file, char *pub_key_file)
                                          PSA_ALG_NONE, PSA_KEY_USAGE_EXPORT,
                                          PSA_ALG_NONE), 0);
 
-    TEST_LE_U(1, mbedtls_pk_write_pubkey_der(&priv_key, derived_key_raw,
-                                             derived_key_len));
+    TEST_EQUAL(mbedtls_pk_write_pubkey_der(&priv_key, derived_key_raw,
+                                           derived_key_len), pub_key_len);
 
     ASSERT_COMPARE(derived_key_raw, derived_key_len,
                    pub_key_raw, pub_key_len);

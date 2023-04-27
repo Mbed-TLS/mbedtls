@@ -126,7 +126,7 @@ void pk_write_key_check(char *key_file, int is_der)
 /* END_CASE */
 
 /* BEGIN_CASE */
-void pk_write_check_public_key_derivation(char *priv_key_file,
+void pk_write_public_from_private(char *priv_key_file,
                                           char *pub_key_file)
 {
     mbedtls_pk_context priv_key, pub_key;

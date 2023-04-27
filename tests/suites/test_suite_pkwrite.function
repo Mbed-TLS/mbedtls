@@ -126,74 +126,54 @@ void pk_write_key_check(char *key_file, int is_der)
 /* END_CASE */
 
 /* BEGIN_CASE */
-void pk_write_public_from_private(char *priv_key_file,
-                                          char *pub_key_file)
+void pk_write_public_from_private(char *priv_key_file, char *pub_key_file)
 {
-    mbedtls_pk_context priv_key, pub_key;
-    uint8_t derived_key_raw[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
-    uint8_t *derived_key_start;
+    mbedtls_pk_context priv_key;
+    uint8_t *derived_key_raw = NULL;
     size_t derived_key_len = 0;
-    uint8_t pub_key_raw[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
-    uint8_t *pub_key_start;
+    uint8_t *pub_key_raw = NULL;
     size_t pub_key_len = 0;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_svc_key_id_t opaque_key_id = MBEDTLS_SVC_KEY_ID_INIT;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     mbedtls_pk_init(&priv_key);
-    mbedtls_pk_init(&pub_key);
     USE_PSA_INIT();
-
-    memset(derived_key_raw, 0, sizeof(derived_key_raw));
-    memset(pub_key_raw, 0, sizeof(pub_key_raw));
 
     TEST_EQUAL(mbedtls_pk_parse_keyfile(&priv_key, priv_key_file, NULL,
                                         mbedtls_test_rnd_std_rand, NULL), 0);
-    TEST_EQUAL(mbedtls_pk_parse_public_keyfile(&pub_key, pub_key_file), 0);
+    TEST_EQUAL(mbedtls_pk_load_file(pub_key_file, &pub_key_raw,
+                                    &pub_key_len), 0);
 
-    /* mbedtls_pk_write_pubkey() writes data backward in the provided buffer,
-     * i.e. derived_key_raw, so we place derived_key_start at the end of it
-     * and it will be updated accordingly on return.
-     * The same holds for pub_key_raw and pub_key_start below.*/
-    derived_key_start = derived_key_raw + sizeof(derived_key_raw);
-    TEST_LE_U(1, mbedtls_pk_write_pubkey(&derived_key_start,
-                                         derived_key_raw, &priv_key));
-    derived_key_len = sizeof(derived_key_raw) -
-                      (derived_key_start - derived_key_raw);
+    derived_key_len = pub_key_len;
+    ASSERT_ALLOC(derived_key_raw, derived_key_len);
 
+    TEST_LE_U(1, mbedtls_pk_write_pubkey_der(&priv_key, derived_key_raw,
+                                             derived_key_len));
 
-    pub_key_start = pub_key_raw + sizeof(pub_key_raw);
-    TEST_LE_U(1, mbedtls_pk_write_pubkey(&pub_key_start,
-                                         pub_key_raw, &pub_key));
-    pub_key_len = sizeof(pub_key_raw) -
-                  (pub_key_start - pub_key_raw);
-
-    ASSERT_COMPARE(derived_key_start, derived_key_len,
-                   pub_key_start, pub_key_len);
+    ASSERT_COMPARE(derived_key_raw, derived_key_len,
+                   pub_key_raw, pub_key_len);
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_platform_zeroize(derived_key_raw, sizeof(derived_key_raw));
-    derived_key_len = 0;
 
     TEST_EQUAL(mbedtls_pk_wrap_as_opaque(&priv_key, &opaque_key_id,
                                          PSA_ALG_NONE, PSA_KEY_USAGE_EXPORT,
                                          PSA_ALG_NONE), 0);
 
-    derived_key_start = derived_key_raw + sizeof(derived_key_raw);
-    TEST_LE_U(1, mbedtls_pk_write_pubkey(&derived_key_start,
-                                         derived_key_raw, &priv_key));
-    derived_key_len = sizeof(derived_key_raw) -
-                      (derived_key_start - derived_key_raw);
+    TEST_LE_U(1, mbedtls_pk_write_pubkey_der(&priv_key, derived_key_raw,
+                                             derived_key_len));
 
-    ASSERT_COMPARE(derived_key_start, derived_key_len,
-                   pub_key_start, pub_key_len);
+    ASSERT_COMPARE(derived_key_raw, derived_key_len,
+                   pub_key_raw, pub_key_len);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 exit:
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_destroy_key(opaque_key_id);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-    mbedtls_pk_free(&pub_key);
+    mbedtls_free(derived_key_raw);
+    mbedtls_free(pub_key_raw);
     mbedtls_pk_free(&priv_key);
     USE_PSA_DONE();
 }

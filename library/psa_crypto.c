@@ -6490,7 +6490,6 @@ static psa_status_t psa_key_derivation_input_integer_internal(
     psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg(operation);
 
     {
-        /* This can't happen unless the operation object was not initialized */
         (void) step;
         (void) value;
         (void) kdf_alg;

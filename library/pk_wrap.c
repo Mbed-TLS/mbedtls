@@ -1505,11 +1505,10 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 static size_t pk_opaque_get_bitlen(mbedtls_pk_context *pk)
 {
-    const mbedtls_svc_key_id_t *key = pk->pk_ctx;
     size_t bits;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
-    if (PSA_SUCCESS != psa_get_key_attributes(*key, &attributes)) {
+    if (PSA_SUCCESS != psa_get_key_attributes(pk->opaque_id, &attributes)) {
         return 0;
     }
 
@@ -1547,7 +1546,6 @@ static int pk_opaque_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
     ((void) p_rng);
     return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
 #else /* !MBEDTLS_PK_CAN_ECDSA_SIGN && !MBEDTLS_RSA_C */
-    const mbedtls_svc_key_id_t *key = pk->pk_ctx;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_algorithm_t alg;
     psa_key_type_t type;
@@ -1557,7 +1555,7 @@ static int pk_opaque_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
     (void) f_rng;
     (void) p_rng;
 
-    status = psa_get_key_attributes(*key, &attributes);
+    status = psa_get_key_attributes(pk->opaque_id, &attributes);
     if (status != PSA_SUCCESS) {
         return PSA_PK_TO_MBEDTLS_ERR(status);
     }
@@ -1578,7 +1576,7 @@ static int pk_opaque_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
     return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
 
     /* make the signature */
-    status = psa_sign_hash(*key, alg, hash, hash_len,
+    status = psa_sign_hash(pk->opaque_id, alg, hash, hash_len,
                            sig, sig_size, sig_len);
     if (status != PSA_SUCCESS) {
 #if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
@@ -1634,14 +1632,13 @@ static int pk_opaque_rsa_decrypt(mbedtls_pk_context *pk,
                                  unsigned char *output, size_t *olen, size_t osize,
                                  int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
 {
-    const mbedtls_svc_key_id_t *key = pk->pk_ctx;
     psa_status_t status;
 
     /* PSA has its own RNG */
     (void) f_rng;
     (void) p_rng;
 
-    status = psa_asymmetric_decrypt(*key, PSA_ALG_RSA_PKCS1V15_CRYPT,
+    status = psa_asymmetric_decrypt(pk->opaque_id, PSA_ALG_RSA_PKCS1V15_CRYPT,
                                     input, ilen,
                                     NULL, 0,
                                     output, osize, olen);

@@ -153,8 +153,8 @@ void validate_entropy_seed_injection(int seed_length_a,
     TEST_ASSERT(memcmp(output, zeros, sizeof(output)) != 0);
 exit:
     mbedtls_free(seed);
-    remove_seed_file();
     PSA_DONE();
+    mbedtls_test_inject_entropy_restore();
 }
 /* END_CASE */
 
@@ -186,7 +186,7 @@ void run_entropy_inject_with_crypto_init()
     status = mbedtls_psa_inject_entropy(seed, sizeof(seed));
     TEST_EQUAL(status, PSA_ERROR_NOT_PERMITTED);
 exit:
-    remove_seed_file();
     PSA_DONE();
+    mbedtls_test_inject_entropy_restore();
 }
 /* END_CASE */

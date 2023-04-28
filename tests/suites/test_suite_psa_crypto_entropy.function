@@ -33,6 +33,12 @@
  */
 int check_random_seed_file(size_t expected_size)
 {
+    /* The value of the random seed UID must not change. Otherwise that would
+     * break upgrades of the library on devices that already contain a seed
+     * file. If this test assertion fails, you've presumably broken backward
+     * compatibility! */
+    TEST_EQUAL(PSA_CRYPTO_ITS_RANDOM_SEED_UID, 0xFFFFFF52);
+
     struct psa_storage_info_t info = { 0, 0 };
     psa_status_t status = psa_its_get_info(PSA_CRYPTO_ITS_RANDOM_SEED_UID,
                                            &info);

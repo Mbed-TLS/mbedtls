@@ -487,11 +487,13 @@ def main():
     filter_func = lambda d: (start_date < d.not_valid_before) or \
                             (d.not_valid_after < end_date)
 
+    sortby_end = lambda d: d.not_valid_after
+
     if args.all:
         filter_func = None
 
     # filter and output the results
-    for d in filter(filter_func, audit_results):
+    for d in sorted(filter(filter_func, audit_results), key=sortby_end):
         list_all(d)
 
     logger.debug("Done!")

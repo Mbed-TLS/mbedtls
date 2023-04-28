@@ -18,7 +18,7 @@
 
 /* END_HEADER */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_C:!MBEDTLS_TEST_NULL_ENTROPY:MBEDTLS_CTR_DRBG_C */
+/* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_C:!MBEDTLS_TEST_NULL_ENTROPY:!MBEDTLS_PSA_INJECT_ENTROPY:MBEDTLS_CTR_DRBG_C */
 void random_twice_with_ctr_drbg()
 {
     mbedtls_entropy_context entropy;
@@ -57,7 +57,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_C:!MBEDTLS_TEST_NULL_ENTROPY:MBEDTLS_HMAC_DRBG_C */
+/* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_C:!MBEDTLS_TEST_NULL_ENTROPY:!MBEDTLS_PSA_INJECT_ENTROPY:MBEDTLS_HMAC_DRBG_C */
 void random_twice_with_hmac_drbg(int md_type)
 {
     mbedtls_entropy_context entropy;

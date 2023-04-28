@@ -330,6 +330,15 @@ int main(int argc, char *argv[])
     memset(buf, 0, sizeof(buf));
     memset(serial, 0, sizeof(serial));
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        mbedtls_fprintf(stderr, "Failed to initialize PSA Crypto implementation: %d\n",
+                        (int) status);
+        goto exit;
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
     if (argc < 2) {
 usage:
         mbedtls_printf(USAGE);
@@ -885,6 +894,9 @@ exit:
     mbedtls_pk_free(&loaded_issuer_key);
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_psa_crypto_free();
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     mbedtls_exit(exit_code);
 }

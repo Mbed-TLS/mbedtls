@@ -33,7 +33,7 @@
 #include "bn_mul.h"
 #include "constant_time_internal.h"
 
-inline size_t mbedtls_mpi_core_clz(mbedtls_mpi_uint a)
+size_t mbedtls_mpi_core_clz(mbedtls_mpi_uint a)
 {
 #if defined(__has_builtin)
 #if __has_builtin(__builtin_clz)

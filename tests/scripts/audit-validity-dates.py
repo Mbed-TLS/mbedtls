@@ -45,7 +45,7 @@ from mbedtls_dev import build_tree
 
 def check_cryptography_version():
     match = re.match(r'^[0-9]+', cryptography.__version__)
-    if match is None or int(match[0]) < 35:
+    if match is None or int(match.group(0)) < 35:
         raise Exception("audit-validity-dates requires cryptography >= 35.0.0"
                         + "({} is too old)".format(cryptography.__version__))
 

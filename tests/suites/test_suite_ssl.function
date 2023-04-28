@@ -5,6 +5,8 @@
 
 #include <test/constant_flow.h>
 
+#define SSL_MESSAGE_QUEUE_INIT      { NULL, 0, 0, 0 }
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -451,7 +453,7 @@ exit:
 /* BEGIN_CASE */
 void ssl_message_queue_sanity()
 {
-    mbedtls_test_ssl_message_queue queue = {NULL, 0, 0, 0};
+    mbedtls_test_ssl_message_queue queue = SSL_MESSAGE_QUEUE_INIT;
 
     USE_PSA_INIT();
     /* Trying to push/pull to an empty queue */
@@ -473,7 +475,7 @@ exit:
 /* BEGIN_CASE */
 void ssl_message_queue_basic()
 {
-    mbedtls_test_ssl_message_queue queue = {NULL, 0, 0, 0};
+    mbedtls_test_ssl_message_queue queue = SSL_MESSAGE_QUEUE_INIT;
 
     USE_PSA_INIT();
     TEST_ASSERT(mbedtls_test_ssl_message_queue_setup(&queue, 3) == 0);
@@ -502,7 +504,7 @@ exit:
 /* BEGIN_CASE */
 void ssl_message_queue_overflow_underflow()
 {
-    mbedtls_test_ssl_message_queue queue = {NULL, 0, 0, 0};
+    mbedtls_test_ssl_message_queue queue = SSL_MESSAGE_QUEUE_INIT;
 
     USE_PSA_INIT();
     TEST_ASSERT(mbedtls_test_ssl_message_queue_setup(&queue, 3) == 0);
@@ -530,7 +532,7 @@ exit:
 /* BEGIN_CASE */
 void ssl_message_queue_interleaved()
 {
-    mbedtls_test_ssl_message_queue queue = {NULL, 0, 0, 0};
+    mbedtls_test_ssl_message_queue queue = SSL_MESSAGE_QUEUE_INIT;
 
     USE_PSA_INIT();
     TEST_ASSERT(mbedtls_test_ssl_message_queue_setup(&queue, 3) == 0);
@@ -566,7 +568,7 @@ exit:
 /* BEGIN_CASE */
 void ssl_message_queue_insufficient_buffer()
 {
-    mbedtls_test_ssl_message_queue queue = {NULL, 0, 0, 0};
+    mbedtls_test_ssl_message_queue queue = SSL_MESSAGE_QUEUE_INIT;
     size_t message_len = 10;
     size_t buffer_len = 5;
 

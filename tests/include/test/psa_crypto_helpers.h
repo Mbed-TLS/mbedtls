@@ -212,6 +212,25 @@ psa_key_usage_t mbedtls_test_update_key_usage_flags(psa_key_usage_t usage_flags)
  */
 int mbedtls_test_fail_if_psa_leaking(int line_no, const char *filename);
 
+
+
+#if defined(MBEDTLS_PSA_INJECT_ENTROPY)
+/* The #MBEDTLS_PSA_INJECT_ENTROPY feature requires two extra platform
+ * functions, which must be configured as #MBEDTLS_PLATFORM_NV_SEED_READ_MACRO
+ * and #MBEDTLS_PLATFORM_NV_SEED_WRITE_MACRO. The job of these functions
+ * is to read and write from the entropy seed file, which is located
+ * in the PSA ITS file whose uid is #PSA_CRYPTO_ITS_RANDOM_SEED_UID.
+ * (These could have been provided as library functions, but for historical
+ * reasons, they weren't, and so each integrator has to provide a copy
+ * of these functions.)
+ *
+ * Provide implementations of these functions for testing. */
+int mbedtls_test_inject_entropy_seed_read(unsigned char *buf, size_t len);
+int mbedtls_test_inject_entropy_seed_write(unsigned char *buf, size_t len);
+#endif /* MBEDTLS_PSA_INJECT_ENTROPY */
+
+
+
 /** Skip a test case if the given key is a 192 bits AES key and the AES
  *  implementation is at least partially provided by an accelerator or
  *  alternative implementation.

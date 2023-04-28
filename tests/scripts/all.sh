@@ -1244,6 +1244,21 @@ component_test_psa_external_rng_use_psa_crypto () {
     tests/ssl-opt.sh -f 'Default\|opaque'
 }
 
+component_test_psa_inject_entropy () {
+    msg "build: full + MBEDTLS_PSA_INJECT_ENTROPY"
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_PSA_INJECT_ENTROPY
+    scripts/config.py set MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.py set MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
+    scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_STD_NV_SEED_READ
+    scripts/config.py unset MBEDTLS_PLATFORM_STD_NV_SEED_WRITE
+    make CFLAGS="$ASAN_CFLAGS '-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/user-config-for-test.h\"'" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: full + MBEDTLS_PSA_INJECT_ENTROPY"
+    make test
+}
+
 component_test_ecp_no_internal_rng () {
     msg "build: Default plus ECP_NO_INTERNAL_RNG minus DRBG modules"
     scripts/config.py set MBEDTLS_ECP_NO_INTERNAL_RNG

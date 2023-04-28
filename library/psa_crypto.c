@@ -638,8 +638,8 @@ psa_status_t psa_import_key_into_slot(
 
         return PSA_SUCCESS;
     } else if (PSA_KEY_TYPE_IS_ASYMMETRIC(type)) {
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR) || \
-        defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_PUBLIC_KEY)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR) || \
+        defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY)
         if (PSA_KEY_TYPE_IS_DH(type)) {
             if (psa_is_dh_key_size_valid(PSA_BYTES_TO_BITS(data_length)) == 0) {
                 return PSA_ERROR_INVALID_ARGUMENT;
@@ -653,8 +653,8 @@ psa_status_t psa_import_key_into_slot(
 
             return PSA_SUCCESS;
         }
-#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR) ||
-        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_PUBLIC_KEY) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY) */
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
         defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
         if (PSA_KEY_TYPE_IS_ECC(type)) {
@@ -1460,8 +1460,8 @@ psa_status_t psa_export_public_key_internal(
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) */
     } else if (PSA_KEY_TYPE_IS_DH(type)) {
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR) || \
-        defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_PUBLIC_KEY)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR) || \
+        defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY)
             return mbedtls_psa_export_ffdh_public_key(attributes,
                                                       key_buffer,
                                                       key_buffer_size,
@@ -1469,8 +1469,8 @@ psa_status_t psa_export_public_key_internal(
                                                       data_length);
 #else
         return PSA_ERROR_NOT_SUPPORTED;
-#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR) ||
-        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_PUBLIC_KEY) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY) */
     } else {
         return PSA_ERROR_NOT_SUPPORTED;
     }
@@ -6985,13 +6985,13 @@ static psa_status_t psa_validate_key_type_and_size_for_key_generation(
     } else
 #endif /* defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) */
 
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR)
+#if defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR)
     if (PSA_KEY_TYPE_IS_DH(type) && PSA_KEY_TYPE_IS_KEY_PAIR(type)) {
         if (psa_is_dh_key_size_valid(bits) == 0) {
             return PSA_ERROR_NOT_SUPPORTED;
         }
     } else
-#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR) */
+#endif /* defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR) */
     {
         return PSA_ERROR_NOT_SUPPORTED;
     }
@@ -7044,14 +7044,14 @@ psa_status_t psa_generate_key_internal(
     } else
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) */
 
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR)
     if (PSA_KEY_TYPE_IS_DH(type) && PSA_KEY_TYPE_IS_KEY_PAIR(type)) {
         return mbedtls_psa_ffdh_generate_key(attributes,
                                              key_buffer,
                                              key_buffer_size,
                                              key_buffer_length);
     } else
-#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR) */
     {
         (void) key_buffer_length;
         return PSA_ERROR_NOT_SUPPORTED;

@@ -60,7 +60,7 @@ psa_status_t mbedtls_psa_key_agreement_ffdh(
     size_t shared_secret_size,
     size_t *shared_secret_length);
 
-/** Export a public key or the public part of a FFDH key pair in binary format.
+/** Export a public key or the public part of a DH key pair in binary format.
  *
  * \param[in]  attributes       The attributes for the key to export.
  * \param[in]  key_buffer       Material or context of the key to export.
@@ -86,7 +86,7 @@ psa_status_t mbedtls_psa_export_ffdh_public_key(
     size_t *data_length);
 
 /**
- * \brief Generate FFDH key.
+ * \brief Generate DH key.
  *
  * \note The signature of the function is that of a PSA driver generate_key
  *       entry point.

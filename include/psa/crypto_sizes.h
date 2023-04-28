@@ -197,7 +197,7 @@
  * operations, and does not need to accept all key sizes up to the limit. */
 #define PSA_VENDOR_RSA_MAX_KEY_BITS 4096
 
-/* The maximum size of an FFDH key on this implementation, in bits.
+/* The maximum size of an DH key on this implementation, in bits.
  *
  * Note that an implementation may set different size limits for different
  * operations, and does not need to accept all key sizes up to the limit. */
@@ -812,14 +812,14 @@
 #define PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(key_bits)   \
     (PSA_BITS_TO_BYTES(key_bits))
 
-/* Maximum size of the export encoding of an FFDH key pair.
+/* Maximum size of the export encoding of an DH key pair.
  *
- * An FFDH key pair is represented by the secret value.
+ * An DH key pair is represented by the secret value.
  */
 #define PSA_KEY_EXPORT_FFDH_KEY_PAIR_MAX_SIZE(key_bits)   \
     (PSA_BITS_TO_BYTES(key_bits))
 
-/* Maximum size of the export encoding of an FFDH public key.
+/* Maximum size of the export encoding of an DH public key.
  */
 #define PSA_KEY_EXPORT_FFDH_PUBLIC_KEY_MAX_SIZE(key_bits)   \
     (PSA_BITS_TO_BYTES(key_bits))

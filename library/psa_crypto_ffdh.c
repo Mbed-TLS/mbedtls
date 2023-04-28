@@ -27,8 +27,8 @@
 #include "psa_crypto_ffdh.h"
 #include "psa_crypto_random_impl.h"
 
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_PUBLIC_KEY)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY)
 static psa_status_t mbedtls_psa_ffdh_set_prime_generator(size_t key_size,
                                                          mbedtls_mpi *P,
                                                          mbedtls_mpi *G)
@@ -251,7 +251,7 @@ cleanup:
 
     return status;
 }
-#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_KEY_PAIR ||
-          MBEDTLS_PSA_BUILTIN_KEY_TYPE_FFDH_PUBLIC_KEY */
+#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR ||
+          MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY */
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

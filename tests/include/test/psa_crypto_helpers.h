@@ -227,6 +227,22 @@ int mbedtls_test_fail_if_psa_leaking(int line_no, const char *filename);
  * Provide implementations of these functions for testing. */
 int mbedtls_test_inject_entropy_seed_read(unsigned char *buf, size_t len);
 int mbedtls_test_inject_entropy_seed_write(unsigned char *buf, size_t len);
+
+
+/** Make sure that the injected entropy is present.
+ *
+ * When MBEDTLS_PSA_INJECT_ENTROPY is enabled, psa_crypto_init()
+ * will fail if the PSA entropy seed is not present.
+ * This function must be called at least once in a test suite or other
+ * program before any call to psa_crypto_init().
+ * It does not need to be called in each test case.
+ *
+ * The test framework calls this function before running any test case.
+ *
+ * The few tests that might remove the entropy file must call this function
+ * in their cleanup.
+ */
+int mbedtls_test_inject_entropy_restore(void);
 #endif /* MBEDTLS_PSA_INJECT_ENTROPY */
 
 

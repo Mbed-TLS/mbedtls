@@ -178,6 +178,20 @@ int mbedtls_test_inject_entropy_seed_write(unsigned char *buf, size_t len)
     return 0;
 }
 
+int mbedtls_test_inject_entropy_restore(void)
+{
+    unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE];
+    for (size_t i = 0; i < sizeof(buf); i++) {
+        buf[i] = (unsigned char) i;
+    }
+    psa_status_t status = mbedtls_psa_inject_entropy(buf, sizeof(buf));
+    /* It's ok if the file was just created, or if it already exists. */
+    if (status != PSA_SUCCESS && status != PSA_ERROR_NOT_PERMITTED) {
+        return status;
+    }
+    return PSA_SUCCESS;
+}
+
 #endif /* MBEDTLS_PSA_INJECT_ENTROPY */
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

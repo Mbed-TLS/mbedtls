@@ -90,7 +90,7 @@ class AuditData:
 
 class X509Parser:
     """A parser class to parse crt/crl/csr file or data in PEM/DER format."""
-    PEM_REGEX = br'-{5}BEGIN (?P<type>.*?)-{5}\n(?P<data>.*?)-{5}END (?P=type)-{5}\n'
+    PEM_REGEX = br'-{5}BEGIN (?P<type>.*?)-{5}(?P<data>.*?)-{5}END (?P=type)-{5}'
     PEM_TAG_REGEX = br'-{5}BEGIN (?P<type>.*?)-{5}\n'
     PEM_TAGS = {
         DataType.CRT: 'CERTIFICATE',
@@ -277,12 +277,15 @@ class TestDataAuditor(Auditor):
         """
         with open(filename, 'rb') as f:
             data = f.read()
-        result = self.parse_bytes(data)
-        if result is not None:
-            result.location = filename
-            return [result]
-        else:
-            return []
+
+        results = []
+        for idx, m in enumerate(re.finditer(X509Parser.PEM_REGEX, data, flags=re.S), 1):
+            result = self.parse_bytes(data[m.start():m.end()])
+            if result is not None:
+                result.location = "{}#{}".format(filename, idx)
+                results.append(result)
+
+        return results
 
 
 def parse_suite_data(data_f):

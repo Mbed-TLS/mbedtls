@@ -65,6 +65,7 @@
 #define PSA_WANT_ALG_DETERMINISTIC_ECDSA        1
 #define PSA_WANT_ALG_ECB_NO_PADDING             1
 #define PSA_WANT_ALG_ECDH                       1
+#define PSA_WANT_ALG_FFDH                       1
 #define PSA_WANT_ALG_ECDSA                      1
 #define PSA_WANT_ALG_JPAKE                      1
 #define PSA_WANT_ALG_GCM                        1
@@ -126,8 +127,8 @@
 #define PSA_WANT_KEY_TYPE_DES                   1
 #define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR          1
 #define PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY        1
-#define PSA_WANT_KEY_TYPE_DH_KEY_PAIR         1
-#define PSA_WANT_KEY_TYPE_DH_PUBLIC_KEY       1
+#define PSA_WANT_KEY_TYPE_DH_KEY_PAIR           1
+#define PSA_WANT_KEY_TYPE_DH_PUBLIC_KEY         1
 #define PSA_WANT_KEY_TYPE_RAW_DATA              1
 #define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR          1
 #define PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY        1

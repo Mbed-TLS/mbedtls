@@ -60,6 +60,9 @@ void mbedtls_pk_init(mbedtls_pk_context *ctx)
 {
     ctx->pk_info = NULL;
     ctx->pk_ctx = NULL;
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+    ctx->opaque_id = MBEDTLS_SVC_KEY_ID_INIT;
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 }
 
 /*
@@ -71,7 +74,7 @@ void mbedtls_pk_free(mbedtls_pk_context *ctx)
         return;
     }
 
-    if (ctx->pk_info != NULL) {
+    if ((ctx->pk_info != NULL) && (ctx->pk_info->ctx_free_func != NULL)) {
         ctx->pk_info->ctx_free_func(ctx->pk_ctx);
     }
 
@@ -140,7 +143,8 @@ int mbedtls_pk_setup(mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info)
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
 
-    if ((ctx->pk_ctx = info->ctx_alloc_func()) == NULL) {
+    if ((info->ctx_alloc_func == NULL) ||
+        ((ctx->pk_ctx = info->ctx_alloc_func()) == NULL)) {
         return MBEDTLS_ERR_PK_ALLOC_FAILED;
     }
 
@@ -158,7 +162,6 @@ int mbedtls_pk_setup_opaque(mbedtls_pk_context *ctx,
 {
     const mbedtls_pk_info_t *info = NULL;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    mbedtls_svc_key_id_t *pk_ctx;
     psa_key_type_t type;
 
     if (ctx == NULL || ctx->pk_info != NULL) {
@@ -179,14 +182,8 @@ int mbedtls_pk_setup_opaque(mbedtls_pk_context *ctx,
         return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
     }
 
-    if ((ctx->pk_ctx = info->ctx_alloc_func()) == NULL) {
-        return MBEDTLS_ERR_PK_ALLOC_FAILED;
-    }
-
     ctx->pk_info = info;
-
-    pk_ctx = (mbedtls_svc_key_id_t *) ctx->pk_ctx;
-    *pk_ctx = key;
+    ctx->opaque_id = key;
 
     return 0;
 }

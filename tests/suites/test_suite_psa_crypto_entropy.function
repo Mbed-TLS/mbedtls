@@ -12,28 +12,16 @@
                                                 MBEDTLS_ENTROPY_BLOCK_SIZE)
 
 #if defined(MBEDTLS_PSA_INJECT_ENTROPY)
+#include <psa_crypto_its.h>
 
-#if defined(MBEDTLS_PSA_ITS_FILE_C)
-#include <stdio.h>
-#else
-#include <psa/internal_trusted_storage.h>
-#endif
 
-/* Remove the entropy seed file. Since the library does not expose a way
- * to do this (it would be a security risk if such a function was ever
- * accessible in production), implement this functionality in a white-box
- * manner. */
+/* Remove the entropy seed file.
+ *
+ * See check_random_seed_file() regarding abstraction boundaries.
+ */
 psa_status_t remove_seed_file(void)
 {
-#if defined(MBEDTLS_PSA_ITS_FILE_C)
-    if (remove("00000000ffffff52.psa_its") == 0) {
-        return PSA_SUCCESS;
-    } else {
-        return PSA_ERROR_DOES_NOT_EXIST;
-    }
-#else
     return psa_its_remove(PSA_CRYPTO_ITS_RANDOM_SEED_UID);
-#endif
 }
 
 #endif /* MBEDTLS_PSA_INJECT_ENTROPY */

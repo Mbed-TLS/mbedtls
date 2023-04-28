@@ -297,7 +297,7 @@ void mbedtls_mpi_core_shift_r(mbedtls_mpi_uint *X, size_t limbs,
  * \brief               Shift an MPI in-place left by a number of bits.
  *
  *                      Shifting by more bits than there are bit positions
- *                      in \p X is valid and results in setting \p X to 0.
+ *                      in \p X will produce an unspecified result.
  *
  *                      This function's execution time depends on the value
  *                      of \p count (and of course \p limbs).

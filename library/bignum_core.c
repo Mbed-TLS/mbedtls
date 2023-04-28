@@ -362,11 +362,6 @@ void mbedtls_mpi_core_shift_l(mbedtls_mpi_uint *X, size_t limbs,
     v0 = count / (biL);
     v1 = count & (biL - 1);
 
-    if (v0 > limbs || (v0 == limbs && v1 > 0)) {
-        memset(X, 0, limbs * ciL);
-        return;
-    }
-
     /*
      * shift by count / limb_size
      */

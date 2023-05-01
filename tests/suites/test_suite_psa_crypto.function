@@ -8460,6 +8460,15 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void parse_binary_string_test(data_t *input, int output)
+{
+    uint64_t value;
+    value = parse_binary_string(input);
+    TEST_EQUAL(value, output);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void derive_input(int alg_arg,
                   int step_arg1, int key_type_arg1, data_t *input1,
                   int expected_status_arg1,

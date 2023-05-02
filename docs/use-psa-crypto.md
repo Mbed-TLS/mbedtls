@@ -13,7 +13,8 @@ General considerations
 
 **Application code:** when this option is enabled, you need to call
 `psa_crypto_init()` before calling any function from the SSL/TLS, X.509 or PK
-module.
+modules, except for the various mbedtls_xxx_init() functions which can be called
+at any time.
 
 **Why enable this option:** to fully take advantage of PSA drivers in PK,
 X.509 and TLS. For example, enabling this option is what allows use of drivers

@@ -429,12 +429,15 @@ void x509_accessor_ext_types(int ext_type, int has_ext_type)
     int expected_result = ext_type & has_ext_type;
 
     mbedtls_x509_crt_init(&crt);
+    USE_PSA_INIT();
 
     crt.ext_types = ext_type;
 
     TEST_ASSERT(mbedtls_x509_crt_has_ext_type(&crt, has_ext_type) == expected_result);
 
+exit:
     mbedtls_x509_crt_free(&crt);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -463,6 +466,7 @@ void x509_parse_san(char *crt_file, char *result_str, int parse_result)
     size_t n = sizeof(buf);
 
     mbedtls_x509_crt_init(&crt);
+    USE_PSA_INIT();
     memset(buf, 0, 2000);
 
     TEST_EQUAL(mbedtls_x509_crt_parse_file(&crt, crt_file), parse_result);
@@ -490,8 +494,8 @@ void x509_parse_san(char *crt_file, char *result_str, int parse_result)
     TEST_ASSERT(strcmp(buf, result_str) == 0);
 
 exit:
-
     mbedtls_x509_crt_free(&crt);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -503,6 +507,7 @@ void x509_cert_info(char *crt_file, char *result_str)
     int res;
 
     mbedtls_x509_crt_init(&crt);
+    USE_PSA_INIT();
     memset(buf, 0, 2000);
 
     TEST_ASSERT(mbedtls_x509_crt_parse_file(&crt, crt_file) == 0);
@@ -515,6 +520,7 @@ void x509_cert_info(char *crt_file, char *result_str)
 
 exit:
     mbedtls_x509_crt_free(&crt);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -526,6 +532,7 @@ void mbedtls_x509_crl_info(char *crl_file, char *result_str)
     int res;
 
     mbedtls_x509_crl_init(&crl);
+    USE_PSA_INIT();
     memset(buf, 0, 2000);
 
     TEST_ASSERT(mbedtls_x509_crl_parse_file(&crl, crl_file) == 0);
@@ -538,6 +545,7 @@ void mbedtls_x509_crl_info(char *crl_file, char *result_str)
 
 exit:
     mbedtls_x509_crl_free(&crl);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -548,12 +556,14 @@ void mbedtls_x509_crl_parse(char *crl_file, int result)
     char buf[2000];
 
     mbedtls_x509_crl_init(&crl);
+    USE_PSA_INIT();
     memset(buf, 0, 2000);
 
     TEST_ASSERT(mbedtls_x509_crl_parse_file(&crl, crl_file) == result);
 
 exit:
     mbedtls_x509_crl_free(&crl);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -565,6 +575,7 @@ void mbedtls_x509_csr_info(char *csr_file, char *result_str)
     int res;
 
     mbedtls_x509_csr_init(&csr);
+    USE_PSA_INIT();
     memset(buf, 0, 2000);
 
     TEST_ASSERT(mbedtls_x509_csr_parse_file(&csr, csr_file) == 0);
@@ -577,6 +588,7 @@ void mbedtls_x509_csr_info(char *csr_file, char *result_str)
 
 exit:
     mbedtls_x509_csr_free(&csr);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -586,6 +598,7 @@ void x509_verify_info(int flags, char *prefix, char *result_str)
     char buf[2000];
     int res;
 
+    USE_PSA_INIT();
     memset(buf, 0, sizeof(buf));
 
     res = mbedtls_x509_crt_verify_info(buf, sizeof(buf), prefix, flags);
@@ -593,6 +606,9 @@ void x509_verify_info(int flags, char *prefix, char *result_str)
     TEST_ASSERT(res >= 0);
 
     TEST_ASSERT(strcmp(buf, result_str) == 0);
+
+exit:
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -616,11 +632,9 @@ void x509_verify_restart(char *crt_file, char *ca_file,
      * - x509_verify() for server5 -> test-ca2:             ~ 18800
      * - x509_verify() for server10 -> int-ca3 -> int-ca2:  ~ 25500
      */
-
     mbedtls_x509_crt_restart_init(&rs_ctx);
     mbedtls_x509_crt_init(&crt);
     mbedtls_x509_crt_init(&ca);
-
     MD_OR_USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_x509_crt_parse_file(&crt, crt_file) == 0);
@@ -673,7 +687,6 @@ void x509_verify(char *crt_file, char *ca_file, char *crl_file,
     mbedtls_x509_crt_init(&crt);
     mbedtls_x509_crt_init(&ca);
     mbedtls_x509_crl_init(&crl);
-
     MD_OR_USE_PSA_INIT();
 
     if (strcmp(cn_name_str, "NULL") != 0) {
@@ -758,6 +771,7 @@ void x509_verify_ca_cb_failure(char *crt_file, char *ca_file, char *name,
 
     mbedtls_x509_crt_init(&crt);
     mbedtls_x509_crt_init(&ca);
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_x509_crt_parse_file(&crt, crt_file) == 0);
     TEST_ASSERT(mbedtls_x509_crt_parse_file(&ca, ca_file) == 0);
@@ -775,6 +789,7 @@ void x509_verify_ca_cb_failure(char *crt_file, char *ca_file, char *name,
 exit:
     mbedtls_x509_crt_free(&crt);
     mbedtls_x509_crt_free(&ca);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -790,9 +805,9 @@ void x509_verify_callback(char *crt_file, char *ca_file, char *name,
 
     mbedtls_x509_crt_init(&crt);
     mbedtls_x509_crt_init(&ca);
-    verify_print_init(&vrfy_ctx);
-
     MD_OR_USE_PSA_INIT();
+
+    verify_print_init(&vrfy_ctx);
 
     TEST_ASSERT(mbedtls_x509_crt_parse_file(&crt, crt_file) == 0);
     TEST_ASSERT(mbedtls_x509_crt_parse_file(&ca, ca_file) == 0);
@@ -827,6 +842,8 @@ void mbedtls_x509_dn_gets_subject_replace(char *crt_file,
     int res = 0;
 
     mbedtls_x509_crt_init(&crt);
+    USE_PSA_INIT();
+
     memset(buf, 0, 2000);
 
     TEST_ASSERT(mbedtls_x509_crt_parse_file(&crt, crt_file) == 0);
@@ -844,6 +861,7 @@ void mbedtls_x509_dn_gets_subject_replace(char *crt_file,
     }
 exit:
     mbedtls_x509_crt_free(&crt);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -855,6 +873,8 @@ void mbedtls_x509_dn_gets(char *crt_file, char *entity, char *result_str)
     int res = 0;
 
     mbedtls_x509_crt_init(&crt);
+    USE_PSA_INIT();
+
     memset(buf, 0, 2000);
 
     TEST_ASSERT(mbedtls_x509_crt_parse_file(&crt, crt_file) == 0);
@@ -873,18 +893,20 @@ void mbedtls_x509_dn_gets(char *crt_file, char *entity, char *result_str)
 
 exit:
     mbedtls_x509_crt_free(&crt);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C */
 void mbedtls_x509_get_name(char *rdn_sequence, int exp_ret)
 {
-    unsigned char *name;
+    unsigned char *name = NULL;
     unsigned char *p;
     size_t name_len;
     mbedtls_x509_name head;
     int ret;
 
+    USE_PSA_INIT();
     memset(&head, 0, sizeof(head));
 
     name = mbedtls_test_unhexify_alloc(rdn_sequence, &name_len);
@@ -897,7 +919,9 @@ void mbedtls_x509_get_name(char *rdn_sequence, int exp_ret)
 
     TEST_EQUAL(ret, exp_ret);
 
+exit:
     mbedtls_free(name);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -916,6 +940,7 @@ void mbedtls_x509_dn_get_next(char *name_str,
     unsigned char buf[80], *out = NULL, *c;
     const char *short_name;
 
+    USE_PSA_INIT();
     memset(&parsed, 0, sizeof(parsed));
     memset(buf, 0, sizeof(buf));
     c = buf + sizeof(buf);
@@ -964,6 +989,7 @@ exit:
     mbedtls_free(out);
     mbedtls_asn1_free_named_data_list(&names);
     mbedtls_asn1_free_named_data_list_shallow(parsed.next);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -973,6 +999,7 @@ void mbedtls_x509_time_is_past(char *crt_file, char *entity, int result)
     mbedtls_x509_crt   crt;
 
     mbedtls_x509_crt_init(&crt);
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_x509_crt_parse_file(&crt, crt_file) == 0);
 
@@ -986,6 +1013,7 @@ void mbedtls_x509_time_is_past(char *crt_file, char *entity, int result)
 
 exit:
     mbedtls_x509_crt_free(&crt);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -995,6 +1023,7 @@ void mbedtls_x509_time_is_future(char *crt_file, char *entity, int result)
     mbedtls_x509_crt   crt;
 
     mbedtls_x509_crt_init(&crt);
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_x509_crt_parse_file(&crt, crt_file) == 0);
 
@@ -1008,6 +1037,7 @@ void mbedtls_x509_time_is_future(char *crt_file, char *entity, int result)
 
 exit:
     mbedtls_x509_crt_free(&crt);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -1017,11 +1047,13 @@ void x509parse_crt_file(char *crt_file, int result)
     mbedtls_x509_crt crt;
 
     mbedtls_x509_crt_init(&crt);
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_x509_crt_parse_file(&crt, crt_file) == result);
 
 exit:
     mbedtls_x509_crt_free(&crt);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -1037,6 +1069,7 @@ void x509parse_crt(data_t *buf, char *result_str, int result)
 #endif
 
     mbedtls_x509_crt_init(&crt);
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_x509_crt_parse_der(&crt, buf->x, buf->len) == (result));
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
@@ -1103,6 +1136,7 @@ void x509parse_crt(data_t *buf, char *result_str, int result)
 
 exit:
     mbedtls_x509_crt_free(&crt);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -1124,6 +1158,7 @@ void x509parse_crt_cb(data_t *buf, char *result_str, int result)
     oid.p = (unsigned char *) MBEDTLS_OID_PKIX "\x01\x1F";
 
     mbedtls_x509_crt_init(&crt);
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_x509_crt_parse_der_with_ext_cb(&crt, buf->x, buf->len, 0, parse_crt_ext_cb,
                                                        &oid) == (result));
@@ -1157,6 +1192,7 @@ void x509parse_crt_cb(data_t *buf, char *result_str, int result)
 
 exit:
     mbedtls_x509_crt_free(&crt);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -1168,6 +1204,8 @@ void x509parse_crl(data_t *buf, char *result_str, int result)
     int res;
 
     mbedtls_x509_crl_init(&crl);
+    USE_PSA_INIT();
+
     memset(output, 0, 2000);
 
 
@@ -1183,6 +1221,7 @@ void x509parse_crl(data_t *buf, char *result_str, int result)
 
 exit:
     mbedtls_x509_crl_free(&crl);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -1194,6 +1233,8 @@ void mbedtls_x509_csr_parse(data_t *csr_der, char *ref_out, int ref_ret)
     int my_ret;
 
     mbedtls_x509_csr_init(&csr);
+    USE_PSA_INIT();
+
     memset(my_out, 0, sizeof(my_out));
 
     my_ret = mbedtls_x509_csr_parse_der(&csr, csr_der->x, csr_der->len);
@@ -1207,6 +1248,7 @@ void mbedtls_x509_csr_parse(data_t *csr_der, char *ref_out, int ref_ret)
 
 exit:
     mbedtls_x509_csr_free(&csr);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -1218,6 +1260,8 @@ void mbedtls_x509_csr_parse_file(char *csr_file, char *ref_out, int ref_ret)
     int my_ret;
 
     mbedtls_x509_csr_init(&csr);
+    USE_PSA_INIT();
+
     memset(my_out, 0, sizeof(my_out));
 
     my_ret = mbedtls_x509_csr_parse_file(&csr, csr_file);
@@ -1231,6 +1275,7 @@ void mbedtls_x509_csr_parse_file(char *csr_file, char *ref_out, int ref_ret)
 
 exit:
     mbedtls_x509_csr_free(&csr);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -1241,6 +1286,7 @@ void mbedtls_x509_crt_parse_path(char *crt_path, int ret, int nb_crt)
     int i;
 
     mbedtls_x509_crt_init(&chain);
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_x509_crt_parse_path(&chain, crt_path) == ret);
 
@@ -1255,6 +1301,7 @@ void mbedtls_x509_crt_parse_path(char *crt_path, int ret, int nb_crt)
 
 exit:
     mbedtls_x509_crt_free(&chain);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -1271,10 +1318,8 @@ void mbedtls_x509_crt_verify_max(char *ca_file, char *chain_dir, int nb_int,
      * We expect chain_dir to contain certificates 00.crt, 01.crt, etc.
      * with NN.crt signed by NN-1.crt
      */
-
     mbedtls_x509_crt_init(&trusted);
     mbedtls_x509_crt_init(&chain);
-
     MD_OR_USE_PSA_INIT();
 
     /* Load trusted root */
@@ -1313,7 +1358,6 @@ void mbedtls_x509_crt_verify_chain(char *chain_paths, char *trusted_ca,
 
     mbedtls_x509_crt_init(&chain);
     mbedtls_x509_crt_init(&trusted);
-
     MD_OR_USE_PSA_INIT();
 
     while ((act = mystrsep(&chain_paths, " ")) != NULL) {
@@ -1353,6 +1397,7 @@ void x509_oid_desc(data_t *buf, char *ref_desc)
     const char *desc = NULL;
     int ret;
 
+    USE_PSA_INIT();
 
     oid.tag = MBEDTLS_ASN1_OID;
     oid.p   = buf->x;
@@ -1368,6 +1413,9 @@ void x509_oid_desc(data_t *buf, char *ref_desc)
         TEST_ASSERT(desc != NULL);
         TEST_ASSERT(strcmp(desc, ref_desc) == 0);
     }
+
+exit:
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -1376,6 +1424,8 @@ void x509_oid_numstr(data_t *oid_buf, char *numstr, int blen, int ret)
 {
     mbedtls_x509_buf oid;
     char num_buf[100];
+
+    USE_PSA_INIT();
 
     memset(num_buf, 0x2a, sizeof(num_buf));
 
@@ -1391,6 +1441,9 @@ void x509_oid_numstr(data_t *oid_buf, char *numstr, int blen, int ret)
         TEST_ASSERT(num_buf[ret] == 0);
         TEST_ASSERT(strcmp(num_buf, numstr) == 0);
     }
+
+exit:
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -1400,6 +1453,7 @@ void x509_check_key_usage(char *crt_file, int usage, int ret)
     mbedtls_x509_crt crt;
 
     mbedtls_x509_crt_init(&crt);
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_x509_crt_parse_file(&crt, crt_file) == 0);
 
@@ -1407,6 +1461,7 @@ void x509_check_key_usage(char *crt_file, int usage, int ret)
 
 exit:
     mbedtls_x509_crt_free(&crt);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -1417,7 +1472,7 @@ void x509_check_extended_key_usage(char *crt_file, data_t *oid, int ret
     mbedtls_x509_crt crt;
 
     mbedtls_x509_crt_init(&crt);
-
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_x509_crt_parse_file(&crt, crt_file) == 0);
 
@@ -1426,6 +1481,7 @@ void x509_check_extended_key_usage(char *crt_file, data_t *oid, int ret
 
 exit:
     mbedtls_x509_crt_free(&crt);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -1438,6 +1494,7 @@ void x509_get_time(int tag, char *time_str, int ret, int year, int mon,
     unsigned char *start = buf;
     unsigned char *end = buf;
 
+    USE_PSA_INIT();
     memset(&time, 0x00, sizeof(time));
     *end = (unsigned char) tag; end++;
     *end = strlen(time_str);
@@ -1455,6 +1512,8 @@ void x509_get_time(int tag, char *time_str, int ret, int year, int mon,
         TEST_ASSERT(min  == time.min);
         TEST_ASSERT(sec  == time.sec);
     }
+exit:
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -1467,6 +1526,8 @@ void x509_parse_rsassa_pss_params(data_t *params, int params_tag,
     mbedtls_x509_buf buf;
     mbedtls_md_type_t my_msg_md, my_mgf_md;
     int my_salt_len;
+
+    USE_PSA_INIT();
 
     buf.p = params->x;
     buf.len = params->len;
@@ -1484,6 +1545,6 @@ void x509_parse_rsassa_pss_params(data_t *params, int params_tag,
     }
 
 exit:
-    ;;
+    USE_PSA_DONE();
 }
 /* END_CASE */

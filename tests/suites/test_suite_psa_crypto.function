@@ -294,6 +294,19 @@ exit:
     ((void) 0)
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
+#define INPUT_INTEGER 0x10000   /* Out of range of psa_key_type_t */
+
+uint64_t parse_binary_string(data_t *bin_string)
+{
+    uint64_t result = 0;
+    TEST_LE_U(bin_string->len, 8);
+    for (size_t i = 0; i < bin_string->len; i++) {
+        result = result << 8 | bin_string->x[i];
+    }
+exit:
+    return result; /* returns 0 if len > 8 */
+}
+
 /* An overapproximation of the amount of storage needed for a key of the
  * given type and with the given content. The API doesn't make it easy
  * to find a good value for the size. The current implementation doesn't
@@ -317,6 +330,7 @@ typedef enum {
     USE_NULL_TAG = 0,
     USE_GIVEN_TAG = 1,
 } tag_usage_method_t;
+
 
 /*!
  * \brief                           Internal Function for AEAD multipart tests.
@@ -8446,6 +8460,15 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void parse_binary_string_test(data_t *input, int output)
+{
+    uint64_t value;
+    value = parse_binary_string(input);
+    TEST_EQUAL(value, output);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void derive_input(int alg_arg,
                   int step_arg1, int key_type_arg1, data_t *input1,
                   int expected_status_arg1,
@@ -8457,7 +8480,7 @@ void derive_input(int alg_arg,
 {
     psa_algorithm_t alg = alg_arg;
     psa_key_derivation_step_t steps[] = { step_arg1, step_arg2, step_arg3 };
-    psa_key_type_t key_types[] = { key_type_arg1, key_type_arg2, key_type_arg3 };
+    uint32_t key_types[] = { key_type_arg1, key_type_arg2, key_type_arg3 };
     psa_status_t expected_statuses[] = { expected_status_arg1,
                                          expected_status_arg2,
                                          expected_status_arg3 };
@@ -8484,12 +8507,13 @@ void derive_input(int alg_arg,
         mbedtls_test_set_step(i);
         if (steps[i] == 0) {
             /* Skip this step */
-        } else if (key_types[i] != PSA_KEY_TYPE_NONE) {
-            psa_set_key_type(&attributes, key_types[i]);
+        } else if (((psa_key_type_t) key_types[i]) != PSA_KEY_TYPE_NONE &&
+                   key_types[i] != INPUT_INTEGER) {
+            psa_set_key_type(&attributes, ((psa_key_type_t) key_types[i]));
             PSA_ASSERT(psa_import_key(&attributes,
                                       inputs[i]->x, inputs[i]->len,
                                       &keys[i]));
-            if (PSA_KEY_TYPE_IS_KEY_PAIR(key_types[i]) &&
+            if (PSA_KEY_TYPE_IS_KEY_PAIR((psa_key_type_t) key_types[i]) &&
                 steps[i] == PSA_KEY_DERIVATION_INPUT_SECRET) {
                 // When taking a private key as secret input, use key agreement
                 // to add the shared secret to the derivation
@@ -8502,10 +8526,17 @@ void derive_input(int alg_arg,
                            expected_statuses[i]);
             }
         } else {
-            TEST_EQUAL(psa_key_derivation_input_bytes(
-                           &operation, steps[i],
-                           inputs[i]->x, inputs[i]->len),
-                       expected_statuses[i]);
+            if (key_types[i] == INPUT_INTEGER) {
+                TEST_EQUAL(psa_key_derivation_input_integer(
+                               &operation, steps[i],
+                               parse_binary_string(inputs[i])),
+                           expected_statuses[i]);
+            } else {
+                TEST_EQUAL(psa_key_derivation_input_bytes(
+                               &operation, steps[i],
+                               inputs[i]->x, inputs[i]->len),
+                           expected_statuses[i]);
+            }
         }
     }
 

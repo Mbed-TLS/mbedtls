@@ -639,8 +639,8 @@ class EcpP256K1Raw(bignum_common.ModOperationCommon,
                    EcpTarget):
     """Test cases for ECP P256 fast reduction."""
     symbol = "-"
-    test_function = "ecp_mod_p256k1"
-    test_name = "ecp_mod_p256k1"
+    test_function = "ecp_mod_p_generic_raw"
+    test_name = "ecp_mod_p256k1_raw"
     input_style = "fixed"
     arity = 1
     dependencies = ["MBEDTLS_ECP_DP_SECP256K1_ENABLED"]
@@ -659,9 +659,13 @@ class EcpP256K1Raw(bignum_common.ModOperationCommon,
         # 2^256 - 1
         "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
 
-        # Maximum canonical P256 multiplication result
-        ("fffffffffffffffffffffffffffffffffffffffffffffffffffffffdfffff85c0"
-         "00000000000000000000000000000000000000000000001000007a4000e9844"),
+        # Maximum canonical P256K1 multiplication result
+        ("fffffffffffffffffffffffffffffffffffffffffffffffffffffffdfffff85c"
+         "000000000000000000000000000000000000000000000001000007a4000e9844"),
+
+        # Test case for overflow during addition
+        ("0000fffffc2f000e90a0c86a0a63234e5ba641f43a7e4aecc4040e67ec850562"
+         "00000000000000000000000000000000000000000000000000000000585674fd"),
 
         # Test case for overflow during addition
         ("0000fffffc2f000e90a0c86a0a63234e5ba641f43a7e4aecc4040e67ec850562"
@@ -701,6 +705,10 @@ class EcpP256K1Raw(bignum_common.ModOperationCommon,
     @property
     def is_valid(self) -> bool:
         return True
+
+    def arguments(self):
+        args = super().arguments()
+        return  ["MBEDTLS_ECP_DP_SECP256K1"] + args
 
 
 class EcpP448Raw(bignum_common.ModOperationCommon,

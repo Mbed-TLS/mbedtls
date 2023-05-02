@@ -345,7 +345,11 @@ extern mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state;
 #endif /* !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) */
 
 typedef struct {
-    psa_status_t psa_status;
+    /* Error codes used by PSA crypto are in -255..-128, fitting in 16 bits. */
+    int16_t psa_status;
+    /* Error codes used by Mbed TLS are in one of the ranges
+     * -127..-1 (low-level) or (-128) * (128..511) (high-level),
+     * fitting in 16 bits. */
     int16_t mbedtls_error;
 } mbedtls_error_pair_t;
 

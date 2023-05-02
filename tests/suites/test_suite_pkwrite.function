@@ -36,6 +36,9 @@ static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
     size_t buf_len, check_buf_len;
     int ret;
 
+    mbedtls_pk_init(&key);
+    USE_PSA_INIT();
+
     /* Note: if mbedtls_pk_load_file() successfully reads the file, then
        it also allocates check_buf, which should be freed on exit */
     TEST_EQUAL(mbedtls_pk_load_file(key_file, &check_buf, &check_buf_len), 0);
@@ -56,7 +59,6 @@ static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
 
     ASSERT_ALLOC(buf, check_buf_len);
 
-    mbedtls_pk_init(&key);
     if (is_public_key) {
         TEST_EQUAL(mbedtls_pk_parse_public_keyfile(&key, key_file), 0);
         if (is_der) {
@@ -97,6 +99,7 @@ exit:
     mbedtls_free(buf);
     mbedtls_free(check_buf);
     mbedtls_pk_free(&key);
+    USE_PSA_DONE();
 }
 /* END_HEADER */
 

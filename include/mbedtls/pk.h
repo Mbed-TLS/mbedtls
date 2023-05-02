@@ -235,7 +235,7 @@ typedef struct mbedtls_pk_info_t mbedtls_pk_info_t;
 /**
  * \brief           Public key container
  *
- * \note            The opaque_id is guarded by MBEDTLS_PSA_CRYPTO_C and not
+ * \note            The priv_id is guarded by MBEDTLS_PSA_CRYPTO_C and not
  *                  only by MBEDTLS_USE_PSA_CRYPTO because it can be used also
  *                  in mbedtls_pk_sign_ext for RSA keys.
  */
@@ -243,7 +243,7 @@ typedef struct mbedtls_pk_context {
     const mbedtls_pk_info_t *MBEDTLS_PRIVATE(pk_info);    /**< Public key information         */
     void *MBEDTLS_PRIVATE(pk_ctx);                        /**< Underlying public key context  */
 #if defined(MBEDTLS_PSA_CRYPTO_C)
-    mbedtls_svc_key_id_t MBEDTLS_PRIVATE(opaque_id);      /**< Key ID for opaque keys */
+    mbedtls_svc_key_id_t MBEDTLS_PRIVATE(priv_id);      /**< Key ID for opaque keys */
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 } mbedtls_pk_context;
 

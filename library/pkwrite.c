@@ -194,7 +194,7 @@ int mbedtls_pk_write_pubkey(unsigned char **p, unsigned char *start,
         }
 
         buffer_size = (size_t) (*p - start);
-        if (psa_export_public_key(key->opaque_id, start, buffer_size, &len)
+        if (psa_export_public_key(key->priv_id, start, buffer_size, &len)
             != PSA_SUCCESS) {
             return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
         } else {
@@ -256,7 +256,7 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
         psa_ecc_family_t curve;
         size_t bits;
 
-        if (PSA_SUCCESS != psa_get_key_attributes(key->opaque_id,
+        if (PSA_SUCCESS != psa_get_key_attributes(key->priv_id,
                                                   &attributes)) {
             return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         }

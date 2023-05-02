@@ -595,7 +595,7 @@ static void test_ssl_endpoint_certificate_free(mbedtls_test_ssl_endpoint *ep)
         if (cert->pkey != NULL) {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
             if (mbedtls_pk_get_type(cert->pkey) == MBEDTLS_PK_OPAQUE) {
-                psa_destroy_key(cert->pkey->opaque_id);
+                psa_destroy_key(cert->pkey->priv_id);
             }
 #endif
             mbedtls_pk_free(cert->pkey);

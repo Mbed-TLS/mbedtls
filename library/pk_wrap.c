@@ -1508,7 +1508,7 @@ static size_t pk_opaque_get_bitlen(mbedtls_pk_context *pk)
     size_t bits;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
-    if (PSA_SUCCESS != psa_get_key_attributes(pk->opaque_id, &attributes)) {
+    if (PSA_SUCCESS != psa_get_key_attributes(pk->priv_id, &attributes)) {
         return 0;
     }
 
@@ -1555,7 +1555,7 @@ static int pk_opaque_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
     (void) f_rng;
     (void) p_rng;
 
-    status = psa_get_key_attributes(pk->opaque_id, &attributes);
+    status = psa_get_key_attributes(pk->priv_id, &attributes);
     if (status != PSA_SUCCESS) {
         return PSA_PK_TO_MBEDTLS_ERR(status);
     }
@@ -1576,7 +1576,7 @@ static int pk_opaque_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
     return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
 
     /* make the signature */
-    status = psa_sign_hash(pk->opaque_id, alg, hash, hash_len,
+    status = psa_sign_hash(pk->priv_id, alg, hash, hash_len,
                            sig, sig_size, sig_len);
     if (status != PSA_SUCCESS) {
 #if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
@@ -1638,7 +1638,7 @@ static int pk_opaque_rsa_decrypt(mbedtls_pk_context *pk,
     (void) f_rng;
     (void) p_rng;
 
-    status = psa_asymmetric_decrypt(pk->opaque_id, PSA_ALG_RSA_PKCS1V15_CRYPT,
+    status = psa_asymmetric_decrypt(pk->priv_id, PSA_ALG_RSA_PKCS1V15_CRYPT,
                                     input, ilen,
                                     NULL, 0,
                                     output, osize, olen);

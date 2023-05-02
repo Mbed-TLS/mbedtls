@@ -61,7 +61,7 @@ void mbedtls_pk_init(mbedtls_pk_context *ctx)
     ctx->pk_info = NULL;
     ctx->pk_ctx = NULL;
 #if defined(MBEDTLS_PSA_CRYPTO_C)
-    ctx->opaque_id = MBEDTLS_SVC_KEY_ID_INIT;
+    ctx->priv_id = MBEDTLS_SVC_KEY_ID_INIT;
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 }
 
@@ -183,7 +183,7 @@ int mbedtls_pk_setup_opaque(mbedtls_pk_context *ctx,
     }
 
     ctx->pk_info = info;
-    ctx->opaque_id = key;
+    ctx->priv_id = key;
 
     return 0;
 }
@@ -316,7 +316,7 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
     psa_algorithm_t key_alg, key_alg2;
     psa_status_t status;
 
-    status = psa_get_key_attributes(ctx->opaque_id, &attributes);
+    status = psa_get_key_attributes(ctx->priv_id, &attributes);
     if (status != PSA_SUCCESS) {
         return 0;
     }
@@ -699,7 +699,7 @@ int mbedtls_pk_sign_ext(mbedtls_pk_type_t pk_type,
     if (mbedtls_pk_get_type(ctx) == MBEDTLS_PK_OPAQUE) {
         psa_status_t status;
 
-        status = psa_sign_hash(ctx->opaque_id, PSA_ALG_RSA_PSS(psa_md_alg),
+        status = psa_sign_hash(ctx->priv_id, PSA_ALG_RSA_PSS(psa_md_alg),
                                hash, hash_len,
                                sig, sig_size, sig_len);
         return PSA_PK_RSA_TO_MBEDTLS_ERR(status);

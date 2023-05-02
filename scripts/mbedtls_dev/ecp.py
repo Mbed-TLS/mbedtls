@@ -566,8 +566,8 @@ class EcpP224K1Raw(bignum_common.ModOperationCommon,
                    EcpTarget):
     """Test cases for ECP P224 fast reduction."""
     symbol = "-"
-    test_function = "ecp_mod_p224k1"
-    test_name = "ecp_mod_p224k1"
+    test_function = "ecp_mod_p_generic_raw"
+    test_name = "ecp_mod_p224k1_raw"
     input_style = "fixed"
     arity = 1
     dependencies = ["MBEDTLS_ECP_DP_SECP224K1_ENABLED"]
@@ -586,7 +586,7 @@ class EcpP224K1Raw(bignum_common.ModOperationCommon,
         # 2^224 - 1
         "ffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
 
-        # Maximum canonical P224 multiplication result
+        # Maximum canonical P224K1 multiplication result
         ("fffffffffffffffffffffffffffffffffffffffffffffffdffffcad8"
          "00000000000000000000000000000000000000010000352802c26590"),
 
@@ -629,6 +629,10 @@ class EcpP224K1Raw(bignum_common.ModOperationCommon,
     @property
     def is_valid(self) -> bool:
         return True
+
+    def arguments(self):
+        args = super().arguments()
+        return  ["MBEDTLS_ECP_DP_SECP224K1"] + args
 
 
 class EcpP256K1Raw(bignum_common.ModOperationCommon,

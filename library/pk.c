@@ -672,7 +672,7 @@ int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
     status = psa_import_key(&attributes, d, d_len, key);
     mbedtls_platform_zeroize(d, sizeof(d));
     if (status != PSA_SUCCESS) {
-        return PSA_PK_TO_MBEDTLS_ERR(status);
+        return MBEDTLS_ERR_PK_HW_ACCEL_FAILED;
     }
 
     /* make PK context wrap the key slot */

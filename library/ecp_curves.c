@@ -5571,7 +5571,7 @@ static inline int ecp_mod_koblitz(mbedtls_mpi_uint *X,
         mask  = ((mbedtls_mpi_uint) 1 << shift) - 1;
     }
 
-    for (size_t pass = 0; pass < 2; pass++) {
+    for (size_t pass = 0; pass < 3; pass++) {
         /* Copy A1 */
         memcpy(A1, X + P_limbs - adjust, P_limbs * ciL);
 

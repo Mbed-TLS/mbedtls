@@ -176,7 +176,7 @@ int  mbedtls_ecp_mod_p384_raw(mbedtls_mpi_uint *X, size_t X_limbs);
  * with R = 2^32 + 2^12 + 2^8 + 2^7 + 2^6 + 2^3 + 1 = 0x0100001119
  */
 MBEDTLS_STATIC_TESTABLE
-int mbedtls_ecp_mod_p192k1(mbedtls_mpi *N);
+int mbedtls_ecp_mod_p192k1_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 
 #endif /* MBEDTLS_ECP_DP_SECP192K1_ENABLED */
 #if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)

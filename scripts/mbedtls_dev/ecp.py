@@ -494,8 +494,8 @@ class EcpP192K1Raw(bignum_common.ModOperationCommon,
                    EcpTarget):
     """Test cases for ECP P192K1 fast reduction."""
     symbol = "-"
-    test_function = "ecp_mod_p192k1"
-    test_name = "ecp_mod_p192k1"
+    test_function = "ecp_mod_p_generic_raw"
+    test_name = "ecp_mod_p192k1_raw"
     input_style = "fixed"
     arity = 1
     dependencies = ["MBEDTLS_ECP_DP_SECP192K1_ENABLED"]
@@ -556,6 +556,10 @@ class EcpP192K1Raw(bignum_common.ModOperationCommon,
     @property
     def is_valid(self) -> bool:
         return True
+
+    def arguments(self):
+        args = super().arguments()
+        return  ["MBEDTLS_ECP_DP_SECP192K1"] + args
 
 
 class EcpP224K1Raw(bignum_common.ModOperationCommon,

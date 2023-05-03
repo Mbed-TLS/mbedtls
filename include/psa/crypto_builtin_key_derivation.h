@@ -114,5 +114,14 @@ typedef enum {
     PSA_PBKDF2_STATE_OUTPUT            /* output has been started */
 } psa_pbkdf2_key_derivation_state_t;
 
+typedef struct {
+    psa_pbkdf2_key_derivation_state_t MBEDTLS_PRIVATE(state);
+    uint64_t MBEDTLS_PRIVATE(input_cost);
+    uint8_t *MBEDTLS_PRIVATE(salt);
+    size_t MBEDTLS_PRIVATE(salt_length);
+    uint8_t *MBEDTLS_PRIVATE(password);
+    size_t MBEDTLS_PRIVATE(password_length);
+} psa_pbkdf2_key_derivation_t;
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC */
+
 #endif /* PSA_CRYPTO_BUILTIN_KEY_DERIVATION_H */

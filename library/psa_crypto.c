@@ -6471,7 +6471,7 @@ static psa_status_t psa_pbkdf2_set_salt(psa_pbkdf2_key_derivation_t *pbkdf2,
 
             memcpy(pbkdf2->salt, prev_salt, prev_salt_length);
             memcpy(pbkdf2->salt + prev_salt_length, data,
-            data_length);
+                   data_length);
             pbkdf2->salt_length += data_length;
             mbedtls_free(prev_salt);
         }

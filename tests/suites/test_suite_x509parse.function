@@ -1538,7 +1538,7 @@ void x509_crt_parse_authoritykeyid(data_t *buf,
 
         /* Serial test */
         TEST_ASSERT(crt.authority_key_id.authorityCertSerialNumber.tag ==
-                    MBEDTLS_ASN1_OCTET_STRING);
+                    MBEDTLS_ASN1_INTEGER);
         TEST_ASSERT(crt.authority_key_id.authorityCertSerialNumber.len == serialLength);
     } else {
         TEST_ASSERT(crt.authority_key_id.keyIdentifier.tag == 0);

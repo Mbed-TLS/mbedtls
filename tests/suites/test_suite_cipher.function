@@ -147,9 +147,9 @@ int buffer_is_all_zero(const uint8_t *buf, size_t size)
 /* BEGIN_CASE */
 void mbedtls_cipher_list()
 {
-    const int *cipher_type;
+    const mbedtls_cipher_type_t *cipher_type;
 
-    for (cipher_type = mbedtls_cipher_list(); *cipher_type != 0; cipher_type++) {
+    for (cipher_type = mbedtls_cipher_list(); *cipher_type != MBEDTLS_CIPHER_NONE; cipher_type++) {
         const mbedtls_cipher_info_t *info =
             mbedtls_cipher_info_from_type(*cipher_type);
         mbedtls_test_set_step(*cipher_type);

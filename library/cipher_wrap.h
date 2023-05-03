@@ -133,7 +133,7 @@ typedef struct {
 
 extern const mbedtls_cipher_definition_t mbedtls_cipher_definitions[];
 
-extern int mbedtls_cipher_supported[];
+extern mbedtls_cipher_type_t mbedtls_cipher_supported[];
 
 #ifdef __cplusplus
 }

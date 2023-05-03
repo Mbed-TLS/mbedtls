@@ -67,10 +67,10 @@
 
 static int supported_init = 0;
 
-const int *mbedtls_cipher_list(void)
+const mbedtls_cipher_type_t *mbedtls_cipher_list(void)
 {
     const mbedtls_cipher_definition_t *def;
-    int *type;
+    mbedtls_cipher_type_t *type;
 
     if (!supported_init) {
         def = mbedtls_cipher_definitions;

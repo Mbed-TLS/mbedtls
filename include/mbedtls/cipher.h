@@ -379,7 +379,7 @@ typedef struct mbedtls_cipher_context_t {
  * \return      A statically-allocated array of cipher identifiers
  *              of type cipher_type_t. The last entry is zero.
  */
-const int *mbedtls_cipher_list(void);
+const mbedtls_cipher_type_t *mbedtls_cipher_list(void);
 
 /**
  * \brief               This function retrieves the cipher-information

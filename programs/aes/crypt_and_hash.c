@@ -105,6 +105,7 @@ int main(int argc, char *argv[])
      */
     if (argc != 7) {
         const int *list;
+        const mbedtls_md_type_t *md_list;
 
         mbedtls_printf(USAGE);
 
@@ -117,11 +118,11 @@ int main(int argc, char *argv[])
         }
 
         mbedtls_printf("\nAvailable message digests:\n");
-        list = mbedtls_md_list();
-        while (*list) {
-            md_info = mbedtls_md_info_from_type(*list);
+        md_list = mbedtls_md_list();
+        while (*md_list) {
+            md_info = mbedtls_md_info_from_type(*md_list);
             mbedtls_printf("  %s\n", mbedtls_md_get_name(md_info));
-            list++;
+            md_list++;
         }
 
         goto exit;

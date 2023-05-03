@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
     mbedtls_md_init(&md_ctx);
 
     if (argc < 2) {
-        const int *list;
+        const mbedtls_md_type_t *list;
 
         mbedtls_printf("print mode:  generic_sum <mbedtls_md> <file> <file> ...\n");
         mbedtls_printf("check mode:  generic_sum <mbedtls_md> -c <checksum file>\n");

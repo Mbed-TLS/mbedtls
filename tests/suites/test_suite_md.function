@@ -10,7 +10,7 @@
 /* BEGIN_CASE depends_on:MBEDTLS_MD_C */
 void mbedtls_md_list()
 {
-    const int *md_type_ptr;
+    const mbedtls_md_type_t *md_type_ptr;
     const mbedtls_md_info_t *info;
     mbedtls_md_context_t ctx;
     unsigned char out[MBEDTLS_MD_MAX_SIZE] = { 0 };
@@ -21,7 +21,7 @@ void mbedtls_md_list()
     /*
      * Test that mbedtls_md_list() only returns valid MDs.
      */
-    for (md_type_ptr = mbedtls_md_list(); *md_type_ptr != 0; md_type_ptr++) {
+    for (md_type_ptr = mbedtls_md_list(); *md_type_ptr != MBEDTLS_MD_NONE; md_type_ptr++) {
         info = mbedtls_md_info_from_type(*md_type_ptr);
         TEST_ASSERT(info != NULL);
         TEST_EQUAL(0, mbedtls_md_setup(&ctx, info, 0));
@@ -115,7 +115,7 @@ void md_info(int md_type, char *md_name, int md_size)
 {
     const mbedtls_md_info_t *md_info;
 #if defined(MBEDTLS_MD_C)
-    const int *md_type_ptr;
+    const mbedtls_md_type_t *md_type_ptr;
 #else
     (void) md_name;
 #endif
@@ -134,8 +134,8 @@ void md_info(int md_type, char *md_name, int md_size)
     TEST_EQUAL(0, strcmp(mbedtls_md_get_name(md_info), md_name));
 
     int found = 0;
-    for (md_type_ptr = mbedtls_md_list(); *md_type_ptr != 0; md_type_ptr++) {
-        if (*md_type_ptr == md_type) {
+    for (md_type_ptr = mbedtls_md_list(); *md_type_ptr != MBEDTLS_MD_NONE; md_type_ptr++) {
+        if (*md_type_ptr == (mbedtls_md_type_t) md_type) {
             found = 1;
         }
     }

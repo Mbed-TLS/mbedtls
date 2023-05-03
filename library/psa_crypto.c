@@ -6455,6 +6455,29 @@ static psa_status_t psa_pbkdf2_set_salt(psa_pbkdf2_key_derivation_t *pbkdf2,
 
     return PSA_SUCCESS;
 }
+
+static psa_status_t psa_pbkdf2_set_password(psa_pbkdf2_key_derivation_t *pbkdf2,
+                                            const uint8_t *data,
+                                            size_t data_length)
+{
+    if (pbkdf2->state != PSA_PBKDF2_STATE_SALT_SET) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    if (data_length != 0) {
+        pbkdf2->password = mbedtls_calloc(1, data_length);
+        if (pbkdf2->password == NULL) {
+            return PSA_ERROR_INSUFFICIENT_MEMORY;
+        }
+
+        memcpy(pbkdf2->password, data, data_length);
+        pbkdf2->password_length = data_length;
+    }
+
+    pbkdf2->state = PSA_PBKDF2_STATE_PASSWORD_SET;
+
+    return PSA_SUCCESS;
+}
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC */
 
 /** Check whether the given key type is acceptable for the given
@@ -6492,6 +6515,17 @@ static int psa_key_derivation_check_input_type(
         case PSA_KEY_DERIVATION_INPUT_INFO:
         case PSA_KEY_DERIVATION_INPUT_SEED:
             if (key_type == PSA_KEY_TYPE_RAW_DATA) {
+                return PSA_SUCCESS;
+            }
+            if (key_type == PSA_KEY_TYPE_NONE) {
+                return PSA_SUCCESS;
+            }
+            break;
+        case PSA_KEY_DERIVATION_INPUT_PASSWORD:
+            if (key_type == PSA_KEY_TYPE_PASSWORD) {
+                return PSA_SUCCESS;
+            }
+            if (key_type == PSA_KEY_TYPE_DERIVE) {
                 return PSA_SUCCESS;
             }
             if (key_type == PSA_KEY_TYPE_NONE) {

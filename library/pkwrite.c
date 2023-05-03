@@ -131,14 +131,14 @@ static int pk_write_ec_pubkey(unsigned char **p, unsigned char *start,
  * }
  */
 static int pk_write_ec_param(unsigned char **p, unsigned char *start,
-                             mbedtls_ecp_keypair *ec)
+                             mbedtls_ecp_group_id grp_id)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len = 0;
     const char *oid;
     size_t oid_len;
 
-    if ((ret = mbedtls_oid_get_oid_by_ec_grp(ec->grp.id, &oid, &oid_len)) != 0) {
+    if ((ret = mbedtls_oid_get_oid_by_ec_grp(grp_id, &oid, &oid_len)) != 0) {
         return ret;
     }
 
@@ -216,6 +216,7 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
     int has_par = 1;
     size_t len = 0, par_len = 0, oid_len = 0;
     mbedtls_pk_type_t pk_type;
+    mbedtls_ecp_group_id ec_grp_id;
     const char *oid;
 
     if (size == 0) {
@@ -244,17 +245,7 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
     pk_type = mbedtls_pk_get_type(key);
 #if defined(MBEDTLS_ECP_LIGHT)
     if (pk_type == MBEDTLS_PK_ECKEY) {
-        mbedtls_ecp_keypair *ec = mbedtls_pk_ec(*key);
-
-        ret = mbedtls_oid_get_oid_by_ec_grp_algid(ec->grp.id, &oid, &oid_len);
-
-        if (ret == 0) {
-            has_par = 0;
-        } else if (ret == MBEDTLS_ERR_OID_NOT_FOUND) {
-            MBEDTLS_ASN1_CHK_ADD(par_len, pk_write_ec_param(&c, buf, ec));
-        } else {
-            return ret;
-        }
+        ec_grp_id = mbedtls_pk_ec(*key)->grp.id;
     }
 #endif /* MBEDTLS_ECP_LIGHT */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -264,8 +255,6 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
         mbedtls_svc_key_id_t key_id;
         psa_ecc_family_t curve;
         size_t bits;
-        size_t oid2_len = 0;
-        const char *oid2;
 
         key_id = *((mbedtls_svc_key_id_t *) key->pk_ctx);
         if (PSA_SUCCESS != psa_get_key_attributes(key_id, &attributes)) {
@@ -281,17 +270,10 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
                 return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
             }
 
-            ret = mbedtls_psa_get_ecc_oid_from_id(curve, bits,
-                                                  &oid2, &oid2_len);
-            if (ret != 0) {
+            ec_grp_id = mbedtls_ecc_group_of_psa(curve, bits, 0);
+            if (ec_grp_id == MBEDTLS_ECP_DP_NONE) {
                 return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
             }
-
-            /* Write EC algorithm parameters; that's akin
-             * to pk_write_ec_param() above. */
-            MBEDTLS_ASN1_CHK_ADD(par_len, mbedtls_asn1_write_oid(&c, buf,
-                                                                 oid2,
-                                                                 oid2_len));
 
             /* The rest of the function works as for legacy EC contexts. */
             pk_type = MBEDTLS_PK_ECKEY;
@@ -303,6 +285,22 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
         }
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+#if defined(MBEDTLS_ECP_LIGHT)
+    if (pk_type == MBEDTLS_PK_ECKEY) {
+        /* Some groups have their own AlgorithmIdentifier OID, others are handled by mbedtls_oid_get_oid_by_pk_alg() below */
+        ret = mbedtls_oid_get_oid_by_ec_grp_algid(ec_grp_id, &oid, &oid_len);
+
+        if (ret == 0) {
+            /* Currently, none of the supported algorithms that have their own AlgorithmIdentifier OID have any parameters */
+            has_par = 0;
+        } else if (ret == MBEDTLS_ERR_OID_NOT_FOUND) {
+            MBEDTLS_ASN1_CHK_ADD(par_len, pk_write_ec_param(&c, buf, ec_grp_id));
+        } else {
+            return ret;
+        }
+    }
+#endif /* MBEDTLS_ECP_LIGHT */
 
     if (oid_len == 0) {
         if ((ret = mbedtls_oid_get_oid_by_pk_alg(pk_type, &oid,
@@ -509,7 +507,7 @@ end_of_export:
         len += pub_len;
 
         /* parameters */
-        MBEDTLS_ASN1_CHK_ADD(par_len, pk_write_ec_param(&c, buf, ec));
+        MBEDTLS_ASN1_CHK_ADD(par_len, pk_write_ec_param(&c, buf, ec->grp.id));
 
         MBEDTLS_ASN1_CHK_ADD(par_len, mbedtls_asn1_write_len(&c, buf, par_len));
         MBEDTLS_ASN1_CHK_ADD(par_len, mbedtls_asn1_write_tag(&c, buf,

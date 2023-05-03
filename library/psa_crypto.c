@@ -6478,6 +6478,21 @@ static psa_status_t psa_pbkdf2_set_password(psa_pbkdf2_key_derivation_t *pbkdf2,
 
     return PSA_SUCCESS;
 }
+
+static psa_status_t psa_pbkdf2_input(psa_pbkdf2_key_derivation_t *pbkdf2,
+                                     psa_key_derivation_step_t step,
+                                     const uint8_t *data,
+                                     size_t data_length)
+{
+    switch (step) {
+        case PSA_KEY_DERIVATION_INPUT_SALT:
+            return psa_pbkdf2_set_salt(pbkdf2, data, data_length);
+        case PSA_KEY_DERIVATION_INPUT_PASSWORD:
+            return psa_pbkdf2_set_password(pbkdf2, data, data_length);
+        default:
+            return PSA_ERROR_INVALID_ARGUMENT;
+    }
+}
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC */
 
 /** Check whether the given key type is acceptable for the given
@@ -6575,6 +6590,12 @@ static psa_status_t psa_key_derivation_input_internal(
             &operation->ctx.tls12_ecjpake_to_pms, step, data, data_length);
     } else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
+    if (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg)) {
+        status = psa_pbkdf2_input(
+            &operation->ctx.pbkdf2, step, data, data_length);
+    } else
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC */
     {
         /* This can't happen unless the operation object was not initialized */
         (void) data;

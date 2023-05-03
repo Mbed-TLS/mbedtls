@@ -888,6 +888,10 @@ ec_prv.pk8param.pem: ec_prv.pk8param.der
 	$(OPENSSL) pkey -in $< -inform DER -out $@
 all_final += ec_prv.pk8param.pem
 
+ec_pub.pem: ec_prv.sec1.der
+	$(OPENSSL) pkey -in $< -inform DER -outform PEM -pubout -out $@
+all_final += ec_pub.pem
+
 ################################################################
 #### Convert PEM keys to DER format
 ################################################################

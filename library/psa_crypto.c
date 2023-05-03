@@ -4989,7 +4989,8 @@ psa_status_t psa_aead_abort(psa_aead_operation_t *operation)
 #if defined(BUILTIN_ALG_ANY_HKDF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS)
+    defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
 #define AT_LEAST_ONE_BUILTIN_KDF
 #endif /* At least one builtin KDF */
 

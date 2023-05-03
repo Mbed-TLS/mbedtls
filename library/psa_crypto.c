@@ -6673,9 +6673,10 @@ psa_status_t psa_key_derivation_input_key(
         return status;
     }
 
-    /* Passing a key object as a SECRET input unlocks the permission
-     * to output to a key object. */
-    if (step == PSA_KEY_DERIVATION_INPUT_SECRET) {
+    /* Passing a key object as a SECRET or PASSWORD input unlocks the
+     * permission to output to a key object. */
+    if (step == PSA_KEY_DERIVATION_INPUT_SECRET ||
+        step == PSA_KEY_DERIVATION_INPUT_PASSWORD) {
         operation->can_output_key = 1;
     }
 

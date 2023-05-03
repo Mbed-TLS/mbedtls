@@ -5492,6 +5492,15 @@ psa_status_t psa_key_derivation_output_bytes(
             &operation->ctx.tls12_ecjpake_to_pms, output, output_length);
     } else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
+    if (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg)) {
+        /* As output functionality is not added yet return
+         * PSA_ERROR_NOT_SUPPORTED for now if inputs are passed correctly.
+         * If input validation fails operation is aborted and output_bytes
+         * will return PSA_ERROR_BAD_STATE */
+        status = PSA_ERROR_NOT_SUPPORTED;
+    } else
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC */
 
     {
         (void) kdf_alg;

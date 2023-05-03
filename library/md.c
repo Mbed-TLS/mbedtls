@@ -774,34 +774,20 @@ mbedtls_md_type_t mbedtls_md_get_type(const mbedtls_md_info_t *md_info)
 psa_algorithm_t mbedtls_md_psa_alg_from_type(mbedtls_md_type_t md_type)
 {
     switch (md_type) {
-#if defined(MBEDTLS_MD_CAN_MD5)
         case MBEDTLS_MD_MD5:
             return PSA_ALG_MD5;
-#endif
-#if defined(MBEDTLS_MD_CAN_RIPEMD160)
         case MBEDTLS_MD_RIPEMD160:
             return PSA_ALG_RIPEMD160;
-#endif
-#if defined(MBEDTLS_MD_CAN_SHA1)
         case MBEDTLS_MD_SHA1:
             return PSA_ALG_SHA_1;
-#endif
-#if defined(MBEDTLS_MD_CAN_SHA224)
         case MBEDTLS_MD_SHA224:
             return PSA_ALG_SHA_224;
-#endif
-#if defined(MBEDTLS_MD_CAN_SHA256)
         case MBEDTLS_MD_SHA256:
             return PSA_ALG_SHA_256;
-#endif
-#if defined(MBEDTLS_MD_CAN_SHA384)
         case MBEDTLS_MD_SHA384:
             return PSA_ALG_SHA_384;
-#endif
-#if defined(MBEDTLS_MD_CAN_SHA512)
         case MBEDTLS_MD_SHA512:
             return PSA_ALG_SHA_512;
-#endif
         default:
             return PSA_ALG_NONE;
     }
@@ -810,34 +796,20 @@ psa_algorithm_t mbedtls_md_psa_alg_from_type(mbedtls_md_type_t md_type)
 mbedtls_md_type_t mbedtls_md_type_from_psa_alg(psa_algorithm_t psa_alg)
 {
     switch (psa_alg) {
-#if defined(MBEDTLS_MD_CAN_MD5)
         case PSA_ALG_MD5:
             return MBEDTLS_MD_MD5;
-#endif
-#if defined(MBEDTLS_MD_CAN_RIPEMD160)
         case PSA_ALG_RIPEMD160:
             return MBEDTLS_MD_RIPEMD160;
-#endif
-#if defined(MBEDTLS_MD_CAN_SHA1)
         case PSA_ALG_SHA_1:
             return MBEDTLS_MD_SHA1;
-#endif
-#if defined(MBEDTLS_MD_CAN_SHA224)
         case PSA_ALG_SHA_224:
             return MBEDTLS_MD_SHA224;
-#endif
-#if defined(MBEDTLS_MD_CAN_SHA256)
         case PSA_ALG_SHA_256:
             return MBEDTLS_MD_SHA256;
-#endif
-#if defined(MBEDTLS_MD_CAN_SHA384)
         case PSA_ALG_SHA_384:
             return MBEDTLS_MD_SHA384;
-#endif
-#if defined(MBEDTLS_MD_CAN_SHA512)
         case PSA_ALG_SHA_512:
             return MBEDTLS_MD_SHA512;
-#endif
         default:
             return MBEDTLS_MD_NONE;
     }

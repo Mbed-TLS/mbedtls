@@ -590,6 +590,9 @@ static int pk_parse_key_rfc8410_der(mbedtls_ecp_keypair *eck,
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
     }
 
+    // pk_parse_key_pkcs8_unencrypted_der() only supports version 1 PKCS8 keys,
+    // which never contain a public key. As such, derive the public key
+    // unconditionally.
     if ((ret = pk_derive_public_key(eck, key, len, f_rng, p_rng)) != 0) {
         mbedtls_ecp_keypair_free(eck);
         return ret;

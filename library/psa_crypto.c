@@ -6384,6 +6384,35 @@ static psa_status_t psa_tls12_ecjpake_to_pms_input(
     return PSA_SUCCESS;
 }
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS */
+
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
+static psa_status_t psa_pbkdf2_set_input_cost(
+    psa_pbkdf2_key_derivation_t *pbkdf2,
+    psa_key_derivation_step_t step,
+    uint64_t data)
+{
+    if (step != PSA_KEY_DERIVATION_INPUT_COST) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    if (pbkdf2->state != PSA_PBKDF2_STATE_INIT) {
+        return PSA_ERROR_BAD_STATE;
+    }
+#if UINT_MAX > 0xFFFFFFFF
+    if (data > 0xFFFFFFFF) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+#endif
+    if (data == 0) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+    pbkdf2->input_cost = data;
+    pbkdf2->state = PSA_PBKDF2_STATE_INPUT_COST_SET;
+
+    return PSA_SUCCESS;
+}
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC */
+
 /** Check whether the given key type is acceptable for the given
  * input step of a key derivation.
  *
@@ -6491,6 +6520,12 @@ static psa_status_t psa_key_derivation_input_integer_internal(
     psa_status_t status;
     psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg(operation);
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
+    if (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg)) {
+        status = psa_pbkdf2_set_input_cost(
+            &operation->ctx.pbkdf2, step, value);
+    } else
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC */
     {
         (void) step;
         (void) value;

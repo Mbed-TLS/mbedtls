@@ -102,6 +102,14 @@ Private key write check EC Brainpool 512 bits (DER)
 depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_BP512R1_ENABLED
 pk_write_key_check:"data_files/ec_bp512_prv.der":TEST_DER
 
+Private key write check EC X25519
+depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+pk_write_key_check:"data_files/ec_x25519_prv.pem":TEST_PEM
+
+Private key write check EC X448
+depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_CURVE448_ENABLED
+pk_write_key_check:"data_files/ec_x448_prv.pem":TEST_PEM
+
 Derive public key RSA
 depends_on:MBEDTLS_RSA_C
 pk_write_public_from_private:"data_files/server1.key.der":"data_files/server1.pubkey.der"
@@ -122,10 +130,10 @@ Derive public key EC Brainpool 512 bits
 depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_BP512R1_ENABLED
 pk_write_public_from_private:"data_files/ec_bp512_prv.der":"data_files/ec_bp512_pub.der"
 
-Private key write check EC X25519
-depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_CURVE25519_ENABLED
-pk_write_key_check:"data_files/ec_x25519_prv.pem":TEST_PEM
+Derive public key EC X25519
+depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+pk_write_public_from_private:"data_files/ec_x25519_prv.der":"data_files/ec_x25519_pub.der"
 
-Private key write check EC X448
-depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_BASE64_C:MBEDTLS_ECP_DP_CURVE448_ENABLED
-pk_write_key_check:"data_files/ec_x448_prv.pem":TEST_PEM
+Derive public key EC X448
+depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_CURVE448_ENABLED
+pk_write_public_from_private:"data_files/ec_x448_prv.der":"data_files/ec_x448_pub.der"

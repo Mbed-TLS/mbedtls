@@ -873,7 +873,7 @@ int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
 #else /* !MBEDTLS_ECP_LIGHT && !MBEDTLS_RSA_C */
 #if defined(MBEDTLS_ECP_LIGHT)
     if (mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECKEY) {
-        const mbedtls_ecp_keypair *ec;
+        mbedtls_ecp_keypair *ec;
         unsigned char d[MBEDTLS_ECP_MAX_BYTES];
         size_t d_len;
         psa_ecc_family_t curve_id;
@@ -886,7 +886,7 @@ int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
         /* export the private key material in the format PSA wants */
         ec = mbedtls_pk_ec(*pk);
         d_len = PSA_BITS_TO_BYTES(ec->grp.nbits);
-        if ((ret = mbedtls_mpi_write_binary(&ec->d, d, d_len)) != 0) {
+        if ((ret = mbedtls_ecp_write_key(ec, d, d_len)) != 0) {
             return ret;
         }
 

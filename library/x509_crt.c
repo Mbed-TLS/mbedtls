@@ -2684,7 +2684,7 @@ static int x509_inet_pton_ipv4(const char *src, void *dst)
             /* Don't allow leading zeroes. These might mean octal format,
              * which this implementation does not support. */
             if (octet == 0 && num_digits > 0) {
-                break;
+                return -1;
             }
 
             octet = octet * 10 + digit;
@@ -2693,7 +2693,7 @@ static int x509_inet_pton_ipv4(const char *src, void *dst)
         } while (num_digits < 3);
 
         if (octet >= 256 || num_digits > 3 || num_digits == 0) {
-            break;
+            return -1;
         }
         *res++ = (uint8_t) octet;
         num_octets++;

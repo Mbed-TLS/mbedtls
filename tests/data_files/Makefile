@@ -935,6 +935,10 @@ ec_prv.pk8param.pem: ec_prv.pk8param.der
 	$(OPENSSL) pkey -in $< -inform DER -out $@
 all_final += ec_prv.pk8param.pem
 
+ec_pub.pem: ec_prv.sec1.der
+	$(OPENSSL) pkey -in $< -inform DER -outform PEM -pubout -out $@
+all_final += ec_pub.pem
+
 ec_prv.sec1.comp.pem: ec_prv.sec1.pem
 	$(OPENSSL) ec -in $< -out $@ -conv_form compressed
 all_final += ec_prv.sec1.comp.pem

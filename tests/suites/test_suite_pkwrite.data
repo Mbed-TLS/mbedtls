@@ -93,3 +93,23 @@ pk_write_key_check:"data_files/ec_bp512_prv.pem":TEST_PEM
 Private key write check EC Brainpool 512 bits (DER)
 depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_BP512R1_ENABLED
 pk_write_key_check:"data_files/ec_bp512_prv.der":TEST_DER
+
+Derive public key RSA
+depends_on:MBEDTLS_RSA_C
+pk_write_public_from_private:"data_files/server1.key.der":"data_files/server1.pubkey.der"
+
+Derive public key RSA 4096
+depends_on:MBEDTLS_RSA_C
+pk_write_public_from_private:"data_files/rsa4096_prv.der":"data_files/rsa4096_pub.der"
+
+Derive public key EC 192 bits
+depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP192R1_ENABLED
+pk_write_public_from_private:"data_files/ec_prv.sec1.der":"data_files/ec_pub.der"
+
+Derive public key EC 521 bits
+depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP521R1_ENABLED
+pk_write_public_from_private:"data_files/ec_521_prv.der":"data_files/ec_521_pub.der"
+
+Derive public key EC Brainpool 512 bits
+depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_BP512R1_ENABLED
+pk_write_public_from_private:"data_files/ec_bp512_prv.der":"data_files/ec_bp512_pub.der"

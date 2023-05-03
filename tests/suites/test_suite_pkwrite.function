@@ -2,6 +2,7 @@
 #include "mbedtls/pk.h"
 #include "mbedtls/pem.h"
 #include "mbedtls/oid.h"
+#include "psa/crypto_sizes.h"
 
 typedef enum {
     TEST_PEM,
@@ -122,5 +123,59 @@ void pk_write_key_check(char *key_file, int is_der)
 {
     pk_write_check_common(key_file, 0, is_der);
     goto exit; /* make the compiler happy */
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void pk_write_public_from_private(char *priv_key_file, char *pub_key_file)
+{
+    mbedtls_pk_context priv_key;
+    uint8_t *derived_key_raw = NULL;
+    size_t derived_key_len = 0;
+    uint8_t *pub_key_raw = NULL;
+    size_t pub_key_len = 0;
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_svc_key_id_t opaque_key_id = MBEDTLS_SVC_KEY_ID_INIT;
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+    mbedtls_pk_init(&priv_key);
+    USE_PSA_INIT();
+
+    TEST_EQUAL(mbedtls_pk_parse_keyfile(&priv_key, priv_key_file, NULL,
+                                        mbedtls_test_rnd_std_rand, NULL), 0);
+    TEST_EQUAL(mbedtls_pk_load_file(pub_key_file, &pub_key_raw,
+                                    &pub_key_len), 0);
+
+    derived_key_len = pub_key_len;
+    ASSERT_ALLOC(derived_key_raw, derived_key_len);
+
+    TEST_EQUAL(mbedtls_pk_write_pubkey_der(&priv_key, derived_key_raw,
+                                           derived_key_len), pub_key_len);
+
+    ASSERT_COMPARE(derived_key_raw, derived_key_len,
+                   pub_key_raw, pub_key_len);
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_platform_zeroize(derived_key_raw, sizeof(derived_key_raw));
+
+    TEST_EQUAL(mbedtls_pk_wrap_as_opaque(&priv_key, &opaque_key_id,
+                                         PSA_ALG_NONE, PSA_KEY_USAGE_EXPORT,
+                                         PSA_ALG_NONE), 0);
+
+    TEST_EQUAL(mbedtls_pk_write_pubkey_der(&priv_key, derived_key_raw,
+                                           derived_key_len), pub_key_len);
+
+    ASSERT_COMPARE(derived_key_raw, derived_key_len,
+                   pub_key_raw, pub_key_len);
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+exit:
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_destroy_key(opaque_key_id);
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+    mbedtls_free(derived_key_raw);
+    mbedtls_free(pub_key_raw);
+    mbedtls_pk_free(&priv_key);
+    USE_PSA_DONE();
 }
 /* END_CASE */

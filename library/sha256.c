@@ -62,7 +62,13 @@
     defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY)
 
 /* *INDENT-OFF* */
-#    include <arm_neon.h>
+
+#   ifdef __ARM_NEON
+#       include <arm_neon.h>
+#   else
+#       error "Target does not support NEON instructions"
+#   endif
+
 #    if !defined(__ARM_FEATURE_CRYPTO) || defined(MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG)
 #      if defined(__clang__)
 #        if __clang_major__ < 4

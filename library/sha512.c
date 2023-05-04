@@ -60,7 +60,11 @@
 #  if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT) || \
     defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY)
 /* *INDENT-OFF* */
-#    include <arm_neon.h>
+#   ifdef __ARM_NEON
+#       include <arm_neon.h>
+#   else
+#       error "Target does not support NEON instructions"
+#   endif
 /*
  * Best performance comes from most recent compilers, with intrinsics and -O3.
  * Must compile with -march=armv8.2-a+sha3, but we can't detect armv8.2-a, and

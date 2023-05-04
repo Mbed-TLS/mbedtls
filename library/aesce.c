@@ -66,7 +66,11 @@
 #   endif
 #endif
 
+#ifdef __ARM_NEON
 #include <arm_neon.h>
+#else
+#error "Target does not support NEON instructions"
+#endif
 
 #if !(defined(__ARM_FEATURE_CRYPTO) || defined(__ARM_FEATURE_AES)) || \
     defined(MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG)

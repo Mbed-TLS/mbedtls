@@ -255,39 +255,36 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
         psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
         psa_key_type_t key_type;
         mbedtls_svc_key_id_t key_id;
-        psa_ecc_family_t curve;
-        size_t bits;
-
         key_id = *((mbedtls_svc_key_id_t *) key->pk_ctx);
         if (PSA_SUCCESS != psa_get_key_attributes(key_id, &attributes)) {
             return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         }
         key_type = psa_get_key_type(&attributes);
-        bits = psa_get_key_bits(&attributes);
-        psa_reset_key_attributes(&attributes);
 
 #if defined(MBEDTLS_ECP_LIGHT)
         if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(key_type)) {
+            psa_ecc_family_t curve;
+
             curve = PSA_KEY_TYPE_ECC_GET_FAMILY(key_type);
-            if (curve == 0) {
-                return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+            if (curve != 0) {
+                ec_grp_id = mbedtls_ecc_group_of_psa(curve, psa_get_key_bits(&attributes), 0);
+                if (ec_grp_id != MBEDTLS_ECP_DP_NONE) {
+                    /* The rest of the function works as for legacy EC contexts. */
+                    pk_type = MBEDTLS_PK_ECKEY;
+                }
             }
-
-            ec_grp_id = mbedtls_ecc_group_of_psa(curve, bits, 0);
-            if (ec_grp_id == MBEDTLS_ECP_DP_NONE) {
-                return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
-            }
-
-            /* The rest of the function works as for legacy EC contexts. */
-            pk_type = MBEDTLS_PK_ECKEY;
-        } else
+        }
 #endif /* MBEDTLS_ECP_LIGHT */
         if (PSA_KEY_TYPE_IS_RSA(key_type)) {
             /* The rest of the function works as for legacy RSA contexts. */
             pk_type = MBEDTLS_PK_RSA;
-        } else {
-            return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
         }
+
+        psa_reset_key_attributes(&attributes);
+    }
+    /* `pk_type` will have been changed to non-opaque by here if this function can handle it */
+    if (pk_type == MBEDTLS_PK_OPAQUE) {
+        return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 

@@ -40,6 +40,7 @@ void mbedtls_pem_write_buffer_lengths()
     size_t olen_needed, olen;
     int ret;
     for (size_t l = 0; l <= sizeof(data); l++) {
+        mbedtls_test_set_step(l);
         ret = mbedtls_pem_write_buffer("\n", "\n", data, l, NULL, 0, &olen_needed);
         TEST_EQUAL(ret, MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL);
 

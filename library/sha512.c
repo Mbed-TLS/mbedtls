@@ -83,7 +83,7 @@
        /* Test Clang first, as it defines __GNUC__ */
 #      if defined(__ARMCOMPILER_VERSION)
 #        if __ARMCOMPILER_VERSION < 6090000
-#          error "A more recent ArmClang is required for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
+#          error "A more recent armclang is required for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
 #        endif
 #          pragma clang attribute push (__attribute__((target("sha3"))), apply_to=function)
 #          define MBEDTLS_POP_TARGET_PRAGMA

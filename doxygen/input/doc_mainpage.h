@@ -22,10 +22,10 @@
  */
 
 /**
- * @mainpage mbed TLS v3.4.0 source code documentation
+ * @mainpage Mbed TLS v3.4.0 API Documentation
  *
- * This documentation describes the internal structure of mbed TLS.  It was
+ * This documentation describes the internal structure of Mbed TLS.  It was
  * automatically generated from specially formatted comment blocks in
- * mbed TLS's source code using Doxygen.  (See
+ * Mbed TLS's source code using Doxygen.  (See
  * https://www.doxygen.nl for more information on Doxygen)
  */

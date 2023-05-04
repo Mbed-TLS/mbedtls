@@ -2422,12 +2422,12 @@ exit:
 /* BEGIN_CASE */
 void copy_success(int source_usage_arg,
                   int source_alg_arg, int source_alg2_arg,
-                  unsigned int source_lifetime_arg,
+                  int source_lifetime_arg,
                   int type_arg, data_t *material,
                   int copy_attributes,
                   int target_usage_arg,
                   int target_alg_arg, int target_alg2_arg,
-                  unsigned int target_lifetime_arg,
+                  int target_lifetime_arg,
                   int expected_usage_arg,
                   int expected_alg_arg, int expected_alg2_arg)
 {

@@ -62,6 +62,14 @@
 #endif
 #endif
 
+#if defined(PSA_WANT_ALG_FFDH)
+#if defined(MBEDTLS_PSA_ACCEL_ALG_FFDH)
+#undef MBEDTLS_PSA_ACCEL_ALG_FFDH
+#else
+#define MBEDTLS_PSA_ACCEL_ALG_FFDH 1
+#endif
+#endif
+
 #if defined(PSA_WANT_ALG_MD5)
 #if defined(MBEDTLS_PSA_ACCEL_ALG_MD5)
 #undef MBEDTLS_PSA_ACCEL_ALG_MD5

@@ -217,7 +217,7 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
     size_t len = 0, par_len = 0, oid_len = 0;
     mbedtls_pk_type_t pk_type;
 #if defined(MBEDTLS_ECP_LIGHT)
-    mbedtls_ecp_group_id ec_grp_id;
+    mbedtls_ecp_group_id ec_grp_id = MBEDTLS_ECP_DP_NONE;
 #endif
     const char *oid;
 

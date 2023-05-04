@@ -216,7 +216,9 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
     int has_par = 1;
     size_t len = 0, par_len = 0, oid_len = 0;
     mbedtls_pk_type_t pk_type;
+#if defined(MBEDTLS_ECP_LIGHT)
     mbedtls_ecp_group_id ec_grp_id;
+#endif
     const char *oid;
 
     if (size == 0) {
@@ -264,6 +266,7 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
         bits = psa_get_key_bits(&attributes);
         psa_reset_key_attributes(&attributes);
 
+#if defined(MBEDTLS_ECP_LIGHT)
         if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(key_type)) {
             curve = PSA_KEY_TYPE_ECC_GET_FAMILY(key_type);
             if (curve == 0) {
@@ -277,7 +280,9 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
 
             /* The rest of the function works as for legacy EC contexts. */
             pk_type = MBEDTLS_PK_ECKEY;
-        } else if (PSA_KEY_TYPE_IS_RSA(key_type)) {
+        } else
+#endif /* MBEDTLS_ECP_LIGHT */
+        if (PSA_KEY_TYPE_IS_RSA(key_type)) {
             /* The rest of the function works as for legacy RSA contexts. */
             pk_type = MBEDTLS_PK_RSA;
         } else {

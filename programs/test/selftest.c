@@ -73,8 +73,10 @@ static int calloc_self_test(int verbose)
     void *empty2 = mbedtls_calloc(0, 1);
     void *buffer1 = mbedtls_calloc(1, 1);
     void *buffer2 = mbedtls_calloc(1, 1);
-    unsigned int buf_size = 256;
-    unsigned char *buffer3 = mbedtls_calloc(buf_size, 1);
+    unsigned int buffer_3_size = 256;
+    unsigned int buffer_4_size = 4097; /* Allocate more than the usual page size */
+    unsigned char *buffer3 = mbedtls_calloc(buffer_3_size, 1);
+    unsigned char *buffer4 = mbedtls_calloc(buffer_4_size, 1);
 
     if (empty1 == NULL && empty2 == NULL) {
         if (verbose) {
@@ -148,11 +150,23 @@ static int calloc_self_test(int verbose)
         }
     }
 
-    for (unsigned int i = 0; i < buf_size; i++) {
+    for (unsigned int i = 0; i < buffer_3_size; i++) {
         if (buffer3[i] != 0) {
             ++failures;
             if (verbose) {
-                mbedtls_printf("  CALLOC(%u): failed (memory not initialized to 0)\n", buf_size);
+                mbedtls_printf("  CALLOC(%u): failed (memory not initialized to 0)\n",
+                               buffer_3_size);
+            }
+            break;
+        }
+    }
+
+    for (unsigned int i = 0; i < buffer_4_size; i++) {
+        if (buffer4[i] != 0) {
+            ++failures;
+            if (verbose) {
+                mbedtls_printf("  CALLOC(%u): failed (memory not initialized to 0)\n",
+                               buffer_4_size);
             }
             break;
         }
@@ -166,6 +180,7 @@ static int calloc_self_test(int verbose)
     mbedtls_free(buffer1);
     mbedtls_free(buffer2);
     mbedtls_free(buffer3);
+    mbedtls_free(buffer4);
     return failures;
 }
 #endif /* MBEDTLS_SELF_TEST */

@@ -3683,18 +3683,18 @@
 /** \def MBEDTLS_PLATFORM_STD_CALLOC
  *
  * Default allocator to use, can be undefined.
- * It should initialize the allocated buffer memory to zeroes.
+ * It must initialize the allocated buffer memory to zeroes.
  * The size of the buffer is the product of the two parameters.
- * The behavior is undefined if the product of the two parameters overflows size_t.
+ * The calloc function returns either a null pointer or a pointer to the allocated space.
  * If the product is 0, the function may either return NULL or a valid pointer to an array of size 0 which is a valid input to the deallocation function.
- * The corresponding deallocation function is MBEDTLS_PLATFORM_STD_FREE.
+ * The corresponding deallocation function is #MBEDTLS_PLATFORM_STD_FREE.
  */
 //#define MBEDTLS_PLATFORM_STD_CALLOC        calloc
 /** \def MBEDTLS_PLATFORM_STD_FREE
  *
  * Default free to use, can be undefined.
  * NULL is a valid parameter, and the function must do nothing.
- * A non-null parameter will always be a pointer previously returned by MBEDTLS_PLATFORM_STD_CALLOC and not yet freed.
+ * A non-null parameter will always be a pointer previously returned by #MBEDTLS_PLATFORM_STD_CALLOC and not yet freed.
  */
 //#define MBEDTLS_PLATFORM_STD_FREE            free
 //#define MBEDTLS_PLATFORM_STD_SETBUF      setbuf /**< Default setbuf to use, can be undefined */
@@ -3710,7 +3710,7 @@
 //#define MBEDTLS_PLATFORM_STD_NV_SEED_WRITE  mbedtls_platform_std_nv_seed_write /**< Default nv_seed_write function to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_NV_SEED_FILE  "seedfile" /**< Seed file to read/write with default implementation */
 
-/* To Use Function Macros MBEDTLS_PLATFORM_C must be enabled */
+/* To use the following function macros, MBEDTLS_PLATFORM_C must be enabled. */
 /* MBEDTLS_PLATFORM_XXX_MACRO and MBEDTLS_PLATFORM_XXX_ALT cannot both be defined */
 //#define MBEDTLS_PLATFORM_CALLOC_MACRO        calloc /**< Default allocator macro to use, can be undefined. See MBEDTLS_PLATFORM_STD_CALLOC for requirements. */
 //#define MBEDTLS_PLATFORM_FREE_MACRO            free /**< Default free macro to use, can be undefined. See MBEDTLS_PLATFORM_STD_FREE for requirements. */

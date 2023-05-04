@@ -74,7 +74,7 @@ static int calloc_self_test(int verbose)
     void *buffer1 = mbedtls_calloc(1, 1);
     void *buffer2 = mbedtls_calloc(1, 1);
     unsigned int buf_size = 256;
-    unsigned char *buffer3 = mbedtls_calloc(buf_size, sizeof(unsigned char));
+    unsigned char *buffer3 = mbedtls_calloc(buf_size, 1);
 
     if (empty1 == NULL && empty2 == NULL) {
         if (verbose) {

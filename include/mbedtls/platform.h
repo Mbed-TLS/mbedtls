@@ -135,7 +135,7 @@ extern "C" {
 
 /*
  * The function pointers for calloc and free.
- * please see MBEDTLS_PLATFORM_STD_CALLOC and MBEDTLS_PLATFORM_STD_FREE
+ * Please see MBEDTLS_PLATFORM_STD_CALLOC and MBEDTLS_PLATFORM_STD_FREE
  * in mbedtls_config.h for more information about behaviour and requirements.
  */
 #if defined(MBEDTLS_PLATFORM_MEMORY)

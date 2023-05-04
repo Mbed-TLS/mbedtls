@@ -4605,6 +4605,8 @@ static int ecp_mod_p255(mbedtls_mpi *);
 #endif
 #if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
 static int ecp_mod_p448(mbedtls_mpi *);
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p448(mbedtls_mpi *);
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
 static int ecp_mod_p192k1(mbedtls_mpi *);
@@ -5449,6 +5451,11 @@ static int ecp_mod_p255(mbedtls_mpi *N)
 #define P224_WIDTH_MAX   DIV_ROUND_UP(28, sizeof(mbedtls_mpi_uint))
 #define P224_UNUSED_BITS ((P224_WIDTH_MAX * sizeof(mbedtls_mpi_uint) * 8) - 224)
 
+static int ecp_mod_p448(mbedtls_mpi *N)
+{
+    return mbedtls_ecp_mod_p448(N);
+}
+
 /*
  * Fast quasi-reduction modulo p448 = 2^448 - 2^224 - 1
  * Write N as A0 + 2^448 A1 and A1 as B0 + 2^224 B1, and return
@@ -5460,7 +5467,8 @@ static int ecp_mod_p255(mbedtls_mpi *N)
  * but for 64-bit targets it should use half the number of operations if we do
  * the reduction with 224-bit limbs, since mpi_add_mpi will then use 64-bit adds.
  */
-static int ecp_mod_p448(mbedtls_mpi *N)
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p448(mbedtls_mpi *N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t i;

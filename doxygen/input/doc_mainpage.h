@@ -27,5 +27,5 @@
  * This documentation describes the internal structure of mbed TLS.  It was
  * automatically generated from specially formatted comment blocks in
  * mbed TLS's source code using Doxygen.  (See
- * http://www.stack.nl/~dimitri/doxygen/ for more information on Doxygen)
+ * https://www.doxygen.nl for more information on Doxygen)
  */

@@ -253,8 +253,6 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
     if (pk_type == MBEDTLS_PK_OPAQUE) {
         psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
         psa_key_type_t key_type;
-        psa_ecc_family_t curve;
-        size_t bits;
 
         if (PSA_SUCCESS != psa_get_key_attributes(key->priv_id,
                                                   &attributes)) {

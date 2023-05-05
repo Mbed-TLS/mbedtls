@@ -974,6 +974,22 @@ Parse Public EC Key #9a (RFC 5480, brainpoolP512r1, compressed)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_BP512R1_ENABLED
 pk_parse_public_keyfile_ec:"data_files/ec_bp512_pub.comp.pem":0
 
+Parse Public EC Key #10 (RFC 8410, DER, X25519)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+pk_parse_public_keyfile_ec:"data_files/ec_x25519_pub.der":0
+
+Parse Public EC Key #11 (RFC 8410, DER, X448)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_CURVE448_ENABLED
+pk_parse_public_keyfile_ec:"data_files/ec_x448_pub.der":0
+
+Parse Public EC Key #12 (RFC 8410, PEM, X25519)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+pk_parse_public_keyfile_ec:"data_files/ec_x25519_pub.pem":0
+
+Parse Public EC Key #13 (RFC 8410, PEM, X448)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_CURVE448_ENABLED
+pk_parse_public_keyfile_ec:"data_files/ec_x448_pub.pem":0
+
 Parse EC Key #1 (SEC1 DER)
 depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.sec1.der":"NULL":0
@@ -1082,6 +1098,22 @@ Parse EC Key #15 (SEC1 DER, secp256k1, SpecifiedECDomain)
 depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP256K1_ENABLED:MBEDTLS_PK_PARSE_EC_EXTENDED
 pk_parse_keyfile_ec:"data_files/ec_prv.specdom.der":"NULL":0
 
+Parse EC Key #16 (RFC 8410, DER, X25519)
+depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+pk_parse_keyfile_ec:"data_files/ec_x25519_prv.der":"NULL":0
+
+Parse EC Key #17 (RFC 8410, DER, X448)
+depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_CURVE448_ENABLED
+pk_parse_keyfile_ec:"data_files/ec_x448_prv.der":"NULL":0
+
+Parse EC Key #18 (RFC 8410, PEM, X25519)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+pk_parse_keyfile_ec:"data_files/ec_x25519_prv.pem":"NULL":0
+
+Parse EC Key #19 (RFC 8410, PEM, X448)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_CURVE448_ENABLED
+pk_parse_keyfile_ec:"data_files/ec_x448_prv.pem":"NULL":0
+
 Key ASN1 (No data)
 pk_parse_key:"":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 
@@ -1163,3 +1195,30 @@ pk_parse_key:"3063020100021100cc8ab070369ede72920e5a51523c857102030100010211009a
 Key ASN1 (ECPrivateKey, empty parameters)
 depends_on:MBEDTLS_ECP_LIGHT
 pk_parse_key:"30070201010400a000":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
+
+Key ASN1 (OneAsymmetricKey X25519, doesn't match masking requirements, from RFC8410 Appendix A but made into version 0)
+depends_on:MBEDTLS_ECP_LIGHT
+pk_parse_key:"302e020100300506032b656e04220420f8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff3f":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
+
+Key ASN1 (OneAsymmetricKey X25519, with invalid optional AlgorithIdentifier parameters)
+depends_on:MBEDTLS_ECP_LIGHT
+pk_parse_key:"3030020100300706032b656e050004220420b06d829655543a51cba36e53522bc0acfd60af59466555fb3e1e796872ab1a59":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
+
+Key ASN1 (OneAsymmetricKey X25519, with NULL private key)
+depends_on:MBEDTLS_ECP_LIGHT
+pk_parse_key:"300e020100300506032b656e04020500":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
+
+Key ASN1 (OneAsymmetricKey with invalid AlgorithIdentifier)
+pk_parse_key:"3013020100300a06082b0601040181fd5904020500":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
+
+Key ASN1 (OneAsymmetricKey X25519, with unsupported attributes)
+depends_on:MBEDTLS_ECP_LIGHT
+pk_parse_key:"304f020100300506032b656e04220420b06d829655543a51cba36e53522bc0acfd60af59466555fb3e1e796872ab1a59a01f301d060a2a864886f70d01090914310f0c0d437572646c6520436861697273":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
+
+Key ASN1 (OneAsymmetricKey X25519, unsupported version 2 with public key)
+depends_on:MBEDTLS_ECP_LIGHT
+pk_parse_key:"3051020101300506032b656e04220420b06d829655543a51cba36e53522bc0acfd60af59466555fb3e1e796872ab1a598121009bc3b0e93d8233fe6a8ba6138948cc12a91362d5c2ed81584db05ab5419c9d11":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
+
+Key ASN1 (OneAsymmetricKey X25519, unsupported version 2 with public key and unsupported attributes)
+depends_on:MBEDTLS_ECP_LIGHT
+pk_parse_key:"3072020101300506032b656e04220420b06d829655543a51cba36e53522bc0acfd60af59466555fb3e1e796872ab1a59a01f301d060a2a864886f70d01090914310f0c0d437572646c65204368616972738121009bc3b0e93d8233fe6a8ba6138948cc12a91362d5c2ed81584db05ab5419c9d11":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT

@@ -64,6 +64,13 @@ void time_delay_milliseconds(int delay_ms)
     mbedtls_ms_time_t current = mbedtls_ms_time();
     mbedtls_ms_time_t elapsed_ms;
 
+    /*
+     * WARNING: DO NOT ENABLE THIS TEST. We keep the code here to document the
+     *          reason.
+     *
+     *          Windows CI reports random test fail on platform-suite. It might
+     *          be caused by this case.
+     */
     sleep_ms(delay_ms);
 
     elapsed_ms = mbedtls_ms_time() - current;

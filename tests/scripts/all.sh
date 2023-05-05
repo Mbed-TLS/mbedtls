@@ -3451,7 +3451,6 @@ component_test_malloc_0_null () {
 component_test_aes_only_128_bit_keys () {
     msg "build: default config with AES_ONLY_128_BIT_KEY_LENGTH enabled"
     scripts/config.py set MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
-    scripts/config.py set MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
     scripts/config.py unset MBEDTLS_PADLOCK_C
 
     make CC=gcc CFLAGS='-Werror -Wall -Wextra'

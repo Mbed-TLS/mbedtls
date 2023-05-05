@@ -532,8 +532,6 @@
  *
  * Tradeoff: Uncommenting this macro reduces the size of AES code by about 4%.
  *
- * If uncommented, uncomment also MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
- *
  * Module:  library/aes.c
  *
  * Requires: MBEDTLS_AES_C

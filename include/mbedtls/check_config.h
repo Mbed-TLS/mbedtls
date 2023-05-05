@@ -66,11 +66,6 @@
 #error "MBEDTLS_HAVE_TIME_DATE without MBEDTLS_HAVE_TIME does not make sense"
 #endif
 
-#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH) && \
-    !defined(MBEDTLS_CTR_DRBG_USE_128_BIT_KEY)
-#error "MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH defined, but not all prerequisites"
-#endif
-
 #if defined(MBEDTLS_CTR_DRBG_C) && !defined(MBEDTLS_AES_C)
 #error "MBEDTLS_CTR_DRBG_C defined, but not all prerequisites"
 #endif

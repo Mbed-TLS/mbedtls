@@ -383,13 +383,13 @@ def merge_auditdata(original: typing.List[AuditData]) \
 
 
 def list_all(audit_data: AuditData):
-    print("{:20}\t{:20}\t{:3}\t{}".format(
-        audit_data.not_valid_before.isoformat(timespec='seconds'),
-        audit_data.not_valid_after.isoformat(timespec='seconds'),
-        audit_data.data_type.name,
-        audit_data.locations[0]))
-    for loc in audit_data.locations[1:]:
-        print("{:20}\t{:20}\t{:3}\t{}".format('', '', '', loc))
+    for loc in audit_data.locations:
+        print("{}\t{:20}\t{:20}\t{:3}\t{}".format(
+            audit_data.identifier,
+            audit_data.not_valid_before.isoformat(timespec='seconds'),
+            audit_data.not_valid_after.isoformat(timespec='seconds'),
+            audit_data.data_type.name,
+            loc))
 
 
 def configure_logger(logger: logging.Logger) -> None:

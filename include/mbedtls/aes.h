@@ -69,6 +69,34 @@ extern "C" {
 // Regular implementation
 //
 
+/** VIA padlock needs 16 extra Bytes for alignment. */
+#if (defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)) ||        \
+    (defined(MBEDTLS_AESNI_C) && MBEDTLS_AESNI_HAVE_CODE == 2)
+#define MBEDTLS_PADLOCK_EXTRA 4
+#else
+#define MBEDTLS_PADLOCK_EXTRA 0
+#endif
+
+/** Each round key occupies 16 Bytes. */
+#define MBEDTLS_AES_RK_UINT32S 4
+
+/** Define number of maximum rounds in AES key expansion.
+ *   See https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197.pdf
+ *      - Section 5, Nr = Nk + 6
+ *      - Section 5.2, the length of round keys is Nb*(Nr+1)
+ */
+#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
+#define MBEDTLS_AES_MAX_ROUNDS 10
+#else
+#define MBEDTLS_AES_MAX_ROUNDS 14
+#endif
+
+/** Allocate 8 extra Bytes for AES key expansion.
+ *   - 16 extra Bytes to store initial round key.
+ *   - 16 extra Bytes to simplify key expansion in the 256-bit case.
+ */
+#define MBEDTLS_AES_RK_EXTRA (8 + MBEDTLS_PADLOCK_EXTRA)
+
 /**
  * \brief The AES context-type definition.
  */
@@ -76,19 +104,14 @@ typedef struct mbedtls_aes_context {
     int MBEDTLS_PRIVATE(nr);                     /*!< The number of rounds. */
     size_t MBEDTLS_PRIVATE(rk_offset);           /*!< The offset in array elements to AES
                                                     round keys in the buffer. */
-#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH) && !defined(MBEDTLS_PADLOCK_C)
-    uint32_t MBEDTLS_PRIVATE(buf)[44];           /*!< Aligned data buffer to hold
-                                                    10 round keys for 128-bit case. */
-#else
-    uint32_t MBEDTLS_PRIVATE(buf)[68];           /*!< Unaligned data buffer. This buffer can
-                                                    hold 32 extra Bytes, which can be used for
-                                                    one of the following purposes:
-                                                    <ul><li>Alignment if VIA padlock is
-                                                    used.</li>
-                                                    <li>Simplifying key expansion in the 256-bit
-                                                    case by generating an extra round key.
-                                                    </li></ul> */
-#endif /* MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH && !MBEDTLS_PADLOCK_C */
+    /** Data buffer to hold round keys. This buffer can hold 16 / 80 / 96
+     *  extra Bytes, which can be used for one of the following purposes:
+     *   - Alignment if VIA padlock is used.
+     *   - Simplifying key expansion in the 256-bit case by generating
+     *   an extra round key.
+     */
+    uint32_t MBEDTLS_PRIVATE(buf)
+    [MBEDTLS_AES_MAX_ROUNDS * MBEDTLS_AES_RK_UINT32S + MBEDTLS_AES_RK_EXTRA];
 }
 mbedtls_aes_context;
 

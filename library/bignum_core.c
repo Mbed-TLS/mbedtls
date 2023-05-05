@@ -35,6 +35,23 @@
 
 size_t mbedtls_mpi_core_clz(mbedtls_mpi_uint a)
 {
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_clz)
+    if (sizeof(mbedtls_mpi_uint) == sizeof(unsigned int)) {
+        return (size_t) __builtin_clz(a);
+    }
+#endif
+#if __has_builtin(__builtin_clzl)
+    if (sizeof(mbedtls_mpi_uint) == sizeof(unsigned long)) {
+        return (size_t) __builtin_clzl(a);
+    }
+#endif
+#if __has_builtin(__builtin_clzll)
+    if (sizeof(mbedtls_mpi_uint) == sizeof(unsigned long long)) {
+        return (size_t) __builtin_clzll(a);
+    }
+#endif
+#endif
     size_t j;
     mbedtls_mpi_uint mask = (mbedtls_mpi_uint) 1 << (biL - 1);
 
@@ -51,21 +68,17 @@ size_t mbedtls_mpi_core_clz(mbedtls_mpi_uint a)
 
 size_t mbedtls_mpi_core_bitlen(const mbedtls_mpi_uint *A, size_t A_limbs)
 {
-    size_t i, j;
+    int i;
+    size_t j;
 
-    if (A_limbs == 0) {
-        return 0;
-    }
-
-    for (i = A_limbs - 1; i > 0; i--) {
+    for (i = ((int) A_limbs) - 1; i >= 0; i--) {
         if (A[i] != 0) {
-            break;
+            j = biL - mbedtls_mpi_core_clz(A[i]);
+            return (i * biL) + j;
         }
     }
 
-    j = biL - mbedtls_mpi_core_clz(A[i]);
-
-    return (i * biL) + j;
+    return 0;
 }
 
 /* Convert a big-endian byte array aligned to the size of mbedtls_mpi_uint
@@ -448,6 +461,17 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla(mbedtls_mpi_uint *d, size_t d_len,
     return c;
 }
 
+void mbedtls_mpi_core_mul(mbedtls_mpi_uint *X,
+                          const mbedtls_mpi_uint *A, size_t A_limbs,
+                          const mbedtls_mpi_uint *B, size_t B_limbs)
+{
+    memset(X, 0, (A_limbs + B_limbs) * ciL);
+
+    for (size_t i = 0; i < B_limbs; i++) {
+        (void) mbedtls_mpi_core_mla(X + i, A_limbs + 1, A, A_limbs, B[i]);
+    }
+}
+
 /*
  * Fast Montgomery initialization (thanks to Tom St Denis).
  */
@@ -629,8 +653,6 @@ cleanup:
     return ret;
 }
 
-/* BEGIN MERGE SLOT 1 */
-
 static size_t exp_mod_get_window_size(size_t Ebits)
 {
     size_t wsize = (Ebits > 671) ? 6 : (Ebits > 239) ? 5 :
@@ -780,14 +802,6 @@ void mbedtls_mpi_core_exp_mod(mbedtls_mpi_uint *X,
     } while (!(E_bit_index == 0 && E_limb_index == 0));
 }
 
-/* END MERGE SLOT 1 */
-
-/* BEGIN MERGE SLOT 2 */
-
-/* END MERGE SLOT 2 */
-
-/* BEGIN MERGE SLOT 3 */
-
 mbedtls_mpi_uint mbedtls_mpi_core_sub_int(mbedtls_mpi_uint *X,
                                           const mbedtls_mpi_uint *A,
                                           mbedtls_mpi_uint c,  /* doubles as carry */
@@ -837,35 +851,5 @@ void mbedtls_mpi_core_from_mont_rep(mbedtls_mpi_uint *X,
 
     mbedtls_mpi_core_montmul(X, A, &Rinv, 1, N, AN_limbs, mm, T);
 }
-
-/* END MERGE SLOT 3 */
-
-/* BEGIN MERGE SLOT 4 */
-
-/* END MERGE SLOT 4 */
-
-/* BEGIN MERGE SLOT 5 */
-
-/* END MERGE SLOT 5 */
-
-/* BEGIN MERGE SLOT 6 */
-
-/* END MERGE SLOT 6 */
-
-/* BEGIN MERGE SLOT 7 */
-
-/* END MERGE SLOT 7 */
-
-/* BEGIN MERGE SLOT 8 */
-
-/* END MERGE SLOT 8 */
-
-/* BEGIN MERGE SLOT 9 */
-
-/* END MERGE SLOT 9 */
-
-/* BEGIN MERGE SLOT 10 */
-
-/* END MERGE SLOT 10 */
 
 #endif /* MBEDTLS_BIGNUM_C */

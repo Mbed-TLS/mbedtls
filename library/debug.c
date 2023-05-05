@@ -172,7 +172,7 @@ void mbedtls_debug_print_buf(const mbedtls_ssl_context *ssl, int level,
     }
 }
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 void mbedtls_debug_print_ecp(const mbedtls_ssl_context *ssl, int level,
                              const char *file, int line,
                              const char *text, const mbedtls_ecp_point *X)
@@ -192,7 +192,7 @@ void mbedtls_debug_print_ecp(const mbedtls_ssl_context *ssl, int level,
     mbedtls_snprintf(str, sizeof(str), "%s(Y)", text);
     mbedtls_debug_print_mpi(ssl, level, file, line, str, &X->Y);
 }
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
 
 #if defined(MBEDTLS_BIGNUM_C)
 void mbedtls_debug_print_mpi(const mbedtls_ssl_context *ssl, int level,
@@ -273,7 +273,7 @@ static void debug_print_pk(const mbedtls_ssl_context *ssl, int level,
         if (items[i].type == MBEDTLS_PK_DEBUG_MPI) {
             mbedtls_debug_print_mpi(ssl, level, file, line, name, items[i].value);
         } else
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
         if (items[i].type == MBEDTLS_PK_DEBUG_ECP) {
             mbedtls_debug_print_ecp(ssl, level, file, line, name, items[i].value);
         } else

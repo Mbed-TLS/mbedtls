@@ -40,11 +40,9 @@
 #include "mbedtls/dhm.h"
 #endif
 
-/* Adding guard for MBEDTLS_ECDSA_C to ensure no compile errors due
- * to guards in TLS code. There is a gap in functionality that access to
- * ecdh_ctx structure is needed for MBEDTLS_ECDSA_C which does not seem correct.
- */
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
+#include "mbedtls/md.h"
+
+#if defined(MBEDTLS_ECDH_C)
 #include "mbedtls/ecdh.h"
 #endif
 
@@ -110,7 +108,8 @@
 /* Error space gap */
 /* Error space gap */
 /* Error space gap */
-/* Error space gap */
+/** Cache entry not found */
+#define MBEDTLS_ERR_SSL_CACHE_ENTRY_NOT_FOUND             -0x7E80
 /** Memory allocation failed */
 #define MBEDTLS_ERR_SSL_ALLOC_FAILED                      -0x7F00
 /** Hardware acceleration function returned with error */
@@ -571,6 +570,8 @@
 #define MBEDTLS_TLS_EXT_ENCRYPT_THEN_MAC            22 /* 0x16 */
 #define MBEDTLS_TLS_EXT_EXTENDED_MASTER_SECRET  0x0017 /* 23 */
 
+#define MBEDTLS_TLS_EXT_RECORD_SIZE_LIMIT           28 /* RFC 8449 (implemented for TLS 1.3 only) */
+
 #define MBEDTLS_TLS_EXT_SESSION_TICKET              35
 
 #define MBEDTLS_TLS_EXT_PRE_SHARED_KEY              41 /* RFC 8446 TLS 1.3 */
@@ -599,8 +600,22 @@
  * Size defines
  */
 #if !defined(MBEDTLS_PSK_MAX_LEN)
-#define MBEDTLS_PSK_MAX_LEN            32 /* 256 bits */
+/*
+ * If the library supports TLS 1.3 tickets and the cipher suite
+ * TLS1-3-AES-256-GCM-SHA384, set the PSK maximum length to 48 instead of 32.
+ * That way, the TLS 1.3 client and server are able to resume sessions where
+ * the cipher suite is TLS1-3-AES-256-GCM-SHA384 (pre-shared keys are 48
+ * bytes long in that case).
+ */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
+    defined(MBEDTLS_SSL_SESSION_TICKETS) && \
+    defined(MBEDTLS_AES_C) && defined(MBEDTLS_GCM_C) && \
+    defined(MBEDTLS_MD_CAN_SHA384)
+#define MBEDTLS_PSK_MAX_LEN 48 /* 384 bits */
+#else
+#define MBEDTLS_PSK_MAX_LEN 32 /* 256 bits */
 #endif
+#endif /* !MBEDTLS_PSK_MAX_LEN */
 
 /* Dummy type used only for its size */
 union mbedtls_ssl_premaster_secret {
@@ -1089,13 +1104,13 @@ typedef void mbedtls_ssl_async_cancel_t(mbedtls_ssl_context *ssl);
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED) &&        \
     !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
 #define MBEDTLS_SSL_PEER_CERT_DIGEST_MAX_LEN  48
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_MD_CAN_SHA256)
 #define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE MBEDTLS_MD_SHA256
 #define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN  32
-#elif defined(MBEDTLS_SHA384_C)
+#elif defined(MBEDTLS_MD_CAN_SHA384)
 #define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE MBEDTLS_MD_SHA384
 #define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN  48
-#elif defined(MBEDTLS_SHA1_C)
+#elif defined(MBEDTLS_MD_CAN_SHA1)
 #define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE MBEDTLS_MD_SHA1
 #define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN  20
 #else
@@ -1471,7 +1486,7 @@ struct mbedtls_ssl_config {
     const uint16_t *MBEDTLS_PRIVATE(sig_algs);      /*!< allowed signature algorithms       */
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
-#if defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_ECP_LIGHT) && !defined(MBEDTLS_DEPRECATED_REMOVED)
     const mbedtls_ecp_group_id *MBEDTLS_PRIVATE(curve_list); /*!< allowed curves             */
 #endif
 
@@ -1593,19 +1608,21 @@ struct mbedtls_ssl_context {
                                                     renego_max_records is < 0           */
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
-    /** Server: Negotiated TLS protocol version.
-     *  Client: Maximum TLS version to be negotiated, then negotiated TLS
-     *          version.
+    /**
+     *  Maximum TLS version to be negotiated, then negotiated TLS version.
      *
-     *  It is initialized as the maximum TLS version to be negotiated in the
-     *  ClientHello writing preparation stage and used throughout the
-     *  ClientHello writing. For a fresh handshake not linked to any previous
-     *  handshake, it is initialized to the configured maximum TLS version
-     *  to be negotiated. When renegotiating or resuming a session, it is
-     *  initialized to the previously negotiated TLS version.
+     *  It is initialized as the configured maximum TLS version to be
+     *  negotiated by mbedtls_ssl_setup().
      *
-     *  Updated to the negotiated TLS version as soon as the ServerHello is
-     *  received.
+     *  When renegotiating or resuming a session, it is overwritten in the
+     *  ClientHello writing preparation stage with the previously negotiated
+     *  TLS version.
+     *
+     *  On client side, it is updated to the TLS version selected by the server
+     *  for the handshake when the ServerHello is received.
+     *
+     *  On server side, it is updated to the TLS version the server selects for
+     *  the handshake when the ClientHello is received.
      */
     mbedtls_ssl_protocol_version MBEDTLS_PRIVATE(tls_version);
 
@@ -1868,6 +1885,10 @@ void mbedtls_ssl_init(mbedtls_ssl_context *ssl);
  * \warning        This function must be called exactly once per context.
  *                 Calling mbedtls_ssl_setup again is not supported, even
  *                 if no session is active.
+ *
+ * \note           If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
+ *                 subsystem must have been initialized by calling
+ *                 psa_crypto_init() before calling this function.
  *
  * \param ssl      SSL context
  * \param conf     SSL configuration to use
@@ -3600,7 +3621,7 @@ void mbedtls_ssl_conf_dhm_min_bitlen(mbedtls_ssl_config *conf,
                                      unsigned int bitlen);
 #endif /* MBEDTLS_DHM_C && MBEDTLS_SSL_CLI_C */
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**
  * \brief          Set the allowed curves in order of preference.
@@ -3646,7 +3667,7 @@ void mbedtls_ssl_conf_dhm_min_bitlen(mbedtls_ssl_config *conf,
 void MBEDTLS_DEPRECATED mbedtls_ssl_conf_curves(mbedtls_ssl_config *conf,
                                                 const mbedtls_ecp_group_id *curves);
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
 
 /**
  * \brief          Set the allowed groups in order of preference.
@@ -4684,6 +4705,11 @@ int mbedtls_ssl_get_session(const mbedtls_ssl_context *ssl,
  *                 in which case the datagram of the underlying transport that is
  *                 currently being processed might or might not contain further
  *                 DTLS records.
+ *
+ * \note           If the context is configured to allow TLS 1.3, or if
+ *                 #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
+ *                 subsystem must have been initialized by calling
+ *                 psa_crypto_init() before calling this function.
  */
 int mbedtls_ssl_handshake(mbedtls_ssl_context *ssl);
 

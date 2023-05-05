@@ -40,9 +40,14 @@
 #ifndef PSA_CRYPTO_SIZES_H
 #define PSA_CRYPTO_SIZES_H
 
-/* Include the Mbed TLS configuration file, the way Mbed TLS does it
- * in each of its header files. */
-#include "mbedtls/build_info.h"
+/*
+ * Include the build-time configuration information file. Here, we do not
+ * include `"mbedtls/build_info.h"` directly but `"psa/build_info.h"`, which
+ * is basically just an alias to it. This is to ease the maintenance of the
+ * PSA cryptography repository which has a different build system and
+ * configuration.
+ */
+#include "psa/build_info.h"
 
 #define PSA_BITS_TO_BYTES(bits) (((bits) + 7) / 8)
 #define PSA_BYTES_TO_BITS(bytes) ((bytes) * 8)
@@ -192,31 +197,31 @@
 
 /* The maximum size of an ECC key on this implementation, in bits.
  * This is a vendor-specific macro. */
-#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+#if defined(PSA_WANT_ECC_SECP_R1_521)
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 521
-#elif defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
+#elif defined(PSA_WANT_ECC_BRAINPOOL_P_R1_512)
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 512
-#elif defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+#elif defined(PSA_WANT_ECC_MONTGOMERY_448)
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 448
-#elif defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+#elif defined(PSA_WANT_ECC_SECP_R1_384)
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 384
-#elif defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
+#elif defined(PSA_WANT_ECC_BRAINPOOL_P_R1_384)
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 384
-#elif defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+#elif defined(PSA_WANT_ECC_SECP_R1_256)
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 256
-#elif defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
+#elif defined(PSA_WANT_ECC_SECP_K1_256)
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 256
-#elif defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
+#elif defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 256
-#elif defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+#elif defined(PSA_WANT_ECC_MONTGOMERY_255)
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 255
-#elif defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
+#elif defined(PSA_WANT_ECC_SECP_R1_224)
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 224
-#elif defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
+#elif defined(PSA_WANT_ECC_SECP_K1_224)
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 224
-#elif defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
+#elif defined(PSA_WANT_ECC_SECP_R1_192)
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 192
-#elif defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
+#elif defined(PSA_WANT_ECC_SECP_K1_192)
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 192
 #else
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 0

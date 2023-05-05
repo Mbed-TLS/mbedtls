@@ -33,19 +33,23 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/constant_time.h"
 
-#include "mbedtls/legacy_or_psa.h"
-
 #include <string.h>
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
+                                                           psa_to_ssl_errors,             \
+                                                           psa_generic_status_to_mbedtls)
+#endif
 
 /*
  * If DTLS is in use, then at least one of SHA-256 or SHA-384 is
  * available. Try SHA-256 first as 384 wastes resources
  */
-#if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_LOWLEVEL_OR_PSA)
+#if defined(MBEDTLS_MD_CAN_SHA256)
 #define COOKIE_MD           MBEDTLS_MD_SHA256
 #define COOKIE_MD_OUTLEN    32
 #define COOKIE_HMAC_LEN     28
-#elif defined(MBEDTLS_HAS_ALG_SHA_384_VIA_LOWLEVEL_OR_PSA)
+#elif defined(MBEDTLS_MD_CAN_SHA384)
 #define COOKIE_MD           MBEDTLS_MD_SHA384
 #define COOKIE_MD_OUTLEN    48
 #define COOKIE_HMAC_LEN     28
@@ -126,7 +130,7 @@ int mbedtls_ssl_cookie_setup(mbedtls_ssl_cookie_ctx *ctx,
 
     if ((status = psa_generate_key(&attributes,
                                    &ctx->psa_hmac_key)) != PSA_SUCCESS) {
-        return psa_ssl_status_to_mbedtls(status);
+        return PSA_TO_MBEDTLS_ERR(status);
     }
 #else
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -215,26 +219,26 @@ int mbedtls_ssl_cookie_write(void *p_ctx,
     status = psa_mac_sign_setup(&operation, ctx->psa_hmac_key,
                                 ctx->psa_hmac_alg);
     if (status != PSA_SUCCESS) {
-        ret = psa_ssl_status_to_mbedtls(status);
+        ret = PSA_TO_MBEDTLS_ERR(status);
         goto exit;
     }
 
     status = psa_mac_update(&operation, *p - 4, 4);
     if (status != PSA_SUCCESS) {
-        ret = psa_ssl_status_to_mbedtls(status);
+        ret = PSA_TO_MBEDTLS_ERR(status);
         goto exit;
     }
 
     status = psa_mac_update(&operation, cli_id, cli_id_len);
     if (status != PSA_SUCCESS) {
-        ret = psa_ssl_status_to_mbedtls(status);
+        ret = PSA_TO_MBEDTLS_ERR(status);
         goto exit;
     }
 
     status = psa_mac_sign_finish(&operation, *p, COOKIE_MD_OUTLEN,
                                  &sign_mac_length);
     if (status != PSA_SUCCESS) {
-        ret = psa_ssl_status_to_mbedtls(status);
+        ret = PSA_TO_MBEDTLS_ERR(status);
         goto exit;
     }
 
@@ -263,7 +267,7 @@ int mbedtls_ssl_cookie_write(void *p_ctx,
 exit:
     status = psa_mac_abort(&operation);
     if (status != PSA_SUCCESS) {
-        ret = psa_ssl_status_to_mbedtls(status);
+        ret = PSA_TO_MBEDTLS_ERR(status);
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     return ret;
@@ -299,27 +303,27 @@ int mbedtls_ssl_cookie_check(void *p_ctx,
     status = psa_mac_verify_setup(&operation, ctx->psa_hmac_key,
                                   ctx->psa_hmac_alg);
     if (status != PSA_SUCCESS) {
-        ret = psa_ssl_status_to_mbedtls(status);
+        ret = PSA_TO_MBEDTLS_ERR(status);
         goto exit;
     }
 
     status = psa_mac_update(&operation, cookie, 4);
     if (status != PSA_SUCCESS) {
-        ret = psa_ssl_status_to_mbedtls(status);
+        ret = PSA_TO_MBEDTLS_ERR(status);
         goto exit;
     }
 
     status = psa_mac_update(&operation, cli_id,
                             cli_id_len);
     if (status != PSA_SUCCESS) {
-        ret = psa_ssl_status_to_mbedtls(status);
+        ret = PSA_TO_MBEDTLS_ERR(status);
         goto exit;
     }
 
     status = psa_mac_verify_finish(&operation, cookie + 4,
                                    COOKIE_HMAC_LEN);
     if (status != PSA_SUCCESS) {
-        ret = psa_ssl_status_to_mbedtls(status);
+        ret = PSA_TO_MBEDTLS_ERR(status);
         goto exit;
     }
 
@@ -374,7 +378,7 @@ exit:
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     status = psa_mac_abort(&operation);
     if (status != PSA_SUCCESS) {
-        ret = psa_ssl_status_to_mbedtls(status);
+        ret = PSA_TO_MBEDTLS_ERR(status);
     }
 #else
     mbedtls_platform_zeroize(ref_hmac, sizeof(ref_hmac));

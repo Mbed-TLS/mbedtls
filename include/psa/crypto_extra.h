@@ -29,8 +29,6 @@
 #define PSA_CRYPTO_EXTRA_H
 #include "mbedtls/private_access.h"
 
-#include "mbedtls/platform_util.h"
-
 #include "crypto_types.h"
 #include "crypto_compat.h"
 
@@ -429,6 +427,10 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  */
 #define PSA_DH_FAMILY_CUSTOM             ((psa_dh_family_t) 0x7e)
 
+/** PAKE operation stages. */
+#define PSA_PAKE_OPERATION_STAGE_SETUP 0
+#define PSA_PAKE_OPERATION_STAGE_COLLECT_INPUTS 1
+#define PSA_PAKE_OPERATION_STAGE_COMPUTATION 2
 
 /**
  * \brief Set domain parameters for a key.
@@ -571,7 +573,7 @@ psa_status_t psa_get_key_domain_parameters(
  * @{
  */
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 #include <mbedtls/ecp.h>
 
 /** Convert an ECC curve identifier from the Mbed TLS encoding to PSA.
@@ -658,7 +660,7 @@ static inline psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grp
 mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
                                               size_t bits,
                                               int bits_is_sloppy);
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
 
 /**@}*/
 
@@ -1286,9 +1288,123 @@ static void psa_pake_cs_set_hash(psa_pake_cipher_suite_t *cipher_suite,
  * Implementation details can change in future versions without notice. */
 typedef struct psa_pake_operation_s psa_pake_operation_t;
 
+/** The type of input values for PAKE operations. */
+typedef struct psa_crypto_driver_pake_inputs_s psa_crypto_driver_pake_inputs_t;
+
+/** The type of computation stage for J-PAKE operations. */
+typedef struct psa_jpake_computation_stage_s psa_jpake_computation_stage_t;
+
 /** Return an initial value for a PAKE operation object.
  */
 static psa_pake_operation_t psa_pake_operation_init(void);
+
+/** Get the length of the password in bytes from given inputs.
+ *
+ * \param[in]  inputs           Operation inputs.
+ * \param[out] password_len     Password length.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         Password hasn't been set yet.
+ */
+psa_status_t psa_crypto_driver_pake_get_password_len(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    size_t *password_len);
+
+/** Get the password from given inputs.
+ *
+ * \param[in]  inputs           Operation inputs.
+ * \param[out] buffer           Return buffer for password.
+ * \param      buffer_size      Size of the return buffer in bytes.
+ * \param[out] buffer_length    Actual size of the password in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         Password hasn't been set yet.
+ */
+psa_status_t psa_crypto_driver_pake_get_password(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    uint8_t *buffer, size_t buffer_size, size_t *buffer_length);
+
+/** Get the length of the user id in bytes from given inputs.
+ *
+ * \param[in]  inputs           Operation inputs.
+ * \param[out] user_len         User id length.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         User id hasn't been set yet.
+ */
+psa_status_t psa_crypto_driver_pake_get_user_len(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    size_t *user_len);
+
+/** Get the length of the peer id in bytes from given inputs.
+ *
+ * \param[in]  inputs           Operation inputs.
+ * \param[out] peer_len         Peer id length.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         Peer id hasn't been set yet.
+ */
+psa_status_t psa_crypto_driver_pake_get_peer_len(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    size_t *peer_len);
+
+/** Get the user id from given inputs.
+ *
+ * \param[in]  inputs           Operation inputs.
+ * \param[out] user_id          User id.
+ * \param      user_id_size     Size of \p user_id in bytes.
+ * \param[out] user_id_len      Size of the user id in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         User id hasn't been set yet.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p user_id is too small.
+ */
+psa_status_t psa_crypto_driver_pake_get_user(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    uint8_t *user_id, size_t user_id_size, size_t *user_id_len);
+
+/** Get the peer id from given inputs.
+ *
+ * \param[in]  inputs           Operation inputs.
+ * \param[out] peer_id          Peer id.
+ * \param      peer_id_size     Size of \p peer_id in bytes.
+ * \param[out] peer_id_length   Size of the peer id in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         Peer id hasn't been set yet.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p peer_id is too small.
+ */
+psa_status_t psa_crypto_driver_pake_get_peer(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    uint8_t *peer_id, size_t peer_id_size, size_t *peer_id_length);
+
+/** Get the cipher suite from given inputs.
+ *
+ * \param[in]  inputs           Operation inputs.
+ * \param[out] cipher_suite     Return buffer for role.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         Cipher_suite hasn't been set yet.
+ */
+psa_status_t psa_crypto_driver_pake_get_cipher_suite(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    psa_pake_cipher_suite_t *cipher_suite);
 
 /** Set the session information for a password-authenticated key exchange.
  *
@@ -1805,6 +1921,9 @@ psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
  *
  * This macro must expand to a compile-time constant integer.
  *
+ * The value of this macro must be at least as large as the largest value
+ * returned by PSA_PAKE_OUTPUT_SIZE()
+ *
  * See also #PSA_PAKE_OUTPUT_SIZE(\p alg, \p primitive, \p step).
  */
 #define PSA_PAKE_OUTPUT_MAX_SIZE 65
@@ -1813,6 +1932,9 @@ psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
  * algorithm and primitive suites and input step.
  *
  * This macro must expand to a compile-time constant integer.
+ *
+ * The value of this macro must be at least as large as the largest value
+ * returned by PSA_PAKE_INPUT_SIZE()
  *
  * See also #PSA_PAKE_INPUT_SIZE(\p alg, \p primitive, \p step).
  */
@@ -1826,14 +1948,8 @@ psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
 /** Returns a suitable initializer for a PAKE operation object of type
  * psa_pake_operation_t.
  */
-#if defined(MBEDTLS_PSA_BUILTIN_PAKE)
-#define PSA_PAKE_OPERATION_INIT { PSA_ALG_NONE, 0, 0, 0, 0,              \
-                                  NULL, 0,               \
-                                  PSA_PAKE_ROLE_NONE, { 0 }, 0, 0,         \
-                                  { .dummy = 0 } }
-#else
-#define PSA_PAKE_OPERATION_INIT { PSA_ALG_NONE, 0, 0, { 0 } }
-#endif
+#define PSA_PAKE_OPERATION_INIT { 0, PSA_ALG_NONE, 0, PSA_PAKE_OPERATION_STAGE_SETUP, \
+                                  { 0 }, { { 0 } } }
 
 struct psa_pake_cipher_suite_s {
     psa_algorithm_t algorithm;
@@ -1904,35 +2020,95 @@ static inline void psa_pake_cs_set_hash(psa_pake_cipher_suite_t *cipher_suite,
     }
 }
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
-#include <mbedtls/ecjpake.h>
-/* Note: the format for mbedtls_ecjpake_read/write function has an extra
- * length byte for each step, plus an extra 3 bytes for ECParameters in the
- * server's 2nd round. */
-#define MBEDTLS_PSA_PAKE_BUFFER_SIZE ((3 + 1 + 65 + 1 + 65 + 1 + 32) * 2)
-#endif
-
-struct psa_pake_operation_s {
-    psa_algorithm_t MBEDTLS_PRIVATE(alg);
-    unsigned int MBEDTLS_PRIVATE(state);
-    unsigned int MBEDTLS_PRIVATE(sequence);
-#if defined(MBEDTLS_PSA_BUILTIN_PAKE)
-    unsigned int MBEDTLS_PRIVATE(input_step);
-    unsigned int MBEDTLS_PRIVATE(output_step);
+struct psa_crypto_driver_pake_inputs_s {
     uint8_t *MBEDTLS_PRIVATE(password);
     size_t MBEDTLS_PRIVATE(password_len);
-    psa_pake_role_t MBEDTLS_PRIVATE(role);
-    uint8_t MBEDTLS_PRIVATE(buffer[MBEDTLS_PSA_PAKE_BUFFER_SIZE]);
-    size_t MBEDTLS_PRIVATE(buffer_length);
-    size_t MBEDTLS_PRIVATE(buffer_offset);
-#endif
+    uint8_t *MBEDTLS_PRIVATE(user);
+    size_t MBEDTLS_PRIVATE(user_len);
+    uint8_t *MBEDTLS_PRIVATE(peer);
+    size_t MBEDTLS_PRIVATE(peer_len);
+    psa_key_attributes_t MBEDTLS_PRIVATE(attributes);
+    psa_pake_cipher_suite_t MBEDTLS_PRIVATE(cipher_suite);
+};
+
+typedef enum psa_jpake_step {
+    PSA_PAKE_STEP_INVALID       = 0,
+    PSA_PAKE_STEP_X1_X2         = 1,
+    PSA_PAKE_STEP_X2S           = 2,
+    PSA_PAKE_STEP_DERIVE        = 3,
+} psa_jpake_step_t;
+
+typedef enum psa_jpake_state {
+    PSA_PAKE_STATE_INVALID      = 0,
+    PSA_PAKE_STATE_SETUP        = 1,
+    PSA_PAKE_STATE_READY        = 2,
+    PSA_PAKE_OUTPUT_X1_X2       = 3,
+    PSA_PAKE_OUTPUT_X2S         = 4,
+    PSA_PAKE_INPUT_X1_X2        = 5,
+    PSA_PAKE_INPUT_X4S          = 6,
+} psa_jpake_state_t;
+
+typedef enum psa_jpake_sequence {
+    PSA_PAKE_SEQ_INVALID        = 0,
+    PSA_PAKE_X1_STEP_KEY_SHARE  = 1,    /* also X2S & X4S KEY_SHARE */
+    PSA_PAKE_X1_STEP_ZK_PUBLIC  = 2,    /* also X2S & X4S ZK_PUBLIC */
+    PSA_PAKE_X1_STEP_ZK_PROOF   = 3,    /* also X2S & X4S ZK_PROOF */
+    PSA_PAKE_X2_STEP_KEY_SHARE  = 4,
+    PSA_PAKE_X2_STEP_ZK_PUBLIC  = 5,
+    PSA_PAKE_X2_STEP_ZK_PROOF   = 6,
+    PSA_PAKE_SEQ_END            = 7,
+} psa_jpake_sequence_t;
+
+typedef enum psa_crypto_driver_pake_step {
+    PSA_JPAKE_STEP_INVALID        = 0,  /* Invalid step */
+    PSA_JPAKE_X1_STEP_KEY_SHARE   = 1,  /* Round 1: input/output key share (for ephemeral private key X1).*/
+    PSA_JPAKE_X1_STEP_ZK_PUBLIC   = 2,  /* Round 1: input/output Schnorr NIZKP public key for the X1 key */
+    PSA_JPAKE_X1_STEP_ZK_PROOF    = 3,  /* Round 1: input/output Schnorr NIZKP proof for the X1 key */
+    PSA_JPAKE_X2_STEP_KEY_SHARE   = 4,  /* Round 1: input/output key share (for ephemeral private key X2).*/
+    PSA_JPAKE_X2_STEP_ZK_PUBLIC   = 5,  /* Round 1: input/output Schnorr NIZKP public key for the X2 key */
+    PSA_JPAKE_X2_STEP_ZK_PROOF    = 6,  /* Round 1: input/output Schnorr NIZKP proof for the X2 key */
+    PSA_JPAKE_X2S_STEP_KEY_SHARE  = 7,  /* Round 2: output X2S key (our key) */
+    PSA_JPAKE_X2S_STEP_ZK_PUBLIC  = 8,  /* Round 2: output Schnorr NIZKP public key for the X2S key (our key) */
+    PSA_JPAKE_X2S_STEP_ZK_PROOF   = 9,  /* Round 2: output Schnorr NIZKP proof for the X2S key (our key) */
+    PSA_JPAKE_X4S_STEP_KEY_SHARE  = 10, /* Round 2: input X4S key (from peer) */
+    PSA_JPAKE_X4S_STEP_ZK_PUBLIC  = 11, /* Round 2: input Schnorr NIZKP public key for the X4S key (from peer) */
+    PSA_JPAKE_X4S_STEP_ZK_PROOF   = 12  /* Round 2: input Schnorr NIZKP proof for the X4S key (from peer) */
+} psa_crypto_driver_pake_step_t;
+
+
+struct psa_jpake_computation_stage_s {
+    psa_jpake_state_t MBEDTLS_PRIVATE(state);
+    psa_jpake_sequence_t MBEDTLS_PRIVATE(sequence);
+    psa_jpake_step_t MBEDTLS_PRIVATE(input_step);
+    psa_jpake_step_t MBEDTLS_PRIVATE(output_step);
+};
+
+struct psa_pake_operation_s {
+    /** Unique ID indicating which driver got assigned to do the
+     * operation. Since driver contexts are driver-specific, swapping
+     * drivers halfway through the operation is not supported.
+     * ID values are auto-generated in psa_crypto_driver_wrappers.h
+     * ID value zero means the context is not valid or not assigned to
+     * any driver (i.e. none of the driver contexts are active). */
+    unsigned int MBEDTLS_PRIVATE(id);
+    /* Algorithm of the PAKE operation */
+    psa_algorithm_t MBEDTLS_PRIVATE(alg);
+    /* A primitive of type compatible with algorithm */
+    psa_pake_primitive_t MBEDTLS_PRIVATE(primitive);
+    /* Stage of the PAKE operation: waiting for the setup, collecting inputs
+     * or computing. */
+    uint8_t MBEDTLS_PRIVATE(stage);
+    /* Holds computation stage of the PAKE algorithms. */
     union {
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
-        mbedtls_ecjpake_context ecjpake;
+        uint8_t MBEDTLS_PRIVATE(dummy);
+#if defined(PSA_WANT_ALG_JPAKE)
+        psa_jpake_computation_stage_t MBEDTLS_PRIVATE(jpake);
 #endif
-        /* Make the union non-empty even with no supported algorithms. */
-        uint8_t dummy;
-    } MBEDTLS_PRIVATE(ctx);
+    } MBEDTLS_PRIVATE(computation_stage);
+    union {
+        psa_driver_pake_context_t MBEDTLS_PRIVATE(ctx);
+        psa_crypto_driver_pake_inputs_t MBEDTLS_PRIVATE(inputs);
+    } MBEDTLS_PRIVATE(data);
 };
 
 static inline struct psa_pake_cipher_suite_s psa_pake_cipher_suite_init(void)

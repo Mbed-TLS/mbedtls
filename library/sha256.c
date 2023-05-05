@@ -23,7 +23,7 @@
  */
 
 #if defined(__aarch64__) && !defined(__ARM_FEATURE_CRYPTO) && \
-    defined(__clang__) &&  __clang_major__ < 18 && __clang_major__ > 3
+    defined(__clang__) && __clang_major__ >= 4
 /* TODO: Re-consider above after https://reviews.llvm.org/D131064 merged.
  *
  * The intrinsic declaration are guarded by predefined ACLE macros in clang:
@@ -35,9 +35,14 @@
  * at the top of this file, before any includes.
  */
 #define __ARM_FEATURE_CRYPTO 1
-#define NEED_TARGET_OPTIONS
-#endif /* __aarch64__ && __clang__ &&
-          !__ARM_FEATURE_CRYPTO && __clang_major__ < 18 && __clang_major__ > 3 */
+/* See: https://arm-software.github.io/acle/main/acle.html#cryptographic-extensions
+ *
+ * `__ARM_FEATURE_CRYPTO` is deprecated, but we need to continue to specify it
+ * for older compilers.
+ */
+#define __ARM_FEATURE_SHA2   1
+#define MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG
+#endif
 
 #include "common.h"
 
@@ -55,7 +60,7 @@
 #  if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) || \
     defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY)
 /* *INDENT-OFF* */
-#    if !defined(__ARM_FEATURE_CRYPTO) || defined(NEED_TARGET_OPTIONS)
+#    if !defined(__ARM_FEATURE_CRYPTO) || defined(MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG)
 #      if defined(__clang__)
 #        if __clang_major__ < 4
 #          error "A more recent Clang is required for MBEDTLS_SHA256_USE_A64_CRYPTO_*"
@@ -63,8 +68,8 @@
 #        pragma clang attribute push (__attribute__((target("crypto"))), apply_to=function)
 #        define MBEDTLS_POP_TARGET_PRAGMA
 #      elif defined(__GNUC__)
-         /* FIXME: GCC-5 annouce crypto extension, but some intrinsic are missed.
-          *        Known miss intrinsic can be workaround.
+         /* FIXME: GCC 5 claims to support Armv8 Crypto Extensions, but some
+          *        intrinsics are missing. Missing intrinsics could be worked around.
           */
 #        if __GNUC__ < 6
 #          error "A more recent GCC is required for MBEDTLS_SHA256_USE_A64_CRYPTO_*"

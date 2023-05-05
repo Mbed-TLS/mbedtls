@@ -11,11 +11,15 @@ is, of course, to actually do the migration work.
 Limitations relevant for G1 (performing crypto operations)
 ==========================================================
 
-Restartable ECC operations
---------------------------
+Restartable (aka interruptible) ECC operations
+----------------------------------------------
 
-There is currently no support for that in PSA at all, but it will be added at
-some point, see <https://github.com/orgs/Mbed-TLS/projects/1#column-18816849>.
+Support for interruptible ECDSA sign/verify was added to PSA in Mbed TLS 3.4.
+However, support for interruptible ECDH is not present yet. Also, PK, X.509 and
+TLS have not yet been adapted to take advantage of the new PSA APIs. See:
+- <https://github.com/Mbed-TLS/mbedtls/issues/7292>;
+- <https://github.com/Mbed-TLS/mbedtls/issues/7293>;
+- <https://github.com/Mbed-TLS/mbedtls/issues/7294>.
 
 Currently, when `MBEDTLS_USE_PSA_CRYPTO` and `MBEDTLS_ECP_RESTARTABLE` are
 both enabled, some operations that should be restartable are not (ECDH in TLS
@@ -77,6 +81,10 @@ perhaps the least unsatisfying option in terms of result; it's also probably
 the one that requires the most work, but it would deliver value beyond PSA
 migration by implementing RFC 7919. (Implementing RFC 7919 could be done any
 time; making it mandatory can only be done in 4.0 or another major version.)
+
+As of early 2023, the plan is to go with option 2 in Mbed TLS 4.0, which has
+been announced on the mailing-list and got no push-back, see
+<https://github.com/Mbed-TLS/mbedtls/issues/5278>.
 
 RSA-PSS parameters
 ------------------
@@ -320,6 +328,8 @@ probably not acceptable.
 4. Request an extension to the PSA Crypto API and use one of the above options
    in the meantime. Such an extension seems inconvenient and not motivated by
 strong security arguments, so it's unclear whether it would be accepted.
+
+Since Mbed TLS 3.4, option 1 is implemented.
 
 Limitations relevant for G2 (isolation of long-term secrets)
 ============================================================

@@ -1,5 +1,5 @@
 /**
- * \file build_info.h
+ * \file mbedtls/build_info.h
  *
  * \brief Build-time configuration info
  *
@@ -37,7 +37,7 @@
  * Major, Minor, Patchlevel
  */
 #define MBEDTLS_VERSION_MAJOR  3
-#define MBEDTLS_VERSION_MINOR  3
+#define MBEDTLS_VERSION_MINOR  4
 #define MBEDTLS_VERSION_PATCH  0
 
 /**
@@ -45,9 +45,9 @@
  *    MMNNPP00
  *    Major version | Minor version | Patch version
  */
-#define MBEDTLS_VERSION_NUMBER         0x03030000
-#define MBEDTLS_VERSION_STRING         "3.3.0"
-#define MBEDTLS_VERSION_STRING_FULL    "mbed TLS 3.3.0"
+#define MBEDTLS_VERSION_NUMBER         0x03040000
+#define MBEDTLS_VERSION_STRING         "3.4.0"
+#define MBEDTLS_VERSION_STRING_FULL    "mbed TLS 3.4.0"
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
 #define _CRT_SECURE_NO_DEPRECATE 1
@@ -80,6 +80,38 @@
 #include MBEDTLS_USER_CONFIG_FILE
 #endif
 
+/* Auto-enable MBEDTLS_MD_C if needed by a module that didn't require it
+ * in a previous release, to ensure backwards compatibility.
+ */
+#if defined(MBEDTLS_PKCS5_C)
+#define MBEDTLS_MD_C
+#endif
+
+/* Auto-enable MBEDTLS_MD_LIGHT based on MBEDTLS_MD_C.
+ * This allows checking for MD_LIGHT rather than MD_LIGHT || MD_C.
+ */
+#if defined(MBEDTLS_MD_C)
+#define MBEDTLS_MD_LIGHT
+#endif
+
+/* Auto-enable MBEDTLS_MD_LIGHT if needed by a module that didn't require it
+ * in a previous release, to ensure backwards compatibility.
+ */
+#if defined(MBEDTLS_ECJPAKE_C) || \
+    defined(MBEDTLS_PEM_PARSE_C) || \
+    defined(MBEDTLS_ENTROPY_C) || \
+    defined(MBEDTLS_PKCS12_C) || \
+    defined(MBEDTLS_RSA_C)
+#define MBEDTLS_MD_LIGHT
+#endif
+
+/* MBEDTLS_ECP_C now consists of MBEDTLS_ECP_LIGHT plus functions for curve
+ * arithmetic. As a consequence if MBEDTLS_ECP_C is required for some reason,
+ * then MBEDTLS_ECP_LIGHT should be enabled as well. */
+#if defined(MBEDTLS_ECP_C)
+#define MBEDTLS_ECP_LIGHT
+#endif
+
 /* If MBEDTLS_PSA_CRYPTO_C is defined, make sure MBEDTLS_PSA_CRYPTO_CLIENT
  * is defined as well to include all PSA code.
  */
@@ -96,7 +128,31 @@
 #define MBEDTLS_PK_PARSE_C
 #endif
 
+/* The following blocks make it easier to disable all of TLS,
+ * or of TLS 1.2 or 1.3 or DTLS, without having to manually disable all
+ * key exchanges, options and extensions related to them. */
+
+#if !defined(MBEDTLS_SSL_TLS_C)
+#undef MBEDTLS_SSL_CLI_C
+#undef MBEDTLS_SSL_SRV_C
+#undef MBEDTLS_SSL_PROTO_TLS1_3
+#undef MBEDTLS_SSL_PROTO_TLS1_2
+#undef MBEDTLS_SSL_PROTO_DTLS
+#endif
+
+#if !defined(MBEDTLS_SSL_PROTO_DTLS)
+#undef MBEDTLS_SSL_DTLS_ANTI_REPLAY
+#undef MBEDTLS_SSL_DTLS_CONNECTION_ID
+#undef MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT
+#undef MBEDTLS_SSL_DTLS_HELLO_VERIFY
+#undef MBEDTLS_SSL_DTLS_SRTP
+#undef MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE
+#endif
+
 #if !defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#undef MBEDTLS_SSL_ENCRYPT_THEN_MAC
+#undef MBEDTLS_SSL_EXTENDED_MASTER_SECRET
+#undef MBEDTLS_SSL_RENEGOTIATION
 #undef MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
 #undef MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
 #undef MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED

@@ -215,6 +215,8 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN', # build dependency (clang+memsan)
     'MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND', # build dependency (valgrind headers)
     'MBEDTLS_X509_REMOVE_INFO', # removes a feature
+    'MBEDTLS_SSL_RECORD_SIZE_LIMIT', # in development, currently breaks other tests
+    'MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED' # influences SECP256R1 KeyGen/ECDH/ECDSA
 ])
 
 def is_seamless_alt(name):
@@ -229,7 +231,7 @@ def is_seamless_alt(name):
     Exclude alternative implementations of library functions since they require
     an implementation of the relevant functions and an xxx_alt.h header.
     """
-    if name == 'MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT':
+    if name in ('MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT', 'MBEDTLS_PLATFORM_MS_TIME_ALT'):
         # Similar to non-platform xxx_ALT, requires platform_alt.h
         return False
     return name.startswith('MBEDTLS_PLATFORM_')

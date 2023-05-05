@@ -1136,7 +1136,8 @@ int mbedtls_mpi_mul_mpi(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
     MPI_VALIDATE_RET(A != NULL);
     MPI_VALIDATE_RET(B != NULL);
 
-    mbedtls_mpi_init(&TA); mbedtls_mpi_init(&TB);
+    mbedtls_mpi_init(&TA);
+    mbedtls_mpi_init(&TB);
 
     if (X == A) {
         MBEDTLS_MPI_CHK(mbedtls_mpi_copy(&TA, A)); A = &TA;
@@ -1166,13 +1167,7 @@ int mbedtls_mpi_mul_mpi(mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi 
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(X, i + j));
     MBEDTLS_MPI_CHK(mbedtls_mpi_lset(X, 0));
 
-    for (size_t k = 0; k < j; k++) {
-        /* We know that there cannot be any carry-out since we're
-         * iterating from bottom to top. */
-        (void) mbedtls_mpi_core_mla(X->p + k, i + 1,
-                                    A->p, i,
-                                    B->p[k]);
-    }
+    mbedtls_mpi_core_mul(X->p, A->p, i, B->p, j);
 
     /* If the result is 0, we don't shortcut the operation, which reduces
      * but does not eliminate side channels leaking the zero-ness. We do

@@ -53,8 +53,6 @@
 #include <time.h>
 #endif
 
-#include "mbedtls/legacy_or_psa.h"
-
 #define CHECK(code) if ((ret = (code)) != 0) { return ret; }
 #define CHECK_RANGE(min, max, val)                      \
     do                                                  \
@@ -135,31 +133,31 @@ int mbedtls_x509_get_alg(unsigned char **p, const unsigned char *end,
 static inline const char *md_type_to_string(mbedtls_md_type_t md_alg)
 {
     switch (md_alg) {
-#if defined(MBEDTLS_HAS_ALG_MD5_VIA_MD_OR_PSA)
+#if defined(MBEDTLS_MD_CAN_MD5)
         case MBEDTLS_MD_MD5:
             return "MD5";
 #endif
-#if defined(MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA)
+#if defined(MBEDTLS_MD_CAN_SHA1)
         case MBEDTLS_MD_SHA1:
             return "SHA1";
 #endif
-#if defined(MBEDTLS_HAS_ALG_SHA_224_VIA_MD_OR_PSA)
+#if defined(MBEDTLS_MD_CAN_SHA224)
         case MBEDTLS_MD_SHA224:
             return "SHA224";
 #endif
-#if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA)
+#if defined(MBEDTLS_MD_CAN_SHA256)
         case MBEDTLS_MD_SHA256:
             return "SHA256";
 #endif
-#if defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA)
+#if defined(MBEDTLS_MD_CAN_SHA384)
         case MBEDTLS_MD_SHA384:
             return "SHA384";
 #endif
-#if defined(MBEDTLS_HAS_ALG_SHA_512_VIA_MD_OR_PSA)
+#if defined(MBEDTLS_MD_CAN_SHA512)
         case MBEDTLS_MD_SHA512:
             return "SHA512";
 #endif
-#if defined(MBEDTLS_HAS_ALG_RIPEMD160_VIA_MD_OR_PSA)
+#if defined(MBEDTLS_MD_CAN_RIPEMD160)
         case MBEDTLS_MD_RIPEMD160:
             return "RIPEMD160";
 #endif
@@ -1285,6 +1283,7 @@ int mbedtls_x509_get_subject_alt_name(unsigned char **p,
             return ret;
         }
 
+        mbedtls_x509_free_subject_alt_name(&dummy_san_buf);
         /* Allocate and assign next pointer */
         if (cur->buf.p != NULL) {
             if (cur->next != NULL) {
@@ -1436,12 +1435,42 @@ int mbedtls_x509_parse_subject_alt_name(const mbedtls_x509_buf *san_buf,
         break;
 
         /*
+         * directoryName
+         */
+        case (MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_DIRECTORY_NAME):
+        {
+            size_t name_len;
+            unsigned char *p = san_buf->p;
+            memset(san, 0, sizeof(mbedtls_x509_subject_alternative_name));
+            san->type = MBEDTLS_X509_SAN_DIRECTORY_NAME;
+
+            ret = mbedtls_asn1_get_tag(&p, p + san_buf->len, &name_len,
+                                       MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE);
+
+            if (ret != 0) {
+                return ret;
+            }
+
+            if ((ret = mbedtls_x509_get_name(&p, p + name_len,
+                                             &san->san.directory_name)) != 0) {
+                return ret;
+            }
+        }
+        break;
+        /*
          * Type not supported
          */
         default:
             return MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE;
     }
     return 0;
+}
+
+void mbedtls_x509_free_subject_alt_name(mbedtls_x509_subject_alternative_name *san)
+{
+    if (san->type == MBEDTLS_X509_SAN_DIRECTORY_NAME) {
+        mbedtls_asn1_free_named_data_list_shallow(san->san.directory_name.next);
+    }
 }
 
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
@@ -1556,6 +1585,28 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
             break;
 
             /*
+             * directoryName
+             */
+            case MBEDTLS_X509_SAN_DIRECTORY_NAME:
+            {
+                ret = mbedtls_snprintf(p, n, "\n%s    directoryName : ", prefix);
+                if (ret < 0 || (size_t) ret >= n) {
+                    mbedtls_x509_free_subject_alt_name(&san);
+                }
+
+                MBEDTLS_X509_SAFE_SNPRINTF;
+                ret = mbedtls_x509_dn_gets(p, n, &san.san.directory_name);
+
+                if (ret < 0) {
+                    mbedtls_x509_free_subject_alt_name(&san);
+                    return ret;
+                }
+
+                p += ret;
+                n -= ret;
+            }
+            break;
+            /*
              * Type not supported, skip item.
              */
             default:
@@ -1564,6 +1615,9 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
                 break;
         }
 
+        /* So far memory is freed only in the case of directoryName
+         * parsing succeeding, as mbedtls_x509_get_name allocates memory. */
+        mbedtls_x509_free_subject_alt_name(&san);
         cur = cur->next;
     }
 

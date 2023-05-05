@@ -39,7 +39,7 @@ extern "C" {
  * \brief          timer structure
  */
 struct mbedtls_timing_hr_time {
-    unsigned char MBEDTLS_PRIVATE(opaque)[32];
+    uint64_t MBEDTLS_PRIVATE(opaque)[4];
 };
 
 /**

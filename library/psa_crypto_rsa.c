@@ -172,7 +172,6 @@ psa_status_t mbedtls_psa_rsa_export_key(psa_key_type_t type,
                                         size_t data_size,
                                         size_t *data_length)
 {
-#if defined(MBEDTLS_PK_WRITE_C)
     int ret;
     mbedtls_pk_context pk;
     uint8_t *pos = data + data_size;
@@ -209,14 +208,6 @@ psa_status_t mbedtls_psa_rsa_export_key(psa_key_type_t type,
 
     *data_length = ret;
     return PSA_SUCCESS;
-#else
-    (void) type;
-    (void) rsa;
-    (void) data;
-    (void) data_size;
-    (void) data_length;
-    return PSA_ERROR_NOT_SUPPORTED;
-#endif /* MBEDTLS_PK_WRITE_C */
 }
 
 psa_status_t mbedtls_psa_rsa_export_public_key(

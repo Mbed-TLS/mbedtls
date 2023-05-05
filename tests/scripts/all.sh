@@ -3459,6 +3459,18 @@ component_test_aes_only_128_bit_keys () {
     make test
 }
 
+component_test_no_ctr_drbg_aes_only_128_bit_keys () {
+    msg "build: default config with AES_ONLY_128_BIT_KEY_LENGTH enabled and MBEDTLS_CTR_DRBG_C disabled"
+    scripts/config.py set MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
+    scripts/config.py unset MBEDTLS_CTR_DRBG_C
+    scripts/config.py unset MBEDTLS_PADLOCK_C
+
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+
+    msg "test: AES_ONLY_128_BIT_KEY_LENGTH without MBEDTLS_CTR_DRBG_C"
+    make test
+}
+
 component_test_aes_fewer_tables () {
     msg "build: default config with AES_FEWER_TABLES enabled"
     scripts/config.py set MBEDTLS_AES_FEWER_TABLES

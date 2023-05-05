@@ -530,7 +530,7 @@
  * Uncommenting this macro removes support for AES operations that use 192-
  * or 256-bit keys.
  *
- * Tradeoff: Uncommenting this macro reduces ROM footprint by ~1116 bytes.
+ * Tradeoff: Uncommenting this macro reduces the size of AES code by about 4%.
  *
  * If uncommented, uncomment also MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
  *

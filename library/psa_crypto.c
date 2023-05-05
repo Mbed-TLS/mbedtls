@@ -136,7 +136,8 @@ int psa_can_do_hash(psa_algorithm_t hash_alg)
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR) ||       \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY) ||     \
     defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR)
-static int psa_is_dh_key_size_valid(size_t bits) {
+static int psa_is_dh_key_size_valid(size_t bits)
+{
     if (bits != 2048 && bits != 3072 && bits != 4096 &&
         bits != 6144 && bits != 8192) {
         return 0;
@@ -1430,48 +1431,48 @@ psa_status_t psa_export_public_key_internal(
     psa_key_type_t type = attributes->core.type;
 
     if (PSA_KEY_TYPE_IS_PUBLIC_KEY(type) &&
-            (PSA_KEY_TYPE_IS_RSA(type) || PSA_KEY_TYPE_IS_ECC(type) ||
-             PSA_KEY_TYPE_IS_DH(type))) {
+        (PSA_KEY_TYPE_IS_RSA(type) || PSA_KEY_TYPE_IS_ECC(type) ||
+         PSA_KEY_TYPE_IS_DH(type))) {
         /* Exporting public -> public */
         return psa_export_key_buffer_internal(
             key_buffer, key_buffer_size,
             data, data_size, data_length);
     } else if (PSA_KEY_TYPE_IS_RSA(type)) {
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || \
-            defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
-            return mbedtls_psa_rsa_export_public_key(attributes,
-                                                     key_buffer,
-                                                     key_buffer_size,
-                                                     data,
-                                                     data_size,
-                                                     data_length);
+        defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
+        return mbedtls_psa_rsa_export_public_key(attributes,
+                                                 key_buffer,
+                                                 key_buffer_size,
+                                                 data,
+                                                 data_size,
+                                                 data_length);
 #else
-            /* We don't know how to convert a private RSA key to public. */
-            return PSA_ERROR_NOT_SUPPORTED;
+        /* We don't know how to convert a private RSA key to public. */
+        return PSA_ERROR_NOT_SUPPORTED;
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) ||
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
     } else if (PSA_KEY_TYPE_IS_ECC(type)) {
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
-            defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
-            return mbedtls_psa_ecp_export_public_key(attributes,
-                                                     key_buffer,
-                                                     key_buffer_size,
-                                                     data,
-                                                     data_size,
-                                                     data_length);
+        defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY)
+        return mbedtls_psa_ecp_export_public_key(attributes,
+                                                 key_buffer,
+                                                 key_buffer_size,
+                                                 data,
+                                                 data_size,
+                                                 data_length);
 #else
-            /* We don't know how to convert a private ECC key to public */
-            return PSA_ERROR_NOT_SUPPORTED;
+        /* We don't know how to convert a private ECC key to public */
+        return PSA_ERROR_NOT_SUPPORTED;
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) */
     } else if (PSA_KEY_TYPE_IS_DH(type)) {
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR) || \
         defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY)
-            return mbedtls_psa_export_ffdh_public_key(attributes,
-                                                      key_buffer,
-                                                      key_buffer_size,
-                                                      data, data_size,
-                                                      data_length);
+        return mbedtls_psa_export_ffdh_public_key(attributes,
+                                                  key_buffer,
+                                                  key_buffer_size,
+                                                  data, data_size,
+                                                  data_length);
 #else
         return PSA_ERROR_NOT_SUPPORTED;
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR) ||

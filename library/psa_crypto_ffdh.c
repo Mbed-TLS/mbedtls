@@ -64,7 +64,7 @@ static psa_status_t mbedtls_psa_ffdh_set_prime_generator(size_t key_size,
     static const unsigned char dhm_G_8192[] =
         MBEDTLS_DHM_RFC7919_FFDHE8192_G_BIN;
 
-    switch(key_size) {
+    switch (key_size) {
         case sizeof(dhm_P_2048):
             dhm_P = dhm_P_2048;
             dhm_G = dhm_G_2048;
@@ -148,7 +148,7 @@ psa_status_t mbedtls_psa_key_agreement_ffdh(
     status = mbedtls_psa_ffdh_set_prime_generator(
         PSA_BITS_TO_BYTES(attributes->core.bits), &P, &G);
 
-    if(status != PSA_SUCCESS) {
+    if (status != PSA_SUCCESS) {
         goto cleanup;
     }
 
@@ -162,7 +162,7 @@ psa_status_t mbedtls_psa_key_agreement_ffdh(
     MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod(&K, &GY, &X, &P, NULL));
 
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&K, shared_secret,
-                                                calculated_shared_secret_size));
+                                             calculated_shared_secret_size));
 
     *shared_secret_length = calculated_shared_secret_size;
 
@@ -173,7 +173,7 @@ cleanup:
     mbedtls_mpi_free(&X); mbedtls_mpi_free(&GY);
     mbedtls_mpi_free(&K);
 
-    if(status == PSA_SUCCESS && ret != 0) {
+    if (status == PSA_SUCCESS && ret != 0) {
         status = mbedtls_to_psa_error(ret);
     }
 
@@ -199,7 +199,7 @@ psa_status_t mbedtls_psa_export_ffdh_public_key(
     status = mbedtls_psa_ffdh_set_prime_generator(
         PSA_BITS_TO_BYTES(attributes->core.bits), &P, &G);
 
-    if(status != PSA_SUCCESS) {
+    if (status != PSA_SUCCESS) {
         goto cleanup;
     }
 
@@ -243,7 +243,7 @@ psa_status_t mbedtls_psa_ffdh_generate_key(
         secret exponent from the range [2, P-2].
         Select random value in range [3, P-1] and decrease it by 1. */
     MBEDTLS_MPI_CHK(mbedtls_mpi_random(&X, 3, &P, mbedtls_psa_get_random,
-                                        MBEDTLS_PSA_RANDOM_STATE));
+                                       MBEDTLS_PSA_RANDOM_STATE));
     MBEDTLS_MPI_CHK(mbedtls_mpi_sub_int(&X, &X, 1));
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&X, key_buffer, key_buffer_size));
     *key_buffer_length = key_buffer_size;

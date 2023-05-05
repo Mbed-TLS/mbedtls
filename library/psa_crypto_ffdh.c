@@ -231,23 +231,22 @@ psa_status_t mbedtls_psa_ffdh_generate_key(
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi_init(&P); mbedtls_mpi_init(&X);
+    (void) attributes;
 
-    status = mbedtls_psa_ffdh_set_prime_generator(
-        PSA_BITS_TO_BYTES(attributes->core.bits), &P, NULL);
+    status = mbedtls_psa_ffdh_set_prime_generator(key_buffer_size, &P, NULL);
 
-    if (status == PSA_SUCCESS) {
-        /* RFC7919: Traditional finite field Diffie-Hellman has each peer choose their
-           secret exponent from the range [2, P-2].
-           Select random value in range [3, P-1] and decrease it by 1. */
-        MBEDTLS_MPI_CHK(mbedtls_mpi_random(&X, 3, &P, mbedtls_psa_get_random,
-                                           MBEDTLS_PSA_RANDOM_STATE));
-        MBEDTLS_MPI_CHK(mbedtls_mpi_sub_int(&X, &X, 1));
-
-        *key_buffer_length = mbedtls_mpi_size(&X);
-
-        MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&X, key_buffer,
-                                                 key_buffer_size));
+    if (status != PSA_SUCCESS) {
+        goto cleanup;
     }
+
+    /* RFC7919: Traditional finite field Diffie-Hellman has each peer choose their
+        secret exponent from the range [2, P-2].
+        Select random value in range [3, P-1] and decrease it by 1. */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_random(&X, 3, &P, mbedtls_psa_get_random,
+                                        MBEDTLS_PSA_RANDOM_STATE));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_sub_int(&X, &X, 1));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&X, key_buffer, key_buffer_size));
+    *key_buffer_length = key_buffer_size;
 
 cleanup:
     mbedtls_mpi_free(&P); mbedtls_mpi_free(&X);

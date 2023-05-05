@@ -1,8 +1,8 @@
 /**
  * \file aesce.h
  *
- * \brief AES-CE for hardware AES acceleration on ARMv8 processors with crypto
- *        extension.
+ * \brief Support hardware AES acceleration on Armv8-A processors with
+ *        the Armv8-A Cryptographic Extension in AArch64 execution state.
  *
  * \warning These functions are only for internal use by other library
  *          functions; you must not call them directly.
@@ -30,10 +30,10 @@
 
 #include "mbedtls/aes.h"
 
-
-#if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__) && \
-    defined(__aarch64__) && !defined(MBEDTLS_HAVE_ARM64)
+#if !defined(MBEDTLS_HAVE_ARM64)
+#if defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM64EC)
 #define MBEDTLS_HAVE_ARM64
+#endif
 #endif
 
 #if defined(MBEDTLS_HAVE_ARM64)
@@ -63,6 +63,24 @@ int mbedtls_aesce_crypt_ecb(mbedtls_aes_context *ctx,
                             int mode,
                             const unsigned char input[16],
                             unsigned char output[16]);
+
+/**
+ * \brief          Internal GCM multiplication: c = a * b in GF(2^128)
+ *
+ * \note           This function is only for internal use by other library
+ *                 functions; you must not call it directly.
+ *
+ * \param c        Result
+ * \param a        First operand
+ * \param b        Second operand
+ *
+ * \note           Both operands and result are bit strings interpreted as
+ *                 elements of GF(2^128) as per the GCM spec.
+ */
+void mbedtls_aesce_gcm_mult(unsigned char c[16],
+                            const unsigned char a[16],
+                            const unsigned char b[16]);
+
 
 /**
  * \brief           Internal round key inversion. This function computes

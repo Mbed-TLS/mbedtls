@@ -131,6 +131,10 @@
 #endif \
     /* (defined(__MINGW32__)  && __USE_MINGW_ANSI_STDIO == 0) || (defined(_MSC_VER) && _MSC_VER < 1800) */
 
+#if !defined(MBEDTLS_PRINTF_MS_TIME)
+#define MBEDTLS_PRINTF_MS_TIME PRId64
+#endif /* MBEDTLS_PRINTF_MS_TIME */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

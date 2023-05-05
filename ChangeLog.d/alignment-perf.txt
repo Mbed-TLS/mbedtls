@@ -1,8 +1,0 @@
-Features
-   * General performance improvements by accessing multiple bytes at a time.
-     Fixes #1666.
-   * Improvements to use of unaligned and byte-swapped memory, reducing code
-     size and improving performance (depending on compiler and target
-     architecture).
-Changes
-   * Mixed-endian systems are explicitly not supported any more.

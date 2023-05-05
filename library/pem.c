@@ -25,7 +25,7 @@
 #include "mbedtls/base64.h"
 #include "mbedtls/des.h"
 #include "mbedtls/aes.h"
-#include "mbedtls/md5.h"
+#include "mbedtls/md.h"
 #include "mbedtls/cipher.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
@@ -39,13 +39,11 @@
 #include "psa/crypto.h"
 #endif
 
-#include "mbedtls/legacy_or_psa.h"
-
-#if defined(MBEDTLS_HAS_ALG_MD5_VIA_MD_OR_PSA_BASED_ON_USE_PSA) &&  \
+#if defined(MBEDTLS_MD_CAN_MD5) &&  \
     defined(MBEDTLS_CIPHER_MODE_CBC) &&                             \
     (defined(MBEDTLS_DES_C) || defined(MBEDTLS_AES_C))
 #define PEM_RFC1421
-#endif /* MBEDTLS_HAS_ALG_MD5_VIA_MD_OR_PSA_BASED_ON_USE_PSA &&
+#endif /* MBEDTLS_MD_CAN_MD5 &&
           MBEDTLS_CIPHER_MODE_CBC &&
           ( MBEDTLS_AES_C || MBEDTLS_DES_C ) */
 
@@ -87,31 +85,37 @@ static int pem_get_iv(const unsigned char *s, unsigned char *iv,
     return 0;
 }
 
-#if defined(MBEDTLS_MD5_C)
 static int pem_pbkdf1(unsigned char *key, size_t keylen,
                       unsigned char *iv,
                       const unsigned char *pwd, size_t pwdlen)
 {
-    mbedtls_md5_context md5_ctx;
+    mbedtls_md_context_t md5_ctx;
+    const mbedtls_md_info_t *md5_info;
     unsigned char md5sum[16];
     size_t use_len;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    mbedtls_md5_init(&md5_ctx);
+    mbedtls_md_init(&md5_ctx);
+
+    /* Prepare the context. (setup() errors gracefully on NULL info.) */
+    md5_info = mbedtls_md_info_from_type(MBEDTLS_MD_MD5);
+    if ((ret = mbedtls_md_setup(&md5_ctx, md5_info, 0)) != 0) {
+        goto exit;
+    }
 
     /*
      * key[ 0..15] = MD5(pwd || IV)
      */
-    if ((ret = mbedtls_md5_starts(&md5_ctx)) != 0) {
+    if ((ret = mbedtls_md_starts(&md5_ctx)) != 0) {
         goto exit;
     }
-    if ((ret = mbedtls_md5_update(&md5_ctx, pwd, pwdlen)) != 0) {
+    if ((ret = mbedtls_md_update(&md5_ctx, pwd, pwdlen)) != 0) {
         goto exit;
     }
-    if ((ret = mbedtls_md5_update(&md5_ctx, iv,  8)) != 0) {
+    if ((ret = mbedtls_md_update(&md5_ctx, iv,  8)) != 0) {
         goto exit;
     }
-    if ((ret = mbedtls_md5_finish(&md5_ctx, md5sum)) != 0) {
+    if ((ret = mbedtls_md_finish(&md5_ctx, md5sum)) != 0) {
         goto exit;
     }
 
@@ -125,19 +129,19 @@ static int pem_pbkdf1(unsigned char *key, size_t keylen,
     /*
      * key[16..23] = MD5(key[ 0..15] || pwd || IV])
      */
-    if ((ret = mbedtls_md5_starts(&md5_ctx)) != 0) {
+    if ((ret = mbedtls_md_starts(&md5_ctx)) != 0) {
         goto exit;
     }
-    if ((ret = mbedtls_md5_update(&md5_ctx, md5sum, 16)) != 0) {
+    if ((ret = mbedtls_md_update(&md5_ctx, md5sum, 16)) != 0) {
         goto exit;
     }
-    if ((ret = mbedtls_md5_update(&md5_ctx, pwd, pwdlen)) != 0) {
+    if ((ret = mbedtls_md_update(&md5_ctx, pwd, pwdlen)) != 0) {
         goto exit;
     }
-    if ((ret = mbedtls_md5_update(&md5_ctx, iv, 8)) != 0) {
+    if ((ret = mbedtls_md_update(&md5_ctx, iv, 8)) != 0) {
         goto exit;
     }
-    if ((ret = mbedtls_md5_finish(&md5_ctx, md5sum)) != 0) {
+    if ((ret = mbedtls_md_finish(&md5_ctx, md5sum)) != 0) {
         goto exit;
     }
 
@@ -149,96 +153,11 @@ static int pem_pbkdf1(unsigned char *key, size_t keylen,
     memcpy(key + 16, md5sum, use_len);
 
 exit:
-    mbedtls_md5_free(&md5_ctx);
+    mbedtls_md_free(&md5_ctx);
     mbedtls_platform_zeroize(md5sum, 16);
 
     return ret;
 }
-#else
-static int pem_pbkdf1(unsigned char *key, size_t keylen,
-                      unsigned char *iv,
-                      const unsigned char *pwd, size_t pwdlen)
-{
-    unsigned char md5sum[16];
-    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
-    size_t output_length = 0;
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-
-
-    if ((status = psa_hash_setup(&operation, PSA_ALG_MD5)) != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    if ((status = psa_hash_update(&operation, pwd, pwdlen)) != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    if ((status = psa_hash_update(&operation, iv, 8)) != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    if ((status = psa_hash_finish(&operation, md5sum,
-                                  PSA_HASH_LENGTH(PSA_ALG_MD5),
-                                  &output_length)) != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    if ((status = psa_hash_abort(&operation)) != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    /*
-     * key[ 0..15] = MD5(pwd || IV)
-     */
-    if (keylen <= 16) {
-        memcpy(key, md5sum, keylen);
-        goto exit;
-    }
-
-    memcpy(key, md5sum, 16);
-
-    /*
-     * key[16..23] = MD5(key[ 0..15] || pwd || IV])
-     */
-    if ((status = psa_hash_setup(&operation, PSA_ALG_MD5)) != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    if ((status = psa_hash_update(&operation, md5sum, 16)) != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    if ((status = psa_hash_update(&operation, pwd, pwdlen)) != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    if ((status = psa_hash_update(&operation, iv, 8)) != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    if ((status = psa_hash_finish(&operation, md5sum,
-                                  PSA_HASH_LENGTH(PSA_ALG_MD5),
-                                  &output_length)) != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    if ((status = psa_hash_abort(&operation)) != PSA_SUCCESS) {
-        goto exit;
-    }
-
-    size_t use_len = 16;
-    if (keylen < 32) {
-        use_len = keylen - 16;
-    }
-
-    memcpy(key + 16, md5sum, use_len);
-
-exit:
-    mbedtls_platform_zeroize(md5sum, 16);
-
-    return mbedtls_md_error_from_psa(status);
-}
-#endif /* MBEDTLS_MD5_C */
 
 #if defined(MBEDTLS_DES_C)
 /*
@@ -572,7 +491,7 @@ int mbedtls_pem_write_buffer(const char *header, const char *footer,
     size_t len = 0, use_len, add_len = 0;
 
     mbedtls_base64_encode(NULL, 0, &use_len, der_data, der_len);
-    add_len = strlen(header) + strlen(footer) + (use_len / 64) + 1;
+    add_len = strlen(header) + strlen(footer) + (((use_len > 2) ? (use_len - 2) : 0) / 64) + 1;
 
     if (use_len + add_len > buf_len) {
         *olen = use_len + add_len;

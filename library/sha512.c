@@ -84,9 +84,12 @@
 #      if defined(__ARMCOMPILER_VERSION)
 #        if __ARMCOMPILER_VERSION < 6090000
 #          error "A more recent armclang is required for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
-#        endif
+#        elif __ARMCOMPILER_VERSION == 6090000
+#          error "Must use minimum -march=armv8.2-a+sha3 for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
+#        else
 #          pragma clang attribute push (__attribute__((target("sha3"))), apply_to=function)
 #          define MBEDTLS_POP_TARGET_PRAGMA
+#        endif
 #      elif defined(__clang__)
 #        if __clang_major__ < 7
 #          error "A more recent Clang is required for MBEDTLS_SHA512_USE_A64_CRYPTO_*"

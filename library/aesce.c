@@ -74,8 +74,15 @@
 
 #if !(defined(__ARM_FEATURE_CRYPTO) || defined(__ARM_FEATURE_AES)) || \
     defined(MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG)
-#   if defined(__clang__)
-#       pragma clang attribute push (__attribute__((target("crypto,aes"))), apply_to=function)
+#   if defined(__ARMCOMPILER_VERSION)
+#       if __ARMCOMPILER_VERSION <= 6090000
+#           error "Must use minimum -march=armv8-a+crypto for MBEDTLS_AESCE_C"
+#       else
+#           pragma clang attribute push (__attribute__((target("crypto,aes"))), apply_to=function)
+#           define MBEDTLS_POP_TARGET_PRAGMA
+#       endif
+#   elif defined(__clang__)
+#       pragma clang attribute push (__attribute__((target("crypto"))), apply_to=function)
 #       define MBEDTLS_POP_TARGET_PRAGMA
 #   elif defined(__GNUC__)
 #       pragma GCC push_options

@@ -1503,29 +1503,12 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-
-static void *pk_opaque_alloc_wrap(void)
-{
-    void *ctx = mbedtls_calloc(1, sizeof(mbedtls_svc_key_id_t));
-
-    /* no _init() function to call, as calloc() already zeroized */
-
-    return ctx;
-}
-
-static void pk_opaque_free_wrap(void *ctx)
-{
-    mbedtls_platform_zeroize(ctx, sizeof(mbedtls_svc_key_id_t));
-    mbedtls_free(ctx);
-}
-
 static size_t pk_opaque_get_bitlen(mbedtls_pk_context *pk)
 {
-    const mbedtls_svc_key_id_t *key = pk->pk_ctx;
     size_t bits;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
-    if (PSA_SUCCESS != psa_get_key_attributes(*key, &attributes)) {
+    if (PSA_SUCCESS != psa_get_key_attributes(pk->priv_id, &attributes)) {
         return 0;
     }
 
@@ -1563,7 +1546,6 @@ static int pk_opaque_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
     ((void) p_rng);
     return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
 #else /* !MBEDTLS_PK_CAN_ECDSA_SIGN && !MBEDTLS_RSA_C */
-    const mbedtls_svc_key_id_t *key = pk->pk_ctx;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_algorithm_t alg;
     psa_key_type_t type;
@@ -1573,7 +1555,7 @@ static int pk_opaque_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
     (void) f_rng;
     (void) p_rng;
 
-    status = psa_get_key_attributes(*key, &attributes);
+    status = psa_get_key_attributes(pk->priv_id, &attributes);
     if (status != PSA_SUCCESS) {
         return PSA_PK_TO_MBEDTLS_ERR(status);
     }
@@ -1594,7 +1576,7 @@ static int pk_opaque_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
     return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
 
     /* make the signature */
-    status = psa_sign_hash(*key, alg, hash, hash_len,
+    status = psa_sign_hash(pk->priv_id, alg, hash, hash_len,
                            sig, sig_size, sig_len);
     if (status != PSA_SUCCESS) {
 #if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
@@ -1635,8 +1617,8 @@ const mbedtls_pk_info_t mbedtls_pk_ecdsa_opaque_info = {
     NULL, /* decrypt - not relevant */
     NULL, /* encrypt - not relevant */
     NULL, /* check_pair - could be done later or left NULL */
-    pk_opaque_alloc_wrap,
-    pk_opaque_free_wrap,
+    NULL, /* alloc - no need to allocate new data dynamically */
+    NULL, /* free - as for the alloc, there is no data to free */
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     NULL, /* restart alloc - not relevant */
     NULL, /* restart free - not relevant */
@@ -1650,14 +1632,13 @@ static int pk_opaque_rsa_decrypt(mbedtls_pk_context *pk,
                                  unsigned char *output, size_t *olen, size_t osize,
                                  int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
 {
-    const mbedtls_svc_key_id_t *key = pk->pk_ctx;
     psa_status_t status;
 
     /* PSA has its own RNG */
     (void) f_rng;
     (void) p_rng;
 
-    status = psa_asymmetric_decrypt(*key, PSA_ALG_RSA_PKCS1V15_CRYPT,
+    status = psa_asymmetric_decrypt(pk->priv_id, PSA_ALG_RSA_PKCS1V15_CRYPT,
                                     input, ilen,
                                     NULL, 0,
                                     output, osize, olen);
@@ -1687,8 +1668,8 @@ const mbedtls_pk_info_t mbedtls_pk_rsa_opaque_info = {
 #endif /* PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY */
     NULL, /* encrypt - will be done later */
     NULL, /* check_pair - could be done later or left NULL */
-    pk_opaque_alloc_wrap,
-    pk_opaque_free_wrap,
+    NULL, /* alloc - no need to allocate new data dynamically */
+    NULL, /* free - as for the alloc, there is no data to free */
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     NULL, /* restart alloc - not relevant */
     NULL, /* restart free - not relevant */

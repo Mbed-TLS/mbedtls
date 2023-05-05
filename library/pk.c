@@ -60,6 +60,9 @@ void mbedtls_pk_init(mbedtls_pk_context *ctx)
 {
     ctx->pk_info = NULL;
     ctx->pk_ctx = NULL;
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+    ctx->priv_id = MBEDTLS_SVC_KEY_ID_INIT;
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 }
 
 /*
@@ -71,7 +74,7 @@ void mbedtls_pk_free(mbedtls_pk_context *ctx)
         return;
     }
 
-    if (ctx->pk_info != NULL) {
+    if ((ctx->pk_info != NULL) && (ctx->pk_info->ctx_free_func != NULL)) {
         ctx->pk_info->ctx_free_func(ctx->pk_ctx);
     }
 
@@ -140,7 +143,8 @@ int mbedtls_pk_setup(mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info)
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
 
-    if ((ctx->pk_ctx = info->ctx_alloc_func()) == NULL) {
+    if ((info->ctx_alloc_func == NULL) ||
+        ((ctx->pk_ctx = info->ctx_alloc_func()) == NULL)) {
         return MBEDTLS_ERR_PK_ALLOC_FAILED;
     }
 
@@ -158,7 +162,6 @@ int mbedtls_pk_setup_opaque(mbedtls_pk_context *ctx,
 {
     const mbedtls_pk_info_t *info = NULL;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    mbedtls_svc_key_id_t *pk_ctx;
     psa_key_type_t type;
 
     if (ctx == NULL || ctx->pk_info != NULL) {
@@ -179,14 +182,8 @@ int mbedtls_pk_setup_opaque(mbedtls_pk_context *ctx,
         return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
     }
 
-    if ((ctx->pk_ctx = info->ctx_alloc_func()) == NULL) {
-        return MBEDTLS_ERR_PK_ALLOC_FAILED;
-    }
-
     ctx->pk_info = info;
-
-    pk_ctx = (mbedtls_svc_key_id_t *) ctx->pk_ctx;
-    *pk_ctx = key;
+    ctx->priv_id = key;
 
     return 0;
 }
@@ -315,12 +312,11 @@ int mbedtls_pk_can_do_ext(const mbedtls_pk_context *ctx, psa_algorithm_t alg,
         return (key_usage & usage) == usage;
     }
 
-    const mbedtls_svc_key_id_t *key = (const mbedtls_svc_key_id_t *) ctx->pk_ctx;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_algorithm_t key_alg, key_alg2;
     psa_status_t status;
 
-    status = psa_get_key_attributes(*key, &attributes);
+    status = psa_get_key_attributes(ctx->priv_id, &attributes);
     if (status != PSA_SUCCESS) {
         return 0;
     }
@@ -701,10 +697,9 @@ int mbedtls_pk_sign_ext(mbedtls_pk_type_t pk_type,
     }
 
     if (mbedtls_pk_get_type(ctx) == MBEDTLS_PK_OPAQUE) {
-        const mbedtls_svc_key_id_t *key = (const mbedtls_svc_key_id_t *) ctx->pk_ctx;
         psa_status_t status;
 
-        status = psa_sign_hash(*key, PSA_ALG_RSA_PSS(psa_md_alg),
+        status = psa_sign_hash(ctx->priv_id, PSA_ALG_RSA_PSS(psa_md_alg),
                                hash, hash_len,
                                sig, sig_size, sig_len);
         return PSA_PK_RSA_TO_MBEDTLS_ERR(status);

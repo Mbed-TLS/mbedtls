@@ -2614,8 +2614,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
                 return MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH;
             }
 
-            ssl->handshake->ecdh_psa_privkey =
-                *((mbedtls_svc_key_id_t *) pk->pk_ctx);
+            ssl->handshake->ecdh_psa_privkey = pk->priv_id;
 
             /* Key should not be destroyed in the TLS library */
             ssl->handshake->ecdh_psa_privkey_is_external = 1;

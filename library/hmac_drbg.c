@@ -510,7 +510,7 @@ exit:
 
 #if defined(MBEDTLS_SELF_TEST)
 
-#if !defined(MBEDTLS_SHA1_C)
+#if !defined(MBEDTLS_MD_CAN_SHA1)
 /* Dummy checkup routine */
 int mbedtls_hmac_drbg_self_test(int verbose)
 {
@@ -639,7 +639,7 @@ int mbedtls_hmac_drbg_self_test(int verbose)
 
     return 0;
 }
-#endif /* MBEDTLS_SHA1_C */
+#endif /* MBEDTLS_MD_CAN_SHA1 */
 #endif /* MBEDTLS_SELF_TEST */
 
 #endif /* MBEDTLS_HMAC_DRBG_C */

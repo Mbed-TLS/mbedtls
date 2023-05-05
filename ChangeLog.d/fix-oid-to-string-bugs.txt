@@ -1,6 +1,0 @@
-Bugfix
-   * Fix bug in conversion from OID to string in
-     mbedtls_oid_get_numeric_string(). OIDs such as 2.40.0.25 are now printed
-     correctly.
-   * Reject OIDs with overlong-encoded subidentifiers when converting
-     OID-to-string.

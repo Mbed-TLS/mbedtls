@@ -19,7 +19,7 @@
 
 #include <test/helpers.h>
 
-#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS) && defined(PSA_CRYPTO_DRIVER_TEST)
+#if defined(PSA_CRYPTO_DRIVER_TEST)
 #include "psa_crypto_mac.h"
 
 #include "test/drivers/mac.h"
@@ -431,4 +431,4 @@ psa_status_t mbedtls_test_opaque_mac_abort(
     return mbedtls_test_driver_mac_hooks.driver_status;
 }
 
-#endif /* MBEDTLS_PSA_CRYPTO_DRIVERS && PSA_CRYPTO_DRIVER_TEST */
+#endif /* PSA_CRYPTO_DRIVER_TEST */

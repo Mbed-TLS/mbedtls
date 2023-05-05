@@ -1,2 +1,4 @@
 *.html
 *.pdf
+_build/
+api/

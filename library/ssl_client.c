@@ -257,7 +257,7 @@ static int ssl_write_supported_groups_ext(mbedtls_ssl_context *ssl,
     for (; *group_list != 0; group_list++) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("got supported group(%04x)", *group_list));
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
         if ((mbedtls_ssl_conf_is_tls13_enabled(ssl->conf) &&
              mbedtls_ssl_tls13_named_group_is_ecdhe(*group_list)) ||
             (mbedtls_ssl_conf_is_tls12_enabled(ssl->conf) &&
@@ -273,7 +273,7 @@ static int ssl_write_supported_groups_ext(mbedtls_ssl_context *ssl,
                                       mbedtls_ssl_get_curve_name_from_tls_id(*group_list),
                                       *group_list));
         }
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
         /* Add DHE groups here */
 
     }
@@ -769,7 +769,6 @@ static int ssl_prepare_client_hello(mbedtls_ssl_context *ssl)
             ssl->tls_version = session_negotiate->tls_version;
             ssl->handshake->min_tls_version = ssl->tls_version;
         } else {
-            ssl->tls_version = ssl->conf->max_tls_version;
             ssl->handshake->min_tls_version = ssl->conf->min_tls_version;
         }
     }

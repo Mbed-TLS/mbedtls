@@ -438,14 +438,8 @@ psa_status_t psa_validate_key_location(psa_key_lifetime_t lifetime,
         (void) p_drv;
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
-#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS)
         /* Key location for external keys gets checked by the wrapper */
         return PSA_SUCCESS;
-#else /* MBEDTLS_PSA_CRYPTO_DRIVERS */
-        /* No support for external lifetimes at all, or dynamic interface
-         * did not find driver for requested lifetime. */
-        return PSA_ERROR_INVALID_ARGUMENT;
-#endif /* MBEDTLS_PSA_CRYPTO_DRIVERS */
     } else {
         /* Local/internal keys are always valid */
         return PSA_SUCCESS;

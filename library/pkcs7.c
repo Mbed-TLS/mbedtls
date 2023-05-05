@@ -42,7 +42,7 @@
 #endif
 
 /**
- * Initializes the pkcs7 structure.
+ * Initializes the mbedtls_pkcs7 structure.
  */
 void mbedtls_pkcs7_init(mbedtls_pkcs7 *pkcs7)
 {
@@ -354,7 +354,7 @@ static int pkcs7_get_signer_info(unsigned char **p, unsigned char *end,
         goto out;
     }
 
-    /* Asssume authenticatedAttributes is nonexistent */
+    /* Assume authenticatedAttributes is nonexistent */
     ret = pkcs7_get_digest_algorithm(p, end_signer, &signer->sig_alg_identifier);
     if (ret != 0) {
         goto out;

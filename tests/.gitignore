@@ -18,6 +18,7 @@ include/alt-extra/psa/crypto_struct_alt.h
 include/test/instrument_record_status.h
 
 src/*.o
+src/test_helpers/*.o
 src/drivers/*.o
 src/libmbed*
 

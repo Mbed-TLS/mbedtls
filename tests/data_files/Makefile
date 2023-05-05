@@ -337,6 +337,21 @@ server5-fan.crt: server5.key
 
 server5-tricky-ip-san.crt: server5.key
 	$(OPENSSL) req -x509 -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS Tricky IP SAN" -set_serial 77 -config $(test_ca_config_file) -extensions tricky_ip_san -days 3650 -sha256 -key server5.key -out $@
+
+server5-directoryname.crt.der: server5.key
+	$(OPENSSL) req -x509 -outform der -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS directoryName SAN" -set_serial 77 -config $(test_ca_config_file) -extensions directory_name_san -days 3650 -sha256 -key server5.key -out $@
+
+server5-two-directorynames.crt.der: server5.key
+	$(OPENSSL) req -x509 -outform der -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS directoryName SAN" -set_serial 77 -config $(test_ca_config_file) -extensions two_directorynames -days 3650 -sha256 -key server5.key -out $@
+
+# directoryname sequence tag malformed
+server5-directoryname-seq-malformed.crt.der: server5-two-directorynames.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/62A4473045310B/62A4473145310B/" | xxd -r -p > $@
+
+# Second directoryname OID length malformed 03 -> 15
+server5-second-directoryname-oid-malformed.crt.der: server5-two-directorynames.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/0355040A0C0A4D414C464F524D5F4D45/1555040A0C0A4D414C464F524D5F4D45/" | xxd -r -p > $@
+
 all_final += server5-tricky-ip-san.crt
 
 rsa_single_san_uri.crt.der: rsa_single_san_uri.key
@@ -920,6 +935,10 @@ ec_prv.pk8param.pem: ec_prv.pk8param.der
 	$(OPENSSL) pkey -in $< -inform DER -out $@
 all_final += ec_prv.pk8param.pem
 
+ec_pub.pem: ec_prv.sec1.der
+	$(OPENSSL) pkey -in $< -inform DER -outform PEM -pubout -out $@
+all_final += ec_pub.pem
+
 ec_prv.sec1.comp.pem: ec_prv.sec1.pem
 	$(OPENSSL) ec -in $< -out $@ -conv_form compressed
 all_final += ec_prv.sec1.comp.pem
@@ -984,6 +1003,89 @@ ec_bp512_pub.comp.pem: ec_bp512_pub.pem
 	$(OPENSSL) ec -pubin -in $< -out $@ -conv_form compressed
 all_final += ec_bp512_pub.comp.pem
 
+ec_x25519_prv.der:
+	$(OPENSSL) genpkey -algorithm X25519 -out $@ -outform DER
+all_final += ec_x25519_prv.der
+
+ec_x25519_pub.der: ec_x25519_pub.der
+	$(OPENSSL) pkey -in $< -inform DER -out $@ -outform DER
+all_final += ec_x25519_pub.der
+
+ec_x25519_prv.pem: ec_x25519_prv.pem
+	$(OPENSSL) pkey -in $< -inform DER -out $@
+all_final += ec_x25519_prv.pem
+
+ec_x25519_pub.pem: ec_x25519_pub.pem
+	$(OPENSSL) pkey -in $< -inform DER -out $@
+all_final += ec_x25519_pub.pem
+
+ec_x448_prv.der:
+	$(OPENSSL) genpkey -algorithm X448 -out $@ -outform DER
+all_final += ec_x448_prv.der
+
+ec_x448_pub.der: ec_x448_pub.der
+	$(OPENSSL) pkey -in $< -inform DER -out $@ -outform DER
+all_final += ec_x448_pub.der
+
+ec_x448_prv.pem: ec_x448_prv.pem
+	$(OPENSSL) pkey -in $< -inform DER -out $@
+all_final += ec_x448_prv.pem
+
+ec_x448_pub.pem: ec_x448_pub.pem
+	$(OPENSSL) pkey -in $< -inform DER -out $@
+all_final += ec_x448_pub.pem
+
+################################################################
+#### Convert PEM keys to DER format
+################################################################
+server1.pubkey.der: server1.pubkey
+	$(OPENSSL) pkey -pubin -in $< -out $@ -outform DER
+all_final += server1.pubkey.der
+
+rsa4096_pub.der: rsa4096_pub.pem
+	$(OPENSSL) pkey -pubin -in $< -out $@ -outform DER
+all_final += rsa4096_pub.der
+
+ec_pub.der: ec_pub.pem
+	$(OPENSSL) pkey -pubin -in $< -out $@ -outform DER
+all_final += ec_pub.der
+
+ec_521_pub.der: ec_521_pub.pem
+	$(OPENSSL) pkey -pubin -in $< -out $@ -outform DER
+all_final += ec_521_pub.der
+
+ec_bp512_pub.der: ec_bp512_pub.pem
+	$(OPENSSL) pkey -pubin -in $< -out $@ -outform DER
+all_final += ec_bp512_pub.der
+
+server1.key.der: server1.key
+	$(OPENSSL) pkey -in $< -out $@ -outform DER
+all_final += server1.key.der
+
+rsa4096_prv.der: rsa4096_prv.pem
+	$(OPENSSL) pkey -in $< -out $@ -outform DER
+all_final += rsa4096_prv.der
+
+ec_prv.sec1.der: ec_prv.sec1.pem
+	$(OPENSSL) pkey -in $< -out $@ -outform DER
+all_final += ec_prv.sec1.der
+
+ec_256_long_prv.der: ec_256_long_prv.pem
+	$(OPENSSL) pkey -in $< -out $@ -outform DER
+all_final += ec_256_long_prv.der
+
+ec_521_prv.der: ec_521_prv.pem
+	$(OPENSSL) pkey -in $< -out $@ -outform DER
+all_final += ec_521_prv.der
+
+ec_521_short_prv.der: ec_521_short_prv.pem
+	$(OPENSSL) pkey -in $< -out $@ -outform DER
+all_final += ec_521_short_prv.der
+
+ec_bp512_prv.der: ec_bp512_prv.pem
+	$(OPENSSL) pkey -in $< -out $@ -outform DER
+all_final += ec_bp512_prv.der
+
 ################################################################
 ### Generate CSRs for X.509 write test suite
 ################################################################
@@ -1006,7 +1108,7 @@ all_final += server1.req.sha256
 
 server1.req.sha256.ext: server1.key
 	# Generating this with OpenSSL as a comparison point to test we're getting the same result
-	openssl req -new -out $@ -key $< -subj '/C=NL/O=PolarSSL/CN=PolarSSL Server 1' -sha256 -addext "extendedKeyUsage=serverAuth"
+	openssl req -new -out $@ -key $< -subj '/C=NL/O=PolarSSL/CN=PolarSSL Server 1' -sha256 -addext "extendedKeyUsage=serverAuth" -addext "subjectAltName=URI:http://pki.example.com/,IP:127.1.1.0,DNS:example.com"
 all_final += server1.req.sha256.ext
 
 server1.req.sha384: server1.key
@@ -1306,6 +1408,11 @@ pkcs7-rsa-expired.crt:
 	$(FAKETIME) -f -3650d $(OPENSSL) req -x509 -subj="/C=NL/O=PKCS7/CN=PKCS7 Cert Expired" -sha256 -nodes -days 365  -newkey rsa:2048 -keyout pkcs7-rsa-expired.key -out pkcs7-rsa-expired.crt
 all_final += pkcs7-rsa-expired.crt
 
+# File with an otherwise valid signature signed with an expired cert
+pkcs7_data_rsa_expired.der: pkcs7-rsa-expired.key pkcs7-rsa-expired.crt pkcs7_data.bin
+	$(OPENSSL) smime -sign -binary -in pkcs7_data.bin -out $@ -md sha256 -inkey pkcs7-rsa-expired.key -signer pkcs7-rsa-expired.crt -noattr -outform DER -out $@
+all_final += pkcs7_data_rsa_expired.der
+
 # Convert signing certs to DER for testing PEM-free builds
 pkcs7-rsa-sha256-1.der: $(pkcs7_test_cert_1)
 	$(OPENSSL) x509 -in pkcs7-rsa-sha256-1.crt -out $@ -outform DER
@@ -1314,6 +1421,10 @@ all_final += pkcs7-rsa-sha256-1.der
 pkcs7-rsa-sha256-2.der: $(pkcs7_test_cert_2)
 	$(OPENSSL) x509 -in pkcs7-rsa-sha256-2.crt -out $@ -outform DER
 all_final += pkcs7-rsa-sha256-2.der
+
+pkcs7-rsa-expired.der: pkcs7-rsa-expired.crt
+	$(OPENSSL) x509 -in pkcs7-rsa-expired.crt -out $@ -outform DER
+all_final += pkcs7-rsa-expired.der
 
 # pkcs7 signature file over zero-len data
 pkcs7_zerolendata_detached.der: pkcs7_zerolendata.bin pkcs7-rsa-sha256-1.key pkcs7-rsa-sha256-1.crt
@@ -1383,6 +1494,38 @@ pkcs7_signerInfo_2_invalid_tag.der: pkcs7_data_3_signed.der
 	cp $< $@
 	echo 'a1' | xxd -r -p | dd of=$@ bs=1 seek=810 conv=notrunc
 all_final += pkcs7_signerInfo_2_invalid_tag.der
+
+# pkcs7 signature file with corrupted signer info[1]
+pkcs7_data_signed_badsigner1_badsize.der: pkcs7_data_3_signed.der
+	cp pkcs7_data_3_signed.der $@
+	echo '72' | xxd -p -r | dd of=$@ bs=1 seek=438 conv=notrunc
+all_final += pkcs7_data_signed_badsigner1_badsize.der
+
+pkcs7_data_signed_badsigner1_badtag.der: pkcs7_data_3_signed.der
+	cp pkcs7_data_3_signed.der $@
+	echo 'a1' | xxd -p -r | dd of=$@ bs=1 seek=442 conv=notrunc
+all_final += pkcs7_data_signed_badsigner1_badtag.der
+
+pkcs7_data_signed_badsigner1_fuzzbad.der: pkcs7_data_3_signed.der
+	cp pkcs7_data_3_signed.der $@
+	echo 'a1' | xxd -p -r | dd of=$@ bs=1 seek=550 conv=notrunc
+all_final += pkcs7_data_signed_badsigner1_fuzzbad.der
+
+# pkcs7 signature file with corrupted signer info[2]
+pkcs7_data_signed_badsigner2_badsize.der: pkcs7_data_3_signed.der
+	cp pkcs7_data_3_signed.der $@
+	echo '72'| xxd -p -r | dd of=$@ bs=1 seek=813 conv=notrunc
+all_final += pkcs7_data_signed_badsigner2_badsize
+
+pkcs7_data_signed_badsigner2_badtag.der: pkcs7_data_3_signed.der
+	cp pkcs7_data_3_signed.der $@
+	echo 'a1'| xxd -p -r | dd of=$@ bs=1 seek=817 conv=notrunc
+all_final += pkcs7_data_signed_badsigner2_badtag
+
+pkcs7_data_signed_badsigner2_fuzzbad.der: pkcs7_data_3_signed.der
+	cp pkcs7_data_3_signed.der $@
+	echo 'a1'| xxd -p -r | dd of=$@ bs=1 seek=925 conv=notrunc
+all_final += pkcs7_data_signed_badsigner2_fuzzbad
 
 # pkcs7 file with version 2
 pkcs7_data_cert_signed_v2.der: pkcs7_data_cert_signed_sha256.der

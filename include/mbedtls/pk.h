@@ -236,7 +236,7 @@ typedef struct mbedtls_pk_info_t mbedtls_pk_info_t;
  * \brief           Public key container
  *
  * \note            The priv_id is guarded by MBEDTLS_PSA_CRYPTO_C and not
- *                  only by MBEDTLS_USE_PSA_CRYPTO because it can be used also
+ *                  by MBEDTLS_USE_PSA_CRYPTO because it can be used also
  *                  in mbedtls_pk_sign_ext for RSA keys.
  */
 typedef struct mbedtls_pk_context {

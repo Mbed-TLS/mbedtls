@@ -192,12 +192,12 @@ psa_status_t mbedtls_psa_export_ffdh_public_key(
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi GX, G, X, P;
+    (void) attributes;
 
     mbedtls_mpi_init(&GX); mbedtls_mpi_init(&G);
     mbedtls_mpi_init(&X); mbedtls_mpi_init(&P);
 
-    status = mbedtls_psa_ffdh_set_prime_generator(
-        PSA_BITS_TO_BYTES(attributes->core.bits), &P, &G);
+    status = mbedtls_psa_ffdh_set_prime_generator(data_size, &P, &G);
 
     if (status != PSA_SUCCESS) {
         goto cleanup;
@@ -209,7 +209,7 @@ psa_status_t mbedtls_psa_export_ffdh_public_key(
     MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod(&GX, &G, &X, &P, NULL));
     MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&GX, data, data_size));
 
-    *data_length = mbedtls_mpi_size(&GX);
+    *data_length = data_size;
 
     ret = 0;
 cleanup:

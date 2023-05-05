@@ -574,6 +574,9 @@ authorityKeyId_subjectKeyId_sequence_tag_malformed.crt.der: authorityKeyId_subje
 authorityKeyId_subjectKeyId_keyid_tag_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
 	hexdump -ve '1/1 "%.2X"' $< | sed "s/306D80145061A58FD407/306D00145061A58FD407/" | xxd -r -p > $@
 
+authorityKeyId_subjectKeyId_keyid_tag_len_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/306D80145061A58FD407/306D80FF5061A58FD407/" | xxd -r -p > $@
+
 authorityKeyId_subjectKeyId_issuer_tag1_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
 	hexdump -ve '1/1 "%.2X"' $< | sed "s/A13FA43D303B310B3009/003FA43D303B310B3009/" | xxd -r -p > $@
 

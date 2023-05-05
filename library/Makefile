@@ -48,8 +48,8 @@ endif
 endif
 
 SOEXT_TLS?=so.19
-SOEXT_X509?=so.4
-SOEXT_CRYPTO?=so.13
+SOEXT_X509?=so.5
+SOEXT_CRYPTO?=so.14
 
 # Set AR_DASH= (empty string) to use an ar implementation that does not accept
 # the - prefix for command line options (e.g. llvm-ar)
@@ -142,6 +142,7 @@ OBJS_CRYPTO= \
 	     psa_crypto_slot_management.o \
 	     psa_crypto_storage.o \
 	     psa_its_file.o \
+	     psa_util.o \
 	     ripemd160.o \
 	     rsa.o \
 	     rsa_alt_helpers.o \

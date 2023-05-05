@@ -1,7 +1,0 @@
-Bugfix
-    * In TLS 1.3, when using a ticket for session resumption, tweak its age
-      calculation on the client side. It prevents a server with more accurate
-      ticket timestamps (typically timestamps in milliseconds) compared to the
-      Mbed TLS ticket timestamps (in seconds) to compute a ticket age smaller
-      than the age computed and transmitted by the client and thus potentially
-      reject the ticket. Fix #6623.

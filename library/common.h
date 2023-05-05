@@ -26,6 +26,7 @@
 #include "mbedtls/build_info.h"
 #include "alignment.h"
 
+#include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -148,5 +149,19 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
 #define asm __asm__
 #endif
 /* *INDENT-ON* */
+
+/* Always provide a static assert macro, so it can be used unconditionally.
+ * It will expand to nothing on some systems.
+ * Can be used outside functions (but don't add a trailing ';' in that case:
+ * the semicolon is included here to avoid triggering -Wextra-semi when
+ * MBEDTLS_STATIC_ASSERT() expands to nothing).
+ * Can't use the C11-style `defined(static_assert)` on FreeBSD, since it
+ * defines static_assert even with -std=c99, but then complains about it.
+ */
+#if defined(static_assert) && !defined(__FreeBSD__)
+#define MBEDTLS_STATIC_ASSERT(expr, msg)    static_assert(expr, msg);
+#else
+#define MBEDTLS_STATIC_ASSERT(expr, msg)
+#endif
 
 #endif /* MBEDTLS_LIBRARY_COMMON_H */

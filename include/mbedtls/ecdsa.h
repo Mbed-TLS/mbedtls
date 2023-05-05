@@ -288,6 +288,8 @@ int mbedtls_ecdsa_sign_restartable(
     void *p_rng_blind,
     mbedtls_ecdsa_restart_ctx *rs_ctx);
 
+#endif /* !MBEDTLS_ECDSA_SIGN_ALT */
+
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
 
 /**
@@ -321,6 +323,7 @@ int mbedtls_ecdsa_sign_restartable(
  *                      buffer of length \p blen Bytes. It may be \c NULL if
  *                      \p blen is zero.
  * \param blen          The length of \p buf in Bytes.
+ * \param md_alg        The hash algorithm used to hash the original data.
  * \param f_rng_blind   The RNG function used for blinding. This must not be
  *                      \c NULL.
  * \param p_rng_blind   The RNG context to be passed to \p f_rng. This may be
@@ -347,8 +350,6 @@ int mbedtls_ecdsa_sign_det_restartable(
     mbedtls_ecdsa_restart_ctx *rs_ctx);
 
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
-
-#endif /* !MBEDTLS_ECDSA_SIGN_ALT */
 
 /**
  * \brief           This function verifies the ECDSA signature of a

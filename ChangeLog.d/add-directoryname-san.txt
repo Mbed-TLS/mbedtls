@@ -1,0 +1,3 @@
+Features
+   * Add parsing of directoryName subtype for subjectAltName extension in
+     x509 certificates.

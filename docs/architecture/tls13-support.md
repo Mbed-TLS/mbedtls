@@ -86,16 +86,10 @@ Support description
 
 - Supported versions:
 
-  - TLS 1.2 and TLS 1.3 with version negotiation on the client side, not server
-    side.
+  - TLS 1.2 and TLS 1.3 with version negotiation on client and server side.
 
   - TLS 1.2 and TLS 1.3 can be enabled in the build independently of each
     other.
-
-  - If both TLS 1.3 and TLS 1.2 are enabled at build time, only one of them can
-    be configured at runtime via `mbedtls_ssl_conf_{min,max}_tls_version` for a
-    server endpoint. Otherwise, `mbedtls_ssl_setup` will raise
-    `MBEDTLS_ERR_SSL_BAD_CONFIG` error.
 
 - Compatibility with existing SSL/TLS build options:
 

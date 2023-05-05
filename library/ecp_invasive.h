@@ -31,22 +31,7 @@
 #include "bignum_mod.h"
 #include "mbedtls/ecp.h"
 
-#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_ECP_C)
-
-#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) ||   \
-    defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) ||   \
-    defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
-/* Preconditions:
- *   - bits is a multiple of 64 or is 224
- *   - c is -1 or -2
- *   - 0 <= N < 2^bits
- *   - N has room for bits plus one limb
- *
- * Behavior:
- * Set N to c * 2^bits + old_value_of_N.
- */
-void mbedtls_ecp_fix_negative(mbedtls_mpi *N, signed char c, size_t bits);
-#endif
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_ECP_LIGHT)
 
 #if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
 /** Generate a private key on a Montgomery curve (Curve25519 or Curve448).
@@ -62,7 +47,7 @@ void mbedtls_ecp_fix_negative(mbedtls_mpi *N, signed char c, size_t bits);
  *                  This is the bit-size of the key minus 1:
  *                  254 for Curve25519 or 447 for Curve448.
  * \param d         The randomly generated key. This is a number of size
- *                  exactly \p n_bits + 1 bits, with the least significant bits
+ *                  exactly \p high_bit + 1 bits, with the least significant bits
  *                  masked as specified in [Curve25519] and in [RFC7748] §5.
  * \param f_rng     The RNG function.
  * \param p_rng     The RNG context to be passed to \p f_rng.
@@ -70,7 +55,7 @@ void mbedtls_ecp_fix_negative(mbedtls_mpi *N, signed char c, size_t bits);
  * \return          \c 0 on success.
  * \return          \c MBEDTLS_ERR_ECP_xxx or MBEDTLS_ERR_MPI_xxx on failure.
  */
-int mbedtls_ecp_gen_privkey_mx(size_t n_bits,
+int mbedtls_ecp_gen_privkey_mx(size_t high_bit,
                                mbedtls_mpi *d,
                                int (*f_rng)(void *, unsigned char *, size_t),
                                void *p_rng);
@@ -96,6 +81,50 @@ int mbedtls_ecp_mod_p192_raw(mbedtls_mpi_uint *Np, size_t Nn);
 
 #endif /* MBEDTLS_ECP_DP_SECP192R1_ENABLED */
 
+#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
+
+/** Fast quasi-reduction modulo p224 (FIPS 186-3 D.2.2)
+ *
+ * \param[in,out]   X       The address of the MPI to be converted.
+ *                          Must have exact limb size that stores a 448-bit MPI
+ *                          (double the bitlength of the modulus).
+ *                          Upon return holds the reduced value which is
+ *                          in range `0 <= X < 2 * N` (where N is the modulus).
+ *                          The bitlength of the reduced value is the same as
+ *                          that of the modulus (224 bits).
+ * \param[in]       X_limbs The length of \p X in limbs.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if \p X_limbs is not the
+ *                  limb size that sores a 448-bit MPI.
+ */
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p224_raw(mbedtls_mpi_uint *X, size_t X_limbs);
+
+#endif /* MBEDTLS_ECP_DP_SECP224R1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+
+/** Fast quasi-reduction modulo p256 (FIPS 186-3 D.2.3)
+ *
+ * \param[in,out]   X       The address of the MPI to be converted.
+ *                          Must have exact limb size that stores a 512-bit MPI
+ *                          (double the bitlength of the modulus).
+ *                          Upon return holds the reduced value which is
+ *                          in range `0 <= X < 2 * N` (where N is the modulus).
+ *                          The bitlength of the reduced value is the same as
+ *                          that of the modulus (256 bits).
+ * \param[in]       X_limbs The length of \p X in limbs.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if \p X_limbs is not the
+ *                  limb size that sores a 512-bit MPI.
+ */
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p256_raw(mbedtls_mpi_uint *X, size_t X_limbs);
+
+#endif
+
 #if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
 
 /** Fast quasi-reduction modulo p521 = 2^521 - 1 (FIPS 186-3 D.2.5)
@@ -117,6 +146,59 @@ MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 
 #endif /* MBEDTLS_ECP_DP_SECP521R1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+
+/** Fast quasi-reduction modulo p384 (FIPS 186-3 D.2.4)
+ *
+ * \param[in,out]   X       The address of the MPI to be converted.
+ *                          Must have exact limb size that stores a 768-bit MPI
+ *                          (double the bitlength of the modulus).
+ *                          Upon return holds the reduced value which is
+ *                          in range `0 <= X < 2 * N` (where N is the modulus).
+ *                          The bitlength of the reduced value is the same as
+ *                          that of the modulus (384 bits).
+ * \param[in]       X_limbs The length of \p N in limbs.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if \p N_n does not have
+ *                  twice as many limbs as the modulus.
+ */
+MBEDTLS_STATIC_TESTABLE
+int  mbedtls_ecp_mod_p384_raw(mbedtls_mpi_uint *X, size_t X_limbs);
+
+#endif /* MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
+
+/*
+ * Fast quasi-reduction modulo p192k1 = 2^192 - R,
+ * with R = 2^32 + 2^12 + 2^8 + 2^7 + 2^6 + 2^3 + 1 = 0x0100001119
+ */
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p192k1(mbedtls_mpi *N);
+
+#endif /* MBEDTLS_ECP_DP_SECP192K1_ENABLED */
+#if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
+
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p224k1(mbedtls_mpi *N);
+
+#endif /* MBEDTLS_ECP_DP_SECP224K1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
+
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p256k1(mbedtls_mpi *N);
+
+#endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p448(mbedtls_mpi *N);
+
+#endif /* MBEDTLS_ECP_DP_CURVE448_ENABLED */
 
 /** Initialise a modulus with hard-coded const curve data.
  *

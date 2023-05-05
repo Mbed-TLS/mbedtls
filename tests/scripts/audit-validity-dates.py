@@ -31,6 +31,7 @@ import argparse
 import datetime
 import glob
 import logging
+import hashlib
 from enum import Enum
 
 # The script requires cryptography >= 35.0.0 which is only available
@@ -69,9 +70,19 @@ class AuditData:
         self.locations = [] # type: typing.List[str]
         self.fill_validity_duration(x509_obj)
         self._obj = x509_obj
+        encoding = cryptography.hazmat.primitives.serialization.Encoding.DER
+        self._identifier = hashlib.sha1(self._obj.public_bytes(encoding)).hexdigest()
 
     def __eq__(self, __value) -> bool:
         return self._obj == __value._obj
+
+    @property
+    def identifier(self):
+        """
+        Identifier of the underlying X.509 object, which is consistent across
+        different runs.
+        """
+        return self._identifier
 
     def fill_validity_duration(self, x509_obj):
         """Read validity period from an X.509 object."""

@@ -8,13 +8,6 @@
 #include "ecp_invasive.h"
 #include "bignum_mod_raw_invasive.h"
 
-#if defined(MBEDTLS_TEST_HOOKS) &&                  \
-    (defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) ||  \
-    defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) ||  \
-    defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED))
-#define HAVE_FIX_NEGATIVE
-#endif
-
 #define ECP_PF_UNKNOWN     -1
 
 #define ECP_PT_RESET(x)           \
@@ -77,7 +70,7 @@ inline static int mbedtls_ecp_group_cmp(mbedtls_ecp_group *grp1,
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_ECP_C
+ * depends_on:MBEDTLS_ECP_LIGHT
  * END_DEPENDENCIES
  */
 
@@ -325,7 +318,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_C */
 void ecp_test_vect(int id, char *dA_str, char *xA_str, char *yA_str,
                    char *dB_str, char *xB_str, char *yB_str,
                    char *xZ_str, char *yZ_str)
@@ -382,7 +375,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_C */
 void ecp_test_vec_x(int id, char *dA_hex, char *xA_hex, char *dB_hex,
                     char *xB_hex, char *xS_hex)
 {
@@ -435,7 +428,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_C */
 void ecp_test_mul(int id, data_t *n_hex,
                   data_t *Px_hex, data_t *Py_hex, data_t *Pz_hex,
                   data_t *nPx_hex, data_t *nPy_hex, data_t *nPz_hex,
@@ -484,7 +477,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_C */
 void ecp_test_mul_rng(int id, data_t *d_hex)
 {
     mbedtls_ecp_group grp;
@@ -510,7 +503,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED:MBEDTLS_ECP_C */
 void ecp_muladd(int id,
                 data_t *u1_bin, data_t *P1_bin,
                 data_t *u2_bin, data_t *P2_bin,
@@ -962,7 +955,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_C */
 void mbedtls_ecp_check_pub_priv(int id_pub, char *Qx_pub, char *Qy_pub,
                                 int id, char *d, char *Qx, char *Qy,
                                 int ret)
@@ -994,7 +987,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_C */
 void mbedtls_ecp_gen_keypair(int id)
 {
     mbedtls_ecp_group grp;
@@ -1023,7 +1016,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_C */
 void mbedtls_ecp_gen_key(int id)
 {
     mbedtls_ecp_keypair key;
@@ -1093,37 +1086,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:HAVE_FIX_NEGATIVE */
-void fix_negative(data_t *N_bin, int c, int bits)
-{
-    mbedtls_mpi C, M, N;
-
-    mbedtls_mpi_init(&C);
-    mbedtls_mpi_init(&M);
-    mbedtls_mpi_init(&N);
-
-    /* C = - c * 2^bits (positive since c is negative) */
-    TEST_EQUAL(0, mbedtls_mpi_lset(&C, -c));
-    TEST_EQUAL(0, mbedtls_mpi_shift_l(&C, bits));
-
-    TEST_EQUAL(0, mbedtls_mpi_read_binary(&N, N_bin->x, N_bin->len));
-    TEST_EQUAL(0, mbedtls_mpi_grow(&N, C.n));
-
-    /* M = N - C = - ( C - N ) (expected result of fix_negative) */
-    TEST_EQUAL(0, mbedtls_mpi_sub_mpi(&M, &N, &C));
-
-    mbedtls_ecp_fix_negative(&N, c, bits);
-
-    TEST_EQUAL(0, mbedtls_mpi_cmp_mpi(&N, &M));
-
-exit:
-    mbedtls_mpi_free(&C);
-    mbedtls_mpi_free(&M);
-    mbedtls_mpi_free(&N);
-}
-/* END_CASE */
-
-/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_ECP_MONTGOMERY_ENABLED */
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_ECP_MONTGOMERY_ENABLED:MBBEDTLS_ECP_C */
 void genkey_mx_known_answer(int bits, data_t *seed, data_t *expected)
 {
     mbedtls_test_rnd_buf_info rnd_info;
@@ -1304,9 +1267,10 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
-void ecp_mod_p192_raw(char *input_N,
-                      char *input_X,
-                      char *result)
+void ecp_mod_p_generic_raw(int curve_id,
+                           char *input_N,
+                           char *input_X,
+                           char *result)
 {
     mbedtls_mpi_uint *X = NULL;
     mbedtls_mpi_uint *N = NULL;
@@ -1315,25 +1279,70 @@ void ecp_mod_p192_raw(char *input_N,
     size_t limbs_N;
     size_t limbs_res;
 
+    size_t bytes;
+    size_t limbs;
+    size_t curve_bits;
+    int (*curve_func)(mbedtls_mpi_uint *X, size_t X_limbs);
+
     mbedtls_mpi_mod_modulus m;
     mbedtls_mpi_mod_modulus_init(&m);
 
     TEST_EQUAL(mbedtls_test_read_mpi_core(&X,   &limbs_X,   input_X), 0);
     TEST_EQUAL(mbedtls_test_read_mpi_core(&N,   &limbs_N,   input_N), 0);
     TEST_EQUAL(mbedtls_test_read_mpi_core(&res, &limbs_res, result),  0);
+    bytes = limbs_N * sizeof(mbedtls_mpi_uint);
 
-    size_t limbs = limbs_N;
-    size_t bytes = limbs * sizeof(mbedtls_mpi_uint);
+    switch (curve_id) {
+#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
+        case MBEDTLS_ECP_DP_SECP192R1:
+            limbs = 2 * limbs_N;
+            curve_bits = 192;
+            curve_func = &mbedtls_ecp_mod_p192_raw;
+            break;
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
+        case MBEDTLS_ECP_DP_SECP224R1:
+            limbs = 448 / biL;
+            curve_bits = 224;
+            curve_func = &mbedtls_ecp_mod_p224_raw;
+            break;
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+        case MBEDTLS_ECP_DP_SECP256R1:
+            limbs = 2 * limbs_N;
+            curve_bits = 256;
+            curve_func = &mbedtls_ecp_mod_p256_raw;
+            break;
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+        case MBEDTLS_ECP_DP_SECP384R1:
+            limbs = 2 * limbs_N;
+            curve_bits = 384;
+            curve_func = &mbedtls_ecp_mod_p384_raw;
+            break;
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+        case MBEDTLS_ECP_DP_SECP521R1:
+            limbs = 2 * limbs_N;
+            curve_bits = 522;
+            curve_func = &mbedtls_ecp_mod_p521_raw;
+            break;
+#endif
+        default:
+            mbedtls_test_fail("Unsupported curve_id", __LINE__, __FILE__);
+            goto exit;
+    }
 
-    TEST_EQUAL(limbs_X, 2 * limbs);
-    TEST_EQUAL(limbs_res, limbs);
+    TEST_EQUAL(limbs_X, limbs);
+    TEST_EQUAL(limbs_res, limbs_N);
 
     TEST_EQUAL(mbedtls_mpi_mod_modulus_setup(
-                   &m, N, limbs,
-                   MBEDTLS_MPI_MOD_REP_MONTGOMERY), 0);
+                   &m, N, limbs_N,
+                   MBEDTLS_MPI_MOD_REP_OPT_RED), 0);
 
-    TEST_EQUAL(mbedtls_ecp_mod_p192_raw(X, limbs_X), 0);
-    TEST_LE_U(mbedtls_mpi_core_bitlen(X, limbs_X), 192);
+    TEST_EQUAL((*curve_func)(X, limbs_X), 0);
+
+    TEST_LE_U(mbedtls_mpi_core_bitlen(X, limbs_X), curve_bits);
     mbedtls_mpi_mod_raw_fix_quasi_reduction(X, &m);
     ASSERT_COMPARE(X, bytes, res, bytes);
 
@@ -1346,46 +1355,159 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
-void ecp_mod_p521_raw(char *input_N,
-                      char *input_X,
-                      char *result)
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_ECP_DP_SECP192K1_ENABLED */
+void ecp_mod_p192k1(char *input_N,
+                    char *input_X,
+                    char *result)
 {
-    mbedtls_mpi_uint *X = NULL;
-    mbedtls_mpi_uint *N = NULL;
-    mbedtls_mpi_uint *res = NULL;
-    size_t limbs_X;
-    size_t limbs_N;
-    size_t limbs_res;
+    mbedtls_mpi X;
+    mbedtls_mpi N;
+    mbedtls_mpi res;
 
-    mbedtls_mpi_mod_modulus m;
-    mbedtls_mpi_mod_modulus_init(&m);
+    mbedtls_mpi_init(&X);
+    mbedtls_mpi_init(&N);
+    mbedtls_mpi_init(&res);
 
-    TEST_EQUAL(mbedtls_test_read_mpi_core(&X,   &limbs_X,   input_X), 0);
-    TEST_EQUAL(mbedtls_test_read_mpi_core(&N,   &limbs_N,   input_N), 0);
-    TEST_EQUAL(mbedtls_test_read_mpi_core(&res, &limbs_res, result),  0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&X,   input_X), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&N,   input_N), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&res, result),  0);
 
-    size_t limbs = limbs_N;
+    TEST_ASSERT(mbedtls_mpi_core_uint_le_mpi(0, X.p, X.n));
+    TEST_ASSERT(mbedtls_mpi_core_uint_le_mpi(0, N.p, N.n));
+    TEST_ASSERT(mbedtls_mpi_core_uint_le_mpi(0, res.p, res.n));
+
+    size_t limbs = N.n;
     size_t bytes = limbs * sizeof(mbedtls_mpi_uint);
 
-    TEST_EQUAL(limbs_X, 2 * limbs);
-    TEST_EQUAL(limbs_res, limbs);
+    TEST_EQUAL(X.n, 2 * limbs);
+    TEST_EQUAL(res.n, limbs);
 
-    TEST_EQUAL(mbedtls_mpi_mod_modulus_setup(
-                   &m, N, limbs,
-                   MBEDTLS_MPI_MOD_REP_MONTGOMERY), 0);
-
-    TEST_EQUAL(mbedtls_ecp_mod_p521_raw(X, limbs_X), 0);
-    TEST_LE_U(mbedtls_mpi_core_bitlen(X, limbs_X), 522);
-    mbedtls_mpi_mod_raw_fix_quasi_reduction(X, &m);
-    ASSERT_COMPARE(X, bytes, res, bytes);
+    TEST_EQUAL(mbedtls_ecp_mod_p192k1(&X), 0);
+    TEST_EQUAL(mbedtls_mpi_mod_mpi(&X, &X, &N), 0);
+    TEST_LE_U(mbedtls_mpi_core_bitlen(X.p, X.n), 192);
+    ASSERT_COMPARE(X.p, bytes, res.p, bytes);
 
 exit:
-    mbedtls_free(X);
-    mbedtls_free(res);
+    mbedtls_mpi_free(&X);
+    mbedtls_mpi_free(&N);
+    mbedtls_mpi_free(&res);
+}
+/* END_CASE */
 
-    mbedtls_mpi_mod_modulus_free(&m);
-    mbedtls_free(N);
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_ECP_DP_SECP224K1_ENABLED */
+void ecp_mod_p224k1(char *input_N,
+                    char *input_X,
+                    char *result)
+{
+    mbedtls_mpi X;
+    mbedtls_mpi N;
+    mbedtls_mpi res;
+
+    mbedtls_mpi_init(&X);
+    mbedtls_mpi_init(&N);
+    mbedtls_mpi_init(&res);
+
+    TEST_EQUAL(mbedtls_test_read_mpi(&X,   input_X), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&N,   input_N), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&res, result),  0);
+
+    TEST_ASSERT(mbedtls_mpi_core_uint_le_mpi(0, X.p, X.n));
+    TEST_ASSERT(mbedtls_mpi_core_uint_le_mpi(0, N.p, N.n));
+    TEST_ASSERT(mbedtls_mpi_core_uint_le_mpi(0, res.p, res.n));
+
+    size_t limbs = N.n;
+    size_t bytes = limbs * sizeof(mbedtls_mpi_uint);
+
+    TEST_LE_U(X.n, 448 / biL);
+    TEST_EQUAL(res.n, limbs);
+
+    TEST_EQUAL(mbedtls_ecp_mod_p224k1(&X), 0);
+    TEST_EQUAL(mbedtls_mpi_mod_mpi(&X, &X, &N), 0);
+    TEST_LE_U(mbedtls_mpi_core_bitlen(X.p, X.n), 224);
+    ASSERT_COMPARE(X.p, bytes, res.p, bytes);
+
+exit:
+    mbedtls_mpi_free(&X);
+    mbedtls_mpi_free(&N);
+    mbedtls_mpi_free(&res);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_ECP_DP_SECP256K1_ENABLED */
+void ecp_mod_p256k1(char *input_N,
+                    char *input_X,
+                    char *result)
+{
+    mbedtls_mpi X;
+    mbedtls_mpi N;
+    mbedtls_mpi res;
+
+    mbedtls_mpi_init(&X);
+    mbedtls_mpi_init(&N);
+    mbedtls_mpi_init(&res);
+
+    TEST_EQUAL(mbedtls_test_read_mpi(&X,   input_X), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&N,   input_N), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&res, result),  0);
+
+    TEST_ASSERT(mbedtls_mpi_core_uint_le_mpi(0, X.p, X.n));
+    TEST_ASSERT(mbedtls_mpi_core_uint_le_mpi(0, N.p, N.n));
+    TEST_ASSERT(mbedtls_mpi_core_uint_le_mpi(0, res.p, res.n));
+
+    size_t limbs = N.n;
+    size_t bytes = limbs * sizeof(mbedtls_mpi_uint);
+
+    TEST_LE_U(X.n, 2 * limbs);
+    TEST_EQUAL(res.n, limbs);
+
+    TEST_EQUAL(mbedtls_ecp_mod_p256k1(&X), 0);
+    TEST_EQUAL(mbedtls_mpi_mod_mpi(&X, &X, &N), 0);
+    TEST_LE_U(mbedtls_mpi_core_bitlen(X.p, X.n), 256);
+    ASSERT_COMPARE(X.p, bytes, res.p, bytes);
+
+exit:
+    mbedtls_mpi_free(&X);
+    mbedtls_mpi_free(&N);
+    mbedtls_mpi_free(&res);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_ECP_DP_CURVE448_ENABLED */
+void ecp_mod_p448(char *input_N,
+                  char *input_X,
+                  char *result)
+{
+    mbedtls_mpi X;
+    mbedtls_mpi N;
+    mbedtls_mpi res;
+
+    mbedtls_mpi_init(&X);
+    mbedtls_mpi_init(&N);
+    mbedtls_mpi_init(&res);
+
+    TEST_EQUAL(mbedtls_test_read_mpi(&X,   input_X), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&N,   input_N), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&res, result),  0);
+
+    TEST_ASSERT(mbedtls_mpi_core_uint_le_mpi(0, X.p, X.n));
+    TEST_ASSERT(mbedtls_mpi_core_uint_le_mpi(0, N.p, N.n));
+    TEST_ASSERT(mbedtls_mpi_core_uint_le_mpi(0, res.p, res.n));
+
+    size_t limbs = N.n;
+    size_t bytes = limbs * sizeof(mbedtls_mpi_uint);
+
+    TEST_LE_U(X.n, 2 * limbs);
+    TEST_EQUAL(res.n, limbs);
+
+    TEST_EQUAL(mbedtls_ecp_mod_p448(&X), 0);
+    TEST_EQUAL(mbedtls_mpi_mod_mpi(&X, &X, &N), 0);
+    TEST_LE_U(mbedtls_mpi_core_bitlen(X.p, X.n), 448);
+    ASSERT_COMPARE(X.p, bytes, res.p, bytes);
+
+exit:
+    mbedtls_mpi_free(&X);
+    mbedtls_mpi_free(&N);
+    mbedtls_mpi_free(&res);
 }
 /* END_CASE */
 

@@ -30,13 +30,6 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
-/* We use MD first if it's available (for compatibility reasons)
- * and "fall back" to PSA otherwise (which needs psa_crypto_init()). */
-#if !defined(MBEDTLS_MD_C)
-#include "psa/crypto.h"
-#include "mbedtls/psa_util.h"
-#endif /* !MBEDTLS_MD_C */
-
 #include "hash_info.h"
 
 #include <string.h>
@@ -61,19 +54,8 @@ static int mbedtls_ecjpake_compute_hash(mbedtls_md_type_t md_type,
                                         const unsigned char *input, size_t ilen,
                                         unsigned char *output)
 {
-#if defined(MBEDTLS_MD_C)
     return mbedtls_md(mbedtls_md_info_from_type(md_type),
                       input, ilen, output);
-#else
-    psa_algorithm_t alg = mbedtls_psa_translate_md(md_type);
-    psa_status_t status;
-    size_t out_size = PSA_HASH_LENGTH(alg);
-    size_t out_len;
-
-    status = psa_hash_compute(alg, input, ilen, output, out_size, &out_len);
-
-    return mbedtls_md_error_from_psa(status);
-#endif /* !MBEDTLS_MD_C */
 }
 
 /*
@@ -137,15 +119,9 @@ int mbedtls_ecjpake_setup(mbedtls_ecjpake_context *ctx,
 
     ctx->role = role;
 
-#if defined(MBEDTLS_MD_C)
     if ((mbedtls_md_info_from_type(hash)) == NULL) {
         return MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE;
     }
-#else
-    if (mbedtls_psa_translate_md(hash) == MBEDTLS_MD_NONE) {
-        return MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE;
-    }
-#endif
 
     ctx->md_type = hash;
 
@@ -865,7 +841,7 @@ cleanup:
 #include "mbedtls/platform.h"
 
 #if !defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) || \
-    !defined(MBEDTLS_SHA256_C)
+    !defined(MBEDTLS_MD_CAN_SHA256)
 int mbedtls_ecjpake_self_test(int verbose)
 {
     (void) verbose;
@@ -1247,7 +1223,7 @@ cleanup:
 
 #undef TEST_ASSERT
 
-#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED && MBEDTLS_SHA256_C */
+#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED && MBEDTLS_MD_CAN_SHA256 */
 
 #endif /* MBEDTLS_SELF_TEST */
 

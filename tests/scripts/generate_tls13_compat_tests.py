@@ -352,7 +352,6 @@ class MbedTLSBase(TLSProgram):
         if self._named_groups:
             named_groups = ','.join(self._named_groups)
             ret += ["curves={named_groups}".format(named_groups=named_groups)]
-        ret += ['force_version=tls13']
         return ret
 
     def pre_checks(self):

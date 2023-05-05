@@ -4,7 +4,9 @@ Please write a few sentences describing the overall goals of the pull request's 
 
 
 
-## Gatekeeper checklist
+## PR checklist
+
+Please tick as appropriate and edit the reasons (e.g.: "backport: not needed because this is a new feature")
 
 - [ ] **changelog** provided, or not required
 - [ ] **backport** done, or not required
@@ -16,4 +18,3 @@ Please write a few sentences describing the overall goals of the pull request's 
 
 Please refer to the [contributing guidelines](https://github.com/Mbed-TLS/mbedtls/blob/development/CONTRIBUTING.md), especially the
 checklist for PR contributors.
-

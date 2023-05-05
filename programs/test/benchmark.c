@@ -363,7 +363,7 @@ static unsigned long mbedtls_timing_hardclock(void)
 #endif /* !HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
           __GNUC__ && __ia64__ */
 
-#if !defined(HAVE_HARDCLOCK) && defined(_MSC_VER) && \
+#if !defined(HAVE_HARDCLOCK) && defined(_WIN32) && \
     !defined(EFIX64) && !defined(EFI32)
 
 #define HAVE_HARDCLOCK
@@ -376,7 +376,7 @@ static unsigned long mbedtls_timing_hardclock(void)
 
     return (unsigned long) (offset.QuadPart);
 }
-#endif /* !HAVE_HARDCLOCK && _MSC_VER && !EFIX64 && !EFI32 */
+#endif /* !HAVE_HARDCLOCK && _WIN32 && !EFIX64 && !EFI32 */
 
 #if !defined(HAVE_HARDCLOCK)
 

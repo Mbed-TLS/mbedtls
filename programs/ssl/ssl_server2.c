@@ -69,6 +69,8 @@ int main(void)
 #include "test/psa_crypto_helpers.h"
 #endif
 
+#include "mbedtls/pk.h"
+
 /* Size of memory to be allocated for the heap, when using the library's memory
  * management and MBEDTLS_MEMORY_BUFFER_ALLOC_C is enabled. */
 #define MEMORY_HEAP_SIZE        120000
@@ -127,6 +129,7 @@ int main(void)
 #define DFL_TICKET_AEAD         MBEDTLS_CIPHER_AES_256_GCM
 #define DFL_CACHE_MAX           -1
 #define DFL_CACHE_TIMEOUT       -1
+#define DFL_CACHE_REMOVE        0
 #define DFL_SNI                 NULL
 #define DFL_ALPN_STRING         NULL
 #define DFL_CURVES              NULL
@@ -319,7 +322,8 @@ int main(void)
 
 #if defined(MBEDTLS_SSL_CACHE_C)
 #define USAGE_CACHE                                             \
-    "    cache_max=%%d        default: cache default (50)\n"
+    "    cache_max=%%d        default: cache default (50)\n"    \
+    "    cache_remove=%%d     default: 0 (don't remove)\n"
 #if defined(MBEDTLS_HAVE_TIME)
 #define USAGE_CACHE_TIME \
     "    cache_timeout=%%d    default: cache default (1d)\n"
@@ -441,7 +445,7 @@ int main(void)
 #define USAGE_EARLY_DATA ""
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 #define USAGE_CURVES \
     "    curves=a,b,c,d      default: \"default\" (library default)\n"  \
     "                        example: \"secp521r1,brainpoolP512r1\"\n"  \
@@ -667,6 +671,7 @@ struct options {
 #if defined(MBEDTLS_HAVE_TIME)
     int cache_timeout;          /* expiration delay of session cache entries*/
 #endif
+    int cache_remove;           /* enable / disable cache entry removal     */
     char *sni;                  /* string describing sni information        */
     const char *curves;         /* list of supported elliptic curves        */
     const char *sig_algs;       /* supported TLS 1.3 signature algorithms   */
@@ -1518,7 +1523,7 @@ int main(int argc, char *argv[])
 #if defined(SNI_OPTION)
     sni_entry *sni_info = NULL;
 #endif
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
     uint16_t group_list[CURVE_LIST_SIZE];
     const mbedtls_ecp_curve_info *curve_cur;
 #endif
@@ -1729,6 +1734,7 @@ usage:
 #if defined(MBEDTLS_HAVE_TIME)
     opt.cache_timeout       = DFL_CACHE_TIMEOUT;
 #endif
+    opt.cache_remove        = DFL_CACHE_REMOVE;
     opt.sni                 = DFL_SNI;
     opt.alpn_string         = DFL_ALPN_STRING;
     opt.curves              = DFL_CURVES;
@@ -2142,7 +2148,12 @@ usage:
             }
         }
 #endif
-        else if (strcmp(p, "cookies") == 0) {
+        else if (strcmp(p, "cache_remove") == 0) {
+            opt.cache_remove = atoi(q);
+            if (opt.cache_remove < 0 || opt.cache_remove > 1) {
+                goto usage;
+            }
+        } else if (strcmp(p, "cookies") == 0) {
             opt.cookies = atoi(q);
             if (opt.cookies < -1 || opt.cookies > 1) {
                 goto usage;
@@ -2327,11 +2338,11 @@ usage:
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED)
         if (opt.psk_opaque != 0 || opt.psk_list_opaque != 0) {
             /* Determine KDF algorithm the opaque PSK will be used in. */
-#if defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+#if defined(MBEDTLS_MD_CAN_SHA384)
             if (ciphersuite_info->mac == MBEDTLS_MD_SHA384) {
                 alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_384);
             } else
-#endif /* MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
+#endif /* MBEDTLS_MD_CAN_SHA384 */
             alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_256);
         }
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
@@ -2379,7 +2390,7 @@ usage:
     }
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
     if (opt.curves != NULL) {
         p = (char *) opt.curves;
         i = 0;
@@ -2425,7 +2436,7 @@ usage:
             group_list[i] = 0;
         }
     }
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
     if (opt.sig_algs != NULL) {
@@ -2652,7 +2663,7 @@ usage:
         }
         key_cert_init = 2;
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
         if ((ret = mbedtls_x509_crt_parse(&srvcert2,
                                           (const unsigned char *) mbedtls_test_srv_crt_ec,
                                           mbedtls_test_srv_crt_ec_len)) != 0) {
@@ -2669,7 +2680,7 @@ usage:
             goto exit;
         }
         key_cert_init2 = 2;
-#endif /* MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_PK_CAN_ECDSA_SOME */
     }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -3127,7 +3138,7 @@ usage:
     }
 #endif
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
     if (opt.curves != NULL &&
         strcmp(opt.curves, "default") != 0) {
         mbedtls_ssl_conf_groups(&conf, group_list);
@@ -4124,6 +4135,12 @@ close_notify:
     ret = 0;
 
     mbedtls_printf(" done\n");
+
+#if defined(MBEDTLS_SSL_CACHE_C)
+    if (opt.cache_remove > 0) {
+        mbedtls_ssl_cache_remove(&cache, ssl.session->id, ssl.session->id_len);
+    }
+#endif
 
     goto reset;
 

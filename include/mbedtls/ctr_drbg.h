@@ -45,6 +45,7 @@
 #include "mbedtls/build_info.h"
 
 #include "mbedtls/aes.h"
+#include "entropy.h"
 
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
@@ -94,17 +95,14 @@
  * \brief The amount of entropy used per seed by default, in bytes.
  */
 #if !defined(MBEDTLS_CTR_DRBG_ENTROPY_LEN)
-#if defined(MBEDTLS_SHA512_C) && !defined(MBEDTLS_ENTROPY_FORCE_SHA256)
-/** This is 48 bytes because the entropy module uses SHA-512
- * (\c MBEDTLS_ENTROPY_FORCE_SHA256 is disabled).
+#if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
+/** This is 48 bytes because the entropy module uses SHA-512.
  */
 #define MBEDTLS_CTR_DRBG_ENTROPY_LEN        48
 
-#else /* defined(MBEDTLS_SHA512_C) && !defined(MBEDTLS_ENTROPY_FORCE_SHA256) */
+#else /* MBEDTLS_ENTROPY_SHA512_ACCUMULATOR */
 
-/** This is 32 bytes because the entropy module uses SHA-256
- * (the SHA512 module is disabled or
- * \c MBEDTLS_ENTROPY_FORCE_SHA256 is enabled).
+/** This is 32 bytes because the entropy module uses SHA-256.
  */
 #if !defined(MBEDTLS_CTR_DRBG_USE_128_BIT_KEY)
 /** \warning To achieve a 256-bit security strength, you must pass a nonce
@@ -112,7 +110,7 @@
  */
 #endif /* !defined(MBEDTLS_CTR_DRBG_USE_128_BIT_KEY) */
 #define MBEDTLS_CTR_DRBG_ENTROPY_LEN        32
-#endif /* defined(MBEDTLS_SHA512_C) && !defined(MBEDTLS_ENTROPY_FORCE_SHA256) */
+#endif /* MBEDTLS_ENTROPY_SHA512_ACCUMULATOR */
 #endif /* !defined(MBEDTLS_CTR_DRBG_ENTROPY_LEN) */
 
 #if !defined(MBEDTLS_CTR_DRBG_RESEED_INTERVAL)

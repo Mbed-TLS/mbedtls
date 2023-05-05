@@ -1,4 +1,0 @@
-Bugfix
-   * Fix potential undefined behavior in mbedtls_mpi_sub_abs().  Reported by
-     Pascal Cuoq using TrustInSoft Analyzer in #6701; observed independently by
-     Aaron Ucko under Valgrind.

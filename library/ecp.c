@@ -20,13 +20,15 @@
 /*
  * References:
  *
- * SEC1 http://www.secg.org/index.php?action=secg,docs_secg
+ * SEC1 https://www.secg.org/sec1-v2.pdf
  * GECC = Guide to Elliptic Curve Cryptography - Hankerson, Menezes, Vanstone
  * FIPS 186-3 http://csrc.nist.gov/publications/fips/fips186-3/fips_186-3.pdf
  * RFC 4492 for the related TLS structures and constants
+ * - https://www.rfc-editor.org/rfc/rfc4492
  * RFC 7748 for the Curve448 and Curve25519 curve definitions
+ * - https://www.rfc-editor.org/rfc/rfc7748
  *
- * [Curve25519] http://cr.yp.to/ecdh/curve25519-20060209.pdf
+ * [Curve25519] https://cr.yp.to/ecdh/curve25519-20060209.pdf
  *
  * [2] CORON, Jean-S'ebastien. Resistance against differential power analysis
  *     for elliptic curve cryptosystems. In : Cryptographic Hardware and
@@ -70,7 +72,7 @@
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
 #endif
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 
 #include "mbedtls/ecp.h"
 #include "mbedtls/threading.h"
@@ -342,6 +344,7 @@ static void mpi_free_many(mbedtls_mpi *arr, size_t size)
     }
 }
 #endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED || MBEDTLS_ECP_MONTGOMERY_ENABLED */
+
 /*
  * List of supported curves:
  *  - internal ID
@@ -1451,7 +1454,10 @@ cleanup:
     mbedtls_mpi_free(&exp);
     return ret;
 }
+#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 
+#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
 /*
  * For curves in short Weierstrass form, we do all the internal operations in
  * Jacobian coordinates.
@@ -3326,6 +3332,7 @@ int mbedtls_ecp_mul(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 {
     return mbedtls_ecp_mul_restartable(grp, R, m, P, f_rng, p_rng, NULL);
 }
+#endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
 /*
@@ -3366,6 +3373,7 @@ cleanup:
 }
 #endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 
+#if defined(MBEDTLS_ECP_C)
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
 /*
  * R = m * P with shortcuts for m == 0, m == 1 and m == -1
@@ -3612,6 +3620,7 @@ int mbedtls_ecp_muladd(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     return mbedtls_ecp_muladd_restartable(grp, R, m, P, n, Q, NULL);
 }
 #endif /* MBEDTLS_ECP_EDWARDS_ENABLED || MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
+#endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
 #if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
@@ -3925,6 +3934,7 @@ int mbedtls_ecp_gen_privkey(const mbedtls_ecp_group *grp,
     return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
 }
 
+#if defined(MBEDTLS_ECP_C)
 #if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
 #if defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
 static int mbedtls_ecp_expand_ed25519(const mbedtls_mpi *d,
@@ -4038,6 +4048,7 @@ int mbedtls_ecp_gen_key(mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
 
     return mbedtls_ecp_gen_keypair(&key->grp, &key->d, &key->Q, f_rng, p_rng);
 }
+#endif /* MBEDTLS_ECP_C */
 
 #define ECP_CURVE25519_KEY_SIZE 32
 #define ECP_CURVE448_KEY_SIZE   56
@@ -4172,7 +4183,7 @@ cleanup:
     return ret;
 }
 
-
+#if defined(MBEDTLS_ECP_C)
 /*
  * Check a public-private key pair
  */
@@ -4213,6 +4224,7 @@ cleanup:
 
     return ret;
 }
+#endif /* MBEDTLS_ECP_C */
 
 /*
  * Export generic key-pair parameters.
@@ -4238,6 +4250,7 @@ int mbedtls_ecp_export(const mbedtls_ecp_keypair *key, mbedtls_ecp_group *grp,
 }
 
 #if defined(MBEDTLS_SELF_TEST)
+
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED) || defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
 /*
  * PRNG for test - !!!INSECURE NEVER USE IN PRODUCTION!!!
@@ -4353,6 +4366,7 @@ cleanup:
  */
 int mbedtls_ecp_self_test(int verbose)
 {
+#if defined(MBEDTLS_ECP_C)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecp_group grp;
     mbedtls_ecp_point R, P;
@@ -4472,10 +4486,14 @@ cleanup:
     }
 
     return ret;
+#else /* MBEDTLS_ECP_C */
+    (void) verbose;
+    return 0;
+#endif /* MBEDTLS_ECP_C */
 }
 
 #endif /* MBEDTLS_SELF_TEST */
 
 #endif /* !MBEDTLS_ECP_ALT */
 
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */

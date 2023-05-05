@@ -39,12 +39,16 @@
 #include "lmots.h"
 
 #include "psa/crypto.h"
-
+#include "mbedtls/psa_util.h"
 #include "mbedtls/lms.h"
 #include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
 
 #include "mbedtls/platform.h"
+
+#define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
+                                                           psa_to_lms_errors,             \
+                                                           psa_generic_status_to_mbedtls)
 
 #define SIG_Q_LEAF_ID_OFFSET     (0)
 #define SIG_OTS_SIG_OFFSET       (SIG_Q_LEAF_ID_OFFSET + \
@@ -140,7 +144,7 @@ static int create_merkle_leaf_value(const mbedtls_lms_parameters_t *params,
 exit:
     psa_hash_abort(&op);
 
-    return mbedtls_lms_error_from_psa(status);
+    return PSA_TO_MBEDTLS_ERR(status);
 }
 
 /* Calculate the value of an internal node of the Merkle tree (which is a hash
@@ -220,7 +224,7 @@ static int create_merkle_internal_value(const mbedtls_lms_parameters_t *params,
 exit:
     psa_hash_abort(&op);
 
-    return mbedtls_lms_error_from_psa(status);
+    return PSA_TO_MBEDTLS_ERR(status);
 }
 
 void mbedtls_lms_public_init(mbedtls_lms_public_t *ctx)

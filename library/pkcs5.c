@@ -215,7 +215,6 @@ exit:
 }
 #endif /* MBEDTLS_ASN1_PARSE_C */
 
-#if defined(MBEDTLS_MD_C)
 static int pkcs5_pbkdf2_hmac(mbedtls_md_context_t *ctx,
                              const unsigned char *password,
                              size_t plen, const unsigned char *salt, size_t slen,
@@ -316,7 +315,6 @@ int mbedtls_pkcs5_pbkdf2_hmac(mbedtls_md_context_t *ctx,
                              key_length, output);
 }
 #endif
-#endif /* MBEDTLS_MD_C */
 
 int mbedtls_pkcs5_pbkdf2_hmac_ext(mbedtls_md_type_t md_alg,
                                   const unsigned char *password,
@@ -324,7 +322,6 @@ int mbedtls_pkcs5_pbkdf2_hmac_ext(mbedtls_md_type_t md_alg,
                                   unsigned int iteration_count,
                                   uint32_t key_length, unsigned char *output)
 {
-#if defined(MBEDTLS_MD_C)
     mbedtls_md_context_t md_ctx;
     const mbedtls_md_info_t *md_info = NULL;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -344,121 +341,11 @@ int mbedtls_pkcs5_pbkdf2_hmac_ext(mbedtls_md_type_t md_alg,
 exit:
     mbedtls_md_free(&md_ctx);
     return ret;
-#else
-    unsigned int i;
-    unsigned char md1[PSA_HASH_MAX_SIZE];
-    unsigned char work[PSA_HASH_MAX_SIZE];
-    const unsigned char md_size = mbedtls_hash_info_get_size(md_alg);
-    psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
-
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_status_t status_destruction = PSA_ERROR_CORRUPTION_DETECTED;
-    size_t use_len, out_len;
-    unsigned char *out_p = output;
-    unsigned char counter[4];
-    mbedtls_svc_key_id_t psa_hmac_key = MBEDTLS_SVC_KEY_ID_INIT;
-    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    const psa_algorithm_t alg = PSA_ALG_HMAC(mbedtls_hash_info_psa_from_md(md_alg));
-    const size_t out_size = PSA_MAC_LENGTH(PSA_KEY_TYPE_HMAC, 0, alg);
-
-    memset(counter, 0, sizeof(counter));
-    counter[3] = 1;
-
-    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_MESSAGE);
-    psa_set_key_algorithm(&attributes,  alg);
-    psa_set_key_type(&attributes, PSA_KEY_TYPE_HMAC);
-
-    if (key_length == 0) {
-        return 0;
-    }
-    if ((status = psa_import_key(&attributes,
-                                 password, plen,
-                                 &psa_hmac_key)) != PSA_SUCCESS) {
-        return MBEDTLS_ERR_PKCS5_BAD_INPUT_DATA;
-    }
-
-#if UINT_MAX > 0xFFFFFFFF
-    if (iteration_count > 0xFFFFFFFF) {
-        return MBEDTLS_ERR_PKCS5_BAD_INPUT_DATA;
-    }
-#endif
-
-    while (key_length) {
-        status = psa_mac_sign_setup(&operation, psa_hmac_key,
-                                    PSA_ALG_HMAC(alg));
-        if (status != PSA_SUCCESS) {
-            goto cleanup;
-        }
-        // U1 ends up in work
-        if ((status = psa_mac_update(&operation, salt, slen)) != PSA_SUCCESS) {
-            goto cleanup;
-        }
-
-        if ((status = psa_mac_update(&operation, counter, sizeof(counter))) != PSA_SUCCESS) {
-            goto cleanup;
-        }
-
-        if ((status = psa_mac_sign_finish(&operation, work, out_size, &out_len))
-            != PSA_SUCCESS) {
-            goto cleanup;
-        }
-
-        memcpy(md1, work, out_len);
-
-        for (i = 1; i < iteration_count; i++) {
-            // U2 ends up in md1
-            //
-            status = psa_mac_sign_setup(&operation, psa_hmac_key,
-                                        PSA_ALG_HMAC(alg));
-            if (status != PSA_SUCCESS) {
-                goto cleanup;
-            }
-            if ((status = psa_mac_update(&operation, md1, md_size)) != PSA_SUCCESS) {
-                goto cleanup;
-            }
-            if ((status =
-                     psa_mac_sign_finish(&operation, md1, out_size, &out_len)) != PSA_SUCCESS) {
-                goto cleanup;
-            }
-
-            // U1 xor U2
-            //
-            mbedtls_xor(work, work, md1, md_size);
-        }
-
-        use_len = (key_length < md_size) ? key_length : md_size;
-        memcpy(out_p, work, use_len);
-
-        key_length -= (uint32_t) use_len;
-        out_p += use_len;
-
-        for (i = 4; i > 0; i--) {
-            if (++counter[i - 1] != 0) {
-                break;
-            }
-        }
-    }
-
-cleanup:
-    /* Zeroise buffers to clear sensitive data from memory. */
-    mbedtls_platform_zeroize(work, PSA_HASH_MAX_SIZE);
-    mbedtls_platform_zeroize(md1, PSA_HASH_MAX_SIZE);
-    status_destruction = psa_destroy_key(psa_hmac_key);
-    if (status == PSA_SUCCESS && status_destruction != PSA_SUCCESS) {
-        status = status_destruction;
-    }
-    status_destruction = psa_mac_abort(&operation);
-    if (status == PSA_SUCCESS && status_destruction != PSA_SUCCESS) {
-        status = status_destruction;
-    }
-
-    return mbedtls_md_error_from_psa(status);
-#endif /* !MBEDTLS_MD_C */
 }
 
 #if defined(MBEDTLS_SELF_TEST)
 
-#if !defined(MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA)
+#if !defined(MBEDTLS_MD_CAN_SHA1)
 int mbedtls_pkcs5_self_test(int verbose)
 {
     if (verbose != 0) {
@@ -556,7 +443,7 @@ int mbedtls_pkcs5_self_test(int verbose)
 exit:
     return ret;
 }
-#endif /* MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA */
+#endif /* MBEDTLS_MD_CAN_SHA1 */
 
 #endif /* MBEDTLS_SELF_TEST */
 

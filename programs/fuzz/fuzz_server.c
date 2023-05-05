@@ -58,6 +58,21 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
 
     mbedtls_ctr_drbg_init(&ctr_drbg);
     mbedtls_entropy_init(&entropy);
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C)
+    mbedtls_x509_crt_init(&srvcert);
+    mbedtls_pk_init(&pkey);
+#endif
+    mbedtls_ssl_init(&ssl);
+    mbedtls_ssl_config_init(&conf);
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
+    mbedtls_ssl_ticket_init(&ticket_ctx);
+#endif
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        goto exit;
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     if (mbedtls_ctr_drbg_seed(&ctr_drbg, dummy_entropy, &entropy,
                               (const unsigned char *) pers, strlen(pers)) != 0) {
@@ -67,8 +82,6 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     if (initialized == 0) {
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C)
-        mbedtls_x509_crt_init(&srvcert);
-        mbedtls_pk_init(&pkey);
         if (mbedtls_x509_crt_parse(&srvcert, (const unsigned char *) mbedtls_test_srv_crt,
                                    mbedtls_test_srv_crt_len) != 0) {
             return 1;
@@ -92,11 +105,6 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
 
         initialized = 1;
     }
-    mbedtls_ssl_init(&ssl);
-    mbedtls_ssl_config_init(&conf);
-#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_TICKET_C)
-    mbedtls_ssl_ticket_init(&ticket_ctx);
-#endif
 
     if (mbedtls_ssl_config_defaults(&conf,
                                     MBEDTLS_SSL_IS_SERVER,
@@ -193,8 +201,14 @@ exit:
     mbedtls_entropy_free(&entropy);
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_ssl_config_free(&conf);
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C)
+    mbedtls_x509_crt_free(&srvcert);
+    mbedtls_pk_free(&pkey);
+#endif
     mbedtls_ssl_free(&ssl);
-
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_psa_crypto_free();
+#endif
 #else
     (void) Data;
     (void) Size;

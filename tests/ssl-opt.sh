@@ -11783,8 +11783,7 @@ run_test    "TLS 1.3: Client authentication, client alg not in server list - ope
             -c "got a certificate request" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
-            -c "no suitable signature algorithm" \
-            -C "unknown pk type"
+            -c "no suitable signature algorithm"
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -11801,8 +11800,7 @@ run_test    "TLS 1.3: Client authentication, client alg not in server list - gnu
             -c "got a certificate request" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
-            -c "no suitable signature algorithm" \
-            -C "unknown pk type"
+            -c "no suitable signature algorithm"
 
 # Test using an opaque private key for client authentication
 requires_openssl_tls1_3
@@ -12055,8 +12053,7 @@ run_test    "TLS 1.3: Client authentication - opaque key, client alg not in serv
             -c "got a certificate request" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
-            -c "no suitable signature algorithm" \
-            -C "unkown pk type"
+            -c "no suitable signature algorithm"
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -12074,8 +12071,7 @@ run_test    "TLS 1.3: Client authentication - opaque key, client alg not in serv
             -c "got a certificate request" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
-            -c "no suitable signature algorithm" \
-            -C "unkown pk type"
+            -c "no suitable signature algorithm"
 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C

@@ -20,15 +20,17 @@
 #include "mbedtls/build_info.h"
 
 #include "mbedtls/platform.h"
+/* md.h is included this early since MD_CAN_XXX macros are defined there. */
+#include "mbedtls/md.h"
 
 #if !defined(MBEDTLS_X509_CSR_WRITE_C) || !defined(MBEDTLS_FS_IO) ||  \
-    !defined(MBEDTLS_PK_PARSE_C) || !defined(MBEDTLS_SHA256_C) || \
+    !defined(MBEDTLS_PK_PARSE_C) || !defined(MBEDTLS_MD_CAN_SHA256) || \
     !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C) || \
     !defined(MBEDTLS_PEM_WRITE_C)
 int main(void)
 {
     mbedtls_printf("MBEDTLS_X509_CSR_WRITE_C and/or MBEDTLS_FS_IO and/or "
-                   "MBEDTLS_PK_PARSE_C and/or MBEDTLS_SHA256_C and/or "
+                   "MBEDTLS_PK_PARSE_C and/or MBEDTLS_MD_CAN_SHA256 and/or "
                    "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C "
                    "not defined.\n");
     mbedtls_exit(0);
@@ -63,6 +65,11 @@ int main(void)
     "    debug_level=%%d      default: 0 (disabled)\n"  \
     "    output_file=%%s      default: cert.req\n"      \
     "    subject_name=%%s     default: CN=Cert,O=mbed TLS,C=UK\n"   \
+    "    san=%%s              default: (none)\n"       \
+    "                        Comma-separated-list of values:\n"     \
+    "                          DNS:value\n"            \
+    "                          URI:value\n"            \
+    "                          IP:value (Only IPv4 is supported)\n"             \
     "    key_usage=%%s        default: (empty)\n"       \
     "                        Comma-separated-list of values:\n"     \
     "                          digital_signature\n"     \
@@ -96,17 +103,30 @@ int main(void)
  * global options
  */
 struct options {
-    const char *filename;       /* filename of the key file             */
-    const char *password;       /* password for the key file            */
-    int debug_level;            /* level of debugging                   */
-    const char *output_file;    /* where to store the constructed key file  */
-    const char *subject_name;   /* subject name for certificate request */
-    unsigned char key_usage;    /* key usage flags                      */
-    int force_key_usage;        /* Force adding the KeyUsage extension  */
-    unsigned char ns_cert_type; /* NS cert type                         */
-    int force_ns_cert_type;     /* Force adding NsCertType extension    */
-    mbedtls_md_type_t md_alg;   /* Hash algorithm used for signature.   */
+    const char *filename;             /* filename of the key file             */
+    const char *password;             /* password for the key file            */
+    int debug_level;                  /* level of debugging                   */
+    const char *output_file;          /* where to store the constructed key file  */
+    const char *subject_name;         /* subject name for certificate request   */
+    mbedtls_x509_san_list *san_list;  /* subjectAltName for certificate request */
+    unsigned char key_usage;          /* key usage flags                      */
+    int force_key_usage;              /* Force adding the KeyUsage extension  */
+    unsigned char ns_cert_type;       /* NS cert type                         */
+    int force_ns_cert_type;           /* Force adding NsCertType extension    */
+    mbedtls_md_type_t md_alg;         /* Hash algorithm used for signature.   */
 } opt;
+
+static void ip_string_to_bytes(const char *str, uint8_t *bytes, int maxBytes)
+{
+    for (int i = 0; i < maxBytes; i++) {
+        bytes[i] = (uint8_t) strtoul(str, NULL, 16);
+        str = strchr(str, '.');
+        if (str == NULL || *str == '\0') {
+            break;
+        }
+        str++;
+    }
+}
 
 int write_certificate_request(mbedtls_x509write_csr *req, const char *output_file,
                               int (*f_rng)(void *, unsigned char *, size_t),
@@ -145,11 +165,12 @@ int main(int argc, char *argv[])
     mbedtls_pk_context key;
     char buf[1024];
     int i;
-    char *p, *q, *r;
+    char *p, *q, *r, *r2;
     mbedtls_x509write_csr req;
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     const char *pers = "csr example app";
+    mbedtls_x509_san_list *cur, *prev;
 
     /*
      * Set to sane values
@@ -158,6 +179,16 @@ int main(int argc, char *argv[])
     mbedtls_pk_init(&key);
     mbedtls_ctr_drbg_init(&ctr_drbg);
     memset(buf, 0, sizeof(buf));
+    mbedtls_entropy_init(&entropy);
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        mbedtls_fprintf(stderr, "Failed to initialize PSA Crypto implementation: %d\n",
+                        (int) status);
+        goto exit;
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     if (argc < 2) {
 usage:
@@ -175,15 +206,14 @@ usage:
     opt.ns_cert_type        = DFL_NS_CERT_TYPE;
     opt.force_ns_cert_type  = DFL_FORCE_NS_CERT_TYPE;
     opt.md_alg              = DFL_MD_ALG;
+    opt.san_list            = NULL;
 
     for (i = 1; i < argc; i++) {
-
         p = argv[i];
         if ((q = strchr(p, '=')) == NULL) {
             goto usage;
         }
         *q++ = '\0';
-
         if (strcmp(p, "filename") == 0) {
             opt.filename = q;
         } else if (strcmp(p, "password") == 0) {
@@ -197,6 +227,59 @@ usage:
             }
         } else if (strcmp(p, "subject_name") == 0) {
             opt.subject_name = q;
+        } else if (strcmp(p, "san") == 0) {
+            prev = NULL;
+
+            while (q != NULL) {
+                uint8_t ip[4] = { 0 };
+
+                if ((r = strchr(q, ';')) != NULL) {
+                    *r++ = '\0';
+                }
+
+                cur = mbedtls_calloc(1, sizeof(mbedtls_x509_san_list));
+                if (cur == NULL) {
+                    mbedtls_printf("Not enough memory for subjectAltName list\n");
+                    goto usage;
+                }
+
+                cur->next = NULL;
+
+                if ((r2 = strchr(q, ':')) != NULL) {
+                    *r2++ = '\0';
+                }
+
+                if (strcmp(q, "URI") == 0) {
+                    cur->node.type = MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER;
+                } else if (strcmp(q, "DNS") == 0) {
+                    cur->node.type = MBEDTLS_X509_SAN_DNS_NAME;
+                } else if (strcmp(q, "IP") == 0) {
+                    cur->node.type = MBEDTLS_X509_SAN_IP_ADDRESS;
+                    ip_string_to_bytes(r2, ip, 4);
+                } else {
+                    mbedtls_free(cur);
+                    goto usage;
+                }
+
+                if (strcmp(q, "IP") == 0) {
+                    cur->node.san.unstructured_name.p = (unsigned char *) ip;
+                    cur->node.san.unstructured_name.len = sizeof(ip);
+                } else {
+                    q = r2;
+                    cur->node.san.unstructured_name.p = (unsigned char *) q;
+                    cur->node.san.unstructured_name.len = strlen(q);
+                }
+
+                if (prev == NULL) {
+                    opt.san_list = cur;
+                } else {
+                    prev->next = cur;
+                }
+
+                prev = cur;
+                q = r;
+            }
+
         } else if (strcmp(p, "md") == 0) {
             const mbedtls_md_info_t *md_info =
                 mbedtls_md_info_from_string(q);
@@ -274,14 +357,39 @@ usage:
         }
     }
 
+    /* Set the MD algorithm to use for the signature in the CSR */
     mbedtls_x509write_csr_set_md_alg(&req, opt.md_alg);
 
+    /* Set the Key Usage Extension flags in the CSR */
     if (opt.key_usage || opt.force_key_usage == 1) {
-        mbedtls_x509write_csr_set_key_usage(&req, opt.key_usage);
+        ret = mbedtls_x509write_csr_set_key_usage(&req, opt.key_usage);
+
+        if (ret != 0) {
+            mbedtls_printf(" failed\n  !  mbedtls_x509write_csr_set_key_usage returned %d", ret);
+            goto exit;
+        }
     }
 
+    /* Set the Cert Type flags in the CSR */
     if (opt.ns_cert_type || opt.force_ns_cert_type == 1) {
-        mbedtls_x509write_csr_set_ns_cert_type(&req, opt.ns_cert_type);
+        ret = mbedtls_x509write_csr_set_ns_cert_type(&req, opt.ns_cert_type);
+
+        if (ret != 0) {
+            mbedtls_printf(" failed\n  !  mbedtls_x509write_csr_set_ns_cert_type returned %d", ret);
+            goto exit;
+        }
+    }
+
+    /* Set the SubjectAltName in the CSR */
+    if (opt.san_list != NULL) {
+        ret = mbedtls_x509write_csr_set_subject_alternative_name(&req, opt.san_list);
+
+        if (ret != 0) {
+            mbedtls_printf(
+                " failed\n  !  mbedtls_x509write_csr_set_subject_alternative_name returned %d",
+                ret);
+            goto exit;
+        }
     }
 
     /*
@@ -290,7 +398,6 @@ usage:
     mbedtls_printf("  . Seeding the random number generator...");
     fflush(stdout);
 
-    mbedtls_entropy_init(&entropy);
     if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
                                      (const unsigned char *) pers,
                                      strlen(pers))) != 0) {
@@ -362,6 +469,17 @@ exit:
     mbedtls_pk_free(&key);
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_psa_crypto_free();
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+    cur = opt.san_list;
+    while (cur != NULL) {
+        prev = cur;
+        cur = cur->next;
+        mbedtls_free(prev);
+    }
+
 
     mbedtls_exit(exit_code);
 }

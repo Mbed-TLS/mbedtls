@@ -220,12 +220,6 @@ int mbedtls_mpi_mod_modulus_setup(mbedtls_mpi_mod_modulus *N,
  */
 void mbedtls_mpi_mod_modulus_free(mbedtls_mpi_mod_modulus *N);
 
-/* BEGIN MERGE SLOT 1 */
-
-/* END MERGE SLOT 1 */
-
-/* BEGIN MERGE SLOT 2 */
-
 /** \brief  Multiply two residues, returning the residue modulo the specified
  *          modulus.
  *
@@ -260,9 +254,6 @@ int mbedtls_mpi_mod_mul(mbedtls_mpi_mod_residue *X,
                         const mbedtls_mpi_mod_residue *B,
                         const mbedtls_mpi_mod_modulus *N);
 
-/* END MERGE SLOT 2 */
-
-/* BEGIN MERGE SLOT 3 */
 /**
  * \brief Perform a fixed-size modular subtraction.
  *
@@ -321,13 +312,6 @@ int mbedtls_mpi_mod_sub(mbedtls_mpi_mod_residue *X,
 int mbedtls_mpi_mod_inv(mbedtls_mpi_mod_residue *X,
                         const mbedtls_mpi_mod_residue *A,
                         const mbedtls_mpi_mod_modulus *N);
-/* END MERGE SLOT 3 */
-
-/* BEGIN MERGE SLOT 4 */
-
-/* END MERGE SLOT 4 */
-
-/* BEGIN MERGE SLOT 5 */
 /**
  * \brief Perform a fixed-size modular addition.
  *
@@ -358,9 +342,6 @@ int mbedtls_mpi_mod_add(mbedtls_mpi_mod_residue *X,
                         const mbedtls_mpi_mod_residue *A,
                         const mbedtls_mpi_mod_residue *B,
                         const mbedtls_mpi_mod_modulus *N);
-/* END MERGE SLOT 5 */
-
-/* BEGIN MERGE SLOT 6 */
 
 /** Generate a random number uniformly in a range.
  *
@@ -395,9 +376,6 @@ int mbedtls_mpi_mod_random(mbedtls_mpi_mod_residue *X,
                            int (*f_rng)(void *, unsigned char *, size_t),
                            void *p_rng);
 
-/* END MERGE SLOT 6 */
-
-/* BEGIN MERGE SLOT 7 */
 /** Read a residue from a byte buffer.
  *
  * The residue will be automatically converted to the internal representation
@@ -464,18 +442,5 @@ int mbedtls_mpi_mod_write(const mbedtls_mpi_mod_residue *r,
                           unsigned char *buf,
                           size_t buflen,
                           mbedtls_mpi_mod_ext_rep ext_rep);
-/* END MERGE SLOT 7 */
-
-/* BEGIN MERGE SLOT 8 */
-
-/* END MERGE SLOT 8 */
-
-/* BEGIN MERGE SLOT 9 */
-
-/* END MERGE SLOT 9 */
-
-/* BEGIN MERGE SLOT 10 */
-
-/* END MERGE SLOT 10 */
 
 #endif /* MBEDTLS_BIGNUM_MOD_H */

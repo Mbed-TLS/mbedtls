@@ -321,6 +321,172 @@ TODO: key input and output for opaque drivers; deterministic key generation for 
 
 TODO
 
+### Driver entry points for PAKE
+
+A PAKE operation is divided into two stages: collecting inputs and computation. Core side is responsible for keeping inputs and core set-data functions do not have driver entry points. Collected inputs are available for drivers via get-data functions for `password`, `role` and `cipher_suite`.
+
+### PAKE driver dispatch logic
+The core decides whether to dispatch a PAKE operation to a driver based on the location of the provided password.
+When all inputs are collected and `"psa_pake_output"` or `"psa_pake_input"` is called for the first time `"pake_setup"` driver entry point is invoked.
+
+1. If the location of the `password` is the local storage
+- if there is a transparent driver for the specified ciphersuite, the core calls that driver's `"pake_setup"` and subsequent entry points.
+- otherwise, or on fallback, the core uses its built-in implementation.
+2. If the location of the `password` is the location of a secure element
+- the core calls the `"pake_setup"` entry point of the secure element driver and subsequent entry points.
+
+### Summary of entry points for PAKE
+
+A PAKE driver has the following entry points:
+* `"pake_setup"` (mandatory): always the first entry point to be called. It is called when all inputs are collected and the computation stage starts. 
+* `"pake_output"` (mandatory): derive cryptographic material for the specified step and output it.
+* `"pake_input"` (mandatory): provides cryptographic material in the format appropriate for the specified step.
+* `"pake_get_implicit_key"` (mandatory): returns implicitly confirmed shared secret from a PAKE.
+* `"pake_abort"` (mandatory): always the last entry point to be called.
+
+For naming purposes, here and in the following subsection, this specification takes the example of a driver with the prefix `"acme"` that implements the PAKE entry point family with a capability that does not use the `"names"` property to declare different type and entry point names. Such a driver must implement the following type and functions, as well as the entry points listed above and described in the following subsections:
+```
+typedef ... acme_pake_operation_t;
+psa_status_t acme_pake_abort( acme_pake_operation_t *operation );
+```
+
+#### PAKE driver inputs
+
+The core conveys the initial inputs for a PAKE operation via an opaque data structure of type `psa_crypto_driver_pake_inputs_t`.
+
+```
+typedef ... psa_crypto_driver_pake_inputs_t; // implementation-specific type
+```
+
+A driver receiving an argument that points to a `psa_crypto_driver_pake_inputs_t` can retrieve its contents by calling one of the get-data functions below.
+
+```
+psa_status_t psa_crypto_driver_pake_get_password_len(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    size_t *password_len);
+
+psa_status_t psa_crypto_driver_pake_get_password_bytes(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    uint8_t *buffer, size_t buffer_size, size_t *buffer_length);
+
+psa_status_t psa_crypto_driver_pake_get_password_key(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    uint8_t** p_key_buffer, size_t *key_buffer_size,
+    const psa_key_attributes_t *attributes);
+
+psa_status_t psa_crypto_driver_pake_get_user_len(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    size_t *user_len);
+
+psa_status_t psa_crypto_driver_pake_get_user(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    uint8_t *user_id, size_t user_id_size, size_t *user_id_len);
+
+psa_status_t psa_crypto_driver_pake_get_peer_len(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    size_t *peer_len);
+
+psa_status_t psa_crypto_driver_pake_get_peer(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    uint8_t *peer_id, size_t peer_id_size, size_t *peer_id_length);
+
+psa_status_t psa_crypto_driver_pake_get_cipher_suite(
+    const psa_crypto_driver_pake_inputs_t *inputs,
+    psa_pake_cipher_suite_t *cipher_suite);
+```
+The get-data functions take the following parameters:
+
+The first parameter `inputs` must be a pointer passed by the core to a PAKE driver setup entry point.
+Next parameters are return buffers (must not be null pointers).
+
+These functions can return the following statuses:
+* `PSA_SUCCESS`: value has been successfully obtained
+* `PSA_ERROR_BAD_STATE`: the inputs are not ready
+* `PSA_ERROR_BUFFER_TOO_SMALL` (`psa_crypto_driver_pake_get_password_bytes` and `psa_crypto_driver_pake_get_password_key` only): the output buffer is too small. This is not a fatal error and the driver can, for example, subsequently call the same function again with a larger buffer. Call `psa_crypto_driver_pake_get_password_len` to obtain the required size.
+
+#### PAKE driver setup
+
+```
+psa_status_t acme_pake_setup( acme_pake_operation_t *operation,
+                              const psa_crypto_driver_pake_inputs_t *inputs );
+```
+
+* `operation` is a zero-initialized operation object.
+* `inputs` is an opaque pointer to the [inputs](#pake-driver-inputs) for the PAKE operation.
+
+The setup driver function should preserve the inputs using get-data functions.
+
+The pointer output by `psa_crypto_driver_pake_get_password_key` is only valid until the "pake_setup" entry point returns. Opaque drivers must copy all relevant data from the key buffer during the "pake_setup" entry point and must not store the pointer itself.
+
+#### PAKE driver output
+
+```
+psa_status_t acme_pake_output(acme_pake_operation_t *operation,
+                              psa_crypto_driver_pake_step_t step,
+                              uint8_t *output,
+                              size_t output_size,
+                              size_t *output_length);
+```
+
+* `operation` is an operation object.
+* `step` computation step based on which driver should perform an action.
+* `output` buffer where the output is to be written.
+* `output_size` size of the output buffer in bytes.
+* `output_length` the number of bytes of the returned output.
+
+For `PSA_ALG_JPAKE` the following steps are available for output operation:
+`step` can be one of the following values:
+* `PSA_JPAKE_X1_STEP_KEY_SHARE`     Round 1: output our key share (for ephemeral private key X1)
+* `PSA_JPAKE_X1_STEP_ZK_PUBLIC`     Round 1: output Schnorr NIZKP public key for the X1 key
+* `PSA_JPAKE_X1_STEP_ZK_PROOF`      Round 1: output Schnorr NIZKP proof for the X1 key
+* `PSA_JPAKE_X2_STEP_KEY_SHARE`     Round 1: output our key share (for ephemeral private key X2)
+* `PSA_JPAKE_X2_STEP_ZK_PUBLIC`     Round 1: output Schnorr NIZKP public key for the X2 key
+* `PSA_JPAKE_X2_STEP_ZK_PROOF`      Round 1: output Schnorr NIZKP proof for the X2 key
+* `PSA_JPAKE_X2S_STEP_KEY_SHARE`    Round 2: output our X2S key
+* `PSA_JPAKE_X2S_STEP_ZK_PUBLIC`    Round 2: output Schnorr NIZKP public key for the X2S key 
+* `PSA_JPAKE_X2S_STEP_ZK_PROOF`     Round 2: output Schnorr NIZKP proof for the X2S key
+
+#### PAKE driver input
+```
+psa_status_t acme_pake_input(acme_pake_operation_t *operation,
+                             psa_crypto_driver_pake_step_t step,
+                             uint8_t *input,
+                             size_t input_size);
+```
+
+* `operation` is an operation object.
+* `step` computation step based on which driver should perform an action.
+* `input` buffer containing the input.
+* `input_length` length of the input in bytes.
+
+For `PSA_ALG_JPAKE` the following steps are available for input operation:
+* `PSA_JPAKE_X1_STEP_KEY_SHARE`     Round 1: input key share from peer (for ephemeral private key X1)
+* `PSA_JPAKE_X1_STEP_ZK_PUBLIC`     Round 1: input Schnorr NIZKP public key for the X1 key
+* `PSA_JPAKE_X1_STEP_ZK_PROOF`      Round 1: input Schnorr NIZKP proof for the X1 key
+* `PSA_JPAKE_X2_STEP_KEY_SHARE`     Round 1: input key share from peer (for ephemeral private key X2)
+* `PSA_JPAKE_X2_STEP_ZK_PUBLIC`     Round 1: input Schnorr NIZKP public key for the X2 key
+* `PSA_JPAKE_X2_STEP_ZK_PROOF`      Round 1: input Schnorr NIZKP proof for the X2 key
+* `PSA_JPAKE_X4S_STEP_KEY_SHARE`    Round 2: input X4S key from peer
+* `PSA_JPAKE_X4S_STEP_ZK_PUBLIC`    Round 2: input Schnorr NIZKP public key for the X4S key
+* `PSA_JPAKE_X4S_STEP_ZK_PROOF`     Round 2: input Schnorr NIZKP proof for the X4S key
+
+The core checks that `input_length` is not greater than `PSA_PAKE_INPUT_SIZE(alg, prim, step)` and
+the driver can rely on that.
+
+### PAKE driver get implicit key
+
+```
+psa_status_t acme_pake_get_implicit_key(
+                            acme_pake_operation_t *operation,
+                            uint8_t *output, size_t output_size,
+                            size_t *output_length );
+```
+
+* `operation` The driver PAKE operation object to use.
+* `output` Buffer where the implicit key is to be written.
+* `output_size` Size of the output buffer in bytes.
+* `output_length` On success, the number of bytes of the implicit key.
+
 ### Driver entry points for key management
 
 The driver entry points for key management differ significantly between [transparent drivers](#key-management-with-transparent-drivers) and [opaque drivers](#key-management-with-opaque-drivers). This section describes common elements. Refer to the applicable section for each driver type for more information.

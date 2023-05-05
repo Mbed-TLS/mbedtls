@@ -312,7 +312,7 @@ mbedtls_ecp_group;
 /**
  * The maximum size of the groups, that is, of \c N and \c P.
  */
-#if !defined(MBEDTLS_ECP_C)
+#if !defined(MBEDTLS_ECP_LIGHT)
 /* Dummy definition to help code that has optional ECP support and
  * defines an MBEDTLS_ECP_MAX_BYTES-sized array unconditionally. */
 #define MBEDTLS_ECP_MAX_BITS 1
@@ -343,9 +343,9 @@ mbedtls_ecp_group;
 #define MBEDTLS_ECP_MAX_BITS 192
 #elif defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
 #define MBEDTLS_ECP_MAX_BITS 192
-#else
+#else /* !MBEDTLS_ECP_LIGHT */
 #error "Missing definition of MBEDTLS_ECP_MAX_BITS"
-#endif
+#endif /* !MBEDTLS_ECP_LIGHT */
 
 #define MBEDTLS_ECP_MAX_BYTES    ((MBEDTLS_ECP_MAX_BITS + 7) / 8)
 #define MBEDTLS_ECP_MAX_PT_LEN   (2 * MBEDTLS_ECP_MAX_BYTES + 1)

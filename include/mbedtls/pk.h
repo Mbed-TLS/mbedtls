@@ -197,6 +197,11 @@ typedef struct mbedtls_pk_rsassa_pss_options {
 #define MBEDTLS_PK_CAN_ECDSA_SOME
 #endif
 
+#if (defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_ECDH)) || \
+    (!defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_ECDH_C))
+#define MBEDTLS_PK_CAN_ECDH
+#endif
+
 /**
  * \brief           Types for interfacing with the debug module
  */
@@ -766,7 +771,7 @@ static inline mbedtls_rsa_context *mbedtls_pk_rsa(const mbedtls_pk_context pk)
 }
 #endif /* MBEDTLS_RSA_C */
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 /**
  * Quick access to an EC context inside a PK context.
  *
@@ -789,12 +794,16 @@ static inline mbedtls_ecp_keypair *mbedtls_pk_ec(const mbedtls_pk_context pk)
             return NULL;
     }
 }
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
 
 #if defined(MBEDTLS_PK_PARSE_C)
 /** \ingroup pk_module */
 /**
  * \brief           Parse a private key in PEM or DER format
+ *
+ * \note            If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
+ *                  subsystem must have been initialized by calling
+ *                  psa_crypto_init() before calling this function.
  *
  * \param ctx       The PK context to fill. It must have been initialized
  *                  but not set up.
@@ -832,6 +841,10 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *ctx,
 /**
  * \brief           Parse a public key in PEM or DER format
  *
+ * \note            If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
+ *                  subsystem must have been initialized by calling
+ *                  psa_crypto_init() before calling this function.
+ *
  * \param ctx       The PK context to fill. It must have been initialized
  *                  but not set up.
  * \param key       Input buffer to parse.
@@ -860,6 +873,10 @@ int mbedtls_pk_parse_public_key(mbedtls_pk_context *ctx,
 /** \ingroup pk_module */
 /**
  * \brief           Load and parse a private key
+ *
+ * \note            If #MBEDTLS_USE_PSA_CRYPTO is enabled, the PSA crypto
+ *                  subsystem must have been initialized by calling
+ *                  psa_crypto_init() before calling this function.
  *
  * \param ctx       The PK context to fill. It must have been initialized
  *                  but not set up.

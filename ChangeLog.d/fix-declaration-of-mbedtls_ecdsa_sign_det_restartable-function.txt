@@ -1,0 +1,5 @@
+Bugfix
+   * Fix declaration of mbedtls_ecdsa_sign_det_restartable() function
+     in the ecdsa.h header file. There was a build warning when the
+     configuration macro MBEDTLS_ECDSA_SIGN_ALT was defined.
+     Resolves #7407.

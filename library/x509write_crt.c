@@ -32,7 +32,7 @@
 #include "mbedtls/error.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
-#include "mbedtls/sha1.h"
+#include "mbedtls/md.h"
 
 #include <string.h>
 
@@ -46,7 +46,6 @@
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #include "hash_info.h"
-#include "mbedtls/legacy_or_psa.h"
 
 void mbedtls_x509write_crt_init(mbedtls_x509write_cert *ctx)
 {
@@ -195,7 +194,7 @@ int mbedtls_x509write_crt_set_basic_constraints(mbedtls_x509write_cert *ctx,
                                             is_ca, buf + sizeof(buf) - len, len);
 }
 
-#if defined(MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+#if defined(MBEDTLS_MD_CAN_SHA1)
 static int mbedtls_x509write_crt_set_key_identifier(mbedtls_x509write_cert *ctx,
                                                     int is_ca,
                                                     unsigned char tag)
@@ -229,8 +228,9 @@ static int mbedtls_x509write_crt_set_key_identifier(mbedtls_x509write_cert *ctx,
         return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
     }
 #else
-    ret = mbedtls_sha1(buf + sizeof(buf) - len, len,
-                       buf + sizeof(buf) - 20);
+    ret = mbedtls_md(mbedtls_md_info_from_type(MBEDTLS_MD_SHA1),
+                     buf + sizeof(buf) - len, len,
+                     buf + sizeof(buf) - 20);
     if (ret != 0) {
         return ret;
     }
@@ -279,7 +279,7 @@ int mbedtls_x509write_crt_set_authority_key_identifier(mbedtls_x509write_cert *c
                                                     1,
                                                     (MBEDTLS_ASN1_CONTEXT_SPECIFIC | 0));
 }
-#endif /* MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
+#endif /* MBEDTLS_MD_CAN_SHA1 */
 
 int mbedtls_x509write_crt_set_key_usage(mbedtls_x509write_cert *ctx,
                                         unsigned int key_usage)

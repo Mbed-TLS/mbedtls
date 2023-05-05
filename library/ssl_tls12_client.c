@@ -33,6 +33,9 @@
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "mbedtls/psa_util.h"
 #include "psa/crypto.h"
+#define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
+                                                           psa_to_ssl_errors,             \
+                                                           psa_generic_status_to_mbedtls)
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #include <string.h>
@@ -828,11 +831,9 @@ static int ssl_parse_supported_point_formats_ext(mbedtls_ssl_context *ssl,
     while (list_size > 0) {
         if (p[0] == MBEDTLS_ECP_PF_UNCOMPRESSED ||
             p[0] == MBEDTLS_ECP_PF_COMPRESSED) {
-#if !defined(MBEDTLS_USE_PSA_CRYPTO) &&                             \
-            (defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C))
+#if !defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_ECDH_C)
             ssl->handshake->ecdh_ctx.point_format = p[0];
-#endif /* !MBEDTLS_USE_PSA_CRYPTO &&
-          ( MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ) */
+#endif /* !MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_ECDH_C */
 #if !defined(MBEDTLS_USE_PSA_CRYPTO) &&                             \
             defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
             mbedtls_ecjpake_set_point_format(&ssl->handshake->ecjpake_ctx,
@@ -2951,7 +2952,7 @@ ecdh_calc_secret:
         status = psa_generate_key(&key_attributes,
                                   &handshake->ecdh_psa_privkey);
         if (status != PSA_SUCCESS) {
-            return psa_ssl_status_to_mbedtls(status);
+            return PSA_TO_MBEDTLS_ERR(status);
         }
 
         /* Export the public part of the ECDH private key from PSA.
@@ -2968,7 +2969,7 @@ ecdh_calc_secret:
         if (status != PSA_SUCCESS) {
             psa_destroy_key(handshake->ecdh_psa_privkey);
             handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
-            return psa_ssl_status_to_mbedtls(status);
+            return PSA_TO_MBEDTLS_ERR(status);
         }
 
         *p = (unsigned char) own_pubkey_len;
@@ -3000,9 +3001,9 @@ ecdh_calc_secret:
         handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
 
         if (status != PSA_SUCCESS) {
-            return psa_ssl_status_to_mbedtls(status);
+            return PSA_TO_MBEDTLS_ERR(status);
         } else if (destruction_status != PSA_SUCCESS) {
-            return psa_ssl_status_to_mbedtls(destruction_status);
+            return PSA_TO_MBEDTLS_ERR(destruction_status);
         }
 
         /* Write the ECDH computation length before the ECDH computation */

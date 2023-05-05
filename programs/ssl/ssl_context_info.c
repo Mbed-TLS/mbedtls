@@ -21,6 +21,7 @@
 
 #include "mbedtls/build_info.h"
 #include "mbedtls/debug.h"
+#include "mbedtls/platform.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -933,6 +934,15 @@ int main(int argc, char *argv[])
     size_t ssl_max_len = SSL_INIT_LEN;
     size_t ssl_len = 0;
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        mbedtls_fprintf(stderr, "Failed to initialize PSA Crypto implementation: %d\n",
+                        (int) status);
+        return MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
     /* The 'b64_file' is opened when parsing arguments to check that the
      * file name is correct */
     parse_arguments(argc, argv);
@@ -1000,6 +1010,10 @@ int main(int argc, char *argv[])
     } else {
         printf("Finished. No valid base64 code found\n");
     }
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_psa_crypto_free();
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     return 0;
 }

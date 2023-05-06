@@ -32,8 +32,15 @@ void sleep_ms(int milliseconds)
     usleep(milliseconds * 1000);
 #endif
 }
-#endif
+/*
+ * https://en.wikipedia.org/wiki/Real-time_clock
+ *
+ * Typical crystal RTC accuracy specifications are from ±100 to ±20 parts
+ * per million (8.6 to 1.7 seconds per day)
+ */
+#define MBEDTLS_WORST_SECONDS_SHIFT_PER_DAY 9
 
+#endif
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES */
@@ -41,82 +48,36 @@ void sleep_ms(int milliseconds)
 /* END_DEPENDENCIES */
 
 /* BEGIN_CASE depends_on:MBEDTLS_HAVE_TIME */
-void time_get_milliseconds()
-{
-    mbedtls_ms_time_t current = mbedtls_ms_time();
-    (void) current;
-    /* This goto is added to avoid warnings from the generated code. */
-    goto exit;
-}
-/* END_CASE */
-
-/* BEGIN_CASE depends_on:MBEDTLS_HAVE_TIME */
-void time_get_seconds()
-{
-    mbedtls_time_t current = mbedtls_time(NULL);
-    (void) current;
-    /* This goto is added to avoid warnings from the generated code. */
-    goto exit;
-}
-/* END_CASE */
-
-/* BEGIN_CASE depends_on:MBEDTLS_HAVE_TIME */
 void time_delay_milliseconds(int delay_ms)
 {
-    mbedtls_ms_time_t current = mbedtls_ms_time();
-    mbedtls_ms_time_t elapsed_ms;
+    mbedtls_ms_time_t expected_end;
+    mbedtls_ms_time_t diff_ms;
+    mbedtls_ms_time_t worst_shift = MBEDTLS_WORST_SECONDS_SHIFT_PER_DAY * 1000;
 
-    /*
-     * WARNING: DO NOT ENABLE THIS TEST. We keep the code here to document the
-     *          reason.
-     *
-     *          Windows CI reports random test fail on platform-suite. It might
-     *          be caused by this case.
-     */
+    expected_end = mbedtls_ms_time() + delay_ms;
     sleep_ms(delay_ms);
-
-    elapsed_ms = mbedtls_ms_time() - current;
-    TEST_ASSERT(elapsed_ms >= delay_ms && elapsed_ms < 4000 + delay_ms);
-    /* This goto is added to avoid warnings from the generated code. */
-    goto exit;
+    diff_ms = mbedtls_ms_time() - expected_end;
+    TEST_LE_S(diff_ms, worst_shift);
+    TEST_LE_S(-worst_shift, diff_ms);
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_HAVE_TIME */
 
 /*
- * WARNING: DO NOT ENABLE THIS TEST. We keep the code here to document the
- *          reason.
  *
- *          The test often failed on the CI. See #1517. CI failures cannot be
- *          completely avoided due to out-of-sync clock sources.
+ *
  */
 void time_delay_seconds(int delay_secs)
 {
-    mbedtls_time_t current = mbedtls_time(NULL);
-    mbedtls_time_t elapsed_secs;
+    mbedtls_time_t expected_end;
+    mbedtls_time_t diff_secs;
 
+    expected_end = mbedtls_time(NULL) + delay_secs;
     sleep_ms(delay_secs * 1000);
+    diff_secs = mbedtls_time(NULL) - expected_end;
 
-    elapsed_secs = mbedtls_time(NULL) - current;
-
-    /*
-     * `mbedtls_time()` was defined as c99 function `time()`, returns the number
-     * of seconds since the Epoch. And it is affected by discontinuous changes
-     * from automatic drift adjustment or time setting system call. The POSIX.1
-     * specification for clock_settime says that discontinuous changes in
-     * CLOCK_REALTIME should not affect `nanosleep()`.
-     *
-     * If discontinuous changes occur during `nanosleep()`, we will get
-     * `elapsed_secs < delay_secs` for backward or `elapsed_secs > delay_secs`
-     * for forward.
-     *
-     * The following tolerance windows cannot be guaranteed.
-     * PLEASE DO NOT ENABLE IT IN CI TEST.
-     */
-    TEST_ASSERT(elapsed_secs - delay_secs >= -1 &&
-                elapsed_secs - delay_secs <   4);
-    /* This goto is added to avoid warnings from the generated code. */
-    goto exit;
+    TEST_LE_S(diff_secs, MBEDTLS_WORST_SECONDS_SHIFT_PER_DAY);
+    TEST_LE_S(-MBEDTLS_WORST_SECONDS_SHIFT_PER_DAY, diff_secs);
 }
 /* END_CASE */

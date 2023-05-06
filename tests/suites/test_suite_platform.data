@@ -1,6 +1,6 @@
 
-Time: get milliseconds
-time_get_milliseconds:
+Time: delay milliseconds
+time_delay_milliseconds:1000
 
-Time: get seconds
-time_get_seconds:
+Time: delay seconds
+time_delay_seconds:1

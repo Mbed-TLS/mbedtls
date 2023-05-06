@@ -3708,7 +3708,8 @@
  *
  * Defining MBEDTLS_PLATFORM_CALLOC_MACRO and MBEDTLS_PLATFORM_STD_CALLOC at the same time is not possible.
  * MBEDTLS_PLATFORM_CALLOC_MACRO and MBEDTLS_PLATFORM_FREE_MACRO must both be defined or undefined at the same time.
- * MBEDTLS_PLATFORM_STD_CALLOC and MBEDTLS_PLATFORM_STD_FREE do not have to be defined at the same time, as, if they are used, dynamic setup of these functions is possible. See the tree above to see how are they handled in all cases.
+ * MBEDTLS_PLATFORM_STD_CALLOC and MBEDTLS_PLATFORM_STD_FREE do not have to be defined at the same time, as, if they are used,
+ * dynamic setup of these functions is possible. See the tree above to see how are they handled in all cases.
  */
 /** \def MBEDTLS_PLATFORM_STD_CALLOC
  *
@@ -3722,7 +3723,7 @@
 //#define MBEDTLS_PLATFORM_STD_CALLOC        calloc
 /** \def MBEDTLS_PLATFORM_STD_FREE
  *
- * Default free to use, can be undefined.
+ * Default free to use, can be undefined. See the description above for more details (same principles as for MBEDTLS_PLATFORM_STD_CALLOC apply).
  * NULL is a valid parameter, and the function must do nothing.
  * A non-null parameter will always be a pointer previously returned by #MBEDTLS_PLATFORM_STD_CALLOC and not yet freed.
  */

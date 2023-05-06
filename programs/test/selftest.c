@@ -77,7 +77,10 @@ static int calloc_self_test(int verbose)
     unsigned int buffer_4_size = 4097; /* Allocate more than the usual page size */
     unsigned char *buffer3 = mbedtls_calloc(buffer_3_size, 1);
     unsigned char *buffer4 = mbedtls_calloc(buffer_4_size, 1);
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Walloc-size-larger-than="
+    unsigned char *buffer5 = mbedtls_calloc(SIZE_MAX/2, SIZE_MAX/2);
+#pragma GCC diagnostic pop
     if (empty1 == NULL && empty2 == NULL) {
         if (verbose) {
             mbedtls_printf("  CALLOC(0,1): passed (NULL)\n");
@@ -172,6 +175,13 @@ static int calloc_self_test(int verbose)
         }
     }
 
+    if (buffer5 != NULL) {
+        ++failures;
+        if (verbose) {
+            mbedtls_printf("  CALLOC(SIZE_MAX/2, SIZE_MAX/2): failed (returned a valid pointer)\n");
+        }
+    }
+
     if (verbose) {
         mbedtls_printf("\n");
     }
@@ -181,6 +191,7 @@ static int calloc_self_test(int verbose)
     mbedtls_free(buffer2);
     mbedtls_free(buffer3);
     mbedtls_free(buffer4);
+    mbedtls_free(buffer5);
     return failures;
 }
 #endif /* MBEDTLS_SELF_TEST */

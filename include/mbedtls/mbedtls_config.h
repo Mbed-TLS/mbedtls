@@ -3680,9 +3680,39 @@
 
 /* Platform options */
 //#define MBEDTLS_PLATFORM_STD_MEM_HDR   <stdlib.h> /**< Header to include if MBEDTLS_PLATFORM_NO_STD_FUNCTIONS is defined. Don't define if no header is needed. */
+
+/* An overview of how the value of mbedtls_calloc is determined:
+ *
+ * if !MBEDTLS_PLATFORM_MEMORY
+ *     mbedtls_calloc = calloc
+ * if MBEDTLS_PLATFORM_MEMORY
+ *     if (MBEDTLS_PLATFORM_CALLOC_MACRO && MBEDTLS_PLATFORM_FREE_MACRO):
+ *         mbedtls_calloc = MBEDTLS_PLATFORM_CALLOC_MACRO
+ *     if !(MBEDTLS_PLATFORM_CALLOC_MACRO && MBEDTLS_PLATFORM_FREE_MACRO):
+ *         Dynamic setup via mbedtls_platform_set_calloc_free is now possible with a default value MBEDTLS_PLATFORM_STD_CALLOC.
+ *         How is MBEDTLS_PLATFORM_STD_CALLOC handled?
+ *         if MBEDTLS_PLATFORM_NO_STD_FUNCTIONS:
+ *             MBEDTLS_PLATFORM_STD_CALLOC is not set to anything;
+ *             MBEDTLS_PLATFORM_STD_MEM_HDR can be included if present;
+ *         if !MBEDTLS_PLATFORM_NO_STD_FUNCTIONS:
+ *             if MBEDTLS_PLATFORM_STD_CALLOC is present:
+ *                 User-defined MBEDTLS_PLATFORM_STD_CALLOC is respected;
+ *             if !MBEDTLS_PLATFORM_STD_CALLOC:
+ *                 MBEDTLS_PLATFORM_STD_CALLOC = calloc
+ *
+ *         At this point the presence of MBEDTLS_PLATFORM_STD_CALLOC is checked.
+ *         if !MBEDTLS_PLATFORM_STD_CALLOC
+ *             MBEDTLS_PLATFORM_STD_CALLOC = uninitialized_calloc
+ *
+ *         mbedtls_calloc = MBEDTLS_PLATFORM_STD_CALLOC.
+ *
+ * Defining MBEDTLS_PLATFORM_CALLOC_MACRO and MBEDTLS_PLATFORM_STD_CALLOC at the same time is not possible.
+ * MBEDTLS_PLATFORM_CALLOC_MACRO and MBEDTLS_PLATFORM_FREE_MACRO must both be defined or undefined at the same time.
+ * MBEDTLS_PLATFORM_STD_CALLOC and MBEDTLS_PLATFORM_STD_FREE do not have to be defined at the same time, as, if they are used, dynamic setup of these functions is possible. See the tree above to see how are they handled in all cases.
+ */
 /** \def MBEDTLS_PLATFORM_STD_CALLOC
  *
- * Default allocator to use, can be undefined.
+ * Default allocator to use, can be undefined. See the description above for details.
  * It must initialize the allocated buffer memory to zeroes.
  * The size of the buffer is the product of the two parameters.
  * The calloc function returns either a null pointer or a pointer to the allocated space.

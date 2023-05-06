@@ -259,7 +259,11 @@ test-int-ca2.csr: test-int-ca2.key $(test_ca_config_file)
 	$(OPENSSL) req -new -config $(test_ca_config_file) -key test-int-ca2.key \
 		-subj "/C=NL/O=PolarSSL/CN=PolarSSL Test Intermediate EC CA" -out $@
 
-all_intermediate += test-int-ca.csr test-int-ca2.csr
+test-int-ca3.csr: test-int-ca3.key $(test_ca_config_file)
+	$(OPENSSL) req -new -config $(test_ca_config_file) -key test-int-ca3.key \
+		-subj "/C=UK/O=mbed TLS/CN=mbed TLS Test intermediate CA 3" -out $@
+
+all_intermediate += test-int-ca.csr test-int-ca2.csr test-int-ca3.csr
 
 test-int-ca.crt: $(test_ca_crt_file_ec) $(test_ca_key_file_ec) $(test_ca_config_file) test-int-ca.csr
 	$(OPENSSL) x509 -req -extfile $(test_ca_config_file) -extensions v3_ca -CA $(test_ca_crt_file_ec) -CAkey $(test_ca_key_file_ec) -set_serial 14 -days 3653 -sha256 -in test-int-ca.csr -out $@
@@ -269,10 +273,15 @@ test-int-ca2.crt: $(test_ca_key_file_rsa) $(test_ca_crt) $(test_ca_config_file) 
 		-CAkey $(test_ca_key_file_rsa) -set_serial 15 -days 3653 -sha256 -in test-int-ca2.csr \
 		-passin "pass:$(test_ca_pwd_rsa)" -out $@
 
+test-int-ca3.crt: test-int-ca2.crt test-int-ca2.key $(test_ca_config_file) test-int-ca3.csr
+	$(OPENSSL) x509 -req -extfile $(test_ca_config_file) -extensions no_subj_auth_id \
+		-CA test-int-ca2.crt -CAkey test-int-ca2.key -set_serial 77 -days 3653 \
+			-sha256 -in test-int-ca3.csr -out $@
+
 test-int-ca-exp.crt: $(test_ca_crt_file_ec) $(test_ca_key_file_ec) $(test_ca_config_file) test-int-ca.csr
 	$(FAKETIME) -f -3653d $(OPENSSL) x509 -req -extfile $(test_ca_config_file) -extensions v3_ca -CA $(test_ca_crt_file_ec) -CAkey $(test_ca_key_file_ec) -set_serial 14 -days 3653 -sha256 -in test-int-ca.csr -out $@
 
-all_final += test-int-ca-exp.crt test-int-ca.crt test-int-ca2.crt
+all_final += test-int-ca-exp.crt test-int-ca.crt test-int-ca2.crt test-int-ca3.crt
 
 enco-cert-utf8str.pem: rsa_pkcs1_1024_clear.pem
 	$(MBEDTLS_CERT_WRITE) subject_key=rsa_pkcs1_1024_clear.pem subject_name="CN=dw.yonan.net" issuer_crt=enco-ca-prstr.pem issuer_key=rsa_pkcs1_1024_clear.pem not_before=20190210144406 not_after=20290210144406 md=SHA1 version=3 output_file=$@

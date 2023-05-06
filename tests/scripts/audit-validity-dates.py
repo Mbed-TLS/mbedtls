@@ -73,9 +73,6 @@ class AuditData:
         encoding = cryptography.hazmat.primitives.serialization.Encoding.DER
         self._identifier = hashlib.sha1(self._obj.public_bytes(encoding)).hexdigest()
 
-    def __eq__(self, __value) -> bool:
-        return self._obj == __value._obj
-
     @property
     def identifier(self):
         """
@@ -263,7 +260,7 @@ class Auditor:
         Iterate over all the files in the list and get audit data. The
         results will be written to `results` passed to this function.
 
-        :param results: The dictionary used to store the parsed 
+        :param results: The dictionary used to store the parsed
                         AuditData. The keys of this dictionary should
                         be the identifier of the AuditData.
         """
@@ -374,22 +371,6 @@ class SuiteDataAuditor(Auditor):
                 audit_data_list.append(audit_data)
 
         return audit_data_list
-
-
-def merge_auditdata(original: typing.List[AuditData]) \
-    -> typing.List[AuditData]:
-    """
-    Multiple AuditData might be extracted from different locations for
-    an identical X.509 object. Merge them into one entry in the list.
-    """
-    results = []
-    for x in original:
-        if x not in results:
-            results.append(x)
-        else:
-            idx = results.index(x)
-            results[idx].locations.extend(x.locations)
-    return results
 
 
 def list_all(audit_data: AuditData):

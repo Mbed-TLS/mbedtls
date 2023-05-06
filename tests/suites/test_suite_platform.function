@@ -75,10 +75,10 @@ int test_time_delay_seconds_once(int delay_secs)
 void time_delay_milliseconds(int delay_ms)
 {
     int i;
-    for(i=0;i<3; i++)
-    {
-        if(test_time_delay_milliseconds_once(delay_ms))
+    for (i = 0; i < 3; i++) {
+        if (test_time_delay_milliseconds_once(delay_ms)) {
             goto exit;
+        }
     }
     TEST_ASSERT(0);
 }
@@ -96,10 +96,10 @@ void time_delay_milliseconds(int delay_ms)
 void time_delay_seconds(int delay_secs)
 {
     int i;
-    for(i=0;i<3; i++)
-    {
-        if(test_time_delay_seconds_once(delay_secs))
+    for (i = 0; i < 3; i++) {
+        if (test_time_delay_seconds_once(delay_secs)) {
             goto exit;
+        }
     }
     TEST_ASSERT(0);
 }

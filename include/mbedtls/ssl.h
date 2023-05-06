@@ -3810,8 +3810,8 @@ static inline const char *mbedtls_ssl_get_hostname(mbedtls_ssl_context *ssl)
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
 /**
  * \brief          Retrieve SNI extension value for the current handshake.
- *                 Available in \p f_cert_cb of \c mbedtls_ssl_conf_cert_cb(),
- *                 this is the same value passed to \p f_sni callback of
+ *                 Available in \c f_cert_cb of \c mbedtls_ssl_conf_cert_cb(),
+ *                 this is the same value passed to \c f_sni callback of
  *                 \c mbedtls_ssl_conf_sni() and may be used instead of
  *                 \c mbedtls_ssl_conf_sni().
  *
@@ -3820,10 +3820,10 @@ static inline const char *mbedtls_ssl_get_hostname(mbedtls_ssl_context *ssl)
  *                 0 if SNI extension is not present or not yet processed.
  *
  * \return         const pointer to SNI extension value.
- *                 - value is valid only when called in \p f_cert_cb
+ *                 - value is valid only when called in \c f_cert_cb
  *                   registered with \c mbedtls_ssl_conf_cert_cb().
  *                 - value is NULL if SNI extension is not present.
- *                 - value is not '\0'-terminated.  Use \c name_len for len.
+ *                 - value is not '\0'-terminated. Use \c name_len for len.
  *                 - value must not be freed.
  */
 const unsigned char *mbedtls_ssl_get_hs_sni(mbedtls_ssl_context *ssl,
@@ -4116,7 +4116,7 @@ void MBEDTLS_DEPRECATED mbedtls_ssl_conf_max_version(mbedtls_ssl_config *conf, i
  *                 negotiated.
  *
  * \param conf         SSL configuration
- * \param tls_version  TLS protocol version number (\p mbedtls_ssl_protocol_version)
+ * \param tls_version  TLS protocol version number (\c mbedtls_ssl_protocol_version)
  *                     (#MBEDTLS_SSL_VERSION_UNKNOWN is not valid)
  */
 static inline void mbedtls_ssl_conf_max_tls_version(mbedtls_ssl_config *conf,
@@ -4173,7 +4173,7 @@ void MBEDTLS_DEPRECATED mbedtls_ssl_conf_min_version(mbedtls_ssl_config *conf, i
  *                 negotiated.
  *
  * \param conf         SSL configuration
- * \param tls_version  TLS protocol version number (\p mbedtls_ssl_protocol_version)
+ * \param tls_version  TLS protocol version number (\c mbedtls_ssl_protocol_version)
  *                     (#MBEDTLS_SSL_VERSION_UNKNOWN is not valid)
  */
 static inline void mbedtls_ssl_conf_min_tls_version(mbedtls_ssl_config *conf,

@@ -1545,7 +1545,7 @@ psa_status_t psa_pake_set_user(psa_pake_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p user_id is not valid for the \p operation's algorithm and cipher
+ *         \p peer_id is not valid for the \p operation's algorithm and cipher
  *         suite.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         The algorithm doesn't associate a second identity with the session.
@@ -1627,8 +1627,8 @@ psa_status_t psa_pake_set_role(psa_pake_operation_t *operation,
  *                             \c PSA_PAKE_STEP_XXX constants for more
  *                             information.
  * \param output_size          Size of the \p output buffer in bytes. This must
- *                             be at least #PSA_PAKE_OUTPUT_SIZE(\p alg, \p
- *                             primitive, \p step) where \p alg and
+ *                             be at least #PSA_PAKE_OUTPUT_SIZE(\c alg, \c
+ *                             primitive, \p output_step) where \c alg and
  *                             \p primitive are the PAKE algorithm and primitive
  *                             in the operation's cipher suite, and \p step is
  *                             the output step.
@@ -1693,9 +1693,9 @@ psa_status_t psa_pake_output(psa_pake_operation_t *operation,
  * \retval #PSA_ERROR_INVALID_SIGNATURE
  *         The verification fails for a #PSA_PAKE_STEP_ZK_PROOF input step.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p is not compatible with the \p operation’s algorithm, or the
- *         \p input is not valid for the \p operation's algorithm, cipher suite
- *         or \p step.
+ *         \p input_length is not compatible with the \p operation’s algorithm,
+ *         or the \p input is not valid for the \p operation's algorithm,
+ *         cipher suite or \p step.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p step p is not supported with the \p operation's algorithm, or the
  *         \p input is not supported for the \p operation's algorithm, cipher
@@ -1877,7 +1877,7 @@ psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
  * The value of this macro must be at least as large as the largest value
  * returned by PSA_PAKE_OUTPUT_SIZE()
  *
- * See also #PSA_PAKE_OUTPUT_SIZE(\p alg, \p primitive, \p step).
+ * See also #PSA_PAKE_OUTPUT_SIZE(\p alg, \p primitive, \p output_step).
  */
 #define PSA_PAKE_OUTPUT_MAX_SIZE 65
 
@@ -1889,7 +1889,7 @@ psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
  * The value of this macro must be at least as large as the largest value
  * returned by PSA_PAKE_INPUT_SIZE()
  *
- * See also #PSA_PAKE_INPUT_SIZE(\p alg, \p primitive, \p step).
+ * See also #PSA_PAKE_INPUT_SIZE(\p alg, \p primitive, \p output_step).
  */
 #define PSA_PAKE_INPUT_MAX_SIZE 65
 

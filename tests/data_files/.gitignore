@@ -1,3 +1,1 @@
-cli-rsa.csr
-server2-rsa.csr
-test-ca.csr
+*.csr

@@ -790,15 +790,29 @@ pre_check_tools () {
     "$@" scripts/output_env.sh
 }
 
+
 pre_faketime() {
-    mkdir -p faketime
-    cd faketime
-    wget -nc --no-check-certificate https://github.com/wolfcw/libfaketime/archive/refs/tags/v0.9.10.tar.gz
-    tar xf v0.9.10.tar.gz
-    cd libfaketime-0.9.10
-    make PREFIX= LIBDIRNAME=$PWD
-    LIBFAKETIME="$PWD/src/libfaketime.so.1"
-    cd ../..
+    LIBFAKETIME=""
+    for i in /usr/local/lib/faketime/libfaketime.so.1 /usr/lib/aarch64-linux-gnu/faketime/libfaketime.so.1 /usr/lib/x86_64-linux-gnu/faketime/libfaketime.so.1
+    do
+        if [ -f $i ]
+        then
+            LIBFAKETIME=$i
+            break
+        fi
+    done
+
+    if [ -z "$LIBFAKETIME" ]
+    then
+        mkdir -p faketime
+        cd faketime
+        wget -nc --no-check-certificate https://github.com/wolfcw/libfaketime/archive/refs/tags/v0.9.10.tar.gz
+        tar xf v0.9.10.tar.gz
+        cd libfaketime-0.9.10
+        make PREFIX= LIBDIRNAME=$PWD
+        LIBFAKETIME="$PWD/src/libfaketime.so.1"
+        cd ../..
+    fi
 
     # Edit here to change the date at which tests pretend to run
     : ${FAKETIME="+4y"}

@@ -32,8 +32,39 @@ void sleep_ms(int milliseconds)
     usleep(milliseconds * 1000);
 #endif
 }
-#endif
 
+
+int test_time_delay_milliseconds_once(int delay_ms)
+{
+    mbedtls_ms_time_t current = mbedtls_ms_time();
+    mbedtls_ms_time_t end;
+    mbedtls_ms_time_t elapsed_ms;
+
+    sleep_ms(delay_ms);
+
+    end = mbedtls_ms_time();
+    elapsed_ms = end - current;
+
+    return elapsed_ms > 0 && elapsed_ms >= delay_ms && \
+           elapsed_ms < 4000 + delay_ms;
+}
+
+int test_time_delay_seconds_once(int delay_secs)
+{
+    mbedtls_time_t current = mbedtls_time(NULL);
+    mbedtls_time_t end;
+    mbedtls_time_t elapsed_secs;
+
+    sleep_ms(delay_secs * 1000);
+
+    end = mbedtls_time(NULL);
+    elapsed_secs = end - current;
+
+    return elapsed_secs > 0 && elapsed_secs - delay_secs >= -1 && \
+           elapsed_secs - delay_secs <   4;
+
+}
+#endif
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES */
@@ -41,44 +72,15 @@ void sleep_ms(int milliseconds)
 /* END_DEPENDENCIES */
 
 /* BEGIN_CASE depends_on:MBEDTLS_HAVE_TIME */
-void time_get_milliseconds()
-{
-    mbedtls_ms_time_t current = mbedtls_ms_time();
-    (void) current;
-    /* This goto is added to avoid warnings from the generated code. */
-    goto exit;
-}
-/* END_CASE */
-
-/* BEGIN_CASE depends_on:MBEDTLS_HAVE_TIME */
-void time_get_seconds()
-{
-    mbedtls_time_t current = mbedtls_time(NULL);
-    (void) current;
-    /* This goto is added to avoid warnings from the generated code. */
-    goto exit;
-}
-/* END_CASE */
-
-/* BEGIN_CASE depends_on:MBEDTLS_HAVE_TIME */
 void time_delay_milliseconds(int delay_ms)
 {
-    mbedtls_ms_time_t current = mbedtls_ms_time();
-    mbedtls_ms_time_t elapsed_ms;
-
-    /*
-     * WARNING: DO NOT ENABLE THIS TEST. We keep the code here to document the
-     *          reason.
-     *
-     *          Windows CI reports random test fail on platform-suite. It might
-     *          be caused by this case.
-     */
-    sleep_ms(delay_ms);
-
-    elapsed_ms = mbedtls_ms_time() - current;
-    TEST_ASSERT(elapsed_ms >= delay_ms && elapsed_ms < 4000 + delay_ms);
-    /* This goto is added to avoid warnings from the generated code. */
-    goto exit;
+    int i;
+    for(i=0;i<3; i++)
+    {
+        if(test_time_delay_milliseconds_once(delay_ms))
+            goto exit;
+    }
+    TEST_ASSERT(0);
 }
 /* END_CASE */
 
@@ -93,30 +95,12 @@ void time_delay_milliseconds(int delay_ms)
  */
 void time_delay_seconds(int delay_secs)
 {
-    mbedtls_time_t current = mbedtls_time(NULL);
-    mbedtls_time_t elapsed_secs;
-
-    sleep_ms(delay_secs * 1000);
-
-    elapsed_secs = mbedtls_time(NULL) - current;
-
-    /*
-     * `mbedtls_time()` was defined as c99 function `time()`, returns the number
-     * of seconds since the Epoch. And it is affected by discontinuous changes
-     * from automatic drift adjustment or time setting system call. The POSIX.1
-     * specification for clock_settime says that discontinuous changes in
-     * CLOCK_REALTIME should not affect `nanosleep()`.
-     *
-     * If discontinuous changes occur during `nanosleep()`, we will get
-     * `elapsed_secs < delay_secs` for backward or `elapsed_secs > delay_secs`
-     * for forward.
-     *
-     * The following tolerance windows cannot be guaranteed.
-     * PLEASE DO NOT ENABLE IT IN CI TEST.
-     */
-    TEST_ASSERT(elapsed_secs - delay_secs >= -1 &&
-                elapsed_secs - delay_secs <   4);
-    /* This goto is added to avoid warnings from the generated code. */
-    goto exit;
+    int i;
+    for(i=0;i<3; i++)
+    {
+        if(test_time_delay_seconds_once(delay_secs))
+            goto exit;
+    }
+    TEST_ASSERT(0);
 }
 /* END_CASE */

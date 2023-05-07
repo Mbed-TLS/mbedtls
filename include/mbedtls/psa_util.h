@@ -348,8 +348,8 @@ typedef struct {
     /* Error codes used by PSA crypto are in -255..-128, fitting in 16 bits. */
     int16_t psa_status;
     /* Error codes used by Mbed TLS are in one of the ranges
-     * -127..-1 (low-level) or (-128) * (128..511) (high-level),
-     * fitting in 16 bits. */
+     * -127..-1 (low-level) or -32767..-4096 (high-level with a low-level
+     * code optionally added), fitting in 16 bits. */
     int16_t mbedtls_error;
 } mbedtls_error_pair_t;
 

@@ -3309,6 +3309,10 @@ X509 CRT parse Subject Key Id - Wrong OCTET_STRING tag
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
 x509_crt_parse_subjectkeyid:"data_files/authorityKeyId_subjectKeyId_tag_malformed.crt.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
+X509 CRT parse Subject Key Id - Wrong OCTET_STRING tag
+depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
+x509_crt_parse_subjectkeyid:"data_files/authorityKeyId_subjectKeyId_tag_len_malformed.crt.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_LENGTH_MISMATCH
+
 X509 CRT parse Authority Key Id - Correct Authority Key ID
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
 x509_crt_parse_authoritykeyid:"data_files/authorityKeyId_subjectKeyId.crt.der":"A505E864B8DCDF600F50124D60A864AF4D8B4393":"NL/PolarSSL/PolarSSL Test CA/":"680430CD074DE63FCDC051260FD042C2B512B6BA":0
@@ -3348,6 +3352,14 @@ x509_crt_parse_authoritykeyid:"data_files/authorityKeyId_subjectKeyId_issuer_tag
 X509 CRT parse Authority Key Id - Wrong Issuer Tag 2
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
 x509_crt_parse_authoritykeyid:"data_files/authorityKeyId_subjectKeyId_issuer_tag2_malformed.crt.der":"":"":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+
+X509 CRT parse Authority Key Id - Wrong Serial Number Tag
+depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
+x509_crt_parse_authoritykeyid:"data_files/authorityKeyId_subjectKeyId_sn_tag_malformed.crt.der":"":"":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+
+X509 CRT parse Authority Key Id - Wrong Serial Number Tag length
+depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
+x509_crt_parse_authoritykeyid:"data_files/authorityKeyId_subjectKeyId_sn_len_malformed.crt.der":"":"":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_LENGTH_MISMATCH
 
 # clusterfuzz-testcase-minimized-fuzz_x509crt-6666050834661376: test for bad sequence of names in authorityCertIssuer
 X509 CRT parse Authority Key Id - Wrong Issuer sequence

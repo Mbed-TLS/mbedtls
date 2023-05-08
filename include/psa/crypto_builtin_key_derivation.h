@@ -116,7 +116,7 @@ typedef enum {
 
 typedef struct {
     psa_pbkdf2_key_derivation_state_t MBEDTLS_PRIVATE(state);
-    uint64_t MBEDTLS_PRIVATE(input_cost);
+    size_t MBEDTLS_PRIVATE(input_cost);
     uint8_t *MBEDTLS_PRIVATE(salt);
     size_t MBEDTLS_PRIVATE(salt_length);
     uint8_t *MBEDTLS_PRIVATE(password);

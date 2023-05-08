@@ -6423,11 +6423,11 @@ static psa_status_t psa_pbkdf2_set_input_cost(
     if (pbkdf2->state != PSA_PBKDF2_STATE_INIT) {
         return PSA_ERROR_BAD_STATE;
     }
-#if UINT_MAX > 0xFFFFFFFF
+
     if (data > 0xFFFFFFFF) {
-        return PSA_ERROR_INVALID_ARGUMENT;
+        return PSA_ERROR_NOT_SUPPORTED;
     }
-#endif
+
     if (data == 0) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }

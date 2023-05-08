@@ -37,8 +37,8 @@ all_final := # files used by tests
                         ../scripts/generate_test_cert_macros.py \
 						test_ca_certs.h.jinja2
 	../scripts/generate_test_cert_macros.py
-test_ca_certs:../src/test_ca_certs.h
-all_final += test_ca_certs
+
+all_final += ../src/test_ca_certs.h
 
 ################################################################
 #### Generate certificates from existing keys
@@ -392,7 +392,9 @@ cli2.req.sha256: cli2.key
 
 all_final += server1.req.sha1
 cli2.crt: cli2.req.sha256
-	$(MBEDTLS_CERT_WRITE) request_file=cli2.req.sha256 serial=13 selfsign=0 issuer_name="C=NL,O=PolarSSL,CN=PolarSSL Test EC CA" issuer_key=$(test_ca_key_file_ec) issuer_pwd=$(test_ca_pwd_rsa) not_before=20190210144400 not_after=20290210144400 md=SHA256 version=3 output_file=$@
+	$(MBEDTLS_CERT_WRITE) request_file=cli2.req.sha256 serial=13 selfsign=0 issuer_name="C=NL,O=PolarSSL,CN=PolarSSL Test EC CA" \
+		issuer_key=$(test_ca_key_file_ec) issuer_pwd=$(test_ca_pwd_rsa) not_before=20190210144400 not_after=20290210144400 \
+		md=SHA256 version=3 output_file=$@
 all_final += cli2.crt
 
 cli2.crt.der: cli2.crt
@@ -1595,17 +1597,17 @@ all_final += pkcs7_data_1.bin
 
 # Generate signing cert
 pkcs7-rsa-sha256-1.crt:
-	$(OPENSSL) req -x509 -subj="/C=NL/O=PKCS7/CN=PKCS7 Cert 1" -sha256 -nodes -days 365  -newkey rsa:2048 -keyout pkcs7-rsa-sha256-1.key -out pkcs7-rsa-sha256-1.crt
+	$(OPENSSL) req -x509 -subj="/C=NL/O=PKCS7/CN=PKCS7 Cert 1" -sha256 -nodes -days 3653  -newkey rsa:2048 -keyout pkcs7-rsa-sha256-1.key -out pkcs7-rsa-sha256-1.crt
 	cat pkcs7-rsa-sha256-1.crt pkcs7-rsa-sha256-1.key > pkcs7-rsa-sha256-1.pem
 all_final += pkcs7-rsa-sha256-1.crt
 
 pkcs7-rsa-sha256-2.crt:
-	$(OPENSSL) req -x509 -subj="/C=NL/O=PKCS7/CN=PKCS7 Cert 2" -sha256 -nodes -days 365  -newkey rsa:2048 -keyout pkcs7-rsa-sha256-2.key -out pkcs7-rsa-sha256-2.crt
+	$(OPENSSL) req -x509 -subj="/C=NL/O=PKCS7/CN=PKCS7 Cert 2" -sha256 -nodes -days 3653  -newkey rsa:2048 -keyout pkcs7-rsa-sha256-2.key -out pkcs7-rsa-sha256-2.crt
 	cat pkcs7-rsa-sha256-2.crt pkcs7-rsa-sha256-2.key > pkcs7-rsa-sha256-2.pem
 all_final += pkcs7-rsa-sha256-2.crt
 
 pkcs7-rsa-sha256-3.crt:
-	$(OPENSSL) req -x509 -subj="/C=NL/O=PKCS7/CN=PKCS7 Cert 3" -sha256 -nodes -days 365  -newkey rsa:2048 -keyout pkcs7-rsa-sha256-3.key -out pkcs7-rsa-sha256-3.crt
+	$(OPENSSL) req -x509 -subj="/C=NL/O=PKCS7/CN=PKCS7 Cert 3" -sha256 -nodes -days 3653  -newkey rsa:2048 -keyout pkcs7-rsa-sha256-3.key -out pkcs7-rsa-sha256-3.crt
 	cat pkcs7-rsa-sha256-3.crt pkcs7-rsa-sha256-3.key > pkcs7-rsa-sha256-3.pem
 all_final += pkcs7-rsa-sha256-3.crt
 
@@ -1805,3 +1807,12 @@ clean:
 neat: clean
 	rm -f $(all_final)
 .PHONY: clean neat
+
+
+$(all_final): | check_certs
+$(all_intermediate) : | check_certs
+check_certs:
+	./data_file_parser.py $(all_final)
+	echo all_final=$(words $(all_final))
+	# false
+.INTERMEDIATE: $(all_intermediate)

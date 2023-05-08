@@ -302,10 +302,20 @@ class TestDataAuditor(Auditor):
             data = f.read()
 
         results = []
+        # Try to parse all PEM blocks.
+        is_pem = False
         for idx, m in enumerate(re.finditer(X509Parser.PEM_REGEX, data, flags=re.S), 1):
+            is_pem = True
             result = self.parse_bytes(data[m.start():m.end()])
             if result is not None:
                 result.locations.append("{}#{}".format(filename, idx))
+                results.append(result)
+
+        # Might be DER format.
+        if not is_pem:
+            result = self.parse_bytes(data)
+            if result is not None:
+                result.locations.append("{}".format(filename))
                 results.append(result)
 
         return results

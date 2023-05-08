@@ -1552,7 +1552,6 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C */
 void x509_crt_parse_subjectkeyid(char *file, data_t *subjectKeyId, int ref_ret)
 {
-    size_t subjectKeyIdLength = subjectKeyIdLength_arg;
     mbedtls_x509_crt crt;
 
     mbedtls_x509_crt_init(&crt);
@@ -1583,8 +1582,6 @@ void x509_crt_parse_authoritykeyid(char *file,
     mbedtls_x509_crt crt;
     int bufferCounter = 0;
     size_t issuerCounter = 0;
-    size_t keyIdLength = keyIdLength_arg;
-    size_t serialLength = serialLength_arg;
     unsigned int result = 0;
     mbedtls_x509_subject_alternative_name san;
     mbedtls_x509_name *pname = NULL;

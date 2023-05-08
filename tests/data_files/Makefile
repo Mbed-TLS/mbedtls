@@ -1515,17 +1515,17 @@ all_final += pkcs7_data_signed_badsigner1_fuzzbad.der
 pkcs7_data_signed_badsigner2_badsize.der: pkcs7_data_3_signed.der
 	cp pkcs7_data_3_signed.der $@
 	echo '72'| xxd -p -r | dd of=$@ bs=1 seek=813 conv=notrunc
-all_final += pkcs7_data_signed_badsigner2_badsize
+all_final += pkcs7_data_signed_badsigner2_badsize.der
 
 pkcs7_data_signed_badsigner2_badtag.der: pkcs7_data_3_signed.der
 	cp pkcs7_data_3_signed.der $@
 	echo 'a1'| xxd -p -r | dd of=$@ bs=1 seek=817 conv=notrunc
-all_final += pkcs7_data_signed_badsigner2_badtag
+all_final += pkcs7_data_signed_badsigner2_badtag.der
 
 pkcs7_data_signed_badsigner2_fuzzbad.der: pkcs7_data_3_signed.der
 	cp pkcs7_data_3_signed.der $@
 	echo 'a1'| xxd -p -r | dd of=$@ bs=1 seek=925 conv=notrunc
-all_final += pkcs7_data_signed_badsigner2_fuzzbad
+all_final += pkcs7_data_signed_badsigner2_fuzzbad.der
 
 # pkcs7 file with version 2
 pkcs7_data_cert_signed_v2.der: pkcs7_data_cert_signed_sha256.der

@@ -592,6 +592,114 @@ static int x509_get_ext_key_usage(unsigned char **p,
 }
 
 /*
+ * SubjectKeyIdentifier ::= KeyIdentifier
+ *
+ * KeyIdentifier ::= OCTET STRING
+ */
+static int x509_get_subject_key_id(unsigned char **p,
+                                   const unsigned char *end,
+                                   mbedtls_x509_buf *subject_key_id)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t len = 0u;
+
+    if ((ret = mbedtls_asn1_get_tag(p, end, &len,
+                                    MBEDTLS_ASN1_OCTET_STRING)) != 0) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+    }
+
+    subject_key_id->len = len;
+    subject_key_id->tag = MBEDTLS_ASN1_OCTET_STRING;
+    subject_key_id->p = *p;
+    *p += len;
+
+    if (*p != end) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
+    }
+
+    return 0;
+}
+
+/*
+ * AuthorityKeyIdentifier ::= SEQUENCE {
+ *        keyIdentifier [0] KeyIdentifier OPTIONAL,
+ *        authorityCertIssuer [1] GeneralNames OPTIONAL,
+ *        authorityCertSerialNumber [2] CertificateSerialNumber OPTIONAL }
+ *
+ *    KeyIdentifier ::= OCTET STRING
+ */
+static int x509_get_authority_key_id(unsigned char **p,
+                                     unsigned char *end,
+                                     mbedtls_x509_authority *authority_key_id)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t len = 0u;
+
+    if ((ret = mbedtls_asn1_get_tag(p, end, &len,
+                                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+    }
+
+    if (*p + len != end) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
+    }
+
+    ret = mbedtls_asn1_get_tag(p, end, &len,
+                               MBEDTLS_ASN1_CONTEXT_SPECIFIC);
+
+    /* KeyIdentifier is an OPTIONAL field */
+    if (ret == 0) {
+        authority_key_id->keyIdentifier.len = len;
+        authority_key_id->keyIdentifier.p = *p;
+        /* Setting tag of the keyIdentfier intentionally to 0x04.
+         * Although the .keyIdentfier field is CONTEXT_SPECIFIC ([0] OPTIONAL),
+         * its tag with the content is the payload of on OCTET STRING primitive */
+        authority_key_id->keyIdentifier.tag = MBEDTLS_ASN1_OCTET_STRING;
+
+        *p += len;
+    } else if (ret != MBEDTLS_ERR_ASN1_UNEXPECTED_TAG) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+    }
+
+    if (*p < end) {
+        /* Getting authorityCertIssuer using the required specific class tag [1] */
+        if ((ret = mbedtls_asn1_get_tag(p, end, &len,
+                                        MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED |
+                                        1)) != 0) {
+            /* authorityCertIssuer and authorityCertSerialNumber MUST both
+               be present or both be absent. At this point we expect to have both. */
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+        }
+        /* "end" also includes the CertSerialNumber field so "len" shall be used */
+        ret = mbedtls_x509_get_subject_alt_name_ext(p,
+                                                    (*p+len),
+                                                    &authority_key_id->authorityCertIssuer);
+        if (ret != 0) {
+            return ret;
+        }
+
+        /* Getting authorityCertSerialNumber using the required specific class tag [2] */
+        if ((ret = mbedtls_asn1_get_tag(p, end, &len,
+                                        MBEDTLS_ASN1_CONTEXT_SPECIFIC | 2)) != 0) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+        }
+        authority_key_id->authorityCertSerialNumber.len = len;
+        authority_key_id->authorityCertSerialNumber.p = *p;
+        authority_key_id->authorityCertSerialNumber.tag = MBEDTLS_ASN1_INTEGER;
+        *p += len;
+    }
+
+    if (*p != end) {
+        return MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+               MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
+    }
+
+    return 0;
+}
+
+/*
  * id-ce-certificatePolicies OBJECT IDENTIFIER ::=  { id-ce 32 }
  *
  * anyPolicy OBJECT IDENTIFIER ::= { id-ce-certificatePolicies 0 }
@@ -889,8 +997,25 @@ static int x509_get_crt_ext(unsigned char **p,
                 }
                 break;
 
+            case MBEDTLS_X509_EXT_SUBJECT_KEY_IDENTIFIER:
+                /* Parse subject key identifier */
+                if ((ret = x509_get_subject_key_id(p, end_ext_data,
+                                                   &crt->subject_key_id)) != 0) {
+                    return ret;
+                }
+                break;
+
+            case MBEDTLS_X509_EXT_AUTHORITY_KEY_IDENTIFIER:
+                /* Parse authority key identifier */
+                if ((ret = x509_get_authority_key_id(p, end_ext_octet,
+                                                     &crt->authority_key_id)) != 0) {
+                    return ret;
+                }
+                break;
             case MBEDTLS_X509_EXT_SUBJECT_ALT_NAME:
-                /* Parse subject alt name */
+                /* Parse subject alt name
+                 * SubjectAltName ::= GeneralNames
+                 */
                 if ((ret = mbedtls_x509_get_subject_alt_name(p, end_ext_octet,
                                                              &crt->subject_alt_names)) != 0) {
                     return ret;
@@ -1550,6 +1675,27 @@ cleanup:
 #endif /* MBEDTLS_FS_IO */
 
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
+#define PRINT_ITEM(i)                               \
+    do {                                            \
+        ret = mbedtls_snprintf(p, n, "%s" i, sep);  \
+        MBEDTLS_X509_SAFE_SNPRINTF;                 \
+        sep = ", ";                                 \
+    } while (0)
+
+#define CERT_TYPE(type, name)          \
+    do {                               \
+        if (ns_cert_type & (type)) {   \
+            PRINT_ITEM(name);          \
+        }                              \
+    } while (0)
+
+#define KEY_USAGE(code, name)      \
+    do {                           \
+        if (key_usage & (code)) {  \
+            PRINT_ITEM(name);      \
+        }                          \
+    } while (0)
+
 static int x509_info_ext_key_usage(char **buf, size_t *size,
                                    const mbedtls_x509_sequence *extended_key_usage)
 {

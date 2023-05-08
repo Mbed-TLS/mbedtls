@@ -5096,9 +5096,6 @@ psa_status_t psa_key_derivation_abort(psa_key_derivation_operation_t *operation)
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS) */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
     if (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg)) {
-        if (operation->ctx.pbkdf2.input_cost != 0U) {
-            operation->ctx.pbkdf2.input_cost = 0U;
-        }
         if (operation->ctx.pbkdf2.salt != NULL) {
             mbedtls_platform_zeroize(operation->ctx.pbkdf2.salt,
                                      operation->ctx.pbkdf2.salt_length);

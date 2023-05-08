@@ -601,12 +601,12 @@ static int x509_get_subject_key_id(unsigned char **p,
     if ((ret = mbedtls_asn1_get_tag(p, end, &len,
                                     MBEDTLS_ASN1_OCTET_STRING)) != 0) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
-    } else {
-        subject_key_id->len = len;
-        subject_key_id->tag = MBEDTLS_ASN1_OCTET_STRING;
-        subject_key_id->p = *p;
-        *p += len;
     }
+
+    subject_key_id->len = len;
+    subject_key_id->tag = MBEDTLS_ASN1_OCTET_STRING;
+    subject_key_id->p = *p;
+    *p += len;
 
     if (*p != end) {
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
@@ -645,9 +645,7 @@ static int x509_get_authority_key_id(unsigned char **p,
                                MBEDTLS_ASN1_CONTEXT_SPECIFIC);
 
     /* KeyIdentifier is an OPTIONAL field */
-    if (ret != 0 && ret != MBEDTLS_ERR_ASN1_UNEXPECTED_TAG) {
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
-    } else if (ret == 0) {
+    if (ret == 0) {
         authority_key_id->keyIdentifier.len = len;
         authority_key_id->keyIdentifier.p = *p;
         /* Setting tag of the keyIdentfier intentionally to 0x04.
@@ -656,6 +654,8 @@ static int x509_get_authority_key_id(unsigned char **p,
         authority_key_id->keyIdentifier.tag = MBEDTLS_ASN1_OCTET_STRING;
 
         *p += len;
+    } else if (ret != MBEDTLS_ERR_ASN1_UNEXPECTED_TAG) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
     }
 
     if (*p < end) {

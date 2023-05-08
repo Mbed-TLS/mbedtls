@@ -6449,31 +6449,27 @@ static psa_status_t psa_pbkdf2_set_salt(psa_pbkdf2_key_derivation_t *pbkdf2,
         return PSA_ERROR_BAD_STATE;
     }
 
-    if (data_length != 0) {
-        if (pbkdf2->state == PSA_PBKDF2_STATE_INPUT_COST_SET) {
-            pbkdf2->salt = mbedtls_calloc(1, data_length);
-            if (pbkdf2->salt == NULL) {
-                return PSA_ERROR_INSUFFICIENT_MEMORY;
-            }
-
-            memcpy(pbkdf2->salt, data, data_length);
-            pbkdf2->salt_length = data_length;
-        } else if (pbkdf2->state == PSA_PBKDF2_STATE_SALT_SET) {
-            prev_salt = pbkdf2->salt;
-            prev_salt_length = pbkdf2->salt_length;
-            pbkdf2->salt = mbedtls_calloc(1, data_length + prev_salt_length);
-            if (pbkdf2->salt == NULL) {
-                return PSA_ERROR_INSUFFICIENT_MEMORY;
-            }
-
-            memcpy(pbkdf2->salt, prev_salt, prev_salt_length);
-            memcpy(pbkdf2->salt + prev_salt_length, data,
-                   data_length);
-            pbkdf2->salt_length += data_length;
-            mbedtls_free(prev_salt);
+    if (pbkdf2->state == PSA_PBKDF2_STATE_INPUT_COST_SET) {
+        pbkdf2->salt = mbedtls_calloc(1, data_length);
+        if (pbkdf2->salt == NULL) {
+            return PSA_ERROR_INSUFFICIENT_MEMORY;
         }
-    } else {
-        return PSA_ERROR_INVALID_ARGUMENT;
+
+        memcpy(pbkdf2->salt, data, data_length);
+        pbkdf2->salt_length = data_length;
+    } else if (pbkdf2->state == PSA_PBKDF2_STATE_SALT_SET) {
+        prev_salt = pbkdf2->salt;
+        prev_salt_length = pbkdf2->salt_length;
+        pbkdf2->salt = mbedtls_calloc(1, data_length + prev_salt_length);
+        if (pbkdf2->salt == NULL) {
+            return PSA_ERROR_INSUFFICIENT_MEMORY;
+        }
+
+        memcpy(pbkdf2->salt, prev_salt, prev_salt_length);
+        memcpy(pbkdf2->salt + prev_salt_length, data,
+               data_length);
+        pbkdf2->salt_length += data_length;
+        mbedtls_free(prev_salt);
     }
 
     pbkdf2->state = PSA_PBKDF2_STATE_SALT_SET;

@@ -5533,7 +5533,6 @@ cleanup:
  * with R about 33 bits, used by the Koblitz curves.
  *
  * Write N as A0 + 2^224 A1, return A0 + R * A1.
- * Actually do two passes, since R is big.
  */
 #define P_KOBLITZ_R     (8 / sizeof(mbedtls_mpi_uint))            // Limbs in R
 
@@ -5571,6 +5570,10 @@ static inline int ecp_mod_koblitz(mbedtls_mpi_uint *X,
         mask  = ((mbedtls_mpi_uint) 1 << shift) - 1;
     }
 
+    /* Two pass is needed for reducing the value of `A0 + R * A1` and
+     * need an additional one to reduce the possible overflow during
+     * the addition.
+     */
     for (size_t pass = 0; pass < 3; pass++) {
         /* Copy A1 */
         memcpy(A1, X + P_limbs - adjust, P_limbs * ciL);

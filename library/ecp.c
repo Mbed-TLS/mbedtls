@@ -99,9 +99,11 @@
  * Counts of point addition and doubling, and field multiplications.
  * Used to test resistance of point multiplication to simple timing attacks.
  */
+#if defined(MBEDTLS_ECP_C)
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED) || defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
 static unsigned long add_count, dbl_count;
 #endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED || MBEDTLS_ECP_MONTGOMERY_ENABLED */
+#endif /* MBEDTLS_ECP_C */
 static unsigned long mul_count;
 #endif
 
@@ -329,6 +331,7 @@ int mbedtls_ecp_check_budget(const mbedtls_ecp_group *grp,
 
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
+#if defined(MBEDTLS_ECP_C)
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED) || defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
 static void mpi_init_many(mbedtls_mpi *arr, size_t size)
 {
@@ -344,6 +347,7 @@ static void mpi_free_many(mbedtls_mpi *arr, size_t size)
     }
 }
 #endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED || MBEDTLS_ECP_MONTGOMERY_ENABLED */
+#endif /* MBEDTLS_ECP_C */
 
 /*
  * List of supported curves:
@@ -1258,6 +1262,7 @@ cleanup:
 }
 
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED) || defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+#if defined(MBEDTLS_ECP_C)
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
 static inline int mbedtls_mpi_mul_int_mod(const mbedtls_ecp_group *grp,
                                           mbedtls_mpi *X,
@@ -1271,7 +1276,8 @@ static inline int mbedtls_mpi_mul_int_mod(const mbedtls_ecp_group *grp,
 cleanup:
     return ret;
 }
-#endif
+#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
+#endif /* MBEDTLS_ECP_C */
 
 static inline int mbedtls_mpi_sub_int_mod(const mbedtls_ecp_group *grp,
                                           mbedtls_mpi *X,
@@ -1290,6 +1296,7 @@ cleanup:
 #define MPI_ECP_SUB_INT(X, A, c)             \
     MBEDTLS_MPI_CHK(mbedtls_mpi_sub_int_mod(grp, X, A, c))
 
+#if defined(MBEDTLS_ECP_C)
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED) && \
     !(defined(MBEDTLS_ECP_NO_FALLBACK) && \
     defined(MBEDTLS_ECP_DOUBLE_JAC_ALT) && \
@@ -1309,6 +1316,7 @@ cleanup:
 }
 #endif \
     /* All functions referencing mbedtls_mpi_shift_l_mod() are alt-implemented without fallback */
+#endif /* MBEDTLS_ECP_C */
 
 /*
  * Macro wrappers around ECP modular arithmetic
@@ -4255,6 +4263,8 @@ int mbedtls_ecp_export(const mbedtls_ecp_keypair *key, mbedtls_ecp_group *grp,
 
 #if defined(MBEDTLS_SELF_TEST)
 
+#if defined(MBEDTLS_ECP_C)
+
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED) || defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
 /*
  * PRNG for test - !!!INSECURE NEVER USE IN PRODUCTION!!!
@@ -4364,6 +4374,8 @@ cleanup:
     return ret;
 }
 #endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED || MBEDTLS_ECP_MONTGOMERY_ENABLED */
+
+#endif /* MBEDTLS_ECP_C */
 
 /*
  * Checkup routine

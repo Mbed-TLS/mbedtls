@@ -10,21 +10,6 @@
     ASSERT_COMPARE((a).p, (a).limbs * sizeof(mbedtls_mpi_uint), \
                    (b).p, (b).limbs * sizeof(mbedtls_mpi_uint))
 
-static int test_read_modulus(mbedtls_mpi_mod_modulus *m,
-                             mbedtls_mpi_mod_rep_selector int_rep,
-                             char *input)
-{
-    mbedtls_mpi_uint *p = NULL;
-    size_t limbs;
-
-    int ret = mbedtls_test_read_mpi_core(&p, &limbs, input);
-    if (ret != 0) {
-        return ret;
-    }
-
-    return mbedtls_mpi_mod_modulus_setup(m, p, limbs, int_rep);
-}
-
 static int test_read_residue(mbedtls_mpi_mod_residue *r,
                              const mbedtls_mpi_mod_modulus *m,
                              char *input,
@@ -112,8 +97,8 @@ void mpi_mod_mul(char *input_A,
     mbedtls_mpi_mod_modulus m;
     mbedtls_mpi_mod_modulus_init(&m);
 
-    TEST_EQUAL(test_read_modulus(&m, MBEDTLS_MPI_MOD_REP_MONTGOMERY, input_N),
-               0);
+    TEST_EQUAL(mbedtls_test_read_mpi_modulus(&m, input_N,
+               MBEDTLS_MPI_MOD_REP_MONTGOMERY), 0);
 
     TEST_EQUAL(test_read_residue(&rA, &m, input_A, 0), 0);
     TEST_EQUAL(test_read_residue(&rB, &m, input_B, 0), 0);
@@ -200,8 +185,8 @@ void mpi_mod_mul_neg(char *input_A,
     mbedtls_mpi_mod_modulus fake_m;
     mbedtls_mpi_mod_modulus_init(&fake_m);
 
-    TEST_EQUAL(test_read_modulus(&m, MBEDTLS_MPI_MOD_REP_MONTGOMERY, input_N),
-               0);
+    TEST_EQUAL(mbedtls_test_read_mpi_modulus(&m, input_N,
+               MBEDTLS_MPI_MOD_REP_MONTGOMERY), 0);
 
     TEST_EQUAL(test_read_residue(&rA, &m, input_A, 1), 0);
     TEST_EQUAL(test_read_residue(&rB, &m, input_B, 1), 0);
@@ -247,7 +232,8 @@ void mpi_mod_sub(char *input_N,
     mbedtls_mpi_mod_modulus_init(&m);
 
     TEST_EQUAL(0,
-               test_read_modulus(&m, MBEDTLS_MPI_MOD_REP_MONTGOMERY, input_N));
+               mbedtls_test_read_mpi_modulus(&m, input_N,
+               MBEDTLS_MPI_MOD_REP_MONTGOMERY));
 
     /* test_read_residue() normally checks that inputs have the same number of
      * limbs as the modulus. For negative testing we can ask it to skip this
@@ -348,7 +334,8 @@ void mpi_mod_inv_mont(char *input_N,
     mbedtls_mpi_mod_modulus_init(&N);
 
     TEST_EQUAL(0,
-               test_read_modulus(&N, MBEDTLS_MPI_MOD_REP_MONTGOMERY, input_N));
+               mbedtls_test_read_mpi_modulus(&N, input_N,
+               MBEDTLS_MPI_MOD_REP_MONTGOMERY));
 
     /* test_read_residue() normally checks that inputs have the same number of
      * limbs as the modulus. For negative testing we can ask it to skip this
@@ -397,7 +384,8 @@ void mpi_mod_inv_non_mont(char *input_N,
     mbedtls_mpi_mod_modulus_init(&N);
 
     TEST_EQUAL(0,
-               test_read_modulus(&N, MBEDTLS_MPI_MOD_REP_OPT_RED, input_N));
+               mbedtls_test_read_mpi_modulus(&N, input_N,
+               MBEDTLS_MPI_MOD_REP_OPT_RED));
 
     /* test_read_residue() normally checks that inputs have the same number of
      * limbs as the modulus. For negative testing we can ask it to skip this
@@ -447,7 +435,8 @@ void mpi_mod_add(char *input_N,
     mbedtls_mpi_mod_modulus_init(&m);
 
     TEST_EQUAL(0,
-               test_read_modulus(&m, MBEDTLS_MPI_MOD_REP_MONTGOMERY, input_N));
+               mbedtls_test_read_mpi_modulus(&m, input_N,
+               MBEDTLS_MPI_MOD_REP_MONTGOMERY));
 
     /* test_read_residue() normally checks that inputs have the same number of
      * limbs as the modulus. For negative testing we can ask it to skip this

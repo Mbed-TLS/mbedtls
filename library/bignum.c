@@ -54,6 +54,142 @@
 #define MPI_VALIDATE(cond)                                           \
     MBEDTLS_INTERNAL_VALIDATE(cond)
 
+/*
+ * Compare signed values in constant time
+ */
+int mbedtls_mpi_lt_mpi_ct(const mbedtls_mpi *X,
+                          const mbedtls_mpi *Y,
+                          unsigned *ret)
+{
+    size_t i;
+    /* The value of any of these variables is either 0 or 1 at all times. */
+    unsigned cond, done, X_is_negative, Y_is_negative;
+
+    MPI_VALIDATE_RET(X != NULL);
+    MPI_VALIDATE_RET(Y != NULL);
+    MPI_VALIDATE_RET(ret != NULL);
+
+    if (X->n != Y->n) {
+        return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+    }
+
+    /*
+     * Set sign_N to 1 if N >= 0, 0 if N < 0.
+     * We know that N->s == 1 if N >= 0 and N->s == -1 if N < 0.
+     */
+    X_is_negative = (X->s & 2) >> 1;
+    Y_is_negative = (Y->s & 2) >> 1;
+
+    /*
+     * If the signs are different, then the positive operand is the bigger.
+     * That is if X is negative (X_is_negative == 1), then X < Y is true and it
+     * is false if X is positive (X_is_negative == 0).
+     */
+    cond = (X_is_negative ^ Y_is_negative);
+    *ret = cond & X_is_negative;
+
+    /*
+     * This is a constant-time function. We might have the result, but we still
+     * need to go through the loop. Record if we have the result already.
+     */
+    done = cond;
+
+    for (i = X->n; i > 0; i--) {
+        /*
+         * If Y->p[i - 1] < X->p[i - 1] then X < Y is true if and only if both
+         * X and Y are negative.
+         *
+         * Again even if we can make a decision, we just mark the result and
+         * the fact that we are done and continue looping.
+         */
+        cond = mbedtls_ct_mpi_uint_lt(Y->p[i - 1], X->p[i - 1]);
+        *ret |= cond & (1 - done) & X_is_negative;
+        done |= cond;
+
+        /*
+         * If X->p[i - 1] < Y->p[i - 1] then X < Y is true if and only if both
+         * X and Y are positive.
+         *
+         * Again even if we can make a decision, we just mark the result and
+         * the fact that we are done and continue looping.
+         */
+        cond = mbedtls_ct_mpi_uint_lt(X->p[i - 1], Y->p[i - 1]);
+        *ret |= cond & (1 - done) & (1 - X_is_negative);
+        done |= cond;
+    }
+
+    return 0;
+}
+
+/*
+ * Conditionally assign X = Y, without leaking information
+ * about whether the assignment was made or not.
+ * (Leaking information about the respective sizes of X and Y is ok however.)
+ */
+#if defined(_MSC_VER) && defined(_M_ARM64) && (_MSC_FULL_VER < 193131103)
+/*
+ * MSVC miscompiles this function if it's inlined prior to Visual Studio 2022 version 17.1. See:
+ * https://developercommunity.visualstudio.com/t/c-compiler-miscompiles-part-of-mbedtls-library-on/1646989
+ */
+__declspec(noinline)
+#endif
+int mbedtls_mpi_safe_cond_assign(mbedtls_mpi *X,
+                                 const mbedtls_mpi *Y,
+                                 unsigned char assign)
+{
+    int ret = 0;
+    MPI_VALIDATE_RET(X != NULL);
+    MPI_VALIDATE_RET(Y != NULL);
+
+    /* all-bits 1 if assign is 1, all-bits 0 if assign is 0 */
+    mbedtls_mpi_uint limb_mask = mbedtls_ct_mpi_uint_mask(assign);
+
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(X, Y->n));
+
+    X->s = (int) mbedtls_ct_uint_if(assign, Y->s, X->s);
+
+    mbedtls_mpi_core_cond_assign(X->p, Y->p, Y->n, assign);
+
+    for (size_t i = Y->n; i < X->n; i++) {
+        X->p[i] &= ~limb_mask;
+    }
+
+cleanup:
+    return ret;
+}
+
+/*
+ * Conditionally swap X and Y, without leaking information
+ * about whether the swap was made or not.
+ * Here it is not ok to simply swap the pointers, which would lead to
+ * different memory access patterns when X and Y are used afterwards.
+ */
+int mbedtls_mpi_safe_cond_swap(mbedtls_mpi *X,
+                               mbedtls_mpi *Y,
+                               unsigned char swap)
+{
+    int ret = 0;
+    int s;
+    MPI_VALIDATE_RET(X != NULL);
+    MPI_VALIDATE_RET(Y != NULL);
+
+    if (X == Y) {
+        return 0;
+    }
+
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(X, Y->n));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(Y, X->n));
+
+    s = X->s;
+    X->s = (int) mbedtls_ct_uint_if(swap, Y->s, X->s);
+    Y->s = (int) mbedtls_ct_uint_if(swap, s, Y->s);
+
+    mbedtls_mpi_core_cond_swap(X->p, Y->p, X->n, swap);
+
+cleanup:
+    return ret;
+}
+
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_mpi_zeroize(mbedtls_mpi_uint *v, size_t n)
 {

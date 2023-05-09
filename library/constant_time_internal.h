@@ -333,13 +333,27 @@ int mbedtls_ct_rsaes_pkcs1_v15_unpadding(unsigned char *input,
 
 #if defined(MBEDTLS_BASE64_C)
 
-/* Return 0xff if low <= c <= high, 0 otherwise.
+/** Constant-flow char selection
  *
- * Constant flow with respect to c.
+ * \param low   Bottom of range
+ * \param high  Top of range
+ * \param c     Value to compare to range
+ * \param t     Value to return, if in range
+ *
+ * \return      \p t if \p low <= \p c <= \p high, 0 otherwise.
  */
-unsigned char mbedtls_ct_uchar_mask_of_range(unsigned char low,
-                                             unsigned char high,
-                                             unsigned char c);
+static inline unsigned char mbedtls_ct_uchar_in_range_if(unsigned char low,
+                                                         unsigned char high,
+                                                         unsigned char c,
+                                                         unsigned char t)
+{
+    /* low_mask is: 0 if low <= c, 0x...ff if low > c */
+    unsigned low_mask = ((unsigned) c - low) >> 8;
+    /* high_mask is: 0 if c <= high, 0x...ff if c > high */
+    unsigned high_mask = ((unsigned) high - c) >> 8;
+    return (unsigned char)
+           mbedtls_ct_uint_if(~mbedtls_ct_mpi_uint_mask(low_mask | high_mask), t, 0);
+}
 
 #endif /* MBEDTLS_BASE64_C */
 

@@ -862,14 +862,11 @@ const mbedtls_md_info_t *mbedtls_md_info_from_string(const char *md_name)
 #if defined(MBEDTLS_SHA3_C)
     if (!strcmp("SHA3-224", md_name)) {
         return mbedtls_md_info_from_type(MBEDTLS_MD_SHA3_224);
-    }
-    else if (!strcmp("SHA3-256", md_name)) {
+    } else if (!strcmp("SHA3-256", md_name)) {
         return mbedtls_md_info_from_type(MBEDTLS_MD_SHA3_256);
-    }
-    else if (!strcmp("SHA3-384", md_name)) {
+    } else if (!strcmp("SHA3-384", md_name)) {
         return mbedtls_md_info_from_type(MBEDTLS_MD_SHA3_384);
-    }
-    else if (!strcmp("SHA3-512", md_name)) {
+    } else if (!strcmp("SHA3-512", md_name)) {
         return mbedtls_md_info_from_type(MBEDTLS_MD_SHA3_512);
     }
 #endif

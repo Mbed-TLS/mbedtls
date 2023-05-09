@@ -425,7 +425,10 @@ all_final += server5-ss-expired.crt
 
 # try to forge a copy of test-int-ca3 with different key
 server5-ss-forgeca.crt: server5.key
-	$(FAKETIME) '2015-09-01 14:08:43' $(OPENSSL) req -x509 -new -subj "/C=UK/O=mbed TLS/CN=mbed TLS Test intermediate CA 3" -set_serial 77 -config $(test_ca_config_file) -extensions noext_ca -days 3650 -sha256 -key $< -out $@
+	$(FAKETIME) '2015-09-01 14:08:43' $(OPENSSL) req -x509 \
+		-new -subj "/C=UK/O=mbed TLS/CN=mbed TLS Test intermediate CA 3" \
+		-set_serial 77 -config $(test_ca_config_file) -extensions noext_ca -days 3650 -sha256 \
+		-key $< -out $@
 all_final += server5-ss-forgeca.crt
 
 server5-selfsigned.crt: server5.key
@@ -1370,7 +1373,7 @@ server5.csr: server5.key
 	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
 					-key $< -out $@
 all_intermediate += server5.csr
-server5.crt: server5.csr
+server5.crt: server5.csr $(test_ca_crt_cat21) $(test_ca_key_file_ec) server5.crt.openssl.v3_ext
 	$(OPENSSL) x509 -req -CA $(test_ca_crt_cat21) -CAkey $(test_ca_key_file_ec) \
 				-extfile server5.crt.openssl.v3_ext -set_serial 9 -days 3650 -sha256 -in $< -out $@
 all_final += server5.crt
@@ -1380,6 +1383,17 @@ all_final += server5.crt
 server5.req.ku.sha1: server5.key
 	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< key_usage=digital_signature,non_repudiation subject_name="C=NL,O=PolarSSL,CN=PolarSSL Server 1" md=SHA1
 all_final += server5.req.ku.sha1
+
+# server6*
+
+server6.csr: server6.key
+	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
+					-key $< -out $@
+all_intermediate += server6.csr
+server6.crt: server6.csr $(test_ca_crt_file_ec) $(test_ca_key_file_ec)
+	$(OPENSSL) x509 -req -CA $(test_ca_crt_file_ec) -CAkey $(test_ca_key_file_ec) \
+				-extfile server5.crt.openssl.v3_ext -set_serial 10 -days 3650 -sha256 -in $< -out $@
+all_final += server6.crt
 
 ################################################################
 ### Generate certificates for CRT write check tests

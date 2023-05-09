@@ -16,6 +16,7 @@ build:
     - breathe-apidoc -o docs/api apidoc/xml
     post_build:
     - |
+      # Work around Readthedocs bug: Command parsing fails if the 'if' statement is on the first line
       if [ "$READTHEDOCS_VERSION" = "development" ]; then
         "$READTHEDOCS_VIRTUALENV_PATH/bin/rtd" projects "Mbed TLS API" redirects sync --wet-run -f docs/redirects.yaml
       fi

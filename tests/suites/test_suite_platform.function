@@ -120,3 +120,15 @@ void time_delay_seconds(int delay_secs)
     goto exit;
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void check_mbedtls_calloc_overallocation(intmax_t num, intmax_t size)
+{
+    unsigned char *buf;
+    buf = mbedtls_calloc((size_t) num, (size_t) size);
+    TEST_ASSERT(buf == NULL);
+
+exit:
+    mbedtls_free(buf);
+}
+/* END_CASE */

@@ -1080,6 +1080,17 @@ server5.req.ku.sha1: server5.key
 	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< key_usage=digital_signature,non_repudiation subject_name="C=NL,O=PolarSSL,CN=PolarSSL Server 1" md=SHA1
 all_final += server5.req.ku.sha1
 
+# server6*
+
+server6.csr: server6.key
+	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
+					-key $< -out $@
+all_intermediate += server6.csr
+server6.crt: server6.csr $(test_ca_crt_file_ec) $(test_ca_key_file_ec)
+	$(OPENSSL) x509 -req -CA $(test_ca_crt_file_ec) -CAkey $(test_ca_key_file_ec) \
+				-extfile server5.crt.openssl.v3_ext -set_serial 10 -days 3650 -sha256 -in $< -out $@
+all_final += server6.crt
+
 ################################################################
 ### Generate certificates for CRT write check tests
 ################################################################

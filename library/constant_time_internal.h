@@ -238,42 +238,6 @@ void mbedtls_ct_memcpy_offset(unsigned char *dest,
 
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 
-#if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)
-
-/** This function performs the unpadding part of a PKCS#1 v1.5 decryption
- *  operation (EME-PKCS1-v1_5 decoding).
- *
- * \note The return value from this function is a sensitive value
- *       (this is unusual). #MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE shouldn't happen
- *       in a well-written application, but 0 vs #MBEDTLS_ERR_RSA_INVALID_PADDING
- *       is often a situation that an attacker can provoke and leaking which
- *       one is the result is precisely the information the attacker wants.
- *
- * \param input          The input buffer which is the payload inside PKCS#1v1.5
- *                       encryption padding, called the "encoded message EM"
- *                       by the terminology.
- * \param ilen           The length of the payload in the \p input buffer.
- * \param output         The buffer for the payload, called "message M" by the
- *                       PKCS#1 terminology. This must be a writable buffer of
- *                       length \p output_max_len bytes.
- * \param olen           The address at which to store the length of
- *                       the payload. This must not be \c NULL.
- * \param output_max_len The length in bytes of the output buffer \p output.
- *
- * \return      \c 0 on success.
- * \return      #MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE
- *              The output buffer is too small for the unpadded payload.
- * \return      #MBEDTLS_ERR_RSA_INVALID_PADDING
- *              The input doesn't contain properly formatted padding.
- */
-int mbedtls_ct_rsaes_pkcs1_v15_unpadding(unsigned char *input,
-                                         size_t ilen,
-                                         unsigned char *output,
-                                         size_t output_max_len,
-                                         size_t *olen);
-
-#endif /* MBEDTLS_PKCS1_V15 && MBEDTLS_RSA_C && ! MBEDTLS_RSA_ALT */
-
 #if defined(MBEDTLS_BASE64_C)
 
 /** Constant-flow char selection
@@ -333,8 +297,8 @@ unsigned mbedtls_ct_size_gt(size_t x, size_t y);
  * \param offset    Offset from which to copy \p total - \p offset bytes.
  */
 void mbedtls_ct_mem_move_to_left(void *start,
-                                        size_t total,
-                                        size_t offset);
+                                 size_t total,
+                                 size_t offset);
 
 #endif /* defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT) */
 

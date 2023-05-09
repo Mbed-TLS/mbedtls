@@ -1395,6 +1395,17 @@ server6.crt: server6.csr $(test_ca_crt_file_ec) $(test_ca_key_file_ec)
 				-extfile server5.crt.openssl.v3_ext -set_serial 10 -days 3650 -sha256 -in $< -out $@
 all_final += server6.crt
 
+server6-ss-child.csr : server6.key
+	$(OPENSSL) req -new -subj "/CN=selfsigned-child/OU=testing/O=PolarSSL/C=NL" \
+		-key $< -out $@
+all_intermediate += server6-ss-child.csr
+server6-ss-child.crt: server6-ss-child.csr server5-selfsigned.crt server5.key server6-ss-child.crt.openssl.v3_ext
+	$(OPENSSL) x509 -req -CA server5-selfsigned.crt -CAkey server5.key \
+				-extfile server6-ss-child.crt.openssl.v3_ext \
+				-set_serial 0x53a2cb5822399474a7ec79ec \
+				-days 3650 -sha256 -in $< -out $@
+all_final += server6-ss-child.crt
+
 ################################################################
 ### Generate certificates for CRT write check tests
 ################################################################

@@ -171,6 +171,19 @@ exit:
     return ret;
 }
 
+int mbedtls_mpi_mod_optred_modulus_setup(mbedtls_mpi_mod_modulus *N,
+                                         const mbedtls_mpi_uint *p,
+                                         size_t p_limbs,
+                                         mbedtls_mpi_opt_red_struct *ored)
+{
+    N->p = p;
+    N->limbs = p_limbs;
+    N->bits = mbedtls_mpi_core_bitlen(p, p_limbs);
+    N->int_rep = MBEDTLS_MPI_MOD_REP_OPT_RED;
+    N->rep.ored =ored ;
+    return 0;
+}
+
 int mbedtls_mpi_mod_mul(mbedtls_mpi_mod_residue *X,
                         const mbedtls_mpi_mod_residue *A,
                         const mbedtls_mpi_mod_residue *B,

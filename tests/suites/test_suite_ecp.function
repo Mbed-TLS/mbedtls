@@ -1373,8 +1373,7 @@ void ecp_mod_p_generic_raw(int curve_id,
     TEST_EQUAL(limbs_res, limbs_N);
 
     TEST_EQUAL(mbedtls_mpi_mod_modulus_setup(
-                   &m, N, limbs_N,
-                   MBEDTLS_MPI_MOD_REP_OPT_RED), 0);
+                   &m, N, limbs_N), 0);
 
     TEST_EQUAL((*curve_func)(X, limbs_X), 0);
 

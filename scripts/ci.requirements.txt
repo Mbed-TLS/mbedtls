@@ -14,4 +14,5 @@ mypy >= 0.780
 # Install cryptography to avoid import-error reported by pylint.
 # What we really need is cryptography >= 35.0.0, which is only
 # available for Python >= 3.6.
-cryptography # >= 35.0.0
+cryptography >= 35.0.0; sys_platform == 'linux' and python_version >= '3.6'
+cryptography;           sys_platform == 'linux' and python_version <  '3.6'

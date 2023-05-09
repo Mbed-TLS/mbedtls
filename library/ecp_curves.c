@@ -5966,8 +5966,7 @@ int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
             return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 
-    if (mbedtls_mpi_mod_modulus_setup(N, p, p_limbs,
-                                      MBEDTLS_MPI_MOD_REP_MONTGOMERY)) {
+    if (mbedtls_mpi_mod_modulus_setup(N, p, p_limbs)) {
         return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     }
     return 0;

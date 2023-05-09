@@ -253,19 +253,7 @@ unsigned mbedtls_ct_size_bool_eq(size_t x,
 
 #if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)
 
-/** Constant-flow "greater than" comparison:
- * return x > y
- *
- * This is equivalent to \p x > \p y, but is likely to be compiled
- * to code using bitwise operation rather than a branch.
- *
- * \param x     The first value to analyze.
- * \param y     The second value to analyze.
- *
- * \return      1 if \p x greater than \p y, otherwise 0.
- */
-static unsigned mbedtls_ct_size_gt(size_t x,
-                                   size_t y)
+unsigned mbedtls_ct_size_gt(size_t x, size_t y)
 {
     /* Return the sign bit (1 for negative) of (y - x). */
     return (y - x) >> (sizeof(size_t) * 8 - 1);
@@ -345,23 +333,7 @@ void mbedtls_ct_mpi_uint_cond_assign(size_t n,
 
 #if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)
 
-/** Shift some data towards the left inside a buffer.
- *
- * `mbedtls_ct_mem_move_to_left(start, total, offset)` is functionally
- * equivalent to
- * ```
- * memmove(start, start + offset, total - offset);
- * memset(start + offset, 0, total - offset);
- * ```
- * but it strives to use a memory access pattern (and thus total timing)
- * that does not depend on \p offset. This timing independence comes at
- * the expense of performance.
- *
- * \param start     Pointer to the start of the buffer.
- * \param total     Total size of the buffer.
- * \param offset    Offset from which to copy \p total - \p offset bytes.
- */
-static void mbedtls_ct_mem_move_to_left(void *start,
+void mbedtls_ct_mem_move_to_left(void *start,
                                         size_t total,
                                         size_t offset)
 {

@@ -428,6 +428,18 @@ server5-ss-forgeca.crt: server5.key
 	$(FAKETIME) '2015-09-01 14:08:43' $(OPENSSL) req -x509 -new -subj "/C=UK/O=mbed TLS/CN=mbed TLS Test intermediate CA 3" -set_serial 77 -config $(test_ca_config_file) -extensions noext_ca -days 3650 -sha256 -key $< -out $@
 all_final += server5-ss-forgeca.crt
 
+server5-selfsigned.crt: server5.key
+	openssl req -x509 -key server5.key \
+        -sha256 -days 3650 -nodes \
+        -addext basicConstraints=critical,CA:FALSE \
+        -addext keyUsage=critical,digitalSignature \
+        -addext subjectKeyIdentifier=hash   \
+        -addext authorityKeyIdentifier=none \
+        -set_serial 0x53a2cb4b124ead837da894b2 \
+        -subj "/CN=selfsigned/OU=testing/O=PolarSSL/C=NL" \
+        -out $@
+all_final += server5-selfsigned.crt
+
 server5-othername.crt: server5.key
 	$(OPENSSL) req -x509 -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS othername SAN" -set_serial 77 -config $(test_ca_config_file) -extensions othername_san -days 3650 -sha256 -key $< -out $@
 

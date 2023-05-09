@@ -2096,6 +2096,7 @@ component_test_psa_crypto_config_accel_ecdsa () {
 
     # Disable the module that's accelerated
     scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_EDDSA_C
 
     # Disable things that depend on it
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
@@ -2216,6 +2217,7 @@ config_psa_crypto_config_all_ec_algs_use_psa () {
     if [ "$DRIVER_ONLY" -eq 1 ]; then
         # Disable modules that are accelerated
         scripts/config.py unset MBEDTLS_ECDSA_C
+        scripts/config.py unset MBEDTLS_EDDSA_C
         scripts/config.py unset MBEDTLS_ECDH_C
         scripts/config.py unset MBEDTLS_ECJPAKE_C
         scripts/config.py unset MBEDTLS_ECP_C
@@ -2325,6 +2327,7 @@ config_psa_crypto_full_all_ec_algs_no_ecp_use_psa () {
     if [ "$DRIVER_ONLY" -eq 1 ]; then
         # Disable modules that are accelerated
         scripts/config.py unset MBEDTLS_ECDSA_C
+        scripts/config.py unset MBEDTLS_EDDSA_C
         scripts/config.py unset MBEDTLS_ECDH_C
         scripts/config.py unset MBEDTLS_ECJPAKE_C
         # Disable ECP module (entirely)
@@ -2494,6 +2497,7 @@ psa_crypto_config_accel_all_curves_except_one () {
 
     # disable modules for which we have drivers
     scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_EDDSA_C
     scripts/config.py unset MBEDTLS_ECDH_C
     scripts/config.py unset MBEDTLS_ECJPAKE_C
 
@@ -3926,6 +3930,7 @@ component_test_tls13_only_psk () {
     scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
     scripts/config.py unset MBEDTLS_SSL_SERVER_NAME_INDICATION
     scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_EDDSA_C
     scripts/config.py unset MBEDTLS_PKCS1_V21
     scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
@@ -3960,6 +3965,7 @@ component_test_tls13_only_psk_ephemeral () {
     scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
     scripts/config.py unset MBEDTLS_SSL_SERVER_NAME_INDICATION
     scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_EDDSA_C
     scripts/config.py unset MBEDTLS_PKCS1_V21
     scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
@@ -3979,6 +3985,7 @@ component_test_tls13_only_psk_all () {
     scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
     scripts/config.py unset MBEDTLS_SSL_SERVER_NAME_INDICATION
     scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_EDDSA_C
     scripts/config.py unset MBEDTLS_PKCS1_V21
     scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA

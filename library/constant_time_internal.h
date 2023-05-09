@@ -236,63 +236,6 @@ void mbedtls_ct_memcpy_offset(unsigned char *dest,
                               size_t offset_max,
                               size_t len);
 
-/** Compute the HMAC of variable-length data with constant flow.
- *
- * This function computes the HMAC of the concatenation of \p add_data and \p
- * data, and does with a code flow and memory access pattern that does not
- * depend on \p data_len_secret, but only on \p min_data_len and \p
- * max_data_len. In particular, this function always reads exactly \p
- * max_data_len bytes from \p data.
- *
- * \param ctx               The HMAC context. It must have keys configured
- *                          with mbedtls_md_hmac_starts() and use one of the
- *                          following hashes: SHA-384, SHA-256, SHA-1 or MD-5.
- *                          It is reset using mbedtls_md_hmac_reset() after
- *                          the computation is complete to prepare for the
- *                          next computation.
- * \param add_data          The first part of the message whose HMAC is being
- *                          calculated. This must point to a readable buffer
- *                          of \p add_data_len bytes.
- * \param add_data_len      The length of \p add_data in bytes.
- * \param data              The buffer containing the second part of the
- *                          message. This must point to a readable buffer
- *                          of \p max_data_len bytes.
- * \param data_len_secret   The length of the data to process in \p data.
- *                          This must be no less than \p min_data_len and no
- *                          greater than \p max_data_len.
- * \param min_data_len      The minimal length of the second part of the
- *                          message, read from \p data.
- * \param max_data_len      The maximal length of the second part of the
- *                          message, read from \p data.
- * \param output            The HMAC will be written here. This must point to
- *                          a writable buffer of sufficient size to hold the
- *                          HMAC value.
- *
- * \retval 0 on success.
- * \retval #MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED
- *         The hardware accelerator failed.
- */
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-int mbedtls_ct_hmac(mbedtls_svc_key_id_t key,
-                    psa_algorithm_t alg,
-                    const unsigned char *add_data,
-                    size_t add_data_len,
-                    const unsigned char *data,
-                    size_t data_len_secret,
-                    size_t min_data_len,
-                    size_t max_data_len,
-                    unsigned char *output);
-#else
-int mbedtls_ct_hmac(mbedtls_md_context_t *ctx,
-                    const unsigned char *add_data,
-                    size_t add_data_len,
-                    const unsigned char *data,
-                    size_t data_len_secret,
-                    size_t min_data_len,
-                    size_t max_data_len,
-                    unsigned char *output);
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 
 #if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)

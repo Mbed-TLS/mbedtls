@@ -1,0 +1,6 @@
+Security
+   * Updates to constant time C code so that compilers are less likely to use
+     conditional instructions (Clang was observed to use these). Conditional
+     instructions might have an observable difference in timing. Introduce
+     assembly implementations for 32 and 64-bit Arm which are guaranteed not
+     to use conditional instructions.

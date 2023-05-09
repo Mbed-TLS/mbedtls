@@ -208,6 +208,23 @@ int mbedtls_mpi_mod_modulus_setup(mbedtls_mpi_mod_modulus *N,
                                   size_t p_limbs,
                                   mbedtls_mpi_mod_rep_selector int_rep);
 
+/** Setup an optimised-reduction compatible modulus structure.
+ *
+ * \param[out] N    The address of the modulus structure to populate.
+ * \param[in] p     The address of the limb array storing the value of \p N.
+ *                  The memory pointed to by \p p will be used by \p N and must
+ *                  not be modified in any way until after
+ *                  mbedtls_mpi_mod_modulus_free() is called.
+ * \param p_limbs   The number of limbs of \p p.
+ * \param ored      The optimized reduction structure to use. \p p.
+ *
+ * \return      \c 0 if successful.
+ */
+int mbedtls_mpi_mod_optred_modulus_setup(mbedtls_mpi_mod_modulus *N,
+                                         const mbedtls_mpi_uint *p,
+                                         size_t p_limbs,
+                                         mbedtls_mpi_opt_red_struct *ored);
+
 /** Free elements of a modulus structure.
  *
  * This function frees any memory allocated by mbedtls_mpi_mod_modulus_setup().

@@ -1326,6 +1326,12 @@ server3.crt: server3.key
 	$(MBEDTLS_CERT_WRITE) subject_key=$< subject_name="C=NL,O=PolarSSL,CN=localhost" serial=13 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20190210144406 not_after=20290210144406 md=SHA1 version=3 output_file=$@
 all_final += server3.crt
 
+# server4*
+
+server4.crt: server4.key
+	$(MBEDTLS_CERT_WRITE) subject_key=$< subject_name="C=NL,O=PolarSSL,CN=localhost" serial=8 issuer_crt=$(test_ca_crt_file_ec) issuer_key=$(test_ca_key_file_ec) not_before=20190210144406 not_after=20290210144406 md=SHA256 version=3 output_file=$@
+all_final += server4.crt
+
 # MD5 test certificate
 
 cert_md_test_key = $(cli_crt_key_file_rsa)

@@ -908,6 +908,10 @@ extern "C" {
 
 #endif /* MBEDTLS_PSA_CRYPTO_CONFIG */
 
+#if defined(PSA_WANT_ALG_JPAKE)
+#define PSA_WANT_ALG_SOME_PAKE 1
+#endif
+
 /* These features are always enabled. */
 #define PSA_WANT_KEY_TYPE_DERIVE 1
 #define PSA_WANT_KEY_TYPE_PASSWORD 1

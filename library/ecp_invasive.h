@@ -241,6 +241,13 @@ int mbedtls_ecp_mod_p256k1_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 
 #endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */
 
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p255_raw(mbedtls_mpi_uint *X, size_t X_limbs);
+
+#endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED */
+
 #if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
 
 MBEDTLS_STATIC_TESTABLE

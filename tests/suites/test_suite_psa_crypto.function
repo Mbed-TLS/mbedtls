@@ -1530,8 +1530,15 @@ void import_export(data_t *data,
     psa_set_key_algorithm(&attributes, alg);
     psa_set_key_type(&attributes, type);
 
+    if (PSA_KEY_TYPE_IS_DH(type) &&
+        expected_export_status == PSA_ERROR_BUFFER_TOO_SMALL) {
+        /* Simulate that buffer is too small, by decreasing its size by 1 byte. */
+        export_size -= 1;
+    }
+
     /* Import the key */
-    PSA_ASSERT(psa_import_key(&attributes, data->x, data->len, &key));
+    TEST_EQUAL(psa_import_key(&attributes, data->x, data->len, &key),
+               PSA_SUCCESS);
 
     /* Test the key information */
     PSA_ASSERT(psa_get_key_attributes(key, &got_attributes));

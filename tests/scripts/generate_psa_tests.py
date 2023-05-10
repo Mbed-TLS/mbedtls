@@ -85,7 +85,7 @@ AES_128BIT_ONLY_DEP = ["!MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH"]
 DEPENDENCY_FROM_KEY = {
     AES_128BIT_ONLY_DEP_REGEX: AES_128BIT_ONLY_DEP
 }#type: Dict[str, List[str]]
-def generate_key_dependencis(description: str) -> List[str]:
+def generate_key_dependencies(description: str) -> List[str]:
     """Return additional dependencies based on pairs of REGEX and dependencies.
     """
     deps = []
@@ -592,7 +592,7 @@ class StorageFormat:
             key.alg.string, key.alg2.string,
         )
         dependencies = finish_family_dependencies(dependencies, key.bits)
-        dependencies += generate_key_dependencis(key.description)
+        dependencies += generate_key_dependencies(key.description)
         tc.set_dependencies(dependencies)
         tc.set_function('key_storage_' + verb)
         if self.forward:

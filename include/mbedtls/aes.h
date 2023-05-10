@@ -78,8 +78,7 @@ typedef struct mbedtls_aes_context {
                                                     round keys in the buffer. */
 #if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH) && !defined(MBEDTLS_PADLOCK_C)
     uint32_t MBEDTLS_PRIVATE(buf)[44];           /*!< Aligned data buffer to hold
-                                                    round keys in the 128-bit case for
-                                                    10 rounds calculation. */
+                                                    10 round keys for 128-bit case. */
 #else
     uint32_t MBEDTLS_PRIVATE(buf)[68];           /*!< Unaligned data buffer. This buffer can
                                                     hold 32 extra Bytes, which can be used for

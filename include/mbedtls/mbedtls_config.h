@@ -496,7 +496,6 @@
  * performance if ROM access is slower than RAM access.
  *
  * This option is independent of \c MBEDTLS_AES_FEWER_TABLES.
- *
  */
 //#define MBEDTLS_AES_ROM_TABLES
 
@@ -518,7 +517,6 @@
  * depends on the system and memory details.
  *
  * This option is independent of \c MBEDTLS_AES_ROM_TABLES.
- *
  */
 //#define MBEDTLS_AES_FEWER_TABLES
 

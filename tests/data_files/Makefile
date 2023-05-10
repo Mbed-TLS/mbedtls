@@ -1373,9 +1373,12 @@ server5.csr: server5.key
 	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
 					-key $< -out $@
 all_intermediate += server5.csr
-server5.crt: server5.csr $(test_ca_crt_cat21) $(test_ca_key_file_ec) server5.crt.openssl.v3_ext
-	$(OPENSSL) x509 -req -CA $(test_ca_crt_cat21) -CAkey $(test_ca_key_file_ec) \
-				-extfile server5.crt.openssl.v3_ext -set_serial 9 -days 3650 -sha256 -in $< -out $@
+server5.crt: server5.csr $(test_ca_crt_cat21) $(test_ca_key_file_ec) server5.crt.openssl.v3_ext test-ca2.server5.opensslconf
+	echo 01 > test-ca2.server5.serial
+	rm -f test-ca2.server5.db
+	touch test-ca2.server5.db
+	$(OPENSSL) ca -batch -config test-ca2.server5.opensslconf \
+				-extfile $@.openssl.v3_ext -days 3650 -in $< -out $@
 all_final += server5.crt
 
 server5-badsign.crt: server5.crt

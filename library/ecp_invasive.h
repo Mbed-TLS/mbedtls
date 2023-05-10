@@ -31,7 +31,7 @@
 #include "bignum_mod.h"
 #include "mbedtls/ecp.h"
 
-#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_ECP_LIGHT)
 
 #if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
 /** Generate a private key on a Montgomery curve (Curve25519 or Curve448).
@@ -47,7 +47,7 @@
  *                  This is the bit-size of the key minus 1:
  *                  254 for Curve25519 or 447 for Curve448.
  * \param d         The randomly generated key. This is a number of size
- *                  exactly \p n_bits + 1 bits, with the least significant bits
+ *                  exactly \p high_bit + 1 bits, with the least significant bits
  *                  masked as specified in [Curve25519] and in [RFC7748] §5.
  * \param f_rng     The RNG function.
  * \param p_rng     The RNG context to be passed to \p f_rng.
@@ -55,7 +55,7 @@
  * \return          \c 0 on success.
  * \return          \c MBEDTLS_ERR_ECP_xxx or MBEDTLS_ERR_MPI_xxx on failure.
  */
-int mbedtls_ecp_gen_privkey_mx(size_t n_bits,
+int mbedtls_ecp_gen_privkey_mx(size_t high_bit,
                                mbedtls_mpi *d,
                                int (*f_rng)(void *, unsigned char *, size_t),
                                void *p_rng);
@@ -168,6 +168,37 @@ MBEDTLS_STATIC_TESTABLE
 int  mbedtls_ecp_mod_p384_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 
 #endif /* MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
+
+/*
+ * Fast quasi-reduction modulo p192k1 = 2^192 - R,
+ * with R = 2^32 + 2^12 + 2^8 + 2^7 + 2^6 + 2^3 + 1 = 0x0100001119
+ */
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p192k1(mbedtls_mpi *N);
+
+#endif /* MBEDTLS_ECP_DP_SECP192K1_ENABLED */
+#if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
+
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p224k1(mbedtls_mpi *N);
+
+#endif /* MBEDTLS_ECP_DP_SECP224K1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
+
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p256k1(mbedtls_mpi *N);
+
+#endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p448(mbedtls_mpi *N);
+
+#endif /* MBEDTLS_ECP_DP_CURVE448_ENABLED */
 
 /** Initialise a modulus with hard-coded const curve data.
  *

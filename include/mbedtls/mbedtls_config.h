@@ -1931,7 +1931,8 @@
  * break backwards compatibility.
  *
  * \warning If you enable this option, you need to call `psa_crypto_init()`
- * before calling any function from the SSL/TLS, X.509 or PK modules.
+ * before calling any function from the SSL/TLS, X.509 or PK modules, except
+ * for the various mbedtls_xxx_init() functions which can be called at any time.
  *
  * \note An important and desirable effect of this option is that it allows
  * PK, X.509 and TLS to take advantage of PSA drivers. For example, enabling
@@ -2076,11 +2077,14 @@
  * Module:  library/aesce.c
  * Caller:  library/aes.c
  *
- * Requires: MBEDTLS_HAVE_ASM, MBEDTLS_AES_C
+ * Requires: MBEDTLS_AES_C
  *
  * \warning Runtime detection only works on Linux. For non-Linux operating
  *          system, Armv8-A Cryptographic Extensions must be supported by
  *          the CPU when this option is enabled.
+ *
+ * \note    Minimum compiler versions for this feature are Clang 4.0,
+ *          GCC 6.0 or MSVC 2019 version 16.11.2.
  *
  * This module adds support for the AES Armv8-A Cryptographic Extensions on Aarch64 systems.
  */
@@ -3915,5 +3919,19 @@
  * MBEDTLS_ECDH_LEGACY_CONTEXT in include/mbedtls/ecdh.h.
  */
 //#define MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
+
+/**
+ * Uncomment to enable p256-m, which implements ECC key generation, ECDH,
+ * and ECDSA for SECP256R1 curves. This driver is used as an example to
+ * document how a third-party driver or software accelerator can be integrated
+ * to work alongside Mbed TLS.
+ *
+ * \warning p256-m has only been included to serve as a sample implementation
+ * of how a driver/accelerator can be integrated alongside Mbed TLS. It is not
+ * intended for use in production. p256-m files in Mbed TLS are not updated
+ * regularly, so they may not contain upstream fixes/improvements.
+ * DO NOT ENABLE/USE THIS MACRO IN PRODUCTION BUILDS!
+ */
+//#define MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED
 
 /** \} name SECTION: Module configuration options */

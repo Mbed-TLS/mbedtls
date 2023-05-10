@@ -148,6 +148,13 @@ extern "C" {
 #endif /* !MBEDTLS_PSA_ACCEL_ALG_ECDSA */
 #endif /* PSA_WANT_ALG_ECDSA */
 
+#if defined(PSA_WANT_ALG_FFDH)
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_FFDH)
+#define MBEDTLS_PSA_BUILTIN_ALG_FFDH 1
+#define MBEDTLS_BIGNUM_C
+#endif /* !MBEDTLS_PSA_ACCEL_ALG_FFDH */
+#endif /* PSA_WANT_ALG_FFDH */
+
 #if defined(PSA_WANT_ALG_HKDF)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_HKDF)
 #define MBEDTLS_PSA_BUILTIN_ALG_HMAC 1
@@ -287,6 +294,13 @@ extern "C" {
 #endif /* !MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR */
 #endif /* PSA_WANT_KEY_TYPE_ECC_KEY_PAIR */
 
+#if defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR)
+#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_DH_KEY_PAIR)
+#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR 1
+#define MBEDTLS_BIGNUM_C
+#endif /* !MBEDTLS_PSA_ACCEL_KEY_TYPE_DH_KEY_PAIR */
+#endif /* PSA_WANT_KEY_TYPE_DH_KEY_PAIR */
+
 #if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 #if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY)
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY 1
@@ -294,6 +308,13 @@ extern "C" {
 #define MBEDTLS_BIGNUM_C
 #endif /* !MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY */
 #endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
+
+#if defined(PSA_WANT_KEY_TYPE_DH_PUBLIC_KEY)
+#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_DH_PUBLIC_KEY)
+#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY 1
+#define MBEDTLS_BIGNUM_C
+#endif /* !MBEDTLS_PSA_ACCEL_KEY_TYPE_DH_PUBLIC_KEY */
+#endif /* PSA_WANT_KEY_TYPE_DH_PUBLIC_KEY */
 
 #if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR)
 #if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR)
@@ -651,6 +672,16 @@ extern "C" {
 #define PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY 1
 #endif /* MBEDTLS_ECP_C */
 
+#if defined(MBEDTLS_DHM_C)
+#define PSA_WANT_KEY_TYPE_DH_KEY_PAIR 1
+#define PSA_WANT_KEY_TYPE_DH_PUBLIC_KEY 1
+#define PSA_WANT_ALG_FFDH 1
+#define PSA_WANT_DH_FAMILY_RFC7919 1
+#define MBEDTLS_PSA_BUILTIN_ALG_FFDH 1
+#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR 1
+#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY 1
+#endif /* MBEDTLS_DHM_C */
+
 #if defined(MBEDTLS_GCM_C)
 #define MBEDTLS_PSA_BUILTIN_ALG_GCM 1
 #define PSA_WANT_ALG_GCM 1
@@ -876,22 +907,6 @@ extern "C" {
 #endif
 
 #endif /* MBEDTLS_PSA_CRYPTO_CONFIG */
-
-#if defined(PSA_WANT_ALG_ECDSA) && defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) && \
-    defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-#define PSA_HAVE_FULL_ECDSA 1
-#endif
-
-#if defined(PSA_WANT_ALG_JPAKE) && defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) && \
-    defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-#define PSA_HAVE_FULL_JPAKE 1
-#endif
-
-/* Having support for ECDH implicitly includes support for private and
- * public keys, so we don't specify that requirement here. */
-#if defined(PSA_WANT_ALG_ECDH)
-#define PSA_HAVE_FULL_ECDH 1
-#endif
 
 /* These features are always enabled. */
 #define PSA_WANT_KEY_TYPE_DERIVE 1

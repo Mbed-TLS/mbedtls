@@ -573,7 +573,7 @@ psa_status_t psa_get_key_domain_parameters(
  * @{
  */
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 #include <mbedtls/ecp.h>
 
 /** Convert an ECC curve identifier from the Mbed TLS encoding to PSA.
@@ -660,7 +660,7 @@ static inline psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grp
 mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
                                               size_t bits,
                                               int bits_is_sloppy);
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
 
 /**@}*/
 
@@ -1328,20 +1328,6 @@ psa_status_t psa_crypto_driver_pake_get_password(
     const psa_crypto_driver_pake_inputs_t *inputs,
     uint8_t *buffer, size_t buffer_size, size_t *buffer_length);
 
-/** Get the role from given inputs.
- *
- * \param[in]  inputs           Operation inputs.
- * \param[out] role             Return buffer for role.
- *
- * \retval #PSA_SUCCESS
- *         Success.
- * \retval #PSA_ERROR_BAD_STATE
- *         Role hasn't been set yet.
- */
-psa_status_t psa_crypto_driver_pake_get_role(
-    const psa_crypto_driver_pake_inputs_t *inputs,
-    psa_pake_role_t *role);
-
 /** Get the length of the user id in bytes from given inputs.
  *
  * \param[in]  inputs           Operation inputs.
@@ -1560,7 +1546,6 @@ psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
  *                              been set (psa_pake_set_user() hasn't been
  *                              called yet).
  * \param[in] user_id           The user ID to authenticate with.
- *                              (temporary limitation: "client" or "server" only)
  * \param user_id_len           Size of the \p user_id buffer in bytes.
  *
  * \retval #PSA_SUCCESS
@@ -1602,7 +1587,6 @@ psa_status_t psa_pake_set_user(psa_pake_operation_t *operation,
  *                              been set (psa_pake_set_peer() hasn't been
  *                              called yet).
  * \param[in] peer_id           The peer's ID to authenticate.
- *                              (temporary limitation: "client" or "server" only)
  * \param peer_id_len           Size of the \p peer_id buffer in bytes.
  *
  * \retval #PSA_SUCCESS
@@ -1937,6 +1921,9 @@ psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
  *
  * This macro must expand to a compile-time constant integer.
  *
+ * The value of this macro must be at least as large as the largest value
+ * returned by PSA_PAKE_OUTPUT_SIZE()
+ *
  * See also #PSA_PAKE_OUTPUT_SIZE(\p alg, \p primitive, \p step).
  */
 #define PSA_PAKE_OUTPUT_MAX_SIZE 65
@@ -1945,6 +1932,9 @@ psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
  * algorithm and primitive suites and input step.
  *
  * This macro must expand to a compile-time constant integer.
+ *
+ * The value of this macro must be at least as large as the largest value
+ * returned by PSA_PAKE_INPUT_SIZE()
  *
  * See also #PSA_PAKE_INPUT_SIZE(\p alg, \p primitive, \p step).
  */
@@ -1958,7 +1948,7 @@ psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
 /** Returns a suitable initializer for a PAKE operation object of type
  * psa_pake_operation_t.
  */
-#define PSA_PAKE_OPERATION_INIT { 0, PSA_ALG_NONE, PSA_PAKE_OPERATION_STAGE_SETUP, \
+#define PSA_PAKE_OPERATION_INIT { 0, PSA_ALG_NONE, 0, PSA_PAKE_OPERATION_STAGE_SETUP, \
                                   { 0 }, { { 0 } } }
 
 struct psa_pake_cipher_suite_s {
@@ -2033,7 +2023,6 @@ static inline void psa_pake_cs_set_hash(psa_pake_cipher_suite_t *cipher_suite,
 struct psa_crypto_driver_pake_inputs_s {
     uint8_t *MBEDTLS_PRIVATE(password);
     size_t MBEDTLS_PRIVATE(password_len);
-    psa_pake_role_t MBEDTLS_PRIVATE(role);
     uint8_t *MBEDTLS_PRIVATE(user);
     size_t MBEDTLS_PRIVATE(user_len);
     uint8_t *MBEDTLS_PRIVATE(peer);
@@ -2104,6 +2093,8 @@ struct psa_pake_operation_s {
     unsigned int MBEDTLS_PRIVATE(id);
     /* Algorithm of the PAKE operation */
     psa_algorithm_t MBEDTLS_PRIVATE(alg);
+    /* A primitive of type compatible with algorithm */
+    psa_pake_primitive_t MBEDTLS_PRIVATE(primitive);
     /* Stage of the PAKE operation: waiting for the setup, collecting inputs
      * or computing. */
     uint8_t MBEDTLS_PRIVATE(stage);

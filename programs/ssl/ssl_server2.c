@@ -73,7 +73,7 @@ int main(void)
 
 /* Size of memory to be allocated for the heap, when using the library's memory
  * management and MBEDTLS_MEMORY_BUFFER_ALLOC_C is enabled. */
-#define MEMORY_HEAP_SIZE        120000
+#define MEMORY_HEAP_SIZE        180000
 
 #define DFL_SERVER_ADDR         NULL
 #define DFL_SERVER_PORT         "4433"
@@ -445,7 +445,7 @@ int main(void)
 #define USAGE_EARLY_DATA ""
 #endif /* MBEDTLS_SSL_EARLY_DATA */
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 #define USAGE_CURVES \
     "    curves=a,b,c,d      default: \"default\" (library default)\n"  \
     "                        example: \"secp521r1,brainpoolP512r1\"\n"  \
@@ -671,7 +671,7 @@ struct options {
 #if defined(MBEDTLS_HAVE_TIME)
     int cache_timeout;          /* expiration delay of session cache entries*/
 #endif
-    int cache_remove;           /* enable / disable cache removement        */
+    int cache_remove;           /* enable / disable cache entry removal     */
     char *sni;                  /* string describing sni information        */
     const char *curves;         /* list of supported elliptic curves        */
     const char *sig_algs;       /* supported TLS 1.3 signature algorithms   */
@@ -1523,7 +1523,7 @@ int main(int argc, char *argv[])
 #if defined(SNI_OPTION)
     sni_entry *sni_info = NULL;
 #endif
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
     uint16_t group_list[CURVE_LIST_SIZE];
     const mbedtls_ecp_curve_info *curve_cur;
 #endif
@@ -2390,7 +2390,7 @@ usage:
     }
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
     if (opt.curves != NULL) {
         p = (char *) opt.curves;
         i = 0;
@@ -2436,7 +2436,7 @@ usage:
             group_list[i] = 0;
         }
     }
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
     if (opt.sig_algs != NULL) {
@@ -3138,7 +3138,7 @@ usage:
     }
 #endif
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
     if (opt.curves != NULL &&
         strcmp(opt.curves, "default") != 0) {
         mbedtls_ssl_conf_groups(&conf, group_list);

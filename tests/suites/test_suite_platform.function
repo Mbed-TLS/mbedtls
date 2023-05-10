@@ -10,7 +10,8 @@
 #if defined(MBEDTLS_HAVE_TIME)
 #include "mbedtls/platform_time.h"
 
-#ifdef WIN32
+#if defined(_WIN32) || defined(WIN32) || defined(__CYGWIN__) || \
+    defined(__MINGW32__) || defined(_WIN64)
 #include <windows.h>
 #elif _POSIX_C_SOURCE >= 199309L
 #include <time.h>
@@ -19,7 +20,8 @@
 #endif
 void sleep_ms(int milliseconds)
 {
-#ifdef WIN32
+#if defined(_WIN32) || defined(WIN32) || defined(__CYGWIN__) || \
+    defined(__MINGW32__) || defined(_WIN64)
     Sleep(milliseconds);
 #elif _POSIX_C_SOURCE >= 199309L
     struct timespec ts;
@@ -37,8 +39,6 @@ void sleep_ms(int milliseconds)
 /* BEGIN_DEPENDENCIES */
 
 /* END_DEPENDENCIES */
-
-
 
 /* BEGIN_CASE depends_on:MBEDTLS_HAVE_TIME */
 void time_get_milliseconds()
@@ -66,6 +66,13 @@ void time_delay_milliseconds(int delay_ms)
     mbedtls_ms_time_t current = mbedtls_ms_time();
     mbedtls_ms_time_t elapsed_ms;
 
+    /*
+     * WARNING: DO NOT ENABLE THIS TEST. We keep the code here to document the
+     *          reason.
+     *
+     *          Windows CI reports random test fail on platform-suite. It might
+     *          be caused by this case.
+     */
     sleep_ms(delay_ms);
 
     elapsed_ms = mbedtls_ms_time() - current;
@@ -76,6 +83,14 @@ void time_delay_milliseconds(int delay_ms)
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_HAVE_TIME */
+
+/*
+ * WARNING: DO NOT ENABLE THIS TEST. We keep the code here to document the
+ *          reason.
+ *
+ *          The test often failed on the CI. See #1517. CI failures cannot be
+ *          completely avoided due to out-of-sync clock sources.
+ */
 void time_delay_seconds(int delay_secs)
 {
     mbedtls_time_t current = mbedtls_time(NULL);
@@ -84,7 +99,23 @@ void time_delay_seconds(int delay_secs)
     sleep_ms(delay_secs * 1000);
 
     elapsed_secs = mbedtls_time(NULL) - current;
-    TEST_ASSERT(elapsed_secs >= delay_secs && elapsed_secs < 4 + delay_secs);
+
+    /*
+     * `mbedtls_time()` was defined as c99 function `time()`, returns the number
+     * of seconds since the Epoch. And it is affected by discontinuous changes
+     * from automatic drift adjustment or time setting system call. The POSIX.1
+     * specification for clock_settime says that discontinuous changes in
+     * CLOCK_REALTIME should not affect `nanosleep()`.
+     *
+     * If discontinuous changes occur during `nanosleep()`, we will get
+     * `elapsed_secs < delay_secs` for backward or `elapsed_secs > delay_secs`
+     * for forward.
+     *
+     * The following tolerance windows cannot be guaranteed.
+     * PLEASE DO NOT ENABLE IT IN CI TEST.
+     */
+    TEST_ASSERT(elapsed_secs - delay_secs >= -1 &&
+                elapsed_secs - delay_secs <   4);
     /* This goto is added to avoid warnings from the generated code. */
     goto exit;
 }

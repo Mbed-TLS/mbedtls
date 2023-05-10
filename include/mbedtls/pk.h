@@ -40,7 +40,7 @@
 #include "mbedtls/ecdsa.h"
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_PSA_CRYPTO_C)
 #include "psa/crypto.h"
 #endif
 
@@ -234,10 +234,17 @@ typedef struct mbedtls_pk_info_t mbedtls_pk_info_t;
 
 /**
  * \brief           Public key container
+ *
+ * \note            The priv_id is guarded by MBEDTLS_PSA_CRYPTO_C and not
+ *                  by MBEDTLS_USE_PSA_CRYPTO because it can be used also
+ *                  in mbedtls_pk_sign_ext for RSA keys.
  */
 typedef struct mbedtls_pk_context {
     const mbedtls_pk_info_t *MBEDTLS_PRIVATE(pk_info);    /**< Public key information         */
     void *MBEDTLS_PRIVATE(pk_ctx);                        /**< Underlying public key context  */
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+    mbedtls_svc_key_id_t MBEDTLS_PRIVATE(priv_id);      /**< Key ID for opaque keys */
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 } mbedtls_pk_context;
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
@@ -771,7 +778,7 @@ static inline mbedtls_rsa_context *mbedtls_pk_rsa(const mbedtls_pk_context pk)
 }
 #endif /* MBEDTLS_RSA_C */
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 /**
  * Quick access to an EC context inside a PK context.
  *
@@ -794,7 +801,7 @@ static inline mbedtls_ecp_keypair *mbedtls_pk_ec(const mbedtls_pk_context pk)
             return NULL;
     }
 }
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
 
 #if defined(MBEDTLS_PK_PARSE_C)
 /** \ingroup pk_module */

@@ -35,6 +35,23 @@
 
 size_t mbedtls_mpi_core_clz(mbedtls_mpi_uint a)
 {
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_clz)
+    if (sizeof(mbedtls_mpi_uint) == sizeof(unsigned int)) {
+        return (size_t) __builtin_clz(a);
+    }
+#endif
+#if __has_builtin(__builtin_clzl)
+    if (sizeof(mbedtls_mpi_uint) == sizeof(unsigned long)) {
+        return (size_t) __builtin_clzl(a);
+    }
+#endif
+#if __has_builtin(__builtin_clzll)
+    if (sizeof(mbedtls_mpi_uint) == sizeof(unsigned long long)) {
+        return (size_t) __builtin_clzll(a);
+    }
+#endif
+#endif
     size_t j;
     mbedtls_mpi_uint mask = (mbedtls_mpi_uint) 1 << (biL - 1);
 
@@ -51,21 +68,17 @@ size_t mbedtls_mpi_core_clz(mbedtls_mpi_uint a)
 
 size_t mbedtls_mpi_core_bitlen(const mbedtls_mpi_uint *A, size_t A_limbs)
 {
-    size_t i, j;
+    int i;
+    size_t j;
 
-    if (A_limbs == 0) {
-        return 0;
-    }
-
-    for (i = A_limbs - 1; i > 0; i--) {
+    for (i = ((int) A_limbs) - 1; i >= 0; i--) {
         if (A[i] != 0) {
-            break;
+            j = biL - mbedtls_mpi_core_clz(A[i]);
+            return (i * biL) + j;
         }
     }
 
-    j = biL - mbedtls_mpi_core_clz(A[i]);
-
-    return (i * biL) + j;
+    return 0;
 }
 
 /* Convert a big-endian byte array aligned to the size of mbedtls_mpi_uint

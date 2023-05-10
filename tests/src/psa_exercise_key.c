@@ -727,14 +727,12 @@ int mbedtls_test_psa_exported_key_sanity_check(
     } else
 #endif /* MBEDTLS_ASN1_PARSE_C */
 
-#if defined(MBEDTLS_ECP_C)
     if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(type)) {
         /* Just the secret value */
         TEST_EQUAL(exported_length, PSA_BITS_TO_BYTES(bits));
 
         TEST_ASSERT(exported_length <= PSA_EXPORT_KEY_PAIR_MAX_SIZE);
     } else
-#endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_ASN1_PARSE_C)
     if (type == PSA_KEY_TYPE_RSA_PUBLIC_KEY) {
@@ -766,7 +764,6 @@ int mbedtls_test_psa_exported_key_sanity_check(
     } else
 #endif /* MBEDTLS_ASN1_PARSE_C */
 
-#if defined(MBEDTLS_ECP_C)
     if (PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY(type)) {
 
         TEST_ASSERT(exported_length <=
@@ -793,9 +790,12 @@ int mbedtls_test_psa_exported_key_sanity_check(
             TEST_EQUAL(exported[0], 4);
         }
     } else
-#endif /* MBEDTLS_ECP_C */
-
-    {
+    if (PSA_KEY_TYPE_IS_DH_PUBLIC_KEY(type) || PSA_KEY_TYPE_IS_DH_KEY_PAIR(type)) {
+        TEST_ASSERT(exported_length ==
+                    PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE(type, bits));
+        TEST_ASSERT(exported_length <=
+                    PSA_EXPORT_PUBLIC_KEY_MAX_SIZE);
+    } else {
         (void) exported;
         TEST_ASSERT(!"Sanity check not implemented for this key type");
     }

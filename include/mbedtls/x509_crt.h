@@ -76,6 +76,8 @@ typedef struct mbedtls_x509_crt {
     mbedtls_x509_buf subject_id;        /**< Optional X.509 v2/v3 subject unique identifier. */
     mbedtls_x509_buf v3_ext;            /**< Optional X.509 v3 extensions.  */
     mbedtls_x509_sequence subject_alt_names;    /**< Optional list of raw entries of Subject Alternative Names extension (currently only dNSName, uniformResourceIdentifier, DirectoryName and OtherName are listed). */
+    mbedtls_x509_buf subject_key_id;    /**< Optional X.509 v3 extension subject key identifier. */
+    mbedtls_x509_authority authority_key_id;    /**< Optional X.509 v3 extension authority key identifier. */
 
     mbedtls_x509_sequence certificate_policies; /**< Optional list of certificate policies (Only anyPolicy is printed and enforced, however the rest of the policies are still listed). */
 
@@ -559,6 +561,7 @@ int mbedtls_x509_crt_parse_file(mbedtls_x509_crt *chain, const char *path);
 int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const char *path);
 
 #endif /* MBEDTLS_FS_IO */
+
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
 /**
  * \brief          Returns an informational string about the
@@ -638,7 +641,7 @@ int mbedtls_x509_crt_verify_info(char *buf, size_t size, const char *prefix,
  * \param cn       The expected Common Name. This will be checked to be
  *                 present in the certificate's subjectAltNames extension or,
  *                 if this extension is absent, as a CN component in its
- *                 Subject name. Currently only DNS names are supported. This
+ *                 Subject name. DNS names and IP addresses are supported. This
  *                 may be \c NULL if the CN need not be verified.
  * \param flags    The address at which to store the result of the verification.
  *                 If the verification couldn't be completed, the flag value is

@@ -153,6 +153,7 @@ int main(int argc, char *argv[])
     mbedtls_ssl_init(&ssl);
     mbedtls_ssl_config_init(&conf);
     mbedtls_x509_crt_init(&cacert);
+    mbedtls_entropy_init(&entropy);
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
     mbedtls_x509_crl_init(&cacrl);
 #else
@@ -160,6 +161,15 @@ int main(int argc, char *argv[])
        it to the verify function */
     memset(&cacrl, 0, sizeof(mbedtls_x509_crl));
 #endif
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        mbedtls_fprintf(stderr, "Failed to initialize PSA Crypto implementation: %d\n",
+                        (int) status);
+        goto exit;
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     if (argc < 2) {
 usage:
@@ -338,7 +348,6 @@ usage:
         mbedtls_printf("\n  . Seeding the random number generator...");
         fflush(stdout);
 
-        mbedtls_entropy_init(&entropy);
         if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
                                          (const unsigned char *) pers,
                                          strlen(pers))) != 0) {
@@ -448,6 +457,9 @@ exit:
 #endif
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_psa_crypto_free();
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     mbedtls_exit(exit_code);
 }

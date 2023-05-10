@@ -201,7 +201,6 @@ TASKS = {
         'args': {
             'component_ref': 'test_psa_crypto_config_reference_all_ec_algs_use_psa',
             'component_driver': 'test_psa_crypto_config_accel_all_ec_algs_use_psa',
-            # ignore the suites of the accelerated components
             'ignored_suites': [
                 'ecdsa',
                 'ecdh',
@@ -211,6 +210,79 @@ TASKS = {
                 'test_suite_random': [
                     'PSA classic wrapper: ECDSA signature (SECP256R1)',
                 ],
+                # In the accelerated test ECP_C is not set (only ECP_LIGHT is)
+                # so we must ignore disparities in the tests for which ECP_C
+                # is required.
+                'test_suite_ecp': [
+                    'ECP check public-private #1 (OK)',
+                    'ECP check public-private #2 (group none)',
+                    'ECP check public-private #3 (group mismatch)',
+                    'ECP check public-private #4 (Qx mismatch)',
+                    'ECP check public-private #5 (Qy mismatch)',
+                    'ECP check public-private #6 (wrong Qx)',
+                    'ECP check public-private #7 (wrong Qy)',
+                    'ECP gen keypair [#1]',
+                    'ECP gen keypair [#2]',
+                    'ECP gen keypair [#3]',
+                    'ECP gen keypair wrapper',
+                    'ECP point muladd secp256r1 #1',
+                    'ECP point muladd secp256r1 #2',
+                    'ECP point multiplication Curve25519 (element of order 2: origin) #3',
+                    'ECP point multiplication Curve25519 (element of order 4: 1) #4',
+                    'ECP point multiplication Curve25519 (element of order 8) #5',
+                    'ECP point multiplication Curve25519 (normalized) #1',
+                    'ECP point multiplication Curve25519 (not normalized) #2',
+                    'ECP point multiplication rng fail Curve25519',
+                    'ECP point multiplication rng fail secp256r1',
+                    'ECP test vectors Curve25519',
+                    'ECP test vectors Curve448 (RFC 7748 6.2, after decodeUCoordinate)',
+                    'ECP test vectors brainpoolP256r1 rfc 7027',
+                    'ECP test vectors brainpoolP384r1 rfc 7027',
+                    'ECP test vectors brainpoolP512r1 rfc 7027',
+                    'ECP test vectors secp192k1',
+                    'ECP test vectors secp192r1 rfc 5114',
+                    'ECP test vectors secp224k1',
+                    'ECP test vectors secp224r1 rfc 5114',
+                    'ECP test vectors secp256k1',
+                    'ECP test vectors secp256r1 rfc 5114',
+                    'ECP test vectors secp384r1 rfc 5114',
+                    'ECP test vectors secp521r1 rfc 5114',
+                ]
+            }
+        }
+    },
+    'analyze_driver_vs_reference_all_ec_algs_no_ecp': {
+        'test_function': do_analyze_driver_vs_reference,
+        'args': {
+            'component_ref': 'test_psa_crypto_full_reference_all_ec_algs_no_ecp_use_psa',
+            'component_driver': 'test_psa_crypto_full_accel_all_ec_algs_no_ecp_use_psa',
+            'ignored_suites': [
+                # Ignore test suites for the modules that are disabled in the
+                # accelerated test case.
+                'ecp',
+                'ecdsa',
+                'ecdh',
+                'ecjpake',
+            ],
+            'ignored_tests': {
+                'test_suite_random': [
+                    'PSA classic wrapper: ECDSA signature (SECP256R1)',
+                ],
+                'test_suite_psa_crypto': [
+                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1',
+                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1 (1 redraw)',
+                    'PSA key derivation: HKDF-SHA-256 -> ECC secp256r1, exercise ECDSA',
+                    'PSA key derivation: HKDF-SHA-256 -> ECC secp384r1',
+                    'PSA key derivation: HKDF-SHA-256 -> ECC secp521r1 #0',
+                    'PSA key derivation: HKDF-SHA-256 -> ECC secp521r1 #1',
+                    'PSA key derivation: bits=7 invalid for ECC BRAINPOOL_P_R1 (ECC enabled)',
+                    'PSA key derivation: bits=7 invalid for ECC SECP_K1 (ECC enabled)',
+                    'PSA key derivation: bits=7 invalid for ECC SECP_R1 (ECC enabled)',
+                    'PSA key derivation: bits=7 invalid for ECC SECP_R2 (ECC enabled)',
+                    'PSA key derivation: bits=7 invalid for ECC SECT_K1 (ECC enabled)',
+                    'PSA key derivation: bits=7 invalid for ECC SECT_R1 (ECC enabled)',
+                    'PSA key derivation: bits=7 invalid for ECC SECT_R2 (ECC enabled)',
+                ]
             }
         }
     },

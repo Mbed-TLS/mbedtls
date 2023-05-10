@@ -48,22 +48,34 @@
 
 #if defined(MBEDTLS_HAVE_ARM64)
 
+/* Compiler version checks. */
+#if defined(__clang__)
+#   if __clang_major__ < 4
+#       error "Minimum version of Clang for MBEDTLS_AESCE_C is 4.0."
+#   endif
+#elif defined(__GNUC__)
+#   if __GNUC__ < 6
+#       error "Minimum version of GCC for MBEDTLS_AESCE_C is 6.0."
+#   endif
+#elif defined(_MSC_VER)
+/* TODO: We haven't verified MSVC from 1920 to 1928. If someone verified that,
+ *       please update this and document of `MBEDTLS_AESCE_C` in
+ *       `mbedtls_config.h`. */
+#   if _MSC_VER < 1929
+#       error "Minimum version of MSVC for MBEDTLS_AESCE_C is 2019 version 16.11.2."
+#   endif
+#endif
+
 #if !defined(__ARM_FEATURE_AES) || defined(MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG)
 #   if defined(__clang__)
-#       if __clang_major__ < 4
-#           error "A more recent Clang is required for MBEDTLS_AESCE_C"
-#       endif
 #       pragma clang attribute push (__attribute__((target("crypto"))), apply_to=function)
 #       define MBEDTLS_POP_TARGET_PRAGMA
 #   elif defined(__GNUC__)
-#       if __GNUC__ < 6
-#           error "A more recent GCC is required for MBEDTLS_AESCE_C"
-#       endif
 #       pragma GCC push_options
 #       pragma GCC target ("arch=armv8-a+crypto")
 #       define MBEDTLS_POP_TARGET_PRAGMA
-#   else
-#       error "Only GCC and Clang supported for MBEDTLS_AESCE_C"
+#   elif defined(_MSC_VER)
+#       error "Required feature(__ARM_FEATURE_AES) is not enabled."
 #   endif
 #endif /* !__ARM_FEATURE_AES || MBEDTLS_ENABLE_ARM_CRYPTO_EXTENSIONS_COMPILER_FLAG */
 
@@ -295,12 +307,24 @@ static inline poly64_t vget_low_p64(poly64x2_t __a)
  * Older compilers miss some intrinsic functions for `poly*_t`. We use
  * uint8x16_t and uint8x16x3_t as input/output parameters.
  */
+#if defined(__GNUC__) && !defined(__clang__)
+/* GCC reports incompatible type error without cast. GCC think poly64_t and
+ * poly64x1_t are different, that is different with MSVC and Clang. */
+#define MBEDTLS_VMULL_P64(a, b) vmull_p64((poly64_t) a, (poly64_t) b)
+#else
+/* MSVC reports `error C2440: 'type cast'` with cast. Clang does not report
+ * error with/without cast. And I think poly64_t and poly64x1_t are same, no
+ * cast for clang also. */
+#define MBEDTLS_VMULL_P64(a, b) vmull_p64(a, b)
+#endif
 static inline uint8x16_t pmull_low(uint8x16_t a, uint8x16_t b)
 {
+
     return vreinterpretq_u8_p128(
-        vmull_p64(
-            (poly64_t) vget_low_p64(vreinterpretq_p64_u8(a)),
-            (poly64_t) vget_low_p64(vreinterpretq_p64_u8(b))));
+        MBEDTLS_VMULL_P64(
+            vget_low_p64(vreinterpretq_p64_u8(a)),
+            vget_low_p64(vreinterpretq_p64_u8(b))
+            ));
 }
 
 static inline uint8x16_t pmull_high(uint8x16_t a, uint8x16_t b)
@@ -362,9 +386,14 @@ static inline uint8x16x3_t poly_mult_128(uint8x16_t a, uint8x16_t b)
 static inline uint8x16_t poly_mult_reduce(uint8x16x3_t input)
 {
     uint8x16_t const ZERO = vdupq_n_u8(0);
-    /* use 'asm' as an optimisation barrier to prevent loading MODULO from memory */
+
     uint64x2_t r = vreinterpretq_u64_u8(vdupq_n_u8(0x87));
+#if defined(__GNUC__)
+    /* use 'asm' as an optimisation barrier to prevent loading MODULO from
+     * memory. It is for GNUC compatible compilers.
+     */
     asm ("" : "+w" (r));
+#endif
     uint8x16_t const MODULO = vreinterpretq_u8_u64(vshrq_n_u64(r, 64 - 8));
     uint8x16_t h, m, l; /* input high/middle/low 128b */
     uint8x16_t c, d, e, f, g, n, o;

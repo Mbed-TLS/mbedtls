@@ -50,6 +50,35 @@
                                                            psa_generic_status_to_mbedtls)
 #endif
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(MBEDTLS_AES_C)
+#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_MD_CAN_SHA384)
+#define MBEDTLS_TEST_HAS_TLS1_3_AES_256_GCM_SHA384
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA256)
+#define MBEDTLS_TEST_HAS_TLS1_3_AES_128_GCM_SHA256
+#endif
+#endif /* MBEDTLS_GCM_C */
+#if defined(MBEDTLS_CCM_C) && defined(MBEDTLS_MD_CAN_SHA256)
+#define MBEDTLS_TEST_HAS_TLS1_3_AES_128_CCM_SHA256
+#define MBEDTLS_TEST_HAS_TLS1_3_AES_128_CCM_8_SHA256
+#endif
+#endif /* MBEDTLS_AES_C */
+#if defined(MBEDTLS_CHACHAPOLY_C) && defined(MBEDTLS_MD_CAN_SHA256)
+#define MBEDTLS_TEST_HAS_TLS1_3_CHACHA20_POLY1305_SHA256
+#endif
+
+#if defined(MBEDTLS_TEST_HAS_TLS1_3_AES_256_GCM_SHA384) || \
+    defined(MBEDTLS_TEST_HAS_TLS1_3_AES_128_GCM_SHA256) || \
+    defined(MBEDTLS_TEST_HAS_TLS1_3_AES_128_CCM_SHA256) || \
+    defined(MBEDTLS_TEST_HAS_TLS1_3_AES_128_CCM_8_SHA256) || \
+    defined(MBEDTLS_TEST_HAS_TLS1_3_CHACHA20_POLY1305_SHA256)
+#define MBEDTLS_TEST_AT_LEAST_ONE_TLS1_3_CIPHERSUITE
+#endif
+
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED) ||    \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||  \
     defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
@@ -101,6 +130,9 @@ typedef struct mbedtls_test_handshake_test_options {
 #endif
 } mbedtls_test_handshake_test_options;
 
+/*
+ * Buffer structure for custom I/O callbacks.
+ */
 typedef struct mbedtls_test_ssl_buffer {
     size_t start;
     size_t content_length;
@@ -282,13 +314,13 @@ int mbedtls_test_ssl_message_queue_pop_info(
 /*
  * Setup and teardown functions for mock sockets.
  */
-void mbedtls_mock_socket_init(mbedtls_test_mock_socket *socket);
+void mbedtls_test_mock_socket_init(mbedtls_test_mock_socket *socket);
 
 /*
  * Closes the socket \p socket.
  *
  * \p socket must have been previously initialized by calling
- * mbedtls_mock_socket_init().
+ * mbedtls_test_mock_socket_init().
  *
  * This function frees all allocated resources and both sockets are aware of the
  * new connection state.
@@ -303,7 +335,7 @@ void mbedtls_test_mock_socket_close(mbedtls_test_mock_socket *socket);
  * Establishes a connection between \p peer1 and \p peer2.
  *
  * \p peer1 and \p peer2 must have been previously initialized by calling
- * mbedtls_mock_socket_init().
+ * mbedtls_test_mock_socket_init().
  *
  * The capacities of the internal buffers are set to \p bufsize. Setting this to
  * the correct value allows for simulation of MTU, sanity testing the mock
@@ -345,7 +377,8 @@ void mbedtls_test_message_socket_init(
 int mbedtls_test_message_socket_setup(
     mbedtls_test_ssl_message_queue *queue_input,
     mbedtls_test_ssl_message_queue *queue_output,
-    size_t queue_capacity, mbedtls_test_mock_socket *socket,
+    size_t queue_capacity,
+    mbedtls_test_mock_socket *socket,
     mbedtls_test_message_socket_context *ctx);
 
 /*
@@ -382,8 +415,7 @@ int mbedtls_test_mock_tcp_send_msg(void *ctx,
  *          mbedtls_test_mock_tcp_recv_b failed.
  *
  * This function will also return any error other than
- * MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED from
- * mbedtls_test_message_queue_peek_info.
+ * MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED from test_ssl_message_queue_peek_info.
  */
 int mbedtls_test_mock_tcp_recv_msg(void *ctx,
                                    unsigned char *buf, size_t buf_len);
@@ -459,6 +491,12 @@ int mbedtls_test_move_handshake_to_state(mbedtls_ssl_context *ssl,
         }                                       \
     } while (0)
 
+#if MBEDTLS_SSL_CID_OUT_LEN_MAX > MBEDTLS_SSL_CID_IN_LEN_MAX
+#define SSL_CID_LEN_MIN MBEDTLS_SSL_CID_IN_LEN_MAX
+#else
+#define SSL_CID_LEN_MIN MBEDTLS_SSL_CID_OUT_LEN_MAX
+#endif
+
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_CIPHER_MODE_CBC) && defined(MBEDTLS_AES_C)
 int mbedtls_test_psa_cipher_encrypt_helper(mbedtls_ssl_transform *transform,
@@ -515,10 +553,11 @@ int mbedtls_test_ssl_tls13_populate_session(mbedtls_ssl_session *session,
  *
  * \retval  0 on success, otherwise error code.
  */
-int mbedtls_exchange_data(mbedtls_ssl_context *ssl_1,
-                          int msg_len_1, const int expected_fragments_1,
-                          mbedtls_ssl_context *ssl_2,
-                          int msg_len_2, const int expected_fragments_2);
+int mbedtls_test_ssl_exchange_data(
+    mbedtls_ssl_context *ssl_1,
+    int msg_len_1, const int expected_fragments_1,
+    mbedtls_ssl_context *ssl_2,
+    int msg_len_2, const int expected_fragments_2);
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 void mbedtls_test_ssl_perform_handshake(
@@ -537,7 +576,7 @@ void mbedtls_test_ssl_perform_handshake(
  *                    is expected to fail. All zeroes if no
  *                    MBEDTLS_SSL_CHK_BUF_READ_PTR failure is expected.
  */
-int tweak_tls13_certificate_msg_vector_len(
+int mbedtls_test_tweak_tls13_certificate_msg_vector_len(
     unsigned char *buf, unsigned char **end, int tweak,
     int *expected_result, mbedtls_ssl_chk_buf_ptr_args *args);
 #endif /* MBEDTLS_TEST_HOOKS */

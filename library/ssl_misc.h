@@ -1553,10 +1553,10 @@ int mbedtls_ssl_set_calc_verify_md(mbedtls_ssl_context *ssl, int md);
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_check_curve_tls_id(const mbedtls_ssl_context *ssl, uint16_t tls_id);
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_check_curve(const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id);
-#endif
+#endif /* MBEDTLS_ECP_LIGHT */
 
 /**
  * \brief Return PSA EC info for the specified TLS ID.
@@ -2047,6 +2047,33 @@ int mbedtls_ssl_tls13_fetch_handshake_msg(mbedtls_ssl_context *ssl,
                                           unsigned hs_type,
                                           unsigned char **buf,
                                           size_t *buf_len);
+
+/**
+ * \brief Detect if a list of extensions contains a supported_versions
+ *        extension or not.
+ *
+ * \param[in] ssl  SSL context
+ * \param[in] buf  Address of the first byte of the extensions vector.
+ * \param[in] end  End of the buffer containing the list of extensions.
+ * \param[out] supported_versions_data  If the extension is present, address of
+ *                                      its first byte of data, NULL otherwise.
+ * \param[out] supported_versions_data_end  If the extension is present, address
+ *                                          of the first byte immediately
+ *                                          following the extension data, NULL
+ *                                          otherwise.
+ * \return 0  if the list of extensions does not contain a supported_versions
+ *            extension.
+ * \return 1  if the list of extensions contains a supported_versions
+ *            extension.
+ * \return    A negative value if an error occurred while parsing the
+ *            extensions.
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_tls13_is_supported_versions_ext_present_in_exts(
+    mbedtls_ssl_context *ssl,
+    const unsigned char *buf, const unsigned char *end,
+    const unsigned char **supported_versions_data,
+    const unsigned char **supported_versions_data_end);
 
 /*
  * Handler of TLS 1.3 server certificate message

@@ -1148,7 +1148,7 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
  * mbedtls_ssl_conf_curves returns void and so can't return
  * any error codes.
  */
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
     /* Heap allocate and translate curve_list from internal to IANA group ids */
     if (ssl->conf->curve_list != NULL) {
@@ -1184,7 +1184,7 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
         ssl->handshake->group_list_heap_allocated = 0;
     }
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
@@ -1325,12 +1325,6 @@ static int ssl_conf_version_check(const mbedtls_ssl_context *ssl)
             return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
         }
 
-        if (conf->endpoint == MBEDTLS_SSL_IS_SERVER) {
-            MBEDTLS_SSL_DEBUG_MSG(1, ("TLS 1.3 server is not supported yet."));
-            return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
-        }
-
-
         MBEDTLS_SSL_DEBUG_MSG(4, ("The SSL configuration is TLS 1.3 or TLS 1.2."));
         return 0;
     }
@@ -1393,6 +1387,7 @@ int mbedtls_ssl_setup(mbedtls_ssl_context *ssl,
     if ((ret = ssl_conf_check(ssl)) != 0) {
         return ret;
     }
+    ssl->tls_version = ssl->conf->max_tls_version;
 
     /*
      * Prepare base structures
@@ -2928,7 +2923,7 @@ void mbedtls_ssl_conf_sig_algs(mbedtls_ssl_config *conf,
 }
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED */
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /*
  * Set the allowed elliptic curves
@@ -2945,7 +2940,7 @@ void mbedtls_ssl_conf_curves(mbedtls_ssl_config *conf,
     conf->group_list = NULL;
 }
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
 
 /*
  * Set the allowed groups
@@ -3882,22 +3877,23 @@ int mbedtls_ssl_handshake_step(mbedtls_ssl_context *ssl)
 #endif
         }
     }
-#endif
+#endif /* MBEDTLS_SSL_CLI_C */
+
 #if defined(MBEDTLS_SSL_SRV_C)
     if (ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER) {
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-        if (mbedtls_ssl_conf_is_tls13_only(ssl->conf)) {
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
+        if (ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_3) {
             ret = mbedtls_ssl_tls13_handshake_server_step(ssl);
-        }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-        if (mbedtls_ssl_conf_is_tls12_only(ssl->conf)) {
+        } else {
             ret = mbedtls_ssl_handshake_server_step(ssl);
         }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-    }
+#elif defined(MBEDTLS_SSL_PROTO_TLS1_2)
+        ret = mbedtls_ssl_handshake_server_step(ssl);
+#else
+        ret = mbedtls_ssl_tls13_handshake_server_step(ssl);
 #endif
+    }
+#endif /* MBEDTLS_SSL_SRV_C */
 
     if (ret != 0) {
         /* handshake_step return error. And it is same
@@ -4087,14 +4083,14 @@ void mbedtls_ssl_handshake_free(mbedtls_ssl_context *ssl)
         return;
     }
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
     if (ssl->handshake->group_list_heap_allocated) {
         mbedtls_free((void *) handshake->group_list);
     }
     handshake->group_list = NULL;
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
@@ -4977,7 +4973,7 @@ static uint16_t ssl_preset_default_groups[] = {
     MBEDTLS_SSL_IANA_TLS_GROUP_NONE
 };
 
-static int ssl_preset_suiteb_ciphersuites[] = {
+static const int ssl_preset_suiteb_ciphersuites[] = {
     MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
     MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
     0
@@ -5304,14 +5300,8 @@ int mbedtls_ssl_config_defaults(mbedtls_ssl_config *conf,
 #endif
     } else {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
-        if (endpoint == MBEDTLS_SSL_IS_CLIENT) {
-            conf->min_tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
-            conf->max_tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
-        } else {
-            /* Hybrid TLS 1.2 / 1.3 is not supported on server side yet */
-            conf->min_tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
-            conf->max_tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
-        }
+        conf->min_tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
+        conf->max_tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
 #elif defined(MBEDTLS_SSL_PROTO_TLS1_3)
         conf->min_tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
         conf->max_tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
@@ -5565,7 +5555,7 @@ int mbedtls_ssl_check_curve_tls_id(const mbedtls_ssl_context *ssl, uint16_t tls_
     return -1;
 }
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 /*
  * Same as mbedtls_ssl_check_curve_tls_id() but with a mbedtls_ecp_group_id.
  */
@@ -5579,7 +5569,7 @@ int mbedtls_ssl_check_curve(const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id
 
     return mbedtls_ssl_check_curve_tls_id(ssl, tls_id);
 }
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
 
 #if defined(MBEDTLS_DEBUG_C)
 #define EC_NAME(_name_)     _name_
@@ -7387,7 +7377,7 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl,
      * Secondary checks: always done, but change 'ret' only if it was 0
      */
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
     {
         const mbedtls_pk_context *pk = &chain->pk;
 
@@ -7415,7 +7405,7 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl,
             }
         }
     }
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
 
     if (mbedtls_ssl_check_cert_usage(chain,
                                      ciphersuite_info,

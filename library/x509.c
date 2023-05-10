@@ -1201,52 +1201,18 @@ static int x509_get_other_name(const mbedtls_x509_buf *subject_alt_name,
     return 0;
 }
 
-/*
- * SubjectAltName ::= GeneralNames
+/* Check mbedtls_x509_get_subject_alt_name for detailed description.
  *
- * GeneralNames ::= SEQUENCE SIZE (1..MAX) OF GeneralName
- *
- * GeneralName ::= CHOICE {
- *      otherName                       [0]     OtherName,
- *      rfc822Name                      [1]     IA5String,
- *      dNSName                         [2]     IA5String,
- *      x400Address                     [3]     ORAddress,
- *      directoryName                   [4]     Name,
- *      ediPartyName                    [5]     EDIPartyName,
- *      uniformResourceIdentifier       [6]     IA5String,
- *      iPAddress                       [7]     OCTET STRING,
- *      registeredID                    [8]     OBJECT IDENTIFIER }
- *
- * OtherName ::= SEQUENCE {
- *      type-id    OBJECT IDENTIFIER,
- *      value      [0] EXPLICIT ANY DEFINED BY type-id }
- *
- * EDIPartyName ::= SEQUENCE {
- *      nameAssigner            [0]     DirectoryString OPTIONAL,
- *      partyName               [1]     DirectoryString }
- *
- * We list all types, but use the following GeneralName types from RFC 5280:
- * "dnsName", "uniformResourceIdentifier" and "hardware_module_name"
- * of type "otherName", as defined in RFC 4108.
+ * In some cases while parsing subject alternative names the sequence tag is optional
+ * (e.g. CertSerialNumber). This function is designed to handle such case.
  */
-int mbedtls_x509_get_subject_alt_name(unsigned char **p,
-                                      const unsigned char *end,
-                                      mbedtls_x509_sequence *subject_alt_name)
+int mbedtls_x509_get_subject_alt_name_ext(unsigned char **p,
+                                          const unsigned char *end,
+                                          mbedtls_x509_sequence *subject_alt_name)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t len, tag_len;
+    size_t tag_len;
     mbedtls_asn1_sequence *cur = subject_alt_name;
-
-    /* Get main sequence tag */
-    if ((ret = mbedtls_asn1_get_tag(p, end, &len,
-                                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
-    }
-
-    if (*p + len != end) {
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
-                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
-    }
 
     while (*p < end) {
         mbedtls_x509_subject_alternative_name dummy_san_buf;
@@ -1313,6 +1279,55 @@ int mbedtls_x509_get_subject_alt_name(unsigned char **p,
     }
 
     return 0;
+}
+
+/*
+ * SubjectAltName ::= GeneralNames
+ *
+ * GeneralNames ::= SEQUENCE SIZE (1..MAX) OF GeneralName
+ *
+ * GeneralName ::= CHOICE {
+ *      otherName                       [0]     OtherName,
+ *      rfc822Name                      [1]     IA5String,
+ *      dNSName                         [2]     IA5String,
+ *      x400Address                     [3]     ORAddress,
+ *      directoryName                   [4]     Name,
+ *      ediPartyName                    [5]     EDIPartyName,
+ *      uniformResourceIdentifier       [6]     IA5String,
+ *      iPAddress                       [7]     OCTET STRING,
+ *      registeredID                    [8]     OBJECT IDENTIFIER }
+ *
+ * OtherName ::= SEQUENCE {
+ *      type-id    OBJECT IDENTIFIER,
+ *      value      [0] EXPLICIT ANY DEFINED BY type-id }
+ *
+ * EDIPartyName ::= SEQUENCE {
+ *      nameAssigner            [0]     DirectoryString OPTIONAL,
+ *      partyName               [1]     DirectoryString }
+ *
+ * We list all types, but use the following GeneralName types from RFC 5280:
+ * "dnsName", "uniformResourceIdentifier" and "hardware_module_name"
+ * of type "otherName", as defined in RFC 4108.
+ */
+int mbedtls_x509_get_subject_alt_name(unsigned char **p,
+                                      const unsigned char *end,
+                                      mbedtls_x509_sequence *subject_alt_name)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t len;
+
+    /* Get main sequence tag */
+    if ((ret = mbedtls_asn1_get_tag(p, end, &len,
+                                    MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)) != 0) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+    }
+
+    if (*p + len != end) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
+    }
+
+    return mbedtls_x509_get_subject_alt_name_ext(p, end, subject_alt_name);
 }
 
 int mbedtls_x509_get_ns_cert_type(unsigned char **p,

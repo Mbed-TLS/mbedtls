@@ -390,10 +390,6 @@ psa_status_t psa_crypto_driver_pake_get_peer(
     const psa_crypto_driver_pake_inputs_t *inputs,
     uint8_t *peer_id, size_t peer_id_size, size_t *peer_id_length);
 
-psa_status_t psa_crypto_driver_pake_get_role(
-    const psa_crypto_driver_pake_inputs_t *inputs,
-    psa_pake_role_t *role);
-
 psa_status_t psa_crypto_driver_pake_get_cipher_suite(
     const psa_crypto_driver_pake_inputs_t *inputs,
     psa_pake_cipher_suite_t *cipher_suite);
@@ -474,7 +470,8 @@ For `PSA_ALG_JPAKE` the following steps are available for input operation:
 * `PSA_JPAKE_X4S_STEP_ZK_PUBLIC`    Round 2: input Schnorr NIZKP public key for the X4S key
 * `PSA_JPAKE_X4S_STEP_ZK_PROOF`     Round 2: input Schnorr NIZKP proof for the X4S key
 
-The core checks that input_length is smaller than PSA_PAKE_INPUT_MAX_SIZE.
+The core checks that `input_length` is not greater than `PSA_PAKE_INPUT_SIZE(alg, prim, step)` and
+the driver can rely on that.
 
 ### PAKE driver get implicit key
 

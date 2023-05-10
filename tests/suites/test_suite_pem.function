@@ -32,6 +32,35 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_PEM_WRITE_C */
+void mbedtls_pem_write_buffer_lengths()
+{
+    unsigned char data[256] = { 0 };
+    unsigned char buf[1024];
+    size_t olen_needed, olen;
+    int ret;
+    for (size_t l = 0; l <= sizeof(data); l++) {
+        ret = mbedtls_pem_write_buffer("\n", "\n", data, l, NULL, 0, &olen_needed);
+        TEST_EQUAL(ret, MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL);
+
+        /* Test that a bigger buffer still only requires `olen_needed` */
+        ret = mbedtls_pem_write_buffer("\n", "\n", data, l, buf, sizeof(buf), &olen);
+        TEST_EQUAL(ret, 0);
+        TEST_EQUAL(olen_needed, olen);
+
+        /* Test that a buffer of exactly `olen_needed` works */
+        memset(buf, 1, sizeof(buf));
+        ret = mbedtls_pem_write_buffer("\n", "\n", data, l, buf, olen_needed, &olen);
+        TEST_EQUAL(ret, 0);
+        TEST_EQUAL(olen_needed, olen);
+        /* Test the function didn't overflow the given buffer */
+        for (size_t i = olen_needed; i < sizeof(buf); i++) {
+            TEST_EQUAL(buf[i], 1);
+        }
+    }
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_PEM_PARSE_C */
 void mbedtls_pem_read_buffer(char *header, char *footer, char *data,
                              char *pwd, int res, data_t *out)

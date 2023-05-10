@@ -202,7 +202,7 @@ typedef struct {
     uint8_t *MBEDTLS_PRIVATE(password);
     size_t MBEDTLS_PRIVATE(password_len);
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
-    uint8_t MBEDTLS_PRIVATE(role);
+    mbedtls_ecjpake_role MBEDTLS_PRIVATE(role);
     uint8_t MBEDTLS_PRIVATE(buffer[MBEDTLS_PSA_JPAKE_BUFFER_SIZE]);
     size_t MBEDTLS_PRIVATE(buffer_length);
     size_t MBEDTLS_PRIVATE(buffer_offset);

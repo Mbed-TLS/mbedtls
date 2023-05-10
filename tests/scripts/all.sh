@@ -946,13 +946,13 @@ component_test_full_cmake_gcc_asan () {
 
     # TODO: replace "mbedtls_ecp_curve" with "mbedtls_ecp" also for
     # "full-tls-external" once Issue6839 is completed
-    not grep mbedtls_ecp_curve full-tls-external
-    not grep mbedtls_ecp full-x509-external
+    not grep mbedtls_ecp_curve full-libmbedtls-external
+    not grep mbedtls_ecp full-libmbedx509-external
 
-    rm  full-tls-external \
-        full-tls-modules \
-        full-x509-external \
-        full-x509-modules
+    rm  full-libmbedtls-external \
+        full-libmbedtls-modules \
+        full-libmbedx509-external \
+        full-libmbedx509-modules
 }
 
 component_test_psa_crypto_key_id_encodes_owner () {
@@ -1217,6 +1217,17 @@ component_test_psa_external_rng_no_drbg_use_psa () {
 
     msg "test: PSA_CRYPTO_EXTERNAL_RNG minus *_DRBG, PSA crypto - ssl-opt.sh (subset)"
     tests/ssl-opt.sh -f 'Default\|opaque'
+}
+
+component_test_sw_inet_pton () {
+    msg "build: default plus MBEDTLS_TEST_SW_INET_PTON"
+
+    # MBEDTLS_TEST_HOOKS required for x509_crt_parse_cn_inet_pton
+    scripts/config.py set MBEDTLS_TEST_HOOKS
+    make CFLAGS="-DMBEDTLS_TEST_SW_INET_PTON"
+
+    msg "test: default plus MBEDTLS_TEST_SW_INET_PTON"
+    make test
 }
 
 component_test_crypto_full_md_light_only () {
@@ -2205,6 +2216,7 @@ config_psa_crypto_config_all_ec_algs_use_psa () {
         scripts/config.py unset MBEDTLS_ECDSA_C
         scripts/config.py unset MBEDTLS_ECDH_C
         scripts/config.py unset MBEDTLS_ECJPAKE_C
+        scripts/config.py unset MBEDTLS_ECP_C
     fi
 
     # Restartable feature is not yet supported by PSA. Once it will in
@@ -2248,12 +2260,16 @@ component_test_psa_crypto_config_accel_all_ec_algs_use_psa () {
 
     # Build the library
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
-    make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
+    loc_symbols="-DPSA_CRYPTO_DRIVER_TEST \
+                 -DMBEDTLS_TEST_LIBTESTDRIVER1 \
+                 -DMBEDTLS_ECP_LIGHT"
+    make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -I../../tests $loc_symbols $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
     not grep mbedtls_ecdh_ library/ecdh.o
     not grep mbedtls_ecjpake_ library/ecjpake.o
+    not grep mbedtls_ecp_mul library/ecp.o
 
     # Run the tests
     # -------------
@@ -2282,6 +2298,140 @@ component_test_psa_crypto_config_reference_all_ec_algs_use_psa () {
 
     msg "ssl-opt: MBEDTLS_PSA_CRYPTO_CONFIG with non-accelerated EC algs + USE_PSA"
     tests/ssl-opt.sh
+}
+
+# This helper function is used by:
+# - component_test_psa_crypto_full_accel_all_ec_algs_no_ecp_use_psa()
+# - component_test_psa_crypto_full_reference_all_ec_algs_no_ecp_use_psa()
+# to ensure that both tests use the same underlying configuration when testing
+# driver's coverage with analyze_outcomes.py.
+#
+# This functions accepts 1 boolean parameter as follows:
+# - 1: building with accelerated EC algorithms (ECDSA, ECDH, ECJPAKE), therefore
+#      excluding their built-in implementation as well as ECP_C & ECP_LIGHT
+# - 0: include built-in implementation of EC algorithms.
+#
+# PK_C and RSA_C are always disabled to ensure there is no remaining dependency
+# on the ECP module.
+config_psa_crypto_full_all_ec_algs_no_ecp_use_psa () {
+    DRIVER_ONLY="$1"
+    # start with crypto_full config for maximum coverage (also enables USE_PSA),
+    # but excluding X509, TLS and key exchanges
+    scripts/config.py crypto_full
+    # enable support for drivers and configuring PSA-only algorithms
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    if [ "$DRIVER_ONLY" -eq 1 ]; then
+        # Disable modules that are accelerated
+        scripts/config.py unset MBEDTLS_ECDSA_C
+        scripts/config.py unset MBEDTLS_ECDH_C
+        scripts/config.py unset MBEDTLS_ECJPAKE_C
+        # Disable ECP module (entirely)
+        scripts/config.py unset MBEDTLS_ECP_C
+        scripts/config.py unset MBEDTLS_ECP_LIGHT
+    fi
+
+    # Disable PK module since it depends on ECP
+    scripts/config.py unset MBEDTLS_PK_C
+    scripts/config.py unset MBEDTLS_PK_PARSE_C
+    scripts/config.py unset MBEDTLS_PK_WRITE_C
+    # Disable also RSA_C that would re-enable PK
+    scripts/config.py unset MBEDTLS_RSA_C
+    scripts/config.py unset MBEDTLS_PKCS1_V15
+    scripts/config.py unset MBEDTLS_PKCS1_V21
+    scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
+    # Disable also key exchanges that depend on RSA for completeness
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
+
+    # Restartable feature is not yet supported by PSA. Once it will in
+    # the future, the following line could be removed (see issues
+    # 6061, 6332 and following ones)
+    scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
+    # Dynamic secure element support is a deprecated feature and needs to be disabled here.
+    # This is done to have the same form of psa_key_attributes_s for libdriver and library.
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
+
+    # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
+    # partial support for cipher operations in the driver test library.
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+
+    # Disable PSA_WANT symbols that would re-enable PK
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
+    for ALG in $(sed -n 's/^#define \(PSA_WANT_ALG_RSA_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
+        scripts/config.py -f include/psa/crypto_config.h unset $ALG
+    done
+}
+
+# Build and test a configuration where driver accelerates all EC algs while
+# all support and dependencies from ECP and ECP_LIGHT are removed on the library
+# side.
+#
+# Keep in sync with component_test_psa_crypto_full_reference_all_ec_algs_no_ecp_use_psa()
+component_test_psa_crypto_full_accel_all_ec_algs_no_ecp_use_psa () {
+    msg "build: crypto_full + accelerated EC algs + USE_PSA - ECP"
+
+    # Algorithms and key types to accelerate
+    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
+                    ALG_ECDH \
+                    ALG_JPAKE \
+                    KEY_TYPE_ECC_KEY_PAIR KEY_TYPE_ECC_PUBLIC_KEY"
+
+    # Set common configurations between library's and driver's builds
+    config_psa_crypto_full_all_ec_algs_no_ecp_use_psa 1
+
+    # Configure and build the test driver library
+    # -------------------------------------------
+
+    # Things we wanted supported in libtestdriver1, but not accelerated in the main library:
+    # SHA-1 and all SHA-2 variants, as they are used by ECDSA deterministic.
+    loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512"
+    loc_accel_flags=$( echo "$loc_accel_list $loc_extra_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
+    make -C tests libtestdriver1.a CFLAGS="$ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
+
+    # Configure and build the main libraries with drivers enabled
+    # -----------------------------------------------------------
+
+    # Build the library
+    loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
+    loc_symbols="-DPSA_CRYPTO_DRIVER_TEST \
+                 -DMBEDTLS_TEST_LIBTESTDRIVER1"
+    make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -I../../tests $loc_symbols $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
+
+    # Make sure any built-in EC alg was not re-enabled by accident (additive config)
+    not grep mbedtls_ecdsa_ library/ecdsa.o
+    not grep mbedtls_ecdh_ library/ecdh.o
+    not grep mbedtls_ecjpake_ library/ecjpake.o
+    # Also ensure that ECP or RSA modules were not re-enabled
+    not grep mbedtls_ecp_ library/ecp.o
+    not grep mbedtls_rsa_ library/rsa.o
+
+    # Run the tests
+    # -------------
+
+    msg "test suites: crypto_full + accelerated EC algs + USE_PSA - ECP"
+    make test
+}
+
+# Reference function used for driver's coverage analysis in analyze_outcomes.py
+# in conjunction with component_test_psa_crypto_full_accel_all_ec_algs_no_ecp_use_psa().
+# Keep in sync with its accelerated counterpart.
+component_test_psa_crypto_full_reference_all_ec_algs_no_ecp_use_psa () {
+    msg "build: crypto_full + non accelerated EC algs + USE_PSA"
+
+    config_psa_crypto_full_all_ec_algs_no_ecp_use_psa 0
+
+    make
+
+    # Esure that the RSA module was not re-enabled
+    not grep mbedtls_rsa_ library/rsa.o
+
+    msg "test suites: crypto_full + non accelerated EC algs + USE_PSA"
+    make test
 }
 
 # Helper function used in:

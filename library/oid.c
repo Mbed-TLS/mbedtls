@@ -319,6 +319,18 @@ static const oid_x509_ext_t oid_x509_ext[] =
         MBEDTLS_OID_X509_EXT_CERTIFICATE_POLICIES,
     },
     {
+        OID_DESCRIPTOR(MBEDTLS_OID_SUBJECT_KEY_IDENTIFIER,
+                       "id-ce-subjectKeyIdentifier",
+                       "Subject Key Identifier"),
+        MBEDTLS_OID_X509_EXT_SUBJECT_KEY_IDENTIFIER,
+    },
+    {
+        OID_DESCRIPTOR(MBEDTLS_OID_AUTHORITY_KEY_IDENTIFIER,
+                       "id-ce-authorityKeyIdentifier",
+                       "Authority Key Identifier"),
+        MBEDTLS_OID_X509_EXT_AUTHORITY_KEY_IDENTIFIER,
+    },
+    {
         NULL_OID_DESCRIPTOR,
         0,
     },
@@ -531,9 +543,9 @@ FN_OID_GET_OID_BY_ATTR1(mbedtls_oid_get_oid_by_pk_alg,
                         mbedtls_pk_type_t,
                         pk_alg)
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 /*
- * For namedCurve (RFC 5480)
+ * For elliptic curves that use namedCurve inside ECParams (RFC 5480)
  */
 typedef struct {
     mbedtls_oid_descriptor_t    descriptor;
@@ -621,7 +633,48 @@ FN_OID_GET_OID_BY_ATTR1(mbedtls_oid_get_oid_by_ec_grp,
                         oid_ecp_grp,
                         mbedtls_ecp_group_id,
                         grp_id)
-#endif /* MBEDTLS_ECP_C */
+
+/*
+ * For Elliptic Curve algorithms that are directly
+ * encoded in the AlgorithmIdentifier (RFC 8410)
+ */
+typedef struct {
+    mbedtls_oid_descriptor_t    descriptor;
+    mbedtls_ecp_group_id        grp_id;
+} oid_ecp_grp_algid_t;
+
+static const oid_ecp_grp_algid_t oid_ecp_grp_algid[] =
+{
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+    {
+        OID_DESCRIPTOR(MBEDTLS_OID_X25519,               "X25519",       "X25519"),
+        MBEDTLS_ECP_DP_CURVE25519,
+    },
+#endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED */
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+    {
+        OID_DESCRIPTOR(MBEDTLS_OID_X448,                 "X448",         "X448"),
+        MBEDTLS_ECP_DP_CURVE448,
+    },
+#endif /* MBEDTLS_ECP_DP_CURVE448_ENABLED */
+    {
+        NULL_OID_DESCRIPTOR,
+        MBEDTLS_ECP_DP_NONE,
+    },
+};
+
+FN_OID_TYPED_FROM_ASN1(oid_ecp_grp_algid_t, grp_id_algid, oid_ecp_grp_algid)
+FN_OID_GET_ATTR1(mbedtls_oid_get_ec_grp_algid,
+                 oid_ecp_grp_algid_t,
+                 grp_id_algid,
+                 mbedtls_ecp_group_id,
+                 grp_id)
+FN_OID_GET_OID_BY_ATTR1(mbedtls_oid_get_oid_by_ec_grp_algid,
+                        oid_ecp_grp_algid_t,
+                        oid_ecp_grp_algid,
+                        mbedtls_ecp_group_id,
+                        grp_id)
+#endif /* MBEDTLS_ECP_LIGHT */
 
 #if defined(MBEDTLS_CIPHER_C)
 /*

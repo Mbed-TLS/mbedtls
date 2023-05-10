@@ -66,13 +66,6 @@
 #error "MBEDTLS_HAVE_TIME_DATE without MBEDTLS_HAVE_TIME does not make sense"
 #endif
 
-#if defined(__aarch64__) && defined(__GNUC__)
-/* We don't do anything with MBEDTLS_AESCE_C on systems without ^ these two */
-#if defined(MBEDTLS_AESCE_C) && !defined(MBEDTLS_HAVE_ASM)
-#error "MBEDTLS_AESCE_C defined, but not all prerequisites"
-#endif
-#endif
-
 #if defined(MBEDTLS_CTR_DRBG_C) && !defined(MBEDTLS_AES_C)
 #error "MBEDTLS_CTR_DRBG_C defined, but not all prerequisites"
 #endif
@@ -284,7 +277,9 @@
 
 /* Helper for ECDSA dependencies, will be undefined at the end of the file */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-#if defined(PSA_HAVE_FULL_ECDSA)
+#if (defined(PSA_WANT_ALG_ECDSA) || \
+     defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA)) && \
+    defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR)
 #define MBEDTLS_PK_HAVE_ECDSA
 #endif
 #else /* MBEDTLS_USE_PSA_CRYPTO */
@@ -295,7 +290,7 @@
 
 /* Helper for JPAKE dependencies, will be undefined at the end of the file */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-#if defined(PSA_HAVE_FULL_JPAKE)
+#if defined(PSA_WANT_ALG_JPAKE) && defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR)
 #define MBEDTLS_PK_HAVE_JPAKE
 #endif
 #else /* MBEDTLS_USE_PSA_CRYPTO */
@@ -306,7 +301,7 @@
 
 /* Helper for ECDH dependencies, will be undefined at the end of the file */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-#if defined(PSA_HAVE_FULL_ECDH)
+#if defined(PSA_WANT_ALG_ECDH) && defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR)
 #define MBEDTLS_PK_HAVE_ECDH
 #endif
 #else /* MBEDTLS_USE_PSA_CRYPTO */
@@ -454,7 +449,7 @@
 #endif
 
 #if defined(MBEDTLS_PK_C) && \
-    !defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_ECP_C)
+    !defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_ECP_LIGHT)
 #error "MBEDTLS_PK_C defined, but not all prerequisites"
 #endif
 

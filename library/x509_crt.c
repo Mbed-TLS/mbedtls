@@ -2904,6 +2904,21 @@ static int x509_crt_check_san_ip(const mbedtls_x509_sequence *san,
     return -1;
 }
 
+static int x509_crt_check_san_uri(const mbedtls_x509_sequence *san,
+                                  const char *cn, size_t cn_len)
+{
+    for (const mbedtls_x509_sequence *cur = san; cur != NULL; cur = cur->next) {
+        const unsigned char san_type = (unsigned char) cur->buf.tag &
+                                       MBEDTLS_ASN1_TAG_VALUE_MASK;
+        if (san_type == MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER &&
+            cur->buf.len == cn_len && memcmp(cur->buf.p, cn, cn_len) == 0) {
+            return 0;
+        }
+    }
+
+    return -1;
+}
+
 /*
  * Check for SAN match, see RFC 5280 Section 4.2.1.6
  */
@@ -2911,23 +2926,38 @@ static int x509_crt_check_san(const mbedtls_x509_sequence *san,
                               const char *cn, size_t cn_len)
 {
     int san_ip = 0;
+    int san_uri = 0;
+    /* Prioritize DNS name over other subtypes due to popularity */
     for (const mbedtls_x509_sequence *cur = san; cur != NULL; cur = cur->next) {
         switch ((unsigned char) cur->buf.tag & MBEDTLS_ASN1_TAG_VALUE_MASK) {
-            case MBEDTLS_X509_SAN_DNS_NAME:                /* dNSName */
+            case MBEDTLS_X509_SAN_DNS_NAME:
                 if (x509_crt_check_cn(&cur->buf, cn, cn_len) == 0) {
                     return 0;
                 }
                 break;
-            case MBEDTLS_X509_SAN_IP_ADDRESS:              /* iPAddress */
+            case MBEDTLS_X509_SAN_IP_ADDRESS:
                 san_ip = 1;
+                break;
+            case MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER:
+                san_uri = 1;
                 break;
             /* (We may handle other types here later.) */
             default: /* Unrecognized type */
                 break;
         }
     }
+    if (san_ip) {
+        if (x509_crt_check_san_ip(san, cn, cn_len) == 0) {
+            return 0;
+        }
+    }
+    if (san_uri) {
+        if (x509_crt_check_san_uri(san, cn, cn_len) == 0) {
+            return 0;
+        }
+    }
 
-    return san_ip ? x509_crt_check_san_ip(san, cn, cn_len) : -1;
+    return -1;
 }
 
 /*

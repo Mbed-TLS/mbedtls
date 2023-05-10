@@ -25,6 +25,8 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
+#include "mbedtls/platform.h"
+
 #include "bn_mul.h"
 #include "bignum_core.h"
 #include "ecp_invasive.h"
@@ -5525,6 +5527,7 @@ cleanup:
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED) ||   \
     defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED) ||   \
     defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
+
 /*
  * Fast quasi-reduction modulo P = 2^s - R,
  * with R about 33 bits, used by the Koblitz curves.
@@ -5532,69 +5535,101 @@ cleanup:
  * Write N as A0 + 2^224 A1, return A0 + R * A1.
  * Actually do two passes, since R is big.
  */
-#define P_KOBLITZ_MAX   (256 / 8 / sizeof(mbedtls_mpi_uint))      // Max limbs in P
 #define P_KOBLITZ_R     (8 / sizeof(mbedtls_mpi_uint))            // Limbs in R
-static inline int ecp_mod_koblitz(mbedtls_mpi *N, mbedtls_mpi_uint *Rp, size_t p_limbs,
-                                  size_t adjust, size_t shift, mbedtls_mpi_uint mask)
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    mbedtls_mpi M, R;
-    mbedtls_mpi_uint Mp[P_KOBLITZ_MAX + P_KOBLITZ_R + 1];
 
-    if (N->n < p_limbs) {
-        return 0;
+static inline int ecp_mod_koblitz(mbedtls_mpi_uint *X,
+                                  size_t X_limbs,
+                                  mbedtls_mpi_uint *R,
+                                  size_t bits)
+{
+    int ret = 0;
+
+    /* Determine if A1 is aligned to limb bitsize. If not then the used limbs
+     * of P, A0 and A1 must be set accordingly and there is a middle limb
+     * which is shared by A0 and A1 and need to handle accordingly.
+     */
+    size_t shift   = bits % biL;
+    size_t adjust  = (shift + biL - 1) / biL;
+    size_t P_limbs = bits / biL + adjust;
+
+    mbedtls_mpi_uint *A1 = mbedtls_calloc(P_limbs, ciL);
+    if (A1 == NULL) {
+        return MBEDTLS_ERR_ECP_ALLOC_FAILED;
     }
 
-    /* Init R */
-    R.s = 1;
-    R.p = Rp;
-    R.n = P_KOBLITZ_R;
+    /* Create a buffer to store the value of `R * A1` */
+    size_t R_limbs = P_KOBLITZ_R;
+    size_t M_limbs = P_limbs + R_limbs;
+    mbedtls_mpi_uint *M = mbedtls_calloc(M_limbs, ciL);
+    if (M == NULL) {
+        ret = MBEDTLS_ERR_ECP_ALLOC_FAILED;
+        goto cleanup;
+    }
 
-    /* Common setup for M */
-    M.s = 1;
-    M.p = Mp;
+    mbedtls_mpi_uint mask = 0;
+    if (adjust != 0) {
+        mask  = ((mbedtls_mpi_uint) 1 << shift) - 1;
+    }
 
     for (size_t pass = 0; pass < 2; pass++) {
-        /* M = A1 */
-        M.n = N->n - (p_limbs - adjust);
-        if (M.n > p_limbs + adjust) {
-            M.n = p_limbs + adjust;
-        }
-        memset(Mp, 0, sizeof(Mp));
-        memcpy(Mp, N->p + p_limbs - adjust, M.n * sizeof(mbedtls_mpi_uint));
+        /* Copy A1 */
+        memcpy(A1, X + P_limbs - adjust, P_limbs * ciL);
+
+        /* Shift A1 to be aligned */
         if (shift != 0) {
-            MBEDTLS_MPI_CHK(mbedtls_mpi_shift_r(&M, shift));
+            mbedtls_mpi_core_shift_r(A1, P_limbs, shift);
         }
-        M.n += R.n; /* Make room for multiplication by R */
 
-        /* N = A0 */
+        /* Zeroize the A1 part of the shared limb */
         if (mask != 0) {
-            N->p[p_limbs - 1] &= mask;
-        }
-        for (size_t i = p_limbs; i < N->n; i++) {
-            N->p[i] = 0;
+            X[P_limbs - 1] &= mask;
         }
 
-        /* N = A0 + R * A1 */
-        MBEDTLS_MPI_CHK(mbedtls_mpi_mul_mpi(&M, &M, &R));
-        MBEDTLS_MPI_CHK(mbedtls_mpi_add_abs(N, N, &M));
+        /* X = A0
+         * Zeroize the A1 part of X to keep only the A0 part.
+         */
+        for (size_t i = P_limbs; i < X_limbs; i++) {
+            X[i] = 0;
+        }
+
+        /* X = A0 + R * A1 */
+        mbedtls_mpi_core_mul(M, A1, P_limbs, R, R_limbs);
+        (void) mbedtls_mpi_core_add(X, X, M, P_limbs + R_limbs);
+
+        /* Carry can not be generated since R is a 33-bit value and stored in
+         * 64 bits. The result value of the multiplication is at most
+         * P length + 33 bits in length and the result value of the addition
+         * is at most P length + 34 bits in length. So the result of the
+         * addition always fits in P length + 64 bits.
+         */
     }
 
 cleanup:
+    mbedtls_free(M);
+    mbedtls_free(A1);
+
     return ret;
 }
+
 #endif /* MBEDTLS_ECP_DP_SECP192K1_ENABLED) ||
           MBEDTLS_ECP_DP_SECP224K1_ENABLED) ||
           MBEDTLS_ECP_DP_SECP256K1_ENABLED) */
 
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
+
 /*
  * Fast quasi-reduction modulo p192k1 = 2^192 - R,
- * with R = 2^32 + 2^12 + 2^8 + 2^7 + 2^6 + 2^3 + 1 = 0x0100001119
+ * with R = 2^32 + 2^12 + 2^8 + 2^7 + 2^6 + 2^3 + 1 = 0x01000011C9
  */
 static int ecp_mod_p192k1(mbedtls_mpi *N)
 {
-    return mbedtls_ecp_mod_p192k1(N);
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t expected_width = 2 * ((192 + biL - 1) / biL);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
+    ret = mbedtls_ecp_mod_p192k1(N);
+
+cleanup:
+    return ret;
 }
 
 MBEDTLS_STATIC_TESTABLE
@@ -5605,16 +5640,22 @@ int mbedtls_ecp_mod_p192k1(mbedtls_mpi *N)
                                   0x00)
     };
 
-    return ecp_mod_koblitz(N, Rp, 192 / 8 / sizeof(mbedtls_mpi_uint), 0, 0,
-                           0);
+    return ecp_mod_koblitz(N->p, N->n, Rp, 192);
 }
+
 #endif /* MBEDTLS_ECP_DP_SECP192K1_ENABLED */
 
 #if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
 
 static int ecp_mod_p224k1(mbedtls_mpi *N)
 {
-    return mbedtls_ecp_mod_p224k1(N);
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t expected_width =  2 * 224 / biL;
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
+    ret = mbedtls_ecp_mod_p224k1(N);
+
+cleanup:
+    return ret;
 }
 
 /*
@@ -5629,12 +5670,7 @@ int mbedtls_ecp_mod_p224k1(mbedtls_mpi *N)
                                   0x00)
     };
 
-#if defined(MBEDTLS_HAVE_INT64)
-    return ecp_mod_koblitz(N, Rp, 4, 1, 32, 0xFFFFFFFF);
-#else
-    return ecp_mod_koblitz(N, Rp, 224 / 8 / sizeof(mbedtls_mpi_uint), 0, 0,
-                           0);
-#endif
+    return ecp_mod_koblitz(N->p, N->n, Rp, 224);
 }
 
 #endif /* MBEDTLS_ECP_DP_SECP224K1_ENABLED */
@@ -5643,7 +5679,13 @@ int mbedtls_ecp_mod_p224k1(mbedtls_mpi *N)
 
 static int ecp_mod_p256k1(mbedtls_mpi *N)
 {
-    return mbedtls_ecp_mod_p256k1(N);
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t expected_width = 2 * ((256 + biL - 1) / biL);
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
+    ret = mbedtls_ecp_mod_p256k1(N);
+
+cleanup:
+    return ret;
 }
 
 /*
@@ -5657,8 +5699,7 @@ int mbedtls_ecp_mod_p256k1(mbedtls_mpi *N)
         MBEDTLS_BYTES_TO_T_UINT_8(0xD1, 0x03, 0x00, 0x00, 0x01, 0x00, 0x00,
                                   0x00)
     };
-    return ecp_mod_koblitz(N, Rp, 256 / 8 / sizeof(mbedtls_mpi_uint), 0, 0,
-                           0);
+    return ecp_mod_koblitz(N->p, N->n, Rp, 256);
 }
 #endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */
 

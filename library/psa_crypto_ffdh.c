@@ -26,9 +26,11 @@
 #include "psa_crypto_core.h"
 #include "psa_crypto_ffdh.h"
 #include "psa_crypto_random_impl.h"
+#include "mbedtls/platform.h"
 
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR) ||   \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_FFDH)
 static psa_status_t mbedtls_psa_ffdh_set_prime_generator(size_t key_size,
                                                          mbedtls_mpi *P,
                                                          mbedtls_mpi *G)
@@ -115,72 +117,12 @@ cleanup:
 
     return PSA_SUCCESS;
 }
+#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR ||
+          MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY ||
+          MBEDTLS_PSA_BUILTIN_ALG_FFDH */
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_FFDH)
-psa_status_t mbedtls_psa_key_agreement_ffdh(
-    const psa_key_attributes_t *attributes,
-    const uint8_t *peer_key,
-    size_t peer_key_length,
-    const uint8_t *key_buffer,
-    size_t key_buffer_size,
-    uint8_t *shared_secret,
-    size_t shared_secret_size,
-    size_t *shared_secret_length)
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    mbedtls_mpi P, G, X, GY, K;
-    const size_t calculated_shared_secret_size = peer_key_length;
-
-    if (peer_key_length != key_buffer_size ||
-        calculated_shared_secret_size > shared_secret_size) {
-        return PSA_ERROR_INVALID_ARGUMENT;
-    }
-
-    if (!PSA_KEY_TYPE_IS_DH_KEY_PAIR(psa_get_key_type(attributes))) {
-        return PSA_ERROR_INVALID_ARGUMENT;
-    }
-
-    mbedtls_mpi_init(&P); mbedtls_mpi_init(&G);
-    mbedtls_mpi_init(&X); mbedtls_mpi_init(&GY);
-    mbedtls_mpi_init(&K);
-
-    status = mbedtls_psa_ffdh_set_prime_generator(
-        PSA_BITS_TO_BYTES(attributes->core.bits), &P, &G);
-
-    if (status != PSA_SUCCESS) {
-        goto cleanup;
-    }
-
-    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&X, key_buffer,
-                                            key_buffer_size));
-
-    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&GY, peer_key,
-                                            peer_key_length));
-
-    /* Calculate shared secret public key: K = G^(XY) mod P = GY^X mod P */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod(&K, &GY, &X, &P, NULL));
-
-    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&K, shared_secret,
-                                             calculated_shared_secret_size));
-
-    *shared_secret_length = calculated_shared_secret_size;
-
-    ret = 0;
-
-cleanup:
-    mbedtls_mpi_free(&P); mbedtls_mpi_free(&G);
-    mbedtls_mpi_free(&X); mbedtls_mpi_free(&GY);
-    mbedtls_mpi_free(&K);
-
-    if (status == PSA_SUCCESS && ret != 0) {
-        status = mbedtls_to_psa_error(ret);
-    }
-
-    return status;
-}
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_FFDH */
-
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY)
 psa_status_t mbedtls_psa_export_ffdh_public_key(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
@@ -256,7 +198,73 @@ cleanup:
 
     return status;
 }
+
 #endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR ||
           MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY */
+
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_FFDH)
+psa_status_t mbedtls_psa_key_agreement_ffdh(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *peer_key,
+    size_t peer_key_length,
+    const uint8_t *key_buffer,
+    size_t key_buffer_size,
+    uint8_t *shared_secret,
+    size_t shared_secret_size,
+    size_t *shared_secret_length)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    mbedtls_mpi P, G, X, GY, K;
+    const size_t calculated_shared_secret_size = peer_key_length;
+
+    if (peer_key_length != key_buffer_size ||
+        calculated_shared_secret_size > shared_secret_size) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    if (!PSA_KEY_TYPE_IS_DH_KEY_PAIR(psa_get_key_type(attributes))) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    mbedtls_mpi_init(&P); mbedtls_mpi_init(&G);
+    mbedtls_mpi_init(&X); mbedtls_mpi_init(&GY);
+    mbedtls_mpi_init(&K);
+
+    status = mbedtls_psa_ffdh_set_prime_generator(
+        PSA_BITS_TO_BYTES(attributes->core.bits), &P, &G);
+
+    if (status != PSA_SUCCESS) {
+        goto cleanup;
+    }
+
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&X, key_buffer,
+                                            key_buffer_size));
+
+    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&GY, peer_key,
+                                            peer_key_length));
+
+    /* Calculate shared secret public key: K = G^(XY) mod P = GY^X mod P */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod(&K, &GY, &X, &P, NULL));
+
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&K, shared_secret,
+                                             calculated_shared_secret_size));
+
+    *shared_secret_length = calculated_shared_secret_size;
+
+    ret = 0;
+
+cleanup:
+    mbedtls_mpi_free(&P); mbedtls_mpi_free(&G);
+    mbedtls_mpi_free(&X); mbedtls_mpi_free(&GY);
+    mbedtls_mpi_free(&K);
+
+    if (status == PSA_SUCCESS && ret != 0) {
+        status = mbedtls_to_psa_error(ret);
+    }
+
+    return status;
+}
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_FFDH */
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

@@ -521,6 +521,7 @@ static const unsigned char aes_128_expected_result[NB_CMAC_TESTS_PER_KEY][MBEDTL
 };
 
 /* CMAC-AES192 Test Data */
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
 static const unsigned char aes_192_key[24] = {
     0x8e, 0x73, 0xb0, 0xf7,     0xda, 0x0e, 0x64, 0x52,
     0xc8, 0x10, 0xf3, 0x2b,     0x80, 0x90, 0x79, 0xe5,
@@ -561,8 +562,10 @@ static const unsigned char aes_192_expected_result[NB_CMAC_TESTS_PER_KEY][MBEDTL
         0x4d, 0x77, 0x58, 0x96,     0x59, 0xf3, 0x9a, 0x11
     }
 };
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
 
 /* CMAC-AES256 Test Data */
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
 static const unsigned char aes_256_key[32] = {
     0x60, 0x3d, 0xeb, 0x10,     0x15, 0xca, 0x71, 0xbe,
     0x2b, 0x73, 0xae, 0xf0,     0x85, 0x7d, 0x77, 0x81,
@@ -604,6 +607,7 @@ static const unsigned char aes_256_expected_result[NB_CMAC_TESTS_PER_KEY][MBEDTL
         0x69, 0x6a, 0x2c, 0x05,     0x6c, 0x31, 0x54, 0x10
     }
 };
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
 #endif /* MBEDTLS_AES_C */
 
 #if defined(MBEDTLS_DES_C)
@@ -760,13 +764,6 @@ static int cmac_test_subkeys(int verbose,
             mbedtls_printf("  %s CMAC subkey #%d: ", testname, i + 1);
         }
 
-#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
-        if (keybits > 128) {
-            mbedtls_printf("skipped\n");
-            continue;
-        }
-#endif /* MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
-
         mbedtls_cipher_init(&ctx);
 
         if ((ret = mbedtls_cipher_setup(&ctx, cipher_info)) != 0) {
@@ -861,13 +858,6 @@ static int cmac_test_wth_cipher(int verbose,
         if (verbose != 0) {
             mbedtls_printf("  %s CMAC #%d: ", testname, i + 1);
         }
-
-#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
-        if (keybits > 128) {
-            mbedtls_printf("skipped\n");
-            continue;
-        }
-#endif /* MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
 
         if ((ret = mbedtls_cipher_cmac(cipher_info, key, keybits, messages,
                                        message_lengths[i], output)) != 0) {
@@ -965,6 +955,7 @@ int mbedtls_cmac_self_test(int verbose)
     }
 
     /* AES-192 */
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     if ((ret = cmac_test_subkeys(verbose,
                                  "AES 192",
                                  aes_192_key,
@@ -988,8 +979,10 @@ int mbedtls_cmac_self_test(int verbose)
                                     NB_CMAC_TESTS_PER_KEY)) != 0) {
         return ret;
     }
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
 
     /* AES-256 */
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
     if ((ret = cmac_test_subkeys(verbose,
                                  "AES 256",
                                  aes_256_key,
@@ -1013,6 +1006,7 @@ int mbedtls_cmac_self_test(int verbose)
                                     NB_CMAC_TESTS_PER_KEY)) != 0) {
         return ret;
     }
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
 #endif /* MBEDTLS_AES_C */
 
 #if defined(MBEDTLS_DES_C)

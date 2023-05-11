@@ -645,7 +645,7 @@ void mbedtls_gcm_free(mbedtls_gcm_context *ctx)
 static const int key_index_test_data[MAX_TESTS] =
 { 0, 0, 1, 1, 1, 1 };
 
-static const unsigned char key_test_data[MAX_TESTS][32] =
+static const unsigned char key_test_data[][32] =
 {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -663,7 +663,7 @@ static const size_t iv_len_test_data[MAX_TESTS] =
 static const int iv_index_test_data[MAX_TESTS] =
 { 0, 0, 1, 1, 1, 2 };
 
-static const unsigned char iv_test_data[MAX_TESTS][64] =
+static const unsigned char iv_test_data[][64] =
 {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00 },
@@ -685,7 +685,7 @@ static const size_t add_len_test_data[MAX_TESTS] =
 static const int add_index_test_data[MAX_TESTS] =
 { 0, 0, 0, 1, 1, 1 };
 
-static const unsigned char additional_test_data[MAX_TESTS][64] =
+static const unsigned char additional_test_data[][64] =
 {
     { 0x00 },
     { 0xfe, 0xed, 0xfa, 0xce, 0xde, 0xad, 0xbe, 0xef,
@@ -699,7 +699,7 @@ static const size_t pt_len_test_data[MAX_TESTS] =
 static const int pt_index_test_data[MAX_TESTS] =
 { 0, 0, 1, 1, 1, 1 };
 
-static const unsigned char pt_test_data[MAX_TESTS][64] =
+static const unsigned char pt_test_data[][64] =
 {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },

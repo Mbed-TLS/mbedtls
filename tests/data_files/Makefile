@@ -54,7 +54,9 @@ test-ca.req.sha256: $(test_ca_key_file_rsa)
 all_intermediate += test-ca.req.sha256
 
 test-ca.crt: $(test_ca_key_file_rsa) test-ca.req.sha256
-	$(MBEDTLS_CERT_WRITE) is_ca=1 serial=3 request_file=test-ca.req.sha256 selfsign=1 issuer_name="C=NL,O=PolarSSL,CN=PolarSSL Test CA" issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20190210144400 not_after=20290210144400 md=SHA1 version=3 output_file=$@
+	$(MBEDTLS_CERT_WRITE) is_ca=1 serial=3 request_file=test-ca.req.sha256 selfsign=1 issuer_name="C=NL,O=PolarSSL,CN=PolarSSL Test CA" \
+		issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) \
+		not_before=20190210144400 not_after=20290210144400 md=SHA1 version=3 output_file=$@
 all_final += test-ca.crt
 
 test-ca.crt.der: test-ca.crt

@@ -1,0 +1,9 @@
+ [ ca ]
+ default_ca             = {{ca_name}}
+
+ [ test-ca ]
+ certificate            = {{ca_name}}.crt
+ private_key            = {{ca_name}}.key
+ default_md             = sha256
+ database               = ./{{database}}
+{% raw %}{% endraw %} {# Reserved for file ending LF #}

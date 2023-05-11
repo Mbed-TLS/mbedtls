@@ -25,6 +25,7 @@
 #include "psa_crypto_core.h"
 #include "psa_crypto_ecp.h"
 #include "psa_crypto_rsa.h"
+#include "psa_crypto_ffdh.h"
 #include "mbedtls/ecp.h"
 #include "mbedtls/error.h"
 
@@ -36,6 +37,7 @@
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
 #include "libtestdriver1/library/psa_crypto_ecp.h"
 #include "libtestdriver1/library/psa_crypto_rsa.h"
+#include "libtestdriver1/library/psa_crypto_ffdh.h"
 #endif
 
 #include <string.h>
@@ -238,6 +240,17 @@ psa_status_t mbedtls_test_transparent_generate_key(
             key, key_size, key_length);
 #elif defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR)
         return mbedtls_psa_rsa_generate_key(
+            attributes, key, key_size, key_length);
+#endif
+    } else if (PSA_KEY_TYPE_IS_DH(psa_get_key_type(attributes))
+               && PSA_KEY_TYPE_IS_KEY_PAIR(psa_get_key_type(attributes))) {
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+        defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR)
+        return libtestdriver1_mbedtls_psa_ffdh_generate_key(
+            (const libtestdriver1_psa_key_attributes_t *) attributes,
+            key, key_size, key_length);
+#elif defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR)
+        return mbedtls_psa_ffdh_generate_key(
             attributes, key, key_size, key_length);
 #endif
     }
@@ -556,6 +569,21 @@ psa_status_t mbedtls_test_transparent_export_public_key(
 #elif defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || \
         defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
         return mbedtls_psa_rsa_export_public_key(
+            attributes,
+            key_buffer, key_buffer_size,
+            data, data_size, data_length);
+#endif
+    } else if (PSA_KEY_TYPE_IS_DH(key_type)) {
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+        (defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR) || \
+        defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY))
+        return libtestdriver1_mbedtls_psa_export_ffdh_public_key(
+            (const libtestdriver1_psa_key_attributes_t *) attributes,
+            key_buffer, key_buffer_size,
+            data, data_size, data_length);
+#elif defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR) || \
+        defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY)
+        return mbedtls_psa_export_ffdh_public_key(
             attributes,
             key_buffer, key_buffer_size,
             data, data_size, data_length);

@@ -134,7 +134,7 @@ void mpi_core_random_basic(int min, char *bound_bytes, int expected_ret)
 
     if (expected_ret == 0) {
         TEST_EQUAL(0, mbedtls_mpi_core_lt_ct(result, lower_bound, limbs));
-        TEST_EQUAL(1, mbedtls_mpi_core_lt_ct(result, upper_bound, limbs));
+        TEST_ASSERT(0 != mbedtls_mpi_core_lt_ct(result, upper_bound, limbs));
     }
 
 exit:
@@ -429,8 +429,7 @@ void mpi_mod_random_validation(int min, char *bound_hex,
          * size as the modulus, otherwise it's a mistake in the test data. */
         TEST_EQUAL(result_limbs, N.limbs);
         /* Sanity check: check that the result is in range */
-        TEST_EQUAL(mbedtls_mpi_core_lt_ct(result_digits, N.p, N.limbs),
-                   1);
+        TEST_ASSERT(0 != mbedtls_mpi_core_lt_ct(result_digits, N.p, N.limbs));
         /* Check result >= min (changes result) */
         TEST_EQUAL(mbedtls_mpi_core_sub_int(result_digits, result_digits, min,
                                             result_limbs),
@@ -444,8 +443,7 @@ void mpi_mod_random_validation(int min, char *bound_hex,
                                               mbedtls_test_rnd_std_rand, NULL),
                    expected_ret);
         if (expected_ret == 0) {
-            TEST_EQUAL(mbedtls_mpi_core_lt_ct(result_digits, N.p, N.limbs),
-                       1);
+            TEST_ASSERT(0 != mbedtls_mpi_core_lt_ct(result_digits, N.p, N.limbs));
             TEST_EQUAL(mbedtls_mpi_core_sub_int(result_digits, result.p, min,
                                                 result_limbs),
                        0);

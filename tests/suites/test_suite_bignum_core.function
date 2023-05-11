@@ -358,7 +358,7 @@ void mpi_core_lt_ct(char *input_X, char *input_Y, int exp_ret)
     TEST_CF_SECRET(Y, X_limbs * sizeof(mbedtls_mpi_uint));
 
     ret = mbedtls_mpi_core_lt_ct(X, Y, X_limbs);
-    TEST_EQUAL(ret, exp_ret);
+    TEST_EQUAL(!!ret, exp_ret);
 
 exit:
     mbedtls_free(X);
@@ -384,25 +384,25 @@ void mpi_core_uint_le_mpi(char *input_A)
 
     TEST_CF_SECRET(A, A_limbs * sizeof(*A));
 
-    TEST_EQUAL(mbedtls_mpi_core_uint_le_mpi(0, A, A_limbs), 1);
-    TEST_EQUAL(mbedtls_mpi_core_uint_le_mpi(A[0], A, A_limbs), 1);
+    TEST_EQUAL(!!mbedtls_mpi_core_uint_le_mpi(0, A, A_limbs), 1);
+    TEST_EQUAL(!!mbedtls_mpi_core_uint_le_mpi(A[0], A, A_limbs), 1);
 
     if (is_large) {
-        TEST_EQUAL(mbedtls_mpi_core_uint_le_mpi(A[0] + 1,
-                                                A, A_limbs), 1);
-        TEST_EQUAL(mbedtls_mpi_core_uint_le_mpi((mbedtls_mpi_uint) (-1) >> 1,
-                                                A, A_limbs), 1);
-        TEST_EQUAL(mbedtls_mpi_core_uint_le_mpi((mbedtls_mpi_uint) (-1),
-                                                A, A_limbs), 1);
+        TEST_EQUAL(!!mbedtls_mpi_core_uint_le_mpi(A[0] + 1,
+                                                  A, A_limbs), 1);
+        TEST_EQUAL(!!mbedtls_mpi_core_uint_le_mpi((mbedtls_mpi_uint) (-1) >> 1,
+                                                  A, A_limbs), 1);
+        TEST_EQUAL(!!mbedtls_mpi_core_uint_le_mpi((mbedtls_mpi_uint) (-1),
+                                                  A, A_limbs), 1);
     } else {
-        TEST_EQUAL(mbedtls_mpi_core_uint_le_mpi(A[0] + 1,
-                                                A, A_limbs),
+        TEST_EQUAL(!!mbedtls_mpi_core_uint_le_mpi(A[0] + 1,
+                                                  A, A_limbs),
                    A[0] + 1 <= A[0]);
-        TEST_EQUAL(mbedtls_mpi_core_uint_le_mpi((mbedtls_mpi_uint) (-1) >> 1,
-                                                A, A_limbs),
+        TEST_EQUAL(!!mbedtls_mpi_core_uint_le_mpi((mbedtls_mpi_uint) (-1) >> 1,
+                                                  A, A_limbs),
                    (mbedtls_mpi_uint) (-1) >> 1 <= A[0]);
-        TEST_EQUAL(mbedtls_mpi_core_uint_le_mpi((mbedtls_mpi_uint) (-1),
-                                                A, A_limbs),
+        TEST_EQUAL(!!mbedtls_mpi_core_uint_le_mpi((mbedtls_mpi_uint) (-1),
+                                                  A, A_limbs),
                    (mbedtls_mpi_uint) (-1) <= A[0]);
     }
 
@@ -447,7 +447,7 @@ void mpi_core_cond_assign(char *input_X,
     TEST_CF_SECRET(X, bytes);
     TEST_CF_SECRET(Y, bytes);
 
-    mbedtls_mpi_core_cond_assign(X, Y, copy_limbs, 1);
+    mbedtls_mpi_core_cond_assign(X, Y, copy_limbs, mbedtls_ct_bool(1));
 
     TEST_CF_PUBLIC(X, bytes);
     TEST_CF_PUBLIC(Y, bytes);
@@ -515,7 +515,7 @@ void mpi_core_cond_swap(char *input_X,
     TEST_CF_SECRET(X, bytes);
     TEST_CF_SECRET(Y, bytes);
 
-    mbedtls_mpi_core_cond_swap(X, Y, copy_limbs, 1);
+    mbedtls_mpi_core_cond_swap(X, Y, copy_limbs, mbedtls_ct_bool(1));
 
     TEST_CF_PUBLIC(X, bytes);
     TEST_CF_PUBLIC(Y, bytes);

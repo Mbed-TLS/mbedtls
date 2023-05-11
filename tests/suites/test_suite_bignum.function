@@ -438,7 +438,7 @@ void mpi_lt_mpi_ct(int size_X, char *input_X,
 
     TEST_ASSERT(mbedtls_mpi_lt_mpi_ct(&X, &Y, &ret) == input_err);
     if (input_err == 0) {
-        TEST_ASSERT(ret == input_uret);
+        TEST_EQUAL(ret, input_uret);
     }
 
 exit:

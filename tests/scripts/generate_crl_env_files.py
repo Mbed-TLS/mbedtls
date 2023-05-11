@@ -73,18 +73,16 @@ def get_cert_serial_subj(cert_file):
 
 def generate_db(args):
     output = []
-    # serial=iter(range(100))
     for cert_file in args.revoke:
         for expired_date, serial, subject in get_cert_serial_subj(cert_file):
-            # expired_date=datetime.now(timezone.utc).strftime("%y%m%d%H%M%SZ")
             revoke_date=datetime.now(timezone.utc).strftime("%y%m%d%H%M%SZ")
-            # subject=cert_file
             output.append(f'R\t{expired_date}\t{revoke_date}\t{serial}\tunkown\t{subject}')
     for cert_file in args.valid:
         for expired_date, serial, subject in get_cert_serial_subj(cert_file):
             output.append(f'V\t{expired_date}\t\t{serial}\tunkown\t{subject}')
     with open(args.output,'w') as f:
         f.write('\n'.join(output))
+
 def main():
     parser = argparse.ArgumentParser(__doc__)
     subparsers = parser.add_subparsers(help='sub-command help')

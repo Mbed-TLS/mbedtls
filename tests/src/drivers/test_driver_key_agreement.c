@@ -34,6 +34,7 @@
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
 #include "libtestdriver1/include/psa/crypto.h"
 #include "libtestdriver1/library/psa_crypto_ecp.h"
+#include "libtestdriver1/library/psa_crypto_ffdh.h"
 #endif
 
 mbedtls_test_driver_key_agreement_hooks_t
@@ -101,8 +102,8 @@ psa_status_t mbedtls_test_transparent_key_agreement(
         defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_ALG_FFDH))
         return libtestdriver1_mbedtls_psa_key_agreement_ffdh(
             (const libtestdriver1_psa_key_attributes_t *) attributes,
+            peer_key, peer_key_length,
             key_buffer, key_buffer_size,
-            alg, peer_key, peer_key_length,
             shared_secret, shared_secret_size,
             shared_secret_length);
 #elif defined(MBEDTLS_PSA_BUILTIN_ALG_FFDH)

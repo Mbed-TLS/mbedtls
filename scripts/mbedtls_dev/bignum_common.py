@@ -90,12 +90,12 @@ def hex_digits_max_int(val: str, bits_in_limb: int) -> int:
     return bound_mpi_limbs(l, bits_in_limb)
 
 def zfill_match(reference: str, target: str) -> str:
-    """ Zero pad target hex-string the match the limb size of
-    the refference input """
+    """ Zero pad target hex-string to match the limb size of
+    the reference input """
     lt = len(target)
     lr = len(reference)
-    targen_len = lr if lt < lr else lt
-    return "{:x}".format(int(target, 16)).zfill(targen_len)
+    target_len = lr if lt < lr else lt
+    return "{:x}".format(int(target, 16)).zfill(target_len)
 
 class OperationCommon(test_data_generation.BaseTest):
     """Common features for bignum binary operations.

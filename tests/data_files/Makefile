@@ -1552,7 +1552,7 @@ all_final += crl.pem
 define _generate_crl-ec
 crl-ec-$(1).pem: crl-ec-$(1).opensslconf crl-ec-$(1).db
 	$$(OPENSSL) ca -config crl-ec-$1.opensslconf \
-		-gencrl -md sha1 -out crl-ec-$(1).pem
+		-gencrl -md $(1) -out crl-ec-$(1).pem
 crl-ec-$(1).opensslconf: ca.opensslconf.jinja2 ../scripts/generate_crl_env_files.py
 	../scripts/generate_crl_env_files.py ca --output crl-ec-$(1).opensslconf --ca_name $2 --database crl-ec-$(1).db
 crl-ec-$(1).db: $(3) ../scripts/generate_crl_env_files.py
@@ -1566,7 +1566,7 @@ define generate-crl-ec
 $(eval $(call _generate_crl-ec,$1, test-ca2, server6.crt))
 endef
 
-$(foreach i, sha1 sha224 sha256 sha384 sha512, $(call crl-ec,$(i)))
+$(foreach i, sha1 sha224 sha256 sha384 sha512, $(call generate-crl-ec,$(i)))
 
 display-crl-%: %
 	openssl crl -noout -text -in $<

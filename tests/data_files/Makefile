@@ -1375,13 +1375,13 @@ server5.csr: server5.key
 	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
 					-key $< -out $@
 all_intermediate += server5.csr
-server5.crt: server5.csr $(test_ca_crt_cat21) $(test_ca_key_file_ec) server5.crt.openssl.v3_ext test-ca2.server5.opensslconf
-	echo 01 > test-ca2.server5.serial
-	rm -f test-ca2.server5.db
-	touch test-ca2.server5.db
-	$(OPENSSL) ca -batch -config test-ca2.server5.opensslconf \
-				-extfile $@.openssl.v3_ext -days 3650 -in $< -out $@
-all_final += server5.crt
+server5.crt: server5-sha256.crt
+	cp $< $@
+server5-sha%.crt: server5.csr $(test_ca_crt_cat21) $(test_ca_key_file_ec) server5.crt.openssl.v3_ext
+	$(OPENSSL) x509 -req -CA $(test_ca_crt_cat21) -CAkey $(test_ca_key_file_ec) \
+				-extfile server5.crt.openssl.v3_ext -set_serial 9 -days 3650 \
+				-sha$(@:server5-sha%.crt=%) -in $< -out $@
+all_final += server5.crt server5-sha1.crt server5-sha224.crt server5-sha384.crt server5-sha512.crt
 
 server5-badsign.crt: server5.crt
 	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; } > $@
@@ -1541,10 +1541,10 @@ server1.v1.der.openssl: server1.v1.crt.openssl
 crl.pem: $(test_ca_crt) $(test_ca_key_file_rsa) crl.pem.opensslconf crl.pem.db
 	$(OPENSSL) ca -config $(filter %.opensslconf,$^) -key $(test_ca_pwd_rsa) \
 		-gencrl -md sha1 -out $@
-crl.pem.opensslconf:
+crl.pem.opensslconf: ca.opensslconf.jinja2 ../scripts/generate_crl_env_files.py
 	../scripts/generate_crl_env_files.py ca --output $@ --ca_name test-ca --database crl.pem.db
-crl.pem.db: server1.crt test-ca.crt
-	../scripts/generate_crl_env_files.py revoke --database $@ server1.crt test-ca.crt
+crl.pem.db: server1.crt test-ca.crt ../scripts/generate_crl_env_files.py
+	../scripts/generate_crl_env_files.py revoke --database $@ $(filter %.crt,$^)
 all_intermediate += crl.pem.opensslconf crl.pem.db
 all_final += crl.pem
 

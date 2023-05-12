@@ -106,8 +106,7 @@ class CodeSizeComparison:
         self.config = config
         self.git_command = "git"
         self.pre_build_commands = PRE_BUILD_CMDS[config]
-        self.make_command = ''
-        self._set_make_command()
+        self.make_command = self._set_make_command()
 
         self.old_sizes = {}
         self.new_sizes = {}
@@ -121,10 +120,10 @@ class CodeSizeComparison:
     def _set_make_command(self):
         """Use the config and arch options passed to the object to determine
            and set the correct build command."""
+
         if self.arch == 'x86' and (self.config in {'default', 'full',\
                                                    'baremetal'}):
-            self.make_command = 'make -j lib'
-            return
+            return 'make -j lib'
 
         # Default just takes the current config, which may or may not work
         # with baremetal targets. Warn the user.
@@ -134,27 +133,24 @@ class CodeSizeComparison:
 
         if self.config in {'default', 'baremetal'}:
             if self.arch == 'aarch32':
-                self.make_command = 'make -j lib CC=armclang\
-                                    CFLAGS=\"--target=arm-arm-none-eabi \
-                                    -mcpu=cortex-m33 -Os\"'
+                return 'make -j lib CC=armclang \
+                        CFLAGS=\"--target=arm-arm-none-eabi \
+                            -mcpu=cortex-m33 -Os\" '
             if self.arch == 'aarch64':
-                self.make_command = 'make -j lib CC=armclang\
-                                    CFLAGS=\"--target=aarch64-arm-none-eabi\"'
-            return
+                return 'make -j lib CC=armclang \
+                        CFLAGS=\"--target=aarch64-arm-none-eabi\" '
 
         if self.arch == 'aarch32' and self.config == 'tfm-medium':
             # pylint: disable=C0301
-            self.make_command = \
-                 'make -j lib CC=armclang CFLAGS=\'--target=arm-arm-none-eabi \
-                 -mcpu=cortex-m33 -Os \
-                 -DMBEDTLS_CONFIG_FILE=\\\"../configs/tfm_mbedcrypto_config_profile_medium.h\\\" \
-                 -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE=\\\"../configs/crypto_config_profile_medium.h\\\" \''
-            return
+            return \
+                 'make -j lib CC=armclang \
+                  CFLAGS=\'--target=arm-arm-none-eabi -mcpu=cortex-m33 -Os \
+                      -DMBEDTLS_CONFIG_FILE=\\\"../configs/tfm_mbedcrypto_config_profile_medium.h\\\" \
+                      -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE=\\\"../configs/crypto_config_profile_medium.h\\\" \' '
 
         # Any remaining supported combinations are incompatible with each other
         print('Config option {} is incompatble with architecture {}'.format(self.config, self.arch))
         sys.exit(-1)
-
 
     def _create_git_worktree(self, revision):
         """Make a separate worktree for revision.

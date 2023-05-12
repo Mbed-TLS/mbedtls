@@ -97,7 +97,7 @@ class EcpP192R1Raw(bignum_common.ModOperationCommon,
     def is_valid(self) -> bool:
         return True
 
-    def arguments(self):
+    def arguments(self)-> List[str]:
         args = super().arguments()
         return  ["MBEDTLS_ECP_DP_SECP192R1"] + args
 
@@ -174,7 +174,7 @@ class EcpP224R1Raw(bignum_common.ModOperationCommon,
     def is_valid(self) -> bool:
         return True
 
-    def arguments(self):
+    def arguments(self)-> List[str]:
         args = super().arguments()
         return  ["MBEDTLS_ECP_DP_SECP224R1"] + args
 
@@ -258,7 +258,7 @@ class EcpP256R1Raw(bignum_common.ModOperationCommon,
     def is_valid(self) -> bool:
         return True
 
-    def arguments(self):
+    def arguments(self)-> List[str]:
         args = super().arguments()
         return  ["MBEDTLS_ECP_DP_SECP256R1"] + args
 
@@ -380,7 +380,7 @@ class EcpP384R1Raw(bignum_common.ModOperationCommon,
     def is_valid(self) -> bool:
         return True
 
-    def arguments(self):
+    def arguments(self)-> List[str]:
         args = super().arguments()
         return  ["MBEDTLS_ECP_DP_SECP384R1"] + args
 
@@ -485,7 +485,7 @@ class EcpP521R1Raw(bignum_common.ModOperationCommon,
     def is_valid(self) -> bool:
         return True
 
-    def arguments(self):
+    def arguments(self)-> List[str]:
         args = super().arguments()
         return  ["MBEDTLS_ECP_DP_SECP521R1"] + args
 
@@ -721,18 +721,19 @@ class EcpP255Raw(bignum_common.ModOperationCommon,
     arity = 1
     dependencies = ["MBEDTLS_ECP_DP_CURVE25519_ENABLED"]
 
-    moduli = [("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed")] # type: List[str]
+    moduli = [("7fffffffffffffffffffffffffffffffffffffffffffffffff"
+               "ffffffffffffed")] # type: List[str]
 
     input_values = [
         "0", "1",
 
         # Modulus - 1
         ("7fffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-        "ffffffec"),
+         "ffffffec"),
 
         # Modulus + 1
         ("7fffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-        "ffffffee"),
+         "ffffffee"),
 
         # 2^255 - 1
         ("7fffffffffffffffffffffffffffffffffffffffffffffffffffffff"
@@ -788,7 +789,7 @@ class EcpP255Raw(bignum_common.ModOperationCommon,
     def is_valid(self) -> bool:
         return True
 
-    def arguments(self):
+    def arguments(self)-> List[str]:
         args = super().arguments()
         return  ["MBEDTLS_ECP_DP_CURVE25519"] + args
 

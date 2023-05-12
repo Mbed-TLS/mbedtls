@@ -67,7 +67,7 @@ def get_cert_serial_subj(cert_file):
                 raise Exception("Not X509 cert or encrypted ")
             cert=x509.Certificate.load(der_bytes)
             not_valid_after=cert.not_valid_after.strftime("%y%m%d%H%M%SZ")
-            serial_number=f'{cert.serial_number:02d}'
+            serial_number=f'{cert.serial_number:02x}'
             subject = get_openssl_subject(cert)
             yield not_valid_after,serial_number,subject
 

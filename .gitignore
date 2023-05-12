@@ -28,6 +28,9 @@ massif-*
 .project
 /.settings
 
+# Unix-like build artifacts:
+*.o
+
 # MSVC build artifacts:
 *.exe
 *.pdb

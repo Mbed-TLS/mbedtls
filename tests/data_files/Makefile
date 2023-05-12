@@ -1538,10 +1538,17 @@ server1.v1.der.openssl: server1.v1.crt.openssl
 #
 # $(OPENSSL) ca -gencrl -batch -cert $(test_ca_crt) -keyfile $(test_ca_key_file_rsa) -key $(test_ca_pwd_rsa) -config $(test_ca_server1_config_file) -md sha256 -crldays 365 -revoke server1.crt
 
-crl.pem: $(test_ca_crt) $(test_ca_key_file_rsa) $(test_ca_config_file)
-	$(OPENSSL) ca -gencrl -batch -cert $(test_ca_crt) \
-		-keyfile $(test_ca_key_file_rsa) -key $(test_ca_pwd_rsa) \
-		-config $(test_ca_server1_config_file) -md sha1 -crldays 3653 -out $@
+crl.pem: $(test_ca_crt) $(test_ca_key_file_rsa) crl.pem.opensslconf crl.pem.db
+	$(OPENSSL) ca -config $(filter %.opensslconf,$^) -key $(test_ca_pwd_rsa) \
+		-gencrl -md sha1 -out $@
+crl.pem.opensslconf:
+	../scripts/generate_crl_env_files.py ca --output $@ --ca_name test-ca --database crl.pem.db
+crl.pem.db: server1.crt test-ca.crt
+	../scripts/generate_crl_env_files.py revoke --database $@ server1.crt test-ca.crt
+all_intermediate += crl.pem.opensslconf crl.pem.db
+all_final += crl.pem
+display-crl-%: %
+	openssl crl -noout -text -in $<
 
 crl-futureRevocationDate.pem: $(test_ca_crt) $(test_ca_key_file_rsa) $(test_ca_config_file) test-ca.server1.future-crl.db  test-ca.server1.future-crl.opensslconf
 	$(FAKETIME) '2028-12-31' $(OPENSSL) ca -gencrl -config test-ca.server1.future-crl.opensslconf -crldays 365 -passin "pass:$(test_ca_pwd_rsa)" -out $@

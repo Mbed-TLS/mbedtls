@@ -1,9 +1,10 @@
  [ ca ]
- default_ca             = {{ca_name}}
+ default_ca             = ca_default
 
- [ test-ca ]
+ [ ca_default ]
  certificate            = {{ca_name}}.crt
  private_key            = {{ca_name}}.key
  default_md             = sha256
  database               = ./{{database}}
+ default_crl_days       = 3653
 {% raw %}{% endraw %} {# Reserved for file ending LF #}

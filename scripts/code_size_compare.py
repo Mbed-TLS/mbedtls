@@ -83,6 +83,24 @@ PRE_BUILD_CMDS = {
     'tfm-medium': ''
 }
 
+# Configurations need to be tweaked for aarch32/aarch64.
+ARCH_CONFIG_SET_FROM_DEFAULT = frozenset([
+    'MBEDTLS_NO_PLATFORM_ENTROPY'
+])
+ARCH_CONFIG_UNSET_FROM_DEFAULT = frozenset([
+    'MBEDTLS_FS_IO',
+    'MBEDTLS_HAVE_TIME',
+    'MBEDTLS_HAVE_TIME_DATE',
+    'MBEDTLS_NET_C',
+    'MBEDTLS_PSA_CRYPTO_STORAGE_C',
+    'MBEDTLS_PSA_ITS_FILE_C',
+    'MBEDTLS_TIMING_C'
+])
+ARCH_CONFIG_DICT = {
+    "set": ARCH_CONFIG_SET_FROM_DEFAULT,
+    "unset": ARCH_CONFIG_UNSET_FROM_DEFAULT,
+}
+
 class CodeSizeComparison:
     """Compare code size between two Git revisions."""
 
@@ -125,13 +143,7 @@ class CodeSizeComparison:
                                                    'baremetal'}):
             return 'make -j lib'
 
-        # Default just takes the current config, which may or may not work
-        # with baremetal targets. Warn the user.
         if self.config == 'default':
-            print("Assuming that the current config is compatible with \
-                   baremetal targets. If it isn't the build may fail!")
-
-        if self.config in {'default', 'baremetal'}:
             if self.arch == 'aarch32':
                 return 'make -j lib CC=armclang \
                         CFLAGS=\"--target=arm-arm-none-eabi \
@@ -170,6 +182,17 @@ class CodeSizeComparison:
 
         return git_worktree_path
 
+    @staticmethod
+    def _tweak_config(config_dict, git_worktree_path):
+        """Tweak configurations in the specified worktree."""
+        for opt, config_set in config_dict.items():
+            for config in config_set:
+                config_command = "./scripts/config.py " + opt + " " + config
+                subprocess.check_output(
+                    config_command, shell=True,
+                    cwd=git_worktree_path, stderr=subprocess.STDOUT
+                )
+
     def _build_libraries(self, git_worktree_path):
         """Build libraries in the specified worktree."""
 
@@ -182,6 +205,10 @@ class CodeSizeComparison:
                 )
             except subprocess.CalledProcessError as e:
                 self._handle_called_process_error(e, git_worktree_path)
+
+        if self.arch in {'aarch32', 'aarch64'} and \
+                self.config == "default":
+            self._tweak_config(ARCH_CONFIG_DICT, git_worktree_path)
         try:
             subprocess.check_output(
                 self.make_command, env=my_environment, shell=True,

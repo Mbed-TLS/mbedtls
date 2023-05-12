@@ -111,7 +111,6 @@ class CodeSizeComparison:
 
         self.old_sizes = {}
         self.new_sizes = {}
-        self.change_pcts = {}
 
     @staticmethod
     def validate_revision(revision):
@@ -298,7 +297,6 @@ class CodeSizeComparison:
                                      "-" + self.arch + "-" + self.old_rev + "-"
                                      + self.new_rev + ".csv"), "w", encoding='utf-8')
         def write_dict_to_csv(old_d, new_d):
-            tot_change_pct = ""
             for (f, s) in new_d.items():
                 new_size = int(s.total)
                 if f in old_d:
@@ -310,20 +308,16 @@ class CodeSizeComparison:
                         change_pct = 0
                     res_file.write("{}, {}, {}, {}, {:.2%}\n".format(f, \
                                new_size, old_size, change, float(change_pct)))
-                    if f == "(TOTALS)":
-                        tot_change_pct = str(change_pct)
                 else:
                     res_file.write("{}, {}\n".format(f, new_size))
-            return tot_change_pct
 
         res_file.write("file_name, this_size, old_size, change, change %\n")
         print("Generating comparison results.")
 
         for exe in self.new_sizes:
             res_file.write(exe + '\n')
-            tot = write_dict_to_csv(self.old_sizes[exe], self.new_sizes[exe])
+            write_dict_to_csv(self.old_sizes[exe], self.new_sizes[exe])
             res_file.write('\n')
-            self.change_pcts[exe] = tot
 
         return 0
 

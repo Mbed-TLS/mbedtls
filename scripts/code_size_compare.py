@@ -284,17 +284,10 @@ class CodeSizeComparison:
 
     def _get_code_size_for_rev(self, revision):
         """Generate code size csv file for the specified git revision."""
-
-        # Check if the corresponding record exists
-        csv_fname = revision + ".csv"
-        if (revision != "current") and \
-           os.path.exists(os.path.join(self.csv_dir, csv_fname)):
-            print("Code size csv file for", revision, "already exists.")
-        else:
-            git_worktree_path = self._create_git_worktree(revision)
-            self._build_libraries(git_worktree_path)
-            self._gen_code_size_csv(revision, git_worktree_path)
-            self._remove_worktree(git_worktree_path)
+        git_worktree_path = self._create_git_worktree(revision)
+        self._build_libraries(git_worktree_path)
+        self._gen_code_size_csv(revision, git_worktree_path)
+        self._remove_worktree(git_worktree_path)
 
     def compare_code_size(self):
         """Generate results of the size changes between two revisions,

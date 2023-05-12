@@ -172,12 +172,27 @@ test_ca_crt_file_ec = test-ca2.crt
 test_ca_key_file_ec = test-ca2.key
 
 test-ca2.req.sha256: $(test_ca_key_file_ec)
-	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$(test_ca_key_file_ec) subject_name="C=NL,O=PolarSSL,CN=Polarssl Test EC CA" md=SHA256
+	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$(test_ca_key_file_ec) \
+	subject_name="C=NL,O=PolarSSL,CN=Polarssl Test EC CA" md=SHA256
 all_intermediate += test-ca2.req.sha256
 
 test-ca2.crt: $(test_ca_key_file_ec) test-ca2.req.sha256
-	$(MBEDTLS_CERT_WRITE) is_ca=1 serial=13926223505202072808 request_file=test-ca2.req.sha256 selfsign=1 issuer_name="C=NL,O=PolarSSL,CN=Polarssl Test EC CA" issuer_key=$(test_ca_key_file_ec) not_before=20190210144400 not_after=20290210144400 md=SHA256 version=3 output_file=$@
+	$(MBEDTLS_CERT_WRITE) is_ca=1 serial=13926223505202072808 selfsign=1 \
+		request_file=test-ca2.req.sha256 \
+		issuer_name="C=NL,O=PolarSSL,CN=Polarssl Test EC CA" \
+		issuer_key=$(test_ca_key_file_ec) \
+		not_before=20190210144400 not_after=20290210144400 \
+		md=SHA256 version=3 output_file=$@
 all_final += test-ca2.crt
+
+test-ca2.ku-%.crt: test-ca2.ku-%.crt.openssl.v3_ext $(test_ca_key_file_ec) test-ca2.req.sha256
+	$(OPENSSL) x509 -req -in test-ca2.req.sha256 -extfile $< \
+		-signkey $(test_ca_key_file_ec) -days 3653 -out $@
+
+all_final += test-ca2.ku-crl.crt \
+			 test-ca2.ku-crt.crt \
+			 test-ca2.ku-crt_crl.crt \
+			 test-ca2.ku-ds.crt
 
 test-ca2-future.crt: $(test_ca_key_file_ec) test-ca2.req.sha256
 	$(MBEDTLS_CERT_WRITE) is_ca=1 serial=13926223505202072808 request_file=test-ca2.req.sha256 selfsign=1 issuer_name="C=NL,O=PolarSSL,CN=Polarssl Test EC CA" issuer_key=$(test_ca_key_file_ec) not_before=20290210144400 not_after=20390210144400 md=SHA256 version=3 output_file=$@
@@ -201,11 +216,15 @@ $(test_ca_ec_cat):
 all_final += $(test_ca_ec_cat)
 
 test-ca-any_policy.crt: $(test_ca_key_file_rsa) test-ca.req.sha256
-	$(OPENSSL) req -x509 -config $(test_ca_config_file) -extensions v3_any_policy_ca -key $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -set_serial 0 -days 3653 -sha256 -in test-ca.req.sha256 -out $@
+	$(OPENSSL) req -x509 -config $(test_ca_config_file) -extensions v3_any_policy_ca \
+		-key $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" \
+		-set_serial 0 -days 3653 -sha256 -in test-ca.req.sha256 -out $@
 all_final += test-ca-any_policy.crt
 
 test-ca-any_policy_ec.crt: $(test_ca_key_file_ec) test-ca.req_ec.sha256
-	$(OPENSSL) req -x509 -config $(test_ca_config_file) -extensions v3_any_policy_ca -key $(test_ca_key_file_ec) -set_serial 0 -days 3653 -sha256 -in test-ca.req_ec.sha256 -out $@
+	$(OPENSSL) req -x509 -config $(test_ca_config_file) -extensions v3_any_policy_ca \
+		-key $(test_ca_key_file_ec) -set_serial 0 -days 3653 -sha256 \
+		-in test-ca.req_ec.sha256 -out $@
 all_final += test-ca-any_policy_ec.crt
 
 test-ca-any_policy_with_qualifier.crt: $(test_ca_key_file_rsa) test-ca.req.sha256
@@ -1381,6 +1400,7 @@ server3.req.sha256: server3.key
 	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< \
 	subject_name="C=NL,O=PolarSSL,CN=localhost" md=SHA256
 all_intermediate += server3.req.sha256
+
 # server4*
 
 server4.req.sha256: server4.key
@@ -1394,7 +1414,6 @@ server4.crt: server4.req.sha256
 		not_before=20190210144400 not_after=20290210144400 \
 		md=SHA256 version=3 output_file=$@
 all_final += server4.crt
-
 
 # server5*
 

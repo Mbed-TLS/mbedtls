@@ -1153,6 +1153,14 @@ typedef uint32_t psa_pake_primitive_t;
  */
 #define PSA_PAKE_STEP_ZK_PROOF                  ((psa_pake_step_t) 0x03)
 
+struct psa_pake_cipher_suite_s {
+    psa_algorithm_t algorithm;
+    psa_pake_primitive_type_t type;
+    psa_pake_family_t family;
+    uint16_t  bits;
+    psa_algorithm_t hash;
+};
+
 /** The type of the data structure for PAKE cipher suites.
  *
  * This is an implementation-defined \c struct. Applications should not
@@ -1160,10 +1168,6 @@ typedef uint32_t psa_pake_primitive_t;
  * Implementation details can change in future versions without notice.
  */
 typedef struct psa_pake_cipher_suite_s psa_pake_cipher_suite_t;
-
-/** Return an initial value for a PAKE cipher suite object.
- */
-static psa_pake_cipher_suite_t psa_pake_cipher_suite_init(void);
 
 /** Retrieve the PAKE algorithm from a PAKE cipher suite.
  *
@@ -1293,10 +1297,6 @@ typedef struct psa_crypto_driver_pake_inputs_s psa_crypto_driver_pake_inputs_t;
 
 /** The type of computation stage for J-PAKE operations. */
 typedef struct psa_jpake_computation_stage_s psa_jpake_computation_stage_t;
-
-/** Return an initial value for a PAKE operation object.
- */
-static psa_pake_operation_t psa_pake_operation_init(void);
 
 /** Get the length of the password in bytes from given inputs.
  *
@@ -1951,14 +1951,6 @@ psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
 #define PSA_PAKE_OPERATION_INIT { 0, PSA_ALG_NONE, 0, PSA_PAKE_OPERATION_STAGE_SETUP, \
                                   { 0 }, { { 0 } } }
 
-struct psa_pake_cipher_suite_s {
-    psa_algorithm_t algorithm;
-    psa_pake_primitive_type_t type;
-    psa_pake_family_t family;
-    uint16_t  bits;
-    psa_algorithm_t hash;
-};
-
 static inline psa_algorithm_t psa_pake_cs_get_algorithm(
     const psa_pake_cipher_suite_t *cipher_suite)
 {
@@ -2111,12 +2103,16 @@ struct psa_pake_operation_s {
     } MBEDTLS_PRIVATE(data);
 };
 
+/** Return an initial value for a PAKE cipher suite object.
+ */
 static inline struct psa_pake_cipher_suite_s psa_pake_cipher_suite_init(void)
 {
     const struct psa_pake_cipher_suite_s v = PSA_PAKE_CIPHER_SUITE_INIT;
     return v;
 }
 
+/** Return an initial value for a PAKE operation object.
+ */
 static inline struct psa_pake_operation_s psa_pake_operation_init(void)
 {
     const struct psa_pake_operation_s v = PSA_PAKE_OPERATION_INIT;

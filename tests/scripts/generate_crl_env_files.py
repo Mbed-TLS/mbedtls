@@ -59,6 +59,7 @@ def get_openssl_subject(cert):
     for tag,value in cert.subject.native.items():
         ret.append(f'{openssl_trans_map[tag]}={value}')
     return '/'.join(ret)
+
 def get_cert_serial_subj(cert_file):
     with open(cert_file, 'rb') as f:
         for type_name, headers, der_bytes in pem.unarmor(f.read(), multiple=True):
@@ -71,17 +72,17 @@ def get_cert_serial_subj(cert_file):
             yield not_valid_after,serial_number,subject
 
 
-def generate_db(args):
-    output = []
-    for cert_file in args.revoke:
-        for expired_date, serial, subject in get_cert_serial_subj(cert_file):
-            revoke_date=datetime.now(timezone.utc).strftime("%y%m%d%H%M%SZ")
-            output.append(f'R\t{expired_date}\t{revoke_date}\t{serial}\tunkown\t{subject}')
-    for cert_file in args.valid:
-        for expired_date, serial, subject in get_cert_serial_subj(cert_file):
-            output.append(f'V\t{expired_date}\t\t{serial}\tunkown\t{subject}')
-    with open(args.output,'w') as f:
-        f.write('\n'.join(output))
+def revoke_certificates(args):
+    with open(args.database,'a+') as f:
+        for cert_file in args.certificates:
+            for expired_date, serial, subject in get_cert_serial_subj(cert_file):
+                revoke_date=datetime.now(timezone.utc).strftime("%y%m%d%H%M%SZ")
+                f.write(f'R\t{expired_date}\t{revoke_date}\t{serial}\tunkown\t{subject}\n')
+    # for cert_file in args.valid:
+    #     for expired_date, serial, subject in get_cert_serial_subj(cert_file):
+    #         output.append(f'V\t{expired_date}\t\t{serial}\tunkown\t{subject}')
+    # with open(args.output,'w') as f:
+    #     f.write('\n'.join(output))
 
 def main():
     parser = argparse.ArgumentParser(__doc__)
@@ -94,11 +95,12 @@ def main():
     ca_parser.add_argument('--ca_name',type=str,default='test-ca')
     ca_parser.set_defaults(func=generate_ca)
 
-    db_parser= subparsers.add_parser('db', help='generate cert status db')
-    db_parser.add_argument('--output',type=str,nargs='?',default='test-ca.db')
-    db_parser.add_argument('--revoke', action="append")
-    db_parser.add_argument('--valid', action="append")
-    db_parser.set_defaults(func=generate_db)
+    db_parser= subparsers.add_parser('revoke', help='generate cert status db')
+    db_parser.add_argument('certificates', metavar='certificates', type=str, nargs='+',
+                    help='certificate files')
+    db_parser.add_argument('--database',type=str,nargs='?',default='test-ca.db')
+    db_parser.set_defaults(func=revoke_certificates)
+
     args = parser.parse_args()
     if hasattr(args,'func'):
         args.func(args)

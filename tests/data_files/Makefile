@@ -1369,6 +1369,33 @@ server2.key.enc: server2.key
 	$(OPENSSL) rsa -aes256 -in $< -out $@ -passout "pass:$(server2_pwd_ec)" -traditional
 all_final += server2.key.enc
 
+# server3*
+server3.crt: server3.req.sha256
+	$(MBEDTLS_CERT_WRITE) request_file=$< serial=13 issuer_crt=$(test_ca_crt) \
+		issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) \
+		not_before=20190210144406 not_after=20290210144406 \
+		md=SHA1 version=3 output_file=$@
+all_final += server3.crt
+
+server3.req.sha256: server3.key
+	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< \
+	subject_name="C=NL,O=PolarSSL,CN=localhost" md=SHA256
+all_intermediate += server3.req.sha256
+# server4*
+
+server4.req.sha256: server4.key
+	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< \
+		subject_name="C=NL,O=PolarSSL,CN=localhost" md=SHA256
+all_final += server4.req.sha1
+
+server4.crt: server4.req.sha256
+	$(MBEDTLS_CERT_WRITE) request_file=$< serial=8 \
+		issuer_key=$(test_ca_key_file_ec) issuer_crt=$(test_ca_crt_file_ec) \
+		not_before=20190210144400 not_after=20290210144400 \
+		md=SHA256 version=3 output_file=$@
+all_final += server4.crt
+
+
 # server5*
 
 server5.csr: server5.key
@@ -1579,7 +1606,10 @@ server1_all: crl.pem crl-futureRevocationDate.pem server1.crt server1.noauthid.c
 # server2*
 
 server2.crt: server2.req.sha256
-	$(MBEDTLS_CERT_WRITE) request_file=server2.req.sha256 serial=2 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20190210144406 not_after=20290210144406 md=SHA1 version=3 output_file=$@
+	$(MBEDTLS_CERT_WRITE) request_file=server2.req.sha256 serial=2 issuer_crt=$(test_ca_crt) \
+		issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) \
+		not_before=20190210144406 not_after=20290210144406 \
+		md=SHA1 version=3 output_file=$@
 all_final += server2.crt
 
 server2.der: server2.crt

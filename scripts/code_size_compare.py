@@ -169,7 +169,7 @@ class CodeSizeComparison:
             git_worktree_path = os.path.join(self.repo_path, "temp-" + revision)
             subprocess.check_output(
                 [self.git_command, "worktree", "add", "--detach",
-                git_worktree_path, revision], cwd=self.repo_path,
+                 git_worktree_path, revision], cwd=self.repo_path,
                 stderr=subprocess.STDOUT
             )
 

@@ -292,22 +292,59 @@ cli-rsa.key.der: $(cli_crt_key_file_rsa)
 all_final += cli-rsa.key.der
 
 test_ca_int_rsa1 = test-int-ca.crt
+test_ca_int_ec = test-int-ca2.crt
+
+# server7*
 
 server7.csr: server7.key
 	$(OPENSSL) req -new -key server7.key -subj "/C=NL/O=PolarSSL/CN=localhost" -out $@
 all_intermediate += server7.csr
+
+server7.crt: server7.csr $(test_ca_int_rsa1)
+	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -CA $(test_ca_int_rsa1) -CAkey test-int-ca.key -set_serial 16 -days 3653 -sha256 -in server7.csr > $@
+all_final += server7.crt
+
 server7-expired.crt: server7.csr $(test_ca_int_rsa1)
 	$(FAKETIME) -f -3653d $(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -CA $(test_ca_int_rsa1) -CAkey test-int-ca.key -set_serial 16 -days 3653 -sha256 -in server7.csr | cat - $(test_ca_int_rsa1) > $@
 all_final += server7-expired.crt
+
 server7-future.crt: server7.csr $(test_ca_int_rsa1)
 	$(FAKETIME) -f +3653d $(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -CA $(test_ca_int_rsa1) -CAkey test-int-ca.key -set_serial 16 -days 3653 -sha256 -in server7.csr | cat - $(test_ca_int_rsa1) > $@
 all_final += server7-future.crt
+
 server7-badsign.crt: server7.crt $(test_ca_int_rsa1)
 	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; cat $(test_ca_int_rsa1); } > $@
 all_final += server7-badsign.crt
+
+server7_int-ca.crt: server7.crt $(test_ca_int_rsa1)
+	cat server7.crt $(test_ca_int_rsa1) > $@
+all_final += server7_int-ca.crt
+
+server7_pem_space.crt: server7.crt $(test_ca_int_rsa1)
+	cat server7.crt $(test_ca_int_rsa1) | sed '4s/\(.\)$$/ \1/' > $@
+all_final += server7_pem_space.crt
+
+server7_all_space.crt: server7.crt $(test_ca_int_rsa1)
+	{ cat server7.crt | sed '4s/\(.\)$$/ \1/'; cat test-int-ca.crt | sed '4s/\(.\)$$/ \1/'; } > $@
+all_final += server7_all_space.crt
+
+server7_trailing_space.crt: server7.crt $(test_ca_int_rsa1)
+	cat server7.crt $(test_ca_int_rsa1) | sed 's/\(.\)$$/\1 /' > $@
+all_final += server7_trailing_space.crt
+
+server7_int-ca_ca2.crt: server7.crt $(test_ca_int_rsa1) $(test_ca_crt_file_ec)
+	cat server7.crt $(test_ca_int_rsa1) $(test_ca_crt_file_ec) > $@
+all_final += server7_int-ca_ca2.crt
+
 server7_int-ca-exp.crt: server7.crt test-int-ca-exp.crt
 	cat server7.crt test-int-ca-exp.crt > $@
 all_final += server7_int-ca-exp.crt
+
+server7_spurious_int-ca.crt: server7.crt $(test_ca_int_ec) $(test_ca_int_rsa1)
+	cat server7.crt $(test_ca_int_ec) $(test_ca_int_rsa1) > $@
+all_final += server7_spurious_int-ca.crt
+
+server7_all: server7.crt server7-badsign.crt server7-expired.crt server7-future.crt server7_int-ca-exp.crt server7_int-ca.crt server7_int-ca_ca2.crt server7_all_space.crt server7_pem_space.crt server7_trailing_space.crt server7_spurious_int-ca.crt
 
 cli2.req.sha256: cli2.key
 	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< subject_name="C=NL,O=PolarSSL,CN=PolarSSL Test Client 2" md=SHA256
@@ -1617,6 +1654,7 @@ all: $(all_intermediate) $(all_final)
 .PHONY: keys_rsa_enc_pkcs8_v1_2048 keys_rsa_enc_pkcs8_v2_2048
 .PHONY: keys_rsa_enc_pkcs8_v1_4096 keys_rsa_enc_pkcs8_v2_4096
 .PHONY: server1_all
+.PHONY: server7_all
 
 # These files should not be committed to the repository.
 list_intermediate:

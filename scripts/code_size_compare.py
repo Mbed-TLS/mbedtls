@@ -157,11 +157,12 @@ class CodeSizeComparison:
             return \
                  'make -j lib CC=armclang \
                   CFLAGS=\'--target=arm-arm-none-eabi -mcpu=cortex-m33 -Os \
-                      -DMBEDTLS_CONFIG_FILE=\\\"../configs/tfm_mbedcrypto_config_profile_medium.h\\\" \
-                      -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE=\\\"../configs/crypto_config_profile_medium.h\\\" \' '
+            -DMBEDTLS_CONFIG_FILE=\\\"../configs/tfm_mbedcrypto_config_profile_medium.h\\\" \
+            -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE=\\\"../configs/crypto_config_profile_medium.h\\\" \' '
 
         # Any remaining supported combinations are incompatible with each other
-        print('Config option {} is incompatble with architecture {}'.format(self.config, self.arch))
+        print('Config option {} is incompatble with architecture {}'
+              .format(self.config, self.arch))
         sys.exit(-1)
 
     def _create_git_worktree(self, revision):
@@ -201,7 +202,7 @@ class CodeSizeComparison:
             try:
                 subprocess.check_output(
                     self.pre_build_commands, env=my_environment, shell=True,
-                    cwd=git_worktree_path, stderr=subprocess.STDOUT,
+                    cwd=git_worktree_path, stderr=subprocess.STDOUT
                 )
             except subprocess.CalledProcessError as e:
                 self._handle_called_process_error(e, git_worktree_path)
@@ -212,7 +213,7 @@ class CodeSizeComparison:
         try:
             subprocess.check_output(
                 self.make_command, env=my_environment, shell=True,
-                cwd=git_worktree_path, stderr=subprocess.STDOUT,
+                cwd=git_worktree_path, stderr=subprocess.STDOUT
             )
         except subprocess.CalledProcessError as e:
             self._handle_called_process_error(e, git_worktree_path)
@@ -224,7 +225,8 @@ class CodeSizeComparison:
         # Size for libmbedcrypto.a
         try:
             result = subprocess.check_output(
-                ["size -t library/libmbedcrypto.a"], cwd=git_worktree_path, shell=True
+                ["size -t library/libmbedcrypto.a"],
+                cwd=git_worktree_path, shell=True
             )
         except subprocess.CalledProcessError as e:
             self._handle_called_process_error(e, git_worktree_path)
@@ -232,7 +234,8 @@ class CodeSizeComparison:
         # Size for libmbedx509.a
         try:
             result = subprocess.check_output(
-                ["size -t library/libmbedx509.a"], cwd=git_worktree_path, shell=True
+                ["size -t library/libmbedx509.a"],
+                cwd=git_worktree_path, shell=True
             )
         except subprocess.CalledProcessError as e:
             self._handle_called_process_error(e, git_worktree_path)
@@ -240,7 +243,8 @@ class CodeSizeComparison:
         # Size for libmbedtls.a
         try:
             result = subprocess.check_output(
-                ["size -t library/libmbedtls.a"], cwd=git_worktree_path, shell=True
+                ["size -t library/libmbedtls.a"],
+                cwd=git_worktree_path, shell=True
             )
         except subprocess.CalledProcessError as e:
             self._handle_called_process_error(e, git_worktree_path)
@@ -293,7 +297,6 @@ class CodeSizeComparison:
             write_dict_to_csv(d)
             csv_file.write('\n')
 
-
     def _remove_worktree(self, git_worktree_path):
         """Remove temporary worktree."""
         if git_worktree_path != self.repo_path:
@@ -318,7 +321,8 @@ class CodeSizeComparison:
 
         res_file = open(os.path.join(self.result_dir, "compare-" + self.config +
                                      "-" + self.arch + "-" + self.old_rev + "-"
-                                     + self.new_rev + ".csv"), "w", encoding='utf-8')
+                                     + self.new_rev + ".csv"),
+                        "w", encoding='utf-8')
         def write_dict_to_csv(old_d, new_d):
             for (f, s) in new_d.items():
                 new_size = int(s.total)
@@ -352,9 +356,10 @@ class CodeSizeComparison:
         self._get_code_size_for_rev(self.new_rev)
         return self.compare_code_size()
 
-    def _handle_called_process_error(self, e: subprocess.CalledProcessError, git_worktree_path):
-        """Handle a CalledProcessError and quit the program gracefully. Remove any
-        extra worktrees so that the script may be called again."""
+    def _handle_called_process_error(self, e: subprocess.CalledProcessError,
+                                     git_worktree_path):
+        """Handle a CalledProcessError and quit the program gracefully.
+        Remove any extra worktrees so that the script may be called again."""
 
         # Tell the user what went wrong
         print("The following command: {} failed and exited with code {}"\

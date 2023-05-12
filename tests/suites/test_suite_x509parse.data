@@ -232,71 +232,71 @@ x509_parse_san:"data_files/test_cert_rfc822name.crt.der":"type \: 1\nrfc822Name 
 
 X509 CRL information #1
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO
-mbedtls_x509_crl_info:"data_files/crl_expired.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-20 10\:24\:19\nnext update   \: 2011-02-20 11\:24\:19\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with SHA1\n"
+mbedtls_x509_crl_info:"data_files/fixed/crl_expired.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-20 10\:24\:19\nnext update   \: 2011-02-20 11\:24\:19\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with SHA1\n"
 
 X509 CRL Information MD5 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_MD5:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO
-mbedtls_x509_crl_info:"data_files/crl_md5.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-12 14\:44\:07\nnext update   \: 2011-04-13 14\:44\:07\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with MD5\n"
+mbedtls_x509_crl_info:"data_files/fixed/crl_md5.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-12 14\:44\:07\nnext update   \: 2011-04-13 14\:44\:07\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with MD5\n"
 
 X509 CRL Information SHA1 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO
-mbedtls_x509_crl_info:"data_files/crl_sha1.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-12 14\:44\:07\nnext update   \: 2011-04-13 14\:44\:07\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with SHA1\n"
+mbedtls_x509_crl_info:"data_files/fixed/crl_sha1.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-12 14\:44\:07\nnext update   \: 2011-04-13 14\:44\:07\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with SHA1\n"
 
 X509 CRL Information SHA224 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_SHA224:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO
-mbedtls_x509_crl_info:"data_files/crl_sha224.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-12 14\:44\:07\nnext update   \: 2011-04-13 14\:44\:07\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with SHA-224\n"
+mbedtls_x509_crl_info:"data_files/fixed/crl_sha224.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-12 14\:44\:07\nnext update   \: 2011-04-13 14\:44\:07\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with SHA-224\n"
 
 X509 CRL Information SHA256 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO
-mbedtls_x509_crl_info:"data_files/crl_sha256.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-12 14\:44\:07\nnext update   \: 2011-04-13 14\:44\:07\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with SHA-256\n"
+mbedtls_x509_crl_info:"data_files/fixed/crl_sha256.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-12 14\:44\:07\nnext update   \: 2011-04-13 14\:44\:07\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with SHA-256\n"
 
 X509 CRL Information SHA384 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_SHA384:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO
-mbedtls_x509_crl_info:"data_files/crl_sha384.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-12 14\:44\:07\nnext update   \: 2011-04-13 14\:44\:07\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with SHA-384\n"
+mbedtls_x509_crl_info:"data_files/fixed/crl_sha384.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-12 14\:44\:07\nnext update   \: 2011-04-13 14\:44\:07\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with SHA-384\n"
 
 X509 CRL Information SHA512 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_SHA512:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO
-mbedtls_x509_crl_info:"data_files/crl_sha512.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-12 14\:44\:07\nnext update   \: 2011-04-13 14\:44\:07\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with SHA-512\n"
+mbedtls_x509_crl_info:"data_files/fixed/crl_sha512.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-12 14\:44\:07\nnext update   \: 2011-04-13 14\:44\:07\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with SHA-512\n"
 
 X509 CRL information RSA-PSS, SHA1 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_MD_CAN_SHA1:!MBEDTLS_X509_REMOVE_INFO
-mbedtls_x509_crl_info:"data_files/crl-rsa-pss-sha1.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2014-01-20 13\:46\:35\nnext update   \: 2024-01-18 13\:46\:35\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nserial number\: 16 revocation date\: 2014-01-20 13\:43\:05\nsigned using  \: RSASSA-PSS (SHA1, MGF1-SHA1, 0xEA)\n"
+mbedtls_x509_crl_info:"data_files/fixed/crl-rsa-pss-sha1.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2014-01-20 13\:46\:35\nnext update   \: 2024-01-18 13\:46\:35\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nserial number\: 16 revocation date\: 2014-01-20 13\:43\:05\nsigned using  \: RSASSA-PSS (SHA1, MGF1-SHA1, 0xEA)\n"
 
 X509 CRL information RSA-PSS, SHA224 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_MD_CAN_SHA224:!MBEDTLS_X509_REMOVE_INFO
-mbedtls_x509_crl_info:"data_files/crl-rsa-pss-sha224.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2014-01-20 13\:56\:06\nnext update   \: 2024-01-18 13\:56\:06\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nserial number\: 16 revocation date\: 2014-01-20 13\:43\:05\nsigned using  \: RSASSA-PSS (SHA224, MGF1-SHA224, 0xE2)\n"
+mbedtls_x509_crl_info:"data_files/fixed/crl-rsa-pss-sha224.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2014-01-20 13\:56\:06\nnext update   \: 2024-01-18 13\:56\:06\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nserial number\: 16 revocation date\: 2014-01-20 13\:43\:05\nsigned using  \: RSASSA-PSS (SHA224, MGF1-SHA224, 0xE2)\n"
 
 X509 CRL information RSA-PSS, SHA256 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_MD_CAN_SHA256:!MBEDTLS_X509_REMOVE_INFO
-mbedtls_x509_crl_info:"data_files/crl-rsa-pss-sha256.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2014-01-20 13\:56\:16\nnext update   \: 2024-01-18 13\:56\:16\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nserial number\: 16 revocation date\: 2014-01-20 13\:43\:05\nsigned using  \: RSASSA-PSS (SHA256, MGF1-SHA256, 0xDE)\n"
+mbedtls_x509_crl_info:"data_files/fixed/crl-rsa-pss-sha256.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2014-01-20 13\:56\:16\nnext update   \: 2024-01-18 13\:56\:16\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nserial number\: 16 revocation date\: 2014-01-20 13\:43\:05\nsigned using  \: RSASSA-PSS (SHA256, MGF1-SHA256, 0xDE)\n"
 
 X509 CRL information RSA-PSS, SHA384 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_MD_CAN_SHA384:!MBEDTLS_X509_REMOVE_INFO
-mbedtls_x509_crl_info:"data_files/crl-rsa-pss-sha384.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2014-01-20 13\:56\:28\nnext update   \: 2024-01-18 13\:56\:28\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nserial number\: 16 revocation date\: 2014-01-20 13\:43\:05\nsigned using  \: RSASSA-PSS (SHA384, MGF1-SHA384, 0xCE)\n"
+mbedtls_x509_crl_info:"data_files/fixed/crl-rsa-pss-sha384.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2014-01-20 13\:56\:28\nnext update   \: 2024-01-18 13\:56\:28\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nserial number\: 16 revocation date\: 2014-01-20 13\:43\:05\nsigned using  \: RSASSA-PSS (SHA384, MGF1-SHA384, 0xCE)\n"
 
 X509 CRL information RSA-PSS, SHA512 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_MD_CAN_SHA512:!MBEDTLS_X509_REMOVE_INFO
-mbedtls_x509_crl_info:"data_files/crl-rsa-pss-sha512.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2014-01-20 13\:56\:38\nnext update   \: 2024-01-18 13\:56\:38\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nserial number\: 16 revocation date\: 2014-01-20 13\:43\:05\nsigned using  \: RSASSA-PSS (SHA512, MGF1-SHA512, 0xBE)\n"
+mbedtls_x509_crl_info:"data_files/fixed/crl-rsa-pss-sha512.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2014-01-20 13\:56\:38\nnext update   \: 2024-01-18 13\:56\:38\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nserial number\: 16 revocation date\: 2014-01-20 13\:43\:05\nsigned using  \: RSASSA-PSS (SHA512, MGF1-SHA512, 0xBE)\n"
 
 X509 CRL Information EC, SHA1 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_SHA1:MBEDTLS_PK_CAN_ECDSA_SOME:!MBEDTLS_X509_REMOVE_INFO
-mbedtls_x509_crl_info:"data_files/crl-ec-sha1.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-09-24 16\:31\:08\nnext update   \: 2023-09-22 16\:31\:08\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nsigned using  \: ECDSA with SHA1\n"
+mbedtls_x509_crl_info:"data_files/fixed/crl-ec-sha1.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-09-24 16\:31\:08\nnext update   \: 2023-09-22 16\:31\:08\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nsigned using  \: ECDSA with SHA1\n"
 
 X509 CRL Information EC, SHA224 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_SHA224:MBEDTLS_PK_CAN_ECDSA_SOME:!MBEDTLS_X509_REMOVE_INFO
-mbedtls_x509_crl_info:"data_files/crl-ec-sha224.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-09-24 16\:31\:08\nnext update   \: 2023-09-22 16\:31\:08\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nsigned using  \: ECDSA with SHA224\n"
+mbedtls_x509_crl_info:"data_files/fixed/crl-ec-sha224.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-09-24 16\:31\:08\nnext update   \: 2023-09-22 16\:31\:08\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nsigned using  \: ECDSA with SHA224\n"
 
 X509 CRL Information EC, SHA256 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_SHA256:MBEDTLS_PK_CAN_ECDSA_SOME:!MBEDTLS_X509_REMOVE_INFO
-mbedtls_x509_crl_info:"data_files/crl-ec-sha256.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-09-24 16\:31\:08\nnext update   \: 2023-09-22 16\:31\:08\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nsigned using  \: ECDSA with SHA256\n"
+mbedtls_x509_crl_info:"data_files/fixed/crl-ec-sha256.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-09-24 16\:31\:08\nnext update   \: 2023-09-22 16\:31\:08\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nsigned using  \: ECDSA with SHA256\n"
 
 X509 CRL Information EC, SHA384 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_SHA384:MBEDTLS_PK_CAN_ECDSA_SOME:!MBEDTLS_X509_REMOVE_INFO
-mbedtls_x509_crl_info:"data_files/crl-ec-sha384.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-09-24 16\:31\:08\nnext update   \: 2023-09-22 16\:31\:08\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nsigned using  \: ECDSA with SHA384\n"
+mbedtls_x509_crl_info:"data_files/fixed/crl-ec-sha384.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-09-24 16\:31\:08\nnext update   \: 2023-09-22 16\:31\:08\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nsigned using  \: ECDSA with SHA384\n"
 
 X509 CRL Information EC, SHA512 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_SHA512:MBEDTLS_PK_CAN_ECDSA_SOME:!MBEDTLS_X509_REMOVE_INFO
-mbedtls_x509_crl_info:"data_files/crl-ec-sha512.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-09-24 16\:31\:08\nnext update   \: 2023-09-22 16\:31\:08\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nsigned using  \: ECDSA with SHA512\n"
+mbedtls_x509_crl_info:"data_files/fixed/crl-ec-sha512.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-09-24 16\:31\:08\nnext update   \: 2023-09-22 16\:31\:08\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nsigned using  \: ECDSA with SHA512\n"
 
 X509 CRL Malformed Input (trailing spaces at end of file)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_SHA1:MBEDTLS_MD_CAN_SHA512:MBEDTLS_PK_CAN_ECDSA_VERIFY

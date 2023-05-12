@@ -171,7 +171,28 @@ all_intermediate += test-ca2.req.sha256
 
 test-ca2.crt: $(test_ca_key_file_ec) test-ca2.req.sha256
 	$(MBEDTLS_CERT_WRITE) is_ca=1 serial=13926223505202072808 request_file=test-ca2.req.sha256 selfsign=1 issuer_name="C=NL,O=PolarSSL,CN=Polarssl Test EC CA" issuer_key=$(test_ca_key_file_ec) not_before=20190210144400 not_after=20290210144400 md=SHA256 version=3 output_file=$@
-all_final += test-ca.crt
+all_final += test-ca2.crt
+
+test-ca2-future.crt: $(test_ca_key_file_ec) test-ca2.req.sha256
+	$(MBEDTLS_CERT_WRITE) is_ca=1 serial=13926223505202072808 request_file=test-ca2.req.sha256 selfsign=1 issuer_name="C=NL,O=PolarSSL,CN=Polarssl Test EC CA" issuer_key=$(test_ca_key_file_ec) not_before=20290210144400 not_after=20390210144400 md=SHA256 version=3 output_file=$@
+all_intermediate += test-ca2-future.crt
+
+test_ca_ec_cat := # files that concatenate different crt
+test-ca2_cat-future-invalid.crt: test-ca2-future.crt server6.crt
+test_ca_ec_cat += test-ca2_cat-future-invalid.crt
+test-ca2_cat-future-present.crt: test-ca2-future.crt test-ca2.crt
+test_ca_ec_cat += test-ca2_cat-future-present.crt
+test-ca2_cat-present-future.crt: test-ca2.crt test-ca2-future.crt
+test_ca_ec_cat += test-ca2_cat-present-future.crt
+test-ca2_cat-present-past.crt: test-ca2.crt test-ca2-expired.crt
+test_ca_ec_cat += test-ca2_cat-present-past.crt
+test-ca2_cat-past-invalid.crt: test-ca2-expired.crt server6.crt
+test_ca_ec_cat += test-ca2_cat-past-invalid.crt
+test-ca2_cat-past-present.crt: test-ca2-expired.crt test-ca2.crt
+test_ca_ec_cat += test-ca2_cat-past-present.crt
+$(test_ca_ec_cat):
+	cat $^ > $@
+all_final += $(test_ca_ec_cat)
 
 test-ca-any_policy.crt: $(test_ca_key_file_rsa) test-ca.req.sha256
 	$(OPENSSL) req -x509 -config $(test_ca_config_file) -extensions v3_any_policy_ca -key $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -set_serial 0 -days 3653 -sha256 -in test-ca.req.sha256 -out $@

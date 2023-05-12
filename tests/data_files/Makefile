@@ -1551,7 +1551,7 @@ all_final += crl.pem
 # generate crl-ec-sha*.pem: CA=test-ca2.crt, revoke server6.crt
 define _generate_crl-ec
 crl-ec-$(1).pem: crl-ec-$(1).opensslconf crl-ec-$(1).db
-	$$(OPENSSL) ca -config crl-ec-$1.opensslconf \
+	$$(OPENSSL) ca -config crl-ec-$1.opensslconf -crlexts crl_ext \
 		-gencrl -md $(1) -out crl-ec-$(1).pem
 crl-ec-$(1).opensslconf: ca.opensslconf.jinja2 ../scripts/generate_crl_env_files.py
 	../scripts/generate_crl_env_files.py ca --output crl-ec-$(1).opensslconf --ca_name $2 --database crl-ec-$(1).db

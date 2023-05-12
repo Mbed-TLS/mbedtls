@@ -1,10 +1,13 @@
- [ ca ]
- default_ca             = ca_default
+[ ca ]
+default_ca             = ca_default
 
- [ ca_default ]
- certificate            = {{ca_name}}.crt
- private_key            = {{ca_name}}.key
- default_md             = sha256
- database               = ./{{database}}
- default_crl_days       = 3653
+[ ca_default ]
+certificate            = {{ca_name}}.crt
+private_key            = {{ca_name}}.key
+default_md             = sha256
+database               = ./{{database}}
+default_crl_days       = 3653
+
+[ crl_ext ]
+authorityKeyIdentifier=keyid:always,issuer:always
 {% raw %}{% endraw %} {# Reserved for file ending LF #}

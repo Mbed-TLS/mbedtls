@@ -136,7 +136,7 @@ static inline mbedtls_ct_uint_t mbedtls_ct_compiler_opaque(mbedtls_ct_uint_t x)
  * seem to apply unified syntax globally, which breaks other asm code.
  */
 #if !defined(__clang__)
-#define RESTORE_ASM_SYNTAX  ".syntax divided             \n\t"
+#define RESTORE_ASM_SYNTAX  ".syntax divided                      \n\t"
 #else
 #define RESTORE_ASM_SYNTAX
 #endif
@@ -154,9 +154,9 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool(mbedtls_ct_uint_t x)
      */
 #if defined(MBEDTLS_CT_AARCH64_ASM) && (defined(MBEDTLS_CT_SIZE_32) || defined(MBEDTLS_CT_SIZE_64))
     mbedtls_ct_uint_t s;
-    asm volatile ("neg %x[s], %x[x]                     \n\t"
-                  "orr %x[x], %x[s], %x[x]              \n\t"
-                  "asr %x[x], %x[x], 63"
+    asm volatile ("neg %x[s], %x[x]                               \n\t"
+                  "orr %x[x], %x[s], %x[x]                        \n\t"
+                  "asr %x[x], %x[x], 63                           \n\t"
                   :
                   [s] "=&r" (s),
                   [x] "+&r" (x)
@@ -166,10 +166,10 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool(mbedtls_ct_uint_t x)
     return (mbedtls_ct_condition_t) x;
 #elif defined(MBEDTLS_CT_ARM_ASM) && defined(MBEDTLS_CT_SIZE_32)
     uint32_t s;
-    asm volatile (".syntax unified                       \n\t"
-                  "negs %[s], %[x]                       \n\t"
-                  "orrs %[x], %[x], %[s]                 \n\t"
-                  "asrs %[x], %[x], #31                  \n\t"
+    asm volatile (".syntax unified                                \n\t"
+                  "negs %[s], %[x]                                \n\t"
+                  "orrs %[x], %[x], %[s]                          \n\t"
+                  "asrs %[x], %[x], #31                           \n\t"
                   RESTORE_ASM_SYNTAX
                   :
                   [s] "=&l" (s),
@@ -232,9 +232,9 @@ static inline mbedtls_ct_uint_t mbedtls_ct_if(mbedtls_ct_condition_t condition,
                                               mbedtls_ct_uint_t if0)
 {
 #if defined(MBEDTLS_CT_AARCH64_ASM) && (defined(MBEDTLS_CT_SIZE_32) || defined(MBEDTLS_CT_SIZE_64))
-    asm volatile ("and %x[if1], %x[if1], %x[condition]       \n\t"
-                  "mvn %x[condition], %x[condition]          \n\t"
-                  "and %x[condition], %x[condition], %x[if0] \n\t"
+    asm volatile ("and %x[if1], %x[if1], %x[condition]            \n\t"
+                  "mvn %x[condition], %x[condition]               \n\t"
+                  "and %x[condition], %x[condition], %x[if0]      \n\t"
                   "orr %x[condition], %x[if1], %x[condition]"
                   :
                   [condition] "+&r" (condition),
@@ -245,11 +245,11 @@ static inline mbedtls_ct_uint_t mbedtls_ct_if(mbedtls_ct_condition_t condition,
                   );
     return (mbedtls_ct_uint_t) condition;
 #elif defined(MBEDTLS_CT_ARM_ASM) && defined(MBEDTLS_CT_SIZE_32)
-    asm volatile (".syntax unified                           \n\t"
-                  "ands %[if1], %[if1], %[condition]         \n\t"
-                  "mvns %[condition], %[condition]           \n\t"
-                  "ands %[condition], %[condition], %[if0]   \n\t"
-                  "orrs %[condition], %[if1], %[condition]   \n\t"
+    asm volatile (".syntax unified                                \n\t"
+                  "ands %[if1], %[if1], %[condition]              \n\t"
+                  "mvns %[condition], %[condition]                \n\t"
+                  "ands %[condition], %[condition], %[if0]        \n\t"
+                  "orrs %[condition], %[if1], %[condition]        \n\t"
                   RESTORE_ASM_SYNTAX
                   :
                   [condition] "+&l" (condition),
@@ -297,34 +297,40 @@ static inline mbedtls_ct_condition_t mbedtls_ct_uint_lt(mbedtls_ct_uint_t x, mbe
 {
 #if defined(MBEDTLS_CT_AARCH64_ASM) && (defined(MBEDTLS_CT_SIZE_32) || defined(MBEDTLS_CT_SIZE_64))
     uint64_t s1;
-    asm volatile ("eor     %x[s1], %x[y], %x[x]          \n\t"
-                  "sub     %x[x], %x[x], %x[y]           \n\t"
-                  "bic     %x[x], %x[x], %x[s1]          \n\t"
-                  "and     %x[s1], %x[s1], %x[y]         \n\t"
-                  "orr     %x[s1], %x[x], %x[s1]         \n\t"
+    asm volatile ("eor     %x[s1], %x[y], %x[x]                   \n\t"
+                  "sub     %x[x], %x[x], %x[y]                    \n\t"
+                  "bic     %x[x], %x[x], %x[s1]                   \n\t"
+                  "and     %x[s1], %x[s1], %x[y]                  \n\t"
+                  "orr     %x[s1], %x[x], %x[s1]                  \n\t"
                   "asr     %x[x], %x[s1], 63"
-                  : [s1] "=&r" (s1), [x] "+&r" (x)
-                  : [y] "r" (y)
+                  :
+                  [s1] "=&r" (s1),
+                  [x] "+&r" (x)
+                  :
+                  [y] "r" (y)
                   :
                   );
     return (mbedtls_ct_condition_t) x;
 #elif defined(MBEDTLS_CT_ARM_ASM) && defined(MBEDTLS_CT_SIZE_32)
     uint32_t s1;
     asm volatile (
-        ".syntax unified                    \n\t"
+        ".syntax unified                                          \n\t"
 #if defined(__thumb__) && !defined(__thumb2__)
-        "movs     %[s1], %[x]               \n\t"
-        "eors     %[s1], %[s1], %[y]        \n\t"
+        "movs     %[s1], %[x]                                     \n\t"
+        "eors     %[s1], %[s1], %[y]                              \n\t"
 #else
-        "eors     %[s1], %[x], %[y]         \n\t"
+        "eors     %[s1], %[x], %[y]                               \n\t"
 #endif
-        "subs    %[x], %[x], %[y]           \n\t"
-        "bics    %[x], %[x], %[s1]          \n\t"
-        "ands    %[y], %[s1], %[y]          \n\t"
-        "orrs    %[x], %[x], %[y]           \n\t"
-        "asrs    %[x], %[x], #31            \n\t"
+        "subs    %[x], %[x], %[y]                                 \n\t"
+        "bics    %[x], %[x], %[s1]                                \n\t"
+        "ands    %[y], %[s1], %[y]                                \n\t"
+        "orrs    %[x], %[x], %[y]                                 \n\t"
+        "asrs    %[x], %[x], #31                                  \n\t"
         RESTORE_ASM_SYNTAX
-        : [s1] "=&l" (s1), [x] "+&l" (x),  [y] "+&l" (y)
+        :
+        [s1] "=&l" (s1),
+        [x] "+&l" (x),
+        [y] "+&l" (y)
         :
         :
         "cc"

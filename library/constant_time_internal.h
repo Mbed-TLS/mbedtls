@@ -36,10 +36,10 @@
  *
  * It has three main parts:
  *
- * - boolean operations (and a few non-boolean operations)
+ * - boolean operations
  *   These are all named mbedtls_ct_bool_<operation>, and operate over
  *   mbedtls_ct_condition_t.
- *   All arguments to these operations are considered secret.
+ *   All arguments are considered secret.
  *   example: bool x = y | z          =>    x = mbedtls_ct_bool_or(y, z)
  *
  * - conditional data selection
@@ -62,10 +62,11 @@
  * to/from "unsigned int", "size_t", and "mbedtls_mpi_uint" (and any other
  * not-larger integer types).
  *
- * For Arm (32-bit, 64-bit and Thumb), assembly implementations are used
- * to ensure that the generated code is constant time. For other architectures,
- * a plain C fallback designed to yield constant-time code (this has been
- * observed to be constant-time on latest gcc, clang and MSVC as of May 2023).
+ * For Arm (32-bit, 64-bit and Thumb), x86 and x86-64, assembly implementations
+ * are used to ensure that the generated code is constant time. For other
+ * architectures, a plain C fallback designed to yield constant-time code (this
+ * has been observed to be constant-time on latest gcc, clang and MSVC as of
+ * May 2023).
  */
 
 #if (SIZE_MAX > 0xffffffffffffffffULL)

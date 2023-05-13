@@ -120,6 +120,19 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool(mbedtls_ct_uint_t x)
      * Otherwise, we define a plain C fallback which (in May 2023) does not get optimised into
      * conditional instructions or branches by trunk clang, gcc, or MSVC v19.
      */
+#if defined(MBEDTLS_CT_AARCH64_ASM) && (defined(MBEDTLS_CT_SIZE_32) || defined(MBEDTLS_CT_SIZE_64))
+    mbedtls_ct_uint_t s;
+    asm volatile ("neg %x[s], %x[x]                     \n\t"
+                  "orr %x[x], %x[s], %x[x]              \n\t"
+                  "asr %x[x], %x[x], 63"
+                  :
+                  [s] "=&r" (s),
+                  [x] "+&r" (x)
+                  :
+                  :
+                  );
+    return (mbedtls_ct_condition_t) x;
+#else
     const mbedtls_ct_uint_t xo = mbedtls_ct_compiler_opaque(x);
 #if defined(_MSC_VER)
     /* MSVC has a warning about unary minus on unsigned, but this is
@@ -132,19 +145,49 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool(mbedtls_ct_uint_t x)
 #if defined(_MSC_VER)
 #pragma warning( pop )
 #endif
+#endif
 }
 
 static inline mbedtls_ct_uint_t mbedtls_ct_if(mbedtls_ct_condition_t condition,
                                               mbedtls_ct_uint_t if1,
                                               mbedtls_ct_uint_t if0)
 {
+#if defined(MBEDTLS_CT_AARCH64_ASM) && (defined(MBEDTLS_CT_SIZE_32) || defined(MBEDTLS_CT_SIZE_64))
+    asm volatile ("and %x[if1], %x[if1], %x[condition]       \n\t"
+                  "mvn %x[condition], %x[condition]          \n\t"
+                  "and %x[condition], %x[condition], %x[if0] \n\t"
+                  "orr %x[condition], %x[if1], %x[condition]"
+                  :
+                  [condition] "+&r" (condition),
+                  [if1] "+&r" (if1)
+                  :
+                  [if0] "r" (if0)
+                  :
+                  );
+    return (mbedtls_ct_uint_t) condition;
+#else
     mbedtls_ct_condition_t not_cond =
         (mbedtls_ct_condition_t) (~mbedtls_ct_compiler_opaque(condition));
     return (mbedtls_ct_uint_t) ((condition & if1) | (not_cond & if0));
+#endif
 }
 
 static inline mbedtls_ct_condition_t mbedtls_ct_uint_lt(mbedtls_ct_uint_t x, mbedtls_ct_uint_t y)
 {
+#if defined(MBEDTLS_CT_AARCH64_ASM) && (defined(MBEDTLS_CT_SIZE_32) || defined(MBEDTLS_CT_SIZE_64))
+    uint64_t s1, s2;
+    asm volatile ("eor     %x[s1], %x[y], %x[x]          \n\t"
+                  "sub     %x[s2], %x[x], %x[y]          \n\t"
+                  "bic     %x[s2], %x[s2], %[s1]         \n\t"
+                  "and     %x[s1], %x[s1], %x[y]         \n\t"
+                  "orr     %x[s1], %x[s2], %x[s1]        \n\t"
+                  "asr     %x[x], %x[s1], 63"
+                  : [s1] "=&r" (s1), [s2] "=&r" (s2), [x] "+r" (x)
+                  : [y] "r" (y)
+                  :
+                  );
+    return (mbedtls_ct_condition_t) x;
+#else
     /* Ensure that the compiler cannot optimise the following operations over x and y,
      * even if it knows the value of x and y.
      */
@@ -173,6 +216,7 @@ static inline mbedtls_ct_condition_t mbedtls_ct_uint_lt(mbedtls_ct_uint_t x, mbe
 
     // Convert to a condition (i.e., all bits set iff non-zero)
     return mbedtls_ct_bool(ret);
+#endif
 }
 
 static inline mbedtls_ct_condition_t mbedtls_ct_uint_ne(mbedtls_ct_uint_t x, mbedtls_ct_uint_t y)

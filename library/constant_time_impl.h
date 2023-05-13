@@ -132,6 +132,18 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool(mbedtls_ct_uint_t x)
                   :
                   );
     return (mbedtls_ct_condition_t) x;
+#elif defined(MBEDTLS_CT_ARM_ASM) && defined(MBEDTLS_CT_SIZE_32)
+    uint32_t s;
+    asm volatile ("neg %[s], %[x]                       \n\t"
+                  "orr %[x], %[x], %[s]                 \n\t"
+                  "asr %[x], %[x], #31"
+                  :
+                  [s] "=&l" (s),
+                  [x] "+&l" (x)
+                  :
+                  :
+                  );
+    return (mbedtls_ct_condition_t) x;
 #else
     const mbedtls_ct_uint_t xo = mbedtls_ct_compiler_opaque(x);
 #if defined(_MSC_VER)
@@ -165,6 +177,19 @@ static inline mbedtls_ct_uint_t mbedtls_ct_if(mbedtls_ct_condition_t condition,
                   :
                   );
     return (mbedtls_ct_uint_t) condition;
+#elif defined(MBEDTLS_CT_ARM_ASM) && defined(MBEDTLS_CT_SIZE_32)
+    asm volatile ("and %[if1], %[if1], %[condition]          \n\t"
+                  "mvn %[condition], %[condition]            \n\t"
+                  "and %[condition], %[condition], %[if0]    \n\t"
+                  "orr %[condition], %[if1], %[condition]"
+                  :
+                  [condition] "+&l" (condition),
+                  [if1] "+&l" (if1)
+                  :
+                  [if0] "l" (if0)
+                  :
+                  );
+    return (mbedtls_ct_uint_t) condition;
 #else
     mbedtls_ct_condition_t not_cond =
         (mbedtls_ct_condition_t) (~mbedtls_ct_compiler_opaque(condition));
@@ -186,6 +211,25 @@ static inline mbedtls_ct_condition_t mbedtls_ct_uint_lt(mbedtls_ct_uint_t x, mbe
                   : [y] "r" (y)
                   :
                   );
+    return (mbedtls_ct_condition_t) x;
+#elif defined(MBEDTLS_CT_ARM_ASM) && defined(MBEDTLS_CT_SIZE_32)
+    uint32_t s1;
+    asm volatile (
+#if defined(__thumb__) && !defined(__thumb2__)
+        "mov     %[s1], %[x]                \n\t"
+        "eor     %[s1], %[s1], %[y]         \n\t"
+#else
+        "eor     %[s1], %[x], %[y]          \n\t"
+#endif
+        "sub     %[x], %[x], %[y]           \n\t"
+        "bic     %[x], %[x], %[s1]          \n\t"
+        "and     %[y], %[s1], %[y]          \n\t"
+        "orr     %[x], %[x], %[y]           \n\t"
+        "asr     %[x], %[x], #31"
+        : [s1] "=&l" (s1), [x] "+&l" (x),  [y] "+&l" (y)
+        :
+        :
+        );
     return (mbedtls_ct_condition_t) x;
 #else
     /* Ensure that the compiler cannot optimise the following operations over x and y,

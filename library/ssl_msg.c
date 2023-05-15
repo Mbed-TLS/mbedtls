@@ -1596,6 +1596,22 @@ hmac_failed_etm_enabled:
         defined(MBEDTLS_SSL_PROTO_TLS1_2)
         if (transform->minor_ver > MBEDTLS_SSL_MINOR_VERSION_0) {
             /*
+             * Delicate code warning: Lucky Thirteen countermeasure.
+             *
+             * In CBC+HMAC cipher suites, the MAC is near the end of the
+             * ciphertext, followed with 1 to 256 bytes. To avoid a
+             * padding oracle attack known as Lucky Thirteen, we must
+             * not reveal the length of the padding, and therefore the
+             * position of the MAC, until the MAC has been verified.
+             * This includes the timing of memory accesses, which can leak to
+             * a local attacker. Hence we use the function mbedtls_ct_hmac()
+             * which is specially crafted to calculate the HMAC at
+             * of a prefix of the message within a range without revealing
+             * the exact length of the prefix through memory access patterns.
+             *
+             * (This does not apply when using encrypt-then-MAC, which
+             * is handled by the block of code above.)
+             *
              * The next two sizes are the minimum and maximum values of
              * data_len over all padlen values.
              *

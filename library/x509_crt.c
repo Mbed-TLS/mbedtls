@@ -3195,6 +3195,7 @@ void mbedtls_x509_crt_free(mbedtls_x509_crt *crt)
         mbedtls_asn1_sequence_free(cert_cur->ext_key_usage.next);
         mbedtls_asn1_sequence_free(cert_cur->subject_alt_names.next);
         mbedtls_asn1_sequence_free(cert_cur->certificate_policies.next);
+        mbedtls_asn1_sequence_free(cert_cur->authority_key_id.authorityCertIssuer.next);
 
         if (cert_cur->raw.p != NULL && cert_cur->own_buffer) {
             mbedtls_platform_zeroize(cert_cur->raw.p, cert_cur->raw.len);

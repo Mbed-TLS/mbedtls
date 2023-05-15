@@ -24,8 +24,13 @@
 
 /* A compatible definition per the PSA specification.
  * It's ok to have this here whether the macro is also defined in another
- * header or not. */
+ * header or not. We just need to ensure the macro expands to the correct
+ * sequence of tokens and presence/absence of whitespace betwen tokens.
+ * So tell uncrustify not to mess with the whitespace here.
+ * *INDENT-OFF*
+ */
 #define PSA_ERROR_NOT_SUPPORTED         ((psa_status_t)-134)
+/* *INDENT-ON* */
 
 typedef uint32_t psa_storage_create_flags_t;
 typedef uint64_t psa_storage_uid_t;

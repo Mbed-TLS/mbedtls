@@ -598,6 +598,19 @@
 #endif /* !MBEDTLS_PSA_ACCEL_ALG_CHACHA20_POLY1305 */
 #endif /* PSA_WANT_ALG_CHACHA20_POLY1305 */
 
+/*
+ * ECB, CBC, XTS modes require both ENCRYPT and DECRYPT directions.
+ * CIPHER_ENCRYPT_ONLY is only enabled when those modes are not requested
+ * via the PSA API.
+ *
+ * Note: XTS is not yet supported via the PSA API in Mbed TLS.
+ */
+#if !defined(PSA_WANT_ALG_ECB_NO_PADDING) && \
+    !defined(PSA_WANT_ALG_CBC_NO_PADDING) && \
+    !defined(PSA_WANT_ALG_CBC_PKCS7)
+#define MBEDTLS_CIPHER_ENCRYPT_ONLY 1
+#endif
+
 #if defined(PSA_WANT_ECC_BRAINPOOL_P_R1_256)
 #if !defined(MBEDTLS_PSA_ACCEL_ECC_BRAINPOOL_P_R1_256)
 #define MBEDTLS_ECP_DP_BP256R1_ENABLED

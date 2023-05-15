@@ -1,0 +1,6 @@
+Bugfix
+   * Fix a performance regression in (D)TLS with RC4 or a null cipher when
+     receiving messages. The code was unnecessarily slow in this case since
+     Mbed TLS 2.24 due to a security countermeasure which is only necessary
+     for CBC-based cipher suites. Stop using the countermeasure for RC4 and
+     null-cipher cipher suites. Fixes #7588.

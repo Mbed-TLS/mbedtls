@@ -431,18 +431,33 @@ rsa_single_san_uri.crt.der: rsa_single_san_uri.key
 rsa_multiple_san_uri.crt.der: rsa_multiple_san_uri.key
 	$(OPENSSL) req -x509 -outform der -nodes -days 7300 -newkey rsa:2048 -key $< -out $@ -addext "subjectAltName = URI:urn:example.com:5ff40f78-9210-494f-8206-c2c082f0609c, URI:urn:example.com:5ff40f78-9210-494f-8206-abcde1234567" -extensions 'v3_req' -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS URI SAN"
 
+test-int-ca3-badsign.crt: test-int-ca3.crt
+	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; } > $@
+all_final += test-int-ca3-badsign.crt
+
+# server10*
+
+server10.crt: server10.key test-int-ca3.crt test-int-ca3.key
+	$(MBEDTLS_CERT_WRITE) subject_key=$< subject_name="CN=localhost" serial=75 issuer_crt=test-int-ca3.crt issuer_key=test-int-ca3.key subject_identifier=0 authority_identifier=0 not_before=20190210144406 not_after=20290210144406 md=SHA256 version=3 output_file=$@
+all_final += server10.crt
 server10-badsign.crt: server10.crt
 	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; } > $@
 all_final += server10-badsign.crt
 server10-bs_int3.pem: server10-badsign.crt test-int-ca3.crt
 	cat server10-badsign.crt test-int-ca3.crt > $@
 all_final += server10-bs_int3.pem
-test-int-ca3-badsign.crt: test-int-ca3.crt
-	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; } > $@
-all_final += test-int-ca3-badsign.crt
 server10_int3-bs.pem: server10.crt test-int-ca3-badsign.crt
 	cat server10.crt test-int-ca3-badsign.crt > $@
 all_final += server10_int3-bs.pem
+server10_int3_int-ca2.crt: server10.crt test-int-ca3.crt $(test_ca_int_ec)
+	cat $^ > $@
+all_final += server10_int3_int-ca2.crt
+server10_int3_int-ca2_ca.crt: server10.crt test-int-ca3.crt $(test_ca_int_ec) $(test_ca_crt)
+	cat $^ > $@
+all_final += server10_int3_int-ca2_ca.crt
+server10_int3_spurious_int-ca2.crt: server10.crt test-int-ca3.crt $(test_ca_int_rsa1) $(test_ca_int_ec)
+	cat $^ > $@
+all_final += server10_int3_spurious_int-ca2.crt
 
 rsa_pkcs1_2048_public.pem: server8.key
 	$(OPENSSL)  rsa -in $< -outform PEM -RSAPublicKey_out -out $@

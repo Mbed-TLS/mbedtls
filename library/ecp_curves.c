@@ -5570,8 +5570,8 @@ static inline int ecp_mod_koblitz(mbedtls_mpi_uint *X,
         mask  = ((mbedtls_mpi_uint) 1 << shift) - 1;
     }
 
-    /* Two pass is needed for reducing the value of `A0 + R * A1` and
-     * need an additional one to reduce the possible overflow during
+    /* Two passes are needed to reduce the value of `A0 + R * A1` and then
+     * we need an additional one to reduce the possible overflow during
      * the addition.
      */
     for (size_t pass = 0; pass < 3; pass++) {

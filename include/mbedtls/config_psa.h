@@ -588,6 +588,20 @@ extern "C" {
 #endif
 #endif /* PSA_WANT_ALG_GCM */
 
+#if defined(PSA_WANT_KEY_TYPE_AES)
+#if !defined(PSA_WANT_ALG_ECB_NO_PADDING) && \
+    !defined(PSA_WANT_ALG_CBC_NO_PADDING) && \
+    !defined(PSA_WANT_ALG_CBC_PKCS7) && \
+    (defined(PSA_WANT_ALG_CMAC) || \
+    defined(PSA_WANT_ALG_CTR) || \
+    defined(PSA_WANT_ALG_CFB) || \
+    defined(PSA_WANT_ALG_OFB) || \
+    defined(PSA_WANT_ALG_CCM) || \
+    defined(PSA_WANT_ALG_GCM))
+#define MBEDTLS_AES_ENCRYPT_ONLY
+#endif
+#endif /* PSA_WANT_KEY_TYPE_AES */
+
 #if defined(PSA_WANT_ALG_CHACHA20_POLY1305)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_CHACHA20_POLY1305)
 #if defined(PSA_WANT_KEY_TYPE_CHACHA20)

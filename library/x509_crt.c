@@ -50,6 +50,7 @@
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 #include "hash_info.h"
 #include "x509_invasive.h"
+#include "pk_internal.h"
 
 #include "mbedtls/platform.h"
 

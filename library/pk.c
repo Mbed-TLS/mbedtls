@@ -23,6 +23,7 @@
 #include "mbedtls/pk.h"
 #include "pk_wrap.h"
 #include "pkwrite.h"
+#include "pk_internal.h"
 
 #include "hash_info.h"
 

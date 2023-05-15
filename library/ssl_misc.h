@@ -55,6 +55,7 @@
 #endif
 
 #include "mbedtls/pk.h"
+#include "pk_internal.h"
 #include "common.h"
 
 /* Shorthand for restartable ECC */

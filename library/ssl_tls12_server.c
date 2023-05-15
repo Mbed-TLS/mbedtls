@@ -2636,7 +2636,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
         case MBEDTLS_PK_ECKEY:
         case MBEDTLS_PK_ECKEY_DH:
         case MBEDTLS_PK_ECDSA:
-            key = mbedtls_pk_ec_ro(*pk);
+            key = mbedtls_pk_ec_rw(*pk);
             if (key == NULL) {
                 return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
             }

@@ -2813,7 +2813,6 @@ static int x509_inet_pton_ipv6(const char *src, void *dst)
 
 static int x509_inet_pton_ipv4(const char *src, void *dst)
 {
-    /* note: allows leading 0's, e.g. 000.000.000.000 */
     const unsigned char *p = (const unsigned char *) src;
     uint8_t *res = (uint8_t *) dst;
     uint8_t digit, num_digits = 0;
@@ -2827,13 +2826,20 @@ static int x509_inet_pton_ipv4(const char *src, void *dst)
             if (digit > 9) {
                 break;
             }
+
+            /* Don't allow leading zeroes. These might mean octal format,
+             * which this implementation does not support. */
+            if (octet == 0 && num_digits > 0) {
+                return -1;
+            }
+
             octet = octet * 10 + digit;
             num_digits++;
             p++;
         } while (num_digits < 3);
 
         if (octet >= 256 || num_digits > 3 || num_digits == 0) {
-            break;
+            return -1;
         }
         *res++ = (uint8_t) octet;
         num_octets++;

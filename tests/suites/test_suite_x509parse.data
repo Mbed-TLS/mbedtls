@@ -1046,6 +1046,12 @@ x509_verify:"data_files/server5-tricky-ip-san.crt":"data_files/server5-tricky-ip
 X509 CRT parse CN: IPv4 valid address
 x509_crt_parse_cn_inet_pton:"10.10.10.10":"0A0A0A0A":4
 
+X509 CRT parse CN: IPv4 leading zeroes #1
+x509_crt_parse_cn_inet_pton:"010.10.10.10":"":0
+
+X509 CRT parse CN: IPv4 leading zeroes #2
+x509_crt_parse_cn_inet_pton:"10.10.10.001":"":0
+
 X509 CRT parse CN: IPv4 excess 0s
 x509_crt_parse_cn_inet_pton:"10.0000.10.10":"":0
 

@@ -26,6 +26,7 @@
 #include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
+#include "pk_internal.h"
 
 #include <string.h>
 
@@ -795,14 +796,14 @@ int mbedtls_pk_parse_subpubkey(unsigned char **p, const unsigned char *end,
     if (pk_alg == MBEDTLS_PK_ECKEY_DH || pk_alg == MBEDTLS_PK_ECKEY) {
 #if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
         if (mbedtls_pk_is_rfc8410_curve(ec_grp_id)) {
-            ret = pk_use_ecparams_rfc8410(&alg_params, ec_grp_id, &mbedtls_pk_ec(*pk)->grp);
+            ret = pk_use_ecparams_rfc8410(&alg_params, ec_grp_id, &mbedtls_pk_ec_rw(*pk)->grp);
         } else
 #endif
         {
-            ret = pk_use_ecparams(&alg_params, &mbedtls_pk_ec(*pk)->grp);
+            ret = pk_use_ecparams(&alg_params, &mbedtls_pk_ec_rw(*pk)->grp);
         }
         if (ret == 0) {
-            ret = pk_get_ecpubkey(p, end, mbedtls_pk_ec(*pk));
+            ret = pk_get_ecpubkey(p, end, mbedtls_pk_ec_rw(*pk));
         }
     } else
 #endif /* MBEDTLS_ECP_LIGHT */
@@ -1231,10 +1232,10 @@ static int pk_parse_key_pkcs8_unencrypted_der(
     if (pk_alg == MBEDTLS_PK_ECKEY || pk_alg == MBEDTLS_PK_ECKEY_DH) {
 #if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
         if (mbedtls_pk_is_rfc8410_curve(ec_grp_id)) {
-            if ((ret =
-                     pk_use_ecparams_rfc8410(&params, ec_grp_id, &mbedtls_pk_ec(*pk)->grp)) != 0 ||
+            if ((ret = pk_use_ecparams_rfc8410(&params, ec_grp_id,
+                                               &mbedtls_pk_ec_rw(*pk)->grp)) != 0 ||
                 (ret =
-                     pk_parse_key_rfc8410_der(mbedtls_pk_ec(*pk), p, len, end, f_rng,
+                     pk_parse_key_rfc8410_der(mbedtls_pk_ec_rw(*pk), p, len, end, f_rng,
                                               p_rng)) != 0) {
                 mbedtls_pk_free(pk);
                 return ret;
@@ -1242,8 +1243,8 @@ static int pk_parse_key_pkcs8_unencrypted_der(
         } else
 #endif
         {
-            if ((ret = pk_use_ecparams(&params, &mbedtls_pk_ec(*pk)->grp)) != 0 ||
-                (ret = pk_parse_key_sec1_der(mbedtls_pk_ec(*pk), p, len, f_rng, p_rng)) != 0) {
+            if ((ret = pk_use_ecparams(&params, &mbedtls_pk_ec_rw(*pk)->grp)) != 0 ||
+                (ret = pk_parse_key_sec1_der(mbedtls_pk_ec_rw(*pk), p, len, f_rng, p_rng)) != 0) {
                 mbedtls_pk_free(pk);
                 return ret;
             }
@@ -1430,7 +1431,7 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *pk,
         pk_info = mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY);
 
         if ((ret = mbedtls_pk_setup(pk, pk_info)) != 0 ||
-            (ret = pk_parse_key_sec1_der(mbedtls_pk_ec(*pk),
+            (ret = pk_parse_key_sec1_der(mbedtls_pk_ec_rw(*pk),
                                          pem.buf, pem.buflen,
                                          f_rng, p_rng)) != 0) {
             mbedtls_pk_free(pk);
@@ -1554,7 +1555,7 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *pk,
 #if defined(MBEDTLS_ECP_LIGHT)
     pk_info = mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY);
     if (mbedtls_pk_setup(pk, pk_info) == 0 &&
-        pk_parse_key_sec1_der(mbedtls_pk_ec(*pk),
+        pk_parse_key_sec1_der(mbedtls_pk_ec_rw(*pk),
                               key, keylen, f_rng, p_rng) == 0) {
         return 0;
     }

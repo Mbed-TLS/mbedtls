@@ -666,7 +666,7 @@ static int ssl_check_key_curve(mbedtls_pk_context *pk,
                                uint16_t *curves_tls_id)
 {
     uint16_t *curr_tls_id = curves_tls_id;
-    mbedtls_ecp_group_id grp_id = mbedtls_pk_ec(*pk)->grp.id;
+    mbedtls_ecp_group_id grp_id = mbedtls_pk_ec_ro(*pk)->grp.id;
     mbedtls_ecp_group_id curr_grp_id;
 
     while (*curr_tls_id != 0) {
@@ -2636,7 +2636,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
         case MBEDTLS_PK_ECKEY:
         case MBEDTLS_PK_ECKEY_DH:
         case MBEDTLS_PK_ECDSA:
-            key = mbedtls_pk_ec(*pk);
+            key = mbedtls_pk_ec_ro(*pk);
             if (key == NULL) {
                 return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
             }
@@ -2704,7 +2704,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
     }
 
     if ((ret = mbedtls_ecdh_get_params(&ssl->handshake->ecdh_ctx,
-                                       mbedtls_pk_ec(*mbedtls_ssl_own_key(ssl)),
+                                       mbedtls_pk_ec_ro(*mbedtls_ssl_own_key(ssl)),
                                        MBEDTLS_ECDH_OURS)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, ("mbedtls_ecdh_get_params"), ret);
         return ret;

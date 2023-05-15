@@ -7388,9 +7388,9 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl,
             /* and in the unlikely case the above assumption no longer holds
              * we are making sure that pk_ec() here does not return a NULL
              */
-            const mbedtls_ecp_keypair *ec = mbedtls_pk_ec(*pk);
+            const mbedtls_ecp_keypair *ec = mbedtls_pk_ec_ro(*pk);
             if (ec == NULL) {
-                MBEDTLS_SSL_DEBUG_MSG(1, ("mbedtls_pk_ec() returned NULL"));
+                MBEDTLS_SSL_DEBUG_MSG(1, ("mbedtls_pk_ec_ro() returned NULL"));
                 return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
             }
 

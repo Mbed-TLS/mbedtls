@@ -27,6 +27,7 @@
 
 #include "mbedtls/asn1.h"
 #include "mbedtls/pk.h"
+#include "pk_internal.h"
 
 #if defined(MBEDTLS_RSA_C)
 #include "mbedtls/rsa.h"

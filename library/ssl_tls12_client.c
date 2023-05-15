@@ -2007,7 +2007,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
         return MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH;
     }
 
-    peer_key = mbedtls_pk_ec(*peer_pk);
+    peer_key = mbedtls_pk_ec_ro(*peer_pk);
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     size_t olen = 0;

@@ -3768,6 +3768,26 @@ component_test_aes_fewer_tables_and_rom_tables () {
     make test
 }
 
+component_test_aes_encrypt_only () {
+    msg "build: default config + PSA_CRYPTO_CONFIG - CIPHER_MODE_CBC - CIPHER_MODE_XTS - NIST_KW_C + AES_ENCRYPT_ONLY"
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
+    scripts/config.py unset MBEDTLS_NIST_KW_C
+
+    echo '#undef PSA_WANT_ALG_CBC_NO_PADDING' >> psa_aes_encrypt_only.h
+    echo '#undef PSA_WANT_ALG_CBC_PKCS7' >> psa_aes_encrypt_only.h
+    echo '#undef PSA_WANT_ALG_ECB_NO_PADDING' >> psa_aes_encrypt_only.h
+
+    make CC=gcc CFLAGS="-Werror -Wall -Wextra -I '$PWD' \
+        -DMBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE='\"psa_aes_encrypt_only.h\"'"
+
+    msg "test: default config + PSA_CRYPTO_CONFIG - CIPHER_MODE_CBC - CIPHER_MODE_XTS - NIST_KW_C + AES_ENCRYPT_ONLY"
+    make test
+
+    rm -f psa_aes_encrypt_only.h
+}
+
 component_test_ctr_drbg_aes_256_sha_256 () {
     msg "build: full + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
     scripts/config.py full

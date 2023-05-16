@@ -5532,7 +5532,7 @@ cleanup:
  * Fast quasi-reduction modulo P = 2^s - R,
  * with R about 33 bits, used by the Koblitz curves.
  *
- * Write N as A0 + 2^224 A1, return A0 + R * A1.
+ * Write X as A0 + 2^224 A1, return A0 + R * A1.
  */
 #define P_KOBLITZ_R     (8 / sizeof(mbedtls_mpi_uint))            // Limbs in R
 

@@ -70,9 +70,7 @@ void mbedtls_debug_print_msg(const mbedtls_ssl_context *ssl, int level,
     char str[DEBUG_BUF_SIZE];
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-#if defined(static_assert)
-    static_assert(DEBUG_BUF_SIZE >= 2)
-#endif
+    MBEDTLS_STATIC_ASSERT(DEBUG_BUF_SIZE >= 2, "DEBUG_BUF_SIZE too small");
 
     if (NULL == ssl              ||
         NULL == ssl->conf        ||

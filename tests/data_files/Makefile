@@ -1460,6 +1460,17 @@ server6-ss-child.crt: server6-ss-child.csr server5-selfsigned.crt server5.key se
 				-days 3650 -sha256 -in $< -out $@
 all_final += server6-ss-child.crt
 
+# server9*
+
+server9.csr: server9.key
+	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
+					-key $< -out $@
+all_intermediate += server9.csr
+server9.crt: server9.csr test-ca-rsa-pss.crt test-ca-rsa-pss-sha1.key
+	$(OPENSSL) x509 -req -CA test-ca-rsa-pss.crt -CAkey test-ca-rsa-pss-sha1.key \
+				-extfile server5.crt.openssl.v3_ext -set_serial 22 -days 3650 -in $< -out $@
+all_final += server9.crt
+
 ################################################################
 ### Generate certificates for CRT write check tests
 ################################################################
@@ -1594,27 +1605,83 @@ crl.pem.db: server1.crt test-ca.crt ../scripts/generate_crl_env_files.py
 all_intermediate += crl.pem.opensslconf crl.pem.db
 all_final += crl.pem
 
-# generate crl-ec-sha*.pem: CA=test-ca2.crt, revoke server6.crt
-define _generate_crl-ec
-crl-ec-$(1).pem: crl-ec-$(1).opensslconf crl-ec-$(1).db
-	$$(OPENSSL) ca -config crl-ec-$1.opensslconf -crlexts crl_ext \
-		-gencrl -md $(1) -out crl-ec-$(1).pem
-crl-ec-$(1).opensslconf: ca.opensslconf.jinja2 ../scripts/generate_crl_env_files.py
-	../scripts/generate_crl_env_files.py ca --output crl-ec-$(1).opensslconf --ca_name $2 --database crl-ec-$(1).db
-crl-ec-$(1).db: $(3) ../scripts/generate_crl_env_files.py
-	../scripts/generate_crl_env_files.py revoke --database crl-ec-$(1).db $(3)
 
-all_intermediate += crl-ec-$(1).opensslconf crl-ec-$(1).db
-all_final += crl-ec-$(1).pem
+define _generate_crl-ec
+$(1).pem: $(1).opensslconf $(1).db $(3).crt $(3).key
+	cp $(1).opensslconf $(1).opensslconf.bak
+	$$(OPENSSL) ca -config $(1).opensslconf -crlexts crl_ext \
+		-gencrl -md $(2) -out $(1).pem
+$(1).opensslconf: ca.opensslconf.jinja2 ../scripts/generate_crl_env_files.py
+	../scripts/generate_crl_env_files.py ca --output $(1).opensslconf --ca_name $(3) --database $(1).db
+$(1).db: $(4) ../scripts/generate_crl_env_files.py
+	../scripts/generate_crl_env_files.py revoke --database $(1).db $(4)
+
+all_intermediate += $(1).opensslconf $(1).db
+all_final += $(1).pem
 
 endef
+# generate crl-ec-sha*.pem: CA=test-ca2.crt, revoke server6.crt
 define generate-crl-ec
-$(eval $(call _generate_crl-ec,$1, test-ca2, server6.crt))
+$(eval $(call _generate_crl-ec,crl-ec-$(1), $(1), test-ca2, server6.crt))
 endef
 
 $(foreach i, sha1 sha224 sha256 sha384 sha512, $(call generate-crl-ec,$(i)))
 
-display-crl-%: %
+# generate crl-rsa-pss-sha*.pem: CA=test-ca.crt, revoke server6.crt server9.crt
+define generate-crl-rsa-pss
+$(eval $(call _generate_crl-ec,crl-rsa-pss-$(1), $(1), test-ca-rsa-pss-$(1), server6.crt server9.crt))
+endef
+
+$(foreach i, sha1 sha224 sha256 sha384 sha512, $(call generate-crl-rsa-pss,$(i)))
+
+
+
+
+display-crl-%: crl-%.pem
+	openssl crl -noout -text -in $<
+
+test-ca.key.plain: test-ca.key
+	$(OPENSSL) pkey -in $< -out $@ -inform PEM -outform PEM -passin "pass:$(test_ca_pwd_rsa)"
+
+test-ca-rsa-pss-sha1.key: test-ca.key.plain ../scripts/convert_rsa_to_rsa_pss.py
+	../scripts/convert_rsa_to_rsa_pss.py $@ $< sha1 0xea
+all-final += test-ca-rsa-pss-sha1.key
+
+test-ca-rsa-pss-sha1.crt: test-ca-rsa-pss-sha1.key
+	openssl req -x509 -new -key $< -subj "/C=NL/O=PolarSSL/CN=PolarSSL Test CA" \
+		-set_serial 00 -days 3653 -out $@
+all_intermediate += test-ca-rsa-pss-sha1.crt
+
+test-ca-rsa-pss-sha224.key: test-ca.key.plain ../scripts/convert_rsa_to_rsa_pss.py
+	../scripts/convert_rsa_to_rsa_pss.py $@ $< sha224 0xe2
+all-final += test-ca-rsa-pss-sha224.key
+
+test-ca-rsa-pss-sha224.crt: test-ca-rsa-pss-sha224.key
+	openssl req -x509 -new -key $< -subj "/C=NL/O=PolarSSL/CN=PolarSSL Test CA" \
+		-set_serial 00 -days 3653 -out $@
+all_intermediate += test-ca-rsa-pss-sha224.crt
+
+test-ca-rsa-pss-sha256.key: test-ca.key.plain ../scripts/convert_rsa_to_rsa_pss.py
+	../scripts/convert_rsa_to_rsa_pss.py $@ $< sha256 0xde
+all-final += test-ca-rsa-pss-sha256.key
+
+test-ca-rsa-pss-sha256.crt: test-ca-rsa-pss-sha256.key
+	openssl req -x509 -new -key $< -subj "/C=NL/O=PolarSSL/CN=PolarSSL Test CA" \
+		-set_serial 00 -days 3653 -out $@
+all_intermediate += test-ca-rsa-pss-sha256.crt
+
+test-ca-rsa-pss-sha512.key: test-ca.key.plain ../scripts/convert_rsa_to_rsa_pss.py
+	../scripts/convert_rsa_to_rsa_pss.py $@ $< sha512 0xbe
+all-final += test-ca-rsa-pss-sha512.key
+
+test-ca-rsa-pss-sha512.crt: test-ca-rsa-pss-sha512.key
+	openssl req -x509 -new -key $< -subj "/C=NL/O=PolarSSL/CN=PolarSSL Test CA" \
+		-set_serial 00 -days 3653 -out $@
+all_intermediate += test-ca-rsa-pss-sha512.crt
+
+test-ca-rsa-pss.crt: test-ca-rsa-pss-sha1.crt
+	cp $< $@
+display-crl-%: crl-%.pem
 	openssl crl -noout -text -in $<
 
 crl-futureRevocationDate.pem: $(test_ca_crt) $(test_ca_key_file_rsa) $(test_ca_config_file) test-ca.server1.future-crl.db  test-ca.server1.future-crl.opensslconf

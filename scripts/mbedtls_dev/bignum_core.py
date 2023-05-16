@@ -122,7 +122,7 @@ class BignumCoreShiftL(BignumCoreTarget, bignum_common.ModOperationCommon):
         # Calculate if there is space for shifting to the left(leading zero limbs)
         mx = bignum_common.hex_digits_max_int(self.val_n, self.bits_in_limb)
         # If there are empty limbs ahead, adjust the bitmask accordingly
-        result = result & (self.r - 1) if mx == self.r else result & (mx - 1)
+        result = result & (mx - 1)
         return [self.format_result(result)]
 
     @property

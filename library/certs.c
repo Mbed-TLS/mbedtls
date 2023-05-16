@@ -348,33 +348,33 @@
 #define TEST_CA_KEY_RSA_PEM                                                \
     "-----BEGIN RSA PRIVATE KEY-----\r\n"                                  \
     "Proc-Type: 4,ENCRYPTED\r\n"                                           \
-    "DEK-Info: DES-EDE3-CBC,A8A95B05D5B7206B\r\n"                          \
+    "AES-128-CBC,781840E6B804AE83D2AF71127C4CE314\r\n"                          \
     "\r\n"                                                                 \
-    "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\r\n" \
+    "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\r\n" \
     "-----END RSA PRIVATE KEY-----\r\n"
 /* END FILE */
 

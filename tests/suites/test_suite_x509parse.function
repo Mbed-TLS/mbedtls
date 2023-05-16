@@ -1574,9 +1574,9 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_FS_IO */
 void x509_crt_parse_authoritykeyid(char *file,
-                                   data_t* keyId,
+                                   data_t *keyId,
                                    char *authorityKeyId_issuer,
-                                   data_t* serial,
+                                   data_t *serial,
                                    int ref_ret)
 {
     mbedtls_x509_crt crt;
@@ -1592,8 +1592,7 @@ void x509_crt_parse_authoritykeyid(char *file,
 
     if (ref_ret == 0) {
         /* KeyId test */
-        if (keyId->len > 0)
-        {
+        if (keyId->len > 0) {
             TEST_EQUAL(crt.authority_key_id.keyIdentifier.tag, MBEDTLS_ASN1_OCTET_STRING);
             TEST_EQUAL(memcmp(crt.authority_key_id.keyIdentifier.p, keyId->x, keyId->len), 0);
             TEST_EQUAL(crt.authority_key_id.keyIdentifier.len, keyId->len);
@@ -1604,8 +1603,7 @@ void x509_crt_parse_authoritykeyid(char *file,
 
 
         /* Issuer test */
-        if (strlen(authorityKeyId_issuer) > 0)
-        {
+        if (strlen(authorityKeyId_issuer) > 0) {
             mbedtls_x509_sequence *issuerPtr = &crt.authority_key_id.authorityCertIssuer;
 
             TEST_EQUAL(mbedtls_x509_parse_subject_alt_name(&issuerPtr->buf, &san), 0);
@@ -1625,12 +1623,11 @@ void x509_crt_parse_authoritykeyid(char *file,
         }
 
         /* Serial test */
-        if (serial->len > 0)
-        {
+        if (serial->len > 0) {
             TEST_EQUAL(crt.authority_key_id.authorityCertSerialNumber.tag,
-                        MBEDTLS_ASN1_INTEGER);
+                       MBEDTLS_ASN1_INTEGER);
             TEST_EQUAL(memcmp(crt.authority_key_id.authorityCertSerialNumber.p,
-                            serial->x, serial->len), 0);
+                              serial->x, serial->len), 0);
             TEST_EQUAL(crt.authority_key_id.authorityCertSerialNumber.len, serial->len);
         } else {
             TEST_EQUAL(crt.authority_key_id.authorityCertSerialNumber.tag, 0);

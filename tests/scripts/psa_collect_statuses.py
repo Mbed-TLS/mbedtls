@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Describe the test coverage of PSA functions in terms of return statuses.
 
-1. Build Mbed Crypto with -DRECORD_PSA_STATUS_COVERAGE_LOG
+1. Build Mbed TLS with -DRECORD_PSA_STATUS_COVERAGE_LOG
 2. Run psa_collect_statuses.py
 
 The output is a series of line of the form "psa_foo PSA_ERROR_XXX". Each
 function/status combination appears only once.
 
-This script must be run from the top of an Mbed Crypto source tree.
+This script must be run from the top of an Mbed TLS source tree.
 The build command is "make -DRECORD_PSA_STATUS_COVERAGE_LOG", which is
 only supported with make (as opposed to CMake or other build methods).
 """
@@ -46,7 +46,7 @@ class Statuses:
     def collect_log(self, log_file_name):
         """Read logs from RECORD_PSA_STATUS_COVERAGE_LOG.
 
-        Read logs produced by running Mbed Crypto test suites built with
+        Read logs produced by running Mbed TLS test suites built with
         -DRECORD_PSA_STATUS_COVERAGE_LOG.
         """
         with open(log_file_name) as log:
@@ -82,7 +82,7 @@ class Statuses:
 def collect_status_logs(options):
     """Build and run unit tests and report observed function return statuses.
 
-    Build Mbed Crypto with -DRECORD_PSA_STATUS_COVERAGE_LOG, run the
+    Build Mbed TLS with -DRECORD_PSA_STATUS_COVERAGE_LOG, run the
     test suites and display information about observed return statuses.
     """
     rebuilt = False

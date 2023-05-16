@@ -19,13 +19,13 @@
 /**
  * \file crypto_spe.h
  *
- * \brief When Mbed Crypto is built with the MBEDTLS_PSA_CRYPTO_SPM option
- *        enabled, this header is included by all .c files in Mbed Crypto that
+ * \brief When Mbed TLS is built with the MBEDTLS_PSA_CRYPTO_SPM option
+ *        enabled, this header is included by all .c files in Mbed TLS that
  *        use PSA Crypto function names. This avoids duplication of symbols
- *        between TF-M and Mbed Crypto.
+ *        between TF-M and Mbed TLS.
  *
  * \note  This file should be included before including any PSA Crypto headers
- *        from Mbed Crypto.
+ *        from Mbed TLS.
  */
 
 #ifndef CRYPTO_SPE_H

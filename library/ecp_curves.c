@@ -5472,14 +5472,14 @@ cleanup:
 
 /*
  * Fast quasi-reduction modulo p448 = 2^448 - 2^224 - 1
- * Write N as A0 + 2^448 A1 and A1 as B0 + 2^224 B1, and return
- * A0 + A1 + B1 + (B0 + B1) * 2^224.  This is different to the reference
- * implementation of Curve448, which uses its own special 56-bit limbs rather
- * than a generic bignum library.  We could squeeze some extra speed out on
- * 32-bit machines by splitting N up into 32-bit limbs and doing the
- * arithmetic using the limbs directly as we do for the NIST primes above,
- * but for 64-bit targets it should use half the number of operations if we do
- * the reduction with 224-bit limbs, since mpi_add_mpi will then use 64-bit adds.
+ * Write X as A0 + 2^448 A1 and A1 as B0 + 2^224 B1, and return A0 + A1 + B1 +
+ * (B0 + B1) * 2^224.  This is different to the reference implementation of
+ * Curve448, which uses its own special 56-bit limbs rather than a generic
+ * bignum library.  We could squeeze some extra speed out on 32-bit machines by
+ * splitting N up into 32-bit limbs and doing the arithmetic using the limbs
+ * directly as we do for the NIST primes above, but for 64-bit targets it should
+ * use half the number of operations if we do the reduction with 224-bit limbs,
+ * since mpi_add_mpi will then use 64-bit adds.
  */
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)
@@ -5495,7 +5495,7 @@ int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)
     const size_t Q_limbs = M_limbs;
 
     if (M_limbs > P448_WIDTH) {
-        /* Shouldn't be called with N larger than 2^896! */
+        /* Shouldn't be called with X larger than 2^896! */
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 
@@ -5519,7 +5519,7 @@ int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)
     memset(M, 0, (M_limbs * ciL));
 
     /* Do not copy into the overflow limb, as this would read past the end of
-     * N. */
+     * X. */
     memcpy(M, X + P448_WIDTH, ((M_limbs - 1) * ciL));
 
     /* N = A0 */
@@ -5527,10 +5527,10 @@ int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)
         X[i] = 0;
     }
 
-    /* N += A1 - Carry here dealt with by oversize M and N. */
+    /* X += A1 - Carry here dealt with by oversize M and X. */
     (void) mbedtls_mpi_core_add(X, X, M, M_limbs);
 
-    /* Q = B1, N += B1 */
+    /* Q = B1, X += B1 */
     memcpy(Q, M, (Q_limbs * ciL));
 
     mbedtls_mpi_core_shift_r(Q, Q_limbs, 224);

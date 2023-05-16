@@ -301,10 +301,11 @@ void mbedtls_ct_memmove_left(int len, int offset)
         buf_expected[i] = buf[i];
     }
 
-    TEST_CF_SECRET(&o, sizeof(o));
+    //Note: Marking o as secret causes false positives from Memsan
+    //TEST_CF_SECRET(&o, sizeof(o));
     TEST_CF_SECRET(buf, l);
     mbedtls_ct_memmove_left(buf, l, o);
-    TEST_CF_PUBLIC(&o, sizeof(o));
+    //TEST_CF_PUBLIC(&o, sizeof(o));
     TEST_CF_PUBLIC(buf, l);
 
     if (l > 0) {

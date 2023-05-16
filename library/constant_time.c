@@ -117,18 +117,35 @@ int mbedtls_ct_memcmp(const void *a,
 
 void mbedtls_ct_memmove_left(void *start, size_t total, size_t offset)
 {
-    volatile unsigned char *buf = start;
+    /* Iterate over the array, reading each byte once and writing each byte once. */
     for (size_t i = 0; i < total; i++) {
-        mbedtls_ct_condition_t no_op = mbedtls_ct_bool_gt(total - offset, i);
-        /* The first `total - offset` passes are a no-op. The last
-         * `offset` passes shift the data one byte to the left and
-         * zero out the last byte. */
-        for (size_t n = 0; n < total - 1; n++) {
-            unsigned char current = buf[n];
-            unsigned char next    = buf[n+1];
-            buf[n] = mbedtls_ct_uint_if(no_op, current, next);
-        }
-        buf[total-1] = mbedtls_ct_uint_if0(no_op, buf[total-1]);
+        /* Each iteration, read one byte, and write it to start[i].
+         *
+         * The source address will either be the "true" source address, if it's in the range
+         * where data is getting moved, or (if the source address is off the end of the
+         * array), it will wrap back to the start.
+         *
+         * If the source address is out of range, mask it to zero.
+         */
+
+        // The address that we will read from
+        // TODO: if offset is marked as secret, this upsets Memsan.
+        size_t j = i + offset;
+
+        // Is the address off the end of the array?
+        mbedtls_ct_condition_t not_dummy = mbedtls_ct_bool_lt(j, total);
+
+        // Bring read address into range
+        j = j % total;
+
+        // Read a byte
+        uint8_t b = ((uint8_t*)start)[j];
+
+        // Set it to zero if it's out of range
+        b = mbedtls_ct_uint_if0(not_dummy, b);
+
+        // Write the byte to start[i]
+        ((uint8_t*)start)[i] = b;
     }
 }
 

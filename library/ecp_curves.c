@@ -5482,16 +5482,16 @@ cleanup:
  * the reduction with 224-bit limbs, since mpi_add_mpi will then use 64-bit adds.
  */
 MBEDTLS_STATIC_TESTABLE
-int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *N, size_t N_limbs)
+int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)
 {
     size_t i;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    if (N_limbs <= P448_WIDTH) {
+    if (X_limbs <= P448_WIDTH) {
         return 0;
     }
 
-    size_t M_limbs = N_limbs - (P448_WIDTH);
+    size_t M_limbs = X_limbs - (P448_WIDTH);
     size_t Q_limbs = M_limbs;
 
     if (M_limbs > P448_WIDTH) {
@@ -5513,15 +5513,15 @@ int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *N, size_t N_limbs)
 
     /* Do not copy into the overflow limb, as this would read past the end of
      * N. */
-    memcpy(M, N + P448_WIDTH, ((M_limbs - 1) * ciL));
+    memcpy(M, X + P448_WIDTH, ((M_limbs - 1) * ciL));
 
     /* N = A0 */
-    for (i = P448_WIDTH; i < N_limbs; i++) {
-        N[i] = 0;
+    for (i = P448_WIDTH; i < X_limbs; i++) {
+        X[i] = 0;
     }
 
     /* N += A1 - Carry here dealt with by oversize M and N. */
-    (void) mbedtls_mpi_core_add(N, N, M, M_limbs);
+    (void) mbedtls_mpi_core_add(X, X, M, M_limbs);
 
     /* Q = B1, N += B1 */
     mbedtls_mpi_uint *Q = mbedtls_calloc(Q_limbs, ciL);
@@ -5536,7 +5536,7 @@ int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *N, size_t N_limbs)
     mbedtls_mpi_core_shift_r(Q, Q_limbs, 224);
 
     /* No carry here - only max 224 bits */
-    (void) mbedtls_mpi_core_add(N, N, Q, Q_limbs);
+    (void) mbedtls_mpi_core_add(X, X, Q, Q_limbs);
 
     /* M = (B0 + B1) * 2^224, N += M */
     if (sizeof(mbedtls_mpi_uint) > 4) {
@@ -5550,7 +5550,7 @@ int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *N, size_t N_limbs)
 
     /* Shifted carry bit from the addition is dealt with by oversize M */
     mbedtls_mpi_core_shift_l(M, M_limbs, 224);
-    (void) mbedtls_mpi_core_add(N, N, M, M_limbs);
+    (void) mbedtls_mpi_core_add(X, X, M, M_limbs);
 
     ret = 0;
 

@@ -1185,6 +1185,8 @@ ecp_mul_inv #39 MBEDTLS_ECP_MOD_SCALAR(MBEDTLS_ECP_DP_SECP192K1)
 depends_on:MBEDTLS_ECP_DP_SECP192K1_ENABLED
 ecp_mod_mul_inv:"d2a10413f48d7bcc18a9b7c53c7914c5302c9c9e48b2eb62":MBEDTLS_ECP_DP_SECP192K1:MBEDTLS_ECP_MOD_SCALAR:0
 
+# Public values of secp224K1 have 225 bits, if we randomly generate only 224 bits, we should add the leading '0'
+# to make the limbs match with each other and make the function mbedtls_mpi_mod_residue_setup() happy.
 ecp_mul_inv #40 MBEDTLS_ECP_MOD_SCALAR(MBEDTLS_ECP_DP_SECP224K1)
 depends_on:MBEDTLS_ECP_DP_SECP224K1_ENABLED
 ecp_mod_mul_inv:"0cc154fe846d6b9f51d6166a8d1bb969ff634ab9af95cc89d01669c86":MBEDTLS_ECP_DP_SECP224K1:MBEDTLS_ECP_MOD_SCALAR:0

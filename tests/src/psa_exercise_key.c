@@ -72,7 +72,7 @@ static int check_key_attributes_sanity(mbedtls_svc_key_id_t key)
     psa_key_slot_number_t slot_number = 0xec94d4a5058a1a21;
     psa_status_t status = psa_get_key_slot_number(&attributes, &slot_number);
     if (lifetime_is_dynamic_secure_element(lifetime)) {
-        /* Mbed Crypto currently always exposes the slot number to
+        /* Mbed TLS currently always exposes the slot number to
          * applications. This is not mandated by the PSA specification
          * and may change in future versions. */
         TEST_EQUAL(status, 0);

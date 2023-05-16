@@ -556,8 +556,8 @@ authorityKeyId_subjectKeyId.crt.der:
 authorityKeyId_no_keyid.crt.der:
 	$(OPENSSL) req -x509 -nodes -days 7300 -key server2.key -outform DER -out $@ -config authorityKeyId_subjectKeyId.conf -extensions 'v3_req_authorityKeyId_no_keyid'
 
-authorityKeyId_no_issuer_serial.crt.der:
-	$(OPENSSL) req -x509 -nodes -days 7300 -key server2.key -outform DER -out $@ -config authorityKeyId_subjectKeyId.conf -extensions 'v3_req_authorityKeyId_no_issuer_serial'
+authorityKeyId_no_authorityKeyId.crt.der:
+	$(OPENSSL) req -x509 -nodes -days 7300 -key server2.key -outform DER -out $@ -config authorityKeyId_subjectKeyId.conf -extensions 'v3_req_no_authorityKeyId'
 
 authorityKeyId_empty.crt.der:
 	$(OPENSSL) req -x509 -nodes -days 7300 -key server2.key -outform DER -out $@ -config authorityKeyId_subjectKeyId.conf -extensions 'v3_req_authorityKeyId_empty'

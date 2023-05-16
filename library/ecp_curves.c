@@ -5492,7 +5492,7 @@ int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)
     }
 
     size_t M_limbs = X_limbs - (P448_WIDTH);
-    size_t Q_limbs = M_limbs;
+    const size_t Q_limbs = M_limbs;
 
     if (M_limbs > P448_WIDTH) {
         /* Shouldn't be called with N larger than 2^896! */

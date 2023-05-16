@@ -176,6 +176,7 @@ static uint8x16_t aesce_decrypt_block(uint8x16_t block,
                                       unsigned char *keys,
                                       int rounds)
 {
+#if !defined(MBEDTLS_AES_ENCRYPT_ONLY)
     /* 10, 12 or 14 rounds. Unroll loop. */
     if (rounds == 10) {
         goto rounds_10;
@@ -202,6 +203,13 @@ rounds_10:
     block = veorq_u8(block, vld1q_u8(keys));
 
     return block;
+#else
+    (void) block;
+    (void) keys;
+    (void) rounds;
+
+    return MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED;
+#endif /* !MBEDTLS_AES_ENCRYPT_ONLY */
 }
 
 /*
@@ -228,6 +236,7 @@ int mbedtls_aesce_crypt_ecb(mbedtls_aes_context *ctx,
 /*
  * Compute decryption round keys from encryption round keys
  */
+#if !defined(MBEDTLS_AES_ENCRYPT_ONLY)
 void mbedtls_aesce_inverse_key(unsigned char *invkey,
                                const unsigned char *fwdkey,
                                int nr)
@@ -242,6 +251,7 @@ void mbedtls_aesce_inverse_key(unsigned char *invkey,
     vst1q_u8(invkey + i * 16, vld1q_u8(fwdkey + j * 16));
 
 }
+#endif
 
 static inline uint32_t aes_rot_word(uint32_t word)
 {

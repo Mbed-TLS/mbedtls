@@ -5508,6 +5508,13 @@ int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)
         return MBEDTLS_ERR_ECP_ALLOC_FAILED;
     }
 
+    mbedtls_mpi_uint *Q = mbedtls_calloc(Q_limbs, ciL);
+
+    if (Q == NULL) {
+        ret =  MBEDTLS_ERR_ECP_ALLOC_FAILED;
+        goto cleanup;
+    }
+
     /* M = A1 */
     memset(M, 0, (M_limbs * ciL));
 
@@ -5524,13 +5531,6 @@ int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)
     (void) mbedtls_mpi_core_add(X, X, M, M_limbs);
 
     /* Q = B1, N += B1 */
-    mbedtls_mpi_uint *Q = mbedtls_calloc(Q_limbs, ciL);
-
-    if (Q == NULL) {
-        ret =  MBEDTLS_ERR_ECP_ALLOC_FAILED;
-        goto cleanup;
-    }
-
     memcpy(Q, M, (Q_limbs * ciL));
 
     mbedtls_mpi_core_shift_r(Q, Q_limbs, 224);

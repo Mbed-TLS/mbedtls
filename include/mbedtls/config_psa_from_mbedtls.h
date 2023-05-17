@@ -19,6 +19,10 @@
  * when the corresponding mechanism is enabled through the legacy API
  * (by defining MBEDTLS_xxx symbols in include/mbedtls/mbedtls_config.h
  * or a user-defined configuration file).
+ *
+ * \note See also config_psa_adjust.h. When enabling a mechanism in
+ *       config_psa_from_mbedtls.h, take care to respect the implications
+ *       implemented in config_psa_adjust.h.
  */
 
 /*

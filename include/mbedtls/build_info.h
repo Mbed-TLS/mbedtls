@@ -93,7 +93,11 @@
 #endif
 #endif /* defined(MBEDTLS_PSA_CRYPTO_CONFIG) */
 
-/* Adjust legacy Mbed TLS crypto-related configuration options. */
+/* Adjust legacy Mbed TLS crypto-related configuration options.
+ *
+ * This never enables cryptographic mechanisms as such, only high-level
+ * interfaces (e.g. MD/CIPHER/PK) or internal sub-features (e.g. xxx_LIGHT).
+ */
 #include "config_crypto_adjust.h"
 
 /* Adjust X.509-related configuration options. */
@@ -102,25 +106,43 @@
 /* Adjust TLS-related configuration options. */
 #include "config_tls_adjust.h"
 
-/* Adjust the PSA crypto configuration. */
+/* Adjust the PSA crypto configuration.
+ *
+ * Note that this must be done before "config_mbedtls_from_psa.h" since
+ * that header may take decisions based on symbols enabled here.
+ */
 #if defined(MBEDTLS_PSA_CRYPTO_C) || defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 #include "config_psa_adjust.h"
 #endif
 
 /* Extend the PSA configuration based on the legacy crypto configuration
- * to simplify the transition. */
+ * to simplify the transition.
+ *
+ * This is independent of the mbedtls-from-psa or psa-from-mbedtls
+ * implications based on the setting of MBEDTLS_PSA_CRYPTO_CONFIG
+ * and can be done before or after those.
+ */
 #if defined(MBEDTLS_PSA_CRYPTO_C) || defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 #include "config_psa_extend_from_mbedtls.h"
 #endif
 
 /* Enable legacy crypto features necessary to implement the requested
- * PSA crypto features. */
+ * PSA crypto features.
+ *
+ * This must be done after the internal adjustments of the PSA crypto
+ * configuration and before the internal adjustments of the legacy
+ * crypto configuration.
+ */
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 #include "config_mbedtls_from_psa.h"
 #endif
 
 /* Enable PSA crypto features to provide functionality that is similar
- * to the legacy crypto API. */
+ * to the legacy crypto API.
+ *
+ * This may be done before or after the internal adjustments of the PSA crypto
+ * configuration.
+ */
 #if defined(MBEDTLS_PSA_CRYPTO_C) && !defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 #include "config_psa_from_mbedtls.h"
 #endif

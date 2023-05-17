@@ -6,6 +6,15 @@
  *
  * Do not include this header directly! It is automatically included
  * by public headers as needed.
+ *
+ * This header never automatically enables cryptographic mechanisms as such:
+ * in the legacy crypto API, if A requires B then a user who wants A and
+ * doesn't care about B must manually enable both A and B. In this header:
+ *
+ * - We enable automatic dependencies on sub-features such as xxx_LIGHT
+ *   added after Mbed TLS 3.0 and mostly intended for internal purposes.
+ * - We enable some internal dependencies on high-level interface modules
+ *   such as MD, cipher and PK.
  */
 
 /*

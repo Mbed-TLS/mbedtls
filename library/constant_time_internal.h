@@ -236,26 +236,6 @@ void mbedtls_ct_memcpy_offset(unsigned char *dest,
  */
 unsigned mbedtls_ct_size_gt(size_t x, size_t y);
 
-/** Shift some data towards the left inside a buffer.
- *
- * `mbedtls_ct_mem_move_to_left(start, total, offset)` is functionally
- * equivalent to
- * ```
- * memmove(start, start + offset, total - offset);
- * memset(start + offset, 0, total - offset);
- * ```
- * but it strives to use a memory access pattern (and thus total timing)
- * that does not depend on \p offset. This timing independence comes at
- * the expense of performance.
- *
- * \param start     Pointer to the start of the buffer.
- * \param total     Total size of the buffer.
- * \param offset    Offset from which to copy \p total - \p offset bytes.
- */
-void mbedtls_ct_mem_move_to_left(void *start,
-                                 size_t total,
-                                 size_t offset);
-
 #endif /* defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT) */
 
 

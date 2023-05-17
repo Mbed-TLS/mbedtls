@@ -327,7 +327,7 @@ void mbedtls_ct_mpi_uint_cond_assign(size_t n,
 
 #if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)
 
-void mbedtls_ct_mem_move_to_left(void *start,
+void mbedtls_ct_memmove_left(void *start,
                                  size_t total,
                                  size_t offset)
 {

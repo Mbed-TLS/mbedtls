@@ -123,12 +123,13 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool_lt(mbedtls_ct_uint_t x, mbe
     /* Ensure that the compiler cannot optimise the following operations over x and y,
      * even if it knows the value of x and y.
      */
+    const mbedtls_ct_uint_t xo = mbedtls_ct_compiler_opaque(x);
     const mbedtls_ct_uint_t yo = mbedtls_ct_compiler_opaque(y);
     /*
      * Check if the most significant bits (MSB) of the operands are different.
      * cond is true iff the MSBs differ.
      */
-    mbedtls_ct_condition_t cond = mbedtls_ct_bool((x ^ yo) >> (MBEDTLS_CT_SIZE - 1));
+    mbedtls_ct_condition_t cond = mbedtls_ct_bool((xo ^ yo) >> (MBEDTLS_CT_SIZE - 1));
 
     /*
      * If the MSB are the same then the difference x-y will be negative (and
@@ -140,7 +141,7 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool_lt(mbedtls_ct_uint_t x, mbe
      */
 
     // Select either y, or x - y
-    mbedtls_ct_uint_t ret = mbedtls_ct_if(cond, yo, (mbedtls_ct_uint_t) (x - yo));
+    mbedtls_ct_uint_t ret = mbedtls_ct_if(cond, yo, (mbedtls_ct_uint_t) (xo - yo));
 
     // Extract only the MSB of ret
     ret = ret >> (MBEDTLS_CT_SIZE - 1);

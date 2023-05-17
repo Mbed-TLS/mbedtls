@@ -672,7 +672,7 @@ int mbedtls_mpi_core_random(mbedtls_mpi_uint *X,
                             int (*f_rng)(void *, unsigned char *, size_t),
                             void *p_rng)
 {
-    unsigned ge_lower = 1, lt_upper = 0;
+    mbedtls_ct_condition_t ge_lower = MBEDTLS_CT_TRUE, lt_upper = MBEDTLS_CT_FALSE;
     size_t n_bits = mbedtls_mpi_core_bitlen(N, limbs);
     size_t n_bytes = (n_bits + 7) / 8;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -717,7 +717,7 @@ int mbedtls_mpi_core_random(mbedtls_mpi_uint *X,
 
         ge_lower = mbedtls_mpi_core_uint_le_mpi(min, X, limbs);
         lt_upper = mbedtls_mpi_core_lt_ct(X, N, limbs);
-    } while (ge_lower == 0 || lt_upper == 0);
+    } while (mbedtls_ct_bool_and(ge_lower, lt_upper) == MBEDTLS_CT_FALSE);
 
 cleanup:
     return ret;

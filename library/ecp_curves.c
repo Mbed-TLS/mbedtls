@@ -5643,6 +5643,10 @@ int mbedtls_ecp_mod_p192k1_raw(mbedtls_mpi_uint *X, size_t X_limbs)
                                   0x01, 0x00, 0x00, 0x00)
     };
 
+    if (X_limbs != 2 * ((192 + biL - 1) / biL)) {
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+
     return ecp_mod_koblitz(X, X_limbs, Rp, 192);
 }
 
@@ -5673,6 +5677,10 @@ int mbedtls_ecp_mod_p224k1_raw(mbedtls_mpi_uint *X, size_t X_limbs)
                                   0x01, 0x00, 0x00, 0x00)
     };
 
+    if (X_limbs != 2 * 224 / biL) {
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+
     return ecp_mod_koblitz(X, X_limbs, Rp, 224);
 }
 
@@ -5702,6 +5710,11 @@ int mbedtls_ecp_mod_p256k1_raw(mbedtls_mpi_uint *X, size_t X_limbs)
         MBEDTLS_BYTES_TO_T_UINT_8(0xD1, 0x03, 0x00, 0x00,
                                   0x01, 0x00, 0x00, 0x00)
     };
+
+    if (X_limbs != 2 * ((256 + biL - 1) / biL)) {
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+
     return ecp_mod_koblitz(X, X_limbs, Rp, 256);
 }
 

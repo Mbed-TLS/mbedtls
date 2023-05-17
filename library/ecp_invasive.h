@@ -184,6 +184,8 @@ int  mbedtls_ecp_mod_p384_raw(mbedtls_mpi_uint *X, size_t X_limbs);
  * \param[in]       X_limbs The length of \p X in limbs.
  *
  * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if \p X does not have
+ *                  twice as many limbs as the modulus.
  * \return          #MBEDTLS_ERR_ECP_ALLOC_FAILED if memory allocation failed.
  */
 MBEDTLS_STATIC_TESTABLE
@@ -206,6 +208,8 @@ int mbedtls_ecp_mod_p192k1_raw(mbedtls_mpi_uint *X, size_t X_limbs);
  * \param[in]       X_limbs The length of \p X in limbs.
  *
  * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if \p X does not have
+ *                  twice as many limbs as the modulus.
  * \return          #MBEDTLS_ERR_ECP_ALLOC_FAILED if memory allocation failed.
  */
 MBEDTLS_STATIC_TESTABLE
@@ -228,6 +232,8 @@ int mbedtls_ecp_mod_p224k1_raw(mbedtls_mpi_uint *X, size_t X_limbs);
  * \param[in]       X_limbs The length of \p X in limbs.
  *
  * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if \p X does not have
+ *                  twice as many limbs as the modulus.
  * \return          #MBEDTLS_ERR_ECP_ALLOC_FAILED if memory allocation failed.
  */
 MBEDTLS_STATIC_TESTABLE

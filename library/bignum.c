@@ -61,9 +61,7 @@ int mbedtls_mpi_lt_mpi_ct(const mbedtls_mpi *X,
                           const mbedtls_mpi *Y,
                           unsigned *ret)
 {
-    size_t i;
-    /* The value of any of these variables is either 0 or 1 at all times. */
-    unsigned cond, done, X_is_negative, Y_is_negative;
+    mbedtls_ct_condition_t cond, X_is_negative, Y_is_negative, result;
 
     MPI_VALIDATE_RET(X != NULL);
     MPI_VALIDATE_RET(Y != NULL);
@@ -77,46 +75,33 @@ int mbedtls_mpi_lt_mpi_ct(const mbedtls_mpi *X,
      * Set sign_N to 1 if N >= 0, 0 if N < 0.
      * We know that N->s == 1 if N >= 0 and N->s == -1 if N < 0.
      */
-    X_is_negative = (X->s & 2) >> 1;
-    Y_is_negative = (Y->s & 2) >> 1;
+    X_is_negative = mbedtls_ct_bool((X->s & 2) >> 1);
+    Y_is_negative = mbedtls_ct_bool((Y->s & 2) >> 1);
 
     /*
      * If the signs are different, then the positive operand is the bigger.
      * That is if X is negative (X_is_negative == 1), then X < Y is true and it
      * is false if X is positive (X_is_negative == 0).
      */
-    cond = (X_is_negative ^ Y_is_negative);
-    *ret = cond & X_is_negative;
+    cond   = mbedtls_ct_bool_xor(X_is_negative, Y_is_negative); // non-zero if different sign
+    result = mbedtls_ct_bool_and(cond, X_is_negative);
 
-    /*
-     * This is a constant-time function. We might have the result, but we still
-     * need to go through the loop. Record if we have the result already.
+    /* Assuming signs are the same, compare  X and Y. We switch the comparison
+     * order if they are negative so that we get the right result, regardles of
+     * sign.
+     *
+     * Store in ret iff the signs are the same (i.e., iff cond == 0). If
+     * the signs differ, done has already been set.
      */
-    done = cond;
 
-    for (i = X->n; i > 0; i--) {
-        /*
-         * If Y->p[i - 1] < X->p[i - 1] then X < Y is true if and only if both
-         * X and Y are negative.
-         *
-         * Again even if we can make a decision, we just mark the result and
-         * the fact that we are done and continue looping.
-         */
-        cond = mbedtls_ct_mpi_uint_lt(Y->p[i - 1], X->p[i - 1]);
-        *ret |= cond & (1 - done) & X_is_negative;
-        done |= cond;
+    /* This is used to conditionally swap the pointers in const time */
+    void * const p[2] = { X->p, Y->p };
+    mbedtls_ct_condition_t lt = mbedtls_mpi_core_lt_ct(
+        p[X_is_negative & 1], p[(X_is_negative & 1) ^ 1], X->n);
 
-        /*
-         * If X->p[i - 1] < Y->p[i - 1] then X < Y is true if and only if both
-         * X and Y are positive.
-         *
-         * Again even if we can make a decision, we just mark the result and
-         * the fact that we are done and continue looping.
-         */
-        cond = mbedtls_ct_mpi_uint_lt(X->p[i - 1], Y->p[i - 1]);
-        *ret |= cond & (1 - done) & (1 - X_is_negative);
-        done |= cond;
-    }
+    result = mbedtls_ct_bool_or(result, mbedtls_ct_bool_and(mbedtls_ct_bool_not(cond), lt));
+
+    *ret = mbedtls_ct_uint_if0(result, 1);
 
     return 0;
 }

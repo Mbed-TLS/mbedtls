@@ -3481,9 +3481,8 @@ static int ssl_parse_encrypted_pms(mbedtls_ssl_context *ssl,
     unsigned char *pms = ssl->handshake->premaster + pms_offset;
     unsigned char ver[2];
     unsigned char fake_pms[48], peer_pms[48];
-    unsigned char mask;
-    size_t i, peer_pmslen;
-    unsigned int diff;
+    size_t peer_pmslen;
+    mbedtls_ct_condition_t diff;
 
     /* In case of a failure in decryption, the decryption may write less than
      * 2 bytes of output, but we always read the first two bytes. It doesn't
@@ -3512,13 +3511,10 @@ static int ssl_parse_encrypted_pms(mbedtls_ssl_context *ssl,
     /* Avoid data-dependent branches while checking for invalid
      * padding, to protect against timing-based Bleichenbacher-type
      * attacks. */
-    diff  = (unsigned int) ret;
-    diff |= peer_pmslen ^ 48;
-    diff |= peer_pms[0] ^ ver[0];
-    diff |= peer_pms[1] ^ ver[1];
-
-    /* mask = diff ? 0xff : 0x00 using bit operations to avoid branches */
-    mask = mbedtls_ct_uint_mask(diff);
+    diff = mbedtls_ct_bool(ret);
+    diff = mbedtls_ct_bool_or(diff, mbedtls_ct_bool_ne(peer_pmslen, 48));
+    diff = mbedtls_ct_bool_or(diff, mbedtls_ct_bool_ne(peer_pms[0], ver[0]));
+    diff = mbedtls_ct_bool_or(diff, mbedtls_ct_bool_ne(peer_pms[1], ver[1]));
 
     /*
      * Protection against Bleichenbacher's attack: invalid PKCS#1 v1.5 padding
@@ -3537,7 +3533,7 @@ static int ssl_parse_encrypted_pms(mbedtls_ssl_context *ssl,
     }
 
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
-    if (diff != 0) {
+    if (diff != MBEDTLS_CT_FALSE) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("bad client key exchange message"));
     }
 #endif
@@ -3551,9 +3547,7 @@ static int ssl_parse_encrypted_pms(mbedtls_ssl_context *ssl,
 
     /* Set pms to either the true or the fake PMS, without
      * data-dependent branches. */
-    for (i = 0; i < ssl->handshake->pmslen; i++) {
-        pms[i] = (mask & fake_pms[i]) | ((~mask) & peer_pms[i]);
-    }
+    mbedtls_ct_memcpy_if(diff, pms, fake_pms, peer_pms, ssl->handshake->pmslen);
 
     return 0;
 }

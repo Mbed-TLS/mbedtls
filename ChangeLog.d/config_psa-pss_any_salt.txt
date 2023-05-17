@@ -1,0 +1,4 @@
+Bugfix
+   * When the RSA module provides a PSA implementation of PSS,
+     PSA_WANT_ALG_RSA_PSS_ANY_SALT was missing from the list of implied
+     PSA configuration symbols.

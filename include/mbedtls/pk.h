@@ -224,6 +224,7 @@ typedef enum {
     MBEDTLS_PK_DEBUG_NONE = 0,
     MBEDTLS_PK_DEBUG_MPI,
     MBEDTLS_PK_DEBUG_ECP,
+    MBEDTLS_PK_DEBUG_PSA_EC,
 } mbedtls_pk_debug_type;
 
 /**

@@ -73,7 +73,7 @@ def get_cert_serial_subj(cert_file):
 
 
 def revoke_certificates(args):
-    with open(args.database,'a+') as f:
+    with open(args.database,'w') as f:
         for cert_file in args.certificates:
             for expired_date, serial, subject in get_cert_serial_subj(cert_file):
                 revoke_date=datetime.now(timezone.utc).strftime("%y%m%d%H%M%SZ")

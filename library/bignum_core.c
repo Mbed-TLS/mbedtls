@@ -166,15 +166,11 @@ mbedtls_ct_condition_t mbedtls_mpi_core_uint_le_mpi(mbedtls_mpi_uint min,
     return mbedtls_ct_bool_or(msll_mask, min_le_lsl);
 }
 
-unsigned mbedtls_mpi_core_lt_ct(const mbedtls_mpi_uint *A,
-                                const mbedtls_mpi_uint *B,
-                                size_t limbs)
+mbedtls_ct_condition_t mbedtls_mpi_core_lt_ct(const mbedtls_mpi_uint *A,
+                                              const mbedtls_mpi_uint *B,
+                                              size_t limbs)
 {
-    unsigned ret, cond, done;
-
-    /* The value of any of these variables is either 0 or 1 for the rest of
-     * their scope. */
-    ret = cond = done = 0;
+    mbedtls_ct_condition_t ret = MBEDTLS_CT_FALSE, cond = MBEDTLS_CT_FALSE, done = MBEDTLS_CT_FALSE;
 
     for (size_t i = limbs; i > 0; i--) {
         /*
@@ -184,8 +180,8 @@ unsigned mbedtls_mpi_core_lt_ct(const mbedtls_mpi_uint *A,
          * Again even if we can make a decision, we just mark the result and
          * the fact that we are done and continue looping.
          */
-        cond = mbedtls_ct_mpi_uint_lt(B[i - 1], A[i - 1]);
-        done |= cond;
+        cond = mbedtls_ct_bool_lt(B[i - 1], A[i - 1]);
+        done = mbedtls_ct_bool_or(done, cond);
 
         /*
          * If A[i - 1] < B[i - 1] then A < B is true.
@@ -193,9 +189,9 @@ unsigned mbedtls_mpi_core_lt_ct(const mbedtls_mpi_uint *A,
          * Again even if we can make a decision, we just mark the result and
          * the fact that we are done and continue looping.
          */
-        cond = mbedtls_ct_mpi_uint_lt(A[i - 1], B[i - 1]);
-        ret |= cond & (1 - done);
-        done |= cond;
+        cond = mbedtls_ct_bool_lt(A[i - 1], B[i - 1]);
+        ret  = mbedtls_ct_bool_or(ret, mbedtls_ct_bool_and(cond, mbedtls_ct_bool_not(done)));
+        done = mbedtls_ct_bool_or(done, cond);
     }
 
     /*

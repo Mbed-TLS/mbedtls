@@ -161,13 +161,13 @@ mbedtls_ct_condition_t mbedtls_mpi_core_uint_le_mpi(mbedtls_mpi_uint min,
  * \param limbs    The number of limbs in \p A and \p B.
  *                 This must not be 0.
  *
- * \return         The result of the comparison:
- *                 \c 1 if \p A is less than \p B.
- *                 \c 0 if \p A is greater than or equal to \p B.
+ * \return         MBEDTLS_CT_TRUE  if \p A is less than \p B.
+ *                 MBEDTLS_CT_FALSE if \p A is greater than or equal to \p B.
  */
-unsigned mbedtls_mpi_core_lt_ct(const mbedtls_mpi_uint *A,
-                                const mbedtls_mpi_uint *B,
-                                size_t limbs);
+mbedtls_ct_condition_t mbedtls_mpi_core_lt_ct(const mbedtls_mpi_uint *A,
+                                              const mbedtls_mpi_uint *B,
+                                              size_t limbs);
+
 /**
  * \brief   Perform a safe conditional copy of an MPI which doesn't reveal
  *          whether assignment was done or not.

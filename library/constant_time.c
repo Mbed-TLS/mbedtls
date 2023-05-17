@@ -327,26 +327,20 @@ void mbedtls_ct_mpi_uint_cond_assign(size_t n,
 
 #if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)
 
-void mbedtls_ct_memmove_left(void *start,
-                                 size_t total,
-                                 size_t offset)
+void mbedtls_ct_memmove_left(void *start, size_t total, size_t offset)
 {
     volatile unsigned char *buf = start;
-    size_t i, n;
-    if (total == 0) {
-        return;
-    }
-    for (i = 0; i < total; i++) {
-        unsigned no_op = mbedtls_ct_size_gt(total - offset, i);
+    for (size_t i = 0; i < total; i++) {
+        mbedtls_ct_condition_t no_op = mbedtls_ct_bool_gt(total - offset, i);
         /* The first `total - offset` passes are a no-op. The last
          * `offset` passes shift the data one byte to the left and
          * zero out the last byte. */
-        for (n = 0; n < total - 1; n++) {
+        for (size_t n = 0; n < total - 1; n++) {
             unsigned char current = buf[n];
-            unsigned char next = buf[n+1];
-            buf[n] = mbedtls_ct_uint_if(no_op, current, next);
+            unsigned char next    = buf[n+1];
+            buf[n] = mbedtls_ct_uint_if_new(no_op, current, next);
         }
-        buf[total-1] = mbedtls_ct_uint_if(no_op, buf[total-1], 0);
+        buf[total-1] = mbedtls_ct_uint_if0(no_op, buf[total-1]);
     }
 }
 

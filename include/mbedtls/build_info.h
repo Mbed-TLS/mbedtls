@@ -87,7 +87,13 @@
 #define MBEDTLS_MD_C
 #endif
 
-/* PSA crypto specific configuration options */
+/* PSA crypto specific configuration options
+ * - If config_psa.h reads a configuration option in preprocessor directive,
+ *   this symbol should be consulted before its inclusion. (e.g. MBEDTLS_MD_C)
+ * - If config_psa.h writes a configuration option in conditional directive,
+ *   this symbol should be consulted after its inclusion.
+ *   (e.g. MBEDTLS_MD_LIGHT)
+ */
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG) /* PSA_WANT_xxx influences MBEDTLS_xxx */ || \
     defined(MBEDTLS_PSA_CRYPTO_C) /* MBEDTLS_xxx influences PSA_WANT_xxx */
 #include "mbedtls/config_psa.h"

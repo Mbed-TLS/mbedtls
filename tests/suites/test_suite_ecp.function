@@ -1556,51 +1556,52 @@ void ecp_mod_mul_inv(char *input_A, int id, int ctype, int iret)
 {
     size_t limbs;
     mbedtls_mpi_mod_modulus m;
-    mbedtls_mpi_mod_modulus_init(&m);
-    mbedtls_mpi_mod_residue A = { NULL, 0 };
-    mbedtls_mpi_mod_residue A_inverse = { NULL, 0 };
-    mbedtls_mpi_mod_residue rX = { NULL, 0 };
+    mbedtls_mpi_mod_residue rA; // For input
+    mbedtls_mpi_mod_residue rA_inverse; // For inverse input
+    mbedtls_mpi_mod_residue rX; // For result
     mbedtls_mpi_uint *rX_raw = NULL;
-    mbedtls_mpi_uint *p_inverse = NULL;
-    mbedtls_mpi_uint *p = NULL;
+    mbedtls_mpi_uint *A_inverse = NULL;
+    mbedtls_mpi_uint *A = NULL;
     mbedtls_mpi_uint *bufx = NULL;
-    mbedtls_mpi_uint Result = 1;
+    const mbedtls_mpi_uint one = 1;
 
     ((void) iret);
 
+    mbedtls_mpi_mod_modulus_init(&m);
+
     TEST_ASSERT(mbedtls_ecp_modulus_setup(&m, id, ctype) == 0);
 
-    TEST_EQUAL(mbedtls_test_read_mpi_core(&p, &limbs, input_A), 0);
-    TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&A, &m, p, limbs));
+    TEST_EQUAL(mbedtls_test_read_mpi_core(&A, &limbs, input_A), 0);
+    TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&rA, &m, A, limbs));
 
     /* Test for limb sizes */
     TEST_EQUAL(m.limbs, limbs);
 
-    ASSERT_ALLOC(p_inverse, limbs);
-    TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&A_inverse, &m, p_inverse, limbs));
+    ASSERT_ALLOC(A_inverse, limbs);
+    TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&rA_inverse, &m, A_inverse, limbs));
 
     ASSERT_ALLOC(rX_raw, limbs);
     TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&rX, &m, rX_raw, limbs));
 
     /* Get inverse of A mode m, and multiply it with itself,
         * to see whether the result equal to '1' */
-    TEST_EQUAL(0, mbedtls_mpi_mod_inv(&A_inverse, &A, &m));
-    TEST_EQUAL(mbedtls_mpi_mod_mul(&rX, &A, &A_inverse, &m), 0);
+    TEST_EQUAL(0, mbedtls_mpi_mod_inv(&rA_inverse, &rA, &m));
+    TEST_EQUAL(mbedtls_mpi_mod_mul(&rX, &rA, &rA_inverse, &m), 0);
 
     ASSERT_ALLOC(bufx, limbs);
     TEST_EQUAL(mbedtls_mpi_mod_write(&rX, &m, (unsigned char *) bufx,
                                         limbs * sizeof(mbedtls_mpi_uint),
                                         MBEDTLS_MPI_MOD_EXT_REP_LE), 0);
-    TEST_EQUAL(memcmp(bufx, &Result, sizeof(mbedtls_mpi_uint)), 0);
+    TEST_EQUAL(memcmp(bufx, &one, sizeof(mbedtls_mpi_uint)), 0);
 
 
 exit:
     mbedtls_mpi_mod_modulus_free(&m);
-    mbedtls_mpi_mod_residue_release(&A);
-    mbedtls_mpi_mod_residue_release(&A_inverse);
+    mbedtls_mpi_mod_residue_release(&rA);
+    mbedtls_mpi_mod_residue_release(&rA_inverse);
     mbedtls_mpi_mod_residue_release(&rX);
-    mbedtls_free(p);
-    mbedtls_free(p_inverse);
+    mbedtls_free(A);
+    mbedtls_free(A_inverse);
     mbedtls_free(rX_raw);
     mbedtls_free(bufx);
 }

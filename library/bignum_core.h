@@ -144,11 +144,11 @@ void mbedtls_mpi_core_bigendian_to_host(mbedtls_mpi_uint *A,
  * \param A_limbs  The number of limbs of \p A.
  *                 This must be at least 1.
  *
- * \return         1 if \p min is less than or equal to \p A, otherwise 0.
+ * \return         MBEDTLS_CT_TRUE if \p min is less than or equal to \p A, otherwise MBEDTLS_CT_FALSE.
  */
-unsigned mbedtls_mpi_core_uint_le_mpi(mbedtls_mpi_uint min,
-                                      const mbedtls_mpi_uint *A,
-                                      size_t A_limbs);
+mbedtls_ct_condition_t mbedtls_mpi_core_uint_le_mpi(mbedtls_mpi_uint min,
+                                                    const mbedtls_mpi_uint *A,
+                                                    size_t A_limbs);
 
 /**
  * \brief          Check if one unsigned MPI is less than another in constant

@@ -148,24 +148,22 @@ void mbedtls_mpi_core_bigendian_to_host(mbedtls_mpi_uint *A,
 
 /* Whether min <= A, in constant time.
  * A_limbs must be at least 1. */
-unsigned mbedtls_mpi_core_uint_le_mpi(mbedtls_mpi_uint min,
-                                      const mbedtls_mpi_uint *A,
-                                      size_t A_limbs)
+mbedtls_ct_condition_t mbedtls_mpi_core_uint_le_mpi(mbedtls_mpi_uint min,
+                                                    const mbedtls_mpi_uint *A,
+                                                    size_t A_limbs)
 {
     /* min <= least significant limb? */
-    unsigned min_le_lsl = 1 ^ mbedtls_ct_mpi_uint_lt(A[0], min);
+    mbedtls_ct_condition_t min_le_lsl = mbedtls_ct_bool_ge(A[0], min);
 
     /* limbs other than the least significant one are all zero? */
-    mbedtls_mpi_uint msll_mask = 0;
+    mbedtls_ct_condition_t msll_mask = MBEDTLS_CT_FALSE;
     for (size_t i = 1; i < A_limbs; i++) {
-        msll_mask |= A[i];
+        msll_mask = mbedtls_ct_bool_or(msll_mask, mbedtls_ct_bool(A[i]));
     }
-    /* The most significant limbs of A are not all zero iff msll_mask != 0. */
-    unsigned msll_nonzero = mbedtls_ct_mpi_uint_mask(msll_mask) & 1;
 
     /* min <= A iff the lowest limb of A is >= min or the other limbs
      * are not all zero. */
-    return min_le_lsl | msll_nonzero;
+    return mbedtls_ct_bool_or(msll_mask, min_le_lsl);
 }
 
 unsigned mbedtls_mpi_core_lt_ct(const mbedtls_mpi_uint *A,

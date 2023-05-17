@@ -40,7 +40,7 @@ void mbedtls_mpi_mod_raw_cond_assign(mbedtls_mpi_uint *X,
                                      const mbedtls_mpi_mod_modulus *N,
                                      unsigned char assign)
 {
-    mbedtls_mpi_core_cond_assign(X, A, N->limbs, assign);
+    mbedtls_mpi_core_cond_assign(X, A, N->limbs, mbedtls_ct_bool(assign));
 }
 
 void mbedtls_mpi_mod_raw_cond_swap(mbedtls_mpi_uint *X,
@@ -48,7 +48,7 @@ void mbedtls_mpi_mod_raw_cond_swap(mbedtls_mpi_uint *X,
                                    const mbedtls_mpi_mod_modulus *N,
                                    unsigned char swap)
 {
-    mbedtls_mpi_core_cond_swap(X, Y, N->limbs, swap);
+    mbedtls_mpi_core_cond_swap(X, Y, N->limbs, mbedtls_ct_bool(swap));
 }
 
 int mbedtls_mpi_mod_raw_read(mbedtls_mpi_uint *X,

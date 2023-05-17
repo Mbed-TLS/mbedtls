@@ -86,6 +86,8 @@
 #include "mbedtls/bignum.h"
 #endif
 
+#include "constant_time_internal.h"
+
 #define ciL    (sizeof(mbedtls_mpi_uint))     /** chars in limb  */
 #define biL    (ciL << 3)                     /** bits  in limb  */
 #define biH    (ciL << 2)                     /** half limb size */
@@ -176,21 +178,15 @@ unsigned mbedtls_mpi_core_lt_ct(const mbedtls_mpi_uint *A,
  * \param[in]  A        The address of the source MPI. This must be initialized.
  * \param      limbs    The number of limbs of \p A.
  * \param      assign   The condition deciding whether to perform the
- *                      assignment or not. Must be either 0 or 1:
- *                      * \c 1: Perform the assignment `X = A`.
- *                      * \c 0: Keep the original value of \p X.
+ *                      assignment or not.
  *
  * \note           This function avoids leaking any information about whether
  *                 the assignment was done or not.
- *
- * \warning        If \p assign is neither 0 nor 1, the result of this function
- *                 is indeterminate, and the resulting value in \p X might be
- *                 neither its original value nor the value in \p A.
  */
 void mbedtls_mpi_core_cond_assign(mbedtls_mpi_uint *X,
                                   const mbedtls_mpi_uint *A,
                                   size_t limbs,
-                                  unsigned char assign);
+                                  mbedtls_ct_condition_t assign);
 
 /**
  * \brief   Perform a safe conditional swap of two MPIs which doesn't reveal
@@ -202,21 +198,15 @@ void mbedtls_mpi_core_cond_assign(mbedtls_mpi_uint *X,
  *                          This must be initialized.
  * \param         limbs     The number of limbs of \p X and \p Y.
  * \param         swap      The condition deciding whether to perform
- *                          the swap or not. Must be either 0 or 1:
- *                          * \c 1: Swap the values of \p X and \p Y.
- *                          * \c 0: Keep the original values of \p X and \p Y.
+ *                          the swap or not.
  *
  * \note           This function avoids leaking any information about whether
  *                 the swap was done or not.
- *
- * \warning        If \p swap is neither 0 nor 1, the result of this function
- *                 is indeterminate, and both \p X and \p Y might end up with
- *                 values different to either of the original ones.
  */
 void mbedtls_mpi_core_cond_swap(mbedtls_mpi_uint *X,
                                 mbedtls_mpi_uint *Y,
                                 size_t limbs,
-                                unsigned char swap);
+                                mbedtls_ct_condition_t swap);
 
 /** Import X from unsigned binary data, little-endian.
  *

@@ -211,31 +211,29 @@ unsigned mbedtls_mpi_core_lt_ct(const mbedtls_mpi_uint *A,
 void mbedtls_mpi_core_cond_assign(mbedtls_mpi_uint *X,
                                   const mbedtls_mpi_uint *A,
                                   size_t limbs,
-                                  unsigned char assign)
+                                  mbedtls_ct_condition_t assign)
 {
     if (X == A) {
         return;
     }
 
-    mbedtls_ct_mpi_uint_cond_assign(limbs, X, A, assign);
+    mbedtls_ct_memcpy_if(assign, (unsigned char *) X, (unsigned char *) A, NULL,
+                         limbs * sizeof(mbedtls_mpi_uint));
 }
 
 void mbedtls_mpi_core_cond_swap(mbedtls_mpi_uint *X,
                                 mbedtls_mpi_uint *Y,
                                 size_t limbs,
-                                unsigned char swap)
+                                mbedtls_ct_condition_t swap)
 {
     if (X == Y) {
         return;
     }
 
-    /* all-bits 1 if swap is 1, all-bits 0 if swap is 0 */
-    mbedtls_mpi_uint limb_mask = mbedtls_ct_mpi_uint_mask(swap);
-
     for (size_t i = 0; i < limbs; i++) {
         mbedtls_mpi_uint tmp = X[i];
-        X[i] = (X[i] & ~limb_mask) | (Y[i] & limb_mask);
-        Y[i] = (Y[i] & ~limb_mask) | (tmp & limb_mask);
+        X[i] = mbedtls_ct_mpi_uint_if(swap, Y[i], X[i]);
+        Y[i] = mbedtls_ct_mpi_uint_if(swap, tmp, Y[i]);
     }
 }
 
@@ -637,7 +635,7 @@ void mbedtls_mpi_core_ct_uint_table_lookup(mbedtls_mpi_uint *dest,
                                            size_t index)
 {
     for (size_t i = 0; i < count; i++, table += limbs) {
-        unsigned char assign = mbedtls_ct_size_bool_eq(i, index);
+        mbedtls_ct_condition_t assign = mbedtls_ct_bool_eq(i, index);
         mbedtls_mpi_core_cond_assign(dest, table, limbs, assign);
     }
 }

@@ -141,6 +141,8 @@ int mbedtls_mpi_safe_cond_assign(mbedtls_mpi *X,
     MPI_VALIDATE_RET(X != NULL);
     MPI_VALIDATE_RET(Y != NULL);
 
+    mbedtls_ct_condition_t do_assign = mbedtls_ct_bool(assign);
+
     /* all-bits 1 if assign is 1, all-bits 0 if assign is 0 */
     mbedtls_mpi_uint limb_mask = mbedtls_ct_mpi_uint_mask(assign);
 
@@ -148,7 +150,7 @@ int mbedtls_mpi_safe_cond_assign(mbedtls_mpi *X,
 
     X->s = (int) mbedtls_ct_uint_if(assign, Y->s, X->s);
 
-    mbedtls_mpi_core_cond_assign(X->p, Y->p, Y->n, assign);
+    mbedtls_mpi_core_cond_assign(X->p, Y->p, Y->n, do_assign);
 
     for (size_t i = Y->n; i < X->n; i++) {
         X->p[i] &= ~limb_mask;
@@ -177,6 +179,8 @@ int mbedtls_mpi_safe_cond_swap(mbedtls_mpi *X,
         return 0;
     }
 
+    mbedtls_ct_condition_t do_swap = mbedtls_ct_bool(swap);
+
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(X, Y->n));
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(Y, X->n));
 
@@ -184,7 +188,7 @@ int mbedtls_mpi_safe_cond_swap(mbedtls_mpi *X,
     X->s = (int) mbedtls_ct_uint_if(swap, Y->s, X->s);
     Y->s = (int) mbedtls_ct_uint_if(swap, s, Y->s);
 
-    mbedtls_mpi_core_cond_swap(X->p, Y->p, X->n, swap);
+    mbedtls_mpi_core_cond_swap(X->p, Y->p, X->n, do_swap);
 
 cleanup:
     return ret;

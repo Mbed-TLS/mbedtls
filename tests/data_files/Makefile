@@ -1466,10 +1466,30 @@ server9.csr: server9.key
 	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
 					-key $< -out $@
 all_intermediate += server9.csr
-server9.crt: server9.csr test-ca-rsa-pss.crt test-ca-rsa-pss-sha1.key
-	$(OPENSSL) x509 -req -CA test-ca-rsa-pss.crt -CAkey test-ca-rsa-pss-sha1.key \
-				-extfile server5.crt.openssl.v3_ext -set_serial 22 -days 3650 -in $< -out $@
+server9.crt: server9-sha1.crt
+	cp $< $@
 all_final += server9.crt
+
+
+define _generate_server9_crt
+server9-$(1).crt: server9.csr test-ca.crt test-ca.key
+	$(OPENSSL) x509 -req -CA test-ca.crt -CAkey test-ca.key -passin "pass:$(test_ca_pwd_rsa)" \
+				-extfile server5.crt.openssl.v3_ext -set_serial 23 -days 3650  \
+				-sigopt rsa_padding_mode:pss \
+				-sigopt rsa_pss_saltlen:max \
+				-sigopt rsa_mgf1_md:$(1) -$(1) \
+				-in server9.csr -out server9-$(1).crt
+all_final += server9-$(1).crt
+
+endef
+
+define generate_server9_crt
+$(eval $(call _generate_server9_crt,$(1)))
+endef
+
+$(foreach i, sha1 sha224 sha256 sha384 sha512, $(call generate_server9_crt,$(i)))
+
+
 
 ################################################################
 ### Generate certificates for CRT write check tests
@@ -1628,8 +1648,25 @@ endef
 $(foreach i, sha1 sha224 sha256 sha384 sha512, $(call generate-crl-ec,$(i)))
 
 # generate crl-rsa-pss-sha*.pem: CA=test-ca.crt, revoke server6.crt server9.crt
+define _generate_crl-rsa-pss
+$(1).pem: $(1).opensslconf $(1).db $(3).crt $(3).key
+	cp $(1).opensslconf $(1).opensslconf.bak
+	$$(OPENSSL) ca -config $(1).opensslconf -crlexts crl_ext \
+		-passin "pass:$(test_ca_pwd_rsa)" -gencrl -days 3650 \
+		-sigopt rsa_padding_mode:pss \
+		-sigopt rsa_pss_saltlen:max -md $(2) \
+		-out $(1).pem
+$(1).opensslconf: ca.opensslconf.jinja2 ../scripts/generate_crl_env_files.py
+	../scripts/generate_crl_env_files.py ca --output $(1).opensslconf --ca_name $(3) --database $(1).db
+$(1).db: $(4) ../scripts/generate_crl_env_files.py
+	../scripts/generate_crl_env_files.py revoke --database $(1).db $(4)
+
+all_intermediate += $(1).opensslconf $(1).db
+all_final += $(1).pem
+
+endef
 define generate-crl-rsa-pss
-$(eval $(call _generate_crl-ec,crl-rsa-pss-$(1), $(1), test-ca-rsa-pss-$(1), server6.crt server9.crt))
+$(eval $(call _generate_crl-rsa-pss,crl-rsa-pss-$(1),$(1), test-ca, server6.crt server9.crt))
 endef
 
 $(foreach i, sha1 sha224 sha256 sha384 sha512, $(call generate-crl-rsa-pss,$(i)))
@@ -1670,6 +1707,15 @@ test-ca-rsa-pss-sha256.crt: test-ca-rsa-pss-sha256.key
 		-set_serial 00 -days 3653 -out $@
 all_intermediate += test-ca-rsa-pss-sha256.crt
 
+test-ca-rsa-pss-sha384.key: test-ca.key.plain ../scripts/convert_rsa_to_rsa_pss.py
+	../scripts/convert_rsa_to_rsa_pss.py $@ $< sha384 0xce
+all-final += test-ca-rsa-pss-sha384.key
+
+test-ca-rsa-pss-sha384.crt: test-ca-rsa-pss-sha384.key
+	openssl req -x509 -new -key $< -subj "/C=NL/O=PolarSSL/CN=PolarSSL Test CA" \
+		-set_serial 00 -days 3653 -out $@
+all_intermediate += test-ca-rsa-pss-sha384.crt
+
 test-ca-rsa-pss-sha512.key: test-ca.key.plain ../scripts/convert_rsa_to_rsa_pss.py
 	../scripts/convert_rsa_to_rsa_pss.py $@ $< sha512 0xbe
 all-final += test-ca-rsa-pss-sha512.key
@@ -1679,8 +1725,6 @@ test-ca-rsa-pss-sha512.crt: test-ca-rsa-pss-sha512.key
 		-set_serial 00 -days 3653 -out $@
 all_intermediate += test-ca-rsa-pss-sha512.crt
 
-test-ca-rsa-pss.crt: test-ca-rsa-pss-sha1.crt
-	cp $< $@
 display-crl-%: crl-%.pem
 	openssl crl -noout -text -in $<
 

@@ -1601,8 +1601,6 @@ void ecp_mod_mul_inv(char *input_A, int id, int ctype, int iret)
                                          MBEDTLS_MPI_MOD_EXT_REP_LE), 0);
         TEST_EQUAL(memcmp(bufx, &Result, sizeof(mbedtls_mpi_uint)), 0);
 
-        /* Test for user free-ing allocated memory */
-        mbedtls_mpi_mod_modulus_free(&m);
     }
 
 exit:

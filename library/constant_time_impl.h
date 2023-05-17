@@ -178,12 +178,6 @@ static inline unsigned char mbedtls_ct_uchar_in_range_if(unsigned char low,
  * Everything below here is trivial wrapper functions
  */
 
-static inline mbedtls_ct_condition_t mbedtls_ct_bool_eq(mbedtls_ct_uint_t x,
-                                                        mbedtls_ct_uint_t y)
-{
-    return ~mbedtls_ct_bool_ne(x, y);
-}
-
 static inline size_t mbedtls_ct_size_if(mbedtls_ct_condition_t condition,
                                         size_t if1,
                                         size_t if0)
@@ -200,8 +194,8 @@ static inline unsigned mbedtls_ct_uint_if(mbedtls_ct_condition_t condition,
 
 #if defined(MBEDTLS_BIGNUM_C)
 
-static inline mbedtls_mpi_uint mbedtls_ct_mpi_uint_if(mbedtls_ct_condition_t condition, \
-                                                      mbedtls_mpi_uint if1, \
+static inline mbedtls_mpi_uint mbedtls_ct_mpi_uint_if(mbedtls_ct_condition_t condition,
+                                                      mbedtls_mpi_uint if1,
                                                       mbedtls_mpi_uint if0)
 {
     return (mbedtls_mpi_uint) mbedtls_ct_if(condition,
@@ -230,6 +224,12 @@ static inline mbedtls_mpi_uint mbedtls_ct_mpi_uint_if0(mbedtls_ct_condition_t co
 }
 
 #endif /* MBEDTLS_BIGNUM_C */
+
+static inline mbedtls_ct_condition_t mbedtls_ct_bool_eq(mbedtls_ct_uint_t x,
+                                                        mbedtls_ct_uint_t y)
+{
+    return ~mbedtls_ct_bool_ne(x, y);
+}
 
 static inline mbedtls_ct_condition_t mbedtls_ct_bool_gt(mbedtls_ct_uint_t x,
                                                         mbedtls_ct_uint_t y)

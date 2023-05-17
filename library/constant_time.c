@@ -139,13 +139,13 @@ void mbedtls_ct_memmove_left(void *start, size_t total, size_t offset)
         j = j % total;
 
         // Read a byte
-        uint8_t b = ((uint8_t*)start)[j];
+        uint8_t b = ((uint8_t *) start)[j];
 
         // Set it to zero if it's out of range
         b = mbedtls_ct_uint_if0(not_dummy, b);
 
         // Write the byte to start[i]
-        ((uint8_t*)start)[i] = b;
+        ((uint8_t *) start)[i] = b;
     }
 }
 
@@ -192,8 +192,8 @@ void mbedtls_ct_memcpy_offset(unsigned char *dest,
     size_t offsetval;
 
     for (offsetval = offset_min; offsetval <= offset_max; offsetval++) {
-         mbedtls_ct_memcpy_if(mbedtls_ct_bool_eq(offsetval, offset), dest, src + offsetval, NULL,
-                              len);
+        mbedtls_ct_memcpy_if(mbedtls_ct_bool_eq(offsetval, offset), dest, src + offsetval, NULL,
+                             len);
     }
 }
 

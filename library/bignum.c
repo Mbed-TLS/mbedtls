@@ -168,8 +168,8 @@ int mbedtls_mpi_safe_cond_swap(mbedtls_mpi *X,
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(Y, X->n));
 
     s = X->s;
-    X->s = (int) mbedtls_ct_uint_if(swap, Y->s, X->s);
-    Y->s = (int) mbedtls_ct_uint_if(swap, s, Y->s);
+    X->s = (int) mbedtls_ct_uint_if_new(do_swap, Y->s, X->s);
+    Y->s = (int) mbedtls_ct_uint_if_new(do_swap, s, Y->s);
 
     mbedtls_mpi_core_cond_swap(X->p, Y->p, X->n, do_swap);
 

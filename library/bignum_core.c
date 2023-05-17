@@ -608,7 +608,11 @@ void mbedtls_mpi_core_montmul(mbedtls_mpi_uint *X,
      * So the correct return value is already in X if (carry ^ borrow) = 0,
      * but is in (the lower AN_limbs limbs of) T if (carry ^ borrow) = 1.
      */
-    mbedtls_ct_mpi_uint_cond_assign(AN_limbs, X, T, (unsigned char) (carry ^ borrow));
+    mbedtls_ct_memcpy_if(mbedtls_ct_bool(carry ^ borrow),
+                         (unsigned char *) X,
+                         (unsigned char *) T,
+                         NULL,
+                         AN_limbs * sizeof(mbedtls_mpi_uint));
 }
 
 int mbedtls_mpi_core_get_mont_r2_unsafe(mbedtls_mpi *X,

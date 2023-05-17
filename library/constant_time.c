@@ -295,36 +295,6 @@ unsigned mbedtls_ct_uint_if(unsigned condition,
     return (mask & if1) | (~mask & if0);
 }
 
-#if defined(MBEDTLS_BIGNUM_C)
-
-void mbedtls_ct_mpi_uint_cond_assign(size_t n,
-                                     mbedtls_mpi_uint *dest,
-                                     const mbedtls_mpi_uint *src,
-                                     unsigned char condition)
-{
-    size_t i;
-
-    /* MSVC has a warning about unary minus on unsigned integer types,
-     * but this is well-defined and precisely what we want to do here. */
-#if defined(_MSC_VER)
-#pragma warning( push )
-#pragma warning( disable : 4146 )
-#endif
-
-    /* all-bits 1 if condition is 1, all-bits 0 if condition is 0 */
-    const mbedtls_mpi_uint mask = -condition;
-
-#if defined(_MSC_VER)
-#pragma warning( pop )
-#endif
-
-    for (i = 0; i < n; i++) {
-        dest[i] = (src[i] & mask) | (dest[i] & ~mask);
-    }
-}
-
-#endif /* MBEDTLS_BIGNUM_C */
-
 #if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)
 
 void mbedtls_ct_memmove_left(void *start, size_t total, size_t offset)

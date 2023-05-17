@@ -147,27 +147,6 @@ unsigned mbedtls_ct_uint_if(unsigned condition,
                             unsigned if1,
                             unsigned if0);
 
-#if defined(MBEDTLS_BIGNUM_C)
-
-/** Conditionally assign a value without branches.
- *
- * This is equivalent to `if ( condition ) dest = src`, but is likely
- * to be compiled to code using bitwise operation rather than a branch.
- *
- * \param n             \p dest and \p src must be arrays of limbs of size n.
- * \param dest          The MPI to conditionally assign to. This must point
- *                      to an initialized MPI.
- * \param src           The MPI to be assigned from. This must point to an
- *                      initialized MPI.
- * \param condition     Condition to test, must be 0 or 1.
- */
-void mbedtls_ct_mpi_uint_cond_assign(size_t n,
-                                     mbedtls_mpi_uint *dest,
-                                     const mbedtls_mpi_uint *src,
-                                     unsigned char condition);
-
-#endif /* MBEDTLS_BIGNUM_C */
-
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 
 /** Conditional memcpy without branches.

@@ -531,35 +531,42 @@ all_final += test-int-ca3-badsign.crt
 
 # server9*
 
-openssl_dgst_rsass-pss_opt := -sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:-2
-
 server9.csr: server9.key
-	$(OPENSSL) req -new -key server9.key -subj "/C=NL/O=PolarSSL/CN=localhost" -out $@
-all_intermediate += server9.csr
+	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
+					-key $< -out $@
+server9.crt: server9-sha1.crt
+	cp $< $@
+all_final += server9.crt
+all_intermediate += server9.csr server9-sha1.crt
 
-server9.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
-	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -passin "pass:$(test_ca_pwd_rsa)" -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) -set_serial 22 -days 3653 -sha1 $(openssl_dgst_rsass-pss_opt) -in server9.csr > $@
+
+server9.crt: server9-sha1.crt
+	cp $< $@
 all_final += server9.crt
 
+openssl_dgst_rsass-pss_opt := -sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:max
+server9-%.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
+	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa \
+		-passin "pass:$(test_ca_pwd_rsa)" -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) \
+		-set_serial $(SERVER9_CRT_SERIAL) -days 3653 \
+		-sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:max \
+		-sigopt rsa_mgf1_md:$(@:server9-%.crt=%) -$(@:server9-%.crt=%) \
+		-in $< -out $@
+server9-sha1.crt: SERVER9_CRT_SERIAL=22
+server9-sha224.crt: SERVER9_CRT_SERIAL=23
+server9-sha256.crt: SERVER9_CRT_SERIAL=24
+server9-sha384.crt: SERVER9_CRT_SERIAL=25
+server9-sha512.crt: SERVER9_CRT_SERIAL=26
+all_intermediate +=server9-sha1.crt
+all_final += server9-sha224.crt server9-sha256.crt server9-sha384.crt server9-sha512.crt
+
 server9-defaults.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
-	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -passin "pass:$(test_ca_pwd_rsa)" -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) -set_serial 72 -days 3653 -sha1 -sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:-1 -in server9.csr > $@
+	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa \
+		-passin "pass:$(test_ca_pwd_rsa)" -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) \
+		-set_serial 72 -days 3653 \
+		-sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:max -sha1 \
+		-in $< -o $@
 all_final += server9-defaults.crt
-
-server9-sha224.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
-	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -passin "pass:$(test_ca_pwd_rsa)" -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) -set_serial 23 -days 3653 -sha224 $(openssl_dgst_rsass-pss_opt) -in server9.csr > $@
-all_final += server9-sha224.crt
-
-server9-sha256.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
-	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -passin "pass:$(test_ca_pwd_rsa)" -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) -set_serial 24 -days 3653 -sha256 $(openssl_dgst_rsass-pss_opt) -in server9.csr > $@
-all_final += server9-sha256.crt
-
-server9-sha384.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
-	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -passin "pass:$(test_ca_pwd_rsa)" -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) -set_serial 25 -days 3653 -sha384 $(openssl_dgst_rsass-pss_opt) -in server9.csr > $@
-all_final += server9-sha384.crt
-
-server9-sha512.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
-	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -passin "pass:$(test_ca_pwd_rsa)" -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) -set_serial 26 -days 3653 -sha512 $(openssl_dgst_rsass-pss_opt) -in server9.csr > $@
-all_final += server9-sha512.crt
 
 server9-badsign.crt: server9.crt
 	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; cat $(test_ca_int_rsa1); } > $@
@@ -568,6 +575,34 @@ all_final += server9-badsign.crt
 server9-with-ca.crt: server9.crt $(test_ca_crt)
 	cat $^ > $@
 all_final += server9-with-ca.crt
+
+# generate crl-rsa-pss-sha*.pem: CA=test-ca.crt, revoke server6.crt server9.crt
+define _generate_crl-rsa-pss
+$(1).pem: $(1).opensslconf $(1).db $(3).crt $(3).key
+	cp $(1).opensslconf $(1).opensslconf.bak
+	$$(OPENSSL) ca -config $(1).opensslconf -crlexts crl_ext \
+		-passin "pass:$(test_ca_pwd_rsa)" -gencrl -days 3650 \
+		-sigopt rsa_padding_mode:pss \
+		-sigopt rsa_pss_saltlen:max -md $(2) \
+		-out $(1).pem
+$(1).opensslconf: ca.opensslconf.jinja2 ../scripts/generate_crl_env_files.py
+	../scripts/generate_crl_env_files.py ca --output $(1).opensslconf --ca_name $(3) --database $(1).db
+$(1).db: $(4) ../scripts/generate_crl_env_files.py
+	../scripts/generate_crl_env_files.py revoke --database $(1).db $(4)
+
+all_intermediate += $(1).opensslconf $(1).db
+all_final += $(1).pem
+
+endef
+define generate-crl-rsa-pss
+$(eval $(call _generate_crl-rsa-pss,crl-rsa-pss-$(1),$(1), test-ca, server6.crt server9.crt))
+endef
+
+$(foreach i, sha1 sha224 sha256 sha384 sha512, $(call generate-crl-rsa-pss,$(i)))
+
+crl-rsa-pss-sha1-badsign.pem: crl-rsa-pss-sha1.pem
+	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; } > $@
+all_final += crl-rsa-pss-sha1-badsign.pem
 
 # server10*
 
@@ -1460,36 +1495,6 @@ server6-ss-child.crt: server6-ss-child.csr server5-selfsigned.crt server5.key se
 				-days 3650 -sha256 -in $< -out $@
 all_final += server6-ss-child.crt
 
-# server9*
-
-server9.csr: server9.key
-	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
-					-key $< -out $@
-all_intermediate += server9.csr
-server9.crt: server9-sha1.crt
-	cp $< $@
-all_final += server9.crt
-
-
-define _generate_server9_crt
-server9-$(1).crt: server9.csr test-ca.crt test-ca.key
-	$(OPENSSL) x509 -req -CA test-ca.crt -CAkey test-ca.key -passin "pass:$(test_ca_pwd_rsa)" \
-				-extfile server5.crt.openssl.v3_ext -set_serial 23 -days 3650  \
-				-sigopt rsa_padding_mode:pss \
-				-sigopt rsa_pss_saltlen:max \
-				-sigopt rsa_mgf1_md:$(1) -$(1) \
-				-in server9.csr -out server9-$(1).crt
-all_final += server9-$(1).crt
-
-endef
-
-define generate_server9_crt
-$(eval $(call _generate_server9_crt,$(1)))
-endef
-
-$(foreach i, sha1 sha224 sha256 sha384 sha512, $(call generate_server9_crt,$(i)))
-
-
 
 ################################################################
 ### Generate certificates for CRT write check tests
@@ -1629,6 +1634,7 @@ all_final += crl.pem
 define _generate_crl-ec
 $(1).pem: $(1).opensslconf $(1).db $(3).crt $(3).key
 	cp $(1).opensslconf $(1).opensslconf.bak
+	cat $(1).db
 	$$(OPENSSL) ca -config $(1).opensslconf -crlexts crl_ext \
 		-gencrl -md $(2) -out $(1).pem
 $(1).opensslconf: ca.opensslconf.jinja2 ../scripts/generate_crl_env_files.py
@@ -1646,32 +1652,6 @@ $(eval $(call _generate_crl-ec,crl-ec-$(1), $(1), test-ca2, server6.crt))
 endef
 
 $(foreach i, sha1 sha224 sha256 sha384 sha512, $(call generate-crl-ec,$(i)))
-
-# generate crl-rsa-pss-sha*.pem: CA=test-ca.crt, revoke server6.crt server9.crt
-define _generate_crl-rsa-pss
-$(1).pem: $(1).opensslconf $(1).db $(3).crt $(3).key
-	cp $(1).opensslconf $(1).opensslconf.bak
-	$$(OPENSSL) ca -config $(1).opensslconf -crlexts crl_ext \
-		-passin "pass:$(test_ca_pwd_rsa)" -gencrl -days 3650 \
-		-sigopt rsa_padding_mode:pss \
-		-sigopt rsa_pss_saltlen:max -md $(2) \
-		-out $(1).pem
-$(1).opensslconf: ca.opensslconf.jinja2 ../scripts/generate_crl_env_files.py
-	../scripts/generate_crl_env_files.py ca --output $(1).opensslconf --ca_name $(3) --database $(1).db
-$(1).db: $(4) ../scripts/generate_crl_env_files.py
-	../scripts/generate_crl_env_files.py revoke --database $(1).db $(4)
-
-all_intermediate += $(1).opensslconf $(1).db
-all_final += $(1).pem
-
-endef
-define generate-crl-rsa-pss
-$(eval $(call _generate_crl-rsa-pss,crl-rsa-pss-$(1),$(1), test-ca, server6.crt server9.crt))
-endef
-
-$(foreach i, sha1 sha224 sha256 sha384 sha512, $(call generate-crl-rsa-pss,$(i)))
-
-
 
 
 display-crl-%: crl-%.pem

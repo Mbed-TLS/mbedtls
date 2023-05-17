@@ -1554,7 +1554,7 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
 void ecp_mod_mul_inv(char *input_A, int id, int ctype, int iret)
 {
-    int ret;
+    size_t limbs;
     mbedtls_mpi_mod_modulus m;
     mbedtls_mpi_mod_modulus_init(&m);
     mbedtls_mpi_mod_residue A = { NULL, 0 };
@@ -1566,37 +1566,33 @@ void ecp_mod_mul_inv(char *input_A, int id, int ctype, int iret)
     mbedtls_mpi_uint *bufx = NULL;
     mbedtls_mpi_uint Result = 1;
 
-    ret = mbedtls_ecp_modulus_setup(&m, id, ctype);
-    TEST_EQUAL(ret, iret);
+    ((void) iret);
 
-    if (ret == 0) {
+    TEST_ASSERT(mbedtls_ecp_modulus_setup(&m, id, ctype) == 0);
 
-        size_t limbs;
+    TEST_EQUAL(mbedtls_test_read_mpi_core(&p, &limbs, input_A), 0);
+    TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&A, &m, p, limbs));
 
-        TEST_EQUAL(mbedtls_test_read_mpi_core(&p, &limbs, input_A), 0);
-        TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&A, &m, p, limbs));
+    /* Test for limb sizes */
+    TEST_EQUAL(m.limbs, limbs);
 
-        /* Test for limb sizes */
-        TEST_EQUAL(m.limbs, limbs);
+    ASSERT_ALLOC(p_inverse, limbs);
+    TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&A_inverse, &m, p_inverse, limbs));
 
-        ASSERT_ALLOC(p_inverse, limbs);
-        TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&A_inverse, &m, p_inverse, limbs));
+    ASSERT_ALLOC(rX_raw, limbs);
+    TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&rX, &m, rX_raw, limbs));
 
-        ASSERT_ALLOC(rX_raw, limbs);
-        TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&rX, &m, rX_raw, limbs));
+    /* Get inverse of A mode m, and multiply it with itself,
+        * to see whether the result equal to '1' */
+    TEST_EQUAL(0, mbedtls_mpi_mod_inv(&A_inverse, &A, &m));
+    TEST_EQUAL(mbedtls_mpi_mod_mul(&rX, &A, &A_inverse, &m), 0);
 
-        /* Get inverse of A mode m, and multiply it with itself,
-         * to see whether the result equal to '1' */
-        TEST_EQUAL(0, mbedtls_mpi_mod_inv(&A_inverse, &A, &m));
-        TEST_EQUAL(mbedtls_mpi_mod_mul(&rX, &A, &A_inverse, &m), 0);
+    ASSERT_ALLOC(bufx, limbs);
+    TEST_EQUAL(mbedtls_mpi_mod_write(&rX, &m, (unsigned char *) bufx,
+                                        limbs * sizeof(mbedtls_mpi_uint),
+                                        MBEDTLS_MPI_MOD_EXT_REP_LE), 0);
+    TEST_EQUAL(memcmp(bufx, &Result, sizeof(mbedtls_mpi_uint)), 0);
 
-        ASSERT_ALLOC(bufx, limbs);
-        TEST_EQUAL(mbedtls_mpi_mod_write(&rX, &m, (unsigned char *) bufx,
-                                         limbs * sizeof(mbedtls_mpi_uint),
-                                         MBEDTLS_MPI_MOD_EXT_REP_LE), 0);
-        TEST_EQUAL(memcmp(bufx, &Result, sizeof(mbedtls_mpi_uint)), 0);
-
-    }
 
 exit:
     mbedtls_mpi_mod_modulus_free(&m);

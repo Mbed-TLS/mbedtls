@@ -26,6 +26,7 @@
 #include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
+#include "pk_internal.h"
 
 #include <string.h>
 
@@ -182,7 +183,7 @@ int mbedtls_pk_write_pubkey(unsigned char **p, unsigned char *start,
 #endif
 #if defined(MBEDTLS_ECP_LIGHT)
     if (mbedtls_pk_get_type(key) == MBEDTLS_PK_ECKEY) {
-        MBEDTLS_ASN1_CHK_ADD(len, pk_write_ec_pubkey(p, start, mbedtls_pk_ec(*key)));
+        MBEDTLS_ASN1_CHK_ADD(len, pk_write_ec_pubkey(p, start, mbedtls_pk_ec_rw(*key)));
     } else
 #endif
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -246,7 +247,7 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
     pk_type = mbedtls_pk_get_type(key);
 #if defined(MBEDTLS_ECP_LIGHT)
     if (pk_type == MBEDTLS_PK_ECKEY) {
-        ec_grp_id = mbedtls_pk_ec(*key)->grp.id;
+        ec_grp_id = mbedtls_pk_ec_ro(*key)->grp.id;
     }
 #endif /* MBEDTLS_ECP_LIGHT */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -469,7 +470,7 @@ end_of_export:
 #endif /* MBEDTLS_RSA_C */
 #if defined(MBEDTLS_ECP_LIGHT)
     if (mbedtls_pk_get_type(key) == MBEDTLS_PK_ECKEY) {
-        mbedtls_ecp_keypair *ec = mbedtls_pk_ec(*key);
+        mbedtls_ecp_keypair *ec = mbedtls_pk_ec_rw(*key);
         size_t pub_len = 0, par_len = 0;
 
 #if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
@@ -591,7 +592,7 @@ int mbedtls_pk_write_key_pem(const mbedtls_pk_context *key, unsigned char *buf, 
 #if defined(MBEDTLS_ECP_LIGHT)
     if (mbedtls_pk_get_type(key) == MBEDTLS_PK_ECKEY) {
 #if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
-        if (mbedtls_pk_is_rfc8410_curve(mbedtls_pk_ec(*key)->grp.id)) {
+        if (mbedtls_pk_is_rfc8410_curve(mbedtls_pk_ec_ro(*key)->grp.id)) {
             begin = PEM_BEGIN_PRIVATE_KEY_PKCS8;
             end = PEM_END_PRIVATE_KEY_PKCS8;
         } else

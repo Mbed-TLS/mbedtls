@@ -23,6 +23,7 @@
 #include "mbedtls/pk.h"
 #include "pk_wrap.h"
 #include "pkwrite.h"
+#include "pk_internal.h"
 
 #include "hash_info.h"
 
@@ -879,7 +880,7 @@ int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
         psa_status_t status;
 
         /* export the private key material in the format PSA wants */
-        ec = mbedtls_pk_ec(*pk);
+        ec = mbedtls_pk_ec_rw(*pk);
         d_len = PSA_BITS_TO_BYTES(ec->grp.nbits);
         if ((ret = mbedtls_ecp_write_key(ec, d, d_len)) != 0) {
             return ret;

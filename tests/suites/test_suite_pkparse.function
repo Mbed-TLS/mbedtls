@@ -3,6 +3,7 @@
 #include "mbedtls/pem.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/ecp.h"
+#include "pk_internal.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -83,9 +84,9 @@ void pk_parse_public_keyfile_ec(char *key_file, int result)
     TEST_ASSERT(res == result);
 
     if (res == 0) {
-        mbedtls_ecp_keypair *eckey;
+        const mbedtls_ecp_keypair *eckey;
         TEST_ASSERT(mbedtls_pk_can_do(&ctx, MBEDTLS_PK_ECKEY));
-        eckey = mbedtls_pk_ec(ctx);
+        eckey = mbedtls_pk_ec_ro(ctx);
         TEST_ASSERT(mbedtls_ecp_check_pubkey(&eckey->grp, &eckey->Q) == 0);
     }
 
@@ -110,9 +111,9 @@ void pk_parse_keyfile_ec(char *key_file, char *password, int result)
     TEST_ASSERT(res == result);
 
     if (res == 0) {
-        mbedtls_ecp_keypair *eckey;
+        const mbedtls_ecp_keypair *eckey;
         TEST_ASSERT(mbedtls_pk_can_do(&ctx, MBEDTLS_PK_ECKEY));
-        eckey = mbedtls_pk_ec(ctx);
+        eckey = mbedtls_pk_ec_ro(ctx);
         TEST_ASSERT(mbedtls_ecp_check_privkey(&eckey->grp, &eckey->d) == 0);
     }
 

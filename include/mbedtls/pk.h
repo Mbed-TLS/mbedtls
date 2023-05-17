@@ -778,7 +778,7 @@ static inline mbedtls_rsa_context *mbedtls_pk_rsa(const mbedtls_pk_context pk)
 }
 #endif /* MBEDTLS_RSA_C */
 
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_ECP_C)
 /**
  * Quick access to an EC context inside a PK context.
  *
@@ -801,7 +801,7 @@ static inline mbedtls_ecp_keypair *mbedtls_pk_ec(const mbedtls_pk_context pk)
             return NULL;
     }
 }
-#endif /* MBEDTLS_ECP_LIGHT */
+#endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_PK_PARSE_C)
 /** \ingroup pk_module */

@@ -532,6 +532,46 @@ test-int-ca3-badsign.crt: test-int-ca3.crt
 	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; } > $@
 all_final += test-int-ca3-badsign.crt
 
+# server9*
+
+server9.csr: server9.key
+	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
+					-key $< -out $@
+server9.crt: server9-sha1.crt
+	cp $< $@
+all_final += server9.crt
+all_intermediate += server9.csr server9-sha1.crt
+
+server9-%.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
+	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa \
+		-passin "pass:$(test_ca_pwd_rsa)" -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) \
+		-set_serial $(SERVER9_CRT_SERIAL) -days 3653 \
+		-sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:max \
+		-sigopt rsa_mgf1_md:$(@:server9-%.crt=%) -$(@:server9-%.crt=%) \
+		-in $< -out $@
+server9-sha1.crt: SERVER9_CRT_SERIAL=22
+server9-sha224.crt: SERVER9_CRT_SERIAL=23
+server9-sha256.crt: SERVER9_CRT_SERIAL=24
+server9-sha384.crt: SERVER9_CRT_SERIAL=25
+server9-sha512.crt: SERVER9_CRT_SERIAL=26
+all_final += server9-sha224.crt server9-sha256.crt server9-sha384.crt server9-sha512.crt
+
+server9-defaults.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
+	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa \
+		-passin "pass:$(test_ca_pwd_rsa)" -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) \
+		-set_serial 72 -days 3653 \
+		-sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:max -sha1 \
+		-in $< -o $@
+all_final += server9-defaults.crt
+
+server9-badsign.crt: server9.crt
+	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; } > $@
+all_final += server9-badsign.crt
+
+server9-with-ca.crt: server9.crt $(test_ca_crt)
+	cat $^ > $@
+all_final += server9-with-ca.crt
+
 # server10*
 
 server10.crt: server10.key test-int-ca3.crt test-int-ca3.key
@@ -1481,6 +1521,7 @@ server6-ss-child.crt: server6-ss-child.csr server5-selfsigned.crt server5.key se
 				-set_serial 0x53a2cb5822399474a7ec79ec \
 				-days 3650 -sha256 -in $< -out $@
 all_final += server6-ss-child.crt
+
 
 ################################################################
 ### Generate certificates for CRT write check tests

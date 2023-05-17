@@ -399,3 +399,22 @@ void mbedtls_ct_memcpy_offset(unsigned char *dest,
 
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 
+#if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)
+
+void mbedtls_ct_zeroize_if(mbedtls_ct_condition_t condition, void *buf, size_t len)
+{
+    uint32_t mask = (uint32_t) ~condition;
+    uint8_t *p = (uint8_t *) buf;
+    size_t i = 0;
+#if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)
+    for (; (i + 4) <= len; i += 4) {
+        mbedtls_put_unaligned_uint32((void *) (p + i),
+                                     mbedtls_get_unaligned_uint32((void *) (p + i)) & mask);
+    }
+#endif
+    for (; i < len; i++) {
+        p[i] = p[i] & mask;
+    }
+}
+
+#endif /* defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT) */

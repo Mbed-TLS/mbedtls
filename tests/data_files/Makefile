@@ -435,6 +435,46 @@ test-int-ca3-badsign.crt: test-int-ca3.crt
 	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; } > $@
 all_final += test-int-ca3-badsign.crt
 
+# server9*
+
+openssl_dgst_rsass-pss_opt := -sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:-2
+
+server9.csr: server9.key
+	$(OPENSSL) req -new -key server9.key -subj "/C=NL/O=PolarSSL/CN=localhost" -out $@
+all_intermediate += server9.csr
+
+server9.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
+	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -passin "pass:$(test_ca_pwd_rsa)" -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) -set_serial 22 -days 3653 -sha1 $(openssl_dgst_rsass-pss_opt) -in server9.csr > $@
+all_final += server9.crt
+
+server9-defaults.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
+	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -passin "pass:$(test_ca_pwd_rsa)" -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) -set_serial 72 -days 3653 -sha1 -sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:-1 -in server9.csr > $@
+all_final += server9-defaults.crt
+
+server9-sha224.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
+	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -passin "pass:$(test_ca_pwd_rsa)" -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) -set_serial 23 -days 3653 -sha224 $(openssl_dgst_rsass-pss_opt) -in server9.csr > $@
+all_final += server9-sha224.crt
+
+server9-sha256.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
+	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -passin "pass:$(test_ca_pwd_rsa)" -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) -set_serial 24 -days 3653 -sha256 $(openssl_dgst_rsass-pss_opt) -in server9.csr > $@
+all_final += server9-sha256.crt
+
+server9-sha384.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
+	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -passin "pass:$(test_ca_pwd_rsa)" -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) -set_serial 25 -days 3653 -sha384 $(openssl_dgst_rsass-pss_opt) -in server9.csr > $@
+all_final += server9-sha384.crt
+
+server9-sha512.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
+	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -passin "pass:$(test_ca_pwd_rsa)" -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) -set_serial 26 -days 3653 -sha512 $(openssl_dgst_rsass-pss_opt) -in server9.csr > $@
+all_final += server9-sha512.crt
+
+server9-badsign.crt: server9.crt
+	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; cat $(test_ca_int_rsa1); } > $@
+all_final += server9-badsign.crt
+
+server9-with-ca.crt: server9.crt $(test_ca_crt)
+	cat $^ > $@
+all_final += server9-with-ca.crt
+
 # server10*
 
 server10.crt: server10.key test-int-ca3.crt test-int-ca3.key

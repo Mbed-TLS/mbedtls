@@ -399,7 +399,11 @@ server7_all: server7.crt server7-badsign.crt server7-expired.crt server7-future.
 # server8*
 
 server8.crt: server8.key
-	$(MBEDTLS_CERT_WRITE) subject_key=$< subject_name="C=NL, O=PolarSSL, CN=localhost" serial=17 issuer_crt=$(test_ca_int_ec) issuer_key=$(test_ca_int_key_file_ec) not_before=20190210144406 not_after=20290210144406 md=SHA256 version=3 output_file=$@
+	$(MBEDTLS_CERT_WRITE) subject_key=$< \
+		subject_name="C=NL, O=PolarSSL, CN=localhost" serial=17 \
+		issuer_crt=$(test_ca_int_ec) issuer_key=$(test_ca_int_key_file_ec) \
+		not_before=20190210144406 not_after=20290210144406 md=SHA256 \
+		version=3 output_file=$@
 all_final += server8.crt
 
 server8_int-ca2.crt: server8.crt $(test_ca_int_ec)
@@ -446,7 +450,7 @@ all_final += server5-ss-expired.crt
 
 # try to forge a copy of test-int-ca3 with different key
 server5-ss-forgeca.crt: server5.key
-	$(FAKETIME) '2015-09-01 14:08:43' $(OPENSSL) req -x509 \
+	$(OPENSSL) req -x509 \
 		-new -subj "/C=UK/O=mbed TLS/CN=mbed TLS Test intermediate CA 3" \
 		-set_serial 77 -config $(test_ca_config_file) -extensions noext_ca -days 3650 -sha256 \
 		-key $< -out $@
@@ -662,6 +666,19 @@ all_final += rsa_pkcs8_2048_public.pem
 rsa_pkcs8_2048_public.der: rsa_pkcs8_2048_public.pem
 	$(OPENSSL) rsa -pubin -in $< -outform DER -pubout -out $@
 all_final += rsa_pkcs8_2048_public.der
+
+# Generate crl_cat_*.pem
+# - crt_cat_*.pem: (1+2) concatenations in various orders:
+#     ec = crl-ec-sha256.pem, ecfut = crl-future.pem
+#     rsa = crl.pem, rsabadpem = same with pem error, rsaexp = crl_expired.pem
+
+crl_cat_ec-rsa.pem:crl-ec-sha256.pem crl.pem
+	cat $^ > $@
+
+crl_cat_rsa-ec.pem:crl.pem crl-ec-sha256.pem
+	cat $^ > $@
+
+all_final += crl_cat_ec-rsa.pem crl_cat_rsa-ec.pem
 
 ################################################################
 #### Generate various RSA keys

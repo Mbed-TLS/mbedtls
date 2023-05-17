@@ -1725,10 +1725,8 @@ static int mpi_select(mbedtls_mpi *R, const mbedtls_mpi *T, size_t T_size, size_
 
     for (size_t i = 0; i < T_size; i++) {
         MBEDTLS_MPI_CHK(mbedtls_mpi_safe_cond_assign(R, &T[i],
-                                                     (unsigned char) mbedtls_ct_size_bool_eq(i,
-                                                                                             idx)));
+                                                     (unsigned char) mbedtls_ct_bool_eq(i, idx)));
     }
-
 cleanup:
     return ret;
 }

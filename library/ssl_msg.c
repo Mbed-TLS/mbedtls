@@ -148,8 +148,8 @@ int mbedtls_ct_hmac(mbedtls_svc_key_id_t key,
         PSA_CHK(psa_hash_finish(&aux_operation, aux_out,
                                 PSA_HASH_MAX_SIZE, &hash_length));
         /* Keep only the correct inner_hash in the output buffer */
-        mbedtls_ct_memcpy_if_eq(output, aux_out, hash_size,
-                                offset, data_len_secret);
+        mbedtls_ct_memcpy_if(mbedtls_ct_bool_eq(offset, data_len_secret),
+                             output, aux_out, NULL, hash_size);
 
         if (offset < max_data_len) {
             PSA_CHK(psa_hash_update(&operation, data + offset, 1));
@@ -251,8 +251,8 @@ int mbedtls_ct_hmac(mbedtls_md_context_t *ctx,
         MD_CHK(mbedtls_md_clone(&aux, ctx));
         MD_CHK(mbedtls_md_finish(&aux, aux_out));
         /* Keep only the correct inner_hash in the output buffer */
-        mbedtls_ct_memcpy_if_eq(output, aux_out, hash_size,
-                                offset, data_len_secret);
+        mbedtls_ct_memcpy_if(mbedtls_ct_bool_eq(offset, data_len_secret),
+                             output, aux_out, NULL, hash_size);
 
         if (offset < max_data_len) {
             MD_CHK(mbedtls_md_update(ctx, data + offset, 1));
@@ -1912,11 +1912,11 @@ hmac_failed_etm_enabled:
         padlen = data[rec->data_len - 1];
 
         if (auth_done == 1) {
-            const size_t mask = mbedtls_ct_size_mask_ge(
+            const mbedtls_ct_condition_t ge = mbedtls_ct_bool_ge(
                 rec->data_len,
                 padlen + 1);
-            correct &= mask;
-            padlen  &= mask;
+            correct = mbedtls_ct_size_if0(ge, correct);
+            padlen  = mbedtls_ct_size_if0(ge, padlen);
         } else {
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
             if (rec->data_len < transform->maclen + padlen + 1) {
@@ -1928,12 +1928,11 @@ hmac_failed_etm_enabled:
                                           padlen + 1));
             }
 #endif
-
-            const size_t mask = mbedtls_ct_size_mask_ge(
+            const mbedtls_ct_condition_t ge = mbedtls_ct_bool_ge(
                 rec->data_len,
                 transform->maclen + padlen + 1);
-            correct &= mask;
-            padlen  &= mask;
+            correct = mbedtls_ct_size_if0(ge, correct);
+            padlen  = mbedtls_ct_size_if0(ge, padlen);
         }
 
         padlen++;
@@ -1962,19 +1961,20 @@ hmac_failed_etm_enabled:
             /* pad_count += (idx >= padding_idx) &&
              *              (check[idx] == padlen - 1);
              */
-            const size_t mask = mbedtls_ct_size_mask_ge(idx, padding_idx);
-            const size_t equal = mbedtls_ct_size_bool_eq(check[idx],
-                                                         padlen - 1);
-            pad_count += mask & equal;
+            const mbedtls_ct_condition_t a = mbedtls_ct_bool_ge(idx, padding_idx);
+            size_t increment = mbedtls_ct_size_if0(a, 1);
+            const mbedtls_ct_condition_t b = mbedtls_ct_bool_eq(check[idx], padlen - 1);
+            increment = mbedtls_ct_size_if0(b, increment);
+            pad_count += increment;
         }
-        correct &= mbedtls_ct_size_bool_eq(pad_count, padlen);
+        correct = mbedtls_ct_size_if0(mbedtls_ct_bool_eq(pad_count, padlen), padlen);
 
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
         if (padlen > 0 && correct == 0) {
             MBEDTLS_SSL_DEBUG_MSG(1, ("bad padding byte detected"));
         }
 #endif
-        padlen &= mbedtls_ct_size_mask(correct);
+        padlen = mbedtls_ct_size_if0(mbedtls_ct_bool(correct), padlen);
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 

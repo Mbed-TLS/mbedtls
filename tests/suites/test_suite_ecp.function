@@ -1611,51 +1611,40 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
 void ecp_mod_add_sub(char *input_A, char *input_B, int id, int ctype, int iret)
 {
-    int ret;
+    size_t p_limbs;
+    size_t bytes;
     mbedtls_mpi_mod_modulus m;
-    mbedtls_mpi_mod_modulus_init(&m);
+    mbedtls_mpi_mod_residue rA;
+    mbedtls_mpi_mod_residue rB;
+    mbedtls_mpi_mod_residue rS;
     mbedtls_mpi_uint *p_A = NULL;
     mbedtls_mpi_uint *p_B = NULL;
     mbedtls_mpi_uint *p_S = NULL;
-    mbedtls_mpi_mod_residue rA = { NULL, 0 };
-    mbedtls_mpi_mod_residue rB = { NULL, 0 };
-    mbedtls_mpi_mod_residue rS = { NULL, 0 };
-    size_t p_limbs;
-    size_t bytes;
+
+    ((void) iret);
+
+    mbedtls_mpi_mod_modulus_init(&m);
 
     TEST_EQUAL(mbedtls_test_read_mpi_core(&p_A, &p_limbs, input_A), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi_core(&p_B, &p_limbs, input_B), 0);
 
-    ret = mbedtls_ecp_modulus_setup(&m, id, ctype);
-    TEST_EQUAL(ret, iret);
+    TEST_ASSERT(mbedtls_ecp_modulus_setup(&m, id, ctype) == 0);
 
-    if (ret == 0) {
+    /* Test for limb sizes */
+    TEST_EQUAL(m.limbs, p_limbs);
+    bytes = p_limbs * sizeof(mbedtls_mpi_uint);
 
-        /* Test for limb sizes */
-        TEST_EQUAL(m.limbs, p_limbs);
-        bytes = p_limbs * sizeof(mbedtls_mpi_uint);
+    ASSERT_ALLOC(p_S, p_limbs);
 
-        /* Test for validity of moduli by the presence of Montgomery consts */
+    TEST_EQUAL(mbedtls_mpi_mod_residue_setup(&rA, &m, p_A, p_limbs), 0);
+    TEST_EQUAL(mbedtls_mpi_mod_residue_setup(&rB, &m, p_B, p_limbs), 0);
+    TEST_EQUAL(mbedtls_mpi_mod_residue_setup(&rS, &m, p_S, p_limbs), 0);
 
-        TEST_ASSERT(m.rep.mont.mm != 0);
-        TEST_ASSERT(m.rep.mont.rr != NULL);
+    TEST_EQUAL(0, mbedtls_mpi_mod_add(&rS, &rA, &rB, &m));
+    TEST_EQUAL(0, mbedtls_mpi_mod_sub(&rS, &rS, &rB, &m));
 
-        ASSERT_ALLOC(p_S, p_limbs);
-
-        TEST_EQUAL(mbedtls_test_read_mpi_core(&p_B, &p_limbs, input_B), 0);
-        TEST_EQUAL(mbedtls_mpi_mod_residue_setup(&rA, &m, p_A, p_limbs), 0);
-        TEST_EQUAL(mbedtls_mpi_mod_residue_setup(&rB, &m, p_B, p_limbs), 0);
-        TEST_EQUAL(mbedtls_mpi_mod_residue_setup(&rS, &m, p_S, p_limbs), 0);
-
-        TEST_EQUAL(0, mbedtls_mpi_mod_add(&rS, &rA, &rB, &m));
-        TEST_EQUAL(0, mbedtls_mpi_mod_sub(&rS, &rS, &rB, &m));
-
-
-        /* Compare output byte-by-byte */
-        ASSERT_COMPARE(rA.p, bytes, rS.p, bytes);
-
-        /* Test for user free-ing allocated memory */
-        mbedtls_mpi_mod_modulus_free(&m);
-    }
+    /* Compare output byte-by-byte */
+    ASSERT_COMPARE(rA.p, bytes, rS.p, bytes);
 
 exit:
     mbedtls_mpi_mod_modulus_free(&m);

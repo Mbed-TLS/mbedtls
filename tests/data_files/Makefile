@@ -394,7 +394,10 @@ server7_spurious_int-ca.crt: server7.crt $(test_ca_int_ec) $(test_ca_int_rsa1)
 	cat server7.crt $(test_ca_int_ec) $(test_ca_int_rsa1) > $@
 all_final += server7_spurious_int-ca.crt
 
-server7_all: server7.crt server7-badsign.crt server7-expired.crt server7-future.crt server7_int-ca-exp.crt server7_int-ca.crt server7_int-ca_ca2.crt server7_all_space.crt server7_pem_space.crt server7_trailing_space.crt server7_spurious_int-ca.crt
+server7_all: server7.crt server7-badsign.crt server7-expired.crt \
+			server7-future.crt server7_int-ca-exp.crt server7_int-ca.crt \
+			server7_int-ca_ca2.crt server7_all_space.crt server7_pem_space.crt \
+			server7_trailing_space.crt server7_spurious_int-ca.crt
 
 # server8*
 

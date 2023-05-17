@@ -346,6 +346,35 @@ void mbedtls_ct_memmove_left(void *start, size_t total, size_t offset)
 
 #endif /* MBEDTLS_PKCS1_V15 && MBEDTLS_RSA_C && ! MBEDTLS_RSA_ALT */
 
+void mbedtls_ct_memcpy_if(mbedtls_ct_condition_t condition,
+                          unsigned char *dest,
+                          const unsigned char *src1,
+                          const unsigned char *src2,
+                          size_t len)
+{
+    const uint32_t mask     = (uint32_t) condition;
+    const uint32_t not_mask = (uint32_t) ~mbedtls_ct_compiler_opaque(condition);
+
+    /* If src2 is NULL and condition == 0, then this function has no effect.
+     * In this case, copy from dest back into dest. */
+    if (src2 == NULL) {
+        src2 = dest;
+    }
+
+    /* dest[i] = c1 == c2 ? src[i] : dest[i] */
+    size_t i = 0;
+#if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)
+    for (; (i + 4) <= len; i += 4) {
+        uint32_t a = mbedtls_get_unaligned_uint32(src1 + i) & mask;
+        uint32_t b = mbedtls_get_unaligned_uint32(src2 + i) & not_mask;
+        mbedtls_put_unaligned_uint32(dest + i, a | b);
+    }
+#endif /* MBEDTLS_EFFICIENT_UNALIGNED_ACCESS */
+    for (; i < len; i++) {
+        dest[i] = (src1[i] & mask) | (src2[i] & not_mask);
+    }
+}
+
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 
 void mbedtls_ct_memcpy_if_eq(unsigned char *dest,

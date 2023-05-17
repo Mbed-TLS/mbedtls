@@ -5420,7 +5420,7 @@ int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 static int ecp_mod_p255(mbedtls_mpi *N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t expected_width = 2 * ((256 + biL - 1) / biL);
+    size_t expected_width = 2 * ((255 + biL - 1) / biL);
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
     ret = mbedtls_ecp_mod_p255_raw(N->p, expected_width);
 cleanup:
@@ -5433,32 +5433,26 @@ int mbedtls_ecp_mod_p255_raw(mbedtls_mpi_uint *X, size_t X_Limbs)
     mbedtls_mpi_uint carry[P255_WIDTH];
     memset(carry, 0, sizeof(mbedtls_mpi_uint) * P255_WIDTH);
 
-    if (X_Limbs > 2*P255_WIDTH) {
-        X_Limbs = 2*P255_WIDTH;
-    } else if (X_Limbs < P255_WIDTH) {
-        return 0;
-    }
-
     /* Step 1: Reduction to P255_WIDTH limbs */
     if (X_Limbs > P255_WIDTH) {
-        /* Helper references for top part of N */
-        mbedtls_mpi_uint * const NT_p = X + P255_WIDTH;
-        const size_t NT_n = X_Limbs - P255_WIDTH;
+        /* Helper references for top part of X */
+        mbedtls_mpi_uint * const A1 = X + P255_WIDTH;
+        const size_t A1_limbs = X_Limbs - P255_WIDTH;
 
-        /* N = A0 + 38 * A1, capture carry out */
-        carry[0] = mbedtls_mpi_core_mla(X, P255_WIDTH, NT_p, NT_n, 38);
+        /* X = A0 + 38 * A1, capture carry out */
+        carry[0] = mbedtls_mpi_core_mla(X, P255_WIDTH, A1, A1_limbs, 38);
         /* Clear top part */
-        memset(NT_p, 0, sizeof(mbedtls_mpi_uint) * NT_n);
+        memset(A1, 0, sizeof(mbedtls_mpi_uint) * A1_limbs);
     }
 
     /* Step 2: Reduce to <p
      * Split as A0 + 2^255*c, with c a scalar, and compute A0 + 19*c */
     carry[0] <<= 1;
-    carry[0] += (X[P255_WIDTH-1] >> (biL - 1));
+    carry[0] += (X[P255_WIDTH - 1] >> (biL - 1));
     carry[0] *= 19;
 
     /* Clear top bit */
-    X[P255_WIDTH-1] <<= 1; X[P255_WIDTH-1] >>= 1;
+    X[P255_WIDTH - 1] <<= 1; X[P255_WIDTH - 1] >>= 1;
     (void) mbedtls_mpi_core_add(X, X, &carry[0], P255_WIDTH);
 
     return 0;

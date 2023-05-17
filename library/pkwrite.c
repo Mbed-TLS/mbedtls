@@ -38,7 +38,10 @@
 #include "mbedtls/ecp.h"
 #include "mbedtls/platform_util.h"
 #endif
-#if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
+#include "pk_internal.h"
+#endif
+#if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECP_LIGHT)
 #include "pkwrite.h"
 #endif
 #if defined(MBEDTLS_ECDSA_C)
@@ -100,15 +103,24 @@ end_of_export:
 #endif /* MBEDTLS_RSA_C */
 
 #if defined(MBEDTLS_ECP_LIGHT)
-/*
- * EC public key is an EC point
- */
 static int pk_write_ec_pubkey(unsigned char **p, unsigned char *start,
-                              mbedtls_ecp_keypair *ec)
+                              const mbedtls_pk_context *pk)
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len = 0;
+
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    len = pk->pub_raw_len;
+
+    if (*p < start || (size_t) (*p - start) < len) {
+        return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
+    }
+
+    memcpy(*p - len, pk->pub_raw, len);
+    *p -= len;
+#else
     unsigned char buf[MBEDTLS_ECP_MAX_PT_LEN];
+    mbedtls_ecp_keypair *ec = mbedtls_pk_ec(*pk);
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     if ((ret = mbedtls_ecp_point_write_binary(&ec->grp, &ec->Q,
                                               MBEDTLS_ECP_PF_UNCOMPRESSED,
@@ -122,6 +134,7 @@ static int pk_write_ec_pubkey(unsigned char **p, unsigned char *start,
 
     *p -= len;
     memcpy(*p, buf, len);
+#endif
 
     return (int) len;
 }
@@ -183,7 +196,7 @@ int mbedtls_pk_write_pubkey(unsigned char **p, unsigned char *start,
 #endif
 #if defined(MBEDTLS_ECP_LIGHT)
     if (mbedtls_pk_get_type(key) == MBEDTLS_PK_ECKEY) {
-        MBEDTLS_ASN1_CHK_ADD(len, pk_write_ec_pubkey(p, start, mbedtls_pk_ec_rw(*key)));
+        MBEDTLS_ASN1_CHK_ADD(len, pk_write_ec_pubkey(p, start, key));
     } else
 #endif
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -324,7 +337,7 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
 #if defined(MBEDTLS_ECP_LIGHT)
 #if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
 /*
- * RFC8410
+ * RFC8410 section 7
  *
  * OneAsymmetricKey ::= SEQUENCE {
  *    version Version,
@@ -335,7 +348,7 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
  *    [[2: publicKey [1] IMPLICIT PublicKey OPTIONAL ]],
  *    ...
  * }
- *
+ * ...
  * CurvePrivateKey ::= OCTET STRING
  */
 static int pk_write_ec_rfc8410_der(unsigned char **p, unsigned char *buf,
@@ -491,7 +504,7 @@ end_of_export:
          */
 
         /* publicKey */
-        MBEDTLS_ASN1_CHK_ADD(pub_len, pk_write_ec_pubkey(&c, buf, ec));
+        MBEDTLS_ASN1_CHK_ADD(pub_len, pk_write_ec_pubkey(&c, buf, key));
 
         if (c - buf < 1) {
             return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
@@ -527,7 +540,7 @@ end_of_export:
         MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_tag(&c, buf, MBEDTLS_ASN1_CONSTRUCTED |
                                                          MBEDTLS_ASN1_SEQUENCE));
     } else
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
     return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
 
     return (int) len;

@@ -63,6 +63,26 @@ static inline mbedtls_ecp_keypair *mbedtls_pk_ec_rw(const mbedtls_pk_context pk)
             return NULL;
     }
 }
+
+/* Helpers for Montgomery curves */
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) || defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+#define MBEDTLS_PK_HAVE_RFC8410_CURVES
+
+static inline int mbedtls_pk_is_rfc8410_curve(mbedtls_ecp_group_id id)
+{
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+    if (id == MBEDTLS_ECP_DP_CURVE25519) {
+        return 1;
+    }
+#endif
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+    if (id == MBEDTLS_ECP_DP_CURVE448) {
+        return 1;
+    }
+#endif
+    return 0;
+}
+#endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED || MBEDTLS_ECP_DP_CURVE448_ENABLED */
 #endif /* MBEDTLS_ECP_LIGHT */
 
 #endif /* MBEDTLS_PK_INTERNAL_H */

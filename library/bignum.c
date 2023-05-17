@@ -141,19 +141,17 @@ int mbedtls_mpi_safe_cond_assign(mbedtls_mpi *X,
     MPI_VALIDATE_RET(X != NULL);
     MPI_VALIDATE_RET(Y != NULL);
 
-    mbedtls_ct_condition_t do_assign = mbedtls_ct_bool(assign);
-
-    /* all-bits 1 if assign is 1, all-bits 0 if assign is 0 */
-    mbedtls_mpi_uint limb_mask = mbedtls_ct_mpi_uint_mask(assign);
-
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(X, Y->n));
 
-    X->s = (int) mbedtls_ct_uint_if(assign, Y->s, X->s);
+    mbedtls_ct_condition_t do_assign = mbedtls_ct_bool(assign);
+
+    X->s = (int) mbedtls_ct_uint_if_new(do_assign, Y->s, X->s);
 
     mbedtls_mpi_core_cond_assign(X->p, Y->p, Y->n, do_assign);
 
+    mbedtls_ct_condition_t do_not_assign = mbedtls_ct_bool_not(do_assign);
     for (size_t i = Y->n; i < X->n; i++) {
-        X->p[i] &= ~limb_mask;
+        X->p[i] = mbedtls_ct_mpi_uint_if0(do_not_assign, X->p[i]);
     }
 
 cleanup:

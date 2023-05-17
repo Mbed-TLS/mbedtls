@@ -32,6 +32,40 @@
 
 #include "psa/crypto_legacy.h"
 
+/* These features are always enabled. */
+#define PSA_WANT_KEY_TYPE_DERIVE 1
+#define PSA_WANT_KEY_TYPE_PASSWORD 1
+#define PSA_WANT_KEY_TYPE_PASSWORD_HASH 1
+#define PSA_WANT_KEY_TYPE_RAW_DATA 1
+
+/* Even though KEY_PAIR symbols' feature several level of support (BASIC, IMPORT,
+ * EXPORT, GENERATE, DERIVE) we're not planning to have support only for BASIC
+ * without IMPORT/EXPORT since these last 2 features are strongly used in tests.
+ * In general it is allowed to include more feature than what is strictly
+ * requested.
+ * As a consequence IMPORT and EXPORT features will be automatically enabled
+ * as soon as the BASIC one is. */
+#if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC)
+#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT 1
+#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT 1
+#endif
+
+/* Temporary internal migration helpers */
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC) || \
+    defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT) || \
+    defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT) || \
+    defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE)
+#define MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY
+#endif
+
+/* Temporary internal migration helpers */
+#if defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_BASIC) || \
+    defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_IMPORT) || \
+    defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_EXPORT) || \
+    defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_GENERATE)
+#define MBEDTLS_PSA_WANT_KEY_TYPE_DH_KEY_PAIR_LEGACY
+#endif
+
 /****************************************************************/
 /* De facto synonyms */
 /****************************************************************/
@@ -60,6 +94,10 @@
 #define PSA_WANT_ALG_RSA_PSS_ANY_SALT PSA_WANT_ALG_RSA_PSS
 #endif
 
+#if defined(PSA_WANT_ALG_JPAKE)
+#define PSA_WANT_ALG_SOME_PAKE 1
+#endif
+
 #include "config_psa_extend_from_mbedtls.h"
 
 /****************************************************************/
@@ -84,49 +122,5 @@
 #include "config_psa_from_mbedtls.h"
 
 #endif /* MBEDTLS_PSA_CRYPTO_CONFIG */
-
-#if defined(PSA_WANT_ALG_JPAKE)
-#define PSA_WANT_ALG_SOME_PAKE 1
-#endif
-
-/* Even though KEY_PAIR symbols' feature several level of support (BASIC, IMPORT,
- * EXPORT, GENERATE, DERIVE) we're not planning to have support only for BASIC
- * without IMPORT/EXPORT since these last 2 features are strongly used in tests.
- * In general it is allowed to include more feature than what is strictly
- * requested.
- * As a consequence IMPORT and EXPORT features will be automatically enabled
- * as soon as the BASIC one is. */
-#if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC)
-#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT 1
-#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT 1
-#endif
-
-/* See description above */
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_BASIC)
-#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_IMPORT 1
-#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_EXPORT 1
-#endif
-
-/* Temporary internal migration helpers */
-#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC) || \
-    defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT) || \
-    defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT) || \
-    defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE)
-#define MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY
-#endif
-
-/* Temporary internal migration helpers */
-#if defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_BASIC) || \
-    defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_IMPORT) || \
-    defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_EXPORT) || \
-    defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_GENERATE)
-#define MBEDTLS_PSA_WANT_KEY_TYPE_DH_KEY_PAIR_LEGACY
-#endif
-
-/* These features are always enabled. */
-#define PSA_WANT_KEY_TYPE_DERIVE 1
-#define PSA_WANT_KEY_TYPE_PASSWORD 1
-#define PSA_WANT_KEY_TYPE_PASSWORD_HASH 1
-#define PSA_WANT_KEY_TYPE_RAW_DATA 1
 
 #endif /* MBEDTLS_CONFIG_PSA_H */

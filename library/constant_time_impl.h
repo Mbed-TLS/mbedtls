@@ -191,7 +191,7 @@ static inline size_t mbedtls_ct_size_if(mbedtls_ct_condition_t condition,
     return (size_t) mbedtls_ct_if(condition, (mbedtls_ct_uint_t) if1, (mbedtls_ct_uint_t) if0);
 }
 
-static inline unsigned mbedtls_ct_uint_if_new(mbedtls_ct_condition_t condition,
+static inline unsigned mbedtls_ct_uint_if(mbedtls_ct_condition_t condition,
                                           unsigned if1,
                                           unsigned if0)
 {

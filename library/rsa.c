@@ -144,7 +144,7 @@ static int mbedtls_ct_rsaes_pkcs1_v15_unpadding(unsigned char *input,
      * buffer. Do it without branches to avoid leaking the padding
      * validity through timing. RSA keys are small enough that all the
      * size_t values involved fit in unsigned int. */
-    plaintext_size = mbedtls_ct_uint_if_new(
+    plaintext_size = mbedtls_ct_uint_if(
         bad, (unsigned) plaintext_max_size,
         (unsigned) (ilen - pad_count - 3));
 
@@ -158,7 +158,7 @@ static int mbedtls_ct_rsaes_pkcs1_v15_unpadding(unsigned char *input,
      * - OUTPUT_TOO_LARGE if the padding is good but the decrypted
      *   plaintext does not fit in the output buffer.
      * - 0 if the padding is correct. */
-    ret = -(int) mbedtls_ct_uint_if_new(
+    ret = -(int) mbedtls_ct_uint_if(
         bad,
         (unsigned) (-(MBEDTLS_ERR_RSA_INVALID_PADDING)),
         mbedtls_ct_uint_if0(
@@ -178,7 +178,7 @@ static int mbedtls_ct_rsaes_pkcs1_v15_unpadding(unsigned char *input,
      * Copy anyway to avoid revealing the length through timing, because
      * revealing the length is as bad as revealing the padding validity
      * for a Bleichenbacher attack. */
-    plaintext_size = mbedtls_ct_uint_if_new(output_too_large,
+    plaintext_size = mbedtls_ct_uint_if(output_too_large,
                                         (unsigned) plaintext_max_size,
                                         (unsigned) plaintext_size);
 

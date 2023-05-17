@@ -285,7 +285,7 @@ static inline size_t mbedtls_ct_size_if(mbedtls_ct_condition_t condition,
  *
  * \return  \c if1 if \p condition == MBEDTLS_CT_TRUE, otherwise \c if0.
  */
-static inline unsigned mbedtls_ct_uint_if_new(mbedtls_ct_condition_t condition,
+static inline unsigned mbedtls_ct_uint_if(mbedtls_ct_condition_t condition,
                                           unsigned if1,
                                           unsigned if0);
 

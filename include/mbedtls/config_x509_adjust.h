@@ -28,4 +28,6 @@
 #ifndef MBEDTLS_CONFIG_X509_ADJUST_H
 #define MBEDTLS_CONFIG_X509_ADJUST_H
 
+/* (There is currently nothing to adjust here.) */
+
 #endif /* MBEDTLS_CONFIG_X509_ADJUST_H */

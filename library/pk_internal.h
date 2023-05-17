@@ -30,11 +30,11 @@
 #if defined(MBEDTLS_ECP_LIGHT)
 /**
  * Public function mbedtls_pk_ec() can be used to get direct access to the
- * wrapped ecp_keypair strucure pointed to the pk_ctx. However this is not
- * ideal because it bypasses the PK module on the control of its internal's
+ * wrapped ecp_keypair structure pointed to the pk_ctx. However this is not
+ * ideal because it bypasses the PK module on the control of its internal
  * structure (pk_context) fields.
  * For backward compatibility we keep mbedtls_pk_ec() when ECP_C is defined, but
- * we provide 2 very similar function when only ECP_LIGHT is enabled and not
+ * we provide 2 very similar functions when only ECP_LIGHT is enabled and not
  * ECP_C.
  * These variants embed the "ro" or "rw" keywords in their name to make the
  * usage of the returned pointer explicit. Of course the returned value is

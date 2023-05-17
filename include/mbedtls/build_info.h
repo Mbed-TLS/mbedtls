@@ -88,11 +88,10 @@
 #else
 #include "psa/crypto_config.h"
 #endif
-#endif /* defined(MBEDTLS_PSA_CRYPTO_CONFIG) */
-
 #if defined(MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE)
 #include MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE
 #endif
+#endif /* defined(MBEDTLS_PSA_CRYPTO_CONFIG) */
 
 /* Auto-enable MBEDTLS_CTR_DRBG_USE_128_BIT_KEY if
  * MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH and MBEDTLS_CTR_DRBG_C defined

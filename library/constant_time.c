@@ -22,16 +22,13 @@
  * might be translated to branches by some compilers on some platforms.
  */
 
+#include <limits.h>
+
 #include "common.h"
 #include "constant_time_internal.h"
 #include "mbedtls/constant_time.h"
 #include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
-
-#if defined(MBEDTLS_BIGNUM_C)
-#include "mbedtls/bignum.h"
-#include "bignum_core.h"
-#endif
 
 #if defined(MBEDTLS_SSL_TLS_C)
 #include "ssl_misc.h"
@@ -39,10 +36,6 @@
 
 #if defined(MBEDTLS_RSA_C)
 #include "mbedtls/rsa.h"
-#endif
-
-#if defined(MBEDTLS_BASE64_C)
-#include "constant_time_invasive.h"
 #endif
 
 #include <string.h>
@@ -62,13 +55,11 @@
  * Some of these definitions could be moved into alignment.h but for now they are
  * only used here.
  */
-#if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS) && defined(MBEDTLS_HAVE_ASM)
-#if defined(__arm__) || defined(__thumb__) || defined(__thumb2__) || defined(__aarch64__)
-#define MBEDTLS_EFFICIENT_UNALIGNED_VOLATILE_ACCESS
-#endif
-#endif
+#if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS) && \
+    (defined(MBEDTLS_CT_ARM_ASM) || defined(MBEDTLS_CT_AARCH64_ASM))
 
-#if defined(MBEDTLS_EFFICIENT_UNALIGNED_VOLATILE_ACCESS)
+#define MBEDTLS_EFFICIENT_UNALIGNED_VOLATILE_ACCESS
+
 static inline uint32_t mbedtls_get_unaligned_volatile_uint32(volatile const unsigned char *p)
 {
     /* This is UB, even where it's safe:
@@ -76,14 +67,17 @@ static inline uint32_t mbedtls_get_unaligned_volatile_uint32(volatile const unsi
      * so instead the same thing is expressed in assembly below.
      */
     uint32_t r;
-#if defined(__arm__) || defined(__thumb__) || defined(__thumb2__)
+#if defined(MBEDTLS_CT_ARM_ASM)
     asm volatile ("ldr %0, [%1]" : "=r" (r) : "r" (p) :);
-#elif defined(__aarch64__)
+#elif defined(MBEDTLS_CT_AARCH64_ASM)
     asm volatile ("ldr %w0, [%1]" : "=r" (r) : "r" (p) :);
+#else
+#error No assembly defined for mbedtls_get_unaligned_volatile_uint32
 #endif
     return r;
 }
-#endif /* MBEDTLS_EFFICIENT_UNALIGNED_VOLATILE_ACCESS */
+#endif /* defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS) &&
+          (defined(MBEDTLS_CT_ARM_ASM) || defined(MBEDTLS_CT_AARCH64_ASM)) */
 
 int mbedtls_ct_memcmp(const void *a,
                       const void *b,

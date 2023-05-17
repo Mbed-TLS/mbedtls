@@ -194,6 +194,52 @@ void mbedtls_debug_print_ecp(const mbedtls_ssl_context *ssl, int level,
 }
 #endif /* MBEDTLS_ECP_LIGHT */
 
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+void mbedtls_debug_print_psa_ec(const mbedtls_ssl_context *ssl, int level,
+                                const char *file, int line,
+                                const char *text, const mbedtls_pk_context *pk)
+{
+    char str[DEBUG_BUF_SIZE];
+    mbedtls_mpi mpi;
+    const uint8_t *mpi_start;
+    size_t mpi_len;
+    int ret;
+
+    if (NULL == ssl              ||
+        NULL == ssl->conf        ||
+        NULL == ssl->conf->f_dbg ||
+        level > debug_threshold) {
+        return;
+    }
+
+    /* For the description of pk->pk_raw content please refer to the description
+     * psa_export_public_key() function. */
+    mpi_len = (pk->pub_raw_len - 1)/2;
+
+    /* X coordinate */
+    mbedtls_mpi_init(&mpi);
+    mpi_start = pk->pub_raw + 1;
+    ret = mbedtls_mpi_read_binary(&mpi, mpi_start, mpi_len);
+    if (ret != 0) {
+        return;
+    }
+    mbedtls_snprintf(str, sizeof(str), "%s(X)", text);
+    mbedtls_debug_print_mpi(ssl, level, file, line, str, &mpi);
+    mbedtls_mpi_free(&mpi);
+
+    /* Y coordinate */
+    mbedtls_mpi_init(&mpi);
+    mpi_start = mpi_start + mpi_len;
+    ret = mbedtls_mpi_read_binary(&mpi, mpi_start, mpi_len);
+    if (ret != 0) {
+        return;
+    }
+    mbedtls_snprintf(str, sizeof(str), "%s(Y)", text);
+    mbedtls_debug_print_mpi(ssl, level, file, line, str, &mpi);
+    mbedtls_mpi_free(&mpi);
+}
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
+
 #if defined(MBEDTLS_BIGNUM_C)
 void mbedtls_debug_print_mpi(const mbedtls_ssl_context *ssl, int level,
                              const char *file, int line,
@@ -276,6 +322,11 @@ static void debug_print_pk(const mbedtls_ssl_context *ssl, int level,
 #if defined(MBEDTLS_ECP_LIGHT)
         if (items[i].type == MBEDTLS_PK_DEBUG_ECP) {
             mbedtls_debug_print_ecp(ssl, level, file, line, name, items[i].value);
+        } else
+#endif
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+        if (items[i].type == MBEDTLS_PK_DEBUG_PSA_EC) {
+            mbedtls_debug_print_psa_ec(ssl, level, file, line, name, items[i].value);
         } else
 #endif
         { debug_send_line(ssl, level, file, line,

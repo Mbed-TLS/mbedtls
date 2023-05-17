@@ -385,8 +385,8 @@ void mbedtls_ct_memcpy_offset(unsigned char *dest,
     size_t offsetval;
 
     for (offsetval = offset_min; offsetval <= offset_max; offsetval++) {
-        mbedtls_ct_memcpy_if_eq(dest, src + offsetval, len,
-                                offsetval, offset);
+         mbedtls_ct_memcpy_if(mbedtls_ct_bool_eq(offsetval, offset), dest, src + offsetval, NULL,
+                              len);
     }
 }
 

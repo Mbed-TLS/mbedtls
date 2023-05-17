@@ -1592,7 +1592,7 @@ void ecp_mod_mul_inv(char *input_A, int id, int ctype, int iret)
     TEST_EQUAL(mbedtls_mpi_mod_write(&rX, &m, (unsigned char *) bufx,
                                         limbs * sizeof(mbedtls_mpi_uint),
                                         MBEDTLS_MPI_MOD_EXT_REP_LE), 0);
-    TEST_EQUAL(memcmp(bufx, one, sizeof(one)), 0);
+    ASSERT_COMPARE(bufx, 2, one, 2);
 
 
 exit:

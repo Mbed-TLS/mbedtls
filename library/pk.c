@@ -227,7 +227,7 @@ int mbedtls_pk_update_public_key_from_keypair(mbedtls_pk_context *pk,
 
     return 0;
 }
-#endif /* MBEDTLS_PK_USE_PSA_EC_PUB_KEY */
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /*

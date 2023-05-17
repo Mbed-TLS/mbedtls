@@ -194,6 +194,7 @@ void mbedtls_debug_print_ecp(const mbedtls_ssl_context *ssl, int level,
 }
 #endif /* MBEDTLS_ECP_LIGHT */
 
+#if defined(MBEDTLS_BIGNUM_C)
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 void mbedtls_debug_print_psa_ec(const mbedtls_ssl_context *ssl, int level,
                                 const char *file, int line,
@@ -240,7 +241,6 @@ void mbedtls_debug_print_psa_ec(const mbedtls_ssl_context *ssl, int level,
 }
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
-#if defined(MBEDTLS_BIGNUM_C)
 void mbedtls_debug_print_mpi(const mbedtls_ssl_context *ssl, int level,
                              const char *file, int line,
                              const char *text, const mbedtls_mpi *X)

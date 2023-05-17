@@ -213,7 +213,8 @@ typedef struct mbedtls_pk_rsassa_pss_options {
  *       format and use PSA functions
  *     - if !ECP_C then use new raw data and PSA functions directly.
  */
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_ECP_C) && \
+    defined(MBEDTLS_ECP_LIGHT)
 #define MBEDTLS_PK_USE_PSA_EC_DATA
 #endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_ECP_C */
 
@@ -290,7 +291,7 @@ typedef struct mbedtls_pk_context {
     size_t MBEDTLS_PRIVATE(pub_raw_len);            /**< Valid bytes in "pub_raw" */
     psa_ecc_family_t MBEDTLS_PRIVATE(ec_family);    /**< EC family of pk */
     size_t MBEDTLS_PRIVATE(ec_bits);                /**< Curve's bits of pk */
-#endif /* MBEDTLS_PK_USE_PSA_EC_PUB_KEY */
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 } mbedtls_pk_context;
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)

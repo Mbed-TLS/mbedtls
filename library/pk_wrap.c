@@ -1140,15 +1140,15 @@ static int eckey_check_pair_psa(mbedtls_pk_context *pub, mbedtls_pk_context *prv
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     const psa_ecc_family_t curve = prv->ec_family;
-    const size_t curve_bits = PSA_BITS_TO_BYTES(prv->ec_bits);
+    const size_t curve_bits = prv->ec_bits;
 #else /* !MBEDTLS_PK_USE_PSA_EC_DATA */
     uint8_t pub_key_buf[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
     size_t pub_key_len;
     size_t curve_bits;
     const psa_ecc_family_t curve =
         mbedtls_ecc_group_to_psa(mbedtls_pk_ec_ro(*prv)->grp.id, &curve_bits);
-    const size_t curve_bytes = PSA_BITS_TO_BYTES(curve_bits);
 #endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
+    const size_t curve_bytes = PSA_BITS_TO_BYTES(curve_bits);
 
     psa_set_key_type(&key_attr, PSA_KEY_TYPE_ECC_KEY_PAIR(curve));
     psa_set_key_usage_flags(&key_attr, PSA_KEY_USAGE_EXPORT);

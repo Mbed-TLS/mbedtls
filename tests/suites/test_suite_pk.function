@@ -1,5 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/pk.h"
+#include "pk_internal.h"
 
 /* For error codes */
 #include "mbedtls/asn1.h"
@@ -24,16 +25,15 @@
 #define RSA_KEY_SIZE 512
 #define RSA_KEY_LEN   64
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_ECP_LIGHT)
-static int pk_genkey_ec(mbedtls_ecp_group *grp,
-                        mbedtls_mpi *d, mbedtls_ecp_point *Q)
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+static int pk_genkey_ec(mbedtls_pk_context *pk, mbedtls_ecp_group_id grp_id)
 {
     psa_status_t status;
+    mbedtls_ecp_keypair *eck = mbedtls_pk_ec_rw(*pk);
     psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
     size_t curve_bits;
-    psa_ecc_family_t curve = mbedtls_ecc_group_to_psa(grp->id,
-                                                      &curve_bits);
+    psa_ecc_family_t curve = mbedtls_ecc_group_to_psa(grp_id, &curve_bits);
     unsigned char key_buf[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
     size_t key_len;
     int ret;
@@ -53,26 +53,33 @@ static int pk_genkey_ec(mbedtls_ecp_group *grp,
         goto exit;
     }
 
-    ret = mbedtls_mpi_read_binary(d, key_buf, key_len);
+    ret = mbedtls_mpi_read_binary(&eck->d, key_buf, key_len);
     if (ret != 0) {
         goto exit;
     }
 
-    status = psa_export_public_key(key_id, key_buf, sizeof(key_buf),
-                                   &key_len);
+    status = psa_export_public_key(key_id, pk->pub_raw, sizeof(pk->pub_raw),
+                                   &pk->pub_raw_len);
     if (status != PSA_SUCCESS) {
         ret = MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
         goto exit;
     }
 
-    ret = mbedtls_ecp_point_read_binary(grp, Q, key_buf, key_len);
+    pk->ec_family = curve;
+    pk->ec_bits = curve_bits;
+
+    status = psa_destroy_key(key_id);
+    if (status != PSA_SUCCESS) {
+        return psa_pk_status_to_mbedtls(status);
+    }
+
+    return 0;
 
 exit:
-    psa_destroy_key(key_id);
-
-    return ret;
+    status = psa_destroy_key(key_id);
+    return (ret != 0) ? ret : psa_pk_status_to_mbedtls(status);
 }
-#endif /* MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_ECP_LIGHT */
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
 /** Generate a key of the desired type.
  *
@@ -102,22 +109,36 @@ static int pk_genkey(mbedtls_pk_context *pk, int parameter)
         mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECKEY_DH ||
         mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECDSA) {
         int ret;
-        if ((ret = mbedtls_ecp_group_load(&mbedtls_pk_ec_rw(*pk)->grp,
-                                          parameter)) != 0) {
+
+        ret = mbedtls_ecp_group_load(&mbedtls_pk_ec_rw(*pk)->grp, parameter);
+        if (ret != 0) {
             return ret;
         }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-        return pk_genkey_ec(&mbedtls_pk_ec_rw(*pk)->grp,
-                            &mbedtls_pk_ec_rw(*pk)->d,
-                            &mbedtls_pk_ec_rw(*pk)->Q);
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+        mbedtls_ecp_group grp;
+        /* Duplicating the mbedtls_ecp_group_load call to make this part
+         * more future future proof for when ECP_C will not be defined. */
+        mbedtls_ecp_group_init(&grp);
+        ret = mbedtls_ecp_group_load(&grp, parameter);
+        if (ret != 0) {
+            return ret;
+        }
+        ret = pk_genkey_ec(pk, grp.id);
+        if (ret != 0) {
+            return ret;
+        }
+        mbedtls_ecp_group_free(&grp);
+
+        return 0;
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 #if defined(MBEDTLS_ECP_C)
         return mbedtls_ecp_gen_keypair(&mbedtls_pk_ec_rw(*pk)->grp,
                                        &mbedtls_pk_ec_rw(*pk)->d,
                                        &mbedtls_pk_ec_rw(*pk)->Q,
                                        mbedtls_test_rnd_std_rand, NULL);
 #endif /* MBEDTLS_ECP_C */
+
     }
 #endif /* MBEDTLS_ECP_LIGHT */
     return -1;
@@ -702,7 +723,6 @@ void pk_ec_test_vec(int type, int id, data_t *key, data_t *hash,
                     data_t *sig, int ret)
 {
     mbedtls_pk_context pk;
-    mbedtls_ecp_keypair *eckey;
 
     mbedtls_pk_init(&pk);
     USE_PSA_INIT();
@@ -710,11 +730,23 @@ void pk_ec_test_vec(int type, int id, data_t *key, data_t *hash,
     TEST_ASSERT(mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(type)) == 0);
 
     TEST_ASSERT(mbedtls_pk_can_do(&pk, MBEDTLS_PK_ECDSA));
-    eckey = mbedtls_pk_ec_rw(pk);
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    mbedtls_ecp_keypair ecp;
+    mbedtls_ecp_keypair_init(&ecp);
+
+    TEST_ASSERT(mbedtls_ecp_group_load(&ecp.grp, id) == 0);
+    TEST_ASSERT(mbedtls_ecp_point_read_binary(&ecp.grp, &ecp.Q,
+                                              key->x, key->len) == 0);
+    TEST_ASSERT(mbedtls_pk_update_public_key_from_keypair(&pk, &ecp) == 0);
+
+    mbedtls_ecp_keypair_free(&ecp);
+#else
+    mbedtls_ecp_keypair *eckey = (mbedtls_ecp_keypair *) mbedtls_pk_ec(pk);
 
     TEST_ASSERT(mbedtls_ecp_group_load(&eckey->grp, id) == 0);
     TEST_ASSERT(mbedtls_ecp_point_read_binary(&eckey->grp, &eckey->Q,
                                               key->x, key->len) == 0);
+#endif
 
     // MBEDTLS_MD_NONE is used since it will be ignored.
     TEST_ASSERT(mbedtls_pk_verify(&pk, MBEDTLS_MD_NONE,

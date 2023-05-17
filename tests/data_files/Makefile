@@ -586,6 +586,15 @@ server9-bad-saltlen.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
 		-in $< -out $@
 all_final += server9-bad-saltlen.crt
 
+server9-bad-mgfhash.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
+	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa \
+		-passin "pass:$(test_ca_pwd_rsa)" -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) \
+		-set_serial 24 -days 3653 \
+		-sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:max \
+		-sigopt rsa_mgf1_md:sha224 -sha256 \
+		-in $< -out $@
+all_final += server9-bad-mgfhash.crt
+
 # generate crl-rsa-pss-sha*.pem: CA=test-ca.crt, revoke server6.crt server9.crt
 define _generate_crl-rsa-pss
 $(1).pem: $(1).opensslconf $(1).db $(3).crt $(3).key

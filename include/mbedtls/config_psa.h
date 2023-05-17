@@ -44,12 +44,6 @@
 
 #include "psa/crypto_legacy.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
-
 /****************************************************************/
 /* De facto synonyms */
 /****************************************************************/
@@ -1064,9 +1058,5 @@ extern "C" {
 #define PSA_WANT_KEY_TYPE_PASSWORD 1
 #define PSA_WANT_KEY_TYPE_PASSWORD_HASH 1
 #define PSA_WANT_KEY_TYPE_RAW_DATA 1
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* MBEDTLS_CONFIG_PSA_H */

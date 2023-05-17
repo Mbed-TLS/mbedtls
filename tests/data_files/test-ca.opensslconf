@@ -74,6 +74,7 @@ extendedKeyUsage = 1.3.6.1.4.1.45605.1
 
 [noext_ca]
 basicConstraints = CA:true
+subjectKeyIdentifier = none
 
 [test_ca]
 database = /dev/null

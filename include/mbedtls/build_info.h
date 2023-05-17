@@ -93,18 +93,6 @@
 #endif
 #endif /* defined(MBEDTLS_PSA_CRYPTO_CONFIG) */
 
-/* PSA crypto specific configuration options
- * - If config_psa.h reads a configuration option in preprocessor directive,
- *   this symbol should be set before its inclusion. (e.g. MBEDTLS_MD_C)
- * - If config_psa.h writes a configuration option in conditional directive,
- *   this symbol should be consulted after its inclusion.
- *   (e.g. MBEDTLS_MD_LIGHT)
- */
-#if defined(MBEDTLS_PSA_CRYPTO_CONFIG) /* PSA_WANT_xxx influences MBEDTLS_xxx */ || \
-    defined(MBEDTLS_PSA_CRYPTO_C) /* MBEDTLS_xxx influences PSA_WANT_xxx */
-#include "mbedtls/config_psa.h"
-#endif
-
 /* Adjust legacy Mbed TLS crypto-related configuration options. */
 #include "config_crypto_adjust.h"
 
@@ -114,8 +102,29 @@
 /* Adjust TLS-related configuration options. */
 #include "config_tls_adjust.h"
 
-/* Make sure all configuration symbols are set before including check_config.h,
- * even the ones that are calculated programmatically. */
+/* Adjust the PSA crypto configuration. */
+#if defined(MBEDTLS_PSA_CRYPTO_C) || defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#include "config_psa_adjust.h"
+#endif
+
+/* Extend the PSA configuration based on the legacy crypto configuration
+ * to simplify the transition. */
+#if defined(MBEDTLS_PSA_CRYPTO_C) || defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#include "config_psa_extend_from_mbedtls.h"
+#endif
+
+/* Enable legacy crypto features necessary to implement the requested
+ * PSA crypto features. */
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#include "config_mbedtls_from_psa.h"
+#endif
+
+/* Enable PSA crypto features to provide functionality that is similar
+ * to the legacy crypto API. */
+#if defined(MBEDTLS_PSA_CRYPTO_C) && !defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#include "config_psa_from_mbedtls.h"
+#endif
+
 #include "mbedtls/check_config.h"
 
 #endif /* MBEDTLS_BUILD_INFO_H */

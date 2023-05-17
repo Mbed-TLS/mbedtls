@@ -1,0 +1,9 @@
+Bugfix
+   * Fix a compilation error in some configurations with
+     MBEDTLS_PSA_CRYPTO_CONFIG and MBEDTLS_USE_PSA_CRYPTO enabled but
+     MBEDTLS_MD_C not explicitly enabled.
+
+Changes
+   * Enabling MBEDTLS_PKCS5_C with MBEDTLS_PSA_CRYPTO_C enabled and
+     MBEDTLS_PSA_CRYPTO_CONFIG no longer automatically enables support
+     for TLS 1.2 PRF key derivation functions (this was an accident).

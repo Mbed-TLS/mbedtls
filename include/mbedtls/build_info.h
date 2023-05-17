@@ -93,19 +93,6 @@
 #endif
 #endif /* defined(MBEDTLS_PSA_CRYPTO_CONFIG) */
 
-/* Adjust legacy Mbed TLS crypto-related configuration options.
- *
- * This never enables cryptographic mechanisms as such, only high-level
- * interfaces (e.g. MD/CIPHER/PK) or internal sub-features (e.g. xxx_LIGHT).
- */
-#include "config_crypto_adjust.h"
-
-/* Adjust X.509-related configuration options. */
-#include "config_x509_adjust.h"
-
-/* Adjust TLS-related configuration options. */
-#include "config_tls_adjust.h"
-
 /* Adjust the PSA crypto configuration.
  *
  * Note that this must be done before "config_mbedtls_from_psa.h" since
@@ -146,6 +133,19 @@
 #if defined(MBEDTLS_PSA_CRYPTO_C) && !defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 #include "config_psa_from_mbedtls.h"
 #endif
+
+/* Adjust legacy Mbed TLS crypto-related configuration options.
+ *
+ * This never enables cryptographic mechanisms as such, only high-level
+ * interfaces (e.g. MD/CIPHER/PK) or internal sub-features (e.g. xxx_LIGHT).
+ */
+#include "config_crypto_adjust.h"
+
+/* Adjust X.509-related configuration options. */
+#include "config_x509_adjust.h"
+
+/* Adjust TLS-related configuration options. */
+#include "config_tls_adjust.h"
 
 #include "mbedtls/check_config.h"
 

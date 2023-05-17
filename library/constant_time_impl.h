@@ -111,11 +111,9 @@ static inline mbedtls_ct_uint_t mbedtls_ct_if(mbedtls_ct_condition_t condition,
                                               mbedtls_ct_uint_t if1,
                                               mbedtls_ct_uint_t if0)
 {
-    mbedtls_ct_condition_t not_mask =
+    mbedtls_ct_condition_t not_cond =
         (mbedtls_ct_condition_t) (~mbedtls_ct_compiler_opaque(condition));
-    mbedtls_ct_condition_t mask     =
-        (mbedtls_ct_condition_t)   mbedtls_ct_compiler_opaque(condition);
-    return (mbedtls_ct_uint_t) ((mask & if1) | (not_mask & if0));
+    return (mbedtls_ct_uint_t) ((condition & if1) | (not_cond & if0));
 }
 
 static inline mbedtls_ct_condition_t mbedtls_ct_bool_lt(mbedtls_ct_uint_t x, mbedtls_ct_uint_t y)

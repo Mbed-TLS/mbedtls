@@ -22,6 +22,7 @@
 #if defined(MBEDTLS_ECP_LIGHT)
 
 #include "mbedtls/ecp.h"
+#include "mbedtls/platform.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
@@ -5430,8 +5431,10 @@ cleanup:
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p255_raw(mbedtls_mpi_uint *X, size_t X_Limbs)
 {
-    mbedtls_mpi_uint carry[P255_WIDTH];
-    memset(carry, 0, sizeof(mbedtls_mpi_uint) * P255_WIDTH);
+    mbedtls_mpi_uint *carry = mbedtls_calloc(P255_WIDTH, ciL);
+    if (carry == NULL) {
+        return MBEDTLS_ERR_ECP_ALLOC_FAILED;
+    }
 
     /* Step 1: Reduction to P255_WIDTH limbs */
     if (X_Limbs > P255_WIDTH) {
@@ -5440,21 +5443,22 @@ int mbedtls_ecp_mod_p255_raw(mbedtls_mpi_uint *X, size_t X_Limbs)
         const size_t A1_limbs = X_Limbs - P255_WIDTH;
 
         /* X = A0 + 38 * A1, capture carry out */
-        carry[0] = mbedtls_mpi_core_mla(X, P255_WIDTH, A1, A1_limbs, 38);
+        *carry = mbedtls_mpi_core_mla(X, P255_WIDTH, A1, A1_limbs, 38);
         /* Clear top part */
         memset(A1, 0, sizeof(mbedtls_mpi_uint) * A1_limbs);
     }
 
     /* Step 2: Reduce to <p
      * Split as A0 + 2^255*c, with c a scalar, and compute A0 + 19*c */
-    carry[0] <<= 1;
-    carry[0] += (X[P255_WIDTH - 1] >> (biL - 1));
-    carry[0] *= 19;
+    *carry <<= 1;
+    *carry += (X[P255_WIDTH - 1] >> (biL - 1));
+    *carry *= 19;
 
     /* Clear top bit */
     X[P255_WIDTH - 1] <<= 1; X[P255_WIDTH - 1] >>= 1;
-    (void) mbedtls_mpi_core_add(X, X, &carry[0], P255_WIDTH);
+    (void) mbedtls_mpi_core_add(X, X, carry, P255_WIDTH);
 
+    mbedtls_free(carry);
     return 0;
 }
 #endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED */

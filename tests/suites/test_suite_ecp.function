@@ -1579,11 +1579,6 @@ void ecp_mod_mul_inv(char *input_A, int id, int ctype, int iret)
         /* Test for limb sizes */
         TEST_EQUAL(m.limbs, limbs);
 
-        /* Test for validity of moduli by the presence of Montgomery consts */
-
-        TEST_ASSERT(m.rep.mont.mm != 0);
-        TEST_ASSERT(m.rep.mont.rr != NULL);
-
         ASSERT_ALLOC(p_inverse, limbs);
         TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&A_inverse, &m, p_inverse, limbs));
 

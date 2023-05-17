@@ -105,36 +105,37 @@ static int mbedtls_ct_rsaes_pkcs1_v15_unpadding(unsigned char *input,
      * an adversary who has access to a shared code cache or to a shared
      * branch predictor). */
     size_t pad_count = 0;
-    unsigned bad = 0;
-    unsigned char pad_done = 0;
+    mbedtls_ct_condition_t bad;
+    mbedtls_ct_condition_t pad_done;
     size_t plaintext_size = 0;
-    unsigned output_too_large;
+    mbedtls_ct_condition_t output_too_large;
 
     plaintext_max_size = (output_max_len > ilen - 11) ? ilen - 11
                                                         : output_max_len;
 
     /* Check and get padding length in constant time and constant
      * memory trace. The first byte must be 0. */
-    bad |= input[0];
+    bad = mbedtls_ct_bool(input[0]);
 
 
     /* Decode EME-PKCS1-v1_5 padding: 0x00 || 0x02 || PS || 0x00
      * where PS must be at least 8 nonzero bytes. */
-    bad |= input[1] ^ MBEDTLS_RSA_CRYPT;
+    bad = mbedtls_ct_bool_or(bad, mbedtls_ct_bool_ne(input[1], MBEDTLS_RSA_CRYPT));
 
     /* Read the whole buffer. Set pad_done to nonzero if we find
      * the 0x00 byte and remember the padding length in pad_count. */
+    pad_done = MBEDTLS_CT_FALSE;
     for (i = 2; i < ilen; i++) {
-        pad_done  |= ((input[i] | (unsigned char) -input[i]) >> 7) ^ 1;
-        pad_count += ((pad_done | (unsigned char) -pad_done) >> 7) ^ 1;
+        mbedtls_ct_condition_t found = mbedtls_ct_bool_eq(input[i], 0);
+        pad_done   = mbedtls_ct_bool_or(pad_done, found);
+        pad_count += mbedtls_ct_uint_if0(mbedtls_ct_bool_not(pad_done), 1);
     }
 
-
     /* If pad_done is still zero, there's no data, only unfinished padding. */
-    bad |= mbedtls_ct_uint_if(pad_done, 0, 1);
+    bad = mbedtls_ct_bool_or(bad, mbedtls_ct_bool_not(pad_done));
 
     /* There must be at least 8 bytes of padding. */
-    bad |= mbedtls_ct_size_gt(8, pad_count);
+    bad = mbedtls_ct_bool_or(bad, mbedtls_ct_bool_gt(8, pad_count));
 
     /* If the padding is valid, set plaintext_size to the number of
      * remaining bytes after stripping the padding. If the padding
@@ -143,13 +144,13 @@ static int mbedtls_ct_rsaes_pkcs1_v15_unpadding(unsigned char *input,
      * buffer. Do it without branches to avoid leaking the padding
      * validity through timing. RSA keys are small enough that all the
      * size_t values involved fit in unsigned int. */
-    plaintext_size = mbedtls_ct_uint_if(
+    plaintext_size = mbedtls_ct_uint_if_new(
         bad, (unsigned) plaintext_max_size,
         (unsigned) (ilen - pad_count - 3));
 
     /* Set output_too_large to 0 if the plaintext fits in the output
      * buffer and to 1 otherwise. */
-    output_too_large = mbedtls_ct_size_gt(plaintext_size,
+    output_too_large = mbedtls_ct_bool_gt(plaintext_size,
                                           plaintext_max_size);
 
     /* Set ret without branches to avoid timing attacks. Return:
@@ -157,11 +158,13 @@ static int mbedtls_ct_rsaes_pkcs1_v15_unpadding(unsigned char *input,
      * - OUTPUT_TOO_LARGE if the padding is good but the decrypted
      *   plaintext does not fit in the output buffer.
      * - 0 if the padding is correct. */
-    ret = -(int) mbedtls_ct_uint_if(
-        bad, -MBEDTLS_ERR_RSA_INVALID_PADDING,
-        mbedtls_ct_uint_if(output_too_large,
-                           -MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE,
-                           0));
+    ret = -(int) mbedtls_ct_uint_if_new(
+        bad,
+        (unsigned) (-(MBEDTLS_ERR_RSA_INVALID_PADDING)),
+        mbedtls_ct_uint_if0(
+            output_too_large,
+            (unsigned) (-(MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE)))
+        );
 
     /* If the padding is bad or the plaintext is too large, zero the
      * data that we're about to copy to the output buffer.
@@ -169,16 +172,13 @@ static int mbedtls_ct_rsaes_pkcs1_v15_unpadding(unsigned char *input,
      * from the same buffer whether the padding is good or not to
      * avoid leaking the padding validity through overall timing or
      * through memory or cache access patterns. */
-    bad = mbedtls_ct_uint_mask(bad | output_too_large);
-    for (i = 11; i < ilen; i++) {
-        input[i] &= ~bad;
-    }
+    mbedtls_ct_zeroize_if(mbedtls_ct_bool_or(bad, output_too_large), input + 11, ilen - 11);
 
     /* If the plaintext is too large, truncate it to the buffer size.
      * Copy anyway to avoid revealing the length through timing, because
      * revealing the length is as bad as revealing the padding validity
      * for a Bleichenbacher attack. */
-    plaintext_size = mbedtls_ct_uint_if(output_too_large,
+    plaintext_size = mbedtls_ct_uint_if_new(output_too_large,
                                         (unsigned) plaintext_max_size,
                                         (unsigned) plaintext_size);
 
@@ -188,9 +188,9 @@ static int mbedtls_ct_rsaes_pkcs1_v15_unpadding(unsigned char *input,
      * does not depend on the plaintext size. After this move, the
      * starting location of the plaintext is no longer sensitive
      * information. */
-    mbedtls_ct_mem_move_to_left(input + ilen - plaintext_max_size,
-                                plaintext_max_size,
-                                plaintext_max_size - plaintext_size);
+    mbedtls_ct_memmove_left(input + ilen - plaintext_max_size,
+                            plaintext_max_size,
+                            plaintext_max_size - plaintext_size);
 
     /* Finally copy the decrypted plaintext plus trailing zeros into the output
      * buffer. If output_max_len is 0, then output may be an invalid pointer

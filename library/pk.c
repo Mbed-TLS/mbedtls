@@ -64,6 +64,12 @@ void mbedtls_pk_init(mbedtls_pk_context *ctx)
 #if defined(MBEDTLS_PSA_CRYPTO_C)
     ctx->priv_id = MBEDTLS_SVC_KEY_ID_INIT;
 #endif /* MBEDTLS_PSA_CRYPTO_C */
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    memset(ctx->pub_raw, 0, sizeof(ctx->pub_raw));
+    ctx->pub_raw_len = 0;
+    ctx->ec_family = 0;
+    ctx->ec_bits = 0;
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 }
 
 /*

@@ -24,6 +24,7 @@
 #if defined(MBEDTLS_BASE64_C)
 
 #include "mbedtls/base64.h"
+#include "base64_internal.h"
 #include "constant_time_internal.h"
 
 #include <stdint.h>

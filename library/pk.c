@@ -912,24 +912,34 @@ int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
 #else /* !MBEDTLS_ECP_LIGHT && !MBEDTLS_RSA_C */
 #if defined(MBEDTLS_ECP_LIGHT)
     if (mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECKEY) {
-        mbedtls_ecp_keypair *ec;
         unsigned char d[MBEDTLS_ECP_MAX_BYTES];
         size_t d_len;
         psa_ecc_family_t curve_id;
         psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
         psa_key_type_t key_type;
         size_t bits;
-        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         psa_status_t status;
 
         /* export the private key material in the format PSA wants */
-        ec = mbedtls_pk_ec_rw(*pk);
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+        status = psa_export_key(pk->priv_id, d, sizeof(d), &d_len);
+        if (status != PSA_SUCCESS) {
+            return psa_pk_status_to_mbedtls(status);
+        }
+
+        curve_id = pk->ec_family;
+        bits = pk->ec_bits;
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
+        mbedtls_ecp_keypair *ec = mbedtls_pk_ec_rw(*pk);
+        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
         d_len = PSA_BITS_TO_BYTES(ec->grp.nbits);
         if ((ret = mbedtls_ecp_write_key(ec, d, d_len)) != 0) {
             return ret;
         }
 
         curve_id = mbedtls_ecc_group_to_psa(ec->grp.id, &bits);
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
         key_type = PSA_KEY_TYPE_ECC_KEY_PAIR(curve_id);
 
         /* prepare the key attributes */

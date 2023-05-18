@@ -415,3 +415,72 @@ class ModOperationCommon(OperationCommon):
                         lambda test_object: test_object.is_valid,
                         chain(test_objects, special_cases)
                         ))
+
+
+class BignumBitShiftTarget(ModOperationCommon):
+    #pylint: disable=abstract-method, too-few-public-methods
+    """Target for bignum core test case generation."""
+
+    BIT_SHIFT_VALUES = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a',
+                        '1f', '20', '21', '3f', '40', '41', '47', '48', '4f',
+                        '50', '51', '58', '80', '81', '88']
+    DATA = ["0", "1", "40", "dee5ca1a7ef10a75", "a1055eb0bb1efa1150ff",
+            "002e7ab0070ad57001", "020100000000000000001011121314151617",
+            "1946e2958a85d8863ae21f4904fcc49478412534ed53eaf321f63f2a222"
+            "7a3c63acbf50b6305595f90cfa8327f6db80d986fe96080bcbb5df1bdbe"
+            "9b74fb8dedf2bddb3f8215b54dffd66409323bcc473e45a8fe9d08e77a51"
+            "1698b5dad0416305db7fcf"]
+
+    count = 0
+    arity = 1
+    input_style = "arch_split"
+    input_values = BIT_SHIFT_VALUES
+    moduli = DATA
+
+    @property
+    def val_n_max_limbs(self) -> int:
+        """ Return the limb count required to store the maximum number that can
+        fit in a the number of digits used by val_n """
+        m = hex_digits_max_int(self.val_n, self.bits_in_limb) - 1
+        return limbs_mpi(m, self.bits_in_limb)
+
+    def arguments(self) -> List[str]:
+        return [quote_str(self.val_n),
+                str(self.int_a)
+                ] + self.result()
+
+    def format_result(self, res: int) -> str:
+        # Override to match zero-pading for leading digits between the output and input.
+        res_str = zfill_match(self.val_n, "{:x}".format(res))
+        return quote_str(res_str)
+
+    def bit_shift(self) -> int:
+        if self.symbol == "<<":
+            return self.int_n << self.int_a
+        elif self.symbol == ">>":
+            return self.int_a >> self.int_n
+        else:
+            raise ValueError("Bit-Shift not supported")
+
+    def result(self) -> List[str]:
+        result = self.bit_shift()
+        # Calculate if there is space for shifting to the left(leading zero limbs)
+        mx = hex_digits_max_int(self.val_n, self.bits_in_limb)
+        # If there are empty limbs ahead, adjust the bitmask accordingly
+        result = result & (mx - 1)
+        return [self.format_result(result)]
+
+    @property
+    def is_valid(self) -> bool:
+        return True
+
+    def description(self) -> str:
+        """ Format the output as:
+        #{count} {hex input} ({input bits} {limbs capacity}) << {bit shift} """
+        bits = "({} bits in {} limbs)".format(self.int_n.bit_length(), self.val_n_max_limbs)
+        return "{} #{} {} {} {} {}".format(self.test_name,
+                                           self.count,
+                                           self.val_n,
+                                           bits,
+                                           self.symbol,
+                                           self.int_a)

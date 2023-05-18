@@ -1552,7 +1552,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
-void ecp_mod_mul_inv(char *input_A, int id, int ctype, int iret)
+void ecp_mod_mul_inv(char *input_A, int id, int ctype)
 {
     size_t limbs;
     mbedtls_mpi_mod_modulus m;
@@ -1564,8 +1564,6 @@ void ecp_mod_mul_inv(char *input_A, int id, int ctype, int iret)
     mbedtls_mpi_uint *A = NULL;
     mbedtls_mpi_uint *bufx = NULL;
     const mbedtls_mpi_uint one[2] = {1, 0};
-
-    ((void) iret);
 
     mbedtls_mpi_mod_modulus_init(&m);
 

@@ -64,6 +64,7 @@ int test_time_delay_seconds_once(int delay_secs)
            elapsed_secs - delay_secs <   4;
 
 }
+#define MBEDTLS_TIME_DELAY_TEST_RETRIES 3
 #endif
 /* END_HEADER */
 
@@ -75,12 +76,14 @@ int test_time_delay_seconds_once(int delay_secs)
 void time_delay_milliseconds(int delay_ms)
 {
     int i;
-    for (i = 0; i < 3; i++) {
+    unsigned flag = 0;
+    for (i = 0; i < MBEDTLS_TIME_DELAY_TEST_RETRIES; i++) {
         if (test_time_delay_milliseconds_once(delay_ms)) {
-            goto exit;
+            break;
         }
+        flag |= 1 << i;
     }
-    TEST_ASSERT(0);
+    TEST_ASSERT(flag != (1 << MBEDTLS_TIME_DELAY_TEST_RETRIES) - 1);
 }
 /* END_CASE */
 
@@ -96,11 +99,13 @@ void time_delay_milliseconds(int delay_ms)
 void time_delay_seconds(int delay_secs)
 {
     int i;
+    unsigned flag = 0;
     for (i = 0; i < 3; i++) {
         if (test_time_delay_seconds_once(delay_secs)) {
-            goto exit;
+            break;
         }
+        flag |= 1 << i;
     }
-    TEST_ASSERT(0);
+    TEST_ASSERT(flag != (1 << MBEDTLS_TIME_DELAY_TEST_RETRIES) - 1);
 }
 /* END_CASE */

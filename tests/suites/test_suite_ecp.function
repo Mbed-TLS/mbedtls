@@ -1563,7 +1563,7 @@ void ecp_mod_mul_inv(char *input_A, int id, int ctype)
     mbedtls_mpi_uint *A_inverse = NULL;
     mbedtls_mpi_uint *A = NULL;
     mbedtls_mpi_uint *bufx = NULL;
-    const mbedtls_mpi_uint one[2] = {1, 0};
+    const mbedtls_mpi_uint one[1] = { 1 };
 
     mbedtls_mpi_mod_modulus_init(&m);
 
@@ -1582,15 +1582,19 @@ void ecp_mod_mul_inv(char *input_A, int id, int ctype)
     TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&rX, &m, rX_raw, limbs));
 
     /* Get inverse of A mode m, and multiply it with itself,
-        * to see whether the result equal to '1' */
+     * to see whether the result equal to '1' */
     TEST_EQUAL(0, mbedtls_mpi_mod_inv(&rA_inverse, &rA, &m));
     TEST_EQUAL(mbedtls_mpi_mod_mul(&rX, &rA, &rA_inverse, &m), 0);
 
     ASSERT_ALLOC(bufx, limbs);
     TEST_EQUAL(mbedtls_mpi_mod_write(&rX, &m, (unsigned char *) bufx,
-                                        limbs * sizeof(mbedtls_mpi_uint),
-                                        MBEDTLS_MPI_MOD_EXT_REP_LE), 0);
-    ASSERT_COMPARE(bufx, 2, one, 2);
+                                     limbs * ciL,
+                                     MBEDTLS_MPI_MOD_EXT_REP_LE), 0);
+
+    ASSERT_COMPARE(bufx, ciL, one, ciL);
+    /*Borrow the buffer of A to compare the left lims with 0 */
+    memset(A, 0, limbs * ciL);
+    ASSERT_COMPARE(&bufx[1], (limbs - 1) * ciL, A, (limbs - 1) * ciL);
 
 
 exit:

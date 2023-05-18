@@ -1609,7 +1609,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
-void ecp_mod_add_sub(char *input_A, char *input_B, int id, int ctype, int iret)
+void ecp_mod_add_sub(char *input_A, char *input_B, int id, int ctype)
 {
     size_t p_limbs;
     size_t bytes;
@@ -1620,8 +1620,6 @@ void ecp_mod_add_sub(char *input_A, char *input_B, int id, int ctype, int iret)
     mbedtls_mpi_uint *p_A = NULL;
     mbedtls_mpi_uint *p_B = NULL;
     mbedtls_mpi_uint *p_S = NULL;
-
-    ((void) iret);
 
     mbedtls_mpi_mod_modulus_init(&m);
 

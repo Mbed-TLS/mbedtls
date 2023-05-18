@@ -78,6 +78,14 @@ void mbedtls_pk_free(mbedtls_pk_context *ctx)
         ctx->pk_info->ctx_free_func(ctx->pk_ctx);
     }
 
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    /* The ownership of the priv_id key for opaque keys is external of the PK
+     * module. It's the user responsibility to clear it after use. */
+    if ((ctx->pk_info != NULL) && (ctx->pk_info->type != MBEDTLS_PK_OPAQUE)) {
+        psa_destroy_key(ctx->priv_id);
+    }
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
+
     mbedtls_platform_zeroize(ctx, sizeof(mbedtls_pk_context));
 }
 
@@ -143,7 +151,7 @@ int mbedtls_pk_setup(mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info)
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
 
-    if ((info->ctx_alloc_func == NULL) ||
+    if ((info->ctx_alloc_func != NULL) &&
         ((ctx->pk_ctx = info->ctx_alloc_func()) == NULL)) {
         return MBEDTLS_ERR_PK_ALLOC_FAILED;
     }

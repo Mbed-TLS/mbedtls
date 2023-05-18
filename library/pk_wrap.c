@@ -1214,6 +1214,7 @@ static int eckey_check_pair(mbedtls_pk_context *pub, mbedtls_pk_context *prv,
 #endif
 }
 
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 static void *eckey_alloc_wrap(void)
 {
     void *ctx = mbedtls_calloc(1, sizeof(mbedtls_ecp_keypair));
@@ -1230,6 +1231,7 @@ static void eckey_free_wrap(void *ctx)
     mbedtls_ecp_keypair_free((mbedtls_ecp_keypair *) ctx);
     mbedtls_free(ctx);
 }
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
 static void eckey_debug(mbedtls_pk_context *pk, mbedtls_pk_debug_item *items)
 {
@@ -1267,8 +1269,13 @@ const mbedtls_pk_info_t mbedtls_eckey_info = {
     NULL,
     NULL,
     eckey_check_pair,
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    NULL,
+    NULL,
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
     eckey_alloc_wrap,
     eckey_free_wrap,
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     eckey_rs_alloc,
     eckey_rs_free,
@@ -1299,8 +1306,13 @@ const mbedtls_pk_info_t mbedtls_eckeydh_info = {
     NULL,
     NULL,
     eckey_check_pair,
-    eckey_alloc_wrap,       /* Same underlying key structure */
-    eckey_free_wrap,        /* Same underlying key structure */
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    NULL,
+    NULL,
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
+    eckey_alloc_wrap,   /* Same underlying key structure */
+    eckey_free_wrap,    /* Same underlying key structure */
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     NULL,
     NULL,
@@ -1389,8 +1401,13 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
     NULL,
     NULL,
     eckey_check_pair,   /* Compatible key structures */
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    NULL,
+    NULL,
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
     eckey_alloc_wrap,   /* Compatible key structures */
     eckey_free_wrap,   /* Compatible key structures */
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     ecdsa_rs_alloc,
     ecdsa_rs_free,

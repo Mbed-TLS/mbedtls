@@ -38,6 +38,7 @@
 #include "mbedtls/pk.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/error.h"
+#include "mbedtls/ssl.h"
 
 #include <string.h>
 
@@ -275,6 +276,33 @@ static inline int mbedtls_psa_get_ecc_oid_from_id(
 
 #define MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH \
     PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)
+
+#define MBEDTLS_PSA_MAX_FFDH_PUBKEY_LENGTH \
+    PSA_KEY_EXPORT_FFDH_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_FFDH_MAX_KEY_BITS)
+
+static inline psa_key_type_t mbedtls_psa_parse_tls_ffdh_group(
+    uint16_t tls_ecc_grp_reg_id, size_t *bits)
+{
+    switch (tls_ecc_grp_reg_id) {
+        case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048:
+            *bits = 2048;
+            return PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
+        case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072:
+            *bits = 3072;
+            return PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
+        case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096:
+            *bits = 4096;
+            return PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
+        case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144:
+            *bits = 6144;
+            return PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
+        case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192:
+            *bits = 8192;
+            return PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
+        default:
+            return 0;
+    }
+}
 
 /* Expose whatever RNG the PSA subsystem uses to applications using the
  * mbedtls_xxx API. The declarations and definitions here need to be

@@ -307,7 +307,7 @@ static int ssl_write_supported_groups_ext(mbedtls_ssl_context *ssl,
             p += 2;
             MBEDTLS_SSL_DEBUG_MSG(3, ("NamedGroup: %s ( %x )",
                                       ffdh_group, *group_list));
-        
+        }
     }
 
     /* Length of named_group_list */
@@ -336,7 +336,6 @@ static int ssl_write_supported_groups_ext(mbedtls_ssl_context *ssl,
 
     return 0;
 }
-
 #endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
           MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 

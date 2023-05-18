@@ -66,6 +66,7 @@
 
 #include "mbedtls/build_info.h"
 #include "mbedtls/bignum.h"
+#include <string.h>
 
 /*
  * DHM Error codes
@@ -90,6 +91,20 @@
 #define MBEDTLS_ERR_DHM_FILE_IO_ERROR                     -0x3480
 /** Setting the modulus and generator failed. */
 #define MBEDTLS_ERR_DHM_SET_GROUP_FAILED                  -0x3580
+
+/* Finite Field Groups (DHE) */
+#define MBEDTLS_DHM_GROUP_FFDHE2048     0x0100
+#define MBEDTLS_DHM_GROUP_FFDHE3072     0x0101
+#define MBEDTLS_DHM_GROUP_FFDHE4096     0x0102
+#define MBEDTLS_DHM_GROUP_FFDHE6144     0x0103
+#define MBEDTLS_DHM_GROUP_FFDHE8192     0x0104
+
+/* Finite Field Group Names (DHE) */
+#define MBEDTLS_DHM_GROUP_NAME_FFDHE2048     "ffdhe2048"
+#define MBEDTLS_DHM_GROUP_NAME_FFDHE3072     "ffdhe3072"
+#define MBEDTLS_DHM_GROUP_NAME_FFDHE4096     "ffdhe4096"
+#define MBEDTLS_DHM_GROUP_NAME_FFDHE6144     "ffdhe6144"
+#define MBEDTLS_DHM_GROUP_NAME_FFDHE8192     "ffdhe8192"
 
 /** Which parameter to access in mbedtls_dhm_get_value(). */
 typedef enum {
@@ -376,6 +391,55 @@ int mbedtls_dhm_parse_dhm(mbedtls_dhm_context *dhm, const unsigned char *dhmin,
 int mbedtls_dhm_parse_dhmfile(mbedtls_dhm_context *dhm, const char *path);
 #endif /* MBEDTLS_FS_IO */
 #endif /* MBEDTLS_ASN1_PARSE_C */
+
+static inline uint16_t mbedtls_ssl_ffdh_group_from_name(const char *name)
+{
+    if (strcmp(name, MBEDTLS_DHM_GROUP_NAME_FFDHE2048) == 0) {
+        return MBEDTLS_DHM_GROUP_FFDHE2048;
+    } else if (strcmp(name, MBEDTLS_DHM_GROUP_NAME_FFDHE3072) == 0) {
+        return MBEDTLS_DHM_GROUP_FFDHE3072;
+    } else if (strcmp(name, MBEDTLS_DHM_GROUP_NAME_FFDHE4096) == 0) {
+        return MBEDTLS_DHM_GROUP_FFDHE4096;
+    } else if (strcmp(name, MBEDTLS_DHM_GROUP_NAME_FFDHE6144) == 0) {
+        return MBEDTLS_DHM_GROUP_FFDHE6144;
+    } else if (strcmp(name, MBEDTLS_DHM_GROUP_NAME_FFDHE8192) == 0) {
+        return MBEDTLS_DHM_GROUP_FFDHE8192;
+    }
+    return 0;
+}
+
+static inline const char *mbedtls_ssl_ffdh_name_from_group(uint16_t group)
+{
+    switch (group) {
+        case MBEDTLS_DHM_GROUP_FFDHE2048:
+            return MBEDTLS_DHM_GROUP_NAME_FFDHE2048;
+        case MBEDTLS_DHM_GROUP_FFDHE3072:
+            return MBEDTLS_DHM_GROUP_NAME_FFDHE3072;
+        case MBEDTLS_DHM_GROUP_FFDHE4096:
+            return MBEDTLS_DHM_GROUP_NAME_FFDHE4096;
+        case MBEDTLS_DHM_GROUP_FFDHE6144:
+            return MBEDTLS_DHM_GROUP_NAME_FFDHE6144;
+        case MBEDTLS_DHM_GROUP_FFDHE8192:
+            return MBEDTLS_DHM_GROUP_NAME_FFDHE8192;
+        default:
+            return NULL;
+    }
+    return NULL;
+}
+
+static inline uint16_t *mbedtls_ssl_ffdh_supported_groups(void)
+{
+    static uint16_t ffdh_groups[] = {
+        MBEDTLS_DHM_GROUP_FFDHE2048,
+        MBEDTLS_DHM_GROUP_FFDHE3072,
+        MBEDTLS_DHM_GROUP_FFDHE4096,
+        MBEDTLS_DHM_GROUP_FFDHE6144,
+        MBEDTLS_DHM_GROUP_FFDHE8192,
+        0
+    };
+
+    return ffdh_groups;
+}
 
 #if defined(MBEDTLS_SELF_TEST)
 

@@ -1550,3 +1550,61 @@ exit:
     mbedtls_free(p);
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
+void ecp_mod_mul_inv(char *input_A, int id, int ctype)
+{
+    size_t limbs;
+    mbedtls_mpi_mod_modulus m;
+    mbedtls_mpi_mod_residue rA; // For input
+    mbedtls_mpi_mod_residue rA_inverse; // For inverse input
+    mbedtls_mpi_mod_residue rX; // For result
+    mbedtls_mpi_uint *rX_raw = NULL;
+    mbedtls_mpi_uint *A_inverse = NULL;
+    mbedtls_mpi_uint *A = NULL;
+    mbedtls_mpi_uint *bufx = NULL;
+    const mbedtls_mpi_uint one[1] = { 1 };
+
+    mbedtls_mpi_mod_modulus_init(&m);
+
+    TEST_ASSERT(mbedtls_ecp_modulus_setup(&m, id, ctype) == 0);
+
+    TEST_EQUAL(mbedtls_test_read_mpi_core(&A, &limbs, input_A), 0);
+    TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&rA, &m, A, limbs));
+
+    /* Test for limb sizes */
+    TEST_EQUAL(m.limbs, limbs);
+
+    ASSERT_ALLOC(A_inverse, limbs);
+    TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&rA_inverse, &m, A_inverse, limbs));
+
+    ASSERT_ALLOC(rX_raw, limbs);
+    TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&rX, &m, rX_raw, limbs));
+
+    /* Get inverse of A mode m, and multiply it with itself,
+     * to see whether the result equal to '1' */
+    TEST_EQUAL(0, mbedtls_mpi_mod_inv(&rA_inverse, &rA, &m));
+    TEST_EQUAL(mbedtls_mpi_mod_mul(&rX, &rA, &rA_inverse, &m), 0);
+
+    ASSERT_ALLOC(bufx, limbs);
+    TEST_EQUAL(mbedtls_mpi_mod_write(&rX, &m, (unsigned char *) bufx,
+                                     limbs * ciL,
+                                     MBEDTLS_MPI_MOD_EXT_REP_LE), 0);
+
+    ASSERT_COMPARE(bufx, ciL, one, ciL);
+    /*Borrow the buffer of A to compare the left lims with 0 */
+    memset(A, 0, limbs * ciL);
+    ASSERT_COMPARE(&bufx[1], (limbs - 1) * ciL, A, (limbs - 1) * ciL);
+
+
+exit:
+    mbedtls_mpi_mod_modulus_free(&m);
+    mbedtls_mpi_mod_residue_release(&rA);
+    mbedtls_mpi_mod_residue_release(&rA_inverse);
+    mbedtls_mpi_mod_residue_release(&rX);
+    mbedtls_free(A);
+    mbedtls_free(A_inverse);
+    mbedtls_free(rX_raw);
+    mbedtls_free(bufx);
+}
+/* END_CASE */

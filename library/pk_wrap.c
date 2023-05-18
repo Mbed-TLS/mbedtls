@@ -43,13 +43,6 @@
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 #include "mbedtls/psa_util.h"
-#define PSA_PK_TO_MBEDTLS_ERR(status) psa_pk_status_to_mbedtls(status)
-#define PSA_PK_RSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,     \
-                                                                  psa_to_pk_rsa_errors,            \
-                                                                  psa_pk_status_to_mbedtls)
-#define PSA_PK_ECDSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
-                                                                    psa_to_pk_ecdsa_errors,        \
-                                                                    psa_pk_status_to_mbedtls)
 #endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)

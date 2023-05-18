@@ -298,7 +298,8 @@ void mbedtls_ct_memcpy_if(int eq, int size, int offset)
     TEST_CF_SECRET(src, size + offset);
     TEST_CF_SECRET(result, size + offset);
 
-    mbedtls_ct_memcpy_if(mbedtls_ct_bool(secret_eq), src + offset, src + offset, src + offset, size);
+    mbedtls_ct_memcpy_if(mbedtls_ct_bool(secret_eq), src + offset, src + offset, src + offset,
+                         size);
 
     TEST_CF_PUBLIC(&secret_eq, sizeof(secret_eq));
     TEST_CF_PUBLIC(src, size + offset);

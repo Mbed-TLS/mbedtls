@@ -211,8 +211,14 @@ void mbedtls_mpi_core_cond_assign(mbedtls_mpi_uint *X,
         return;
     }
 
-    mbedtls_ct_memcpy_if(assign, (unsigned char *) X, (unsigned char *) A, NULL,
-                         limbs * sizeof(mbedtls_mpi_uint));
+    /* This function is very performance-sensitive for RSA. For this reason
+     * we have the loop below, instead of calling mbedtls_ct_memcpy_if
+     * (this is more optimal since here we don't have to handle the case where
+     * we copy awkwardly sized data).
+     */
+    for (size_t i = 0; i < limbs; i++) {
+        X[i] = mbedtls_ct_mpi_uint_if(assign, A[i], X[i]);
+    }
 }
 
 void mbedtls_mpi_core_cond_swap(mbedtls_mpi_uint *X,

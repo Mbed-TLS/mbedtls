@@ -1618,6 +1618,16 @@ server1.ca.der: server1.ca.crt
 	$(OPENSSL) x509 -inform PEM -in $< -outform DER -out $@
 all_final += server1.ca.crt server1.ca_noauthid.crt server1.ca.der
 
+server1-nospace.crt: server1.key test-ca.crt
+	$(MBEDTLS_CERT_WRITE) subject_key=$< serial=31\
+		subject_name="C=NL,O=PolarSSL,CN=polarssl.example"  \
+		issuer_crt=test-ca.crt issuer_key=$(test_ca_key_file_rsa) \
+		issuer_pwd=$(test_ca_pwd_rsa) \
+		not_before=20190210144406 not_after=20290210144406 \
+		md=SHA256 version=3 authority_identifier=1 \
+		output_file=$@
+all_final += server1-nospace.crt
+
 server1_ca.crt: server1.crt $(test_ca_crt)
 	cat server1.crt $(test_ca_crt) > $@
 all_final += server1_ca.crt

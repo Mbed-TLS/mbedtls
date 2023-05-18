@@ -243,6 +243,22 @@ int mbedtls_ecp_mod_p256k1_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 
 #if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
 
+/** Fast quasi-reduction modulo p255 = 2^255 - 19
+ *
+ * \param[in,out]   X       The address of the MPI to be converted.
+ *                          Must have exact limb size that stores a 510-bit MPI
+ *                          (double the bitlength of the modulus).
+ *                          Upon return holds the reduced value which is
+ *                          in range `0 <= X < 2 * N` (where N is the modulus).
+ *                          The bitlength of the reduced value is the same as
+ *                          that of the modulus (255 bits).
+ * \param[in]       X_limbs The length of \p X in limbs.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if \p X does not have
+ *                  twice as many limbs as the modulus.
+ * \return          #MBEDTLS_ERR_ECP_ALLOC_FAILED if memory allocation failed.
+ */
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p255_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 

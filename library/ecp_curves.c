@@ -5435,7 +5435,7 @@ int mbedtls_ecp_mod_p255_raw(mbedtls_mpi_uint *X, size_t X_Limbs)
     if (X_Limbs > 2*P255_WIDTH) {
         X_Limbs = 2*P255_WIDTH;
     } else if (X_Limbs < P255_WIDTH) {
-        return 0;
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 
     mbedtls_mpi_uint *carry = mbedtls_calloc(P255_WIDTH, ciL);

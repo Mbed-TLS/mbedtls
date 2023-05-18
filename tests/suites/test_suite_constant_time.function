@@ -224,6 +224,7 @@ void mbedtls_ct_memcpy_if(int eq, int size, int offset)
     ASSERT_ALLOC(result, size + offset);
     ASSERT_ALLOC(expected, size + offset);
 
+    /* Apply offset to result only */
     for (int i = 0; i < size + offset; i++) {
         src[i]      = 1;
         result[i]   = 0xff;
@@ -243,6 +244,8 @@ void mbedtls_ct_memcpy_if(int eq, int size, int offset)
 
     ASSERT_COMPARE(expected, size, result + offset, size);
 
+
+    /* Apply offset to src only */
     for (int i = 0; i < size + offset; i++) {
         src[i]    = 1;
         result[i] = 0xff;
@@ -261,6 +264,8 @@ void mbedtls_ct_memcpy_if(int eq, int size, int offset)
 
     ASSERT_COMPARE(expected, size, result, size);
 
+
+    /* Apply offset to src and src2 */
     for (int i = 0; i < size + offset; i++) {
         src[i]      = 1;
         src2[i]     = 2;
@@ -281,6 +286,25 @@ void mbedtls_ct_memcpy_if(int eq, int size, int offset)
     TEST_CF_PUBLIC(result, size + offset);
 
     ASSERT_COMPARE(expected, size, result, size);
+
+
+    /* result == src == dest */
+    for (int i = 0; i < size + offset; i++) {
+        src[i]      = 2;
+        expected[i] = 2;
+    }
+
+    TEST_CF_SECRET(&secret_eq, sizeof(secret_eq));
+    TEST_CF_SECRET(src, size + offset);
+    TEST_CF_SECRET(result, size + offset);
+
+    mbedtls_ct_memcpy_if(mbedtls_ct_bool(secret_eq), src + offset, src + offset, src + offset, size);
+
+    TEST_CF_PUBLIC(&secret_eq, sizeof(secret_eq));
+    TEST_CF_PUBLIC(src, size + offset);
+    TEST_CF_PUBLIC(result, size + offset);
+
+    ASSERT_COMPARE(expected, size, src + offset, size);
 exit:
     mbedtls_free(src);
     mbedtls_free(src2);

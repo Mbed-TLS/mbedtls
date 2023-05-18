@@ -417,9 +417,11 @@ void mbedtls_ct_memmove_left(void *start,
  *
  * \param condition The condition
  * \param dest      Secret. Destination pointer.
- * \param src1      Secret. Pointer to copy from (if \p condition == MBEDTLS_CT_TRUE). Shouldn't overlap with \p dest.
+ * \param src1      Secret. Pointer to copy from (if \p condition == MBEDTLS_CT_TRUE).
+ *                  This may be equal to \p dest, but may not overlap in other ways.
  * \param src2      Secret (contents only - may branch to test if src2 == NULL).
- *                  Pointer to copy from (if \p condition == MBEDTLS_CT_FALSE and \p src2 is not NULL). Shouldn't overlap with \p dest. May be NULL.
+ *                  Pointer to copy from (if \p condition == MBEDTLS_CT_FALSE and \p src2 is not NULL). May be NULL.
+ *                  This may be equal to \p dest, but may not overlap it in other ways. It may overlap with \p src1.
  * \param len       Number of bytes to copy.
  */
 void mbedtls_ct_memcpy_if(mbedtls_ct_condition_t condition,
@@ -450,7 +452,7 @@ void mbedtls_ct_memcpy_if(mbedtls_ct_condition_t condition,
  *                      buffer of at least \p len bytes.
  * \param src           Secret. The base of the source buffer. This must point to a
  *                      readable buffer of at least \p offset_max + \p len
- *                      bytes. Shouldn't overlap with \p dest.
+ *                      bytes. Shouldn't overlap with \p dest
  * \param offset        Secret. The offset in the source buffer from which to copy.
  *                      This must be no less than \p offset_min and no greater
  *                      than \p offset_max.

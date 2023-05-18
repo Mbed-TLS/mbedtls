@@ -25,6 +25,8 @@
 #include "test/psa_crypto_helpers.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */
 
+#include "mbedtls/dhm.h"
+
 #if defined(MBEDTLS_SSL_TEST_IMPOSSIBLE)
 int main(void)
 {
@@ -467,7 +469,7 @@ int main(void)
     " acceptable ciphersuite names:\n"
 
 #define ALPN_LIST_SIZE    10
-#define CURVE_LIST_SIZE   20
+#define CURVE_LIST_SIZE   25
 #define SIG_ALG_LIST_SIZE  5
 
 /*
@@ -1508,6 +1510,7 @@ usage:
             /* Leave room for a final NULL in curve list */
             while (i < CURVE_LIST_SIZE - 1 && *p != '\0') {
                 q = p;
+                uint16_t ffdh_group = 0;
 
                 /* Terminate the current string */
                 while (*p != ',' && *p != '\0') {
@@ -1519,6 +1522,8 @@ usage:
 
                 if ((curve_cur = mbedtls_ecp_curve_info_from_name(q)) != NULL) {
                     group_list[i++] = curve_cur->tls_id;
+                } else if ((ffdh_group = mbedtls_ssl_ffdh_group_from_name(q)) != 0) {
+                    group_list[i++] = ffdh_group;
                 } else {
                     mbedtls_printf("unknown curve %s\n", q);
                     mbedtls_printf("supported curves: ");
@@ -1526,6 +1531,12 @@ usage:
                          curve_cur->grp_id != MBEDTLS_ECP_DP_NONE;
                          curve_cur++) {
                         mbedtls_printf("%s ", curve_cur->name);
+                    }
+                    uint16_t *supported_ffdh_group = mbedtls_ssl_ffdh_supported_groups();
+                    while (*supported_ffdh_group != 0) {
+                        mbedtls_printf("%s ",
+                                       mbedtls_ssl_ffdh_name_from_group(*supported_ffdh_group));
+                        supported_ffdh_group++;
                     }
                     mbedtls_printf("\n");
                     goto exit;

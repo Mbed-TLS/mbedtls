@@ -54,8 +54,6 @@
 #define MPI_VALIDATE(cond)                                           \
     MBEDTLS_INTERNAL_VALIDATE(cond)
 
-#define MPI_SIZE_T_MAX  ((size_t) -1)   /* SIZE_T_MAX is not standard */
-
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_mpi_zeroize(mbedtls_mpi_uint *v, size_t n)
 {
@@ -416,7 +414,7 @@ int mbedtls_mpi_read_string(mbedtls_mpi *X, int radix, const char *s)
     slen = strlen(s);
 
     if (radix == 16) {
-        if (slen > MPI_SIZE_T_MAX >> 2) {
+        if (slen > SIZE_MAX >> 2) {
             return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
         }
 

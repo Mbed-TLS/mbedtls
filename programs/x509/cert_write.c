@@ -518,6 +518,8 @@ usage:
                     SET_OID(ext_key_usage->buf, MBEDTLS_OID_TIME_STAMPING);
                 } else if (strcmp(q, "OCSPSigning") == 0) {
                     SET_OID(ext_key_usage->buf, MBEDTLS_OID_OCSP_SIGNING);
+                } else if (strcmp(q, "any") == 0) {
+                    SET_OID(ext_key_usage->buf, MBEDTLS_OID_ANY_EXTENDED_KEY_USAGE);
                 } else {
                     mbedtls_printf("Invalid argument for option %s\n", p);
                     goto usage;

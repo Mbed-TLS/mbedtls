@@ -67,6 +67,14 @@ test-ca.key.der: $(test_ca_key_file_rsa)
 	$(OPENSSL) pkey -in $< -out $@ -inform PEM -outform DER -passin "pass:$(test_ca_pwd_rsa)"
 all_final += test-ca.key.der
 
+# This is only used for generating cert_example_multi_nocn.crt
+test-ca_nocn.crt: $(test_ca_key_file_rsa)
+	$(MBEDTLS_CERT_WRITE) is_ca=1 serial=3 selfsign=1 \
+		subject_key=$(test_ca_key_file_rsa) subject_pwd=$(test_ca_pwd_rsa)  subject_name="C=NL" \
+		issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) issuer_name="C=NL" \
+		not_before=20190210144400 not_after=20290210144400 md=SHA1 version=3 output_file=$@
+all_intermediate += test-ca_nocn.crt
+
 test-ca-sha1.crt: $(test_ca_key_file_rsa) test-ca.req.sha256
 	$(MBEDTLS_CERT_WRITE) is_ca=1 serial=3 request_file=test-ca.req.sha256 selfsign=1 issuer_name="C=NL,O=PolarSSL,CN=PolarSSL Test CA" issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20190210144400 not_after=20290210144400 md=SHA1 version=3 output_file=$@
 all_final += test-ca-sha1.crt
@@ -102,6 +110,14 @@ cert_example_multi.csr: rsa_pkcs1_1024_clear.pem
 
 cert_example_multi.crt: cert_example_multi.csr
 	$(OPENSSL) x509 -req -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) -extfile $(test_ca_config_file) -extensions dns_alt_names -passin "pass:$(test_ca_pwd_rsa)" -set_serial 17 -days 3653 -sha256 -in $< > $@
+
+cert_example_multi_nocn.csr: rsa_pkcs1_1024_clear.pem
+	$(MBEDTLS_CERT_REQ) filename=$< output_file=$@ subject_name='C=NL'
+all_intermediate += cert_example_multi_nocn.csr
+
+cert_example_multi_nocn.crt: cert_example_multi_nocn.csr test-ca_nocn.crt
+	$(OPENSSL) x509 -req -CA test-ca_nocn.crt -CAkey $(test_ca_key_file_rsa) -extfile $(test_ca_config_file) -extensions ext_multi_nocn -passin "pass:$(test_ca_pwd_rsa)" -set_serial  0xf7c67ff8e9a963f9 -days 3653 -sha1 -in $< > $@
+all_final += cert_example_multi_nocn.crt
 
 test_csr_v3_keyUsage.csr.der: rsa_pkcs1_1024_clear.pem
 	$(OPENSSL) req -new -subj '/CN=etcd' -config $(test_ca_config_file) -key rsa_pkcs1_1024_clear.pem -outform DER -out $@ -reqexts csr_ext_v3_keyUsage

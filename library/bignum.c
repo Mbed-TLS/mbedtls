@@ -96,8 +96,8 @@ int mbedtls_mpi_lt_mpi_ct(const mbedtls_mpi *X,
 
     /* This is used to conditionally swap the pointers in const time */
     void * const p[2] = { X->p, Y->p };
-    mbedtls_ct_condition_t lt = mbedtls_mpi_core_lt_ct(
-        p[X_is_negative & 1], p[(X_is_negative & 1) ^ 1], X->n);
+    size_t i = mbedtls_ct_size_if0(X_is_negative, 1);
+    mbedtls_ct_condition_t lt = mbedtls_mpi_core_lt_ct(p[i], p[i ^ 1], X->n);
 
     result = mbedtls_ct_bool_or(result, mbedtls_ct_bool_and(mbedtls_ct_bool_not(cond), lt));
 

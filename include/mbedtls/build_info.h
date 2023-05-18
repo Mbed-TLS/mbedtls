@@ -102,8 +102,9 @@
 #include "config_psa_adjust.h"
 #endif
 
-/* Extend the PSA configuration based on the legacy crypto configuration
- * to simplify the transition.
+/* Extend the PSA configuration to always support certain mechanisms
+ * if they are available through the legacy API, even when
+ * MBEDTLS_PSA_CRYPTO_CONFIG is enabled.
  *
  * This is independent of the mbedtls-from-psa or psa-from-mbedtls
  * implications based on the setting of MBEDTLS_PSA_CRYPTO_CONFIG
@@ -138,6 +139,10 @@
  *
  * This never enables cryptographic mechanisms as such, only high-level
  * interfaces (e.g. MD/CIPHER/PK) or internal sub-features (e.g. xxx_LIGHT).
+ * Therefore it can be done after config_psa_from_mbedtls.h.
+ *
+ * This depends on which legacy cryptography-related options are enabled,
+ * so it must be done after config_mbedtls_from_psa.h.
  */
 #include "config_crypto_adjust.h"
 

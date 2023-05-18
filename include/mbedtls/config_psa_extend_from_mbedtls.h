@@ -9,10 +9,16 @@
  * This file is used when #MBEDTLS_PSA_CRYPTO_C is enabled, regardless
  * of the status of #MBEDTLS_PSA_CRYPTO_CONFIG.
  *
- * This file automatically enables certain features when it would be
- * too complicated and basically useless not to (e.g. when there is
- * no practical use for enabling A without B, or when A+B requires almost
- * no extra code compared with A lone).
+ * This file enables certain cryptographic mechanisms in the PSA API if they
+ * are available through the legacy API. This simplifies the design of
+ * higher-level code that must work with both APIs and needs to know
+ * which algorithms are supported. For example, code that calls
+ * mbedtls_md() to calculate a hash can assume that if
+ * #MBEDTLS_SHA256_C is enabled then mbedtls_md(#MBEDTLS_MD_SHA256) will
+ * work even if the MD module uses PSA as a back-end.
+ *
+ * Note that if this file grows in scope, the place where it is included
+ * in build_info.h may need to change.
  */
 
 /*

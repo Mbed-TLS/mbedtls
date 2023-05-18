@@ -30,14 +30,6 @@
 #include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
 
-#if defined(MBEDTLS_SSL_TLS_C)
-#include "ssl_misc.h"
-#endif
-
-#if defined(MBEDTLS_RSA_C)
-#include "mbedtls/rsa.h"
-#endif
-
 #include <string.h>
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,    \
@@ -180,8 +172,6 @@ void mbedtls_ct_memcpy_if(mbedtls_ct_condition_t condition,
     }
 }
 
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
-
 void mbedtls_ct_memcpy_offset(unsigned char *dest,
                               const unsigned char *src,
                               size_t offset,
@@ -196,8 +186,6 @@ void mbedtls_ct_memcpy_offset(unsigned char *dest,
                              len);
     }
 }
-
-#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 
 #if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)
 

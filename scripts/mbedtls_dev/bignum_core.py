@@ -27,14 +27,14 @@ class BignumCoreTarget(test_data_generation.BaseTarget):
     """Target for bignum core test case generation."""
     target_basename = 'test_suite_bignum_core.generated'
 
-class BignumCoreShiftR(BignumCoreTarget, bignum_common.BignumBitShiftTarget):
+class BignumCoreShiftR(BignumCoreTarget, bignum_common.BitShiftOperation):
     """Test cases for mbedtls_bignum_core_shift_l()."""
 
     test_function = "mpi_core_shift_r"
     test_name = "Core shift(R)"
     symbol = ">>"
 
-class BignumCoreShiftL(BignumCoreTarget, bignum_common.BignumBitShiftTarget):
+class BignumCoreShiftL(BignumCoreTarget, bignum_common.BitShiftOperation):
     """Test cases for mbedtls_bignum_core_shift_l()."""
 
     test_function = "mpi_core_shift_l"

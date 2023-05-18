@@ -418,7 +418,7 @@ class ModOperationCommon(OperationCommon):
                         ))
 
 
-class BignumBitShiftTarget(OperationCommon):
+class BitShiftOperation(OperationCommon):
     #pylint: disable=abstract-method, too-few-public-methods
     """Target for bignum core test case generation."""
 

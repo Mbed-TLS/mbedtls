@@ -1528,6 +1528,31 @@ server5.req.ku.sha1: server5.key
 	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< key_usage=digital_signature,non_repudiation subject_name="C=NL,O=PolarSSL,CN=PolarSSL Server 1" md=SHA1
 all_final += server5.req.ku.sha1
 
+server5.ku-ds.crt: SERVER5_CRT_SERIAL=45
+server5.ku-ds.crt: SERVER5_KEY_USAGE=digital_signature
+server5.ku-ka.crt: SERVER5_CRT_SERIAL=46
+server5.ku-ka.crt: SERVER5_KEY_USAGE=key_agreement
+server5.ku-ke.crt: SERVER5_CRT_SERIAL=47
+server5.ku-ke.crt: SERVER5_KEY_USAGE=key_encipherment
+server5.eku-cs.crt: SERVER5_CRT_SERIAL=58
+server5.eku-cs.crt: SERVER5_EXT_KEY_USAGE=codeSigning
+server5.eku-cs_any.crt: SERVER5_CRT_SERIAL=59
+server5.eku-cs_any.crt: SERVER5_EXT_KEY_USAGE=codeSigning
+server5.eku-cli.crt: SERVER5_CRT_SERIAL=60
+server5.eku-cli.crt: SERVER5_EXT_KEY_USAGE=clientAuth
+server5.eku-srv_cli.crt: SERVER5_CRT_SERIAL=61
+server5.eku-srv_cli.crt: SERVER5_EXT_KEY_USAGE=serverAuth,clientAuth
+server5.eku-srv.crt: SERVER5_CRT_SERIAL=62
+server5.eku-srv.crt: SERVER5_EXT_KEY_USAGE=serverAuth
+server5.ku-%.crt: SERVER5_EXT_OPTS=key_usage=$(SERVER5_KEY_USAGE)
+server5.eku-%.crt: SERVER5_EXT_OPTS=ext_key_usage=$(SERVER5_EXT_KEY_USAGE)
+server5.%.crt: server5.key
+	$(MBEDTLS_CERT_WRITE) \
+		subject_key=$< subject_name="C=NL,O=PolarSSL,CN=localhost" serial=$(SERVER5_CRT_SERIAL) \
+		issuer_crt=$(test_ca_crt_file_ec) issuer_key=$(test_ca_key_file_ec) $(SERVER5_EXT_OPTS) \
+		not_before=20190210144406 not_after=20290210144406 md=SHA256 version=3 output_file=$@
+all_final += server5.ku-ka.crt server5.ku-ke.crt server5.ku-ds.crt
+
 # server6*
 
 server6.csr: server6.key

@@ -15,26 +15,6 @@ static const char base64_digits[] =
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE */
-void mask_of_range(int low_arg, int high_arg)
-{
-    unsigned char low = low_arg, high = high_arg;
-    unsigned c;
-    for (c = 0; c <= 0xff; c++) {
-        mbedtls_test_set_step(c);
-        TEST_CF_SECRET(&c, sizeof(c));
-        unsigned char m = mbedtls_ct_uchar_in_range_if(low, high, c, 0xff);
-        TEST_CF_PUBLIC(&c, sizeof(c));
-        TEST_CF_PUBLIC(&m, sizeof(m));
-        if (low <= c && c <= high) {
-            TEST_EQUAL(m, 0xff);
-        } else {
-            TEST_EQUAL(m, 0);
-        }
-    }
-}
-/* END_CASE */
-
 /* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
 void enc_chars()
 {

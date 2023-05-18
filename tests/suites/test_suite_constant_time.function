@@ -92,22 +92,25 @@ void mbedtls_ct_bool_xxx(char *x_str, char *y_str)
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_BASE64_C */
-void mbedtls_ct_uchar_in_range_if(int li, int hi, int xi, int ti)
+void mbedtls_ct_uchar_in_range_if(int li, int hi, int ti)
 {
-    unsigned char l = li, h = hi, x = xi, t = ti;
-    unsigned char expected = (x >= l) && (x <= h) ? t : 0;
+    unsigned char l = li, h = hi, t = ti;
 
-    TEST_CF_SECRET(&x, sizeof(x));
-    TEST_CF_SECRET(&l, sizeof(l));
-    TEST_CF_SECRET(&h, sizeof(h));
-    TEST_CF_SECRET(&t, sizeof(t));
+    for (unsigned x = 0; x <= 255; x++) {
+        unsigned char expected = (x >= l) && (x <= h) ? t : 0;
 
-    TEST_EQUAL(mbedtls_ct_uchar_in_range_if(l, h, x, t), expected);
+        TEST_CF_SECRET(&x, sizeof(x));
+        TEST_CF_SECRET(&l, sizeof(l));
+        TEST_CF_SECRET(&h, sizeof(h));
+        TEST_CF_SECRET(&t, sizeof(t));
 
-    TEST_CF_PUBLIC(&x, sizeof(x));
-    TEST_CF_PUBLIC(&l, sizeof(l));
-    TEST_CF_PUBLIC(&h, sizeof(h));
-    TEST_CF_PUBLIC(&t, sizeof(t));
+        TEST_EQUAL(mbedtls_ct_uchar_in_range_if(l, h, (unsigned char) x, t), expected);
+
+        TEST_CF_PUBLIC(&x, sizeof(x));
+        TEST_CF_PUBLIC(&l, sizeof(l));
+        TEST_CF_PUBLIC(&h, sizeof(h));
+        TEST_CF_PUBLIC(&t, sizeof(t));
+    }
 }
 /* END_CASE */
 

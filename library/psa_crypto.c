@@ -7384,6 +7384,7 @@ psa_status_t psa_crypto_driver_pake_get_cipher_suite(
     return PSA_SUCCESS;
 }
 
+#if defined(PSA_WANT_ALG_SOME_PAKE)
 psa_status_t psa_pake_setup(
     psa_pake_operation_t *operation,
     const psa_pake_cipher_suite_t *cipher_suite)
@@ -8100,5 +8101,6 @@ psa_status_t psa_pake_abort(
 
     return status;
 }
+#endif /* PSA_WANT_ALG_SOME_PAKE */
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

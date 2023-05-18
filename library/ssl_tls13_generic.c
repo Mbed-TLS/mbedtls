@@ -1571,6 +1571,68 @@ int mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
 }
 #endif /* PSA_WANT_ALG_ECDH */
 
+#if defined(PSA_WANT_ALG_FFDH)
+int mbedtls_ssl_tls13_generate_and_write_dhe_key_exchange(
+    mbedtls_ssl_context *ssl,
+    uint16_t named_group,
+    unsigned char *buf,
+    unsigned char *end,
+    size_t *out_len)
+{
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+    int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
+    psa_key_attributes_t key_attributes;
+    size_t own_pubkey_len;
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+    size_t ffdh_bits = 0;
+
+    MBEDTLS_SSL_DEBUG_MSG(1, ("Perform PSA-based DHE computation."));
+
+    /* Convert DHE group to PSA key type. */
+    if ((handshake->ecdh_psa_type =
+             mbedtls_psa_parse_tls_ffdh_group(named_group, &ffdh_bits)) == 0) {
+        return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+    }
+
+    if ((size_t) (end - buf) < PSA_BITS_TO_BYTES(ffdh_bits)) {
+        ret = MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
+        return ret;
+    }
+
+    ssl->handshake->ecdh_bits = ffdh_bits;
+
+    key_attributes = psa_key_attributes_init();
+    psa_set_key_usage_flags(&key_attributes, PSA_KEY_USAGE_DERIVE);
+    psa_set_key_algorithm(&key_attributes, PSA_ALG_FFDH);
+    psa_set_key_type(&key_attributes, handshake->ecdh_psa_type);
+    psa_set_key_bits(&key_attributes, handshake->ecdh_bits);
+
+    /* Generate FFDH private key. */
+    status = psa_generate_key(&key_attributes,
+                              &handshake->ecdh_psa_privkey);
+    if (status != PSA_SUCCESS) {
+        ret = psa_ssl_status_to_mbedtls(status);
+        MBEDTLS_SSL_DEBUG_RET(1, "psa_generate_key", ret);
+        return ret;
+
+    }
+
+    /* Export the public part of the FFDH private key from PSA. */
+    status = psa_export_public_key(handshake->ecdh_psa_privkey,
+                                   buf, PSA_BITS_TO_BYTES(ffdh_bits),
+                                   &own_pubkey_len);
+    if (status != PSA_SUCCESS) {
+        ret = psa_ssl_status_to_mbedtls(status);
+        MBEDTLS_SSL_DEBUG_RET(1, "psa_export_public_key", ret);
+        return ret;
+    }
+
+    *out_len = own_pubkey_len;
+
+    return 0;
+}
+#endif /* PSA_WANT_ALG_FFDH */
+
 /* RFC 8446 section 4.2
  *
  * If an implementation receives an extension which it recognizes and which is

@@ -836,7 +836,7 @@ static int ssl_tls13_parse_supported_groups_ext(mbedtls_ssl_context *ssl,
 
 #define SSL_TLS1_3_PARSE_KEY_SHARES_EXT_NO_MATCH 1
 
-#if defined(PSA_WANT_ALG_ECDH)
+#if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
 /*
  *  ssl_tls13_parse_key_shares_ext() verifies whether the information in the
  *  extension is correct and stores the first acceptable key share and its
@@ -910,10 +910,11 @@ static int ssl_tls13_parse_key_shares_ext(mbedtls_ssl_context *ssl,
         }
 
         /*
-         * For now, we only support ECDHE groups.
+         * ECDHE and FFDHE groups are supported
          */
-        if (mbedtls_ssl_tls13_named_group_is_ecdhe(group)) {
-            MBEDTLS_SSL_DEBUG_MSG(2, ("ECDH group: %s (%04x)",
+        if (mbedtls_ssl_tls13_named_group_is_ecdhe(group) ||
+            mbedtls_ssl_tls13_named_group_is_dhe(group)) {
+            MBEDTLS_SSL_DEBUG_MSG(2, ("ECDH/FFDH group: %s (%04x)",
                                       mbedtls_ssl_named_group_to_str(group),
                                       group));
             ret = mbedtls_ssl_tls13_read_public_ecdhe_share(
@@ -938,7 +939,7 @@ static int ssl_tls13_parse_key_shares_ext(mbedtls_ssl_context *ssl,
     }
     return 0;
 }
-#endif /* PSA_WANT_ALG_ECDH */
+#endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_client_hello_has_exts(mbedtls_ssl_context *ssl,
@@ -1923,6 +1924,18 @@ static int ssl_tls13_generate_and_write_key_share(mbedtls_ssl_context *ssl,
         }
     } else
 #endif /* PSA_WANT_ALG_ECDH */
+#if defined(MBEDTLS_DHM_C)
+    if (mbedtls_ssl_tls13_named_group_is_dhe(named_group)) {
+        ret = mbedtls_ssl_tls13_generate_and_write_dhe_key_exchange(
+            ssl, named_group, buf, end, out_len);
+        if (ret != 0) {
+            MBEDTLS_SSL_DEBUG_RET(
+                1, "mbedtls_ssl_tls13_generate_and_write_dhe_key_exchange",
+                ret);
+            return ret;
+        }
+    } else
+#endif /* MBEDTLS_DHM_C */
     if (0 /* Other kinds of KEMs */) {
     } else {
         ((void) ssl);

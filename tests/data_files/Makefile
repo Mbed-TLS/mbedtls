@@ -1537,7 +1537,7 @@ server5.ku-ke.crt: SERVER5_KEY_USAGE=key_encipherment
 server5.eku-cs.crt: SERVER5_CRT_SERIAL=58
 server5.eku-cs.crt: SERVER5_EXT_KEY_USAGE=codeSigning
 server5.eku-cs_any.crt: SERVER5_CRT_SERIAL=59
-server5.eku-cs_any.crt: SERVER5_EXT_KEY_USAGE=codeSigning
+server5.eku-cs_any.crt: SERVER5_EXT_KEY_USAGE=codeSigning,any
 server5.eku-cli.crt: SERVER5_CRT_SERIAL=60
 server5.eku-cli.crt: SERVER5_EXT_KEY_USAGE=clientAuth
 server5.eku-srv_cli.crt: SERVER5_CRT_SERIAL=61
@@ -1552,6 +1552,7 @@ server5.%.crt: server5.key
 		issuer_crt=$(test_ca_crt_file_ec) issuer_key=$(test_ca_key_file_ec) $(SERVER5_EXT_OPTS) \
 		not_before=20190210144406 not_after=20290210144406 md=SHA256 version=3 output_file=$@
 all_final += server5.ku-ka.crt server5.ku-ke.crt server5.ku-ds.crt
+all_final += server5.eku-cs.crt server5.eku-cs_any.crt server5.eku-cli.crt server5.eku-srv_cli.crt server5.eku-srv.crt
 
 # server6*
 

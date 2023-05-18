@@ -81,24 +81,20 @@ static inline mbedtls_ecp_keypair *mbedtls_pk_ec_rw(const mbedtls_pk_context pk)
     }
 }
 
-/* Helpers for Montgomery curves */
+static inline mbedtls_ecp_group_id mbedtls_pk_get_group_id(const mbedtls_pk_context *pk)
+{
+    mbedtls_ecp_group_id id;
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    id = mbedtls_ecc_group_of_psa(pk->ec_family, pk->ec_bits, 0);
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
+    id = mbedtls_pk_ec_ro(*pk)->grp.id;
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
+    return id;
+}
+
+/* Helper for Montgomery curves */
 #if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) || defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
 #define MBEDTLS_PK_HAVE_RFC8410_CURVES
-
-static inline int mbedtls_pk_is_rfc8410_curve(mbedtls_ecp_group_id id)
-{
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
-    if (id == MBEDTLS_ECP_DP_CURVE25519) {
-        return 1;
-    }
-#endif
-#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
-    if (id == MBEDTLS_ECP_DP_CURVE448) {
-        return 1;
-    }
-#endif
-    return 0;
-}
 #endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED || MBEDTLS_ECP_DP_CURVE448_ENABLED */
 #endif /* MBEDTLS_ECP_LIGHT */
 

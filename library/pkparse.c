@@ -63,6 +63,12 @@
 
 #include "mbedtls/platform.h"
 
+/* Helper for Montgomery curves */
+#if defined(MBEDTLS_ECP_LIGHT) && defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
+#define MBEDTLS_PK_IS_RFC8410_GROUP_ID(id)  \
+    ((id == MBEDTLS_ECP_DP_CURVE25519) || (id == MBEDTLS_ECP_DP_CURVE448))
+#endif /* MBEDTLS_ECP_LIGHT && MBEDTLS_PK_HAVE_RFC8410_CURVES */
+
 #if defined(MBEDTLS_FS_IO)
 /*
  * Load all data from a file into a given buffer.

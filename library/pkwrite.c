@@ -57,6 +57,26 @@
 #endif
 #include "mbedtls/platform.h"
 
+/* Helper for Montgomery curves */
+#if defined(MBEDTLS_ECP_LIGHT) && defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
+static inline int mbedtls_pk_is_rfc8410(const mbedtls_pk_context *pk)
+{
+    mbedtls_ecp_group_id id = mbedtls_pk_get_group_id(pk);
+
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+    if (id == MBEDTLS_ECP_DP_CURVE25519) {
+        return 1;
+    }
+#endif
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+    if (id == MBEDTLS_ECP_DP_CURVE448) {
+        return 1;
+    }
+#endif
+    return 0;
+}
+#endif /* MBEDTLS_ECP_LIGHT && MBEDTLS_PK_HAVE_RFC8410_CURVES */
+
 #if defined(MBEDTLS_RSA_C)
 /*
  *  RSAPublicKey ::= SEQUENCE {

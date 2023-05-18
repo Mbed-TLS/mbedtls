@@ -1327,7 +1327,11 @@ test_ca_server1_config_file = test-ca.server1.opensslconf
 # server1*
 
 server1.crt: server1.key server1.req.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
-	$(MBEDTLS_CERT_WRITE) request_file=server1.req.sha256 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) version=1 not_before=20190210144406 not_after=20290210144406 md=SHA1 version=3 output_file=$@
+	$(MBEDTLS_CERT_WRITE) request_file=server1.req.sha256 \
+		issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) \
+		issuer_pwd=$(test_ca_pwd_rsa) version=1 \
+		not_before=20190210144406 not_after=20290210144406 \
+		md=SHA1 version=3 output_file=$@
 server1.noauthid.crt: server1.key server1.req.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
 	$(MBEDTLS_CERT_WRITE) request_file=server1.req.sha256 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20190210144406 not_after=20290210144406 md=SHA1 authority_identifier=0 version=3 output_file=$@
 server1.crt.der: server1.crt
@@ -1426,8 +1430,13 @@ server1.v1.der.openssl: server1.v1.crt.openssl
 crl.pem: $(test_ca_crt) $(test_ca_key_file_rsa) $(test_ca_config_file)
 	$(OPENSSL) ca -gencrl -batch -cert $(test_ca_crt) -keyfile $(test_ca_key_file_rsa) -key $(test_ca_pwd_rsa) -config $(test_ca_server1_config_file) -md sha1 -crldays 3653 -out $@
 
-crl-futureRevocationDate.pem: $(test_ca_crt) $(test_ca_key_file_rsa) $(test_ca_config_file) test-ca.server1.future-crl.db  test-ca.server1.future-crl.opensslconf
-	$(FAKETIME) '2028-12-31' $(OPENSSL) ca -gencrl -config test-ca.server1.future-crl.opensslconf -crldays 365 -passin "pass:$(test_ca_pwd_rsa)" -out $@
+crl-futureRevocationDate.pem: $(test_ca_crt) $(test_ca_key_file_rsa) \
+							  $(test_ca_config_file) 				\
+							  test-ca.server1.future-crl.db  \
+							  test-ca.server1.future-crl.opensslconf
+	$(FAKETIME) -f '+10y' $(OPENSSL) ca -gencrl \
+		-config test-ca.server1.future-crl.opensslconf -crldays 365 \
+		-passin "pass:$(test_ca_pwd_rsa)" -out $@
 
 server1_all: crl.pem crl-futureRevocationDate.pem server1.crt server1.noauthid.crt server1.crt.openssl server1.v1.crt server1.v1.crt.openssl server1.key_usage.crt server1.key_usage_noauthid.crt server1.key_usage.crt.openssl server1.cert_type.crt server1.cert_type_noauthid.crt server1.cert_type.crt.openssl server1.der server1.der.openssl server1.v1.der server1.v1.der.openssl server1.key_usage.der server1.key_usage.der.openssl server1.cert_type.der server1.cert_type.der.openssl
 
@@ -1509,6 +1518,41 @@ all_intermediate += cert_md5.csr
 cert_md5.crt: cert_md5.csr
 	$(MBEDTLS_CERT_WRITE) request_file=$< serial=6 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20000101121212 not_after=20300101121212 md=MD5 version=3 output_file=$@
 all_final += cert_md5.crt
+
+# - test-ca-v1.crt: v1 "CA", signs
+#     server1-v1.crt: v1 "intermediate CA", signs
+#         server2-v1*.crt: EE cert (without of with chain in same file)
+
+test-ca-v1.crt: $(test_ca_key_file_rsa) test-ca.req.sha256
+	$(MBEDTLS_CERT_WRITE) is_ca=1 serial_hex=53a2b68e05400e555c9395e5 \
+		request_file=test-ca.req.sha256 \
+		selfsign=1 issuer_name="CN=PolarSSL Test CA v1,OU=testing,O=PolarSSL,C=NL" \
+		issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) \
+		not_before=20190210144400 not_after=20290210144400 md=SHA256 version=1 \
+		output_file=$@
+all_final += test-ca-v1.crt
+
+server1-v1.crt: server1.key test-ca-v1.crt
+	$(MBEDTLS_CERT_WRITE) subject_key=$< serial_hex=53a2b6c704cd4d8ebc800bc1\
+		subject_name="CN=server1/int-ca-v1,OU=testing,O=PolarSSL,C=NL"  \
+		issuer_crt=test-ca-v1.crt issuer_key=$(test_ca_key_file_rsa) \
+		issuer_pwd=$(test_ca_pwd_rsa) \
+		not_before=20190210144406 not_after=20290210144406 \
+		md=SHA256 version=1 \
+		output_file=$@
+all_final += server1-v1.crt
+
+server2-v1.crt: server2.key server1-v1.crt
+	$(MBEDTLS_CERT_WRITE) subject_key=$< serial_hex=53a2b6d9235dbc4573f9b76c\
+		subject_name="CN=server2,OU=testing,O=PolarSSL,C=NL"  \
+		issuer_crt=server1-v1.crt issuer_key=server1.key \
+		not_before=20190210144406 not_after=20290210144406 \
+		md=SHA256 version=1 \
+		output_file=$@
+all_final += server2-v1.crt
+
+server2-v1-chain.crt: server2-v1.crt server1-v1.crt
+	cat $^ > $@
 
 ################################################################
 #### Diffie-Hellman parameters

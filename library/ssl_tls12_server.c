@@ -3901,11 +3901,13 @@ static int ssl_parse_client_key_exchange(mbedtls_ssl_context *ssl)
             return MBEDTLS_ERR_SSL_DECODE_ERROR;
         }
 
+#if !defined(PSA_WANT_ALG_FFDH)
         if (ecpoint_len > sizeof(handshake->ecdh_psa_peerkey)) {
             psa_destroy_key(handshake->ecdh_psa_privkey);
             handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
             return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
         }
+#endif
 
         memcpy(handshake->ecdh_psa_peerkey, p, ecpoint_len);
         handshake->ecdh_psa_peerkey_len = ecpoint_len;

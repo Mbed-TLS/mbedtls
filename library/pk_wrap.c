@@ -792,7 +792,7 @@ static int ecdsa_verify_wrap(mbedtls_pk_context *pk,
 
     p = (unsigned char *) sig;
     /* extract_ecdsa_sig's last parameter is the size
-     * of each integer to be parse, so it's actually half
+     * of each integer to be parsed, so it's actually half
      * the size of the signature. */
     if ((ret = extract_ecdsa_sig(&p, sig + sig_len, buf,
                                  signature_len/2)) != 0) {

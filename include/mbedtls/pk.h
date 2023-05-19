@@ -202,16 +202,21 @@ typedef struct mbedtls_pk_rsassa_pss_options {
 #define MBEDTLS_PK_CAN_ECDH
 #endif
 
-/* Helper to define which fields in the pk_context structure below should be
- * used for EC keys: legacy ecp_keypair or the raw (PSA friendly) format.
- * It should be noticed that this only affect how data is stored, not which
- * functions are used for various operations. The overall picture looks like
- * this:
+/* Internal helper to define which fields in the pk_context structure below
+ * should be used for EC keys: legacy ecp_keypair or the raw (PSA friendly)
+ * format. It should be noticed that this only affect how data is stored, not
+ * which functions are used for various operations. The overall picture looks
+ * like this:
  * - if ECP_C is defined then use legacy functions
  * - if USE_PSA is defined and
  *     - if ECP_C then use ecp_keypair structure, convert data to a PSA friendly
  *       format and use PSA functions
  *     - if !ECP_C then use new raw data and PSA functions directly.
+ *
+ * The main reason for the "intermediate" (USE_PSA + ECP_C) above is that as long
+ * as ECP_C is defined mbedtls_pk_ec() gives the user a read/write access to the
+ * ecp_keypair structure inside the pk_context so he/she can modify it using
+ * ECP functions which are not under PK module's control.
  */
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_ECP_C) && \
     defined(MBEDTLS_ECP_LIGHT)
@@ -258,9 +263,7 @@ typedef struct mbedtls_pk_context {
     const mbedtls_pk_info_t *MBEDTLS_PRIVATE(pk_info);    /**< Public key information         */
     void *MBEDTLS_PRIVATE(pk_ctx);                        /**< Underlying public key context  */
     /* When MBEDTLS_PSA_CRYPTO_C is enabled then the following priv_id field is
-     * used to store the ID of the opaque key. Differently from the raw public
-     * key management below, in this case there is no counterpart in the pk_ctx
-     * field to work in parallel with.
+     * used to store the ID of the opaque key.
      * This priv_id is guarded by MBEDTLS_PSA_CRYPTO_C and not by
      * MBEDTLS_USE_PSA_CRYPTO because it can be used also in mbedtls_pk_sign_ext
      * for RSA keys. */
@@ -283,7 +286,7 @@ typedef struct mbedtls_pk_context {
      * all the operations.
      *
      * Note: This new public key storing solution only works for EC keys, not
-     *       other ones. The latters is still use pk_ctx to store their own
+     *       other ones. The latters still use pk_ctx to store their own
      *       context.
      */
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)

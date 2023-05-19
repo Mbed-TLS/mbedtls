@@ -1404,7 +1404,6 @@ void ecp_mod_p448(char *input_N,
     TEST_EQUAL(res.n, limbs);
 
     TEST_EQUAL(mbedtls_ecp_mod_p448(X.p, X.n), 0);
-    TEST_EQUAL(mbedtls_mpi_mod_mpi(&X, &X, &N), 0);
     TEST_LE_U(mbedtls_mpi_core_bitlen(X.p, X.n), 448);
     ASSERT_COMPARE(X.p, bytes, res.p, bytes);
 

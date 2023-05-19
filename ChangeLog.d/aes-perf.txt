@@ -1,0 +1,3 @@
+Features
+   * AES performance improvements (XTS, GCM, CCM and CMAC) on 64-bit
+     architectures, of around 5-10%.

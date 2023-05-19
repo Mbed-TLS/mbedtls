@@ -125,6 +125,13 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
 {
     size_t i = 0;
 #if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)
+#if defined(__amd64__) || defined(__x86_64__) || defined(__aarch64__)
+    /* This codepath probably only makes sense on architectures with 64-bit registers */
+    for (; (i + 8) <= n; i += 8) {
+        uint64_t x = mbedtls_get_unaligned_uint64(a + i) ^ mbedtls_get_unaligned_uint64(b + i);
+        mbedtls_put_unaligned_uint64(r + i, x);
+    }
+#endif
     for (; (i + 4) <= n; i += 4) {
         uint32_t x = mbedtls_get_unaligned_uint32(a + i) ^ mbedtls_get_unaligned_uint32(b + i);
         mbedtls_put_unaligned_uint32(r + i, x);

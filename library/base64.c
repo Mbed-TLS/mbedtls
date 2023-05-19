@@ -17,6 +17,8 @@
  *  limitations under the License.
  */
 
+#include <limits.h>
+
 #include "common.h"
 
 #if defined(MBEDTLS_BASE64_C)
@@ -30,8 +32,6 @@
 #include <string.h>
 #include "mbedtls/platform.h"
 #endif /* MBEDTLS_SELF_TEST */
-
-#define BASE64_SIZE_T_MAX   ((size_t) -1)   /* SIZE_T_MAX is not standard */
 
 /*
  * Encode a buffer into base64 format
@@ -50,8 +50,8 @@ int mbedtls_base64_encode(unsigned char *dst, size_t dlen, size_t *olen,
 
     n = slen / 3 + (slen % 3 != 0);
 
-    if (n > (BASE64_SIZE_T_MAX - 1) / 4) {
-        *olen = BASE64_SIZE_T_MAX;
+    if (n > (SIZE_MAX - 1) / 4) {
+        *olen = SIZE_MAX;
         return MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL;
     }
 

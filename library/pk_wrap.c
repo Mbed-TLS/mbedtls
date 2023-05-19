@@ -1335,32 +1335,32 @@ static void ecdsa_rs_free(void *ctx)
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
 const mbedtls_pk_info_t mbedtls_ecdsa_info = {
-    MBEDTLS_PK_ECDSA,
-    "ECDSA",
-    eckey_get_bitlen,     /* Compatible key structures */
-    ecdsa_can_do,
+    .type = MBEDTLS_PK_ECDSA,
+    .name = "ECDSA",
+    .get_bitlen = eckey_get_bitlen,     /* Compatible key structures */
+    .can_do = ecdsa_can_do,
 #if defined(MBEDTLS_PK_CAN_ECDSA_VERIFY)
-    ecdsa_verify_wrap,   /* Compatible key structures */
+    .verify_func = ecdsa_verify_wrap,   /* Compatible key structures */
 #else
-    NULL,
+    .verify_func = NULL,
 #endif
 #if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
-    ecdsa_sign_wrap,   /* Compatible key structures */
+    .sign_func = ecdsa_sign_wrap,   /* Compatible key structures */
 #else
-    NULL,
+    .sign_func = NULL,
 #endif
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    ecdsa_verify_rs_wrap,
-    ecdsa_sign_rs_wrap,
+    .verify_rs_func = ecdsa_verify_rs_wrap,
+    .sign_rs_func = ecdsa_sign_rs_wrap,
 #endif
-    NULL,
-    NULL,
-    eckey_check_pair,   /* Compatible key structures */
-    eckey_alloc_wrap,   /* Compatible key structures */
-    eckey_free_wrap,   /* Compatible key structures */
+    .decrypt_func = NULL,
+    .encrypt_func = NULL,
+    .check_pair_func = eckey_check_pair,   /* Compatible key structures */
+    .ctx_alloc_func = eckey_alloc_wrap,   /* Compatible key structures */
+    .ctx_free_func = eckey_free_wrap,   /* Compatible key structures */
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    ecdsa_rs_alloc,
-    ecdsa_rs_free,
+    .rs_alloc_func = ecdsa_rs_alloc,
+    .rs_free_func = ecdsa_rs_free,
 #endif
     eckey_debug,        /* Compatible key structures */
 };

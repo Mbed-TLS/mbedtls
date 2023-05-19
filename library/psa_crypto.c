@@ -7728,14 +7728,12 @@ static psa_status_t psa_jpake_prologue(
     }
 
     if (step == PSA_PAKE_STEP_KEY_SHARE &&
-        computation_stage->inputs == 0 &&
         computation_stage->outputs == 0) {
-        /* Start of the round, so function decides whether we are inputting
-         * or outputting */
-        computation_stage->mode = function_mode;
-    } else if (computation_stage->mode != function_mode) {
-        /* Middle of the round so the mode we are in must match the function
-         * called by the user */
+        /* Start of the round, expect output first */
+        computation_stage->mode = OUTPUT;
+    }
+    if (computation_stage->mode != function_mode) {
+        /* The mode we are in must match the function called by the user */
         return PSA_ERROR_BAD_STATE;
     }
 
@@ -7764,24 +7762,21 @@ static psa_status_t psa_jpake_epilogue(
 
     if (stage->step == PSA_PAKE_STEP_ZK_PROOF) {
         /* End of an input/output */
-        if (function_mode == INPUT) {
-            stage->inputs++;
-            if (stage->inputs >= PSA_JPAKE_EXPECTED_INPUTS(stage->round)) {
-                stage->mode = OUTPUT;
-            }
-        }
         if (function_mode == OUTPUT) {
             stage->outputs++;
             if (stage->outputs >= PSA_JPAKE_EXPECTED_OUTPUTS(stage->round)) {
+                /* Outputs finished, switch to input */
                 stage->mode = INPUT;
+                stage->inputs = 0;
             }
-        }
-        if (stage->inputs >= PSA_JPAKE_EXPECTED_INPUTS(stage->round) &&
-            stage->outputs >= PSA_JPAKE_EXPECTED_OUTPUTS(stage->round)) {
-            /* End of a round, move to the next round */
-            stage->inputs = 0;
-            stage->outputs = 0;
-            stage->round++;
+        } else {
+            stage->inputs++;
+            if (stage->inputs >= PSA_JPAKE_EXPECTED_INPUTS(stage->round)) {
+                /* Inputs finished, end of a round */
+                stage->round++;
+                stage->mode = OUTPUT;
+                stage->outputs = 0;
+            }
         }
         stage->step = PSA_PAKE_STEP_KEY_SHARE;
     } else {

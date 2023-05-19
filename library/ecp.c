@@ -567,25 +567,10 @@ void mbedtls_ecp_point_free(mbedtls_ecp_point *pt)
 }
 
 /*
- * Check that the comb table (grp->T) is static initialized.
- */
-static int ecp_group_is_static_comb_table(const mbedtls_ecp_group *grp)
-{
-#if MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
-    return grp->T != NULL && grp->T_size == 0;
-#else
-    (void) grp;
-    return 0;
-#endif
-}
-
-/*
  * Unallocate (the components of) a group
  */
 void mbedtls_ecp_group_free(mbedtls_ecp_group *grp)
 {
-    size_t i;
-
     if (grp == NULL) {
         return;
     }
@@ -596,12 +581,7 @@ void mbedtls_ecp_group_free(mbedtls_ecp_group *grp)
         mbedtls_ecp_point_free(&grp->G);
     }
 
-    if (!ecp_group_is_static_comb_table(grp) && grp->T != NULL) {
-        for (i = 0; i < grp->T_size; i++) {
-            mbedtls_ecp_point_free(&grp->T[i]);
-        }
-        mbedtls_free(grp->T);
-    }
+    /* Never free T as it's either NULL or static */
 
     mbedtls_platform_zeroize(grp, sizeof(mbedtls_ecp_group));
 }
@@ -2252,7 +2232,7 @@ cleanup:
  * Pick window size based on curve size and whether we optimize for base point
  */
 static unsigned char ecp_pick_window_size(const mbedtls_ecp_group *grp,
-                                          unsigned char p_eq_g)
+                                          unsigned char table_is_static)
 {
     unsigned char w;
 
@@ -2264,17 +2244,17 @@ static unsigned char ecp_pick_window_size(const mbedtls_ecp_group *grp,
     w = grp->nbits >= 384 ? 5 : 4;
 
     /*
-     * If P == G, pre-compute a bit more, since this may be re-used later.
-     * Just adding one avoids upping the cost of the first mul too much,
-     * and the memory cost too.
+     * If P == G and fixed-point opitmisation is enabled, we pick a slightly
+     * larger table since it's static.
      */
-    if (p_eq_g) {
+#if MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
+    if (table_is_static) {
         w++;
     }
+#endif
 
     /*
-     * If static comb table may not be used (!p_eq_g) or static comb table does
-     * not exists, make sure w is within bounds.
+     * If the table is not static, make sure w is within bounds.
      * (The last test is useful only for very small curves in the test suite.)
      *
      * The user reduces MBEDTLS_ECP_WINDOW_SIZE does not changes the size of
@@ -2282,7 +2262,7 @@ static unsigned char ecp_pick_window_size(const mbedtls_ecp_group *grp,
      * it is generated.
      */
 #if (MBEDTLS_ECP_WINDOW_SIZE < 6)
-    if ((!p_eq_g || !ecp_group_is_static_comb_table(grp)) && w > MBEDTLS_ECP_WINDOW_SIZE) {
+    if (!table_is_static && w > MBEDTLS_ECP_WINDOW_SIZE) {
         w = MBEDTLS_ECP_WINDOW_SIZE;
     }
 #endif
@@ -2333,12 +2313,13 @@ static int ecp_mul_comb(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     T_size = 1U << (w - 1);
     d = (grp->nbits + w - 1) / w;
 
-    /* Pre-computed table: do we have it already for the base point? */
-    if (p_eq_g && grp->T != NULL) {
-        /* second pointer to the same table, will be deleted on exit */
+    /* For the base point, use the pre-computed table */
+#if MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
+    if (p_eq_g) {
         T = grp->T;
         T_ok = 1;
     } else
+#endif
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     /* Pre-computed table: do we have one in progress? complete? */
     if (rs_ctx != NULL && rs_ctx->rsm != NULL && rs_ctx->rsm->T != NULL) {
@@ -2369,13 +2350,6 @@ static int ecp_mul_comb(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     /* Compute table (or finish computing it) if not done already */
     if (!T_ok) {
         MBEDTLS_MPI_CHK(ecp_precompute_comb(grp, T, P, w, d, rs_ctx));
-
-        if (p_eq_g) {
-            /* almost transfer ownership of T to the group, but keep a copy of
-             * the pointer to use for calling the next function more easily */
-            grp->T = T;
-            grp->T_size = T_size;
-        }
     }
 
     /* Actual comb multiplication using precomputed points */

@@ -5715,6 +5715,15 @@ int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
     mbedtls_mpi_uint *p = NULL;
     size_t p_limbs;
 
+    mbedtls_mpi_mod_modulus c99_test = {
+        .p = NULL,
+        .limbs = 0,
+        .bits = 0,
+        .int_rep = MBEDTLS_MPI_MOD_REP_OPT_RED,
+        .rep = { .ored = NULL },
+    };
+    (void) c99_test;
+
     if (!(ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_COORDINATE || \
           ctype == (mbedtls_ecp_curve_type) MBEDTLS_ECP_MOD_SCALAR)) {
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;

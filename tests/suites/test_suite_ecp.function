@@ -1086,7 +1086,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_ECP_MONTGOMERY_ENABLED:MBBEDTLS_ECP_C */
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_ECP_MONTGOMERY_ENABLED:MBEDTLS_ECP_LIGHT */
 void genkey_mx_known_answer(int bits, data_t *seed, data_t *expected)
 {
     mbedtls_test_rnd_buf_info rnd_info;

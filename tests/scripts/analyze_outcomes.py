@@ -247,7 +247,21 @@ TASKS = {
                     'ECP test vectors secp256r1 rfc 5114',
                     'ECP test vectors secp384r1 rfc 5114',
                     'ECP test vectors secp521r1 rfc 5114',
-                ]
+                ],
+                'test_suite_pkparse': [
+                    # This is a known difference for Montgomery curves: in
+                    # reference component private keys are parsed using
+                    # mbedtls_mpi_read_binary_le(), while in driver version they
+                    # they are imported in PSA and there the parsing is done
+                    # through mbedtls_ecp_read_key(). Unfortunately the latter
+                    # fixes the errors which are intentionally set on the parsed
+                    # key and therefore the following test case is not failing
+                    # as expected.
+                    # This cause the following test to be guarded by ECP_C and
+                    # not being executed on the driver version.
+                    ('Key ASN1 (OneAsymmetricKey X25519, doesn\'t match masking '
+                     'requirements, from RFC8410 Appendix A but made into version 0)'),
+                ],
             }
         }
     },

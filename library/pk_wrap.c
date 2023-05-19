@@ -1136,13 +1136,25 @@ cleanup:
  */
 static int eckey_check_pair_psa(mbedtls_pk_context *pub, mbedtls_pk_context *prv)
 {
-    psa_status_t status, destruction_status;
+    psa_status_t status;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     uint8_t prv_key_buf[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
     size_t prv_key_len;
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     mbedtls_svc_key_id_t key_id = prv->priv_id;
+
+    status = psa_export_public_key(key_id, prv_key_buf, sizeof(prv_key_buf),
+                                   &prv_key_len);
+    ret = PSA_PK_TO_MBEDTLS_ERR(status);
+    if (ret != 0) {
+        return ret;
+    }
+
+    if (memcmp(prv_key_buf, pub->pub_raw, pub->pub_raw_len) != 0) {
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+    }
 #else /* !MBEDTLS_PK_USE_PSA_EC_DATA */
+    psa_status_t destruction_status;
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
     uint8_t pub_key_buf[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
@@ -1172,7 +1184,6 @@ static int eckey_check_pair_psa(mbedtls_pk_context *pub, mbedtls_pk_context *prv
     }
 
     mbedtls_platform_zeroize(prv_key_buf, sizeof(prv_key_buf));
-#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
 
     status = psa_export_public_key(key_id, prv_key_buf, sizeof(prv_key_buf),
                                    &prv_key_len);
@@ -1184,11 +1195,6 @@ static int eckey_check_pair_psa(mbedtls_pk_context *pub, mbedtls_pk_context *prv
         return PSA_PK_TO_MBEDTLS_ERR(destruction_status);
     }
 
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    if (memcmp(prv_key_buf, pub->pub_raw, pub->pub_raw_len) != 0) {
-        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
-    }
-#else
     ret = mbedtls_ecp_point_write_binary(&mbedtls_pk_ec_rw(*pub)->grp,
                                          &mbedtls_pk_ec_rw(*pub)->Q,
                                          MBEDTLS_ECP_PF_UNCOMPRESSED,

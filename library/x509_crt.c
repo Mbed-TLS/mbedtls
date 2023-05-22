@@ -49,7 +49,6 @@
 #include "mbedtls/psa_util.h"
 #include "md_psa.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-#include "x509_invasive.h"
 #include "pk_internal.h"
 
 #include "mbedtls/platform.h"

@@ -509,8 +509,8 @@ int mbedtls_x509_info_key_usage(char **buf, size_t *size,
  *                 4-byte aligned if the result will be used as struct in_addr.
  *                 e.g. uint32_t dst[4]
  *
- * \note           \cn is parsed as an IPv6 address if string contains ':',
- *                 else \cn is parsed as an IPv4 address.
+ * \note           \p cn is parsed as an IPv6 address if string contains ':',
+ *                 else \p cn is parsed as an IPv4 address.
  *
  * \return         Length of binary IP address; num bytes written to target.
  * \return         \c 0 on failure to parse CN string as an IP address.

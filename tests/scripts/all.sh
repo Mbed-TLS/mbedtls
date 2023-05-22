@@ -792,7 +792,14 @@ pre_check_tools () {
 
 
 pre_faketime() {
+
     LIBFAKETIME=""
+
+    if [ "$(uname -s)" != "Linux" ]
+    then
+        # libfaketime only work on linux
+        return
+    fi
     for i in /usr/local/lib/faketime/libfaketime.so.1 /usr/lib/aarch64-linux-gnu/faketime/libfaketime.so.1 /usr/lib/x86_64-linux-gnu/faketime/libfaketime.so.1
     do
         if [ -f $i ]

@@ -61,14 +61,14 @@
 
 /* Choose the implementation of AESNI, if one is available. */
 #undef MBEDTLS_AESNI_HAVE_CODE
-/* To minimize disruption when releasing the intrinsics-based implementation,
- * favor the assembly-based implementation if it's available. We intend to
- * revise this in a later release of Mbed TLS 3.x. In the long run, we will
- * likely remove the assembly implementation. */
-#if defined(MBEDTLS_HAVE_X86_64)
-#define MBEDTLS_AESNI_HAVE_CODE 1 // via assembly
-#elif defined(MBEDTLS_AESNI_HAVE_INTRINSICS)
+/* Favor the intrinsics-based implementation if it's available, for better
+ * maintainability.
+ * Performance is about the same (see #7380).
+ * In the long run, we will likely remove the assembly implementation. */
+#if defined(MBEDTLS_AESNI_HAVE_INTRINSICS)
 #define MBEDTLS_AESNI_HAVE_CODE 2 // via intrinsics
+#elif defined(MBEDTLS_HAVE_X86_64)
+#define MBEDTLS_AESNI_HAVE_CODE 1 // via assembly
 #endif
 
 #if defined(MBEDTLS_AESNI_HAVE_CODE)

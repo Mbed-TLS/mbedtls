@@ -430,7 +430,7 @@ As discussed in [“Implications between legacy availability and PSA availabilit
 
 > If an algorithm has a legacy implementation, it is also available through PSA.
 
-When `MBEDTLS_PSA_CRYPTO_CONFIG` is disabled, this is already the case. When is enabled, we will now make it so as well. Change `include/mbedtls/config_psa.h` accordingly.
+When `MBEDTLS_PSA_CRYPTO_CONFIG` is disabled, this is already the case. When is enabled, we will now make it so as well. Change `include/mbedtls/config_psa_extend_from_mbedtls.h` accordingly.
 
 ### MD light optimizations
 

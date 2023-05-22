@@ -80,7 +80,7 @@ Summary of files to modify when adding a new algorithm or key type:
 * [ ] `include/psa/crypto_values.h` or `include/psa/crypto_extra.h` — [New functions and macros](#new-functions-and-macros)
 * [ ] `include/psa/crypto_config.h`, `tests/include/test/drivers/crypto_config_test_driver_extension.h` — [Preprocessor symbols](#preprocessor-symbols)
 * Occasionally `library/check_crypto_config.h` — [Preprocessor symbols](#preprocessor-symbols)
-* [ ] `include/mbedtls/config_psa.h` — [Preprocessor symbols](#preprocessor-symbols)
+* [ ] `include/mbedtls/config_mbedtls_from_psa.h` nad `include/mbedtls/config_psa_from_mbedtls.h` — [Preprocessor symbols](#preprocessor-symbols)
 * [ ] `library/psa_crypto.c`, `library/psa_crypto_*.[hc]` — [Implementation of the mechanisms](#implementation-of-the-mechanisms)
 * [ ] `include/psa/crypto_builtin_*.h` — [Translucent data structures](#translucent-data-structures)
 * [ ] `tests/suites/test_suite_psa_crypto_metadata.data` — [New functions and macros](#new-functions-and-macros)
@@ -125,14 +125,14 @@ New constants must have a test case in `tests/suites/test_suite_psa_crypto_metad
 Each cryptographic mechanism is optional and can be selected by the application at build time. For each feature `PSA_ttt_xxx`:
 
 * The feature is available to applications when the preprocessor symbol `PSA_WANT_ttt_xxx` is defined. These symbols are set:
-    * If `MBEDTLS_PSA_CRYPTO_CONFIG` is disabled: based on the available mechanisms in Mbed TLS, deduced from `mbedtls/mbedtls_config.h` by code in `include/mbedtls/config_psa.h`.
-    * if `MBEDTLS_PSA_CRYPTO_CONFIG` is enabled: in the application configuration file `include/psa/crypto_config.h` (or `MBEDTLS_PSA_CRYPTO_CONFIG_FILE`, plus `MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE`), with code in `include/mbedtls/config_psa.h` deducing the necessary underlying `MBEDTLS_xxx` symbols.
-*  For transparent keys (keys that are not in a secure element), the feature is implemented by Mbed TLS if `MBEDTLS_PSA_BUILTIN_ttt_xxx` is defined, and by an accelerator driver if `MBEDTLS_PSA_ACCEL_ttt_xxx` is defined. `MBEDTLS_PSA_BUILTIN_ttt_xxx` constants are set in `include/mbedtls/config_psa.h` based on the application requests `PSA_WANT_ttt_xxx` and the accelerator driver declarations `MBEDTLS_PSA_ACCEL_ttt_xxx`.
+    * If `MBEDTLS_PSA_CRYPTO_CONFIG` is disabled: based on the available mechanisms in Mbed TLS, deduced from `mbedtls/mbedtls_config.h` by code in `include/mbedtls/config_psa_from_mbedtls.h`.
+    * if `MBEDTLS_PSA_CRYPTO_CONFIG` is enabled: in the application configuration file `include/psa/crypto_config.h` (or `MBEDTLS_PSA_CRYPTO_CONFIG_FILE`, plus `MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE`), with code in `include/mbedtls/config_mbedtls_from_psa.h` deducing the necessary underlying `MBEDTLS_xxx` symbols.
+*  For transparent keys (keys that are not in a secure element), the feature is implemented by Mbed TLS if `MBEDTLS_PSA_BUILTIN_ttt_xxx` is defined, and by an accelerator driver if `MBEDTLS_PSA_ACCEL_ttt_xxx` is defined. `MBEDTLS_PSA_BUILTIN_ttt_xxx` constants are set in `include/mbedtls/config_mbedtls_from_psa.h` and `include/mbedtls/config_psa_from_mbedtls.h` based on the application requests `PSA_WANT_ttt_xxx` and the accelerator driver declarations `MBEDTLS_PSA_ACCEL_ttt_xxx`.
 * For the testing of the driver dispatch code, `tests/include/test/drivers/crypto_config_test_driver_extension.h` sets additional `MBEDTLS_PSA_ACCEL_xxx` symbols.
 
 For more details, see *[Conditional inclusion of cryptographic mechanism through the PSA API in Mbed TLS](../proposed/psa-conditional-inclusion-c.html)*.
 
-Some mechanisms require other mechanisms. For example, you can't do GCM without a block cipher, or RSA-PSS without RSA keys. When mechanism A requires mechanism B, `include/mbedtls/config_psa.h` ensures that B is enabled whenever A is enabled. When mechanism A requires at least one of a set {B1, B2, B3, ...} but there is no particular reason why enabling A would enable any of the specific Bi's, it's up to the application to choose Bi's and the file `library/check_crypto_config.h` contains compile-time constraints to ensure that at least one Bi is enabled.
+Some mechanisms require other mechanisms. For example, you can't do GCM without a block cipher, or RSA-PSS without RSA keys. When mechanism A requires mechanism B, code in `include/mbedtls/config_*.h` ensures that B is enabled whenever A is enabled. When mechanism A requires at least one of a set {B1, B2, B3, ...} but there is no particular reason why enabling A would enable any of the specific Bi's, it's up to the application to choose Bi's and the file `library/check_crypto_config.h` contains compile-time constraints to ensure that at least one Bi is enabled.
 
 ### Implementation of the mechanisms
 

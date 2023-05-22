@@ -92,7 +92,8 @@
 #define PSA_WANT_ALG_TLS12_ECJPAKE_TO_PMS       1
 
 /* XTS is not yet supported via the PSA API in Mbed TLS.
- * Note: when adding support, also adjust include/mbedtls/config_psa.h */
+ * Note: when adding support, also adjust
+ * include/mbedtls/config_psa_from_mbedtls.h */
 //#define PSA_WANT_ALG_XTS                        1
 
 #define PSA_WANT_ECC_BRAINPOOL_P_R1_256         1

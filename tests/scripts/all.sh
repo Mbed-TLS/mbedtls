@@ -2923,8 +2923,9 @@ component_test_psa_crypto_config_accel_hash () {
 
     helper_libtestdriver1_make_main "$loc_accel_list"
 
-    # There's a risk of something getting re-enabled via config_psa.h;
-    # make sure it did not happen. Note: it's OK for MD_C to be enabled.
+    # There's a risk of something getting re-enabled via
+    # config_mbedtls_from_psa.h; make sure it did not happen.
+    # Note: it's OK for MD_C to be enabled.
     not grep mbedtls_md5 library/md5.o
     not grep mbedtls_sha1 library/sha1.o
     not grep mbedtls_sha256 library/sha256.o
@@ -2995,8 +2996,9 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
 
     helper_libtestdriver1_make_main "$loc_accel_list"
 
-    # There's a risk of something getting re-enabled via config_psa.h;
-    # make sure it did not happen. Note: it's OK for MD_C to be enabled.
+    # There's a risk of something getting re-enabled via
+    # config_mbedtls_from_psa.h; make sure it did not happen.
+    # Note: it's OK for MD_C to be enabled.
     not grep mbedtls_md5 library/md5.o
     not grep mbedtls_sha1 library/sha1.o
     not grep mbedtls_sha256 library/sha256.o
@@ -3110,7 +3112,8 @@ component_test_psa_crypto_config_accel_aead () {
 
     helper_libtestdriver1_make_main "$loc_accel_list"
 
-    # Make sure this was not re-enabled by accident (additive config)
+    # There's a risk of something getting re-enabled via
+    # config_mbedtls_from_psa.h; make sure it did not happen.
     not grep mbedtls_ccm library/ccm.o
     not grep mbedtls_gcm library/gcm.o
     not grep mbedtls_chachapoly library/chachapoly.o

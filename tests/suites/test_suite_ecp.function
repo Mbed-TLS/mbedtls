@@ -1562,3 +1562,48 @@ exit:
     mbedtls_free(p_S);
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
+void ecp_mod_read_write(char *input_A, int id, int ctype)
+{
+    size_t limbs;
+    mbedtls_mpi_mod_modulus m;
+    mbedtls_mpi_mod_residue rA; // For input
+    mbedtls_mpi_mod_residue rX; // For read back
+    mbedtls_mpi_uint *rX_raw = NULL;
+    mbedtls_mpi_uint *A = NULL;
+    mbedtls_mpi_uint *bufx = NULL;
+
+    mbedtls_mpi_mod_modulus_init(&m);
+
+    TEST_EQUAL(0, mbedtls_ecp_modulus_setup(&m, id, ctype));
+
+    TEST_EQUAL(mbedtls_test_read_mpi_core(&A, &limbs, input_A), 0);
+    TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&rA, &m, A, limbs));
+
+    /* Test for limb sizes */
+    TEST_EQUAL(m.limbs, limbs);
+
+    ASSERT_ALLOC(rX_raw, limbs);
+    TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&rX, &m, rX_raw, limbs));
+
+    ASSERT_ALLOC(bufx, limbs);
+    TEST_EQUAL(mbedtls_mpi_mod_write(&rA, &m, (unsigned char *) bufx,
+                                     limbs * ciL,
+                                     MBEDTLS_MPI_MOD_EXT_REP_LE), 0);
+
+    TEST_EQUAL(0, mbedtls_mpi_mod_read(&rX, &m, (unsigned char *) bufx, limbs * ciL,
+                                       MBEDTLS_MPI_MOD_EXT_REP_LE));
+
+    TEST_EQUAL(rA.limbs, rX.limbs);
+    ASSERT_COMPARE(rA.p, rA.limbs * ciL, rX.p, rA.limbs * ciL);
+
+exit:
+    mbedtls_mpi_mod_modulus_free(&m);
+    mbedtls_mpi_mod_residue_release(&rA);
+    mbedtls_mpi_mod_residue_release(&rX);
+    mbedtls_free(A);
+    mbedtls_free(rX_raw);
+    mbedtls_free(bufx);
+}
+/* END_CASE */

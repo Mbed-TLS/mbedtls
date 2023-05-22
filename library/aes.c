@@ -1068,36 +1068,45 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
     }
 #endif
 
+    const unsigned char *ivp = iv;
+
     if (mode == MBEDTLS_AES_DECRYPT) {
-        while (length > 0) {
-            memcpy(temp, input, 16);
-            ret = mbedtls_aes_crypt_ecb(ctx, mode, input, output);
-            if (ret != 0) {
-                goto exit;
+        if (length >= 16) {
+            unsigned char temp2[16];
+            memcpy(temp, input + length - 16, 16);
+
+            while (length > 0) {
+                ret = mbedtls_aes_crypt_ecb(ctx, mode, input, temp2);
+                if (ret != 0) {
+                    goto exit;
+                }
+
+                mbedtls_xor(output, temp2, ivp, 16);
+
+                ivp = input;
+
+                input  += 16;
+                output += 16;
+                length -= 16;
             }
 
-            mbedtls_xor(output, output, iv, 16);
-
             memcpy(iv, temp, 16);
-
-            input  += 16;
-            output += 16;
-            length -= 16;
         }
     } else {
         while (length > 0) {
-            mbedtls_xor(output, input, iv, 16);
+            mbedtls_xor(output, input, ivp, 16);
 
             ret = mbedtls_aes_crypt_ecb(ctx, mode, output, output);
             if (ret != 0) {
                 goto exit;
             }
-            memcpy(iv, output, 16);
+            ivp = output;
 
             input  += 16;
             output += 16;
             length -= 16;
         }
+        memcpy(iv, ivp, 16);
     }
     ret = 0;
 

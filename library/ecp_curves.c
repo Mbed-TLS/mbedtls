@@ -4613,17 +4613,17 @@ int mbedtls_ecp_mod_p448(mbedtls_mpi *);
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
 static int ecp_mod_p192k1(mbedtls_mpi *);
 MBEDTLS_STATIC_TESTABLE
-int mbedtls_ecp_mod_p192k1(mbedtls_mpi *);
+int mbedtls_ecp_mod_p192k1_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
 static int ecp_mod_p224k1(mbedtls_mpi *);
 MBEDTLS_STATIC_TESTABLE
-int mbedtls_ecp_mod_p224k1(mbedtls_mpi *);
+int mbedtls_ecp_mod_p224k1_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
 static int ecp_mod_p256k1(mbedtls_mpi *);
 MBEDTLS_STATIC_TESTABLE
-int mbedtls_ecp_mod_p256k1(mbedtls_mpi *);
+int mbedtls_ecp_mod_p256k1_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 #endif
 
 #if defined(ECP_LOAD_GROUP)
@@ -5532,7 +5532,7 @@ cleanup:
  * Fast quasi-reduction modulo P = 2^s - R,
  * with R about 33 bits, used by the Koblitz curves.
  *
- * Write N as A0 + 2^224 A1, return A0 + R * A1.
+ * Write X as A0 + 2^224 A1, return A0 + R * A1.
  */
 #define P_KOBLITZ_R     (8 / sizeof(mbedtls_mpi_uint))            // Limbs in R
 
@@ -5629,81 +5629,95 @@ static int ecp_mod_p192k1(mbedtls_mpi *N)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t expected_width = 2 * ((192 + biL - 1) / biL);
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
-    ret = mbedtls_ecp_mod_p192k1(N);
+    ret = mbedtls_ecp_mod_p192k1_raw(N->p, expected_width);
 
 cleanup:
     return ret;
 }
 
 MBEDTLS_STATIC_TESTABLE
-int mbedtls_ecp_mod_p192k1(mbedtls_mpi *N)
+int mbedtls_ecp_mod_p192k1_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 {
     static mbedtls_mpi_uint Rp[] = {
-        MBEDTLS_BYTES_TO_T_UINT_8(0xC9, 0x11, 0x00, 0x00, 0x01, 0x00, 0x00,
-                                  0x00)
+        MBEDTLS_BYTES_TO_T_UINT_8(0xC9, 0x11, 0x00, 0x00,
+                                  0x01, 0x00, 0x00, 0x00)
     };
 
-    return ecp_mod_koblitz(N->p, N->n, Rp, 192);
+    if (X_limbs != 2 * ((192 + biL - 1) / biL)) {
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+
+    return ecp_mod_koblitz(X, X_limbs, Rp, 192);
 }
 
 #endif /* MBEDTLS_ECP_DP_SECP192K1_ENABLED */
 
 #if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
 
+/*
+ * Fast quasi-reduction modulo p224k1 = 2^224 - R,
+ * with R = 2^32 + 2^12 + 2^11 + 2^9 + 2^7 + 2^4 + 2 + 1 = 0x0100001A93
+ */
 static int ecp_mod_p224k1(mbedtls_mpi *N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t expected_width =  2 * 224 / biL;
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
-    ret = mbedtls_ecp_mod_p224k1(N);
+    ret = mbedtls_ecp_mod_p224k1_raw(N->p, expected_width);
 
 cleanup:
     return ret;
 }
 
-/*
- * Fast quasi-reduction modulo p224k1 = 2^224 - R,
- * with R = 2^32 + 2^12 + 2^11 + 2^9 + 2^7 + 2^4 + 2 + 1 = 0x0100001A93
- */
 MBEDTLS_STATIC_TESTABLE
-int mbedtls_ecp_mod_p224k1(mbedtls_mpi *N)
+int mbedtls_ecp_mod_p224k1_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 {
     static mbedtls_mpi_uint Rp[] = {
-        MBEDTLS_BYTES_TO_T_UINT_8(0x93, 0x1A, 0x00, 0x00, 0x01, 0x00, 0x00,
-                                  0x00)
+        MBEDTLS_BYTES_TO_T_UINT_8(0x93, 0x1A, 0x00, 0x00,
+                                  0x01, 0x00, 0x00, 0x00)
     };
 
-    return ecp_mod_koblitz(N->p, N->n, Rp, 224);
+    if (X_limbs != 2 * 224 / biL) {
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+
+    return ecp_mod_koblitz(X, X_limbs, Rp, 224);
 }
 
 #endif /* MBEDTLS_ECP_DP_SECP224K1_ENABLED */
 
 #if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
 
+/*
+ * Fast quasi-reduction modulo p256k1 = 2^256 - R,
+ * with R = 2^32 + 2^9 + 2^8 + 2^7 + 2^6 + 2^4 + 1 = 0x01000003D1
+ */
 static int ecp_mod_p256k1(mbedtls_mpi *N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t expected_width = 2 * ((256 + biL - 1) / biL);
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
-    ret = mbedtls_ecp_mod_p256k1(N);
+    ret = mbedtls_ecp_mod_p256k1_raw(N->p, expected_width);
 
 cleanup:
     return ret;
 }
 
-/*
- * Fast quasi-reduction modulo p256k1 = 2^256 - R,
- * with R = 2^32 + 2^9 + 2^8 + 2^7 + 2^6 + 2^4 + 1 = 0x01000003D1
- */
 MBEDTLS_STATIC_TESTABLE
-int mbedtls_ecp_mod_p256k1(mbedtls_mpi *N)
+int mbedtls_ecp_mod_p256k1_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 {
     static mbedtls_mpi_uint Rp[] = {
-        MBEDTLS_BYTES_TO_T_UINT_8(0xD1, 0x03, 0x00, 0x00, 0x01, 0x00, 0x00,
-                                  0x00)
+        MBEDTLS_BYTES_TO_T_UINT_8(0xD1, 0x03, 0x00, 0x00,
+                                  0x01, 0x00, 0x00, 0x00)
     };
-    return ecp_mod_koblitz(N->p, N->n, Rp, 256);
+
+    if (X_limbs != 2 * ((256 + biL - 1) / biL)) {
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+
+    return ecp_mod_koblitz(X, X_limbs, Rp, 256);
 }
+
 #endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */
 
 #if defined(MBEDTLS_TEST_HOOKS)

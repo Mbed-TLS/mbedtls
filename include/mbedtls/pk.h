@@ -282,7 +282,7 @@ typedef struct mbedtls_pk_context {
      * - the following fields are used for all public key operations: signature
      *   verify, key pair check and key write.
      * Of course, when MBEDTLS_PK_USE_PSA_EC_DATA is not enabled, the legacy
-     * ecp_keypair structure is used for storing the public key and perform
+     * ecp_keypair structure is used for storing the public key and performing
      * all the operations.
      *
      * Note: This new public key storing solution only works for EC keys, not

@@ -89,7 +89,7 @@
 
 /* PSA crypto specific configuration options
  * - If config_psa.h reads a configuration option in preprocessor directive,
- *   this symbol should be consulted before its inclusion. (e.g. MBEDTLS_MD_C)
+ *   this symbol should be set before its inclusion. (e.g. MBEDTLS_MD_C)
  * - If config_psa.h writes a configuration option in conditional directive,
  *   this symbol should be consulted after its inclusion.
  *   (e.g. MBEDTLS_MD_LIGHT)

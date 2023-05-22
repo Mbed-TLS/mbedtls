@@ -224,6 +224,9 @@ int mbedtls_pk_update_public_key_from_keypair(mbedtls_pk_context *pk,
 
     pk->ec_family = mbedtls_ecc_group_to_psa(ecp_keypair->grp.id,
                                              &pk->ec_bits);
+    if (pk->ec_family == 0) {
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+    }
 
     return 0;
 }

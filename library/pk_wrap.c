@@ -1150,6 +1150,10 @@ static int eckey_check_pair_psa(mbedtls_pk_context *pub, mbedtls_pk_context *prv
 #endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
     const size_t curve_bytes = PSA_BITS_TO_BYTES(curve_bits);
 
+    if (curve == 0) {
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+    }
+
     psa_set_key_type(&key_attr, PSA_KEY_TYPE_ECC_KEY_PAIR(curve));
     psa_set_key_usage_flags(&key_attr, PSA_KEY_USAGE_EXPORT);
 

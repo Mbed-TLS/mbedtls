@@ -38,6 +38,10 @@ static int pk_genkey_ec(mbedtls_pk_context *pk, mbedtls_ecp_group_id grp_id)
     size_t key_len;
     int ret;
 
+    if (curve == 0) {
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+    }
+
     psa_set_key_type(&key_attr, PSA_KEY_TYPE_ECC_KEY_PAIR(curve));
     psa_set_key_bits(&key_attr, curve_bits);
     psa_set_key_usage_flags(&key_attr, PSA_KEY_USAGE_EXPORT);

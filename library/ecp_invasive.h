@@ -250,8 +250,6 @@ int mbedtls_ecp_mod_p256k1_raw(mbedtls_mpi_uint *X, size_t X_limbs);
  *                          (double the bitlength of the modulus).
  *                          Upon return holds the reduced value which is
  *                          in range `0 <= X < 2 * N` (where N is the modulus).
- *                          The bitlength of the reduced value is the same as
- *                          that of the modulus (255 bits).
  * \param[in]       X_limbs The length of \p X in limbs.
  *
  * \return          \c 0 on success.

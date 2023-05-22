@@ -5455,7 +5455,7 @@ int mbedtls_ecp_mod_p255_raw(mbedtls_mpi_uint *X, size_t X_Limbs)
         memset(A1, 0, sizeof(mbedtls_mpi_uint) * A1_limbs);
     }
 
-    /* Step 2: Reduce to <p
+    /* Step 2: Reduce to <2p
      * Split as A0 + 2^255*c, with c a scalar, and compute A0 + 19*c */
     *carry <<= 1;
     *carry += (X[P255_WIDTH - 1] >> (biL - 1));
@@ -5463,6 +5463,13 @@ int mbedtls_ecp_mod_p255_raw(mbedtls_mpi_uint *X, size_t X_Limbs)
 
     /* Clear top bit */
     X[P255_WIDTH - 1] <<= 1; X[P255_WIDTH - 1] >>= 1;
+    /* Since the top bit for X has been cleared 0 + 0 + Carry
+     * will not overflow.
+     *
+     * Furthermore for 2p = 2^256-38. When a carry propagation on the highest
+     * limb occurs, X > 2^255 and all the remaining bits on the limb are zero.
+     *   - If X < 2^255 ==> X < 2p
+     *   - If X > 2^255 ==> X < 2^256 - 2^255 < 2p  */
     (void) mbedtls_mpi_core_add(X, X, carry, P255_WIDTH);
 
     mbedtls_free(carry);

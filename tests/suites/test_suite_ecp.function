@@ -1640,7 +1640,7 @@ void ecp_mod_add_sub(char *input_A, char *input_B, int id, int ctype)
     TEST_EQUAL(mbedtls_mpi_mod_residue_setup(&rB, &m, p_B, p_B_limbs), 0);
     TEST_EQUAL(mbedtls_mpi_mod_residue_setup(&rS, &m, p_S, p_A_limbs), 0);
 
-    /* Firstly add A and B to get the summary S, then subtract B,
+    /* Firstly add A and B to get the sum S, then subtract B,
      * the difference should be equal to A*/
     TEST_EQUAL(0, mbedtls_mpi_mod_add(&rS, &rA, &rB, &m));
     TEST_EQUAL(0, mbedtls_mpi_mod_sub(&rS, &rS, &rB, &m));

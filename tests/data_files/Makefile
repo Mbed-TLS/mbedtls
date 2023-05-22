@@ -49,8 +49,8 @@ test_ca_key_file_rsa = test-ca.key
 test_ca_pwd_rsa = PolarSSLTest
 test_ca_config_file = test-ca.opensslconf
 
-$(test_ca_key_file_rsa):$(test_ca_pwd_rsa)
-    $(OPENSSL) genrsa -aes-128-cbc -passout pass:$< -out $@ 2048
+$(test_ca_key_file_rsa):
+    $(OPENSSL) genrsa -aes-128-cbc -passout pass:$(test_ca_pwd_rsa) -out $@ 2048
 all_final += $(test_ca_key_file_rsa)
 
 test-ca.req.sha256: $(test_ca_key_file_rsa)
@@ -642,7 +642,9 @@ all_final += crl-rsa-pss-sha1-badsign.pem
 # server10*
 
 server10.crt: server10.key test-int-ca3.crt test-int-ca3.key
-	$(MBEDTLS_CERT_WRITE) subject_key=$< subject_name="CN=localhost" serial=75 issuer_crt=test-int-ca3.crt issuer_key=test-int-ca3.key subject_identifier=0 authority_identifier=0 not_before=20190210144406 not_after=20290210144406 md=SHA256 version=3 output_file=$@
+	$(MBEDTLS_CERT_WRITE) subject_key=$< subject_name="CN=localhost" serial=75 issuer_crt=test-int-ca3.crt \
+		issuer_key=test-int-ca3.key subject_identifier=0 authority_identifier=0 \
+		not_before=20190210144406 not_after=20290210144406 md=SHA256 version=3 output_file=$@
 all_final += server10.crt
 server10-badsign.crt: server10.crt
 	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; } > $@

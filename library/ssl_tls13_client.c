@@ -1696,7 +1696,7 @@ static int ssl_tls13_parse_server_hello(mbedtls_ssl_context *ssl,
                               cipher_suite, ciphersuite_info->name));
 
 #if defined(MBEDTLS_HAVE_TIME)
-    ssl->session_negotiate->start = time(NULL);
+    ssl->session_negotiate->start = mbedtls_time(NULL);
 #endif /* MBEDTLS_HAVE_TIME */
 
     /* ...

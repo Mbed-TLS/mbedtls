@@ -591,7 +591,7 @@ server9-defaults.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
 all_final += server9-defaults.crt
 
 server9-badsign.crt: server9.crt
-	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; cat $(test_ca_int_rsa1); } > $@
+	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; } > $@
 all_final += server9-badsign.crt
 
 server9-with-ca.crt: server9.crt $(test_ca_crt)

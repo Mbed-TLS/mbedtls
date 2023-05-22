@@ -31,6 +31,10 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#ifdef __ARM_NEON
+#include <arm_neon.h>
+#endif /* __ARM_NEON */
+
 /** Helper to define a function as static except when building invasive tests.
  *
  * If a function is only used inside its own source file and should be
@@ -125,7 +129,14 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
 {
     size_t i = 0;
 #if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)
-#if defined(__amd64__) || defined(__x86_64__) || defined(__aarch64__)
+#if defined(__aarch64__) && defined(__ARM_NEON)
+    for (; (i + 16) <= n; i += 16) {
+        uint64x2_t v1 = vld1q_u64((uint64_t *) a);
+        uint64x2_t v2 = vld1q_u64((uint64_t *) b);
+        uint64x2_t x = veorq_u64(v1, v2);
+        vst1q_u64((uint64_t *) r, x);
+    }
+#elif defined(__amd64__) || defined(__x86_64__) || defined(__aarch64__)
     /* This codepath probably only makes sense on architectures with 64-bit registers */
     for (; (i + 8) <= n; i += 8) {
         uint64_t x = mbedtls_get_unaligned_uint64(a + i) ^ mbedtls_get_unaligned_uint64(b + i);

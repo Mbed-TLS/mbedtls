@@ -1155,8 +1155,7 @@ static int ssl_handshake_init(mbedtls_ssl_context *ssl)
         size_t length;
         const mbedtls_ecp_group_id *curve_list = ssl->conf->curve_list;
 
-        for (length = 0;  (curve_list[length] != MBEDTLS_ECP_DP_NONE) &&
-             (length < MBEDTLS_ECP_DP_MAX); length++) {
+        for (length = 0;  (curve_list[length] != MBEDTLS_ECP_DP_NONE); length++) {
         }
 
         /* Leave room for zero termination */

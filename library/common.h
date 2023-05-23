@@ -31,7 +31,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#ifdef __ARM_NEON
+#if defined(__ARM_NEON)
 #include <arm_neon.h>
 #endif /* __ARM_NEON */
 
@@ -129,7 +129,7 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
 {
     size_t i = 0;
 #if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)
-#if defined(__aarch64__) && defined(__ARM_NEON)
+#if defined(__ARM_NEON)
     for (; (i + 16) <= n; i += 16) {
         uint64x2_t v1 = vld1q_u64((uint64_t *) (a + i));
         uint64x2_t v2 = vld1q_u64((uint64_t *) (b + i));

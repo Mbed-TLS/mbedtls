@@ -159,8 +159,9 @@ int main(int argc, char *argv[])
     mbedtls_ctr_drbg_context ctr_drbg;
     const char *pers = "csr example app";
     mbedtls_x509_san_list *cur, *prev;
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
     uint8_t ip[4] = { 0 };
-
+#endif
     /*
      * Set to sane values
      */
@@ -241,20 +242,29 @@ usage:
                 } else if (strcmp(q, "DNS") == 0) {
                     cur->node.type = MBEDTLS_X509_SAN_DNS_NAME;
                 } else if (strcmp(q, "IP") == 0) {
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
                     size_t ip_len = 0;
                     cur->node.type = MBEDTLS_X509_SAN_IP_ADDRESS;
                     ip_len = mbedtls_x509_crt_parse_cn_inet_pton(subtype_value, ip);
                     if (ip_len == 0) {
+                        mbedtls_printf("mbedtls_x509_crt_parse_cn_inet_pton failed to parse %s\n",
+                                       subtype_value);
                         goto exit;
                     }
+#else
+                    mbedtls_printf("IP SAN parsing requires MBEDTLS_X509_CRT_PARSE_C to be defined");
+                    goto exit;
+#endif
                 } else {
                     mbedtls_free(cur);
                     goto usage;
                 }
 
                 if (strcmp(q, "IP") == 0) {
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
                     cur->node.san.unstructured_name.p = (unsigned char *) ip;
                     cur->node.san.unstructured_name.len = sizeof(ip);
+#endif
                 } else {
                     q = subtype_value;
                     cur->node.san.unstructured_name.p = (unsigned char *) q;

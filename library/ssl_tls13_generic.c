@@ -1488,7 +1488,7 @@ int mbedtls_ssl_reset_transcript_for_hrr(mbedtls_ssl_context *ssl)
     return ret;
 }
 
-#if defined(PSA_WANT_ALG_ECDH)
+#if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
 
 int mbedtls_ssl_tls13_read_public_ecdhe_share(mbedtls_ssl_context *ssl,
                                               const unsigned char *buf,
@@ -1569,7 +1569,7 @@ int mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
 
     return 0;
 }
-#endif /* PSA_WANT_ALG_ECDH */
+#endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */
 
 #if defined(PSA_WANT_ALG_FFDH)
 int mbedtls_ssl_tls13_generate_and_write_dhe_key_exchange(

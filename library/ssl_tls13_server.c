@@ -1562,7 +1562,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                 break;
 #endif /* PSA_WANT_ALG_ECDH */
 
-#if defined(PSA_WANT_ALG_ECDH)
+#if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
             case MBEDTLS_TLS_EXT_KEY_SHARE:
                 MBEDTLS_SSL_DEBUG_MSG(3, ("found key share extension"));
 
@@ -1587,7 +1587,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                 }
 
                 break;
-#endif /* PSA_WANT_ALG_ECDH */
+#endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */
 
             case MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS:
                 /* Already parsed */
@@ -1924,7 +1924,7 @@ static int ssl_tls13_generate_and_write_key_share(mbedtls_ssl_context *ssl,
         }
     } else
 #endif /* PSA_WANT_ALG_ECDH */
-#if defined(MBEDTLS_DHM_C)
+#if defined(MBEDTLS_DHM_C) || defined(PSA_WANT_ALG_FFDH)
     if (mbedtls_ssl_tls13_named_group_is_dhe(named_group)) {
         ret = mbedtls_ssl_tls13_generate_and_write_dhe_key_exchange(
             ssl, named_group, buf, end, out_len);
@@ -1935,7 +1935,7 @@ static int ssl_tls13_generate_and_write_key_share(mbedtls_ssl_context *ssl,
             return ret;
         }
     } else
-#endif /* MBEDTLS_DHM_C */
+#endif /* MBEDTLS_DHM_C || PSA_WANT_ALG_FFDH */
     if (0 /* Other kinds of KEMs */) {
     } else {
         ((void) ssl);

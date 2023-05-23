@@ -2010,7 +2010,6 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
     peer_key = mbedtls_pk_ec_ro(*peer_pk);
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    size_t olen = 0;
     uint16_t tls_id = 0;
     psa_ecc_family_t ecc_family;
 
@@ -2034,6 +2033,12 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
     ssl->handshake->ecdh_psa_type = PSA_KEY_TYPE_ECC_KEY_PAIR(ecc_family);
 
     /* Store peer's public key in psa format. */
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    memcpy(ssl->handshake->ecdh_psa_peerkey, peer_pk->pub_raw, peer_pk->pub_raw_len);
+    ssl->handshake->ecdh_psa_peerkey_len = peer_pk->pub_raw_len;
+    ret = 0;
+#else
+    size_t olen = 0;
     ret = mbedtls_ecp_point_write_binary(&peer_key->grp, &peer_key->Q,
                                          MBEDTLS_ECP_PF_UNCOMPRESSED, &olen,
                                          ssl->handshake->ecdh_psa_peerkey,
@@ -2043,8 +2048,8 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
         MBEDTLS_SSL_DEBUG_RET(1, ("mbedtls_ecp_point_write_binary"), ret);
         return ret;
     }
-
     ssl->handshake->ecdh_psa_peerkey_len = olen;
+#endif /* MBEDTLS_ECP_C */
 #else
     if ((ret = mbedtls_ecdh_get_params(&ssl->handshake->ecdh_ctx, peer_key,
                                        MBEDTLS_ECDH_THEIRS)) != 0) {

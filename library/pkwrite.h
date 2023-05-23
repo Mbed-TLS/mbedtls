@@ -73,7 +73,7 @@
 
 #endif /* MBEDTLS_RSA_C */
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 /*
  * EC public keys:
  *  SubjectPublicKeyInfo  ::=  SEQUENCE  {      1 + 2
@@ -98,34 +98,10 @@
  */
 #define MBEDTLS_PK_ECP_PRV_DER_MAX_BYTES    (29 + 3 * MBEDTLS_ECP_MAX_BYTES)
 
-#else /* MBEDTLS_ECP_C */
+#else /* MBEDTLS_ECP_LIGHT */
 
 #define MBEDTLS_PK_ECP_PUB_DER_MAX_BYTES   0
 #define MBEDTLS_PK_ECP_PRV_DER_MAX_BYTES   0
 
-#endif /* MBEDTLS_ECP_C */
-
-#if defined(MBEDTLS_ECP_LIGHT)
-#include "mbedtls/ecp.h"
-
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) || defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
-#define MBEDTLS_PK_HAVE_RFC8410_CURVES
-
-static inline int mbedtls_pk_is_rfc8410_curve(mbedtls_ecp_group_id id)
-{
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
-    if (id == MBEDTLS_ECP_DP_CURVE25519) {
-        return 1;
-    }
-#endif
-#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
-    if (id == MBEDTLS_ECP_DP_CURVE448) {
-        return 1;
-    }
-#endif
-    return 0;
-}
-#endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED || MBEDTLS_ECP_DP_CURVE448_ENABLED */
 #endif /* MBEDTLS_ECP_LIGHT */
-
 #endif /* MBEDTLS_PK_WRITE_H */

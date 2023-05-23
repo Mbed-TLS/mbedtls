@@ -202,6 +202,27 @@ typedef struct mbedtls_pk_rsassa_pss_options {
 #define MBEDTLS_PK_CAN_ECDH
 #endif
 
+/* Internal helper to define which fields in the pk_context structure below
+ * should be used for EC keys: legacy ecp_keypair or the raw (PSA friendly)
+ * format. It should be noticed that this only affect how data is stored, not
+ * which functions are used for various operations. The overall picture looks
+ * like this:
+ * - if ECP_C is defined then use legacy functions
+ * - if USE_PSA is defined and
+ *     - if ECP_C then use ecp_keypair structure, convert data to a PSA friendly
+ *       format and use PSA functions
+ *     - if !ECP_C then use new raw data and PSA functions directly.
+ *
+ * The main reason for the "intermediate" (USE_PSA + ECP_C) above is that as long
+ * as ECP_C is defined mbedtls_pk_ec() gives the user a read/write access to the
+ * ecp_keypair structure inside the pk_context so he/she can modify it using
+ * ECP functions which are not under PK module's control.
+ */
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_ECP_C) && \
+    defined(MBEDTLS_ECP_LIGHT)
+#define MBEDTLS_PK_USE_PSA_EC_DATA
+#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_ECP_C */
+
 /**
  * \brief           Types for interfacing with the debug module
  */
@@ -209,6 +230,7 @@ typedef enum {
     MBEDTLS_PK_DEBUG_NONE = 0,
     MBEDTLS_PK_DEBUG_MPI,
     MBEDTLS_PK_DEBUG_ECP,
+    MBEDTLS_PK_DEBUG_PSA_EC,
 } mbedtls_pk_debug_type;
 
 /**
@@ -232,19 +254,47 @@ typedef struct mbedtls_pk_debug_item {
  */
 typedef struct mbedtls_pk_info_t mbedtls_pk_info_t;
 
+#define MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN \
+    PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)
 /**
  * \brief           Public key container
- *
- * \note            The priv_id is guarded by MBEDTLS_PSA_CRYPTO_C and not
- *                  by MBEDTLS_USE_PSA_CRYPTO because it can be used also
- *                  in mbedtls_pk_sign_ext for RSA keys.
  */
 typedef struct mbedtls_pk_context {
     const mbedtls_pk_info_t *MBEDTLS_PRIVATE(pk_info);    /**< Public key information         */
     void *MBEDTLS_PRIVATE(pk_ctx);                        /**< Underlying public key context  */
+    /* When MBEDTLS_PSA_CRYPTO_C is enabled then the following priv_id field is
+     * used to store the ID of the opaque key.
+     * This priv_id is guarded by MBEDTLS_PSA_CRYPTO_C and not by
+     * MBEDTLS_USE_PSA_CRYPTO because it can be used also in mbedtls_pk_sign_ext
+     * for RSA keys. */
 #if defined(MBEDTLS_PSA_CRYPTO_C)
     mbedtls_svc_key_id_t MBEDTLS_PRIVATE(priv_id);      /**< Key ID for opaque keys */
 #endif /* MBEDTLS_PSA_CRYPTO_C */
+    /* The following fields are meant for storing the public key in raw format
+     * which is handy for:
+     * - easily importing it into the PSA context
+     * - reducing the ECP module dependencies in the PK one.
+     *
+     * When MBEDTLS_PK_USE_PSA_EC_DATA is enabled:
+     * - the pk_ctx above is not used anymore for storing the public key
+     *   inside the ecp_keypair structure (only the private part, but also this
+     *   one is going to change in the future)
+     * - the following fields are used for all public key operations: signature
+     *   verify, key pair check and key write.
+     * Of course, when MBEDTLS_PK_USE_PSA_EC_DATA is not enabled, the legacy
+     * ecp_keypair structure is used for storing the public key and performing
+     * all the operations.
+     *
+     * Note: This new public key storing solution only works for EC keys, not
+     *       other ones. The latters still use pk_ctx to store their own
+     *       context.
+     */
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    uint8_t MBEDTLS_PRIVATE(pub_raw)[MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN]; /**< Raw public key   */
+    size_t MBEDTLS_PRIVATE(pub_raw_len);            /**< Valid bytes in "pub_raw" */
+    psa_ecc_family_t MBEDTLS_PRIVATE(ec_family);    /**< EC family of pk */
+    size_t MBEDTLS_PRIVATE(ec_bits);                /**< Curve's bits of pk */
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 } mbedtls_pk_context;
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)

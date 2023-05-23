@@ -61,6 +61,7 @@ void debug_print_msg_threshold(int threshold, int level, char *file,
     mbedtls_ssl_config_init(&conf);
     memset(buffer.buf, 0, 2000);
     buffer.ptr = buffer.buf;
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_ssl_setup(&ssl, &conf) == 0);
 
@@ -75,6 +76,7 @@ void debug_print_msg_threshold(int threshold, int level, char *file,
 exit:
     mbedtls_ssl_free(&ssl);
     mbedtls_ssl_config_free(&conf);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -90,6 +92,7 @@ void mbedtls_debug_print_ret(char *file, int line, char *text, int value,
     mbedtls_ssl_config_init(&conf);
     memset(buffer.buf, 0, 2000);
     buffer.ptr = buffer.buf;
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_ssl_setup(&ssl, &conf) == 0);
 
@@ -102,6 +105,7 @@ void mbedtls_debug_print_ret(char *file, int line, char *text, int value,
 exit:
     mbedtls_ssl_free(&ssl);
     mbedtls_ssl_config_free(&conf);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -117,7 +121,7 @@ void mbedtls_debug_print_buf(char *file, int line, char *text,
     mbedtls_ssl_config_init(&conf);
     memset(buffer.buf, 0, 2000);
     buffer.ptr = buffer.buf;
-
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_ssl_setup(&ssl, &conf) == 0);
 
@@ -130,6 +134,7 @@ void mbedtls_debug_print_buf(char *file, int line, char *text,
 exit:
     mbedtls_ssl_free(&ssl);
     mbedtls_ssl_config_free(&conf);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -145,6 +150,8 @@ void mbedtls_debug_print_crt(char *crt_file, char *file, int line,
     mbedtls_ssl_init(&ssl);
     mbedtls_ssl_config_init(&conf);
     mbedtls_x509_crt_init(&crt);
+    USE_PSA_INIT();
+
     memset(buffer.buf, 0, 2000);
     buffer.ptr = buffer.buf;
 
@@ -161,6 +168,7 @@ exit:
     mbedtls_x509_crt_free(&crt);
     mbedtls_ssl_free(&ssl);
     mbedtls_ssl_config_free(&conf);
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -178,6 +186,7 @@ void mbedtls_debug_print_mpi(char *value, char *file, int line,
     mbedtls_mpi_init(&val);
     memset(buffer.buf, 0, 2000);
     buffer.ptr = buffer.buf;
+    USE_PSA_INIT();
 
     TEST_ASSERT(mbedtls_ssl_setup(&ssl, &conf) == 0);
 
@@ -193,5 +202,6 @@ exit:
     mbedtls_mpi_free(&val);
     mbedtls_ssl_free(&ssl);
     mbedtls_ssl_config_free(&conf);
+    USE_PSA_DONE();
 }
 /* END_CASE */

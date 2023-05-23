@@ -2091,10 +2091,8 @@ struct psa_jpake_computation_stage_s {
     psa_jpake_round_t MBEDTLS_PRIVATE(round);
     /* The 'mode' we are currently in (inputting or outputting) */
     psa_jpake_io_mode_t MBEDTLS_PRIVATE(mode);
-    /* The number of inputs so far this round */
-    uint8_t MBEDTLS_PRIVATE(inputs);
-    /* The number of outputs so far this round */
-    uint8_t MBEDTLS_PRIVATE(outputs);
+    /* The number of inputs or outputs so far in the current mode */
+    uint8_t MBEDTLS_PRIVATE(count);
     /* The next expected step (KEY_SHARE, ZK_PUBLIC or ZK_PROOF) */
     psa_pake_step_t MBEDTLS_PRIVATE(step);
 };

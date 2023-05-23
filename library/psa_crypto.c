@@ -7414,9 +7414,8 @@ psa_status_t psa_pake_setup(
             &operation->computation_stage.jpake;
 
         computation_stage->round = FIRST;
-        computation_stage->mode = INPUT;
-        computation_stage->inputs = 0;
-        computation_stage->outputs = 0;
+        computation_stage->mode = OUTPUT;
+        computation_stage->count = 0;
         computation_stage->step = PSA_PAKE_STEP_KEY_SHARE;
     } else
 #endif /* PSA_WANT_ALG_JPAKE */
@@ -7592,14 +7591,7 @@ static psa_crypto_driver_pake_step_t convert_jpake_computation_stage_to_driver_s
     psa_jpake_computation_stage_t *stage)
 {
     if (stage->round == FIRST) {
-        int is_x1;
-        if (stage->mode == OUTPUT) {
-            is_x1 = (stage->outputs < 1);
-        } else {
-            is_x1 = (stage->inputs < 1);
-        }
-
-        if (is_x1) {
+        if (stage->count < 1) {
             switch (stage->step) {
                 case PSA_PAKE_STEP_KEY_SHARE:
                     return PSA_JPAKE_X1_STEP_KEY_SHARE;
@@ -7689,9 +7681,8 @@ static psa_status_t psa_pake_complete_inputs(
             psa_jpake_computation_stage_t *computation_stage =
                 &operation->computation_stage.jpake;
             computation_stage->round = FIRST;
-            computation_stage->mode = INPUT;
-            computation_stage->inputs = 0;
-            computation_stage->outputs = 0;
+            computation_stage->mode = OUTPUT;
+            computation_stage->count = 0;
             computation_stage->step = PSA_PAKE_STEP_KEY_SHARE;
         } else
 #endif /* PSA_WANT_ALG_JPAKE */
@@ -7727,11 +7718,6 @@ static psa_status_t psa_jpake_prologue(
         return PSA_ERROR_BAD_STATE;
     }
 
-    if (step == PSA_PAKE_STEP_KEY_SHARE &&
-        computation_stage->outputs == 0) {
-        /* Start of the round, expect output first */
-        computation_stage->mode = OUTPUT;
-    }
     if (computation_stage->mode != function_mode) {
         /* The mode we are in must match the function called by the user */
         return PSA_ERROR_BAD_STATE;
@@ -7740,12 +7726,12 @@ static psa_status_t psa_jpake_prologue(
     /* Check that we do not already have enough inputs/outputs
      * this round */
     if (function_mode == INPUT) {
-        if (computation_stage->inputs >=
+        if (computation_stage->count >=
             PSA_JPAKE_EXPECTED_INPUTS(computation_stage->round)) {
             return PSA_ERROR_BAD_STATE;
         }
     } else {
-        if (computation_stage->outputs >=
+        if (computation_stage->count >=
             PSA_JPAKE_EXPECTED_OUTPUTS(computation_stage->round)) {
             return PSA_ERROR_BAD_STATE;
         }
@@ -7761,21 +7747,20 @@ static psa_status_t psa_jpake_epilogue(
         &operation->computation_stage.jpake;
 
     if (stage->step == PSA_PAKE_STEP_ZK_PROOF) {
+        stage->count++;
         /* End of an input/output */
         if (function_mode == OUTPUT) {
-            stage->outputs++;
-            if (stage->outputs >= PSA_JPAKE_EXPECTED_OUTPUTS(stage->round)) {
+            if (stage->count >= PSA_JPAKE_EXPECTED_OUTPUTS(stage->round)) {
                 /* Outputs finished, switch to input */
                 stage->mode = INPUT;
-                stage->inputs = 0;
+                stage->count = 0;
             }
         } else {
-            stage->inputs++;
-            if (stage->inputs >= PSA_JPAKE_EXPECTED_INPUTS(stage->round)) {
+            if (stage->count >= PSA_JPAKE_EXPECTED_INPUTS(stage->round)) {
                 /* Inputs finished, end of a round */
                 stage->round++;
                 stage->mode = OUTPUT;
-                stage->outputs = 0;
+                stage->count = 0;
             }
         }
         stage->step = PSA_PAKE_STEP_KEY_SHARE;

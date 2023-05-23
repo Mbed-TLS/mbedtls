@@ -5522,7 +5522,7 @@ int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)
      * X. */
     memcpy(M, X + P448_WIDTH, ((M_limbs - 1) * ciL));
 
-    /* N = A0 */
+    /* X = A0 */
     for (i = P448_WIDTH; i < X_limbs; i++) {
         X[i] = 0;
     }
@@ -5538,7 +5538,7 @@ int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)
     /* No carry here - only max 224 bits */
     (void) mbedtls_mpi_core_add(X, X, Q, Q_limbs);
 
-    /* M = (B0 + B1) * 2^224, N += M */
+    /* M = (B0 + B1) * 2^224, X += M */
     if (sizeof(mbedtls_mpi_uint) > 4) {
         M[P224_WIDTH_MIN] &= ((mbedtls_mpi_uint)-1) >> (P224_UNUSED_BITS);
     }

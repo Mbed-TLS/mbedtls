@@ -1611,7 +1611,7 @@ int mbedtls_ssl_tls13_generate_and_write_dhe_key_exchange(
     status = psa_generate_key(&key_attributes,
                               &handshake->ecdh_psa_privkey);
     if (status != PSA_SUCCESS) {
-        ret = psa_ssl_status_to_mbedtls(status);
+        ret = PSA_TO_MBEDTLS_ERR(status);
         MBEDTLS_SSL_DEBUG_RET(1, "psa_generate_key", ret);
         return ret;
 
@@ -1622,7 +1622,7 @@ int mbedtls_ssl_tls13_generate_and_write_dhe_key_exchange(
                                    buf, PSA_BITS_TO_BYTES(ffdh_bits),
                                    &own_pubkey_len);
     if (status != PSA_SUCCESS) {
-        ret = psa_ssl_status_to_mbedtls(status);
+        ret = PSA_TO_MBEDTLS_ERR(status);
         MBEDTLS_SSL_DEBUG_RET(1, "psa_export_public_key", ret);
         return ret;
     }

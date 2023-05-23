@@ -1820,6 +1820,77 @@ pkcs7_data_cert_signeddata_sha256.der: pkcs7_data_cert_signed_sha256.der
 all_final += pkcs7_data_cert_signeddata_sha256.der
 
 ################################################################
+#### Generate C format test certs header
+################################################################
+
+# FIXME: Makefile will update those input files which is not expected.
+#        Remove them from dependancy to workaround it.
+#        For timebeing, we will always update it when `make ../src/test_certs.h`
+.PHONY: ../src/test_certs.h
+TEST_CERTS_H_INPUT_FILES=test-ca2.crt \
+					test-ca2.crt.der \
+					test-ca2.key.enc \
+					PolarSSLTest \
+					test-ca2.key.der \
+					test-ca-sha256.crt \
+					test-ca-sha256.crt.der \
+					test-ca-sha1.crt \
+					test-ca-sha1.crt.der \
+					test-ca.key \
+					PolarSSLTest \
+					test-ca.key.der \
+					server5.crt \
+					server5.crt.der \
+					server5.key \
+					server5.key.der \
+					server2-sha256.crt \
+					server2-sha256.crt.der \
+					server2.crt \
+					server2.crt.der \
+					server2.key \
+					server2.key.der \
+					cli2.crt \
+					cli2.crt.der \
+					cli2.key \
+					cli2.key.der \
+					cli-rsa-sha256.crt \
+					cli-rsa-sha256.crt.der \
+					cli-rsa.key \
+					cli-rsa.key.der
+../src/test_certs.h:
+	../scripts/generate_test_cert_macros.py --output $@ \
+				--string TEST_CA_CRT_EC_PEM=test-ca2.crt \
+				--binary TEST_CA_CRT_EC_DER=test-ca2.crt.der \
+				--string TEST_CA_KEY_EC_PEM=test-ca2.key.enc \
+				--password TEST_CA_PWD_EC_PEM=PolarSSLTest \
+				--binary TEST_CA_KEY_EC_DER=test-ca2.key.der \
+				--string TEST_CA_CRT_RSA_SHA256_PEM=test-ca-sha256.crt \
+				--binary TEST_CA_CRT_RSA_SHA256_DER=test-ca-sha256.crt.der \
+				--string TEST_CA_CRT_RSA_SHA1_PEM=test-ca-sha1.crt \
+				--binary TEST_CA_CRT_RSA_SHA1_DER=test-ca-sha1.crt.der \
+				--string TEST_CA_KEY_RSA_PEM=test-ca.key \
+				--password TEST_CA_PWD_RSA_PEM=PolarSSLTest \
+				--binary TEST_CA_KEY_RSA_DER=test-ca.key.der \
+				--string TEST_SRV_CRT_EC_PEM=server5.crt \
+				--binary TEST_SRV_CRT_EC_DER=server5.crt.der \
+				--string TEST_SRV_KEY_EC_PEM=server5.key \
+				--binary TEST_SRV_KEY_EC_DER=server5.key.der \
+				--string TEST_SRV_CRT_RSA_SHA256_PEM=server2-sha256.crt \
+				--binary TEST_SRV_CRT_RSA_SHA256_DER=server2-sha256.crt.der \
+				--string TEST_SRV_CRT_RSA_SHA1_PEM=server2.crt \
+				--binary TEST_SRV_CRT_RSA_SHA1_DER=server2.crt.der \
+				--string TEST_SRV_KEY_RSA_PEM=server2.key \
+				--binary TEST_SRV_KEY_RSA_DER=server2.key.der \
+				--string TEST_CLI_CRT_EC_PEM=cli2.crt \
+				--binary TEST_CLI_CRT_EC_DER=cli2.crt.der \
+				--string TEST_CLI_KEY_EC_PEM=cli2.key \
+				--binary TEST_CLI_KEY_EC_DER=cli2.key.der \
+				--string TEST_CLI_CRT_RSA_PEM=cli-rsa-sha256.crt \
+				--binary TEST_CLI_CRT_RSA_DER=cli-rsa-sha256.crt.der \
+				--string TEST_CLI_KEY_RSA_PEM=cli-rsa.key \
+				--binary TEST_CLI_KEY_RSA_DER=cli-rsa.key.der
+
+################################################################
 #### Diffie-Hellman parameters
 ################################################################
 
@@ -1828,6 +1899,7 @@ dh.998.pem:
 
 dh.999.pem:
 	$(OPENSSL) dhparam -out $@ -text 999
+
 
 ################################################################
 #### Meta targets

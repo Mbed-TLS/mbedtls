@@ -364,10 +364,7 @@ int mbedtls_ssl_cookie_check(void *p_ctx,
     cur_time = ctx->serial;
 #endif
 
-    cookie_time = ((unsigned long) cookie[0] << 24) |
-                  ((unsigned long) cookie[1] << 16) |
-                  ((unsigned long) cookie[2] <<  8) |
-                  ((unsigned long) cookie[3]);
+    cookie_time = (unsigned long) MBEDTLS_GET_UINT32_BE(cookie, 0);
 
     if (ctx->timeout != 0 && cur_time - cookie_time > ctx->timeout) {
         ret = -1;

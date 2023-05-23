@@ -1088,9 +1088,7 @@ read_record_header:
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
         if (ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS) {
             /* This couldn't be done in ssl_prepare_handshake_record() */
-            unsigned int cli_msg_seq = (ssl->in_msg[4] << 8) |
-                                       ssl->in_msg[5];
-
+            unsigned int cli_msg_seq = (unsigned int) MBEDTLS_GET_UINT16_BE(ssl->in_msg, 4);
             if (cli_msg_seq != ssl->handshake->in_msg_seq) {
                 MBEDTLS_SSL_DEBUG_MSG(1, ("bad client hello message_seq: "
                                           "%u (expected %u)", cli_msg_seq,
@@ -1102,8 +1100,7 @@ read_record_header:
         } else
 #endif
         {
-            unsigned int cli_msg_seq = (ssl->in_msg[4] << 8) |
-                                       ssl->in_msg[5];
+            unsigned int cli_msg_seq = (unsigned int) MBEDTLS_GET_UINT16_BE(ssl->in_msg, 4);
             ssl->handshake->out_msg_seq = cli_msg_seq;
             ssl->handshake->in_msg_seq  = cli_msg_seq + 1;
         }

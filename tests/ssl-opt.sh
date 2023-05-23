@@ -11265,7 +11265,7 @@ run_test    "TLS 1.3: Default" \
             0 \
             -s "Protocol is TLSv1.3" \
             -s "Ciphersuite is TLS1-3-CHACHA20-POLY1305-SHA256" \
-            -s "ECDH group: x25519" \
+            -s "ECDH/FFDH group: x25519" \
             -s "selected signature algorithm ecdsa_secp256r1_sha256"
 
 requires_openssl_tls1_3
@@ -12352,6 +12352,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled PSA_WANT_ALG_FFDH
 run_test "TLS 1.3: Test ffdh groups (ffdhe2048)" \
          "$P_SRV debug_level=5 force_version=tls13 curves=ffdhe2048" \
          "$P_CLI debug_level=5 force_version=tls13 curves=ffdhe2048" \
@@ -12365,6 +12366,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled PSA_WANT_ALG_FFDH
 run_test "TLS 1.3: Test ffdh groups (ffdhe3072)" \
          "$P_SRV debug_level=4 force_version=tls13 curves=ffdhe3072" \
          "$P_CLI debug_level=4 force_version=tls13 curves=ffdhe3072" \
@@ -12378,6 +12380,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled PSA_WANT_ALG_FFDH
 run_test "TLS 1.3: Test ffdh groups (ffdhe4096)" \
          "$P_SRV debug_level=4 force_version=tls13 curves=ffdhe4096" \
          "$P_CLI debug_level=4 force_version=tls13 curves=ffdhe4096" \
@@ -12391,6 +12394,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled PSA_WANT_ALG_FFDH
 run_test "TLS 1.3: Test ffdh groups (ffdhe6144)" \
          "$P_SRV debug_level=4 force_version=tls13 curves=ffdhe6144" \
          "$P_CLI debug_level=4 force_version=tls13 curves=ffdhe6144" \
@@ -12404,6 +12408,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled PSA_WANT_ALG_FFDH
 run_test "TLS 1.3: Test ffdh groups (ffdhe8192)" \
          "$P_SRV debug_level=4 force_version=tls13 curves=ffdhe8192" \
          "$P_CLI debug_level=4 force_version=tls13 curves=ffdhe8192" \
@@ -12417,6 +12422,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled PSA_WANT_ALG_FFDH
 run_test "TLS 1.3: Test ffdh groups - no match(server: ffdhe2048 client: secp384r1)" \
          "$P_SRV debug_level=4 force_version=tls13 curves=ffdhe2048" \
          "$P_CLI debug_level=4 force_version=tls13 curves=secp384r1" \
@@ -12429,6 +12435,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled PSA_WANT_ALG_FFDH
 run_test "TLS 1.3: Test ffdh groups - no match(server: secp384r1 client: ffdhe2048)" \
          "$P_SRV debug_level=4 force_version=tls13 curves=secp384r1" \
          "$P_CLI debug_level=4 force_version=tls13 curves=ffdhe2048" \

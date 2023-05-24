@@ -217,7 +217,7 @@ class CodeSizeComparison:
         print("Generating comparison results.")
 
         old_ds = {}
-        for line in old_file.readlines()[1:]:
+        for line in old_file.readlines():
             cols = line.split(", ")
             fname = cols[0]
             size = int(cols[1])
@@ -225,7 +225,7 @@ class CodeSizeComparison:
                 old_ds[fname] = size
 
         new_ds = {}
-        for line in new_file.readlines()[1:]:
+        for line in new_file.readlines():
             cols = line.split(", ")
             fname = cols[0]
             size = int(cols[1])

@@ -6419,13 +6419,14 @@ static psa_status_t psa_pbkdf2_set_input_cost(
         return PSA_ERROR_BAD_STATE;
     }
 
-    if (data > 0xFFFFFFFF) {
+    if (data > PSA_VENDOR_PBKDF2_MAX_ITERATIONS) {
         return PSA_ERROR_NOT_SUPPORTED;
     }
 
     if (data == 0) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
+
     pbkdf2->input_cost = data;
     pbkdf2->state = PSA_PBKDF2_STATE_INPUT_COST_SET;
 

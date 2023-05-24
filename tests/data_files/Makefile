@@ -580,10 +580,6 @@ server9-with-ca.crt: server9.crt $(test_ca_crt)
 	cat $^ > $@
 all_final += server9-with-ca.crt
 
-# FIXME: This file needs special sequence. It should be update manually
-server9-bad-saltlen.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
-	false
-
 server9-bad-mgfhash.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
 	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa \
 		-passin "pass:$(test_ca_pwd_rsa)" -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) \
@@ -592,6 +588,17 @@ server9-bad-mgfhash.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
 		-sigopt rsa_mgf1_md:sha224 -sha256 \
 		-in $< -out $@
 all_final += server9-bad-mgfhash.crt
+
+server9-bad-saltlen.crt: server9.csr \
+						$(test_ca_crt) $(test_ca_key_file_rsa) \
+						opensslcnf/server9.crt.v3_ext \
+						../../scripts/mbedtls_dev/generate_server9_bad_saltlen.py
+	../../scripts/mbedtls_dev/generate_server9_bad_saltlen.py --ca-name test-ca \
+		--ca-password $(test_ca_pwd_rsa) --csr server9.csr \
+		--openssl-extfile opensslcnf/server9.crt.v3_ext \
+		--anounce_saltlen 0xde --actual_saltlen 0x20 \
+		--output $@
+all_final += server9-bad-saltlen.crt
 
 # server10*
 

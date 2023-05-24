@@ -26,48 +26,8 @@ import sys
 import argparse
 import jinja2
 
-MACROS = [
-    ("comment1", None, None),
-    ("string", "TEST_CA_CRT_EC_PEM", "tests/data_files/test-ca2.crt"),
-    ("binary", "TEST_CA_CRT_EC_DER", "tests/data_files/test-ca2.crt.der"),
-    ("string", "TEST_CA_KEY_EC_PEM", "tests/data_files/test-ca2.key.enc"),
-    ("password", "TEST_CA_PWD_EC_PEM", "PolarSSLTest"),
-    ("binary", "TEST_CA_KEY_EC_DER", "tests/data_files/test-ca2.key.der"),
-    ("string", "TEST_CA_CRT_RSA_SHA256_PEM",
-     "tests/data_files/test-ca-sha256.crt"),
-    ("binary", "TEST_CA_CRT_RSA_SHA256_DER",
-     "tests/data_files/test-ca-sha256.crt.der"),
-    ("string", "TEST_CA_CRT_RSA_SHA1_PEM", "tests/data_files/test-ca-sha1.crt"),
-    ("binary", "TEST_CA_CRT_RSA_SHA1_DER", "tests/data_files/test-ca-sha1.crt.der"),
-    ("string", "TEST_CA_KEY_RSA_PEM", "tests/data_files/test-ca.key"),
-    ("password", "TEST_CA_PWD_RSA_PEM", "PolarSSLTest"),
-    ("binary", "TEST_CA_KEY_RSA_DER", "tests/data_files/test-ca.key.der"),
-    ("comment2", None, None),
-    ("string", "TEST_SRV_CRT_EC_PEM", "tests/data_files/server5.crt"),
-    ("binary", "TEST_SRV_CRT_EC_DER", "tests/data_files/server5.crt.der"),
-    ("string", "TEST_SRV_KEY_EC_PEM", "tests/data_files/server5.key"),
-    ("binary", "TEST_SRV_KEY_EC_DER", "tests/data_files/server5.key.der"),
-    ("string", "TEST_SRV_CRT_RSA_SHA256_PEM",
-     "tests/data_files/server2-sha256.crt"),
-    ("binary", "TEST_SRV_CRT_RSA_SHA256_DER",
-     "tests/data_files/server2-sha256.crt.der"),
-    ("string", "TEST_SRV_CRT_RSA_SHA1_PEM", "tests/data_files/server2.crt"),
-    ("binary", "TEST_SRV_CRT_RSA_SHA1_DER", "tests/data_files/server2.crt.der"),
-    ("string", "TEST_SRV_KEY_RSA_PEM", "tests/data_files/server2.key"),
-    ("binary", "TEST_SRV_KEY_RSA_DER", "tests/data_files/server2.key.der"),
-    ("comment3", None, None),
-    ("string", "TEST_CLI_CRT_EC_PEM", "tests/data_files/cli2.crt"),
-    ("binary", "TEST_CLI_CRT_EC_DER", "tests/data_files/cli2.crt.der"),
-    ("string", "TEST_CLI_KEY_EC_PEM", "tests/data_files/cli2.key"),
-    ("binary", "TEST_CLI_KEY_EC_DER", "tests/data_files/cli2.key.der"),
-    ("string", "TEST_CLI_CRT_RSA_PEM", "tests/data_files/cli-rsa-sha256.crt"),
-    ("binary", "TEST_CLI_CRT_RSA_DER", "tests/data_files/cli-rsa-sha256.crt.der"),
-    ("string", "TEST_CLI_KEY_RSA_PEM", "tests/data_files/cli-rsa.key"),
-    ("binary", "TEST_CLI_KEY_RSA_DER", "tests/data_files/cli-rsa.key.der")
-]
-
-
-class CustomAction(argparse.Action):
+class MacroDefineAction(argparse.Action):
+    #pylint: disable=signature-differs, too-few-public-methods
     def __call__(self, parser, namespace, values, option_string):
         if not hasattr(namespace, 'values'):
             setattr(namespace, 'values', [])
@@ -78,7 +38,7 @@ class CustomAction(argparse.Action):
         namespace.values.append((self.dest, macro_name, filename))
 
 
-def custom_type(value):
+def macro_define_type(value):
     ret = value.split('=', 1)
     if len(ret) != 2:
         raise argparse.ArgumentTypeError(
@@ -88,11 +48,12 @@ def custom_type(value):
 
 def build_argparser(parser):
     parser.description = __doc__
-    parser.add_argument('--string', type=custom_type, action=CustomAction,
+    parser.add_argument('--string', type=macro_define_type, action=MacroDefineAction,
                         metavar='MACRO_NAME=path/to/file', help='PEM to C string. ')
-    parser.add_argument('--binary', type=custom_type, action=CustomAction, metavar='MACRO_NAME=path/to/file',
+    parser.add_argument('--binary', type=macro_define_type, action=MacroDefineAction,
+                        metavar='MACRO_NAME=path/to/file',
                         help='DER to C arrary.')
-    parser.add_argument('--password', type=custom_type, action=CustomAction,
+    parser.add_argument('--password', type=macro_define_type, action=MacroDefineAction,
                         metavar='MACRO_NAME=password', help='Password to C string.')
     parser.add_argument('--output', type=str, required=True)
 
@@ -103,12 +64,11 @@ def main():
     args = parser.parse_args()
     return generate(**vars(args))
 
-    # sys.exit(0)
-
-
-def generate(values=[],output=None, **kwargs):
+#pylint: disable=dangerous-default-value, unused-argument
+def generate(values=[], output=None, **kwargs):
+    """Generate C header file.
+    """
     this_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.abspath(os.path.join(this_dir, '..', '..'))
     template_loader = jinja2.FileSystemLoader(
         searchpath=os.path.join(this_dir, '..', 'data_files'))
     template_env = jinja2.Environment(

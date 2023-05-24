@@ -671,6 +671,8 @@
  * clang and armcc5 under the same conditions).
  */
 
+#if defined(__ARM_ARCH)
+#if __ARM_ARCH >= 6
 
 #if defined(__thumb__) && !defined(__thumb2__) // Thumb1 (not Thumb 2) ISA
 // Only supported by gcc, when optimisation is enabled; only option A works
@@ -696,6 +698,9 @@
 #elif defined(__arm__) // Arm ISA
 // any option builds. A does not seem to work; B is about 2x faster than C (under emulation).
 #define ARM_OPTION_B
+#endif
+
+#endif
 #endif
 
 #if defined(ARM_OPTION_A)

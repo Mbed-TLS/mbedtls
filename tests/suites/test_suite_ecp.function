@@ -1627,7 +1627,7 @@ void ecp_mod_add_sub(char *input_A, char *input_B, int id, int ctype)
     TEST_EQUAL(mbedtls_test_read_mpi_core(&p_A, &p_A_limbs, input_A), 0);
     TEST_EQUAL(mbedtls_test_read_mpi_core(&p_B, &p_B_limbs, input_B), 0);
 
-    TEST_ASSERT(mbedtls_ecp_modulus_setup(&m, id, ctype) == 0);
+    TEST_EQUAL(0, mbedtls_ecp_modulus_setup(&m, id, ctype));
 
     /* Test for limb sizes for two input value and modulus */
     TEST_EQUAL(p_A_limbs, p_B_limbs);

@@ -671,11 +671,7 @@
  * x !=0, which we can detect using __OPTIMIZE__ (which is also defined by
  * clang and armcc5 under the same conditions).
  */
-
-//#if defined(__ARM_ARCH)
-//#if __ARM_ARCH >= 6
-
-#if defined(__thumb__) && !defined(__thumb2__) // Thumb1 (not Thumb 2) ISA
+#if defined(__thumb__) && !defined(__thumb2__) // Thumb 1 (not Thumb 2) ISA
 
     // Only supported by gcc, when optimisation is enabled; only option A works
     #if defined(__OPTIMIZE__) && !defined(__ARMCC_VERSION)
@@ -686,7 +682,7 @@
 
     #if !defined(__ARMCC_VERSION) && !defined(__OPTIMIZE__)
         // gcc -O0: only option B builds
-        #if defined (__ARM_FEATURE_DSP) && (__ARM_FEATURE_DSP == 1)
+        #if (__ARM_ARCH >= 6) && defined (__ARM_FEATURE_DSP) && (__ARM_FEATURE_DSP == 1)
         #define ARM_OPTION_B
         #endif
     #else
@@ -699,18 +695,16 @@
     // any option builds. A does not seem to work; B is about 2x faster than C (under emulation).
     #define ARM_OPTION_B_OR_C
 
-#endif
+#endif /* Arm ISA selection */
 
 #if defined(ARM_OPTION_B_OR_C)
+// Prefer B, if we have the right features for it
 #if (__ARM_ARCH >= 6) && defined (__ARM_FEATURE_DSP) && (__ARM_FEATURE_DSP == 1)
 #define ARM_OPTION_B
 #else
 #define ARM_OPTION_C
 #endif
-#endif
-
-//#endif
-//#endif
+#endif /* defined(ARM_OPTION_B_OR_C) */
 
 #if defined(ARM_OPTION_A)
 

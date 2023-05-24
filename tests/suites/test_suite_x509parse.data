@@ -3321,13 +3321,13 @@ X509 CRT parse Authority Key Id - Correct Authority Key ID (no keyid)
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
 x509_crt_parse_authoritykeyid:"data_files/authorityKeyId_no_keyid.crt.der":"":"NL/PolarSSL/PolarSSL Test CA/":"7581F2D168FE33F964F0AE5FE884FAD3C55F24DA":0
 
+X509 CRT parse Authority Key Id - Correct Authority Key ID (no issuer)
+depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
+x509_crt_parse_authoritykeyid:"data_files/authorityKeyId_no_issuer.crt.der":"A505E864B8DCDF600F50124D60A864AF4D8B4393":"":"":0
+
 X509 CRT parse Authority Key Id - no Authority Key ID
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
 x509_crt_parse_authoritykeyid:"data_files/authorityKeyId_no_authorityKeyId.crt.der":"":"":"":0
-
-X509 CRT parse Authority Key Id - Correct Authority Key ID (empty)
-depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-x509_crt_parse_authoritykeyid:"data_files/authorityKeyId_empty.crt.der":"":"":"":0
 
 X509 CRT parse Authority Key Id - Wrong Length
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C

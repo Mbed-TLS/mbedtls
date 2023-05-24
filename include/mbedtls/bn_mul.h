@@ -660,39 +660,46 @@
 #endif /* TriCore */
 
 /*
+ * There is a fairly complex matrix of supported options for Thumb / Thumb2 / Arm
+ * assembly. Choosing the correct code path depends on the target, the compiler,
+ * and the optimisation level.
+ *
  * Note, gcc -O0 by default uses r7 for the frame pointer, so it complains about
  * our use of r7 below, unless -fomit-frame-pointer is passed.
  *
  * On the other hand, -fomit-frame-pointer is implied by any -Ox options with
  * x !=0, which we can detect using __OPTIMIZE__ (which is also defined by
  * clang and armcc5 under the same conditions).
- *
- * So, only use the optimized assembly below for optimized build, which avoids
- * the build error and is pretty reasonable anyway.
  */
-#if defined(__GNUC__) && !defined(__OPTIMIZE__)
-#define MULADDC_CANNOT_USE_R7
+
+
+#if defined(__thumb__) && !defined(__thumb2__) // Thumb1 (not Thumb 2) ISA
+// Only supported by gcc, when optimisation is enabled; only option A works
+#if defined(__OPTIMIZE__) && !defined(__ARMCC_VERSION)
+#define ARM_OPTION_A
 #endif
 
-/*
- * Similarly, we need to disable the assembly below if:
- * - compiler is armclang
- * - optimisation is not -O0
- * - target is Thumb
- * - target cpu is one of cortex-m0, cortex-m0plus, cortex-m1, cortex-m23, sc000
- *
- * Checking for __ARM_ARCH_6M__ or __ARM_ARCH_8M_BASE__ seems to identify exactly these
- * cpus and no others (tested against all values for -mcpu known to armclang 6.20).
- */
-#if defined(__ARMCC_VERSION) && defined(__OPTIMIZE__) && defined(__thumb__)
-#if defined(__ARM_ARCH_8M_BASE__) || defined(__ARM_ARCH_6M__)
-#define MULADDC_CANNOT_USE_R7
-#endif
+#elif defined(__thumb2__) // Thumb 2 ISA
+
+#if !defined(__ARMCC_VERSION) && !defined(__OPTIMIZE__)
+// gcc -O0
+// only option B builds
+#define ARM_OPTION_B
+#elif !defined(__ARMCC_VERSION)
+// gcc with optimisation - any option builds
+#define ARM_OPTION_A
+#else
+// armclang
+// options A or C build
+#define ARM_OPTION_A
 #endif
 
-#if defined(__arm__) && !defined(MULADDC_CANNOT_USE_R7)
+#elif defined(__arm__) // Arm ISA
+// any option builds. A does not seem to work; B is about 2x faster than C (under emulation).
+#define ARM_OPTION_B
+#endif
 
-#if defined(__thumb__) && !defined(__thumb2__)
+#if defined(ARM_OPTION_A)
 
 #define MULADDC_INIT                                    \
     asm(                                                \
@@ -747,8 +754,7 @@
            "r6", "r7", "r8", "r9", "cc"         \
          );
 
-#elif (__ARM_ARCH >= 6) && \
-    defined (__ARM_FEATURE_DSP) && (__ARM_FEATURE_DSP == 1)
+#elif defined(ARM_OPTION_B)
 
 #define MULADDC_INIT                            \
     asm(
@@ -765,7 +771,7 @@
          : "r0", "r1", "memory"                 \
          );
 
-#else
+#elif defined(ARM_OPTION_C)
 
 #define MULADDC_INIT                                    \
     asm(                                                \
@@ -793,9 +799,7 @@
            "r6", "r7", "cc"                     \
          );
 
-#endif /* Thumb */
-
-#endif /* ARMv3 */
+#endif /* Arm */
 
 #if defined(__alpha__)
 

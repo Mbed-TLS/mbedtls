@@ -1500,7 +1500,6 @@ void ecp_mod_mul_inv(char *input_A, int id, int ctype)
     memset(A, 0, limbs * ciL);
     ASSERT_COMPARE(&bufx[1], (limbs - 1) * ciL, A, (limbs - 1) * ciL);
 
-
 exit:
     mbedtls_mpi_mod_modulus_free(&m);
     mbedtls_mpi_mod_residue_release(&rA);
@@ -1510,5 +1509,56 @@ exit:
     mbedtls_free(A_inverse);
     mbedtls_free(rX_raw);
     mbedtls_free(bufx);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
+void ecp_mod_add_sub(char *input_A, char *input_B, int id, int ctype)
+{
+    size_t p_A_limbs;
+    size_t p_B_limbs;
+    size_t bytes;
+    mbedtls_mpi_mod_modulus m;
+    mbedtls_mpi_mod_residue rA;
+    mbedtls_mpi_mod_residue rB;
+    mbedtls_mpi_mod_residue rS;
+    mbedtls_mpi_uint *p_A = NULL;
+    mbedtls_mpi_uint *p_B = NULL;
+    mbedtls_mpi_uint *p_S = NULL;
+
+    mbedtls_mpi_mod_modulus_init(&m);
+
+    TEST_EQUAL(mbedtls_test_read_mpi_core(&p_A, &p_A_limbs, input_A), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi_core(&p_B, &p_B_limbs, input_B), 0);
+
+    TEST_EQUAL(0, mbedtls_ecp_modulus_setup(&m, id, ctype));
+
+    /* Test for limb sizes for two input value and modulus */
+    TEST_EQUAL(p_A_limbs, p_B_limbs);
+    TEST_EQUAL(m.limbs, p_A_limbs);
+    bytes = p_A_limbs * ciL;
+
+    ASSERT_ALLOC(p_S, p_A_limbs);
+
+    TEST_EQUAL(mbedtls_mpi_mod_residue_setup(&rA, &m, p_A, p_A_limbs), 0);
+    TEST_EQUAL(mbedtls_mpi_mod_residue_setup(&rB, &m, p_B, p_B_limbs), 0);
+    TEST_EQUAL(mbedtls_mpi_mod_residue_setup(&rS, &m, p_S, p_A_limbs), 0);
+
+    /* Firstly add A and B to get the sum S, then subtract B,
+     * the difference should be equal to A*/
+    TEST_EQUAL(0, mbedtls_mpi_mod_add(&rS, &rA, &rB, &m));
+    TEST_EQUAL(0, mbedtls_mpi_mod_sub(&rS, &rS, &rB, &m));
+
+    /* Compare difference with rA byte-by-byte */
+    ASSERT_COMPARE(rA.p, bytes, rS.p, bytes);
+
+exit:
+    mbedtls_mpi_mod_modulus_free(&m);
+    mbedtls_mpi_mod_residue_release(&rA);
+    mbedtls_mpi_mod_residue_release(&rB);
+    mbedtls_mpi_mod_residue_release(&rS);
+    mbedtls_free(p_A);
+    mbedtls_free(p_B);
+    mbedtls_free(p_S);
 }
 /* END_CASE */

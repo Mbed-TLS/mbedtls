@@ -1186,8 +1186,6 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status;
-    uint8_t priv_key_raw[MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH];
-    size_t priv_key_len;
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
     /*
@@ -1222,13 +1220,7 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
     d = p;
     d_len = len;
 
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    if (len > MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH) {
-        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
-    }
-    memcpy(priv_key_raw, p, len);
-    priv_key_len = len;
-#else
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     if ((ret = mbedtls_mpi_read_binary(&eck->d, p, len)) != 0) {
         mbedtls_ecp_keypair_free(eck);
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
@@ -1306,8 +1298,7 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
 #endif
     psa_set_key_enrollment_algorithm(&attributes, PSA_ALG_ECDH);
 
-    status = psa_import_key(&attributes, priv_key_raw, priv_key_len,
-                            &pk->priv_id);
+    status = psa_import_key(&attributes, d, d_len, &pk->priv_id);
     if (status != PSA_SUCCESS) {
         ret = psa_pk_status_to_mbedtls(status);
         return ret;

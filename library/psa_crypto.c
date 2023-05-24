@@ -5101,11 +5101,6 @@ psa_status_t psa_key_derivation_abort(psa_key_derivation_operation_t *operation)
                                      operation->ctx.pbkdf2.salt_length);
             mbedtls_free(operation->ctx.pbkdf2.salt);
         }
-        if (operation->ctx.pbkdf2.password != NULL) {
-            mbedtls_platform_zeroize(operation->ctx.pbkdf2.password,
-                                     operation->ctx.pbkdf2.password_length);
-            mbedtls_free(operation->ctx.pbkdf2.password);
-        }
 
         status = PSA_SUCCESS;
     } else

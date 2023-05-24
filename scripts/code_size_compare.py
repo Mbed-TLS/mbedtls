@@ -40,6 +40,13 @@ class SupportedArch(Enum):
     X86_64 = 'x86_64'
     X86 = 'x86'
 
+CONFIG_TFM_MEDIUM_MBEDCRYPTO_H = "../configs/tfm_mbedcrypto_config_profile_medium.h"
+CONFIG_TFM_MEDIUM_PSA_CRYPTO_H = "../configs/crypto_config_profile_medium.h"
+class SupportedConfig(Enum):
+    """Supported configuration for code size measurement."""
+    DEFAULT = 'default'
+    TFM_MEDIUM = 'tfm-medium'
+
 DETECT_ARCH_CMD = "cc -dM -E - < /dev/null"
 def detect_arch() -> str:
     """Auto-detect host architecture."""
@@ -56,14 +63,50 @@ def detect_arch() -> str:
         print("Unknown host architecture, cannot auto-detect arch.")
         sys.exit(1)
 
+class CodeSizeInfo: # pylint: disable=too-few-public-methods
+    """Gather information used to measure code size.
+
+    It collects information about architecture, configuration in order to
+    infer build command for code size measurement.
+    """
+
+    def __init__(self, arch: str, config: str) -> None:
+        """
+        arch: architecture to measure code size on.
+        config: configuration type to measure code size with.
+        make_command: command to build library (Inferred from arch and config).
+        """
+        self.arch = arch
+        self.config = config
+        self.make_command = self.set_make_command()
+
+    def set_make_command(self) -> str:
+        """Infer build command based on architecture and configuration."""
+
+        if self.config == SupportedConfig.DEFAULT.value:
+            return 'make -j lib CFLAGS=\'-Os \' '
+        elif self.arch == SupportedArch.AARCH32.value and \
+             self.config == SupportedConfig.TFM_MEDIUM.value:
+            return \
+                 'make -j lib CC=/usr/local/ArmCompilerforEmbedded6.19/bin/armclang \
+                  CFLAGS=\'--target=arm-arm-none-eabi -mcpu=cortex-m33 -Os \
+                 -DMBEDTLS_CONFIG_FILE=\\\"' + CONFIG_TFM_MEDIUM_MBEDCRYPTO_H + '\\\" \
+                 -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE=\\\"' + CONFIG_TFM_MEDIUM_PSA_CRYPTO_H + '\\\" \''
+        else:
+            print("Unsupported architecture: {} and configurations: {}"
+                  .format(self.arch, self.config))
+            sys.exit(1)
+
+
 class CodeSizeComparison:
     """Compare code size between two Git revisions."""
 
-    def __init__(self, old_revision, new_revision, result_dir):
+    def __init__(self, old_revision, new_revision, result_dir, code_size_info):
         """
-        old_revision: revision to compare against
+        old_revision: revision to compare against.
         new_revision:
-        result_dir: directory for comparison result
+        result_dir: directory for comparison result.
+        code_size_info: an object containing information to build library.
         """
         self.repo_path = "."
         self.result_dir = os.path.abspath(result_dir)
@@ -75,7 +118,7 @@ class CodeSizeComparison:
         self.old_rev = old_revision
         self.new_rev = new_revision
         self.git_command = "git"
-        self.make_command = "make"
+        self.make_command = code_size_info.make_command
 
     @staticmethod
     def validate_revision(revision):
@@ -105,7 +148,7 @@ class CodeSizeComparison:
 
         my_environment = os.environ.copy()
         subprocess.check_output(
-            [self.make_command, "-j", "lib"], env=my_environment,
+            self.make_command, env=my_environment, shell=True,
             cwd=git_worktree_path, stderr=subprocess.STDOUT,
         )
 
@@ -228,6 +271,12 @@ def main():
         help="specify architecture for code size comparison, default is the\
               host architecture."
     )
+    parser.add_argument(
+        "-c", "--config", type=str, default=SupportedConfig.DEFAULT.value,
+        choices=list(map(lambda s: s.value, SupportedConfig)),
+        help="specify configuration type for code size comparison,\
+              default is the current MbedTLS configuration."
+    )
     comp_args = parser.parse_args()
 
     if os.path.isfile(comp_args.result_dir):
@@ -243,9 +292,12 @@ def main():
     else:
         new_revision = "current"
 
-    print("Measure code size for architecture: {}".format(comp_args.arch))
+    print("Measure code size for architecture: {}, configuration: {}"
+          .format(comp_args.arch, comp_args.config))
+    code_size_info = CodeSizeInfo(comp_args.arch, comp_args.config)
     result_dir = comp_args.result_dir
-    size_compare = CodeSizeComparison(old_revision, new_revision, result_dir)
+    size_compare = CodeSizeComparison(old_revision, new_revision, result_dir,
+                                      code_size_info)
     return_code = size_compare.get_comparision_results()
     sys.exit(return_code)
 

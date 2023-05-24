@@ -2601,15 +2601,16 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
     size_t key_len;
     mbedtls_pk_context *pk;
     mbedtls_ecp_group_id grp_id;
-#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    mbedtls_ecp_keypair *key;
-#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
 
     pk = mbedtls_ssl_own_key(ssl);
 
     if (pk == NULL) {
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
+
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    mbedtls_ecp_keypair *key = mbedtls_pk_ec_rw(*pk);
+#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
 
     switch (mbedtls_pk_get_type(pk)) {
         case MBEDTLS_PK_OPAQUE:
@@ -2639,15 +2640,10 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
         case MBEDTLS_PK_ECKEY:
         case MBEDTLS_PK_ECKEY_DH:
         case MBEDTLS_PK_ECDSA:
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-            grp_id = mbedtls_ecc_group_of_psa(pk->ec_family, pk->ec_bits, 0);
-#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
-            key = mbedtls_pk_ec_rw(*pk);
-            if (key == NULL) {
+            grp_id = mbedtls_pk_get_group_id(pk);
+            if (grp_id == MBEDTLS_ECP_DP_NONE) {
                 return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
             }
-            grp_id = key->grp.id;
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
             tls_id = mbedtls_ssl_get_tls_id_from_ecp_group_id(grp_id);
             if (tls_id == 0) {
                 /* This elliptic curve is not supported */

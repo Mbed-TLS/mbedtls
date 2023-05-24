@@ -7388,17 +7388,11 @@ static int ssl_parse_certificate_verify(mbedtls_ssl_context *ssl,
             /* and in the unlikely case the above assumption no longer holds
              * we are making sure that pk_ec() here does not return a NULL
              */
-            mbedtls_ecp_group_id grp_id;
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-            grp_id = mbedtls_ecc_group_of_psa(pk->ec_family, pk->ec_bits, 0);
-#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
-            const mbedtls_ecp_keypair *ec = mbedtls_pk_ec_ro(*pk);
-            if (ec == NULL) {
-                MBEDTLS_SSL_DEBUG_MSG(1, ("mbedtls_pk_ec_ro() returned NULL"));
+            mbedtls_ecp_group_id grp_id = mbedtls_pk_get_group_id(pk);
+            if (grp_id == MBEDTLS_ECP_DP_NONE) {
+                MBEDTLS_SSL_DEBUG_MSG(1, ("invalid group ID"));
                 return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
             }
-            grp_id = ec->grp.id;
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
             if (mbedtls_ssl_check_curve(ssl, grp_id) != 0) {
                 ssl->session_negotiate->verify_result |=
                     MBEDTLS_X509_BADCERT_BAD_KEY;

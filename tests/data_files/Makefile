@@ -1248,3 +1248,5 @@ clean:
 neat: clean
 	rm -f $(all_final)
 .PHONY: clean neat
+
+.SECONDARY: $(all_intermediate)

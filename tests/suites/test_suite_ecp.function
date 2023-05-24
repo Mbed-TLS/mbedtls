@@ -7,6 +7,7 @@
 #include "bignum_core.h"
 #include "ecp_invasive.h"
 #include "bignum_mod_raw_invasive.h"
+#include "constant_time_internal.h"
 
 #define ECP_PF_UNKNOWN     -1
 
@@ -1605,5 +1606,33 @@ exit:
     mbedtls_free(A);
     mbedtls_free(rX_raw);
     mbedtls_free(bufx);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
+void ecp_mod_random(int id, int ctype)
+{
+    size_t limbs;
+    mbedtls_mpi_mod_modulus m;
+    mbedtls_mpi_mod_residue rX; // For random data
+    mbedtls_mpi_uint *rX_raw = NULL;
+
+    mbedtls_mpi_mod_modulus_init(&m);
+    TEST_EQUAL(0, mbedtls_ecp_modulus_setup(&m, id, ctype));
+
+    limbs = m.limbs;
+
+    ASSERT_ALLOC(rX_raw, limbs);
+    TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&rX, &m, rX_raw, limbs));
+
+    TEST_EQUAL(mbedtls_mpi_mod_random(&rX, 1, &m,
+                                      mbedtls_test_rnd_std_rand, NULL), 0);
+
+    TEST_ASSERT(mbedtls_mpi_core_lt_ct(rX.p, m.p, limbs) == 1);
+
+exit:
+    mbedtls_mpi_mod_modulus_free(&m);
+    mbedtls_mpi_mod_residue_release(&rX);
+    mbedtls_free(rX_raw);
 }
 /* END_CASE */

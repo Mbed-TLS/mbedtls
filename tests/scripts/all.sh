@@ -3894,6 +3894,9 @@ component_build_armcc () {
 
     # ARM Compiler 6 - Target ARMv8.2-A - AArch64
     armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8.2-a+crypto"
+
+    # ARM Compiler 6 - Target Cortex-M0
+    armc6_build_test "-Os --target=arm-arm-none-eabi -mcpu=cortex-m0"
 }
 support_build_armcc () {
     armc5_cc="$ARMC5_BIN_DIR/armcc"

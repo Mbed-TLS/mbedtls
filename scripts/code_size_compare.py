@@ -119,6 +119,8 @@ class CodeSizeComparison:
         self.new_rev = new_revision
         self.git_command = "git"
         self.make_command = code_size_info.make_command
+        self.fname_suffix = "-" + code_size_info.arch + "-" +\
+                            code_size_info.config
 
     @staticmethod
     def validate_revision(revision):
@@ -159,7 +161,7 @@ class CodeSizeComparison:
     def _gen_code_size_csv(self, revision, git_worktree_path):
         """Generate code size csv file."""
 
-        csv_fname = revision + ".csv"
+        csv_fname = revision + self.fname_suffix + ".csv"
         if revision == "current":
             print("Measuring code size in current work directory.")
         else:
@@ -187,7 +189,7 @@ class CodeSizeComparison:
         """Generate code size csv file for the specified git revision."""
 
         # Check if the corresponding record exists
-        csv_fname = revision + ".csv"
+        csv_fname = revision + self.fname_suffix +  ".csv"
         if (revision != "current") and \
            os.path.exists(os.path.join(self.csv_dir, csv_fname)):
             print("Code size csv file for", revision, "already exists.")
@@ -202,10 +204,14 @@ class CodeSizeComparison:
         old and new. Measured code size results of these two revisions
         must be available."""
 
-        old_file = open(os.path.join(self.csv_dir, self.old_rev + ".csv"), "r")
-        new_file = open(os.path.join(self.csv_dir, self.new_rev + ".csv"), "r")
-        res_file = open(os.path.join(self.result_dir, "compare-" + self.old_rev
-                                     + "-" + self.new_rev + ".csv"), "w")
+        old_file = open(os.path.join(self.csv_dir, self.old_rev +
+                                     self.fname_suffix + ".csv"), "r")
+        new_file = open(os.path.join(self.csv_dir, self.new_rev +
+                                     self.fname_suffix + ".csv"), "r")
+        res_file = open(os.path.join(self.result_dir, "compare-" +
+                                     self.old_rev + "-" + self.new_rev +
+                                     self.fname_suffix +
+                                     ".csv"), "w")
 
         res_file.write("file_name, this_size, old_size, change, change %\n")
         print("Generating comparison results.")

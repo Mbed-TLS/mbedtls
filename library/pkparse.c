@@ -642,16 +642,9 @@ static int pk_parse_key_rfc8410_der(mbedtls_pk_context *pk,
     psa_status_t status;
 
     psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(pk->ec_family));
-    /* Setting largest masks for usage and key algorithms */
-    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH |
-                            PSA_KEY_USAGE_SIGN_MESSAGE |
-                            PSA_KEY_USAGE_EXPORT);
-#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
-    psa_set_key_algorithm(&attributes,
-                          PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_ANY_HASH));
-#else
-    psa_set_key_algorithm(&attributes, PSA_ALG_ECDSA(PSA_ALG_ANY_HASH));
-#endif
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_EXPORT |
+                            PSA_KEY_USAGE_DERIVE);
+    psa_set_key_algorithm(&attributes, PSA_ALG_ECDH);
 
     status = psa_import_key(&attributes, key, len, &pk->priv_id);
     if (status != PSA_SUCCESS) {
@@ -1304,13 +1297,14 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
     /* Setting largest masks for usage and key algorithms */
     psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH |
                             PSA_KEY_USAGE_SIGN_MESSAGE |
-                            PSA_KEY_USAGE_EXPORT);
+                            PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_DERIVE);
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
     psa_set_key_algorithm(&attributes,
                           PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_ANY_HASH));
 #else
     psa_set_key_algorithm(&attributes, PSA_ALG_ECDSA(PSA_ALG_ANY_HASH));
 #endif
+    psa_set_key_enrollment_algorithm(&attributes, PSA_ALG_ECDH);
 
     status = psa_import_key(&attributes, priv_key_raw, priv_key_len,
                             &pk->priv_id);

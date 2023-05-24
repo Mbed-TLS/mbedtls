@@ -321,6 +321,8 @@ In addition, testing should adequately cover the case of multiple keys in the tr
 
 ### Choice of a transaction design
 
+#### Chosen transaction algorithm
+
 Based on [“Optimization considerations for transactions”](#optimization-considerations-for-transactions), we choose a transaction algorithm that consists in the following operations:
 
 1. Add the key identifier to the transaction list.
@@ -334,10 +336,14 @@ In order to conveniently support multiple transactions at the same time, we pick
 * During key creation, create the key file in internal storage in the internal storage before calling the secure element's key creation entry point.
 * During key destruction, call the secure element's key destruction entry point before removing the key file in internal storage.
 
+#### Chosen storage invariant
+
 The [storage invariant](#storage-invariant-if-the-transaction-list-contains-application-key-identifiers-only) is as follows:
 
 * If the file `id` does not exist, then no resources corresponding to that key are in a secure element. This holds whether `id` is in the transaction list or not.
 * If `id` is not in the transaction list and the file `id` exists and references a key in a stateful secure element, then the key is present in the secure element.
+
+#### Chosen recovery process
 
 To [assist secure element drivers with recovery](#assisting-secure-element-drivers-with-recovery), we pick the [always-destroy recovery strategy](#exploring-the-always-destroy-strategy). The the recovery process is as follows:
 
@@ -410,21 +416,65 @@ The transaction list file can be processed in any order.
 
 It is correct to update the transaction list after recovering each key, or to only delete the transaction list file once the recovery is over.
 
-### Concrete format of the transaction list
+### Concrete format of the transaction list file
 
-TODO
+The transaction list file contains a [fixed header](#transaction-list-header-format) followed by a list of [fixed-size elements](#transaction-list-element-format).
 
-### Cohabitation with transactions and dynamic secure elements
+The file uid is `PSA_CRYPTO_ITS_TRANSACTION_LIST_UID` = 0xffffff53.
 
-TODO
+#### Transaction list header format
+
+* Version (2 bytes): 0x0003. (Chosen to differ from the first two bytes of a [dynamic secure element transaction file](#dynamic-secure-element-transaction-file), to reduce the risk of a mix-up.)
+* Key name size (2 bytes): `sizeof(psa_storage_uid_t)`. Storing this size avoids reading bad data if Mbed TLS is upgraded to a different integration that names keys differently.
+
+#### Transaction list element format
+
+In practice, there will rarely be more than one active transaction at a time, so the size of an element is not critical for efficiency. Therefore, in addition to the key identifier which is required, we add some potentially useful information in case it becomes useful later. We do not put the driver key identifier because its size is not a constant.
+
+* Key id: `sizeof(psa_storage_uid_t)` bytes.
+* Key lifetime: 4 bytes (`sizeof(psa_key_lifetime_t)`). Currently unused during recovery.
+* Operation type: 1 byte. Currently unused during recovery.
+    * 0: destroy key.
+    * 1: import key.
+    * 2: generate key.
+    * 3: derive key.
+    * 4: import key.
+* Padding: 3 bytes. Reserved for future use. Currently unused during recovery.
+
+#### Dynamic secure element transaction file
+
+Note that the code base already references a “transaction file” (`PSA_CRYPTO_ITS_TRANSACTION_UID` = 0xffffff54), used by dynamic secure elements (feature enabled with `MBEDTLS_PSA_CRYPTO_SE_C`). This is a deprecated feature that has not been fully implemented: when this feature is enabled, the transaction file gets written during transactions, but if it exists when PSA crypto starts, `psa_crypto_init()` fails because [recovery has never been implemented](https://github.com/ARMmbed/mbed-crypto/issues/218).
+
+For the new kind of secure element driver, we pick a different file name to avoid any mixup.
 
 ## Testing key management in secure elements
 
 ### Instrumentation for checking the storage invariant
 
-TODO
+When `MBEDTLS_TEST_HOOKS` is enabled, each call to `psa_its_set()` or `psa_its_remove()` also calls a test hook, passing the file UID as an argument to the hook.
+
+When a stateful secure element driver is present in the build, we use this hook to verify that the storage respects the [storage invariant](#chosen-storage-invariant). In addition, if there is some information about key ongoing operation (set explicitly by the test function as a global variable in the test framework), the hook tests that the content of the storage is compatible with the ongoing operation.
+
+TODO: detail of what to validate the invariant on (the test code can't enumerate all possible keys)
+
+TODO: detail of how to keep track of ongoing operations
 
 ### Testing of transaction recovery
 
-TODO
+When no secure element driver is present in the build, the presence of a transaction list file during initialization is an error.
 
+#### Recovery testing process
+
+When the stateful test secure element driver is present in the build, we run test cases on a representative selection of states of the internal storage and the test secure element. Each test case for transaction recovery has the following form:
+
+1. Create the initial state:
+    * Create a transaction list file with a certain content.
+    * Create key files that we want to have in the test.
+    * Call the secure element test driver to create keys without going throught the PSA API.
+2. Call `psa_crypto_init()`. Expect success if the initial state satisfies the [storage invariant](#chosen-storage-invariant) and failure otherwise.
+3. On success, check that the expected keys exist, and that keys that are expected to have been destroyed by recovery do not exist.
+4. Clean up the storage and the secure element test driver's state.
+
+#### States to test recovery on
+
+TODO what states constitute acceptable coverage

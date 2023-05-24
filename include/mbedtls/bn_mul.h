@@ -674,6 +674,22 @@
 #define MULADDC_CANNOT_USE_R7
 #endif
 
+/*
+ * Similarly, we need to disable the assembly below if:
+ * - compiler is armclang
+ * - optimisation is not -O0
+ * - target is Thumb
+ * - target cpu is one of cortex-m0, cortex-m0plus, cortex-m1, cortex-m23, sc000
+ *
+ * Checking for __ARM_ARCH_6M__ or __ARM_ARCH_8M_BASE__ seems to identify exactly these
+ * cpus and no others (tested against all values for -mcpu known to armclang 6.20).
+ */
+#if defined(__ARMCC_VERSION) && defined(__OPTIMIZE__) && defined(__thumb__)
+#if defined(__ARM_ARCH_8M_BASE__) || defined(__ARM_ARCH_6M__)
+#define MULADDC_CANNOT_USE_R7
+#endif
+#endif
+
 #if defined(__arm__) && !defined(MULADDC_CANNOT_USE_R7)
 
 #if defined(__thumb__) && !defined(__thumb2__)

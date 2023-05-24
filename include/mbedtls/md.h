@@ -151,7 +151,16 @@ typedef enum {
     MBEDTLS_MD_RIPEMD160, /**< The RIPEMD-160 message digest. */
 } mbedtls_md_type_t;
 
-/* Note: this should be kept in sync with PSA_HASH_MAX_SIZE */
+/* Note: this should always be >= PSA_HASH_MAX_SIZE
+ * in all builds with both CRYPTO_C and MD_LIGHT.
+ *
+ * This is to make things easier for modules such as TLS that may define a
+ * buffer size using MD_MAX_SIZE in a part of the code that's common to PSA
+ * and legacy, then assume the buffer's size is PSA_HASH_MAX_SIZE in another
+ * part of the code based on PSA.
+ *
+ * Currently both macros have the same value, avoiding such issues.
+ */
 #if defined(MBEDTLS_MD_CAN_SHA512)
 #define MBEDTLS_MD_MAX_SIZE         64  /* longest known is SHA512 */
 #elif defined(MBEDTLS_MD_CAN_SHA384)

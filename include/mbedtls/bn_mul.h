@@ -675,7 +675,7 @@
 
     // Only supported by gcc, when optimisation is enabled; only option A works
     #if defined(__OPTIMIZE__) && !defined(__ARMCC_VERSION)
-    #define ARM_OPTION_A
+    #define ARM_THUMB_1
     #endif
 
 #elif defined(__thumb2__) // Thumb 2 ISA
@@ -683,30 +683,30 @@
     #if !defined(__ARMCC_VERSION) && !defined(__OPTIMIZE__)
         // gcc -O0: only option B builds
         #if (__ARM_ARCH >= 6) && defined (__ARM_FEATURE_DSP) && (__ARM_FEATURE_DSP == 1)
-        #define ARM_OPTION_B
+        #define ARM_V6_DSP
         #endif
     #else
         // gcc with optimisation, or armclang: any option builds
-        #define ARM_OPTION_B_OR_C
+        #define ARM_V6_DSP_OR_THUMB_2
     #endif
 
 #elif defined(__arm__) // Arm ISA
 
     // any option builds. A does not seem to work; B is about 2x faster than C (under emulation).
-    #define ARM_OPTION_B_OR_C
+    #define ARM_V6_DSP_OR_THUMB_2
 
 #endif /* Arm ISA selection */
 
-#if defined(ARM_OPTION_B_OR_C)
+#if defined(ARM_V6_DSP_OR_THUMB_2)
 // Prefer B, if we have the right features for it
 #if (__ARM_ARCH >= 6) && defined (__ARM_FEATURE_DSP) && (__ARM_FEATURE_DSP == 1)
-#define ARM_OPTION_B
+#define ARM_V6_DSP
 #else
-#define ARM_OPTION_C
+#define ARM_THUMB_2
 #endif
-#endif /* defined(ARM_OPTION_B_OR_C) */
+#endif /* defined(ARM_V6_DSP_OR_THUMB_2) */
 
-#if defined(ARM_OPTION_A)
+#if defined(ARM_THUMB_1)
 
 #define MULADDC_INIT                                    \
     asm(                                                \
@@ -761,7 +761,7 @@
            "r6", "r7", "r8", "r9", "cc"         \
          );
 
-#elif defined(ARM_OPTION_B)
+#elif defined(ARM_V6_DSP)
 
 #define MULADDC_INIT                            \
     asm(
@@ -778,7 +778,7 @@
          : "r0", "r1", "memory"                 \
          );
 
-#elif defined(ARM_OPTION_C)
+#elif defined(ARM_THUMB_2)
 
 #define MULADDC_INIT                                    \
     asm(                                                \

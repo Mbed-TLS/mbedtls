@@ -5421,7 +5421,7 @@ int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 static int ecp_mod_p255(mbedtls_mpi *N)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t expected_width = 2 * ((255 + biL - 1) / biL);
+    size_t expected_width = 2 * P255_WIDTH;
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
     ret = mbedtls_ecp_mod_p255_raw(N->p, expected_width);
 cleanup:

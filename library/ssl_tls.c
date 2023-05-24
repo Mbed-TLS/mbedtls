@@ -4613,10 +4613,7 @@ static int ssl_context_load(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 
-    session_len = ((size_t) p[0] << 24) |
-                  ((size_t) p[1] << 16) |
-                  ((size_t) p[2] <<  8) |
-                  ((size_t) p[3]);
+    session_len = MBEDTLS_GET_UINT32_BE(p, 0);
     p += 4;
 
     /* This has been allocated by ssl_handshake_init(), called by
@@ -4711,10 +4708,7 @@ static int ssl_context_load(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 
-    ssl->badmac_seen = ((uint32_t) p[0] << 24) |
-                       ((uint32_t) p[1] << 16) |
-                       ((uint32_t) p[2] <<  8) |
-                       ((uint32_t) p[3]);
+    ssl->badmac_seen = MBEDTLS_GET_UINT32_BE(p, 0);
     p += 4;
 
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
@@ -4722,24 +4716,10 @@ static int ssl_context_load(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 
-    ssl->in_window_top = ((uint64_t) p[0] << 56) |
-                         ((uint64_t) p[1] << 48) |
-                         ((uint64_t) p[2] << 40) |
-                         ((uint64_t) p[3] << 32) |
-                         ((uint64_t) p[4] << 24) |
-                         ((uint64_t) p[5] << 16) |
-                         ((uint64_t) p[6] <<  8) |
-                         ((uint64_t) p[7]);
+    ssl->in_window_top = MBEDTLS_GET_UINT64_BE(p, 0);
     p += 8;
 
-    ssl->in_window = ((uint64_t) p[0] << 56) |
-                     ((uint64_t) p[1] << 48) |
-                     ((uint64_t) p[2] << 40) |
-                     ((uint64_t) p[3] << 32) |
-                     ((uint64_t) p[4] << 24) |
-                     ((uint64_t) p[5] << 16) |
-                     ((uint64_t) p[6] <<  8) |
-                     ((uint64_t) p[7]);
+    ssl->in_window = MBEDTLS_GET_UINT64_BE(p, 0);
     p += 8;
 #endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
 
@@ -9102,14 +9082,7 @@ static int ssl_tls12_session_load(mbedtls_ssl_session *session,
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 
-    start = ((uint64_t) p[0] << 56) |
-            ((uint64_t) p[1] << 48) |
-            ((uint64_t) p[2] << 40) |
-            ((uint64_t) p[3] << 32) |
-            ((uint64_t) p[4] << 24) |
-            ((uint64_t) p[5] << 16) |
-            ((uint64_t) p[6] <<  8) |
-            ((uint64_t) p[7]);
+    start = MBEDTLS_GET_UINT64_BE(p, 0);
     p += 8;
 
     session->start = (time_t) start;
@@ -9132,10 +9105,7 @@ static int ssl_tls12_session_load(mbedtls_ssl_session *session,
     memcpy(session->master, p, 48);
     p += 48;
 
-    session->verify_result = ((uint32_t) p[0] << 24) |
-                             ((uint32_t) p[1] << 16) |
-                             ((uint32_t) p[2] <<  8) |
-                             ((uint32_t) p[3]);
+    session->verify_result = MBEDTLS_GET_UINT32_BE(p, 0);
     p += 4;
 
     /* Immediately clear invalid pointer values that have been read, in case
@@ -9254,10 +9224,7 @@ static int ssl_tls12_session_load(mbedtls_ssl_session *session,
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }
 
-    session->ticket_lifetime = ((uint32_t) p[0] << 24) |
-                               ((uint32_t) p[1] << 16) |
-                               ((uint32_t) p[2] <<  8) |
-                               ((uint32_t) p[3]);
+    session->ticket_lifetime = MBEDTLS_GET_UINT32_BE(p, 0);
     p += 4;
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
 

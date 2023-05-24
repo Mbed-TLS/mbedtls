@@ -6474,15 +6474,15 @@ static psa_status_t psa_pbkdf2_hmac_set_password(psa_algorithm_t hash_alg,
                                                  const uint8_t *input,
                                                  size_t input_len,
                                                  uint8_t *output,
-                                                 size_t output_len)
+                                                 size_t *output_len)
 {
     psa_status_t status = PSA_SUCCESS;
     if (input_len > PSA_HASH_BLOCK_LENGTH(hash_alg)) {
         status = psa_hash_compute(hash_alg, input, input_len, output,
-                                  PSA_HMAC_MAX_HASH_BLOCK_SIZE, &output_len);
+                                  PSA_HMAC_MAX_HASH_BLOCK_SIZE, output_len);
     } else {
         memcpy(output, input, input_len);
-        output_len = PSA_HASH_BLOCK_LENGTH(hash_alg);
+        *output_len = PSA_HASH_BLOCK_LENGTH(hash_alg);
     }
     return status;
 }
@@ -6502,7 +6502,7 @@ static psa_status_t psa_pbkdf2_set_password(psa_pbkdf2_key_derivation_t *pbkdf2,
             psa_algorithm_t hash_alg = PSA_ALG_PBKDF2_HMAC_GET_HASH(kdf_alg);
             status = psa_pbkdf2_hmac_set_password(hash_alg, data, data_length,
                                                   pbkdf2->password,
-                                                  pbkdf2->password_length);
+                                                  &pbkdf2->password_length);
         }
     }
 

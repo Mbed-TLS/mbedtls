@@ -6451,18 +6451,18 @@ static psa_status_t psa_pbkdf2_set_salt(psa_pbkdf2_key_derivation_t *pbkdf2,
         memcpy(pbkdf2->salt, data, data_length);
         pbkdf2->salt_length = data_length;
     } else if (pbkdf2->state == PSA_PBKDF2_STATE_SALT_SET) {
-        uint8_t *prev_salt = pbkdf2->salt;
-        size_t prev_salt_length = pbkdf2->salt_length;
+        uint8_t *next_salt;
 
-        pbkdf2->salt = mbedtls_calloc(1, data_length + prev_salt_length);
-        if (pbkdf2->salt == NULL) {
+        next_salt = mbedtls_calloc(1, data_length + pbkdf2->salt_length);
+        if (next_salt == NULL) {
             return PSA_ERROR_INSUFFICIENT_MEMORY;
         }
 
-        memcpy(pbkdf2->salt, prev_salt, prev_salt_length);
-        memcpy(pbkdf2->salt + prev_salt_length, data, data_length);
+        memcpy(next_salt, pbkdf2->salt, pbkdf2->salt_length);
+        memcpy(next_salt + pbkdf2->salt_length, data, data_length);
         pbkdf2->salt_length += data_length;
-        mbedtls_free(prev_salt);
+        mbedtls_free(pbkdf2->salt);
+        pbkdf2->salt = next_salt;
     }
 
     pbkdf2->state = PSA_PBKDF2_STATE_SALT_SET;

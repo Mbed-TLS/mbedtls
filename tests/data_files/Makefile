@@ -1602,3 +1602,5 @@ clean:
 neat: clean
 	rm -f $(all_final)
 .PHONY: clean neat
+
+.INTERMEDIATE: $(all_intermediate)

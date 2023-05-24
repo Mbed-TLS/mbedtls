@@ -912,7 +912,6 @@ int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
 #else /* !MBEDTLS_ECP_LIGHT && !MBEDTLS_RSA_C */
 #if defined(MBEDTLS_ECP_LIGHT)
     if (mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECKEY) {
-        unsigned char d[MBEDTLS_ECP_MAX_BYTES];
         size_t d_len;
         psa_ecc_family_t curve_id;
         psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -922,6 +921,7 @@ int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
 
         /* export the private key material in the format PSA wants */
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+        unsigned char d[MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH];
         status = psa_export_key(pk->priv_id, d, sizeof(d), &d_len);
         if (status != PSA_SUCCESS) {
             return psa_pk_status_to_mbedtls(status);
@@ -930,6 +930,7 @@ int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
         curve_id = pk->ec_family;
         bits = pk->ec_bits;
 #else /* MBEDTLS_PK_USE_PSA_EC_DATA */
+        unsigned char d[MBEDTLS_ECP_MAX_BYTES];
         mbedtls_ecp_keypair *ec = mbedtls_pk_ec_rw(*pk);
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 

@@ -395,22 +395,21 @@ static int pk_write_ec_rfc8410_der(unsigned char **p, unsigned char *buf,
     size_t len = 0;
     size_t oid_len = 0;
     const char *oid;
+    mbedtls_ecp_group_id grp_id;
 
     /* privateKey */
     MBEDTLS_ASN1_CHK_ADD(len, pk_write_ec_private(p, buf, pk));
     MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(p, buf, len));
     MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_tag(p, buf, MBEDTLS_ASN1_OCTET_STRING));
 
+    grp_id = mbedtls_pk_get_group_id(pk);
     /* privateKeyAlgorithm */
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    mbedtls_ecp_group_id grp_id = mbedtls_ecc_group_of_psa(pk->ec_family,
-                                                           pk->ec_bits, 0);
     if ((ret = mbedtls_oid_get_oid_by_ec_grp_algid(grp_id, &oid, &oid_len)) != 0) {
         return ret;
     }
 #else /* MBEDTLS_PK_USE_PSA_EC_DATA */
-    mbedtls_ecp_keypair *ec = mbedtls_pk_ec_rw(*pk);
-    if ((ret = mbedtls_oid_get_oid_by_ec_grp_algid(ec->grp.id, &oid, &oid_len)) != 0) {
+    if ((ret = mbedtls_oid_get_oid_by_ec_grp_algid(grp_id, &oid, &oid_len)) != 0) {
         return ret;
     }
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */

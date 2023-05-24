@@ -29,9 +29,32 @@ import argparse
 import os
 import subprocess
 import sys
+from enum import Enum
 
 from mbedtls_dev import build_tree
 
+class SupportedArch(Enum):
+    """Supported architecture for code size measurement."""
+    AARCH64 = 'aarch64'
+    AARCH32 = 'aarch32'
+    X86_64 = 'x86_64'
+    X86 = 'x86'
+
+DETECT_ARCH_CMD = "cc -dM -E - < /dev/null"
+def detect_arch() -> str:
+    """Auto-detect host architecture."""
+    cc_output = subprocess.check_output(DETECT_ARCH_CMD, shell=True).decode()
+    if "__aarch64__" in cc_output:
+        return SupportedArch.AARCH64.value
+    if "__arm__" in cc_output:
+        return SupportedArch.AARCH32.value
+    if "__x86_64__" in cc_output:
+        return SupportedArch.X86_64.value
+    if "__x86__" in cc_output:
+        return SupportedArch.X86.value
+    else:
+        print("Unknown host architecture, cannot auto-detect arch.")
+        sys.exit(1)
 
 class CodeSizeComparison:
     """Compare code size between two Git revisions."""
@@ -199,6 +222,12 @@ def main():
         help="new revision for comparison, default is the current work \
               directory, including uncommitted changes."
     )
+    parser.add_argument(
+        "-a", "--arch", type=str, default=detect_arch(),
+        choices=list(map(lambda s: s.value, SupportedArch)),
+        help="specify architecture for code size comparison, default is the\
+              host architecture."
+    )
     comp_args = parser.parse_args()
 
     if os.path.isfile(comp_args.result_dir):
@@ -214,6 +243,7 @@ def main():
     else:
         new_revision = "current"
 
+    print("Measure code size for architecture: {}".format(comp_args.arch))
     result_dir = comp_args.result_dir
     size_compare = CodeSizeComparison(old_revision, new_revision, result_dir)
     return_code = size_compare.get_comparision_results()

@@ -6471,10 +6471,10 @@ static psa_status_t psa_pbkdf2_set_salt(psa_pbkdf2_key_derivation_t *pbkdf2,
 }
 
 static psa_status_t psa_pbkdf2_hmac_set_password(psa_algorithm_t hash_alg,
-                                                     const uint8_t *input,
-                                                     size_t input_len,
-                                                     uint8_t *output,
-                                                     size_t output_len)
+                                                 const uint8_t *input,
+                                                 size_t input_len,
+                                                 uint8_t *output,
+                                                 size_t output_len)
 {
     psa_status_t status = PSA_SUCCESS;
     if (input_len > PSA_HASH_BLOCK_LENGTH(hash_alg)) {
@@ -6492,7 +6492,7 @@ static psa_status_t psa_pbkdf2_set_password(psa_pbkdf2_key_derivation_t *pbkdf2,
                                             const uint8_t *data,
                                             size_t data_length)
 {
-    psa_status_t status;
+    psa_status_t status = PSA_SUCCESS;
     if (pbkdf2->state != PSA_PBKDF2_STATE_SALT_SET) {
         return PSA_ERROR_BAD_STATE;
     }

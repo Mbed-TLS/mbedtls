@@ -5479,7 +5479,7 @@ cleanup:
  * splitting N up into 32-bit limbs and doing the arithmetic using the limbs
  * directly as we do for the NIST primes above, but for 64-bit targets it should
  * use half the number of operations if we do the reduction with 224-bit limbs,
- * since mpi_add_mpi will then use 64-bit adds.
+ * since mpi_core_add will then use 64-bit adds.
  */
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)

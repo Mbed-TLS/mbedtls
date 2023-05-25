@@ -404,15 +404,9 @@ static int pk_write_ec_rfc8410_der(unsigned char **p, unsigned char *buf,
 
     grp_id = mbedtls_pk_get_group_id(pk);
     /* privateKeyAlgorithm */
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     if ((ret = mbedtls_oid_get_oid_by_ec_grp_algid(grp_id, &oid, &oid_len)) != 0) {
         return ret;
     }
-#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
-    if ((ret = mbedtls_oid_get_oid_by_ec_grp_algid(grp_id, &oid, &oid_len)) != 0) {
-        return ret;
-    }
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
     MBEDTLS_ASN1_CHK_ADD(len,
                          mbedtls_asn1_write_algorithm_identifier_ext(p, buf, oid, oid_len, 0, 0));
 

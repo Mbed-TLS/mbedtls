@@ -662,20 +662,11 @@
  * There is a fairly complex matrix of supported options for Thumb / Thumb2 / Arm
  * assembly. Choosing the correct codepath depends on the target, the compiler,
  * and the optimisation level.
- *
- * Note, gcc -O0 by default uses r7 for the frame pointer, so it complains about
- * our use of r7 below, unless -fomit-frame-pointer is passed.
- *
- * On the other hand, -fomit-frame-pointer is implied by any -Ox options with
- * x !=0, which we can detect using __OPTIMIZE__ (which is also defined by
- * clang and armcc5 under the same conditions).
  */
 #if defined(__thumb__) && !defined(__thumb2__) // Thumb 1 (not Thumb 2) ISA
 
     // Only supported by gcc, when optimisation is enabled; only Thumb 1 codepath works
-    #if defined(__OPTIMIZE__) && defined(__GNUC__)
     #define ARM_THUMB_1
-    #endif
 
 #elif defined(__thumb2__) // Thumb 2 ISA
 
@@ -702,21 +693,48 @@
 
 #if defined(ARM_THUMB_1)
 
+#if defined(__OPTIMIZE__) && defined(__GNUC__)
+/*
+ * Note, gcc -O0 by default uses r7 for the frame pointer, so it complains about
+ * our use of r7 below, unless -fomit-frame-pointer is passed.
+ *
+ * On the other hand, -fomit-frame-pointer is implied by any -Ox options with
+ * x !=0, which we can detect using __OPTIMIZE__ (which is also defined by
+ * clang and armcc5 under the same conditions).
+ *
+ * If gcc needs to use r7, we use r1 as a scratch register and have a few extra
+ * instructions to preserve/restore it; otherwise, we can use r7 and avoid
+ * the preserve/restore overhead.
+ */
+#define MULADDC_SCRATCH         "RS .req r1         \n\t"
+#define MULADDC_PRESERVE_R1     "mov    r10, r1     \n\t"
+#define MULADDC_RESTORE_R1      "mov    r1, r10     \n\t"
+#define MULADDC_SCRATCH_CLOBBER "r10"
+#else
+#define MULADDC_SCRATCH         "RS .req r7         \n\t"
+#define MULADDC_PRESERVE_R1     ""
+#define MULADDC_RESTORE_R1      ""
+#define MULADDC_SCRATCH_CLOBBER "r7"
+#endif
+
 #define MULADDC_X1_INIT                                 \
     asm(                                                \
+    MULADDC_SCRATCH                                     \
             "ldr    r0, %3                      \n\t"   \
             "ldr    r1, %4                      \n\t"   \
             "ldr    r2, %5                      \n\t"   \
             "ldr    r3, %6                      \n\t"   \
-            "lsr    r7, r3, #16                 \n\t"   \
-            "mov    r9, r7                      \n\t"   \
-            "lsl    r7, r3, #16                 \n\t"   \
-            "lsr    r7, r7, #16                 \n\t"   \
-            "mov    r8, r7                      \n\t"
+            "lsr    r4, r3, #16                 \n\t"   \
+            "mov    r9, r4                      \n\t"   \
+            "lsl    r4, r3, #16                 \n\t"   \
+            "lsr    r4, r4, #16                 \n\t"   \
+            "mov    r8, r4                      \n\t"   \
+
 
 #define MULADDC_X1_CORE                                 \
+            MULADDC_PRESERVE_R1                         \
             "ldmia  r0!, {r6}                   \n\t"   \
-            "lsr    r7, r6, #16                 \n\t"   \
+            "lsr    RS, r6, #16                 \n\t"   \
             "lsl    r6, r6, #16                 \n\t"   \
             "lsr    r6, r6, #16                 \n\t"   \
             "mov    r4, r8                      \n\t"   \
@@ -724,12 +742,12 @@
             "mov    r3, r9                      \n\t"   \
             "mul    r6, r3                      \n\t"   \
             "mov    r5, r9                      \n\t"   \
-            "mul    r5, r7                      \n\t"   \
+            "mul    r5, RS                      \n\t"   \
             "mov    r3, r8                      \n\t"   \
-            "mul    r7, r3                      \n\t"   \
+            "mul    RS, r3                      \n\t"   \
             "lsr    r3, r6, #16                 \n\t"   \
             "add    r5, r5, r3                  \n\t"   \
-            "lsr    r3, r7, #16                 \n\t"   \
+            "lsr    r3, RS, #16                 \n\t"   \
             "add    r5, r5, r3                  \n\t"   \
             "add    r4, r4, r2                  \n\t"   \
             "mov    r2, #0                      \n\t"   \
@@ -737,9 +755,10 @@
             "lsl    r3, r6, #16                 \n\t"   \
             "add    r4, r4, r3                  \n\t"   \
             "adc    r5, r2                      \n\t"   \
-            "lsl    r3, r7, #16                 \n\t"   \
+            "lsl    r3, RS, #16                 \n\t"   \
             "add    r4, r4, r3                  \n\t"   \
             "adc    r5, r2                      \n\t"   \
+            MULADDC_RESTORE_R1                          \
             "ldr    r3, [r1]                    \n\t"   \
             "add    r4, r4, r3                  \n\t"   \
             "adc    r2, r5                      \n\t"   \
@@ -752,7 +771,7 @@
          : "=m" (c),  "=m" (d), "=m" (s)        \
          : "m" (s), "m" (d), "m" (c), "m" (b)   \
          : "r0", "r1", "r2", "r3", "r4", "r5",  \
-           "r6", "r7", "r8", "r9", "cc"         \
+           "r6", MULADDC_SCRATCH_CLOBBER, "r8", "r9", "cc" \
          );
 
 #elif defined(ARM_V6_DSP)

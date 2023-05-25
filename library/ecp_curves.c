@@ -22,6 +22,7 @@
 #if defined(MBEDTLS_ECP_LIGHT)
 
 #include "mbedtls/ecp.h"
+#include "mbedtls/platform.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
@@ -4608,7 +4609,7 @@ static int ecp_mod_p255(mbedtls_mpi *);
 #if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
 static int ecp_mod_p448(mbedtls_mpi *);
 MBEDTLS_STATIC_TESTABLE
-int mbedtls_ecp_mod_p448(mbedtls_mpi *);
+int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *, size_t);
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
 static int ecp_mod_p192k1(mbedtls_mpi *);
@@ -5455,71 +5456,108 @@ static int ecp_mod_p255(mbedtls_mpi *N)
 
 static int ecp_mod_p448(mbedtls_mpi *N)
 {
-    return mbedtls_ecp_mod_p448(N);
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t expected_width = 2 * ((448 + biL - 1) / biL);
+
+    /* This is required as some tests and use cases do not pass in a Bignum of
+     * the correct size, and expect the growth to be done automatically, which
+     * will no longer happen. */
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
+
+    ret = mbedtls_ecp_mod_p448(N->p, N->n);
+
+cleanup:
+    return ret;
 }
 
 /*
  * Fast quasi-reduction modulo p448 = 2^448 - 2^224 - 1
- * Write N as A0 + 2^448 A1 and A1 as B0 + 2^224 B1, and return
- * A0 + A1 + B1 + (B0 + B1) * 2^224.  This is different to the reference
- * implementation of Curve448, which uses its own special 56-bit limbs rather
- * than a generic bignum library.  We could squeeze some extra speed out on
- * 32-bit machines by splitting N up into 32-bit limbs and doing the
- * arithmetic using the limbs directly as we do for the NIST primes above,
- * but for 64-bit targets it should use half the number of operations if we do
- * the reduction with 224-bit limbs, since mpi_add_mpi will then use 64-bit adds.
+ * Write X as A0 + 2^448 A1 and A1 as B0 + 2^224 B1, and return A0 + A1 + B1 +
+ * (B0 + B1) * 2^224.  This is different to the reference implementation of
+ * Curve448, which uses its own special 56-bit limbs rather than a generic
+ * bignum library.  We could squeeze some extra speed out on 32-bit machines by
+ * splitting N up into 32-bit limbs and doing the arithmetic using the limbs
+ * directly as we do for the NIST primes above, but for 64-bit targets it should
+ * use half the number of operations if we do the reduction with 224-bit limbs,
+ * since mpi_core_add will then use 64-bit adds.
  */
 MBEDTLS_STATIC_TESTABLE
-int mbedtls_ecp_mod_p448(mbedtls_mpi *N)
+int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t i;
-    mbedtls_mpi M, Q;
-    mbedtls_mpi_uint Mp[P448_WIDTH + 1], Qp[P448_WIDTH];
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    if (N->n <= P448_WIDTH) {
+    if (X_limbs <= P448_WIDTH) {
         return 0;
     }
 
-    /* M = A1 */
-    M.s = 1;
-    M.n = N->n - (P448_WIDTH);
-    if (M.n > P448_WIDTH) {
-        /* Shouldn't be called with N larger than 2^896! */
+    size_t M_limbs = X_limbs - (P448_WIDTH);
+    const size_t Q_limbs = M_limbs;
+
+    if (M_limbs > P448_WIDTH) {
+        /* Shouldn't be called with X larger than 2^896! */
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
-    M.p = Mp;
-    memset(Mp, 0, sizeof(Mp));
-    memcpy(Mp, N->p + P448_WIDTH, M.n * sizeof(mbedtls_mpi_uint));
 
-    /* N = A0 */
-    for (i = P448_WIDTH; i < N->n; i++) {
-        N->p[i] = 0;
+    /* Extra limb for carry below. */
+    M_limbs++;
+
+    mbedtls_mpi_uint *M = mbedtls_calloc(M_limbs, ciL);
+
+    if (M == NULL) {
+        return MBEDTLS_ERR_ECP_ALLOC_FAILED;
     }
 
-    /* N += A1 */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_add_mpi(N, N, &M));
+    mbedtls_mpi_uint *Q = mbedtls_calloc(Q_limbs, ciL);
 
-    /* Q = B1, N += B1 */
-    Q = M;
-    Q.p = Qp;
-    memcpy(Qp, Mp, sizeof(Qp));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_shift_r(&Q, 224));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_add_mpi(N, N, &Q));
+    if (Q == NULL) {
+        ret =  MBEDTLS_ERR_ECP_ALLOC_FAILED;
+        goto cleanup;
+    }
 
-    /* M = (B0 + B1) * 2^224, N += M */
+    /* M = A1 */
+    memset(M, 0, (M_limbs * ciL));
+
+    /* Do not copy into the overflow limb, as this would read past the end of
+     * X. */
+    memcpy(M, X + P448_WIDTH, ((M_limbs - 1) * ciL));
+
+    /* X = A0 */
+    for (i = P448_WIDTH; i < X_limbs; i++) {
+        X[i] = 0;
+    }
+
+    /* X += A1 - Carry here dealt with by oversize M and X. */
+    (void) mbedtls_mpi_core_add(X, X, M, M_limbs);
+
+    /* Q = B1, X += B1 */
+    memcpy(Q, M, (Q_limbs * ciL));
+
+    mbedtls_mpi_core_shift_r(Q, Q_limbs, 224);
+
+    /* No carry here - only max 224 bits */
+    (void) mbedtls_mpi_core_add(X, X, Q, Q_limbs);
+
+    /* M = (B0 + B1) * 2^224, X += M */
     if (sizeof(mbedtls_mpi_uint) > 4) {
-        Mp[P224_WIDTH_MIN] &= ((mbedtls_mpi_uint)-1) >> (P224_UNUSED_BITS);
+        M[P224_WIDTH_MIN] &= ((mbedtls_mpi_uint)-1) >> (P224_UNUSED_BITS);
     }
-    for (i = P224_WIDTH_MAX; i < M.n; ++i) {
-        Mp[i] = 0;
+    for (i = P224_WIDTH_MAX; i < M_limbs; ++i) {
+        M[i] = 0;
     }
-    MBEDTLS_MPI_CHK(mbedtls_mpi_add_mpi(&M, &M, &Q));
-    M.n = P448_WIDTH + 1; /* Make room for shifted carry bit from the addition */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_shift_l(&M, 224));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_add_mpi(N, N, &M));
+
+    (void) mbedtls_mpi_core_add(M, M, Q, Q_limbs);
+
+    /* Shifted carry bit from the addition is dealt with by oversize M */
+    mbedtls_mpi_core_shift_l(M, M_limbs, 224);
+    (void) mbedtls_mpi_core_add(X, X, M, M_limbs);
+
+    ret = 0;
 
 cleanup:
+    mbedtls_free(M);
+    mbedtls_free(Q);
+
     return ret;
 }
 #endif /* MBEDTLS_ECP_DP_CURVE448_ENABLED */

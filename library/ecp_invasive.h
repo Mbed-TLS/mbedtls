@@ -244,7 +244,7 @@ int mbedtls_ecp_mod_p256k1_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 #if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
 
 MBEDTLS_STATIC_TESTABLE
-int mbedtls_ecp_mod_p448(mbedtls_mpi *N);
+int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs);
 
 #endif /* MBEDTLS_ECP_DP_CURVE448_ENABLED */
 

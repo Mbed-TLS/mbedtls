@@ -660,7 +660,8 @@
 
 #if defined(__arm__)
 
-#if defined(__thumb__) && !defined(__thumb2__) && !defined(__ARMCC_VERSION)
+#if defined(__thumb__) && !defined(__thumb2__)
+#if !defined(__ARMCC_VERSION)
 /*
  * Thumb 1 ISA. This code path does not work on armclang.
  */
@@ -745,10 +746,13 @@
          : "r0", "r1", "r2", "r3", "r4", "r5",  \
            "r6", MULADDC_SCRATCH_CLOBBER, "r8", "r9", "cc" \
          );
+#endif /* !defined(__ARMCC_VERSION) */
 
 #elif (__ARM_ARCH >= 6) && \
     defined (__ARM_FEATURE_DSP) && (__ARM_FEATURE_DSP == 1)
-/* Armv6-M with DSP Instruction Set Extensions */
+/* Armv6-M (or later) with DSP Instruction Set Extensions.
+ * Requires support for either Thumb 2 or Arm ISA.
+ */
 
 #define MULADDC_X1_INIT                            \
     {                                              \
@@ -813,7 +817,7 @@
         );                                                   \
     }
 
-#elif defined(__thumb2__) || !defined(__thumb__)
+#else
 /* Thumb 2 or Arm ISA, without DSP extensions */
 
 #define MULADDC_X1_INIT                                 \

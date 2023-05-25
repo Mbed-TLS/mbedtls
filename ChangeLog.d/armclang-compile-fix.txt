@@ -1,4 +1,5 @@
 Bugfix
    * Fix armclang compilation error when targetting certain Arm M-class CPUs
-     (Cortex-M0, Cortex-M0+, Cortex-M1, Cortex-M23, SecurCore SC000).
-     Fixes #1077.
+     (Cortex-M0, Cortex-M0+, Cortex-M1, Cortex-M23, SecurCore SC000). Enable
+     bignum optimisations for most Arm platforms when compiling with -O0,
+     (previously optimisations were not available in this case). Fixes #1077.

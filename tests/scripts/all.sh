@@ -795,7 +795,18 @@ pre_generate_files() {
     fi
 }
 
+################################################################
+#### Helpers for components using libtestdriver1
+################################################################
 
+# Adjust the configuration - for both libtestdriver1 and main library,
+# as they should have the same PSA_WANT macros.
+helper_libtestdriver1_adjust_config() {
+    # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
+    # partial support for cipher operations in the driver test library.
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+}
 
 ################################################################
 #### Basic checks
@@ -2072,10 +2083,7 @@ component_test_psa_crypto_config_accel_ecdsa () {
     # Configure and build the test driver library
     # -------------------------------------------
 
-    # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
-    # partial support for cipher operations in the driver test library.
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+    helper_libtestdriver1_adjust_config
 
     loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
     # These hashes are needed for some ECDSA signature tests.
@@ -2122,10 +2130,7 @@ component_test_psa_crypto_config_accel_ecdh () {
     # Configure and build the test driver library
     # -------------------------------------------
 
-    # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
-    # partial support for cipher operations in the driver test library.
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+    helper_libtestdriver1_adjust_config
 
     loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
     make -C tests libtestdriver1.a CFLAGS=" $ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
@@ -2210,10 +2215,7 @@ component_test_psa_crypto_config_accel_pake() {
     # Start with full
     scripts/config.py full
 
-    # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
-    # partial support for cipher operations in the driver test library.
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+    helper_libtestdriver1_adjust_config
 
     loc_accel_list="ALG_JPAKE"
     loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
@@ -2285,10 +2287,7 @@ component_test_psa_crypto_config_accel_all_ec_algs_use_psa () {
     # Configure and build the test driver library
     # -------------------------------------------
 
-    # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
-    # partial support for cipher operations in the driver test library.
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+    helper_libtestdriver1_adjust_config
 
     # Things we wanted supported in libtestdriver1, but not accelerated in the main library:
     # SHA-1 and all SHA-2 variants, as they are used by ECDSA deterministic.
@@ -2431,6 +2430,8 @@ component_test_psa_crypto_full_accel_all_ec_algs_no_ecp_use_psa () {
     # Configure and build the test driver library
     # -------------------------------------------
 
+    helper_libtestdriver1_adjust_config
+
     # Things we wanted supported in libtestdriver1, but not accelerated in the main library:
     # SHA-1 and all SHA-2 variants, as they are used by ECDSA deterministic.
     loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512"
@@ -2498,10 +2499,7 @@ psa_crypto_config_accel_all_curves_except_one () {
     # Configure and build the test driver library
     # --------------------------------------------
 
-    # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
-    # partial support for cipher operations in the driver test library.
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+    helper_libtestdriver1_adjust_config
 
     # RSA support is intentionally disabled on this test (see below for
     # explanation) so lets disable it also on the driver side
@@ -2604,10 +2602,7 @@ component_test_psa_crypto_config_accel_all_curves_except_x25519 () {
 component_test_psa_crypto_config_accel_rsa_signature () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated RSA signature"
 
-    # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
-    # partial support for cipher operations in the driver test library.
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+    helper_libtestdriver1_adjust_config
 
     # It seems it is not possible to remove only the support for RSA signature
     # in the library. Thus we have to remove all RSA support (signature and
@@ -2681,10 +2676,7 @@ component_test_psa_crypto_config_accel_rsa_signature () {
 component_test_psa_crypto_config_accel_hash () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash"
 
-    # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
-    # partial support for cipher operations in the driver test library.
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+    helper_libtestdriver1_adjust_config
 
     loc_accel_list="ALG_MD5 ALG_RIPEMD160 ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512"
     loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
@@ -2718,10 +2710,7 @@ component_test_psa_crypto_config_accel_hash_keep_builtins () {
     # This component ensures that all the test cases for
     # md_psa_dynamic_dispatch with legacy+driver in test_suite_md are run.
 
-    # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
-    # partial support for cipher operations in the driver test library.
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+    helper_libtestdriver1_adjust_config
 
     loc_accel_list="ALG_MD5 ALG_RIPEMD160 ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512"
     loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
@@ -2766,10 +2755,7 @@ config_psa_crypto_hash_use_psa () {
 component_test_psa_crypto_config_accel_hash_use_psa () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash and USE_PSA"
 
-    # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
-    # partial support for cipher operations in the driver test library.
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+    helper_libtestdriver1_adjust_config
 
     loc_accel_list="ALG_MD5 ALG_RIPEMD160 ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512"
     loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
@@ -2827,6 +2813,8 @@ component_test_psa_crypto_config_reference_hash_use_psa() {
 component_test_psa_crypto_config_accel_cipher () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated cipher"
 
+    helper_libtestdriver1_adjust_config
+
     loc_accel_list="ALG_CBC_NO_PADDING ALG_CBC_PKCS7 ALG_CTR ALG_CFB ALG_OFB ALG_XTS KEY_TYPE_DES"
     loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
     make -C tests libtestdriver1.a CFLAGS="$ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
@@ -2862,10 +2850,7 @@ component_test_psa_crypto_config_accel_cipher () {
 component_test_psa_crypto_config_accel_aead () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated AEAD"
 
-    # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
-    # partial support for cipher operations in the driver test library.
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+    helper_libtestdriver1_adjust_config
 
     loc_accel_list="ALG_GCM ALG_CCM ALG_CHACHA20_POLY1305 KEY_TYPE_AES KEY_TYPE_CHACHA20 KEY_TYPE_ARIA KEY_TYPE_CAMELLIA"
     loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
@@ -2899,10 +2884,7 @@ component_test_psa_crypto_config_accel_pake() {
     # Start with full
     scripts/config.py full
 
-    # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
-    # partial support for cipher operations in the driver test library.
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+    helper_libtestdriver1_adjust_config
 
     loc_accel_list="ALG_JPAKE"
     loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )

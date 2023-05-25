@@ -673,13 +673,13 @@
 #if defined(__thumb__) && !defined(__thumb2__) // Thumb 1 (not Thumb 2) ISA
 
     // Only supported by gcc, when optimisation is enabled; only Thumb 1 codepath works
-    #if defined(__OPTIMIZE__) && !defined(__ARMCC_VERSION)
+    #if defined(__OPTIMIZE__) && defined(__GNUC__)
     #define ARM_THUMB_1
     #endif
 
 #elif defined(__thumb2__) // Thumb 2 ISA
 
-    #if !defined(__ARMCC_VERSION) && !defined(__OPTIMIZE__)
+    #if defined(__GNUC__) && !defined(__OPTIMIZE__)
         // gcc -O0: only V6+DSP codepath builds
         #if (__ARM_ARCH >= 6) && defined (__ARM_FEATURE_DSP) && (__ARM_FEATURE_DSP == 1)
         #define ARM_V6_DSP

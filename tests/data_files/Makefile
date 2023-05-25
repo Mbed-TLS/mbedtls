@@ -457,6 +457,19 @@ rsa_pkcs8_2048_public.der: rsa_pkcs8_2048_public.pem
 	$(OPENSSL) rsa -pubin -in $< -outform DER -pubout -out $@
 all_final += rsa_pkcs8_2048_public.der
 
+# Generate crl_cat_*.pem
+# - crt_cat_*.pem: (1+2) concatenations in various orders:
+#     ec = crl-ec-sha256.pem, ecfut = crl-future.pem
+#     rsa = crl.pem, rsabadpem = same with pem error, rsaexp = crl_expired.pem
+
+crl_cat_ec-rsa.pem:crl-ec-sha256.pem crl.pem
+	cat $^ > $@
+
+crl_cat_rsa-ec.pem:crl.pem crl-ec-sha256.pem
+	cat $^ > $@
+
+all_final += crl_cat_ec-rsa.pem crl_cat_rsa-ec.pem
+
 ################################################################
 #### Generate various RSA keys
 ################################################################

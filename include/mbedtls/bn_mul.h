@@ -661,7 +661,7 @@
 
 /*
  * There is a fairly complex matrix of supported options for Thumb / Thumb2 / Arm
- * assembly. Choosing the correct code path depends on the target, the compiler,
+ * assembly. Choosing the correct codepath depends on the target, the compiler,
  * and the optimisation level.
  *
  * Note, gcc -O0 by default uses r7 for the frame pointer, so it complains about
@@ -673,7 +673,7 @@
  */
 #if defined(__thumb__) && !defined(__thumb2__) // Thumb 1 (not Thumb 2) ISA
 
-    // Only supported by gcc, when optimisation is enabled; only option A works
+    // Only supported by gcc, when optimisation is enabled; only Thumb 1 codepath works
     #if defined(__OPTIMIZE__) && !defined(__ARMCC_VERSION)
     #define ARM_THUMB_1
     #endif
@@ -681,24 +681,26 @@
 #elif defined(__thumb2__) // Thumb 2 ISA
 
     #if !defined(__ARMCC_VERSION) && !defined(__OPTIMIZE__)
-        // gcc -O0: only option B builds
+        // gcc -O0: only V6+DSP codepath builds
         #if (__ARM_ARCH >= 6) && defined (__ARM_FEATURE_DSP) && (__ARM_FEATURE_DSP == 1)
         #define ARM_V6_DSP
         #endif
     #else
-        // gcc with optimisation, or armclang: any option builds
+        // gcc with optimisation, or armclang: any codepath builds
         #define ARM_V6_DSP_OR_THUMB_2
     #endif
 
 #elif defined(__arm__) // Arm ISA
 
-    // any option builds. A does not seem to work; B is about 2x faster than C (under emulation).
+    // any option builds. Thumb 1 codepath does not seem to work.
     #define ARM_V6_DSP_OR_THUMB_2
 
 #endif /* Arm ISA selection */
 
 #if defined(ARM_V6_DSP_OR_THUMB_2)
-// Prefer B, if we have the right features for it
+// Prefer V6+DSP codepath, if we have the right features for it; otherwise
+// fall back to generic Thumb 2 / Arm codepath
+// V6+DSP codepath is about 2x faster than Thumb 2 (under emulation).
 #if (__ARM_ARCH >= 6) && defined (__ARM_FEATURE_DSP) && (__ARM_FEATURE_DSP == 1)
 #define ARM_V6_DSP
 #else

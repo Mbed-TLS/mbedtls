@@ -659,42 +659,14 @@
 
 #endif /* TriCore */
 
+#if defined(__arm__)
+
+#if defined(__thumb__) && !defined(__thumb2__) && !defined(__ARMCC_VERSION)
 /*
- * There is a fairly complex matrix of supported options for Thumb / Thumb2 / Arm
- * assembly. Choosing the correct codepath depends on the target, the compiler,
- * and the optimisation level.
+ * Thumb 1 ISA. This code path does not work on armclang.
  */
-#if defined(__thumb__) && !defined(__thumb2__) // Thumb 1 (not Thumb 2) ISA
 
-    // Only supported by gcc, when optimisation is enabled; only Thumb 1 codepath works
-    #define ARM_THUMB_1
-
-#elif defined(__thumb2__) // Thumb 2 ISA
-
-    // Any codepath builds.
-    #define ARM_V6_DSP_OR_THUMB_2
-
-#elif defined(__arm__) // Arm ISA
-
-    // any option builds. Thumb 1 codepath does not seem to work.
-    #define ARM_V6_DSP_OR_THUMB_2
-
-#endif /* Arm ISA selection */
-
-#if defined(ARM_V6_DSP_OR_THUMB_2)
-// Prefer V6+DSP codepath, if we have the right features for it; otherwise
-// fall back to generic Thumb 2 / Arm codepath
-// V6+DSP codepath is about 2x faster than Thumb 2 (under emulation).
-#if (__ARM_ARCH >= 6) && defined (__ARM_FEATURE_DSP) && (__ARM_FEATURE_DSP == 1)
-#define ARM_V6_DSP
-#else
-#define ARM_THUMB_2
-#endif
-#endif /* defined(ARM_V6_DSP_OR_THUMB_2) */
-
-#if defined(ARM_THUMB_1)
-
-#if defined(__OPTIMIZE__) && defined(__GNUC__)
+#if !defined(__OPTIMIZE__) && defined(__GNUC__)
 /*
  * Note, gcc -O0 by default uses r7 for the frame pointer, so it complains about
  * our use of r7 below, unless -fomit-frame-pointer is passed.
@@ -711,12 +683,12 @@
 #define MULADDC_PRESERVE_R1     "mov    r10, r1     \n\t"
 #define MULADDC_RESTORE_R1      "mov    r1, r10     \n\t"
 #define MULADDC_SCRATCH_CLOBBER "r10"
-#else
+#else /* !defined(__OPTIMIZE__) && defined(__GNUC__) */
 #define MULADDC_SCRATCH         "RS .req r7         \n\t"
 #define MULADDC_PRESERVE_R1     ""
 #define MULADDC_RESTORE_R1      ""
 #define MULADDC_SCRATCH_CLOBBER "r7"
-#endif
+#endif /* !defined(__OPTIMIZE__) && defined(__GNUC__) */
 
 #define MULADDC_INIT                                    \
     asm(                                                \
@@ -775,7 +747,9 @@
            "r6", MULADDC_SCRATCH_CLOBBER, "r8", "r9", "cc" \
          );
 
-#elif defined(ARM_V6_DSP)
+#elif (__ARM_ARCH >= 6) && \
+    defined (__ARM_FEATURE_DSP) && (__ARM_FEATURE_DSP == 1)
+/* Armv6-M with DSP Instruction Set Extensions */
 
 #define MULADDC_INIT                            \
     asm(
@@ -792,7 +766,8 @@
          : "r0", "r1", "memory"                 \
          );
 
-#elif defined(ARM_THUMB_2)
+#elif defined(__thumb2__) || !defined(__thumb__)
+/* Thumb 2 or Arm ISA, without DSP extensions */
 
 #define MULADDC_INIT                                    \
     asm(                                                \
@@ -820,7 +795,9 @@
            "r6", "cc"                           \
          );
 
-#endif /* Arm */
+#endif /* ISA codepath selection */
+
+#endif /* defined(__arm__) */
 
 #if defined(__alpha__)
 

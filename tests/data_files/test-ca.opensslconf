@@ -12,6 +12,11 @@ subjectKeyIdentifier=hash
 authorityKeyIdentifier=keyid:always,issuer:always
 basicConstraints = CA:true
 
+[no_subj_auth_id]
+subjectKeyIdentifier=none
+authorityKeyIdentifier=none
+basicConstraints = CA:true
+
 [othername_san]
 subjectAltName=otherName:1.3.6.1.5.5.7.8.4;SEQ:hw_module_name
 

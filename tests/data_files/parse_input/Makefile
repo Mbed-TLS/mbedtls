@@ -53,6 +53,20 @@ cli-rsa-sha256-badalg.crt.der: cli-rsa-sha256.crt.der
 	hexdump -ve '1/1 "%.2X"' $< | sed "s/06092A864886F70D01010B0500/06092A864886F70D01010B0900/2" | xxd -r -p > $@
 all_final += cli-rsa-sha256-badalg.crt.der
 
+
+rsa_single_san_uri.crt.der: rsa_single_san_uri.key
+	$(OPENSSL) req -x509 -outform der -nodes -days 7300 \
+		-newkey rsa:2048 -key $< -out $@ \
+		-addext "subjectAltName = URI:urn:example.com:5ff40f78-9210-494f-8206-c2c082f0609c" \
+		-extensions 'v3_req' -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS URI SAN"
+
+rsa_multiple_san_uri.crt.der: rsa_multiple_san_uri.key
+	$(OPENSSL) req -x509 -outform der -nodes -days 7300 \
+		-newkey rsa:2048 -key $< -out $@ \
+		-addext "subjectAltName = URI:urn:example.com:5ff40f78-9210-494f-8206-c2c082f0609c, URI:urn:example.com:5ff40f78-9210-494f-8206-abcde1234567" \
+		-extensions 'v3_req' -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS URI SAN"
+all_final += rsa_single_san_uri.crt.der rsa_multiple_san_uri.crt.der
+
 ################################################################
 #### Meta targets
 ################################################################

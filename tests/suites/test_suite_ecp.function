@@ -1579,7 +1579,7 @@ void ecp_mod_read_write(char *input_A, int id, int ctype)
 
     TEST_EQUAL(0, mbedtls_ecp_modulus_setup(&m, id, ctype));
 
-    TEST_EQUAL(mbedtls_test_read_mpi_core(&A, &limbs, input_A), 0);
+    TEST_EQUAL(0, mbedtls_test_read_mpi_core(&A, &limbs, input_A));
     TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&rA, &m, A, limbs));
 
     /* Test for limb sizes */
@@ -1589,11 +1589,12 @@ void ecp_mod_read_write(char *input_A, int id, int ctype)
     TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&rX, &m, rX_raw, limbs));
 
     ASSERT_ALLOC(bufx, limbs);
-    TEST_EQUAL(mbedtls_mpi_mod_write(&rA, &m, (unsigned char *) bufx,
-                                     limbs * ciL,
-                                     MBEDTLS_MPI_MOD_EXT_REP_LE), 0);
+    TEST_EQUAL(0, mbedtls_mpi_mod_write(&rA, &m, (unsigned char *) bufx,
+                                        limbs * ciL,
+                                        MBEDTLS_MPI_MOD_EXT_REP_LE));
 
-    TEST_EQUAL(0, mbedtls_mpi_mod_read(&rX, &m, (unsigned char *) bufx, limbs * ciL,
+    TEST_EQUAL(0, mbedtls_mpi_mod_read(&rX, &m, (unsigned char *) bufx,
+                                       limbs * ciL,
                                        MBEDTLS_MPI_MOD_EXT_REP_LE));
 
     TEST_EQUAL(rA.limbs, rX.limbs);
@@ -1625,8 +1626,8 @@ void ecp_mod_random(int id, int ctype)
     ASSERT_ALLOC(rX_raw, limbs);
     TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&rX, &m, rX_raw, limbs));
 
-    TEST_EQUAL(mbedtls_mpi_mod_random(&rX, 1, &m,
-                                      mbedtls_test_rnd_std_rand, NULL), 0);
+    TEST_EQUAL(0, mbedtls_mpi_mod_random(&rX, 1, &m,
+                                         mbedtls_test_rnd_std_rand, NULL));
 
     TEST_ASSERT(mbedtls_mpi_core_lt_ct(rX.p, m.p, limbs) == 1);
 

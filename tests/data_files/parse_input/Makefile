@@ -67,6 +67,10 @@ rsa_multiple_san_uri.crt.der: rsa_multiple_san_uri.key
 		-extensions 'v3_req' -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS URI SAN"
 all_final += rsa_single_san_uri.crt.der rsa_multiple_san_uri.crt.der
 
+server1.crt.der: server1.crt
+	$(OPENSSL) x509 -inform PEM -in $< -outform DER -out $@
+all_final += server1.crt.der
+
 ################################################################
 #### Meta targets
 ################################################################

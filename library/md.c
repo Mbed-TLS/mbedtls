@@ -70,6 +70,11 @@
 #include <stdio.h>
 #endif
 
+/* See comment above MBEDTLS_MD_MAX_SIZE in md.h */
+#if defined(MBEDTLS_PSA_CRYPTO_C) && MBEDTLS_MD_MAX_SIZE < PSA_HASH_MAX_SIZE
+#error "Internal error: MBEDTLS_MD_MAX_SIZE < PSA_HASH_MAX_SIZE"
+#endif
+
 #if defined(MBEDTLS_MD_CAN_MD5)
 const mbedtls_md_info_t mbedtls_md5_info = {
     "MD5",

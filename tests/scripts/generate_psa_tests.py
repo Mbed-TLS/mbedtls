@@ -35,6 +35,14 @@ from mbedtls_dev import test_data_generation
 
 def psa_want_symbol(name: str) -> str:
     """Return the PSA_WANT_xxx symbol associated with a PSA crypto feature."""
+    # PSA_WANT_KEY_TYPE_[RSA/ECC]_KEY_PAIR symbols are deprecated and they should
+    # be replaced soon with newer PSA_WANT_KEY_TYPE_[RSA/ECC]_KEY_PAIR_yyy in
+    # library's code and tests. Until this happen though, they have been
+    # renamed to temporary internal symbols
+    # MBEDTLS_PSA_WANT_KEY_TYPE_[RSA/ECC]_KEY_PAIR_LEGACY so this is what must
+    # be used in tests' dependencies.
+    if name.endswith('RSA_KEY_PAIR') or name.endswith('ECC_KEY_PAIR'):
+        return 'MBEDTLS_' + name[:4] + 'WANT_' + name[4:] + '_LEGACY'
     if name.startswith('PSA_'):
         return name[:4] + 'WANT_' + name[4:]
     else:

@@ -64,7 +64,7 @@ const mbedtls_error_pair_t psa_to_ssl_errors[] =
 #endif
 
 #if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY) ||    \
-    defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR)
+    defined(MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY)
 const mbedtls_error_pair_t psa_to_pk_rsa_errors[] =
 {
     { PSA_SUCCESS,                     0 },

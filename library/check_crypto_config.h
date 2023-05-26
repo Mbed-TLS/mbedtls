@@ -42,13 +42,13 @@
 #endif
 
 #if defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA) && \
-    !(defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) || \
+    !(defined(MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_LEGACY) || \
     defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY))
 #error "PSA_WANT_ALG_DETERMINISTIC_ECDSA defined, but not all prerequisites"
 #endif
 
 #if defined(PSA_WANT_ALG_ECDSA) && \
-    !(defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) || \
+    !(defined(MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_LEGACY) || \
     defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY))
 #error "PSA_WANT_ALG_ECDSA defined, but not all prerequisites"
 #endif
@@ -60,32 +60,32 @@
 #endif
 
 #if defined(PSA_WANT_ALG_RSA_PKCS1V15_CRYPT) && \
-    !(defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR) || \
+    !(defined(MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY) || \
     defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY))
 #error "PSA_WANT_ALG_RSA_PKCS1V15_CRYPT defined, but not all prerequisites"
 #endif
 
 #if defined(PSA_WANT_ALG_RSA_PKCS1V15_SIGN) && \
-    !(defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR) || \
+    !(defined(MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY) || \
     defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY))
 #error "PSA_WANT_ALG_RSA_PKCS1V15_SIGN defined, but not all prerequisites"
 #endif
 
 #if defined(PSA_WANT_ALG_RSA_OAEP) && \
-    !(defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR) || \
+    !(defined(MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY) || \
     defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY))
 #error "PSA_WANT_ALG_RSA_OAEP defined, but not all prerequisites"
 #endif
 
 #if defined(PSA_WANT_ALG_RSA_PSS) && \
-    !(defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR) || \
+    !(defined(MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY) || \
     defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY))
 #error "PSA_WANT_ALG_RSA_PSS defined, but not all prerequisites"
 #endif
 
-#if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) && \
+#if defined(MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_LEGACY) && \
     !defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-#error "PSA_WANT_KEY_TYPE_ECC_KEY_PAIR defined, but not all prerequisites"
+#error "MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_LEGACY defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_USE_PSA_CRYPTO) && \

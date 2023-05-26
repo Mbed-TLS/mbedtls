@@ -307,7 +307,7 @@ symbols, where xxx can be: USE, IMPORT, EXPORT, GENERATE, DERIVE"
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #if (defined(PSA_WANT_ALG_ECDSA) || \
      defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA)) && \
-    defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR)
+    defined(MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_LEGACY)
 #define MBEDTLS_PK_HAVE_ECDSA
 #endif
 #else /* MBEDTLS_USE_PSA_CRYPTO */
@@ -318,7 +318,7 @@ symbols, where xxx can be: USE, IMPORT, EXPORT, GENERATE, DERIVE"
 
 /* Helper for JPAKE dependencies, will be undefined at the end of the file */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-#if defined(PSA_WANT_ALG_JPAKE) && defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR)
+#if defined(PSA_WANT_ALG_JPAKE) && defined(MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_LEGACY)
 #define MBEDTLS_PK_HAVE_JPAKE
 #endif
 #else /* MBEDTLS_USE_PSA_CRYPTO */
@@ -329,7 +329,7 @@ symbols, where xxx can be: USE, IMPORT, EXPORT, GENERATE, DERIVE"
 
 /* Helper for ECDH dependencies, will be undefined at the end of the file */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-#if defined(PSA_WANT_ALG_ECDH) && defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR)
+#if defined(PSA_WANT_ALG_ECDH) && defined(MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_LEGACY)
 #define MBEDTLS_PK_HAVE_ECDH
 #endif
 #else /* MBEDTLS_USE_PSA_CRYPTO */

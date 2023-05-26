@@ -28,7 +28,7 @@
 #include "psa_crypto_random_impl.h"
 #include "mbedtls/platform.h"
 
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR) ||   \
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_LEGACY) ||   \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_FFDH)
 static psa_status_t mbedtls_psa_ffdh_set_prime_generator(size_t key_size,
@@ -117,11 +117,11 @@ cleanup:
 
     return PSA_SUCCESS;
 }
-#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR ||
+#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_LEGACY ||
           MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY ||
           MBEDTLS_PSA_BUILTIN_ALG_FFDH */
 
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR) || \
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_LEGACY) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY)
 psa_status_t mbedtls_psa_export_ffdh_public_key(
     const psa_key_attributes_t *attributes,
@@ -228,7 +228,7 @@ psa_status_t mbedtls_psa_ffdh_import_key(
     return PSA_SUCCESS;
 }
 
-#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR ||
+#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_LEGACY ||
           MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY */
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_FFDH)

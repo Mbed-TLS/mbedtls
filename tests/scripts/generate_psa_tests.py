@@ -113,12 +113,19 @@ def read_implemented_dependencies(filename: str) -> FrozenSet[str]:
                      for line in open(filename)
                      for symbol in re.findall(r'\bPSA_WANT_\w+\b', line))
 _implemented_dependencies = None #type: Optional[FrozenSet[str]] #pylint: disable=invalid-name
+# This is a temporary fix for the KEY_PAIR_LEGACY symbols since they are not
+# defined in "crypto_config.h". This fix can be removed as soon as these _LEGACY
+# symbols will be removed from the code.
+_LEGACY_KEY_PAIR = ['MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_LEGACY',
+                    'MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY']
 def hack_dependencies_not_implemented(dependencies: List[str]) -> None:
     global _implemented_dependencies #pylint: disable=global-statement,invalid-name
     if _implemented_dependencies is None:
         _implemented_dependencies = \
             read_implemented_dependencies('include/psa/crypto_config.h')
-    if not all((dep.lstrip('!') in _implemented_dependencies or 'PSA_WANT' not in dep)
+    if not all((dep.lstrip('!') in _implemented_dependencies or
+                'PSA_WANT' not in dep or
+                dep.lstrip('!') in _LEGACY_KEY_PAIR)
                for dep in dependencies):
         dependencies.append('DEPENDENCY_NOT_IMPLEMENTED_YET')
 

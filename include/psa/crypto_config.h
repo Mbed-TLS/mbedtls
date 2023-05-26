@@ -122,12 +122,36 @@
 #define PSA_WANT_KEY_TYPE_CAMELLIA              1
 #define PSA_WANT_KEY_TYPE_CHACHA20              1
 #define PSA_WANT_KEY_TYPE_DES                   1
-#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR          1
+//#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR          1 /* Deprecated */
 #define PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY        1
-#define PSA_WANT_KEY_TYPE_DH_KEY_PAIR           1
 #define PSA_WANT_KEY_TYPE_DH_PUBLIC_KEY         1
 #define PSA_WANT_KEY_TYPE_RAW_DATA              1
-#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR          1
+//#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR          1 /* Deprecated */
 #define PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY        1
+
+/*
+ * The following symbols extend and deprecate the legacy
+ * PSA_WANT_KEY_TYPE_xxx_KEY_PAIR ones. They include the usage of that key in
+ * the name's suffix. "_USE" is the most generic and it can be used to describe
+ * a generic suport, whereas other ones add more features on top of that and
+ * they are more specific.
+ */
+#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_USE      1
+#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT   1
+#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT   1
+#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE 1
+#define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE   1
+
+#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_USE      1
+#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT   1
+#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT   1
+#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE 1
+//#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_DERIVE   1 /* Not supported */
+
+#define PSA_WANT_KEY_TYPE_DH_KEY_PAIR_USE       1
+#define PSA_WANT_KEY_TYPE_DH_KEY_PAIR_IMPORT    1
+#define PSA_WANT_KEY_TYPE_DH_KEY_PAIR_EXPORT    1
+#define PSA_WANT_KEY_TYPE_DH_KEY_PAIR_GENERATE  1
+#define PSA_WANT_KEY_TYPE_DH_KEY_PAIR_DERIVE    1
 
 #endif /* PSA_CRYPTO_CONFIG_H */

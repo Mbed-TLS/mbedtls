@@ -262,7 +262,7 @@ TASKS = {
                     ('Key ASN1 (OneAsymmetricKey X25519, doesn\'t match masking '
                      'requirements, from RFC8410 Appendix A but made into version 0)'),
                 ],
-            }
+            },
         }
     },
     'analyze_driver_vs_reference_no_ecp_at_all': {
@@ -325,6 +325,17 @@ TASKS = {
                     'Parse Public EC Key #8a (RFC 5480, brainpoolP384r1, compressed)',
                     'Parse Public EC Key #9a (RFC 5480, brainpoolP512r1, compressed)',
                 ],
+            }
+        }
+    },
+    'analyze_driver_vs_reference_ffdh_alg': {
+        'test_function': do_analyze_driver_vs_reference,
+        'args': {
+            'component_ref': 'test_psa_crypto_config_reference_ffdh',
+            'component_driver': 'test_psa_crypto_config_accel_ffdh',
+            'ignored_suites': [
+            ],
+            'ignored_tests': {
             }
         }
     },

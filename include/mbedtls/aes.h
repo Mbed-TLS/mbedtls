@@ -285,8 +285,7 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
  *                 #MBEDTLS_AES_DECRYPT.
  * \param length   The length of the input data in Bytes. This must be a
  *                 multiple of the block size (\c 16 Bytes).
- * \param iv       Initialization vector (updated after use).
- *                 It must be a readable and writeable buffer of \c 16 Bytes.
+ * \param iv       Initialization vector (\c 16 Bytes).
  * \param input    The buffer holding the input data.
  *                 It must be readable and of size \p length Bytes.
  * \param output   The buffer holding the output data.
@@ -300,7 +299,7 @@ MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
                           int mode,
                           size_t length,
-                          unsigned char iv[16],
+                          const unsigned char iv[16],
                           const unsigned char *input,
                           unsigned char *output);
 #endif /* MBEDTLS_CIPHER_MODE_CBC */

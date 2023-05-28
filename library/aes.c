@@ -1041,12 +1041,13 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
 int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
                           int mode,
                           size_t length,
-                          unsigned char iv[16],
+                          const unsigned char iv[16],
                           const unsigned char *input,
                           unsigned char *output)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char temp[16];
+	unsigned char _iv[16];
 
     if (mode != MBEDTLS_AES_ENCRYPT && mode != MBEDTLS_AES_DECRYPT) {
         return MBEDTLS_ERR_AES_BAD_INPUT_DATA;
@@ -1056,9 +1057,10 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
         return MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH;
     }
 
+	memcpy(_iv, iv, 16);
 #if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)
     if (aes_padlock_ace > 0) {
-        if (mbedtls_padlock_xcryptcbc(ctx, mode, length, iv, input, output) == 0) {
+        if (mbedtls_padlock_xcryptcbc(ctx, mode, length, _iv, input, output) == 0) {
             return 0;
         }
 
@@ -1076,9 +1078,9 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
                 goto exit;
             }
 
-            mbedtls_xor(output, output, iv, 16);
+            mbedtls_xor(output, output, _iv, 16);
 
-            memcpy(iv, temp, 16);
+            memcpy(_iv, temp, 16);
 
             input  += 16;
             output += 16;
@@ -1086,13 +1088,13 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
         }
     } else {
         while (length > 0) {
-            mbedtls_xor(output, input, iv, 16);
+            mbedtls_xor(output, input, _iv, 16);
 
             ret = mbedtls_aes_crypt_ecb(ctx, mode, output, output);
             if (ret != 0) {
                 goto exit;
             }
-            memcpy(iv, output, 16);
+            memcpy(_iv, output, 16);
 
             input  += 16;
             output += 16;

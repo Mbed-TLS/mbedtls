@@ -54,14 +54,12 @@ typedef enum {
     MBEDTLS_SHA3_512, /*!< SHA3-512 */
 } mbedtls_sha3_id;
 
-struct mbedtls_sha3_context;
-
 /**
  * \brief          The SHA-3 context structure.
  *
  *                 The structure is used SHA-3 checksum calculations.
  */
-typedef struct mbedtls_sha3_context {
+typedef struct {
     uint64_t state[25];
     uint32_t index;
     uint16_t olen;

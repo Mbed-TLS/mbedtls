@@ -1591,6 +1591,9 @@ void ecp_mod_read_write(char *input_A, int id, int ctype)
 
     bytes = limbs * ciL;
     ASSERT_ALLOC(bufx, limbs);
+    /* Write source mod residue to a buffer, then read it back to
+     * the destination mod residue, compare the two mod residues.
+     * Firstly test little endian write and read */
     TEST_EQUAL(0, mbedtls_mpi_mod_write(&rA, &m, (unsigned char *) bufx,
                                         bytes,
                                         MBEDTLS_MPI_MOD_EXT_REP_LE));
@@ -1598,6 +1601,20 @@ void ecp_mod_read_write(char *input_A, int id, int ctype)
     TEST_EQUAL(0, mbedtls_mpi_mod_read(&rX, &m, (unsigned char *) bufx,
                                        bytes,
                                        MBEDTLS_MPI_MOD_EXT_REP_LE));
+
+    TEST_EQUAL(limbs, rX.limbs);
+    ASSERT_COMPARE(rA.p, bytes, rX.p, bytes);
+
+    memset(bufx, 0x00, bytes);
+    memset(rX_raw, 0x00, bytes);
+    /* Then test big endian write and read */
+    TEST_EQUAL(0, mbedtls_mpi_mod_write(&rA, &m, (unsigned char *) bufx,
+                                        bytes,
+                                        MBEDTLS_MPI_MOD_EXT_REP_BE));
+
+    TEST_EQUAL(0, mbedtls_mpi_mod_read(&rX, &m, (unsigned char *) bufx,
+                                       bytes,
+                                       MBEDTLS_MPI_MOD_EXT_REP_BE));
 
     TEST_EQUAL(limbs, rX.limbs);
     ASSERT_COMPARE(rA.p, bytes, rX.p, bytes);

@@ -60,7 +60,6 @@ typedef struct mbedtls_sha3_family_functions {
 
     uint16_t r;
     uint16_t olen;
-    uint8_t xor_byte;
 }
 mbedtls_sha3_family_functions;
 
@@ -72,11 +71,7 @@ mbedtls_sha3_family_functions;
 typedef struct mbedtls_sha3_context {
     uint64_t state[25];
     uint8_t index;
-    uint8_t id;
-
-    uint16_t r;
     uint16_t olen;
-    uint8_t xor_byte;
     uint16_t max_block_size;
 }
 mbedtls_sha3_context;

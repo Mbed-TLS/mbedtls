@@ -36,15 +36,17 @@
 #include "mbedtls/platform.h"
 #endif /* MBEDTLS_SELF_TEST */
 
+#define XOR_BYTE 0x6
+
 /*
  * List of supported SHA-3 families
  */
 static mbedtls_sha3_family_functions sha3_families[] = {
-    { MBEDTLS_SHA3_224,      1152, 224, 0x06 },
-    { MBEDTLS_SHA3_256,      1088, 256, 0x06 },
-    { MBEDTLS_SHA3_384,       832, 384, 0x06 },
-    { MBEDTLS_SHA3_512,       576, 512, 0x06 },
-    { MBEDTLS_SHA3_NONE, 0, 0, 0 }
+    { MBEDTLS_SHA3_224,      1152, 224 },
+    { MBEDTLS_SHA3_256,      1088, 256 },
+    { MBEDTLS_SHA3_384,       832, 384 },
+    { MBEDTLS_SHA3_512,       576, 512 },
+    { MBEDTLS_SHA3_NONE, 0, 0 }
 };
 
 static const uint64_t rc[24] = {
@@ -207,11 +209,8 @@ int mbedtls_sha3_starts(mbedtls_sha3_context *ctx, mbedtls_sha3_id id)
         return MBEDTLS_ERR_SHA3_BAD_INPUT_DATA;
     }
 
-    ctx->id = id;
-    ctx->r = p->r;
     ctx->olen = p->olen / 8;
-    ctx->xor_byte = p->xor_byte;
-    ctx->max_block_size = ctx->r / 8;
+    ctx->max_block_size = p->r / 8;
 
     memset(ctx->state, 0, sizeof(ctx->state));
     ctx->index = 0;
@@ -285,7 +284,7 @@ int mbedtls_sha3_finish(mbedtls_sha3_context *ctx,
         olen = ctx->olen;
     }
 
-    ABSORB(ctx, ctx->index, ctx->xor_byte);
+    ABSORB(ctx, ctx->index, XOR_BYTE);
     ABSORB(ctx, ctx->max_block_size - 1, 0x80);
     keccak_f1600(ctx);
     ctx->index = 0;

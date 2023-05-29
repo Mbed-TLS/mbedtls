@@ -509,6 +509,25 @@ server9-with-ca.crt: server9.crt $(test_ca_crt)
 	cat $^ > $@
 all_final += server9-with-ca.crt
 
+# FIXME: this file expected a bad-saltlen, but it create a good saltlen.
+server9-bad-saltlen.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
+	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa \
+		-passin "pass:$(test_ca_pwd_rsa)" -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) \
+		-set_serial 24 -days 3653 \
+		-sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:max \
+		-sigopt rsa_mgf1_md:sha256 -sha256 \
+		-in $< -out $@
+all_final += server9-bad-saltlen.crt
+
+server9-bad-mgfhash.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
+	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa \
+		-passin "pass:$(test_ca_pwd_rsa)" -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) \
+		-set_serial 24 -days 3653 \
+		-sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:max \
+		-sigopt rsa_mgf1_md:sha224 -sha256 \
+		-in $< -out $@
+all_final += server9-bad-mgfhash.crt
+
 # server10*
 
 server10.crt: server10.key test-int-ca3.crt test-int-ca3.key

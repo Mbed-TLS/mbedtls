@@ -37,6 +37,7 @@ class SupportedArch(Enum):
     """Supported architecture for code size measurement."""
     AARCH64 = 'aarch64'
     AARCH32 = 'aarch32'
+    ARMV8_M = 'armv8-m'
     X86_64 = 'x86_64'
     X86 = 'x86'
 
@@ -85,7 +86,7 @@ class CodeSizeInfo: # pylint: disable=too-few-public-methods
 
         if self.config == SupportedConfig.DEFAULT.value:
             return 'make -j lib CFLAGS=\'-Os \' '
-        elif self.arch == SupportedArch.AARCH32.value and \
+        elif self.arch == SupportedArch.ARMV8_M.value and \
              self.config == SupportedConfig.TFM_MEDIUM.value:
             return \
                  'make -j lib CC=armclang \
@@ -316,9 +317,9 @@ def main():
     else:
         new_revision = "current"
 
-    print("Measure code size for architecture: {}, configuration: {}"
-          .format(comp_args.arch, comp_args.config))
     code_size_info = CodeSizeInfo(comp_args.arch, comp_args.config)
+    print("Measure code size for architecture: {}, configuration: {}"
+          .format(code_size_info.arch, code_size_info.config))
     result_dir = comp_args.result_dir
     size_compare = CodeSizeComparison(old_revision, new_revision, result_dir,
                                       code_size_info)

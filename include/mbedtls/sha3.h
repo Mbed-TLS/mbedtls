@@ -55,13 +55,6 @@ typedef enum {
 } mbedtls_sha3_id;
 
 struct mbedtls_sha3_context;
-typedef struct mbedtls_sha3_family_functions {
-    mbedtls_sha3_id id;
-
-    uint16_t r;
-    uint16_t olen;
-}
-mbedtls_sha3_family_functions;
 
 /**
  * \brief          The SHA-3 context structure.

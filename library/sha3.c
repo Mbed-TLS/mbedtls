@@ -38,6 +38,14 @@
 
 #define XOR_BYTE 0x6
 
+typedef struct mbedtls_sha3_family_functions {
+    mbedtls_sha3_id id;
+
+    uint16_t r;
+    uint16_t olen;
+}
+mbedtls_sha3_family_functions;
+
 /*
  * List of supported SHA-3 families
  */

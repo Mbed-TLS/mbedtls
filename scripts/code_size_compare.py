@@ -88,7 +88,7 @@ class CodeSizeInfo: # pylint: disable=too-few-public-methods
         elif self.arch == SupportedArch.AARCH32.value and \
              self.config == SupportedConfig.TFM_MEDIUM.value:
             return \
-                 'make -j lib CC=/usr/local/ArmCompilerforEmbedded6.19/bin/armclang \
+                 'make -j lib CC=armclang \
                   CFLAGS=\'--target=arm-arm-none-eabi -mcpu=cortex-m33 -Os \
                  -DMBEDTLS_CONFIG_FILE=\\\"' + CONFIG_TFM_MEDIUM_MBEDCRYPTO_H + '\\\" \
                  -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE=\\\"' + CONFIG_TFM_MEDIUM_PSA_CRYPTO_H + '\\\" \''

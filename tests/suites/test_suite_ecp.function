@@ -1568,6 +1568,7 @@ exit:
 void ecp_mod_read_write(char *input_A, int id, int ctype)
 {
     size_t limbs;
+    size_t bytes;
     mbedtls_mpi_mod_modulus m;
     mbedtls_mpi_mod_residue rA; // For input
     mbedtls_mpi_mod_residue rX; // For read back
@@ -1588,17 +1589,18 @@ void ecp_mod_read_write(char *input_A, int id, int ctype)
     ASSERT_ALLOC(rX_raw, limbs);
     TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&rX, &m, rX_raw, limbs));
 
+    bytes = limbs * ciL;
     ASSERT_ALLOC(bufx, limbs);
     TEST_EQUAL(0, mbedtls_mpi_mod_write(&rA, &m, (unsigned char *) bufx,
-                                        limbs * ciL,
+                                        bytes,
                                         MBEDTLS_MPI_MOD_EXT_REP_LE));
 
     TEST_EQUAL(0, mbedtls_mpi_mod_read(&rX, &m, (unsigned char *) bufx,
-                                       limbs * ciL,
+                                       bytes,
                                        MBEDTLS_MPI_MOD_EXT_REP_LE));
 
-    TEST_EQUAL(rA.limbs, rX.limbs);
-    ASSERT_COMPARE(rA.p, rA.limbs * ciL, rX.p, rA.limbs * ciL);
+    TEST_EQUAL(limbs, rX.limbs);
+    ASSERT_COMPARE(rA.p, bytes, rX.p, bytes);
 
 exit:
     mbedtls_mpi_mod_modulus_free(&m);

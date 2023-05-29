@@ -2983,79 +2983,79 @@ mbedtls_x509_csr_parse:"3008300602047fffffff":"":MBEDTLS_ERR_X509_UNKNOWN_VERSIO
 # Please see makefile for data_files to check malformation details (test_csr_v3_all_malformed_xxx.csr files)
 X509 CSR ASN.1 (attributes: invalid sequence tag)
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_attributes_sequence_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+mbedtls_x509_csr_parse_file:"data_files/parse_input/test_csr_v3_all_malformed_attributes_sequence_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CSR ASN.1 (attributes: invalid attribute id)
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_attributes_id_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+mbedtls_x509_csr_parse_file:"data_files/parse_input/test_csr_v3_all_malformed_attributes_id_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CSR ASN.1 (attributes: not extension request)
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_attributes_extension_request.csr.der":"CSR version   \: 1\nsubject name  \: CN=etcd\nsigned using  \: RSA with SHA-256\nRSA key size  \: 1024 bits\n":0
+mbedtls_x509_csr_parse_file:"data_files/parse_input/test_csr_v3_all_malformed_attributes_extension_request.csr.der":"CSR version   \: 1\nsubject name  \: CN=etcd\nsigned using  \: RSA with SHA-256\nRSA key size  \: 1024 bits\n":0
 
 X509 CSR ASN.1 (attributes: invalid extenstion request set tag)
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_attributes_extension_request_set_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+mbedtls_x509_csr_parse_file:"data_files/parse_input/test_csr_v3_all_malformed_attributes_extension_request_set_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CSR ASN.1 (attributes: invalid extenstion request sequence tag)
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_attributes_extension_request_sequence_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+mbedtls_x509_csr_parse_file:"data_files/parse_input/test_csr_v3_all_malformed_attributes_extension_request_sequence_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CSR ASN.1 (attributes: invalid len (len > data))
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_attributes_len1.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_OUT_OF_DATA
+mbedtls_x509_csr_parse_file:"data_files/parse_input/test_csr_v3_all_malformed_attributes_len1.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_OUT_OF_DATA
 
 X509 CSR ASN.1 (attributes: invalid len (len < data))
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_attributes_len2.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_LENGTH_MISMATCH
+mbedtls_x509_csr_parse_file:"data_files/parse_input/test_csr_v3_all_malformed_attributes_len2.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_LENGTH_MISMATCH
 
 X509 CSR ASN.1 (attributes: extension request invalid len (len > data))
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_attributes_extension_request_sequence_len1.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_OUT_OF_DATA
+mbedtls_x509_csr_parse_file:"data_files/parse_input/test_csr_v3_all_malformed_attributes_extension_request_sequence_len1.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_OUT_OF_DATA
 
 X509 CSR ASN.1 (attributes: extension request invalid len (len < data))
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_attributes_extension_request_sequence_len2.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_OUT_OF_DATA
+mbedtls_x509_csr_parse_file:"data_files/parse_input/test_csr_v3_all_malformed_attributes_extension_request_sequence_len2.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_OUT_OF_DATA
 
 X509 CSR ASN.1 (extensions: invalid sequence tag)
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_extensions_sequence_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+mbedtls_x509_csr_parse_file:"data_files/parse_input/test_csr_v3_all_malformed_extensions_sequence_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CSR ASN.1 (extensions: invalid extension id tag)
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_extension_id_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+mbedtls_x509_csr_parse_file:"data_files/parse_input/test_csr_v3_all_malformed_extension_id_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CSR ASN.1 (extensions: invalid extension data tag)
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_extension_data_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+mbedtls_x509_csr_parse_file:"data_files/parse_input/test_csr_v3_all_malformed_extension_data_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CSR ASN.1 (extensions: invalid extension data len (len > data))
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_extension_data_len1.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_OUT_OF_DATA
+mbedtls_x509_csr_parse_file:"data_files/parse_input/test_csr_v3_all_malformed_extension_data_len1.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_OUT_OF_DATA
 
 X509 CSR ASN.1 (extensions: invalid extension data len (len < data))
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_extension_data_len2.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_LENGTH_MISMATCH
+mbedtls_x509_csr_parse_file:"data_files/parse_input/test_csr_v3_all_malformed_extension_data_len2.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_LENGTH_MISMATCH
 
 X509 CSR ASN.1 (extensions: invalid extension key usage bitstream tag)
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_extension_key_usage_bitstream_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+mbedtls_x509_csr_parse_file:"data_files/parse_input/test_csr_v3_all_malformed_extension_key_usage_bitstream_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CSR ASN.1 (extensions: invalid extension subject alt name sequence tag)
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_extension_subject_alt_name_sequence_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+mbedtls_x509_csr_parse_file:"data_files/parse_input/test_csr_v3_all_malformed_extension_subject_alt_name_sequence_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CSR ASN.1 (extensions: invalid extension ns cert bitstream tag)
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_extension_ns_cert_bitstream_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+mbedtls_x509_csr_parse_file:"data_files/parse_input/test_csr_v3_all_malformed_extension_ns_cert_bitstream_tag.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CSR ASN.1 (extensions: duplicated extension)
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_duplicated_extension.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_INVALID_DATA
+mbedtls_x509_csr_parse_file:"data_files/parse_input/test_csr_v3_all_malformed_duplicated_extension.csr.der":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS+MBEDTLS_ERR_ASN1_INVALID_DATA
 
 X509 CSR ASN.1 (extensions: invalid extension type data)
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
-mbedtls_x509_csr_parse_file:"data_files/test_csr_v3_all_malformed_extension_type_oid.csr.der":"CSR version   \: 1\nsubject name  \: CN=etcd\nsigned using  \: RSA with SHA-256\nRSA key size  \: 1024 bits\n\ncert. type        \: SSL Client\nkey usage         \: CRL Sign\n":0
+mbedtls_x509_csr_parse_file:"data_files/parse_input/test_csr_v3_all_malformed_extension_type_oid.csr.der":"CSR version   \: 1\nsubject name  \: CN=etcd\nsigned using  \: RSA with SHA-256\nRSA key size  \: 1024 bits\n\ncert. type        \: SSL Client\nkey usage         \: CRL Sign\n":0
 
 X509 File parse (no issues)
 depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C

@@ -311,9 +311,10 @@ Key derivation is more complex than other multipart operations for several reaso
 The core decides whether to dispatch a key derivation operation to a driver based on the location associated with of the input step `PSA_KEY_DERIVATION_INPUT_SECRET`.
 
 1. If this step is passed via `psa_key_derivation_input_key()` for a key in a secure element:
-    * If the driver for this secure element implements the `"key_derivation"` family for the specified key type and algorithm, the core calls that driver's `"key_derivation_setup"` and subsequent entry points.
+    * If the driver for this secure element implements the `"key_derivation"` family for the specified algorithm, the core calls that driver's `"key_derivation_setup"` and subsequent entry points.
+      Note that for all currently specified algorithms, the key type for the secret input does not matter.
     * Otherwise the core calls the secure element driver's [`"export_key"`](#key-management-with-opaque-drivers) entry point.
-2. Otherwise ([or on fallback?](#fallback-for-key-derivation-in-opaque-drivers)), if there is a transparent driver for the specified key type and algorithm, the core calls that driver's `"key_derivation_setup"` and subsequent entry points.
+2. Otherwise ([or on fallback?](#fallback-for-key-derivation-in-opaque-drivers)), if there is a transparent driver for the specified algorithm, the core calls that driver's `"key_derivation_setup"` and subsequent entry points.
 3. Otherwise, or on fallback, the core uses its built-in implementation.
 
 #### Summary of entry points for the operation family `"key_derivation"`

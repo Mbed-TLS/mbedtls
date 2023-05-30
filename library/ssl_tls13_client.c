@@ -35,6 +35,7 @@
 #include "ssl_debug_helpers.h"
 #include "md_psa.h"
 
+#if defined(PSA_WANT_ALG_ECDH)
 /* Define a local translating function to save code size by not using too many
  * arguments in each translating place. */
 static int local_err_translation(psa_status_t status)
@@ -44,6 +45,8 @@ static int local_err_translation(psa_status_t status)
                                  psa_generic_status_to_mbedtls);
 }
 #define PSA_TO_MBEDTLS_ERR(status) local_err_translation(status)
+#endif
+
 /* Write extensions */
 
 /*

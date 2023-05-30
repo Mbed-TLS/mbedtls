@@ -301,14 +301,14 @@ TODO
 
 Key derivation is more complex than other multipart operations for several reasons:
 
-* There are multiple of inputs and outputs.
+* There are multiple inputs and outputs.
 * Multiple drivers can be involved. This happens when an operation combines a key agreement and a subsequent symmetric key derivation, each of which can have independent drivers. This also happens when deriving an asymmetric key, where processing the secret input and generating the key output might involve different drivers.
 * When multiple drivers are involved, they are not always independent: if the secret input is managed by an opaque driver, it might not allow the core to retrieve the intermediate output and pass it to another driver.
 * The involvement of an opaque driver cannot be determined as soon as the operation is set up (since `psa_key_derivation_setup()` does not determine the key input).
 
 #### Key derivation driver dispatch logic
 
-The core decides whether to dispatch a key derivation operation to a driver based on the location of the input step `PSA_KEY_DERIVATION_INPUT_SECRET`.
+The core decides whether to dispatch a key derivation operation to a driver based on the location associated with of the input step `PSA_KEY_DERIVATION_INPUT_SECRET`.
 
 1. If this step is passed via `psa_key_derivation_input_key()` for a key in a secure element:
     * If the driver for this secure element implements the `"key_derivation"` family for the specified key type and algorithm, the core calls that driver's `"key_derivation_setup"` and subsequent entry points.
@@ -341,7 +341,7 @@ The core conveys the initial inputs for a key derivation via an opaque data stru
 typedef ... psa_crypto_driver_key_derivation_inputs_t; // implementation-specific type
 ```
 
-A driver receiving an argument that points to a `psa_crypto_driver_key_derivation_inputs_t` can retrieve its contents by calling one of type-specific the functions below. To determine the correct function, the driver can call `psa_crypto_driver_key_derivation_get_input_type()`.
+A driver receiving an argument that points to a `psa_crypto_driver_key_derivation_inputs_t` can retrieve its contents by calling one of the type-specific the functions below. To determine the correct function, the driver can call `psa_crypto_driver_key_derivation_get_input_type()`.
 
 ```
 enum psa_crypto_driver_key_derivation_input_type_t {
@@ -364,7 +364,7 @@ The function `psa_crypto_driver_key_derivation_get_input_type()` determines whet
 * `PSA_KEY_DERIVATION_INPUT_TYPE_INVALID`: the step is invalid for the algorithm of the operation that the inputs are for.
 * `PSA_KEY_DERIVATION_INPUT_TYPE_OMITTED`: the step is optional for the algorithm of the operation that the inputs are for, and has been omitted.
 * `PSA_KEY_DERIVATION_INPUT_TYPE_BYTES`: the step is valid and present and is a transparent byte string. Call `psa_crypto_driver_key_derivation_get_input_size()` to obtain the size of the input data. Call `psa_crypto_driver_key_derivation_get_input_bytes()` make a copy of the input data.
-* `PSA_KEY_DERIVATION_INPUT_TYPE_KEY`: the step is valid and present and is a byte string passed via a key object. Call `psa_crypto_driver_key_derivation_get_input_key()` to obtain a pointer to the key data.
+* `PSA_KEY_DERIVATION_INPUT_TYPE_KEY`: the step is valid and present and is a byte string passed via a key object. Call `psa_crypto_driver_key_derivation_get_input_key()` to obtain a pointer to the key context.
 * `PSA_KEY_DERIVATION_INPUT_TYPE_INTEGER`: the step is valid and present and is an integer. Call `psa_crypto_driver_key_derivation_get_input_integer()` to retrieve the integer value.
 
 ```
@@ -391,14 +391,14 @@ The get-data functions take the following parameters:
 
 * The first parameter `inputs` must be a pointer passed by the core to a key derivation driver setup entry point which has not returned yet.
 * The `step` parameter indicates the input step whose content the driver wants to retrieve.
-* On a successful invocation of `psa_crypto_driver_key_derivation_get_input_size`, the core sets `*size` to the size of the desired input in bytes.
-* On a successful invocation of `psa_crypto_driver_key_derivation_get_input_bytes`, the core fills the first *N* bytes of `buffer` with the desired input and sets `*buffer_length` to *N*, where *N* is the length of the input in bytes. The value of `buffer_size` must be at least *N*, otherwise this function fails with the status `PSA_ERROR_BUFFER_TOO_SMALL`.
+* On a successful invocation of `psa_crypto_driver_key_derivation_get_input_size`, the core sets `*size` to the size of the specified input in bytes.
+* On a successful invocation of `psa_crypto_driver_key_derivation_get_input_bytes`, the core fills the first *N* bytes of `buffer` with the specified input and sets `*buffer_length` to *N*, where *N* is the length of the input in bytes. The value of `buffer_size` must be at least *N*, otherwise this function fails with the status `PSA_ERROR_BUFFER_TOO_SMALL`.
 * On a successful invocation of `psa_crypto_driver_key_derivation_get_input_key`, the core sets `*key_buffer` to a pointer to a buffer containing the key context and `*key_buffer_size` to the size of the key context in bytes. The key context buffer remains valid for the duration of the driver entry point. If the driver needs to access the key context after the current entry point returns, it must make a copy of the key context.
-* On a successful invocation of `psa_crypto_driver_key_derivation_get_input_integer`, the core sets `*value` to the value of the desired input.
+* On a successful invocation of `psa_crypto_driver_key_derivation_get_input_integer`, the core sets `*value` to the value of the specified input.
 
 These functions can return the following statuses:
 
-* `PSA_SUCCESS`: the call succeeded and the desired value has been copied to the output parameter (`size`, `buffer`, `value` or `p_key_buffer`) and if applicable the size of the value has been writen to the applicable parameter (`buffer_length`, `key_buffer_size`).
+* `PSA_SUCCESS`: the call succeeded and the requested value has been copied to the output parameter (`size`, `buffer`, `value` or `p_key_buffer`) and if applicable the size of the value has been written to the applicable parameter (`buffer_length`, `key_buffer_size`).
 * `PSA_ERROR_DOES_NOT_EXIST`: the input step is valid for this particular algorithm, but it is not part of the initial inputs. This is not a fatal error. The driver will receive the input later as a [long input](#key-derivation-driver-long-inputs).
 * `PSA_ERROR_INVALID_ARGUMENT`: the input type is not compatible with this function or was omitted. Call `psa_crypto_driver_key_derivation_get_input_type()` to find out the actual type of this input step. This is not a fatal error and the driver can, for example, subsequently call the appropriate function on the same step.
 * `PSA_ERROR_BUFFER_TOO_SMALL` (`psa_crypto_driver_key_derivation_get_input_bytes` only): the output buffer is too small. This is not a fatal error and the driver can, for example, subsequently call the same function again with a larger buffer. Call `psa_crypto_driver_key_derivation_get_input_size` to obtain the required size.
@@ -441,7 +441,7 @@ psa_status_t acme_key_derivation_set_capacity(
     acme_key_derivation_operation_t *operation,
     size_t capacity);
 ```
-`capacity` is guaranteed to be less or equal to any value previously set through this entry point, and is guaraneed not to be `PSA_KEY_DERIVATION_UNLIMITED_CAPACITY`.
+`capacity` is guaranteed to be less or equal to any value previously set through this entry point, and is guaranteed not to be `PSA_KEY_DERIVATION_UNLIMITED_CAPACITY`.
 
 If this entry point has not been called, the operation has an unlimited capacity.
 
@@ -478,7 +478,7 @@ If the key derivation's `PSA_KEY_DERIVATION_INPUT_SECRET` input is in a secure e
 1. For a call to `psa_key_derivation_verify_key()` or `psa_key_derivation_verify_bytes()`, if the driver has a `"key_derivation_verify_bytes"` entry point, call the driver's `"export_key"` entry point on the key object that contains the expected value, call the `"key_derivation_verify_bytes"` entry point on the exported material, and stop.
 1. Call the `"key_derivation_output_bytes"` entry point. The core may call this entry point multiple times to implement a single call from the application when deriving a cooked (non-raw) key as described below, or if the output size exceeds some implementation limit.
 
-If the key derivation operation is not handled by an opaque driver as described above, the core calls the `"key_derivation_output_bytes"` from the applicable transparent driver (or multiple drivers in succession if fallback applies). In some cases, the driver then calls additional entry points in the same or another driver:
+If the key derivation operation is not handled by an opaque driver as described above, the core calls the `"key_derivation_output_bytes"` from the applicable transparent driver (or multiple drivers in succession if fallback applies). In some cases, the core then calls additional entry points in the same or another driver:
 
 * For a call to `psa_key_derivation_output_key()` for some key types, the core calls a transparent driver's `"derive_key"` entry point. See [“Transparent cooked key derivation”](#transparent-cooked-key-derivation).
 * For a call to `psa_key_derivation_output_key()` where the derived key is in a secure element, call that secure element driver's `"import_key"` entry point.
@@ -491,7 +491,7 @@ A capability for cooked key derivation contains the following properties (this i
 
 * `"entry_points"` (mandatory, list of strings). Must be `["derive_key"]`.
 * `"derived_types"` (mandatory, list of strings). Each element is a [key type specification](#key-type-specifications). This capability only applies when deriving a key of the specified type.
-* `"derived_sizes"` (optional, list of integers). Each element is a [key type specification](#key-type-specifications). This capability only applies when deriving a key of the specified sizes, in bits. If absent, this capability applies to all sizes for the specified types.
+* `"derived_sizes"` (optional, list of integers). Each element is a size for the derived key, in bits. This capability only applies when deriving a key of the specified sizes. If absent, this capability applies to all sizes for the specified types.
 * `"memory"` (optional, boolean). If present and true, the driver must define a type `"derive_key_memory_t"` and the core will allocate an object of that type as specified below.
 * `"names"` (optional, object). A mapping from entry point names to C function and type names, as usual.
 * `"fallback"` (optional, boolean). If present and true, the driver may return `PSA_ERROR_NOT_SUPPORTED` if it only partially supports the specified mechanism, as usual.
@@ -507,7 +507,7 @@ psa_status_t acme_derive_key(
     uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length);
 ```
 
-* `attributes` contains the attributes of the desired key. Note that only the key type and the bit-size are guaranteed to be set.
+* `attributes` contains the attributes of the specified key. Note that only the key type and the bit-size are guaranteed to be set.
 * `input` is a buffer of `input_length` bytes which contains the raw key stream, i.e. the data that `psa_key_derivation_output_bytes()` would return.
 * If `"memory"` property in the driver capability is true, `memory` is a data structure that the driver may use to store data between successive calls of the `"derive_key"` entry point to derive the same key. If the `"memory"` property is false or absent, the `memory` parameter is a null pointer.
 * `key_buffer` is a buffer for the output material. Its size is `key_buffer_size` bytes.
@@ -515,7 +515,7 @@ psa_status_t acme_derive_key(
 
 This entry point may return the following statuses:
 
-* `PSA_SUCCESS`: a key was derived successfully. The driver has placed representation of the key is in `key_buffer`.
+* `PSA_SUCCESS`: a key was derived successfully. The driver has placed the representation of the key in `key_buffer`.
 * `PSA_ERROR_NOT_SUPPORTED` (for the first call only) (only if fallback is enabled): the driver cannot fulfill this request, but a fallback driver might.
 * `PSA_ERROR_INSUFFICIENT_DATA`: the core must call the `"derive_key"` entry point again with the same `memory` object and with subsequent data from the key stream.
 * Any other error is a fatal error.
@@ -525,7 +525,7 @@ The core calls the `"derive_key"` entry point in a loop until it returns a statu
 For standard key types, the `"derive_key"` entry point is called with a certain input length as follows:
 
 * `PSA_KEY_TYPE_DES`: the length of the key.
-* `PSA_KEY_TYPE_ECC_KEY_PAIR(…)`, `PSA_KEY_TYPE_DH_KEY_PAIR(…)`: $m$ bytes, where the bit-size of the key $n$ satisfies $m-1 < 8 n \le m$.
+* `PSA_KEY_TYPE_ECC_KEY_PAIR(…)`, `PSA_KEY_TYPE_DH_KEY_PAIR(…)`: $m$ bytes, where the bit-size of the key $n$ satisfies $8 (m-1) < n \le 8 m$.
 * `PSA_KEY_TYPE_RSA_KEY_PAIR`: an implementation-defined length. A future version of this specification may specify a length.
 * Other key types: not applicable.
 

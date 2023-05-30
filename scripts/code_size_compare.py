@@ -25,10 +25,13 @@ Note: must be run from Mbed TLS root.
 
 import argparse
 import os
+import re
 import subprocess
 import sys
+import typing
 from enum import Enum
 
+from mbedtls_dev import typing_util
 from mbedtls_dev import build_tree
 
 class SupportedArch(Enum):
@@ -45,6 +48,13 @@ class SupportedConfig(Enum):
     """Supported configuration for code size measurement."""
     DEFAULT = 'default'
     TFM_MEDIUM = 'tfm-medium'
+
+# Static library
+MBEDTLS_STATIC_LIB = {
+    'CRYPTO': 'library/libmbedcrypto.a',
+    'X509': 'library/libmbedx509.a',
+    'TLS': 'library/libmbedtls.a',
+}
 
 DETECT_ARCH_CMD = "cc -dM -E - < /dev/null"
 def detect_arch() -> str:
@@ -114,8 +124,129 @@ class CodeSizeInfo: # pylint: disable=too-few-public-methods
                 print(comb)
             sys.exit(1)
 
+class SizeEntry: # pylint: disable=too-few-public-methods
+    """Data Structure to only store information of code size."""
+    def __init__(self, text, data, bss, dec):
+        self.text = text
+        self.data = data
+        self.bss = bss
+        self.total = dec # total <=> dec
 
-class CodeSizeComparison:
+class CodeSizeBase:
+    """Code Size Base Class for size record saving and writing."""
+
+    def __init__(self) -> None:
+        """ Variable code_size is used to store size info for any revisions.
+        code_size: (data format)
+        {revision: {module: {file_name: SizeEntry,
+                             etc ...
+                            },
+                    etc ...
+                   },
+         etc ...
+        }
+        """
+        self.code_size = {} #type: typing.Dict[str, typing.Dict]
+
+    def set_size_record(self, revision: str, mod: str, size_text: str) -> None:
+        """Store size information for target revision and high-level module.
+
+        size_text Format: text data bss dec hex filename
+        """
+        size_record = {}
+        for line in size_text.splitlines()[1:]:
+            data = line.split()
+            size_record[data[5]] = SizeEntry(data[0], data[1], data[2], data[3])
+        if revision in self.code_size:
+            self.code_size[revision].update({mod: size_record})
+        else:
+            self.code_size[revision] = {mod: size_record}
+
+    def read_size_record(self, revision: str, fname: str) -> None:
+        """Read size information from csv file and write it into code_size.
+
+        fname Format: filename text data bss dec
+        """
+        mod = ""
+        size_record = {}
+        with open(fname, 'r') as csv_file:
+            for line in csv_file:
+                data = line.strip().split()
+                # check if we find the beginning of a module
+                if data and data[0] in MBEDTLS_STATIC_LIB:
+                    mod = data[0]
+                    continue
+
+                if mod:
+                    size_record[data[0]] = \
+                        SizeEntry(data[1], data[2], data[3], data[4])
+
+                # check if we hit record for the end of a module
+                m = re.match(r'.?TOTALS', line)
+                if m:
+                    if revision in self.code_size:
+                        self.code_size[revision].update({mod: size_record})
+                    else:
+                        self.code_size[revision] = {mod: size_record}
+                    mod = ""
+                    size_record = {}
+
+    def _size_reader_helper(
+            self,
+            revision: str,
+            output: typing_util.Writable
+    ) -> typing.Iterator[tuple]:
+        """A helper function to peel code_size based on revision."""
+        for mod, file_size in self.code_size[revision].items():
+            output.write("\n" + mod + "\n")
+            for fname, size_entry in file_size.items():
+                yield mod, fname, size_entry
+
+    def write_size_record(
+            self,
+            revision: str,
+            output: typing_util.Writable
+    ) -> None:
+        """Write size information to a file.
+
+        Writing Format: file_name text data bss total(dec)
+        """
+        output.write("{:<30} {:>7} {:>7} {:>7} {:>7}\n"
+                     .format("filename", "text", "data", "bss", "total"))
+        for _, fname, size_entry in self._size_reader_helper(revision, output):
+            output.write("{:<30} {:>7} {:>7} {:>7} {:>7}\n"
+                         .format(fname, size_entry.text, size_entry.data,\
+                                 size_entry.bss, size_entry.total))
+
+    def write_comparison(
+            self,
+            old_rev: str,
+            new_rev: str,
+            output: typing_util.Writable
+    ) -> None:
+        """Write comparison result into a file.
+
+        Writing Format: file_name current(total) old(total) change(Byte) change_pct(%)
+        """
+        output.write("{:<30} {:>7} {:>7} {:>7} {:>7}\n"
+                     .format("filename", "current", "old", "change", "change%"))
+        for mod, fname, size_entry in self._size_reader_helper(new_rev, output):
+            new_size = int(size_entry.total)
+            # check if we have the file in old revision
+            if fname in self.code_size[old_rev][mod]:
+                old_size = int(self.code_size[old_rev][mod][fname].total)
+                change = new_size - old_size
+                if old_size != 0:
+                    change_pct = change / old_size
+                else:
+                    change_pct = 0
+                output.write("{:<30} {:>7} {:>7} {:>7} {:>7.2%}\n"
+                             .format(fname, new_size, old_size, change, change_pct))
+            else:
+                output.write("{} {}\n".format(fname, new_size))
+
+
+class CodeSizeComparison(CodeSizeBase):
     """Compare code size between two Git revisions."""
 
     def __init__(self, old_revision, new_revision, result_dir, code_size_info):

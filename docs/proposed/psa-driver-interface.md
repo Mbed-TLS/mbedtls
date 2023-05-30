@@ -547,6 +547,7 @@ In other cases, the core treats `psa_key_derivation_key_agreement()` as if it wa
 The entry points related to key agreement have the following prototypes for a driver with the prefix `"acme"`:
 ```
 psa_status_t acme_key_agreement(psa_algorithm_t alg,
+                                const psa_key_attributes_t *our_attributes,
                                 const uint8_t *our_key_buffer,
                                 size_t our_key_buffer_length,
                                 const uint8_t *peer_key,
@@ -555,15 +556,18 @@ psa_status_t acme_key_agreement(psa_algorithm_t alg,
                                 size_t output_size,
                                 size_t *output_length);
 psa_status_t acme_key_agreement_to_key(psa_algorithm_t alg,
-                                       const psa_key_attributes_t *attributes,
+                                       const psa_key_attributes_t *our_attributes,
                                        const uint8_t *our_key_buffer,
                                        size_t our_key_buffer_length,
                                        const uint8_t *peer_key,
                                        size_t peer_key_length,
+                                       const psa_key_attributes_t *shared_secret_attributes,
                                        uint8_t *shared_secret_key_buffer,
                                        size_t shared_secret_key_buffer_size,
                                        size_t *shared_secret_key_buffer_length);
 ```
+
+Note that unlike most other key creation entry points, in `"acme_key_agreement_to_key"`, the parameters for the shared secret are not placed near the beginning, but rather grouped with the other parameters at the end, to avoid confusion with the keys passed as inputs.
 
 ### Driver entry points for key management
 

@@ -421,7 +421,7 @@ psa_status_t acme_key_derivation_setup(
 
 #### Key derivation driver long inputs
 
-Some key derivation algorithms take long inputs which it would not be practical to pass in the [initial inputs](#key-derivation-driver-initial-inputs). A driver that implements a key derivation algorithm that takes such inputs must provide a `"key_derivation_input_step"` entry point. The core calls this input step for all the long inputs, in an unspecified order. Long input steps may be fragmented into multiple calls of `psa_key_derivation_input_bytes()`, and the core may reassemble or refragment those fragments before passing them to the driver.
+Some key derivation algorithms take long inputs which it would not be practical to pass in the [initial inputs](#key-derivation-driver-initial-inputs). A driver that implements a key derivation algorithm that takes such inputs must provide a `"key_derivation_input_step"` entry point. The core calls this entry point for all the long inputs after calling `"acme_key_derivation_setup"`. A long input step may be fragmented into multiple calls of `psa_key_derivation_input_bytes()`, and the core may reassemble or refragment those fragments before passing them to the driver. Calls to this entry point for different step values occur in an unspecified order and may be interspersed.
 
 ```
 psa_status_t acme_key_derivation_input_step(

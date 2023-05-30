@@ -35,7 +35,7 @@ void sleep_ms(int milliseconds)
 /*
  * https://en.wikipedia.org/wiki/Real-time_clock
  *
- * Typical crystal RTC accuracy specifications are from ±100 to ±20 parts
+ * Typical crystal RTC accuracy specifications are from +/-100 to +/- 20 parts
  * per million (8.6 to 1.7 seconds per day)
  */
 #define MBEDTLS_WORST_SECONDS_SHIFT_PER_DAY 9

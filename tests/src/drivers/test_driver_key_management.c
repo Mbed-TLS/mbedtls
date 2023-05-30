@@ -322,8 +322,24 @@ psa_status_t mbedtls_test_transparent_import_key(
             key_buffer, key_buffer_size,
             key_buffer_length, bits);
 #endif
+    } else if (PSA_KEY_TYPE_IS_DH(type)) {
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+        (defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR) || \
+        defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY))
+        return libtestdriver1_mbedtls_psa_ffdh_import_key(
+            (const libtestdriver1_psa_key_attributes_t *) attributes,
+            data, data_length,
+            key_buffer, key_buffer_size,
+            key_buffer_length, bits);
+#elif defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || \
+        defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
+        return mbedtls_psa_ffdh_import_key(
+            attributes,
+            data, data_length,
+            key_buffer, key_buffer_size,
+            key_buffer_length, bits);
+#endif
     }
-
     (void) data;
     (void) data_length;
     (void) key_buffer;

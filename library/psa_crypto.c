@@ -640,14 +640,11 @@ psa_status_t psa_import_key_into_slot(
             if (psa_is_dh_key_size_valid(PSA_BYTES_TO_BITS(data_length)) == 0) {
                 return PSA_ERROR_INVALID_ARGUMENT;
             }
-
-            /* Copy the key material. */
-            memcpy(key_buffer, data, data_length);
-            *key_buffer_length = data_length;
-            *bits = PSA_BYTES_TO_BITS(data_length);
-            (void) key_buffer_size;
-
-            return PSA_SUCCESS;
+            return mbedtls_psa_ffdh_import_key(attributes,
+                                               data, data_length,
+                                               key_buffer, key_buffer_size,
+                                               key_buffer_length,
+                                               bits);
         }
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR) ||
         * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY) */

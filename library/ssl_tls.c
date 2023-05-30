@@ -759,8 +759,6 @@ void mbedtls_ssl_print_extensions(const mbedtls_ssl_context *ssl,
 }
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
-#define ARRAY_LENGTH(a) (sizeof(a) / sizeof(*(a)))
-
 static const char *ticket_flag_name_table[] =
 {
     [0] = "ALLOW_PSK_RESUMPTION",

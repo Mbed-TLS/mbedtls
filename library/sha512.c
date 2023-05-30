@@ -1001,8 +1001,6 @@ static sha_test_sum_t sha512_test_sum[] =
 };
 #endif /* MBEDTLS_SHA512_C */
 
-#define ARRAY_LENGTH(a)   (sizeof(a) / sizeof((a)[0]))
-
 static int mbedtls_sha512_common_self_test(int verbose, int is384)
 {
     int i, buflen, ret = 0;

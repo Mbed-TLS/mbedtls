@@ -24,6 +24,7 @@
 #include <test/macros.h>
 #include <psa_crypto_slot_management.h>
 #include <test/psa_crypto_helpers.h>
+#include "common.h"
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 

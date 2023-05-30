@@ -342,6 +342,7 @@ The [storage invariant](#storage-invariant-if-the-transaction-list-contains-appl
 
 * If the file `id` does not exist, then no resources corresponding to that key are in a secure element. This holds whether `id` is in the transaction list or not.
 * If `id` is not in the transaction list and the file `id` exists and references a key in a stateful secure element, then the key is present in the secure element.
+* If `id` is in the transaction list and a key exists by that identifier, the key's location is a stateful secure element.
 
 #### Chosen recovery process
 
@@ -451,13 +452,23 @@ For the new kind of secure element driver, we pick a different file name to avoi
 
 ### Instrumentation for checking the storage invariant
 
+#### Test hook locations
+
 When `MBEDTLS_TEST_HOOKS` is enabled, each call to `psa_its_set()` or `psa_its_remove()` also calls a test hook, passing the file UID as an argument to the hook.
 
 When a stateful secure element driver is present in the build, we use this hook to verify that the storage respects the [storage invariant](#chosen-storage-invariant). In addition, if there is some information about key ongoing operation (set explicitly by the test function as a global variable in the test framework), the hook tests that the content of the storage is compatible with the ongoing operation.
 
-TODO: detail of what to validate the invariant on (the test code can't enumerate all possible keys)
+#### Test hook behavior
 
-TODO: detail of how to keep track of ongoing operations
+The storage invariant check cannot check all keys in storage, and does not need to (for example, it would be pointless to check anything about transparent keys). It checks the following keys:
+
+* When invoked from the test hook on a key file: on that key.
+* When invoked from the test hook on the transaction file: on all the keys listed in the transaction file.
+* When invoked from a test secure element: on the specified key.
+
+#### Test hook extra data
+
+Some tests set global variables to indicate which persistent keys they manipulate. We instrument at least some of these tests to also indicate what operation is in progress on the key. See the GitHub issues or the source code for details.
 
 ### Testing of transaction recovery
 
@@ -477,4 +488,14 @@ When the stateful test secure element driver is present in the build, we run tes
 
 #### States to test recovery on
 
-TODO what states constitute acceptable coverage
+For a given key located in a secure element, the following combination of states are possible:
+
+* Key file: present, absent.
+* Key in secure element: present, absent.
+* Key in the transaction file: no, creation (import), destruction.
+
+We test all $2 \times 2 \times 3 = 12$ possibilities, each in its own test case. In each case, call the test function that checks the storage invariant and check that its result is as expected. Then, if the storage invariant is met, follow the [recovery testing process](#recovery-testing-process).
+
+In addition, have at least one positive test case for each creation method other than import, to ensure that we don't reject a valid value.
+
+Note: testing of a damaged filesystem (including a filesystem that doesn't meet the invariant) is out of scope of the present document.

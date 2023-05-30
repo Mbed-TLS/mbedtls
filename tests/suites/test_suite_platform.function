@@ -33,38 +33,6 @@ void sleep_ms(int milliseconds)
 #endif
 }
 
-
-int test_time_delay_milliseconds_once(int delay_ms)
-{
-    mbedtls_ms_time_t current = mbedtls_ms_time();
-    mbedtls_ms_time_t end;
-    mbedtls_ms_time_t elapsed_ms;
-
-    sleep_ms(delay_ms);
-
-    end = mbedtls_ms_time();
-    elapsed_ms = end - current;
-
-    return elapsed_ms > 0 && elapsed_ms >= delay_ms && \
-           elapsed_ms < 4000 + delay_ms;
-}
-
-int test_time_delay_seconds_once(int delay_secs)
-{
-    mbedtls_time_t current = mbedtls_time(NULL);
-    mbedtls_time_t end;
-    mbedtls_time_t elapsed_secs;
-
-    sleep_ms(delay_secs * 1000);
-
-    end = mbedtls_time(NULL);
-    elapsed_secs = end - current;
-
-    return elapsed_secs > 0 && elapsed_secs - delay_secs >= -1 && \
-           elapsed_secs - delay_secs <   4;
-
-}
-#define MBEDTLS_TIME_DELAY_TEST_RETRIES 3
 #endif
 /* END_HEADER */
 
@@ -73,39 +41,97 @@ int test_time_delay_seconds_once(int delay_secs)
 /* END_DEPENDENCIES */
 
 /* BEGIN_CASE depends_on:MBEDTLS_HAVE_TIME */
+
+/* `time_delay_milliseconds()` and `time_delay_seconds()` might be fail due to
+ * `signal interrupt`, `discontinues jumps` and `incremental adjustment`. The
+ * test functions run 3 iteration to ignore the failures caused by those
+ * conditions.
+ * - `signal interrupt`  : That is introduced by `sleep_ms()`. `nanosleep()` and
+ *                         `usleep()` can be interrupted by signal.
+ * - `discontinues jumps`: `CLOCK_REALTIME` can be manually changed. When it
+ *                         happens during test, the test will be failed on
+ *                         Linux.
+ * - `incremental adjustment`: When `incremental adjustments` are performed
+ *                         during test, the end time might be not in tolerance
+ *                         windows. If `incremental adjustments` end in 2nd
+ *                         iteration, it might fail also, we try 3rd iteration.
+ *
+ * `time_delay_milliseconds()` and `time_delay_seconds()` will re-try 3 times,
+ * so we design a +/- 1 second expect window.
+ */
 void time_delay_milliseconds(int delay_ms)
 {
-    int i;
-    unsigned flag = 0;
-    for (i = 0; i < MBEDTLS_TIME_DELAY_TEST_RETRIES; i++) {
-        if (test_time_delay_milliseconds_once(delay_ms)) {
-            break;
-        }
-        flag |= 1 << i;
+    mbedtls_ms_time_t current;
+    mbedtls_ms_time_t expected_end;
+    mbedtls_ms_time_t diff_ms;
+
+    current = mbedtls_ms_time();
+    expected_end = current + delay_ms;
+    sleep_ms(delay_ms);
+    diff_ms = mbedtls_ms_time() - expected_end;
+    if (diff_ms < 1000 && -1000 < diff_ms) {
+        goto exit;
     }
-    TEST_ASSERT(flag != (1 << MBEDTLS_TIME_DELAY_TEST_RETRIES) - 1);
+
+    /* When `signal interrupt`, `discontinues jumps` or `incremental adjustment`
+     * happens in previous iteration, try again.*/
+    current = mbedtls_ms_time();
+    expected_end = current + delay_ms;
+    sleep_ms(delay_ms);
+    diff_ms = mbedtls_ms_time() - expected_end;
+    if (diff_ms < 1000 && -1000 < diff_ms) {
+        goto exit;
+    }
+
+    /* When `incremental adjustment` end in previous iteration, try again.*/
+    current = mbedtls_ms_time();
+    expected_end = current + delay_ms;
+    sleep_ms(delay_ms);
+    diff_ms = mbedtls_ms_time() - expected_end;
+    TEST_LE_S(diff_ms, 1000 - 1);
+    TEST_LE_S(-1000 + 1, diff_ms);
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_HAVE_TIME */
 
-/*
- * WARNING: DO NOT ENABLE THIS TEST. We keep the code here to document the
- *          reason.
- *
- *          The test often failed on the CI. See #1517. CI failures cannot be
- *          completely avoided due to out-of-sync clock sources.
+/* See comments of `time_delay_millisesonds()`
  */
 void time_delay_seconds(int delay_secs)
 {
-    int i;
-    unsigned flag = 0;
-    for (i = 0; i < 3; i++) {
-        if (test_time_delay_seconds_once(delay_secs)) {
-            break;
-        }
-        flag |= 1 << i;
+    mbedtls_time_t current;
+    mbedtls_time_t expected_end;
+    mbedtls_time_t diff_secs;
+
+    current = mbedtls_time(NULL);
+    expected_end = current + delay_secs;
+    sleep_ms(delay_secs * 1000);
+    diff_secs = mbedtls_time(NULL) - expected_end;
+    if (diff_secs <= 1 && -1 <= diff_secs) {
+        /* Test pass */
+        goto exit;
     }
-    TEST_ASSERT(flag != (1 << MBEDTLS_TIME_DELAY_TEST_RETRIES) - 1);
+    ;
+
+    /* When `signal interrupt`, `discontinues jumps` or `incremental adjustment`
+     * happens in previous iteration, try again.*/
+    current = mbedtls_time(NULL);
+    expected_end = current + delay_secs;
+    sleep_ms(delay_secs * 1000);
+    diff_secs = mbedtls_time(NULL) - expected_end;
+    if (diff_secs <= 1 && -1 <= diff_secs) {
+        /* Test pass */
+        goto exit;
+    }
+    ;
+
+    /* When `incremental adjustment` end in previous iteration, try again.*/
+    current = mbedtls_time(NULL);
+    expected_end = current + delay_secs;
+    sleep_ms(delay_secs * 1000);
+    diff_secs = mbedtls_time(NULL) - expected_end;
+
+    TEST_LE_S(diff_secs, 1);
+    TEST_LE_S(-1, diff_secs);
 }
 /* END_CASE */

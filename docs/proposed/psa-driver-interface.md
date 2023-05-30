@@ -511,7 +511,7 @@ psa_status_t acme_derive_key(
 * `attributes` contains the attributes of the specified key. Note that only the key type and the bit-size are guaranteed to be set.
 * `input` is a buffer of `input_length` bytes which contains the raw key stream, i.e. the data that `psa_key_derivation_output_bytes()` would return.
 * If `"memory"` property in the driver capability is true, `memory` is a data structure that the driver may use to store data between successive calls of the `"derive_key"` entry point to derive the same key. If the `"memory"` property is false or absent, the `memory` parameter is a null pointer.
-* `key_buffer` is a buffer for the output material. Its size is `key_buffer_size` bytes.
+* `key_buffer` is a buffer for the output material, in the appropriate [export format](#key-format-for-transparent-drivers) for the key type. Its size is `key_buffer_size` bytes.
 * On success, `*key_buffer_length` must contain the number of bytes written to `key_buffer`.
 
 This entry point may return the following statuses:

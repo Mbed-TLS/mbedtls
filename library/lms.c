@@ -51,7 +51,7 @@
 static int local_err_translation(psa_status_t status)
 {
     return psa_status_to_mbedtls(status, psa_to_lms_errors,
-                                 sizeof(psa_to_lms_errors),
+                                 ARRAY_LENGTH(psa_to_lms_errors),
                                  psa_generic_status_to_mbedtls);
 }
 #define PSA_TO_MBEDTLS_ERR(status) local_err_translation(status)

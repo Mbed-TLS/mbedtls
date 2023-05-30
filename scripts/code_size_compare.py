@@ -256,6 +256,7 @@ class CodeSizeComparison(CodeSizeBase):
         result_dir: directory for comparison result.
         code_size_info: an object containing information to build library.
         """
+        super().__init__()
         self.repo_path = "."
         self.result_dir = os.path.abspath(result_dir)
         os.makedirs(self.result_dir, exist_ok=True)
@@ -309,19 +310,26 @@ class CodeSizeComparison(CodeSizeBase):
     def _gen_code_size_csv(self, revision, git_worktree_path):
         """Generate code size csv file."""
 
-        csv_fname = revision + self.fname_suffix + ".csv"
         if revision == "current":
             print("Measuring code size in current work directory.")
         else:
             print("Measuring code size for", revision)
-        result = subprocess.check_output(
-            ["size library/*.o"], cwd=git_worktree_path, shell=True
-        )
-        size_text = result.decode()
-        csv_file = open(os.path.join(self.csv_dir, csv_fname), "w")
-        for line in size_text.splitlines()[1:]:
-            data = line.split()
-            csv_file.write("{}, {}\n".format(data[5], data[3]))
+
+        for mod, st_lib in MBEDTLS_STATIC_LIB.items():
+            try:
+                result = subprocess.check_output(
+                    ["size", st_lib, "-t"], cwd=git_worktree_path
+                )
+            except subprocess.CalledProcessError as e:
+                self._handle_called_process_error(e, git_worktree_path)
+            size_text = result.decode("utf-8")
+
+            self.set_size_record(revision, mod, size_text)
+
+        print("Generating code size csv for", revision)
+        csv_file = open(os.path.join(self.csv_dir, revision +
+                                     self.fname_suffix + ".csv"), "w")
+        self.write_size_record(revision, csv_file)
 
     def _remove_worktree(self, git_worktree_path):
         """Remove temporary worktree."""
@@ -341,54 +349,26 @@ class CodeSizeComparison(CodeSizeBase):
         if (revision != "current") and \
            os.path.exists(os.path.join(self.csv_dir, csv_fname)):
             print("Code size csv file for", revision, "already exists.")
+            self.read_size_record(revision, os.path.join(self.csv_dir, csv_fname))
         else:
             git_worktree_path = self._create_git_worktree(revision)
             self._build_libraries(git_worktree_path)
             self._gen_code_size_csv(revision, git_worktree_path)
             self._remove_worktree(git_worktree_path)
 
-    def compare_code_size(self):
+    def _gen_code_size_comparison(self):
         """Generate results of the size changes between two revisions,
         old and new. Measured code size results of these two revisions
         must be available."""
 
-        old_file = open(os.path.join(self.csv_dir, self.old_rev +
-                                     self.fname_suffix + ".csv"), "r")
-        new_file = open(os.path.join(self.csv_dir, self.new_rev +
-                                     self.fname_suffix + ".csv"), "r")
         res_file = open(os.path.join(self.result_dir, "compare-" +
                                      self.old_rev + "-" + self.new_rev +
                                      self.fname_suffix +
                                      ".csv"), "w")
 
-        res_file.write("file_name, this_size, old_size, change, change %\n")
         print("Generating comparison results.")
+        self.write_comparison(self.old_rev, self.new_rev, res_file)
 
-        old_ds = {}
-        for line in old_file.readlines():
-            cols = line.split(", ")
-            fname = cols[0]
-            size = int(cols[1])
-            if size != 0:
-                old_ds[fname] = size
-
-        new_ds = {}
-        for line in new_file.readlines():
-            cols = line.split(", ")
-            fname = cols[0]
-            size = int(cols[1])
-            new_ds[fname] = size
-
-        for fname in new_ds:
-            this_size = new_ds[fname]
-            if fname in old_ds:
-                old_size = old_ds[fname]
-                change = this_size - old_size
-                change_pct = change / old_size
-                res_file.write("{}, {}, {}, {}, {:.2%}\n".format(fname, \
-                               this_size, old_size, change, float(change_pct)))
-            else:
-                res_file.write("{}, {}\n".format(fname, this_size))
         return 0
 
     def get_comparision_results(self):
@@ -397,7 +377,7 @@ class CodeSizeComparison(CodeSizeBase):
         build_tree.check_repo_path()
         self._get_code_size_for_rev(self.old_rev)
         self._get_code_size_for_rev(self.new_rev)
-        return self.compare_code_size()
+        return self._gen_code_size_comparison()
 
     def _handle_called_process_error(self, e: subprocess.CalledProcessError,
                                      git_worktree_path):

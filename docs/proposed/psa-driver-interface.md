@@ -364,7 +364,7 @@ The function `psa_crypto_driver_key_derivation_get_input_type()` determines whet
 
 * `PSA_KEY_DERIVATION_INPUT_TYPE_INVALID`: the step is invalid for the algorithm of the operation that the inputs are for.
 * `PSA_KEY_DERIVATION_INPUT_TYPE_OMITTED`: the step is optional for the algorithm of the operation that the inputs are for, and has been omitted.
-* `PSA_KEY_DERIVATION_INPUT_TYPE_BYTES`: the step is valid and present and is a transparent byte string. Call `psa_crypto_driver_key_derivation_get_input_size()` to obtain the size of the input data. Call `psa_crypto_driver_key_derivation_get_input_bytes()` make a copy of the input data.
+* `PSA_KEY_DERIVATION_INPUT_TYPE_BYTES`: the step is valid and present and is a transparent byte string. Call `psa_crypto_driver_key_derivation_get_input_size()` to obtain the size of the input data. Call `psa_crypto_driver_key_derivation_get_input_bytes()` to make a copy of the input data (design note: [why a copy?](#key-derivation-inputs-and-buffer-ownership)).
 * `PSA_KEY_DERIVATION_INPUT_TYPE_KEY`: the step is valid and present and is a byte string passed via a key object. Call `psa_crypto_driver_key_derivation_get_input_key()` to obtain a pointer to the key context.
 * `PSA_KEY_DERIVATION_INPUT_TYPE_INTEGER`: the step is valid and present and is an integer. Call `psa_crypto_driver_key_derivation_get_input_integer()` to retrieve the integer value.
 
@@ -1178,6 +1178,12 @@ Should 0-size buffers be guaranteed to have a non-null pointers?
 Should drivers really have to cope with overlap?
 
 Should the core guarantee that the output buffer size has the size indicated by the applicable buffer size macro (which may be an overestimation)?
+
+#### Key derivation inputs and buffer ownership
+
+Why is `psa_crypto_driver_key_derivation_get_input_bytes` a copy, rather than giving a pointer?
+
+The main reason is to avoid complex buffer ownership. A driver entry point does not own memory after the entry point return. This is generally necessary because an API function does not own memory after the entry point returns. In the case of key derivation inputs, this could be relaxed because the driver entry point is making callbacks to the core: these functions could return a pointer that is valid until the driver entry point, which would allow the driver to process the data immediately (e.g. hash it rather than copy it).
 
 ### Partial computations in drivers
 

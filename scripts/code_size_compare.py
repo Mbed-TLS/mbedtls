@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 """
-Purpose
-
 This script is for comparing the size of the library files from two
 different Git revisions within an Mbed TLS repository.
 The results of the comparison is formatted as csv and stored at a
@@ -278,41 +276,35 @@ class CodeSizeComparison:
         sys.exit(-1)
 
 def main():
-    parser = argparse.ArgumentParser(
-        description=(
-            """This script is for comparing the size of the library files
-            from two different Git revisions within an Mbed TLS repository.
-            The results of the comparison is formatted as csv, and stored at
-            a configurable location.
-            Note: must be run from Mbed TLS root."""
-        )
-    )
-    parser.add_argument(
+    parser = argparse.ArgumentParser(description=(__doc__))
+    group_required = parser.add_argument_group(
+        'required arguments',
+        'required arguments to parse for running ' + os.path.basename(__file__))
+    group_required.add_argument(
+        "-o", "--old-rev", type=str, required=True,
+        help="old revision for comparison.")
+
+    group_optional = parser.add_argument_group(
+        'optional arguments',
+        'optional arguments to parse for running ' + os.path.basename(__file__))
+    group_optional.add_argument(
         "-r", "--result-dir", type=str, default="comparison",
         help="directory where comparison result is stored, \
-              default is comparison",
-    )
-    parser.add_argument(
-        "-o", "--old-rev", type=str, help="old revision for comparison.",
-        required=True,
-    )
-    parser.add_argument(
+              default is comparison")
+    group_optional.add_argument(
         "-n", "--new-rev", type=str, default=None,
         help="new revision for comparison, default is the current work \
-              directory, including uncommitted changes."
-    )
-    parser.add_argument(
+              directory, including uncommitted changes.")
+    group_optional.add_argument(
         "-a", "--arch", type=str, default=detect_arch(),
         choices=list(map(lambda s: s.value, SupportedArch)),
         help="specify architecture for code size comparison, default is the\
-              host architecture."
-    )
-    parser.add_argument(
+              host architecture.")
+    group_optional.add_argument(
         "-c", "--config", type=str, default=SupportedConfig.DEFAULT.value,
         choices=list(map(lambda s: s.value, SupportedConfig)),
         help="specify configuration type for code size comparison,\
-              default is the current MbedTLS configuration."
-    )
+              default is the current MbedTLS configuration.")
     comp_args = parser.parse_args()
 
     if os.path.isfile(comp_args.result_dir):

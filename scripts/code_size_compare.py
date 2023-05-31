@@ -288,7 +288,7 @@ class CodeSizeComparison(CodeSizeBase):
         Do not modify the current worktree."""
 
         if revision == "current":
-            print("Using current work directory.")
+            print("Using current work directory")
             git_worktree_path = self.repo_path
         else:
             print("Creating git worktree for", revision)
@@ -317,7 +317,7 @@ class CodeSizeComparison(CodeSizeBase):
         """Generate code size csv file."""
 
         if revision == "current":
-            print("Measuring code size in current work directory.")
+            print("Measuring code size in current work directory")
         else:
             print("Measuring code size for", revision)
 
@@ -372,7 +372,8 @@ class CodeSizeComparison(CodeSizeBase):
                                      self.fname_suffix +
                                      ".csv"), "w")
 
-        print("Generating comparison results.")
+        print("\nGenerating comparison results between",\
+                self.old_rev, "and", self.new_rev)
         self.write_comparison(self.old_rev, self.new_rev, res_file)
 
         return 0
@@ -446,7 +447,7 @@ def main():
 
     code_size_info = CodeSizeInfo(comp_args.arch, comp_args.config,
                                   detect_arch())
-    print("Measure code size for architecture: {}, configuration: {}"
+    print("Measure code size for architecture: {}, configuration: {}\n"
           .format(code_size_info.arch, code_size_info.config))
     result_dir = comp_args.result_dir
     size_compare = CodeSizeComparison(old_revision, new_revision, result_dir,

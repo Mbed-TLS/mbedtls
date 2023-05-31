@@ -172,13 +172,7 @@ static int pk_write_ec_pubkey(unsigned char **p, unsigned char *start,
         }
     } else {
         len = pk->pub_raw_len;
-
-        if (*p < start || (size_t) (*p - start) < len) {
-            return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
-        }
-
-        memcpy(*p - len, pk->pub_raw, len);
-        *p -= len;
+        memcpy(buf, pk->pub_raw, len);
     }
 
     if (*p < start || (size_t) (*p - start) < len) {
@@ -701,7 +695,7 @@ int mbedtls_pk_write_key_der(const mbedtls_pk_context *key, unsigned char *buf, 
     int is_ec_opaque = 0;
 #endif /* MBEDTLS_ECP_LIGHT */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_key_type_t opaque_key_type = pk_get_opaque_key_type(key);
+    psa_key_type_t opaque_key_type;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     if (size == 0) {
@@ -712,6 +706,7 @@ int mbedtls_pk_write_key_der(const mbedtls_pk_context *key, unsigned char *buf, 
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if (mbedtls_pk_get_type(key) == MBEDTLS_PK_OPAQUE) {
+        opaque_key_type = pk_get_opaque_key_type(key);
 #if defined(MBEDTLS_RSA_C)
         is_rsa_opaque = PSA_KEY_TYPE_IS_RSA(opaque_key_type);
 #endif /* MBEDTLS_RSA_C */

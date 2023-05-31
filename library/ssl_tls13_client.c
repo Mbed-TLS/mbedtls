@@ -33,7 +33,6 @@
 #include "ssl_client.h"
 #include "ssl_tls13_keys.h"
 #include "ssl_debug_helpers.h"
-#include "mbedtls/dhm.h"
 
 #define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
                                                            psa_to_ssl_errors,             \
@@ -229,8 +228,7 @@ static int ssl_tls13_get_default_group_id(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_BAD_CONFIG;
     }
 #if defined(PSA_WANT_ALG_FFDH)
-    if (*group_list >= MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048 &&
-        *group_list <= MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192) {
+    if (mbedtls_ssl_tls13_named_group_is_dhe(*group_list)) {
         *group_id = *group_list;
         return 0;
     }
@@ -326,18 +324,8 @@ static int ssl_tls13_write_key_share_ext(mbedtls_ssl_context *ssl,
          */
         MBEDTLS_SSL_CHK_BUF_PTR(p, end, 4);
         p += 4;
-#if defined(PSA_WANT_ALG_ECDH)
-        if (mbedtls_ssl_tls13_named_group_is_ecdhe(group_id)) {
-            ret = mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
-                ssl, group_id, p, end, &key_exchange_len);
-        }
-#endif /* PSA_WANT_ALG_ECDH */
-#if defined(PSA_WANT_ALG_FFDH)
-        if (mbedtls_ssl_tls13_named_group_is_dhe(group_id)) {
-            ret = mbedtls_ssl_tls13_generate_and_write_dhe_key_exchange(
-                ssl, group_id, p, end, &key_exchange_len);
-        }
-#endif /* PSA_WANT_ALG_FFDH */
+        ret = mbedtls_ssl_tls13_generate_and_write_dh_key_exchange(
+            ssl, group_id, p, end, &key_exchange_len);
         p += key_exchange_len;
         if (ret != 0) {
             return ret;

@@ -2116,22 +2116,15 @@ int mbedtls_ssl_tls13_write_change_cipher_spec(mbedtls_ssl_context *ssl);
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_reset_transcript_for_hrr(mbedtls_ssl_context *ssl);
 
-#if defined(PSA_WANT_ALG_ECDH)
+#if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
 MBEDTLS_CHECK_RETURN_CRITICAL
-int mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
+int mbedtls_ssl_tls13_generate_and_write_dh_key_exchange(
     mbedtls_ssl_context *ssl,
     uint16_t named_group,
     unsigned char *buf,
     unsigned char *end,
     size_t *out_len);
-#endif /* PSA_WANT_ALG_ECDH */
-
-int mbedtls_ssl_tls13_generate_and_write_dhe_key_exchange(
-    mbedtls_ssl_context *ssl,
-    uint16_t named_group,
-    unsigned char *buf,
-    unsigned char *end,
-    size_t *out_len);
+#endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */
 
 #if defined(MBEDTLS_SSL_EARLY_DATA)
 int mbedtls_ssl_tls13_write_early_data_ext(mbedtls_ssl_context *ssl,

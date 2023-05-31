@@ -1912,30 +1912,19 @@ static int ssl_tls13_generate_and_write_key_share(mbedtls_ssl_context *ssl,
 
     *out_len = 0;
 
-#if defined(PSA_WANT_ALG_ECDH)
-    if (mbedtls_ssl_tls13_named_group_is_ecdhe(named_group)) {
-        ret = mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
+#if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
+    if (mbedtls_ssl_tls13_named_group_is_ecdhe(named_group) ||
+        mbedtls_ssl_tls13_named_group_is_dhe(named_group)) {
+        ret = mbedtls_ssl_tls13_generate_and_write_dh_key_exchange(
             ssl, named_group, buf, end, out_len);
         if (ret != 0) {
             MBEDTLS_SSL_DEBUG_RET(
-                1, "mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange",
+                1, "mbedtls_ssl_tls13_generate_and_write_dh_key_exchange",
                 ret);
             return ret;
         }
     } else
-#endif /* PSA_WANT_ALG_ECDH */
-#if defined(MBEDTLS_DHM_C) || defined(PSA_WANT_ALG_FFDH)
-    if (mbedtls_ssl_tls13_named_group_is_dhe(named_group)) {
-        ret = mbedtls_ssl_tls13_generate_and_write_dhe_key_exchange(
-            ssl, named_group, buf, end, out_len);
-        if (ret != 0) {
-            MBEDTLS_SSL_DEBUG_RET(
-                1, "mbedtls_ssl_tls13_generate_and_write_dhe_key_exchange",
-                ret);
-            return ret;
-        }
-    } else
-#endif /* MBEDTLS_DHM_C || PSA_WANT_ALG_FFDH */
+#endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */
     if (0 /* Other kinds of KEMs */) {
     } else {
         ((void) ssl);

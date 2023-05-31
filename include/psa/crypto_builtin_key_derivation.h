@@ -116,7 +116,7 @@ typedef enum {
 
 typedef struct {
     psa_pbkdf2_key_derivation_state_t MBEDTLS_PRIVATE(state);
-    size_t MBEDTLS_PRIVATE(input_cost);
+    uint64_t MBEDTLS_PRIVATE(input_cost);
     uint8_t *MBEDTLS_PRIVATE(salt);
     size_t MBEDTLS_PRIVATE(salt_length);
     uint8_t MBEDTLS_PRIVATE(password)[PSA_HMAC_MAX_HASH_BLOCK_SIZE];

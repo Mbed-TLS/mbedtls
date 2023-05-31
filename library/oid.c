@@ -915,14 +915,13 @@ static int oid_parse_number(unsigned int *num, const char **p, const char *bound
 
 static size_t oid_subidentifier_num_bytes(unsigned int value)
 {
-    size_t num_bytes = 1;
+    size_t num_bytes = 0;
 
-    value >>= 7;
-
-    while (value != 0) {
-        num_bytes++;
+    do {
         value >>= 7;
-    }
+        num_bytes++;
+    } while (value != 0);
+
     return num_bytes;
 }
 

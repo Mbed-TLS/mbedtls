@@ -248,6 +248,22 @@ static inline int mbedtls_psa_get_ecc_oid_from_id(
 #endif /* MBEDTLS_ECP_DP_BP512R1_ENABLED */
             }
             break;
+        case PSA_ECC_FAMILY_MONTGOMERY:
+            switch (bits) {
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+                case 255:
+                    *oid = MBEDTLS_OID_X25519;
+                    *oid_len = MBEDTLS_OID_SIZE(MBEDTLS_OID_X25519);
+                    return 0;
+#endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED */
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+                case 448:
+                    *oid = MBEDTLS_OID_X448;
+                    *oid_len = MBEDTLS_OID_SIZE(MBEDTLS_OID_X448);
+                    return 0;
+#endif /* MBEDTLS_ECP_DP_CURVE448_ENABLED */
+            }
+            break;
     }
     (void) oid;
     (void) oid_len;

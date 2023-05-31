@@ -143,19 +143,20 @@ extern "C" {
  *            stronger message digests instead.
  *
  */
+/* XXX: comment + test */
 typedef enum {
     MBEDTLS_MD_NONE=0,    /**< None. */
-    MBEDTLS_MD_MD5,       /**< The MD5 message digest. */
-    MBEDTLS_MD_SHA1,      /**< The SHA-1 message digest. */
-    MBEDTLS_MD_SHA224,    /**< The SHA-224 message digest. */
-    MBEDTLS_MD_SHA256,    /**< The SHA-256 message digest. */
-    MBEDTLS_MD_SHA384,    /**< The SHA-384 message digest. */
-    MBEDTLS_MD_SHA512,    /**< The SHA-512 message digest. */
-    MBEDTLS_MD_RIPEMD160, /**< The RIPEMD-160 message digest. */
-    MBEDTLS_MD_SHA3_224,    /**< The SHA3-224 message digest. */
-    MBEDTLS_MD_SHA3_256,    /**< The SHA3-256 message digest. */
-    MBEDTLS_MD_SHA3_384,    /**< The SHA3-384 message digest. */
-    MBEDTLS_MD_SHA3_512,    /**< The SHA3-512 message digest. */
+    MBEDTLS_MD_MD5=0x03,       /**< The MD5 message digest. */
+    MBEDTLS_MD_RIPEMD160=0x04, /**< The RIPEMD-160 message digest. */
+    MBEDTLS_MD_SHA1=0x05,      /**< The SHA-1 message digest. */
+    MBEDTLS_MD_SHA224=0x08,    /**< The SHA-224 message digest. */
+    MBEDTLS_MD_SHA256=0x09,    /**< The SHA-256 message digest. */
+    MBEDTLS_MD_SHA384=0x0a,    /**< The SHA-384 message digest. */
+    MBEDTLS_MD_SHA512=0x0b,    /**< The SHA-512 message digest. */
+    MBEDTLS_MD_SHA3_224=0x10,  /**< The SHA3-224 message digest. */
+    MBEDTLS_MD_SHA3_256=0x11,  /**< The SHA3-256 message digest. */
+    MBEDTLS_MD_SHA3_384=0x12,  /**< The SHA3-384 message digest. */
+    MBEDTLS_MD_SHA3_512=0x13,  /**< The SHA3-512 message digest. */
 } mbedtls_md_type_t;
 
 #if defined(MBEDTLS_MD_CAN_SHA512) || defined(MBEDTLS_SHA3_C)

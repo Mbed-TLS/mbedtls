@@ -71,6 +71,14 @@ class CodeSizeInfo: # pylint: disable=too-few-public-methods
     infer build command for code size measurement.
     """
 
+    SupportedArchConfig = [
+        "-a " + SupportedArch.AARCH64.value + " -c " + SupportedConfig.DEFAULT.value,
+        "-a " + SupportedArch.AARCH32.value + " -c " + SupportedConfig.DEFAULT.value,
+        "-a " + SupportedArch.X86_64.value  + " -c " + SupportedConfig.DEFAULT.value,
+        "-a " + SupportedArch.X86.value     + " -c " + SupportedConfig.DEFAULT.value,
+        "-a " + SupportedArch.ARMV8_M.value + " -c " + SupportedConfig.TFM_MEDIUM.value,
+    ]
+
     def __init__(self, arch: str, config: str) -> None:
         """
         arch: architecture to measure code size on.
@@ -96,6 +104,9 @@ class CodeSizeInfo: # pylint: disable=too-few-public-methods
         else:
             print("Unsupported architecture: {} and configurations: {}"
                   .format(self.arch, self.config))
+            print("\nPlease use supported combination of architecture and configuration:")
+            for comb in CodeSizeInfo.SupportedArchConfig:
+                print(comb)
             sys.exit(1)
 
 

@@ -249,7 +249,13 @@ class CodeSizeBase:
 class CodeSizeComparison(CodeSizeBase):
     """Compare code size between two Git revisions."""
 
-    def __init__(self, old_revision, new_revision, result_dir, code_size_info):
+    def __init__(
+            self,
+            old_revision: str,
+            new_revision: str,
+            result_dir: str,
+            code_size_info: CodeSizeInfo
+    ) -> None:
         """
         old_revision: revision to compare against.
         new_revision:
@@ -272,12 +278,12 @@ class CodeSizeComparison(CodeSizeBase):
                             code_size_info.config
 
     @staticmethod
-    def validate_revision(revision):
+    def validate_revision(revision: str) -> bytes:
         result = subprocess.check_output(["git", "rev-parse", "--verify",
                                           revision + "^{commit}"], shell=False)
         return result
 
-    def _create_git_worktree(self, revision):
+    def _create_git_worktree(self, revision: str) -> str:
         """Make a separate worktree for revision.
         Do not modify the current worktree."""
 
@@ -295,7 +301,7 @@ class CodeSizeComparison(CodeSizeBase):
 
         return git_worktree_path
 
-    def _build_libraries(self, git_worktree_path):
+    def _build_libraries(self, git_worktree_path: str) -> None:
         """Build libraries in the specified worktree."""
 
         my_environment = os.environ.copy()
@@ -307,7 +313,7 @@ class CodeSizeComparison(CodeSizeBase):
         except subprocess.CalledProcessError as e:
             self._handle_called_process_error(e, git_worktree_path)
 
-    def _gen_code_size_csv(self, revision, git_worktree_path):
+    def _gen_code_size_csv(self, revision: str, git_worktree_path: str) -> None:
         """Generate code size csv file."""
 
         if revision == "current":
@@ -331,7 +337,7 @@ class CodeSizeComparison(CodeSizeBase):
                                      self.fname_suffix + ".csv"), "w")
         self.write_size_record(revision, csv_file)
 
-    def _remove_worktree(self, git_worktree_path):
+    def _remove_worktree(self, git_worktree_path: str) -> None:
         """Remove temporary worktree."""
         if git_worktree_path != self.repo_path:
             print("Removing temporary worktree", git_worktree_path)
@@ -341,7 +347,7 @@ class CodeSizeComparison(CodeSizeBase):
                 stderr=subprocess.STDOUT
             )
 
-    def _get_code_size_for_rev(self, revision):
+    def _get_code_size_for_rev(self, revision: str) -> None:
         """Generate code size csv file for the specified git revision."""
 
         # Check if the corresponding record exists
@@ -356,7 +362,7 @@ class CodeSizeComparison(CodeSizeBase):
             self._gen_code_size_csv(revision, git_worktree_path)
             self._remove_worktree(git_worktree_path)
 
-    def _gen_code_size_comparison(self):
+    def _gen_code_size_comparison(self) -> int:
         """Generate results of the size changes between two revisions,
         old and new. Measured code size results of these two revisions
         must be available."""
@@ -371,7 +377,7 @@ class CodeSizeComparison(CodeSizeBase):
 
         return 0
 
-    def get_comparision_results(self):
+    def get_comparision_results(self) -> int:
         """Compare size of library/*.o between self.old_rev and self.new_rev,
         and generate the result file."""
         build_tree.check_repo_path()
@@ -380,7 +386,7 @@ class CodeSizeComparison(CodeSizeBase):
         return self._gen_code_size_comparison()
 
     def _handle_called_process_error(self, e: subprocess.CalledProcessError,
-                                     git_worktree_path):
+                                     git_worktree_path: str) -> None:
         """Handle a CalledProcessError and quit the program gracefully.
         Remove any extra worktrees so that the script may be called again."""
 

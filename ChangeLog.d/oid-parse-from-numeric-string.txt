@@ -1,3 +1,3 @@
 Features
-   * Add a function mbedtls_oid_from_numeric_string to parse an OID from a
+   * Add function mbedtls_oid_from_numeric_string() to parse an OID from a
      string to a DER-encoded mbedtls_asn1_buf.

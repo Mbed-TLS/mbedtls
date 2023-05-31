@@ -898,7 +898,9 @@ int mbedtls_oid_get_numeric_string(char *buf, size_t size,
 static int oid_parse_number(unsigned int *num, const char **p, const char *bound)
 {
     int ret = MBEDTLS_ERR_ASN1_INVALID_DATA;
+
     *num = 0;
+
     while (*p < bound && **p >= '0' && **p <= '9') {
         ret = 0;
         if (*num > (UINT_MAX / 10)) {
@@ -914,7 +916,9 @@ static int oid_parse_number(unsigned int *num, const char **p, const char *bound
 static size_t oid_subidentifier_num_bytes(unsigned int value)
 {
     size_t num_bytes = 1;
+
     value >>= 7;
+
     while (value != 0) {
         num_bytes++;
         value >>= 7;
@@ -927,6 +931,7 @@ static int oid_subidentifier_encode_into(unsigned char **p,
                                          unsigned int value)
 {
     size_t num_bytes = oid_subidentifier_num_bytes(value);
+
     if ((size_t) (bound - *p) < num_bytes) {
         return MBEDTLS_ERR_OID_BUF_TOO_SMALL;
     }
@@ -947,14 +952,13 @@ int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid,
                                     const char *oid_str, size_t size)
 {
     int ret = MBEDTLS_ERR_ASN1_INVALID_DATA;
-
     const char *str_ptr = oid_str;
     const char *str_bound = oid_str + size;
     unsigned int val = 0;
     unsigned int component1, component2;
-
     /* Count the number of dots to get a worst-case allocation size. */
     size_t num_dots = 0;
+
     for (size_t i = 0; (i < size) && (oid_str[i] != '\0'); i++) {
         if (oid_str[i] == '.') {
             num_dots++;

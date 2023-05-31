@@ -58,7 +58,8 @@
 #include "mbedtls/platform.h"
 
 /* Helper for Montgomery curves */
-#if defined(MBEDTLS_ECP_LIGHT) && defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
+#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
 static inline int mbedtls_pk_is_rfc8410(const mbedtls_pk_context *pk)
 {
     mbedtls_ecp_group_id id = mbedtls_pk_get_group_id(pk);
@@ -75,7 +76,41 @@ static inline int mbedtls_pk_is_rfc8410(const mbedtls_pk_context *pk)
 #endif
     return 0;
 }
-#endif /* MBEDTLS_ECP_LIGHT && MBEDTLS_PK_HAVE_RFC8410_CURVES */
+#endif /* MBEDTLS_PK_HAVE_RFC8410_CURVES */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+/* It is assumed that the input key is opaque */
+static psa_ecc_family_t pk_get_opaque_ec_family(const mbedtls_pk_context *pk)
+{
+    psa_ecc_family_t ec_family = 0;
+    psa_key_attributes_t key_attrs = PSA_KEY_ATTRIBUTES_INIT;
+
+    if (psa_get_key_attributes(pk->priv_id, &key_attrs) != PSA_SUCCESS) {
+        return 0;
+    }
+    ec_family = PSA_KEY_TYPE_ECC_GET_FAMILY(psa_get_key_type(&key_attrs));
+    psa_reset_key_attributes(&key_attrs);
+
+    return ec_family;
+}
+#endif /* MBETLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_ECP_LIGHT */
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+/* It is assumed that the input key is opaque */
+static psa_key_type_t pk_get_opaque_key_type(const mbedtls_pk_context *pk)
+{
+    psa_key_attributes_t opaque_attrs = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_type_t opaque_key_type;
+
+    if (psa_get_key_attributes(pk->priv_id, &opaque_attrs) != PSA_SUCCESS) {
+        return 0;
+    }
+    opaque_key_type = psa_get_key_type(&opaque_attrs);
+    psa_reset_key_attributes(&opaque_attrs);
+
+    return opaque_key_type;
+}
+#endif /* MBETLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_RSA_C)
 /*

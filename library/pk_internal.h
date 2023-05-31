@@ -84,11 +84,30 @@ static inline mbedtls_ecp_keypair *mbedtls_pk_ec_rw(const mbedtls_pk_context pk)
 static inline mbedtls_ecp_group_id mbedtls_pk_get_group_id(const mbedtls_pk_context *pk)
 {
     mbedtls_ecp_group_id id;
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_key_attributes_t opaque_attrs = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_type_t opaque_key_type;
+    psa_ecc_family_t curve;
+
+    if (mbedtls_pk_get_type(pk) == MBEDTLS_PK_OPAQUE) {
+        if (psa_get_key_attributes(pk->priv_id, &opaque_attrs) != PSA_SUCCESS) {
+            return MBEDTLS_ECP_DP_NONE;
+        }
+        opaque_key_type = psa_get_key_type(&opaque_attrs);
+        curve = PSA_KEY_TYPE_ECC_GET_FAMILY(opaque_key_type);
+        id = mbedtls_ecc_group_of_psa(curve, psa_get_key_bits(&opaque_attrs), 0);
+        psa_reset_key_attributes(&opaque_attrs);
+    } else
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+    {
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    id = mbedtls_ecc_group_of_psa(pk->ec_family, pk->ec_bits, 0);
+        id = mbedtls_ecc_group_of_psa(pk->ec_family, pk->ec_bits, 0);
 #else /* MBEDTLS_PK_USE_PSA_EC_DATA */
-    id = mbedtls_pk_ec_ro(*pk)->grp.id;
+        id = mbedtls_pk_ec_ro(*pk)->grp.id;
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
+    }
+
     return id;
 }
 

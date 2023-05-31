@@ -1595,12 +1595,10 @@ void ecp_mod_read_write(char *input_A, int id, int ctype)
      * the destination mod residue, compare the two mod residues.
      * Firstly test little endian write and read */
     TEST_EQUAL(0, mbedtls_mpi_mod_write(&rA, &m, (unsigned char *) bufx,
-                                        bytes,
-                                        MBEDTLS_MPI_MOD_EXT_REP_LE));
+                                        bytes, MBEDTLS_MPI_MOD_EXT_REP_LE));
 
     TEST_EQUAL(0, mbedtls_mpi_mod_read(&rX, &m, (unsigned char *) bufx,
-                                       bytes,
-                                       MBEDTLS_MPI_MOD_EXT_REP_LE));
+                                       bytes, MBEDTLS_MPI_MOD_EXT_REP_LE));
 
     TEST_EQUAL(limbs, rX.limbs);
     ASSERT_COMPARE(rA.p, bytes, rX.p, bytes);

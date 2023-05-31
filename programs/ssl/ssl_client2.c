@@ -25,8 +25,6 @@
 #include "test/psa_crypto_helpers.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */
 
-#include "mbedtls/dhm.h"
-
 #if defined(MBEDTLS_SSL_TEST_IMPOSSIBLE)
 int main(void)
 {

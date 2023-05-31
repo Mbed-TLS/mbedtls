@@ -1,2 +1,2 @@
 Features
-   * Add usage of FFDH keys in TLS 1.3.
+   * Add support for FFDH key exchange in TLS 1.3.

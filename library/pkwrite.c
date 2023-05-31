@@ -76,7 +76,6 @@ static inline int mbedtls_pk_is_rfc8410(const mbedtls_pk_context *pk)
 #endif
     return 0;
 }
-#endif /* MBEDTLS_PK_HAVE_RFC8410_CURVES */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 /* It is assumed that the input key is opaque */
 static psa_ecc_family_t pk_get_opaque_ec_family(const mbedtls_pk_context *pk)
@@ -93,6 +92,7 @@ static psa_ecc_family_t pk_get_opaque_ec_family(const mbedtls_pk_context *pk)
     return ec_family;
 }
 #endif /* MBETLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_PK_HAVE_RFC8410_CURVES */
 #endif /* MBEDTLS_ECP_LIGHT */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)

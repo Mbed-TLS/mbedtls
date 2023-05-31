@@ -786,21 +786,50 @@ int mbedtls_pk_write_key_pem(const mbedtls_pk_context *key, unsigned char *buf, 
     unsigned char output_buf[PRV_DER_MAX_BYTES];
     const char *begin, *end;
     size_t olen = 0;
+#if defined(MBEDTLS_ECP_LIGHT)
+    int is_ec_opaque = 0;
+#if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
+    int is_montgomery_opaque = 0;
+#endif /* MBEDTLS_PK_HAVE_RFC8410_CURVES */
+#endif /* MBEDTLS_ECP_LIGHT */
+#if defined(MBEDTLS_RSA_C)
+    int is_rsa_opaque = 0;
+#endif
 
     if ((ret = mbedtls_pk_write_key_der(key, output_buf, sizeof(output_buf))) < 0) {
         return ret;
     }
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if (mbedtls_pk_get_type(key) == MBEDTLS_PK_OPAQUE) {
+        psa_key_type_t opaque_key_type = pk_get_opaque_key_type(key);
+
 #if defined(MBEDTLS_RSA_C)
-    if (mbedtls_pk_get_type(key) == MBEDTLS_PK_RSA) {
+        is_rsa_opaque = PSA_KEY_TYPE_IS_RSA(opaque_key_type);
+#endif
+#if defined(MBEDTLS_ECP_LIGHT)
+        is_ec_opaque = PSA_KEY_TYPE_IS_ECC(opaque_key_type);
+#if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
+        if (pk_get_opaque_ec_family(key) == PSA_ECC_FAMILY_MONTGOMERY) {
+            is_montgomery_opaque = 1;
+        }
+#endif /* MBEDTLS_PK_HAVE_RFC8410_CURVES */
+#endif /* MBEDTLS_ECP_LIGHT */
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+#if defined(MBEDTLS_RSA_C)
+    if ((mbedtls_pk_get_type(key) == MBEDTLS_PK_RSA) || is_rsa_opaque) {
         begin = PEM_BEGIN_PRIVATE_KEY_RSA;
         end = PEM_END_PRIVATE_KEY_RSA;
     } else
 #endif
 #if defined(MBEDTLS_ECP_LIGHT)
-    if (mbedtls_pk_get_type(key) == MBEDTLS_PK_ECKEY) {
+    if ((mbedtls_pk_get_type(key) == MBEDTLS_PK_ECKEY) || is_ec_opaque) {
 #if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
-        if (mbedtls_pk_is_rfc8410(key)) {
+        if (is_montgomery_opaque ||
+            ((mbedtls_pk_get_type(key) == MBEDTLS_PK_ECKEY) &&
+             (mbedtls_pk_is_rfc8410(key)))) {
             begin = PEM_BEGIN_PRIVATE_KEY_PKCS8;
             end = PEM_END_PRIVATE_KEY_PKCS8;
         } else

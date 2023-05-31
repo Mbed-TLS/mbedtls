@@ -1572,6 +1572,30 @@ int mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
 #endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */
 
 #if defined(PSA_WANT_ALG_FFDH)
+static psa_key_type_t mbedtls_psa_parse_tls_ffdh_group(
+    uint16_t tls_ecc_grp_reg_id, size_t *bits)
+{
+    switch (tls_ecc_grp_reg_id) {
+        case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048:
+            *bits = 2048;
+            return PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
+        case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072:
+            *bits = 3072;
+            return PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
+        case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096:
+            *bits = 4096;
+            return PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
+        case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144:
+            *bits = 6144;
+            return PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
+        case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192:
+            *bits = 8192;
+            return PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
+        default:
+            return 0;
+    }
+}
+
 int mbedtls_ssl_tls13_generate_and_write_dhe_key_exchange(
     mbedtls_ssl_context *ssl,
     uint16_t named_group,

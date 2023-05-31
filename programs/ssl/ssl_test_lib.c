@@ -449,4 +449,34 @@ void test_hooks_free(void)
 
 #endif /* MBEDTLS_TEST_HOOKS */
 
+uint16_t mbedtls_ssl_ffdh_group_from_name(const char *name)
+{
+    if (strcmp(name, MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE2048) == 0) {
+        return MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048;
+    } else if (strcmp(name, MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE3072) == 0) {
+        return MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072;
+    } else if (strcmp(name, MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE4096) == 0) {
+        return MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096;
+    } else if (strcmp(name, MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE6144) == 0) {
+        return MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144;
+    } else if (strcmp(name, MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE8192) == 0) {
+        return MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192;
+    }
+    return 0;
+}
+
+uint16_t *mbedtls_ssl_ffdh_supported_groups(void)
+{
+    static uint16_t ffdh_groups[] = {
+        MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048,
+        MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072,
+        MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096,
+        MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144,
+        MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192,
+        0
+    };
+
+    return ffdh_groups;
+}
+
 #endif /* !defined(MBEDTLS_SSL_TEST_IMPOSSIBLE) */

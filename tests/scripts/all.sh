@@ -2508,7 +2508,6 @@ psa_crypto_config_accel_all_curves_except_one () {
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
     for ALG in $(sed -n 's/^#define \(PSA_WANT_ALG_RSA_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
-        echo $ALG
         scripts/config.py -f include/psa/crypto_config.h unset $ALG
     done
 

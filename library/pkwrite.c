@@ -377,44 +377,22 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
     pk_type = mbedtls_pk_get_type(key);
 #if defined(MBEDTLS_ECP_LIGHT)
     if (pk_type == MBEDTLS_PK_ECKEY) {
-#if defined(MBEDTLS_ECP_C)
-        ec_grp_id = mbedtls_pk_ec_ro(*key)->grp.id;
-#else /* MBEDTLS_ECP_C */
-        ec_grp_id = mbedtls_ecc_group_of_psa(key->ec_family, key->ec_bits, 0);
-#endif /* MBEDTLS_ECP_C */
+        ec_grp_id = mbedtls_pk_get_group_id(key);
     }
 #endif /* MBEDTLS_ECP_LIGHT */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if (pk_type == MBEDTLS_PK_OPAQUE) {
-        psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-        psa_key_type_t key_type;
-
-        if (PSA_SUCCESS != psa_get_key_attributes(key->priv_id,
-                                                  &attributes)) {
-            return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-        }
-        key_type = psa_get_key_type(&attributes);
-
+        psa_key_type_t opaque_key_type = pk_get_opaque_key_type(key);
 #if defined(MBEDTLS_ECP_LIGHT)
-        if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(key_type)) {
-            psa_ecc_family_t curve;
-
-            curve = PSA_KEY_TYPE_ECC_GET_FAMILY(key_type);
-            if (curve != 0) {
-                ec_grp_id = mbedtls_ecc_group_of_psa(curve, psa_get_key_bits(&attributes), 0);
-                if (ec_grp_id != MBEDTLS_ECP_DP_NONE) {
-                    /* The rest of the function works as for legacy EC contexts. */
+        if (PSA_KEY_TYPE_IS_ECC(opaque_key_type)) {
                     pk_type = MBEDTLS_PK_ECKEY;
-                }
-            }
-        }
+            ec_grp_id = mbedtls_pk_get_group_id(key);
+        } else
 #endif /* MBEDTLS_ECP_LIGHT */
-        if (PSA_KEY_TYPE_IS_RSA(key_type)) {
+        if (PSA_KEY_TYPE_IS_RSA(opaque_key_type)) {
             /* The rest of the function works as for legacy RSA contexts. */
             pk_type = MBEDTLS_PK_RSA;
         }
-
-        psa_reset_key_attributes(&attributes);
     }
     /* `pk_type` will have been changed to non-opaque by here if this function can handle it */
     if (pk_type == MBEDTLS_PK_OPAQUE) {
@@ -424,11 +402,13 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
 
 #if defined(MBEDTLS_ECP_LIGHT)
     if (pk_type == MBEDTLS_PK_ECKEY) {
-        /* Some groups have their own AlgorithmIdentifier OID, others are handled by mbedtls_oid_get_oid_by_pk_alg() below */
+        /* Some groups have their own AlgorithmIdentifier OID, others are handled
+         * by mbedtls_oid_get_oid_by_pk_alg() below */
         ret = mbedtls_oid_get_oid_by_ec_grp_algid(ec_grp_id, &oid, &oid_len);
 
         if (ret == 0) {
-            /* Currently, none of the supported algorithms that have their own AlgorithmIdentifier OID have any parameters */
+            /* Currently, none of the supported algorithms that have their own
+             * AlgorithmIdentifier OID have any parameters */
             has_par = 0;
         } else if (ret == MBEDTLS_ERR_OID_NOT_FOUND) {
             MBEDTLS_ASN1_CHK_ADD(par_len, pk_write_ec_param(&c, buf, ec_grp_id));

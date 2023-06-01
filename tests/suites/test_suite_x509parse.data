@@ -300,79 +300,79 @@ mbedtls_x509_crl_parse:"data_files/crl-idpnc.pem":0
 
 X509 CSR Information RSA with MD4
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD4_C:MBEDTLS_RSA_C
-mbedtls_x509_csr_info:"data_files/server1.req.md4":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with MD4\nRSA key size  \: 2048 bits\n"
+mbedtls_x509_csr_info:"data_files/parse_input/server1.req.md4":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with MD4\nRSA key size  \: 2048 bits\n"
 
 X509 CSR Information RSA with MD5
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD5_C:MBEDTLS_RSA_C
-mbedtls_x509_csr_info:"data_files/server1.req.md5":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with MD5\nRSA key size  \: 2048 bits\n"
+mbedtls_x509_csr_info:"data_files/parse_input/server1.req.md5":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with MD5\nRSA key size  \: 2048 bits\n"
 
 X509 CSR Information RSA with SHA1
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C
-mbedtls_x509_csr_info:"data_files/server1.req.sha1":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with SHA1\nRSA key size  \: 2048 bits\n"
+mbedtls_x509_csr_info:"data_files/parse_input/server1.req.sha1":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with SHA1\nRSA key size  \: 2048 bits\n"
 
 X509 CSR Information RSA with SHA224
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
-mbedtls_x509_csr_info:"data_files/server1.req.sha224":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with SHA-224\nRSA key size  \: 2048 bits\n"
+mbedtls_x509_csr_info:"data_files/parse_input/server1.req.sha224":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with SHA-224\nRSA key size  \: 2048 bits\n"
 
 X509 CSR Information RSA with SHA-256
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
-mbedtls_x509_csr_info:"data_files/server1.req.sha256":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with SHA-256\nRSA key size  \: 2048 bits\n"
+mbedtls_x509_csr_info:"data_files/parse_input/server1.req.sha256":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with SHA-256\nRSA key size  \: 2048 bits\n"
 
 X509 CSR Information RSA with SHA384
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA512_C:!MBEDTLS_SHA512_NO_SHA384:MBEDTLS_RSA_C
-mbedtls_x509_csr_info:"data_files/server1.req.sha384":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with SHA-384\nRSA key size  \: 2048 bits\n"
+mbedtls_x509_csr_info:"data_files/parse_input/server1.req.sha384":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with SHA-384\nRSA key size  \: 2048 bits\n"
 
 X509 CSR Information RSA with SHA512
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA512_C:MBEDTLS_RSA_C
-mbedtls_x509_csr_info:"data_files/server1.req.sha512":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with SHA-512\nRSA key size  \: 2048 bits\n"
+mbedtls_x509_csr_info:"data_files/parse_input/server1.req.sha512":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with SHA-512\nRSA key size  \: 2048 bits\n"
 
 X509 CSR Information RSA with SHA-256, containing commas
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA256_C:MBEDTLS_RSA_C:MBEDTS_X509_INFO
-mbedtls_x509_csr_info:"data_files/server1.req.commas.sha256":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL\\, Commas, CN=PolarSSL Server 1\nsigned using  \: RSA with SHA-256\nRSA key size  \: 2048 bits\n"
+mbedtls_x509_csr_info:"data_files/parse_input/server1.req.commas.sha256":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL\\, Commas, CN=PolarSSL Server 1\nsigned using  \: RSA with SHA-256\nRSA key size  \: 2048 bits\n"
 
 X509 CSR Information EC with SHA1
 depends_on:MBEDTLS_ECDSA_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA1_C
-mbedtls_x509_csr_info:"data_files/server5.req.sha1":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: ECDSA with SHA1\nEC key size   \: 256 bits\n"
+mbedtls_x509_csr_info:"data_files/parse_input/server5.req.sha1":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: ECDSA with SHA1\nEC key size   \: 256 bits\n"
 
 X509 CSR Information EC with SHA224
 depends_on:MBEDTLS_ECDSA_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C
-mbedtls_x509_csr_info:"data_files/server5.req.sha224":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: ECDSA with SHA224\nEC key size   \: 256 bits\n"
+mbedtls_x509_csr_info:"data_files/parse_input/server5.req.sha224":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: ECDSA with SHA224\nEC key size   \: 256 bits\n"
 
 X509 CSR Information EC with SHA256
 depends_on:MBEDTLS_ECDSA_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C
-mbedtls_x509_csr_info:"data_files/server5.req.sha256":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: ECDSA with SHA256\nEC key size   \: 256 bits\n"
+mbedtls_x509_csr_info:"data_files/parse_input/server5.req.sha256":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: ECDSA with SHA256\nEC key size   \: 256 bits\n"
 
 X509 CSR Information EC with SHA384
 depends_on:MBEDTLS_ECDSA_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA512_C:!MBEDTLS_SHA512_NO_SHA384
-mbedtls_x509_csr_info:"data_files/server5.req.sha384":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: ECDSA with SHA384\nEC key size   \: 256 bits\n"
+mbedtls_x509_csr_info:"data_files/parse_input/server5.req.sha384":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: ECDSA with SHA384\nEC key size   \: 256 bits\n"
 
 X509 CSR Information EC with SHA512
 depends_on:MBEDTLS_ECDSA_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA512_C
-mbedtls_x509_csr_info:"data_files/server5.req.sha512":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: ECDSA with SHA512\nEC key size   \: 256 bits\n"
+mbedtls_x509_csr_info:"data_files/parse_input/server5.req.sha512":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: ECDSA with SHA512\nEC key size   \: 256 bits\n"
 
 X509 CSR Information RSA-PSS with SHA1
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_SHA1_C
-mbedtls_x509_csr_info:"data_files/server9.req.sha1":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: RSASSA-PSS (SHA1, MGF1-SHA1, 0x6A)\nRSA key size  \: 1024 bits\n"
+mbedtls_x509_csr_info:"data_files/parse_input/server9.req.sha1":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: RSASSA-PSS (SHA1, MGF1-SHA1, 0x6A)\nRSA key size  \: 1024 bits\n"
 
 X509 CSR Information RSA-PSS with SHA224
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_SHA256_C
-mbedtls_x509_csr_info:"data_files/server9.req.sha224":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: RSASSA-PSS (SHA224, MGF1-SHA224, 0x62)\nRSA key size  \: 1024 bits\n"
+mbedtls_x509_csr_info:"data_files/parse_input/server9.req.sha224":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: RSASSA-PSS (SHA224, MGF1-SHA224, 0x62)\nRSA key size  \: 1024 bits\n"
 
 X509 CSR Information RSA-PSS with SHA256
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_SHA256_C
-mbedtls_x509_csr_info:"data_files/server9.req.sha256":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: RSASSA-PSS (SHA256, MGF1-SHA256, 0x5E)\nRSA key size  \: 1024 bits\n"
+mbedtls_x509_csr_info:"data_files/parse_input/server9.req.sha256":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: RSASSA-PSS (SHA256, MGF1-SHA256, 0x5E)\nRSA key size  \: 1024 bits\n"
 
 X509 CSR Information RSA-PSS with SHA384
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_SHA512_C:!MBEDTLS_SHA512_NO_SHA384
-mbedtls_x509_csr_info:"data_files/server9.req.sha384":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: RSASSA-PSS (SHA384, MGF1-SHA384, 0x4E)\nRSA key size  \: 1024 bits\n"
+mbedtls_x509_csr_info:"data_files/parse_input/server9.req.sha384":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: RSASSA-PSS (SHA384, MGF1-SHA384, 0x4E)\nRSA key size  \: 1024 bits\n"
 
 X509 CSR Information RSA-PSS with SHA512
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_SHA512_C
-mbedtls_x509_csr_info:"data_files/server9.req.sha512":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: RSASSA-PSS (SHA512, MGF1-SHA512, 0x3E)\nRSA key size  \: 1024 bits\n"
+mbedtls_x509_csr_info:"data_files/parse_input/server9.req.sha512":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: RSASSA-PSS (SHA512, MGF1-SHA512, 0x3E)\nRSA key size  \: 1024 bits\n"
 
 X509 CSR Information RSA with SHA-256 - Microsoft header
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
-mbedtls_x509_csr_info:"data_files/server1-ms.req.sha256":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with SHA-256\nRSA key size  \: 2048 bits\n"
+mbedtls_x509_csr_info:"data_files/parse_input/server1-ms.req.sha256":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nsigned using  \: RSA with SHA-256\nRSA key size  \: 2048 bits\n"
 
 X509 Verify Information: empty
 x509_verify_info:0:"":""

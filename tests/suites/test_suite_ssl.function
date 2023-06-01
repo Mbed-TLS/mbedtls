@@ -5191,7 +5191,7 @@ void handshake_fragmentation(int mfl,
     options.dtls = 1;
     options.mfl = mfl;
     /* Set cipher to one using CBC so that record splitting can be tested */
-    options.cipher = "TLS-DHE-RSA-WITH-AES-256-CBC-SHA256";
+    options.cipher = "TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA384";
     options.srv_auth_mode = MBEDTLS_SSL_VERIFY_REQUIRED;
     options.srv_log_obj = &srv_pattern;
     options.cli_log_obj = &cli_pattern;

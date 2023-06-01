@@ -288,15 +288,15 @@ mbedtls_x509_crl_info:"data_files/parse_input/crl-ec-sha512.pem":"CRL version   
 
 X509 CRL Malformed Input (trailing spaces at end of file)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_SHA512_C:MBEDTLS_ECDSA_C
-mbedtls_x509_crl_parse:"data_files/crl-malformed-trailing-spaces.pem":MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT
+mbedtls_x509_crl_parse:"data_files/parse_input/crl-malformed-trailing-spaces.pem":MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT
 
 X509 CRL Unsupported critical extension (issuingDistributionPoint)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
-mbedtls_x509_crl_parse:"data_files/crl-idp.pem":MBEDTLS_ERR_X509_INVALID_EXTENSIONS + MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+mbedtls_x509_crl_parse:"data_files/parse_input/crl-idp.pem":MBEDTLS_ERR_X509_INVALID_EXTENSIONS + MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
 X509 CRL Unsupported non-critical extension (issuingDistributionPoint)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
-mbedtls_x509_crl_parse:"data_files/crl-idpnc.pem":0
+mbedtls_x509_crl_parse:"data_files/parse_input/crl-idpnc.pem":0
 
 X509 CSR Information RSA with MD4
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD4_C:MBEDTLS_RSA_C

@@ -955,11 +955,11 @@ int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid,
     const char *str_bound = oid_str + size;
     unsigned int val = 0;
     unsigned int component1, component2;
-    /* Count the number of dots to get a worst-case allocation size. */
-    size_t num_dots = 0;
     size_t encoded_len;
     unsigned char *minimum_mem;
 
+    /* Count the number of dots to get a worst-case allocation size. */
+    size_t num_dots = 0;
     for (size_t i = 0; i < size; i++) {
         if (oid_str[i] == '.') {
             num_dots++;

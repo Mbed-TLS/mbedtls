@@ -825,7 +825,8 @@ int mbedtls_pk_check_pair(const mbedtls_pk_context *pub,
             return MBEDTLS_ERR_PK_TYPE_MISMATCH;
         }
     } else {
-        if (pub->pk_info != prv->pk_info) {
+        if ((prv->pk_info->type != MBEDTLS_PK_OPAQUE) &&
+            (pub->pk_info != prv->pk_info)) {
             return MBEDTLS_ERR_PK_TYPE_MISMATCH;
         }
     }

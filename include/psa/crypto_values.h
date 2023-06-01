@@ -2102,7 +2102,8 @@
  */
 #define PSA_ALG_IS_PBKDF2_HMAC(alg)                                    \
     (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_PBKDF2_HMAC_BASE)
-
+#define PSA_ALG_PBKDF2_HMAC_GET_HASH(pbkdf2_alg)                         \
+    (PSA_ALG_CATEGORY_HASH | ((pbkdf2_alg) & PSA_ALG_HASH_MASK))
 /** The PBKDF2-AES-CMAC-PRF-128 password hashing / key stretching algorithm.
  *
  * PBKDF2 is defined by PKCS#5, republished as RFC 8018 (section 5.2).

@@ -105,5 +105,23 @@ typedef struct psa_tls12_prf_key_derivation_s {
 } psa_tls12_prf_key_derivation_t;
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) ||
         * MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
+typedef enum {
+    PSA_PBKDF2_STATE_INIT,             /* no input provided */
+    PSA_PBKDF2_STATE_INPUT_COST_SET,   /* input cost has been set */
+    PSA_PBKDF2_STATE_SALT_SET,         /* salt has been set */
+    PSA_PBKDF2_STATE_PASSWORD_SET,     /* password has been set */
+    PSA_PBKDF2_STATE_OUTPUT            /* output has been started */
+} psa_pbkdf2_key_derivation_state_t;
+
+typedef struct {
+    psa_pbkdf2_key_derivation_state_t MBEDTLS_PRIVATE(state);
+    uint64_t MBEDTLS_PRIVATE(input_cost);
+    uint8_t *MBEDTLS_PRIVATE(salt);
+    size_t MBEDTLS_PRIVATE(salt_length);
+    uint8_t MBEDTLS_PRIVATE(password)[PSA_HMAC_MAX_HASH_BLOCK_SIZE];
+    size_t MBEDTLS_PRIVATE(password_length);
+} psa_pbkdf2_key_derivation_t;
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC */
 
 #endif /* PSA_CRYPTO_BUILTIN_KEY_DERIVATION_H */

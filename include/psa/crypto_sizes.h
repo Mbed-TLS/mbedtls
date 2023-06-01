@@ -261,6 +261,10 @@
  * curve. */
 #define PSA_TLS12_ECJPAKE_TO_PMS_DATA_SIZE 32
 
+/* The maximum number of iterations for PBKDF2 on this implementation, in bits.
+ * This is a vendor-specific macro. This can be configured if necessary */
+#define PSA_VENDOR_PBKDF2_MAX_ITERATIONS 0xffffffff
+
 /** The maximum size of a block cipher. */
 #define PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE 16
 

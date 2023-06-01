@@ -1669,6 +1669,53 @@ static int pk_opaque_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
 #endif /* !MBEDTLS_PK_CAN_ECDSA_SIGN && !MBEDTLS_RSA_C */
 }
 
+static int pk_opaque_ec_check_pair(mbedtls_pk_context *pub, mbedtls_pk_context *prv,
+                                   int (*f_rng)(void *, unsigned char *, size_t),
+                                   void *p_rng)
+{
+    /* The main difference between this function and eckey_check_pair_psa() is
+     * that in the opaque case the private key is always stored in PSA side no
+     * matter if MBEDTLS_PK_USE_PSA_EC_DATA is enabled or not.
+     * When MBEDTLS_PK_USE_PSA_EC_DATA is enabled, we can simply use the
+     * eckey_check_pair_psa(). */
+    (void) f_rng;
+    (void) p_rng;
+
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    return eckey_check_pair_psa(pub, prv);
+#elif defined(MBEDTLS_ECP_LIGHT)
+    psa_status_t status;
+    uint8_t exp_pub_key[MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN];
+    size_t exp_pub_key_len = 0;
+    uint8_t pub_key[MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN];
+    size_t pub_key_len = 0;
+    int ret;
+
+    status = psa_export_public_key(prv->priv_id, exp_pub_key, sizeof(exp_pub_key),
+                                   &exp_pub_key_len);
+    if (status != PSA_SUCCESS) {
+        ret = psa_pk_status_to_mbedtls(status);
+        return ret;
+    }
+    ret = mbedtls_ecp_point_write_binary(&(mbedtls_pk_ec_ro(*pub)->grp),
+                                         &(mbedtls_pk_ec_ro(*pub)->Q),
+                                         MBEDTLS_ECP_PF_UNCOMPRESSED,
+                                         &pub_key_len, pub_key, sizeof(pub_key));
+    if (ret != 0) {
+        return ret;
+    }
+    if ((exp_pub_key_len != pub_key_len) ||
+        memcmp(exp_pub_key, pub_key, exp_pub_key_len)) {
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+    }
+    return 0;
+#else
+    (void) pub;
+    (void) prv;
+    return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
+}
+
 const mbedtls_pk_info_t mbedtls_pk_ecdsa_opaque_info = {
     MBEDTLS_PK_OPAQUE,
     "Opaque",
@@ -1682,7 +1729,7 @@ const mbedtls_pk_info_t mbedtls_pk_ecdsa_opaque_info = {
 #endif
     NULL, /* decrypt - not relevant */
     NULL, /* encrypt - not relevant */
-    NULL, /* check_pair - could be done later or left NULL */
+    pk_opaque_ec_check_pair,
     NULL, /* alloc - no need to allocate new data dynamically */
     NULL, /* free - as for the alloc, there is no data to free */
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)

@@ -123,7 +123,7 @@ cleanup:
 
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY)
-psa_status_t mbedtls_psa_export_ffdh_public_key(
+psa_status_t mbedtls_psa_ffdh_export_public_key(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
     size_t key_buffer_size,
@@ -232,7 +232,7 @@ psa_status_t mbedtls_psa_ffdh_import_key(
           MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY */
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_FFDH)
-psa_status_t mbedtls_psa_key_agreement_ffdh(
+psa_status_t mbedtls_psa_ffdh_key_agreement(
     const psa_key_attributes_t *attributes,
     const uint8_t *peer_key,
     size_t peer_key_length,

@@ -593,13 +593,13 @@ psa_status_t mbedtls_test_transparent_export_public_key(
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
         (defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR) || \
         defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY))
-        return libtestdriver1_mbedtls_psa_export_ffdh_public_key(
+        return libtestdriver1_mbedtls_psa_ffdh_export_public_key(
             (const libtestdriver1_psa_key_attributes_t *) attributes,
             key_buffer, key_buffer_size,
             data, data_size, data_length);
 #elif defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR) || \
         defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY)
-        return mbedtls_psa_export_ffdh_public_key(
+        return mbedtls_psa_ffdh_export_public_key(
             attributes,
             key_buffer, key_buffer_size,
             data, data_size, data_length);

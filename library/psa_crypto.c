@@ -1461,7 +1461,7 @@ psa_status_t psa_export_public_key_internal(
     } else if (PSA_KEY_TYPE_IS_DH(type)) {
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR) || \
         defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY)
-        return mbedtls_psa_export_ffdh_public_key(attributes,
+        return mbedtls_psa_ffdh_export_public_key(attributes,
                                                   key_buffer,
                                                   key_buffer_size,
                                                   data, data_size,
@@ -6800,7 +6800,7 @@ psa_status_t psa_key_agreement_raw_builtin(const psa_key_attributes_t *attribute
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_FFDH)
         case PSA_ALG_FFDH:
-            return mbedtls_psa_key_agreement_ffdh(attributes,
+            return mbedtls_psa_ffdh_key_agreement(attributes,
                                                   peer_key,
                                                   peer_key_length,
                                                   key_buffer,

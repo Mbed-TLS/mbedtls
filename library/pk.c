@@ -42,13 +42,6 @@
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 #include "mbedtls/psa_util.h"
-#define PSA_PK_TO_MBEDTLS_ERR(status) psa_pk_status_to_mbedtls(status)
-#define PSA_PK_RSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,     \
-                                                                  psa_to_pk_rsa_errors,            \
-                                                                  psa_pk_status_to_mbedtls)
-#define PSA_PK_ECDSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
-                                                                    psa_to_pk_ecdsa_errors,        \
-                                                                    psa_pk_status_to_mbedtls)
 #endif
 
 #include <limits.h>
@@ -84,6 +77,14 @@ void mbedtls_pk_free(mbedtls_pk_context *ctx)
     if ((ctx->pk_info != NULL) && (ctx->pk_info->ctx_free_func != NULL)) {
         ctx->pk_info->ctx_free_func(ctx->pk_ctx);
     }
+
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    /* The ownership of the priv_id key for opaque keys is external of the PK
+     * module. It's the user responsibility to clear it after use. */
+    if ((ctx->pk_info != NULL) && (ctx->pk_info->type != MBEDTLS_PK_OPAQUE)) {
+        psa_destroy_key(ctx->priv_id);
+    }
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
     mbedtls_platform_zeroize(ctx, sizeof(mbedtls_pk_context));
 }
@@ -150,7 +151,7 @@ int mbedtls_pk_setup(mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info)
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
 
-    if ((info->ctx_alloc_func == NULL) ||
+    if ((info->ctx_alloc_func != NULL) &&
         ((ctx->pk_ctx = info->ctx_alloc_func()) == NULL)) {
         return MBEDTLS_ERR_PK_ALLOC_FAILED;
     }
@@ -911,24 +912,35 @@ int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
 #else /* !MBEDTLS_ECP_LIGHT && !MBEDTLS_RSA_C */
 #if defined(MBEDTLS_ECP_LIGHT)
     if (mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECKEY) {
-        mbedtls_ecp_keypair *ec;
-        unsigned char d[MBEDTLS_ECP_MAX_BYTES];
         size_t d_len;
         psa_ecc_family_t curve_id;
         psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
         psa_key_type_t key_type;
         size_t bits;
-        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         psa_status_t status;
 
         /* export the private key material in the format PSA wants */
-        ec = mbedtls_pk_ec_rw(*pk);
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+        unsigned char d[MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH];
+        status = psa_export_key(pk->priv_id, d, sizeof(d), &d_len);
+        if (status != PSA_SUCCESS) {
+            return psa_pk_status_to_mbedtls(status);
+        }
+
+        curve_id = pk->ec_family;
+        bits = pk->ec_bits;
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
+        unsigned char d[MBEDTLS_ECP_MAX_BYTES];
+        mbedtls_ecp_keypair *ec = mbedtls_pk_ec_rw(*pk);
+        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
         d_len = PSA_BITS_TO_BYTES(ec->grp.nbits);
         if ((ret = mbedtls_ecp_write_key(ec, d, d_len)) != 0) {
             return ret;
         }
 
         curve_id = mbedtls_ecc_group_to_psa(ec->grp.id, &bits);
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
         key_type = PSA_KEY_TYPE_ECC_KEY_PAIR(curve_id);
 
         /* prepare the key attributes */

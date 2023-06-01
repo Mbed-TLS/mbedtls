@@ -238,7 +238,7 @@ static int x509_profile_check_key(const mbedtls_x509_crt_profile *profile,
     if (pk_alg == MBEDTLS_PK_ECDSA ||
         pk_alg == MBEDTLS_PK_ECKEY ||
         pk_alg == MBEDTLS_PK_ECKEY_DH) {
-        const mbedtls_ecp_group_id gid = mbedtls_pk_ec_ro(*pk)->grp.id;
+        const mbedtls_ecp_group_id gid = mbedtls_pk_get_group_id(pk);
 
         if (gid == MBEDTLS_ECP_DP_NONE) {
             return -1;

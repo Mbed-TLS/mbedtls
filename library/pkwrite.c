@@ -57,6 +57,26 @@
 #endif
 #include "mbedtls/platform.h"
 
+/* Helper for Montgomery curves */
+#if defined(MBEDTLS_ECP_LIGHT) && defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
+static inline int mbedtls_pk_is_rfc8410(const mbedtls_pk_context *pk)
+{
+    mbedtls_ecp_group_id id = mbedtls_pk_get_group_id(pk);
+
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+    if (id == MBEDTLS_ECP_DP_CURVE25519) {
+        return 1;
+    }
+#endif
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+    if (id == MBEDTLS_ECP_DP_CURVE448) {
+        return 1;
+    }
+#endif
+    return 0;
+}
+#endif /* MBEDTLS_ECP_LIGHT && MBEDTLS_PK_HAVE_RFC8410_CURVES */
+
 #if defined(MBEDTLS_RSA_C)
 /*
  *  RSAPublicKey ::= SEQUENCE {
@@ -165,20 +185,33 @@ static int pk_write_ec_param(unsigned char **p, unsigned char *start,
  * privateKey  OCTET STRING -- always of length ceil(log2(n)/8)
  */
 static int pk_write_ec_private(unsigned char **p, unsigned char *start,
-                               mbedtls_ecp_keypair *ec)
+                               const mbedtls_pk_context *pk)
 {
+    size_t byte_length;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t byte_length = (ec->grp.pbits + 7) / 8;
+
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    unsigned char tmp[MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH];
+    psa_status_t status;
+
+    status = psa_export_key(pk->priv_id, tmp, sizeof(tmp), &byte_length);
+    if (status != PSA_SUCCESS) {
+        ret = PSA_PK_ECDSA_TO_MBEDTLS_ERR(status);
+        goto exit;
+    }
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
     unsigned char tmp[MBEDTLS_ECP_MAX_BYTES];
+    mbedtls_ecp_keypair *ec = mbedtls_pk_ec_rw(*pk);
+    byte_length = (ec->grp.pbits + 7) / 8;
 
     ret = mbedtls_ecp_write_key(ec, tmp, byte_length);
     if (ret != 0) {
         goto exit;
     }
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
     ret = mbedtls_asn1_write_octet_string(p, start, tmp, byte_length);
-
 exit:
-    mbedtls_platform_zeroize(tmp, byte_length);
+    mbedtls_platform_zeroize(tmp, sizeof(tmp));
     return ret;
 }
 #endif /* MBEDTLS_ECP_LIGHT */
@@ -260,7 +293,11 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
     pk_type = mbedtls_pk_get_type(key);
 #if defined(MBEDTLS_ECP_LIGHT)
     if (pk_type == MBEDTLS_PK_ECKEY) {
+#if defined(MBEDTLS_ECP_C)
         ec_grp_id = mbedtls_pk_ec_ro(*key)->grp.id;
+#else /* MBEDTLS_ECP_C */
+        ec_grp_id = mbedtls_ecc_group_of_psa(key->ec_family, key->ec_bits, 0);
+#endif /* MBEDTLS_ECP_C */
     }
 #endif /* MBEDTLS_ECP_LIGHT */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -352,20 +389,22 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
  * CurvePrivateKey ::= OCTET STRING
  */
 static int pk_write_ec_rfc8410_der(unsigned char **p, unsigned char *buf,
-                                   mbedtls_ecp_keypair *ec)
+                                   const mbedtls_pk_context *pk)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len = 0;
     size_t oid_len = 0;
     const char *oid;
+    mbedtls_ecp_group_id grp_id;
 
     /* privateKey */
-    MBEDTLS_ASN1_CHK_ADD(len, pk_write_ec_private(p, buf, ec));
+    MBEDTLS_ASN1_CHK_ADD(len, pk_write_ec_private(p, buf, pk));
     MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(p, buf, len));
     MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_tag(p, buf, MBEDTLS_ASN1_OCTET_STRING));
 
+    grp_id = mbedtls_pk_get_group_id(pk);
     /* privateKeyAlgorithm */
-    if ((ret = mbedtls_oid_get_oid_by_ec_grp_algid(ec->grp.id, &oid, &oid_len)) != 0) {
+    if ((ret = mbedtls_oid_get_oid_by_ec_grp_algid(grp_id, &oid, &oid_len)) != 0) {
         return ret;
     }
     MBEDTLS_ASN1_CHK_ADD(len,
@@ -388,6 +427,9 @@ int mbedtls_pk_write_key_der(const mbedtls_pk_context *key, unsigned char *buf, 
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *c;
     size_t len = 0;
+#if defined(MBEDTLS_ECP_LIGHT)
+    mbedtls_ecp_group_id grp_id;
+#endif
 
     if (size == 0) {
         return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
@@ -483,12 +525,11 @@ end_of_export:
 #endif /* MBEDTLS_RSA_C */
 #if defined(MBEDTLS_ECP_LIGHT)
     if (mbedtls_pk_get_type(key) == MBEDTLS_PK_ECKEY) {
-        mbedtls_ecp_keypair *ec = mbedtls_pk_ec_rw(*key);
         size_t pub_len = 0, par_len = 0;
 
 #if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
-        if (mbedtls_pk_is_rfc8410_curve(ec->grp.id)) {
-            return pk_write_ec_rfc8410_der(&c, buf, ec);
+        if (mbedtls_pk_is_rfc8410(key)) {
+            return pk_write_ec_rfc8410_der(&c, buf, key);
         }
 #endif
 
@@ -522,7 +563,8 @@ end_of_export:
         len += pub_len;
 
         /* parameters */
-        MBEDTLS_ASN1_CHK_ADD(par_len, pk_write_ec_param(&c, buf, ec->grp.id));
+        grp_id = mbedtls_pk_get_group_id(key);
+        MBEDTLS_ASN1_CHK_ADD(par_len, pk_write_ec_param(&c, buf, grp_id));
 
         MBEDTLS_ASN1_CHK_ADD(par_len, mbedtls_asn1_write_len(&c, buf, par_len));
         MBEDTLS_ASN1_CHK_ADD(par_len, mbedtls_asn1_write_tag(&c, buf,
@@ -531,7 +573,7 @@ end_of_export:
         len += par_len;
 
         /* privateKey */
-        MBEDTLS_ASN1_CHK_ADD(len, pk_write_ec_private(&c, buf, ec));
+        MBEDTLS_ASN1_CHK_ADD(len, pk_write_ec_private(&c, buf, key));
 
         /* version */
         MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_int(&c, buf, 1));
@@ -605,7 +647,7 @@ int mbedtls_pk_write_key_pem(const mbedtls_pk_context *key, unsigned char *buf, 
 #if defined(MBEDTLS_ECP_LIGHT)
     if (mbedtls_pk_get_type(key) == MBEDTLS_PK_ECKEY) {
 #if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
-        if (mbedtls_pk_is_rfc8410_curve(mbedtls_pk_ec_ro(*key)->grp.id)) {
+        if (mbedtls_pk_is_rfc8410(key)) {
             begin = PEM_BEGIN_PRIVATE_KEY_PKCS8;
             end = PEM_END_PRIVATE_KEY_PKCS8;
         } else

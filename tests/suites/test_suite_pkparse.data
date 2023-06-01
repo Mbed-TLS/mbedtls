@@ -1197,7 +1197,7 @@ depends_on:MBEDTLS_ECP_LIGHT
 pk_parse_key:"30070201010400a000":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 
 Key ASN1 (OneAsymmetricKey X25519, doesn't match masking requirements, from RFC8410 Appendix A but made into version 0)
-depends_on:MBEDTLS_ECP_LIGHT
+depends_on:MBEDTLS_ECP_C
 pk_parse_key:"302e020100300506032b656e04220420f8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff3f":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 
 Key ASN1 (OneAsymmetricKey X25519, with invalid optional AlgorithIdentifier parameters)

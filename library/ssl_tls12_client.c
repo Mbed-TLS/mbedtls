@@ -1986,7 +1986,6 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    const mbedtls_ecp_keypair *peer_key;
     mbedtls_pk_context *peer_pk;
 
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
@@ -2007,21 +2006,24 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
         return MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH;
     }
 
-    peer_key = mbedtls_pk_ec_ro(*peer_pk);
+#if defined(MBEDTLS_ECP_C)
+    const mbedtls_ecp_keypair *peer_key = mbedtls_pk_ec_ro(*peer_pk);
+#endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     uint16_t tls_id = 0;
     psa_ecc_family_t ecc_family;
+    mbedtls_ecp_group_id grp_id = mbedtls_pk_get_group_id(peer_pk);
 
-    if (mbedtls_ssl_check_curve(ssl, peer_key->grp.id) != 0) {
+    if (mbedtls_ssl_check_curve(ssl, grp_id) != 0) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("bad server certificate (ECDH curve)"));
         return MBEDTLS_ERR_SSL_BAD_CERTIFICATE;
     }
 
-    tls_id = mbedtls_ssl_get_tls_id_from_ecp_group_id(peer_key->grp.id);
+    tls_id = mbedtls_ssl_get_tls_id_from_ecp_group_id(grp_id);
     if (tls_id == 0) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("ECC group %u not suported",
-                                  peer_key->grp.id));
+                                  grp_id));
         return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
     }
 
@@ -2037,7 +2039,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
     memcpy(ssl->handshake->ecdh_psa_peerkey, peer_pk->pub_raw, peer_pk->pub_raw_len);
     ssl->handshake->ecdh_psa_peerkey_len = peer_pk->pub_raw_len;
     ret = 0;
-#else
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
     size_t olen = 0;
     ret = mbedtls_ecp_point_write_binary(&peer_key->grp, &peer_key->Q,
                                          MBEDTLS_ECP_PF_UNCOMPRESSED, &olen,
@@ -2049,8 +2051,8 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
         return ret;
     }
     ssl->handshake->ecdh_psa_peerkey_len = olen;
-#endif /* MBEDTLS_ECP_C */
-#else
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
+#else /* MBEDTLS_USE_PSA_CRYPTO */
     if ((ret = mbedtls_ecdh_get_params(&ssl->handshake->ecdh_ctx, peer_key,
                                        MBEDTLS_ECDH_THEIRS)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, ("mbedtls_ecdh_get_params"), ret);
@@ -2061,7 +2063,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
         MBEDTLS_SSL_DEBUG_MSG(1, ("bad server certificate (ECDH curve)"));
         return MBEDTLS_ERR_SSL_BAD_CERTIFICATE;
     }
-#endif
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     /* We don't need the peer's public key anymore. Free it,
      * so that more RAM is available for upcoming expensive

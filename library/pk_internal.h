@@ -33,6 +33,17 @@
 #include "psa/crypto.h"
 #endif
 
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+#include "mbedtls/psa_util.h"
+#define PSA_PK_TO_MBEDTLS_ERR(status) psa_pk_status_to_mbedtls(status)
+#define PSA_PK_RSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,     \
+                                                                  psa_to_pk_rsa_errors,            \
+                                                                  psa_pk_status_to_mbedtls)
+#define PSA_PK_ECDSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
+                                                                    psa_to_pk_ecdsa_errors,        \
+                                                                    psa_pk_status_to_mbedtls)
+#endif
+
 #if defined(MBEDTLS_ECP_LIGHT)
 /**
  * Public function mbedtls_pk_ec() can be used to get direct access to the
@@ -70,24 +81,20 @@ static inline mbedtls_ecp_keypair *mbedtls_pk_ec_rw(const mbedtls_pk_context pk)
     }
 }
 
-/* Helpers for Montgomery curves */
+static inline mbedtls_ecp_group_id mbedtls_pk_get_group_id(const mbedtls_pk_context *pk)
+{
+    mbedtls_ecp_group_id id;
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    id = mbedtls_ecc_group_of_psa(pk->ec_family, pk->ec_bits, 0);
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
+    id = mbedtls_pk_ec_ro(*pk)->grp.id;
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
+    return id;
+}
+
+/* Helper for Montgomery curves */
 #if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) || defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
 #define MBEDTLS_PK_HAVE_RFC8410_CURVES
-
-static inline int mbedtls_pk_is_rfc8410_curve(mbedtls_ecp_group_id id)
-{
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
-    if (id == MBEDTLS_ECP_DP_CURVE25519) {
-        return 1;
-    }
-#endif
-#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
-    if (id == MBEDTLS_ECP_DP_CURVE448) {
-        return 1;
-    }
-#endif
-    return 0;
-}
 #endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED || MBEDTLS_ECP_DP_CURVE448_ENABLED */
 #endif /* MBEDTLS_ECP_LIGHT */
 

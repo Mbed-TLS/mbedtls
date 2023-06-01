@@ -43,13 +43,6 @@
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 #include "mbedtls/psa_util.h"
-#define PSA_PK_TO_MBEDTLS_ERR(status) psa_pk_status_to_mbedtls(status)
-#define PSA_PK_RSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,     \
-                                                                  psa_to_pk_rsa_errors,            \
-                                                                  psa_pk_status_to_mbedtls)
-#define PSA_PK_ECDSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
-                                                                    psa_to_pk_ecdsa_errors,        \
-                                                                    psa_pk_status_to_mbedtls)
 #endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -932,12 +925,9 @@ static int ecdsa_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
                            unsigned char *sig, size_t sig_size, size_t *sig_len,
                            int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
 {
-    mbedtls_ecp_keypair *ctx = pk->pk_ctx;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
     psa_status_t status;
-    unsigned char buf[MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH];
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
     psa_algorithm_t psa_sig_md =
         PSA_ALG_DETERMINISTIC_ECDSA(mbedtls_hash_info_psa_from_md(md_alg));
@@ -945,10 +935,17 @@ static int ecdsa_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
     psa_algorithm_t psa_sig_md =
         PSA_ALG_ECDSA(mbedtls_hash_info_psa_from_md(md_alg));
 #endif
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    psa_ecc_family_t curve = pk->ec_family;
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
+    mbedtls_ecp_keypair *ctx = pk->pk_ctx;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    unsigned char buf[MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH];
     size_t curve_bits;
     psa_ecc_family_t curve =
         mbedtls_ecc_group_to_psa(ctx->grp.id, &curve_bits);
     size_t key_len = PSA_BITS_TO_BYTES(curve_bits);
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
     /* PSA has its own RNG */
     ((void) f_rng);
@@ -958,6 +955,12 @@ static int ecdsa_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
 
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    if (MBEDTLS_SVC_KEY_ID_GET_KEY_ID(pk->priv_id) == PSA_KEY_ID_NULL) {
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+    }
+    key_id = pk->priv_id;
+#else
     if (key_len > sizeof(buf)) {
         return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     }
@@ -977,6 +980,7 @@ static int ecdsa_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
         ret = PSA_PK_TO_MBEDTLS_ERR(status);
         goto cleanup;
     }
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
     status = psa_sign_hash(key_id, psa_sig_md, hash, hash_len,
                            sig, sig_size, sig_len);
@@ -988,8 +992,11 @@ static int ecdsa_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
     ret = pk_ecdsa_sig_asn1_from_psa(sig, sig_len, sig_size);
 
 cleanup:
+
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     mbedtls_platform_zeroize(buf, sizeof(buf));
     status = psa_destroy_key(key_id);
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
     if (ret == 0 && status != PSA_SUCCESS) {
         ret = PSA_PK_TO_MBEDTLS_ERR(status);
     }
@@ -1129,25 +1136,32 @@ cleanup:
  */
 static int eckey_check_pair_psa(mbedtls_pk_context *pub, mbedtls_pk_context *prv)
 {
-    psa_status_t status, destruction_status;
-    psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
+    psa_status_t status;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    /* We are using MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH for the size of this
-     * buffer because it will be used to hold the private key at first and
-     * then its public part (but not at the same time). */
     uint8_t prv_key_buf[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
     size_t prv_key_len;
-    mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    const psa_ecc_family_t curve = prv->ec_family;
-    const size_t curve_bits = prv->ec_bits;
+    mbedtls_svc_key_id_t key_id = prv->priv_id;
+
+    status = psa_export_public_key(key_id, prv_key_buf, sizeof(prv_key_buf),
+                                   &prv_key_len);
+    ret = PSA_PK_TO_MBEDTLS_ERR(status);
+    if (ret != 0) {
+        return ret;
+    }
+
+    if (memcmp(prv_key_buf, pub->pub_raw, pub->pub_raw_len) != 0) {
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+    }
 #else /* !MBEDTLS_PK_USE_PSA_EC_DATA */
+    psa_status_t destruction_status;
+    mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
     uint8_t pub_key_buf[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
     size_t pub_key_len;
     size_t curve_bits;
     const psa_ecc_family_t curve =
         mbedtls_ecc_group_to_psa(mbedtls_pk_ec_ro(*prv)->grp.id, &curve_bits);
-#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
     const size_t curve_bytes = PSA_BITS_TO_BYTES(curve_bits);
 
     if (curve == 0) {
@@ -1181,11 +1195,6 @@ static int eckey_check_pair_psa(mbedtls_pk_context *pub, mbedtls_pk_context *prv
         return PSA_PK_TO_MBEDTLS_ERR(destruction_status);
     }
 
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    if (memcmp(prv_key_buf, pub->pub_raw, pub->pub_raw_len) != 0) {
-        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
-    }
-#else
     ret = mbedtls_ecp_point_write_binary(&mbedtls_pk_ec_rw(*pub)->grp,
                                          &mbedtls_pk_ec_rw(*pub)->Q,
                                          MBEDTLS_ECP_PF_UNCOMPRESSED,
@@ -1221,6 +1230,7 @@ static int eckey_check_pair(mbedtls_pk_context *pub, mbedtls_pk_context *prv,
 #endif
 }
 
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 static void *eckey_alloc_wrap(void)
 {
     void *ctx = mbedtls_calloc(1, sizeof(mbedtls_ecp_keypair));
@@ -1237,6 +1247,7 @@ static void eckey_free_wrap(void *ctx)
     mbedtls_ecp_keypair_free((mbedtls_ecp_keypair *) ctx);
     mbedtls_free(ctx);
 }
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
 static void eckey_debug(mbedtls_pk_context *pk, mbedtls_pk_debug_item *items)
 {
@@ -1274,8 +1285,13 @@ const mbedtls_pk_info_t mbedtls_eckey_info = {
     NULL,
     NULL,
     eckey_check_pair,
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    NULL,
+    NULL,
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
     eckey_alloc_wrap,
     eckey_free_wrap,
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     eckey_rs_alloc,
     eckey_rs_free,
@@ -1306,8 +1322,13 @@ const mbedtls_pk_info_t mbedtls_eckeydh_info = {
     NULL,
     NULL,
     eckey_check_pair,
-    eckey_alloc_wrap,       /* Same underlying key structure */
-    eckey_free_wrap,        /* Same underlying key structure */
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    NULL,
+    NULL,
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
+    eckey_alloc_wrap,   /* Same underlying key structure */
+    eckey_free_wrap,    /* Same underlying key structure */
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     NULL,
     NULL,
@@ -1396,8 +1417,13 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
     NULL,
     NULL,
     eckey_check_pair,   /* Compatible key structures */
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    NULL,
+    NULL,
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
     eckey_alloc_wrap,   /* Compatible key structures */
     eckey_free_wrap,   /* Compatible key structures */
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     ecdsa_rs_alloc,
     ecdsa_rs_free,

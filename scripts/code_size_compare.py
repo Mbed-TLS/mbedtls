@@ -77,7 +77,7 @@ class CodeSizeInfo: # pylint: disable=too-few-public-methods
         "-a " + SupportedArch.ARMV8_M.value + " -c " + SupportedConfig.TFM_MEDIUM.value,
     ]
 
-    def __init__(self, arch: str, config: str) -> None:
+    def __init__(self, arch: str, config: str, sys_arch: str) -> None:
         """
         arch: architecture to measure code size on.
         config: configuration type to measure code size with.
@@ -85,12 +85,14 @@ class CodeSizeInfo: # pylint: disable=too-few-public-methods
         """
         self.arch = arch
         self.config = config
+        self.sys_arch = sys_arch
         self.make_command = self.set_make_command()
 
     def set_make_command(self) -> str:
         """Infer build command based on architecture and configuration."""
 
-        if self.config == SupportedConfig.DEFAULT.value:
+        if self.config == SupportedConfig.DEFAULT.value and \
+            self.arch == self.sys_arch:
             return 'make -j lib CFLAGS=\'-Os \' '
         elif self.arch == SupportedArch.ARMV8_M.value and \
              self.config == SupportedConfig.TFM_MEDIUM.value:
@@ -100,10 +102,15 @@ class CodeSizeInfo: # pylint: disable=too-few-public-methods
                  -DMBEDTLS_CONFIG_FILE=\\\"' + CONFIG_TFM_MEDIUM_MBEDCRYPTO_H + '\\\" \
                  -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE=\\\"' + CONFIG_TFM_MEDIUM_PSA_CRYPTO_H + '\\\" \''
         else:
-            print("Unsupported architecture: {} and configurations: {}"
+            print("Unsupported combination of architecture: {} and configuration: {}"
                   .format(self.arch, self.config))
             print("\nPlease use supported combination of architecture and configuration:")
             for comb in CodeSizeInfo.SupportedArchConfig:
+                print(comb)
+            print("\nFor your system, please use:")
+            for comb in CodeSizeInfo.SupportedArchConfig:
+                if "default" in comb and self.sys_arch not in comb:
+                    continue
                 print(comb)
             sys.exit(1)
 
@@ -320,7 +327,8 @@ def main():
     else:
         new_revision = "current"
 
-    code_size_info = CodeSizeInfo(comp_args.arch, comp_args.config)
+    code_size_info = CodeSizeInfo(comp_args.arch, comp_args.config,
+                                  detect_arch())
     print("Measure code size for architecture: {}, configuration: {}"
           .format(code_size_info.arch, code_size_info.config))
     result_dir = comp_args.result_dir

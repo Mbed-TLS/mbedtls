@@ -960,7 +960,7 @@ int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid,
     size_t encoded_len;
     unsigned char *minimum_mem;
 
-    for (size_t i = 0; (i < size) && (oid_str[i] != '\0'); i++) {
+    for (size_t i = 0; i < size; i++) {
         if (oid_str[i] == '.') {
             num_dots++;
         }
@@ -1003,7 +1003,7 @@ int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid,
         ret = MBEDTLS_ERR_ASN1_INVALID_DATA;
         goto error;
     }
-    if (str_ptr < str_bound && *str_ptr != '\0') {
+    if (str_ptr < str_bound) {
         if (*str_ptr == '.') {
             str_ptr++;
         } else {
@@ -1022,12 +1022,12 @@ int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid,
         goto error;
     }
 
-    while (str_ptr < str_bound && *str_ptr != '\0') {
+    while (str_ptr < str_bound) {
         ret = oid_parse_number(&val, &str_ptr, str_bound);
         if (ret != 0) {
             goto error;
         }
-        if (str_ptr < str_bound && *str_ptr != '\0') {
+        if (str_ptr < str_bound) {
             if (*str_ptr == '.') {
                 str_ptr++;
             } else {

@@ -479,8 +479,9 @@ int mbedtls_oid_get_numeric_string(char *buf, size_t size, const mbedtls_asn1_bu
  *                  heap. It must be freed by the caller using mbedtls_free().
  *
  * \param oid       #mbedtls_asn1_buf to populate with the DER-encoded OID
- * \param oid_str   string representation of the OID to parse
- * \param size      length of the OID string
+ * \param oid_str   string representation of the OID to parse, not
+ *                  NUL-terminated
+ * \param size      length of the OID string, not including any NUL terminator
  *
  * \return          0 if successful
  * \return          #MBEDTLS_ERR_ASN1_INVALID_DATA if \p oid_str does not

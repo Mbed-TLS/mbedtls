@@ -478,12 +478,12 @@ int mbedtls_oid_get_numeric_string(char *buf, size_t size, const mbedtls_asn1_bu
  *                  On success, this function allocates oid->buf from the
  *                  heap. It must be freed by the caller using mbedtls_free().
  *
- * \param oid       mbedtls_asn1_buf to populate with the DER-encoded OID
+ * \param oid       #mbedtls_asn1_buf to populate with the DER-encoded OID
  * \param oid_str   string representation of the OID to parse
  * \param size      length of the OID string
  *
  * \return          0 if successful
- * \return          #MBEDTLS_ERR_ASN1_INVALID_DATA if oid_str does not
+ * \return          #MBEDTLS_ERR_ASN1_INVALID_DATA if \p oid_str does not
  *                  represent a valid OID
  * \return          #MBEDTLS_ERR_ASN1_ALLOC_FAILED if the function fails to
  *                  allocate oid->buf

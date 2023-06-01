@@ -956,7 +956,7 @@ int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid,
     unsigned int val = 0;
     unsigned int component1, component2;
     size_t encoded_len;
-    unsigned char *minimum_mem;
+    unsigned char *resized_mem;
 
     /* Count the number of dots to get a worst-case allocation size. */
     size_t num_dots = 0;
@@ -1043,14 +1043,14 @@ int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid,
     }
 
     encoded_len = out_ptr - oid->p;
-    minimum_mem = mbedtls_calloc(encoded_len, 1);
-    if (minimum_mem == NULL) {
+    resized_mem = mbedtls_calloc(encoded_len, 1);
+    if (resized_mem == NULL) {
         ret = MBEDTLS_ERR_ASN1_ALLOC_FAILED;
         goto error;
     }
-    memcpy(minimum_mem, oid->p, encoded_len);
+    memcpy(resized_mem, oid->p, encoded_len);
     mbedtls_free(oid->p);
-    oid->p = minimum_mem;
+    oid->p = resized_mem;
     oid->len = encoded_len;
 
     oid->tag = MBEDTLS_ASN1_OID;

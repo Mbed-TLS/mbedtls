@@ -3894,7 +3894,7 @@ component_build_armcc () {
 
     make clean
 
-    # Compile with -O1 since some Arm inline assembly is disabled for -O0.
+    # Compile mostly with -O1 since some Arm inline assembly is disabled for -O0.
 
     # ARM Compiler 6 - Target ARMv7-A
     armc6_build_test "-O1 --target=arm-arm-none-eabi -march=armv7-a"
@@ -3913,6 +3913,9 @@ component_build_armcc () {
 
     # ARM Compiler 6 - Target ARMv8.2-A - AArch64
     armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8.2-a+crypto"
+
+    # ARM Compiler 6 - Target Cortex-M0 - no optimisation
+    armc6_build_test "-O0 --target=arm-arm-none-eabi -mcpu=cortex-m0"
 
     # ARM Compiler 6 - Target Cortex-M0
     armc6_build_test "-Os --target=arm-arm-none-eabi -mcpu=cortex-m0"

@@ -1168,7 +1168,8 @@ void ssl_crypt_record(int cipher_type, int hash_id,
      */
 
     int ret;
-    int num_records = 16;
+    int num_good_records = 16;
+    int num_records = 2 * num_good_records;
     mbedtls_ssl_context ssl; /* ONLY for debugging */
 
     mbedtls_ssl_transform t0, t1;
@@ -1189,6 +1190,10 @@ void ssl_crypt_record(int cipher_type, int hash_id,
     TEST_ASSERT((buf = mbedtls_calloc(1, buflen)) != NULL);
 
     while (num_records-- > 0) {
+        /* Use the variable as the test step number. Note that this
+         * means step numbers go backwards. */
+        mbedtls_test_set_step(num_records);
+
         mbedtls_ssl_transform *t_dec, *t_enc;
         /* Take turns in who's sending and who's receiving. */
         if (num_records % 3 == 0) {
@@ -1198,6 +1203,9 @@ void ssl_crypt_record(int cipher_type, int hash_id,
             t_dec = &t1;
             t_enc = &t0;
         }
+
+        /* Good case for the first half, bad case for the second half */
+        int corrupt_ciphertext = (num_records < num_good_records);
 
         /*
          * The record header affects the transformation in two ways:
@@ -1257,20 +1265,30 @@ void ssl_crypt_record(int cipher_type, int hash_id,
         }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
+        /* Maybe corrupt the encrypted record */
+        if (corrupt_ciphertext) {
+            /* Flip a bit in the first byte */
+            rec.buf[rec.data_offset] ^= 1;
+        }
+
         /* Decrypt record with t_dec */
         ret = mbedtls_ssl_decrypt_buf(&ssl, t_dec, &rec);
-        TEST_ASSERT(ret == 0);
 
-        /* Compare results */
-        TEST_ASSERT(rec.type == rec_backup.type);
-        TEST_ASSERT(memcmp(rec.ctr, rec_backup.ctr, 8) == 0);
-        TEST_ASSERT(rec.ver[0] == rec_backup.ver[0]);
-        TEST_ASSERT(rec.ver[1] == rec_backup.ver[1]);
-        TEST_ASSERT(rec.data_len == rec_backup.data_len);
-        TEST_ASSERT(rec.data_offset == rec_backup.data_offset);
-        TEST_ASSERT(memcmp(rec.buf + rec.data_offset,
-                           rec_backup.buf + rec_backup.data_offset,
-                           rec.data_len) == 0);
+        if (corrupt_ciphertext) {
+            TEST_EQUAL(ret, MBEDTLS_ERR_SSL_INVALID_MAC);
+        } else {
+            TEST_ASSERT(ret == 0);
+            /* Compare results */
+            TEST_ASSERT(rec.type == rec_backup.type);
+            TEST_ASSERT(memcmp(rec.ctr, rec_backup.ctr, 8) == 0);
+            TEST_ASSERT(rec.ver[0] == rec_backup.ver[0]);
+            TEST_ASSERT(rec.ver[1] == rec_backup.ver[1]);
+            TEST_ASSERT(rec.data_len == rec_backup.data_len);
+            TEST_ASSERT(rec.data_offset == rec_backup.data_offset);
+            TEST_ASSERT(memcmp(rec.buf + rec.data_offset,
+                               rec_backup.buf + rec_backup.data_offset,
+                               rec.data_len) == 0);
+        }
     }
 
 exit:

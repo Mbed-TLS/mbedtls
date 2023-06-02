@@ -186,19 +186,23 @@ int mbedtls_x509write_crt_set_subject_alternative_name(mbedtls_x509write_cert *c
                  * maximum 4 bytes for the length field,
                  * 1 byte for the tag/type.
                  */
-                CHECK_OVERFLOW_ADD(buflen, cur->node.san.unstructured_name.len + 4 + 1);
+                CHECK_OVERFLOW_ADD(buflen, cur->node.san.unstructured_name.len);
+                CHECK_OVERFLOW_ADD(buflen, 4 + 1);
                 break;
             case MBEDTLS_X509_SAN_DIRECTORY_NAME:
             {
                 const mbedtls_asn1_named_data *chunk = &cur->node.san.directory_name;
                 while (chunk != NULL) {
-                    // 5 bytes for OID, max 4 bytes for length, +1 for tag,
+                    // Max 4 bytes for length, +1 for tag,
                     // additional 4 max for length, +1 for tag.
                     // See x509_write_name for more information.
-                    CHECK_OVERFLOW_ADD(buflen, chunk->val.len + 5 + 4 + 1 + 4 + 1);
+                    CHECK_OVERFLOW_ADD(buflen, 4 + 1 + 4 + 1);
+                    CHECK_OVERFLOW_ADD(buflen, chunk->oid.len);
+                    CHECK_OVERFLOW_ADD(buflen, chunk->val.len);
                     chunk = chunk->next;
                 }
-                CHECK_OVERFLOW_ADD(buflen, cur->node.san.unstructured_name.len + 4 + 1);
+                CHECK_OVERFLOW_ADD(buflen, cur->node.san.unstructured_name.len);
+                CHECK_OVERFLOW_ADD(buflen, 4 + 1);
                 break;
             }
             default:

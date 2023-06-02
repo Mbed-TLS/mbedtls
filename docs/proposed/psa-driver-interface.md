@@ -510,7 +510,6 @@ psa_status_t acme_derive_key(
 
 * `attributes` contains the attributes of the specified key. Note that only the key type and the bit-size are guaranteed to be set.
 * `input` is a buffer of `input_length` bytes which contains the raw key stream, i.e. the data that `psa_key_derivation_output_bytes()` would return.
-  TODO: how does the core choose `input_length`? Doesn't the driver know better? Should there be a driver entry point to determine the length, or should there be a callback that allows the driver to retrieve the input? (Note that for some algorithms, it's impossible to predict the amount of input in advance, because it depends on some complex calculation or even on random data, e.g. if doing a randomized pseudo-primality test.)
 * If `"memory"` property in the driver capability is true, `memory` is a data structure that the driver may use to store data between successive calls of the `"derive_key"` entry point to derive the same key. If the `"memory"` property is false or absent, the `memory` parameter is a null pointer.
 * `key_buffer` is a buffer for the output material, in the appropriate [export format](#key-format-for-transparent-drivers) for the key type. Its size is `key_buffer_size` bytes.
 * On success, `*key_buffer_length` must contain the number of bytes written to `key_buffer`.
@@ -530,6 +529,8 @@ For standard key types, the `"derive_key"` entry point is called with a certain 
 * `PSA_KEY_TYPE_ECC_KEY_PAIR(…)`, `PSA_KEY_TYPE_DH_KEY_PAIR(…)`: $m$ bytes, where the bit-size of the key $n$ satisfies $8 (m-1) < n \le 8 m$.
 * `PSA_KEY_TYPE_RSA_KEY_PAIR`: an implementation-defined length. A future version of this specification may specify a length.
 * Other key types: not applicable.
+
+See [“Open questions around cooked key derivation”](#open-questions-around-cooked-key-derivation) for some points that may not be fully settled.
 
 #### Key agreement
 
@@ -1232,6 +1233,10 @@ The driver is allowed to update the state at any time. Is this ok?
 An example use case for updating the persistent state at arbitrary times is to renew a key that is used to encrypt communications between the application processor and the secure element.
 
 `psa_crypto_driver_get_persistent_state` does not identify the calling driver, so the driver needs to remember which driver it's calling. This may require a thread-local variable in a multithreaded core. Is this ok?
+
+#### Open questions around cooked key derivation
+
+For the `"derive_key"` entry point, how does the core choose `input_length`? Doesn't the driver know better? Should there be a driver entry point to determine the length, or should there be a callback that allows the driver to retrieve the input? Note that for some key types, it's impossible to predict the amount of input in advance, because it depends on some complex calculation or even on random data, e.g. if doing a randomized pseudo-primality test. However, for all key types except RSA, the specification mandates how the key is derived, which practically dictates how the pseudorandom key stream is consumed. So it's probably ok.
 
 #### Fallback for key derivation in opaque drivers
 

@@ -3200,6 +3200,9 @@ component_build_armcc () {
     # ARM Compiler 6 - Target ARMv8-A - AArch64
     armc6_build_test "--target=aarch64-arm-none-eabi -march=armv8.2-a"
 
+    # ARM Compiler 6 - Target Cortex-M0 - no optimisation
+    armc6_build_test "-O0 --target=arm-arm-none-eabi -mcpu=cortex-m0"
+
     # ARM Compiler 6 - Target Cortex-M0
     armc6_build_test "-Os --target=arm-arm-none-eabi -mcpu=cortex-m0"
 }

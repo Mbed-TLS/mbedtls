@@ -284,7 +284,7 @@ int mbedtls_ecp_mod_p255_raw(mbedtls_mpi_uint *X, size_t X_limbs);
  *                  failed.
  */
 MBEDTLS_STATIC_TESTABLE
-int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs);
+int mbedtls_ecp_mod_p448_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 
 #endif /* MBEDTLS_ECP_DP_CURVE448_ENABLED */
 

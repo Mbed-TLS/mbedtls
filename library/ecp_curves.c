@@ -4613,7 +4613,7 @@ int mbedtls_ecp_mod_p255_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 #if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
 static int ecp_mod_p448(mbedtls_mpi *);
 MBEDTLS_STATIC_TESTABLE
-int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *, size_t);
+int mbedtls_ecp_mod_p448_raw(mbedtls_mpi_uint *, size_t);
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
 static int ecp_mod_p192k1(mbedtls_mpi *);
@@ -5499,7 +5499,7 @@ static int ecp_mod_p448(mbedtls_mpi *N)
      * will no longer happen. */
     MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
 
-    ret = mbedtls_ecp_mod_p448(N->p, N->n);
+    ret = mbedtls_ecp_mod_p448_raw(N->p, N->n);
 
 cleanup:
     return ret;
@@ -5517,7 +5517,7 @@ cleanup:
  * since mpi_core_add will then use 64-bit adds.
  */
 MBEDTLS_STATIC_TESTABLE
-int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)
+int mbedtls_ecp_mod_p448_raw(mbedtls_mpi_uint *X, size_t X_limbs)
 {
     size_t round;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;

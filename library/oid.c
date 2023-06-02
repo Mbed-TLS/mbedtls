@@ -1012,7 +1012,7 @@ int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid,
         }
     }
 
-    if ((UINT_MAX - component2) <= (component1 * 40)) {
+    if (component2 > (UINT_MAX - (component1 * 40))) {
         ret = MBEDTLS_ERR_ASN1_INVALID_DATA;
         goto error;
     }

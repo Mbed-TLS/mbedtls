@@ -448,22 +448,22 @@ server5-der0.crt: server5.crt.der
 	cp $< $@
 server5-der1a.crt: server5.crt.der
 	cp $< $@
-	echo '00' | xxd -r -p | dd of=$@ bs=1 seek=$(shell du -b $< | cut -f1) conv=notrunc
+	echo '00' | xxd -r -p | dd of=$@ bs=1 seek=$$(wc -c <$<) conv=notrunc
 server5-der1b.crt: server5.crt.der
 	cp $< $@
-	echo 'c1' | xxd -r -p | dd of=$@ bs=1 seek=$(shell du -b $< | cut -f1) conv=notrunc
+	echo 'c1' | xxd -r -p | dd of=$@ bs=1 seek=$$(wc -c <$<) conv=notrunc
 server5-der2.crt: server5.crt.der
 	cp $< $@
-	echo 'b90a' | xxd -r -p | dd of=$@ bs=1 seek=$(shell du -b $< | cut -f1) conv=notrunc
+	echo 'b90a' | xxd -r -p | dd of=$@ bs=1 seek=$$(wc -c <$<) conv=notrunc
 server5-der4.crt: server5.crt.der
 	cp $< $@
-	echo 'a710945f' | xxd -r -p | dd of=$@ bs=1 seek=$(shell du -b $< | cut -f1) conv=notrunc
+	echo 'a710945f' | xxd -r -p | dd of=$@ bs=1 seek=$$(wc -c <$<) conv=notrunc
 server5-der8.crt: server5.crt.der
 	cp $< $@
-	echo 'a4a7ff27267aaa0f' | xxd -r -p | dd of=$@ bs=1 seek=$(shell du -b $< | cut -f1) conv=notrunc
+	echo 'a4a7ff27267aaa0f' | xxd -r -p | dd of=$@ bs=1 seek=$$(wc -c <$<) conv=notrunc
 server5-der9.crt: server5.crt.der
 	cp $< $@
-	echo 'cff8303376ffa47a29' | xxd -r -p | dd of=$@ bs=1 seek=$(shell du -b $< | cut -f1) conv=notrunc
+	echo 'cff8303376ffa47a29' | xxd -r -p | dd of=$@ bs=1 seek=$$(wc -c <$<) conv=notrunc
 all_final += server5-der0.crt server5-der1b.crt server5-der4.crt \
 			 server5-der9.crt server5-der1a.crt server5-der2.crt \
 			 server5-der8.crt

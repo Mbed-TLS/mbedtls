@@ -1236,6 +1236,8 @@ An example use case for updating the persistent state at arbitrary times is to r
 
 #### Open questions around cooked key derivation
 
+`"derive_key"` is not a clear name. Can we use a better one?
+
 For the `"derive_key"` entry point, how does the core choose `input_length`? Doesn't the driver know better? Should there be a driver entry point to determine the length, or should there be a callback that allows the driver to retrieve the input? Note that for some key types, it's impossible to predict the amount of input in advance, because it depends on some complex calculation or even on random data, e.g. if doing a randomized pseudo-primality test. However, for all key types except RSA, the specification mandates how the key is derived, which practically dictates how the pseudorandom key stream is consumed. So it's probably ok.
 
 #### Fallback for key derivation in opaque drivers

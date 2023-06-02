@@ -1174,6 +1174,7 @@ void ssl_crypt_record(int cipher_type, int hash_id,
 
     mbedtls_ssl_transform t0, t1;
     unsigned char *buf = NULL;
+    unsigned char *buf_backup = NULL;
     size_t const buflen = 512;
     mbedtls_record rec, rec_backup;
 
@@ -1187,7 +1188,8 @@ void ssl_crypt_record(int cipher_type, int hash_id,
                                                   (size_t) cid0_len,
                                                   (size_t) cid1_len) == 0);
 
-    TEST_ASSERT((buf = mbedtls_calloc(1, buflen)) != NULL);
+    ASSERT_ALLOC(buf, buflen);
+    ASSERT_ALLOC(buf_backup, buflen);
 
     while (num_records-- > 0) {
         /* Use the variable as the test step number. Note that this
@@ -1238,6 +1240,8 @@ void ssl_crypt_record(int cipher_type, int hash_id,
 
         /* Make a copy for later comparison */
         rec_backup = rec;
+        rec_backup.buf = buf_backup;
+        memcpy(buf_backup, buf, rec.data_offset + rec.data_len);
 
         /* Encrypt record */
         ret = mbedtls_ssl_encrypt_buf(&ssl, t_enc, &rec,
@@ -1283,11 +1287,11 @@ void ssl_crypt_record(int cipher_type, int hash_id,
             TEST_ASSERT(memcmp(rec.ctr, rec_backup.ctr, 8) == 0);
             TEST_ASSERT(rec.ver[0] == rec_backup.ver[0]);
             TEST_ASSERT(rec.ver[1] == rec_backup.ver[1]);
-            TEST_ASSERT(rec.data_len == rec_backup.data_len);
             TEST_ASSERT(rec.data_offset == rec_backup.data_offset);
-            TEST_ASSERT(memcmp(rec.buf + rec.data_offset,
-                               rec_backup.buf + rec_backup.data_offset,
-                               rec.data_len) == 0);
+            ASSERT_COMPARE(rec.buf + rec.data_offset,
+                           rec.data_len,
+                           rec_backup.buf + rec_backup.data_offset,
+                           rec_backup.data_len);
         }
     }
 
@@ -1298,6 +1302,7 @@ exit:
     mbedtls_ssl_transform_free(&t0);
     mbedtls_ssl_transform_free(&t1);
     mbedtls_free(buf);
+    mbedtls_free(buf_backup);
     USE_PSA_DONE();
 }
 /* END_CASE */

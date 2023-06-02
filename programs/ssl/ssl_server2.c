@@ -587,10 +587,6 @@ int main(void)
     USAGE_SERIALIZATION                                                       \
     " acceptable ciphersuite names:\n"
 
-#define ALPN_LIST_SIZE    10
-#define CURVE_LIST_SIZE   25
-#define SIG_ALG_LIST_SIZE 5
-
 #define PUT_UINT64_BE(out_be, in_le, i)                                   \
     {                                                                       \
         (out_be)[(i) + 0] = (unsigned char) (((in_le) >> 56) & 0xFF);    \
@@ -2423,7 +2419,7 @@ usage:
                          curve_cur->grp_id != MBEDTLS_ECP_DP_NONE;
                          curve_cur++) {
                         mbedtls_printf("%s ", curve_cur->name);
-                        uint16_t *supported_ffdh_group = mbedtls_ssl_ffdh_supported_groups();
+                        const uint16_t *supported_ffdh_group = mbedtls_ssl_ffdh_supported_groups();
                         while (*supported_ffdh_group != 0) {
                             mbedtls_printf("%s ",
                                            mbedtls_ssl_ffdh_name_from_group(*supported_ffdh_group));

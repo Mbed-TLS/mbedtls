@@ -3591,7 +3591,7 @@ void ssl_ecjpake_set_password(int use_opaque_arg)
 /* BEGIN_CASE */
 void elliptic_curve_get_properties()
 {
-    psa_ecc_family_t psa_family;
+    psa_key_type_t psa_type = 0;
     size_t psa_bits;
 
     MD_OR_USE_PSA_INIT();

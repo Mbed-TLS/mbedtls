@@ -465,9 +465,9 @@ uint16_t mbedtls_ssl_ffdh_group_from_name(const char *name)
     return 0;
 }
 
-uint16_t *mbedtls_ssl_ffdh_supported_groups(void)
+const uint16_t *mbedtls_ssl_ffdh_supported_groups(void)
 {
-    static uint16_t ffdh_groups[] = {
+    static const uint16_t ffdh_groups[] = {
         MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048,
         MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072,
         MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096,

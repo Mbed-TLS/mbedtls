@@ -80,6 +80,10 @@
 
 #include "../test/query_config.h"
 
+#define ALPN_LIST_SIZE    10
+#define CURVE_LIST_SIZE   25
+#define SIG_ALG_LIST_SIZE  5
+
 typedef struct eap_tls_keys {
     unsigned char master_secret[48];
     unsigned char randbytes[64];
@@ -309,7 +313,7 @@ void test_hooks_free(void);
 
 /* Helper functions for FFDH groups. */
 uint16_t mbedtls_ssl_ffdh_group_from_name(const char *name);
-uint16_t *mbedtls_ssl_ffdh_supported_groups(void);
+const uint16_t *mbedtls_ssl_ffdh_supported_groups(void);
 
 #endif /* MBEDTLS_SSL_TEST_IMPOSSIBLE conditions: else */
 #endif /* MBEDTLS_PROGRAMS_SSL_SSL_TEST_LIB_H */

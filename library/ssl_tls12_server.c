@@ -2594,7 +2594,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
         PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
     psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
     uint16_t tls_id = 0;
-    psa_ecc_family_t ecc_family;
+    psa_key_type_t key_type = 0;
     size_t key_len;
     mbedtls_pk_context *pk;
     mbedtls_ecp_group_id grp_id;
@@ -2649,10 +2649,10 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
 
             /* If the above conversion to TLS ID was fine, then also this one will
                be, so there is no need to check the return value here */
-            mbedtls_ssl_get_psa_curve_info_from_tls_id(tls_id, &ecc_family,
+            mbedtls_ssl_get_psa_curve_info_from_tls_id(tls_id, &key_type,
                                                        &ssl->handshake->ecdh_bits);
 
-            ssl->handshake->ecdh_psa_type = PSA_KEY_TYPE_ECC_KEY_PAIR(ecc_family);
+            ssl->handshake->ecdh_psa_type = key_type;
 
             key_attributes = psa_key_attributes_init();
             psa_set_key_usage_flags(&key_attributes, PSA_KEY_USAGE_DERIVE);
@@ -2961,19 +2961,19 @@ curve_matching_done:
         const size_t header_size = 4; // curve_type(1), namedcurve(2),
                                       // data length(1)
         const size_t data_length_size = 1;
-        psa_ecc_family_t ec_psa_family = 0;
+        psa_key_type_t key_type = 0;
         size_t ec_bits = 0;
 
         MBEDTLS_SSL_DEBUG_MSG(1, ("Perform PSA-based ECDH computation."));
 
         /* Convert EC's TLS ID to PSA key type. */
         if (mbedtls_ssl_get_psa_curve_info_from_tls_id(*curr_tls_id,
-                                                       &ec_psa_family,
+                                                       &key_type,
                                                        &ec_bits) == PSA_ERROR_NOT_SUPPORTED) {
             MBEDTLS_SSL_DEBUG_MSG(1, ("Invalid ecc group parse."));
             return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
         }
-        handshake->ecdh_psa_type = PSA_KEY_TYPE_ECC_KEY_PAIR(ec_psa_family);
+        handshake->ecdh_psa_type = key_type;
         handshake->ecdh_bits = ec_bits;
 
         key_attributes = psa_key_attributes_init();

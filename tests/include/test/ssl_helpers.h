@@ -602,8 +602,8 @@ int mbedtls_test_tweak_tls13_certificate_msg_vector_len(
     TEST_EQUAL(mbedtls_ssl_get_tls_id_from_ecp_group_id(group_id_),      \
                tls_id_);                                                 \
     TEST_EQUAL(mbedtls_ssl_get_psa_curve_info_from_tls_id(tls_id_,       \
-                                                          &psa_family, &psa_bits), PSA_SUCCESS);                \
-    TEST_EQUAL(psa_family_, psa_family);                                 \
+                                                          &psa_type, &psa_bits), PSA_SUCCESS);                \
+    TEST_EQUAL(psa_family_, PSA_KEY_TYPE_ECC_GET_FAMILY(psa_type));    \
     TEST_EQUAL(psa_bits_, psa_bits);
 
 #define TEST_UNAVAILABLE_ECC(tls_id_, group_id_, psa_family_, psa_bits_) \
@@ -612,7 +612,7 @@ int mbedtls_test_tweak_tls13_certificate_msg_vector_len(
     TEST_EQUAL(mbedtls_ssl_get_tls_id_from_ecp_group_id(group_id_),      \
                0);                                                       \
     TEST_EQUAL(mbedtls_ssl_get_psa_curve_info_from_tls_id(tls_id_,       \
-                                                          &psa_family, &psa_bits), \
+                                                          &psa_type, &psa_bits), \
                PSA_ERROR_NOT_SUPPORTED);
 
 #endif /* MBEDTLS_SSL_TLS_C */

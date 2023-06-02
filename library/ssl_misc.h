@@ -1567,7 +1567,7 @@ int mbedtls_ssl_check_curve(const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id
  * \brief Return PSA EC info for the specified TLS ID.
  *
  * \param tls_id    The TLS ID to look for
- * \param family    If the TLD ID is supported, then proper \c psa_ecc_family_t
+ * \param type      If the TLD ID is supported, then proper \c psa_key_type_t
  *                  value is returned here. Can be NULL.
  * \param bits      If the TLD ID is supported, then proper bit size is returned
  *                  here. Can be NULL.
@@ -1580,7 +1580,7 @@ int mbedtls_ssl_check_curve(const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id
  *                  simply to check if a specific TLS ID is supported.
  */
 int mbedtls_ssl_get_psa_curve_info_from_tls_id(uint16_t tls_id,
-                                               psa_ecc_family_t *family,
+                                               psa_key_type_t *type,
                                                size_t *bits);
 
 /**

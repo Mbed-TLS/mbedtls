@@ -5614,13 +5614,13 @@ static const struct {
 };
 
 int mbedtls_ssl_get_psa_curve_info_from_tls_id(uint16_t tls_id,
-                                               psa_ecc_family_t *family,
+                                               psa_key_type_t *type,
                                                size_t *bits)
 {
     for (int i = 0; tls_id_match_table[i].tls_id != 0; i++) {
         if (tls_id_match_table[i].tls_id == tls_id) {
-            if (family != NULL) {
-                *family = tls_id_match_table[i].psa_family;
+            if (type != NULL) {
+                *type = PSA_KEY_TYPE_ECC_KEY_PAIR(tls_id_match_table[i].psa_family);
             }
             if (bits != NULL) {
                 *bits = tls_id_match_table[i].bits;

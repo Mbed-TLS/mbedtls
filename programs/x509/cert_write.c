@@ -622,7 +622,9 @@ usage:
                     goto usage;
                 }
 
-                if (strcmp(q, "IP") != 0 && strcmp(q, "DN") != 0) {
+                if (cur->node.type == MBEDTLS_X509_SAN_RFC822_NAME ||
+                    cur->node.type == MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER ||
+                    cur->node.type == MBEDTLS_X509_SAN_DNS_NAME) {
                     cur->node.san.unstructured_name.p = (unsigned char *) subtype_value;
                     cur->node.san.unstructured_name.len = strlen(subtype_value);
                 }

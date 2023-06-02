@@ -174,7 +174,9 @@ test-ca2.crt: $(test_ca_key_file_ec) test-ca2.req.sha256
 all_final += test-ca2.crt
 
 test-ca2-future.crt: $(test_ca_key_file_ec) test-ca2.req.sha256
-	$(MBEDTLS_CERT_WRITE) is_ca=1 serial=13926223505202072808 request_file=test-ca2.req.sha256 selfsign=1 issuer_name="C=NL,O=PolarSSL,CN=Polarssl Test EC CA" issuer_key=$(test_ca_key_file_ec) not_before=20290210144400 not_after=20390210144400 md=SHA256 version=3 output_file=$@
+	$(MBEDTLS_CERT_WRITE) is_ca=1 serial=13926223505202072808 request_file=test-ca2.req.sha256 selfsign=1 \
+		issuer_name="C=NL,O=PolarSSL,CN=Polarssl Test EC CA" issuer_key=$(test_ca_key_file_ec) \
+		not_before=20290210144400 not_after=20390210144400 md=SHA256 version=3 output_file=$@
 all_intermediate += test-ca2-future.crt
 
 test_ca_ec_cat := # files that concatenate different crt
@@ -262,7 +264,9 @@ test-int-ca3.csr: test-int-ca3.key $(test_ca_config_file)
 all_intermediate += test-int-ca.csr test-int-ca2.csr test-int-ca3.csr
 
 test-int-ca.crt: $(test_ca_crt_file_ec) $(test_ca_key_file_ec) $(test_ca_config_file) test-int-ca.csr
-	$(OPENSSL) x509 -req -extfile $(test_ca_config_file) -extensions v3_ca -CA $(test_ca_crt_file_ec) -CAkey $(test_ca_key_file_ec) -set_serial 14 -days 3653 -sha256 -in test-int-ca.csr -out $@
+	$(OPENSSL) x509 -req -extfile $(test_ca_config_file) -extensions v3_ca \
+		-CA $(test_ca_crt_file_ec) -CAkey $(test_ca_key_file_ec) \
+		-set_serial 14 -days 3653 -sha256 -in test-int-ca.csr -out $@
 
 test-int-ca2.crt: $(test_ca_key_file_rsa) $(test_ca_crt) $(test_ca_config_file) test-int-ca2.csr
 	$(OPENSSL) x509 -req -extfile $(test_ca_config_file) -extensions v3_ca -CA $(test_ca_crt) \
@@ -327,7 +331,9 @@ server7.csr: server7.key
 all_intermediate += server7.csr
 
 server7.crt: server7.csr $(test_ca_int_rsa1)
-	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -CA $(test_ca_int_rsa1) -CAkey test-int-ca.key -set_serial 16 -days 3653 -sha256 -in server7.csr > $@
+	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa \
+		-CA $(test_ca_int_rsa1) -CAkey test-int-ca.key \
+		-set_serial 16 -days 3653 -sha256 -in server7.csr > $@
 all_final += server7.crt
 
 server7-expired.crt: server7.csr $(test_ca_int_rsa1)
@@ -375,7 +381,10 @@ server7_all: server7.crt server7-badsign.crt server7-expired.crt server7-future.
 # server8*
 
 server8.crt: server8.key
-	$(MBEDTLS_CERT_WRITE) subject_key=$< subject_name="C=NL, O=PolarSSL, CN=localhost" serial=17 issuer_crt=$(test_ca_int_ec) issuer_key=$(test_ca_int_key_file_ec) not_before=20190210144406 not_after=20290210144406 md=SHA256 version=3 output_file=$@
+	$(MBEDTLS_CERT_WRITE) subject_key=$< subject_name="C=NL, O=PolarSSL, CN=localhost" serial=17 \
+		issuer_crt=$(test_ca_int_ec) issuer_key=$(test_ca_int_key_file_ec) \
+		not_before=20190210144406 not_after=20290210144406 \
+		md=SHA256 version=3 output_file=$@
 all_final += server8.crt
 
 server8_int-ca2.crt: server8.crt $(test_ca_int_ec)
@@ -491,7 +500,11 @@ all_final += test-int-ca3-badsign.crt
 # server10*
 
 server10.crt: server10.key test-int-ca3.crt test-int-ca3.key
-	$(MBEDTLS_CERT_WRITE) subject_key=$< subject_name="CN=localhost" serial=75 issuer_crt=test-int-ca3.crt issuer_key=test-int-ca3.key subject_identifier=0 authority_identifier=0 not_before=20190210144406 not_after=20290210144406 md=SHA256 version=3 output_file=$@
+	$(MBEDTLS_CERT_WRITE) subject_key=$< subject_name="CN=localhost" serial=75 \
+		issuer_crt=test-int-ca3.crt issuer_key=test-int-ca3.key \
+		subject_identifier=0 authority_identifier=0 \
+		not_before=20190210144406 not_after=20290210144406 \
+		md=SHA256 version=3 output_file=$@
 all_final += server10.crt
 server10-badsign.crt: server10.crt
 	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; } > $@
@@ -1503,13 +1516,19 @@ all_final += server2-sha256.crt
 # server3*
 
 server3.crt: server3.key
-	$(MBEDTLS_CERT_WRITE) subject_key=$< subject_name="C=NL,O=PolarSSL,CN=localhost" serial=13 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20190210144406 not_after=20290210144406 md=SHA1 version=3 output_file=$@
+	$(MBEDTLS_CERT_WRITE) subject_key=$< subject_name="C=NL,O=PolarSSL,CN=localhost" serial=13 \
+		issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) \
+		not_before=20190210144406 not_after=20290210144406 \
+		md=SHA1 version=3 output_file=$@
 all_final += server3.crt
 
 # server4*
 
 server4.crt: server4.key
-	$(MBEDTLS_CERT_WRITE) subject_key=$< subject_name="C=NL,O=PolarSSL,CN=localhost" serial=8 issuer_crt=$(test_ca_crt_file_ec) issuer_key=$(test_ca_key_file_ec) not_before=20190210144400 not_after=20290210144400 md=SHA256 version=3 output_file=$@
+	$(MBEDTLS_CERT_WRITE) subject_key=$< subject_name="C=NL,O=PolarSSL,CN=localhost" serial=8 \
+		issuer_crt=$(test_ca_crt_file_ec) issuer_key=$(test_ca_key_file_ec) \
+		not_before=20190210144400 not_after=20290210144400 \
+		md=SHA256 version=3 output_file=$@
 all_final += server4.crt
 
 # MD5 test certificate

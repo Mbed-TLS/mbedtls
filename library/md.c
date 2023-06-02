@@ -376,7 +376,12 @@ int mbedtls_md_clone(mbedtls_md_context_t *dst,
 
 int mbedtls_md_setup(mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_info, int hmac)
 {
-    if (md_info == NULL || ctx == NULL) {
+#if defined(MBEDTLS_MD_C)
+    if (ctx == NULL) {
+        return MBEDTLS_ERR_MD_BAD_INPUT_DATA;
+    }
+#endif
+    if (md_info == NULL) {
         return MBEDTLS_ERR_MD_BAD_INPUT_DATA;
     }
 
@@ -455,9 +460,11 @@ int mbedtls_md_setup(mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_info
 
 int mbedtls_md_starts(mbedtls_md_context_t *ctx)
 {
+#if defined(MBEDTLS_MD_C)
     if (ctx == NULL || ctx->md_info == NULL) {
         return MBEDTLS_ERR_MD_BAD_INPUT_DATA;
     }
+#endif
 
 #if defined(MBEDTLS_MD_SOME_PSA)
     if (ctx->engine == MBEDTLS_MD_ENGINE_PSA) {
@@ -504,9 +511,11 @@ int mbedtls_md_starts(mbedtls_md_context_t *ctx)
 
 int mbedtls_md_update(mbedtls_md_context_t *ctx, const unsigned char *input, size_t ilen)
 {
+#if defined(MBEDTLS_MD_C)
     if (ctx == NULL || ctx->md_info == NULL) {
         return MBEDTLS_ERR_MD_BAD_INPUT_DATA;
     }
+#endif
 
 #if defined(MBEDTLS_MD_SOME_PSA)
     if (ctx->engine == MBEDTLS_MD_ENGINE_PSA) {
@@ -551,9 +560,11 @@ int mbedtls_md_update(mbedtls_md_context_t *ctx, const unsigned char *input, siz
 
 int mbedtls_md_finish(mbedtls_md_context_t *ctx, unsigned char *output)
 {
+#if defined(MBEDTLS_MD_C)
     if (ctx == NULL || ctx->md_info == NULL) {
         return MBEDTLS_ERR_MD_BAD_INPUT_DATA;
     }
+#endif
 
 #if defined(MBEDTLS_MD_SOME_PSA)
     if (ctx->engine == MBEDTLS_MD_ENGINE_PSA) {

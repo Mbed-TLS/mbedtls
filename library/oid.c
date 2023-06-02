@@ -971,7 +971,14 @@ int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid,
     if (num_dots == 0 || (num_dots > MBEDTLS_OID_MAX_COMPONENTS - 1)) {
         return MBEDTLS_ERR_ASN1_INVALID_DATA;
     }
-    size_t max_possible_bytes = num_dots * sizeof(unsigned int);
+    /* Each byte can store 7 bits, calculate number of bytes for a
+     * subidentifier:
+     *
+     * bytes = ceil(subidentifer_size * 8 / 7)
+     */
+    size_t bytes_per_subidentifier = (((sizeof(unsigned int) * 8) - 1) / 7)
+                                     + 1;
+    size_t max_possible_bytes = num_dots * bytes_per_subidentifier;
     oid->p = mbedtls_calloc(max_possible_bytes, 1);
     if (oid->p == NULL) {
         return MBEDTLS_ERR_ASN1_ALLOC_FAILED;

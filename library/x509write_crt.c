@@ -201,7 +201,6 @@ int mbedtls_x509write_crt_set_subject_alternative_name(mbedtls_x509write_cert *c
                     CHECK_OVERFLOW_ADD(buflen, chunk->val.len);
                     chunk = chunk->next;
                 }
-                CHECK_OVERFLOW_ADD(buflen, cur->node.san.unstructured_name.len);
                 CHECK_OVERFLOW_ADD(buflen, 4 + 1);
                 break;
             }

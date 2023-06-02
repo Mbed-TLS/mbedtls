@@ -150,7 +150,9 @@ psa_status_t mbedtls_psa_ffdh_export_public_key(
     mbedtls_mpi_init(&GX); mbedtls_mpi_init(&G);
     mbedtls_mpi_init(&X); mbedtls_mpi_init(&P);
 
-    status = mbedtls_psa_ffdh_set_prime_generator(data_size, &P, &G);
+    size_t key_len = PSA_BITS_TO_BYTES(attributes->core.bits);
+
+    status = mbedtls_psa_ffdh_set_prime_generator(key_len, &P, &G);
 
     if (status != PSA_SUCCESS) {
         goto cleanup;
@@ -160,9 +162,9 @@ psa_status_t mbedtls_psa_ffdh_export_public_key(
                                             key_buffer_size));
 
     MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod(&GX, &G, &X, &P, NULL));
-    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&GX, data, data_size));
+    MBEDTLS_MPI_CHK(mbedtls_mpi_write_binary(&GX, data, key_len));
 
-    *data_length = data_size;
+    *data_length = key_len;
 
     ret = 0;
 cleanup:

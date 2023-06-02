@@ -326,8 +326,6 @@ server7_spurious_int-ca.crt: server7.crt $(test_ca_int_ec) $(test_ca_int_rsa1)
 	cat server7.crt $(test_ca_int_ec) $(test_ca_int_rsa1) > $@
 all_final += server7_spurious_int-ca.crt
 
-server7_all: server7.crt server7-badsign.crt server7-expired.crt server7-future.crt server7_int-ca-exp.crt server7_int-ca.crt server7_int-ca_ca2.crt server7_all_space.crt server7_pem_space.crt server7_trailing_space.crt server7_spurious_int-ca.crt
-
 # server8*
 
 server8.crt: server8.key
@@ -340,8 +338,6 @@ all_final += server8.crt
 server8_int-ca2.crt: server8.crt $(test_ca_int_ec)
 	cat $^ > $@
 all_final += server8_int-ca2.crt
-
-server8_all: server8.crt server8_int-ca2.crt
 
 cli2.req.sha256: cli2.key
 	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< subject_name="C=NL,O=PolarSSL,CN=PolarSSL Test Client 2" md=SHA256
@@ -1437,8 +1433,6 @@ all: $(all_intermediate) $(all_final)
 .PHONY: keys_rsa_enc_pkcs8_v1_2048 keys_rsa_enc_pkcs8_v2_2048
 .PHONY: keys_rsa_enc_pkcs8_v1_4096 keys_rsa_enc_pkcs8_v2_4096
 .PHONY: server1_all
-.PHONY: server7_all
-.PHONY: server8_all
 
 # These files should not be committed to the repository.
 list_intermediate:

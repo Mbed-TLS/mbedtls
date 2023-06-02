@@ -61,7 +61,6 @@ void md_null_args()
     TEST_EQUAL(mbedtls_md_setup(&ctx, NULL, 0), MBEDTLS_ERR_MD_BAD_INPUT_DATA);
 #if defined(MBEDTLS_MD_C)
     TEST_EQUAL(mbedtls_md_setup(NULL, info, 0), MBEDTLS_ERR_MD_BAD_INPUT_DATA);
-#endif
 
     TEST_EQUAL(mbedtls_md_starts(NULL), MBEDTLS_ERR_MD_BAD_INPUT_DATA);
     TEST_EQUAL(mbedtls_md_starts(&ctx), MBEDTLS_ERR_MD_BAD_INPUT_DATA);
@@ -71,6 +70,7 @@ void md_null_args()
 
     TEST_EQUAL(mbedtls_md_finish(NULL, buf), MBEDTLS_ERR_MD_BAD_INPUT_DATA);
     TEST_EQUAL(mbedtls_md_finish(&ctx, buf), MBEDTLS_ERR_MD_BAD_INPUT_DATA);
+#endif
 
     TEST_EQUAL(mbedtls_md(NULL, buf, 1, buf), MBEDTLS_ERR_MD_BAD_INPUT_DATA);
 

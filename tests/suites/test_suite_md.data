@@ -3,7 +3,6 @@ MD list
 mbedtls_md_list:
 
 MD NULL/uninitialised arguments
-depends_on:MBEDTLS_MD_C
 md_null_args:
 
 Information on MD5

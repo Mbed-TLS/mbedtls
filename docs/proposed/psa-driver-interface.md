@@ -308,7 +308,7 @@ Key derivation is more complex than other multipart operations for several reaso
 
 #### Key derivation driver dispatch logic
 
-The core decides whether to dispatch a key derivation operation to a driver based on the location associated with of the input step `PSA_KEY_DERIVATION_INPUT_SECRET`.
+The core decides whether to dispatch a key derivation operation to a driver based on the location associated with the input step `PSA_KEY_DERIVATION_INPUT_SECRET`.
 
 1. If this step is passed via `psa_key_derivation_input_key()` for a key in a secure element:
     * If the driver for this secure element implements the `"key_derivation"` family for the specified algorithm, the core calls that driver's `"key_derivation_setup"` and subsequent entry points.
@@ -342,7 +342,7 @@ The core conveys the initial inputs for a key derivation via an opaque data stru
 typedef ... psa_crypto_driver_key_derivation_inputs_t; // implementation-specific type
 ```
 
-A driver receiving an argument that points to a `psa_crypto_driver_key_derivation_inputs_t` can retrieve its contents by calling one of the type-specific the functions below. To determine the correct function, the driver can call `psa_crypto_driver_key_derivation_get_input_type()`.
+A driver receiving an argument that points to a `psa_crypto_driver_key_derivation_inputs_t` can retrieve its contents by calling one of the type-specific functions below. To determine the correct function, the driver can call `psa_crypto_driver_key_derivation_get_input_type()`.
 
 ```
 enum psa_crypto_driver_key_derivation_input_type_t {
@@ -567,7 +567,7 @@ psa_status_t acme_key_agreement_to_key(psa_algorithm_t alg,
                                        size_t *shared_secret_key_buffer_length);
 ```
 
-Note that unlike most other key creation entry points, in `"acme_key_agreement_to_key"`, the parameters for the shared secret are not placed near the beginning, but rather grouped with the other parameters at the end, to avoid confusion with the keys passed as inputs.
+Note that unlike most other key creation entry points, in `"acme_key_agreement_to_key"`, the attributes for the shared secret are not placed near the beginning, but rather grouped with the other parameters related to the shared secret at the end of the parameter list. This is to avoid potential confusion with the attributes of the private key that is passed as an input.
 
 ### Driver entry points for key management
 
@@ -1188,7 +1188,7 @@ Should the core guarantee that the output buffer size has the size indicated by 
 
 Why is `psa_crypto_driver_key_derivation_get_input_bytes` a copy, rather than giving a pointer?
 
-The main reason is to avoid complex buffer ownership. A driver entry point does not own memory after the entry point return. This is generally necessary because an API function does not own memory after the entry point returns. In the case of key derivation inputs, this could be relaxed because the driver entry point is making callbacks to the core: these functions could return a pointer that is valid until the driver entry point, which would allow the driver to process the data immediately (e.g. hash it rather than copy it).
+The main reason is to avoid complex buffer ownership. A driver entry point does not own memory after the entry point return. This is generally necessary because an API function does not own memory after the entry point returns. In the case of key derivation inputs, this could be relaxed because the driver entry point is making callbacks to the core: these functions could return a pointer that is valid until the driver entry point returns, which would allow the driver to process the data immediately (e.g. hash it rather than copy it).
 
 ### Partial computations in drivers
 

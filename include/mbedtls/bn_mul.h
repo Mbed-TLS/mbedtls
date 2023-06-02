@@ -662,9 +662,9 @@
 #if defined(__arm__)
 
 #if defined(__thumb__) && !defined(__thumb2__)
-#if !defined(__ARMCC_VERSION)
+#if !defined(__ARMCC_VERSION) && !defined(__clang__)
 /*
- * Thumb 1 ISA. This code path does not work on armclang.
+ * Thumb 1 ISA. This code path does not build on clang or armclang.
  */
 
 #if !defined(__OPTIMIZE__) && defined(__GNUC__)
@@ -747,7 +747,7 @@
          : "r0", "r1", "r2", "r3", "r4", "r5",  \
            "r6", MULADDC_SCRATCH_CLOBBER, "r8", "r9", "cc" \
          );
-#endif /* !defined(__ARMCC_VERSION) */
+#endif /* !defined(__ARMCC_VERSION) && !defined(__clang__) */
 
 #elif (__ARM_ARCH >= 6) && \
     defined (__ARM_FEATURE_DSP) && (__ARM_FEATURE_DSP == 1)

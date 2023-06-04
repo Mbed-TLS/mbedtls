@@ -1069,15 +1069,14 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
 #endif
 
     if (mode == MBEDTLS_AES_DECRYPT) {
-        unsigned char temp2[16];
         while (length > 0) {
             memcpy(temp, input, 16);
-            ret = mbedtls_aes_crypt_ecb(ctx, mode, input, temp2);
+            ret = mbedtls_aes_crypt_ecb(ctx, mode, input, output);
             if (ret != 0) {
                 goto exit;
             }
 
-            mbedtls_xor(output, temp2, iv, 16);
+            mbedtls_xor(output, output, iv, 16);
 
             memcpy(iv, temp, 16);
 

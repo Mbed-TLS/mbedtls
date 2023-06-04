@@ -13,6 +13,7 @@ endif()
 set(src_crypto
     aes.c
     aesni.c
+    aesce.c
     aria.c
     asn1parse.c
     asn1write.c
@@ -44,11 +45,11 @@ set(src_crypto
     hash_info.c
     hkdf.c
     hmac_drbg.c
+    lmots.c
+    lms.c
     md.c
     md5.c
     memory_buffer_alloc.c
-    mps_reader.c
-    mps_trace.c
     nist_kw.c
     oid.c
     padlock.c
@@ -68,20 +69,22 @@ set(src_crypto
     psa_crypto_client.c
     psa_crypto_driver_wrappers.c
     psa_crypto_ecp.c
+    psa_crypto_ffdh.c
     psa_crypto_hash.c
     psa_crypto_mac.c
+    psa_crypto_pake.c
     psa_crypto_rsa.c
     psa_crypto_se.c
     psa_crypto_slot_management.c
     psa_crypto_storage.c
     psa_its_file.c
+    psa_util.c
     ripemd160.c
     rsa.c
     rsa_alt_helpers.c
     sha1.c
     sha256.c
     sha512.c
-    ssl_debug_helpers_generated.c
     threading.c
     timing.c
     version.c
@@ -89,6 +92,7 @@ set(src_crypto
 )
 
 set(src_x509
+    pkcs7.c
     x509.c
     x509_create.c
     x509_crl.c
@@ -100,11 +104,14 @@ set(src_x509
 
 set(src_tls
     debug.c
+    mps_reader.c
+    mps_trace.c
     net_sockets.c
     ssl_cache.c
     ssl_ciphersuites.c
     ssl_client.c
     ssl_cookie.c
+    ssl_debug_helpers_generated.c
     ssl_msg.c
     ssl_ticket.c
     ssl_tls.c
@@ -266,6 +273,10 @@ if(USE_STATIC_MBEDTLS_LIBRARY)
         target_link_libraries(${mbedcrypto_static_target} PUBLIC everest)
     endif()
 
+    if(TARGET p256m)
+        target_link_libraries(${mbedcrypto_static_target} PUBLIC p256m)
+    endif()
+
     add_library(${mbedx509_static_target} STATIC ${src_x509})
     set_target_properties(${mbedx509_static_target} PROPERTIES OUTPUT_NAME mbedx509)
     target_link_libraries(${mbedx509_static_target} PUBLIC ${libs} ${mbedcrypto_static_target})
@@ -278,19 +289,23 @@ endif(USE_STATIC_MBEDTLS_LIBRARY)
 if(USE_SHARED_MBEDTLS_LIBRARY)
     set(CMAKE_LIBRARY_PATH ${CMAKE_CURRENT_BINARY_DIR})
     add_library(${mbedcrypto_target} SHARED ${src_crypto})
-    set_target_properties(${mbedcrypto_target} PROPERTIES VERSION 3.2.1 SOVERSION 12)
+    set_target_properties(${mbedcrypto_target} PROPERTIES VERSION 3.4.0 SOVERSION 14)
     target_link_libraries(${mbedcrypto_target} PUBLIC ${libs})
 
     if(TARGET everest)
         target_link_libraries(${mbedcrypto_target} PUBLIC everest)
     endif()
 
+    if(TARGET p256m)
+        target_link_libraries(${mbedcrypto_target} PUBLIC p256m)
+    endif()
+
     add_library(${mbedx509_target} SHARED ${src_x509})
-    set_target_properties(${mbedx509_target} PROPERTIES VERSION 3.2.1 SOVERSION 4)
+    set_target_properties(${mbedx509_target} PROPERTIES VERSION 3.4.0 SOVERSION 5)
     target_link_libraries(${mbedx509_target} PUBLIC ${libs} ${mbedcrypto_target})
 
     add_library(${mbedtls_target} SHARED ${src_tls})
-    set_target_properties(${mbedtls_target} PROPERTIES VERSION 3.2.1 SOVERSION 18)
+    set_target_properties(${mbedtls_target} PROPERTIES VERSION 3.4.0 SOVERSION 19)
     target_link_libraries(${mbedtls_target} PUBLIC ${libs} ${mbedx509_target})
 endif(USE_SHARED_MBEDTLS_LIBRARY)
 

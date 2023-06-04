@@ -126,44 +126,71 @@ code that is generated or read from helpers and platform files.
 This script replaces following fields in the template and generates
 the test source file:
 
-$test_common_helpers        <-- All common code from helpers.function
-                                is substituted here.
-$functions_code             <-- Test functions are substituted here
-                                from the input test_suit_xyz.function
-                                file. C preprocessor checks are generated
-                                for the build dependencies specified
-                                in the input file. This script also
-                                generates wrappers for the test
-                                functions with code to expand the
-                                string parameters read from the data
-                                file.
-$expression_code            <-- This script enumerates the
-                                expressions in the .data file and
-                                generates code to handle enumerated
-                                expression Ids and return the values.
-$dep_check_code             <-- This script enumerates all
-                                build dependencies and generate
-                                code to handle enumerated build
-                                dependency Id and return status: if
-                                the dependency is defined or not.
-$dispatch_code              <-- This script enumerates the functions
-                                specified in the input test data file
-                                and generates the initializer for the
-                                function table in the template
-                                file.
-$platform_code              <-- Platform specific setup and test
-                                dispatch code.
+__MBEDTLS_TEST_TEMPLATE__TEST_COMMON_HELPERS
+            All common code from helpers.function
+            is substituted here.
+__MBEDTLS_TEST_TEMPLATE__FUNCTIONS_CODE
+            Test functions are substituted here
+            from the input test_suit_xyz.function
+            file. C preprocessor checks are generated
+            for the build dependencies specified
+            in the input file. This script also
+            generates wrappers for the test
+            functions with code to expand the
+            string parameters read from the data
+            file.
+__MBEDTLS_TEST_TEMPLATE__EXPRESSION_CODE
+            This script enumerates the
+            expressions in the .data file and
+            generates code to handle enumerated
+            expression Ids and return the values.
+__MBEDTLS_TEST_TEMPLATE__DEP_CHECK_CODE
+            This script enumerates all
+            build dependencies and generate
+            code to handle enumerated build
+            dependency Id and return status: if
+            the dependency is defined or not.
+__MBEDTLS_TEST_TEMPLATE__DISPATCH_CODE
+            This script enumerates the functions
+            specified in the input test data file
+            and generates the initializer for the
+            function table in the template
+            file.
+__MBEDTLS_TEST_TEMPLATE__PLATFORM_CODE
+            Platform specific setup and test
+            dispatch code.
 
 """
 
 
-import io
 import os
 import re
 import sys
 import string
 import argparse
 
+
+# Types recognized as signed integer arguments in test functions.
+SIGNED_INTEGER_TYPES = frozenset([
+    'char',
+    'short',
+    'short int',
+    'int',
+    'int8_t',
+    'int16_t',
+    'int32_t',
+    'int64_t',
+    'intmax_t',
+    'long',
+    'long int',
+    'long long int',
+    'mbedtls_mpi_sint',
+    'psa_status_t',
+])
+# Types recognized as string arguments in test functions.
+STRING_TYPES = frozenset(['char*', 'const char*', 'char const*'])
+# Types recognized as hex data arguments in test functions.
+DATA_TYPES = frozenset(['data_t*', 'const data_t*', 'data_t const*'])
 
 BEGIN_HEADER_REGEX = r'/\*\s*BEGIN_HEADER\s*\*/'
 END_HEADER_REGEX = r'/\*\s*END_HEADER\s*\*/'
@@ -186,9 +213,6 @@ CONDITION_REGEX = r'({})(?:\s*({})\s*({}))?$'.format(C_IDENTIFIER_REGEX,
                                                      CONDITION_OPERATOR_REGEX,
                                                      CONDITION_VALUE_REGEX)
 TEST_FUNCTION_VALIDATION_REGEX = r'\s*void\s+(?P<func_name>\w+)\s*\('
-INT_CHECK_REGEX = r'int\s+.*'
-CHAR_CHECK_REGEX = r'char\s*\*\s*.*'
-DATA_T_CHECK_REGEX = r'data_t\s*\*\s*.*'
 FUNCTION_ARG_LIST_END_REGEX = r'.*\)'
 EXIT_LABEL_REGEX = r'^exit:'
 
@@ -202,54 +226,57 @@ class GeneratorInputError(Exception):
     pass
 
 
-class FileWrapper(io.FileIO):
+class FileWrapper:
     """
-    This class extends built-in io.FileIO class with attribute line_no,
+    This class extends the file object with attribute line_no,
     that indicates line number for the line that is read.
     """
 
-    def __init__(self, file_name):
+    def __init__(self, file_name) -> None:
         """
-        Instantiate the base class and initialize the line number to 0.
+        Instantiate the file object and initialize the line number to 0.
 
         :param file_name: File path to open.
         """
-        super(FileWrapper, self).__init__(file_name, 'r')
+        # private mix-in file object
+        self._f = open(file_name, 'rb')
         self._line_no = 0
 
-    def next(self):
-        """
-        Python 2 iterator method. This method overrides base class's
-        next method and extends the next method to count the line
-        numbers as each line is read.
+    def __iter__(self):
+        return self
 
-        It works for both Python 2 and Python 3 by checking iterator
-        method name in the base iterator object.
+    def __next__(self):
+        """
+        This method makes FileWrapper iterable.
+        It counts the line numbers as each line is read.
 
         :return: Line read from file.
         """
-        parent = super(FileWrapper, self)
-        if hasattr(parent, '__next__'):
-            line = parent.__next__()  # Python 3
-        else:
-            line = parent.next()  # Python 2 # pylint: disable=no-member
-        if line is not None:
-            self._line_no += 1
-            # Convert byte array to string with correct encoding and
-            # strip any whitespaces added in the decoding process.
-            return line.decode(sys.getdefaultencoding()).rstrip() + '\n'
-        return None
+        line = self._f.__next__()
+        self._line_no += 1
+        # Convert byte array to string with correct encoding and
+        # strip any whitespaces added in the decoding process.
+        return line.decode(sys.getdefaultencoding()).rstrip()+ '\n'
 
-    # Python 3 iterator method
-    __next__ = next
+    def __enter__(self):
+        return self
 
-    def get_line_no(self):
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._f.__exit__(exc_type, exc_val, exc_tb)
+
+    @property
+    def line_no(self):
         """
-        Gives current line number.
+        Property that indicates line number for the line that is read.
         """
         return self._line_no
 
-    line_no = property(get_line_no)
+    @property
+    def name(self):
+        """
+        Property that indicates name of the file that is read.
+        """
+        return self._f.name
 
 
 def split_dep(dep):
@@ -308,7 +335,7 @@ def gen_function_wrapper(name, local_vars, args_dispatch):
     :param name: Test function name
     :param local_vars: Local variables declaration code
     :param args_dispatch: List of dispatch arguments.
-           Ex: ['(char *)params[0]', '*((int *)params[1])']
+           Ex: ['(char *) params[0]', '*((int *) params[1])']
     :return: Test function wrapper.
     """
     # Then create the wrapper
@@ -449,6 +476,49 @@ def parse_function_dependencies(line):
     return dependencies
 
 
+ARGUMENT_DECLARATION_REGEX = re.compile(r'(.+?) ?(?:\bconst\b)? ?(\w+)\Z', re.S)
+def parse_function_argument(arg, arg_idx, args, local_vars, args_dispatch):
+    """
+    Parses one test function's argument declaration.
+
+    :param arg: argument declaration.
+    :param arg_idx: current wrapper argument index.
+    :param args: accumulator of arguments' internal types.
+    :param local_vars: accumulator of internal variable declarations.
+    :param args_dispatch: accumulator of argument usage expressions.
+    :return: the number of new wrapper arguments,
+             or None if the argument declaration is invalid.
+    """
+    # Normalize whitespace
+    arg = arg.strip()
+    arg = re.sub(r'\s*\*\s*', r'*', arg)
+    arg = re.sub(r'\s+', r' ', arg)
+    # Extract name and type
+    m = ARGUMENT_DECLARATION_REGEX.search(arg)
+    if not m:
+        # E.g. "int x[42]"
+        return None
+    typ, _ = m.groups()
+    if typ in SIGNED_INTEGER_TYPES:
+        args.append('int')
+        args_dispatch.append('((mbedtls_test_argument_t *) params[%d])->sint' % arg_idx)
+        return 1
+    if typ in STRING_TYPES:
+        args.append('char*')
+        args_dispatch.append('(char *) params[%d]' % arg_idx)
+        return 1
+    if typ in DATA_TYPES:
+        args.append('hex')
+        # create a structure
+        pointer_initializer = '(uint8_t *) params[%d]' % arg_idx
+        len_initializer = '((mbedtls_test_argument_t *) params[%d])->len' % (arg_idx+1)
+        local_vars.append('    data_t data%d = {%s, %s};\n' %
+                          (arg_idx, pointer_initializer, len_initializer))
+        args_dispatch.append('&data%d' % arg_idx)
+        return 2
+    return None
+
+ARGUMENT_LIST_REGEX = re.compile(r'\((.*?)\)', re.S)
 def parse_function_arguments(line):
     """
     Parses test function signature for validation and generates
@@ -460,42 +530,27 @@ def parse_function_arguments(line):
     :return: argument list, local variables for
              wrapper function and argument dispatch code.
     """
-    args = []
-    local_vars = ''
-    args_dispatch = []
-    arg_idx = 0
-    # Remove characters before arguments
-    line = line[line.find('(') + 1:]
     # Process arguments, ex: <type> arg1, <type> arg2 )
     # This script assumes that the argument list is terminated by ')'
     # i.e. the test functions will not have a function pointer
     # argument.
-    for arg in line[:line.find(')')].split(','):
-        arg = arg.strip()
-        if arg == '':
-            continue
-        if re.search(INT_CHECK_REGEX, arg.strip()):
-            args.append('int')
-            args_dispatch.append('*( (int *) params[%d] )' % arg_idx)
-        elif re.search(CHAR_CHECK_REGEX, arg.strip()):
-            args.append('char*')
-            args_dispatch.append('(char *) params[%d]' % arg_idx)
-        elif re.search(DATA_T_CHECK_REGEX, arg.strip()):
-            args.append('hex')
-            # create a structure
-            pointer_initializer = '(uint8_t *) params[%d]' % arg_idx
-            len_initializer = '*( (uint32_t *) params[%d] )' % (arg_idx+1)
-            local_vars += """    data_t data%d = {%s, %s};
-""" % (arg_idx, pointer_initializer, len_initializer)
-
-            args_dispatch.append('&data%d' % arg_idx)
-            arg_idx += 1
-        else:
+    m = ARGUMENT_LIST_REGEX.search(line)
+    arg_list = m.group(1).strip()
+    if arg_list in ['', 'void']:
+        return [], '', []
+    args = []
+    local_vars = []
+    args_dispatch = []
+    arg_idx = 0
+    for arg in arg_list.split(','):
+        indexes = parse_function_argument(arg, arg_idx,
+                                          args, local_vars, args_dispatch)
+        if indexes is None:
             raise ValueError("Test function arguments can only be 'int', "
                              "'char *' or 'data_t'\n%s" % line)
-        arg_idx += 1
+        arg_idx += indexes
 
-    return args, local_vars, args_dispatch
+    return args, ''.join(local_vars), args_dispatch
 
 
 def generate_function_code(name, code, local_vars, args_dispatch,
@@ -524,6 +579,50 @@ def generate_function_code(name, code, local_vars, args_dispatch,
         gen_dependencies(dependencies)
     return preprocessor_check_start + code + preprocessor_check_end
 
+COMMENT_START_REGEX = re.compile(r'/[*/]')
+
+def skip_comments(line, stream):
+    """Remove comments in line.
+
+    If the line contains an unfinished comment, read more lines from stream
+    until the line that contains the comment.
+
+    :return: The original line with inner comments replaced by spaces.
+             Trailing comments and whitespace may be removed completely.
+    """
+    pos = 0
+    while True:
+        opening = COMMENT_START_REGEX.search(line, pos)
+        if not opening:
+            break
+        if line[opening.start(0) + 1] == '/': # //...
+            continuation = line
+            # Count the number of line breaks, to keep line numbers aligned
+            # in the output.
+            line_count = 1
+            while continuation.endswith('\\\n'):
+                # This errors out if the file ends with an unfinished line
+                # comment. That's acceptable to not complicate the code further.
+                continuation = next(stream)
+                line_count += 1
+            return line[:opening.start(0)].rstrip() + '\n' * line_count
+        # Parsing /*...*/, looking for the end
+        closing = line.find('*/', opening.end(0))
+        while closing == -1:
+            # This errors out if the file ends with an unfinished block
+            # comment. That's acceptable to not complicate the code further.
+            line += next(stream)
+            closing = line.find('*/', opening.end(0))
+        pos = closing + 2
+        # Replace inner comment by spaces. There needs to be at least one space
+        # for things like 'int/*ihatespaces*/foo'. Go further and preserve the
+        # width of the comment and line breaks, this way positions in error
+        # messages remain correct.
+        line = (line[:opening.start(0)] +
+                re.sub(r'.', r' ', line[opening.start(0):pos]) +
+                line[pos:])
+    # Strip whitespace at the end of lines (it's irrelevant to error messages).
+    return re.sub(r' +(\n|\Z)', r'\1', line)
 
 def parse_function_code(funcs_f, dependencies, suite_dependencies):
     """
@@ -543,6 +642,7 @@ def parse_function_code(funcs_f, dependencies, suite_dependencies):
         # across multiple lines. Here we try to find the start of
         # arguments list, then remove '\n's and apply the regex to
         # detect function start.
+        line = skip_comments(line, funcs_f)
         up_to_arg_list_start = code + line[:line.find('(') + 1]
         match = re.match(TEST_FUNCTION_VALIDATION_REGEX,
                          up_to_arg_list_start.replace('\n', ' '), re.I)
@@ -551,7 +651,7 @@ def parse_function_code(funcs_f, dependencies, suite_dependencies):
             name = match.group('func_name')
             if not re.match(FUNCTION_ARG_LIST_END_REGEX, line):
                 for lin in funcs_f:
-                    line += lin
+                    line += skip_comments(lin, funcs_f)
                     if re.search(FUNCTION_ARG_LIST_END_REGEX, line):
                         break
             args, local_vars, args_dispatch = parse_function_arguments(
@@ -665,7 +765,7 @@ def parse_test_data(data_f):
     execution.
 
     :param data_f: file object of the data file.
-    :return: Generator that yields test name, function name,
+    :return: Generator that yields line number, test name, function name,
              dependency list and function argument list.
     """
     __state_read_name = 0
@@ -708,7 +808,7 @@ def parse_test_data(data_f):
                 parts = escaped_split(line, ':')
                 test_function = parts[0]
                 args = parts[1:]
-                yield name, test_function, dependencies, args
+                yield data_f.line_no, name, test_function, dependencies, args
                 dependencies = []
                 state = __state_read_name
     if state == __state_read_args:
@@ -806,6 +906,14 @@ def write_dependencies(out_data_f, test_dependencies, unique_dependencies):
     return dep_check_code
 
 
+INT_VAL_REGEX = re.compile(r'-?(\d+|0x[0-9a-f]+)$', re.I)
+def val_is_int(val: str) -> bool:
+    """Whether val is suitable as an 'int' parameter in the .datax file."""
+    if not INT_VAL_REGEX.match(val):
+        return False
+    # Limit the range to what is guaranteed to get through strtol()
+    return abs(int(val, 0)) <= 0x7fffffff
+
 def write_parameters(out_data_f, test_args, func_args, unique_expressions):
     """
     Writes test parameters to the intermediate data file, replacing
@@ -824,9 +932,9 @@ def write_parameters(out_data_f, test_args, func_args, unique_expressions):
         typ = func_args[i]
         val = test_args[i]
 
-        # check if val is a non literal int val (i.e. an expression)
-        if typ == 'int' and not re.match(r'(\d+|0x[0-9a-f]+)$',
-                                         val, re.I):
+        # Pass small integer constants literally. This reduces the size of
+        # the C code. Register anything else as an expression.
+        if typ == 'int' and not val_is_int(val):
             typ = 'exp'
             if val not in unique_expressions:
                 unique_expressions.append(val)
@@ -869,6 +977,24 @@ def gen_suite_dep_checks(suite_dependencies, dep_check_code, expression_code):
     return dep_check_code, expression_code
 
 
+def get_function_info(func_info, function_name, line_no):
+    """Look up information about a test function by name.
+
+    Raise an informative expression if function_name is not found.
+
+    :param func_info: dictionary mapping function names to their information.
+    :param function_name: the function name as written in the .function and
+                          .data files.
+    :param line_no: line number for error messages.
+    :return Function information (id, args).
+    """
+    test_function_name = 'test_' + function_name
+    if test_function_name not in func_info:
+        raise GeneratorInputError("%d: Function %s not found!" %
+                                  (line_no, test_function_name))
+    return func_info[test_function_name]
+
+
 def gen_from_test_data(data_f, out_data_f, func_info, suite_dependencies):
     """
     This function reads test case name, dependencies and test vectors
@@ -891,7 +1017,7 @@ def gen_from_test_data(data_f, out_data_f, func_info, suite_dependencies):
     unique_expressions = []
     dep_check_code = ''
     expression_code = ''
-    for test_name, function_name, test_dependencies, test_args in \
+    for line_no, test_name, function_name, test_dependencies, test_args in \
             parse_test_data(data_f):
         out_data_f.write(test_name + '\n')
 
@@ -900,18 +1026,15 @@ def gen_from_test_data(data_f, out_data_f, func_info, suite_dependencies):
                                              unique_dependencies)
 
         # Write test function name
-        test_function_name = 'test_' + function_name
-        if test_function_name not in func_info:
-            raise GeneratorInputError("Function %s not found!" %
-                                      test_function_name)
-        func_id, func_args = func_info[test_function_name]
+        func_id, func_args = \
+            get_function_info(func_info, function_name, line_no)
         out_data_f.write(str(func_id))
 
         # Write parameters
         if len(test_args) != len(func_args):
-            raise GeneratorInputError("Invalid number of arguments in test "
+            raise GeneratorInputError("%d: Invalid number of arguments in test "
                                       "%s. See function %s signature." %
-                                      (test_name, function_name))
+                                      (line_no, test_name, function_name))
         expression_code += write_parameters(out_data_f, test_args, func_args,
                                             unique_expressions)
 
@@ -974,11 +1097,27 @@ def write_test_source_file(template_file, c_file, snippets):
     :param snippets: Generated and code snippets
     :return:
     """
+
+    # Create a placeholder pattern with the correct named capture groups
+    # to override the default provided with Template.
+    # Match nothing (no way of escaping placeholders).
+    escaped = "(?P<escaped>(?!))"
+    # Match the "__MBEDTLS_TEST_TEMPLATE__PLACEHOLDER_NAME" pattern.
+    named = "__MBEDTLS_TEST_TEMPLATE__(?P<named>[A-Z][_A-Z0-9]*)"
+    # Match nothing (no braced placeholder syntax).
+    braced = "(?P<braced>(?!))"
+    # If not already matched, a "__MBEDTLS_TEST_TEMPLATE__" prefix is invalid.
+    invalid = "(?P<invalid>__MBEDTLS_TEST_TEMPLATE__)"
+    placeholder_pattern = re.compile("|".join([escaped, named, braced, invalid]))
+
     with open(template_file, 'r') as template_f, open(c_file, 'w') as c_f:
         for line_no, line in enumerate(template_f.readlines(), 1):
             # Update line number. +1 as #line directive sets next line number
             snippets['line_no'] = line_no + 1
-            code = string.Template(line).substitute(**snippets)
+            template = string.Template(line)
+            template.pattern = placeholder_pattern
+            snippets = {k.upper():v for (k, v) in snippets.items()}
+            code = template.substitute(**snippets)
             c_f.write(code)
 
 

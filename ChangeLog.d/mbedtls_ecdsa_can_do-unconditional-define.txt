@@ -1,0 +1,3 @@
+Bugfix
+   * Fix an error when MBEDTLS_ECDSA_SIGN_ALT is defined but not
+     MBEDTLS_ECDSA_VERIFY_ALT, causing ecdsa verify to fail. Fixes #7498.

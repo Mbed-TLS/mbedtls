@@ -7,10 +7,10 @@
  * \note This file may not be included directly. Applications must
  * include psa/crypto.h.
  *
- * \note This header and its content is not part of the Mbed TLS API and
+ * \note This header and its content are not part of the Mbed TLS API and
  * applications must not depend on it. Its main purpose is to define the
  * multi-part state objects of the Mbed TLS software-based PSA drivers. The
- * definition of these objects are then used by crypto_struct.h to define the
+ * definitions of these objects are then used by crypto_struct.h to define the
  * implementation-defined types of PSA multi-part state objects.
  */
 /*
@@ -56,11 +56,9 @@
 #define MBEDTLS_PSA_BUILTIN_HASH
 #endif
 
-typedef struct
-{
+typedef struct {
     psa_algorithm_t MBEDTLS_PRIVATE(alg);
-    union
-    {
+    union {
         unsigned dummy; /* Make the union non-empty even with no supported algorithms. */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_MD5)
         mbedtls_md5_context md5;
@@ -72,17 +70,17 @@ typedef struct
         mbedtls_sha1_context sha1;
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_256) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_224)
+        defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_224)
         mbedtls_sha256_context sha256;
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_512) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_384)
+        defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_384)
         mbedtls_sha512_context sha512;
 #endif
     } MBEDTLS_PRIVATE(ctx);
 } mbedtls_psa_hash_operation_t;
 
-#define MBEDTLS_PSA_HASH_OPERATION_INIT {0, {0}}
+#define MBEDTLS_PSA_HASH_OPERATION_INIT { 0, { 0 } }
 
 /*
  * Cipher multi-part operation definitions.
@@ -111,6 +109,6 @@ typedef struct {
     } MBEDTLS_PRIVATE(ctx);
 } mbedtls_psa_cipher_operation_t;
 
-#define MBEDTLS_PSA_CIPHER_OPERATION_INIT {0, 0, 0, {0}}
+#define MBEDTLS_PSA_CIPHER_OPERATION_INIT { 0, 0, 0, { 0 } }
 
 #endif /* PSA_CRYPTO_BUILTIN_PRIMITIVES_H */

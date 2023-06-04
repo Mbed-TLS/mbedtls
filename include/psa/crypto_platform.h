@@ -34,21 +34,17 @@
 #define PSA_CRYPTO_PLATFORM_H
 #include "mbedtls/private_access.h"
 
-/* Include the Mbed TLS configuration file, the way Mbed TLS does it
- * in each of its header files. */
-#include "mbedtls/build_info.h"
-
-/* Translate between classic MBEDTLS_xxx feature symbols and PSA_xxx
- * feature symbols. */
-#include "mbedtls/config_psa.h"
+/*
+ * Include the build-time configuration information file. Here, we do not
+ * include `"mbedtls/build_info.h"` directly but `"psa/build_info.h"`, which
+ * is basically just an alias to it. This is to ease the maintenance of the
+ * PSA cryptography repository which has a different build system and
+ * configuration.
+ */
+#include "psa/build_info.h"
 
 /* PSA requires several types which C99 provides in stdint.h. */
 #include <stdint.h>
-
-#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
-    !defined(inline) && !defined(__cplusplus)
-#define inline __inline
-#endif
 
 #if defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 
@@ -70,10 +66,10 @@ typedef int32_t mbedtls_key_owner_id_t;
  *
  * \return Non-zero if the two key owner identifiers are equal, zero otherwise.
  */
-static inline int mbedtls_key_owner_id_equal( mbedtls_key_owner_id_t id1,
-                                              mbedtls_key_owner_id_t id2 )
+static inline int mbedtls_key_owner_id_equal(mbedtls_key_owner_id_t id1,
+                                             mbedtls_key_owner_id_t id2)
 {
-    return( id1 == id2 );
+    return id1 == id2;
 }
 
 #endif /* MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER */
@@ -87,7 +83,7 @@ static inline int mbedtls_key_owner_id_equal( mbedtls_key_owner_id_t id1,
  */
 #if defined(MBEDTLS_PSA_CRYPTO_SPM)
 #define PSA_CRYPTO_SECURE 1
-#include "crypto_spe.h"
+#include "../tests/include/spe/crypto_spe.h"
 #endif // MBEDTLS_PSA_CRYPTO_SPM
 
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)

@@ -39,11 +39,34 @@ typedef MBEDTLS_PLATFORM_TIME_TYPE_MACRO mbedtls_time_t;
 typedef time_t mbedtls_time_t;
 #endif /* MBEDTLS_PLATFORM_TIME_TYPE_MACRO */
 
+#if defined(MBEDTLS_PLATFORM_MS_TIME_TYPE_MACRO)
+typedef MBEDTLS_PLATFORM_MS_TIME_TYPE_MACRO mbedtls_ms_time_t;
+#else
+#include <stdint.h>
+#include <inttypes.h>
+typedef int64_t mbedtls_ms_time_t;
+#endif /* MBEDTLS_PLATFORM_MS_TIME_TYPE_MACRO */
+
+/**
+ * \brief   Get time in milliseconds.
+ *
+ * \return Monotonically-increasing current time in milliseconds.
+ *
+ * \note Define MBEDTLS_PLATFORM_MS_TIME_ALT to be able to provide an
+ *       alternative implementation
+ *
+ * \warning This function returns a monotonically-increasing time value from a
+ *          start time that will differ from platform to platform, and possibly
+ *          from run to run of the process.
+ *
+ */
+mbedtls_ms_time_t mbedtls_ms_time(void);
+
 /*
  * The function pointers for time
  */
 #if defined(MBEDTLS_PLATFORM_TIME_ALT)
-extern mbedtls_time_t (*mbedtls_time)( mbedtls_time_t* time );
+extern mbedtls_time_t (*mbedtls_time)(mbedtls_time_t *time);
 
 /**
  * \brief   Set your own time function pointer
@@ -52,7 +75,7 @@ extern mbedtls_time_t (*mbedtls_time)( mbedtls_time_t* time );
  *
  * \return              0
  */
-int mbedtls_platform_set_time( mbedtls_time_t (*time_func)( mbedtls_time_t* time ) );
+int mbedtls_platform_set_time(mbedtls_time_t (*time_func)(mbedtls_time_t *time));
 #else
 #if defined(MBEDTLS_PLATFORM_TIME_MACRO)
 #define mbedtls_time    MBEDTLS_PLATFORM_TIME_MACRO

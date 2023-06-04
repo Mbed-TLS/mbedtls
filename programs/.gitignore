@@ -9,9 +9,6 @@
 /psa/psa_constant_names_generated.c
 /test/query_config.c
 
-*.o
-*.exe
-
 aes/crypt_and_hash
 cipher/cipher_aead_demo
 hash/generic_sum
@@ -64,6 +61,7 @@ test/cpp_dummy_build.cpp
 test/dlopen
 test/ecp-bench
 test/query_compile_time_config
+test/query_included_headers
 test/selftest
 test/ssl_cert_test
 test/udp_proxy

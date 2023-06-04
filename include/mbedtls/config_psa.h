@@ -7,7 +7,7 @@
  *  those definitions to define symbols used in the library code.
  *
  *  Users and integrators should not edit this file, please edit
- *  include/mbedtls/mbedtls_config.h for MBETLS_XXX settings or
+ *  include/mbedtls/mbedtls_config.h for MBEDTLS_XXX settings or
  *  include/psa/crypto_config.h for PSA_WANT_XXX settings.
  */
 /*
@@ -77,6 +77,40 @@ extern "C" {
 #endif
 
 
+/****************************************************************/
+/* Hashes that are built in are also enabled in PSA.
+ * This simplifies dependency declarations especially
+ * for modules that obey MBEDTLS_USE_PSA_CRYPTO. */
+/****************************************************************/
+
+#if defined(MBEDTLS_MD5_C)
+#define PSA_WANT_ALG_MD5 1
+#endif
+
+#if defined(MBEDTLS_RIPEMD160_C)
+#define PSA_WANT_ALG_RIPEMD160 1
+#endif
+
+#if defined(MBEDTLS_SHA1_C)
+#define PSA_WANT_ALG_SHA_1 1
+#endif
+
+#if defined(MBEDTLS_SHA224_C)
+#define PSA_WANT_ALG_SHA_224 1
+#endif
+
+#if defined(MBEDTLS_SHA256_C)
+#define PSA_WANT_ALG_SHA_256 1
+#endif
+
+#if defined(MBEDTLS_SHA384_C)
+#define PSA_WANT_ALG_SHA_384 1
+#endif
+
+#if defined(MBEDTLS_SHA512_C)
+#define PSA_WANT_ALG_SHA_512 1
+#endif
+
 
 /****************************************************************/
 /* Require built-in implementations based on PSA requirements */
@@ -114,6 +148,13 @@ extern "C" {
 #endif /* !MBEDTLS_PSA_ACCEL_ALG_ECDSA */
 #endif /* PSA_WANT_ALG_ECDSA */
 
+#if defined(PSA_WANT_ALG_FFDH)
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_FFDH)
+#define MBEDTLS_PSA_BUILTIN_ALG_FFDH 1
+#define MBEDTLS_BIGNUM_C
+#endif /* !MBEDTLS_PSA_ACCEL_ALG_FFDH */
+#endif /* PSA_WANT_ALG_FFDH */
+
 #if defined(PSA_WANT_ALG_HKDF)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_HKDF)
 #define MBEDTLS_PSA_BUILTIN_ALG_HMAC 1
@@ -145,6 +186,17 @@ extern "C" {
 #define MBEDTLS_PSA_BUILTIN_ALG_MD5 1
 #define MBEDTLS_MD5_C
 #endif
+
+#if defined(PSA_WANT_ALG_JPAKE)
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_JPAKE)
+#define MBEDTLS_PSA_BUILTIN_PAKE 1
+#define MBEDTLS_PSA_BUILTIN_ALG_JPAKE 1
+#define MBEDTLS_ECP_DP_SECP256R1_ENABLED
+#define MBEDTLS_BIGNUM_C
+#define MBEDTLS_ECP_C
+#define MBEDTLS_ECJPAKE_C
+#endif /* MBEDTLS_PSA_ACCEL_ALG_JPAKE */
+#endif /* PSA_WANT_ALG_JPAKE */
 
 #if defined(PSA_WANT_ALG_RIPEMD160) && !defined(MBEDTLS_PSA_ACCEL_ALG_RIPEMD160)
 #define MBEDTLS_PSA_BUILTIN_ALG_RIPEMD160 1
@@ -216,6 +268,15 @@ extern "C" {
 #define MBEDTLS_SHA512_C
 #endif
 
+#if defined(PSA_WANT_ALG_PBKDF2_HMAC)
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_PBKDF2_HMAC)
+#define MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC 1
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_HMAC)
+#define MBEDTLS_PSA_BUILTIN_ALG_HMAC 1
+#endif /* !MBEDTLS_PSA_ACCEL_ALG_HMAC */
+#endif /* !MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC */
+#endif /* PSA_WANT_ALG_PBKDF2_HMAC */
+
 #if defined(PSA_WANT_ALG_TLS12_PRF)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_TLS12_PRF)
 #define MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF 1
@@ -228,6 +289,12 @@ extern "C" {
 #endif /* !MBEDTLS_PSA_ACCEL_ALG_TLS12_PSK_TO_MS */
 #endif /* PSA_WANT_ALG_TLS12_PSK_TO_MS */
 
+#if defined(PSA_WANT_ALG_TLS12_ECJPAKE_TO_PMS)
+#if !defined(MBEDTLS_PSA_ACCEL_ALG_TLS12_ECJPAKE_TO_PMS)
+#define MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS 1
+#endif /* !MBEDTLS_PSA_ACCEL_ALG_TLS12_ECJPAKE_TO_PMS */
+#endif /* PSA_WANT_ALG_TLS12_ECJPAKE_TO_PMS */
+
 #if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR)
 #if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR)
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR 1
@@ -236,6 +303,13 @@ extern "C" {
 #endif /* !MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR */
 #endif /* PSA_WANT_KEY_TYPE_ECC_KEY_PAIR */
 
+#if defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR)
+#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_DH_KEY_PAIR)
+#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR 1
+#define MBEDTLS_BIGNUM_C
+#endif /* !MBEDTLS_PSA_ACCEL_KEY_TYPE_DH_KEY_PAIR */
+#endif /* PSA_WANT_KEY_TYPE_DH_KEY_PAIR */
+
 #if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 #if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY)
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY 1
@@ -243,6 +317,13 @@ extern "C" {
 #define MBEDTLS_BIGNUM_C
 #endif /* !MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY */
 #endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
+
+#if defined(PSA_WANT_KEY_TYPE_DH_PUBLIC_KEY)
+#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_DH_PUBLIC_KEY)
+#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY 1
+#define MBEDTLS_BIGNUM_C
+#endif /* !MBEDTLS_PSA_ACCEL_KEY_TYPE_DH_PUBLIC_KEY */
+#endif /* PSA_WANT_KEY_TYPE_DH_PUBLIC_KEY */
 
 #if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR)
 #if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR)
@@ -281,9 +362,9 @@ extern "C" {
     (defined(PSA_WANT_ALG_OFB) && !defined(MBEDTLS_PSA_ACCEL_ALG_OFB)) || \
     defined(PSA_WANT_ALG_ECB_NO_PADDING) || \
     (defined(PSA_WANT_ALG_CBC_NO_PADDING) && \
-     !defined(MBEDTLS_PSA_ACCEL_ALG_CBC_NO_PADDING)) || \
+    !defined(MBEDTLS_PSA_ACCEL_ALG_CBC_NO_PADDING)) || \
     (defined(PSA_WANT_ALG_CBC_PKCS7) && \
-     !defined(MBEDTLS_PSA_ACCEL_ALG_CBC_PKCS7)) || \
+    !defined(MBEDTLS_PSA_ACCEL_ALG_CBC_PKCS7)) || \
     (defined(PSA_WANT_ALG_CMAC) && !defined(MBEDTLS_PSA_ACCEL_ALG_CMAC))
 #define PSA_HAVE_SOFT_BLOCK_MODE 1
 #endif
@@ -600,6 +681,16 @@ extern "C" {
 #define PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY 1
 #endif /* MBEDTLS_ECP_C */
 
+#if defined(MBEDTLS_DHM_C)
+#define PSA_WANT_KEY_TYPE_DH_KEY_PAIR 1
+#define PSA_WANT_KEY_TYPE_DH_PUBLIC_KEY 1
+#define PSA_WANT_ALG_FFDH 1
+#define PSA_WANT_DH_FAMILY_RFC7919 1
+#define MBEDTLS_PSA_BUILTIN_ALG_FFDH 1
+#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR 1
+#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY 1
+#endif /* MBEDTLS_DHM_C */
+
 #if defined(MBEDTLS_GCM_C)
 #define MBEDTLS_PSA_BUILTIN_ALG_GCM 1
 #define PSA_WANT_ALG_GCM 1
@@ -634,6 +725,12 @@ extern "C" {
 #if defined(MBEDTLS_MD5_C)
 #define MBEDTLS_PSA_BUILTIN_ALG_MD5 1
 #define PSA_WANT_ALG_MD5 1
+#endif
+
+#if defined(MBEDTLS_ECJPAKE_C)
+#define MBEDTLS_PSA_BUILTIN_PAKE 1
+#define MBEDTLS_PSA_BUILTIN_ALG_JPAKE 1
+#define PSA_WANT_ALG_JPAKE 1
 #endif
 
 #if defined(MBEDTLS_RIPEMD160_C)
@@ -704,6 +801,11 @@ extern "C" {
 #if defined(MBEDTLS_DES_C)
 #define PSA_WANT_KEY_TYPE_DES 1
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES 1
+#endif
+
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_256)
+#define MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS 1
+#define PSA_WANT_ALG_TLS12_ECJPAKE_TO_PMS 1
 #endif
 
 #if defined(MBEDTLS_CHACHA20_C)
@@ -815,8 +917,14 @@ extern "C" {
 
 #endif /* MBEDTLS_PSA_CRYPTO_CONFIG */
 
+#if defined(PSA_WANT_ALG_JPAKE)
+#define PSA_WANT_ALG_SOME_PAKE 1
+#endif
+
 /* These features are always enabled. */
 #define PSA_WANT_KEY_TYPE_DERIVE 1
+#define PSA_WANT_KEY_TYPE_PASSWORD 1
+#define PSA_WANT_KEY_TYPE_PASSWORD_HASH 1
 #define PSA_WANT_KEY_TYPE_RAW_DATA 1
 
 #ifdef __cplusplus

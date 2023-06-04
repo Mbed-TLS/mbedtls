@@ -17,32 +17,41 @@
  */
 
 /* BEGIN_CASE */
-void timing_get_timer( )
+void timing_get_timer()
 {
     struct mbedtls_timing_hr_time time;
-    (void) mbedtls_timing_get_timer( &time, 1 );
-    (void) mbedtls_timing_get_timer( &time, 0 );
+
+    memset(&time, 0, sizeof(time));
+
+    (void) mbedtls_timing_get_timer(&time, 1);
+
+    /* Check that a non-zero time was written back */
+    int all_zero = 1;
+    for (size_t i = 0; i < sizeof(time); i++) {
+        all_zero &= ((unsigned char *) &time)[i] == 0;
+    }
+    TEST_ASSERT(!all_zero);
+
+    (void) mbedtls_timing_get_timer(&time, 0);
+
     /* This goto is added to avoid warnings from the generated code. */
     goto exit;
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
-void timing_delay( int fin_ms )
+void timing_delay(int fin_ms)
 {
     mbedtls_timing_delay_context ctx;
     int result;
-    if( fin_ms == 0 )
-    {
-        mbedtls_timing_set_delay( &ctx, 0, 0 );
-        result = mbedtls_timing_get_delay( &ctx );
-        TEST_ASSERT( result == -1 );
-    }
-    else
-    {
-        mbedtls_timing_set_delay( &ctx, fin_ms / 2, fin_ms );
-        result = mbedtls_timing_get_delay( &ctx );
-        TEST_ASSERT( result >= 0 && result <= 2 );
+    if (fin_ms == 0) {
+        mbedtls_timing_set_delay(&ctx, 0, 0);
+        result = mbedtls_timing_get_delay(&ctx);
+        TEST_ASSERT(result == -1);
+    } else {
+        mbedtls_timing_set_delay(&ctx, fin_ms / 2, fin_ms);
+        result = mbedtls_timing_get_delay(&ctx);
+        TEST_ASSERT(result >= 0 && result <= 2);
     }
 }
 /* END_CASE */

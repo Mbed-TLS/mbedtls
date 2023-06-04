@@ -2,10 +2,15 @@
 
 """Mbed TLS configuration file manipulation library and tool
 
-Basic usage, to read the Mbed TLS or Mbed Crypto configuration:
+Basic usage, to read the Mbed TLS configuration:
     config = ConfigFile()
     if 'MBEDTLS_RSA_C' in config: print('RSA is enabled')
 """
+
+# Note that as long as Mbed TLS 2.28 LTS is maintained, the version of
+# this script in the mbedtls-2.28 branch must remain compatible with
+# Python 3.4. The version in development may only use more recent features
+# in parts that are not backported to 2.28.
 
 ## Copyright The Mbed TLS Contributors
 ## SPDX-License-Identifier: Apache-2.0
@@ -189,7 +194,6 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_DEPRECATED_WARNING', # conflicts with deprecated options
     'MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED', # influences the use of ECDH in TLS
     'MBEDTLS_ECP_NO_FALLBACK', # removes internal ECP implementation
-    'MBEDTLS_ECP_RESTARTABLE', # incompatible with USE_PSA_CRYPTO
     'MBEDTLS_ENTROPY_FORCE_SHA256', # interacts with CTR_DRBG_128_BIT_KEY
     'MBEDTLS_HAVE_SSE2', # hardware dependency
     'MBEDTLS_MEMORY_BACKTRACE', # depends on MEMORY_BUFFER_ALLOC_C
@@ -211,6 +215,8 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN', # build dependency (clang+memsan)
     'MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND', # build dependency (valgrind headers)
     'MBEDTLS_X509_REMOVE_INFO', # removes a feature
+    'MBEDTLS_SSL_RECORD_SIZE_LIMIT', # in development, currently breaks other tests
+    'MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED' # influences SECP256R1 KeyGen/ECDH/ECDSA
 ])
 
 def is_seamless_alt(name):
@@ -225,7 +231,7 @@ def is_seamless_alt(name):
     Exclude alternative implementations of library functions since they require
     an implementation of the relevant functions and an xxx_alt.h header.
     """
-    if name == 'MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT':
+    if name in ('MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT', 'MBEDTLS_PLATFORM_MS_TIME_ALT'):
         # Similar to non-platform xxx_ALT, requires platform_alt.h
         return False
     return name.startswith('MBEDTLS_PLATFORM_')
@@ -306,6 +312,7 @@ def include_in_crypto(name):
     if name in [
             'MBEDTLS_DEBUG_C', # part of libmbedtls
             'MBEDTLS_NET_C', # part of libmbedtls
+            'MBEDTLS_PKCS7_C', # part of libmbedx509
     ]:
         return False
     return True
@@ -460,7 +467,7 @@ if __name__ == '__main__':
     def main():
         """Command line mbedtls_config.h manipulation tool."""
         parser = argparse.ArgumentParser(description="""
-        Mbed TLS and Mbed Crypto configuration file manipulation tool.
+        Mbed TLS configuration file manipulation tool.
         """)
         parser.add_argument('--file', '-f',
                             help="""File to read (and modify if requested).

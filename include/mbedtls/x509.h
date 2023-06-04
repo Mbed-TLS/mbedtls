@@ -148,7 +148,7 @@
 
 /*
  * X.509 v3 Key Usage Extension flags
- * Reminder: update x509_info_key_usage() when adding new flags.
+ * Reminder: update mbedtls_x509_info_key_usage() when adding new flags.
  */
 #define MBEDTLS_X509_KU_DIGITAL_SIGNATURE            (0x80)  /* bit 0 */
 #define MBEDTLS_X509_KU_NON_REPUDIATION              (0x40)  /* bit 1 */
@@ -243,13 +243,74 @@ typedef mbedtls_asn1_named_data mbedtls_x509_name;
  */
 typedef mbedtls_asn1_sequence mbedtls_x509_sequence;
 
+/*
+ * Container for the fields of the Authority Key Identifier object
+ */
+typedef struct mbedtls_x509_authority {
+    mbedtls_x509_buf keyIdentifier;
+    mbedtls_x509_sequence authorityCertIssuer;
+    mbedtls_x509_buf authorityCertSerialNumber;
+    mbedtls_x509_buf raw;
+}
+mbedtls_x509_authority;
+
 /** Container for date and time (precision in seconds). */
-typedef struct mbedtls_x509_time
-{
+typedef struct mbedtls_x509_time {
     int year, mon, day;         /**< Date. */
     int hour, min, sec;         /**< Time. */
 }
 mbedtls_x509_time;
+
+/**
+ * From RFC 5280 section 4.2.1.6:
+ * OtherName ::= SEQUENCE {
+ *      type-id    OBJECT IDENTIFIER,
+ *      value      [0] EXPLICIT ANY DEFINED BY type-id }
+ *
+ * Future versions of the library may add new fields to this structure or
+ * to its embedded union and structure.
+ */
+typedef struct mbedtls_x509_san_other_name {
+    /**
+     * The type_id is an OID as defined in RFC 5280.
+     * To check the value of the type id, you should use
+     * \p MBEDTLS_OID_CMP with a known OID mbedtls_x509_buf.
+     */
+    mbedtls_x509_buf type_id;                   /**< The type id. */
+    union {
+        /**
+         * From RFC 4108 section 5:
+         * HardwareModuleName ::= SEQUENCE {
+         *                         hwType OBJECT IDENTIFIER,
+         *                         hwSerialNum OCTET STRING }
+         */
+        struct {
+            mbedtls_x509_buf oid;               /**< The object identifier. */
+            mbedtls_x509_buf val;               /**< The named value. */
+        }
+        hardware_module_name;
+    }
+    value;
+}
+mbedtls_x509_san_other_name;
+
+/**
+ * A structure for holding the parsed Subject Alternative Name,
+ * according to type.
+ *
+ * Future versions of the library may add new fields to this structure or
+ * to its embedded union and structure.
+ */
+typedef struct mbedtls_x509_subject_alternative_name {
+    int type;                              /**< The SAN type, value of MBEDTLS_X509_SAN_XXX. */
+    union {
+        mbedtls_x509_san_other_name other_name; /**< The otherName supported type. */
+        mbedtls_x509_name directory_name;
+        mbedtls_x509_buf unstructured_name; /**< The buffer for the unstructured types. rfc822Name, dnsName and uniformResourceIdentifier are currently supported. */
+    }
+    san; /**< A union of the supported SAN types */
+}
+mbedtls_x509_subject_alternative_name;
 
 /** \} name Structures for parsing X.509 certificates, CRLs and CSRs */
 
@@ -264,7 +325,7 @@ mbedtls_x509_time;
  * \return         The length of the string written (not including the
  *                 terminated nul byte), or a negative error code.
  */
-int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn );
+int mbedtls_x509_dn_gets(char *buf, size_t size, const mbedtls_x509_name *dn);
 
 /**
  * \brief          Return the next relative DN in an X509 name.
@@ -277,12 +338,13 @@ int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn );
  * \return         Pointer to the first attribute-value pair of the
  *                 next RDN in sequence, or NULL if end is reached.
  */
-static inline mbedtls_x509_name * mbedtls_x509_dn_get_next(
-    mbedtls_x509_name * dn )
+static inline mbedtls_x509_name *mbedtls_x509_dn_get_next(
+    mbedtls_x509_name *dn)
 {
-    while( dn->MBEDTLS_PRIVATE(next_merged) && dn->next != NULL )
+    while (dn->MBEDTLS_PRIVATE(next_merged) && dn->next != NULL) {
         dn = dn->next;
-    return( dn->next );
+    }
+    return dn->next;
 }
 
 /**
@@ -296,7 +358,7 @@ static inline mbedtls_x509_name * mbedtls_x509_dn_get_next(
  * \return         The length of the string written (not including the
  *                 terminated nul byte), or a negative error code.
  */
-int mbedtls_x509_serial_gets( char *buf, size_t size, const mbedtls_x509_buf *serial );
+int mbedtls_x509_serial_gets(char *buf, size_t size, const mbedtls_x509_buf *serial);
 
 /**
  * \brief          Check a given mbedtls_x509_time against the system time
@@ -310,7 +372,7 @@ int mbedtls_x509_serial_gets( char *buf, size_t size, const mbedtls_x509_buf *se
  * \return         1 if the given time is in the past or an error occurred,
  *                 0 otherwise.
  */
-int mbedtls_x509_time_is_past( const mbedtls_x509_time *to );
+int mbedtls_x509_time_is_past(const mbedtls_x509_time *to);
 
 /**
  * \brief          Check a given mbedtls_x509_time against the system time
@@ -324,7 +386,47 @@ int mbedtls_x509_time_is_past( const mbedtls_x509_time *to );
  * \return         1 if the given time is in the future or an error occurred,
  *                 0 otherwise.
  */
-int mbedtls_x509_time_is_future( const mbedtls_x509_time *from );
+int mbedtls_x509_time_is_future(const mbedtls_x509_time *from);
+
+/**
+ * \brief          This function parses an item in the SubjectAlternativeNames
+ *                 extension. Please note that this function might allocate
+ *                 additional memory for a subject alternative name, thus
+ *                 mbedtls_x509_free_subject_alt_name has to be called
+ *                 to dispose of this additional memory afterwards.
+ *
+ * \param san_buf  The buffer holding the raw data item of the subject
+ *                 alternative name.
+ * \param san      The target structure to populate with the parsed presentation
+ *                 of the subject alternative name encoded in \p san_raw.
+ *
+ * \note           Supported GeneralName types, as defined in RFC 5280:
+ *                 "rfc822Name", "dnsName", "uniformResourceIdentifier" and "hardware_module_name"
+ *                 of type "otherName", as defined in RFC 4108.
+ *
+ * \note           This function should be called on a single raw data of
+ *                 subject alternative name. For example, after successful
+ *                 certificate parsing, one must iterate on every item in the
+ *                 \p crt->subject_alt_names sequence, and pass it to
+ *                 this function.
+ *
+ * \warning        The target structure contains pointers to the raw data of the
+ *                 parsed certificate, and its lifetime is restricted by the
+ *                 lifetime of the certificate.
+ *
+ * \return         \c 0 on success
+ * \return         #MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE for an unsupported
+ *                 SAN type.
+ * \return         Another negative value for any other failure.
+ */
+int mbedtls_x509_parse_subject_alt_name(const mbedtls_x509_buf *san_buf,
+                                        mbedtls_x509_subject_alternative_name *san);
+/**
+ * \brief          Unallocate all data related to subject alternative name
+ *
+ * \param san      SAN structure - extra memory owned by this structure will be freed
+ */
+void mbedtls_x509_free_subject_alt_name(mbedtls_x509_subject_alternative_name *san);
 
 /** \} addtogroup x509_module */
 
@@ -332,53 +434,73 @@ int mbedtls_x509_time_is_future( const mbedtls_x509_time *from );
  * Internal module functions. You probably do not want to use these unless you
  * know you do.
  */
-int mbedtls_x509_get_name( unsigned char **p, const unsigned char *end,
-                   mbedtls_x509_name *cur );
-int mbedtls_x509_get_alg_null( unsigned char **p, const unsigned char *end,
-                       mbedtls_x509_buf *alg );
-int mbedtls_x509_get_alg( unsigned char **p, const unsigned char *end,
-                  mbedtls_x509_buf *alg, mbedtls_x509_buf *params );
+int mbedtls_x509_get_name(unsigned char **p, const unsigned char *end,
+                          mbedtls_x509_name *cur);
+int mbedtls_x509_get_alg_null(unsigned char **p, const unsigned char *end,
+                              mbedtls_x509_buf *alg);
+int mbedtls_x509_get_alg(unsigned char **p, const unsigned char *end,
+                         mbedtls_x509_buf *alg, mbedtls_x509_buf *params);
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
-int mbedtls_x509_get_rsassa_pss_params( const mbedtls_x509_buf *params,
-                                mbedtls_md_type_t *md_alg, mbedtls_md_type_t *mgf_md,
-                                int *salt_len );
+int mbedtls_x509_get_rsassa_pss_params(const mbedtls_x509_buf *params,
+                                       mbedtls_md_type_t *md_alg, mbedtls_md_type_t *mgf_md,
+                                       int *salt_len);
 #endif
-int mbedtls_x509_get_sig( unsigned char **p, const unsigned char *end, mbedtls_x509_buf *sig );
-int mbedtls_x509_get_sig_alg( const mbedtls_x509_buf *sig_oid, const mbedtls_x509_buf *sig_params,
-                      mbedtls_md_type_t *md_alg, mbedtls_pk_type_t *pk_alg,
-                      void **sig_opts );
-int mbedtls_x509_get_time( unsigned char **p, const unsigned char *end,
-                   mbedtls_x509_time *t );
-int mbedtls_x509_get_serial( unsigned char **p, const unsigned char *end,
-                     mbedtls_x509_buf *serial );
-int mbedtls_x509_get_ext( unsigned char **p, const unsigned char *end,
-                  mbedtls_x509_buf *ext, int tag );
+int mbedtls_x509_get_sig(unsigned char **p, const unsigned char *end, mbedtls_x509_buf *sig);
+int mbedtls_x509_get_sig_alg(const mbedtls_x509_buf *sig_oid, const mbedtls_x509_buf *sig_params,
+                             mbedtls_md_type_t *md_alg, mbedtls_pk_type_t *pk_alg,
+                             void **sig_opts);
+int mbedtls_x509_get_time(unsigned char **p, const unsigned char *end,
+                          mbedtls_x509_time *t);
+int mbedtls_x509_get_serial(unsigned char **p, const unsigned char *end,
+                            mbedtls_x509_buf *serial);
+int mbedtls_x509_get_ext(unsigned char **p, const unsigned char *end,
+                         mbedtls_x509_buf *ext, int tag);
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
-int mbedtls_x509_sig_alg_gets( char *buf, size_t size, const mbedtls_x509_buf *sig_oid,
-                       mbedtls_pk_type_t pk_alg, mbedtls_md_type_t md_alg,
-                       const void *sig_opts );
+int mbedtls_x509_sig_alg_gets(char *buf, size_t size, const mbedtls_x509_buf *sig_oid,
+                              mbedtls_pk_type_t pk_alg, mbedtls_md_type_t md_alg,
+                              const void *sig_opts);
 #endif
-int mbedtls_x509_key_size_helper( char *buf, size_t buf_size, const char *name );
-int mbedtls_x509_string_to_names( mbedtls_asn1_named_data **head, const char *name );
-int mbedtls_x509_set_extension( mbedtls_asn1_named_data **head, const char *oid, size_t oid_len,
-                        int critical, const unsigned char *val,
-                        size_t val_len );
-int mbedtls_x509_write_extensions( unsigned char **p, unsigned char *start,
-                           mbedtls_asn1_named_data *first );
-int mbedtls_x509_write_names( unsigned char **p, unsigned char *start,
-                      mbedtls_asn1_named_data *first );
-int mbedtls_x509_write_sig( unsigned char **p, unsigned char *start,
-                    const char *oid, size_t oid_len,
-                    unsigned char *sig, size_t size );
+int mbedtls_x509_key_size_helper(char *buf, size_t buf_size, const char *name);
+int mbedtls_x509_string_to_names(mbedtls_asn1_named_data **head, const char *name);
+int mbedtls_x509_set_extension(mbedtls_asn1_named_data **head, const char *oid, size_t oid_len,
+                               int critical, const unsigned char *val,
+                               size_t val_len);
+int mbedtls_x509_write_extensions(unsigned char **p, unsigned char *start,
+                                  mbedtls_asn1_named_data *first);
+int mbedtls_x509_write_names(unsigned char **p, unsigned char *start,
+                             mbedtls_asn1_named_data *first);
+int mbedtls_x509_write_sig(unsigned char **p, unsigned char *start,
+                           const char *oid, size_t oid_len,
+                           unsigned char *sig, size_t size);
+int mbedtls_x509_get_ns_cert_type(unsigned char **p,
+                                  const unsigned char *end,
+                                  unsigned char *ns_cert_type);
+int mbedtls_x509_get_key_usage(unsigned char **p,
+                               const unsigned char *end,
+                               unsigned int *key_usage);
+int mbedtls_x509_get_subject_alt_name(unsigned char **p,
+                                      const unsigned char *end,
+                                      mbedtls_x509_sequence *subject_alt_name);
+int mbedtls_x509_get_subject_alt_name_ext(unsigned char **p,
+                                          const unsigned char *end,
+                                          mbedtls_x509_sequence *subject_alt_name);
+int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
+                                       const mbedtls_x509_sequence
+                                       *subject_alt_name,
+                                       const char *prefix);
+int mbedtls_x509_info_cert_type(char **buf, size_t *size,
+                                unsigned char ns_cert_type);
+int mbedtls_x509_info_key_usage(char **buf, size_t *size,
+                                unsigned int key_usage);
 
 #define MBEDTLS_X509_SAFE_SNPRINTF                          \
     do {                                                    \
-        if( ret < 0 || (size_t) ret >= n )                  \
-            return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );    \
-                                                            \
+        if (ret < 0 || (size_t) ret >= n)                  \
+        return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;    \
+                                                          \
         n -= (size_t) ret;                                  \
         p += (size_t) ret;                                  \
-    } while( 0 )
+    } while (0)
 
 #ifdef __cplusplus
 }

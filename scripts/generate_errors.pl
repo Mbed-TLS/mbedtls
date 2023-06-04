@@ -47,12 +47,12 @@ my $error_format_file = $data_dir.'/error.fmt';
 
 my @low_level_modules = qw( AES ARIA ASN1 BASE64 BIGNUM
                             CAMELLIA CCM CHACHA20 CHACHAPOLY CMAC CTR_DRBG DES
-                            ENTROPY ERROR GCM HKDF HMAC_DRBG MD5
+                            ENTROPY ERROR GCM HKDF HMAC_DRBG LMS MD5
                             NET OID PADLOCK PBKDF2 PLATFORM POLY1305 RIPEMD160
                             SHA1 SHA256 SHA512 THREADING );
 my @high_level_modules = qw( CIPHER DHM ECP MD
                              PEM PK PKCS12 PKCS5
-                             RSA SSL X509 );
+                             RSA SSL X509 PKCS7 );
 
 undef $/;
 
@@ -60,11 +60,11 @@ open(FORMAT_FILE, '<:crlf', "$error_format_file") or die "Opening error format f
 my $error_format = <FORMAT_FILE>;
 close(FORMAT_FILE);
 
-my @files = <$include_dir/*.h>;
+my @files = glob qq("$include_dir/*.h");
 my @necessary_include_files;
 my @matches;
 foreach my $file (@files) {
-    open(FILE, '<:crlf', "$file");
+    open(FILE, '<:crlf', $file) or die("$0: $file: $!");
     my $content = <FILE>;
     close FILE;
     my $found = 0;
@@ -136,6 +136,7 @@ foreach my $match (@matches)
     $define_name = "ASN1_PARSE" if ($define_name eq "ASN1");
     $define_name = "SSL_TLS" if ($define_name eq "SSL");
     $define_name = "PEM_PARSE,PEM_WRITE" if ($define_name eq "PEM");
+    $define_name = "PKCS7" if ($define_name eq "PKCS7");
 
     my $include_name = $module_name;
     $include_name =~ tr/A-Z/a-z/;

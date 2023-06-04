@@ -485,9 +485,10 @@ class ParseFuncSignature(TestCase):
         args, local, arg_dispatch = parse_function_arguments(line)
         self.assertEqual(args, ['char*', 'int', 'int'])
         self.assertEqual(local, '')
-        self.assertEqual(arg_dispatch, ['(char *) params[0]',
-                                        '*( (int *) params[1] )',
-                                        '*( (int *) params[2] )'])
+        self.assertEqual(arg_dispatch,
+                         ['(char *) params[0]',
+                          '((mbedtls_test_argument_t *) params[1])->sint',
+                          '((mbedtls_test_argument_t *) params[2])->sint'])
 
     def test_hex_params(self):
         """
@@ -499,25 +500,58 @@ class ParseFuncSignature(TestCase):
         self.assertEqual(args, ['char*', 'hex', 'int'])
         self.assertEqual(local,
                          '    data_t data1 = {(uint8_t *) params[1], '
-                         '*( (uint32_t *) params[2] )};\n')
+                         '((mbedtls_test_argument_t *) params[2])->len};\n')
         self.assertEqual(arg_dispatch, ['(char *) params[0]',
                                         '&data1',
-                                        '*( (int *) params[3] )'])
+                                        '((mbedtls_test_argument_t *) params[3])->sint'])
 
     def test_unsupported_arg(self):
         """
-        Test unsupported arguments (not among int, char * and data_t)
+        Test unsupported argument type
         :return:
         """
-        line = 'void entropy_threshold( char * a, data_t * h, char result )'
+        line = 'void entropy_threshold( char * a, data_t * h, unknown_t result )'
         self.assertRaises(ValueError, parse_function_arguments, line)
 
-    def test_no_params(self):
+    def test_empty_params(self):
         """
-        Test no parameters.
+        Test no parameters (nothing between parentheses).
         :return:
         """
         line = 'void entropy_threshold()'
+        args, local, arg_dispatch = parse_function_arguments(line)
+        self.assertEqual(args, [])
+        self.assertEqual(local, '')
+        self.assertEqual(arg_dispatch, [])
+
+    def test_blank_params(self):
+        """
+        Test no parameters (space between parentheses).
+        :return:
+        """
+        line = 'void entropy_threshold( )'
+        args, local, arg_dispatch = parse_function_arguments(line)
+        self.assertEqual(args, [])
+        self.assertEqual(local, '')
+        self.assertEqual(arg_dispatch, [])
+
+    def test_void_params(self):
+        """
+        Test no parameters (void keyword).
+        :return:
+        """
+        line = 'void entropy_threshold(void)'
+        args, local, arg_dispatch = parse_function_arguments(line)
+        self.assertEqual(args, [])
+        self.assertEqual(local, '')
+        self.assertEqual(arg_dispatch, [])
+
+    def test_void_space_params(self):
+        """
+        Test no parameters (void with spaces).
+        :return:
+        """
+        line = 'void entropy_threshold( void )'
         args, local, arg_dispatch = parse_function_arguments(line)
         self.assertEqual(args, [])
         self.assertEqual(local, '')
@@ -682,12 +716,12 @@ exit:
     @patch("generate_test_code.gen_dependencies")
     @patch("generate_test_code.gen_function_wrapper")
     @patch("generate_test_code.parse_function_arguments")
-    def test_functio_name_on_newline(self, parse_function_arguments_mock,
-                                     gen_function_wrapper_mock,
-                                     gen_dependencies_mock,
-                                     gen_dispatch_mock):
+    def test_function_name_on_newline(self, parse_function_arguments_mock,
+                                      gen_function_wrapper_mock,
+                                      gen_dependencies_mock,
+                                      gen_dispatch_mock):
         """
-        Test when exit label is present.
+        Test with line break before the function name.
         :return:
         """
         parse_function_arguments_mock.return_value = ([], '', [])
@@ -717,6 +751,194 @@ void
 
 
 test_func()
+{
+    ba ba black sheep
+    have you any wool
+exit:
+    yes sir yes sir
+    3 bags full
+}
+'''
+        self.assertEqual(code, expected)
+
+    @patch("generate_test_code.gen_dispatch")
+    @patch("generate_test_code.gen_dependencies")
+    @patch("generate_test_code.gen_function_wrapper")
+    @patch("generate_test_code.parse_function_arguments")
+    def test_case_starting_with_comment(self, parse_function_arguments_mock,
+                                        gen_function_wrapper_mock,
+                                        gen_dependencies_mock,
+                                        gen_dispatch_mock):
+        """
+        Test with comments before the function signature
+        :return:
+        """
+        parse_function_arguments_mock.return_value = ([], '', [])
+        gen_function_wrapper_mock.return_value = ''
+        gen_dependencies_mock.side_effect = gen_dependencies
+        gen_dispatch_mock.side_effect = gen_dispatch
+        data = '''/* comment */
+/* more
+ * comment */
+// this is\\
+still \\
+a comment
+void func()
+{
+    ba ba black sheep
+    have you any wool
+exit:
+    yes sir yes sir
+    3 bags full
+}
+/* END_CASE */
+'''
+        stream = StringIOWrapper('test_suite_ut.function', data)
+        _, _, code, _ = parse_function_code(stream, [], [])
+
+        expected = '''#line 1 "test_suite_ut.function"
+
+
+
+
+
+
+void test_func()
+{
+    ba ba black sheep
+    have you any wool
+exit:
+    yes sir yes sir
+    3 bags full
+}
+'''
+        self.assertEqual(code, expected)
+
+    @patch("generate_test_code.gen_dispatch")
+    @patch("generate_test_code.gen_dependencies")
+    @patch("generate_test_code.gen_function_wrapper")
+    @patch("generate_test_code.parse_function_arguments")
+    def test_comment_in_prototype(self, parse_function_arguments_mock,
+                                  gen_function_wrapper_mock,
+                                  gen_dependencies_mock,
+                                  gen_dispatch_mock):
+        """
+        Test with comments in the function prototype
+        :return:
+        """
+        parse_function_arguments_mock.return_value = ([], '', [])
+        gen_function_wrapper_mock.return_value = ''
+        gen_dependencies_mock.side_effect = gen_dependencies
+        gen_dispatch_mock.side_effect = gen_dispatch
+        data = '''
+void func( int x, // (line \\
+                     comment)
+           int y /* lone closing parenthesis) */ )
+{
+    ba ba black sheep
+    have you any wool
+exit:
+    yes sir yes sir
+    3 bags full
+}
+/* END_CASE */
+'''
+        stream = StringIOWrapper('test_suite_ut.function', data)
+        _, _, code, _ = parse_function_code(stream, [], [])
+
+        expected = '''#line 1 "test_suite_ut.function"
+
+void test_func( int x,
+
+           int y                                 )
+{
+    ba ba black sheep
+    have you any wool
+exit:
+    yes sir yes sir
+    3 bags full
+}
+'''
+        self.assertEqual(code, expected)
+
+    @patch("generate_test_code.gen_dispatch")
+    @patch("generate_test_code.gen_dependencies")
+    @patch("generate_test_code.gen_function_wrapper")
+    @patch("generate_test_code.parse_function_arguments")
+    def test_line_comment_in_block_comment(self, parse_function_arguments_mock,
+                                           gen_function_wrapper_mock,
+                                           gen_dependencies_mock,
+                                           gen_dispatch_mock):
+        """
+        Test with line comment in block comment.
+        :return:
+        """
+        parse_function_arguments_mock.return_value = ([], '', [])
+        gen_function_wrapper_mock.return_value = ''
+        gen_dependencies_mock.side_effect = gen_dependencies
+        gen_dispatch_mock.side_effect = gen_dispatch
+        data = '''
+void func( int x /* // */ )
+{
+    ba ba black sheep
+    have you any wool
+exit:
+    yes sir yes sir
+    3 bags full
+}
+/* END_CASE */
+'''
+        stream = StringIOWrapper('test_suite_ut.function', data)
+        _, _, code, _ = parse_function_code(stream, [], [])
+
+        expected = '''#line 1 "test_suite_ut.function"
+
+void test_func( int x          )
+{
+    ba ba black sheep
+    have you any wool
+exit:
+    yes sir yes sir
+    3 bags full
+}
+'''
+        self.assertEqual(code, expected)
+
+    @patch("generate_test_code.gen_dispatch")
+    @patch("generate_test_code.gen_dependencies")
+    @patch("generate_test_code.gen_function_wrapper")
+    @patch("generate_test_code.parse_function_arguments")
+    def test_block_comment_in_line_comment(self, parse_function_arguments_mock,
+                                           gen_function_wrapper_mock,
+                                           gen_dependencies_mock,
+                                           gen_dispatch_mock):
+        """
+        Test with block comment in line comment.
+        :return:
+        """
+        parse_function_arguments_mock.return_value = ([], '', [])
+        gen_function_wrapper_mock.return_value = ''
+        gen_dependencies_mock.side_effect = gen_dependencies
+        gen_dispatch_mock.side_effect = gen_dispatch
+        data = '''
+// /*
+void func( int x )
+{
+    ba ba black sheep
+    have you any wool
+exit:
+    yes sir yes sir
+    3 bags full
+}
+/* END_CASE */
+'''
+        stream = StringIOWrapper('test_suite_ut.function', data)
+        _, _, code, _ = parse_function_code(stream, [], [])
+
+        expected = '''#line 1 "test_suite_ut.function"
+
+
+void test_func( int x )
 {
     ba ba black sheep
     have you any wool
@@ -1076,29 +1298,33 @@ dhm_selftest:
         # List of (name, function_name, dependencies, args)
         tests = list(parse_test_data(stream))
         test1, test2, test3, test4 = tests
-        self.assertEqual(test1[0], 'Diffie-Hellman full exchange #1')
-        self.assertEqual(test1[1], 'dhm_do_dhm')
-        self.assertEqual(test1[2], [])
-        self.assertEqual(test1[3], ['10', '"23"', '10', '"5"'])
+        self.assertEqual(test1[0], 3)
+        self.assertEqual(test1[1], 'Diffie-Hellman full exchange #1')
+        self.assertEqual(test1[2], 'dhm_do_dhm')
+        self.assertEqual(test1[3], [])
+        self.assertEqual(test1[4], ['10', '"23"', '10', '"5"'])
 
-        self.assertEqual(test2[0], 'Diffie-Hellman full exchange #2')
-        self.assertEqual(test2[1], 'dhm_do_dhm')
-        self.assertEqual(test2[2], [])
-        self.assertEqual(test2[3], ['10', '"93450983094850938450983409623"',
+        self.assertEqual(test2[0], 6)
+        self.assertEqual(test2[1], 'Diffie-Hellman full exchange #2')
+        self.assertEqual(test2[2], 'dhm_do_dhm')
+        self.assertEqual(test2[3], [])
+        self.assertEqual(test2[4], ['10', '"93450983094850938450983409623"',
                                     '10', '"9345098304850938450983409622"'])
 
-        self.assertEqual(test3[0], 'Diffie-Hellman full exchange #3')
-        self.assertEqual(test3[1], 'dhm_do_dhm')
-        self.assertEqual(test3[2], [])
-        self.assertEqual(test3[3], ['10',
+        self.assertEqual(test3[0], 9)
+        self.assertEqual(test3[1], 'Diffie-Hellman full exchange #3')
+        self.assertEqual(test3[2], 'dhm_do_dhm')
+        self.assertEqual(test3[3], [])
+        self.assertEqual(test3[4], ['10',
                                     '"9345098382739712938719287391879381271"',
                                     '10',
                                     '"9345098792137312973297123912791271"'])
 
-        self.assertEqual(test4[0], 'Diffie-Hellman selftest')
-        self.assertEqual(test4[1], 'dhm_selftest')
-        self.assertEqual(test4[2], [])
+        self.assertEqual(test4[0], 12)
+        self.assertEqual(test4[1], 'Diffie-Hellman selftest')
+        self.assertEqual(test4[2], 'dhm_selftest')
         self.assertEqual(test4[3], [])
+        self.assertEqual(test4[4], [])
 
     def test_with_dependencies(self):
         """
@@ -1118,15 +1344,17 @@ dhm_do_dhm:10:"93450983094850938450983409623":10:"9345098304850938450983409622"
         # List of (name, function_name, dependencies, args)
         tests = list(parse_test_data(stream))
         test1, test2 = tests
-        self.assertEqual(test1[0], 'Diffie-Hellman full exchange #1')
-        self.assertEqual(test1[1], 'dhm_do_dhm')
-        self.assertEqual(test1[2], ['YAHOO'])
-        self.assertEqual(test1[3], ['10', '"23"', '10', '"5"'])
+        self.assertEqual(test1[0], 4)
+        self.assertEqual(test1[1], 'Diffie-Hellman full exchange #1')
+        self.assertEqual(test1[2], 'dhm_do_dhm')
+        self.assertEqual(test1[3], ['YAHOO'])
+        self.assertEqual(test1[4], ['10', '"23"', '10', '"5"'])
 
-        self.assertEqual(test2[0], 'Diffie-Hellman full exchange #2')
-        self.assertEqual(test2[1], 'dhm_do_dhm')
-        self.assertEqual(test2[2], [])
-        self.assertEqual(test2[3], ['10', '"93450983094850938450983409623"',
+        self.assertEqual(test2[0], 7)
+        self.assertEqual(test2[1], 'Diffie-Hellman full exchange #2')
+        self.assertEqual(test2[2], 'dhm_do_dhm')
+        self.assertEqual(test2[3], [])
+        self.assertEqual(test2[4], ['10', '"93450983094850938450983409623"',
                                     '10', '"9345098304850938450983409622"'])
 
     def test_no_args(self):
@@ -1147,7 +1375,7 @@ dhm_do_dhm:10:"93450983094850938450983409623":10:"9345098304850938450983409622"
         stream = StringIOWrapper('test_suite_ut.function', data)
         err = None
         try:
-            for _, _, _, _ in parse_test_data(stream):
+            for _, _, _, _, _ in parse_test_data(stream):
                 pass
         except GeneratorInputError as err:
             self.assertEqual(type(err), GeneratorInputError)
@@ -1165,7 +1393,7 @@ depends_on:YAHOO
         stream = StringIOWrapper('test_suite_ut.function', data)
         err = None
         try:
-            for _, _, _, _ in parse_test_data(stream):
+            for _, _, _, _, _ in parse_test_data(stream):
                 pass
         except GeneratorInputError as err:
             self.assertEqual(type(err), GeneratorInputError)

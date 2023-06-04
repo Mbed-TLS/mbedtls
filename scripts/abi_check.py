@@ -113,6 +113,8 @@ from types import SimpleNamespace
 
 import xml.etree.ElementTree as ET
 
+from mbedtls_dev import build_tree
+
 
 class AbiChecker:
     """API and ABI checker."""
@@ -149,11 +151,6 @@ class AbiChecker:
         self.brief = configuration.brief
         self.git_command = "git"
         self.make_command = "make"
-
-    @staticmethod
-    def check_repo_path():
-        if not all(os.path.isdir(d) for d in ["include", "library", "tests"]):
-            raise Exception("Must be run from Mbed TLS root")
 
     def _setup_logger(self):
         self.log = logging.getLogger()
@@ -540,7 +537,7 @@ class AbiChecker:
     def check_for_abi_changes(self):
         """Generate a report of ABI differences
         between self.old_rev and self.new_rev."""
-        self.check_repo_path()
+        build_tree.check_repo_path()
         if self.check_api or self.check_abi:
             self.check_abi_tools_are_installed()
         self._get_abi_dump_for_ref(self.old_version)

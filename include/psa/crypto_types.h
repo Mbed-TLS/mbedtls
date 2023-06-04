@@ -32,16 +32,17 @@
 
 #ifndef PSA_CRYPTO_TYPES_H
 #define PSA_CRYPTO_TYPES_H
+
+/* Make sure the Mbed TLS configuration is visible. */
+#include "mbedtls/build_info.h"
+/* Define the MBEDTLS_PRIVATE macro. */
 #include "mbedtls/private_access.h"
 
+#if defined(MBEDTLS_PSA_CRYPTO_PLATFORM_FILE)
+#include MBEDTLS_PSA_CRYPTO_PLATFORM_FILE
+#else
 #include "crypto_platform.h"
-
-/* If MBEDTLS_PSA_CRYPTO_C is defined, make sure MBEDTLS_PSA_CRYPTO_CLIENT
- * is defined as well to include all PSA code.
- */
-#if defined(MBEDTLS_PSA_CRYPTO_C)
-#define MBEDTLS_PSA_CRYPTO_CLIENT
-#endif /* MBEDTLS_PSA_CRYPTO_C */
+#endif
 
 #include <stdint.h>
 
@@ -291,18 +292,17 @@ typedef uint32_t psa_key_id_t;
  *       Any changes to existing values will require bumping the storage
  *       format version and providing a translation when reading the old
  *       format.
-*/
+ */
 #if !defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 typedef psa_key_id_t mbedtls_svc_key_id_t;
 
 #else /* MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER */
-/* Implementation-specific: The Mbed Cryptography library can be built as
- * part of a multi-client service that exposes the PSA Cryptograpy API in each
+/* Implementation-specific: The Mbed TLS library can be built as
+ * part of a multi-client service that exposes the PSA Cryptography API in each
  * client and encodes the client identity in the key identifier argument of
  * functions such as psa_open_key().
  */
-typedef struct
-{
+typedef struct {
     psa_key_id_t MBEDTLS_PRIVATE(key_id);
     mbedtls_key_owner_id_t MBEDTLS_PRIVATE(owner);
 } mbedtls_svc_key_id_t;
@@ -439,7 +439,7 @@ typedef struct psa_key_attributes_s psa_key_attributes_t;
 
 #ifndef __DOXYGEN_ONLY__
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-/* Mbed Crypto defines this type in crypto_types.h because it is also
+/* Mbed TLS defines this type in crypto_types.h because it is also
  * visible to applications through an implementation-specific extension.
  * For the PSA Cryptography specification, this type is only visible
  * via crypto_se_driver.h. */

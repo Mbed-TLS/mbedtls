@@ -7413,8 +7413,8 @@ psa_status_t psa_pake_setup(
         psa_jpake_computation_stage_t *computation_stage =
             &operation->computation_stage.jpake;
 
-        computation_stage->round = FIRST;
-        computation_stage->mode = OUTPUT;
+        computation_stage->round = PSA_JPAKE_FIRST;
+        computation_stage->mode = PSA_JPAKE_OUTPUT;
         computation_stage->count = 0;
         computation_stage->step = PSA_PAKE_STEP_KEY_SHARE;
     } else
@@ -7590,7 +7590,7 @@ exit:
 static psa_crypto_driver_pake_step_t convert_jpake_computation_stage_to_driver_step(
     psa_jpake_computation_stage_t *stage)
 {
-    if (stage->round == FIRST) {
+    if (stage->round == PSA_JPAKE_FIRST) {
         if (stage->count < 1) {
             switch (stage->step) {
                 case PSA_PAKE_STEP_KEY_SHARE:
@@ -7614,8 +7614,8 @@ static psa_crypto_driver_pake_step_t convert_jpake_computation_stage_to_driver_s
                     return PSA_JPAKE_STEP_INVALID;
             }
         }
-    } else if (stage->round == SECOND) {
-        if (stage->mode == OUTPUT) {
+    } else if (stage->round == PSA_JPAKE_SECOND) {
+        if (stage->mode == PSA_JPAKE_OUTPUT) {
             switch (stage->step) {
                 case PSA_PAKE_STEP_KEY_SHARE:
                     return PSA_JPAKE_X2S_STEP_KEY_SHARE;
@@ -7680,8 +7680,8 @@ static psa_status_t psa_pake_complete_inputs(
             operation->stage = PSA_PAKE_OPERATION_STAGE_COMPUTATION;
             psa_jpake_computation_stage_t *computation_stage =
                 &operation->computation_stage.jpake;
-            computation_stage->round = FIRST;
-            computation_stage->mode = OUTPUT;
+            computation_stage->round = PSA_JPAKE_FIRST;
+            computation_stage->mode = PSA_JPAKE_OUTPUT;
             computation_stage->count = 0;
             computation_stage->step = PSA_PAKE_STEP_KEY_SHARE;
         } else
@@ -7708,8 +7708,8 @@ static psa_status_t psa_jpake_prologue(
     psa_jpake_computation_stage_t *computation_stage =
         &operation->computation_stage.jpake;
 
-    if (computation_stage->round != FIRST &&
-        computation_stage->round != SECOND) {
+    if (computation_stage->round != PSA_JPAKE_FIRST &&
+        computation_stage->round != PSA_JPAKE_SECOND) {
         return PSA_ERROR_BAD_STATE;
     }
 
@@ -7725,7 +7725,7 @@ static psa_status_t psa_jpake_prologue(
 
     /* Check that we do not already have enough inputs/outputs
      * this round */
-    if (function_mode == INPUT) {
+    if (function_mode == PSA_JPAKE_INPUT) {
         if (computation_stage->count >=
             PSA_JPAKE_EXPECTED_INPUTS(computation_stage->round)) {
             return PSA_ERROR_BAD_STATE;
@@ -7749,17 +7749,17 @@ static psa_status_t psa_jpake_epilogue(
     if (stage->step == PSA_PAKE_STEP_ZK_PROOF) {
         stage->count++;
         /* End of an input/output */
-        if (function_mode == OUTPUT) {
+        if (function_mode == PSA_JPAKE_OUTPUT) {
             if (stage->count >= PSA_JPAKE_EXPECTED_OUTPUTS(stage->round)) {
                 /* Outputs finished, switch to input */
-                stage->mode = INPUT;
+                stage->mode = PSA_JPAKE_INPUT;
                 stage->count = 0;
             }
         } else {
             if (stage->count >= PSA_JPAKE_EXPECTED_INPUTS(stage->round)) {
                 /* Inputs finished, end of a round */
                 stage->round++;
-                stage->mode = OUTPUT;
+                stage->mode = PSA_JPAKE_OUTPUT;
                 stage->count = 0;
             }
         }
@@ -7803,7 +7803,7 @@ psa_status_t psa_pake_output(
     switch (operation->alg) {
 #if defined(PSA_WANT_ALG_JPAKE)
         case PSA_ALG_JPAKE:
-            status = psa_jpake_prologue(operation, step, OUTPUT);
+            status = psa_jpake_prologue(operation, step, PSA_JPAKE_OUTPUT);
             if (status != PSA_SUCCESS) {
                 goto exit;
             }
@@ -7827,7 +7827,7 @@ psa_status_t psa_pake_output(
     switch (operation->alg) {
 #if defined(PSA_WANT_ALG_JPAKE)
         case PSA_ALG_JPAKE:
-            status = psa_jpake_epilogue(operation, OUTPUT);
+            status = psa_jpake_epilogue(operation, PSA_JPAKE_OUTPUT);
             if (status != PSA_SUCCESS) {
                 goto exit;
             }
@@ -7876,7 +7876,7 @@ psa_status_t psa_pake_input(
     switch (operation->alg) {
 #if defined(PSA_WANT_ALG_JPAKE)
         case PSA_ALG_JPAKE:
-            status = psa_jpake_prologue(operation, step, INPUT);
+            status = psa_jpake_prologue(operation, step, PSA_JPAKE_INPUT);
             if (status != PSA_SUCCESS) {
                 goto exit;
             }
@@ -7900,7 +7900,7 @@ psa_status_t psa_pake_input(
     switch (operation->alg) {
 #if defined(PSA_WANT_ALG_JPAKE)
         case PSA_ALG_JPAKE:
-            status = psa_jpake_epilogue(operation, INPUT);
+            status = psa_jpake_epilogue(operation, PSA_JPAKE_INPUT);
             if (status != PSA_SUCCESS) {
                 goto exit;
             }
@@ -7935,7 +7935,7 @@ psa_status_t psa_pake_get_implicit_key(
     if (operation->alg == PSA_ALG_JPAKE) {
         psa_jpake_computation_stage_t *computation_stage =
             &operation->computation_stage.jpake;
-        if (computation_stage->round != FINISHED) {
+        if (computation_stage->round != PSA_JPAKE_FINISHED) {
             status = PSA_ERROR_BAD_STATE;
             goto exit;
         }

@@ -656,8 +656,12 @@ int mbedtls_x509_crt_verify_info(char *buf, size_t size, const char *prefix,
  * \param cn       The expected Common Name. This will be checked to be
  *                 present in the certificate's subjectAltNames extension or,
  *                 if this extension is absent, as a CN component in its
- *                 Subject name. DNS names and IP addresses are supported. This
- *                 may be \c NULL if the CN need not be verified.
+ *                 Subject name. DNS names and IP addresses are fully
+ *                 supported, while the URI subtype is partially supported:
+ *                 only exact matching, without any normalization procedures
+ *                 described in 7.4 of RFC5280, will result in a positive
+ *                 URI verification.
+ *                 This may be \c NULL if the CN need not be verified.
  * \param flags    The address at which to store the result of the verification.
  *                 If the verification couldn't be completed, the flag value is
  *                 set to (uint32_t) -1.

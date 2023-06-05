@@ -8867,11 +8867,17 @@ unsigned int mbedtls_ssl_tls12_get_preferred_hash_for_sig_alg(
             MBEDTLS_SSL_TLS12_SIG_ALG_FROM_SIG_AND_HASH_ALG(
                 received_sig_algs[i]);
 
+        mbedtls_md_type_t md_alg =
+            mbedtls_ssl_md_alg_from_hash((unsigned char) hash_alg_received);
+        if (md_alg == MBEDTLS_MD_NONE) {
+            continue;
+        }
+
         if (sig_alg == sig_alg_received) {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
             if (ssl->handshake->key_cert && ssl->handshake->key_cert->key) {
                 psa_algorithm_t psa_hash_alg =
-                    mbedtls_md_psa_alg_from_type(hash_alg_received);
+                    mbedtls_md_psa_alg_from_type(md_alg);
 
                 if (sig_alg_received == MBEDTLS_SSL_SIG_ECDSA &&
                     !mbedtls_pk_can_do_ext(ssl->handshake->key_cert->key,

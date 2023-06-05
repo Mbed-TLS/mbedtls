@@ -296,7 +296,13 @@ TASKS = {
                     'PSA key derivation: bits=7 invalid for ECC SECT_K1 (ECC enabled)',
                     'PSA key derivation: bits=7 invalid for ECC SECT_R1 (ECC enabled)',
                     'PSA key derivation: bits=7 invalid for ECC SECT_R2 (ECC enabled)',
-                ]
+                ],
+                'test_suite_pkparse': [
+                    # See description provided for the analyze_driver_vs_reference_all_ec_algs
+                    # case above.
+                    ('Key ASN1 (OneAsymmetricKey X25519, doesn\'t match masking '
+                     'requirements, from RFC8410 Appendix A but made into version 0)'),
+                ],
             }
         }
     },

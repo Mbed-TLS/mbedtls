@@ -60,7 +60,7 @@ typedef struct mbedtls_x509_csr {
 
     unsigned int key_usage;     /**< Optional key usage extension value: See the values in x509.h */
     unsigned char ns_cert_type; /**< Optional Netscape certificate type extension value: See the values in x509.h */
-    mbedtls_x509_sequence subject_alt_names;    /**< Optional list of raw entries of Subject Alternative Names extension (currently only dNSName and OtherName are listed). */
+    mbedtls_x509_sequence subject_alt_names; /**< Optional list of raw entries of Subject Alternative Names extension. These can be later parsed by mbedtls_x509_parse_subject_alt_name. */
 
     int MBEDTLS_PRIVATE(ext_types);              /**< Bit string containing detected and parsed extensions */
 

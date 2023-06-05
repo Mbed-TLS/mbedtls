@@ -304,7 +304,7 @@ mbedtls_x509_san_other_name;
 typedef struct mbedtls_x509_subject_alternative_name {
     int type;                              /**< The SAN type, value of MBEDTLS_X509_SAN_XXX. */
     union {
-        mbedtls_x509_san_other_name other_name; /**< The otherName supported type. */
+        mbedtls_x509_san_other_name other_name;
         mbedtls_x509_name directory_name;
         mbedtls_x509_buf unstructured_name; /**< The buffer for the unstructured types. rfc822Name, dnsName and uniformResourceIdentifier are currently supported. */
     }
@@ -407,7 +407,8 @@ int mbedtls_x509_time_is_future(const mbedtls_x509_time *from);
  *                 of the subject alternative name encoded in \p san_raw.
  *
  * \note           Supported GeneralName types, as defined in RFC 5280:
- *                 "rfc822Name", "dnsName", "uniformResourceIdentifier" and "hardware_module_name"
+ *                 "rfc822Name", "dnsName", "directoryName",
+ *                 "uniformResourceIdentifier" and "hardware_module_name"
  *                 of type "otherName", as defined in RFC 4108.
  *
  * \note           This function should be called on a single raw data of

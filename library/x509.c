@@ -1215,9 +1215,9 @@ int mbedtls_x509_get_subject_alt_name_ext(unsigned char **p,
     mbedtls_asn1_sequence *cur = subject_alt_name;
 
     while (*p < end) {
-        mbedtls_x509_subject_alternative_name dummy_san_buf;
+        mbedtls_x509_subject_alternative_name tmp_san_name;
         mbedtls_x509_buf tmp_san_buf;
-        memset(&dummy_san_buf, 0, sizeof(dummy_san_buf));
+        memset(&tmp_san_name, 0, sizeof(tmp_san_name));
 
         tmp_san_buf.tag = **p;
         (*p)++;
@@ -1236,9 +1236,10 @@ int mbedtls_x509_get_subject_alt_name_ext(unsigned char **p,
         }
 
         /*
-         * Check that the SAN is structured correctly.
+         * Check that the SAN is structured correctly by parsing it.
+         * The SAN structure is discarded afterwards.
          */
-        ret = mbedtls_x509_parse_subject_alt_name(&tmp_san_buf, &dummy_san_buf);
+        ret = mbedtls_x509_parse_subject_alt_name(&tmp_san_buf, &tmp_san_name);
         /*
          * In case the extension is malformed, return an error,
          * and clear the allocated sequences.
@@ -1249,7 +1250,7 @@ int mbedtls_x509_get_subject_alt_name_ext(unsigned char **p,
             return ret;
         }
 
-        mbedtls_x509_free_subject_alt_name(&dummy_san_buf);
+        mbedtls_x509_free_subject_alt_name(&tmp_san_name);
         /* Allocate and assign next pointer */
         if (cur->buf.p != NULL) {
             if (cur->next != NULL) {
@@ -1439,7 +1440,7 @@ int mbedtls_x509_parse_subject_alt_name(const mbedtls_x509_buf *san_buf,
         break;
 
         /*
-         * RFC822 Name
+         * rfc822Name
          */
         case (MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_RFC822_NAME):
         {

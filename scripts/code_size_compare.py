@@ -170,6 +170,13 @@ class CodeSizeInfo:
                 return 'make -j lib CC={CC} \
                         CFLAGS=\'--target=aarch64-arm-none-eabi -Os \' ' \
                        .format(CC=self.c_compiler)
+            elif self.arch == SupportedArch.AARCH32.value and \
+                    self.default_armclang in self.c_compiler:
+                self.tweak_config = True
+                return 'make -j lib CC={CC} \
+                        CFLAGS=\'--target=arm-arm-none-eabi -Os \' ' \
+                       .format(CC=self.c_compiler)
+
         elif self.arch == SupportedArch.ARMV8_M.value and \
              self.config == SupportedConfig.TFM_MEDIUM.value:
             return \

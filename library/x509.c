@@ -1445,9 +1445,13 @@ int mbedtls_x509_parse_subject_alt_name(const mbedtls_x509_buf *san_buf,
         {
             memset(san, 0, sizeof(mbedtls_x509_subject_alternative_name));
             san->type = MBEDTLS_X509_SAN_IP_ADDRESS;
-
-            memcpy(&san->san.unstructured_name,
-                   san_buf, sizeof(*san_buf));
+            // Only IPv6 (16 bytes) and IPv4 (4 bytes) types are supported
+            if (san_buf->len == 4 || san_buf->len == 16) {
+                memcpy(&san->san.unstructured_name,
+                       san_buf, sizeof(*san_buf));
+            } else {
+                return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
+            }
         }
         break;
         /*
@@ -1574,7 +1578,9 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
                 ret = mbedtls_snprintf(p, n, "\n%s    uniformResourceIdentifier : ", prefix);
                 MBEDTLS_X509_SAFE_SNPRINTF;
                 if (san.san.unstructured_name.len >= n) {
-                    *p = '\0';
+                    if (n > 0) {
+                        *p = '\0';
+                    }
                     return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
                 }
 
@@ -1601,7 +1607,9 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
                                        MBEDTLS_X509_SAN_DNS_NAME ? dns_name : rfc822_name);
                 MBEDTLS_X509_SAFE_SNPRINTF;
                 if (san.san.unstructured_name.len >= n) {
-                    *p = '\0';
+                    if (n > 0) {
+                        *p = '\0';
+                    }
                     return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
                 }
 
@@ -1619,7 +1627,9 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
                                        prefix, "iPAddress");
                 MBEDTLS_X509_SAFE_SNPRINTF;
                 if (san.san.unstructured_name.len >= n) {
-                    *p = '\0';
+                    if (n > 0) {
+                        *p = '\0';
+                    }
                     return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
                 }
 
@@ -1627,12 +1637,17 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
                 unsigned char *ip = san.san.unstructured_name.p;
                 // Only IPv6 (16 bytes) and IPv4 (4 bytes) types are supported
                 if (san.san.unstructured_name.len == 4) {
-                    len = sprintf(p, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+                    len = mbedtls_snprintf(p, n, "%u.%u.%u.%u", ip[0], ip[1], ip[2], ip[3]);
                 } else if (san.san.unstructured_name.len == 16) {
-                    len = sprintf(p, "%X%X:%X%X:%X%X:%X%X:%X%X:%X%X:%X%X:%X%X",
-                                  ip[0], ip[1], ip[2], ip[3], ip[4], ip[5], ip[6], ip[7], ip[8],
-                                  ip[9], ip[10], ip[11], ip[12], ip[13], ip[14], ip[15]);
+                    len = mbedtls_snprintf(p, n,
+                                           "%X%X:%X%X:%X%X:%X%X:%X%X:%X%X:%X%X:%X%X",
+                                           ip[0], ip[1], ip[2], ip[3], ip[4], ip[5], ip[6],
+                                           ip[7], ip[8], ip[9], ip[10], ip[11], ip[12],ip[13],
+                                           ip[14], ip[15]);
                 } else {
+                    if (n > 0) {
+                        *p = '\0';
+                    }
                     return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
                 }
                 p += len;
@@ -1654,6 +1669,9 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
 
                 if (ret < 0) {
                     mbedtls_x509_free_subject_alt_name(&san);
+                    if (n > 0) {
+                        *p = '\0';
+                    }
                     return ret;
                 }
 

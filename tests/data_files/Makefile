@@ -1019,8 +1019,8 @@ ec_x25519_prv.pem: ec_x25519_prv.der
 	$(OPENSSL) pkey -in $< -inform DER -out $@
 all_final += ec_x25519_prv.pem
 
-ec_x25519_pub.pem: ec_x25519_pub.der
-	$(OPENSSL) pkey -in $< -inform DER -out $@ -pubin
+ec_x25519_pub.pem: ec_x25519_prv.der
+	$(OPENSSL) pkey -in $< -inform DER -out $@ -pubout
 all_final += ec_x25519_pub.pem
 
 ec_x448_prv.der:
@@ -1035,8 +1035,8 @@ ec_x448_prv.pem: ec_x448_prv.der
 	$(OPENSSL) pkey -in $< -inform DER -out $@
 all_final += ec_x448_prv.pem
 
-ec_x448_pub.pem: ec_x448_pub.der
-	$(OPENSSL) pkey -in $< -inform DER -out $@ -pubin
+ec_x448_pub.pem: ec_x448_prv.der
+	$(OPENSSL) pkey -in $< -inform DER -out $@ -pubout
 all_final += ec_x448_pub.pem
 
 ################################################################

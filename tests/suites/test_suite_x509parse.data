@@ -191,8 +191,8 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA256
 x509_cert_info:"data_files/parse_input/non-ascii-string-in-issuer.crt":"cert. version     \: 3\nserial number     \: 05\:E6\:53\:E7\:1B\:74\:F0\:B5\:D3\:84\:6D\:0C\:6D\:DC\:FA\:3F\:A4\:5A\:2B\:E0\nissuer name       \: C=JP, ST=Tokyo, O=?????????????????? Ltd, CN=?????????????????? CA\nsubject name      \: C=JP, ST=Tokyo, O=?????????????????? Ltd, CN=?????????????????? CA\nissued  on        \: 2020-05-20 16\:17\:23\nexpires on        \: 2020-06-19 16\:17\:23\nsigned using      \: RSA with SHA-256\nRSA key size      \: 2048 bits\nbasic constraints \: CA=true\n"
 
 X509 CRT information Parsing IPv4 and IPv6 IP names
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C
-x509_cert_info:"data_files/server5-tricky-ip-san.crt":"cert. version     \: 3\nserial number     \: 4D\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS Tricky IP SAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS Tricky IP SAN\nissued  on        \: 2020-07-23 10\:27\:46\nexpires on        \: 2030-07-21 10\:27\:46\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\nsubject alt name  \:\n    iPAddress \: 97.98.99.100\n    iPAddress \: 6162\:6364\:2E65\:7861\:6D70\:6C65\:2E63\:6F6D\n"
+depends_on:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C
+x509_cert_info:"data_files/server5-tricky-ip-san.crt.der":"cert. version     \: 3\nserial number     \: 4D\nissuer name       \: C=UK, O=Mbed TLS, CN=Mbed TLS Tricky IP SAN\nsubject name      \: C=UK, O=Mbed TLS, CN=Mbed TLS Tricky IP SAN\nissued  on        \: 2023-06-05 11\:30\:36\nexpires on        \: 2033-06-02 11\:30\:36\nsigned using      \: ECDSA with SHA256\nEC key size       \: 256 bits\nsubject alt name  \:\n    iPAddress \: 97.98.99.100\n    iPAddress \: 6162\:6364\:2E65\:7861\:6D70\:6C65\:2E63\:6F6D\n"
 
 X509 SAN parsing otherName
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256
@@ -233,6 +233,10 @@ x509_parse_san:"data_files/parse_input/server5-unsupported_othername.crt":"":0
 X509 SAN parsing rfc822Name
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD_CAN_SHA256
 x509_parse_san:"data_files/parse_input/test_cert_rfc822name.crt.der":"type \: 1\nrfc822Name \: my@other.address\ntype \: 1\nrfc822Name \: second@other.address\n":0
+
+X509 CRT information Parsing IP (invalid data)
+depends_on:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C
+x509_parse_san:"data_files/server5-tricky-ip-san-malformed-len.crt.der":"":MBEDTLS_ERR_X509_BAD_INPUT_DATA
 
 X509 CRL information #1
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO
@@ -1020,32 +1024,32 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_MD_CAN_SHA1:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V
 x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl-futureRevocationDate.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_REVOKED:"compat":"NULL"
 
 X509 CRT verification: domain identical to IPv4 in SubjectAltName
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C
-x509_verify:"data_files/server5-tricky-ip-san.crt":"data_files/server5-tricky-ip-san.crt":"data_files/crl_sha256.pem":"abcd":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"":"NULL"
+depends_on:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C
+x509_verify:"data_files/server5-tricky-ip-san.crt.der":"data_files/server5-tricky-ip-san.crt.der":"data_files/crl_sha256.pem":"abcd":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"":"NULL"
 
 X509 CRT verification: domain identical to IPv6 in SubjectAltName
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C
-x509_verify:"data_files/server5-tricky-ip-san.crt":"data_files/server5-tricky-ip-san.crt":"data_files/crl_sha256.pem":"abcd.example.com":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"":"NULL"
+depends_on:MBEDTLS_PK_CAN_ECDSA_VERIFY:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C
+x509_verify:"data_files/server5-tricky-ip-san.crt.der":"data_files/server5-tricky-ip-san.crt.der":"data_files/crl_sha256.pem":"abcd.example.com":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"":"NULL"
 
 X509 CRT verification: matching IPv4 in SubjectAltName
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C
-x509_verify:"data_files/server5-tricky-ip-san.crt":"data_files/server5-tricky-ip-san.crt":"data_files/crl_sha256.pem":"97.98.99.100":0:0:"":"NULL"
+depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C
+x509_verify:"data_files/server5-tricky-ip-san.crt.der":"data_files/server5-tricky-ip-san.crt.der":"data_files/crl_sha256.pem":"97.98.99.100":0:0:"":"NULL"
 
 X509 CRT verification: mismatching IPv4 in SubjectAltName
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C
-x509_verify:"data_files/server5-tricky-ip-san.crt":"data_files/server5-tricky-ip-san.crt":"data_files/crl_sha256.pem":"7.8.9.10":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"":"NULL"
+depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C
+x509_verify:"data_files/server5-tricky-ip-san.crt.der":"data_files/server5-tricky-ip-san.crt.der":"data_files/crl_sha256.pem":"7.8.9.10":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"":"NULL"
 
 X509 CRT verification: IPv4 with trailing data in SubjectAltName
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C
-x509_verify:"data_files/server5-tricky-ip-san.crt":"data_files/server5-tricky-ip-san.crt":"data_files/crl_sha256.pem":"97.98.99.100?":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"":"NULL"
+depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C
+x509_verify:"data_files/server5-tricky-ip-san.crt.der":"data_files/server5-tricky-ip-san.crt.der":"data_files/crl_sha256.pem":"97.98.99.100?":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"":"NULL"
 
 X509 CRT verification: matching IPv6 in SubjectAltName
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C
-x509_verify:"data_files/server5-tricky-ip-san.crt":"data_files/server5-tricky-ip-san.crt":"data_files/crl_sha256.pem":"6162\:6364\:2E65\:7861\:6D70\:6C65\:2E63\:6F6D":0:0:"":"NULL"
+depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C
+x509_verify:"data_files/server5-tricky-ip-san.crt.der":"data_files/server5-tricky-ip-san.crt.der":"data_files/crl_sha256.pem":"6162\:6364\:2E65\:7861\:6D70\:6C65\:2E63\:6F6D":0:0:"":"NULL"
 
 X509 CRT verification: mismatching IPv6 in SubjectAltName
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C
-x509_verify:"data_files/server5-tricky-ip-san.crt":"data_files/server5-tricky-ip-san.crt":"data_files/crl_sha256.pem":"6162\:6364\:\:6F6D":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"":"NULL"
+depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C
+x509_verify:"data_files/server5-tricky-ip-san.crt.der":"data_files/server5-tricky-ip-san.crt.der":"data_files/crl_sha256.pem":"6162\:6364\:\:6F6D":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"":"NULL"
 
 X509 CRT verification: matching URI in SubjectAltName
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_MD_CAN_SHA256:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C

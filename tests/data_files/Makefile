@@ -339,8 +339,12 @@ server5-unsupported_othername.crt: server5.key
 server5-fan.crt: server5.key
 	$(OPENSSL) req -x509 -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS FAN" -set_serial 77 -config $(test_ca_config_file) -extensions fan_cert -days 3650 -sha256 -key server5.key -out $@
 
-server5-tricky-ip-san.crt: server5.key
-	$(OPENSSL) req -x509 -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS Tricky IP SAN" -set_serial 77 -config $(test_ca_config_file) -extensions tricky_ip_san -days 3650 -sha256 -key server5.key -out $@
+server5-tricky-ip-san.crt.der: server5.key
+	$(OPENSSL) req -x509 -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS Tricky IP SAN" -set_serial 77 -config $(test_ca_config_file) -extensions tricky_ip_san -days 3650 -sha256 -key server5.key -outform der -out $@
+
+# malformed IP length
+server5-tricky-ip-san-malformed-len.crt.der: server5-tricky-ip-san.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/87046162636487106162/87056162636487106162/" | xxd -r -p > $@
 
 server5-directoryname.crt.der: server5.key
 	$(OPENSSL) req -x509 -outform der -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS directoryName SAN" -set_serial 77 -config $(test_ca_config_file) -extensions directory_name_san -days 3650 -sha256 -key server5.key -out $@

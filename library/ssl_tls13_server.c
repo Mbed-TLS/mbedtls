@@ -1846,7 +1846,7 @@ static int ssl_tls13_prepare_server_hello(mbedtls_ssl_context *ssl)
                           MBEDTLS_SERVER_HELLO_RANDOM_LEN);
 
 #if defined(MBEDTLS_HAVE_TIME)
-    ssl->session_negotiate->start = time(NULL);
+    ssl->session_negotiate->start = mbedtls_time(NULL);
 #endif /* MBEDTLS_HAVE_TIME */
 
     return ret;

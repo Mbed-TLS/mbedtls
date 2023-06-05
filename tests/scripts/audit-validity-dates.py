@@ -34,21 +34,13 @@ import logging
 import hashlib
 from enum import Enum
 
-# The script requires cryptography >= 35.0.0 which is only available
-# for Python >= 3.6.
-import cryptography
-from cryptography import x509
+from asn1crypto import pem, x509, crl, csr # type: ignore
 
 from generate_test_code import FileWrapper
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import build_tree
 
-def check_cryptography_version():
-    match = re.match(r'^[0-9]+', cryptography.__version__)
-    if match is None or int(match.group(0)) < 35:
-        raise Exception("audit-validity-dates requires cryptography >= 35.0.0"
-                        + "({} is too old)".format(cryptography.__version__))
 
 class DataType(Enum):
     CRT = 1 # Certificate
@@ -61,6 +53,32 @@ class DataFormat(Enum):
     DER = 2 # Distinguished Encoding Rules
 
 
+def get_asn1crypto_parser():
+    """Generate parsers that use asn1crypto lib."""
+    backends = {
+        DataType.CRT: x509.Certificate.load,
+        DataType.CRL: crl.CertificateList.load,
+        DataType.CSR: csr.CertificationRequest.load
+    }
+
+    def generate_wrapper(t: DataType, f: DataFormat):
+        def wrapper(data: bytes):
+            if f == DataFormat.PEM:
+                _, _, data = pem.unarmor(data)
+            obj = backends[t](data)
+            obj._set_contents(1) # #pylint: disable=protected-access
+            return obj
+        wrapper.__name__ = "ans1crypto.wrapper[{}][{}]".format(t, f)
+        return wrapper
+
+    wrappers = dict()
+    for t in DataType:
+        wrappers[t] = dict()
+        for f in DataFormat:
+            wrappers[t][f] = generate_wrapper(t, f)
+    return wrappers
+
+
 class AuditData:
     """Store data location, type and validity period of X.509 objects."""
     #pylint: disable=too-few-public-methods
@@ -70,8 +88,7 @@ class AuditData:
         self.locations = [] # type: typing.List[str]
         self.fill_validity_duration(x509_obj)
         self._obj = x509_obj
-        encoding = cryptography.hazmat.primitives.serialization.Encoding.DER
-        self._identifier = hashlib.sha1(self._obj.public_bytes(encoding)).hexdigest()
+        self._identifier = hashlib.sha1(self._obj.dump()).hexdigest()
 
     @property
     def identifier(self):
@@ -86,13 +103,13 @@ class AuditData:
         # Certificate expires after "not_valid_after"
         # Certificate is invalid before "not_valid_before"
         if self.data_type == DataType.CRT:
-            self.not_valid_after = x509_obj.not_valid_after.replace(tzinfo=datetime.timezone.utc)
-            self.not_valid_before = x509_obj.not_valid_before.replace(tzinfo=datetime.timezone.utc)
+            self.not_valid_after = x509_obj.not_valid_after
+            self.not_valid_before = x509_obj.not_valid_before
         # CertificateRevocationList expires after "next_update"
         # CertificateRevocationList is invalid before "last_update"
         elif self.data_type == DataType.CRL:
-            self.not_valid_after = x509_obj.next_update.replace(tzinfo=datetime.timezone.utc)
-            self.not_valid_before = x509_obj.last_update.replace(tzinfo=datetime.timezone.utc)
+            self.not_valid_after = x509_obj['tbs_cert_list']['next_update'].native
+            self.not_valid_before = x509_obj['tbs_cert_list']['this_update'].native
         # CertificateSigningRequest is always valid.
         elif self.data_type == DataType.CSR:
             self.not_valid_after = datetime.datetime.max.replace(tzinfo=datetime.timezone.utc)
@@ -211,20 +228,7 @@ class Auditor:
     def __init__(self, logger):
         self.logger = logger
         self.default_files = self.collect_default_files()
-        self.parser = X509Parser({
-            DataType.CRT: {
-                DataFormat.PEM: x509.load_pem_x509_certificate,
-                DataFormat.DER: x509.load_der_x509_certificate
-            },
-            DataType.CRL: {
-                DataFormat.PEM: x509.load_pem_x509_crl,
-                DataFormat.DER: x509.load_der_x509_crl
-            },
-            DataType.CSR: {
-                DataFormat.PEM: x509.load_pem_x509_csr,
-                DataFormat.DER: x509.load_der_x509_csr
-            },
-        })
+        self.parser = X509Parser(get_asn1crypto_parser())
 
     def collect_default_files(self) -> typing.List[str]:
         """Collect the default files for parsing."""
@@ -510,6 +514,5 @@ def main():
 
     logger.debug("Done!")
 
-check_cryptography_version()
 if __name__ == "__main__":
     main()

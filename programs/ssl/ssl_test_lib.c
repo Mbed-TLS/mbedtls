@@ -479,4 +479,69 @@ const uint16_t *mbedtls_ssl_ffdh_supported_groups(void)
     return ffdh_groups;
 }
 
+#if defined(MBEDTLS_ECP_LIGHT) || \
+    (defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
+    defined(PSA_WANT_ALG_FFDH))
+int parse_curves(const char *curves, uint16_t *group_list, size_t group_list_len)
+{
+    char *p = (char *) curves;
+    char *q = NULL;
+    size_t i = 0;
+    const mbedtls_ecp_curve_info *curve_cur = NULL;
+
+    if (strcmp(p, "none") == 0) {
+        group_list[0] = 0;
+    } else if (strcmp(p, "default") != 0) {
+        /* Leave room for a final NULL in curve list */
+        while (i < group_list_len - 1 && *p != '\0') {
+            q = p;
+            uint16_t ffdh_group = 0;
+
+            /* Terminate the current string */
+            while (*p != ',' && *p != '\0') {
+                p++;
+            }
+            if (*p == ',') {
+                *p++ = '\0';
+            }
+
+            if ((curve_cur = mbedtls_ecp_curve_info_from_name(q)) != NULL) {
+                group_list[i++] = curve_cur->tls_id;
+            } else if ((ffdh_group = mbedtls_ssl_ffdh_group_from_name(q)) != 0) {
+                group_list[i++] = ffdh_group;
+            } else {
+                mbedtls_printf("unknown curve %s\n", q);
+                mbedtls_printf("supported curves: ");
+                for (curve_cur = mbedtls_ecp_curve_list();
+                     curve_cur->grp_id != MBEDTLS_ECP_DP_NONE;
+                     curve_cur++) {
+                    mbedtls_printf("%s ", curve_cur->name);
+                }
+                const uint16_t *supported_ffdh_group = mbedtls_ssl_ffdh_supported_groups();
+                while (*supported_ffdh_group != 0) {
+                    mbedtls_printf("%s ",
+                                   mbedtls_ssl_ffdh_name_from_group(*supported_ffdh_group));
+                    supported_ffdh_group++;
+                }
+                mbedtls_printf("\n");
+                return -1;
+            }
+        }
+
+        mbedtls_printf("Number of curves: %u\n", (unsigned int) i);
+
+        if (i == group_list_len - 1 && *p != '\0') {
+            mbedtls_printf("curves list too long, maximum %u",
+                           (unsigned int) (group_list_len - 1));
+            return -1;
+        }
+
+        group_list[i] = 0;
+    }
+
+    return 0;
+}
+#endif /* MBEDTLS_ECP_LIGHT ||
+          (MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED && PSA_WANT_ALG_FFDH) */
+
 #endif /* !defined(MBEDTLS_SSL_TEST_IMPOSSIBLE) */

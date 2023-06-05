@@ -1579,7 +1579,6 @@ int mbedtls_ssl_tls13_generate_and_write_dh_key_exchange(
     }
 
     if (buf_size < PSA_BITS_TO_BYTES(bits)) {
-
         return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
     }
 

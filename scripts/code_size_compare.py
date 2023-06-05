@@ -47,6 +47,7 @@ CONFIG_TFM_MEDIUM_PSA_CRYPTO_H = "../configs/crypto_config_profile_medium.h"
 class SupportedConfig(Enum):
     """Supported configuration for code size measurement."""
     DEFAULT = 'default'
+    FULL = 'full'
     TFM_MEDIUM = 'tfm-medium'
 
 # Static library
@@ -74,6 +75,22 @@ ARCH_CONFIG_DICT = {
     'unset': ARCH_CONFIG_UNSET_FROM_DEFAULT,
 }
 
+# Configurations need to be tweaked for aarch32/aarch64 with armclang
+# ARCH_CONFIG_SET_FROM_DEFAULT = frozenset([
+    # 'MBEDTLS_NO_PLATFORM_ENTROPY'
+# ])
+# ARCH_CONFIG_UNSET_FROM_DEFAULT = frozenset([
+    # 'MBEDTLS_THREADING_PTHREAD',
+    # 'MBEDTLS_THREADING_C',
+    # 'MBEDTLS_HAVE_TIME',
+    # 'MBEDTLS_HAVE_TIME_DATE',
+    # 'MBEDTLS_PLATFORM_TIME_ALT',
+# ])
+# ARCH_CONFIG_DICT = {
+    # 'set': ARCH_CONFIG_SET_FROM_DEFAULT,
+    # 'unset': ARCH_CONFIG_UNSET_FROM_DEFAULT,
+# }
+
 DETECT_ARCH_CMD = "cc -dM -E - < /dev/null"
 def detect_arch() -> str:
     """Auto-detect host architecture."""
@@ -96,6 +113,12 @@ class CodeSizeInfo:
     It collects information about architecture, configuration in order to
     infer build command for code size measurement.
     """
+
+    PRE_MAKE_CMD = {
+        SupportedConfig.DEFAULT.value: '',
+        SupportedConfig.FULL.value: 'scripts/config.py full',
+        SupportedConfig.TFM_MEDIUM.value: ''
+    }
 
     SupportedArchConfig = [
         "-a " + SupportedArch.AARCH64.value + " -c " + SupportedConfig.DEFAULT.value,
@@ -127,6 +150,7 @@ class CodeSizeInfo:
         self.default_clang = 'clang'
         self.default_armclang = 'armclang'
         self.tweak_config = False
+        self.pre_make_command = ''
         self.c_compiler = self.set_c_compiler(c_compiler)
         self.make_command = self.set_make_command()
 
@@ -135,6 +159,18 @@ class CodeSizeInfo:
 
         # Comment TODO: handle default config
         if self.config == SupportedConfig.DEFAULT.value:
+            if c_compiler:
+                if self.default_armclang in c_compiler and \
+                    (self.arch != SupportedArch.AARCH64.value and \
+                     self.arch != SupportedArch.AARCH32.value):
+                    print("Error: armclang is not supported on:", self.arch)
+                    sys.exit(1)
+                else:
+                    return c_compiler
+
+        # Comment TODO: handle full config
+        if self.config == SupportedConfig.FULL.value:
+            self.pre_make_command = CodeSizeInfo.PRE_MAKE_CMD[self.config]
             if c_compiler:
                 if self.default_armclang in c_compiler and \
                     (self.arch != SupportedArch.AARCH64.value and \
@@ -160,7 +196,9 @@ class CodeSizeInfo:
     def set_make_command(self) -> str:
         """Infer build command based on architecture and configuration."""
 
-        if self.config == SupportedConfig.DEFAULT.value:
+        # Comment TODO: handle default / full config
+        if self.config == SupportedConfig.DEFAULT.value or \
+            self.config == SupportedConfig.FULL.value:
             if self.arch == self.sys_arch and self.c_compiler:
                 return 'make -j lib CC={CC} CFLAGS=\'-Os \' ' \
                        .format(CC=self.c_compiler)
@@ -177,6 +215,7 @@ class CodeSizeInfo:
                         CFLAGS=\'--target=arm-arm-none-eabi -Os \' ' \
                        .format(CC=self.c_compiler)
 
+        # Comment TODO: handle tfm-medium config
         elif self.arch == SupportedArch.ARMV8_M.value and \
              self.config == SupportedConfig.TFM_MEDIUM.value:
             return \
@@ -350,6 +389,7 @@ class CodeSizeComparison(CodeSizeBase):
         self.new_rev = new_revision
         self.git_command = "git"
         self.tweak_config = code_size_info.tweak_config
+        self.pre_make_command = code_size_info.pre_make_command
         self.make_command = code_size_info.make_command
         self.fname_suffix = "-" + \
                             code_size_info.arch + "-" + \
@@ -404,6 +444,15 @@ class CodeSizeComparison(CodeSizeBase):
         """Build libraries in the specified worktree."""
 
         my_environment = os.environ.copy()
+        if self.pre_make_command:
+            try:
+                subprocess.check_output(
+                    self.pre_make_command, env=my_environment, shell=True,
+                    cwd=git_worktree_path, stderr=subprocess.STDOUT,
+                )
+            except subprocess.CalledProcessError as e:
+                self._handle_called_process_error(e, git_worktree_path)
+
         if self.tweak_config:
             self._tweak_config(ARCH_CONFIG_DICT, git_worktree_path, True)
         try:

@@ -56,6 +56,24 @@ MBEDTLS_STATIC_LIB = {
     'TLS': 'library/libmbedtls.a',
 }
 
+# Configurations need to be tweaked for aarch32/aarch64 with armclang
+ARCH_CONFIG_SET_FROM_DEFAULT = frozenset([
+    'MBEDTLS_NO_PLATFORM_ENTROPY'
+])
+ARCH_CONFIG_UNSET_FROM_DEFAULT = frozenset([
+    'MBEDTLS_FS_IO',
+    'MBEDTLS_HAVE_TIME',
+    'MBEDTLS_HAVE_TIME_DATE',
+    'MBEDTLS_NET_C',
+    'MBEDTLS_PSA_CRYPTO_STORAGE_C',
+    'MBEDTLS_PSA_ITS_FILE_C',
+    'MBEDTLS_TIMING_C'
+])
+ARCH_CONFIG_DICT = {
+    'set': ARCH_CONFIG_SET_FROM_DEFAULT,
+    'unset': ARCH_CONFIG_UNSET_FROM_DEFAULT,
+}
+
 DETECT_ARCH_CMD = "cc -dM -E - < /dev/null"
 def detect_arch() -> str:
     """Auto-detect host architecture."""
@@ -108,6 +126,7 @@ class CodeSizeInfo:
         self.default_gcc = 'gcc'
         self.default_clang = 'clang'
         self.default_armclang = 'armclang'
+        self.tweak_config = False
         self.c_compiler = self.set_c_compiler(c_compiler)
         self.make_command = self.set_make_command()
 
@@ -141,10 +160,16 @@ class CodeSizeInfo:
     def set_make_command(self) -> str:
         """Infer build command based on architecture and configuration."""
 
-        if self.config == SupportedConfig.DEFAULT.value and \
-            self.arch == self.sys_arch:
-            return 'make -j lib CC={CC} CFLAGS=\'-Os \' ' \
-                    .format(CC=self.c_compiler)
+        if self.config == SupportedConfig.DEFAULT.value:
+            if self.arch == self.sys_arch and self.c_compiler:
+                return 'make -j lib CC={CC} CFLAGS=\'-Os \' ' \
+                       .format(CC=self.c_compiler)
+            elif self.arch == SupportedArch.AARCH64.value and \
+                    self.default_armclang in self.c_compiler:
+                self.tweak_config = True
+                return 'make -j lib CC={CC} \
+                        CFLAGS=\'--target=aarch64-arm-none-eabi -Os \' ' \
+                       .format(CC=self.c_compiler)
         elif self.arch == SupportedArch.ARMV8_M.value and \
              self.config == SupportedConfig.TFM_MEDIUM.value:
             return \
@@ -155,18 +180,18 @@ class CodeSizeInfo:
                  .format(CC=self.c_compiler,
                          MBEDCRYPTO_CONFIG=CONFIG_TFM_MEDIUM_MBEDCRYPTO_H,
                          PSACRYPTO_CONFIG=CONFIG_TFM_MEDIUM_PSA_CRYPTO_H)
-        else:
-            print("Unsupported combination of architecture: {} and configuration: {}"
-                  .format(self.arch, self.config))
-            print("\nPlease use supported combination of architecture and configuration:")
-            for comb in CodeSizeInfo.SupportedArchConfig:
-                print(comb)
-            print("\nFor your system, please use:")
-            for comb in CodeSizeInfo.SupportedArchConfig:
-                if "default" in comb and self.sys_arch not in comb:
-                    continue
-                print(comb)
-            sys.exit(1)
+
+        print("Unsupported combination of architecture: {} and configuration: {}"
+              .format(self.arch, self.config))
+        print("\nPlease use supported combination of architecture and configuration:")
+        for comb in CodeSizeInfo.SupportedArchConfig:
+            print(comb)
+        print("\nFor your system, please use:")
+        for comb in CodeSizeInfo.SupportedArchConfig:
+            if "default" in comb and self.sys_arch not in comb:
+                continue
+            print(comb)
+        sys.exit(1)
 
 class SizeEntry: # pylint: disable=too-few-public-methods
     """Data Structure to only store information of code size."""
@@ -317,6 +342,7 @@ class CodeSizeComparison(CodeSizeBase):
         self.old_rev = old_revision
         self.new_rev = new_revision
         self.git_command = "git"
+        self.tweak_config = code_size_info.tweak_config
         self.make_command = code_size_info.make_command
         self.fname_suffix = "-" + \
                             code_size_info.arch + "-" + \
@@ -347,10 +373,32 @@ class CodeSizeComparison(CodeSizeBase):
 
         return git_worktree_path
 
+    @staticmethod
+    def _tweak_config(
+            config_dict: typing.Dict[str, frozenset],
+            git_worktree_path: str,
+            tweak: bool
+    ) -> None:
+        """Tweak configurations in the specified worktree."""
+        for opt, config_set in config_dict.items():
+            if not tweak:
+                if opt == 'set':
+                    opt = 'unset'
+                else:
+                    opt = 'set'
+            for config in config_set:
+                config_command = "./scripts/config.py " + opt + " " + config
+                subprocess.check_output(
+                    config_command, shell=True,
+                    cwd=git_worktree_path, stderr=subprocess.STDOUT
+                )
+
     def _build_libraries(self, git_worktree_path: str) -> None:
         """Build libraries in the specified worktree."""
 
         my_environment = os.environ.copy()
+        if self.tweak_config:
+            self._tweak_config(ARCH_CONFIG_DICT, git_worktree_path, True)
         try:
             subprocess.check_output(
                 self.make_command, env=my_environment, shell=True,
@@ -358,6 +406,8 @@ class CodeSizeComparison(CodeSizeBase):
             )
         except subprocess.CalledProcessError as e:
             self._handle_called_process_error(e, git_worktree_path)
+        if self.tweak_config:
+            self._tweak_config(ARCH_CONFIG_DICT, git_worktree_path, False)
 
     def _gen_code_size_csv(self, revision: str, git_worktree_path: str) -> None:
         """Generate code size csv file."""

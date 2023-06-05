@@ -5474,6 +5474,63 @@ static psa_status_t psa_key_derivation_tls12_ecjpake_to_pms_read(
 }
 #endif
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
+static psa_status_t psa_key_derivation_pbkdf2_generate_block(
+    psa_pbkdf2_key_derivation_t *pbkdf2,
+    psa_algorithm_t prf_alg,
+    uint8_t prf_output_length,
+    psa_key_attributes_t *attributes)
+{
+    psa_status_t status;
+    size_t mac_output_length;
+    uint8_t U_i[PSA_HASH_MAX_SIZE];
+    uint8_t U_accumulator[PSA_HASH_MAX_SIZE];
+    uint8_t j;
+    uint64_t i;
+
+    uint8_t *input = mbedtls_calloc(pbkdf2->salt_length + 4, 1);
+    memcpy(input, pbkdf2->salt, pbkdf2->salt_length);
+    MBEDTLS_PUT_UINT32_BE(pbkdf2->block_number, input, pbkdf2->salt_length);
+
+    status = psa_driver_wrapper_mac_compute(attributes, pbkdf2->password,
+                                            pbkdf2->password_length, prf_alg,
+                                            input, (pbkdf2->salt_length + 4),
+                                            U_i, prf_output_length,
+                                            &mac_output_length);
+    if (status != PSA_SUCCESS) {
+        goto cleanup;
+    }
+    memcpy(U_accumulator, U_i, mac_output_length);
+
+    for (i = 1; i < pbkdf2->input_cost; i++) {
+        status = psa_driver_wrapper_mac_compute(attributes,
+                                                pbkdf2->password,
+                                                pbkdf2->password_length,
+                                                prf_alg, U_i, prf_output_length,
+                                                U_i, prf_output_length,
+                                                &mac_output_length);
+        if (status != PSA_SUCCESS) {
+            goto cleanup;
+        }
+
+        // U1 xor U2
+        for (j = 0; j < prf_output_length; j++) {
+            U_accumulator[j] ^= U_i[j];
+        }
+    }
+
+    memcpy(pbkdf2->output_block, U_accumulator, prf_output_length);
+
+cleanup:
+    /* Zeroise buffers to clear sensitive data from memory. */
+    mbedtls_platform_zeroize(U_accumulator, PSA_HASH_MAX_SIZE);
+    mbedtls_platform_zeroize(U_i, PSA_HASH_MAX_SIZE);
+    mbedtls_platform_zeroize(input, pbkdf2->salt_length + 4);
+    mbedtls_free(input);
+    return status;
+}
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC */
+
 psa_status_t psa_key_derivation_output_bytes(
     psa_key_derivation_operation_t *operation,
     uint8_t *output,

@@ -72,7 +72,7 @@ def detect_arch() -> str:
         print("Unknown host architecture, cannot auto-detect arch.")
         sys.exit(1)
 
-class CodeSizeInfo: # pylint: disable=too-few-public-methods
+class CodeSizeInfo:
     """Gather information used to measure code size.
 
     It collects information about architecture, configuration in order to
@@ -87,30 +87,74 @@ class CodeSizeInfo: # pylint: disable=too-few-public-methods
         "-a " + SupportedArch.ARMV8_M.value + " -c " + SupportedConfig.TFM_MEDIUM.value,
     ]
 
-    def __init__(self, arch: str, config: str, sys_arch: str) -> None:
+    def __init__(
+            self,
+            arch: str,
+            config: str,
+            c_compiler: str,
+            sys_arch: str
+    ) -> None:
         """
         arch: architecture to measure code size on.
         config: configuration type to measure code size with.
+        sys_arch: TODO
+        c_compiler: TODO
         make_command: command to build library (Inferred from arch and config).
         """
         self.arch = arch
         self.config = config
         self.sys_arch = sys_arch
+
+        self.default_gcc = 'gcc'
+        self.default_clang = 'clang'
+        self.default_armclang = 'armclang'
+        self.c_compiler = self.set_c_compiler(c_compiler)
         self.make_command = self.set_make_command()
+
+    def set_c_compiler(self, c_compiler: str) -> str:
+        """TODO"""
+
+        # Comment TODO: handle default config
+        if self.config == SupportedConfig.DEFAULT.value:
+            if c_compiler:
+                if self.default_armclang in c_compiler and \
+                    (self.arch != SupportedArch.AARCH64.value and \
+                     self.arch != SupportedArch.AARCH32.value):
+                    print("Error: armclang is not supported on:", self.arch)
+                    sys.exit(1)
+                else:
+                    return c_compiler
+
+        # Comment TODO: handle tfm-medium config
+        elif self.config == SupportedConfig.TFM_MEDIUM.value:
+            if c_compiler is None:
+                return self.default_armclang
+            elif self.default_armclang in c_compiler:
+                return c_compiler
+            else:
+                print("Error: armclang is required to build configuration:",\
+                       SupportedConfig.TFM_MEDIUM.value)
+                sys.exit(1)
+
+        return self.default_gcc
 
     def set_make_command(self) -> str:
         """Infer build command based on architecture and configuration."""
 
         if self.config == SupportedConfig.DEFAULT.value and \
             self.arch == self.sys_arch:
-            return 'make -j lib CFLAGS=\'-Os \' '
+            return 'make -j lib CC={CC} CFLAGS=\'-Os \' ' \
+                    .format(CC=self.c_compiler)
         elif self.arch == SupportedArch.ARMV8_M.value and \
              self.config == SupportedConfig.TFM_MEDIUM.value:
             return \
-                 'make -j lib CC=armclang \
+                 'make -j lib CC={CC} \
                   CFLAGS=\'--target=arm-arm-none-eabi -mcpu=cortex-m33 -Os \
-                 -DMBEDTLS_CONFIG_FILE=\\\"' + CONFIG_TFM_MEDIUM_MBEDCRYPTO_H + '\\\" \
-                 -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE=\\\"' + CONFIG_TFM_MEDIUM_PSA_CRYPTO_H + '\\\" \''
+                 -DMBEDTLS_CONFIG_FILE=\\\"{MBEDCRYPTO_CONFIG}\\\" \
+                 -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE=\\\"{PSACRYPTO_CONFIG}\\\" \' ' \
+                 .format(CC=self.c_compiler,
+                         MBEDCRYPTO_CONFIG=CONFIG_TFM_MEDIUM_MBEDCRYPTO_H,
+                         PSACRYPTO_CONFIG=CONFIG_TFM_MEDIUM_PSA_CRYPTO_H)
         else:
             print("Unsupported combination of architecture: {} and configuration: {}"
                   .format(self.arch, self.config))
@@ -430,6 +474,10 @@ def main():
         choices=list(map(lambda s: s.value, SupportedConfig)),
         help="specify configuration type for code size comparison,\
               default is the current MbedTLS configuration.")
+    group_optional.add_argument(
+        "--cc", type=str, default=None, dest='c_compiler',
+        help="specify C Compiler for code size comparison, default is None\
+              which is default C Compiler in your system.")
     comp_args = parser.parse_args()
 
     if os.path.isfile(comp_args.result_dir):
@@ -446,9 +494,10 @@ def main():
         new_revision = "current"
 
     code_size_info = CodeSizeInfo(comp_args.arch, comp_args.config,
-                                  detect_arch())
-    print("Measure code size for architecture: {}, configuration: {}\n"
-          .format(code_size_info.arch, code_size_info.config))
+                                  comp_args.c_compiler, detect_arch())
+    print("Measure code size for architecture: {}, configuration: {}, C Compiler: {}\n"
+          .format(code_size_info.arch, code_size_info.config,
+                  code_size_info.c_compiler))
     result_dir = comp_args.result_dir
     size_compare = CodeSizeComparison(old_revision, new_revision, result_dir,
                                       code_size_info)

@@ -83,12 +83,6 @@ typedef struct mbedtls_x509write_csr {
 }
 mbedtls_x509write_csr;
 
-typedef struct mbedtls_x509_san_list {
-    mbedtls_x509_subject_alternative_name node;
-    struct mbedtls_x509_san_list *next;
-}
-mbedtls_x509_san_list;
-
 #if defined(MBEDTLS_X509_CSR_PARSE_C)
 /**
  * \brief          Load a Certificate Signing Request (CSR) in DER format

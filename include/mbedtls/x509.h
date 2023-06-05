@@ -312,6 +312,12 @@ typedef struct mbedtls_x509_subject_alternative_name {
 }
 mbedtls_x509_subject_alternative_name;
 
+typedef struct mbedtls_x509_san_list {
+    mbedtls_x509_subject_alternative_name node;
+    struct mbedtls_x509_san_list *next;
+}
+mbedtls_x509_san_list;
+
 /** \} name Structures for parsing X.509 certificates, CRLs and CSRs */
 
 /**

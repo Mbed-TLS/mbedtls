@@ -242,6 +242,21 @@ typedef struct mbedtls_x509write_cert {
 mbedtls_x509write_cert;
 
 /**
+ * \brief           Set Subject Alternative Name
+ *
+ * \param ctx       Certificate context to use
+ * \param san_list  List of SAN values
+ *
+ * \return          0 if successful, or MBEDTLS_ERR_X509_ALLOC_FAILED
+ *
+ * \note            "dnsName", "uniformResourceIdentifier", "IP address",
+ *                  "otherName", and "DirectoryName", as defined in RFC 5280,
+ *                  are supported.
+ */
+int mbedtls_x509write_crt_set_subject_alternative_name(mbedtls_x509write_cert *ctx,
+                                                       const mbedtls_x509_san_list *san_list);
+
+/**
  * Item in a verification chain: cert and flags for it
  */
 typedef struct {

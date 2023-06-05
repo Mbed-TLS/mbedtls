@@ -710,7 +710,7 @@
 
 
 #define MULADDC_X1_CORE                                 \
-            MULADDC_PRESERVE_SCRATCH                         \
+            MULADDC_PRESERVE_SCRATCH                    \
             "ldmia  r0!, {r6}                   \n\t"   \
             "lsr    RS, r6, #16                 \n\t"   \
             "lsl    r6, r6, #16                 \n\t"   \
@@ -736,7 +736,7 @@
             "lsl    r3, RS, #16                 \n\t"   \
             "add    r4, r4, r3                  \n\t"   \
             "adc    r5, r2                      \n\t"   \
-            MULADDC_RESTORE_SCRATCH                          \
+            MULADDC_RESTORE_SCRATCH                     \
             "ldr    r3, [r1]                    \n\t"   \
             "add    r4, r4, r3                  \n\t"   \
             "adc    r2, r5                      \n\t"   \
@@ -822,8 +822,7 @@
         );                                                   \
     }
 
-#else
-/* Thumb 2 or Arm ISA, without DSP extensions */
+#else /* Thumb 2 or Arm ISA, without DSP extensions */
 
 #define MULADDC_X1_INIT                                 \
     asm(                                                \

@@ -28,6 +28,43 @@ static void fix_new_lines(unsigned char *in_str, size_t *len)
     }
 }
 
+static int pk_write_any_key(mbedtls_pk_context *pk, unsigned char **p,
+                            size_t *buf_len, int is_public_key, int is_der)
+{
+    int ret = 0;
+
+    if (is_der) {
+        if (is_public_key) {
+            ret = mbedtls_pk_write_pubkey_der(pk, *p, *buf_len);
+        } else {
+            ret = mbedtls_pk_write_key_der(pk, *p, *buf_len);
+        }
+        if (ret <= 0) {
+            return ret;
+        }
+
+        *p = *p + *buf_len - ret;
+        *buf_len = ret;
+    } else {
+#if defined(MBEDTLS_PEM_WRITE_C)
+        if (is_public_key) {
+            ret = mbedtls_pk_write_pubkey_pem(pk, *p, *buf_len);
+        } else {
+            ret = mbedtls_pk_write_key_pem(pk, *p, *buf_len);
+        }
+        if (ret != 0) {
+            return ret;
+        }
+
+        *buf_len = strlen((char *) *p) + 1; /* +1 takes the string terminator into account */
+#else
+        return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
+#endif
+    }
+
+    return 0;
+}
+
 static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
 {
     mbedtls_pk_context key;
@@ -35,7 +72,11 @@ static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
     unsigned char *check_buf = NULL;
     unsigned char *start_buf;
     size_t buf_len, check_buf_len;
-    int ret;
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_svc_key_id_t opaque_id = MBEDTLS_SVC_KEY_ID_INIT;
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+    USE_PSA_INIT();
 
     mbedtls_pk_init(&key);
     USE_PSA_INIT();
@@ -62,42 +103,39 @@ static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
 
     if (is_public_key) {
         TEST_EQUAL(mbedtls_pk_parse_public_keyfile(&key, key_file), 0);
-        if (is_der) {
-            ret = mbedtls_pk_write_pubkey_der(&key, buf, check_buf_len);
-        } else {
-#if defined(MBEDTLS_PEM_WRITE_C)
-            ret = mbedtls_pk_write_pubkey_pem(&key, buf, check_buf_len);
-#else
-            ret = MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
-#endif
-        }
     } else {
         TEST_EQUAL(mbedtls_pk_parse_keyfile(&key, key_file, NULL,
                                             mbedtls_test_rnd_std_rand, NULL), 0);
-        if (is_der) {
-            ret = mbedtls_pk_write_key_der(&key, buf, check_buf_len);
-        } else {
-#if defined(MBEDTLS_PEM_WRITE_C)
-            ret = mbedtls_pk_write_key_pem(&key, buf, check_buf_len);
-#else
-            ret = MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
-#endif
-        }
     }
 
-    if (is_der) {
-        TEST_LE_U(1, ret);
-        buf_len = ret;
-        start_buf = buf + check_buf_len - buf_len;
-    } else {
-        TEST_EQUAL(ret, 0);
-        buf_len = strlen((char *) buf) + 1; /* +1 takes the string terminator into account */
-        start_buf = buf;
-    }
+    start_buf = buf;
+    buf_len = check_buf_len;
+    TEST_EQUAL(pk_write_any_key(&key, &start_buf, &buf_len, is_public_key,
+                                is_der), 0);
 
     ASSERT_COMPARE(start_buf, buf_len, check_buf, check_buf_len);
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    /* Verify that pk_write works also for opaque private keys */
+    if (!is_public_key) {
+        memset(buf, 0, check_buf_len);
+        TEST_EQUAL(mbedtls_pk_wrap_as_opaque(&key, &opaque_id,
+                                             PSA_ALG_NONE,
+                                             PSA_KEY_USAGE_EXPORT,
+                                             PSA_ALG_NONE), 0);
+        start_buf = buf;
+        buf_len = check_buf_len;
+        TEST_EQUAL(pk_write_any_key(&key, &start_buf, &buf_len, is_public_key,
+                                    is_der), 0);
+
+        ASSERT_COMPARE(start_buf, buf_len, check_buf, check_buf_len);
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 exit:
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_destroy_key(opaque_id);
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     mbedtls_free(buf);
     mbedtls_free(check_buf);
     mbedtls_pk_free(&key);

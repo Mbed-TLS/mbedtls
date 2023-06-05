@@ -685,15 +685,15 @@
  * instructions to preserve/restore it; otherwise, we can use r7 and avoid
  * the preserve/restore overhead.
  */
-#define MULADDC_SCRATCH         "RS .req r1         \n\t"
-#define MULADDC_PRESERVE_R1     "mov    r10, r1     \n\t"
-#define MULADDC_RESTORE_R1      "mov    r1, r10     \n\t"
-#define MULADDC_SCRATCH_CLOBBER "r10"
+#define MULADDC_SCRATCH              "RS .req r1         \n\t"
+#define MULADDC_PRESERVE_SCRATCH     "mov    r10, r1     \n\t"
+#define MULADDC_RESTORE_SCRATCH      "mov    r1, r10     \n\t"
+#define MULADDC_SCRATCH_CLOBBER      "r10"
 #else /* !defined(__OPTIMIZE__) && defined(__GNUC__) */
-#define MULADDC_SCRATCH         "RS .req r7         \n\t"
-#define MULADDC_PRESERVE_R1     ""
-#define MULADDC_RESTORE_R1      ""
-#define MULADDC_SCRATCH_CLOBBER "r7"
+#define MULADDC_SCRATCH              "RS .req r7         \n\t"
+#define MULADDC_PRESERVE_SCRATCH     ""
+#define MULADDC_RESTORE_SCRATCH      ""
+#define MULADDC_SCRATCH_CLOBBER      "r7"
 #endif /* !defined(__OPTIMIZE__) && defined(__GNUC__) */
 
 #define MULADDC_INIT                                    \
@@ -711,7 +711,7 @@
 
 
 #define MULADDC_CORE                                    \
-            MULADDC_PRESERVE_R1                         \
+            MULADDC_PRESERVE_SCRATCH                         \
             "ldmia  r0!, {r6}                   \n\t"   \
             "lsr    RS, r6, #16                 \n\t"   \
             "lsl    r6, r6, #16                 \n\t"   \
@@ -737,7 +737,7 @@
             "lsl    r3, RS, #16                 \n\t"   \
             "add    r4, r4, r3                  \n\t"   \
             "adc    r5, r2                      \n\t"   \
-            MULADDC_RESTORE_R1                          \
+            MULADDC_RESTORE_SCRATCH                          \
             "ldr    r3, [r1]                    \n\t"   \
             "add    r4, r4, r3                  \n\t"   \
             "adc    r2, r5                      \n\t"   \

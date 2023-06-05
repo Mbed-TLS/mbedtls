@@ -318,8 +318,10 @@ class CodeSizeComparison(CodeSizeBase):
         self.new_rev = new_revision
         self.git_command = "git"
         self.make_command = code_size_info.make_command
-        self.fname_suffix = "-" + code_size_info.arch + "-" +\
-                            code_size_info.config
+        self.fname_suffix = "-" + \
+                            code_size_info.arch + "-" + \
+                            code_size_info.config + "-" + \
+                            code_size_info.c_compiler
 
     @staticmethod
     def validate_revision(revision: str) -> bytes:

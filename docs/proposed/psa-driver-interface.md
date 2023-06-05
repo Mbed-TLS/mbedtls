@@ -480,12 +480,12 @@ If the key derivation's `PSA_KEY_DERIVATION_INPUT_SECRET` input is in a secure e
     1. Otherwise proceed as for `psa_key_derivation_output_bytes()`, then import the resulting key material.
 
 * For a call to `psa_key_derivation_verify_key()`:
-    1. For ``psa_key_derivation_verify_key()` only: if the driver has a `"key_derivation_verify_key"` entry point, call it and stop.
+    1. If the driver has a `"key_derivation_verify_key"` entry point, call it and stop.
     1. Call the driver's `"export_key"` entry point on the key object that contains the expected value, then proceed as for `psa_key_derivation_verify_bytes()`.
 
 * For a call to `psa_key_derivation_verify_bytes()`:
-    1. If the driver has a `"key_derivation_verify_bytes"` entry point, call the driver's , call the `"key_derivation_verify_bytes"` entry point on the expected output, then stop.
-    1. Otherwise, proceed as for `psa_key_derivation_output_bytes()`, and compare the resulting output to the expected output inside the core..
+    1. If the driver has a `"key_derivation_verify_bytes"` entry point, call that entry point on the expected output, then stop.
+    1. Otherwise, proceed as for `psa_key_derivation_output_bytes()`, and compare the resulting output to the expected output inside the core.
 
 * For a call to `psa_key_derivation_output_bytes()`:
     1. Call the `"key_derivation_output_bytes"` entry point. The core may call this entry point multiple times to implement a single call from the application when deriving a cooked (non-raw) key as described below, or if the output size exceeds some implementation limit.

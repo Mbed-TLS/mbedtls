@@ -86,17 +86,17 @@ class AuditData:
         # Certificate expires after "not_valid_after"
         # Certificate is invalid before "not_valid_before"
         if self.data_type == DataType.CRT:
-            self.not_valid_after = x509_obj.not_valid_after
-            self.not_valid_before = x509_obj.not_valid_before
+            self.not_valid_after = x509_obj.not_valid_after.replace(tzinfo=datetime.timezone.utc)
+            self.not_valid_before = x509_obj.not_valid_before.replace(tzinfo=datetime.timezone.utc)
         # CertificateRevocationList expires after "next_update"
         # CertificateRevocationList is invalid before "last_update"
         elif self.data_type == DataType.CRL:
-            self.not_valid_after = x509_obj.next_update
-            self.not_valid_before = x509_obj.last_update
+            self.not_valid_after = x509_obj.next_update.replace(tzinfo=datetime.timezone.utc)
+            self.not_valid_before = x509_obj.last_update.replace(tzinfo=datetime.timezone.utc)
         # CertificateSigningRequest is always valid.
         elif self.data_type == DataType.CSR:
-            self.not_valid_after = datetime.datetime.max
-            self.not_valid_before = datetime.datetime.min
+            self.not_valid_after = datetime.datetime.max.replace(tzinfo=datetime.timezone.utc)
+            self.not_valid_before = datetime.datetime.min.replace(tzinfo=datetime.timezone.utc)
         else:
             raise ValueError("Unsupported file_type: {}".format(self.data_type))
 
@@ -478,10 +478,12 @@ def main():
     if args.start_date:
         start_date = datetime.datetime.fromisoformat(args.start_date)
     else:
-        start_date = datetime.datetime.today()
+        start_date = datetime.datetime.now(tz=datetime.timezone.utc)
     # validity period end date
     if args.end_date:
         end_date = datetime.datetime.fromisoformat(args.end_date)
+        if end_date.tzinfo is None:
+            end_date = end_date.replace(tzinfo=datetime.timezone.utc)
     else:
         end_date = start_date
 

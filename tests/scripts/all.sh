@@ -1026,11 +1026,68 @@ component_test_default_cmake_gcc_asan () {
     tests/context-info.sh
 }
 
+component_test_default_cmake_gcc_asan_new_bignum () {
+    msg "build: cmake, gcc, ASan" # ~ 1 min 50s
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make CFLAGS="-D MBEDTLS_ECP_WITH_MPI_UINT"
+
+    msg "test: main suites (inc. selftests) (ASan build)" # ~ 50s
+    make test
+
+    msg "test: selftest (ASan build)" # ~ 10s
+    programs/test/selftest
+
+    msg "test: ssl-opt.sh (ASan build)" # ~ 1 min
+    tests/ssl-opt.sh
+
+    msg "test: compat.sh (ASan build)" # ~ 6 min
+    tests/compat.sh
+
+    msg "test: context-info.sh (ASan build)" # ~ 15 sec
+    tests/context-info.sh
+}
+
 component_test_full_cmake_gcc_asan () {
     msg "build: full config, cmake, gcc, ASan"
     scripts/config.py full
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
+
+    msg "test: main suites (inc. selftests) (full config, ASan build)"
+    make test
+
+    msg "test: selftest (ASan build)" # ~ 10s
+    programs/test/selftest
+
+    msg "test: ssl-opt.sh (full config, ASan build)"
+    tests/ssl-opt.sh
+
+    msg "test: compat.sh (full config, ASan build)"
+    tests/compat.sh
+
+    msg "test: context-info.sh (full config, ASan build)" # ~ 15 sec
+    tests/context-info.sh
+
+    msg "test: check direct ECP dependencies in TLS and X.509"
+    docs/architecture/psa-migration/syms.sh full
+
+    # TODO: replace "mbedtls_ecp_curve" with "mbedtls_ecp" also for
+    # "full-tls-external" once Issue6839 is completed
+    not grep mbedtls_ecp_curve full-libmbedtls-external
+    not grep mbedtls_ecp full-libmbedx509-external
+
+    rm  full-libmbedtls-external \
+        full-libmbedtls-modules \
+        full-libmbedx509-external \
+        full-libmbedx509-modules
+}
+
+
+component_test_full_cmake_gcc_asan_new_bignum () {
+    msg "build: full config, cmake, gcc, ASan"
+    scripts/config.py full
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make CFLAGS="-D MBEDTLS_ECP_WITH_MPI_UINT"
 
     msg "test: main suites (inc. selftests) (full config, ASan build)"
     make test

@@ -302,6 +302,39 @@ TASKS = {
                     # case above.
                     ('Key ASN1 (OneAsymmetricKey X25519, doesn\'t match masking '
                      'requirements, from RFC8410 Appendix A but made into version 0)'),
+                    # Compressed points and SpecifiedECDomain curves require ECP_LIGHT.
+                    'Parse EC Key #10a (SEC1 PEM, secp384r1, compressed)',
+                    'Parse EC Key #11a (SEC1 PEM, secp521r1, compressed)',
+                    'Parse EC Key #12a (SEC1 PEM, bp256r1, compressed)',
+                    'Parse EC Key #13a (SEC1 PEM, bp384r1, compressed)',
+                    'Parse EC Key #14a (SEC1 PEM, bp512r1, compressed)',
+                    'Parse EC Key #15 (SEC1 DER, secp256k1, SpecifiedECDomain)',
+                    'Parse EC Key #2a (SEC1 PEM, secp192r1, compressed)',
+                    'Parse EC Key #8a (SEC1 PEM, secp224r1, compressed)',
+                    'Parse EC Key #9a (SEC1 PEM, secp256r1, compressed)',
+                    'Parse Public EC Key #2a (RFC 5480, PEM, secp192r1, compressed)',
+                    'Parse Public EC Key #3a (RFC 5480, secp224r1, compressed)',
+                    'Parse Public EC Key #4a (RFC 5480, secp256r1, compressed)',
+                    'Parse Public EC Key #5a (RFC 5480, secp384r1, compressed)',
+                    'Parse Public EC Key #6a (RFC 5480, secp521r1, compressed)',
+                    'Parse Public EC Key #7a (RFC 5480, brainpoolP256r1, compressed)',
+                    'Parse Public EC Key #8a (RFC 5480, brainpoolP384r1, compressed)',
+                    'Parse Public EC Key #9a (RFC 5480, brainpoolP512r1, compressed)',
+                ],
+                'test_suite_pk': [
+                    # Test function pk_ec_test_vec() requires ECP_LIGHT.
+                    'EC(DSA) verify test vector #1 (good)',
+                    'EC(DSA) verify test vector #2 (bad)',
+                    'EC(DSA) verify test vector: good, bitlen(r) = 247',
+                    'EC(DSA) verify test vector: good, bitlen(r) = 248',
+                    'EC(DSA) verify test vector: good, bitlen(r) = 255',
+                    'EC(DSA) verify test vector: good, bitlen(r) = 256',
+                    'EC(DSA) verify test vector: good, bitlen(s) = 247',
+                    'EC(DSA) verify test vector: good, bitlen(s) = 248',
+                    'EC(DSA) verify test vector: good, bitlen(s) = 255',
+                    'EC(DSA) verify test vector: good, bitlen(s) = 256',
+                    'ECDSA verify test vector #1 (good)',
+                    'ECDSA verify test vector #2 (bad)',
                 ],
             }
         }

@@ -43,6 +43,7 @@ set(src_crypto
     error.c
     gcm.c
     hkdf.c
+	hpke.c
     hmac_drbg.c
     lmots.c
     lms.c

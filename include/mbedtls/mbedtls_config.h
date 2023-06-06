@@ -164,6 +164,15 @@
 #define MBEDTLS_HAVE_TIME_DATE
 
 /**
+ * \def MBEDTLS_HPKE_C
+ *
+ * Enables support for Hybrid Public Key Encryption (HPKE), as specified in draft-irtf-cfrg-hpke-08.
+ *
+ * Requires: MBEDTLS_HKDF_C, MBEDTLS_PSA_CRYPTO_C
+ */
+#define MBEDTLS_HPKE_C
+
+/**
  * \def MBEDTLS_PLATFORM_MEMORY
  *
  * Enable the memory allocation layer.

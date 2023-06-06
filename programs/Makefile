@@ -135,6 +135,7 @@ APPS = \
 	x509/crl_app \
 	x509/load_roots \
 	x509/req_app \
+	hpke/hpke_app \
 # End of APPS
 
 ifdef PTHREAD
@@ -347,17 +348,25 @@ ssl/ssl_test_lib.o: ssl/ssl_test_lib.c ssl/ssl_test_lib.h $(DEP)
 	echo "  CC    ssl/ssl_test_lib.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -c ssl/ssl_test_lib.c -o $@
 
+hpke/windows_getopt.o: hpke/windows_getopt.c hpke/windows_getopt.h $(DEP)
+	echo "  CC    hpke/windows_getopt.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -c hpke/windows_getopt.c  -o $@
+
 ssl/ssl_client2$(EXEXT): ssl/ssl_client2.c $(SSL_TEST_DEPS)
 	echo "  CC    ssl/ssl_client2.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_client2.c $(SSL_TEST_OBJECTS) $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-ssl/ssl_server$(EXEXT): ssl/ssl_server.c $(DEP)
-	echo "  CC    ssl/ssl_server.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_server.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+hpke/hpke_app$(EXEXT): hpke/hpke_app.c $(DEP)
+	echo "  CC    hpke/hpke_app.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) hpke/hpke_app.c hpke/windows_getopt.o  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 ssl/ssl_server2$(EXEXT): ssl/ssl_server2.c $(SSL_TEST_DEPS)
 	echo "  CC    ssl/ssl_server2.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_server2.c $(SSL_TEST_OBJECTS) $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+ssl/ssl_server$(EXEXT): ssl/ssl_server.c $(SSL_TEST_DEPS)
+	echo "  CC    ssl/ssl_server.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_server.c $(SSL_TEST_OBJECTS) $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 ssl/ssl_context_info$(EXEXT): ssl/ssl_context_info.c test/query_config.o test/query_config.h $(DEP)
 	echo "  CC    ssl/ssl_context_info.c"

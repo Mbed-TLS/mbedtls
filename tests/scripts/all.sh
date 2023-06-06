@@ -3875,6 +3875,10 @@ component_build_arm_none_eabi_gcc_m0plus () {
 
     msg "size: ${ARM_NONE_EABI_GCC_PREFIX}gcc -mthumb -mcpu=cortex-m0plus -Os, baremetal_size"
     ${ARM_NONE_EABI_GCC_PREFIX}size -t library/*.o
+    for lib in library/*.a; do
+        echo "$lib:"
+        ${ARM_NONE_EABI_GCC_PREFIX}size -t $lib | grep TOTALS
+    done
 }
 
 component_build_arm_none_eabi_gcc_no_udbl_division () {

@@ -42,6 +42,8 @@
 #include MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE
 #endif
 
+#include "psa/crypto_legacy.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

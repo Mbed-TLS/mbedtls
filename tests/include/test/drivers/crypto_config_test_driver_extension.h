@@ -6,6 +6,8 @@
  * supports.
  */
 
+#include "psa/crypto_legacy.h"
+
 #if defined(PSA_WANT_ALG_CBC_NO_PADDING)
 #if defined(MBEDTLS_PSA_ACCEL_ALG_CBC_NO_PADDING)
 #undef MBEDTLS_PSA_ACCEL_ALG_CBC_NO_PADDING

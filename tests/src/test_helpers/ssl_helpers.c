@@ -21,6 +21,7 @@
  */
 
 #include <test/ssl_helpers.h>
+#include "md_psa.h"
 
 #if defined(MBEDTLS_SSL_TLS_C)
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
@@ -1200,7 +1201,7 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
         mbedtls_md_info_t const *md_info = mbedtls_md_info_from_type(hash_id);
         CHK(md_info != NULL);
 #endif
-        maclen = mbedtls_hash_info_get_size(hash_id);
+        maclen = mbedtls_md_get_size_from_type(hash_id);
         CHK(maclen != 0);
         /* Pick hash keys */
         CHK((md0 = mbedtls_calloc(1, maclen)) != NULL);
@@ -1209,7 +1210,7 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
         memset(md1, 0x6, maclen);
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        alg = mbedtls_hash_info_psa_from_md(hash_id);
+        alg = mbedtls_md_psa_alg_from_type(hash_id);
 
         CHK(alg != 0);
 
@@ -1501,7 +1502,7 @@ int mbedtls_test_ssl_tls12_populate_session(mbedtls_ssl_session *session,
         }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        psa_algorithm_t psa_alg = mbedtls_hash_info_psa_from_md(
+        psa_algorithm_t psa_alg = mbedtls_md_psa_alg_from_type(
             MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE);
         size_t hash_size = 0;
         psa_status_t status = psa_hash_compute(

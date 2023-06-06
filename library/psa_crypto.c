@@ -82,7 +82,7 @@
 #include "mbedtls/sha1.h"
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
-#include "hash_info.h"
+#include "md_psa.h"
 
 #define ARRAY_LENGTH(array) (sizeof(array) / sizeof(*(array)))
 
@@ -3610,7 +3610,7 @@ psa_status_t mbedtls_psa_sign_hash_start(
         operation->ctx->grp.nbits);
 
     psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH(alg);
-    operation->md_alg = mbedtls_hash_info_md_from_psa(hash_alg);
+    operation->md_alg = mbedtls_md_type_from_psa_alg(hash_alg);
     operation->alg = alg;
 
     /* We only need to store the same length of hash as the private key size

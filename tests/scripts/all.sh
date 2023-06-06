@@ -3836,7 +3836,7 @@ component_build_arm_none_eabi_gcc () {
     make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" LD="${ARM_NONE_EABI_GCC_PREFIX}ld" CFLAGS='-std=c99 -Werror -Wall -Wextra -O1' lib
 
     msg "size: ${ARM_NONE_EABI_GCC_PREFIX}gcc -O1, baremetal+debug"
-    ${ARM_NONE_EABI_GCC_PREFIX}size library/*.o
+    ${ARM_NONE_EABI_GCC_PREFIX}size -t library/*.o
 }
 
 component_build_arm_linux_gnueabi_gcc_arm5vte () {
@@ -3850,7 +3850,7 @@ component_build_arm_linux_gnueabi_gcc_arm5vte () {
     make CC="${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc" AR="${ARM_LINUX_GNUEABI_GCC_PREFIX}ar" CFLAGS='-Werror -Wall -Wextra -march=armv5te -O1' LDFLAGS='-march=armv5te'
 
     msg "size: ${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc -march=armv5te -O1, baremetal+debug"
-    ${ARM_LINUX_GNUEABI_GCC_PREFIX}size library/*.o
+    ${ARM_LINUX_GNUEABI_GCC_PREFIX}size -t library/*.o
 }
 support_build_arm_linux_gnueabi_gcc_arm5vte () {
     type ${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc >/dev/null 2>&1
@@ -3865,7 +3865,7 @@ component_build_arm_none_eabi_gcc_arm5vte () {
     make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" CFLAGS='-std=c99 -Werror -Wall -Wextra -march=armv5te -O1' LDFLAGS='-march=armv5te' SHELL='sh -x' lib
 
     msg "size: ${ARM_NONE_EABI_GCC_PREFIX}gcc -march=armv5te -O1, baremetal+debug"
-    ${ARM_NONE_EABI_GCC_PREFIX}size library/*.o
+    ${ARM_NONE_EABI_GCC_PREFIX}size -t library/*.o
 }
 
 component_build_arm_none_eabi_gcc_m0plus () {
@@ -3874,7 +3874,7 @@ component_build_arm_none_eabi_gcc_m0plus () {
     make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" LD="${ARM_NONE_EABI_GCC_PREFIX}ld" CFLAGS='-std=c99 -Werror -Wall -Wextra -mthumb -mcpu=cortex-m0plus -Os' lib
 
     msg "size: ${ARM_NONE_EABI_GCC_PREFIX}gcc -mthumb -mcpu=cortex-m0plus -Os, baremetal_size"
-    ${ARM_NONE_EABI_GCC_PREFIX}size library/*.o
+    ${ARM_NONE_EABI_GCC_PREFIX}size -t library/*.o
 }
 
 component_build_arm_none_eabi_gcc_no_udbl_division () {

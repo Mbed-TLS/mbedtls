@@ -45,9 +45,8 @@
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
+#include "md_psa.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-
-#include "hash_info.h"
 
 #define CHECK_OVERFLOW_ADD(a, b) \
     do                         \
@@ -569,7 +568,7 @@ int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx,
     unsigned char *c, *c2;
     unsigned char sig[MBEDTLS_PK_SIGNATURE_MAX_SIZE];
     size_t hash_length = 0;
-    unsigned char hash[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_algorithm_t psa_algorithm;
@@ -728,7 +727,7 @@ int mbedtls_x509write_crt_der(mbedtls_x509write_cert *ctx,
 
     /* Compute hash of CRT. */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_algorithm = mbedtls_hash_info_psa_from_md(ctx->md_alg);
+    psa_algorithm = mbedtls_md_psa_alg_from_type(ctx->md_alg);
 
     status = psa_hash_compute(psa_algorithm,
                               c,

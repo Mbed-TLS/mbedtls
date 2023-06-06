@@ -25,6 +25,7 @@
 #include "pk_wrap.h"
 #include "pk_internal.h"
 #include "mbedtls/error.h"
+#include "md_psa.h"
 
 /* Even if RSA not activated, for the sake of RSA-alt */
 #include "mbedtls/rsa.h"
@@ -47,7 +48,6 @@
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
-#include "hash_info.h"
 
 #if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
 #include "mbedtls/asn1write.h"
@@ -205,7 +205,7 @@ static int rsa_verify_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
     int key_len;
     unsigned char buf[MBEDTLS_PK_RSA_PUB_DER_MAX_BYTES];
     psa_algorithm_t psa_alg_md =
-        PSA_ALG_RSA_PKCS1V15_SIGN(mbedtls_hash_info_psa_from_md(md_alg));
+        PSA_ALG_RSA_PKCS1V15_SIGN(mbedtls_md_psa_alg_from_type(md_alg));
     size_t rsa_len = mbedtls_rsa_get_len(rsa);
 
     if (md_alg == MBEDTLS_MD_NONE && UINT_MAX < hash_len) {
@@ -357,7 +357,7 @@ static int rsa_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
     ((void) p_rng);
 
     psa_algorithm_t psa_md_alg;
-    psa_md_alg = mbedtls_hash_info_psa_from_md(md_alg);
+    psa_md_alg = mbedtls_md_psa_alg_from_type(md_alg);
     if (psa_md_alg == 0) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
@@ -930,10 +930,10 @@ static int ecdsa_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
     psa_status_t status;
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
     psa_algorithm_t psa_sig_md =
-        PSA_ALG_DETERMINISTIC_ECDSA(mbedtls_hash_info_psa_from_md(md_alg));
+        PSA_ALG_DETERMINISTIC_ECDSA(mbedtls_md_psa_alg_from_type(md_alg));
 #else
     psa_algorithm_t psa_sig_md =
-        PSA_ALG_ECDSA(mbedtls_hash_info_psa_from_md(md_alg));
+        PSA_ALG_ECDSA(mbedtls_md_psa_alg_from_type(md_alg));
 #endif
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     psa_ecc_family_t curve = pk->ec_family;
@@ -1631,12 +1631,12 @@ static int pk_opaque_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
 
 #if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
     if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(type)) {
-        alg = PSA_ALG_ECDSA(mbedtls_hash_info_psa_from_md(md_alg));
+        alg = PSA_ALG_ECDSA(mbedtls_md_psa_alg_from_type(md_alg));
     } else
 #endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
 #if defined(MBEDTLS_RSA_C)
     if (PSA_KEY_TYPE_IS_RSA(type)) {
-        alg = PSA_ALG_RSA_PKCS1V15_SIGN(mbedtls_hash_info_psa_from_md(md_alg));
+        alg = PSA_ALG_RSA_PKCS1V15_SIGN(mbedtls_md_psa_alg_from_type(md_alg));
     } else
 #endif /* MBEDTLS_RSA_C */
     return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;

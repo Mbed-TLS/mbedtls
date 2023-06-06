@@ -33,6 +33,7 @@
 #include "ssl_client.h"
 #include "ssl_tls13_keys.h"
 #include "ssl_debug_helpers.h"
+#include "md_psa.h"
 
 #define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
                                                            psa_to_ssl_errors,             \
@@ -672,7 +673,7 @@ static psa_algorithm_t ssl_tls13_get_ciphersuite_hash_alg(int ciphersuite)
     ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(ciphersuite);
 
     if (ciphersuite_info != NULL) {
-        return mbedtls_psa_translate_md(ciphersuite_info->mac);
+        return mbedtls_md_psa_alg_from_type(ciphersuite_info->mac);
     }
 
     return PSA_ALG_NONE;
@@ -850,7 +851,7 @@ static int ssl_tls13_write_binder(mbedtls_ssl_context *ssl,
 
     /* Get current state of handshake transcript. */
     ret = mbedtls_ssl_get_handshake_transcript(
-        ssl, mbedtls_hash_info_md_from_psa(hash_alg),
+        ssl, mbedtls_md_type_from_psa_alg(hash_alg),
         transcript, sizeof(transcript), &transcript_len);
     if (ret != 0) {
         return ret;
@@ -1126,7 +1127,7 @@ static int ssl_tls13_parse_server_pre_shared_key_ext(mbedtls_ssl_context *ssl,
         return ret;
     }
 
-    if (mbedtls_psa_translate_md(ssl->handshake->ciphersuite_info->mac)
+    if (mbedtls_md_psa_alg_from_type(ssl->handshake->ciphersuite_info->mac)
         != hash_alg) {
         MBEDTLS_SSL_DEBUG_MSG(
             1, ("Invalid ciphersuite for external psk."));
@@ -2844,7 +2845,7 @@ static int ssl_tls13_postprocess_new_session_ticket(mbedtls_ssl_context *ssl,
         return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }
 
-    psa_hash_alg = mbedtls_psa_translate_md(ciphersuite_info->mac);
+    psa_hash_alg = mbedtls_md_psa_alg_from_type(ciphersuite_info->mac);
     hash_length = PSA_HASH_LENGTH(psa_hash_alg);
     if (hash_length == -1 ||
         (size_t) hash_length > sizeof(session->resumption_key)) {

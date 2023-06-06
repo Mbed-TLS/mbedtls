@@ -219,6 +219,7 @@ static int pk_get_ecparams(unsigned char **p, const unsigned char *end,
     return 0;
 }
 
+#if defined(MBEDTLS_ECP_LIGHT)
 #if defined(MBEDTLS_PK_PARSE_EC_EXTENDED)
 /*
  * Parse a SpecifiedECDomain (SEC 1 C.2) and (mostly) fill the group with it.
@@ -463,6 +464,7 @@ cleanup:
     return ret;
 }
 #endif /* MBEDTLS_PK_PARSE_EC_EXTENDED */
+#endif /* MBEDTLS_ECP_LIGHT */
 
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 /* Functions pk_use_ecparams() and pk_use_ecparams_rfc8410() update the
@@ -505,7 +507,7 @@ static int pk_use_ecparams(const mbedtls_asn1_buf *params, mbedtls_pk_context *p
             return MBEDTLS_ERR_PK_UNKNOWN_NAMED_CURVE;
         }
     } else {
-#if defined(MBEDTLS_PK_PARSE_EC_EXTENDED)
+#if defined(MBEDTLS_PK_PARSE_EC_EXTENDED) && defined(MBEDTLS_ECP_LIGHT)
         if ((ret = pk_group_id_from_specified(params, &grp_id)) != 0) {
             return ret;
         }

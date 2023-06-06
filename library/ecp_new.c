@@ -45,7 +45,7 @@
 
 #include "ecp_invasive.h"
 
-#if defined(MBEDTLS_ECP_WITH_MPI_STRUCT)
+#if defined(MBEDTLS_ECP_WITH_MPI_UINT)
 
 /**
  * \brief Function level alternative implementation.
@@ -3639,8 +3639,14 @@ cleanup:
 
 #endif /* MBEDTLS_SELF_TEST */
 
+MBEDTLS_STATIC_TESTABLE
+mbedtls_ecp_variant mbedtls_ecp_get_variant()
+{
+    return MBEDTLS_ECP_VARIANT_WITH_MPI_UINT;
+}
+
 #endif /* !MBEDTLS_ECP_ALT */
 
 #endif /* MBEDTLS_ECP_LIGHT */
 
-#endif /* MBEDTLS_ECP_WITH_MPI_STRUCT */
+#endif /* MBEDTLS_ECP_WITH_MPI_UINT */

@@ -40,6 +40,14 @@ typedef enum {
     MBEDTLS_ECP_MOD_SCALAR
 } mbedtls_ecp_modulus_type;
 
+#ifndef MBEDTLS_ECP_WITH_MPI_UINT
+
+#define MBEDTLS_ECP_WITH_MPI_UINT
+#undef  MBEDTLS_ECP_WITH_MPI_UINT
+
+#define MBEDTLS_ECP_WITH_MPI_STRUCT
+#endif
+
 #if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_ECP_LIGHT)
 
 #if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)

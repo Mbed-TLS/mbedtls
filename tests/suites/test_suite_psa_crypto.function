@@ -8723,10 +8723,6 @@ void derive_output(int alg_arg,
                 }
                 break;
             case PSA_KEY_DERIVATION_INPUT_PASSWORD:
-                if (!PSA_ALG_IS_PBKDF2_HMAC(alg)) {
-                    goto exit;
-                }
-            // fall through
             case PSA_KEY_DERIVATION_INPUT_SECRET:
                 switch (key_input_type) {
                     case 0: // input bytes

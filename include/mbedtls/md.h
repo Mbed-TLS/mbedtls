@@ -143,7 +143,9 @@ extern "C" {
  *            stronger message digests instead.
  *
  */
-/* XXX: comment + test */
+/* Note: these are aligned with the definitions of PSA_ALG_ macros for hashes,
+ * in order to enable an efficient implementation of conversion functions.
+ * This is tested by md_to_from_psa() in test_suite_md. */
 typedef enum {
     MBEDTLS_MD_NONE=0,    /**< None. */
     MBEDTLS_MD_MD5=0x03,       /**< The MD5 message digest. */

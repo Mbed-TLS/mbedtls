@@ -33,6 +33,9 @@
  *
  * \param md_type   The type of digest to search for.
  *
+ * \warning         This function does not check if the algorithm is
+ *                  supported, it always returns the corresponding identifier.
+ *
  * \return          The PSA algorithm identifier associated with \p md_type,
  *                  regardless of whether it is supported or not.
  */
@@ -43,6 +46,9 @@ psa_algorithm_t mbedtls_md_psa_alg_from_type(mbedtls_md_type_t md_type);
  *                  associated with the PSA algorithm identifier.
  *
  * \param psa_alg   The PSA algorithm identifier to search for.
+ *
+ * \warning         This function does not check if the algorithm is
+ *                  supported, it always returns the corresponding identifier.
  *
  * \return          The MD type associated with \p psa_alg,
  *                  regardless of whether it is supported or not.

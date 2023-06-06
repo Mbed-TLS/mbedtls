@@ -1592,7 +1592,6 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
             /*
              * dNSName
              * RFC822 Name
-             * iPAddress
              */
             case MBEDTLS_X509_SAN_DNS_NAME:
             case MBEDTLS_X509_SAN_RFC822_NAME:
@@ -1633,25 +1632,24 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
                     return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
                 }
 
-                int len = 0;
                 unsigned char *ip = san.san.unstructured_name.p;
                 // Only IPv6 (16 bytes) and IPv4 (4 bytes) types are supported
                 if (san.san.unstructured_name.len == 4) {
-                    len = mbedtls_snprintf(p, n, "%u.%u.%u.%u", ip[0], ip[1], ip[2], ip[3]);
+                    ret = mbedtls_snprintf(p, n, "%u.%u.%u.%u", ip[0], ip[1], ip[2], ip[3]);
+                    MBEDTLS_X509_SAFE_SNPRINTF;
                 } else if (san.san.unstructured_name.len == 16) {
-                    len = mbedtls_snprintf(p, n,
+                    ret = mbedtls_snprintf(p, n,
                                            "%X%X:%X%X:%X%X:%X%X:%X%X:%X%X:%X%X:%X%X",
                                            ip[0], ip[1], ip[2], ip[3], ip[4], ip[5], ip[6],
-                                           ip[7], ip[8], ip[9], ip[10], ip[11], ip[12],ip[13],
+                                           ip[7], ip[8], ip[9], ip[10], ip[11], ip[12], ip[13],
                                            ip[14], ip[15]);
+                    MBEDTLS_X509_SAFE_SNPRINTF;
                 } else {
                     if (n > 0) {
                         *p = '\0';
                     }
                     return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
                 }
-                p += len;
-                n -= len;
             }
             break;
             /*

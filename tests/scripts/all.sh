@@ -799,6 +799,40 @@ pre_generate_files() {
 #### Helpers for components using libtestdriver1
 ################################################################
 
+# How to use libtestdriver1
+# -------------------------
+#
+# 1. Define the list algorithms and key types to accelerate,
+#    designated the same way as PSA_WANT_ macros but without PSA_WANT_.
+#    Examples:
+#      - loc_accel_list="ALG_JPAKE"
+#      - loc_accel_list="ALG_FFDH KEY_TYPE_DH_KEY_PAIR KEY_TYPE_DH_PUBLIC_KEY"
+# 2. Make configurations changes that are common to driver and main libraries.
+#    WARNING: both libraries MUST have the same set of PSA_WANT_ALG symbols,
+#    as they determine the ABI between them, so all changes to these symbols
+#    go here.
+#    2a. Call helper_libtestdriver1_adjust_config.
+#    2b. Any other change you need to make.
+# 3. Build the driver library: libtestdriver1.a.
+#    Just call helper_libtestdriver1_make_drivers, passing "$loc_accel_list".
+#    You may need to enable more algorithms here, typically hash algorithms
+#    when accelerating some signature algoritms (ECDSA, RSAv2). This is done
+#    by passing a 2nd argument listing the extra algorithms.
+#    Example:
+#      loc_extra_list="ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512"
+#      helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
+# 4. Configure and build the main libraries using drivers.
+#    4a. (optional) Call scripts/config.py full if you want.
+#    4b. Call scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+#    4c. Make any other config adjustments you want. Typically you want to
+#        disable the modules that are being accelerated. You may need to also
+#        disable modules that depend on them or options that are not supported
+#        with drivers.
+#        WARNING: do NOT change any PSA_WANT symbol at that point, that should
+#        only be done in step 2 above.
+#    4d. Call helper_libtestdriver1_make_main "$loc_accel_list".
+# 5. Run the tests you want.
+
 # Adjust the configuration - for both libtestdriver1 and main library,
 # as they should have the same PSA_WANT macros.
 helper_libtestdriver1_adjust_config() {

@@ -435,9 +435,10 @@ def main():
     """
     parser = argparse.ArgumentParser(description=__doc__)
 
-    parser.add_argument('-a', '--all',
-                        action='store_true',
-                        help='list the information of all the files')
+    parser.add_argument('-l', '--list', dest='list_opt', default='invalid',
+                        choices=['all', 'expired', 'present', 'future', 'invalid'],
+                        help='list the information of the files in the class. '
+                             'Default: invalid')
     parser.add_argument('-v', '--verbose',
                         action='store_true', dest='verbose',
                         help='show logs')
@@ -498,15 +499,19 @@ def main():
 
     logger.info("Total: {} objects found!".format(len(audit_results)))
 
-    # we filter out the files whose validity duration covers the provided
-    # duration.
-    filter_func = lambda d: (start_date < d.not_valid_before) or \
-                            (d.not_valid_after < end_date)
+    get_status = lambda date, data: "future" if date < data.not_valid_before \
+                                             else "past" if date > data.not_valid_after \
+                                             else "present"
+    filter_db = {}
+    filter_db['all'] = None
+    filter_db['expired'] = lambda d: get_status(start_date, d) == "past"
+    filter_db['present'] = lambda d: get_status(start_date, d) == "present" and \
+                                     get_status(end_date, d) == "present"
+    filter_db['future'] = lambda d: get_status(end_date, d) == "future"
+    filter_db['invalid'] = lambda d: get_status(start_date, d) != get_status(end_date, d)
 
+    filter_func = filter_db[args.list_opt]
     sortby_end = lambda d: d.not_valid_after
-
-    if args.all:
-        filter_func = None
 
     # filter and output the results
     for d in sorted(filter(filter_func, audit_results.values()), key=sortby_end):

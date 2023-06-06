@@ -58,7 +58,7 @@
 #include "mbedtls/platform.h"
 
 /* Helper for Montgomery curves */
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 #if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
 static inline int mbedtls_pk_is_rfc8410(const mbedtls_pk_context *pk)
 {
@@ -93,7 +93,7 @@ static psa_ecc_family_t pk_get_opaque_ec_family(const mbedtls_pk_context *pk)
 }
 #endif /* MBETLS_USE_PSA_CRYPTO */
 #endif /* MBEDTLS_PK_HAVE_RFC8410_CURVES */
-#endif /* MBEDTLS_ECP_LIGHT */
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 /* It is assumed that the input key is opaque */
@@ -158,7 +158,7 @@ end_of_export:
 }
 #endif /* MBEDTLS_RSA_C */
 
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 static int pk_write_ec_pubkey(unsigned char **p, unsigned char *start,
                               const mbedtls_pk_context *pk)
@@ -316,7 +316,7 @@ exit:
     return ret;
 }
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
-#endif /* MBEDTLS_ECP_LIGHT */
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 static int pk_write_opaque_pubkey(unsigned char **p, unsigned char *start,
@@ -353,7 +353,7 @@ int mbedtls_pk_write_pubkey(unsigned char **p, unsigned char *start,
         MBEDTLS_ASN1_CHK_ADD(len, pk_write_rsa_pubkey(p, start, key));
     } else
 #endif
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
     if (mbedtls_pk_get_type(key) == MBEDTLS_PK_ECKEY) {
         MBEDTLS_ASN1_CHK_ADD(len, pk_write_ec_pubkey(p, start, key));
     } else
@@ -375,7 +375,7 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
     int has_par = 1;
     size_t len = 0, par_len = 0, oid_len = 0;
     mbedtls_pk_type_t pk_type;
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
     mbedtls_ecp_group_id ec_grp_id = MBEDTLS_ECP_DP_NONE;
 #endif
     const char *oid;
@@ -404,20 +404,20 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
     MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_tag(&c, buf, MBEDTLS_ASN1_BIT_STRING));
 
     pk_type = mbedtls_pk_get_type(key);
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
     if (pk_type == MBEDTLS_PK_ECKEY) {
         ec_grp_id = mbedtls_pk_get_group_id(key);
     }
-#endif /* MBEDTLS_ECP_LIGHT */
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if (pk_type == MBEDTLS_PK_OPAQUE) {
         psa_key_type_t opaque_key_type = pk_get_opaque_key_type(key);
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
         if (PSA_KEY_TYPE_IS_ECC(opaque_key_type)) {
             pk_type = MBEDTLS_PK_ECKEY;
             ec_grp_id = mbedtls_pk_get_group_id(key);
         } else
-#endif /* MBEDTLS_ECP_LIGHT */
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
         if (PSA_KEY_TYPE_IS_RSA(opaque_key_type)) {
             /* The rest of the function works as for legacy RSA contexts. */
             pk_type = MBEDTLS_PK_RSA;
@@ -429,7 +429,7 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
     if (pk_type == MBEDTLS_PK_ECKEY) {
         /* Some groups have their own AlgorithmIdentifier OID, others are handled
          * by mbedtls_oid_get_oid_by_pk_alg() below */
@@ -445,7 +445,7 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
             return ret;
         }
     }
-#endif /* MBEDTLS_ECP_LIGHT */
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 
     if (oid_len == 0) {
         if ((ret = mbedtls_oid_get_oid_by_pk_alg(pk_type, &oid,
@@ -464,7 +464,7 @@ int mbedtls_pk_write_pubkey_der(const mbedtls_pk_context *key, unsigned char *bu
     return (int) len;
 }
 
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 #if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
 /*
  * RFC8410 section 7
@@ -572,7 +572,7 @@ static int pk_write_ec_der(unsigned char **p, unsigned char *buf,
 
     return (int) len;
 }
-#endif /* MBEDTLS_ECP_LIGHT */
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 
 #if defined(MBEDTLS_RSA_C)
 static int pk_write_rsa_der(unsigned char **p, unsigned char *buf,
@@ -691,9 +691,9 @@ int mbedtls_pk_write_key_der(const mbedtls_pk_context *key, unsigned char *buf, 
 #if defined(MBEDTLS_RSA_C)
     int is_rsa_opaque = 0;
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
     int is_ec_opaque = 0;
-#endif /* MBEDTLS_ECP_LIGHT */
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_key_type_t opaque_key_type;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
@@ -710,9 +710,9 @@ int mbedtls_pk_write_key_der(const mbedtls_pk_context *key, unsigned char *buf, 
 #if defined(MBEDTLS_RSA_C)
         is_rsa_opaque = PSA_KEY_TYPE_IS_RSA(opaque_key_type);
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
         is_ec_opaque = PSA_KEY_TYPE_IS_ECC(opaque_key_type);
-#endif /* MBEDTLS_ECP_LIGHT */
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
@@ -721,7 +721,7 @@ int mbedtls_pk_write_key_der(const mbedtls_pk_context *key, unsigned char *buf, 
         return pk_write_rsa_der(&c, buf, key);
     } else
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
     if ((mbedtls_pk_get_type(key) == MBEDTLS_PK_ECKEY) || is_ec_opaque) {
 #if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
         if (mbedtls_pk_is_rfc8410(key)) {
@@ -730,7 +730,7 @@ int mbedtls_pk_write_key_der(const mbedtls_pk_context *key, unsigned char *buf, 
 #endif /* MBEDTLS_PK_HAVE_RFC8410_CURVES */
         return pk_write_ec_der(&c, buf, key);
     } else
-#endif /* MBEDTLS_ECP_LIGHT */
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
     return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
 
     return (int) len;
@@ -781,12 +781,12 @@ int mbedtls_pk_write_key_pem(const mbedtls_pk_context *key, unsigned char *buf, 
     unsigned char output_buf[PRV_DER_MAX_BYTES];
     const char *begin, *end;
     size_t olen = 0;
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
     int is_ec_opaque = 0;
 #if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
     int is_montgomery_opaque = 0;
 #endif /* MBEDTLS_PK_HAVE_RFC8410_CURVES */
-#endif /* MBEDTLS_ECP_LIGHT */
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 #if defined(MBEDTLS_RSA_C)
     int is_rsa_opaque = 0;
 #endif
@@ -802,14 +802,14 @@ int mbedtls_pk_write_key_pem(const mbedtls_pk_context *key, unsigned char *buf, 
 #if defined(MBEDTLS_RSA_C)
         is_rsa_opaque = PSA_KEY_TYPE_IS_RSA(opaque_key_type);
 #endif
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
         is_ec_opaque = PSA_KEY_TYPE_IS_ECC(opaque_key_type);
 #if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
         if (pk_get_opaque_ec_family(key) == PSA_ECC_FAMILY_MONTGOMERY) {
             is_montgomery_opaque = 1;
         }
 #endif /* MBEDTLS_PK_HAVE_RFC8410_CURVES */
-#endif /* MBEDTLS_ECP_LIGHT */
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
@@ -819,7 +819,7 @@ int mbedtls_pk_write_key_pem(const mbedtls_pk_context *key, unsigned char *buf, 
         end = PEM_END_PRIVATE_KEY_RSA;
     } else
 #endif
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
     if ((mbedtls_pk_get_type(key) == MBEDTLS_PK_ECKEY) || is_ec_opaque) {
 #if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
         if (is_montgomery_opaque ||
@@ -828,13 +828,13 @@ int mbedtls_pk_write_key_pem(const mbedtls_pk_context *key, unsigned char *buf, 
             begin = PEM_BEGIN_PRIVATE_KEY_PKCS8;
             end = PEM_END_PRIVATE_KEY_PKCS8;
         } else
-#endif
+#endif /* MBEDTLS_PK_HAVE_RFC8410_CURVES */
         {
             begin = PEM_BEGIN_PRIVATE_KEY_EC;
             end = PEM_END_PRIVATE_KEY_EC;
         }
     } else
-#endif
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
     return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
 
     if ((ret = mbedtls_pem_write_buffer(begin, end,

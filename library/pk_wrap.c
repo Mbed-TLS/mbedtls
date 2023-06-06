@@ -634,7 +634,7 @@ const mbedtls_pk_info_t mbedtls_rsa_info = {
 };
 #endif /* MBEDTLS_RSA_C */
 
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 /*
  * Generic EC key
  */
@@ -1335,7 +1335,7 @@ const mbedtls_pk_info_t mbedtls_eckeydh_info = {
 #endif
     eckey_debug,            /* Same underlying key structure */
 };
-#endif /* MBEDTLS_ECP_LIGHT */
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 
 #if defined(MBEDTLS_PK_CAN_ECDSA_SOME)
 static int ecdsa_can_do(mbedtls_pk_type_t type)

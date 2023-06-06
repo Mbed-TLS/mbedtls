@@ -543,7 +543,7 @@ FN_OID_GET_OID_BY_ATTR1(mbedtls_oid_get_oid_by_pk_alg,
                         mbedtls_pk_type_t,
                         pk_alg)
 
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 /*
  * For elliptic curves that use namedCurve inside ECParams (RFC 5480)
  */
@@ -674,7 +674,7 @@ FN_OID_GET_OID_BY_ATTR1(mbedtls_oid_get_oid_by_ec_grp_algid,
                         oid_ecp_grp_algid,
                         mbedtls_ecp_group_id,
                         grp_id)
-#endif /* MBEDTLS_ECP_LIGHT */
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 
 #if defined(MBEDTLS_CIPHER_C)
 /*

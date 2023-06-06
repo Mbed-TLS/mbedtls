@@ -341,7 +341,6 @@ extern "C" {
 #define MBEDTLS_RSA_C
 #define MBEDTLS_BIGNUM_C
 #define MBEDTLS_OID_C
-#define MBEDTLS_GENPRIME
 #define MBEDTLS_PK_PARSE_C
 #define MBEDTLS_PK_WRITE_C
 #define MBEDTLS_PK_C

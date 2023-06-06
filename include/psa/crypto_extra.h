@@ -2082,8 +2082,8 @@ typedef enum psa_jpake_round {
 } psa_jpake_round_t;
 
 typedef enum psa_jpake_io_mode {
-    PSA_JPAKE_INPUT = 0,
-    PSA_JPAKE_OUTPUT = 1
+    PSA_JPAKE_OUTPUT = 0,
+    PSA_JPAKE_INPUT = 1
 } psa_jpake_io_mode_t;
 
 struct psa_jpake_computation_stage_s {

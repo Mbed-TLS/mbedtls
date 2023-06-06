@@ -7585,61 +7585,107 @@ exit:
     return status;
 }
 
-/* Auxiliary function to convert core computation stage to single driver step. */
 #if defined(PSA_WANT_ALG_JPAKE)
-static psa_crypto_driver_pake_step_t convert_jpake_computation_stage_to_driver_step(
-    psa_jpake_computation_stage_t *stage)
+/* Helper lookup table for converting psa_jpake_computation_stage_t to
+ * psa_crypto_driver_pake_step_t. */
+static psa_crypto_driver_pake_step_t
+    jpake_computation_stage_lookup[3][2][2][3] =
 {
-    if (stage->round == PSA_JPAKE_FIRST) {
-        if (stage->count < 1) {
-            switch (stage->step) {
-                case PSA_PAKE_STEP_KEY_SHARE:
-                    return PSA_JPAKE_X1_STEP_KEY_SHARE;
-                case PSA_PAKE_STEP_ZK_PUBLIC:
-                    return PSA_JPAKE_X1_STEP_ZK_PUBLIC;
-                case PSA_PAKE_STEP_ZK_PROOF:
-                    return PSA_JPAKE_X1_STEP_ZK_PROOF;
-                default:
-                    return PSA_JPAKE_STEP_INVALID;
+    { /* PSA_JPAKE_FIRST */
+        { /* PSA_JPAKE_OUTPUT */
+            { /* count == 0 */
+                PSA_JPAKE_X1_STEP_KEY_SHARE,
+                PSA_JPAKE_X1_STEP_ZK_PUBLIC,
+                PSA_JPAKE_X1_STEP_ZK_PROOF
+            },
+            { /* count == 1 */
+                PSA_JPAKE_X2_STEP_KEY_SHARE,
+                PSA_JPAKE_X2_STEP_ZK_PUBLIC,
+                PSA_JPAKE_X2_STEP_ZK_PROOF
             }
-        } else {
-            switch (stage->step) {
-                case PSA_PAKE_STEP_KEY_SHARE:
-                    return PSA_JPAKE_X2_STEP_KEY_SHARE;
-                case PSA_PAKE_STEP_ZK_PUBLIC:
-                    return PSA_JPAKE_X2_STEP_ZK_PUBLIC;
-                case PSA_PAKE_STEP_ZK_PROOF:
-                    return PSA_JPAKE_X2_STEP_ZK_PROOF;
-                default:
-                    return PSA_JPAKE_STEP_INVALID;
+        },
+        { /* PSA_JPAKE_INPUT */
+            { /* count == 0 */
+                PSA_JPAKE_X1_STEP_KEY_SHARE,
+                PSA_JPAKE_X1_STEP_ZK_PUBLIC,
+                PSA_JPAKE_X1_STEP_ZK_PROOF
+            },
+            { /* count == 1 */
+                PSA_JPAKE_X2_STEP_KEY_SHARE,
+                PSA_JPAKE_X2_STEP_ZK_PUBLIC,
+                PSA_JPAKE_X2_STEP_ZK_PROOF
             }
         }
-    } else if (stage->round == PSA_JPAKE_SECOND) {
-        if (stage->mode == PSA_JPAKE_OUTPUT) {
-            switch (stage->step) {
-                case PSA_PAKE_STEP_KEY_SHARE:
-                    return PSA_JPAKE_X2S_STEP_KEY_SHARE;
-                case PSA_PAKE_STEP_ZK_PUBLIC:
-                    return PSA_JPAKE_X2S_STEP_ZK_PUBLIC;
-                case PSA_PAKE_STEP_ZK_PROOF:
-                    return PSA_JPAKE_X2S_STEP_ZK_PROOF;
-                default:
-                    return PSA_JPAKE_STEP_INVALID;
+    },
+    { /* PSA_JPAKE_SECOND */
+        { /* PSA_JPAKE_OUTPUT */
+            { /* count == 0 */
+                PSA_JPAKE_X2S_STEP_KEY_SHARE,
+                PSA_JPAKE_X2S_STEP_ZK_PUBLIC,
+                PSA_JPAKE_X2S_STEP_ZK_PROOF
+            },
+            { /* count == 1 */
+                PSA_JPAKE_STEP_INVALID,
+                PSA_JPAKE_STEP_INVALID,
+                PSA_JPAKE_STEP_INVALID,
+            },
+        },
+        { /* PSA_JPAKE_INPUT */
+            { /* count == 0 */
+                PSA_JPAKE_X4S_STEP_KEY_SHARE,
+                PSA_JPAKE_X4S_STEP_ZK_PUBLIC,
+                PSA_JPAKE_X4S_STEP_ZK_PROOF
+            },
+            { /* count == 1 */
+                PSA_JPAKE_STEP_INVALID,
+                PSA_JPAKE_STEP_INVALID,
+                PSA_JPAKE_STEP_INVALID,
             }
-        } else {
-            switch (stage->step) {
-                case PSA_PAKE_STEP_KEY_SHARE:
-                    return PSA_JPAKE_X4S_STEP_KEY_SHARE;
-                case PSA_PAKE_STEP_ZK_PUBLIC:
-                    return PSA_JPAKE_X4S_STEP_ZK_PUBLIC;
-                case PSA_PAKE_STEP_ZK_PROOF:
-                    return PSA_JPAKE_X4S_STEP_ZK_PROOF;
-                default:
-                    return PSA_JPAKE_STEP_INVALID;
+        }
+    },
+    { /* PSA_JPAKE_FINISHED */
+        { /* PSA_JPAKE_OUTPUT */
+            { /* count == 0 */
+                PSA_JPAKE_STEP_INVALID,
+                PSA_JPAKE_STEP_INVALID,
+                PSA_JPAKE_STEP_INVALID,
+            },
+            { /* count == 1 */
+                PSA_JPAKE_STEP_INVALID,
+                PSA_JPAKE_STEP_INVALID,
+                PSA_JPAKE_STEP_INVALID,
+            },
+        },
+        { /* PSA_JPAKE_INPUT */
+            { /* count == 0 */
+                PSA_JPAKE_STEP_INVALID,
+                PSA_JPAKE_STEP_INVALID,
+                PSA_JPAKE_STEP_INVALID,
+            },
+            { /* count == 1 */
+                PSA_JPAKE_STEP_INVALID,
+                PSA_JPAKE_STEP_INVALID,
+                PSA_JPAKE_STEP_INVALID,
             }
         }
     }
-    return PSA_JPAKE_STEP_INVALID;
+};
+
+/* Auxiliary function to convert core computation stage to single driver step. */
+static psa_crypto_driver_pake_step_t convert_jpake_computation_stage_to_driver_step(
+    psa_jpake_computation_stage_t *stage)
+{
+    if (stage->round > PSA_JPAKE_FINISHED
+        || stage->mode > PSA_JPAKE_INPUT
+        || stage->count > 1
+        || stage->step > PSA_PAKE_STEP_ZK_PROOF) {
+        return PSA_JPAKE_STEP_INVALID;
+    }
+    return jpake_computation_stage_lookup[stage->round - PSA_JPAKE_FIRST]
+                                         [stage->mode - PSA_JPAKE_OUTPUT]
+                                         [stage->count]
+                                         [stage->step
+                                          - PSA_PAKE_STEP_KEY_SHARE];
 }
 #endif /* PSA_WANT_ALG_JPAKE */
 

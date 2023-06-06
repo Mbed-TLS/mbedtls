@@ -1,0 +1,3 @@
+Features
+   * Add PBKDF2-HMAC implementation with PSA API for
+     key derivation

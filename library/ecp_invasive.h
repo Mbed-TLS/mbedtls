@@ -48,7 +48,20 @@ typedef enum {
 #define MBEDTLS_ECP_WITH_MPI_STRUCT
 #endif
 
+typedef enum {
+    MBEDTLS_ECP_VARIANT_NONE            = 0,
+    MBEDTLS_ECP_VARIANT_WITH_MPI_STRUCT = 1,
+    MBEDTLS_ECP_VARIANT_WITH_MPI_UINT   = 2
+} mbedtls_ecp_variant;
+
 #if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_ECP_LIGHT)
+
+/** Queries the ecp variant.
+ *
+ * \return  The id of the ecp variant.
+ */
+MBEDTLS_STATIC_TESTABLE
+mbedtls_ecp_variant mbedtls_ecp_get_variant(void);
 
 #if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
 /** Generate a private key on a Montgomery curve (Curve25519 or Curve448).

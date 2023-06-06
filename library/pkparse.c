@@ -1188,10 +1188,11 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
     unsigned char *d;
     unsigned char *end = p + keylen;
     unsigned char *end2;
-    mbedtls_ecp_keypair *eck = mbedtls_pk_ec_rw(*pk);
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status;
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
+    mbedtls_ecp_keypair *eck = mbedtls_pk_ec_rw(*pk);
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
     /*
@@ -1245,11 +1246,15 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
                                         0)) == 0) {
             if ((ret = pk_get_ecparams(&p, p + len, &params)) != 0 ||
                 (ret = pk_use_ecparams(&params, pk)) != 0) {
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
                 mbedtls_ecp_keypair_free(eck);
+#endif
                 return ret;
             }
         } else if (ret != MBEDTLS_ERR_ASN1_UNEXPECTED_TAG) {
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
             mbedtls_ecp_keypair_free(eck);
+#endif
             return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
         }
     }
@@ -1285,7 +1290,9 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
                 }
             }
         } else if (ret != MBEDTLS_ERR_ASN1_UNEXPECTED_TAG) {
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
             mbedtls_ecp_keypair_free(eck);
+#endif
             return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
         }
     }
@@ -1313,7 +1320,9 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
 
     if (!pubkey_done) {
         if ((ret = pk_derive_public_key(pk, d, d_len, f_rng, p_rng)) != 0) {
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
             mbedtls_ecp_keypair_free(eck);
+#endif
             return ret;
         }
     }

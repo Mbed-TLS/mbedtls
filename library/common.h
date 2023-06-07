@@ -131,10 +131,10 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
 #if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)
 #if defined(__ARM_NEON)
     for (; (i + 16) <= n; i += 16) {
-        uint64x2_t v1 = vld1q_u64((uint64_t *) (a + i));
-        uint64x2_t v2 = vld1q_u64((uint64_t *) (b + i));
-        uint64x2_t x = veorq_u64(v1, v2);
-        vst1q_u64((uint64_t *) (r + i), x);
+        uint8x16_t v1 = vld1q_u8((uint64_t *) (a + i));
+        uint8x16_t v2 = vld1q_u8((uint64_t *) (b + i));
+        uint8x16_t x = veorq_u8(v1, v2);
+        vst1q_u8((uint64_t *) (r + i), x);
     }
 #elif defined(__amd64__) || defined(__x86_64__) || defined(__aarch64__)
     /* This codepath probably only makes sense on architectures with 64-bit registers */

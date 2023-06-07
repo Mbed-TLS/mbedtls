@@ -5524,7 +5524,6 @@ int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)
 
     /* M = A1 */
     memset(M, 0, (M_limbs * ciL));
-
     /* Do not copy into the overflow limb, as this would read past the end of
      * X. */
     memcpy(M, X + P448_WIDTH, ((M_limbs - 1) * ciL));
@@ -5534,7 +5533,8 @@ int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)
         X[i] = 0;
     }
 
-    /* X += A1 - Carry here fits in oversize X. Oversize M means it will get
+    /* X = X + M = A0 + A1 */
+    /* Carry here fits in oversize X. Oversize M means it will get
      * added in, not returned as carry. */
     (void) mbedtls_mpi_core_add(X, X, M, M_limbs);
 
@@ -5543,15 +5543,15 @@ int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)
         mbedtls_mpi_core_sub(X, X, P, P_limbs);
     }
 
-    /* Q = B1, X += B1 */
+    /* Q = B1 */
     memcpy(Q, M, (Q_limbs * ciL));
-
     mbedtls_mpi_core_shift_r(Q, Q_limbs, 224);
 
+    /* X = X + Q = (A0 + A1) + B1 */
     /* No carry here - only max 224 bits */
     (void) mbedtls_mpi_core_add(X, X, Q, Q_limbs);
 
-    /* M = (B0 + B1) * 2^224, X += M */
+    /* M = B0 */
     if (sizeof(mbedtls_mpi_uint) > 4) {
         M[P224_WIDTH_MIN] &= ((mbedtls_mpi_uint)-1) >> (P224_UNUSED_BITS);
     }
@@ -5559,10 +5559,15 @@ int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)
         M[i] = 0;
     }
 
+    /* M = M + Q = B0 + B1 */
     (void) mbedtls_mpi_core_add(M, M, Q, Q_limbs);
 
+    /* M = (B0 + B1) * 2^224 */
     /* Shifted carry bit from the addition fits in oversize M */
     mbedtls_mpi_core_shift_l(M, M_limbs, 224);
+
+
+    /* X = X + M = (A0 + A1 + B1) + (B0 + B1) * 2^224 */
     (void) mbedtls_mpi_core_add(X, X, M, M_limbs);
 
     /* Deal with carry bit by subtracting P if necessary. */

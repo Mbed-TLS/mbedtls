@@ -29,8 +29,8 @@ default: all_final
 
 all_intermediate := # temporary files
 all_final := # files used by tests
-
-
+# certificate/certificat_list files the start date are future
+all_future_files :=
 
 ################################################################
 #### Generate certificates from existing keys
@@ -226,6 +226,9 @@ test_ca_ec_cat += test-ca2_cat-past-present.crt
 $(test_ca_ec_cat):
 	cat $^ > $@
 all_final += $(test_ca_ec_cat)
+all_future_files += test-ca2_cat-present-future.crt \
+					test-ca2_cat-future-invalid.crt \
+					test-ca2_cat-future-present.crt
 
 test-ca-any_policy.crt: $(test_ca_key_file_rsa) test-ca.req.sha256
 	$(OPENSSL) req -x509 -config $(test_ca_config_file) -extensions v3_any_policy_ca \
@@ -378,6 +381,7 @@ all_final += server7-expired.crt
 server7-future.crt: server7.csr $(test_ca_int_rsa1)
 	$(FAKETIME) -f +3653d $(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -CA $(test_ca_int_rsa1) -CAkey test-int-ca.key -set_serial 16 -days 3653 -sha256 -in server7.csr | cat - $(test_ca_int_rsa1) > $@
 all_final += server7-future.crt
+all_future_files += server7-future.crt
 
 server7-badsign.crt: server7.crt $(test_ca_int_rsa1)
 	../../scripts/mbedtls_dev/generate_bad_cert.py badsign $< $(test_ca_int_rsa1) --output $@
@@ -569,7 +573,7 @@ server9-defaults.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
 		-passin "pass:$(test_ca_pwd_rsa)" -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) \
 		-set_serial 72 -days 3653 \
 		-sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:max -sha1 \
-		-in $< -o $@
+		-in $< -out $@
 all_final += server9-defaults.crt
 
 server9-badsign.crt: server9.crt
@@ -1658,6 +1662,7 @@ crl-futureRevocationDate.pem: $(test_ca_crt) $(test_ca_key_file_rsa) \
 	$(FAKETIME) -f '+10y' $(OPENSSL) ca -gencrl \
 		-config test-ca.server1.future-crl.opensslconf -crldays 365 \
 		-passin "pass:$(test_ca_pwd_rsa)" -out $@
+all_future_files += crl-futureRevocationDate.pem
 
 server1_all: crl.pem crl-futureRevocationDate.pem server1.crt server1.noauthid.crt server1.crt.openssl server1.v1.crt server1.v1.crt.openssl server1.key_usage.crt server1.key_usage_noauthid.crt server1.key_usage.crt.openssl server1.cert_type.crt server1.cert_type_noauthid.crt server1.cert_type.crt.openssl server1.der server1.der.openssl server1.v1.der server1.v1.der.openssl server1.key_usage.der server1.key_usage.der.openssl server1.cert_type.der server1.cert_type.der.openssl
 

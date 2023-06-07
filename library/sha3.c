@@ -80,8 +80,6 @@ static const uint8_t pi[24] = {
 #define ROT64(x, y) (((x) << (y)) | ((x) >> (64U - (y))))
 #define ABSORB(ctx, idx, v) do { ctx->state[(idx) >> 3] ^= ((uint64_t) (v)) << (((idx) & 0x7) << 3); \
 } while (0)
-#define ABSORB8(ctx, idx, v) do { ctx->state[(idx) >> 3] ^= ((uint64_t) (v)) << ((idx) << 3); \
-} while (0)
 #define SQUEEZE(ctx, idx) ((uint8_t) (ctx->state[(idx) >> 3] >> (((idx) & 0x7) << 3)))
 #define SWAP(x, y) do { uint64_t tmp = (x); (x) = (y); (y) = tmp; } while (0)
 
@@ -238,7 +236,7 @@ int mbedtls_sha3_update(mbedtls_sha3_context *ctx,
 
         // process input in 8-byte chunks
         while (ilen >= 8) {
-            ABSORB8(ctx, ctx->index, mbedtls_get_unaligned_uint64(input));
+            ABSORB(ctx, ctx->index, mbedtls_get_unaligned_uint64(input));
             input += 8;
             ilen -= 8;
             if ((ctx->index = (ctx->index + 8) % ctx->max_block_size) == 0) {

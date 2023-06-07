@@ -236,7 +236,7 @@ int mbedtls_sha3_update(mbedtls_sha3_context *ctx,
 
         // process input in 8-byte chunks
         while (ilen >= 8) {
-            ABSORB(ctx, ctx->index, mbedtls_get_unaligned_uint64(input));
+            ABSORB(ctx, ctx->index, MBEDTLS_GET_UINT64_LE(input, 0));
             input += 8;
             ilen -= 8;
             if ((ctx->index = (ctx->index + 8) % ctx->max_block_size) == 0) {

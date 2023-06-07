@@ -166,7 +166,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_SHA3_C */
 void sha3_invalid_param()
 {
     unsigned char output[32];

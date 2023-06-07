@@ -166,6 +166,26 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void sha3_invalid_param()
+{
+    unsigned char output[32];
+    mbedtls_sha3_context ctx;
+
+    mbedtls_sha3_init(&ctx);
+    TEST_EQUAL(mbedtls_sha3_starts(&ctx, MBEDTLS_SHA3_NONE), MBEDTLS_ERR_SHA3_BAD_INPUT_DATA);
+
+    TEST_EQUAL(mbedtls_sha3_starts(&ctx, MBEDTLS_SHA3_256), 0);
+
+    TEST_EQUAL(mbedtls_sha3_finish(&ctx, output, 0), MBEDTLS_ERR_SHA3_BAD_INPUT_DATA);
+    TEST_EQUAL(mbedtls_sha3_finish(&ctx, output, 31), MBEDTLS_ERR_SHA3_BAD_INPUT_DATA);
+    TEST_EQUAL(mbedtls_sha3_finish(&ctx, output, 32), 0);
+
+exit:
+    return;
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SHA3_C */
 void mbedtls_sha3_multi(int family, data_t *in, data_t *hash)
 {

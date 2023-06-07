@@ -2410,3 +2410,7 @@ sha3_reuse:"41":"15000d20f59aa483b5eac0a1f33abe8e09dea1054d173d3e7443c68035b9924
 SHA-3 Selftest
 depends_on:MBEDTLS_SELF_TEST:MBEDTLS_SHA3_C
 sha3_selftest:
+
+SHA-3 invalid param
+depends_on:MBEDTLS_SHA3_C
+sha3_invalid_param

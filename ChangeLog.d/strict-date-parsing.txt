@@ -1,0 +1,3 @@
+Bugfix
+  * Several invalid ASN.1 encodings of UTCTime and GeneralizedTime are
+    now rejected.

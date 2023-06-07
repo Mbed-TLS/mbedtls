@@ -7681,11 +7681,11 @@ static psa_crypto_driver_pake_step_t convert_jpake_computation_stage_to_driver_s
         || stage->step > PSA_PAKE_STEP_ZK_PROOF) {
         return PSA_JPAKE_STEP_INVALID;
     }
-    return jpake_computation_stage_lookup[stage->round - PSA_JPAKE_FIRST]
-                                         [stage->mode - PSA_JPAKE_OUTPUT]
-                                         [stage->count]
-                                         [stage->step
-                                          - PSA_PAKE_STEP_KEY_SHARE];
+    return jpake_computation_stage_lookup
+           [stage->round - PSA_JPAKE_FIRST]
+           [stage->mode - PSA_JPAKE_OUTPUT]
+           [stage->count]
+           [stage->step - PSA_PAKE_STEP_KEY_SHARE];
 }
 #endif /* PSA_WANT_ALG_JPAKE */
 

@@ -1017,7 +1017,6 @@ static int ecdsa_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 #endif /* MBEDTLS_PK_CAN_ECDSA_SIGN */
 
-#if defined(MBEDTLS_ECP_LIGHT)
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
 /* Forward declarations */
 static int ecdsa_verify_rs_wrap(mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
@@ -1125,7 +1124,6 @@ cleanup:
     return ret;
 }
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
-#endif /* MBEDTLS_ECP_LIGHT */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 /*

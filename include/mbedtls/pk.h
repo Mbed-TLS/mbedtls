@@ -45,7 +45,8 @@
  * format. It should be noticed that this only affect how data is stored, not
  * which functions are used for various operations. The overall picture looks
  * like this:
- * - if ECP_C is defined then use legacy functions
+ * - if USE_PSA is not defined and ECP_C is then use ecp_keypair data structure
+ *   and legacy functions
  * - if USE_PSA is defined and
  *     - if ECP_C then use ecp_keypair structure, convert data to a PSA friendly
  *       format and use PSA functions

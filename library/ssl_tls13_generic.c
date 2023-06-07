@@ -37,7 +37,7 @@
 #include "ssl_debug_helpers.h"
 
 #include "psa/crypto.h"
-#include "mbedtls/psa_util.h"
+#include "psa_util_internal.h"
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED) || \
     defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)

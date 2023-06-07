@@ -29,7 +29,7 @@
 #endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-#include "mbedtls/psa_util.h"
+#include "psa_util_internal.h"
 #endif
 
 #if defined(MBEDTLS_MD_LIGHT)

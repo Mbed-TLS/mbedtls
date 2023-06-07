@@ -25,7 +25,7 @@
 #include <psa/crypto.h>
 
 #include "psa_crypto_core.h"
-#include <mbedtls/psa_util.h>
+#include <psa_util_internal.h>
 #include <mbedtls/error.h>
 #include <mbedtls/lms.h>
 #include <mbedtls/ssl.h>

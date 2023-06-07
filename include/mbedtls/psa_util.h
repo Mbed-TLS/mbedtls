@@ -3,7 +3,7 @@
  *
  * \brief Utility functions for the use of the PSA Crypto library.
  *
- * \warning This function is not part of the public API and may
+ * \warning These functions are not part of the public API and may
  *          change at any time.
  */
 /*

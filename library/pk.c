@@ -39,7 +39,7 @@
 #endif
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
-#include "mbedtls/psa_util.h"
+#include "psa_util_internal.h"
 #include "md_psa.h"
 #endif
 

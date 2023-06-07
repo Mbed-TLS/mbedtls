@@ -41,7 +41,7 @@
 #include "mbedtls/lms.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
-#include "mbedtls/psa_util.h"
+#include "psa_util_internal.h"
 
 #include "psa/crypto.h"
 

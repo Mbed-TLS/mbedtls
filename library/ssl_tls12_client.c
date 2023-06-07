@@ -31,7 +31,7 @@
 #include "mbedtls/constant_time.h"
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-#include "mbedtls/psa_util.h"
+#include "psa_util_internal.h"
 #include "psa/crypto.h"
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
 /* Define a local translating function to save code size by not using too many

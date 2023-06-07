@@ -28,7 +28,7 @@
 #include "psa_crypto_slot_management.h"
 
 #include <mbedtls/ecjpake.h>
-#include <mbedtls/psa_util.h>
+#include <psa_util_internal.h>
 
 #include <mbedtls/platform.h>
 #include <mbedtls/error.h>

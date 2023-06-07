@@ -56,7 +56,7 @@
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
-#include "mbedtls/psa_util.h"
+#include "psa_util_internal.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_NIST_KW_C)

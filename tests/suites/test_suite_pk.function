@@ -19,7 +19,7 @@
 #include "md_psa.h"
 
 /* Used for properly sizing the key buffer in pk_genkey_ec() */
-#include "mbedtls/psa_util.h"
+#include "psa_util_internal.h"
 
 #define RSA_KEY_SIZE 512
 #define RSA_KEY_LEN   64

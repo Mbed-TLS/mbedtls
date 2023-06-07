@@ -309,7 +309,7 @@ int mbedtls_sha3_finish(mbedtls_sha3_context *ctx,
 }
 
 /*
- * output = SHA3( input buffer )
+ * output = SHA-3( input buffer )
  */
 int mbedtls_sha3(mbedtls_sha3_id id, const uint8_t *input,
                  size_t ilen, uint8_t *output, size_t olen)
@@ -602,7 +602,7 @@ int mbedtls_sha3_self_test(int verbose)
 {
     int i;
 
-    /* SHA3 Known Answer Tests (KAT) */
+    /* SHA-3 Known Answer Tests (KAT) */
     for (i = 0; i < 2; i++) {
         if (0 != mbedtls_sha3_kat_test(verbose,
                                        "SHA3-224", MBEDTLS_SHA3_224, i)) {
@@ -625,7 +625,7 @@ int mbedtls_sha3_self_test(int verbose)
         }
     }
 
-    /* SHA3 long KAT tests */
+    /* SHA-3 long KAT tests */
     if (0 != mbedtls_sha3_long_kat_test(verbose,
                                         "SHA3-224", MBEDTLS_SHA3_224)) {
         return 1;

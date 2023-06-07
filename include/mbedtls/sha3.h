@@ -1,7 +1,7 @@
 /**
  * \file sha3.h
  *
- * \brief This file contains SHA3 definitions and functions.
+ * \brief This file contains SHA-3 definitions and functions.
  *
  * The Secure Hash Algorithms cryptographic
  * hash functions are defined in <em>FIPS 202: SHA-3 Standard:
@@ -37,7 +37,7 @@
 extern "C" {
 #endif
 
-/** SHA3 input data was malformed. */
+/** SHA-3 input data was malformed. */
 #define MBEDTLS_ERR_SHA3_BAD_INPUT_DATA                 -0x0076
 
 /**

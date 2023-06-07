@@ -2160,6 +2160,50 @@ component_test_psa_crypto_config_accel_ecdh () {
     make test
 }
 
+component_test_psa_crypto_config_accel_ffdh () {
+    msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated FFDH"
+
+    # Algorithms and key types to accelerate
+    loc_accel_list="ALG_FFDH KEY_TYPE_DH_KEY_PAIR KEY_TYPE_DH_PUBLIC_KEY"
+
+    # Configure and build the test driver library
+    # -------------------------------------------
+
+    # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
+    # partial support for cipher operations in the driver test library.
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+
+    loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
+    make -C tests libtestdriver1.a CFLAGS=" $ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
+
+    # Configure and build the main libraries
+    # --------------------------------------
+
+    # Start from default config (no USE_PSA or TLS 1.3)
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+
+    # Disable the module that's accelerated
+    scripts/config.py unset MBEDTLS_DHM_C
+
+    # Disable things that depend on it
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
+
+    # Build the main library
+    loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
+    make CFLAGS="$ASAN_CFLAGS -O -Werror -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
+
+    # Make sure this was not re-enabled by accident (additive config)
+    not grep mbedtls_dhm_ library/dhm.o
+
+    # Run the tests
+    # -------------
+
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated FFDH"
+    make test
+}
+
 component_test_psa_crypto_config_accel_pake() {
     msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated PAKE"
 
@@ -2464,7 +2508,6 @@ psa_crypto_config_accel_all_curves_except_one () {
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
     for ALG in $(sed -n 's/^#define \(PSA_WANT_ALG_RSA_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
-        echo $ALG
         scripts/config.py -f include/psa/crypto_config.h unset $ALG
     done
 
@@ -3793,7 +3836,7 @@ component_build_arm_none_eabi_gcc () {
     make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" LD="${ARM_NONE_EABI_GCC_PREFIX}ld" CFLAGS='-std=c99 -Werror -Wall -Wextra -O1' lib
 
     msg "size: ${ARM_NONE_EABI_GCC_PREFIX}gcc -O1, baremetal+debug"
-    ${ARM_NONE_EABI_GCC_PREFIX}size library/*.o
+    ${ARM_NONE_EABI_GCC_PREFIX}size -t library/*.o
 }
 
 component_build_arm_linux_gnueabi_gcc_arm5vte () {
@@ -3807,7 +3850,7 @@ component_build_arm_linux_gnueabi_gcc_arm5vte () {
     make CC="${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc" AR="${ARM_LINUX_GNUEABI_GCC_PREFIX}ar" CFLAGS='-Werror -Wall -Wextra -march=armv5te -O1' LDFLAGS='-march=armv5te'
 
     msg "size: ${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc -march=armv5te -O1, baremetal+debug"
-    ${ARM_LINUX_GNUEABI_GCC_PREFIX}size library/*.o
+    ${ARM_LINUX_GNUEABI_GCC_PREFIX}size -t library/*.o
 }
 support_build_arm_linux_gnueabi_gcc_arm5vte () {
     type ${ARM_LINUX_GNUEABI_GCC_PREFIX}gcc >/dev/null 2>&1
@@ -3822,7 +3865,7 @@ component_build_arm_none_eabi_gcc_arm5vte () {
     make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" CFLAGS='-std=c99 -Werror -Wall -Wextra -march=armv5te -O1' LDFLAGS='-march=armv5te' SHELL='sh -x' lib
 
     msg "size: ${ARM_NONE_EABI_GCC_PREFIX}gcc -march=armv5te -O1, baremetal+debug"
-    ${ARM_NONE_EABI_GCC_PREFIX}size library/*.o
+    ${ARM_NONE_EABI_GCC_PREFIX}size -t library/*.o
 }
 
 component_build_arm_none_eabi_gcc_m0plus () {
@@ -3831,7 +3874,7 @@ component_build_arm_none_eabi_gcc_m0plus () {
     make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" LD="${ARM_NONE_EABI_GCC_PREFIX}ld" CFLAGS='-std=c99 -Werror -Wall -Wextra -mthumb -mcpu=cortex-m0plus -Os' lib
 
     msg "size: ${ARM_NONE_EABI_GCC_PREFIX}gcc -mthumb -mcpu=cortex-m0plus -Os, baremetal_size"
-    ${ARM_NONE_EABI_GCC_PREFIX}size library/*.o
+    ${ARM_NONE_EABI_GCC_PREFIX}size -t library/*.o
 }
 
 component_build_arm_none_eabi_gcc_no_udbl_division () {

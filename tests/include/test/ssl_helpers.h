@@ -36,7 +36,6 @@
 #include <ssl_misc.h>
 #include <mbedtls/timing.h>
 #include <mbedtls/debug.h>
-#include "hash_info.h"
 
 #include "test/certs.h"
 

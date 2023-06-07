@@ -30,7 +30,6 @@
 #if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
-#include "hash_info.h"
 #endif
 
 #if defined(MBEDTLS_MD_CAN_MD5)
@@ -55,6 +54,7 @@
 #endif
 
 #include "mbedtls/pk.h"
+#include "pk_internal.h"
 #include "common.h"
 
 /* Shorthand for restartable ECC */

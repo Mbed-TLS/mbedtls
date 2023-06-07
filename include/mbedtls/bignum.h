@@ -594,6 +594,8 @@ int mbedtls_mpi_write_binary_le(const mbedtls_mpi *X,
  * \brief          Perform a left-shift on an MPI: X <<= count
  *
  * \param X        The MPI to shift. This must point to an initialized MPI.
+ *                 The MPI pointed by \p X may be resized to fit
+ *                 the resulting number.
  * \param count    The number of bits to shift by.
  *
  * \return         \c 0 if successful.

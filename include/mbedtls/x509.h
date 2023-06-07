@@ -243,6 +243,17 @@ typedef mbedtls_asn1_named_data mbedtls_x509_name;
  */
 typedef mbedtls_asn1_sequence mbedtls_x509_sequence;
 
+/*
+ * Container for the fields of the Authority Key Identifier object
+ */
+typedef struct mbedtls_x509_authority {
+    mbedtls_x509_buf keyIdentifier;
+    mbedtls_x509_sequence authorityCertIssuer;
+    mbedtls_x509_buf authorityCertSerialNumber;
+    mbedtls_x509_buf raw;
+}
+mbedtls_x509_authority;
+
 /** Container for date and time (precision in seconds). */
 typedef struct mbedtls_x509_time {
     int year, mon, day;         /**< Date. */
@@ -293,13 +304,19 @@ mbedtls_x509_san_other_name;
 typedef struct mbedtls_x509_subject_alternative_name {
     int type;                              /**< The SAN type, value of MBEDTLS_X509_SAN_XXX. */
     union {
-        mbedtls_x509_san_other_name other_name; /**< The otherName supported type. */
+        mbedtls_x509_san_other_name other_name;
         mbedtls_x509_name directory_name;
         mbedtls_x509_buf unstructured_name; /**< The buffer for the unstructured types. rfc822Name, dnsName and uniformResourceIdentifier are currently supported. */
     }
     san; /**< A union of the supported SAN types */
 }
 mbedtls_x509_subject_alternative_name;
+
+typedef struct mbedtls_x509_san_list {
+    mbedtls_x509_subject_alternative_name node;
+    struct mbedtls_x509_san_list *next;
+}
+mbedtls_x509_san_list;
 
 /** \} name Structures for parsing X.509 certificates, CRLs and CSRs */
 
@@ -390,7 +407,8 @@ int mbedtls_x509_time_is_future(const mbedtls_x509_time *from);
  *                 of the subject alternative name encoded in \p san_raw.
  *
  * \note           Supported GeneralName types, as defined in RFC 5280:
- *                 "rfc822Name", "dnsName", "uniformResourceIdentifier" and "hardware_module_name"
+ *                 "rfc822Name", "dnsName", "directoryName",
+ *                 "uniformResourceIdentifier" and "hardware_module_name"
  *                 of type "otherName", as defined in RFC 4108.
  *
  * \note           This function should be called on a single raw data of
@@ -470,6 +488,9 @@ int mbedtls_x509_get_key_usage(unsigned char **p,
 int mbedtls_x509_get_subject_alt_name(unsigned char **p,
                                       const unsigned char *end,
                                       mbedtls_x509_sequence *subject_alt_name);
+int mbedtls_x509_get_subject_alt_name_ext(unsigned char **p,
+                                          const unsigned char *end,
+                                          mbedtls_x509_sequence *subject_alt_name);
 int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
                                        const mbedtls_x509_sequence
                                        *subject_alt_name,

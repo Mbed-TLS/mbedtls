@@ -1,13 +1,13 @@
 Parse RSA Key #1 (No password when required)
-depends_on:MBEDTLS_HAS_MD5_VIA_LOWLEVEL_OR_PSA :MBEDTLS_PEM_PARSE_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_DES_C
+depends_on:MBEDTLS_HAS_MD5_VIA_LOWLEVEL_OR_PSA :MBEDTLS_PEM_PARSE_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_AES_C
 pk_parse_keyfile_rsa:"data_files/test-ca.key":"NULL":MBEDTLS_ERR_PK_PASSWORD_REQUIRED
 
 Parse RSA Key #2 (Correct password)
-depends_on:MBEDTLS_HAS_MD5_VIA_LOWLEVEL_OR_PSA :MBEDTLS_PEM_PARSE_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_DES_C
+depends_on:MBEDTLS_HAS_MD5_VIA_LOWLEVEL_OR_PSA :MBEDTLS_PEM_PARSE_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_AES_C
 pk_parse_keyfile_rsa:"data_files/test-ca.key":"PolarSSLTest":0
 
 Parse RSA Key #3 (Wrong password)
-depends_on:MBEDTLS_HAS_MD5_VIA_LOWLEVEL_OR_PSA :MBEDTLS_PEM_PARSE_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_DES_C
+depends_on:MBEDTLS_HAS_MD5_VIA_LOWLEVEL_OR_PSA :MBEDTLS_PEM_PARSE_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_AES_C
 pk_parse_keyfile_rsa:"data_files/test-ca.key":"PolarSSLWRONG":MBEDTLS_ERR_PK_PASSWORD_MISMATCH
 
 Parse RSA Key #4 (DES Encrypted)
@@ -1197,7 +1197,7 @@ depends_on:MBEDTLS_ECP_LIGHT
 pk_parse_key:"30070201010400a000":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 
 Key ASN1 (OneAsymmetricKey X25519, doesn't match masking requirements, from RFC8410 Appendix A but made into version 0)
-depends_on:MBEDTLS_ECP_LIGHT
+depends_on:MBEDTLS_ECP_C
 pk_parse_key:"302e020100300506032b656e04220420f8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff3f":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 
 Key ASN1 (OneAsymmetricKey X25519, with invalid optional AlgorithIdentifier parameters)

@@ -1201,6 +1201,87 @@ static int x509_get_other_name(const mbedtls_x509_buf *subject_alt_name,
     return 0;
 }
 
+/* Check mbedtls_x509_get_subject_alt_name for detailed description.
+ *
+ * In some cases while parsing subject alternative names the sequence tag is optional
+ * (e.g. CertSerialNumber). This function is designed to handle such case.
+ */
+int mbedtls_x509_get_subject_alt_name_ext(unsigned char **p,
+                                          const unsigned char *end,
+                                          mbedtls_x509_sequence *subject_alt_name)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t tag_len;
+    mbedtls_asn1_sequence *cur = subject_alt_name;
+
+    while (*p < end) {
+        mbedtls_x509_subject_alternative_name tmp_san_name;
+        mbedtls_x509_buf tmp_san_buf;
+        memset(&tmp_san_name, 0, sizeof(tmp_san_name));
+
+        tmp_san_buf.tag = **p;
+        (*p)++;
+
+        if ((ret = mbedtls_asn1_get_len(p, end, &tag_len)) != 0) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
+        }
+
+        tmp_san_buf.p = *p;
+        tmp_san_buf.len = tag_len;
+
+        if ((tmp_san_buf.tag & MBEDTLS_ASN1_TAG_CLASS_MASK) !=
+            MBEDTLS_ASN1_CONTEXT_SPECIFIC) {
+            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                     MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
+        }
+
+        /*
+         * Check that the SAN is structured correctly by parsing it.
+         * The SAN structure is discarded afterwards.
+         */
+        ret = mbedtls_x509_parse_subject_alt_name(&tmp_san_buf, &tmp_san_name);
+        /*
+         * In case the extension is malformed, return an error,
+         * and clear the allocated sequences.
+         */
+        if (ret != 0 && ret != MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE) {
+            mbedtls_asn1_sequence_free(subject_alt_name->next);
+            subject_alt_name->next = NULL;
+            return ret;
+        }
+
+        mbedtls_x509_free_subject_alt_name(&tmp_san_name);
+        /* Allocate and assign next pointer */
+        if (cur->buf.p != NULL) {
+            if (cur->next != NULL) {
+                return MBEDTLS_ERR_X509_INVALID_EXTENSIONS;
+            }
+
+            cur->next = mbedtls_calloc(1, sizeof(mbedtls_asn1_sequence));
+
+            if (cur->next == NULL) {
+                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                         MBEDTLS_ERR_ASN1_ALLOC_FAILED);
+            }
+
+            cur = cur->next;
+        }
+
+        cur->buf = tmp_san_buf;
+        *p += tmp_san_buf.len;
+    }
+
+    /* Set final sequence entry's next pointer to NULL */
+    cur->next = NULL;
+
+    if (*p != end) {
+        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
+                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
+    }
+
+    return 0;
+}
+
 /*
  * SubjectAltName ::= GeneralNames
  *
@@ -1234,8 +1315,7 @@ int mbedtls_x509_get_subject_alt_name(unsigned char **p,
                                       mbedtls_x509_sequence *subject_alt_name)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t len, tag_len;
-    mbedtls_asn1_sequence *cur = subject_alt_name;
+    size_t len;
 
     /* Get main sequence tag */
     if ((ret = mbedtls_asn1_get_tag(p, end, &len,
@@ -1248,71 +1328,7 @@ int mbedtls_x509_get_subject_alt_name(unsigned char **p,
                                  MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
     }
 
-    while (*p < end) {
-        mbedtls_x509_subject_alternative_name dummy_san_buf;
-        mbedtls_x509_buf tmp_san_buf;
-        memset(&dummy_san_buf, 0, sizeof(dummy_san_buf));
-
-        tmp_san_buf.tag = **p;
-        (*p)++;
-
-        if ((ret = mbedtls_asn1_get_len(p, end, &tag_len)) != 0) {
-            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS, ret);
-        }
-
-        tmp_san_buf.p = *p;
-        tmp_san_buf.len = tag_len;
-
-        if ((tmp_san_buf.tag & MBEDTLS_ASN1_TAG_CLASS_MASK) !=
-            MBEDTLS_ASN1_CONTEXT_SPECIFIC) {
-            return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
-                                     MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
-        }
-
-        /*
-         * Check that the SAN is structured correctly.
-         */
-        ret = mbedtls_x509_parse_subject_alt_name(&tmp_san_buf, &dummy_san_buf);
-        /*
-         * In case the extension is malformed, return an error,
-         * and clear the allocated sequences.
-         */
-        if (ret != 0 && ret != MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE) {
-            mbedtls_asn1_sequence_free(subject_alt_name->next);
-            subject_alt_name->next = NULL;
-            return ret;
-        }
-
-        mbedtls_x509_free_subject_alt_name(&dummy_san_buf);
-        /* Allocate and assign next pointer */
-        if (cur->buf.p != NULL) {
-            if (cur->next != NULL) {
-                return MBEDTLS_ERR_X509_INVALID_EXTENSIONS;
-            }
-
-            cur->next = mbedtls_calloc(1, sizeof(mbedtls_asn1_sequence));
-
-            if (cur->next == NULL) {
-                return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
-                                         MBEDTLS_ERR_ASN1_ALLOC_FAILED);
-            }
-
-            cur = cur->next;
-        }
-
-        cur->buf = tmp_san_buf;
-        *p += tmp_san_buf.len;
-    }
-
-    /* Set final sequence entry's next pointer to NULL */
-    cur->next = NULL;
-
-    if (*p != end) {
-        return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_X509_INVALID_EXTENSIONS,
-                                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH);
-    }
-
-    return 0;
+    return mbedtls_x509_get_subject_alt_name_ext(p, end, subject_alt_name);
 }
 
 int mbedtls_x509_get_ns_cert_type(unsigned char **p,
@@ -1424,7 +1440,7 @@ int mbedtls_x509_parse_subject_alt_name(const mbedtls_x509_buf *san_buf,
         break;
 
         /*
-         * RFC822 Name
+         * rfc822Name
          */
         case (MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_RFC822_NAME):
         {

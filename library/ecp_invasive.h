@@ -171,32 +171,101 @@ int  mbedtls_ecp_mod_p384_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
 
-/*
- * Fast quasi-reduction modulo p192k1 = 2^192 - R,
- * with R = 2^32 + 2^12 + 2^8 + 2^7 + 2^6 + 2^3 + 1 = 0x0100001119
+/** Fast quasi-reduction modulo p192k1 = 2^192 - R,
+ * with R = 2^32 + 2^12 + 2^8 + 2^7 + 2^6 + 2^3 + 1 = 0x01000011C9
+ *
+ * \param[in,out]   X       The address of the MPI to be converted.
+ *                          Must have exact limb size that stores a 384-bit MPI
+ *                          (double the bitlength of the modulus).
+ *                          Upon return holds the reduced value which is
+ *                          in range `0 <= X < 2 * N` (where N is the modulus).
+ *                          The bitlength of the reduced value is the same as
+ *                          that of the modulus (192 bits).
+ * \param[in]       X_limbs The length of \p X in limbs.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if \p X does not have
+ *                  twice as many limbs as the modulus.
+ * \return          #MBEDTLS_ERR_ECP_ALLOC_FAILED if memory allocation failed.
  */
 MBEDTLS_STATIC_TESTABLE
-int mbedtls_ecp_mod_p192k1(mbedtls_mpi *N);
+int mbedtls_ecp_mod_p192k1_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 
 #endif /* MBEDTLS_ECP_DP_SECP192K1_ENABLED */
+
 #if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
 
+/** Fast quasi-reduction modulo p224k1 = 2^224 - R,
+ * with R = 2^32 + 2^12 + 2^11 + 2^9 + 2^7 + 2^4 + 2 + 1 = 0x0100001A93
+ *
+ * \param[in,out]   X       The address of the MPI to be converted.
+ *                          Must have exact limb size that stores a 448-bit MPI
+ *                          (double the bitlength of the modulus).
+ *                          Upon return holds the reduced value which is
+ *                          in range `0 <= X < 2 * N` (where N is the modulus).
+ *                          The bitlength of the reduced value is the same as
+ *                          that of the modulus (224 bits).
+ * \param[in]       X_limbs The length of \p X in limbs.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if \p X does not have
+ *                  twice as many limbs as the modulus.
+ * \return          #MBEDTLS_ERR_ECP_ALLOC_FAILED if memory allocation failed.
+ */
 MBEDTLS_STATIC_TESTABLE
-int mbedtls_ecp_mod_p224k1(mbedtls_mpi *N);
+int mbedtls_ecp_mod_p224k1_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 
 #endif /* MBEDTLS_ECP_DP_SECP224K1_ENABLED */
 
 #if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
 
+/** Fast quasi-reduction modulo p256k1 = 2^256 - R,
+ * with R = 2^32 + 2^9 + 2^8 + 2^7 + 2^6 + 2^4 + 1 = 0x01000003D1
+ *
+ * \param[in,out]   X       The address of the MPI to be converted.
+ *                          Must have exact limb size that stores a 512-bit MPI
+ *                          (double the bitlength of the modulus).
+ *                          Upon return holds the reduced value which is
+ *                          in range `0 <= X < 2 * N` (where N is the modulus).
+ *                          The bitlength of the reduced value is the same as
+ *                          that of the modulus (256 bits).
+ * \param[in]       X_limbs The length of \p X in limbs.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if \p X does not have
+ *                  twice as many limbs as the modulus.
+ * \return          #MBEDTLS_ERR_ECP_ALLOC_FAILED if memory allocation failed.
+ */
 MBEDTLS_STATIC_TESTABLE
-int mbedtls_ecp_mod_p256k1(mbedtls_mpi *N);
+int mbedtls_ecp_mod_p256k1_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 
 #endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+
+/** Fast quasi-reduction modulo p255 = 2^255 - 19
+ *
+ * \param[in,out]   X       The address of the MPI to be converted.
+ *                          Must have exact limb size that stores a 510-bit MPI
+ *                          (double the bitlength of the modulus).
+ *                          Upon return holds the reduced value which is
+ *                          in range `0 <= X < 2 * N` (where N is the modulus).
+ * \param[in]       X_limbs The length of \p X in limbs.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if \p X does not have
+ *                  twice as many limbs as the modulus.
+ * \return          #MBEDTLS_ERR_ECP_ALLOC_FAILED if memory allocation failed.
+ */
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p255_raw(mbedtls_mpi_uint *X, size_t X_limbs);
+
+#endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED */
 
 #if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
 
 MBEDTLS_STATIC_TESTABLE
-int mbedtls_ecp_mod_p448(mbedtls_mpi *N);
+int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs);
 
 #endif /* MBEDTLS_ECP_DP_CURVE448_ENABLED */
 

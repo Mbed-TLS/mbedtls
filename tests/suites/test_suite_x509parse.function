@@ -1548,3 +1548,86 @@ exit:
     USE_PSA_DONE();
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C */
+void x509_crt_parse_subjectkeyid(data_t *buf, int subjectKeyIdLength_arg, int ref_ret)
+{
+    size_t subjectKeyIdLength = subjectKeyIdLength_arg;
+    mbedtls_x509_crt crt;
+
+    mbedtls_x509_crt_init(&crt);
+
+    TEST_ASSERT(mbedtls_x509_crt_parse_der(&crt, buf->x, buf->len) == ref_ret);
+
+    if (ref_ret == 0) {
+        TEST_ASSERT(crt.subject_key_id.tag == MBEDTLS_ASN1_OCTET_STRING);
+        TEST_ASSERT(crt.subject_key_id.len == subjectKeyIdLength);
+    } else {
+        TEST_ASSERT(crt.subject_key_id.tag == 0);
+        TEST_ASSERT(crt.subject_key_id.len == 0);
+    }
+
+exit:
+    mbedtls_x509_crt_free(&crt);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C */
+void x509_crt_parse_authoritykeyid(data_t *buf,
+                                   int keyIdLength_arg,
+                                   char *authorityKeyId_issuer,
+                                   int serialLength_arg,
+                                   int ref_ret)
+{
+    mbedtls_x509_crt crt;
+    int bufferCounter = 0;
+    size_t issuerCounter = 0;
+    size_t keyIdLength = keyIdLength_arg;
+    size_t serialLength = serialLength_arg;
+    unsigned int result = 0;
+    mbedtls_x509_subject_alternative_name san;
+    mbedtls_x509_name *pname = NULL;
+
+    mbedtls_x509_crt_init(&crt);
+
+    TEST_ASSERT(mbedtls_x509_crt_parse_der(&crt, buf->x, buf->len) == ref_ret);
+
+    if (ref_ret == 0) {
+        /* KeyId test */
+        TEST_ASSERT(crt.authority_key_id.keyIdentifier.tag == MBEDTLS_ASN1_OCTET_STRING);
+        TEST_ASSERT(crt.authority_key_id.keyIdentifier.len == keyIdLength);
+
+        /* Issuer test */
+        mbedtls_x509_sequence *issuerPtr = &crt.authority_key_id.authorityCertIssuer;
+
+        TEST_ASSERT(mbedtls_x509_parse_subject_alt_name(&issuerPtr->buf, &san) == 0);
+
+        pname = &san.san.directory_name;
+
+        while (pname != NULL) {
+            for (issuerCounter = 0; issuerCounter < pname->val.len; issuerCounter++) {
+                result |=
+                    (authorityKeyId_issuer[bufferCounter++] != pname->val.p[issuerCounter]);
+            }
+            bufferCounter++; /* Skipping the slash */
+            pname = pname->next;
+        }
+        mbedtls_x509_free_subject_alt_name(&san);
+        TEST_ASSERT(result == 0);
+
+        /* Serial test */
+        TEST_ASSERT(crt.authority_key_id.authorityCertSerialNumber.tag ==
+                    MBEDTLS_ASN1_INTEGER);
+        TEST_ASSERT(crt.authority_key_id.authorityCertSerialNumber.len == serialLength);
+    } else {
+        TEST_ASSERT(crt.authority_key_id.keyIdentifier.tag == 0);
+        TEST_ASSERT(crt.authority_key_id.keyIdentifier.len == 0);
+
+        TEST_ASSERT(crt.authority_key_id.authorityCertSerialNumber.tag == 0);
+        TEST_ASSERT(crt.authority_key_id.authorityCertSerialNumber.len == 0);
+    }
+
+exit:
+    mbedtls_x509_crt_free(&crt);
+}
+/* END_CASE */

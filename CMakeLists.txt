@@ -34,9 +34,9 @@ cmake_policy(SET CMP0011 NEW)
 cmake_policy(SET CMP0012 NEW)
 
 if(TEST_CPP)
-    project("mbed TLS" C CXX)
+    project("mbed TLS" LANGUAGES C CXX)
 else()
-    project("mbed TLS" C)
+    project("mbed TLS" LANGUAGES C)
 endif()
 
 include(GNUInstallDirs)

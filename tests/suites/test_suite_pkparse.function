@@ -3,6 +3,7 @@
 #include "mbedtls/pem.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/ecp.h"
+#include "pk_internal.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -83,10 +84,16 @@ void pk_parse_public_keyfile_ec(char *key_file, int result)
     TEST_ASSERT(res == result);
 
     if (res == 0) {
-        mbedtls_ecp_keypair *eckey;
         TEST_ASSERT(mbedtls_pk_can_do(&ctx, MBEDTLS_PK_ECKEY));
-        eckey = mbedtls_pk_ec(ctx);
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+        /* No need to check whether the parsed public point is on the curve or
+         * not because this is already done by the internal "pk_get_ecpubkey()"
+         * function */
+#else
+        const mbedtls_ecp_keypair *eckey;
+        eckey = mbedtls_pk_ec_ro(ctx);
         TEST_ASSERT(mbedtls_ecp_check_pubkey(&eckey->grp, &eckey->Q) == 0);
+#endif
     }
 
 exit:
@@ -110,10 +117,13 @@ void pk_parse_keyfile_ec(char *key_file, char *password, int result)
     TEST_ASSERT(res == result);
 
     if (res == 0) {
-        mbedtls_ecp_keypair *eckey;
         TEST_ASSERT(mbedtls_pk_can_do(&ctx, MBEDTLS_PK_ECKEY));
-        eckey = mbedtls_pk_ec(ctx);
+#if defined(MBEDTLS_ECP_C)
+        const mbedtls_ecp_keypair *eckey = mbedtls_pk_ec_ro(ctx);
         TEST_ASSERT(mbedtls_ecp_check_privkey(&eckey->grp, &eckey->d) == 0);
+#else
+        /* PSA keys are already checked on import so nothing to do here. */
+#endif
     }
 
 exit:

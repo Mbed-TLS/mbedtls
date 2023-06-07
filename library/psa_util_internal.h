@@ -28,5 +28,22 @@
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 
+/*************************************************************************
+ * FFDH
+ ************************************************************************/
+
+#define MBEDTLS_PSA_MAX_FFDH_PUBKEY_LENGTH \
+    PSA_KEY_EXPORT_FFDH_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_FFDH_MAX_KEY_BITS)
+
+/*************************************************************************
+ * ECC
+ ************************************************************************/
+
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH \
+    PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)
+
+#define MBEDTLS_PSA_MAX_EC_KEY_PAIR_LENGTH \
+    PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)
+
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 #endif /* MBEDTLS_PSA_UTIL_INTERNAL_H */

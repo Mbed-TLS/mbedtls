@@ -170,8 +170,7 @@ int mbedtls_sha3(mbedtls_sha3_id id, const uint8_t *input,
 #if defined(MBEDTLS_SELF_TEST)
 /**
  * \brief          Checkup routine for the algorithms implemented
- *                 by this module: SHA3-224, SHA3-256, SHA3-384, SHA3-512,
- *                 SHAKE128, SHAKE256, cSHAKE128 and cSHAKE256.
+ *                 by this module: SHA3-224, SHA3-256, SHA3-384, SHA3-512.
  *
  * \return         0 if successful, or 1 if the test failed.
  */

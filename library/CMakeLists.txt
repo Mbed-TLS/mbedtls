@@ -84,6 +84,7 @@ set(src_crypto
     sha1.c
     sha256.c
     sha512.c
+    sha3.c
     threading.c
     timing.c
     version.c

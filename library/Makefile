@@ -149,6 +149,7 @@ OBJS_CRYPTO= \
 	     sha1.o \
 	     sha256.o \
 	     sha512.o \
+	     sha3.o \
 	     threading.o \
 	     timing.o \
 	     version.o \

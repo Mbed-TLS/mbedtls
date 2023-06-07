@@ -321,21 +321,6 @@ TASKS = {
                     'Parse Public EC Key #8a (RFC 5480, brainpoolP384r1, compressed)',
                     'Parse Public EC Key #9a (RFC 5480, brainpoolP512r1, compressed)',
                 ],
-                'test_suite_pk': [
-                    # Test function pk_ec_test_vec() requires ECP_LIGHT.
-                    'EC(DSA) verify test vector #1 (good)',
-                    'EC(DSA) verify test vector #2 (bad)',
-                    'EC(DSA) verify test vector: good, bitlen(r) = 247',
-                    'EC(DSA) verify test vector: good, bitlen(r) = 248',
-                    'EC(DSA) verify test vector: good, bitlen(r) = 255',
-                    'EC(DSA) verify test vector: good, bitlen(r) = 256',
-                    'EC(DSA) verify test vector: good, bitlen(s) = 247',
-                    'EC(DSA) verify test vector: good, bitlen(s) = 248',
-                    'EC(DSA) verify test vector: good, bitlen(s) = 255',
-                    'EC(DSA) verify test vector: good, bitlen(s) = 256',
-                    'ECDSA verify test vector #1 (good)',
-                    'ECDSA verify test vector #2 (bad)',
-                ],
             }
         }
     },

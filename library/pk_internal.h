@@ -117,19 +117,4 @@ static inline mbedtls_ecp_group_id mbedtls_pk_get_group_id(const mbedtls_pk_cont
 #endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED || MBEDTLS_ECP_DP_CURVE448_ENABLED */
 #endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA) && defined(MBEDTLS_ECP_LIGHT)
-/**
- * \brief   Copy the public key content in raw format from "ctx->pk_ctx"
- *          (which is an ecp_keypair) into the internal "ctx->pub_raw" buffer.
- *
- * \note    This is a temporary function that can be removed as soon as the pk
- *          module is free from ECP_C
- *
- * \param pk   It is the pk_context which is going to be updated. It acts both
- *             as input and output.
- */
-int mbedtls_pk_update_public_key_from_keypair(mbedtls_pk_context *pk,
-                                              mbedtls_ecp_keypair *ecp_keypair);
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA && MBEDTLS_ECP_LIGHT */
-
 #endif /* MBEDTLS_PK_INTERNAL_H */

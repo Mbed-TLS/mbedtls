@@ -42,7 +42,10 @@
  * \return          The PSA algorithm identifier associated with \p md_type,
  *                  regardless of whether it is supported or not.
  */
-psa_algorithm_t mbedtls_md_psa_alg_from_type(mbedtls_md_type_t md_type);
+static inline psa_algorithm_t mbedtls_md_psa_alg_from_type(mbedtls_md_type_t md_type)
+{
+    return PSA_ALG_CATEGORY_HASH | (psa_algorithm_t) md_type;
+}
 
 /**
  * \brief           This function returns the given digest type
@@ -56,7 +59,10 @@ psa_algorithm_t mbedtls_md_psa_alg_from_type(mbedtls_md_type_t md_type);
  * \return          The MD type associated with \p psa_alg,
  *                  regardless of whether it is supported or not.
  */
-mbedtls_md_type_t mbedtls_md_type_from_psa_alg(psa_algorithm_t psa_alg);
+static inline mbedtls_md_type_t mbedtls_md_type_from_psa_alg(psa_algorithm_t psa_alg)
+{
+    return (mbedtls_md_type_t) (psa_alg & PSA_ALG_HASH_MASK);
+}
 
 /** Convert PSA status to MD error code.
  *

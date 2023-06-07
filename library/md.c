@@ -771,16 +771,6 @@ mbedtls_md_type_t mbedtls_md_get_type(const mbedtls_md_info_t *md_info)
 }
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
-psa_algorithm_t mbedtls_md_psa_alg_from_type(mbedtls_md_type_t md_type)
-{
-    return PSA_ALG_CATEGORY_HASH | (psa_algorithm_t) md_type;
-}
-
-mbedtls_md_type_t mbedtls_md_type_from_psa_alg(psa_algorithm_t psa_alg)
-{
-    return (mbedtls_md_type_t) (psa_alg & PSA_ALG_HASH_MASK);
-}
-
 int mbedtls_md_error_from_psa(psa_status_t status)
 {
     return PSA_TO_MBEDTLS_ERR_LIST(status, psa_to_md_errors,

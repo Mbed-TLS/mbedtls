@@ -146,21 +146,18 @@ const mbedtls_md_info_t mbedtls_sha3_224_info = {
     28,
     144,
 };
-
 const mbedtls_md_info_t mbedtls_sha3_256_info = {
     "SHA3-256",
     MBEDTLS_MD_SHA3_256,
     32,
     136,
 };
-
 const mbedtls_md_info_t mbedtls_sha3_384_info = {
     "SHA3-384",
     MBEDTLS_MD_SHA3_384,
     48,
     104,
 };
-
 const mbedtls_md_info_t mbedtls_sha3_512_info = {
     "SHA3-512",
     MBEDTLS_MD_SHA3_512,

@@ -60,10 +60,10 @@ typedef enum {
  *                 The structure is used SHA-3 checksum calculations.
  */
 typedef struct {
-    uint64_t state[25];
-    uint32_t index;
-    uint16_t olen;
-    uint16_t max_block_size;
+    uint64_t MBEDTLS_PRIVATE(state[25]);
+    uint32_t MBEDTLS_PRIVATE(index);
+    uint16_t MBEDTLS_PRIVATE(olen);
+    uint16_t MBEDTLS_PRIVATE(max_block_size);
 }
 mbedtls_sha3_context;
 

@@ -31,7 +31,10 @@
  * \brief           This function returns the PSA algorithm identifier
  *                  associated with the given digest type.
  *
- * \param md_type   The type of digest to search for.
+ * \param md_type   The type of digest to search for. Must not be NONE.
+ *
+ * \warning         If \p md_type is \c MBEDTLS_MD_NONE, this function will
+ *                  not return \c PSA_ALG_NONE, but an invalid algorithm.
  *
  * \warning         This function does not check if the algorithm is
  *                  supported, it always returns the corresponding identifier.

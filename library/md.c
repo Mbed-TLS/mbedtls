@@ -773,9 +773,6 @@ mbedtls_md_type_t mbedtls_md_get_type(const mbedtls_md_info_t *md_info)
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 psa_algorithm_t mbedtls_md_psa_alg_from_type(mbedtls_md_type_t md_type)
 {
-    if (md_type == MBEDTLS_MD_NONE) {
-        return PSA_ALG_NONE;
-    }
     return PSA_ALG_CATEGORY_HASH | (psa_algorithm_t) md_type;
 }
 

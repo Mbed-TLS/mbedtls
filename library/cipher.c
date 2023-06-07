@@ -144,6 +144,85 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_values(
     return NULL;
 }
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_DEPRECATED_REMOVED)
+static inline psa_key_type_t mbedtls_psa_translate_cipher_type(
+    mbedtls_cipher_type_t cipher)
+{
+    switch (cipher) {
+        case MBEDTLS_CIPHER_AES_128_CCM:
+        case MBEDTLS_CIPHER_AES_192_CCM:
+        case MBEDTLS_CIPHER_AES_256_CCM:
+        case MBEDTLS_CIPHER_AES_128_CCM_STAR_NO_TAG:
+        case MBEDTLS_CIPHER_AES_192_CCM_STAR_NO_TAG:
+        case MBEDTLS_CIPHER_AES_256_CCM_STAR_NO_TAG:
+        case MBEDTLS_CIPHER_AES_128_GCM:
+        case MBEDTLS_CIPHER_AES_192_GCM:
+        case MBEDTLS_CIPHER_AES_256_GCM:
+        case MBEDTLS_CIPHER_AES_128_CBC:
+        case MBEDTLS_CIPHER_AES_192_CBC:
+        case MBEDTLS_CIPHER_AES_256_CBC:
+        case MBEDTLS_CIPHER_AES_128_ECB:
+        case MBEDTLS_CIPHER_AES_192_ECB:
+        case MBEDTLS_CIPHER_AES_256_ECB:
+            return PSA_KEY_TYPE_AES;
+
+        /* ARIA not yet supported in PSA. */
+        /* case MBEDTLS_CIPHER_ARIA_128_CCM:
+           case MBEDTLS_CIPHER_ARIA_192_CCM:
+           case MBEDTLS_CIPHER_ARIA_256_CCM:
+           case MBEDTLS_CIPHER_ARIA_128_CCM_STAR_NO_TAG:
+           case MBEDTLS_CIPHER_ARIA_192_CCM_STAR_NO_TAG:
+           case MBEDTLS_CIPHER_ARIA_256_CCM_STAR_NO_TAG:
+           case MBEDTLS_CIPHER_ARIA_128_GCM:
+           case MBEDTLS_CIPHER_ARIA_192_GCM:
+           case MBEDTLS_CIPHER_ARIA_256_GCM:
+           case MBEDTLS_CIPHER_ARIA_128_CBC:
+           case MBEDTLS_CIPHER_ARIA_192_CBC:
+           case MBEDTLS_CIPHER_ARIA_256_CBC:
+               return( PSA_KEY_TYPE_ARIA ); */
+
+        default:
+            return 0;
+    }
+}
+
+static inline psa_algorithm_t mbedtls_psa_translate_cipher_mode(
+    mbedtls_cipher_mode_t mode, size_t taglen)
+{
+    switch (mode) {
+        case MBEDTLS_MODE_ECB:
+            return PSA_ALG_ECB_NO_PADDING;
+        case MBEDTLS_MODE_GCM:
+            return PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_GCM, taglen);
+        case MBEDTLS_MODE_CCM:
+            return PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, taglen);
+        case MBEDTLS_MODE_CCM_STAR_NO_TAG:
+            return PSA_ALG_CCM_STAR_NO_TAG;
+        case MBEDTLS_MODE_CBC:
+            if (taglen == 0) {
+                return PSA_ALG_CBC_NO_PADDING;
+            } else {
+                return 0;
+            }
+        default:
+            return 0;
+    }
+}
+
+static inline psa_key_usage_t mbedtls_psa_translate_cipher_operation(
+    mbedtls_operation_t op)
+{
+    switch (op) {
+        case MBEDTLS_ENCRYPT:
+            return PSA_KEY_USAGE_ENCRYPT;
+        case MBEDTLS_DECRYPT:
+            return PSA_KEY_USAGE_DECRYPT;
+        default:
+            return 0;
+    }
+}
+#endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
+
 void mbedtls_cipher_init(mbedtls_cipher_context_t *ctx)
 {
     memset(ctx, 0, sizeof(mbedtls_cipher_context_t));

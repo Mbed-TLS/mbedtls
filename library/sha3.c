@@ -504,7 +504,6 @@ static int mbedtls_sha3_long_kat_test(int verbose,
     mbedtls_sha3_context ctx;
     unsigned char buffer[1000];
     unsigned char hash[64];
-    int i;
     int result = 0;
 
     memset(buffer, 'a', 1000);
@@ -523,7 +522,7 @@ static int mbedtls_sha3_long_kat_test(int verbose,
     }
 
     /* Process 1,000,000 (one million) 'a' characters */
-    for (i = 0; i < 1000; i++) {
+    for (int i = 0; i < 1000; i++) {
         result = mbedtls_sha3_update(&ctx, buffer, 1000);
         if (result != 0) {
             if (verbose != 0) {

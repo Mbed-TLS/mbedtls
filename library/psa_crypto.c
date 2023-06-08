@@ -5482,24 +5482,44 @@ static psa_status_t psa_key_derivation_pbkdf2_generate_block(
     psa_key_attributes_t *attributes)
 {
     psa_status_t status;
+    psa_mac_operation_t mac_operation = PSA_MAC_OPERATION_INIT;
     size_t mac_output_length;
-    uint8_t U_i[PSA_HASH_MAX_SIZE];
-    uint8_t U_accumulator[PSA_HASH_MAX_SIZE];
-    uint8_t j;
+    uint8_t U_i[PSA_MAC_MAX_SIZE];
+    uint8_t U_accumulator[PSA_MAC_MAX_SIZE];
     uint64_t i;
+    uint8_t block_counter[4];
 
-    uint8_t *input = mbedtls_calloc(pbkdf2->salt_length + 4, 1);
-    memcpy(input, pbkdf2->salt, pbkdf2->salt_length);
-    MBEDTLS_PUT_UINT32_BE(pbkdf2->block_number, input, pbkdf2->salt_length);
+    mac_operation.is_sign = 1;
+    mac_operation.mac_size = prf_output_length;
+    MBEDTLS_PUT_UINT32_BE(pbkdf2->block_number, block_counter, 0);
 
-    status = psa_driver_wrapper_mac_compute(attributes, pbkdf2->password,
-                                            pbkdf2->password_length, prf_alg,
-                                            input, (pbkdf2->salt_length + 4),
-                                            U_i, prf_output_length,
-                                            &mac_output_length);
+    status = psa_driver_wrapper_mac_sign_setup(&mac_operation,
+                                               attributes,
+                                               pbkdf2->password,
+                                               pbkdf2->password_length,
+                                               prf_alg);
     if (status != PSA_SUCCESS) {
         goto cleanup;
     }
+    status = psa_mac_update(&mac_operation, pbkdf2->salt, pbkdf2->salt_length);
+    if (status != PSA_SUCCESS) {
+        goto cleanup;
+    }
+    status = psa_mac_update(&mac_operation, block_counter, 4UL);
+    if (status != PSA_SUCCESS) {
+        goto cleanup;
+    }
+    status = psa_mac_sign_finish(&mac_operation, U_i, sizeof(U_i),
+                                 &mac_output_length);
+    if (status != PSA_SUCCESS) {
+        goto cleanup;
+    }
+
+    if (mac_output_length != prf_output_length) {
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto cleanup;
+    }
+
     memcpy(U_accumulator, U_i, mac_output_length);
 
     for (i = 1; i < pbkdf2->input_cost; i++) {

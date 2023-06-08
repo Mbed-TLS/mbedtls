@@ -3895,6 +3895,25 @@ component_build_arm_none_eabi_gcc_no_64bit_multiplication () {
     not grep __aeabi_lmul library/*.o
 }
 
+component_build_arm_clang_thumb () {
+    # ~ 30s
+
+    scripts/config.py baremetal
+
+    msg "build: clang thumb 2, make"
+    make clean
+    make CC="clang" CFLAGS='-std=c99 -Werror -Os --target=arm-linux-gnueabihf -march=armv7-m -mthumb' lib
+
+    # Some Thumb 1 asm is sensitive to optimisation level, so test both -O0 and -Os
+    msg "build: clang thumb 1 -O0, make"
+    make clean
+    make CC="clang" CFLAGS='-std=c99 -Werror -O0 --target=arm-linux-gnueabihf -mcpu=arm1136j-s -mthumb' lib
+
+    msg "build: clang thumb 1 -Os, make"
+    make clean
+    make CC="clang" CFLAGS='-std=c99 -Werror -Os --target=arm-linux-gnueabihf -mcpu=arm1136j-s -mthumb' lib
+}
+
 component_build_armcc () {
     msg "build: ARM Compiler 5"
     scripts/config.py baremetal
@@ -3918,7 +3937,7 @@ component_build_armcc () {
 
     make clean
 
-    # Compile with -O1 since some Arm inline assembly is disabled for -O0.
+    # Compile mostly with -O1 since some Arm inline assembly is disabled for -O0.
 
     # ARM Compiler 6 - Target ARMv7-A
     armc6_build_test "-O1 --target=arm-arm-none-eabi -march=armv7-a"
@@ -3937,6 +3956,12 @@ component_build_armcc () {
 
     # ARM Compiler 6 - Target ARMv8.2-A - AArch64
     armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8.2-a+crypto"
+
+    # ARM Compiler 6 - Target Cortex-M0 - no optimisation
+    armc6_build_test "-O0 --target=arm-arm-none-eabi -mcpu=cortex-m0"
+
+    # ARM Compiler 6 - Target Cortex-M0
+    armc6_build_test "-Os --target=arm-arm-none-eabi -mcpu=cortex-m0"
 }
 support_build_armcc () {
     armc5_cc="$ARMC5_BIN_DIR/armcc"

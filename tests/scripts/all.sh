@@ -807,7 +807,7 @@ pre_generate_files() {
 #    Examples:
 #      - loc_accel_list="ALG_JPAKE"
 #      - loc_accel_list="ALG_FFDH KEY_TYPE_DH_KEY_PAIR KEY_TYPE_DH_PUBLIC_KEY"
-# 2. Make configurations changes that are common to driver and main libraries.
+# 2. Make configuration changes that are common to driver and main libraries.
 #    WARNING: both libraries MUST have the same set of PSA_WANT_ALG symbols,
 #    as they determine the ABI between them, so all changes to these symbols
 #    go here.
@@ -816,7 +816,7 @@ pre_generate_files() {
 # 3. Build the driver library: libtestdriver1.a.
 #    Just call helper_libtestdriver1_make_drivers, passing "$loc_accel_list".
 #    You may need to enable more algorithms here, typically hash algorithms
-#    when accelerating some signature algoritms (ECDSA, RSAv2). This is done
+#    when accelerating some signature algorithms (ECDSA, RSAv2). This is done
 #    by passing a 2nd argument listing the extra algorithms.
 #    Example:
 #      loc_extra_list="ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512"
@@ -2233,7 +2233,7 @@ component_test_psa_crypto_config_accel_ffdh () {
     # Configure and build the test driver library
     # -------------------------------------------
 
-    helper_libtestdriver1_make_drivers "$loc_extra_list"
+    helper_libtestdriver1_make_drivers "$loc_accel_list"
 
     # Configure and build the main libraries
     # --------------------------------------
@@ -2249,7 +2249,7 @@ component_test_psa_crypto_config_accel_ffdh () {
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
 
     # Build the main library
-    helper_libtestdriver1_make_main "$loc_extra_list"
+    helper_libtestdriver1_make_main "$loc_accel_list"
 
     # Make sure this was not re-enabled by accident (additive config)
     not grep mbedtls_dhm_ library/dhm.o

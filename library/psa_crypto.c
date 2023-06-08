@@ -5527,26 +5527,21 @@ static psa_status_t psa_key_derivation_pbkdf2_generate_block(
                                                 pbkdf2->password,
                                                 pbkdf2->password_length,
                                                 prf_alg, U_i, prf_output_length,
-                                                U_i, prf_output_length,
+                                                U_i, sizeof(U_i),
                                                 &mac_output_length);
         if (status != PSA_SUCCESS) {
             goto cleanup;
         }
 
-        // U1 xor U2
-        for (j = 0; j < prf_output_length; j++) {
-            U_accumulator[j] ^= U_i[j];
-        }
+        mbedtls_xor(U_accumulator, U_accumulator, U_i, prf_output_length);
     }
 
     memcpy(pbkdf2->output_block, U_accumulator, prf_output_length);
 
 cleanup:
     /* Zeroise buffers to clear sensitive data from memory. */
-    mbedtls_platform_zeroize(U_accumulator, PSA_HASH_MAX_SIZE);
-    mbedtls_platform_zeroize(U_i, PSA_HASH_MAX_SIZE);
-    mbedtls_platform_zeroize(input, pbkdf2->salt_length + 4);
-    mbedtls_free(input);
+    mbedtls_platform_zeroize(U_accumulator, PSA_MAC_MAX_SIZE);
+    mbedtls_platform_zeroize(U_i, PSA_MAC_MAX_SIZE); 
     return status;
 }
 

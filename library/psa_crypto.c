@@ -5541,7 +5541,7 @@ static psa_status_t psa_key_derivation_pbkdf2_generate_block(
 cleanup:
     /* Zeroise buffers to clear sensitive data from memory. */
     mbedtls_platform_zeroize(U_accumulator, PSA_MAC_MAX_SIZE);
-    mbedtls_platform_zeroize(U_i, PSA_MAC_MAX_SIZE); 
+    mbedtls_platform_zeroize(U_i, PSA_MAC_MAX_SIZE);
     return status;
 }
 
@@ -5562,6 +5562,8 @@ static psa_status_t psa_key_derivation_pbkdf2_read(
         prf_alg = PSA_ALG_HMAC(PSA_ALG_PBKDF2_HMAC_GET_HASH(kdf_alg));
         prf_output_length = PSA_HASH_LENGTH(prf_alg);
         psa_set_key_type(&attributes, PSA_KEY_TYPE_HMAC);
+    } else {
+        return PSA_ERROR_INVALID_ARGUMENT;
     }
 
     switch (pbkdf2->state) {

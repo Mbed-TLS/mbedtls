@@ -139,25 +139,34 @@ const mbedtls_md_info_t mbedtls_sha512_info = {
 };
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA3)
+#if defined(MBEDTLS_MD_CAN_SHA3_224)
 const mbedtls_md_info_t mbedtls_sha3_224_info = {
     "SHA3-224",
     MBEDTLS_MD_SHA3_224,
     28,
     144,
 };
+#endif
+
+#if defined(MBEDTLS_MD_CAN_SHA3_256)
 const mbedtls_md_info_t mbedtls_sha3_256_info = {
     "SHA3-256",
     MBEDTLS_MD_SHA3_256,
     32,
     136,
 };
+#endif
+
+#if defined(MBEDTLS_MD_CAN_SHA3_384)
 const mbedtls_md_info_t mbedtls_sha3_384_info = {
     "SHA3-384",
     MBEDTLS_MD_SHA3_384,
     48,
     104,
 };
+#endif
+
+#if defined(MBEDTLS_MD_CAN_SHA3_512)
 const mbedtls_md_info_t mbedtls_sha3_512_info = {
     "SHA3-512",
     MBEDTLS_MD_SHA3_512,
@@ -889,10 +898,19 @@ static const int supported_digests[] = {
     MBEDTLS_MD_MD5,
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA3)
+#if defined(MBEDTLS_MD_CAN_SHA3_224)
     MBEDTLS_MD_SHA3_224,
+#endif
+
+#if defined(MBEDTLS_MD_CAN_SHA3_256)
     MBEDTLS_MD_SHA3_256,
+#endif
+
+#if defined(MBEDTLS_MD_CAN_SHA3_384)
     MBEDTLS_MD_SHA3_384,
+#endif
+
+#if defined(MBEDTLS_MD_CAN_SHA3_512)
     MBEDTLS_MD_SHA3_512,
 #endif
 
@@ -946,14 +964,23 @@ const mbedtls_md_info_t *mbedtls_md_info_from_string(const char *md_name)
         return mbedtls_md_info_from_type(MBEDTLS_MD_SHA512);
     }
 #endif
-#if defined(MBEDTLS_SHA3_C)
+#if defined(MBEDTLS_MD_CAN_SHA3_224)
     if (!strcmp("SHA3-224", md_name)) {
         return mbedtls_md_info_from_type(MBEDTLS_MD_SHA3_224);
-    } else if (!strcmp("SHA3-256", md_name)) {
+    }
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA3_256)
+    if (!strcmp("SHA3-256", md_name)) {
         return mbedtls_md_info_from_type(MBEDTLS_MD_SHA3_256);
-    } else if (!strcmp("SHA3-384", md_name)) {
+    }
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA3_384)
+    if (!strcmp("SHA3-384", md_name)) {
         return mbedtls_md_info_from_type(MBEDTLS_MD_SHA3_384);
-    } else if (!strcmp("SHA3-512", md_name)) {
+    }
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA3_512)
+    if (!strcmp("SHA3-512", md_name)) {
         return mbedtls_md_info_from_type(MBEDTLS_MD_SHA3_512);
     }
 #endif

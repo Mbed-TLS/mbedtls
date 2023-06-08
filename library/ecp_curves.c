@@ -5529,9 +5529,7 @@ int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)
     memcpy(M, X + P448_WIDTH, ((M_limbs - 1) * ciL));
 
     /* X = A0 */
-    for (i = P448_WIDTH; i < X_limbs; i++) {
-        X[i] = 0;
-    }
+    memset(X + P448_WIDTH, 0, ((M_limbs - 1) * ciL));
 
     /* X = X + M = A0 + A1 */
     /* Carry here fits in oversize X. Oversize M means it will get
@@ -5558,6 +5556,7 @@ int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)
     for (i = P224_WIDTH_MAX; i < M_limbs; ++i) {
         M[i] = 0;
     }
+    memset(M + P224_WIDTH_MAX, 0, ((M_limbs - P224_WIDTH_MAX) * ciL));
 
     /* M = M + Q = B0 + B1 */
     (void) mbedtls_mpi_core_add(M, M, Q, Q_limbs);

@@ -2029,14 +2029,14 @@ typedef enum psa_crypto_driver_pake_step {
 } psa_crypto_driver_pake_step_t;
 
 typedef enum psa_jpake_round {
-    FIRST = 0,
-    SECOND = 1,
-    FINISHED = 2
+    PSA_JPAKE_FIRST = 0,
+    PSA_JPAKE_SECOND = 1,
+    PSA_JPAKE_FINISHED = 2
 } psa_jpake_round_t;
 
 typedef enum psa_jpake_io_mode {
-    INPUT = 0,
-    OUTPUT = 1
+    PSA_JPAKE_INPUT = 0,
+    PSA_JPAKE_OUTPUT = 1
 } psa_jpake_io_mode_t;
 
 struct psa_jpake_computation_stage_s {
@@ -2052,8 +2052,8 @@ struct psa_jpake_computation_stage_s {
     psa_pake_step_t MBEDTLS_PRIVATE(step);
 };
 
-#define PSA_JPAKE_EXPECTED_INPUTS(round) (((round) == FIRST) ? 2 : 1)
-#define PSA_JPAKE_EXPECTED_OUTPUTS(round) (((round) == FIRST) ? 2 : 1)
+#define PSA_JPAKE_EXPECTED_INPUTS(round) (((round) == PSA_JPAKE_FIRST) ? 2 : 1)
+#define PSA_JPAKE_EXPECTED_OUTPUTS(round) (((round) == PSA_JPAKE_FIRST) ? 2 : 1)
 
 struct psa_pake_operation_s {
     /** Unique ID indicating which driver got assigned to do the

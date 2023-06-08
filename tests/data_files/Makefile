@@ -112,7 +112,9 @@ cert_example_multi_nocn.csr: rsa_pkcs1_1024_clear.pem
 all_intermediate += cert_example_multi_nocn.csr
 
 cert_example_multi_nocn.crt: cert_example_multi_nocn.csr test-ca_nocn.crt
-	$(OPENSSL) x509 -req -CA test-ca_nocn.crt -CAkey $(test_ca_key_file_rsa) -extfile $(test_ca_config_file) -extensions ext_multi_nocn -passin "pass:$(test_ca_pwd_rsa)" -set_serial  0xf7c67ff8e9a963f9 -days 3653 -sha1 -in $< > $@
+	$(OPENSSL) x509 -req -CA test-ca_nocn.crt -CAkey $(test_ca_key_file_rsa) \
+		-extfile $(test_ca_config_file) -extensions ext_multi_nocn -passin "pass:$(test_ca_pwd_rsa)" \
+		-set_serial  0xf7c67ff8e9a963f9 -days 3653 -sha1 -in $< > $@
 all_final += cert_example_multi_nocn.crt
 
 parse_input/test_csr_v3_keyUsage.csr.der: rsa_pkcs1_1024_clear.pem
@@ -448,7 +450,9 @@ all_final += server5-ss-expired.crt
 
 # try to forge a copy of test-int-ca3 with different key
 server5-ss-forgeca.crt: server5.key
-	$(OPENSSL) req -x509 -new -subj "/C=UK/O=mbed TLS/CN=mbed TLS Test intermediate CA 3" -set_serial 77 -config $(test_ca_config_file) -extensions noext_ca -days 3650 -sha256 -key $< -out $@
+	$(OPENSSL) req -x509 -new -subj "/C=UK/O=mbed TLS/CN=mbed TLS Test intermediate CA 3" \
+		-set_serial 77 -config $(test_ca_config_file) -extensions noext_ca \
+		-days 3650 -sha256 -key $< -out $@
 all_final += server5-ss-forgeca.crt
 
 server5-selfsigned.crt: server5.key
@@ -561,7 +565,7 @@ server9-defaults.crt: server9.csr $(test_ca_crt) $(test_ca_key_file_rsa)
 		-passin "pass:$(test_ca_pwd_rsa)" -CA $(test_ca_crt) -CAkey $(test_ca_key_file_rsa) \
 		-set_serial 72 -days 3653 \
 		-sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:max -sha1 \
-		-in $< -o $@
+		-in $< -out $@
 all_final += server9-defaults.crt
 
 server9-badsign.crt: server9.crt

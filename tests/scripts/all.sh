@@ -2388,8 +2388,7 @@ component_test_psa_crypto_config_reference_all_ec_algs_use_psa () {
     msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with non-accelerated EC algs + USE_PSA"
 
     # To be aligned with component_test_psa_crypto_config_accel_all_ec_algs_use_psa()
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+    helper_libtestdriver1_adjust_config
 
     config_psa_crypto_config_all_ec_algs_use_psa 0
 
@@ -2456,10 +2455,8 @@ config_psa_crypto_full_all_ec_algs_no_ecp_use_psa () {
     # This is done to have the same form of psa_key_attributes_s for libdriver and library.
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
 
-    # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
-    # partial support for cipher operations in the driver test library.
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+    # Adjustments for the test driver library
+    helper_libtestdriver1_adjust_config
 
     # Disable PSA_WANT symbols that would re-enable PK
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR
@@ -2875,8 +2872,8 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
 component_test_psa_crypto_config_reference_hash_use_psa() {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG without accelerated hash and USE_PSA"
 
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+    # To be aligned with the accelerated component
+    helper_libtestdriver1_adjust_config
 
     config_psa_crypto_hash_use_psa 0
 
@@ -2899,13 +2896,12 @@ component_test_psa_crypto_config_accel_cipher () {
 
     helper_libtestdriver1_adjust_config
 
-    # There is no intended accelerator support for ALG STREAM_CIPHER and
-    # ALG_ECB_NO_PADDING. Therefore, asking for them in the build implies the
-    # inclusion of the Mbed TLS cipher operations. As we want to test here with
-    # cipher operations solely supported by accelerators, disabled those
-    # PSA configuration options.
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+    # There is no intended accelerator support for ALG CMAC. Therefore, asking
+    # for it in the build implies the inclusion of the Mbed TLS cipher
+    # operations. As we want to test here with cipher operations solely
+    # supported by accelerators, disabled this PSA configuration option.
+    # (Note: the same applies to STREAM_CIPHER and ECB_NO_PADDING, which are
+    # already disabled by helper_libtestdriver1_adjust_config above.)
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_CMAC
 
     # Configure and build the test driver library

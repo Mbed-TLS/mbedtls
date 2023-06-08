@@ -1,3 +1,2 @@
 Features
-   * Add PBKDF2-HMAC implementation with PSA API for
-     key derivation
+   * Add support for PBKDF2-HMAC through the PSA API.

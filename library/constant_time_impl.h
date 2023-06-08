@@ -65,20 +65,29 @@
  * Core const-time primitives
  */
 
-/** Ensure that the compiler cannot know the value of x (i.e., cannot optimise
+/* Ensure that the compiler cannot know the value of x (i.e., cannot optimise
  * based on its value) after this function is called.
  *
  * If we are not using assembly, this will be fairly inefficient, so its use
  * should be minimised.
  */
+
+#if !defined(MBEDTLS_CT_ASM)
+/*
+* Define an object with the value zero, such that the compiler cannot prove that it
+* has the value zero (because it is volatile, it "may be modified in ways unknown to
+* the implementation").
+*/
+static volatile mbedtls_ct_uint_t mbedtls_ct_zero = 0;
+#endif
+
 static inline mbedtls_ct_uint_t mbedtls_ct_compiler_opaque(mbedtls_ct_uint_t x)
 {
 #if defined(MBEDTLS_CT_ASM)
     asm volatile ("" : [x] "+r" (x) :);
     return x;
 #else
-    volatile mbedtls_ct_uint_t result = x;
-    return result;
+    return x ^ mbedtls_ct_zero;
 #endif
 }
 

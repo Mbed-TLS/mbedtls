@@ -206,13 +206,19 @@ const mbedtls_md_info_t *mbedtls_md_info_from_type(mbedtls_md_type_t md_type)
         case MBEDTLS_MD_SHA512:
             return &mbedtls_sha512_info;
 #endif
-#if defined(MBEDTLS_SHA3_C)
+#if defined(MBEDTLS_MD_CAN_SHA3_224)
         case MBEDTLS_MD_SHA3_224:
             return &mbedtls_sha3_224_info;
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA3_256)
         case MBEDTLS_MD_SHA3_256:
             return &mbedtls_sha3_256_info;
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA3_384)
         case MBEDTLS_MD_SHA3_384:
             return &mbedtls_sha3_384_info;
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA3_512)
         case MBEDTLS_MD_SHA3_512:
             return &mbedtls_sha3_512_info;
 #endif

@@ -1406,16 +1406,18 @@ void ecp_mod_setup(char *input_A, int id, int ctype, int iret)
     TEST_EQUAL(ret, iret);
 
     if (ret == 0) {
-
+        TEST_ASSERT(m.int_rep != MBEDTLS_MPI_MOD_REP_INVALID);
         /* Test for limb sizes */
         TEST_EQUAL(m.limbs, p_limbs);
         bytes = p_limbs * sizeof(mbedtls_mpi_uint);
 
-        /* Test for validity of moduli by the presence of Montgomery consts */
-
-        TEST_ASSERT(m.rep.mont.mm != 0);
-        TEST_ASSERT(m.rep.mont.rr != NULL);
-
+        if (m.int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY) {
+            /* Test for validity of moduli by the presence of Montgomery consts */
+            TEST_ASSERT(m.rep.mont.mm != 0);
+            TEST_ASSERT(m.rep.mont.rr != NULL);
+        } else {
+            TEST_ASSERT(m.rep.ored.modp != NULL);
+        }
 
         /* Compare output byte-by-byte */
         ASSERT_COMPARE(p, bytes, m.p, bytes);

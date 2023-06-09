@@ -282,7 +282,22 @@ int mbedtls_pem_read_buffer(mbedtls_pem_context *ctx, const char *header, const 
                             const unsigned char *data, const unsigned char *pwd,
                             size_t pwdlen, size_t *use_len)
 {
-    int ret, enc;
+    size_t datalen;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    datalen = strlen((const char *) data);
+    ret = mbedtls_pem_read_buffer_with_len(ctx, header, footer, data,
+                                           datalen, pwd, pwdlen, use_len);
+
+    return ret;
+}
+
+int mbedtls_pem_read_buffer_with_len(mbedtls_pem_context *ctx, const char *header,
+                                     const char *footer,
+                                     const unsigned char *data, size_t datalen,
+                                     const unsigned char *pwd, size_t pwdlen, size_t *use_len)
+{
+    int enc;
     size_t len;
     unsigned char *buf;
     const unsigned char *s1, *s2, *end;
@@ -293,31 +308,32 @@ int mbedtls_pem_read_buffer(mbedtls_pem_context *ctx, const char *header, const 
     ((void) pwd);
     ((void) pwdlen);
 #endif /* PEM_RFC1421 */
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     if (ctx == NULL) {
         return MBEDTLS_ERR_PEM_BAD_INPUT_DATA;
     }
 
-    s1 = (unsigned char *) strstr((const char *) data, header);
+    s1 = (unsigned char *) mbedtls_pem_strnstr((const char *) data, header, datalen);
 
     if (s1 == NULL) {
         return MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
     }
 
-    s2 = (unsigned char *) strstr((const char *) data, footer);
+    s2 = (unsigned char *) mbedtls_pem_strnstr((const char *) data, footer, datalen);
 
     if (s2 == NULL || s2 <= s1) {
         return MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
     }
 
     s1 += strlen(header);
-    if (*s1 == ' ') {
+    if (s1 < data + datalen && *s1 == ' ') {
         s1++;
     }
-    if (*s1 == '\r') {
+    if (s1 < data + datalen && *s1 == '\r') {
         s1++;
     }
-    if (*s1 == '\n') {
+    if (s1 < data + datalen && *s1 == '\n') {
         s1++;
     } else {
         return MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
@@ -325,13 +341,13 @@ int mbedtls_pem_read_buffer(mbedtls_pem_context *ctx, const char *header, const 
 
     end = s2;
     end += strlen(footer);
-    if (*end == ' ') {
+    if (end < data + datalen && *end == ' ') {
         end++;
     }
-    if (*end == '\r') {
+    if (end < data + datalen && *end == '\r') {
         end++;
     }
-    if (*end == '\n') {
+    if (end < data + datalen && *end == '\n') {
         end++;
     }
     *use_len = end - data;
@@ -343,10 +359,10 @@ int mbedtls_pem_read_buffer(mbedtls_pem_context *ctx, const char *header, const 
         enc++;
 
         s1 += 22;
-        if (*s1 == '\r') {
+        if (s1 < data + datalen && *s1 == '\r') {
             s1++;
         }
-        if (*s1 == '\n') {
+        if (s1 < data + datalen && *s1 == '\n') {
             s1++;
         } else {
             return MBEDTLS_ERR_PEM_INVALID_DATA;
@@ -402,10 +418,10 @@ int mbedtls_pem_read_buffer(mbedtls_pem_context *ctx, const char *header, const 
             return MBEDTLS_ERR_PEM_UNKNOWN_ENC_ALG;
         }
 
-        if (*s1 == '\r') {
+        if (s1 < data + datalen && *s1 == '\r') {
             s1++;
         }
-        if (*s1 == '\n') {
+        if (s1 < data + datalen && *s1 == '\n') {
             s1++;
         } else {
             return MBEDTLS_ERR_PEM_INVALID_DATA;

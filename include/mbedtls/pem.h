@@ -91,13 +91,18 @@ void mbedtls_pem_init(mbedtls_pem_context *ctx);
  *                  MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT, use_len is
  *                  the length to skip)
  *
+ * \note            Internally, this function uses strlen on data and then
+ *                  calls \c mbedtls_pem_read_buffer_with_len.
+ *                  Prefer \c mbedtls_pem_read_buffer_with_len if you already
+ *                  know the length of data, or if data is not null-terminated.
+ *
  * \note            Attempts to check password correctness by verifying if
  *                  the decrypted text starts with an ASN.1 sequence of
  *                  appropriate length
  *
  * \note            \c mbedtls_pem_free must be called on PEM context before
  *                  the PEM context can be reused in another call to
- *                  \c mbedtls_pem_read_buffer
+ *                  \c mbedtls_pem_read_buffer or \c mbedtls_pem_read_buffer_with_len
  *
  * \return          0 on success, or a specific PEM error code
  */
@@ -105,6 +110,43 @@ int mbedtls_pem_read_buffer(mbedtls_pem_context *ctx, const char *header, const 
                             const unsigned char *data,
                             const unsigned char *pwd,
                             size_t pwdlen, size_t *use_len);
+
+/**
+ * \brief       Read a buffer for PEM information and store the resulting
+ *              data into the specified context buffers.
+ *
+ * \param ctx       context to use
+ * \param header    header string to seek and expect
+ * \param footer    footer string to seek and expect
+ * \param data      source data to look in
+ * \param datalen   length of source data
+ * \param pwd       password for decryption (can be NULL)
+ * \param pwdlen    length of password
+ * \param use_len   destination for total length used (set after header is
+ *                  correctly read, so unless you get
+ *                  MBEDTLS_ERR_PEM_BAD_INPUT_DATA or
+ *                  MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT, use_len is
+ *                  the length to skip)
+ *
+ * \note            Unlike \c mbedtls_pem_read_buffer, this function can be
+ *                  used with data that is not null-terminated. However,
+ *                  this function will not seek header and footer beyond
+ *                  null bytes, should data contain any.
+ *
+ * \note            Attempts to check password correctness by verifying if
+ *                  the decrypted text starts with an ASN.1 sequence of
+ *                  appropriate length
+ *
+ * \note            \c mbedtls_pem_free must be called on PEM context before
+ *                  the PEM context can be reused in another call to
+ *                  \c mbedtls_pem_read_buffer or \c mbedtls_pem_read_buffer_with_len
+ *
+ * \return          0 on success, or a specific PEM error code
+ */
+int mbedtls_pem_read_buffer_with_len(mbedtls_pem_context *ctx, const char *header,
+                                     const char *footer,
+                                     const unsigned char *data, size_t datalen,
+                                     const unsigned char *pwd, size_t pwdlen, size_t *use_len);
 
 /**
  * \brief       Get the pointer to the decoded binary data in a PEM context.

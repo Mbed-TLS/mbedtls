@@ -1,0 +1,2 @@
+Features
+    * Add function to parse PEM data without requiring terminating null byte.

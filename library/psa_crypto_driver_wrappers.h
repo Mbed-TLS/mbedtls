@@ -37,6 +37,11 @@ void psa_driver_wrapper_free(void);
 /*
  * Signature functions
  */
+#if !defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT) && !defined(PSA_CRYPTO_DRIVER_TEST)
+#define psa_driver_wrapper_sign_message psa_sign_message_builtin
+#endif
+
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT) || defined(PSA_CRYPTO_DRIVER_TEST)
 psa_status_t psa_driver_wrapper_sign_message(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
@@ -47,6 +52,7 @@ psa_status_t psa_driver_wrapper_sign_message(
     uint8_t *signature,
     size_t signature_size,
     size_t *signature_length);
+#endif
 
 psa_status_t psa_driver_wrapper_verify_message(
     const psa_key_attributes_t *attributes,
@@ -154,6 +160,22 @@ psa_status_t psa_driver_wrapper_copy_key(
 /*
  * Cipher functions
  */
+#if !defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT) && !defined(PSA_CRYPTO_DRIVER_TEST)
+#if defined(MBEDTLS_PSA_BUILTIN_CIPHER)
+#define psa_driver_wrapper_cipher_encrypt mbedtls_psa_cipher_encrypt
+#else
+#define psa_driver_wrapper_cipher_encrypt(attributes, key_buffer, \
+                                          key_buffer_size, alg, iv, iv_length, \
+                                          input, input_length, output, \
+                                          output_size, output_length) \
+    ((void) attributes, (void) key_buffer, (void) key_buffer_size, \
+     (void) alg, (void) iv, (void) iv_length, (void) input, (void) input_length, \
+     (void) output, (void) output_length, \
+     PSA_ERROR_NOT_SUPPORTED)
+#endif
+#endif
+
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT) || defined(PSA_CRYPTO_DRIVER_TEST)
 psa_status_t psa_driver_wrapper_cipher_encrypt(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
@@ -166,7 +188,24 @@ psa_status_t psa_driver_wrapper_cipher_encrypt(
     uint8_t *output,
     size_t output_size,
     size_t *output_length);
+#endif
 
+#if !defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT) && !defined(PSA_CRYPTO_DRIVER_TEST)
+#if defined(MBEDTLS_PSA_BUILTIN_CIPHER)
+#define psa_driver_wrapper_cipher_decrypt mbedtls_psa_cipher_decrypt
+#else
+#define psa_driver_wrapper_cipher_decrypt(attributes, key_buffer, \
+                                          key_buffer_size, alg, input, \
+                                          input_length, output, output_size, \
+                                          output_length) \
+    ((void) attributes, (void) key_buffer, (void) key_buffer_size, \
+     (void) alg, (void) input, (void) input_length, (void) output, \
+     (void) output_size, (void) output_length, \
+     PSA_ERROR_NOT_SUPPORTED)
+#endif
+#endif
+
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT) || defined(PSA_CRYPTO_DRIVER_TEST)
 psa_status_t psa_driver_wrapper_cipher_decrypt(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
@@ -177,6 +216,7 @@ psa_status_t psa_driver_wrapper_cipher_decrypt(
     uint8_t *output,
     size_t output_size,
     size_t *output_length);
+#endif
 
 psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
     psa_cipher_operation_t *operation,

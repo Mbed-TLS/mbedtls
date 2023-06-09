@@ -120,6 +120,7 @@ void psa_driver_wrapper_free( void )
 }
 
 /* Start delegation functions */
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT) || defined(PSA_CRYPTO_DRIVER_TEST)
 psa_status_t psa_driver_wrapper_sign_message(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
@@ -194,6 +195,7 @@ psa_status_t psa_driver_wrapper_sign_message(
                                       signature_size,
                                       signature_length ) );
 }
+#endif /* PSA_CRYPTO_DRIVER_TEST || PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
 
 psa_status_t psa_driver_wrapper_verify_message(
     const psa_key_attributes_t *attributes,
@@ -1190,6 +1192,7 @@ target_key_buffer_length
 /*
  * Cipher functions
  */
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT) || defined(PSA_CRYPTO_DRIVER_TEST)
 psa_status_t psa_driver_wrapper_cipher_encrypt(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
@@ -1281,7 +1284,9 @@ psa_status_t psa_driver_wrapper_cipher_encrypt(
             return( PSA_ERROR_INVALID_ARGUMENT );
     }
 }
+#endif /* PSA_CRYPTO_DRIVER_TEST || PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
 
+#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT) || defined(PSA_CRYPTO_DRIVER_TEST)
 psa_status_t psa_driver_wrapper_cipher_decrypt(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
@@ -1363,6 +1368,7 @@ psa_status_t psa_driver_wrapper_cipher_decrypt(
             return( PSA_ERROR_INVALID_ARGUMENT );
     }
 }
+#endif /* PSA_CRYPTO_DRIVER_TEST || PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
 
 psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
     psa_cipher_operation_t *operation,

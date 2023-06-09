@@ -142,11 +142,12 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
         uint64_t x = mbedtls_get_unaligned_uint64(a + i) ^ mbedtls_get_unaligned_uint64(b + i);
         mbedtls_put_unaligned_uint64(r + i, x);
     }
-#endif
+#else
     for (; (i + 4) <= n; i += 4) {
         uint32_t x = mbedtls_get_unaligned_uint32(a + i) ^ mbedtls_get_unaligned_uint32(b + i);
         mbedtls_put_unaligned_uint32(r + i, x);
     }
+#endif
 #endif
     for (; i < n; i++) {
         r[i] = a[i] ^ b[i];

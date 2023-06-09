@@ -1172,7 +1172,7 @@ int mbedtls_aes_crypt_xts(mbedtls_aes_xts_context *ctx,
     }
 
     while (blocks--) {
-        if (leftover && (mode == MBEDTLS_AES_DECRYPT) && blocks == 0) {
+        if (MBEDTLS_UNLIKELY(leftover && (mode == MBEDTLS_AES_DECRYPT) && blocks == 0)) {
             /* We are on the last block in a decrypt operation that has
              * leftover bytes, so we need to use the next tweak for this block,
              * and this tweak for the leftover bytes. Save the current tweak for

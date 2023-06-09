@@ -182,4 +182,16 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
 #define MBEDTLS_STATIC_ASSERT(expr, msg)
 #endif
 
+/* Define compiler branch hints */
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_expect)
+#define MBEDTLS_LIKELY(x)       __builtin_expect((x),1)
+#define MBEDTLS_UNLIKELY(x)     __builtin_expect((x),0)
+#endif
+#endif
+#if !defined(MBEDTLS_LIKELY)
+#define MBEDTLS_LIKELY(x)       x
+#define MBEDTLS_UNLIKELY(x)     x
+#endif
+
 #endif /* MBEDTLS_LIBRARY_COMMON_H */

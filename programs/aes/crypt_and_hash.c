@@ -409,6 +409,9 @@ int main(int argc, char *argv[])
          * Check the file size.
          */
         if (cipher_info->mode != MBEDTLS_MODE_GCM &&
+            cipher_info->mode != MBEDTLS_MODE_CTR &&
+            cipher_info->mode != MBEDTLS_MODE_CFB &&
+            cipher_info->mode != MBEDTLS_MODE_OFB &&
             ((filesize - mbedtls_md_get_size(md_info)) %
              mbedtls_cipher_get_block_size(&cipher_ctx)) != 0) {
             mbedtls_fprintf(stderr, "File content not a multiple of the block size (%u).\n",

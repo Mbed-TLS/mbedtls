@@ -185,8 +185,8 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
 /* Define compiler branch hints */
 #if defined(__has_builtin)
 #if __has_builtin(__builtin_expect)
-#define MBEDTLS_LIKELY(x)       __builtin_expect((x),1)
-#define MBEDTLS_UNLIKELY(x)     __builtin_expect((x),0)
+#define MBEDTLS_LIKELY(x)       __builtin_expect((x), 1)
+#define MBEDTLS_UNLIKELY(x)     __builtin_expect((x), 0)
 #endif
 #endif
 #if !defined(MBEDTLS_LIKELY)

@@ -1,6 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/base64.h"
-#include "mbedtls/pem.h"
+#include "pem.h"
 #include "mbedtls/des.h"
 #include "mbedtls/aes.h"
 /* END_HEADER */
@@ -58,6 +58,21 @@ void mbedtls_pem_write_buffer_lengths()
             TEST_EQUAL(buf[i], 1);
         }
     }
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_PEM_PARSE_C */
+void mbedtls_pem_strnstr(char *needle, int len, int res, int offset)
+{
+    static const char *haystack = "Lorem ipsum dolor sit amet";
+
+    if (len == -1) {
+        len = strlen(haystack);
+    }
+    char *str = mbedtls_pem_strnstr(haystack, needle, len);
+
+    TEST_ASSERT(res == (str != NULL));
+    TEST_ASSERT(!str || offset == str - haystack);
 }
 /* END_CASE */
 

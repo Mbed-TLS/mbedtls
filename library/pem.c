@@ -30,6 +30,8 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
+#include "pem_misc.h"
+
 #include <string.h>
 
 #include "mbedtls/platform.h"
@@ -253,6 +255,28 @@ exit:
 #endif /* MBEDTLS_AES_C */
 
 #endif /* PEM_RFC1421 */
+
+char *mbedtls_pem_strnstr(const char *s, const char *needle, size_t slen)
+{
+    size_t needle_len;
+
+    needle_len = strlen(needle);
+    if (needle_len == 0) {
+        return (char *) s;
+    }
+    if (needle_len > slen) {
+        return NULL;
+    }
+    slen -= needle_len;
+
+    for (size_t i = 0; s[i] && i <= slen; i++) {
+        if (memcmp(s + i, needle, needle_len) == 0) {
+            return (char *) (s + i);
+        }
+    }
+
+    return NULL;
+}
 
 int mbedtls_pem_read_buffer(mbedtls_pem_context *ctx, const char *header, const char *footer,
                             const unsigned char *data, const unsigned char *pwd,

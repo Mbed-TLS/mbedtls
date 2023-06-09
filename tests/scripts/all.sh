@@ -411,6 +411,18 @@ check_tools()
     done
 }
 
+pre_parse_command_line_for_dirs () {
+    # Make an early pass through the options given, so we can set directories
+    # for Arm compilers, before SUPPORTED_COMPONENTS is determined.
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
+            --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;
+        esac
+        shift
+    done
+}
+
 pre_parse_command_line () {
     COMMAND_LINE_COMPONENTS=
     all_except=0
@@ -427,8 +439,8 @@ pre_parse_command_line () {
             --arm-none-eabi-gcc-prefix) shift; ARM_NONE_EABI_GCC_PREFIX="$1";;
             --arm-linux-gnueabi-gcc-prefix) shift; ARM_LINUX_GNUEABI_GCC_PREFIX="$1";;
             --armcc) no_armcc=;;
-            --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
-            --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;
+            --armc5-bin-dir) shift; ;; # assignment to ARMC5_BIN_DIR done in pre_parse_command_line_for_dirs
+            --armc6-bin-dir) shift; ;; # assignment to ARMC6_BIN_DIR done in pre_parse_command_line_for_dirs
             --error-test) error_test=$((error_test + 1));;
             --except) all_except=1;;
             --force|-f) FORCE=1;;
@@ -4447,6 +4459,7 @@ run_component () {
 
 # Preliminary setup
 pre_check_environment
+pre_parse_command_line_for_dirs "$@"
 pre_initialize_variables
 pre_parse_command_line "$@"
 

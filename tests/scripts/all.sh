@@ -3962,6 +3962,11 @@ component_build_armcc () {
 
     # ARM Compiler 6 - Target Cortex-M0
     armc6_build_test "-Os --target=arm-arm-none-eabi -mcpu=cortex-m0"
+
+    # Check that we handle "No mechanism to detect A64_CRYPTO found" properly
+    scripts/config.py set MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
+    scripts/config.py set MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
+    armc6_build_test "-Wno-#warnings -O1 --target=aarch64-arm-none-eabi -march=armv8.2-a+crypto"
 }
 support_build_armcc () {
     armc5_cc="$ARMC5_BIN_DIR/armcc"

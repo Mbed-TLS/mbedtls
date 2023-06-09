@@ -123,7 +123,9 @@ typedef struct {
     mbedtls_mpi_uint mm;         /* Montgomery const for -N^{-1} mod 2^{ciL} */
 } mbedtls_mpi_mont_struct;
 
-typedef void *mbedtls_mpi_opt_red_struct;
+typedef struct {
+    int (*modp)(mbedtls_mpi *);  /* The optimised reduction function pointer */
+} mbedtls_mpi_opt_red_struct;
 
 typedef struct {
     const mbedtls_mpi_uint *p;

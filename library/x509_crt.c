@@ -42,6 +42,7 @@
 
 #if defined(MBEDTLS_PEM_PARSE_C)
 #include "mbedtls/pem.h"
+#include "pem_misc.h"
 #endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -1425,8 +1426,8 @@ int mbedtls_x509_crt_parse(mbedtls_x509_crt *chain,
      * one or more PEM certificates.
      */
 #if defined(MBEDTLS_PEM_PARSE_C)
-    if (buflen != 0 && buf[buflen - 1] == '\0' &&
-        strstr((const char *) buf, "-----BEGIN CERTIFICATE-----") != NULL) {
+    if (mbedtls_pem_strnstr((const char *) buf,
+                            "-----BEGIN CERTIFICATE-----", buflen) != NULL) {
         buf_format = MBEDTLS_X509_FORMAT_PEM;
     }
 
@@ -1442,16 +1443,14 @@ int mbedtls_x509_crt_parse(mbedtls_x509_crt *chain,
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         mbedtls_pem_context pem;
 
-        /* 1 rather than 0 since the terminating NULL byte is counted in */
-        while (buflen > 1) {
+        while (buflen > 0) {
             size_t use_len;
             mbedtls_pem_init(&pem);
 
-            /* If we get there, we know the string is null-terminated */
-            ret = mbedtls_pem_read_buffer(&pem,
-                                          "-----BEGIN CERTIFICATE-----",
-                                          "-----END CERTIFICATE-----",
-                                          buf, NULL, 0, &use_len);
+            ret = mbedtls_pem_read_buffer_with_len(&pem,
+                                                   "-----BEGIN CERTIFICATE-----",
+                                                   "-----END CERTIFICATE-----",
+                                                   buf, buflen, NULL, 0, &use_len);
 
             if (ret == 0) {
                 /*

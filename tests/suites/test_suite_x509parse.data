@@ -3081,6 +3081,10 @@ X509 CSR ASN.1 (extensions: invalid extension type data)
 depends_on:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
 mbedtls_x509_csr_parse_file:"data_files/parse_input/test_csr_v3_all_malformed_extension_type_oid.csr.der":"CSR version   \: 1\nsubject name  \: CN=etcd\nsigned using  \: RSA with SHA-256\nRSA key size  \: 1024 bits\n\ncert. type        \: SSL Client\nkey usage         \: CRL Sign\n":0
 
+X509 File parse (empty file)
+depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
+x509parse_crt_file:"data_files/empty_file":MBEDTLS_ERR_X509_BAD_INPUT_DATA
+
 X509 File parse (no issues)
 depends_on:MBEDTLS_PK_CAN_ECDSA_SOME:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_MD_CAN_SHA256:MBEDTLS_RSA_C
 x509parse_crt_file:"data_files/parse_input/server7_int-ca.crt":0

@@ -529,8 +529,7 @@ int mbedtls_x509_crt_parse_der_nocopy(mbedtls_x509_crt *chain,
  *                 For certificates in PEM encoding, this may be a concatenation
  *                 of multiple certificates; for DER encoding, the buffer must
  *                 comprise exactly one certificate.
- * \param buflen   The size of \p buf, including the terminating \c NULL byte
- *                 in case of PEM encoded data.
+ * \param buflen   The size of \p buf.
  *
  * \return         \c 0 if all certificates were parsed successfully.
  * \return         The (positive) number of certificates that couldn't

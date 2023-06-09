@@ -97,7 +97,13 @@ static void pk_write_check_common(char *key_file, int is_public_key, int is_der)
     if (!is_der) {
         fix_new_lines(check_buf, &check_buf_len);
     }
-    TEST_ASSERT(check_buf_len > 0);
+
+    if (!is_der) {
+        /* mbedtls_pk_load_file() always puts an extra null at the end but does not
+         * does not count it in the returned size. However, PEM write functions do
+         * count it in the output length. */
+        check_buf_len++;
+    }
 
     ASSERT_ALLOC(buf, check_buf_len);
 

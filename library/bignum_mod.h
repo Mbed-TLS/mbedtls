@@ -98,10 +98,11 @@ typedef enum {
     /* Skip 1 as it is slightly easier to accidentally pass to functions. */
     /** Montgomery representation. */
     MBEDTLS_MPI_MOD_REP_MONTGOMERY = 2,
-    /** TODO: document this.
-     *
-     * Residues are in canonical representation.
-     */
+    /* Optimised reduction available. This indicates a coordinate modulus (P)
+     * and one of the following available:
+     * - MBEDTLS_ECP_NIST_OPTIM
+     * - Kobliz Curve.
+     * - Fast Reduction Curve CURVE25519 or CURVE448. */
     MBEDTLS_MPI_MOD_REP_OPT_RED,
 } mbedtls_mpi_mod_rep_selector;
 

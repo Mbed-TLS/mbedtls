@@ -232,7 +232,6 @@
 #endif
 #endif
 
-/* EC key pair derivation is not supported yet */
 #if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE)
 #if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_DERIVE)
 #undef MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR_DERIVE

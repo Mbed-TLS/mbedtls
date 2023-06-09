@@ -88,7 +88,7 @@ void mbedtls_mpi_mod_modulus_free(mbedtls_mpi_mod_modulus *N)
             N->rep.mont.mm = 0;
             break;
         case MBEDTLS_MPI_MOD_REP_OPT_RED:
-            mbedtls_free(N->rep.ored);
+            N->rep.ored.modp = NULL;
             break;
         case MBEDTLS_MPI_MOD_REP_INVALID:
             break;
@@ -166,10 +166,10 @@ int mbedtls_mpi_mod_modulus_setup(mbedtls_mpi_mod_modulus *N,
 int mbedtls_mpi_mod_optred_modulus_setup(mbedtls_mpi_mod_modulus *N,
                                          const mbedtls_mpi_uint *p,
                                          size_t p_limbs,
-                                         mbedtls_mpi_opt_red_struct *ored)
+                                         int (*modp)(mbedtls_mpi *))
 {
     standard_modulus_setup(N, p, p_limbs, MBEDTLS_MPI_MOD_REP_OPT_RED);
-    N->rep.ored = ored;
+    N->rep.ored.modp = modp;
     return 0;
 }
 

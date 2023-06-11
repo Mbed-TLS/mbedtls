@@ -186,7 +186,7 @@ typedef enum {
 #define MBEDTLS_MD_MAX_BLOCK_SIZE         144 /* the longest known is SHA3-224 */
 #elif defined(MBEDTLS_MD_CAN_SHA3_256)
 #define MBEDTLS_MD_MAX_BLOCK_SIZE         136
-#elif defined(MBEDTLS_MD_CAN_SHA512)
+#elif defined(MBEDTLS_MD_CAN_SHA512) || defined(MBEDTLS_MD_CAN_SHA384)
 #define MBEDTLS_MD_MAX_BLOCK_SIZE         128
 #elif defined(MBEDTLS_MD_CAN_SHA3_384)
 #define MBEDTLS_MD_MAX_BLOCK_SIZE         104

@@ -2,5 +2,5 @@ Security
    * Fix definition of MBEDTLS_MD_MAX_BLOCK_SIZE, which was too
      small when MBEDTLS_SHA384_C was defined and MBEDTLS_SHA512_C was
      undefined. Mbed TLS itself was unaffected by this, but user code
-     which used MBEDTLS_MD_MAX_BLOCK_SIZE could be affected. This bug
-     was first released in Mbed TLS 3.4.0.
+     which used MBEDTLS_MD_MAX_BLOCK_SIZE could be affected. The only
+     release containing this bug was Mbed TLS 3.4.0.

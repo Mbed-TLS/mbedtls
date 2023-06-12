@@ -2015,7 +2015,7 @@ dh.999.pem:
 #### Meta targets
 ################################################################
 
-all_final: $(all_final)
+all_final: $(all_final) | prerequisites
 all: $(all_intermediate) $(all_final)
 
 .PHONY: default all_final all
@@ -2051,6 +2051,9 @@ list_expired_files:
 ## Remove all build products, even the ones that are committed
 neat: clean
 	rm -f $(all_final)
-.PHONY: clean neat
+
+prerequisites:
+	../../scripts/mbedtls_dev/set_timestamp_to_ct.py
+.PHONY: clean neat set_timestamp
 
 .SECONDARY: $(all_intermediate)

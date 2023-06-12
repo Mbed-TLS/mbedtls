@@ -811,7 +811,7 @@ pre_generate_files() {
 #    2a. Call helper_libtestdriver1_adjust_config <base>, where the argument
 #        can be either "default" to start with the default config, or a name
 #        supported by scripts/config.py (for example, "full"). This selects
-#        the base to use, and make common adjustments.
+#        the base to use, and makes common adjustments.
 #    2b. If desired, adjust the PSA_WANT symbols in psa/crypto_config.h.
 #        These changes affect both the driver and the main libraries.
 #        (Note: they need to have the same set of PSA_WANT symbols, as that
@@ -856,6 +856,10 @@ helper_libtestdriver1_adjust_config() {
     # partial support for cipher operations in the driver test library.
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+
+    # Dynamic secure element support is a deprecated feature and needs to be disabled here.
+    # This is done to have the same form of psa_key_attributes_s for libdriver and library.
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
 }
 
 # Build the drivers library libtestdriver1.a (with ASan).
@@ -2281,10 +2285,6 @@ component_test_psa_crypto_config_accel_pake() {
     scripts/config.py unset MBEDTLS_ECJPAKE_C
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
 
-    # Dynamic secure element support is a deprecated feature and needs to be disabled here.
-    # This is done to have the same form of psa_key_attributes_s for libdriver and library.
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
-
     # Build
     # -----
 
@@ -2329,9 +2329,6 @@ config_psa_crypto_config_all_ec_algs_use_psa () {
     # the future, the following line could be removed (see issues
     # 6061, 6332 and following ones)
     scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
-    # Dynamic secure element support is a deprecated feature and needs to be disabled here.
-    # This is done to have the same form of psa_key_attributes_s for libdriver and library.
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
 }
 
 # Keep in sync with component_test_psa_crypto_config_reference_all_ec_algs_use_psa
@@ -2445,9 +2442,6 @@ config_psa_crypto_full_all_ec_algs_no_ecp_use_psa () {
     # the future, the following line could be removed (see issues
     # 6061, 6332 and following ones)
     scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
-    # Dynamic secure element support is a deprecated feature and needs to be disabled here.
-    # This is done to have the same form of psa_key_attributes_s for libdriver and library.
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
 
     # Disable PSA_WANT symbols that would re-enable PK
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR
@@ -2541,10 +2535,6 @@ psa_crypto_config_accel_all_curves_except_one () {
     # ---------
 
     helper_libtestdriver1_adjust_config "full"
-
-    # Dynamic secure element support is a deprecated feature and needs to be disabled here.
-    # This is done to have the same form of psa_key_attributes_s for libdriver and library.
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
 
     # restartable is not yet supported in PSA
     scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
@@ -2784,10 +2774,6 @@ config_psa_crypto_hash_use_psa () {
         scripts/config.py unset MBEDTLS_SHA512_C
         scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
     fi
-
-    # Dynamic secure element support is a deprecated feature and needs to be disabled here.
-    # This is done to have the same form of psa_key_attributes_s for libdriver and library.
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
 }
 
 # Note that component_test_psa_crypto_config_reference_hash_use_psa
@@ -2950,10 +2936,6 @@ component_test_psa_crypto_config_accel_pake() {
     # Make build-in fallback not available
     scripts/config.py unset MBEDTLS_ECJPAKE_C
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED
-
-    # Dynamic secure element support is a deprecated feature and needs to be disabled here.
-    # This is done to have the same form of psa_key_attributes_s for libdriver and library.
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
 
     # Build
     # -----

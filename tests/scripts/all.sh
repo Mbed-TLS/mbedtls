@@ -2650,6 +2650,114 @@ component_test_psa_crypto_config_reference_ecc_no_ecp_at_all () {
     tests/ssl-opt.sh
 }
 
+# This function is really similar to config_psa_crypto_no_ecp_at_all() above so
+# its description is basically the same. The main difference in this case is
+# that when the EC built-in implementation is disabled, then also Bignum module
+# and its dependencies are disabled as well.
+#
+# This is the common helper between:
+# - component_test_psa_crypto_config_accel_ecc_no_bignum
+# - component_test_psa_crypto_config_reference_ecc_no_bignum
+config_psa_crypto_config_accel_ecc_no_bignum() {
+    DRIVER_ONLY="$1"
+    # start with crypto_full config for maximum coverage (also enables USE_PSA),
+    # but excluding X509, TLS and key exchanges
+    helper_libtestdriver1_adjust_config "crypto_full"
+
+    # enable support for drivers and configuring PSA-only algorithms
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    if [ "$DRIVER_ONLY" -eq 1 ]; then
+        # Disable modules that are accelerated
+        scripts/config.py unset MBEDTLS_ECDSA_C
+        scripts/config.py unset MBEDTLS_ECDH_C
+        scripts/config.py unset MBEDTLS_ECJPAKE_C
+        # Disable ECP module (entirely)
+        scripts/config.py unset MBEDTLS_ECP_C
+        # TODO: bignum
+    fi
+
+    # Disable all the features that auto-enable ECP_LIGHT (see build_info.h)
+    scripts/config.py unset MBEDTLS_PK_PARSE_EC_EXTENDED
+    scripts/config.py unset MBEDTLS_PK_PARSE_EC_COMPRESSED
+    scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
+
+    # Restartable feature is not yet supported by PSA. Once it will in
+    # the future, the following line could be removed (see issues
+    # 6061, 6332 and following ones)
+    scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
+}
+
+# Build and test a configuration where driver accelerates all EC algs while
+# all support and dependencies from ECP and ECP_LIGHT are removed on the library
+# side.
+#
+# Keep in sync with component_test_psa_crypto_config_reference_ecc_no_bignum()
+component_test_psa_crypto_config_accel_ecc_no_bignum () {
+    msg "build: crypto_full + accelerated EC algs + USE_PSA - ECP"
+
+    # Algorithms and key types to accelerate
+    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
+                    ALG_ECDH \
+                    ALG_JPAKE \
+                    KEY_TYPE_ECC_KEY_PAIR_BASIC \
+                    KEY_TYPE_ECC_KEY_PAIR_IMPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_EXPORT \
+                    KEY_TYPE_ECC_KEY_PAIR_GENERATE \
+                    KEY_TYPE_ECC_PUBLIC_KEY"
+
+    # Configure
+    # ---------
+
+    # Set common configurations between library's and driver's builds
+    config_psa_crypto_config_accel_ecc_no_bignum 1
+
+    # Build
+    # -----
+
+    # Things we wanted supported in libtestdriver1, but not accelerated in the main library:
+    # SHA-1 and all SHA-2 variants, as they are used by ECDSA deterministic.
+    loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512"
+
+    helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
+
+    helper_libtestdriver1_make_main "$loc_accel_list"
+
+    # Make sure any built-in EC alg was not re-enabled by accident (additive config)
+    not grep mbedtls_ecdsa_ library/ecdsa.o
+    not grep mbedtls_ecdh_ library/ecdh.o
+    not grep mbedtls_ecjpake_ library/ecjpake.o
+    # Also ensure that ECP or RSA modules were not re-enabled
+    not grep mbedtls_ecp_ library/ecp.o
+
+    # Run the tests
+    # -------------
+
+    msg "test suites: crypto_full + accelerated EC algs + USE_PSA - ECP"
+    make test
+
+    # The following will be enabled in #7756
+    #msg "ssl-opt: full + accelerated EC algs + USE_PSA - ECP"
+    #tests/ssl-opt.sh
+}
+
+# Reference function used for driver's coverage analysis in analyze_outcomes.py
+# in conjunction with component_test_psa_crypto_config_accel_ecc_no_bignum().
+# Keep in sync with its accelerated counterpart.
+component_test_psa_crypto_config_reference_ecc_no_bignum () {
+    msg "build: crypto_full + non accelerated EC algs + USE_PSA"
+
+    config_psa_crypto_config_accel_ecc_no_bignum 0
+
+    make
+
+    msg "test suites: crypto_full + non accelerated EC algs + USE_PSA"
+    make test
+
+    # The following will be enabled in #7756
+    #msg "ssl-opt: full + non accelerated EC algs + USE_PSA"
+    #tests/ssl-opt.sh
+}
+
 # Helper function used in:
 # - component_test_psa_crypto_config_accel_all_curves_except_p192
 # - component_test_psa_crypto_config_accel_all_curves_except_x25519

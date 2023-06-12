@@ -39,10 +39,10 @@
 
 #if !defined(MBEDTLS_CT_ASM)
 /*
-* Define an object with the value zero, such that the compiler cannot prove that it
-* has the value zero (because it is volatile, it "may be modified in ways unknown to
-* the implementation").
-*/
+ * Define an object with the value zero, such that the compiler cannot prove that it
+ * has the value zero (because it is volatile, it "may be modified in ways unknown to
+ * the implementation").
+ */
 volatile mbedtls_ct_uint_t mbedtls_ct_zero = 0;
 #endif
 

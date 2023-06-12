@@ -2673,7 +2673,8 @@ config_psa_crypto_config_accel_ecc_no_bignum() {
         scripts/config.py unset MBEDTLS_ECJPAKE_C
         # Disable ECP module (entirely)
         scripts/config.py unset MBEDTLS_ECP_C
-        # TODO: bignum
+        # Also disable bignum
+        scripts/config.py unset MBEDTLS_BIGNUM_C
     fi
 
     # Disable all the features that auto-enable ECP_LIGHT (see build_info.h)
@@ -2763,6 +2764,7 @@ component_test_psa_crypto_config_accel_ecc_no_bignum () {
     not grep mbedtls_ecp_ library/ecp.o
     not grep mbedtls_rsa_ library/rsa.o
     not grep mbedtls_dhm_ library/dhm.o
+    not grep mbedtls_mpi_ library/bignum.o
 
     # Run the tests
     # -------------

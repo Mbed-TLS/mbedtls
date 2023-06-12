@@ -1674,6 +1674,7 @@ crl-futureRevocationDate.pem: $(test_ca_crt) $(test_ca_key_file_rsa) \
 		-config test-ca.server1.future-crl.opensslconf -crldays 365 \
 		-passin "pass:$(test_ca_pwd_rsa)" -out $@
 all_future_files += crl-futureRevocationDate.pem
+all_final += crl-futureRevocationDate.pem
 
 server1_all: crl.pem crl-futureRevocationDate.pem server1.crt server1.noauthid.crt server1.crt.openssl server1.v1.crt server1.v1.crt.openssl server1.key_usage.crt server1.key_usage_noauthid.crt server1.key_usage.crt.openssl server1.cert_type.crt server1.cert_type_noauthid.crt server1.cert_type.crt.openssl server1.der server1.der.openssl server1.v1.der server1.v1.der.openssl server1.key_usage.der server1.key_usage.der.openssl server1.cert_type.der server1.cert_type.der.openssl
 

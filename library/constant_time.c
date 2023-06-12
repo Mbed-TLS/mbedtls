@@ -37,6 +37,15 @@
                                                            psa_generic_status_to_mbedtls)
 #endif
 
+#if !defined(MBEDTLS_CT_ASM)
+/*
+* Define an object with the value zero, such that the compiler cannot prove that it
+* has the value zero (because it is volatile, it "may be modified in ways unknown to
+* the implementation").
+*/
+volatile mbedtls_ct_uint_t mbedtls_ct_zero = 0;
+#endif
+
 /*
  * Define MBEDTLS_EFFICIENT_UNALIGNED_VOLATILE_ACCESS where assembly is present to
  * perform fast unaligned access to volatile data.

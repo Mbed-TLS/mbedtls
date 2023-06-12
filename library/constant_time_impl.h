@@ -73,12 +73,7 @@
  */
 
 #if !defined(MBEDTLS_CT_ASM)
-/*
-* Define an object with the value zero, such that the compiler cannot prove that it
-* has the value zero (because it is volatile, it "may be modified in ways unknown to
-* the implementation").
-*/
-static volatile mbedtls_ct_uint_t mbedtls_ct_zero = 0;
+extern volatile mbedtls_ct_uint_t mbedtls_ct_zero;
 #endif
 
 static inline mbedtls_ct_uint_t mbedtls_ct_compiler_opaque(mbedtls_ct_uint_t x)

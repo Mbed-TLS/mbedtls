@@ -2639,6 +2639,17 @@ component_test_psa_crypto_config_accel_rsa_signature () {
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_RSA_OAEP
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_RSA_PKCS1V15_CRYPT
 
+    # Remove RSA support and its dependencies
+    scripts/config.py unset MBEDTLS_RSA_C
+    scripts/config.py unset MBEDTLS_PKCS1_V15
+    scripts/config.py unset MBEDTLS_PKCS1_V21
+    scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
+
     # Make sure both the library and the test library support the SHA hash
     # algorithms and only those ones (SHA256 is included by default). That way:
     # - the test library can compute the RSA signatures even in the case of a
@@ -2651,26 +2662,11 @@ component_test_psa_crypto_config_accel_rsa_signature () {
     #   PSA_ALG_ANY_HASH as algorithm to test with the key, the chosen hash
     #   algorithm based on the hashes supported by the library is also
     #   supported by the test library.
-    # Disabled unwanted hashes here, we'll enable hashes we want in loc_accel_flags.
+    # Disable unwanted hashes here, we'll enable hashes we want in loc_extra_list.
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_MD5
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_RIPEMD160_C
-
-    # Remove RSA support and its dependencies
-    scripts/config.py unset MBEDTLS_PKCS1_V15
-    scripts/config.py unset MBEDTLS_PKCS1_V21
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_RSA_C
-    scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
-
     scripts/config.py unset MBEDTLS_MD5_C
     scripts/config.py unset MBEDTLS_RIPEMD160_C
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_1
-    scripts/config.py unset MBEDTLS_SSL_CBC_RECORD_SPLITTING
 
     # We need PEM parsing in the test library as well to support the import
     # of PEM encoded RSA keys.

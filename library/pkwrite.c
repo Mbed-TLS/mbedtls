@@ -41,7 +41,7 @@
 #if defined(MBEDTLS_ECP_LIGHT)
 #include "pk_internal.h"
 #endif
-#if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 #include "pkwrite.h"
 #endif
 #if defined(MBEDTLS_ECDSA_C)

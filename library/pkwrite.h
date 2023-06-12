@@ -73,7 +73,7 @@
 
 #endif /* MBEDTLS_RSA_C */
 
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 /*
  * EC public keys:
  *  SubjectPublicKeyInfo  ::=  SEQUENCE  {      1 + 2
@@ -85,7 +85,7 @@
  *                                            + 2 * ECP_MAX (coords)    [1]
  *  }
  */
-#define MBEDTLS_PK_ECP_PUB_DER_MAX_BYTES    (30 + 2 * MBEDTLS_ECP_MAX_BYTES)
+#define MBEDTLS_PK_ECP_PUB_DER_MAX_BYTES    (30 + 2 * 66)
 
 /*
  * EC private keys:
@@ -96,7 +96,7 @@
  *      publicKey  [1] BIT STRING OPTIONAL      1 + 2 + [1] above
  *    }
  */
-#define MBEDTLS_PK_ECP_PRV_DER_MAX_BYTES    (29 + 3 * MBEDTLS_ECP_MAX_BYTES)
+#define MBEDTLS_PK_ECP_PRV_DER_MAX_BYTES    (29 + 3 * 66)
 
 #else /* MBEDTLS_ECP_LIGHT */
 

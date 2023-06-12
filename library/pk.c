@@ -874,7 +874,7 @@ int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
     ((void) alg);
     ((void) usage);
     ((void) alg2);
-#else /* !MBEDTLS_ECP_LIGHT && !MBEDTLS_RSA_C */
+#else /* !MBEDTLS_PK_HAVE_ECC_KEYS && !MBEDTLS_RSA_C */
 #if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
     if (mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECKEY) {
         size_t d_len;
@@ -971,7 +971,7 @@ int mbedtls_pk_wrap_as_opaque(mbedtls_pk_context *pk,
         return mbedtls_pk_setup_opaque(pk, *key);
     } else
 #endif /* MBEDTLS_RSA_C */
-#endif /* !MBEDTLS_ECP_LIGHT && !MBEDTLS_RSA_C */
+#endif /* !MBEDTLS_MBEDTLS_PK_HAVE_ECC_KEYS && !MBEDTLS_RSA_C */
     return MBEDTLS_ERR_PK_TYPE_MISMATCH;
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

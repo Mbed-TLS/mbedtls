@@ -2470,6 +2470,28 @@ config_psa_crypto_config_accel_ecc_no_bignum() {
         # TODO: bignum
     fi
 
+    # RSA support is intentionally disabled on this test (see below for
+    # explanation) so lets disable it also on the driver side
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
+    for ALG in $(sed -n 's/^#define \(PSA_WANT_ALG_RSA_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
+        scripts/config.py -f include/psa/crypto_config.h unset $ALG
+    done
+    # Ensure also RSA and asssociated algs are disabled so that the size of
+    # the public/private keys cannot be taken from there
+    scripts/config.py unset MBEDTLS_RSA_C
+    scripts/config.py unset MBEDTLS_PKCS1_V15
+    scripts/config.py unset MBEDTLS_PKCS1_V21
+    scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
+    # Also disable key exchanges that depend on RSA
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
+
+    # TODO: DHM and its reverse deps
+
     # Restartable feature is not yet supported by PSA. Once it will in
     # the future, the following line could be removed (see issues
     # 6061, 6332 and following ones)
@@ -2517,7 +2539,7 @@ component_test_psa_crypto_config_accel_ecc_no_bignum() {
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
     loc_symbols="-DPSA_CRYPTO_DRIVER_TEST \
                  -DMBEDTLS_TEST_LIBTESTDRIVER1"
-    make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -I../../tests $loc_symbols $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
+    make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -I../../tests $loc_symbols $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS" -C tests test_suite_pk test_suite_pkparse test_suite_pkwrite
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
@@ -2530,7 +2552,7 @@ component_test_psa_crypto_config_accel_ecc_no_bignum() {
     # -------------
 
     msg "test suites: crypto_full + accelerated EC algs + USE_PSA - ECP"
-    make test
+    (cd tests && ./test_suite_pk && ./test_suite_pkparse && ./test_suite_pkwrite)
 }
 
 # Reference function used for driver's coverage analysis in analyze_outcomes.py

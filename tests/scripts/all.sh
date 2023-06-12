@@ -2451,6 +2451,103 @@ component_test_psa_crypto_full_reference_all_ec_algs_no_ecp_use_psa () {
     make test
 }
 
+# BEGIN WIP
+config_psa_crypto_config_accel_ecc_no_bignum() {
+    DRIVER_ONLY="$1"
+    # start with crypto_full config for maximum coverage (also enables USE_PSA),
+    # but excluding X509, TLS and key exchanges
+    scripts/config.py crypto_full
+    # enable support for drivers and configuring PSA-only algorithms
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    if [ "$DRIVER_ONLY" -eq 1 ]; then
+        # Disable modules that are accelerated
+        scripts/config.py unset MBEDTLS_ECDSA_C
+        scripts/config.py unset MBEDTLS_ECDH_C
+        scripts/config.py unset MBEDTLS_ECJPAKE_C
+        # Disable ECP module (entirely)
+        scripts/config.py unset MBEDTLS_ECP_C
+        scripts/config.py unset MBEDTLS_ECP_LIGHT
+        # TODO: bignum
+    fi
+
+    # Restartable feature is not yet supported by PSA. Once it will in
+    # the future, the following line could be removed (see issues
+    # 6061, 6332 and following ones)
+    scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
+    # Dynamic secure element support is a deprecated feature and needs to be disabled here.
+    # This is done to have the same form of psa_key_attributes_s for libdriver and library.
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
+
+    # Disable ALG_STREAM_CIPHER and ALG_ECB_NO_PADDING to avoid having
+    # partial support for cipher operations in the driver test library.
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+}
+
+# Build and test a configuration where driver accelerates all EC algs while
+# all support and dependencies from ECP and ECP_LIGHT are removed on the library
+# side.
+#
+# Keep in sync with component_test_psa_crypto_full_reference_all_ec_algs_no_ecp_use_psa()
+component_test_psa_crypto_config_accel_ecc_no_bignum() {
+    msg "build: crypto_full + accelerated EC algs + USE_PSA - ECP"
+
+    # Algorithms and key types to accelerate
+    loc_accel_list="ALG_ECDSA ALG_DETERMINISTIC_ECDSA \
+                    ALG_ECDH \
+                    ALG_JPAKE \
+                    KEY_TYPE_ECC_KEY_PAIR KEY_TYPE_ECC_PUBLIC_KEY"
+
+    # Set common configurations between library's and driver's builds
+    config_psa_crypto_config_accel_ecc_no_bignum 1
+
+    # Configure and build the test driver library
+    # -------------------------------------------
+
+    # Things we wanted supported in libtestdriver1, but not accelerated in the main library:
+    # SHA-1 and all SHA-2 variants, as they are used by ECDSA deterministic.
+    loc_extra_list="ALG_SHA_1 ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512"
+    loc_accel_flags=$( echo "$loc_accel_list $loc_extra_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
+    make -C tests libtestdriver1.a CFLAGS="$ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
+
+    # Configure and build the main libraries with drivers enabled
+    # -----------------------------------------------------------
+
+    # Build the library
+    loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
+    loc_symbols="-DPSA_CRYPTO_DRIVER_TEST \
+                 -DMBEDTLS_TEST_LIBTESTDRIVER1"
+    make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -I../../tests $loc_symbols $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
+
+    # Make sure any built-in EC alg was not re-enabled by accident (additive config)
+    not grep mbedtls_ecdsa_ library/ecdsa.o
+    not grep mbedtls_ecdh_ library/ecdh.o
+    not grep mbedtls_ecjpake_ library/ecjpake.o
+    # Also ensure that ECP or RSA modules were not re-enabled
+    not grep mbedtls_ecp_ library/ecp.o
+
+    # Run the tests
+    # -------------
+
+    msg "test suites: crypto_full + accelerated EC algs + USE_PSA - ECP"
+    make test
+}
+
+# Reference function used for driver's coverage analysis in analyze_outcomes.py
+# in conjunction with component_test_psa_crypto_full_accel_all_ec_algs_no_ecp_use_psa().
+# Keep in sync with its accelerated counterpart.
+component_test_psa_crypto_config_reference_ecc_no_bignum() {
+    msg "build: crypto_full + non accelerated EC algs + USE_PSA"
+
+    config_psa_crypto_config_accel_ecc_no_bignum 0
+
+    make
+
+    msg "test suites: crypto_full + non accelerated EC algs + USE_PSA"
+    make test
+}
+# END WIP
+
 # Helper function used in:
 # - component_test_psa_crypto_config_accel_all_curves_except_p192
 # - component_test_psa_crypto_config_accel_all_curves_except_x25519

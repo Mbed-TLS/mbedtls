@@ -2702,7 +2702,17 @@ config_psa_crypto_config_accel_ecc_no_bignum() {
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
 
-    # TODO: DHM and its reverse deps
+    # Disable FFDH because it also depends on BIGNUM.
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_FFDH
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_DH_KEY_PAIR_BASIC
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_DH_KEY_PAIR_IMPORT
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_DH_KEY_PAIR_EXPORT
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_DH_KEY_PAIR_GENERATE
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_DH_PUBLIC_KEY
+    scripts/config.py unset MBEDTLS_DHM_C
+    # Also disable key exchanges that depend on FFDH
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
 
     # Restartable feature is not yet supported by PSA. Once it will in
     # the future, the following line could be removed (see issues
@@ -2749,8 +2759,10 @@ component_test_psa_crypto_config_accel_ecc_no_bignum () {
     not grep mbedtls_ecdsa_ library/ecdsa.o
     not grep mbedtls_ecdh_ library/ecdh.o
     not grep mbedtls_ecjpake_ library/ecjpake.o
-    # Also ensure that ECP or RSA modules were not re-enabled
+    # Also ensure that ECP, RSA, or DHM modules were not re-enabled
     not grep mbedtls_ecp_ library/ecp.o
+    not grep mbedtls_rsa_ library/rsa.o
+    not grep mbedtls_dhm_ library/dhm.o
 
     # Run the tests
     # -------------

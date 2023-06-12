@@ -134,14 +134,39 @@ static inline mbedtls_ct_condition_t mbedtls_ct_bool(mbedtls_ct_uint_t x)
     return (mbedtls_ct_condition_t) x;
 #elif defined(MBEDTLS_CT_ARM_ASM) && defined(MBEDTLS_CT_SIZE_32)
     uint32_t s;
-    asm volatile ("neg %[s], %[x]                       \n\t"
-                  "orr %[x], %[x], %[s]                 \n\t"
-                  "asr %[x], %[x], #31"
+    /*
+     * Selecting unified syntax is needed for gcc, and harmless on clang.
+     *
+     * This is needed because on Thumb 1, condition flags are always set, so
+     * e.g. "negs" is supported but "neg" is not (on Thumb 2, both exist).
+     *
+     * Under Thumb 1 unified syntax, only the "negs" form is accepted, and
+     * under divided syntax, only the "neg" form is accepted. clang only
+     * supports unified syntax.
+     *
+     * On Thumb 2 and Arm, both compilers are happy with the "s" suffix,
+     * although we don't actually care about setting the flags.
+     *
+     * For gcc, restore divided syntax afterwards - otherwise old versions of gcc
+     * seem to apply unified syntax globally, which breaks other asm code.
+     */
+#if !defined(__clang__)
+#define RESTORE_ASM_SYNTAX  ".syntax divided             \n\t"
+#else
+#define RESTORE_ASM_SYNTAX
+#endif
+
+    asm volatile (".syntax unified                       \n\t"
+                  "negs %[s], %[x]                       \n\t"
+                  "orrs %[x], %[x], %[s]                 \n\t"
+                  "asrs %[x], %[x], #31                  \n\t"
+                  RESTORE_ASM_SYNTAX
                   :
                   [s] "=&l" (s),
                   [x] "+&l" (x)
                   :
                   :
+                  "cc" /* clobbers flag bits */
                   );
     return (mbedtls_ct_condition_t) x;
 #else
@@ -178,16 +203,19 @@ static inline mbedtls_ct_uint_t mbedtls_ct_if(mbedtls_ct_condition_t condition,
                   );
     return (mbedtls_ct_uint_t) condition;
 #elif defined(MBEDTLS_CT_ARM_ASM) && defined(MBEDTLS_CT_SIZE_32)
-    asm volatile ("and %[if1], %[if1], %[condition]          \n\t"
-                  "mvn %[condition], %[condition]            \n\t"
-                  "and %[condition], %[condition], %[if0]    \n\t"
-                  "orr %[condition], %[if1], %[condition]"
+    asm volatile (".syntax unified                           \n\t"
+                  "ands %[if1], %[if1], %[condition]         \n\t"
+                  "mvns %[condition], %[condition]           \n\t"
+                  "ands %[condition], %[condition], %[if0]   \n\t"
+                  "orrs %[condition], %[if1], %[condition]   \n\t"
+                  RESTORE_ASM_SYNTAX
                   :
                   [condition] "+&l" (condition),
                   [if1] "+&l" (if1)
                   :
                   [if0] "l" (if0)
                   :
+                  "cc"
                   );
     return (mbedtls_ct_uint_t) condition;
 #else
@@ -215,20 +243,23 @@ static inline mbedtls_ct_condition_t mbedtls_ct_uint_lt(mbedtls_ct_uint_t x, mbe
 #elif defined(MBEDTLS_CT_ARM_ASM) && defined(MBEDTLS_CT_SIZE_32)
     uint32_t s1;
     asm volatile (
+        ".syntax unified                    \n\t"
 #if defined(__thumb__) && !defined(__thumb2__)
-        "mov     %[s1], %[x]                \n\t"
-        "eor     %[s1], %[s1], %[y]         \n\t"
+        "movs     %[s1], %[x]               \n\t"
+        "eors     %[s1], %[s1], %[y]        \n\t"
 #else
-        "eor     %[s1], %[x], %[y]          \n\t"
+        "eors     %[s1], %[x], %[y]         \n\t"
 #endif
-        "sub     %[x], %[x], %[y]           \n\t"
-        "bic     %[x], %[x], %[s1]          \n\t"
-        "and     %[y], %[s1], %[y]          \n\t"
-        "orr     %[x], %[x], %[y]           \n\t"
-        "asr     %[x], %[x], #31"
+        "subs    %[x], %[x], %[y]           \n\t"
+        "bics    %[x], %[x], %[s1]          \n\t"
+        "ands    %[y], %[s1], %[y]          \n\t"
+        "orrs    %[x], %[x], %[y]           \n\t"
+        "asrs    %[x], %[x], #31            \n\t"
+        RESTORE_ASM_SYNTAX
         : [s1] "=&l" (s1), [x] "+&l" (x),  [y] "+&l" (y)
         :
         :
+        "cc"
         );
     return (mbedtls_ct_condition_t) x;
 #else

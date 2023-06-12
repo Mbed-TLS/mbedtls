@@ -277,37 +277,14 @@ static int ssl_write_supported_groups_ext(mbedtls_ssl_context *ssl,
 #if defined(PSA_WANT_ALG_FFDH)
         if ((mbedtls_ssl_conf_is_tls13_enabled(ssl->conf) &&
              mbedtls_ssl_tls13_named_group_is_dhe(*group_list))) {
-            const char *ffdh_group = NULL;
-
-            switch (*group_list) {
-                case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048:
-                    ffdh_group = "ffdhe2048";
-                    break;
-                case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072:
-                    ffdh_group = "ffdhe3072";
-                    break;
-                case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096:
-                    ffdh_group = "ffdhe4096";
-                    break;
-                case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144:
-                    ffdh_group = "ffdhe6144";
-                    break;
-                case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192:
-                    ffdh_group = "ffdhe8192";
-                    break;
-                default:
-                    break;
-            }
-
-            if (ffdh_group == NULL) {
-                continue;
-            }
-
+#if defined(MBEDTLS_DEBUG_C)
+            const char *ffdh_group = mbedtls_ssl_named_group_to_str(*group_list);
+            MBEDTLS_SSL_DEBUG_MSG(3, ("NamedGroup: %s ( %x )",
+                                      ffdh_group, *group_list));
+#endif
             MBEDTLS_SSL_CHK_BUF_PTR(p, end, 2);
             MBEDTLS_PUT_UINT16_BE(*group_list, p, 0);
             p += 2;
-            MBEDTLS_SSL_DEBUG_MSG(3, ("NamedGroup: %s ( %x )",
-                                      ffdh_group, *group_list));
         }
 #endif /* PSA_WANT_ALG_FFDH */
     }

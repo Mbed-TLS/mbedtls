@@ -449,7 +449,9 @@ void test_hooks_free(void)
 
 #endif /* MBEDTLS_TEST_HOOKS */
 
-uint16_t mbedtls_ssl_ffdh_group_from_name(const char *name)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
+    defined(PSA_WANT_ALG_FFDH)
+static uint16_t mbedtls_ssl_ffdh_group_from_name(const char *name)
 {
     if (strcmp(name, MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE2048) == 0) {
         return MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048;
@@ -465,8 +467,9 @@ uint16_t mbedtls_ssl_ffdh_group_from_name(const char *name)
     return 0;
 }
 
-const uint16_t *mbedtls_ssl_ffdh_supported_groups(void)
+static const uint16_t *mbedtls_ssl_ffdh_supported_groups(void)
 {
+#if defined(PSA_WANT_ALG_FFDH)
     static const uint16_t ffdh_groups[] = {
         MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048,
         MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072,
@@ -475,19 +478,18 @@ const uint16_t *mbedtls_ssl_ffdh_supported_groups(void)
         MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192,
         0
     };
-
     return ffdh_groups;
+#else
+    return NULL;
+#endif
 }
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED && PSA_WANT_ALG_FFDH */
 
-#if defined(MBEDTLS_ECP_LIGHT) || \
-    (defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
-    defined(PSA_WANT_ALG_FFDH))
 int parse_curves(const char *curves, uint16_t *group_list, size_t group_list_len)
 {
     char *p = (char *) curves;
     char *q = NULL;
     size_t i = 0;
-    const mbedtls_ecp_curve_info *curve_cur = NULL;
 
     if (strcmp(p, "none") == 0) {
         group_list[0] = 0;
@@ -495,8 +497,13 @@ int parse_curves(const char *curves, uint16_t *group_list, size_t group_list_len
         /* Leave room for a final NULL in curve list */
         while (i < group_list_len - 1 && *p != '\0') {
             q = p;
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
+    defined(PSA_WANT_ALG_FFDH)
             uint16_t ffdh_group = 0;
-
+#endif
+#if defined(MBEDTLS_ECP_LIGHT)
+            const mbedtls_ecp_curve_info *curve_cur = NULL;
+#endif
             /* Terminate the current string */
             while (*p != ',' && *p != '\0') {
                 p++;
@@ -505,24 +512,36 @@ int parse_curves(const char *curves, uint16_t *group_list, size_t group_list_len
                 *p++ = '\0';
             }
 
+#if defined(MBEDTLS_ECP_LIGHT)
             if ((curve_cur = mbedtls_ecp_curve_info_from_name(q)) != NULL) {
                 group_list[i++] = curve_cur->tls_id;
-            } else if ((ffdh_group = mbedtls_ssl_ffdh_group_from_name(q)) != 0) {
+            } else
+#endif
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
+    defined(PSA_WANT_ALG_FFDH)
+            if ((ffdh_group = mbedtls_ssl_ffdh_group_from_name(q)) != 0) {
                 group_list[i++] = ffdh_group;
-            } else {
+            } else
+#endif
+            {
                 mbedtls_printf("unknown curve %s\n", q);
+#if defined(MBEDTLS_ECP_LIGHT)
                 mbedtls_printf("supported curves: ");
                 for (curve_cur = mbedtls_ecp_curve_list();
                      curve_cur->grp_id != MBEDTLS_ECP_DP_NONE;
                      curve_cur++) {
                     mbedtls_printf("%s ", curve_cur->name);
                 }
+#endif
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
+    defined(PSA_WANT_ALG_FFDH)
                 const uint16_t *supported_ffdh_group = mbedtls_ssl_ffdh_supported_groups();
                 while (*supported_ffdh_group != 0) {
                     mbedtls_printf("%s ",
                                    mbedtls_ssl_ffdh_name_from_group(*supported_ffdh_group));
                     supported_ffdh_group++;
                 }
+#endif
                 mbedtls_printf("\n");
                 return -1;
             }
@@ -541,7 +560,5 @@ int parse_curves(const char *curves, uint16_t *group_list, size_t group_list_len
 
     return 0;
 }
-#endif /* MBEDTLS_ECP_LIGHT ||
-          (MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED && PSA_WANT_ALG_FFDH) */
 
 #endif /* !defined(MBEDTLS_SSL_TEST_IMPOSSIBLE) */

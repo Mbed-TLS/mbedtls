@@ -1714,7 +1714,7 @@ static int ssl_parse_server_ecdh_params(mbedtls_ssl_context *ssl,
     uint16_t tls_id;
     uint8_t ecpoint_len;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
-    psa_key_type_t key_type = 0;
+    psa_key_type_t key_type = PSA_KEY_TYPE_NONE;
     size_t ec_bits = 0;
 
     /*
@@ -2014,7 +2014,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     uint16_t tls_id = 0;
-    psa_key_type_t key_type = 0;
+    psa_key_type_t key_type = PSA_KEY_TYPE_NONE;
     mbedtls_ecp_group_id grp_id = mbedtls_pk_get_group_id(peer_pk);
 
     if (mbedtls_ssl_check_curve(ssl, grp_id) != 0) {

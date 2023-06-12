@@ -11289,7 +11289,7 @@ run_test    "TLS 1.3: minimal feature sets - openssl" \
             -c "client state: MBEDTLS_SSL_HANDSHAKE_WRAPUP" \
             -c "<= ssl_tls13_process_server_hello" \
             -c "server hello, chosen ciphersuite: ( 1303 ) - TLS1-3-CHACHA20-POLY1305-SHA256" \
-            -c "ECDH curve: x25519" \
+            -c "DHE group name: x25519" \
             -c "=> ssl_tls13_process_server_hello" \
             -c "<= parse encrypted extensions" \
             -c "Certificate verification flags clear" \
@@ -11323,7 +11323,7 @@ run_test    "TLS 1.3: minimal feature sets - gnutls" \
             -c "client state: MBEDTLS_SSL_HANDSHAKE_WRAPUP" \
             -c "<= ssl_tls13_process_server_hello" \
             -c "server hello, chosen ciphersuite: ( 1303 ) - TLS1-3-CHACHA20-POLY1305-SHA256" \
-            -c "ECDH curve: x25519" \
+            -c "DHE group name: x25519" \
             -c "=> ssl_tls13_process_server_hello" \
             -c "<= parse encrypted extensions" \
             -c "Certificate verification flags clear" \
@@ -11356,7 +11356,7 @@ run_test    "TLS 1.3: alpn - openssl" \
             -c "client state: MBEDTLS_SSL_HANDSHAKE_WRAPUP" \
             -c "<= ssl_tls13_process_server_hello" \
             -c "server hello, chosen ciphersuite: ( 1303 ) - TLS1-3-CHACHA20-POLY1305-SHA256" \
-            -c "ECDH curve: x25519" \
+            -c "DHE group name: x25519" \
             -c "=> ssl_tls13_process_server_hello" \
             -c "<= parse encrypted extensions" \
             -c "Certificate verification flags clear" \
@@ -11392,7 +11392,7 @@ run_test    "TLS 1.3: alpn - gnutls" \
             -c "client state: MBEDTLS_SSL_HANDSHAKE_WRAPUP" \
             -c "<= ssl_tls13_process_server_hello" \
             -c "server hello, chosen ciphersuite: ( 1303 ) - TLS1-3-CHACHA20-POLY1305-SHA256" \
-            -c "ECDH curve: x25519" \
+            -c "DHE group name: x25519" \
             -c "=> ssl_tls13_process_server_hello" \
             -c "<= parse encrypted extensions" \
             -c "Certificate verification flags clear" \

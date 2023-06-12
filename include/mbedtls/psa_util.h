@@ -38,8 +38,6 @@
 #include "mbedtls/pk.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/error.h"
-#include "mbedtls/ssl.h"
-
 #include <string.h>
 
 /* Translations for symmetric crypto. */

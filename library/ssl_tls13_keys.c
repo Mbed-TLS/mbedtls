@@ -1487,12 +1487,10 @@ static int ssl_tls13_key_schedule_stage_handshake(mbedtls_ssl_context *ssl)
         if (mbedtls_ssl_tls13_named_group_is_ecdhe(handshake->offered_group_id) ||
             mbedtls_ssl_tls13_named_group_is_dhe(handshake->offered_group_id)) {
 #if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
-            psa_algorithm_t alg = 0;
-            if (mbedtls_ssl_tls13_named_group_is_ecdhe(handshake->offered_group_id)) {
-                alg = PSA_ALG_ECDH;
-            } else {
-                alg = PSA_ALG_FFDH;
-            }
+            psa_algorithm_t alg =
+                mbedtls_ssl_tls13_named_group_is_ecdhe(handshake->offered_group_id) ?
+                PSA_ALG_ECDH : PSA_ALG_FFDH;
+
             /* Compute ECDH shared secret. */
             psa_status_t status = PSA_ERROR_GENERIC_ERROR;
             psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;

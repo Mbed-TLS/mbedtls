@@ -1514,9 +1514,9 @@ int mbedtls_ssl_tls13_read_public_ecdhe_share(mbedtls_ssl_context *ssl,
 }
 
 static psa_status_t  mbedtls_ssl_get_psa_ffdh_info_from_tls_id(
-    uint16_t tls_ecc_grp_reg_id, size_t *bits, psa_key_type_t *key_type)
+    uint16_t tls_id, size_t *bits, psa_key_type_t *key_type)
 {
-    switch (tls_ecc_grp_reg_id) {
+    switch (tls_id) {
         case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048:
             *bits = 2048;
             *key_type = PSA_KEY_TYPE_DH_KEY_PAIR(PSA_DH_FAMILY_RFC7919);
@@ -1555,8 +1555,8 @@ int mbedtls_ssl_tls13_generate_and_write_dh_key_exchange(
     size_t own_pubkey_len;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
     size_t bits = 0;
-    psa_key_type_t key_type = 0;
-    psa_algorithm_t alg = 0;
+    psa_key_type_t key_type = PSA_KEY_TYPE_NONE;
+    psa_algorithm_t alg = PSA_ALG_NONE;
     size_t buf_size = (size_t) (end - buf);
 
     MBEDTLS_SSL_DEBUG_MSG(1, ("Perform PSA-based ECDH/FFDH computation."));
@@ -1569,12 +1569,13 @@ int mbedtls_ssl_tls13_generate_and_write_dh_key_exchange(
     }
 #endif
 #if defined(PSA_WANT_ALG_FFDH)
-    if (mbedtls_ssl_get_psa_ffdh_info_from_tls_id(named_group, &bits, &key_type) == PSA_SUCCESS) {
+    if (mbedtls_ssl_get_psa_ffdh_info_from_tls_id(named_group, &bits,
+                                                  &key_type) == PSA_SUCCESS) {
         alg = PSA_ALG_FFDH;
     }
 #endif
 
-    if (key_type == 0) {
+    if (key_type == PSA_KEY_TYPE_NONE) {
         return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
     }
 

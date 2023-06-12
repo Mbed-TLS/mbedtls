@@ -2594,7 +2594,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
         PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
     psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
     uint16_t tls_id = 0;
-    psa_key_type_t key_type = 0;
+    psa_key_type_t key_type = PSA_KEY_TYPE_NONE;
     size_t key_len;
     mbedtls_pk_context *pk;
     mbedtls_ecp_group_id grp_id;
@@ -2961,7 +2961,7 @@ curve_matching_done:
         const size_t header_size = 4; // curve_type(1), namedcurve(2),
                                       // data length(1)
         const size_t data_length_size = 1;
-        psa_key_type_t key_type = 0;
+        psa_key_type_t key_type = PSA_KEY_TYPE_NONE;
         size_t ec_bits = 0;
 
         MBEDTLS_SSL_DEBUG_MSG(1, ("Perform PSA-based ECDH computation."));

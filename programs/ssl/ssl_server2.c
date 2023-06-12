@@ -1522,9 +1522,7 @@ int main(int argc, char *argv[])
 #if defined(SNI_OPTION)
     sni_entry *sni_info = NULL;
 #endif
-#if defined(MBEDTLS_ECP_LIGHT)
     uint16_t group_list[CURVE_LIST_SIZE];
-#endif
 #if defined(MBEDTLS_SSL_ALPN)
     const char *alpn_list[ALPN_LIST_SIZE];
 #endif
@@ -2388,16 +2386,11 @@ usage:
     }
 #endif /* MBEDTLS_SSL_HANDSHAKE_WITH_PSK_ENABLED */
 
-#if defined(MBEDTLS_ECP_LIGHT) || \
-    (defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
-    defined(PSA_WANT_ALG_FFDH))
     if (opt.curves != NULL) {
         if (parse_curves(opt.curves, group_list, CURVE_LIST_SIZE) != 0) {
             goto exit;
         }
     }
-#endif /* MBEDTLS_ECP_LIGHT ||
-          (MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED && PSA_WANT_ALG_FFDH) */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
     if (opt.sig_algs != NULL) {

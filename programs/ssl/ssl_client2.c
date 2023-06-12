@@ -757,10 +757,7 @@ int main(int argc, char *argv[])
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     unsigned char alloc_buf[MEMORY_HEAP_SIZE];
 #endif
-
-#if defined(MBEDTLS_ECP_LIGHT)
     uint16_t group_list[CURVE_LIST_SIZE];
-#endif
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
     unsigned char mki[MBEDTLS_TLS_SRTP_MAX_MKI_LENGTH];
     size_t mki_len = 0;
@@ -1494,16 +1491,11 @@ usage:
     }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
-#if defined(MBEDTLS_ECP_LIGHT) || \
-    (defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED) && \
-    defined(PSA_WANT_ALG_FFDH))
     if (opt.curves != NULL) {
         if (parse_curves(opt.curves, group_list, CURVE_LIST_SIZE) != 0) {
             goto exit;
         }
     }
-#endif /* MBEDTLS_ECP_LIGHT ||
-          (MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED && PSA_WANT_ALG_FFDH) */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
     if (opt.sig_algs != NULL) {

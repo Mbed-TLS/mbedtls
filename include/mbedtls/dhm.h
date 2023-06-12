@@ -66,7 +66,6 @@
 
 #include "mbedtls/build_info.h"
 #include "mbedtls/bignum.h"
-#include <string.h>
 
 /*
  * DHM Error codes

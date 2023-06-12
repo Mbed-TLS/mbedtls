@@ -2467,7 +2467,8 @@ config_psa_crypto_config_accel_ecc_no_bignum() {
         # Disable ECP module (entirely)
         scripts/config.py unset MBEDTLS_ECP_C
         scripts/config.py unset MBEDTLS_ECP_LIGHT
-        # TODO: bignum
+        # Also disable bignum
+        scripts/config.py unset MBEDTLS_BIGNUM_C
     fi
 
     # RSA support is intentionally disabled on this test (see below for
@@ -2546,7 +2547,7 @@ component_test_psa_crypto_config_accel_ecc_no_bignum() {
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
     loc_symbols="-DPSA_CRYPTO_DRIVER_TEST \
                  -DMBEDTLS_TEST_LIBTESTDRIVER1"
-    make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -I../../tests $loc_symbols $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS" -C tests test_suite_pk test_suite_pkparse test_suite_pkwrite
+    make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -I../../tests $loc_symbols $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS" -C tests
 
     # Make sure any built-in EC alg was not re-enabled by accident (additive config)
     not grep mbedtls_ecdsa_ library/ecdsa.o
@@ -2556,12 +2557,13 @@ component_test_psa_crypto_config_accel_ecc_no_bignum() {
     not grep mbedtls_ecp_ library/ecp.o
     not grep mbedtls_rsa_ library/rsa.o
     not grep mbedtls_dhm_ library/dhm.o
+    not grep mbedtls_mpi_ library/bignum.o
 
     # Run the tests
     # -------------
 
     msg "test suites: crypto_full + accelerated EC algs + USE_PSA - ECP"
-    (cd tests && ./test_suite_pk && ./test_suite_pkparse && ./test_suite_pkwrite)
+    make test
 }
 
 # Reference function used for driver's coverage analysis in analyze_outcomes.py

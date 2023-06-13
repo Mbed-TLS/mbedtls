@@ -1653,7 +1653,7 @@ void ecp_mod_random(int id, int ctype)
     TEST_EQUAL(0, mbedtls_mpi_mod_random(&rX, 1, &m,
                                          mbedtls_test_rnd_std_rand, NULL));
 
-    TEST_ASSERT(mbedtls_mpi_core_lt_ct(rX.p, m.p, limbs) == 1);
+    TEST_ASSERT(mbedtls_mpi_core_lt_ct(rX.p, m.p, limbs) == MBEDTLS_CT_TRUE);
 
 exit:
     mbedtls_mpi_mod_modulus_free(&m);

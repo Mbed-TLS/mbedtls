@@ -3,7 +3,7 @@
 #include <mbedtls/constant_time.h>
 #include <mbedtls/md.h>
 #include <constant_time_internal.h>
-#include <hash_info.h>
+#include "md_psa.h"
 
 #include <test/constant_flow.h>
 /* END_HEADER */
@@ -28,7 +28,7 @@ void ssl_cf_hmac(int hash)
     size_t min_in_len, in_len, max_in_len, i;
     /* TLS additional data is 13 bytes (hence the "lucky 13" name) */
     unsigned char add_data[13];
-    unsigned char ref_out[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char ref_out[MBEDTLS_MD_MAX_SIZE];
     unsigned char *data = NULL;
     unsigned char *out = NULL;
     unsigned char rec_num = 0;
@@ -36,7 +36,7 @@ void ssl_cf_hmac(int hash)
     USE_PSA_INIT();
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    alg = PSA_ALG_HMAC(mbedtls_hash_info_psa_from_md(hash));
+    alg = PSA_ALG_HMAC(mbedtls_md_psa_alg_from_type(hash));
 
     out_len = PSA_HASH_LENGTH(alg);
     block_size = PSA_HASH_BLOCK_LENGTH(alg);

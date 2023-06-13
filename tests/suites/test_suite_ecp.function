@@ -7,6 +7,7 @@
 #include "bignum_core.h"
 #include "ecp_invasive.h"
 #include "bignum_mod_raw_invasive.h"
+#include "constant_time_internal.h"
 
 #define ECP_PF_UNKNOWN     -1
 
@@ -1086,7 +1087,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_ECP_MONTGOMERY_ENABLED:MBBEDTLS_ECP_C */
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_ECP_MONTGOMERY_ENABLED:MBEDTLS_ECP_LIGHT */
 void genkey_mx_known_answer(int bits, data_t *seed, data_t *expected)
 {
     mbedtls_test_rnd_buf_info rnd_info;
@@ -1349,6 +1350,13 @@ void ecp_mod_p_generic_raw(int curve_id,
             curve_func = &mbedtls_ecp_mod_p256k1_raw;
             break;
 #endif
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+        case MBEDTLS_ECP_DP_CURVE25519:
+            limbs = 2 * limbs_N;
+            curve_bits = 255;
+            curve_func = &mbedtls_ecp_mod_p255_raw;
+            break;
+#endif
         default:
             mbedtls_test_fail("Unsupported curve_id", __LINE__, __FILE__);
             goto exit;
@@ -1560,5 +1568,96 @@ exit:
     mbedtls_free(p_A);
     mbedtls_free(p_B);
     mbedtls_free(p_S);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
+void ecp_mod_read_write(char *input_A, int id, int ctype)
+{
+    size_t limbs;
+    size_t bytes;
+    mbedtls_mpi_mod_modulus m;
+    mbedtls_mpi_mod_residue rA; // For input
+    mbedtls_mpi_mod_residue rX; // For read back
+    mbedtls_mpi_uint *rX_raw = NULL;
+    mbedtls_mpi_uint *A = NULL;
+    mbedtls_mpi_uint *bufx = NULL;
+
+    mbedtls_mpi_mod_modulus_init(&m);
+
+    TEST_EQUAL(0, mbedtls_ecp_modulus_setup(&m, id, ctype));
+
+    TEST_EQUAL(0, mbedtls_test_read_mpi_core(&A, &limbs, input_A));
+    TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&rA, &m, A, limbs));
+
+    /* Test for limb sizes */
+    TEST_EQUAL(m.limbs, limbs);
+
+    ASSERT_ALLOC(rX_raw, limbs);
+    TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&rX, &m, rX_raw, limbs));
+
+    bytes = limbs * ciL;
+    ASSERT_ALLOC(bufx, limbs);
+    /* Write source mod residue to a buffer, then read it back to
+     * the destination mod residue, compare the two mod residues.
+     * Firstly test little endian write and read */
+    TEST_EQUAL(0, mbedtls_mpi_mod_write(&rA, &m, (unsigned char *) bufx,
+                                        bytes, MBEDTLS_MPI_MOD_EXT_REP_LE));
+
+    TEST_EQUAL(0, mbedtls_mpi_mod_read(&rX, &m, (unsigned char *) bufx,
+                                       bytes, MBEDTLS_MPI_MOD_EXT_REP_LE));
+
+    TEST_EQUAL(limbs, rX.limbs);
+    ASSERT_COMPARE(rA.p, bytes, rX.p, bytes);
+
+    memset(bufx, 0x00, bytes);
+    memset(rX_raw, 0x00, bytes);
+    /* Then test big endian write and read */
+    TEST_EQUAL(0, mbedtls_mpi_mod_write(&rA, &m, (unsigned char *) bufx,
+                                        bytes,
+                                        MBEDTLS_MPI_MOD_EXT_REP_BE));
+
+    TEST_EQUAL(0, mbedtls_mpi_mod_read(&rX, &m, (unsigned char *) bufx,
+                                       bytes,
+                                       MBEDTLS_MPI_MOD_EXT_REP_BE));
+
+    TEST_EQUAL(limbs, rX.limbs);
+    ASSERT_COMPARE(rA.p, bytes, rX.p, bytes);
+
+exit:
+    mbedtls_mpi_mod_modulus_free(&m);
+    mbedtls_mpi_mod_residue_release(&rA);
+    mbedtls_mpi_mod_residue_release(&rX);
+    mbedtls_free(A);
+    mbedtls_free(rX_raw);
+    mbedtls_free(bufx);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
+void ecp_mod_random(int id, int ctype)
+{
+    size_t limbs;
+    mbedtls_mpi_mod_modulus m;
+    mbedtls_mpi_mod_residue rX; // For random data
+    mbedtls_mpi_uint *rX_raw = NULL;
+
+    mbedtls_mpi_mod_modulus_init(&m);
+    TEST_EQUAL(0, mbedtls_ecp_modulus_setup(&m, id, ctype));
+
+    limbs = m.limbs;
+
+    ASSERT_ALLOC(rX_raw, limbs);
+    TEST_EQUAL(0, mbedtls_mpi_mod_residue_setup(&rX, &m, rX_raw, limbs));
+
+    TEST_EQUAL(0, mbedtls_mpi_mod_random(&rX, 1, &m,
+                                         mbedtls_test_rnd_std_rand, NULL));
+
+    TEST_ASSERT(mbedtls_mpi_core_lt_ct(rX.p, m.p, limbs) == 1);
+
+exit:
+    mbedtls_mpi_mod_modulus_free(&m);
+    mbedtls_mpi_mod_residue_release(&rX);
+    mbedtls_free(rX_raw);
 }
 /* END_CASE */

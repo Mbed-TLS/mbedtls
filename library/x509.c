@@ -1215,9 +1215,9 @@ int mbedtls_x509_get_subject_alt_name_ext(unsigned char **p,
     mbedtls_asn1_sequence *cur = subject_alt_name;
 
     while (*p < end) {
-        mbedtls_x509_subject_alternative_name dummy_san_buf;
+        mbedtls_x509_subject_alternative_name tmp_san_name;
         mbedtls_x509_buf tmp_san_buf;
-        memset(&dummy_san_buf, 0, sizeof(dummy_san_buf));
+        memset(&tmp_san_name, 0, sizeof(tmp_san_name));
 
         tmp_san_buf.tag = **p;
         (*p)++;
@@ -1236,9 +1236,10 @@ int mbedtls_x509_get_subject_alt_name_ext(unsigned char **p,
         }
 
         /*
-         * Check that the SAN is structured correctly.
+         * Check that the SAN is structured correctly by parsing it.
+         * The SAN structure is discarded afterwards.
          */
-        ret = mbedtls_x509_parse_subject_alt_name(&tmp_san_buf, &dummy_san_buf);
+        ret = mbedtls_x509_parse_subject_alt_name(&tmp_san_buf, &tmp_san_name);
         /*
          * In case the extension is malformed, return an error,
          * and clear the allocated sequences.
@@ -1249,7 +1250,7 @@ int mbedtls_x509_get_subject_alt_name_ext(unsigned char **p,
             return ret;
         }
 
-        mbedtls_x509_free_subject_alt_name(&dummy_san_buf);
+        mbedtls_x509_free_subject_alt_name(&tmp_san_name);
         /* Allocate and assign next pointer */
         if (cur->buf.p != NULL) {
             if (cur->next != NULL) {
@@ -1437,9 +1438,24 @@ int mbedtls_x509_parse_subject_alt_name(const mbedtls_x509_buf *san_buf,
                    san_buf, sizeof(*san_buf));
         }
         break;
-
         /*
-         * RFC822 Name
+         * IP address
+         */
+        case (MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_IP_ADDRESS):
+        {
+            memset(san, 0, sizeof(mbedtls_x509_subject_alternative_name));
+            san->type = MBEDTLS_X509_SAN_IP_ADDRESS;
+            // Only IPv6 (16 bytes) and IPv4 (4 bytes) types are supported
+            if (san_buf->len == 4 || san_buf->len == 16) {
+                memcpy(&san->san.unstructured_name,
+                       san_buf, sizeof(*san_buf));
+            } else {
+                return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
+            }
+        }
+        break;
+        /*
+         * rfc822Name
          */
         case (MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_RFC822_NAME):
         {
@@ -1448,7 +1464,6 @@ int mbedtls_x509_parse_subject_alt_name(const mbedtls_x509_buf *san_buf,
             memcpy(&san->san.unstructured_name, san_buf, sizeof(*san_buf));
         }
         break;
-
         /*
          * directoryName
          */
@@ -1563,7 +1578,9 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
                 ret = mbedtls_snprintf(p, n, "\n%s    uniformResourceIdentifier : ", prefix);
                 MBEDTLS_X509_SAFE_SNPRINTF;
                 if (san.san.unstructured_name.len >= n) {
-                    *p = '\0';
+                    if (n > 0) {
+                        *p = '\0';
+                    }
                     return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
                 }
 
@@ -1589,7 +1606,9 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
                                        MBEDTLS_X509_SAN_DNS_NAME ? dns_name : rfc822_name);
                 MBEDTLS_X509_SAFE_SNPRINTF;
                 if (san.san.unstructured_name.len >= n) {
-                    *p = '\0';
+                    if (n > 0) {
+                        *p = '\0';
+                    }
                     return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
                 }
 
@@ -1598,7 +1617,41 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
                 n -= san.san.unstructured_name.len;
             }
             break;
+            /*
+             * iPAddress
+             */
+            case MBEDTLS_X509_SAN_IP_ADDRESS:
+            {
+                ret = mbedtls_snprintf(p, n, "\n%s    %s : ",
+                                       prefix, "iPAddress");
+                MBEDTLS_X509_SAFE_SNPRINTF;
+                if (san.san.unstructured_name.len >= n) {
+                    if (n > 0) {
+                        *p = '\0';
+                    }
+                    return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+                }
 
+                unsigned char *ip = san.san.unstructured_name.p;
+                // Only IPv6 (16 bytes) and IPv4 (4 bytes) types are supported
+                if (san.san.unstructured_name.len == 4) {
+                    ret = mbedtls_snprintf(p, n, "%u.%u.%u.%u", ip[0], ip[1], ip[2], ip[3]);
+                    MBEDTLS_X509_SAFE_SNPRINTF;
+                } else if (san.san.unstructured_name.len == 16) {
+                    ret = mbedtls_snprintf(p, n,
+                                           "%X%X:%X%X:%X%X:%X%X:%X%X:%X%X:%X%X:%X%X",
+                                           ip[0], ip[1], ip[2], ip[3], ip[4], ip[5], ip[6],
+                                           ip[7], ip[8], ip[9], ip[10], ip[11], ip[12], ip[13],
+                                           ip[14], ip[15]);
+                    MBEDTLS_X509_SAFE_SNPRINTF;
+                } else {
+                    if (n > 0) {
+                        *p = '\0';
+                    }
+                    return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
+                }
+            }
+            break;
             /*
              * directoryName
              */
@@ -1614,6 +1667,9 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
 
                 if (ret < 0) {
                     mbedtls_x509_free_subject_alt_name(&san);
+                    if (n > 0) {
+                        *p = '\0';
+                    }
                     return ret;
                 }
 

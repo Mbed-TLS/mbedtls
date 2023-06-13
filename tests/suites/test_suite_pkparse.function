@@ -117,10 +117,13 @@ void pk_parse_keyfile_ec(char *key_file, char *password, int result)
     TEST_ASSERT(res == result);
 
     if (res == 0) {
-        const mbedtls_ecp_keypair *eckey;
         TEST_ASSERT(mbedtls_pk_can_do(&ctx, MBEDTLS_PK_ECKEY));
-        eckey = mbedtls_pk_ec_ro(ctx);
+#if defined(MBEDTLS_ECP_C)
+        const mbedtls_ecp_keypair *eckey = mbedtls_pk_ec_ro(ctx);
         TEST_ASSERT(mbedtls_ecp_check_privkey(&eckey->grp, &eckey->d) == 0);
+#else
+        /* PSA keys are already checked on import so nothing to do here. */
+#endif
     }
 
 exit:

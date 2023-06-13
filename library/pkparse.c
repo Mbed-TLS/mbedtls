@@ -63,6 +63,12 @@
 
 #include "mbedtls/platform.h"
 
+/* Helper for Montgomery curves */
+#if defined(MBEDTLS_ECP_LIGHT) && defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
+#define MBEDTLS_PK_IS_RFC8410_GROUP_ID(id)  \
+    ((id == MBEDTLS_ECP_DP_CURVE25519) || (id == MBEDTLS_ECP_DP_CURVE448))
+#endif /* MBEDTLS_ECP_LIGHT && MBEDTLS_PK_HAVE_RFC8410_CURVES */
+
 #if defined(MBEDTLS_FS_IO)
 /*
  * Load all data from a file into a given buffer.
@@ -508,6 +514,9 @@ static int pk_use_ecparams(const mbedtls_asn1_buf *params, mbedtls_pk_context *p
 #endif
     }
 
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    ret = pk_update_psa_ecparams(pk, grp_id);
+#else
     /* grp may already be initialized; if so, make sure IDs match */
     if (mbedtls_pk_ec_ro(*pk)->grp.id != MBEDTLS_ECP_DP_NONE &&
         mbedtls_pk_ec_ro(*pk)->grp.id != grp_id) {
@@ -518,8 +527,6 @@ static int pk_use_ecparams(const mbedtls_asn1_buf *params, mbedtls_pk_context *p
                                       grp_id)) != 0) {
         return ret;
     }
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    ret = pk_update_psa_ecparams(pk, grp_id);
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
     return ret;
@@ -533,20 +540,26 @@ static int pk_derive_public_key(mbedtls_pk_context *pk,
                                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
 {
     int ret;
-    mbedtls_ecp_keypair *eck = (mbedtls_ecp_keypair *) pk->pk_ctx;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_status_t status, destruction_status;
+    psa_status_t status;
+    (void) f_rng;
+    (void) p_rng;
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    (void) d;
+    (void) d_len;
+
+    status = psa_export_public_key(pk->priv_id, pk->pub_raw, sizeof(pk->pub_raw),
+                                   &pk->pub_raw_len);
+    ret = psa_pk_status_to_mbedtls(status);
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
+    mbedtls_ecp_keypair *eck = (mbedtls_ecp_keypair *) pk->pk_ctx;
+    unsigned char key_buf[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
+    size_t key_len;
+    mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
     size_t curve_bits;
     psa_ecc_family_t curve = mbedtls_ecc_group_to_psa(eck->grp.id, &curve_bits);
-#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    unsigned char key_buf[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
-    size_t key_len;
-#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
-    mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
-
-    (void) f_rng;
-    (void) p_rng;
+    psa_status_t destruction_status;
 
     psa_set_key_type(&key_attr, PSA_KEY_TYPE_ECC_KEY_PAIR(curve));
     psa_set_key_usage_flags(&key_attr, PSA_KEY_USAGE_EXPORT);
@@ -557,12 +570,7 @@ static int pk_derive_public_key(mbedtls_pk_context *pk,
         return ret;
     }
 
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    status = psa_export_public_key(key_id, pk->pub_raw, sizeof(pk->pub_raw),
-                                   &pk->pub_raw_len);
-#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
     status = psa_export_public_key(key_id, key_buf, sizeof(key_buf), &key_len);
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
     ret = psa_pk_status_to_mbedtls(status);
     destruction_status = psa_destroy_key(key_id);
     if (ret != 0) {
@@ -570,10 +578,10 @@ static int pk_derive_public_key(mbedtls_pk_context *pk,
     } else if (destruction_status != PSA_SUCCESS) {
         return psa_pk_status_to_mbedtls(destruction_status);
     }
-#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     ret = mbedtls_ecp_point_read_binary(&eck->grp, &eck->Q, key_buf, key_len);
-#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 #else /* MBEDTLS_USE_PSA_CRYPTO */
+    mbedtls_ecp_keypair *eck = (mbedtls_ecp_keypair *) pk->pk_ctx;
     (void) d;
     (void) d_len;
 
@@ -591,21 +599,21 @@ static int pk_use_ecparams_rfc8410(const mbedtls_asn1_buf *params,
                                    mbedtls_ecp_group_id grp_id,
                                    mbedtls_pk_context *pk)
 {
-    mbedtls_ecp_keypair *ecp = mbedtls_pk_ec_rw(*pk);
     int ret;
 
     if (params->tag != 0 || params->len != 0) {
         return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
     }
 
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    ret = pk_update_psa_ecparams(pk, grp_id);
+#else
+    mbedtls_ecp_keypair *ecp = mbedtls_pk_ec_rw(*pk);
     ret = mbedtls_ecp_group_load(&(ecp->grp), grp_id);
     if (ret != 0) {
         return ret;
     }
-
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    ret = pk_update_psa_ecparams(pk, grp_id);
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
+#endif
     return ret;
 }
 
@@ -618,7 +626,6 @@ static int pk_parse_key_rfc8410_der(mbedtls_pk_context *pk,
                                     unsigned char *key, size_t keylen, const unsigned char *end,
                                     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
 {
-    mbedtls_ecp_keypair *eck = mbedtls_pk_ec_rw(*pk);
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len;
 
@@ -630,23 +637,47 @@ static int pk_parse_key_rfc8410_der(mbedtls_pk_context *pk,
         return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
     }
 
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_status_t status;
+
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(pk->ec_family));
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_EXPORT |
+                            PSA_KEY_USAGE_DERIVE);
+    psa_set_key_algorithm(&attributes, PSA_ALG_ECDH);
+
+    status = psa_import_key(&attributes, key, len, &pk->priv_id);
+    if (status != PSA_SUCCESS) {
+        ret = psa_pk_status_to_mbedtls(status);
+        return ret;
+    }
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
+    mbedtls_ecp_keypair *eck = mbedtls_pk_ec_rw(*pk);
+
     if ((ret = mbedtls_mpi_read_binary_le(&eck->d, key, len)) != 0) {
         mbedtls_ecp_keypair_free(eck);
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
     }
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
     /* pk_parse_key_pkcs8_unencrypted_der() only supports version 1 PKCS8 keys,
      * which never contain a public key. As such, derive the public key
      * unconditionally. */
     if ((ret = pk_derive_public_key(pk, key, len, f_rng, p_rng)) != 0) {
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
         mbedtls_ecp_keypair_free(eck);
+#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
         return ret;
     }
 
+    /* When MBEDTLS_PK_USE_PSA_EC_DATA the key is checked while importing it
+     * into PSA. */
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     if ((ret = mbedtls_ecp_check_privkey(&eck->grp, &eck->d)) != 0) {
         mbedtls_ecp_keypair_free(eck);
         return ret;
     }
+#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
 
     return 0;
 }
@@ -920,7 +951,7 @@ int mbedtls_pk_parse_subpubkey(unsigned char **p, const unsigned char *end,
 #if defined(MBEDTLS_ECP_LIGHT)
     if (pk_alg == MBEDTLS_PK_ECKEY_DH || pk_alg == MBEDTLS_PK_ECKEY) {
 #if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
-        if (mbedtls_pk_is_rfc8410_curve(ec_grp_id)) {
+        if (MBEDTLS_PK_IS_RFC8410_GROUP_ID(ec_grp_id)) {
             ret = pk_use_ecparams_rfc8410(&alg_params, ec_grp_id, pk);
         } else
 #endif
@@ -1152,6 +1183,10 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
     unsigned char *end = p + keylen;
     unsigned char *end2;
     mbedtls_ecp_keypair *eck = mbedtls_pk_ec_rw(*pk);
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_status_t status;
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
     /*
      * RFC 5915, or SEC1 Appendix C.4
@@ -1184,10 +1219,13 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
 
     d = p;
     d_len = len;
+
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     if ((ret = mbedtls_mpi_read_binary(&eck->d, p, len)) != 0) {
         mbedtls_ecp_keypair_free(eck);
         return MBEDTLS_ERROR_ADD(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT, ret);
     }
+#endif
 
     p += len;
 
@@ -1246,6 +1284,27 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
         }
     }
 
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(pk->ec_family));
+    /* Setting largest masks for usage and key algorithms */
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH |
+                            PSA_KEY_USAGE_SIGN_MESSAGE |
+                            PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_DERIVE);
+#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
+    psa_set_key_algorithm(&attributes,
+                          PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_ANY_HASH));
+#else
+    psa_set_key_algorithm(&attributes, PSA_ALG_ECDSA(PSA_ALG_ANY_HASH));
+#endif
+    psa_set_key_enrollment_algorithm(&attributes, PSA_ALG_ECDH);
+
+    status = psa_import_key(&attributes, d, d_len, &pk->priv_id);
+    if (status != PSA_SUCCESS) {
+        ret = psa_pk_status_to_mbedtls(status);
+        return ret;
+    }
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
+
     if (!pubkey_done) {
         if ((ret = pk_derive_public_key(pk, d, d_len, f_rng, p_rng)) != 0) {
             mbedtls_ecp_keypair_free(eck);
@@ -1253,10 +1312,12 @@ static int pk_parse_key_sec1_der(mbedtls_pk_context *pk,
         }
     }
 
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     if ((ret = mbedtls_ecp_check_privkey(&eck->grp, &eck->d)) != 0) {
         mbedtls_ecp_keypair_free(eck);
         return ret;
     }
+#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
 
     return 0;
 }
@@ -1357,7 +1418,7 @@ static int pk_parse_key_pkcs8_unencrypted_der(
 #if defined(MBEDTLS_ECP_LIGHT)
     if (pk_alg == MBEDTLS_PK_ECKEY || pk_alg == MBEDTLS_PK_ECKEY_DH) {
 #if defined(MBEDTLS_PK_HAVE_RFC8410_CURVES)
-        if (mbedtls_pk_is_rfc8410_curve(ec_grp_id)) {
+        if (MBEDTLS_PK_IS_RFC8410_GROUP_ID(ec_grp_id)) {
             if ((ret =
                      pk_use_ecparams_rfc8410(&params, ec_grp_id, pk)) != 0 ||
                 (ret =

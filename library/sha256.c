@@ -399,6 +399,8 @@ int mbedtls_internal_sha256_process_a64_crypto(mbedtls_sha256_context *ctx,
             SHA256_BLOCK_SIZE) ? 0 : -1;
 }
 
+#endif /* MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT || MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY */
+
 #if defined(MBEDTLS_POP_TARGET_PRAGMA)
 #if defined(__clang__)
 #pragma clang attribute pop
@@ -407,8 +409,6 @@ int mbedtls_internal_sha256_process_a64_crypto(mbedtls_sha256_context *ctx,
 #endif
 #undef MBEDTLS_POP_TARGET_PRAGMA
 #endif
-
-#endif /* MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT || MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY */
 
 #if !defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT)
 #define mbedtls_internal_sha256_process_many_c mbedtls_internal_sha256_process_many

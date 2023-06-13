@@ -64,6 +64,11 @@
 #define MBEDTLS_OID_X509_EXT_NS_CERT_TYPE                (1 << 16)
 
 /*
+ * Maximum number of OID components allowed
+ */
+#define MBEDTLS_OID_MAX_COMPONENTS              128
+
+/*
  * Top level OID tuples
  */
 #define MBEDTLS_OID_ISO_MEMBER_BODIES           "\x2a"          /* {iso(1) member-body(2)} */
@@ -477,6 +482,25 @@ typedef struct mbedtls_oid_descriptor_t {
  *                  MBEDTLS_ERR_OID_BUF_TOO_SMALL in case of error
  */
 int mbedtls_oid_get_numeric_string(char *buf, size_t size, const mbedtls_asn1_buf *oid);
+
+/**
+ * \brief           Translate a string containing a dotted-decimal
+ *                  representation of an ASN.1 OID into its encoded form
+ *                  (e.g. "1.2.840.113549" into "\x2A\x86\x48\x86\xF7\x0D").
+ *                  On success, this function allocates oid->buf from the
+ *                  heap. It must be freed by the caller using mbedtls_free().
+ *
+ * \param oid       #mbedtls_asn1_buf to populate with the DER-encoded OID
+ * \param oid_str   string representation of the OID to parse
+ * \param size      length of the OID string, not including any null terminator
+ *
+ * \return          0 if successful
+ * \return          #MBEDTLS_ERR_ASN1_INVALID_DATA if \p oid_str does not
+ *                  represent a valid OID
+ * \return          #MBEDTLS_ERR_ASN1_ALLOC_FAILED if the function fails to
+ *                  allocate oid->buf
+ */
+int mbedtls_oid_from_numeric_string(mbedtls_asn1_buf *oid, const char *oid_str, size_t size);
 
 /**
  * \brief          Translate an X.509 extension OID into local values

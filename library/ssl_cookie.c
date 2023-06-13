@@ -36,6 +36,7 @@
 #include <string.h>
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "md_psa.h"
 #define PSA_TO_MBEDTLS_ERR(status) PSA_TO_MBEDTLS_ERR_LIST(status,   \
                                                            psa_to_ssl_errors,             \
                                                            psa_generic_status_to_mbedtls)
@@ -114,7 +115,7 @@ int mbedtls_ssl_cookie_setup(mbedtls_ssl_cookie_ctx *ctx,
     (void) f_rng;
     (void) p_rng;
 
-    alg = mbedtls_hash_info_psa_from_md(COOKIE_MD);
+    alg = mbedtls_md_psa_alg_from_type(COOKIE_MD);
     if (alg == 0) {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
     }

@@ -30,7 +30,6 @@
 #include "mbedtls/platform_util.h"
 #include "constant_time_internal.h"
 #include "mbedtls/constant_time.h"
-#include "hash_info.h"
 
 #include <string.h>
 
@@ -2597,13 +2596,17 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
     psa_ecc_family_t ecc_family;
     size_t key_len;
     mbedtls_pk_context *pk;
-    mbedtls_ecp_keypair *key;
+    mbedtls_ecp_group_id grp_id;
 
     pk = mbedtls_ssl_own_key(ssl);
 
     if (pk == NULL) {
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
+
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    mbedtls_ecp_keypair *key = mbedtls_pk_ec_rw(*pk);
+#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
 
     switch (mbedtls_pk_get_type(pk)) {
         case MBEDTLS_PK_OPAQUE:
@@ -2633,12 +2636,11 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
         case MBEDTLS_PK_ECKEY:
         case MBEDTLS_PK_ECKEY_DH:
         case MBEDTLS_PK_ECDSA:
-            key = mbedtls_pk_ec_rw(*pk);
-            if (key == NULL) {
+            grp_id = mbedtls_pk_get_group_id(pk);
+            if (grp_id == MBEDTLS_ECP_DP_NONE) {
                 return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
             }
-
-            tls_id = mbedtls_ssl_get_tls_id_from_ecp_group_id(key->grp.id);
+            tls_id = mbedtls_ssl_get_tls_id_from_ecp_group_id(grp_id);
             if (tls_id == 0) {
                 /* This elliptic curve is not supported */
                 return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
@@ -2658,11 +2660,19 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
                              PSA_KEY_TYPE_ECC_KEY_PAIR(ssl->handshake->ecdh_psa_type));
             psa_set_key_bits(&key_attributes, ssl->handshake->ecdh_bits);
 
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+            status = psa_export_key(pk->priv_id, buf, sizeof(buf), &key_len);
+            if (status != PSA_SUCCESS) {
+                ret = PSA_TO_MBEDTLS_ERR(status);
+                goto cleanup;
+            }
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
             key_len = PSA_BITS_TO_BYTES(key->grp.pbits);
             ret = mbedtls_ecp_write_key(key, buf, key_len);
             if (ret != 0) {
                 goto cleanup;
             }
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
             status = psa_import_key(&key_attributes, buf, key_len,
                                     &ssl->handshake->ecdh_psa_privkey);
@@ -3070,7 +3080,7 @@ curve_matching_done:
 
         size_t dig_signed_len = ssl->out_msg + ssl->out_msglen - dig_signed;
         size_t hashlen = 0;
-        unsigned char hash[MBEDTLS_HASH_MAX_SIZE];
+        unsigned char hash[MBEDTLS_MD_MAX_SIZE];
 
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 

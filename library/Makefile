@@ -107,7 +107,6 @@ OBJS_CRYPTO= \
 	     entropy_poll.o \
 	     error.o \
 	     gcm.o \
-	     hash_info.o \
 	     hkdf.o \
 	     hmac_drbg.o \
 	     lmots.o \
@@ -150,6 +149,7 @@ OBJS_CRYPTO= \
 	     sha1.o \
 	     sha256.o \
 	     sha512.o \
+	     sha3.o \
 	     threading.o \
 	     timing.o \
 	     version.o \

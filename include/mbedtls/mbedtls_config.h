@@ -3165,6 +3165,17 @@
 #define MBEDTLS_SHA512_C
 
 /**
+ * \def MBEDTLS_SHA3_C
+ *
+ * Enable the SHA3 cryptographic hash algorithm.
+ *
+ * Module:  library/sha3.c
+ *
+ * This module adds support for SHA3.
+ */
+#define MBEDTLS_SHA3_C
+
+/**
  * \def MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
  *
  * Enable acceleration of the SHA-512 and SHA-384 cryptographic hash algorithms

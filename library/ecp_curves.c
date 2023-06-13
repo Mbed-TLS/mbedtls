@@ -4605,6 +4605,8 @@ int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *N_p, size_t N_n);
 /* Additional forward declarations */
 #if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
 static int ecp_mod_p255(mbedtls_mpi *);
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p255_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 #endif
 #if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
 static int ecp_mod_p448(mbedtls_mpi *);
@@ -5418,27 +5420,57 @@ int mbedtls_ecp_mod_p521_raw(mbedtls_mpi_uint *X, size_t X_limbs)
  */
 static int ecp_mod_p255(mbedtls_mpi *N)
 {
-    mbedtls_mpi_uint Mp[P255_WIDTH];
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t expected_width = 2 * P255_WIDTH;
+    MBEDTLS_MPI_CHK(mbedtls_mpi_grow(N, expected_width));
+    ret = mbedtls_ecp_mod_p255_raw(N->p, expected_width);
+cleanup:
+    return ret;
+}
 
-    /* Helper references for top part of N */
-    mbedtls_mpi_uint * const NT_p = N->p + P255_WIDTH;
-    const size_t NT_n = N->n - P255_WIDTH;
-    if (N->n <= P255_WIDTH) {
-        return 0;
-    }
-    if (NT_n > P255_WIDTH) {
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ecp_mod_p255_raw(mbedtls_mpi_uint *X, size_t X_Limbs)
+{
+
+    if (X_Limbs != 2 * P255_WIDTH) {
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 
-    /* Split N as N + 2^256 M */
-    memcpy(Mp,   NT_p, sizeof(mbedtls_mpi_uint) * NT_n);
-    memset(NT_p, 0,    sizeof(mbedtls_mpi_uint) * NT_n);
+    mbedtls_mpi_uint *carry = mbedtls_calloc(P255_WIDTH, ciL);
+    if (carry == NULL) {
+        return MBEDTLS_ERR_ECP_ALLOC_FAILED;
+    }
 
-    /* N = A0 + 38 * A1 */
-    mbedtls_mpi_core_mla(N->p, P255_WIDTH + 1,
-                         Mp, NT_n,
-                         38);
+    /* Step 1: Reduction to P255_WIDTH limbs */
+    if (X_Limbs > P255_WIDTH) {
+        /* Helper references for top part of X */
+        mbedtls_mpi_uint * const A1 = X + P255_WIDTH;
+        const size_t A1_limbs = X_Limbs - P255_WIDTH;
 
+        /* X = A0 + 38 * A1, capture carry out */
+        *carry = mbedtls_mpi_core_mla(X, P255_WIDTH, A1, A1_limbs, 38);
+        /* Clear top part */
+        memset(A1, 0, sizeof(mbedtls_mpi_uint) * A1_limbs);
+    }
+
+    /* Step 2: Reduce to <2p
+     * Split as A0 + 2^255*c, with c a scalar, and compute A0 + 19*c */
+    *carry <<= 1;
+    *carry += (X[P255_WIDTH - 1] >> (biL - 1));
+    *carry *= 19;
+
+    /* Clear top bit */
+    X[P255_WIDTH - 1] <<= 1; X[P255_WIDTH - 1] >>= 1;
+    /* Since the top bit for X has been cleared 0 + 0 + Carry
+     * will not overflow.
+     *
+     * Furthermore for 2p = 2^256-38. When a carry propagation on the highest
+     * limb occurs, X > 2^255 and all the remaining bits on the limb are zero.
+     *   - If X < 2^255 ==> X < 2p
+     *   - If X > 2^255 ==> X < 2^256 - 2^255 < 2p  */
+    (void) mbedtls_mpi_core_add(X, X, carry, P255_WIDTH);
+
+    mbedtls_free(carry);
     return 0;
 }
 #endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED */

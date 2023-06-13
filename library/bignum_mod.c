@@ -166,7 +166,8 @@ int mbedtls_mpi_mod_modulus_setup(mbedtls_mpi_mod_modulus *N,
 int mbedtls_mpi_mod_optred_modulus_setup(mbedtls_mpi_mod_modulus *N,
                                          const mbedtls_mpi_uint *p,
                                          size_t p_limbs,
-                                         int (*modp)(mbedtls_mpi *))
+                                         int (*modp)(mbedtls_mpi_uint *X,
+                                                     size_t X_limbs))
 {
     standard_modulus_setup(N, p, p_limbs, MBEDTLS_MPI_MOD_REP_OPT_RED);
     N->rep.ored.modp = modp;

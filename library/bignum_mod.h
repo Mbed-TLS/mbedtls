@@ -125,7 +125,8 @@ typedef struct {
 } mbedtls_mpi_mont_struct;
 
 typedef struct {
-    int (*modp)(mbedtls_mpi *);  /* The optimised reduction function pointer */
+    int (*modp)(mbedtls_mpi_uint *X,
+                size_t X_limbs);  /* The optimised reduction function pointer */
 } mbedtls_mpi_opt_red_struct;
 
 typedef struct {
@@ -222,7 +223,8 @@ int mbedtls_mpi_mod_modulus_setup(mbedtls_mpi_mod_modulus *N,
 int mbedtls_mpi_mod_optred_modulus_setup(mbedtls_mpi_mod_modulus *N,
                                          const mbedtls_mpi_uint *p,
                                          size_t p_limbs,
-                                         int (*modp)(mbedtls_mpi *));
+                                         int (*modp)(mbedtls_mpi_uint *X,
+                                                     size_t X_limbs));
 
 /** Free elements of a modulus structure.
  *

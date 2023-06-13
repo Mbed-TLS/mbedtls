@@ -60,7 +60,7 @@ psa_status_t psa_set_key_domain_parameters(psa_key_attributes_t *attributes,
 
     attributes->domain_parameters = copy;
     attributes->domain_parameters_size = data_length;
-    attributes->core.type = type;
+    attributes->type = type;
     return PSA_SUCCESS;
 }
 

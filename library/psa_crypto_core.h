@@ -63,7 +63,7 @@ static inline int mbedtls_psa_safer_memcmp(
  * and metadata for one key.
  */
 typedef struct {
-    psa_core_key_attributes_t attr;
+    psa_key_attributes_t attr;
 
     /*
      * Number of locks on the key slot held by the library.

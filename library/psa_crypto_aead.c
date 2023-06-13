@@ -49,10 +49,10 @@ static psa_status_t psa_aead_setup(
 
     (void) key_buffer_size;
 
-    key_bits = attributes->core.bits;
+    key_bits = attributes->bits;
 
     cipher_info = mbedtls_cipher_info_from_psa(alg,
-                                               attributes->core.type, key_bits,
+                                               attributes->type, key_bits,
                                                &cipher_id);
     if (cipher_info == NULL) {
         return PSA_ERROR_NOT_SUPPORTED;
@@ -65,7 +65,7 @@ static psa_status_t psa_aead_setup(
             /* CCM allows the following tag lengths: 4, 6, 8, 10, 12, 14, 16.
              * The call to mbedtls_ccm_encrypt_and_tag or
              * mbedtls_ccm_auth_decrypt will validate the tag length. */
-            if (PSA_BLOCK_CIPHER_BLOCK_LENGTH(attributes->core.type) != 16) {
+            if (PSA_BLOCK_CIPHER_BLOCK_LENGTH(attributes->type) != 16) {
                 return PSA_ERROR_INVALID_ARGUMENT;
             }
 
@@ -85,7 +85,7 @@ static psa_status_t psa_aead_setup(
             /* GCM allows the following tag lengths: 4, 8, 12, 13, 14, 15, 16.
              * The call to mbedtls_gcm_crypt_and_tag or
              * mbedtls_gcm_auth_decrypt will validate the tag length. */
-            if (PSA_BLOCK_CIPHER_BLOCK_LENGTH(attributes->core.type) != 16) {
+            if (PSA_BLOCK_CIPHER_BLOCK_LENGTH(attributes->type) != 16) {
                 return PSA_ERROR_INVALID_ARGUMENT;
             }
 

@@ -28,10 +28,13 @@
 
 void psa_reset_key_attributes(psa_key_attributes_t *attributes)
 {
+#if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY)
     mbedtls_free(attributes->domain_parameters);
+#endif
     memset(attributes, 0, sizeof(*attributes));
 }
 
+#if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY)
 psa_status_t psa_set_key_domain_parameters(psa_key_attributes_t *attributes,
                                            psa_key_type_t type,
                                            const uint8_t *data,
@@ -75,5 +78,6 @@ psa_status_t psa_get_key_domain_parameters(
     }
     return PSA_SUCCESS;
 }
+#endif /* PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY */
 
 #endif /* MBEDTLS_PSA_CRYPTO_CLIENT */

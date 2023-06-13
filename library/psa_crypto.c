@@ -1953,6 +1953,8 @@ static psa_status_t psa_validate_optional_attributes(
         }
     }
 
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_LEGACY) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
     if (attributes->domain_parameters_size != 0) {
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_LEGACY) || \
         defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
@@ -2001,6 +2003,8 @@ rsa_exit:
             return PSA_ERROR_INVALID_ARGUMENT;
         }
     }
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_LEGACY) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
 
     if (attributes->core.bits != 0) {
         if (attributes->core.bits != slot->attr.bits) {
@@ -7388,10 +7392,14 @@ psa_status_t psa_generate_key_internal(
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_type_t type = attributes->core.type;
 
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_LEGACY) && \
+    defined(MBEDTLS_GENPRIME)
     if ((attributes->domain_parameters == NULL) &&
         (attributes->domain_parameters_size != 0)) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_LEGACY)
+        * defined(MBEDTLS_GENPRIME) */
 
     if (key_type_is_raw_bytes(type)) {
         status = psa_generate_random(key_buffer, key_buffer_size);

@@ -297,9 +297,13 @@ psa_status_t mbedtls_psa_ecp_generate_key(
         mbedtls_ecp_curve_info_from_grp_id(grp_id);
     mbedtls_ecp_keypair ecp;
 
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_LEGACY) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
     if (attributes->domain_parameters_size != 0) {
         return PSA_ERROR_NOT_SUPPORTED;
     }
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_LEGACY) ||
+        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) */
 
     if (grp_id == MBEDTLS_ECP_DP_NONE || curve_info == NULL) {
         return PSA_ERROR_NOT_SUPPORTED;

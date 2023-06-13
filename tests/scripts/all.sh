@@ -2571,9 +2571,13 @@ psa_crypto_config_accel_all_curves_except_one () {
     # build with ECP_C.
     scripts/config.py set $BUILTIN_CURVE
     # Accelerate all curves listed in "crypto_config.h" (skipping the ones that
-    # are commented out)
+    # are commented out).
+    # Note: Those are handled in a special way by the libtestdriver machinery,
+    # so we only want to include them in the accel list when building the main
+    # libraries, hence the use of a separate variable.
+    loc_curve_list=""
     for CURVE in $(sed -n 's/^#define PSA_WANT_\(ECC_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
-        loc_accel_list="$loc_accel_list $CURVE"
+        loc_curve_list="$loc_curve_list $CURVE"
     done
 
     # Build
@@ -2583,8 +2587,8 @@ psa_crypto_config_accel_all_curves_except_one () {
     loc_extra_list="ALG_SHA_224 ALG_SHA_256 ALG_SHA_384 ALG_SHA_512"
     helper_libtestdriver1_make_drivers "$loc_accel_list" "$loc_extra_list"
 
-    # build and link with test drivers
-    helper_libtestdriver1_make_main "$loc_accel_list"
+    # (See above regarding loc_curve_list.)
+    helper_libtestdriver1_make_main "$loc_accel_list $loc_curve_list"
 
     # make sure excluded modules were not auto-re-enabled by accident
     not grep mbedtls_ecdh_ library/ecdh.o

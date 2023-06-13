@@ -591,6 +591,11 @@ The PSA subsystem has an internal random generator. As a consequence, you do not
 
 The PSA API uses its internal random generator to generate keys (`psa_generate_key`), nonces for encryption (`psa_cipher_generate_iv`, `psa_cipher_encrypt`, `psa_aead_generate_nonce`, `psa_aead_encrypt`, `psa_asymmetric_encrypt`), and other random material as needed. If you need random data for some other purposes, call [`psa_generate_random`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__random/#group__random_1ga1985eae417dfbccedf50d5fff54ea8c5).
 
+If your application mixes uses of the PSA crypto API and the mbedtls API and you need to pass an RNG argument to a legacy or X.509/TLS function, include the header file `<mbedtls/psa_util.h>` and use:
+
+* [`mbedtls_psa_get_random`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/psa__util_8h/#_CPPv422mbedtls_psa_get_randomPvPh6size_t) as the `f_rng` argument;
+* [`MBEDTLS_PSA_RANDOM_STATE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/psa__util_8h/#c.MBEDTLS_PSA_RANDOM_STATE) as the `p_rng` argument.
+
 ### Entropy sources
 
 Unless explicitly configured otherwise, the PSA random generator uses the default entropy sources configured through the legacy interface (`MBEDTLS_ENTROPY_xxx` symbols). Its set of sources is equivalent to an entropy object configured with `mbedtls_entropy_init`.

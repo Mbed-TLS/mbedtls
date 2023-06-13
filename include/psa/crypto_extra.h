@@ -71,7 +71,7 @@ static inline void psa_set_key_enrollment_algorithm(
     psa_key_attributes_t *attributes,
     psa_algorithm_t alg2)
 {
-    attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(alg2) = alg2;
+    attributes->MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(alg2) = alg2;
 }
 
 /** Retrieve the enrollment algorithm policy from key attributes.
@@ -83,7 +83,7 @@ static inline void psa_set_key_enrollment_algorithm(
 static inline psa_algorithm_t psa_get_key_enrollment_algorithm(
     const psa_key_attributes_t *attributes)
 {
-    return attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(alg2);
+    return attributes->MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(alg2);
 }
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
@@ -141,7 +141,7 @@ static inline void psa_set_key_slot_number(
     psa_key_attributes_t *attributes,
     psa_key_slot_number_t slot_number)
 {
-    attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(flags) |= MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER;
+    attributes->MBEDTLS_PRIVATE(flags) |= MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER;
     attributes->MBEDTLS_PRIVATE(slot_number) = slot_number;
 }
 
@@ -154,7 +154,7 @@ static inline void psa_set_key_slot_number(
 static inline void psa_clear_key_slot_number(
     psa_key_attributes_t *attributes)
 {
-    attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(flags) &=
+    attributes->MBEDTLS_PRIVATE(flags) &=
         ~MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER;
 }
 

@@ -3510,9 +3510,10 @@ cleanup:
 #endif /* MBEDTLS_ECP_C */
 
 /*
- * Checkup routine
+ * Checkup routine for particular Weierstrass curve
  */
-int mbedtls_ecp_self_test(int verbose)
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
+static int mbedtls_ecp_self_test_weierstrass(const mbedtls_ecp_curve_info *curve, int verbose)
 {
 #if defined(MBEDTLS_ECP_C)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -3520,7 +3521,6 @@ int mbedtls_ecp_self_test(int verbose)
     mbedtls_ecp_point R, P;
     mbedtls_mpi m;
 
-#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
     /* Exponents especially adapted for secp192k1, which has the lowest
      * order n of all supported curves (secp192r1 is in a slightly larger
      * field but the order of its base point is slightly smaller). */
@@ -3533,37 +3533,17 @@ int mbedtls_ecp_self_test(int verbose)
         "7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", /* all ones */
         "555555555555555555555555555555555555555555555555", /* 101010... */
     };
-#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
-#if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
-    const char *m_exponents[] =
-    {
-        /* Valid private values for Curve25519. In a build with Curve448
-         * but not Curve25519, they will be adjusted in
-         * self_test_adjust_exponent(). */
-        "4000000000000000000000000000000000000000000000000000000000000000",
-        "5C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C30",
-        "5715ECCE24583F7A7023C24164390586842E816D7280A49EF6DF4EAE6B280BF8",
-        "41A2B017516F6D254E1F002BCCBADD54BE30F8CEC737A0E912B4963B6BA74460",
-        "5555555555555555555555555555555555555555555555555555555555555550",
-        "7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8",
-    };
-#endif /* MBEDTLS_ECP_MONTGOMERY_ENABLED */
 
     mbedtls_ecp_group_init(&grp);
     mbedtls_ecp_point_init(&R);
     mbedtls_ecp_point_init(&P);
     mbedtls_mpi_init(&m);
 
-#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
-    /* Use secp192r1 if available, or any available curve */
-#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
-    MBEDTLS_MPI_CHK(mbedtls_ecp_group_load(&grp, MBEDTLS_ECP_DP_SECP192R1));
-#else
-    MBEDTLS_MPI_CHK(mbedtls_ecp_group_load(&grp, mbedtls_ecp_curve_list()->grp_id));
-#endif
+    MBEDTLS_MPI_CHK(mbedtls_ecp_group_load(&grp, curve->grp_id));
 
     if (verbose != 0) {
-        mbedtls_printf("  ECP SW test #1 (constant op_count, base point G): ");
+        mbedtls_printf("  ECP SW test #1 (constant op_count, base point G, curve %s): ",
+                       curve->name);
     }
     /* Do a dummy multiplication first to trigger precomputation */
     MBEDTLS_MPI_CHK(mbedtls_mpi_lset(&m, 2));
@@ -3588,8 +3568,79 @@ int mbedtls_ecp_self_test(int verbose)
         goto cleanup;
     }
 
+cleanup:
+
+    if (ret < 0 && verbose != 0) {
+        mbedtls_printf("Unexpected error, return code = %08X\n", (unsigned int) ret);
+    }
+
     mbedtls_ecp_group_free(&grp);
     mbedtls_ecp_point_free(&R);
+    mbedtls_ecp_point_free(&P);
+    mbedtls_mpi_free(&m);
+
+    if (verbose != 0) {
+        mbedtls_printf("\n");
+    }
+
+    return ret;
+#else /* MBEDTLS_ECP_C */
+    (void) verbose;
+    return 0;
+#endif /* MBEDTLS_ECP_C */
+}
+#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
+
+/*
+ * Checkup routine
+ */
+int mbedtls_ecp_self_test(int verbose)
+{
+#if defined(MBEDTLS_ECP_C)
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_ecp_group grp;
+    mbedtls_ecp_point R, P;
+    mbedtls_mpi m;
+
+#if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
+    const char *m_exponents[] =
+    {
+        /* Valid private values for Curve25519. In a build with Curve448
+         * but not Curve25519, they will be adjusted in
+         * self_test_adjust_exponent(). */
+        "4000000000000000000000000000000000000000000000000000000000000000",
+        "5C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C30",
+        "5715ECCE24583F7A7023C24164390586842E816D7280A49EF6DF4EAE6B280BF8",
+        "41A2B017516F6D254E1F002BCCBADD54BE30F8CEC737A0E912B4963B6BA74460",
+        "5555555555555555555555555555555555555555555555555555555555555550",
+        "7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8",
+    };
+#endif /* MBEDTLS_ECP_MONTGOMERY_ENABLED */
+
+    mbedtls_ecp_group_init(&grp);
+    mbedtls_ecp_point_init(&R);
+    mbedtls_ecp_point_init(&P);
+    mbedtls_mpi_init(&m);
+
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
+    /* NIST optimization uses different functions for different curves,
+     * so we should do tests on all enabled curves
+     */
+    #if defined(MBEDTLS_ECP_NIST_OPTIM)
+    const mbedtls_ecp_curve_info *curve_list = mbedtls_ecp_curve_list();
+
+    for (unsigned int i = 0; i < ECP_NB_CURVES; ++i) {
+        /* Check, that the curve is not a Montgomery curve */
+        if (curve_list[i].grp_id != MBEDTLS_ECP_DP_NONE &&
+            curve_list[i].grp_id != MBEDTLS_ECP_DP_CURVE448 &&
+            curve_list[i].grp_id != MBEDTLS_ECP_DP_CURVE25519) {
+            MBEDTLS_MPI_CHK(mbedtls_ecp_self_test_weierstrass(&curve_list[i], verbose));
+        }
+    }
+    #else // Else, use first available curve
+    MBEDTLS_MPI_CHK(mbedtls_ecp_self_test_weierstrass(mbedtls_ecp_curve_list(), verbose));
+    #endif
+
 #endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 
 #if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)

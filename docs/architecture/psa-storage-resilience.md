@@ -162,7 +162,7 @@ Requiring the driver to have a `"get_key_attributes"` entry point is potentially
 
 #### Exploring the follow-the-secure-element strategy
 
-Each entry in the transaction list contains the API key identifier, the key lifetime (or at least the location), the driver key identifier, and an indication of whether the key is being created or destroyed.
+Each entry in the transaction list contains the API key identifier, the key lifetime (or at least the location), the driver key identifier (not constant-size), and an indication of whether the key is being created or destroyed.
 
 For key creation, we have all the information to store in the key file once the `"allocate_key"` call returns. We must store all the information that will go in the key file before calling the driver's key creation entry point. Therefore the normal sequence of operations is:
 
@@ -191,7 +191,7 @@ During recovery, for each key in the transaction list that was being created:
 
 #### Exploring the always-destroy strategy
 
-Each entry in the transaction list contains the API key identifier, the key lifetime (or at least the location), and the driver key identifier.
+Each entry in the transaction list contains the API key identifier, the key lifetime (or at least the location), and the driver key identifier (not constant-size).
 
 For key creation, we do not need to store the key's metadata until it has been created in the secure element. Therefore the normal sequence of operations is:
 
@@ -213,6 +213,37 @@ Recovery means removing all traces of all keys on the transaction list. This mea
 1. Remove the key file, treating `DOES_NOT_EXIST` as a success.
 2. Call the driver's `"destroy_key"` entry point, treating `DOES_NOT_EXIST` as a success.
 3. Remove the key from the transaction list.
+
+#### Always-destroy strategy with a simpler transaction file
+
+We can modify the [always-destroy strategy](#exploring-the-always-destroy-strategy) to make the transaction file simpler: if we ensure that the key file always exists if the key exists in the secure element, then the transaction list does not need to include the driver key identifier: it can be read from the key file.
+
+For key creation, we need to store the key's metadata before creating in the secure element. Therefore the normal sequence of operations is:
+
+1. Call the driver's `"allocate_key"` entry point.
+2. Add the key to the transaction list.
+3. Write the key file.
+4. Call the driver's key creation entry point.
+5. Remove the key from the transaction list.
+
+For key destruction, we need to contact the secure element before removing the key file. Therefore the normal sequence of operations is:
+
+1. Add the key to the transaction list.
+2. Call the driver's `"destroy_key"` entry point.
+3. Remove the key file.
+4. Remove the key from the transaction list.
+
+Recovery means removing all traces of all keys on the transaction list. This means following the destruction process, starting after the point where the key has been added to the transaction list, and ignoring any failure of a removal action if the item to remove does not exist:
+
+1. Load the driver key identifier from the key file. If the key file does not exist, skip to step 4.
+2. Call the driver's `"destroy_key"` entry point, treating `DOES_NOT_EXIST` as a success.
+3. Remove the key file, treating `DOES_NOT_EXIST` as a success.
+4. Remove the key from the transaction list.
+
+Compared with the basic always-destroy strategy:
+
+* The transaction file handling is simpler since its entries have a fixed size.
+* The flow of information is somewhat different from transparent keys and keys in stateless secure elements: we aren't just replacing “create the key material” by “tell the secure element to create the key material”, those happen at different times. But there's a different flow for stateful secure elements anyway, since the call to `"allocate_key"` has no analog in the stateless secure element or transparent cases.
 
 #### Assisting secure element drivers with recovery
 
@@ -350,7 +381,7 @@ The [storage invariant](#storage-invariant-if-the-transaction-list-contains-appl
 
 #### Chosen recovery process
 
-To [assist secure element drivers with recovery](#assisting-secure-element-drivers-with-recovery), we pick the [always-destroy recovery strategy](#exploring-the-always-destroy-strategy). The the recovery process is as follows:
+To [assist secure element drivers with recovery](#assisting-secure-element-drivers-with-recovery), we pick the [always-destroy recovery strategy with a simple transaction file](#always-destroy-strategy-with-a-simpler-transaction-file). The the recovery process is as follows:
 
 * If the file `id` does not exist, then nothing needs to be done for recovery, other than removing `id` from the transaction list.
 * If the file `id` exists, call the secure element's key destruction entry point (treating a `DOES_NOT_EXIST` error as a success), then remove `id`.
@@ -411,7 +442,7 @@ If any step fails, remember the error but continue the process, to destroy the r
 
 For each key _A_ in the transaction list file, if the file _A_ exists in the internal storage:
 
-1. Load the key into a key slot in memory.
+1. Load the key into a key slot in memory (to get its location and the driver key identifier, although we could get the location from the transaction list).
 2. Call the secure element's `"destroy_key"` entry point.
 3. Remove the key file _A_ from the internal storage.
 4. Remove _A_ [from the transaction list file](#transaction-list-file-manipulation).

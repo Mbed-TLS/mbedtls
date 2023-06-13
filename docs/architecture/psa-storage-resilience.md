@@ -153,10 +153,12 @@ There are four cases for recovery when a transaction is in progress. In each cas
 
 From the analysis above, assuming that all keys are treated in the same way, there are 4 possible strategies.
 
-* [Always follow the state of the secure element](#exploring-the-follow-the-secure-element-strategy). This requires the secure element to have a `"get_key_attributes"` entry point. Recovery means resuming the operation where it left off. For key creation, this means that the key metadata needs to be saved before calling the secure element's key creation entry point.
+* [Always follow the state of the secure element](#exploring-the-follow-the-secure-element-strategy). This requires the secure element driver to have a `"get_key_attributes"` entry point. Recovery means resuming the operation where it left off. For key creation, this means that the key metadata needs to be saved before calling the secure element's key creation entry point.
 * Minimize the information processing: [always destroy the key](#exploring-the-always-destroy-strategy), i.e. abort all key creations and commit all key destructions. This does not require querying the state of the secure element. This does not require any special precautions to preserve information about the key during the transaction. It simplifies recovery in that the recovery process might not even need to know whether it's recovering a key creation or a key destruction.
-* Follow the state of the secure element for key creation, but always go ahead with key destruction. This requires the secure element to have a `"get_key_attributes"` entry point. Compared to always following the state of the secure element, this has the advantage of maximizing the chance that a command to destroy key material is effective. Compared to always destroying the key, this has a performance advantage if a key creation is interrupted. These do not seem like decisive advantages, so we will not consider this strategy further.
+* Follow the state of the secure element for key creation, but always go ahead with key destruction. This requires the secure element driver to have a `"get_key_attributes"` entry point. Compared to always following the state of the secure element, this has the advantage of maximizing the chance that a command to destroy key material is effective. Compared to always destroying the key, this has a performance advantage if a key creation is interrupted. These do not seem like decisive advantages, so we will not consider this strategy further.
 * Always abort key creation, but follow the state of the secure element for key destruction. I can't think of a good reason to choose this strategy.
+
+Requiring the driver to have a `"get_key_attributes"` entry point is potentially problematic because some secure elements don't have room to store key attributes: a key slot always exists, and it's up to the user to remember what, if anything, they put in it. The driver has to remember anyway, so that it can find a free slot when creating a key. But with a recovery strategy that doesn't involve a `"get_key_attributes"` entry point, the driver design is easier: the driver doesn't need to protect the information about slots in use against a power failure, the core takes care of that.
 
 #### Exploring the follow-the-secure-element strategy
 
@@ -335,6 +337,8 @@ In order to conveniently support multiple transactions at the same time, we pick
 
 * During key creation, create the key file in internal storage in the internal storage before calling the secure element's key creation entry point.
 * During key destruction, call the secure element's key destruction entry point before removing the key file in internal storage.
+
+This choice of algorithm does not require the secure element driver to have a `"get_key_attributes"` entry point.
 
 #### Chosen storage invariant
 

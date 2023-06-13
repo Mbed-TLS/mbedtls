@@ -2721,6 +2721,15 @@ component_test_psa_crypto_config_accel_rsa_signature () {
 component_test_new_psa_want_key_pair_symbol() {
     msg "Build: crypto config - MBEDTLS_RSA_C + PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_USE"
 
+    # Create a temporary output file unless there is already one set
+    if [ "$MBEDTLS_TEST_OUTCOME_FILE" ]; then
+        REMOVE_OUTCOME_ON_EXIT="no"
+    else
+        REMOVE_OUTCOME_ON_EXIT="yes"
+        MBEDTLS_TEST_OUTCOME_FILE="$PWD/out.csv"
+        export MBEDTLS_TEST_OUTCOME_FILE
+    fi
+
     # Start from crypto configuration
     scripts/config.py crypto
 
@@ -2747,10 +2756,16 @@ component_test_new_psa_want_key_pair_symbol() {
     make
 
     msg "Test: crypto config - MBEDTLS_RSA_C + PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_USE"
-    # Test only the RSA suite and parse relevant line (a test which is performing
-    # RSA signature)
-    output=$( cd tests && ./test_suite_rsa )
-    echo "$output" | grep 'RSA PKCS1 Sign #1 (SHA512, 1536 bits RSA)' | grep -q "PASS"
+    make test
+
+    # Parse only 1 relevant line from the outcome file, i.e. a test which is
+    # performing RSA signature.
+    msg "Verify that 'RSA PKCS1 Sign #1 (SHA512, 1536 bits RSA)' is PASS"
+    cat $MBEDTLS_TEST_OUTCOME_FILE | grep 'RSA PKCS1 Sign #1 (SHA512, 1536 bits RSA)' | grep -q "PASS"
+
+    if [ "$REMOVE_OUTCOME_ON_EXIT" == "yes" ]; then
+        rm $MBEDTLS_TEST_OUTCOME_FILE
+    fi
 }
 
 component_test_psa_crypto_config_accel_hash () {

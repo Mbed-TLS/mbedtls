@@ -2716,6 +2716,43 @@ component_test_psa_crypto_config_accel_rsa_signature () {
     make test
 }
 
+# This is a temporary test to verify that full RSA support is present even when
+# only one single new symbols (PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_USE) is defined.
+component_test_new_psa_want_key_pair_symbol() {
+    msg "Build: crypto config - MBEDTLS_RSA_C + PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_USE"
+
+    # Start from crypto configuration
+    scripts/config.py crypto
+
+    # Remove RSA support and its dependencies
+    scripts/config.py unset MBEDTLS_PKCS1_V15
+    scripts/config.py unset MBEDTLS_PKCS1_V21
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_RSA_C
+    scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
+
+    # Enable PSA support
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+
+    # Keep only PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_USE enabled in order to ensure
+    # that proper translations is done in crypto_legacy.h.
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE
+
+    make
+
+    msg "Test: crypto config - MBEDTLS_RSA_C + PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_USE"
+    # Test only the RSA suite and parse relevant line (a test which is performing
+    # RSA signature)
+    output=$( cd tests && ./test_suite_rsa )
+    echo "$output" | grep 'RSA PKCS1 Sign #1 (SHA512, 1536 bits RSA)' | grep -q "PASS"
+}
+
 component_test_psa_crypto_config_accel_hash () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash"
 

@@ -3991,6 +3991,21 @@ component_test_tls13_only_ephemeral () {
     tests/ssl-opt.sh
 }
 
+component_test_tls13_only_ephemeral_ffdh () {
+    msg "build: TLS 1.3 only from default, only ephemeral ffdh key exchange mode"
+    scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
+    scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
+    scripts/config.py unset MBEDTLS_SSL_EARLY_DATA
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECDH
+    make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
+
+    msg "test_suite_ssl: TLS 1.3 only, only ephemeral ffdh key exchange mode"
+    cd tests; ./test_suite_ssl; cd ..
+
+    msg "ssl-opt.sh: TLS 1.3 only, only ephemeral ffdh key exchange mode"
+    tests/ssl-opt.sh
+}
+
 component_test_tls13_only_psk_ephemeral () {
     msg "build: TLS 1.3 only from default, only PSK ephemeral key exchange mode"
     scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
@@ -4008,6 +4023,27 @@ component_test_tls13_only_psk_ephemeral () {
     cd tests; ./test_suite_ssl; cd ..
 
     msg "ssl-opt.sh: TLS 1.3 only, only PSK ephemeral key exchange mode"
+    tests/ssl-opt.sh
+}
+
+component_test_tls13_only_psk_ephemeral_ffdh () {
+    msg "build: TLS 1.3 only from default, only PSK ephemeral ffdh key exchange mode"
+    scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
+    scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+    scripts/config.py unset MBEDTLS_X509_CRT_PARSE_C
+    scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
+    scripts/config.py unset MBEDTLS_SSL_SERVER_NAME_INDICATION
+    scripts/config.py unset MBEDTLS_ECDSA_C
+    scripts/config.py unset MBEDTLS_PKCS1_V21
+    scripts/config.py unset MBEDTLS_PKCS7_C
+    scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECDH
+    make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
+
+    msg "test_suite_ssl: TLS 1.3 only, only PSK ephemeral ffdh key exchange mode"
+    cd tests; ./test_suite_ssl; cd ..
+
+    msg "ssl-opt.sh: TLS 1.3 only, only PSK ephemeral ffdh key exchange mode"
     tests/ssl-opt.sh
 }
 

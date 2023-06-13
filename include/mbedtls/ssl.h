@@ -221,12 +221,6 @@
 #define MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096     0x0102
 #define MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144     0x0103
 #define MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192     0x0104
-/* Finite Field Group Names (DHE) */
-#define MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE2048     "ffdhe2048"
-#define MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE3072     "ffdhe3072"
-#define MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE4096     "ffdhe4096"
-#define MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE6144     "ffdhe6144"
-#define MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE8192     "ffdhe8192"
 
 /*
  * TLS 1.3 Key Exchange Modes
@@ -5338,24 +5332,5 @@ int  mbedtls_ssl_tls_prf(const mbedtls_tls_prf_types prf,
 #ifdef __cplusplus
 }
 #endif
-
-static inline const char *mbedtls_ssl_ffdh_name_from_group(uint16_t group)
-{
-    switch (group) {
-        case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048:
-            return MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE2048;
-        case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072:
-            return MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE3072;
-        case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096:
-            return MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE4096;
-        case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144:
-            return MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE6144;
-        case MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192:
-            return MBEDTLS_SSL_IANA_TLS_GROUP_NAME_FFDHE8192;
-        default:
-            return NULL;
-    }
-    return NULL;
-}
 
 #endif /* ssl.h */

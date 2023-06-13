@@ -496,10 +496,8 @@ static int ssl_tls13_parse_key_share_ext(mbedtls_ssl_context *ssl,
 #if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
     if (mbedtls_ssl_tls13_named_group_is_ecdhe(group) ||
         mbedtls_ssl_tls13_named_group_is_dhe(group)) {
-#if defined(MBEDTLS_DEBUG_C)
         MBEDTLS_SSL_DEBUG_MSG(2,
                               ("DHE group name: %s", mbedtls_ssl_named_group_to_str(group)));
-#endif
         ret = mbedtls_ssl_tls13_read_public_ecdhe_share(ssl, p, end - p);
         if (ret != 0) {
             return ret;

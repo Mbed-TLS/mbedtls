@@ -277,11 +277,9 @@ static int ssl_write_supported_groups_ext(mbedtls_ssl_context *ssl,
 #if defined(PSA_WANT_ALG_FFDH)
         if ((mbedtls_ssl_conf_is_tls13_enabled(ssl->conf) &&
              mbedtls_ssl_tls13_named_group_is_dhe(*group_list))) {
-#if defined(MBEDTLS_DEBUG_C)
-            const char *ffdh_group = mbedtls_ssl_named_group_to_str(*group_list);
+
             MBEDTLS_SSL_DEBUG_MSG(3, ("NamedGroup: %s ( %x )",
-                                      ffdh_group, *group_list));
-#endif
+                                      mbedtls_ssl_named_group_to_str(*group_list), *group_list));
             MBEDTLS_SSL_CHK_BUF_PTR(p, end, 2);
             MBEDTLS_PUT_UINT16_BE(*group_list, p, 0);
             p += 2;

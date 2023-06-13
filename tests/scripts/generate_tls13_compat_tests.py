@@ -67,6 +67,11 @@ NAMED_GROUP_IANA_VALUE = {
     'secp521r1': 0x19,
     'x25519': 0x1d,
     'x448': 0x1e,
+    'ffdhe2048': 0x100,
+    'ffdhe3072': 0x101,
+    'ffdhe4096': 0x102,
+    'ffdhe6144': 0x103,
+    'ffdhe8192': 0x104,
 }
 
 
@@ -146,6 +151,11 @@ class OpenSSLBase(TLSProgram):
         'secp521r1': 'P-521',
         'x25519': 'X25519',
         'x448': 'X448',
+        'ffdhe2048': 'ffdhe2048',
+        'ffdhe3072': 'ffdhe3072',
+        'ffdhe4096': 'ffdhe4096',
+        'ffdhe6144': 'ffdhe6144',
+        'ffdhe8192': 'ffdhe8192',
     }
 
     def cmd(self):
@@ -245,6 +255,11 @@ class GnuTLSBase(TLSProgram):
         'secp521r1': ['GROUP-SECP521R1'],
         'x25519': ['GROUP-X25519'],
         'x448': ['GROUP-X448'],
+        'ffdhe2048': ['GROUP-FFDHE2048'],
+        'ffdhe3072': ['GROUP-FFDHE3072'],
+        'ffdhe4096': ['GROUP-FFDHE4096'],
+        'ffdhe6144': ['GROUP-FFDHE6144'],
+        'ffdhe8192': ['GROUP-FFDHE8192'],
     }
 
     def pre_checks(self):

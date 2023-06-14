@@ -111,8 +111,10 @@ void mbedtls_cmac_setkey(int cipher_type, int key_size, int result)
 
     TEST_ASSERT((cipher_info = mbedtls_cipher_info_from_type(cipher_type))
                 != NULL);
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
     TEST_LE_U(mbedtls_cipher_info_get_block_size(cipher_info),
               MBEDTLS_CIPHER_BLKSIZE_MAX);
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
     TEST_LE_U(mbedtls_cipher_info_get_block_size(cipher_info),
               MBEDTLS_CMAC_MAX_BLOCK_SIZE);
 

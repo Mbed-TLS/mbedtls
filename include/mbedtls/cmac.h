@@ -46,6 +46,7 @@ extern "C" {
 #define MBEDTLS_CMAC_MAX_BLOCK_SIZE      8   /**< The longest block used by CMAC is that of 3DES. */
 #endif
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /** The longest block supported by the cipher module.
  *
  * \deprecated
@@ -60,6 +61,7 @@ extern "C" {
  * is sufficient for any cipher, but the name is defined in cmac.h for
  * backward compatibility. */
 #define MBEDTLS_CIPHER_BLKSIZE_MAX MBEDTLS_MAX_BLOCK_LENGTH
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 #if !defined(MBEDTLS_CMAC_ALT)
 

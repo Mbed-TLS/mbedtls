@@ -5487,7 +5487,7 @@ cleanup:
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)
 {
-    size_t i, round;
+    size_t round;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     if (X_limbs <= P448_WIDTH) {
@@ -5567,32 +5567,23 @@ int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)
      * A0 + A1 + B1 + (B0 + B1) * 2^224 = A0 + A1 + B0 * 2^224. */
     for (round = 0; round < 2; ++round) {
 
-        /* Q = A1 */
-        memset(Q, 0, (Q_limbs * ciL));
-        memcpy(Q, X + P448_WIDTH, ((Q_limbs - 1) * ciL));
+        /* M = A1 */
+        memset(M, 0, (M_limbs * ciL));
+        memcpy(M, X + P448_WIDTH, ((M_limbs - 1) * ciL));
 
         /* X = A0 */
         memset(X + P448_WIDTH, 0, ((M_limbs - 1) * ciL));
 
-        /* M = B0 */
-        memcpy(M, Q, (Q_limbs * ciL));
-        M[M_limbs - 1] = 0;
-
-        if (ciL > 4) {
-            M[P224_WIDTH_MIN] &= ((mbedtls_mpi_uint) -1) >> (P224_UNUSED_BITS);
-        }
-
-        /* M = B0 * 2^224
-         * Oversize M once again takes any carry. */
-        memmove((char *) M + P224_SIZE, M, P224_SIZE + ciL);
-        memset(M, 0, P224_SIZE);
-
         /* M = A1 + B0 * 2^224
-         * No need to have to call mbedtls_mpi_core_add() as as both bignums
-         * should be all zero except one non-colliding limb each. */
-        for (i = 0; i < (M_limbs - 1); ++i) {
-            M[i] = M[i] + Q[i];
-        }
+         * We know that only one limb of A1 will be non-zero and that it will be
+         * limb 0. We also know that B0 is the bottom 224 bits of A1 (which is
+         * then shifted up 224 bits), so, given M is currently A1 this turns
+         * into:
+         * M = M + (M << 224)
+         * As the single non-zero limb in B0 will be A1 limb 0 shifted up by 224
+         * bits, we can just move that into the right place, shifted up
+         * accordingly.*/
+        M[P224_WIDTH_MIN] = M[0] << (224 & (biL - 1));
 
         /* X = A0 + (A1 + B0 * 2^224) */
         (void) mbedtls_mpi_core_add(X, X, M, M_limbs);

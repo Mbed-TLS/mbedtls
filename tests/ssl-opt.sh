@@ -688,6 +688,25 @@ requires_openssl_tls1_3() {
     fi
 }
 
+# skip next test if openssl version is lower than 3.0
+requires_openssl_3_x() {
+    requires_openssl_next
+    if [ "$OPENSSL_NEXT_AVAILABLE" = "NO" ]; then
+        OPENSSL_3_X_AVAILABLE="NO"
+    fi
+    if [ -z "${OPENSSL_3_X_AVAILABLE:-}" ]; then
+        if which $OPENSSL_NEXT 2>&1 | grep openssl-3 >/dev/null
+        then
+            OPENSSL_3_X_AVAILABLE="YES"
+        else
+            OPENSSL_3_X_AVAILABLE="NO"
+        fi
+    fi
+    if [ "$OPENSSL_3_X_AVAILABLE" = "NO" ]; then
+        SKIP_NEXT="YES"
+    fi
+}
+
 # skip next test if tls1_3 is not available
 requires_gnutls_tls1_3() {
     requires_gnutls_next
@@ -12347,109 +12366,6 @@ run_test    "TLS 1.3: Server side check - mbedtls with sni" \
             0 \
             -s "parse ServerName extension" \
             -s "HTTP/1.0 200 OK"
-
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled PSA_WANT_ALG_FFDH
-requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test "TLS 1.3: Test ffdh groups (ffdhe2048)" \
-         "$P_SRV debug_level=5 force_version=tls13 curves=ffdhe2048" \
-         "$P_CLI debug_level=5 force_version=tls13 curves=ffdhe2048" \
-         0 \
-        -s "ECDH/FFDH group: ffdhe2048" \
-        -c "HTTP/1.0 200 OK" \
-        -S "error" \
-        -C "error"
-
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled PSA_WANT_ALG_FFDH
-requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test "TLS 1.3: Test ffdh groups (ffdhe3072)" \
-         "$P_SRV debug_level=4 force_version=tls13 curves=ffdhe3072" \
-         "$P_CLI debug_level=4 force_version=tls13 curves=ffdhe3072" \
-         0 \
-        -s "ECDH/FFDH group: ffdhe3072" \
-        -c "HTTP/1.0 200 OK" \
-        -S "error" \
-        -C "error"
-
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled PSA_WANT_ALG_FFDH
-requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test "TLS 1.3: Test ffdh groups (ffdhe4096)" \
-         "$P_SRV debug_level=4 force_version=tls13 curves=ffdhe4096" \
-         "$P_CLI debug_level=4 force_version=tls13 curves=ffdhe4096" \
-         0 \
-        -s "ECDH/FFDH group: ffdhe4096" \
-        -c "HTTP/1.0 200 OK" \
-        -S "error" \
-        -C "error"
-
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled PSA_WANT_ALG_FFDH
-requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test "TLS 1.3: Test ffdh groups (ffdhe6144)" \
-         "$P_SRV debug_level=4 force_version=tls13 curves=ffdhe6144" \
-         "$P_CLI debug_level=4 force_version=tls13 curves=ffdhe6144" \
-         0 \
-        -s "ECDH/FFDH group: ffdhe6144" \
-        -c "HTTP/1.0 200 OK" \
-        -S "error" \
-        -C "error"
-
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled PSA_WANT_ALG_FFDH
-requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test "TLS 1.3: Test ffdh groups (ffdhe8192)" \
-         "$P_SRV debug_level=4 force_version=tls13 curves=ffdhe8192" \
-         "$P_CLI debug_level=4 force_version=tls13 curves=ffdhe8192" \
-         0 \
-        -s "ECDH/FFDH group: ffdhe8192" \
-        -c "HTTP/1.0 200 OK" \
-        -S "error" \
-        -C "error"
-
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled PSA_WANT_ALG_FFDH
-requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test "TLS 1.3: Test ffdh groups - no match(server: ffdhe2048 client: secp384r1)" \
-         "$P_SRV debug_level=4 force_version=tls13 curves=ffdhe2048" \
-         "$P_CLI debug_level=4 force_version=tls13 curves=secp384r1" \
-         1 \
-        -s "no matching named group found" \
-        -s "error" \
-        -c "error"
-
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled PSA_WANT_ALG_FFDH
-requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
-run_test "TLS 1.3: Test ffdh groups - no match(server: secp384r1 client: ffdhe2048)" \
-         "$P_SRV debug_level=4 force_version=tls13 curves=secp384r1" \
-         "$P_CLI debug_level=4 force_version=tls13 curves=ffdhe2048" \
-         1 \
-        -s "no matching named group found" \
-        -s "error" \
-        -c "error"
 
 for i in opt-testcases/*.sh
 do

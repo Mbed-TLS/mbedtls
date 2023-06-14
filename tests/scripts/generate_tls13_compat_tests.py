@@ -183,7 +183,15 @@ class OpenSSLBase(TLSProgram):
         return ret
 
     def pre_checks(self):
-        return ["requires_openssl_tls1_3"]
+        ret = ["requires_openssl_tls1_3"]
+
+        # ffdh groups require at least openssl 3.0
+        ffdh_groups = ['ffdhe2048', 'ffdhe3072', 'ffdhe4096', 'ffdhe6144', 'ffdhe8192']
+
+        if any(x in ffdh_groups for x in self._named_groups):
+            ret.append('requires_openssl_3_x')
+
+        return ret
 
 
 class OpenSSLServ(OpenSSLBase):

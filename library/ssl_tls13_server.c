@@ -1262,6 +1262,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     const unsigned char *supported_versions_data_end;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
     int hrr_required = 0;
+    int no_usable_share_for_key_agreement = 0;
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
     const unsigned char *pre_shared_key_ext = NULL;
@@ -1577,8 +1578,8 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                 ret = ssl_tls13_parse_key_shares_ext(
                     ssl, p, extension_data_end);
                 if (ret == SSL_TLS1_3_PARSE_KEY_SHARES_EXT_NO_MATCH) {
-                    MBEDTLS_SSL_DEBUG_MSG(2, ("HRR needed "));
-                    hrr_required = 1;
+                    MBEDTLS_SSL_DEBUG_MSG(2, ("No usable share for key agreement."));
+                    no_usable_share_for_key_agreement = 1;
                 }
 
                 if (ret < 0) {
@@ -1734,6 +1735,11 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
     ret = ssl_tls13_determine_key_exchange_mode(ssl);
     if (ret < 0) {
         return ret;
+    }
+
+    if (ssl->handshake->key_exchange_mode !=
+        MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK) {
+        hrr_required = (no_usable_share_for_key_agreement != 0);
     }
 
     mbedtls_ssl_optimize_checksum(ssl, handshake->ciphersuite_info);

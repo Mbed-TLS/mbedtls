@@ -13362,6 +13362,19 @@ run_test "TLS 1.3 m->G: AES_128_GCM_SHA256,ffdhe8192,rsa_pss_rsae_sha256" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
+requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+run_test    "TLS 1.3: no HRR in case of PSK key exchange mode" \
+            "$P_SRV nbio=2 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk curves=none" \
+            "$P_CLI nbio=2 debug_level=3 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
+            0 \
+            -C "received HelloRetryRequest message" \
+            -c "Selected key exchange mode: psk$" \
+            -c "HTTP/1.0 200 OK"
+
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_MEMORY_DEBUG

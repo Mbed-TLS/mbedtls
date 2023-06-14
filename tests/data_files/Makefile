@@ -551,10 +551,10 @@ crl_cat_rsa-ec.pem:crl.pem crl-ec-sha256.pem
 all_final += crl_cat_ec-rsa.pem crl_cat_rsa-ec.pem
 
 authorityKeyId_subjectKeyId.crt.der:
-	$(OPENSSL) req -x509 -nodes -days 7300 -key server2.key -outform DER -out $@ -config authorityKeyId_subjectKeyId.conf -extensions 'v3_req'
+	$(OPENSSL) req -x509 -nodes -days 7300 -key server2.key -outform DER -out $@ -config authorityKeyId_subjectKeyId.conf -extensions 'v3_req' -set_serial 593828494303792449134898749208168108403991951034
 
 authorityKeyId_no_keyid.crt.der:
-	$(OPENSSL) req -x509 -nodes -days 7300 -key server2.key -outform DER -out $@ -config authorityKeyId_subjectKeyId.conf -extensions 'v3_req_authorityKeyId_no_keyid'
+	$(OPENSSL) req -x509 -nodes -days 7300 -key server2.key -outform DER -out $@ -config authorityKeyId_subjectKeyId.conf -extensions 'v3_req_authorityKeyId_no_keyid' -set_serial 593828494303792449134898749208168108403991951034
 
 authorityKeyId_no_issuer.crt.der:
 	$(OPENSSL) req -x509 -nodes -days 7300 -key server2.key -outform DER -out $@ -config authorityKeyId_subjectKeyId.conf -extensions 'v3_req_authorityKeyId_no_issuer'

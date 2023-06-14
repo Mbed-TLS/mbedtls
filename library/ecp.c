@@ -3512,10 +3512,10 @@ cleanup:
 /*
  * Checkup routine for particular Weierstrass curve
  */
-#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
+#if defined(MBEDTLS_ECP_C) && defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
+
 static int mbedtls_ecp_self_test_weierstrass(const mbedtls_ecp_curve_info *curve, int verbose)
 {
-#if defined(MBEDTLS_ECP_C)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecp_group grp;
     mbedtls_ecp_point R, P;
@@ -3584,12 +3584,8 @@ cleanup:
     }
 
     return ret;
-#else /* MBEDTLS_ECP_C */
-    (void) verbose;
-    return 0;
-#endif /* MBEDTLS_ECP_C */
 }
-#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
+#endif /* MBEDTLS_ECP_C && MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 
 /*
  * Checkup routine

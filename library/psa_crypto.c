@@ -7942,63 +7942,27 @@ exit:
 static psa_crypto_driver_pake_step_t convert_jpake_computation_stage_to_driver_step(
     psa_jpake_computation_stage_t *stage)
 {
+    psa_crypto_driver_pake_step_t key_share_step;
     if (stage->round == PSA_JPAKE_FIRST) {
         int is_x1;
+
         if (stage->io_mode == PSA_JPAKE_OUTPUT) {
             is_x1 = (stage->outputs < 1);
         } else {
             is_x1 = (stage->inputs < 1);
         }
 
-        if (is_x1) {
-            switch (stage->step) {
-                case PSA_PAKE_STEP_KEY_SHARE:
-                    return PSA_JPAKE_X1_STEP_KEY_SHARE;
-                case PSA_PAKE_STEP_ZK_PUBLIC:
-                    return PSA_JPAKE_X1_STEP_ZK_PUBLIC;
-                case PSA_PAKE_STEP_ZK_PROOF:
-                    return PSA_JPAKE_X1_STEP_ZK_PROOF;
-                default:
-                    return PSA_JPAKE_STEP_INVALID;
-            }
-        } else {
-            switch (stage->step) {
-                case PSA_PAKE_STEP_KEY_SHARE:
-                    return PSA_JPAKE_X2_STEP_KEY_SHARE;
-                case PSA_PAKE_STEP_ZK_PUBLIC:
-                    return PSA_JPAKE_X2_STEP_ZK_PUBLIC;
-                case PSA_PAKE_STEP_ZK_PROOF:
-                    return PSA_JPAKE_X2_STEP_ZK_PROOF;
-                default:
-                    return PSA_JPAKE_STEP_INVALID;
-            }
-        }
+        key_share_step = is_x1 ?
+                         PSA_JPAKE_X1_STEP_KEY_SHARE :
+                         PSA_JPAKE_X2_STEP_KEY_SHARE;
     } else if (stage->round == PSA_JPAKE_SECOND) {
-        if (stage->io_mode == PSA_JPAKE_OUTPUT) {
-            switch (stage->step) {
-                case PSA_PAKE_STEP_KEY_SHARE:
-                    return PSA_JPAKE_X2S_STEP_KEY_SHARE;
-                case PSA_PAKE_STEP_ZK_PUBLIC:
-                    return PSA_JPAKE_X2S_STEP_ZK_PUBLIC;
-                case PSA_PAKE_STEP_ZK_PROOF:
-                    return PSA_JPAKE_X2S_STEP_ZK_PROOF;
-                default:
-                    return PSA_JPAKE_STEP_INVALID;
-            }
-        } else {
-            switch (stage->step) {
-                case PSA_PAKE_STEP_KEY_SHARE:
-                    return PSA_JPAKE_X4S_STEP_KEY_SHARE;
-                case PSA_PAKE_STEP_ZK_PUBLIC:
-                    return PSA_JPAKE_X4S_STEP_ZK_PUBLIC;
-                case PSA_PAKE_STEP_ZK_PROOF:
-                    return PSA_JPAKE_X4S_STEP_ZK_PROOF;
-                default:
-                    return PSA_JPAKE_STEP_INVALID;
-            }
-        }
+        key_share_step = (stage->io_mode == PSA_JPAKE_OUTPUT) ?
+                         PSA_JPAKE_X2S_STEP_KEY_SHARE :
+                         PSA_JPAKE_X4S_STEP_KEY_SHARE;
+    } else {
+        return PSA_JPAKE_STEP_INVALID;
     }
-    return PSA_JPAKE_STEP_INVALID;
+    return key_share_step + stage->step - PSA_PAKE_STEP_KEY_SHARE;
 }
 #endif /* PSA_WANT_ALG_JPAKE */
 

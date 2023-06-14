@@ -1431,6 +1431,9 @@ component_test_full_no_bignum () {
     scripts/config.py unset MBEDTLS_ECDSA_C
     scripts/config.py unset MBEDTLS_ECJPAKE_C
     scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
+    # Disable what auto-enables ECP_LIGHT
+    scripts/config.py unset MBEDTLS_PK_PARSE_EC_EXTENDED
+    scripts/config.py unset MBEDTLS_PK_PARSE_EC_COMPRESSED
     # Indirect dependencies of ECP
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED

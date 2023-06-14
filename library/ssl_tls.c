@@ -60,14 +60,6 @@ static int local_err_translation(psa_status_t status)
                                  psa_generic_status_to_mbedtls);
 }
 #define PSA_TO_MBEDTLS_ERR(status) local_err_translation(status)
-
-static int local_md_translation(psa_status_t status)
-{
-    return psa_status_to_mbedtls(status, psa_to_md_errors,
-                                 ARRAY_LENGTH(psa_to_md_errors),
-                                 psa_generic_status_to_mbedtls);
-}
-#define PSA_TO_MD_ERR(status) local_md_translation(status)
 #endif
 
 #if defined(MBEDTLS_TEST_HOOKS)

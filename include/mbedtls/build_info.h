@@ -132,7 +132,8 @@
 /* MBEDTLS_ECP_C now consists of MBEDTLS_ECP_LIGHT plus functions for curve
  * arithmetic. As a consequence if MBEDTLS_ECP_C is required for some reason,
  * then MBEDTLS_ECP_LIGHT should be enabled as well. */
-#if defined(MBEDTLS_ECP_C) || defined(MBEDTLS_PK_PARSE_EC_EXTENDED)
+#if defined(MBEDTLS_ECP_C) || defined(MBEDTLS_PK_PARSE_EC_EXTENDED) || \
+    defined(MBEDTLS_PK_PARSE_EC_COMPRESSED)
 #define MBEDTLS_ECP_LIGHT
 #endif
 

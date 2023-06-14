@@ -1046,6 +1046,16 @@
 #define MBEDTLS_PK_PARSE_EC_EXTENDED
 
 /**
+ * \def MBEDTLS_PK_PARSE_EC_COMPRESSED
+ *
+ * Enable the support for parsing public keys of type Short Weierstrass
+ * (MBEDTLS_ECP_DP_SECP_XXX and MBEDTLS_ECP_DP_BP_XXX) which are using the
+ * compressed point format.
+ * Please see MBEDTLS_ECP_PF_COMPRESSED in ecp.h for limitations details.
+ */
+#define MBEDTLS_PK_PARSE_EC_COMPRESSED
+
+/**
  * \def MBEDTLS_ERROR_STRERROR_DUMMY
  *
  * Enable a dummy error function to make use of mbedtls_strerror() in

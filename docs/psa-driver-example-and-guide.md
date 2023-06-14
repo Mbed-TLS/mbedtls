@@ -152,11 +152,11 @@ The driver wrapper functions in `psa_crypto_driver_wrappers.c.jinja` for all fou
 
 ```
 #if defined (MBEDTLS_P256M_EXAMPLE_DRIVER_ENABLED)
-            if( PSA_KEY_TYPE_IS_ECC( attributes->core.type ) &&
+            if( PSA_KEY_TYPE_IS_ECC( attributes->type ) &&
                 PSA_ALG_IS_ECDSA(alg) &&
                 !PSA_ALG_ECDSA_IS_DETERMINISTIC( alg ) &&
-                PSA_KEY_TYPE_ECC_GET_FAMILY(attributes->core.type) == PSA_ECC_FAMILY_SECP_R1 &&
-                attributes->core.bits == 256 )
+                PSA_KEY_TYPE_ECC_GET_FAMILY(attributes->type) == PSA_ECC_FAMILY_SECP_R1 &&
+                attributes->bits == 256 )
             {
                 status = p256_transparent_sign_hash( attributes,
                                                      key_buffer,

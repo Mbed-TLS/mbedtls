@@ -8037,13 +8037,6 @@ static psa_status_t psa_pake_complete_inputs(
 #if defined(PSA_WANT_ALG_JPAKE)
         if (operation->alg == PSA_ALG_JPAKE) {
             operation->stage = PSA_PAKE_OPERATION_STAGE_COMPUTATION;
-            psa_jpake_computation_stage_t *computation_stage =
-                &operation->computation_stage.jpake;
-            computation_stage->round = PSA_JPAKE_FIRST;
-            computation_stage->io_mode = PSA_JPAKE_INPUT;
-            computation_stage->inputs = 0;
-            computation_stage->outputs = 0;
-            computation_stage->step = PSA_PAKE_STEP_KEY_SHARE;
         } else
 #endif /* PSA_WANT_ALG_JPAKE */
         {

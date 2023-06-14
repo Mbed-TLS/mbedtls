@@ -111,6 +111,8 @@ void mbedtls_cmac_setkey(int cipher_type, int key_size, int result)
 
     TEST_ASSERT((cipher_info = mbedtls_cipher_info_from_type(cipher_type))
                 != NULL);
+    TEST_LE_U(mbedtls_cipher_info_get_block_size(cipher_info),
+              MBEDTLS_CIPHER_BLKSIZE_MAX);
 
     memset(buf, 0x2A, sizeof(buf));
     TEST_ASSERT((result == mbedtls_cipher_cmac(cipher_info, key, key_size,

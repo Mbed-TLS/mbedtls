@@ -25,7 +25,7 @@
 
 #include "mbedtls/pk.h"
 
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 #include "mbedtls/ecp.h"
 #endif
 
@@ -44,7 +44,7 @@
                                                                     psa_pk_status_to_mbedtls)
 #endif
 
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
 /**
  * Public function mbedtls_pk_ec() can be used to get direct access to the
  * wrapped ecp_keypair structure pointed to the pk_ctx. However this is not
@@ -115,7 +115,7 @@ static inline mbedtls_ecp_group_id mbedtls_pk_get_group_id(const mbedtls_pk_cont
 #if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) || defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
 #define MBEDTLS_PK_HAVE_RFC8410_CURVES
 #endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED || MBEDTLS_ECP_DP_CURVE448_ENABLED */
-#endif /* MBEDTLS_ECP_LIGHT */
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 /**

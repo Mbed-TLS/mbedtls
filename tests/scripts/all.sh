@@ -2432,7 +2432,6 @@ config_psa_crypto_no_ecp_at_all () {
         scripts/config.py unset MBEDTLS_ECJPAKE_C
         # Disable ECP module (entirely)
         scripts/config.py unset MBEDTLS_ECP_C
-        scripts/config.py unset MBEDTLS_ECP_LIGHT
     fi
 
     # Disable PK module since it depends on ECP

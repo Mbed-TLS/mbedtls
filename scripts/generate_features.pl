@@ -72,7 +72,7 @@ while (my $line = <CONFIG_H>)
             die "Feature does not start with 'MBEDTLS_': $line\n";
         }
         $feature_defines .= "#if defined(MBEDTLS_${define})\n";
-        $feature_defines .= "    \"${define}\",\n";
+        $feature_defines .= "    \"${define}\", //no-check-names\n";
         $feature_defines .= "#endif /* MBEDTLS_${define} */\n";
     }
 

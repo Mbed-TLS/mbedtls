@@ -8060,7 +8060,7 @@ static psa_status_t psa_pake_complete_inputs(
 static psa_status_t psa_jpake_prologue(
     psa_pake_operation_t *operation,
     psa_pake_step_t step,
-    psa_jpake_io_mode_t function_mode)
+    psa_jpake_io_mode_t io_mode)
 {
     if (step != PSA_PAKE_STEP_KEY_SHARE &&
         step != PSA_PAKE_STEP_ZK_PUBLIC &&
@@ -8086,8 +8086,8 @@ static psa_status_t psa_jpake_prologue(
         computation_stage->outputs == 0) {
         /* Start of the round, so function decides whether we are inputting
          * or outputting */
-        computation_stage->mode = function_mode;
-    } else if (computation_stage->mode != function_mode) {
+        computation_stage->mode = io_mode;
+    } else if (computation_stage->mode != io_mode) {
         /* Middle of the round so the mode we are in must match the function
          * called by the user */
         return PSA_ERROR_BAD_STATE;
@@ -8095,7 +8095,7 @@ static psa_status_t psa_jpake_prologue(
 
     /* Check that we do not already have enough inputs/outputs
      * this round */
-    if (function_mode == PSA_JPAKE_INPUT) {
+    if (io_mode == PSA_JPAKE_INPUT) {
         if (computation_stage->inputs >=
             PSA_JPAKE_EXPECTED_INPUTS(computation_stage->round)) {
             return PSA_ERROR_BAD_STATE;
@@ -8111,20 +8111,20 @@ static psa_status_t psa_jpake_prologue(
 
 static psa_status_t psa_jpake_epilogue(
     psa_pake_operation_t *operation,
-    psa_jpake_io_mode_t function_mode)
+    psa_jpake_io_mode_t io_mode)
 {
     psa_jpake_computation_stage_t *stage =
         &operation->computation_stage.jpake;
 
     if (stage->step == PSA_PAKE_STEP_ZK_PROOF) {
         /* End of an input/output */
-        if (function_mode == PSA_JPAKE_INPUT) {
+        if (io_mode == PSA_JPAKE_INPUT) {
             stage->inputs++;
             if (stage->inputs >= PSA_JPAKE_EXPECTED_INPUTS(stage->round)) {
                 stage->mode = PSA_JPAKE_OUTPUT;
             }
         }
-        if (function_mode == PSA_JPAKE_OUTPUT) {
+        if (io_mode == PSA_JPAKE_OUTPUT) {
             stage->outputs++;
             if (stage->outputs >= PSA_JPAKE_EXPECTED_OUTPUTS(stage->round)) {
                 stage->mode = PSA_JPAKE_INPUT;

@@ -5485,7 +5485,7 @@ static psa_status_t psa_key_derivation_pbkdf2_generate_block(
     psa_mac_operation_t mac_operation = PSA_MAC_OPERATION_INIT;
     size_t mac_output_length;
     uint8_t U_i[PSA_MAC_MAX_SIZE];
-    uint8_t U_accumulator[PSA_MAC_MAX_SIZE];
+    uint8_t *U_accumulator = pbkdf2->output_block;
     uint64_t i;
     uint8_t block_counter[4];
 
@@ -5499,28 +5499,28 @@ static psa_status_t psa_key_derivation_pbkdf2_generate_block(
                                                pbkdf2->password_length,
                                                prf_alg);
     if (status != PSA_SUCCESS) {
-        goto cleanup;
+        return status;
     }
     status = psa_mac_update(&mac_operation, pbkdf2->salt, pbkdf2->salt_length);
     if (status != PSA_SUCCESS) {
-        goto cleanup;
+        return status;
     }
-    status = psa_mac_update(&mac_operation, block_counter, 4UL);
+    status = psa_mac_update(&mac_operation, block_counter, sizeof(block_counter));
     if (status != PSA_SUCCESS) {
-        goto cleanup;
+        return status;
     }
     status = psa_mac_sign_finish(&mac_operation, U_i, sizeof(U_i),
                                  &mac_output_length);
     if (status != PSA_SUCCESS) {
-        goto cleanup;
+        return status;
     }
 
     if (mac_output_length != prf_output_length) {
-        status = PSA_ERROR_INVALID_ARGUMENT;
-        goto cleanup;
+        status = PSA_ERROR_CORRUPTION_DETECTED;
+        return status;
     }
 
-    memcpy(U_accumulator, U_i, mac_output_length);
+    memcpy(U_accumulator, U_i, prf_output_length);
 
     for (i = 1; i < pbkdf2->input_cost; i++) {
         status = psa_driver_wrapper_mac_compute(attributes,
@@ -5530,19 +5530,11 @@ static psa_status_t psa_key_derivation_pbkdf2_generate_block(
                                                 U_i, sizeof(U_i),
                                                 &mac_output_length);
         if (status != PSA_SUCCESS) {
-            goto cleanup;
+            return status;
         }
 
         mbedtls_xor(U_accumulator, U_accumulator, U_i, prf_output_length);
     }
-
-    memcpy(pbkdf2->output_block, U_accumulator, prf_output_length);
-
-cleanup:
-    /* Zeroise buffers to clear sensitive data from memory. */
-    mbedtls_platform_zeroize(U_accumulator, PSA_MAC_MAX_SIZE);
-    mbedtls_platform_zeroize(U_i, PSA_MAC_MAX_SIZE);
-    return status;
 }
 
 static psa_status_t psa_key_derivation_pbkdf2_read(

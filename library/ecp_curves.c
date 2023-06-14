@@ -5585,7 +5585,7 @@ int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)
         /* M = B0 * 2^224
          * Oversize M once again takes any carry. */
         memmove((char *) M + P224_SIZE, M, P224_SIZE +
-        sizeof(mbedtls_mpi_uint)); memset(M, 0, P224_SIZE);
+                sizeof(mbedtls_mpi_uint)); memset(M, 0, P224_SIZE);
 
         /* M = A1 + B0 * 2^224
          * No need to have to call mbedtls_mpi_core_add() as as both bignums

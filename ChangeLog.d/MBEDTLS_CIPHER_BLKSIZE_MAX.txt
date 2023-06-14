@@ -1,0 +1,13 @@
+New deprecations
+   * MBEDTLS_CIPHER_BLKSIZE_MAX is deprecated in favor of
+     MBEDTLS_MAX_BLOCK_LENGTH (if you intended what the name suggests:
+     maximum size of any supported block cipher) or the new name
+     MBEDTLS_CMAC_MAX_BLOCK_SIZE (if you intended the actual semantics:
+     maximum size of a block cipher supported by the CMAC module).
+
+Security
+   * In configurations with ARIA or Camellia but not AES, the value of
+     MBEDTLS_CIPHER_BLKSIZE_MAX was 8, rather than 16 as the name might
+     suggest. This did not affect any library code, because this macro was
+     only used in relation with CMAC which does not support these ciphers.
+     This may affect application code that uses this macro.

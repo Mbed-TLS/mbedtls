@@ -196,11 +196,11 @@ TASKS = {
             }
         }
     },
-    'analyze_driver_vs_reference_all_ec_algs': {
+    'analyze_driver_vs_reference_ecp_light_only': {
         'test_function': do_analyze_driver_vs_reference,
         'args': {
-            'component_ref': 'test_psa_crypto_config_reference_all_ec_algs_use_psa',
-            'component_driver': 'test_psa_crypto_config_accel_all_ec_algs_use_psa',
+            'component_ref': 'test_psa_crypto_config_reference_ecc_ecp_light_only',
+            'component_driver': 'test_psa_crypto_config_accel_ecc_ecp_light_only',
             'ignored_suites': [
                 'ecdsa',
                 'ecdh',
@@ -265,11 +265,11 @@ TASKS = {
             }
         }
     },
-    'analyze_driver_vs_reference_all_ec_algs_no_ecp': {
+    'analyze_driver_vs_reference_no_ecp_at_all': {
         'test_function': do_analyze_driver_vs_reference,
         'args': {
-            'component_ref': 'test_psa_crypto_full_reference_all_ec_algs_no_ecp_use_psa',
-            'component_driver': 'test_psa_crypto_full_accel_all_ec_algs_no_ecp_use_psa',
+            'component_ref': 'test_psa_crypto_config_reference_ecc_no_ecp_at_all',
+            'component_driver': 'test_psa_crypto_config_accel_ecc_no_ecp_at_all',
             'ignored_suites': [
                 # Ignore test suites for the modules that are disabled in the
                 # accelerated test case.

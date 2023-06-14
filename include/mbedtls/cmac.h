@@ -41,10 +41,25 @@ extern "C" {
 
 /* We don't support Camellia or ARIA in this module */
 #if defined(MBEDTLS_AES_C)
-#define MBEDTLS_CIPHER_BLKSIZE_MAX      16  /**< The longest block used by CMAC is that of AES. */
+#define MBEDTLS_CMAC_MAX_BLOCK_SIZE      16  /**< The longest block used by CMAC is that of AES. */
 #else
-#define MBEDTLS_CIPHER_BLKSIZE_MAX      8   /**< The longest block used by CMAC is that of 3DES. */
+#define MBEDTLS_CMAC_MAX_BLOCK_SIZE      8   /**< The longest block used by CMAC is that of 3DES. */
 #endif
+
+/** The longest block supported by the cipher module.
+ *
+ * \deprecated
+ * For the maximum block size of a cipher supported by the CMAC module,
+ * use #MBEDTLS_CMAC_MAX_BLOCK_SIZE.
+ * For the maximum block size of a cipher supported by the cipher module,
+ * use #MBEDTLS_MAX_BLOCK_LENGTH.
+ */
+/* Before Mbed TLS 3.5, this was the maximum block size supported by the CMAC
+ * module, so it didn't take Camellia or ARIA into account. Since the name
+ * of the macro doesn't even convey "CMAC", this was misleading. Now the size
+ * is sufficient for any cipher, but the name is defined in cmac.h for
+ * backward compatibility. */
+#define MBEDTLS_CIPHER_BLKSIZE_MAX MBEDTLS_MAX_BLOCK_LENGTH
 
 #if !defined(MBEDTLS_CMAC_ALT)
 

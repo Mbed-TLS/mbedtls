@@ -94,7 +94,7 @@ static int pk_genkey(mbedtls_pk_context *pk, int parameter)
                                    parameter, 3);
     }
 #endif
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
     if (mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECKEY ||
         mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECKEY_DH ||
         mbedtls_pk_get_type(pk) == MBEDTLS_PK_ECDSA) {
@@ -112,25 +112,16 @@ static int pk_genkey(mbedtls_pk_context *pk, int parameter)
 #endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-        mbedtls_ecp_group grp;
-        /* Duplicating the mbedtls_ecp_group_load call to make this part
-         * more future future proof for when ECP_C will not be defined. */
-        mbedtls_ecp_group_init(&grp);
-        ret = mbedtls_ecp_group_load(&grp, parameter);
+        ret = pk_genkey_ec(pk, parameter);
         if (ret != 0) {
             return ret;
         }
-        ret = pk_genkey_ec(pk, grp.id);
-        if (ret != 0) {
-            return ret;
-        }
-        mbedtls_ecp_group_free(&grp);
 
         return 0;
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
     }
-#endif /* MBEDTLS_ECP_LIGHT */
+#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
     return -1;
 }
 

@@ -905,11 +905,11 @@ Parse Public RSA Key #4 (PKCS#1 wrapped, DER)
 pk_parse_public_keyfile_rsa:"data_files/rsa_pkcs1_2048_public.der":0
 
 Parse Public EC Key #1 (RFC 5480, DER)
-depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP192R1_ENABLED
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 pk_parse_public_keyfile_ec:"data_files/ec_pub.der":0
 
 Parse Public EC Key #2 (RFC 5480, PEM)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP192R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 pk_parse_public_keyfile_ec:"data_files/ec_pub.pem":0
 
 Parse Public EC Key #2a (RFC 5480, PEM, secp192r1, compressed)
@@ -917,7 +917,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_PARSE_EC_COMPRESSED:MBEDTLS_ECP_DP_SEC
 pk_parse_public_keyfile_ec:"data_files/ec_pub.comp.pem":0
 
 Parse Public EC Key #3 (RFC 5480, secp224r1)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP224R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_SECP224R1_ENABLED
 pk_parse_public_keyfile_ec:"data_files/ec_224_pub.pem":0
 
 # Compressed points parsing does not support MBEDTLS_ECP_DP_SECP224R1 and
@@ -927,7 +927,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_PARSE_EC_COMPRESSED:MBEDTLS_ECP_DP_SEC
 pk_parse_public_keyfile_ec:"data_files/ec_224_pub.comp.pem":MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE
 
 Parse Public EC Key #4 (RFC 5480, secp256r1)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 pk_parse_public_keyfile_ec:"data_files/ec_256_pub.pem":0
 
 Parse Public EC Key #4a (RFC 5480, secp256r1, compressed)
@@ -935,7 +935,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_PARSE_EC_COMPRESSED:MBEDTLS_ECP_DP_SEC
 pk_parse_public_keyfile_ec:"data_files/ec_256_pub.comp.pem":0
 
 Parse Public EC Key #5 (RFC 5480, secp384r1)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP384R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_SECP384R1_ENABLED
 pk_parse_public_keyfile_ec:"data_files/ec_384_pub.pem":0
 
 Parse Public EC Key #5a (RFC 5480, secp384r1, compressed)
@@ -943,7 +943,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_PARSE_EC_COMPRESSED:MBEDTLS_ECP_DP_SEC
 pk_parse_public_keyfile_ec:"data_files/ec_384_pub.comp.pem":0
 
 Parse Public EC Key #6 (RFC 5480, secp521r1)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP521R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_SECP521R1_ENABLED
 pk_parse_public_keyfile_ec:"data_files/ec_521_pub.pem":0
 
 Parse Public EC Key #6a (RFC 5480, secp521r1, compressed)
@@ -951,7 +951,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_PARSE_EC_COMPRESSED:MBEDTLS_ECP_DP_SEC
 pk_parse_public_keyfile_ec:"data_files/ec_521_pub.comp.pem":0
 
 Parse Public EC Key #7 (RFC 5480, brainpoolP256r1)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_BP256R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_BP256R1_ENABLED
 pk_parse_public_keyfile_ec:"data_files/ec_bp256_pub.pem":0
 
 Parse Public EC Key #7a (RFC 5480, brainpoolP256r1, compressed)
@@ -959,7 +959,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_PARSE_EC_COMPRESSED:MBEDTLS_ECP_DP_BP2
 pk_parse_public_keyfile_ec:"data_files/ec_bp256_pub.comp.pem":0
 
 Parse Public EC Key #8 (RFC 5480, brainpoolP384r1)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_BP384R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_BP384R1_ENABLED
 pk_parse_public_keyfile_ec:"data_files/ec_bp384_pub.pem":0
 
 Parse Public EC Key #8a (RFC 5480, brainpoolP384r1, compressed)
@@ -967,7 +967,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_PARSE_EC_COMPRESSED:MBEDTLS_ECP_DP_BP3
 pk_parse_public_keyfile_ec:"data_files/ec_bp384_pub.comp.pem":0
 
 Parse Public EC Key #9 (RFC 5480, brainpoolP512r1)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_BP512R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_BP512R1_ENABLED
 pk_parse_public_keyfile_ec:"data_files/ec_bp512_pub.pem":0
 
 Parse Public EC Key #9a (RFC 5480, brainpoolP512r1, compressed)
@@ -975,27 +975,27 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_PARSE_EC_COMPRESSED:MBEDTLS_ECP_DP_BP5
 pk_parse_public_keyfile_ec:"data_files/ec_bp512_pub.comp.pem":0
 
 Parse Public EC Key #10 (RFC 8410, DER, X25519)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_CURVE25519_ENABLED
 pk_parse_public_keyfile_ec:"data_files/ec_x25519_pub.der":0
 
 Parse Public EC Key #11 (RFC 8410, DER, X448)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_CURVE448_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_CURVE448_ENABLED
 pk_parse_public_keyfile_ec:"data_files/ec_x448_pub.der":0
 
 Parse Public EC Key #12 (RFC 8410, PEM, X25519)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_CURVE25519_ENABLED
 pk_parse_public_keyfile_ec:"data_files/ec_x25519_pub.pem":0
 
 Parse Public EC Key #13 (RFC 8410, PEM, X448)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_CURVE448_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_CURVE448_ENABLED
 pk_parse_public_keyfile_ec:"data_files/ec_x448_pub.pem":0
 
 Parse EC Key #1 (SEC1 DER)
-depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP192R1_ENABLED
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.sec1.der":"NULL":0
 
 Parse EC Key #2 (SEC1 PEM)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP192R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.sec1.pem":"NULL":0
 
 Parse EC Key #2a (SEC1 PEM, secp192r1, compressed)
@@ -1003,43 +1003,43 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_PARSE_EC_COMPRESSED:MBEDTLS_ECP_DP_SEC
 pk_parse_keyfile_ec:"data_files/ec_prv.sec1.comp.pem":"NULL":0
 
 Parse EC Key #3 (SEC1 PEM encrypted)
-depends_on:MBEDTLS_DES_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP192R1_ENABLED:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_HAS_MD5_VIA_LOWLEVEL_OR_PSA
+depends_on:MBEDTLS_DES_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_SECP192R1_ENABLED:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_HAS_MD5_VIA_LOWLEVEL_OR_PSA
 pk_parse_keyfile_ec:"data_files/ec_prv.sec1.pw.pem":"polar":0
 
 Parse EC Key #4 (PKCS8 DER)
-depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP192R1_ENABLED
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8.der":"NULL":0
 
 Parse EC Key #4a (PKCS8 DER, no public key)
-depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8nopub.der":"NULL":0
 
 Parse EC Key #4b (PKCS8 DER, no public key, with parameters)
-depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8nopubparam.der":"NULL":0
 
 Parse EC Key #4c (PKCS8 DER, with parameters)
-depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8param.der":"NULL":0
 
 Parse EC Key #5 (PKCS8 PEM)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP192R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8.pem":"NULL":0
 
 Parse EC Key #5a (PKCS8 PEM, no public key)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8nopub.pem":"NULL":0
 
 Parse EC Key #5b (PKCS8 PEM, no public key, with parameters)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8nopubparam.pem":"NULL":0
 
 Parse EC Key #5c (PKCS8 PEM, with parameters)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8param.pem":"NULL":0
 
 Parse EC Key #8 (SEC1 PEM, secp224r1)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP224R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_SECP224R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_224_prv.pem":"NULL":0
 
 Parse EC Key #8a (SEC1 PEM, secp224r1, compressed)
@@ -1047,7 +1047,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_PARSE_EC_COMPRESSED:MBEDTLS_ECP_DP_SEC
 pk_parse_keyfile_ec:"data_files/ec_224_prv.comp.pem":"NULL":0
 
 Parse EC Key #9 (SEC1 PEM, secp256r1)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_256_prv.pem":"NULL":0
 
 Parse EC Key #9a (SEC1 PEM, secp256r1, compressed)
@@ -1055,7 +1055,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_PARSE_EC_COMPRESSED:MBEDTLS_ECP_DP_SEC
 pk_parse_keyfile_ec:"data_files/ec_256_prv.comp.pem":"NULL":0
 
 Parse EC Key #10 (SEC1 PEM, secp384r1)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP384R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_SECP384R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_384_prv.pem":"NULL":0
 
 Parse EC Key #10a (SEC1 PEM, secp384r1, compressed)
@@ -1063,7 +1063,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_PARSE_EC_COMPRESSED:MBEDTLS_ECP_DP_SEC
 pk_parse_keyfile_ec:"data_files/ec_384_prv.comp.pem":"NULL":0
 
 Parse EC Key #11 (SEC1 PEM, secp521r1)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP521R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_SECP521R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_521_prv.pem":"NULL":0
 
 Parse EC Key #11a (SEC1 PEM, secp521r1, compressed)
@@ -1071,7 +1071,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_PARSE_EC_COMPRESSED:MBEDTLS_ECP_DP_SEC
 pk_parse_keyfile_ec:"data_files/ec_521_prv.comp.pem":"NULL":0
 
 Parse EC Key #12 (SEC1 PEM, bp256r1)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_BP256R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_BP256R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_bp256_prv.pem":"NULL":0
 
 Parse EC Key #12a (SEC1 PEM, bp256r1, compressed)
@@ -1079,7 +1079,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_PARSE_EC_COMPRESSED:MBEDTLS_ECP_DP_BP2
 pk_parse_keyfile_ec:"data_files/ec_bp256_prv.comp.pem":"NULL":0
 
 Parse EC Key #13 (SEC1 PEM, bp384r1)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_BP384R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_BP384R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_bp384_prv.pem":"NULL":0
 
 Parse EC Key #13a (SEC1 PEM, bp384r1, compressed)
@@ -1087,7 +1087,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_PARSE_EC_COMPRESSED:MBEDTLS_ECP_DP_BP3
 pk_parse_keyfile_ec:"data_files/ec_bp384_prv.comp.pem":"NULL":0
 
 Parse EC Key #14 (SEC1 PEM, bp512r1)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_BP512R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_BP512R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_bp512_prv.pem":"NULL":0
 
 Parse EC Key #14a (SEC1 PEM, bp512r1, compressed)
@@ -1099,19 +1099,19 @@ depends_on:MBEDTLS_ECP_DP_SECP256K1_ENABLED:MBEDTLS_PK_PARSE_EC_EXTENDED
 pk_parse_keyfile_ec:"data_files/ec_prv.specdom.der":"NULL":0
 
 Parse EC Key #16 (RFC 8410, DER, X25519)
-depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_CURVE25519_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_x25519_prv.der":"NULL":0
 
 Parse EC Key #17 (RFC 8410, DER, X448)
-depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_CURVE448_ENABLED
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_CURVE448_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_x448_prv.der":"NULL":0
 
 Parse EC Key #18 (RFC 8410, PEM, X25519)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_CURVE25519_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_x25519_prv.pem":"NULL":0
 
 Parse EC Key #19 (RFC 8410, PEM, X448)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_CURVE448_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_PK_HAVE_ECC_KEYS:MBEDTLS_ECP_DP_CURVE448_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_x448_prv.pem":"NULL":0
 
 Key ASN1 (No data)
@@ -1193,7 +1193,7 @@ depends_on:MBEDTLS_RSA_C
 pk_parse_key:"3063020100021100cc8ab070369ede72920e5a51523c857102030100010211009a6318982a7231de1894c54aa4909201020900f3058fd8dc484d61020900d7770dbd8b78a2110209009471f14c26428401020813425f060c4b7221FF08052b93d01747a87c":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 
 Key ASN1 (ECPrivateKey, empty parameters)
-depends_on:MBEDTLS_ECP_LIGHT
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS
 pk_parse_key:"30070201010400a000":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 
 Key ASN1 (OneAsymmetricKey X25519, doesn't match masking requirements, from RFC8410 Appendix A but made into version 0)
@@ -1201,24 +1201,24 @@ depends_on:MBEDTLS_ECP_C
 pk_parse_key:"302e020100300506032b656e04220420f8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff3f":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 
 Key ASN1 (OneAsymmetricKey X25519, with invalid optional AlgorithIdentifier parameters)
-depends_on:MBEDTLS_ECP_LIGHT
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS
 pk_parse_key:"3030020100300706032b656e050004220420b06d829655543a51cba36e53522bc0acfd60af59466555fb3e1e796872ab1a59":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 
 Key ASN1 (OneAsymmetricKey X25519, with NULL private key)
-depends_on:MBEDTLS_ECP_LIGHT
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS
 pk_parse_key:"300e020100300506032b656e04020500":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 
 Key ASN1 (OneAsymmetricKey with invalid AlgorithIdentifier)
 pk_parse_key:"3013020100300a06082b0601040181fd5904020500":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 
 Key ASN1 (OneAsymmetricKey X25519, with unsupported attributes)
-depends_on:MBEDTLS_ECP_LIGHT
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS
 pk_parse_key:"304f020100300506032b656e04220420b06d829655543a51cba36e53522bc0acfd60af59466555fb3e1e796872ab1a59a01f301d060a2a864886f70d01090914310f0c0d437572646c6520436861697273":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 
 Key ASN1 (OneAsymmetricKey X25519, unsupported version 2 with public key)
-depends_on:MBEDTLS_ECP_LIGHT
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS
 pk_parse_key:"3051020101300506032b656e04220420b06d829655543a51cba36e53522bc0acfd60af59466555fb3e1e796872ab1a598121009bc3b0e93d8233fe6a8ba6138948cc12a91362d5c2ed81584db05ab5419c9d11":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 
 Key ASN1 (OneAsymmetricKey X25519, unsupported version 2 with public key and unsupported attributes)
-depends_on:MBEDTLS_ECP_LIGHT
+depends_on:MBEDTLS_PK_HAVE_ECC_KEYS
 pk_parse_key:"3072020101300506032b656e04220420b06d829655543a51cba36e53522bc0acfd60af59466555fb3e1e796872ab1a59a01f301d060a2a864886f70d01090914310f0c0d437572646c65204368616972738121009bc3b0e93d8233fe6a8ba6138948cc12a91362d5c2ed81584db05ab5419c9d11":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT

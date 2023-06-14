@@ -5545,7 +5545,7 @@ int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)
     (void) mbedtls_mpi_core_add(X, X, Q, Q_limbs);
 
     /* M = B0 */
-    if (sizeof(mbedtls_mpi_uint) > 4) {
+    if (ciL > 4) {
         M[P224_WIDTH_MIN] &= ((mbedtls_mpi_uint)-1) >> (P224_UNUSED_BITS);
     }
     memset(M + P224_WIDTH_MAX, 0, ((M_limbs - P224_WIDTH_MAX) * ciL));
@@ -5555,7 +5555,7 @@ int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)
 
     /* M = (B0 + B1) * 2^224 */
     /* Shifted carry bit from the addition fits in oversize M. */
-    memmove((char *) M + P224_SIZE, M, P224_SIZE + sizeof(mbedtls_mpi_uint));
+    memmove((char *) M + P224_SIZE, M, P224_SIZE + ciL);
     memset(M, 0, P224_SIZE);
 
     /* X = X + M = (A0 + A1 + B1) + (B0 + B1) * 2^224 */
@@ -5578,14 +5578,14 @@ int mbedtls_ecp_mod_p448(mbedtls_mpi_uint *X, size_t X_limbs)
         memcpy(M, Q, (Q_limbs * ciL));
         M[M_limbs - 1] = 0;
 
-        if (sizeof(mbedtls_mpi_uint) > 4) {
+        if (ciL > 4) {
             M[P224_WIDTH_MIN] &= ((mbedtls_mpi_uint) -1) >> (P224_UNUSED_BITS);
         }
 
         /* M = B0 * 2^224
          * Oversize M once again takes any carry. */
-        memmove((char *) M + P224_SIZE, M, P224_SIZE +
-                sizeof(mbedtls_mpi_uint)); memset(M, 0, P224_SIZE);
+        memmove((char *) M + P224_SIZE, M, P224_SIZE + ciL);
+        memset(M, 0, P224_SIZE);
 
         /* M = A1 + B0 * 2^224
          * No need to have to call mbedtls_mpi_core_add() as as both bignums

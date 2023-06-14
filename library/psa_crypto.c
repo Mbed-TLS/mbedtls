@@ -1728,6 +1728,18 @@ static psa_status_t psa_start_key_creation(
      * definition. */
 
     slot->attr = *attributes;
+
+    /* We don't store information of slot_number, domain_parameters and
+     * domain_parameters_size in structure of key slot.
+     */
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    slot->attr.slot_number = 0;
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+#if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY)
+    slot->attr.domain_parameters = NULL;
+    slot->attr.domain_parameters_size = 0;
+#endif /* PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY */
+
     if (PSA_KEY_LIFETIME_IS_VOLATILE(slot->attr.lifetime)) {
 #if !defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
         slot->attr.id = volatile_key_id;

@@ -114,8 +114,6 @@ void mbedtls_mpi_mod_raw_sub(mbedtls_mpi_uint *X,
     (void) mbedtls_mpi_core_add_if(X, N->p, N->limbs, (unsigned) c);
 }
 
-#if defined(MBEDTLS_TEST_HOOKS)
-
 MBEDTLS_STATIC_TESTABLE
 void mbedtls_mpi_mod_raw_fix_quasi_reduction(mbedtls_mpi_uint *X,
                                              const mbedtls_mpi_mod_modulus *N)
@@ -125,7 +123,6 @@ void mbedtls_mpi_mod_raw_fix_quasi_reduction(mbedtls_mpi_uint *X,
     (void) mbedtls_mpi_core_add_if(X, N->p, N->limbs, (unsigned) c);
 }
 
-#endif /* MBEDTLS_TEST_HOOKS */
 
 void mbedtls_mpi_mod_raw_mul(mbedtls_mpi_uint *X,
                              const mbedtls_mpi_uint *A,
@@ -133,8 +130,22 @@ void mbedtls_mpi_mod_raw_mul(mbedtls_mpi_uint *X,
                              const mbedtls_mpi_mod_modulus *N,
                              mbedtls_mpi_uint *T)
 {
-    mbedtls_mpi_core_montmul(X, A, B, N->limbs, N->p, N->limbs,
-                             N->rep.mont.mm, T);
+    const size_t T_limbs = (N->limbs * 2);
+    switch (N->int_rep) {
+        case MBEDTLS_MPI_MOD_REP_MONTGOMERY:
+            mbedtls_mpi_core_montmul(X, A, B, N->limbs, N->p, N->limbs,
+                                     N->rep.mont.mm, T);
+            break;
+        case MBEDTLS_MPI_MOD_REP_OPT_RED:
+            mbedtls_mpi_core_mul(T, A, N->limbs, B, N->limbs);
+            (*N->rep.ored.modp)(T, T_limbs);
+            mbedtls_mpi_mod_raw_fix_quasi_reduction(T, N);
+            memcpy(X, T, N->limbs * sizeof(mbedtls_mpi_uint));
+            break;
+        default:
+            break;
+    }
+
 }
 
 size_t mbedtls_mpi_mod_raw_inv_prime_working_limbs(size_t AN_limbs)

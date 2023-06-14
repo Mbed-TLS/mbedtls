@@ -7768,7 +7768,7 @@ psa_status_t psa_pake_setup(
             &operation->computation_stage.jpake;
 
         computation_stage->round = PSA_JPAKE_FIRST;
-        computation_stage->mode = PSA_JPAKE_INPUT;
+        computation_stage->io_mode = PSA_JPAKE_INPUT;
         computation_stage->inputs = 0;
         computation_stage->outputs = 0;
         computation_stage->step = PSA_PAKE_STEP_KEY_SHARE;
@@ -7947,7 +7947,7 @@ static psa_crypto_driver_pake_step_t convert_jpake_computation_stage_to_driver_s
 {
     if (stage->round == PSA_JPAKE_FIRST) {
         int is_x1;
-        if (stage->mode == PSA_JPAKE_OUTPUT) {
+        if (stage->io_mode == PSA_JPAKE_OUTPUT) {
             is_x1 = (stage->outputs < 1);
         } else {
             is_x1 = (stage->inputs < 1);
@@ -7977,7 +7977,7 @@ static psa_crypto_driver_pake_step_t convert_jpake_computation_stage_to_driver_s
             }
         }
     } else if (stage->round == PSA_JPAKE_SECOND) {
-        if (stage->mode == PSA_JPAKE_OUTPUT) {
+        if (stage->io_mode == PSA_JPAKE_OUTPUT) {
             switch (stage->step) {
                 case PSA_PAKE_STEP_KEY_SHARE:
                     return PSA_JPAKE_X2S_STEP_KEY_SHARE;
@@ -8043,7 +8043,7 @@ static psa_status_t psa_pake_complete_inputs(
             psa_jpake_computation_stage_t *computation_stage =
                 &operation->computation_stage.jpake;
             computation_stage->round = PSA_JPAKE_FIRST;
-            computation_stage->mode = PSA_JPAKE_INPUT;
+            computation_stage->io_mode = PSA_JPAKE_INPUT;
             computation_stage->inputs = 0;
             computation_stage->outputs = 0;
             computation_stage->step = PSA_PAKE_STEP_KEY_SHARE;
@@ -8086,8 +8086,8 @@ static psa_status_t psa_jpake_prologue(
         computation_stage->outputs == 0) {
         /* Start of the round, so function decides whether we are inputting
          * or outputting */
-        computation_stage->mode = io_mode;
-    } else if (computation_stage->mode != io_mode) {
+        computation_stage->io_mode = io_mode;
+    } else if (computation_stage->io_mode != io_mode) {
         /* Middle of the round so the mode we are in must match the function
          * called by the user */
         return PSA_ERROR_BAD_STATE;
@@ -8121,13 +8121,13 @@ static psa_status_t psa_jpake_epilogue(
         if (io_mode == PSA_JPAKE_INPUT) {
             stage->inputs++;
             if (stage->inputs >= PSA_JPAKE_EXPECTED_INPUTS(stage->round)) {
-                stage->mode = PSA_JPAKE_OUTPUT;
+                stage->io_mode = PSA_JPAKE_OUTPUT;
             }
         }
         if (io_mode == PSA_JPAKE_OUTPUT) {
             stage->outputs++;
             if (stage->outputs >= PSA_JPAKE_EXPECTED_OUTPUTS(stage->round)) {
-                stage->mode = PSA_JPAKE_INPUT;
+                stage->io_mode = PSA_JPAKE_INPUT;
             }
         }
         if (stage->inputs >= PSA_JPAKE_EXPECTED_INPUTS(stage->round) &&

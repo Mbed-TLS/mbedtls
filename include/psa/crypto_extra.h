@@ -2043,7 +2043,7 @@ struct psa_jpake_computation_stage_s {
     /* The J-PAKE round we are currently on */
     psa_jpake_round_t MBEDTLS_PRIVATE(round);
     /* The 'mode' we are currently in (inputting or outputting) */
-    psa_jpake_io_mode_t MBEDTLS_PRIVATE(mode);
+    psa_jpake_io_mode_t MBEDTLS_PRIVATE(io_mode);
     /* The number of inputs so far this round */
     uint8_t MBEDTLS_PRIVATE(inputs);
     /* The number of outputs so far this round */

@@ -8083,7 +8083,7 @@ static psa_status_t psa_jpake_prologue(
         return PSA_ERROR_BAD_STATE;
     }
 
-    /* Check that we do not already have enough inputs/outputs
+    /* Check that we do not already have enough inputs/outputs for
      * this round */
     if (io_mode == PSA_JPAKE_INPUT) {
         if (computation_stage->inputs >=

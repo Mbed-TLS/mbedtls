@@ -44,6 +44,12 @@ int mbedtls_version_check_feature(const char *feature)
         return -1;
     }
 
+    if (strncmp(feature, "MBEDTLS_", 8)) {
+        return -1;
+    }
+
+    feature += 8;
+
     while (*idx != NULL) {
         if (!strcmp(*idx, feature)) {
             return 0;

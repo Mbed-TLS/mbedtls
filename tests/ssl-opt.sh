@@ -695,7 +695,7 @@ requires_openssl_3_x() {
         OPENSSL_3_X_AVAILABLE="NO"
     fi
     if [ -z "${OPENSSL_3_X_AVAILABLE:-}" ]; then
-        if which $OPENSSL_NEXT 2>&1 | grep openssl-3 >/dev/null
+        if $OPENSSL_NEXT version 2>&1 | grep "OpenSSL 3." >/dev/null
         then
             OPENSSL_3_X_AVAILABLE="YES"
         else

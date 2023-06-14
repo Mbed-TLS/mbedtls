@@ -7767,10 +7767,7 @@ psa_status_t psa_pake_setup(
         psa_jpake_computation_stage_t *computation_stage =
             &operation->computation_stage.jpake;
 
-        computation_stage->round = PSA_JPAKE_FIRST;
-        computation_stage->io_mode = PSA_JPAKE_INPUT;
-        computation_stage->inputs = 0;
-        computation_stage->outputs = 0;
+        memset(computation_stage, 0, sizeof(*computation_stage));
         computation_stage->step = PSA_PAKE_STEP_KEY_SHARE;
     } else
 #endif /* PSA_WANT_ALG_JPAKE */

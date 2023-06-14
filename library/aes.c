@@ -1037,17 +1037,17 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 
 #if defined(__ARM_NEON) && defined(__aarch64__)
-            /* Avoid using the NEON implementation of mbedtls_xor. Because of the dependency on
-             * the result for the next block in CBC, and the cost of transferring that data from
-             * NEON registers, it is faster to use the following on aarch64.
-             * For 32-bit arm, NEON should be faster. */
+/* Avoid using the NEON implementation of mbedtls_xor. Because of the dependency on
+ * the result for the next block in CBC, and the cost of transferring that data from
+ * NEON registers, it is faster to use the following on aarch64.
+ * For 32-bit arm, NEON should be faster. */
 #define CBC_XOR_16(r, a, b) do {                                           \
-            mbedtls_put_unaligned_uint64(r,                                    \
-                                         mbedtls_get_unaligned_uint64(a) ^     \
-                                         mbedtls_get_unaligned_uint64(b));     \
-            mbedtls_put_unaligned_uint64(r + 8,                                \
-                                         mbedtls_get_unaligned_uint64(a + 8) ^ \
-                                         mbedtls_get_unaligned_uint64(b + 8)); \
+        mbedtls_put_unaligned_uint64(r,                                    \
+                                     mbedtls_get_unaligned_uint64(a) ^     \
+                                     mbedtls_get_unaligned_uint64(b));     \
+        mbedtls_put_unaligned_uint64(r + 8,                                \
+                                     mbedtls_get_unaligned_uint64(a + 8) ^ \
+                                     mbedtls_get_unaligned_uint64(b + 8)); \
 } while (0)
 #else
 #define CBC_XOR_16(r, a, b) mbedtls_xor(r, a, b, 16)

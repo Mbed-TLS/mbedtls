@@ -5,6 +5,7 @@
  *
  * The Cipher-based Message Authentication Code (CMAC) Mode for
  * Authentication is defined in <em>RFC-4493: The AES-CMAC Algorithm</em>.
+ * It is supported with AES and DES.
  */
 /*
  *  Copyright The Mbed TLS Contributors
@@ -38,6 +39,7 @@ extern "C" {
 #define MBEDTLS_AES_BLOCK_SIZE          16
 #define MBEDTLS_DES3_BLOCK_SIZE         8
 
+/* We don't support Camellia or ARIA in this module */
 #if defined(MBEDTLS_AES_C)
 #define MBEDTLS_CIPHER_BLKSIZE_MAX      16  /**< The longest block used by CMAC is that of AES. */
 #else

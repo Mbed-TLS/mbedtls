@@ -728,15 +728,10 @@ void pk_ec_test_vec(int type, int id, data_t *key, data_t *hash,
 
     TEST_ASSERT(mbedtls_pk_can_do(&pk, MBEDTLS_PK_ECDSA));
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    mbedtls_ecp_keypair ecp;
-    mbedtls_ecp_keypair_init(&ecp);
-
-    TEST_ASSERT(mbedtls_ecp_group_load(&ecp.grp, id) == 0);
-    TEST_ASSERT(mbedtls_ecp_point_read_binary(&ecp.grp, &ecp.Q,
-                                              key->x, key->len) == 0);
-    TEST_ASSERT(mbedtls_pk_update_public_key_from_keypair(&pk, &ecp) == 0);
-
-    mbedtls_ecp_keypair_free(&ecp);
+    TEST_ASSERT(key->len <= MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN);
+    memcpy(pk.pub_raw, key->x, key->len);
+    pk.ec_family = mbedtls_ecc_group_to_psa(id, &(pk.ec_bits));
+    pk.pub_raw_len = key->len;
 #else
     mbedtls_ecp_keypair *eckey = (mbedtls_ecp_keypair *) mbedtls_pk_ec(pk);
 

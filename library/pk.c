@@ -196,42 +196,6 @@ int mbedtls_pk_setup_opaque(mbedtls_pk_context *ctx,
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-int mbedtls_pk_update_public_key_from_keypair(mbedtls_pk_context *pk,
-                                              mbedtls_ecp_keypair *ecp_keypair)
-{
-    int ret = MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
-
-    if (pk == NULL) {
-        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
-    }
-    /* The raw public key storing mechanism is only supported for EC keys so
-     * we fail silently for other ones. */
-    if ((pk->pk_info->type != MBEDTLS_PK_ECKEY) &&
-        (pk->pk_info->type != MBEDTLS_PK_ECKEY_DH) &&
-        (pk->pk_info->type != MBEDTLS_PK_ECDSA)) {
-        return 0;
-    }
-
-    ret = mbedtls_ecp_point_write_binary(&ecp_keypair->grp, &ecp_keypair->Q,
-                                         MBEDTLS_ECP_PF_UNCOMPRESSED,
-                                         &pk->pub_raw_len,
-                                         pk->pub_raw,
-                                         MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN);
-    if (ret != 0) {
-        return ret;
-    }
-
-    pk->ec_family = mbedtls_ecc_group_to_psa(ecp_keypair->grp.id,
-                                             &pk->ec_bits);
-    if (pk->ec_family == 0) {
-        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
-    }
-
-    return 0;
-}
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
-
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /*
  * Initialize an RSA-alt context

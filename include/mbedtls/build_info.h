@@ -129,11 +129,23 @@
 #define MBEDTLS_MD_LIGHT
 #endif
 
-/* MBEDTLS_ECP_C now consists of MBEDTLS_ECP_LIGHT plus functions for curve
- * arithmetic. As a consequence if MBEDTLS_ECP_C is required for some reason,
- * then MBEDTLS_ECP_LIGHT should be enabled as well. */
-#if defined(MBEDTLS_ECP_C) || defined(MBEDTLS_PK_PARSE_EC_EXTENDED) || \
-    defined(MBEDTLS_PK_PARSE_EC_COMPRESSED)
+/* MBEDTLS_ECP_LIGHT is auto-enabled by the following symbols:
+ * - MBEDTLS_ECP_C because now it consists of MBEDTLS_ECP_LIGHT plus functions
+ *   for curve arithmetic. As a consequence if MBEDTLS_ECP_C is required for
+ *   some reason, then MBEDTLS_ECP_LIGHT should be enabled as well.
+ * - MBEDTLS_PK_PARSE_EC_EXTENDED and MBEDTLS_PK_PARSE_EC_COMPRESSED because
+ *   these features are not supported in PSA so the only way to have them is
+ *   to enable the built-in solution.
+ * - PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE because Weierstrass key derivation
+ *   still depends on ECP_LIGHT
+ * - PK_C + USE_PSA + PSA_WANT_ALG_ECDSA is a temporary dependency which will
+ *   be fixed by #7453
+ */
+#if defined(MBEDTLS_ECP_C) || \
+    defined(MBEDTLS_PK_PARSE_EC_EXTENDED) || \
+    defined(MBEDTLS_PK_PARSE_EC_COMPRESSED) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_DERIVE) || \
+    (defined(MBEDTLS_PK_C) && defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_ECDSA))
 #define MBEDTLS_ECP_LIGHT
 #endif
 

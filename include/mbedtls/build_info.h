@@ -80,6 +80,14 @@
 #include MBEDTLS_USER_CONFIG_FILE
 #endif
 
+/* Auto-enable MBEDTLS_CTR_DRBG_USE_128_BIT_KEY if
+ * MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH and MBEDTLS_CTR_DRBG_C defined
+ * to ensure a 128-bit key size in CTR_DRBG.
+ */
+#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH) && defined(MBEDTLS_CTR_DRBG_C)
+#define MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
+#endif
+
 /* Auto-enable MBEDTLS_MD_C if needed by a module that didn't require it
  * in a previous release, to ensure backwards compatibility.
  */

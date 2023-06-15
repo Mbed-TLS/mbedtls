@@ -3503,6 +3503,45 @@ component_test_malloc_0_null () {
     tests/ssl-opt.sh -e 'proxy'
 }
 
+component_test_aes_only_128_bit_keys () {
+    msg "build: default config + AES_ONLY_128_BIT_KEY_LENGTH"
+    scripts/config.py set MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
+    scripts/config.py unset MBEDTLS_PADLOCK_C
+
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+
+    msg "test: default config + AES_ONLY_128_BIT_KEY_LENGTH"
+    make test
+}
+
+component_test_no_ctr_drbg_aes_only_128_bit_keys () {
+    msg "build: default config + AES_ONLY_128_BIT_KEY_LENGTH - CTR_DRBG_C"
+    scripts/config.py set MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
+    scripts/config.py unset MBEDTLS_CTR_DRBG_C
+    scripts/config.py unset MBEDTLS_PADLOCK_C
+
+    make CC=clang CFLAGS='-Werror -Wall -Wextra'
+
+    msg "test: default config + AES_ONLY_128_BIT_KEY_LENGTH - CTR_DRBG_C"
+    make test
+}
+
+component_test_aes_only_128_bit_keys_have_builtins () {
+    msg "build: default config + AES_ONLY_128_BIT_KEY_LENGTH - AESNI_C - AESCE_C"
+    scripts/config.py set MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
+    scripts/config.py unset MBEDTLS_PADLOCK_C
+    scripts/config.py unset MBEDTLS_AESNI_C
+    scripts/config.py unset MBEDTLS_AESCE_C
+
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+
+    msg "test: default config + AES_ONLY_128_BIT_KEY_LENGTH - AESNI_C - AESCE_C"
+    make test
+
+    msg "selftest: default config + AES_ONLY_128_BIT_KEY_LENGTH - AESNI_C - AESCE_C"
+    programs/test/selftest
+}
+
 component_test_aes_fewer_tables () {
     msg "build: default config with AES_FEWER_TABLES enabled"
     scripts/config.py set MBEDTLS_AES_FEWER_TABLES

@@ -1,2 +1,3 @@
 Bugfix
-   * Fixed an issue that cause compile error using CMake IAR toolchain.
+   * Fixed an issue that caused compile errors when using CMake and the IAR
+     toolchain.

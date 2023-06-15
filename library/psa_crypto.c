@@ -5535,6 +5535,7 @@ static psa_status_t psa_key_derivation_pbkdf2_generate_block(
 
         mbedtls_xor(U_accumulator, U_accumulator, U_i, prf_output_length);
     }
+    return PSA_SUCCESS;
 }
 
 static psa_status_t psa_key_derivation_pbkdf2_read(

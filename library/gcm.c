@@ -417,6 +417,7 @@ static int gcm_mask(mbedtls_gcm_context *ctx,
     return 0;
 }
 
+MBEDTLS_OPTIMIZE_ALWAYS
 int mbedtls_gcm_update(mbedtls_gcm_context *ctx,
                        const unsigned char *input, size_t input_length,
                        unsigned char *output, size_t output_size,

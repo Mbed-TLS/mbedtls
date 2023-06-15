@@ -669,25 +669,6 @@ requires_openssl_next() {
     fi
 }
 
-# skip next test if tls1_3 is not available
-requires_openssl_tls1_3() {
-    requires_openssl_next
-    if [ "$OPENSSL_NEXT_AVAILABLE" = "NO" ]; then
-        OPENSSL_TLS1_3_AVAILABLE="NO"
-    fi
-    if [ -z "${OPENSSL_TLS1_3_AVAILABLE:-}" ]; then
-        if $OPENSSL_NEXT s_client -help 2>&1 | grep tls1_3 >/dev/null
-        then
-            OPENSSL_TLS1_3_AVAILABLE="YES"
-        else
-            OPENSSL_TLS1_3_AVAILABLE="NO"
-        fi
-    fi
-    if [ "$OPENSSL_TLS1_3_AVAILABLE" = "NO" ]; then
-        SKIP_NEXT="YES"
-    fi
-}
-
 # skip next test if openssl version is lower than 3.0
 requires_openssl_3_x() {
     requires_openssl_next
@@ -704,6 +685,34 @@ requires_openssl_3_x() {
     fi
     if [ "$OPENSSL_3_X_AVAILABLE" = "NO" ]; then
         SKIP_NEXT="YES"
+    fi
+}
+
+# skip next test if tls1_3 is not available
+requires_openssl_tls1_3() {
+    requires_openssl_3_x
+    if [ "$OPENSSL_NEXT_AVAILABLE" = "NO" ]; then
+        OPENSSL_TLS1_3_AVAILABLE="NO"
+    fi
+    if [ -z "${OPENSSL_TLS1_3_AVAILABLE:-}" ]; then
+        if $OPENSSL_NEXT s_client -help 2>&1 | grep tls1_3 >/dev/null
+        then
+            OPENSSL_TLS1_3_AVAILABLE="YES"
+        else
+            OPENSSL_TLS1_3_AVAILABLE="NO"
+        fi
+    fi
+
+    if [ "$OPENSSL_TLS1_3_AVAILABLE" = "NO" ]; then
+        SKIP_NEXT="YES"
+    else
+        if [ "$OPENSSL_3_X_AVAILABLE" = "NO" ]; then
+            if is_config_enabled "MBEDTLS_ECDH_C"; then
+                SKIP_NEXT="NO"
+            else
+                SKIP_NEXT="YES"
+            fi
+        fi
     fi
 }
 
@@ -11284,7 +11293,7 @@ run_test    "TLS 1.3: Default" \
             0 \
             -s "Protocol is TLSv1.3" \
             -s "Ciphersuite is TLS1-3-CHACHA20-POLY1305-SHA256" \
-            -s "ECDH/FFDH group: x25519" \
+            -s "ECDH/FFDH group: " \
             -s "selected signature algorithm ecdsa_secp256r1_sha256"
 
 requires_openssl_tls1_3
@@ -11308,7 +11317,7 @@ run_test    "TLS 1.3: minimal feature sets - openssl" \
             -c "client state: MBEDTLS_SSL_HANDSHAKE_WRAPUP" \
             -c "<= ssl_tls13_process_server_hello" \
             -c "server hello, chosen ciphersuite: ( 1303 ) - TLS1-3-CHACHA20-POLY1305-SHA256" \
-            -c "DHE group name: x25519" \
+            -c "DHE group name: " \
             -c "=> ssl_tls13_process_server_hello" \
             -c "<= parse encrypted extensions" \
             -c "Certificate verification flags clear" \
@@ -11342,7 +11351,7 @@ run_test    "TLS 1.3: minimal feature sets - gnutls" \
             -c "client state: MBEDTLS_SSL_HANDSHAKE_WRAPUP" \
             -c "<= ssl_tls13_process_server_hello" \
             -c "server hello, chosen ciphersuite: ( 1303 ) - TLS1-3-CHACHA20-POLY1305-SHA256" \
-            -c "DHE group name: x25519" \
+            -c "DHE group name: " \
             -c "=> ssl_tls13_process_server_hello" \
             -c "<= parse encrypted extensions" \
             -c "Certificate verification flags clear" \
@@ -11375,7 +11384,7 @@ run_test    "TLS 1.3: alpn - openssl" \
             -c "client state: MBEDTLS_SSL_HANDSHAKE_WRAPUP" \
             -c "<= ssl_tls13_process_server_hello" \
             -c "server hello, chosen ciphersuite: ( 1303 ) - TLS1-3-CHACHA20-POLY1305-SHA256" \
-            -c "DHE group name: x25519" \
+            -c "DHE group name: " \
             -c "=> ssl_tls13_process_server_hello" \
             -c "<= parse encrypted extensions" \
             -c "Certificate verification flags clear" \
@@ -11411,7 +11420,7 @@ run_test    "TLS 1.3: alpn - gnutls" \
             -c "client state: MBEDTLS_SSL_HANDSHAKE_WRAPUP" \
             -c "<= ssl_tls13_process_server_hello" \
             -c "server hello, chosen ciphersuite: ( 1303 ) - TLS1-3-CHACHA20-POLY1305-SHA256" \
-            -c "DHE group name: x25519" \
+            -c "DHE group name: " \
             -c "=> ssl_tls13_process_server_hello" \
             -c "<= parse encrypted extensions" \
             -c "Certificate verification flags clear" \
@@ -12126,6 +12135,7 @@ requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_ECDH_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: HRR check, ciphersuite TLS_AES_128_GCM_SHA256 - gnutls" \
@@ -12142,6 +12152,7 @@ requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_ECDH_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3: HRR check, ciphersuite TLS_AES_256_GCM_SHA384 - gnutls" \
@@ -12304,6 +12315,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
+requires_config_enabled MBEDTLS_ECDH_C
 run_test "TLS 1.3: server: HRR check - mbedtls" \
          "$P_SRV debug_level=4 curves=secp384r1" \
          "$P_CLI debug_level=4 curves=secp256r1,secp384r1" \
@@ -12582,6 +12594,7 @@ run_test    "TLS 1.3 m->m HRR both peers do not support middlebox compatibility"
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_ECDH_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 m->m HRR both with middlebox compat support" \
@@ -12665,6 +12678,7 @@ requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_ECDH_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 m->G HRR both with middlebox compat support" \
@@ -12732,6 +12746,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_ECDH_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 G->m HRR server with middlebox compat support, not client" \
@@ -12748,6 +12763,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_ECDH_C
 requires_all_configs_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE \
                              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED
 run_test    "TLS 1.3 G->m HRR both with middlebox compat support" \

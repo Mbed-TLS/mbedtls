@@ -378,6 +378,12 @@ class MbedTLSBase(TLSProgram):
         if 'rsa_pss_rsae_sha256' in self._sig_algs + self._cert_sig_algs:
             ret.append(
                 'requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT')
+
+        ec_groups = ['secp256r1', 'secp384r1', 'secp521r1', 'x25519', 'x448']
+
+        if any(x in ec_groups for x in self._named_groups):
+            ret.append('requires_config_enabled MBEDTLS_ECDH_C')
+
         return ret
 
 

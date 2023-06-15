@@ -655,7 +655,8 @@
 /** \def MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
  *
  * Uncomment this macro to use a 128-bit key in the CTR_DRBG module.
- * By default, CTR_DRBG uses a 256-bit key.
+ * Without this, CTR_DRBG uses a 256-bit key
+ * unless \c MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH is set.
  */
 //#define MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
 
@@ -2427,6 +2428,8 @@
  * Enable the CTR_DRBG AES-based random generator.
  * The CTR_DRBG generator uses AES-256 by default.
  * To use AES-128 instead, enable \c MBEDTLS_CTR_DRBG_USE_128_BIT_KEY above.
+ *
+ * \note AES-128 will be used if \c MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH is set.
  *
  * \note To achieve a 256-bit security strength with CTR_DRBG,
  *       you must use AES-256 *and* use sufficient entropy.

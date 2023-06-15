@@ -227,22 +227,23 @@ static int ssl_tls13_get_default_group_id(mbedtls_ssl_context *ssl,
     if (group_list == NULL) {
         return MBEDTLS_ERR_SSL_BAD_CONFIG;
     }
-#if defined(PSA_WANT_ALG_FFDH)
-    if (mbedtls_ssl_tls13_named_group_is_dhe(*group_list)) {
-        *group_id = *group_list;
-        return 0;
-    }
-#endif /* PSA_WANT_ALG_FFDH */
-#if defined(PSA_WANT_ALG_ECDH)
+
     for (; *group_list != 0; group_list++) {
+#if defined(PSA_WANT_ALG_ECDH)
         if ((mbedtls_ssl_get_psa_curve_info_from_tls_id(
                  *group_list, NULL, NULL) == PSA_SUCCESS) &&
             mbedtls_ssl_tls13_named_group_is_ecdhe(*group_list)) {
             *group_id = *group_list;
             return 0;
         }
+#endif
+#if defined(PSA_WANT_ALG_FFDH)
+        if (mbedtls_ssl_tls13_named_group_is_dhe(*group_list)) {
+            *group_id = *group_list;
+            return 0;
+        }
+#endif
     }
-#endif /* PSA_WANT_ALG_ECDH */
 #else
     ((void) ssl);
     ((void) group_id);

@@ -196,6 +196,12 @@ If a mechanism is not enabled by `PSA_WANT_xxx`, Mbed TLS will often not include
 
 Under the hood, `PSA_WANT_xxx` enables the necessary legacy modules. Note that if a mechanism has a PSA accelerator driver, the corresponding legacy module is typically not needed. Thus applications that use a cryptographic mechanism both through the legacy API and through the PSA API need to explicitly enable both the `PSA_WANT_xxx` symbols and the `MBEDTLS_xxx` symbols.
 
+### Optimization options
+
+When PSA Crypto mechanisms are implemented by the built-in code from Mbed TLS, the legacy optimization options (e.g. `MBEDTLS_SHA256_SMALLER`, `MBEDTLS_ECP_WINDOW_SIZE`, etc.) apply to the PSA implementation as well (they invoke the same code under the hood).
+
+The PSA Crypto API may use accelerator drivers. In this case any options controlling the driver behavior are driver-specific.
+
 ### Self-tests
 
 There is currently [no PSA equivalent to the self-tests](https://github.com/Mbed-TLS/mbedtls/issues/7781) enabled by `MBEDTLS_SELF_TEST`.
@@ -954,7 +960,7 @@ The flow of operations for an interruptible signature verification operation is 
 
 If you need to interrupt the operation after calling the start function without waiting for the complete function to return a success or failure status, call [`psa_sign_hash_abort`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__interruptible__hash/#group__interruptible__hash_1gae893a4813aa8e03bd201fe4f1bbbb403) or [`psa_verify_hash_abort`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__interruptible__hash/#group__interruptible__hash_1ga18dc9c0cc27d590c5e3b186094d90f88).
 
-Call [`psa_interruptible_set_max_ops`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__interruptible__hash/#group__interruptible__hash_1ga6d86790b31657c13705214f373af869e) to set the number of basic operations per call. This is the same unit as `mbedtls_ecp_set_max_ops`.
+Call [`psa_interruptible_set_max_ops`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__interruptible__hash/#group__interruptible__hash_1ga6d86790b31657c13705214f373af869e) to set the number of basic operations per call. This is the same unit as `mbedtls_ecp_set_max_ops`. You can retrieve the current value with [`psa_interruptible_get_max_ops`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__interruptible__hash/#group__interruptible__hash_1ga73e66a6d93f2690b626fcea20ada62b2). The value is [`PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__interruptible/#group__interruptible_1gad19c1da7f6b7d59d5873d5b68eb943d4) if operations are not restartable, which corresponds to `mbedtls_ecp_restart_is_enabled()` being false.
 
 #### PKCS#1 v1.5 RSA signature
 
@@ -1007,16 +1013,33 @@ The PSA algorithm is [`PSA_ALG_RSA_OAEP(hash)`](https://mbed-tls.readthedocs.io/
 
 As with the PK API, the mask generation is MGF1, the label is empty, and the same hash algorithm is used for MGF1 and to hash the label. The PSA API does not offer a way to choose a different label or a different hash algorithm for the label.
 
+### Private-public key consistency
+
+There is no direct equivalent of the functions `mbedtls_rsa_check_privkey`, `mbedtls_rsa_check_pubkey`,`mbedtls_ecp_check_privkey`, `mbedtls_ecp_check_pubkey`. The PSA API performs some basic checks when it imports a key, and may perform additional checks before performing an operation if needed, so it will never perform an operation on a key that does not satisfy these checks, but the details of when the check is performed may change between versions of the library.
+
+The legacy API provide functions `mbedtls_pk_check_pair`, `mbedtls_rsa_check_pub_priv` and `mbedtls_ecp_check_pub_priv`, which can be used to check the consistency between a private key and a public key. To perform such a check with the PSA API, you can export the public keys; this works because the PSA representation of public keys is canonical.
+
+* Prepare a key object containing the private key, for example with [`psa_import_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga0336ea76bf30587ab204a8296462327b).
+* Prepare a key object containing the public key, for example with [`psa_import_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga0336ea76bf30587ab204a8296462327b).
+* Export both public keys with [`psa_export_public_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1gaf22ae73312217aaede2ea02cdebb6062) (this is possible regardless of the usage policies on the keys) and compare the output.
+    ```
+    // Error checking omitted
+    unsigned char pub1[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
+    unsigned char pub2[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
+    size_t length1, length2;
+    psa_export_public_key(key1, pub1, sizeof(pub1), &length1);
+    psa_export_public_key(key2, pub2, sizeof(pub2), &length2);
+    if (length1 == length2 && !memcmp(pub1, pub2, length1))
+        puts("The keys match");
+    else
+        puts("The keys do not match");
+    ```
+
 ### PK functionality with no PSA equivalent
 
 There is no PSA equivalent of the debug functionality provided by `mbedtls_pk_debug`. Use `psa_export_key` to export the key if desired.
 
 There is no PSA equivalent to Mbed TLS's custom key type names exposed by `mbedtls_pk_get_name`.
-
-The PSA API does not expose partially constructed key objects. This makes the following functions unnecessary:
-
-* `mbedtls_rsa_copy`, `mbedtls_ecp_copy`: a PSA key object is immutable, so the copy would have to be identical.
-* `mbedtls_pk_check_pair`, `mbedtls_rsa_check_privkey`, `mbedtls_rsa_check_pubkey`, `mbedtls_rsa_check_pub_priv`,`mbedtls_ecp_check_privkey`, `mbedtls_ecp_check_pubkey`, `mbedtls_ecp_check_pub_priv`: if a key has been constructed successfully, it is guaranteed to be valid.
 
 ### Key agreement
 
@@ -1164,15 +1187,61 @@ Restartable key agreement is not yet available through the PSA API. It will be a
 
 ### Additional information about Elliptic-curve cryptography
 
-_(Section not written yet)_
+#### Information about a curve
 
-<!-- TODO: ecp.h -->
+The legacy API identifies a curve by an `MBEDTLS_ECP_DP_xxx` value of type `mbedtls_ecp_group_id`. The PSA API identifies a curve by a `PSA_ECC_FAMILY_xxx` value and the private value's bit-size. See “[Elliptic curve mechanism selection](#elliptic-curve-mechanism-selection)” for the correspondence between the two sets of values.
+
+There is no PSA equivalent of the `mbedtls_ecp_group` data structure (and so no equivalent to `mbedtls_ecp_group_init`, `mbedtls_ecp_group_load`, `mbedtls_ecp_group_copy` and `mbedtls_ecp_group_free`) or of the `mbedtls_ecp_curve_info` data structure (and so no equivalent to `mbedtls_ecp_curve_info_from_grp_id`) because they are not needed. All API elements identify the curve directly by its family and size.
+
+The bit-size used by the PSA API is the size of the private key. For most curves, the PSA bit-size, the `bit_size` field in `mbedtls_ecp_curve_info`, the `nbits` field in `mbedtls_ecp_group` and the `pbits` field in `mbedtls_ecp_group` are the same. The following table lists curves for which they are different.
+
+| Curve | `grp->nbits` | `grp->pbits` | `curve_info->bit_size` | PSA bit-size |
+| ----- | ------------ | ------------ | ---------------------- | ------------ |
+| secp224k1 | 224 | 225 | 224 | not supported |
+| Curve25519 | 253 | 255 | 256 | 255 |
+| Curve448 | 446 | 448 | 448 | 448 |
+
+There is no exact PSA equivalent of the type `mbedtls_ecp_curve_type` and the function `mbedtls_ecp_get_type`, but the curve family encodes the same information. `PSA_ECC_FAMILY_MONTGOMERY` is the only Montgomery family. All other families supported in Mbed TLS 3.4.0 are short Weierstrass families.
+
+There is no PSA equivalent for the following functionality:
+
+* The `name` field of `mbedtls_ecp_curve_info`, and the function `mbedtls_ecp_curve_info_from_name`. There is no equivalent of Mbed TLS's lookup based on a (nonstandard) name.
+* The `tls_id` field of `mbedtls_ecp_curve_info`, the constant `MBEDTLS_ECP_TLS_NAMED_CURVE`, and the functions `mbedtls_ecp_curve_info_from_tls_id`, `mbedtls_ecp_tls_read_group`, `mbedtls_ecp_tls_read_group_id` and `mbedtls_ecp_tls_write_group`. The PSA crypto API does not have this dedicated support for the TLS protocol.
+* Retrieving the parameters of a curve from the fields of an `mbedtls_ecp_group` structure.
+
+#### Information about supported curves
+
+The PSA API does not currently have a discovery mechanism for cryptographic mechanisms (although one may be added in the future). Thus there is no equivalent for `MBEDTLS_ECP_DP_MAX` and the functions `mbedtls_ecp_curve_list` and `mbedtls_ecp_grp_id_list`.
+
+The API provies macros that give the maximum supported sizes for various kinds of objects. The following table lists equivalents for `MBEDTLS_ECP_MAX_xxx` macros.
+
+| Legacy macro | PSA equivalent |
+| ------------ | -------------- |
+| `MBEDTLS_ECP_MAX_BITS` | [`PSA_VENDOR_ECC_MAX_CURVE_BITS`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_VENDOR_ECC_MAX_CURVE_BITS) |
+| `MBEDTLS_ECP_MAX_BYTES` | `PSA_BITS_TO_BYTES(PSA_VENDOR_ECC_MAX_CURVE_BITS)` |
+| `MBEDTLS_ECP_MAX_PT_LEN` | [`PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE) |
+
+#### Restartable ECC
+
+The PSA API supports the equivalent of restartable operations, but only for signatures at the time of writing. See “[Restartable ECDSA signature](#restartable-ecdsa-signature)”.
+
+There is no PSA API for elliptic curve arithmetic as such, and therefore no equivalent of `mbedtls_ecp_restart_ctx` and functions that operate on it.
+
+There is PSA no equivalent of the `MBEDTLS_ECP_OPS_xxx` constants.
 
 #### ECC functionality with no PSA equivalent
 
 There is no PSA equivalent of `mbedtls_ecdsa_can_do` and `mbedtls_ecdh_can_do` to query the capabilities of a curve at runtime. Check the documentation of each curve family to see what algorithms it supports.
 
 There is no PSA equivalent to the types `mbedtls_ecdsa_context` and `mbedtls_ecdsa_restart_ctx`, and to basic ECDSA context manipulation functions including `mbedtls_ecdsa_from_keypair`, because they are not needed: the PSA API does not have ECDSA-specific context types.
+
+#### No curve arithmetic
+
+The PSA API is a cryptography API, not an arithmetic API. As a consequence, there is no PSA equivalent for the ECC arithmetic functionality exposed by `ecp.h`:
+
+* Manipulation of point objects and input-output: the type `mbedtls_ecp_point` and functions operating on it (`mbedtls_ecp_point_xxx`, `mbedtls_ecp_copy`, `mbedtls_ecp_{set,is}_zero`, `mbedtls_ecp_tls_{read,write}_point`). Note that the PSA export format for public keys corresponds to the uncompressed point format (`MBEDTLS_ECP_PF_UNCOMPRESSED`), so [`psa_import_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga0336ea76bf30587ab204a8296462327b), [`psa_export_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga668e35be8d2852ad3feeef74ac6f75bf) and [`psa_export_public_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1gaf22ae73312217aaede2ea02cdebb6062) are equivalent to `mbedtls_ecp_point_read_binary` and `mbedtls_ecp_point_write_binary` for uncompressed points. The PSA API does not currently support compressed points, but it is likely that such support will be added in the future.
+* Manipulation of key pairs as such, with a bridge to bignum arithmetic (`mbedtls_ecp_keypair` type, `mbedtls_ecp_export`). However, the PSA export format for ECC private keys used by [`psa_import_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga0336ea76bf30587ab204a8296462327b), [`psa_export_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga668e35be8d2852ad3feeef74ac6f75bf) is the same as the format used by `mbedtls_ecp_read_key` and `mbedtls_ecp_write_key`.
+* Elliptic curve arithmetic (`mbedtls_ecp_mul`, `mbedtls_ecp_muladd` and their restartable variants).
 
 ### Additional information about RSA
 
@@ -1196,6 +1265,8 @@ The PSA API does not provide direct access to the exponentiation primitive as wi
 The PSA API does not support constructing RSA keys progressively from numbers with `mbedtls_rsa_import` or `mbedtls_rsa_import_raw` followed by `mbedtls_rsa_complete`. See “[Importing a PK key by wrapping](#importing-a-pk-key-by-wrapping)”.
 
 There is no direct equivalent of `mbedtls_rsa_export`, `mbedtls_rsa_export_raw` and `mbedtls_rsa_export_crt` to export some of the numbers in a key. You can export the whole key with `psa_export_key`, or with `psa_export_public_key` to export the public key from a key pair object. See also “[Exporting a public key or a key pair](#exporting-a-public-key-or-a-key-pair)”.
+
+A PSA key object is immutable, so there is no need for an equivalent of `mbedtls_rsa_copy`. (There is a function `psa_copy_key`, but it is only useful to make a copy of a key with a different policy of ownership; both concepts are out of scope of this document since they have no equivalent in the legacy API.)
 
 ### PK format support interfaces
 

@@ -21,7 +21,7 @@
 
 #if !defined(MBEDTLS_ECP_WITH_MPI_UINT)
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_LIGHT)
 
 #include "mbedtls/ecp.h"
 #include "mbedtls/platform_util.h"
@@ -5466,5 +5466,5 @@ static int ecp_mod_p256k1(mbedtls_mpi *N)
 
 #endif /* !MBEDTLS_ECP_ALT */
 
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_LIGHT */
 #endif /* MBEDTLS_ECP_WITH_MPI_UINT */

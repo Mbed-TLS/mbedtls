@@ -196,6 +196,10 @@ If a mechanism is not enabled by `PSA_WANT_xxx`, Mbed TLS will often not include
 
 Under the hood, `PSA_WANT_xxx` enables the necessary legacy modules. Note that if a mechanism has a PSA accelerator driver, the corresponding legacy module is typically not needed. Thus applications that use a cryptographic mechanism both through the legacy API and through the PSA API need to explicitly enable both the `PSA_WANT_xxx` symbols and the `MBEDTLS_xxx` symbols.
 
+### Self-tests
+
+There is currently [no PSA equivalent to the self-tests](https://github.com/Mbed-TLS/mbedtls/issues/7781) enabled by `MBEDTLS_SELF_TEST`.
+
 ## Miscellaneous support modules
 
 ### Error messages

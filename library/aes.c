@@ -1083,8 +1083,8 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
                 goto exit;
             }
             /* Avoid using the NEON implementation of mbedtls_xor. Because of the dependency on
-            * the result for the next block in CBC, and the cost of transferring that data from
-            * NEON registers, NEON is slower on aarch64. */
+             * the result for the next block in CBC, and the cost of transferring that data from
+             * NEON registers, NEON is slower on aarch64. */
             mbedtls_xor_no_simd(output, output, iv, 16);
 
             memcpy(iv, temp, 16);
@@ -1130,7 +1130,7 @@ typedef unsigned char mbedtls_be128[16];
  */
 MBEDTLS_OPTIMIZE_ALWAYS
 static inline void mbedtls_gf128mul_x_ble(unsigned char r[16],
-                                   const unsigned char x[16])
+                                          const unsigned char x[16])
 {
     uint64_t a, b, ra, rb;
 

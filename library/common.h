@@ -168,7 +168,10 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
  * \param   b Pointer to input (buffer of at least \p n bytes)
  * \param   n Number of bytes to process.
  */
-static inline void mbedtls_xor_no_simd(unsigned char *r, const unsigned char *a, const unsigned char *b, size_t n)
+static inline void mbedtls_xor_no_simd(unsigned char *r,
+                                       const unsigned char *a,
+                                       const unsigned char *b,
+                                       size_t n)
 {
     size_t i = 0;
 #if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)

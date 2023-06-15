@@ -101,6 +101,7 @@ int mbedtls_aesce_has_support(void)
 #endif
 }
 
+MBEDTLS_OPTIMIZE_ALWAYS
 static uint8x16_t aesce_encrypt_block(uint8x16_t block,
                                       unsigned char *keys,
                                       int rounds)
@@ -167,6 +168,7 @@ rounds_10:
     return block;
 }
 
+MBEDTLS_OPTIMIZE_ALWAYS
 static uint8x16_t aesce_decrypt_block(uint8x16_t block,
                                       unsigned char *keys,
                                       int rounds)
@@ -249,6 +251,7 @@ rounds_10:
 /*
  * AES-ECB block en(de)cryption
  */
+MBEDTLS_OPTIMIZE_ALWAYS
 int mbedtls_aesce_crypt_ecb(mbedtls_aes_context *ctx,
                             int mode,
                             const unsigned char input[16],

@@ -105,22 +105,64 @@ static uint8x16_t aesce_encrypt_block(uint8x16_t block,
                                       unsigned char *keys,
                                       int rounds)
 {
-    for (int i = 0; i < rounds - 1; i++) {
-        /* AES AddRoundKey, SubBytes, ShiftRows (in this order).
-         * AddRoundKey adds the round key for the previous round. */
-        block = vaeseq_u8(block, vld1q_u8(keys + i * 16));
-        /* AES mix columns */
-        block = vaesmcq_u8(block);
+    /* Assume either 10, 12 or 14 rounds */
+    if (rounds == 10) {
+        goto rounds_10;
     }
+    if (rounds == 12) {
+        goto rounds_12;
+    }
+    block = vaeseq_u8(block, vld1q_u8(keys));
+    block = vaesmcq_u8(block);
+    keys += 16;
+    block = vaeseq_u8(block, vld1q_u8(keys));
+    block = vaesmcq_u8(block);
+    keys += 16;
+rounds_12:
+    block = vaeseq_u8(block, vld1q_u8(keys));
+    block = vaesmcq_u8(block);
+    keys += 16;
+    block = vaeseq_u8(block, vld1q_u8(keys));
+    block = vaesmcq_u8(block);
+    keys += 16;
+rounds_10:
+    block = vaeseq_u8(block, vld1q_u8(keys));
+    block = vaesmcq_u8(block);
+    keys += 16;
+    block = vaeseq_u8(block, vld1q_u8(keys));
+    block = vaesmcq_u8(block);
+    keys += 16;
+    block = vaeseq_u8(block, vld1q_u8(keys));
+    block = vaesmcq_u8(block);
+    keys += 16;
+    block = vaeseq_u8(block, vld1q_u8(keys));
+    block = vaesmcq_u8(block);
+    keys += 16;
+    block = vaeseq_u8(block, vld1q_u8(keys));
+    block = vaesmcq_u8(block);
+    keys += 16;
+    block = vaeseq_u8(block, vld1q_u8(keys));
+    block = vaesmcq_u8(block);
+    keys += 16;
+    block = vaeseq_u8(block, vld1q_u8(keys));
+    block = vaesmcq_u8(block);
+    keys += 16;
+    block = vaeseq_u8(block, vld1q_u8(keys));
+    block = vaesmcq_u8(block);
+    keys += 16;
+    block = vaeseq_u8(block, vld1q_u8(keys));
+    block = vaesmcq_u8(block);
+    keys += 16;
 
     /* AES AddRoundKey for the previous round.
      * SubBytes, ShiftRows for the final round.  */
-    block = vaeseq_u8(block, vld1q_u8(keys + (rounds -1) * 16));
+    block = vaeseq_u8(block, vld1q_u8(keys));
+    keys += 16;
 
     /* Final round: no MixColumns */
 
     /* Final AddRoundKey */
-    block = veorq_u8(block, vld1q_u8(keys + rounds  * 16));
+    block = veorq_u8(block, vld1q_u8(keys));
 
     return block;
 }

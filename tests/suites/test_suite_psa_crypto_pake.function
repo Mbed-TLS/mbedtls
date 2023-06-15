@@ -2,6 +2,7 @@
 #include <stdint.h>
 
 #include "psa/crypto.h"
+#include "psa/crypto_extra.h"
 
 typedef enum {
     ERR_NONE = 0,
@@ -39,6 +40,8 @@ typedef enum {
     ERR_INJECT_ROUND2_SERVER_KEY_SHARE,
     ERR_INJECT_ROUND2_SERVER_ZK_PUBLIC,
     ERR_INJECT_ROUND2_SERVER_ZK_PROOF,
+    ERR_INJECT_EXTRA_OUTPUT,
+    ERR_INJECT_EXTRA_INPUT,
     /* erros issued from the .data file */
     ERR_IN_SETUP,
     ERR_IN_SET_USER,
@@ -67,6 +70,13 @@ static const uint8_t jpake_client_id[] = { 'c', 'l', 'i', 'e', 'n', 't' };
     if (this_stage == err_stage)                  \
     {                                               \
         *(buf + 7) ^= 1;                           \
+    }
+
+#define DO_ROUND_CONDITIONAL_CHECK_FAILURE(this_stage, function) \
+    if (this_stage == err_stage)                                 \
+    {                                                            \
+        TEST_EQUAL(function, expected_error_arg);                \
+        break;                                                   \
     }
 
 #define DO_ROUND_UPDATE_OFFSETS(main_buf_offset, step_offset, step_size) \
@@ -185,6 +195,12 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
                 buffer0 + buffer0_off);
             DO_ROUND_UPDATE_OFFSETS(buffer0_off, s_x2_pr_off, s_x2_pr_len);
 
+            size_t extra_output_len;
+            DO_ROUND_CONDITIONAL_CHECK_FAILURE(
+                ERR_INJECT_EXTRA_OUTPUT,
+                psa_pake_output(server, PSA_PAKE_STEP_KEY_SHARE,
+                                buffer0 + s_g2_off, 512 - s_g2_off, &extra_output_len));
+            (void) extra_output_len;
             /*
              * When injecting errors in inputs, the implementation is
              * free to detect it right away of with a delay.
@@ -222,6 +238,12 @@ static void ecjpake_do_round(psa_algorithm_t alg, unsigned int primitive,
                                         buffer0 + s_x2_pr_off,
                                         s_x2_pr_len);
                 DO_ROUND_CHECK_FAILURE();
+
+                /* Note: Must have client_input_first == 1 to inject extra input */
+                DO_ROUND_CONDITIONAL_CHECK_FAILURE(
+                    ERR_INJECT_EXTRA_INPUT,
+                    psa_pake_input(client, PSA_PAKE_STEP_KEY_SHARE,
+                                   buffer0 + s_g2_off, s_g2_len));
 
                 /* Error didn't trigger, make test fail */
                 if ((err_stage >= ERR_INJECT_ROUND1_SERVER_KEY_SHARE_PART1) &&

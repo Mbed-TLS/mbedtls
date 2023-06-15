@@ -1039,6 +1039,24 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
 }
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
+
+#if defined(__ARM_NEON) && defined(__aarch64__)
+/* Avoid using the NEON implementation of mbedtls_xor. Because of the dependency on
+ * the result for the next block in CBC, and the cost of transferring that data from
+ * NEON registers, it is faster to use the following on aarch64.
+ * For 32-bit arm, NEON should be faster. */
+#define CBC_XOR_16(r, a, b) do {                                           \
+        mbedtls_put_unaligned_uint64(r,                                    \
+                                     mbedtls_get_unaligned_uint64(a) ^     \
+                                     mbedtls_get_unaligned_uint64(b));     \
+        mbedtls_put_unaligned_uint64(r + 8,                                \
+                                     mbedtls_get_unaligned_uint64(a + 8) ^ \
+                                     mbedtls_get_unaligned_uint64(b + 8)); \
+} while (0)
+#else
+#define CBC_XOR_16(r, a, b) mbedtls_xor(r, a, b, 16)
+#endif
+
 /*
  * AES-CBC buffer encryption/decryption
  */
@@ -1072,6 +1090,8 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
     }
 #endif
 
+    const unsigned char *ivp = iv;
+
     if (mode == MBEDTLS_AES_DECRYPT) {
         while (length > 0) {
             memcpy(temp, input, 16);
@@ -1079,8 +1099,7 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
             if (ret != 0) {
                 goto exit;
             }
-
-            mbedtls_xor(output, output, iv, 16);
+            CBC_XOR_16(output, output, iv);
 
             memcpy(iv, temp, 16);
 
@@ -1090,18 +1109,19 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
         }
     } else {
         while (length > 0) {
-            mbedtls_xor(output, input, iv, 16);
+            CBC_XOR_16(output, input, ivp);
 
             ret = mbedtls_aes_crypt_ecb(ctx, mode, output, output);
             if (ret != 0) {
                 goto exit;
             }
-            memcpy(iv, output, 16);
+            ivp = output;
 
             input  += 16;
             output += 16;
             length -= 16;
         }
+        memcpy(iv, ivp, 16);
     }
     ret = 0;
 
@@ -1176,7 +1196,7 @@ int mbedtls_aes_crypt_xts(mbedtls_aes_xts_context *ctx,
     }
 
     while (blocks--) {
-        if (leftover && (mode == MBEDTLS_AES_DECRYPT) && blocks == 0) {
+        if (MBEDTLS_UNLIKELY(leftover && (mode == MBEDTLS_AES_DECRYPT) && blocks == 0)) {
             /* We are on the last block in a decrypt operation that has
              * leftover bytes, so we need to use the next tweak for this block,
              * and this tweak for the leftover bytes. Save the current tweak for

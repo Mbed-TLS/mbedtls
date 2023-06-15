@@ -31,6 +31,10 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#if defined(__ARM_NEON)
+#include <arm_neon.h>
+#endif /* __ARM_NEON */
+
 /** Helper to define a function as static except when building invasive tests.
  *
  * If a function is only used inside its own source file and should be
@@ -125,10 +129,25 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
 {
     size_t i = 0;
 #if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)
+#if defined(__ARM_NEON)
+    for (; (i + 16) <= n; i += 16) {
+        uint8x16_t v1 = vld1q_u8(a + i);
+        uint8x16_t v2 = vld1q_u8(b + i);
+        uint8x16_t x = veorq_u8(v1, v2);
+        vst1q_u8(r + i, x);
+    }
+#elif defined(__amd64__) || defined(__x86_64__) || defined(__aarch64__)
+    /* This codepath probably only makes sense on architectures with 64-bit registers */
+    for (; (i + 8) <= n; i += 8) {
+        uint64_t x = mbedtls_get_unaligned_uint64(a + i) ^ mbedtls_get_unaligned_uint64(b + i);
+        mbedtls_put_unaligned_uint64(r + i, x);
+    }
+#else
     for (; (i + 4) <= n; i += 4) {
         uint32_t x = mbedtls_get_unaligned_uint32(a + i) ^ mbedtls_get_unaligned_uint32(b + i);
         mbedtls_put_unaligned_uint32(r + i, x);
     }
+#endif
 #endif
     for (; i < n; i++) {
         r[i] = a[i] ^ b[i];
@@ -162,6 +181,18 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
 #define MBEDTLS_STATIC_ASSERT(expr, msg)    static_assert(expr, msg);
 #else
 #define MBEDTLS_STATIC_ASSERT(expr, msg)
+#endif
+
+/* Define compiler branch hints */
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_expect)
+#define MBEDTLS_LIKELY(x)       __builtin_expect((x), 1)
+#define MBEDTLS_UNLIKELY(x)     __builtin_expect((x), 0)
+#endif
+#endif
+#if !defined(MBEDTLS_LIKELY)
+#define MBEDTLS_LIKELY(x)       x
+#define MBEDTLS_UNLIKELY(x)     x
 #endif
 
 #endif /* MBEDTLS_LIBRARY_COMMON_H */

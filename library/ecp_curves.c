@@ -4997,8 +4997,7 @@ static inline void sub32(uint32_t *dst, uint32_t src, signed char *carry)
  * If the result is negative, we get it in the form
  * c * 2^bits + N, with c negative and N positive shorter than 'bits'
  */
-MBEDTLS_STATIC_TESTABLE
-void mbedtls_ecp_fix_negative(mbedtls_mpi *N, signed char c, size_t bits)
+static void mbedtls_ecp_fix_negative(mbedtls_mpi *N, signed char c, size_t bits)
 {
     size_t i;
 

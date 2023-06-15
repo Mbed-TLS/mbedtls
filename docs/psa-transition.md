@@ -163,11 +163,11 @@ The availability of cryptographic mechanisms in the PSA API is based on a system
 * To make `PSA_KEY_TYPE_ttt` available, enable `PSA_WANT_KEY_TYPE_ttt`.
 
     As an exception, starting in Mbed TLS 3.5.0, for key pair types, the feature selection is more fine-grained, with an additional suffix:
-    * `PSA_KEY_TYPE_xxx_USE` enables support for operations with a key of that type (for enabled algorithms). This is automatically enabled if any key creation method (`IMPORT`, `GENERATE` or `DERIVE`) is enabled.
-    * `PSA_KEY_TYPE_xxx_IMPORT` enables support for `psa_import_key` to import a key of that type.
-    * `PSA_KEY_TYPE_xxx_GENERATE` enables support for `psa_generate_key` to randomly generate a key of that type.
-    * `PSA_KEY_TYPE_xxx_DERIVE` enables support for `psa_key_derivation_output_key` to deterministically derive a key of that type.
-    * `PSA_KEY_TYPE_xxx_EXPORT` enables support for `psa_export_key` to export a key of that type.
+    * `PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_BASIC` enables basic support for the key type, and in particular support for operations with a key of that type for enabled algorithms. This is automatically enabled if any of the other `PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_yyy` options is enabled.
+    * `PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_IMPORT` enables support for `psa_import_key` to import a key of that type.
+    * `PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_GENERATE` enables support for `psa_generate_key` to randomly generate a key of that type.
+    * `PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_DERIVE` enables support for `psa_key_derivation_output_key` to deterministically derive a key of that type.
+    * `PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_EXPORT` enables support for `psa_export_key` to export a key of that type.
 
     Enabling any support for a key pair type automatically enables support for the corresponding public key type, as well as support for `psa_export_public_key` on the private key.
 
@@ -185,7 +185,7 @@ For example, the following configuration enables hashing with SHA-256, AEAD with
 
 #define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE 1
 // ^^ In Mbed TLS <= 3.4, enable PSA_WANT_KEY_TYPE_ECC_KEY_PAIR instead
-// ^^ implicitly enables PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_USE, PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY
+// ^^ implicitly enables PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC, PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY
 #define PSA_WANT_ECC_SECP_R1_256 1 // secp256r1 (suitable for ECDSA and ECDH)
 #define PSA_WANT_ECC_MONTGOMERY_255 1 // Curve25519 (suitable for ECDH)
 #define PSA_WANT_ALG_DETERMINISTIC_ECDSA 1

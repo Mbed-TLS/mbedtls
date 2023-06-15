@@ -503,7 +503,7 @@ int mbedtls_x509_info_key_usage(char **buf, size_t *size,
 /**
  * \brief          This function parses a CN string as an IP address.
  *
- * \param cn       The CN string to parse. CN string MUST be NUL-terminated.
+ * \param cn       The CN string to parse. CN string MUST be null-terminated.
  * \param dst      The target buffer to populate with the binary IP address.
  *                 The buffer MUST be 16 bytes to save IPv6, and should be
  *                 4-byte aligned if the result will be used as struct in_addr.

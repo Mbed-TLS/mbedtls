@@ -814,14 +814,14 @@
 #endif
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED)
-#if !( defined(PSA_WANT_ALG_ECDH) && defined(MBEDTLS_X509_CRT_PARSE_C) && \
+#if !( (defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)) && defined(MBEDTLS_X509_CRT_PARSE_C) && \
        ( defined(MBEDTLS_PK_HAVE_ECDSA) || defined(MBEDTLS_PKCS1_V21) ) )
 #error "MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED defined, but not all prerequisites"
 #endif
 #endif
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED)
-#if !( defined(PSA_WANT_ALG_ECDH) )
+#if !( defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH) )
 #error "MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED defined, but not all prerequisites"
 #endif
 #endif

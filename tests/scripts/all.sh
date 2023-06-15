@@ -3997,7 +3997,8 @@ component_test_tls13_only_ephemeral_ffdh () {
     scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED
     scripts/config.py unset MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED
     scripts/config.py unset MBEDTLS_SSL_EARLY_DATA
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECDH
+    scripts/config.py unset MBEDTLS_ECDH_C
+
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test_suite_ssl: TLS 1.3 only, only ephemeral ffdh key exchange mode"
@@ -4038,7 +4039,7 @@ component_test_tls13_only_psk_ephemeral_ffdh () {
     scripts/config.py unset MBEDTLS_PKCS1_V21
     scripts/config.py unset MBEDTLS_PKCS7_C
     scripts/config.py set   MBEDTLS_SSL_EARLY_DATA
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECDH
+    scripts/config.py unset MBEDTLS_ECDH_C
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
     msg "test_suite_ssl: TLS 1.3 only, only PSK ephemeral ffdh key exchange mode"

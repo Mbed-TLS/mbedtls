@@ -1642,7 +1642,7 @@
  *
  * Enable TLS 1.3 ephemeral key exchange mode.
  *
- * Requires: PSA_WANT_ALG_ECDH
+ * Requires: PSA_WANT_ALG_ECDH or PSA_WANT_ALG_FFDH
  *           MBEDTLS_X509_CRT_PARSE_C
  *           and at least one of:
  *               MBEDTLS_ECDSA_C or (MBEDTLS_USE_PSA_CRYPTO and PSA_WANT_ALG_ECDSA)
@@ -1660,7 +1660,7 @@
  *
  * Enable TLS 1.3 PSK ephemeral key exchange mode.
  *
- * Requires: PSA_WANT_ALG_ECDH
+ * Requires: PSA_WANT_ALG_ECDH or PSA_WANT_ALG_FFDH
  *
  * Comment to disable support for the PSK ephemeral key exchange mode in
  * TLS 1.3. If MBEDTLS_SSL_PROTO_TLS1_3 is not enabled, this option does not

@@ -83,7 +83,7 @@
 #error "PSA_WANT_ALG_RSA_PSS defined, but not all prerequisites"
 #endif
 
-#if (defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_USE) || \
+#if (defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC) || \
     defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT) || \
     defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT) || \
     defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE) || \
@@ -92,7 +92,7 @@
 #error "PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_xxx defined, but not all prerequisites"
 #endif
 
-#if (defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_USE) || \
+#if (defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC) || \
     defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT) || \
     defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT) || \
     defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE)) && \
@@ -100,7 +100,7 @@
 #error "PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_xxx defined, but not all prerequisites"
 #endif
 
-#if (defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_USE) || \
+#if (defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_BASIC) || \
     defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_IMPORT) || \
     defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_EXPORT) || \
     defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_GENERATE)) && \

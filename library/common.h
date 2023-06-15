@@ -154,6 +154,42 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
     }
 }
 
+/**
+ * Perform a fast block XOR operation, such that
+ * r[i] = a[i] ^ b[i] where 0 <= i < n
+ *
+ * In some situations, this can perform better than mbedtls_xor (e.g., it's about 5%
+ * better in AES-CBC).
+ *
+ * \param   r Pointer to result (buffer of at least \p n bytes). \p r
+ *            may be equal to either \p a or \p b, but behaviour when
+ *            it overlaps in other ways is undefined.
+ * \param   a Pointer to input (buffer of at least \p n bytes)
+ * \param   b Pointer to input (buffer of at least \p n bytes)
+ * \param   n Number of bytes to process.
+ */
+static inline void mbedtls_xor_no_simd(unsigned char *r, const unsigned char *a, const unsigned char *b, size_t n)
+{
+    size_t i = 0;
+#if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS)
+#if defined(__amd64__) || defined(__x86_64__) || defined(__aarch64__)
+    /* This codepath probably only makes sense on architectures with 64-bit registers */
+    for (; (i + 8) <= n; i += 8) {
+        uint64_t x = mbedtls_get_unaligned_uint64(a + i) ^ mbedtls_get_unaligned_uint64(b + i);
+        mbedtls_put_unaligned_uint64(r + i, x);
+    }
+#else
+    for (; (i + 4) <= n; i += 4) {
+        uint32_t x = mbedtls_get_unaligned_uint32(a + i) ^ mbedtls_get_unaligned_uint32(b + i);
+        mbedtls_put_unaligned_uint32(r + i, x);
+    }
+#endif
+#endif
+    for (; i < n; i++) {
+        r[i] = a[i] ^ b[i];
+    }
+}
+
 /* Fix MSVC C99 compatible issue
  *      MSVC support __func__ from visual studio 2015( 1900 )
  *      Use MSVC predefine macro to avoid name check fail.

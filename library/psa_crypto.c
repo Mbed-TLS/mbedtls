@@ -5499,25 +5499,25 @@ static psa_status_t psa_key_derivation_pbkdf2_generate_block(
                                                pbkdf2->password_length,
                                                prf_alg);
     if (status != PSA_SUCCESS) {
-        return status;
+        goto cleanup;
     }
     status = psa_mac_update(&mac_operation, pbkdf2->salt, pbkdf2->salt_length);
     if (status != PSA_SUCCESS) {
-        return status;
+        goto cleanup;
     }
     status = psa_mac_update(&mac_operation, block_counter, sizeof(block_counter));
     if (status != PSA_SUCCESS) {
-        return status;
+        goto cleanup;
     }
     status = psa_mac_sign_finish(&mac_operation, U_i, sizeof(U_i),
                                  &mac_output_length);
     if (status != PSA_SUCCESS) {
-        return status;
+        goto cleanup;
     }
 
     if (mac_output_length != prf_output_length) {
         status = PSA_ERROR_CORRUPTION_DETECTED;
-        return status;
+        goto cleanup;
     }
 
     memcpy(U_accumulator, U_i, prf_output_length);
@@ -5530,12 +5530,16 @@ static psa_status_t psa_key_derivation_pbkdf2_generate_block(
                                                 U_i, sizeof(U_i),
                                                 &mac_output_length);
         if (status != PSA_SUCCESS) {
-            return status;
+            goto cleanup;
         }
 
         mbedtls_xor(U_accumulator, U_accumulator, U_i, prf_output_length);
     }
-    return PSA_SUCCESS;
+
+cleanup:
+    /* Zeroise buffers to clear sensitive data from memory. */
+    mbedtls_platform_zeroize(U_i, PSA_MAC_MAX_SIZE);
+    return status;
 }
 
 static psa_status_t psa_key_derivation_pbkdf2_read(

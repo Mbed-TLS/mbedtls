@@ -195,4 +195,10 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
 #define MBEDTLS_UNLIKELY(x)     x
 #endif
 
+#if defined(__GNUC__) && !defined(__ARMCC_VERSION) && !defined(__clang__) \
+    && !defined(__llvm__) && !defined(__INTEL_COMPILER)
+/* Defined if the compiler really is gcc and not clang, etc */
+#define MBEDTLS_COMPILER_IS_GCC
+#endif
+
 #endif /* MBEDTLS_LIBRARY_COMMON_H */

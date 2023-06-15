@@ -712,9 +712,9 @@ The following cryptographic algorithms work with ECC keys:
 
 #### Diffie-Hellman mechanism selection
 
-A finite-field Diffie-Hellman public key has the type [`PSA_KEY_TYPE_DH_PUBLIC_KEY`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__crypto__types/#group__crypto__types_1gaa22f0f2ea89b929f2fadc19890cc5d5c).
+A finite-field Diffie-Hellman key pair has the type [`PSA_KEY_TYPE_DH_KEY_PAIR(group)`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__crypto__types/#group__crypto__types_1gab4f857c4cd56f5fe65ded421e61bcc8c) where `group` is a group family as explained below.
 
-A finite-field Diffie-Hellman key pair has the type [`PSA_KEY_TYPE_DH_KEY_PAIR`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__crypto__types/#group__crypto__types_1gab4f857c4cd56f5fe65ded421e61bcc8c). A key with this type can be used both for private-key and public-key operations (there is no separate key type for a private key without the corresponding public key).
+A finite-field Diffie-Hellman public key has the type [`PSA_KEY_TYPE_DH_PUBLIC_KEY(group)`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__crypto__types/#group__crypto__types_1gaa22f0f2ea89b929f2fadc19890cc5d5c) where `group` is a group family as explained below. Due to the design of the API, there is rarely a need to use Diffie-Hellman public key objects.
 
 The PSA API only supports Diffie-Hellman with predefined groups. A group is fully determined by a group family identifier and the public key size in bits.
 
@@ -1020,9 +1020,147 @@ The PSA API does not expose partially constructed key objects. This makes the fo
 
 ### Key agreement
 
-_(Section not written yet)_
+The PSA API has a generic interface for key agreement, covering the main use of both `ecdh.h` and `dhm.h`.
 
-<!-- TODO: ecdh.h, dhm.h -->
+#### Diffie-Hellman key pair management
+
+The PSA API manipulates keys as such, rather than via an operation context. Thus, to use Diffie-Hellman, you need to create a key object, then perform the key exchange, then destroy the key. There is no equivalent to the types `mbedtls_ecdh_context` and `mbedtls_dhm_context`.
+
+Here is an overview of the lifecycle of a key object.
+
+1. First define the attributes of the key by filling a [`psa_key_attributes_t` structure](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1ga0ec645e1fdafe59d591104451ebf5680). You need to set the following parameters:
+    * Call [`psa_set_key_type`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1ga6857ef0ecb3fa844d4536939d9c64025) to set the key type to the desired `PSA_KEY_TYPE_xxx` value:
+        * [`PSA_KEY_TYPE_DH_KEY_PAIR(group)`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__crypto__types/#group__crypto__types_1gab4f857c4cd56f5fe65ded421e61bcc8c) for finite-field Diffie-Hellman (see “[Diffie-Hellman mechanism selection](#diffie-hellman-mechanism-selection)”).
+    * [`PSA_KEY_TYPE_ECC_KEY_PAIR(curve)`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__crypto__types/#group__crypto__types_1ga0b6f5d4d5037c54ffa850d8059c32df0) for elliptic-curve Diffie-Hellman (see “[Elliptic curve mechanism selection](#elliptic-curve-mechanism-selection)”).
+    * Call [`psa_set_key_bits`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1gaf61683ac87f87687a40262b5afbfa018) to set the private key size in bits. This is optional with `psa_import_key`, which determines the key size from the length of the key material.
+    * Call [`psa_set_key_algorithm`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1gaeb8341ca52baa0279475ea3fd3bcdc98) to select the appropriate algorithm:
+    * [`PSA_ALG_ECDH`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__crypto__types/#group__crypto__types_1gab2dbcf71b63785e7dd7b54a100edee43) or [`PSA_ALG_FFDH`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__crypto__types/#group__crypto__types_1ga0ebbb6f93a05b6511e6f108ffd2d1eb4) for a raw key agreement.
+    * [`PSA_ALG_KEY_AGREEMENT(ka, kdf)`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__crypto__types/#group__crypto__types_1ga78bb81cffb87a635c247725eeb2a2682) if the key will be used as part of a key derivation, where:
+        * `ka` is either `PSA_ALG_ECDH` or `PSA_ALG_FFDH`.
+        * `kdf` is a key derivation algorithm.
+    * Call [`psa_set_key_usage_flags`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1ga42a65b3c4522ce9b67ea5ea7720e17de) to enable at least [`PSA_KEY_USAGE_DERIVE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__policy/#c.PSA_KEY_USAGE_DERIVE). See “[Public-key cryptography policies](#public-key-cryptography-policies)” for more information.
+2. Call one of the key creation functions, passing the attributes defined in the previous step, to get an identifier of type [`psa_key_id_t`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__types_8h/#_CPPv412psa_key_id_t) to the key object.
+    * Use [`psa_generate_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__random/#group__random_1ga1985eae417dfbccedf50d5fff54ea8c5) to generate a random key. This is normally the case for a Diffie-Hellman key.
+    * Use [`psa_import_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga0336ea76bf30587ab204a8296462327b) to directly import key material.
+    * If the key is derived deterministically from other material, use the [key derivation interface](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/) and create the key with [`psa_key_derivation_output_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1gada7a6e17222ea9e7a6be6864a00316e1).
+3. Call the functions in the following sections to perform operations on the key. The same key object can be used in multiple operations.
+4. To free the resources used by the key object, call [`psa_destroy_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__management/#group__key__management_1ga5f52644312291335682fbc0292c43cd2) after all operations with that key are finished.
+
+#### Performing a key agreement
+
+Call [`psa_export_public_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1gaf22ae73312217aaede2ea02cdebb6062) to obtain the public key that needs to be sent to the other party.
+Use the macros [`PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE) or [`PSA_EXPORT_PUBLIC_KEY_MAX_SIZE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_EXPORT_PUBLIC_KEY_MAX_SIZE) to determine the size of the output buffer.
+
+Call [`psa_raw_key_agreement`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1ga90fdd2716124d0bd258826184824675f) to calculate the shared secret from your private key and the other party's public key.
+Use the macros [`PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE) or [`PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE) to determine the size of the output buffer.
+
+Call [`psa_key_derivation_key_agreement`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1ga2cd5a8ac906747d3204ec442db78745f) instead of `psa_raw_key_agreement` to use the resulting shared secret as the secret input to a key derivation. See “[HKDF](#hkdf)” for an example of the key derivation interface.
+
+#### Translating a legacy key agreement contextless flow
+
+A typical flow for ECDH using the legacy API without a context object is:
+
+1. Initialize objects:
+    * `mbedtls_ecp_group grp` for the curve;
+    * `mbedtls_mpi our_priv` for our private key;
+    * `mbedtls_ecp_point our_pub` for our public key;
+    * `mbedtls_ecp_point their_pub` for their public key (this may be the same variable as `our_pub` if the application does not need to hold both at the same time);
+    * `mbedtls_mpi z` for the shared secret (this may be the same variable as `our_priv` when doing ephemeral ECDH).
+2. Call `mbedtls_ecp_group_load` on `grp` to select the curve.
+3. Call `mbedtls_ecdh_gen_public` on `grp`, `our_priv` (output) and `our_pub` (output) to generate a key pair and retrieve the corresponding public key.
+4. Send `our_pub` to the peer. Retriev the peer's public key and import it into `their_pub`. These two actions may be performed in either order.
+5. Call `mbedtls_ecdh_compute_shared` on `grp`, `z` (output), `their_pub` and `our_priv`.
+6. Use the raw shared secret `z`, typically, to construct a shared key.
+7. Free `grp`, `our_priv`, `our_pub`, `their_pub` and `z`.
+
+The corresponding flow with the PSA API is as follows:
+
+1. Initialize objects:
+    * `psa_key_id_t our_key`: a handle to our key pair;
+    * `psa_key_attributes_t attributes`: key attributes used in steps 2–3;;
+    * `our_pub`: a buffer of size [`PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE(key_type, bits)`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE) (where `key_type` is the value passed to `psa_set_key_size` in step 2) or [`PSA_EXPORT_PUBLIC_KEY_MAX_SIZE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_EXPORT_PUBLIC_KEY_MAX_SIZE) to hold our key.
+    * `their_pub`: a buffer of the same size, to hold the peer's key. This can be the same as `our_pub` if the application does not need to hold both at the same time;
+    * `shared_secret`: a buffer of size [`PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(key_type, bits)`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE) or [`PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/crypto__sizes_8h/#c.PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE) (if not using a key derivation operation).
+2. Prepare an attribute structure as desccribed in “[Diffie-Hellman key pair management](#diffie-hellman-key-pair-management)”, in particular selecting the curve with `psa_set_key_type`.
+3. Call [`psa_generate_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__random/#group__random_1ga1985eae417dfbccedf50d5fff54ea8c5) on `attributes` and `our_key` (output) to generate a key pair, then [`psa_export_public_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1gaf22ae73312217aaede2ea02cdebb6062) on `our_key` and `our_pub` (output) to obtain our public key.
+4. Send `our_pub` to the peer. Retriev the peer's public key and import it into `their_pub`. These two actions may be performed in either order.
+5. Call [`psa_raw_key_agreement`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1ga90fdd2716124d0bd258826184824675f) on `our_key`, `their_pub` and `shared_secret` (output).  
+   Alternatively, call `psa_key_derivation_key_agreement` to use the shared secret directly in a key derivation operation (see “[Performing a key agreement](#performing-a-key-agreement)”).
+6. Call [`psa_destroy_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__management/#group__key__management_1ga5f52644312291335682fbc0292c43cd2) on `key_id`, and free the memory buffers.
+
+Steps 4–5 are only performed once for ephemeral Diffie-Hellman, but repeated multiple times for static Diffie-Hellman.
+
+#### Translating a legacy key agreement TLS server flow
+
+The legacy API offers the following flow for a Diffie-Hellman key agreement in a TLS server. This flow can also be used with other protocols, on the side of the party that selects the curve or group and sends its public key first.
+
+1. Setup phase:
+    1. Initialize a context of type `mbedtls_ecdh_context` or `mbedtls_dhm_context` with `mbedtls_ecdh_init` or `mbedtls_dhm_init`.
+    2. Call `mbedtls_ecdh_setup` or `mbedtls_dhm_set_group` to select the curve or group.
+    3. Call `mbedtls_ecdh_make_params` or `mbedtls_dhm_make_params` to generate our key pair and obtain a TLS ServerKeyExchange message encoding the selected curve/group and our public key.
+2. Send the ServerKeyExchange message to the peer.
+3. Retrieve the peer's public key.
+4. Call `mbedtls_ecdh_read_public` or `mbedtls_dhm_read_public` on the peer's public key, then call `mbedtls_ecdh_calc_secret` or `mbedtls_dhm_calc_secret` to calculate the shared secret.
+5. Free the context with `mbedtls_ecdh_free` or `mbedtls_dhm_free`.
+
+The corresponding flow with the PSA API is as follows:
+
+1. Setup phase:
+    1. Generate an ECDH or DHM key pair with `psa_generate_key` as described in “[Diffie-Hellman key pair management](#diffie-hellman-key-pair-management)”.
+    2. Call [`psa_export_public_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1gaf22ae73312217aaede2ea02cdebb6062) to obtain our public key.
+    3. Format a ServerKeyExchange message containing the curve/group selection and our public key.
+2. Send the ServerKeyExchange message to the peer.
+3. Retrieve the peer's public key.
+4. Call [`psa_raw_key_agreement`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1ga90fdd2716124d0bd258826184824675f) on `our_key`, `their_pub` and `shared_secret` (output).  
+   Alternatively, call `psa_key_derivation_key_agreement` to use the shared secret directly in a key derivation operation (see “[Performing a key agreement](#performing-a-key-agreement)”).
+5. Call [`psa_destroy_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__management/#group__key__management_1ga5f52644312291335682fbc0292c43cd2) to free the resources associated with our key pair.
+
+#### Translating a legacy key agreement TLS client flow
+
+The legacy API offers the following flow for a Diffie-Hellman key agreement in a TLS client. This flow can also be used with other protocols, on the side of the party that receives a message indicating both the choice of curve or group, and the peer's public key.
+
+1. Upon reception of a TLS ServerKeyExchange message received from the peer, which encodes the selected curve/group and the peer's public key:
+    1. Initialize a context of type `mbedtls_ecdh_context` or `mbedtls_dhm_context` with `mbedtls_ecdh_init` or `mbedtls_dhm_init`.
+    2. Call `mbedtls_ecdh_read_params` or `mbedtls_dhm_read_params` to input the data from the ServerKeyExchange message.
+2. Call `mbedtls_ecdh_make_public` or `mbedtls_dh_make_public` to generate our private key and export our public key.
+3. Send our public key to the peer.
+4. Call `mbedtls_ecdh_calc_secret` or `mbedtls_dhm_calc_secret` to calculate the shared secret.
+5. Free the context with `mbedtls_ecdh_free` or `mbedtls_dhm_free`.
+
+The corresponding flow with the PSA API is as follows:
+
+1. Upon reception of a TLS ServerKeyExchange message received from the peer, which encodes the selected curve/group and the peer's public key:
+    1. Decode the select curve/group and use this to determine a PSA key type (`PSA_KEY_TYPE_ECC_KEY_PAIR(curve)` or `PSA_KEY_TYPE_DH_KEY_PAIR(group)`), a key size and an algorithm.
+2. Generate an ECDH or DHM key pair with `psa_generate_key` as described in “[Diffie-Hellman key pair management](#diffie-hellman-key-pair-management)”.
+   Call [`psa_export_public_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1gaf22ae73312217aaede2ea02cdebb6062) to obtain our public key.
+3. Send our public key to the peer.
+4. Call [`psa_raw_key_agreement`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__derivation/#group__key__derivation_1ga90fdd2716124d0bd258826184824675f) on `our_key`, `their_pub` and `shared_secret` (output).  
+   Alternatively, call `psa_key_derivation_key_agreement` to use the shared secret directly in a key derivation operation (see “[Performing a key agreement](#performing-a-key-agreement)”).
+5. Call [`psa_destroy_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__key__management/#group__key__management_1ga5f52644312291335682fbc0292c43cd2) to free the resources associated with our key pair.
+
+#### ECDH and DHM metadata functions
+
+The legacy function `mbedtls_ecdh_get_params` allows the application to retrieve an `mbedtls_ecp_keypair` containing either our key pair, or the peer's public key. The PSA equivalent depends on the use case:
+
+* With either side, accessing the group: call [`psa_get_key_attributes`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1gacbbf5c11eac6cd70c87ffb936e1b9be2) on the key identifier, then [`psa_get_key_type`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1gae4fb812af4f57aa1ad85e335a865b918) and [`psa_get_key_bits`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1ga5bee85c2164ad3d4c0d42501241eeb06) to obtain metadata about the key.
+* With `MBEDTLS_ECDH_OURS`, accessing the public key: call [`psa_export_public_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1gaf22ae73312217aaede2ea02cdebb6062) on PSA key identifier.
+* With `MBEDTLS_ECDH_OURS`, accessing the private key: call [`psa_export_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga668e35be8d2852ad3feeef74ac6f75bf) on the key identifier. Note that the key policy must allow `PSA_KEY_USAGE_EXPORT` (see “[Public-key cryptography policies](#public-key-cryptography-policies)”).
+* With `MBEDTLS_ECDH_THEIRS`, accessing the public key (there is no private key): there is no PSA equivalent since the PSA API only uses the peer's public key to immediately calculate the shared secret. If your application needs the peer's public key for some other purpose, store it separately.
+
+The functions `mbedtls_dhm_get_bitlen`, `mbedtls_dhm_get_len` and `mbedtls_dhm_get_value` allow the caller to obtain metadata about the keys used for the key exchange. The PSA equivalents access the key identifier:
+
+* `mbedtls_dhm_get_bitlen`, `mbedtls_dhm_get_len`: call [`psa_get_key_attributes`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1gacbbf5c11eac6cd70c87ffb936e1b9be2) on the PSA key identifier, then [`psa_get_key_bits`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__attributes/#group__attributes_1ga5bee85c2164ad3d4c0d42501241eeb06).
+* `mbedtls_dhm_get_value` for `MBEDTLS_DHM_PARAM_X` (our private key): call [`psa_export_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1ga668e35be8d2852ad3feeef74ac6f75bf) on the key identifier. Note that the key policy must allow `PSA_KEY_USAGE_EXPORT` (see “[Public-key cryptography policies](#public-key-cryptography-policies)”).
+* `mbedtls_dhm_get_value` for `MBEDTLS_DHM_PARAM_GX` (our public key): call [`psa_export_public_key`](https://mbed-tls.readthedocs.io/projects/api/en/development/api/group/group__import__export/#group__import__export_1gaf22ae73312217aaede2ea02cdebb6062) on PSA key identifier.
+* `mbedtls_dhm_get_value` for `MBEDTLS_DHM_PARAM_GY` (peer's public key): the there is no PSA equivalent since the PSA API only uses the peer's public key to immediately calculate the shared secret. If your application needs the peer's public key for some other purpose, store it separately.
+* `mbedtls_dhm_get_value` for `MBEDTLS_DHM_PARAM_K` (shared secret): this is the value calculated by `psa_raw_key_agreement` or `psa_key_derivation_key_agreement`. If you need to use it multiple times (for example to derive multiple values independently), call `psa_raw_key_agreement` and make a copy.
+* `mbedtls_dhm_get_value` for `MBEDTLS_DHM_PARAM_P` or `MBEDTLS_DHM_PARAM_G` (group parameters): [there is no PSA API to retrieve these values](https://github.com/Mbed-TLS/mbedtls/issues/7780).
+
+The PSA API for finite-field Diffie-Hellman only supports predefined groups. Therefore there is no equivalent to `mbedtls_dhm_parse_dhm`, `mbedtls_dhm_parse_dhmfile`, and the `MBEDTLS_DHM_xxx_BIN` macros.
+
+#### Restartable key agreement
+
+Restartable key agreement is not yet available through the PSA API. It will be added in a future version of the library.
 
 ### Additional information about Elliptic-curve cryptography
 
@@ -1032,7 +1170,7 @@ _(Section not written yet)_
 
 #### ECC functionality with no PSA equivalent
 
-There is no PSA equivalent of `mbedtls_ecdsa_can_do` to query the capabilities of a curve at runtime. Check the documentation of each curve family to see what algorithms it supports.
+There is no PSA equivalent of `mbedtls_ecdsa_can_do` and `mbedtls_ecdh_can_do` to query the capabilities of a curve at runtime. Check the documentation of each curve family to see what algorithms it supports.
 
 There is no PSA equivalent to the types `mbedtls_ecdsa_context` and `mbedtls_ecdsa_restart_ctx`, and to basic ECDSA context manipulation functions including `mbedtls_ecdsa_from_keypair`, because they are not needed: the PSA API does not have ECDSA-specific context types.
 

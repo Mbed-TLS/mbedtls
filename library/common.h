@@ -201,4 +201,11 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
 #define MBEDTLS_COMPILER_IS_GCC
 #endif
 
+/* If -Os is specified, override with -O2 for a given function */
+#if defined(MBEDTLS_COMPILER_IS_GCC) && defined(__OPTIMIZE_SIZE__)
+#define MBEDTLS_OPTIMIZE_ALWAYS __attribute__((optimize("-O2")))
+#else
+#define MBEDTLS_OPTIMIZE_ALWAYS
+#endif
+
 #endif /* MBEDTLS_LIBRARY_COMMON_H */

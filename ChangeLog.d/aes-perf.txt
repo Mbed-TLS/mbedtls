@@ -1,4 +1,4 @@
 Features
-   * AES performance improvements on 64-bit architectures. Uplift
-     varies by platform, toolchain, optimisation flags and mode,
-     in the 0 - 84% range. Aarch64, gcc and GCM/XTS benefit the most.
+   * AES performance improvements. Uplift varies by platform,
+     toolchain, optimisation flags and mode, up to 4.5x.
+     Aarch64, gcc -Os and CCM, GCM and XTS benefit the most.

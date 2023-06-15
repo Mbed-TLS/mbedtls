@@ -326,6 +326,7 @@ int mbedtls_ccm_update_ad(mbedtls_ccm_context *ctx,
     return 0;
 }
 
+MBEDTLS_OPTIMIZE_ALWAYS
 int mbedtls_ccm_update(mbedtls_ccm_context *ctx,
                        const unsigned char *input, size_t input_len,
                        unsigned char *output, size_t output_size,

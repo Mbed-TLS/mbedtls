@@ -185,7 +185,8 @@ static int ssl_write_alpn_ext(mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_ALPN */
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) || defined(PSA_WANT_ALG_FFDH)
+    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) || \
+    (defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(PSA_WANT_ALG_FFDH))
 /*
  * Function for writing a supported groups (TLS 1.3) or supported elliptic
  * curves (TLS 1.2) extension.
@@ -257,7 +258,7 @@ static int ssl_write_supported_groups_ext(mbedtls_ssl_context *ssl,
     for (; *group_list != 0; group_list++) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("got supported group(%04x)", *group_list));
 
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(PSA_WANT_ALG_ECDH)
         if ((mbedtls_ssl_conf_is_tls13_enabled(ssl->conf) &&
              mbedtls_ssl_tls13_named_group_is_ecdhe(*group_list)) ||
             (mbedtls_ssl_conf_is_tls12_enabled(ssl->conf) &&
@@ -273,7 +274,7 @@ static int ssl_write_supported_groups_ext(mbedtls_ssl_context *ssl,
                                       mbedtls_ssl_get_curve_name_from_tls_id(*group_list),
                                       *group_list));
         }
-#endif /* MBEDTLS_ECP_LIGHT */
+#endif /* PSA_WANT_ALG_ECDH */
 #if defined(PSA_WANT_ALG_FFDH)
         if ((mbedtls_ssl_conf_is_tls13_enabled(ssl->conf) &&
              mbedtls_ssl_tls13_named_group_is_dhe(*group_list))) {
@@ -314,7 +315,8 @@ static int ssl_write_supported_groups_ext(mbedtls_ssl_context *ssl,
     return 0;
 }
 #endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
-          MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED || PSA_WANT_ALG_FFDH */
+          MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED ||
+          (MBEDTLS_SSL_PROTO_TLS1_3 && PSA_WANT_ALG_FFDH) */
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_write_client_hello_cipher_suites(
@@ -606,7 +608,8 @@ static int ssl_write_client_hello_body(mbedtls_ssl_context *ssl,
 #endif
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) || defined(PSA_WANT_ALG_FFDH)
+    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) || \
+    (defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(PSA_WANT_ALG_FFDH))
     if (
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
         (propose_tls13 &&
@@ -623,7 +626,8 @@ static int ssl_write_client_hello_body(mbedtls_ssl_context *ssl,
         p += output_len;
     }
 #endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
-          MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED || PSA_WANT_ALG_FFDH */
+          MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED ||
+          (MBEDTLS_SSL_PROTO_TLS1_3 && PSA_WANT_ALG_FFDH) */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
     if (

@@ -776,7 +776,7 @@ static int ssl_tls13_parse_supported_versions_ext(mbedtls_ssl_context *ssl,
     return (int) tls_version;
 }
 
-#if defined(PSA_WANT_ALG_ECDH)
+#if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
 /*
  *
  * From RFC 8446:
@@ -832,7 +832,7 @@ static int ssl_tls13_parse_supported_groups_ext(mbedtls_ssl_context *ssl,
     return 0;
 
 }
-#endif /* PSA_WANT_ALG_ECDH */
+#endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH */
 
 #define SSL_TLS1_3_PARSE_KEY_SHARES_EXT_NO_MATCH 1
 
@@ -1541,7 +1541,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                 break;
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
-#if defined(PSA_WANT_ALG_ECDH)
+#if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
             case MBEDTLS_TLS_EXT_SUPPORTED_GROUPS:
                 MBEDTLS_SSL_DEBUG_MSG(3, ("found supported group extension"));
 
@@ -1560,7 +1560,7 @@ static int ssl_tls13_parse_client_hello(mbedtls_ssl_context *ssl,
                 }
 
                 break;
-#endif /* PSA_WANT_ALG_ECDH */
+#endif /* PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH*/
 
 #if defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)
             case MBEDTLS_TLS_EXT_KEY_SHARE:

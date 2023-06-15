@@ -4214,12 +4214,13 @@ void mbedtls_ssl_handshake_free(mbedtls_ssl_context *ssl)
     mbedtls_ssl_buffering_free(ssl);
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-#if defined(PSA_WANT_ALG_ECDH) && \
+#if (defined(PSA_WANT_ALG_ECDH) || defined(PSA_WANT_ALG_FFDH)) && \
     (defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3))
     if (handshake->ecdh_psa_privkey_is_external == 0) {
         psa_destroy_key(handshake->ecdh_psa_privkey);
     }
-#endif /* PSA_WANT_ALG_ECDH && (MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3) */
+#endif /* (PSA_WANT_ALG_ECDH || PSA_WANT_ALG_FFDH) &&
+          (MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3) */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     mbedtls_ssl_transform_free(handshake->transform_handshake);

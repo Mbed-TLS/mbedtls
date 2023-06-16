@@ -1128,7 +1128,9 @@ typedef unsigned char mbedtls_be128[16];
  * for machine endianness and hence works correctly on both big and little
  * endian machines.
  */
+#if defined(MBEDTLS_AESCE_C) || defined(MBEDTLS_AESNI_C)
 MBEDTLS_OPTIMIZE_FOR_PERFORMANCE
+#endif
 static inline void mbedtls_gf128mul_x_ble(unsigned char r[16],
                                           const unsigned char x[16])
 {

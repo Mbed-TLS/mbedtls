@@ -48,9 +48,6 @@
 
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
 
-#if !defined(_WIN32_WINNT)
-#define _WIN32_WINNT 0x0400
-#endif
 #include <windows.h>
 #if _WIN32_WINNT >= 0x0501 /* _WIN32_WINNT_WINXP */
 #include <wincrypt.h>

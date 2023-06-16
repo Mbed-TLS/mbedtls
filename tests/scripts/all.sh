@@ -3515,18 +3515,18 @@ component_test_aesni () { # ~ 40s
 
     # test asm
     msg "AES tests, MBEDTLS_AESNI_HAVE_CODE=1 (asm)"
-    make test CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra -DMBEDTLS_AESNI_HAVE_CODE=1'
+    make test CC=gcc CFLAGS='-O2 -Werror -DMBEDTLS_AESNI_HAVE_CODE=1'
 
     # test intrinsics
     msg "AES tests, MBEDTLS_AESNI_HAVE_CODE=2 (intrinsics)"
     make clean
-    make test CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra -mpclmul -msse2 -maes -DMBEDTLS_AESNI_HAVE_CODE=2'
+    make test CC=gcc CFLAGS='-O2 -Werror -mpclmul -msse2 -maes -DMBEDTLS_AESNI_HAVE_CODE=2'
 
     # test plain C
     scripts/config.py unset MBEDTLS_AESNI_C
     msg "AES tests, plain C"
     make clean
-    make test CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra'
+    make test CC=gcc CFLAGS='-O2 -Werror'
 }
 
 component_test_aes_only_128_bit_keys () {

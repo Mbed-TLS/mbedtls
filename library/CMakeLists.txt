@@ -42,7 +42,6 @@ set(src_crypto
     entropy_poll.c
     error.c
     gcm.c
-    hash_info.c
     hkdf.c
     hmac_drbg.c
     lmots.c
@@ -85,6 +84,7 @@ set(src_crypto
     sha1.c
     sha256.c
     sha512.c
+    sha3.c
     threading.c
     timing.c
     version.c

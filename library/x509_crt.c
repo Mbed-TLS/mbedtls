@@ -47,8 +47,8 @@
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
+#include "md_psa.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-#include "hash_info.h"
 #include "x509_invasive.h"
 #include "pk_internal.h"
 
@@ -238,7 +238,7 @@ static int x509_profile_check_key(const mbedtls_x509_crt_profile *profile,
     if (pk_alg == MBEDTLS_PK_ECDSA ||
         pk_alg == MBEDTLS_PK_ECKEY ||
         pk_alg == MBEDTLS_PK_ECKEY_DH) {
-        const mbedtls_ecp_group_id gid = mbedtls_pk_ec_ro(*pk)->grp.id;
+        const mbedtls_ecp_group_id gid = mbedtls_pk_get_group_id(pk);
 
         if (gid == MBEDTLS_ECP_DP_NONE) {
             return -1;
@@ -2024,7 +2024,7 @@ static int x509_crt_verifycrl(mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
                               const mbedtls_x509_crt_profile *profile)
 {
     int flags = 0;
-    unsigned char hash[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_algorithm_t psa_algorithm;
 #else
@@ -2064,7 +2064,7 @@ static int x509_crt_verifycrl(mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
         }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        psa_algorithm = mbedtls_hash_info_psa_from_md(crl_list->sig_md);
+        psa_algorithm = mbedtls_md_psa_alg_from_type(crl_list->sig_md);
         if (psa_hash_compute(psa_algorithm,
                              crl_list->tbs.p,
                              crl_list->tbs.len,
@@ -2133,7 +2133,7 @@ static int x509_crt_check_signature(const mbedtls_x509_crt *child,
                                     mbedtls_x509_crt_restart_ctx *rs_ctx)
 {
     size_t hash_len;
-    unsigned char hash[MBEDTLS_HASH_MAX_SIZE];
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
     const mbedtls_md_info_t *md_info;
     md_info = mbedtls_md_info_from_type(child->sig_md);
@@ -2144,7 +2144,7 @@ static int x509_crt_check_signature(const mbedtls_x509_crt *child,
         return -1;
     }
 #else
-    psa_algorithm_t hash_alg = mbedtls_hash_info_psa_from_md(child->sig_md);
+    psa_algorithm_t hash_alg = mbedtls_md_psa_alg_from_type(child->sig_md);
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     status = psa_hash_compute(hash_alg,
@@ -2911,6 +2911,21 @@ static int x509_crt_check_san_ip(const mbedtls_x509_sequence *san,
     return -1;
 }
 
+static int x509_crt_check_san_uri(const mbedtls_x509_sequence *san,
+                                  const char *cn, size_t cn_len)
+{
+    for (const mbedtls_x509_sequence *cur = san; cur != NULL; cur = cur->next) {
+        const unsigned char san_type = (unsigned char) cur->buf.tag &
+                                       MBEDTLS_ASN1_TAG_VALUE_MASK;
+        if (san_type == MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER &&
+            cur->buf.len == cn_len && memcmp(cur->buf.p, cn, cn_len) == 0) {
+            return 0;
+        }
+    }
+
+    return -1;
+}
+
 /*
  * Check for SAN match, see RFC 5280 Section 4.2.1.6
  */
@@ -2918,23 +2933,38 @@ static int x509_crt_check_san(const mbedtls_x509_sequence *san,
                               const char *cn, size_t cn_len)
 {
     int san_ip = 0;
+    int san_uri = 0;
+    /* Prioritize DNS name over other subtypes due to popularity */
     for (const mbedtls_x509_sequence *cur = san; cur != NULL; cur = cur->next) {
         switch ((unsigned char) cur->buf.tag & MBEDTLS_ASN1_TAG_VALUE_MASK) {
-            case MBEDTLS_X509_SAN_DNS_NAME:                /* dNSName */
+            case MBEDTLS_X509_SAN_DNS_NAME:
                 if (x509_crt_check_cn(&cur->buf, cn, cn_len) == 0) {
                     return 0;
                 }
                 break;
-            case MBEDTLS_X509_SAN_IP_ADDRESS:              /* iPAddress */
+            case MBEDTLS_X509_SAN_IP_ADDRESS:
                 san_ip = 1;
+                break;
+            case MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER:
+                san_uri = 1;
                 break;
             /* (We may handle other types here later.) */
             default: /* Unrecognized type */
                 break;
         }
     }
+    if (san_ip) {
+        if (x509_crt_check_san_ip(san, cn, cn_len) == 0) {
+            return 0;
+        }
+    }
+    if (san_uri) {
+        if (x509_crt_check_san_uri(san, cn, cn_len) == 0) {
+            return 0;
+        }
+    }
 
-    return san_ip ? x509_crt_check_san_ip(san, cn, cn_len) : -1;
+    return -1;
 }
 
 /*

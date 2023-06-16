@@ -77,6 +77,24 @@ def automatic_dependencies(*expressions: str) -> List[str]:
     used.difference_update(SYMBOLS_WITHOUT_DEPENDENCY)
     return sorted(psa_want_symbol(name) for name in used)
 
+# Define set of regular expressions and dependencies to optionally append
+# extra dependencies for test case.
+AES_128BIT_ONLY_DEP_REGEX = r'AES\s(192|256)'
+AES_128BIT_ONLY_DEP = ["!MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH"]
+
+DEPENDENCY_FROM_KEY = {
+    AES_128BIT_ONLY_DEP_REGEX: AES_128BIT_ONLY_DEP
+}#type: Dict[str, List[str]]
+def generate_key_dependencies(description: str) -> List[str]:
+    """Return additional dependencies based on pairs of REGEX and dependencies.
+    """
+    deps = []
+    for regex, dep in DEPENDENCY_FROM_KEY.items():
+        if re.search(regex, description):
+            deps += dep
+
+    return deps
+
 # A temporary hack: at the time of writing, not all dependency symbols
 # are implemented yet. Skip test cases for which the dependency symbols are
 # not available. Once all dependency symbols are available, this hack must
@@ -574,6 +592,7 @@ class StorageFormat:
             key.alg.string, key.alg2.string,
         )
         dependencies = finish_family_dependencies(dependencies, key.bits)
+        dependencies += generate_key_dependencies(key.description)
         tc.set_dependencies(dependencies)
         tc.set_function('key_storage_' + verb)
         if self.forward:

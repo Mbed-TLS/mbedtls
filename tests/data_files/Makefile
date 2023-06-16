@@ -41,8 +41,8 @@ test_ca_key_file_rsa = test-ca.key
 test_ca_pwd_rsa = PolarSSLTest
 test_ca_config_file = test-ca.opensslconf
 
-$(test_ca_key_file_rsa):$(test_ca_pwd_rsa)
-    $(OPENSSL) genrsa -aes-128-cbc -passout pass:$< -out $@ 2048
+$(test_ca_key_file_rsa):
+	$(OPENSSL) genrsa -aes-128-cbc -passout pass:$(test_ca_pwd_rsa) -out $@ 2048
 all_final += $(test_ca_key_file_rsa)
 
 test-ca.req.sha256: $(test_ca_key_file_rsa)
@@ -171,7 +171,30 @@ all_intermediate += test-ca2.req.sha256
 
 test-ca2.crt: $(test_ca_key_file_ec) test-ca2.req.sha256
 	$(MBEDTLS_CERT_WRITE) is_ca=1 serial=13926223505202072808 request_file=test-ca2.req.sha256 selfsign=1 issuer_name="C=NL,O=PolarSSL,CN=Polarssl Test EC CA" issuer_key=$(test_ca_key_file_ec) not_before=20190210144400 not_after=20290210144400 md=SHA256 version=3 output_file=$@
-all_final += test-ca.crt
+all_final += test-ca2.crt
+
+test-ca2-future.crt: $(test_ca_key_file_ec) test-ca2.req.sha256
+	$(MBEDTLS_CERT_WRITE) is_ca=1 serial=13926223505202072808 request_file=test-ca2.req.sha256 selfsign=1 \
+		issuer_name="C=NL,O=PolarSSL,CN=Polarssl Test EC CA" issuer_key=$(test_ca_key_file_ec) \
+		not_before=20290210144400 not_after=20390210144400 md=SHA256 version=3 output_file=$@
+all_intermediate += test-ca2-future.crt
+
+test_ca_ec_cat := # files that concatenate different crt
+test-ca2_cat-future-invalid.crt: test-ca2-future.crt server6.crt
+test_ca_ec_cat += test-ca2_cat-future-invalid.crt
+test-ca2_cat-future-present.crt: test-ca2-future.crt test-ca2.crt
+test_ca_ec_cat += test-ca2_cat-future-present.crt
+test-ca2_cat-present-future.crt: test-ca2.crt test-ca2-future.crt
+test_ca_ec_cat += test-ca2_cat-present-future.crt
+test-ca2_cat-present-past.crt: test-ca2.crt test-ca2-expired.crt
+test_ca_ec_cat += test-ca2_cat-present-past.crt
+test-ca2_cat-past-invalid.crt: test-ca2-expired.crt server6.crt
+test_ca_ec_cat += test-ca2_cat-past-invalid.crt
+test-ca2_cat-past-present.crt: test-ca2-expired.crt test-ca2.crt
+test_ca_ec_cat += test-ca2_cat-past-present.crt
+$(test_ca_ec_cat):
+	cat $^ > $@
+all_final += $(test_ca_ec_cat)
 
 test-ca-any_policy.crt: $(test_ca_key_file_rsa) test-ca.req.sha256
 	$(OPENSSL) req -x509 -config $(test_ca_config_file) -extensions v3_any_policy_ca -key $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -set_serial 0 -days 3653 -sha256 -in test-ca.req.sha256 -out $@
@@ -229,10 +252,37 @@ all_final += $(test_ca_crt_cat21)
 
 test-int-ca.csr: test-int-ca.key $(test_ca_config_file)
 	$(OPENSSL) req -new -config $(test_ca_config_file) -key test-int-ca.key -subj "/C=NL/O=PolarSSL/CN=PolarSSL Test Intermediate CA" -out $@
-all_intermediate += test-int-ca.csr
+
+test-int-ca2.csr: test-int-ca2.key $(test_ca_config_file)
+	$(OPENSSL) req -new -config $(test_ca_config_file) -key test-int-ca2.key \
+		-subj "/C=NL/O=PolarSSL/CN=PolarSSL Test Intermediate EC CA" -out $@
+
+test-int-ca3.csr: test-int-ca3.key $(test_ca_config_file)
+	$(OPENSSL) req -new -config $(test_ca_config_file) -key test-int-ca3.key \
+		-subj "/C=UK/O=mbed TLS/CN=mbed TLS Test intermediate CA 3" -out $@
+
+all_intermediate += test-int-ca.csr test-int-ca2.csr test-int-ca3.csr
+
+test-int-ca.crt: $(test_ca_crt_file_ec) $(test_ca_key_file_ec) $(test_ca_config_file) test-int-ca.csr
+	$(OPENSSL) x509 -req -extfile $(test_ca_config_file) -extensions v3_ca \
+		-CA $(test_ca_crt_file_ec) -CAkey $(test_ca_key_file_ec) \
+		-set_serial 14 -days 3653 -sha256 -in test-int-ca.csr -out $@
+
+test-int-ca2.crt: $(test_ca_key_file_rsa) $(test_ca_crt) $(test_ca_config_file) test-int-ca2.csr
+	$(OPENSSL) x509 -req -extfile $(test_ca_config_file) -extensions v3_ca -CA $(test_ca_crt) \
+		-CAkey $(test_ca_key_file_rsa) -set_serial 15 -days 3653 -sha256 -in test-int-ca2.csr \
+		-passin "pass:$(test_ca_pwd_rsa)" -out $@
+
+# Note: This requests openssl version >= 3.x.xx
+test-int-ca3.crt: test-int-ca2.crt test-int-ca2.key $(test_ca_config_file) test-int-ca3.csr
+	$(OPENSSL) x509 -req -extfile $(test_ca_config_file) -extensions no_subj_auth_id \
+		-CA test-int-ca2.crt -CAkey test-int-ca2.key -set_serial 77 -days 3653 \
+			-sha256 -in test-int-ca3.csr -out $@
+
 test-int-ca-exp.crt: $(test_ca_crt_file_ec) $(test_ca_key_file_ec) $(test_ca_config_file) test-int-ca.csr
 	$(FAKETIME) -f -3653d $(OPENSSL) x509 -req -extfile $(test_ca_config_file) -extensions v3_ca -CA $(test_ca_crt_file_ec) -CAkey $(test_ca_key_file_ec) -set_serial 14 -days 3653 -sha256 -in test-int-ca.csr -out $@
-all_final += test-int-ca-exp.crt
+
+all_final += test-int-ca-exp.crt test-int-ca.crt test-int-ca2.crt test-int-ca3.crt
 
 enco-cert-utf8str.pem: rsa_pkcs1_1024_clear.pem
 	$(MBEDTLS_CERT_WRITE) subject_key=rsa_pkcs1_1024_clear.pem subject_name="CN=dw.yonan.net" issuer_crt=enco-ca-prstr.pem issuer_key=rsa_pkcs1_1024_clear.pem not_before=20190210144406 not_after=20290210144406 md=SHA1 version=3 output_file=$@
@@ -271,22 +321,73 @@ cli-rsa.key.der: $(cli_crt_key_file_rsa)
 all_final += cli-rsa.key.der
 
 test_ca_int_rsa1 = test-int-ca.crt
+test_ca_int_ec = test-int-ca2.crt
+test_ca_int_key_file_ec = test-int-ca2.key
+
+# server7*
 
 server7.csr: server7.key
 	$(OPENSSL) req -new -key server7.key -subj "/C=NL/O=PolarSSL/CN=localhost" -out $@
 all_intermediate += server7.csr
+
+server7.crt: server7.csr $(test_ca_int_rsa1)
+	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa \
+		-CA $(test_ca_int_rsa1) -CAkey test-int-ca.key \
+		-set_serial 16 -days 3653 -sha256 -in server7.csr > $@
+all_final += server7.crt
+
 server7-expired.crt: server7.csr $(test_ca_int_rsa1)
 	$(FAKETIME) -f -3653d $(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -CA $(test_ca_int_rsa1) -CAkey test-int-ca.key -set_serial 16 -days 3653 -sha256 -in server7.csr | cat - $(test_ca_int_rsa1) > $@
 all_final += server7-expired.crt
+
 server7-future.crt: server7.csr $(test_ca_int_rsa1)
 	$(FAKETIME) -f +3653d $(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -CA $(test_ca_int_rsa1) -CAkey test-int-ca.key -set_serial 16 -days 3653 -sha256 -in server7.csr | cat - $(test_ca_int_rsa1) > $@
 all_final += server7-future.crt
+
 server7-badsign.crt: server7.crt $(test_ca_int_rsa1)
 	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; cat $(test_ca_int_rsa1); } > $@
 all_final += server7-badsign.crt
+
+server7_int-ca.crt: server7.crt $(test_ca_int_rsa1)
+	cat server7.crt $(test_ca_int_rsa1) > $@
+all_final += server7_int-ca.crt
+
+server7_pem_space.crt: server7.crt $(test_ca_int_rsa1)
+	cat server7.crt $(test_ca_int_rsa1) | sed '4s/\(.\)$$/ \1/' > $@
+all_final += server7_pem_space.crt
+
+server7_all_space.crt: server7.crt $(test_ca_int_rsa1)
+	{ cat server7.crt | sed '4s/\(.\)$$/ \1/'; cat test-int-ca.crt | sed '4s/\(.\)$$/ \1/'; } > $@
+all_final += server7_all_space.crt
+
+server7_trailing_space.crt: server7.crt $(test_ca_int_rsa1)
+	cat server7.crt $(test_ca_int_rsa1) | sed 's/\(.\)$$/\1 /' > $@
+all_final += server7_trailing_space.crt
+
+server7_int-ca_ca2.crt: server7.crt $(test_ca_int_rsa1) $(test_ca_crt_file_ec)
+	cat server7.crt $(test_ca_int_rsa1) $(test_ca_crt_file_ec) > $@
+all_final += server7_int-ca_ca2.crt
+
 server7_int-ca-exp.crt: server7.crt test-int-ca-exp.crt
 	cat server7.crt test-int-ca-exp.crt > $@
 all_final += server7_int-ca-exp.crt
+
+server7_spurious_int-ca.crt: server7.crt $(test_ca_int_ec) $(test_ca_int_rsa1)
+	cat server7.crt $(test_ca_int_ec) $(test_ca_int_rsa1) > $@
+all_final += server7_spurious_int-ca.crt
+
+# server8*
+
+server8.crt: server8.key
+	$(MBEDTLS_CERT_WRITE) subject_key=$< subject_name="C=NL, O=PolarSSL, CN=localhost" serial=17 \
+		issuer_crt=$(test_ca_int_ec) issuer_key=$(test_ca_int_key_file_ec) \
+		not_before=20190210144406 not_after=20290210144406 \
+		md=SHA256 version=3 output_file=$@
+all_final += server8.crt
+
+server8_int-ca2.crt: server8.crt $(test_ca_int_ec)
+	cat $^ > $@
+all_final += server8_int-ca2.crt
 
 cli2.req.sha256: cli2.key
 	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< subject_name="C=NL,O=PolarSSL,CN=PolarSSL Test Client 2" md=SHA256
@@ -339,14 +440,42 @@ server5-unsupported_othername.crt: server5.key
 server5-fan.crt: server5.key
 	$(OPENSSL) req -x509 -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS FAN" -set_serial 77 -config $(test_ca_config_file) -extensions fan_cert -days 3650 -sha256 -key server5.key -out $@
 
-server5-tricky-ip-san.crt: server5.key
-	$(OPENSSL) req -x509 -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS Tricky IP SAN" -set_serial 77 -config $(test_ca_config_file) -extensions tricky_ip_san -days 3650 -sha256 -key server5.key -out $@
+server5-tricky-ip-san.crt.der: server5.key
+	$(OPENSSL) req -x509 -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS Tricky IP SAN" -set_serial 77 -config $(test_ca_config_file) -extensions tricky_ip_san -days 3650 -sha256 -key server5.key -outform der -out $@
+
+# malformed IP length
+server5-tricky-ip-san-malformed-len.crt.der: server5-tricky-ip-san.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/87046162636487106162/87056162636487106162/" | xxd -r -p > $@
 
 server5-directoryname.crt.der: server5.key
 	$(OPENSSL) req -x509 -outform der -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS directoryName SAN" -set_serial 77 -config $(test_ca_config_file) -extensions directory_name_san -days 3650 -sha256 -key server5.key -out $@
 
 server5-two-directorynames.crt.der: server5.key
 	$(OPENSSL) req -x509 -outform der -new -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS directoryName SAN" -set_serial 77 -config $(test_ca_config_file) -extensions two_directorynames -days 3650 -sha256 -key server5.key -out $@
+
+server5-der0.crt: server5.crt.der
+	cp $< $@
+server5-der1a.crt: server5.crt.der
+	cp $< $@
+	echo '00' | xxd -r -p | dd of=$@ bs=1 seek=$$(wc -c <$<) conv=notrunc
+server5-der1b.crt: server5.crt.der
+	cp $< $@
+	echo 'c1' | xxd -r -p | dd of=$@ bs=1 seek=$$(wc -c <$<) conv=notrunc
+server5-der2.crt: server5.crt.der
+	cp $< $@
+	echo 'b90a' | xxd -r -p | dd of=$@ bs=1 seek=$$(wc -c <$<) conv=notrunc
+server5-der4.crt: server5.crt.der
+	cp $< $@
+	echo 'a710945f' | xxd -r -p | dd of=$@ bs=1 seek=$$(wc -c <$<) conv=notrunc
+server5-der8.crt: server5.crt.der
+	cp $< $@
+	echo 'a4a7ff27267aaa0f' | xxd -r -p | dd of=$@ bs=1 seek=$$(wc -c <$<) conv=notrunc
+server5-der9.crt: server5.crt.der
+	cp $< $@
+	echo 'cff8303376ffa47a29' | xxd -r -p | dd of=$@ bs=1 seek=$$(wc -c <$<) conv=notrunc
+all_final += server5-der0.crt server5-der1b.crt server5-der4.crt \
+			 server5-der9.crt server5-der1a.crt server5-der2.crt \
+			 server5-der8.crt
 
 # directoryname sequence tag malformed
 server5-directoryname-seq-malformed.crt.der: server5-two-directorynames.crt.der
@@ -364,18 +493,37 @@ rsa_single_san_uri.crt.der: rsa_single_san_uri.key
 rsa_multiple_san_uri.crt.der: rsa_multiple_san_uri.key
 	$(OPENSSL) req -x509 -outform der -nodes -days 7300 -newkey rsa:2048 -key $< -out $@ -addext "subjectAltName = URI:urn:example.com:5ff40f78-9210-494f-8206-c2c082f0609c, URI:urn:example.com:5ff40f78-9210-494f-8206-abcde1234567" -extensions 'v3_req' -subj "/C=UK/O=Mbed TLS/CN=Mbed TLS URI SAN"
 
+test-int-ca3-badsign.crt: test-int-ca3.crt
+	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; } > $@
+all_final += test-int-ca3-badsign.crt
+
+# server10*
+
+server10.crt: server10.key test-int-ca3.crt test-int-ca3.key
+	$(MBEDTLS_CERT_WRITE) subject_key=$< subject_name="CN=localhost" serial=75 \
+		issuer_crt=test-int-ca3.crt issuer_key=test-int-ca3.key \
+		subject_identifier=0 authority_identifier=0 \
+		not_before=20190210144406 not_after=20290210144406 \
+		md=SHA256 version=3 output_file=$@
+all_final += server10.crt
 server10-badsign.crt: server10.crt
 	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; } > $@
 all_final += server10-badsign.crt
 server10-bs_int3.pem: server10-badsign.crt test-int-ca3.crt
 	cat server10-badsign.crt test-int-ca3.crt > $@
 all_final += server10-bs_int3.pem
-test-int-ca3-badsign.crt: test-int-ca3.crt
-	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; } > $@
-all_final += test-int-ca3-badsign.crt
 server10_int3-bs.pem: server10.crt test-int-ca3-badsign.crt
 	cat server10.crt test-int-ca3-badsign.crt > $@
 all_final += server10_int3-bs.pem
+server10_int3_int-ca2.crt: server10.crt test-int-ca3.crt $(test_ca_int_ec)
+	cat $^ > $@
+all_final += server10_int3_int-ca2.crt
+server10_int3_int-ca2_ca.crt: server10.crt test-int-ca3.crt $(test_ca_int_ec) $(test_ca_crt)
+	cat $^ > $@
+all_final += server10_int3_int-ca2_ca.crt
+server10_int3_spurious_int-ca2.crt: server10.crt test-int-ca3.crt $(test_ca_int_rsa1) $(test_ca_int_ec)
+	cat $^ > $@
+all_final += server10_int3_spurious_int-ca2.crt
 
 rsa_pkcs1_2048_public.pem: server8.key
 	$(OPENSSL)  rsa -in $< -outform PEM -RSAPublicKey_out -out $@
@@ -392,6 +540,61 @@ all_final += rsa_pkcs8_2048_public.pem
 rsa_pkcs8_2048_public.der: rsa_pkcs8_2048_public.pem
 	$(OPENSSL) rsa -pubin -in $< -outform DER -pubout -out $@
 all_final += rsa_pkcs8_2048_public.der
+
+# Generate crl_cat_*.pem
+# - crt_cat_*.pem: (1+2) concatenations in various orders:
+#     ec = crl-ec-sha256.pem, ecfut = crl-future.pem
+#     rsa = crl.pem, rsabadpem = same with pem error, rsaexp = crl_expired.pem
+
+crl_cat_ec-rsa.pem:crl-ec-sha256.pem crl.pem
+	cat $^ > $@
+
+crl_cat_rsa-ec.pem:crl.pem crl-ec-sha256.pem
+	cat $^ > $@
+
+all_final += crl_cat_ec-rsa.pem crl_cat_rsa-ec.pem
+
+authorityKeyId_subjectKeyId.crt.der:
+	$(OPENSSL) req -x509 -nodes -days 7300 -key server2.key -outform DER -out $@ -config authorityKeyId_subjectKeyId.conf -extensions 'v3_req' -set_serial 593828494303792449134898749208168108403991951034
+
+authorityKeyId_no_keyid.crt.der:
+	$(OPENSSL) req -x509 -nodes -days 7300 -key server2.key -outform DER -out $@ -config authorityKeyId_subjectKeyId.conf -extensions 'v3_req_authorityKeyId_no_keyid' -set_serial 593828494303792449134898749208168108403991951034
+
+authorityKeyId_no_issuer.crt.der:
+	$(OPENSSL) req -x509 -nodes -days 7300 -key server2.key -outform DER -out $@ -config authorityKeyId_subjectKeyId.conf -extensions 'v3_req_authorityKeyId_no_issuer'
+
+authorityKeyId_no_authorityKeyId.crt.der:
+	$(OPENSSL) req -x509 -nodes -days 7300 -key server2.key -outform DER -out $@ -config authorityKeyId_subjectKeyId.conf -extensions 'v3_req_no_authorityKeyId'
+
+authorityKeyId_subjectKeyId_tag_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/0414A505E864B8DCDF600F50124D60A864AF4D8B4393/0114A505E864B8DCDF600F50124D60A864AF4D8B4393/" | xxd -r -p > $@
+
+authorityKeyId_subjectKeyId_tag_len_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/0414A505E864B8DCDF600F50124D60A864AF4D8B4393/0413A505E864B8DCDF600F50124D60A864AF4D8B4393/" | xxd -r -p > $@
+
+authorityKeyId_subjectKeyId_length_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/306D8014A505E864B8DC/306C8014A505E864B8DC/" | xxd -r -p > $@
+
+authorityKeyId_subjectKeyId_sequence_tag_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/6F306D8014A505E864B8/6F006D8014A505E864B8/" | xxd -r -p > $@
+
+authorityKeyId_subjectKeyId_keyid_tag_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/306D8014A505E864B8DC/306D0014A505E864B8DC/" | xxd -r -p > $@
+
+authorityKeyId_subjectKeyId_keyid_tag_len_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/306D8014A505E864B8DC/306D80FFA505E864B8DC/" | xxd -r -p > $@
+
+authorityKeyId_subjectKeyId_issuer_tag1_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/A13FA43D303B310B3009/003FA43D303B310B3009/" | xxd -r -p > $@
+
+authorityKeyId_subjectKeyId_issuer_tag2_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/A43D303B310B30090603/003D303B310B30090603/" | xxd -r -p > $@
+
+authorityKeyId_subjectKeyId_sn_tag_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/8214680430CD074DE63F/8114680430CD074DE63F/" | xxd -r -p > $@
+
+authorityKeyId_subjectKeyId_sn_len_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/8214680430CD074DE63F/8213680430CD074DE63F/" | xxd -r -p > $@
 
 ################################################################
 #### Generate various RSA keys
@@ -1011,32 +1214,32 @@ ec_x25519_prv.der:
 	$(OPENSSL) genpkey -algorithm X25519 -out $@ -outform DER
 all_final += ec_x25519_prv.der
 
-ec_x25519_pub.der: ec_x25519_pub.der
-	$(OPENSSL) pkey -in $< -inform DER -out $@ -outform DER
+ec_x25519_pub.der: ec_x25519_prv.der
+	$(OPENSSL) pkey -in $< -inform DER -out $@ -outform DER -pubout
 all_final += ec_x25519_pub.der
 
-ec_x25519_prv.pem: ec_x25519_prv.pem
+ec_x25519_prv.pem: ec_x25519_prv.der
 	$(OPENSSL) pkey -in $< -inform DER -out $@
 all_final += ec_x25519_prv.pem
 
-ec_x25519_pub.pem: ec_x25519_pub.pem
-	$(OPENSSL) pkey -in $< -inform DER -out $@
+ec_x25519_pub.pem: ec_x25519_prv.der
+	$(OPENSSL) pkey -in $< -inform DER -out $@ -pubout
 all_final += ec_x25519_pub.pem
 
 ec_x448_prv.der:
 	$(OPENSSL) genpkey -algorithm X448 -out $@ -outform DER
 all_final += ec_x448_prv.der
 
-ec_x448_pub.der: ec_x448_pub.der
-	$(OPENSSL) pkey -in $< -inform DER -out $@ -outform DER
+ec_x448_pub.der: ec_x448_prv.der
+	$(OPENSSL) pkey -in $< -inform DER -out $@ -outform DER -pubout
 all_final += ec_x448_pub.der
 
-ec_x448_prv.pem: ec_x448_prv.pem
+ec_x448_prv.pem: ec_x448_prv.der
 	$(OPENSSL) pkey -in $< -inform DER -out $@
 all_final += ec_x448_prv.pem
 
-ec_x448_pub.pem: ec_x448_pub.pem
-	$(OPENSSL) pkey -in $< -inform DER -out $@
+ec_x448_pub.pem: ec_x448_prv.der
+	$(OPENSSL) pkey -in $< -inform DER -out $@ -pubout
 all_final += ec_x448_pub.pem
 
 ################################################################
@@ -1173,10 +1376,38 @@ all_final += server2.key.enc
 
 # server5*
 
+server5.csr: server5.key
+	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
+					-key $< -out $@
+all_intermediate += server5.csr
+server5.crt: server5-sha256.crt
+	cp $< $@
+all_intermediate += server5-sha256.crt
+server5-sha%.crt: server5.csr $(test_ca_crt_file_ec) $(test_ca_key_file_ec) server5.crt.openssl.v3_ext
+	$(OPENSSL) x509 -req -CA $(test_ca_crt_file_ec) -CAkey $(test_ca_key_file_ec) \
+				-extfile server5.crt.openssl.v3_ext -set_serial 9 -days 3650 \
+				-sha$(@:server5-sha%.crt=%) -in $< -out $@
+all_final += server5.crt server5-sha1.crt server5-sha224.crt server5-sha384.crt server5-sha512.crt
+
+server5-badsign.crt: server5.crt
+	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; } > $@
+all_final += server5-badsign.crt
+
 # The use of 'Server 1' in the DN is intentional here, as the DN is hardcoded in the x509_write test suite.'
 server5.req.ku.sha1: server5.key
 	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< key_usage=digital_signature,non_repudiation subject_name="C=NL,O=PolarSSL,CN=PolarSSL Server 1" md=SHA1
 all_final += server5.req.ku.sha1
+
+# server6*
+
+server6.csr: server6.key
+	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
+					-key $< -out $@
+all_intermediate += server6.csr
+server6.crt: server6.csr $(test_ca_crt_file_ec) $(test_ca_key_file_ec)
+	$(OPENSSL) x509 -req -CA $(test_ca_crt_file_ec) -CAkey $(test_ca_key_file_ec) \
+				-extfile server5.crt.openssl.v3_ext -set_serial 10 -days 3650 -sha256 -in $< -out $@
+all_final += server6.crt
 
 ################################################################
 ### Generate certificates for CRT write check tests
@@ -1198,6 +1429,8 @@ test_ca_server1_config_file = test-ca.server1.opensslconf
 
 server1.crt: server1.key server1.req.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
 	$(MBEDTLS_CERT_WRITE) request_file=server1.req.sha256 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) version=1 not_before=20190210144406 not_after=20290210144406 md=SHA1 version=3 output_file=$@
+server1.allSubjectAltNames.crt: server1.key server1.req.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)	
+	$(MBEDTLS_CERT_WRITE) request_file=server1.req.sha256 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) version=1 not_before=20190210144406 not_after=20290210144406 md=SHA1 version=3 output_file=$@ san=URI:http://pki.example.com\;IP:1.2.3.4\;DN:C=UK,O="Mbed TLS",CN="SubjectAltName test"\;DNS:example.com\;RFC822:mail@example.com
 server1.long_serial.crt: server1.key server1.req.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
 	echo "112233445566778899aabbccddeeff0011223344" > test-ca.server1.tmp.serial
 	$(OPENSSL) ca -in server1.req.sha256 -key PolarSSLTest -config test-ca.server1.test_serial.opensslconf -notext -batch -out $@
@@ -1324,6 +1557,24 @@ server2-sha256.crt: server2.req.sha256
 	$(MBEDTLS_CERT_WRITE) request_file=server2.req.sha256 serial=2 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20190210144406 not_after=20290210144406 md=SHA256 version=3 output_file=$@
 all_final += server2-sha256.crt
 
+# server3*
+
+server3.crt: server3.key
+	$(MBEDTLS_CERT_WRITE) subject_key=$< subject_name="C=NL,O=PolarSSL,CN=localhost" serial=13 \
+		issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) \
+		not_before=20190210144406 not_after=20290210144406 \
+		md=SHA1 version=3 output_file=$@
+all_final += server3.crt
+
+# server4*
+
+server4.crt: server4.key
+	$(MBEDTLS_CERT_WRITE) subject_key=$< subject_name="C=NL,O=PolarSSL,CN=localhost" serial=8 \
+		issuer_crt=$(test_ca_crt_file_ec) issuer_key=$(test_ca_key_file_ec) \
+		not_before=20190210144400 not_after=20290210144400 \
+		md=SHA256 version=3 output_file=$@
+all_final += server4.crt
+
 # MD5 test certificate
 
 cert_md_test_key = $(cli_crt_key_file_rsa)
@@ -1394,17 +1645,17 @@ all_final += pkcs7_data_1.bin
 
 # Generate signing cert
 pkcs7-rsa-sha256-1.crt:
-	$(OPENSSL) req -x509 -subj="/C=NL/O=PKCS7/CN=PKCS7 Cert 1" -sha256 -nodes -days 365  -newkey rsa:2048 -keyout pkcs7-rsa-sha256-1.key -out pkcs7-rsa-sha256-1.crt
+	$(OPENSSL) req -x509 -subj="/C=NL/O=PKCS7/CN=PKCS7 Cert 1" -sha256 -nodes -days 3653  -newkey rsa:2048 -keyout pkcs7-rsa-sha256-1.key -out pkcs7-rsa-sha256-1.crt
 	cat pkcs7-rsa-sha256-1.crt pkcs7-rsa-sha256-1.key > pkcs7-rsa-sha256-1.pem
 all_final += pkcs7-rsa-sha256-1.crt
 
 pkcs7-rsa-sha256-2.crt:
-	$(OPENSSL) req -x509 -subj="/C=NL/O=PKCS7/CN=PKCS7 Cert 2" -sha256 -nodes -days 365  -newkey rsa:2048 -keyout pkcs7-rsa-sha256-2.key -out pkcs7-rsa-sha256-2.crt
+	$(OPENSSL) req -x509 -subj="/C=NL/O=PKCS7/CN=PKCS7 Cert 2" -sha256 -nodes -days 3653  -newkey rsa:2048 -keyout pkcs7-rsa-sha256-2.key -out pkcs7-rsa-sha256-2.crt
 	cat pkcs7-rsa-sha256-2.crt pkcs7-rsa-sha256-2.key > pkcs7-rsa-sha256-2.pem
 all_final += pkcs7-rsa-sha256-2.crt
 
 pkcs7-rsa-sha256-3.crt:
-	$(OPENSSL) req -x509 -subj="/C=NL/O=PKCS7/CN=PKCS7 Cert 3" -sha256 -nodes -days 365  -newkey rsa:2048 -keyout pkcs7-rsa-sha256-3.key -out pkcs7-rsa-sha256-3.crt
+	$(OPENSSL) req -x509 -subj="/C=NL/O=PKCS7/CN=PKCS7 Cert 3" -sha256 -nodes -days 3653  -newkey rsa:2048 -keyout pkcs7-rsa-sha256-3.key -out pkcs7-rsa-sha256-3.crt
 	cat pkcs7-rsa-sha256-3.crt pkcs7-rsa-sha256-3.key > pkcs7-rsa-sha256-3.pem
 all_final += pkcs7-rsa-sha256-3.crt
 
@@ -1519,17 +1770,17 @@ all_final += pkcs7_data_signed_badsigner1_fuzzbad.der
 pkcs7_data_signed_badsigner2_badsize.der: pkcs7_data_3_signed.der
 	cp pkcs7_data_3_signed.der $@
 	echo '72'| xxd -p -r | dd of=$@ bs=1 seek=813 conv=notrunc
-all_final += pkcs7_data_signed_badsigner2_badsize
+all_final += pkcs7_data_signed_badsigner2_badsize.der
 
 pkcs7_data_signed_badsigner2_badtag.der: pkcs7_data_3_signed.der
 	cp pkcs7_data_3_signed.der $@
 	echo 'a1'| xxd -p -r | dd of=$@ bs=1 seek=817 conv=notrunc
-all_final += pkcs7_data_signed_badsigner2_badtag
+all_final += pkcs7_data_signed_badsigner2_badtag.der
 
 pkcs7_data_signed_badsigner2_fuzzbad.der: pkcs7_data_3_signed.der
 	cp pkcs7_data_3_signed.der $@
 	echo 'a1'| xxd -p -r | dd of=$@ bs=1 seek=925 conv=notrunc
-all_final += pkcs7_data_signed_badsigner2_fuzzbad
+all_final += pkcs7_data_signed_badsigner2_fuzzbad.der
 
 # pkcs7 file with version 2
 pkcs7_data_cert_signed_v2.der: pkcs7_data_cert_signed_sha256.der
@@ -1602,3 +1853,5 @@ clean:
 neat: clean
 	rm -f $(all_final)
 .PHONY: clean neat
+
+.SECONDARY: $(all_intermediate)

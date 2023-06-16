@@ -426,7 +426,8 @@ class DomainData:
             'hashes': DualDomain(hash_symbols, build_and_test,
                                  exclude=r'MBEDTLS_(MD|RIPEMD|SHA1_)' \
                                           '|MBEDTLS_SHA224_' \
-                                          '|MBEDTLS_SHA384_'),
+                                          '|MBEDTLS_SHA384_' \
+                                          '|MBEDTLS_SHA3_'),
             # Key exchange types.
             'kex': ExclusiveDomain(key_exchange_symbols, build_and_test),
             'pkalgs': ComplementaryDomain(['MBEDTLS_ECDSA_C',

@@ -29,6 +29,8 @@
 
 #include "mbedtls/build_info.h"
 
+#include "mbedtls/platform_util.h"
+
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 
 #include "psa/crypto.h"
@@ -120,49 +122,6 @@ static inline psa_key_usage_t mbedtls_psa_translate_cipher_operation(
     }
 }
 
-/* Translations for hashing. */
-
-/* Note: this function should not be used from inside the library, use
- * mbedtls_hash_info_psa_from_md() from the internal hash_info.h instead.
- * It is kept only for compatibility in case applications were using it. */
-static inline psa_algorithm_t mbedtls_psa_translate_md(mbedtls_md_type_t md_alg)
-{
-    switch (md_alg) {
-#if defined(MBEDTLS_MD5_C) || defined(PSA_WANT_ALG_MD5)
-        case MBEDTLS_MD_MD5:
-            return PSA_ALG_MD5;
-#endif
-#if defined(MBEDTLS_SHA1_C) || defined(PSA_WANT_ALG_SHA_1)
-        case MBEDTLS_MD_SHA1:
-            return PSA_ALG_SHA_1;
-#endif
-#if defined(MBEDTLS_SHA224_C) || defined(PSA_WANT_ALG_SHA_224)
-        case MBEDTLS_MD_SHA224:
-            return PSA_ALG_SHA_224;
-#endif
-#if defined(MBEDTLS_SHA256_C) || defined(PSA_WANT_ALG_SHA_256)
-        case MBEDTLS_MD_SHA256:
-            return PSA_ALG_SHA_256;
-#endif
-#if defined(MBEDTLS_SHA384_C) || defined(PSA_WANT_ALG_SHA_384)
-        case MBEDTLS_MD_SHA384:
-            return PSA_ALG_SHA_384;
-#endif
-#if defined(MBEDTLS_SHA512_C) || defined(PSA_WANT_ALG_SHA_512)
-        case MBEDTLS_MD_SHA512:
-            return PSA_ALG_SHA_512;
-#endif
-#if defined(MBEDTLS_RIPEMD160_C) || defined(PSA_WANT_ALG_RIPEMD160)
-        case MBEDTLS_MD_RIPEMD160:
-            return PSA_ALG_RIPEMD160;
-#endif
-        case MBEDTLS_MD_NONE:
-            return 0;
-        default:
-            return 0;
-    }
-}
-
 /* Translations for ECC. */
 
 static inline int mbedtls_psa_get_ecc_oid_from_id(
@@ -246,6 +205,22 @@ static inline int mbedtls_psa_get_ecc_oid_from_id(
                     *oid_len = MBEDTLS_OID_SIZE(MBEDTLS_OID_EC_GRP_BP512R1);
                     return 0;
 #endif /* MBEDTLS_ECP_DP_BP512R1_ENABLED */
+            }
+            break;
+        case PSA_ECC_FAMILY_MONTGOMERY:
+            switch (bits) {
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+                case 255:
+                    *oid = MBEDTLS_OID_X25519;
+                    *oid_len = MBEDTLS_OID_SIZE(MBEDTLS_OID_X25519);
+                    return 0;
+#endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED */
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+                case 448:
+                    *oid = MBEDTLS_OID_X448;
+                    *oid_len = MBEDTLS_OID_SIZE(MBEDTLS_OID_X448);
+                    return 0;
+#endif /* MBEDTLS_ECP_DP_CURVE448_ENABLED */
             }
             break;
     }
@@ -353,7 +328,7 @@ typedef struct {
     int16_t mbedtls_error;
 } mbedtls_error_pair_t;
 
-#if !defined(MBEDTLS_MD_C) || !defined(MBEDTLS_MD5_C) || defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_MD_LIGHT)
 extern const mbedtls_error_pair_t psa_to_md_errors[4];
 #endif
 

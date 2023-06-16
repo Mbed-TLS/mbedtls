@@ -1549,22 +1549,22 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C */
-void x509_crt_parse_subjectkeyid(data_t *buf, int subjectKeyIdLength_arg, int ref_ret)
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_FS_IO */
+void x509_crt_parse_subjectkeyid(char *file, data_t *subjectKeyId, int ref_ret)
 {
-    size_t subjectKeyIdLength = subjectKeyIdLength_arg;
     mbedtls_x509_crt crt;
 
     mbedtls_x509_crt_init(&crt);
 
-    TEST_ASSERT(mbedtls_x509_crt_parse_der(&crt, buf->x, buf->len) == ref_ret);
+    TEST_EQUAL(mbedtls_x509_crt_parse_file(&crt, file), ref_ret);
 
     if (ref_ret == 0) {
-        TEST_ASSERT(crt.subject_key_id.tag == MBEDTLS_ASN1_OCTET_STRING);
-        TEST_ASSERT(crt.subject_key_id.len == subjectKeyIdLength);
+        TEST_EQUAL(crt.subject_key_id.tag, MBEDTLS_ASN1_OCTET_STRING);
+        TEST_EQUAL(memcmp(crt.subject_key_id.p, subjectKeyId->x, subjectKeyId->len), 0);
+        TEST_EQUAL(crt.subject_key_id.len, subjectKeyId->len);
     } else {
-        TEST_ASSERT(crt.subject_key_id.tag == 0);
-        TEST_ASSERT(crt.subject_key_id.len == 0);
+        TEST_EQUAL(crt.subject_key_id.tag, 0);
+        TEST_EQUAL(crt.subject_key_id.len, 0);
     }
 
 exit:
@@ -1572,59 +1572,74 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C */
-void x509_crt_parse_authoritykeyid(data_t *buf,
-                                   int keyIdLength_arg,
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_FS_IO */
+void x509_crt_parse_authoritykeyid(char *file,
+                                   data_t *keyId,
                                    char *authorityKeyId_issuer,
-                                   int serialLength_arg,
+                                   data_t *serial,
                                    int ref_ret)
 {
     mbedtls_x509_crt crt;
     int bufferCounter = 0;
     size_t issuerCounter = 0;
-    size_t keyIdLength = keyIdLength_arg;
-    size_t serialLength = serialLength_arg;
     unsigned int result = 0;
     mbedtls_x509_subject_alternative_name san;
     mbedtls_x509_name *pname = NULL;
 
     mbedtls_x509_crt_init(&crt);
 
-    TEST_ASSERT(mbedtls_x509_crt_parse_der(&crt, buf->x, buf->len) == ref_ret);
+    TEST_EQUAL(mbedtls_x509_crt_parse_file(&crt, file), ref_ret);
 
     if (ref_ret == 0) {
         /* KeyId test */
-        TEST_ASSERT(crt.authority_key_id.keyIdentifier.tag == MBEDTLS_ASN1_OCTET_STRING);
-        TEST_ASSERT(crt.authority_key_id.keyIdentifier.len == keyIdLength);
+        if (keyId->len > 0) {
+            TEST_EQUAL(crt.authority_key_id.keyIdentifier.tag, MBEDTLS_ASN1_OCTET_STRING);
+            TEST_EQUAL(memcmp(crt.authority_key_id.keyIdentifier.p, keyId->x, keyId->len), 0);
+            TEST_EQUAL(crt.authority_key_id.keyIdentifier.len, keyId->len);
+        } else {
+            TEST_EQUAL(crt.authority_key_id.keyIdentifier.tag, 0);
+            TEST_EQUAL(crt.authority_key_id.keyIdentifier.len, 0);
+        }
+
 
         /* Issuer test */
-        mbedtls_x509_sequence *issuerPtr = &crt.authority_key_id.authorityCertIssuer;
+        if (strlen(authorityKeyId_issuer) > 0) {
+            mbedtls_x509_sequence *issuerPtr = &crt.authority_key_id.authorityCertIssuer;
 
-        TEST_ASSERT(mbedtls_x509_parse_subject_alt_name(&issuerPtr->buf, &san) == 0);
+            TEST_EQUAL(mbedtls_x509_parse_subject_alt_name(&issuerPtr->buf, &san), 0);
 
-        pname = &san.san.directory_name;
+            pname = &san.san.directory_name;
 
-        while (pname != NULL) {
-            for (issuerCounter = 0; issuerCounter < pname->val.len; issuerCounter++) {
-                result |=
-                    (authorityKeyId_issuer[bufferCounter++] != pname->val.p[issuerCounter]);
+            while (pname != NULL) {
+                for (issuerCounter = 0; issuerCounter < pname->val.len; issuerCounter++) {
+                    result |=
+                        (authorityKeyId_issuer[bufferCounter++] != pname->val.p[issuerCounter]);
+                }
+                bufferCounter++; /* Skipping the slash */
+                pname = pname->next;
             }
-            bufferCounter++; /* Skipping the slash */
-            pname = pname->next;
+            mbedtls_x509_free_subject_alt_name(&san);
+            TEST_EQUAL(result, 0);
         }
-        mbedtls_x509_free_subject_alt_name(&san);
-        TEST_ASSERT(result == 0);
 
         /* Serial test */
-        TEST_ASSERT(crt.authority_key_id.authorityCertSerialNumber.tag ==
-                    MBEDTLS_ASN1_INTEGER);
-        TEST_ASSERT(crt.authority_key_id.authorityCertSerialNumber.len == serialLength);
-    } else {
-        TEST_ASSERT(crt.authority_key_id.keyIdentifier.tag == 0);
-        TEST_ASSERT(crt.authority_key_id.keyIdentifier.len == 0);
+        if (serial->len > 0) {
+            TEST_EQUAL(crt.authority_key_id.authorityCertSerialNumber.tag,
+                       MBEDTLS_ASN1_INTEGER);
+            TEST_EQUAL(memcmp(crt.authority_key_id.authorityCertSerialNumber.p,
+                              serial->x, serial->len), 0);
+            TEST_EQUAL(crt.authority_key_id.authorityCertSerialNumber.len, serial->len);
+        } else {
+            TEST_EQUAL(crt.authority_key_id.authorityCertSerialNumber.tag, 0);
+            TEST_EQUAL(crt.authority_key_id.authorityCertSerialNumber.len, 0);
+        }
 
-        TEST_ASSERT(crt.authority_key_id.authorityCertSerialNumber.tag == 0);
-        TEST_ASSERT(crt.authority_key_id.authorityCertSerialNumber.len == 0);
+    } else {
+        TEST_EQUAL(crt.authority_key_id.keyIdentifier.tag, 0);
+        TEST_EQUAL(crt.authority_key_id.keyIdentifier.len, 0);
+
+        TEST_EQUAL(crt.authority_key_id.authorityCertSerialNumber.tag, 0);
+        TEST_EQUAL(crt.authority_key_id.authorityCertSerialNumber.len, 0);
     }
 
 exit:

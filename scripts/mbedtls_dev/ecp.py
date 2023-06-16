@@ -97,7 +97,7 @@ class EcpP192R1Raw(bignum_common.ModOperationCommon,
     def is_valid(self) -> bool:
         return True
 
-    def arguments(self):
+    def arguments(self)-> List[str]:
         args = super().arguments()
         return  ["MBEDTLS_ECP_DP_SECP192R1"] + args
 
@@ -174,7 +174,7 @@ class EcpP224R1Raw(bignum_common.ModOperationCommon,
     def is_valid(self) -> bool:
         return True
 
-    def arguments(self):
+    def arguments(self)-> List[str]:
         args = super().arguments()
         return  ["MBEDTLS_ECP_DP_SECP224R1"] + args
 
@@ -258,7 +258,7 @@ class EcpP256R1Raw(bignum_common.ModOperationCommon,
     def is_valid(self) -> bool:
         return True
 
-    def arguments(self):
+    def arguments(self)-> List[str]:
         args = super().arguments()
         return  ["MBEDTLS_ECP_DP_SECP256R1"] + args
 
@@ -380,7 +380,7 @@ class EcpP384R1Raw(bignum_common.ModOperationCommon,
     def is_valid(self) -> bool:
         return True
 
-    def arguments(self):
+    def arguments(self)-> List[str]:
         args = super().arguments()
         return  ["MBEDTLS_ECP_DP_SECP384R1"] + args
 
@@ -485,7 +485,7 @@ class EcpP521R1Raw(bignum_common.ModOperationCommon,
     def is_valid(self) -> bool:
         return True
 
-    def arguments(self):
+    def arguments(self)-> List[str]:
         args = super().arguments()
         return  ["MBEDTLS_ECP_DP_SECP521R1"] + args
 
@@ -494,8 +494,8 @@ class EcpP192K1Raw(bignum_common.ModOperationCommon,
                    EcpTarget):
     """Test cases for ECP P192K1 fast reduction."""
     symbol = "-"
-    test_function = "ecp_mod_p192k1"
-    test_name = "ecp_mod_p192k1"
+    test_function = "ecp_mod_p_generic_raw"
+    test_name = "ecp_mod_p192k1_raw"
     input_style = "fixed"
     arity = 1
     dependencies = ["MBEDTLS_ECP_DP_SECP192K1_ENABLED"]
@@ -557,13 +557,17 @@ class EcpP192K1Raw(bignum_common.ModOperationCommon,
     def is_valid(self) -> bool:
         return True
 
+    def arguments(self):
+        args = super().arguments()
+        return  ["MBEDTLS_ECP_DP_SECP192K1"] + args
+
 
 class EcpP224K1Raw(bignum_common.ModOperationCommon,
                    EcpTarget):
     """Test cases for ECP P224 fast reduction."""
     symbol = "-"
-    test_function = "ecp_mod_p224k1"
-    test_name = "ecp_mod_p224k1"
+    test_function = "ecp_mod_p_generic_raw"
+    test_name = "ecp_mod_p224k1_raw"
     input_style = "fixed"
     arity = 1
     dependencies = ["MBEDTLS_ECP_DP_SECP224K1_ENABLED"]
@@ -582,7 +586,7 @@ class EcpP224K1Raw(bignum_common.ModOperationCommon,
         # 2^224 - 1
         "ffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
 
-        # Maximum canonical P224 multiplication result
+        # Maximum canonical P224K1 multiplication result
         ("fffffffffffffffffffffffffffffffffffffffffffffffdffffcad8"
          "00000000000000000000000000000000000000010000352802c26590"),
 
@@ -626,13 +630,17 @@ class EcpP224K1Raw(bignum_common.ModOperationCommon,
     def is_valid(self) -> bool:
         return True
 
+    def arguments(self):
+        args = super().arguments()
+        return  ["MBEDTLS_ECP_DP_SECP224K1"] + args
+
 
 class EcpP256K1Raw(bignum_common.ModOperationCommon,
                    EcpTarget):
     """Test cases for ECP P256 fast reduction."""
     symbol = "-"
-    test_function = "ecp_mod_p256k1"
-    test_name = "ecp_mod_p256k1"
+    test_function = "ecp_mod_p_generic_raw"
+    test_name = "ecp_mod_p256k1_raw"
     input_style = "fixed"
     arity = 1
     dependencies = ["MBEDTLS_ECP_DP_SECP256K1_ENABLED"]
@@ -651,9 +659,13 @@ class EcpP256K1Raw(bignum_common.ModOperationCommon,
         # 2^256 - 1
         "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
 
-        # Maximum canonical P256 multiplication result
-        ("fffffffffffffffffffffffffffffffffffffffffffffffffffffffdfffff85c0"
-         "00000000000000000000000000000000000000000000001000007a4000e9844"),
+        # Maximum canonical P256K1 multiplication result
+        ("fffffffffffffffffffffffffffffffffffffffffffffffffffffffdfffff85c"
+         "000000000000000000000000000000000000000000000001000007a4000e9844"),
+
+        # Test case for overflow during addition
+        ("0000fffffc2f000e90a0c86a0a63234e5ba641f43a7e4aecc4040e67ec850562"
+         "00000000000000000000000000000000000000000000000000000000585674fd"),
 
         # Test case for overflow during addition
         ("0000fffffc2f000e90a0c86a0a63234e5ba641f43a7e4aecc4040e67ec850562"
@@ -693,6 +705,79 @@ class EcpP256K1Raw(bignum_common.ModOperationCommon,
     @property
     def is_valid(self) -> bool:
         return True
+
+    def arguments(self):
+        args = super().arguments()
+        return  ["MBEDTLS_ECP_DP_SECP256K1"] + args
+
+
+class EcpP255Raw(bignum_common.ModOperationCommon,
+                 EcpTarget):
+    """Test cases for ECP 25519 fast reduction."""
+    symbol = "-"
+    test_function = "ecp_mod_p_generic_raw"
+    test_name = "mbedtls_ecp_mod_p255_raw"
+    input_style = "fixed"
+    arity = 1
+    dependencies = ["MBEDTLS_ECP_DP_CURVE25519_ENABLED"]
+
+    moduli = [("7fffffffffffffffffffffffffffffffffffffffffffffffff"
+               "ffffffffffffed")] # type: List[str]
+
+    input_values = [
+        "0", "1",
+
+        # Modulus - 1
+        ("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffec"),
+
+        # Modulus + 1
+        ("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffee"),
+
+        # 2^255 - 1
+        ("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"),
+
+        # Maximum canonical P255 multiplication result
+        ("3fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffec"
+         "0000000000000000000000000000000000000000000000000000000000000190"),
+
+        # First 8 number generated by random.getrandbits(510) - seed(2,2)
+        ("1019f0d64ee207f8da94e3e8ab73738fcf1822ffbc6887782b491044d5e34124"
+         "5c6e433715ba2bdd177219d30e7a269fd95bafc8f2a4d27bdcf4bb99f4bea973"),
+        ("20948fa1feac7eb7dc38f519b91751dacdbd47d364be8049a372db8f6e405d93"
+         "ffed9235288bc781ae66267594c9c9500925e4749b575bd13653f8dd9b1f282e"),
+        ("3a1893ea5186ee32ee8d7ee9770348a05d300cb90706a045defc044a09325626"
+         "e6b58de744ab6cce80877b6f71e1f6d2ef8acd128b4f2fc15f3f57ebf30b94fa"),
+        ("20a6923522fe99a22c70501e533c91352d3d854e061b90303b08c6e33c729578"
+         "2d6c797f8f7d9b782a1be9cd8697bbd0e2520e33e44c50556c71c4a66148a86f"),
+        ("3a248138e8168561867e5e15bc01bfce6a27e0dfcbf8754472154e76e4c11ab2"
+         "fec3f6b32e8d4b8a8f54f8ceacaab39e83844b40ffa9b9f15c14bc4a829e07b0"),
+        ("2f450feab714210c665d7435c1066932f4767f26294365b2721dea3bf63f23d0"
+         "dbe53fcafb2147df5ca495fa5a91c89b97eeab64ca2ce6bc5d3fd983c34c769f"),
+        ("1d199effe202849da9643a295a9ac6decbd4d3e2d4dec9ef83f0be4e80371eb9"
+         "7f81375eecc1cb6347733e847d718d733ff98ff387c56473a7a83ee0761ebfd2"),
+        ("3423c6ec531d6460f0caeef038c89b38a8acb5137c9260dc74e088a9b9492f25"
+         "8ebdbfe3eb9ac688b9d39cca91551e8259cc60b17604e4b4e73695c3e652c71a"),
+
+        # Next 2 number generated by random.getrandbits(255)
+        ("62f1243644a4a8f69dc8db48e86ec9c6e06f291b2a838af8d5c44a4eb3172062"),
+        ("6a606e54b4c9e755cc9c3adcf515a8234da4daeb4f3f87777ad1f45ae9500ec9"),
+    ]
+
+    @property
+    def arg_a(self) -> str:
+        return super().format_arg('{:x}'.format(self.int_a)).zfill(2 * self.hex_digits)
+
+    def result(self) -> List[str]:
+        result = self.int_a % self.int_n
+        return [self.format_result(result)]
+
+    @property
+    def is_valid(self) -> bool:
+        return True
+
+    def arguments(self)-> List[str]:
+        args = super().arguments()
+        return  ["MBEDTLS_ECP_DP_CURVE25519"] + args
 
 
 class EcpP448Raw(bignum_common.ModOperationCommon,

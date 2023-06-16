@@ -50,8 +50,6 @@
 #include "mbedtls/platform_util.h"
 #endif
 
-#include "hash_info.h"
-
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_write_renegotiation_ext(mbedtls_ssl_context *ssl,
@@ -1986,7 +1984,6 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    const mbedtls_ecp_keypair *peer_key;
     mbedtls_pk_context *peer_pk;
 
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
@@ -2007,22 +2004,24 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
         return MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH;
     }
 
-    peer_key = mbedtls_pk_ec_ro(*peer_pk);
+#if defined(MBEDTLS_ECP_C)
+    const mbedtls_ecp_keypair *peer_key = mbedtls_pk_ec_ro(*peer_pk);
+#endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    size_t olen = 0;
     uint16_t tls_id = 0;
     psa_ecc_family_t ecc_family;
+    mbedtls_ecp_group_id grp_id = mbedtls_pk_get_group_id(peer_pk);
 
-    if (mbedtls_ssl_check_curve(ssl, peer_key->grp.id) != 0) {
+    if (mbedtls_ssl_check_curve(ssl, grp_id) != 0) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("bad server certificate (ECDH curve)"));
         return MBEDTLS_ERR_SSL_BAD_CERTIFICATE;
     }
 
-    tls_id = mbedtls_ssl_get_tls_id_from_ecp_group_id(peer_key->grp.id);
+    tls_id = mbedtls_ssl_get_tls_id_from_ecp_group_id(grp_id);
     if (tls_id == 0) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("ECC group %u not suported",
-                                  peer_key->grp.id));
+                                  grp_id));
         return MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
     }
 
@@ -2034,6 +2033,12 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
     ssl->handshake->ecdh_psa_type = PSA_KEY_TYPE_ECC_KEY_PAIR(ecc_family);
 
     /* Store peer's public key in psa format. */
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    memcpy(ssl->handshake->ecdh_psa_peerkey, peer_pk->pub_raw, peer_pk->pub_raw_len);
+    ssl->handshake->ecdh_psa_peerkey_len = peer_pk->pub_raw_len;
+    ret = 0;
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
+    size_t olen = 0;
     ret = mbedtls_ecp_point_write_binary(&peer_key->grp, &peer_key->Q,
                                          MBEDTLS_ECP_PF_UNCOMPRESSED, &olen,
                                          ssl->handshake->ecdh_psa_peerkey,
@@ -2043,9 +2048,9 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
         MBEDTLS_SSL_DEBUG_RET(1, ("mbedtls_ecp_point_write_binary"), ret);
         return ret;
     }
-
     ssl->handshake->ecdh_psa_peerkey_len = olen;
-#else
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
+#else /* MBEDTLS_USE_PSA_CRYPTO */
     if ((ret = mbedtls_ecdh_get_params(&ssl->handshake->ecdh_ctx, peer_key,
                                        MBEDTLS_ECDH_THEIRS)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, ("mbedtls_ecdh_get_params"), ret);
@@ -2056,7 +2061,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
         MBEDTLS_SSL_DEBUG_MSG(1, ("bad server certificate (ECDH curve)"));
         return MBEDTLS_ERR_SSL_BAD_CERTIFICATE;
     }
-#endif
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     /* We don't need the peer's public key anymore. Free it,
      * so that more RAM is available for upcoming expensive
@@ -2284,7 +2289,7 @@ start_processing:
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_SERVER_SIGNATURE_ENABLED)
     if (mbedtls_ssl_ciphersuite_uses_server_signature(ciphersuite_info)) {
         size_t sig_len, hashlen;
-        unsigned char hash[MBEDTLS_HASH_MAX_SIZE];
+        unsigned char hash[MBEDTLS_MD_MAX_SIZE];
 
         mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
         mbedtls_pk_type_t pk_alg = MBEDTLS_PK_NONE;
@@ -2401,7 +2406,7 @@ start_processing:
             mbedtls_pk_rsassa_pss_options rsassa_pss_options;
             rsassa_pss_options.mgf1_hash_id = md_alg;
             rsassa_pss_options.expected_salt_len =
-                mbedtls_hash_info_get_size(md_alg);
+                mbedtls_md_get_size_from_type(md_alg);
             if (rsassa_pss_options.expected_salt_len == 0) {
                 return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
             }

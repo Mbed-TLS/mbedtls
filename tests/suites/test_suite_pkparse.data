@@ -23,11 +23,11 @@ depends_on:MBEDTLS_HAS_MD5_VIA_LOWLEVEL_OR_PSA :MBEDTLS_AES_C:MBEDTLS_PEM_PARSE_
 pk_parse_keyfile_rsa:"data_files/rsa_pkcs1_1024_aes128.pem":"testkey":0
 
 Parse RSA Key #7 (AES-192 Encrypted)
-depends_on:MBEDTLS_HAS_MD5_VIA_LOWLEVEL_OR_PSA :MBEDTLS_AES_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_CIPHER_MODE_CBC
+depends_on:MBEDTLS_HAS_MD5_VIA_LOWLEVEL_OR_PSA :MBEDTLS_AES_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_CIPHER_MODE_CBC:!MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
 pk_parse_keyfile_rsa:"data_files/rsa_pkcs1_1024_aes192.pem":"testkey":0
 
 Parse RSA Key #8 (AES-256 Encrypted)
-depends_on:MBEDTLS_HAS_MD5_VIA_LOWLEVEL_OR_PSA :MBEDTLS_AES_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_CIPHER_MODE_CBC
+depends_on:MBEDTLS_HAS_MD5_VIA_LOWLEVEL_OR_PSA :MBEDTLS_AES_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_CIPHER_MODE_CBC:!MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
 pk_parse_keyfile_rsa:"data_files/rsa_pkcs1_1024_aes256.pem":"testkey":0
 
 Parse RSA Key #9 (2048-bit, DES Encrypted)
@@ -43,11 +43,11 @@ depends_on:MBEDTLS_HAS_MD5_VIA_LOWLEVEL_OR_PSA :MBEDTLS_AES_C:MBEDTLS_PEM_PARSE_
 pk_parse_keyfile_rsa:"data_files/rsa_pkcs1_2048_aes128.pem":"testkey":0
 
 Parse RSA Key #12 (2048-bit, AES-192 Encrypted)
-depends_on:MBEDTLS_HAS_MD5_VIA_LOWLEVEL_OR_PSA :MBEDTLS_AES_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_CIPHER_MODE_CBC
+depends_on:MBEDTLS_HAS_MD5_VIA_LOWLEVEL_OR_PSA :MBEDTLS_AES_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_CIPHER_MODE_CBC:!MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
 pk_parse_keyfile_rsa:"data_files/rsa_pkcs1_2048_aes192.pem":"testkey":0
 
 Parse RSA Key #13 (2048-bit, AES-256 Encrypted)
-depends_on:MBEDTLS_HAS_MD5_VIA_LOWLEVEL_OR_PSA :MBEDTLS_AES_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_CIPHER_MODE_CBC
+depends_on:MBEDTLS_HAS_MD5_VIA_LOWLEVEL_OR_PSA :MBEDTLS_AES_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_CIPHER_MODE_CBC:!MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
 pk_parse_keyfile_rsa:"data_files/rsa_pkcs1_2048_aes256.pem":"testkey":0
 
 Parse RSA Key #14 (4096-bit, DES Encrypted)
@@ -63,11 +63,11 @@ depends_on:MBEDTLS_HAS_MD5_VIA_LOWLEVEL_OR_PSA :MBEDTLS_AES_C:MBEDTLS_PEM_PARSE_
 pk_parse_keyfile_rsa:"data_files/rsa_pkcs1_4096_aes128.pem":"testkey":0
 
 Parse RSA Key #17 (4096-bit, AES-192 Encrypted)
-depends_on:MBEDTLS_HAS_MD5_VIA_LOWLEVEL_OR_PSA :MBEDTLS_AES_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_CIPHER_MODE_CBC
+depends_on:MBEDTLS_HAS_MD5_VIA_LOWLEVEL_OR_PSA :MBEDTLS_AES_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_CIPHER_MODE_CBC:!MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
 pk_parse_keyfile_rsa:"data_files/rsa_pkcs1_4096_aes192.pem":"testkey":0
 
 Parse RSA Key #18 (4096-bit, AES-256 Encrypted)
-depends_on:MBEDTLS_HAS_MD5_VIA_LOWLEVEL_OR_PSA :MBEDTLS_AES_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_CIPHER_MODE_CBC
+depends_on:MBEDTLS_HAS_MD5_VIA_LOWLEVEL_OR_PSA :MBEDTLS_AES_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_CIPHER_MODE_CBC:!MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
 pk_parse_keyfile_rsa:"data_files/rsa_pkcs1_4096_aes256.pem":"testkey":0
 
 Parse RSA Key #19 (PKCS#8 wrapped)
@@ -1197,7 +1197,7 @@ depends_on:MBEDTLS_ECP_LIGHT
 pk_parse_key:"30070201010400a000":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 
 Key ASN1 (OneAsymmetricKey X25519, doesn't match masking requirements, from RFC8410 Appendix A but made into version 0)
-depends_on:MBEDTLS_ECP_LIGHT
+depends_on:MBEDTLS_ECP_C
 pk_parse_key:"302e020100300506032b656e04220420f8ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff3f":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 
 Key ASN1 (OneAsymmetricKey X25519, with invalid optional AlgorithIdentifier parameters)

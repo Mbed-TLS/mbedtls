@@ -251,6 +251,7 @@ static void aesce_setkey_enc(unsigned char *rk,
             /* Do not write overflow words.*/
             continue;
         }
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
         switch (key_bit_length) {
             case 128:
                 break;
@@ -265,6 +266,7 @@ static void aesce_setkey_enc(unsigned char *rk,
                 rko[7] = rko[6] ^ rki[7];
                 break;
         }
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
     }
 }
 

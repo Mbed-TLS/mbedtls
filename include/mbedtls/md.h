@@ -112,6 +112,12 @@
 #define MBEDTLS_MD_CAN_SHA512
 #define MBEDTLS_MD_SOME_LEGACY
 #endif
+#if defined(MBEDTLS_SHA3_C)
+#define MBEDTLS_MD_CAN_SHA3_224
+#define MBEDTLS_MD_CAN_SHA3_256
+#define MBEDTLS_MD_CAN_SHA3_384
+#define MBEDTLS_MD_CAN_SHA3_512
+#endif
 #if defined(MBEDTLS_RIPEMD160_C)
 #define MBEDTLS_MD_CAN_RIPEMD160
 #define MBEDTLS_MD_SOME_LEGACY
@@ -149,23 +155,43 @@ typedef enum {
     MBEDTLS_MD_SHA384,    /**< The SHA-384 message digest. */
     MBEDTLS_MD_SHA512,    /**< The SHA-512 message digest. */
     MBEDTLS_MD_RIPEMD160, /**< The RIPEMD-160 message digest. */
+    MBEDTLS_MD_SHA3_224,    /**< The SHA3-224 message digest. */
+    MBEDTLS_MD_SHA3_256,    /**< The SHA3-256 message digest. */
+    MBEDTLS_MD_SHA3_384,    /**< The SHA3-384 message digest. */
+    MBEDTLS_MD_SHA3_512,    /**< The SHA3-512 message digest. */
 } mbedtls_md_type_t;
 
-#if defined(MBEDTLS_MD_CAN_SHA512)
+/* Note: this should always be >= PSA_HASH_MAX_SIZE
+ * in all builds with both CRYPTO_C and MD_LIGHT.
+ *
+ * This is to make things easier for modules such as TLS that may define a
+ * buffer size using MD_MAX_SIZE in a part of the code that's common to PSA
+ * and legacy, then assume the buffer's size is PSA_HASH_MAX_SIZE in another
+ * part of the code based on PSA.
+ */
+#if defined(MBEDTLS_MD_CAN_SHA512) || defined(MBEDTLS_MD_CAN_SHA3_512)
 #define MBEDTLS_MD_MAX_SIZE         64  /* longest known is SHA512 */
-#elif defined(MBEDTLS_MD_CAN_SHA384)
+#elif defined(MBEDTLS_MD_CAN_SHA384) || defined(MBEDTLS_MD_CAN_SHA3_384)
 #define MBEDTLS_MD_MAX_SIZE         48  /* longest known is SHA384 */
-#elif defined(MBEDTLS_MD_CAN_SHA256)
+#elif defined(MBEDTLS_MD_CAN_SHA256) || defined(MBEDTLS_MD_CAN_SHA3_256)
 #define MBEDTLS_MD_MAX_SIZE         32  /* longest known is SHA256 */
-#elif defined(MBEDTLS_MD_CAN_SHA224)
+#elif defined(MBEDTLS_MD_CAN_SHA224) || defined(MBEDTLS_MD_CAN_SHA3_224)
 #define MBEDTLS_MD_MAX_SIZE         28  /* longest known is SHA224 */
 #else
 #define MBEDTLS_MD_MAX_SIZE         20  /* longest known is SHA1 or RIPE MD-160
                                            or smaller (MD5 and earlier) */
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA512)
+#if defined(MBEDTLS_MD_CAN_SHA3_224)
+#define MBEDTLS_MD_MAX_BLOCK_SIZE         144 /* the longest known is SHA3-224 */
+#elif defined(MBEDTLS_MD_CAN_SHA3_256)
+#define MBEDTLS_MD_MAX_BLOCK_SIZE         136
+#elif defined(MBEDTLS_MD_CAN_SHA512) || defined(MBEDTLS_MD_CAN_SHA384)
 #define MBEDTLS_MD_MAX_BLOCK_SIZE         128
+#elif defined(MBEDTLS_MD_CAN_SHA3_384)
+#define MBEDTLS_MD_MAX_BLOCK_SIZE         104
+#elif defined(MBEDTLS_MD_CAN_SHA3_512)
+#define MBEDTLS_MD_MAX_BLOCK_SIZE         72
 #else
 #define MBEDTLS_MD_MAX_BLOCK_SIZE         64
 #endif
@@ -309,6 +335,20 @@ int mbedtls_md_clone(mbedtls_md_context_t *dst,
  * \return          The size of the message-digest output in Bytes.
  */
 unsigned char mbedtls_md_get_size(const mbedtls_md_info_t *md_info);
+
+/**
+ * \brief           This function gives the message-digest size associated to
+ *                  message-digest type.
+ *
+ * \param md_type   The message-digest type.
+ *
+ * \return          The size of the message-digest output in Bytes,
+ *                  or 0 if the message-digest type is not known.
+ */
+static inline unsigned char mbedtls_md_get_size_from_type(mbedtls_md_type_t md_type)
+{
+    return mbedtls_md_get_size(mbedtls_md_info_from_type(md_type));
+}
 
 /**
  * \brief           This function extracts the message-digest type from the

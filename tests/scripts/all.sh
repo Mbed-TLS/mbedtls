@@ -3508,25 +3508,40 @@ support_test_aesni () {
     gcc -v 2>&1 | grep Target | grep -q x86_64
 }
 
-component_test_aesni () { # ~ 40s
+component_test_aesni () { # ~ 60s
+    # This tests the two AESNI implementations (intrinsics and assembly), and also the plain C
+    # fallback. It also tests the logic that is used to select which implementation(s) to build.
+    #
+    # This test does not require the host to have support for AESNI (if it doesn't, the run-time
+    # AESNI detection will fallback to the plain C implementation, so the tests will instead
+    # exercise the plain C impl).
+
     msg "build: default config with different AES implementations"
     scripts/config.py set MBEDTLS_AESNI_C
     scripts/config.py set MBEDTLS_HAVE_ASM
 
-    # test asm
-    msg "AES tests, MBEDTLS_AESNI_HAVE_CODE=1 (asm)"
-    make test CC=gcc CFLAGS='-O2 -Werror -DMBEDTLS_AESNI_HAVE_CODE=1'
-
-    # test intrinsics
-    msg "AES tests, MBEDTLS_AESNI_HAVE_CODE=2 (intrinsics)"
+    # test the intrinsics implementation
+    msg "AES tests, test intrinsics"
     make clean
-    make test CC=gcc CFLAGS='-O2 -Werror -mpclmul -msse2 -maes -DMBEDTLS_AESNI_HAVE_CODE=2'
+    make test programs/test/selftest CC=gcc CFLAGS='-Werror -Wall -Wextra -mpclmul -msse2 -maes'
+    # check that we built intrinsics - this should be used by default when supported by the compiler
+    ./programs/test/selftest | grep "AESNI code" | grep -q "intrinsics" || false "intrinsics not built when supported"
 
-    # test plain C
+    # test the asm implementation
+    msg "AES tests, test assembly"
+    make clean
+    make test programs/test/selftest CC=gcc CFLAGS='-Werror -Wall -Wextra -mno-pclmul -mno-sse2 -mno-aes'
+    # check that we built assembly - this should be built if the compiler does not support intrinsics
+    ./programs/test/selftest | grep "AESNI code" | grep -q "assembly" || false "assembly not built when intrinsics not supported"
+
+    # test the plain C implementation
     scripts/config.py unset MBEDTLS_AESNI_C
     msg "AES tests, plain C"
     make clean
-    make test CC=gcc CFLAGS='-O2 -Werror'
+    make test programs/test/selftest CC=gcc CFLAGS='-O2 -Werror'
+    # check that there is no AESNI code present
+    ./programs/test/selftest | grep -q "AESNI code" && false "AESNI code built when MBEDTLS_AESNI_C unset"
+
 }
 
 component_test_aes_only_128_bit_keys () {

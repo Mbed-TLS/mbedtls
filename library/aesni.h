@@ -59,11 +59,6 @@
 #define MBEDTLS_AESNI_HAVE_INTRINSICS
 #endif
 
-/* Normally MBEDTLS_AESNI_HAVE_CODE is automatically set below. It may be
- * set from all.sh to ensure coverage of both asm and intrinsics, in which
- * case we do not over-ride it. */
-#if !defined(MBEDTLS_AESNI_HAVE_CODE)
-
 /* Choose the implementation of AESNI, if one is available.
  *
  * Favor the intrinsics-based implementation if it's available, for better
@@ -75,7 +70,6 @@
 #elif defined(MBEDTLS_HAVE_X86_64)
 #define MBEDTLS_AESNI_HAVE_CODE 1 // via assembly
 #endif
-#endif /* !defined(MBEDTLS_AESNI_HAVE_CODE) */
 
 #if defined(MBEDTLS_AESNI_HAVE_CODE)
 

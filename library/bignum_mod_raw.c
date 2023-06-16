@@ -137,8 +137,17 @@ void mbedtls_mpi_mod_raw_mul(mbedtls_mpi_uint *X,
                                      N->rep.mont.mm, T);
             break;
         case MBEDTLS_MPI_MOD_REP_OPT_RED:
+            /* Standard (A * B) multiplication stored into pre-allocated T
+             *  buffer of fixed size of ((2N + 1) * ciL) bytes.
+
+             *  The space is not fully filled by MBEDTLS_MPI_MOD_REP_OPT_RED
+             *  which requires at max (2N * ciL) bytes. */
             mbedtls_mpi_core_mul(T, A, N->limbs, B, N->limbs);
+
+            /* Optimised Reduction */
             (*N->rep.ored.modp)(T, T_limbs);
+
+            /* Convert back to cannonical representation */
             mbedtls_mpi_mod_raw_fix_quasi_reduction(T, N);
             memcpy(X, T, N->limbs * sizeof(mbedtls_mpi_uint));
             break;

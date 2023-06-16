@@ -3454,16 +3454,24 @@ support_test_aesni () {
 }
 
 component_test_aesni () { # ~ 40s
-    msg "build: default config with MBEDTLS_HAVE_ASM and MBEDTLS_AESNI_C enabled"
+    msg "build: default config with different AES implementations"
     scripts/config.py set MBEDTLS_AESNI_C
     scripts/config.py set MBEDTLS_HAVE_ASM
 
+    # test asm
     msg "AES tests, MBEDTLS_AESNI_HAVE_CODE=1 (asm)"
     make test CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra -DMBEDTLS_AESNI_HAVE_CODE=1'
- 
+
+    # test intrinsics
     msg "AES tests, MBEDTLS_AESNI_HAVE_CODE=2 (intrinsics)"
     make clean
     make test CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra -mpclmul -msse2 -maes -DMBEDTLS_AESNI_HAVE_CODE=2'
+
+    # test plain C
+    scripts/config.py unset MBEDTLS_AESNI_C
+    msg "AES tests, plain C"
+    make clean
+    make test CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra'
 }
 
 component_test_aes_fewer_tables () {

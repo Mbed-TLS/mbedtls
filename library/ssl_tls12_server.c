@@ -2622,11 +2622,8 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
             }
 
             ssl->handshake->ecdh_psa_privkey = pk->priv_id;
-
-            if (pk_type == MBEDTLS_PK_OPAQUE) {
-                /* Key should not be destroyed in the TLS library */
-                ssl->handshake->ecdh_psa_privkey_is_external = 1;
-            }
+            /* Key should not be destroyed in the TLS library */
+            ssl->handshake->ecdh_psa_privkey_is_external = 1;
 
             status = psa_get_key_attributes(ssl->handshake->ecdh_psa_privkey,
                                             &key_attributes);

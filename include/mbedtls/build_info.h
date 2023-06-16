@@ -149,6 +149,15 @@
 #define MBEDTLS_ECP_LIGHT
 #endif
 
+/* MBEDTLS_PK_PARSE_EC_COMPRESSED is introduced in MbedTLS version 3.5, while
+ * in previous version compressed points were automatically supported as long
+ * as PK_PARSE_C and ECP_C were enabled. As a consequence, for backward
+ * compatibility, we auto-enable PK_PARSE_EC_COMPRESSED when these conditions
+ * are met. */
+#if defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_ECP_C)
+#define MBEDTLS_PK_PARSE_EC_COMPRESSED
+#endif
+
 /* If MBEDTLS_PSA_CRYPTO_C is defined, make sure MBEDTLS_PSA_CRYPTO_CLIENT
  * is defined as well to include all PSA code.
  */

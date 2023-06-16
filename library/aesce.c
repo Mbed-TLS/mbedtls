@@ -114,8 +114,7 @@ static uint8x16_t aesce_encrypt_block(uint8x16_t block,
                                       unsigned char *keys,
                                       int rounds)
 {
-    /* Assume either 10, 12 or 14 rounds.
-     * Skip 4 or 2 rounds, if doing 10 or 12 rounds */
+    /* 10, 12 or 14 rounds. Unroll loop. */
     if (rounds == 10) {
         goto rounds_10;
     }
@@ -177,8 +176,7 @@ static uint8x16_t aesce_decrypt_block(uint8x16_t block,
                                       unsigned char *keys,
                                       int rounds)
 {
-    /* Assume either 10, 12 or 14 rounds.
-     * Skip 4 or 2 rounds, if doing 10 or 12 rounds */
+    /* 10, 12 or 14 rounds. Unroll loop. */
     if (rounds == 10) {
         goto rounds_10;
     }

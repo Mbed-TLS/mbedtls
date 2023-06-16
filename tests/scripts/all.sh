@@ -3540,7 +3540,7 @@ component_test_aesni () { # ~ 60s
     make clean
     make test programs/test/selftest CC=gcc CFLAGS='-O2 -Werror'
     # check that there is no AESNI code present
-    ./programs/test/selftest | grep -q "AESNI code" && false "AESNI code built when MBEDTLS_AESNI_C unset"
+    ./programs/test/selftest | grep -qv "AESNI code" || false "AESNI code built when MBEDTLS_AESNI_C unset"
 }
 
 component_test_aes_only_128_bit_keys () {

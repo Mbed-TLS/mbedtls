@@ -240,11 +240,14 @@ static inline void mbedtls_xor_no_simd(unsigned char *r,
 #define MBEDTLS_COMPILER_IS_GCC
 #endif
 
-/* If -Os is specified, override with -O2 for a given function */
+/* For gcc -Os, override with -O2 for a given function.
+ *
+ * This will not affect behaviour for other optimisation settings, e.g. -O0.
+ */
 #if defined(MBEDTLS_COMPILER_IS_GCC) && defined(__OPTIMIZE_SIZE__)
-#define MBEDTLS_OPTIMIZE_ALWAYS __attribute__((optimize("-O2")))
+#define MBEDTLS_OPTIMIZE_FOR_PERFORMANCE __attribute__((optimize("-O2")))
 #else
-#define MBEDTLS_OPTIMIZE_ALWAYS
+#define MBEDTLS_OPTIMIZE_FOR_PERFORMANCE
 #endif
 
 #endif /* MBEDTLS_LIBRARY_COMMON_H */

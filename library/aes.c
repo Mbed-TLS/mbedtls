@@ -1128,7 +1128,7 @@ typedef unsigned char mbedtls_be128[16];
  * for machine endianness and hence works correctly on both big and little
  * endian machines.
  */
-MBEDTLS_OPTIMIZE_ALWAYS
+MBEDTLS_OPTIMIZE_FOR_PERFORMANCE
 static inline void mbedtls_gf128mul_x_ble(unsigned char r[16],
                                           const unsigned char x[16])
 {
@@ -1147,10 +1147,10 @@ static inline void mbedtls_gf128mul_x_ble(unsigned char r[16],
 /*
  * AES-XTS buffer encryption/decryption
  *
- * Use of MBEDTLS_OPTIMIZE_ALWAYS here and for mbedtls_gf128mul_x_ble()
+ * Use of MBEDTLS_OPTIMIZE_FOR_PERFORMANCE here and for mbedtls_gf128mul_x_ble()
  * is a 3x performance improvement for gcc -Os!
  */
-MBEDTLS_OPTIMIZE_ALWAYS
+MBEDTLS_OPTIMIZE_FOR_PERFORMANCE
 int mbedtls_aes_crypt_xts(mbedtls_aes_xts_context *ctx,
                           int mode,
                           size_t length,

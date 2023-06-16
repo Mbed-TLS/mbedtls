@@ -31,6 +31,15 @@
 #include "bignum_mod.h"
 #include "mbedtls/ecp.h"
 
+/*
+ * Curve modulus types
+ */
+typedef enum {
+    MBEDTLS_ECP_MOD_NONE = 0,
+    MBEDTLS_ECP_MOD_COORDINATE,
+    MBEDTLS_ECP_MOD_SCALAR
+} mbedtls_ecp_modulus_type;
+
 #if defined(MBEDTLS_TEST_HOOKS) && defined(MBEDTLS_ECP_LIGHT)
 
 #if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)

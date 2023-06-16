@@ -2457,7 +2457,10 @@ config_psa_crypto_full_all_ec_algs_no_ecp_use_psa () {
     scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
 
     # Disable PSA_WANT symbols that would re-enable PK
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
     for ALG in $(sed -n 's/^#define \(PSA_WANT_ALG_RSA_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
         scripts/config.py -f include/psa/crypto_config.h unset $ALG
@@ -2564,7 +2567,10 @@ psa_crypto_config_accel_all_curves_except_one () {
     scripts/config.py unset MBEDTLS_PKCS1_V21
     scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
     # Disable RSA on the PSA side too
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
     for ALG in $(sed -n 's/^#define \(PSA_WANT_ALG_RSA_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
         scripts/config.py -f include/psa/crypto_config.h unset $ALG
@@ -2708,6 +2714,58 @@ component_test_psa_crypto_config_accel_rsa_signature () {
 
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated RSA signature"
     make test
+}
+
+# This is a temporary test to verify that full RSA support is present even when
+# only one single new symbols (PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC) is defined.
+component_test_new_psa_want_key_pair_symbol() {
+    msg "Build: crypto config - MBEDTLS_RSA_C + PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC"
+
+    # Create a temporary output file unless there is already one set
+    if [ "$MBEDTLS_TEST_OUTCOME_FILE" ]; then
+        REMOVE_OUTCOME_ON_EXIT="no"
+    else
+        REMOVE_OUTCOME_ON_EXIT="yes"
+        MBEDTLS_TEST_OUTCOME_FILE="$PWD/out.csv"
+        export MBEDTLS_TEST_OUTCOME_FILE
+    fi
+
+    # Start from crypto configuration
+    scripts/config.py crypto
+
+    # Remove RSA support and its dependencies
+    scripts/config.py unset MBEDTLS_PKCS1_V15
+    scripts/config.py unset MBEDTLS_PKCS1_V21
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
+    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
+    scripts/config.py unset MBEDTLS_RSA_C
+    scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
+
+    # Enable PSA support
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+
+    # Keep only PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC enabled in order to ensure
+    # that proper translations is done in crypto_legacy.h.
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE
+
+    make
+
+    msg "Test: crypto config - MBEDTLS_RSA_C + PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC"
+    make test
+
+    # Parse only 1 relevant line from the outcome file, i.e. a test which is
+    # performing RSA signature.
+    msg "Verify that 'RSA PKCS1 Sign #1 (SHA512, 1536 bits RSA)' is PASS"
+    cat $MBEDTLS_TEST_OUTCOME_FILE | grep 'RSA PKCS1 Sign #1 (SHA512, 1536 bits RSA)' | grep -q "PASS"
+
+    if [ "$REMOVE_OUTCOME_ON_EXIT" == "yes" ]; then
+        rm $MBEDTLS_TEST_OUTCOME_FILE
+    fi
 }
 
 component_test_psa_crypto_config_accel_hash () {
@@ -3001,13 +3059,17 @@ component_build_psa_accel_alg_ecdh() {
 
 # This should be renamed to test and updated once the accelerator ECC key pair code is in place and ready to test.
 component_build_psa_accel_key_type_ecc_key_pair() {
-    # full plus MBEDTLS_PSA_CRYPTO_CONFIG with PSA_WANT_KEY_TYPE_ECC_KEY_PAIR
-    msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG + PSA_WANT_KEY_TYPE_ECC_KEY_PAIR"
+    # full plus MBEDTLS_PSA_CRYPTO_CONFIG with PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_xxx
+    msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG + PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_xxx"
     scripts/config.py full
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
-    scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_KEY_TYPE_ECC_KEY_PAIR 1
+    scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC 1
+    scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT 1
+    scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT 1
+    scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE 1
+    scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE 1
     scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY 1
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
     make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
@@ -3022,7 +3084,11 @@ component_build_psa_accel_key_type_ecc_public_key() {
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY 1
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
     make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
 }
@@ -3261,14 +3327,17 @@ component_build_psa_accel_alg_rsa_pss() {
 
 # This should be renamed to test and updated once the accelerator RSA code is in place and ready to test.
 component_build_psa_accel_key_type_rsa_key_pair() {
-    # full plus MBEDTLS_PSA_CRYPTO_CONFIG with PSA_WANT_KEY_TYPE_RSA_KEY_PAIR and PSA_WANT_ALG_RSA_PSS
-    msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG + PSA_WANT_KEY_TYPE_RSA_KEY_PAIR + PSA_WANT_ALG_RSA_PSS"
+    # full plus MBEDTLS_PSA_CRYPTO_CONFIG with PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_xxx and PSA_WANT_ALG_RSA_PSS
+    msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG + PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_xxx + PSA_WANT_ALG_RSA_PSS"
     scripts/config.py full
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_ALG_RSA_PSS 1
-    scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_KEY_TYPE_RSA_KEY_PAIR 1
+    scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC 1
+    scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT 1
+    scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT 1
+    scripts/config.py -f include/psa/crypto_config.h set PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE 1
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
     make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
 }

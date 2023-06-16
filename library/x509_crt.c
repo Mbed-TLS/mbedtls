@@ -2684,6 +2684,9 @@ find_parent:
 #elif (defined(__MINGW32__) || defined(__MINGW64__)) && _WIN32_WINNT >= 0x0600
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#else
+/* inet_pton() is not supported, fallback to software version */
+#define MBEDTLS_TEST_SW_INET_PTON
 #endif
 #elif defined(__sun)
 /* Solaris requires -lsocket -lnsl for inet_pton() */

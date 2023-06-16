@@ -3453,28 +3453,17 @@ support_test_aesni () {
     gcc -v 2>&1 | grep Target | grep -q x86_64
 }
 
-component_test_aesni () { # ~ 20s
+component_test_aesni () { # ~ 40s
     msg "build: default config with MBEDTLS_HAVE_ASM and MBEDTLS_AESNI_C enabled"
     scripts/config.py set MBEDTLS_AESNI_C
     scripts/config.py set MBEDTLS_HAVE_ASM
 
     msg "AES tests, MBEDTLS_AESNI_HAVE_CODE=1 (asm)"
-    make lib tests CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra -DMBEDTLS_AESNI_HAVE_CODE=1'
-    cd tests
-    for t in `find . -type f -executable -name '*aes*'`; do
-        # Run all the suites with aes in their name
-        ./$t
-    done
-    cd ..
-
+    make test CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra -DMBEDTLS_AESNI_HAVE_CODE=1'
+ 
     msg "AES tests, MBEDTLS_AESNI_HAVE_CODE=2 (intrinsics)"
     make clean
-    make lib tests CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra -mpclmul -msse2 -maes -DMBEDTLS_AESNI_HAVE_CODE=2'
-    cd tests
-    for t in `find . -type f -executable -name '*aes*'`; do
-        ./$t
-    done
-    cd ..
+    make test CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra -mpclmul -msse2 -maes -DMBEDTLS_AESNI_HAVE_CODE=2'
 }
 
 component_test_aes_fewer_tables () {

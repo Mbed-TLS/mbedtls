@@ -3504,7 +3504,7 @@ component_test_malloc_0_null () {
 }
 
 support_test_aesni () {
-    # require an x64_64 target
+    # require an x86_64 target
     gcc -v 2>&1 | grep Target | grep -q x86_64
 }
 

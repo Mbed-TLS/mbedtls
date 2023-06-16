@@ -173,7 +173,6 @@ rounds_10:
 /* Two rounds of AESCE decryption */
 #define AESCE_DECRYPT_ROUND_X2        AESCE_DECRYPT_ROUND; AESCE_DECRYPT_ROUND
 
-MBEDTLS_OPTIMIZE_FOR_PERFORMANCE
 static uint8x16_t aesce_decrypt_block(uint8x16_t block,
                                       unsigned char *keys,
                                       int rounds)
@@ -210,7 +209,6 @@ rounds_10:
 /*
  * AES-ECB block en(de)cryption
  */
-MBEDTLS_OPTIMIZE_FOR_PERFORMANCE
 int mbedtls_aesce_crypt_ecb(mbedtls_aes_context *ctx,
                             int mode,
                             const unsigned char input[16],

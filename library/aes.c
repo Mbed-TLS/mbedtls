@@ -1148,9 +1148,11 @@ static inline void mbedtls_gf128mul_x_ble(unsigned char r[16],
  * AES-XTS buffer encryption/decryption
  *
  * Use of MBEDTLS_OPTIMIZE_FOR_PERFORMANCE here and for mbedtls_gf128mul_x_ble()
- * is a 3x performance improvement for gcc -Os!
+ * is a 3x performance improvement for gcc -Os, if we have hardware AES support.
  */
+#if defined(MBEDTLS_AESCE_C) || defined(MBEDTLS_AESNI_C)
 MBEDTLS_OPTIMIZE_FOR_PERFORMANCE
+#endif
 int mbedtls_aes_crypt_xts(mbedtls_aes_xts_context *ctx,
                           int mode,
                           size_t length,

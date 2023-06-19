@@ -942,6 +942,14 @@ helper_datafile_run_tests () {
 #
 # Indicative running times are given for reference.
 
+component_test_faketime_default () {
+    helper_datafile_run_tests " default configuration with faketime"
+}
+
+component_test_faketime_full () {
+    scripts/config.py full
+    helper_datafile_run_tests " full configuration with faketime"
+}
 
 ################################################################
 #### Termination

@@ -3503,22 +3503,19 @@ component_test_malloc_0_null () {
     tests/ssl-opt.sh -e 'proxy'
 }
 
-support_build_aesni() {
-    # Check that gcc targets x86_64
-    gcc -v 2>&1 | grep Target | grep -q x86_64
-}
-
-support_run_aesni() {
-    # Check for AESNI support on the host.
+support_test_aesni() {
+    # Check that gcc targets x86_64 (we can build AESNI), and check for
+    # AESNI support on the host (we can run AESNI).
+    #
+    # The name of this function is possibly slightly misleading, but needs to align
+    # with the name of the corresponding test, component_test_aesni.
     #
     # In principle 32-bit x86 can support AESNI, but our implementation does not
     # support 32-bit x86, so we check for x86-64.
     # We can only grep /proc/cpuinfo on Linux, so this also checks for Linux
-    [[ "$HOSTTYPE" == "x86_64" &&  "$OSTYPE" == "linux-gnu" ]] && </proc/cpuinfo grep '^flags' | grep -w aes
-}
-
-support_test_aesni () {
-    support_build_aesni && support_run_aesni
+    (gcc -v 2>&1 | grep Target | grep -q x86_64) &&
+        [[ "$HOSTTYPE" == "x86_64" && "$OSTYPE" == "linux-gnu" ]] &&
+        (grep '^flags' /proc/cpuinfo | grep -w aes)
 }
 
 component_test_aesni () { # ~ 60s

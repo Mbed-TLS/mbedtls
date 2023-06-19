@@ -129,11 +129,37 @@
 #define MBEDTLS_MD_LIGHT
 #endif
 
-/* MBEDTLS_ECP_C now consists of MBEDTLS_ECP_LIGHT plus functions for curve
- * arithmetic. As a consequence if MBEDTLS_ECP_C is required for some reason,
- * then MBEDTLS_ECP_LIGHT should be enabled as well. */
-#if defined(MBEDTLS_ECP_C)
+/* MBEDTLS_ECP_LIGHT is auto-enabled by the following symbols:
+ * - MBEDTLS_ECP_C because now it consists of MBEDTLS_ECP_LIGHT plus functions
+ *   for curve arithmetic. As a consequence if MBEDTLS_ECP_C is required for
+ *   some reason, then MBEDTLS_ECP_LIGHT should be enabled as well.
+ * - MBEDTLS_PK_PARSE_EC_EXTENDED and MBEDTLS_PK_PARSE_EC_COMPRESSED because
+ *   these features are not supported in PSA so the only way to have them is
+ *   to enable the built-in solution.
+ *   Both of them are temporary dependencies:
+ *   - PK_PARSE_EC_EXTENDED will be removed after #7779 and #7789
+ *   - support for compressed points should also be added to PSA, but in this
+ *     case there is no associated issue to track it yet.
+ * - PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE because Weierstrass key derivation
+ *   still depends on ECP_LIGHT.
+ * - PK_C + USE_PSA + PSA_WANT_ALG_ECDSA is a temporary dependency which will
+ *   be fixed by #7453.
+ */
+#if defined(MBEDTLS_ECP_C) || \
+    defined(MBEDTLS_PK_PARSE_EC_EXTENDED) || \
+    defined(MBEDTLS_PK_PARSE_EC_COMPRESSED) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_DERIVE) || \
+    (defined(MBEDTLS_PK_C) && defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_ECDSA))
 #define MBEDTLS_ECP_LIGHT
+#endif
+
+/* MBEDTLS_PK_PARSE_EC_COMPRESSED is introduced in MbedTLS version 3.5, while
+ * in previous version compressed points were automatically supported as long
+ * as PK_PARSE_C and ECP_C were enabled. As a consequence, for backward
+ * compatibility, we auto-enable PK_PARSE_EC_COMPRESSED when these conditions
+ * are met. */
+#if defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_ECP_C)
+#define MBEDTLS_PK_PARSE_EC_COMPRESSED
 #endif
 
 /* If MBEDTLS_PSA_CRYPTO_C is defined, make sure MBEDTLS_PSA_CRYPTO_CLIENT

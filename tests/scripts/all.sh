@@ -1431,6 +1431,9 @@ component_test_full_no_bignum () {
     scripts/config.py unset MBEDTLS_ECDSA_C
     scripts/config.py unset MBEDTLS_ECJPAKE_C
     scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
+    # Disable what auto-enables ECP_LIGHT
+    scripts/config.py unset MBEDTLS_PK_PARSE_EC_EXTENDED
+    scripts/config.py unset MBEDTLS_PK_PARSE_EC_COMPRESSED
     # Indirect dependencies of ECP
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
@@ -2323,10 +2326,10 @@ component_test_psa_crypto_config_accel_pake() {
 #
 # This is used by the two following components to ensure they always use the
 # same config, except for the use of driver or built-in EC algorithms:
-# - component_test_psa_crypto_config_accel_all_ec_algs_use_psa;
-# - component_test_psa_crypto_config_reference_all_ec_algs_use_psa.
+# - component_test_psa_crypto_config_accel_ecc_ecp_light_only;
+# - component_test_psa_crypto_config_reference_ecc_ecp_light_only.
 # This supports comparing their test coverage with analyze_outcomes.py.
-config_psa_crypto_config_all_ec_algs_use_psa () {
+config_psa_crypto_config_ecp_ligh_only () {
     DRIVER_ONLY="$1"
     # start with config full for maximum coverage (also enables USE_PSA)
     helper_libtestdriver1_adjust_config "full"
@@ -2344,8 +2347,8 @@ config_psa_crypto_config_all_ec_algs_use_psa () {
     scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
 }
 
-# Keep in sync with component_test_psa_crypto_config_reference_all_ec_algs_use_psa
-component_test_psa_crypto_config_accel_all_ec_algs_use_psa () {
+# Keep in sync with component_test_psa_crypto_config_reference_ecc_ecp_light_only
+component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
     msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated EC algs + USE_PSA"
 
     # Algorithms and key types to accelerate
@@ -2358,11 +2361,7 @@ component_test_psa_crypto_config_accel_all_ec_algs_use_psa () {
     # ---------
 
     # Use the same config as reference, only without built-in EC algs
-    config_psa_crypto_config_all_ec_algs_use_psa 1
-
-    # Temporary hack to enable MBEDTLS_ECP_LIGHT
-    # (will soon be auto-enabled in build_info.h)
-    echo '#define MBEDTLS_ECP_LIGHT' >> include/mbedtls/mbedtls_config.h
+    config_psa_crypto_config_ecp_ligh_only 1
 
     # Build
     # -----
@@ -2389,11 +2388,11 @@ component_test_psa_crypto_config_accel_all_ec_algs_use_psa () {
     tests/ssl-opt.sh
 }
 
-# Keep in sync with component_test_psa_crypto_config_accel_all_ec_algs_use_psa
-component_test_psa_crypto_config_reference_all_ec_algs_use_psa () {
+# Keep in sync with component_test_psa_crypto_config_accel_ecc_ecp_light_only
+component_test_psa_crypto_config_reference_ecc_ecp_light_only () {
     msg "build: MBEDTLS_PSA_CRYPTO_CONFIG with non-accelerated EC algs + USE_PSA"
 
-    config_psa_crypto_config_all_ec_algs_use_psa 0
+    config_psa_crypto_config_ecp_ligh_only 0
 
     make
 
@@ -2405,8 +2404,8 @@ component_test_psa_crypto_config_reference_all_ec_algs_use_psa () {
 }
 
 # This helper function is used by:
-# - component_test_psa_crypto_full_accel_all_ec_algs_no_ecp_use_psa()
-# - component_test_psa_crypto_full_reference_all_ec_algs_no_ecp_use_psa()
+# - component_test_psa_crypto_config_accel_ecc_no_ecp_at_all()
+# - component_test_psa_crypto_config_reference_ecc_no_ecp_at_all()
 # to ensure that both tests use the same underlying configuration when testing
 # driver's coverage with analyze_outcomes.py.
 #
@@ -2417,7 +2416,7 @@ component_test_psa_crypto_config_reference_all_ec_algs_use_psa () {
 #
 # PK_C and RSA_C are always disabled to ensure there is no remaining dependency
 # on the ECP module.
-config_psa_crypto_full_all_ec_algs_no_ecp_use_psa () {
+config_psa_crypto_no_ecp_at_all () {
     DRIVER_ONLY="$1"
     # start with crypto_full config for maximum coverage (also enables USE_PSA),
     # but excluding X509, TLS and key exchanges
@@ -2432,7 +2431,6 @@ config_psa_crypto_full_all_ec_algs_no_ecp_use_psa () {
         scripts/config.py unset MBEDTLS_ECJPAKE_C
         # Disable ECP module (entirely)
         scripts/config.py unset MBEDTLS_ECP_C
-        scripts/config.py unset MBEDTLS_ECP_LIGHT
     fi
 
     # Disable PK module since it depends on ECP
@@ -2450,6 +2448,11 @@ config_psa_crypto_full_all_ec_algs_no_ecp_use_psa () {
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
+
+    # Disable all the features that auto-enable ECP_LIGHT (see build_info.h)
+    scripts/config.py unset MBEDTLS_PK_PARSE_EC_EXTENDED
+    scripts/config.py unset MBEDTLS_PK_PARSE_EC_COMPRESSED
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
 
     # Restartable feature is not yet supported by PSA. Once it will in
     # the future, the following line could be removed (see issues
@@ -2471,8 +2474,8 @@ config_psa_crypto_full_all_ec_algs_no_ecp_use_psa () {
 # all support and dependencies from ECP and ECP_LIGHT are removed on the library
 # side.
 #
-# Keep in sync with component_test_psa_crypto_full_reference_all_ec_algs_no_ecp_use_psa()
-component_test_psa_crypto_full_accel_all_ec_algs_no_ecp_use_psa () {
+# Keep in sync with component_test_psa_crypto_config_reference_ecc_no_ecp_at_all()
+component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
     msg "build: crypto_full + accelerated EC algs + USE_PSA - ECP"
 
     # Algorithms and key types to accelerate
@@ -2485,7 +2488,7 @@ component_test_psa_crypto_full_accel_all_ec_algs_no_ecp_use_psa () {
     # ---------
 
     # Set common configurations between library's and driver's builds
-    config_psa_crypto_full_all_ec_algs_no_ecp_use_psa 1
+    config_psa_crypto_no_ecp_at_all 1
 
     # Build
     # -----
@@ -2514,12 +2517,12 @@ component_test_psa_crypto_full_accel_all_ec_algs_no_ecp_use_psa () {
 }
 
 # Reference function used for driver's coverage analysis in analyze_outcomes.py
-# in conjunction with component_test_psa_crypto_full_accel_all_ec_algs_no_ecp_use_psa().
+# in conjunction with component_test_psa_crypto_config_accel_ecc_no_ecp_at_all().
 # Keep in sync with its accelerated counterpart.
-component_test_psa_crypto_full_reference_all_ec_algs_no_ecp_use_psa () {
+component_test_psa_crypto_config_reference_ecc_no_ecp_at_all () {
     msg "build: crypto_full + non accelerated EC algs + USE_PSA"
 
-    config_psa_crypto_full_all_ec_algs_no_ecp_use_psa 0
+    config_psa_crypto_no_ecp_at_all 0
 
     make
 

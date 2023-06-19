@@ -3515,7 +3515,7 @@ support_test_aesni() {
     # We can only grep /proc/cpuinfo on Linux, so this also checks for Linux
     (gcc -v 2>&1 | grep Target | grep -q x86_64) &&
         [[ "$HOSTTYPE" == "x86_64" && "$OSTYPE" == "linux-gnu" ]] &&
-        (grep '^flags' /proc/cpuinfo | grep -w aes)
+        (grep '^flags' /proc/cpuinfo | grep -qw aes)
 }
 
 component_test_aesni () { # ~ 60s

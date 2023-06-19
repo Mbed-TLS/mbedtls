@@ -3532,7 +3532,7 @@ component_test_aesni () { # ~ 60s
     make clean
     make test programs/test/selftest CC=gcc CFLAGS='-Werror -Wall -Wextra -mno-pclmul -mno-sse2 -mno-aes'
     # check that we built assembly - this should be built if the compiler does not support intrinsics
-    ./programs/test/selftest | grep "AESNI code" | grep -q "assembly" || false "assembly not built when intrinsics not supported"
+    ./programs/test/selftest | grep "AESNI code" | grep -q "assembly"
 
     # test the plain C implementation
     scripts/config.py unset MBEDTLS_AESNI_C

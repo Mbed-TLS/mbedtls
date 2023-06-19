@@ -2363,10 +2363,6 @@ component_test_psa_crypto_config_accel_ecc_ecp_light_only () {
     # Use the same config as reference, only without built-in EC algs
     config_psa_crypto_config_ecp_ligh_only 1
 
-    # Temporary hack to enable MBEDTLS_ECP_LIGHT
-    # (will soon be auto-enabled in build_info.h)
-    echo '#define MBEDTLS_ECP_LIGHT' >> include/mbedtls/mbedtls_config.h
-
     # Build
     # -----
 

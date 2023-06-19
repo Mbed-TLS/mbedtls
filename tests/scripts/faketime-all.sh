@@ -1006,6 +1006,16 @@ run_component () {
             echo "${current_component#component_}"
             exec >/dev/null
         fi
+
+        # Enable faketime for `test_faketime_*`
+        if [[ $current_component = component_test_faketime_* ]]; then
+            export LD_PRELOAD="$LIBFAKETIME"
+            export FAKETIME="+4m"
+        else
+            unset LD_PRELOAD
+            unset FAKETIME
+        fi
+
         if [ $KEEP_GOING -eq 1 ]; then
             # Keep "set -e" off, and run an ERR trap instead to record failures.
             set -E

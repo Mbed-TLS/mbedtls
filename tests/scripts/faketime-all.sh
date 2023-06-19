@@ -895,6 +895,30 @@ helper_libtestdriver1_make_main() {
 }
 
 ################################################################
+#### Helpers for checking `tests/data_files`
+################################################################
+
+helper_datafile_run_tests () {
+    msg "build: $1" # ~ 1 min 50s
+    CC=gcc make
+
+    msg "test: main suites" # ~ 50s
+    CC=gcc make test
+
+    msg "test: selftest" # ~ 10s
+    programs/test/selftest
+
+    msg "test: ssl-opt.sh" # ~ 1 min
+    tests/ssl-opt.sh
+
+    msg "test: compat.sh" # ~ 6 min
+    tests/compat.sh
+
+    msg "test: context-info.sh" # ~ 15 sec
+    tests/context-info.sh
+}
+
+################################################################
 #### Basic checks
 ################################################################
 

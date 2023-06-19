@@ -145,6 +145,7 @@ pre_initialize_variables () {
     : ${ARMC6_BIN_DIR:=/usr/bin}
     : ${ARM_NONE_EABI_GCC_PREFIX:=arm-none-eabi-}
     : ${ARM_LINUX_GNUEABI_GCC_PREFIX:=arm-linux-gnueabi-}
+    LIBFAKETIME=
 
     # if MAKEFLAGS is not set add the -j option to speed up invocations of make
     if [ -z "${MAKEFLAGS+set}" ]; then
@@ -378,6 +379,22 @@ check_tools()
             exit 1
         fi
     done
+}
+
+check_faketime() {
+
+    for i in /usr/local/lib/faketime/libfaketime.so.1 \
+             /usr/lib/aarch64-linux-gnu/faketime/libfaketime.so.1 \
+             /usr/lib/x86_64-linux-gnu/faketime/libfaketime.so.1
+    do
+        if [ -f $i ]; then
+            LIBFAKETIME=$i
+        fi
+    done
+    if [ -z "$LIBFAKETIME" ]; then
+        err_msg "libfaketime not found!"
+        exit 1
+    fi
 }
 
 pre_parse_command_line_for_dirs () {
@@ -749,6 +766,11 @@ pre_check_tools () {
             ARMC6_FROMELF="$ARMC6_BIN_DIR/fromelf"
             check_tools "$ARMC5_CC" "$ARMC5_AR" "$ARMC5_FROMELF" \
                         "$ARMC6_CC" "$ARMC6_AR" "$ARMC6_FROMELF";;
+    esac
+
+    case " $RUN_COMPONENTS " in
+        *_faketime_*)
+            check_faketime;;
     esac
 
     # past this point, no call to check_tool, only printing output

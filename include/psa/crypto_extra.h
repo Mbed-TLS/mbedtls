@@ -572,8 +572,7 @@ psa_status_t psa_get_key_domain_parameters(
 /** \defgroup psa_tls_helpers TLS helper functions
  * @{
  */
-#include <mbedtls/pk.h>
-#if defined(MBEDTLS_PK_HAVE_ECC_KEYS)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 #include <mbedtls/ecp.h>
 
 /** Convert an ECC curve identifier from the Mbed TLS encoding to PSA.
@@ -614,7 +613,7 @@ psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
 mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
                                               size_t bits,
                                               int bits_is_sloppy);
-#endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
 /**@}*/
 

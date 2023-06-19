@@ -302,6 +302,28 @@ TASKS = {
                     # case above.
                     ('Key ASN1 (OneAsymmetricKey X25519, doesn\'t match masking '
                      'requirements, from RFC8410 Appendix A but made into version 0)'),
+                    # When PK_PARSE_C and ECP_C are defined then PK_PARSE_EC_COMPRESSED
+                    # is automatically enabled in build_info.h (backward compatibility)
+                    # even if it is disabled in config_psa_crypto_no_ecp_at_all(). As a
+                    # consequence compressed points are supported in the reference
+                    # component but not in the accelerated one, so they should be skipped
+                    # while checking driver's coverage.
+                    'Parse EC Key #10a (SEC1 PEM, secp384r1, compressed)',
+                    'Parse EC Key #11a (SEC1 PEM, secp521r1, compressed)',
+                    'Parse EC Key #12a (SEC1 PEM, bp256r1, compressed)',
+                    'Parse EC Key #13a (SEC1 PEM, bp384r1, compressed)',
+                    'Parse EC Key #14a (SEC1 PEM, bp512r1, compressed)',
+                    'Parse EC Key #2a (SEC1 PEM, secp192r1, compressed)',
+                    'Parse EC Key #8a (SEC1 PEM, secp224r1, compressed)',
+                    'Parse EC Key #9a (SEC1 PEM, secp256r1, compressed)',
+                    'Parse Public EC Key #2a (RFC 5480, PEM, secp192r1, compressed)',
+                    'Parse Public EC Key #3a (RFC 5480, secp224r1, compressed)',
+                    'Parse Public EC Key #4a (RFC 5480, secp256r1, compressed)',
+                    'Parse Public EC Key #5a (RFC 5480, secp384r1, compressed)',
+                    'Parse Public EC Key #6a (RFC 5480, secp521r1, compressed)',
+                    'Parse Public EC Key #7a (RFC 5480, brainpoolP256r1, compressed)',
+                    'Parse Public EC Key #8a (RFC 5480, brainpoolP384r1, compressed)',
+                    'Parse Public EC Key #9a (RFC 5480, brainpoolP512r1, compressed)',
                 ],
             }
         }

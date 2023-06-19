@@ -3525,7 +3525,7 @@ component_test_aesni () { # ~ 60s
     make clean
     make test programs/test/selftest CC=gcc CFLAGS='-Werror -Wall -Wextra -mpclmul -msse2 -maes'
     # check that we built intrinsics - this should be used by default when supported by the compiler
-    ./programs/test/selftest | grep "AESNI code" | grep -q "intrinsics" || false "intrinsics not built when supported"
+    ./programs/test/selftest | grep "AESNI code" | grep -q "intrinsics"
 
     # test the asm implementation
     msg "AES tests, test assembly"
@@ -3540,7 +3540,7 @@ component_test_aesni () { # ~ 60s
     make clean
     make test programs/test/selftest CC=gcc CFLAGS='-O2 -Werror'
     # check that there is no AESNI code present
-    ! ( ./programs/test/selftest | grep -q "AESNI code") || false "AESNI code built when MBEDTLS_AESNI_C unset"
+    ./programs/test/selftest | not grep -q "AESNI code"
 }
 
 component_test_aes_only_128_bit_keys () {

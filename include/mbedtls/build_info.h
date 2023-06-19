@@ -136,10 +136,14 @@
  * - MBEDTLS_PK_PARSE_EC_EXTENDED and MBEDTLS_PK_PARSE_EC_COMPRESSED because
  *   these features are not supported in PSA so the only way to have them is
  *   to enable the built-in solution.
+ *   Both of them are temporary dependencies:
+ *   - PK_PARSE_EC_EXTENDED will be removed after #7779 and #7789
+ *   - support for compressed points should also be added to PSA, but in this
+ *     case there is no associated issue to track it yet.
  * - PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE because Weierstrass key derivation
- *   still depends on ECP_LIGHT
+ *   still depends on ECP_LIGHT.
  * - PK_C + USE_PSA + PSA_WANT_ALG_ECDSA is a temporary dependency which will
- *   be fixed by #7453
+ *   be fixed by #7453.
  */
 #if defined(MBEDTLS_ECP_C) || \
     defined(MBEDTLS_PK_PARSE_EC_EXTENDED) || \

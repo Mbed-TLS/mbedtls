@@ -1823,21 +1823,15 @@ all_final += pkcs7_data_cert_signeddata_sha256.der
 #### Generate C format test certs header
 ################################################################
 
-# FIXME: Makefile will update those input files which is not expected.
-#        Remove them from dependancy to workaround it.
-#        For timebeing, we will always update it when `make ../src/test_certs.h`
-.PHONY: ../src/test_certs.h
 TEST_CERTS_H_INPUT_FILES=test-ca2.crt \
 					test-ca2.crt.der \
 					test-ca2.key.enc \
-					PolarSSLTest \
 					test-ca2.key.der \
 					test-ca-sha256.crt \
 					test-ca-sha256.crt.der \
 					test-ca-sha1.crt \
 					test-ca-sha1.crt.der \
 					test-ca.key \
-					PolarSSLTest \
 					test-ca.key.der \
 					server5.crt \
 					server5.crt.der \
@@ -1857,7 +1851,8 @@ TEST_CERTS_H_INPUT_FILES=test-ca2.crt \
 					cli-rsa-sha256.crt.der \
 					cli-rsa.key \
 					cli-rsa.key.der
-../src/test_certs.h:
+../src/test_certs.h: ../scripts/generate_test_cert_macros.py \
+					 $(TEST_CERTS_H_INPUT_FILES)
 	../scripts/generate_test_cert_macros.py --output $@ \
 				--string TEST_CA_CRT_EC_PEM=test-ca2.crt \
 				--binary TEST_CA_CRT_EC_DER=test-ca2.crt.der \

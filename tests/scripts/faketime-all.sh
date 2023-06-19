@@ -164,6 +164,15 @@ pre_initialize_variables () {
     # Parse the script with sed. This way we get the functions in the order
     # they are defined.
     ALL_COMPONENTS=$(sed -n 's/^ *component_\([0-9A-Z_a-z]*\) *().*/\1/p' <"$0")
+    # This file only includes `test_faketime_*`
+    for component in $ALL_COMPONENTS; do
+        case $component in
+            "test_faketime_"*) ;;
+            *)
+                err_msg "$component is not allowed in this script";
+                exit 1;;
+        esac
+    done
 
     # Exclude components that are not supported on this platform.
     SUPPORTED_COMPONENTS=

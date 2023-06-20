@@ -1205,7 +1205,7 @@ There is no exact PSA equivalent of the type `mbedtls_ecp_curve_type` and the fu
 
 There is no PSA equivalent for the following functionality:
 
-* The `name` field of `mbedtls_ecp_curve_info`, and the function `mbedtls_ecp_curve_info_from_name`. There is no equivalent of Mbed TLS's lookup based on a (nonstandard) name.
+* The `name` field of `mbedtls_ecp_curve_info`, and the function `mbedtls_ecp_curve_info_from_name`. There is no equivalent of Mbed TLS's lookup based on the name used for the curve in TLS specifications.
 * The `tls_id` field of `mbedtls_ecp_curve_info`, the constant `MBEDTLS_ECP_TLS_NAMED_CURVE`, and the functions `mbedtls_ecp_curve_info_from_tls_id`, `mbedtls_ecp_tls_read_group`, `mbedtls_ecp_tls_read_group_id` and `mbedtls_ecp_tls_write_group`. The PSA crypto API does not have this dedicated support for the TLS protocol.
 * Retrieving the parameters of a curve from the fields of an `mbedtls_ecp_group` structure.
 

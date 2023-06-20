@@ -216,18 +216,6 @@ struct options {
     int format;                 /* format                               */
 } opt;
 
-static void ip_string_to_bytes(const char *str, uint8_t *bytes, int maxBytes)
-{
-    for (int i = 0; i < maxBytes; i++) {
-        bytes[i] = (uint8_t) strtoul(str, NULL, 10);
-        str = strchr(str, '.');
-        if (str == NULL || *str == '\0') {
-            break;
-        }
-        str++;
-    }
-}
-
 int write_certificate(mbedtls_x509write_cert *crt, const char *output_file,
                       int (*f_rng)(void *, unsigned char *, size_t),
                       void *p_rng)
@@ -601,8 +589,14 @@ usage:
                 } else if (strcmp(q, "DNS") == 0) {
                     cur->node.type = MBEDTLS_X509_SAN_DNS_NAME;
                 } else if (strcmp(q, "IP") == 0) {
+                    size_t ip_len = 0;
                     cur->node.type = MBEDTLS_X509_SAN_IP_ADDRESS;
-                    ip_string_to_bytes(subtype_value, ip, 4);
+                    ip_len = mbedtls_x509_crt_parse_cn_inet_pton(subtype_value, ip);
+                    if (ip_len == 0) {
+                        mbedtls_printf("mbedtls_x509_crt_parse_cn_inet_pton failed to parse %s\n",
+                                       subtype_value);
+                        goto exit;
+                    }
                     cur->node.san.unstructured_name.p = (unsigned char *) ip;
                     cur->node.san.unstructured_name.len = sizeof(ip);
                 } else if (strcmp(q, "DN") == 0) {
@@ -625,8 +619,9 @@ usage:
                 if (cur->node.type == MBEDTLS_X509_SAN_RFC822_NAME ||
                     cur->node.type == MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER ||
                     cur->node.type == MBEDTLS_X509_SAN_DNS_NAME) {
-                    cur->node.san.unstructured_name.p = (unsigned char *) subtype_value;
-                    cur->node.san.unstructured_name.len = strlen(subtype_value);
+                    q = subtype_value;
+                    cur->node.san.unstructured_name.p = (unsigned char *) q;
+                    cur->node.san.unstructured_name.len = strlen(q);
                 }
 
                 if (prev == NULL) {

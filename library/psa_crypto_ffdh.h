@@ -47,8 +47,8 @@
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \p key_buffer_size, \p peer_key_length, \p shared_secret_size
  *         do not match
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY   \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED   \emptydescription
  */
 psa_status_t mbedtls_psa_key_agreement_ffdh(
     const psa_key_attributes_t *attributes,
@@ -73,9 +73,9 @@ psa_status_t mbedtls_psa_key_agreement_ffdh(
  * \retval #PSA_SUCCESS  The public key was exported successfully.
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of \p key_buffer is too small.
- * \retval #PSA_ERROR_NOT_PERMITTED
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_NOT_PERMITTED         \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY   \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED   \emptydescription
  */
 psa_status_t mbedtls_psa_export_ffdh_public_key(
     const psa_key_attributes_t *attributes,
@@ -103,8 +103,8 @@ psa_status_t mbedtls_psa_export_ffdh_public_key(
  *         Key size in bits is invalid.
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of \p key_buffer is too small.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY   \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED   \emptydescription
  */
 psa_status_t mbedtls_psa_ffdh_generate_key(
     const psa_key_attributes_t *attributes,

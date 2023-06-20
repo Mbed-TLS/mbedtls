@@ -26,10 +26,30 @@
 
 #include "psa_crypto_core.h"
 #include <psa_util_internal.h>
+
+/* The following includes are needed for MBEDTLS_ERR_XXX macros */
 #include <mbedtls/error.h>
+#if defined(MBEDTLS_MD_LIGHT)
+#include <mbedtls/md.h>
+#endif
+#if defined(MBEDTLS_LMS_C)
 #include <mbedtls/lms.h>
+#endif
+#if defined(MBEDTLS_SSL_TLS_C) && \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3))
 #include <mbedtls/ssl.h>
+#endif
+#if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY) ||    \
+    defined(MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY)
 #include <mbedtls/rsa.h>
+#endif
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && \
+    defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
+#include <mbedtls/ecp.h>
+#endif
+#if defined(MBEDTLS_PK_C)
+#include <mbedtls/pk.h>
+#endif
 
 /* PSA_SUCCESS is kept at the top of each error table since
  * it's the most common status when everything functions properly. */
@@ -50,7 +70,8 @@ const mbedtls_error_pair_t psa_to_lms_errors[] =
     { PSA_ERROR_INVALID_ARGUMENT,      MBEDTLS_ERR_LMS_BAD_INPUT_DATA }
 };
 #endif
-#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(MBEDTLS_SSL_TLS_C) && \
+    (defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3))
 const mbedtls_error_pair_t psa_to_ssl_errors[] =
 {
     { PSA_SUCCESS,                     0 },
@@ -123,6 +144,7 @@ int psa_status_to_mbedtls(psa_status_t status,
     return fallback_f(status);
 }
 
+#if defined(MBEDTLS_PK_C)
 int psa_pk_status_to_mbedtls(psa_status_t status)
 {
     switch (status) {
@@ -146,4 +168,5 @@ int psa_pk_status_to_mbedtls(psa_status_t status)
             return psa_generic_status_to_mbedtls(status);
     }
 }
+#endif /* MBEDTLS_PK_C */
 #endif /* MBEDTLS_PSA_CRYPTO_C */

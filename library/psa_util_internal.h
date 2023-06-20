@@ -26,6 +26,8 @@
 /* Include the public header so that users only need one include. */
 #include "mbedtls/psa_util.h"
 
+#include "psa/crypto.h"
+
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 
 /*************************************************************************

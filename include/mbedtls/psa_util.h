@@ -29,18 +29,7 @@
 
 #include "mbedtls/build_info.h"
 
-#include "mbedtls/platform_util.h"
-
 #if defined(MBEDTLS_PSA_CRYPTO_C)
-
-#include "psa/crypto.h"
-
-#include "mbedtls/ecp.h"
-#include "mbedtls/md.h"
-#include "mbedtls/pk.h"
-#include "mbedtls/oid.h"
-#include "mbedtls/error.h"
-#include <string.h>
 
 /* Expose whatever RNG the PSA subsystem uses to applications using the
  * mbedtls_xxx API. The declarations and definitions here need to be

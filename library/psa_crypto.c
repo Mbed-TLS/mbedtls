@@ -5775,7 +5775,7 @@ static void psa_des_set_key_parity(uint8_t *data, size_t data_size)
  * Note: Function allocates memory for *data buffer, so given *data should be
  *       always NULL.
  */
-#if defined(MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_LEGACY) || \
+#if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE) || \
     defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) || \
@@ -5944,7 +5944,7 @@ static psa_status_t psa_generate_derived_ecc_key_montgomery_helper(
 
     return status;
 }
-#endif /* defined(MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_LEGACY) ||
+#endif /* defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE) ||
           defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) ||
           defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
           defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ||
@@ -5964,7 +5964,7 @@ static psa_status_t psa_generate_derived_key_internal(
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
-#if defined(MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_LEGACY) || \
+#if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE) || \
     defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) || \
@@ -5985,7 +5985,7 @@ static psa_status_t psa_generate_derived_key_internal(
             }
         }
     } else
-#endif /* defined(MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_LEGACY) ||
+#endif /* defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE) ||
           defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) ||
           defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
           defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ||

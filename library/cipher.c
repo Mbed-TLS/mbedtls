@@ -208,19 +208,6 @@ static inline psa_algorithm_t mbedtls_psa_translate_cipher_mode(
             return 0;
     }
 }
-
-static inline psa_key_usage_t mbedtls_psa_translate_cipher_operation(
-    mbedtls_operation_t op)
-{
-    switch (op) {
-        case MBEDTLS_ENCRYPT:
-            return PSA_KEY_USAGE_ENCRYPT;
-        case MBEDTLS_DECRYPT:
-            return PSA_KEY_USAGE_DECRYPT;
-        default:
-            return 0;
-    }
-}
 #endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
 
 void mbedtls_cipher_init(mbedtls_cipher_context_t *ctx)
@@ -381,7 +368,6 @@ int mbedtls_cipher_setkey(mbedtls_cipher_context_t *ctx,
          * and use it for AEAD decryption. Until tests relying on this
          * are changed, allow any usage in PSA. */
         psa_set_key_usage_flags(&attributes,
-                                /* mbedtls_psa_translate_cipher_operation( operation ); */
                                 PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT);
         psa_set_key_algorithm(&attributes, cipher_psa->alg);
 

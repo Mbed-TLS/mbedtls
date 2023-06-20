@@ -121,6 +121,7 @@ generated_ecp_test_data:
 
 $(GENERATED_PSA_DATA_FILES): generated_psa_test_data
 generated_psa_test_data: scripts/generate_psa_tests.py
+generated_psa_test_data: ../scripts/mbedtls_dev/crypto_data_tests.py
 generated_psa_test_data: ../scripts/mbedtls_dev/crypto_knowledge.py
 generated_psa_test_data: ../scripts/mbedtls_dev/macro_collector.py
 generated_psa_test_data: ../scripts/mbedtls_dev/psa_information.py

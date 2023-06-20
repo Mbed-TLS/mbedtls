@@ -24,6 +24,8 @@
 
 #include "mbedtls/build_info.h"
 
+#include "mbedtls/error.h"
+
 #include "mbedtls/ssl.h"
 #include "mbedtls/cipher.h"
 

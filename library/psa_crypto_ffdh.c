@@ -27,6 +27,7 @@
 #include "psa_crypto_ffdh.h"
 #include "psa_crypto_random_impl.h"
 #include "mbedtls/platform.h"
+#include "mbedtls/error.h"
 
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_LEGACY) ||   \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_PUBLIC_KEY) || \

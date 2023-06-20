@@ -25,6 +25,7 @@
 #include "mbedtls/error.h"
 #include "mbedtls/platform.h"
 #include "mbedtls/constant_time.h"
+#include "mbedtls/oid.h"
 #include "md_psa.h"
 
 #include "ssl_misc.h"

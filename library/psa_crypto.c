@@ -7360,12 +7360,12 @@ static psa_status_t psa_validate_key_type_and_size_for_key_generation(
     } else
 #endif /* defined(MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY) */
 
-#if defined(MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_LEGACY)
+#if defined(MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE)
     if (PSA_KEY_TYPE_IS_ECC(type) && PSA_KEY_TYPE_IS_KEY_PAIR(type)) {
         /* To avoid empty block, return successfully here. */
         return PSA_SUCCESS;
     } else
-#endif /* defined(MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_LEGACY) */
+#endif /* defined(MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE) */
 
 #if defined(MBEDTLS_PSA_WANT_KEY_TYPE_DH_KEY_PAIR_LEGACY)
     if (PSA_KEY_TYPE_IS_DH(type) && PSA_KEY_TYPE_IS_KEY_PAIR(type)) {
@@ -7417,14 +7417,14 @@ psa_status_t psa_generate_key_internal(
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR_LEGACY)
         * defined(MBEDTLS_GENPRIME) */
 
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_LEGACY)
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_GENERATE)
     if (PSA_KEY_TYPE_IS_ECC(type) && PSA_KEY_TYPE_IS_KEY_PAIR(type)) {
         return mbedtls_psa_ecp_generate_key(attributes,
                                             key_buffer,
                                             key_buffer_size,
                                             key_buffer_length);
     } else
-#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_LEGACY) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_GENERATE) */
 
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DH_KEY_PAIR_LEGACY)
     if (PSA_KEY_TYPE_IS_DH(type) && PSA_KEY_TYPE_IS_KEY_PAIR(type)) {

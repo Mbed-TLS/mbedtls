@@ -79,6 +79,40 @@
  *   psa_pake_abort()
  */
 
+/*
+ * Possible sequence of calls to implementation:
+ *
+ * |--- In any order:
+ * |   |
+ * |   |------ In Order
+ * |   |       | mbedtls_psa_pake_output(PSA_JPAKE_X1_STEP_KEY_SHARE)
+ * |   |       | mbedtls_psa_pake_output(PSA_JPAKE_X1_STEP_ZK_PUBLIC)
+ * |   |       | mbedtls_psa_pake_output(PSA_JPAKE_X1_STEP_ZK_PROOF)
+ * |   |       | mbedtls_psa_pake_output(PSA_JPAKE_X2_STEP_KEY_SHARE)
+ * |   |       | mbedtls_psa_pake_output(PSA_JPAKE_X2_STEP_ZK_PUBLIC)
+ * |   |       | mbedtls_psa_pake_output(PSA_JPAKE_X2_STEP_ZK_PROOF)
+ * |   |
+ * |   |------ In Order:
+ * |           | mbedtls_psa_pake_input(PSA_JPAKE_X1_STEP_KEY_SHARE)
+ * |           | mbedtls_psa_pake_input(PSA_JPAKE_X1_STEP_ZK_PUBLIC)
+ * |           | mbedtls_psa_pake_input(PSA_JPAKE_X1_STEP_ZK_PROOF)
+ * |           | mbedtls_psa_pake_input(PSA_JPAKE_X2_STEP_KEY_SHARE)
+ * |           | mbedtls_psa_pake_input(PSA_JPAKE_X2_STEP_ZK_PUBLIC)
+ * |           | mbedtls_psa_pake_input(PSA_JPAKE_X2_STEP_ZK_PROOF)
+ * |
+ * |--- In any order:
+ * |   |
+ * |   |------ In Order
+ * |   |       | mbedtls_psa_pake_output(PSA_JPAKE_X2S_STEP_KEY_SHARE)
+ * |   |       | mbedtls_psa_pake_output(PSA_JPAKE_X2S_STEP_ZK_PUBLIC)
+ * |   |       | mbedtls_psa_pake_output(PSA_JPAKE_X2S_STEP_ZK_PROOF)
+ * |   |
+ * |   |------ In Order:
+ * |           | mbedtls_psa_pake_input(PSA_JPAKE_X4S_STEP_KEY_SHARE)
+ * |           | mbedtls_psa_pake_input(PSA_JPAKE_X4S_STEP_ZK_PUBLIC)
+ * |           | mbedtls_psa_pake_input(PSA_JPAKE_X4S_STEP_ZK_PROOF)
+ */
+
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
 static psa_status_t mbedtls_ecjpake_to_psa_error(int ret)
 {

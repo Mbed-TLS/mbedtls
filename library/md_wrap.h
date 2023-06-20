@@ -39,9 +39,6 @@ extern "C" {
  * Allows message digest functions to be called in a generic way.
  */
 struct mbedtls_md_info_t {
-    /** Name of the message digest */
-    const char *name;
-
     /** Digest identifier */
     mbedtls_md_type_t type;
 

@@ -78,7 +78,6 @@
 
 #if defined(MBEDTLS_MD_CAN_MD5)
 const mbedtls_md_info_t mbedtls_md5_info = {
-    "MD5",
     MBEDTLS_MD_MD5,
     16,
     64,
@@ -87,7 +86,6 @@ const mbedtls_md_info_t mbedtls_md5_info = {
 
 #if defined(MBEDTLS_MD_CAN_RIPEMD160)
 const mbedtls_md_info_t mbedtls_ripemd160_info = {
-    "RIPEMD160",
     MBEDTLS_MD_RIPEMD160,
     20,
     64,
@@ -96,7 +94,6 @@ const mbedtls_md_info_t mbedtls_ripemd160_info = {
 
 #if defined(MBEDTLS_MD_CAN_SHA1)
 const mbedtls_md_info_t mbedtls_sha1_info = {
-    "SHA1",
     MBEDTLS_MD_SHA1,
     20,
     64,
@@ -105,7 +102,6 @@ const mbedtls_md_info_t mbedtls_sha1_info = {
 
 #if defined(MBEDTLS_MD_CAN_SHA224)
 const mbedtls_md_info_t mbedtls_sha224_info = {
-    "SHA224",
     MBEDTLS_MD_SHA224,
     28,
     64,
@@ -114,7 +110,6 @@ const mbedtls_md_info_t mbedtls_sha224_info = {
 
 #if defined(MBEDTLS_MD_CAN_SHA256)
 const mbedtls_md_info_t mbedtls_sha256_info = {
-    "SHA256",
     MBEDTLS_MD_SHA256,
     32,
     64,
@@ -123,7 +118,6 @@ const mbedtls_md_info_t mbedtls_sha256_info = {
 
 #if defined(MBEDTLS_MD_CAN_SHA384)
 const mbedtls_md_info_t mbedtls_sha384_info = {
-    "SHA384",
     MBEDTLS_MD_SHA384,
     48,
     128,
@@ -132,7 +126,6 @@ const mbedtls_md_info_t mbedtls_sha384_info = {
 
 #if defined(MBEDTLS_MD_CAN_SHA512)
 const mbedtls_md_info_t mbedtls_sha512_info = {
-    "SHA512",
     MBEDTLS_MD_SHA512,
     64,
     128,
@@ -141,7 +134,6 @@ const mbedtls_md_info_t mbedtls_sha512_info = {
 
 #if defined(MBEDTLS_MD_CAN_SHA3_224)
 const mbedtls_md_info_t mbedtls_sha3_224_info = {
-    "SHA3-224",
     MBEDTLS_MD_SHA3_224,
     28,
     144,
@@ -150,7 +142,6 @@ const mbedtls_md_info_t mbedtls_sha3_224_info = {
 
 #if defined(MBEDTLS_MD_CAN_SHA3_256)
 const mbedtls_md_info_t mbedtls_sha3_256_info = {
-    "SHA3-256",
     MBEDTLS_MD_SHA3_256,
     32,
     136,
@@ -159,7 +150,6 @@ const mbedtls_md_info_t mbedtls_sha3_256_info = {
 
 #if defined(MBEDTLS_MD_CAN_SHA3_384)
 const mbedtls_md_info_t mbedtls_sha3_384_info = {
-    "SHA3-384",
     MBEDTLS_MD_SHA3_384,
     48,
     104,
@@ -168,7 +158,6 @@ const mbedtls_md_info_t mbedtls_sha3_384_info = {
 
 #if defined(MBEDTLS_MD_CAN_SHA3_512)
 const mbedtls_md_info_t mbedtls_sha3_512_info = {
-    "SHA3-512",
     MBEDTLS_MD_SHA3_512,
     64,
     72,
@@ -928,69 +917,77 @@ const int *mbedtls_md_list(void)
     return supported_digests;
 }
 
+typedef struct {
+    const char *md_name;
+    mbedtls_md_type_t md_type;
+} md_name_entry;
+
+static const md_name_entry md_names[] = {
+#if defined(MBEDTLS_MD_CAN_MD5)
+    { "MD5", MBEDTLS_MD_MD5 },
+#endif
+#if defined(MBEDTLS_MD_CAN_RIPEMD160)
+    { "RIPEMD160", MBEDTLS_MD_RIPEMD160 },
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA1)
+    { "SHA1", MBEDTLS_MD_SHA1 },
+    { "SHA", MBEDTLS_MD_SHA1 }, // compatibility fallback
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA224)
+    { "SHA224", MBEDTLS_MD_SHA224 },
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA256)
+    { "SHA256", MBEDTLS_MD_SHA256 },
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA384)
+    { "SHA384", MBEDTLS_MD_SHA384 },
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA512)
+    { "SHA512", MBEDTLS_MD_SHA512 },
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA3_224)
+    { "SHA3-224", MBEDTLS_MD_SHA3_224 },
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA3_256)
+    { "SHA3-256", MBEDTLS_MD_SHA3_256 },
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA3_384)
+    { "SHA3-384", MBEDTLS_MD_SHA3_384 },
+#endif
+#if defined(MBEDTLS_MD_CAN_SHA3_512)
+    { "SHA3-512", MBEDTLS_MD_SHA3_512 },
+#endif
+    { NULL, MBEDTLS_MD_NONE },
+};
+
 const mbedtls_md_info_t *mbedtls_md_info_from_string(const char *md_name)
 {
     if (NULL == md_name) {
         return NULL;
     }
 
-    /* Get the appropriate digest information */
-#if defined(MBEDTLS_MD_CAN_MD5)
-    if (!strcmp("MD5", md_name)) {
-        return mbedtls_md_info_from_type(MBEDTLS_MD_MD5);
+    const md_name_entry *entry = md_names;
+    while (entry->md_name != NULL &&
+           strcmp(entry->md_name, md_name) != 0) {
+        ++entry;
     }
-#endif
-#if defined(MBEDTLS_MD_CAN_RIPEMD160)
-    if (!strcmp("RIPEMD160", md_name)) {
-        return mbedtls_md_info_from_type(MBEDTLS_MD_RIPEMD160);
+
+    return mbedtls_md_info_from_type(entry->md_type);
+}
+
+const char *mbedtls_md_get_name(const mbedtls_md_info_t *md_info)
+{
+    if (md_info == NULL) {
+        return NULL;
     }
-#endif
-#if defined(MBEDTLS_MD_CAN_SHA1)
-    if (!strcmp("SHA1", md_name) || !strcmp("SHA", md_name)) {
-        return mbedtls_md_info_from_type(MBEDTLS_MD_SHA1);
+
+    const md_name_entry *entry = md_names;
+    while (entry->md_type != MBEDTLS_MD_NONE &&
+           entry->md_type != md_info->type) {
+        ++entry;
     }
-#endif
-#if defined(MBEDTLS_MD_CAN_SHA224)
-    if (!strcmp("SHA224", md_name)) {
-        return mbedtls_md_info_from_type(MBEDTLS_MD_SHA224);
-    }
-#endif
-#if defined(MBEDTLS_MD_CAN_SHA256)
-    if (!strcmp("SHA256", md_name)) {
-        return mbedtls_md_info_from_type(MBEDTLS_MD_SHA256);
-    }
-#endif
-#if defined(MBEDTLS_MD_CAN_SHA384)
-    if (!strcmp("SHA384", md_name)) {
-        return mbedtls_md_info_from_type(MBEDTLS_MD_SHA384);
-    }
-#endif
-#if defined(MBEDTLS_MD_CAN_SHA512)
-    if (!strcmp("SHA512", md_name)) {
-        return mbedtls_md_info_from_type(MBEDTLS_MD_SHA512);
-    }
-#endif
-#if defined(MBEDTLS_MD_CAN_SHA3_224)
-    if (!strcmp("SHA3-224", md_name)) {
-        return mbedtls_md_info_from_type(MBEDTLS_MD_SHA3_224);
-    }
-#endif
-#if defined(MBEDTLS_MD_CAN_SHA3_256)
-    if (!strcmp("SHA3-256", md_name)) {
-        return mbedtls_md_info_from_type(MBEDTLS_MD_SHA3_256);
-    }
-#endif
-#if defined(MBEDTLS_MD_CAN_SHA3_384)
-    if (!strcmp("SHA3-384", md_name)) {
-        return mbedtls_md_info_from_type(MBEDTLS_MD_SHA3_384);
-    }
-#endif
-#if defined(MBEDTLS_MD_CAN_SHA3_512)
-    if (!strcmp("SHA3-512", md_name)) {
-        return mbedtls_md_info_from_type(MBEDTLS_MD_SHA3_512);
-    }
-#endif
-    return NULL;
+
+    return entry->md_name;
 }
 
 const mbedtls_md_info_t *mbedtls_md_info_from_ctx(
@@ -1189,15 +1186,6 @@ cleanup:
     mbedtls_md_free(&ctx);
 
     return ret;
-}
-
-const char *mbedtls_md_get_name(const mbedtls_md_info_t *md_info)
-{
-    if (md_info == NULL) {
-        return NULL;
-    }
-
-    return md_info->name;
 }
 
 #endif /* MBEDTLS_MD_C */

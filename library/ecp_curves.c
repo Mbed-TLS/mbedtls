@@ -5577,9 +5577,9 @@ int mbedtls_ecp_mod_p448_raw(mbedtls_mpi_uint *X, size_t X_limbs)
     (void) mbedtls_mpi_core_add(X, X, Q, Q_limbs);
 
     /* M = B0 */
-    if (ciL > 4) {
-        M[P224_WIDTH_MIN] &= ((mbedtls_mpi_uint)-1) >> (P224_UNUSED_BITS);
-    }
+#ifdef MBEDTLS_HAVE_INT64
+    M[P224_WIDTH_MIN] &= ((mbedtls_mpi_uint)-1) >> (P224_UNUSED_BITS);
+ #endif
     memset(M + P224_WIDTH_MAX, 0, ((M_limbs - P224_WIDTH_MAX) * ciL));
 
     /* M = M + Q = B0 + B1 */

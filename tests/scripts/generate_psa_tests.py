@@ -41,8 +41,6 @@ def psa_want_symbol(name: str) -> str:
     # renamed to temporary internal symbols
     # MBEDTLS_PSA_WANT_KEY_TYPE_[RSA/ECC]_KEY_PAIR_LEGACY so this is what must
     # be used in tests' dependencies.
-    if name.endswith('RSA_KEY_PAIR') or name.endswith('ECC_KEY_PAIR'):
-        return 'MBEDTLS_' + name[:4] + 'WANT_' + name[4:] + '_LEGACY'
     if name.startswith('PSA_'):
         return name[:4] + 'WANT_' + name[4:]
     else:
@@ -113,19 +111,13 @@ def read_implemented_dependencies(filename: str) -> FrozenSet[str]:
                      for line in open(filename)
                      for symbol in re.findall(r'\bPSA_WANT_\w+\b', line))
 _implemented_dependencies = None #type: Optional[FrozenSet[str]] #pylint: disable=invalid-name
-# This is a temporary fix for the KEY_PAIR_LEGACY symbols since they are not
-# defined in "crypto_config.h". This fix can be removed as soon as these _LEGACY
-# symbols will be removed from the code.
-_LEGACY_KEY_PAIR = ['MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_LEGACY',
-                    'MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY']
 def hack_dependencies_not_implemented(dependencies: List[str]) -> None:
     global _implemented_dependencies #pylint: disable=global-statement,invalid-name
     if _implemented_dependencies is None:
         _implemented_dependencies = \
             read_implemented_dependencies('include/psa/crypto_config.h')
     if not all((dep.lstrip('!') in _implemented_dependencies or
-                'PSA_WANT' not in dep or
-                dep.lstrip('!') in _LEGACY_KEY_PAIR)
+                'PSA_WANT' not in dep)
                for dep in dependencies):
         dependencies.append('DEPENDENCY_NOT_IMPLEMENTED_YET')
 
@@ -222,7 +214,20 @@ class KeyTypeNotSupported:
         if kt.name.endswith('_PUBLIC_KEY'):
             generate_dependencies = []
         else:
-            generate_dependencies = import_dependencies
+            # Create a separate list so that we can work on them independently
+            # in the following.
+            generate_dependencies = [dep for dep in import_dependencies]
+        # PSA_WANT_KEY_TYPE_xxx_KEY_PAIR symbols have now a GENERATE and
+        # IMPORT suffixes to state that they support key generation and
+        # import, respectively.
+        for dep in import_dependencies:
+            if dep.endswith('KEY_PAIR'):
+                import_dependencies.remove(dep)
+                import_dependencies.append(dep + "_IMPORT")
+        for dep in generate_dependencies:
+            if dep.endswith('KEY_PAIR'):
+                generate_dependencies.remove(dep)
+                generate_dependencies.append(dep + "_GENERATE")
         for bits in kt.sizes_to_test():
             yield test_case_for_key_type_not_supported(
                 'import', kt.expression, bits,
@@ -317,6 +322,11 @@ class KeyGenerate:
             generate_dependencies = import_dependencies
             if kt.name == 'PSA_KEY_TYPE_RSA_KEY_PAIR':
                 generate_dependencies.append("MBEDTLS_GENPRIME")
+            # PSA_WANT_KEY_TYPE_xxx_KEY_PAIR symbols have now a GENERATE suffix
+            # to state that they support key generation.
+            if kt.name == 'PSA_KEY_TYPE_ECC_KEY_PAIR':
+                generate_dependencies.remove(psa_want_symbol(kt.name))
+                generate_dependencies.append(psa_want_symbol(kt.name) + "_GENERATE")
         for bits in kt.sizes_to_test():
             yield test_case_for_key_generation(
                 kt.expression, bits,

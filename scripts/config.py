@@ -189,6 +189,7 @@ def realfull_adapter(_name, active, section):
 # * Options that remove features.
 EXCLUDE_FROM_FULL = frozenset([
     #pylint: disable=line-too-long
+    'MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH', # interacts with CTR_DRBG_128_BIT_KEY
     'MBEDTLS_CTR_DRBG_USE_128_BIT_KEY', # interacts with ENTROPY_FORCE_SHA256
     'MBEDTLS_DEPRECATED_REMOVED', # conflicts with deprecated options
     'MBEDTLS_DEPRECATED_WARNING', # conflicts with deprecated options

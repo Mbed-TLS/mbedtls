@@ -35,6 +35,14 @@ from mbedtls_dev import test_data_generation
 
 def psa_want_symbol(name: str) -> str:
     """Return the PSA_WANT_xxx symbol associated with a PSA crypto feature."""
+    # PSA_WANT_KEY_TYPE_[RSA/ECC]_KEY_PAIR symbols are deprecated and they should
+    # be replaced soon with newer PSA_WANT_KEY_TYPE_[RSA/ECC]_KEY_PAIR_yyy in
+    # library's code and tests. Until this happen though, they have been
+    # renamed to temporary internal symbols
+    # MBEDTLS_PSA_WANT_KEY_TYPE_[RSA/ECC]_KEY_PAIR_LEGACY so this is what must
+    # be used in tests' dependencies.
+    if name.endswith('RSA_KEY_PAIR') or name.endswith('ECC_KEY_PAIR'):
+        return 'MBEDTLS_' + name[:4] + 'WANT_' + name[4:] + '_LEGACY'
     if name.startswith('PSA_'):
         return name[:4] + 'WANT_' + name[4:]
     else:
@@ -77,6 +85,24 @@ def automatic_dependencies(*expressions: str) -> List[str]:
     used.difference_update(SYMBOLS_WITHOUT_DEPENDENCY)
     return sorted(psa_want_symbol(name) for name in used)
 
+# Define set of regular expressions and dependencies to optionally append
+# extra dependencies for test case.
+AES_128BIT_ONLY_DEP_REGEX = r'AES\s(192|256)'
+AES_128BIT_ONLY_DEP = ["!MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH"]
+
+DEPENDENCY_FROM_KEY = {
+    AES_128BIT_ONLY_DEP_REGEX: AES_128BIT_ONLY_DEP
+}#type: Dict[str, List[str]]
+def generate_key_dependencies(description: str) -> List[str]:
+    """Return additional dependencies based on pairs of REGEX and dependencies.
+    """
+    deps = []
+    for regex, dep in DEPENDENCY_FROM_KEY.items():
+        if re.search(regex, description):
+            deps += dep
+
+    return deps
+
 # A temporary hack: at the time of writing, not all dependency symbols
 # are implemented yet. Skip test cases for which the dependency symbols are
 # not available. Once all dependency symbols are available, this hack must
@@ -87,12 +113,19 @@ def read_implemented_dependencies(filename: str) -> FrozenSet[str]:
                      for line in open(filename)
                      for symbol in re.findall(r'\bPSA_WANT_\w+\b', line))
 _implemented_dependencies = None #type: Optional[FrozenSet[str]] #pylint: disable=invalid-name
+# This is a temporary fix for the KEY_PAIR_LEGACY symbols since they are not
+# defined in "crypto_config.h". This fix can be removed as soon as these _LEGACY
+# symbols will be removed from the code.
+_LEGACY_KEY_PAIR = ['MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_LEGACY',
+                    'MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY']
 def hack_dependencies_not_implemented(dependencies: List[str]) -> None:
     global _implemented_dependencies #pylint: disable=global-statement,invalid-name
     if _implemented_dependencies is None:
         _implemented_dependencies = \
             read_implemented_dependencies('include/psa/crypto_config.h')
-    if not all((dep.lstrip('!') in _implemented_dependencies or 'PSA_WANT' not in dep)
+    if not all((dep.lstrip('!') in _implemented_dependencies or
+                'PSA_WANT' not in dep or
+                dep.lstrip('!') in _LEGACY_KEY_PAIR)
                for dep in dependencies):
         dependencies.append('DEPENDENCY_NOT_IMPLEMENTED_YET')
 
@@ -574,6 +607,7 @@ class StorageFormat:
             key.alg.string, key.alg2.string,
         )
         dependencies = finish_family_dependencies(dependencies, key.bits)
+        dependencies += generate_key_dependencies(key.description)
         tc.set_dependencies(dependencies)
         tc.set_function('key_storage_' + verb)
         if self.forward:

@@ -554,6 +554,48 @@ crl_cat_rsa-ec.pem:crl.pem crl-ec-sha256.pem
 
 all_final += crl_cat_ec-rsa.pem crl_cat_rsa-ec.pem
 
+authorityKeyId_subjectKeyId.crt.der:
+	$(OPENSSL) req -x509 -nodes -days 7300 -key server2.key -outform DER -out $@ -config authorityKeyId_subjectKeyId.conf -extensions 'v3_req' -set_serial 593828494303792449134898749208168108403991951034
+
+authorityKeyId_no_keyid.crt.der:
+	$(OPENSSL) req -x509 -nodes -days 7300 -key server2.key -outform DER -out $@ -config authorityKeyId_subjectKeyId.conf -extensions 'v3_req_authorityKeyId_no_keyid' -set_serial 593828494303792449134898749208168108403991951034
+
+authorityKeyId_no_issuer.crt.der:
+	$(OPENSSL) req -x509 -nodes -days 7300 -key server2.key -outform DER -out $@ -config authorityKeyId_subjectKeyId.conf -extensions 'v3_req_authorityKeyId_no_issuer'
+
+authorityKeyId_no_authorityKeyId.crt.der:
+	$(OPENSSL) req -x509 -nodes -days 7300 -key server2.key -outform DER -out $@ -config authorityKeyId_subjectKeyId.conf -extensions 'v3_req_no_authorityKeyId'
+
+authorityKeyId_subjectKeyId_tag_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/0414A505E864B8DCDF600F50124D60A864AF4D8B4393/0114A505E864B8DCDF600F50124D60A864AF4D8B4393/" | xxd -r -p > $@
+
+authorityKeyId_subjectKeyId_tag_len_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/0414A505E864B8DCDF600F50124D60A864AF4D8B4393/0413A505E864B8DCDF600F50124D60A864AF4D8B4393/" | xxd -r -p > $@
+
+authorityKeyId_subjectKeyId_length_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/306D8014A505E864B8DC/306C8014A505E864B8DC/" | xxd -r -p > $@
+
+authorityKeyId_subjectKeyId_sequence_tag_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/6F306D8014A505E864B8/6F006D8014A505E864B8/" | xxd -r -p > $@
+
+authorityKeyId_subjectKeyId_keyid_tag_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/306D8014A505E864B8DC/306D0014A505E864B8DC/" | xxd -r -p > $@
+
+authorityKeyId_subjectKeyId_keyid_tag_len_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/306D8014A505E864B8DC/306D80FFA505E864B8DC/" | xxd -r -p > $@
+
+authorityKeyId_subjectKeyId_issuer_tag1_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/A13FA43D303B310B3009/003FA43D303B310B3009/" | xxd -r -p > $@
+
+authorityKeyId_subjectKeyId_issuer_tag2_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/A43D303B310B30090603/003D303B310B30090603/" | xxd -r -p > $@
+
+authorityKeyId_subjectKeyId_sn_tag_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/8214680430CD074DE63F/8114680430CD074DE63F/" | xxd -r -p > $@
+
+authorityKeyId_subjectKeyId_sn_len_malformed.crt.der: authorityKeyId_subjectKeyId.crt.der
+	hexdump -ve '1/1 "%.2X"' $< | sed "s/8214680430CD074DE63F/8213680430CD074DE63F/" | xxd -r -p > $@
+
 ################################################################
 #### Generate various RSA keys
 ################################################################

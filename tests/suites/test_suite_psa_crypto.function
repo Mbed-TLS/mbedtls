@@ -8713,6 +8713,16 @@ void derive_output(int alg_arg,
         switch (steps[i]) {
             case 0:
                 break;
+            case PSA_KEY_DERIVATION_INPUT_COST:
+                TEST_EQUAL(psa_key_derivation_input_integer(
+                               &operation, steps[i],
+                               parse_binary_string(inputs[i])),
+                           statuses[i]);
+                if (statuses[i] != PSA_SUCCESS) {
+                    goto exit;
+                }
+                break;
+            case PSA_KEY_DERIVATION_INPUT_PASSWORD:
             case PSA_KEY_DERIVATION_INPUT_SECRET:
                 switch (key_input_type) {
                     case 0: // input bytes
@@ -8740,9 +8750,14 @@ void derive_output(int alg_arg,
                                       PSA_TLS12_PSK_TO_MS_PSK_MAX_SIZE);
                         }
 
-                        PSA_ASSERT(psa_key_derivation_input_key(&operation,
+                        TEST_EQUAL(psa_key_derivation_input_key(&operation,
                                                                 steps[i],
-                                                                keys[i]));
+                                                                keys[i]),
+                                   statuses[i]);
+
+                        if (statuses[i] != PSA_SUCCESS) {
+                            goto exit;
+                        }
                         break;
                     default:
                         TEST_ASSERT(!"default case not supported");
@@ -9599,7 +9614,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_WANT_KEY_TYPE_RSA_KEY_PAIR:PSA_WANT_ALG_RSA_PKCS1V15_CRYPT:PSA_WANT_ALG_RSA_PKCS1V15_SIGN:MBEDTLS_GENPRIME */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY:PSA_WANT_ALG_RSA_PKCS1V15_CRYPT:PSA_WANT_ALG_RSA_PKCS1V15_SIGN:MBEDTLS_GENPRIME */
 void generate_key_rsa(int bits_arg,
                       data_t *e_arg,
                       int expected_status_arg)

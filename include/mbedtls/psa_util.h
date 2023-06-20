@@ -2,9 +2,6 @@
  * \file psa_util.h
  *
  * \brief Utility functions for the use of the PSA Crypto library.
- *
- * \warning These functions are not part of the public API and may
- *          change at any time.
  */
 /*
  *  Copyright The Mbed TLS Contributors

@@ -800,16 +800,30 @@ psa_import_key(&attributes, buf + sizeof(buf) - length, length, &key_id);
 mbedtls_pk_free(&pk);
 ```
 
-For an ECC private key (a future version of Mbed TLS [will provide a function to calculate the curve family](https://github.com/Mbed-TLS/mbedtls/issues/7764)):
+For an ECC private key (a future version of Mbed TLS [will provide a more direct way to find the curve family](https://github.com/Mbed-TLS/mbedtls/issues/7764)):
 
 ```
 unsigned char buf[PSA_BITS_TO_BYTES(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
 size_t length = PSA_BITS_TO_BYTES(mbedtls_pk_bitlen(&pk));
 mbedtls_ecp_keypair *ec = mbedtls_pk_ec(&pk);
+psa_ecc_curve_t curve;
+{
+    mbedtls_ecp_group grp;
+    mbedtls_ecp_group_init(&grp);
+    mbedtls_ecp_point Q;
+    mbedtls_ecp_point_init(&Q);
+    mbedtls_mpi d;
+    mbedtls_mpi_init(&d);
+    mbedtls_ecp_export(ec, &grp, &d, &Q);
+    size_t bits;
+    curve = mbedtls_ecc_group_to_psa(grp.id, &bits);
+    mbedtls_ecp_group_free(&grp);
+    mbedtls_ecp_point_free(&Q);
+    mbedtls_mpi_free(&d);
+}
 mbedtls_ecp_write_key(ec, buf, length);
-psa_ecc_curve_t curve = ...; // need to determine the curve family manually
 psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-psa_set_key_attributes(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(curve));
+psa_set_key_type(&attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(curve));
 psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_... | ...);
 psa_set_key_algorithm(&attributes, PSA_ALGORITHM_...);
 psa_key_id_t key_id = 0;

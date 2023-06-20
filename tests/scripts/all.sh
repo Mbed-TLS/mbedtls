@@ -2624,6 +2624,55 @@ component_test_psa_crypto_config_accel_all_curves_except_x25519 () {
     psa_crypto_config_accel_all_curves_except_one MBEDTLS_ECP_DP_CURVE25519_ENABLED
 }
 
+# This is an helper used by:
+# - component_test_psa_ecc_key_pair_no_derive
+# - component_test_psa_ecc_key_pair_no_generate
+# The goal is to test with all PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_yyy symbols
+# enabled, but one. Input arguments are as follows:
+# - $1 is the key type under test, i.e. ECC/RSA/DH
+# - $2 is the key option to be unset (i.e. generate, derive, etc)
+config_test_psa_want_key_pair_partial() {
+    KEY_TYPE=$1
+    UNSET_OPTION=$2
+
+    msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG + PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_xxx"
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
+
+    # All the PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_yyy are enabled by default in
+    # crypto_config.h so we just disable the one we don't want.
+    DISABLED_PSA_WANT="PSA_WANT_KEY_TYPE_${KEY_TYPE}_KEY_PAIR_${UNSET_OPTION}"
+    scripts/config.py -f include/psa/crypto_config.h unset "$DISABLED_PSA_WANT"
+    echo "Disabling: $DISABLED_PSA_WANT"
+
+    loc_accel_list=""
+    KEY_PAIR_OPTIONS=("BASE" "IMPORT" "EXPORT" "GENERATE" "DERIVE")
+    for OPTION in ${KEY_PAIR_OPTIONS[@]}; do
+        # RSA and DH keys do not support DERIVE
+        if [ "$KEY_TYPE" == "RSA" -o "$KEY_TYPE" == "DH" ] && [ "$OPTION" == "DERIVE" ]; then
+            continue
+        fi
+        loc_accel_list="$loc_accel_list KEY_TYPE_${KEY_TYPE}_KEY_PAIR_${OPTION}"
+    done
+
+    echo "Accelerated list: $loc_accel_list"
+    loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )
+
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST $loc_accel_flags -I../tests/include" LDFLAGS="$ASAN_CFLAGS"
+
+    make test
+}
+
+component_test_psa_ecc_key_pair_no_derive() {
+    config_test_psa_want_key_pair_partial "ECC" "DERIVE"
+}
+
+component_test_psa_ecc_key_pair_no_generate() {
+    config_test_psa_want_key_pair_partial "ECC" "GENERATE"
+}
+
 component_test_psa_crypto_config_accel_rsa_signature () {
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated RSA signature"
 

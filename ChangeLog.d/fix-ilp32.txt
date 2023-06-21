@@ -1,0 +1,4 @@
+Bugfix
+   * Fix a compile failure in the constant_time module when building
+     for watchos (i.e. for Aarch64 ILP32). Reported by Paulo Coutinho
+     in #7787.

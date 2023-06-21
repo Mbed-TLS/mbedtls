@@ -69,7 +69,7 @@ extern "C" {
 // Regular implementation
 //
 
-/** VIA padlock needs 16 extra Bytes for alignment. */
+/** VIA padlock needs 16 extra bytes for alignment. */
 #if (defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)) ||        \
     (defined(MBEDTLS_AESNI_C) && MBEDTLS_AESNI_HAVE_CODE == 2)
 #define MBEDTLS_PADLOCK_EXTRA 16
@@ -77,7 +77,7 @@ extern "C" {
 #define MBEDTLS_PADLOCK_EXTRA 0
 #endif
 
-/** Each round key occupies 16 Bytes. */
+/** Each round key occupies 16 bytes. */
 #define MBEDTLS_AES_RK_UINT32S 16
 
 /** Define number of maximum rounds in AES key expansion.
@@ -87,15 +87,13 @@ extern "C" {
  */
 #if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
 #define MBEDTLS_AES_MAX_ROUNDS 10
-/** Allocate 16 extra Bytes to store initial round key. */
+/** Allocate 16 extra bytes to store round key. */
 #define MBEDTLS_AES_RK_EXTRA (16 + MBEDTLS_PADLOCK_EXTRA)
 #else
 #define MBEDTLS_AES_MAX_ROUNDS 14
-/** Allocate 32 extra Bytes for AES key expansion.
- *   - 16 extra Bytes to store initial round key.
- *   - 16 extra Bytes to simplify key expansion in the 256-bit case.
- */
-#define MBEDTLS_AES_RK_EXTRA (16 + 16 + MBEDTLS_PADLOCK_EXTRA)
+/** Allocate 32 extra bytes for AES key expansion in the 192-bit and 256-bit
+    case in order to simplify key expansion. */
+#define MBEDTLS_AES_RK_EXTRA (32 + MBEDTLS_PADLOCK_EXTRA)
 #endif
 
 /**
@@ -105,11 +103,12 @@ typedef struct mbedtls_aes_context {
     int MBEDTLS_PRIVATE(nr);                     /*!< The number of rounds. */
     size_t MBEDTLS_PRIVATE(rk_offset);           /*!< The offset in array elements to AES
                                                     round keys in the buffer. */
-    /** Data buffer to hold round keys. This buffer can hold 16 / 80 / 96
-     *  extra Bytes, which can be used for one of the following purposes:
+    /** Data buffer to hold round keys. This buffer can hold 16 / 32 / 48
+     *  extra bytes, which can be used for one of the following purposes:
+     *   - Extra space to store round key.
      *   - Alignment if VIA padlock is used.
-     *   - Simplifying key expansion in the 256-bit case by generating
-     *   an extra round key.
+     *   - Simplifying key expansion in the 192-bit and 256-bit case by
+     *   generating an extra round key.
      */
     uint32_t MBEDTLS_PRIVATE(buf)
     [(MBEDTLS_AES_MAX_ROUNDS * MBEDTLS_AES_RK_UINT32S + MBEDTLS_AES_RK_EXTRA) /

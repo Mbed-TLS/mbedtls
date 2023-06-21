@@ -87,15 +87,16 @@ extern "C" {
  */
 #if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
 #define MBEDTLS_AES_MAX_ROUNDS 10
+/** Allocate 16 extra Bytes to store initial round key. */
+#define MBEDTLS_AES_RK_EXTRA (4 + MBEDTLS_PADLOCK_EXTRA)
 #else
 #define MBEDTLS_AES_MAX_ROUNDS 14
-#endif
-
-/** Allocate 8 extra Bytes for AES key expansion.
+/** Allocate 32 extra Bytes for AES key expansion.
  *   - 16 extra Bytes to store initial round key.
  *   - 16 extra Bytes to simplify key expansion in the 256-bit case.
  */
-#define MBEDTLS_AES_RK_EXTRA (8 + MBEDTLS_PADLOCK_EXTRA)
+#define MBEDTLS_AES_RK_EXTRA (4 + 4 + MBEDTLS_PADLOCK_EXTRA)
+#endif
 
 /**
  * \brief The AES context-type definition.

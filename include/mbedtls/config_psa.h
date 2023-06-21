@@ -1003,13 +1003,26 @@ extern "C" {
 #define PSA_WANT_ALG_SOME_PAKE 1
 #endif
 
-/* Temporary internal migration helpers */
-#if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC) || \
-    defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_IMPORT) || \
-    defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_EXPORT) || \
-    defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE) || \
-    defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE)
-#define MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_LEGACY
+/* Even though KEY_PAIR symbols' feature several level of support (BASIC, IMPORT,
+ * EXPORT, GENERATE, DERIVE) we're not planning to have support only for BASIC
+ * without IMPORT/EXPORT since these last 2 features are strongly used in tests.
+ * This is possible also because, in general, it is allowed to include more
+ * feature than what is strictly requested.
+ *
+ * As a consequence the following internal symbol:
+ * - is used to put together these 3 dependencies (BASIC + IMPORT + EXPORT)
+ * - is enabled by BASIC which itself is enabled as soon as any feature is
+ *   selected
+ * - it does not include EXPORT or GENERATE, for which specific symbols have
+ *   to be enabled explicitly.
+ */
+#if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC)
+#define MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC_IMPORT_EXPORT
+#endif
+
+/* See description of MBEDTLS_PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC_IMPORT_EXPORT */
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_BASIC)
+#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_BASIC_IMPORT_EXPORT
 #endif
 
 /* Temporary internal migration helpers */
@@ -1026,15 +1039,6 @@ extern "C" {
     defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_EXPORT) || \
     defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR_GENERATE)
 #define MBEDTLS_PSA_WANT_KEY_TYPE_DH_KEY_PAIR_LEGACY
-#endif
-
-/* Temporary internal migration helpers */
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_BASIC) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_IMPORT) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_EXPORT) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_GENERATE) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_DERIVE)
-#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_LEGACY
 #endif
 
 /* Temporary internal migration helpers */

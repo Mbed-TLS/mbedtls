@@ -989,6 +989,40 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_C */
+void ecp_calc_public(int grp_id, data_t *private,
+                     int expected_ret, data_t *expected_public)
+{
+    mbedtls_ecp_keypair key;
+    mbedtls_ecp_keypair_init(&key);
+    mbedtls_test_rnd_pseudo_info rnd_info;
+    memset(&rnd_info, 0x00, sizeof(mbedtls_test_rnd_pseudo_info));
+
+    TEST_EQUAL(mbedtls_ecp_group_load(&key.grp, grp_id), 0);
+    TEST_EQUAL(mbedtls_mpi_read_binary(&key.d, private->x, private->len), 0);
+
+    TEST_EQUAL(mbedtls_ecp_keypair_calc_public(&key,
+                                               &mbedtls_test_rnd_pseudo_rand, &rnd_info),
+               expected_ret);
+
+    if (expected_ret == 0) {
+        TEST_EQUAL(mbedtls_ecp_check_pub_priv(&key, &key,
+                                              &mbedtls_test_rnd_pseudo_rand, &rnd_info),
+                   0);
+        unsigned char buf[MBEDTLS_ECP_MAX_PT_LEN];
+        size_t length;
+        TEST_EQUAL(mbedtls_ecp_point_write_binary(&key.grp, &key.Q,
+                                                  MBEDTLS_ECP_PF_UNCOMPRESSED,
+                                                  &length, buf, sizeof(buf)),
+                   0);
+        ASSERT_COMPARE(expected_public->x, expected_public->len, buf, length);
+    }
+
+exit:
+    mbedtls_ecp_keypair_free(&key);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_C */
 void mbedtls_ecp_gen_keypair(int id)
 {
     mbedtls_ecp_group grp;

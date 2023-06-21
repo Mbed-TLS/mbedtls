@@ -1365,6 +1365,23 @@ int mbedtls_ecp_check_pub_priv(
     const mbedtls_ecp_keypair *pub, const mbedtls_ecp_keypair *prv,
     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng);
 
+/** \brief          Calculate the public key from a private key in a key pair.
+ *
+ * \param key       A keypair structure. It must have a private key set.
+ *                  If the public key is set, it will be overwritten.
+ * \param f_rng     The RNG function. This must not be \c NULL.
+ * \param p_rng     The RNG context to be passed to \p f_rng. This may be \c
+ *                  NULL if \p f_rng doesn't need a context.
+ *
+ * \return          \c 0 on success. The key pair object can be used for
+ *                  operations that require the public key.
+ * \return          An \c MBEDTLS_ERR_ECP_XXX or an \c MBEDTLS_ERR_MPI_XXX
+ *                  error code on calculation failure.
+ */
+int mbedtls_ecp_keypair_calc_public(
+    mbedtls_ecp_keypair *key,
+    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng);
+
 /** \brief          Query the group that a key pair belongs to.
  *
  * \param key       The key pair to query.

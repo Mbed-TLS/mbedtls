@@ -3374,6 +3374,14 @@ cleanup:
 
     return ret;
 }
+
+int mbedtls_ecp_keypair_calc_public(mbedtls_ecp_keypair *key,
+                                    int (*f_rng)(void *, unsigned char *, size_t),
+                                    void *p_rng)
+{
+    return mbedtls_ecp_mul(&key->grp, &key->Q, &key->d, &key->grp.G,
+                           f_rng, p_rng);
+}
 #endif /* MBEDTLS_ECP_C */
 
 mbedtls_ecp_group_id mbedtls_ecp_keypair_get_group_id(

@@ -76,13 +76,13 @@ typedef size_t    mbedtls_ct_uint_t;
 typedef ptrdiff_t mbedtls_ct_int_t;
 #define MBEDTLS_CT_TRUE  ((mbedtls_ct_condition_t) SIZE_MAX)
 #elif (SIZE_MAX > 0xffffffff) || defined(MBEDTLS_HAVE_INT64)
-/* 32-bit < pointer size < 64-bit, or 64-bit MPI */
+/* 32-bit < pointer size <= 64-bit, or 64-bit MPI */
 typedef uint64_t  mbedtls_ct_condition_t;
 typedef uint64_t  mbedtls_ct_uint_t;
 typedef int64_t   mbedtls_ct_int_t;
 #define MBEDTLS_CT_TRUE  ((mbedtls_ct_condition_t) UINT64_MAX)
 #else
-/* Pointer size < 32-bit, and no 64-bit MPIs */
+/* Pointer size <= 32-bit, and no 64-bit MPIs */
 typedef uint32_t  mbedtls_ct_condition_t;
 typedef uint32_t  mbedtls_ct_uint_t;
 typedef int32_t   mbedtls_ct_int_t;

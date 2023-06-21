@@ -265,7 +265,10 @@
         "str x5, [%1], #8   \n\t"
 
 #define MULADDC_X1_STOP                                                 \
-         : "+r" (c),  "+r" (d), "+r" (s), "+m" (*(uint64_t (*)[16]) d)  \
+         : "+r" (c),                                                    \
+           "+" MBEDTLS_ASM_AARCH64_PTR_CONSTRAINT (d),                  \
+           "+" MBEDTLS_ASM_AARCH64_PTR_CONSTRAINT (s),                  \
+           "+m" (*(uint64_t (*)[16]) d)                                 \
          : "r" (b), "m" (*(const uint64_t (*)[16]) s)                   \
          : "x4", "x5", "x6", "x7", "cc"                                 \
     );

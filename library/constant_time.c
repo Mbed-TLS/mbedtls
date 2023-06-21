@@ -83,13 +83,7 @@ static inline uint32_t mbedtls_get_unaligned_volatile_uint32(volatile const unsi
 #if defined(__arm__) || defined(__thumb__) || defined(__thumb2__)
     asm volatile ("ldr %0, [%1]" : "=r" (r) : "r" (p) :);
 #elif defined(__aarch64__)
-#if (UINTPTR_MAX == 0xfffffffful)
-    /* ILP32: Specify the pointer operand slightly differently, as per #7787. */
-    asm volatile ("ldr %w0, [%1]" : "=r" (r) : "p" (p) :);
-#elif (UINTPTR_MAX == 0xffffffffffffffffull)
-    /* aarch64 with 64-bit pointers */
-    asm volatile ("ldr %w0, [%1]" : "=r" (r) : "r" (p) :);
-#endif
+    asm volatile ("ldr %w0, [%1]" : "=r" (r) : MBEDTLS_ASM_AARCH64_PTR_CONSTRAINT (p) :);
 #endif
     return r;
 }

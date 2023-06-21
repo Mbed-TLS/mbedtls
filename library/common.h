@@ -169,6 +169,24 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
 #endif
 /* *INDENT-ON* */
 
+/*
+ * Define the constraint used for pointer operands to asm.
+ *
+ * This is normally the usual "r", but for aarch64_32 (aka ILP32,
+ * as found in watchos), "p" is required to avoid warnings from clang.
+ */
+#if defined(__aarch64__) && defined(MBEDTLS_HAVE_ASM)
+#if UINTPTR_MAX == 0xfffffffful
+/* ILP32: Specify the pointer operand slightly differently, as per #7787. */
+#define MBEDTLS_ASM_AARCH64_PTR_CONSTRAINT "p"
+#elif UINTPTR_MAX == 0xfffffffffffffffful
+/* Normal case (64-bit pointers): use "r" as the constraint for pointer operands to asm */
+#define MBEDTLS_ASM_AARCH64_PTR_CONSTRAINT "r"
+#else
+#error Unrecognised pointer size for aarch64
+#endif
+#endif
+
 /* Always provide a static assert macro, so it can be used unconditionally.
  * It will expand to nothing on some systems.
  * Can be used outside functions (but don't add a trailing ';' in that case:

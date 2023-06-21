@@ -3357,6 +3357,12 @@ cleanup:
 }
 #endif /* MBEDTLS_ECP_C */
 
+mbedtls_ecp_group_id mbedtls_ecp_keypair_get_group_id(
+    const mbedtls_ecp_keypair *key)
+{
+    return key->grp.id;
+}
+
 /*
  * Export generic key-pair parameters.
  */

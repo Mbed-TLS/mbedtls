@@ -1030,6 +1030,7 @@ void mbedtls_ecp_gen_key(int id)
                                     &mbedtls_test_rnd_pseudo_rand,
                                     &rnd_info) == 0);
 
+    TEST_EQUAL(mbedtls_ecp_keypair_get_group_id(&key), id);
     TEST_ASSERT(mbedtls_ecp_check_pubkey(&key.grp, &key.Q) == 0);
     TEST_ASSERT(mbedtls_ecp_check_privkey(&key.grp, &key.d) == 0);
 
@@ -1052,6 +1053,7 @@ void mbedtls_ecp_read_key(int grp_id, data_t *in_key, int expected, int canonica
     TEST_ASSERT(ret == expected);
 
     if (expected == 0) {
+        TEST_EQUAL(mbedtls_ecp_keypair_get_group_id(&key), grp_id);
         ret = mbedtls_ecp_check_privkey(&key.grp, &key.d);
         TEST_ASSERT(ret == 0);
 
@@ -1233,6 +1235,10 @@ void ecp_export(int id, char *Qx, char *Qy, char *d, int expected_ret, int inval
         TEST_EQUAL(mbedtls_ecp_point_cmp(&key.Q, &export_Q), 0);
         TEST_EQUAL(mbedtls_mpi_cmp_mpi(&key.d, &export_d), 0);
         TEST_EQUAL(mbedtls_ecp_group_cmp(&key.grp, &export_grp), 0);
+
+        /* Check consistency with the group id */
+        TEST_EQUAL(export_grp.id,
+                   mbedtls_ecp_keypair_get_group_id(&key));
     }
 
 exit:

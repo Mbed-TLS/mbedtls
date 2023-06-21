@@ -1323,6 +1323,18 @@ int mbedtls_ecp_check_pub_priv(
     const mbedtls_ecp_keypair *pub, const mbedtls_ecp_keypair *prv,
     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng);
 
+/** \brief          Query the group that a key pair belongs to.
+ *
+ * \param key       The key pair to query.
+ *
+ * \return          The group ID for the group registered in the key pair
+ *                  object.
+ *                  This is \c MBEDTLS_ECP_DP_NONE if no group has been set
+ *                  in the key pair object.
+ */
+mbedtls_ecp_group_id mbedtls_ecp_keypair_get_group_id(
+    const mbedtls_ecp_keypair *key);
+
 /**
  * \brief           This function exports generic key-pair parameters.
  *

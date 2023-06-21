@@ -878,11 +878,8 @@ static inline mbedtls_ecp_keypair *mbedtls_pk_ec(const mbedtls_pk_context pk)
  *                  but not set up.
  * \param key       Input buffer to parse.
  *                  The buffer must contain the input exactly, with no
- *                  extra trailing material. For PEM, the buffer must
- *                  contain a null-terminated string.
+ *                  extra trailing material.
  * \param keylen    Size of \b key in bytes.
- *                  For PEM data, this includes the terminating null byte,
- *                  so \p keylen must be equal to `strlen(key) + 1`.
  * \param pwd       Optional password for decryption.
  *                  Pass \c NULL if expecting a non-encrypted key.
  *                  Pass a string of \p pwdlen bytes if expecting an encrypted
@@ -918,11 +915,8 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *ctx,
  *                  but not set up.
  * \param key       Input buffer to parse.
  *                  The buffer must contain the input exactly, with no
- *                  extra trailing material. For PEM, the buffer must
- *                  contain a null-terminated string.
+ *                  extra trailing material.
  * \param keylen    Size of \b key in bytes.
- *                  For PEM data, this includes the terminating null byte,
- *                  so \p keylen must be equal to `strlen(key) + 1`.
  *
  * \note            On entry, ctx must be empty, either freshly initialised
  *                  with mbedtls_pk_init() or reset with mbedtls_pk_free(). If you need a

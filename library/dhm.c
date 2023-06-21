@@ -504,15 +504,10 @@ int mbedtls_dhm_parse_dhm(mbedtls_dhm_context *dhm, const unsigned char *dhmin,
 #if defined(MBEDTLS_PEM_PARSE_C)
     mbedtls_pem_init(&pem);
 
-    /* Avoid calling mbedtls_pem_read_buffer() on non-null-terminated string */
-    if (dhminlen == 0 || dhmin[dhminlen - 1] != '\0') {
-        ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
-    } else {
-        ret = mbedtls_pem_read_buffer(&pem,
-                                      "-----BEGIN DH PARAMETERS-----",
-                                      "-----END DH PARAMETERS-----",
-                                      dhmin, NULL, 0, &dhminlen);
-    }
+    ret = mbedtls_pem_read_buffer_with_len(&pem,
+                                           "-----BEGIN DH PARAMETERS-----",
+                                           "-----END DH PARAMETERS-----",
+                                           dhmin, dhminlen, NULL, 0, &dhminlen);
 
     if (ret == 0) {
         /*
@@ -586,8 +581,6 @@ exit:
  * Load all data from a file into a given buffer.
  *
  * The file is expected to contain either PEM or DER encoded data.
- * A terminating null byte is always appended. It is included in the announced
- * length only if the data looks like it is PEM encoded.
  */
 static int load_file(const char *path, unsigned char **buf, size_t *n)
 {
@@ -608,8 +601,13 @@ static int load_file(const char *path, unsigned char **buf, size_t *n)
 
     *n = (size_t) size;
 
-    if (*n + 1 == 0 ||
-        (*buf = mbedtls_calloc(1, *n + 1)) == NULL) {
+    if (size == 0) {
+        *buf = NULL;
+        fclose(f);
+        return 0;
+    }
+
+    if ((*buf = mbedtls_calloc(1, *n)) == NULL) {
         fclose(f);
         return MBEDTLS_ERR_DHM_ALLOC_FAILED;
     }
@@ -617,19 +615,13 @@ static int load_file(const char *path, unsigned char **buf, size_t *n)
     if (fread(*buf, 1, *n, f) != *n) {
         fclose(f);
 
-        mbedtls_platform_zeroize(*buf, *n + 1);
+        mbedtls_platform_zeroize(*buf, *n);
         mbedtls_free(*buf);
 
         return MBEDTLS_ERR_DHM_FILE_IO_ERROR;
     }
 
     fclose(f);
-
-    (*buf)[*n] = '\0';
-
-    if (strstr((const char *) *buf, "-----BEGIN ") != NULL) {
-        ++*n;
-    }
 
     return 0;
 }

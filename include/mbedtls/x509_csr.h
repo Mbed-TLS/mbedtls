@@ -114,7 +114,6 @@ int mbedtls_x509_csr_parse_der(mbedtls_x509_csr *csr,
  * \param csr      CSR context to fill
  * \param buf      buffer holding the CRL data
  * \param buflen   size of the buffer
- *                 (including the terminating null byte for PEM data)
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */

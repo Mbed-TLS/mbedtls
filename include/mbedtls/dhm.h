@@ -350,8 +350,7 @@ void mbedtls_dhm_free(mbedtls_dhm_context *ctx);
  *                    This must be initialized.
  * \param dhmin       The input buffer. This must be a readable buffer of
  *                    length \p dhminlen Bytes.
- * \param dhminlen    The size of the input buffer \p dhmin, including the
- *                    terminating \c NULL Byte for PEM data.
+ * \param dhminlen    The size of the input buffer \p dhmin.
  *
  * \return            \c 0 on success.
  * \return            An \c MBEDTLS_ERR_DHM_XXX or \c MBEDTLS_ERR_PEM_XXX error

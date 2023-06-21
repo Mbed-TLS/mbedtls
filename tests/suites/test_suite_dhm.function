@@ -1,5 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/dhm.h"
+#include "mbedtls/asn1.h"
 
 int check_get_value(const mbedtls_dhm_context *ctx,
                     mbedtls_dhm_parameter param,
@@ -280,6 +281,22 @@ void dhm_file(char *filename, char *p, char *g, int len)
 
 exit:
     mbedtls_mpi_free(&P); mbedtls_mpi_free(&G);
+    mbedtls_dhm_free(&ctx);
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO */
+void dhm_file_error(char *filename, int res)
+{
+    mbedtls_dhm_context ctx;
+    int ret;
+
+    mbedtls_dhm_init(&ctx);
+
+    ret = mbedtls_dhm_parse_dhmfile(&ctx, filename);
+    TEST_EQUAL(ret, res);
+
+exit:
     mbedtls_dhm_free(&ctx);
 }
 /* END_CASE */

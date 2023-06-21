@@ -74,8 +74,8 @@
  * Load all data from a file into a given buffer.
  *
  * The file is expected to contain either PEM or DER encoded data.
- * A terminating null byte is always appended. It is included in the announced
- * length only if the data looks like it is PEM encoded.
+ * A terminating null byte is always appended. However, it is not included
+ * in the announced length.
  */
 int mbedtls_pk_load_file(const char *path, unsigned char **buf, size_t *n)
 {
@@ -98,8 +98,14 @@ int mbedtls_pk_load_file(const char *path, unsigned char **buf, size_t *n)
 
     *n = (size_t) size;
 
-    if (*n + 1 == 0 ||
-        (*buf = mbedtls_calloc(1, *n + 1)) == NULL) {
+    if (size == 0) {
+        *buf = NULL;
+        fclose(f);
+        return 0;
+    }
+
+    // Allocate extra byte to put a null terminator as extra safety
+    if ((*buf = mbedtls_calloc(1, *n + 1)) == NULL) {
         fclose(f);
         return MBEDTLS_ERR_PK_ALLOC_FAILED;
     }
@@ -116,10 +122,6 @@ int mbedtls_pk_load_file(const char *path, unsigned char **buf, size_t *n)
     fclose(f);
 
     (*buf)[*n] = '\0';
-
-    if (strstr((const char *) *buf, "-----BEGIN ") != NULL) {
-        ++*n;
-    }
 
     return 0;
 }
@@ -1579,15 +1581,10 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *pk,
     mbedtls_pem_init(&pem);
 
 #if defined(MBEDTLS_RSA_C)
-    /* Avoid calling mbedtls_pem_read_buffer() on non-null-terminated string */
-    if (key[keylen - 1] != '\0') {
-        ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
-    } else {
-        ret = mbedtls_pem_read_buffer(&pem,
-                                      "-----BEGIN RSA PRIVATE KEY-----",
-                                      "-----END RSA PRIVATE KEY-----",
-                                      key, pwd, pwdlen, &len);
-    }
+    ret = mbedtls_pem_read_buffer_with_len(&pem,
+                                           "-----BEGIN RSA PRIVATE KEY-----",
+                                           "-----END RSA PRIVATE KEY-----",
+                                           key, keylen, pwd, pwdlen, &len);
 
     if (ret == 0) {
         pk_info = mbedtls_pk_info_from_type(MBEDTLS_PK_RSA);
@@ -1609,15 +1606,10 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *pk,
 #endif /* MBEDTLS_RSA_C */
 
 #if defined(MBEDTLS_ECP_LIGHT)
-    /* Avoid calling mbedtls_pem_read_buffer() on non-null-terminated string */
-    if (key[keylen - 1] != '\0') {
-        ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
-    } else {
-        ret = mbedtls_pem_read_buffer(&pem,
-                                      "-----BEGIN EC PRIVATE KEY-----",
-                                      "-----END EC PRIVATE KEY-----",
-                                      key, pwd, pwdlen, &len);
-    }
+    ret = mbedtls_pem_read_buffer_with_len(&pem,
+                                           "-----BEGIN EC PRIVATE KEY-----",
+                                           "-----END EC PRIVATE KEY-----",
+                                           key, keylen, pwd, pwdlen, &len);
     if (ret == 0) {
         pk_info = mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY);
 
@@ -1639,15 +1631,10 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *pk,
     }
 #endif /* MBEDTLS_ECP_LIGHT */
 
-    /* Avoid calling mbedtls_pem_read_buffer() on non-null-terminated string */
-    if (key[keylen - 1] != '\0') {
-        ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
-    } else {
-        ret = mbedtls_pem_read_buffer(&pem,
-                                      "-----BEGIN PRIVATE KEY-----",
-                                      "-----END PRIVATE KEY-----",
-                                      key, NULL, 0, &len);
-    }
+    ret = mbedtls_pem_read_buffer_with_len(&pem,
+                                           "-----BEGIN PRIVATE KEY-----",
+                                           "-----END PRIVATE KEY-----",
+                                           key, keylen, NULL, 0, &len);
     if (ret == 0) {
         if ((ret = pk_parse_key_pkcs8_unencrypted_der(pk,
                                                       pem.buf, pem.buflen, f_rng, p_rng)) != 0) {
@@ -1661,15 +1648,10 @@ int mbedtls_pk_parse_key(mbedtls_pk_context *pk,
     }
 
 #if defined(MBEDTLS_PKCS12_C) || defined(MBEDTLS_PKCS5_C)
-    /* Avoid calling mbedtls_pem_read_buffer() on non-null-terminated string */
-    if (key[keylen - 1] != '\0') {
-        ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
-    } else {
-        ret = mbedtls_pem_read_buffer(&pem,
-                                      "-----BEGIN ENCRYPTED PRIVATE KEY-----",
-                                      "-----END ENCRYPTED PRIVATE KEY-----",
-                                      key, NULL, 0, &len);
-    }
+    ret = mbedtls_pem_read_buffer_with_len(&pem,
+                                           "-----BEGIN ENCRYPTED PRIVATE KEY-----",
+                                           "-----END ENCRYPTED PRIVATE KEY-----",
+                                           key, keylen, NULL, 0, &len);
     if (ret == 0) {
         if ((ret = pk_parse_key_pkcs8_encrypted_der(pk, pem.buf, pem.buflen,
                                                     pwd, pwdlen, f_rng, p_rng)) != 0) {
@@ -1789,15 +1771,10 @@ int mbedtls_pk_parse_public_key(mbedtls_pk_context *ctx,
 #if defined(MBEDTLS_PEM_PARSE_C)
     mbedtls_pem_init(&pem);
 #if defined(MBEDTLS_RSA_C)
-    /* Avoid calling mbedtls_pem_read_buffer() on non-null-terminated string */
-    if (key[keylen - 1] != '\0') {
-        ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
-    } else {
-        ret = mbedtls_pem_read_buffer(&pem,
-                                      "-----BEGIN RSA PUBLIC KEY-----",
-                                      "-----END RSA PUBLIC KEY-----",
-                                      key, NULL, 0, &len);
-    }
+    ret = mbedtls_pem_read_buffer_with_len(&pem,
+                                           "-----BEGIN RSA PUBLIC KEY-----",
+                                           "-----END RSA PUBLIC KEY-----",
+                                           key, keylen, NULL, 0, &len);
 
     if (ret == 0) {
         p = pem.buf;
@@ -1823,15 +1800,10 @@ int mbedtls_pk_parse_public_key(mbedtls_pk_context *ctx,
     }
 #endif /* MBEDTLS_RSA_C */
 
-    /* Avoid calling mbedtls_pem_read_buffer() on non-null-terminated string */
-    if (key[keylen - 1] != '\0') {
-        ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
-    } else {
-        ret = mbedtls_pem_read_buffer(&pem,
-                                      "-----BEGIN PUBLIC KEY-----",
-                                      "-----END PUBLIC KEY-----",
-                                      key, NULL, 0, &len);
-    }
+    ret = mbedtls_pem_read_buffer_with_len(&pem,
+                                           "-----BEGIN PUBLIC KEY-----",
+                                           "-----END PUBLIC KEY-----",
+                                           key, keylen, NULL, 0, &len);
 
     if (ret == 0) {
         /*

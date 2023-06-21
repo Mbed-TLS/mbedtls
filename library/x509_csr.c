@@ -414,31 +414,28 @@ int mbedtls_x509_csr_parse(mbedtls_x509_csr *csr, const unsigned char *buf, size
     }
 
 #if defined(MBEDTLS_PEM_PARSE_C)
-    /* Avoid calling mbedtls_pem_read_buffer() on non-null-terminated string */
-    if (buf[buflen - 1] == '\0') {
-        mbedtls_pem_init(&pem);
-        ret = mbedtls_pem_read_buffer(&pem,
-                                      "-----BEGIN CERTIFICATE REQUEST-----",
-                                      "-----END CERTIFICATE REQUEST-----",
-                                      buf, NULL, 0, &use_len);
-        if (ret == MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT) {
-            ret = mbedtls_pem_read_buffer(&pem,
-                                          "-----BEGIN NEW CERTIFICATE REQUEST-----",
-                                          "-----END NEW CERTIFICATE REQUEST-----",
-                                          buf, NULL, 0, &use_len);
-        }
+    mbedtls_pem_init(&pem);
+    ret = mbedtls_pem_read_buffer_with_len(&pem,
+                                           "-----BEGIN CERTIFICATE REQUEST-----",
+                                           "-----END CERTIFICATE REQUEST-----",
+                                           buf, buflen, NULL, 0, &use_len);
+    if (ret == MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT) {
+        ret = mbedtls_pem_read_buffer_with_len(&pem,
+                                               "-----BEGIN NEW CERTIFICATE REQUEST-----",
+                                               "-----END NEW CERTIFICATE REQUEST-----",
+                                               buf, buflen, NULL, 0, &use_len);
+    }
 
-        if (ret == 0) {
-            /*
-             * Was PEM encoded, parse the result
-             */
-            ret = mbedtls_x509_csr_parse_der(csr, pem.buf, pem.buflen);
-        }
+    if (ret == 0) {
+        /*
+         * Was PEM encoded, parse the result
+         */
+        ret = mbedtls_x509_csr_parse_der(csr, pem.buf, pem.buflen);
+    }
 
-        mbedtls_pem_free(&pem);
-        if (ret != MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT) {
-            return ret;
-        }
+    mbedtls_pem_free(&pem);
+    if (ret != MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT) {
+        return ret;
     }
 #endif /* MBEDTLS_PEM_PARSE_C */
     return mbedtls_x509_csr_parse_der(csr, buf, buflen);

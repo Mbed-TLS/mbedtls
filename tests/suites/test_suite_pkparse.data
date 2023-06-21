@@ -990,6 +990,10 @@ Parse Public EC Key #13 (RFC 8410, PEM, X448)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_CURVE448_ENABLED
 pk_parse_public_keyfile_ec:"data_files/ec_x448_pub.pem":0
 
+Parse Public EC Key #14 (empty file)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_LIGHT
+pk_parse_public_keyfile_ec:"data_files/empty_file":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
+
 Parse EC Key #1 (SEC1 DER)
 depends_on:MBEDTLS_ECP_LIGHT:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.sec1.der":"NULL":0

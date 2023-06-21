@@ -19,6 +19,39 @@ mbedtls_pem_write_buffer:"-----START TEST-----\n":"-----END TEST-----\n":"000102
 PEM write length reporting
 mbedtls_pem_write_buffer_lengths
 
+PEM strnstr: Lorem (auto haystack length)
+mbedtls_pem_strnstr:"Lorem":-1:1:0
+
+PEM strnstr: Sea Otters (auto haystack length)
+mbedtls_pem_strnstr:"Sea Otters":-1:0:0
+
+PEM strnstr: empty string (auto haystack length)
+mbedtls_pem_strnstr:"":-1:1:0
+
+PEM strnstr: L (with haystack length = 0)
+mbedtls_pem_strnstr:"L":0:0:0
+
+PEM strnstr: empty (with haystack length = 0)
+mbedtls_pem_strnstr:"":0:1:0
+
+PEM strnstr: Lorem ipsum dolor sit amet, but bigger (auto haystack length)
+mbedtls_pem_strnstr:"Lorem ipsum dolor sit amet, but bigger":-1:0:0
+
+PEM strnstr: Lorem ipsum dolor sit amet (auto haystack length)
+mbedtls_pem_strnstr:"Lorem ipsum dolor sit amet":-1:1:0
+
+PEM strnstr: amet (auto haystack length)
+mbedtls_pem_strnstr:"amet":-1:1:22
+
+PEM strnstr: dolor (with haystack length = 5)
+mbedtls_pem_strnstr:"dolor":5:0:0
+
+PEM strnstr: dolor (with haystack length = 16)
+mbedtls_pem_strnstr:"dolor":16:0:0
+
+PEM strnstr: dolor (with haystack length = 17)
+mbedtls_pem_strnstr:"dolor":17:1:12
+
 PEM read (unencrypted, valid)
 mbedtls_pem_read_buffer:"^":"$":"^\nTWJlZCBUTFM=\n$":"":0:"4d62656420544c53"
 

@@ -781,6 +781,36 @@ cleanup:
     return ret;
 }
 
+static int ecdsa_verify_wrap_opaque(mbedtls_pk_context *pk,
+                                    mbedtls_md_type_t md_alg,
+                                    const unsigned char *hash, size_t hash_len,
+                                    const unsigned char *sig, size_t sig_len)
+{
+    (void) md_alg;
+    unsigned char key[MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN];
+    size_t key_len;
+    psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
+    psa_ecc_family_t curve;
+    size_t curve_bits;
+    psa_status_t status;
+
+    status = psa_get_key_attributes(pk->priv_id, &key_attr);
+    if (status != PSA_SUCCESS) {
+        return PSA_PK_ECDSA_TO_MBEDTLS_ERR(status);
+    }
+    curve = PSA_KEY_TYPE_ECC_GET_FAMILY(psa_get_key_type(&key_attr));
+    curve_bits = psa_get_key_bits(&key_attr);
+    psa_reset_key_attributes(&key_attr);
+
+    status = psa_export_public_key(pk->priv_id, key, sizeof(key), &key_len);
+    if (status != PSA_SUCCESS) {
+        return PSA_PK_ECDSA_TO_MBEDTLS_ERR(status);
+    }
+
+    return ecdsa_verify_psa(key, key_len, curve, curve_bits,
+                            hash, hash_len, sig, sig_len);
+}
+
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 static int ecdsa_verify_wrap(mbedtls_pk_context *pk,
                              mbedtls_md_type_t md_alg,
@@ -1757,7 +1787,7 @@ const mbedtls_pk_info_t mbedtls_pk_ecdsa_opaque_info = {
     "Opaque",
     pk_opaque_get_bitlen,
     pk_opaque_ecdsa_can_do,
-    NULL, /* verify - will be done later */
+    ecdsa_verify_wrap_opaque,
     ecdsa_sign_wrap_opaque,
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     NULL, /* restartable verify - not relevant */

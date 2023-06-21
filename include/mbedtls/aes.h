@@ -72,13 +72,13 @@ extern "C" {
 /** VIA padlock needs 16 extra Bytes for alignment. */
 #if (defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_HAVE_X86)) ||        \
     (defined(MBEDTLS_AESNI_C) && MBEDTLS_AESNI_HAVE_CODE == 2)
-#define MBEDTLS_PADLOCK_EXTRA 4
+#define MBEDTLS_PADLOCK_EXTRA 16
 #else
 #define MBEDTLS_PADLOCK_EXTRA 0
 #endif
 
 /** Each round key occupies 16 Bytes. */
-#define MBEDTLS_AES_RK_UINT32S 4
+#define MBEDTLS_AES_RK_UINT32S 16
 
 /** Define number of maximum rounds in AES key expansion.
  *   See https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197.pdf
@@ -88,14 +88,14 @@ extern "C" {
 #if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
 #define MBEDTLS_AES_MAX_ROUNDS 10
 /** Allocate 16 extra Bytes to store initial round key. */
-#define MBEDTLS_AES_RK_EXTRA (4 + MBEDTLS_PADLOCK_EXTRA)
+#define MBEDTLS_AES_RK_EXTRA (16 + MBEDTLS_PADLOCK_EXTRA)
 #else
 #define MBEDTLS_AES_MAX_ROUNDS 14
 /** Allocate 32 extra Bytes for AES key expansion.
  *   - 16 extra Bytes to store initial round key.
  *   - 16 extra Bytes to simplify key expansion in the 256-bit case.
  */
-#define MBEDTLS_AES_RK_EXTRA (4 + 4 + MBEDTLS_PADLOCK_EXTRA)
+#define MBEDTLS_AES_RK_EXTRA (16 + 16 + MBEDTLS_PADLOCK_EXTRA)
 #endif
 
 /**
@@ -112,7 +112,8 @@ typedef struct mbedtls_aes_context {
      *   an extra round key.
      */
     uint32_t MBEDTLS_PRIVATE(buf)
-    [MBEDTLS_AES_MAX_ROUNDS * MBEDTLS_AES_RK_UINT32S + MBEDTLS_AES_RK_EXTRA];
+    [(MBEDTLS_AES_MAX_ROUNDS * MBEDTLS_AES_RK_UINT32S + MBEDTLS_AES_RK_EXTRA) /
+     sizeof(uint32_t)];
 }
 mbedtls_aes_context;
 

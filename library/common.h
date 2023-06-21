@@ -174,6 +174,9 @@ inline void mbedtls_xor(unsigned char *r, const unsigned char *a, const unsigned
  *
  * This is normally the usual "r", but for aarch64_32 (aka ILP32,
  * as found in watchos), "p" is required to avoid warnings from clang.
+ *
+ * Note that clang does not recognise '+p' or '=p', and armclang
+ * does not recognise 'p' at all.
  */
 #if defined(__aarch64__) && defined(MBEDTLS_HAVE_ASM)
 #if UINTPTR_MAX == 0xfffffffful

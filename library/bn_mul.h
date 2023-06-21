@@ -248,10 +248,10 @@
 
 #endif /* AMD64 */
 
-#if defined(__aarch64__)
+#if defined(__aarch64__) && (UINTPTR_MAX == 0xfffffffful || UINTPTR_MAX == 0xfffffffffffffffful)
 
 #define MULADDC_X1_INIT             \
-    asm(
+    do { uintptr_t muladdc_d = (uintptr_t) d, muladdc_s = (uintptr_t) s; asm(
 
 #define MULADDC_X1_CORE             \
         "ldr x4, [%2], #8   \n\t"   \
@@ -266,12 +266,12 @@
 
 #define MULADDC_X1_STOP                                                 \
          : "+r" (c),                                                    \
-           "+" MBEDTLS_ASM_AARCH64_PTR_CONSTRAINT (d),                  \
-           "+" MBEDTLS_ASM_AARCH64_PTR_CONSTRAINT (s),                  \
+           "+r" (muladdc_d),                                            \
+           "+r" (muladdc_s),                                            \
            "+m" (*(uint64_t (*)[16]) d)                                 \
          : "r" (b), "m" (*(const uint64_t (*)[16]) s)                   \
          : "x4", "x5", "x6", "x7", "cc"                                 \
-    );
+    ); d = (mbedtls_mpi_uint *)muladdc_d; s = (mbedtls_mpi_uint *)muladdc_s; } while (0);
 
 #endif /* Aarch64 */
 

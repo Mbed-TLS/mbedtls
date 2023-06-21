@@ -611,26 +611,18 @@ static void rsa_debug(mbedtls_pk_context *pk, mbedtls_pk_debug_item *items)
 }
 
 const mbedtls_pk_info_t mbedtls_rsa_info = {
-    MBEDTLS_PK_RSA,
-    "RSA",
-    rsa_get_bitlen,
-    rsa_can_do,
-    rsa_verify_wrap,
-    rsa_sign_wrap,
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    NULL,
-    NULL,
-#endif
-    rsa_decrypt_wrap,
-    rsa_encrypt_wrap,
-    rsa_check_pair_wrap,
-    rsa_alloc_wrap,
-    rsa_free_wrap,
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    NULL,
-    NULL,
-#endif
-    rsa_debug,
+    .type = MBEDTLS_PK_RSA,
+    .name = "RSA",
+    .get_bitlen = rsa_get_bitlen,
+    .can_do = rsa_can_do,
+    .verify_func = rsa_verify_wrap,
+    .sign_func = rsa_sign_wrap,
+    .decrypt_func = rsa_decrypt_wrap,
+    .encrypt_func = rsa_encrypt_wrap,
+    .check_pair_func = rsa_check_pair_wrap,
+    .ctx_alloc_func = rsa_alloc_wrap,
+    .ctx_free_func = rsa_free_wrap,
+    .debug_func = rsa_debug,
 };
 #endif /* MBEDTLS_RSA_C */
 
@@ -1349,39 +1341,30 @@ static void eckey_debug(mbedtls_pk_context *pk, mbedtls_pk_debug_item *items)
 }
 
 const mbedtls_pk_info_t mbedtls_eckey_info = {
-    MBEDTLS_PK_ECKEY,
-    "EC",
-    eckey_get_bitlen,
-    eckey_can_do,
+    .type = MBEDTLS_PK_ECKEY,
+    .name = "EC",
+    .get_bitlen = eckey_get_bitlen,
+    .can_do = eckey_can_do,
 #if defined(MBEDTLS_PK_CAN_ECDSA_VERIFY)
-    ecdsa_verify_wrap,   /* Compatible key structures */
-#else
-    NULL,
+    .verify_func = ecdsa_verify_wrap,   /* Compatible key structures */
 #endif
 #if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
-    ecdsa_sign_wrap,   /* Compatible key structures */
-#else
-    NULL,
+    .sign_func = ecdsa_sign_wrap,   /* Compatible key structures */
 #endif
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    eckey_verify_rs_wrap,
-    eckey_sign_rs_wrap,
+    .verify_rs_func = eckey_verify_rs_wrap,
+    .sign_rs_func = eckey_sign_rs_wrap,
 #endif
-    NULL,
-    NULL,
-    eckey_check_pair,
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    NULL,
-    NULL,
-#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
-    eckey_alloc_wrap,
-    eckey_free_wrap,
+    .check_pair_func = eckey_check_pair,
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    .ctx_alloc_func = eckey_alloc_wrap,
+    .ctx_free_func = eckey_free_wrap,
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    eckey_rs_alloc,
-    eckey_rs_free,
+    .rs_alloc_func = eckey_rs_alloc,
+    .rs_free_func = eckey_rs_free,
 #endif
-    eckey_debug,
+    .debug_func = eckey_debug,
 };
 
 /*
@@ -1394,31 +1377,16 @@ static int eckeydh_can_do(mbedtls_pk_type_t type)
 }
 
 const mbedtls_pk_info_t mbedtls_eckeydh_info = {
-    MBEDTLS_PK_ECKEY_DH,
-    "EC_DH",
-    eckey_get_bitlen,         /* Same underlying key structure */
-    eckeydh_can_do,
-    NULL,
-    NULL,
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    NULL,
-    NULL,
-#endif
-    NULL,
-    NULL,
-    eckey_check_pair,
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    NULL,
-    NULL,
-#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
-    eckey_alloc_wrap,   /* Same underlying key structure */
-    eckey_free_wrap,    /* Same underlying key structure */
+    .type = MBEDTLS_PK_ECKEY_DH,
+    .name = "EC_DH",
+    .get_bitlen = eckey_get_bitlen,         /* Same underlying key structure */
+    .can_do = eckeydh_can_do,
+    .check_pair_func = eckey_check_pair,
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    .ctx_alloc_func = eckey_alloc_wrap,   /* Same underlying key structure */
+    .ctx_free_func = eckey_free_wrap,    /* Same underlying key structure */
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    NULL,
-    NULL,
-#endif
-    eckey_debug,            /* Same underlying key structure */
+    .debug_func = eckey_debug,            /* Same underlying key structure */
 };
 #endif /* MBEDTLS_PK_HAVE_ECC_KEYS */
 
@@ -1481,39 +1449,30 @@ static void ecdsa_rs_free(void *ctx)
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
 const mbedtls_pk_info_t mbedtls_ecdsa_info = {
-    MBEDTLS_PK_ECDSA,
-    "ECDSA",
-    eckey_get_bitlen,     /* Compatible key structures */
-    ecdsa_can_do,
+    .type = MBEDTLS_PK_ECDSA,
+    .name = "ECDSA",
+    .get_bitlen = eckey_get_bitlen,     /* Compatible key structures */
+    .can_do = ecdsa_can_do,
 #if defined(MBEDTLS_PK_CAN_ECDSA_VERIFY)
-    ecdsa_verify_wrap,   /* Compatible key structures */
-#else
-    NULL,
+    .verify_func = ecdsa_verify_wrap,   /* Compatible key structures */
 #endif
 #if defined(MBEDTLS_PK_CAN_ECDSA_SIGN)
-    ecdsa_sign_wrap,   /* Compatible key structures */
-#else
-    NULL,
+    .sign_func = ecdsa_sign_wrap,   /* Compatible key structures */
 #endif
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    ecdsa_verify_rs_wrap,
-    ecdsa_sign_rs_wrap,
+    .verify_rs_func = ecdsa_verify_rs_wrap,
+    .sign_rs_func = ecdsa_sign_rs_wrap,
 #endif
-    NULL,
-    NULL,
-    eckey_check_pair,   /* Compatible key structures */
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    NULL,
-    NULL,
-#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
-    eckey_alloc_wrap,   /* Compatible key structures */
-    eckey_free_wrap,   /* Compatible key structures */
+    .check_pair_func = eckey_check_pair,   /* Compatible key structures */
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+    .ctx_alloc_func = eckey_alloc_wrap,   /* Compatible key structures */
+    .ctx_free_func = eckey_free_wrap,   /* Compatible key structures */
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    ecdsa_rs_alloc,
-    ecdsa_rs_free,
+    .rs_alloc_func = ecdsa_rs_alloc,
+    .rs_free_func = ecdsa_rs_free,
 #endif
-    eckey_debug,        /* Compatible key structures */
+    .debug_func = eckey_debug,        /* Compatible key structures */
 };
 #endif /* MBEDTLS_PK_CAN_ECDSA_SOME */
 
@@ -1625,32 +1584,18 @@ static void rsa_alt_free_wrap(void *ctx)
 }
 
 const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
-    MBEDTLS_PK_RSA_ALT,
-    "RSA-alt",
-    rsa_alt_get_bitlen,
-    rsa_alt_can_do,
-    NULL,
-    rsa_alt_sign_wrap,
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    NULL,
-    NULL,
-#endif
-    rsa_alt_decrypt_wrap,
-    NULL,
+    .type = MBEDTLS_PK_RSA_ALT,
+    .name = "RSA-alt",
+    .get_bitlen = rsa_alt_get_bitlen,
+    .can_do = rsa_alt_can_do,
+    .sign_func = rsa_alt_sign_wrap,
+    .decrypt_func = rsa_alt_decrypt_wrap,
 #if defined(MBEDTLS_RSA_C)
-    rsa_alt_check_pair,
-#else
-    NULL,
+    .check_pair_func = rsa_alt_check_pair,
 #endif
-    rsa_alt_alloc_wrap,
-    rsa_alt_free_wrap,
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    NULL,
-    NULL,
-#endif
-    NULL,
+    .ctx_alloc_func = rsa_alt_alloc_wrap,
+    .ctx_free_func = rsa_alt_free_wrap,
 };
-
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -1783,26 +1728,13 @@ static int pk_opaque_ec_check_pair(mbedtls_pk_context *pub, mbedtls_pk_context *
 }
 
 const mbedtls_pk_info_t mbedtls_pk_ecdsa_opaque_info = {
-    MBEDTLS_PK_OPAQUE,
-    "Opaque",
-    pk_opaque_get_bitlen,
-    pk_opaque_ecdsa_can_do,
-    ecdsa_verify_wrap_opaque,
-    ecdsa_sign_wrap_opaque,
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    NULL, /* restartable verify - not relevant */
-    NULL, /* restartable sign - not relevant */
-#endif
-    NULL, /* decrypt - not relevant */
-    NULL, /* encrypt - not relevant */
-    pk_opaque_ec_check_pair,
-    NULL, /* alloc - no need to allocate new data dynamically */
-    NULL, /* free - as for the alloc, there is no data to free */
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    NULL, /* restart alloc - not relevant */
-    NULL, /* restart free - not relevant */
-#endif
-    NULL, /* debug - could be done later, or even left NULL */
+    .type = MBEDTLS_PK_OPAQUE,
+    .name = "Opaque",
+    .get_bitlen = pk_opaque_get_bitlen,
+    .can_do = pk_opaque_ecdsa_can_do,
+    .verify_func = ecdsa_verify_wrap_opaque,
+    .sign_func = ecdsa_sign_wrap_opaque,
+    .check_pair_func = pk_opaque_ec_check_pair,
 };
 
 #if defined(MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY)
@@ -1830,30 +1762,14 @@ static int pk_opaque_rsa_decrypt(mbedtls_pk_context *pk,
 #endif /* MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY */
 
 const mbedtls_pk_info_t mbedtls_pk_rsa_opaque_info = {
-    MBEDTLS_PK_OPAQUE,
-    "Opaque",
-    pk_opaque_get_bitlen,
-    pk_opaque_rsa_can_do,
-    NULL, /* verify - will be done later */
-    pk_opaque_sign_wrap,
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    NULL, /* restartable verify - not relevant */
-    NULL, /* restartable sign - not relevant */
-#endif
+    .type = MBEDTLS_PK_OPAQUE,
+    .name = "Opaque",
+    .get_bitlen = pk_opaque_get_bitlen,
+    .can_do = pk_opaque_rsa_can_do,
+    .sign_func = pk_opaque_sign_wrap,
 #if defined(MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY)
-    pk_opaque_rsa_decrypt,
-#else
-    NULL, /* decrypt - not available */
+    .decrypt_func = pk_opaque_rsa_decrypt,
 #endif /* PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY */
-    NULL, /* encrypt - will be done later */
-    NULL, /* check_pair - could be done later or left NULL */
-    NULL, /* alloc - no need to allocate new data dynamically */
-    NULL, /* free - as for the alloc, there is no data to free */
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    NULL, /* restart alloc - not relevant */
-    NULL, /* restart free - not relevant */
-#endif
-    NULL, /* debug - could be done later, or even left NULL */
 };
 
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

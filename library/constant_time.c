@@ -63,8 +63,10 @@
  * only used here.
  */
 #if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS) && defined(MBEDTLS_HAVE_ASM)
-#if ((defined(__arm__) || defined(__thumb__) || defined(__thumb2__)) && (UINTPTR_MAX == 0xfffffffful)) || \
-    (defined(__aarch64__) && ((UINTPTR_MAX == 0xffffffffull) || (UINTPTR_MAX == 0xffffffffffffffffull)))
+#if ((defined(__arm__) || defined(__thumb__) || defined(__thumb2__)) && \
+    (UINTPTR_MAX == 0xfffffffful)) || \
+    (defined(__aarch64__) && ((UINTPTR_MAX == 0xffffffffull) || \
+    (UINTPTR_MAX == 0xffffffffffffffffull)))
 /* We check pointer sizes to avoid issues with them not matching register size requirements */
 #define MBEDTLS_EFFICIENT_UNALIGNED_VOLATILE_ACCESS
 #endif

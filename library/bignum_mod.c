@@ -136,12 +136,29 @@ cleanup:
     return ret;
 }
 
+static inline int mpi_core_is_zero(const mbedtls_mpi_uint *p, size_t limbs)
+{
+    size_t zero_c;
+
+    for (zero_c = 0; zero_c < limbs; zero_c++) {
+        if (p[zero_c] != (mbedtls_mpi_uint) 0) {
+            break;
+        }
+    }
+
+    return (zero_c == limbs) ? 1 : 0;
+}
+
 int mbedtls_mpi_mod_modulus_setup(mbedtls_mpi_mod_modulus *N,
                                   const mbedtls_mpi_uint *p,
                                   size_t p_limbs,
                                   mbedtls_mpi_mod_rep_selector int_rep)
 {
     int ret = 0;
+
+    if (mpi_core_is_zero(p, p_limbs)) {
+        return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+    }
 
     N->p = p;
     N->limbs = p_limbs;

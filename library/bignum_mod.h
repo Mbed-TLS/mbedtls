@@ -196,12 +196,14 @@ void mbedtls_mpi_mod_modulus_init(mbedtls_mpi_mod_modulus *N);
  *                  The memory pointed to by \p p will be used by \p N and must
  *                  not be modified in any way until after
  *                  mbedtls_mpi_mod_modulus_free() is called.
+ *                  A non-zero value is required for the data pointed by \p p.
  * \param p_limbs   The number of limbs of \p p.
  * \param int_rep   The internal representation to be used for residues
  *                  associated with \p N (see #mbedtls_mpi_mod_rep_selector).
  *
  * \return      \c 0 if successful.
- * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p int_rep is invalid.
+ * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p int_rep is invalid
+ *              or \p p is pointing to a zero data array.
  */
 int mbedtls_mpi_mod_modulus_setup(mbedtls_mpi_mod_modulus *N,
                                   const mbedtls_mpi_uint *p,

@@ -53,13 +53,17 @@
 #include <time.h>
 #endif
 
-#define CHECK(code) if ((ret = (code)) != 0) { return ret; }
+#define CHECK(code)                                     \
+    do {                                                \
+        if ((ret = (code)) != 0) {                      \
+            return ret;                                 \
+        }                                               \
+    } while (0)
+
 #define CHECK_RANGE(min, max, val)                      \
-    do                                                  \
-    {                                                   \
-        if ((val) < (min) || (val) > (max))    \
-        {                                               \
-            return ret;                              \
+    do {                                                \
+        if ((val) < (min) || (val) > (max)) {           \
+            return ret;                                 \
         }                                               \
     } while (0)
 
@@ -1700,16 +1704,19 @@ int mbedtls_x509_info_subject_alt_name(char **buf, size_t *size,
     return 0;
 }
 
-#define PRINT_ITEM(i)                           \
-    {                                           \
-        ret = mbedtls_snprintf(p, n, "%s" i, sep);    \
-        MBEDTLS_X509_SAFE_SNPRINTF;                        \
-        sep = ", ";                             \
-    }
+#define PRINT_ITEM(i)                                   \
+    do {                                                \
+        ret = mbedtls_snprintf(p, n, "%s" i, sep);      \
+        MBEDTLS_X509_SAFE_SNPRINTF;                     \
+        sep = ", ";                                     \
+    } while (0)
 
-#define CERT_TYPE(type, name)                    \
-    if (ns_cert_type & (type))                 \
-    PRINT_ITEM(name);
+#define CERT_TYPE(type, name)                           \
+    do {                                                \
+        if (ns_cert_type & (type)) {                    \
+            PRINT_ITEM(name);                           \
+        }                                               \
+    } while (0)
 
 int mbedtls_x509_info_cert_type(char **buf, size_t *size,
                                 unsigned char ns_cert_type)
@@ -1734,9 +1741,12 @@ int mbedtls_x509_info_cert_type(char **buf, size_t *size,
     return 0;
 }
 
-#define KEY_USAGE(code, name)    \
-    if (key_usage & (code))    \
-    PRINT_ITEM(name);
+#define KEY_USAGE(code, name)       \
+    do {                            \
+        if ((key_usage) & (code)) { \
+            PRINT_ITEM(name);       \
+        }                           \
+    } while (0)
 
 int mbedtls_x509_info_key_usage(char **buf, size_t *size,
                                 unsigned int key_usage)

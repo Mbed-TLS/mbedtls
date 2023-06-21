@@ -1259,6 +1259,38 @@ int mbedtls_ecp_gen_key(mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
                         int (*f_rng)(void *, unsigned char *, size_t),
                         void *p_rng);
 
+/** \brief          Set the public key in a key pair object.
+ *
+ * \note            This function does not check that the point actually
+ *                  belongs to the given group. Call mbedtls_ecp_check_pubkey()
+ *                  on \p Q before calling this function to check that.
+ *
+ * \note            This function does not check that the public key matches
+ *                  the private key that is already in \p key, if any.
+ *                  To check the consistency of the resulting key pair object,
+ *                  call mbedtls_ecp_check_pub_priv() after setting both
+ *                  the public key and the private key.
+ *
+ * \param grp_id    The ECP group identifier.
+ * \param key       The key pair object. It must be initialized.
+ *                  If its group has already been set, it must match \p grp_id.
+ *                  If its group has not been set, it will be set to \p grp_id.
+ *                  If the public key has already been set, it is overwritten.
+ * \param Q         The public key to copy. This must be a point on the
+ *                  curve indicated by \p grp_id.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if \p key does not
+ *                  match \p grp_id.
+ * \return          #MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if the operation for
+ *                  the group is not implemented.
+ * \return          #MBEDTLS_ERR_MPI_ALLOC_FAILED on memory-allocation failure.
+ * \return          Another negative error code on other kinds of failure.
+ */
+int mbedtls_ecp_set_public_key(mbedtls_ecp_group_id grp_id,
+                               mbedtls_ecp_keypair *key,
+                               const mbedtls_ecp_point *Q);
+
 /**
  * \brief           This function reads an elliptic curve private key.
  *

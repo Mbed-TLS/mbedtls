@@ -1040,6 +1040,109 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void ecp_set_public_key_group_check(int grp_id, int expected_ret)
+{
+    mbedtls_ecp_keypair key;
+    mbedtls_ecp_keypair_init(&key);
+    mbedtls_ecp_point Q;
+    mbedtls_ecp_point_init(&Q);
+
+    TEST_EQUAL(mbedtls_ecp_set_public_key(grp_id, &key, &Q),
+               expected_ret);
+
+exit:
+    mbedtls_ecp_keypair_free(&key);
+    mbedtls_ecp_point_free(&Q);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ecp_set_public_key_good(int grp_id, data_t *public_data)
+{
+    mbedtls_ecp_keypair key;
+    mbedtls_ecp_keypair_init(&key);
+    mbedtls_ecp_group grp;
+    mbedtls_ecp_group_init(&grp);
+    mbedtls_ecp_point Q;
+    mbedtls_ecp_point_init(&Q);
+
+    TEST_EQUAL(mbedtls_ecp_group_load(&grp, grp_id), 0);
+    TEST_EQUAL(mbedtls_ecp_point_read_binary(&grp, &Q,
+                                             public_data->x, public_data->len),
+               0);
+
+    /* Freshly initialized key */
+    TEST_EQUAL(mbedtls_ecp_set_public_key(grp_id, &key, &Q), 0);
+    TEST_EQUAL(key.grp.id, grp_id);
+    TEST_EQUAL(mbedtls_ecp_point_cmp(&key.Q, &Q), 0);
+
+#if defined(MBEDTLS_BIGNUM_C)
+    /* Key with a public key already set to a different value */
+    TEST_EQUAL(mbedtls_mpi_add_int(&key.Q.X, &key.Q.X, 1), 0);
+    TEST_EQUAL(mbedtls_mpi_add_int(&key.Q.Y, &key.Q.Y, 1), 0);
+    TEST_EQUAL(mbedtls_mpi_add_int(&key.Q.Z, &key.Q.Z, 1), 0);
+    TEST_EQUAL(mbedtls_ecp_set_public_key(grp_id, &key, &Q), 0);
+    TEST_EQUAL(key.grp.id, grp_id);
+    TEST_EQUAL(mbedtls_ecp_point_cmp(&key.Q, &Q), 0);
+#endif
+
+exit:
+    mbedtls_ecp_keypair_free(&key);
+    mbedtls_ecp_group_free(&grp);
+    mbedtls_ecp_point_free(&Q);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ecp_set_public_key_after_private(int private_grp_id, data_t *private_data,
+                                      int public_grp_id, data_t *public_data)
+{
+    mbedtls_ecp_keypair key;
+    mbedtls_ecp_keypair_init(&key);
+    mbedtls_ecp_group grp;
+    mbedtls_ecp_group_init(&grp);
+    mbedtls_ecp_point Q;
+    mbedtls_ecp_point_init(&Q);
+#if defined(MBEDTLS_BIGNUM_C)
+    mbedtls_mpi d;
+    mbedtls_mpi_init(&d);
+#endif
+
+    TEST_EQUAL(mbedtls_ecp_group_load(&grp, public_grp_id), 0);
+    TEST_EQUAL(mbedtls_ecp_point_read_binary(&grp, &Q,
+                                             public_data->x, public_data->len),
+               0);
+    TEST_EQUAL(mbedtls_ecp_read_key(private_grp_id, &key,
+                                    private_data->x, private_data->len),
+               0);
+#if defined(MBEDTLS_BIGNUM_C)
+    TEST_EQUAL(mbedtls_mpi_copy(&d, &key.d), 0);
+#endif
+
+    int ret = mbedtls_ecp_set_public_key(public_grp_id, &key, &Q);
+
+    if (private_grp_id == public_grp_id) {
+        TEST_EQUAL(ret, 0);
+        TEST_EQUAL(key.grp.id, public_grp_id);
+        TEST_EQUAL(mbedtls_ecp_point_cmp(&key.Q, &Q), 0);
+#if defined(MBEDTLS_BIGNUM_C)
+        TEST_EQUAL(mbedtls_mpi_cmp_mpi(&d, &key.d), 0);
+#endif
+    } else {
+        TEST_EQUAL(ret, MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
+    }
+
+exit:
+    mbedtls_ecp_keypair_free(&key);
+    mbedtls_ecp_group_free(&grp);
+    mbedtls_ecp_point_free(&Q);
+#if defined(MBEDTLS_BIGNUM_C)
+    mbedtls_mpi_free(&d);
+#endif
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mbedtls_ecp_read_key(int grp_id, data_t *in_key, int expected, int canonical)
 {
     int ret = 0;

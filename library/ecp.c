@@ -3198,6 +3198,25 @@ int mbedtls_ecp_gen_key(mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
 }
 #endif /* MBEDTLS_ECP_C */
 
+int mbedtls_ecp_set_public_key(mbedtls_ecp_group_id grp_id,
+                               mbedtls_ecp_keypair *key,
+                               const mbedtls_ecp_point *Q)
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    if (key->grp.id == MBEDTLS_ECP_DP_NONE) {
+        /* Group not set yet */
+        if ((ret = mbedtls_ecp_group_load(&key->grp, grp_id)) != 0) {
+            return ret;
+        }
+    } else if (key->grp.id != grp_id) {
+        /* Group mismatch */
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+    return mbedtls_ecp_copy(&key->Q, Q);
+}
+
+
 #define ECP_CURVE25519_KEY_SIZE 32
 #define ECP_CURVE448_KEY_SIZE   56
 /*

@@ -253,7 +253,7 @@ cleanup:
 
     return ret;
 }
-#else
+#else /* MBEDTLS_USE_PSA_CRYPTO */
 static int rsa_verify_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
                            const unsigned char *hash, size_t hash_len,
                            const unsigned char *sig, size_t sig_len)
@@ -287,7 +287,7 @@ static int rsa_verify_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
 
     return 0;
 }
-#endif
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 int  mbedtls_pk_psa_rsa_sign_ext(psa_algorithm_t alg,
@@ -367,7 +367,7 @@ static int rsa_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
                                        pk->pk_ctx, hash, hash_len,
                                        sig, sig_size, sig_len);
 }
-#else
+#else /* MBEDTLS_USE_PSA_CRYPTO */
 static int rsa_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
                          const unsigned char *hash, size_t hash_len,
                          unsigned char *sig, size_t sig_size, size_t *sig_len,
@@ -388,7 +388,7 @@ static int rsa_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
                                   md_alg, (unsigned int) hash_len,
                                   hash, sig);
 }
-#endif
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 static int rsa_decrypt_wrap(mbedtls_pk_context *pk,
@@ -459,7 +459,7 @@ cleanup:
 
     return ret;
 }
-#else
+#else /* MBEDTLS_USE_PSA_CRYPTO */
 static int rsa_decrypt_wrap(mbedtls_pk_context *pk,
                             const unsigned char *input, size_t ilen,
                             unsigned char *output, size_t *olen, size_t osize,
@@ -474,7 +474,7 @@ static int rsa_decrypt_wrap(mbedtls_pk_context *pk,
     return mbedtls_rsa_pkcs1_decrypt(rsa, f_rng, p_rng,
                                      olen, input, output, osize);
 }
-#endif
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 static int rsa_encrypt_wrap(mbedtls_pk_context *pk,
@@ -544,7 +544,7 @@ cleanup:
 
     return ret;
 }
-#else
+#else /* MBEDTLS_USE_PSA_CRYPTO */
 static int rsa_encrypt_wrap(mbedtls_pk_context *pk,
                             const unsigned char *input, size_t ilen,
                             unsigned char *output, size_t *olen, size_t osize,
@@ -560,7 +560,7 @@ static int rsa_encrypt_wrap(mbedtls_pk_context *pk,
     return mbedtls_rsa_pkcs1_encrypt(rsa, f_rng, p_rng,
                                      ilen, input, output);
 }
-#endif
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 static int rsa_check_pair_wrap(mbedtls_pk_context *pub, mbedtls_pk_context *prv,
                                int (*f_rng)(void *, unsigned char *, size_t),
@@ -641,10 +641,10 @@ static size_t eckey_get_bitlen(mbedtls_pk_context *pk)
 {
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     return pk->ec_bits;
-#else
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
     mbedtls_ecp_keypair *ecp = (mbedtls_ecp_keypair *) pk->pk_ctx;
     return ecp->grp.pbits;
-#endif
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 }
 
 #if defined(MBEDTLS_PK_CAN_ECDSA_VERIFY)
@@ -1334,12 +1334,12 @@ static void eckey_debug(mbedtls_pk_context *pk, mbedtls_pk_debug_item *items)
     items->type = MBEDTLS_PK_DEBUG_PSA_EC;
     items->name = "eckey.Q";
     items->value = pk;
-#else
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
     mbedtls_ecp_keypair *ecp = (mbedtls_ecp_keypair *) pk->pk_ctx;
     items->type = MBEDTLS_PK_DEBUG_ECP;
     items->name = "eckey.Q";
     items->value = &(ecp->Q);
-#endif
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 }
 
 const mbedtls_pk_info_t mbedtls_eckey_info = {

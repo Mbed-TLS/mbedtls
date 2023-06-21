@@ -99,10 +99,10 @@ typedef enum {
     /** Montgomery representation. */
     MBEDTLS_MPI_MOD_REP_MONTGOMERY = 2,
     /* Optimised reduction available. This indicates a coordinate modulus (P)
-     * and one of the following available:
-     * - MBEDTLS_ECP_NIST_OPTIM
-     * - Kobliz Curve.
-     * - Fast Reduction Curve CURVE25519 or CURVE448. */
+     * and one or more of the following have been configured:
+     * - A nist curve (MBEDTLS_ECP_DP_SECPXXXR1_ENABLED) & MBEDTLS_ECP_NIST_OPTIM.
+     * - A Kobliz Curve.
+     * - A Fast Reduction Curve CURVE25519 or CURVE448. */
     MBEDTLS_MPI_MOD_REP_OPT_RED,
 } mbedtls_mpi_mod_rep_selector;
 
@@ -124,9 +124,10 @@ typedef struct {
     mbedtls_mpi_uint mm;         /* Montgomery const for -N^{-1} mod 2^{ciL} */
 } mbedtls_mpi_mont_struct;
 
+typedef int (*mbedtls_mpi_modp_fn)(mbedtls_mpi_uint *X, size_t X_limbs);
+
 typedef struct {
-    int (*modp)(mbedtls_mpi_uint *X,
-                size_t X_limbs);  /* The optimised reduction function pointer */
+    mbedtls_mpi_modp_fn modp;    /* The optimised reduction function pointer */
 } mbedtls_mpi_opt_red_struct;
 
 typedef struct {
@@ -223,8 +224,7 @@ int mbedtls_mpi_mod_modulus_setup(mbedtls_mpi_mod_modulus *N,
 int mbedtls_mpi_mod_optred_modulus_setup(mbedtls_mpi_mod_modulus *N,
                                          const mbedtls_mpi_uint *p,
                                          size_t p_limbs,
-                                         int (*modp)(mbedtls_mpi_uint *X,
-                                                     size_t X_limbs));
+                                         mbedtls_mpi_modp_fn modp);
 
 /** Free elements of a modulus structure.
  *

@@ -5833,7 +5833,7 @@ int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
                               const mbedtls_ecp_group_id id,
                               const mbedtls_ecp_modulus_type ctype)
 {
-    int (*modp)(mbedtls_mpi_uint *X, size_t X_limbs) = NULL;
+    mbedtls_mpi_modp_fn modp = NULL;
     mbedtls_mpi_uint *p = NULL;
     size_t p_limbs;
 

@@ -1203,21 +1203,13 @@ cleanup:
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-/*
- * Alternative function used to verify that the EC private/public key pair
- * is valid using PSA functions instead of ECP ones.
- * The flow is:
- * - import the private key "prv" to PSA and export its public part
- * - write the raw content of public key "pub" to a local buffer
- * - compare the two buffers
- */
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 static int eckey_check_pair_psa(mbedtls_pk_context *pub, mbedtls_pk_context *prv)
 {
     psa_status_t status;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     uint8_t prv_key_buf[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
     size_t prv_key_len;
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     mbedtls_svc_key_id_t key_id = prv->priv_id;
 
     status = psa_export_public_key(key_id, prv_key_buf, sizeof(prv_key_buf),
@@ -1230,7 +1222,16 @@ static int eckey_check_pair_psa(mbedtls_pk_context *pub, mbedtls_pk_context *prv
     if (memcmp(prv_key_buf, pub->pub_raw, pub->pub_raw_len) != 0) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
-#else /* !MBEDTLS_PK_USE_PSA_EC_DATA */
+
+    return 0;
+}
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
+static int eckey_check_pair_psa(mbedtls_pk_context *pub, mbedtls_pk_context *prv)
+{
+    psa_status_t status;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    uint8_t prv_key_buf[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
+    size_t prv_key_len;
     psa_status_t destruction_status;
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
@@ -1284,28 +1285,29 @@ static int eckey_check_pair_psa(mbedtls_pk_context *pub, mbedtls_pk_context *prv
     if (memcmp(prv_key_buf, pub_key_buf, curve_bytes) != 0) {
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
     }
-#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
 
     return 0;
 }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
-static int eckey_check_pair(mbedtls_pk_context *pub, mbedtls_pk_context *prv,
-                            int (*f_rng)(void *, unsigned char *, size_t),
-                            void *p_rng)
+static int eckey_check_pair_wrap(mbedtls_pk_context *pub, mbedtls_pk_context *prv,
+                                 int (*f_rng)(void *, unsigned char *, size_t),
+                                 void *p_rng)
 {
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     (void) f_rng;
     (void) p_rng;
     return eckey_check_pair_psa(pub, prv);
-#elif defined(MBEDTLS_ECP_C)
+}
+#else /* MBEDTLS_USE_PSA_CRYPTO */
+static int eckey_check_pair_wrap(mbedtls_pk_context *pub, mbedtls_pk_context *prv,
+                                 int (*f_rng)(void *, unsigned char *, size_t),
+                                 void *p_rng)
+{
     return mbedtls_ecp_check_pub_priv((const mbedtls_ecp_keypair *) pub->pk_ctx,
                                       (const mbedtls_ecp_keypair *) prv->pk_ctx,
                                       f_rng, p_rng);
-#else
-    return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
-#endif
 }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
 static void *eckey_alloc_wrap(void)
@@ -1355,7 +1357,7 @@ const mbedtls_pk_info_t mbedtls_eckey_info = {
     .verify_rs_func = eckey_verify_rs_wrap,
     .sign_rs_func = eckey_sign_rs_wrap,
 #endif
-    .check_pair_func = eckey_check_pair,
+    .check_pair_func = eckey_check_pair_wrap,
 #if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     .ctx_alloc_func = eckey_alloc_wrap,
     .ctx_free_func = eckey_free_wrap,
@@ -1381,7 +1383,7 @@ const mbedtls_pk_info_t mbedtls_eckeydh_info = {
     .name = "EC_DH",
     .get_bitlen = eckey_get_bitlen,         /* Same underlying key structure */
     .can_do = eckeydh_can_do,
-    .check_pair_func = eckey_check_pair,
+    .check_pair_func = eckey_check_pair_wrap,
 #if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     .ctx_alloc_func = eckey_alloc_wrap,   /* Same underlying key structure */
     .ctx_free_func = eckey_free_wrap,    /* Same underlying key structure */
@@ -1463,7 +1465,7 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
     .verify_rs_func = ecdsa_verify_rs_wrap,
     .sign_rs_func = ecdsa_sign_rs_wrap,
 #endif
-    .check_pair_func = eckey_check_pair,   /* Compatible key structures */
+    .check_pair_func = eckey_check_pair_wrap,   /* Compatible key structures */
 #if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     .ctx_alloc_func = eckey_alloc_wrap,   /* Compatible key structures */
     .ctx_free_func = eckey_free_wrap,   /* Compatible key structures */

@@ -76,91 +76,75 @@
 #error "Internal error: MBEDTLS_MD_MAX_SIZE < PSA_HASH_MAX_SIZE"
 #endif
 
+#if defined(MBEDTLS_MD_C)
+#define MD_INFO(type, out_size, block_size) type, out_size, block_size,
+#else
+#define MD_INFO(type, out_size, block_size) type, out_size,
+#endif
+
 #if defined(MBEDTLS_MD_CAN_MD5)
 static const mbedtls_md_info_t mbedtls_md5_info = {
-    MBEDTLS_MD_MD5,
-    16,
-    64,
+    MD_INFO(MBEDTLS_MD_MD5, 16, 64)
 };
 #endif
 
 #if defined(MBEDTLS_MD_CAN_RIPEMD160)
 static const mbedtls_md_info_t mbedtls_ripemd160_info = {
-    MBEDTLS_MD_RIPEMD160,
-    20,
-    64,
+    MD_INFO(MBEDTLS_MD_RIPEMD160, 20, 64)
 };
 #endif
 
 #if defined(MBEDTLS_MD_CAN_SHA1)
 static const mbedtls_md_info_t mbedtls_sha1_info = {
-    MBEDTLS_MD_SHA1,
-    20,
-    64,
+    MD_INFO(MBEDTLS_MD_SHA1, 20, 64)
 };
 #endif
 
 #if defined(MBEDTLS_MD_CAN_SHA224)
 static const mbedtls_md_info_t mbedtls_sha224_info = {
-    MBEDTLS_MD_SHA224,
-    28,
-    64,
+    MD_INFO(MBEDTLS_MD_SHA224, 28, 64)
 };
 #endif
 
 #if defined(MBEDTLS_MD_CAN_SHA256)
 static const mbedtls_md_info_t mbedtls_sha256_info = {
-    MBEDTLS_MD_SHA256,
-    32,
-    64,
+    MD_INFO(MBEDTLS_MD_SHA256, 32, 64)
 };
 #endif
 
 #if defined(MBEDTLS_MD_CAN_SHA384)
 static const mbedtls_md_info_t mbedtls_sha384_info = {
-    MBEDTLS_MD_SHA384,
-    48,
-    128,
+    MD_INFO(MBEDTLS_MD_SHA384, 48, 128)
 };
 #endif
 
 #if defined(MBEDTLS_MD_CAN_SHA512)
 static const mbedtls_md_info_t mbedtls_sha512_info = {
-    MBEDTLS_MD_SHA512,
-    64,
-    128,
+    MD_INFO(MBEDTLS_MD_SHA512, 64, 128)
 };
 #endif
 
 #if defined(MBEDTLS_MD_CAN_SHA3_224)
 static const mbedtls_md_info_t mbedtls_sha3_224_info = {
-    MBEDTLS_MD_SHA3_224,
-    28,
-    144,
+    MD_INFO(MBEDTLS_MD_SHA3_224, 28, 144)
 };
 #endif
 
 #if defined(MBEDTLS_MD_CAN_SHA3_256)
 static const mbedtls_md_info_t mbedtls_sha3_256_info = {
-    MBEDTLS_MD_SHA3_256,
-    32,
-    136,
+    MD_INFO(MBEDTLS_MD_SHA3_256, 32, 136)
 };
 #endif
 
 #if defined(MBEDTLS_MD_CAN_SHA3_384)
 static const mbedtls_md_info_t mbedtls_sha3_384_info = {
-    MBEDTLS_MD_SHA3_384,
-    48,
-    104,
+    MD_INFO(MBEDTLS_MD_SHA3_384, 48, 104)
 };
 #endif
 
 #if defined(MBEDTLS_MD_CAN_SHA3_512)
 static const mbedtls_md_info_t mbedtls_sha3_512_info = {
-    MBEDTLS_MD_SHA3_512,
-    64,
-    72,
+    MD_INFO(MBEDTLS_MD_SHA3_512, 64, 72)
 };
 #endif
 

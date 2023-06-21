@@ -45,8 +45,10 @@ struct mbedtls_md_info_t {
     /** Output length of the digest function in bytes */
     unsigned char size;
 
+#if defined(MBEDTLS_MD_C)
     /** Block length of the digest function in bytes */
     unsigned char block_size;
+#endif
 };
 
 #ifdef __cplusplus

@@ -63,7 +63,8 @@
  * only used here.
  */
 #if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS) && defined(MBEDTLS_HAVE_ASM)
-#if defined(__arm__) || defined(__thumb__) || defined(__thumb2__) || defined(__aarch64__)
+#if ((defined(__arm__) || defined(__thumb__) || defined(__thumb2__)) && (SIZE_MAX == 0xffffffff)) || \
+    (defined(__aarch64__) && ((SIZE_MAX == 0xffffffff) || (SIZE_MAX == 0xffffffffffffffff)))
 #define MBEDTLS_EFFICIENT_UNALIGNED_VOLATILE_ACCESS
 #endif
 #endif

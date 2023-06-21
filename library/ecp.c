@@ -3371,15 +3371,15 @@ int mbedtls_ecp_export(const mbedtls_ecp_keypair *key, mbedtls_ecp_group *grp,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    if ((ret = mbedtls_ecp_group_copy(grp, &key->grp)) != 0) {
+    if (grp != NULL && (ret = mbedtls_ecp_group_copy(grp, &key->grp)) != 0) {
         return ret;
     }
 
-    if ((ret = mbedtls_mpi_copy(d, &key->d)) != 0) {
+    if (d != NULL && (ret = mbedtls_mpi_copy(d, &key->d)) != 0) {
         return ret;
     }
 
-    if ((ret = mbedtls_ecp_copy(Q, &key->Q)) != 0) {
+    if (Q != NULL && (ret = mbedtls_ecp_copy(Q, &key->Q)) != 0) {
         return ret;
     }
 

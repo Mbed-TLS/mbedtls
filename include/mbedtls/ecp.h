@@ -1338,13 +1338,16 @@ mbedtls_ecp_group_id mbedtls_ecp_keypair_get_group_id(
 /**
  * \brief           This function exports generic key-pair parameters.
  *
+ *                  Each of the output parameters can be a null pointer
+ *                  if you do not need that parameter.
+ *
  * \param key       The key pair to export from.
  * \param grp       Slot for exported ECP group.
- *                  It must point to an initialized ECP group.
+ *                  It must either be null or point to an initialized ECP group.
  * \param d         Slot for the exported secret value.
- *                  It must point to an initialized mpi.
+ *                  It must either be null or point to an initialized mpi.
  * \param Q         Slot for the exported public value.
- *                  It must point to an initialized ECP point.
+ *                  It must either be null or point to an initialized ECP point.
  *
  * \return          \c 0 on success,
  * \return          #MBEDTLS_ERR_MPI_ALLOC_FAILED on memory-allocation failure.

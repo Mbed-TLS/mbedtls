@@ -773,7 +773,8 @@ void ecjpake_rounds_inject(int alg_arg, int primitive_arg, int hash_arg,
                            int client_input_first,
                            data_t *pw_data,
                            int err_stage_arg,
-                           int expected_error_arg)
+                           int expected_error_arg,
+                           int inject_in_second_round)
 {
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
     psa_pake_operation_t server = psa_pake_operation_init();
@@ -810,68 +811,12 @@ void ecjpake_rounds_inject(int alg_arg, int primitive_arg, int hash_arg,
 
     ecjpake_do_round(alg, primitive_arg, &server, &client,
                      client_input_first, PAKE_ROUND_ONE,
-                     err_stage, expected_error_arg);
+                     inject_in_second_round ? ERR_NONE : err_stage,
+                     expected_error_arg);
 
-    if (err_stage != ERR_NONE) {
+    if (!inject_in_second_round && err_stage != ERR_NONE) {
         goto exit;
     }
-
-    ecjpake_do_round(alg, primitive_arg, &server, &client,
-                     client_input_first, PAKE_ROUND_TWO,
-                     err_stage, expected_error_arg);
-
-exit:
-    psa_destroy_key(key);
-    psa_pake_abort(&server);
-    psa_pake_abort(&client);
-    PSA_DONE();
-}
-/* END_CASE */
-
-/* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE */
-/* Inject errors during the second round of J-PAKE */
-void ecjpake_rounds_inject_second(int alg_arg, int primitive_arg, int hash_arg,
-                                  int client_input_first,
-                                  data_t *pw_data,
-                                  int err_stage_arg,
-                                  int expected_error_arg)
-{
-    psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
-    psa_pake_operation_t server = psa_pake_operation_init();
-    psa_pake_operation_t client = psa_pake_operation_init();
-    psa_algorithm_t alg = alg_arg;
-    psa_algorithm_t hash_alg = hash_arg;
-    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
-    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    ecjpake_error_stage_t err_stage = err_stage_arg;
-
-    PSA_INIT();
-
-    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_DERIVE);
-    psa_set_key_algorithm(&attributes, alg);
-    psa_set_key_type(&attributes, PSA_KEY_TYPE_PASSWORD);
-
-    PSA_ASSERT(psa_import_key(&attributes, pw_data->x, pw_data->len,
-                              &key));
-
-    psa_pake_cs_set_algorithm(&cipher_suite, alg);
-    psa_pake_cs_set_primitive(&cipher_suite, primitive_arg);
-    psa_pake_cs_set_hash(&cipher_suite, hash_alg);
-
-    PSA_ASSERT(psa_pake_setup(&server, &cipher_suite));
-    PSA_ASSERT(psa_pake_setup(&client, &cipher_suite));
-
-    PSA_ASSERT(psa_pake_set_user(&server, jpake_server_id, sizeof(jpake_server_id)));
-    PSA_ASSERT(psa_pake_set_peer(&server, jpake_client_id, sizeof(jpake_client_id)));
-    PSA_ASSERT(psa_pake_set_user(&client, jpake_client_id, sizeof(jpake_client_id)));
-    PSA_ASSERT(psa_pake_set_peer(&client, jpake_server_id, sizeof(jpake_server_id)));
-
-    PSA_ASSERT(psa_pake_set_password_key(&server, key));
-    PSA_ASSERT(psa_pake_set_password_key(&client, key));
-
-    ecjpake_do_round(alg, primitive_arg, &server, &client,
-                     client_input_first, PAKE_ROUND_ONE,
-                     ERR_NONE, expected_error_arg);
 
     ecjpake_do_round(alg, primitive_arg, &server, &client,
                      client_input_first, PAKE_ROUND_TWO,

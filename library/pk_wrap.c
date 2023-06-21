@@ -773,10 +773,10 @@ cleanup:
     return ret;
 }
 
-static int ecdsa_verify_wrap_opaque(mbedtls_pk_context *pk,
-                                    mbedtls_md_type_t md_alg,
-                                    const unsigned char *hash, size_t hash_len,
-                                    const unsigned char *sig, size_t sig_len)
+static int pk_opaque_ecdsa_verify_wrap(mbedtls_pk_context *pk,
+                                       mbedtls_md_type_t md_alg,
+                                       const unsigned char *hash, size_t hash_len,
+                                       const unsigned char *sig, size_t sig_len)
 {
     (void) md_alg;
     unsigned char key[MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN];
@@ -973,13 +973,13 @@ static int ecdsa_sign_psa(mbedtls_svc_key_id_t key_id, psa_algorithm_t psa_sig_m
  * - opaque keys are available as long as USE_PSA_CRYPTO is defined and even
  *   if !PK_USE_PSA_EC_DATA
  * - opaque keys do not support PSA_ALG_DETERMINISTIC_ECDSA() */
-static int ecdsa_sign_wrap_opaque(mbedtls_pk_context *pk,
-                                  mbedtls_md_type_t md_alg,
-                                  const unsigned char *hash, size_t hash_len,
-                                  unsigned char *sig, size_t sig_size,
-                                  size_t *sig_len,
-                                  int (*f_rng)(void *, unsigned char *, size_t),
-                                  void *p_rng)
+static int pk_opaque_ecdsa_sign_wrap(mbedtls_pk_context *pk,
+                                     mbedtls_md_type_t md_alg,
+                                     const unsigned char *hash, size_t hash_len,
+                                     unsigned char *sig, size_t sig_size,
+                                     size_t *sig_len,
+                                     int (*f_rng)(void *, unsigned char *, size_t),
+                                     void *p_rng)
 {
     ((void) f_rng);
     ((void) p_rng);
@@ -1621,29 +1621,98 @@ static int pk_opaque_ecdsa_can_do(mbedtls_pk_type_t type)
            type == MBEDTLS_PK_ECDSA;
 }
 
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+static int pk_opaque_ecdsa_check_pair_wrap(mbedtls_pk_context *pub,
+                                           mbedtls_pk_context *prv,
+                                           int (*f_rng)(void *, unsigned char *, size_t),
+                                           void *p_rng)
+{
+    (void) f_rng;
+    (void) p_rng;
+    return eckey_check_pair_psa(pub, prv);
+}
+#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
+static int pk_opaque_ecdsa_check_pair_wrap(mbedtls_pk_context *pub,
+                                           mbedtls_pk_context *prv,
+                                           int (*f_rng)(void *, unsigned char *, size_t),
+                                           void *p_rng)
+{
+    psa_status_t status;
+    uint8_t exp_pub_key[MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN];
+    size_t exp_pub_key_len = 0;
+    uint8_t pub_key[MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN];
+    size_t pub_key_len = 0;
+    int ret;
+    (void) f_rng;
+    (void) p_rng;
+
+    status = psa_export_public_key(prv->priv_id, exp_pub_key, sizeof(exp_pub_key),
+                                   &exp_pub_key_len);
+    if (status != PSA_SUCCESS) {
+        ret = psa_pk_status_to_mbedtls(status);
+        return ret;
+    }
+    ret = mbedtls_ecp_point_write_binary(&(mbedtls_pk_ec_ro(*pub)->grp),
+                                         &(mbedtls_pk_ec_ro(*pub)->Q),
+                                         MBEDTLS_ECP_PF_UNCOMPRESSED,
+                                         &pub_key_len, pub_key, sizeof(pub_key));
+    if (ret != 0) {
+        return ret;
+    }
+    if ((exp_pub_key_len != pub_key_len) ||
+        memcmp(exp_pub_key, pub_key, exp_pub_key_len)) {
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+    }
+    return 0;
+}
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
+
+const mbedtls_pk_info_t mbedtls_pk_ecdsa_opaque_info = {
+    .type = MBEDTLS_PK_OPAQUE,
+    .name = "Opaque",
+    .get_bitlen = pk_opaque_get_bitlen,
+    .can_do = pk_opaque_ecdsa_can_do,
+    .verify_func = pk_opaque_ecdsa_verify_wrap,
+    .sign_func = pk_opaque_ecdsa_sign_wrap,
+    .check_pair_func = pk_opaque_ecdsa_check_pair_wrap,
+};
+
 static int pk_opaque_rsa_can_do(mbedtls_pk_type_t type)
 {
     return type == MBEDTLS_PK_RSA ||
            type == MBEDTLS_PK_RSASSA_PSS;
 }
 
-static int pk_opaque_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
-                               const unsigned char *hash, size_t hash_len,
-                               unsigned char *sig, size_t sig_size, size_t *sig_len,
-                               int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
+#if defined(MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY)
+static int pk_opaque_rsa_decrypt(mbedtls_pk_context *pk,
+                                 const unsigned char *input, size_t ilen,
+                                 unsigned char *output, size_t *olen, size_t osize,
+                                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
 {
-#if !defined(MBEDTLS_RSA_C)
-    ((void) pk);
-    ((void) md_alg);
-    ((void) hash);
-    ((void) hash_len);
-    ((void) sig);
-    ((void) sig_size);
-    ((void) sig_len);
-    ((void) f_rng);
-    ((void) p_rng);
-    return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
-#else /* !MBEDTLS_RSA_C */
+    psa_status_t status;
+
+    /* PSA has its own RNG */
+    (void) f_rng;
+    (void) p_rng;
+
+    status = psa_asymmetric_decrypt(pk->priv_id, PSA_ALG_RSA_PKCS1V15_CRYPT,
+                                    input, ilen,
+                                    NULL, 0,
+                                    output, osize, olen);
+    if (status != PSA_SUCCESS) {
+        return PSA_PK_RSA_TO_MBEDTLS_ERR(status);
+    }
+
+    return 0;
+}
+#endif /* MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY */
+
+static int pk_opaque_rsa_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
+                                   const unsigned char *hash, size_t hash_len,
+                                   unsigned char *sig, size_t sig_size, size_t *sig_len,
+                                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
+{
+#if defined(MBEDTLS_RSA_C)
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_algorithm_t alg;
     psa_key_type_t type;
@@ -1679,96 +1748,26 @@ static int pk_opaque_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
     }
 
     return 0;
+#else /* !MBEDTLS_RSA_C */
+    ((void) pk);
+    ((void) md_alg);
+    ((void) hash);
+    ((void) hash_len);
+    ((void) sig);
+    ((void) sig_size);
+    ((void) sig_len);
+    ((void) f_rng);
+    ((void) p_rng);
+    return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
 #endif /* !MBEDTLS_RSA_C */
 }
-
-static int pk_opaque_ec_check_pair(mbedtls_pk_context *pub, mbedtls_pk_context *prv,
-                                   int (*f_rng)(void *, unsigned char *, size_t),
-                                   void *p_rng)
-{
-    /* The main difference between this function and eckey_check_pair_psa() is
-     * that in the opaque case the private key is always stored in PSA side no
-     * matter if MBEDTLS_PK_USE_PSA_EC_DATA is enabled or not.
-     * When MBEDTLS_PK_USE_PSA_EC_DATA is enabled, we can simply use the
-     * eckey_check_pair_psa(). */
-    (void) f_rng;
-    (void) p_rng;
-
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    return eckey_check_pair_psa(pub, prv);
-#elif defined(MBEDTLS_ECP_LIGHT)
-    psa_status_t status;
-    uint8_t exp_pub_key[MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN];
-    size_t exp_pub_key_len = 0;
-    uint8_t pub_key[MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN];
-    size_t pub_key_len = 0;
-    int ret;
-
-    status = psa_export_public_key(prv->priv_id, exp_pub_key, sizeof(exp_pub_key),
-                                   &exp_pub_key_len);
-    if (status != PSA_SUCCESS) {
-        ret = psa_pk_status_to_mbedtls(status);
-        return ret;
-    }
-    ret = mbedtls_ecp_point_write_binary(&(mbedtls_pk_ec_ro(*pub)->grp),
-                                         &(mbedtls_pk_ec_ro(*pub)->Q),
-                                         MBEDTLS_ECP_PF_UNCOMPRESSED,
-                                         &pub_key_len, pub_key, sizeof(pub_key));
-    if (ret != 0) {
-        return ret;
-    }
-    if ((exp_pub_key_len != pub_key_len) ||
-        memcmp(exp_pub_key, pub_key, exp_pub_key_len)) {
-        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
-    }
-    return 0;
-#else
-    (void) pub;
-    (void) prv;
-    return MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
-#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
-}
-
-const mbedtls_pk_info_t mbedtls_pk_ecdsa_opaque_info = {
-    .type = MBEDTLS_PK_OPAQUE,
-    .name = "Opaque",
-    .get_bitlen = pk_opaque_get_bitlen,
-    .can_do = pk_opaque_ecdsa_can_do,
-    .verify_func = ecdsa_verify_wrap_opaque,
-    .sign_func = ecdsa_sign_wrap_opaque,
-    .check_pair_func = pk_opaque_ec_check_pair,
-};
-
-#if defined(MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY)
-static int pk_opaque_rsa_decrypt(mbedtls_pk_context *pk,
-                                 const unsigned char *input, size_t ilen,
-                                 unsigned char *output, size_t *olen, size_t osize,
-                                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
-{
-    psa_status_t status;
-
-    /* PSA has its own RNG */
-    (void) f_rng;
-    (void) p_rng;
-
-    status = psa_asymmetric_decrypt(pk->priv_id, PSA_ALG_RSA_PKCS1V15_CRYPT,
-                                    input, ilen,
-                                    NULL, 0,
-                                    output, osize, olen);
-    if (status != PSA_SUCCESS) {
-        return PSA_PK_RSA_TO_MBEDTLS_ERR(status);
-    }
-
-    return 0;
-}
-#endif /* MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY */
 
 const mbedtls_pk_info_t mbedtls_pk_rsa_opaque_info = {
     .type = MBEDTLS_PK_OPAQUE,
     .name = "Opaque",
     .get_bitlen = pk_opaque_get_bitlen,
     .can_do = pk_opaque_rsa_can_do,
-    .sign_func = pk_opaque_sign_wrap,
+    .sign_func = pk_opaque_rsa_sign_wrap,
 #if defined(MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY)
     .decrypt_func = pk_opaque_rsa_decrypt,
 #endif /* PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY */

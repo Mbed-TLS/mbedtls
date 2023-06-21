@@ -1044,10 +1044,15 @@ void mbedtls_ecp_read_key(int grp_id, data_t *in_key, int expected, int canonica
 {
     int ret = 0;
     mbedtls_ecp_keypair key;
-    mbedtls_ecp_keypair key2;
-
     mbedtls_ecp_keypair_init(&key);
+    mbedtls_ecp_keypair key2;
     mbedtls_ecp_keypair_init(&key2);
+
+#if defined(MBEDTLS_BIGNUM_C)
+    TEST_EQUAL(mbedtls_mpi_lset(&key.Q.X, 1), 0);
+    TEST_EQUAL(mbedtls_mpi_lset(&key.Q.Y, 2), 0);
+    TEST_EQUAL(mbedtls_mpi_lset(&key.Q.Z, 3), 0);
+#endif
 
     ret = mbedtls_ecp_read_key(grp_id, &key, in_key->x, in_key->len);
     TEST_ASSERT(ret == expected);
@@ -1056,6 +1061,12 @@ void mbedtls_ecp_read_key(int grp_id, data_t *in_key, int expected, int canonica
         TEST_EQUAL(mbedtls_ecp_keypair_get_group_id(&key), grp_id);
         ret = mbedtls_ecp_check_privkey(&key.grp, &key.d);
         TEST_ASSERT(ret == 0);
+
+#if defined(MBEDTLS_BIGNUM_C)
+        TEST_EQUAL(mbedtls_mpi_cmp_int(&key.Q.X, 1), 0);
+        TEST_EQUAL(mbedtls_mpi_cmp_int(&key.Q.Y, 2), 0);
+        TEST_EQUAL(mbedtls_mpi_cmp_int(&key.Q.Z, 3), 0);
+#endif
 
         if (canonical) {
             unsigned char buf[MBEDTLS_ECP_MAX_BYTES];

@@ -1262,6 +1262,16 @@ int mbedtls_ecp_gen_key(mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
 /**
  * \brief           This function reads an elliptic curve private key.
  *
+ * \note            This function does not set the public key in the
+ *                  key pair object. Without a public key, the key pair object
+ *                  cannot be used with operations that require the public key.
+ *
+ * \note            If a public key has already been set in the key pair
+ *                  object, this function does not check that it is consistent
+ *                  with the private key. Call mbedtls_ecp_check_pub_priv()
+ *                  after setting both the public key and the private key
+ *                  to make that check.
+ *
  * \param grp_id    The ECP group identifier.
  * \param key       The destination key.
  * \param buf       The buffer containing the binary representation of the

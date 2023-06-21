@@ -63,8 +63,9 @@
  * only used here.
  */
 #if defined(MBEDTLS_EFFICIENT_UNALIGNED_ACCESS) && defined(MBEDTLS_HAVE_ASM)
-#if ((defined(__arm__) || defined(__thumb__) || defined(__thumb2__)) && (SIZE_MAX == 0xffffffff)) || \
-    (defined(__aarch64__) && ((SIZE_MAX == 0xffffffff) || (SIZE_MAX == 0xffffffffffffffff)))
+#if ((defined(__arm__) || defined(__thumb__) || defined(__thumb2__)) && (UINTPTR_MAX == 0xfffffffful)) || \
+    (defined(__aarch64__) && ((UINTPTR_MAX == 0xffffffffull) || (UINTPTR_MAX == 0xffffffffffffffffull)))
+/* We check pointer sizes to avoid issues with them not matching register size requirements */
 #define MBEDTLS_EFFICIENT_UNALIGNED_VOLATILE_ACCESS
 #endif
 #endif
@@ -80,10 +81,11 @@ static inline uint32_t mbedtls_get_unaligned_volatile_uint32(volatile const unsi
 #if defined(__arm__) || defined(__thumb__) || defined(__thumb2__)
     asm volatile ("ldr %0, [%1]" : "=r" (r) : "r" (p) :);
 #elif defined(__aarch64__)
-#if (SIZE_MAX == 0xffffffff)
+#if (UINTPTR_MAX == 0xfffffffful)
     /* ILP32: Specify the pointer operand slightly differently, as per #7787. */
     asm volatile ("ldr %w0, [%1]" : "=r" (r) : "p" (p) :);
-#else
+#elif (UINTPTR_MAX == 0xffffffffffffffffull)
+    /* aarch64 with 64-bit pointers */
     asm volatile ("ldr %w0, [%1]" : "=r" (r) : "r" (p) :);
 #endif
 #endif

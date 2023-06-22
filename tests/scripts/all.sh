@@ -2433,22 +2433,6 @@ config_psa_crypto_no_ecp_at_all () {
         scripts/config.py unset MBEDTLS_ECP_C
     fi
 
-    # Disable PK module since it depends on ECP
-    scripts/config.py unset MBEDTLS_PK_C
-    scripts/config.py unset MBEDTLS_PK_PARSE_C
-    scripts/config.py unset MBEDTLS_PK_WRITE_C
-    # Disable also RSA_C that would re-enable PK
-    scripts/config.py unset MBEDTLS_RSA_C
-    scripts/config.py unset MBEDTLS_PKCS1_V15
-    scripts/config.py unset MBEDTLS_PKCS1_V21
-    scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
-    # Disable also key exchanges that depend on RSA for completeness
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
-    scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
-
     # Disable all the features that auto-enable ECP_LIGHT (see build_info.h)
     scripts/config.py unset MBEDTLS_PK_PARSE_EC_EXTENDED
     scripts/config.py unset MBEDTLS_PK_PARSE_EC_COMPRESSED
@@ -2458,16 +2442,6 @@ config_psa_crypto_no_ecp_at_all () {
     # the future, the following line could be removed (see issues
     # 6061, 6332 and following ones)
     scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
-
-    # Disable PSA_WANT symbols that would re-enable PK
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_EXPORT
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
-    for ALG in $(sed -n 's/^#define \(PSA_WANT_ALG_RSA_[0-9A-Z_a-z]*\).*/\1/p' <"$CRYPTO_CONFIG_H"); do
-        scripts/config.py -f include/psa/crypto_config.h unset $ALG
-    done
 }
 
 # Build and test a configuration where driver accelerates all EC algs while
@@ -2507,7 +2481,6 @@ component_test_psa_crypto_config_accel_ecc_no_ecp_at_all () {
     not grep mbedtls_ecjpake_ library/ecjpake.o
     # Also ensure that ECP or RSA modules were not re-enabled
     not grep mbedtls_ecp_ library/ecp.o
-    not grep mbedtls_rsa_ library/rsa.o
 
     # Run the tests
     # -------------
@@ -2525,9 +2498,6 @@ component_test_psa_crypto_config_reference_ecc_no_ecp_at_all () {
     config_psa_crypto_no_ecp_at_all 0
 
     make
-
-    # Esure that the RSA module was not re-enabled
-    not grep mbedtls_rsa_ library/rsa.o
 
     msg "test suites: crypto_full + non accelerated EC algs + USE_PSA"
     make test

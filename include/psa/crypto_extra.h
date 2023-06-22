@@ -572,8 +572,7 @@ psa_status_t psa_get_key_domain_parameters(
 /** \defgroup psa_tls_helpers TLS helper functions
  * @{
  */
-
-#if defined(MBEDTLS_ECP_LIGHT)
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 #include <mbedtls/ecp.h>
 
 /** Convert an ECC curve identifier from the Mbed TLS encoding to PSA.
@@ -589,54 +588,8 @@ psa_status_t psa_get_key_domain_parameters(
  *                      (`PSA_ECC_FAMILY_xxx`).
  * \return              \c 0 on failure (\p grpid is not recognized).
  */
-static inline psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
-                                                        size_t *bits)
-{
-    switch (grpid) {
-        case MBEDTLS_ECP_DP_SECP192R1:
-            *bits = 192;
-            return PSA_ECC_FAMILY_SECP_R1;
-        case MBEDTLS_ECP_DP_SECP224R1:
-            *bits = 224;
-            return PSA_ECC_FAMILY_SECP_R1;
-        case MBEDTLS_ECP_DP_SECP256R1:
-            *bits = 256;
-            return PSA_ECC_FAMILY_SECP_R1;
-        case MBEDTLS_ECP_DP_SECP384R1:
-            *bits = 384;
-            return PSA_ECC_FAMILY_SECP_R1;
-        case MBEDTLS_ECP_DP_SECP521R1:
-            *bits = 521;
-            return PSA_ECC_FAMILY_SECP_R1;
-        case MBEDTLS_ECP_DP_BP256R1:
-            *bits = 256;
-            return PSA_ECC_FAMILY_BRAINPOOL_P_R1;
-        case MBEDTLS_ECP_DP_BP384R1:
-            *bits = 384;
-            return PSA_ECC_FAMILY_BRAINPOOL_P_R1;
-        case MBEDTLS_ECP_DP_BP512R1:
-            *bits = 512;
-            return PSA_ECC_FAMILY_BRAINPOOL_P_R1;
-        case MBEDTLS_ECP_DP_CURVE25519:
-            *bits = 255;
-            return PSA_ECC_FAMILY_MONTGOMERY;
-        case MBEDTLS_ECP_DP_SECP192K1:
-            *bits = 192;
-            return PSA_ECC_FAMILY_SECP_K1;
-        case MBEDTLS_ECP_DP_SECP224K1:
-            *bits = 224;
-            return PSA_ECC_FAMILY_SECP_K1;
-        case MBEDTLS_ECP_DP_SECP256K1:
-            *bits = 256;
-            return PSA_ECC_FAMILY_SECP_K1;
-        case MBEDTLS_ECP_DP_CURVE448:
-            *bits = 448;
-            return PSA_ECC_FAMILY_MONTGOMERY;
-        default:
-            *bits = 0;
-            return 0;
-    }
-}
+psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
+                                          size_t *bits);
 
 /** Convert an ECC curve identifier from the PSA encoding to Mbed TLS.
  *
@@ -660,7 +613,7 @@ static inline psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grp
 mbedtls_ecp_group_id mbedtls_ecc_group_of_psa(psa_ecc_family_t curve,
                                               size_t bits,
                                               int bits_is_sloppy);
-#endif /* MBEDTLS_ECP_LIGHT */
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
 /**@}*/
 

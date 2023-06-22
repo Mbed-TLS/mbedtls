@@ -1347,6 +1347,32 @@ int mbedtls_ecp_write_key(mbedtls_ecp_keypair *key,
                           unsigned char *buf, size_t buflen);
 
 /**
+ * \brief           This function exports an elliptic curve public key.
+ *
+ * \param key       The public key.
+ * \param format    The point format. This must be either
+ *                  #MBEDTLS_ECP_PF_COMPRESSED or #MBEDTLS_ECP_PF_UNCOMPRESSED.
+ *                  (For groups without these formats, this parameter is
+ *                  ignored. But it still has to be either of the above
+ *                  values.)
+ * \param olen      The address at which to store the length of
+ *                  the output in Bytes. This must not be \c NULL.
+ * \param buf       The output buffer. This must be a writable buffer
+ *                  of length \p buflen Bytes.
+ * \param buflen    The length of the output buffer \p buf in Bytes.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL if the output buffer
+ *                  is too small to hold the point.
+ * \return          #MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if the point format
+ *                  or the export for the given group is not implemented.
+ * \return          Another negative error code on other kinds of failure.
+ */
+int mbedtls_ecp_write_public_key(mbedtls_ecp_keypair *key,
+                                 int format, size_t *olen,
+                                 unsigned char *buf, size_t buflen);
+
+/**
  * \brief           This function checks that the keypair objects
  *                  \p pub and \p prv have the same group and the
  *                  same public point, and that the private key in

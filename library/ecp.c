@@ -3333,6 +3333,18 @@ cleanup:
     return ret;
 }
 
+/*
+ * Write a public key.
+ */
+int mbedtls_ecp_write_public_key(mbedtls_ecp_keypair *key,
+                                 int format, size_t *olen,
+                                 unsigned char *buf, size_t buflen)
+{
+    return mbedtls_ecp_point_write_binary(&key->grp, &key->Q,
+                                          format, olen, buf, buflen);
+}
+
+
 #if defined(MBEDTLS_ECP_C)
 /*
  * Check a public-private key pair

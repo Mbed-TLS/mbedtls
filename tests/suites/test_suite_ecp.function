@@ -590,29 +590,41 @@ void ecp_write_binary(int id, char *x, char *y, char *z, int format,
 {
     mbedtls_ecp_group grp;
     mbedtls_ecp_point P;
+    mbedtls_ecp_keypair key;
     unsigned char buf[256];
     size_t olen;
 
     memset(buf, 0, sizeof(buf));
 
     mbedtls_ecp_group_init(&grp); mbedtls_ecp_point_init(&P);
+    mbedtls_ecp_keypair_init(&key);
 
-    TEST_ASSERT(mbedtls_ecp_group_load(&grp, id) == 0);
+    TEST_EQUAL(mbedtls_ecp_group_load(&grp, id), 0);
 
-    TEST_ASSERT(mbedtls_test_read_mpi(&P.X, x) == 0);
-    TEST_ASSERT(mbedtls_test_read_mpi(&P.Y, y) == 0);
-    TEST_ASSERT(mbedtls_test_read_mpi(&P.Z, z) == 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&P.X, x), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&P.Y, y), 0);
+    TEST_EQUAL(mbedtls_test_read_mpi(&P.Z, z), 0);
 
-    TEST_ASSERT(mbedtls_ecp_point_write_binary(&grp, &P, format,
-                                               &olen, buf, blen) == ret);
-
+    TEST_EQUAL(mbedtls_ecp_point_write_binary(&grp, &P, format,
+                                              &olen, buf, blen), ret);
     if (ret == 0) {
-        TEST_ASSERT(olen <= MBEDTLS_ECP_MAX_PT_LEN);
-        TEST_ASSERT(mbedtls_test_hexcmp(buf, out->x, olen, out->len) == 0);
+        TEST_LE_U(olen, MBEDTLS_ECP_MAX_PT_LEN);
+        ASSERT_COMPARE(buf, olen,
+                       out->x, out->len);
+    }
+
+    memset(buf, 0, blen);
+    TEST_EQUAL(mbedtls_ecp_set_public_key(grp.id, &key, &P), 0);
+    TEST_EQUAL(mbedtls_ecp_write_public_key(&key, format,
+                                            &olen, buf, blen), ret);
+    if (ret == 0) {
+        ASSERT_COMPARE(buf, olen,
+                       out->x, out->len);
     }
 
 exit:
     mbedtls_ecp_group_free(&grp); mbedtls_ecp_point_free(&P);
+    mbedtls_ecp_keypair_free(&key);
 }
 /* END_CASE */
 

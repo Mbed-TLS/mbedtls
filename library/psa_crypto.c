@@ -5776,10 +5776,7 @@ static void psa_des_set_key_parity(uint8_t *data, size_t data_size)
  *       always NULL.
  */
 #if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE) || \
-    defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
+    defined(MBEDTLS_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_DERIVE)
 static psa_status_t psa_generate_derived_ecc_key_weierstrass_helper(
     psa_key_slot_t *slot,
     size_t bits,
@@ -5787,7 +5784,6 @@ static psa_status_t psa_generate_derived_ecc_key_weierstrass_helper(
     uint8_t **data
     )
 {
-#if defined(MBEDTLS_ECP_LIGHT)
     unsigned key_out_of_range = 1;
     mbedtls_mpi k;
     mbedtls_mpi diff_N_2;
@@ -5871,13 +5867,6 @@ cleanup:
     mbedtls_mpi_free(&k);
     mbedtls_mpi_free(&diff_N_2);
     return status;
-#else /* MBEDTLS_ECP_LIGHT */
-    (void) slot;
-    (void) bits;
-    (void) operation;
-    (void) data;
-    return PSA_ERROR_NOT_SUPPORTED;
-#endif /* MBEDTLS_ECP_LIGHT */
 }
 
 /* ECC keys on a Montgomery elliptic curve draws a byte string whose length
@@ -5945,10 +5934,7 @@ static psa_status_t psa_generate_derived_ecc_key_montgomery_helper(
     return status;
 }
 #endif /* defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE) ||
-          defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) ||
-          defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
-          defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ||
-          defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) */
+          defined(MBEDTLS_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_DERIVE) */
 
 static psa_status_t psa_generate_derived_key_internal(
     psa_key_slot_t *slot,
@@ -5965,10 +5951,7 @@ static psa_status_t psa_generate_derived_key_internal(
     }
 
 #if defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE) || \
-    defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
+    defined(MBEDTLS_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_DERIVE)
     if (PSA_KEY_TYPE_IS_ECC(slot->attr.type)) {
         psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY(slot->attr.type);
         if (PSA_ECC_FAMILY_IS_WEIERSTRASS(curve)) {
@@ -5986,10 +5969,7 @@ static psa_status_t psa_generate_derived_key_internal(
         }
     } else
 #endif /* defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE) ||
-          defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) ||
-          defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
-          defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ||
-          defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) */
+          defined(MBEDTLS_BUILTIN_KEY_TYPE_ECC_KEY_PAIR_DERIVE) */
     if (key_type_is_raw_bytes(slot->attr.type)) {
         if (bits % 8 != 0) {
             return PSA_ERROR_INVALID_ARGUMENT;

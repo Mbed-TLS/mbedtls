@@ -65,29 +65,27 @@ def list_generated_files() -> FrozenSet[str]:
 
 def get_src_files() -> List[str]:
     """
-    Use git ls-files to get a list of the source files
+    Use git to get a list of the source files.
+
+    Only C files are included, and certain files (generated, or 3rdparty)
+    are excluded.
     """
     git_ls_files_cmd = ["git", "ls-files",
                         "*.[hc]",
                         "tests/suites/*.function",
                         "scripts/data_files/*.fmt"]
+    output = subprocess.check_output(git_ls_files_cmd,
+                                     universal_newlines=True)
+    src_files = output.split()
 
-    result = subprocess.run(git_ls_files_cmd, stdout=subprocess.PIPE,
-                            check=False)
-
-    if result.returncode != 0:
-        print_err("git ls-files returned: " + str(result.returncode))
-        return []
-    else:
-        generated_files = list_generated_files()
-        src_files = str(result.stdout, "utf-8").split()
-        # Don't correct style for third-party files (and, for simplicity,
-        # companion files in the same subtree), or for automatically
-        # generated files (we're correcting the templates instead).
-        src_files = [filename for filename in src_files
-                     if not (filename.startswith("3rdparty/") or
-                             filename in generated_files)]
-        return src_files
+    generated_files = list_generated_files()
+    # Don't correct style for third-party files (and, for simplicity,
+    # companion files in the same subtree), or for automatically
+    # generated files (we're correcting the templates instead).
+    src_files = [filename for filename in src_files
+                 if not (filename.startswith("3rdparty/") or
+                         filename in generated_files)]
+    return src_files
 
 def get_uncrustify_version() -> str:
     """

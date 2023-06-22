@@ -6727,6 +6727,33 @@ static psa_status_t psa_pbkdf2_hmac_set_password(psa_algorithm_t hash_alg,
     return status;
 }
 
+static psa_status_t psa_pbkdf2_cmac_set_password(const uint8_t *input,
+                                                 size_t input_len,
+                                                 uint8_t *output,
+                                                 size_t *output_len)
+{
+    psa_status_t status = PSA_SUCCESS;
+    if (input_len != AES_CMAC_PRF_128_OUTPUT_SIZE) {
+        psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+        uint8_t zeros[16] = {0};
+        psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
+        psa_set_key_bits(&attributes, PSA_BYTES_TO_BITS(sizeof(zeros)));
+        psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_MESSAGE);
+        /* Passing AES_CMAC_PRF_128_OUTPUT_SIZE as mac_size as the driver
+         * function sets mac_output_length = mac_size on success. See #7801*/
+        status = psa_driver_wrapper_mac_compute(&attributes,
+                                                zeros, sizeof(zeros),
+                                                PSA_ALG_CMAC, input, input_len,
+                                                output,
+                                                AES_CMAC_PRF_128_OUTPUT_SIZE,
+                                                output_len);
+    } else {
+        memcpy(output, input, input_len);
+        *output_len = AES_CMAC_PRF_128_OUTPUT_SIZE;
+    }
+    return status;
+}
+
 static psa_status_t psa_pbkdf2_set_password(psa_pbkdf2_key_derivation_t *pbkdf2,
                                             psa_algorithm_t kdf_alg,
                                             const uint8_t *data,
@@ -6737,13 +6764,15 @@ static psa_status_t psa_pbkdf2_set_password(psa_pbkdf2_key_derivation_t *pbkdf2,
         return PSA_ERROR_BAD_STATE;
     }
 
-    if (data_length != 0) {
-        if (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg)) {
-            psa_algorithm_t hash_alg = PSA_ALG_PBKDF2_HMAC_GET_HASH(kdf_alg);
-            status = psa_pbkdf2_hmac_set_password(hash_alg, data, data_length,
-                                                  pbkdf2->password,
-                                                  &pbkdf2->password_length);
-        }
+    if (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg)) {
+        psa_algorithm_t hash_alg = PSA_ALG_PBKDF2_HMAC_GET_HASH(kdf_alg);
+        status = psa_pbkdf2_hmac_set_password(hash_alg, data, data_length,
+                                              pbkdf2->password,
+                                              &pbkdf2->password_length);
+    } else if (kdf_alg == PSA_ALG_PBKDF2_AES_CMAC_PRF_128) {
+        status = psa_pbkdf2_cmac_set_password(data, data_length,
+                                              pbkdf2->password,
+                                              &pbkdf2->password_length);
     }
 
     pbkdf2->state = PSA_PBKDF2_STATE_PASSWORD_SET;

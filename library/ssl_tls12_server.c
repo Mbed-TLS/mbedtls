@@ -2589,14 +2589,17 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    unsigned char buf[
-        PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
+    mbedtls_pk_context *pk;
+    mbedtls_pk_type_t pk_type;
     psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
     uint16_t tls_id = 0;
     psa_ecc_family_t ecc_family;
     size_t key_len;
-    mbedtls_pk_context *pk;
     mbedtls_ecp_group_id grp_id;
+    unsigned char buf[PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
+    mbedtls_ecp_keypair *key;
+#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
 
     pk = mbedtls_ssl_own_key(ssl);
 
@@ -2604,18 +2607,20 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 
-#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-    mbedtls_ecp_keypair *key = mbedtls_pk_ec_rw(*pk);
-#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
+    pk_type = mbedtls_pk_get_type(pk);
 
-    switch (mbedtls_pk_get_type(pk)) {
+    switch (pk_type) {
         case MBEDTLS_PK_OPAQUE:
+#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
+        case MBEDTLS_PK_ECKEY:
+        case MBEDTLS_PK_ECKEY_DH:
+        case MBEDTLS_PK_ECDSA:
+#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
             if (!mbedtls_pk_can_do(pk, MBEDTLS_PK_ECKEY)) {
                 return MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH;
             }
 
             ssl->handshake->ecdh_psa_privkey = pk->priv_id;
-
             /* Key should not be destroyed in the TLS library */
             ssl->handshake->ecdh_psa_privkey_is_external = 1;
 
@@ -2633,9 +2638,11 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
 
             ret = 0;
             break;
+#if !defined(MBEDTLS_PK_USE_PSA_EC_DATA)
         case MBEDTLS_PK_ECKEY:
         case MBEDTLS_PK_ECKEY_DH:
         case MBEDTLS_PK_ECDSA:
+            key = mbedtls_pk_ec_rw(*pk);
             grp_id = mbedtls_pk_get_group_id(pk);
             if (grp_id == MBEDTLS_ECP_DP_NONE) {
                 return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
@@ -2660,35 +2667,28 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
                              PSA_KEY_TYPE_ECC_KEY_PAIR(ssl->handshake->ecdh_psa_type));
             psa_set_key_bits(&key_attributes, ssl->handshake->ecdh_bits);
 
-#if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-            status = psa_export_key(pk->priv_id, buf, sizeof(buf), &key_len);
-            if (status != PSA_SUCCESS) {
-                ret = PSA_TO_MBEDTLS_ERR(status);
-                goto cleanup;
-            }
-#else /* MBEDTLS_PK_USE_PSA_EC_DATA */
             key_len = PSA_BITS_TO_BYTES(key->grp.pbits);
             ret = mbedtls_ecp_write_key(key, buf, key_len);
             if (ret != 0) {
-                goto cleanup;
+                mbedtls_platform_zeroize(buf, sizeof(buf));
+                break;
             }
-#endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
             status = psa_import_key(&key_attributes, buf, key_len,
                                     &ssl->handshake->ecdh_psa_privkey);
             if (status != PSA_SUCCESS) {
                 ret = PSA_TO_MBEDTLS_ERR(status);
-                goto cleanup;
+                mbedtls_platform_zeroize(buf, sizeof(buf));
+                break;
             }
 
+            mbedtls_platform_zeroize(buf, sizeof(buf));
             ret = 0;
             break;
+#endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
         default:
             ret = MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH;
     }
-
-cleanup:
-    mbedtls_platform_zeroize(buf, sizeof(buf));
 
     return ret;
 }

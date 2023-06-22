@@ -208,20 +208,13 @@ class KeyTypeNotSupported:
         if kt.name.endswith('_PUBLIC_KEY'):
             generate_dependencies = []
         else:
-            # Create a separate list so that we can work on them independently
-            # in the following.
-            generate_dependencies = [dep for dep in import_dependencies]
-        # PSA_WANT_KEY_TYPE_xxx_KEY_PAIR symbols have a GENERATE and
-        # IMPORT suffixes to state that they support key generation and
-        # import, respectively.
-        for dep in import_dependencies:
-            if dep.endswith('KEY_PAIR'):
-                import_dependencies.remove(dep)
-                import_dependencies.append(dep + "_IMPORT")
-        for dep in generate_dependencies:
-            if dep.endswith('KEY_PAIR'):
-                generate_dependencies.remove(dep)
-                generate_dependencies.append(dep + "_GENERATE")
+            # PSA_WANT_KEY_TYPE_xxx_KEY_PAIR symbols have a GENERATE and
+            # IMPORT suffixes to state that they support key generation and
+            # import, respectively.
+            generate_dependencies = [re.sub(r'KEY_PAIR\Z', r'KEY_PAIR_GENERATE', dep)
+                                     for dep in import_dependencies]
+            import_dependencies = [re.sub(r'KEY_PAIR\Z', r'KEY_PAIR_IMPORT', dep)
+                                   for dep in import_dependencies]
         for bits in kt.sizes_to_test():
             yield test_case_for_key_type_not_supported(
                 'import', kt.expression, bits,
@@ -318,9 +311,8 @@ class KeyGenerate:
                 generate_dependencies.append("MBEDTLS_GENPRIME")
             # PSA_WANT_KEY_TYPE_xxx_KEY_PAIR symbols have a GENERATE suffix
             # to state that they support key generation.
-            if kt.name == 'PSA_KEY_TYPE_ECC_KEY_PAIR':
-                generate_dependencies.remove(psa_want_symbol(kt.name))
-                generate_dependencies.append(psa_want_symbol(kt.name) + "_GENERATE")
+            generate_dependencies = [re.sub(r'KEY_PAIR\Z', r'KEY_PAIR_GENERATE', dep)
+                                     for dep in generate_dependencies]
         for bits in kt.sizes_to_test():
             yield test_case_for_key_generation(
                 kt.expression, bits,

@@ -276,6 +276,9 @@
  * This is a vendor-specific macro. This can be configured if necessary */
 #define PSA_VENDOR_PBKDF2_MAX_ITERATIONS 0xffffffff
 
+/* Output size of AES_CMAC_PRF_128 algorithm */
+#define AES_CMAC_PRF_128_OUTPUT_SIZE 16
+
 /** The maximum size of a block cipher. */
 #define PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE 16
 

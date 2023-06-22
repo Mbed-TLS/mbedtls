@@ -307,8 +307,6 @@ class KeyGenerate:
             result = 'PSA_ERROR_INVALID_ARGUMENT'
         else:
             generate_dependencies = import_dependencies
-            if kt.name == 'PSA_KEY_TYPE_RSA_KEY_PAIR':
-                generate_dependencies.append("MBEDTLS_GENPRIME")
             # PSA_WANT_KEY_TYPE_xxx_KEY_PAIR symbols have a GENERATE suffix
             # to state that they support key generation.
             generate_dependencies = [re.sub(r'KEY_PAIR\Z', r'KEY_PAIR_GENERATE', dep)

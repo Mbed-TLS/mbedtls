@@ -2634,8 +2634,9 @@ component_test_psa_crypto_config_accel_all_curves_except_x25519 () {
 build_and_test_psa_want_key_pair_partial() {
     KEY_TYPE=$1
     UNSET_OPTION=$2
+    DISABLED_PSA_WANT="PSA_WANT_KEY_TYPE_${KEY_TYPE}_KEY_PAIR_${UNSET_OPTION}"
 
-    msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG + PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_xxx"
+    msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG - ${DISABLED_PSA_WANT}"
     scripts/config.py full
     scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
@@ -2643,25 +2644,11 @@ build_and_test_psa_want_key_pair_partial() {
 
     # All the PSA_WANT_KEY_TYPE_xxx_KEY_PAIR_yyy are enabled by default in
     # crypto_config.h so we just disable the one we don't want.
-    DISABLED_PSA_WANT="PSA_WANT_KEY_TYPE_${KEY_TYPE}_KEY_PAIR_${UNSET_OPTION}"
     scripts/config.py -f include/psa/crypto_config.h unset "$DISABLED_PSA_WANT"
-    echo "Disabling: $DISABLED_PSA_WANT"
 
-    loc_accel_list=""
-    KEY_PAIR_OPTIONS=("BASE" "IMPORT" "EXPORT" "GENERATE" "DERIVE")
-    for OPTION in ${KEY_PAIR_OPTIONS[@]}; do
-        # RSA and DH keys do not support DERIVE
-        if [ "$KEY_TYPE" == "RSA" -o "$KEY_TYPE" == "DH" ] && [ "$OPTION" == "DERIVE" ]; then
-            continue
-        fi
-        loc_accel_list="$loc_accel_list KEY_TYPE_${KEY_TYPE}_KEY_PAIR_${OPTION}"
-    done
+    make CC=gcc CFLAGS="$ASAN_CFLAGS" LDFLAGS="$ASAN_CFLAGS"
 
-    echo "Accelerated list: $loc_accel_list"
-    loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )
-
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST $loc_accel_flags -I../tests/include" LDFLAGS="$ASAN_CFLAGS"
-
+    msg "test: full + MBEDTLS_PSA_CRYPTO_CONFIG - ${DISABLED_PSA_WANT}"
     make test
 }
 

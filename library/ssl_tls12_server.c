@@ -2682,6 +2682,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
                 break;
             }
 
+            mbedtls_platform_zeroize(buf, sizeof(buf));
             ret = 0;
             break;
 #endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */

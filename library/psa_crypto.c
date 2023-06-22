@@ -5611,8 +5611,10 @@ static psa_status_t psa_key_derivation_pbkdf2_read(
         prf_alg = PSA_ALG_HMAC(PSA_ALG_PBKDF2_HMAC_GET_HASH(kdf_alg));
         prf_output_length = PSA_HASH_LENGTH(prf_alg);
         psa_set_key_type(&attributes, PSA_KEY_TYPE_HMAC);
-    } else {
-        return PSA_ERROR_INVALID_ARGUMENT;
+    } else if (kdf_alg == PSA_ALG_PBKDF2_AES_CMAC_PRF_128) {
+        prf_alg = PSA_ALG_CMAC;
+        prf_output_length = AES_CMAC_PRF_128_OUTPUT_SIZE;
+        psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
     }
 
     switch (pbkdf2->state) {

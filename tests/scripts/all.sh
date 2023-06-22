@@ -2631,7 +2631,7 @@ component_test_psa_crypto_config_accel_all_curves_except_x25519 () {
 # enabled, but one. Input arguments are as follows:
 # - $1 is the key type under test, i.e. ECC/RSA/DH
 # - $2 is the key option to be unset (i.e. generate, derive, etc)
-config_test_psa_want_key_pair_partial() {
+build_and_test_psa_want_key_pair_partial() {
     KEY_TYPE=$1
     UNSET_OPTION=$2
 
@@ -2666,11 +2666,11 @@ config_test_psa_want_key_pair_partial() {
 }
 
 component_test_psa_ecc_key_pair_no_derive() {
-    config_test_psa_want_key_pair_partial "ECC" "DERIVE"
+    build_and_test_psa_want_key_pair_partial "ECC" "DERIVE"
 }
 
 component_test_psa_ecc_key_pair_no_generate() {
-    config_test_psa_want_key_pair_partial "ECC" "GENERATE"
+    build_and_test_psa_want_key_pair_partial "ECC" "GENERATE"
 }
 
 component_test_psa_crypto_config_accel_rsa_signature () {

@@ -5080,7 +5080,8 @@ psa_status_t psa_aead_abort(psa_aead_operation_t *operation)
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
+    defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_AES_CMAC_PRF_128)
 #define AT_LEAST_ONE_BUILTIN_KDF
 #endif /* At least one builtin KDF */
 
@@ -5184,8 +5185,10 @@ psa_status_t psa_key_derivation_abort(psa_key_derivation_operation_t *operation)
                                  sizeof(operation->ctx.tls12_ecjpake_to_pms.data));
     } else
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS) */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
-    if (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg)) {
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_AES_CMAC_PRF_128)
+    if (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg) ||
+        kdf_alg == PSA_ALG_PBKDF2_AES_CMAC_PRF_128) {
         if (operation->ctx.pbkdf2.salt != NULL) {
             mbedtls_platform_zeroize(operation->ctx.pbkdf2.salt,
                                      operation->ctx.pbkdf2.salt_length);
@@ -5194,7 +5197,8 @@ psa_status_t psa_key_derivation_abort(psa_key_derivation_operation_t *operation)
 
         status = PSA_SUCCESS;
     } else
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC) */
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_AES_CMAC_PRF_128) */
     {
         status = PSA_ERROR_BAD_STATE;
     }
@@ -5521,7 +5525,8 @@ static psa_status_t psa_key_derivation_tls12_ecjpake_to_pms_read(
 }
 #endif
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_AES_CMAC_PRF_128)
 static psa_status_t psa_key_derivation_pbkdf2_generate_block(
     psa_pbkdf2_key_derivation_t *pbkdf2,
     psa_algorithm_t prf_alg,
@@ -5650,7 +5655,8 @@ static psa_status_t psa_key_derivation_pbkdf2_read(
 
     return PSA_SUCCESS;
 }
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC ||
+        * MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_AES_CMAC_PRF_128 */
 
 psa_status_t psa_key_derivation_output_bytes(
     psa_key_derivation_operation_t *operation,
@@ -5705,12 +5711,15 @@ psa_status_t psa_key_derivation_output_bytes(
             &operation->ctx.tls12_ecjpake_to_pms, output, output_length);
     } else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
-    if (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg)) {
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_AES_CMAC_PRF_128)
+    if (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg) ||
+        kdf_alg == PSA_ALG_PBKDF2_AES_CMAC_PRF_128) {
         status = psa_key_derivation_pbkdf2_read(&operation->ctx.pbkdf2, kdf_alg,
                                                 output, output_length);
     } else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC ||
+        * MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_AES_CMAC_PRF_128 */
 
     {
         (void) kdf_alg;
@@ -6628,7 +6637,8 @@ static psa_status_t psa_tls12_ecjpake_to_pms_input(
 }
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS */
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_AES_CMAC_PRF_128)
 static psa_status_t psa_pbkdf2_set_input_cost(
     psa_pbkdf2_key_derivation_t *pbkdf2,
     psa_key_derivation_step_t step,
@@ -6749,7 +6759,8 @@ static psa_status_t psa_pbkdf2_input(psa_pbkdf2_key_derivation_t *pbkdf2,
             return PSA_ERROR_INVALID_ARGUMENT;
     }
 }
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC ||
+        * MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_AES_CMAC_PRF_128 */
 
 /** Check whether the given key type is acceptable for the given
  * input step of a key derivation.
@@ -6846,12 +6857,15 @@ static psa_status_t psa_key_derivation_input_internal(
             &operation->ctx.tls12_ecjpake_to_pms, step, data, data_length);
     } else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
-    if (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg)) {
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_AES_CMAC_PRF_128)
+    if (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg) ||
+        kdf_alg == PSA_ALG_PBKDF2_AES_CMAC_PRF_128) {
         status = psa_pbkdf2_input(&operation->ctx.pbkdf2, kdf_alg,
                                   step, data, data_length);
     } else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC ||
+        * MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_AES_CMAC_PRF_128 */
     {
         /* This can't happen unless the operation object was not initialized */
         (void) data;
@@ -6875,12 +6889,15 @@ static psa_status_t psa_key_derivation_input_integer_internal(
     psa_status_t status;
     psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg(operation);
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC)
-    if (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg)) {
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_AES_CMAC_PRF_128)
+    if (PSA_ALG_IS_PBKDF2_HMAC(kdf_alg) ||
+        kdf_alg == PSA_ALG_PBKDF2_AES_CMAC_PRF_128) {
         status = psa_pbkdf2_set_input_cost(
             &operation->ctx.pbkdf2, step, value);
     } else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_HMAC ||
+        * MBEDTLS_PSA_BUILTIN_ALG_PBKDF2_AES_CMAC_PRF_128 */
     {
         (void) step;
         (void) value;

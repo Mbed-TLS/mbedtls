@@ -35,12 +35,6 @@ from mbedtls_dev import test_data_generation
 
 def psa_want_symbol(name: str) -> str:
     """Return the PSA_WANT_xxx symbol associated with a PSA crypto feature."""
-    # PSA_WANT_KEY_TYPE_[RSA/ECC]_KEY_PAIR symbols are deprecated and they should
-    # be replaced soon with newer PSA_WANT_KEY_TYPE_[RSA/ECC]_KEY_PAIR_yyy in
-    # library's code and tests. Until this happen though, they have been
-    # renamed to temporary internal symbols
-    # MBEDTLS_PSA_WANT_KEY_TYPE_[RSA/ECC]_KEY_PAIR_LEGACY so this is what must
-    # be used in tests' dependencies.
     if name.startswith('PSA_'):
         return name[:4] + 'WANT_' + name[4:]
     else:
@@ -217,7 +211,7 @@ class KeyTypeNotSupported:
             # Create a separate list so that we can work on them independently
             # in the following.
             generate_dependencies = [dep for dep in import_dependencies]
-        # PSA_WANT_KEY_TYPE_xxx_KEY_PAIR symbols have now a GENERATE and
+        # PSA_WANT_KEY_TYPE_xxx_KEY_PAIR symbols have a GENERATE and
         # IMPORT suffixes to state that they support key generation and
         # import, respectively.
         for dep in import_dependencies:
@@ -322,7 +316,7 @@ class KeyGenerate:
             generate_dependencies = import_dependencies
             if kt.name == 'PSA_KEY_TYPE_RSA_KEY_PAIR':
                 generate_dependencies.append("MBEDTLS_GENPRIME")
-            # PSA_WANT_KEY_TYPE_xxx_KEY_PAIR symbols have now a GENERATE suffix
+            # PSA_WANT_KEY_TYPE_xxx_KEY_PAIR symbols have a GENERATE suffix
             # to state that they support key generation.
             if kt.name == 'PSA_KEY_TYPE_ECC_KEY_PAIR':
                 generate_dependencies.remove(psa_want_symbol(kt.name))

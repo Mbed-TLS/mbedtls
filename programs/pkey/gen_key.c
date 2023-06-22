@@ -160,6 +160,71 @@ static int write_private_key(mbedtls_pk_context *key, const char *output_file)
     return 0;
 }
 
+#if defined(MBEDTLS_ECP_C)
+static int show_ecp_key(const mbedtls_ecp_keypair *ecp, int has_private)
+{
+    int ret = 0;
+
+    const mbedtls_ecp_curve_info *curve_info =
+        mbedtls_ecp_curve_info_from_grp_id(
+            mbedtls_ecp_keypair_get_group_id(ecp));
+    mbedtls_printf("curve: %s\n", curve_info->name);
+
+    mbedtls_ecp_group grp;
+    mbedtls_ecp_group_init(&grp);
+    mbedtls_mpi D;
+    mbedtls_mpi_init(&D);
+    mbedtls_ecp_point pt;
+    mbedtls_ecp_point_init(&pt);
+    mbedtls_mpi X, Y;
+    mbedtls_mpi_init(&X); mbedtls_mpi_init(&Y);
+
+    MBEDTLS_MPI_CHK(mbedtls_ecp_export(ecp, &grp,
+                                       (has_private ? &D : NULL),
+                                       &pt));
+
+    unsigned char point_bin[MBEDTLS_ECP_MAX_PT_LEN];
+    size_t len = 0;
+    MBEDTLS_MPI_CHK(mbedtls_ecp_point_write_binary(
+                        &grp, &pt, MBEDTLS_ECP_PF_UNCOMPRESSED,
+                        &len, point_bin, sizeof(point_bin)));
+    switch (mbedtls_ecp_get_type(&grp)) {
+        case MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS:
+            if ((len & 1) == 0 || point_bin[0] != 0x04) {
+                /* Point in an unxepected format. This shouldn't happen. */
+                ret = -1;
+                goto cleanup;
+            }
+            MBEDTLS_MPI_CHK(
+                mbedtls_mpi_read_binary(&X, point_bin + 1, len / 2));
+            MBEDTLS_MPI_CHK(
+                mbedtls_mpi_read_binary(&Y, point_bin + 1 + len / 2, len / 2));
+            mbedtls_mpi_write_file("X_Q:   ", &X, 16, NULL);
+            mbedtls_mpi_write_file("Y_Q:   ", &Y, 16, NULL);
+            break;
+        case MBEDTLS_ECP_TYPE_MONTGOMERY:
+            MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary(&X, point_bin, len));
+            mbedtls_mpi_write_file("X_Q:   ", &X, 16, NULL);
+            break;
+        default:
+            mbedtls_printf(
+                "This program does not yet support listing coordinates for this curve type.\n");
+            break;
+    }
+
+    if (has_private) {
+        mbedtls_mpi_write_file("D:     ", &D, 16, NULL);
+    }
+
+cleanup:
+    mbedtls_ecp_group_free(&grp);
+    mbedtls_mpi_free(&D);
+    mbedtls_ecp_point_free(&pt);
+    mbedtls_mpi_free(&X); mbedtls_mpi_free(&Y);
+    return ret;
+}
+#endif
+
 int main(int argc, char *argv[])
 {
     int ret = 1;
@@ -365,12 +430,10 @@ usage:
 #endif
 #if defined(MBEDTLS_ECP_C)
     if (mbedtls_pk_get_type(&key) == MBEDTLS_PK_ECKEY) {
-        mbedtls_ecp_keypair *ecp = mbedtls_pk_ec(key);
-        mbedtls_printf("curve: %s\n",
-                       mbedtls_ecp_curve_info_from_grp_id(ecp->MBEDTLS_PRIVATE(grp).id)->name);
-        mbedtls_mpi_write_file("X_Q:   ", &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(X), 16, NULL);
-        mbedtls_mpi_write_file("Y_Q:   ", &ecp->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Y), 16, NULL);
-        mbedtls_mpi_write_file("D:     ", &ecp->MBEDTLS_PRIVATE(d), 16, NULL);
+        if (show_ecp_key(mbedtls_pk_ec(key), 1) != 0) {
+            mbedtls_printf(" failed\n  ! could not export ECC parameters\n\n");
+            goto exit;
+        }
     } else
 #endif
     mbedtls_printf("  ! key type not supported\n");

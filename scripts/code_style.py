@@ -22,7 +22,7 @@ import os
 import re
 import subprocess
 import sys
-from typing import FrozenSet, List
+from typing import FrozenSet, List, Optional
 
 UNCRUSTIFY_SUPPORTED_VERSION = "0.75.1"
 CONFIG_FILE = ".uncrustify.cfg"
@@ -63,19 +63,31 @@ def list_generated_files() -> FrozenSet[str]:
     checks = re.findall(CHECK_CALL_RE, content)
     return frozenset(word for s in checks for word in s.split())
 
-def get_src_files() -> List[str]:
+def get_src_files(since: Optional[str]) -> List[str]:
     """
     Use git to get a list of the source files.
+
+    The optional argument since is a commit, indicating to only list files
+    that have changed since that commit. Without this argument, list all
+    files known to git.
 
     Only C files are included, and certain files (generated, or 3rdparty)
     are excluded.
     """
-    git_ls_files_cmd = ["git", "ls-files",
-                        "*.[hc]",
-                        "tests/suites/*.function",
-                        "scripts/data_files/*.fmt"]
-    output = subprocess.check_output(git_ls_files_cmd,
-                                     universal_newlines=True)
+    if since is None:
+        git_ls_files_cmd = ["git", "ls-files",
+                            "*.[hc]",
+                            "tests/suites/*.function",
+                            "scripts/data_files/*.fmt"]
+        output = subprocess.check_output(git_ls_files_cmd,
+                                         universal_newlines=True)
+    else:
+        git_ls_files_cmd = ["git", "diff", "--name-only", since, "--",
+                            "*.[hc]",
+                            "tests/suites/*.function",
+                            "scripts/data_files/*.fmt"]
+        output = subprocess.check_output(git_ls_files_cmd,
+                                         universal_newlines=True)
     src_files = output.split()
 
     generated_files = list_generated_files()
@@ -180,6 +192,9 @@ def main() -> int:
     parser.add_argument('-f', '--fix', action='store_true',
                         help=('modify source files to fix the code style '
                               '(default: print diff, do not modify files)'))
+    parser.add_argument('-s', '--since', metavar='COMMIT',
+                        help=('only check files modified since the specified commit'
+                              ' (e.g. --since=HEAD~3 or --since=development)'))
     # --subset is almost useless: it only matters if there are no files
     # ('code_style.py' without arguments checks all files known to Git,
     # 'code_style.py --subset' does nothing). In particular,
@@ -192,7 +207,7 @@ def main() -> int:
 
     args = parser.parse_args()
 
-    covered = frozenset(get_src_files())
+    covered = frozenset(get_src_files(args.since))
     # We only check files that are known to git
     if args.subset or args.operands:
         src_files = [f for f in args.operands if f in covered]

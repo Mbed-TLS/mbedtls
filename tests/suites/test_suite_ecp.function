@@ -989,7 +989,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_C */
-void ecp_calc_public(int grp_id, data_t *private,
+void ecp_calc_public(int grp_id, data_t *private_data,
                      int expected_ret, data_t *expected_public)
 {
     mbedtls_ecp_keypair key;
@@ -998,7 +998,8 @@ void ecp_calc_public(int grp_id, data_t *private,
     memset(&rnd_info, 0x00, sizeof(mbedtls_test_rnd_pseudo_info));
 
     TEST_EQUAL(mbedtls_ecp_group_load(&key.grp, grp_id), 0);
-    TEST_EQUAL(mbedtls_mpi_read_binary(&key.d, private->x, private->len), 0);
+    TEST_EQUAL(mbedtls_mpi_read_binary(&key.d,
+                                       private_data->x, private_data->len), 0);
 
     TEST_EQUAL(mbedtls_ecp_keypair_calc_public(&key,
                                                &mbedtls_test_rnd_pseudo_rand, &rnd_info),

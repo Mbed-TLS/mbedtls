@@ -2597,8 +2597,7 @@ static int ssl_get_ecdh_params_from_cert(mbedtls_ssl_context *ssl)
     psa_ecc_family_t ecc_family;
     size_t key_len;
     mbedtls_ecp_group_id grp_id;
-    unsigned char buf[
-        PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
+    unsigned char buf[PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
     mbedtls_ecp_keypair *key;
 #endif /* !MBEDTLS_PK_USE_PSA_EC_DATA */
 

@@ -34,7 +34,8 @@ class EcpP192R1Raw(bignum_common.ModOperationCommon,
     test_name = "ecp_mod_p192_raw"
     input_style = "fixed"
     arity = 1
-    dependencies = ["MBEDTLS_ECP_DP_SECP192R1_ENABLED"]
+    dependencies = ["MBEDTLS_ECP_DP_SECP192R1_ENABLED",
+                    "MBEDTLS_ECP_NIST_OPTIM"]
 
     moduli = ["fffffffffffffffffffffffffffffffeffffffffffffffff"] # type: List[str]
 
@@ -110,7 +111,8 @@ class EcpP224R1Raw(bignum_common.ModOperationCommon,
     test_name = "ecp_mod_p224_raw"
     input_style = "arch_split"
     arity = 1
-    dependencies = ["MBEDTLS_ECP_DP_SECP224R1_ENABLED"]
+    dependencies = ["MBEDTLS_ECP_DP_SECP224R1_ENABLED",
+                    "MBEDTLS_ECP_NIST_OPTIM"]
 
     moduli = ["ffffffffffffffffffffffffffffffff000000000000000000000001"] # type: List[str]
 
@@ -187,7 +189,8 @@ class EcpP256R1Raw(bignum_common.ModOperationCommon,
     test_name = "ecp_mod_p256_raw"
     input_style = "fixed"
     arity = 1
-    dependencies = ["MBEDTLS_ECP_DP_SECP256R1_ENABLED"]
+    dependencies = ["MBEDTLS_ECP_DP_SECP256R1_ENABLED",
+                    "MBEDTLS_ECP_NIST_OPTIM"]
 
     moduli = ["ffffffff00000001000000000000000000000000ffffffffffffffffffffffff"] # type: List[str]
 
@@ -270,7 +273,8 @@ class EcpP384R1Raw(bignum_common.ModOperationCommon,
     test_name = "ecp_mod_p384_raw"
     input_style = "fixed"
     arity = 1
-    dependencies = ["MBEDTLS_ECP_DP_SECP384R1_ENABLED"]
+    dependencies = ["MBEDTLS_ECP_DP_SECP384R1_ENABLED",
+                    "MBEDTLS_ECP_NIST_OPTIM"]
 
     moduli = [("ffffffffffffffffffffffffffffffffffffffffffffffff"
                "fffffffffffffffeffffffff0000000000000000ffffffff")
@@ -392,7 +396,8 @@ class EcpP521R1Raw(bignum_common.ModOperationCommon,
     test_name = "ecp_mod_p521_raw"
     input_style = "arch_split"
     arity = 1
-    dependencies = ["MBEDTLS_ECP_DP_SECP521R1_ENABLED"]
+    dependencies = ["MBEDTLS_ECP_DP_SECP521R1_ENABLED",
+                    "MBEDTLS_ECP_NIST_OPTIM"]
 
     moduli = [("01ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
                "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")

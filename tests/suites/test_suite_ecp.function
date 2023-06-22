@@ -1294,35 +1294,35 @@ void ecp_mod_p_generic_raw(int curve_id,
     bytes = limbs_N * sizeof(mbedtls_mpi_uint);
 
     switch (curve_id) {
-#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
+#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) && defined(MBEDTLS_ECP_NIST_OPTIM)
         case MBEDTLS_ECP_DP_SECP192R1:
             limbs = 2 * limbs_N;
             curve_bits = 192;
             curve_func = &mbedtls_ecp_mod_p192_raw;
             break;
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
+#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) && defined(MBEDTLS_ECP_NIST_OPTIM)
         case MBEDTLS_ECP_DP_SECP224R1:
             limbs = 448 / biL;
             curve_bits = 224;
             curve_func = &mbedtls_ecp_mod_p224_raw;
             break;
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) && defined(MBEDTLS_ECP_NIST_OPTIM)
         case MBEDTLS_ECP_DP_SECP256R1:
             limbs = 2 * limbs_N;
             curve_bits = 256;
             curve_func = &mbedtls_ecp_mod_p256_raw;
             break;
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) && defined(MBEDTLS_ECP_NIST_OPTIM)
         case MBEDTLS_ECP_DP_SECP384R1:
             limbs = 2 * limbs_N;
             curve_bits = 384;
             curve_func = &mbedtls_ecp_mod_p384_raw;
             break;
 #endif
-#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED) && defined(MBEDTLS_ECP_NIST_OPTIM)
         case MBEDTLS_ECP_DP_SECP521R1:
             limbs = 2 * limbs_N;
             curve_bits = 522;
@@ -1373,8 +1373,7 @@ void ecp_mod_p_generic_raw(int curve_id,
     TEST_EQUAL(limbs_res, limbs_N);
 
     TEST_EQUAL(mbedtls_mpi_mod_modulus_setup(
-                   &m, N, limbs_N,
-                   MBEDTLS_MPI_MOD_REP_OPT_RED), 0);
+                   &m, N, limbs_N), 0);
 
     TEST_EQUAL((*curve_func)(X, limbs_X), 0);
 
@@ -1407,16 +1406,18 @@ void ecp_mod_setup(char *input_A, int id, int ctype, int iret)
     TEST_EQUAL(ret, iret);
 
     if (ret == 0) {
-
+        TEST_ASSERT(m.int_rep != MBEDTLS_MPI_MOD_REP_INVALID);
         /* Test for limb sizes */
         TEST_EQUAL(m.limbs, p_limbs);
         bytes = p_limbs * sizeof(mbedtls_mpi_uint);
 
-        /* Test for validity of moduli by the presence of Montgomery consts */
-
-        TEST_ASSERT(m.rep.mont.mm != 0);
-        TEST_ASSERT(m.rep.mont.rr != NULL);
-
+        if (m.int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY) {
+            /* Test for validity of moduli by the presence of Montgomery consts */
+            TEST_ASSERT(m.rep.mont.mm != 0);
+            TEST_ASSERT(m.rep.mont.rr != NULL);
+        } else {
+            TEST_ASSERT(m.rep.ored.modp != NULL);
+        }
 
         /* Compare output byte-by-byte */
         ASSERT_COMPARE(p, bytes, m.p, bytes);

@@ -306,7 +306,7 @@ int mbedtls_ecp_mod_p448_raw(mbedtls_mpi_uint *X, size_t X_limbs);
  * \param[in,out] N The address of the modulus structure to populate.
  *                  Must be initialized.
  * \param[in] id    The mbedtls_ecp_group_id for which to initialise the modulus.
- * \param[in] ctype The mbedtls_ecp_curve_type identifier for a coordinate modulus (P)
+ * \param[in] ctype The mbedtls_ecp_modulus_type identifier for a coordinate modulus (P)
  *                  or a scalar modulus (N).
  *
  * \return          \c 0 if successful.
@@ -317,7 +317,7 @@ int mbedtls_ecp_mod_p448_raw(mbedtls_mpi_uint *X, size_t X_limbs);
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
                               const mbedtls_ecp_group_id id,
-                              const mbedtls_ecp_curve_type ctype);
+                              const mbedtls_ecp_modulus_type ctype);
 
 #endif /* MBEDTLS_TEST_HOOKS && MBEDTLS_ECP_C */
 

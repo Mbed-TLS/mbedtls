@@ -248,6 +248,8 @@
 
 #endif /* AMD64 */
 
+// The following assembly code assumes that a pointer will fit in a 64-bit register
+// (including ILP32 __aarch64__ ABIs such as on watchOS, hence the 2^32 - 1)
 #if defined(__aarch64__) && (UINTPTR_MAX == 0xfffffffful || UINTPTR_MAX == 0xfffffffffffffffful)
 
 #define MULADDC_X1_INIT             \

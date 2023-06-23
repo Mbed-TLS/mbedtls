@@ -5970,7 +5970,7 @@ int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
         case MBEDTLS_ECP_DP_SECP192K1:
             if (ctype == (mbedtls_ecp_modulus_type) MBEDTLS_ECP_MOD_COORDINATE) {
-                modp = &mbedtls_ecp_mod_p192_raw;
+                modp = &mbedtls_ecp_mod_p192k1_raw;
                 p = (mbedtls_mpi_uint *) secp192k1_p;
                 p_limbs = CHARS_TO_LIMBS(sizeof(secp192k1_p));
             } else {
@@ -5983,7 +5983,7 @@ int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
 #if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
         case MBEDTLS_ECP_DP_SECP224K1:
             if (ctype == (mbedtls_ecp_modulus_type) MBEDTLS_ECP_MOD_COORDINATE) {
-                modp = &mbedtls_ecp_mod_p224_raw;
+                modp = &mbedtls_ecp_mod_p224k1_raw;
                 p = (mbedtls_mpi_uint *) secp224k1_p;
                 p_limbs = CHARS_TO_LIMBS(sizeof(secp224k1_p));
             } else {
@@ -5996,7 +5996,7 @@ int mbedtls_ecp_modulus_setup(mbedtls_mpi_mod_modulus *N,
 #if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
         case MBEDTLS_ECP_DP_SECP256K1:
             if (ctype == (mbedtls_ecp_modulus_type) MBEDTLS_ECP_MOD_COORDINATE) {
-                modp = &mbedtls_ecp_mod_p256_raw;
+                modp = &mbedtls_ecp_mod_p256k1_raw;
                 p = (mbedtls_mpi_uint *) secp256k1_p;
                 p_limbs = CHARS_TO_LIMBS(sizeof(secp256k1_p));
             } else {

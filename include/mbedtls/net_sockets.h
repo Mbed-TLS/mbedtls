@@ -280,16 +280,16 @@ int mbedtls_net_recv_timeout(void *ctx, unsigned char *buf, size_t len,
                              uint32_t timeout);
 
 /**
- * \brief          Closes down the connection and free associated data
+ * \brief          Close down the connection and clear the context
  *
  * \param ctx      The context to close
  */
 void mbedtls_net_close(mbedtls_net_context *ctx);
 
 /**
- * \brief          Gracefully shutdown the connection and free associated data
+ * \brief          Gracefully shutdown the connection and clear the context
  *
- * \param ctx      The context to free
+ * \param ctx      The context to gracefully shutdown
  */
 void mbedtls_net_free(mbedtls_net_context *ctx);
 

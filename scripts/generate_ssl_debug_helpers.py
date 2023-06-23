@@ -209,7 +209,7 @@ class EnumDefinition:
                     continue
                 member = field.strip().split()[0]
                 translation_table.append(
-                    '{space}case {member}:\n{space}    return "{member};";'
+                    '{space}case {member}:\n{space}    return "{member}";'
                     .format(member=member, space=' '*8)
                 )
 

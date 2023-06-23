@@ -7,7 +7,7 @@
 #include "mbedtls/ecdsa.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/hmac_drbg.h"
-#include "psa_util_internal.h"
+#include "mbedtls/psa_util.h"
 #include "psa/crypto.h"
 
 /* How many bytes to generate in each test case for repeated generation.

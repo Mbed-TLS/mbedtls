@@ -194,9 +194,12 @@ void mbedtls_ct_mpi_uint_cond_assign(size_t n,
  *
  * \param value     A value in the range 0..63.
  *
+ * \param urlsafe   Whether to use base64url encoding, where '+' and '/' are
+ *                  substituted for '-' and '_' respectively.
+ *
  * \return          A base64 digit converted from \p value.
  */
-unsigned char mbedtls_ct_base64_enc_char(unsigned char value);
+unsigned char mbedtls_ct_base64_enc_char(unsigned char value, unsigned char urlsafe);
 
 /** Given a Base64 digit, return its value.
  *
@@ -206,11 +209,14 @@ unsigned char mbedtls_ct_base64_enc_char(unsigned char value);
  * The implementation assumes that letters are consecutive (e.g. ASCII
  * but not EBCDIC).
  *
- * \param c     A base64 digit.
+ * \param c         A base64 digit.
  *
- * \return      The value of the base64 digit \p c.
+ * \param urlsafe   Whether to use base64url encoding, where '+' and '/' are
+ *                  substituted for '-' and '_' respectively.
+ *
+ * \return          The value of the base64 digit \p c.
  */
-signed char mbedtls_ct_base64_dec_value(unsigned char c);
+signed char mbedtls_ct_base64_dec_value(unsigned char c, unsigned char urlsafe);
 
 #endif /* MBEDTLS_BASE64_C */
 

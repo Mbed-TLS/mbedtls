@@ -346,23 +346,31 @@ void mbedtls_ct_mpi_uint_cond_assign(size_t n,
 
 #if defined(MBEDTLS_BASE64_C)
 
-unsigned char mbedtls_ct_base64_enc_char(unsigned char value)
+unsigned char mbedtls_ct_base64_enc_char(unsigned char value, unsigned char urlsafe)
 {
     unsigned char digit = 0;
+
+    char plus[] = { '+', '-' };
+    char slash[] = { '/', '_' };
+    urlsafe = !!urlsafe;
     /* For each range of values, if value is in that range, mask digit with
      * the corresponding value. Since value can only be in a single range,
      * only at most one masking will change digit. */
     digit |= mbedtls_ct_uchar_mask_of_range(0, 25, value) & ('A' + value);
     digit |= mbedtls_ct_uchar_mask_of_range(26, 51, value) & ('a' + value - 26);
     digit |= mbedtls_ct_uchar_mask_of_range(52, 61, value) & ('0' + value - 52);
-    digit |= mbedtls_ct_uchar_mask_of_range(62, 62, value) & '+';
-    digit |= mbedtls_ct_uchar_mask_of_range(63, 63, value) & '/';
+    digit |= mbedtls_ct_uchar_mask_of_range(62, 62, value) & plus[urlsafe];
+    digit |= mbedtls_ct_uchar_mask_of_range(63, 63, value) & slash[urlsafe];
     return digit;
 }
 
-signed char mbedtls_ct_base64_dec_value(unsigned char c)
+signed char mbedtls_ct_base64_dec_value(unsigned char c, unsigned char urlsafe)
 {
     unsigned char val = 0;
+
+    char plus[] = { '+', '-' };
+    char slash[] = { '/', '_' };
+    urlsafe = !!urlsafe;
     /* For each range of digits, if c is in that range, mask val with
      * the corresponding value. Since c can only be in a single range,
      * only at most one masking will change val. Set val to one plus
@@ -370,8 +378,10 @@ signed char mbedtls_ct_base64_dec_value(unsigned char c)
     val |= mbedtls_ct_uchar_mask_of_range('A', 'Z', c) & (c - 'A' +  0 + 1);
     val |= mbedtls_ct_uchar_mask_of_range('a', 'z', c) & (c - 'a' + 26 + 1);
     val |= mbedtls_ct_uchar_mask_of_range('0', '9', c) & (c - '0' + 52 + 1);
-    val |= mbedtls_ct_uchar_mask_of_range('+', '+', c) & (c - '+' + 62 + 1);
-    val |= mbedtls_ct_uchar_mask_of_range('/', '/', c) & (c - '/' + 63 + 1);
+    val |= mbedtls_ct_uchar_mask_of_range(plus[urlsafe], plus[urlsafe], c)
+           & (c - plus[urlsafe] + 62 + 1);
+    val |= mbedtls_ct_uchar_mask_of_range(slash[urlsafe], slash[urlsafe], c)
+           & (c - slash[urlsafe] + 63 + 1);
     /* At this point, val is 0 if c is an invalid digit and v+1 if c is
      * a digit with the value v. */
     return val - 1;

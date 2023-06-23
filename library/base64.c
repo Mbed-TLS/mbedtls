@@ -33,11 +33,10 @@
 #include "mbedtls/platform.h"
 #endif /* MBEDTLS_SELF_TEST */
 
-/*
- * Encode a buffer into base64 format
- */
-int mbedtls_base64_encode(unsigned char *dst, size_t dlen, size_t *olen,
-                          const unsigned char *src, size_t slen)
+static int mbedtls_base64_encode_internal(unsigned char *dst, size_t dlen,
+                                          size_t *olen,
+                                          const unsigned char *src, size_t slen,
+                                          unsigned char urlsafe)
 {
     size_t i, n;
     int C1, C2, C3;
@@ -69,24 +68,25 @@ int mbedtls_base64_encode(unsigned char *dst, size_t dlen, size_t *olen,
         C2 = *src++;
         C3 = *src++;
 
-        *p++ = mbedtls_ct_base64_enc_char((C1 >> 2) & 0x3F);
+        *p++ = mbedtls_ct_base64_enc_char((C1 >> 2) & 0x3F, urlsafe);
         *p++ = mbedtls_ct_base64_enc_char((((C1 &  3) << 4) + (C2 >> 4))
-                                          & 0x3F);
+                                          & 0x3F, urlsafe);
         *p++ = mbedtls_ct_base64_enc_char((((C2 & 15) << 2) + (C3 >> 6))
-                                          & 0x3F);
-        *p++ = mbedtls_ct_base64_enc_char(C3 & 0x3F);
+                                          & 0x3F, urlsafe);
+        *p++ = mbedtls_ct_base64_enc_char(C3 & 0x3F, urlsafe);
     }
 
     if (i < slen) {
         C1 = *src++;
         C2 = ((i + 1) < slen) ? *src++ : 0;
 
-        *p++ = mbedtls_ct_base64_enc_char((C1 >> 2) & 0x3F);
+        *p++ = mbedtls_ct_base64_enc_char((C1 >> 2) & 0x3F, urlsafe);
         *p++ = mbedtls_ct_base64_enc_char((((C1 & 3) << 4) + (C2 >> 4))
-                                          & 0x3F);
+                                          & 0x3F, urlsafe);
 
         if ((i + 1) < slen) {
-            *p++ = mbedtls_ct_base64_enc_char(((C2 & 15) << 2) & 0x3F);
+            *p++ = mbedtls_ct_base64_enc_char(((C2 & 15) << 2) & 0x3F,
+                                              urlsafe);
         } else {
             *p++ = '=';
         }
@@ -101,10 +101,24 @@ int mbedtls_base64_encode(unsigned char *dst, size_t dlen, size_t *olen,
 }
 
 /*
- * Decode a base64-formatted buffer
+ * Encode a buffer into base64 format
  */
-int mbedtls_base64_decode(unsigned char *dst, size_t dlen, size_t *olen,
+int mbedtls_base64_encode(unsigned char *dst, size_t dlen, size_t *olen,
                           const unsigned char *src, size_t slen)
+{
+    return mbedtls_base64_encode_internal(dst, dlen, olen, src, slen, 0);
+}
+
+int mbedtls_base64url_encode(unsigned char *dst, size_t dlen, size_t *olen,
+                             const unsigned char *src, size_t slen)
+{
+    return mbedtls_base64_encode_internal(dst, dlen, olen, src, slen, 1);
+}
+
+static int mbedtls_base64_decode_internal(unsigned char *dst, size_t dlen,
+                                          size_t *olen,
+                                          const unsigned char *src, size_t slen,
+                                          unsigned char urlsafe)
 {
     size_t i; /* index in source */
     size_t n; /* number of digits or trailing = in source */
@@ -154,7 +168,7 @@ int mbedtls_base64_decode(unsigned char *dst, size_t dlen, size_t *olen,
             if (equals != 0) {
                 return MBEDTLS_ERR_BASE64_INVALID_CHARACTER;
             }
-            if (mbedtls_ct_base64_dec_value(src[i]) < 0) {
+            if (mbedtls_ct_base64_dec_value(src[i], urlsafe) < 0) {
                 return MBEDTLS_ERR_BASE64_INVALID_CHARACTER;
             }
         }
@@ -188,7 +202,7 @@ int mbedtls_base64_decode(unsigned char *dst, size_t dlen, size_t *olen,
         if (*src == '=') {
             ++equals;
         } else {
-            x |= mbedtls_ct_base64_dec_value(*src);
+            x |= mbedtls_ct_base64_dec_value(*src, urlsafe);
         }
 
         if (++accumulated_digits == 4) {
@@ -206,6 +220,21 @@ int mbedtls_base64_decode(unsigned char *dst, size_t dlen, size_t *olen,
     *olen = p - dst;
 
     return 0;
+}
+
+/*
+ * Decode a base64-formatted buffer
+ */
+int mbedtls_base64_decode(unsigned char *dst, size_t dlen, size_t *olen,
+                          const unsigned char *src, size_t slen)
+{
+    return mbedtls_base64_decode_internal(dst, dlen, olen, src, slen, 0);
+}
+
+int mbedtls_base64url_decode(unsigned char *dst, size_t dlen, size_t *olen,
+                             const unsigned char *src, size_t slen)
+{
+    return mbedtls_base64_decode_internal(dst, dlen, olen, src, slen, 1);
 }
 
 #if defined(MBEDTLS_SELF_TEST)

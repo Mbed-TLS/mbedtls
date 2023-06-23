@@ -709,6 +709,7 @@ static int extract_ecdsa_sig(unsigned char **p, const unsigned char *end,
     return 0;
 }
 
+/* Common helper for ECDSA verify using PSA functions. */
 static int ecdsa_verify_psa(unsigned char *key, size_t key_len,
                             psa_ecc_family_t curve, size_t curve_bits,
                             const unsigned char *hash, size_t hash_len,
@@ -773,10 +774,10 @@ cleanup:
     return ret;
 }
 
-static int pk_opaque_ecdsa_verify_wrap(mbedtls_pk_context *pk,
-                                       mbedtls_md_type_t md_alg,
-                                       const unsigned char *hash, size_t hash_len,
-                                       const unsigned char *sig, size_t sig_len)
+static int ecdsa_opaque_verify_wrap(mbedtls_pk_context *pk,
+                                    mbedtls_md_type_t md_alg,
+                                    const unsigned char *hash, size_t hash_len,
+                                    const unsigned char *sig, size_t sig_len)
 {
     (void) md_alg;
     unsigned char key[MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN];
@@ -947,9 +948,7 @@ static int pk_ecdsa_sig_asn1_from_psa(unsigned char *sig, size_t *sig_len,
     return 0;
 }
 
-/* This is the common helper used by ecdsa_sign_wrap() functions below (they
- * differ in having PK_USE_PSA_EC_DATA defined or not) to sign using PSA
- * functions. */
+/* Common helper for ECDSA sign using PSA functions. */
 static int ecdsa_sign_psa(mbedtls_svc_key_id_t key_id, mbedtls_md_type_t md_alg,
                           const unsigned char *hash, size_t hash_len,
                           unsigned char *sig, size_t sig_size, size_t *sig_len)
@@ -965,6 +964,7 @@ static int ecdsa_sign_psa(mbedtls_svc_key_id_t key_id, mbedtls_md_type_t md_alg,
         return PSA_PK_ECDSA_TO_MBEDTLS_ERR(status);
     }
     alg = psa_get_key_algorithm(&key_attr);
+    psa_reset_key_attributes(&key_attr);
 
     if (PSA_ALG_IS_DETERMINISTIC_ECDSA(alg)) {
         psa_sig_md = PSA_ALG_DETERMINISTIC_ECDSA(mbedtls_md_psa_alg_from_type(md_alg));
@@ -983,18 +983,13 @@ static int ecdsa_sign_psa(mbedtls_svc_key_id_t key_id, mbedtls_md_type_t md_alg,
     return ret;
 }
 
-/* The reason for having this duplicated compared to ecdsa_sign_wrap() below is
- * that:
- * - opaque keys are available as long as USE_PSA_CRYPTO is defined and even
- *   if !PK_USE_PSA_EC_DATA
- * - opaque keys do not support PSA_ALG_DETERMINISTIC_ECDSA() */
-static int pk_opaque_ecdsa_sign_wrap(mbedtls_pk_context *pk,
-                                     mbedtls_md_type_t md_alg,
-                                     const unsigned char *hash, size_t hash_len,
-                                     unsigned char *sig, size_t sig_size,
-                                     size_t *sig_len,
-                                     int (*f_rng)(void *, unsigned char *, size_t),
-                                     void *p_rng)
+static int ecdsa_opaque_sign_wrap(mbedtls_pk_context *pk,
+                                  mbedtls_md_type_t md_alg,
+                                  const unsigned char *hash, size_t hash_len,
+                                  unsigned char *sig, size_t sig_size,
+                                  size_t *sig_len,
+                                  int (*f_rng)(void *, unsigned char *, size_t),
+                                  void *p_rng)
 {
     ((void) f_rng);
     ((void) p_rng);
@@ -1004,17 +999,9 @@ static int pk_opaque_ecdsa_sign_wrap(mbedtls_pk_context *pk,
 }
 
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-static int ecdsa_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
-                           const unsigned char *hash, size_t hash_len,
-                           unsigned char *sig, size_t sig_size, size_t *sig_len,
-                           int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
-{
-    ((void) f_rng);
-    ((void) p_rng);
-
-    return ecdsa_sign_psa(pk->priv_id, md_alg, hash, hash_len, sig, sig_size,
-                          sig_len);
-}
+/* When PK_USE_PSA_EC_DATA is defined opaque and non-opaque keys end up
+ * using the same function. */
+#define ecdsa_sign_wrap     ecdsa_opaque_sign_wrap
 #else /* MBEDTLS_PK_USE_PSA_EC_DATA */
 static int ecdsa_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
                            const unsigned char *hash, size_t hash_len,
@@ -1596,7 +1583,7 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-static size_t pk_opaque_get_bitlen(mbedtls_pk_context *pk)
+static size_t opaque_get_bitlen(mbedtls_pk_context *pk)
 {
     size_t bits;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -1610,27 +1597,21 @@ static size_t pk_opaque_get_bitlen(mbedtls_pk_context *pk)
     return bits;
 }
 
-static int pk_opaque_ecdsa_can_do(mbedtls_pk_type_t type)
+static int ecdsa_opaque_can_do(mbedtls_pk_type_t type)
 {
     return type == MBEDTLS_PK_ECKEY ||
            type == MBEDTLS_PK_ECDSA;
 }
 
 #if defined(MBEDTLS_PK_USE_PSA_EC_DATA)
-static int pk_opaque_ecdsa_check_pair_wrap(mbedtls_pk_context *pub,
-                                           mbedtls_pk_context *prv,
-                                           int (*f_rng)(void *, unsigned char *, size_t),
-                                           void *p_rng)
-{
-    (void) f_rng;
-    (void) p_rng;
-    return eckey_check_pair_psa(pub, prv);
-}
+/* When PK_USE_PSA_EC_DATA is defined opaque and non-opaque keys end up
+ * using the same function. */
+#define ecdsa_opaque_check_pair_wrap    eckey_check_pair_wrap
 #else /* MBEDTLS_PK_USE_PSA_EC_DATA */
-static int pk_opaque_ecdsa_check_pair_wrap(mbedtls_pk_context *pub,
-                                           mbedtls_pk_context *prv,
-                                           int (*f_rng)(void *, unsigned char *, size_t),
-                                           void *p_rng)
+static int ecdsa_opaque_check_pair_wrap(mbedtls_pk_context *pub,
+                                        mbedtls_pk_context *prv,
+                                        int (*f_rng)(void *, unsigned char *, size_t),
+                                        void *p_rng)
 {
     psa_status_t status;
     uint8_t exp_pub_key[MBEDTLS_PK_MAX_EC_PUBKEY_RAW_LEN];
@@ -1662,27 +1643,27 @@ static int pk_opaque_ecdsa_check_pair_wrap(mbedtls_pk_context *pub,
 }
 #endif /* MBEDTLS_PK_USE_PSA_EC_DATA */
 
-const mbedtls_pk_info_t mbedtls_pk_ecdsa_opaque_info = {
+const mbedtls_pk_info_t mbedtls_ecdsa_opaque_info = {
     .type = MBEDTLS_PK_OPAQUE,
     .name = "Opaque",
-    .get_bitlen = pk_opaque_get_bitlen,
-    .can_do = pk_opaque_ecdsa_can_do,
-    .verify_func = pk_opaque_ecdsa_verify_wrap,
-    .sign_func = pk_opaque_ecdsa_sign_wrap,
-    .check_pair_func = pk_opaque_ecdsa_check_pair_wrap,
+    .get_bitlen = opaque_get_bitlen,
+    .can_do = ecdsa_opaque_can_do,
+    .verify_func = ecdsa_opaque_verify_wrap,
+    .sign_func = ecdsa_opaque_sign_wrap,
+    .check_pair_func = ecdsa_opaque_check_pair_wrap,
 };
 
-static int pk_opaque_rsa_can_do(mbedtls_pk_type_t type)
+static int rsa_opaque_can_do(mbedtls_pk_type_t type)
 {
     return type == MBEDTLS_PK_RSA ||
            type == MBEDTLS_PK_RSASSA_PSS;
 }
 
 #if defined(MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY)
-static int pk_opaque_rsa_decrypt(mbedtls_pk_context *pk,
-                                 const unsigned char *input, size_t ilen,
-                                 unsigned char *output, size_t *olen, size_t osize,
-                                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
+static int rsa_opaque_decrypt(mbedtls_pk_context *pk,
+                              const unsigned char *input, size_t ilen,
+                              unsigned char *output, size_t *olen, size_t osize,
+                              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
 {
     psa_status_t status;
 
@@ -1702,10 +1683,10 @@ static int pk_opaque_rsa_decrypt(mbedtls_pk_context *pk,
 }
 #endif /* MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY */
 
-static int pk_opaque_rsa_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
-                                   const unsigned char *hash, size_t hash_len,
-                                   unsigned char *sig, size_t sig_size, size_t *sig_len,
-                                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
+static int rsa_opaque_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_alg,
+                                const unsigned char *hash, size_t hash_len,
+                                unsigned char *sig, size_t sig_size, size_t *sig_len,
+                                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng)
 {
 #if defined(MBEDTLS_RSA_C)
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -1757,14 +1738,14 @@ static int pk_opaque_rsa_sign_wrap(mbedtls_pk_context *pk, mbedtls_md_type_t md_
 #endif /* !MBEDTLS_RSA_C */
 }
 
-const mbedtls_pk_info_t mbedtls_pk_rsa_opaque_info = {
+const mbedtls_pk_info_t mbedtls_rsa_opaque_info = {
     .type = MBEDTLS_PK_OPAQUE,
     .name = "Opaque",
-    .get_bitlen = pk_opaque_get_bitlen,
-    .can_do = pk_opaque_rsa_can_do,
-    .sign_func = pk_opaque_rsa_sign_wrap,
+    .get_bitlen = opaque_get_bitlen,
+    .can_do = rsa_opaque_can_do,
+    .sign_func = rsa_opaque_sign_wrap,
 #if defined(MBEDTLS_PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_LEGACY)
-    .decrypt_func = pk_opaque_rsa_decrypt,
+    .decrypt_func = rsa_opaque_decrypt,
 #endif /* PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY */
 };
 

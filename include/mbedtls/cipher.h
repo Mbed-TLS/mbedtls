@@ -284,7 +284,7 @@ typedef struct mbedtls_cipher_info_t {
      * default length for variable sized ciphers.
      * Includes parity bits for ciphers like DES.
      */
-    unsigned int MBEDTLS_PRIVATE(key_bitlen);
+    uint16_t MBEDTLS_PRIVATE(key_bitlen);
 
     /** Name of the cipher. */
     const char *MBEDTLS_PRIVATE(name);
@@ -293,16 +293,16 @@ typedef struct mbedtls_cipher_info_t {
      * For ciphers that accept variable IV sizes,
      * this is the recommended size.
      */
-    unsigned int MBEDTLS_PRIVATE(iv_size);
+    uint16_t MBEDTLS_PRIVATE(iv_size);
 
     /** Bitflag comprised of MBEDTLS_CIPHER_VARIABLE_IV_LEN and
      *  MBEDTLS_CIPHER_VARIABLE_KEY_LEN indicating whether the
      *  cipher supports variable IV or variable key sizes, respectively.
      */
-    int MBEDTLS_PRIVATE(flags);
+    uint8_t MBEDTLS_PRIVATE(flags);
 
     /** The block size, in Bytes. */
-    unsigned int MBEDTLS_PRIVATE(block_size);
+    uint8_t MBEDTLS_PRIVATE(block_size);
 
     /** Struct for base cipher information and functions. */
     const mbedtls_cipher_base_t *MBEDTLS_PRIVATE(base);

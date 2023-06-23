@@ -23,10 +23,16 @@ mask_of_range 'A'..'Z'
 mask_of_range:65:90
 
 enc_char (all digits)
-enc_chars:
+enc_chars:0
+
+enc_char (all digits, base64url)
+enc_chars:1
 
 dec_value (all characters)
-dec_chars:
+dec_chars:0
+
+dec_value (all characters, base64url)
+dec_chars:1
 
 Test case mbedtls_base64_encode #1 buffer just right
 mbedtls_base64_encode:"":"":0:0

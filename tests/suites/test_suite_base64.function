@@ -7,6 +7,8 @@
 #if defined(MBEDTLS_TEST_HOOKS)
 static const char base64_digits[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static const char base64url_digits[] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 #endif /* MBEDTLS_TEST_HOOKS */
 
 /* END_HEADER */
@@ -37,36 +39,50 @@ void mask_of_range(int low_arg, int high_arg)
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
-void enc_chars()
+void enc_chars(int urlsafe)
 {
     for (unsigned value = 0; value < 64; value++) {
         mbedtls_test_set_step(value);
         TEST_CF_SECRET(&value, sizeof(value));
-        unsigned char digit = mbedtls_ct_base64_enc_char(value);
+        unsigned char digit = mbedtls_ct_base64_enc_char(value, urlsafe);
         TEST_CF_PUBLIC(&value, sizeof(value));
         TEST_CF_PUBLIC(&digit, sizeof(digit));
-        TEST_EQUAL(digit, base64_digits[value]);
+        if (urlsafe) {
+            TEST_EQUAL(digit, base64url_digits[value]);
+        } else {
+            TEST_EQUAL(digit, base64_digits[value]);
+        }
     }
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
-void dec_chars()
+void dec_chars(int urlsafe)
 {
     char *p;
     signed char expected;
 
     for (unsigned c = 0; c <= 0xff; c++) {
         mbedtls_test_set_step(c);
+
+        const char *digits;
+        size_t digits_len;
+        if (urlsafe) {
+            digits = base64url_digits;
+            digits_len = sizeof(base64url_digits);
+        } else {
+            digits = base64_digits;
+            digits_len = sizeof(base64_digits);
+        }
         /* base64_digits is 0-terminated. sizeof()-1 excludes the trailing 0. */
-        p = memchr(base64_digits, c, sizeof(base64_digits) - 1);
+        p = memchr(digits, c, digits_len - 1);
         if (p == NULL) {
             expected = -1;
         } else {
-            expected = p - base64_digits;
+            expected = p - digits;
         }
         TEST_CF_SECRET(&c, sizeof(c));
-        signed char actual = mbedtls_ct_base64_dec_value(c);
+        signed char actual = mbedtls_ct_base64_dec_value(c, urlsafe);
         TEST_CF_PUBLIC(&c, sizeof(c));
         TEST_CF_PUBLIC(&actual, sizeof(actual));
         TEST_EQUAL(actual, expected);

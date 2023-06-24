@@ -171,7 +171,9 @@ int mbedtls_pkcs12_pbe(mbedtls_asn1_buf *pbe_params, int mode,
         goto exit;
     }
 
-    if ((ret = mbedtls_cipher_set_iv(&cipher_ctx, iv, mbedtls_cipher_info_get_iv_size(cipher_info))) != 0) {
+    if ((ret =
+             mbedtls_cipher_set_iv(&cipher_ctx, iv,
+                                   mbedtls_cipher_info_get_iv_size(cipher_info))) != 0) {
         goto exit;
     }
 

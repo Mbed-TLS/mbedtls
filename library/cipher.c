@@ -67,7 +67,9 @@
 
 static int supported_init = 0;
 
-static inline const mbedtls_cipher_base_t* mbedtls_cipher_get_base(const mbedtls_cipher_info_t *info) {
+static inline const mbedtls_cipher_base_t *mbedtls_cipher_get_base(
+    const mbedtls_cipher_info_t *info)
+{
     return mbedtls_cipher_base_lookup_table[info->base_idx];
 }
 
@@ -342,12 +344,12 @@ int mbedtls_cipher_setkey(mbedtls_cipher_context_t *ctx,
         MBEDTLS_MODE_OFB == ctx->cipher_info->mode ||
         MBEDTLS_MODE_CTR == ctx->cipher_info->mode) {
         return mbedtls_cipher_get_base(ctx->cipher_info)->setkey_enc_func(ctx->cipher_ctx, key,
-                                                       ctx->key_bitlen);
+                                                                          ctx->key_bitlen);
     }
 
     if (MBEDTLS_DECRYPT == operation) {
         return mbedtls_cipher_get_base(ctx->cipher_info)->setkey_dec_func(ctx->cipher_ctx, key,
-                                                       ctx->key_bitlen);
+                                                                          ctx->key_bitlen);
     }
 
     return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
@@ -553,7 +555,8 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
         *olen = ilen;
 
         if (0 != (ret = mbedtls_cipher_get_base(ctx->cipher_info)->ecb_func(ctx->cipher_ctx,
-                                                         ctx->operation, input, output))) {
+                                                                            ctx->operation, input,
+                                                                            output))) {
             return ret;
         }
 
@@ -619,8 +622,11 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
                    copy_len);
 
             if (0 != (ret = mbedtls_cipher_get_base(ctx->cipher_info)->cbc_func(ctx->cipher_ctx,
-                                                             ctx->operation, block_size, ctx->iv,
-                                                             ctx->unprocessed_data, output))) {
+                                                                                ctx->operation,
+                                                                                block_size, ctx->iv,
+                                                                                ctx->
+                                                                                unprocessed_data,
+                                                                                output))) {
                 return ret;
             }
 
@@ -659,8 +665,10 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
          */
         if (ilen) {
             if (0 != (ret = mbedtls_cipher_get_base(ctx->cipher_info)->cbc_func(ctx->cipher_ctx,
-                                                             ctx->operation, ilen, ctx->iv, input,
-                                                             output))) {
+                                                                                ctx->operation,
+                                                                                ilen, ctx->iv,
+                                                                                input,
+                                                                                output))) {
                 return ret;
             }
 
@@ -674,9 +682,10 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
     if (ctx->cipher_info->mode == MBEDTLS_MODE_CFB) {
         if (0 != (ret = mbedtls_cipher_get_base(ctx->cipher_info)->cfb_func(ctx->cipher_ctx,
-                                                         ctx->operation, ilen,
-                                                         &ctx->unprocessed_len, ctx->iv,
-                                                         input, output))) {
+                                                                            ctx->operation, ilen,
+                                                                            &ctx->unprocessed_len,
+                                                                            ctx->iv,
+                                                                            input, output))) {
             return ret;
         }
 
@@ -689,8 +698,10 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
 #if defined(MBEDTLS_CIPHER_MODE_OFB)
     if (ctx->cipher_info->mode == MBEDTLS_MODE_OFB) {
         if (0 != (ret = mbedtls_cipher_get_base(ctx->cipher_info)->ofb_func(ctx->cipher_ctx,
-                                                         ilen, &ctx->unprocessed_len, ctx->iv,
-                                                         input, output))) {
+                                                                            ilen,
+                                                                            &ctx->unprocessed_len,
+                                                                            ctx->iv,
+                                                                            input, output))) {
             return ret;
         }
 
@@ -703,8 +714,11 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
     if (ctx->cipher_info->mode == MBEDTLS_MODE_CTR) {
         if (0 != (ret = mbedtls_cipher_get_base(ctx->cipher_info)->ctr_func(ctx->cipher_ctx,
-                                                         ilen, &ctx->unprocessed_len, ctx->iv,
-                                                         ctx->unprocessed_data, input, output))) {
+                                                                            ilen,
+                                                                            &ctx->unprocessed_len,
+                                                                            ctx->iv,
+                                                                            ctx->unprocessed_data,
+                                                                            input, output))) {
             return ret;
         }
 
@@ -722,7 +736,11 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
         }
 
         ret = mbedtls_cipher_get_base(ctx->cipher_info)->xts_func(ctx->cipher_ctx,
-                                               ctx->operation, ilen, ctx->iv, input, output);
+                                                                  ctx->operation,
+                                                                  ilen,
+                                                                  ctx->iv,
+                                                                  input,
+                                                                  output);
         if (ret != 0) {
             return ret;
         }
@@ -736,7 +754,8 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
 #if defined(MBEDTLS_CIPHER_MODE_STREAM)
     if (ctx->cipher_info->mode == MBEDTLS_MODE_STREAM) {
         if (0 != (ret = mbedtls_cipher_get_base(ctx->cipher_info)->stream_func(ctx->cipher_ctx,
-                                                            ilen, input, output))) {
+                                                                               ilen, input,
+                                                                               output))) {
             return ret;
         }
 
@@ -1001,10 +1020,12 @@ int mbedtls_cipher_finish(mbedtls_cipher_context_t *ctx,
 
         /* cipher block */
         if (0 != (ret = mbedtls_cipher_get_base(ctx->cipher_info)->cbc_func(ctx->cipher_ctx,
-                                                         ctx->operation,
-                                                         mbedtls_cipher_get_block_size(ctx),
-                                                         ctx->iv,
-                                                         ctx->unprocessed_data, output))) {
+                                                                            ctx->operation,
+                                                                            mbedtls_cipher_get_block_size(
+                                                                                ctx),
+                                                                            ctx->iv,
+                                                                            ctx->unprocessed_data,
+                                                                            output))) {
             return ret;
         }
 

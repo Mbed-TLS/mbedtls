@@ -129,7 +129,7 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_values(
 
     for (def = mbedtls_cipher_definitions; def->info != NULL; def++) {
         if (def->info->base->cipher == cipher_id &&
-            def->info->key_bitlen == (unsigned) key_bitlen &&
+            mbedtls_cipher_info_get_key_bitlen(def->info) == (unsigned) key_bitlen &&
             def->info->mode == mode) {
             return def->info;
         }
@@ -323,7 +323,7 @@ int mbedtls_cipher_setkey(mbedtls_cipher_context_t *ctx,
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     if ((ctx->cipher_info->flags & MBEDTLS_CIPHER_VARIABLE_KEY_LEN) == 0 &&
-        (int) ctx->cipher_info->key_bitlen != key_bitlen) {
+        (int) mbedtls_cipher_info_get_key_bitlen(ctx->cipher_info) != key_bitlen) {
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 

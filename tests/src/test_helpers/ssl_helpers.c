@@ -1143,10 +1143,10 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
     cipher_info = mbedtls_cipher_info_from_type(cipher_type);
     CHK(cipher_info != NULL);
     CHK(cipher_info->iv_size <= 16);
-    CHK(cipher_info->key_bitlen % 8 == 0);
+    CHK(mbedtls_cipher_info_get_key_bitlen(cipher_info) % 8 == 0);
 
     /* Pick keys */
-    keylen = cipher_info->key_bitlen / 8;
+    keylen = mbedtls_cipher_info_get_key_bitlen(cipher_info) / 8;
     /* Allocate `keylen + 1` bytes to ensure that we get
      * a non-NULL pointers from `mbedtls_calloc` even if
      * `keylen == 0` in the case of the NULL cipher. */

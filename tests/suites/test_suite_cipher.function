@@ -586,12 +586,12 @@ void dec_empty_buf(int cipher,
     ASSERT_ALLOC(iv, iv_len);
     memset(iv, 0, iv_len);
 
-    TEST_ASSERT(sizeof(key) * 8 >= cipher_info->key_bitlen);
+    TEST_ASSERT(sizeof(key) * 8 >= mbedtls_cipher_info_get_key_bitlen(cipher_info));
 
     TEST_ASSERT(0 == mbedtls_cipher_setup(&ctx_dec, cipher_info));
 
     TEST_ASSERT(0 == mbedtls_cipher_setkey(&ctx_dec,
-                                           key, cipher_info->key_bitlen,
+                                           key, mbedtls_cipher_info_get_key_bitlen(cipher_info),
                                            MBEDTLS_DECRYPT));
 
     TEST_ASSERT(0 == mbedtls_cipher_set_iv(&ctx_dec, iv, iv_len));

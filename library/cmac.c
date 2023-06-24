@@ -119,7 +119,7 @@ static int cmac_generate_subkeys(mbedtls_cipher_context_t *ctx,
 
     mbedtls_platform_zeroize(L, sizeof(L));
 
-    block_size = ctx->cipher_info->block_size;
+    block_size = mbedtls_cipher_info_get_block_size(ctx->cipher_info);
 
     /* Calculate Ek(0) */
     if ((ret = mbedtls_cipher_update(ctx, L, block_size, L, &olen)) != 0) {
@@ -226,7 +226,7 @@ int mbedtls_cipher_cmac_update(mbedtls_cipher_context_t *ctx,
     }
 
     cmac_ctx = ctx->cmac_ctx;
-    block_size = ctx->cipher_info->block_size;
+    block_size = mbedtls_cipher_info_get_block_size(ctx->cipher_info);
     state = ctx->cmac_ctx->state;
 
     /* Is there data still to process from the last call, that's greater in
@@ -295,7 +295,7 @@ int mbedtls_cipher_cmac_finish(mbedtls_cipher_context_t *ctx,
     }
 
     cmac_ctx = ctx->cmac_ctx;
-    block_size = ctx->cipher_info->block_size;
+    block_size = mbedtls_cipher_info_get_block_size(ctx->cipher_info);
     state = cmac_ctx->state;
 
     mbedtls_platform_zeroize(K1, sizeof(K1));

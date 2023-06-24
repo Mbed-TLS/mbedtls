@@ -305,15 +305,15 @@ typedef struct mbedtls_cipher_info_t {
     uint8_t MBEDTLS_PRIVATE(flags) : 2;
 
     /** The block size, in bytes. */
-    uint8_t MBEDTLS_PRIVATE(block_size) : 5;
+    uint8_t MBEDTLS_PRIVATE(block_size2) : 2;
 
 } mbedtls_cipher_info_t;
 
 /* For internal use only.
- * These are used to more compactly represent the key_bitlen and iv_size fields above. */
-#define MBEDTLS_KEY_BITLEN_SHIFT 6
-#define MBEDTLS_IV_SIZE_SHIFT    2
-
+ * These are used to more compactly represent the fields above. */
+#define MBEDTLS_KEY_BITLEN_SHIFT  6
+#define MBEDTLS_IV_SIZE_SHIFT     2
+#define MBEDTLS_CIPHER_BLOCK_SIZE_UNPACK(n) (n == 0 ? 1 : (n == 1 ? 8 : 16))
 /**
  * Generic cipher context.
  */
@@ -546,7 +546,8 @@ static inline size_t mbedtls_cipher_info_get_block_size(
         return 0;
     }
 
-    return (size_t) info->MBEDTLS_PRIVATE(block_size);
+    int packed = info->MBEDTLS_PRIVATE(block_size2);
+    return (size_t) (MBEDTLS_CIPHER_BLOCK_SIZE_UNPACK(packed));
 }
 
 /**
@@ -687,7 +688,8 @@ static inline unsigned int mbedtls_cipher_get_block_size(
         return 0;
     }
 
-    return ctx->MBEDTLS_PRIVATE(cipher_info)->MBEDTLS_PRIVATE(block_size);
+    int packed = ctx->MBEDTLS_PRIVATE(cipher_info)->MBEDTLS_PRIVATE(block_size2);
+    return (unsigned int) MBEDTLS_CIPHER_BLOCK_SIZE_UNPACK(packed);
 }
 
 /**

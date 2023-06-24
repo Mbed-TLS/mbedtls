@@ -70,6 +70,8 @@
 
 #include "mbedtls/platform.h"
 
+#define MBEDTLS_CIPHER_BLOCK_SIZE_PACK(n)   (n == 1 ? 0 : (n == 8 ? 1 : 2))
+
 #define MBEDTLS_CIPHER_BASE_INDEX_AES 0
 #define MBEDTLS_CIPHER_BASE_INDEX_ARIA 1
 #define MBEDTLS_CIPHER_BASE_INDEX_CAMELLIA 2
@@ -266,7 +268,7 @@ static const mbedtls_cipher_info_t aes_128_ecb_info = {
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aes_192_ecb_info = {
@@ -277,7 +279,7 @@ static const mbedtls_cipher_info_t aes_192_ecb_info = {
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aes_256_ecb_info = {
@@ -288,7 +290,7 @@ static const mbedtls_cipher_info_t aes_256_ecb_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
@@ -300,7 +302,7 @@ static const mbedtls_cipher_info_t aes_128_cbc_info = {
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aes_192_cbc_info = {
@@ -311,7 +313,7 @@ static const mbedtls_cipher_info_t aes_192_cbc_info = {
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aes_256_cbc_info = {
@@ -322,7 +324,7 @@ static const mbedtls_cipher_info_t aes_256_cbc_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
@@ -335,7 +337,7 @@ static const mbedtls_cipher_info_t aes_128_cfb128_info = {
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aes_192_cfb128_info = {
@@ -346,7 +348,7 @@ static const mbedtls_cipher_info_t aes_192_cfb128_info = {
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aes_256_cfb128_info = {
@@ -357,7 +359,7 @@ static const mbedtls_cipher_info_t aes_256_cfb128_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
@@ -370,7 +372,7 @@ static const mbedtls_cipher_info_t aes_128_ofb_info = {
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aes_192_ofb_info = {
@@ -381,7 +383,7 @@ static const mbedtls_cipher_info_t aes_192_ofb_info = {
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aes_256_ofb_info = {
@@ -392,7 +394,7 @@ static const mbedtls_cipher_info_t aes_256_ofb_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 #endif /* MBEDTLS_CIPHER_MODE_OFB */
 
@@ -405,7 +407,7 @@ static const mbedtls_cipher_info_t aes_128_ctr_info = {
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aes_192_ctr_info = {
@@ -416,7 +418,7 @@ static const mbedtls_cipher_info_t aes_192_ctr_info = {
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aes_256_ctr_info = {
@@ -427,7 +429,7 @@ static const mbedtls_cipher_info_t aes_256_ctr_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
@@ -504,7 +506,7 @@ static const mbedtls_cipher_info_t aes_128_xts_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aes_256_xts_info = {
@@ -515,7 +517,7 @@ static const mbedtls_cipher_info_t aes_256_xts_info = {
     512 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 #endif /* MBEDTLS_CIPHER_MODE_XTS */
 
@@ -562,7 +564,7 @@ static const mbedtls_cipher_info_t aes_128_gcm_info = {
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aes_192_gcm_info = {
@@ -573,7 +575,7 @@ static const mbedtls_cipher_info_t aes_192_gcm_info = {
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aes_256_gcm_info = {
@@ -584,7 +586,7 @@ static const mbedtls_cipher_info_t aes_256_gcm_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 #endif /* MBEDTLS_GCM_C */
 
@@ -631,7 +633,7 @@ static const mbedtls_cipher_info_t aes_128_ccm_info = {
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aes_192_ccm_info = {
@@ -642,7 +644,7 @@ static const mbedtls_cipher_info_t aes_192_ccm_info = {
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aes_256_ccm_info = {
@@ -653,7 +655,7 @@ static const mbedtls_cipher_info_t aes_256_ccm_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aes_128_ccm_star_no_tag_info = {
@@ -664,7 +666,7 @@ static const mbedtls_cipher_info_t aes_128_ccm_star_no_tag_info = {
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aes_192_ccm_star_no_tag_info = {
@@ -675,7 +677,7 @@ static const mbedtls_cipher_info_t aes_192_ccm_star_no_tag_info = {
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aes_256_ccm_star_no_tag_info = {
@@ -686,7 +688,7 @@ static const mbedtls_cipher_info_t aes_256_ccm_star_no_tag_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 #endif /* MBEDTLS_CCM_C */
 
@@ -798,7 +800,7 @@ static const mbedtls_cipher_info_t camellia_128_ecb_info = {
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t camellia_192_ecb_info = {
@@ -809,7 +811,7 @@ static const mbedtls_cipher_info_t camellia_192_ecb_info = {
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t camellia_256_ecb_info = {
@@ -820,7 +822,7 @@ static const mbedtls_cipher_info_t camellia_256_ecb_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
@@ -832,7 +834,7 @@ static const mbedtls_cipher_info_t camellia_128_cbc_info = {
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t camellia_192_cbc_info = {
@@ -843,7 +845,7 @@ static const mbedtls_cipher_info_t camellia_192_cbc_info = {
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t camellia_256_cbc_info = {
@@ -854,7 +856,7 @@ static const mbedtls_cipher_info_t camellia_256_cbc_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
@@ -867,7 +869,7 @@ static const mbedtls_cipher_info_t camellia_128_cfb128_info = {
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t camellia_192_cfb128_info = {
@@ -878,7 +880,7 @@ static const mbedtls_cipher_info_t camellia_192_cfb128_info = {
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t camellia_256_cfb128_info = {
@@ -889,7 +891,7 @@ static const mbedtls_cipher_info_t camellia_256_cfb128_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
@@ -902,7 +904,7 @@ static const mbedtls_cipher_info_t camellia_128_ctr_info = {
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t camellia_192_ctr_info = {
@@ -913,7 +915,7 @@ static const mbedtls_cipher_info_t camellia_192_ctr_info = {
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t camellia_256_ctr_info = {
@@ -924,7 +926,7 @@ static const mbedtls_cipher_info_t camellia_256_ctr_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
@@ -971,7 +973,7 @@ static const mbedtls_cipher_info_t camellia_128_gcm_info = {
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t camellia_192_gcm_info = {
@@ -982,7 +984,7 @@ static const mbedtls_cipher_info_t camellia_192_gcm_info = {
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t camellia_256_gcm_info = {
@@ -993,7 +995,7 @@ static const mbedtls_cipher_info_t camellia_256_gcm_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 #endif /* MBEDTLS_GCM_C */
 
@@ -1040,7 +1042,7 @@ static const mbedtls_cipher_info_t camellia_128_ccm_info = {
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t camellia_192_ccm_info = {
@@ -1051,7 +1053,7 @@ static const mbedtls_cipher_info_t camellia_192_ccm_info = {
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t camellia_256_ccm_info = {
@@ -1062,7 +1064,7 @@ static const mbedtls_cipher_info_t camellia_256_ccm_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t camellia_128_ccm_star_no_tag_info = {
@@ -1073,7 +1075,7 @@ static const mbedtls_cipher_info_t camellia_128_ccm_star_no_tag_info = {
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t camellia_192_ccm_star_no_tag_info = {
@@ -1084,7 +1086,7 @@ static const mbedtls_cipher_info_t camellia_192_ccm_star_no_tag_info = {
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t camellia_256_ccm_star_no_tag_info = {
@@ -1095,7 +1097,7 @@ static const mbedtls_cipher_info_t camellia_256_ccm_star_no_tag_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 #endif /* MBEDTLS_CCM_C */
 
@@ -1208,7 +1210,7 @@ static const mbedtls_cipher_info_t aria_128_ecb_info = {
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aria_192_ecb_info = {
@@ -1219,7 +1221,7 @@ static const mbedtls_cipher_info_t aria_192_ecb_info = {
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aria_256_ecb_info = {
@@ -1230,7 +1232,7 @@ static const mbedtls_cipher_info_t aria_256_ecb_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
@@ -1242,7 +1244,7 @@ static const mbedtls_cipher_info_t aria_128_cbc_info = {
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aria_192_cbc_info = {
@@ -1253,7 +1255,7 @@ static const mbedtls_cipher_info_t aria_192_cbc_info = {
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aria_256_cbc_info = {
@@ -1264,7 +1266,7 @@ static const mbedtls_cipher_info_t aria_256_cbc_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
@@ -1277,7 +1279,7 @@ static const mbedtls_cipher_info_t aria_128_cfb128_info = {
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aria_192_cfb128_info = {
@@ -1288,7 +1290,7 @@ static const mbedtls_cipher_info_t aria_192_cfb128_info = {
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aria_256_cfb128_info = {
@@ -1299,7 +1301,7 @@ static const mbedtls_cipher_info_t aria_256_cfb128_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
@@ -1312,7 +1314,7 @@ static const mbedtls_cipher_info_t aria_128_ctr_info = {
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aria_192_ctr_info = {
@@ -1323,7 +1325,7 @@ static const mbedtls_cipher_info_t aria_192_ctr_info = {
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aria_256_ctr_info = {
@@ -1334,7 +1336,7 @@ static const mbedtls_cipher_info_t aria_256_ctr_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
@@ -1381,7 +1383,7 @@ static const mbedtls_cipher_info_t aria_128_gcm_info = {
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aria_192_gcm_info = {
@@ -1392,7 +1394,7 @@ static const mbedtls_cipher_info_t aria_192_gcm_info = {
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aria_256_gcm_info = {
@@ -1403,7 +1405,7 @@ static const mbedtls_cipher_info_t aria_256_gcm_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 #endif /* MBEDTLS_GCM_C */
 
@@ -1450,7 +1452,7 @@ static const mbedtls_cipher_info_t aria_128_ccm_info = {
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aria_192_ccm_info = {
@@ -1461,7 +1463,7 @@ static const mbedtls_cipher_info_t aria_192_ccm_info = {
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aria_256_ccm_info = {
@@ -1472,7 +1474,7 @@ static const mbedtls_cipher_info_t aria_256_ccm_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aria_128_ccm_star_no_tag_info = {
@@ -1483,7 +1485,7 @@ static const mbedtls_cipher_info_t aria_128_ccm_star_no_tag_info = {
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aria_192_ccm_star_no_tag_info = {
@@ -1494,7 +1496,7 @@ static const mbedtls_cipher_info_t aria_192_ccm_star_no_tag_info = {
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aria_256_ccm_star_no_tag_info = {
@@ -1505,7 +1507,7 @@ static const mbedtls_cipher_info_t aria_256_ccm_star_no_tag_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 #endif /* MBEDTLS_CCM_C */
 
@@ -1667,7 +1669,7 @@ static const mbedtls_cipher_info_t des_ecb_info = {
     MBEDTLS_KEY_LENGTH_DES >> MBEDTLS_KEY_BITLEN_SHIFT,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    8
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(8)
 };
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
@@ -1679,7 +1681,7 @@ static const mbedtls_cipher_info_t des_cbc_info = {
     MBEDTLS_KEY_LENGTH_DES >> MBEDTLS_KEY_BITLEN_SHIFT,
     8 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    8
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(8)
 };
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
@@ -1718,7 +1720,7 @@ static const mbedtls_cipher_info_t des_ede_ecb_info = {
     MBEDTLS_KEY_LENGTH_DES_EDE >> MBEDTLS_KEY_BITLEN_SHIFT,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    8
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(8)
 };
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
@@ -1730,7 +1732,7 @@ static const mbedtls_cipher_info_t des_ede_cbc_info = {
     MBEDTLS_KEY_LENGTH_DES_EDE >> MBEDTLS_KEY_BITLEN_SHIFT,
     8 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    8
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(8)
 };
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
@@ -1769,7 +1771,7 @@ static const mbedtls_cipher_info_t des_ede3_ecb_info = {
     MBEDTLS_KEY_LENGTH_DES_EDE3 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    8
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(8)
 };
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 static const mbedtls_cipher_info_t des_ede3_cbc_info = {
@@ -1780,7 +1782,7 @@ static const mbedtls_cipher_info_t des_ede3_cbc_info = {
     MBEDTLS_KEY_LENGTH_DES_EDE3 >> MBEDTLS_KEY_BITLEN_SHIFT,
     8 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    8
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(8)
 };
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 #endif /* MBEDTLS_DES_C */
@@ -1869,7 +1871,7 @@ static const mbedtls_cipher_info_t chacha20_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    1
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(1)
 };
 #endif /* MBEDTLS_CHACHA20_C */
 
@@ -1944,7 +1946,7 @@ static const mbedtls_cipher_info_t chachapoly_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    1
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(1)
 };
 #endif /* MBEDTLS_CHACHAPOLY_C */
 
@@ -2013,7 +2015,7 @@ static const mbedtls_cipher_info_t null_cipher_info = {
     0 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    1
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(1)
 };
 #endif /* defined(MBEDTLS_CIPHER_NULL_CIPHER) */
 
@@ -2084,7 +2086,7 @@ static const mbedtls_cipher_info_t aes_128_nist_kw_info = {
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aes_192_nist_kw_info = {
@@ -2095,7 +2097,7 @@ static const mbedtls_cipher_info_t aes_192_nist_kw_info = {
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aes_256_nist_kw_info = {
@@ -2106,7 +2108,7 @@ static const mbedtls_cipher_info_t aes_256_nist_kw_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aes_128_nist_kwp_info = {
@@ -2117,7 +2119,7 @@ static const mbedtls_cipher_info_t aes_128_nist_kwp_info = {
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aes_192_nist_kwp_info = {
@@ -2128,7 +2130,7 @@ static const mbedtls_cipher_info_t aes_192_nist_kwp_info = {
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 
 static const mbedtls_cipher_info_t aes_256_nist_kwp_info = {
@@ -2139,7 +2141,7 @@ static const mbedtls_cipher_info_t aes_256_nist_kwp_info = {
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
     0,
-    16
+    MBEDTLS_CIPHER_BLOCK_SIZE_PACK(16)
 };
 #endif /* MBEDTLS_NIST_KW_C */
 

@@ -278,13 +278,15 @@ typedef struct mbedtls_cipher_info_t {
     /** Index to LUT for base cipher information and functions. */
     uint8_t MBEDTLS_PRIVATE(base_idx) : 5;
 
-    /** Full cipher identifier. For example,
-     * MBEDTLS_CIPHER_AES_256_CBC.
+    /** Full cipher identifier (as per mbedtls_cipher_type_t).
+     * For example, MBEDTLS_CIPHER_AES_256_CBC.
      */
-    mbedtls_cipher_type_t MBEDTLS_PRIVATE(type) : 7;
+    uint8_t MBEDTLS_PRIVATE(type) : 7;
 
-    /** The cipher mode. For example, MBEDTLS_MODE_CBC. */
-    mbedtls_cipher_mode_t MBEDTLS_PRIVATE(mode) : 4;
+    /** The cipher mode (as per mbedtls_cipher_mode_t).
+     * For example, MBEDTLS_MODE_CBC.
+     */
+    uint8_t MBEDTLS_PRIVATE(mode) : 4;
 
     /** The cipher key length, in bits. This is the
      * default length for variable sized ciphers.

@@ -307,7 +307,7 @@ typedef struct mbedtls_cipher_info_t {
     uint8_t MBEDTLS_PRIVATE(flags) : 2;
 
     /** The block size, in bytes. */
-    uint8_t MBEDTLS_PRIVATE(block_size2) : 2;
+    uint8_t MBEDTLS_PRIVATE(block_size) : 2;
 
 } mbedtls_cipher_info_t;
 
@@ -548,7 +548,7 @@ static inline size_t mbedtls_cipher_info_get_block_size(
         return 0;
     }
 
-    int packed = info->MBEDTLS_PRIVATE(block_size2);
+    int packed = info->MBEDTLS_PRIVATE(block_size);
     return (size_t) (MBEDTLS_CIPHER_BLOCK_SIZE_UNPACK(packed));
 }
 
@@ -690,7 +690,7 @@ static inline unsigned int mbedtls_cipher_get_block_size(
         return 0;
     }
 
-    int packed = ctx->MBEDTLS_PRIVATE(cipher_info)->MBEDTLS_PRIVATE(block_size2);
+    int packed = ctx->MBEDTLS_PRIVATE(cipher_info)->MBEDTLS_PRIVATE(block_size);
     return (unsigned int) MBEDTLS_CIPHER_BLOCK_SIZE_UNPACK(packed);
 }
 

@@ -275,10 +275,10 @@ typedef struct mbedtls_cipher_info_t {
     /** Full cipher identifier. For example,
      * MBEDTLS_CIPHER_AES_256_CBC.
      */
-    mbedtls_cipher_type_t MBEDTLS_PRIVATE(type);
+    mbedtls_cipher_type_t MBEDTLS_PRIVATE(type) : 7;
 
     /** The cipher mode. For example, MBEDTLS_MODE_CBC. */
-    mbedtls_cipher_mode_t MBEDTLS_PRIVATE(mode);
+    mbedtls_cipher_mode_t MBEDTLS_PRIVATE(mode) : 4;
 
     /** The cipher key length, in bits. This is the
      * default length for variable sized ciphers.
@@ -299,10 +299,10 @@ typedef struct mbedtls_cipher_info_t {
      *  MBEDTLS_CIPHER_VARIABLE_KEY_LEN indicating whether the
      *  cipher supports variable IV or variable key sizes, respectively.
      */
-    uint8_t MBEDTLS_PRIVATE(flags);
+    uint8_t MBEDTLS_PRIVATE(flags) : 2;
 
-    /** The block size, in Bytes. */
-    uint8_t MBEDTLS_PRIVATE(block_size);
+    /** The block size, in bytes. */
+    uint8_t MBEDTLS_PRIVATE(block_size) : 5;
 
     /** Struct for base cipher information and functions. */
     const mbedtls_cipher_base_t *MBEDTLS_PRIVATE(base);

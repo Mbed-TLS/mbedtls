@@ -262,8 +262,8 @@ static const mbedtls_cipher_info_t aes_128_ecb_info = {
     "AES-128-ECB",
     16,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_ECB,
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_ECB,
     MBEDTLS_CIPHER_AES_128_ECB,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_AES
@@ -273,8 +273,8 @@ static const mbedtls_cipher_info_t aes_192_ecb_info = {
     "AES-192-ECB",
     16,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_ECB,
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_ECB,
     MBEDTLS_CIPHER_AES_192_ECB,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_AES
@@ -284,8 +284,8 @@ static const mbedtls_cipher_info_t aes_256_ecb_info = {
     "AES-256-ECB",
     16,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_ECB,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_ECB,
     MBEDTLS_CIPHER_AES_256_ECB,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_AES
@@ -296,8 +296,8 @@ static const mbedtls_cipher_info_t aes_128_cbc_info = {
     "AES-128-CBC",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CBC,
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CBC,
     MBEDTLS_CIPHER_AES_128_CBC,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_AES
@@ -307,8 +307,8 @@ static const mbedtls_cipher_info_t aes_192_cbc_info = {
     "AES-192-CBC",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CBC,
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CBC,
     MBEDTLS_CIPHER_AES_192_CBC,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_AES
@@ -318,8 +318,8 @@ static const mbedtls_cipher_info_t aes_256_cbc_info = {
     "AES-256-CBC",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CBC,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CBC,
     MBEDTLS_CIPHER_AES_256_CBC,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_AES
@@ -331,8 +331,8 @@ static const mbedtls_cipher_info_t aes_128_cfb128_info = {
     "AES-128-CFB128",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CFB,
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CFB,
     MBEDTLS_CIPHER_AES_128_CFB128,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_AES
@@ -342,8 +342,8 @@ static const mbedtls_cipher_info_t aes_192_cfb128_info = {
     "AES-192-CFB128",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CFB,
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CFB,
     MBEDTLS_CIPHER_AES_192_CFB128,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_AES
@@ -353,8 +353,8 @@ static const mbedtls_cipher_info_t aes_256_cfb128_info = {
     "AES-256-CFB128",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CFB,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CFB,
     MBEDTLS_CIPHER_AES_256_CFB128,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_AES
@@ -366,8 +366,8 @@ static const mbedtls_cipher_info_t aes_128_ofb_info = {
     "AES-128-OFB",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_OFB,
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_OFB,
     MBEDTLS_CIPHER_AES_128_OFB,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_AES
@@ -377,8 +377,8 @@ static const mbedtls_cipher_info_t aes_192_ofb_info = {
     "AES-192-OFB",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_OFB,
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_OFB,
     MBEDTLS_CIPHER_AES_192_OFB,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_AES
@@ -388,8 +388,8 @@ static const mbedtls_cipher_info_t aes_256_ofb_info = {
     "AES-256-OFB",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_OFB,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_OFB,
     MBEDTLS_CIPHER_AES_256_OFB,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_AES
@@ -401,8 +401,8 @@ static const mbedtls_cipher_info_t aes_128_ctr_info = {
     "AES-128-CTR",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CTR,
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CTR,
     MBEDTLS_CIPHER_AES_128_CTR,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_AES
@@ -412,8 +412,8 @@ static const mbedtls_cipher_info_t aes_192_ctr_info = {
     "AES-192-CTR",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CTR,
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CTR,
     MBEDTLS_CIPHER_AES_192_CTR,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_AES
@@ -423,8 +423,8 @@ static const mbedtls_cipher_info_t aes_256_ctr_info = {
     "AES-256-CTR",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CTR,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CTR,
     MBEDTLS_CIPHER_AES_256_CTR,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_AES
@@ -500,8 +500,8 @@ static const mbedtls_cipher_info_t aes_128_xts_info = {
     "AES-128-XTS",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_XTS,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_XTS,
     MBEDTLS_CIPHER_AES_128_XTS,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_XTS_AES
@@ -511,8 +511,8 @@ static const mbedtls_cipher_info_t aes_256_xts_info = {
     "AES-256-XTS",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_XTS,
     512 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_XTS,
     MBEDTLS_CIPHER_AES_256_XTS,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_XTS_AES
@@ -558,8 +558,8 @@ static const mbedtls_cipher_info_t aes_128_gcm_info = {
     "AES-128-GCM",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_GCM,
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_GCM,
     MBEDTLS_CIPHER_AES_128_GCM,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_GCM_AES
@@ -569,8 +569,8 @@ static const mbedtls_cipher_info_t aes_192_gcm_info = {
     "AES-192-GCM",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_GCM,
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_GCM,
     MBEDTLS_CIPHER_AES_192_GCM,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_GCM_AES
@@ -580,8 +580,8 @@ static const mbedtls_cipher_info_t aes_256_gcm_info = {
     "AES-256-GCM",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_GCM,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_GCM,
     MBEDTLS_CIPHER_AES_256_GCM,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_GCM_AES
@@ -627,8 +627,8 @@ static const mbedtls_cipher_info_t aes_128_ccm_info = {
     "AES-128-CCM",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CCM,
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CCM,
     MBEDTLS_CIPHER_AES_128_CCM,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_CCM_AES
@@ -638,8 +638,8 @@ static const mbedtls_cipher_info_t aes_192_ccm_info = {
     "AES-192-CCM",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CCM,
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CCM,
     MBEDTLS_CIPHER_AES_192_CCM,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_CCM_AES
@@ -649,8 +649,8 @@ static const mbedtls_cipher_info_t aes_256_ccm_info = {
     "AES-256-CCM",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CCM,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CCM,
     MBEDTLS_CIPHER_AES_256_CCM,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_CCM_AES
@@ -660,8 +660,8 @@ static const mbedtls_cipher_info_t aes_128_ccm_star_no_tag_info = {
     "AES-128-CCM*-NO-TAG",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CCM_STAR_NO_TAG,
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CCM_STAR_NO_TAG,
     MBEDTLS_CIPHER_AES_128_CCM_STAR_NO_TAG,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_CCM_AES
@@ -671,8 +671,8 @@ static const mbedtls_cipher_info_t aes_192_ccm_star_no_tag_info = {
     "AES-192-CCM*-NO-TAG",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CCM_STAR_NO_TAG,
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CCM_STAR_NO_TAG,
     MBEDTLS_CIPHER_AES_192_CCM_STAR_NO_TAG,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_CCM_AES
@@ -682,8 +682,8 @@ static const mbedtls_cipher_info_t aes_256_ccm_star_no_tag_info = {
     "AES-256-CCM*-NO-TAG",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CCM_STAR_NO_TAG,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CCM_STAR_NO_TAG,
     MBEDTLS_CIPHER_AES_256_CCM_STAR_NO_TAG,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_CCM_AES
@@ -794,8 +794,8 @@ static const mbedtls_cipher_info_t camellia_128_ecb_info = {
     "CAMELLIA-128-ECB",
     16,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_ECB,
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_ECB,
     MBEDTLS_CIPHER_CAMELLIA_128_ECB,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_CAMELLIA
@@ -805,8 +805,8 @@ static const mbedtls_cipher_info_t camellia_192_ecb_info = {
     "CAMELLIA-192-ECB",
     16,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_ECB,
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_ECB,
     MBEDTLS_CIPHER_CAMELLIA_192_ECB,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_CAMELLIA
@@ -816,8 +816,8 @@ static const mbedtls_cipher_info_t camellia_256_ecb_info = {
     "CAMELLIA-256-ECB",
     16,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_ECB,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_ECB,
     MBEDTLS_CIPHER_CAMELLIA_256_ECB,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_CAMELLIA
@@ -828,8 +828,8 @@ static const mbedtls_cipher_info_t camellia_128_cbc_info = {
     "CAMELLIA-128-CBC",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CBC,
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CBC,
     MBEDTLS_CIPHER_CAMELLIA_128_CBC,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_CAMELLIA
@@ -839,8 +839,8 @@ static const mbedtls_cipher_info_t camellia_192_cbc_info = {
     "CAMELLIA-192-CBC",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CBC,
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CBC,
     MBEDTLS_CIPHER_CAMELLIA_192_CBC,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_CAMELLIA
@@ -850,8 +850,8 @@ static const mbedtls_cipher_info_t camellia_256_cbc_info = {
     "CAMELLIA-256-CBC",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CBC,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CBC,
     MBEDTLS_CIPHER_CAMELLIA_256_CBC,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_CAMELLIA
@@ -863,8 +863,8 @@ static const mbedtls_cipher_info_t camellia_128_cfb128_info = {
     "CAMELLIA-128-CFB128",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CFB,
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CFB,
     MBEDTLS_CIPHER_CAMELLIA_128_CFB128,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_CAMELLIA
@@ -874,8 +874,8 @@ static const mbedtls_cipher_info_t camellia_192_cfb128_info = {
     "CAMELLIA-192-CFB128",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CFB,
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CFB,
     MBEDTLS_CIPHER_CAMELLIA_192_CFB128,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_CAMELLIA
@@ -885,8 +885,8 @@ static const mbedtls_cipher_info_t camellia_256_cfb128_info = {
     "CAMELLIA-256-CFB128",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CFB,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CFB,
     MBEDTLS_CIPHER_CAMELLIA_256_CFB128,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_CAMELLIA
@@ -898,8 +898,8 @@ static const mbedtls_cipher_info_t camellia_128_ctr_info = {
     "CAMELLIA-128-CTR",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CTR,
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CTR,
     MBEDTLS_CIPHER_CAMELLIA_128_CTR,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_CAMELLIA
@@ -909,8 +909,8 @@ static const mbedtls_cipher_info_t camellia_192_ctr_info = {
     "CAMELLIA-192-CTR",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CTR,
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CTR,
     MBEDTLS_CIPHER_CAMELLIA_192_CTR,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_CAMELLIA
@@ -920,8 +920,8 @@ static const mbedtls_cipher_info_t camellia_256_ctr_info = {
     "CAMELLIA-256-CTR",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CTR,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CTR,
     MBEDTLS_CIPHER_CAMELLIA_256_CTR,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_CAMELLIA
@@ -967,8 +967,8 @@ static const mbedtls_cipher_info_t camellia_128_gcm_info = {
     "CAMELLIA-128-GCM",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_GCM,
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_GCM,
     MBEDTLS_CIPHER_CAMELLIA_128_GCM,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_GCM_CAMELLIA
@@ -978,8 +978,8 @@ static const mbedtls_cipher_info_t camellia_192_gcm_info = {
     "CAMELLIA-192-GCM",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_GCM,
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_GCM,
     MBEDTLS_CIPHER_CAMELLIA_192_GCM,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_GCM_CAMELLIA
@@ -989,8 +989,8 @@ static const mbedtls_cipher_info_t camellia_256_gcm_info = {
     "CAMELLIA-256-GCM",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_GCM,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_GCM,
     MBEDTLS_CIPHER_CAMELLIA_256_GCM,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_GCM_CAMELLIA
@@ -1036,8 +1036,8 @@ static const mbedtls_cipher_info_t camellia_128_ccm_info = {
     "CAMELLIA-128-CCM",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CCM,
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CCM,
     MBEDTLS_CIPHER_CAMELLIA_128_CCM,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_CCM_CAMELLIA
@@ -1047,8 +1047,8 @@ static const mbedtls_cipher_info_t camellia_192_ccm_info = {
     "CAMELLIA-192-CCM",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CCM,
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CCM,
     MBEDTLS_CIPHER_CAMELLIA_192_CCM,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_CCM_CAMELLIA
@@ -1058,8 +1058,8 @@ static const mbedtls_cipher_info_t camellia_256_ccm_info = {
     "CAMELLIA-256-CCM",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CCM,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CCM,
     MBEDTLS_CIPHER_CAMELLIA_256_CCM,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_CCM_CAMELLIA
@@ -1069,8 +1069,8 @@ static const mbedtls_cipher_info_t camellia_128_ccm_star_no_tag_info = {
     "CAMELLIA-128-CCM*-NO-TAG",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CCM_STAR_NO_TAG,
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CCM_STAR_NO_TAG,
     MBEDTLS_CIPHER_CAMELLIA_128_CCM_STAR_NO_TAG,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_CCM_CAMELLIA
@@ -1080,8 +1080,8 @@ static const mbedtls_cipher_info_t camellia_192_ccm_star_no_tag_info = {
     "CAMELLIA-192-CCM*-NO-TAG",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CCM_STAR_NO_TAG,
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CCM_STAR_NO_TAG,
     MBEDTLS_CIPHER_CAMELLIA_192_CCM_STAR_NO_TAG,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_CCM_CAMELLIA
@@ -1091,8 +1091,8 @@ static const mbedtls_cipher_info_t camellia_256_ccm_star_no_tag_info = {
     "CAMELLIA-256-CCM*-NO-TAG",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CCM_STAR_NO_TAG,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CCM_STAR_NO_TAG,
     MBEDTLS_CIPHER_CAMELLIA_256_CCM_STAR_NO_TAG,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_CCM_CAMELLIA
@@ -1204,8 +1204,8 @@ static const mbedtls_cipher_info_t aria_128_ecb_info = {
     "ARIA-128-ECB",
     16,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_ECB,
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_ECB,
     MBEDTLS_CIPHER_ARIA_128_ECB,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_ARIA
@@ -1215,8 +1215,8 @@ static const mbedtls_cipher_info_t aria_192_ecb_info = {
     "ARIA-192-ECB",
     16,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_ECB,
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_ECB,
     MBEDTLS_CIPHER_ARIA_192_ECB,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_ARIA
@@ -1226,8 +1226,8 @@ static const mbedtls_cipher_info_t aria_256_ecb_info = {
     "ARIA-256-ECB",
     16,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_ECB,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_ECB,
     MBEDTLS_CIPHER_ARIA_256_ECB,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_ARIA
@@ -1238,8 +1238,8 @@ static const mbedtls_cipher_info_t aria_128_cbc_info = {
     "ARIA-128-CBC",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CBC,
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CBC,
     MBEDTLS_CIPHER_ARIA_128_CBC,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_ARIA
@@ -1249,8 +1249,8 @@ static const mbedtls_cipher_info_t aria_192_cbc_info = {
     "ARIA-192-CBC",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CBC,
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CBC,
     MBEDTLS_CIPHER_ARIA_192_CBC,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_ARIA
@@ -1260,8 +1260,8 @@ static const mbedtls_cipher_info_t aria_256_cbc_info = {
     "ARIA-256-CBC",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CBC,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CBC,
     MBEDTLS_CIPHER_ARIA_256_CBC,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_ARIA
@@ -1273,8 +1273,8 @@ static const mbedtls_cipher_info_t aria_128_cfb128_info = {
     "ARIA-128-CFB128",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CFB,
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CFB,
     MBEDTLS_CIPHER_ARIA_128_CFB128,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_ARIA
@@ -1284,8 +1284,8 @@ static const mbedtls_cipher_info_t aria_192_cfb128_info = {
     "ARIA-192-CFB128",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CFB,
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CFB,
     MBEDTLS_CIPHER_ARIA_192_CFB128,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_ARIA
@@ -1295,8 +1295,8 @@ static const mbedtls_cipher_info_t aria_256_cfb128_info = {
     "ARIA-256-CFB128",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CFB,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CFB,
     MBEDTLS_CIPHER_ARIA_256_CFB128,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_ARIA
@@ -1308,8 +1308,8 @@ static const mbedtls_cipher_info_t aria_128_ctr_info = {
     "ARIA-128-CTR",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CTR,
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CTR,
     MBEDTLS_CIPHER_ARIA_128_CTR,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_ARIA
@@ -1319,8 +1319,8 @@ static const mbedtls_cipher_info_t aria_192_ctr_info = {
     "ARIA-192-CTR",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CTR,
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CTR,
     MBEDTLS_CIPHER_ARIA_192_CTR,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_ARIA
@@ -1330,8 +1330,8 @@ static const mbedtls_cipher_info_t aria_256_ctr_info = {
     "ARIA-256-CTR",
     16,
     16 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CTR,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CTR,
     MBEDTLS_CIPHER_ARIA_256_CTR,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_ARIA
@@ -1377,8 +1377,8 @@ static const mbedtls_cipher_info_t aria_128_gcm_info = {
     "ARIA-128-GCM",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_GCM,
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_GCM,
     MBEDTLS_CIPHER_ARIA_128_GCM,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_GCM_ARIA
@@ -1388,8 +1388,8 @@ static const mbedtls_cipher_info_t aria_192_gcm_info = {
     "ARIA-192-GCM",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_GCM,
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_GCM,
     MBEDTLS_CIPHER_ARIA_192_GCM,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_GCM_ARIA
@@ -1399,8 +1399,8 @@ static const mbedtls_cipher_info_t aria_256_gcm_info = {
     "ARIA-256-GCM",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_GCM,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_GCM,
     MBEDTLS_CIPHER_ARIA_256_GCM,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_GCM_ARIA
@@ -1446,8 +1446,8 @@ static const mbedtls_cipher_info_t aria_128_ccm_info = {
     "ARIA-128-CCM",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CCM,
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CCM,
     MBEDTLS_CIPHER_ARIA_128_CCM,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_CCM_ARIA
@@ -1457,8 +1457,8 @@ static const mbedtls_cipher_info_t aria_192_ccm_info = {
     "ARIA-192-CCM",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CCM,
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CCM,
     MBEDTLS_CIPHER_ARIA_192_CCM,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_CCM_ARIA
@@ -1468,8 +1468,8 @@ static const mbedtls_cipher_info_t aria_256_ccm_info = {
     "ARIA-256-CCM",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CCM,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CCM,
     MBEDTLS_CIPHER_ARIA_256_CCM,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_CCM_ARIA
@@ -1479,8 +1479,8 @@ static const mbedtls_cipher_info_t aria_128_ccm_star_no_tag_info = {
     "ARIA-128-CCM*-NO-TAG",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CCM_STAR_NO_TAG,
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CCM_STAR_NO_TAG,
     MBEDTLS_CIPHER_ARIA_128_CCM_STAR_NO_TAG,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_CCM_ARIA
@@ -1490,8 +1490,8 @@ static const mbedtls_cipher_info_t aria_192_ccm_star_no_tag_info = {
     "ARIA-192-CCM*-NO-TAG",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CCM_STAR_NO_TAG,
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CCM_STAR_NO_TAG,
     MBEDTLS_CIPHER_ARIA_192_CCM_STAR_NO_TAG,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_CCM_ARIA
@@ -1501,8 +1501,8 @@ static const mbedtls_cipher_info_t aria_256_ccm_star_no_tag_info = {
     "ARIA-256-CCM*-NO-TAG",
     16,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CCM_STAR_NO_TAG,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CCM_STAR_NO_TAG,
     MBEDTLS_CIPHER_ARIA_256_CCM_STAR_NO_TAG,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     MBEDTLS_CIPHER_BASE_INDEX_CCM_ARIA
@@ -1663,8 +1663,8 @@ static const mbedtls_cipher_info_t des_ecb_info = {
     "DES-ECB",
     8,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_ECB,
     MBEDTLS_KEY_LENGTH_DES >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_ECB,
     MBEDTLS_CIPHER_DES_ECB,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_DES
@@ -1675,8 +1675,8 @@ static const mbedtls_cipher_info_t des_cbc_info = {
     "DES-CBC",
     8,
     8 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CBC,
     MBEDTLS_KEY_LENGTH_DES >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CBC,
     MBEDTLS_CIPHER_DES_CBC,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_DES
@@ -1714,8 +1714,8 @@ static const mbedtls_cipher_info_t des_ede_ecb_info = {
     "DES-EDE-ECB",
     8,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_ECB,
     MBEDTLS_KEY_LENGTH_DES_EDE >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_ECB,
     MBEDTLS_CIPHER_DES_EDE_ECB,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_DES_EDE
@@ -1726,8 +1726,8 @@ static const mbedtls_cipher_info_t des_ede_cbc_info = {
     "DES-EDE-CBC",
     8,
     8 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CBC,
     MBEDTLS_KEY_LENGTH_DES_EDE >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CBC,
     MBEDTLS_CIPHER_DES_EDE_CBC,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_DES_EDE
@@ -1765,8 +1765,8 @@ static const mbedtls_cipher_info_t des_ede3_ecb_info = {
     "DES-EDE3-ECB",
     8,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_ECB,
     MBEDTLS_KEY_LENGTH_DES_EDE3 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_ECB,
     MBEDTLS_CIPHER_DES_EDE3_ECB,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_DES_EDE3
@@ -1776,8 +1776,8 @@ static const mbedtls_cipher_info_t des_ede3_cbc_info = {
     "DES-EDE3-CBC",
     8,
     8 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CBC,
     MBEDTLS_KEY_LENGTH_DES_EDE3 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CBC,
     MBEDTLS_CIPHER_DES_EDE3_CBC,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_DES_EDE3
@@ -1865,8 +1865,8 @@ static const mbedtls_cipher_info_t chacha20_info = {
     "CHACHA20",
     1,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_STREAM,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_STREAM,
     MBEDTLS_CIPHER_CHACHA20,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_CHACHA20_BASE
@@ -1940,8 +1940,8 @@ static const mbedtls_cipher_info_t chachapoly_info = {
     "CHACHA20-POLY1305",
     1,
     12 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_CHACHAPOLY,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_CHACHAPOLY,
     MBEDTLS_CIPHER_CHACHA20_POLY1305,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_CHACHAPOLY_BASE
@@ -2009,8 +2009,8 @@ static const mbedtls_cipher_info_t null_cipher_info = {
     "NULL",
     1,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_STREAM,
     0 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_STREAM,
     MBEDTLS_CIPHER_NULL,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_NULL_BASE
@@ -2080,8 +2080,8 @@ static const mbedtls_cipher_info_t aes_128_nist_kw_info = {
     "AES-128-KW",
     16,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_KW,
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_KW,
     MBEDTLS_CIPHER_AES_128_KW,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_KW_AES
@@ -2091,8 +2091,8 @@ static const mbedtls_cipher_info_t aes_192_nist_kw_info = {
     "AES-192-KW",
     16,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_KW,
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_KW,
     MBEDTLS_CIPHER_AES_192_KW,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_KW_AES
@@ -2102,8 +2102,8 @@ static const mbedtls_cipher_info_t aes_256_nist_kw_info = {
     "AES-256-KW",
     16,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_KW,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_KW,
     MBEDTLS_CIPHER_AES_256_KW,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_KW_AES
@@ -2113,8 +2113,8 @@ static const mbedtls_cipher_info_t aes_128_nist_kwp_info = {
     "AES-128-KWP",
     16,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_KWP,
     128 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_KWP,
     MBEDTLS_CIPHER_AES_128_KWP,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_KW_AES
@@ -2124,8 +2124,8 @@ static const mbedtls_cipher_info_t aes_192_nist_kwp_info = {
     "AES-192-KWP",
     16,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_KWP,
     192 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_KWP,
     MBEDTLS_CIPHER_AES_192_KWP,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_KW_AES
@@ -2135,8 +2135,8 @@ static const mbedtls_cipher_info_t aes_256_nist_kwp_info = {
     "AES-256-KWP",
     16,
     0 >> MBEDTLS_IV_SIZE_SHIFT,
-    MBEDTLS_MODE_KWP,
     256 >> MBEDTLS_KEY_BITLEN_SHIFT,
+    MBEDTLS_MODE_KWP,
     MBEDTLS_CIPHER_AES_256_KWP,
     0,
     MBEDTLS_CIPHER_BASE_INDEX_KW_AES

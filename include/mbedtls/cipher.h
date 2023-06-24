@@ -284,16 +284,16 @@ typedef struct mbedtls_cipher_info_t {
      */
     unsigned int MBEDTLS_PRIVATE(iv_size) : 3;
 
-    /** The cipher mode (as per mbedtls_cipher_mode_t).
-     * For example, MBEDTLS_MODE_CBC.
-     */
-    unsigned int MBEDTLS_PRIVATE(mode) : 4;
-
     /** The cipher key length, in bits. This is the
      * default length for variable sized ciphers.
      * Includes parity bits for ciphers like DES.
      */
     unsigned int MBEDTLS_PRIVATE(key_bitlen) : 4;
+
+    /** The cipher mode (as per mbedtls_cipher_mode_t).
+     * For example, MBEDTLS_MODE_CBC.
+     */
+    unsigned int MBEDTLS_PRIVATE(mode) : 4;
 
     /** Full cipher identifier (as per mbedtls_cipher_type_t).
      * For example, MBEDTLS_CIPHER_AES_256_CBC.

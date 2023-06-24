@@ -296,7 +296,7 @@ typedef struct mbedtls_cipher_info_t {
      * For ciphers that accept variable IV sizes,
      * this is the recommended size.
      */
-    uint16_t MBEDTLS_PRIVATE(iv_size);
+    uint8_t MBEDTLS_PRIVATE(iv_size) : 3;
 
     /** Bitflag comprised of MBEDTLS_CIPHER_VARIABLE_IV_LEN and
      *  MBEDTLS_CIPHER_VARIABLE_KEY_LEN indicating whether the
@@ -309,8 +309,10 @@ typedef struct mbedtls_cipher_info_t {
 
 } mbedtls_cipher_info_t;
 
-/* This is used to more compactly represent the key_bitlen field above. It is for internal use only. */
+/* For internal use only.
+ * These are used to more compactly represent the key_bitlen and iv_size fields above. */
 #define MBEDTLS_KEY_BITLEN_SHIFT 6
+#define MBEDTLS_IV_SIZE_SHIFT    2
 
 /**
  * Generic cipher context.
@@ -524,7 +526,7 @@ static inline size_t mbedtls_cipher_info_get_iv_size(
         return 0;
     }
 
-    return (size_t) info->MBEDTLS_PRIVATE(iv_size);
+    return ((size_t) info->MBEDTLS_PRIVATE(iv_size)) << MBEDTLS_IV_SIZE_SHIFT;
 }
 
 /**
@@ -730,7 +732,7 @@ static inline int mbedtls_cipher_get_iv_size(
         return (int) ctx->MBEDTLS_PRIVATE(iv_size);
     }
 
-    return (int) ctx->MBEDTLS_PRIVATE(cipher_info)->MBEDTLS_PRIVATE(iv_size);
+    return (int) (((int)ctx->MBEDTLS_PRIVATE(cipher_info)->MBEDTLS_PRIVATE(iv_size)) << MBEDTLS_IV_SIZE_SHIFT);
 }
 
 /**

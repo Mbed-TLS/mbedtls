@@ -234,11 +234,11 @@ int mbedtls_cipher_setup_psa(mbedtls_cipher_context_t *ctx,
 
     /* Check that the underlying cipher mode and cipher type are
      * supported by the underlying PSA Crypto implementation. */
-    alg = mbedtls_psa_translate_cipher_mode(cipher_info->mode, taglen);
+    alg = mbedtls_psa_translate_cipher_mode(((mbedtls_cipher_mode_t) cipher_info->mode), taglen);
     if (alg == 0) {
         return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
     }
-    if (mbedtls_psa_translate_cipher_type(cipher_info->type) == 0) {
+    if (mbedtls_psa_translate_cipher_type(((mbedtls_cipher_type_t) cipher_info->type)) == 0) {
         return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
     }
 
@@ -291,7 +291,7 @@ int mbedtls_cipher_setkey(mbedtls_cipher_context_t *ctx,
         }
 
         key_type = mbedtls_psa_translate_cipher_type(
-            ctx->cipher_info->type);
+            ((mbedtls_cipher_type_t) ctx->cipher_info->type));
         if (key_type == 0) {
             return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
         }
@@ -340,9 +340,9 @@ int mbedtls_cipher_setkey(mbedtls_cipher_context_t *ctx,
      * For OFB, CFB and CTR mode always use the encryption key schedule
      */
     if (MBEDTLS_ENCRYPT == operation ||
-        MBEDTLS_MODE_CFB == ctx->cipher_info->mode ||
-        MBEDTLS_MODE_OFB == ctx->cipher_info->mode ||
-        MBEDTLS_MODE_CTR == ctx->cipher_info->mode) {
+        MBEDTLS_MODE_CFB == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) ||
+        MBEDTLS_MODE_OFB == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) ||
+        MBEDTLS_MODE_CTR == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
         return mbedtls_cipher_get_base(ctx->cipher_info)->setkey_enc_func(ctx->cipher_ctx, key,
                                                                           ctx->key_bitlen);
     }
@@ -390,7 +390,7 @@ int mbedtls_cipher_set_iv(mbedtls_cipher_context_t *ctx,
     }
 
 #if defined(MBEDTLS_CHACHA20_C)
-    if (ctx->cipher_info->type == MBEDTLS_CIPHER_CHACHA20) {
+    if (((mbedtls_cipher_type_t) ctx->cipher_info->type) == MBEDTLS_CIPHER_CHACHA20) {
         /* Even though the actual_iv_size is overwritten with a correct value
          * of 12 from the cipher info, return an error to indicate that
          * the input iv_len is wrong. */
@@ -405,7 +405,7 @@ int mbedtls_cipher_set_iv(mbedtls_cipher_context_t *ctx,
         }
     }
 #if defined(MBEDTLS_CHACHAPOLY_C)
-    if (ctx->cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305 &&
+    if (((mbedtls_cipher_type_t) ctx->cipher_info->type) == MBEDTLS_CIPHER_CHACHA20_POLY1305 &&
         iv_len != 12) {
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
@@ -413,7 +413,7 @@ int mbedtls_cipher_set_iv(mbedtls_cipher_context_t *ctx,
 #endif
 
 #if defined(MBEDTLS_GCM_C)
-    if (MBEDTLS_MODE_GCM == ctx->cipher_info->mode) {
+    if (MBEDTLS_MODE_GCM == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
         return mbedtls_gcm_starts((mbedtls_gcm_context *) ctx->cipher_ctx,
                                   ctx->operation,
                                   iv, iv_len);
@@ -421,7 +421,7 @@ int mbedtls_cipher_set_iv(mbedtls_cipher_context_t *ctx,
 #endif
 
 #if defined(MBEDTLS_CCM_C)
-    if (MBEDTLS_MODE_CCM_STAR_NO_TAG == ctx->cipher_info->mode) {
+    if (MBEDTLS_MODE_CCM_STAR_NO_TAG == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
         int set_lengths_result;
         int ccm_star_mode;
 
@@ -491,14 +491,14 @@ int mbedtls_cipher_update_ad(mbedtls_cipher_context_t *ctx,
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_GCM_C)
-    if (MBEDTLS_MODE_GCM == ctx->cipher_info->mode) {
+    if (MBEDTLS_MODE_GCM == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
         return mbedtls_gcm_update_ad((mbedtls_gcm_context *) ctx->cipher_ctx,
                                      ad, ad_len);
     }
 #endif
 
 #if defined(MBEDTLS_CHACHAPOLY_C)
-    if (MBEDTLS_CIPHER_CHACHA20_POLY1305 == ctx->cipher_info->type) {
+    if (MBEDTLS_CIPHER_CHACHA20_POLY1305 == ((mbedtls_cipher_type_t) ctx->cipher_info->type)) {
         int result;
         mbedtls_chachapoly_mode_t mode;
 
@@ -547,7 +547,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
         return MBEDTLS_ERR_CIPHER_INVALID_CONTEXT;
     }
 
-    if (ctx->cipher_info->mode == MBEDTLS_MODE_ECB) {
+    if (((mbedtls_cipher_mode_t) ctx->cipher_info->mode) == MBEDTLS_MODE_ECB) {
         if (ilen != block_size) {
             return MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED;
         }
@@ -564,7 +564,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
     }
 
 #if defined(MBEDTLS_GCM_C)
-    if (ctx->cipher_info->mode == MBEDTLS_MODE_GCM) {
+    if (((mbedtls_cipher_mode_t) ctx->cipher_info->mode) == MBEDTLS_MODE_GCM) {
         return mbedtls_gcm_update((mbedtls_gcm_context *) ctx->cipher_ctx,
                                   input, ilen,
                                   output, ilen, olen);
@@ -572,7 +572,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
 #endif
 
 #if defined(MBEDTLS_CCM_C)
-    if (ctx->cipher_info->mode == MBEDTLS_MODE_CCM_STAR_NO_TAG) {
+    if (((mbedtls_cipher_mode_t) ctx->cipher_info->mode) == MBEDTLS_MODE_CCM_STAR_NO_TAG) {
         return mbedtls_ccm_update((mbedtls_ccm_context *) ctx->cipher_ctx,
                                   input, ilen,
                                   output, ilen, olen);
@@ -580,7 +580,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
 #endif
 
 #if defined(MBEDTLS_CHACHAPOLY_C)
-    if (ctx->cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305) {
+    if (((mbedtls_cipher_type_t) ctx->cipher_info->type) == MBEDTLS_CIPHER_CHACHA20_POLY1305) {
         *olen = ilen;
         return mbedtls_chachapoly_update((mbedtls_chachapoly_context *) ctx->cipher_ctx,
                                          ilen, input, output);
@@ -593,7 +593,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
     }
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
-    if (ctx->cipher_info->mode == MBEDTLS_MODE_CBC) {
+    if (((mbedtls_cipher_mode_t) ctx->cipher_info->mode) == MBEDTLS_MODE_CBC) {
         size_t copy_len = 0;
 
         /*
@@ -680,7 +680,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
-    if (ctx->cipher_info->mode == MBEDTLS_MODE_CFB) {
+    if (((mbedtls_cipher_mode_t) ctx->cipher_info->mode) == MBEDTLS_MODE_CFB) {
         if (0 != (ret = mbedtls_cipher_get_base(ctx->cipher_info)->cfb_func(ctx->cipher_ctx,
                                                                             ctx->operation, ilen,
                                                                             &ctx->unprocessed_len,
@@ -696,7 +696,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
 #if defined(MBEDTLS_CIPHER_MODE_OFB)
-    if (ctx->cipher_info->mode == MBEDTLS_MODE_OFB) {
+    if (((mbedtls_cipher_mode_t) ctx->cipher_info->mode) == MBEDTLS_MODE_OFB) {
         if (0 != (ret = mbedtls_cipher_get_base(ctx->cipher_info)->ofb_func(ctx->cipher_ctx,
                                                                             ilen,
                                                                             &ctx->unprocessed_len,
@@ -712,7 +712,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
 #endif /* MBEDTLS_CIPHER_MODE_OFB */
 
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
-    if (ctx->cipher_info->mode == MBEDTLS_MODE_CTR) {
+    if (((mbedtls_cipher_mode_t) ctx->cipher_info->mode) == MBEDTLS_MODE_CTR) {
         if (0 != (ret = mbedtls_cipher_get_base(ctx->cipher_info)->ctr_func(ctx->cipher_ctx,
                                                                             ilen,
                                                                             &ctx->unprocessed_len,
@@ -729,7 +729,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
-    if (ctx->cipher_info->mode == MBEDTLS_MODE_XTS) {
+    if (((mbedtls_cipher_mode_t) ctx->cipher_info->mode) == MBEDTLS_MODE_XTS) {
         if (ctx->unprocessed_len > 0) {
             /* We can only process an entire data unit at a time. */
             return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
@@ -752,7 +752,7 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx, const unsigned char *in
 #endif /* MBEDTLS_CIPHER_MODE_XTS */
 
 #if defined(MBEDTLS_CIPHER_MODE_STREAM)
-    if (ctx->cipher_info->mode == MBEDTLS_MODE_STREAM) {
+    if (((mbedtls_cipher_mode_t) ctx->cipher_info->mode) == MBEDTLS_MODE_STREAM) {
         if (0 != (ret = mbedtls_cipher_get_base(ctx->cipher_info)->stream_func(ctx->cipher_ctx,
                                                                                ilen, input,
                                                                                output))) {
@@ -967,22 +967,22 @@ int mbedtls_cipher_finish(mbedtls_cipher_context_t *ctx,
 
     *olen = 0;
 
-    if (MBEDTLS_MODE_CFB == ctx->cipher_info->mode ||
-        MBEDTLS_MODE_OFB == ctx->cipher_info->mode ||
-        MBEDTLS_MODE_CTR == ctx->cipher_info->mode ||
-        MBEDTLS_MODE_GCM == ctx->cipher_info->mode ||
-        MBEDTLS_MODE_CCM_STAR_NO_TAG == ctx->cipher_info->mode ||
-        MBEDTLS_MODE_XTS == ctx->cipher_info->mode ||
-        MBEDTLS_MODE_STREAM == ctx->cipher_info->mode) {
+    if (MBEDTLS_MODE_CFB == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) ||
+        MBEDTLS_MODE_OFB == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) ||
+        MBEDTLS_MODE_CTR == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) ||
+        MBEDTLS_MODE_GCM == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) ||
+        MBEDTLS_MODE_CCM_STAR_NO_TAG == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) ||
+        MBEDTLS_MODE_XTS == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) ||
+        MBEDTLS_MODE_STREAM == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
         return 0;
     }
 
-    if ((MBEDTLS_CIPHER_CHACHA20          == ctx->cipher_info->type) ||
-        (MBEDTLS_CIPHER_CHACHA20_POLY1305 == ctx->cipher_info->type)) {
+    if ((MBEDTLS_CIPHER_CHACHA20          == ((mbedtls_cipher_type_t) ctx->cipher_info->type)) ||
+        (MBEDTLS_CIPHER_CHACHA20_POLY1305 == ((mbedtls_cipher_type_t) ctx->cipher_info->type))) {
         return 0;
     }
 
-    if (MBEDTLS_MODE_ECB == ctx->cipher_info->mode) {
+    if (MBEDTLS_MODE_ECB == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
         if (ctx->unprocessed_len != 0) {
             return MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED;
         }
@@ -991,7 +991,7 @@ int mbedtls_cipher_finish(mbedtls_cipher_context_t *ctx,
     }
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
-    if (MBEDTLS_MODE_CBC == ctx->cipher_info->mode) {
+    if (MBEDTLS_MODE_CBC == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
         int ret = 0;
 
         if (MBEDTLS_ENCRYPT == ctx->operation) {
@@ -1050,7 +1050,8 @@ int mbedtls_cipher_finish(mbedtls_cipher_context_t *ctx,
 int mbedtls_cipher_set_padding_mode(mbedtls_cipher_context_t *ctx,
                                     mbedtls_cipher_padding_t mode)
 {
-    if (NULL == ctx->cipher_info || MBEDTLS_MODE_CBC != ctx->cipher_info->mode) {
+    if (NULL == ctx->cipher_info ||
+        MBEDTLS_MODE_CBC != ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
         return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
@@ -1127,7 +1128,7 @@ int mbedtls_cipher_write_tag(mbedtls_cipher_context_t *ctx,
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_GCM_C)
-    if (MBEDTLS_MODE_GCM == ctx->cipher_info->mode) {
+    if (MBEDTLS_MODE_GCM == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
         size_t output_length;
         /* The code here doesn't yet support alternative implementations
          * that can delay up to a block of output. */
@@ -1138,7 +1139,7 @@ int mbedtls_cipher_write_tag(mbedtls_cipher_context_t *ctx,
 #endif
 
 #if defined(MBEDTLS_CHACHAPOLY_C)
-    if (MBEDTLS_CIPHER_CHACHA20_POLY1305 == ctx->cipher_info->type) {
+    if (MBEDTLS_CIPHER_CHACHA20_POLY1305 == ((mbedtls_cipher_type_t) ctx->cipher_info->type)) {
         /* Don't allow truncated MAC for Poly1305 */
         if (tag_len != 16U) {
             return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
@@ -1179,7 +1180,7 @@ int mbedtls_cipher_check_tag(mbedtls_cipher_context_t *ctx,
     ret = MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
 
 #if defined(MBEDTLS_GCM_C)
-    if (MBEDTLS_MODE_GCM == ctx->cipher_info->mode) {
+    if (MBEDTLS_MODE_GCM == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
         size_t output_length;
         /* The code here doesn't yet support alternative implementations
          * that can delay up to a block of output. */
@@ -1204,7 +1205,7 @@ int mbedtls_cipher_check_tag(mbedtls_cipher_context_t *ctx,
 #endif /* MBEDTLS_GCM_C */
 
 #if defined(MBEDTLS_CHACHAPOLY_C)
-    if (MBEDTLS_CIPHER_CHACHA20_POLY1305 == ctx->cipher_info->type) {
+    if (MBEDTLS_CIPHER_CHACHA20_POLY1305 == ((mbedtls_cipher_type_t) ctx->cipher_info->type)) {
         /* Don't allow truncated MAC for Poly1305 */
         if (tag_len != sizeof(check_tag)) {
             return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
@@ -1275,7 +1276,7 @@ int mbedtls_cipher_crypt(mbedtls_cipher_context_t *ctx,
             return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         }
 
-        if (ctx->cipher_info->mode != MBEDTLS_MODE_ECB) {
+        if (((mbedtls_cipher_mode_t) ctx->cipher_info->mode) != MBEDTLS_MODE_ECB) {
             status = psa_cipher_set_iv(&cipher_op, iv, iv_len);
             if (status != PSA_SUCCESS) {
                 return MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
@@ -1370,7 +1371,7 @@ static int mbedtls_cipher_aead_encrypt(mbedtls_cipher_context_t *ctx,
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_GCM_C)
-    if (MBEDTLS_MODE_GCM == ctx->cipher_info->mode) {
+    if (MBEDTLS_MODE_GCM == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
         *olen = ilen;
         return mbedtls_gcm_crypt_and_tag(ctx->cipher_ctx, MBEDTLS_GCM_ENCRYPT,
                                          ilen, iv, iv_len, ad, ad_len,
@@ -1378,7 +1379,7 @@ static int mbedtls_cipher_aead_encrypt(mbedtls_cipher_context_t *ctx,
     }
 #endif /* MBEDTLS_GCM_C */
 #if defined(MBEDTLS_CCM_C)
-    if (MBEDTLS_MODE_CCM == ctx->cipher_info->mode) {
+    if (MBEDTLS_MODE_CCM == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
         *olen = ilen;
         return mbedtls_ccm_encrypt_and_tag(ctx->cipher_ctx, ilen,
                                            iv, iv_len, ad, ad_len, input, output,
@@ -1386,7 +1387,7 @@ static int mbedtls_cipher_aead_encrypt(mbedtls_cipher_context_t *ctx,
     }
 #endif /* MBEDTLS_CCM_C */
 #if defined(MBEDTLS_CHACHAPOLY_C)
-    if (MBEDTLS_CIPHER_CHACHA20_POLY1305 == ctx->cipher_info->type) {
+    if (MBEDTLS_CIPHER_CHACHA20_POLY1305 == ((mbedtls_cipher_type_t) ctx->cipher_info->type)) {
         /* ChachaPoly has fixed length nonce and MAC (tag) */
         if ((iv_len != mbedtls_cipher_info_get_iv_size(ctx->cipher_info)) ||
             (tag_len != 16U)) {
@@ -1448,7 +1449,7 @@ static int mbedtls_cipher_aead_decrypt(mbedtls_cipher_context_t *ctx,
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_GCM_C)
-    if (MBEDTLS_MODE_GCM == ctx->cipher_info->mode) {
+    if (MBEDTLS_MODE_GCM == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
         *olen = ilen;
@@ -1464,7 +1465,7 @@ static int mbedtls_cipher_aead_decrypt(mbedtls_cipher_context_t *ctx,
     }
 #endif /* MBEDTLS_GCM_C */
 #if defined(MBEDTLS_CCM_C)
-    if (MBEDTLS_MODE_CCM == ctx->cipher_info->mode) {
+    if (MBEDTLS_MODE_CCM == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) {
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
         *olen = ilen;
@@ -1480,7 +1481,7 @@ static int mbedtls_cipher_aead_decrypt(mbedtls_cipher_context_t *ctx,
     }
 #endif /* MBEDTLS_CCM_C */
 #if defined(MBEDTLS_CHACHAPOLY_C)
-    if (MBEDTLS_CIPHER_CHACHA20_POLY1305 == ctx->cipher_info->type) {
+    if (MBEDTLS_CIPHER_CHACHA20_POLY1305 == ((mbedtls_cipher_type_t) ctx->cipher_info->type)) {
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
         /* ChachaPoly has fixed length nonce and MAC (tag) */
@@ -1521,10 +1522,11 @@ int mbedtls_cipher_auth_encrypt_ext(mbedtls_cipher_context_t *ctx,
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         ctx->psa_enabled == 0 &&
 #endif
-        (MBEDTLS_MODE_KW == ctx->cipher_info->mode ||
-         MBEDTLS_MODE_KWP == ctx->cipher_info->mode)) {
-        mbedtls_nist_kw_mode_t mode = (MBEDTLS_MODE_KW == ctx->cipher_info->mode) ?
-                                      MBEDTLS_KW_MODE_KW : MBEDTLS_KW_MODE_KWP;
+        (MBEDTLS_MODE_KW == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) ||
+         MBEDTLS_MODE_KWP == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode))) {
+        mbedtls_nist_kw_mode_t mode =
+            (MBEDTLS_MODE_KW == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) ?
+            MBEDTLS_KW_MODE_KW : MBEDTLS_KW_MODE_KWP;
 
         /* There is no iv, tag or ad associated with KW and KWP,
          * so these length should be 0 as documented. */
@@ -1571,10 +1573,11 @@ int mbedtls_cipher_auth_decrypt_ext(mbedtls_cipher_context_t *ctx,
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         ctx->psa_enabled == 0 &&
 #endif
-        (MBEDTLS_MODE_KW == ctx->cipher_info->mode ||
-         MBEDTLS_MODE_KWP == ctx->cipher_info->mode)) {
-        mbedtls_nist_kw_mode_t mode = (MBEDTLS_MODE_KW == ctx->cipher_info->mode) ?
-                                      MBEDTLS_KW_MODE_KW : MBEDTLS_KW_MODE_KWP;
+        (MBEDTLS_MODE_KW == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode) ||
+         MBEDTLS_MODE_KWP == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode))) {
+        mbedtls_nist_kw_mode_t mode =
+            (MBEDTLS_MODE_KW == ((mbedtls_cipher_mode_t) ctx->cipher_info->mode)) ?
+            MBEDTLS_KW_MODE_KW : MBEDTLS_KW_MODE_KWP;
 
         /* There is no iv, tag or ad associated with KW and KWP,
          * so these length should be 0 as documented. */

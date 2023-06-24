@@ -272,6 +272,12 @@ typedef struct mbedtls_cmac_context_t mbedtls_cmac_context_t;
  *              mbedtls_cipher_info_from_psa().
  */
 typedef struct mbedtls_cipher_info_t {
+    /** Name of the cipher. */
+    const char *MBEDTLS_PRIVATE(name);
+
+    /** Struct for base cipher information and functions. */
+    const mbedtls_cipher_base_t *MBEDTLS_PRIVATE(base);
+
     /** Full cipher identifier. For example,
      * MBEDTLS_CIPHER_AES_256_CBC.
      */
@@ -285,9 +291,6 @@ typedef struct mbedtls_cipher_info_t {
      * Includes parity bits for ciphers like DES.
      */
     uint16_t MBEDTLS_PRIVATE(key_bitlen);
-
-    /** Name of the cipher. */
-    const char *MBEDTLS_PRIVATE(name);
 
     /** IV or nonce size, in Bytes.
      * For ciphers that accept variable IV sizes,
@@ -303,9 +306,6 @@ typedef struct mbedtls_cipher_info_t {
 
     /** The block size, in bytes. */
     uint8_t MBEDTLS_PRIVATE(block_size) : 5;
-
-    /** Struct for base cipher information and functions. */
-    const mbedtls_cipher_base_t *MBEDTLS_PRIVATE(base);
 
 } mbedtls_cipher_info_t;
 

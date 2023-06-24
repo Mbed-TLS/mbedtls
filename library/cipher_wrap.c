@@ -241,175 +241,175 @@ static const mbedtls_cipher_base_t aes_info = {
 };
 
 static const mbedtls_cipher_info_t aes_128_ecb_info = {
+    "AES-128-ECB",
+    &aes_info,
     MBEDTLS_CIPHER_AES_128_ECB,
     MBEDTLS_MODE_ECB,
     128,
-    "AES-128-ECB",
     0,
     0,
-    16,
-    &aes_info
+    16
 };
 
 static const mbedtls_cipher_info_t aes_192_ecb_info = {
+    "AES-192-ECB",
+    &aes_info,
     MBEDTLS_CIPHER_AES_192_ECB,
     MBEDTLS_MODE_ECB,
     192,
-    "AES-192-ECB",
     0,
     0,
-    16,
-    &aes_info
+    16
 };
 
 static const mbedtls_cipher_info_t aes_256_ecb_info = {
+    "AES-256-ECB",
+    &aes_info,
     MBEDTLS_CIPHER_AES_256_ECB,
     MBEDTLS_MODE_ECB,
     256,
-    "AES-256-ECB",
     0,
     0,
-    16,
-    &aes_info
+    16
 };
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 static const mbedtls_cipher_info_t aes_128_cbc_info = {
+    "AES-128-CBC",
+    &aes_info,
     MBEDTLS_CIPHER_AES_128_CBC,
     MBEDTLS_MODE_CBC,
     128,
-    "AES-128-CBC",
     16,
     0,
-    16,
-    &aes_info
+    16
 };
 
 static const mbedtls_cipher_info_t aes_192_cbc_info = {
+    "AES-192-CBC",
+    &aes_info,
     MBEDTLS_CIPHER_AES_192_CBC,
     MBEDTLS_MODE_CBC,
     192,
-    "AES-192-CBC",
     16,
     0,
-    16,
-    &aes_info
+    16
 };
 
 static const mbedtls_cipher_info_t aes_256_cbc_info = {
+    "AES-256-CBC",
+    &aes_info,
     MBEDTLS_CIPHER_AES_256_CBC,
     MBEDTLS_MODE_CBC,
     256,
-    "AES-256-CBC",
     16,
     0,
-    16,
-    &aes_info
+    16
 };
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
 static const mbedtls_cipher_info_t aes_128_cfb128_info = {
+    "AES-128-CFB128",
+    &aes_info,
     MBEDTLS_CIPHER_AES_128_CFB128,
     MBEDTLS_MODE_CFB,
     128,
-    "AES-128-CFB128",
     16,
     0,
-    16,
-    &aes_info
+    16
 };
 
 static const mbedtls_cipher_info_t aes_192_cfb128_info = {
+    "AES-192-CFB128",
+    &aes_info,
     MBEDTLS_CIPHER_AES_192_CFB128,
     MBEDTLS_MODE_CFB,
     192,
-    "AES-192-CFB128",
     16,
     0,
-    16,
-    &aes_info
+    16
 };
 
 static const mbedtls_cipher_info_t aes_256_cfb128_info = {
+    "AES-256-CFB128",
+    &aes_info,
     MBEDTLS_CIPHER_AES_256_CFB128,
     MBEDTLS_MODE_CFB,
     256,
-    "AES-256-CFB128",
     16,
     0,
-    16,
-    &aes_info
+    16
 };
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
 #if defined(MBEDTLS_CIPHER_MODE_OFB)
 static const mbedtls_cipher_info_t aes_128_ofb_info = {
+    "AES-128-OFB",
+    &aes_info,
     MBEDTLS_CIPHER_AES_128_OFB,
     MBEDTLS_MODE_OFB,
     128,
-    "AES-128-OFB",
     16,
     0,
-    16,
-    &aes_info
+    16
 };
 
 static const mbedtls_cipher_info_t aes_192_ofb_info = {
+    "AES-192-OFB",
+    &aes_info,
     MBEDTLS_CIPHER_AES_192_OFB,
     MBEDTLS_MODE_OFB,
     192,
-    "AES-192-OFB",
     16,
     0,
-    16,
-    &aes_info
+    16
 };
 
 static const mbedtls_cipher_info_t aes_256_ofb_info = {
+    "AES-256-OFB",
+    &aes_info,
     MBEDTLS_CIPHER_AES_256_OFB,
     MBEDTLS_MODE_OFB,
     256,
-    "AES-256-OFB",
     16,
     0,
-    16,
-    &aes_info
+    16
 };
 #endif /* MBEDTLS_CIPHER_MODE_OFB */
 
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
 static const mbedtls_cipher_info_t aes_128_ctr_info = {
+    "AES-128-CTR",
+    &aes_info,
     MBEDTLS_CIPHER_AES_128_CTR,
     MBEDTLS_MODE_CTR,
     128,
-    "AES-128-CTR",
     16,
     0,
-    16,
-    &aes_info
+    16
 };
 
 static const mbedtls_cipher_info_t aes_192_ctr_info = {
+    "AES-192-CTR",
+    &aes_info,
     MBEDTLS_CIPHER_AES_192_CTR,
     MBEDTLS_MODE_CTR,
     192,
-    "AES-192-CTR",
     16,
     0,
-    16,
-    &aes_info
+    16
 };
 
 static const mbedtls_cipher_info_t aes_256_ctr_info = {
+    "AES-256-CTR",
+    &aes_info,
     MBEDTLS_CIPHER_AES_256_CTR,
     MBEDTLS_MODE_CTR,
     256,
-    "AES-256-CTR",
     16,
     0,
-    16,
-    &aes_info
+    16
 };
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
@@ -479,25 +479,25 @@ static const mbedtls_cipher_base_t xts_aes_info = {
 };
 
 static const mbedtls_cipher_info_t aes_128_xts_info = {
+    "AES-128-XTS",
+    &xts_aes_info,
     MBEDTLS_CIPHER_AES_128_XTS,
     MBEDTLS_MODE_XTS,
     256,
-    "AES-128-XTS",
     16,
     0,
-    16,
-    &xts_aes_info
+    16
 };
 
 static const mbedtls_cipher_info_t aes_256_xts_info = {
+    "AES-256-XTS",
+    &xts_aes_info,
     MBEDTLS_CIPHER_AES_256_XTS,
     MBEDTLS_MODE_XTS,
     512,
-    "AES-256-XTS",
     16,
     0,
-    16,
-    &xts_aes_info
+    16
 };
 #endif /* MBEDTLS_CIPHER_MODE_XTS */
 
@@ -537,36 +537,36 @@ static const mbedtls_cipher_base_t gcm_aes_info = {
 };
 
 static const mbedtls_cipher_info_t aes_128_gcm_info = {
+    "AES-128-GCM",
+    &gcm_aes_info,
     MBEDTLS_CIPHER_AES_128_GCM,
     MBEDTLS_MODE_GCM,
     128,
-    "AES-128-GCM",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &gcm_aes_info
+    16
 };
 
 static const mbedtls_cipher_info_t aes_192_gcm_info = {
+    "AES-192-GCM",
+    &gcm_aes_info,
     MBEDTLS_CIPHER_AES_192_GCM,
     MBEDTLS_MODE_GCM,
     192,
-    "AES-192-GCM",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &gcm_aes_info
+    16
 };
 
 static const mbedtls_cipher_info_t aes_256_gcm_info = {
+    "AES-256-GCM",
+    &gcm_aes_info,
     MBEDTLS_CIPHER_AES_256_GCM,
     MBEDTLS_MODE_GCM,
     256,
-    "AES-256-GCM",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &gcm_aes_info
+    16
 };
 #endif /* MBEDTLS_GCM_C */
 
@@ -606,69 +606,69 @@ static const mbedtls_cipher_base_t ccm_aes_info = {
 };
 
 static const mbedtls_cipher_info_t aes_128_ccm_info = {
+    "AES-128-CCM",
+    &ccm_aes_info,
     MBEDTLS_CIPHER_AES_128_CCM,
     MBEDTLS_MODE_CCM,
     128,
-    "AES-128-CCM",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &ccm_aes_info
+    16
 };
 
 static const mbedtls_cipher_info_t aes_192_ccm_info = {
+    "AES-192-CCM",
+    &ccm_aes_info,
     MBEDTLS_CIPHER_AES_192_CCM,
     MBEDTLS_MODE_CCM,
     192,
-    "AES-192-CCM",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &ccm_aes_info
+    16
 };
 
 static const mbedtls_cipher_info_t aes_256_ccm_info = {
+    "AES-256-CCM",
+    &ccm_aes_info,
     MBEDTLS_CIPHER_AES_256_CCM,
     MBEDTLS_MODE_CCM,
     256,
-    "AES-256-CCM",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &ccm_aes_info
+    16
 };
 
 static const mbedtls_cipher_info_t aes_128_ccm_star_no_tag_info = {
+    "AES-128-CCM*-NO-TAG",
+    &ccm_aes_info,
     MBEDTLS_CIPHER_AES_128_CCM_STAR_NO_TAG,
     MBEDTLS_MODE_CCM_STAR_NO_TAG,
     128,
-    "AES-128-CCM*-NO-TAG",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &ccm_aes_info
+    16
 };
 
 static const mbedtls_cipher_info_t aes_192_ccm_star_no_tag_info = {
+    "AES-192-CCM*-NO-TAG",
+    &ccm_aes_info,
     MBEDTLS_CIPHER_AES_192_CCM_STAR_NO_TAG,
     MBEDTLS_MODE_CCM_STAR_NO_TAG,
     192,
-    "AES-192-CCM*-NO-TAG",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &ccm_aes_info
+    16
 };
 
 static const mbedtls_cipher_info_t aes_256_ccm_star_no_tag_info = {
+    "AES-256-CCM*-NO-TAG",
+    &ccm_aes_info,
     MBEDTLS_CIPHER_AES_256_CCM_STAR_NO_TAG,
     MBEDTLS_MODE_CCM_STAR_NO_TAG,
     256,
-    "AES-256-CCM*-NO-TAG",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &ccm_aes_info
+    16
 };
 #endif /* MBEDTLS_CCM_C */
 
@@ -773,140 +773,140 @@ static const mbedtls_cipher_base_t camellia_info = {
 };
 
 static const mbedtls_cipher_info_t camellia_128_ecb_info = {
+    "CAMELLIA-128-ECB",
+    &camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_128_ECB,
     MBEDTLS_MODE_ECB,
     128,
-    "CAMELLIA-128-ECB",
     0,
     0,
-    16,
-    &camellia_info
+    16
 };
 
 static const mbedtls_cipher_info_t camellia_192_ecb_info = {
+    "CAMELLIA-192-ECB",
+    &camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_192_ECB,
     MBEDTLS_MODE_ECB,
     192,
-    "CAMELLIA-192-ECB",
     0,
     0,
-    16,
-    &camellia_info
+    16
 };
 
 static const mbedtls_cipher_info_t camellia_256_ecb_info = {
+    "CAMELLIA-256-ECB",
+    &camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_256_ECB,
     MBEDTLS_MODE_ECB,
     256,
-    "CAMELLIA-256-ECB",
     0,
     0,
-    16,
-    &camellia_info
+    16
 };
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 static const mbedtls_cipher_info_t camellia_128_cbc_info = {
+    "CAMELLIA-128-CBC",
+    &camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_128_CBC,
     MBEDTLS_MODE_CBC,
     128,
-    "CAMELLIA-128-CBC",
     16,
     0,
-    16,
-    &camellia_info
+    16
 };
 
 static const mbedtls_cipher_info_t camellia_192_cbc_info = {
+    "CAMELLIA-192-CBC",
+    &camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_192_CBC,
     MBEDTLS_MODE_CBC,
     192,
-    "CAMELLIA-192-CBC",
     16,
     0,
-    16,
-    &camellia_info
+    16
 };
 
 static const mbedtls_cipher_info_t camellia_256_cbc_info = {
+    "CAMELLIA-256-CBC",
+    &camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_256_CBC,
     MBEDTLS_MODE_CBC,
     256,
-    "CAMELLIA-256-CBC",
     16,
     0,
-    16,
-    &camellia_info
+    16
 };
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
 static const mbedtls_cipher_info_t camellia_128_cfb128_info = {
+    "CAMELLIA-128-CFB128",
+    &camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_128_CFB128,
     MBEDTLS_MODE_CFB,
     128,
-    "CAMELLIA-128-CFB128",
     16,
     0,
-    16,
-    &camellia_info
+    16
 };
 
 static const mbedtls_cipher_info_t camellia_192_cfb128_info = {
+    "CAMELLIA-192-CFB128",
+    &camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_192_CFB128,
     MBEDTLS_MODE_CFB,
     192,
-    "CAMELLIA-192-CFB128",
     16,
     0,
-    16,
-    &camellia_info
+    16
 };
 
 static const mbedtls_cipher_info_t camellia_256_cfb128_info = {
+    "CAMELLIA-256-CFB128",
+    &camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_256_CFB128,
     MBEDTLS_MODE_CFB,
     256,
-    "CAMELLIA-256-CFB128",
     16,
     0,
-    16,
-    &camellia_info
+    16
 };
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
 static const mbedtls_cipher_info_t camellia_128_ctr_info = {
+    "CAMELLIA-128-CTR",
+    &camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_128_CTR,
     MBEDTLS_MODE_CTR,
     128,
-    "CAMELLIA-128-CTR",
     16,
     0,
-    16,
-    &camellia_info
+    16
 };
 
 static const mbedtls_cipher_info_t camellia_192_ctr_info = {
+    "CAMELLIA-192-CTR",
+    &camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_192_CTR,
     MBEDTLS_MODE_CTR,
     192,
-    "CAMELLIA-192-CTR",
     16,
     0,
-    16,
-    &camellia_info
+    16
 };
 
 static const mbedtls_cipher_info_t camellia_256_ctr_info = {
+    "CAMELLIA-256-CTR",
+    &camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_256_CTR,
     MBEDTLS_MODE_CTR,
     256,
-    "CAMELLIA-256-CTR",
     16,
     0,
-    16,
-    &camellia_info
+    16
 };
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
@@ -946,36 +946,36 @@ static const mbedtls_cipher_base_t gcm_camellia_info = {
 };
 
 static const mbedtls_cipher_info_t camellia_128_gcm_info = {
+    "CAMELLIA-128-GCM",
+    &gcm_camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_128_GCM,
     MBEDTLS_MODE_GCM,
     128,
-    "CAMELLIA-128-GCM",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &gcm_camellia_info
+    16
 };
 
 static const mbedtls_cipher_info_t camellia_192_gcm_info = {
+    "CAMELLIA-192-GCM",
+    &gcm_camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_192_GCM,
     MBEDTLS_MODE_GCM,
     192,
-    "CAMELLIA-192-GCM",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &gcm_camellia_info
+    16
 };
 
 static const mbedtls_cipher_info_t camellia_256_gcm_info = {
+    "CAMELLIA-256-GCM",
+    &gcm_camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_256_GCM,
     MBEDTLS_MODE_GCM,
     256,
-    "CAMELLIA-256-GCM",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &gcm_camellia_info
+    16
 };
 #endif /* MBEDTLS_GCM_C */
 
@@ -1015,69 +1015,69 @@ static const mbedtls_cipher_base_t ccm_camellia_info = {
 };
 
 static const mbedtls_cipher_info_t camellia_128_ccm_info = {
+    "CAMELLIA-128-CCM",
+    &ccm_camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_128_CCM,
     MBEDTLS_MODE_CCM,
     128,
-    "CAMELLIA-128-CCM",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &ccm_camellia_info
+    16
 };
 
 static const mbedtls_cipher_info_t camellia_192_ccm_info = {
+    "CAMELLIA-192-CCM",
+    &ccm_camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_192_CCM,
     MBEDTLS_MODE_CCM,
     192,
-    "CAMELLIA-192-CCM",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &ccm_camellia_info
+    16
 };
 
 static const mbedtls_cipher_info_t camellia_256_ccm_info = {
+    "CAMELLIA-256-CCM",
+    &ccm_camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_256_CCM,
     MBEDTLS_MODE_CCM,
     256,
-    "CAMELLIA-256-CCM",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &ccm_camellia_info
+    16
 };
 
 static const mbedtls_cipher_info_t camellia_128_ccm_star_no_tag_info = {
+    "CAMELLIA-128-CCM*-NO-TAG",
+    &ccm_camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_128_CCM_STAR_NO_TAG,
     MBEDTLS_MODE_CCM_STAR_NO_TAG,
     128,
-    "CAMELLIA-128-CCM*-NO-TAG",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &ccm_camellia_info
+    16
 };
 
 static const mbedtls_cipher_info_t camellia_192_ccm_star_no_tag_info = {
+    "CAMELLIA-192-CCM*-NO-TAG",
+    &ccm_camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_192_CCM_STAR_NO_TAG,
     MBEDTLS_MODE_CCM_STAR_NO_TAG,
     192,
-    "CAMELLIA-192-CCM*-NO-TAG",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &ccm_camellia_info
+    16
 };
 
 static const mbedtls_cipher_info_t camellia_256_ccm_star_no_tag_info = {
+    "CAMELLIA-256-CCM*-NO-TAG",
+    &ccm_camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_256_CCM_STAR_NO_TAG,
     MBEDTLS_MODE_CCM_STAR_NO_TAG,
     256,
-    "CAMELLIA-256-CCM*-NO-TAG",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &ccm_camellia_info
+    16
 };
 #endif /* MBEDTLS_CCM_C */
 
@@ -1183,140 +1183,140 @@ static const mbedtls_cipher_base_t aria_info = {
 };
 
 static const mbedtls_cipher_info_t aria_128_ecb_info = {
+    "ARIA-128-ECB",
+    &aria_info,
     MBEDTLS_CIPHER_ARIA_128_ECB,
     MBEDTLS_MODE_ECB,
     128,
-    "ARIA-128-ECB",
     0,
     0,
-    16,
-    &aria_info
+    16
 };
 
 static const mbedtls_cipher_info_t aria_192_ecb_info = {
+    "ARIA-192-ECB",
+    &aria_info,
     MBEDTLS_CIPHER_ARIA_192_ECB,
     MBEDTLS_MODE_ECB,
     192,
-    "ARIA-192-ECB",
     0,
     0,
-    16,
-    &aria_info
+    16
 };
 
 static const mbedtls_cipher_info_t aria_256_ecb_info = {
+    "ARIA-256-ECB",
+    &aria_info,
     MBEDTLS_CIPHER_ARIA_256_ECB,
     MBEDTLS_MODE_ECB,
     256,
-    "ARIA-256-ECB",
     0,
     0,
-    16,
-    &aria_info
+    16
 };
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 static const mbedtls_cipher_info_t aria_128_cbc_info = {
+    "ARIA-128-CBC",
+    &aria_info,
     MBEDTLS_CIPHER_ARIA_128_CBC,
     MBEDTLS_MODE_CBC,
     128,
-    "ARIA-128-CBC",
     16,
     0,
-    16,
-    &aria_info
+    16
 };
 
 static const mbedtls_cipher_info_t aria_192_cbc_info = {
+    "ARIA-192-CBC",
+    &aria_info,
     MBEDTLS_CIPHER_ARIA_192_CBC,
     MBEDTLS_MODE_CBC,
     192,
-    "ARIA-192-CBC",
     16,
     0,
-    16,
-    &aria_info
+    16
 };
 
 static const mbedtls_cipher_info_t aria_256_cbc_info = {
+    "ARIA-256-CBC",
+    &aria_info,
     MBEDTLS_CIPHER_ARIA_256_CBC,
     MBEDTLS_MODE_CBC,
     256,
-    "ARIA-256-CBC",
     16,
     0,
-    16,
-    &aria_info
+    16
 };
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
 static const mbedtls_cipher_info_t aria_128_cfb128_info = {
+    "ARIA-128-CFB128",
+    &aria_info,
     MBEDTLS_CIPHER_ARIA_128_CFB128,
     MBEDTLS_MODE_CFB,
     128,
-    "ARIA-128-CFB128",
     16,
     0,
-    16,
-    &aria_info
+    16
 };
 
 static const mbedtls_cipher_info_t aria_192_cfb128_info = {
+    "ARIA-192-CFB128",
+    &aria_info,
     MBEDTLS_CIPHER_ARIA_192_CFB128,
     MBEDTLS_MODE_CFB,
     192,
-    "ARIA-192-CFB128",
     16,
     0,
-    16,
-    &aria_info
+    16
 };
 
 static const mbedtls_cipher_info_t aria_256_cfb128_info = {
+    "ARIA-256-CFB128",
+    &aria_info,
     MBEDTLS_CIPHER_ARIA_256_CFB128,
     MBEDTLS_MODE_CFB,
     256,
-    "ARIA-256-CFB128",
     16,
     0,
-    16,
-    &aria_info
+    16
 };
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
 static const mbedtls_cipher_info_t aria_128_ctr_info = {
+    "ARIA-128-CTR",
+    &aria_info,
     MBEDTLS_CIPHER_ARIA_128_CTR,
     MBEDTLS_MODE_CTR,
     128,
-    "ARIA-128-CTR",
     16,
     0,
-    16,
-    &aria_info
+    16
 };
 
 static const mbedtls_cipher_info_t aria_192_ctr_info = {
+    "ARIA-192-CTR",
+    &aria_info,
     MBEDTLS_CIPHER_ARIA_192_CTR,
     MBEDTLS_MODE_CTR,
     192,
-    "ARIA-192-CTR",
     16,
     0,
-    16,
-    &aria_info
+    16
 };
 
 static const mbedtls_cipher_info_t aria_256_ctr_info = {
+    "ARIA-256-CTR",
+    &aria_info,
     MBEDTLS_CIPHER_ARIA_256_CTR,
     MBEDTLS_MODE_CTR,
     256,
-    "ARIA-256-CTR",
     16,
     0,
-    16,
-    &aria_info
+    16
 };
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
@@ -1356,36 +1356,36 @@ static const mbedtls_cipher_base_t gcm_aria_info = {
 };
 
 static const mbedtls_cipher_info_t aria_128_gcm_info = {
+    "ARIA-128-GCM",
+    &gcm_aria_info,
     MBEDTLS_CIPHER_ARIA_128_GCM,
     MBEDTLS_MODE_GCM,
     128,
-    "ARIA-128-GCM",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &gcm_aria_info
+    16
 };
 
 static const mbedtls_cipher_info_t aria_192_gcm_info = {
+    "ARIA-192-GCM",
+    &gcm_aria_info,
     MBEDTLS_CIPHER_ARIA_192_GCM,
     MBEDTLS_MODE_GCM,
     192,
-    "ARIA-192-GCM",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &gcm_aria_info
+    16
 };
 
 static const mbedtls_cipher_info_t aria_256_gcm_info = {
+    "ARIA-256-GCM",
+    &gcm_aria_info,
     MBEDTLS_CIPHER_ARIA_256_GCM,
     MBEDTLS_MODE_GCM,
     256,
-    "ARIA-256-GCM",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &gcm_aria_info
+    16
 };
 #endif /* MBEDTLS_GCM_C */
 
@@ -1425,69 +1425,69 @@ static const mbedtls_cipher_base_t ccm_aria_info = {
 };
 
 static const mbedtls_cipher_info_t aria_128_ccm_info = {
+    "ARIA-128-CCM",
+    &ccm_aria_info,
     MBEDTLS_CIPHER_ARIA_128_CCM,
     MBEDTLS_MODE_CCM,
     128,
-    "ARIA-128-CCM",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &ccm_aria_info
+    16
 };
 
 static const mbedtls_cipher_info_t aria_192_ccm_info = {
+    "ARIA-192-CCM",
+    &ccm_aria_info,
     MBEDTLS_CIPHER_ARIA_192_CCM,
     MBEDTLS_MODE_CCM,
     192,
-    "ARIA-192-CCM",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &ccm_aria_info
+    16
 };
 
 static const mbedtls_cipher_info_t aria_256_ccm_info = {
+    "ARIA-256-CCM",
+    &ccm_aria_info,
     MBEDTLS_CIPHER_ARIA_256_CCM,
     MBEDTLS_MODE_CCM,
     256,
-    "ARIA-256-CCM",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &ccm_aria_info
+    16
 };
 
 static const mbedtls_cipher_info_t aria_128_ccm_star_no_tag_info = {
+    "ARIA-128-CCM*-NO-TAG",
+    &ccm_aria_info,
     MBEDTLS_CIPHER_ARIA_128_CCM_STAR_NO_TAG,
     MBEDTLS_MODE_CCM_STAR_NO_TAG,
     128,
-    "ARIA-128-CCM*-NO-TAG",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &ccm_aria_info
+    16
 };
 
 static const mbedtls_cipher_info_t aria_192_ccm_star_no_tag_info = {
+    "ARIA-192-CCM*-NO-TAG",
+    &ccm_aria_info,
     MBEDTLS_CIPHER_ARIA_192_CCM_STAR_NO_TAG,
     MBEDTLS_MODE_CCM_STAR_NO_TAG,
     192,
-    "ARIA-192-CCM*-NO-TAG",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &ccm_aria_info
+    16
 };
 
 static const mbedtls_cipher_info_t aria_256_ccm_star_no_tag_info = {
+    "ARIA-256-CCM*-NO-TAG",
+    &ccm_aria_info,
     MBEDTLS_CIPHER_ARIA_256_CCM_STAR_NO_TAG,
     MBEDTLS_MODE_CCM_STAR_NO_TAG,
     256,
-    "ARIA-256-CCM*-NO-TAG",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
-    16,
-    &ccm_aria_info
+    16
 };
 #endif /* MBEDTLS_CCM_C */
 
@@ -1642,26 +1642,26 @@ static const mbedtls_cipher_base_t des_info = {
 };
 
 static const mbedtls_cipher_info_t des_ecb_info = {
+    "DES-ECB",
+    &des_info,
     MBEDTLS_CIPHER_DES_ECB,
     MBEDTLS_MODE_ECB,
     MBEDTLS_KEY_LENGTH_DES,
-    "DES-ECB",
     0,
     0,
-    8,
-    &des_info
+    8
 };
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 static const mbedtls_cipher_info_t des_cbc_info = {
+    "DES-CBC",
+    &des_info,
     MBEDTLS_CIPHER_DES_CBC,
     MBEDTLS_MODE_CBC,
     MBEDTLS_KEY_LENGTH_DES,
-    "DES-CBC",
     8,
     0,
-    8,
-    &des_info
+    8
 };
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
@@ -1693,26 +1693,26 @@ static const mbedtls_cipher_base_t des_ede_info = {
 };
 
 static const mbedtls_cipher_info_t des_ede_ecb_info = {
+    "DES-EDE-ECB",
+    &des_ede_info,
     MBEDTLS_CIPHER_DES_EDE_ECB,
     MBEDTLS_MODE_ECB,
     MBEDTLS_KEY_LENGTH_DES_EDE,
-    "DES-EDE-ECB",
     0,
     0,
-    8,
-    &des_ede_info
+    8
 };
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 static const mbedtls_cipher_info_t des_ede_cbc_info = {
+    "DES-EDE-CBC",
+    &des_ede_info,
     MBEDTLS_CIPHER_DES_EDE_CBC,
     MBEDTLS_MODE_CBC,
     MBEDTLS_KEY_LENGTH_DES_EDE,
-    "DES-EDE-CBC",
     8,
     0,
-    8,
-    &des_ede_info
+    8
 };
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
@@ -1744,25 +1744,25 @@ static const mbedtls_cipher_base_t des_ede3_info = {
 };
 
 static const mbedtls_cipher_info_t des_ede3_ecb_info = {
+    "DES-EDE3-ECB",
+    &des_ede3_info,
     MBEDTLS_CIPHER_DES_EDE3_ECB,
     MBEDTLS_MODE_ECB,
     MBEDTLS_KEY_LENGTH_DES_EDE3,
-    "DES-EDE3-ECB",
     0,
     0,
-    8,
-    &des_ede3_info
+    8
 };
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 static const mbedtls_cipher_info_t des_ede3_cbc_info = {
+    "DES-EDE3-CBC",
+    &des_ede3_info,
     MBEDTLS_CIPHER_DES_EDE3_CBC,
     MBEDTLS_MODE_CBC,
     MBEDTLS_KEY_LENGTH_DES_EDE3,
-    "DES-EDE3-CBC",
     8,
     0,
-    8,
-    &des_ede3_info
+    8
 };
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 #endif /* MBEDTLS_DES_C */
@@ -1844,14 +1844,14 @@ static const mbedtls_cipher_base_t chacha20_base_info = {
     chacha20_ctx_free
 };
 static const mbedtls_cipher_info_t chacha20_info = {
+    "CHACHA20",
+    &chacha20_base_info,
     MBEDTLS_CIPHER_CHACHA20,
     MBEDTLS_MODE_STREAM,
     256,
-    "CHACHA20",
     12,
     0,
-    1,
-    &chacha20_base_info
+    1
 };
 #endif /* MBEDTLS_CHACHA20_C */
 
@@ -1919,14 +1919,14 @@ static const mbedtls_cipher_base_t chachapoly_base_info = {
     chachapoly_ctx_free
 };
 static const mbedtls_cipher_info_t chachapoly_info = {
+    "CHACHA20-POLY1305",
+    &chachapoly_base_info,
     MBEDTLS_CIPHER_CHACHA20_POLY1305,
     MBEDTLS_MODE_CHACHAPOLY,
     256,
-    "CHACHA20-POLY1305",
     12,
     0,
-    1,
-    &chachapoly_base_info
+    1
 };
 #endif /* MBEDTLS_CHACHAPOLY_C */
 
@@ -1988,14 +1988,14 @@ static const mbedtls_cipher_base_t null_base_info = {
 };
 
 static const mbedtls_cipher_info_t null_cipher_info = {
+    "NULL",
+    &null_base_info,
     MBEDTLS_CIPHER_NULL,
     MBEDTLS_MODE_STREAM,
     0,
-    "NULL",
     0,
     0,
-    1,
-    &null_base_info
+    1
 };
 #endif /* defined(MBEDTLS_CIPHER_NULL_CIPHER) */
 
@@ -2059,69 +2059,69 @@ static const mbedtls_cipher_base_t kw_aes_info = {
 };
 
 static const mbedtls_cipher_info_t aes_128_nist_kw_info = {
+    "AES-128-KW",
+    &kw_aes_info,
     MBEDTLS_CIPHER_AES_128_KW,
     MBEDTLS_MODE_KW,
     128,
-    "AES-128-KW",
     0,
     0,
-    16,
-    &kw_aes_info
+    16
 };
 
 static const mbedtls_cipher_info_t aes_192_nist_kw_info = {
+    "AES-192-KW",
+    &kw_aes_info,
     MBEDTLS_CIPHER_AES_192_KW,
     MBEDTLS_MODE_KW,
     192,
-    "AES-192-KW",
     0,
     0,
-    16,
-    &kw_aes_info
+    16
 };
 
 static const mbedtls_cipher_info_t aes_256_nist_kw_info = {
+    "AES-256-KW",
+    &kw_aes_info,
     MBEDTLS_CIPHER_AES_256_KW,
     MBEDTLS_MODE_KW,
     256,
-    "AES-256-KW",
     0,
     0,
-    16,
-    &kw_aes_info
+    16
 };
 
 static const mbedtls_cipher_info_t aes_128_nist_kwp_info = {
+    "AES-128-KWP",
+    &kw_aes_info,
     MBEDTLS_CIPHER_AES_128_KWP,
     MBEDTLS_MODE_KWP,
     128,
-    "AES-128-KWP",
     0,
     0,
-    16,
-    &kw_aes_info
+    16
 };
 
 static const mbedtls_cipher_info_t aes_192_nist_kwp_info = {
+    "AES-192-KWP",
+    &kw_aes_info,
     MBEDTLS_CIPHER_AES_192_KWP,
     MBEDTLS_MODE_KWP,
     192,
-    "AES-192-KWP",
     0,
     0,
-    16,
-    &kw_aes_info
+    16
 };
 
 static const mbedtls_cipher_info_t aes_256_nist_kwp_info = {
+    "AES-256-KWP",
+    &kw_aes_info,
     MBEDTLS_CIPHER_AES_256_KWP,
     MBEDTLS_MODE_KWP,
     256,
-    "AES-256-KWP",
     0,
     0,
-    16,
-    &kw_aes_info
+    16
 };
 #endif /* MBEDTLS_NIST_KW_C */
 

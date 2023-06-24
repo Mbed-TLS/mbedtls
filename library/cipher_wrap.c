@@ -2313,17 +2313,17 @@ const mbedtls_cipher_base_t *mbedtls_cipher_base_lookup_table[] = {
 #else
     NULL,
 #endif
-#if defined(MBEDTLS_CCM_C)
+#if defined(MBEDTLS_CCM_C) && defined(MBEDTLS_AES_C)
     &ccm_aes_info,
 #else
     NULL,
 #endif
-#if defined(MBEDTLS_CCM_C)
+#if defined(MBEDTLS_CCM_C) && defined(MBEDTLS_ARIA_C)
     &ccm_aria_info,
 #else
     NULL,
 #endif
-#if defined(MBEDTLS_CCM_C)
+#if defined(MBEDTLS_CCM_C) && defined(MBEDTLS_CAMELLIA_C)
     &ccm_camellia_info,
 #else
     NULL,
@@ -2353,17 +2353,17 @@ const mbedtls_cipher_base_t *mbedtls_cipher_base_lookup_table[] = {
 #else
     NULL,
 #endif
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_GCM_C) && defined(MBEDTLS_AES_C)
     &gcm_aes_info,
 #else
     NULL,
 #endif
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_GCM_C) && defined(MBEDTLS_ARIA_C)
     &gcm_aria_info,
 #else
     NULL,
 #endif
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_GCM_C) && defined(MBEDTLS_CAMELLIA_C)
     &gcm_camellia_info,
 #else
     NULL,
@@ -2378,7 +2378,7 @@ const mbedtls_cipher_base_t *mbedtls_cipher_base_lookup_table[] = {
 #else
     NULL,
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_XTS)
+#if defined(MBEDTLS_CIPHER_MODE_XTS) && defined(MBEDTLS_AES_C)
     &xts_aes_info,
 #else
     NULL,

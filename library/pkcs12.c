@@ -151,7 +151,7 @@ int mbedtls_pkcs12_pbe(mbedtls_asn1_buf *pbe_params, int mode,
         return MBEDTLS_ERR_PKCS12_FEATURE_UNAVAILABLE;
     }
 
-    keylen = mbedtls_cipher_info_get_key_bitlen(cipher_info) / 8;
+    keylen = (int) mbedtls_cipher_info_get_key_bitlen(cipher_info) / 8;
 
     if ((ret = pkcs12_pbe_derive_key_iv(pbe_params, md_type, pwd, pwdlen,
                                         key, keylen,

@@ -276,38 +276,38 @@ typedef struct mbedtls_cipher_info_t {
     const char *MBEDTLS_PRIVATE(name);
 
     /** Index to LUT for base cipher information and functions. */
-    uint8_t MBEDTLS_PRIVATE(base_idx) : 5;
+    unsigned int MBEDTLS_PRIVATE(base_idx) : 5;
 
     /** Full cipher identifier (as per mbedtls_cipher_type_t).
      * For example, MBEDTLS_CIPHER_AES_256_CBC.
      */
-    uint8_t MBEDTLS_PRIVATE(type) : 7;
+    unsigned int MBEDTLS_PRIVATE(type) : 7;
 
     /** The cipher mode (as per mbedtls_cipher_mode_t).
      * For example, MBEDTLS_MODE_CBC.
      */
-    uint8_t MBEDTLS_PRIVATE(mode) : 4;
+    unsigned int MBEDTLS_PRIVATE(mode) : 4;
 
     /** The cipher key length, in bits. This is the
      * default length for variable sized ciphers.
      * Includes parity bits for ciphers like DES.
      */
-    uint8_t MBEDTLS_PRIVATE(key_bitlen) : 4;
+    unsigned int MBEDTLS_PRIVATE(key_bitlen) : 4;
 
     /** IV or nonce size, in Bytes.
      * For ciphers that accept variable IV sizes,
      * this is the recommended size.
      */
-    uint8_t MBEDTLS_PRIVATE(iv_size) : 3;
+    unsigned int MBEDTLS_PRIVATE(iv_size) : 3;
 
     /** Bitflag comprised of MBEDTLS_CIPHER_VARIABLE_IV_LEN and
      *  MBEDTLS_CIPHER_VARIABLE_KEY_LEN indicating whether the
      *  cipher supports variable IV or variable key sizes, respectively.
      */
-    uint8_t MBEDTLS_PRIVATE(flags) : 2;
+    unsigned int MBEDTLS_PRIVATE(flags) : 2;
 
     /** The block size, in bytes. */
-    uint8_t MBEDTLS_PRIVATE(block_size) : 2;
+    unsigned int MBEDTLS_PRIVATE(block_size) : 2;
 
 } mbedtls_cipher_info_t;
 
@@ -446,7 +446,7 @@ static inline mbedtls_cipher_type_t mbedtls_cipher_info_get_type(
     if (info == NULL) {
         return MBEDTLS_CIPHER_NONE;
     } else {
-        return info->MBEDTLS_PRIVATE(type);
+        return (mbedtls_cipher_type_t) info->MBEDTLS_PRIVATE(type);
     }
 }
 
@@ -465,7 +465,7 @@ static inline mbedtls_cipher_mode_t mbedtls_cipher_info_get_mode(
     if (info == NULL) {
         return MBEDTLS_MODE_NONE;
     } else {
-        return info->MBEDTLS_PRIVATE(mode);
+        return (mbedtls_cipher_mode_t) info->MBEDTLS_PRIVATE(mode);
     }
 }
 
@@ -711,7 +711,7 @@ static inline mbedtls_cipher_mode_t mbedtls_cipher_get_cipher_mode(
         return MBEDTLS_MODE_NONE;
     }
 
-    return ctx->MBEDTLS_PRIVATE(cipher_info)->MBEDTLS_PRIVATE(mode);
+    return (mbedtls_cipher_mode_t) ctx->MBEDTLS_PRIVATE(cipher_info)->MBEDTLS_PRIVATE(mode);
 }
 
 /**
@@ -757,7 +757,7 @@ static inline mbedtls_cipher_type_t mbedtls_cipher_get_type(
         return MBEDTLS_CIPHER_NONE;
     }
 
-    return ctx->MBEDTLS_PRIVATE(cipher_info)->MBEDTLS_PRIVATE(type);
+    return (mbedtls_cipher_type_t) ctx->MBEDTLS_PRIVATE(cipher_info)->MBEDTLS_PRIVATE(type);
 }
 
 /**

@@ -186,7 +186,7 @@ int mbedtls_cipher_cmac_starts(mbedtls_cipher_context_t *ctx,
         return retval;
     }
 
-    type = ctx->cipher_info->type;
+    type = mbedtls_cipher_info_get_type(ctx->cipher_info);
 
     switch (type) {
         case MBEDTLS_CIPHER_AES_128_ECB:

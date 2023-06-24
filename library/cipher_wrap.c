@@ -245,7 +245,7 @@ static const mbedtls_cipher_info_t aes_128_ecb_info = {
     &aes_info,
     MBEDTLS_CIPHER_AES_128_ECB,
     MBEDTLS_MODE_ECB,
-    128,
+    128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0,
     0,
     16
@@ -256,7 +256,7 @@ static const mbedtls_cipher_info_t aes_192_ecb_info = {
     &aes_info,
     MBEDTLS_CIPHER_AES_192_ECB,
     MBEDTLS_MODE_ECB,
-    192,
+    192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0,
     0,
     16
@@ -267,7 +267,7 @@ static const mbedtls_cipher_info_t aes_256_ecb_info = {
     &aes_info,
     MBEDTLS_CIPHER_AES_256_ECB,
     MBEDTLS_MODE_ECB,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0,
     0,
     16
@@ -279,7 +279,7 @@ static const mbedtls_cipher_info_t aes_128_cbc_info = {
     &aes_info,
     MBEDTLS_CIPHER_AES_128_CBC,
     MBEDTLS_MODE_CBC,
-    128,
+    128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -290,7 +290,7 @@ static const mbedtls_cipher_info_t aes_192_cbc_info = {
     &aes_info,
     MBEDTLS_CIPHER_AES_192_CBC,
     MBEDTLS_MODE_CBC,
-    192,
+    192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -301,7 +301,7 @@ static const mbedtls_cipher_info_t aes_256_cbc_info = {
     &aes_info,
     MBEDTLS_CIPHER_AES_256_CBC,
     MBEDTLS_MODE_CBC,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -314,7 +314,7 @@ static const mbedtls_cipher_info_t aes_128_cfb128_info = {
     &aes_info,
     MBEDTLS_CIPHER_AES_128_CFB128,
     MBEDTLS_MODE_CFB,
-    128,
+    128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -325,7 +325,7 @@ static const mbedtls_cipher_info_t aes_192_cfb128_info = {
     &aes_info,
     MBEDTLS_CIPHER_AES_192_CFB128,
     MBEDTLS_MODE_CFB,
-    192,
+    192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -336,7 +336,7 @@ static const mbedtls_cipher_info_t aes_256_cfb128_info = {
     &aes_info,
     MBEDTLS_CIPHER_AES_256_CFB128,
     MBEDTLS_MODE_CFB,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -349,7 +349,7 @@ static const mbedtls_cipher_info_t aes_128_ofb_info = {
     &aes_info,
     MBEDTLS_CIPHER_AES_128_OFB,
     MBEDTLS_MODE_OFB,
-    128,
+    128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -360,7 +360,7 @@ static const mbedtls_cipher_info_t aes_192_ofb_info = {
     &aes_info,
     MBEDTLS_CIPHER_AES_192_OFB,
     MBEDTLS_MODE_OFB,
-    192,
+    192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -371,7 +371,7 @@ static const mbedtls_cipher_info_t aes_256_ofb_info = {
     &aes_info,
     MBEDTLS_CIPHER_AES_256_OFB,
     MBEDTLS_MODE_OFB,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -384,7 +384,7 @@ static const mbedtls_cipher_info_t aes_128_ctr_info = {
     &aes_info,
     MBEDTLS_CIPHER_AES_128_CTR,
     MBEDTLS_MODE_CTR,
-    128,
+    128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -395,7 +395,7 @@ static const mbedtls_cipher_info_t aes_192_ctr_info = {
     &aes_info,
     MBEDTLS_CIPHER_AES_192_CTR,
     MBEDTLS_MODE_CTR,
-    192,
+    192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -406,7 +406,7 @@ static const mbedtls_cipher_info_t aes_256_ctr_info = {
     &aes_info,
     MBEDTLS_CIPHER_AES_256_CTR,
     MBEDTLS_MODE_CTR,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -483,7 +483,7 @@ static const mbedtls_cipher_info_t aes_128_xts_info = {
     &xts_aes_info,
     MBEDTLS_CIPHER_AES_128_XTS,
     MBEDTLS_MODE_XTS,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -494,7 +494,7 @@ static const mbedtls_cipher_info_t aes_256_xts_info = {
     &xts_aes_info,
     MBEDTLS_CIPHER_AES_256_XTS,
     MBEDTLS_MODE_XTS,
-    512,
+    512 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -541,7 +541,7 @@ static const mbedtls_cipher_info_t aes_128_gcm_info = {
     &gcm_aes_info,
     MBEDTLS_CIPHER_AES_128_GCM,
     MBEDTLS_MODE_GCM,
-    128,
+    128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -552,7 +552,7 @@ static const mbedtls_cipher_info_t aes_192_gcm_info = {
     &gcm_aes_info,
     MBEDTLS_CIPHER_AES_192_GCM,
     MBEDTLS_MODE_GCM,
-    192,
+    192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -563,7 +563,7 @@ static const mbedtls_cipher_info_t aes_256_gcm_info = {
     &gcm_aes_info,
     MBEDTLS_CIPHER_AES_256_GCM,
     MBEDTLS_MODE_GCM,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -610,7 +610,7 @@ static const mbedtls_cipher_info_t aes_128_ccm_info = {
     &ccm_aes_info,
     MBEDTLS_CIPHER_AES_128_CCM,
     MBEDTLS_MODE_CCM,
-    128,
+    128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -621,7 +621,7 @@ static const mbedtls_cipher_info_t aes_192_ccm_info = {
     &ccm_aes_info,
     MBEDTLS_CIPHER_AES_192_CCM,
     MBEDTLS_MODE_CCM,
-    192,
+    192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -632,7 +632,7 @@ static const mbedtls_cipher_info_t aes_256_ccm_info = {
     &ccm_aes_info,
     MBEDTLS_CIPHER_AES_256_CCM,
     MBEDTLS_MODE_CCM,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -643,7 +643,7 @@ static const mbedtls_cipher_info_t aes_128_ccm_star_no_tag_info = {
     &ccm_aes_info,
     MBEDTLS_CIPHER_AES_128_CCM_STAR_NO_TAG,
     MBEDTLS_MODE_CCM_STAR_NO_TAG,
-    128,
+    128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -654,7 +654,7 @@ static const mbedtls_cipher_info_t aes_192_ccm_star_no_tag_info = {
     &ccm_aes_info,
     MBEDTLS_CIPHER_AES_192_CCM_STAR_NO_TAG,
     MBEDTLS_MODE_CCM_STAR_NO_TAG,
-    192,
+    192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -665,7 +665,7 @@ static const mbedtls_cipher_info_t aes_256_ccm_star_no_tag_info = {
     &ccm_aes_info,
     MBEDTLS_CIPHER_AES_256_CCM_STAR_NO_TAG,
     MBEDTLS_MODE_CCM_STAR_NO_TAG,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -777,7 +777,7 @@ static const mbedtls_cipher_info_t camellia_128_ecb_info = {
     &camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_128_ECB,
     MBEDTLS_MODE_ECB,
-    128,
+    128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0,
     0,
     16
@@ -788,7 +788,7 @@ static const mbedtls_cipher_info_t camellia_192_ecb_info = {
     &camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_192_ECB,
     MBEDTLS_MODE_ECB,
-    192,
+    192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0,
     0,
     16
@@ -799,7 +799,7 @@ static const mbedtls_cipher_info_t camellia_256_ecb_info = {
     &camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_256_ECB,
     MBEDTLS_MODE_ECB,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0,
     0,
     16
@@ -811,7 +811,7 @@ static const mbedtls_cipher_info_t camellia_128_cbc_info = {
     &camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_128_CBC,
     MBEDTLS_MODE_CBC,
-    128,
+    128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -822,7 +822,7 @@ static const mbedtls_cipher_info_t camellia_192_cbc_info = {
     &camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_192_CBC,
     MBEDTLS_MODE_CBC,
-    192,
+    192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -833,7 +833,7 @@ static const mbedtls_cipher_info_t camellia_256_cbc_info = {
     &camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_256_CBC,
     MBEDTLS_MODE_CBC,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -846,7 +846,7 @@ static const mbedtls_cipher_info_t camellia_128_cfb128_info = {
     &camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_128_CFB128,
     MBEDTLS_MODE_CFB,
-    128,
+    128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -857,7 +857,7 @@ static const mbedtls_cipher_info_t camellia_192_cfb128_info = {
     &camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_192_CFB128,
     MBEDTLS_MODE_CFB,
-    192,
+    192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -868,7 +868,7 @@ static const mbedtls_cipher_info_t camellia_256_cfb128_info = {
     &camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_256_CFB128,
     MBEDTLS_MODE_CFB,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -881,7 +881,7 @@ static const mbedtls_cipher_info_t camellia_128_ctr_info = {
     &camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_128_CTR,
     MBEDTLS_MODE_CTR,
-    128,
+    128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -892,7 +892,7 @@ static const mbedtls_cipher_info_t camellia_192_ctr_info = {
     &camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_192_CTR,
     MBEDTLS_MODE_CTR,
-    192,
+    192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -903,7 +903,7 @@ static const mbedtls_cipher_info_t camellia_256_ctr_info = {
     &camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_256_CTR,
     MBEDTLS_MODE_CTR,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -950,7 +950,7 @@ static const mbedtls_cipher_info_t camellia_128_gcm_info = {
     &gcm_camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_128_GCM,
     MBEDTLS_MODE_GCM,
-    128,
+    128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -961,7 +961,7 @@ static const mbedtls_cipher_info_t camellia_192_gcm_info = {
     &gcm_camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_192_GCM,
     MBEDTLS_MODE_GCM,
-    192,
+    192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -972,7 +972,7 @@ static const mbedtls_cipher_info_t camellia_256_gcm_info = {
     &gcm_camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_256_GCM,
     MBEDTLS_MODE_GCM,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -1019,7 +1019,7 @@ static const mbedtls_cipher_info_t camellia_128_ccm_info = {
     &ccm_camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_128_CCM,
     MBEDTLS_MODE_CCM,
-    128,
+    128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -1030,7 +1030,7 @@ static const mbedtls_cipher_info_t camellia_192_ccm_info = {
     &ccm_camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_192_CCM,
     MBEDTLS_MODE_CCM,
-    192,
+    192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -1041,7 +1041,7 @@ static const mbedtls_cipher_info_t camellia_256_ccm_info = {
     &ccm_camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_256_CCM,
     MBEDTLS_MODE_CCM,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -1052,7 +1052,7 @@ static const mbedtls_cipher_info_t camellia_128_ccm_star_no_tag_info = {
     &ccm_camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_128_CCM_STAR_NO_TAG,
     MBEDTLS_MODE_CCM_STAR_NO_TAG,
-    128,
+    128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -1063,7 +1063,7 @@ static const mbedtls_cipher_info_t camellia_192_ccm_star_no_tag_info = {
     &ccm_camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_192_CCM_STAR_NO_TAG,
     MBEDTLS_MODE_CCM_STAR_NO_TAG,
-    192,
+    192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -1074,7 +1074,7 @@ static const mbedtls_cipher_info_t camellia_256_ccm_star_no_tag_info = {
     &ccm_camellia_info,
     MBEDTLS_CIPHER_CAMELLIA_256_CCM_STAR_NO_TAG,
     MBEDTLS_MODE_CCM_STAR_NO_TAG,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -1187,7 +1187,7 @@ static const mbedtls_cipher_info_t aria_128_ecb_info = {
     &aria_info,
     MBEDTLS_CIPHER_ARIA_128_ECB,
     MBEDTLS_MODE_ECB,
-    128,
+    128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0,
     0,
     16
@@ -1198,7 +1198,7 @@ static const mbedtls_cipher_info_t aria_192_ecb_info = {
     &aria_info,
     MBEDTLS_CIPHER_ARIA_192_ECB,
     MBEDTLS_MODE_ECB,
-    192,
+    192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0,
     0,
     16
@@ -1209,7 +1209,7 @@ static const mbedtls_cipher_info_t aria_256_ecb_info = {
     &aria_info,
     MBEDTLS_CIPHER_ARIA_256_ECB,
     MBEDTLS_MODE_ECB,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0,
     0,
     16
@@ -1221,7 +1221,7 @@ static const mbedtls_cipher_info_t aria_128_cbc_info = {
     &aria_info,
     MBEDTLS_CIPHER_ARIA_128_CBC,
     MBEDTLS_MODE_CBC,
-    128,
+    128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -1232,7 +1232,7 @@ static const mbedtls_cipher_info_t aria_192_cbc_info = {
     &aria_info,
     MBEDTLS_CIPHER_ARIA_192_CBC,
     MBEDTLS_MODE_CBC,
-    192,
+    192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -1243,7 +1243,7 @@ static const mbedtls_cipher_info_t aria_256_cbc_info = {
     &aria_info,
     MBEDTLS_CIPHER_ARIA_256_CBC,
     MBEDTLS_MODE_CBC,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -1256,7 +1256,7 @@ static const mbedtls_cipher_info_t aria_128_cfb128_info = {
     &aria_info,
     MBEDTLS_CIPHER_ARIA_128_CFB128,
     MBEDTLS_MODE_CFB,
-    128,
+    128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -1267,7 +1267,7 @@ static const mbedtls_cipher_info_t aria_192_cfb128_info = {
     &aria_info,
     MBEDTLS_CIPHER_ARIA_192_CFB128,
     MBEDTLS_MODE_CFB,
-    192,
+    192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -1278,7 +1278,7 @@ static const mbedtls_cipher_info_t aria_256_cfb128_info = {
     &aria_info,
     MBEDTLS_CIPHER_ARIA_256_CFB128,
     MBEDTLS_MODE_CFB,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -1291,7 +1291,7 @@ static const mbedtls_cipher_info_t aria_128_ctr_info = {
     &aria_info,
     MBEDTLS_CIPHER_ARIA_128_CTR,
     MBEDTLS_MODE_CTR,
-    128,
+    128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -1302,7 +1302,7 @@ static const mbedtls_cipher_info_t aria_192_ctr_info = {
     &aria_info,
     MBEDTLS_CIPHER_ARIA_192_CTR,
     MBEDTLS_MODE_CTR,
-    192,
+    192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -1313,7 +1313,7 @@ static const mbedtls_cipher_info_t aria_256_ctr_info = {
     &aria_info,
     MBEDTLS_CIPHER_ARIA_256_CTR,
     MBEDTLS_MODE_CTR,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     16,
     0,
     16
@@ -1360,7 +1360,7 @@ static const mbedtls_cipher_info_t aria_128_gcm_info = {
     &gcm_aria_info,
     MBEDTLS_CIPHER_ARIA_128_GCM,
     MBEDTLS_MODE_GCM,
-    128,
+    128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -1371,7 +1371,7 @@ static const mbedtls_cipher_info_t aria_192_gcm_info = {
     &gcm_aria_info,
     MBEDTLS_CIPHER_ARIA_192_GCM,
     MBEDTLS_MODE_GCM,
-    192,
+    192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -1382,7 +1382,7 @@ static const mbedtls_cipher_info_t aria_256_gcm_info = {
     &gcm_aria_info,
     MBEDTLS_CIPHER_ARIA_256_GCM,
     MBEDTLS_MODE_GCM,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -1429,7 +1429,7 @@ static const mbedtls_cipher_info_t aria_128_ccm_info = {
     &ccm_aria_info,
     MBEDTLS_CIPHER_ARIA_128_CCM,
     MBEDTLS_MODE_CCM,
-    128,
+    128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -1440,7 +1440,7 @@ static const mbedtls_cipher_info_t aria_192_ccm_info = {
     &ccm_aria_info,
     MBEDTLS_CIPHER_ARIA_192_CCM,
     MBEDTLS_MODE_CCM,
-    192,
+    192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -1451,7 +1451,7 @@ static const mbedtls_cipher_info_t aria_256_ccm_info = {
     &ccm_aria_info,
     MBEDTLS_CIPHER_ARIA_256_CCM,
     MBEDTLS_MODE_CCM,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -1462,7 +1462,7 @@ static const mbedtls_cipher_info_t aria_128_ccm_star_no_tag_info = {
     &ccm_aria_info,
     MBEDTLS_CIPHER_ARIA_128_CCM_STAR_NO_TAG,
     MBEDTLS_MODE_CCM_STAR_NO_TAG,
-    128,
+    128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -1473,7 +1473,7 @@ static const mbedtls_cipher_info_t aria_192_ccm_star_no_tag_info = {
     &ccm_aria_info,
     MBEDTLS_CIPHER_ARIA_192_CCM_STAR_NO_TAG,
     MBEDTLS_MODE_CCM_STAR_NO_TAG,
-    192,
+    192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -1484,7 +1484,7 @@ static const mbedtls_cipher_info_t aria_256_ccm_star_no_tag_info = {
     &ccm_aria_info,
     MBEDTLS_CIPHER_ARIA_256_CCM_STAR_NO_TAG,
     MBEDTLS_MODE_CCM_STAR_NO_TAG,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16
@@ -1646,7 +1646,7 @@ static const mbedtls_cipher_info_t des_ecb_info = {
     &des_info,
     MBEDTLS_CIPHER_DES_ECB,
     MBEDTLS_MODE_ECB,
-    MBEDTLS_KEY_LENGTH_DES,
+    MBEDTLS_KEY_LENGTH_DES >> MBEDTLS_KEY_BITLEN_SHIFT,
     0,
     0,
     8
@@ -1658,7 +1658,7 @@ static const mbedtls_cipher_info_t des_cbc_info = {
     &des_info,
     MBEDTLS_CIPHER_DES_CBC,
     MBEDTLS_MODE_CBC,
-    MBEDTLS_KEY_LENGTH_DES,
+    MBEDTLS_KEY_LENGTH_DES >> MBEDTLS_KEY_BITLEN_SHIFT,
     8,
     0,
     8
@@ -1697,7 +1697,7 @@ static const mbedtls_cipher_info_t des_ede_ecb_info = {
     &des_ede_info,
     MBEDTLS_CIPHER_DES_EDE_ECB,
     MBEDTLS_MODE_ECB,
-    MBEDTLS_KEY_LENGTH_DES_EDE,
+    MBEDTLS_KEY_LENGTH_DES_EDE >> MBEDTLS_KEY_BITLEN_SHIFT,
     0,
     0,
     8
@@ -1709,7 +1709,7 @@ static const mbedtls_cipher_info_t des_ede_cbc_info = {
     &des_ede_info,
     MBEDTLS_CIPHER_DES_EDE_CBC,
     MBEDTLS_MODE_CBC,
-    MBEDTLS_KEY_LENGTH_DES_EDE,
+    MBEDTLS_KEY_LENGTH_DES_EDE >> MBEDTLS_KEY_BITLEN_SHIFT,
     8,
     0,
     8
@@ -1748,7 +1748,7 @@ static const mbedtls_cipher_info_t des_ede3_ecb_info = {
     &des_ede3_info,
     MBEDTLS_CIPHER_DES_EDE3_ECB,
     MBEDTLS_MODE_ECB,
-    MBEDTLS_KEY_LENGTH_DES_EDE3,
+    MBEDTLS_KEY_LENGTH_DES_EDE3 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0,
     0,
     8
@@ -1759,7 +1759,7 @@ static const mbedtls_cipher_info_t des_ede3_cbc_info = {
     &des_ede3_info,
     MBEDTLS_CIPHER_DES_EDE3_CBC,
     MBEDTLS_MODE_CBC,
-    MBEDTLS_KEY_LENGTH_DES_EDE3,
+    MBEDTLS_KEY_LENGTH_DES_EDE3 >> MBEDTLS_KEY_BITLEN_SHIFT,
     8,
     0,
     8
@@ -1848,7 +1848,7 @@ static const mbedtls_cipher_info_t chacha20_info = {
     &chacha20_base_info,
     MBEDTLS_CIPHER_CHACHA20,
     MBEDTLS_MODE_STREAM,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     0,
     1
@@ -1923,7 +1923,7 @@ static const mbedtls_cipher_info_t chachapoly_info = {
     &chachapoly_base_info,
     MBEDTLS_CIPHER_CHACHA20_POLY1305,
     MBEDTLS_MODE_CHACHAPOLY,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     12,
     0,
     1
@@ -1992,7 +1992,7 @@ static const mbedtls_cipher_info_t null_cipher_info = {
     &null_base_info,
     MBEDTLS_CIPHER_NULL,
     MBEDTLS_MODE_STREAM,
-    0,
+    0 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0,
     0,
     1
@@ -2063,7 +2063,7 @@ static const mbedtls_cipher_info_t aes_128_nist_kw_info = {
     &kw_aes_info,
     MBEDTLS_CIPHER_AES_128_KW,
     MBEDTLS_MODE_KW,
-    128,
+    128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0,
     0,
     16
@@ -2074,7 +2074,7 @@ static const mbedtls_cipher_info_t aes_192_nist_kw_info = {
     &kw_aes_info,
     MBEDTLS_CIPHER_AES_192_KW,
     MBEDTLS_MODE_KW,
-    192,
+    192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0,
     0,
     16
@@ -2085,7 +2085,7 @@ static const mbedtls_cipher_info_t aes_256_nist_kw_info = {
     &kw_aes_info,
     MBEDTLS_CIPHER_AES_256_KW,
     MBEDTLS_MODE_KW,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0,
     0,
     16
@@ -2096,7 +2096,7 @@ static const mbedtls_cipher_info_t aes_128_nist_kwp_info = {
     &kw_aes_info,
     MBEDTLS_CIPHER_AES_128_KWP,
     MBEDTLS_MODE_KWP,
-    128,
+    128 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0,
     0,
     16
@@ -2107,7 +2107,7 @@ static const mbedtls_cipher_info_t aes_192_nist_kwp_info = {
     &kw_aes_info,
     MBEDTLS_CIPHER_AES_192_KWP,
     MBEDTLS_MODE_KWP,
-    192,
+    192 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0,
     0,
     16
@@ -2118,7 +2118,7 @@ static const mbedtls_cipher_info_t aes_256_nist_kwp_info = {
     &kw_aes_info,
     MBEDTLS_CIPHER_AES_256_KWP,
     MBEDTLS_MODE_KWP,
-    256,
+    256 >> MBEDTLS_KEY_BITLEN_SHIFT,
     0,
     0,
     16

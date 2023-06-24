@@ -290,7 +290,7 @@ typedef struct mbedtls_cipher_info_t {
      * default length for variable sized ciphers.
      * Includes parity bits for ciphers like DES.
      */
-    uint16_t MBEDTLS_PRIVATE(key_bitlen);
+    uint8_t MBEDTLS_PRIVATE(key_bitlen) : 4;
 
     /** IV or nonce size, in Bytes.
      * For ciphers that accept variable IV sizes,
@@ -308,6 +308,9 @@ typedef struct mbedtls_cipher_info_t {
     uint8_t MBEDTLS_PRIVATE(block_size) : 5;
 
 } mbedtls_cipher_info_t;
+
+/* This is used to more compactly represent the key_bitlen field above. It is for internal use only. */
+#define MBEDTLS_KEY_BITLEN_SHIFT 6
 
 /**
  * Generic cipher context.
@@ -479,7 +482,7 @@ static inline size_t mbedtls_cipher_info_get_key_bitlen(
     if (info == NULL) {
         return 0;
     } else {
-        return info->MBEDTLS_PRIVATE(key_bitlen);
+        return info->MBEDTLS_PRIVATE(key_bitlen) << MBEDTLS_KEY_BITLEN_SHIFT;
     }
 }
 
@@ -788,7 +791,7 @@ static inline int mbedtls_cipher_get_key_bitlen(
         return MBEDTLS_KEY_LENGTH_NONE;
     }
 
-    return (int) ctx->MBEDTLS_PRIVATE(cipher_info)->MBEDTLS_PRIVATE(key_bitlen);
+    return (int) ctx->MBEDTLS_PRIVATE(cipher_info)->MBEDTLS_PRIVATE(key_bitlen) << MBEDTLS_KEY_BITLEN_SHIFT;
 }
 
 /**

@@ -270,6 +270,10 @@ typedef struct mbedtls_cmac_context_t mbedtls_cmac_context_t;
  *              mbedtls_cipher_info_from_type(),
  *              mbedtls_cipher_info_from_values(),
  *              mbedtls_cipher_info_from_psa().
+ *
+ * \note        Some fields store a value that has been right-shifted to save
+ *              code-size, so should not be used directly. The accessor
+ *              functions adjust for this and return the "natural" value.
  */
 typedef struct mbedtls_cipher_info_t {
     /** Name of the cipher. */
@@ -278,14 +282,14 @@ typedef struct mbedtls_cipher_info_t {
     /** The block size, in bytes. */
     unsigned int MBEDTLS_PRIVATE(block_size) : 5;
 
-    /** IV or nonce size, in Bytes.
+    /** IV or nonce size, in bytes (right shifted by 2).
      * For ciphers that accept variable IV sizes,
      * this is the recommended size.
      */
     unsigned int MBEDTLS_PRIVATE(iv_size) : 3;
 
-    /** The cipher key length, in bits. This is the
-     * default length for variable sized ciphers.
+    /** The cipher key length, in bits (right shifted by 6).
+     * This is the default length for variable sized ciphers.
      * Includes parity bits for ciphers like DES.
      */
     unsigned int MBEDTLS_PRIVATE(key_bitlen) : 4;
@@ -297,8 +301,11 @@ typedef struct mbedtls_cipher_info_t {
 
     /** Full cipher identifier (as per mbedtls_cipher_type_t).
      * For example, MBEDTLS_CIPHER_AES_256_CBC.
+     *
+     * This could be 7 bits, but 8 bits retains byte alignment for the
+     * next field, which reduces code size to access that field.
      */
-    unsigned int MBEDTLS_PRIVATE(type) : 8; // only need 7 bits, but it retains byte alignment
+    unsigned int MBEDTLS_PRIVATE(type) : 8;
 
     /** Bitflag comprised of MBEDTLS_CIPHER_VARIABLE_IV_LEN and
      *  MBEDTLS_CIPHER_VARIABLE_KEY_LEN indicating whether the

@@ -275,8 +275,8 @@ typedef struct mbedtls_cipher_info_t {
     /** Name of the cipher. */
     const char *MBEDTLS_PRIVATE(name);
 
-    /** Struct for base cipher information and functions. */
-    const mbedtls_cipher_base_t *MBEDTLS_PRIVATE(base);
+    /** Index to LUT for base cipher information and functions. */
+    uint8_t MBEDTLS_PRIVATE(base_idx) : 5;
 
     /** Full cipher identifier. For example,
      * MBEDTLS_CIPHER_AES_256_CBC.

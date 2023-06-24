@@ -275,13 +275,14 @@ typedef struct mbedtls_cipher_info_t {
     /** Name of the cipher. */
     const char *MBEDTLS_PRIVATE(name);
 
-    /** Index to LUT for base cipher information and functions. */
-    unsigned int MBEDTLS_PRIVATE(base_idx) : 5;
+    /** The block size, in bytes. */
+    unsigned int MBEDTLS_PRIVATE(block_size) : 5;
 
-    /** Full cipher identifier (as per mbedtls_cipher_type_t).
-     * For example, MBEDTLS_CIPHER_AES_256_CBC.
+    /** IV or nonce size, in Bytes.
+     * For ciphers that accept variable IV sizes,
+     * this is the recommended size.
      */
-    unsigned int MBEDTLS_PRIVATE(type) : 7;
+    unsigned int MBEDTLS_PRIVATE(iv_size) : 3;
 
     /** The cipher mode (as per mbedtls_cipher_mode_t).
      * For example, MBEDTLS_MODE_CBC.
@@ -294,11 +295,10 @@ typedef struct mbedtls_cipher_info_t {
      */
     unsigned int MBEDTLS_PRIVATE(key_bitlen) : 4;
 
-    /** IV or nonce size, in Bytes.
-     * For ciphers that accept variable IV sizes,
-     * this is the recommended size.
+    /** Full cipher identifier (as per mbedtls_cipher_type_t).
+     * For example, MBEDTLS_CIPHER_AES_256_CBC.
      */
-    unsigned int MBEDTLS_PRIVATE(iv_size) : 3;
+    unsigned int MBEDTLS_PRIVATE(type) : 8; // only need 7 bits, but it retains byte alignment
 
     /** Bitflag comprised of MBEDTLS_CIPHER_VARIABLE_IV_LEN and
      *  MBEDTLS_CIPHER_VARIABLE_KEY_LEN indicating whether the
@@ -306,8 +306,8 @@ typedef struct mbedtls_cipher_info_t {
      */
     unsigned int MBEDTLS_PRIVATE(flags) : 2;
 
-    /** The block size, in bytes. */
-    unsigned int MBEDTLS_PRIVATE(block_size) : 2;
+    /** Index to LUT for base cipher information and functions. */
+    unsigned int MBEDTLS_PRIVATE(base_idx) : 5;
 
 } mbedtls_cipher_info_t;
 
@@ -315,7 +315,6 @@ typedef struct mbedtls_cipher_info_t {
  * These are used to more compactly represent the fields above. */
 #define MBEDTLS_KEY_BITLEN_SHIFT  6
 #define MBEDTLS_IV_SIZE_SHIFT     2
-#define MBEDTLS_CIPHER_BLOCK_SIZE_UNPACK(n) (n == 0 ? 1 : (n == 1 ? 8 : 16))
 /**
  * Generic cipher context.
  */
@@ -548,8 +547,7 @@ static inline size_t mbedtls_cipher_info_get_block_size(
         return 0;
     }
 
-    int packed = info->MBEDTLS_PRIVATE(block_size);
-    return (size_t) (MBEDTLS_CIPHER_BLOCK_SIZE_UNPACK(packed));
+    return (size_t) (info->MBEDTLS_PRIVATE(block_size));
 }
 
 /**
@@ -690,8 +688,7 @@ static inline unsigned int mbedtls_cipher_get_block_size(
         return 0;
     }
 
-    int packed = ctx->MBEDTLS_PRIVATE(cipher_info)->MBEDTLS_PRIVATE(block_size);
-    return (unsigned int) MBEDTLS_CIPHER_BLOCK_SIZE_UNPACK(packed);
+    return (unsigned int) ctx->MBEDTLS_PRIVATE(cipher_info)->MBEDTLS_PRIVATE(block_size);
 }
 
 /**

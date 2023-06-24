@@ -70,23 +70,59 @@
 
 #include "mbedtls/platform.h"
 
-#define MBEDTLS_CIPHER_BASE_INDEX_AES 0
-#define MBEDTLS_CIPHER_BASE_INDEX_ARIA 1
-#define MBEDTLS_CIPHER_BASE_INDEX_CAMELLIA 2
-#define MBEDTLS_CIPHER_BASE_INDEX_CCM_AES 3
-#define MBEDTLS_CIPHER_BASE_INDEX_CCM_ARIA 4
-#define MBEDTLS_CIPHER_BASE_INDEX_CCM_CAMELLIA 5
-#define MBEDTLS_CIPHER_BASE_INDEX_CHACHA20_BASE 6
-#define MBEDTLS_CIPHER_BASE_INDEX_CHACHAPOLY_BASE 7
-#define MBEDTLS_CIPHER_BASE_INDEX_DES_EDE3 8
-#define MBEDTLS_CIPHER_BASE_INDEX_DES_EDE 9
-#define MBEDTLS_CIPHER_BASE_INDEX_DES 10
-#define MBEDTLS_CIPHER_BASE_INDEX_GCM_AES 11
-#define MBEDTLS_CIPHER_BASE_INDEX_GCM_ARIA 12
-#define MBEDTLS_CIPHER_BASE_INDEX_GCM_CAMELLIA 13
-#define MBEDTLS_CIPHER_BASE_INDEX_KW_AES 14
-#define MBEDTLS_CIPHER_BASE_INDEX_NULL_BASE 15
-#define MBEDTLS_CIPHER_BASE_INDEX_XTS_AES 16
+enum mbedtls_cipher_base_index {
+#if defined(MBEDTLS_AES_C)
+    MBEDTLS_CIPHER_BASE_INDEX_AES,
+#endif
+#if defined(MBEDTLS_ARIA_C)
+    MBEDTLS_CIPHER_BASE_INDEX_ARIA,
+#endif
+#if defined(MBEDTLS_CAMELLIA_C)
+    MBEDTLS_CIPHER_BASE_INDEX_CAMELLIA,
+#endif
+#if defined(MBEDTLS_CCM_C) && defined(MBEDTLS_AES_C)
+    MBEDTLS_CIPHER_BASE_INDEX_CCM_AES,
+#endif
+#if defined(MBEDTLS_CCM_C) && defined(MBEDTLS_ARIA_C)
+    MBEDTLS_CIPHER_BASE_INDEX_CCM_ARIA,
+#endif
+#if defined(MBEDTLS_CCM_C) && defined(MBEDTLS_CAMELLIA_C)
+    MBEDTLS_CIPHER_BASE_INDEX_CCM_CAMELLIA,
+#endif
+#if defined(MBEDTLS_CHACHA20_C)
+    MBEDTLS_CIPHER_BASE_INDEX_CHACHA20_BASE,
+#endif
+#if defined(MBEDTLS_CHACHAPOLY_C)
+    MBEDTLS_CIPHER_BASE_INDEX_CHACHAPOLY_BASE,
+#endif
+#if defined(MBEDTLS_DES_C)
+    MBEDTLS_CIPHER_BASE_INDEX_DES_EDE3,
+#endif
+#if defined(MBEDTLS_DES_C)
+    MBEDTLS_CIPHER_BASE_INDEX_DES_EDE,
+#endif
+#if defined(MBEDTLS_DES_C)
+    MBEDTLS_CIPHER_BASE_INDEX_DES,
+#endif
+#if defined(MBEDTLS_GCM_C) && defined(MBEDTLS_AES_C)
+    MBEDTLS_CIPHER_BASE_INDEX_GCM_AES,
+#endif
+#if defined(MBEDTLS_GCM_C) && defined(MBEDTLS_ARIA_C)
+    MBEDTLS_CIPHER_BASE_INDEX_GCM_ARIA,
+#endif
+#if defined(MBEDTLS_GCM_C) && defined(MBEDTLS_CAMELLIA_C)
+    MBEDTLS_CIPHER_BASE_INDEX_GCM_CAMELLIA,
+#endif
+#if defined(MBEDTLS_NIST_KW_C)
+    MBEDTLS_CIPHER_BASE_INDEX_KW_AES,
+#endif
+#if defined(MBEDTLS_CIPHER_NULL_CIPHER)
+    MBEDTLS_CIPHER_BASE_INDEX_NULL_BASE,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_XTS) && defined(MBEDTLS_AES_C)
+    MBEDTLS_CIPHER_BASE_INDEX_XTS_AES
+#endif
+};
 
 #if defined(MBEDTLS_GCM_C)
 /* shared by all GCM ciphers */
@@ -2297,89 +2333,55 @@ int mbedtls_cipher_supported[NUM_CIPHERS];
 
 const mbedtls_cipher_base_t *mbedtls_cipher_base_lookup_table[] = {
 #if defined(MBEDTLS_AES_C)
-    &aes_info,
-#else
-    NULL,
+    [MBEDTLS_CIPHER_BASE_INDEX_AES] = &aes_info,
 #endif
 #if defined(MBEDTLS_ARIA_C)
-    &aria_info,
-#else
-    NULL,
+    [MBEDTLS_CIPHER_BASE_INDEX_ARIA] = &aria_info,
 #endif
 #if defined(MBEDTLS_CAMELLIA_C)
-    &camellia_info,
-#else
-    NULL,
+    [MBEDTLS_CIPHER_BASE_INDEX_CAMELLIA] = &camellia_info,
 #endif
 #if defined(MBEDTLS_CCM_C) && defined(MBEDTLS_AES_C)
-    &ccm_aes_info,
-#else
-    NULL,
+    [MBEDTLS_CIPHER_BASE_INDEX_CCM_AES] = &ccm_aes_info,
 #endif
 #if defined(MBEDTLS_CCM_C) && defined(MBEDTLS_ARIA_C)
-    &ccm_aria_info,
-#else
-    NULL,
+    [MBEDTLS_CIPHER_BASE_INDEX_CCM_ARIA] = &ccm_aria_info,
 #endif
 #if defined(MBEDTLS_CCM_C) && defined(MBEDTLS_CAMELLIA_C)
-    &ccm_camellia_info,
-#else
-    NULL,
+    [MBEDTLS_CIPHER_BASE_INDEX_CCM_CAMELLIA] = &ccm_camellia_info,
 #endif
 #if defined(MBEDTLS_CHACHA20_C)
-    &chacha20_base_info,
-#else
-    NULL,
+    [MBEDTLS_CIPHER_BASE_INDEX_CHACHA20_BASE] = &chacha20_base_info,
 #endif
 #if defined(MBEDTLS_CHACHAPOLY_C)
-    &chachapoly_base_info,
-#else
-    NULL,
+    [MBEDTLS_CIPHER_BASE_INDEX_CHACHAPOLY_BASE] = &chachapoly_base_info,
 #endif
 #if defined(MBEDTLS_DES_C)
-    &des_ede3_info,
-#else
-    NULL,
+    [MBEDTLS_CIPHER_BASE_INDEX_DES_EDE3] = &des_ede3_info,
 #endif
 #if defined(MBEDTLS_DES_C)
-    &des_ede_info,
-#else
-    NULL,
+    [MBEDTLS_CIPHER_BASE_INDEX_DES_EDE] = &des_ede_info,
 #endif
 #if defined(MBEDTLS_DES_C)
-    &des_info,
-#else
-    NULL,
+    [MBEDTLS_CIPHER_BASE_INDEX_DES] = &des_info,
 #endif
 #if defined(MBEDTLS_GCM_C) && defined(MBEDTLS_AES_C)
-    &gcm_aes_info,
-#else
-    NULL,
+    [MBEDTLS_CIPHER_BASE_INDEX_GCM_AES] = &gcm_aes_info,
 #endif
 #if defined(MBEDTLS_GCM_C) && defined(MBEDTLS_ARIA_C)
-    &gcm_aria_info,
-#else
-    NULL,
+    [MBEDTLS_CIPHER_BASE_INDEX_GCM_ARIA] = &gcm_aria_info,
 #endif
 #if defined(MBEDTLS_GCM_C) && defined(MBEDTLS_CAMELLIA_C)
-    &gcm_camellia_info,
-#else
-    NULL,
+    [MBEDTLS_CIPHER_BASE_INDEX_GCM_CAMELLIA] = &gcm_camellia_info,
 #endif
 #if defined(MBEDTLS_NIST_KW_C)
-    &kw_aes_info,
-#else
-    NULL,
+    [MBEDTLS_CIPHER_BASE_INDEX_KW_AES] = &kw_aes_info,
 #endif
 #if defined(MBEDTLS_CIPHER_NULL_CIPHER)
-    &null_base_info,
-#else
-    NULL,
+    [MBEDTLS_CIPHER_BASE_INDEX_NULL_BASE] = &null_base_info,
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_XTS) && defined(MBEDTLS_AES_C)
-    &xts_aes_info,
-#else
-    NULL,
+    [MBEDTLS_CIPHER_BASE_INDEX_XTS_AES] = &xts_aes_info
 #endif
 };
 

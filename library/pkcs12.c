@@ -155,7 +155,7 @@ int mbedtls_pkcs12_pbe(mbedtls_asn1_buf *pbe_params, int mode,
 
     if ((ret = pkcs12_pbe_derive_key_iv(pbe_params, md_type, pwd, pwdlen,
                                         key, keylen,
-                                        iv, cipher_info->iv_size)) != 0) {
+                                        iv, mbedtls_cipher_info_get_iv_size(cipher_info))) != 0) {
         return ret;
     }
 
@@ -171,7 +171,7 @@ int mbedtls_pkcs12_pbe(mbedtls_asn1_buf *pbe_params, int mode,
         goto exit;
     }
 
-    if ((ret = mbedtls_cipher_set_iv(&cipher_ctx, iv, cipher_info->iv_size)) != 0) {
+    if ((ret = mbedtls_cipher_set_iv(&cipher_ctx, iv, mbedtls_cipher_info_get_iv_size(cipher_info))) != 0) {
         goto exit;
     }
 

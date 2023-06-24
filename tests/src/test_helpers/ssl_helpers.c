@@ -1142,7 +1142,7 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
     /* Pick cipher */
     cipher_info = mbedtls_cipher_info_from_type(cipher_type);
     CHK(cipher_info != NULL);
-    CHK(cipher_info->iv_size <= 16);
+    CHK(mbedtls_cipher_info_get_iv_size(cipher_info) <= 16);
     CHK(mbedtls_cipher_info_get_key_bitlen(cipher_info) % 8 == 0);
 
     /* Pick keys */
@@ -1273,7 +1273,7 @@ int mbedtls_test_ssl_build_transforms(mbedtls_ssl_transform *t_in,
 
     /* Pick IV's (regardless of whether they
      * are being used by the transform). */
-    ivlen = cipher_info->iv_size;
+    ivlen = mbedtls_cipher_info_get_iv_size(cipher_info);
     memset(iv_enc, 0x3, sizeof(iv_enc));
     memset(iv_dec, 0x4, sizeof(iv_dec));
 

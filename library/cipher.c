@@ -375,7 +375,7 @@ int mbedtls_cipher_set_iv(mbedtls_cipher_context_t *ctx,
     if ((ctx->cipher_info->flags & MBEDTLS_CIPHER_VARIABLE_IV_LEN) != 0) {
         actual_iv_size = iv_len;
     } else {
-        actual_iv_size = ctx->cipher_info->iv_size;
+        actual_iv_size = mbedtls_cipher_info_get_iv_size(ctx->cipher_info);
 
         /* avoid reading past the end of input buffer */
         if (actual_iv_size > iv_len) {
@@ -1363,7 +1363,7 @@ static int mbedtls_cipher_aead_encrypt(mbedtls_cipher_context_t *ctx,
 #if defined(MBEDTLS_CHACHAPOLY_C)
     if (MBEDTLS_CIPHER_CHACHA20_POLY1305 == ctx->cipher_info->type) {
         /* ChachaPoly has fixed length nonce and MAC (tag) */
-        if ((iv_len != ctx->cipher_info->iv_size) ||
+        if ((iv_len != mbedtls_cipher_info_get_iv_size(ctx->cipher_info)) ||
             (tag_len != 16U)) {
             return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
         }
@@ -1459,7 +1459,7 @@ static int mbedtls_cipher_aead_decrypt(mbedtls_cipher_context_t *ctx,
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
         /* ChachaPoly has fixed length nonce and MAC (tag) */
-        if ((iv_len != ctx->cipher_info->iv_size) ||
+        if ((iv_len != mbedtls_cipher_info_get_iv_size(ctx->cipher_info)) ||
             (tag_len != 16U)) {
             return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
         }

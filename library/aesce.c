@@ -72,7 +72,7 @@
 #       define MBEDTLS_POP_TARGET_PRAGMA
 #   elif defined(__GNUC__)
 #       pragma GCC push_options
-#       pragma GCC target ("arch=armv8-a+crypto")
+#       pragma GCC target ("+crypto")
 #       define MBEDTLS_POP_TARGET_PRAGMA
 #   elif defined(_MSC_VER)
 #       error "Required feature(__ARM_FEATURE_AES) is not enabled."

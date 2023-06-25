@@ -1439,7 +1439,7 @@ int dummy_ticket_parse(void *p_ticket, mbedtls_ssl_session *session,
         case 6:
             session->start = mbedtls_time(NULL);
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-            session->ticket_age_add -= 1000;
+            session->ticket_age_add -= 2000;
 #endif
             break;
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)

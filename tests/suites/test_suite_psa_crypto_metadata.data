@@ -26,6 +26,22 @@ Hash: SHA-2 SHA-512
 depends_on:PSA_WANT_ALG_SHA_512
 hash_algorithm:PSA_ALG_SHA_512:64
 
+Hash: SHA-3 SHA3-224
+depends_on:PSA_WANT_ALG_SHA_3
+hash_algorithm:PSA_ALG_SHA3_224:28
+
+Hash: SHA-3 SHA3-256
+depends_on:PSA_WANT_ALG_SHA_3
+hash_algorithm:PSA_ALG_SHA3_256:32
+
+Hash: SHA-3 SHA3-384
+depends_on:PSA_WANT_ALG_SHA_3
+hash_algorithm:PSA_ALG_SHA3_384:48
+
+Hash: SHA-3 SHA3-512
+depends_on:PSA_WANT_ALG_SHA_3
+hash_algorithm:PSA_ALG_SHA3_512:64
+
 MAC: HMAC-MD5
 depends_on:PSA_WANT_ALG_HMAC:PSA_WANT_ALG_MD5
 hmac_algorithm:PSA_ALG_HMAC( PSA_ALG_MD5 ):16:64

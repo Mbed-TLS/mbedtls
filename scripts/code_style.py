@@ -74,21 +74,18 @@ def get_src_files(since: Optional[str]) -> List[str]:
     Only C files are included, and certain files (generated, or 3rdparty)
     are excluded.
     """
-    if since is None:
-        git_ls_files_cmd = ["git", "ls-files",
-                            "*.[hc]",
-                            "tests/suites/*.function",
-                            "scripts/data_files/*.fmt"]
-        output = subprocess.check_output(git_ls_files_cmd,
-                                         universal_newlines=True)
-    else:
-        git_ls_files_cmd = ["git", "diff", "--name-only", since, "--",
-                            "*.[hc]",
-                            "tests/suites/*.function",
-                            "scripts/data_files/*.fmt"]
-        output = subprocess.check_output(git_ls_files_cmd,
-                                         universal_newlines=True)
+    file_patterns = ["*.[hc]",
+                     "tests/suites/*.function",
+                     "scripts/data_files/*.fmt"]
+    output = subprocess.check_output(["git", "ls-files"] + file_patterns,
+                                     universal_newlines=True)
     src_files = output.split()
+    if since:
+        output = subprocess.check_output(["git", "diff", "--name-only",
+                                          since, "--"] +
+                                         src_files,
+                                         universal_newlines=True)
+        src_files = output.split()
 
     generated_files = list_generated_files()
     # Don't correct style for third-party files (and, for simplicity,

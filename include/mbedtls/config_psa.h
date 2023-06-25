@@ -113,6 +113,10 @@ extern "C" {
 #define PSA_WANT_ALG_SHA_512 1
 #endif
 
+#if defined(MBEDTLS_SHA3_C)
+#define PSA_WANT_ALG_SHA_3 1
+#endif
+
 
 /****************************************************************/
 /* Require built-in implementations based on PSA requirements */
@@ -268,6 +272,11 @@ extern "C" {
 #if defined(PSA_WANT_ALG_SHA_512) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA_512)
 #define MBEDTLS_PSA_BUILTIN_ALG_SHA_512 1
 #define MBEDTLS_SHA512_C
+#endif
+
+#if defined(PSA_WANT_ALG_SHA_3) && !defined(MBEDTLS_PSA_ACCEL_ALG_SHA_3)
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA_3 1
+#define MBEDTLS_SHA3_C
 #endif
 
 #if defined(PSA_WANT_ALG_PBKDF2_HMAC)
@@ -863,6 +872,11 @@ extern "C" {
 #if defined(MBEDTLS_SHA512_C)
 #define MBEDTLS_PSA_BUILTIN_ALG_SHA_512 1
 #define PSA_WANT_ALG_SHA_512 1
+#endif
+
+#if defined(MBEDTLS_SHA3_C)
+#define MBEDTLS_PSA_BUILTIN_ALG_SHA_3 1
+#define PSA_WANT_ALG_SHA_3 1
 #endif
 
 #if defined(MBEDTLS_AES_C)

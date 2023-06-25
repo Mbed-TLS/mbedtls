@@ -130,18 +130,25 @@ void mbedtls_mpi_mod_raw_mul(mbedtls_mpi_uint *X,
                              const mbedtls_mpi_mod_modulus *N,
                              mbedtls_mpi_uint *T)
 {
-    const size_t T_limbs = (N->limbs * 2);
+    /* Standard (A * B) multiplication stored into pre-allocated T
+     *  buffer of fixed limb size of (2N + 1).
+
+     *  The space may not not fully filled by when
+     *  MBEDTLS_MPI_MOD_REP_OPT_RED is used, with most
+     *  curves using (2N) limbs.
+     *
+     *  The 521-bit Weierstrass curve is the only
+     *  that which requires a limb size of (2N + 1). */
+    const size_t T_limbs = (N->bits == 521) ?
+                           BITS_TO_LIMBS(N->bits * 2) + 1 :
+                           BITS_TO_LIMBS(N->bits * 2);
+
     switch (N->int_rep) {
         case MBEDTLS_MPI_MOD_REP_MONTGOMERY:
             mbedtls_mpi_core_montmul(X, A, B, N->limbs, N->p, N->limbs,
                                      N->rep.mont.mm, T);
             break;
         case MBEDTLS_MPI_MOD_REP_OPT_RED:
-            /* Standard (A * B) multiplication stored into pre-allocated T
-             *  buffer of fixed size of ((2N + 1) * ciL) bytes.
-
-             *  The space is not fully filled by MBEDTLS_MPI_MOD_REP_OPT_RED
-             *  which requires at max (2N * ciL) bytes. */
             mbedtls_mpi_core_mul(T, A, N->limbs, B, N->limbs);
 
             /* Optimised Reduction */

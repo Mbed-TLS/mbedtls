@@ -83,9 +83,9 @@ typedef struct {
         mbedtls_sha512_context sha512;
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_224) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_256) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_384) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_512)
+        defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_256) || \
+        defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_384) || \
+        defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_512)
         mbedtls_sha3_context sha3;
 #endif
     } MBEDTLS_PRIVATE(ctx);

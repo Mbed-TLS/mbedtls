@@ -87,9 +87,9 @@ psa_status_t mbedtls_psa_hash_abort(
         case PSA_ALG_SHA3_512:
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_224) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_256) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_384) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_512)
+            defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_256) || \
+            defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_384) || \
+            defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_512)
             mbedtls_sha3_free(&operation->ctx.sha3);
             break;
 #endif
@@ -253,9 +253,9 @@ psa_status_t mbedtls_psa_hash_clone(
         case PSA_ALG_SHA3_512:
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_224) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_256) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_384) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_512)
+            defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_256) || \
+            defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_384) || \
+            defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_512)
             mbedtls_sha3_clone(&target_operation->ctx.sha3,
                                &source_operation->ctx.sha3);
             break;
@@ -336,9 +336,9 @@ psa_status_t mbedtls_psa_hash_update(
     defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_256) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_384) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_512)
-            ret = mbedtls_sha3_update(&operation->ctx.sha3,
-                                        input, input_length);
-            break;
+    ret = mbedtls_sha3_update(&operation->ctx.sha3,
+                              input, input_length);
+    break;
 #endif
         default:
             (void) input;
@@ -426,8 +426,8 @@ psa_status_t mbedtls_psa_hash_finish(
     defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_256) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_384) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_512)
-            ret = mbedtls_sha3_finish(&operation->ctx.sha3, hash, hash_size);
-            break;
+    ret = mbedtls_sha3_finish(&operation->ctx.sha3, hash, hash_size);
+    break;
 #endif
         default:
             (void) hash;

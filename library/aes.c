@@ -364,7 +364,8 @@ static int aes_init_done = 0;
 
 static void aes_gen_tables(void)
 {
-    int i, x, y, z;
+    int i;
+    uint8_t x, y, z;
     uint8_t pow[256];
     uint8_t log[256];
 
@@ -372,17 +373,17 @@ static void aes_gen_tables(void)
      * compute pow and log tables over GF(2^8)
      */
     for (i = 0, x = 1; i < 256; i++) {
-        pow[i] = (uint8_t) x;
+        pow[i] = x;
         log[x] = (uint8_t) i;
-        x = MBEDTLS_BYTE_0(x ^ XTIME(x));
+        x ^= XTIME(x);
     }
 
     /*
      * calculate the round constants
      */
     for (i = 0, x = 1; i < 10; i++) {
-        RCON[i] = (uint32_t) x;
-        x = MBEDTLS_BYTE_0(XTIME(x));
+        RCON[i] = x;
+        x = XTIME(x);
     }
 
     /*
@@ -394,13 +395,13 @@ static void aes_gen_tables(void)
     for (i = 1; i < 256; i++) {
         x = pow[255 - log[i]];
 
-        y  = x; y = MBEDTLS_BYTE_0((y << 1) | (y >> 7));
-        x ^= y; y = MBEDTLS_BYTE_0((y << 1) | (y >> 7));
-        x ^= y; y = MBEDTLS_BYTE_0((y << 1) | (y >> 7));
-        x ^= y; y = MBEDTLS_BYTE_0((y << 1) | (y >> 7));
+        y  = x; y = (y << 1) | (y >> 7);
+        x ^= y; y = (y << 1) | (y >> 7);
+        x ^= y; y = (y << 1) | (y >> 7);
+        x ^= y; y = (y << 1) | (y >> 7);
         x ^= y ^ 0x63;
 
-        FSb[i] = (unsigned char) x;
+        FSb[i] = x;
         RSb[x] = (unsigned char) i;
     }
 
@@ -409,8 +410,8 @@ static void aes_gen_tables(void)
      */
     for (i = 0; i < 256; i++) {
         x = FSb[i];
-        y = MBEDTLS_BYTE_0(XTIME(x));
-        z = MBEDTLS_BYTE_0(y ^ x);
+        y = XTIME(x);
+        z = y ^ x;
 
         FT0[i] = ((uint32_t) y) ^
                  ((uint32_t) x <<  8) ^

@@ -161,9 +161,12 @@ pre_initialize_variables () {
 
     # Gather the list of available components. These are the functions
     # defined in this script whose name starts with "component_".
-    # Parse the script with sed. This way we get the functions in the order
-    # they are defined.
-    ALL_COMPONENTS=$(sed -n 's/^ *component_\([0-9A-Z_a-z]*\) *().*/\1/p' <"$0")
+    # Parse the script with sed.
+    #
+    # This script is interpreted by `bash` and `declare -F` is supported,
+    # functions defined in other files can be detected with `declare -F`
+    ALL_COMPONENTS=$(declare -F | \
+        sed -n 's/^declare\ -f\ component_\([0-9A-Z_a-z]*\)$/\1/p')
     # This file only includes `test_faketime_*`
     for component in $ALL_COMPONENTS; do
         case $component in

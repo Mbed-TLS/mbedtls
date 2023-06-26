@@ -1741,7 +1741,7 @@ int main(int argc, char *argv[])
     opt.key2_opaque_alg1   = DFL_KEY_OPAQUE_ALG;
     opt.key2_opaque_alg2   = DFL_KEY_OPAQUE_ALG;
 
-    if (argc < 2) {
+    if (argc < 1) {
 usage:
         if (ret == 0) {
             ret = 1;

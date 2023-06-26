@@ -839,7 +839,7 @@ int main(int argc, char *argv[])
     opt.force_srtp_profile  = DFL_SRTP_FORCE_PROFILE;
     opt.mki                 = DFL_SRTP_MKI;
 
-    if (argc < 2) {
+    if (argc < 1) {
 usage:
         if (ret == 0) {
             ret = 1;

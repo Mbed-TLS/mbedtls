@@ -609,9 +609,8 @@ static int ssl_write_client_hello_body(mbedtls_ssl_context *ssl,
     }
 #endif
 
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) || \
-    (defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(PSA_WANT_ALG_FFDH))
+#if defined(MBEDTLS_SSL_TLS1_2_SOME_ECC) || \
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED)
     if (
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
         (propose_tls13 &&
@@ -627,9 +626,8 @@ static int ssl_write_client_hello_body(mbedtls_ssl_context *ssl,
         }
         p += output_len;
     }
-#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
-          MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED ||
-          (MBEDTLS_SSL_PROTO_TLS1_3 && PSA_WANT_ALG_FFDH) */
+#endif /* MBEDTLS_SSL_TLS1_2_SOME_ECC ||
+          MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_EPHEMERAL_ENABLED */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
     if (

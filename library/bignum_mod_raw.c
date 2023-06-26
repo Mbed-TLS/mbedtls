@@ -154,7 +154,7 @@ void mbedtls_mpi_mod_raw_mul(mbedtls_mpi_uint *X,
             /* Optimised Reduction */
             (*N->rep.ored.modp)(T, T_limbs);
 
-            /* Convert back to cannonical representation */
+            /* Convert back to canonical representation */
             mbedtls_mpi_mod_raw_fix_quasi_reduction(T, N);
             memcpy(X, T, N->limbs * sizeof(mbedtls_mpi_uint));
             break;

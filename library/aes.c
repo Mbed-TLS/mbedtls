@@ -365,15 +365,15 @@ static int aes_init_done = 0;
 static void aes_gen_tables(void)
 {
     int i, x, y, z;
-    int pow[256];
-    int log[256];
+    uint8_t pow[256];
+    uint8_t log[256];
 
     /*
      * compute pow and log tables over GF(2^8)
      */
     for (i = 0, x = 1; i < 256; i++) {
-        pow[i] = x;
-        log[x] = i;
+        pow[i] = (uint8_t) x;
+        log[x] = (uint8_t) i;
         x = MBEDTLS_BYTE_0(x ^ XTIME(x));
     }
 
